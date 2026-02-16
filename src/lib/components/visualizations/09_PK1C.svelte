@@ -1,6 +1,10 @@
 <script>
   import Slider from '$lib/components/ui/Slider.svelte';
   import { concMono, halfLifeFromClV, aucTrap } from '$lib/utils/math';
+  import ChartFrame from '$lib/charts/ChartFrame.svelte';
+  import Axis from '$lib/charts/Axis.svelte';
+  import { scaleLinear } from 'd3-scale';
+  import { paddedDomain } from '$lib/charts/domain';
 
   let dose = 150;
   let v = 25;
@@ -11,6 +15,8 @@
   $: cmax = (dose / v).toFixed(2);
   $: auc = aucTrap(curve).toFixed(2);
   $: half = halfLifeFromClV(cl, v).toFixed(2);
+  $: xScale = scaleLinear().domain([0, Math.max(...times)]).range([0, 300]);
+  $: yScale = scaleLinear().domain(paddedDomain(curve.map((p) => p.c), 0.2)).range([160, 0]);
 </script>
 
 <div class="pk1c">
@@ -24,16 +30,20 @@
       <div>t½ {half} h</div>
     </div>
   </div>
-  <svg viewBox="0 0 360 200">
-    <line x1="30" y1="170" x2="330" y2="170" stroke="#0f172a" />
-    <line x1="30" y1="20" x2="30" y2="170" stroke="#0f172a" />
-    <polyline
-      fill="none"
-      stroke="#2563eb"
-      stroke-width="3"
-      points={curve.map((p) => `${30 + p.t * 12},${170 - p.c * 12}`).join(' ')}
-    ></polyline>
-  </svg>
+  <ChartFrame width={380} height={240} margin={{ top: 16, right: 14, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+    <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+      <polyline
+        fill="none"
+        stroke="#2563eb"
+        stroke-width="3"
+        points={curve.map((p) => `${xScale(p.t)},${yScale(p.c)}`).join(' ')}
+      />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <g transform={`translate(-8,0)`}>
+        <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
+      </g>
+    </svelte:fragment>
+  </ChartFrame>
 </div>
 
 <style>
@@ -49,10 +59,5 @@
     gap: 6px;
     font-weight: 700;
     color: #0f172a;
-  }
-  svg {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
   }
 </style>

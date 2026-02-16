@@ -12,7 +12,7 @@
     {/each}
   </div>
   <div class="llh">
-    <div class="label">Log-likelihood</div>
+    <div class="label">Log-vraisemblance</div>
     <div class="bar">
       <div class="fill" style={`width:${bar[idx]}%`}></div>
     </div>

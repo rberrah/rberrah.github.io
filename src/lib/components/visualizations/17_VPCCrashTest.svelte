@@ -1,5 +1,9 @@
 <script>
   import { percentile } from '$lib/utils/math';
+  import ChartFrame from '$lib/charts/ChartFrame.svelte';
+  import Axis from '$lib/charts/Axis.svelte';
+  import { scaleLinear } from 'd3-scale';
+  import { paddedDomain } from '$lib/charts/domain';
 
   const obs = [
     { t: 0, c: 0 },
@@ -27,6 +31,9 @@
       p95: percentile(vals, 95)
     };
   });
+
+  $: xScale = scaleLinear().domain([0, Math.max(...obs.map((o) => o.t))]).range([0, 300]);
+  $: yScale = scaleLinear().domain(paddedDomain([...bands.map((b) => b.p95), ...obs.map((o) => o.c)], 0.2)).range([160, 0]);
 </script>
 
 <div class="vpc">
@@ -34,27 +41,31 @@
     <label>Bins <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
     <span>{bins} bins</span>
   </div>
-  <svg viewBox="0 0 320 180">
-    <line x1="30" y1="150" x2="300" y2="150" stroke="#0f172a" />
-    <line x1="30" y1="20" x2="30" y2="150" stroke="#0f172a" />
-    <polygon
-      fill="rgba(59,130,246,0.15)"
-      stroke="none"
-      points={`${bands.map((d) => `${30 + d.t * 20},${150 - d.p95 * 10}`).join(' ')} ${[...bands]
-        .reverse()
-        .map((d) => `${30 + d.t * 20},${150 - d.p5 * 10}`)
-        .join(' ')}`}
-    ></polygon>
-    <polyline
-      fill="none"
-      stroke="#2563eb"
-      stroke-width="2.5"
-      points={bands.map((d) => `${30 + d.t * 20},${150 - d.p50 * 10}`).join(' ')}
-    ></polyline>
-    {#each obs as p}
-      <circle cx={30 + p.t * 20} cy={150 - p.c * 10} r="4" fill="#ef4444"></circle>
-    {/each}
-  </svg>
+  <ChartFrame width={360} height={220} margin={{ top: 16, right: 12, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+    <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+      <polygon
+        fill="rgba(59,130,246,0.15)"
+        stroke="none"
+        points={`${bands.map((d) => `${xScale(d.t)},${yScale(d.p95)}`).join(' ')} ${[...bands]
+          .reverse()
+          .map((d) => `${xScale(d.t)},${yScale(d.p5)}`)
+          .join(' ')}`}
+      />
+      <polyline
+        fill="none"
+        stroke="#2563eb"
+        stroke-width="2.5"
+        points={bands.map((d) => `${xScale(d.t)},${yScale(d.p50)}`).join(' ')}
+      />
+      {#each obs as p}
+        <circle cx={xScale(p.t)} cy={yScale(p.c)} r="4" fill="#ef4444" />
+      {/each}
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <g transform={`translate(-8,0)`}>
+        <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
+      </g>
+    </svelte:fragment>
+  </ChartFrame>
 </div>
 
 <style>
@@ -67,11 +78,5 @@
     gap: 8px;
     align-items: center;
     font-weight: 700;
-  }
-  svg {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: #fff;
   }
 </style>

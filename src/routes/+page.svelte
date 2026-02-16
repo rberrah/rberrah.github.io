@@ -13,7 +13,7 @@
       Inspiré du deck “Pharmacométrie Pratique”, enrichi pour un lecteur néophyte.
     </p>
     <div class="cta-row">
-      <a class="cta primary" href={`${base}/chapitres/intro-pk-pd`}>Commencer</a>
+      <a class="cta primary" href={`${base}/chapitres/introduction-variabilite`}>Commencer</a>
       <a class="cta ghost" href={`${base}/playground`}>Playground PK/PD</a>
     </div>
   </div>

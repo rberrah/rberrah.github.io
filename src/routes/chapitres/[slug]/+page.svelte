@@ -2,6 +2,8 @@
   import chapters from '$lib/content/chapters';
   import Scrolly from '$lib/components/Scrolly.svelte';
   import Quiz from '$lib/components/ui/Quiz.svelte';
+  import SlideImage from '$lib/components/SlideImage.svelte';
+  import MathBlock from '$lib/components/MathBlock.svelte';
   import { onMount } from 'svelte';
   import { error } from '@sveltejs/kit';
 
@@ -11,6 +13,7 @@
   /** @type {import('$lib/content/chapters').Chapter | undefined} */
   let chapter = chapters.find((c) => c.slug === params.slug);
   let stepIndex = 0;
+  $: currentViz = chapter?.steps?.[stepIndex]?.viz;
 
   /** @type {Record<string, any>} */
   let vizComponents = {};
@@ -52,14 +55,22 @@
   <h1>{chapter.title}</h1>
   <p class="summary">{chapter.summary}</p>
 
+  {#if chapter.slides?.length}
+    <div class="slides">
+      {#each chapter.slides as s}
+        <SlideImage n={s} alt={`Slide ${s}`} caption={`Slide ${s}`} />
+      {/each}
+    </div>
+  {/if}
+
   <Scrolly
     steps={chapter.steps.map((s, i) => ({ id: String(i), title: s.title, content: s.body }))}
     on:enter={(e) => (stepIndex = Number(e.detail.id))}
   >
     <svelte:fragment slot="viz">
-      {#if chapter.steps[stepIndex]}
-        {#if vizComponents[chapter.steps[stepIndex].viz]}
-          <svelte:component this={vizComponents[chapter.steps[stepIndex].viz]} />
+      {#if currentViz}
+        {#if vizComponents && vizComponents[currentViz]}
+          <svelte:component this={vizComponents[currentViz]} />
         {:else}
           <p>Chargement…</p>
         {/if}
@@ -70,6 +81,14 @@
   <div class="quiz">
     <Quiz title="Mini-quiz" questions={chapter.quiz} />
   </div>
+
+  {#if chapter.formulas?.length}
+    <div class="maths">
+      {#each chapter.formulas as f}
+        <MathBlock tex={f} />
+      {/each}
+    </div>
+  {/if}
 </article>
 
 <style>
@@ -80,7 +99,16 @@
   .summary {
     color: #334155;
   }
+  .slides {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
   .quiz {
     margin-top: 16px;
+  }
+  .maths {
+    display: grid;
+    gap: 8px;
   }
 </style>

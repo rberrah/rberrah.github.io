@@ -1,5 +1,10 @@
 <script>
-  const basePoints = [
+  import ChartFrame from '$lib/charts/ChartFrame.svelte';
+  import Axis from '$lib/charts/Axis.svelte';
+  import { scaleLinear } from 'd3-scale';
+  import { paddedDomain } from '$lib/charts/domain';
+
+  const base = [
     { t: 0, c: 0 },
     { t: 2, c: 9 },
     { t: 4, c: 7.5 },
@@ -7,6 +12,7 @@
     { t: 8, c: 6.2 },
     { t: 12, c: 5.4 }
   ];
+
   let mode = 'none';
 
   /** @param {{t:number,c:number}} p */
@@ -16,7 +22,12 @@
     return p.c * (1 + 0.12 * (Math.random() - 0.5)) + 0.1 * (Math.random() - 0.5);
   };
 
-  $: points = basePoints.map((p) => ({ ...p, c: jittered(p) }));
+  $: points = base.map((p) => ({ ...p, dv: Math.max(0, jittered(p)) }));
+
+  $: xScale = scaleLinear().domain([0, Math.max(...base.map((p) => p.t))]).range([0, 300]);
+  $: yScale = scaleLinear()
+    .domain(paddedDomain([...points.map((p) => p.dv), ...base.map((p) => p.c)], 0.2))
+    .range([160, 0]);
 </script>
 
 <div class="res">
@@ -25,19 +36,23 @@
     <button class:active={mode === 'low'} on:click={() => (mode = 'low')}>Faible</button>
     <button class:active={mode === 'high'} on:click={() => (mode = 'high')}>Forte</button>
   </div>
-  <svg viewBox="0 0 320 180">
-    <line x1="30" y1="150" x2="300" y2="150" stroke="#0f172a" />
-    <line x1="30" y1="20" x2="30" y2="150" stroke="#0f172a" />
-    <polyline
-      fill="none"
-      stroke="#2563eb"
-      stroke-width="3"
-      points={basePoints.map((p) => `${30 + p.t * 20},${150 - p.c * 10}`).join(' ')}
-    ></polyline>
-    {#each points as p}
-      <circle cx={30 + p.t * 20} cy={150 - p.c * 10} r="4" fill="#ef4444"></circle>
-    {/each}
-  </svg>
+  <ChartFrame width={360} height={220} margin={{ top: 16, right: 12, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+    <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+      <polyline
+        fill="none"
+        stroke="#2563eb"
+        stroke-width="3"
+        points={base.map((p) => `${xScale(p.t)},${yScale(p.c)}`).join(' ')}
+      />
+      {#each points as p}
+        <circle cx={xScale(p.t)} cy={yScale(p.dv)} r="4" fill="#ef4444" />
+      {/each}
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <g transform={`translate(-8,0)`}>
+        <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
+      </g>
+    </svelte:fragment>
+  </ChartFrame>
 </div>
 
 <style>
@@ -60,10 +75,5 @@
     background: #2563eb;
     color: #fff;
     border-color: #2563eb;
-  }
-  svg {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
   }
 </style>

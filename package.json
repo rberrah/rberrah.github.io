@@ -26,6 +26,7 @@
 		"d3-scale": "^4.0.2",
 		"d3-selection": "^3.0.0",
 		"d3-shape": "^3.2.0",
+		"katex": "^0.16.28",
 		"layercake": "^10.0.2",
 		"svelte-scroller": "^1.2.2"
 	}

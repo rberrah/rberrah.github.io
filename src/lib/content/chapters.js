@@ -1,163 +1,194 @@
+/** @type {import("./chapters.d").Chapter[]} */
 const chapters = [
   {
-    slug: 'intro-pk-pd',
-    title: 'Introduction PK/PD et variabilitÃ©',
-    tag: 'Chapitre 1',
-    summary: 'Pourquoi la pharmacomÃ©trie, PK vs PD, variabilitÃ© inter/intra.',
+    slug: 'introduction-variabilite',
+    title: 'Introduction : PK vs PD et variabilité',
+    tag: 'Chapitre 0',
+    summary: 'PK (exposition) vs PD (réponse), pourquoi la variabilité impose des modèles.',
+    slides: [1, 2, 3],
+    formulas: ['AUC = \\int C(t) dt', 'CL = Dose / AUC'],
     steps: [
-      {
-        title: 'PK vs PD',
-        body:
-          'PK (exposition) : AUC, Cmax, CL, V, Ka. PD (rÃ©ponse) : Emax, EC50. VariabilitÃ© inter- et intra-patients => besoin de modÃ¨les.',
-        viz: '01_HumanBody'
-      },
-      {
-        title: 'VariabilitÃ©',
-        body: 'IIV (Î·), IOV (Îº), erreur rÃ©siduelle (Ïƒ). <strong>PiÃ¨ge :</strong> confondre variabilitÃ© intra et erreur analytique.',
-        viz: '12_VariabilitySandbox'
-      },
-      { title: 'Fil rouge tacrolimus', body: 'Cas clinique TDM qui revient plus loin.', viz: '13_ResidualError' }
+      { title: 'PK vs PD', body: 'PK = exposition (AUC, Cmax, CL, V). PD = réponse (Emax, EC50). Variabilité inter/intra.', viz: '01_HumanBody' },
+      { title: 'Variabilité', body: 'IIV (?), IOV (?), erreur résiduelle (s). Piège : ne pas confondre erreur analytique et variabilité.', viz: '12_VariabilitySandbox' },
+      { title: 'Fil rouge tacrolimus', body: 'Cas clinique TDM utilisé tout au long du cours.', viz: '13_ResidualError' }
     ],
     quiz: [
-      { prompt: 'PK dÃ©crit ?', options: ['Ce que fait le corps au mÃ©dicament', 'Ce que fait le mÃ©dicament au corps'], correct: 0 },
-      { prompt: 'PD dÃ©crit ?', options: ['Exposition', 'RÃ©ponse'], correct: 1 }
+      { prompt: 'PK décrit ?', options: ['Ce que fait le corps au médicament', 'Ce que fait le médicament au corps'], correct: 0 },
+      { prompt: 'PD décrit ?', options: ['Exposition', 'Réponse'], correct: 1 }
     ]
   },
   {
+    slug: 'trois-approches',
+    title: 'NCA vs PopPK vs PBPK',
+    tag: 'Chapitre 1',
+    summary: 'Choisir la bonne approche selon données et objectifs.',
+    slides: [3, 6],
+    steps: [
+      { title: 'Comparer', body: 'NCA : descriptif, pas prédictif. PopPK : variabilité + simulation. PBPK : organes, interactions, extrapolation.', viz: '04_ThreeApproaches' }
+    ],
+    quiz: [{ prompt: 'PBPK utile pour ?', options: ['Données riches uniquement', 'Interactions/organe'], correct: 1 }]
+  },
+  {
     slug: 'nca',
-    title: 'NCA et AUC trapezoÃ¯dale',
+    title: 'NCA : AUC, Cmax, Tmax, limites',
     tag: 'Chapitre 2',
-    summary: 'AUC, Cmax, Tmax, forces et limites de la NCA.',
+    summary: 'Trapèzes, richesse d’échantillonnage, pourquoi NCA ne prédit pas.',
+    slides: [4, 5],
+    formulas: ['AUC_{trapèze} = \\sum (C_i + C_{i+1})/2 \cdot \Delta t'],
     steps: [
-      { title: 'AUC trapÃ¨ze', body: 'DiffÃ©rence riche vs sparse.', viz: '08_AUCTrap' }
+      { title: 'AUC trapèze', body: 'Rich vs sparse : impact sur AUC/Cmax/Tmax.', viz: '08_AUCTrap' }
     ],
-    quiz: [{ prompt: 'La NCA prÃ©dit ?', options: ['Oui', 'Non'], correct: 1 }]
+    quiz: [{ prompt: 'NCA prédit un nouveau schéma ?', options: ['Oui', 'Non'], correct: 1 }]
   },
   {
-    slug: 'pk-compartiments-ode',
-    title: 'ModÃ¨les Ã  compartiments et ODE',
+    slug: 'modele-pk-mecanistique',
+    title: 'Modèle PK : empirique vs mécanistique',
     tag: 'Chapitre 3',
-    summary: '1C/2C, CL, V, Q, phases.',
+    summary: 'Pourquoi préférer CL/V interprétables.',
+    slides: [7, 8, 9],
     steps: [
-      { title: '1 compartiment', body: 'Bolus IV, tÂ½, AUC.', viz: '09_PK1C' },
-      { title: '2 compartiments', body: 'Phase de distribution vs Ã©limination.', viz: '10_PK2C' },
-      { title: 'Hydraulique', body: 'Analogie rÃ©servoir/tuyau.', viz: '02_BucketSim' }
+      { title: '1C interprétable', body: 'CL/V définissent la pente et t1/2.', viz: '09_PK1C' },
+      { title: 'Hydraulique', body: 'Réservoir + tuyau pour visualiser CL/V.', viz: '02_BucketSim' }
     ],
-    quiz: [{ prompt: 'La phase rapide reflÃ¨te ?', options: ['Distribution', 'Ã‰limination'], correct: 0 }]
+    formulas: ['C(t)=\\frac{Dose}{V}e^{-k t}', 't_{1/2}=\\ln 2 \cdot V/CL'],
+    quiz: [{ prompt: 'Empirique vs mécanistique ?', options: ['Paramètres biologiques', 'Simple corrélation'], correct: 0 }]
   },
   {
-    slug: 'absorption',
-    title: "Absorption : lag, transit, ordre 0/1",
+    slug: 'ode-compartiments',
+    title: 'ODE et compartiments',
     tag: 'Chapitre 4',
-    summary: 'Ka, lag, transit, ordre zÃ©ro vs un.',
+    summary: 'Flux, équations différentielles, 1C bolus.',
+    slides: [10],
     steps: [
-      {
-        title: 'Formes dâ€™absorption',
-        body:
-          "Ordre 1 : dA_gut/dt = -KaÂ·A_gut ; dA_c/dt = KaÂ·A_gut - (CL/V)Â·A_c. Lag time dÃ©cale l'arrivÃ©e. Ordre 0 : perfusion constante. Transit : compartiments en sÃ©rie.",
-        viz: '11_ADEChooser'
-      }
+      { title: '1C bolus', body: 'dA/dt = -kA, k=CL/V. C(t) visualisée.', viz: '09_PK1C' }
     ],
-    quiz: [{ prompt: 'Ordre 0 =', options: ['Perfusion', 'Diffusion passive'], correct: 0 }]
+    formulas: ['AUC = Dose/CL'],
+    quiz: [{ prompt: 'k = ?', options: ['CL/V', 'V/CL'], correct: 0 }]
   },
   {
-    slug: 'distribution',
-    title: 'Distribution : V1/V2 et Q',
+    slug: 'workflow-identifiabilite',
+    title: 'Workflow modèle & identifiabilité',
     tag: 'Chapitre 5',
-    summary: 'Phases alpha/bÃªta, Q, volumes.',
-    steps: [{ title: 'V1/V2/Q', body: 'Impact sur la pente initiale.', viz: '10_PK2C' }],
-    quiz: [{ prompt: 'Q relie ?', options: ['V1 et V2', 'CL et V'], correct: 0 }]
-  },
-  {
-    slug: 'elimination',
-    title: 'Ã‰limination : clairance et tÂ½',
-    tag: 'Chapitre 6',
-    summary: 'CL, tÂ½, mÃ©tabolites, Michaelis-Menten.',
-    steps: [{ title: 'CL et tÂ½', body: 'Relation ke = CL/V.', viz: '09_PK1C' }],
-    quiz: [{ prompt: 'tÂ½ = ln2 / ?', options: ['ka', 'ke'], correct: 1 }]
-  },
-  {
-    slug: 'poppk-mixed-effects',
-    title: 'PopPK et effets mixtes',
-    tag: 'Chapitre 7',
-    summary: 'Î¸, Î·, IIV/IOV, shrinkage.',
+    summary: 'Structure ? variabilité ? covariables ? validation, prudence données.',
+    slides: [11, 12, 18],
     steps: [
-      {
-        title: 'VariabilitÃ©',
-        body: 'Spaghetti plot, Î·~N(0,Ï‰Â²), Îº pour IOV, Ïƒ pour rÃ©siduel. Shrinkage â†‘ quand donnÃ©es pauvres.',
-        viz: '12_VariabilitySandbox'
-      }
+      { title: 'Étapes', body: 'Structure, variabilité, erreur, covariables, diagnostics.', viz: '15_OFVGame' }
     ],
-    quiz: [{ prompt: 'Shrinkage Ã©levÃ© =>', options: ['Infos riches', 'Infos pauvres'], correct: 1 }]
+    quiz: [{ prompt: '?OFV seuil backward ?', options: ['3.84', '6.63'], correct: 1 }]
+  },
+  {
+    slug: 'adme-structural',
+    title: 'ADME : Absorption, Distribution, Élimination, Métabolisme',
+    tag: 'Chapitre 6',
+    summary: 'Choix des formes d’absorption, distribution, élimination.',
+    slides: [13, 14, 15, 16, 17],
+    steps: [
+      { title: 'Absorption', body: 'Gut ? central, ordre 1 vs 0, lag.', viz: '11_ADEChooser' },
+      { title: 'Distribution 2C', body: 'Phase de distribution vs élimination.', viz: '10_PK2C' }
+    ],
+    quiz: [{ prompt: 'Lag time fait ?', options: ['Décale Tmax', 'Augmente CL'], correct: 0 }]
+  },
+  {
+    slug: 'poppk-variabilite',
+    title: 'PopPK et variabilité',
+    tag: 'Chapitre 7',
+    summary: '?, ?, IIV/IOV, shrinkage.',
+    slides: [20, 21],
+    steps: [
+      { title: 'Variabilité', body: 'Spaghetti + médiane, IIV/IOV, résiduel.', viz: '12_VariabilitySandbox' }
+    ],
+    formulas: ['CL_i = CL_{pop} e^{\eta_i}'],
+    quiz: [{ prompt: 'Shrinkage haut =>', options: ['Infos riches', 'Infos pauvres'], correct: 1 }]
+  },
+  {
+    slug: 'erreur-residuelle',
+    title: 'Erreur résiduelle',
+    tag: 'Chapitre 8',
+    summary: 'Additive, proportionnelle, combinée et impact sur DV.',
+    slides: [23, 24],
+    steps: [{ title: 'DV vs IPRED', body: 'Points bruités vs courbe vraie.', viz: '13_ResidualError' }],
+    quiz: [{ prompt: 'Erreur prop dépend de ?', options: ['Concentration', 'Temps seulement'], correct: 0 }]
   },
   {
     slug: 'covariables',
     title: 'Covariables et OFV',
-    tag: 'Chapitre 8',
-    summary: 'AllomÃ©trie, catÃ©goriels, forward/backward.',
-    steps: [
-      { title: 'AllomÃ©trie', body: 'CL = CLpop (Poids/70)^0.75.', viz: '14_AllometryCentering' },
-      { title: 'OFV', body: 'Seuils 3.84 / 6.63.', viz: '15_OFVGame' }
-    ],
-    quiz: [{ prompt: 'Seuil backward ?', options: ['3.84', '6.63'], correct: 1 }]
-  },
-  {
-    slug: 'estimation',
-    title: 'Estimation (FOCE-I vs SAEM)',
     tag: 'Chapitre 9',
-    summary: 'Intuition des algos, convergence.',
-    steps: [{ title: 'Cycle SAEM', body: 'S â†’ A1 â†’ A2 â†’ M.', viz: '16_SAEMCycle' }],
-    quiz: [{ prompt: 'SAEM : Ã©tape S ?', options: ['Simulation', 'Smoothing'], correct: 0 }]
+    summary: 'Allométrie, forward/backward, pièges.',
+    slides: [26, 27, 28, 29],
+    steps: [
+      { title: 'Allométrie', body: 'CL ~ (WT/70)^0.75 ; V ~ (WT/70)^1.', viz: '14_AllometryCentering' },
+      { title: 'Jeu ?OFV', body: 'Décision p<0.05 / p<0.01.', viz: '15_OFVGame' }
+    ],
+    formulas: ['CL_i = CL_{std}(WT_i/70)^{0.75}'],
+    quiz: [{ prompt: 'Seuil forward ?', options: ['3.84', '6.63'], correct: 0 }]
   },
   {
-    slug: 'diagnostics-validation',
-    title: 'Diagnostics & validation',
+    slug: 'validation-diagnostics',
+    title: 'Validation & diagnostics',
     tag: 'Chapitre 10',
-    summary: 'Obs/Pred, IWRES, VPC, bootstrap, FIM.',
-    steps: [{ title: 'VPC', body: 'Crash test prÃ©dictif.', viz: '17_VPCCrashTest' }],
-    quiz: [{ prompt: 'Si obs sortent des bandes ?', options: ['OK', 'ModÃ¨le Ã  revoir'], correct: 1 }]
+    summary: 'GOF, VPC, bootstrap, shrinkage, FIM.',
+    slides: [31, 48, 49, 50, 51, 52, 53, 54, 55, 56],
+    steps: [
+      { title: 'VPC', body: 'Bandes prédictives vs observations.', viz: '17_VPCCrashTest' },
+      { title: 'SAEM convergence', body: 'Trace paramètres.', viz: '16_SAEMCycle' }
+    ],
+    quiz: [{ prompt: 'Si obs > bande 95%', options: ['OK', 'Modèle insuffisant'], correct: 1 }]
   },
   {
     slug: 'pkpd',
     title: 'PK/PD : effets directs et indirects',
     tag: 'Chapitre 11',
     summary: 'Emax, compartiment effet, turnover.',
-    steps: [{ title: 'Grey box PD', body: 'Termes inconnus corrigÃ©s.', viz: '07_NeuralODE' }],
-    quiz: [{ prompt: 'Compartiment effet sert Ã  ?', options: ['DÃ©caler la rÃ©ponse', 'Augmenter CL'], correct: 0 }]
+    slides: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41],
+    steps: [{ title: 'Grey box PD', body: 'Termes inconnus corrigés.', viz: '07_NeuralODE' }],
+    formulas: ['E = E0 + \\frac{Emax \cdot C}{EC50 + C}'],
+    quiz: [{ prompt: 'Compartiment effet sert à ?', options: ['Décaler la réponse', 'Augmenter CL'], correct: 0 }]
   },
   {
-    slug: 'bayes-tdm',
-    title: 'BayÃ©sien & TDM',
+    slug: 'outils-estimation',
+    title: 'Outils & estimation',
     tag: 'Chapitre 12',
-    summary: 'Prior/mesure â†’ EBE, shrinkage, TDM.',
-    steps: [
-      { title: 'Posterior', body: 'Prior + likelihood.', viz: '05_BayesianFit' },
-      { title: 'EBE et shrinkage', body: 'Influence IIV/Ïƒ.', viz: '18_BayesianShrinkage' }
-    ],
-    quiz: [{ prompt: 'Shrinkage bas =>', options: ['EBE proches prior', 'EBE proches data'], correct: 1 }]
+    summary: 'Format de données, FOCE vs SAEM.',
+    slides: [43, 44, 45, 46, 47],
+    steps: [{ title: 'Cycle SAEM', body: 'S ? A ? M, stochastique vs déterministe.', viz: '16_SAEMCycle' }],
+    quiz: [{ prompt: 'FOCE-I est ?', options: ['Stochastique', 'Déterministe'], correct: 1 }]
   },
   {
-    slug: 'ml-et-hybrides',
-    title: 'ML & hybrides',
+    slug: 'bayes-ebes',
+    title: 'Bayésien, EBEs, shrinkage',
     tag: 'Chapitre 13',
-    summary: 'RF/VSURF, Neural ODE, digital twin.',
+    summary: 'Posterior = prior × likelihood, MAP vs ML, shrinkage.',
+    slides: [57, 58, 59, 60, 61, 62, 63, 64, 65],
     steps: [
-      { title: 'Arbre dÃ©cision', body: 'Chemins cachÃ©s.', viz: '06_DecisionTree' },
-      { title: 'VSURF', body: 'Importance par Ã©tapes.', viz: '19_VSURF' },
+      { title: 'Posterior', body: 'Prior + mesure ? posterior.', viz: '05_BayesianFit' },
+      { title: 'EBE & shrinkage', body: 'Influence IIV/s.', viz: '18_BayesianShrinkage' }
+    ],
+    formulas: ['p(\\theta|y) \propto p(y|\\theta)p(\\theta)'],
+    quiz: [{ prompt: 'Shrinkage bas =>', options: ['EBE ~ prior', 'EBE ~ data'], correct: 1 }]
+  },
+  {
+    slug: 'clustering-ml-hybrides',
+    title: 'Clustering EBEs, ML & hybrides',
+    tag: 'Chapitre 14',
+    summary: 'EBE clustering, VSURF, Neural ODE concept.',
+    slides: [65, 66, 67, 68, 69, 70, 72],
+    steps: [
+      { title: 'Arbre décision', body: 'Chemins cachés.', viz: '06_DecisionTree' },
+      { title: 'VSURF', body: 'Importance par étapes.', viz: '19_VSURF' },
       { title: 'Neural box', body: 'White/grey/black.', viz: '20_NeuralBox' }
     ],
     quiz: [{ prompt: 'Grey box =', options: ['NN seul', 'ODE + NN'], correct: 1 }]
   },
   {
-    slug: 'cas-clinique-tacrolimus',
-    title: 'Cas clinique Tacrolimus / TDM',
-    tag: 'Chapitre 14',
-    summary: 'Fil rouge : objectifs C0, variabilitÃ©, VPC, dose.',
+    slug: 'tdm-conclusion',
+    title: 'TDM & conclusion',
+    tag: 'Chapitre 15',
+    summary: 'TDM, adaptation de dose, messages clés.',
+    slides: [71, 73, 74],
     steps: [
-      { title: 'Courbe patient', body: 'Observation tacro.', viz: '13_ResidualError' },
-      { title: 'BayÃ©sien TDM', body: 'Ajuster dose.', viz: '18_BayesianShrinkage' }
+      { title: 'TDM tacrolimus', body: 'Objectifs C0 7–10 µg/L, adaptation dose.', viz: '18_BayesianShrinkage' }
     ],
-    quiz: [{ prompt: 'Objectif C0 tacro greffe rÃ©nale ?', options: ['7â€“10 Âµg/L', '20â€“25 Âµg/L'], correct: 0 }]
+    quiz: [{ prompt: 'Cible C0 tacro greffe rénale ?', options: ['7–10 µg/L', '>20 µg/L'], correct: 0 }]
   }
 ];
 

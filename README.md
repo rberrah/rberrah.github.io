@@ -1,42 +1,33 @@
-# sv
+# Pharmacométrie Explain – cours interactif (SvelteKit)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Site éducatif scrollytelling (type MLU-Explain) couvrant PK/PD, PopPK, diagnostics, TDM, IA/Neural ODE.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+## Installer / lancer
 
 ```sh
-# create a new project
-npx sv create my-app
+npm ci               # nécessite l'accès npm (d3, layercake, svelte-scroller…)
+npm run dev          # dev server
+npm run check        # lint + svelte-check
+npm run build        # build statique (adapter-static)
 ```
 
-To recreate this project with the same configuration:
+> GitHub Pages : définir `BASE_PATH=/rberrah.github.io` (ou nom du repo) avant `npm run build`.
 
-```sh
-# recreate this project
-npx sv create --template minimal --types jsdoc --install npm .
-```
+## Contenu
+- Pages : home, chapitres (scrolly), playground, glossaire, QA, à-propos.
+- Chapitres définis dans `src/lib/content/chapters.js` (slides, formules, quiz, viz).
+- Visualisations dans `src/lib/components/visualizations/`.
+- Moteur de simulation : `src/lib/sim/` (RK4, oral 1C, variabilité seedée).
+- Charts : `src/lib/charts/` (axes chiffrés, autoscale).
+- Math (KaTeX CDN) : `src/lib/components/MathBlock.svelte`.
+- Slides PPTX optionnelles : placer des PNG nommés `static/slides/slide-XX.png`.
 
-## Developing
+## Export PPTX (optionnel, hors production)
+- Plan JSON : `python scripts/extract_pptx_outline.py "Pharmacométrie Pratique.pptx" src/content/pptx_outline.json`
+- PNG des slides : `bash scripts/export_pptx_png.sh`
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## QA
+- Page `http://localhost:5173/qa` : aperçu rapide des visualisations et presets.
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Licences
+- Texte : CC-BY-SA. Code : MIT. Pas de conseil médical (pédagogie uniquement).

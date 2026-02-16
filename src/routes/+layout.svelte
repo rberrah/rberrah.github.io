@@ -5,7 +5,7 @@
   let { children } = $props();
   const links = [
     { href: '/', label: 'Accueil' },
-    { href: '/chapitres/intro-pk-pd', label: 'Chapitres' },
+    { href: '/chapitres/introduction-variabilite', label: 'Chapitres' },
     { href: '/playground', label: 'Playground' },
     { href: '/glossaire', label: 'Glossaire' },
     { href: '/a-propos', label: 'À propos' }

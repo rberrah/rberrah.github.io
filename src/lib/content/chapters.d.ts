@@ -3,7 +3,9 @@ export type Chapter = {
   title: string;
   tag: string;
   summary: string;
-  steps: { title: string; body: string; viz: string }[];
+  slides?: number[];
+  formulas?: string[];
+  steps: { title: string; body: string; viz?: string }[];
   quiz: { prompt: string; options: string[]; correct: number }[];
 };
 

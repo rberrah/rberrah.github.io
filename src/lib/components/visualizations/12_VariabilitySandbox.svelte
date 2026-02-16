@@ -2,6 +2,10 @@
   import Slider from '$lib/components/ui/Slider.svelte';
   import { concMono } from '$lib/utils/math';
   import { generateProfiles } from '$lib/sim/variability';
+  import ChartFrame from '$lib/charts/ChartFrame.svelte';
+  import Axis from '$lib/charts/Axis.svelte';
+  import { scaleLinear } from 'd3-scale';
+  import { paddedDomain } from '$lib/charts/domain';
 
   /** @type {'sans' | 'faible' | 'forte'} */
   let preset = 'faible';
@@ -39,6 +43,33 @@
     const mid = sorted[Math.floor(sorted.length / 2)];
     return { t, c: mid };
   });
+
+  $: cmaxList = profiles.map((p) => Math.max(...p.map((pt) => pt.dv)));
+  $: aucList = profiles.map((p) => {
+    let auc = 0;
+    for (let i = 1; i < p.length; i++) {
+      const dt = p[i].t - p[i - 1].t;
+      auc += ((p[i].dv + p[i - 1].dv) / 2) * dt;
+    }
+    return auc;
+  });
+  $: cvCmax = (std(cmaxList) / mean(cmaxList)) * 100;
+  $: cvAuc = (std(aucList) / mean(aucList)) * 100;
+
+  $: flat = profiles.flat();
+  $: xScale = scaleLinear().domain([0, Math.max(...times)]).range([0, 300]);
+  $: yScale = scaleLinear().domain(paddedDomain(flat.map((p) => p.dv), 0.2)).range([160, 0]);
+
+  /** @param {number[]} arr */
+  function mean(arr) {
+    return arr.reduce((a, b) => a + b, 0) / arr.length;
+  }
+  /** @param {number[]} arr */
+  function std(arr) {
+    const m = mean(arr);
+    const v = mean(arr.map((x) => (x - m) ** 2));
+    return Math.sqrt(v);
+  }
 </script>
 
 <div class="var">
@@ -55,24 +86,32 @@
     <Slider label="κ (IOV)" min={0} max={1} step={0.05} bind:value={kappa} />
     <Slider label="σ (résiduel)" min={0} max={0.5} step={0.02} bind:value={sigma} />
   </div>
-  <svg viewBox="0 0 360 200">
-    <line x1="30" y1="170" x2="330" y2="170" stroke="#0f172a" />
-    <line x1="30" y1="20" x2="30" y2="170" stroke="#0f172a" />
-    {#each profiles as c}
+  <ChartFrame width={380} height={240} margin={{ top: 16, right: 14, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+    <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+      {#each profiles as c, i (i)}
+        <polyline
+          fill="none"
+          stroke="rgba(59,130,246,0.15)"
+          stroke-width="1.4"
+          points={c.map((p) => `${xScale(p.t)},${yScale(p.dv)}`).join(' ')}
+        />
+      {/each}
       <polyline
         fill="none"
-        stroke="rgba(59,130,246,0.25)"
-        stroke-width="1.5"
-        points={c.map((p) => `${30 + p.t * 12},${170 - p.dv * 8}`).join(' ')}
-      ></polyline>
-    {/each}
-    <polyline
-      fill="none"
-      stroke="#ef4444"
-      stroke-width="3"
-      points={median.map((p) => `${30 + p.t * 12},${170 - p.c * 8}`).join(' ')}
-    ></polyline>
-  </svg>
+        stroke="#ef4444"
+        stroke-width="3"
+        points={median.map((p) => `${xScale(p.t)},${yScale(p.c)}`).join(' ')}
+      />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <g transform={`translate(-8,0)`}>
+        <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
+      </g>
+    </svelte:fragment>
+  </ChartFrame>
+  <div class="kpi">
+    <span>CV% Cmax: {cvCmax.toFixed(0)}%</span>
+    <span>CV% AUC: {cvAuc.toFixed(0)}%</span>
+  </div>
 </div>
 
 <style>
@@ -91,10 +130,5 @@
     padding: 6px;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
-  }
-  svg {
-    width: 100%;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
   }
 </style>
