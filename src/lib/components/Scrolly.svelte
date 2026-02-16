@@ -45,7 +45,7 @@
         aria-label={`Étape ${step.id}`}
       >
         <p class="step__title">{step.title || step.id}</p>
-        <p class="step__body">{step.content}</p>
+        <p class="step__body" aria-live="polite">{@html step.content}</p>
       </section>
     {/each}
   </div>
