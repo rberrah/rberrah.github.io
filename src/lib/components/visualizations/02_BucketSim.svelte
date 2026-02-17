@@ -6,9 +6,32 @@
   let volume = 25;
   let cl = 6;
   let time = 0;
+  let playing = false;
+  /** @type {number | null} */
+  let frame = null;
 
   $: ke = cl / volume;
   $: level = concMono(time, dose, cl, volume);
+  const duration = 24;
+
+  function play() {
+    playing = true;
+    const start = performance.now() - time * 1000;
+    /** @param {number} now */
+    const loop = (now) => {
+      if (!playing) return;
+      const t = Math.min(duration, (now - start) / 1000);
+      time = t;
+      if (t >= duration) playing = false;
+      else frame = requestAnimationFrame(loop);
+    };
+    frame = requestAnimationFrame(loop);
+  }
+
+  function pause() {
+    playing = false;
+    if (frame !== null) cancelAnimationFrame(frame);
+  }
 </script>
 
 <div class="bucket">
@@ -23,7 +46,12 @@
     <Slider label="Dose (mg)" min={25} max={400} step={5} bind:value={dose} />
     <Slider label="Volume (L)" min={10} max={80} step={1} bind:value={volume} />
     <Slider label="Clairance (L/h)" min={1} max={20} step={0.5} bind:value={cl} />
-    <Slider label="Temps (h)" min={0} max={24} step={0.1} bind:value={time} />
+    <Slider label="Temps (h)" min={0} max={duration} step={0.1} bind:value={time} />
+    <div class="actions">
+      <button on:click={play} disabled={playing}>Play</button>
+      <button on:click={pause}>Pause</button>
+      <button on:click={() => (time = 0)}>Reset</button>
+    </div>
     <div class="kpis">
       <span>C(t) = {level.toFixed(2)} mg/L</span>
       <span>t½ ≈ {(0.693 * volume / cl).toFixed(2)} h</span>
@@ -82,6 +110,10 @@
   .controls {
     display: grid;
     gap: 10px;
+  }
+  .actions {
+    display: flex;
+    gap: 8px;
   }
   .kpis {
     display: flex;

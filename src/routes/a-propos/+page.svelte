@@ -1,7 +1,3 @@
-<script>
-  export const prerender = true;
-</script>
-
 <h1>À propos</h1>
 <p>
   Site éducatif sur la pharmacométrie (PK/PD, PopPK, TDM, IA). Contenu inspiré du deck “Pharmacométrie Pratique”

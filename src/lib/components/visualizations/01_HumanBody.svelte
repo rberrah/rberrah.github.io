@@ -1,82 +1,77 @@
 <script>
-  export let progress = 0; // 0 -> 1 scroll progression
+  const zones = [
+    { id: 'gut', label: 'Absorption', cx: 100, cy: 170, r: 28 },
+    { id: 'blood', label: 'Distribution', cx: 100, cy: 110, r: 30 },
+    { id: 'liver', label: 'Métabolisme', cx: 80, cy: 150, r: 18 },
+    { id: 'kidney', label: 'Élimination', cx: 120, cy: 190, r: 16 }
+  ];
+  /** @type {string | null} */
+  let active = null;
 </script>
 
-<div class="viz">
-  <div class="body">
-    <div class="particle" style={`transform: translate(${progress * 60}px, ${progress * 80}px); opacity:${1 - progress};`}></div>
-    <div class="gauge">
-      <div class="bar pk" style={`width:${Math.min(progress * 100, 100)}%`}>PK</div>
-      <div class="bar pd" style={`width:${Math.max(0, (progress - 0.4) * 100)}%`}>PD</div>
-    </div>
+<div class="wrapper">
+  <svg viewBox="0 0 200 360" class="body" aria-label="Silhouette humaine avec zones ADME">
+    <g fill="#e2e8f0" stroke="#0f172a" stroke-width="2">
+      <circle cx="100" cy="40" r="24" />
+      <rect x="80" y="64" width="40" height="70" rx="10" />
+      <rect x="60" y="134" width="80" height="90" rx="12" />
+      <rect x="60" y="224" width="26" height="90" rx="8" />
+      <rect x="114" y="224" width="26" height="90" rx="8" />
+    </g>
+
+    {#each zones as z}
+      <circle
+        class="hot"
+        cx={z.cx}
+        cy={z.cy}
+        r={z.r}
+        fill="rgba(59,130,246,0.12)"
+        stroke={active === z.id ? '#2563eb' : 'transparent'}
+        stroke-width="3"
+        role="button"
+        aria-label={z.label}
+        tabindex="0"
+        on:mouseenter={() => (active = z.id)}
+        on:mouseleave={() => (active = null)}
+        on:focus={() => (active = z.id)}
+        on:blur={() => (active = null)}
+      />
+      {#if active === z.id}
+        <text x={z.cx} y={z.cy} text-anchor="middle" dy="4" font-size="11" fill="#0f172a">
+          {z.label}
+        </text>
+      {/if}
+    {/each}
+  </svg>
+  <div class="legend">
+    Survolez / tabulez : Gut → Absorption · Sang → Distribution · Foie → Métabolisme · Rein → Élimination
   </div>
-  <p class="note">Silhouette SVG + particules : placeholder en attendant l’illustration détaillée.</p>
 </div>
 
 <style>
-  .viz {
-    width: 100%;
-    height: 100%;
+  .wrapper {
     display: grid;
-    place-items: center;
-    position: relative;
-    background: linear-gradient(180deg, #f8fafc, #eef2ff);
+    gap: 8px;
+    justify-items: center;
   }
   .body {
-    position: relative;
-    width: 240px;
-    height: 420px;
-    border: 2px dashed #cbd5e1;
-    border-radius: 120px 120px 60px 60px;
-    overflow: hidden;
-    background: radial-gradient(circle at 50% 30%, #e0f2fe, #fff);
+    width: 100%;
+    max-width: 320px;
+    background: radial-gradient(circle at 50% 10%, #f8fafc 0%, #e2e8f0 70%);
+    border-radius: 16px;
+    padding: 8px;
   }
-  .particle {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 12px;
-    height: 12px;
-    background: #0ea5e9;
-    border-radius: 50%;
-    box-shadow: 0 0 12px rgba(14, 165, 233, 0.6);
-    transition: transform 0.2s ease, opacity 0.2s ease;
+  .hot {
+    cursor: pointer;
+    transition: 0.2s;
+    outline: none;
   }
-  .gauge {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    height: 28px;
-    background: #e2e8f0;
-    border-radius: 14px;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2px;
-    padding: 2px;
+  .hot:focus {
+    stroke: #2563eb;
   }
-  .bar {
-    height: 10px;
-    border-radius: 10px;
-    color: white;
-    font-size: 0.7rem;
-    line-height: 10px;
-    padding-left: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  .bar.pk {
-    background: linear-gradient(90deg, #2563eb, #38bdf8);
-  }
-  .bar.pd {
-    background: linear-gradient(90deg, #a855f7, #ec4899);
-    margin-top: 4px;
-  }
-  .note {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    font-size: 0.8rem;
-    color: #475569;
+  .legend {
+    font-size: 0.95rem;
+    color: #334155;
+    text-align: center;
   }
 </style>

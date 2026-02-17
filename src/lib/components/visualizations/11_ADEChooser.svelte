@@ -58,9 +58,10 @@
 <div class="ade">
   <div class="toggles">
     <label><input type="checkbox" bind:checked={order0} /> Ordre 0 (perfusion)</label>
-    <label class:disabled={order0}><input type="range" min="0" max="3" step="0.1" bind:value={lag} disabled={order0} /> Lag {lag.toFixed(1)} h</label>
     {#if order0}
-      <label><input type="range" min="0.5" max="6" step="0.1" bind:value={infusionDuration} /> Durée perf {infusionDuration.toFixed(1)} h</label>
+      <Slider label="Durée perf (h)" min={0.5} max={6} step={0.1} bind:value={infusionDuration} />
+    {:else}
+      <Slider label="Lag (h)" min={0} max={3} step={0.1} bind:value={lag} />
     {/if}
   </div>
   <div class="controls">
@@ -69,7 +70,7 @@
     <Slider label="CL (L/h)" min={0.5} max={20} step={0.5} bind:value={cl} />
     <Slider label="V (L)" min={5} max={200} step={5} bind:value={v} />
   </div>
-  <ChartFrame width={380} height={240} margin={{ top: 20, right: 20, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+  <ChartFrame width={440} height={280} margin={{ top: 22, right: 20, bottom: 44, left: 66 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
       {#if !order0}
         <rect x={xScale(0)} y={0} width={xScale(lag)} height={innerHeight} fill="rgba(15,23,42,0.05)" />
@@ -118,9 +119,6 @@
     font-weight: 700;
     color: #0f172a;
     flex-wrap: wrap;
-  }
-  .toggles label.disabled {
-    opacity: 0.5;
   }
   .kpis {
     display: grid;

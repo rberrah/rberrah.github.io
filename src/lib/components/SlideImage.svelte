@@ -1,6 +1,6 @@
 <script>
   import { base } from '$app/paths';
-  import slideIndex from '../../content/slide_index.json';
+  import catalog from '../../content/slides/slide_catalog.json';
 
   export let n;
   export let alt = 'Slide PPTX';
@@ -9,7 +9,8 @@
   const num = String(n).padStart(2, '0');
   const src = `${base}/slides/slide-${num}.png`;
   const pptxHref = `${base}/pharmacometrie-pratique.pptx`;
-  const slideTitle = slideIndex.find((s) => s.slide === n)?.title || '';
+  const entry = catalog.find((s) => s.slide === Number(n));
+  const slideTitle = entry?.title || '';
 
   let missing = false;
 </script>

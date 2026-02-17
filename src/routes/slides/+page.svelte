@@ -1,60 +1,95 @@
 <script>
-  import slideIndex from '../../content/slide_index.json';
-  import SlideImage from '$lib/components/SlideImage.svelte';
   import { base } from '$app/paths';
-  import { onMount } from 'svelte';
+  import catalog from '../../content/slides/slide_catalog.json';
+  import SlideImage from '$lib/components/SlideImage.svelte';
 
-  let viewerUrl = '';
-
-  onMount(() => {
-    const origin = window.location.origin;
-    const pptxUrl = `${origin}${base}/pharmacometrie-pratique.pptx`;
-    viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(pptxUrl)}`;
+  let query = '';
+  $: filtered = catalog.filter((s) => {
+    const hay = `${s.title} ${s.purpose} ${s.tags?.join(' ') ?? ''}`.toLowerCase();
+    return hay.includes(query.toLowerCase());
   });
 </script>
 
-<h1>Slides du PPTX</h1>
+<h1>Catalogue des slides</h1>
 <p>
-  Liste des 74 slides exportées. Si une vignette est absente, utilisez le lien PPTX ou la visionneuse en ligne.
-  <a href={`${base}/pharmacometrie-pratique.pptx`} download>⭳ Télécharger le PPTX</a>
+  Source de vérité éditable : <code>src/content/slides/slide_catalog.yaml</code>. Les PNG doivent être dans <code>static/slides/</code>.
+  Liens PPTX : <a href={`${base}/pharmacometrie-pratique.pptx`} download>Télécharger le PPTX</a>
 </p>
 
-{#if viewerUrl}
-  <div class="viewer">
-    <iframe title="Visionneuse PPTX" src={viewerUrl} loading="lazy"></iframe>
-  </div>
-{/if}
+<input
+  aria-label="Rechercher une slide"
+  class="search"
+  type="search"
+  placeholder="Titre, tag, module…"
+  bind:value={query}
+/>
 
 <div class="grid">
-  {#each slideIndex as s}
-    <div class="card">
-      <SlideImage n={s.slide} alt={`Slide ${s.slide}`} caption={s.title || `Slide ${s.slide}`} />
-    </div>
+  {#each filtered as s}
+    <article class="card">
+      <header>
+        <span class="id">#{s.id}</span>
+        <div>
+          <h3>{s.title || `Slide ${s.slide}`}</h3>
+          <small>{s.purpose || 'À compléter'}</small>
+        </div>
+      </header>
+      <SlideImage n={s.slide} alt={s.title} caption={s.title || s.file} />
+      <ul class="meta">
+        <li><strong>Tags</strong> {s.tags?.join(', ') || '—'}</li>
+        <li><strong>Module suggéré</strong> {s.suggested_module || '—'}</li>
+        <li><strong>Points clés</strong> {s.key_points?.join(' · ') || '—'}</li>
+      </ul>
+    </article>
   {/each}
 </div>
 
 <style>
+  .search {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    margin: 12px 0 16px;
+  }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
   }
   .card {
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 6px;
+    border-radius: 12px;
+    padding: 10px;
     background: #fff;
+    display: grid;
+    gap: 8px;
   }
-  .viewer {
-    margin: 12px 0;
-    aspect-ratio: 16 / 9;
-    border: 1px solid #e2e8f0;
+  header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .id {
+    background: #eef2ff;
+    color: #4338ca;
+    font-weight: 700;
+    padding: 4px 6px;
     border-radius: 8px;
-    overflow: hidden;
   }
-  iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+  h3 {
+    margin: 0;
+  }
+  small {
+    color: #475569;
+  }
+  .meta {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95rem;
+    color: #334155;
+    display: grid;
+    gap: 4px;
   }
 </style>

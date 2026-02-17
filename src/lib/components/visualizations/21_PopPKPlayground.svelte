@@ -82,7 +82,7 @@
   $: bands = population.summaryBands;
   $: flat = spaghetti.flatMap((p) => p.points);
   $: xScale = scaleLinear().domain([0, Math.max(...samplingTimes)]).range([0, 420]);
-  $: yScale = scaleLinear().domain(paddedDomain(flat.map((p) => p.dv), 0.25)).range([260, 0]);
+  $: yScale = scaleLinear().domain(paddedDomain(flat.map((p) => p.dv), 0.25)).range([340, 0]);
 
   $: kpi = population.kpis;
 
@@ -202,7 +202,7 @@
           <small>Rouge = observations simulées (DV), bande bleue = prédites</small>
         </div>
       </div>
-      <ChartFrame width={480} height={320} margin={{ top: 20, right: 20, bottom: 46, left: 70 }} xScale={xScale} yScale={yScale} grid={true}>
+      <ChartFrame width={620} height={380} margin={{ top: 22, right: 24, bottom: 52, left: 78 }} xScale={xScale} yScale={yScale} grid={true}>
         <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
           <polygon
             fill="rgba(59,130,246,0.15)"
@@ -221,7 +221,7 @@
           {#each spaghetti as prof (prof.id)}
             <polyline
               fill="none"
-              stroke="rgba(239,68,68,0.25)"
+              stroke="rgba(239,68,68,0.28)"
               stroke-width="1"
               points={prof.points.map((p) => `${xScale(p.t)},${yScale(p.dv)}`).join(' ')}
             />

@@ -1,118 +1,144 @@
 <script>
-  import chapters from '$lib/content/loadChapters';
-  import Scrolly from '$lib/components/Scrolly.svelte';
-  import Quiz from '$lib/components/ui/Quiz.svelte';
-  import SlideImage from '$lib/components/SlideImage.svelte';
-  import MathBlock from '$lib/components/MathBlock.svelte';
+  import { base } from '$app/paths';
   import { onMount } from 'svelte';
-  import { error } from '@sveltejs/kit';
+  import chapters from '$lib/content/loadChapters';
+  import SlideImage from '$lib/components/SlideImage.svelte';
 
-  export const prerender = true;
-
-  export let params;
-  /** @type {import('$lib/content/chapters').Chapter | undefined} */
-  let chapter = chapters.find((c) => c.slug === params.slug);
-  let stepIndex = 0;
-  let stepProgress = 0;
-  $: currentViz = chapter?.steps?.[stepIndex]?.viz;
+  // viz mapping (ajoutez ici si besoin)
+  import HumanBody from '$lib/components/visualizations/01_HumanBody.svelte';
+  import BucketSim from '$lib/components/visualizations/02_BucketSim.svelte';
+  import ThreeApproaches from '$lib/components/visualizations/04_ThreeApproaches.svelte';
+  import PK1C from '$lib/components/visualizations/09_PK1C.svelte';
+  import Variability from '$lib/components/visualizations/12_VariabilitySandbox.svelte';
+  import Allometry from '$lib/components/visualizations/14_AllometryCentering.svelte';
+  import VPC from '$lib/components/visualizations/17_VPCCrashTest.svelte';
+  import NeuralBox from '$lib/components/visualizations/20_NeuralBox.svelte';
 
   /** @type {Record<string, any>} */
-  let vizComponents = {};
-  onMount(async () => {
-    vizComponents = {
-      '01_HumanBody': (await import('$lib/components/visualizations/01_HumanBody.svelte')).default,
-      '02_BucketSim': (await import('$lib/components/visualizations/02_BucketSim.svelte')).default,
-      '03_PopulationDistrib': (await import('$lib/components/visualizations/03_PopulationDistrib.svelte')).default,
-      '04_ThreeApproaches': (await import('$lib/components/visualizations/04_ThreeApproaches.svelte')).default,
-      '05_BayesianFit': (await import('$lib/components/visualizations/05_BayesianFit.svelte')).default,
-      '06_DecisionTree': (await import('$lib/components/visualizations/06_DecisionTree.svelte')).default,
-      '07_NeuralODE': (await import('$lib/components/visualizations/07_NeuralODE.svelte')).default,
-      '08_AUCTrap': (await import('$lib/components/visualizations/08_AUCTrap.svelte')).default,
-      '09_PK1C': (await import('$lib/components/visualizations/09_PK1C.svelte')).default,
-      '10_PK2C': (await import('$lib/components/visualizations/10_PK2C.svelte')).default,
-      '11_ADEChooser': (await import('$lib/components/visualizations/11_ADEChooser.svelte')).default,
-      '12_VariabilitySandbox': (await import('$lib/components/visualizations/12_VariabilitySandbox.svelte')).default,
-      '13_ResidualError': (await import('$lib/components/visualizations/13_ResidualError.svelte')).default,
-      '14_AllometryCentering': (await import('$lib/components/visualizations/14_AllometryCentering.svelte')).default,
-      '15_OFVGame': (await import('$lib/components/visualizations/15_OFVGame.svelte')).default,
-      '16_SAEMCycle': (await import('$lib/components/visualizations/16_SAEMCycle.svelte')).default,
-      '17_VPCCrashTest': (await import('$lib/components/visualizations/17_VPCCrashTest.svelte')).default,
-      '18_BayesianShrinkage': (await import('$lib/components/visualizations/18_BayesianShrinkage.svelte')).default,
-      '19_VSURF': (await import('$lib/components/visualizations/19_VSURF.svelte')).default,
-      '20_NeuralBox': (await import('$lib/components/visualizations/20_NeuralBox.svelte')).default
-    };
-  });
+  const vizMap = {
+    '01_HumanBody': HumanBody,
+    '02_BucketSim': BucketSim,
+    '04_ThreeApproaches': ThreeApproaches,
+    '09_PK1C': PK1C,
+    '12_VariabilitySandbox': Variability,
+    '14_AllometryCentering': Allometry,
+    '17_VPCCrashTest': VPC,
+    '20_NeuralBox': NeuralBox
+  };
 
-  if (!chapter) {
-    throw error(404, 'Chapitre introuvable');
-  }
+  export let params;
+  const chapter = chapters.find((c) => c.slug === params.slug);
+  let activeIndex = 0;
+  $: currentStep = chapter?.steps?.[activeIndex];
+
+  onMount(() => {
+    if (!chapter) window.location.href = `${base}/404.html`;
+  });
 </script>
 
-<svelte:head>
-  <title>{chapter.title} | Pharmaco Explain</title>
-</svelte:head>
+{#if !chapter}
+  <p>Chapitre introuvable.</p>
+{:else}
+  <header class="page-head">
+    <p class="tag">{chapter.id}</p>
+    <h1>{chapter.title}</h1>
+    <p class="desc">{chapter.description}</p>
+  </header>
 
-<article class="page">
-  <h1>{chapter.title}</h1>
-  <p class="summary">{chapter.summary}</p>
-
-  {#if chapter.slides?.length}
-    <div class="slides">
-      {#each chapter.slides as s}
-        <SlideImage n={s} alt={`Slide ${s}`} caption={`Slide ${s}`} />
+  <div class="layout">
+    <div class="steps">
+      {#each chapter.steps as step, i}
+        <article class={`step ${i === activeIndex ? 'active' : ''}`} on:mouseenter={() => (activeIndex = i)}>
+          <div class="step-header">
+            <span class="badge">Étape {i + 1}</span>
+            <h3>{step.title}</h3>
+          </div>
+          <div class="step-body">{@html step.html}</div>
+          {#if step.slides?.length}
+            <div class="slides-row">
+              {#each step.slides as sid}
+                <SlideImage n={Number(sid.replace('s', ''))} alt={`Slide ${sid}`} />
+              {/each}
+            </div>
+          {/if}
+        </article>
       {/each}
     </div>
-  {/if}
 
-  <Scrolly
-    steps={chapter.steps.map((s, i) => ({ id: String(i), title: s.title, content: s.bodyHtml }))}
-    on:enter={(e) => (stepIndex = Number(e.detail.id))}
-    on:progress={(e) => {
-      if (Number(e.detail.id) === stepIndex) stepProgress = e.detail.ratio;
-    }}
-  >
-    <svelte:fragment slot="viz">
-      {#if currentViz}
-        {#if vizComponents && vizComponents[currentViz]}
-          <svelte:component this={vizComponents[currentViz]} progress={stepProgress} />
-        {:else}
-          <p>Chargement…</p>
-        {/if}
+    <aside class="sticky">
+      {#if currentStep?.viz && vizMap[currentStep.viz]}
+        <svelte:component this={vizMap[currentStep.viz]} />
+      {:else if currentStep?.slides?.length}
+        <SlideImage n={Number(currentStep.slides[0].replace('s', ''))} />
       {/if}
-    </svelte:fragment>
-  </Scrolly>
-
-  <div class="quiz">
-    <Quiz title="Mini-quiz" questions={chapter.quiz} />
+    </aside>
   </div>
-
-  {#if chapter.formulas?.length}
-    <div class="maths">
-      {#each chapter.formulas as f}
-        <MathBlock tex={f} />
-      {/each}
-    </div>
-  {/if}
-</article>
+{/if}
 
 <style>
-  .page {
-    display: grid;
-    gap: 16px;
+  .page-head {
+    margin-bottom: 20px;
   }
-  .summary {
+  .tag {
+    font-size: 0.9rem;
+    color: #2563eb;
+    margin: 0;
+  }
+  .desc {
+    color: #475569;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(320px, 420px);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .sticky {
+      position: static;
+    }
+  }
+  .steps {
+    display: grid;
+    gap: 12px;
+  }
+  .step {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+  .step.active {
+    border-color: #2563eb;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+  }
+  .step-header {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .badge {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 4px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  .step-body :global(p) {
+    margin: 6px 0;
     color: #334155;
   }
-  .slides {
+  .slides-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 10px;
-  }
-  .quiz {
-    margin-top: 16px;
-  }
-  .maths {
-    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 8px;
+    margin-top: 8px;
+  }
+  .sticky {
+    position: sticky;
+    top: 80px;
   }
 </style>

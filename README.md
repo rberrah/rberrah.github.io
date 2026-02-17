@@ -14,33 +14,29 @@ npm run build        # build statique
 > Trailing slash activé : les routes sont servies en `/chapitres/slug/`.
 
 ## Architecture contenu (gold standard)
-- Les chapitres sont des fichiers Markdown : `src/content/chapters/*.md`
-  - Frontmatter JSON : slug, title, tag, summary, slides, formulas, quiz…
-  - Steps balisés : `<!-- step:title="..." viz="..." --> ... <!-- /step -->`
-- Chargement/validation : `src/lib/content/loadChapters.js` + `schema.js` + `markdown.js`
-- Slide index : `src/content/slide_index.json` (généré ou complété à la main)
-- Documentation édition : `src/content/README.md` (à compléter si besoin)
+- Chapitres = Markdown : `src/content/chapters/*.md`
+  - Frontmatter : id, slug, title, description, order, tags, slides: ["s01", …]
+  - Steps balisés : `<!-- step:title="..." slides="s01,s02" viz="09_PK1C" --> ... <!-- /step -->`
+- Chargement : `src/lib/content/loadChapters.js` (import.meta.glob + gray-matter + markdown-it)
+- Catalogue slides : `src/content/slides/slide_catalog.yaml` (source) + JSON dérivé
+- Doc édition : `docs/AJOUTER_UN_CHAPITRE.md`
 
 ## Code
 - Visualisations : `src/lib/components/visualizations/`
-- Simulations : `src/lib/sim/` (RK4, PK multi-compartiments, variabilité)
+- Simulations : `src/lib/sim/` (RK4, multi-compartiments, transit inclus)
 - Charts : `src/lib/charts/` (axes chiffrés, autoscale)
 - Math (KaTeX CDN) : `src/lib/components/MathBlock.svelte`
-- Slides : `static/slides/slide-XX.png` (fallback si manquants)
-- Pages : home, chapitres scrolly, playground PopPK, glossaire, QA, slides, à-propos
+- Slides : `static/slides/slide-XX.png` + page `/slides` pour debug
+- Pages : home, chapitres (scrolly), playground PopPK, glossaire, QA, slides, à-propos
 
 ## Scripts utilitaires
-- `npm run validate` : valide le contenu (frontmatter, slides, doublons)
-- `npm run slides:index` : génère un index de slides par défaut
+- `npm run validate` : valide catalogue + chapitres (slides existantes, IDs uniques)
 - `npm run slides:export` : export LibreOffice → PNG + renommage `slide-XX.png`
-- `scripts/validate_content.mjs` : checks slides/viz
-- `scripts/export_pptx_png.sh` : export PPTX → PNG (renommage numérique robuste)
-- `scripts/generate_slide_index.mjs` : stub d’index si aucun export n’est fait
 
 ## Export PPTX (optionnel)
-1. Placer `static/pharmacometrie-pratique.pptx` (déjà présent).
-2. `npm run slides:export` (LibreOffice requis) → `static/slides/slide-01.png`…`slide-74.png`.
-3. `npm run slides:index` pour créer/mettre à jour `slide_index.json` (titres à compléter manuellement si besoin).
+1. Placer/laisser `static/pharmacometrie-pratique.pptx`.
+2. `npm run slides:export` (LibreOffice/PowerPoint) → `static/slides/slide-01.png`…`slide-74.png`.
+3. Mettre à jour `src/content/slides/slide_catalog.yaml` (titres, purpose, notes).
 
 ## QA
 - Page `http://localhost:5173/qa/` : aperçu rapide des visualisations (presets).

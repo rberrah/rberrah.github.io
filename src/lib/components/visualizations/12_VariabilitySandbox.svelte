@@ -11,7 +11,7 @@
   /** @type {'sans' | 'faible' | 'forte'} */
   let preset = 'faible';
   let omega = 0.2;
-  let kappa = 0;
+  let kappa = 0.3;
   let sigma = 0.1;
   let iivEnabled = true;
   let iovEnabled = true;
@@ -49,6 +49,15 @@
     sigmaAdd: resEnabled ? 0 : 0,
     seed: 42
   });
+
+  // IOV demo sur un seul patient (3 occasions)
+  const occasions = ['Jour 1', 'Jour 2', 'Jour 3'];
+  $: iovCurves = occasions.map((_, idx) =>
+    times.map((t) => ({
+      t,
+      dv: structFn(t) * (1 + (iovEnabled ? (kappa * (idx - 1)) / 2 : 0)) // léger shift
+    }))
+  );
 
   $: median = times.map((t, idx) => {
     const vals = profiles.map((p) => p[idx].dv);
@@ -124,6 +133,20 @@
       </g>
     </svelte:fragment>
   </ChartFrame>
+  <div class="iov">
+    <div class="label">IOV (même patient, 3 occasions)</div>
+    <svg viewBox="0 0 360 120">
+      {#each iovCurves as c, idx}
+        <polyline
+          fill="none"
+          stroke={idx === 0 ? '#ef4444' : idx === 1 ? '#22c55e' : '#2563eb'}
+          stroke-width="2"
+          points={c.map((p) => `${20 + p.t * 8},${100 - p.dv * 10}`).join(' ')}
+        />
+        <text x="300" y={20 + idx * 18} font-size="10" fill="#0f172a">{occasions[idx]}</text>
+      {/each}
+    </svg>
+  </div>
   <div class="kpi">
     <span>CV% Cmax: {cvCmax.toFixed(0)}%</span>
     <span>CV% AUC: {cvAuc.toFixed(0)}%</span>
@@ -152,5 +175,16 @@
     gap: 6px;
     align-items: center;
     font-weight: 700;
+  }
+  .iov {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px;
+    background: #f8fafc;
+  }
+  .iov .label {
+    font-size: 0.9rem;
+    color: #0f172a;
+    margin-bottom: 4px;
   }
 </style>

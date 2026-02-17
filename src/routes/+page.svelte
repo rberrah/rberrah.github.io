@@ -13,7 +13,7 @@
       Inspiré du deck “Pharmacométrie Pratique”, enrichi pour un lecteur néophyte.
     </p>
     <div class="cta-row">
-      <a class="cta primary" href={`${base}/chapitres/introduction-variabilite`}>Commencer</a>
+      <a class="cta primary" href={`${base}/chapitres/${chapters[0]?.slug ?? ''}`}>Commencer</a>
       <a class="cta ghost" href={`${base}/playground`}>Playground PK/PD</a>
     </div>
   </div>
@@ -30,9 +30,9 @@
 <section class="grid">
   {#each chapters as c}
     <article class="card">
-      <p class="tag">{c.tag}</p>
+      <p class="tag">{c.tags?.[0] || 'Module'}</p>
       <h3>{c.title}</h3>
-      <p>{c.summary}</p>
+      <p>{c.description}</p>
       <a class="link" href={`${base}/chapitres/${c.slug}`}>Lire</a>
     </article>
   {/each}

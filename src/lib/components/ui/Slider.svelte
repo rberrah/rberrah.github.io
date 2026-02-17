@@ -5,6 +5,7 @@
   export let step = 1;
   export let value = 0;
   export let unit = '';
+  export let disabled = false;
 </script>
 
 <label class="slider">
@@ -12,7 +13,7 @@
     <span>{label}</span>
     <strong>{value}{unit}</strong>
   </div>
-  <input type="range" bind:value min={min} max={max} step={step} />
+  <input type="range" bind:value min={min} max={max} step={step} {disabled} aria-label={label} />
 </label>
 
 <style>

@@ -2,6 +2,7 @@ import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
+	trailingSlash: 'always',
 	kit: {
 		adapter: adapter({
 			fallback: '404.html'
@@ -13,22 +14,19 @@ const config = {
 		prerender: {
 			entries: [
 				'*',
-				'/chapitres/introduction-variabilite',
+				'/chapitres',
+				'/chapitres/intro-pkpd',
 				'/chapitres/trois-approches',
-				'/chapitres/nca',
-				'/chapitres/modele-pk-mecanistique',
-				'/chapitres/ode-compartiments',
-				'/chapitres/workflow-identifiabilite',
-				'/chapitres/adme-structural',
-				'/chapitres/poppk-variabilite',
-				'/chapitres/erreur-residuelle',
-				'/chapitres/covariables',
-				'/chapitres/validation-diagnostics',
+				'/chapitres/modele-compartimental',
+				'/chapitres/absorption-orale',
+				'/chapitres/variabilite-iiv-iov',
+				'/chapitres/allometrie',
+				'/chapitres/validation-vpc',
 				'/chapitres/pkpd',
 				'/chapitres/outils-estimation',
 				'/chapitres/bayes-ebes',
-				'/chapitres/clustering-ml-hybrides',
-				'/chapitres/tdm-conclusion'
+				'/chapitres/neural-ode',
+				'/chapitres/tdm'
 			],
 			handleHttpError: ({ status, path }) => {
 				if (status === 404 && path.startsWith('/slides/')) return;
