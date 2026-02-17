@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { percentile } from '$lib/utils/math';
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
@@ -22,17 +23,32 @@
     }))
   );
 
-  $: bands = obs.map((o, idx) => {
-    const vals = sims.map((s) => s[idx].c);
+  $: maxT = Math.max(...obs.map((o) => o.t));
+  $: binEdges = Array.from({ length: bins + 1 }, (_, i) => (maxT * i) / bins);
+  $: bands = binEdges.slice(0, -1).map((edge, i) => {
+    const next = binEdges[i + 1];
+    const vals = [];
+    const times = [];
+    sims.forEach((sim) => {
+      sim.forEach((pt) => {
+        if ((pt.t >= edge && pt.t < next) || (i === bins - 1 && pt.t === next)) {
+          vals.push(pt.c);
+          times.push(pt.t);
+        }
+      });
+    });
+    const tMid = times.length ? times.reduce((a, b) => a + b, 0) / times.length : (edge + next) / 2;
     return {
-      t: o.t,
-      p5: percentile(vals, 5),
-      p50: percentile(vals, 50),
-      p95: percentile(vals, 95)
+      t: tMid,
+      p5: vals.length ? percentile(vals, 5) : 0,
+      p50: vals.length ? percentile(vals, 50) : 0,
+      p95: vals.length ? percentile(vals, 95) : 0,
+      edge,
+      next
     };
   });
 
-  $: xScale = scaleLinear().domain([0, Math.max(...obs.map((o) => o.t))]).range([0, 300]);
+  $: xScale = scaleLinear().domain([0, maxT]).range([0, 300]);
   $: yScale = scaleLinear().domain(paddedDomain([...bands.map((b) => b.p95), ...obs.map((o) => o.c)], 0.2)).range([160, 0]);
 </script>
 
@@ -40,9 +56,13 @@
   <div class="controls">
     <label>Bins <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
     <span>{bins} bins</span>
+    <small>Regroupe les temps pour stabiliser les percentiles.</small>
   </div>
   <ChartFrame width={360} height={220} margin={{ top: 16, right: 12, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+      {#each binEdges as e}
+        <line x1={xScale(e)} x2={xScale(e)} y1={0} y2={innerHeight} stroke="#cbd5e1" stroke-dasharray="4 4" stroke-width="1" />
+      {/each}
       <polygon
         fill="rgba(59,130,246,0.15)"
         stroke="none"
@@ -78,5 +98,10 @@
     gap: 8px;
     align-items: center;
     font-weight: 700;
+    flex-wrap: wrap;
+  }
+  small {
+    font-weight: 400;
+    color: #475569;
   }
 </style>

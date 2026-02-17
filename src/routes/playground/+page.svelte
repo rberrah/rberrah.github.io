@@ -1,23 +1,34 @@
 <script>
+  import PopPKPlayground from '$lib/components/visualizations/21_PopPKPlayground.svelte';
   import PK1C from '$lib/components/visualizations/09_PK1C.svelte';
   import VPCCrashTest from '$lib/components/visualizations/17_VPCCrashTest.svelte';
   import ADEChooser from '$lib/components/visualizations/11_ADEChooser.svelte';
   import VariabilitySandbox from '$lib/components/visualizations/12_VariabilitySandbox.svelte';
-  import BayesianShrinkage from '$lib/components/visualizations/18_BayesianShrinkage.svelte';
 </script>
 
-<h1>Playground PK/PD</h1>
-<p>Simule librement les paramètres et observe l’impact.</p>
+<h1>Playground PopPK / PKPD</h1>
+<p>Simule en direct : nombre de compartiments, voie d’administration, IIV/IOV, erreur résiduelle, sampling, et export CSV.</p>
 
+<PopPKPlayground />
+
+<h2>Autres modules rapides</h2>
 <div class="grid">
   <section class="card"><PK1C /></section>
   <section class="card"><ADEChooser /></section>
   <section class="card"><VPCCrashTest /></section>
   <section class="card"><VariabilitySandbox /></section>
-  <section class="card"><BayesianShrinkage /></section>
 </div>
 
 <style>
+  h1 {
+    margin-bottom: 4px;
+  }
+  p {
+    margin-bottom: 12px;
+  }
+  h2 {
+    margin: 18px 0 8px;
+  }
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));

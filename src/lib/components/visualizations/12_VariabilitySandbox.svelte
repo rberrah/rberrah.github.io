@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import Slider from '$lib/components/ui/Slider.svelte';
   import { concMono } from '$lib/utils/math';
   import { generateProfiles } from '$lib/sim/variability';
@@ -12,6 +13,9 @@
   let omega = 0.2;
   let kappa = 0;
   let sigma = 0.1;
+  let iivEnabled = true;
+  let iovEnabled = true;
+  let resEnabled = true;
 
   const times = Array.from({ length: 25 }, (_, i) => i);
   const base = { dose: 100, cl: 6, v: 25 };
@@ -25,15 +29,24 @@
   /** @param {number} t */
   const structFn = (t) => concMono(t, base.dose, base.cl, base.v);
 
-  $: ({ omega, sigma, kappa } = { ...presets[preset] });
+  function applyPreset(value) {
+    preset = value;
+    const p = presets[value];
+    omega = p.omega;
+    sigma = p.sigma;
+    kappa = p.kappa;
+  }
+
+  applyPreset(preset);
+
   $: profiles = generateProfiles({
     n: 120,
     times,
     structFn,
-    omega,
-    kappa,
-    sigmaProp: sigma,
-    sigmaAdd: 0,
+    omega: iivEnabled ? omega : 0,
+    kappa: iovEnabled ? kappa : 0,
+    sigmaProp: resEnabled ? sigma : 0,
+    sigmaAdd: resEnabled ? 0 : 0,
     seed: 42
   });
 
@@ -76,15 +89,18 @@
   <div class="controls">
     <label>
       Preset
-      <select bind:value={preset}>
+      <select bind:value={preset} on:change={(e) => applyPreset(e.target.value)}>
         <option value="sans">Sans variabilité</option>
         <option value="faible">Faible</option>
         <option value="forte">Forte</option>
       </select>
     </label>
-    <Slider label="ω (IIV)" min={0} max={1} step={0.05} bind:value={omega} />
-    <Slider label="κ (IOV)" min={0} max={1} step={0.05} bind:value={kappa} />
-    <Slider label="σ (résiduel)" min={0} max={0.5} step={0.02} bind:value={sigma} />
+    <Slider label="omega (IIV)" min={0} max={1} step={0.05} bind:value={omega} />
+    <Slider label="kappa (IOV)" min={0} max={1} step={0.05} bind:value={kappa} />
+    <Slider label="sigma (résiduel prop)" min={0} max={0.5} step={0.02} bind:value={sigma} />
+    <label class="toggle"><input type="checkbox" bind:checked={iivEnabled} /> IIV on/off</label>
+    <label class="toggle"><input type="checkbox" bind:checked={iovEnabled} /> IOV on/off</label>
+    <label class="toggle"><input type="checkbox" bind:checked={resEnabled} /> Résiduel on/off</label>
   </div>
   <ChartFrame width={380} height={240} margin={{ top: 16, right: 14, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
@@ -130,5 +146,11 @@
     padding: 6px;
     border-radius: 8px;
     border: 1px solid #cbd5e1;
+  }
+  .toggle {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-weight: 700;
   }
 </style>
