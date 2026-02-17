@@ -5,8 +5,9 @@ export type Chapter = {
   summary: string;
   slides?: number[];
   formulas?: string[];
-  steps: { title: string; body: string; viz?: string }[];
-  quiz: { prompt: string; options: string[]; correct: number }[];
+  steps: { title: string; viz?: string; bodyHtml: string }[];
+  bodyHtml?: string;
+  quiz?: { prompt: string; options: string[]; correct: number }[];
 };
 
 declare const chapters: Chapter[];

@@ -1,42 +1,57 @@
 # Pharmacométrie Explain – cours interactif (SvelteKit)
 
-Site éducatif scrollytelling (type MLU-Explain) couvrant PK/PD, PopPK, diagnostics, TDM, IA/Neural ODE.
+Site éducatif scrollytelling (type MLU-Explain) couvrant PK/PD, PopPK, diagnostics, TDM, IA/Neural ODE. Déploiement 100 % statique (adapter-static) pour GitHub Pages.
 
 ## Installer / lancer
-
 ```sh
-npm ci               # nécessite l'accès npm (d3, layercake, svelte-scroller…)
-npm run dev          # dev server
+npm ci
+npm run dev          # serveur dev
 npm run check        # lint + svelte-check
-npm run build        # build statique (adapter-static)
+npm run build        # build statique
 ```
 
-> GitHub Pages : définir `BASE_PATH=/rberrah.github.io` (ou nom du repo) avant `npm run build`.
+> GitHub Pages : `BASE_PATH` est automatiquement détecté par le workflow. En local, définir `BASE_PATH=/rberrah.github.io` (user site) ou `BASE_PATH=/nom-du-repo` (project site) avant `npm run build` si besoin.  
 > Trailing slash activé : les routes sont servies en `/chapitres/slug/`.
 
-## Contenu
-- Pages : home, chapitres (scrolly), playground, glossaire, QA, à-propos.
-- Chapitres définis dans `src/lib/content/chapters.js` (slides, formules, quiz, viz).
-- Visualisations dans `src/lib/components/visualizations/`.
-- Moteur de simulation : `src/lib/sim/` (RK4, oral 1C, variabilité seedée).
-- Charts : `src/lib/charts/` (axes chiffrés, autoscale).
-- Math (KaTeX CDN) : `src/lib/components/MathBlock.svelte`.
-- Slides PPTX optionnelles : placer des PNG nommés `static/slides/slide-XX.png`.
+## Architecture contenu (gold standard)
+- Les chapitres sont des fichiers Markdown : `src/content/chapters/*.md`
+  - Frontmatter JSON : slug, title, tag, summary, slides, formulas, quiz…
+  - Steps balisés : `<!-- step:title="..." viz="..." --> ... <!-- /step -->`
+- Chargement/validation : `src/lib/content/loadChapters.js` + `schema.js` + `markdown.js`
+- Slide index : `src/content/slide_index.json` (généré ou complété à la main)
+- Documentation édition : `src/content/README.md` (à compléter si besoin)
 
-## Export PPTX (optionnel, hors production)
-- Plan JSON : `python scripts/extract_pptx_outline.py "Pharmacométrie Pratique.pptx" src/content/pptx_outline.json`
-- PNG des slides : `bash scripts/export_pptx_png.sh` (LibreOffice), les fichiers seront renommés en `slide-01.png`, `slide-02.png`…
+## Code
+- Visualisations : `src/lib/components/visualizations/`
+- Simulations : `src/lib/sim/` (RK4, PK multi-compartiments, variabilité)
+- Charts : `src/lib/charts/` (axes chiffrés, autoscale)
+- Math (KaTeX CDN) : `src/lib/components/MathBlock.svelte`
+- Slides : `static/slides/slide-XX.png` (fallback si manquants)
+- Pages : home, chapitres scrolly, playground PopPK, glossaire, QA, slides, à-propos
+
+## Scripts utilitaires
+- `npm run validate` : valide le contenu (frontmatter, slides, doublons)
+- `npm run slides:index` : génère un index de slides par défaut
+- `npm run slides:export` : export LibreOffice → PNG + renommage `slide-XX.png`
+- `scripts/validate_content.mjs` : checks slides/viz
+- `scripts/export_pptx_png.sh` : export PPTX → PNG (renommage numérique robuste)
+- `scripts/generate_slide_index.mjs` : stub d’index si aucun export n’est fait
+
+## Export PPTX (optionnel)
+1. Placer `static/pharmacometrie-pratique.pptx` (déjà présent).
+2. `npm run slides:export` (LibreOffice requis) → `static/slides/slide-01.png`…`slide-74.png`.
+3. `npm run slides:index` pour créer/mettre à jour `slide_index.json` (titres à compléter manuellement si besoin).
 
 ## QA
-- Page `http://localhost:5173/qa` : aperçu rapide des visualisations et presets.
+- Page `http://localhost:5173/qa/` : aperçu rapide des visualisations (presets).
+- Page `http://localhost:5173/slides/` : listing des 74 slides (ou placeholders).
+
+## Déploiement GitHub Pages
+- Workflow `.github/workflows/deploy-pages.yml` :
+  - détecte BASE_PATH (`""` si user site `rberrah.github.io`, sinon `/<repo>`)
+  - build + upload `build/`
+- Static hosting : `adapter-static` + `fallback: 404.html` + `static/.nojekyll`.
+- Accès direct aux routes (refresh sur `/chapitres/<slug>/`) supporté via trailing slash et fallback.
 
 ## Licences
 - Texte : CC-BY-SA. Code : MIT. Pas de conseil médical (pédagogie uniquement).
-
-## Déploiement GitHub Pages
-- Un workflow automatique est fourni `.github/workflows/deploy-pages.yml`.
-- BASE_PATH est détecté automatiquement :
-  - repo `rberrah.github.io` ➜ `BASE_PATH=""` (user site)
-  - sinon ➜ `BASE_PATH="/<repo>"` (project site)
-- Pages statiques générées dans `build/` avec `adapter-static`, `trailingSlash: 'always'`, `fallback: 404.html`, et fichier `static/.nojekyll` pour servir `_app`.
-- Test local du build : `npm run build && npm run preview`.

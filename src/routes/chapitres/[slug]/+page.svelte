@@ -1,5 +1,5 @@
 <script>
-  import chapters from '$lib/content/chapters';
+  import chapters from '$lib/content/loadChapters';
   import Scrolly from '$lib/components/Scrolly.svelte';
   import Quiz from '$lib/components/ui/Quiz.svelte';
   import SlideImage from '$lib/components/SlideImage.svelte';
@@ -13,6 +13,7 @@
   /** @type {import('$lib/content/chapters').Chapter | undefined} */
   let chapter = chapters.find((c) => c.slug === params.slug);
   let stepIndex = 0;
+  let stepProgress = 0;
   $: currentViz = chapter?.steps?.[stepIndex]?.viz;
 
   /** @type {Record<string, any>} */
@@ -64,13 +65,16 @@
   {/if}
 
   <Scrolly
-    steps={chapter.steps.map((s, i) => ({ id: String(i), title: s.title, content: s.body }))}
+    steps={chapter.steps.map((s, i) => ({ id: String(i), title: s.title, content: s.bodyHtml }))}
     on:enter={(e) => (stepIndex = Number(e.detail.id))}
+    on:progress={(e) => {
+      if (Number(e.detail.id) === stepIndex) stepProgress = e.detail.ratio;
+    }}
   >
     <svelte:fragment slot="viz">
       {#if currentViz}
         {#if vizComponents && vizComponents[currentViz]}
-          <svelte:component this={vizComponents[currentViz]} />
+          <svelte:component this={vizComponents[currentViz]} progress={stepProgress} />
         {:else}
           <p>Chargement…</p>
         {/if}

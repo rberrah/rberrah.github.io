@@ -1,5 +1,6 @@
 <script>
   import { base } from '$app/paths';
+  import slideIndex from '../../content/slide_index.json';
 
   export let n;
   export let alt = 'Slide PPTX';
@@ -8,6 +9,7 @@
   const num = String(n).padStart(2, '0');
   const src = `${base}/slides/slide-${num}.png`;
   const pptxHref = `${base}/pharmacometrie-pratique.pptx`;
+  const slideTitle = slideIndex.find((s) => s.slide === n)?.title || '';
 
   let missing = false;
 </script>
@@ -26,7 +28,7 @@
       <a href={pptxHref}>Ouvrir le PPTX</a>
     </div>
   {/if}
-  <figcaption>{caption || `Slide ${num}`}</figcaption>
+  <figcaption>{caption || slideTitle || `Slide ${num}`}</figcaption>
 </figure>
 
 <style>

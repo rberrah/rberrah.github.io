@@ -5,9 +5,10 @@
   let dose = 100;
   let volume = 25;
   let cl = 6;
+  let time = 0;
 
   $: ke = cl / volume;
-  $: level = concMono(0, dose, cl, volume);
+  $: level = concMono(time, dose, cl, volume);
 </script>
 
 <div class="bucket">
@@ -22,6 +23,11 @@
     <Slider label="Dose (mg)" min={25} max={400} step={5} bind:value={dose} />
     <Slider label="Volume (L)" min={10} max={80} step={1} bind:value={volume} />
     <Slider label="Clairance (L/h)" min={1} max={20} step={0.5} bind:value={cl} />
+    <Slider label="Temps (h)" min={0} max={24} step={0.1} bind:value={time} />
+    <div class="kpis">
+      <span>C(t) = {level.toFixed(2)} mg/L</span>
+      <span>t½ ≈ {(0.693 * volume / cl).toFixed(2)} h</span>
+    </div>
   </div>
 </div>
 
@@ -76,5 +82,11 @@
   .controls {
     display: grid;
     gap: 10px;
+  }
+  .kpis {
+    display: flex;
+    gap: 12px;
+    font-weight: 700;
+    color: #0f172a;
   }
 </style>

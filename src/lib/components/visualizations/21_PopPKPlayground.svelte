@@ -13,6 +13,9 @@
   let infusionDuration = 2;
   let ka = 1.2;
   let lag = 0.5;
+  let absorptionMode = 'none'; // none | lag | transit
+  let nTransit = 3;
+  let mtt = 1.5;
   let cl = 6;
   let vc = 40;
   let q1 = 5;
@@ -53,7 +56,15 @@
     lag,
     infusionDuration,
     tEnd: Math.max(...samplingTimes),
-    h: 0.05
+    h: 0.05,
+    absorptionDelay:
+      route === 'oral_1st'
+        ? absorptionMode === 'lag'
+          ? { type: 'lag', lag }
+          : absorptionMode === 'transit'
+          ? { type: 'transit', nTransit, mtt }
+          : { type: 'none' }
+        : { type: 'none' }
   };
 
   $: population = simulatePopulation({
@@ -125,7 +136,19 @@
       {/if}
       {#if route === 'oral_1st'}
         <Slider label="Ka (1/h)" min={0.1} max={3} step={0.05} bind:value={ka} />
-        <Slider label="Lag (h)" min={0} max={3} step={0.1} bind:value={lag} />
+        <label>Absorption delay
+          <select bind:value={absorptionMode}>
+            <option value="none">Aucun</option>
+            <option value="lag">Lag time</option>
+            <option value="transit">Transit</option>
+          </select>
+        </label>
+        {#if absorptionMode === 'lag'}
+          <Slider label="Lag (h)" min={0} max={3} step={0.1} bind:value={lag} />
+        {:else if absorptionMode === 'transit'}
+          <Slider label="n transit" min={1} max={10} step={1} bind:value={nTransit} />
+          <Slider label="MTT (h)" min={0.2} max={6} step={0.1} bind:value={mtt} />
+        {/if}
       {/if}
       <Slider label="CL (L/h)" min={0.5} max={25} step={0.5} bind:value={cl} />
       <Slider label="Vc (L)" min={5} max={200} step={5} bind:value={vc} />

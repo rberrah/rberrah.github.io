@@ -3,7 +3,7 @@
 
   /** @type {{id:string, title?:string, content?:string}[]} */
   export let steps = [];
-  export let threshold = 0.4;
+  export let threshold = Array.from({ length: 21 }, (_, i) => i / 20); // 0..1 every 5%
 
   const dispatch = createEventDispatcher();
   /** @type {HTMLElement[]} */
@@ -17,6 +17,7 @@
         entries.forEach((entry) => {
           const target = /** @type {HTMLElement} */ (entry.target);
           const id = target.dataset.step;
+          dispatch('progress', { id, ratio: entry.intersectionRatio });
           if (entry.isIntersecting) {
             dispatch('enter', { id, ratio: entry.intersectionRatio });
           } else {

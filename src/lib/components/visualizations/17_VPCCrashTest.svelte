@@ -15,6 +15,7 @@
     { t: 12, c: 5.4 }
   ];
   let bins = 6;
+  let binning = true;
 
   const sims = Array.from({ length: 200 }, (_, i) =>
     obs.map((o, j) => ({
@@ -25,6 +26,11 @@
 
   $: maxT = Math.max(...obs.map((o) => o.t));
   $: binEdges = Array.from({ length: bins + 1 }, (_, i) => (maxT * i) / bins);
+  const directBands = obs.map((o, idx) => {
+    const vals = sims.map((s) => s[idx].c);
+    return { t: o.t, p5: percentile(vals, 5), p50: percentile(vals, 50), p95: percentile(vals, 95) };
+  });
+
   $: bands = binEdges.slice(0, -1).map((edge, i) => {
     const next = binEdges[i + 1];
     const vals = [];
@@ -49,13 +55,18 @@
   });
 
   $: xScale = scaleLinear().domain([0, maxT]).range([0, 300]);
-  $: yScale = scaleLinear().domain(paddedDomain([...bands.map((b) => b.p95), ...obs.map((o) => o.c)], 0.2)).range([160, 0]);
+  $: activeBands = binning ? bands : directBands;
+  $: yScale = scaleLinear().domain(paddedDomain([...activeBands.map((b) => b.p95), ...obs.map((o) => o.c)], 0.2)).range([160, 0]);
 </script>
 
 <div class="vpc">
   <div class="controls">
     <label>Bins <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
     <span>{bins} bins</span>
+    <label class="toggle">
+      <input type="checkbox" bind:checked={binning} />
+      Binning actif
+    </label>
     <small>Regroupe les temps pour stabiliser les percentiles.</small>
   </div>
   <ChartFrame width={360} height={220} margin={{ top: 16, right: 12, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
@@ -66,7 +77,7 @@
       <polygon
         fill="rgba(59,130,246,0.15)"
         stroke="none"
-        points={`${bands.map((d) => `${xScale(d.t)},${yScale(d.p95)}`).join(' ')} ${[...bands]
+        points={`${activeBands.map((d) => `${xScale(d.t)},${yScale(d.p95)}`).join(' ')} ${[...activeBands]
           .reverse()
           .map((d) => `${xScale(d.t)},${yScale(d.p5)}`)
           .join(' ')}`}
@@ -75,7 +86,7 @@
         fill="none"
         stroke="#2563eb"
         stroke-width="2.5"
-        points={bands.map((d) => `${xScale(d.t)},${yScale(d.p50)}`).join(' ')}
+        points={activeBands.map((d) => `${xScale(d.t)},${yScale(d.p50)}`).join(' ')}
       />
       {#each obs as p}
         <circle cx={xScale(p.t)} cy={yScale(p.c)} r="4" fill="#ef4444" />

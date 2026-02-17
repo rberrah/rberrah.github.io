@@ -1,6 +1,6 @@
 <script>
   import { base } from '$app/paths';
-  import chapters from '$lib/content/chapters';
+  import chapters from '$lib/content/loadChapters';
   const featured = chapters.slice(0, 6);
 </script>
 

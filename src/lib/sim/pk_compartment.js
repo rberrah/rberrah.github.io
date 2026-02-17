@@ -2,24 +2,7 @@
 import { rk4 } from './ode';
 
 /**
- * Simulation PK 1–3 compartiments, routes IV bolus / perfusion / oral 1er ordre + lag.
- * @param {object} opt
- * @param {number} opt.dose
- * @param {'iv_bolus'|'iv_infusion'|'oral_1st'} opt.route
- * @param {number} opt.nCompartments
- * @param {number} opt.cl
- * @param {number} opt.vc
- * @param {number} [opt.q1]
- * @param {number} [opt.vp1]
- * @param {number} [opt.q2]
- * @param {number} [opt.vp2]
- * @param {number} [opt.ka]
- * @param {number} [opt.lag]
- * @param {number} [opt.infusionDuration]
- * @param {number} [opt.tEnd]
- * @param {number} [opt.h]
- * @param {number[]} [opt.times]
- * @returns {{t:number, c:number, agut:number}[]}
+ * Simulation PK 1–3 compartiments, routes IV bolus / perfusion / oral 1er ordre, lag ou transit.
  */
 export function simulatePK(opt) {
   const {
@@ -37,15 +20,29 @@ export function simulatePK(opt) {
     infusionDuration = 1,
     tEnd = 24,
     h = 0.05,
-    times
+    times,
+    absorptionDelay = { type: 'none', nTransit: 0, mtt: 1 }
   } = opt;
 
+  const nTransit = absorptionDelay.type === 'transit' ? Math.max(0, Math.round(absorptionDelay.nTransit || 0)) : 0;
   const grid = times ?? Array.from({ length: Math.floor(tEnd / h) + 1 }, (_, i) => Number((i * h).toFixed(6)));
-  const state0 = buildInitialState({ route, dose, vc, nCompartments });
 
-  const { t, y } = rk4((tt, state) => deriv(tt, state, opt), state0, 0, tEnd, h, {});
+  // state: transit[0..nTransit-1], gut, central, periph1?, periph2?
+  const state0 = [];
+  if (route === 'oral_1st' && absorptionDelay.type === 'transit') {
+    state0.push(dose); // first transit
+    for (let i = 1; i < nTransit; i++) state0.push(0);
+    state0.push(0); // gut
+  } else if (route === 'oral_1st') {
+    state0.push(dose); // gut only (no transit)
+  }
+  // central
+  state0.push(route === 'iv_bolus' ? dose : 0);
+  if (nCompartments >= 2) state0.push(0);
+  if (nCompartments >= 3) state0.push(0);
 
-  // interpolate concentrations at requested times if times provided
+  const { t, y } = rk4((tt, state) => deriv(tt, state, opt, nTransit, absorptionDelay), state0, 0, tEnd, h, {});
+
   const samples = [];
   let idx = 0;
   for (const target of grid) {
@@ -56,21 +53,17 @@ export function simulatePK(opt) {
     const yA = y[idx];
     const yB = y[idx + 1] ?? y[idx];
     const interp = yA.map((v, i) => v + frac * (yB[i] - v));
-    const central = interp[1];
-    samples.push({ t: target, c: central / vc, agut: interp[0] });
+
+    const centralIndex = (route === 'oral_1st' ? (absorptionDelay.type === 'transit' ? nTransit + 1 : 1) : 0);
+    const central = interp[centralIndex];
+    const gutIndex = route === 'oral_1st' ? (absorptionDelay.type === 'transit' ? nTransit : 0) : 0;
+    const agut = route === 'oral_1st' ? interp[gutIndex] : 0;
+    samples.push({ t: target, c: central / vc, agut });
   }
   return samples;
 }
 
-function buildInitialState({ route, dose, vc, nCompartments }) {
-  const gut = route === 'oral_1st' ? dose : 0;
-  const a1 = route === 'iv_bolus' ? dose : 0;
-  const a2 = nCompartments >= 2 ? 0 : undefined;
-  const a3 = nCompartments >= 3 ? 0 : undefined;
-  return [gut, a1, ...(a2 === undefined ? [] : [a2]), ...(a3 === undefined ? [] : [a3])];
-}
-
-function deriv(t, y, opt) {
+function deriv(t, y, opt, nTransit, absorptionDelay) {
   const {
     route,
     nCompartments,
@@ -86,7 +79,17 @@ function deriv(t, y, opt) {
     dose
   } = opt;
 
-  let [agut, a1, a2 = 0, a3 = 0] = y;
+  let idx = 0;
+  let transit = [];
+  if (route === 'oral_1st' && absorptionDelay.type === 'transit') {
+    transit = y.slice(0, nTransit);
+    idx = nTransit;
+  }
+  const gut = route === 'oral_1st' ? y[idx++] : 0;
+  let a1 = y[idx++];
+  let a2 = nCompartments >= 2 ? y[idx++] : 0;
+  let a3 = nCompartments >= 3 ? y[idx++] : 0;
+
   const k10 = cl / vc;
   const k12 = nCompartments >= 2 ? q1 / vc : 0;
   const k21 = nCompartments >= 2 && vp1 ? q1 / vp1 : 0;
@@ -94,10 +97,32 @@ function deriv(t, y, opt) {
   const k31 = nCompartments >= 3 && vp2 ? q2 / vp2 : 0;
 
   const inputInfusion = route === 'iv_infusion' && t <= infusionDuration ? dose / infusionDuration : 0;
-  const allowAbs = route === 'oral_1st' && t >= lag;
-  const abs = allowAbs ? ka * agut : 0;
 
-  const dagut = route === 'oral_1st' ? -abs : 0;
+  let transitDerivs = [];
+  let inputGut = 0;
+  if (route === 'oral_1st' && absorptionDelay.type === 'transit') {
+    const n = Math.max(1, nTransit);
+    const ktr = (n + 1) / Math.max(0.01, absorptionDelay.mtt || 1);
+    for (let i = 0; i < nTransit; i++) {
+      const prev = i === 0 ? 0 : transit[i - 1];
+      const curr = transit[i];
+      const d = ktr * (prev - curr);
+      transitDerivs.push(d);
+    }
+    inputGut = ktr * (transit[nTransit - 1] || 0);
+  } else if (route === 'oral_1st') {
+    inputGut = 0;
+  }
+
+  const allowAbs =
+    route !== 'oral_1st'
+      ? false
+      : absorptionDelay.type === 'lag'
+      ? t >= lag
+      : true;
+  const abs = route === 'oral_1st' && allowAbs ? ka * gut : 0;
+
+  const dagut = route === 'oral_1st' ? inputGut - abs : 0;
   const da1 =
     inputInfusion +
     abs +
@@ -107,5 +132,5 @@ function deriv(t, y, opt) {
   const da2 = nCompartments >= 2 ? k12 * a1 - k21 * a2 : undefined;
   const da3 = nCompartments >= 3 ? k13 * a1 - k31 * a3 : undefined;
 
-  return [dagut, da1, ...(da2 === undefined ? [] : [da2]), ...(da3 === undefined ? [] : [da3])];
+  return [...transitDerivs, dagut, da1, ...(da2 === undefined ? [] : [da2]), ...(da3 === undefined ? [] : [da3])];
 }
