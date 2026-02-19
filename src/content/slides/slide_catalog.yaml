@@ -1,669 +1,668 @@
-# Catalog des slides (placeholder généré automatiquement). Remplacez les champs TODO par les infos réelles.
-# Chaque entrée doit rester synchronisée avec les PNG de static/slides/slide-XX.png.
+# Catalogue des slides – rempli à partir des descriptions fournies.
 
 - slide: 1
   id: "s01"
   file: "slide-01.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "PK : Définition"
+  purpose: "Expliquer ce que le corps fait au médicament (ADME)."
+  key_points: ["Pharmacocinétique (PK)", "Absorption, Distribution, Métabolisme, Élimination", "Vision anatomique"]
   tags: ["intro"]
   suggested_module: "intro-pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Ce que l’on voit : organes, trajet du médicament. La PK quantifie l'ADME."
 - slide: 2
   id: "s02"
   file: "slide-02.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Implication Clinique PK"
+  purpose: "Lier la PK au choix de la dose."
+  key_points: ["Atteindre la bonne concentration", "Ne pas confondre vitesse d'absorption et clairance"]
   tags: ["intro"]
   suggested_module: "intro-pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Implication : choisir la bonne dose. Piège : confondre temps d’absorption lent avec faible clairance."
 - slide: 3
   id: "s03"
   file: "slide-03.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "PD : Définition"
+  purpose: "Expliquer ce que le médicament fait au corps."
+  key_points: ["Pharmacodynamie (PD)", "Relation concentration-effet", "Efficacité et toxicité"]
   tags: ["intro"]
   suggested_module: "intro-pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "L’efficacité/toxicité dépendent de l’exposition. Mesurer la concentration ne suffit pas, il faut relier à l’effet."
 - slide: 4
   id: "s04"
   file: "slide-04.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Variabilité Inter-Individuelle (IIV)"
+  purpose: "Montrer que la même dose donne des résultats différents."
+  key_points: ["Variabilité de réponse", "Différences entre patients", "Échec de la dose unique"]
   tags: ["intro"]
   suggested_module: "intro-pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Ce que l’on voit : mêmes doses, réponses différentes. La dose '100 mg pour tous' échoue pour une part des patients."
 - slide: 5
   id: "s05"
   file: "slide-05.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Variabilité Intra-Individuelle (IOV)"
+  purpose: "Distinguer variabilité patient vs variabilité occasion."
+  key_points: ["IOV vs IIV", "Variabilité chez un même patient", "Erreur de mesure vs réalité biologique"]
   tags: ["intro"]
   suggested_module: "intro-pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : attribuer la variabilité à l’erreur de mesure uniquement."
 - slide: 6
   id: "s06"
   file: "slide-06.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Approche NCA"
+  purpose: "Présenter l'analyse non-compartimentale."
+  key_points: ["Calcul d'exposition (AUC)", "Méthode des trapèzes", "Robuste mais descriptive"]
   tags: ["approches"]
   suggested_module: "trois-approches"
-  speaker_notes: "TODO"
+  speaker_notes: "La NCA calcule l’exposition sans modèle. Implication : robuste mais ne prédit pas de nouveaux scénarios."
 - slide: 7
   id: "s07"
   file: "slide-07.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Approche PopPK (1/2)"
+  purpose: "Introduire la modélisation de population."
+  key_points: ["Modèle compartimental", "Spaghetti plot", "Expliquer la variabilité"]
   tags: ["approches"]
   suggested_module: "trois-approches"
-  speaker_notes: "TODO"
+  speaker_notes: "Ce que l’on voit : spaghetti + distribution. Modèle compartimental + effets aléatoires."
 - slide: 8
   id: "s08"
   file: "slide-08.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Approche PopPK (2/2)"
+  purpose: "Détailler les avantages de la PopPK."
+  key_points: ["Simulation", "Individualisation", "Gestion des variabilités"]
   tags: ["approches"]
   suggested_module: "trois-approches"
-  speaker_notes: "TODO"
+  speaker_notes: "Permet de simuler et individualiser. Piège : mal coder la variabilité résiduelle."
 - slide: 9
   id: "s09"
   file: "slide-09.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Approche PBPK"
+  purpose: "Présenter la modélisation physiologique."
+  key_points: ["Réseau d'organes", "Mécanisme bottom-up", "Interactions médicamenteuses"]
   tags: ["approches"]
   suggested_module: "trois-approches"
-  speaker_notes: "TODO"
+  speaker_notes: "Utile quand on manque de données cliniques. Piège : sur-paramétriser sans données."
 - slide: 10
   id: "s10"
   file: "slide-10.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Analogie Hydraulique : Volume"
+  purpose: "Expliquer le Volume de distribution (V) comme un réservoir."
+  key_points: ["Réservoir = Concentration", "Largeur = Volume V", "Impact de V sur le niveau"]
   tags: ["modele"]
   suggested_module: "modele-compartimental"
-  speaker_notes: "TODO"
+  speaker_notes: "Plus V est grand, plus le niveau baisse pour la même dose."
 - slide: 11
   id: "s11"
   file: "slide-11.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Analogie Hydraulique : Clairance"
+  purpose: "Expliquer la Clairance (CL) comme un robinet."
+  key_points: ["Robinet = Clairance", "Vitesse de vidange", "Débit d'élimination"]
   tags: ["modele"]
   suggested_module: "modele-compartimental"
-  speaker_notes: "TODO"
+  speaker_notes: "CL contrôle la vitesse de vidange. Plus le tuyau est large, plus ça se vide vite."
 - slide: 12
   id: "s12"
   file: "slide-12.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Équation Différentielle"
+  purpose: "Formaliser le modèle 1 compartiment."
+  key_points: ["dA/dt = -k·A", "k = CL/V", "Demi-vie (t½)"]
   tags: ["modele"]
   suggested_module: "modele-compartimental"
-  speaker_notes: "TODO"
+  speaker_notes: "Solution exponentielle. Piège : confondre t½ avec CL seule (t½ dépend aussi de V)."
 - slide: 13
   id: "s13"
   file: "slide-13.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "ADME : Absorption"
+  purpose: "Introduire les étapes de l'ADME."
+  key_points: ["Passage systémique", "Barrières physiologiques"]
   tags: ["adme"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Introduction au cheminement du médicament avant l'arrivée dans le sang."
 - slide: 14
   id: "s14"
   file: "slide-14.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "ADME : Distribution"
+  purpose: "Visualiser la répartition dans les tissus."
+  key_points: ["Sang vs Tissus", "Volume apparent"]
   tags: ["adme"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Le médicament ne reste pas uniquement dans le sang."
 - slide: 15
   id: "s15"
   file: "slide-15.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "ADME : Métabolisme"
+  purpose: "Expliquer la transformation du médicament."
+  key_points: ["Foie", "Enzymes", "Métabolites"]
   tags: ["adme"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Transformation chimique avant élimination."
 - slide: 16
   id: "s16"
   file: "slide-16.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "ADME : Élimination"
+  purpose: "Décrire les voies d'excrétion."
+  key_points: ["Reins", "Bile", "Clairance totale"]
   tags: ["adme"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Sortie définitive du médicament du corps."
 - slide: 17
   id: "s17"
   file: "slide-17.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Le Lag-time (Tlag)"
+  purpose: "Expliquer le délai avant absorption."
+  key_points: ["Temps de latence", "Concentration nulle au début", "Dissolution"]
   tags: ["absorption"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Si t < Tlag, C = 0. Piège : oublier le lag → la courbe modélisée commence trop tôt."
 - slide: 18
   id: "s18"
   file: "slide-18.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Absorption de Bateman (1/2)"
+  purpose: "Présenter le profil d'absorption classique."
+  key_points: ["Constante d'absorption Ka", "Compétition entrée/sortie"]
   tags: ["absorption"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Ka contrôle la pente de montée, CL/V la pente de descente."
 - slide: 19
   id: "s19"
   file: "slide-19.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Absorption de Bateman (2/2)"
+  purpose: "Analyser l'équation de Bateman."
+  key_points: ["Double exponentielle", "Impact de Ka vs Ke"]
   tags: ["absorption"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Formule : (Dose/V) * (Ka/(Ka-Ke)) * (exp(-Ke*t) - exp(-Ka*t))."
 - slide: 20
   id: "s20"
   file: "slide-20.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Tmax et Cmax"
+  purpose: "Comprendre les paramètres secondaires d'exposition."
+  key_points: ["Influence de Ka et Tlag sur Tmax", "Influence de V et CL sur Cmax"]
   tags: ["absorption"]
   suggested_module: "absorption-orale"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : conclure à une biodisponibilité faible alors que c'est le lag qui est long."
 - slide: 21
   id: "s21"
   file: "slide-21.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Modéliser l'IIV"
+  purpose: "Formaliser la variabilité inter-individuelle."
+  key_points: ["Paramètres individuels", "Loi log-normale", "Effet aléatoire η (eta)"]
   tags: ["variabilite"]
   suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "TODO"
+  speaker_notes: "Chaque patient a son η propre. CL_i = CL_pop * exp(η_i)."
 - slide: 22
   id: "s22"
   file: "slide-22.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Modéliser l'IOV"
+  purpose: "Formaliser la variabilité inter-occasion."
+  key_points: ["Variation temporelle", "Effet aléatoire κ (kappa)", "Impact sur le TDM"]
   tags: ["variabilite"]
   suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "TODO"
+  speaker_notes: "Si IOV > IIV, le suivi thérapeutique (TDM) est difficile. Piège : croire à une non-adhérence."
 - slide: 23
   id: "s23"
   file: "slide-23.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Erreur Résiduelle (1/2)"
+  purpose: "Expliquer l'écart modèle/réalité."
+  key_points: ["IPRED vs DV", "Erreur additive", "Bruit de mesure"]
   tags: ["variabilite"]
   suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "TODO"
+  speaker_notes: "Ce qui reste inexpliqué par le modèle structurel et les variabilités."
 - slide: 24
   id: "s24"
   file: "slide-24.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Erreur Résiduelle (2/2)"
+  purpose: "Choisir le bon modèle d'erreur."
+  key_points: ["Erreur proportionnelle", "Erreur combinée", "Pondération des faibles concentrations"]
   tags: ["erreur"]
   suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : appliquer l’erreur sur IPRED au lieu de simuler une distribution autour."
 - slide: 25
   id: "s25"
   file: "slide-25.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Récapitulatif Équation"
+  purpose: "Synthèse du modèle 1 compartiment IV."
+  key_points: ["Intégration", "Profil décroissant", "Paramètres clés"]
   tags: ["modele"]
   suggested_module: "modele-compartimental"
-  speaker_notes: "TODO"
+  speaker_notes: "Retour sur l'équation fondamentale avant d'aborder les covariables."
 - slide: 26
   id: "s26"
   file: "slide-26.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Allométrie : Le problème"
+  purpose: "Pourquoi ne pas utiliser la règle de 3 ?"
+  key_points: ["Non-linéarité physiologie/poids", "Loi de puissance", "Enfant vs Adulte"]
   tags: ["covariables"]
   suggested_module: "allometrie"
-  speaker_notes: "TODO"
+  speaker_notes: "La relation poids→paramètre n’est pas linéaire."
 - slide: 27
   id: "s27"
   file: "slide-27.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Loi Allométrique CL"
+  purpose: "Présenter l'exposant allométrique standard."
+  key_points: ["Exposant 0.75", "Métabolisme basal", "Kleiber's law"]
   tags: ["covariables"]
   suggested_module: "allometrie"
-  speaker_notes: "TODO"
+  speaker_notes: "CL varie avec le poids à la puissance 0.75."
 - slide: 28
   id: "s28"
   file: "slide-28.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Standardisation (Centrage)"
+  purpose: "Expliquer l'importance du poids de référence."
+  key_points: ["Poids standard 70kg", "Interprétation des paramètres", "Corrélation paramètres"]
   tags: ["covariables"]
   suggested_module: "allometrie"
-  speaker_notes: "TODO"
+  speaker_notes: "Toujours centrer sur 70 kg pour interpréter l’état typique. CL = CL_std * (WT/70)^0.75."
 - slide: 29
   id: "s29"
   file: "slide-29.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Linéaire vs Allométrique"
+  purpose: "Visualiser l'écart entre les approches."
+  key_points: ["Sous-dosage pédiatrique", "Courbe de puissance vs Droite"]
   tags: ["covariables"]
   suggested_module: "allometrie"
-  speaker_notes: "TODO"
+  speaker_notes: "Comparaison visuelle : courbe allométrique (bleu) vs droite linéaire (orange)."
 - slide: 30
   id: "s30"
   file: "slide-30.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Application Pédiatrique"
+  purpose: "Conséquences pour l'ajustement de dose."
+  key_points: ["Dose au mg/kg ?", "Adaptation allométrique", "Sécurité"]
   tags: ["covariables"]
   suggested_module: "allometrie"
-  speaker_notes: "TODO"
+  speaker_notes: "Implication : ajuster la dose pédiatrique sans sous-doser."
 - slide: 31
   id: "s31"
   file: "slide-31.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Introduction Diagnostics"
+  purpose: "Transition vers l'évaluation des modèles."
+  key_points: ["Goodness of fit", "Observed vs Predicted"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Comment savoir si notre modèle décrit bien les données ?"
 - slide: 32
   id: "s32"
   file: "slide-32.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Modèle Emax"
+  purpose: "Présenter la relation concentration-effet simple."
+  key_points: ["Emax", "EC50", "Plateau d'effet"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Intuition : saturation de l'effet à haute concentration."
 - slide: 33
   id: "s33"
   file: "slide-33.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Paramètres Emax"
+  purpose: "Interpréter EC50."
+  key_points: ["Concentration pour 50% d'effet", "Sensibilité", "Précision d'estimation"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : si données entre 20–80% de l’effet, EC50 est imprécis."
 - slide: 34
   id: "s34"
   file: "slide-34.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Modèle Sigmoïde"
+  purpose: "Introduire le coefficient de Hill."
+  key_points: ["Facteur de forme gamma/Hill", "Pente de la courbe", "Tout-ou-rien"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Hill > 1 rend la courbe plus abrupte (switch)."
 - slide: 35
   id: "s35"
   file: "slide-35.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Visualisation Hill"
+  purpose: "Comparer différents coefficients de Hill."
+  key_points: ["Hill = 1 vs Hill > 1", "Impact clinique"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Influence la fenêtre thérapeutique."
 - slide: 36
   id: "s36"
   file: "slide-36.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Réponse Indirecte (Turnover)"
+  purpose: "Modéliser le délai d'effet via mécanisme."
+  key_points: ["Production (kin)", "Élimination (kout)", "Inhibition/Stimulation"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "L'effet n'est pas instantané par rapport à la concentration."
 - slide: 37
   id: "s37"
   file: "slide-37.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Équation Turnover"
+  purpose: "Comprendre l'équation différentielle PD."
+  key_points: ["dR/dt", "Action sur kin ou kout", "Homéostasie"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "dR/dt = kin·(1 ± f(C)) − kout·R."
 - slide: 38
   id: "s38"
   file: "slide-38.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Délai PK vs PD"
+  purpose: "Distinguer les sources de délai."
+  key_points: ["Hystérèse", "Délai de distribution (PK)", "Délai physiologique (PD)"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Le délai PD vient de kout (renouvellement du récepteur/cellule)."
 - slide: 39
   id: "s39"
   file: "slide-39.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Simulation Turnover"
+  purpose: "Visualiser l'évolution temporelle de l'effet."
+  key_points: ["Décalage temporel", "Retour à la ligne de base"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : attribuer un délai PK (distribution) alors qu’il est PD."
 - slide: 40
   id: "s40"
   file: "slide-40.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Quiz PK/PD (1)"
+  purpose: "Vérifier la compréhension des paramètres."
+  key_points: ["Définition EC50", "Rôle de Hill"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Questions interactives pour l'audience."
 - slide: 41
   id: "s41"
   file: "slide-41.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Quiz PK/PD (2)"
+  purpose: "Vérifier la distinction PK/PD."
+  key_points: ["Délai d'équilibre", "Mécanisme indirect"]
   tags: ["pkpd"]
   suggested_module: "pkpd"
-  speaker_notes: "TODO"
+  speaker_notes: "Questions sur l'hystérèse."
 - slide: 42
   id: "s42"
   file: "slide-42.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Qualité de l'ajustement"
+  purpose: "Introduction aux graphiques de diagnostic."
+  key_points: ["Biais", "Précision", "Graphiques standard"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Transition vers les outils d'évaluation (VPC, etc)."
 - slide: 43
   id: "s43"
   file: "slide-43.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Format de Données"
+  purpose: "Structurer les données pour l'analyse (NONMEM/Monolix)."
+  key_points: ["Colonnes obligatoires (ID, TIME, DV)", "EVID", "Flagging"]
   tags: ["outils"]
   suggested_module: "outils-estimation"
-  speaker_notes: "TODO"
+  speaker_notes: "Sans format propre, impossible d’estimer. Piège : confondre EVID=0 et EVID=1."
 - slide: 44
   id: "s44"
   file: "slide-44.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Algorithmes : FOCE vs SAEM"
+  purpose: "Comparer les méthodes d'estimation."
+  key_points: ["FOCE-I (Déterministe)", "SAEM (Stochastique)", "Convergence"]
   tags: ["outils"]
   suggested_module: "outils-estimation"
-  speaker_notes: "TODO"
+  speaker_notes: "SAEM est plus robuste pour les modèles complexes. Piège : interpréter le bruit SAEM comme non-convergence."
 - slide: 45
   id: "s45"
   file: "slide-45.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "VPC : Principe"
+  purpose: "Visual Predictive Check expliqué."
+  key_points: ["Simulations vs Observations", "Percentiles", "Validation visuelle"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Comparer données observées aux percentiles simulés."
 - slide: 46
   id: "s46"
   file: "slide-46.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Binning (Regroupement)"
+  purpose: "Expliquer la nécessité de regrouper les données temporelles."
+  key_points: ["Intervalles de temps", "Stabiliser les statistiques", "Lisibilité"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Pourquoi binner ? Pour rendre le tunnel lisible."
 - slide: 47
   id: "s47"
   file: "slide-47.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Lecture du VPC"
+  purpose: "Apprendre à interpréter les bandes de confiance."
+  key_points: ["Intervalle de confiance", "Médiane", "Percentiles extrêmes (P90/P10)"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Bandes bleues (simulées) vs points/lignes rouges (observés)."
 - slide: 48
   id: "s48"
   file: "slide-48.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Diagnostic de Biais"
+  purpose: "Repérer les mauvaises spécifications."
+  key_points: ["Sortie du tunnel", "Sous-estimation", "Sur-estimation"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Si les points sortent systématiquement → biais du modèle."
 - slide: 49
   id: "s49"
   file: "slide-49.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "VPC : Variabilité"
+  purpose: "Vérifier l'estimation de la variabilité."
+  key_points: ["Largeur du tunnel", "Dispersion des observations"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Vérifier si le modèle capture bien toute la variabilité observée."
 - slide: 50
   id: "s50"
   file: "slide-50.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Crash Test : Binning (1)"
+  purpose: "Montrer l'impact d'un mauvais binning."
+  key_points: ["Binning trop large", "Perte d'information"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Trop de lissage masque les problèmes."
 - slide: 51
   id: "s51"
   file: "slide-51.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Crash Test : Binning (2)"
+  purpose: "Montrer l'impact d'un binning trop fin."
+  key_points: ["Bruit excessif", "Instabilité des percentiles"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Trop de bins → trop de bruit visuel."
 - slide: 52
   id: "s52"
   file: "slide-52.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Crash Test : Binning (3)"
+  purpose: "Trouver le juste milieu."
+  key_points: ["Algorithmes de binning", "Équilibre visuel"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Testez on/off binning : le tunnel doit rester cohérent."
 - slide: 53
   id: "s53"
   file: "slide-53.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Pièges du VPC"
+  purpose: "Identifier les artefacts visuels."
+  key_points: ["Données irrégulières", "Interpolation"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : binning sur des temps irréguliers sans interpolation."
 - slide: 54
   id: "s54"
   file: "slide-54.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "VPC Stratifié"
+  purpose: "Valider par sous-groupes."
+  key_points: ["VPC par dose", "VPC par covariable", "Diagnostic local"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Vérifier que le modèle marche pour tous les sous-groupes."
 - slide: 55
   id: "s55"
   file: "slide-55.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Métriques Numériques"
+  purpose: "Compléter le diagnostic visuel."
+  key_points: ["NPDE", "Résidus pondérés"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Au-delà du VPC visuel."
 - slide: 56
   id: "s56"
   file: "slide-56.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Introduction Bayésien"
+  purpose: "Transition vers l'estimation individuelle."
+  key_points: ["Approche de population vs individuelle", "Besoin d'adaptation"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "TODO"
+  speaker_notes: "Lien vers le chapitre suivant."
 - slide: 57
   id: "s57"
   file: "slide-57.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Théorème de Bayes"
+  purpose: "Expliquer le fondement de l'estimation MAP."
+  key_points: ["Prior (Population)", "Vraisemblance (Patient)", "Posterior (Individuel)"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Posterior = Prior × Vraisemblance."
 - slide: 58
   id: "s58"
   file: "slide-58.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Influence du Prior"
+  purpose: "Visualiser l'impact de l'information a priori."
+  key_points: ["Poids des données vs Poids du modèle", "Incertitude"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Prior large → les données dominent. Prior serré → le modèle contraint."
 - slide: 59
   id: "s59"
   file: "slide-59.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "EBEs (Empirical Bayes Estimates)"
+  purpose: "Définir les paramètres individuels estimés."
+  key_points: ["Maximum A Posteriori (MAP)", "Individualisation", "Usage en TDM"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Estimation la plus probable pour ce patient donné."
 - slide: 60
   id: "s60"
   file: "slide-60.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Limites des EBEs"
+  purpose: "Mettre en garde sur l'utilisation des EBEs."
+  key_points: ["Biais si peu de données", "Dépendance au modèle"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Utile pour TDM, mais biaisé si données pauvres."
 - slide: 61
   id: "s61"
   file: "slide-61.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Le Shrinkage (1/2)"
+  purpose: "Définir le phénomène de rétraction."
+  key_points: ["Réduction vers la moyenne", "Manque d'information individuelle"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Quand les données ne suffisent pas, l'estimation revient vers la moyenne de population."
 - slide: 62
   id: "s62"
   file: "slide-62.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Le Shrinkage (2/2)"
+  purpose: "Visualiser le shrinkage."
+  key_points: ["Distribution EBEs vs Distribution Théorique", "Perte de variance"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Eta-shrinkage : la variance des EBEs est inférieure à omega carré."
 - slide: 63
   id: "s63"
   file: "slide-63.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Conséquences du Shrinkage"
+  purpose: "Impact sur les diagnostics."
+  key_points: ["Corrélations fausses", "Covariables masquées"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Shrinkage élevé → Diagnostics basés sur EBEs (comme scatter plots) sont faux."
 - slide: 64
   id: "s64"
   file: "slide-64.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Gérer le Shrinkage"
+  purpose: "Solutions pratiques."
+  key_points: ["Enrichir le design", "Utiliser d'autres diagnostics (VPC, simulation)"]
   tags: ["bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "TODO"
+  speaker_notes: "Remède : design plus riche ou ne pas utiliser les EBEs pour le diagnostic."
 - slide: 65
   id: "s65"
   file: "slide-65.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Paradigmes de Modélisation"
+  purpose: "Comparer White, Black et Grey Box."
+  key_points: ["White Box (Mécaniste)", "Black Box (IA/Deep Learning)", "Grey Box (Hybride)"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "White box : ODE seule. Black box : NN seul. Grey box : ODE + NN."
 - slide: 66
   id: "s66"
   file: "slide-66.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Limite du Modèle Standard"
+  purpose: "Illustrer un cas d'échec du modèle classique."
+  key_points: ["Phénomène inconnu", "Biais structurel", "Bump d'absorption"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "La solution ODE pure ignore une complexité (ex: bosse d'absorption)."
 - slide: 67
   id: "s67"
   file: "slide-67.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Ignorance vs Erreur"
+  purpose: "Ne pas confondre manque de modèle et bruit."
+  key_points: ["Erreur de modèle (Biais)", "Erreur résiduelle (Bruit)"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "Piège : penser que tout écart systématique est de l'erreur résiduelle."
 - slide: 68
   id: "s68"
   file: "slide-68.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Neural ODE : Le Concept"
+  purpose: "Introduire le terme correctif neuronal."
+  key_points: ["dudt = f(u,t) + NN(u,t)", "Apprentissage de la dynamique manquante"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "Ajouter un petit réseau de neurones dans l'équation différentielle."
 - slide: 69
   id: "s69"
   file: "slide-69.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Activation du Neural Network"
+  purpose: "Visualiser la correction."
+  key_points: ["Capture du bump", "Ajustement flexible"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "En ajoutant NN(t), la courbe colle aux données complexes."
 - slide: 70
   id: "s70"
   file: "slide-70.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Avantage Grey Box"
+  purpose: "Préserver l'interprétabilité."
+  key_points: ["Paramètres PK (CL, V) gardent leur sens", "Correction localisée"]
   tags: ["ml"]
   suggested_module: "neural-ode"
-  speaker_notes: "TODO"
+  speaker_notes: "On ne jette pas la physiologie. Piège : laisser le NN tout faire."
 - slide: 71
   id: "s71"
   file: "slide-71.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Cycle TDM"
+  purpose: "Décrire le processus de Suivi Thérapeutique."
+  key_points: ["Mesurer (TDM)", "Estimer (Bayes)", "Ajuster (Cible)"]
   tags: ["tdm"]
   suggested_module: "tdm"
-  speaker_notes: "TODO"
+  speaker_notes: "Cycle : Mesurer (DV) -> Mettre à jour (Bayes) -> Ajuster la dose."
 - slide: 72
   id: "s72"
   file: "slide-72.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Aide à la Décision"
+  purpose: "Intégrer le modèle en clinique."
+  key_points: ["Prédiction future", "Incertitude", "Dashboard"]
   tags: ["tdm"]
   suggested_module: "tdm"
-  speaker_notes: "TODO"
+  speaker_notes: "Afficher la prédiction avec intervalle d’incertitude."
 - slide: 73
   id: "s73"
   file: "slide-73.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Le Rôle du Pharmacométricien"
+  purpose: "Collaboration avec le clinicien."
+  key_points: ["Outil d'aide", "Expertise humaine nécessaire"]
   tags: ["conclusion"]
   suggested_module: "tdm"
-  speaker_notes: "TODO"
+  speaker_notes: "Le modèle propose, le clinicien dispose."
 - slide: 74
   id: "s74"
   file: "slide-74.png"
-  title: "TODO"
-  purpose: "TODO"
-  key_points: ["TODO"]
+  title: "Conclusion du Cours"
+  purpose: "Synthèse finale."
+  key_points: ["Modéliser pour comprendre", "Quantifier pour décider", "Importance des données"]
   tags: ["conclusion"]
   suggested_module: "tdm"
-  speaker_notes: "TODO"
+  speaker_notes: "Modèle = aide à la décision, pas oracle. Importance des diagnostics."
