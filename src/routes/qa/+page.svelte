@@ -7,12 +7,12 @@
   import BayesianShrinkage from '$lib/components/visualizations/18_BayesianShrinkage.svelte';
 </script>
 
-<h1>QA visualisations</h1>
-<p>Page interne pour vérifier rapidement les modules avec presets.</p>
+<h1>QA visualizations</h1>
+<p>Internal page to quickly verify modules with presets.</p>
 
 <div class="grid">
   <section class="card">
-    <h3>AUC trapèzes</h3>
+    <h3>AUC trapezoids</h3>
     <AUCTrap />
   </section>
   <section class="card">
@@ -24,7 +24,7 @@
     <ADEChooser />
   </section>
   <section class="card">
-    <h3>Variabilité</h3>
+    <h3>Variability</h3>
     <VariabilitySandbox />
   </section>
   <section class="card">
@@ -32,7 +32,7 @@
     <VPCCrashTest />
   </section>
   <section class="card">
-    <h3>Bayésien</h3>
+    <h3>Bayesian</h3>
     <BayesianShrinkage />
   </section>
 </div>

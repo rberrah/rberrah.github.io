@@ -4,12 +4,12 @@
   import { page } from '$app/stores';
   let { children } = $props();
   const links = [
-    { href: '/', label: 'Accueil' },
-    { href: '/chapitres', label: 'Chapitres' },
+    { href: '/', label: 'Home' },
+    { href: '/chapitres', label: 'Chapters' },
     { href: '/slides', label: 'Slides' },
     { href: '/playground', label: 'Playground' },
-    { href: '/glossaire', label: 'Glossaire' },
-    { href: '/a-propos', label: 'À propos' }
+    { href: '/glossaire', label: 'Glossary' },
+    { href: '/a-propos', label: 'About' }
   ];
 </script>
 

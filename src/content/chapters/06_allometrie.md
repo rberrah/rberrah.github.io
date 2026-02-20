@@ -1,23 +1,23 @@
 ---
 id: "allometrie"
 slug: "allometrie"
-title: "Allométrie (poids)"
-description: "CL = CLstd·(WT/70)^0.75 ; V ≈ (WT/70)^1."
+title: "Allometry (weight)"
+description: "CL = CLstd·(WT/70)^0.75; V ≈ (WT/70)^1."
 order: 6
-tags: ["covariables","poids","allometrie"]
+tags: ["covariables","weight","allometry"]
 slides: ["s26","s27","s28","s29","s30"]
 ---
 
-<!-- step:title="Pourquoi pas la règle de 3 ?" slides="s26" viz="14_AllometryCentering" -->
-La relation poids→paramètre n’est pas linéaire : physiologie suit une loi de puissance.
+<!-- step:title="Why not simple mg/kg?" slides="s26" viz="14_AllometryCentering" -->
+Weight–parameter is not linear; physiology follows a power law.
 <!-- /step -->
 
-<!-- step:title="Exposant 0,75 pour CL" slides="s27,s28" viz="14_AllometryCentering" -->
-CL_i = CL_std·(WT/70)^{0.75}. Centrer sur 70 kg pour interpréter l’η.
-Piège : oublier le centrage → paramètres corrélés.
+<!-- step:title="Allometric exponent 0.75 for CL" slides="s27,s28" viz="14_AllometryCentering" -->
+CL_i = CL_std·(WT/70)^0.75. Center on 70 kg to interpret η.  
+Pitfall: forgetting centering → correlated parameters.
 <!-- /step -->
 
-<!-- step:title="Visualiser linéaire vs allométrique" slides="s29,s30" viz="14_AllometryCentering" -->
-Courbe allométrique (bleu) vs droite linéaire (orange) + points patients.
-Implication : ajuster la dose pédiatrique sans sous-doser.
+<!-- step:title="Linear vs allometric view" slides="s29,s30" viz="14_AllometryCentering" -->
+Visual: allometric curve (blue) vs straight line (orange) with patient points.  
+Implication: adjust pediatric dose without underdosing.
 <!-- /step -->

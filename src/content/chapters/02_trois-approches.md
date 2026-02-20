@@ -2,29 +2,29 @@
 id: "trois-approches"
 slug: "trois-approches"
 title: "NCA vs PopPK vs PBPK"
-description: "Comparer les trois piliers de la pharmacométrie."
+description: "Compare the three pillars of pharmacometrics."
 order: 2
 tags: ["approches","nca","poppk","pbpk"]
 slides: ["s06","s07","s08","s09"]
 ---
 
-<!-- step:title="NCA : décrire" slides="s06" viz="04_ThreeApproaches" -->
-**Ce que l’on voit** : courbe avec trapèzes AUC.
-**Pourquoi** : la NCA calcule l’exposition sans modèle.
-**Implication** : robuste mais ne prédit pas de nouveaux scénarios.
-**Piège** : utiliser la NCA pour simuler une autre dose.
+<!-- step:title="NCA: describe" slides="s06" viz="04_ThreeApproaches" -->
+Curve with AUC trapezoids.
+Why: NCA computes exposure without a model.
+Implication: robust but not predictive.
+Pitfall: using NCA to simulate a new dose.
 <!-- /step -->
 
-<!-- step:title="PopPK : expliquer variabilité" slides="s07,s08" viz="04_ThreeApproaches" -->
-**Ce que l’on voit** : spaghetti + distribution.
-**Pourquoi** : modèle compartimental + effets aléatoires pour moyenne et variabilité.
-**Implication** : permet de simuler et individualiser.
-**Piège** : mal coder la variabilité résiduelle et confondre IIV/IOV.
+<!-- step:title="PopPK: explain variability" slides="s07,s08" viz="04_ThreeApproaches" -->
+Spaghetti + distribution.
+Why: compartment + random effects for mean and variability.
+Implication: can simulate and individualize.
+Pitfall: mis-specified residual error or IIV/IOV confusion.
 <!-- /step -->
 
-<!-- step:title="PBPK : reconstruire la physiologie" slides="s09" viz="04_ThreeApproaches" -->
-**Ce que l’on voit** : réseau d’organes.
-**Pourquoi** : mécanisme bottom-up, interactions médicamenteuses.
-**Implication** : utile quand on manque de données cliniques, mais complexe.
-**Piège** : sur-paramétriser sans données pour identifier chaque organe.
+<!-- step:title="PBPK: rebuild physiology" slides="s09" viz="04_ThreeApproaches" -->
+Organ network.
+Why: bottom-up mechanism, DDIs.
+Implication: useful with sparse clinical data, but complex.
+Pitfall: over-parameterizing without data.
 <!-- /step -->

@@ -5,7 +5,7 @@
   const items = get(glossary);
 </script>
 
-<h1>Glossaire</h1>
+<h1>Glossary</h1>
 <ul class="list">
   {#each items as item}
     <li>

@@ -1,24 +1,24 @@
 ---
 id: "absorption-orale"
 slug: "absorption-orale"
-title: "Voie orale, Ka et Tlag"
-description: "Bateman, lag-time, décalage de la courbe."
+title: "Oral route, Ka and Tlag"
+description: "Bateman, lag-time, curve shift."
 order: 4
 tags: ["absorption","ka","tlag"]
 slides: ["s17","s18","s19","s20"]
 ---
 
-<!-- step:title="Avant Tlag : rien ne se passe" slides="s17" viz="09_PK1C" -->
-Si t < Tlag, C = 0 : la gélule n’est pas dissoute.
-Piège : oublier le lag → courbe commence trop tôt.
+<!-- step:title="Before Tlag: nothing happens" slides="s17" viz="09_PK1C" -->
+If t < Tlag, C = 0: the pill has not dissolved.
+Pitfall: forgetting lag → curve starts too early.
 <!-- /step -->
 
-<!-- step:title="Après Tlag : Bateman" slides="s18,s19" viz="09_PK1C" -->
+<!-- step:title="After Tlag: Bateman" slides="s18,s19" viz="09_PK1C" -->
 C(t) = (Dose/V)·(Ka/(Ka−Ke))·(e^{-Ke·(t−Tlag)} − e^{-Ka·(t−Tlag)}).
-Ka contrôle la pente de montée, CL/V la pente de descente.
+Ka controls the rise, CL/V the fall.
 <!-- /step -->
 
 <!-- step:title="Tmax/Cmax" slides="s20" viz="09_PK1C" -->
-Tmax augmente quand Ka ↓ ou Tlag ↑. Cmax baisse si V ↑ ou CL ↑.
-Piège : conclure à une biodisponibilité faible alors que le lag est long.
+Tmax increases when Ka ↓ or Tlag ↑. Cmax decreases if V ↑ or CL ↑.
+Pitfall: low Cmax could be long lag, not low F.
 <!-- /step -->

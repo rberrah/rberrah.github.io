@@ -1,22 +1,22 @@
 ---
 id: "tdm"
 slug: "tdm"
-title: "TDM et conclusion"
-description: "Relier le modèle au patient : mesurer, mettre à jour, ajuster."
+title: "TDM and conclusion"
+description: "From monitoring to dose adjustment."
 order: 12
 tags: ["tdm","conclusion"]
 slides: ["s71","s72","s73","s74"]
 ---
 
-<!-- step:title="Cycle TDM" slides="s71" -->
-Mesurer (DV), mettre à jour (Bayes), ajuster la dose pour la cible (Cmin/AUC).
-Piège : ignorer IOV → recommandations instables.
+<!-- step:title="TDM cycle" slides="s71" -->
+Measure (DV), update (Bayes), adjust dose to target.  
+Pitfall: ignoring IOV → unstable recommendations.
 <!-- /step -->
 
-<!-- step:title="Décision clinique" slides="s72,s73" -->
-Afficher la prédiction avec intervalle d’incertitude ; décider avec le clinicien.
+<!-- step:title="Decision" slides="s72,s73" -->
+Show prediction with uncertainty; clinician decides with the model.
 <!-- /step -->
 
 <!-- step:title="Conclusion" slides="s74" -->
-Modèle = aide à la décision, pas oracle. Importance des diagnostics et du design.
+Model = decision aid, not oracle. Diagnostics and data quality matter.
 <!-- /step -->

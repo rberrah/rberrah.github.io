@@ -3,8 +3,8 @@
   import chapters from '$lib/content/loadChapters';
 </script>
 
-<h1>Chapitres</h1>
-<p>Parcours scrollytelling de 12 modules, inspiré du deck “Pharmacométrie Pratique”.</p>
+<h1>Chapters</h1>
+<p>Scrollytelling through 12 modules inspired by “Pharmacométrie Pratique”.</p>
 
 <div class="grid">
   {#each chapters as c}
@@ -12,7 +12,7 @@
       <p class="tag">#{c.id}</p>
       <h3>{c.title}</h3>
       <p class="desc">{c.description}</p>
-      <a class="cta" href={`${base}/chapitres/${c.slug}`}>Ouvrir</a>
+      <a class="cta" href={`${base}/chapitres/${c.slug}`}>Open</a>
     </article>
   {/each}
 </div>

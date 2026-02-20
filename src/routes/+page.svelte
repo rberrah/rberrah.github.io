@@ -6,15 +6,15 @@
 
 <section class="hero">
   <div>
-    <p class="eyebrow">Pharmacométrie visuelle</p>
-    <h1>Des ODE aux Neural ODEs</h1>
+    <p class="eyebrow">Visual pharmacometrics</p>
+    <h1>From ODEs to Neural ODEs</h1>
     <p class="lede">
-      Parcours interactif en français pour comprendre PK/PD, PopPK, diagnostics, TDM et IA appliquée.
-      Inspiré du deck “Pharmacométrie Pratique”, enrichi pour un lecteur néophyte.
+      Interactive path (English) to understand PK/PD, PopPK, diagnostics, TDM and applied AI.
+      Inspired by the “Pharmacométrie Pratique” deck, expanded for newcomers.
     </p>
     <div class="cta-row">
-      <a class="cta primary" href={`${base}/chapitres/${chapters[0]?.slug ?? ''}`}>Commencer</a>
-      <a class="cta ghost" href={`${base}/playground`}>Playground PK/PD</a>
+      <a class="cta primary" href={`${base}/chapitres/${chapters[0]?.slug ?? ''}`}>Start</a>
+      <a class="cta ghost" href={`${base}/playground`}>PK/PD playground</a>
     </div>
   </div>
   <div class="card">
@@ -33,14 +33,14 @@
       <p class="tag">{c.tags?.[0] || 'Module'}</p>
       <h3>{c.title}</h3>
       <p>{c.description}</p>
-      <a class="link" href={`${base}/chapitres/${c.slug}`}>Lire</a>
+      <a class="link" href={`${base}/chapitres/${c.slug}`}>Open</a>
     </article>
   {/each}
 </section>
 
 <section class="pill">
-  <h2>Fil rouge : Tacrolimus / TDM</h2>
-  <p>Un cas clinique traverse plusieurs chapitres pour ancrer les concepts : variabilité, VPC, bayésien.</p>
+  <h2>Use case: Tacrolimus / TDM</h2>
+  <p>A single clinical case anchors variability, VPC, and Bayesian updates.</p>
 </section>
 
 <style>

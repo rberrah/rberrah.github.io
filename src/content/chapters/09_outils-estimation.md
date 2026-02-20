@@ -1,19 +1,19 @@
 ---
 id: "outils-estimation"
 slug: "outils-estimation"
-title: "Outils & estimation"
-description: "FOCE/SAEM, formats de données, convergence."
+title: "Tools & estimation"
+description: "FOCE/SAEM, data format, convergence."
 order: 9
-tags: ["outils","saem","foce"]
+tags: ["tools","saem","foce"]
 slides: ["s43","s44"]
 ---
 
-<!-- step:title="Format de données" slides="s43" -->
-Colonnes ID/TIME/AMT/EVID/DV/CMT/COV : sans format propre, impossible d’estimer correctement.
-Piège : confondre EVID=0 (observation) et EVID>0 (administration).
+<!-- step:title="Data format" slides="s43" -->
+Columns ID/TIME/AMT/EVID/DV/CMT/COV. Without proper format, no estimation.  
+Pitfall: EVID=0 (observation) vs EVID>0 (dose) confusion.
 <!-- /step -->
 
 <!-- step:title="FOCE-I vs SAEM" slides="s44" -->
-FOCE-I : déterministe, rapide ; SAEM : stochastique, robuste avec grosses variabilités.
-Piège : interpréter le bruit stochastique SAEM comme non-convergence.
+FOCE-I: deterministic, fast; SAEM: stochastic, robust with high variability.  
+Pitfall: reading SAEM stochasticity as non-convergence.
 <!-- /step -->
