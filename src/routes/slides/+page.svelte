@@ -10,17 +10,17 @@
   });
 </script>
 
-<h1>Catalogue des slides</h1>
+<h1>Slides catalog</h1>
 <p>
-  Source de vérité éditable : <code>src/content/slides/slide_catalog.yaml</code>. Les PNG doivent être dans <code>static/slides/</code>.
-  Liens PPTX : <a href={`${base}/pharmacometrie-pratique.pptx`} download>Télécharger le PPTX</a>
+  Source of truth: <code>src/content/slides/slide_catalog.yaml</code>. PNGs must live in <code>static/slides/</code>.
+  PPTX link: <a href={`${base}/pharmacometrie-pratique.pptx`} download>Download the PPTX</a>
 </p>
 
 <input
-  aria-label="Rechercher une slide"
+  aria-label="Search a slide"
   class="search"
   type="search"
-  placeholder="Titre, tag, module…"
+  placeholder="Title, tag, module…"
   bind:value={query}
 />
 
@@ -31,14 +31,14 @@
         <span class="id">#{s.id}</span>
         <div>
           <h3>{s.title || `Slide ${s.slide}`}</h3>
-          <small>{s.purpose || 'À compléter'}</small>
+          <small>{s.purpose || 'To fill'}</small>
         </div>
       </header>
       <SlideImage n={s.slide} alt={s.title} caption={s.title || s.file} />
       <ul class="meta">
         <li><strong>Tags</strong> {s.tags?.join(', ') || '—'}</li>
-        <li><strong>Module suggéré</strong> {s.suggested_module || '—'}</li>
-        <li><strong>Points clés</strong> {s.key_points?.join(' · ') || '—'}</li>
+        <li><strong>Suggested module</strong> {s.suggested_module || '—'}</li>
+        <li><strong>Key points</strong> {s.key_points?.join(' · ') || '—'}</li>
       </ul>
     </article>
   {/each}

@@ -37,7 +37,11 @@
 <div class="bucket">
   <div class="tank" style={`--width:${volume}px;`}>
     <div class="liquid" style={`height:${Math.min(level * 6, 180)}px;`}></div>
-    <div class="outflow" style={`width:${cl * 4}px;`}></div>
+    <div
+      class="outflow"
+      title="Outflow speed grows with clearance (CL)"
+      style={`width:${cl * 4}px;`}
+    ></div>
     <div class="patient" style={`transform: scale(${Math.min(volume / 20, 1.6)})`}>
       <span>Patient</span>
     </div>
@@ -45,8 +49,8 @@
   <div class="controls">
     <Slider label="Dose (mg)" min={25} max={400} step={5} bind:value={dose} />
     <Slider label="Volume (L)" min={10} max={80} step={1} bind:value={volume} />
-    <Slider label="Clairance (L/h)" min={1} max={20} step={0.5} bind:value={cl} />
-    <Slider label="Temps (h)" min={0} max={duration} step={0.1} bind:value={time} />
+    <Slider label="Clearance (L/h)" min={1} max={20} step={0.5} bind:value={cl} />
+    <Slider label="Time (h)" min={0} max={duration} step={0.1} bind:value={time} />
     <div class="actions">
       <button on:click={play} disabled={playing}>Play</button>
       <button on:click={pause}>Pause</button>
@@ -54,7 +58,7 @@
     </div>
     <div class="kpis">
       <span>C(t) = {level.toFixed(2)} mg/L</span>
-      <span>t½ ≈ {(0.693 * volume / cl).toFixed(2)} h</span>
+      <span>t½ ≈ {(Math.log(2) * volume / cl).toFixed(2)} h</span>
     </div>
   </div>
 </div>
@@ -81,7 +85,7 @@
     left: 0;
     right: 0;
     background: linear-gradient(180deg, #38bdf8, #0ea5e9);
-    transition: height 0.2s ease;
+    transition: height 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .outflow {
     position: absolute;
@@ -91,6 +95,7 @@
     background: #0ea5e9;
     border-radius: 9px;
     box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
+    transition: width 0.2s ease;
   }
   .patient {
     position: absolute;
