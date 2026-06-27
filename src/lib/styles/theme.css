@@ -1,0 +1,160 @@
+/* Pharmacométrie Explain — design system tokens & base styles */
+
+:root {
+  --font-heading: 'Chivo', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+  --text-3xl: 2.5rem;
+  --text-4xl: 3.25rem;
+  --line-height-body: 1.65;
+
+  --bg-primary: #f9f8f6;
+  --bg-secondary: #eae7e1;
+  --bg-tertiary: #ffffff;
+  --text-primary: #1a1c1d;
+  --text-secondary: #4a5053;
+  --text-muted: #7a8084;
+  --accent-pk: #b85c38;
+  --accent-pd: #4a5d23;
+  --accent-ai: #2a4b7c;
+  --border-subtle: #d1cdc7;
+  --border-strong: #8e8a85;
+  --disclaimer-bg: #2a2522;
+  --disclaimer-text: #f1e8df;
+  --quiz-success-bg: #e1efe6;
+  --quiz-success-text: #1e4620;
+  --quiz-error-bg: #fbe6e3;
+  --quiz-error-text: #6c1e16;
+  --focus-ring: rgba(184, 92, 56, 0.45);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+  --space-32: 8rem;
+
+  --radius: 8px;
+  --maxw: 1280px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--line-height-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+a { color: var(--accent-pk); }
+
+code, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--bg-secondary);
+  padding: 0.05em 0.35em;
+  border-radius: 4px;
+}
+
+/* --- buttons --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-base);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, color 0.2s ease;
+  border: 1px solid transparent;
+}
+.btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.btn-primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+.btn-primary:hover { background: var(--accent-pk); border-color: var(--accent-pk); transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--text-primary); border-color: var(--border-strong); }
+.btn-outline:hover { background: var(--bg-secondary); border-color: var(--text-primary); }
+
+/* --- cards --- */
+.card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -6px rgba(0, 0, 0, 0.12); border-color: var(--border-strong); }
+
+/* --- range sliders (global so component thumbs are themed) --- */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-pk);
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 0 1px var(--accent-pk);
+  transition: transform 0.1s ease;
+}
+input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.2); }
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-pk);
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 0 1px var(--accent-pk);
+}
+
+/* --- KaTeX sizing --- */
+.katex { font-size: 1.05em; }
+
+/* utility */
+.eyebrow {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: var(--text-xs);
+  color: var(--accent-pk);
+  font-weight: 600;
+}
+.muted { color: var(--text-muted); }

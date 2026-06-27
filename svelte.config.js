@@ -15,9 +15,9 @@ const config = {
 			entries: [
 				'*',
 				'/chapitres',
-				'/chapitres/intro-pkpd',
+				'/chapitres/pourquoi-pharmacometrie',
 				'/chapitres/trois-approches',
-				'/chapitres/modele-compartimental',
+				'/chapitres/clairance-volume-demi-vie',
 				'/chapitres/absorption-orale',
 				'/chapitres/variabilite-iiv-iov',
 				'/chapitres/allometrie',

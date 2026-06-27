@@ -1,0 +1,17 @@
+# Binary/source teaching material
+*.pptx binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+
+# Notebook/source text normalization
+*.ipynb text eol=lf
+*.Rmd text eol=lf
+*.md text eol=lf
+*.svelte text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf

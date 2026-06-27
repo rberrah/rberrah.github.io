@@ -25,7 +25,7 @@ const files = import.meta.glob('../../content/chapters/*.md', { query: '?raw', i
 /**
  * @typedef {{title:string, slides?:string, viz?:string}} StepMeta
  * @typedef {{title:string, html:string, slides:string[], viz?:string}} Step
- * @typedef {{id:string, slug:string, title:string, description:string, order:number, tags:string[], slides:string[], steps:Step[]}} Chapter
+ * @typedef {{id:string, slug:string, title:string, description:string, order:number, tags:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
  */
 
 const chapters = Object.entries(files).map(([path, raw]) => {
@@ -41,6 +41,7 @@ const chapters = Object.entries(files).map(([path, raw]) => {
     order: Number(data.order ?? 999),
     tags: data.tags ?? [],
     slides: data.slides ?? [],
+    quiz: data.quiz ?? [],
     steps
   };
   return chapter;
