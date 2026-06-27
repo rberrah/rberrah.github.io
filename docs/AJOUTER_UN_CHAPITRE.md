@@ -1,6 +1,8 @@
 # Ajouter ou éditer un chapitre
 
-1. Créer un fichier Markdown dans `src/content/chapters/` (ex. `05_absorption-orale.md`).
+> Guide complet (EN, + visualisations & déploiement) : **`docs/AUTHORING.md`**.
+
+1. Créer un fichier Markdown dans `src/content/chapters/` (ex. `04_absorption-orale.md`).
 2. Frontmatter obligatoire :
    ```yaml
    ---
@@ -10,33 +12,37 @@
    description: "Bateman, Ka, Tlag, exemples et pièges."
    order: 4
    tags: ["pk", "absorption"]
-   slides: ["s17","s18","s19","s20"]
+   slides: []          # tableau (vide possible). IDs ⇒ doivent exister dans slide_catalog.yaml
+   quiz:               # optionnel : checkpoint de fin de chapitre
+     - prompt: "Une question ?"
+       options: ["A", "B", "C"]
+       correct: 1      # index (base 0) de la bonne réponse
    ---
    ```
 3. Corps structuré en blocs `step` :
    ```markdown
-   <!-- step:title="Ka vs Tlag" slides="s17,s18" viz="09_PK1C" -->
+   <!-- step:title="Ka vs Tlag" viz="OralAbsorption" -->
    Texte Markdown : ce qu'on voit, pourquoi c'est important, pièges, implications.
+
+   Équations KaTeX (rendues automatiquement) : $C_0 = \dfrac{\text{Dose}}{V}\ [\text{mg/L}]$
    <!-- /step -->
    ```
-   - `slides` = IDs du catalogue (`slide_catalog.yaml`), séparés par des virgules.
-   - `viz` = identifiant d’un composant de `src/lib/components/visualizations/`.
-4. Ajouter un quiz à la fin (simple liste) si besoin :
-   ```markdown
-   <!-- step:title="Quiz" slides="s20" -->
-   1. Question ?
-   2. Question ?
-   <!-- /step -->
-   ```
-5. Vérifier :
+   - `viz` = identifiant d'un composant enregistré dans `vizMap`
+     (`src/routes/chapitres/[slug]/+page.svelte`). Explorers Phase 1 :
+     `IVBolus`, `OralAbsorption`. Anciens : `01_HumanBody`, `02_BucketSim`, `09_PK1C`, …
+   - `slides` (optionnel, sur un step) = IDs du catalogue séparés par des virgules.
+4. Équations : délimiteurs `$ … $` (inline), `$$ … $$` (bloc), `\( … \)`, `\[ … \]`.
+   Dans `\text{}`, utiliser `\cdot` plutôt que le caractère `·`.
+5. Pistes (tracks) : par défaut **Core**. Pour la piste **IA**, ajouter le slug
+   dans `aiSlugs` de `src/lib/content/tracks.js`.
+6. Prerender : ajouter `'/chapitres/<slug>'` dans `prerender.entries` de
+   `svelte.config.js`.
+7. Vérifier :
    ```sh
    npm run validate
    npm run check
    npm run build
    ```
-6. Slides :
-   - Le catalogue source est `src/content/slides/slide_catalog.yaml`.
-   - Les PNG doivent être dans `static/slides/slide-XX.png`.
-7. Navigation :
-   - L’ordre d’affichage suit `order` croissant.
-   - Le slug devient l’URL `/chapitres/<slug>/`.
+8. Navigation :
+   - L'ordre d'affichage suit `order` croissant.
+   - Le slug devient l'URL `/chapitres/<slug>/`.

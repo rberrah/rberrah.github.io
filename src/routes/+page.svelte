@@ -1,120 +1,108 @@
 <script>
   import { base } from '$app/paths';
   import chapters from '$lib/content/loadChapters';
-  const featured = chapters.slice(0, 6);
+  import { tracks, chaptersByTrack } from '$lib/content/tracks';
+
+  const grouped = chaptersByTrack(chapters);
+  const firstCore = grouped.core[0];
+  const coreCount = grouped.core.length;
 </script>
 
-<section class="hero">
-  <div>
-    <p class="eyebrow">Visual pharmacometrics</p>
-    <h1>From ODEs to Neural ODEs</h1>
-    <p class="lede">
-      Interactive path (English) to understand PK/PD, PopPK, diagnostics, TDM and applied AI.
-      Inspired by the “Pharmacométrie Pratique” deck, expanded for newcomers.
-    </p>
-    <div class="cta-row">
-      <a class="cta primary" href={`${base}/chapitres/${chapters[0]?.slug ?? ''}`}>Start</a>
-      <a class="cta ghost" href={`${base}/playground`}>PK/PD playground</a>
-    </div>
+<section class="hero" data-testid="hero">
+  <p class="eyebrow">A visual course in pharmacometrics</p>
+  <h1>Reading the <span class="hl">concentration–time</span> curve, one idea at a time.</h1>
+  <p class="lede">
+    Scroll-driven essays that turn PK/PD theory into something you can <em>see</em>: clearance and volume,
+    variability between and within patients, and where modern AI fits — always with units, always with the
+    uncertainty in view.
+  </p>
+  <div class="cta">
+    {#if firstCore}
+      <a class="btn btn-primary" href={`${base}/chapitres/${firstCore.slug}`} data-testid="cta-start">Start the course</a>
+    {/if}
+    <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">Browse chapters</a>
   </div>
-  <div class="card">
-    <p class="tiny">Chapitres</p>
-    <ul>
-      {#each featured as c}
-        <li><a href={`${base}/chapitres/${c.slug}`}>{c.title}</a></li>
-      {/each}
-    </ul>
+  <p class="disclaim-inline" data-testid="hero-disclaimer">Educational content only · not medical advice.</p>
+</section>
+
+<section class="tracks" data-testid="tracks">
+  <h2 class="section-title">Two tracks</h2>
+  <div class="track-grid">
+    {#each tracks as track}
+      {@const list = grouped[track.id] ?? []}
+      <article class="track card card-hover" data-testid="course-track-card" style={`--track:${track.accent}`}>
+        <div class="thumb" style={`background-image:url(${track.thumbnail})`}>
+          <span class="track-tag">{track.label}</span>
+          {#if track.status !== 'available'}<span class="soon">Coming soon</span>{/if}
+        </div>
+        <div class="track-body">
+          <h3>{track.title}</h3>
+          <p>{track.tagline}</p>
+          <p class="count">{list.length} chapter{list.length === 1 ? '' : 's'}</p>
+          {#if track.status === 'available' && list[0]}
+            <a class="btn btn-outline sm" href={`${base}/chapitres/${list[0].slug}`} data-testid={`track-open-${track.id}`}>Open track →</a>
+          {:else}
+            <span class="btn btn-outline sm disabled" aria-disabled="true">In preparation</span>
+          {/if}
+        </div>
+      </article>
+    {/each}
   </div>
 </section>
 
-<section class="grid">
-  {#each chapters as c}
-    <article class="card">
-      <p class="tag">{c.tags?.[0] || 'Module'}</p>
-      <h3>{c.title}</h3>
-      <p>{c.description}</p>
-      <a class="link" href={`${base}/chapitres/${c.slug}`}>Open</a>
-    </article>
-  {/each}
-</section>
-
-<section class="pill">
-  <h2>Use case: Tacrolimus / TDM</h2>
-  <p>A single clinical case anchors variability, VPC, and Bayesian updates.</p>
+<section class="chapters" data-testid="featured-chapters">
+  <div class="section-head">
+    <h2 class="section-title">Core pharmacometrics</h2>
+    <span class="muted">{coreCount} chapters</span>
+  </div>
+  <ol class="chap-list">
+    {#each grouped.core as c, i}
+      <li>
+        <a class="chap card card-hover" href={`${base}/chapitres/${c.slug}`} data-testid="chapter-link">
+          <span class="num">{String(i + 1).padStart(2, '0')}</span>
+          <span class="chap-text">
+            <strong>{c.title}</strong>
+            <span class="desc">{c.description}</span>
+          </span>
+          <span class="arrow">→</span>
+        </a>
+      </li>
+    {/each}
+  </ol>
 </section>
 
 <style>
-  .hero {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 24px;
-    align-items: center;
-    margin-bottom: 32px;
-  }
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #2563eb;
-    font-weight: 700;
-    margin: 0;
-  }
-  .lede {
-    color: #334155;
-    line-height: 1.6;
-  }
-  .cta-row {
-    display: flex;
-    gap: 10px;
-    margin: 16px 0;
-  }
-  .cta {
-    padding: 10px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 700;
-  }
-  .primary {
-    background: linear-gradient(120deg, #2563eb, #10b981);
-    color: white;
-  }
-  .ghost {
-    border: 1px solid #cbd5e1;
-    color: #0f172a;
-  }
-  .card {
-    padding: 16px;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-  }
-  .tiny {
-    margin: 0 0 8px;
-    color: #475569;
-  }
-  .card ul {
-    margin: 0;
-    padding-left: 16px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 16px;
-  }
-  .tag {
-    font-size: 0.85rem;
-    color: #2563eb;
-    margin: 0;
-  }
-  .link {
-    color: #2563eb;
-    font-weight: 700;
-  }
-  .pill {
-    margin-top: 24px;
-    padding: 16px;
-    border-radius: 14px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-  }
+  .hero { max-width: 820px; padding: var(--space-16) 0 var(--space-12); }
+  .hl { color: var(--accent-pk); }
+  h1 { font-size: var(--text-4xl); font-weight: 900; margin: var(--space-3) 0 var(--space-6); }
+  .lede { font-size: var(--text-lg); color: var(--text-secondary); max-width: 60ch; }
+  .cta { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-top: var(--space-8); }
+  .disclaim-inline { margin-top: var(--space-4); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+
+  .section-title { font-size: var(--text-2xl); }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .tracks { margin-top: var(--space-12); }
+  .track-grid { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: var(--space-6); }
+  .track { padding: 0; overflow: hidden; border-top: 4px solid var(--track); }
+  .thumb { height: 150px; background-size: cover; background-position: center; position: relative; }
+  .thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(26,28,29,0) 40%, rgba(26,28,29,0.55)); }
+  .track-tag { position: absolute; top: var(--space-3); left: var(--space-3); z-index: 1; font-family: var(--font-mono); font-size: var(--text-xs); background: var(--track); color: #fff; padding: 2px 8px; border-radius: 4px; }
+  .soon { position: absolute; bottom: var(--space-3); right: var(--space-3); z-index: 1; font-family: var(--font-mono); font-size: var(--text-xs); background: rgba(255,255,255,0.92); color: var(--text-primary); padding: 2px 8px; border-radius: 4px; }
+  .track-body { padding: var(--space-6); }
+  .track-body h3 { margin: 0 0 var(--space-2); font-size: var(--text-xl); }
+  .track-body p { color: var(--text-secondary); margin: 0 0 var(--space-3); }
+  .count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted) !important; }
+  .btn.sm { padding: var(--space-2) var(--space-4); font-size: var(--text-sm); }
+  .btn.disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .chapters { margin-top: var(--space-12); }
+  .chap-list { list-style: none; padding: 0; margin: var(--space-6) 0 0; display: grid; gap: var(--space-3); }
+  .chap { display: flex; align-items: center; gap: var(--space-4); text-decoration: none; color: inherit; padding: var(--space-4) var(--space-6); }
+  .num { font-family: var(--font-mono); font-weight: 600; color: var(--accent-pk); font-size: var(--text-lg); }
+  .chap-text { display: flex; flex-direction: column; flex: 1; }
+  .chap-text strong { font-family: var(--font-heading); font-size: var(--text-lg); }
+  .desc { color: var(--text-secondary); font-size: var(--text-sm); }
+  .arrow { color: var(--text-muted); font-size: var(--text-lg); transition: transform 0.2s ease; }
+  .chap:hover .arrow { transform: translateX(4px); color: var(--accent-pk); }
+  @media (max-width: 760px) { h1 { font-size: var(--text-3xl); } }
 </style>
