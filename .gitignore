@@ -21,3 +21,11 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Course source generated artefacts
+course_source/**/*.html
+course_source/**/*.nb.html
+course_source/**/.ipynb_checkpoints/
+course_source/**/figure-html/
+course_source/**/libs/
+course_source/**/cache/
