@@ -37,7 +37,7 @@ Le logiciel ne rend pas la modélisation automatique.
 NONMEM, Monolix et nlmixr2 aident à **estimer** les paramètres, mais le modélisateur choisit encore la structure, le modèle de variabilité, les covariables, les diagnostics et l'interprétation.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s44" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Intuition" slides="s44" viz="EstimationFit" -->
 Estimer, c'est essayer de nombreuses notices de montage et demander laquelle explique le mieux les résultats de la classe.
 
 :::key

@@ -44,6 +44,10 @@
     return { c, e: effect(c) };
   });
   $: path = pts.map((p, i) => `${i ? 'L' : 'M'}${xpos(p.c).toFixed(1)},${ypos(p.e).toFixed(1)}`).join(' ');
+  // Courbe de référence hyperbolique (Hill = 1) pour visualiser la raideur.
+  $: refPath = pts
+    .map((p, i) => `${i ? 'L' : 'M'}${xpos(p.c).toFixed(1)},${ypos(e0 + (emax * p.c) / (ec50 + p.c)).toFixed(1)}`)
+    .join(' ');
   $: halfE = e0 + emax / 2;
 </script>
 
@@ -71,6 +75,9 @@
       <text x={xpos(ec50) + 4} y={ypos(halfE) - 6} class="tag">EC₅₀ → ½ Emax</text>
       <!-- plateau -->
       <line x1="0" x2={innerW} y1={ypos(e0 + emax)} y2={ypos(e0 + emax)} class="plateau" />
+      {#if Math.abs(hill - 1) > 0.05}
+        <path d={refPath} class="refline" />
+      {/if}
       <path d={path} class="cline" />
       <circle cx={xpos(ec50)} cy={ypos(halfE)} r="4.5" class="dot" />
       <text x={innerW / 2} y={innerH + 38} class="lbl">Concentration{logScale ? ' (log)' : ''}</text>
@@ -96,6 +103,7 @@
   .chart { width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
   .cline { fill: none; stroke: var(--accent-pd); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .refline { fill: none; stroke: var(--text-muted); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0.7; }
   .guide { stroke: var(--accent-pk); stroke-width: 1; stroke-dasharray: 3 3; }
   .plateau { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 2 4; }
   .dot { fill: var(--accent-pk); }

@@ -53,7 +53,7 @@ Imaginez que chaque patient bâtit avec la même boîte de blocs.
 La NCA est une règle graduée ; la PopPK, un modèle de classe ; la PBPK, un plan de bâtiment — puissant, mais chaque nouvelle pièce exige des hypothèses.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s08" viz="04_ThreeApproaches" -->
+<!-- step:title="La formule décortiquée" slides="s08" viz="AUCTrap" -->
 La NCA résume souvent l'exposition par l'aire sous la courbe :
 
 $$ \mathrm{AUC}_{0-\infty} \approx \mathrm{AUC}_{0-t} + \frac{C_t}{\lambda_z} $$
