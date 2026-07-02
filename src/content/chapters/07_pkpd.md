@@ -5,7 +5,7 @@ title: "PK/PD : Emax et turnover"
 description: "Relier concentration et effet : saturation, pente et délais."
 summary: "Guide accessible aux modèles Emax directs et aux modèles à réponse indirecte."
 track: "core"
-order: 8
+order: 7
 duration: "16 min"
 level: "intermediate"
 tags: ["pkpd", "emax", "ec50", "turnover"]

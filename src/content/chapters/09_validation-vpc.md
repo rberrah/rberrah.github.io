@@ -5,7 +5,7 @@ title: "Diagnostics et VPC"
 description: "Comment vérifier qu'un modèle est utile, pas seulement ajusté."
 summary: "Introduction pratique aux graphes observé-prédit, aux résidus et aux visual predictive checks."
 track: "core"
-order: 7
+order: 9
 duration: "13 min"
 level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
@@ -68,6 +68,16 @@ Ne validez pas un modèle avec un seul graphe.
 
 :::pitfall
 Observé-prédit, résidus, précision des paramètres, shrinkage, VPC et plausibilité clinique répondent à des questions **différentes**. Un bon flux de travail les utilise ensemble ; se déclarer satisfait d'une seule métrique est l'erreur classique.
+:::
+<!-- /step -->
+
+<!-- step:title="Le bootstrap" slides="s25" -->
+Comment savoir si le modèle est robuste, ou s'il a simplement eu de la chance avec ces patients ?
+
+Le **bootstrap** rééchantillonne l'étude (tirage avec remise) pour créer des centaines d'études virtuelles, puis réajuste le modèle sur chacune.
+
+:::key
+On obtient un **intervalle de confiance** pour chaque paramètre : un IC 95 % étroit signale un modèle stable ; un IC large trahit une estimation fragile.
 :::
 <!-- /step -->
 

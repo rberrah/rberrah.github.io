@@ -59,6 +59,18 @@ Augmentez $K_a$ : le pic arrive plus tôt et plus haut. Augmentez $T_{lag}$ : to
 :::
 <!-- /step -->
 
+<!-- step:title="Compartiments de transit" slides="s07" viz="OralAbsorption" -->
+Un modèle à un seul $K_a$ suppose une montée immédiate, ce qui colle mal quand l'absorption est **progressive** (dissolution, vidange gastrique).
+
+Les **compartiments de transit** remplacent l'entrée unique par une **chaîne** de $n$ compartiments traversés au rythme $k_{tr}$. Le médicament met un **temps de transit moyen** $\text{MTT} = n / k_{tr}$ à parvenir au compartiment central.
+
+$$ \frac{dT_1}{dt} = -k_{tr}\,T_1 \qquad \frac{dT_i}{dt} = k_{tr}\,(T_{i-1}-T_i) \qquad \frac{dA}{dt} = k_{tr}\,T_n - k\,A $$
+
+:::key
+Cochez « Comparer aux compartiments de transit » : plus $n$ augmente, plus la montée devient **arrondie et retardée** — une alternative souple au simple $T_{lag}$.
+:::
+<!-- /step -->
+
 <!-- step:title="Exemple concret" slides="s07" viz="OralAbsorption" -->
 Dans l'explorateur, augmentez $K_a$.
 

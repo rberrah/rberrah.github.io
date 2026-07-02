@@ -1,11 +1,11 @@
 ---
 id: "tdm"
 slug: "tdm"
-title: "TDM et conclusion"
-description: "Comment les modèles peuvent soutenir le suivi thérapeutique sans remplacer le clinicien."
-summary: "Chapitre final reliant l'apprentissage par modèles au suivi individuel et à une interprétation prudente."
+title: "Suivi thérapeutique (TDM)"
+description: "Comment les modèles soutiennent l'ajustement de dose individuel sans remplacer le clinicien."
+summary: "Mesurer, estimer (Bayes), ajuster : le suivi thérapeutique et son interprétation prudente."
 track: "core"
-order: 12
+order: 11
 duration: "12 min"
 level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
@@ -37,7 +37,7 @@ Le suivi thérapeutique (TDM) est le moment où la pharmacométrie devient concr
 Le modèle aide à **interpréter** la mesure dans son contexte. Il ne remplace pas la responsabilité clinique.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s62" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Intuition" slides="s62" viz="TDMProfile" -->
 Une concentration sans horaire, c'est comme une photo sans savoir quand elle a été prise.
 
 La construction venait-elle de commencer, était-elle près de son pic, ou déjà en démontage ? Le moment change l'interprétation.

@@ -5,7 +5,7 @@ title: "Outils et estimation"
 description: "Ce que cherchent vraiment NONMEM, Monolix, nlmixr2, FOCE-I et SAEM."
 summary: "Guide conceptuel des outils d'estimation et des fonctions objectif, sans en faire un manuel logiciel."
 track: "core"
-order: 9
+order: 8
 duration: "12 min"
 level: "intermediate"
 tags: ["tools", "estimation", "nonmem", "monolix", "nlmixr2"]

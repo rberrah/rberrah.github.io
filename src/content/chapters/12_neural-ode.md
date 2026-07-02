@@ -5,7 +5,7 @@ title: "Modèles grey-box et Neural ODE"
 description: "Là où l'apprentissage automatique peut aider sans remplacer la pharmacologie."
 summary: "Introduction prudente aux modèles PK hybrides, aux covariables par ML et aux Neural ODE."
 track: "ai"
-order: 11
+order: 12
 duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "neural-ode", "grey-box"]
@@ -45,6 +45,18 @@ La PK mécaniste est une notice écrite par un enseignant. L'apprentissage autom
 Le danger : laisser l'assistant inventer une règle qui ne marche que pour la classe d'hier.
 <!-- /step -->
 
+<!-- step:title="Trois usages en pharmacométrie" slides="s66,s68,s69" viz="20_NeuralBox" -->
+Le cours distingue trois rôles concrets de l'IA :
+
+- **Sélection** (forêts aléatoires / VSURF) : trier des dizaines de covariables et repérer les vraiment influentes, au-delà du forward/backward manuel.
+- **Prédiction** (ex. XGBoost) : apprendre directement une relation — par exemple concentration → AUC — sans passer par une équation différentielle.
+- **Hybridation** (Neural ODE) : garder la structure mécaniste et ne confier au réseau que la partie inconnue.
+
+:::note
+Usage voisin : **clusteriser les EBE** pour découvrir des phénotypes (métaboliseurs lents/rapides) et générer des hypothèses cliniques.
+:::
+<!-- /step -->
+
 <!-- step:title="La formule décortiquée" slides="s70" viz="20_NeuralBox" -->
 Une EDO mécaniste pourrait être :
 
@@ -77,9 +89,9 @@ Ne présentez jamais l'IA comme supérieure par défaut : sans validation extern
 :::
 <!-- /step -->
 
-<!-- step:title="À retenir" -->
-- L'IA peut soutenir la pharmacométrie, pas la remplacer.
-- Les modèles grey-box combinent mécanisme et flexibilité.
-- Les Neural ODE gardent une vision de système dynamique.
-- Extrapolation, incertitude et interprétabilité restent essentielles.
+<!-- step:title="À retenir" slides="s70,s71" -->
+- Trois usages : **sélection** (VSURF), **prédiction** (XGBoost), **hybridation** (Neural ODE).
+- Les modèles grey-box combinent mécanisme et flexibilité ; les Neural ODE gardent une vision de système dynamique.
+- Horizon : le **jumeau numérique** du patient (consortium DIGPHAT), fusion physiologie + IA.
+- Conclusion clinique : **l'IA n'est pas magique, elle est utile**. Le médecin décide ; l'algorithme réduit l'incertitude. Extrapolation, incertitude et interprétabilité restent essentielles.
 <!-- /step -->
