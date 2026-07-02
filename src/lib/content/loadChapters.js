@@ -21,6 +21,45 @@ if (!globalThis.Buffer) globalThis.Buffer = BufferPoly;
 
 const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
 
+// Encadrés pédagogiques : syntaxe `:::type … :::` en Markdown.
+// Types reconnus (avec libellé affiché) :
+const CALLOUTS = {
+  pitfall: 'Piège',
+  key: 'À retenir',
+  clinical: 'En clinique',
+  note: 'Note',
+  math: 'Côté maths'
+};
+
+// Rend un segment Markdown : KaTeX au build (renderMath) PUIS MarkdownIt.
+// (fusion patch « encadrés » + v2 « KaTeX server-side »)
+function renderMd(src) {
+  return md.render(renderMath(src));
+}
+
+/**
+ * Rend un corps Markdown en HTML en gérant les encadrés `:::type … :::`.
+ * Les équations sont rendues au build pour éviter tout flash côté client.
+ * @param {string} body
+ * @returns {string}
+ */
+function renderBody(body) {
+  const re = /^:::(\w+)[ \t]*\n([\s\S]*?)\n:::[ \t]*$/gm;
+  let out = '';
+  let last = 0;
+  let m;
+  while ((m = re.exec(body)) !== null) {
+    out += renderMd(body.slice(last, m.index));
+    const type = m[1].toLowerCase();
+    const label = CALLOUTS[type] ?? type;
+    const inner = renderMd(m[2]);
+    out += `<aside class="callout callout-${type}"><p class="callout-label">${label}</p>${inner}</aside>\n`;
+    last = re.lastIndex;
+  }
+  out += renderMd(body.slice(last));
+  return out;
+}
+
 const files = import.meta.glob('../../content/chapters/*.md', { query: '?raw', import: 'default', eager: true });
 const translationFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?raw', import: 'default', eager: true });
 
@@ -37,7 +76,11 @@ const translationsBySlug = new Map(
   })
 );
 
-const chapters = Object.entries(files).map(([path, raw]) => {
+const chapters = Object.entries(files)
+  // Les fichiers préfixés par « _ » sont des brouillons/modèles ignorés au build.
+  // Ex. `_TEMPLATE.md` sert de point de départ à copier-coller.
+  .filter(([path]) => !/\/_[^/]*\.md$/.test(path))
+  .map(([path, raw]) => {
   const chapter = parseChapter(path, raw);
   const fr = translationsBySlug.get(chapter.slug);
   return fr ? { ...chapter, translations: { fr } } : chapter;
@@ -83,7 +126,7 @@ function extractSteps(content) {
     const slides = meta.slides ? meta.slides.split(',').map((s) => s.trim()).filter(Boolean) : [];
     blocks.push({
       title: meta.title ?? 'Étape',
-      html: md.render(renderMath(body)),
+      html: renderBody(body),
       slides,
       viz: meta.viz
     });

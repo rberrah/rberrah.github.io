@@ -99,7 +99,9 @@ function validateChapters(catalogIds) {
     return;
   }
 
-  const files = fs.readdirSync(chaptersDir).filter((f) => f.endsWith('.md'));
+  // Les fichiers préfixés par « _ » (ex. _TEMPLATE.md) sont des brouillons/modèles
+  // ignorés au build (voir loadChapters.js) : ils ne sont pas validés comme des chapitres.
+  const files = fs.readdirSync(chaptersDir).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
   for (const file of files) {
     const full = path.join(chaptersDir, file);
     const raw = fs.readFileSync(full, 'utf8');

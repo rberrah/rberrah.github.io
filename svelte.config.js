@@ -12,22 +12,10 @@ const config = {
 			base: process.env.BASE_PATH || ''
 		},
 		prerender: {
-			entries: [
-				'*',
-				'/chapitres',
-				'/chapitres/pourquoi-pharmacometrie',
-				'/chapitres/trois-approches',
-				'/chapitres/clairance-volume-demi-vie',
-				'/chapitres/absorption-orale',
-				'/chapitres/variabilite-iiv-iov',
-				'/chapitres/allometrie',
-				'/chapitres/validation-vpc',
-				'/chapitres/pkpd',
-				'/chapitres/outils-estimation',
-				'/chapitres/bayes-ebes',
-				'/chapitres/neural-ode',
-				'/chapitres/tdm'
-			],
+			// Les URLs de chapitres sont dérivées automatiquement via la fonction
+			// `entries` de src/routes/chapitres/[slug]/+page.js — plus besoin de les
+			// lister ici à la main. `*` fait explorer les liens statiques restants.
+			entries: ['*'],
 			handleHttpError: ({ status, path }) => {
 				if (status === 404 && path.startsWith('/slides/')) return;
 				throw new Error(`Failed to prerender ${path}: ${status}`);

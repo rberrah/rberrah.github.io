@@ -2,8 +2,12 @@
   import Slider from '$lib/components/ui/Slider.svelte';
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
+  import AnimatedPath from '$lib/charts/AnimatedPath.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
+  import { tweened } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
+  import { reducedMotion } from '$lib/motion/reducedMotion';
 
   let dose = 150;
   let v = 25;
@@ -15,19 +19,35 @@
   const times = Array.from({ length: 121 }, (_, i) => i * 0.2); // 0..24h
 
   $: curve = times.map((t) => ({ t, c: concBateman(t, dose, ka, cl, v, tlag) }));
-  $: cmax = Math.max(...curve.map((p) => p.c)).toFixed(2);
-  $: tmax = curve.reduce((best, p) => (p.c > best.c ? p : best), { t: 0, c: 0 }).t.toFixed(2);
+  $: cmaxPoint = curve.reduce((best, p) => (p.c > best.c ? p : best), { t: 0, c: 0 });
+  $: cmax = cmaxPoint.c.toFixed(2);
+  $: tmax = cmaxPoint.t.toFixed(2);
   $: xScale = scaleLinear().domain([0, Math.max(...times)]).range([0, 300]);
   $: yScale = scaleLinear().domain(paddedDomain(curve.map((p) => p.c), 0.2)).range([160, 0]);
+
+  // Points projetés en coordonnées SVG (consommés par AnimatedPath).
+  $: linePts = curve.map((p) => ({ x: xScale(p.t), y: yScale(p.c) }));
+  // Aire AUC : courbe + retour le long de l'axe des abscisses.
+  $: areaPts = [
+    { x: xScale(0), y: yScale(0) },
+    ...linePts,
+    { x: xScale(Math.max(...times)), y: yScale(0) }
+  ];
+
+  // Marqueur Cmax/Tmax qui glisse en douceur vers sa nouvelle position.
+  const marker = tweened({ x: 0, y: 0 }, { duration: 450, easing: cubicOut });
+  $: marker.set(
+    { x: xScale(cmaxPoint.t), y: yScale(cmaxPoint.c) },
+    { duration: $reducedMotion ? 0 : 450 }
+  );
+
   /** @type {HoverPoint | null} */
   let hover = null;
 
   /**
    * @param {MouseEvent & { currentTarget: SVGRectElement }} event
-   * @param {number} innerWidth
-   * @param {number} innerHeight
    */
-  function moveTooltip(event, innerWidth, innerHeight) {
+  function moveTooltip(event) {
     const rect = event.currentTarget.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const t = xScale.invert(x);
@@ -37,12 +57,8 @@
 
   /**
    * Bateman avec Tlag
-   * @param {number} t
-   * @param {number} dose
-   * @param {number} ka
-   * @param {number} cl
-   * @param {number} v
-   * @param {number} tlag
+   * @param {number} t @param {number} dose @param {number} ka
+   * @param {number} cl @param {number} v @param {number} tlag
    */
   function concBateman(t, dose, ka, cl, v, tlag) {
     if (t < tlag) return 0;
@@ -61,38 +77,43 @@
     <Slider label="Ka (1/h)" min={0.2} max={3} step={0.05} bind:value={ka} />
     <Slider label="Tlag (h)" min={0} max={3} step={0.1} bind:value={tlag} />
     <div class="stats">
-      <div>Cmax {cmax} mg/L</div>
-      <div>Tmax {tmax} h</div>
+      <div><span>Cmax</span><strong>{cmax} mg/L</strong></div>
+      <div><span>Tmax</span><strong>{tmax} h</strong></div>
     </div>
   </div>
-  <ChartFrame width={420} height={260} margin={{ top: 18, right: 16, bottom: 46, left: 66 }} xScale={xScale} yScale={yScale} grid={true}>
+  <ChartFrame width={420} height={260} margin={{ top: 18, right: 16, bottom: 46, left: 66 }} {xScale} {yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
-      <rect
-        class="hoverpane"
-        x="0"
-        y="0"
-        width={innerWidth}
-        height={innerHeight}
-        fill="transparent"
-        role="presentation"
-        on:mousemove={(e) => moveTooltip(e, innerWidth, innerHeight)}
-        on:mouseleave={() => (hover = null)}
-      />
-      <polyline
-        fill="none"
-        stroke="#2563eb"
-        stroke-width="3"
-        points={curve.map((p) => `${xScale(p.t)},${yScale(p.c)}`).join(' ')}
-      />
+      <!-- Aire AUC ombrée sous la courbe -->
+      <AnimatedPath points={areaPts} closed={true} fill="var(--accent-pk)" stroke="none" />
+
+      <!-- Courbe principale animée -->
+      <AnimatedPath points={linePts} stroke="var(--accent-pk)" width={3} />
+
       <Axis orient="bottom" scale={xScale} length={innerWidth} label="Time (h)" />
       <g transform={`translate(-8,0)`}>
         <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
       </g>
 
+      <!-- Marqueur Cmax / Tmax -->
+      <g class="cmax-marker">
+        <line x1={$marker.x} x2={$marker.x} y1={$marker.y} y2={innerHeight} />
+        <circle cx={$marker.x} cy={$marker.y} r="5" />
+        <text x={$marker.x} y={Math.max(12, $marker.y - 10)} text-anchor="middle">Cmax</text>
+      </g>
+
+      <rect
+        class="hoverpane"
+        x="0" y="0"
+        width={innerWidth} height={innerHeight}
+        fill="transparent" role="presentation"
+        on:mousemove={moveTooltip}
+        on:mouseleave={() => (hover = null)}
+      />
+
       {#if hover}
         <g>
-          <circle cx={hover.x} cy={hover.y} r="4.5" fill="#2563eb" />
-          <line x1={hover.x} x2={hover.x} y1={0} y2={innerHeight} stroke="#0ea5e9" stroke-dasharray="3 3" stroke-width="1" />
+          <circle cx={hover.x} cy={hover.y} r="4.5" fill="var(--accent-pk)" />
+          <line x1={hover.x} x2={hover.x} y1={0} y2={innerHeight} stroke="var(--accent-pk)" stroke-dasharray="3 3" stroke-width="1" opacity="0.6" />
         </g>
         <foreignObject x={Math.min(innerWidth - 140, Math.max(4, hover.x + 6))} y={14} width="140" height="70">
           <div class="tooltip">
@@ -115,16 +136,40 @@
   .stats {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
+  }
+  .stats div {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+  .stats span {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .stats strong { color: var(--accent-pk); font-size: 1.05rem; }
+
+  /* L'aire AUC hérite du fill accent mais très atténué. */
+  :global(.pk1c path[fill='var(--accent-pk)']) { opacity: 0.12; }
+
+  .cmax-marker circle { fill: var(--accent-pk); stroke: var(--bg-tertiary); stroke-width: 2; }
+  .cmax-marker line { stroke: var(--accent-pk); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.55; }
+  .cmax-marker text {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    fill: var(--accent-pk);
     font-weight: 700;
-    color: #0f172a;
   }
-  .hoverpane {
-    cursor: crosshair;
-  }
+
+  .hoverpane { cursor: crosshair; }
   .tooltip {
-    background: #0f172a;
-    color: #fff;
+    background: var(--text-primary);
+    color: var(--bg-primary);
     padding: 6px 8px;
     border-radius: 8px;
     font-size: 0.85rem;

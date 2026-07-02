@@ -7,35 +7,15 @@
   import { language } from '$lib/stores/language';
   import { localizeChapter, ui } from '$lib/i18n/translations';
 
-  // visualization registry
-  import HumanBody from '$lib/components/visualizations/01_HumanBody.svelte';
-  import BucketSim from '$lib/components/visualizations/02_BucketSim.svelte';
-  import ThreeApproaches from '$lib/components/visualizations/04_ThreeApproaches.svelte';
-  import PK1C from '$lib/components/visualizations/09_PK1C.svelte';
-  import Variability from '$lib/components/visualizations/12_VariabilitySandbox.svelte';
-  import Allometry from '$lib/components/visualizations/14_AllometryCentering.svelte';
-  import VPC from '$lib/components/visualizations/17_VPCCrashTest.svelte';
-  import NeuralBox from '$lib/components/visualizations/20_NeuralBox.svelte';
-  import BuildingBlocksPKPD from '$lib/components/visualizations/BuildingBlocksPKPD.svelte';
+  import { fade, fly } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
+  import { reducedMotion } from '$lib/motion/reducedMotion';
   import SlideFigure from '$lib/components/visualizations/SlideFigure.svelte';
-  import AnimatedConcept from '$lib/components/visualizations/AnimatedConcept.svelte';
-  import IVBolus from '$lib/components/visualizations/IVBolusExplorer.svelte';
-  import OralAbsorption from '$lib/components/visualizations/OralAbsorptionExplorer.svelte';
 
-  /** @type {Record<string, any>} */
-  const vizMap = {
-    '01_HumanBody': HumanBody,
-    '02_BucketSim': BucketSim,
-    '04_ThreeApproaches': ThreeApproaches,
-    '09_PK1C': PK1C,
-    '12_VariabilitySandbox': Variability,
-    '14_AllometryCentering': Allometry,
-    '17_VPCCrashTest': VPC,
-    '20_NeuralBox': NeuralBox,
-    BuildingBlocksPKPD,
-    IVBolus,
-    OralAbsorption
-  };
+  // Registre AUTOMATIQUE : tout composant déposé dans
+  // src/lib/components/visualizations/ est utilisable via viz="..." sans éditer
+  // ce fichier. Voir src/lib/content/vizRegistry.js.
+  import vizMap, { availableVizKeys } from '$lib/content/vizRegistry';
 
   $: slug = $page.params.slug;
   $: chapter = chapters.find((c) => c.slug === slug);
@@ -67,6 +47,16 @@
     }
     for (const s of displayChapter.steps) {
       if (s.viz && vizMap[s.viz]) return s.viz;
+    }
+    return null;
+  })();
+  // Clé de viz demandée (même non résolue) : affiche un message d'aide explicite
+  // en cas de faute de frappe dans un bloc step (viz="...").
+  $: requestedViz = (() => {
+    if (!displayChapter) return null;
+    for (let i = activeIndex; i >= 0; i--) {
+      const v = displayChapter.steps[i]?.viz;
+      if (v) return v;
     }
     return null;
   })();
@@ -178,12 +168,24 @@
 
     <aside class="viz-panel" data-testid="viz-panel">
       <div class="viz-inner">
-        {#if currentStep}
-          <AnimatedConcept chapterSlug={displayChapter.slug} stepTitle={currentStep.title} />
+        {#if activeViz && vizMap[activeViz]}
+          {#key activeViz}
+            <div
+              class="viz-swap"
+              in:fly={{ y: $reducedMotion ? 0 : 14, duration: $reducedMotion ? 0 : 320, easing: cubicOut }}
+              out:fade={{ duration: $reducedMotion ? 0 : 120 }}
+            >
+              <svelte:component this={vizMap[activeViz]} />
+            </div>
+          {/key}
         {:else if activeSlideIds.length}
           <SlideFigure slideIds={activeSlideIds} />
-        {:else if activeViz && vizMap[activeViz]}
-          <svelte:component this={vizMap[activeViz]} />
+        {:else if requestedViz && !vizMap[requestedViz]}
+          <div class="viz-empty">
+            <p><strong>Visualisation introuvable&nbsp;:</strong> <code>{requestedViz}</code></p>
+            <p class="hint">Vérifiez le nom du composant dans <code>src/lib/components/visualizations/</code>. Clés disponibles&nbsp;:</p>
+            <p class="keys">{availableVizKeys.join(' · ')}</p>
+          </div>
         {:else}
           <div class="viz-empty">
             <p>{copy.chapter.emptyViz}</p>
@@ -223,12 +225,44 @@
   .prose :global(.katex-display) { margin: var(--space-6) 0; padding: var(--space-4); background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius); overflow-x: auto; }
   .prose :global(.math-display .katex-display) { margin: 0; padding: 0; background: transparent; border: 0; }
 
+  /* --- Encadrés pédagogiques (:::pitfall, :::key, :::clinical, :::note, :::math) --- */
+  .prose :global(.callout) {
+    margin: var(--space-5) 0;
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    background: var(--bg-tertiary);
+  }
+  .prose :global(.callout p) { margin: 0 0 var(--space-2); }
+  .prose :global(.callout p:last-child) { margin-bottom: 0; }
+  .prose :global(.callout-label) {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    margin-bottom: var(--space-2) !important;
+  }
+  .prose :global(.callout-pitfall) { border-left-color: var(--accent-pk); background: color-mix(in srgb, var(--accent-pk) 6%, var(--bg-tertiary)); }
+  .prose :global(.callout-pitfall .callout-label) { color: var(--accent-pk); }
+  .prose :global(.callout-key) { border-left-color: var(--accent-pd); background: color-mix(in srgb, var(--accent-pd) 6%, var(--bg-tertiary)); }
+  .prose :global(.callout-key .callout-label) { color: var(--accent-pd); }
+  .prose :global(.callout-clinical) { border-left-color: var(--accent-ai); background: color-mix(in srgb, var(--accent-ai) 6%, var(--bg-tertiary)); }
+  .prose :global(.callout-clinical .callout-label) { color: var(--accent-ai); }
+  .prose :global(.callout-math) { border-left-color: var(--border-strong); }
+  .prose :global(.callout-math .callout-label) { color: var(--text-secondary); }
+  .prose :global(.callout-note .callout-label) { color: var(--text-muted); }
+
   .viz-panel { position: relative; }
   @media (min-width: 920px) {
     .viz-panel { position: sticky; top: 80px; height: calc(100vh - 110px); display: flex; align-items: center; }
   }
   .viz-inner { width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-6); box-shadow: 0 14px 40px rgba(26, 28, 29, 0.07); }
+  .viz-swap { width: 100%; }
   .viz-empty { color: var(--text-muted); text-align: center; padding: var(--space-12) var(--space-4); }
+  .viz-empty .hint { font-size: var(--text-sm); margin-top: var(--space-2); }
+  .viz-empty .keys { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-3); line-height: 1.9; }
+  .viz-empty code { background: var(--bg-secondary); padding: 0.05em 0.35em; border-radius: 4px; }
 
   .quiz-step { min-height: auto; opacity: 1; }
   .chap-nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-8); }
