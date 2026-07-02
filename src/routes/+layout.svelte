@@ -12,6 +12,7 @@
   let links = $derived([
     { href: '/', key: 'home', label: copy.nav.home },
     { href: '/chapitres', key: 'course', label: copy.nav.course },
+    { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
     { href: '/a-propos', key: 'about', label: copy.nav.about }

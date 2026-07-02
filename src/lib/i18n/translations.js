@@ -10,6 +10,7 @@ export const dictionary = {
     nav: {
       home: 'Home',
       course: 'Course',
+      example: 'Case study',
       playground: 'Playground',
       glossary: 'Glossary',
       about: 'About',
@@ -77,6 +78,9 @@ export const dictionary = {
         'Use cases: tacrolimus and warfarin for demonstrations.',
         'Ready for GitHub Pages (adapter-static, BASE_PATH).'
       ],
+      glossaryIntro: 'A pharmacometrics dictionary: parameters, models, estimation, diagnostics, Bayesian TDM and applied AI, with plain explanations.',
+      glossarySearch: 'Search a term…',
+      glossaryEmpty: 'No term matches your search.',
       slidesTitle: 'Slides catalog',
       slidesIntro:
         'Source of truth: src/content/slides/slide_catalog.yaml. PNGs must live in static/slides/.',
@@ -98,6 +102,7 @@ export const dictionary = {
     nav: {
       home: 'Accueil',
       course: 'Cours',
+      example: 'Cas pratique',
       playground: 'Playground',
       glossary: 'Glossaire',
       about: 'À propos',
@@ -165,6 +170,9 @@ export const dictionary = {
         "Cas d'usage : tacrolimus et warfarine pour les démonstrations.",
         'Déploiement GitHub Pages statique (adapter-static, BASE_PATH).'
       ],
+      glossaryIntro: 'Un dictionnaire de pharmacométrie : paramètres, modèles, estimation, diagnostics, TDM bayésien et IA appliquée, avec des explications claires.',
+      glossarySearch: 'Rechercher un terme…',
+      glossaryEmpty: 'Aucun terme ne correspond à votre recherche.',
       slidesTitle: 'Catalogue des slides',
       slidesIntro:
         'Source de vérité : src/content/slides/slide_catalog.yaml. Les PNG doivent être dans static/slides/.',
