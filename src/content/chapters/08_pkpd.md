@@ -37,7 +37,7 @@ La concentration n'est généralement pas la question finale. La question finale
 Les modèles PK/PD relient les blocs qui circulent dans l'organisme à la construction qu'ils produisent : bénéfice, toxicité, variation d'un biomarqueur, réponse clinique.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s32,s33" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Intuition" slides="s32,s33" viz="EmaxHill" -->
 Ajouter plus de blocs n'aide que jusqu'à ce que la construction atteigne sa taille utile maximale.
 
 Ce plateau est l'idée derrière l'**Emax** : une fois les cibles saturées, plus de concentration n'apporte presque plus d'effet — mais peut encore augmenter la toxicité.
@@ -47,7 +47,7 @@ Ce plateau est l'idée derrière l'**Emax** : une fois les cibles saturées, plu
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s34,s35" viz="BuildingBlocksPKPD" -->
+<!-- step:title="La formule décortiquée" slides="s34,s35" viz="EmaxHill" -->
 Un modèle Emax direct :
 
 $$ E = E_0 + \frac{E_{\max}\, C}{EC_{50} + C} $$
@@ -61,13 +61,13 @@ $E_0$ = effet sans médicament ; $E_{\max}$ = effet supplémentaire maximal ; $E
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s36,s37" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Exemple concret" slides="s36,s37" viz="Turnover" -->
 Pour la warfarine, l'effet clinique peut être en retard sur la concentration, car le médicament agit sur le renouvellement des facteurs de coagulation.
 
 La concentration change d'abord ; le système biologique répond ensuite, au cours du temps. Ce délai est de la **PD**, pas nécessairement une distribution lente.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s38,s39" -->
+<!-- step:title="Piège fréquent" slides="s38,s39" viz="Turnover" -->
 N'appelez pas tout délai « PK lente ».
 
 :::pitfall

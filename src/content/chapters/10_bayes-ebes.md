@@ -37,7 +37,7 @@ Les jeux de données cliniques sont souvent **pauvres** : une ou deux concentrat
 Le raisonnement bayésien permet au modèle de combiner ce que l'on sait de la population avec ce que l'on observe chez l'individu.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s58,s59" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Intuition" slides="s58,s59" viz="BayesUpdate" -->
 Si vous ne voyez qu'une seule photo de la construction d'un élève, vous ne devriez pas ignorer ce que vous savez de toute la classe.
 
 Le modèle de population est l'**attente a priori** ; la mesure individuelle **met à jour** cette attente.
@@ -47,7 +47,7 @@ Une estimation bayésienne ne saute pas à une conclusion extrême : elle éloig
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s57,s59" -->
+<!-- step:title="La formule décortiquée" slides="s57,s59" viz="BayesUpdate" -->
 Idée MAP simplifiée :
 
 $$ \text{estimation individuelle} = \text{attente de population} + \text{écart soutenu par les données} $$
