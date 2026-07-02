@@ -28,13 +28,18 @@ const requiredFrontmatter = [
   'tags',
   'slides'
 ];
+// Squelette pédagogique canonique (langue principale = français).
+// Chaque chapitre doit contenir au moins ces sections, dans cet ordre d'esprit :
+// motivation → intuition → formule → exemple → piège → synthèse.
+// NB : les titres d'étapes ne doivent contenir ni apostrophe ni guillemet
+// (le parseur de méta `title="…"` s'arrête au premier ' ou ").
 const requiredPedagogy = [
-  'Why this matters',
+  'Pourquoi ce chapitre',
   'Intuition',
-  'Building-block metaphor',
-  'Worked example',
-  'Common trap',
-  'Key takeaways'
+  'La formule décortiquée',
+  'Exemple concret',
+  'Piège fréquent',
+  'À retenir'
 ];
 
 const errors = [];

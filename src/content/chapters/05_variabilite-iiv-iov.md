@@ -1,9 +1,9 @@
 ---
 id: "variabilite-iiv-iov"
 slug: "variabilite-iiv-iov"
-title: "IIV, IOV and residual error"
-description: "Separate patient differences, occasion differences, and measurement noise."
-summary: "A practical guide to naming the different sources of variability in PopPK."
+title: "IIV, IOV et erreur résiduelle"
+description: "Séparer différences entre patients, différences entre occasions et bruit de mesure."
+summary: "Guide pratique pour nommer les différentes sources de variabilité en PopPK."
 track: "core"
 order: 5
 duration: "14 min"
@@ -11,80 +11,80 @@ level: "intermediate"
 tags: ["variability", "iiv", "iov", "residual-error"]
 slides: ["s21", "s22", "s23", "s24"]
 quiz:
-  - prompt: "IIV means..."
+  - prompt: "L'IIV désigne..."
     options:
-      - "differences between patients"
-      - "differences between assay machines only"
-      - "differences between drug names"
+      - "les différences entre patients"
+      - "les différences entre appareils de dosage seulement"
+      - "les différences entre noms de médicaments"
     correct: 0
-  - prompt: "IOV means..."
+  - prompt: "L'IOV désigne..."
     options:
-      - "differences within the same patient across occasions"
-      - "the typical value"
-      - "the structural ODE"
+      - "les différences chez un même patient d'une occasion à l'autre"
+      - "la valeur typique"
+      - "l'EDO structurale"
     correct: 0
-  - prompt: "Residual error is closest to..."
+  - prompt: "L'erreur résiduelle correspond surtout à..."
     options:
-      - "unexplained observation-level mismatch"
-      - "the full population variability"
-      - "the covariate effect"
+      - "l'écart inexpliqué au niveau de l'observation"
+      - "toute la variabilité de population"
+      - "l'effet d'une covariable"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s21" viz="12_VariabilitySandbox" -->
-Variability is not a nuisance to hide. It is often the main reason pharmacometrics is useful.
+<!-- step:title="Pourquoi ce chapitre" slides="s21" viz="12_VariabilitySandbox" -->
+La variabilité n'est pas une nuisance à cacher. C'est souvent la raison principale pour laquelle la pharmacométrie est utile.
 
-A good model says which differences are between patients, which differences occur within a patient over time, and which differences remain at the measurement level.
+Un bon modèle dit **quelles** différences sont entre patients, **lesquelles** surviennent chez un même patient au cours du temps, et **lesquelles** restent au niveau de la mesure.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s21,s22" viz="12_VariabilitySandbox" -->
-In a classroom, students do not all build at the same speed.
+Dans une classe, les élèves ne construisent pas tous à la même vitesse.
 
-Some are consistently faster. Some are faster on Monday and slower on Friday. Some measurements of the final construction are blurry.
+Certains sont durablement plus rapides. Certains sont rapides lundi et lents vendredi. Et certaines photos de la construction finale sont floues. Ce sont **trois problèmes différents** :
 
-Those are three different problems.
+- **Effet fixe** : la notice de montage typique de la classe.
+- **IIV** : chaque élève a un style de construction personnel.
+- **IOV** : le même élève change d'une séance à l'autre.
+- **Erreur résiduelle** : la photo est imparfaite, ou le modèle rate un petit détail.
+
+:::key
+Garder ces couches séparées est l'une des compétences PopPK les plus importantes.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s21,s22" viz="12_VariabilitySandbox" -->
-- **Fixed effect**: the typical instruction sheet for the class.
-- **IIV**: each student has a personal building style.
-- **IOV**: the same student changes between sessions.
-- **Residual error**: the photo of the construction is imperfect, or the model misses a small detail.
+<!-- step:title="La formule décortiquée" slides="s22" viz="12_VariabilitySandbox" -->
+Un modèle de paramètre PopPK courant :
 
-Keeping these layers separate is one of the most important PopPK skills.
+$$ CL_i = CL_{\mathrm{typique}}\, e^{\eta_i} $$
+
+où $\eta_i$ est l'écart propre au patient. Pour un paramètre spécifique à l'occasion :
+
+$$ CL_{ij} = CL_{\mathrm{typique}}\, e^{\eta_i + \kappa_{ij}} $$
+
+:::math
+$\eta_i$ ne change pas d'une visite à l'autre (c'est l'IIV) ; $\kappa_{ij}$ décrit l'occasion $j$ du patient $i$ (c'est l'IOV). L'erreur résiduelle, elle, agit sur chaque **observation**.
+:::
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s21,s22" viz="12_VariabilitySandbox" -->
-A common PopPK parameter model is:
+<!-- step:title="Exemple concret" slides="s23" viz="12_VariabilitySandbox" -->
+Dans un jeu de données warfarine, deux patients peuvent avoir des clairances typiques différentes : c'est l'IIV.
 
-$$ CL_i = CL_{\mathrm{typical}} e^{\eta_i} $$
+Le même patient peut aussi avoir une clairance différente à une visite ultérieure (alimentation, observance, fonction hépatique, interactions) : c'est l'IOV.
 
-where $\eta_i$ is the patient-specific deviation.
-
-For an occasion-specific parameter:
-
-$$ CL_{ij} = CL_{\mathrm{typical}} e^{\eta_i + \kappa_{ij}} $$
-
-where $\kappa_{ij}$ describes occasion $j$ for patient $i$.
+Et l'INR ou la concentration mesurée peut encore s'écarter du modèle : c'est l'erreur résiduelle.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s23" viz="12_VariabilitySandbox" -->
-In a warfarin dataset, two patients may have different typical clearance. That is IIV.
+<!-- step:title="Piège fréquent" slides="s24" -->
+N'utilisez pas l'erreur résiduelle pour absorber tous les écarts.
 
-The same patient may also have a different clearance during a later visit because of diet, adherence, liver function, or interacting drugs. That is IOV.
-
-The measured INR or concentration may still deviate from the model. That is residual error.
+:::pitfall
+Si les courbes des patients diffèrent systématiquement, l'erreur résiduelle est la mauvaise explication. Si le même patient change selon la visite, l'IIV seule ne suffit pas. Et si le modèle structural est faux, ajouter des effets aléatoires ne fait souvent que **masquer** le problème.
+:::
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s24" -->
-Do not use residual error to absorb every mismatch.
-
-If patient curves are systematically different, residual error is the wrong explanation. If the same patient changes by visit, IIV alone is not enough. If the structural model is wrong, adding random effects may only hide the problem.
-<!-- /step -->
-
-<!-- step:title="Key takeaways" -->
-- IIV is between-patient variability.
-- IOV is within-patient, between-occasion variability.
-- Residual error is observation-level mismatch.
-- Better naming of variability leads to better interpretation.
+<!-- step:title="À retenir" -->
+- L'IIV est la variabilité entre patients.
+- L'IOV est la variabilité intra-patient, entre occasions.
+- L'erreur résiduelle est l'écart au niveau de l'observation.
+- Mieux nommer la variabilité, c'est mieux interpréter le modèle.
 <!-- /step -->

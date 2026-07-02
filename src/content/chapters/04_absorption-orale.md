@@ -1,9 +1,9 @@
 ---
 id: "absorption-orale"
 slug: "absorption-orale"
-title: "Oral route, Ka and lag time"
-description: "Why oral curves rise before they fall."
-summary: "A student-friendly explanation of absorption rate, lag time, Cmax, and Tmax."
+title: "Voie orale, Ka et temps de latence"
+description: "Pourquoi une courbe orale monte avant de redescendre."
+summary: "Explication accessible de la vitesse d'absorption, du temps de latence, du Cmax et du Tmax."
 track: "core"
 order: 4
 duration: "12 min"
@@ -11,71 +11,71 @@ level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
 slides: ["s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20"]
 quiz:
-  - prompt: "Ka mainly controls..."
+  - prompt: "Ka contrôle principalement..."
     options:
-      - "how fast drug enters the central compartment"
-      - "how many organs PBPK contains"
-      - "the assay calibration curve"
+      - "la vitesse d'entrée du médicament dans le compartiment central"
+      - "le nombre d'organes d'un modèle PBPK"
+      - "la courbe d'étalonnage du dosage"
     correct: 0
-  - prompt: "Tlag represents..."
+  - prompt: "Le temps de latence Tlag représente..."
     options:
-      - "a delay before absorption begins"
-      - "the terminal half-life"
-      - "the maximum effect"
+      - "un délai avant le début de l'absorption"
+      - "la demi-vie terminale"
+      - "l'effet maximal"
     correct: 0
-  - prompt: "Flip-flop kinetics can occur when..."
+  - prompt: "Une cinétique flip-flop peut survenir quand..."
     options:
-      - "absorption is slower than elimination"
-      - "clearance is zero"
-      - "volume is exactly 1 L"
+      - "l'absorption est plus lente que l'élimination"
+      - "la clairance est nulle"
+      - "le volume vaut exactement 1 L"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s13,s14,s15,s16" viz="OralAbsorption" -->
-Most medicines are not injected directly into plasma. They are swallowed, absorbed, distributed, and eliminated.
+<!-- step:title="Pourquoi ce chapitre" slides="s13,s14" viz="OralAbsorption" -->
+La plupart des médicaments ne sont pas injectés directement dans le plasma : ils sont avalés, absorbés, distribués, puis éliminés.
 
-That is why oral concentration-time curves rise, reach a peak, and then fall. The rising part is not noise. It is absorption.
+C'est pourquoi les courbes orales concentration-temps **montent**, atteignent un pic, puis redescendent. La phase ascendante n'est pas du bruit : c'est l'absorption.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s17" viz="OralAbsorption" -->
-With an oral dose, the blocks first wait outside the main room.
+<!-- step:title="Intuition" slides="s15,s17" viz="OralAbsorption" -->
+Avec une dose orale, les blocs attendent d'abord hors de la salle principale.
 
-The absorption rate constant $K_a$ controls how fast blocks enter. A lag time $T_{lag}$ means the door stays closed for a while before entry starts.
+La constante d'absorption $K_a$ fixe la vitesse d'entrée des blocs. Un temps de latence $T_{lag}$ signifie que la porte reste fermée un moment avant que l'entrée commence.
+
+:::key
+La courbe observée est une **compétition** entre l'entrée (absorption) et la sortie (élimination). Le pic apparaît quand les deux s'équilibrent.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s13" viz="BuildingBlocksPKPD" -->
-Imagine a delivery truck arrives at the classroom.
+<!-- step:title="La formule décortiquée" slides="s18,s19" viz="OralAbsorption" -->
+Un modèle oral d'ordre 1 courant (courbe de Bateman) :
 
-- $T_{lag}$ is the time before anyone opens the truck.
-- $K_a$ is how fast students unload the blocks.
-- $CL$ is still the cleanup speed once blocks are inside.
+$$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
 
-The observed curve mixes both delivery and cleanup.
+Pas besoin de mémoriser l'expression entière : lisez-la comme une entrée par absorption ($K_a$) opposée à une sortie par élimination ($k = CL/V$).
+
+:::math
+Augmentez $K_a$ : le pic arrive plus tôt et plus haut. Augmentez $T_{lag}$ : tout le début de la courbe se décale vers la droite.
+:::
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s18,s19" viz="OralAbsorption" -->
-A common first-order oral model is:
+<!-- step:title="Exemple concret" slides="s20" viz="OralAbsorption" -->
+Dans l'explorateur, augmentez $K_a$.
 
-$$ C(t) = \frac{\text{Dose}}{V}\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
-
-You do not need to memorize the full expression first. Read it as a competition between input by absorption and output by elimination.
+Le pic arrive en général plus tôt et plus haut, car les blocs entrent vite dans la salle avant que le nettoyage n'en retire beaucoup. Un $T_{lag}$ plus grand ne change pas la hauteur du pic, mais décale le début de la montée.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s20" viz="OralAbsorption" -->
-Increase $K_a$ in the explorer.
+<!-- step:title="Piège fréquent" slides="s19" -->
+N'estimez pas la demi-vie d'élimination à l'aveugle à partir de la pente terminale orale.
 
-The peak usually arrives earlier and is higher because blocks enter the room quickly before cleanup removes many of them. Increase $T_{lag}$ and the whole start of the curve shifts right.
+:::pitfall
+Si l'absorption est plus lente que l'élimination, la dernière partie de la courbe reflète l'**absorption**, pas l'élimination : c'est la cinétique **flip-flop**. La pente terminale trompe alors sur la vraie demi-vie.
+:::
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s19" -->
-Do not estimate elimination half-life blindly from oral terminal slopes.
-
-If absorption is slower than elimination, the last part of the curve may reflect absorption rather than elimination. This is called **flip-flop kinetics**.
-<!-- /step -->
-
-<!-- step:title="Key takeaways" -->
-- Oral profiles include absorption and elimination.
-- $K_a$ controls entry speed.
-- $T_{lag}$ shifts the start of absorption.
-- Cmax and Tmax are summaries, not model parameters by themselves.
+<!-- step:title="À retenir" -->
+- Un profil oral combine absorption et élimination.
+- $K_a$ contrôle la vitesse d'entrée.
+- $T_{lag}$ décale le début de l'absorption.
+- Cmax et Tmax sont des résumés, pas des paramètres du modèle en eux-mêmes.
 <!-- /step -->

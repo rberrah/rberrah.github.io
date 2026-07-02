@@ -60,8 +60,11 @@ function renderBody(body) {
   return out;
 }
 
+// Langue PRINCIPALE = français : les fichiers `*.md` à la racine de chapters/ sont
+// en français. Les traductions vivent dans des sous-dossiers par langue (`en/`, `fr/`).
 const files = import.meta.glob('../../content/chapters/*.md', { query: '?raw', import: 'default', eager: true });
-const translationFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?raw', import: 'default', eager: true });
+const enFiles = import.meta.glob('../../content/chapters/en/*.md', { query: '?raw', import: 'default', eager: true });
+const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?raw', import: 'default', eager: true });
 
 /**
  * @typedef {{title:string, slides?:string, viz?:string}} StepMeta
@@ -69,22 +72,33 @@ const translationFiles = import.meta.glob('../../content/chapters/fr/*.md', { qu
  * @typedef {{id:string, slug:string, title:string, description:string, order:number, tags:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
  */
 
-const translationsBySlug = new Map(
-  Object.entries(translationFiles).map(([path, raw]) => {
-    const chapter = parseChapter(path, raw);
-    return [chapter.slug, chapter];
-  })
-);
+/** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */
+function bySlug(globbed) {
+  return new Map(
+    Object.entries(globbed).map(([path, raw]) => {
+      const chapter = parseChapter(path, raw);
+      return [chapter.slug, chapter];
+    })
+  );
+}
+
+const enBySlug = bySlug(enFiles);
+const frBySlug = bySlug(frFiles);
 
 const chapters = Object.entries(files)
   // Les fichiers préfixés par « _ » sont des brouillons/modèles ignorés au build.
   // Ex. `_TEMPLATE.md` sert de point de départ à copier-coller.
   .filter(([path]) => !/\/_[^/]*\.md$/.test(path))
   .map(([path, raw]) => {
-  const chapter = parseChapter(path, raw);
-  const fr = translationsBySlug.get(chapter.slug);
-  return fr ? { ...chapter, translations: { fr } } : chapter;
-});
+    const chapter = parseChapter(path, raw);
+    /** @type {Record<string, Chapter>} */
+    const translations = {};
+    const en = enBySlug.get(chapter.slug);
+    const fr = frBySlug.get(chapter.slug);
+    if (en) translations.en = en;
+    if (fr) translations.fr = fr;
+    return Object.keys(translations).length ? { ...chapter, translations } : chapter;
+  });
 
 function parseChapter(path, raw) {
   const { data, content } = matter(raw);

@@ -1,9 +1,9 @@
 ---
 id: "validation-vpc"
 slug: "validation-vpc"
-title: "Diagnostics and VPC"
-description: "How to check whether a model is useful, not only fitted."
-summary: "A practical introduction to observed-versus-predicted plots, residuals, and visual predictive checks."
+title: "Diagnostics et VPC"
+description: "Comment vérifier qu'un modèle est utile, pas seulement ajusté."
+summary: "Introduction pratique aux graphes observé-prédit, aux résidus et aux visual predictive checks."
 track: "core"
 order: 7
 duration: "13 min"
@@ -11,69 +11,69 @@ level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
 slides: ["s31", "s42", "s45", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s53", "s54", "s55", "s56"]
 quiz:
-  - prompt: "A VPC compares observed data with..."
+  - prompt: "Une VPC compare les données observées avec..."
     options:
-      - "simulated data from the fitted model"
-      - "only the first patient's data"
-      - "a table of drug prices"
+      - "des données simulées à partir du modèle ajusté"
+      - "les données du seul premier patient"
+      - "un tableau de prix de médicaments"
     correct: 0
-  - prompt: "A good diagnostic workflow asks whether..."
+  - prompt: "Un bon flux de diagnostic demande si..."
     options:
-      - "the model reproduces important data patterns"
-      - "the objective function is the only thing that matters"
-      - "all residuals must be exactly zero"
+      - "le modèle reproduit les motifs importants des données"
+      - "la fonction objectif est la seule chose qui compte"
+      - "tous les résidus doivent être exactement nuls"
     correct: 0
-  - prompt: "A common diagnostic trap is..."
+  - prompt: "Un piège diagnostique fréquent est..."
     options:
-      - "checking plots"
-      - "declaring success from one metric only"
-      - "simulating from the model"
+      - "de regarder les graphes"
+      - "de conclure au succès à partir d'une seule métrique"
+      - "de simuler à partir du modèle"
     correct: 1
 ---
 
-<!-- step:title="Why this matters" slides="s31,s42" viz="17_VPCCrashTest" -->
-Fitting a model is not the same as trusting it.
+<!-- step:title="Pourquoi ce chapitre" slides="s31,s42" viz="17_VPCCrashTest" -->
+Ajuster un modèle n'est pas la même chose que lui faire confiance.
 
-Diagnostics ask whether the model reproduces the patterns that matter for learning and prediction. A model can converge and still be misleading.
+Les diagnostics demandent si le modèle **reproduit les motifs** utiles à l'apprentissage et à la prédiction. Un modèle peut converger et rester trompeur.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s45" viz="17_VPCCrashTest" -->
-After students build their constructions, you compare the instruction sheet with what the class actually produced.
+Une fois les constructions terminées, on compare la notice de montage à ce que la classe a réellement produit.
 
-If the model predicts towers but students made bridges, the problem is not a small numerical detail. The instruction sheet is missing the main structure.
+:::key
+Si le modèle prédit des tours mais que les élèves ont fait des ponts, le problème n'est pas un petit détail numérique : la notice rate la structure principale.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s46,s47" viz="BuildingBlocksPKPD" -->
-Diagnostics are quality control.
-
-- Observed versus predicted: did the instruction sheet aim in the right direction?
-- Residuals: where are the mismatches?
-- VPC: if we let many simulated classes build from the same instruction sheet, do their results look like the real class?
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s55" viz="17_VPCCrashTest" -->
-A residual is a difference between observation and prediction:
+<!-- step:title="La formule décortiquée" slides="s55" viz="17_VPCCrashTest" -->
+Un résidu est un écart entre observation et prédiction :
 
 $$ e_{ij} = y_{ij} - \hat{y}_{ij} $$
 
-Weighted residuals scale that difference by expected variability. They help show whether errors are larger than the model expects.
+Les résidus pondérés mettent cet écart à l'échelle de la variabilité attendue.
+
+:::math
+Une VPC va plus loin : on laisse **de nombreuses** classes simulées bâtir à partir de la même notice, puis on vérifie si la médiane et la dispersion des simulations recouvrent les observations, intervalle de temps par intervalle de temps.
+:::
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s48,s49,s54" viz="17_VPCCrashTest" -->
-For warfarin, suppose early concentrations are systematically underpredicted.
+<!-- step:title="Exemple concret" slides="s48,s49,s54" viz="17_VPCCrashTest" -->
+Pour la warfarine, supposons que les concentrations précoces soient systématiquement sous-prédites.
 
-That could suggest an absorption problem, a lag time issue, or a structural mismatch. A VPC can reveal whether the model captures the median trend and the spread across time.
+Cela peut évoquer un problème d'absorption, un temps de latence, ou une inadéquation structurale. Une VPC révèle si le modèle capture à la fois la tendance médiane et l'étalement au cours du temps.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s50,s51,s52,s53" -->
-Do not validate a model with one plot.
+<!-- step:title="Piège fréquent" slides="s50,s51,s52,s53" -->
+Ne validez pas un modèle avec un seul graphe.
 
-Observed-versus-predicted plots, residuals, parameter precision, shrinkage, VPCs, and clinical plausibility answer different questions. A strong workflow uses them together.
+:::pitfall
+Observé-prédit, résidus, précision des paramètres, shrinkage, VPC et plausibilité clinique répondent à des questions **différentes**. Un bon flux de travail les utilise ensemble ; se déclarer satisfait d'une seule métrique est l'erreur classique.
+:::
 <!-- /step -->
 
-<!-- step:title="Key takeaways" -->
-- Diagnostics test model usefulness, not just convergence.
-- VPCs compare observed data to simulations from the fitted model.
-- Systematic residual patterns are clues, not annoyances.
-- A model is credible when statistics, plots, and clinical interpretation agree.
+<!-- step:title="À retenir" -->
+- Les diagnostics testent l'utilité du modèle, pas seulement sa convergence.
+- Les VPC comparent les observations à des simulations du modèle ajusté.
+- Un motif de résidus systématique est un indice, pas une gêne.
+- Un modèle est crédible quand statistiques, graphes et interprétation clinique concordent.
 <!-- /step -->

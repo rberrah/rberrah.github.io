@@ -1,9 +1,9 @@
 ---
 id: "clairance-volume-demi-vie"
 slug: "clairance-volume-demi-vie"
-title: "Clearance, volume, and half-life"
-description: "The one-compartment model: CL as a flow, V as a space, and half-life as their ratio."
-summary: "A visual introduction to the core parameters behind most PK models."
+title: "Clairance, volume et demi-vie"
+description: "Le modèle à un compartiment : CL comme un débit, V comme un espace, la demi-vie comme leur rapport."
+summary: "Introduction visuelle aux paramètres au cœur de la plupart des modèles PK."
 track: "core"
 order: 3
 duration: "16 min"
@@ -11,85 +11,85 @@ level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
 slides: ["s10", "s11", "s12", "s25"]
 quiz:
-  - prompt: "After an IV bolus, the initial concentration is..."
+  - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:
-      - "Dose times CL"
-      - "Dose divided by V"
-      - "Dose divided by CL"
+      - "Dose multipliée par CL"
+      - "Dose divisée par V"
+      - "Dose divisée par CL"
     correct: 1
-  - prompt: "Half-life depends on..."
+  - prompt: "La demi-vie dépend de..."
     options:
-      - "CL only"
-      - "V only"
-      - "both V and CL"
+      - "CL seulement"
+      - "V seulement"
+      - "à la fois V et CL"
     correct: 2
-  - prompt: "A larger V with the same dose usually gives..."
+  - prompt: "Un V plus grand, à même dose, donne en général..."
     options:
-      - "a lower initial concentration"
-      - "a higher initial concentration"
-      - "no change in concentration"
+      - "une concentration initiale plus basse"
+      - "une concentration initiale plus haute"
+      - "aucun changement de concentration"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s10" viz="IVBolus" -->
-Clearance, volume, and half-life are the first three parameters most students meet in PK. They are also easy to confuse.
+<!-- step:title="Pourquoi ce chapitre" slides="s10" viz="IVBolus" -->
+Clairance, volume et demi-vie sont les trois premiers paramètres que l'on rencontre en PK. Ce sont aussi les plus faciles à confondre.
 
-The one-compartment model is useful because it separates three ideas:
+Le modèle à un compartiment est utile parce qu'il sépare trois idées distinctes :
 
-- how diluted the dose becomes;
-- how fast drug leaves the body;
-- how long it takes concentration to fall by half.
+- à quel point la dose est **diluée** ;
+- à quelle vitesse le médicament **quitte** l'organisme ;
+- combien de temps la concentration met à **diminuer de moitié**.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s10,s11" viz="IVBolus" -->
-Picture one well-mixed room full of blocks.
+Imaginez une pièce unique, bien mélangée, remplie de blocs.
 
-The **volume** is the size of the room. The **clearance** is the speed of the cleanup team. The **half-life** is the time until half the visible blocks are gone.
+Le **volume** est la taille de la pièce. La **clairance** est la vitesse de l'équipe de nettoyage. La **demi-vie** est le temps jusqu'à ce que la moitié des blocs visibles aient disparu.
 
-Changing the room size and changing the cleanup speed do different things to the curve.
+:::key
+Changer la taille de la pièce (V) et changer la vitesse de nettoyage (CL) n'ont pas le même effet sur la courbe : l'un déplace le point de départ, l'autre la pente.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" viz="BuildingBlocksPKPD" -->
-Give the same box of blocks to two rooms.
-
-In a small room, the blocks look concentrated. In a large room, the same number of blocks look spread out. That is volume.
-
-Now keep the room fixed. If the cleanup team removes blocks faster, the room empties faster. That is clearance.
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s12" viz="IVBolus" -->
-For an IV bolus:
+<!-- step:title="La formule décortiquée" slides="s12" viz="IVBolus" -->
+Pour un bolus IV, la concentration initiale est :
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-and:
+et la quantité décroît selon :
 
-$$ \frac{dA}{dt} = -\frac{CL}{V}A $$
+$$ \frac{dA}{dt} = -\frac{CL}{V}\,A $$
 
-The ratio $CL/V$ is the elimination rate constant:
+Le rapport $CL/V$ est la constante d'élimination :
 
 $$ k = \frac{CL}{V} $$
+
+:::math
+Le volume dilue (fixe $C_0$) ; la clairance est une **capacité d'épuration** (un débit, en L/h). Leur rapport, et lui seul, fixe la vitesse de décroissance.
+:::
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="IVBolus" -->
-Patient A and B both receive 100 mg.
+<!-- step:title="Exemple concret" viz="IVBolus" -->
+Les patients A et B reçoivent chacun 100 mg.
 
-If patient A has $V = 10\ \text{L}$, then $C_0 = 10\ \text{mg/L}$. If patient B has $V = 20\ \text{L}$, then $C_0 = 5\ \text{mg/L}$.
+Si A a $V = 10\ \text{L}$, alors $C_0 = 10\ \text{mg/L}$. Si B a $V = 20\ \text{L}$, alors $C_0 = 5\ \text{mg/L}$.
 
-Same dose, different apparent space, different starting concentration.
+Même dose, espace apparent différent, concentration de départ différente. Faites glisser V dans la figure : la courbe entière monte ou descend sans changer sa pente.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s25" viz="IVBolus" -->
-Half-life is not a magic property that replaces clearance and volume.
+<!-- step:title="Piège fréquent" slides="s25" viz="IVBolus" -->
+La demi-vie n'est pas une propriété magique qui remplacerait clairance et volume :
 
-$$ t_{1/2} = \frac{0.693 V}{CL} $$
+$$ t_{1/2} = \frac{0{,}693\, V}{CL} $$
 
-A longer half-life can mean a larger volume, a lower clearance, or both. Those are different biological stories. Always ask: **which parameter changed?**
+:::pitfall
+Une demi-vie plus longue peut venir d'un volume plus grand, d'une clairance plus basse, ou des deux — des histoires biologiques différentes. Demandez toujours : **quel paramètre a changé ?**
+:::
 <!-- /step -->
 
-<!-- step:title="Key takeaways" -->
-- Volume controls dilution.
-- Clearance controls removal capacity.
-- Half-life is derived from volume and clearance.
-- A simple compartment model is a teaching model first, then a prediction model if it fits the data.
+<!-- step:title="À retenir" -->
+- Le volume contrôle la dilution.
+- La clairance contrôle la capacité d'épuration.
+- La demi-vie se **déduit** du volume et de la clairance.
+- Un modèle compartimental simple est d'abord un modèle pédagogique, puis un modèle prédictif s'il colle aux données.
 <!-- /step -->

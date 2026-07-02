@@ -1,9 +1,9 @@
 ---
 id: "allometrie"
 slug: "allometrie"
-title: "Covariates and allometry"
-description: "How weight, renal function, and other covariates explain part of variability."
-summary: "A student-oriented introduction to covariate models, centering, and allometric scaling."
+title: "Covariables et allométrie"
+description: "Comment le poids, la fonction rénale et d'autres covariables expliquent une part de la variabilité."
+summary: "Introduction, pour étudiants, aux modèles de covariables, au centrage et à la mise à l'échelle allométrique."
 track: "core"
 order: 6
 duration: "14 min"
@@ -11,73 +11,73 @@ level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
 slides: ["s26", "s27", "s28", "s29", "s30"]
 quiz:
-  - prompt: "A covariate is useful when it..."
+  - prompt: "Une covariable est utile quand elle..."
     options:
-      - "explains part of parameter variability"
-      - "only makes the model longer"
-      - "removes the need for diagnostics"
+      - "explique une part de la variabilité d'un paramètre"
+      - "rallonge seulement le modèle"
+      - "supprime le besoin de diagnostics"
     correct: 0
-  - prompt: "Centering weight at 70 kg helps because..."
+  - prompt: "Centrer le poids à 70 kg aide parce que..."
     options:
-      - "the typical parameter remains interpretable"
-      - "all patients become 70 kg"
-      - "the model no longer needs units"
+      - "le paramètre typique reste interprétable"
+      - "tous les patients deviennent 70 kg"
+      - "le modèle n'a plus besoin d'unités"
     correct: 0
-  - prompt: "Allometry often scales clearance with weight using an exponent near..."
+  - prompt: "L'allométrie met souvent la clairance à l'échelle du poids avec un exposant proche de..."
     options:
-      - "0.75"
-      - "7.5"
+      - "0,75"
+      - "7,5"
       - "75"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s26" viz="14_AllometryCentering" -->
-Random effects tell us patients differ. Covariates ask whether some of that difference is explainable.
+<!-- step:title="Pourquoi ce chapitre" slides="s26" viz="14_AllometryCentering" -->
+Les effets aléatoires nous disent que les patients diffèrent. Les covariables demandent si une partie de cette différence est **explicable**.
 
-Weight, renal function, age, genotype, disease status, and co-medications can all affect parameters. A covariate model turns clinical information into a quantitative adjustment.
+Poids, fonction rénale, âge, génotype, statut pathologique, co-médications : tous peuvent agir sur les paramètres. Un modèle de covariables transforme l'information clinique en un ajustement quantitatif.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s26,s29" viz="14_AllometryCentering" -->
-If students have different hand sizes, table space, or experience, they may build differently.
+Si des élèves ont des mains, un espace de table ou une expérience différents, ils construisent différemment.
 
-A covariate is one measured feature that helps explain why the same instruction sheet does not work identically for everyone.
+Une covariable est **une caractéristique mesurée** qui aide à expliquer pourquoi la même notice ne fonctionne pas de façon identique pour tout le monde.
+
+:::key
+Le poids est comme la taille de la salle ; la fonction rénale, comme la puissance de l'équipe de nettoyage. Les covariables n'expliquent pas tout, mais elles réduisent la variabilité **inexpliquée**.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s29" viz="BuildingBlocksPKPD" -->
-Weight is like classroom size. A larger classroom may need more space before the same number of blocks looks crowded.
+<!-- step:title="La formule décortiquée" slides="s27,s28" viz="14_AllometryCentering" -->
+Un modèle allométrique courant :
 
-Renal function is like cleanup capacity. A stronger cleanup team removes blocks faster.
+$$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0{,}75} \qquad V_i = V_{70} \left(\frac{WT_i}{70}\right)^{1} $$
 
-Covariates do not explain everything, but they can reduce unexplained variability.
+:::math
+Le dénominateur 70 **centre** le modèle : $CL_{70}$ désigne la clairance typique d'un patient de 70 kg. L'exposant 0,75 pour la clairance et 1 pour le volume vient de la théorie allométrique.
+:::
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s27,s28" viz="14_AllometryCentering" -->
-A common allometric model is:
+<!-- step:title="Exemple concret" slides="s30" viz="14_AllometryCentering" -->
+Dans un jeu de données pédiatrique ou à poids mélangés, le poids explique souvent une part visible de la variabilité de clairance et de volume.
 
-$$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0.75} $$
-
-and:
-
-$$ V_i = V_{70} \left(\frac{WT_i}{70}\right)^1 $$
-
-The denominator 70 centers the model, so $CL_{70}$ means typical clearance for a 70 kg patient.
+Après ajout de l'allométrie, l'effet aléatoire sur la clairance peut **diminuer** : le modèle a déplacé de la variabilité depuis « différence inexpliquée entre patients » vers « expliquée par le poids ».
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s30" viz="14_AllometryCentering" -->
-In a pediatric or mixed-weight dataset, weight often explains a visible part of clearance and volume variability.
+<!-- step:title="Piège fréquent" slides="s28" -->
+N'ajoutez pas une covariable simplement parce qu'elle est disponible.
 
-After adding allometry, the random effect on clearance may shrink because the model has moved some variability from "unexplained patient difference" to "explained by weight."
+:::pitfall
+Une covariable doit être biologiquement plausible, soutenue par les données et vérifiée par les diagnostics. La sélection automatique (forward/backward) aide, mais ne remplace pas l'interprétation.
+:::
+
+:::clinical
+Une covariable statistiquement significative n'est pas automatiquement cliniquement utile : l'effet peut être réel mais négligeable devant la variabilité résiduelle.
+:::
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s28" -->
-Do not add covariates because they are available.
-
-A covariate should be biologically plausible, supported by data, and checked with diagnostics. Automated forward and backward selection can help, but it cannot replace interpretation.
-<!-- /step -->
-
-<!-- step:title="Key takeaways" -->
-- Covariates explain part of parameter variability.
-- Centering keeps typical values interpretable.
-- Allometry is a common weight-based scaling rule.
-- A statistically significant covariate is not automatically a clinically useful one.
+<!-- step:title="À retenir" -->
+- Les covariables expliquent une part de la variabilité des paramètres.
+- Le centrage garde les valeurs typiques interprétables.
+- L'allométrie est une règle de mise à l'échelle par le poids.
+- Significatif ne veut pas dire cliniquement pertinent.
 <!-- /step -->

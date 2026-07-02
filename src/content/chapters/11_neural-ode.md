@@ -1,9 +1,9 @@
 ---
 id: "neural-ode"
 slug: "neural-ode"
-title: "Grey-box models and Neural ODEs"
-description: "Where machine learning can help without replacing pharmacology."
-summary: "A cautious introduction to hybrid PK models, ML covariates, and Neural ODEs."
+title: "Modèles grey-box et Neural ODE"
+description: "Là où l'apprentissage automatique peut aider sans remplacer la pharmacologie."
+summary: "Introduction prudente aux modèles PK hybrides, aux covariables par ML et aux Neural ODE."
 track: "ai"
 order: 11
 duration: "13 min"
@@ -11,71 +11,75 @@ level: "advanced"
 tags: ["ai", "machine-learning", "neural-ode", "grey-box"]
 slides: ["s65", "s66", "s67", "s68", "s69", "s70"]
 quiz:
-  - prompt: "A grey-box model combines..."
+  - prompt: "Un modèle grey-box combine..."
     options:
-      - "mechanistic structure and flexible data-driven components"
-      - "no assumptions and no data"
-      - "only a spreadsheet"
+      - "une structure mécaniste et des composants flexibles pilotés par les données"
+      - "aucune hypothèse et aucune donnée"
+      - "seulement un tableur"
     correct: 0
-  - prompt: "A Neural ODE is useful when..."
+  - prompt: "Une Neural ODE est utile quand..."
     options:
-      - "we need flexible dynamics but still want an ODE framework"
-      - "we want to avoid validation"
-      - "we have no time variable"
+      - "on veut une dynamique flexible tout en gardant un cadre d'EDO"
+      - "on veut éviter la validation"
+      - "on n'a pas de variable temps"
     correct: 0
-  - prompt: "A key risk of ML in pharmacometrics is..."
+  - prompt: "Un risque majeur du ML en pharmacométrie est..."
     options:
-      - "overfitting and poor extrapolation"
-      - "having too much mechanistic interpretability"
-      - "using units"
+      - "le surapprentissage et la mauvaise extrapolation"
+      - "trop d'interprétabilité mécaniste"
+      - "l'usage des unités"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s65" viz="20_NeuralBox" -->
-Modern datasets can be large and complex. Machine learning can help detect patterns, but pharmacometrics still needs mechanisms, units, and uncertainty.
+<!-- step:title="Pourquoi ce chapitre" slides="s65" viz="20_NeuralBox" -->
+Les jeux de données modernes peuvent être vastes et complexes. L'apprentissage automatique aide à détecter des motifs, mais la pharmacométrie a toujours besoin de mécanismes, d'unités et d'incertitude.
 
-The practical goal is not "AI instead of PK." It is better models where flexible components are used carefully.
+:::key
+L'objectif pratique n'est pas « l'IA à la place de la PK », mais de meilleurs modèles où les composants flexibles sont utilisés **avec prudence**.
+:::
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s66,s67" viz="20_NeuralBox" -->
-Mechanistic PK is an instruction sheet written by a teacher. Machine learning can add a flexible assistant that notices patterns the teacher did not specify.
+La PK mécaniste est une notice écrite par un enseignant. L'apprentissage automatique peut ajouter un **assistant flexible** qui remarque des motifs non spécifiés par l'enseignant.
 
-The danger is letting the assistant invent a rule that works only for yesterday's classroom.
+Le danger : laisser l'assistant inventer une règle qui ne marche que pour la classe d'hier.
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s65" viz="BuildingBlocksPKPD" -->
-A grey-box model keeps the main classroom layout: blocks enter, distribute, and leave.
-
-It may let a data-driven component learn one uncertain part of the process, such as a nonlinear input, a hidden delay, or a complex covariate effect.
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s68" viz="20_NeuralBox" -->
-A mechanistic ODE might be:
+<!-- step:title="La formule décortiquée" slides="s68" viz="20_NeuralBox" -->
+Une EDO mécaniste pourrait être :
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) $$
 
-A grey-box or Neural ODE can extend it:
+Un modèle grey-box ou Neural ODE l'étend :
 
 $$ \frac{dA}{dt} = f_{\mathrm{PK}}(A, \theta) + f_{\mathrm{NN}}(A, x) $$
 
-The neural part should be constrained, checked, and interpreted with caution.
+:::math
+$f_{\mathrm{PK}}$ reste la partie mécaniste (interprétable, avec unités) ; $f_{\mathrm{NN}}$ est une correction apprise. Elle doit être **contrainte, vérifiée et interprétée** avec prudence, pas laissée libre.
+:::
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s69,s70" viz="20_NeuralBox" -->
-A machine-learning model may help rank covariates, detect clusters of EBEs, or capture a nonlinear biomarker pattern.
+<!-- step:title="Exemple concret" slides="s69,s70" viz="20_NeuralBox" -->
+Un modèle de ML peut aider à classer des covariables, détecter des grappes d'EBE, ou capturer un motif non linéaire de biomarqueur.
 
-But for dosing, the model must still answer basic pharmacometric questions: what are the units, where is uncertainty, and what happens outside the training range?
+Mais pour doser, le modèle doit encore répondre aux questions pharmacométriques de base : **quelles unités, où est l'incertitude, que se passe-t-il hors du domaine d'apprentissage ?**
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s67" -->
-Do not confuse prediction accuracy inside a dataset with scientific transportability.
+<!-- step:title="Piège fréquent" slides="s67" -->
+Ne confondez pas exactitude prédictive dans un jeu de données et transportabilité scientifique.
 
-A flexible model can fit observed data while failing under a new dose, new population, or new sampling schedule. Extrapolation is where mechanistic structure earns its place.
+:::pitfall
+Un modèle flexible peut coller aux données observées tout en échouant sous une nouvelle dose, une nouvelle population ou un nouveau schéma de prélèvement. **L'extrapolation est là où la structure mécaniste gagne sa place.**
+:::
+
+:::clinical
+Ne présentez jamais l'IA comme supérieure par défaut : sans validation externe ni incertitude affichée, un bon score interne ne garantit rien au lit du patient.
+:::
 <!-- /step -->
 
-<!-- step:title="Key takeaways" -->
-- AI can support pharmacometrics, not replace it.
-- Grey-box models combine mechanism with flexibility.
-- Neural ODEs keep a dynamic-system view.
-- Extrapolation, uncertainty, and interpretability remain essential.
+<!-- step:title="À retenir" -->
+- L'IA peut soutenir la pharmacométrie, pas la remplacer.
+- Les modèles grey-box combinent mécanisme et flexibilité.
+- Les Neural ODE gardent une vision de système dynamique.
+- Extrapolation, incertitude et interprétabilité restent essentielles.
 <!-- /step -->

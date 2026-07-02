@@ -2,8 +2,8 @@
 id: "trois-approches"
 slug: "trois-approches"
 title: "NCA vs PopPK vs PBPK"
-description: "Three ways to learn from concentration-time data."
-summary: "A practical comparison of descriptive, population, and physiology-based approaches."
+description: "Trois manières d'apprendre à partir des données concentration-temps."
+summary: "Comparaison pratique des approches descriptive, populationnelle et physiologique."
 track: "core"
 order: 2
 duration: "14 min"
@@ -11,81 +11,81 @@ level: "beginner"
 tags: ["approaches", "nca", "poppk", "pbpk"]
 slides: ["s06", "s07", "s08", "s09"]
 quiz:
-  - prompt: "NCA is mainly useful to..."
+  - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:
-      - "describe observed exposure"
-      - "simulate unobserved patients with covariates"
-      - "build a full organ-level physiology model"
+      - "décrire l'exposition observée"
+      - "simuler des patients non observés avec covariables"
+      - "construire un modèle physiologique complet"
     correct: 0
-  - prompt: "PopPK is especially useful when you want to..."
+  - prompt: "La PopPK est particulièrement utile quand on veut..."
     options:
-      - "ignore variability"
-      - "estimate typical parameters and variability in a population"
-      - "avoid using any model"
+      - "ignorer la variabilité"
+      - "estimer les paramètres typiques et la variabilité d'une population"
+      - "éviter tout modèle"
     correct: 1
-  - prompt: "A common PBPK risk is..."
+  - prompt: "Un risque fréquent de la PBPK est..."
     options:
-      - "too few parameters"
-      - "over-parameterizing beyond what data can support"
-      - "never using physiology"
+      - "trop peu de paramètres"
+      - "la sur-paramétrisation au-delà de ce que les données soutiennent"
+      - "de ne jamais utiliser la physiologie"
     correct: 1
 ---
 
-<!-- step:title="Why this matters" slides="s06" viz="04_ThreeApproaches" -->
-The same concentration-time data can answer different questions.
+<!-- step:title="Pourquoi ce chapitre" slides="s06" viz="04_ThreeApproaches" -->
+Les mêmes données concentration-temps peuvent répondre à des questions différentes.
 
-If you ask, "What exposure did we observe?", NCA may be enough. If you ask, "Why do patients differ?", you need PopPK. If you ask, "What would happen in a different physiology or drug-drug interaction?", PBPK may help.
+- « Quelle exposition avons-nous observée ? » → la **NCA** peut suffire.
+- « Pourquoi les patients diffèrent-ils ? » → il faut la **PopPK**.
+- « Que se passerait-il avec une autre physiologie ou une interaction ? » → la **PBPK** peut aider.
 
-Choosing the method is like choosing the right map scale.
+:::key
+Choisir la méthode, c'est choisir la bonne échelle de carte. Les trois peuvent être valides, mais elles ne sont pas interchangeables.
+:::
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s06" viz="04_ThreeApproaches" -->
-Imagine each patient builds with the same box of blocks.
+<!-- step:title="Intuition" slides="s06,s07" viz="04_ThreeApproaches" -->
+Imaginez que chaque patient bâtit avec la même boîte de blocs.
 
-- **NCA** measures the finished construction: height, width, total area.
-- **PopPK** estimates the instruction sheet and how students vary around it.
-- **PBPK** rebuilds the whole classroom: tables, shelves, doors, and routes between them.
+- La **NCA** mesure la construction finie : hauteur, largeur, surface totale.
+- La **PopPK** estime la notice de montage *et* la façon dont les élèves varient autour d'elle.
+- La **PBPK** reconstruit toute la salle : tables, étagères, portes et trajets entre elles.
 
-All three can be valid. They are not interchangeable.
+La NCA est une règle graduée ; la PopPK, un modèle de classe ; la PBPK, un plan de bâtiment — puissant, mais chaque nouvelle pièce exige des hypothèses.
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s07,s08" viz="04_ThreeApproaches" -->
-NCA is a ruler. It can measure the area under the curve, but it does not explain how the construction was built.
-
-PopPK is a classroom model. It says: "Here is the typical instruction sheet, here is how much students differ, and here are covariates that explain part of the difference."
-
-PBPK is a building plan. It represents organs and flows explicitly. It can be powerful, but every extra room needs assumptions.
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s06" viz="04_ThreeApproaches" -->
-NCA often summarizes exposure with AUC:
+<!-- step:title="La formule décortiquée" slides="s08" viz="04_ThreeApproaches" -->
+La NCA résume souvent l'exposition par l'aire sous la courbe :
 
 $$ \mathrm{AUC}_{0-\infty} \approx \mathrm{AUC}_{0-t} + \frac{C_t}{\lambda_z} $$
 
-PopPK often models individual parameters as:
+La PopPK modélise les paramètres individuels, par exemple :
 
-$$ CL_i = CL_{\mathrm{typical}} \cdot e^{\eta_i} $$
+$$ CL_i = CL_{\mathrm{typique}} \cdot e^{\eta_i} $$
 
-Read this as: each patient has a clearance near the typical value, multiplied by an individual deviation.
+:::math
+À lire ainsi : chaque patient a une clairance proche de la valeur typique, multipliée par un écart individuel $e^{\eta_i}$. C'est le cœur des modèles à effets mixtes.
+:::
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s07,s08" viz="12_VariabilitySandbox" -->
-Suppose warfarin concentrations differ widely after similar doses.
+<!-- step:title="Exemple concret" slides="s07,s08" viz="12_VariabilitySandbox" -->
+Supposons que les concentrations de warfarine varient beaucoup après des doses similaires.
 
-NCA can tell you which patients had higher AUC. PopPK can ask whether clearance differs with weight, genotype, age, or interacting drugs. PBPK can explore mechanisms such as hepatic metabolism and tissue distribution, but it needs more physiological assumptions.
+La NCA dit *quels* patients ont eu l'AUC la plus élevée. La PopPK demande si la clairance dépend du poids, du génotype, de l'âge ou de médicaments associés. La PBPK explore des mécanismes (métabolisme hépatique, distribution tissulaire), au prix d'hypothèses physiologiques supplémentaires.
 
-The practical question decides the tool.
+C'est **la question pratique** qui décide de l'outil.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s09" -->
-Do not use NCA as if it were predictive.
+<!-- step:title="Piège fréquent" slides="s09" -->
+N'utilisez pas la NCA comme si elle était prédictive.
 
-NCA is excellent for describing observed profiles, but it has no patient-level random effects, no covariate model, and no mechanistic way to simulate a new dosing schedule. For prediction, use a model designed for prediction.
+:::pitfall
+La NCA décrit parfaitement les profils observés, mais elle n'a ni effet aléatoire par patient, ni modèle de covariables, ni mécanisme pour simuler un schéma posologique inédit. Pour prédire, prenez un modèle conçu pour prédire.
+:::
 <!-- /step -->
 
-<!-- step:title="Key takeaways" -->
-- NCA describes observed exposure.
-- PopPK explains population variability and supports simulation.
-- PBPK uses physiology to extrapolate, but it depends heavily on assumptions.
-- Start with the question, then choose the method.
+<!-- step:title="À retenir" -->
+- La NCA décrit l'exposition observée.
+- La PopPK explique la variabilité de population et permet la simulation.
+- La PBPK extrapole via la physiologie, mais dépend fortement des hypothèses.
+- Partez de la question, puis choisissez la méthode.
 <!-- /step -->

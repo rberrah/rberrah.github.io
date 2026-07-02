@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 import { ui } from '$lib/i18n/translations';
 
 const STORAGE_KEY = 'pharmacometrie-language';
-const DEFAULT_LANGUAGE = 'en';
+const DEFAULT_LANGUAGE = 'fr';
 const supported = new Set(['en', 'fr']);
 
 function readInitialLanguage() {

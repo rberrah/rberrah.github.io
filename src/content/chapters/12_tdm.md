@@ -1,9 +1,9 @@
 ---
 id: "tdm"
 slug: "tdm"
-title: "TDM and conclusion"
-description: "How models can support therapeutic drug monitoring without replacing clinicians."
-summary: "A final chapter connecting model-based learning to individual monitoring and safe interpretation."
+title: "TDM et conclusion"
+description: "Comment les modèles peuvent soutenir le suivi thérapeutique sans remplacer le clinicien."
+summary: "Chapitre final reliant l'apprentissage par modèles au suivi individuel et à une interprétation prudente."
 track: "core"
 order: 12
 duration: "12 min"
@@ -11,67 +11,73 @@ level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
 slides: ["s71", "s72", "s73", "s74"]
 quiz:
-  - prompt: "TDM uses drug measurements to..."
+  - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
     options:
-      - "inform interpretation of exposure and future dosing decisions"
-      - "replace all clinical judgement"
-      - "avoid knowing sample time"
+      - "éclairer l'interprétation de l'exposition et les décisions posologiques futures"
+      - "remplacer tout jugement clinique"
+      - "éviter de connaître l'heure du prélèvement"
     correct: 0
-  - prompt: "For model-based TDM, sample timing is..."
+  - prompt: "Pour un TDM basé sur un modèle, le moment du prélèvement est..."
     options:
-      - "critical"
-      - "irrelevant"
-      - "always unknown"
+      - "critique"
+      - "sans importance"
+      - "toujours inconnu"
     correct: 0
-  - prompt: "This educational site should be used for..."
+  - prompt: "Ce site pédagogique doit servir à..."
     options:
-      - "learning concepts, not patient-specific dosing"
-      - "automatic prescriptions"
-      - "ignoring uncertainty"
+      - "apprendre des concepts, pas à doser un patient précis"
+      - "des prescriptions automatiques"
+      - "ignorer l'incertitude"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s71" -->
-Therapeutic drug monitoring is where pharmacometrics becomes concrete: a dose was given, a concentration was measured, and a decision may follow.
+<!-- step:title="Pourquoi ce chapitre" slides="s71" -->
+Le suivi thérapeutique (TDM) est le moment où la pharmacométrie devient concrète : une dose a été donnée, une concentration a été mesurée, et une décision peut suivre.
 
-The model helps interpret the measurement in context. It does not replace clinical responsibility.
+Le modèle aide à **interpréter** la mesure dans son contexte. Il ne remplace pas la responsabilité clinique.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s71" -->
-A concentration without timing is like a photo without knowing when it was taken.
+<!-- step:title="Intuition" slides="s71,s72" viz="BuildingBlocksPKPD" -->
+Une concentration sans horaire, c'est comme une photo sans savoir quand elle a été prise.
 
-Was the construction just started, near its peak, or already being dismantled? Timing changes the interpretation.
+La construction venait-elle de commencer, était-elle près de son pic, ou déjà en démontage ? Le moment change l'interprétation.
+
+:::key
+Le modèle utilise l'historique des doses et l'heure du prélèvement pour distinguer « patient qui bâtit lentement », « patient qui perd des blocs » et « photo prise trop tard ».
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s72" viz="BuildingBlocksPKPD" -->
-TDM is like checking a student's construction halfway through.
+<!-- step:title="La formule décortiquée" slides="s72" -->
+Un flux de TDM bayésien combine :
 
-If fewer blocks are visible than expected, the student may be building slowly, losing blocks, or the photo may have been taken late. The model uses dose history and sample time to separate these possibilities.
+$$ \text{modèle de population} + \text{historique des doses} + \text{heure du prélèvement} + \text{concentration mesurée} $$
+
+:::math
+La sortie est une estimation individuelle **mise à jour, avec son incertitude** — pas une vérité garantie. C'est le raisonnement du chapitre bayésien appliqué au lit du patient.
+:::
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s72" -->
-A Bayesian TDM workflow combines:
+<!-- step:title="Exemple concret" slides="s73" -->
+Pour le tacrolimus, la vancomycine, les aminosides ou des modèles liés à la warfarine, une seule valeur mesurée n'est utile que si le contexte est correct.
 
-$$ \text{population model} + \text{dose history} + \text{sample time} + \text{measured concentration} $$
-
-The output is an updated patient-specific estimate with uncertainty, not a guaranteed truth.
+Dose, heures d'administration, heure du prélèvement, détails du dosage, fonction rénale ou hépatique, observance et médicaments en interaction peuvent tous compter.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s73" -->
-For tacrolimus, vancomycin, aminoglycosides, or warfarin-related models, one measured value can be useful only if the context is correct.
+<!-- step:title="Piège fréquent" slides="s74" -->
+Ne traitez pas la sortie du modèle comme une prescription.
 
-Dose amount, dosing times, sample time, assay details, renal or liver function, adherence, and interacting drugs can all matter.
+:::pitfall
+Un modèle peut soutenir le raisonnement, montrer l'incertitude et simuler des scénarios. Les décisions posologiques individuelles exigent des outils validés, une gouvernance clinique et des protocoles locaux.
+:::
+
+:::clinical
+Ce site enseigne des concepts uniquement. Ce n'est pas un conseil médical, et il ne fournit aucun ajustement posologique patient-spécifique.
+:::
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s74" -->
-Do not treat the model output as a prescription.
-
-A model can support reasoning, show uncertainty, and simulate scenarios. Patient-specific dosing decisions require validated tools, clinical governance, and local protocols.
-<!-- /step -->
-
-<!-- step:title="Key takeaways" -->
-- TDM interprets measurements in time and context.
-- Bayesian models borrow strength from the population while updating for the patient.
-- Uncertainty must remain visible.
-- This site teaches concepts only; it is not medical advice.
+<!-- step:title="À retenir" -->
+- Le TDM interprète les mesures dans le temps et le contexte.
+- Les modèles bayésiens empruntent de la force à la population tout en s'ajustant au patient.
+- L'incertitude doit rester visible.
+- Ce site est pédagogique ; il ne remplace pas le jugement clinique.
 <!-- /step -->

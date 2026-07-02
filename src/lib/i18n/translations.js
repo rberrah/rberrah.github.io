@@ -60,7 +60,7 @@ export const dictionary = {
       previous: '← Previous',
       next: 'Next →',
       emptyViz: 'Scroll to explore the interactive figures for this chapter.',
-      fallbackNotice: 'French version in progress — showing English content.'
+      fallbackNotice: 'English translation in progress — showing the French content.'
     },
     quiz: {
       correct: 'correct',
@@ -148,7 +148,7 @@ export const dictionary = {
       previous: '← Précédent',
       next: 'Suivant →',
       emptyViz: 'Faites défiler pour explorer les figures interactives de ce chapitre.',
-      fallbackNotice: 'Version française en cours — contenu affiché en anglais.'
+      fallbackNotice: 'Contenu en français (langue principale du cours).'
     },
     quiz: {
       correct: 'correct',
@@ -184,12 +184,19 @@ export function ui(lang) {
   return dictionary[lang] ?? dictionary.en;
 }
 
+// Langue principale du contenu : les fichiers .md racine sont en français.
+export const PRIMARY_LANG = 'fr';
+
 export function localizeChapter(chapter, lang) {
   if (!chapter) return { chapter: null, isFallback: false };
-  if (lang === 'fr' && chapter.translations?.fr) {
-    return { chapter: chapter.translations.fr, isFallback: false };
+  // Langue principale (fr) : on rend directement le fichier principal.
+  if (lang === PRIMARY_LANG) return { chapter, isFallback: false };
+  // Autre langue (ex. en) : on rend la traduction si elle existe, sinon repli
+  // sur le principal en signalant que la traduction est en cours.
+  if (chapter.translations?.[lang]) {
+    return { chapter: chapter.translations[lang], isFallback: false };
   }
-  return { chapter, isFallback: lang === 'fr' };
+  return { chapter, isFallback: true };
 }
 
 export function localizeTrack(track, lang) {

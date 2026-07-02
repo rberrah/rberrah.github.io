@@ -1,9 +1,9 @@
 ---
 id: "pourquoi-pharmacometrie"
 slug: "pourquoi-pharmacometrie"
-title: "Why pharmacometrics?"
-description: "PK vs PD, ADME, and why one dose does not fit everyone."
-summary: "A student-friendly entry point to PK, PD, variability, and model-based dosing."
+title: "Pourquoi la pharmacométrie ?"
+description: "PK vs PD, ADME, et pourquoi une même dose ne convient pas à tout le monde."
+summary: "Une porte d'entrée pédagogique vers la PK, la PD, la variabilité et l'individualisation par les modèles."
 track: "core"
 order: 1
 duration: "12 min"
@@ -11,98 +11,94 @@ level: "beginner"
 tags: ["intro", "pk", "pd", "variability"]
 slides: ["s01", "s02", "s03", "s04", "s05"]
 quiz:
-  - prompt: "Pharmacokinetics (PK) describes..."
+  - prompt: "La pharmacocinétique (PK) décrit surtout..."
     options:
-      - "what the drug does to the body"
-      - "what the body does to the drug"
-      - "the price of a treatment"
+      - "ce que le médicament fait à l'organisme"
+      - "ce que l'organisme fait au médicament"
+      - "le prix d'un traitement"
     correct: 1
-  - prompt: "In the building-block metaphor, PD is closest to..."
+  - prompt: "Dans la métaphore des blocs, la PD correspond le mieux à..."
     options:
-      - "how the bricks travel through the classroom"
-      - "what the final construction does"
-      - "the color of the box"
+      - "le trajet des blocs dans la salle"
+      - "ce que fait la construction finale"
+      - "la couleur de la boîte"
     correct: 1
-  - prompt: "Two students receive the same kit but finish with different constructions. This is a good image for..."
+  - prompt: "Deux patients reçoivent la même dose mais répondent différemment. C'est une bonne image de..."
     options:
-      - "inter-individual variability"
-      - "a missing axis label"
-      - "a fixed effect only"
+      - "la variabilité interindividuelle"
+      - "une légende d'axe manquante"
+      - "un effet fixe uniquement"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s02" viz="BuildingBlocksPKPD" -->
-A dose is easy to write: **100 mg twice daily**. The clinical response is harder: one patient may have too little exposure, another may have toxicity, and a third may land in the useful range.
+<!-- step:title="Pourquoi ce chapitre" slides="s02" viz="BuildingBlocksPKPD" -->
+Une dose est facile à écrire : **100 mg deux fois par jour**. La réponse clinique l'est beaucoup moins. Chez un même schéma posologique, un patient sera sous-exposé, un autre toxique, un troisième dans la zone utile.
 
-Pharmacometrics is the discipline that connects those pieces with explicit models:
+La pharmacométrie est la discipline qui relie ces pièces par des modèles explicites :
 
-$$ \text{Dose} \rightarrow \text{Concentration} \rightarrow \text{Effect} $$
+$$ \text{Dose} \rightarrow \text{Concentration} \rightarrow \text{Effet} $$
 
-The goal is not to memorize equations first. The goal is to understand the story the equation is trying to tell.
+:::key
+L'objectif n'est pas de mémoriser des équations, mais de comprendre l'histoire que chaque équation raconte.
+:::
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s01,s03" viz="01_HumanBody" -->
-Think of the drug as a set of building blocks entering a classroom.
+Imaginez le médicament comme un lot de blocs qui entre dans une salle de classe.
 
-**PK** asks where the blocks go and how long they stay:
+La **PK** demande où vont les blocs et combien de temps ils restent :
 
-- absorption: blocks enter the room;
-- distribution: blocks spread across tables and shelves;
-- metabolism and elimination: blocks are modified or removed.
+- absorption : les blocs entrent dans la salle ;
+- distribution : ils se répartissent sur les tables et les étagères ;
+- métabolisme et élimination : ils sont transformés ou évacués.
 
-**PD** asks what the construction does once enough blocks are in the right place: symptom control, biomarker change, bacterial killing, or toxicity.
+La **PD** demande ce que produit la construction une fois assez de blocs en place : contrôle des symptômes, variation d'un biomarqueur, effet antibactérien… ou toxicité.
+
+:::note
+Règle mnémotechnique : **PK = ce que le corps fait au médicament**, **PD = ce que le médicament fait au corps**.
+:::
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s04" viz="BuildingBlocksPKPD" -->
-The same box of blocks can produce different outcomes.
-
-One student builds quickly, one slowly, one loses pieces under the table. In PK language:
-
-- the **box** is the dose;
-- the **delivery path** is absorption;
-- the **room size** is volume of distribution;
-- the **cleanup speed** is clearance;
-- the **finished construction** is the pharmacodynamic effect.
-
-A model is the instruction sheet. It is not the real patient, but it helps us reason about the patient.
-<!-- /step -->
-
-<!-- step:title="Minimal math" viz="IVBolus" -->
-For an intravenous bolus in a one-compartment model, concentration starts at:
+<!-- step:title="La formule décortiquée" viz="IVBolus" -->
+Pour un bolus intraveineux dans un modèle à un compartiment, la concentration part de :
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-and then falls as the body clears drug:
+puis décroît à mesure que l'organisme épure le médicament :
 
-$$ C(t) = \frac{\text{Dose}}{V} e^{-\frac{CL}{V}t} $$
+$$ C(t) = \frac{\text{Dose}}{V}\, e^{-\frac{CL}{V}\,t} $$
 
-Read this in plain language: **volume sets the initial dilution; clearance sets how fast the blocks are removed relative to that space.**
+:::math
+En clair : le **volume** fixe la dilution initiale ; la **clairance** fixe la vitesse à laquelle les blocs sont retirés par rapport à cet espace. Le rapport $CL/V$ gouverne la pente.
+:::
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="IVBolus" -->
-Two patients receive the same IV dose.
+<!-- step:title="Exemple concret" viz="IVBolus" -->
+Deux patients reçoivent la même dose IV.
 
-Patient A has a clearance of $4\ \text{L/h}$. Patient B has a clearance of $8\ \text{L/h}$. If their volumes are similar, patient B removes blocks about twice as fast and will usually have lower exposure.
+Le patient A a une clairance de $4\ \text{L/h}$, le patient B de $8\ \text{L/h}$. Si leurs volumes sont proches, B retire les blocs environ deux fois plus vite et aura, en général, une exposition plus basse.
 
-This is why pharmacometrics often focuses on **parameters**, not only on observed concentrations. Parameters explain why curves differ.
+C'est pourquoi la pharmacométrie raisonne sur des **paramètres** (CL, V) plutôt que sur les seules concentrations observées : les paramètres expliquent *pourquoi* les courbes diffèrent.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s05" -->
-Do not put every mismatch into one bucket called "noise".
+<!-- step:title="Piège fréquent" slides="s05" -->
+Ne rangez pas toutes les différences dans une seule boîte appelée « bruit ».
 
-There are different reasons why observations differ:
+Une différence entre observations peut venir de sources très distinctes :
 
-- **IIV**: different patients are different builders;
-- **IOV**: the same patient changes between occasions;
-- **residual error**: the measurement is imperfect;
-- **model bias**: the instruction sheet is missing something important.
+- **IIV** : les patients sont des bâtisseurs différents ;
+- **IOV** : le même patient change d'une occasion à l'autre ;
+- **erreur résiduelle** : la mesure est imparfaite ;
+- **biais du modèle** : la notice de montage oublie un élément important.
 
-Mixing these up makes the model look simpler, but less useful.
+:::pitfall
+Confondre ces sources rend le modèle plus simple en apparence, mais moins utile — et parfois trompeur.
+:::
 <!-- /step -->
 
-<!-- step:title="Key takeaways" -->
-- PK describes what the body does to the drug.
-- PD describes what the drug does to the body.
-- A pharmacometric model is a simplified instruction sheet linking dose, concentration, effect, and variability.
-- Student rule: explain the mechanism in words before trusting the equation.
+<!-- step:title="À retenir" -->
+- La PK décrit ce que l'organisme fait au médicament.
+- La PD décrit ce que le médicament fait à l'organisme.
+- Un modèle pharmacométrique est une notice de montage simplifiée reliant dose, concentration, effet et variabilité.
+- Règle de l'étudiant : sachez raconter le mécanisme en mots avant de faire confiance à l'équation.
 <!-- /step -->
