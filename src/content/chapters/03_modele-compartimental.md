@@ -71,6 +71,10 @@ $$ k = \frac{CL}{V} $$
 :::math
 Le volume dilue (fixe $C_0$) ; la clairance est une **capacité d'épuration** (un débit, en L/h). Leur rapport, et lui seul, fixe la vitesse de décroissance.
 :::
+
+:::clinical
+Physiologiquement, la clairance est une **capacité d'extraction** : $CL = Q_{organe}\cdot E$ (débit sanguin de l'organe × coefficient d'extraction $E$). Elle s'additionne par voie : $CL_{tot} = CL_r$ (rénale) $+\ CL_{nr}$ (hépatique et autres). La clairance rénale s'approche via la clairance de la créatinine (DFG ≈ 120 mL/min).
+:::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="IVBolus" -->
@@ -79,6 +83,21 @@ Les patients A et B reçoivent chacun 100 mg.
 Si A a $V = 10\ \text{L}$, alors $C_0 = 10\ \text{mg/L}$. Si B a $V = 20\ \text{L}$, alors $C_0 = 5\ \text{mg/L}$.
 
 Même dose, espace apparent différent, concentration de départ différente. Faites glisser V dans la figure : la courbe entière monte ou descend sans changer sa pente.
+<!-- /step -->
+
+<!-- step:title="Deux compartiments" slides="s08" viz="10_PK2C" -->
+Beaucoup de médicaments ne se distribuent pas instantanément : ils passent d'abord dans un **compartiment central** (sang, organes bien perfusés) puis, plus lentement, dans un **compartiment périphérique** (tissus).
+
+Sur une courbe **semi-logarithmique**, cela donne **deux pentes** :
+
+- la **phase α** (rapide) : distribution vers les tissus ;
+- la **phase β** (lente) : élimination réelle.
+
+:::key
+D'où plusieurs volumes : $V_1$ (central), $V_{ss}$ (à l'équilibre) et $V_{aire}$ (de la phase β). La demi-vie terminale dépend de la phase β, pas de la distribution initiale.
+:::
+
+Comparez à la référence 1-compartiment : ignorer la distribution surestime les concentrations précoces.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s09" viz="IVBolus" -->

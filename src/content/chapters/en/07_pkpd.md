@@ -63,6 +63,16 @@ For warfarin, the clinical effect can lag behind concentration because the drug 
 Concentration changes first; the biological system responds afterwards, over time. That delay is **PD**, not necessarily slow distribution.
 <!-- /step -->
 
+<!-- step:title="The Sheiner model" slides="s32" viz="SheinerEffect" -->
+When the effect lags but you do not want to model a whole mechanism, add an **effect compartment** (Sheiner): an effect-site concentration $C_e$ linked to plasma by a single equilibration constant $k_{e0}$.
+
+$$ \frac{dC_e}{dt} = k_{e0}\,(C_p - C_e) $$
+
+The effect then depends on $C_e$ (through an Emax), not on $C_p$. Change $k_{e0}$: a small $k_{e0}$ delays and rounds the effect.
+
+**Key point —** because the effect peaks **after** the plasma peak, plotting effect vs concentration draws a **hysteresis loop** — the signature of a PK/PD delay.
+<!-- /step -->
+
 <!-- step:title="Common pitfall" slides="s30,s33" viz="Turnover" -->
 Do not call every delay "slow PK".
 

@@ -8,6 +8,9 @@ const items = [
   { term: 'PD', full: 'Pharmacodynamie', cat: 'Fondamentaux', def: "Ce que le médicament fait à l'organisme : la relation entre concentration et effet (thérapeutique ou toxique)." },
   { term: 'ADME', full: 'Absorption, Distribution, Métabolisme, Élimination', cat: 'Fondamentaux', def: "Les quatre étapes du devenir d'un médicament dans l'organisme, base de tout modèle structural PK." },
   { term: 'CL', full: 'Clairance', cat: 'Paramètres PK', def: "Volume de plasma totalement épuré du médicament par unité de temps (L/h). C'est une capacité d'épuration, pas une vitesse : elle gouverne l'exposition à l'équilibre (AUC = Dose/CL)." },
+  { term: 'CLr', full: 'Clairance rénale', cat: 'Paramètres PK', def: "Part de la clairance assurée par le rein (filtration, sécrétion, réabsorption). Clairance totale = CL_r + CL_nr (non rénale). Estimée en pratique via la clairance de la créatinine." },
+  { term: 'E', full: 'Coefficient d’extraction', cat: 'Paramètres PK', def: "Fraction du médicament extraite par un organe à chaque passage : CL = Q_organe · E, où Q est le débit sanguin de l'organe. Un E proche de 1 rend la clairance dépendante du débit." },
+  { term: 'DFG', full: 'Débit de filtration glomérulaire', cat: 'Paramètres PK', def: "Volume de plasma filtré par les glomérules par unité de temps (~120 mL/min chez l'adulte sain). Repère clé de la fonction rénale, approché par la clairance de la créatinine." },
   { term: 'V', full: 'Volume de distribution', cat: 'Paramètres PK', def: "Volume apparent reliant la quantité de médicament dans l'organisme à sa concentration plasmatique (C = A/V). Un V grand signifie une forte distribution tissulaire, pas un volume physiologique réel." },
   { term: 'Vss', full: 'Volume à l’état d’équilibre', cat: 'Paramètres PK', def: "Volume de distribution à l'équilibre de distribution ; somme des volumes central et périphériques dans un modèle multi-compartimental." },
   { term: 'Q', full: 'Clairance inter-compartimentale', cat: 'Paramètres PK', def: "Débit d'échange du médicament entre le compartiment central (V1) et un compartiment périphérique (V2) dans un modèle bi-compartimental." },
@@ -21,6 +24,7 @@ const items = [
   { term: 'Tlag', full: 'Temps de latence', cat: 'Paramètres PK', def: "Délai entre l'administration et le début de l'absorption (dissolution, vidange gastrique). Avant Tlag, la concentration reste nulle." },
   { term: 'Compartiments de transit', full: 'MTT, ktr', cat: 'Modèles', def: "Chaîne de n compartiments traversés au rythme ktr modélisant une absorption progressive. Le temps de transit moyen MTT = n/ktr ; alternative souple au Tlag." },
   { term: 'Michaelis-Menten', full: 'Vmax, Km', cat: 'Modèles', def: "Élimination saturable : vitesse = Vmax·C/(Km+C). Aux fortes concentrations l'élimination sature (cinétique non linéaire) ; Km est la concentration donnant la moitié de Vmax." },
+  { term: 'Phases α et β', full: 'Modèle bi-compartimental', cat: 'Modèles', def: "Sur une courbe semi-log à deux compartiments, la phase α (rapide) traduit la distribution vers les tissus, la phase β (lente) l'élimination réelle. La demi-vie terminale suit la phase β." },
 
   // ── Modèles structuraux ─────────────────────────────────────────────────────
   { term: 'Modèle compartimental', cat: 'Modèles', def: "Représentation de l'organisme par un ou plusieurs compartiments bien mélangés reliés par des débits, décrits par des équations différentielles." },

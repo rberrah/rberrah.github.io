@@ -63,6 +63,8 @@ $$ \frac{dA}{dt} = -\frac{CL}{V}\,A $$
 The ratio $CL/V$ is the elimination rate constant $k$.
 
 **Math —** volume dilutes (sets $C_0$); clearance is an **epuration capacity** (a flow, in L/h). Their ratio, and only that, sets the decay speed.
+
+**In the clinic —** physiologically, clearance is an **extraction capacity**: $CL = Q_{organ}\cdot E$ (organ blood flow × extraction ratio $E$). It adds up across routes: $CL_{tot} = CL_r$ (renal) $+\ CL_{nr}$ (hepatic and other). Renal clearance is approached via creatinine clearance (GFR ≈ 120 mL/min).
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="IVBolus" -->
@@ -71,6 +73,19 @@ Patients A and B each receive 100 mg.
 If A has $V = 10\ \text{L}$, then $C_0 = 10\ \text{mg/L}$. If B has $V = 20\ \text{L}$, then $C_0 = 5\ \text{mg/L}$.
 
 Same dose, different apparent space, different starting concentration. Slide V in the figure: the whole curve moves up or down without changing its slope.
+<!-- /step -->
+
+<!-- step:title="Two compartments" slides="s08" viz="10_PK2C" -->
+Many drugs do not distribute instantly: they first enter a **central compartment** (blood, well-perfused organs), then more slowly a **peripheral compartment** (tissues).
+
+On a **semi-logarithmic** curve this gives **two slopes**:
+
+- the **α phase** (fast): distribution into tissues;
+- the **β phase** (slow): true elimination.
+
+**Key point —** hence several volumes: $V_1$ (central), $V_{ss}$ (steady state) and $V_{area}$ (β phase). The terminal half-life depends on the β phase, not on the initial distribution.
+
+Compare with the one-compartment reference: ignoring distribution over-estimates the early concentrations.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" slides="s09" viz="IVBolus" -->

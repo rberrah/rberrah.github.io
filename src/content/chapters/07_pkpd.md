@@ -67,6 +67,18 @@ Pour la warfarine, l'effet clinique peut être en retard sur la concentration, c
 La concentration change d'abord ; le système biologique répond ensuite, au cours du temps. Ce délai est de la **PD**, pas nécessairement une distribution lente.
 <!-- /step -->
 
+<!-- step:title="Le modèle de Sheiner" slides="s32" viz="SheinerEffect" -->
+Quand l'effet est en retard mais qu'on ne veut pas modéliser tout un mécanisme, on ajoute un **compartiment d'effet** (Sheiner) : une concentration au site d'action $C_e$ reliée au plasma par une seule constante d'équilibrage $k_{e0}$.
+
+$$ \frac{dC_e}{dt} = k_{e0}\,(C_p - C_e) $$
+
+L'effet dépend alors de $C_e$ (via un Emax), pas de $C_p$. Manipulez $k_{e0}$ : un petit $k_{e0}$ retarde et arrondit l'effet.
+
+:::key
+Comme le pic d'effet arrive **après** le pic plasmatique, tracer effet vs concentration dessine une **boucle d'hystérèse** — signature d'un décalage PK/PD.
+:::
+<!-- /step -->
+
 <!-- step:title="Piège fréquent" slides="s30,s33" viz="Turnover" -->
 N'appelez pas tout délai « PK lente ».
 
