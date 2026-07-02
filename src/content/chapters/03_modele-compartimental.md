@@ -41,13 +41,17 @@ Le modèle à un compartiment est utile parce qu'il sépare trois idées distinc
 - combien de temps la concentration met à **diminuer de moitié**.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s10,s11" viz="IVBolus" -->
-Imaginez une pièce unique, bien mélangée, remplie de blocs.
+<!-- step:title="Intuition" slides="s10,s11" viz="BucketSim" -->
+Le cours en donne une image hydraulique très parlante : **le médicament est de l'eau dans un réservoir**.
 
-Le **volume** est la taille de la pièce. La **clairance** est la vitesse de l'équipe de nettoyage. La **demi-vie** est le temps jusqu'à ce que la moitié des blocs visibles aient disparu.
+- La **largeur du réservoir** est le **volume de distribution V** : à même quantité, un réservoir plus large donne un niveau plus bas.
+- Le **niveau du liquide** est la **concentration C(t)**.
+- L'**ouverture du robinet** est la **clairance CL** : plus il est ouvert, plus le réservoir se vide vite.
+
+Manipulez le modèle : lancez la lecture, puis élargissez le réservoir ou ouvrez le robinet et regardez la courbe à droite.
 
 :::key
-Changer la taille de la pièce (V) et changer la vitesse de nettoyage (CL) n'ont pas le même effet sur la courbe : l'un déplace le point de départ, l'autre la pente.
+Élargir le réservoir (augmenter V) et ouvrir le robinet (augmenter CL) n'ont pas le même effet : V abaisse le niveau de départ, CL accélère la vidange. La demi-vie combine les deux.
 :::
 <!-- /step -->
 
