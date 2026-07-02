@@ -1,12 +1,16 @@
-<h1>About</h1>
-<p>
-  Educational site on pharmacometrics (PK/PD, PopPK, TDM, AI). Content inspired by the “Pharmacométrie Pratique”
-  deck (CC-BY-SA), rewritten and expanded. Code MIT.
- </p>
+<script>
+  import { language } from '$lib/stores/language';
+  import { ui } from '$lib/i18n/translations';
+
+  $: copy = ui($language);
+</script>
+
+<h1>{copy.pages.aboutTitle}</h1>
+<p>{copy.pages.aboutText}</p>
 <ul>
-  <li>No medical advice — educational only.</li>
-  <li>Use case: tacrolimus for demonstrations.</li>
-  <li>Ready for GitHub Pages (adapter-static, BASE_PATH).</li>
+  {#each copy.pages.aboutItems as item}
+    <li>{item}</li>
+  {/each}
  </ul>
 
 <style>

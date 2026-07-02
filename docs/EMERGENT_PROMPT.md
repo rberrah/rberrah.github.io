@@ -67,3 +67,18 @@ Avoid:
 - large UI libraries unless clearly needed;
 - backend dependencies;
 - hidden clinical claims.
+
+## Source files already placed in the repository
+
+The source material has been organized as:
+
+```text
+course_source/slides/pharmacometrie_pratique_grenoble.pptx
+course_source/warfarin/example_warfarin.Rmd
+course_source/warfarin/warfarin_data.csv
+course_source/warfarin/warfarin_monolix_nlmixr2.ipynb
+course_source/warfarin/warfarin_pkpd_nlmixr2_EN.ipynb
+```
+
+Treat these as source material only. Do not embed rendered notebook HTML into production routes.
+

@@ -1,11 +1,14 @@
 <script>
   import { glossary } from '$lib/stores/glossary';
   import { get } from 'svelte/store';
+  import { language } from '$lib/stores/language';
+  import { ui } from '$lib/i18n/translations';
 
   const items = get(glossary);
+  $: copy = ui($language);
 </script>
 
-<h1>Glossary</h1>
+<h1>{copy.pages.glossaryTitle}</h1>
 <ul class="list">
   {#each items as item}
     <li>

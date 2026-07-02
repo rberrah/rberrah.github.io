@@ -1,0 +1,200 @@
+// @ts-nocheck
+export const languages = ['en', 'fr'];
+
+export const dictionary = {
+  en: {
+    meta: {
+      description:
+        'Pharmacométrie Explain — an interactive visual course on pharmacometrics: PK/PD, clearance, variability, TDM and applied AI. Educational content only.'
+    },
+    nav: {
+      home: 'Home',
+      course: 'Course',
+      playground: 'Playground',
+      glossary: 'Glossary',
+      about: 'About',
+      primary: 'Primary'
+    },
+    footer: {
+      license: 'Pharmacométrie Explain · Text CC-BY-SA · Code MIT · 2026',
+      built: 'Built with SvelteKit · static, no tracking',
+      disclaimer: 'Educational content only. Not medical advice. No patient-specific dosing.'
+    },
+    home: {
+      eyebrow: 'A visual course in pharmacometrics',
+      titlePrefix: 'Reading the',
+      titleHighlight: 'concentration-time',
+      titleSuffix: 'curve, one idea at a time.',
+      lede:
+        'Scroll-driven essays that turn PK/PD theory into something you can see: clearance and volume, variability between and within patients, TDM, and where modern AI fits, always with units and uncertainty in view.',
+      start: 'Start the course',
+      browse: 'Browse chapters',
+      disclaimer: 'Educational content only · not medical advice.',
+      tracksTitle: 'Two tracks',
+      featuredTitle: 'Core pharmacometrics',
+      resourcesTitle: 'Teaching resources',
+      resourcesText:
+        'Download the original Pharmacometrie Pratique slide deck used as teaching source material for this course.',
+      downloadSlides: 'Download the PowerPoint',
+      chapterCount: (count) => `${count} chapter${count === 1 ? '' : 's'}`,
+      openTrack: 'Open track →',
+      inPreparation: 'In preparation',
+      comingSoon: 'Coming soon'
+    },
+    chapters: {
+      eyebrow: 'Course outline',
+      title: 'Chapters',
+      lede:
+        'A guided path through pharmacometrics. Each chapter is a scroll-driven essay with a sticky, interactive visualization and a short checkpoint.',
+      soon: 'Coming soon',
+      meta: (steps, quiz) => `${steps} steps · ${quiz} quiz`,
+      empty: 'Chapters for this track are in preparation.'
+    },
+    chapter: {
+      missingTitle: 'Chapter not found',
+      backMissing: 'Back to chapters',
+      back: '← All chapters',
+      label: (n) => `Chapter ${n}`,
+      checkpoint: 'Checkpoint',
+      quizTitle: 'Check your understanding',
+      previous: '← Previous',
+      next: 'Next →',
+      emptyViz: 'Scroll to explore the interactive figures for this chapter.',
+      fallbackNotice: 'French version in progress — showing English content.'
+    },
+    quiz: {
+      correct: 'correct',
+      wrong: 'not quite',
+      score: 'Score'
+    },
+    pages: {
+      glossaryTitle: 'Glossary',
+      aboutTitle: 'About',
+      aboutText:
+        'Educational site on pharmacometrics (PK/PD, PopPK, TDM, AI). Content inspired by the “Pharmacométrie Pratique” deck (CC-BY-SA), rewritten and expanded. Code MIT.',
+      aboutItems: [
+        'No medical advice — educational only.',
+        'Use cases: tacrolimus and warfarin for demonstrations.',
+        'Ready for GitHub Pages (adapter-static, BASE_PATH).'
+      ],
+      slidesTitle: 'Slides catalog',
+      slidesIntro:
+        'Source of truth: src/content/slides/slide_catalog.yaml. PNGs must live in static/slides/.',
+      pptx: 'Download the PPTX',
+      searchSlide: 'Search a slide',
+      searchPlaceholder: 'Title, tag, module…',
+      toFill: 'To fill',
+      suggestedModule: 'Suggested module',
+      keyPoints: 'Key points',
+      qaTitle: 'QA visualizations',
+      qaIntro: 'Internal page to quickly verify modules with presets.'
+    }
+  },
+  fr: {
+    meta: {
+      description:
+        'Pharmacométrie Explain — un cours visuel et interactif sur la pharmacométrie : PK/PD, clairance, variabilité, TDM et IA appliquée. Contenu pédagogique uniquement.'
+    },
+    nav: {
+      home: 'Accueil',
+      course: 'Cours',
+      playground: 'Playground',
+      glossary: 'Glossaire',
+      about: 'À propos',
+      primary: 'Navigation principale'
+    },
+    footer: {
+      license: 'Pharmacométrie Explain · Texte CC-BY-SA · Code MIT · 2026',
+      built: 'Construit avec SvelteKit · statique, sans suivi',
+      disclaimer: "Contenu pédagogique uniquement. Pas de conseil médical. Pas d'ajustement posologique patient-spécifique."
+    },
+    home: {
+      eyebrow: 'Cours visuel de pharmacométrie',
+      titlePrefix: 'Lire la courbe',
+      titleHighlight: 'concentration-temps',
+      titleSuffix: 'une idée à la fois.',
+      lede:
+        "Des chapitres interactifs qui rendent la théorie PK/PD visible : clairance et volume, variabilité entre patients et entre occasions, TDM, et place de l'IA moderne, toujours avec les unités et l'incertitude sous les yeux.",
+      start: 'Commencer le cours',
+      browse: 'Voir les chapitres',
+      disclaimer: 'Contenu pédagogique uniquement · pas de conseil médical.',
+      tracksTitle: 'Deux parcours',
+      featuredTitle: 'Pharmacométrie fondamentale',
+      resourcesTitle: 'Ressources pedagogiques',
+      resourcesText:
+        'Telechargez le support Pharmacometrie Pratique original utilise comme source pedagogique pour ce cours.',
+      downloadSlides: 'Telecharger le PowerPoint',
+      chapterCount: (count) => `${count} chapitre${count === 1 ? '' : 's'}`,
+      openTrack: 'Ouvrir le parcours →',
+      inPreparation: 'En préparation',
+      comingSoon: 'Bientôt'
+    },
+    chapters: {
+      eyebrow: 'Plan du cours',
+      title: 'Chapitres',
+      lede:
+        'Un parcours guidé en pharmacométrie. Chaque chapitre associe un récit défilant, une visualisation interactive et un court point de contrôle.',
+      soon: 'Bientôt',
+      meta: (steps, quiz) => `${steps} étapes · ${quiz} quiz`,
+      empty: 'Les chapitres de ce parcours sont en préparation.'
+    },
+    chapter: {
+      missingTitle: 'Chapitre introuvable',
+      backMissing: 'Retour aux chapitres',
+      back: '← Tous les chapitres',
+      label: (n) => `Chapitre ${n}`,
+      checkpoint: 'Point de contrôle',
+      quizTitle: 'Vérifiez votre compréhension',
+      previous: '← Précédent',
+      next: 'Suivant →',
+      emptyViz: 'Faites défiler pour explorer les figures interactives de ce chapitre.',
+      fallbackNotice: 'Version française en cours — contenu affiché en anglais.'
+    },
+    quiz: {
+      correct: 'correct',
+      wrong: 'pas tout à fait',
+      score: 'Score'
+    },
+    pages: {
+      glossaryTitle: 'Glossaire',
+      aboutTitle: 'À propos',
+      aboutText:
+        'Site pédagogique sur la pharmacométrie (PK/PD, PopPK, TDM, IA). Le contenu est inspiré du support “Pharmacométrie Pratique” (CC-BY-SA), réécrit et enrichi. Code MIT.',
+      aboutItems: [
+        'Pas de conseil médical : contenu pédagogique uniquement.',
+        "Cas d'usage : tacrolimus et warfarine pour les démonstrations.",
+        'Déploiement GitHub Pages statique (adapter-static, BASE_PATH).'
+      ],
+      slidesTitle: 'Catalogue des slides',
+      slidesIntro:
+        'Source de vérité : src/content/slides/slide_catalog.yaml. Les PNG doivent être dans static/slides/.',
+      pptx: 'Télécharger le PPTX',
+      searchSlide: 'Rechercher une slide',
+      searchPlaceholder: 'Titre, tag, module…',
+      toFill: 'À compléter',
+      suggestedModule: 'Module suggéré',
+      keyPoints: 'Points clés',
+      qaTitle: 'QA des visualisations',
+      qaIntro: 'Page interne pour vérifier rapidement les modules avec des préréglages.'
+    }
+  }
+};
+
+export function ui(lang) {
+  return dictionary[lang] ?? dictionary.en;
+}
+
+export function localizeChapter(chapter, lang) {
+  if (!chapter) return { chapter: null, isFallback: false };
+  if (lang === 'fr' && chapter.translations?.fr) {
+    return { chapter: chapter.translations.fr, isFallback: false };
+  }
+  return { chapter, isFallback: lang === 'fr' };
+}
+
+export function localizeTrack(track, lang) {
+  return {
+    ...track,
+    ...(track.i18n?.[lang] ?? track.i18n?.en ?? {})
+  };
+}

@@ -8,7 +8,7 @@
 
   const num = String(n).padStart(2, '0');
   const src = `${base}/slides/slide-${num}.png`;
-  const pptxHref = `${base}/pharmacometrie-pratique.pptx`;
+  const pptxHref = `${base}/downloads/pharmacometrie-pratique.pptx`;
   const entry = catalog.find((s) => s.slide === Number(n));
   const slideTitle = entry?.title || '';
 

@@ -1,35 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
+  import katex from 'katex';
+
   export let tex = '';
   export let displayMode = true;
   let html = tex;
 
-  onMount(async () => {
-    if (typeof window === 'undefined') return;
-    const w = /** @type {any} */ (window);
-    if (w.katex) {
-      html = w.katex.renderToString(tex, { displayMode, throwOnError: false });
-      return;
-    }
-    await ensureKatex();
-    if (w.katex) {
-      html = w.katex.renderToString(tex, { displayMode, throwOnError: false });
-    }
-  });
-
-  async function ensureKatex() {
-    if (document.getElementById('katex-css')) return;
-    const link = document.createElement('link');
-    link.id = 'katex-css';
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-    document.head.appendChild(link);
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
-    script.defer = true;
-    document.head.appendChild(script);
-    await new Promise((resolve) => (script.onload = resolve));
-  }
+  $: html = katex.renderToString(tex, { displayMode, throwOnError: false });
 </script>
 
 <div class="math" class:display={displayMode} aria-label="formule math">

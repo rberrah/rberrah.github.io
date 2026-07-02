@@ -2,25 +2,28 @@
   import { base } from '$app/paths';
   import catalog from '../../content/slides/slide_catalog.json';
   import SlideImage from '$lib/components/SlideImage.svelte';
+  import { language } from '$lib/stores/language';
+  import { ui } from '$lib/i18n/translations';
 
   let query = '';
+  $: copy = ui($language);
   $: filtered = catalog.filter((s) => {
     const hay = `${s.title} ${s.purpose} ${s.tags?.join(' ') ?? ''}`.toLowerCase();
     return hay.includes(query.toLowerCase());
   });
 </script>
 
-<h1>Slides catalog</h1>
+<h1>{copy.pages.slidesTitle}</h1>
 <p>
-  Source of truth: <code>src/content/slides/slide_catalog.yaml</code>. PNGs must live in <code>static/slides/</code>.
-  PPTX link: <a href={`${base}/pharmacometrie-pratique.pptx`} download>Download the PPTX</a>
+  {copy.pages.slidesIntro}
+  <a href={`${base}/downloads/pharmacometrie-pratique.pptx`} download>{copy.pages.pptx}</a>
 </p>
 
 <input
-  aria-label="Search a slide"
+  aria-label={copy.pages.searchSlide}
   class="search"
   type="search"
-  placeholder="Title, tag, module…"
+  placeholder={copy.pages.searchPlaceholder}
   bind:value={query}
 />
 
@@ -31,14 +34,14 @@
         <span class="id">#{s.id}</span>
         <div>
           <h3>{s.title || `Slide ${s.slide}`}</h3>
-          <small>{s.purpose || 'To fill'}</small>
+          <small>{s.purpose || copy.pages.toFill}</small>
         </div>
       </header>
       <SlideImage n={s.slide} alt={s.title} caption={s.title || s.file} />
       <ul class="meta">
         <li><strong>Tags</strong> {s.tags?.join(', ') || '—'}</li>
-        <li><strong>Suggested module</strong> {s.suggested_module || '—'}</li>
-        <li><strong>Key points</strong> {s.key_points?.join(' · ') || '—'}</li>
+        <li><strong>{copy.pages.suggestedModule}</strong> {s.suggested_module || '—'}</li>
+        <li><strong>{copy.pages.keyPoints}</strong> {s.key_points?.join(' · ') || '—'}</li>
       </ul>
     </article>
   {/each}

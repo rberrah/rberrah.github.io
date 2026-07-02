@@ -1,76 +1,1230 @@
 [
-  {"slide":1,"id":"s01","file":"slide-01.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["intro"],"suggested_module":"intro-pkpd","speaker_notes":"TODO"},
-  {"slide":2,"id":"s02","file":"slide-02.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["intro"],"suggested_module":"intro-pkpd","speaker_notes":"TODO"},
-  {"slide":3,"id":"s03","file":"slide-03.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["intro"],"suggested_module":"intro-pkpd","speaker_notes":"TODO"},
-  {"slide":4,"id":"s04","file":"slide-04.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["intro"],"suggested_module":"intro-pkpd","speaker_notes":"TODO"},
-  {"slide":5,"id":"s05","file":"slide-05.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["intro"],"suggested_module":"intro-pkpd","speaker_notes":"TODO"},
-  {"slide":6,"id":"s06","file":"slide-06.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["approches"],"suggested_module":"trois-approches","speaker_notes":"TODO"},
-  {"slide":7,"id":"s07","file":"slide-07.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["approches"],"suggested_module":"trois-approches","speaker_notes":"TODO"},
-  {"slide":8,"id":"s08","file":"slide-08.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["approches"],"suggested_module":"trois-approches","speaker_notes":"TODO"},
-  {"slide":9,"id":"s09","file":"slide-09.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["approches"],"suggested_module":"trois-approches","speaker_notes":"TODO"},
-  {"slide":10,"id":"s10","file":"slide-10.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["modele"],"suggested_module":"modele-compartimental","speaker_notes":"TODO"},
-  {"slide":11,"id":"s11","file":"slide-11.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["modele"],"suggested_module":"modele-compartimental","speaker_notes":"TODO"},
-  {"slide":12,"id":"s12","file":"slide-12.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["modele"],"suggested_module":"modele-compartimental","speaker_notes":"TODO"},
-  {"slide":13,"id":"s13","file":"slide-13.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["adme"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":14,"id":"s14","file":"slide-14.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["adme"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":15,"id":"s15","file":"slide-15.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["adme"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":16,"id":"s16","file":"slide-16.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["adme"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":17,"id":"s17","file":"slide-17.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["absorption"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":18,"id":"s18","file":"slide-18.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["absorption"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":19,"id":"s19","file":"slide-19.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["absorption"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":20,"id":"s20","file":"slide-20.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["absorption"],"suggested_module":"absorption-orale","speaker_notes":"TODO"},
-  {"slide":21,"id":"s21","file":"slide-21.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["variabilite"],"suggested_module":"variabilite-iiv-iov","speaker_notes":"TODO"},
-  {"slide":22,"id":"s22","file":"slide-22.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["variabilite"],"suggested_module":"variabilite-iiv-iov","speaker_notes":"TODO"},
-  {"slide":23,"id":"s23","file":"slide-23.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["variabilite"],"suggested_module":"variabilite-iiv-iov","speaker_notes":"TODO"},
-  {"slide":24,"id":"s24","file":"slide-24.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["erreur"],"suggested_module":"variabilite-iiv-iov","speaker_notes":"TODO"},
-  {"slide":25,"id":"s25","file":"slide-25.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["modele"],"suggested_module":"modele-compartimental","speaker_notes":"TODO"},
-  {"slide":26,"id":"s26","file":"slide-26.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["covariables"],"suggested_module":"allometrie","speaker_notes":"TODO"},
-  {"slide":27,"id":"s27","file":"slide-27.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["covariables"],"suggested_module":"allometrie","speaker_notes":"TODO"},
-  {"slide":28,"id":"s28","file":"slide-28.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["covariables"],"suggested_module":"allometrie","speaker_notes":"TODO"},
-  {"slide":29,"id":"s29","file":"slide-29.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["covariables"],"suggested_module":"allometrie","speaker_notes":"TODO"},
-  {"slide":30,"id":"s30","file":"slide-30.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["covariables"],"suggested_module":"allometrie","speaker_notes":"TODO"},
-  {"slide":31,"id":"s31","file":"slide-31.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":32,"id":"s32","file":"slide-32.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":33,"id":"s33","file":"slide-33.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":34,"id":"s34","file":"slide-34.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":35,"id":"s35","file":"slide-35.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":36,"id":"s36","file":"slide-36.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":37,"id":"s37","file":"slide-37.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":38,"id":"s38","file":"slide-38.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":39,"id":"s39","file":"slide-39.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":40,"id":"s40","file":"slide-40.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":41,"id":"s41","file":"slide-41.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["pkpd"],"suggested_module":"pkpd","speaker_notes":"TODO"},
-  {"slide":42,"id":"s42","file":"slide-42.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":43,"id":"s43","file":"slide-43.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["outils"],"suggested_module":"outils-estimation","speaker_notes":"TODO"},
-  {"slide":44,"id":"s44","file":"slide-44.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["outils"],"suggested_module":"outils-estimation","speaker_notes":"TODO"},
-  {"slide":45,"id":"s45","file":"slide-45.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":46,"id":"s46","file":"slide-46.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":47,"id":"s47","file":"slide-47.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":48,"id":"s48","file":"slide-48.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":49,"id":"s49","file":"slide-49.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":50,"id":"s50","file":"slide-50.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":51,"id":"s51","file":"slide-51.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":52,"id":"s52","file":"slide-52.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":53,"id":"s53","file":"slide-53.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":54,"id":"s54","file":"slide-54.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":55,"id":"s55","file":"slide-55.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":56,"id":"s56","file":"slide-56.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["diagnostic"],"suggested_module":"validation-vpc","speaker_notes":"TODO"},
-  {"slide":57,"id":"s57","file":"slide-57.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":58,"id":"s58","file":"slide-58.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":59,"id":"s59","file":"slide-59.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":60,"id":"s60","file":"slide-60.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":61,"id":"s61","file":"slide-61.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":62,"id":"s62","file":"slide-62.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":63,"id":"s63","file":"slide-63.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":64,"id":"s64","file":"slide-64.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["bayes"],"suggested_module":"bayes-ebes","speaker_notes":"TODO"},
-  {"slide":65,"id":"s65","file":"slide-65.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":66,"id":"s66","file":"slide-66.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":67,"id":"s67","file":"slide-67.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":68,"id":"s68","file":"slide-68.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":69,"id":"s69","file":"slide-69.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":70,"id":"s70","file":"slide-70.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["ml"],"suggested_module":"neural-ode","speaker_notes":"TODO"},
-  {"slide":71,"id":"s71","file":"slide-71.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["tdm"],"suggested_module":"tdm","speaker_notes":"TODO"},
-  {"slide":72,"id":"s72","file":"slide-72.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["tdm"],"suggested_module":"tdm","speaker_notes":"TODO"},
-  {"slide":73,"id":"s73","file":"slide-73.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["conclusion"],"suggested_module":"tdm","speaker_notes":"TODO"},
-  {"slide":74,"id":"s74","file":"slide-74.png","title":"TODO","purpose":"TODO","key_points":["TODO"],"tags":["conclusion"],"suggested_module":"tdm","speaker_notes":"TODO"}
+  {
+    "slide": 1,
+    "id": "s01",
+    "file": "slide-01.png",
+    "title": "PK: Definition",
+    "purpose": "Explain what the body does to the drug (ADME).",
+    "key_points": [
+      "Pharmacokinetics (PK)",
+      "Absorption, Distribution, Metabolism, Elimination",
+      "Anatomical view"
+    ],
+    "tags": [
+      "intro"
+    ],
+    "suggested_module": "intro-pkpd",
+    "speaker_notes": "What you see: organs and drug trajectory. PK quantifies ADME."
+  },
+  {
+    "slide": 2,
+    "id": "s02",
+    "file": "slide-02.png",
+    "title": "PK Clinical Implication",
+    "purpose": "Link PK to dose selection.",
+    "key_points": [
+      "Reach the right concentration",
+      "Don't confuse slow absorption with low clearance"
+    ],
+    "tags": [
+      "intro"
+    ],
+    "suggested_module": "intro-pkpd",
+    "speaker_notes": "Implication: choose the right dose. Pitfall: confusing slow absorption with low clearance."
+  },
+  {
+    "slide": 3,
+    "id": "s03",
+    "file": "slide-03.png",
+    "title": "PD: Definition",
+    "purpose": "Explain what the drug does to the body.",
+    "key_points": [
+      "Pharmacodynamics (PD)",
+      "Concentration–effect relationship",
+      "Efficacy and toxicity"
+    ],
+    "tags": [
+      "intro"
+    ],
+    "suggested_module": "intro-pkpd",
+    "speaker_notes": "Efficacy/toxicity depend on exposure. Measuring concentration alone is not enough; link to effect."
+  },
+  {
+    "slide": 4,
+    "id": "s04",
+    "file": "slide-04.png",
+    "title": "Inter-individual Variability (IIV)",
+    "purpose": "Show that the same dose yields different outcomes.",
+    "key_points": [
+      "Response variability",
+      "Differences between patients",
+      "One-size dose fails"
+    ],
+    "tags": [
+      "intro"
+    ],
+    "suggested_module": "intro-pkpd",
+    "speaker_notes": "Same dose, different responses. The '100 mg for all' strategy fails for some patients."
+  },
+  {
+    "slide": 5,
+    "id": "s05",
+    "file": "slide-05.png",
+    "title": "Intra-individual Variability (IOV)",
+    "purpose": "Distinguish between patient-to-patient and occasion variability.",
+    "key_points": [
+      "IOV vs IIV",
+      "Variability within the same patient",
+      "Measurement error vs biology"
+    ],
+    "tags": [
+      "intro"
+    ],
+    "suggested_module": "intro-pkpd",
+    "speaker_notes": "Pitfall: attributing all variability to measurement error."
+  },
+  {
+    "slide": 6,
+    "id": "s06",
+    "file": "slide-06.png",
+    "title": "NCA Approach",
+    "purpose": "Introduce non-compartmental analysis.",
+    "key_points": [
+      "Exposure (AUC)",
+      "Trapezoidal method",
+      "Robust but descriptive"
+    ],
+    "tags": [
+      "approaches"
+    ],
+    "suggested_module": "trois-approches",
+    "speaker_notes": "NCA computes exposure without a model. Robust but not predictive."
+  },
+  {
+    "slide": 7,
+    "id": "s07",
+    "file": "slide-07.png",
+    "title": "PopPK Approach (1/2)",
+    "purpose": "Introduce population modeling.",
+    "key_points": [
+      "Compartment model",
+      "Spaghetti plot",
+      "Explain variability"
+    ],
+    "tags": [
+      "approaches"
+    ],
+    "suggested_module": "trois-approches",
+    "speaker_notes": "Spaghetti + distribution. Compartment model with random effects."
+  },
+  {
+    "slide": 8,
+    "id": "s08",
+    "file": "slide-08.png",
+    "title": "PopPK Approach (2/2)",
+    "purpose": "Detail PopPK advantages.",
+    "key_points": [
+      "Simulation",
+      "Individualization",
+      "Handles variability"
+    ],
+    "tags": [
+      "approaches"
+    ],
+    "suggested_module": "trois-approches",
+    "speaker_notes": "Enables simulation and individualization. Pitfall: mis-specified residual variability."
+  },
+  {
+    "slide": 9,
+    "id": "s09",
+    "file": "slide-09.png",
+    "title": "PBPK Approach",
+    "purpose": "Present physiologically based modeling.",
+    "key_points": [
+      "Organ network",
+      "Bottom-up mechanism",
+      "DDI assessment"
+    ],
+    "tags": [
+      "approaches"
+    ],
+    "suggested_module": "trois-approches",
+    "speaker_notes": "Useful when clinical data are sparse. Pitfall: over-parameterization without data."
+  },
+  {
+    "slide": 10,
+    "id": "s10",
+    "file": "slide-10.png",
+    "title": "Hydraulic Analogy: Volume",
+    "purpose": "Explain Volume of distribution (V) as a tank width.",
+    "key_points": [
+      "Tank = Concentration",
+      "Width = Volume V",
+      "V controls level"
+    ],
+    "tags": [
+      "model"
+    ],
+    "suggested_module": "modele-compartimental",
+    "speaker_notes": "Larger V lowers the level for the same dose."
+  },
+  {
+    "slide": 11,
+    "id": "s11",
+    "file": "slide-11.png",
+    "title": "Hydraulic Analogy: Clearance",
+    "purpose": "Explain Clearance (CL) as a tap.",
+    "key_points": [
+      "Tap = Clearance",
+      "Emptying speed",
+      "Outflow rate"
+    ],
+    "tags": [
+      "model"
+    ],
+    "suggested_module": "modele-compartimental",
+    "speaker_notes": "CL controls emptying speed. Wider tap → faster emptying."
+  },
+  {
+    "slide": 12,
+    "id": "s12",
+    "file": "slide-12.png",
+    "title": "Differential Equation",
+    "purpose": "Formalize the 1-compartment model.",
+    "key_points": [
+      "dA/dt = -k·A",
+      "k = CL/V",
+      "Half-life t½"
+    ],
+    "tags": [
+      "model"
+    ],
+    "suggested_module": "modele-compartimental",
+    "speaker_notes": "Exponential solution. Pitfall: t½ depends on V and CL, not CL alone."
+  },
+  {
+    "slide": 13,
+    "id": "s13",
+    "file": "slide-13.png",
+    "title": "ADME: Absorption",
+    "purpose": "Introduce ADME steps.",
+    "key_points": [
+      "Systemic entry",
+      "Physiological barriers"
+    ],
+    "tags": [
+      "adme"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Path before reaching systemic circulation."
+  },
+  {
+    "slide": 14,
+    "id": "s14",
+    "file": "slide-14.png",
+    "title": "ADME: Distribution",
+    "purpose": "Show tissue distribution.",
+    "key_points": [
+      "Blood vs tissues",
+      "Apparent volume"
+    ],
+    "tags": [
+      "adme"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Drug does not stay only in blood."
+  },
+  {
+    "slide": 15,
+    "id": "s15",
+    "file": "slide-15.png",
+    "title": "ADME: Metabolism",
+    "purpose": "Explain drug transformation.",
+    "key_points": [
+      "Liver",
+      "Enzymes",
+      "Metabolites"
+    ],
+    "tags": [
+      "adme"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Chemical transformation before elimination."
+  },
+  {
+    "slide": 16,
+    "id": "s16",
+    "file": "slide-16.png",
+    "title": "ADME: Elimination",
+    "purpose": "Describe excretion routes.",
+    "key_points": [
+      "Kidneys",
+      "Bile",
+      "Total clearance"
+    ],
+    "tags": [
+      "adme"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Final exit of drug from body."
+  },
+  {
+    "slide": 17,
+    "id": "s17",
+    "file": "slide-17.png",
+    "title": "Lag-time (Tlag)",
+    "purpose": "Explain the delay before absorption.",
+    "key_points": [
+      "Latency period",
+      "Zero concentration initially",
+      "Dissolution"
+    ],
+    "tags": [
+      "absorption"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "If t < Tlag, C = 0. Pitfall: forgetting lag → curve starts too early."
+  },
+  {
+    "slide": 18,
+    "id": "s18",
+    "file": "slide-18.png",
+    "title": "Bateman Absorption (1/2)",
+    "purpose": "Present the classic absorption profile.",
+    "key_points": [
+      "Absorption constant Ka",
+      "Competition in/out"
+    ],
+    "tags": [
+      "absorption"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Ka drives the rise, CL/V the fall."
+  },
+  {
+    "slide": 19,
+    "id": "s19",
+    "file": "slide-19.png",
+    "title": "Bateman Absorption (2/2)",
+    "purpose": "Analyze Bateman equation.",
+    "key_points": [
+      "Double exponential",
+      "Impact of Ka vs Ke"
+    ],
+    "tags": [
+      "absorption"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Formula: (Dose/V) * (Ka/(Ka-Ke)) * (exp(-Ke*t) - exp(-Ka*t))."
+  },
+  {
+    "slide": 20,
+    "id": "s20",
+    "file": "slide-20.png",
+    "title": "Tmax and Cmax",
+    "purpose": "Understand secondary exposure parameters.",
+    "key_points": [
+      "Ka and Tlag impact Tmax",
+      "V and CL impact Cmax"
+    ],
+    "tags": [
+      "absorption"
+    ],
+    "suggested_module": "absorption-orale",
+    "speaker_notes": "Pitfall: low Cmax could be long lag, not low bioavailability."
+  },
+  {
+    "slide": 21,
+    "id": "s21",
+    "file": "slide-21.png",
+    "title": "Modeling IIV",
+    "purpose": "Formalize inter-individual variability.",
+    "key_points": [
+      "Individual parameters",
+      "Log-normal law",
+      "Random effect η"
+    ],
+    "tags": [
+      "variability"
+    ],
+    "suggested_module": "variabilite-iiv-iov",
+    "speaker_notes": "Each patient has their own η. CL_i = CL_pop * exp(η_i)."
+  },
+  {
+    "slide": 22,
+    "id": "s22",
+    "file": "slide-22.png",
+    "title": "Modeling IOV",
+    "purpose": "Formalize inter-occasion variability.",
+    "key_points": [
+      "Temporal variation",
+      "Random effect κ",
+      "Impact on TDM"
+    ],
+    "tags": [
+      "variability"
+    ],
+    "suggested_module": "variabilite-iiv-iov",
+    "speaker_notes": "If IOV > IIV, TDM becomes difficult. Pitfall: misinterpreting as non-adherence."
+  },
+  {
+    "slide": 23,
+    "id": "s23",
+    "file": "slide-23.png",
+    "title": "Residual Error (1/2)",
+    "purpose": "Explain model vs reality gap.",
+    "key_points": [
+      "IPRED vs DV",
+      "Additive error",
+      "Measurement noise"
+    ],
+    "tags": [
+      "variability"
+    ],
+    "suggested_module": "variabilite-iiv-iov",
+    "speaker_notes": "What remains unexplained by structure and variabilities."
+  },
+  {
+    "slide": 24,
+    "id": "s24",
+    "file": "slide-24.png",
+    "title": "Residual Error (2/2)",
+    "purpose": "Choose the right error model.",
+    "key_points": [
+      "Proportional error",
+      "Combined error",
+      "Weighting low concentrations"
+    ],
+    "tags": [
+      "error"
+    ],
+    "suggested_module": "variabilite-iiv-iov",
+    "speaker_notes": "Pitfall: applying error to IPRED instead of simulating DV dispersion."
+  },
+  {
+    "slide": 25,
+    "id": "s25",
+    "file": "slide-25.png",
+    "title": "Equation Recap",
+    "purpose": "Synthesize 1-compartment IV model.",
+    "key_points": [
+      "Integration",
+      "Declining profile",
+      "Key parameters"
+    ],
+    "tags": [
+      "model"
+    ],
+    "suggested_module": "modele-compartimental",
+    "speaker_notes": "Back to fundamentals before covariates."
+  },
+  {
+    "slide": 26,
+    "id": "s26",
+    "file": "slide-26.png",
+    "title": "Allometry: The Problem",
+    "purpose": "Why not simple mg/kg?",
+    "key_points": [
+      "Physiology–weight is non-linear",
+      "Power law",
+      "Child vs adult"
+    ],
+    "tags": [
+      "covariates"
+    ],
+    "suggested_module": "allometrie",
+    "speaker_notes": "Weight–parameter relationship is not linear."
+  },
+  {
+    "slide": 27,
+    "id": "s27",
+    "file": "slide-27.png",
+    "title": "Allometric Law for CL",
+    "purpose": "Present the standard exponent.",
+    "key_points": [
+      "Exponent 0.75",
+      "Basal metabolism",
+      "Kleiber's law"
+    ],
+    "tags": [
+      "covariates"
+    ],
+    "suggested_module": "allometrie",
+    "speaker_notes": "CL scales with weight^0.75."
+  },
+  {
+    "slide": 28,
+    "id": "s28",
+    "file": "slide-28.png",
+    "title": "Standardization (Centering)",
+    "purpose": "Importance of the reference weight.",
+    "key_points": [
+      "Standard weight 70 kg",
+      "Parameter interpretation",
+      "Parameter correlation"
+    ],
+    "tags": [
+      "covariates"
+    ],
+    "suggested_module": "allometrie",
+    "speaker_notes": "Always center on 70 kg: CL = CL_std * (WT/70)^0.75."
+  },
+  {
+    "slide": 29,
+    "id": "s29",
+    "file": "slide-29.png",
+    "title": "Linear vs Allometric",
+    "purpose": "Visualize gap between approaches.",
+    "key_points": [
+      "Pediatric underdosing",
+      "Power curve vs straight line"
+    ],
+    "tags": [
+      "covariates"
+    ],
+    "suggested_module": "allometrie",
+    "speaker_notes": "Visual comparison: allometric curve (blue) vs linear line (orange)."
+  },
+  {
+    "slide": 30,
+    "id": "s30",
+    "file": "slide-30.png",
+    "title": "Pediatric Application",
+    "purpose": "Dose adjustment consequences.",
+    "key_points": [
+      "mg/kg?",
+      "Allometric adjustment",
+      "Safety"
+    ],
+    "tags": [
+      "covariates"
+    ],
+    "suggested_module": "allometrie",
+    "speaker_notes": "Adjust pediatric dose without underdosing."
+  },
+  {
+    "slide": 31,
+    "id": "s31",
+    "file": "slide-31.png",
+    "title": "Diagnostics Intro",
+    "purpose": "Transition to model evaluation.",
+    "key_points": [
+      "Goodness of fit",
+      "Observed vs Predicted"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "How to tell if the model describes data well?"
+  },
+  {
+    "slide": 32,
+    "id": "s32",
+    "file": "slide-32.png",
+    "title": "Emax Model",
+    "purpose": "Present simple concentration–effect model.",
+    "key_points": [
+      "Emax",
+      "EC50",
+      "Effect plateau"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Intuition: saturation at high concentrations."
+  },
+  {
+    "slide": 33,
+    "id": "s33",
+    "file": "slide-33.png",
+    "title": "Emax Parameters",
+    "purpose": "Interpret EC50.",
+    "key_points": [
+      "Concentration for 50% effect",
+      "Sensitivity",
+      "Estimation precision"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Pitfall: EC50 imprecise if data only 20–80% of effect."
+  },
+  {
+    "slide": 34,
+    "id": "s34",
+    "file": "slide-34.png",
+    "title": "Sigmoid Model",
+    "purpose": "Introduce Hill coefficient.",
+    "key_points": [
+      "Hill/gamma shape factor",
+      "Curve slope",
+      "All-or-none"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Hill > 1 makes curve steeper (switch-like)."
+  },
+  {
+    "slide": 35,
+    "id": "s35",
+    "file": "slide-35.png",
+    "title": "Hill Visualization",
+    "purpose": "Compare different Hill values.",
+    "key_points": [
+      "Hill=1 vs Hill>1",
+      "Clinical impact"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Influences therapeutic window."
+  },
+  {
+    "slide": 36,
+    "id": "s36",
+    "file": "slide-36.png",
+    "title": "Indirect Response (Turnover)",
+    "purpose": "Model effect delay mechanistically.",
+    "key_points": [
+      "Production (kin)",
+      "Elimination (kout)",
+      "Inhibition/Stimulation"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Effect not instantaneous vs concentration."
+  },
+  {
+    "slide": 37,
+    "id": "s37",
+    "file": "slide-37.png",
+    "title": "Turnover Equation",
+    "purpose": "Understand PD differential equation.",
+    "key_points": [
+      "dR/dt",
+      "Act on kin or kout",
+      "Homeostasis"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "dR/dt = kin·(1 ± f(C)) − kout·R."
+  },
+  {
+    "slide": 38,
+    "id": "s38",
+    "file": "slide-38.png",
+    "title": "PK vs PD Delay",
+    "purpose": "Differentiate delay sources.",
+    "key_points": [
+      "Hysteresis",
+      "Distribution delay (PK)",
+      "Physiologic delay (PD)"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "PD delay comes from kout (receptor/cell turnover)."
+  },
+  {
+    "slide": 39,
+    "id": "s39",
+    "file": "slide-39.png",
+    "title": "Turnover Simulation",
+    "purpose": "Visualize time course of effect.",
+    "key_points": [
+      "Time lag",
+      "Return to baseline"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Pitfall: attributing PD delay to PK distribution."
+  },
+  {
+    "slide": 40,
+    "id": "s40",
+    "file": "slide-40.png",
+    "title": "PK/PD Quiz (1)",
+    "purpose": "Check understanding of parameters.",
+    "key_points": [
+      "EC50 definition",
+      "Hill role"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Interactive questions."
+  },
+  {
+    "slide": 41,
+    "id": "s41",
+    "file": "slide-41.png",
+    "title": "PK/PD Quiz (2)",
+    "purpose": "Check PK/PD distinction.",
+    "key_points": [
+      "Equilibrium delay",
+      "Indirect mechanism"
+    ],
+    "tags": [
+      "pkpd"
+    ],
+    "suggested_module": "pkpd",
+    "speaker_notes": "Questions on hysteresis."
+  },
+  {
+    "slide": 42,
+    "id": "s42",
+    "file": "slide-42.png",
+    "title": "Fit Quality",
+    "purpose": "Intro to diagnostic plots.",
+    "key_points": [
+      "Bias",
+      "Precision",
+      "Standard plots"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Transition to evaluation tools (VPC, etc.)."
+  },
+  {
+    "slide": 43,
+    "id": "s43",
+    "file": "slide-43.png",
+    "title": "Data Format",
+    "purpose": "Structure data for analysis (NONMEM/Monolix).",
+    "key_points": [
+      "Required columns (ID, TIME, DV)",
+      "EVID",
+      "Flagging"
+    ],
+    "tags": [
+      "tools"
+    ],
+    "suggested_module": "outils-estimation",
+    "speaker_notes": "No proper format → cannot estimate. Pitfall: EVID=0 vs EVID=1."
+  },
+  {
+    "slide": 44,
+    "id": "s44",
+    "file": "slide-44.png",
+    "title": "Algorithms: FOCE vs SAEM",
+    "purpose": "Compare estimation methods.",
+    "key_points": [
+      "FOCE-I (Deterministic)",
+      "SAEM (Stochastic)",
+      "Convergence"
+    ],
+    "tags": [
+      "tools"
+    ],
+    "suggested_module": "outils-estimation",
+    "speaker_notes": "SAEM is more robust for complex models. Pitfall: reading SAEM noise as non-convergence."
+  },
+  {
+    "slide": 45,
+    "id": "s45",
+    "file": "slide-45.png",
+    "title": "VPC: Principle",
+    "purpose": "Explain Visual Predictive Check.",
+    "key_points": [
+      "Simulations vs observations",
+      "Percentiles",
+      "Visual validation"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Compare observed data to simulated percentiles."
+  },
+  {
+    "slide": 46,
+    "id": "s46",
+    "file": "slide-46.png",
+    "title": "Binning (Grouping)",
+    "purpose": "Why time-binning is needed.",
+    "key_points": [
+      "Time intervals",
+      "Stabilize stats",
+      "Readability"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Binning makes tunnels readable."
+  },
+  {
+    "slide": 47,
+    "id": "s47",
+    "file": "slide-47.png",
+    "title": "Reading the VPC",
+    "purpose": "Interpret confidence bands.",
+    "key_points": [
+      "CI bands",
+      "Median",
+      "Extreme percentiles (P90/P10)"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Blue bands (simulated) vs red points/lines (observed)."
+  },
+  {
+    "slide": 48,
+    "id": "s48",
+    "file": "slide-48.png",
+    "title": "Bias Diagnosis",
+    "purpose": "Spot mis-specification.",
+    "key_points": [
+      "Outside tunnel",
+      "Under-prediction",
+      "Over-prediction"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Systematic excursions → model bias."
+  },
+  {
+    "slide": 49,
+    "id": "s49",
+    "file": "slide-49.png",
+    "title": "VPC: Variability",
+    "purpose": "Check variability estimation.",
+    "key_points": [
+      "Tunnel width",
+      "Observed dispersion"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Does the model capture observed variability?"
+  },
+  {
+    "slide": 50,
+    "id": "s50",
+    "file": "slide-50.png",
+    "title": "Crash Test: Binning (1)",
+    "purpose": "Show impact of poor binning.",
+    "key_points": [
+      "Bins too wide",
+      "Information loss"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Over-smoothing hides problems."
+  },
+  {
+    "slide": 51,
+    "id": "s51",
+    "file": "slide-51.png",
+    "title": "Crash Test: Binning (2)",
+    "purpose": "Impact of too many bins.",
+    "key_points": [
+      "Excess noise",
+      "Unstable percentiles"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Too many bins → noisy tunnel."
+  },
+  {
+    "slide": 52,
+    "id": "s52",
+    "file": "slide-52.png",
+    "title": "Crash Test: Binning (3)",
+    "purpose": "Find the sweet spot.",
+    "key_points": [
+      "Binning algorithms",
+      "Visual balance"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Toggle binning on/off: tunnel should stay coherent."
+  },
+  {
+    "slide": 53,
+    "id": "s53",
+    "file": "slide-53.png",
+    "title": "VPC Pitfalls",
+    "purpose": "Identify visual artifacts.",
+    "key_points": [
+      "Irregular sampling",
+      "Interpolation"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Pitfall: binning irregular times without interpolation."
+  },
+  {
+    "slide": 54,
+    "id": "s54",
+    "file": "slide-54.png",
+    "title": "Stratified VPC",
+    "purpose": "Validate by subgroups.",
+    "key_points": [
+      "Dose-stratified VPC",
+      "Covariate stratification",
+      "Local diagnostics"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Check model across subgroups."
+  },
+  {
+    "slide": 55,
+    "id": "s55",
+    "file": "slide-55.png",
+    "title": "Numeric Metrics",
+    "purpose": "Complement visual diagnostics.",
+    "key_points": [
+      "NPDE",
+      "Weighted residuals"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Beyond visual VPC."
+  },
+  {
+    "slide": 56,
+    "id": "s56",
+    "file": "slide-56.png",
+    "title": "Bayesian Introduction",
+    "purpose": "Transition to individual estimation.",
+    "key_points": [
+      "Population vs individual",
+      "Need to adapt"
+    ],
+    "tags": [
+      "diagnostic"
+    ],
+    "suggested_module": "validation-vpc",
+    "speaker_notes": "Bridge to next chapter."
+  },
+  {
+    "slide": 57,
+    "id": "s57",
+    "file": "slide-57.png",
+    "title": "Bayes' Theorem",
+    "purpose": "Foundation of MAP estimation.",
+    "key_points": [
+      "Prior (Population)",
+      "Likelihood (Patient)",
+      "Posterior (Individual)"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Posterior = Prior × Likelihood."
+  },
+  {
+    "slide": 58,
+    "id": "s58",
+    "file": "slide-58.png",
+    "title": "Prior Influence",
+    "purpose": "Show impact of prior information.",
+    "key_points": [
+      "Data weight vs model weight",
+      "Uncertainty"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Wide prior → data dominate. Tight prior → model constrains."
+  },
+  {
+    "slide": 59,
+    "id": "s59",
+    "file": "slide-59.png",
+    "title": "EBEs (Empirical Bayes Estimates)",
+    "purpose": "Define individual parameter estimates.",
+    "key_points": [
+      "MAP estimate",
+      "Individualization",
+      "Use in TDM"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Most probable estimate for a given patient."
+  },
+  {
+    "slide": 60,
+    "id": "s60",
+    "file": "slide-60.png",
+    "title": "EBE Limitations",
+    "purpose": "Warn about EBE use.",
+    "key_points": [
+      "Bias when data sparse",
+      "Model dependence"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Great for TDM, but biased with poor data."
+  },
+  {
+    "slide": 61,
+    "id": "s61",
+    "file": "slide-61.png",
+    "title": "Shrinkage (1/2)",
+    "purpose": "Define shrinkage.",
+    "key_points": [
+      "Pull toward mean",
+      "Lack of individual info"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "If data are weak, estimates shrink toward the population mean."
+  },
+  {
+    "slide": 62,
+    "id": "s62",
+    "file": "slide-62.png",
+    "title": "Shrinkage (2/2)",
+    "purpose": "Visualize shrinkage.",
+    "key_points": [
+      "EBE vs theoretical distribution",
+      "Variance loss"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Eta-shrinkage: EBE variance < omega²."
+  },
+  {
+    "slide": 63,
+    "id": "s63",
+    "file": "slide-63.png",
+    "title": "Shrinkage Consequences",
+    "purpose": "Impact on diagnostics.",
+    "key_points": [
+      "False correlations",
+      "Hidden covariates"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "High shrinkage → EBE-based diagnostics can mislead."
+  },
+  {
+    "slide": 64,
+    "id": "s64",
+    "file": "slide-64.png",
+    "title": "Handling Shrinkage",
+    "purpose": "Practical remedies.",
+    "key_points": [
+      "Richer design",
+      "Use other diagnostics (VPC, sims)"
+    ],
+    "tags": [
+      "bayes"
+    ],
+    "suggested_module": "bayes-ebes",
+    "speaker_notes": "Improve design or avoid EBE-based diagnostics."
+  },
+  {
+    "slide": 65,
+    "id": "s65",
+    "file": "slide-65.png",
+    "title": "Modeling Paradigms",
+    "purpose": "Compare White, Black, and Grey Box.",
+    "key_points": [
+      "White box (mechanistic)",
+      "Black box (DL)",
+      "Grey box (hybrid)"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "White box: ODE only. Black box: NN only. Grey: ODE + NN."
+  },
+  {
+    "slide": 66,
+    "id": "s66",
+    "file": "slide-66.png",
+    "title": "Standard Model Limit",
+    "purpose": "Show failure case of classic model.",
+    "key_points": [
+      "Unknown phenomenon",
+      "Structural bias",
+      "Absorption bump"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "Pure ODE misses a complexity (e.g., absorption bump)."
+  },
+  {
+    "slide": 67,
+    "id": "s67",
+    "file": "slide-67.png",
+    "title": "Ignorance vs Error",
+    "purpose": "Don't confuse model miss and noise.",
+    "key_points": [
+      "Model error (bias)",
+      "Residual error (noise)"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "Pitfall: calling systematic deviation 'residual error'."
+  },
+  {
+    "slide": 68,
+    "id": "s68",
+    "file": "slide-68.png",
+    "title": "Neural ODE Concept",
+    "purpose": "Add a neural corrective term.",
+    "key_points": [
+      "dudt = f(u,t) + NN(u,t)",
+      "Learn missing dynamics"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "Add a small NN inside the differential equation."
+  },
+  {
+    "slide": 69,
+    "id": "s69",
+    "file": "slide-69.png",
+    "title": "Neural Network Activation",
+    "purpose": "Visualize correction.",
+    "key_points": [
+      "Capture the bump",
+      "Flexible adjustment"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "Adding NN(t) makes the curve fit complex patterns."
+  },
+  {
+    "slide": 70,
+    "id": "s70",
+    "file": "slide-70.png",
+    "title": "Grey Box Advantage",
+    "purpose": "Keep interpretability.",
+    "key_points": [
+      "PK parameters retain meaning",
+      "Localized correction"
+    ],
+    "tags": [
+      "ml"
+    ],
+    "suggested_module": "neural-ode",
+    "speaker_notes": "Keep physiology; don't let NN take over everything."
+  },
+  {
+    "slide": 71,
+    "id": "s71",
+    "file": "slide-71.png",
+    "title": "TDM Cycle",
+    "purpose": "Describe therapeutic drug monitoring process.",
+    "key_points": [
+      "Measure (TDM)",
+      "Estimate (Bayes)",
+      "Adjust (Target)"
+    ],
+    "tags": [
+      "tdm"
+    ],
+    "suggested_module": "tdm",
+    "speaker_notes": "Cycle: Measure (DV) → Update (Bayes) → Adjust dose."
+  },
+  {
+    "slide": 72,
+    "id": "s72",
+    "file": "slide-72.png",
+    "title": "Decision Support",
+    "purpose": "Embed model in clinic.",
+    "key_points": [
+      "Future prediction",
+      "Uncertainty",
+      "Dashboard"
+    ],
+    "tags": [
+      "tdm"
+    ],
+    "suggested_module": "tdm",
+    "speaker_notes": "Show prediction with uncertainty interval."
+  },
+  {
+    "slide": 73,
+    "id": "s73",
+    "file": "slide-73.png",
+    "title": "Role of the Pharmacometrician",
+    "purpose": "Collaboration with clinician.",
+    "key_points": [
+      "Decision aid",
+      "Human expertise needed"
+    ],
+    "tags": [
+      "conclusion"
+    ],
+    "suggested_module": "tdm",
+    "speaker_notes": "Model suggests, clinician decides."
+  },
+  {
+    "slide": 74,
+    "id": "s74",
+    "file": "slide-74.png",
+    "title": "Course Conclusion",
+    "purpose": "Final synthesis.",
+    "key_points": [
+      "Model to understand",
+      "Quantify to decide",
+      "Data matter"
+    ],
+    "tags": [
+      "conclusion"
+    ],
+    "suggested_module": "tdm",
+    "speaker_notes": "Model = decision aid, not oracle. Diagnostics and data quality are key."
+  }
 ]

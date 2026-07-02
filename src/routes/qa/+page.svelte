@@ -5,10 +5,14 @@
   import AUCTrap from '$lib/components/visualizations/08_AUCTrap.svelte';
   import VPCCrashTest from '$lib/components/visualizations/17_VPCCrashTest.svelte';
   import BayesianShrinkage from '$lib/components/visualizations/18_BayesianShrinkage.svelte';
+  import { language } from '$lib/stores/language';
+  import { ui } from '$lib/i18n/translations';
+
+  $: copy = ui($language);
 </script>
 
-<h1>QA visualizations</h1>
-<p>Internal page to quickly verify modules with presets.</p>
+<h1>{copy.pages.qaTitle}</h1>
+<p>{copy.pages.qaIntro}</p>
 
 <div class="grid">
   <section class="card">
