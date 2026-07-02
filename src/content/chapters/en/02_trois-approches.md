@@ -3,89 +3,83 @@ id: "trois-approches"
 slug: "trois-approches"
 title: "NCA vs PopPK vs PBPK"
 description: "Three ways to learn from concentration-time data."
-summary: "A practical comparison of descriptive, population, and physiology-based approaches."
+summary: "A practical comparison of the descriptive, population and physiology-based approaches."
 track: "core"
 order: 2
 duration: "14 min"
 level: "beginner"
 tags: ["approaches", "nca", "poppk", "pbpk"]
-slides: ["s06", "s07", "s08", "s09"]
+slides: ["s23", "s34", "s45", "s56", "s73"]
 quiz:
-  - prompt: "NCA is mainly useful to..."
+  - prompt: "Non-compartmental analysis (NCA) is mainly used to..."
     options:
-      - "describe observed exposure"
+      - "describe the observed exposure"
       - "simulate unobserved patients with covariates"
-      - "build a full organ-level physiology model"
+      - "build a full physiological model"
     correct: 0
   - prompt: "PopPK is especially useful when you want to..."
     options:
       - "ignore variability"
-      - "estimate typical parameters and variability in a population"
-      - "avoid using any model"
+      - "estimate typical parameters and variability across a population"
+      - "avoid any model"
     correct: 1
   - prompt: "A common PBPK risk is..."
     options:
       - "too few parameters"
-      - "over-parameterizing beyond what data can support"
+      - "over-parameterization beyond what the data support"
       - "never using physiology"
     correct: 1
 ---
 
-<!-- step:title="Why this matters" slides="s06" viz="04_ThreeApproaches" -->
+<!-- step:title="Why this chapter" slides="s23" viz="04_ThreeApproaches" -->
 The same concentration-time data can answer different questions.
 
-If you ask, "What exposure did we observe?", NCA may be enough. If you ask, "Why do patients differ?", you need PopPK. If you ask, "What would happen in a different physiology or drug-drug interaction?", PBPK may help.
+- "What exposure did we observe?" → **NCA** may be enough.
+- "Why do patients differ?" → you need **PopPK**.
+- "What if the physiology or an interaction changed?" → **PBPK** can help.
 
-Choosing the method is like choosing the right map scale.
+**Key point —** choosing the method is choosing the right map scale. All three can be valid; they are not interchangeable.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s06" viz="04_ThreeApproaches" -->
-Imagine each patient builds with the same box of blocks.
+<!-- step:title="Intuition" slides="s23,s56" viz="04_ThreeApproaches" -->
+Imagine each patient builds from the same box of blocks.
 
 - **NCA** measures the finished construction: height, width, total area.
-- **PopPK** estimates the instruction sheet and how students vary around it.
-- **PBPK** rebuilds the whole classroom: tables, shelves, doors, and routes between them.
+- **PopPK** estimates the instruction sheet *and* how students vary around it.
+- **PBPK** rebuilds the whole room: tables, shelves, doors and the routes between them.
 
-All three can be valid. They are not interchangeable.
+NCA is a ruler; PopPK a classroom model; PBPK a building plan — powerful, but every extra room needs assumptions.
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s07,s08" viz="04_ThreeApproaches" -->
-NCA is a ruler. It can measure the area under the curve, but it does not explain how the construction was built.
-
-PopPK is a classroom model. It says: "Here is the typical instruction sheet, here is how much students differ, and here are covariates that explain part of the difference."
-
-PBPK is a building plan. It represents organs and flows explicitly. It can be powerful, but every extra room needs assumptions.
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s06" viz="04_ThreeApproaches" -->
-NCA often summarizes exposure with AUC:
+<!-- step:title="The formula, unpacked" slides="s34" viz="AUCTrap" -->
+NCA often summarizes exposure with the area under the curve:
 
 $$ \mathrm{AUC}_{0-\infty} \approx \mathrm{AUC}_{0-t} + \frac{C_t}{\lambda_z} $$
 
-PopPK often models individual parameters as:
+PopPK models individual parameters, e.g.:
 
 $$ CL_i = CL_{\mathrm{typical}} \cdot e^{\eta_i} $$
 
-Read this as: each patient has a clearance near the typical value, multiplied by an individual deviation.
+**Math —** read it as: each patient has a clearance near the typical value, times an individual deviation $e^{\eta_i}$. This is the heart of mixed-effects models.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s07,s08" viz="12_VariabilitySandbox" -->
-Suppose warfarin concentrations differ widely after similar doses.
+<!-- step:title="Worked example" slides="s45" viz="12_VariabilitySandbox" -->
+Suppose warfarin concentrations vary widely after similar doses.
 
-NCA can tell you which patients had higher AUC. PopPK can ask whether clearance differs with weight, genotype, age, or interacting drugs. PBPK can explore mechanisms such as hepatic metabolism and tissue distribution, but it needs more physiological assumptions.
+NCA tells you *which* patients had the highest AUC. PopPK asks whether clearance depends on weight, genotype, age or co-medications. PBPK explores mechanisms (hepatic metabolism, tissue distribution) at the cost of extra physiological assumptions.
 
-The practical question decides the tool.
+The **practical question** decides the tool.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s09" -->
+<!-- step:title="Common pitfall" slides="s45" -->
 Do not use NCA as if it were predictive.
 
-NCA is excellent for describing observed profiles, but it has no patient-level random effects, no covariate model, and no mechanistic way to simulate a new dosing schedule. For prediction, use a model designed for prediction.
+**Pitfall —** NCA describes observed profiles perfectly, but it has no patient-level random effects, no covariate model and no mechanism to simulate a new dosing schedule. To predict, use a model built to predict.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - NCA describes observed exposure.
-- PopPK explains population variability and supports simulation.
-- PBPK uses physiology to extrapolate, but it depends heavily on assumptions.
-- Start with the question, then choose the method.
+- PopPK explains population variability and enables simulation.
+- PBPK extrapolates through physiology but depends heavily on assumptions.
+- Start from the question, then choose the method.
 <!-- /step -->

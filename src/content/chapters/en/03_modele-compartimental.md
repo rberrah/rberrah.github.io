@@ -1,15 +1,15 @@
 ---
 id: "clairance-volume-demi-vie"
 slug: "clairance-volume-demi-vie"
-title: "Clearance, volume, and half-life"
-description: "The one-compartment model: CL as a flow, V as a space, and half-life as their ratio."
+title: "Clearance, volume and half-life"
+description: "The one-compartment model: CL as a flow, V as a space, half-life as their ratio."
 summary: "A visual introduction to the core parameters behind most PK models."
 track: "core"
 order: 3
 duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
-slides: ["s10", "s11", "s12", "s25"]
+slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 quiz:
   - prompt: "After an IV bolus, the initial concentration is..."
     options:
@@ -23,7 +23,7 @@ quiz:
       - "V only"
       - "both V and CL"
     correct: 2
-  - prompt: "A larger V with the same dose usually gives..."
+  - prompt: "A larger V at the same dose usually gives..."
     options:
       - "a lower initial concentration"
       - "a higher initial concentration"
@@ -31,65 +31,59 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s10" viz="IVBolus" -->
-Clearance, volume, and half-life are the first three parameters most students meet in PK. They are also easy to confuse.
+<!-- step:title="Why this chapter" slides="s67" viz="IVBolus" -->
+Clearance, volume and half-life are the first three parameters you meet in PK. They are also the easiest to confuse.
 
 The one-compartment model is useful because it separates three ideas:
 
-- how diluted the dose becomes;
-- how fast drug leaves the body;
-- how long it takes concentration to fall by half.
+- how **diluted** the dose becomes;
+- how fast the drug **leaves** the body;
+- how long concentration takes to **halve**.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s10,s11" viz="IVBolus" -->
-Picture one well-mixed room full of blocks.
+<!-- step:title="Intuition" slides="s12" viz="BucketSim" -->
+The course gives a vivid hydraulic image: **the drug is water in a tank**.
 
-The **volume** is the size of the room. The **clearance** is the speed of the cleanup team. The **half-life** is the time until half the visible blocks are gone.
+- The **tank width** is the **volume of distribution V**: for the same amount, a wider tank gives a lower level.
+- The **liquid level** is the **concentration C(t)**.
+- The **tap opening** is the **clearance CL**: the wider it is, the faster the tank empties.
 
-Changing the room size and changing the cleanup speed do different things to the curve.
+**Key point —** widening the tank (larger V) and opening the tap (larger CL) do different things: V lowers the starting level, CL speeds up emptying. Half-life combines both.
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" viz="BuildingBlocksPKPD" -->
-Give the same box of blocks to two rooms.
-
-In a small room, the blocks look concentrated. In a large room, the same number of blocks look spread out. That is volume.
-
-Now keep the room fixed. If the cleanup team removes blocks faster, the room empties faster. That is clearance.
-<!-- /step -->
-
-<!-- step:title="Minimal math" slides="s12" viz="IVBolus" -->
-For an IV bolus:
+<!-- step:title="The formula, unpacked" slides="s12" viz="IVBolus" -->
+For an IV bolus, the initial concentration is:
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-and:
+and the amount decays as:
 
-$$ \frac{dA}{dt} = -\frac{CL}{V}A $$
+$$ \frac{dA}{dt} = -\frac{CL}{V}\,A $$
 
-The ratio $CL/V$ is the elimination rate constant:
+The ratio $CL/V$ is the elimination rate constant $k$.
 
-$$ k = \frac{CL}{V} $$
+**Math —** volume dilutes (sets $C_0$); clearance is an **epuration capacity** (a flow, in L/h). Their ratio, and only that, sets the decay speed.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="IVBolus" -->
-Patient A and B both receive 100 mg.
+Patients A and B each receive 100 mg.
 
-If patient A has $V = 10\ \text{L}$, then $C_0 = 10\ \text{mg/L}$. If patient B has $V = 20\ \text{L}$, then $C_0 = 5\ \text{mg/L}$.
+If A has $V = 10\ \text{L}$, then $C_0 = 10\ \text{mg/L}$. If B has $V = 20\ \text{L}$, then $C_0 = 5\ \text{mg/L}$.
 
-Same dose, different apparent space, different starting concentration.
+Same dose, different apparent space, different starting concentration. Slide V in the figure: the whole curve moves up or down without changing its slope.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s25" viz="IVBolus" -->
-Half-life is not a magic property that replaces clearance and volume.
+<!-- step:title="Common pitfall" slides="s09" viz="IVBolus" -->
+Half-life is not a magic property replacing clearance and volume:
 
-$$ t_{1/2} = \frac{0.693 V}{CL} $$
+$$ t_{1/2} = \frac{0.693\, V}{CL} $$
 
-A longer half-life can mean a larger volume, a lower clearance, or both. Those are different biological stories. Always ask: **which parameter changed?**
+**Pitfall —** a longer half-life can come from a larger volume, a lower clearance, or both — different biological stories. Always ask: **which parameter changed?**
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Volume controls dilution.
-- Clearance controls removal capacity.
-- Half-life is derived from volume and clearance.
-- A simple compartment model is a teaching model first, then a prediction model if it fits the data.
+- Clearance controls epuration capacity.
+- Half-life is **derived** from volume and clearance.
+- A simple compartment model is first a teaching model, then a prediction model if it fits the data.
 <!-- /step -->

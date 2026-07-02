@@ -2,14 +2,14 @@
 id: "variabilite-iiv-iov"
 slug: "variabilite-iiv-iov"
 title: "IIV, IOV and residual error"
-description: "Separate patient differences, occasion differences, and measurement noise."
-summary: "A practical guide to naming the different sources of variability in PopPK."
+description: "Separating between-patient differences, between-occasion differences and measurement noise."
+summary: "A practical guide to naming the sources of variability in PopPK."
 track: "core"
 order: 5
 duration: "14 min"
 level: "intermediate"
 tags: ["variability", "iiv", "iov", "residual-error"]
-slides: ["s21", "s22", "s23", "s24"]
+slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
 quiz:
   - prompt: "IIV means..."
     options:
@@ -19,72 +19,66 @@ quiz:
     correct: 0
   - prompt: "IOV means..."
     options:
-      - "differences within the same patient across occasions"
+      - "differences within one patient across occasions"
       - "the typical value"
       - "the structural ODE"
     correct: 0
-  - prompt: "Residual error is closest to..."
+  - prompt: "Residual error is mostly..."
     options:
-      - "unexplained observation-level mismatch"
-      - "the full population variability"
-      - "the covariate effect"
+      - "the unexplained gap at the observation level"
+      - "the whole population variability"
+      - "a covariate effect"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s21" viz="12_VariabilitySandbox" -->
+<!-- step:title="Why this chapter" slides="s14" viz="12_VariabilitySandbox" -->
 Variability is not a nuisance to hide. It is often the main reason pharmacometrics is useful.
 
-A good model says which differences are between patients, which differences occur within a patient over time, and which differences remain at the measurement level.
+A good model states **which** differences are between patients, **which** happen within a patient over time, and **which** remain at the measurement level.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s21,s22" viz="12_VariabilitySandbox" -->
-In a classroom, students do not all build at the same speed.
+<!-- step:title="Intuition" slides="s13,s14" viz="12_VariabilitySandbox" -->
+In a classroom, students do not build at the same speed.
 
-Some are consistently faster. Some are faster on Monday and slower on Friday. Some measurements of the final construction are blurry.
+Some are consistently faster. Some are fast on Monday and slow on Friday. And some photos of the finished construction are blurry. Three different problems:
 
-Those are three different problems.
-<!-- /step -->
-
-<!-- step:title="Building-block metaphor" slides="s21,s22" viz="12_VariabilitySandbox" -->
-- **Fixed effect**: the typical instruction sheet for the class.
+- **Fixed effect**: the class's typical instruction sheet.
 - **IIV**: each student has a personal building style.
-- **IOV**: the same student changes between sessions.
-- **Residual error**: the photo of the construction is imperfect, or the model misses a small detail.
+- **IOV**: the same student changes from session to session.
+- **Residual error**: the photo is imperfect, or the model misses a small detail.
 
-Keeping these layers separate is one of the most important PopPK skills.
+**Key point —** keeping these layers separate is one of the most important PopPK skills.
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s21,s22" viz="12_VariabilitySandbox" -->
-A common PopPK parameter model is:
+<!-- step:title="The formula, unpacked" slides="s13" viz="12_VariabilitySandbox" -->
+A common PopPK parameter model:
 
-$$ CL_i = CL_{\mathrm{typical}} e^{\eta_i} $$
+$$ CL_i = CL_{\mathrm{typical}}\, e^{\eta_i} $$
 
-where $\eta_i$ is the patient-specific deviation.
+where $\eta_i$ is the patient-specific deviation. For an occasion-specific parameter:
 
-For an occasion-specific parameter:
+$$ CL_{ij} = CL_{\mathrm{typical}}\, e^{\eta_i + \kappa_{ij}} $$
 
-$$ CL_{ij} = CL_{\mathrm{typical}} e^{\eta_i + \kappa_{ij}} $$
-
-where $\kappa_{ij}$ describes occasion $j$ for patient $i$.
+**Math —** $\eta_i$ does not change between visits (that is IIV); $\kappa_{ij}$ describes occasion $j$ of patient $i$ (that is IOV). Residual error acts on each **observation**.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s23" viz="12_VariabilitySandbox" -->
-In a warfarin dataset, two patients may have different typical clearance. That is IIV.
+<!-- step:title="Worked example" slides="s17" viz="12_VariabilitySandbox" -->
+In a warfarin dataset, two patients can have different typical clearances: that is IIV.
 
-The same patient may also have a different clearance during a later visit because of diet, adherence, liver function, or interacting drugs. That is IOV.
+The same patient may have a different clearance at a later visit (diet, adherence, liver function, interactions): that is IOV.
 
-The measured INR or concentration may still deviate from the model. That is residual error.
+And the measured INR or concentration can still deviate from the model: that is residual error.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s24" -->
+<!-- step:title="Common pitfall" slides="s16" -->
 Do not use residual error to absorb every mismatch.
 
-If patient curves are systematically different, residual error is the wrong explanation. If the same patient changes by visit, IIV alone is not enough. If the structural model is wrong, adding random effects may only hide the problem.
+**Pitfall —** if patients' curves differ systematically, residual error is the wrong explanation. If the same patient changes by visit, IIV alone is not enough. And if the structural model is wrong, adding random effects often just **hides** the problem.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - IIV is between-patient variability.
 - IOV is within-patient, between-occasion variability.
-- Residual error is observation-level mismatch.
-- Better naming of variability leads to better interpretation.
+- Residual error is the observation-level gap.
+- Naming variability better means interpreting the model better.
 <!-- /step -->

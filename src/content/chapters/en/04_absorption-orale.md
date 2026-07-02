@@ -2,80 +2,84 @@
 id: "absorption-orale"
 slug: "absorption-orale"
 title: "Oral route, Ka and lag time"
-description: "Why oral curves rise before they fall."
-summary: "A student-friendly explanation of absorption rate, lag time, Cmax, and Tmax."
+description: "Why an oral curve rises before it falls."
+summary: "An accessible account of absorption rate, lag time, Cmax and Tmax."
 track: "core"
 order: 4
 duration: "12 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
-slides: ["s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20"]
+slides: ["s07"]
 quiz:
   - prompt: "Ka mainly controls..."
     options:
-      - "how fast drug enters the central compartment"
-      - "how many organs PBPK contains"
+      - "how fast the drug enters the central compartment"
+      - "the number of organs in a PBPK model"
       - "the assay calibration curve"
     correct: 0
-  - prompt: "Tlag represents..."
+  - prompt: "The lag time Tlag represents..."
     options:
       - "a delay before absorption begins"
       - "the terminal half-life"
-      - "the maximum effect"
+      - "the maximal effect"
     correct: 0
   - prompt: "Flip-flop kinetics can occur when..."
     options:
       - "absorption is slower than elimination"
       - "clearance is zero"
-      - "volume is exactly 1 L"
+      - "volume equals exactly 1 L"
     correct: 0
 ---
 
-<!-- step:title="Why this matters" slides="s13,s14,s15,s16" viz="OralAbsorption" -->
-Most medicines are not injected directly into plasma. They are swallowed, absorbed, distributed, and eliminated.
+<!-- step:title="Why this chapter" slides="s07" viz="OralAbsorption" -->
+Most drugs are not injected straight into plasma: they are swallowed, absorbed, distributed and eliminated.
 
-That is why oral concentration-time curves rise, reach a peak, and then fall. The rising part is not noise. It is absorption.
+That is why oral concentration-time curves **rise**, reach a peak, then fall. The rising part is not noise — it is absorption.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s17" viz="OralAbsorption" -->
+<!-- step:title="Intuition" slides="s07" viz="OralAbsorption" -->
 With an oral dose, the blocks first wait outside the main room.
 
-The absorption rate constant $K_a$ controls how fast blocks enter. A lag time $T_{lag}$ means the door stays closed for a while before entry starts.
+The absorption constant $K_a$ sets how fast blocks enter. A lag time $T_{lag}$ means the door stays shut for a while before entry begins.
+
+**Key point —** the observed curve is a **competition** between input (absorption) and output (elimination). The peak appears when the two balance.
 <!-- /step -->
 
-<!-- step:title="Building-block metaphor" slides="s13" viz="BuildingBlocksPKPD" -->
-Imagine a delivery truck arrives at the classroom.
+<!-- step:title="The formula, unpacked" slides="s07" viz="OralAbsorption" -->
+A common first-order oral model (Bateman curve):
 
-- $T_{lag}$ is the time before anyone opens the truck.
-- $K_a$ is how fast students unload the blocks.
-- $CL$ is still the cleanup speed once blocks are inside.
+$$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
 
-The observed curve mixes both delivery and cleanup.
+No need to memorize the whole expression: read it as input by absorption ($K_a$) opposed to output by elimination ($k = CL/V$).
+
+**Math —** increase $K_a$: the peak arrives earlier and higher. Increase $T_{lag}$: the whole start shifts to the right.
 <!-- /step -->
 
-<!-- step:title="Minimal math" slides="s18,s19" viz="OralAbsorption" -->
-A common first-order oral model is:
+<!-- step:title="Transit compartments" slides="s07" viz="OralAbsorption" -->
+A single $K_a$ assumes an immediate rise, which fits poorly when absorption is **gradual** (dissolution, gastric emptying).
 
-$$ C(t) = \frac{\text{Dose}}{V}\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
+**Transit compartments** replace the single input with a **chain** of $n$ compartments crossed at rate $k_{tr}$. The drug takes a **mean transit time** $\text{MTT} = n / k_{tr}$ to reach the central compartment.
 
-You do not need to memorize the full expression first. Read it as a competition between input by absorption and output by elimination.
+$$ \frac{dT_1}{dt} = -k_{tr}\,T_1 \qquad \frac{dT_i}{dt} = k_{tr}\,(T_{i-1}-T_i) \qquad \frac{dA}{dt} = k_{tr}\,T_n - k\,A $$
+
+**Key point —** tick "compare with transit compartments": as $n$ grows, the rise becomes **rounder and more delayed** — a flexible alternative to a plain $T_{lag}$.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s20" viz="OralAbsorption" -->
-Increase $K_a$ in the explorer.
+<!-- step:title="Worked example" slides="s07" viz="OralAbsorption" -->
+In the explorer, increase $K_a$.
 
-The peak usually arrives earlier and is higher because blocks enter the room quickly before cleanup removes many of them. Increase $T_{lag}$ and the whole start of the curve shifts right.
+The peak usually arrives earlier and higher, because blocks enter quickly before cleanup removes many. A larger $T_{lag}$ does not change the peak height but shifts the start of the rise.
 <!-- /step -->
 
-<!-- step:title="Common trap" slides="s19" -->
-Do not estimate elimination half-life blindly from oral terminal slopes.
+<!-- step:title="Common pitfall" slides="s07" -->
+Do not estimate the elimination half-life blindly from the oral terminal slope.
 
-If absorption is slower than elimination, the last part of the curve may reflect absorption rather than elimination. This is called **flip-flop kinetics**.
+**Pitfall —** if absorption is slower than elimination, the last part of the curve reflects **absorption**, not elimination: this is **flip-flop** kinetics. The terminal slope then misleads about the true half-life.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- Oral profiles include absorption and elimination.
-- $K_a$ controls entry speed.
-- $T_{lag}$ shifts the start of absorption.
-- Cmax and Tmax are summaries, not model parameters by themselves.
+- An oral profile combines absorption and elimination.
+- $K_a$ controls the entry speed.
+- $T_{lag}$ shifts the start of absorption; transit compartments give a smoother, delayed rise.
+- Cmax and Tmax are summaries, not model parameters in themselves.
 <!-- /step -->
