@@ -9,7 +9,7 @@ order: 9
 duration: "12 min"
 level: "intermediate"
 tags: ["tools", "estimation", "nonmem", "monolix", "nlmixr2"]
-slides: ["s43", "s44"]
+slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
 quiz:
   - prompt: "Estimer signifie..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s43" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s38" -->
 Le logiciel ne rend pas la modélisation automatique.
 
 NONMEM, Monolix et nlmixr2 aident à **estimer** les paramètres, mais le modélisateur choisit encore la structure, le modèle de variabilité, les covariables, les diagnostics et l'interprétation.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s44" viz="EstimationFit" -->
+<!-- step:title="Intuition" slides="s41" viz="EstimationFit" -->
 Estimer, c'est essayer de nombreuses notices de montage et demander laquelle explique le mieux les résultats de la classe.
 
 :::key
@@ -45,7 +45,7 @@ L'ordinateur **cherche** ; le modélisateur **décide** si la réponse a un sens
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s44" -->
+<!-- step:title="La formule décortiquée" slides="s42" -->
 Beaucoup de comparaisons reposent sur la vraisemblance : des données plus plausibles sous le modèle = un meilleur ajustement. L'AIC ajoute une pénalité de complexité :
 
 $$ \mathrm{AIC} = -2 \log L + 2p $$
@@ -57,7 +57,7 @@ Baisser $-2\log L$ (mieux coller) est bon ; mais chaque paramètre ajouté coût
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s43,s44" -->
+<!-- step:title="Exemple concret" slides="s39,s40" -->
 Dans un exercice de construction de modèle warfarine, on peut comparer :
 
 - un compartiment contre deux compartiments ;
@@ -68,7 +68,7 @@ Dans un exercice de construction de modèle warfarine, on peut comparer :
 Le meilleur modèle n'est pas seulement celui à la plus petite fonction objectif : il doit aussi être **stable, interprétable et diagnostiquement crédible**.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s44" -->
+<!-- step:title="Piège fréquent" slides="s41" -->
 Ne confondez pas un algorithme avec une conclusion scientifique.
 
 :::pitfall

@@ -9,7 +9,7 @@ order: 1
 duration: "12 min"
 level: "beginner"
 tags: ["intro", "pk", "pd", "variability"]
-slides: ["s01", "s02", "s03", "s04", "s05"]
+slides: ["s01", "s02"]
 quiz:
   - prompt: "La pharmacocinétique (PK) décrit surtout..."
     options:
@@ -43,7 +43,7 @@ L'objectif n'est pas de mémoriser des équations, mais de comprendre l'histoire
 :::
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s01,s03" viz="01_HumanBody" -->
+<!-- step:title="Intuition" slides="s02" viz="01_HumanBody" -->
 Imaginez le médicament comme un lot de blocs qui entre dans une salle de classe.
 
 La **PK** demande où vont les blocs et combien de temps ils restent :
@@ -81,7 +81,7 @@ Le patient A a une clairance de $4\ \text{L/h}$, le patient B de $8\ \text{L/h}$
 C'est pourquoi la pharmacométrie raisonne sur des **paramètres** (CL, V) plutôt que sur les seules concentrations observées : les paramètres expliquent *pourquoi* les courbes diffèrent.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s05" -->
+<!-- step:title="Piège fréquent" slides="s02" -->
 Ne rangez pas toutes les différences dans une seule boîte appelée « bruit ».
 
 Une différence entre observations peut venir de sources très distinctes :

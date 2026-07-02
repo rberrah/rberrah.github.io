@@ -9,7 +9,7 @@ order: 6
 duration: "14 min"
 level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
-slides: ["s26", "s27", "s28", "s29", "s30"]
+slides: ["s18", "s19", "s20", "s21", "s22"]
 quiz:
   - prompt: "Une covariable est utile quand elle..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s26" viz="14_AllometryCentering" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s19" viz="14_AllometryCentering" -->
 Les effets aléatoires nous disent que les patients diffèrent. Les covariables demandent si une partie de cette différence est **explicable**.
 
 Poids, fonction rénale, âge, génotype, statut pathologique, co-médications : tous peuvent agir sur les paramètres. Un modèle de covariables transforme l'information clinique en un ajustement quantitatif.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s26,s29" viz="14_AllometryCentering" -->
+<!-- step:title="Intuition" slides="s19,s20" viz="14_AllometryCentering" -->
 Si des élèves ont des mains, un espace de table ou une expérience différents, ils construisent différemment.
 
 Une covariable est **une caractéristique mesurée** qui aide à expliquer pourquoi la même notice ne fonctionne pas de façon identique pour tout le monde.
@@ -47,7 +47,7 @@ Le poids est comme la taille de la salle ; la fonction rénale, comme la puissan
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s27,s28" viz="14_AllometryCentering" -->
+<!-- step:title="La formule décortiquée" slides="s20,s21" viz="14_AllometryCentering" -->
 Un modèle allométrique courant :
 
 $$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0{,}75} \qquad V_i = V_{70} \left(\frac{WT_i}{70}\right)^{1} $$
@@ -57,13 +57,13 @@ Le dénominateur 70 **centre** le modèle : $CL_{70}$ désigne la clairance typi
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s30" viz="14_AllometryCentering" -->
+<!-- step:title="Exemple concret" slides="s20" viz="14_AllometryCentering" -->
 Dans un jeu de données pédiatrique ou à poids mélangés, le poids explique souvent une part visible de la variabilité de clairance et de volume.
 
 Après ajout de l'allométrie, l'effet aléatoire sur la clairance peut **diminuer** : le modèle a déplacé de la variabilité depuis « différence inexpliquée entre patients » vers « expliquée par le poids ».
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s28" -->
+<!-- step:title="Piège fréquent" slides="s22" -->
 N'ajoutez pas une covariable simplement parce qu'elle est disponible.
 
 :::pitfall

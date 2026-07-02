@@ -9,7 +9,7 @@ order: 10
 duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
-slides: ["s57", "s58", "s59", "s60", "s61", "s62", "s63", "s64"]
+slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
 quiz:
   - prompt: "Un EBE est..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s57" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s53" -->
 Les jeux de données cliniques sont souvent **pauvres** : une ou deux concentrations par patient, pas une courbe riche.
 
 Le raisonnement bayésien permet au modèle de combiner ce que l'on sait de la population avec ce que l'on observe chez l'individu.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s58,s59" viz="BayesUpdate" -->
+<!-- step:title="Intuition" slides="s55" viz="BayesUpdate" -->
 Si vous ne voyez qu'une seule photo de la construction d'un élève, vous ne devriez pas ignorer ce que vous savez de toute la classe.
 
 Le modèle de population est l'**attente a priori** ; la mesure individuelle **met à jour** cette attente.
@@ -47,7 +47,7 @@ Une estimation bayésienne ne saute pas à une conclusion extrême : elle éloig
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s57,s59" viz="BayesUpdate" -->
+<!-- step:title="La formule décortiquée" slides="s53,s54" viz="BayesUpdate" -->
 Idée MAP simplifiée :
 
 $$ \text{estimation individuelle} = \text{attente de population} + \text{écart soutenu par les données} $$
@@ -61,13 +61,13 @@ $\hat{\eta}_i$ est l'écart individuel **estimé**. Quand les données du patien
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s60" -->
+<!-- step:title="Exemple concret" slides="s58" -->
 En suivi thérapeutique, une seule concentration après une dose peut mettre à jour la clairance estimée d'un patient.
 
 Si la concentration observée est plus basse que prévu, le modèle peut inférer une clairance plus élevée — mais l'ampleur de l'ajustement dépend du **moment** du prélèvement, de l'erreur de dosage, de la variabilité a priori et de tout l'historique posologique.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s61,s62,s63,s64" -->
+<!-- step:title="Piège fréquent" slides="s57" -->
 Ne sur-interprétez pas les EBE quand le shrinkage est élevé.
 
 :::pitfall

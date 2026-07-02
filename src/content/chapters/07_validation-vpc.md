@@ -9,7 +9,7 @@ order: 7
 duration: "13 min"
 level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
-slides: ["s31", "s42", "s45", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s53", "s54", "s55", "s56"]
+slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
 quiz:
   - prompt: "Une VPC compare les données observées avec..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 1
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s31,s42" viz="17_VPCCrashTest" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s44" viz="17_VPCCrashTest" -->
 Ajuster un modèle n'est pas la même chose que lui faire confiance.
 
 Les diagnostics demandent si le modèle **reproduit les motifs** utiles à l'apprentissage et à la prédiction. Un modèle peut converger et rester trompeur.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s45" viz="17_VPCCrashTest" -->
+<!-- step:title="Intuition" slides="s48" viz="17_VPCCrashTest" -->
 Une fois les constructions terminées, on compare la notice de montage à ce que la classe a réellement produit.
 
 :::key
@@ -45,7 +45,7 @@ Si le modèle prédit des tours mais que les élèves ont fait des ponts, le pro
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s55" viz="17_VPCCrashTest" -->
+<!-- step:title="La formule décortiquée" slides="s43" viz="17_VPCCrashTest" -->
 Un résidu est un écart entre observation et prédiction :
 
 $$ e_{ij} = y_{ij} - \hat{y}_{ij} $$
@@ -57,13 +57,13 @@ Une VPC va plus loin : on laisse **de nombreuses** classes simulées bâtir à p
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s48,s49,s54" viz="17_VPCCrashTest" -->
+<!-- step:title="Exemple concret" slides="s46,s47" viz="17_VPCCrashTest" -->
 Pour la warfarine, supposons que les concentrations précoces soient systématiquement sous-prédites.
 
 Cela peut évoquer un problème d'absorption, un temps de latence, ou une inadéquation structurale. Une VPC révèle si le modèle capture à la fois la tendance médiane et l'étalement au cours du temps.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s50,s51,s52,s53" -->
+<!-- step:title="Piège fréquent" slides="s50,s51,s52" -->
 Ne validez pas un modèle avec un seul graphe.
 
 :::pitfall

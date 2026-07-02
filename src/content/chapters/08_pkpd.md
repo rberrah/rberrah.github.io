@@ -9,7 +9,7 @@ order: 8
 duration: "16 min"
 level: "intermediate"
 tags: ["pkpd", "emax", "ec50", "turnover"]
-slides: ["s32", "s33", "s34", "s35", "s36", "s37", "s38", "s39", "s40", "s41"]
+slides: ["s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s35", "s36"]
 quiz:
   - prompt: "L'EC50 est la concentration qui produit..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s32" viz="BuildingBlocksPKPD" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s26" viz="BuildingBlocksPKPD" -->
 La concentration n'est généralement pas la question finale. La question finale, c'est l'**effet**.
 
 Les modèles PK/PD relient les blocs qui circulent dans l'organisme à la construction qu'ils produisent : bénéfice, toxicité, variation d'un biomarqueur, réponse clinique.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s32,s33" viz="EmaxHill" -->
+<!-- step:title="Intuition" slides="s26,s28" viz="EmaxHill" -->
 Ajouter plus de blocs n'aide que jusqu'à ce que la construction atteigne sa taille utile maximale.
 
 Ce plateau est l'idée derrière l'**Emax** : une fois les cibles saturées, plus de concentration n'apporte presque plus d'effet — mais peut encore augmenter la toxicité.
@@ -47,7 +47,7 @@ Ce plateau est l'idée derrière l'**Emax** : une fois les cibles saturées, plu
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s34,s35" viz="EmaxHill" -->
+<!-- step:title="La formule décortiquée" slides="s28" viz="EmaxHill" -->
 Un modèle Emax direct :
 
 $$ E = E_0 + \frac{E_{\max}\, C}{EC_{50} + C} $$
@@ -61,13 +61,13 @@ $E_0$ = effet sans médicament ; $E_{\max}$ = effet supplémentaire maximal ; $E
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s36,s37" viz="Turnover" -->
+<!-- step:title="Exemple concret" slides="s33" viz="Turnover" -->
 Pour la warfarine, l'effet clinique peut être en retard sur la concentration, car le médicament agit sur le renouvellement des facteurs de coagulation.
 
 La concentration change d'abord ; le système biologique répond ensuite, au cours du temps. Ce délai est de la **PD**, pas nécessairement une distribution lente.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s38,s39" viz="Turnover" -->
+<!-- step:title="Piège fréquent" slides="s30,s33" viz="Turnover" -->
 N'appelez pas tout délai « PK lente ».
 
 :::pitfall
@@ -76,7 +76,7 @@ $$ \frac{dR}{dt} = k_{in}\,(1 + f(C)) - k_{out}\,R $$
 :::
 <!-- /step -->
 
-<!-- step:title="À retenir" slides="s40,s41" -->
+<!-- step:title="À retenir" slides="s36" -->
 - La PK explique la concentration au cours du temps.
 - La PD explique l'effet en fonction de la concentration et de la biologie.
 - Les modèles Emax enseignent la saturation.

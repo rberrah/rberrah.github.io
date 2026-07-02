@@ -9,7 +9,7 @@ order: 4
 duration: "12 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
-slides: ["s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20"]
+slides: ["s07"]
 quiz:
   - prompt: "Ka contrôle principalement..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s13,s14" viz="OralAbsorption" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s07" viz="OralAbsorption" -->
 La plupart des médicaments ne sont pas injectés directement dans le plasma : ils sont avalés, absorbés, distribués, puis éliminés.
 
 C'est pourquoi les courbes orales concentration-temps **montent**, atteignent un pic, puis redescendent. La phase ascendante n'est pas du bruit : c'est l'absorption.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s15,s17" viz="OralAbsorption" -->
+<!-- step:title="Intuition" slides="s07" viz="OralAbsorption" -->
 Avec une dose orale, les blocs attendent d'abord hors de la salle principale.
 
 La constante d'absorption $K_a$ fixe la vitesse d'entrée des blocs. Un temps de latence $T_{lag}$ signifie que la porte reste fermée un moment avant que l'entrée commence.
@@ -47,7 +47,7 @@ La courbe observée est une **compétition** entre l'entrée (absorption) et la 
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s18,s19" viz="OralAbsorption" -->
+<!-- step:title="La formule décortiquée" slides="s07" viz="OralAbsorption" -->
 Un modèle oral d'ordre 1 courant (courbe de Bateman) :
 
 $$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
@@ -59,13 +59,13 @@ Augmentez $K_a$ : le pic arrive plus tôt et plus haut. Augmentez $T_{lag}$ : to
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s20" viz="OralAbsorption" -->
+<!-- step:title="Exemple concret" slides="s07" viz="OralAbsorption" -->
 Dans l'explorateur, augmentez $K_a$.
 
 Le pic arrive en général plus tôt et plus haut, car les blocs entrent vite dans la salle avant que le nettoyage n'en retire beaucoup. Un $T_{lag}$ plus grand ne change pas la hauteur du pic, mais décale le début de la montée.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s19" -->
+<!-- step:title="Piège fréquent" slides="s07" -->
 N'estimez pas la demi-vie d'élimination à l'aveugle à partir de la pente terminale orale.
 
 :::pitfall

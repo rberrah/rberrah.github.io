@@ -9,7 +9,7 @@ order: 3
 duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
-slides: ["s10", "s11", "s12", "s25"]
+slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:
@@ -31,7 +31,7 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s10" viz="IVBolus" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s67" viz="IVBolus" -->
 Clairance, volume et demi-vie sont les trois premiers paramètres que l'on rencontre en PK. Ce sont aussi les plus faciles à confondre.
 
 Le modèle à un compartiment est utile parce qu'il sépare trois idées distinctes :
@@ -41,7 +41,7 @@ Le modèle à un compartiment est utile parce qu'il sépare trois idées distinc
 - combien de temps la concentration met à **diminuer de moitié**.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s10,s11" viz="BucketSim" -->
+<!-- step:title="Intuition" slides="s12" viz="BucketSim" -->
 Le cours en donne une image hydraulique très parlante : **le médicament est de l'eau dans un réservoir**.
 
 - La **largeur du réservoir** est le **volume de distribution V** : à même quantité, un réservoir plus large donne un niveau plus bas.
@@ -81,7 +81,7 @@ Si A a $V = 10\ \text{L}$, alors $C_0 = 10\ \text{mg/L}$. Si B a $V = 20\ \text{
 Même dose, espace apparent différent, concentration de départ différente. Faites glisser V dans la figure : la courbe entière monte ou descend sans changer sa pente.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s25" viz="IVBolus" -->
+<!-- step:title="Piège fréquent" slides="s09" viz="IVBolus" -->
 La demi-vie n'est pas une propriété magique qui remplacerait clairance et volume :
 
 $$ t_{1/2} = \frac{0{,}693\, V}{CL} $$

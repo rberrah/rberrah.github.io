@@ -9,7 +9,7 @@ order: 5
 duration: "14 min"
 level: "intermediate"
 tags: ["variability", "iiv", "iov", "residual-error"]
-slides: ["s21", "s22", "s23", "s24"]
+slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
 quiz:
   - prompt: "L'IIV désigne..."
     options:
@@ -31,13 +31,13 @@ quiz:
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s21" viz="12_VariabilitySandbox" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s14" viz="12_VariabilitySandbox" -->
 La variabilité n'est pas une nuisance à cacher. C'est souvent la raison principale pour laquelle la pharmacométrie est utile.
 
 Un bon modèle dit **quelles** différences sont entre patients, **lesquelles** surviennent chez un même patient au cours du temps, et **lesquelles** restent au niveau de la mesure.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s21,s22" viz="12_VariabilitySandbox" -->
+<!-- step:title="Intuition" slides="s13,s14" viz="12_VariabilitySandbox" -->
 Dans une classe, les élèves ne construisent pas tous à la même vitesse.
 
 Certains sont durablement plus rapides. Certains sont rapides lundi et lents vendredi. Et certaines photos de la construction finale sont floues. Ce sont **trois problèmes différents** :
@@ -52,7 +52,7 @@ Garder ces couches séparées est l'une des compétences PopPK les plus importan
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s22" viz="12_VariabilitySandbox" -->
+<!-- step:title="La formule décortiquée" slides="s13" viz="12_VariabilitySandbox" -->
 Un modèle de paramètre PopPK courant :
 
 $$ CL_i = CL_{\mathrm{typique}}\, e^{\eta_i} $$
@@ -66,7 +66,7 @@ $\eta_i$ ne change pas d'une visite à l'autre (c'est l'IIV) ; $\kappa_{ij}$ dé
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s23" viz="12_VariabilitySandbox" -->
+<!-- step:title="Exemple concret" slides="s17" viz="12_VariabilitySandbox" -->
 Dans un jeu de données warfarine, deux patients peuvent avoir des clairances typiques différentes : c'est l'IIV.
 
 Le même patient peut aussi avoir une clairance différente à une visite ultérieure (alimentation, observance, fonction hépatique, interactions) : c'est l'IOV.
@@ -74,7 +74,7 @@ Le même patient peut aussi avoir une clairance différente à une visite ultér
 Et l'INR ou la concentration mesurée peut encore s'écarter du modèle : c'est l'erreur résiduelle.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s24" -->
+<!-- step:title="Piège fréquent" slides="s16" -->
 N'utilisez pas l'erreur résiduelle pour absorber tous les écarts.
 
 :::pitfall

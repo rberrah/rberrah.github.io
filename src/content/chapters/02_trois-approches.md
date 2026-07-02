@@ -9,7 +9,7 @@ order: 2
 duration: "14 min"
 level: "beginner"
 tags: ["approaches", "nca", "poppk", "pbpk"]
-slides: ["s06", "s07", "s08", "s09"]
+slides: ["s23", "s34", "s45", "s56", "s73"]
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:
@@ -31,7 +31,7 @@ quiz:
     correct: 1
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s06" viz="04_ThreeApproaches" -->
+<!-- step:title="Pourquoi ce chapitre" slides="s23" viz="04_ThreeApproaches" -->
 Les mêmes données concentration-temps peuvent répondre à des questions différentes.
 
 - « Quelle exposition avons-nous observée ? » → la **NCA** peut suffire.
@@ -43,7 +43,7 @@ Choisir la méthode, c'est choisir la bonne échelle de carte. Les trois peuvent
 :::
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s06,s07" viz="04_ThreeApproaches" -->
+<!-- step:title="Intuition" slides="s23,s56" viz="04_ThreeApproaches" -->
 Imaginez que chaque patient bâtit avec la même boîte de blocs.
 
 - La **NCA** mesure la construction finie : hauteur, largeur, surface totale.
@@ -53,7 +53,7 @@ Imaginez que chaque patient bâtit avec la même boîte de blocs.
 La NCA est une règle graduée ; la PopPK, un modèle de classe ; la PBPK, un plan de bâtiment — puissant, mais chaque nouvelle pièce exige des hypothèses.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" slides="s08" viz="AUCTrap" -->
+<!-- step:title="La formule décortiquée" slides="s34" viz="AUCTrap" -->
 La NCA résume souvent l'exposition par l'aire sous la courbe :
 
 $$ \mathrm{AUC}_{0-\infty} \approx \mathrm{AUC}_{0-t} + \frac{C_t}{\lambda_z} $$
@@ -67,7 +67,7 @@ $$ CL_i = CL_{\mathrm{typique}} \cdot e^{\eta_i} $$
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s07,s08" viz="12_VariabilitySandbox" -->
+<!-- step:title="Exemple concret" slides="s45" viz="12_VariabilitySandbox" -->
 Supposons que les concentrations de warfarine varient beaucoup après des doses similaires.
 
 La NCA dit *quels* patients ont eu l'AUC la plus élevée. La PopPK demande si la clairance dépend du poids, du génotype, de l'âge ou de médicaments associés. La PBPK explore des mécanismes (métabolisme hépatique, distribution tissulaire), au prix d'hypothèses physiologiques supplémentaires.
@@ -75,7 +75,7 @@ La NCA dit *quels* patients ont eu l'AUC la plus élevée. La PopPK demande si l
 C'est **la question pratique** qui décide de l'outil.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s09" -->
+<!-- step:title="Piège fréquent" slides="s45" -->
 N'utilisez pas la NCA comme si elle était prédictive.
 
 :::pitfall
