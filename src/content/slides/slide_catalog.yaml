@@ -1,668 +1,673 @@
-# Slide catalog — English version
+# Catalogue des slides — version française, alignée sur les diapositives réelles
+# exportées (static/slides/slide-XX.png). Reconstruit en lisant chaque PNG :
+# les titres/objectifs décrivent désormais le contenu réel du deck
+# « Pharmacométrie Pratique » (R. Berrah, M. Ursino — Inserm / Université de Limoges).
+# NB : l'ordre des fichiers PNG ne suit pas le fil narratif de la présentation ;
+# chaque entrée décrit le CONTENU réel du fichier correspondant.
 
 - slide: 1
   id: "s01"
   file: "slide-01.png"
-  title: "PK: Definition"
-  purpose: "Explain what the body does to the drug (ADME)."
-  key_points: ["Pharmacokinetics (PK)", "Absorption, Distribution, Metabolism, Elimination", "Anatomical view"]
+  title: "Introduction à la pharmacométrie"
+  purpose: "Diapositive de titre du cours."
+  key_points: ["Titre", "Auteurs : R. Berrah, M. Ursino", "Inserm · Université de Limoges"]
   tags: ["intro"]
-  suggested_module: "intro-pkpd"
-  speaker_notes: "What you see: organs and drug trajectory. PK quantifies ADME."
+  suggested_module: "pourquoi-pharmacometrie"
+  speaker_notes: "Ouverture du cours de pharmacométrie pratique."
 - slide: 2
   id: "s02"
   file: "slide-02.png"
-  title: "PK Clinical Implication"
-  purpose: "Link PK to dose selection."
-  key_points: ["Reach the right concentration", "Don't confuse slow absorption with low clearance"]
-  tags: ["intro"]
-  suggested_module: "intro-pkpd"
-  speaker_notes: "Implication: choose the right dose. Pitfall: confusing slow absorption with low clearance."
+  title: "Le problème : « one size fits all » ne marche pas"
+  purpose: "Distinguer PK et PD et motiver l'individualisation."
+  key_points: ["PK = ce que le corps fait au médicament (ADME)", "PD = ce que le médicament fait au corps", "Variabilité d'exposition et de réponse"]
+  tags: ["intro", "pk", "pd"]
+  suggested_module: "pourquoi-pharmacometrie"
+  speaker_notes: "Cartes PK vs PD ; une même dose ne convient pas à tous."
 - slide: 3
   id: "s03"
   file: "slide-03.png"
-  title: "PD: Definition"
-  purpose: "Explain what the drug does to the body."
-  key_points: ["Pharmacodynamics (PD)", "Concentration–effect relationship", "Efficacy and toxicity"]
-  tags: ["intro"]
-  suggested_module: "intro-pkpd"
-  speaker_notes: "Efficacy/toxicity depend on exposure. Measuring concentration alone is not enough; link to effect."
+  title: "Construire un modèle : comme un Lego"
+  purpose: "Présenter la construction d'un modèle PK bloc par bloc."
+  key_points: ["Compartiments central/périphériques", "Absorption, élimination, Q, CL, ka", "Bloc par bloc, équation par équation"]
+  tags: ["model"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Analogie Lego : chaque brique = un processus / une équation."
 - slide: 4
   id: "s04"
   file: "slide-04.png"
-  title: "Inter-individual Variability (IIV)"
-  purpose: "Show that the same dose yields different outcomes."
-  key_points: ["Response variability", "Differences between patients", "One-size dose fails"]
-  tags: ["intro"]
-  suggested_module: "intro-pkpd"
-  speaker_notes: "Same dose, different responses. The '100 mg for all' strategy fails for some patients."
+  title: "Comment construire un modèle (1/5)"
+  purpose: "Étape 1 du workflow : modèle structural → modèle final."
+  key_points: ["Modèle structural", "Mono / bi-compartimental, transit, Tlag, MM"]
+  tags: ["model", "workflow"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Diagramme de workflow, révélé progressivement au fil du cours."
 - slide: 5
   id: "s05"
   file: "slide-05.png"
-  title: "Intra-individual Variability (IOV)"
-  purpose: "Distinguish between patient-to-patient and occasion variability."
-  key_points: ["IOV vs IIV", "Variability within the same patient", "Measurement error vs biology"]
-  tags: ["intro"]
-  suggested_module: "intro-pkpd"
-  speaker_notes: "Pitfall: attributing all variability to measurement error."
+  title: "Modèle structural : approche A.D.E. (ADME)"
+  purpose: "Vue d'ensemble Absorption / Distribution / Élimination."
+  key_points: ["Absorption : Tlag, transit, ordre 0/1", "Distribution : 1/2/3 compartiments", "Élimination : linéaire, Michaelis-Menten"]
+  tags: ["model", "adme"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Trois cartes ADME résumant les briques structurales."
 - slide: 6
   id: "s06"
   file: "slide-06.png"
-  title: "NCA Approach"
-  purpose: "Introduce non-compartmental analysis."
-  key_points: ["Exposure (AUC)", "Trapezoidal method", "Robust but descriptive"]
-  tags: ["approaches"]
-  suggested_module: "trois-approches"
-  speaker_notes: "NCA computes exposure without a model. Robust but not predictive."
+  title: "Métabolisation : l'élimination « chimique »"
+  purpose: "Expliquer le rôle du foie et des métabolites."
+  key_points: ["Foie = usine chimique", "Métabolite ≠ molécule mère", "Excrétion vs métabolisme"]
+  tags: ["adme", "elimination"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "La molécule mère « disparaît » = éliminée, même si un métabolite subsiste."
 - slide: 7
   id: "s07"
   file: "slide-07.png"
-  title: "PopPK Approach (1/2)"
-  purpose: "Introduce population modeling."
-  key_points: ["Compartment model", "Spaghetti plot", "Explain variability"]
-  tags: ["approaches"]
-  suggested_module: "trois-approches"
-  speaker_notes: "Spaghetti + distribution. Compartment model with random effects."
+  title: "Structural — Absorption : profils"
+  purpose: "Comparer les profils d'absorption."
+  key_points: ["Absorption orale 1er ordre", "Temps de latence (Tlag)", "3 compartiments de transit"]
+  tags: ["absorption"]
+  suggested_module: "absorption-orale"
+  speaker_notes: "Graphe comparant Ka, Tlag et modèle de transit."
 - slide: 8
   id: "s08"
   file: "slide-08.png"
-  title: "PopPK Approach (2/2)"
-  purpose: "Detail PopPK advantages."
-  key_points: ["Simulation", "Individualization", "Handles variability"]
-  tags: ["approaches"]
-  suggested_module: "trois-approches"
-  speaker_notes: "Enables simulation and individualization. Pitfall: mis-specified residual variability."
+  title: "Structural — Distribution : tri-exponentialité"
+  purpose: "Comparer 1, 2 et 3 compartiments (échelle log)."
+  key_points: ["1 compartiment", "2 compartiments", "3 compartiments (phases accentuées)"]
+  tags: ["distribution"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Nombre de compartiments = nombre de phases sur la courbe semi-log."
 - slide: 9
   id: "s09"
   file: "slide-09.png"
-  title: "PBPK Approach"
-  purpose: "Present physiologically based modeling."
-  key_points: ["Organ network", "Bottom-up mechanism", "DDI assessment"]
-  tags: ["approaches"]
-  suggested_module: "trois-approches"
-  speaker_notes: "Useful when clinical data are sparse. Pitfall: over-parameterization without data."
+  title: "Structural — Élimination : linéaire vs Michaelis-Menten"
+  purpose: "Opposer élimination d'ordre 1 et saturable."
+  key_points: ["Linéaire (ordre 1)", "Michaelis-Menten (saturable)", "Km"]
+  tags: ["elimination"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "MM : élimination saturable, la courbe plonge une fois C < Km."
 - slide: 10
   id: "s10"
   file: "slide-10.png"
-  title: "Hydraulic Analogy: Volume"
-  purpose: "Explain Volume of distribution (V) as a tank width."
-  key_points: ["Tank = Concentration", "Width = Volume V", "V controls level"]
-  tags: ["model"]
-  suggested_module: "modele-compartimental"
-  speaker_notes: "Larger V lowers the level for the same dose."
+  title: "Attention aux données disponibles ! (degrés de liberté)"
+  purpose: "Introduire l'identifiabilité : DoF = N − P."
+  key_points: ["DoF = N points − P paramètres", "Données insuffisantes = infinité de solutions", "Assez de points = estimation robuste"]
+  tags: ["estimation", "identifiability"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Balance points/paramètres ; sans DoF suffisants, V et CL non identifiables."
 - slide: 11
   id: "s11"
   file: "slide-11.png"
-  title: "Hydraulic Analogy: Clearance"
-  purpose: "Explain Clearance (CL) as a tap."
-  key_points: ["Tap = Clearance", "Emptying speed", "Outflow rate"]
-  tags: ["model"]
-  suggested_module: "modele-compartimental"
-  speaker_notes: "CL controls emptying speed. Wider tap → faster emptying."
+  title: "Comment construire un modèle (2/5)"
+  purpose: "Ajout de la variabilité au workflow."
+  key_points: ["Modèle structural → Variabilité → Final", "IIV, IOV"]
+  tags: ["model", "workflow", "variability"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "Le workflow gagne la brique « Variabilité »."
 - slide: 12
   id: "s12"
   file: "slide-12.png"
-  title: "Differential Equation"
-  purpose: "Formalize the 1-compartment model."
-  key_points: ["dA/dt = -k·A", "k = CL/V", "Half-life t½"]
-  tags: ["model"]
-  suggested_module: "modele-compartimental"
-  speaker_notes: "Exponential solution. Pitfall: t½ depends on V and CL, not CL alone."
+  title: "EDO : le concept de « flux » (modèle hydraulique)"
+  purpose: "Analogie hydraulique de l'équation différentielle."
+  key_points: ["Réservoirs reliés par un tuyau", "Robinet = clairance", "Flux ≈ clairance × ΔNiveau ; C(t)=Dose/V·e^(-CL/V·t)"]
+  tags: ["model", "ode"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Débit dépend du diamètre du tuyau (CL) et du niveau (concentration)."
 - slide: 13
   id: "s13"
   file: "slide-13.png"
-  title: "ADME: Absorption"
-  purpose: "Introduce ADME steps."
-  key_points: ["Systemic entry", "Physiological barriers"]
-  tags: ["adme"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Path before reaching systemic circulation."
+  title: "Variabilité en PKpop : modèles à effets mixtes"
+  purpose: "Distinguer effets fixes (θ) et aléatoires (η)."
+  key_points: ["Effet fixe θ = patient typique", "Effet aléatoire η = écart individuel", "CLᵢ = CL_pop · e^ηᵢ"]
+  tags: ["variability", "mixed-effects"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "L'exponentielle garantit une clairance positive."
 - slide: 14
   id: "s14"
   file: "slide-14.png"
-  title: "ADME: Distribution"
-  purpose: "Show tissue distribution."
-  key_points: ["Blood vs tissues", "Apparent volume"]
-  tags: ["adme"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Drug does not stay only in blood."
+  title: "La hiérarchie de la variabilité (IIV vs IOV)"
+  purpose: "Séparer variabilité inter-individuelle et inter-occasion."
+  key_points: ["IIV : entre patients (≈ constant par patient)", "IOV : chez un même patient, entre occasions", "Si IOV > IIV, le TDM devient difficile"]
+  tags: ["variability", "iiv", "iov"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "Danger clinique : forte IOV = patient qui change constamment."
 - slide: 15
   id: "s15"
   file: "slide-15.png"
-  title: "ADME: Metabolism"
-  purpose: "Explain drug transformation."
-  key_points: ["Liver", "Enzymes", "Metabolites"]
-  tags: ["adme"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Chemical transformation before elimination."
+  title: "Comment construire un modèle (3/5)"
+  purpose: "Ajout du modèle d'erreur résiduelle au workflow."
+  key_points: ["+ Modèle d'erreur résiduelle", "Proportionnelle / additive / combinée"]
+  tags: ["model", "workflow", "residual-error"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "Le workflow gagne la brique « erreur résiduelle »."
 - slide: 16
   id: "s16"
   file: "slide-16.png"
-  title: "ADME: Elimination"
-  purpose: "Describe excretion routes."
-  key_points: ["Kidneys", "Bile", "Total clearance"]
-  tags: ["adme"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Final exit of drug from body."
+  title: "Erreur résiduelle (ε)"
+  purpose: "Définir l'erreur inexpliquée et ses modèles."
+  key_points: ["Additive ε_add (bruit de fond)", "Proportionnelle ε_prop (% de la valeur)", "Combinée : y = f + (f·ε_prop + ε_add)"]
+  tags: ["residual-error"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "Écart entre prédiction du modèle et réalité observée au laboratoire."
 - slide: 17
   id: "s17"
   file: "slide-17.png"
-  title: "Lag-time (Tlag)"
-  purpose: "Explain the delay before absorption."
-  key_points: ["Latency period", "Zero concentration initially", "Dissolution"]
-  tags: ["absorption"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "If t < Tlag, C = 0. Pitfall: forgetting lag → curve starts too early."
+  title: "Erreur résiduelle : illustration (tacrolimus)"
+  purpose: "Visualiser l'impact du niveau d'erreur résiduelle."
+  key_points: ["Sans erreur", "Faible (prop 5 %)", "Plus forte (prop 12 %, add 0,05)"]
+  tags: ["residual-error"]
+  suggested_module: "variabilite-iiv-iov"
+  speaker_notes: "Plus l'erreur est grande, plus la courbe a de « marge » autour des points."
 - slide: 18
   id: "s18"
   file: "slide-18.png"
-  title: "Bateman Absorption (1/2)"
-  purpose: "Present the classic absorption profile."
-  key_points: ["Absorption constant Ka", "Competition in/out"]
-  tags: ["absorption"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Ka drives the rise, CL/V the fall."
+  title: "Comment construire un modèle (4/5)"
+  purpose: "Ajout de l'effet des covariables au workflow."
+  key_points: ["+ Effet des covariables", "Âge, sexe, poids"]
+  tags: ["model", "workflow", "covariates"]
+  suggested_module: "allometrie"
+  speaker_notes: "Le workflow gagne la brique « covariables »."
 - slide: 19
   id: "s19"
   file: "slide-19.png"
-  title: "Bateman Absorption (2/2)"
-  purpose: "Analyze Bateman equation."
-  key_points: ["Double exponential", "Impact of Ka vs Ke"]
-  tags: ["absorption"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Formula: (Dose/V) * (Ka/(Ka-Ke)) * (exp(-Ke*t) - exp(-Ka*t))."
+  title: "Covariables : l'enquête"
+  purpose: "Expliquer une partie de la variabilité par la physiologie."
+  key_points: ["Morphologie : poids, taille, SC", "Organes : créatinine, bilirubine", "Démographie : âge, sexe"]
+  tags: ["covariates"]
+  suggested_module: "allometrie"
+  speaker_notes: "Pourquoi ce patient diffère-t-il ? → médecine personnalisée."
 - slide: 20
   id: "s20"
   file: "slide-20.png"
-  title: "Tmax and Cmax"
-  purpose: "Understand secondary exposure parameters."
-  key_points: ["Ka and Tlag impact Tmax", "V and CL impact Cmax"]
-  tags: ["absorption"]
-  suggested_module: "absorption-orale"
-  speaker_notes: "Pitfall: low Cmax could be long lag, not low bioavailability."
+  title: "Allométrie : la loi de la taille"
+  purpose: "Justifier la mise à l'échelle par le poids."
+  key_points: ["Un enfant n'est pas un petit adulte", "CL = CL_std · (WT/70)^0,75", "V : exposant souvent 1"]
+  tags: ["covariates", "allometry"]
+  suggested_module: "allometrie"
+  speaker_notes: "La physiologie suit des lois de puissance, pas linéaires."
 - slide: 21
   id: "s21"
   file: "slide-21.png"
-  title: "Modeling IIV"
-  purpose: "Formalize inter-individual variability."
-  key_points: ["Individual parameters", "Log-normal law", "Random effect η"]
-  tags: ["variability"]
-  suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "Each patient has their own η. CL_i = CL_pop * exp(η_i)."
+  title: "Codage des covariables"
+  purpose: "Intégrer une covariable dans l'équation d'un paramètre."
+  key_points: ["Quantitative : P = P_pop·(COV/COV_med)^β", "Qualitative : P = P_pop·e^(β·CAT)", "Centrage sur la médiane"]
+  tags: ["covariates"]
+  suggested_module: "allometrie"
+  speaker_notes: "Une covariable continue peut être transformée en catégorielle."
 - slide: 22
   id: "s22"
   file: "slide-22.png"
-  title: "Modeling IOV"
-  purpose: "Formalize inter-occasion variability."
-  key_points: ["Temporal variation", "Random effect κ", "Impact on TDM"]
-  tags: ["variability"]
-  suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "If IOV > IIV, TDM becomes difficult. Pitfall: misinterpreting as non-adherence."
+  title: "Covariables & pièges : le workflow"
+  purpose: "Sélection des covariables et piège du shrinkage."
+  key_points: ["Forward : ΔOFV < −3,84 (p<0,05)", "Backward : ΔOFV > 6,63 (p<0,01)", "Piège shrinkage : ne pas utiliser les EBE si shrinkage fort"]
+  tags: ["covariates", "diagnostic"]
+  suggested_module: "allometrie"
+  speaker_notes: "Attention à la plausibilité et à la colinéarité (poids vs IMC)."
 - slide: 23
   id: "s23"
   file: "slide-23.png"
-  title: "Residual Error (1/2)"
-  purpose: "Explain model vs reality gap."
-  key_points: ["IPRED vs DV", "Additive error", "Measurement noise"]
-  tags: ["variability"]
-  suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "What remains unexplained by structure and variabilities."
+  title: "3 approches en pharmacométrie (NCA / PopPK / PBPK)"
+  purpose: "Comparer les trois grandes familles d'analyse."
+  key_points: ["NCA : descriptif, laisse parler les données", "PopPK : top-down, variabilité, simulation", "PBPK : bottom-up, organe par organe"]
+  tags: ["approaches", "nca", "poppk", "pbpk"]
+  suggested_module: "trois-approches"
+  speaker_notes: "PopPK mis en avant comme standard du cours."
 - slide: 24
   id: "s24"
   file: "slide-24.png"
-  title: "Residual Error (2/2)"
-  purpose: "Choose the right error model."
-  key_points: ["Proportional error", "Combined error", "Weighting low concentrations"]
-  tags: ["error"]
-  suggested_module: "variabilite-iiv-iov"
-  speaker_notes: "Pitfall: applying error to IPRED instead of simulating DV dispersion."
+  title: "Comment construire un modèle (5/5)"
+  purpose: "Vérification finale et bootstrap."
+  key_points: ["Vérifier forward/backward une dernière fois", "Bootstrap (×500) pour la stabilité"]
+  tags: ["model", "workflow", "validation"]
+  suggested_module: "validation-vpc"
+  speaker_notes: "Dernière étape du workflow avant le modèle final."
 - slide: 25
   id: "s25"
   file: "slide-25.png"
-  title: "Equation Recap"
-  purpose: "Synthesize 1-compartment IV model."
-  key_points: ["Integration", "Declining profile", "Key parameters"]
-  tags: ["model"]
-  suggested_module: "modele-compartimental"
-  speaker_notes: "Back to fundamentals before covariates."
+  title: "Le bootstrap : tester la robustesse du modèle"
+  purpose: "Expliquer le rééchantillonnage et l'intervalle de confiance."
+  key_points: ["« Clonage virtuel » (rééchantillonnage)", "1000 études virtuelles", "IC 95 % étroit = modèle robuste"]
+  tags: ["validation", "bootstrap"]
+  suggested_module: "validation-vpc"
+  speaker_notes: "Sert à calculer l'incertitude (IC) des paramètres, pas juste une moyenne."
 - slide: 26
   id: "s26"
   file: "slide-26.png"
-  title: "Allometry: The Problem"
-  purpose: "Why not simple mg/kg?"
-  key_points: ["Physiology–weight is non-linear", "Power law", "Child vs adult"]
-  tags: ["covariates"]
-  suggested_module: "allometrie"
-  speaker_notes: "Weight–parameter relationship is not linear."
+  title: "Pharmacodynamie"
+  purpose: "Relier concentration et effet (PD vs PK)."
+  key_points: ["Effet vs log(concentration)", "Même workflow, données = effets", "Modélisation conjointe PK/PD"]
+  tags: ["pkpd"]
+  suggested_module: "pkpd"
+  speaker_notes: "L'abscisse n'est plus le temps mais la concentration."
 - slide: 27
   id: "s27"
   file: "slide-27.png"
-  title: "Allometric Law for CL"
-  purpose: "Present the standard exponent."
-  key_points: ["Exponent 0.75", "Basal metabolism", "Kleiber's law"]
-  tags: ["covariates"]
-  suggested_module: "allometrie"
-  speaker_notes: "CL scales with weight^0.75."
+  title: "Différents types d'effet (évolution des modèles PD)"
+  purpose: "Montrer la montée en complexité des modèles PD."
+  key_points: ["Modèle à effet fixe", "Modèle linéaire E = C·m", "Modèle log-linéaire E = m·log C"]
+  tags: ["pkpd"]
+  suggested_module: "pkpd"
+  speaker_notes: "Les fonctions concentration→effet se complexifient avec le temps."
 - slide: 28
   id: "s28"
   file: "slide-28.png"
-  title: "Standardization (Centering)"
-  purpose: "Importance of the reference weight."
-  key_points: ["Standard weight 70 kg", "Parameter interpretation", "Parameter correlation"]
-  tags: ["covariates"]
-  suggested_module: "allometrie"
-  speaker_notes: "Always center on 70 kg: CL = CL_std * (WT/70)^0.75."
+  title: "Différents types d'effet (Emax et Hill)"
+  purpose: "Introduire Emax, sigmoïde et coefficient de Hill."
+  key_points: ["Log-linéaire → Emax → Emax sigmoïde", "E = Emax·C^n/(CE50^n+C^n)", "Coefficient de Hill = raideur"]
+  tags: ["pkpd", "emax"]
+  suggested_module: "pkpd"
+  speaker_notes: "Le facteur de forme (Hill) rend la courbe plus ou moins « tout ou rien »."
 - slide: 29
   id: "s29"
   file: "slide-29.png"
-  title: "Linear vs Allometric"
-  purpose: "Visualize gap between approaches."
-  key_points: ["Pediatric underdosing", "Power curve vs straight line"]
-  tags: ["covariates"]
-  suggested_module: "allometrie"
-  speaker_notes: "Visual comparison: allometric curve (blue) vs linear line (orange)."
+  title: "Piège : la fenêtre d'observation 20–80 %"
+  purpose: "Ne pas confondre modèle apparent et vrai modèle."
+  key_points: ["Entre 20 et 80 % de l'effet, tout paraît linéaire", "Gamme complète = vrai modèle sigmoïde", "E = Emax·C^n/(EC50^n+C^n)"]
+  tags: ["pkpd", "pitfall"]
+  suggested_module: "pkpd"
+  speaker_notes: "Il faut des données hors de 20–80 % pour distinguer les modèles."
 - slide: 30
   id: "s30"
   file: "slide-30.png"
-  title: "Pediatric Application"
-  purpose: "Dose adjustment consequences."
-  key_points: ["mg/kg?", "Allometric adjustment", "Safety"]
-  tags: ["covariates"]
-  suggested_module: "allometrie"
-  speaker_notes: "Adjust pediatric dose without underdosing."
+  title: "PK/PD : effets directs et indirects"
+  purpose: "Distinguer effet immédiat et effet retardé."
+  key_points: ["Même Tmax = effet direct (même compartiment)", "Tmax différents = effet indirect", "Décalage PK/PD"]
+  tags: ["pkpd", "delay"]
+  suggested_module: "pkpd"
+  speaker_notes: "Cas simple : réutiliser directement un modèle vu avant."
 - slide: 31
   id: "s31"
   file: "slide-31.png"
-  title: "Diagnostics Intro"
-  purpose: "Transition to model evaluation."
-  key_points: ["Goodness of fit", "Observed vs Predicted"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "How to tell if the model describes data well?"
+  title: "Effet indirect : 2 cas"
+  purpose: "Décrire hystérèse horaire et mécanismes."
+  key_points: ["Métabolites actifs / efflux", "Down/up-regulation des récepteurs", "Rétrocontrôles physiologiques"]
+  tags: ["pkpd", "delay"]
+  suggested_module: "pkpd"
+  speaker_notes: "Boucle d'hystérèse E vs C selon le sens du décalage."
 - slide: 32
   id: "s32"
   file: "slide-32.png"
-  title: "Emax Model"
-  purpose: "Present simple concentration–effect model."
-  key_points: ["Emax", "EC50", "Effect plateau"]
-  tags: ["pkpd"]
+  title: "Effet indirect : modèle de l'effet-compartiment (Sheiner)"
+  purpose: "Introduire le compartiment d'effet (ke0)."
+  key_points: ["Compartiment d'effet = périphérique ou distinct", "ke0 (constante d'équilibrage)", "Décalage PK/PD expliqué"]
+  tags: ["pkpd", "delay"]
   suggested_module: "pkpd"
-  speaker_notes: "Intuition: saturation at high concentrations."
+  speaker_notes: "L'« effet » n'est pas forcément dans un compartiment PK."
 - slide: 33
   id: "s33"
   file: "slide-33.png"
-  title: "Emax Parameters"
-  purpose: "Interpret EC50."
-  key_points: ["Concentration for 50% effect", "Sensitivity", "Estimation precision"]
-  tags: ["pkpd"]
+  title: "Effet indirect : le turnover"
+  purpose: "Modéliser la réponse comme un système en renouvellement."
+  key_points: ["Production kin, dégradation kout", "dR/dt = kin − kout·R", "Le médicament agit sur kin ou kout"]
+  tags: ["pkpd", "turnover"]
   suggested_module: "pkpd"
-  speaker_notes: "Pitfall: EC50 imprecise if data only 20–80% of effect."
+  speaker_notes: "Le médicament agit sur les processus qui contrôlent R, pas sur R directement."
 - slide: 34
   id: "s34"
   file: "slide-34.png"
-  title: "Sigmoid Model"
-  purpose: "Introduce Hill coefficient."
-  key_points: ["Hill/gamma shape factor", "Curve slope", "All-or-none"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "Hill > 1 makes curve steeper (switch-like)."
+  title: "Analyse non compartimentale (NCA)"
+  purpose: "Présenter l'approche « model-independent »."
+  key_points: ["Basée sur algèbre/géométrie", "Règle des trapèzes pour l'AUC", "Cmax, Tmax, AUC"]
+  tags: ["nca", "approaches"]
+  suggested_module: "trois-approches"
+  speaker_notes: "Descriptif : ne suppose aucun modèle compartimental."
 - slide: 35
   id: "s35"
   file: "slide-35.png"
-  title: "Hill Visualization"
-  purpose: "Compare different Hill values."
-  key_points: ["Hill=1 vs Hill>1", "Clinical impact"]
-  tags: ["pkpd"]
+  title: "Effet turnover : 4 mécanismes (Sharma & Jusko)"
+  purpose: "Détailler inhibition/stimulation de kin/kout."
+  key_points: ["Inhibition kin / kout", "Stimulation kin / kout", "dR/dt avec Imax/Smax, IC50/SC50"]
+  tags: ["pkpd", "turnover"]
   suggested_module: "pkpd"
-  speaker_notes: "Influences therapeutic window."
+  speaker_notes: "Quatre équations selon la cible (production/dégradation) et le sens."
 - slide: 36
   id: "s36"
   file: "slide-36.png"
-  title: "Indirect Response (Turnover)"
-  purpose: "Model effect delay mechanistically."
-  key_points: ["Production (kin)", "Elimination (kout)", "Inhibition/Stimulation"]
-  tags: ["pkpd"]
+  title: "Et plus… (précurseur, distribution Gamma)"
+  purpose: "Ouvrir vers des modèles PD plus avancés."
+  key_points: ["Effet indirect avec précurseur", "Distribution Gamma (transduction)", "Modèles V/VI"]
+  tags: ["pkpd", "advanced"]
   suggested_module: "pkpd"
-  speaker_notes: "Effect not instantaneous vs concentration."
+  speaker_notes: "Modèles de transduction / temps de transduction τ."
 - slide: 37
   id: "s37"
   file: "slide-37.png"
-  title: "Turnover Equation"
-  purpose: "Understand PD differential equation."
-  key_points: ["dR/dt", "Act on kin or kout", "Homeostasis"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "dR/dt = kin·(1 ± f(C)) − kout·R."
+  title: "Pause / transition"
+  purpose: "Transition vers la partie pratique."
+  key_points: ["Pause", "Suite : exemple pratique sur un jeu de données"]
+  tags: ["transition"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Diapositive de transition vers l'estimation pratique."
 - slide: 38
   id: "s38"
   file: "slide-38.png"
-  title: "PK vs PD Delay"
-  purpose: "Differentiate delay sources."
-  key_points: ["Hysteresis", "Distribution delay (PK)", "Physiologic delay (PD)"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "PD delay comes from kout (receptor/cell turnover)."
+  title: "Le paysage logiciel"
+  purpose: "Situer les principaux outils d'estimation."
+  key_points: ["NONMEM (référence historique)", "Monolix (interface, SAEM)", "R / nlmixr2 (open-source)"]
+  tags: ["tools"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Trois familles d'outils, du gold standard réglementaire à l'open-source."
 - slide: 39
   id: "s39"
   file: "slide-39.png"
-  title: "Turnover Simulation"
-  purpose: "Visualize time course of effect."
-  key_points: ["Time lag", "Return to baseline"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "Pitfall: attributing PD delay to PK distribution."
+  title: "Estimation : le format des données"
+  purpose: "Structurer les données pour l'estimation."
+  key_points: ["Colonnes ID, TIME, DV, AMT", "Covariables (CYP, HT, SEX)", "EVID (observation vs administration)"]
+  tags: ["tools", "data"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Sans format correct, pas d'estimation possible ; attention à EVID."
 - slide: 40
   id: "s40"
   file: "slide-40.png"
-  title: "PK/PD Quiz (1)"
-  purpose: "Check understanding of parameters."
-  key_points: ["EC50 definition", "Hill role"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "Interactive questions."
+  title: "Estimation : exemple de code"
+  purpose: "Montrer un modèle codé (Monolix / mrgsolve)."
+  key_points: ["Bibliothèque de structures (admin/absorption/…)", "Code mrgsolve annoté", "Paramètres, ETA, OMEGA, SIGMA"]
+  tags: ["tools", "code"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Exemple concret de définition d'un modèle popPK avec Tlag et transit."
 - slide: 41
   id: "s41"
   file: "slide-41.png"
-  title: "PK/PD Quiz (2)"
-  purpose: "Check PK/PD distinction."
-  key_points: ["Equilibrium delay", "Indirect mechanism"]
-  tags: ["pkpd"]
-  suggested_module: "pkpd"
-  speaker_notes: "Questions on hysteresis."
+  title: "Estimation : FOCE-I vs SAEM"
+  purpose: "Comparer deux algorithmes d'estimation."
+  key_points: ["FOCE-I : déterministe (NONMEM)", "SAEM : stochastique (Monolix, nlmixr2)", "SAEM plus robuste pour modèles complexes"]
+  tags: ["tools", "estimation"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "FOCE peut rester bloqué dans un minimum local ; SAEM explore l'espace."
 - slide: 42
   id: "s42"
   file: "slide-42.png"
-  title: "Fit Quality"
-  purpose: "Intro to diagnostic plots."
-  key_points: ["Bias", "Precision", "Standard plots"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Transition to evaluation tools (VPC, etc.)."
+  title: "Estimation : qu'est-ce que le SAEM ?"
+  purpose: "Décrire le cycle S-A-M de l'algorithme SAEM."
+  key_points: ["Étape S : exploration (échantillonnage)", "Étapes A1/A2 : approximation stochastique", "Étape M : maximisation (θ)"]
+  tags: ["tools", "estimation"]
+  suggested_module: "outils-estimation"
+  speaker_notes: "Cycle Initialisation → S → A → M → convergence."
 - slide: 43
   id: "s43"
   file: "slide-43.png"
-  title: "Data Format"
-  purpose: "Structure data for analysis (NONMEM/Monolix)."
-  key_points: ["Required columns (ID, TIME, DV)", "EVID", "Flagging"]
-  tags: ["tools"]
-  suggested_module: "outils-estimation"
-  speaker_notes: "No proper format → cannot estimate. Pitfall: EVID=0 vs EVID=1."
+  title: "Validation numérique"
+  purpose: "Présenter les critères chiffrés de validation."
+  key_points: ["Vraisemblance, RMSE/MSE/R²", "Fonction objectif ; AIC/BIC pénalisent la complexité", "RSE < 30–50 %, shrinkage < 30 %"]
+  tags: ["diagnostic", "validation"]
+  suggested_module: "validation-vpc"
+  speaker_notes: "Un AIC/BIC plus bas est utile mais insuffisant ; éviter le surajustement."
 - slide: 44
   id: "s44"
   file: "slide-44.png"
-  title: "Algorithms: FOCE vs SAEM"
-  purpose: "Compare estimation methods."
-  key_points: ["FOCE-I (Deterministic)", "SAEM (Stochastic)", "Convergence"]
-  tags: ["tools"]
-  suggested_module: "outils-estimation"
-  speaker_notes: "SAEM is more robust for complex models. Pitfall: reading SAEM noise as non-convergence."
+  title: "Validation graphique"
+  purpose: "Introduire les graphes diagnostiques standards."
+  key_points: ["Obs vs Pred", "Résidus", "VPC (le juge final)"]
+  tags: ["diagnostic", "validation", "vpc"]
+  suggested_module: "validation-vpc"
+  speaker_notes: "Trois familles de graphes, du plus simple au plus décisif (VPC)."
 - slide: 45
   id: "s45"
   file: "slide-45.png"
-  title: "VPC: Principle"
-  purpose: "Explain Visual Predictive Check."
-  key_points: ["Simulations vs observations", "Percentiles", "Visual validation"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Compare observed data to simulated percentiles."
+  title: "NCA : limites et solution PopPK"
+  purpose: "Justifier le passage de la NCA à la PopPK."
+  key_points: ["NCA : exige des données riches, descriptif", "PopPK : gère les données pauvres, prédit", "PopPK sépare BSV et erreur résiduelle"]
+  tags: ["nca", "poppk", "approaches"]
+  suggested_module: "trois-approches"
+  speaker_notes: "La NCA ne prédit pas ; la PopPK permet simulation et covariables."
 - slide: 46
   id: "s46"
   file: "slide-46.png"
-  title: "Binning (Grouping)"
-  purpose: "Why time-binning is needed."
-  key_points: ["Time intervals", "Stabilize stats", "Readability"]
+  title: "Observé vs prédit : le test de réalité"
+  purpose: "Distinguer prédictions population (PRED) et individuelles (IPRED)."
+  key_points: ["PRED : le patient typique (dispersion normale)", "IPRED : après adaptation bayésienne", "Les points IPRED doivent tomber sur la diagonale"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Binning makes tunnels readable."
+  speaker_notes: "Dispersion de PRED normale (l'IIV existe) ; IPRED sur la diagonale."
 - slide: 47
   id: "s47"
   file: "slide-47.png"
-  title: "Reading the VPC"
-  purpose: "Interpret confidence bands."
-  key_points: ["CI bands", "Median", "Extreme percentiles (P90/P10)"]
-  tags: ["diagnostic"]
+  title: "Résidus (IWRES) : la chasse au biais"
+  purpose: "Lire les résidus pondérés individuels."
+  key_points: ["On veut un « bruit blanc » centré sur 0 (−2/+2)", "Forme en banane = modèle linéaire faux", "Forme en éventail = erreur proportionnelle mal modélisée"]
+  tags: ["diagnostic", "residuals"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Blue bands (simulated) vs red points/lines (observed)."
+  speaker_notes: "Une tendance dans les résidus est un indice de mauvaise spécification."
 - slide: 48
   id: "s48"
   file: "slide-48.png"
-  title: "Bias Diagnosis"
-  purpose: "Spot mis-specification."
-  key_points: ["Outside tunnel", "Under-prediction", "Over-prediction"]
-  tags: ["diagnostic"]
+  title: "VPC : le « crash test »"
+  purpose: "Expliquer le Visual Predictive Check."
+  key_points: ["1000 études simulées (Monte Carlo)", "Lignes = données réelles (médiane, P5/P95)", "Zones = IC des simulations"]
+  tags: ["diagnostic", "vpc"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Systematic excursions → model bias."
+  speaker_notes: "Si les données réelles sortent des tunnels, le modèle ne peut pas simuler."
 - slide: 49
   id: "s49"
   file: "slide-49.png"
-  title: "VPC: Variability"
-  purpose: "Check variability estimation."
-  key_points: ["Tunnel width", "Observed dispersion"]
+  title: "Diagnostics techniques : stabilité & covariables"
+  purpose: "Présenter convergence, shrinkage et corrélations EBE."
+  key_points: ["Convergence (SAEM) : « chenille » stable", "Shrinkage : données riches ou pauvres ?", "Corrélations EBE vs covariables"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Does the model capture observed variability?"
+  speaker_notes: "Trois questions : calcul fini ? données informatives ? covariable oubliée ?"
 - slide: 50
   id: "s50"
   file: "slide-50.png"
-  title: "Crash Test: Binning (1)"
-  purpose: "Show impact of poor binning."
-  key_points: ["Bins too wide", "Information loss"]
+  title: "Diagnostics techniques : les graphes"
+  purpose: "Illustrer convergence, shrinkage et corrélations."
+  key_points: ["Historique d'itérations (θ, ω)", "Distributions et % de shrinkage", "Nuages EBE vs poids/sexe (régression)"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Over-smoothing hides problems."
+  speaker_notes: "FIM (Fisher) pour la précision ; estimation bayésienne pour les corrélations."
 - slide: 51
   id: "s51"
   file: "slide-51.png"
-  title: "Crash Test: Binning (2)"
-  purpose: "Impact of too many bins."
-  key_points: ["Excess noise", "Unstable percentiles"]
+  title: "Diagnostics : précision et identifiabilité"
+  purpose: "Compléter les diagnostics de stabilité (FIM)."
+  key_points: ["Précision des paramètres (RSE)", "Matrice d'information de Fisher", "Identifiabilité"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Too many bins → noisy tunnel."
+  speaker_notes: "Diagnostic technique lié à la FIM et à la précision des estimations."
 - slide: 52
   id: "s52"
   file: "slide-52.png"
-  title: "Crash Test: Binning (3)"
-  purpose: "Find the sweet spot."
-  key_points: ["Binning algorithms", "Visual balance"]
+  title: "Calcul de la FIM dans Monolix"
+  purpose: "Comparer les méthodes de calcul de la matrice de Fisher."
+  key_points: ["Linéarisation (rapide, approximatif)", "Approximation stochastique / MCMC (robuste)", "Usage diagnostique : conditionnement élevé = sur-paramétrisation"]
   tags: ["diagnostic"]
   suggested_module: "validation-vpc"
-  speaker_notes: "Toggle binning on/off: tunnel should stay coherent."
+  speaker_notes: "Conditionnement élevé de la FIM → paramètres corrélés → shrinkage."
 - slide: 53
   id: "s53"
   file: "slide-53.png"
-  title: "VPC Pitfalls"
-  purpose: "Identify visual artifacts."
-  key_points: ["Irregular sampling", "Interpolation"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Pitfall: binning irregular times without interpolation."
+  title: "Qu'est-ce que l'estimation bayésienne (EBE) ?"
+  purpose: "Poser le théorème de Bayes appliqué à l'individu."
+  key_points: ["A posteriori ∝ Vraisemblance × A priori", "A priori = PopPK ; Vraisemblance = mesure patient", "L'a posteriori = paramètres individuels (EBE)"]
+  tags: ["bayes", "ebes"]
+  suggested_module: "bayes-ebes"
+  speaker_notes: "L'a posteriori fournit les EBE, propres au patient, pour simuler la dose."
 - slide: 54
   id: "s54"
   file: "slide-54.png"
-  title: "Stratified VPC"
-  purpose: "Validate by subgroups."
-  key_points: ["Dose-stratified VPC", "Covariate stratification", "Local diagnostics"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Check model across subgroups."
+  title: "Estimation bayésienne et variabilité"
+  purpose: "Montrer l'effet des poids ω et σ sur l'a posteriori."
+  key_points: ["Le critère pèse résidu (σ) et variabilité (ω)", "Réduire σ ou augmenter ω → on croit les données", "Illustration pile/face avec prior_sd"]
+  tags: ["bayes"]
+  suggested_module: "bayes-ebes"
+  speaker_notes: "Changer l'erreur résiduelle ou la variabilité change les poids."
 - slide: 55
   id: "s55"
   file: "slide-55.png"
-  title: "Numeric Metrics"
-  purpose: "Complement visual diagnostics."
-  key_points: ["NPDE", "Weighted residuals"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Beyond visual VPC."
+  title: "Exemple : pile ou face ?"
+  purpose: "Illustrer prior / vraisemblance / posterior."
+  key_points: ["A priori, observé, a posteriori", "20/20 → posterior centré", "30/10, prior serré → posterior tiré vers la donnée"]
+  tags: ["bayes"]
+  suggested_module: "bayes-ebes"
+  speaker_notes: "Exemple pédagogique de mise à jour bayésienne sur une proportion."
 - slide: 56
   id: "s56"
   file: "slide-56.png"
-  title: "Bayesian Introduction"
-  purpose: "Transition to individual estimation."
-  key_points: ["Population vs individual", "Need to adapt"]
-  tags: ["diagnostic"]
-  suggested_module: "validation-vpc"
-  speaker_notes: "Bridge to next chapter."
+  title: "3 approches en pharmacométrie (variante PopPK)"
+  purpose: "Rappeler NCA/PopPK/PBPK, PopPK mise en avant."
+  key_points: ["NCA descriptif", "PopPK = standard (mise en avant)", "PBPK physiologique"]
+  tags: ["approaches", "poppk"]
+  suggested_module: "trois-approches"
+  speaker_notes: "Variante de la diapositive des 3 approches, carte PopPK surlignée."
 - slide: 57
   id: "s57"
   file: "slide-57.png"
-  title: "Bayes' Theorem"
-  purpose: "Foundation of MAP estimation."
-  key_points: ["Prior (Population)", "Likelihood (Patient)", "Posterior (Individual)"]
-  tags: ["bayes"]
+  title: "L'estimateur bayésien : à qui faire confiance ?"
+  purpose: "Arbitrer entre vraisemblance (patient) et a priori (modèle)."
+  key_points: ["Balance Vraisemblance (σ²) vs A priori (ω²)", "Forte IIV + faible erreur → on croit le patient", "Faible IIV + forte erreur → shrinkage vers la population"]
+  tags: ["bayes", "shrinkage"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "Posterior = Prior × Likelihood."
+  speaker_notes: "Compromis permanent entre ce que dit la population et le patient."
 - slide: 58
   id: "s58"
   file: "slide-58.png"
-  title: "Prior Influence"
-  purpose: "Show impact of prior information."
-  key_points: ["Data weight vs model weight", "Uncertainty"]
-  tags: ["bayes"]
+  title: "Usage des EBE : construire un modèle popPK"
+  purpose: "Utiliser les EBE pour comprendre la variabilité."
+  key_points: ["Objectif : variabilité individuelle dans la population", "Post-hoc = population + données individuelles", "Diagnostics et nouvelles covariables (corrélation)"]
+  tags: ["ebes", "bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "Wide prior → data dominate. Tight prior → model constrains."
+  speaker_notes: "Les EBE servent aux diagnostics et à repérer des covariables."
 - slide: 59
   id: "s59"
   file: "slide-59.png"
-  title: "EBEs (Empirical Bayes Estimates)"
-  purpose: "Define individual parameter estimates."
-  key_points: ["MAP estimate", "Individualization", "Use in TDM"]
-  tags: ["bayes"]
-  suggested_module: "bayes-ebes"
-  speaker_notes: "Most probable estimate for a given patient."
+  title: "Usage des EBE : precision dosing & TDM"
+  purpose: "Relier EBE et ajustement de dose individuel."
+  key_points: ["Prédire le profil concentration-temps individuel", "Guide l'ajustement de dose en clinique", "Outil : package mapbayR"]
+  tags: ["ebes", "tdm"]
+  suggested_module: "tdm"
+  speaker_notes: "IPRED (individuel) vs PRED (population) à partir de quelques points."
 - slide: 60
   id: "s60"
   file: "slide-60.png"
-  title: "EBE Limitations"
-  purpose: "Warn about EBE use."
-  key_points: ["Bias when data sparse", "Model dependence"]
-  tags: ["bayes"]
+  title: "Usage des EBE : modélisation bayésienne & essais adaptatifs"
+  purpose: "Étendre les EBE au bayésien complet et aux essais adaptatifs."
+  key_points: ["Bayésien complet (MCMC : Stan, WinBUGS)", "Utile en pédiatrie / maladies rares", "Essais adaptatifs (arrêt précoce, escalade de dose)"]
+  tags: ["ebes", "bayes"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "Great for TDM, but biased with poor data."
+  speaker_notes: "MCMC combine a priori et données quand la MLE peine."
 - slide: 61
   id: "s61"
   file: "slide-61.png"
-  title: "Shrinkage (1/2)"
-  purpose: "Define shrinkage."
-  key_points: ["Pull toward mean", "Lack of individual info"]
-  tags: ["bayes"]
+  title: "Usage des EBE : diagnostics de covariables"
+  purpose: "Repérer des relations paramètre-covariable via les EBE."
+  key_points: ["Paramètres post-hoc individuels", "Corrélation EBE vs covariable (ex. log(V) vs poids)", "Essentiel pour construire le modèle"]
+  tags: ["ebes", "covariates"]
   suggested_module: "bayes-ebes"
-  speaker_notes: "If data are weak, estimates shrink toward the population mean."
+  speaker_notes: "Une pente EBE vs poids suggère d'ajouter la covariable."
 - slide: 62
   id: "s62"
   file: "slide-62.png"
-  title: "Shrinkage (2/2)"
-  purpose: "Visualize shrinkage."
-  key_points: ["EBE vs theoretical distribution", "Variance loss"]
-  tags: ["bayes"]
-  suggested_module: "bayes-ebes"
-  speaker_notes: "Eta-shrinkage: EBE variance < omega²."
+  title: "Usage des EBE : precision dosing & TDM (profils)"
+  purpose: "Illustrer IPRED vs PRED sur un patient."
+  key_points: ["A priori population + prélèvements rares", "Profil individuel prédit (IPRED)", "Ajustement de dose personnalisé en temps réel"]
+  tags: ["ebes", "tdm"]
+  suggested_module: "tdm"
+  speaker_notes: "Courbe IPRED collant aux points, PRED de population en pointillés."
 - slide: 63
   id: "s63"
   file: "slide-63.png"
-  title: "Shrinkage Consequences"
-  purpose: "Impact on diagnostics."
-  key_points: ["False correlations", "Hidden covariates"]
-  tags: ["bayes"]
-  suggested_module: "bayes-ebes"
-  speaker_notes: "High shrinkage → EBE-based diagnostics can mislead."
+  title: "Pourquoi clusteriser les EBE ?"
+  purpose: "Utiliser les EBE pour découvrir des phénotypes."
+  key_points: ["Découverte de phénotypes (métaboliseurs lents/rapides)", "Génération d'hypothèses (biomarqueurs)", "Médecine de précision"]
+  tags: ["ai", "ebes"]
+  suggested_module: "neural-ode"
+  speaker_notes: "Le clustering des EBE ouvre vers l'IA et la médecine personnalisée."
 - slide: 64
   id: "s64"
   file: "slide-64.png"
-  title: "Handling Shrinkage"
-  purpose: "Practical remedies."
-  key_points: ["Richer design", "Use other diagnostics (VPC, sims)"]
-  tags: ["bayes"]
-  suggested_module: "bayes-ebes"
-  speaker_notes: "Improve design or avoid EBE-based diagnostics."
+  title: "Clustering des EBE (suite)"
+  purpose: "Illustrer le regroupement des estimations individuelles."
+  key_points: ["Regroupement des EBE", "Sous-populations", "Vers l'apprentissage non supervisé"]
+  tags: ["ai", "ebes"]
+  suggested_module: "neural-ode"
+  speaker_notes: "Transition entre EBE et méthodes d'apprentissage automatique."
 - slide: 65
   id: "s65"
   file: "slide-65.png"
-  title: "Modeling Paradigms"
-  purpose: "Compare White, Black, and Grey Box."
-  key_points: ["White box (mechanistic)", "Black box (DL)", "Grey box (hybrid)"]
-  tags: ["ml"]
+  title: "Le défi : l'explosion des données"
+  purpose: "Montrer la limite du modèle classique face aux données massives."
+  key_points: ["PopPK excelle avec 3–4 covariables", "Aujourd'hui : génomique, protéomique, capteurs", "Tester 50 variables à la main est impossible"]
+  tags: ["ai", "machine-learning"]
   suggested_module: "neural-ode"
-  speaker_notes: "White box: ODE only. Black box: NN only. Grey: ODE + NN."
+  speaker_notes: "Omics + objets connectés → besoin de méthodes automatiques."
 - slide: 66
   id: "s66"
   file: "slide-66.png"
-  title: "Standard Model Limit"
-  purpose: "Show failure case of classic model."
-  key_points: ["Unknown phenomenon", "Structural bias", "Absorption bump"]
-  tags: ["ml"]
+  title: "État de l'art : le rôle des modèles de ML"
+  purpose: "Cadrer l'apport du machine learning en TDM."
+  key_points: ["1. Sélection (Random Forest)", "2. Prédiction (XGBoost)", "3. Hybridation (Neural ODE)"]
+  tags: ["ai", "machine-learning"]
   suggested_module: "neural-ode"
-  speaker_notes: "Pure ODE misses a complexity (e.g., absorption bump)."
+  speaker_notes: "Trois rôles du ML ; réf. Sayadi et al. sur le TDM optimisé par ML."
 - slide: 67
   id: "s67"
   file: "slide-67.png"
-  title: "Ignorance vs Error"
-  purpose: "Don't confuse model miss and noise."
-  key_points: ["Model error (bias)", "Residual error (noise)"]
-  tags: ["ml"]
-  suggested_module: "neural-ode"
-  speaker_notes: "Pitfall: calling systematic deviation 'residual error'."
+  title: "Qu'est-ce qu'un modèle PK ?"
+  purpose: "Définir le modèle PK et ses usages."
+  key_points: ["Représentation mathématique du devenir du médicament", "Optimisation de dose (zone « Goldilocks »)", "Prédiction, populations particulières"]
+  tags: ["model"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Définition générale d'un modèle PK et de ses finalités."
 - slide: 68
   id: "s68"
   file: "slide-68.png"
-  title: "Neural ODE Concept"
-  purpose: "Add a neural corrective term."
-  key_points: ["dudt = f(u,t) + NN(u,t)", "Learn missing dynamics"]
-  tags: ["ml"]
+  title: "1. Sélection : l'algorithme VSURF"
+  purpose: "Sélectionner les variables par forêts aléatoires."
+  key_points: ["Forêt d'arbres de décision", "Score d'importance des variables", "Gère les interactions complexes"]
+  tags: ["ai", "machine-learning"]
   suggested_module: "neural-ode"
-  speaker_notes: "Add a small NN inside the differential equation."
+  speaker_notes: "Réf. mlu-explain.github.io/random-forest pour l'intuition."
 - slide: 69
   id: "s69"
   file: "slide-69.png"
-  title: "Neural Network Activation"
-  purpose: "Visualize correction."
-  key_points: ["Capture the bump", "Flexible adjustment"]
-  tags: ["ml"]
+  title: "2. TDM : l'alternative « arbres » (XGBoost)"
+  purpose: "Prédire l'exposition sans EDO via le ML."
+  key_points: ["Bayésien classique : dépend d'un bon modèle PK", "ML : apprend directement Concentration → AUC", "Non-paramétrique"]
+  tags: ["ai", "machine-learning", "tdm"]
   suggested_module: "neural-ode"
-  speaker_notes: "Adding NN(t) makes the curve fit complex patterns."
+  speaker_notes: "Réf. hybrid model iohexol (Destere et al.)."
 - slide: 70
   id: "s70"
   file: "slide-70.png"
-  title: "Grey Box Advantage"
-  purpose: "Keep interpretability."
-  key_points: ["PK parameters retain meaning", "Localized correction"]
-  tags: ["ml"]
+  title: "3. Modèles hybrides : Neural ODE"
+  purpose: "Fusionner physiologie (white box) et IA (black box)."
+  key_points: ["White box : compartiments (V, CL) conservés", "Black box : NN pour les parties inconnues", "Grey box → jumeau numérique (DIGPHAT)"]
+  tags: ["ai", "neural-ode", "grey-box"]
   suggested_module: "neural-ode"
-  speaker_notes: "Keep physiology; don't let NN take over everything."
+  speaker_notes: "Réf. mlu-explain.github.io/neural-networks."
 - slide: 71
   id: "s71"
   file: "slide-71.png"
-  title: "TDM Cycle"
-  purpose: "Describe therapeutic drug monitoring process."
-  key_points: ["Measure (TDM)", "Estimate (Bayes)", "Adjust (Target)"]
-  tags: ["tdm"]
-  suggested_module: "tdm"
-  speaker_notes: "Cycle: Measure (DV) → Update (Bayes) → Adjust dose."
+  title: "Conclusion clinique : l'IA n'est pas magique, elle est utile"
+  purpose: "Positionner l'IA comme aide, pas comme remplacement."
+  key_points: ["Assistants « silencieux » du clinicien", "Détectent des profils de risque invisibles", "Le médecin décide ; l'algorithme réduit l'incertitude"]
+  tags: ["ai", "conclusion"]
+  suggested_module: "neural-ode"
+  speaker_notes: "Message clé : outil d'aide à la décision, pas oracle."
 - slide: 72
   id: "s72"
   file: "slide-72.png"
-  title: "Decision Support"
-  purpose: "Embed model in clinic."
-  key_points: ["Future prediction", "Uncertainty", "Dashboard"]
-  tags: ["tdm"]
+  title: "Conclusion / The End"
+  purpose: "Clore le cours et ouvrir sur la simulation."
+  key_points: ["Fin de la présentation", "Ouverture : faire des simulations", "Mrgsolve / Simulx"]
+  tags: ["conclusion"]
   suggested_module: "tdm"
-  speaker_notes: "Show prediction with uncertainty interval."
+  speaker_notes: "Diapositive de clôture ; pistes de simulation."
 - slide: 73
   id: "s73"
   file: "slide-73.png"
-  title: "Role of the Pharmacometrician"
-  purpose: "Collaboration with clinician."
-  key_points: ["Decision aid", "Human expertise needed"]
-  tags: ["conclusion"]
-  suggested_module: "tdm"
-  speaker_notes: "Model suggests, clinician decides."
+  title: "Modèles de population (simplification de la PBPK)"
+  purpose: "Situer les modèles mécanistes de population."
+  key_points: ["Modèles mécanistes de population", "Simplification des modèles PBPK", "Compartiments central/périphérique, Ka, CL, Q"]
+  tags: ["model", "poppk", "pbpk"]
+  suggested_module: "trois-approches"
+  speaker_notes: "Les modèles de population sont une simplification de la PBPK mécaniste."
 - slide: 74
   id: "s74"
   file: "slide-74.png"
-  title: "Course Conclusion"
-  purpose: "Final synthesis."
-  key_points: ["Model to understand", "Quantify to decide", "Data matter"]
-  tags: ["conclusion"]
-  suggested_module: "tdm"
-  speaker_notes: "Model = decision aid, not oracle. Diagnostics and data quality are key."
+  title: "Pourquoi nos modèles sont-ils « mécanistes » ?"
+  purpose: "Opposer modèle empirique et modèle mécaniste."
+  key_points: ["Empirique : y = ax + b, sans sens biologique", "Mécaniste : dA/dt = −k·A, paramètres réels (V, CL)", "Extrapolable (ex. insuffisance rénale)"]
+  tags: ["model"]
+  suggested_module: "clairance-volume-demi-vie"
+  speaker_notes: "Un modèle mécaniste décrit un flux physiologique (loi de Fick)."
