@@ -18,7 +18,11 @@
   const tEnd = 24;
   const h = 0.1;
 
-  $: curve = order0 ? simulateZeroOrder() : simulateFirstOrder();
+  // Toutes les variables apparaissent dans l'expression réactive → Svelte recalcule
+  // la courbe dès qu'un curseur change (et pas seulement au basculement d'ordre).
+  $: curve = order0
+    ? simulateZeroOrder(dose, cl, v, infusionDuration)
+    : simulateFirstOrder(dose, ka, cl, v, lag);
   $: concValues = curve.map((p) => p.c);
   $: gutValues = curve.map((p) => p.agut);
   $: xScale = scaleLinear().domain([0, tEnd]).range([0, 300]);
@@ -28,11 +32,11 @@
   $: auc = trapezoidAUC(curve);
   $: tHalf = (Math.log(2) * v) / cl;
 
-  function simulateFirstOrder() {
+  function simulateFirstOrder(dose, ka, cl, v, lag) {
     return simulateOral1C({ dose, ka, cl, v, lag, tEnd, h });
   }
 
-  function simulateZeroOrder() {
+  function simulateZeroOrder(dose, cl, v, infusionDuration) {
     const rate = dose / Math.max(infusionDuration, h);
     const points = [];
     let Acent = 0;

@@ -74,6 +74,22 @@ export const tracks = [
       fr: { label: 'Parcours 9', title: 'IA en pharmacométrie', tagline: "Modèles grey-box, Neural ODE et apprentissage automatique, avec validation et incertitude." }
     },
     accent: 'var(--accent-ai)', status: 'available', visual: 'ai-visual'
+  },
+  {
+    id: 'valid',
+    i18n: {
+      en: { label: 'Track 10', title: 'Model validation', tagline: 'Is the model trustworthy? Precision (RSE), diagnostic plots, NPDE, VPC and bootstrap.' },
+      fr: { label: 'Parcours 10', title: 'Validation de modèle', tagline: "Le modèle est-il fiable ? Précision (RSE), graphiques diagnostiques, NPDE, VPC et bootstrap." }
+    },
+    accent: '#8a7d3a', status: 'available', visual: 'valid-visual'
+  },
+  {
+    id: 'trials',
+    i18n: {
+      en: { label: 'Track 11', title: 'Interpretation & clinical trials', tagline: 'From model to decision: first-in-human (MABEL), clinical trial simulation and interpretation.' },
+      fr: { label: 'Parcours 11', title: 'Interprétation et essais cliniques', tagline: "Du modèle à la décision : première dose (MABEL), simulation d'essais et interprétation." }
+    },
+    accent: '#6a5a8c', status: 'available', visual: 'trials-visual'
   }
 ];
 
