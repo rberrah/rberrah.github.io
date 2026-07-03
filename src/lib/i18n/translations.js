@@ -78,13 +78,18 @@ export const dictionary = {
     pages: {
       glossaryTitle: 'Glossary',
       aboutTitle: 'About',
+      aboutLede:
+        'This site was built for students, by Racym Berrah — in the hope that it helps you learn pharmacometrics. Everything here is free and open-source, and improved over time.',
       aboutText:
-        'Educational site on pharmacometrics (PK/PD, PopPK, TDM, AI). Content inspired by the “Pharmacométrie Pratique” deck (CC-BY-SA), rewritten and expanded. Code MIT.',
+        'An interactive course on pharmacometrics — PK/PD, population modelling, NCA, PBPK, therapeutic drug monitoring, model validation, clinical-trial design and applied AI. Each chapter pairs a scroll-driven explanation with a live visualization, a quiz and hands-on exercises.',
       aboutItems: [
-        'No medical advice — educational only.',
-        'Use cases: tacrolimus and warfarin for demonstrations.',
-        'Ready for GitHub Pages (adapter-static, BASE_PATH).'
+        'For students, by a student: made to be clear before being exhaustive.',
+        'Free and open-source (text CC-BY-SA, code MIT) — reuse and contributions welcome.',
+        'Educational only — no medical advice and no dosing recommendation.',
+        'Bilingual (French / English), built with SvelteKit and deployed on GitHub Pages.'
       ],
+      aboutSignature: '— Racym Berrah',
+      aboutThanks: 'Thank you for using it. If it helps you pass an exam or understand a model, it has done its job.',
       glossaryIntro: 'A pharmacometrics dictionary: parameters, models, estimation, diagnostics, Bayesian TDM and applied AI, with plain explanations.',
       glossarySearch: 'Search a term…',
       glossaryEmpty: 'No term matches your search.',
@@ -192,13 +197,18 @@ export const dictionary = {
     pages: {
       glossaryTitle: 'Glossaire',
       aboutTitle: 'À propos',
+      aboutLede:
+        "Ce site a été conçu pour les étudiants, par Racym Berrah — en espérant qu'il vous serve à apprendre la pharmacométrie. Tout est gratuit, open-source, et amélioré au fil du temps.",
       aboutText:
-        'Site pédagogique sur la pharmacométrie (PK/PD, PopPK, TDM, IA). Le contenu est inspiré du support “Pharmacométrie Pratique” (CC-BY-SA), réécrit et enrichi. Code MIT.',
+        "Un cours interactif de pharmacométrie — PK/PD, modélisation de population, NCA, PBPK, suivi thérapeutique, validation de modèle, design d'essais cliniques et IA appliquée. Chaque chapitre associe une explication défilante, une visualisation interactive, un quiz et des exercices.",
       aboutItems: [
-        'Pas de conseil médical : contenu pédagogique uniquement.',
-        "Cas d'usage : tacrolimus et warfarine pour les démonstrations.",
-        'Déploiement GitHub Pages statique (adapter-static, BASE_PATH).'
+        "Pour les étudiants, par un étudiant : pensé pour être clair avant d'être exhaustif.",
+        'Gratuit et open-source (texte CC-BY-SA, code MIT) — réutilisation et contributions bienvenues.',
+        'Usage pédagogique uniquement — aucun conseil médical ni recommandation posologique.',
+        'Bilingue (français / anglais), construit avec SvelteKit et déployé sur GitHub Pages.'
       ],
+      aboutSignature: '— Racym Berrah',
+      aboutThanks: "Merci de l'utiliser. S'il vous aide à réussir un examen ou à comprendre un modèle, il a rempli sa mission.",
       glossaryIntro: 'Un dictionnaire de pharmacométrie : paramètres, modèles, estimation, diagnostics, TDM bayésien et IA appliquée, avec des explications claires.',
       glossarySearch: 'Rechercher un terme…',
       glossaryEmpty: 'Aucun terme ne correspond à votre recherche.',
