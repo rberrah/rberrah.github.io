@@ -104,7 +104,7 @@
   .tracks { margin-top: var(--space-12); }
   .track-grid { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: var(--space-6); }
   .track { padding: 0; overflow: hidden; border-top: 4px solid var(--track); }
-  .thumb { height: 150px; position: relative; overflow: hidden; }
+  .thumb { height: 150px; position: relative; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--track) 22%, #fff) 0%, var(--track) 90%); }
   .thumb.core-visual { background: linear-gradient(135deg, #f5efe8 0%, #c97a48 48%, #384b34 100%); }
   .thumb.ai-visual { background: linear-gradient(135deg, #eef4f8 0%, #4f6f8f 45%, #222f44 100%); }
   .thumb::before {

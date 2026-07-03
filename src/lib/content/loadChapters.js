@@ -69,7 +69,7 @@ const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?ra
 /**
  * @typedef {{title:string, slides?:string, viz?:string}} StepMeta
  * @typedef {{title:string, html:string, slides:string[], viz?:string}} Step
- * @typedef {{id:string, slug:string, title:string, description:string, order:number, tags:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
+ * @typedef {{id:string, slug:string, title:string, description:string, order:number, track:string, tags:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
  */
 
 /** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */
@@ -107,6 +107,7 @@ function parseChapter(path, raw) {
   /** @type {Chapter} */
   const chapter = {
     id: data.id,
+    track: data.track ?? 'core',
     slug: data.slug,
     title: data.title,
     description: data.description ?? '',
