@@ -37,13 +37,13 @@ Avant de lancer une étude, une question cruciale : **où et quand prélever** p
 C'est le fondement du **design optimal** de protocoles (échantillonnage clairsemé, populations fragiles).
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="EstimationFit" -->
+<!-- step:title="Intuition" viz="58_OptimalDesign" -->
 Certains temps de prélèvement sont **très informatifs** (la phase d'élimination pour la pente), d'autres presque inutiles (deux points collés).
 
 Plus l'information est grande, plus la « vallée » de la vraisemblance est **étroite** autour de l'optimum → estimation précise. La FIM mesure cette courbure.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="EstimationFit" -->
+<!-- step:title="La formule décortiquée" viz="58_OptimalDesign" -->
 La FIM est l'espérance de la courbure de la log-vraisemblance :
 
 $$ I(\theta) = -\,\mathbb{E}\!\left[\frac{\partial^2 \log L}{\partial\theta\,\partial\theta^\top}\right] $$
@@ -59,7 +59,7 @@ Réf. : approche largement développée par l'équipe **IAME** (Inserm / Univers
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="EstimationFit" -->
+<!-- step:title="Exemple concret" viz="58_OptimalDesign" -->
 Pour un modèle mono-compartimental, la FIM indique que placer un prélèvement **précoce** (absorption/pic) et un **tardif** (pente d'élimination) estime mieux $CL$ et $V$ que trois points au milieu.
 
 En pédiatrie, où chaque prélèvement compte, PFIM permet de concevoir un protocole **à 2–3 points** qui reste informatif.

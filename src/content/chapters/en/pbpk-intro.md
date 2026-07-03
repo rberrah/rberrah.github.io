@@ -43,7 +43,7 @@ Picture the body as a network of organs (liver, kidneys, muscle, fat…) supplie
 Each organ is a small reservoir with a blood inlet and outlet.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="04_ThreeApproaches" -->
+<!-- step:title="The formula, unpacked" viz="01_HumanBody" -->
 Each tissue follows a **mass balance**. For a *perfusion-limited* organ:
 
 $$ V_T\frac{dC_T}{dt} = Q_T\left(C_{art} - \frac{C_T}{K_{p,T}}\right) $$

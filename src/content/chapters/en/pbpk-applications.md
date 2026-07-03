@@ -37,13 +37,13 @@ PBPK is not just an elegant exercise: it **predicts** in situations where a tria
 Three flagship applications: **IVIVE**, **interactions** and **special populations**.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="04_ThreeApproaches" -->
+<!-- step:title="Intuition" viz="01_HumanBody" -->
 We measure a clearance in the lab on **microsomes** or **hepatocytes**, then "scale it up" to the whole organ, then the whole body: this is **IVIVE**.
 
 By inserting this clearance into the model's liver, we predict systemic PK — without ever having dosed the human.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="04_ThreeApproaches" -->
+<!-- step:title="The formula, unpacked" viz="01_HumanBody" -->
 In-vivo hepatic clearance is rebuilt by the **well-stirred model**:
 
 $$ CL_h = \frac{Q_h\cdot f_u\cdot CL_{int}}{Q_h + f_u\cdot CL_{int}} $$

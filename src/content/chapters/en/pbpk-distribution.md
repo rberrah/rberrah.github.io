@@ -43,7 +43,7 @@ Each tissue "attracts" the molecule more or less: a lipophilic compound accumula
 The $K_p$ captures this affinity: it is the tissue/plasma concentration ratio once equilibrium is reached.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="04_ThreeApproaches" -->
+<!-- step:title="The formula, unpacked" viz="01_HumanBody" -->
 The overall volume of distribution is rebuilt from the tissues:
 
 $$ V_{ss} = V_p + \sum_T V_T\,K_{p,T} $$

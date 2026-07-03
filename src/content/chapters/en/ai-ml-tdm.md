@@ -31,7 +31,7 @@ Bayesian TDM (MAP) requires a **good PopPK model** as a prior. An alternative �
 This is a very active research area, notably driven by the **Limoges** team.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="20_NeuralBox" -->
+<!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Rather than fitting a differential equation per patient, a **tree** model (Random Forest, XGBoost) learns a function: a few samples + covariates → **AUC**.
 
 Fast and non-parametric, it captures complex interactions — but remains more of a **black box** than a mechanistic model.

@@ -52,6 +52,8 @@ A CTS chains three blocks:
 
 We then estimate metrics: **probability of success**, optimal dose, required sample size.
 
+$$ \widehat{PoS} = \frac{1}{N_{sim}}\sum_{s=1}^{N_{sim}} \mathbf{1}(\text{trial } s \text{ positive}) $$
+
 **Ref —** Holford N., Kimko H. et al. — the clinical trial simulation framework; used for adaptive designs and dose selection.
 <!-- /step -->
 

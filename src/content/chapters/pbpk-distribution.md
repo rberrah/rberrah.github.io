@@ -43,7 +43,7 @@ Chaque tissu « attire » plus ou moins la molécule : un composé lipophile s'a
 Le $K_p$ traduit cette affinité : c'est le rapport de concentration tissu/plasma une fois l'équilibre atteint.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="04_ThreeApproaches" -->
+<!-- step:title="La formule décortiquée" viz="01_HumanBody" -->
 Le volume de distribution global se reconstruit à partir des tissus :
 
 $$ V_{ss} = V_p + \sum_T V_T\,K_{p,T} $$

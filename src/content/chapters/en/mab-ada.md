@@ -37,13 +37,13 @@ A therapeutic antibody is a **foreign protein**: the patient's immune system may
 It can reduce exposure, effect duration, and even trigger reactions — a major concern for all biologics.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="10_PK2C" -->
+<!-- step:title="Intuition" viz="55_ADA" -->
 After a few administrations, some patients develop ADA that **bind** the drug. The complexes formed are **eliminated faster** → the concentration drops in these patients.
 
 Typical result: PK that "drops off" after a few weeks, with strong **inter-individual variability**.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="10_PK2C" -->
+<!-- step:title="The formula, unpacked" viz="55_ADA" -->
 We distinguish two ADA types:
 
 - **Binding**: form complexes → accelerate **clearance** (exposure ↓).
@@ -58,7 +58,7 @@ where $A(t)$ captures the (often delayed) appearance of ADA.
 **Ref —** EMA/FDA guidance on immunogenicity assessment; antibody PK reviews (Ryman & Meibohm 2017). Related to the "Antibody PK" and "TMDD" chapters.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="10_PK2C" -->
+<!-- step:title="Worked example" viz="55_ADA" -->
 A patient on an antibody sees the trough concentration **collapse** in the 3rd month: ADA test positive. Insufficient exposure explains the **loss of response** (secondary failure).
 
 Strategies: co-immunosuppression, induction schedules, molecular engineering (de-immunisation) to reduce immunogenicity.

@@ -38,7 +38,9 @@ It is not renally filtered nor CYP-metabolised: it is **catabolised** (degraded 
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="10_PK2C" -->
-mAb PK is often **two-compartment linear** (at therapeutic doses), with low clearance and a half-life of **2 to 4 weeks**.
+mAb PK is often **two-compartment linear** (at therapeutic doses), with low clearance and a half-life of **2 to 4 weeks**:
+
+$$ t_{1/2} = \frac{\ln 2\cdot V}{CL} $$
 
 The key: the **FcRn** receptor "rescues" IgG from degradation (recycling) — hence the long half-life. By the **subcutaneous** route, bioavailability is ~50–80% (slow lymphatic absorption).
 

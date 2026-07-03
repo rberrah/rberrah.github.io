@@ -43,7 +43,7 @@ Imaginez le corps comme un réseau d'organes (foie, reins, muscle, graisse…) i
 Chaque organe est un petit réservoir avec une entrée et une sortie sanguines.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="04_ThreeApproaches" -->
+<!-- step:title="La formule décortiquée" viz="01_HumanBody" -->
 Chaque tissu suit un **bilan de masse**. Pour un organe *perfusion-limited* :
 
 $$ V_T\frac{dC_T}{dt} = Q_T\left(C_{art} - \frac{C_T}{K_{p,T}}\right) $$

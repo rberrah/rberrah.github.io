@@ -37,13 +37,13 @@ Certains effets **s'atténuent** au fil du temps malgré une concentration maint
 Il faut des modèles **dynamiques** : contre-régulation, médiateur antagoniste, pool de précurseurs.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Turnover" -->
+<!-- step:title="Intuition" viz="57_Tolerance" -->
 L'organisme **s'adapte** : face à un stimulus prolongé, un mécanisme opposé se met en place et **atténue** l'effet. Quand on arrête, ce contre-régulateur, encore élevé, provoque un **rebond**.
 
 C'est une histoire de deux processus en compétition, avec des vitesses différentes.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="Turnover" -->
+<!-- step:title="La formule décortiquée" viz="57_Tolerance" -->
 Un modèle de **tolérance à médiateur** couple la réponse $R$ et un modérateur $M$ qui la freine :
 
 $$ \frac{dR}{dt} = k_{in}\,[1 + f(C)] - k_{out}\,M\,R, \qquad \frac{dM}{dt} = k_{tol}\,(R - M) $$
@@ -57,7 +57,7 @@ Le rapport des vitesses $k_{tol}/k_{out}$ fixe l'ampleur de la tolérance et la 
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="Turnover" -->
+<!-- step:title="Exemple concret" viz="57_Tolerance" -->
 Les **dérivés nitrés** (angine) : leur effet vasodilatateur s'émousse en continu — d'où la nécessité d'un **intervalle libre** quotidien pour restaurer la sensibilité.
 
 Un bêta-bloquant arrêté brutalement peut donner un **rebond** tensionnel/rythmique, car les récepteurs se sont sur-régulés.

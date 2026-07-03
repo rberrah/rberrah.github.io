@@ -37,13 +37,13 @@ Some effects **fade** over time despite a maintained concentration (**tolerance*
 We need **dynamic** models: counter-regulation, antagonistic mediator, precursor pool.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Turnover" -->
+<!-- step:title="Intuition" viz="57_Tolerance" -->
 The body **adapts**: facing a prolonged stimulus, an opposing mechanism builds up and **dampens** the effect. When we stop, this still-elevated counter-regulator causes a **rebound**.
 
 It is a story of two competing processes with different speeds.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="Turnover" -->
+<!-- step:title="The formula, unpacked" viz="57_Tolerance" -->
 A **mediator-tolerance** model couples the response $R$ and a moderator $M$ that curbs it:
 
 $$ \frac{dR}{dt} = k_{in}\,[1 + f(C)] - k_{out}\,M\,R, \qquad \frac{dM}{dt} = k_{tol}\,(R - M) $$
@@ -55,7 +55,7 @@ The moderator $M$ **rises slowly** and gradually extinguishes the effect. On wit
 **Math —** the rate ratio $k_{tol}/k_{out}$ sets the extent of tolerance and the depth of rebound.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="Turnover" -->
+<!-- step:title="Worked example" viz="57_Tolerance" -->
 **Nitrates** (angina): their vasodilatory effect dulls continuously — hence the need for a daily **nitrate-free interval** to restore sensitivity.
 
 An abruptly stopped beta-blocker can give a blood-pressure/rhythm **rebound**, because the receptors up-regulated.

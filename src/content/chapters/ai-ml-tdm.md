@@ -31,7 +31,7 @@ Le TDM bayésien (MAP) exige un **bon modèle PopPK** a priori. Une alternative 
 C'est un axe de recherche très actif, notamment porté par l'équipe de **Limoges**.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="20_NeuralBox" -->
+<!-- step:title="Intuition" viz="40_TreeEnsemble" -->
 Plutôt que d'ajuster une équation différentielle par patient, un modèle d'**arbres** (Random Forest, XGBoost) apprend une fonction : quelques prélèvements + covariables → **AUC**.
 
 Rapide, non paramétrique, il capte des interactions complexes — mais reste une **boîte plus noire** qu'un modèle mécaniste.

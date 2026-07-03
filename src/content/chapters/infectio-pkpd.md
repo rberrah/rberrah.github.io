@@ -31,18 +31,20 @@ Pour un antibiotique, l'efficacité ne dépend pas seulement de l'exposition tot
 Trois **indices PK/PD** résument cela — et guident le schéma d'administration.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Infusion" -->
+<!-- step:title="Intuition" viz="56_PKPDIndex" -->
 Tracez la concentration au cours du temps et une ligne horizontale = la CMI.
 
 Trois questions : **combien de temps** reste-t-on au-dessus de la CMI ? **Quelle hauteur** atteint le pic par rapport à la CMI ? **Quelle aire** au-dessus de la CMI ? Chaque famille d'antibiotiques privilégie l'une d'elles.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="Infusion" -->
+<!-- step:title="La formule décortiquée" viz="56_PKPDIndex" -->
 Les trois indices (Craig, 1998) :
 
 - **T > CMI** (temps-dépendant) : bêta-lactamines. On l'optimise par des **perfusions prolongées/continues**.
 - **Cmax / CMI** (concentration-dépendant) : aminosides, fluoroquinolones. On l'optimise par de **fortes doses espacées**.
 - **AUC / CMI** : fluoroquinolones, glycopeptides (vancomycine : cible AUC₂₄/CMI ≥ 400).
+
+$$ \%T_{>CMI}, \qquad \frac{C_{max}}{CMI}, \qquad \frac{AUC_{24}}{CMI} $$
 
 :::note
 Réf. : Craig W.A., *Clin Infect Dis* 1998 — cadre fondateur des indices PK/PD.

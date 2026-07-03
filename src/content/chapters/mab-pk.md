@@ -38,7 +38,9 @@ Elle n'est pas filtrée par le rein ni métabolisée par les CYP : elle est **ca
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="10_PK2C" -->
-La PK d'un mAb est souvent **bi-compartimentale linéaire** (aux doses thérapeutiques), avec une clairance faible et une demi-vie de **2 à 4 semaines**.
+La PK d'un mAb est souvent **bi-compartimentale linéaire** (aux doses thérapeutiques), avec une clairance faible et une demi-vie de **2 à 4 semaines** :
+
+$$ t_{1/2} = \frac{\ln 2\cdot V}{CL} $$
 
 La clé : le récepteur **FcRn** « sauve » les IgG de la dégradation (recyclage) — d'où la demi-vie longue. Par voie **sous-cutanée**, la biodisponibilité est ~50–80 % (absorption lymphatique lente).
 

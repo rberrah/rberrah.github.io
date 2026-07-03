@@ -52,6 +52,8 @@ Une CTS enchaîne trois briques :
 
 On estime alors des métriques : **probabilité de succès**, dose optimale, taille d'échantillon nécessaire.
 
+$$ \widehat{PoS} = \frac{1}{N_{sim}}\sum_{s=1}^{N_{sim}} \mathbf{1}(\text{essai } s \text{ positif}) $$
+
 :::note
 Réf. : Holford N., Kimko H. et al. — cadre de la simulation d'essais cliniques ; utilisée pour les designs adaptatifs et le choix de dose.
 :::

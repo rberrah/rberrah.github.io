@@ -37,13 +37,13 @@ Before launching a study, a crucial question: **where and when to sample** to es
 It is the foundation of **optimal design** of protocols (sparse sampling, fragile populations).
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="EstimationFit" -->
+<!-- step:title="Intuition" viz="58_OptimalDesign" -->
 Some sampling times are **very informative** (the elimination phase for the slope), others nearly useless (two points on top of each other).
 
 The greater the information, the **narrower** the likelihood "valley" around the optimum → precise estimate. The FIM measures this curvature.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="EstimationFit" -->
+<!-- step:title="The formula, unpacked" viz="58_OptimalDesign" -->
 The FIM is the expected curvature of the log-likelihood:
 
 $$ I(\theta) = -\,\mathbb{E}\!\left[\frac{\partial^2 \log L}{\partial\theta\,\partial\theta^\top}\right] $$
@@ -57,7 +57,7 @@ $$ \mathrm{Var}(\hat\theta) \ge I(\theta)^{-1} $$
 **Ref —** an approach widely developed by the **IAME** team (Inserm / Université Paris Cité, Bichat) — France Mentré et al., the **PFIM** software for optimal design in non-linear mixed-effects models; the **Leiden** school (LACDR) for PK/PD modelling.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="EstimationFit" -->
+<!-- step:title="Worked example" viz="58_OptimalDesign" -->
 For a one-compartment model, the FIM shows that placing one **early** sample (absorption/peak) and one **late** sample (elimination slope) estimates $CL$ and $V$ better than three points in the middle.
 
 In paediatrics, where every sample counts, PFIM helps design a **2–3-point** protocol that stays informative.

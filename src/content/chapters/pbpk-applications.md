@@ -37,13 +37,13 @@ La PBPK n'est pas qu'un bel exercice : elle **prédit** dans des situations où 
 Trois applications phares : l'**IVIVE**, les **interactions** et les **populations spéciales**.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="04_ThreeApproaches" -->
+<!-- step:title="Intuition" viz="01_HumanBody" -->
 On mesure au laboratoire une clairance sur des **microsomes** ou **hépatocytes**, puis on la « monte à l'échelle » de l'organe entier, puis du corps : c'est l'**IVIVE**.
 
 En insérant cette clairance dans le foie du modèle, on prédit la PK systémique — sans jamais avoir dosé l'homme.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="04_ThreeApproaches" -->
+<!-- step:title="La formule décortiquée" viz="01_HumanBody" -->
 La clairance hépatique in vivo se reconstruit par le **modèle de perfusion** (well-stirred) :
 
 $$ CL_h = \frac{Q_h\cdot f_u\cdot CL_{int}}{Q_h + f_u\cdot CL_{int}} $$

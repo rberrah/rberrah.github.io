@@ -37,13 +37,13 @@ Un anticorps thérapeutique est une **protéine étrangère** : le système immu
 Elle peut réduire l'exposition, la durée d'effet, voire provoquer des réactions — un enjeu majeur pour toutes les biothérapies.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="10_PK2C" -->
+<!-- step:title="Intuition" viz="55_ADA" -->
 Après quelques administrations, certains patients développent des ADA qui **se lient** au médicament. Les complexes formés sont **éliminés plus vite** → la concentration chute chez ces patients.
 
 Résultat typique : une PK qui « décroche » après quelques semaines, avec une forte **variabilité inter-individuelle**.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="10_PK2C" -->
+<!-- step:title="La formule décortiquée" viz="55_ADA" -->
 On distingue deux types d'ADA :
 
 - **Liants (binding)** : forment des complexes → accélèrent la **clairance** (exposition ↓).
@@ -60,7 +60,7 @@ Réf. : recommandations EMA/FDA sur l'évaluation de l'immunogénicité ; revues
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="10_PK2C" -->
+<!-- step:title="Exemple concret" viz="55_ADA" -->
 Un patient sous anticorps voit sa concentration résiduelle **s'effondrer** au 3ᵉ mois : dosage des ADA positif. L'exposition insuffisante explique la **perte de réponse** (échappement secondaire).
 
 Stratégies : co-immunosuppression, schémas d'induction, ingénierie de la molécule (déimmunisation) pour réduire l'immunogénicité.

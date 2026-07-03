@@ -31,13 +31,13 @@ Beaucoup d'anticorps se lient à une **cible** (récepteur, cytokine). Or cette 
 Résultat : une PK **non linéaire**, où la clairance dépend de la dose. Ignorer cela conduit à mal extrapoler les schémas.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="EmaxHill" -->
+<!-- step:title="Intuition" viz="54_TMDD" -->
 À **faible concentration**, presque tout le médicament trouve une cible libre : la liaison domine, l'élimination est rapide et **saturable**.
 
 À **forte concentration**, la cible est **saturée** : la voie cible devient négligeable, et la PK redevient **linéaire** (catabolisme lent seul). D'où une clairance qui **diminue** quand la dose augmente.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="EmaxHill" -->
+<!-- step:title="La formule décortiquée" viz="54_TMDD" -->
 Le modèle **TMDD** (Mager & Jusko, 2001) couple médicament libre $C$, cible libre $R$ et complexe $RC$ :
 
 $$ \frac{dC}{dt} = -k_{el}C - k_{on}C\cdot R + k_{off}\,RC $$
@@ -50,7 +50,7 @@ Réf. : Mager D.E. & Jusko W.J., *J Pharmacokinet Pharmacodyn* 2001 (modèle TMD
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="EmaxHill" -->
+<!-- step:title="Exemple concret" viz="54_TMDD" -->
 Sur un profil concentration–temps en semi-log, la TMDD donne une **courbure** caractéristique : chute rapide à basse concentration (cible active) puis pente lente (cible saturée).
 
 Doubler la dose **plus que double** l'exposition — la clairance ayant baissé.

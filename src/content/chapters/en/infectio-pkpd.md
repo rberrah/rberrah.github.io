@@ -31,18 +31,20 @@ For an antibiotic, efficacy depends not only on total exposure but on the **shap
 Three **PK/PD indices** summarise this — and guide the dosing schedule.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Infusion" -->
+<!-- step:title="Intuition" viz="56_PKPDIndex" -->
 Plot concentration over time and a horizontal line = the MIC.
 
 Three questions: **how long** do we stay above the MIC? **How high** is the peak relative to the MIC? **What area** lies above the MIC? Each antibiotic family favours one of them.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="Infusion" -->
+<!-- step:title="The formula, unpacked" viz="56_PKPDIndex" -->
 The three indices (Craig, 1998):
 
 - **T > MIC** (time-dependent): beta-lactams. Optimised by **prolonged/continuous infusions**.
 - **Cmax / MIC** (concentration-dependent): aminoglycosides, fluoroquinolones. Optimised by **large spaced doses**.
 - **AUC / MIC**: fluoroquinolones, glycopeptides (vancomycin: target AUC₂₄/MIC ≥ 400).
+
+$$ \%T_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{AUC_{24}}{MIC} $$
 
 **Ref —** Craig W.A., *Clin Infect Dis* 1998 — the founding framework for PK/PD indices.
 <!-- /step -->

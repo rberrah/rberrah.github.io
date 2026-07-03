@@ -49,7 +49,9 @@ La VPC classique compare, par intervalle de temps (**binning**) :
 - percentiles **observés** (médiane, 5 %, 95 %) ;
 - **intervalles de confiance** de ces percentiles issus des simulations.
 
-Quand les doses ou covariables **diffèrent** entre sujets, la variabilité de prédiction brouille la VPC : la **pcVPC** normalise chaque observation par sa prédiction typique pour retirer cette variabilité « attendue ».
+Quand les doses ou covariables **diffèrent** entre sujets, la variabilité de prédiction brouille la VPC : la **pcVPC** normalise chaque observation par sa prédiction typique pour retirer cette variabilité « attendue » :
+
+$$ Y^{pc}_{ij} = Y_{ij}\cdot\frac{\overline{PRED}_{\text{bin}}}{PRED_{ij}} $$
 
 :::note
 Réf. : Karlsson & Holford (VPC) ; Bergstrand M. et al., *AAPS J* 2011 (prediction-corrected VPC).

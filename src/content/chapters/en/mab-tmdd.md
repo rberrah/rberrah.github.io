@@ -31,13 +31,13 @@ Many antibodies bind to a **target** (receptor, cytokine). This binding, followe
 The result: **nonlinear** PK, where clearance depends on dose. Ignoring it leads to poor extrapolation of schedules.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="EmaxHill" -->
+<!-- step:title="Intuition" viz="54_TMDD" -->
 At **low concentration**, almost all the drug finds a free target: binding dominates, elimination is fast and **saturable**.
 
 At **high concentration**, the target is **saturated**: the target route becomes negligible, and PK becomes **linear** again (slow catabolism only). Hence a clearance that **decreases** as the dose increases.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="EmaxHill" -->
+<!-- step:title="The formula, unpacked" viz="54_TMDD" -->
 The **TMDD** model (Mager & Jusko, 2001) couples free drug $C$, free target $R$ and complex $RC$:
 
 $$ \frac{dC}{dt} = -k_{el}C - k_{on}C\cdot R + k_{off}\,RC $$
@@ -48,7 +48,7 @@ In practice, the **quasi-equilibrium / Michaelis-Menten** approximation of this 
 **Ref —** Mager D.E. & Jusko W.J., *J Pharmacokinet Pharmacodyn* 2001 (TMDD model); QSS approximations by Gibiansky & Gibiansky.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="EmaxHill" -->
+<!-- step:title="Worked example" viz="54_TMDD" -->
 On a semi-log concentration–time profile, TMDD gives a characteristic **curvature**: a fast drop at low concentration (active target) then a slow slope (saturated target).
 
 Doubling the dose **more than doubles** the exposure — clearance having decreased.
