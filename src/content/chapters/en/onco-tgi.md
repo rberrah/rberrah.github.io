@@ -66,11 +66,9 @@ $f$ can be the current size, the change from baseline (CFB), its AUC… The larg
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="31_JointSurvival" -->
-This framework is the one in **R. Berrah's** thesis: a **joint PK–TGI–survival model** for **monoclonal antibodies** in immuno-oncology (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A), to **predict the results of a platform trial** before it is run.
+Joint PK–TGI–survival models are widely used for **monoclonal antibodies** in immuno-oncology (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A): they help **predict a trial's results** (e.g. a platform study) before it is run.
 
 By simulating the exposure of each schedule, one predicts tumour shrinkage, hence **progression-free survival (PFS)** — a tool for dose and design choices.
-
-**Ref —** Berrah R., *Development of a joint PK / tumour size / progression-free survival model for monoclonal antibodies in clinical oncology*, PharmD thesis, Université Paris Cité, 2024 (Servier, Quantitative Pharmacology).
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -83,6 +81,6 @@ Early tumour size is not survival.
 - The oncology response = tumour size then survival; effect depends on exposure (PK).
 - Claret model: growth $K_G$ − shrinkage $K\cdot expo\cdot e^{-\lambda t}$ (resistance).
 - A joint model links tumour size to the progression hazard via $\beta$ → predicts PFS.
-- Application: immuno-oncology antibodies, trial prediction (R. Berrah's thesis).
+- Application: immuno-oncology antibodies, clinical-trial prediction.
 - Caveat: short term ≠ survival; external validation is essential.
 <!-- /step -->

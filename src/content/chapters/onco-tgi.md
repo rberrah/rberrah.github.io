@@ -68,13 +68,9 @@ $f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC�
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="31_JointSurvival" -->
-Ce cadre est celui de la thèse de **R. Berrah** : un **modèle joint PK–TGI–survie** pour des **anticorps monoclonaux** d'immuno-oncologie (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A), afin de **prédire les résultats d'une étude plateforme** avant sa réalisation.
+Les modèles joints PK–TGI–survie sont très utilisés pour les **anticorps monoclonaux** d'immuno-oncologie (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A) : ils permettent de **prédire les résultats d'un essai** (par ex. une étude plateforme) avant sa réalisation.
 
 En simulant l'exposition de chaque schéma, on prédit la réduction tumorale, donc la **survie sans progression (PFS)** — un outil de choix de dose et de design.
-
-:::note
-Réf. : Berrah R., *Développement d'un modèle joint PK / tailles tumorales / survie sans progression pour des anticorps monoclonaux en oncologie clinique*, thèse d'exercice (Docteur en Pharmacie), Université Paris Cité, 2024 (Servier, Quantitative Pharmacology).
-:::
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -89,6 +85,6 @@ Un bon effet tumoral à court terme ne garantit pas le bénéfice de survie (ré
 - La réponse oncologique = taille tumorale puis survie ; l'effet dépend de l'exposition (PK).
 - Modèle de Claret : croissance $K_G$ − rétrécissement $K\cdot expo\cdot e^{-\lambda t}$ (résistance).
 - Un modèle joint relie la taille tumorale au hasard de progression via $\beta$ → prédit la PFS.
-- Application : anticorps d'immuno-oncologie, prédiction d'essais (thèse R. Berrah).
+- Application : anticorps d'immuno-oncologie, prédiction d'essais cliniques.
 - Réserve : court terme ≠ survie ; validation externe indispensable.
 <!-- /step -->

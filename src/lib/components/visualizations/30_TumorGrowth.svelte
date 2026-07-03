@@ -13,24 +13,31 @@
   const K = 0.06; // 1/sem par unité d'exposition
   const T = 52, dt = 0.1; // 1 an
 
-  /** @param {number} d exposition relative @returns {{t:number,ts:number}[]} */
-  function simulate(d) {
+  /**
+   * @param {number} d exposition relative
+   * @param {number} g croissance K_G
+   * @param {number} lam résistance λ
+   * @returns {{t:number,ts:number}[]}
+   */
+  function simulate(d, g, lam) {
     const expo = d / 100;
     const n = Math.round(T / dt);
     let ts = TS0;
     const pts = [{ t: 0, ts }];
     for (let i = 1; i <= n; i++) {
       const t = i * dt;
-      const shrink = K * expo * Math.exp(-lambda * t);
-      const dTS = kg * ts - shrink * ts;
+      const shrink = K * expo * Math.exp(-lam * t);
+      const dTS = g * ts - shrink * ts;
       ts = Math.max(0.5, ts + dTS * dt);
       pts.push({ t, ts });
     }
     return pts;
   }
 
-  $: treated = simulate(dose);
-  $: untreated = simulate(0);
+  // Toutes les variables (dose, kg, lambda) apparaissent dans l'expression
+  // réactive : Svelte recalcule donc la courbe dès qu'un curseur bouge.
+  $: treated = simulate(dose, kg, lambda);
+  $: untreated = simulate(0, kg, lambda);
   $: nadir = treated.reduce((a, b) => (b.ts < a.ts ? b : a), treated[0]);
   $: bestChange = ((nadir.ts - TS0) / TS0) * 100; // % vs baseline
   /** @returns {string} */
