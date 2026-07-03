@@ -63,7 +63,8 @@ export const dictionary = {
       previous: '← Previous',
       next: 'Next →',
       emptyViz: 'Scroll to explore the interactive figures for this chapter.',
-      fallbackNotice: 'English translation in progress — showing the French content.'
+      fallbackNotice: 'English translation in progress — showing the French content.',
+      exercisesTitle: 'Practice exercises'
     },
     quiz: {
       correct: 'correct',
@@ -170,7 +171,8 @@ export const dictionary = {
       previous: '← Précédent',
       next: 'Suivant →',
       emptyViz: 'Faites défiler pour explorer les figures interactives de ce chapitre.',
-      fallbackNotice: 'Contenu en français (langue principale du cours).'
+      fallbackNotice: 'Contenu en français (langue principale du cours).',
+      exercisesTitle: "Exercices d'entraînement"
     },
     quiz: {
       correct: 'correct',

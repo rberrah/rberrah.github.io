@@ -4,6 +4,8 @@
   import { page } from '$app/stores';
   import chapters from '$lib/content/loadChapters';
   import Quiz from '$lib/components/ui/Quiz.svelte';
+  import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
+  import { exercisesForChapter } from '$lib/content/exercises';
   import { language } from '$lib/stores/language';
   import { localizeChapter, ui } from '$lib/i18n/translations';
 
@@ -28,6 +30,7 @@
   $: next = idx >= 0 && idx < chapters.length - 1 ? chapters[idx + 1] : null;
   $: prevDisplay = localizeChapter(prev, $language).chapter;
   $: nextDisplay = localizeChapter(next, $language).chapter;
+  $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
 
   let activeIndex = 0;
   /** @type {HTMLElement[]} */
@@ -152,6 +155,13 @@
         </section>
       {/if}
 
+      {#if chapterExercises.length}
+        <section class="step ex-step" data-testid="chapter-exercises">
+          <p class="step-kicker">{copy.chapter.exercisesTitle}</p>
+          <ExerciseBlock items={chapterExercises} />
+        </section>
+      {/if}
+
       <nav class="chap-nav" data-testid="chapter-nav">
         {#if prev}
           <a class="nav-card" href={`${base}/chapitres/${prev.slug}`} data-testid="prev-chapter">
@@ -264,7 +274,8 @@
   .viz-empty .keys { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); margin-top: var(--space-3); line-height: 1.9; }
   .viz-empty code { background: var(--bg-secondary); padding: 0.05em 0.35em; border-radius: 4px; }
 
-  .quiz-step { min-height: auto; opacity: 1; }
+  .quiz-step, .ex-step { min-height: auto; opacity: 1; }
+  .ex-step { max-width: 760px; }
   .chap-nav { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-top: var(--space-8); }
   .nav-card { display: flex; flex-direction: column; gap: 2px; text-decoration: none; padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-tertiary); transition: border-color 0.2s ease, transform 0.2s ease; }
   .nav-card:hover { border-color: var(--accent-pk); transform: translateY(-2px); }
