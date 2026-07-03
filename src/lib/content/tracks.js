@@ -14,40 +14,64 @@ export const tracks = [
   {
     id: 'math',
     i18n: {
-      en: { label: 'Track 2', title: 'Mathematics', tagline: 'The math toolbox: differential equations, exponentials, regression and likelihood.' },
-      fr: { label: 'Parcours 2', title: 'Mathématiques', tagline: "La boîte à outils : équations différentielles, exponentielles, régression et vraisemblance." }
+      en: { label: 'Track 2', title: 'Mathematics', tagline: 'The math toolbox: differential equations, likelihood, statistics, the Fisher matrix and copulas.' },
+      fr: { label: 'Parcours 2', title: 'Mathématiques', tagline: "La boîte à outils : équations différentielles, vraisemblance, statistiques, matrice de Fisher et copules." }
     },
     accent: '#5b6b7a', status: 'available', visual: 'math-visual'
   },
   {
+    id: 'nca',
+    i18n: {
+      en: { label: 'Track 3', title: 'Non-compartmental analysis', tagline: 'Reading the data without a model: AUC, clearance, half-life and bioavailability.' },
+      fr: { label: 'Parcours 3', title: 'Analyse non-compartimentale', tagline: "Lire les données sans modèle : AUC, clairance, demi-vie et biodisponibilité." }
+    },
+    accent: '#3f7d8c', status: 'available', visual: 'nca-visual'
+  },
+  {
+    id: 'pbpk',
+    i18n: {
+      en: { label: 'Track 4', title: 'PBPK', tagline: 'Physiology-based models: organs, blood flows, partition coefficients and IVIVE.' },
+      fr: { label: 'Parcours 4', title: 'PBPK', tagline: "Modèles physiologiques : organes, débits sanguins, coefficients de partage et IVIVE." }
+    },
+    accent: '#7b5aa6', status: 'available', visual: 'pbpk-visual'
+  },
+  {
+    id: 'pd',
+    i18n: {
+      en: { label: 'Track 5', title: 'Pharmacodynamics', tagline: 'PD models in depth: direct effect, indirect response, effect-compartment, tolerance and survival (OS/PFS).' },
+      fr: { label: 'Parcours 5', title: 'Pharmacodynamie', tagline: "Les modèles PD en détail : effet direct, réponse indirecte, effet-compartiment, tolérance et survie (OS/PFS)." }
+    },
+    accent: '#5b8c3a', status: 'available', visual: 'pd-visual'
+  },
+  {
     id: 'onco',
     i18n: {
-      en: { label: 'Track 3', title: 'Oncology', tagline: 'Tumour growth models, exposure–response and chemotherapy-induced toxicity.' },
-      fr: { label: 'Parcours 3', title: 'Oncologie', tagline: "Croissance tumorale, relation exposition–réponse et toxicité des chimiothérapies." }
+      en: { label: 'Track 6', title: 'Oncology', tagline: 'Tumour growth models, exposure–response, myelosuppression and joint survival models.' },
+      fr: { label: 'Parcours 6', title: 'Oncologie', tagline: "Croissance tumorale, relation exposition–réponse, myélosuppression et modèles joints de survie." }
     },
     accent: '#9c4f6a', status: 'available', visual: 'onco-visual'
   },
   {
     id: 'infectio',
     i18n: {
-      en: { label: 'Track 4', title: 'Infectious diseases', tagline: 'PK/PD indices of anti-infectives and antibiotic therapeutic drug monitoring.' },
-      fr: { label: 'Parcours 4', title: 'Infectiologie', tagline: "Indices PK/PD des anti-infectieux et suivi thérapeutique des antibiotiques." }
+      en: { label: 'Track 7', title: 'Infectious diseases', tagline: 'PK/PD indices of anti-infectives and antibiotic therapeutic drug monitoring.' },
+      fr: { label: 'Parcours 7', title: 'Infectiologie', tagline: "Indices PK/PD des anti-infectieux et suivi thérapeutique des antibiotiques." }
     },
     accent: '#2f7d6e', status: 'available', visual: 'infectio-visual'
   },
   {
     id: 'mab',
     i18n: {
-      en: { label: 'Track 5', title: 'Monoclonal antibodies', tagline: 'The particular PK of mAbs and target-mediated drug disposition (TMDD).' },
-      fr: { label: 'Parcours 5', title: 'Anticorps monoclonaux', tagline: "La PK particulière des anticorps et la disposition médiée par la cible (TMDD)." }
+      en: { label: 'Track 8', title: 'Monoclonal antibodies', tagline: 'The particular PK of mAbs, target-mediated drug disposition (TMDD) and immunogenicity (ADA).' },
+      fr: { label: 'Parcours 8', title: 'Anticorps monoclonaux', tagline: "La PK particulière des anticorps, la disposition médiée par la cible (TMDD) et l'immunogénicité (ADA)." }
     },
     accent: '#a06a2c', status: 'available', visual: 'mab-visual'
   },
   {
     id: 'ai',
     i18n: {
-      en: { label: 'Track 6', title: 'AI in pharmacometrics', tagline: 'Grey-box models, neural ODEs and machine learning, framed by validation and uncertainty.' },
-      fr: { label: 'Parcours 6', title: 'IA en pharmacométrie', tagline: "Modèles grey-box, Neural ODE et apprentissage automatique, avec validation et incertitude." }
+      en: { label: 'Track 9', title: 'AI in pharmacometrics', tagline: 'Grey-box models, neural ODEs and machine learning, framed by validation and uncertainty.' },
+      fr: { label: 'Parcours 9', title: 'IA en pharmacométrie', tagline: "Modèles grey-box, Neural ODE et apprentissage automatique, avec validation et incertitude." }
     },
     accent: 'var(--accent-ai)', status: 'available', visual: 'ai-visual'
   }
