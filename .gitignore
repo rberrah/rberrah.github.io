@@ -29,3 +29,8 @@ course_source/**/.ipynb_checkpoints/
 course_source/**/figure-html/
 course_source/**/libs/
 course_source/**/cache/
+
+# Playwright e2e
+test-results/
+playwright-report/
+.playwright/

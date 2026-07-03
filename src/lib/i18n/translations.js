@@ -15,6 +15,7 @@ export const dictionary = {
       lego: 'Lego lab',
       playground: 'Playground',
       glossary: 'Glossary',
+      references: 'Further reading',
       about: 'About',
       primary: 'Primary'
     },
@@ -51,7 +52,10 @@ export const dictionary = {
         'A guided path through pharmacometrics. Each chapter is a scroll-driven essay with a sticky, interactive visualization and a short checkpoint.',
       soon: 'Coming soon',
       meta: (steps, quiz) => `${steps} steps · ${quiz} quiz`,
-      empty: 'Chapters for this track are in preparation.'
+      empty: 'Chapters for this track are in preparation.',
+      search: 'Search a chapter, a keyword…',
+      searchNone: 'No chapter matches your search.',
+      searchResults: (n) => `${n} result${n === 1 ? '' : 's'}`
     },
     chapter: {
       missingTitle: 'Chapter not found',
@@ -84,6 +88,8 @@ export const dictionary = {
       glossaryIntro: 'A pharmacometrics dictionary: parameters, models, estimation, diagnostics, Bayesian TDM and applied AI, with plain explanations.',
       glossarySearch: 'Search a term…',
       glossaryEmpty: 'No term matches your search.',
+      referencesTitle: 'Further reading',
+      referencesIntro: 'Curated books, landmark papers, software and communities to go deeper. Article links point to PubMed; tools link to their official sites.',
       exercisesTitle: 'Interactive exercises',
       exercisesIntro: 'Practice with numeric and multiple-choice problems drawn from the course and M2 corrections. Immediate feedback and explanations.',
       exercisesScore: 'Score',
@@ -123,6 +129,7 @@ export const dictionary = {
       lego: 'Atelier Lego',
       playground: 'Playground',
       glossary: 'Glossaire',
+      references: 'Pour aller plus loin',
       about: 'À propos',
       primary: 'Navigation principale'
     },
@@ -159,7 +166,10 @@ export const dictionary = {
         'Un parcours guidé en pharmacométrie. Chaque chapitre associe un récit défilant, une visualisation interactive et un court point de contrôle.',
       soon: 'Bientôt',
       meta: (steps, quiz) => `${steps} étapes · ${quiz} quiz`,
-      empty: 'Les chapitres de ce parcours sont en préparation.'
+      empty: 'Les chapitres de ce parcours sont en préparation.',
+      search: 'Rechercher un chapitre, un mot-clé…',
+      searchNone: 'Aucun chapitre ne correspond à votre recherche.',
+      searchResults: (n) => `${n} résultat${n === 1 ? '' : 's'}`
     },
     chapter: {
       missingTitle: 'Chapitre introuvable',
@@ -192,6 +202,8 @@ export const dictionary = {
       glossaryIntro: 'Un dictionnaire de pharmacométrie : paramètres, modèles, estimation, diagnostics, TDM bayésien et IA appliquée, avec des explications claires.',
       glossarySearch: 'Rechercher un terme…',
       glossaryEmpty: 'Aucun terme ne correspond à votre recherche.',
+      referencesTitle: 'Pour aller plus loin',
+      referencesIntro: 'Livres, articles fondateurs, logiciels et communautés pour approfondir. Les liens d\'articles pointent vers PubMed ; les outils vers leur site officiel.',
       exercisesTitle: 'Exercices interactifs',
       exercisesIntro: 'Entraînez-vous avec des questions numériques et à choix multiples, inspirées du cours et des corrigés M2. Correction et explication immédiates.',
       exercisesScore: 'Score',

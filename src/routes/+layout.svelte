@@ -17,6 +17,7 @@
     { href: '/lego', key: 'lego', label: copy.nav.lego },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
+    { href: '/references', key: 'references', label: copy.nav.references },
     { href: '/a-propos', key: 'about', label: copy.nav.about }
   ]);
 

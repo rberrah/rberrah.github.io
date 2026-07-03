@@ -11,6 +11,9 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"validate": "node scripts/validate_content.mjs",
+		"smoke": "node scripts/smoke_test.mjs",
+		"test": "node scripts/validate_content.mjs && node scripts/smoke_test.mjs",
+		"test:e2e": "playwright test",
 		"slides:index": "node scripts/generate_slide_index.mjs",
 		"slides:catalog": "node scripts/sync_slide_catalog.mjs",
 		"slides:export": "bash scripts/export_pptx_png.sh"

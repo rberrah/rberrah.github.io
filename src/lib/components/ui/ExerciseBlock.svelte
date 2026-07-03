@@ -11,6 +11,14 @@
 
   $: copy = ui($language);
 
+  // Vue localisée : en anglais, on utilise ex.en si présent (repli sur le FR).
+  // L'ordre des options et l'index `correct` sont conservés entre les langues.
+  $: shown = items.map((ex) =>
+    $language === 'en' && ex.en
+      ? { ...ex, q: ex.en.q, explain: ex.en.explain, options: ex.en.options ?? ex.options }
+      : ex
+  );
+
   /** @type {{done:boolean,correct:boolean,input:string,picked:number}[]} */
   let state = [];
   // (ré)initialise l'état si la liste change
@@ -40,7 +48,7 @@
 
 <div class="block">
   {#if heading}<h3 class="heading">{heading}</h3>{/if}
-  {#each items as ex, i}
+  {#each shown as ex, i}
     <article class="ex" class:ok={state[i]?.done && state[i]?.correct} class:ko={state[i]?.done && !state[i]?.correct}>
       <p class="q">{ex.q}</p>
 
