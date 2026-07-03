@@ -70,6 +70,21 @@ The same patient may have a different clearance at a later visit (diet, adherenc
 And the measured INR or concentration can still deviate from the model: that is residual error.
 <!-- /step -->
 
+<!-- step:title="A numerical case" slides="s17" viz="12_VariabilitySandbox" -->
+Take a population with typical clearance $CL_{pop} = 5\ \text{L/h}$, 30% IIV and 10% proportional residual error.
+
+| Source | Deviation | Compute | CL (L/h) |
+|---|---|---|---|
+| Population | — | $CL_{pop}$ | 5.0 |
+| IIV — patient A | $\eta_A = +0.18$ | $5 \cdot e^{0.18}$ | 6.0 |
+| IIV — patient B | $\eta_B = -0.36$ | $5 \cdot e^{-0.36}$ | 3.5 |
+| IOV — A, occasion 2 | $\kappa = +0.22$ | $5 \cdot e^{\eta_A + \kappa}$ | 7.5 |
+
+Reading it: patient A eliminates faster than typical (6.0 vs 5.0), B slower (3.5) — that is **IIV**. The same patient A moves from 6.0 to 7.5 between occasions — that is **IOV**. And each measured point still scatters ±10% around its individual prediction — that is **residual error**.
+
+**Key point —** three layers, three numbers: $\eta$ places the patient, $\kappa$ shifts an occasion, $\varepsilon$ adds noise to each measurement.
+<!-- /step -->
+
 <!-- step:title="Common pitfall" slides="s16" -->
 Do not use residual error to absorb every mismatch.
 
