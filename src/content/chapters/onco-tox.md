@@ -31,13 +31,13 @@ La **neutropénie** est la toxicité **dose-limitante** de nombreuses chimiothé
 C'est le pendant « toxicité » de l'exposition–réponse tumorale.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Turnover" -->
+<!-- step:title="Intuition" viz="32_Myelosuppression" -->
 La moelle produit des cellules qui **mûrissent** avant d'arriver dans le sang. Le médicament freine la **prolifération** ; l'effet sur les neutrophiles circulants apparaît donc **en retard** (le temps de maturation).
 
 Puis un **rétrocontrôle** relance la production : les neutrophiles remontent, parfois au-dessus de la normale (rebond).
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="Turnover" -->
+<!-- step:title="La formule décortiquée" viz="32_Myelosuppression" -->
 Le modèle de **Friberg** (2002) chaîne un compartiment de prolifération, des compartiments de **transit** (maturation) et les cellules circulantes :
 
 $$ \frac{dProl}{dt} = k_{prol}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\right)^{\gamma} - k_{tr}\,Prol $$
@@ -51,7 +51,7 @@ Réf. : Friberg L.E. et al., *J Clin Oncol* 2002 — modèle semi-mécaniste de 
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="Turnover" -->
+<!-- step:title="Exemple concret" viz="32_Myelosuppression" -->
 Plus l'**exposition** est forte, plus le nadir est **profond** ; le nadir survient ~1–2 semaines après la cure (temps de maturation), pas au pic plasmatique.
 
 On simule alors des schémas (dose, intervalle) qui gardent le nadir au-dessus d'un seuil de sécurité.

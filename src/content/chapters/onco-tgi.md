@@ -1,61 +1,79 @@
 ---
 id: "onco-tgi"
 slug: "onco-tgi"
-title: "Croissance tumorale et exposition–réponse"
-description: "Modéliser la taille tumorale : croissance non perturbée, effet du traitement et lien avec la survie."
-summary: "Les modèles de croissance tumorale (Simeoni) et leur lien avec la survie (Claret) en oncologie."
+title: "Croissance tumorale et modèles joints"
+description: "Modéliser la taille tumorale (Claret), la relier à l'exposition, puis à la survie via un modèle joint."
+summary: "Inhibition de croissance tumorale (Claret), lien exposition–réponse et modèle joint TGI–survie."
 track: "onco"
 order: 30
-duration: "14 min"
+duration: "15 min"
 level: "advanced"
-tags: ["oncology", "tumor-growth", "exposure-response"]
+tags: ["oncology", "tumor-growth", "joint-model", "survival"]
 slides: []
 quiz:
-  - prompt: "Dans un modèle de croissance tumorale, l'effet du médicament est souvent proportionnel à..."
+  - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
     options:
-      - "la concentration et à la taille tumorale"
-      - "la couleur de la tumeur"
-      - "la dose uniquement, sans PK"
+      - "s'épuise avec le temps (apparition d'une résistance)"
+      - "est constant à vie"
+      - "ne dépend pas de l'exposition"
     correct: 0
-  - prompt: "La dynamique précoce de la taille tumorale sert surtout à..."
+  - prompt: "Un modèle joint TGI–survie relie..."
     options:
-      - "prédire la survie à plus long terme"
-      - "remplacer tout essai clinique"
-      - "fixer la posologie sans PK"
+      - "la dynamique de la taille tumorale au risque de progression/décès"
+      - "la dose au poids du patient uniquement"
+      - "deux modèles PK indépendants"
+    correct: 0
+  - prompt: "Le paramètre β d'un modèle joint mesure..."
+    options:
+      - "la force du lien entre taille tumorale et hasard"
+      - "la clairance du médicament"
+      - "la biodisponibilité orale"
     correct: 0
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-En oncologie, la « réponse » n'est plus une concentration mais la **taille de la tumeur**, puis la **survie**. La pharmacométrie relie exposition (AUC) → dynamique tumorale → bénéfice clinique.
+En oncologie, la « réponse » n'est plus une concentration mais la **taille de la tumeur**, puis la **survie**. La pharmacométrie construit la chaîne : exposition (AUC) → dynamique tumorale → bénéfice clinique.
 
-C'est un cas emblématique de modèle **PK/PD mécaniste** appliqué à une maladie.
+C'est le cœur des **modèles joints**, qui assemblent PK, taille tumorale (TGI) et survie pour anticiper les résultats d'un essai avant de le lancer.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="Turnover" -->
-Une tumeur est un **système dynamique** : elle croît spontanément, et le traitement en tue une partie.
+<!-- step:title="Intuition" viz="30_TumorGrowth" -->
+Une tumeur **croît spontanément** (exponentielle) ; le traitement en **tue une partie**, d'autant plus que l'exposition est forte.
 
-L'effet du médicament dépend de la **concentration** (donc de la PK) : plus l'exposition est forte et soutenue, plus la croissance est freinée — jusqu'à la régression.
+Mais l'effet n'est pas éternel : une **résistance** apparaît progressivement, l'effet s'épuise, et la tumeur peut **ré-échapper**. Montez l'exposition et observez le nadir, puis la reprise.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="Turnover" -->
-Le modèle de **Simeoni** (2004) sépare croissance non perturbée et effet du médicament :
+<!-- step:title="La formule décortiquée" viz="30_TumorGrowth" -->
+Le modèle de **Claret** décrit une croissance exponentielle freinée par un rétrécissement qui **s'épuise** :
 
-$$ \frac{dW}{dt} = \frac{\lambda_0\,W}{\left[1 + (\lambda_0 W/\lambda_1)^{\psi}\right]^{1/\psi}} - k_2\,C\,W $$
+$$ \frac{dTS}{dt} = K_{G}\,TS \;-\; K\cdot expo\cdot e^{-\lambda t}\,TS $$
 
-La croissance passe d'**exponentielle** ($\lambda_0$) à **linéaire** ($\lambda_1$) ; le terme $-k_2\,C\,W$ est l'effet, proportionnel à la concentration et à la masse tumorale (des compartiments de « cellules mourantes » ajoutent un délai).
+- $K_G$ : vitesse de croissance non perturbée ;
+- $K\cdot expo$ : rétrécissement proportionnel à l'**exposition** (concentration ou AUC) ;
+- $e^{-\lambda t}$ : apparition progressive d'une **résistance** ($\lambda$).
+
+Certaines variantes séparent une population **sensible** et une population **résistante** (fraction $f$).
 
 :::note
-Réf. : Simeoni M. et al., *Cancer Res* 2004 (modèle TGI) ; le seuil de concentration $C_T = \lambda_0/k_2$ sépare régression et échappement.
+Réf. : Claret L. et al., *J Clin Oncol* 2009 (TGI–OS) ; Simeoni M. et al., *Cancer Res* 2004 (modèle TGI avec seuil $C_T=\lambda_0/k_2$).
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="EmaxHill" -->
-On relie ensuite la **dynamique tumorale précoce** (ex. réduction à 6-8 semaines) à la **survie** : c'est l'approche **TGI-OS** de Claret.
+<!-- step:title="Le modele joint" viz="31_JointSurvival" -->
+On **relie** ensuite la dynamique tumorale au **risque** de progression. Le hasard dépend de la taille tumorale via un paramètre de lien $\beta$ :
 
-Une exposition plus forte → plus de réduction tumorale → meilleure survie prédite — un cadre utilisé pour choisir doses et schémas avant les grands essais.
+$$ h(t) = h_0(t)\cdot e^{\,\beta\, f(TS(t))}, \qquad S(t) = e^{-\int_0^t h} $$
+
+$f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC… Plus $|\beta|$ est grand, plus le lien tumeur → survie est fort. Faire régresser la tumeur **repousse la courbe de survie** vers la droite.
+<!-- /step -->
+
+<!-- step:title="Exemple concret" viz="31_JointSurvival" -->
+Ce cadre est celui de la thèse de **R. Berrah** : un **modèle joint PK–TGI–survie** pour des **anticorps monoclonaux** d'immuno-oncologie (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A), afin de **prédire les résultats d'une étude plateforme** avant sa réalisation.
+
+En simulant l'exposition de chaque schéma, on prédit la réduction tumorale, donc la **survie sans progression (PFS)** — un outil de choix de dose et de design.
 
 :::note
-Réf. : Claret L. et al., *J Clin Oncol* 2009 (lien taille tumorale → survie).
+Réf. : Berrah R., *Développement d'un modèle joint PK / tailles tumorales / survie sans progression pour des anticorps monoclonaux en oncologie clinique*, thèse d'exercice (Docteur en Pharmacie), Université Paris Cité, 2024 (Servier, Quantitative Pharmacology).
 :::
 <!-- /step -->
 
@@ -63,13 +81,14 @@ Réf. : Claret L. et al., *J Clin Oncol* 2009 (lien taille tumorale → survie).
 La taille tumorale précoce n'est pas la survie.
 
 :::pitfall
-Un bon effet sur la tumeur à court terme ne garantit pas le bénéfice de survie (résistance, toxicité, hétérogénéité). Les modèles **tumeur → survie** doivent être validés en externe, et la survie se modélise en **temps-jusqu'à-événement**, pas en simple corrélation.
+Un bon effet tumoral à court terme ne garantit pas le bénéfice de survie (résistance, toxicité, hétérogénéité). Le lien tumeur → survie doit être **validé en externe** ; la survie se modélise en **temps-jusqu'à-événement** (hasard, censure), pas par une simple corrélation.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- En onco, la réponse = taille tumorale puis survie ; l'effet dépend de l'exposition (PK).
-- Modèle de Simeoni : croissance (exponentielle→linéaire) − effet proportionnel à C·W.
-- L'approche TGI-OS relie la dynamique tumorale précoce à la survie (Claret).
+- La réponse oncologique = taille tumorale puis survie ; l'effet dépend de l'exposition (PK).
+- Modèle de Claret : croissance $K_G$ − rétrécissement $K\cdot expo\cdot e^{-\lambda t}$ (résistance).
+- Un modèle joint relie la taille tumorale au hasard de progression via $\beta$ → prédit la PFS.
+- Application : anticorps d'immuno-oncologie, prédiction d'essais (thèse R. Berrah).
 - Réserve : court terme ≠ survie ; validation externe indispensable.
 <!-- /step -->
