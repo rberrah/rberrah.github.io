@@ -400,7 +400,33 @@ export const exercises = [
     q: "La pcVPC (prediction-corrected VPC) sert surtout à…",
     options: ["corriger la variabilité due aux différences de dose/covariables entre sujets", "supprimer des observations", "augmenter la variabilité simulée"],
     explain: "Elle normalise chaque observation par sa prédiction typique, clarifiant la VPC quand le protocole mélange plusieurs doses.",
-    en: { q: "The pcVPC (prediction-corrected VPC) mainly serves to…", options: ["correct variability from dose/covariate differences between subjects", "remove observations", "increase the simulated variability"], explain: "It normalises each observation by its typical prediction, clarifying the VPC when the protocol mixes several doses." } }
+    en: { q: "The pcVPC (prediction-corrected VPC) mainly serves to…", options: ["correct variability from dose/covariate differences between subjects", "remove observations", "increase the simulated variability"], explain: "It normalises each observation by its typical prediction, clarifying the VPC when the protocol mixes several doses." } },
+
+  // ═══ Diagnostics numériques & panorama GoF ═══
+  { cat: 'Validation de modèle', chapter: 'valid-objective', type: 'mcq', correct: 0,
+    q: "Ajouter un paramètre à un modèle fait toujours…",
+    options: ["baisser (ou égaler) l'OFV — d'où le besoin de pénaliser la complexité", "monter l'OFV", "changer la dose"],
+    explain: "L'OFV (−2 log L) ne peut que diminuer quand on ajoute un paramètre ; l'AIC/BIC et le test du χ² arbitrent si ce gain vaut la complexité.",
+    en: { q: "Adding a parameter to a model always…", options: ["lowers (or matches) the OFV — hence the need to penalise complexity", "raises the OFV", "changes the dose"], explain: "The OFV (−2 log L) can only decrease when a parameter is added; AIC/BIC and the χ² test judge whether the gain is worth the complexity." } },
+  { cat: 'Validation de modèle', chapter: 'valid-objective', type: 'num', unit: '', answer: 432, tol: 0.01,
+    q: "Un modèle a OFV = 420 et k = 6 paramètres. Quel est son AIC (= OFV + 2k) ?",
+    explain: "AIC = 420 + 2×6 = 432. Le modèle au plus petit AIC est préféré.",
+    en: { q: "A model has OFV = 420 and k = 6 parameters. What is its AIC (= OFV + 2k)?", explain: "AIC = 420 + 2×6 = 432. The model with the smallest AIC is preferred." } },
+  { cat: 'Validation de modèle', chapter: 'valid-objective', type: 'mcq', correct: 0,
+    q: "Le test du rapport de vraisemblance (ΔOFV ~ χ²) s'applique…",
+    options: ["à des modèles emboîtés (l'un est un cas particulier de l'autre)", "à n'importe quels modèles", "sans degré de liberté"],
+    explain: "Pour 1 paramètre ajouté, le seuil du χ² à 5 % est 3,84 ; pour des modèles non emboîtés, on utilise l'AIC/BIC.",
+    en: { q: "The likelihood-ratio test (ΔOFV ~ χ²) applies…", options: ["to nested models (one is a special case of the other)", "to any models", "with no degrees of freedom"], explain: "For 1 added parameter the χ² 5% threshold is 3.84; for non-nested models, use AIC/BIC." } },
+  { cat: 'Validation de modèle', chapter: 'valid-diagnostics', type: 'mcq', correct: 0,
+    q: "Sur |IWRES| vs prédictions, un nuage en « entonnoir » signale…",
+    options: ["un modèle d'erreur résiduelle mal choisi (hétéroscédasticité)", "un excellent ajustement", "une erreur de dose"],
+    explain: "L'erreur croît avec la concentration : passer d'une erreur additive à une erreur combinée (additive + proportionnelle).",
+    en: { q: "On |IWRES| vs predictions, a 'funnel'-shaped cloud signals…", options: ["a wrong residual-error model (heteroscedasticity)", "an excellent fit", "a dosing error"], explain: "Error grows with concentration: switch from an additive to a combined (additive + proportional) error." } },
+  { cat: 'Validation de modèle', chapter: 'valid-diagnostics', type: 'mcq', correct: 0,
+    q: "Un graphique DV vs IPRED presque parfait peut être trompeur à cause…",
+    options: ["d'un shrinkage élevé (surajustement individuel)", "d'une dose trop faible", "d'un mauvais solveur d'EDO"],
+    explain: "Avec un fort shrinkage, les prédictions individuelles « collent » aux données même si le modèle de population est mauvais ; regarder PRED, CWRES et la VPC.",
+    en: { q: "A near-perfect DV vs IPRED plot can be misleading because of…", options: ["high shrinkage (individual overfitting)", "too low a dose", "a poor ODE solver"], explain: "With high shrinkage, individual predictions 'stick' to the data even if the population model is poor; look at PRED, CWRES and the VPC." } }
 ];
 
 export const exerciseCategories = [
