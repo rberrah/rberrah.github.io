@@ -133,6 +133,10 @@ const D = {
     fr: "Les vraies observations du jeu de données Warfarin (251 points, 32 sujets) avec un modèle 1-compartiment ajustable. Mode « Profil » (nuage + courbe) ou « Obs vs préd » (GoF réel).",
     en: "The real Warfarin dataset observations (251 points, 32 subjects) with an adjustable one-compartment model. 'Profile' mode (scatter + curve) or 'Obs vs pred' mode (real GoF)."
   },
+  '61_ResidualError': {
+    fr: "Modèle d'erreur résiduelle sur les vraies données Warfarin : bande à ±1,96·SD (additive, proportionnelle ou combinée) autour de la courbe. On lit le % de points réels dans la bande (cible ≈ 95 %).",
+    en: "Residual-error model on the real Warfarin data: a ±1.96·SD band (additive, proportional or combined) around the curve. Read the % of real points inside the band (target ≈ 95%)."
+  },
   '59_ModelSelection': {
     fr: "Sélection de modèle : la baisse d'OFV (ΔOFV) comparée à la loi du χ² (test du rapport de vraisemblance), plus l'AIC et le BIC. Réglez ΔOFV, le nombre de paramètres et n.",
     en: "Model selection: the OFV drop (ΔOFV) compared to the χ² law (likelihood-ratio test), plus AIC and BIC. Adjust ΔOFV, the number of parameters and n."

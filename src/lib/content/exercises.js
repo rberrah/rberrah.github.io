@@ -81,6 +81,18 @@ export const exercises = [
     explain: "Ordre 0 : vitesse constante (ex. enzyme saturée, perfusion). Ordre 1 : vitesse proportionnelle à C.",
     en: { q: "A CONSTANT elimination rate, regardless of concentration, corresponds to…", options: ["first order", "zero order", "second order"], explain: "Zero order: constant rate (e.g. saturated enzyme, infusion). First order: rate proportional to C." } },
 
+  // ═══ Erreur résiduelle ═══
+  { cat: 'Pharmacocinétique de base', chapter: 'erreur-residuelle', type: 'mcq', correct: 0,
+    q: "Une erreur résiduelle proportionnelle signifie que le bruit…",
+    options: ["grandit avec la concentration prédite (%CV à peu près constant)", "est de largeur constante à toute concentration", "n'existe pas"],
+    explain: "Additive = largeur constante ; proportionnelle = ∝ prédiction ; combinée = plancher additif + pourcentage.",
+    en: { q: "A proportional residual error means the noise…", options: ["grows with the predicted concentration (roughly constant %CV)", "has constant width at all concentrations", "does not exist"], explain: "Additive = constant width; proportional = ∝ prediction; combined = additive floor + percentage." } },
+  { cat: 'Pharmacocinétique de base', chapter: 'erreur-residuelle', type: 'mcq', correct: 0,
+    q: "Un graphique |IWRES| vs prédictions en « entonnoir » indique…",
+    options: ["un modèle d'erreur mal choisi (additive au lieu de combinée)", "un excellent ajustement", "une erreur de dose"],
+    explain: "Les résidus qui s'élargissent avec la prédiction trahissent une erreur additive là où il fallait proportionnelle/combinée.",
+    en: { q: "A funnel-shaped |IWRES| vs predictions plot indicates…", options: ["a wrong error model (additive instead of combined)", "an excellent fit", "a dosing error"], explain: "Residuals widening with the prediction betray an additive error where proportional/combined was needed." } },
+
   // ═══ Variabilité ═══
   { cat: 'Maths & covariables', chapter: 'variabilite-iiv-iov', type: 'mcq', correct: 1,
     q: "La variabilité inter-individuelle (IIV) décrit…",
