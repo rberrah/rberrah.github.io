@@ -1,5 +1,7 @@
 <script>
   import { get } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import { glossary, glossaryCategories } from '$lib/stores/glossary';
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
@@ -7,6 +9,12 @@
   const items = get(glossary);
   const cats = get(glossaryCategories);
   let query = '';
+
+  // Lien profond depuis un chapitre : /glossaire?q=terme pré-remplit la recherche.
+  onMount(() => {
+    const q = $page.url.searchParams.get('q');
+    if (q) query = q;
+  });
 
   const norm = (/** @type {string} */ s) =>
     (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');

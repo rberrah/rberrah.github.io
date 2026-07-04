@@ -48,6 +48,10 @@ Result: the EBEs are **artificially tightened** around zero. Reduce the individu
 
 $$ sh_\eta = 1 - \frac{SD(\hat\eta)}{\omega} $$
 
+**How to read it — the rubber-band metaphor.** Each individual estimate is tied to the population mean by a rubber band. Lots of data for that patient → the band gives way, the estimate goes where the data point. Little data → the band snaps it back toward the population. Shrinkage measures **how much the band won**.
+
+**On the maths side.** $SD(\hat\eta)$ is the **actual** spread of the estimated deviations; $\omega$ is the spread the model **expects**. Rich data: $SD(\hat\eta)\approx\omega$, so $sh_\eta\approx 0$. Sparse data: all $\hat\eta$ are squashed toward 0, $SD(\hat\eta)\to 0$, so $sh_\eta\to 1$ (100% shrinkage).
+
 - $sh_\eta \approx 0$: the EBEs cover the variability well (rich data);
 - $sh_\eta \to 1$: all η̂ stick to 0 (sparse data).
 

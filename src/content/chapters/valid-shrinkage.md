@@ -9,6 +9,8 @@ order: 94
 duration: "12 min"
 level: "advanced"
 tags: ["validation", "shrinkage", "ebe", "diagnostics"]
+prerequisites: ["bayes-ebes", "math-bayes"]
+glossary: ["Shrinkage", "EBE", "η", "ω / Ω", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
 quiz:
   - prompt: "Un eta-shrinkage élevé signifie que les EBE..."
@@ -47,6 +49,12 @@ Résultat : les EBE sont **artificiellement resserrés** autour de zéro. Rédui
 Le **eta-shrinkage** compare la dispersion des EBE estimés à la variabilité du modèle $\omega$ :
 
 $$ sh_\eta = 1 - \frac{SD(\hat\eta)}{\omega} $$
+
+:::howto
+**La métaphore de l'élastique.** Chaque estimation individuelle est reliée à la moyenne de population par un élastique. Beaucoup de données pour ce patient → l'élastique cède, l'estimation va où pointent ses données. Peu de données → l'élastique la ramène vers la population. Le shrinkage mesure **à quel point l'élastique a gagné**.
+
+**Côté maths.** $SD(\hat\eta)$ est la dispersion **réelle** des écarts estimés ; $\omega$ est la dispersion que le modèle **attend**. Données riches : $SD(\hat\eta)\approx\omega$, donc $sh_\eta\approx 0$. Données pauvres : tous les $\hat\eta$ sont écrasés vers 0, $SD(\hat\eta)\to 0$, donc $sh_\eta\to 1$ (100 % de rétrécissement).
+:::
 
 - $sh_\eta \approx 0$ : les EBE couvrent bien la variabilité (données riches) ;
 - $sh_\eta \to 1$ : tous les η̂ collent à 0 (données pauvres).

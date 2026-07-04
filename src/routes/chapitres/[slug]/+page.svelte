@@ -6,6 +6,7 @@
   import Quiz from '$lib/components/ui/Quiz.svelte';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import { exercisesForChapter } from '$lib/content/exercises';
+  import { describeViz } from '$lib/content/vizDescriptions';
   import { language } from '$lib/stores/language';
   import { localizeChapter, ui } from '$lib/i18n/translations';
 
@@ -31,6 +32,15 @@
   $: prevDisplay = localizeChapter(prev, $language).chapter;
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
+  // Rappels : prérequis (liens vers d'autres chapitres) + termes du glossaire.
+  $: prereqs = (chapter?.prerequisites ?? [])
+    .map((/** @type {string} */ s) => chapters.find((c) => c.slug === s))
+    .filter(Boolean)
+    .map((/** @type {any} */ c) => ({ slug: c.slug, title: localizeChapter(c, $language).chapter.title }));
+  $: glossaryTerms = chapter?.glossary ?? [];
+  $: hasRecall = prereqs.length > 0 || glossaryTerms.length > 0;
+  // Description de l'animation active (localisée).
+  $: vizDesc = describeViz(activeViz, $language);
 
   let activeIndex = 0;
   /** @type {HTMLElement[]} */
@@ -131,6 +141,28 @@
     {#if isFallback}
       <p class="fallback-notice" data-testid="chapter-language-fallback">{copy.chapter.fallbackNotice}</p>
     {/if}
+
+    {#if hasRecall}
+      <aside class="recall" data-testid="chapter-recall">
+        <p class="recall-title">{copy.chapter.recallTitle}</p>
+        {#if prereqs.length}
+          <div class="recall-row">
+            <span class="recall-label">{copy.chapter.prereqLabel}</span>
+            <span class="recall-items">
+              {#each prereqs as p}<a class="chip chip-link" href={`${base}/chapitres/${p.slug}`}>{p.title}</a>{/each}
+            </span>
+          </div>
+        {/if}
+        {#if glossaryTerms.length}
+          <div class="recall-row">
+            <span class="recall-label">{copy.chapter.glossaryLabel}</span>
+            <span class="recall-items">
+              {#each glossaryTerms as t}<a class="chip chip-term" href={`${base}/glossaire?q=${encodeURIComponent(t)}`}>{t}</a>{/each}
+            </span>
+          </div>
+        {/if}
+      </aside>
+    {/if}
   </header>
 
   <div class="scrolly">
@@ -186,6 +218,9 @@
               out:fade={{ duration: $reducedMotion ? 0 : 120 }}
             >
               <svelte:component this={vizMap[activeViz]} />
+              {#if vizDesc}
+                <p class="viz-caption" data-testid="viz-caption"><span class="viz-caption-label">{copy.chapter.vizCaption}</span> {vizDesc}</p>
+              {/if}
             </div>
           {/key}
         {:else if activeSlideIds.length}
@@ -262,6 +297,25 @@
   .prose :global(.callout-math) { border-left-color: var(--border-strong); }
   .prose :global(.callout-math .callout-label) { color: var(--text-secondary); }
   .prose :global(.callout-note .callout-label) { color: var(--text-muted); }
+  .prose :global(.callout-howto) { border-left-color: var(--accent-ai); background: color-mix(in srgb, var(--accent-ai) 7%, var(--bg-tertiary)); }
+  .prose :global(.callout-howto .callout-label) { color: var(--accent-ai); }
+  .prose :global(.callout-recall) { border-left-color: var(--text-muted); background: var(--bg-secondary); }
+  .prose :global(.callout-recall .callout-label) { color: var(--text-secondary); }
+
+  /* --- Rappels (prérequis + termes du glossaire) --- */
+  .recall { margin-top: var(--space-6); padding: var(--space-4); background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius); display: grid; gap: var(--space-2); }
+  .recall-title { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin: 0; }
+  .recall-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
+  .recall-label { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); min-width: 78px; }
+  .recall-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: var(--font-mono); font-size: var(--text-xs); padding: 2px 9px; border-radius: 12px; text-decoration: none; border: 1px solid var(--border-subtle); }
+  .chip-link { background: color-mix(in srgb, var(--accent-pk) 10%, var(--bg-tertiary)); color: var(--accent-pk); border-color: color-mix(in srgb, var(--accent-pk) 30%, transparent); }
+  .chip-link:hover { background: color-mix(in srgb, var(--accent-pk) 18%, var(--bg-tertiary)); }
+  .chip-term { background: var(--bg-tertiary); color: var(--text-secondary); }
+  .chip-term:hover { border-color: var(--accent-ai); color: var(--accent-ai); }
+
+  .viz-caption { margin: var(--space-4) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.5; }
+  .viz-caption-label { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ai); display: block; margin-bottom: 2px; }
 
   .viz-panel { position: relative; }
   @media (min-width: 920px) {

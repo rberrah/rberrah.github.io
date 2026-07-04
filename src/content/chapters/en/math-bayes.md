@@ -48,6 +48,10 @@ The result, the **posterior**, is a weighted compromise between the two. Add poi
 
 $$ p(\theta \mid y) \;=\; \frac{p(y \mid \theta)\,p(\theta)}{p(y)} \;\propto\; \underbrace{p(y \mid \theta)}_{\text{likelihood}}\;\underbrace{p(\theta)}_{\text{prior}} $$
 
+**How to read it — the coin-flip metaphor.** You believe a coin is fair (prior: 50/50). You flip it 10 times and get 8 heads (data). You conclude neither "50%" (that ignores the data) nor "80%" (that ignores your prior): you settle **in between** — the closer to 80% the weaker your prior belief and the more flips you have.
+
+**On the maths side.** Read the formula right to left: start from the **prior** $p(\theta)$ (what you believe beforehand), **multiply** it by the **likelihood** $p(y\mid\theta)$ (how probable this $\theta$ makes the observed data), and the denominator $p(y)$ merely **renormalises** into a proper probability. The **posterior** $p(\theta\mid y)$ is thus the prior "corrected" by the data.
+
 In the **conjugate Gaussian** case the posterior stays Gaussian and its mean is a **precision-weighted average** (precision = inverse variance):
 
 $$ \hat\theta = \frac{\tau_0\,\mu_0 + \tau_d\,\bar y}{\tau_0 + \tau_d}, \qquad \tau = 1/\sigma^2 $$

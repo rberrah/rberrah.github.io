@@ -9,6 +9,8 @@ order: 24
 duration: "13 min"
 level: "advanced"
 tags: ["maths", "fisher-information", "optimal-design", "precision"]
+prerequisites: ["math-regression", "math-stats"]
+glossary: ["FIM", "RSE", "Vraisemblance", "Identifiabilité"]
 slides: []
 quiz:
   - prompt: "La matrice d'information de Fisher (FIM) sert à..."
@@ -47,6 +49,12 @@ Plus l'information est grande, plus la « vallée » de la vraisemblance est **�
 La FIM est l'espérance de la courbure de la log-vraisemblance :
 
 $$ I(\theta) = -\,\mathbb{E}\!\left[\frac{\partial^2 \log L}{\partial\theta\,\partial\theta^\top}\right] $$
+
+:::howto
+**La métaphore de la vallée.** Imaginez la vraisemblance comme une vallée dont le fond est la meilleure estimation. La FIM mesure à quel point la vallée est **encaissée** : des parois raides (forte courbure) = un fond bien localisé = estimation précise ; une vallée plate = on ne sait pas où est le fond = estimation imprécise.
+
+**Côté maths.** $\partial^2 \log L/\partial\theta^2$ est la **courbure** de la log-vraisemblance ; le signe moins la rend positive au sommet. Plus $I(\theta)$ est grand, plus la courbure est forte — et comme $\mathrm{Var}(\hat\theta)\ge I(\theta)^{-1}$, une grande information **borne par le bas** la variance : plus d'information ⇒ moins d'incertitude.
+:::
 
 La **borne de Cramér-Rao** en découle : pour tout estimateur non biaisé,
 

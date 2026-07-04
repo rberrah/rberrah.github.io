@@ -54,6 +54,10 @@ A sigmoid Emax model:
 
 $$ E = E_0 + \frac{E_{\max}\, C^{h}}{EC_{50}^{h} + C^{h}} $$
 
+**How to read it — the volume-knob metaphor.** Turning the volume up (the dose) first adds a lot of loudness, then less and less: at full blast, turning further adds almost nothing — except distortion (the side effects). The ear saturates just as receptors do.
+
+**On the maths side.** In $E = E_0 + \dfrac{E_{\max}C}{EC_{50}+C}$: when $C \ll EC_{50}$, the fraction $\approx C/EC_{50}$ (near-**linear** response); when $C = EC_{50}$, it is exactly **½** (hence the name); when $C \gg EC_{50}$, it tends to **1** and $E\to E_0+E_{\max}$ (plateau). The Hill coefficient $h$ only makes the switch more or less **steep**.
+
 **Math —** $E_0$ = effect without drug; $E_{\max}$ = maximal added effect; $EC_{50}$ = concentration giving half the effect; $h$ (Hill coefficient) = how switch-like the response is.
 <!-- /step -->
 

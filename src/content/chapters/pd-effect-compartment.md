@@ -9,6 +9,8 @@ order: 62
 duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "effect-compartment", "sheiner", "hysteresis"]
+prerequisites: ["pkpd", "pd-direct"]
+glossary: ["Compartiment d’effet (ke0)", "Hystérèse", "Emax"]
 slides: []
 quiz:
   - prompt: "Le modèle à compartiment d'effet explique l'hystérésis par..."
@@ -47,6 +49,12 @@ Quand on trace effet vs concentration plasmatique, ce retard dessine une **boucl
 On ajoute un compartiment d'effet $C_e$ qui s'équilibre avec le plasma à la vitesse $k_{e0}$ :
 
 $$ \frac{dC_e}{dt} = k_{e0}\,(C_p - C_e) $$
+
+:::howto
+**La métaphore de la pièce chauffée.** Le plasma, c'est le radiateur ; le site d'effet, c'est la pièce. Quand vous allumez (pic plasmatique), la pièce ne se réchauffe pas d'un coup : il y a un délai. $k_{e0}$ est la **vitesse d'échange** radiateur→pièce : petit $k_{e0}$ = pièce lente à chauffer et à refroidir = gros décalage.
+
+**Côté maths.** $C_e$ « poursuit » $C_p$ : la vitesse $k_{e0}(C_p-C_e)$ est grande quand l'écart est grand, nulle à l'équilibre. Comme l'effet suit $C_e$ (en retard) et non $C_p$, tracer effet vs $C_p$ dessine une **boucle** (hystérèse) — même concentration, effet différent à la montée et à la descente.
+:::
 
 L'effet suit alors un Emax **de $C_e$** (et non de $C_p$) :
 

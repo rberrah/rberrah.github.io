@@ -113,6 +113,28 @@ for (const c of checks) {
 }
 if (!numBad) ok(`${checks.length} réponses numériques recalculées et confirmées`);
 
+// ── 5c. Prérequis résolus + descriptions d'animations ──
+let prereqBad = 0;
+for (const f of frFiles) {
+  const raw = fs.readFileSync(path.join(chaptersDir, f), 'utf8');
+  const m = raw.match(/prerequisites:\s*\[([^\]]*)\]/);
+  if (!m) continue;
+  for (const s of m[1].split(',').map((x) => x.trim().replace(/^["']|["']$/g, '')).filter(Boolean)) {
+    if (!slugs.has(s)) { fail(`prérequis inconnu "${s}" dans ${f}`); prereqBad++; }
+  }
+}
+if (!prereqBad) ok('prérequis des chapitres tous résolus');
+
+const { describeViz } = await import(new URL('../src/lib/content/vizDescriptions.js', import.meta.url));
+const usedViz = new Set();
+for (const f of frFiles) {
+  const raw = fs.readFileSync(path.join(chaptersDir, f), 'utf8');
+  for (const m of raw.matchAll(/viz="([^"]+)"/g)) usedViz.add(m[1]);
+}
+let descBad = 0;
+for (const v of usedViz) if (!describeViz(v, 'fr') || !describeViz(v, 'en')) { fail(`animation sans description : ${v}`); descBad++; }
+if (!descBad) ok(`${usedViz.size} animations utilisées ont toutes une description (FR+EN)`);
+
 // ── 6. Références ──
 const { referenceGroups } = await import(new URL('../src/lib/content/references.js', import.meta.url));
 let refCount = 0, refBad = 0;

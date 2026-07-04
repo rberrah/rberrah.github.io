@@ -9,6 +9,8 @@ order: 22
 duration: "13 min"
 level: "intermediate"
 tags: ["maths", "bayes", "estimation", "prior"]
+prerequisites: ["math-regression"]
+glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "Vraisemblance", "MAP", "Shrinkage"]
 slides: []
 quiz:
   - prompt: "Le théorème de Bayes combine..."
@@ -47,6 +49,12 @@ Le résultat, le **posterior**, est un compromis pondéré entre les deux. Ajout
 Le **théorème de Bayes** relie ces trois ingrédients :
 
 $$ p(\theta \mid y) \;=\; \frac{p(y \mid \theta)\,p(\theta)}{p(y)} \;\propto\; \underbrace{p(y \mid \theta)}_{\text{vraisemblance}}\;\underbrace{p(\theta)}_{\text{prior}} $$
+
+:::howto
+**La métaphore du pile ou face.** Vous croyez une pièce équilibrée (prior : 50/50). Vous la lancez 10 fois, vous obtenez 8 faces (données). Vous ne concluez ni « 50 % » (ce serait ignorer les données), ni « 80 % » (ce serait ignorer votre a priori) : vous vous arrêtez **entre les deux** — d'autant plus près de 80 % que vous aviez peu de convictions et beaucoup de lancers.
+
+**Côté maths.** Lisez la formule de droite à gauche : on part du **prior** $p(\theta)$ (ce qu'on croit avant), on le **multiplie** par la **vraisemblance** $p(y\mid\theta)$ (à quel point cette valeur de $\theta$ rend les données observées probables), et le dénominateur $p(y)$ ne fait que **renormaliser** pour obtenir une vraie probabilité. Le **posterior** $p(\theta\mid y)$ est donc le prior « corrigé » par les données.
+:::
 
 Dans le cas **gaussien conjugué**, le posterior reste gaussien et sa moyenne est une **moyenne pondérée** par les précisions (inverses des variances) :
 

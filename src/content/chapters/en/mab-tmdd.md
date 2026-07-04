@@ -45,6 +45,10 @@ $$ \frac{dR}{dt} = k_{syn} - k_{deg}R - k_{on}C\cdot R + k_{off}\,RC,\qquad \fra
 
 In practice, the **quasi-equilibrium / Michaelis-Menten** approximation of this system is often used.
 
+**How to read it — the parking-lot metaphor.** The target is a set of parking spaces. At low dose (few cars), each molecule quickly finds a spot and is "removed" from circulation: fast elimination. At high dose, every space is **taken** (target saturated): the extra molecules stay in the blood and leave only by the slow route. Hence a clearance that **drops** as the dose rises.
+
+**On the maths side.** The $k_{on}\,C\cdot R$ term is the "parking" rate: proportional to free molecules $C$ **and** free spaces $R$. When $R\to 0$ (saturation), it vanishes and only $-k_{el}C$ (slow catabolism) remains: PK becomes linear again.
+
 **Ref —** Mager D.E. & Jusko W.J., *J Pharmacokinet Pharmacodyn* 2001 (TMDD model); QSS approximations by Gibiansky & Gibiansky.
 <!-- /step -->
 

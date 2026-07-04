@@ -9,6 +9,8 @@ order: 7
 duration: "16 min"
 level: "intermediate"
 tags: ["pkpd", "emax", "ec50", "turnover"]
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["Emax", "EC50 / CE50", "Coefficient de Hill", "Compartiment d’effet (ke0)", "Réponse indirecte / turnover", "Hystérèse"]
 slides: ["s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s35", "s36"]
 quiz:
   - prompt: "L'EC50 est la concentration qui produit..."
@@ -55,6 +57,12 @@ $$ E = E_0 + \frac{E_{\max}\, C}{EC_{50} + C} $$
 Un modèle Emax sigmoïde :
 
 $$ E = E_0 + \frac{E_{\max}\, C^{h}}{EC_{50}^{h} + C^{h}} $$
+
+:::howto
+**La métaphore du volume sonore.** Monter le son (la dose) augmente d'abord beaucoup le bruit, puis de moins en moins : à fond, tourner encore le bouton n'ajoute presque rien — sauf de la distorsion (les effets indésirables). L'oreille sature comme les récepteurs saturent.
+
+**Côté maths.** Dans $E = E_0 + \dfrac{E_{\max}C}{EC_{50}+C}$ : quand $C \ll EC_{50}$, la fraction $\approx C/EC_{50}$ (réponse quasi **linéaire**) ; quand $C = EC_{50}$, la fraction vaut exactement **½** (d'où le nom) ; quand $C \gg EC_{50}$, la fraction tend vers **1** et $E\to E_0+E_{\max}$ (plateau). Le coefficient de Hill $h$ ne fait que rendre la bascule plus ou moins **raide**.
+:::
 
 :::math
 $E_0$ = effet sans médicament ; $E_{\max}$ = effet supplémentaire maximal ; $EC_{50}$ = concentration donnant la moitié de l'effet ; $h$ (coefficient de Hill) = à quel point la réponse est « tout ou rien ».

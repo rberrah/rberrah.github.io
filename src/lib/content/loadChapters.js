@@ -28,7 +28,9 @@ const CALLOUTS = {
   key: 'À retenir',
   clinical: 'En clinique',
   note: 'Note',
-  math: 'Côté maths'
+  math: 'Côté maths',
+  howto: 'Comment la lire',
+  recall: 'Rappel'
 };
 
 // Rend un segment Markdown : KaTeX au build (renderMath) PUIS MarkdownIt.
@@ -69,7 +71,7 @@ const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?ra
 /**
  * @typedef {{title:string, slides?:string, viz?:string}} StepMeta
  * @typedef {{title:string, html:string, slides:string[], viz?:string}} Step
- * @typedef {{id:string, slug:string, title:string, description:string, order:number, track:string, tags:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
+ * @typedef {{id:string, slug:string, title:string, description:string, order:number, track:string, tags:string[], prerequisites:string[], glossary:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
  */
 
 /** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */
@@ -113,6 +115,8 @@ function parseChapter(path, raw) {
     description: data.description ?? '',
     order: Number(data.order ?? 999),
     tags: data.tags ?? [],
+    prerequisites: data.prerequisites ?? [],
+    glossary: data.glossary ?? [],
     slides: data.slides ?? [],
     quiz: data.quiz ?? [],
     steps

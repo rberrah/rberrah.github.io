@@ -9,6 +9,8 @@ order: 51
 duration: "13 min"
 level: "advanced"
 tags: ["mab", "tmdd", "nonlinear", "target"]
+prerequisites: ["mab-pk", "clairance-volume-demi-vie"]
+glossary: ["Michaelis-Menten", "CL", "AUC"]
 slides: []
 quiz:
   - prompt: "Le TMDD (target-mediated drug disposition) produit une PK..."
@@ -44,6 +46,12 @@ $$ \frac{dC}{dt} = -k_{el}C - k_{on}C\cdot R + k_{off}\,RC $$
 $$ \frac{dR}{dt} = k_{syn} - k_{deg}R - k_{on}C\cdot R + k_{off}\,RC,\qquad \frac{dRC}{dt} = k_{on}C\cdot R - (k_{off}+k_{int})RC $$
 
 En pratique, on utilise souvent l'**approximation quasi-équilibre / Michaelis-Menten** de ce système.
+
+:::howto
+**La métaphore du parking.** La cible, ce sont des places de parking. À faible dose (peu de voitures), chaque molécule trouve vite une place et y est « retirée » de la circulation : élimination rapide. À forte dose, toutes les places sont **prises** (cible saturée) : les molécules en trop restent dans le sang et ne partent que par la voie lente. D'où une clairance qui **baisse** quand la dose monte.
+
+**Côté maths.** Le terme $k_{on}\,C\cdot R$ est la vitesse de « garage » : proportionnelle aux molécules libres $C$ **et** aux places libres $R$. Quand $R\to 0$ (saturation), ce terme s'éteint et il ne reste que $-k_{el}C$ (catabolisme lent) : la PK redevient linéaire.
+:::
 
 :::note
 Réf. : Mager D.E. & Jusko W.J., *J Pharmacokinet Pharmacodyn* 2001 (modèle TMDD) ; approximations QSS de Gibiansky & Gibiansky.

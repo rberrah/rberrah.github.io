@@ -62,6 +62,10 @@ We then **link** tumour dynamics to the **risk** of progression. The hazard depe
 
 $$ h(t) = h_0(t)\cdot e^{\,\beta\, f(TS(t))}, \qquad S(t) = e^{-\int_0^t h} $$
 
+**How to read it — the thermostat metaphor.** The hazard $h(t)$ is the instantaneous risk of progression, like a heater's power. Tumour size acts as the thermostat: the bigger the tumour, the higher $h$. The parameter $\beta$ is the **thermostat's sensitivity** — large $\beta$ = risk reacts strongly to the tumour.
+
+**On the maths side.** $h_0(t)$ is the baseline risk; the factor $e^{\beta f(TS)}$ **modulates** it (× > 1 if the tumour grows, × < 1 if it shrinks). Survival $S(t)=e^{-\int h}$ **accumulates** that risk: while $h$ stays low (shrunken tumour), $S$ falls slowly — the survival curve is pushed to the right.
+
 $f$ can be the current size, the change from baseline (CFB), its AUC… The larger $|\beta|$, the stronger the tumour → survival link. Shrinking the tumour **pushes the survival curve to the right**.
 <!-- /step -->
 

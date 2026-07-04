@@ -9,6 +9,8 @@ order: 30
 duration: "15 min"
 level: "advanced"
 tags: ["oncology", "tumor-growth", "joint-model", "survival"]
+prerequisites: ["pd-survival"]
+glossary: ["AUC", "Emax", "Covariable"]
 slides: []
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
@@ -63,6 +65,12 @@ Réf. : Claret L. et al., *J Clin Oncol* 2009 (TGI–OS) ; Simeoni M. et al., *C
 On **relie** ensuite la dynamique tumorale au **risque** de progression. Le hasard dépend de la taille tumorale via un paramètre de lien $\beta$ :
 
 $$ h(t) = h_0(t)\cdot e^{\,\beta\, f(TS(t))}, \qquad S(t) = e^{-\int_0^t h} $$
+
+:::howto
+**La métaphore du thermostat.** Le hasard $h(t)$ est le risque instantané de progression, comme la puissance d'un chauffage. La taille tumorale joue le thermostat : plus la tumeur est grosse, plus $h$ monte. Le paramètre $\beta$ est la **sensibilité du thermostat** — $\beta$ grand = le risque réagit fortement à la tumeur.
+
+**Côté maths.** $h_0(t)$ est le risque de base ; le facteur $e^{\beta f(TS)}$ le **module** (× > 1 si la tumeur grossit, × < 1 si elle régresse). La survie $S(t)=e^{-\int h}$ **accumule** ce risque : tant que $h$ reste bas (tumeur réduite), $S$ décroît lentement — la courbe de survie est repoussée vers la droite.
+:::
 
 $f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC… Plus $|\beta|$ est grand, plus le lien tumeur → survie est fort. Faire régresser la tumeur **repousse la courbe de survie** vers la droite.
 <!-- /step -->

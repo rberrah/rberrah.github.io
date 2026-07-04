@@ -48,6 +48,10 @@ We add an effect compartment $C_e$ that equilibrates with plasma at rate $k_{e0}
 
 $$ \frac{dC_e}{dt} = k_{e0}\,(C_p - C_e) $$
 
+**How to read it — the heated-room metaphor.** The plasma is the radiator; the effect site is the room. When you switch on (plasma peak), the room does not warm all at once: there is a delay. $k_{e0}$ is the **exchange rate** radiator→room: a small $k_{e0}$ = a room slow to heat and cool = a large lag.
+
+**On the maths side.** $C_e$ "chases" $C_p$: the rate $k_{e0}(C_p-C_e)$ is large when the gap is large, zero at equilibrium. Since the effect follows $C_e$ (lagging), not $C_p$, plotting effect vs $C_p$ traces a **loop** (hysteresis) — same concentration, different effect on the way up and down.
+
 The effect then follows an Emax **of $C_e$** (not $C_p$):
 
 $$ E = E_0 + \frac{E_{max}\,C_e}{EC_{50}+C_e} $$

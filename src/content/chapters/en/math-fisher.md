@@ -48,6 +48,10 @@ The FIM is the expected curvature of the log-likelihood:
 
 $$ I(\theta) = -\,\mathbb{E}\!\left[\frac{\partial^2 \log L}{\partial\theta\,\partial\theta^\top}\right] $$
 
+**How to read it — the valley metaphor.** Picture the likelihood as a valley whose floor is the best estimate. The FIM measures how **steep-walled** the valley is: steep walls (high curvature) = a sharply located floor = a precise estimate; a flat valley = you cannot tell where the floor is = an imprecise estimate.
+
+**On the maths side.** $\partial^2 \log L/\partial\theta^2$ is the **curvature** of the log-likelihood; the minus sign makes it positive at the peak. The larger $I(\theta)$, the steeper the curvature — and since $\mathrm{Var}(\hat\theta)\ge I(\theta)^{-1}$, more information **lower-bounds** the variance: more information ⇒ less uncertainty.
+
 The **Cramér-Rao bound** follows: for any unbiased estimator,
 
 $$ \mathrm{Var}(\hat\theta) \ge I(\theta)^{-1} $$

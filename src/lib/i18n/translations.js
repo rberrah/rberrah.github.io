@@ -68,7 +68,11 @@ export const dictionary = {
       next: 'Next →',
       emptyViz: 'Scroll to explore the interactive figures for this chapter.',
       fallbackNotice: 'English translation in progress — showing the French content.',
-      exercisesTitle: 'Practice exercises'
+      exercisesTitle: 'Practice exercises',
+      recallTitle: 'Before you start',
+      prereqLabel: 'Prerequisites',
+      glossaryLabel: 'Key terms',
+      vizCaption: 'About this animation'
     },
     quiz: {
       correct: 'correct',
@@ -187,7 +191,11 @@ export const dictionary = {
       next: 'Suivant →',
       emptyViz: 'Faites défiler pour explorer les figures interactives de ce chapitre.',
       fallbackNotice: 'Contenu en français (langue principale du cours).',
-      exercisesTitle: "Exercices d'entraînement"
+      exercisesTitle: "Exercices d'entraînement",
+      recallTitle: 'Avant de commencer',
+      prereqLabel: 'Prérequis',
+      glossaryLabel: 'Termes clés',
+      vizCaption: 'À propos de cette animation'
     },
     quiz: {
       correct: 'correct',
