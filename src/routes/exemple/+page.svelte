@@ -1,8 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import OralAbsorption from '$lib/components/visualizations/OralAbsorptionExplorer.svelte';
-  import VariabilitySandbox from '$lib/components/visualizations/12_VariabilitySandbox.svelte';
-  import GOFPlots from '$lib/components/visualizations/50_GOFPlots.svelte';
+  import WarfarinFit from '$lib/components/visualizations/60_WarfarinFit.svelte';
   import VPC from '$lib/components/visualizations/17_VPCCrashTest.svelte';
   import NPDE from '$lib/components/visualizations/52_NPDE.svelte';
   import PopDistrib from '$lib/components/visualizations/03_PopulationDistrib.svelte';
@@ -94,9 +93,9 @@ fit_r01 <- nlmixr(pk_1cmt, dat_pk, est = "saem")`;
 
 <section>
   <h2>2 · Explorer les données</h2>
-  <p>Avant tout modèle, on <strong>regarde</strong> : tracer toutes les courbes individuelles (« spaghetti ») révèle la forme (montée puis descente), la dispersion entre patients, et d'éventuels points aberrants.</p>
-  <div class="viz"><VariabilitySandbox /></div>
-  <p class="cap">La dispersion du faisceau annonce la <strong>variabilité inter-individuelle</strong> à modéliser ; la forme oriente le choix du modèle structural.</p>
+  <p>Avant tout modèle, on <strong>regarde</strong>. Ci-dessous, les <strong>251 vraies observations</strong> (32 sujets) du jeu de données : forme (montée puis descente), dispersion entre patients, points extrêmes. Ajustez le modèle à 1 compartiment pour qu'il traverse le nuage réel.</p>
+  <div class="viz"><WarfarinFit initialMode="time" /></div>
+  <p class="cap">Chaque point est une concentration mesurée réelle. La dispersion du faisceau annonce la <strong>variabilité inter-individuelle</strong> ; le curseur <strong>RMSE</strong> chiffre l'écart entre la courbe typique et les données.</p>
 </section>
 
 <section>
@@ -124,15 +123,15 @@ fit_r01 <- nlmixr(pk_1cmt, dat_pk, est = "saem")`;
   <p>C'est l'étape clé : le modèle est-il fiable ? On <strong>croise plusieurs graphiques</strong>, chacun révélant un défaut différent. (Détails dans le parcours <a href={`${base}/chapitres/valid-diagnostics`}>Validation</a>.)</p>
 
   <div class="diag">
-    <h3>a · Observations vs prédictions + résidus (CWRES)</h3>
-    <div class="viz"><GOFPlots /></div>
-    <p class="cap">À gauche : le nuage doit tomber <strong>sur la diagonale</strong> (prédictions justes). À droite : les <strong>CWRES</strong> doivent être centrés sur 0, sans tendance. Montez la « mauvaise spécification » pour voir un biais apparaître — exactement ce qu'on traque.</p>
+    <h3>a · Observations vs prédictions (données réelles)</h3>
+    <div class="viz"><WarfarinFit initialMode="gof" /></div>
+    <p class="cap">Chaque point : une <strong>vraie observation</strong> warfarine placée en (prédiction du modèle, valeur mesurée). Un bon modèle aligne le nuage sur la <strong>diagonale</strong>. Ajustez CL/V/Ka/Tlag : le nuage se resserre autour de la diagonale quand l'ajustement s'améliore.</p>
   </div>
 
   <div class="diag">
     <h3>b · VPC — le test prédictif visuel</h3>
     <div class="viz"><VPC /></div>
-    <p class="cap">Les percentiles <strong>observés</strong> doivent tomber dans les <strong>bandes simulées</strong>. Médiane hors bande = défaut de structure ; extrêmes trop serrés = variabilité sous-estimée.</p>
+    <p class="cap">Les percentiles <strong>observés</strong> doivent tomber dans les <strong>bandes simulées</strong>. Médiane hors bande = défaut de structure ; extrêmes trop serrés = variabilité sous-estimée. <em>(Schéma interactif : la VPC/NPDE se construit par simulation du modèle ajusté — les valeurs réelles sont dans le notebook.)</em></p>
   </div>
 
   <div class="diag">

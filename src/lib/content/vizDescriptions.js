@@ -129,6 +129,10 @@ const D = {
     fr: "Design optimal : placez deux prélèvements sur la courbe et voyez le RSE de V et k. Un point précoce + un tardif minimisent l'incertitude (matrice de Fisher).",
     en: "Optimal design: place two samples on the curve and see the RSE of V and k. One early + one late sample minimises uncertainty (Fisher matrix)."
   },
+  '60_WarfarinFit': {
+    fr: "Les vraies observations du jeu de données Warfarin (251 points, 32 sujets) avec un modèle 1-compartiment ajustable. Mode « Profil » (nuage + courbe) ou « Obs vs préd » (GoF réel).",
+    en: "The real Warfarin dataset observations (251 points, 32 subjects) with an adjustable one-compartment model. 'Profile' mode (scatter + curve) or 'Obs vs pred' mode (real GoF)."
+  },
   '59_ModelSelection': {
     fr: "Sélection de modèle : la baisse d'OFV (ΔOFV) comparée à la loi du χ² (test du rapport de vraisemblance), plus l'AIC et le BIC. Réglez ΔOFV, le nombre de paramètres et n.",
     en: "Model selection: the OFV drop (ΔOFV) compared to the χ² law (likelihood-ratio test), plus AIC and BIC. Adjust ΔOFV, the number of parameters and n."
