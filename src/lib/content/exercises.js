@@ -470,7 +470,50 @@ export const exercises = [
     q: "Une moyenne de résidus non nulle chez les insuffisants rénaux suggère…",
     options: ["une covariable manquante sur un paramètre (ex. ClCr sur la clairance)", "un modèle parfait", "un problème d'unité seulement"],
     explain: "Un décalage limité à un sous-groupe = covariable manquante : ajouter la ClCr sur la clairance et vérifier l'OFV.",
-    en: { q: "A non-zero residual mean in renally impaired patients suggests…", options: ["a missing covariate on a parameter (e.g. CrCl on clearance)", "a perfect model", "only a unit problem"], explain: "An offset confined to a subgroup = missing covariate: add CrCl on clearance and check the OFV." } }
+    en: { q: "A non-zero residual mean in renally impaired patients suggests…", options: ["a missing covariate on a parameter (e.g. CrCl on clearance)", "a perfect model", "only a unit problem"], explain: "An offset confined to a subgroup = missing covariate: add CrCl on clearance and check the OFV." } },
+
+  // ═══ Nouveaux chapitres cœur (voies, steady state, métabolite) ═══
+  { cat: 'Absorption, perfusion & doses', chapter: 'voies-absorption', type: 'mcq', correct: 0,
+    q: "Par voie intraveineuse (IV), la biodisponibilité F vaut…",
+    options: ["1 (toute la dose atteint la circulation)", "toujours 0,5", "0"],
+    explain: "L'IV court-circuite l'absorption et le premier passage : F = 1. Toute autre voie a F ≤ 1.",
+    en: { q: "By the intravenous (IV) route, the bioavailability F is…", options: ["1 (all the dose reaches the circulation)", "always 0.5", "0"], explain: "IV short-circuits absorption and first-pass: F = 1. Every other route has F ≤ 1." } },
+  { cat: 'Absorption, perfusion & doses', chapter: 'etat-equilibre', type: 'num', unit: 'mg/h', answer: 20, tol: 0.02,
+    q: "On vise une Css de 10 mg/L avec CL = 2 L/h (perfusion). Quel débit R₀ (= Css·CL) ?",
+    explain: "R₀ = Css · CL = 10 × 2 = 20 mg/h. Le niveau dépend du débit et de la clairance.",
+    en: { q: "Target a Css of 10 mg/L with CL = 2 L/h (infusion). What rate R₀ (= Css·CL)?", explain: "R₀ = Css · CL = 10 × 2 = 20 mg/h. The level depends on the rate and the clearance." } },
+  { cat: 'Absorption, perfusion & doses', chapter: 'etat-equilibre', type: 'mcq', correct: 0,
+    q: "Le temps pour atteindre l'état d'équilibre dépend surtout de…",
+    options: ["la demi-vie (~4–5 t½), pas de la dose", "la dose administrée", "le volume seul"],
+    explain: "Doubler la dose double la Css sans changer le temps d'atteinte (~4–5 demi-vies).",
+    en: { q: "The time to reach steady state depends mainly on…", options: ["the half-life (~4–5 t½), not the dose", "the administered dose", "the volume alone"], explain: "Doubling the dose doubles Css without changing the time to reach it (~4–5 half-lives)." } },
+  { cat: 'Absorption, perfusion & doses', chapter: 'parent-metabolite', type: 'mcq', correct: 0,
+    q: "Si le métabolite s'élimine plus lentement que le parent (km < k), il…",
+    options: ["persiste après la disparition du parent (pente terminale = km)", "disparaît avant le parent", "n'apparaît jamais"],
+    explain: "La pente terminale du métabolite = min(k, km) ; si km < k, l'élimination du métabolite limite et il persiste.",
+    en: { q: "If the metabolite is eliminated more slowly than the parent (km < k), it…", options: ["persists after the parent is gone (terminal slope = km)", "disappears before the parent", "never appears"], explain: "The metabolite's terminal slope = min(k, km); if km < k, its elimination is limiting and it persists." } },
+
+  // ═══ Outils & logiciels ═══
+  { cat: 'Outils', chapter: 'tools-overview', type: 'mcq', correct: 0,
+    q: "Pour simuler rapidement de nombreux profils (VPC, essais), on privilégie…",
+    options: ["mrgsolve ou rxode2 (R)", "un tableur", "un outil de dessin"],
+    explain: "Estimer : NONMEM/Monolix/nlmixr2 ; simuler : mrgsolve/rxode2 ; individualiser : mapbayr.",
+    en: { q: "To quickly simulate many profiles (VPC, trials), you favour…", options: ["mrgsolve or rxode2 (R)", "a spreadsheet", "a drawing tool"], explain: "Estimate: NONMEM/Monolix/nlmixr2; simulate: mrgsolve/rxode2; individualise: mapbayr." } },
+  { cat: 'Outils', chapter: 'tools-estimation', type: 'mcq', correct: 0,
+    q: "SAEM et FOCE-I sont deux…",
+    options: ["algorithmes d'estimation du maximum de vraisemblance", "types de dose", "unités de concentration"],
+    explain: "FOCE-I linéarise (rapide, approximatif) ; SAEM échantillonne (robuste). Tous minimisent l'OFV.",
+    en: { q: "SAEM and FOCE-I are two…", options: ["maximum-likelihood estimation algorithms", "types of dose", "concentration units"], explain: "FOCE-I linearises (fast, approximate); SAEM samples (robust). Both minimise the OFV." } },
+  { cat: 'Outils', chapter: 'tools-simulation', type: 'mcq', correct: 0,
+    q: "mrgsolve et rxode2 servent surtout à…",
+    options: ["simuler rapidement des ODE et de grandes populations (R)", "estimer les paramètres", "dessiner des molécules"],
+    explain: "Ce sont des intégrateurs d'ODE rapides ; mrgsolve est la base de mapbayr pour le TDM.",
+    en: { q: "mrgsolve and rxode2 mainly serve to…", options: ["quickly simulate ODEs and large populations (R)", "estimate parameters", "draw molecules"], explain: "They are fast ODE integrators; mrgsolve is the basis of mapbayr for TDM." } },
+  { cat: 'Outils', chapter: 'tools-mipd', type: 'mcq', correct: 0,
+    q: "mapbayr (R) réalise…",
+    options: ["l'estimation MAP bayésienne à partir d'un modèle mrgsolve", "un tableur", "un générateur d'images"],
+    explain: "Le MIPD : a priori de population + quelques prélèvements → estimation MAP → dose cible.",
+    en: { q: "mapbayr (R) performs…", options: ["MAP Bayesian estimation from an mrgsolve model", "a spreadsheet", "an image generator"], explain: "MIPD: population prior + a few samples → MAP estimate → target dose." } }
 ];
 
 export const exerciseCategories = [

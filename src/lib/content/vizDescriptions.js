@@ -53,6 +53,18 @@ const D = {
     fr: "Montre le rétrécissement (shrinkage) : avec peu de données, les estimations individuelles (EBE) se replient vers la population. Réduisez l'information et voyez le nuage se contracter.",
     en: "Shows shrinkage: with sparse data, individual estimates (EBEs) collapse toward the population. Reduce the information and watch the cloud contract."
   },
+  '15_OFVGame': {
+    fr: "Minimiser la fonction objective (OFV = −2 log L) : déplacez les paramètres pour rapprocher le modèle des données et faire baisser l'OFV.",
+    en: "Minimising the objective function (OFV = −2 log L): move the parameters to bring the model closer to the data and lower the OFV."
+  },
+  '16_SAEMCycle': {
+    fr: "Le cycle de l'algorithme SAEM : alternance simulation des effets individuels (E) et mise à jour des paramètres de population (M), jusqu'à convergence.",
+    en: "The SAEM algorithm cycle: alternating simulation of individual effects (E) and update of population parameters (M), until convergence."
+  },
+  '21_PopPKPlayground': {
+    fr: "Bac à sable PopPK : réglez modèle, doses, variabilité et plan de prélèvement pour simuler une population et voir le faisceau de profils.",
+    en: "A PopPK sandbox: set the model, doses, variability and sampling design to simulate a population and see the bundle of profiles."
+  },
   '20_NeuralBox': {
     fr: "Représente un réseau de neurones comme une boîte qui transforme des entrées en sortie. Sert d'image aux modèles d'apprentissage (Neural ODE, LLM).",
     en: "Represents a neural network as a box transforming inputs into an output. A visual stand-in for learning models (Neural ODE, LLMs)."
@@ -132,6 +144,10 @@ const D = {
   '60_WarfarinFit': {
     fr: "Les vraies observations du jeu de données Warfarin (251 points, 32 sujets) avec un modèle 1-compartiment ajustable. Mode « Profil » (nuage + courbe) ou « Obs vs préd » (GoF réel).",
     en: "The real Warfarin dataset observations (251 points, 32 subjects) with an adjustable one-compartment model. 'Profile' mode (scatter + curve) or 'Obs vs pred' mode (real GoF)."
+  },
+  '65_ParentMetabolite': {
+    fr: "Cinétique parent → métabolite (échelle log) : le parent décroît, le métabolite se forme puis décroît. Réglez k, km et fm : si km < k, le métabolite persiste (limité par l'élimination).",
+    en: "Parent → metabolite kinetics (log scale): the parent decays, the metabolite forms then decays. Adjust k, km and fm: if km < k, the metabolite persists (elimination-limited)."
   },
   '63_ClusterPCA': {
     fr: "Paramètres individuels (CL, V) de patients de 3 types de cancer. Basculez « Vrai type » ↔ « Clusters (k-means) » et réglez la séparation : quand elle est nette, le clustering retrouve les groupes.",

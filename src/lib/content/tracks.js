@@ -90,6 +90,14 @@ export const tracks = [
       fr: { label: 'Parcours 11', title: 'Interprétation et essais cliniques', tagline: "Du modèle à la décision : première dose (MABEL), simulation d'essais et interprétation." }
     },
     accent: '#6a5a8c', status: 'available', visual: 'trials-visual'
+  },
+  {
+    id: 'tools',
+    i18n: {
+      en: { label: 'Track 12', title: 'Software & tools', tagline: 'The ecosystem: NONMEM, Monolix, nlmixr2, mrgsolve/rxode2 and mapbayr — estimation, simulation, MIPD.' },
+      fr: { label: 'Parcours 12', title: 'Outils & logiciels', tagline: "L'écosystème : NONMEM, Monolix, nlmixr2, mrgsolve/rxode2 et mapbayr — estimation, simulation, TDM." }
+    },
+    accent: '#4d4d5c', status: 'available', visual: 'tools-visual'
   }
 ];
 
