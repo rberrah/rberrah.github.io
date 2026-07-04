@@ -39,13 +39,13 @@ quiz:
 Its engine, **SAEM**, and its built-in plots have made it a standard, especially in academia and early phase.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="16_SAEMCycle" -->
+<!-- step:title="Intuition" viz="67_SAEMConvergence" -->
 You load the data, choose (or write) a model, click **Run**, and Monolix launches **SAEM** then directly shows the **diagnostics**: VPC, parameter distributions, residuals.
 
 Exact estimation (SAEM) + immediate visualisation shorten the "estimate → diagnose → fix" loop.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="16_SAEMCycle" -->
+<!-- step:title="The formula, unpacked" viz="67_SAEMConvergence" -->
 The model is written in **mlxtran**, a readable language separating structure and statistics:
 
 ```
@@ -68,7 +68,7 @@ Estimation uses **SAEM** (see the algorithms chapter), with the likelihood compu
 **Note —** ref.: Lixoft / Simulations Plus; Monolix documentation. mlxtran is shared by the whole MonolixSuite (Simulx for simulation).
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="16_SAEMCycle" -->
+<!-- step:title="Worked example" viz="67_SAEMConvergence" -->
 On a difficult model (steep Emax, sparse data), Monolix's **SAEM** converges where FOCE would struggle, and the **built-in VPC** confirms (or refutes) the model in one click.
 
 Many teams prototype and teach with Monolix for its **readability**, then translate to NONMEM if the regulatory dossier requires it.

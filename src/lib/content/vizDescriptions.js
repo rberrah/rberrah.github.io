@@ -145,6 +145,14 @@ const D = {
     fr: "Les vraies observations du jeu de données Warfarin (251 points, 32 sujets) avec un modèle 1-compartiment ajustable. Mode « Profil » (nuage + courbe) ou « Obs vs préd » (GoF réel).",
     en: "The real Warfarin dataset observations (251 points, 32 subjects) with an adjustable one-compartment model. 'Profile' mode (scatter + curve) or 'Obs vs pred' mode (real GoF)."
   },
+  '66_FOCELinearization': {
+    fr: "FOCE illustré : le paramètre est non linéaire en η (courbe), et FOCE le remplace par sa tangente en η̂. Montez la courbure pour voir l'erreur d'approximation grandir loin de η̂.",
+    en: "FOCE illustrated: the parameter is non-linear in η (curve), and FOCE replaces it by its tangent at η̂. Raise the curvature to see the approximation error grow away from η̂."
+  },
+  '67_SAEMConvergence': {
+    fr: "Convergence du SAEM : la valeur d'un paramètre au fil des itérations. Phase 1 exploratoire (elle saute autour de θ*), phase 2 de lissage (pas décroissant → converge). Changez la graine : même destination.",
+    en: "SAEM convergence: a parameter's value across iterations. Phase 1 exploratory (it jumps around θ*), phase 2 smoothing (decreasing step → converges). Change the seed: same destination."
+  },
   '65_ParentMetabolite': {
     fr: "Cinétique parent → métabolite (échelle log) : le parent décroît, le métabolite se forme puis décroît. Réglez k, km et fm : si km < k, le métabolite persiste (limité par l'élimination).",
     en: "Parent → metabolite kinetics (log scale): the parent decays, the metabolite forms then decays. Adjust k, km and fm: if km < k, the metabolite persists (elimination-limited)."

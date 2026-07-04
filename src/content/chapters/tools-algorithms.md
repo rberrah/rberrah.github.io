@@ -39,14 +39,14 @@ Estimer un modèle de population, c'est maximiser sa **vraisemblance**. Mais pou
 Deux grandes stratégies contournent ce mur : **linéariser** (FOCE) ou **simuler** (SAEM). Comprendre la différence éclaire tout le comportement des logiciels.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="16_SAEMCycle" -->
+<!-- step:title="Intuition" viz="66_FOCELinearization" -->
 Le problème : pour un patient, on ne connaît pas ses effets aléatoires $\eta_i$ ; il faut « intégrer » sur toutes leurs valeurs possibles.
 
-- **FOCE** remplace la courbe (courbe) du modèle par sa **tangente** autour de la meilleure estimation individuelle : l'intégrale devient gaussienne, calculable.
+- **FOCE** remplace la courbe du modèle par sa **tangente** autour de la meilleure estimation individuelle : l'intégrale devient gaussienne, calculable.
 - **SAEM** ne triche pas sur la forme : il **tire au sort** des valeurs plausibles de $\eta_i$ et fait converger les paramètres par moyennes successives.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="16_SAEMCycle" -->
+<!-- step:title="La formule décortiquée" viz="67_SAEMConvergence" -->
 La vraisemblance à maximiser :
 
 $$ L(\theta) = \prod_i \int p(y_i \mid \eta_i, \theta)\, p(\eta_i \mid \theta)\; d\eta_i $$
@@ -58,7 +58,7 @@ On maximise en pratique $-2\log L$ (l'**OFV**). Comme les deux méthodes **appro
 :::
 <!-- /step -->
 
-<!-- step:title="FOCE : la linéarisation" viz="16_SAEMCycle" -->
+<!-- step:title="FOCE : la linéarisation" viz="66_FOCELinearization" -->
 **FOCE-I** (First-Order Conditional Estimation with Interaction) fait un **développement de Taylor au 1ᵉʳ ordre** du modèle autour des effets individuels estimés $\hat\eta_i$ (le mode a posteriori de chaque patient) :
 
 $$ f(\eta_i) \approx f(\hat\eta_i) + \left.\frac{\partial f}{\partial \eta}\right|_{\hat\eta_i}(\eta_i - \hat\eta_i) $$
@@ -73,7 +73,7 @@ $$ f(\eta_i) \approx f(\hat\eta_i) + \left.\frac{\partial f}{\partial \eta}\righ
 :::
 <!-- /step -->
 
-<!-- step:title="SAEM : la simulation" viz="16_SAEMCycle" -->
+<!-- step:title="SAEM : la simulation" viz="67_SAEMConvergence" -->
 **SAEM** (Stochastic Approximation Expectation-Maximization) est un algorithme **EM** pour variables latentes (ici les $\eta_i$), en deux temps répétés :
 
 - **E (simulation)** : comme la loi $p(\eta_i \mid y_i, \theta)$ est intraitable, on en **tire** des échantillons par MCMC (au lieu de calculer une espérance) ;
@@ -90,7 +90,7 @@ $$ s_{k+1} = s_k + \gamma_k\big(S(\eta^{(k)}) - s_k\big) $$
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="15_OFVGame" -->
+<!-- step:title="Exemple concret" viz="66_FOCELinearization" -->
 Sur un modèle **simple**, FOCE-I et SAEM donnent quasiment les **mêmes** estimations : la linéarisation est fidèle.
 
 Sur un modèle **difficile** (Emax raide, TMDD, données très éparses), FOCE-I peut **diverger** ou **biaiser** les estimations, là où SAEM converge tranquillement — d'où sa popularité croissante.

@@ -39,13 +39,13 @@ quiz:
 It is the ideal tool to **learn**, **prototype** and **share** a model without a licence barrier.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="16_SAEMCycle" -->
+<!-- step:title="Intuition" viz="67_SAEMConvergence" -->
 Everything happens in **R**: the model is a readable **R function**, you call `nlmixr2(...)` with the chosen method, and the results are R objects — directly usable with `ggplot2`, `xpose`, `ggPMX`.
 
 You stay in **one language**, from data to graphics, which simplifies reproducibility.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="16_SAEMCycle" -->
+<!-- step:title="The formula, unpacked" viz="67_SAEMConvergence" -->
 The model and estimation in R:
 
 ```r
@@ -71,7 +71,7 @@ fit <- nlmixr2(mod, data, est = "saem")   # or est = "focei"
 **Note —** ref.: the nlmixr2 project (Fidler, Wang, Hallow et al.), open-source (R); integrates with rxode2, xpose and ggPMX.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="16_SAEMCycle" -->
+<!-- step:title="Worked example" viz="67_SAEMConvergence" -->
 A student or a small team can **do everything** in nlmixr2 — estimate, simulate (rxode2), diagnose (ggPMX) — without a licence. Many **prototype** in nlmixr2 then **confirm** in NONMEM for the regulatory dossier, the estimates being very close.
 
 It is also an excellent **teaching** aid: the R code is readable and reproducible.

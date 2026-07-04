@@ -39,14 +39,14 @@ Estimating a population model means maximising its **likelihood**. But for a **n
 Two major strategies get around this wall: **linearise** (FOCE) or **simulate** (SAEM). Understanding the difference explains all the software behaviour.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="16_SAEMCycle" -->
+<!-- step:title="Intuition" viz="66_FOCELinearization" -->
 The problem: for a patient, we do not know their random effects $\eta_i$; we must "integrate" over all their possible values.
 
 - **FOCE** replaces the model curve by its **tangent** around the best individual estimate: the integral becomes Gaussian, computable.
 - **SAEM** does not cheat on the shape: it **draws** plausible values of $\eta_i$ and lets the parameters converge through successive averaging.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="16_SAEMCycle" -->
+<!-- step:title="The formula, unpacked" viz="67_SAEMConvergence" -->
 The likelihood to maximise:
 
 $$ L(\theta) = \prod_i \int p(y_i \mid \eta_i, \theta)\, p(\eta_i \mid \theta)\; d\eta_i $$
@@ -56,7 +56,7 @@ The integral (over $\eta_i$) has no analytical solution as soon as the model $f$
 **Math —** in practice we maximise $-2\log L$ (the **OFV**). Since the two methods **approximate** this quantity differently, their OFVs are **not comparable** to each other.
 <!-- /step -->
 
-<!-- step:title="FOCE: linearisation" viz="16_SAEMCycle" -->
+<!-- step:title="FOCE: linearisation" viz="66_FOCELinearization" -->
 **FOCE-I** (First-Order Conditional Estimation with Interaction) makes a **first-order Taylor expansion** of the model around the estimated individual effects $\hat\eta_i$ (each patient's posterior mode):
 
 $$ f(\eta_i) \approx f(\hat\eta_i) + \left.\frac{\partial f}{\partial \eta}\right|_{\hat\eta_i}(\eta_i - \hat\eta_i) $$
@@ -69,7 +69,7 @@ $$ f(\eta_i) \approx f(\hat\eta_i) + \left.\frac{\partial f}{\partial \eta}\righ
 **Consequence.** FOCE is **fast** but **approximate**: the bias grows when the model is **strongly non-linear** or the data **sparse**, and the algorithm may fail to converge. It is **NONMEM**'s historical method.
 <!-- /step -->
 
-<!-- step:title="SAEM: simulation" viz="16_SAEMCycle" -->
+<!-- step:title="SAEM: simulation" viz="67_SAEMConvergence" -->
 **SAEM** (Stochastic Approximation Expectation-Maximization) is an **EM** algorithm for latent variables (here the $\eta_i$), in two repeated steps:
 
 - **E (simulation)**: since the law $p(\eta_i \mid y_i, \theta)$ is intractable, we **draw** samples from it by MCMC (instead of computing an expectation);
@@ -84,7 +84,7 @@ $$ s_{k+1} = s_k + \gamma_k\big(S(\eta^{(k)}) - s_k\big) $$
 **Consequence.** SAEM does **not** linearise: it converges to the **true** maximum likelihood (asymptotically), and stays **robust** on non-linear, complex models. It is **Monolix**'s engine and an option in **nlmixr2/NONMEM**. The final likelihood is computed separately, by **importance sampling**.
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="15_OFVGame" -->
+<!-- step:title="Worked example" viz="66_FOCELinearization" -->
 On a **simple** model, FOCE-I and SAEM give almost the **same** estimates: the linearisation is faithful.
 
 On a **difficult** model (steep Emax, TMDD, very sparse data), FOCE-I may **diverge** or **bias** the estimates, where SAEM converges calmly — hence its growing popularity.

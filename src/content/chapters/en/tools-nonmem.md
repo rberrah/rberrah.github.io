@@ -33,13 +33,13 @@ quiz:
 Austere but **proven**, it imposes a way of thinking every pharmacometrician knows.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="15_OFVGame" -->
+<!-- step:title="Intuition" viz="66_FOCELinearization" -->
 No graphical interface: you **write** a **control stream** describing the data, the model and the method. A preprocessor (**NM-TRAN**) translates it into Fortran, then NONMEM **minimises the OFV**.
 
 Everything is explicit — hence great control, at the cost of a learning curve.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="15_OFVGame" -->
+<!-- step:title="The formula, unpacked" viz="66_FOCELinearization" -->
 A control stream is organised in blocks (`$`), for example:
 
 ```

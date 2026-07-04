@@ -33,13 +33,13 @@ quiz:
 Austère mais **éprouvé**, il impose une façon de penser que tout pharmacométricien connaît.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="15_OFVGame" -->
+<!-- step:title="Intuition" viz="66_FOCELinearization" -->
 Pas d'interface graphique : on **écrit** un **fichier de contrôle** (control stream) qui décrit les données, le modèle et la méthode. Un préprocesseur (**NM-TRAN**) le traduit en Fortran, puis NONMEM **minimise l'OFV**.
 
 Tout est explicite — d'où une grande maîtrise, au prix d'une courbe d'apprentissage.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="15_OFVGame" -->
+<!-- step:title="La formule décortiquée" viz="66_FOCELinearization" -->
 Un control stream s'organise en blocs (`$`), par exemple :
 
 ```
