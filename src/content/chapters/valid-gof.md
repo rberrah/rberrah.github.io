@@ -61,6 +61,12 @@ Si les points **DV vs PRED** s'incurvent (le modèle sous-prédit les fortes con
 Une tendance des **CWRES au cours du temps** (positifs tôt, négatifs tard) trahit une mauvaise phase d'absorption ou d'élimination.
 <!-- /step -->
 
+<!-- step:title="Cas pratique : lire les motifs" viz="62_ResidualPatterns" -->
+Chaque **forme** de résidus a une cause et un remède : un **U** (ou U inversé) = mauvaise **structure** (compartiment manquant) ; une **trompette** (nuage qui s'évase) = mauvais **modèle d'erreur** (additive → combinée) ; une **pente** = biais, souvent une **covariable manquante**.
+
+Faites défiler les motifs. Le guide complet motif → cause → remède est détaillé dans le chapitre « Cas pratique : améliorer le modèle ».
+<!-- /step -->
+
 <!-- step:title="Piège fréquent" -->
 Un beau IPRED vs DV ne suffit pas.
 

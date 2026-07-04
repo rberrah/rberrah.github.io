@@ -438,7 +438,24 @@ export const exercises = [
     q: "Un graphique DV vs IPRED presque parfait peut être trompeur à cause…",
     options: ["d'un shrinkage élevé (surajustement individuel)", "d'une dose trop faible", "d'un mauvais solveur d'EDO"],
     explain: "Avec un fort shrinkage, les prédictions individuelles « collent » aux données même si le modèle de population est mauvais ; regarder PRED, CWRES et la VPC.",
-    en: { q: "A near-perfect DV vs IPRED plot can be misleading because of…", options: ["high shrinkage (individual overfitting)", "too low a dose", "a poor ODE solver"], explain: "With high shrinkage, individual predictions 'stick' to the data even if the population model is poor; look at PRED, CWRES and the VPC." } }
+    en: { q: "A near-perfect DV vs IPRED plot can be misleading because of…", options: ["high shrinkage (individual overfitting)", "too low a dose", "a poor ODE solver"], explain: "With high shrinkage, individual predictions 'stick' to the data even if the population model is poor; look at PRED, CWRES and the VPC." } },
+
+  // ═══ Interprétation des GoF ═══
+  { cat: 'Validation de modèle', chapter: 'valid-interpretation', type: 'mcq', correct: 0,
+    q: "Des CWRES en forme de U (négatifs au milieu, positifs aux extrêmes) évoquent…",
+    options: ["une mauvaise spécification structurale (ex. compartiment manquant)", "un bon modèle", "une erreur de dose"],
+    explain: "Une courbure des résidus = phase mal décrite : tester un compartiment de plus, revoir l'absorption/élimination.",
+    en: { q: "U-shaped CWRES (negative in the middle, positive at the extremes) suggest…", options: ["a structural misspecification (e.g. a missing compartment)", "a good model", "a dosing error"], explain: "Residual curvature = a poorly described phase: test an extra compartment, revisit absorption/elimination." } },
+  { cat: 'Validation de modèle', chapter: 'valid-interpretation', type: 'mcq', correct: 0,
+    q: "Un nuage de résidus en « trompette » (qui s'évase avec la prédiction) appelle…",
+    options: ["à revoir le modèle d'erreur résiduelle (additive → combinée/proportionnelle)", "à supprimer des patients", "à doubler la dose"],
+    explain: "Variance qui croît = erreur additive insuffisante ; passer à une erreur combinée ou proportionnelle.",
+    en: { q: "A 'trumpet'-shaped residual cloud (flaring with the prediction) calls for…", options: ["revisiting the residual-error model (additive → combined/proportional)", "removing patients", "doubling the dose"], explain: "Growing variance = insufficient additive error; switch to a combined or proportional error." } },
+  { cat: 'Validation de modèle', chapter: 'valid-interpretation', type: 'mcq', correct: 0,
+    q: "Une moyenne de résidus non nulle chez les insuffisants rénaux suggère…",
+    options: ["une covariable manquante sur un paramètre (ex. ClCr sur la clairance)", "un modèle parfait", "un problème d'unité seulement"],
+    explain: "Un décalage limité à un sous-groupe = covariable manquante : ajouter la ClCr sur la clairance et vérifier l'OFV.",
+    en: { q: "A non-zero residual mean in renally impaired patients suggests…", options: ["a missing covariate on a parameter (e.g. CrCl on clearance)", "a perfect model", "only a unit problem"], explain: "An offset confined to a subgroup = missing covariate: add CrCl on clearance and check the OFV." } }
 ];
 
 export const exerciseCategories = [

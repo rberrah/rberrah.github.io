@@ -59,6 +59,12 @@ If the **DV vs PRED** points curve (the model underpredicts high concentrations)
 A trend of **CWRES over time** (positive early, negative late) betrays a poor absorption or elimination phase.
 <!-- /step -->
 
+<!-- step:title="Case study: reading the patterns" viz="62_ResidualPatterns" -->
+Each residual **shape** has a cause and a fix: a **U** (or inverted U) = wrong **structure** (missing compartment); a **trumpet** (flaring cloud) = wrong **error model** (additive → combined); a **slope** = bias, often a **missing covariate**.
+
+Cycle through the patterns. The full pattern → cause → fix guide is detailed in the "Case study: improve the model" chapter.
+<!-- /step -->
+
 <!-- step:title="Common pitfall" -->
 A nice IPRED vs DV is not enough.
 
