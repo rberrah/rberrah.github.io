@@ -5,11 +5,11 @@ title: "TDM bayésien en pratique : mapbayr"
 description: "Passer du modèle au patient : estimation MAP et ajustement de dose individuel, avec mapbayr."
 summary: "Les outils de TDM/MIPD : estimation bayésienne (MAP) à partir de quelques prélèvements, avec mapbayr (R)."
 track: "tools"
-order: 203
+order: 205
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "mapbayr", "tdm", "mipd"]
-prerequisites: ["tools-overview", "bayes-ebes"]
+prerequisites: ["tools-simulation", "bayes-ebes"]
 glossary: ["MAP", "TDM", "EBE", "Precision dosing"]
 slides: []
 quiz:

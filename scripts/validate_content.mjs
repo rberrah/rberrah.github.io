@@ -167,7 +167,12 @@ function validateQuiz(file, quiz) {
 }
 
 function validateMathDelimiters(file, content) {
-  const withoutDisplayMath = content.replace(/\$\$[\s\S]*?\$\$/g, '');
+  // Les blocs de code peuvent contenir des « $ » légitimes (ex. fichiers de contrôle
+  // NONMEM : $PROBLEM, $DATA…). On les retire avant de compter les délimiteurs de maths.
+  const noCode = content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/`[^`]*`/g, '');
+  const withoutDisplayMath = noCode.replace(/\$\$[\s\S]*?\$\$/g, '');
   const dollarCount = (withoutDisplayMath.match(/\$/g) ?? []).length;
   if (dollarCount % 2 !== 0) fail(`Unbalanced inline math delimiters in ${file}`);
 }

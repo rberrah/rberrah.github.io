@@ -5,11 +5,11 @@ title: "Simulation: mrgsolve & rxode2"
 description: "Quickly generate profiles, VPCs and virtual trials from a model."
 summary: "ODE simulators in R (mrgsolve, rxode2): what they are for and how they connect to estimation."
 track: "tools"
-order: 202
+order: 204
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "mrgsolve", "rxode2", "simulation"]
-prerequisites: ["tools-overview"]
+prerequisites: ["tools-nlmixr2"]
 glossary: ["mrgsolve", "nlmixr2 / rxode2", "VPC", "Jumeau numérique"]
 slides: []
 quiz:
