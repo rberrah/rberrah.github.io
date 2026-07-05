@@ -48,6 +48,8 @@ The core of the **Transformer** is **attention**: each token weights the others 
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$
 
+**Math —** each token is projected into three vectors: a **query** $Q$ ("what I'm looking for"), a **key** $K$ ("what I offer") and a **value** $V$ ("the information I carry"). The product $QK^\top$ measures **relevance** between tokens, the **softmax** turns it into weights summing to 1, and the $V$ vectors are aggregated by those weights. The $\sqrt{d_k}$ merely **stabilises** the scale.
+
 Training minimises the next-token prediction loss (cross-entropy):
 
 $$ \mathcal{L} = -\sum_t \log p_\theta(x_t \mid x_{<t}) $$

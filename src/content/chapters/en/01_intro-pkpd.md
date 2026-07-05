@@ -74,8 +74,8 @@ Do not put every difference in one bucket called "noise".
 
 A difference between observations may come from very different sources:
 
-- **IIV**: patients are different builders;
-- **IOV**: the same patient changes between occasions;
+- **IIV** (inter-individual variability): patients are different builders;
+- **IOV** (inter-occasion variability): the same patient changes between occasions;
 - **residual error**: the measurement is imperfect;
 - **model bias**: the instruction sheet is missing something.
 

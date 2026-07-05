@@ -36,7 +36,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 En pharmacométrie, on connaît déjà **beaucoup** avant de voir un patient : la population nous dit à quoi ressemblent une clairance ou un volume « typiques ». L'**estimation bayésienne** formalise la façon de **mettre à jour** cette connaissance avec les quelques mesures du patient.
 
-C'est le socle mathématique du TDM bayésien, des EBE et du MIPD.
+C'est le socle mathématique du TDM bayésien (suivi thérapeutique), des EBE (estimations des paramètres individuels) et du MIPD (dosage de précision guidé par modèle).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="BayesUpdate" -->

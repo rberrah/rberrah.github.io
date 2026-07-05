@@ -86,8 +86,8 @@ Ne rangez pas toutes les différences dans une seule boîte appelée « bruit »
 
 Une différence entre observations peut venir de sources très distinctes :
 
-- **IIV** : les patients sont des bâtisseurs différents ;
-- **IOV** : le même patient change d'une occasion à l'autre ;
+- **IIV** (variabilité inter-individuelle) : les patients sont des bâtisseurs différents ;
+- **IOV** (variabilité inter-occasion) : le même patient change d'une occasion à l'autre ;
 - **erreur résiduelle** : la mesure est imparfaite ;
 - **biais du modèle** : la notice de montage oublie un élément important.
 

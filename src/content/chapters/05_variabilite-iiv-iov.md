@@ -43,8 +43,8 @@ Dans une classe, les élèves ne construisent pas tous à la même vitesse.
 Certains sont durablement plus rapides. Certains sont rapides lundi et lents vendredi. Et certaines photos de la construction finale sont floues. Ce sont **trois problèmes différents** :
 
 - **Effet fixe** : la notice de montage typique de la classe.
-- **IIV** : chaque élève a un style de construction personnel.
-- **IOV** : le même élève change d'une séance à l'autre.
+- **IIV** (variabilité inter-individuelle) : chaque élève a un style de construction personnel.
+- **IOV** (variabilité inter-occasion) : le même élève change d'une séance à l'autre.
 - **Erreur résiduelle** : la photo est imparfaite, ou le modèle rate un petit détail.
 
 :::key

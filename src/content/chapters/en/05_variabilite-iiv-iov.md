@@ -43,8 +43,8 @@ In a classroom, students do not build at the same speed.
 Some are consistently faster. Some are fast on Monday and slow on Friday. And some photos of the finished construction are blurry. Three different problems:
 
 - **Fixed effect**: the class's typical instruction sheet.
-- **IIV**: each student has a personal building style.
-- **IOV**: the same student changes from session to session.
+- **IIV** (inter-individual variability): each student has a personal building style.
+- **IOV** (inter-occasion variability): the same student changes from session to session.
 - **Residual error**: the photo is imperfect, or the model misses a small detail.
 
 **Key point —** keeping these layers separate is one of the most important PopPK skills.

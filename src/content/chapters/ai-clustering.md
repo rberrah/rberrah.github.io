@@ -36,7 +36,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Après avoir estimé un modèle de population, on obtient les **paramètres individuels** de chaque patient (les EBE : clairance, volume…). Ces paramètres sont une mine : parfois, un sous-groupe **non prévu** s'y cache — par exemple la **clairance qui dépend du type de cancer**.
 
-Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la **PCA** (visualiser en 2D), et la **RMT** (distinguer une vraie corrélation d'un artefact du hasard).
+Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la **PCA** (analyse en composantes principales, pour visualiser en 2D), et la **RMT** (théorie des matrices aléatoires, pour distinguer une vraie corrélation d'un artefact du hasard).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->

@@ -48,6 +48,10 @@ Le cœur du **Transformer** est l'**attention** : chaque token pondère les autr
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$
 
+:::math
+**En clair.** Chaque token est projeté en trois vecteurs : une **requête** $Q$ (« ce que je cherche »), une **clé** $K$ (« ce que j'offre ») et une **valeur** $V$ (« l'information que je porte »). Le produit $QK^\top$ mesure la **pertinence** entre tokens, la **softmax** en fait des poids qui somment à 1, et l'on agrège les $V$ selon ces poids. Le $\sqrt{d_k}$ ne fait que **stabiliser** l'échelle.
+:::
+
 L'entraînement minimise la perte de prédiction du token suivant (entropie croisée) :
 
 $$ \mathcal{L} = -\sum_t \log p_\theta(x_t \mid x_{<t}) $$

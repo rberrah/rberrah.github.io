@@ -34,7 +34,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 In pharmacometrics we already know **a lot** before seeing a patient: the population tells us what a "typical" clearance or volume looks like. **Bayesian estimation** formalises how to **update** that knowledge with the patient's few measurements.
 
-It is the mathematical basis of Bayesian TDM, EBEs and MIPD.
+It is the mathematical basis of Bayesian TDM (therapeutic drug monitoring), EBEs (individual parameter estimates) and MIPD (model-informed precision dosing).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="BayesUpdate" -->

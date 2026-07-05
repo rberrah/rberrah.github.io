@@ -36,7 +36,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 Once a population model is estimated, we obtain each patient's **individual parameters** (the EBEs: clearance, volume…). These are a goldmine: sometimes an **unforeseen** subgroup hides in them — for example a **clearance that depends on cancer type**.
 
-Three tools to explore it: **clustering** (grouping without labels), **PCA** (visualising in 2D), and **RMT** (telling a real correlation from a chance artefact).
+Three tools to explore it: **clustering** (grouping without labels), **PCA** (principal component analysis, to visualise in 2D), and **RMT** (random matrix theory, to tell a real correlation from a chance artefact).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->
