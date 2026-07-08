@@ -17,22 +17,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      base_path: ${{ steps.base.outputs.base_path }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Detect BASE_PATH
-        id: base
-        run: |
-          repo="${GITHUB_REPOSITORY#*/}"
-          if [[ "$repo" == "rberrah.github.io" ]]; then
-            echo "base_path=" >> "$GITHUB_OUTPUT"
-          else
-            echo "base_path=/$repo" >> "$GITHUB_OUTPUT"
-          fi
-          cat "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -43,15 +30,26 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Build
+      # La pharmacométrie est désormais servie sous /pharmacometrie/ ; la vraie
+      # racine (/) héberge le portail statique (dossier portal/).
+      - name: Build (pharmacométrie)
         env:
-          BASE_PATH: ${{ steps.base.outputs.base_path }}
+          BASE_PATH: /pharmacometrie
         run: npm run build
+
+      - name: Assemble portail + pharmacométrie
+        run: |
+          rm -rf dist
+          mkdir -p dist/pharmacometrie
+          cp -r build/. dist/pharmacometrie/
+          cp portal/index.html dist/index.html
+          cp portal/404.html dist/404.html
+          echo "--- dist tree (top) ---"; ls -la dist; ls dist/pharmacometrie | head
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: dist
 
   deploy:
     needs: build
