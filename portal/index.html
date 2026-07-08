@@ -7,7 +7,7 @@
   <meta name="description" content="Portail des sites pédagogiques : préparation à l'internat en pharmacie et pharmacométrie pratique." />
   <style>
     :root {
-      --teal: #1f7a6d; --terra: #b85c38;
+      --teal: #1f7a6d; --terra: #b85c38; --indigo: #4f46b8;
       --bg: #f7f5f2; --surface: #ffffff; --border: #e6e1da;
       --text: #23201d; --muted: #6b645c; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
     }
@@ -47,6 +47,7 @@
     a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
     .card.internat { --accent: var(--teal); }
     .card.pharma { --accent: var(--terra); }
+    .card.stats { --accent: var(--indigo); }
 
     .tag { display: inline-flex; align-items: center; gap: .45rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent, var(--muted)); margin-bottom: .8rem; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--muted)); }
@@ -69,7 +70,7 @@
     <header>
       <p class="eyebrow">Ressources pédagogiques</p>
       <h1>La pharmacie <span class="grad">expliquée</span>,<br />pas seulement énumérée.</h1>
-      <p class="lede">Deux sites interactifs pour comprendre le raisonnement — le mécanisme avant la liste. Choisissez votre destination.</p>
+      <p class="lede">Trois sites interactifs pour comprendre le raisonnement — le mécanisme avant la liste. Choisissez votre destination.</p>
     </header>
 
     <main class="grid">
@@ -87,12 +88,12 @@
         <span class="go">Entrer &rarr;</span>
       </a>
 
-      <div class="card soon" aria-disabled="true">
-        <span class="tag"><span class="dot"></span>Bientôt</span>
-        <h2>D'autres sites à venir</h2>
-        <p>De nouveaux modules pédagogiques sont en préparation et rejoindront ce portail.</p>
-        <span class="go">Prochainement</span>
-      </div>
+      <a class="card stats" href="/stats/">
+        <span class="tag"><span class="dot"></span>Biostatistique</span>
+        <h2>Stat &amp; Biologie</h2>
+        <p>La statistique médicale rendue intuitive : loi normale, tests, χ², corrélation et tests des rangs, avec des visualisations que l'on manipule.</p>
+        <span class="go">Entrer &rarr;</span>
+      </a>
     </main>
   </div>
 
