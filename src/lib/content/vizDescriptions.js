@@ -5,6 +5,10 @@
 
 /** @type {Record<string, {fr:string, en:string}>} */
 const D = {
+  'MipdResidualLever': {
+    fr: "Le levier σ en estimation MAP : la courbe postérieure se déplace entre le prior de population et les prélèvements du patient selon l'erreur résiduelle. Baissez σ pour donner du poids aux données ; montez le bruit pour voir le surajustement guetter.",
+    en: "The σ lever in MAP estimation: the posterior curve moves between the population prior and the patient's samples depending on residual error. Lower σ to weight the data; raise the noise to watch overfitting loom."
+  },
   '01_HumanBody': {
     fr: "Schéma du corps en organes reliés par la circulation. Situe où le médicament se distribue et où il est éliminé (foie, reins) — la logique de la PBPK.",
     en: "A body diagram of organs linked by the circulation. Shows where the drug distributes and where it is eliminated (liver, kidneys) — the PBPK logic."
