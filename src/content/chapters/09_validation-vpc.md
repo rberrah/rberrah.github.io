@@ -86,4 +86,8 @@ On obtient un **intervalle de confiance** pour chaque paramètre : un IC 95 % é
 - Les VPC comparent les observations à des simulations du modèle ajusté.
 - Un motif de résidus systématique est un indice, pas une gêne.
 - Un modèle est crédible quand statistiques, graphes et interprétation clinique concordent.
+
+:::note
+**Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours d'approfondissement **« Validation de modèle »** (8 chapitres) détaille chaque outil : GOF, VPC, NPDE, shrinkage, fonction objectif, incertitude et interprétation.
+:::
 <!-- /step -->

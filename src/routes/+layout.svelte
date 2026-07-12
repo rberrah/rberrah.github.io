@@ -54,6 +54,10 @@
 
   <footer>
     <span>{copy.footer.license}</span>
+    <span class="muted">
+      {copy.footer.author} ·
+      <a href={copy.footer.reportUrl} target="_blank" rel="noopener noreferrer">{copy.footer.report}</a>
+    </span>
     <span class="muted">{copy.footer.built}</span>
   </footer>
 

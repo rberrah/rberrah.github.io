@@ -86,4 +86,8 @@ La **méthode analytique** compte : une limite de quantification élevée peut m
 - Ordres de cinétique : 1 (proportionnel), 0 (constant), michaélien (saturable).
 - AUC par trapèzes + extrapolation $C_{last}/\lambda_z$ ; on en tire CL/F, t½, Vz/F.
 - Rappel : ~5 à 6 demi-vies pour éliminer (ou atteindre) l'essentiel.
+
+:::note
+**Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours d'approfondissement **« Analyse non-compartimentale »** (4 chapitres) reprend le sujet en détail : calcul de l'AUC, paramètres dérivés, phase d'absorption.
+:::
 <!-- /step -->

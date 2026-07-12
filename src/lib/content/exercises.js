@@ -1,4 +1,4 @@
-// Exercices interactifs de pharmacométrie, inspirés des corrigés M2.
+﻿// Exercices interactifs de pharmacométrie, inspirés des corrigés M2.
 // Chaque exercice porte un champ `chapter` (slug) : il s'affiche sur la page globale
 // /exercices (groupé par `cat`) ET à la fin du chapitre correspondant.
 // Bilingue : `q`/`explain`/`options` en français ; `en:{q,explain,options}` en anglais
@@ -478,11 +478,11 @@ export const exercises = [
     options: ["1 (toute la dose atteint la circulation)", "toujours 0,5", "0"],
     explain: "L'IV court-circuite l'absorption et le premier passage : F = 1. Toute autre voie a F ≤ 1.",
     en: { q: "By the intravenous (IV) route, the bioavailability F is…", options: ["1 (all the dose reaches the circulation)", "always 0.5", "0"], explain: "IV short-circuits absorption and first-pass: F = 1. Every other route has F ≤ 1." } },
-  { cat: 'Absorption, perfusion & doses', chapter: 'etat-equilibre', type: 'num', unit: 'mg/h', answer: 20, tol: 0.02,
+  { cat: 'Absorption, perfusion & doses', chapter: 'doses-repetees', type: 'num', unit: 'mg/h', answer: 20, tol: 0.02,
     q: "On vise une Css de 10 mg/L avec CL = 2 L/h (perfusion). Quel débit R₀ (= Css·CL) ?",
     explain: "R₀ = Css · CL = 10 × 2 = 20 mg/h. Le niveau dépend du débit et de la clairance.",
     en: { q: "Target a Css of 10 mg/L with CL = 2 L/h (infusion). What rate R₀ (= Css·CL)?", explain: "R₀ = Css · CL = 10 × 2 = 20 mg/h. The level depends on the rate and the clearance." } },
-  { cat: 'Absorption, perfusion & doses', chapter: 'etat-equilibre', type: 'mcq', correct: 0,
+  { cat: 'Absorption, perfusion & doses', chapter: 'doses-repetees', type: 'mcq', correct: 0,
     q: "Le temps pour atteindre l'état d'équilibre dépend surtout de…",
     options: ["la demi-vie (~4–5 t½), pas de la dose", "la dose administrée", "le volume seul"],
     explain: "Doubler la dose double la Css sans changer le temps d'atteinte (~4–5 demi-vies).",

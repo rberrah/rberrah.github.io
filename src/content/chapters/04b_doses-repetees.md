@@ -2,13 +2,14 @@
 id: "doses-repetees"
 slug: "doses-repetees"
 title: "Doses répétées et état d'équilibre"
-description: "Accumulation, concentration à l'équilibre (Css) et dose de charge."
-summary: "Ce qui se passe quand on répète les doses : accumulation, plateau et intervalle."
+description: "Accumulation, concentration à l'équilibre (Css), temps pour l'atteindre et dose de charge — en doses répétées comme en perfusion."
+summary: "Ce qui se passe quand on répète les doses : accumulation, plateau, intervalle, dose de charge — et le cas de la perfusion continue."
 track: "core"
 order: 4.5
-duration: "12 min"
+duration: "14 min"
 level: "beginner"
-tags: ["steady-state", "accumulation", "dosing"]
+tags: ["steady-state", "css", "accumulation", "loading-dose", "dosing"]
+glossary: ["CL", "t½", "ke"]
 slides: ["s12"]
 quiz:
   - prompt: "La concentration moyenne à l'équilibre vaut..."
@@ -21,63 +22,82 @@ quiz:
     options:
       - "la demi-vie (≈ 4 à 5 t½)"
       - "la dose administrée"
-      - "la couleur du comprimé"
+      - "le débit de perfusion"
+    correct: 0
+  - prompt: "En perfusion continue, la concentration à l'équilibre vaut..."
+    options:
+      - "le débit divisé par la clairance (Css = R₀ / CL)"
+      - "le débit multiplié par le volume"
+      - "la dose divisée par la demi-vie"
     correct: 0
   - prompt: "Une dose de charge sert à..."
     options:
-      - "atteindre plus vite la zone thérapeutique"
+      - "atteindre plus vite la zone thérapeutique, sans changer le plateau final"
       - "diminuer la Css finale"
       - "changer la demi-vie"
     correct: 0
 ---
 
 <!-- step:title="Pourquoi ce chapitre" slides="s12" -->
-Une seule dose est rarement suffisante : on **répète** l'administration pour maintenir la concentration dans la fenêtre thérapeutique.
+Une seule dose est rarement suffisante : on **répète** l'administration (ou l'on perfuse en continu) pour maintenir la concentration dans la fenêtre thérapeutique.
 
-Mais répéter n'est pas anodin : le médicament **s'accumule** tant qu'on redose avant élimination complète.
+Mais répéter n'est pas anodin : tant qu'on redose **avant** élimination complète, le médicament **s'accumule** — jusqu'à un plateau. Comprendre ce qui fixe le **niveau** de ce plateau et le **temps** pour l'atteindre, c'est la base de toute posologie.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s12" viz="MultiDose" -->
-Reprenez l'image du réservoir : on le remplit d'un coup à chaque dose, il se vide entre deux.
+Reprenez l'image du réservoir : chaque dose le remplit d'un coup, et il se vide entre deux prises.
 
-Si on redose **avant** qu'il soit vide, le niveau moyen **monte** — jusqu'à ce que ce qui entre par intervalle égale ce qui sort. C'est l'**état d'équilibre** (plateau).
+Si on redose **avant** qu'il soit vide, le niveau moyen **monte**. Mais plus la concentration monte, plus l'élimination (proportionnelle à la concentration) s'accélère — jusqu'à ce que **ce qui sort égale ce qui entre**. Le niveau se stabilise : c'est l'**état d'équilibre** (steady state).
 
 :::key
-Faites varier l'intervalle $\tau$ : plus il est court devant la demi-vie, plus l'accumulation est forte.
+Faites varier l'intervalle $\tau$ : plus il est court devant la demi-vie, plus l'accumulation est forte. Et ce plateau est atteint après quelques demi-vies, **quel que soit** le débit de dose.
 :::
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" slides="s12" viz="MultiDose" -->
-La **concentration moyenne à l'équilibre** ne dépend que de la clairance et de l'intervalle :
+La **concentration moyenne à l'équilibre** ne dépend que de la clairance et du débit de dose :
 
-$$ C_{ss,\text{moy}} = \frac{\text{Dose}}{CL \cdot \tau} $$
+$$ C_{ss,\text{moy}} = \frac{F\cdot\text{Dose}}{CL \cdot \tau} \qquad\text{et, en perfusion continue :}\qquad C_{ss} = \frac{R_0}{CL} $$
 
 Le **ratio d'accumulation** (bolus IV) mesure l'empilement :
 
 $$ R_{ac} = \frac{1}{1 - e^{-k_e \tau}} $$
 
-:::math
-On atteint ~90 % de l'équilibre en **~4 demi-vies**, quel que soit la dose. La dose ne fixe pas la *vitesse* d'arrivée à l'équilibre — seulement son *niveau*.
+Enfin, la **dose de charge** remplit le réservoir d'un coup :
+
+$$ \text{Dose de charge} = C_{ss} \cdot V $$
+
+:::howto
+**La métaphore de l'évier.** Le robinet (débit de dose) remplit ; la bonde (clairance) vide. Le **niveau** d'équilibre dépend du rapport robinet/bonde — pas de la vitesse à laquelle on ouvre. Le **temps** de remplissage, lui, ne dépend que de la taille de la bonde (la demi-vie).
+
+**Côté maths.** On atteint ~90 % de l'équilibre en **~4 demi-vies**, quelle que soit la dose. Doubler la dose **double** la Css sans changer le temps d'atteinte : la dose fixe le *niveau*, pas la *vitesse*.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" slides="s12" viz="MultiDose" -->
 Réduisez $\tau$ de moitié : la Css moyenne double et l'accumulation grimpe. Réduisez la clairance (insuffisance rénale) : même schéma, mais Css plus haute — risque de toxicité.
 
-Cochez **dose de charge** : une première dose plus forte amène tout de suite dans la fenêtre, sans changer le plateau final.
+**En perfusion.** On vise une Css de 10 mg/L avec une clairance CL = 2 L/h. Il faut donc un débit :
+
+$$ R_0 = C_{ss} \cdot CL = 10 \times 2 = 20 \text{ mg/h} $$
+
+Si la demi-vie est de 12 h, l'équilibre n'est atteint qu'après ~4–5 t½, soit **2 à 3 jours**. D'où l'intérêt d'une **dose de charge** si l'on veut être dans la fenêtre tout de suite : cochez l'option et observez — le plateau final est inchangé, seule l'entrée est accélérée.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s12" -->
 Ne confondez pas le **niveau** de l'équilibre et le **temps** pour l'atteindre.
 
 :::pitfall
-Augmenter la dose monte la Css mais n'accélère **pas** l'arrivée à l'équilibre (toujours ~5 t½). Pour aller plus vite dans la fenêtre : une **dose de charge**, pas une dose d'entretien plus forte.
+Augmenter la dose monte la Css mais n'accélère **pas** l'arrivée à l'équilibre (toujours ~4–5 t½). Pour entrer plus vite dans la fenêtre : une **dose de charge**, pas une dose d'entretien plus forte.
+
+Second piège : le principe de **superposition** (Css ∝ dose) ne tient qu'en cinétique **linéaire**. Sous saturation (Michaelis-Menten, TMDD), l'accumulation devient imprévisible et une hausse modeste de dose peut faire s'envoler la concentration.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- Redoser avant élimination complète → accumulation jusqu'à un plateau (Css).
-- $C_{ss,\text{moy}} = \text{Dose}/(CL\cdot\tau)$ : la clairance et l'intervalle fixent le niveau.
-- Le temps pour atteindre l'équilibre ≈ 4 à 5 demi-vies, indépendamment de la dose.
-- La dose de charge accélère l'entrée dans la fenêtre ; l'entretien maintient la Css.
+- Redoser avant élimination complète → accumulation jusqu'à un plateau : l'**état d'équilibre** (ce qui entre = ce qui sort).
+- Niveau : $C_{ss,\text{moy}} = F\cdot\text{Dose}/(CL\cdot\tau)$ ; en perfusion $C_{ss} = R_0/CL$. La clairance et le débit de dose fixent le plateau.
+- Temps : ≈ **4 à 5 demi-vies**, indépendant de la dose et du débit.
+- **Dose de charge** = $C_{ss}\cdot V$ : elle accélère l'entrée dans la fenêtre sans changer le plateau final.
+- La superposition (Css ∝ dose) suppose une cinétique **linéaire** ; sous saturation, tout se dérègle.
 <!-- /step -->

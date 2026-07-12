@@ -81,4 +81,8 @@ FOCE-I, SAEM et consorts sont des outils d'estimation. Ils peuvent échouer, con
 - Les outils implémentent des algorithmes, pas du jugement.
 - AIC et vraisemblance sont utiles, mais insuffisants.
 - Un modèle stable et interprétable vaut mieux qu'un ajustement impressionnant mais fragile.
+
+:::note
+**Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours d'approfondissement **« Outils & logiciels »** (7 chapitres) entre dans le concret : NONMEM, Monolix, nlmixr2, algorithmes d'estimation, simulation et TDM bayésien.
+:::
 <!-- /step -->

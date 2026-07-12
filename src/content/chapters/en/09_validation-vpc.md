@@ -78,4 +78,8 @@ The **bootstrap** resamples the study (with replacement) to create hundreds of v
 - VPCs compare observations to simulations from the fitted model.
 - A systematic residual pattern is a clue, not a nuisance.
 - A model is credible when statistics, plots and clinical interpretation agree.
+
+:::note
+**Going further.** This chapter is the **entry point** of the core track. The advanced track **"Model validation"** (8 chapters) details every tool: GOF, VPC, NPDE, shrinkage, objective function, uncertainty and interpretation.
+:::
 <!-- /step -->

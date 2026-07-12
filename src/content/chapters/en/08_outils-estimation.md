@@ -75,4 +75,8 @@ Do not confuse an algorithm with a scientific conclusion.
 - Tools implement algorithms, not judgement.
 - AIC and likelihood are useful but not sufficient.
 - A stable, interpretable model beats an impressive but fragile fit.
+
+:::note
+**Going further.** This chapter is the **entry point** of the core track. The advanced track **"Tools & software"** (7 chapters) gets concrete: NONMEM, Monolix, nlmixr2, estimation algorithms, simulation and Bayesian TDM.
+:::
 <!-- /step -->

@@ -80,4 +80,8 @@ NCA describes, it does not predict — and it is sensitive to sampling.
 - Orders of kinetics: 1 (proportional), 0 (constant), Michaelian (saturable).
 - Trapezoidal AUC + $C_{last}/\lambda_z$ tail; yields CL/F, t½, Vz/F.
 - Reminder: ~5–6 half-lives to eliminate (or reach) most of the drug.
+
+:::note
+**Going further.** This chapter is the **entry point** of the core track. The advanced track **"Non-compartmental analysis"** (4 chapters) covers the topic in depth: AUC computation, derived parameters, the absorption phase.
+:::
 <!-- /step -->

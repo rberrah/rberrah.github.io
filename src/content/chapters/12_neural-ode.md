@@ -94,4 +94,8 @@ Ne présentez jamais l'IA comme supérieure par défaut : sans validation extern
 - Les modèles grey-box combinent mécanisme et flexibilité ; les Neural ODE gardent une vision de système dynamique.
 - Horizon : le **jumeau numérique** du patient (consortium DIGPHAT), fusion physiologie + IA.
 - Conclusion clinique : **l'IA n'est pas magique, elle est utile**. Le médecin décide ; l'algorithme réduit l'incertitude. Extrapolation, incertitude et interprétabilité restent essentielles.
+
+:::note
+**Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours **« IA en pharmacométrie »** est un **approfondissement avancé, orienté recherche** (arbres, boosting, SVM, clustering, sélection de variables, LLM). C'est un domaine en **évolution rapide** : il n'est pas requis pour maîtriser les fondamentaux, et son contenu vieillit plus vite que le reste du site.
+:::
 <!-- /step -->

@@ -20,7 +20,10 @@ export const dictionary = {
       primary: 'Primary'
     },
     footer: {
-      license: 'Pharmacométrie Explain · Text CC-BY-SA · Code MIT · 2026',
+      license: 'Pharmacométrie Explain · Text CC BY-NC-SA 4.0 · Code MIT · 2026',
+      author: 'Written and maintained by Racym Berrah (PharmD)',
+      report: 'Spotted an error? Report it',
+      reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
       built: 'Built with SvelteKit · static, no tracking',
       disclaimer: 'Educational content only. Not medical advice. No patient-specific dosing.'
     },
@@ -38,7 +41,7 @@ export const dictionary = {
       featuredTitle: 'Core pharmacometrics',
       resourcesTitle: 'Teaching resources',
       resourcesText:
-        'Download the original Pharmacometrie Pratique slide deck used as teaching source material for this course.',
+        "Download “Pharmacométrie Pratique”, the original slide deck written by this site's author, from which this course is drawn.",
       downloadSlides: 'Download the PowerPoint',
       chapterCount: (count) => `${count} chapter${count === 1 ? '' : 's'}`,
       openTrack: 'Open track →',
@@ -88,7 +91,7 @@ export const dictionary = {
         'An interactive course on pharmacometrics — PK/PD, population modelling, NCA, PBPK, therapeutic drug monitoring, model validation, clinical-trial design and applied AI. Each chapter pairs a scroll-driven explanation with a live visualization, a quiz and hands-on exercises.',
       aboutItems: [
         'For students, by a student: made to be clear before being exhaustive.',
-        'Free and open-source (text CC-BY-SA, code MIT) — reuse and contributions welcome.',
+        'Free and open-source (text CC BY-NC-SA 4.0, code MIT) — non-commercial reuse and contributions welcome.',
         'Educational only — no medical advice and no dosing recommendation.',
         'Bilingual (French / English), built with SvelteKit and deployed on GitHub Pages.'
       ],
@@ -143,7 +146,10 @@ export const dictionary = {
       primary: 'Navigation principale'
     },
     footer: {
-      license: 'Pharmacométrie Explain · Texte CC-BY-SA · Code MIT · 2026',
+      license: 'Pharmacométrie Explain · Texte CC BY-NC-SA 4.0 · Code MIT · 2026',
+      author: 'Écrit et maintenu par Racym Berrah (PharmD)',
+      report: 'Une erreur ? Signalez-la',
+      reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
       built: 'Construit avec SvelteKit · statique, sans suivi',
       disclaimer: "Contenu pédagogique uniquement. Pas de conseil médical. Pas d'ajustement posologique patient-spécifique."
     },
@@ -159,10 +165,10 @@ export const dictionary = {
       disclaimer: 'Contenu pédagogique uniquement · pas de conseil médical.',
       tracksTitle: 'Deux parcours',
       featuredTitle: 'Pharmacométrie fondamentale',
-      resourcesTitle: 'Ressources pedagogiques',
+      resourcesTitle: 'Ressources pédagogiques',
       resourcesText:
-        'Telechargez le support Pharmacometrie Pratique original utilise comme source pedagogique pour ce cours.',
-      downloadSlides: 'Telecharger le PowerPoint',
+        "Téléchargez « Pharmacométrie Pratique », le support de cours original rédigé par l'auteur de ce site, dont ce cours est tiré.",
+      downloadSlides: 'Télécharger le PowerPoint',
       chapterCount: (count) => `${count} chapitre${count === 1 ? '' : 's'}`,
       openTrack: 'Ouvrir le parcours →',
       inPreparation: 'En préparation',
@@ -211,7 +217,7 @@ export const dictionary = {
         "Un cours interactif de pharmacométrie — PK/PD, modélisation de population, NCA, PBPK, suivi thérapeutique, validation de modèle, design d'essais cliniques et IA appliquée. Chaque chapitre associe une explication défilante, une visualisation interactive, un quiz et des exercices.",
       aboutItems: [
         "Pour les étudiants, par un étudiant : pensé pour être clair avant d'être exhaustif.",
-        'Gratuit et open-source (texte CC-BY-SA, code MIT) — réutilisation et contributions bienvenues.',
+        'Gratuit et open-source (texte CC BY-NC-SA 4.0, code MIT) — réutilisation non commerciale et contributions bienvenues.',
         'Usage pédagogique uniquement — aucun conseil médical ni recommandation posologique.',
         'Bilingue (français / anglais), construit avec SvelteKit et déployé sur GitHub Pages.'
       ],

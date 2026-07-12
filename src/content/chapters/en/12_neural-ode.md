@@ -84,4 +84,8 @@ Do not confuse predictive accuracy within a dataset with scientific transportabi
 - Grey-box models combine mechanism and flexibility; Neural ODEs keep a dynamical-system view.
 - Horizon: the patient's **digital twin** (DIGPHAT consortium), fusing physiology + AI.
 - Clinical conclusion: **AI is not magic, it is useful**. The clinician decides; the algorithm reduces uncertainty. Extrapolation, uncertainty and interpretability remain essential.
+
+:::note
+**Going further.** This chapter is the **entry point** of the core track. The **"AI in pharmacometrics"** track is an **advanced, research-oriented** deep dive (trees, boosting, SVM, clustering, feature selection, LLMs). It is a **fast-moving** field: it is not required to master the fundamentals, and its content ages faster than the rest of the site.
+:::
 <!-- /step -->
