@@ -137,13 +137,19 @@ if (!descBad) ok(`${usedViz.size} animations utilisées ont toutes une descripti
 
 // ── 6. Références ──
 const { referenceGroups } = await import(new URL('../src/lib/content/references.js', import.meta.url));
-let refCount = 0, refBad = 0;
+let refCount = 0, refBad = 0, refStable = 0;
+const SEARCH = /google\.[a-z.]+\/search|[?&]term=|[?&]q=/i;
 for (const g of referenceGroups) for (const r of g.items) {
   refCount++;
   if (!r.title) { fail(`référence sans titre (groupe ${g.id})`); refBad++; }
   if (!/^https?:\/\//.test(r.url || '')) { fail(`URL invalide : ${r.title}`); refBad++; }
+  // Une RECHERCHE n'est pas une citation : elle n'est ni stable, ni univoque.
+  if (SEARCH.test(r.url || '')) { fail(`LIEN DE RECHERCHE interdit (pas une citation) : ${r.id}`); refBad++; }
+  // Un DOI/PMID/ISBN quand il existe ; sinon une page OFFICIELLE directe (abstract PAGE,
+  // livre en accès libre, site d'agence) — ce qui résout aussi vers un document unique.
+  if (r.doi || r.pmid || r.isbn) refStable++;
 }
-if (!refBad) ok(`${refCount} références avec liens valides (${referenceGroups.length} thèmes)`);
+if (!refBad) ok(`${refCount} références : aucun lien de recherche (${refStable} avec DOI/PMID/ISBN)`);
 
 // ── Sources des chapitres : POOL FERMÉ ──
 // Tout identifiant cité dans `sources:` doit exister dans references.js.

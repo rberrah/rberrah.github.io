@@ -3,7 +3,7 @@
   // Pied de chapitre : sources vérifiables (pool fermé de references.js), date de
   // dernière révision, statut de relecture, signalement d'erreur pré-rempli.
   // Bilingue (FR/EN) via le store de langue.
-  import { resolveSources } from '$lib/content/references';
+  import { resolveSources, refIdentifier } from '$lib/content/references';
   import { language } from '$lib/stores/language';
 
   /** @type {any} */
@@ -40,6 +40,7 @@
             <a href={s.url} target="_blank" rel="noopener noreferrer">{s.title}</a>
             {#if s.authors}<span class="au">— {s.authors}</span>{/if}
             {#if s.where}<span class="wh">, {s.where}</span>{/if}
+            {#if refIdentifier(s)}<span class="id">{refIdentifier(s)}</span>{/if}
           </li>
         {/each}
       </ul>
@@ -62,6 +63,7 @@
   .sources a { color: var(--text-primary); font-weight: 600; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
   .sources a:hover { color: var(--accent-pk); border-color: var(--accent-pk); }
   .au, .wh { color: var(--text-muted); font-size: var(--text-xs); }
+  .id { display: inline-block; margin-left: 6px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; color: var(--accent-pk); background: color-mix(in srgb, var(--accent-pk) 10%, transparent); border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
   .meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); font-family: var(--font-mono); font-size: var(--text-xs); }
   .badge { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
   .badge.ok { background: color-mix(in srgb, var(--accent-pk) 16%, var(--bg-primary)); color: var(--accent-pk); }
