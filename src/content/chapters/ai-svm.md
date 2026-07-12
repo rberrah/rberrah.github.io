@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["ai", "svm", "classification", "kernel"]
 slides: []
-sources: ["mlu-explain", "vanderschaar"]
+sources: ["cortes-vapnik-svm", "hastie-esl", "mlu-explain"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un SVM linéaire choisit la frontière qui..."

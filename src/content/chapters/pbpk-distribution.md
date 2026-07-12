@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "partition", "protein-binding", "distribution"]
 slides: []
-sources: ["jones-rowland-yeo", "rowland-tozer", "gibaldi-perrier"]
+sources: ["jones-rowland-yeo", "kuepfer-pbpk", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le coefficient de partage Kp,T décrit..."

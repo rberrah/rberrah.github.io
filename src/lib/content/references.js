@@ -87,6 +87,17 @@ export const referenceGroups = [
     ]
   },
   {
+    id: 'pbpk',
+    title: { fr: 'PBPK', en: 'PBPK' },
+    items: [
+      { id: 'kuepfer-pbpk', kind: 'article', title: 'Applied Concepts in PBPK Modeling: How to Build a PBPK/PD Model (tutoriel)', authors: 'Kuepfer L. et al.', where: 'CPT: PSP 2016', url: pubmed('Kuepfer applied concepts in PBPK modeling how to build a PBPK PD model') },
+      { id: 'rowland-peck-tucker', kind: 'article', title: 'Physiologically-based pharmacokinetics in drug development and regulatory science', authors: 'Rowland M., Peck C. & Tucker G.', where: 'Annu. Rev. Pharmacol. Toxicol. 2011', url: pubmed('Rowland Peck Tucker physiologically-based pharmacokinetics in drug development and regulatory science') },
+      { id: 'jones-pbpk-industry', kind: 'article', title: 'PBPK modeling in drug discovery and development: a pharmaceutical industry perspective', authors: 'Jones H.M. et al.', where: 'Clin. Pharmacol. Ther. 2015', url: pubmed('Jones physiologically based pharmacokinetic modeling in drug discovery and development pharmaceutical industry perspective') },
+      { id: 'ema-pbpk', kind: 'guideline', title: 'Guideline on the reporting of PBPK modelling and simulation', authors: 'European Medicines Agency', where: '2018', url: book('EMA guideline on the reporting of physiologically based pharmacokinetic PBPK modelling and simulation 2018') },
+      { id: 'fda-pbpk', kind: 'guideline', title: 'Physiologically Based Pharmacokinetic Analyses — Format and Content', authors: 'U.S. FDA', where: '2018', url: book('FDA guidance physiologically based pharmacokinetic analyses format and content 2018') }
+    ]
+  },
+  {
     id: 'onco',
     title: { fr: 'Oncologie', en: 'Oncology' },
     items: [
@@ -118,6 +129,10 @@ export const referenceGroups = [
     id: 'ai',
     title: { fr: 'IA & machine learning', en: 'AI & machine learning' },
     items: [
+      { id: 'hastie-esl', kind: 'book', title: 'The Elements of Statistical Learning (arbres, SVM, clustering, sélection de variables)', authors: 'Hastie T., Tibshirani R. & Friedman J.', where: 'Springer — libre en ligne', url: 'https://hastie.su.domains/ElemStatLearn/' },
+      { id: 'cortes-vapnik-svm', kind: 'article', title: 'Support-Vector Networks (naissance des SVM)', authors: 'Cortes C. & Vapnik V.', where: 'Machine Learning 1995', url: book('Cortes Vapnik Support-Vector Networks Machine Learning 1995') },
+      { id: 'guyon-featsel', kind: 'article', title: 'An Introduction to Variable and Feature Selection', authors: 'Guyon I. & Elisseeff A.', where: 'JMLR 2003', url: book('Guyon Elisseeff An Introduction to Variable and Feature Selection JMLR 2003') },
+      { id: 'genuer-vsurf', kind: 'article', title: 'Variable selection using random forests (VSURF)', authors: 'Genuer R., Poggi J.-M. & Tuleau-Malot C.', where: 'Pattern Recognition Letters 2010', url: book('Genuer Poggi Tuleau-Malot variable selection using random forests VSURF') },
       { id: 'breiman-rf', kind: 'article', title: 'Random Forests', authors: 'Breiman L.', where: 'Machine Learning 2001', url: book('Breiman 2001 Random Forests Machine Learning') },
       { id: 'chen-xgboost', kind: 'article', title: 'XGBoost: A Scalable Tree Boosting System', authors: 'Chen T. & Guestrin C.', where: 'KDD 2016', url: book('Chen Guestrin XGBoost scalable tree boosting system') },
       { id: 'vaswani-transformer', kind: 'article', title: 'Attention Is All You Need (Transformer)', authors: 'Vaswani A. et al.', where: 'NeurIPS 2017', url: book('Vaswani Attention Is All You Need transformer') },

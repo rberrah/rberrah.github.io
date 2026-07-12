@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["ai", "random-forest", "decision-tree", "machine-learning"]
 slides: []
-sources: ["breiman-rf", "mlu-explain", "chen-xgboost"]
+sources: ["breiman-rf", "hastie-esl", "mlu-explain"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un arbre de décision seul produit une fonction..."
