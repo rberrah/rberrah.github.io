@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["mab", "biologics", "fcrn", "pk"]
 slides: []
+sources: ["ryman-meibohm", "rowland-tozer", "mager-jusko-tmdd"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La demi-vie longue (semaines) des anticorps IgG s'explique surtout par..."
     options:

@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["maths", "copula", "covariates", "simulation"]
 slides: []
+sources: ["bonate", "ette-williams", "davidian-giltinan"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une copule décrit..."
     options:

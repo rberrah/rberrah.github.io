@@ -12,6 +12,8 @@ tags: ["absorption", "route", "bioavailability", "first-pass"]
 prerequisites: ["absorption-orale"]
 glossary: ["F", "Ka", "Tlag", "Flip-flop", "Compartiments de transit"]
 slides: []
+sources: ["rowland-tozer", "gibaldi-perrier", "jones-rowland-yeo", "ryman-meibohm"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Par voie intraveineuse (IV), la biodisponibilité F vaut..."
     options:

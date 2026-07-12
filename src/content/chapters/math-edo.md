@@ -10,6 +10,8 @@ duration: "12 min"
 level: "beginner"
 tags: ["maths", "ode", "exponential"]
 slides: []
+sources: ["gibaldi-perrier", "rowland-tozer", "simon-pkpd"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La solution de dA/dt = −k·A est..."
     options:

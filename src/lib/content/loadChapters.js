@@ -113,11 +113,19 @@ function parseChapter(path, raw) {
     slug: data.slug,
     title: data.title,
     description: data.description ?? '',
+    summary: data.summary ?? '',
     order: Number(data.order ?? 999),
+    duration: data.duration ?? '',
+    level: data.level ?? '',
+    // Schéma commun aux 3 sites : structure + vérifiabilité
+    layer: data.layer ?? '',
     tags: data.tags ?? [],
     prerequisites: data.prerequisites ?? [],
     glossary: data.glossary ?? [],
     slides: data.slides ?? [],
+    sources: data.sources ?? [],
+    reviewed_on: data.reviewed_on ? String(data.reviewed_on) : '',
+    status: data.status ?? '',
     quiz: data.quiz ?? [],
     steps
   };

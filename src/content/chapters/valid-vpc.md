@@ -10,6 +10,8 @@ duration: "13 min"
 level: "advanced"
 tags: ["validation", "vpc", "pcvpc", "simulation"]
 slides: []
+sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "keizer-psn-xpose"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une VPC compare..."
     options:

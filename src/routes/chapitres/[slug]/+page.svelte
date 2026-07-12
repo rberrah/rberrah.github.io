@@ -4,6 +4,7 @@
   import { page } from '$app/stores';
   import chapters from '$lib/content/loadChapters';
   import Quiz from '$lib/components/ui/Quiz.svelte';
+  import ChapterFooter from '$lib/components/ui/ChapterFooter.svelte';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import { exercisesForChapter } from '$lib/content/exercises';
   import { describeViz } from '$lib/content/vizDescriptions';
@@ -193,6 +194,8 @@
           <ExerciseBlock items={chapterExercises} />
         </section>
       {/if}
+
+      <ChapterFooter {chapter} />
 
       <nav class="chap-nav" data-testid="chapter-nav">
         {#if prev}

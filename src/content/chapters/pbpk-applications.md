@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "ivive", "drug-interactions", "pediatrics"]
 slides: []
+sources: ["jones-rowland-yeo", "anderson-holford-allometry", "holford-clearance", "certara"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'IVIVE consiste à..."
     options:

@@ -10,6 +10,8 @@ duration: "13 min"
 level: "advanced"
 tags: ["pbpk", "physiology", "blood-flow", "mechanistic"]
 slides: []
+sources: ["jones-rowland-yeo", "rowland-tozer", "gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans un modèle PBPK, les compartiments représentent..."
     options:

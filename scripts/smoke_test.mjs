@@ -145,6 +145,32 @@ for (const g of referenceGroups) for (const r of g.items) {
 }
 if (!refBad) ok(`${refCount} références avec liens valides (${referenceGroups.length} thèmes)`);
 
+// ── Sources des chapitres : POOL FERMÉ ──
+// Tout identifiant cité dans `sources:` doit exister dans references.js.
+// C'est le garde-fou anti-source-inventée.
+const { allRefIds } = await import(new URL('../src/lib/content/references.js', import.meta.url));
+const refIds = new Set(allRefIds);
+if (refIds.size !== refCount) fail(`identifiants de références non uniques (${refIds.size} ids pour ${refCount} entrées)`);
+else ok(`${refIds.size} identifiants de références uniques`);
+
+let nSourced = 0, nReviewed = 0, srcBad = 0;
+for (const f of frFiles) {
+  const raw = fs.readFileSync(path.join(chaptersDir, f), 'utf8').split(String.fromCharCode(13)).join('');
+  const m = raw.match(/^---\n([\s\S]*?)\n---/);
+  if (!m) continue;
+  const fm = m[1];
+  const slug = (fm.match(/^slug:\s*"?([^"\n]+?)"?\s*$/m) || [])[1] || f;
+  const sm = fm.match(/^sources:\s*\[([^\]]*)\]/m);
+  const ids = sm ? sm[1].split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean) : [];
+  if (ids.length) nSourced++;
+  if (/^reviewed_on:/m.test(fm)) nReviewed++;
+  for (const id of ids) if (!refIds.has(id)) { fail(`source inconnue dans ${slug} : « ${id} »`); srcBad++; }
+  const st = (fm.match(/^status:\s*"?([^"\n]+?)"?\s*$/m) || [])[1];
+  if (st && !['brouillon', 'relu', 'valide'].includes(st)) { fail(`statut invalide dans ${slug} : ${st}`); srcBad++; }
+}
+if (!srcBad) ok(`sources des chapitres : tous les identifiants résolvent dans le pool`);
+console.log(`  · couverture : sources ${nSourced}/${frFiles.length} · relus ${nReviewed}/${frFiles.length}`);
+
 // ── Bilan ──
 if (failures) { console.error(`\nSMOKE TEST ÉCHOUÉ : ${failures} problème(s).`); process.exit(1); }
 console.log('\nSmoke tests OK : contenu cohérent, exactitude numérique vérifiée.');

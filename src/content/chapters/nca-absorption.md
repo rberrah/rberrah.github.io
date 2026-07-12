@@ -10,6 +10,8 @@ duration: "11 min"
 level: "intermediate"
 tags: ["nca", "bioavailability", "cmax", "oral"]
 slides: []
+sources: ["rowland-tozer", "gibaldi-perrier", "gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La biodisponibilité absolue F se calcule en comparant..."
     options:

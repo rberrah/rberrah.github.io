@@ -12,6 +12,8 @@ tags: ["mipd", "mapbe", "residual", "tdm", "auc", "precision-dosing"]
 prerequisites: ["erreur-residuelle", "bayes-ebes", "tools-mipd"]
 glossary: ["MAP", "TDM", "RUV", "ε / σ", "Precision dosing"]
 slides: []
+sources: ["berrah-residual", "minichmayr-mipd", "hughes-keizer", "woillard-tacrolimus"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans l'objectif de l'estimation MAP, que fait une erreur résiduelle σ plus petite ?"
     options:

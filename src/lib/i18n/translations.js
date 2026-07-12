@@ -37,7 +37,13 @@ export const dictionary = {
       start: 'Start the course',
       browse: 'Browse chapters',
       disclaimer: 'Educational content only · not medical advice.',
-      tracksTitle: 'Two tracks',
+      tracksTitle: 'The course, in four layers',
+      layers: {
+        tronc: { title: 'Core track — start here', desc: 'The trunk: what every pharmacometrician must know, read in order.' },
+        approfondissement: { title: 'Deep dives', desc: 'These expand a chapter of the core track. Optional, but they go all the way.' },
+        domaine: { title: 'Application domains', desc: 'Verticals that assume the core track: PD, oncology, infectious diseases, antibodies, PBPK, trials, AI.' },
+        reference: { title: 'Reference', desc: 'You consult these when you need them — nobody reads them end to end.' }
+      },
       featuredTitle: 'Core pharmacometrics',
       resourcesTitle: 'Teaching resources',
       resourcesText:
@@ -163,7 +169,13 @@ export const dictionary = {
       start: 'Commencer le cours',
       browse: 'Voir les chapitres',
       disclaimer: 'Contenu pédagogique uniquement · pas de conseil médical.',
-      tracksTitle: 'Deux parcours',
+      tracksTitle: 'Le cours, en quatre couches',
+      layers: {
+        tronc: { title: 'Tronc commun — commencez ici', desc: "L'essentiel, à lire dans l'ordre : ce que tout pharmacométricien doit savoir." },
+        approfondissement: { title: 'Approfondissements', desc: "Ils reprennent un chapitre du tronc et vont au bout. Optionnels, mais complets." },
+        domaine: { title: "Domaines d'application", desc: 'Des verticales qui supposent le tronc acquis : PD, oncologie, infectiologie, anticorps, PBPK, essais, IA.' },
+        reference: { title: 'Référence', desc: "On y va quand on en a besoin — personne ne les lit d'une traite." }
+      },
       featuredTitle: 'Pharmacométrie fondamentale',
       resourcesTitle: 'Ressources pédagogiques',
       resourcesText:

@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "adaptive-design", "dose-finding", "mcp-mod"]
 slides: []
+sources: ["bretz-mcp-mod", "ich-e4", "pfim"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une recherche de dose fondée sur un modèle (model-based) est plus efficace car..."
     options:

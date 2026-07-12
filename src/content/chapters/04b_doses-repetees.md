@@ -11,6 +11,8 @@ level: "beginner"
 tags: ["steady-state", "css", "accumulation", "loading-dose", "dosing"]
 glossary: ["CL", "t½", "ke"]
 slides: ["s12"]
+sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La concentration moyenne à l'équilibre vaut..."
     options:

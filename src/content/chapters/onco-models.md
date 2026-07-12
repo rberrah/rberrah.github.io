@@ -10,6 +10,8 @@ duration: "15 min"
 level: "advanced"
 tags: ["oncology", "tumor-growth", "models", "catalog"]
 slides: []
+sources: ["simeoni", "claret-tgi-os", "friberg", "compo"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le modèle de croissance de Gompertz décrit une croissance..."
     options:

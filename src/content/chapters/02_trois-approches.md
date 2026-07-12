@@ -10,6 +10,8 @@ duration: "14 min"
 level: "beginner"
 tags: ["approaches", "nca", "poppk", "pbpk"]
 slides: ["s23", "s34", "s45", "s56", "s73"]
+sources: ["rowland-tozer", "mould-upton", "jones-rowland-yeo", "sheiner-beal-estimation"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:

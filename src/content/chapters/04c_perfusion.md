@@ -10,6 +10,8 @@ duration: "11 min"
 level: "beginner"
 tags: ["infusion", "zero-order", "steady-state"]
 slides: ["s12"]
+sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une entrée d'ordre 0 signifie que le débit d'entrée est..."
     options:

@@ -12,6 +12,8 @@ tags: ["error-model", "residual", "additive", "proportional"]
 prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Erreur additive", "Erreur proportionnelle", "Erreur combinée", "ε / σ", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
+sources: ["berrah-residual", "hooker-cwres", "beal-bql", "davidian-giltinan"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:

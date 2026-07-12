@@ -10,6 +10,8 @@ duration: "13 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "indirect-response", "turnover"]
 slides: []
+sources: ["dayneka-jusko-indirect", "jusko-ko-indirect", "gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans un modèle de réponse indirecte, le délai de l'effet vient..."
     options:

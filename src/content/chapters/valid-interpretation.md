@@ -12,6 +12,8 @@ tags: ["validation", "interpretation", "residuals", "troubleshooting"]
 prerequisites: ["valid-gof", "valid-diagnostics"]
 glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)", "GOF", "PRED / IPRED", "Erreur combinée"]
 slides: []
+sources: ["hooker-cwres", "mould-upton", "bonate", "savic-karlsson-shrinkage"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Des CWRES en forme de U (négatifs au milieu, positifs aux extrêmes) évoquent..."
     options:

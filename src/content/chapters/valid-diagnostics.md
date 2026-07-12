@@ -12,6 +12,8 @@ tags: ["validation", "gof", "diagnostic-plots", "residuals"]
 prerequisites: ["valid-gof", "valid-vpc", "valid-npde"]
 glossary: ["GOF", "PRED / IPRED", "Résidus (WRES/CWRES/IWRES/NPDE)", "VPC", "Binning"]
 slides: []
+sources: ["hooker-cwres", "karlsson-holford-vpc", "brendel-npde", "savic-karlsson-shrinkage"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Aucun graphique diagnostique unique ne suffit ; on les croise parce que..."
     options:

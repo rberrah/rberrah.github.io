@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "absorption", "first-pass", "bcs"]
 slides: []
+sources: ["jones-rowland-yeo", "rowland-tozer", "holford-clearance"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un modèle d'absorption mécaniste (ACAT/ADAM) découpe l'intestin en..."
     options:

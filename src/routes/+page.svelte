@@ -34,28 +34,42 @@
 
 <section class="tracks" data-testid="tracks">
   <h2 class="section-title">{copy.home.tracksTitle}</h2>
-  <div class="track-grid">
-    {#each tracks as track}
-      {@const localizedTrack = localizeTrack(track, $language)}
-      {@const list = grouped[track.id] ?? []}
-      <article class="track card card-hover" data-testid="course-track-card" style={`--track:${track.accent}`}>
-        <div class={`thumb ${track.visual}`}>
-          <span class="track-tag">{localizedTrack.label}</span>
-          {#if track.status !== 'available'}<span class="soon">{copy.home.comingSoon}</span>{/if}
+
+  <!-- Les 12 parcours n'ont pas le même STATUT : on les regroupe en 4 couches
+       (tronc / approfondissement / domaine / référence) pour que le chemin soit lisible. -->
+  {#each ['tronc', 'approfondissement', 'domaine', 'reference'] as layerId}
+    {@const inLayer = tracks.filter((t) => t.layer === layerId)}
+    {#if inLayer.length}
+      <div class="layer" data-testid={`layer-${layerId}`}>
+        <div class="layer-head">
+          <h3>{copy.home.layers[layerId].title}</h3>
+          <p>{copy.home.layers[layerId].desc}</p>
         </div>
-        <div class="track-body">
-          <h3>{localizedTrack.title}</h3>
-          <p>{localizedTrack.tagline}</p>
-          <p class="count">{copy.home.chapterCount(list.length)}</p>
-          {#if track.status === 'available' && list[0]}
-            <a class="btn btn-outline sm" href={`${base}/chapitres/${list[0].slug}`} data-testid={`track-open-${track.id}`}>{copy.home.openTrack}</a>
-          {:else}
-            <span class="btn btn-outline sm disabled" aria-disabled="true">{copy.home.inPreparation}</span>
-          {/if}
+        <div class="track-grid">
+          {#each inLayer as track}
+            {@const localizedTrack = localizeTrack(track, $language)}
+            {@const list = grouped[track.id] ?? []}
+            <article class="track card card-hover" data-testid="course-track-card" style={`--track:${track.accent}`}>
+              <div class={`thumb ${track.visual}`}>
+                <span class="track-tag">{localizedTrack.label}</span>
+                {#if track.status !== 'available'}<span class="soon">{copy.home.comingSoon}</span>{/if}
+              </div>
+              <div class="track-body">
+                <h3>{localizedTrack.title}</h3>
+                <p>{localizedTrack.tagline}</p>
+                <p class="count">{copy.home.chapterCount(list.length)}</p>
+                {#if track.status === 'available' && list[0]}
+                  <a class="btn btn-outline sm" href={`${base}/chapitres/${list[0].slug}`} data-testid={`track-open-${track.id}`}>{copy.home.openTrack}</a>
+                {:else}
+                  <span class="btn btn-outline sm disabled" aria-disabled="true">{copy.home.inPreparation}</span>
+                {/if}
+              </div>
+            </article>
+          {/each}
         </div>
-      </article>
-    {/each}
-  </div>
+      </div>
+    {/if}
+  {/each}
 </section>
 
 <section class="chapters" data-testid="featured-chapters">
@@ -102,6 +116,11 @@
   .resource-band h2 { margin: 0 0 var(--space-2); font-size: var(--text-xl); }
   .resource-band p { margin: 0; color: var(--text-secondary); max-width: 68ch; }
   .tracks { margin-top: var(--space-12); }
+  .layer { margin-top: var(--space-12); }
+  .layer:first-of-type { margin-top: var(--space-8); }
+  .layer-head { border-left: 3px solid var(--accent-pk); padding-left: var(--space-4); }
+  .layer-head h3 { font-size: var(--text-xl); margin: 0 0 var(--space-1); }
+  .layer-head p { color: var(--text-secondary); font-size: var(--text-sm); margin: 0; max-width: 70ch; }
   .track-grid { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: var(--space-6); }
   .track { padding: 0; overflow: hidden; border-top: 4px solid var(--track); }
   .thumb { height: 150px; position: relative; overflow: hidden; background: linear-gradient(135deg, color-mix(in srgb, var(--track) 22%, #fff) 0%, var(--track) 90%); }

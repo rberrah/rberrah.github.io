@@ -10,6 +10,8 @@ duration: "12 min"
 level: "beginner"
 tags: ["intro", "pk", "pd", "variability"]
 slides: ["s01", "s02"]
+sources: ["rowland-tozer", "gabrielsson-weiner", "simon-pkpd"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La pharmacocinétique (PK) décrit surtout..."
     options:

@@ -12,6 +12,8 @@ tags: ["pharmacodynamics", "effect-compartment", "sheiner", "hysteresis"]
 prerequisites: ["pkpd", "pd-direct"]
 glossary: ["Compartiment d’effet (ke0)", "Hystérèse", "Emax"]
 slides: []
+sources: ["sheiner-effect-compartment", "gabrielsson-weiner", "simon-pkpd"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le modèle à compartiment d'effet explique l'hystérésis par..."
     options:

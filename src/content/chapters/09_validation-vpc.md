@@ -10,6 +10,8 @@ duration: "13 min"
 level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
 slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
+sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "hooker-cwres", "brendel-npde"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une VPC compare les données observées avec..."
     options:

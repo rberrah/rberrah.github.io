@@ -10,6 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "first-in-human", "mabel", "starting-dose"]
 slides: []
+sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "ryman-meibohm"]
+reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
     options:
