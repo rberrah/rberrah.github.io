@@ -9,16 +9,15 @@
 // AUCUN lien de recherche : une recherche n'est ni stable, ni univoque, donc pas une citation.
 // Chaque DOI a été RÉSOLU contre Crossref/DataCite et son titre confronté au titre attendu (2026-07).
 //
-// `citable: false` — LIENS UTILES, PAS DES SOURCES.
-//   Une page de laboratoire, un site d'association ou une page produit ne peut soutenir
-//   AUCUNE affirmation : elle ne dit rien de vérifiable et son contenu change. Ces entrées
-//   restent affichées en bibliographie, mais un chapitre qui les cite dans `sources:`
-//   fait ÉCHOUER le smoke test.
+// La règle de rattachement est de PERTINENCE, pas de nature : une source doit répondre à
+// « d'où vient cette affirmation ? ». Un laboratoire, une société savante, une agence ou
+// l'éditeur d'un logiciel sont des sources légitimes — encore faut-il que le document cité
+// porte réellement ce que le chapitre affirme.
 //
 // Les chapitres se rattachent au pool via `sources: [<id>, ...]` dans leur frontmatter.
-// Un id inconnu — ou non citable — fait ÉCHOUER le smoke test.
+// Un id inconnu fait ÉCHOUER le smoke test.
 
-/** @typedef {{id:string, kind:string, title:string, authors?:string, where?:string, doi?:string, pmid?:string, isbn?:string, url:string, citable?:boolean}} Reference */
+/** @typedef {{id:string, kind:string, title:string, authors?:string, where?:string, doi?:string, pmid?:string, isbn?:string, url:string}} Reference */
 
 export const referenceGroups = [
   {
@@ -211,25 +210,21 @@ export const referenceGroups = [
   },
   {
     id: 'liens',
-    title: { fr: 'Liens utiles (ne sont pas des sources)', en: 'Useful links (not sources)' },
-    note: {
-      fr: 'Une page de laboratoire, un site d\'association ou une page produit ne peut soutenir aucune affirmation : son contenu change et ne dit rien de vérifiable. Ces liens sont donnés pour aller plus loin — aucun chapitre ne s\'en sert comme source.',
-      en: 'A lab page, a society website or a product page cannot support any claim: its content changes and asserts nothing verifiable. These links are given for further reading — no chapter cites them as a source.'
-    },
+    title: { fr: 'Logiciels, laboratoires & communautés', en: 'Software, labs & communities' },
     items: [
-      { id: 'mlu-explain', kind: 'course', citable: false, title: 'MLU-Explain — explications visuelles du machine learning', authors: 'Amazon Machine Learning University', url: 'https://mlu-explain.github.io' },
-      { id: 'pfim', kind: 'tool', citable: false, title: 'PFIM — design optimal en modèles non linéaires à effets mixtes', authors: 'Mentré F. et al.', where: 'Université Paris Cité / Inserm', url: 'https://cran.r-project.org/package=PFIM' },
-      { id: 'nonmem', kind: 'tool', citable: false, title: 'NONMEM — le logiciel historique de la PK de population', authors: 'Beal S.L. & Sheiner L.B.', where: 'ICON plc', url: 'https://www.iconplc.com/solutions/technologies/nonmem' },
-      { id: 'monolix', kind: 'tool', citable: false, title: 'Monolix / MonolixSuite (SAEM)', where: 'Lixoft / Simulations Plus', url: 'https://lixoft.com' },
-      { id: 'nlmixr2', kind: 'tool', citable: false, title: 'nlmixr2 — modélisation NLME open-source en R', url: 'https://nlmixr2.org' },
-      { id: 'mrgsolve', kind: 'tool', citable: false, title: 'mrgsolve — simulation d\'ODE/PK-PD en R', authors: 'Elmokadem A., Riggs M.M. & Baron K.T.', url: 'https://mrgsolve.org' },
-      { id: 'certara', kind: 'tool', citable: false, title: 'Certara — Phoenix NLME & Simcyp (PBPK)', url: 'https://www.certara.com' },
-      { id: 'iatdmct', kind: 'course', citable: false, title: 'IATDMCT — International Association of Therapeutic Drug Monitoring and Clinical Toxicology', url: 'https://www.iatdmct.org' },
-      { id: 'iame', kind: 'course', citable: false, title: 'IAME — modélisation des maladies infectieuses (Bichat)', authors: 'Guedj J., Mentré F. et al.', where: 'Inserm / Université Paris Cité', url: 'https://www.iame-research.center/' },
-      { id: 'compo', kind: 'course', citable: false, title: 'COMPO — Cancer, modélisation & pharmacologie (Marseille)', authors: 'Benzekry S., Ciccolini J. et al.', where: 'Inria / Inserm / AMU', url: 'https://team.inria.fr/compo/' },
-      { id: 'vanderschaar', kind: 'course', citable: false, title: 'van der Schaar Lab — machine learning pour la médecine', authors: 'van der Schaar M. et al.', where: 'University of Cambridge', url: 'https://www.vanderschaar-lab.com' },
-      { id: 'isop', kind: 'course', citable: false, title: 'ISoP — International Society of Pharmacometrics', url: 'https://www.go-isop.org' },
-      { id: 'page', kind: 'course', citable: false, title: 'PAGE — Population Approach Group in Europe', url: 'https://www.page-meeting.org' }
+      { id: 'mlu-explain', kind: 'course', title: 'MLU-Explain — explications visuelles du machine learning', authors: 'Amazon Machine Learning University', url: 'https://mlu-explain.github.io' },
+      { id: 'pfim', kind: 'tool', title: 'PFIM — design optimal en modèles non linéaires à effets mixtes', authors: 'Mentré F. et al.', where: 'Université Paris Cité / Inserm', url: 'https://cran.r-project.org/package=PFIM' },
+      { id: 'nonmem', kind: 'tool', title: 'NONMEM — le logiciel historique de la PK de population', authors: 'Beal S.L. & Sheiner L.B.', where: 'ICON plc', url: 'https://www.iconplc.com/solutions/technologies/nonmem' },
+      { id: 'monolix', kind: 'tool', title: 'Monolix / MonolixSuite (SAEM)', where: 'Lixoft / Simulations Plus', url: 'https://lixoft.com' },
+      { id: 'nlmixr2', kind: 'tool', title: 'nlmixr2 — modélisation NLME open-source en R', url: 'https://nlmixr2.org' },
+      { id: 'mrgsolve', kind: 'tool', title: 'mrgsolve — simulation d\'ODE/PK-PD en R', authors: 'Elmokadem A., Riggs M.M. & Baron K.T.', url: 'https://mrgsolve.org' },
+      { id: 'certara', kind: 'tool', title: 'Certara — Phoenix NLME & Simcyp (PBPK)', url: 'https://www.certara.com' },
+      { id: 'iatdmct', kind: 'course', title: 'IATDMCT — International Association of Therapeutic Drug Monitoring and Clinical Toxicology', url: 'https://www.iatdmct.org' },
+      { id: 'iame', kind: 'course', title: 'IAME — modélisation des maladies infectieuses (Bichat)', authors: 'Guedj J., Mentré F. et al.', where: 'Inserm / Université Paris Cité', url: 'https://www.iame-research.center/' },
+      { id: 'compo', kind: 'course', title: 'COMPO — Cancer, modélisation & pharmacologie (Marseille)', authors: 'Benzekry S., Ciccolini J. et al.', where: 'Inria / Inserm / AMU', url: 'https://team.inria.fr/compo/' },
+      { id: 'vanderschaar', kind: 'course', title: 'van der Schaar Lab — machine learning pour la médecine', authors: 'van der Schaar M. et al.', where: 'University of Cambridge', url: 'https://www.vanderschaar-lab.com' },
+      { id: 'isop', kind: 'course', title: 'ISoP — International Society of Pharmacometrics', url: 'https://www.go-isop.org' },
+      { id: 'page', kind: 'course', title: 'PAGE — Population Approach Group in Europe', url: 'https://www.page-meeting.org' }
     ]
   }
 ];
@@ -243,9 +238,6 @@ export const refById = (() => {
 
 /** Tous les identifiants du pool. */
 export const allRefIds = Object.keys(refById);
-
-/** Les identifiants réellement CITABLES : un lien utile n'est pas une source. */
-export const citableRefIds = allRefIds.filter((id) => refById[id].citable !== false);
 
 /** Étiquette courte de l'identifiant, à afficher à côté de la source. */
 export function refIdentifier(r) {

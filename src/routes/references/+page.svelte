@@ -24,9 +24,8 @@
 
 <div class="groups">
   {#each referenceGroups as g}
-    <section class="group" class:muted={g.id === 'liens'}>
+    <section class="group">
       <h2>{pick(g.title)}</h2>
-      {#if g.note}<p class="note">{pick(g.note)}</p>{/if}
       <ul>
         {#each g.items as r}
           <li>
@@ -66,7 +65,4 @@
   .meta { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
   .id { justify-self: start; margin-top: 3px; font-family: var(--font-mono); font-size: 10px; color: var(--accent-pk); background: color-mix(in srgb, var(--accent-pk) 10%, transparent); border-radius: 999px; padding: 1px 7px; }
   .ext { color: var(--text-muted); font-size: var(--text-sm); }
-  .note { max-width: 62ch; margin: calc(-1 * var(--space-2)) 0 var(--space-4); font-size: var(--text-sm); line-height: 1.5; color: var(--text-muted); border-left: 2px solid var(--border-strong); padding-left: var(--space-3); }
-  .muted a { background: transparent; }
-  .muted .title { font-weight: 500; color: var(--text-secondary); }
 </style>
