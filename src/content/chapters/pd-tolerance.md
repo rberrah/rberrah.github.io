@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "tolerance", "rebound", "precursor"]
 slides: []
-sources: ["jusko-ko-indirect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
+sources: ["sharma-jusko-indirect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La tolérance pharmacodynamique se traduit par..."

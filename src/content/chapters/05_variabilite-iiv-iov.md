@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["variability", "iiv", "iov", "residual-error"]
 slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
-sources: ["karlsson-sheiner-iov", "sheiner-beal-estimation", "davidian-giltinan", "mould-upton"]
+sources: ["karlsson-sheiner-iov", "sheiner-beal-estimation", "berrah-residual", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'IIV désigne..."

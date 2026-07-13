@@ -10,7 +10,7 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "regression", "likelihood", "estimation"]
 slides: []
-sources: ["sheiner-beal-estimation", "davidian-giltinan", "gibaldi-perrier", "bonate"]
+sources: ["wang-nonmem-methods", "akaike-aic", "davidian-giltinan", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Estimer un paramètre par maximum de vraisemblance, c'est chercher la valeur qui..."

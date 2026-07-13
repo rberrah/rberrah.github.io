@@ -12,7 +12,7 @@ tags: ["maths", "fisher-information", "optimal-design", "precision"]
 prerequisites: ["math-regression", "math-stats"]
 glossary: ["FIM", "RSE", "Vraisemblance", "Identifiabilité"]
 slides: []
-sources: ["pfim", "lavielle", "davidian-giltinan"]
+sources: ["mentre-optimal-design", "davidian-giltinan", "lavielle"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La matrice d'information de Fisher (FIM) sert à..."

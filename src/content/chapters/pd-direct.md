@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "emax", "hill", "direct-effect"]
 slides: []
-sources: ["gabrielsson-weiner", "bonate"]
+sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un modèle à effet direct suppose que l'effet..."

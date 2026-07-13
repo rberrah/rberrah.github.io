@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["ai", "feature-selection", "vsurf", "ordinal-forest"]
 slides: []
-sources: ["genuer-vsurf", "guyon-featsel", "breiman-rf", "hastie-esl"]
+sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."

@@ -12,7 +12,7 @@ tags: ["tools", "mapbayr", "tdm", "mipd"]
 prerequisites: ["tools-simulation", "bayes-ebes"]
 glossary: ["MAP", "TDM", "EBE", "Precision dosing"]
 slides: []
-sources: ["mapbayr", "mrgsolve", "minichmayr-mipd", "rybak-vanco"]
+sources: ["mapbayr", "sheiner-forecasting", "minichmayr-mipd", "rybak-vanco"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'estimation MAP (maximum a posteriori) combine..."

@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["nca", "clearance", "volume", "mrt"]
 slides: []
-sources: ["holford-clearance", "gibaldi-perrier", "gabrielsson-weiner"]
+sources: ["yamaoka-moments", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Après une dose IV, la clairance se calcule par..."

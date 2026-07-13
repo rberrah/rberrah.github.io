@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["validation", "diagnostic-plots", "gof", "residuals"]
 slides: []
-sources: ["hooker-cwres", "keizer-psn-xpose", "savic-karlsson-shrinkage"]
+sources: ["hooker-cwres", "savic-karlsson-shrinkage", "mould-upton"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Sur un graphique observations vs prédictions, un bon modèle donne..."

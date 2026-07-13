@@ -12,7 +12,7 @@ tags: ["validation", "shrinkage", "ebe", "diagnostics"]
 prerequisites: ["bayes-ebes", "math-bayes"]
 glossary: ["Shrinkage", "EBE", "η", "ω / Ω", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
-sources: ["savic-karlsson-shrinkage", "hooker-cwres", "lavielle"]
+sources: ["savic-karlsson-shrinkage", "sheiner-forecasting", "lavielle"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un eta-shrinkage élevé signifie que les EBE..."

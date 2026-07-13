@@ -154,10 +154,13 @@ if (!refBad) ok(`${refCount} références : aucun lien de recherche (${refStable
 // ── Sources des chapitres : POOL FERMÉ ──
 // Tout identifiant cité dans `sources:` doit exister dans references.js.
 // C'est le garde-fou anti-source-inventée.
-const { allRefIds } = await import(new URL('../src/lib/content/references.js', import.meta.url));
+const { allRefIds, citableRefIds } = await import(new URL('../src/lib/content/references.js', import.meta.url));
 const refIds = new Set(allRefIds);
+// Un LIEN n'est pas une SOURCE : une page de labo, d'association ou de logiciel ne
+// soutient aucune affirmation (son contenu change et n'affirme rien de vérifiable).
+const citable = new Set(citableRefIds);
 if (refIds.size !== refCount) fail(`identifiants de références non uniques (${refIds.size} ids pour ${refCount} entrées)`);
-else ok(`${refIds.size} identifiants de références uniques`);
+else ok(`${refIds.size} identifiants de références uniques, dont ${citable.size} citables`);
 
 let nSourced = 0, nReviewed = 0, srcBad = 0;
 for (const f of frFiles) {
@@ -170,7 +173,10 @@ for (const f of frFiles) {
   const ids = sm ? sm[1].split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean) : [];
   if (ids.length) nSourced++;
   if (/^reviewed_on:/m.test(fm)) nReviewed++;
-  for (const id of ids) if (!refIds.has(id)) { fail(`source inconnue dans ${slug} : « ${id} »`); srcBad++; }
+  for (const id of ids) {
+    if (!refIds.has(id)) { fail(`source inconnue dans ${slug} : « ${id} »`); srcBad++; }
+    else if (!citable.has(id)) { fail(`« ${id} » est un LIEN, pas une source — ${slug} ne peut pas s'en servir pour étayer une affirmation`); srcBad++; }
+  }
   const st = (fm.match(/^status:\s*"?([^"\n]+?)"?\s*$/m) || [])[1];
   if (st && !['brouillon', 'relu', 'valide'].includes(st)) { fail(`statut invalide dans ${slug} : ${st}`); srcBad++; }
 }

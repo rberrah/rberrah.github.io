@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
 slides: ["s59", "s62", "s72"]
-sources: ["minichmayr-mipd", "woillard-tacrolimus", "rybak-vanco", "mapbayr"]
+sources: ["sheiner-forecasting", "minichmayr-mipd", "woillard-tacrolimus", "rybak-vanco"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."

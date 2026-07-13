@@ -10,7 +10,7 @@ duration: "14 min"
 level: "advanced"
 tags: ["ai", "xgboost", "catboost", "gradient-boosting"]
 slides: []
-sources: ["chen-xgboost", "hastie-esl", "woillard-ml-tacrolimus"]
+sources: ["friedman-gbm", "chen-xgboost", "prokhorenkova-catboost", "woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le principe du gradient boosting est de..."

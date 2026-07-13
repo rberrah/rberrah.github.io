@@ -12,7 +12,7 @@ tags: ["mab", "tmdd", "nonlinear", "target"]
 prerequisites: ["mab-pk", "clairance-volume-demi-vie"]
 glossary: ["Michaelis-Menten", "CL", "AUC"]
 slides: []
-sources: ["mager-jusko-tmdd", "ryman-meibohm", "gabrielsson-weiner"]
+sources: ["mager-jusko-tmdd", "gibiansky-qss", "ryman-meibohm"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le TMDD (target-mediated drug disposition) produit une PK..."

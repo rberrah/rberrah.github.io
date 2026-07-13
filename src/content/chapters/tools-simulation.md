@@ -12,7 +12,7 @@ tags: ["tools", "mrgsolve", "rxode2", "simulation"]
 prerequisites: ["tools-nlmixr2"]
 glossary: ["mrgsolve", "nlmixr2 / rxode2", "VPC", "Jumeau numérique"]
 slides: []
-sources: ["mrgsolve", "nlmixr2", "karlsson-holford-vpc", "bergstrand-pcvpc"]
+sources: ["fidler-nlmixr", "karlsson-holford-vpc", "bergstrand-pcvpc", "mould-upton"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "mrgsolve et rxode2 servent surtout à..."

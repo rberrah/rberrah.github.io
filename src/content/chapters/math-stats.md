@@ -10,7 +10,7 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "statistics", "distributions", "confidence-interval"]
 slides: []
-sources: ["mould-upton", "lavielle", "davidian-giltinan"]
+sources: ["davidian-giltinan", "ribbing-selection-bias", "lavielle", "mould-upton"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une clairance individuelle est souvent modélisée par une loi..."

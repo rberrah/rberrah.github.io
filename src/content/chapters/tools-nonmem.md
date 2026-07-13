@@ -12,7 +12,7 @@ tags: ["tools", "nonmem", "foce", "regulatory"]
 prerequisites: ["tools-algorithms"]
 glossary: ["NONMEM", "FOCE-I", "OFV", "Effets mixtes"]
 slides: []
-sources: ["nonmem", "sheiner-beal-estimation", "owen-fiedler-kelly", "keizer-psn-xpose"]
+sources: ["sheiner-beal-estimation", "wang-nonmem-methods", "keizer-psn-xpose", "fda-poppk"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "NONMEM s'utilise principalement via..."

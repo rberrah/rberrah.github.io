@@ -12,7 +12,7 @@ tags: ["validation", "ofv", "aic", "bic", "likelihood-ratio"]
 prerequisites: ["math-regression", "math-stats"]
 glossary: ["OFV", "Vraisemblance", "AIC / BIC", "FOCE-I"]
 slides: []
-sources: ["davidian-giltinan", "bonate", "owen-fiedler-kelly"]
+sources: ["akaike-aic", "wang-nonmem-methods", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La fonction objective (OFV = −2 log L) d'un bon modèle est..."

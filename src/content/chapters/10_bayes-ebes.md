@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
 slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
-sources: ["savic-karlsson-shrinkage", "mapbayr", "hughes-keizer", "sheiner-beal-estimation"]
+sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un EBE est..."

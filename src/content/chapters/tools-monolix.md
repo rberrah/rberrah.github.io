@@ -12,7 +12,7 @@ tags: ["tools", "monolix", "mlxtran", "saem"]
 prerequisites: ["tools-algorithms"]
 glossary: ["Monolix", "SAEM"]
 slides: []
-sources: ["monolix", "lavielle", "karlsson-holford-vpc"]
+sources: ["kuhn-lavielle-saem", "lavielle", "karlsson-holford-vpc"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."

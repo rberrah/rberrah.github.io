@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["oncology", "toxicity", "neutropenia", "friberg"]
 slides: []
-sources: ["friberg", "dayneka-jusko-indirect"]
+sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."

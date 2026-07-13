@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["infectious-diseases", "viral-dynamics", "target-cell", "resistance"]
 slides: []
-sources: ["neumann-hcv", "iame"]
+sources: ["neumann-hcv", "perelson-hiv"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans un modèle de cinétique virale, la décroissance biphasique reflète..."

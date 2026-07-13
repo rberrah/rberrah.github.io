@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["mab", "ada", "immunogenicity", "neutralizing"]
 slides: []
-sources: ["ryman-meibohm", "holford-clearance"]
+sources: ["ryman-meibohm", "dirks-meibohm", "fda-immunogenicity"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Les ADA (anti-drug antibodies) sont..."

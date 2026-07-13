@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["infectious-diseases", "tdm", "vancomycin", "icu"]
 slides: []
-sources: ["rybak-vanco", "minichmayr-mipd", "mapbayr", "craig-pkpd"]
+sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Pour la vancomycine, la cible actuelle privilégiée est..."

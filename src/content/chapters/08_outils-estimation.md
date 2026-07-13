@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["tools", "estimation", "nonmem", "monolix", "nlmixr2"]
 slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
-sources: ["sheiner-beal-estimation", "lavielle", "davidian-giltinan", "owen-fiedler-kelly"]
+sources: ["wang-nonmem-methods", "kuhn-lavielle-saem", "akaike-aic", "lindstrom-bates"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Estimer signifie..."

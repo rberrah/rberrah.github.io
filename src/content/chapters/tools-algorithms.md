@@ -12,7 +12,7 @@ tags: ["tools", "saem", "foce", "estimation"]
 prerequisites: ["outils-estimation", "math-bayes"]
 glossary: ["SAEM", "FOCE-I", "OFV", "Vraisemblance", "Effets mixtes"]
 slides: []
-sources: ["sheiner-beal-estimation", "lavielle", "davidian-giltinan", "owen-fiedler-kelly"]
+sources: ["lindstrom-bates", "wang-nonmem-methods", "kuhn-lavielle-saem", "lavielle"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La vraisemblance d'un modèle NLME est difficile car..."

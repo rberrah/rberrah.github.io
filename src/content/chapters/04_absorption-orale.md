@@ -10,7 +10,7 @@ duration: "12 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
 slides: ["s07"]
-sources: ["rowland-tozer", "gibaldi-perrier", "gabrielsson-weiner"]
+sources: ["savic-transit", "gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Ka contrôle principalement..."

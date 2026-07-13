@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["validation", "rse", "bootstrap", "uncertainty"]
 slides: []
-sources: ["pfim", "keizer-psn-xpose", "ette-williams", "davidian-giltinan"]
+sources: ["efron-bootstrap", "mentre-optimal-design", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le RSE (relative standard error) d'un paramètre mesure..."

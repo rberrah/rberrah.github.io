@@ -12,7 +12,7 @@ tags: ["maths", "bayes", "estimation", "prior"]
 prerequisites: ["math-regression"]
 glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "Vraisemblance", "MAP", "Shrinkage"]
 slides: []
-sources: ["mapbayr", "savic-karlsson-shrinkage", "minichmayr-mipd", "hughes-keizer"]
+sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "minichmayr-mipd"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le théorème de Bayes combine..."

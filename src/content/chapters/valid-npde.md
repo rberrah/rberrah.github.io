@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["validation", "npde", "simulation", "residuals"]
 slides: []
-sources: ["brendel-npde", "karlsson-holford-vpc", "hooker-cwres", "iame"]
+sources: ["brendel-npde", "hooker-cwres", "karlsson-holford-vpc"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Si le modèle est correct, les NPDE suivent une loi..."

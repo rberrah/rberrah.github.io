@@ -10,7 +10,7 @@ duration: "14 min"
 level: "advanced"
 tags: ["maths", "covariates", "scm", "model-building"]
 slides: []
-sources: ["anderson-holford-allometry", "fda-poppk", "guyon-featsel", "mould-upton"]
+sources: ["jonsson-karlsson-scm", "ribbing-selection-bias", "anderson-holford-allometry", "fda-poppk"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Ajouter une covariable pertinente à un modèle de population..."

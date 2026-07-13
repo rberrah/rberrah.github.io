@@ -10,7 +10,7 @@ duration: "13 min"
 level: "intermediate"
 tags: ["ai", "llm", "transformer", "nlp"]
 slides: []
-sources: ["vaswani-transformer", "mlu-explain"]
+sources: ["vaswani-transformer", "brown-gpt3"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un LLM est, à la base, entraîné à..."
