@@ -24,7 +24,17 @@
   let menuOpen = $state(false);
   const isActive = (/** @type {string} */ href) =>
     href === '/' ? $page.url.pathname === `${base}/` || $page.url.pathname === base + '/' : $page.url.pathname.startsWith(`${base}${href}`);
+
+  // Sans ceci, un lecteur d'écran prononce l'anglais avec une voix française — et les moteurs
+  // indexent la mauvaise langue. Le document est en français par défaut (app.html).
+  $effect(() => {
+    document.documentElement.lang = $language === 'en' ? 'en' : 'fr';
+  });
 </script>
+
+<svelte:head>
+  <meta name="description" content={copy.meta.description} />
+</svelte:head>
 
 <div class="app">
   <header data-testid="site-header">
