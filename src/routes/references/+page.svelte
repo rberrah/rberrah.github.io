@@ -1,5 +1,5 @@
 <script>
-  import { referenceGroups } from '$lib/content/references';
+  import { referenceGroups, refIdentifier } from '$lib/content/references';
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
 
@@ -9,6 +9,7 @@
   const kindLabel = {
     book: { fr: 'livre', en: 'book' },
     article: { fr: 'article', en: 'article' },
+    guideline: { fr: 'texte officiel', en: 'official text' },
     tool: { fr: 'logiciel', en: 'software' },
     course: { fr: 'ressource', en: 'resource' }
   };
@@ -23,8 +24,9 @@
 
 <div class="groups">
   {#each referenceGroups as g}
-    <section class="group">
+    <section class="group" class:muted={g.id === 'liens'}>
       <h2>{pick(g.title)}</h2>
+      {#if g.note}<p class="note">{pick(g.note)}</p>{/if}
       <ul>
         {#each g.items as r}
           <li>
@@ -33,6 +35,7 @@
               <span class="body">
                 <span class="title">{r.title}</span>
                 {#if r.authors || r.where}<span class="meta">{[r.authors, r.where].filter(Boolean).join(' · ')}</span>{/if}
+                {#if refIdentifier(r)}<span class="id">{refIdentifier(r)}</span>{/if}
               </span>
               <span class="ext" aria-hidden="true">↗</span>
             </a>
@@ -55,10 +58,15 @@
   .kind { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
   .kind-book { background: color-mix(in srgb, var(--accent-pk) 15%, #fff); color: var(--accent-pk); }
   .kind-article { background: color-mix(in srgb, var(--accent-ai) 15%, #fff); color: var(--accent-ai); }
-  .kind-tool { background: color-mix(in srgb, var(--accent-pd) 15%, #fff); color: var(--accent-pd); }
+  .kind-guideline { background: color-mix(in srgb, var(--accent-pd) 12%, #fff); color: var(--accent-pd); }
+  .kind-tool { background: var(--bg-secondary); color: var(--text-muted); }
   .kind-course { background: var(--bg-secondary); color: var(--text-secondary); }
   .body { display: grid; gap: 1px; }
   .title { color: var(--text-primary); font-weight: 600; font-size: var(--text-sm); line-height: 1.35; }
   .meta { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
+  .id { justify-self: start; margin-top: 3px; font-family: var(--font-mono); font-size: 10px; color: var(--accent-pk); background: color-mix(in srgb, var(--accent-pk) 10%, transparent); border-radius: 999px; padding: 1px 7px; }
   .ext { color: var(--text-muted); font-size: var(--text-sm); }
+  .note { max-width: 62ch; margin: calc(-1 * var(--space-2)) 0 var(--space-4); font-size: var(--text-sm); line-height: 1.5; color: var(--text-muted); border-left: 2px solid var(--border-strong); padding-left: var(--space-3); }
+  .muted a { background: transparent; }
+  .muted .title { font-weight: 500; color: var(--text-secondary); }
 </style>
