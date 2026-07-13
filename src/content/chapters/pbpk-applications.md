@@ -10,7 +10,7 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "ivive", "drug-interactions", "pediatrics"]
 slides: []
-sources: ["jones-rowland-yeo", "rowland-peck-tucker", "fda-pbpk", "anderson-holford-allometry"]
+sources: ["jones-rowland-yeo", "jones-pbpk-industry", "fda-pbpk", "anderson-holford-allometry"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'IVIVE consiste à..."

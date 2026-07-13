@@ -10,7 +10,7 @@ duration: "14 min"
 level: "beginner"
 tags: ["nca", "auc", "approaches"]
 slides: ["s23", "s34", "s45"]
-sources: ["rowland-tozer", "gibaldi-perrier", "gabrielsson-weiner"]
+sources: ["rowland-tozer", "gibaldi-perrier", "holford-clearance"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La NCA a surtout besoin de..."

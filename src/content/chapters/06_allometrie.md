@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
 slides: ["s18", "s19", "s20", "s21", "s22"]
-sources: ["anderson-holford-allometry", "holford-clearance", "rowland-tozer", "mould-upton"]
+sources: ["anderson-holford-allometry", "holford-clearance", "owen-fiedler-kelly", "mould-upton"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une covariable est utile quand elle..."

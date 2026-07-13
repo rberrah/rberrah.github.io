@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "neural-ode", "grey-box"]
 slides: ["s63", "s65", "s66", "s68", "s69", "s70", "s71"]
-sources: ["chen-neural-ode", "breiman-rf", "chen-xgboost", "vanderschaar"]
+sources: ["chen-neural-ode", "hughes-keizer", "genuer-vsurf", "chen-xgboost"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un modèle grey-box combine..."

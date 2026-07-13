@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["nca", "auc", "trapezoidal", "lambda-z"]
 slides: []
-sources: ["gabrielsson-weiner", "gibaldi-perrier", "rowland-tozer"]
+sources: ["gabrielsson-weiner", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La méthode des trapèzes calcule l'AUC en..."

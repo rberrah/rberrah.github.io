@@ -10,7 +10,7 @@ duration: "11 min"
 level: "beginner"
 tags: ["nca", "auc", "exposure", "regulatory"]
 slides: []
-sources: ["rowland-tozer", "gibaldi-perrier", "gabrielsson-weiner"]
+sources: ["gibaldi-perrier", "gabrielsson-weiner", "mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La NCA se distingue d'un modèle compartimental car elle..."

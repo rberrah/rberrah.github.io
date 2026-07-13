@@ -12,7 +12,7 @@ tags: ["oncology", "tumor-growth", "joint-model", "survival"]
 prerequisites: ["pd-survival"]
 glossary: ["AUC", "Emax", "Covariable"]
 slides: []
-sources: ["claret-tgi-os", "simeoni", "ryman-meibohm", "compo"]
+sources: ["claret-tgi-os", "simeoni", "compo"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."

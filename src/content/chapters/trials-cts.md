@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["clinical-trials", "simulation", "cts", "power"]
 slides: []
-sources: ["mrgsolve", "pfim", "bretz-mcp-mod", "mould-upton"]
+sources: ["mould-upton", "bonate", "ette-williams", "mrgsolve"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La simulation d'essais cliniques (CTS) permet de..."

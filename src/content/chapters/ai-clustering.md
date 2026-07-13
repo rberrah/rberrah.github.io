@@ -12,7 +12,7 @@ tags: ["ai", "clustering", "pca", "random-matrix-theory"]
 prerequisites: ["bayes-ebes", "math-stats"]
 glossary: ["EBE", "Covariable", "η", "θ"]
 slides: []
-sources: ["hastie-esl", "savic-karlsson-shrinkage", "mlu-explain"]
+sources: ["hastie-esl", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler..."

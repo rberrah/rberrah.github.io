@@ -10,7 +10,7 @@ duration: "15 min"
 level: "advanced"
 tags: ["pharmacodynamics", "survival", "time-to-event", "os-pfs"]
 slides: []
-sources: ["claret-tgi-os", "simeoni", "compo", "vanderschaar"]
+sources: ["claret-tgi-os", "simeoni", "vanderschaar"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La différence entre OS et PFS est que..."

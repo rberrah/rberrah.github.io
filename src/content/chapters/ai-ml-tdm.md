@@ -10,7 +10,7 @@ duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "tdm", "limoges"]
 slides: []
-sources: ["woillard-ml-tacrolimus", "minichmayr-mipd", "berrah-residual", "chen-xgboost"]
+sources: ["woillard-ml-tacrolimus", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'apport principal du ML pour le TDM est de..."

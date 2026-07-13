@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["clinical-trials", "interpretation", "covariates", "forest-plot"]
 slides: []
-sources: ["fda-poppk", "ema-poppk", "mould-upton", "anderson-holford-allometry"]
+sources: ["fda-poppk", "ema-poppk", "anderson-holford-allometry"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un forest plot d'effets de covariables montre..."

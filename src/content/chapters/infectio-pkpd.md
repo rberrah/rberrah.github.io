@@ -10,7 +10,7 @@ duration: "13 min"
 level: "intermediate"
 tags: ["infectious-diseases", "pkpd-index", "mic", "antibiotics"]
 slides: []
-sources: ["craig-pkpd", "rybak-vanco", "gabrielsson-weiner", "iame"]
+sources: ["craig-pkpd", "rybak-vanco", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Pour les bêta-lactamines, l'indice PK/PD prédictif d'efficacité est..."

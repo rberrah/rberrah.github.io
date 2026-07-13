@@ -12,7 +12,7 @@ tags: ["tools", "nlmixr2", "rxode2", "open-source"]
 prerequisites: ["tools-algorithms"]
 glossary: ["nlmixr2 / rxode2", "SAEM", "FOCE-I"]
 slides: []
-sources: ["nlmixr2", "lavielle", "keizer-psn-xpose"]
+sources: ["nlmixr2", "lavielle", "sheiner-beal-estimation"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "nlmixr2 se distingue surtout par..."
