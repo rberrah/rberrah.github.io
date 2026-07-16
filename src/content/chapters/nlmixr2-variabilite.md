@@ -5,7 +5,7 @@ title: "nlmixr2 — ini, model et la variabilité"
 description: "Le modèle statistique en R : le tilde qui déclare un eta, la convention log-transformée des theta, les blocs de covariance, l'IOV par niveau, les covariables et la lecture de fit$omega et fit$shrink."
 summary: "Écrire et lire la variabilité dans nlmixr2 : eta.cl ~ 0.1 est une variance, tcl vit sur l'échelle log, ~ c() pour un bloc de covariance, la barre verticale pour l'IOV, et la table parFixed qui rétro-transforme tout."
 track: "nlmixr2"
-order: 3
+order: 232
 duration: "13 min"
 level: "intermediate"
 tags: ["nlmixr2", "variability", "omega", "iiv", "iov", "covariates", "shrinkage"]

@@ -5,7 +5,7 @@ title: "Monolix — the SAEM engine"
 description: "Why a stochastic approximation of EM rather than a linearisation: the two phases, the likelihood computed separately, and what convergence means here."
 summary: "SAEM never deforms the model, it samples it: exploration then smoothing, -2LL by importance sampling, and an OFV that is not comparable to FOCE."
 track: "monolix"
-order: 5
+order: 224
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "saem", "estimation", "likelihood"]

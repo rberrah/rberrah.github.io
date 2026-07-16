@@ -5,7 +5,7 @@ title: "NONMEM — le bloc ERROR et les données sous la LOQ"
 description: "Écrire le bloc ERROR : additive, proportionnelle, combinée ; régler SIGMA, traiter les données censurées (M1-M7) et lire WRES, CWRES et IWRES."
 summary: "Le bloc ERROR fixe les poids de l'estimation : ses trois formes, la paramétrisation par W, les méthodes BQL de Beal et les résidus qui les diagnostiquent."
 track: "nonmem"
-order: 4
+order: 213
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "error-model", "bql", "residuals"]

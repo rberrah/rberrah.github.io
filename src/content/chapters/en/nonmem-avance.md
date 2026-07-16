@@ -5,7 +5,7 @@ title: "NONMEM — going further"
 description: "Logit and normal distributions, prior information, MU-referencing, the PsN/Xpose/Pirana ecosystem and simulation."
 summary: "The tools that take NONMEM from a model that runs to an analysis that holds: bounded parameters, priors, MU-referencing, PsN."
 track: "nonmem"
-order: 6
+order: 215
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "mu-referencing", "prior", "psn"]

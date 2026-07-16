@@ -5,7 +5,7 @@ title: "Monolix — the residual error model and censoring"
 description: "The DEFINITION block: errorModel constant, proportional, combined1 and combined2, the role of distribution, native BLQ censoring and how to read IWRES."
 summary: "Choosing g(f) in Monolix: the four errorModel keywords and their maths, combined1 versus combined2, normal versus logNormal, BLQ treated as censoring, and the IWRES that judge it all."
 track: "monolix"
-order: 4
+order: 223
 duration: "12 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "error-model", "bql", "residuals"]

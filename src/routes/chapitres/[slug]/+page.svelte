@@ -27,9 +27,15 @@
   $: displayChapter = localizedResult.chapter;
   $: isFallback = localizedResult.isFallback;
   $: copy = ui($language);
-  $: idx = chapters.findIndex((c) => c.slug === slug);
-  $: prev = idx > 0 ? chapters[idx - 1] : null;
-  $: next = idx >= 0 && idx < chapters.length - 1 ? chapters[idx + 1] : null;
+  // « Précédent / Suivant » restent DANS LE PARCOURS. Ils se calculaient auparavant sur la
+  // liste GLOBALE triée par `order` : le suivant était donc le chapitre d'`order` juste
+  // au-dessus, quel que soit son parcours — d'où des enchaînements absurdes (le chapitre 2 de
+  // NONMEM proposait un chapitre de NCA). Un parcours est un chemin de lecture : on n'en sort
+  // pas par la nav de bas de page. Au bout du parcours, le lien disparaît.
+  $: trackChapters = chapter ? chapters.filter((c) => c.track === chapter.track) : [];
+  $: idx = trackChapters.findIndex((c) => c.slug === slug);
+  $: prev = idx > 0 ? trackChapters[idx - 1] : null;
+  $: next = idx >= 0 && idx < trackChapters.length - 1 ? trackChapters[idx + 1] : null;
   $: prevDisplay = localizeChapter(prev, $language).chapter;
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
@@ -359,9 +365,14 @@
 
   .viz-panel { position: relative; }
   @media (min-width: 920px) {
-    .viz-panel { position: sticky; top: 80px; height: calc(100vh - 110px); display: flex; align-items: center; }
+    .viz-panel { position: sticky; top: calc(var(--header-h) + var(--space-3)); height: calc(100vh - var(--header-h) - var(--space-8)); display: flex; align-items: center; }
+    /* Une viz plus haute que le panneau doit pouvoir DÉFILER : sans cela elle était
+       simplement coupée, et l'utilisateur n'avait aucun moyen d'atteindre le bas. */
+    .viz-panel .viz-inner { max-height: 100%; overflow-y: auto; }
   }
-  .viz-inner { width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-6); box-shadow: 0 14px 40px rgba(26, 28, 29, 0.07); }
+  /* Conteneur de requête : les visualisations doivent s'adapter à la largeur du PANNEAU
+     (~610 px, même sur un grand écran), pas à celle de la fenêtre. */
+  .viz-inner { width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-6); box-shadow: 0 14px 40px rgba(26, 28, 29, 0.07); container-type: inline-size; }
 
   /* Figure en ligne (mobile uniquement) : la viz de l'étape, sous son texte. */
   .viz-inline {
@@ -371,6 +382,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: 12px;
     overflow-x: auto;
+    container-type: inline-size;
   }
   .viz-inline figcaption {
     margin-top: var(--space-3);

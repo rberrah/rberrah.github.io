@@ -5,7 +5,7 @@ title: "nlmixr2 — the open source (R)"
 description: "Estimate in R, for free: SAEM and FOCEI, the rxode2 engine and the whole R ecosystem."
 summary: "nlmixr2: the open-source R alternative, with SAEM/FOCEI, rxode2 for ODEs and R diagnostics."
 track: "nlmixr2"
-order: 1
+order: 230
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "nlmixr2", "rxode2", "open-source"]

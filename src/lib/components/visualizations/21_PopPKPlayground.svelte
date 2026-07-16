@@ -247,6 +247,17 @@
     grid-template-columns: 300px 1fr;
     gap: 16px;
   }
+  /* On interroge le CONTENEUR, pas la fenêtre. Dans le panneau collant d'un chapitre
+     (~610 px de large même sur un écran 1536 px), un média sur la fenêtre ne se déclenchait
+     jamais : les 300 px de contrôles écrasaient le graphe à ~220 px. Sur la page /playground,
+     large, aucun conteneur n'est déclaré : la règle ne s'applique pas et les 2 colonnes
+     restent — le repli est donc correct dans les deux cas. */
+  @container (max-width: 900px) {
+    .playground {
+      grid-template-columns: 1fr;
+    }
+  }
+  /* Filet pour les fenêtres réellement étroites (usage hors conteneur). */
   @media (max-width: 900px) {
     .playground {
       grid-template-columns: 1fr;

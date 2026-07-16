@@ -5,7 +5,7 @@ title: "NONMEM — ETA, OMEGA and variability"
 description: "How NONMEM encodes variability: log-normal ETAs, diagonal versus full OMEGA blocks, IOV through repeated etas, and reading shrinkage."
 summary: "Writing and reading variability in a control stream: EXP(ETA), DIAGONAL vs BLOCK, SAME for IOV, omega squared to CV%, shrinkage and covariates in the PK block."
 track: "nonmem"
-order: 3
+order: 212
 duration: "13 min"
 level: "intermediate"
 tags: ["nonmem", "variability", "omega", "iiv", "iov", "shrinkage"]

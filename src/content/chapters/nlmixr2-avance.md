@@ -5,7 +5,7 @@ title: "nlmixr2 — pour aller plus loin"
 description: "Paramètres bornés avec expit et probitInv, auto-initialisation par NCA, boucler sur des modèles en R, babelmixr2 et la simulation rxode2."
 summary: "Le modèle est un objet R : ce que cela permet — bornes écrites à la main, boucles, pipelines, traduction vers NONMEM et Monolix — et ce que cela coûte vraiment."
 track: "nlmixr2"
-order: 6
+order: 235
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "babelmixr2", "logit"]

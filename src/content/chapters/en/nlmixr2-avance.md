@@ -5,7 +5,7 @@ title: "nlmixr2 — going further"
 description: "Bounded parameters with expit and probitInv, NCA-based auto-initialisation, looping over models in R, babelmixr2 and rxode2 simulation."
 summary: "The model is an R object: what that buys you — hand-written bounds, loops, pipelines, translation to NONMEM and Monolix — and what it actually costs."
 track: "nlmixr2"
-order: 6
+order: 235
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "babelmixr2", "logit"]

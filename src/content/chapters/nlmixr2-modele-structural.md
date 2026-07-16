@@ -5,7 +5,7 @@ title: "nlmixr2 — le modèle structural en R"
 description: "La fonction R à deux blocs : ini({}) pour les nombres, model({}) pour les équations, EDO ou linCmt(), et la ligne cp ~ pour l'observation."
 summary: "Écrire le modèle structural en nlmixr2 : ini contre model, le moteur rxode2, d/dt() contre linCmt(), et le tilde qui change de sens selon le bloc."
 track: "nlmixr2"
-order: 2
+order: 231
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "structural-model", "ode"]
@@ -41,7 +41,7 @@ Dans Monolix vous écrivez du mlxtran, dans NONMEM un control stream : deux lang
 Cette fonction a une forme imposée : deux blocs, `ini({...})` pour les nombres et `model({...})` pour les équations. Ce chapitre montre comment on y écrit un 1 compartiment oral — d'abord en équations différentielles, puis en `linCmt()` — et pourquoi le bloc `model` ressemble à du R sans tout à fait en être.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="21_PopPKPlayground" -->
+<!-- step:title="Intuition" viz="OralAbsorptionExplorer" -->
 La vraie question, quand on découvre un outil, est de savoir **où il coupe**. nlmixr2 ne coupe pas là où Monolix coupe.
 
 - `ini({...})` ne contient que des **nombres** : où part la recherche, et quel paramètre est aléatoire. Aucune équation n'y a sa place.
@@ -117,7 +117,7 @@ Réf. : documentation nlmixr2 et rxode2 pour la syntaxe des blocs `ini`/`model` 
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="21_PopPKPlayground" -->
+<!-- step:title="Exemple concret" viz="OralAbsorptionExplorer" -->
 Le modèle écrit, le reste du script est du R banal :
 
 ```r

@@ -5,7 +5,7 @@ title: "Monolix — the INDIVIDUAL block, omega and covariates"
 description: "The statistical model in mlxtran: logNormal, normal and logitNormal distributions, correlations between random effects, IOV as a variability level, covariates and reading shrinkage."
 summary: "Writing and reading variability in Monolix: typical and sd, choosing the distribution, correlation r(), varlevel for IOV, the COVARIATE block and transformations, omega and shrinkage in the outputs."
 track: "monolix"
-order: 3
+order: 222
 duration: "13 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "variability", "omega", "iov", "covariates", "shrinkage"]

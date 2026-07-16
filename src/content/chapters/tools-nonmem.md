@@ -5,7 +5,7 @@ title: "NONMEM — l'ancêtre"
 description: "Le logiciel historique de la pharmacométrie : fichiers de contrôle, FOCE, et statut réglementaire."
 summary: "NONMEM : la référence fondatrice, ses fichiers de contrôle et sa méthode FOCE, austère mais éprouvée."
 track: "nonmem"
-order: 1
+order: 210
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "nonmem", "foce", "regulatory"]

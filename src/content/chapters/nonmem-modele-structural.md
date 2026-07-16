@@ -5,7 +5,7 @@ title: "NONMEM — le modèle structural"
 description: "Le control stream bloc par bloc : les ADVAN pré-programmés contre un système d'EDO écrit à la main, le choix du TRANS, et la mise à l'échelle."
 summary: "Écrire le squelette déterministe d'un modèle NONMEM : la carte des blocs, ADVAN1 à ADVAN4 contre ADVAN13 avec DES, pourquoi on paramètre en CL et V, et pourquoi S2 décide de tout."
 track: "nonmem"
-order: 2
+order: 211
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "control-stream", "advan", "trans", "ode"]
@@ -41,7 +41,7 @@ Le **modèle structural** est le squelette déterministe : la concentration que 
 Dans NONMEM, ce squelette ne se choisit pas dans un menu : il se **déclare**, réparti sur plusieurs blocs qui doivent s'accorder entre eux. NM-TRAN vérifie la **syntaxe**, jamais l'**intention**. Un control stream qui compile, tourne et converge peut décrire un modèle que vous n'avez pas voulu — ce chapitre porte surtout sur les endroits où cela arrive.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="21_PopPKPlayground" -->
+<!-- step:title="Intuition" viz="OralAbsorptionExplorer" -->
 Écrire un modèle structural, c'est répondre à deux questions indépendantes.
 
 **Quelle forme ?** Combien de compartiments, quelle voie d'entrée, élimination linéaire ou saturable. C'est de la pharmacologie, et cela se décide sur les données.
@@ -167,7 +167,7 @@ Entre les deux extrêmes, il existe un intermédiaire oublié : ADVAN5 et ADVAN7
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="21_PopPKPlayground" -->
+<!-- step:title="Exemple concret" viz="OralAbsorptionExplorer" -->
 Un antibiotique oral, dose unique de 500 mg, 40 volontaires, concentrations plasmatiques en mg/L sur 24 heures. Un compartiment suffit. Le control stream complet :
 
 ```

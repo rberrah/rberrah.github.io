@@ -5,7 +5,7 @@ title: "NONMEM's engine — FOCE-I unpacked"
 description: "What the ESTIMATION line really computes: Taylor linearisation around the EBEs, the role of INTER, the nature of the OFV, and how to read termination messages."
 summary: "FO, FOCE, FOCE-I, SAEM: where each method places its tangent, why INTER matters with proportional error, why OFVs from different methods do not compare, and what a rounding error actually means."
 track: "nonmem"
-order: 5
+order: 214
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "foce", "estimation", "ofv", "likelihood"]

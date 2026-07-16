@@ -5,7 +5,7 @@ title: "Monolix — le modèle structural en mlxtran"
 description: "Le bloc [LONGITUDINAL] : bibliothèque pkmodel() ou EDO écrites à la main, conditions initiales, t0 et routage de la dose."
 summary: "Écrire le modèle structural en mlxtran : input, EQUATION:, pkmodel() contre ddt_, et DEFINITION: pour l'observation."
 track: "monolix"
-order: 2
+order: 221
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "structural-model", "ode"]
@@ -41,7 +41,7 @@ Le **modèle structural**, c'est la machine qui transforme une dose et un temps 
 Dans Monolix, elle s'écrit en **mlxtran**, dans le bloc `[LONGITUDINAL]`. Deux routes s'offrent à vous : appeler la **bibliothèque** avec `pkmodel()`, ou écrire vous-même le **système d'équations différentielles** avec `ddt_`. Ce chapitre montre les deux sur le même modèle — un 1 compartiment oral — et explique quand basculer de l'une à l'autre.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="21_PopPKPlayground" -->
+<!-- step:title="Intuition" viz="OralAbsorptionExplorer" -->
 mlxtran vous force à répondre **séparément** à deux questions que la modélisation de population mélange toujours :
 
 1. **Pour un individu dont les paramètres sont donnés, quelle courbe suit la concentration ?** C'est le modèle **structural** — le bloc `[LONGITUDINAL]`.
@@ -131,7 +131,7 @@ Réf. : documentation Monolix / MonolixSuite (Lixoft — Simulations Plus) pour 
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" viz="21_PopPKPlayground" -->
+<!-- step:title="Exemple concret" viz="OralAbsorptionExplorer" -->
 Prenons un individu : **dose orale 100 mg**, $k_a = 1{,}2$ h⁻¹, $V = 32$ L, $Cl = 4{,}8$ L/h, $F = 1$.
 
 La constante d'élimination vaut $k_e = Cl/V = 4{,}8/32 = 0{,}15$ h⁻¹, soit un rapport $k_a/k_e = 8$. Le pic tombe à

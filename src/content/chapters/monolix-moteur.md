@@ -5,7 +5,7 @@ title: "Monolix — le moteur SAEM"
 description: "Pourquoi une approximation stochastique de l'EM plutôt qu'une linéarisation : les deux phases, la vraisemblance calculée à part, et ce que convergence veut dire ici."
 summary: "Le SAEM ne déforme jamais le modèle, il l'échantillonne : exploration puis lissage, -2LL par échantillonnage d'importance, et une OFV non comparable à FOCE."
 track: "monolix"
-order: 5
+order: 224
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "saem", "estimation", "vraisemblance"]

@@ -5,7 +5,7 @@ title: "NONMEM — the structural model"
 description: "The control stream block by block: pre-programmed ADVANs against a hand-written ODE system, choosing the TRANS, and getting the scaling right."
 summary: "Writing the deterministic skeleton of a NONMEM model: the map of blocks, ADVAN1 to ADVAN4 against ADVAN13 with DES, why we parameterise in CL and V, and why S2 decides everything."
 track: "nonmem"
-order: 2
+order: 211
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "control-stream", "advan", "trans", "ode"]
@@ -41,7 +41,7 @@ The **structural model** is the deterministic skeleton: the concentration the mo
 In NONMEM this skeleton is not picked from a menu: it is **declared**, spread across several blocks that must agree with one another. NM-TRAN checks **syntax**, never **intent**. A control stream can compile, run and converge while describing a model you never meant to write — and that is what this chapter is really about.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="21_PopPKPlayground" -->
+<!-- step:title="Intuition" viz="OralAbsorptionExplorer" -->
 Writing a structural model means answering two independent questions.
 
 **Which shape?** How many compartments, which route of entry, linear or saturable elimination. That is pharmacology, and the data decide it.
@@ -167,7 +167,7 @@ Between the two extremes sits a forgotten middle ground: ADVAN5 and ADVAN7 handl
 :::
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="21_PopPKPlayground" -->
+<!-- step:title="Worked example" viz="OralAbsorptionExplorer" -->
 An oral antibiotic, single 500 mg dose, 40 volunteers, plasma concentrations in mg/L over 24 hours. One compartment is enough. The complete control stream:
 
 ```

@@ -5,7 +5,7 @@ title: "Monolix — le modèle d'erreur résiduelle et la censure"
 description: "Le bloc DEFINITION : errorModel constant, proportional, combined1 et combined2, le rôle de distribution, la censure BLQ native et la lecture des IWRES."
 summary: "Choisir g(f) dans Monolix : les quatre errorModel et leurs mathématiques, combined1 contre combined2, normal contre logNormal, le BLQ traité en censure, et les IWRES qui jugent le tout."
 track: "monolix"
-order: 4
+order: 223
 duration: "12 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "error-model", "bql", "residuals"]

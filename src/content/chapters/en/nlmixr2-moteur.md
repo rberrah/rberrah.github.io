@@ -5,7 +5,7 @@ title: "nlmixr2 — one model, four engines"
 description: "est = focei, saem, nlme or posthoc: switching algorithm without touching the model, what rxode2 compiles behind it, and why the reported OFVs do not compare."
 summary: "The model is an R object, the estimator is an argument: four engines consume the same rxode2-compiled code and return four numbers all labelled OFV without measuring the same thing."
 track: "nlmixr2"
-order: 5
+order: 234
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "saem", "focei", "estimation"]

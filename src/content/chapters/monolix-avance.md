@@ -5,7 +5,7 @@ title: "Monolix — pour aller plus loin"
 description: "Distributions bornées logit et probit, auto-initialisation, tests automatiques de covariables, MonolixSuite et export NONMEM."
 summary: "Ce qui sépare un modèle qui tourne d'une analyse qui tient : paramètres bornés, initialisation, tri des covariables, Simulx et le passage à NONMEM."
 track: "monolix"
-order: 6
+order: 225
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "logit", "simulx"]

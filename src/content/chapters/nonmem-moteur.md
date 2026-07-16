@@ -5,7 +5,7 @@ title: "Le moteur de NONMEM — FOCE-I décortiqué"
 description: "Ce que calcule vraiment la ligne ESTIMATION : linéarisation de Taylor autour des EBE, rôle de INTER, nature de l'OFV et lecture des statuts de terminaison."
 summary: "FO, FOCE, FOCE-I, SAEM : où chaque méthode place sa tangente, pourquoi INTER compte avec une erreur proportionnelle, pourquoi les OFV de méthodes différentes ne se comparent pas, et ce que veut dire un rounding error."
 track: "nonmem"
-order: 5
+order: 214
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "foce", "estimation", "ofv", "vraisemblance"]

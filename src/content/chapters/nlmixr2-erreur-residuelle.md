@@ -5,7 +5,7 @@ title: "nlmixr2 — le modèle d'erreur résiduelle et le BLQ"
 description: "Déclarer l'erreur dans model() : add, prop, pow, lnorm et leurs combinaisons ; les valeurs initiales dans ini(), le BLQ par les colonnes CENS et LIMIT, les diagnostics ggPMX et xpose.nlmixr2."
 summary: "En nlmixr2 l'erreur se déclare avec un tilde et s'estime en écarts-types : les formes disponibles, le addProp qui vit dans le contrôle et non dans le modèle, le BLQ natif par CENS et LIMIT, et les diagnostics R."
 track: "nlmixr2"
-order: 4
+order: 233
 duration: "12 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "error-model", "bql", "residuals"]

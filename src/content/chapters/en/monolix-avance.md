@@ -5,7 +5,7 @@ title: "Monolix — going further"
 description: "Bounded logit and probit distributions, auto-initialisation, automatic covariate tests, the MonolixSuite and the NONMEM export."
 summary: "What separates a model that runs from an analysis that holds: bounded parameters, initialisation, covariate screening, Simulx and the move to NONMEM."
 track: "monolix"
-order: 6
+order: 225
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "logit", "simulx"]

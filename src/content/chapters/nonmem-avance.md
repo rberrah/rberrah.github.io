@@ -5,7 +5,7 @@ title: "NONMEM — pour aller plus loin"
 description: "Distributions logit et normale, information a priori, MU-referencing, écosystème PsN/Xpose/Pirana et simulation."
 summary: "Les outils qui font passer NONMEM du modèle qui tourne à l'analyse qui tient : paramètres bornés, a priori, MU-referencing, PsN."
 track: "nonmem"
-order: 6
+order: 215
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "mu-referencing", "prior", "psn"]

@@ -5,7 +5,7 @@ title: "nlmixr2 — the structural model in R"
 description: "The two-block R function: ini({}) for the numbers, model({}) for the equations, ODEs or linCmt(), and the cp ~ line for the observation."
 summary: "Writing the structural model in nlmixr2: ini versus model, the rxode2 engine, d/dt() versus linCmt(), and the tilde that changes meaning by block."
 track: "nlmixr2"
-order: 2
+order: 231
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "structural-model", "ode"]
@@ -41,7 +41,7 @@ In Monolix you write mlxtran, in NONMEM a control stream: two languages that exi
 That function has an imposed shape: two blocks, `ini({...})` for the numbers and `model({...})` for the equations. This chapter shows how a 1-compartment oral model is written inside them — first with differential equations, then with `linCmt()` — and why the `model` block looks like R without quite being R.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="21_PopPKPlayground" -->
+<!-- step:title="Intuition" viz="OralAbsorptionExplorer" -->
 The real question, when you meet a new tool, is **where it cuts**. nlmixr2 does not cut where Monolix cuts.
 
 - `ini({...})` holds nothing but **numbers**: where the search starts, and which parameter is random. No equation belongs there.
@@ -117,7 +117,7 @@ Ref.: nlmixr2 and rxode2 documentation for the syntax of the `ini`/`model` block
 :::
 <!-- /step -->
 
-<!-- step:title="Worked example" viz="21_PopPKPlayground" -->
+<!-- step:title="Worked example" viz="OralAbsorptionExplorer" -->
 Once the model is written, the rest of the script is plain R:
 
 ```r

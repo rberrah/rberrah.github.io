@@ -5,7 +5,7 @@ title: "nlmixr2 — the residual error model and BLQ data"
 description: "Declaring the error in model(): add, prop, pow, lnorm and their combinations; initial values in ini(), BLQ through the CENS and LIMIT columns, diagnostics with ggPMX and xpose.nlmixr2."
 summary: "In nlmixr2 the error is declared with a tilde and estimated as standard deviations: the available forms, the addProp that lives in the control rather than the model, native BLQ through CENS and LIMIT, and the R diagnostics."
 track: "nlmixr2"
-order: 4
+order: 233
 duration: "12 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "error-model", "bql", "residuals"]
