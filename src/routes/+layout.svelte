@@ -92,8 +92,11 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: var(--space-4);
     padding: var(--space-3) var(--space-6);
+    min-height: var(--header-h);
     position: sticky; top: 0; z-index: 50;
-    background: rgba(249, 248, 246, 0.85);
+    /* Le fond suit le thème : il était figé en clair (rgba(249,248,246,.85)) et restait
+       donc une barre blanche en mode sombre. */
+    background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
     backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border-subtle);
   }

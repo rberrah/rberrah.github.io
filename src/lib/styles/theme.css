@@ -79,6 +79,10 @@
   --radius-lg: 10px;
   --maxw: 1280px;
   --measure: 68ch;    /* la longueur de ligne au-delà de laquelle on ne lit plus */
+  /* Hauteur du header collant. Tout ce qui colle EN DESSOUS s'y réfère (barre de progression,
+     panneau de viz) : sans cette variable, un `top: 56px` codé en dur passait sous un header
+     de 59 px et la barre de progression restait invisible pendant toute la lecture. */
+  --header-h: 59px;
 
   color-scheme: light;
 }

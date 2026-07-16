@@ -43,6 +43,23 @@
   // Description de l'animation active (localisée).
   $: vizDesc = describeViz(activeViz, $language);
 
+  // Mise en page à DEUX régimes.
+  //  - Desktop (≥ 920 px) : un panneau collant, une viz à la fois, pilotée par le défilement.
+  //  - Mobile  (< 920 px) : la grille passe à une colonne, et l'aside tombait donc SOUS toute
+  //    la narration — l'étudiant lisait le chapitre entier sans aucune figure, puis n'en
+  //    trouvait qu'UNE tout en bas (celle de la dernière étape). Sur mobile, chaque étape
+  //    porte désormais SA viz, juste sous son texte.
+  // `true` au départ des DEUX côtés (serveur et 1re hydratation) : aucun mismatch ; le vrai
+  // régime est appliqué après le montage. Un seul jeu de composants est monté à la fois.
+  let isDesktop = true;
+  onMount(() => {
+    const mq = window.matchMedia('(min-width: 920px)');
+    const sync = () => (isDesktop = mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  });
+
   let activeIndex = 0;
   /** @type {HTMLElement[]} */
   let stepEls = [];
@@ -184,6 +201,16 @@
         >
           <p class="step-kicker">{String(i + 1).padStart(2, '0')} · {step.title}</p>
           <div class="prose">{@html step.html}</div>
+
+          <!-- Mobile : la figure de CETTE étape, à côté de son texte. -->
+          {#if !isDesktop && step.viz && vizMap[step.viz]}
+            <figure class="viz-inline" data-testid="viz-inline">
+              <svelte:component this={vizMap[step.viz]} />
+              {#if describeViz(step.viz, $language)}
+                <figcaption>{describeViz(step.viz, $language)}</figcaption>
+              {/if}
+            </figure>
+          {/if}
         </section>
       {/each}
 
@@ -217,6 +244,7 @@
       </nav>
     </div>
 
+    {#if isDesktop}
     <aside class="viz-panel" data-testid="viz-panel">
       <div class="viz-inner">
         {#if activeViz && vizMap[activeViz]}
@@ -247,11 +275,14 @@
         {/if}
       </div>
     </aside>
+    {/if}
   </div>
 {/if}
 
 <style>
-  .progress { position: sticky; top: 56px; z-index: 40; height: 3px; background: var(--border-subtle); margin: 0 0 var(--space-6); }
+  /* Colle JUSTE SOUS le header (var(--header-h)) : un top: 56px codé en dur la plaçait
+     derrière un header de 59 px, invisible pendant toute la lecture. */
+  .progress { position: sticky; top: var(--header-h); z-index: 39; height: 3px; background: var(--border-subtle); margin: 0 0 var(--space-6); }
   .progress .bar { height: 100%; width: calc(var(--p) * 100%); background: var(--accent-pk); transition: width 0.1s linear; }
 
   .chap-head { max-width: 720px; margin-bottom: var(--space-8); }
@@ -331,6 +362,24 @@
     .viz-panel { position: sticky; top: 80px; height: calc(100vh - 110px); display: flex; align-items: center; }
   }
   .viz-inner { width: 100%; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-6); box-shadow: 0 14px 40px rgba(26, 28, 29, 0.07); }
+
+  /* Figure en ligne (mobile uniquement) : la viz de l'étape, sous son texte. */
+  .viz-inline {
+    margin: var(--space-6) 0 0;
+    padding: var(--space-4);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  .viz-inline figcaption {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border-subtle);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
   .viz-swap { width: 100%; }
   .viz-empty { color: var(--text-muted); text-align: center; padding: var(--space-12) var(--space-4); }
   .viz-empty .hint { font-size: var(--text-sm); margin-top: var(--space-2); }
