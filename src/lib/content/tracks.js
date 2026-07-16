@@ -32,7 +32,7 @@ export const tracks = [
   },
   {
     id: 'pbpk',
-    layer: 'domaine',
+    layer: 'approfondissement',
     i18n: {
       en: { label: 'Track 4', title: 'PBPK', tagline: 'Physiology-based models: organs, blood flows, partition coefficients and IVIVE.' },
       fr: { label: 'Parcours 4', title: 'PBPK', tagline: "Modèles physiologiques : organes, débits sanguins, coefficients de partage et IVIVE." }
@@ -41,7 +41,7 @@ export const tracks = [
   },
   {
     id: 'pd',
-    layer: 'domaine',
+    layer: 'approfondissement',
     i18n: {
       en: { label: 'Track 5', title: 'Pharmacodynamics', tagline: 'PD models in depth: direct effect, indirect response, effect-compartment, tolerance and survival (OS/PFS).' },
       fr: { label: 'Parcours 5', title: 'Pharmacodynamie', tagline: "Les modèles PD en détail : effet direct, réponse indirecte, effet-compartiment, tolérance et survie (OS/PFS)." }
@@ -77,7 +77,7 @@ export const tracks = [
   },
   {
     id: 'ai',
-    layer: 'domaine',
+    layer: 'approfondissement',
     i18n: {
       en: { label: 'Track 9', title: 'AI in pharmacometrics', tagline: 'Grey-box models, neural ODEs and machine learning, framed by validation and uncertainty.' },
       fr: { label: 'Parcours 9', title: 'IA en pharmacométrie', tagline: "Modèles grey-box, Neural ODE et apprentissage automatique, avec validation et incertitude." }

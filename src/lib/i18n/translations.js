@@ -40,8 +40,8 @@ export const dictionary = {
       tracksTitle: 'The course, in four layers',
       layers: {
         tronc: { title: 'Core track — start here', desc: 'The trunk: what every pharmacometrician must know, read in order.' },
-        approfondissement: { title: 'Deep dives', desc: 'These expand a chapter of the core track. Optional, but they go all the way.' },
-        domaine: { title: 'Application domains', desc: 'Verticals that assume the core track: PD, oncology, infectious diseases, antibodies, PBPK, trials, AI.' },
+        approfondissement: { title: 'Deep dives', desc: 'Cross-cutting methods and concepts that go all the way — non-compartmental analysis, PBPK, pharmacodynamics, AI, model validation. They apply across every domain.' },
+        domaine: { title: 'Application domains', desc: 'Zooms on a specific research area, each assuming the core track: oncology, infectious diseases, monoclonal antibodies, clinical trials.' },
         reference: { title: 'Reference', desc: 'You consult these when you need them — nobody reads them end to end.' }
       },
       featuredTitle: 'Core pharmacometrics',
@@ -173,8 +173,8 @@ export const dictionary = {
       tracksTitle: 'Le cours, en quatre couches',
       layers: {
         tronc: { title: 'Tronc commun — commencez ici', desc: "L'essentiel, à lire dans l'ordre : ce que tout pharmacométricien doit savoir." },
-        approfondissement: { title: 'Approfondissements', desc: "Ils reprennent un chapitre du tronc et vont au bout. Optionnels, mais complets." },
-        domaine: { title: "Domaines d'application", desc: 'Des verticales qui supposent le tronc acquis : PD, oncologie, infectiologie, anticorps, PBPK, essais, IA.' },
+        approfondissement: { title: 'Approfondissements', desc: "Des méthodes et concepts transversaux menés au bout : analyse non-compartimentale, PBPK, pharmacodynamie, IA, validation de modèle. Ils s'appliquent à tous les domaines." },
+        domaine: { title: "Domaines d'application", desc: "Des zooms sur une aire de recherche, qui supposent le tronc acquis : oncologie, infectiologie, anticorps monoclonaux, essais cliniques." },
         reference: { title: 'Référence', desc: "On y va quand on en a besoin — personne ne les lit d'une traite." }
       },
       featuredTitle: 'Pharmacométrie fondamentale',
