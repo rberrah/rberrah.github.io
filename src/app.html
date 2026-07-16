@@ -7,6 +7,14 @@
 			name="description"
 			content="Pharmacométrie Pratique — un cours visuel et interactif de pharmacométrie : PK/PD, clairance, variabilité, suivi thérapeutique et IA appliquée. Contenu pédagogique original."
 		/>
+		<!-- Appliqué AVANT le premier rendu : sinon le lecteur en mode sombre reçoit un flash
+		     blanc à chaque navigation. Volontairement inline et bloquant, c'est deux lignes. -->
+		<script>
+			try {
+				var t = localStorage.getItem('pk-theme');
+				if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+			} catch (e) {}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

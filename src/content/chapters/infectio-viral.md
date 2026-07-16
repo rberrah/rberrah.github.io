@@ -62,7 +62,7 @@ Réf. : Neumann A.U. et al., *Science* 1998 (dynamique du VHC sous interféron) 
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="45_ViralKinetics" -->
-Pour le **VHC**, la pente de phase 1 estime directement l'efficacité du traitement, et la phase 2 la vitesse d'élimination des hépatocytes infectés — d'où une prédiction du **temps de guérison**.
+Pour le **VHC**, ce sont deux lectures différentes de la phase 1 qu'il faut distinguer : sa **pente** mesure la clairance du virus libre ($c$), tandis que la **profondeur** de la chute — le palier atteint, $\approx V_0(1-\varepsilon)$ — mesure l'**efficacité** $\varepsilon$ du traitement. La phase 2, elle, donne la vitesse d'élimination des hépatocytes infectés — d'où une prédiction du **temps de guérison**.
 
 Ce cadre a guidé le développement des antiviraux à action directe et l'optimisation des durées de traitement.
 <!-- /step -->
@@ -78,6 +78,6 @@ Une efficacité incomplète laisse une **réplication résiduelle** où des vari
 <!-- step:title="À retenir" -->
 - La charge virale se modélise par un système cellules infectées ↔ virus libre.
 - Décroissance biphasique : clairance du virus (c) puis perte des cellules infectées (δ).
-- L'efficacité ε (production bloquée) pilote la pente de phase 1.
+- L'efficacité ε (production bloquée) fixe l'**amplitude** de la chute de phase 1 ; c'est sa **pente** qui reflète la clairance virale c. Confondre les deux, c'est lire un taux (en j⁻¹) là où on cherche une fraction (entre 0 et 1).
 - Une efficacité insuffisante favorise la résistance ; relier au modèle PK.
 <!-- /step -->

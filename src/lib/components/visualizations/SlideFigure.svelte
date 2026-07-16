@@ -58,7 +58,7 @@
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: contain;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
 
   figcaption {

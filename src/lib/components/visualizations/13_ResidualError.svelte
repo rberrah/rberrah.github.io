@@ -65,15 +65,15 @@
     gap: 8px;
   }
   button {
-    border: 1px solid #cbd5e1;
-    background: #fff;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
     padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
   }
   .active {
     background: #2563eb;
-    color: #fff;
+    color: var(--bg-tertiary);
     border-color: #2563eb;
   }
 </style>

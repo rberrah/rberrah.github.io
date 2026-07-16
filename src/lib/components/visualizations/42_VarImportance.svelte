@@ -66,7 +66,7 @@
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
   .chips { display: flex; flex-wrap: wrap; gap: 3px; }
-  .chip { background: var(--accent-ai); color: #fff; border-radius: 10px; padding: 1px 7px; font-size: 10px; }
+  .chip { background: var(--accent-ai); color: var(--bg-tertiary); border-radius: 10px; padding: 1px 7px; font-size: 10px; }
   .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .name { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-anchor: end; }

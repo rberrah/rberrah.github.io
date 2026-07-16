@@ -46,10 +46,10 @@
     grid-template-columns: auto 1fr;
     gap: 10px;
     align-items: center;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 10px;
     padding: 8px 10px;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
   .dot {
     width: 14px;
@@ -68,7 +68,7 @@
   }
   .track {
     height: 10px;
-    background: #e2e8f0;
+    background: var(--bg-secondary);
     border-radius: 8px;
     overflow: hidden;
   }

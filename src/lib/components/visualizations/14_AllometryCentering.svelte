@@ -67,7 +67,7 @@
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
       <!-- nuage de points patients -->
       {#each patients as p}
-        <circle cx={xScale(p.w)} cy={yScale(p.cl)} r="4" fill="#94a3b8" opacity="0.7" />
+        <circle cx={xScale(p.w)} cy={yScale(p.cl)} r="4" fill="var(--text-muted)" opacity="0.7" />
       {/each}
 
       <!-- courbe allométrique -->
@@ -90,7 +90,7 @@
 
       <!-- patient sélectionné -->
       <circle cx={xScale(weight)} cy={yScale(selectedCL)} r="6" fill="#ef4444" />
-      <text x={xScale(weight) + 6} y={yScale(selectedCL) - 6} font-size="11" fill="#0f172a">
+      <text x={xScale(weight) + 6} y={yScale(selectedCL) - 6} font-size="11" fill="var(--text-primary)">
         {selectedCL.toFixed(2)} L/h
       </text>
 
@@ -125,20 +125,20 @@
     flex-wrap: wrap;
   }
   button {
-    border: 1px solid #cbd5e1;
-    background: #fff;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
     padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
   }
   button.active {
     background: #2563eb;
-    color: #fff;
+    color: var(--bg-tertiary);
     border-color: #2563eb;
   }
   .stat {
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .callout {
     background: #eef2ff;

@@ -33,7 +33,7 @@
   .equation {
     font-weight: 700;
     font-size: 1.1rem;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .blur {
     color: #f97316;
@@ -45,12 +45,12 @@
   }
   .arrow {
     margin: 0 10px;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .network {
     display: flex;
     gap: 12px;
-    background: #0f172a;
+    background: var(--text-primary);
     padding: 12px 16px;
     border-radius: 14px;
   }
@@ -67,7 +67,7 @@
     animation: glow 1.6s ease-in-out infinite;
   }
   .legend {
-    color: #475569;
+    color: var(--text-secondary);
   }
   @keyframes glow {
     0% {

@@ -1,6 +1,12 @@
 <script>
   import 'katex/dist/katex.min.css';
+  // Polices AUTO-HÉBERGÉES : Vite les intègre au build. Aucune requête vers un tiers —
+  // Google Fonts enverrait l'IP de chaque lecteur à Google, ce que le site promet d'éviter.
+  import '@fontsource-variable/source-serif-4';
+  import '@fontsource-variable/inter';
+  import '@fontsource-variable/jetbrains-mono';
   import '$lib/styles/theme.css';
+  import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import { base } from '$app/paths';
   import { page } from '$app/stores';
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
@@ -54,7 +60,10 @@
           data-testid={`nav-${link.key}`}
         >{link.label}</a>
       {/each}
-      <LanguageToggle />
+      <div class="tools">
+        <LanguageToggle />
+        <ThemeToggle />
+      </div>
     </nav>
   </header>
 
@@ -96,7 +105,8 @@
   .word { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; }
   .word em { font-style: normal; color: var(--accent-pk); }
   nav { display: flex; gap: var(--space-1); }
-  nav :global(.language-toggle) { margin-left: var(--space-2); }
+  .tools { display: flex; align-items: center; gap: var(--space-2); margin-left: var(--space-2); }
+  nav :global(.language-toggle) { margin-left: 0; }
   nav a {
     text-decoration: none; color: var(--text-secondary);
     padding: var(--space-2) var(--space-3); border-radius: 6px; font-weight: 600;
@@ -125,7 +135,8 @@
       background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
       padding: var(--space-3) var(--space-6); display: none; }
     nav.open { display: flex; }
-    nav :global(.language-toggle) { margin: var(--space-2) 0 0; width: max-content; }
+    .tools { margin: var(--space-2) 0 0; }
+    nav :global(.language-toggle) { width: max-content; }
     main { padding: var(--space-6) var(--space-4) var(--space-24); }
   }
 </style>

@@ -143,7 +143,7 @@
           stroke-width="2"
           points={c.map((p) => `${20 + p.t * 8},${100 - p.dv * 10}`).join(' ')}
         />
-        <text x="300" y={20 + idx * 18} font-size="10" fill="#0f172a">{occasions[idx]}</text>
+        <text x="300" y={20 + idx * 18} font-size="10" fill="var(--text-primary)">{occasions[idx]}</text>
       {/each}
     </svg>
   </div>
@@ -168,7 +168,7 @@
     width: 100%;
     padding: 6px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border-subtle);
   }
   .toggle {
     display: flex;
@@ -177,14 +177,14 @@
     font-weight: 700;
   }
   .iov {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 10px;
     padding: 8px;
-    background: #f8fafc;
+    background: var(--bg-secondary);
   }
   .iov .label {
     font-size: 0.9rem;
-    color: #0f172a;
+    color: var(--text-primary);
     margin-bottom: 4px;
   }
 </style>

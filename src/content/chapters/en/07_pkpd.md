@@ -42,7 +42,7 @@ Adding more blocks only helps until the construction reaches its maximum useful 
 
 That plateau is the idea behind **Emax**: once the targets are saturated, more concentration adds almost no effect — but can still add toxicity.
 
-**In the clinic —** "more dose = more effect" is false beyond EC50: mostly you gain adverse effects. That is the key argument against dose escalation.
+**In the clinic —** "more dose = more effect" stops holding well before saturation, but **not from EC50 onwards**: at C = EC50 you have reached only **half** of Emax, and going to 4 × EC50 still buys another 30 points. It is **beyond ~5 × EC50** (≈ 83 % of Emax) that the gain becomes negligible — while toxicity follows its own curve and often keeps rising. That is where the argument against dose escalation actually lies.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" slides="s28" viz="EmaxHill" -->

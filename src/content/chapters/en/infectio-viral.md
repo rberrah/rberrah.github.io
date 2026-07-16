@@ -58,7 +58,7 @@ At high efficacy, the first slope ≈ $c$, the second ≈ $\delta$.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="45_ViralKinetics" -->
-For **HCV**, the phase-1 slope directly estimates treatment efficacy, and phase 2 the elimination rate of infected hepatocytes — hence a prediction of the **time to cure**.
+For **HCV**, phase 1 must be read two different ways: its **slope** measures the clearance of free virus ($c$), while the **depth** of the drop — the plateau reached, $\approx V_0(1-\varepsilon)$ — measures treatment **efficacy** $\varepsilon$. Phase 2 gives the elimination rate of infected hepatocytes — hence a prediction of the **time to cure**.
 
 This framework guided the development of direct-acting antivirals and the optimisation of treatment durations.
 <!-- /step -->
@@ -72,6 +72,6 @@ A rising viral load is not always a pharmacological failure.
 <!-- step:title="Key takeaways" -->
 - Viral load is modelled by an infected-cells ↔ free-virus system.
 - Biphasic decline: virus clearance (c) then loss of infected cells (δ).
-- Efficacy ε (blocked production) drives the phase-1 slope.
+- Efficacy ε (blocked production) sets the **amplitude** of the phase-1 drop; its **slope** reflects viral clearance c. Confusing the two means reading a rate (per day) where you want a fraction (between 0 and 1).
 - Insufficient efficacy favours resistance; link to the PK model.
 <!-- /step -->

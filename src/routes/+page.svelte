@@ -137,7 +137,7 @@
   }
   .thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(26,28,29,0) 40%, rgba(26,28,29,0.55)); }
   .track-tag { position: absolute; top: var(--space-3); left: var(--space-3); z-index: 1; font-family: var(--font-mono); font-size: var(--text-xs); background: var(--track); color: #fff; padding: 2px 8px; border-radius: 4px; }
-  .soon { position: absolute; bottom: var(--space-3); right: var(--space-3); z-index: 1; font-family: var(--font-mono); font-size: var(--text-xs); background: rgba(255,255,255,0.92); color: var(--text-primary); padding: 2px 8px; border-radius: 4px; }
+  .soon { position: absolute; bottom: var(--space-3); right: var(--space-3); z-index: 1; font-family: var(--font-mono); font-size: var(--text-xs); background: color-mix(in srgb, var(--bg-tertiary) 92%, transparent); color: var(--text-primary); padding: 2px 8px; border-radius: 4px; }
   .track-body { padding: var(--space-6); }
   .track-body h3 { margin: 0 0 var(--space-2); font-size: var(--text-xl); }
   .track-body p { color: var(--text-secondary); margin: 0 0 var(--space-3); }

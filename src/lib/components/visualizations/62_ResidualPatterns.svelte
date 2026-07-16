@@ -87,7 +87,7 @@
   .controls { display: grid; gap: var(--space-2); }
   .modes { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .modes button { font-family: var(--font-mono); font-size: 10px; padding: 4px 6px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--valid); color: #fff; border-color: var(--valid); }
+  .modes button.on { background: var(--valid); color: var(--bg-tertiary); border-color: var(--valid); }
   .readout { padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); display: grid; gap: 4px; border-left: 3px solid var(--accent-pk); }
   .readout.ok { border-left-color: var(--accent-pd); }
   .motif { font-family: var(--font-mono); font-weight: 700; color: var(--text-primary); }

@@ -93,15 +93,15 @@
   .modes { display: flex; gap: var(--space-2); }
   .modes button, .readout, .s { font-family: var(--font-mono); }
   .modes button { flex: 1; font-size: var(--text-xs); padding: 4px 2px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--infectio); color: #fff; border-color: var(--infectio); }
+  .modes button.on { background: var(--infectio); color: var(--bg-tertiary); border-color: var(--infectio); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--infectio); }
   .s input { grid-column: 1 / -1; }
   .readout { display: grid; gap: 3px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
   .readout div { display: flex; justify-content: space-between; gap: var(--space-2); padding: 1px 4px; border-radius: 4px; }
-  .readout div.hi { background: var(--infectio); color: #fff; }
-  .readout div.hi span, .readout div.hi strong { color: #fff; }
+  .readout div.hi { background: var(--infectio); color: var(--bg-tertiary); }
+  .readout div.hi span, .readout div.hi strong { color: var(--bg-tertiary); }
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
   .chart { width: 100%; height: auto; }

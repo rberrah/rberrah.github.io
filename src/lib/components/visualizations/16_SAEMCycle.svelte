@@ -33,9 +33,9 @@
   }
   .wheel div {
     padding: 6px 10px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border-subtle);
     border-radius: 10px;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
   .wheel .active {
     background: #2563eb;
@@ -45,7 +45,7 @@
   .llh .bar {
     width: 220px;
     height: 10px;
-    background: #e2e8f0;
+    background: var(--bg-secondary);
     border-radius: 6px;
     overflow: hidden;
   }

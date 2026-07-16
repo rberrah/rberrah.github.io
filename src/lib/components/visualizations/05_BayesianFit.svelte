@@ -17,12 +17,12 @@
         <stop offset="100%" stop-color="#2563eb" />
       </linearGradient>
     </defs>
-    <rect x="30" y="130" width="60" height="30" fill="#cbd5e1" rx="6" />
+    <rect x="30" y="130" width="60" height="30" fill="var(--border-subtle)" rx="6" />
     <rect x="140" y="90" width="60" height="70" fill="#fbbf24" rx="6" />
     <rect x="220" y="60" width="60" height="100" fill="url(#gradPost)" rx="6" />
-    <text x="40" y="125" font-size="11" fill="#0f172a">Prior</text>
-    <text x="145" y="85" font-size="11" fill="#0f172a">Likelihood</text>
-    <text x="225" y="55" font-size="11" fill="#0f172a">Posterior</text>
+    <text x="40" y="125" font-size="11" fill="var(--text-primary)">Prior</text>
+    <text x="145" y="85" font-size="11" fill="var(--text-primary)">Likelihood</text>
+    <text x="225" y="55" font-size="11" fill="var(--text-primary)">Posterior</text>
   </svg>
 </div>
 
@@ -37,7 +37,7 @@
     display: grid;
     gap: 8px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .term {
     padding: 8px 10px;
@@ -55,8 +55,8 @@
   }
   svg {
     width: 100%;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 12px;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
 </style>

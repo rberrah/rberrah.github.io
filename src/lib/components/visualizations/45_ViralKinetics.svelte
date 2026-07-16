@@ -2,8 +2,9 @@
   // Cinétique virale sous traitement (modèle à cellules cibles simplifié, type Neumann-Perelson).
   //   dI/dt = −δ·I                         (perte des cellules infectées)
   //   dV/dt = (1−ε)·p·I − c·V              (production bloquée à (1−ε), clairance c)
-  // Donne une décroissance BIPHASIQUE : chute rapide (clairance c, pilotée par ε)
-  // puis pente lente (perte des cellules infectées δ).
+  // Donne une décroissance BIPHASIQUE. Attention à ne pas confondre les deux lectures de la
+  // phase 1 : sa PENTE vaut c (clairance du virus libre), tandis que son AMPLITUDE — le palier
+  // atteint, ≈ V0·(1−ε) — mesure l'efficacité ε. La phase 2, lente, donne δ.
   let eps = 0.99; // efficacité du traitement (blocage de la production)
   let delta = 0.14; // 1/j — perte des cellules infectées
 

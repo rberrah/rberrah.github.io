@@ -111,7 +111,7 @@
   .modes { display: flex; gap: var(--space-2); }
   .modes button, .readout, .s { font-family: var(--font-mono); }
   .modes button { flex: 1; font-size: 10px; padding: 4px 4px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--accent-ai); color: #fff; border-color: var(--accent-ai); }
+  .modes button.on { background: var(--accent-ai); color: var(--bg-tertiary); border-color: var(--accent-ai); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--accent-ai); }

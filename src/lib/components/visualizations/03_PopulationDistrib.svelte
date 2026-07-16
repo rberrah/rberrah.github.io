@@ -55,7 +55,7 @@
         points={curve.points.map((c, t) => `${20 + t * 10},${160 - c * 8}`).join(' ')}
       />
     {/each}
-    <text x="24" y="22" font-size="11" fill="#0f172a">Courbes par poids</text>
+    <text x="24" y="22" font-size="11" fill="var(--text-primary)">Courbes par poids</text>
   </svg>
 </div>
 
@@ -69,7 +69,7 @@
     gap: 12px;
     align-items: center;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .formula {
     padding: 4px 8px;
@@ -90,8 +90,8 @@
   }
   .chart {
     width: 100%;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 12px;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
 </style>

@@ -83,7 +83,7 @@
   .modes { display: flex; gap: var(--space-2); }
   .modes button, .readout, .s { font-family: var(--font-mono); }
   .modes button { flex: 1; font-size: 9px; padding: 4px 2px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--accent-pk); color: #fff; border-color: var(--accent-pk); }
+  .modes button.on { background: var(--accent-pk); color: var(--bg-tertiary); border-color: var(--accent-pk); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--accent-pk); }

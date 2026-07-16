@@ -132,7 +132,7 @@
   .tank-svg, .curve-svg { width: 100%; height: auto; }
   .tank { fill: var(--bg-primary); stroke: var(--border-strong); stroke-width: 2; }
   .liquid { fill: var(--accent-pk); opacity: 0.85; transition: y 0.15s linear, height 0.15s linear, width 0.2s ease, x 0.2s ease; }
-  .surface { fill: #fff; opacity: 0.6; }
+  .surface { fill: var(--bg-tertiary); opacity: 0.6; }
   .tap { fill: var(--border-strong); }
   .flow { fill: var(--accent-pk); opacity: 0.55; }
   .stream { animation: drip 0.6s linear infinite; }

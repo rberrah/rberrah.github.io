@@ -120,7 +120,7 @@
       />
       {#if binning}
         {#each binned as b}
-          <line x1={xScale(b.x0)} x2={xScale(b.x0)} y1={0} y2={innerHeight} stroke="#cbd5e1" stroke-dasharray="4 4" stroke-width="1" />
+          <line x1={xScale(b.x0)} x2={xScale(b.x0)} y1={0} y2={innerHeight} stroke="var(--border-subtle)" stroke-dasharray="4 4" stroke-width="1" />
         {/each}
       {/if}
 
@@ -184,21 +184,21 @@
   }
   small {
     font-weight: 400;
-    color: #475569;
+    color: var(--text-secondary);
   }
   .bininfo {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     font-size: 0.85rem;
-    color: #334155;
+    color: var(--text-secondary);
     margin-bottom: 6px;
   }
   .note {
     font-size: 0.95rem;
-    color: #0f172a;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-secondary);
     padding: 8px 10px;
     border-radius: 10px;
   }
@@ -206,8 +206,8 @@
     cursor: crosshair;
   }
   .tooltip {
-    background: #0f172a;
-    color: #fff;
+    background: var(--text-primary);
+    color: var(--bg-tertiary);
     padding: 6px 8px;
     border-radius: 8px;
     font-size: 0.85rem;

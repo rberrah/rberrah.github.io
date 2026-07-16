@@ -262,7 +262,7 @@
   .brick {
     display: block;
     min-width: 86px;
-    color: #fff;
+    color: var(--bg-tertiary);
     background: var(--pk);
     font-weight: 800;
   }
@@ -319,7 +319,7 @@
     border-radius: 0 0 18px 18px;
     position: relative;
     overflow: hidden;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
 
   .vessel .level {
@@ -378,8 +378,8 @@
   }
 
   .depot {
-    background: #fff7ed;
-    border-color: rgba(184,92,56,0.35);
+    background: color-mix(in srgb, var(--accent-pk-vivid) 8%, var(--bg-tertiary));
+    border-color: color-mix(in srgb, var(--accent-pk-vivid) 35%, transparent);
   }
 
   .clear strong {
@@ -418,7 +418,7 @@
   .person {
     border-radius: 8px 8px 0 0;
     background: var(--blue);
-    color: #fff;
+    color: var(--bg-tertiary);
     display: grid;
     place-items: center;
     font-weight: 800;
@@ -498,7 +498,7 @@
     display: grid;
     place-items: center;
     background: var(--pk);
-    color: #fff;
+    color: var(--bg-tertiary);
     font-weight: 800;
   }
 

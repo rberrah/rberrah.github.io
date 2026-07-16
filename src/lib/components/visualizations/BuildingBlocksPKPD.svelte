@@ -101,7 +101,7 @@
     display: grid;
     place-items: center;
     text-align: center;
-    color: #fff;
+    color: var(--bg-tertiary);
     font-weight: 800;
     font-size: var(--text-sm);
     border-radius: 6px;

@@ -47,7 +47,7 @@ Ajouter plus de blocs n'aide que jusqu'à ce que la construction atteigne sa tai
 Ce plateau est l'idée derrière l'**Emax** : une fois les cibles saturées, plus de concentration n'apporte presque plus d'effet — mais peut encore augmenter la toxicité.
 
 :::clinical
-« Plus de dose = plus d'effet » est faux au-delà de l'EC50 : on gagne surtout des effets indésirables. C'est l'argument clé contre la surenchère posologique.
+« Plus de dose = plus d'effet » cesse d'être vrai bien avant la saturation, mais **pas dès l'EC50** : à C = EC50 on n'a atteint que **la moitié** de l'Emax, et passer à 4 × EC50 en apporte encore 30 points. C'est **au-delà de ~5 × EC50** (≈ 83 % de l'Emax) que la montée devient négligeable — alors que la toxicité, elle, suit sa propre courbe et continue souvent de croître. C'est là qu'est l'argument contre la surenchère posologique.
 :::
 <!-- /step -->
 

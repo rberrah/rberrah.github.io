@@ -47,8 +47,8 @@
     flex-wrap: wrap;
   }
   button {
-    border: 1px solid #cbd5e1;
-    background: #fff;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
     padding: 6px 10px;
     border-radius: 999px;
     cursor: pointer;
@@ -61,6 +61,6 @@
   .result {
     margin-top: 10px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 </style>

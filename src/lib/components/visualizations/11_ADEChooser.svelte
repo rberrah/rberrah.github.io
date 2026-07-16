@@ -78,8 +78,8 @@
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
       {#if !order0}
         <rect x={xScale(0)} y={0} width={xScale(lag)} height={innerHeight} fill="rgba(15,23,42,0.05)" />
-        <line x1={xScale(lag)} x2={xScale(lag)} y1={0} y2={innerHeight} stroke="#94a3b8" stroke-dasharray="4 4" />
-        <text x={xScale(lag) + 4} y={16} font-size="10" fill="#475569">Lag {lag.toFixed(1)} h</text>
+        <line x1={xScale(lag)} x2={xScale(lag)} y1={0} y2={innerHeight} stroke="var(--text-muted)" stroke-dasharray="4 4" />
+        <text x={xScale(lag) + 4} y={16} font-size="10" fill="var(--text-secondary)">Lag {lag.toFixed(1)} h</text>
       {/if}
       <polyline
         fill="none"
@@ -121,7 +121,7 @@
     display: flex;
     gap: 12px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
     flex-wrap: wrap;
   }
   .kpis {
@@ -129,6 +129,6 @@
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 6px;
     font-size: 0.95rem;
-    color: #0f172a;
+    color: var(--text-primary);
   }
 </style>

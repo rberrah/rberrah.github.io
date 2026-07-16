@@ -253,7 +253,7 @@
     }
   }
   aside.sidebar {
-    background: #f8fafc;
+    background: var(--bg-secondary);
     padding: 12px;
     border-radius: 12px;
     display: grid;
@@ -263,13 +263,13 @@
   .sidebar h2 {
     margin: 4px 0;
     font-size: 1rem;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .card {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 10px;
     padding: 10px;
-    background: #fff;
+    background: var(--bg-tertiary);
     display: grid;
     gap: 8px;
   }
@@ -277,13 +277,13 @@
     display: grid;
     gap: 4px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   select {
     padding: 6px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background: #fff;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
   }
   .toggles {
     grid-auto-flow: row;
@@ -293,7 +293,7 @@
     padding: 8px 12px;
     border: none;
     background: #2563eb;
-    color: #fff;
+    color: var(--bg-tertiary);
     border-radius: 8px;
     cursor: pointer;
   }
@@ -302,14 +302,14 @@
     gap: 12px;
   }
   .chart-card {
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 12px;
     padding: 12px;
-    background: #fff;
+    background: var(--bg-tertiary);
   }
   .chart-header .title {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .kpi-row {
     display: grid;
@@ -317,14 +317,14 @@
     gap: 8px;
   }
   .kpi {
-    background: #f1f5f9;
+    background: var(--bg-secondary);
     padding: 10px;
     border-radius: 10px;
     display: grid;
     gap: 4px;
   }
   .kpi span {
-    color: #475569;
+    color: var(--text-secondary);
   }
   .kpi strong {
     font-size: 1.2rem;

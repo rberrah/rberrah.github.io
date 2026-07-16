@@ -331,7 +331,7 @@
     border: 5px solid var(--blue);
     border-top: 0;
     border-radius: 0 0 18px 18px;
-    background: #fff;
+    background: var(--bg-tertiary);
     overflow: hidden;
   }
   .water {
@@ -409,7 +409,7 @@
   .p3 { animation-delay: 2.4s; background: var(--green); }
 
   .person {
-    color: #fff;
+    color: var(--bg-tertiary);
     background: var(--blue);
     font-weight: 900;
     animation: person-pop 3s ease-in-out infinite;
@@ -444,7 +444,7 @@
     align-items: end;
     justify-items: center;
     border-radius: 8px 8px 0 0;
-    color: #fff;
+    color: var(--bg-tertiary);
     background: var(--blue);
     animation: grow-bar 4s ease-in-out infinite;
   }

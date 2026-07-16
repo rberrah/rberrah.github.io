@@ -99,7 +99,7 @@
   .prior { fill: none; stroke: var(--text-muted); stroke-width: 2; stroke-dasharray: 5 3; }
   .post { fill: none; stroke: var(--accent-pk); stroke-width: 2.6; }
   .post.over { stroke: #c0392b; }
-  .obs { fill: var(--accent-ai); stroke: #fff; stroke-width: 1; }
+  .obs { fill: var(--accent-ai); stroke: var(--bg-tertiary); stroke-width: 1; }
   .lbl { font-size: 9px; font-family: var(--font-mono); text-anchor: end; }
   .lbl.prior { fill: var(--text-muted); }
   .lbl.post { fill: var(--accent-pk); }

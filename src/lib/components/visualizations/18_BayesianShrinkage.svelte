@@ -35,12 +35,12 @@
 
   <ChartFrame width={240} height={220} margin={{ top: 16, right: 14, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={false}>
     <svelte:fragment let:yScale let:innerHeight>
-      <line x1="0" x2="40" y1={yScale(prior)} y2={yScale(prior)} stroke="#cbd5e1" stroke-width="6" stroke-linecap="round" />
+      <line x1="0" x2="40" y1={yScale(prior)} y2={yScale(prior)} stroke="var(--border-subtle)" stroke-width="6" stroke-linecap="round" />
       <line x1="0" x2="40" y1={yScale(meas)} y2={yScale(meas)} stroke="#f97316" stroke-width="6" stroke-linecap="round" />
       <line x1="0" x2="40" y1={yScale(ebe)} y2={yScale(ebe)} stroke="#22c55e" stroke-width="6" stroke-linecap="round" />
-      <text x="45" y={yScale(prior) + 4} font-size="10" fill="#475569">Prior</text>
-      <text x="45" y={yScale(meas) + 4} font-size="10" fill="#475569">Mesure</text>
-      <text x="45" y={yScale(ebe) + 4} font-size="10" fill="#475569">EBE</text>
+      <text x="45" y={yScale(prior) + 4} font-size="10" fill="var(--text-secondary)">Prior</text>
+      <text x="45" y={yScale(meas) + 4} font-size="10" fill="var(--text-secondary)">Mesure</text>
+      <text x="45" y={yScale(ebe) + 4} font-size="10" fill="var(--text-secondary)">EBE</text>
       <Axis orient="left" scale={yScale} length={innerHeight} label="Valeur" />
     </svelte:fragment>
   </ChartFrame>
@@ -68,9 +68,9 @@
   }
   .card {
     padding: 10px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--bg-secondary);
     border-radius: 10px;
-    background: #fff;
+    background: var(--bg-tertiary);
     font-weight: 700;
   }
 </style>

@@ -82,23 +82,23 @@
     flex-wrap: wrap;
   }
   button {
-    border: 1px solid #cbd5e1;
-    background: #fff;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-tertiary);
     padding: 6px 10px;
     border-radius: 8px;
     cursor: pointer;
   }
   button.active {
     background: #2563eb;
-    color: #fff;
+    color: var(--bg-tertiary);
     border-color: #2563eb;
   }
   .legend {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--bg-secondary);
     padding: 10px;
     border-radius: 10px;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .glow {
     filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.6));

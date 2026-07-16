@@ -11,7 +11,7 @@
 
 <div class="wrapper">
   <svg viewBox="0 0 200 360" class="body" aria-label="Silhouette humaine avec zones ADME">
-    <g fill="#e2e8f0" stroke="#0f172a" stroke-width="2">
+    <g fill="var(--bg-secondary)" stroke="var(--text-primary)" stroke-width="2">
       <circle cx="100" cy="40" r="24" />
       <rect x="80" y="64" width="40" height="70" rx="10" />
       <rect x="60" y="134" width="80" height="90" rx="12" />
@@ -37,7 +37,7 @@
         on:blur={() => (active = null)}
       />
       {#if active === z.id}
-        <text x={z.cx} y={z.cy} text-anchor="middle" dy="4" font-size="11" fill="#0f172a">
+        <text x={z.cx} y={z.cy} text-anchor="middle" dy="4" font-size="11" fill="var(--text-primary)">
           {z.label}
         </text>
       {/if}
@@ -57,7 +57,7 @@
   .body {
     width: 100%;
     max-width: 320px;
-    background: radial-gradient(circle at 50% 10%, #f8fafc 0%, #e2e8f0 70%);
+    background: radial-gradient(circle at 50% 10%, var(--bg-secondary) 0%, var(--bg-secondary) 70%);
     border-radius: 16px;
     padding: 8px;
   }
@@ -71,7 +71,7 @@
   }
   .legend {
     font-size: 0.95rem;
-    color: #334155;
+    color: var(--text-secondary);
     text-align: center;
   }
 </style>

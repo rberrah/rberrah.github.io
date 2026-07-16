@@ -50,7 +50,7 @@ Problème : ajouter un paramètre fait **toujours** baisser l'OFV, même si le p
 <!-- step:title="La formule décortiquée" viz="59_ModelSelection" -->
 Pour deux modèles **emboîtés** (l'un est un cas particulier de l'autre), le **test du rapport de vraisemblance** compare la baisse d'OFV à une loi du **χ²** :
 
-$$ \Delta OFV = OFV_{réduit} - OFV_{complet} \;\sim\; \chi^2_{\Delta df} \quad (\text{sous } H_0) $$
+$$ \Delta OFV = OFV_{\text{réduit}} - OFV_{\text{complet}} \;\sim\; \chi^2_{\Delta df} \quad (\text{sous } H_0) $$
 
 :::howto
 **La métaphore du procès.** $H_0$ = « le paramètre en plus ne sert à rien » (présumé coupable d'inutilité). Le χ² fixe le **seuil du doute raisonnable** (3,84 pour 1 paramètre à 5 %). Si la baisse d'OFV **dépasse** ce seuil, les preuves suffisent : on garde le paramètre.
