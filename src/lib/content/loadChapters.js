@@ -168,7 +168,24 @@ function extractSteps(content) {
  * @returns {string}
  */
 function renderMath(source) {
-  return source
+  // Le CODE est mis à l'abri AVANT le rendu des maths, et restauré après.
+  // Sans cela, un control stream NONMEM (`$PK`, `$OMEGA`, `$ERROR`…) ou toute prose citant
+  // deux de ces blocs sur une même ligne voyait le texte INTERMÉDIAIRE pris pour une formule
+  // et remplacé par du KaTeX cassé. Les dollars de NONMEM ne sont pas des maths.
+  /** @type {string[]} */
+  const stash = [];
+  // Jeton en zone privee Unicode : impossible dans du texte, et SANS espace ajoutee
+  // (une espace en debut de ligne suffirait a creer un bloc de code Markdown).
+  const keep = (/** @type {string} */ m) => {
+    stash.push(m);
+    return `${stash.length - 1}`;
+  };
+
+  const protectedSource = source
+    .replace(/```[\s\S]*?```/g, keep) // blocs clôturés
+    .replace(/`[^`\n]*`/g, keep); // code inline
+
+  const rendered = protectedSource
     .replace(/\$\$([\s\S]+?)\$\$/g, (_, tex) => {
       const html = katex.renderToString(tex.trim(), {
         displayMode: true,
@@ -182,6 +199,8 @@ function renderMath(source) {
         throwOnError: false
       });
     });
+
+  return rendered.replace(/(\d+)/g, (_, i) => stash[Number(i)]);
 }
 
 /**

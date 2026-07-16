@@ -106,10 +106,41 @@ export const tracks = [
     id: 'tools',
     layer: 'reference',
     i18n: {
-      en: { label: 'Track 12', title: 'Software & tools', tagline: 'The ecosystem: NONMEM, Monolix, nlmixr2, mrgsolve/rxode2 and mapbayr — estimation, simulation, MIPD.' },
-      fr: { label: 'Parcours 12', title: 'Outils & logiciels', tagline: "L'écosystème : NONMEM, Monolix, nlmixr2, mrgsolve/rxode2 et mapbayr — estimation, simulation, TDM." }
+      en: { label: 'Track 12', title: 'Software & tools', tagline: 'What is common to every tool: estimation algorithms, simulation and model-informed precision dosing.' },
+      fr: { label: 'Parcours 12', title: 'Outils & logiciels', tagline: "Ce qui est commun à tous les outils : algorithmes d'estimation, simulation et dosage de précision." }
     },
     accent: '#4d4d5c', status: 'available', visual: 'tools-visual'
+  },
+  // Un parcours par LOGICIEL, sur une trame identique (présentation → modèle structural →
+  // variabilité → erreur résiduelle → la particularité du moteur → pour aller plus loin).
+  // La trame commune est délibérée : elle rend les trois outils COMPARABLES chapitre par
+  // chapitre. Couche `reference` : on les consulte, on ne les lit pas en linéaire.
+  {
+    id: 'nonmem',
+    layer: 'reference',
+    i18n: {
+      en: { label: 'Track 13', title: 'NONMEM', tagline: 'The historical standard: control stream, $PK/$ERROR blocks, FOCE-I and the regulatory dossier.' },
+      fr: { label: 'Parcours 13', title: 'NONMEM', tagline: "Le standard historique : control stream, blocs \$PK/\$ERROR, FOCE-I et le dossier réglementaire." }
+    },
+    accent: '#6b4f3a', status: 'available', visual: 'tools-visual'
+  },
+  {
+    id: 'monolix',
+    layer: 'reference',
+    i18n: {
+      en: { label: 'Track 14', title: 'Monolix', tagline: 'The graphical workflow: the mlxtran language, the SAEM engine and built-in diagnostics.' },
+      fr: { label: 'Parcours 14', title: 'Monolix', tagline: "Le workflow graphique : le langage mlxtran, le moteur SAEM et les diagnostics intégrés." }
+    },
+    accent: '#2f6f8c', status: 'available', visual: 'tools-visual'
+  },
+  {
+    id: 'nlmixr2',
+    layer: 'reference',
+    i18n: {
+      en: { label: 'Track 15', title: 'nlmixr2', tagline: 'Open source in R: the ini/model syntax, the rxode2 engine, FOCEI and SAEM in one script.' },
+      fr: { label: 'Parcours 15', title: 'nlmixr2', tagline: "L'open source en R : la syntaxe ini/model, le moteur rxode2, FOCEI et SAEM dans un seul script." }
+    },
+    accent: '#3a6b4f', status: 'available', visual: 'tools-visual'
   }
 ];
 

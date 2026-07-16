@@ -4,8 +4,8 @@ slug: "tools-nlmixr2"
 title: "nlmixr2 — l'open source (R)"
 description: "Estimer en R, gratuitement : SAEM et FOCEI, moteur rxode2 et tout l'écosystème R."
 summary: "nlmixr2 : l'alternative open-source en R, avec SAEM/FOCEI, rxode2 pour les ODE et les diagnostics R."
-track: "tools"
-order: 203
+track: "nlmixr2"
+order: 1
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "nlmixr2", "rxode2", "open-source"]
