@@ -13,16 +13,26 @@
     { t: 12, c: 5.4 }
   ];
 
+  import { makeRng } from '$lib/sim/random';
+
   let mode = 'none';
 
-  /** @param {{t:number,c:number}} p */
-  const jittered = (p) => {
+  // PRNG SEEDÉ : ce composant est prérendu puis hydraté. Math.random() donnerait un bruit
+  // différent au serveur et au client → mismatch d'hydratation. Le bruit est tiré d'avance,
+  // une valeur par point, de façon déterministe.
+  const noise = (() => {
+    const rng = makeRng(13013);
+    return base.map(() => [rng() - 0.5, rng() - 0.5]);
+  })();
+
+  /** @param {{t:number,c:number}} p @param {number} i */
+  const jittered = (p, i) => {
     if (mode === 'none') return p.c;
-    if (mode === 'low') return p.c * (1 + 0.05 * (Math.random() - 0.5));
-    return p.c * (1 + 0.12 * (Math.random() - 0.5)) + 0.1 * (Math.random() - 0.5);
+    if (mode === 'low') return p.c * (1 + 0.05 * noise[i][0]);
+    return p.c * (1 + 0.12 * noise[i][0]) + 0.1 * noise[i][1];
   };
 
-  $: points = base.map((p) => ({ ...p, dv: Math.max(0, jittered(p)) }));
+  $: points = base.map((p, i) => ({ ...p, dv: Math.max(0, jittered(p, i)) }));
 
   $: xScale = scaleLinear().domain([0, Math.max(...base.map((p) => p.t))]).range([0, 300]);
   $: yScale = scaleLinear()

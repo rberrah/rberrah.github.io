@@ -43,7 +43,15 @@ The **TMDD** model (Mager & Jusko, 2001) couples free drug $C$, free target $R$ 
 $$ \frac{dC}{dt} = -k_{el}C - k_{on}C\cdot R + k_{off}\,RC $$
 $$ \frac{dR}{dt} = k_{syn} - k_{deg}R - k_{on}C\cdot R + k_{off}\,RC,\qquad \frac{dRC}{dt} = k_{on}C\cdot R - (k_{off}+k_{int})RC $$
 
-In practice, the **quasi-equilibrium / Michaelis-Menten** approximation of this system is often used.
+Each term reads:
+
+- $C$, $R$, $RC$: concentrations of **free** drug, **free** target and the **complex**;
+- $k_{el}$: non-specific drug elimination (catabolism — the "slow" route);
+- $k_{on}$ / $k_{off}$: drug–target **association** and **dissociation** rates;
+- $k_{syn}$ / $k_{deg}$: target **synthesis** and **degradation** in the absence of drug;
+- $k_{int}$: **internalisation** of the complex (the target "carries away" the drug — the route that saturates).
+
+In practice, the **quasi-steady-state (QSS)** approximation of this system is often used (Gibiansky & Gibiansky, 2008), reducing it to a **Michaelis-Menten** form: the complex is taken at equilibrium, replacing $k_{on}$ and $k_{off}$ by a single constant $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
 **How to read it — the parking-lot metaphor.** The target is a set of parking spaces. At low dose (few cars), each molecule quickly finds a spot and is "removed" from circulation: fast elimination. At high dose, every space is **taken** (target saturated): the extra molecules stay in the blood and leave only by the slow route. Hence a clearance that **drops** as the dose rises.
 

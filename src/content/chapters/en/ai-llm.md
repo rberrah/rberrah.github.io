@@ -37,13 +37,13 @@ quiz:
 Understanding their mechanics avoids two symmetric traps: magic and rejection.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="20_NeuralBox" -->
+<!-- step:title="Intuition" -->
 An LLM is a **next-word predictor** trained on huge corpora. From a context, it estimates the distribution of the next **token**, samples one, then repeats — this is **auto-regressive**.
 
 From this simple task, repeated at massive scale, emerge abilities of reasoning, summarising and coding.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" viz="20_NeuralBox" -->
+<!-- step:title="The formula, unpacked" -->
 The core of the **Transformer** is **attention**: each token weights the others by their relevance.
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$

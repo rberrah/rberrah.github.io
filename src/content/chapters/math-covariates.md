@@ -51,7 +51,7 @@ La forme la plus courante, centrée et en loi puissance :
 $$ CL_i = CL_{ref}\left(\frac{W_i}{70}\right)^{0{,}75}\cdot e^{\eta_i} $$
 
 - **Centrage** sur 70 kg : $CL_{ref}$ = clairance du sujet de référence ;
-- **Allométrie** : exposant ~0,75 pour la clairance (0,75), 1 pour les volumes.
+- **Allométrie** : exposant **0,75** pour la clairance, **1** pour les volumes.
 
 Pour la **sélection**, plusieurs stratégies : **SCM** (stepwise covariate modeling, forward/backward sur l'OFV), **full model** (tout inclure puis juger la pertinence), et des approches modernes (**SAMBA**, sélection pénalisée) plus rapides et moins biaisées.
 

@@ -39,13 +39,13 @@ Les **LLM** (ChatGPT, Claude…) transforment l'accès à l'information et l'aid
 Comprendre leur mécanique évite deux écueils symétriques : la magie et le rejet.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="20_NeuralBox" -->
+<!-- step:title="Intuition" -->
 Un LLM est un **prédicteur du mot suivant** entraîné sur d'immenses corpus. À partir d'un contexte, il estime la distribution du **token** suivant, en tire un, puis recommence — c'est **auto-régressif**.
 
 De cette tâche simple, répétée à très grande échelle, émergent des capacités de raisonnement, de résumé et de code.
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="20_NeuralBox" -->
+<!-- step:title="La formule décortiquée" -->
 Le cœur du **Transformer** est l'**attention** : chaque token pondère les autres selon leur pertinence.
 
 $$ \text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V $$

@@ -47,7 +47,15 @@ Le modèle **TMDD** (Mager & Jusko, 2001) couple médicament libre $C$, cible li
 $$ \frac{dC}{dt} = -k_{el}C - k_{on}C\cdot R + k_{off}\,RC $$
 $$ \frac{dR}{dt} = k_{syn} - k_{deg}R - k_{on}C\cdot R + k_{off}\,RC,\qquad \frac{dRC}{dt} = k_{on}C\cdot R - (k_{off}+k_{int})RC $$
 
-En pratique, on utilise souvent l'**approximation quasi-équilibre / Michaelis-Menten** de ce système.
+Chaque terme se lit :
+
+- $C$, $R$, $RC$ : concentrations de médicament **libre**, de cible **libre** et du **complexe** ;
+- $k_{el}$ : élimination non spécifique du médicament (catabolisme, la voie « lente ») ;
+- $k_{on}$ / $k_{off}$ : vitesses d'**association** et de **dissociation** médicament–cible ;
+- $k_{syn}$ / $k_{deg}$ : **synthèse** et **dégradation** de la cible en l'absence de médicament ;
+- $k_{int}$ : **internalisation** du complexe (la cible « emporte » le médicament — la voie qui sature).
+
+En pratique, on utilise souvent l'**approximation quasi-équilibre (QSS)** de ce système (Gibiansky & Gibiansky, 2008), qui le réduit à une forme de type **Michaelis-Menten** : le complexe est supposé à l'équilibre, ce qui élimine $k_{on}$ et $k_{off}$ au profit d'une seule constante $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
 :::howto
 **La métaphore du parking.** La cible, ce sont des places de parking. À faible dose (peu de voitures), chaque molécule trouve vite une place et y est « retirée » de la circulation : élimination rapide. À forte dose, toutes les places sont **prises** (cible saturée) : les molécules en trop restent dans le sang et ne partent que par la voie lente. D'où une clairance qui **baisse** quand la dose monte.

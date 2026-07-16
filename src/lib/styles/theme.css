@@ -295,3 +295,20 @@ input[type='range']::-moz-range-thumb {
 }
 .muted { color: var(--text-muted); }
 .measure { max-width: var(--measure); }
+
+/* Lien d'évitement : caché jusqu'à ce qu'il reçoive le focus (première tabulation).
+   Permet à un utilisateur au clavier de sauter la navigation et d'atteindre le contenu. */
+.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -60px;
+  z-index: 1000;
+  padding: var(--space-3) var(--space-4);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: 8px; }

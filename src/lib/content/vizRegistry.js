@@ -41,10 +41,23 @@ function aliasesFor(stem) {
   return [...keys];
 }
 
+// 1) Recenser quels ALIAS COURTS sont produits par plusieurs fichiers.
+//    Ex. 13_ResidualError.svelte et 61_ResidualError.svelte donnent tous deux "ResidualError".
+//    Résoudre un tel alias vers « le dernier chargé » afficherait silencieusement la mauvaise
+//    figure. On préfère le rendre NON résolvable : le smoke test signale alors un viz introuvable.
+const stems = Object.keys(modules).map((p) => p.split('/').pop().replace(/\.svelte$/, ''));
+const shortAliasCount = {};
+for (const stem of stems) {
+  for (const key of aliasesFor(stem)) {
+    if (key !== stem) shortAliasCount[key] = (shortAliasCount[key] || 0) + 1;
+  }
+}
+const ambiguous = new Set(Object.keys(shortAliasCount).filter((k) => shortAliasCount[k] > 1));
+
 for (const [path, mod] of Object.entries(modules)) {
   const stem = path.split('/').pop().replace(/\.svelte$/, '');
   const component = mod.default ?? mod;
-  const keys = aliasesFor(stem);
+  const keys = aliasesFor(stem).filter((key) => key === stem || !ambiguous.has(key));
   for (const key of keys) {
     // Le nom de fichier complet a toujours priorité en cas de collision d'alias.
     if (!(key in registry) || key === stem) registry[key] = component;

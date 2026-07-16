@@ -353,7 +353,7 @@
           {#if from && to}
             <div class="rate">
               <span class="rn">{from.name}→{to.name}</span>
-              <input type="range" min="0.02" max="3" step="0.02" bind:value={e.k} on:input={() => (edges = edges)} />
+              <input type="range" min="0.02" max="3" step="0.02" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`Constante de vitesse ${from.name} vers ${to.name}`} />
               <strong>{e.k.toFixed(2)}</strong>
               <button class="rx" on:click={() => deleteEdge(e.id)}>×</button>
             </div>

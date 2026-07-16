@@ -6,7 +6,7 @@
   let cl = 5;     // L/h
   let v = 35;     // L
   let tau = 8;    // h — intervalle entre doses
-  let loading = false; // dose de charge (2×) à t=0
+  let loading = false; // dose de charge (= dose × R_ac) à t=0
 
   const W = 470, H = 300, m = { top: 18, right: 16, bottom: 44, left: 50 };
   const tEnd = 48;
@@ -24,7 +24,10 @@
     let c = 0;
     for (const dt of doseTimes) {
       if (dt <= t) {
-        const amt = loading && dt === 0 ? 2 * dose : dose;
+        // La vraie dose de charge n'est pas « 2× » : c'est dose × R_ac, avec
+        // R_ac = 1/(1 − e^(−ke·τ)), pour démarrer exactement au Cmax,ss. Le facteur 2 codé
+        // en dur affichait un pic de surdosage au lieu du plateau que le chapitre décrit.
+        const amt = loading && dt === 0 ? dose * rac : dose;
         c += (amt / v) * Math.exp(-ke * (t - dt));
       }
     }
@@ -37,7 +40,7 @@
 
   $: iW = W - m.left - m.right;
   $: iH = H - m.top - m.bottom;
-  $: cMax = Math.max(cMaxSS * 1.1, (loading ? 2 : 1) * dose / v * 1.05);
+  $: cMax = Math.max(cMaxSS * 1.1, (loading ? rac : 1) * dose / v * 1.05);
   const xt = (/** @type {number} */ t) => (t / tEnd) * (W - m.left - m.right);
   $: yc = (/** @type {number} */ c) => iH - (Math.min(c, cMax) / cMax) * iH;
   $: path = curve.map((p, i) => `${i ? 'L' : 'M'}${xt(p.t).toFixed(1)},${yc(p.c).toFixed(1)}`).join(' ');
@@ -50,7 +53,7 @@
     <label class="s"><span>Intervalle τ (h)</span><strong>{tau}</strong><input type="range" min="2" max="24" step="1" bind:value={tau} /></label>
     <label class="s"><span>CL (L/h)</span><strong>{cl}</strong><input type="range" min="1" max="15" step="0.5" bind:value={cl} /></label>
     <label class="s"><span>V (L)</span><strong>{v}</strong><input type="range" min="10" max="70" step="1" bind:value={v} /></label>
-    <label class="chk"><input type="checkbox" bind:checked={loading} /> Dose de charge (2×)</label>
+    <label class="chk"><input type="checkbox" bind:checked={loading} /> Dose de charge (= Dose × R_ac)</label>
     <div class="readout">
       <div><span>t½</span><strong>{thalf.toFixed(1)}</strong> h</div>
       <div><span>Css moyenne</span><strong>{cssAvg.toFixed(2)}</strong> mg/L</div>
@@ -67,7 +70,7 @@
       <!-- ~90% équilibre -->
       {#if t90 < tEnd}
         <line x1={xt(t90)} x2={xt(t90)} y1="0" y2={iH} class="t90" />
-        <text x={xt(t90) + 3} y="12" class="t90label">≈ 90 % (~4 t½)</text>
+        <text x={xt(t90) + 3} y="12" class="t90label">≈ 90 % (3,3 t½)</text>
       {/if}
       <path d={path} class="line" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />

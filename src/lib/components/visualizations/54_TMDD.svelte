@@ -49,7 +49,7 @@
       <div><span>Demi-vie terminale</span><strong>{thalfEnd.toFixed(1)} j</strong></div>
       <div><span>Régime</span><strong>{dose >= 200 ? 'cible saturée (linéaire)' : 'cible active (rapide)'}</strong></div>
     </div>
-    <p class="hint">À faible dose, la voie cible sature vite : chute rapide. À forte dose, la cible est débordée et la pente terminale s'allonge — la clairance <em>diminue</em> quand la dose augmente.</p>
+    <p class="hint">À faible dose, la cible est <em>libre</em> : la voie cible domine → élimination rapide. À forte dose, la cible est <em>saturée</em> : il ne reste que le catabolisme lent → la pente terminale s'allonge, la clairance <em>diminue</em> quand la dose augmente.</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="PK non linéaire (TMDD) en échelle log">

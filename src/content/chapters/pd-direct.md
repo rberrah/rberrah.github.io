@@ -58,7 +58,7 @@ $$ E = E_0 + \frac{E_{max}\,C^{\,n}}{EC_{50}^{\,n} + C^{\,n}} $$
 Les formes **linéaire** ($E=E_0+S\cdot C$) et **log-linéaire** ($E=E_0+S\cdot\ln C$) sont des approximations valables sur une plage étroite.
 
 :::math
-Pour $C \ll EC_{50}$, l'Emax se comporte comme un modèle **linéaire** de pente $E_{max}/EC_{50}$.
+Pour $n = 1$ et $C \ll EC_{50}$, l'Emax se comporte comme un modèle **linéaire** de pente $E_{max}/EC_{50}$. Pour $n \neq 1$, la montée initiale est en $(C/EC_{50})^{n}$ — quadratique si $n=2$, en racine si $n=0{,}5$ — et cette pente ne vaut plus.
 :::
 <!-- /step -->
 

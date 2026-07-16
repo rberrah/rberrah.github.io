@@ -65,7 +65,7 @@ L'aire par trapèzes couvre les points observés ; on **extrapole** la queue par
 $$ \mathrm{AUC}_{0-\infty} = \mathrm{AUC}_{0-t} + \frac{C_{last}}{\lambda_z} $$
 
 :::math
-On en déduit les paramètres « primaires » : clairance $CL/F = \text{Dose}/\mathrm{AUC}$, demi-vie $t_{1/2} = \ln 2/\lambda_z$, et volume $V_z/F = CL/\lambda_z$.
+On en déduit les paramètres « primaires » : clairance $CL/F = \text{Dose}/\mathrm{AUC}$, demi-vie $t_{1/2} = \ln 2/\lambda_z$, et volume $V_z/F = \dfrac{CL/F}{\lambda_z}$.
 :::
 <!-- /step -->
 

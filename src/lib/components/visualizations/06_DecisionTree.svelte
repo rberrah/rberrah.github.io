@@ -10,10 +10,19 @@
     path.push({ label: 'Âge > 50 ?', branch: age > 50 ? 'oui' : 'non' });
     path.push({ label: 'Fumeur ?', branch: smoker ? 'oui' : 'non' });
   }
+  // La CONCLUSION de l'arbre — la catégorie de clairance — n'était portée que par la position
+  // de la bille orange : invisible pour un lecteur d'écran, ambiguë pour un daltonien. On la
+  // calcule explicitement, on l'écrit en toutes lettres, et on la met dans l'aria-label du SVG.
+  $: clx = age > 50 ? (smoker ? 90 : 150) : smoker ? 270 : 230;
+  $: clLabel = age > 50 ? (smoker ? 'CL basse' : 'CL moyenne') : smoker ? 'CL très élevée' : 'CL élevée';
 </script>
 
 <div class="tree">
-  <svg viewBox="0 0 320 220">
+  <svg
+    viewBox="0 0 320 220"
+    role="img"
+    aria-label={`Arbre de décision : ${age > 50 ? 'âge > 50' : 'âge ≤ 50'}, ${smoker ? 'fumeur' : 'non fumeur'} → ${clLabel}`}
+  >
     <line x1="160" y1="20" x2="120" y2="80" stroke="var(--text-primary)" />
     <line x1="160" y1="20" x2="200" y2="80" stroke="var(--text-primary)" />
     <line x1="120" y1="80" x2="90" y2="150" stroke="var(--text-primary)" />
@@ -37,14 +46,7 @@
     <text x="215" y="170" font-size="10" fill="var(--text-primary)">CL élevée</text>
     <text x="258" y="170" font-size="10" fill="var(--text-primary)">CL très élevée</text>
 
-    <circle
-      class="ball"
-      cx={age > 50 ? 120 : 200}
-      cy="80"
-      r="7"
-      fill="#f97316"
-      style={`transform: translateY(${smoker ? 70 : 0}px) translateX(${smoker ? -30 : 30}px); transition: transform 0.3s ease;`}
-    />
+    <circle class="ball" cx={clx} cy="150" r="7" fill="#f97316" />
   </svg>
 
   <div class="legend">
@@ -54,6 +56,10 @@
         <span>{step.branch}</span>
       </div>
     {/each}
+    <div class="step result">
+      <strong>Résultat</strong>
+      <span>{clLabel}</span>
+    </div>
   </div>
 </div>
 
@@ -82,5 +88,18 @@
     background: var(--bg-secondary);
     border: 1px solid var(--bg-secondary);
     border-radius: 10px;
+  }
+  .step.result {
+    background: color-mix(in srgb, var(--accent-pk-vivid, #f97316) 14%, var(--bg-tertiary));
+    border-color: var(--accent-pk-vivid, #f97316);
+    color: var(--text-primary);
+  }
+  .ball {
+    transition: cx 0.3s ease, cy 0.3s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ball {
+      transition: none;
+    }
   }
 </style>

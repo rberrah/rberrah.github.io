@@ -42,7 +42,7 @@ Puis un **rétrocontrôle** relance la production : les neutrophiles remontent, 
 <!-- step:title="La formule décortiquée" viz="32_Myelosuppression" -->
 Le modèle de **Friberg** (2002) chaîne un compartiment de prolifération, des compartiments de **transit** (maturation) et les cellules circulantes :
 
-$$ \frac{dProl}{dt} = k_{prol}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\right)^{\gamma} - k_{tr}\,Prol $$
+$$ \frac{dProl}{dt} = k_{tr}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\right)^{\gamma} - k_{tr}\,Prol $$
 
 - $E_{drug}$ : effet (souvent linéaire, $slope\cdot C$) inhibant la prolifération ;
 - les **transits** ($k_{tr}$) créent le délai du nadir (MTT) ;

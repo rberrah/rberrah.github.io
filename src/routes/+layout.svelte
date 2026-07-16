@@ -39,19 +39,20 @@
 </script>
 
 <svelte:head>
-  <meta name="description" content={copy.meta.description} />
+  <title>Pharmacométrie Pratique</title>
 </svelte:head>
 
+<a class="skip-link" href="#main-content">{$language === 'en' ? 'Skip to content' : 'Aller au contenu'}</a>
 <div class="app">
   <header data-testid="site-header">
     <a class="logo" href={`${base}/`} data-testid="logo-link">
       <span class="mark">Pk</span>
       <span class="word">Pharmacométrie<em>Explain</em></span>
     </a>
-    <button class="burger" aria-label="Menu" onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
+    <button class="burger" aria-label="Menu" aria-expanded={menuOpen} aria-controls="site-nav" onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
       <span></span><span></span><span></span>
     </button>
-    <nav class:open={menuOpen} aria-label={copy.nav.primary}>
+    <nav id="site-nav" class:open={menuOpen} aria-label={copy.nav.primary}>
       {#each links as link}
         <a
           class:active={isActive(link.href)}
@@ -67,7 +68,7 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main-content">
     {@render children()}
   </main>
 

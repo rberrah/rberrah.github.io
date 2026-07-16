@@ -28,7 +28,7 @@
         fill="rgba(59,130,246,0.12)"
         stroke={active === z.id ? '#2563eb' : 'transparent'}
         stroke-width="3"
-        role="button"
+        role="img"
         aria-label={z.label}
         tabindex="0"
         on:mouseenter={() => (active = z.id)}

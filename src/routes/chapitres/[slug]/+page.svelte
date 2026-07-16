@@ -126,6 +126,12 @@
   }
 </script>
 
+<svelte:head>
+  {#if displayChapter}
+    <title>{displayChapter.title} — Pharmacométrie Pratique</title>
+  {/if}
+</svelte:head>
+
 {#if !displayChapter}
   <div class="missing" data-testid="chapter-missing">
     <h1>{copy.chapter.missingTitle}</h1>

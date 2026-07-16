@@ -1,11 +1,16 @@
 <script>
   import Tooltip from '$lib/components/ui/Tooltip.svelte';
   import { clAllo, concMono } from '$lib/utils/math';
+  import { makeRng } from '$lib/sim/random';
 
   let showWeight = true;
+  // PRNG SEEDÉ, pas Math.random() : le composant est prérendu (SSR) puis hydraté côté client.
+  // Avec Math.random(), le serveur et le client tirent des poids différents → mismatch
+  // d'hydratation. Une graine fixe garantit le même nuage des deux côtés.
+  const rng = makeRng(20260714);
   const people = Array.from({ length: 100 }, (_, i) => ({
     id: i,
-    weight: 45 + Math.random() * 50
+    weight: 45 + rng() * 50
   }));
 
   $: sorted = [...people].sort((a, b) => (showWeight ? a.weight - b.weight : a.id - b.id));
@@ -23,6 +28,11 @@
       points: times.map((t) => concMono(t, dose, cl, v))
     };
   });
+  // Échelle Y AJUSTÉE AUX DONNÉES : avec un facteur fixe (160 − c·8), des concentrations ~4
+  // n'occupaient que 32 px sur 160 et les trois courbes se confondaient en bas du cadre.
+  $: cMax = Math.max(...curves.flatMap((cu) => cu.points)) * 1.1 || 1;
+  const plotH = 150; // hauteur utile dans le viewBox (0..180, marge basse 30)
+  $: yOf = (c) => 160 - (c / cMax) * plotH;
 </script>
 
 <div class="pop">
@@ -52,7 +62,7 @@
         fill="none"
         stroke={['#22c55e', '#2563eb', '#f97316'][idx]}
         stroke-width="2.5"
-        points={curve.points.map((c, t) => `${20 + t * 10},${160 - c * 8}`).join(' ')}
+        points={curve.points.map((c, t) => `${20 + t * 10},${yOf(c).toFixed(1)}`).join(' ')}
       />
     {/each}
     <text x="24" y="22" font-size="11" fill="var(--text-primary)">Courbes par poids</text>

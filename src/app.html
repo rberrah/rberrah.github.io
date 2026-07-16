@@ -2,11 +2,19 @@
 <html lang="fr">
 	<head>
 		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- Le <title> et la <meta description> sont posés par +layout.svelte (defaut) et par
+		     chaque route de chapitre (titre specifique), pour n'avoir qu'une seule balise de
+		     chaque, y compris apres prerender. -->
 		<meta
 			name="description"
 			content="Pharmacométrie Pratique — un cours visuel et interactif de pharmacométrie : PK/PD, clairance, variabilité, suivi thérapeutique et IA appliquée. Contenu pédagogique original."
 		/>
+		<meta property="og:title" content="Pharmacométrie Pratique" />
+		<meta property="og:description" content="Un cours visuel et interactif de pharmacométrie : PK/PD, clairance, variabilité, TDM, IA appliquée." />
+		<meta property="og:type" content="website" />
+		<meta name="twitter:card" content="summary" />
 		<!-- Appliqué AVANT le premier rendu : sinon le lecteur en mode sombre reçoit un flash
 		     blanc à chaque navigation. Volontairement inline et bloquant, c'est deux lignes. -->
 		<script>
