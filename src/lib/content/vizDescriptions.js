@@ -126,8 +126,8 @@ const D = {
     en: "A forest plot of covariate effects (ratio vs reference) with 95% CI. The line at 1 = no effect; the band = the clinically inconsequential zone."
   },
   '54_TMDD': {
-    fr: "PK non linéaire (TMDD) en semi-log : à faible dose la cible sature vite (chute rapide), à forte dose la pente s'allonge — la clairance diminue quand la dose monte.",
-    en: "Nonlinear PK (TMDD) on semi-log: at low dose the target saturates fast (rapid drop), at high dose the slope lengthens — clearance falls as dose rises."
+    fr: "PK non linéaire (TMDD) en semi-log : à faible dose la cible est libre et l'absorbe (chute rapide), à forte dose elle est saturée et la pente s'allonge — la clairance diminue quand la dose monte.",
+    en: "Nonlinear PK (TMDD) on semi-log: at low dose the target is free and mops the drug up (rapid drop), at high dose it is saturated and the slope lengthens — clearance falls as dose rises."
   },
   '55_ADA': {
     fr: "Immunogénicité : après la séroconversion, la clairance augmente et les concentrations résiduelles s'effondrent sous la cible (perte de réponse). Réglez θ et l'apparition.",

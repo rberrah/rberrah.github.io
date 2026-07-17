@@ -25,9 +25,17 @@
   const refDoses = [30, 100, 300];
   $: curves = refDoses.map((d) => ({ d, pts: simulate(d) }));
   $: sel = simulate(dose);
-  // demi-vie apparente sur la dernière portion (jours)
+  // Demi-vie apparente sur la dernière portion RÉELLE de la courbe (jours).
+  // La simulation plafonne C à 1e-4 : aux doses usuelles, la courbe atteignait ce plancher
+  // avant la fin, les deux points de mesure se retrouvaient sur ce plateau artificiel, et le
+  // readout affichait « 0,0 j » — le chiffre censé porter la leçon du chapitre. On ne mesure
+  // donc que là où la courbe est encore réelle.
   $: thalfEnd = (() => {
-    const a = sel[Math.round(sel.length * 0.7)], b = sel[sel.length - 1];
+    const PLANCHER = 1e-3;
+    const reels = sel.filter((p) => p.C > PLANCHER);
+    if (reels.length < 10) return 0;
+    const b = reels[reels.length - 1];
+    const a = reels[Math.max(0, reels.length - 1 - Math.round(reels.length * 0.25))];
     const k = (Math.log(a.C) - Math.log(b.C)) / (b.t - a.t);
     return k > 0 ? Math.log(2) / k : 0;
   })();
@@ -75,6 +83,9 @@
 <style>
   .wrap { display: grid; gap: var(--space-4); --mab: #a06a2c; }
   @media (min-width: 720px) { .wrap { grid-template-columns: 215px 1fr; align-items: center; } }
+  /* Le panneau de chapitre fait ~610 px meme sur grand ecran : on interroge le CONTENEUR,
+     pas la fenetre, sinon les controles ecrasent la figure. */
+  @container (max-width: 700px) { .wrap { grid-template-columns: 1fr; align-items: stretch; } }
   .controls { display: grid; gap: var(--space-2); }
   .readout, .s { font-family: var(--font-mono); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }

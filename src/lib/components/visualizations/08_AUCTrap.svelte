@@ -92,6 +92,9 @@
 <style>
   .wrap { display: grid; gap: var(--space-4); }
   @media (min-width: 720px) { .wrap { grid-template-columns: 220px 1fr; align-items: center; } }
+  /* Le panneau de chapitre fait ~610 px meme sur grand ecran : on interroge le CONTENEUR,
+     pas la fenetre, sinon les controles ecrasent la figure. */
+  @container (max-width: 700px) { .wrap { grid-template-columns: 1fr; align-items: stretch; } }
   .controls { display: grid; gap: var(--space-2); }
   .seg { display: flex; flex-direction: column; gap: 4px; }
   .seg button { font-family: var(--font-mono); font-size: var(--text-xs); padding: 4px 8px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; text-align: left; }

@@ -127,6 +127,9 @@
 <style>
   .wrap { display: grid; gap: var(--space-4); }
   @media (min-width: 720px) { .wrap { grid-template-columns: 210px 1fr; align-items: center; } }
+  /* Le panneau de chapitre fait ~610 px meme sur grand ecran : on interroge le CONTENEUR,
+     pas la fenetre, sinon les controles ecrasent la figure. */
+  @container (max-width: 700px) { .wrap { grid-template-columns: 1fr; align-items: stretch; } }
   .controls { display: grid; gap: var(--space-2); }
   .modes { display: flex; gap: var(--space-2); }
   .modes button, .s { font-family: var(--font-mono); }
