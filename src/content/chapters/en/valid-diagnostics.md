@@ -16,20 +16,20 @@ quiz:
   - prompt: "No single diagnostic plot is enough; we cross-check them because..."
     options:
       - "each reveals a different kind of defect (structure, variability, error)"
-      - "they all say the same thing"
-      - "it is an arbitrary regulatory duty"
+      - "they all probe the same defect, we just stack them to gain power"
+      - "only the VPC truly matters, the others merely confirm it"
     correct: 0
   - prompt: "On |IWRES| vs predictions, a rising trend signals..."
     options:
       - "a wrong residual-error model (heteroscedasticity)"
-      - "a good fit"
-      - "a dosing error"
+      - "an inadequate structural model (missing compartment)"
+      - "an unmodelled covariate effect on clearance"
     correct: 0
   - prompt: "The distribution of random effects (η) should ideally be..."
     options:
       - "centred on 0 and roughly symmetric/Gaussian"
-      - "always bimodal"
-      - "strictly positive"
+      - "centred on the parameter's typical value, not zero"
+      - "strictly positive, like the PK parameters themselves"
     correct: 0
 ---
 

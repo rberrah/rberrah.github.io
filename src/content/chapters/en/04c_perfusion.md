@@ -14,8 +14,8 @@ quiz:
   - prompt: "A zero-order input means the input rate is..."
     options:
       - "constant, independent of concentration"
-      - "proportional to concentration"
-      - "zero"
+      - "proportional to the current concentration"
+      - "proportional to the amount left to absorb"
     correct: 0
   - prompt: "The steady-state concentration of an infusion is..."
     options:
@@ -25,9 +25,9 @@ quiz:
     correct: 0
   - prompt: "Doubling the infusion rate R0..."
     options:
-      - "doubles Css without changing the time to reach it"
-      - "reaches Css twice as fast"
-      - "does not change Css"
+      - "doubles Css without speeding up its rise"
+      - "doubles Css and reaches it twice as fast"
+      - "reaches the same Css twice as fast"
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "A covariate-effect forest plot shows..."
     options:
       - "the magnitude of each effect (ratio) with its confidence interval"
-      - "the concentration over time"
-      - "the model structure"
+      - "the predicted concentration-time profile for each patient subgroup"
+      - "the correlation matrix between the covariates kept in the model"
     correct: 0
   - prompt: "A covariate effect is clinically relevant if it..."
     options:
-      - "leaves the zone deemed inconsequential (e.g. ±20%)"
-      - "is merely statistically significant"
-      - "concerns many patients"
+      - "leaves the zone deemed clinically inconsequential (e.g. ±20%)"
+      - "reaches the threshold of statistical significance (p < 0.05)"
+      - "concerns a covariate that is frequent in the studied population"
     correct: 0
   - prompt: "A confidence interval that crosses 1 (no effect) means..."
     options:
-      - "the effect is uncertain"
-      - "the effect is strong"
-      - "the dose must be increased"
+      - "the effect is not statistically distinct from no effect at all"
+      - "the effect is certain but too small in magnitude to matter"
+      - "the effect ratio equals exactly 1 across the whole population"
     correct: 0
 ---
 

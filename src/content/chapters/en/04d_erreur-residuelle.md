@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "A proportional residual error means the noise..."
     options:
-      - "grows with the predicted concentration (a roughly constant %CV)"
-      - "has constant width at all concentrations"
-      - "does not exist"
+      - "grows in proportion to the predicted value"
+      - "has a constant width at all concentrations"
+      - "shrinks as the predicted concentration rises"
     correct: 0
   - prompt: "A funnel-shaped |IWRES| vs predictions plot indicates..."
     options:
-      - "a wrong error model (often additive instead of combined)"
-      - "an excellent fit"
-      - "a dosing error"
+      - "an error model unsuited to these data"
+      - "a broadly satisfactory fit of the model"
+      - "a systematic bias in the structural model"
     correct: 0
   - prompt: "The combined error model is useful because it..."
     options:
-      - "handles both a floor (additive) and a %CV (proportional)"
-      - "removes all variability"
-      - "forces zero error near zero"
+      - "combines an additive floor and a proportional %CV"
+      - "removes the need for inter-individual variability"
+      - "forces a constant error whatever the value"
     correct: 0
 ---
 

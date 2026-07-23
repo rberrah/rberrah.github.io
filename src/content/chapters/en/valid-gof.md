@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "On an observations vs predictions plot, a good model gives..."
     options:
-      - "a symmetric cloud around the identity line"
-      - "all points above the diagonal"
-      - "a horizontal line"
+      - "a symmetric cloud scattered around the identity line"
+      - "a cloud curving below the diagonal at high values"
+      - "a perfect alignment with no scatter around the line"
     correct: 0
   - prompt: "A trend of CWRES versus time indicates..."
     options:
       - "a misspecified structural model"
-      - "a good fit"
-      - "a unit error"
+      - "an ill-sized residual-error model"
+      - "underestimated random-effect variance"
     correct: 0
   - prompt: "Well-specified CWRES should be..."
     options:
       - "centred on 0, without trend, mostly within ±2"
-      - "all positive"
-      - "increasing with time"
+      - "centred on 0 but all confined within ±1, no exception"
+      - "centred on 0 but rising with the predicted concentration"
     correct: 0
 ---
 

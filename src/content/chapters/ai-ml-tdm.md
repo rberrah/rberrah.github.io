@@ -16,14 +16,14 @@ quiz:
   - prompt: "L'apport principal du ML pour le TDM est de..."
     options:
       - "prédire l'exposition (AUC) à partir de peu de prélèvements"
-      - "remplacer le clinicien"
-      - "supprimer la validation externe"
+      - "supprimer tout besoin de prélèvement sanguin chez le patient"
+      - "estimer la clairance individuelle en ajustant une EDO mécaniste"
     correct: 0
   - prompt: "Un modèle hybride PopPK + ML cherche à..."
     options:
       - "combiner la structure mécaniste et la flexibilité de l'apprentissage"
-      - "abandonner toute pharmacologie"
-      - "ignorer l'incertitude"
+      - "remplacer entièrement la PopPK par un réseau appris sur les données"
+      - "n'utiliser la PopPK que pour simuler des données d'entraînement au ML"
     correct: 0
 ---
 

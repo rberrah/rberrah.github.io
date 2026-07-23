@@ -16,20 +16,20 @@ quiz:
   - prompt: "Une VPC compare..."
     options:
       - "les percentiles des observations à ceux de nombreuses simulations"
-      - "deux doses"
-      - "la Cmax et le Tmax"
+      - "les prédictions individuelles aux observations, patient par patient"
+      - "les percentiles observés à la courbe de prédiction typique (PRED)"
     correct: 0
   - prompt: "La pcVPC (prediction-corrected) sert à..."
     options:
-      - "corriger la variabilité due aux différences de dose/covariables entre sujets"
-      - "supprimer les observations"
-      - "augmenter la variabilité"
+      - "corriger la variabilité due aux différences de dose entre sujets"
+      - "regrouper les observations en intervalles de temps optimaux"
+      - "corriger le biais de linéarisation dans le calcul des résidus"
     correct: 0
   - prompt: "Si beaucoup d'observations tombent hors des intervalles simulés, alors..."
     options:
-      - "le modèle reproduit mal les données"
-      - "le modèle est parfait"
-      - "il faut plus de dose"
+      - "le modèle reproduit mal la tendance ou la variabilité observées"
+      - "les bandes simulées sont trop étroites, il suffit de les élargir"
+      - "le nombre de simulations est trop faible pour conclure"
     correct: 0
 ---
 

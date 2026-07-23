@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La fonction objective (OFV = −2 log L) d'un bon modèle est..."
     options:
-      - "plus basse (les données sont plus vraisemblables)"
-      - "plus haute"
-      - "toujours nulle"
+      - "plus basse : les données y sont plus vraisemblables"
+      - "plus haute : un bon modèle maximise la fonction objective"
+      - "proche de zéro, un modèle parfait l'annulant totalement"
     correct: 0
   - prompt: "Ajouter un paramètre fait toujours..."
     options:
-      - "baisser (ou égaler) l'OFV — d'où le besoin de pénaliser la complexité"
-      - "monter l'OFV"
-      - "changer la dose"
+      - "baisser (ou égaler) l'OFV, d'où le besoin de pénaliser la complexité"
+      - "baisser l'OFV d'au moins 3,84 points, le seuil du χ² à 5 %"
+      - "laisser l'OFV inchangé si le paramètre n'est pas significatif"
     correct: 0
   - prompt: "Le test du rapport de vraisemblance (ΔOFV ~ χ²) s'applique..."
     options:
       - "à des modèles emboîtés (l'un est un cas particulier de l'autre)"
-      - "à n'importe quels modèles"
-      - "sans degré de liberté"
+      - "à deux modèles quelconques, emboîtés ou non, mêmes données"
+      - "à des modèles estimés par des méthodes différentes (FOCE vs SAEM)"
     correct: 0
 ---
 

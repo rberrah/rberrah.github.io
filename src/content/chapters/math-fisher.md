@@ -18,20 +18,20 @@ quiz:
   - prompt: "La matrice d'information de Fisher (FIM) sert à..."
     options:
       - "prédire la précision d'estimation des paramètres selon le design"
-      - "calculer l'AUC"
-      - "choisir la dose thérapeutique"
+      - "estimer directement la valeur des paramètres du modèle"
+      - "mesurer la qualité d'ajustement du modèle aux données"
     correct: 0
   - prompt: "La borne de Cramér-Rao dit que la variance d'un estimateur non biaisé est..."
     options:
       - "au moins l'inverse de l'information de Fisher"
-      - "toujours nulle"
-      - "indépendante du design"
+      - "exactement égale à l'inverse de l'information de Fisher"
+      - "au plus l'inverse de l'information de Fisher"
     correct: 0
   - prompt: "Un design optimal cherche à..."
     options:
       - "placer les prélèvements aux temps les plus informatifs"
-      - "multiplier les prélèvements au hasard"
-      - "réduire le nombre de patients à un"
+      - "répartir les prélèvements à intervalles réguliers dans le temps"
+      - "maximiser le nombre total de prélèvements par patient"
     correct: 0
 ---
 

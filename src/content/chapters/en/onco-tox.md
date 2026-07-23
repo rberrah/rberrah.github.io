@@ -14,14 +14,14 @@ quiz:
   - prompt: "In the Friberg model, the neutrophil nadir occurs..."
     options:
       - "with a delay (maturation time), after the concentration peak"
-      - "exactly at the concentration peak"
-      - "before dosing"
+      - "exactly at the drug's peak plasma concentration, with no delay"
+      - "at the end of the infusion, before the marrow cells mature"
     correct: 0
   - prompt: "The feedback term (Circ₀/Circ)^γ serves to..."
     options:
-      - "drive production back up after the nadir"
-      - "remove the toxicity"
-      - "change the drug clearance"
+      - "drive marrow production back up after the nadir"
+      - "speed up the maturation of the transiting cells"
+      - "amplify the drug's inhibitory effect on the marrow"
     correct: 0
 ---
 

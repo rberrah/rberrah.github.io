@@ -14,20 +14,20 @@ quiz:
   - prompt: "The principle of gradient boosting is to..."
     options:
       - "add trees sequentially that correct the residuals (the gradient)"
-      - "average independent trees"
-      - "train one very large tree"
+      - "average deep trees trained independently in parallel"
+      - "train a single very deep tree covering all interactions"
     correct: 0
   - prompt: "Compared with plain gradient boosting, XGBoost mainly adds..."
     options:
       - "regularisation and second-order optimisation"
-      - "deletion of covariates"
-      - "a mandatory linear model"
+      - "bootstrap aggregation of the trees to reduce variance"
+      - "systematic pruning of each tree after training"
     correct: 0
   - prompt: "CatBoost is particularly suited when..."
     options:
       - "there are many categorical variables"
-      - "there is no data"
-      - "the response is constant"
+      - "there are very many continuous numerical variables"
+      - "the dataset is too small for any other model"
     correct: 0
 ---
 

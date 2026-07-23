@@ -16,20 +16,20 @@ quiz:
   - prompt: "mrgsolve and rxode2 mainly serve to..."
     options:
       - "quickly simulate ODEs and large populations (R)"
-      - "estimate parameters from data"
-      - "draw molecules"
+      - "fit a model's parameters to a dataset of observations"
+      - "run a non-compartmental analysis (NCA) of observed profiles"
     correct: 0
   - prompt: "A VPC requires..."
     options:
-      - "simulating many datasets under the model"
-      - "a single typical prediction"
-      - "no simulation"
+      - "simulating many datasets under the fitted model"
+      - "comparing a single typical prediction curve to the observations"
+      - "resampling the observations by bootstrap, with no model"
     correct: 0
   - prompt: "Simulating a 'virtual trial' allows one to..."
     options:
-      - "evaluate designs and doses before the real trial"
-      - "replace pharmacology"
-      - "remove variability"
+      - "evaluate study designs and doses before the real trial"
+      - "confirm clinical efficacy without ever enrolling patients"
+      - "estimate the model parameters from the trial data"
     correct: 0
 ---
 

@@ -18,20 +18,20 @@ quiz:
   - prompt: "mrgsolve et rxode2 servent surtout à..."
     options:
       - "simuler rapidement des ODE et de grandes populations (R)"
-      - "estimer les paramètres à partir de données"
-      - "dessiner des molécules"
+      - "ajuster les paramètres d'un modèle sur des données observées"
+      - "réaliser une analyse non compartimentale (NCA) des profils observés"
     correct: 0
   - prompt: "Une VPC nécessite de..."
     options:
-      - "simuler de nombreux jeux de données sous le modèle"
-      - "une seule prédiction typique"
-      - "aucune simulation"
+      - "simuler de nombreux jeux de données sous le modèle ajusté"
+      - "comparer une seule courbe de prédiction typique aux observations"
+      - "rééchantillonner les observations par bootstrap, sans modèle"
     correct: 0
   - prompt: "Simuler un « essai virtuel » permet de..."
     options:
-      - "évaluer designs et doses avant l'essai réel"
-      - "remplacer la pharmacologie"
-      - "supprimer la variabilité"
+      - "évaluer des schémas d'étude et des doses avant l'essai réel"
+      - "confirmer l'efficacité clinique sans jamais recruter de patients"
+      - "estimer les paramètres du modèle à partir des données de l'essai"
     correct: 0
 ---
 

@@ -18,20 +18,20 @@ quiz:
   - prompt: "Le théorème de Bayes combine..."
     options:
       - "une information a priori (prior) et la vraisemblance des données"
-      - "uniquement les données observées"
-      - "uniquement l'avis de l'expert"
+      - "la distribution a posteriori et la vraisemblance marginale des données"
+      - "l'estimation du maximum de vraisemblance et l'erreur résiduelle du modèle"
     correct: 0
   - prompt: "L'estimation MAP (maximum a posteriori) retient..."
     options:
       - "le sommet de la distribution a posteriori"
-      - "la moyenne du prior seul"
-      - "la plus grande observation"
+      - "le sommet de la vraisemblance seule, sans le terme de prior"
+      - "la moyenne de la distribution a priori initiale"
     correct: 0
   - prompt: "Quand les données individuelles sont peu informatives, l'estimation bayésienne..."
     options:
       - "se rapproche du prior (rétrécissement / shrinkage)"
-      - "ignore le prior"
-      - "diverge vers l'infini"
+      - "suit surtout les quelques mesures individuelles disponibles"
+      - "pondère également le prior et chaque nouvelle observation"
     correct: 0
 ---
 

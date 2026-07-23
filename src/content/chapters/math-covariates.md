@@ -16,20 +16,20 @@ quiz:
   - prompt: "Ajouter une covariable pertinente à un modèle de population..."
     options:
       - "explique une partie de la variabilité inter-individuelle (l'oméga baisse)"
-      - "augmente toujours la variabilité"
-      - "n'a aucun effet sur l'oméga"
+      - "réduit surtout l'erreur résiduelle (le sigma), pas l'oméga"
+      - "déplace la valeur typique sans réduire la variabilité inter-individuelle"
     correct: 0
   - prompt: "L'allométrie décrit l'effet du poids sur la clairance par..."
     options:
       - "une loi puissance d'exposant ~0,75"
       - "une relation linéaire d'exposant 1"
-      - "aucune relation"
+      - "une loi puissance d'exposant proche de 0,67 (surface)"
     correct: 0
   - prompt: "La sélection pas-à-pas (SCM) risque..."
     options:
       - "de sur-sélectionner et de biaiser les effets (données réutilisées)"
-      - "de toujours donner le vrai modèle"
-      - "d'ignorer les covariables"
+      - "de sous-sélectionner en manquant des covariables vraies"
+      - "de rallonger les calculs sans changer le modèle final"
     correct: 0
 ---
 

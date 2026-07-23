@@ -16,14 +16,14 @@ quiz:
   - prompt: "Estimer un paramètre par maximum de vraisemblance, c'est chercher la valeur qui..."
     options:
       - "rend les données observées les plus plausibles"
-      - "annule tous les résidus"
-      - "maximise le nombre de paramètres"
+      - "minimise la somme des carrés des résidus dans tous les cas"
+      - "maximise la probabilité a priori du paramètre estimé"
     correct: 0
   - prompt: "Une régression log-linéaire ln(C) vs t donne directement..."
     options:
       - "la constante d'élimination (pente) et C₀ (ordonnée à l'origine)"
-      - "la dose"
-      - "le poids du patient"
+      - "le volume de distribution (pente) et la clairance (ordonnée)"
+      - "la demi-vie (pente) et l'AUC totale (ordonnée à l'origine)"
     correct: 0
 ---
 

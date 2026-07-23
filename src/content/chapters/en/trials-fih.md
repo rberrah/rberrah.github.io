@@ -14,20 +14,20 @@ quiz:
   - prompt: "The MABEL approach bases the starting dose on..."
     options:
       - "the minimal anticipated biological effect level (pharmacology)"
-      - "the maximum tolerated dose"
-      - "the patient's weight"
+      - "the highest dose with no observed adverse effect in animals"
+      - "the exposure equivalent to the established animal therapeutic dose"
     correct: 0
   - prompt: "The NOAEL comes from..."
     options:
       - "animal toxicology studies (no observed adverse effect level)"
-      - "a phase III trial"
-      - "the manufacturing file"
+      - "in-vitro pharmacology studies (target affinity and potency data)"
+      - "modelling of the target-receptor occupancy expected in humans"
     correct: 0
   - prompt: "For highly active molecules (immune agonists), we favour..."
     options:
-      - "MABEL over NOAEL, more conservative"
-      - "the highest possible dose"
-      - "no modelling"
+      - "MABEL over NOAEL, as it is the more conservative approach"
+      - "the NOAEL divided by a markedly larger safety factor than usual"
+      - "the average of the NOAEL-derived and the MABEL-derived doses"
     correct: 0
 ---
 

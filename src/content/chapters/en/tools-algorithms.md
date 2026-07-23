@@ -16,20 +16,20 @@ quiz:
   - prompt: "The likelihood of an NLME model is hard because..."
     options:
       - "it contains an integral over the random effects, with no closed form"
-      - "it is always zero"
-      - "it does not depend on the data"
+      - "it has a closed form but is costly to evaluate numerically"
+      - "it factorises into a product of independent normal densities"
     correct: 0
   - prompt: "FOCE approximates the likelihood by..."
     options:
       - "linearising the model around the estimated individual effects"
-      - "simulating thousands of patients"
-      - "ignoring variability"
+      - "drawing MCMC samples of the random effects at each iteration"
+      - "integrating the likelihood numerically by Gauss-Hermite quadrature"
     correct: 0
   - prompt: "SAEM avoids linearisation by..."
     options:
       - "simulating the random effects (E) then updating the parameters (M)"
-      - "assuming the model is linear"
-      - "fixing all parameters"
+      - "expanding the model to first order around η̂ (as FOCE does)"
+      - "approximating the integral by Laplace's method at the posterior mode"
     correct: 0
 ---
 

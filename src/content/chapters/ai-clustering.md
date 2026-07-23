@@ -18,20 +18,20 @@ quiz:
   - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler..."
     options:
       - "qu'un paramètre (ex. la clairance) dépend du type de cancer → une covariable"
-      - "la dose optimale sans données"
-      - "la structure chimique"
+      - "que la variabilité résiduelle explique à elle seule les écarts observés"
+      - "que le type de cancer doit devenir la variable réponse à prédire"
     correct: 0
   - prompt: "La PCA (analyse en composantes principales) sert à..."
     options:
       - "réduire la dimension en gardant les directions de plus grande variance"
-      - "supprimer des patients"
-      - "augmenter le nombre de paramètres"
+      - "regrouper les patients en classes à partir de leurs étiquettes connues"
+      - "sélectionner les covariables les plus corrélées à la variable réponse"
     correct: 0
   - prompt: "En RMT (Random Matrix Theory), une valeur propre au-dessus du seuil λ₊ de Marchenko-Pastur indique..."
     options:
       - "une vraie corrélation (signal), pas du bruit"
-      - "une erreur de calcul"
-      - "un patient aberrant"
+      - "du bruit d'échantillonnage, à écarter comme non pertinent"
+      - "une colinéarité parfaite entre deux paramètres du modèle"
     correct: 0
 ---
 

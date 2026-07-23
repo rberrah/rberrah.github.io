@@ -17,19 +17,19 @@ quiz:
     options:
       - "la dose et la voie d'administration"
       - "un modèle physiologique complet"
-      - "un réseau de neurones entraîné"
+      - "une hypothèse sur le nombre de compartiments"
     correct: 0
   - prompt: "Une cinétique d'ordre 1 signifie que la vitesse..."
     options:
       - "est proportionnelle à la concentration"
       - "est constante quelle que soit la concentration"
-      - "est nulle"
+      - "croît avec le carré de la concentration"
     correct: 0
   - prompt: "L'extrapolation de l'AUC jusqu'à l'infini utilise..."
     options:
       - "la dernière concentration et la pente terminale λz"
-      - "uniquement la dose"
-      - "le poids du patient"
+      - "la première concentration et la constante d'absorption ka"
+      - "la Cmax et le temps du pic Tmax observés"
     correct: 0
 ---
 

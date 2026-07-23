@@ -15,15 +15,15 @@ slides: []
 quiz:
   - prompt: "NONMEM is used mainly through..."
     options:
-      - "a text control stream preprocessed by NM-TRAN"
-      - "a drag-and-drop interface"
-      - "a spreadsheet"
+      - "a plain-text control stream preprocessed by the NM-TRAN translator"
+      - "a graphical interface where the model is assembled from drop-down menus"
+      - "an R script that describes the model and calls the estimation engine"
     correct: 0
   - prompt: "NONMEM's historical estimation method is..."
     options:
-      - "FOCE (with interaction)"
-      - "none"
-      - "a neural network"
+      - "FOCE-I, first-order conditional estimation with interaction"
+      - "SAEM, a stochastic approximation of expectation-maximisation"
+      - "ordinary least squares applied to the mean concentrations"
     correct: 0
 ---
 

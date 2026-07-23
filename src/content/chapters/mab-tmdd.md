@@ -17,15 +17,15 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le TMDD (target-mediated drug disposition) produit une PK..."
     options:
-      - "non linéaire : la clairance dépend de la dose"
-      - "parfaitement linéaire à toutes les doses"
-      - "indépendante de la cible"
+      - "non linéaire : la clairance diminue quand la dose augmente"
+      - "linéaire : la liaison à la cible ne modifie pas l'élimination"
+      - "non linéaire : la clairance augmente quand la dose augmente"
     correct: 0
   - prompt: "À forte dose, la cible étant saturée, la PK d'un mAb devient..."
     options:
-      - "quasi linéaire (voie cible négligeable)"
-      - "de plus en plus rapide"
-      - "nulle"
+      - "quasi linéaire : la voie cible devient négligeable"
+      - "de plus en plus rapide : la cible capte plus de médicament"
+      - "fortement non linéaire : la voie cible domine l'élimination"
     correct: 0
 ---
 

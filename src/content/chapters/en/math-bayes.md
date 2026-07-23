@@ -14,20 +14,20 @@ quiz:
   - prompt: "Bayes' theorem combines..."
     options:
       - "prior information and the likelihood of the data"
-      - "only the observed data"
-      - "only the expert's opinion"
+      - "the posterior distribution and the marginal likelihood of the data"
+      - "the maximum-likelihood estimate and the model's residual error"
     correct: 0
   - prompt: "MAP (maximum a posteriori) estimation keeps..."
     options:
       - "the peak of the posterior distribution"
-      - "the mean of the prior alone"
-      - "the largest observation"
+      - "the peak of the likelihood alone, without the prior term"
+      - "the mean of the initial prior distribution"
     correct: 0
   - prompt: "When individual data are weakly informative, a Bayesian estimate..."
     options:
-      - "moves toward the prior (shrinkage)"
-      - "ignores the prior"
-      - "diverges to infinity"
+      - "moves toward the prior (this is shrinkage)"
+      - "follows mainly the few available measurements"
+      - "weights the prior and observations equally"
     correct: 0
 ---
 

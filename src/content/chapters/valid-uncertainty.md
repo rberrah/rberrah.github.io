@@ -16,20 +16,20 @@ quiz:
   - prompt: "Le RSE (relative standard error) d'un paramètre mesure..."
     options:
       - "l'incertitude relative de son estimation (SE/estimation)"
-      - "sa variabilité inter-individuelle"
-      - "sa valeur moyenne"
+      - "sa variabilité inter-individuelle, c'est-à-dire son oméga"
+      - "l'erreur résiduelle du modèle rapportée à l'estimation"
     correct: 0
   - prompt: "Le bootstrap estime l'incertitude en..."
     options:
       - "ré-échantillonnant les sujets et ré-estimant le modèle"
-      - "supprimant des paramètres"
-      - "augmentant la dose"
+      - "linéarisant la vraisemblance autour de l'estimation finale"
+      - "simulant de nouvelles observations sous le modèle ajusté"
     correct: 0
   - prompt: "Un RSE très élevé (ex. > 50 %) sur un paramètre suggère..."
     options:
-      - "qu'il est mal identifié par les données"
-      - "qu'il est parfaitement estimé"
-      - "que la dose est trop faible"
+      - "qu'il est mal identifié par les données disponibles"
+      - "qu'il varie fortement entre patients (oméga élevé)"
+      - "qu'il est fortement corrélé à un autre paramètre"
     correct: 0
 ---
 

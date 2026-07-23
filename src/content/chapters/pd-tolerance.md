@@ -16,20 +16,20 @@ quiz:
   - prompt: "La tolérance pharmacodynamique se traduit par..."
     options:
       - "un effet qui diminue au cours d'une exposition constante"
-      - "un effet qui augmente indéfiniment"
-      - "une PK modifiée"
+      - "un effet qui s'intensifie au fil d'une exposition prolongée"
+      - "une baisse d'effet due à la chute de l'exposition plasmatique"
     correct: 0
   - prompt: "Un rebond à l'arrêt du traitement s'explique souvent par..."
     options:
       - "un contre-régulateur qui a monté pendant le traitement"
-      - "une erreur de dosage"
-      - "un volume trop faible"
+      - "l'élimination rapide du médicament à l'arrêt de la prise"
+      - "une down-régulation des récepteurs pendant le traitement"
     correct: 0
   - prompt: "Un modèle à pool de précurseurs peut produire..."
     options:
       - "un épuisement puis une récupération de la réponse"
-      - "un effet strictement linéaire"
-      - "aucune dynamique"
+      - "une hausse continue de la réponse sans épuisement"
+      - "un plateau stable sans phase de récupération"
     correct: 0
 ---
 

@@ -14,8 +14,8 @@ quiz:
   - prompt: "Absolute bioavailability F is computed by comparing..."
     options:
       - "the oral AUC (dose-normalised) to the IV AUC"
-      - "Cmax to Tmax"
-      - "oral λz to IV λz"
+      - "the oral Cmax (dose-normalised) to the IV Cmax"
+      - "the oral terminal slope to the IV terminal slope"
     correct: 0
   - prompt: "Cmax and Tmax mainly inform about..."
     options:

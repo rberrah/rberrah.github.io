@@ -21,15 +21,15 @@ quiz:
     correct: 0
   - prompt: "Dans le modèle Emax, EC50 est la concentration qui donne..."
     options:
-      - "la moitié de l'effet maximal"
-      - "l'effet maximal"
-      - "aucun effet"
+      - "la moitié de l'effet maximal atteignable"
+      - "l'effet maximal, au plateau de la courbe"
+      - "la moitié de la concentration au pic"
     correct: 0
   - prompt: "Le coefficient de Hill (n) contrôle..."
     options:
       - "la raideur de la courbe concentration–effet"
-      - "la demi-vie du médicament"
-      - "le volume de distribution"
+      - "la hauteur du plateau, soit l'effet maximal"
+      - "la concentration donnant la moitié de l'effet"
     correct: 0
 ---
 

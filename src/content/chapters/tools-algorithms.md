@@ -18,20 +18,20 @@ quiz:
   - prompt: "La vraisemblance d'un modèle NLME est difficile car..."
     options:
       - "elle contient une intégrale sur les effets aléatoires, sans forme close"
-      - "elle est toujours nulle"
-      - "elle ne dépend pas des données"
+      - "elle admet une forme close mais coûteuse à évaluer numériquement"
+      - "elle se factorise en un produit de lois normales indépendantes"
     correct: 0
   - prompt: "FOCE approxime la vraisemblance en..."
     options:
       - "linéarisant le modèle autour des effets individuels estimés"
-      - "simulant des milliers de patients"
-      - "ignorant la variabilité"
+      - "simulant des tirages MCMC des effets aléatoires à chaque itération"
+      - "intégrant numériquement la vraisemblance par quadrature de Gauss-Hermite"
     correct: 0
   - prompt: "SAEM évite la linéarisation en..."
     options:
       - "simulant les effets aléatoires (E) puis mettant à jour les paramètres (M)"
-      - "supposant le modèle linéaire"
-      - "fixant tous les paramètres"
+      - "développant le modèle au premier ordre autour de η̂ (comme le fait FOCE)"
+      - "approchant l'intégrale par la méthode de Laplace au mode a posteriori"
     correct: 0
 ---
 

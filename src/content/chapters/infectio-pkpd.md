@@ -16,14 +16,14 @@ quiz:
   - prompt: "Pour les bêta-lactamines, l'indice PK/PD prédictif d'efficacité est..."
     options:
       - "le temps passé au-dessus de la CMI (T>MIC)"
-      - "le poids du patient"
-      - "la couleur de la solution"
+      - "le pic de concentration sur CMI (Cmax/CMI)"
+      - "l'aire sous la courbe sur CMI (AUC/CMI)"
     correct: 0
   - prompt: "Un antibiotique concentration-dépendant (aminoside) est optimisé par..."
     options:
       - "un Cmax/MIC élevé (fortes doses espacées)"
-      - "des doses faibles très fréquentes"
-      - "une perfusion nulle"
+      - "un T>CMI élevé par perfusion continue prolongée"
+      - "des doses faibles et rapprochées pour lisser le pic"
     correct: 0
 ---
 

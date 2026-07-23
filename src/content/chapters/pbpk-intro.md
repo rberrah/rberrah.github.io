@@ -17,19 +17,19 @@ quiz:
     options:
       - "des organes réels reliés par la circulation sanguine"
       - "des abstractions mathématiques sans sens physiologique"
-      - "des doses"
+      - "des ensembles de tissus regroupés selon leur cinétique d'équilibre"
     correct: 0
   - prompt: "Un organe 'perfusion-limited' est limité par..."
     options:
-      - "le débit sanguin qui l'irrigue"
-      - "la couleur du tissu"
-      - "la dose administrée"
+      - "le débit sanguin qui irrigue cet organe"
+      - "la perméabilité de ses membranes cellulaires"
+      - "sa capacité métabolique enzymatique"
     correct: 0
   - prompt: "L'atout majeur de la PBPK est de..."
     options:
       - "extrapoler entre espèces, doses et populations via la physiologie"
-      - "éviter toute donnée"
-      - "supprimer la variabilité"
+      - "ajuster empiriquement ses paramètres aux données observées"
+      - "réduire le nombre de paramètres par rapport aux modèles empiriques"
     correct: 0
 ---
 

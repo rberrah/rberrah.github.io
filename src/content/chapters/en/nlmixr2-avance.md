@@ -17,27 +17,27 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "To bound a parameter within ]0,1[ in nlmixr2, you..."
     options:
-      - "write the transformation yourself in the model block, as expit(tf + eta.f): there is no distribution keyword, the algebra you type serves as the link function"
+      - "write the transformation in the model block, as expit(tf + eta.f): there is no distribution keyword, the algebra you type acts as the link"
       - "declare distribution = logitNormal in the ini block, which nlmixr2 then applies to the corresponding random effect at estimation time"
-      - "bound the random effect itself in the ini block, by giving the eta.f ~ 0.81 line a lower and an upper limit"
+      - "bound the random effect itself in the ini block, by giving the eta.f ~ 0.81 line a respected lower and upper limit on its draws"
     correct: 0
   - prompt: "You pipe model(cl <- exp(tcl + eta.cl + b_cr * log(CRCL/90))) without adding the ini(b_cr = 0.5) line. nlmixr2..."
     options:
-      - "declares b_cr as a covariate and therefore expects a b_cr column in the dataset: the run stops on an error that blames the data, while the mistake is in the model"
-      - "estimates b_cr anyway, assigning it a default initial estimate of 1, and reports the addition through a plain informational message in the console"
-      - "refuses to build the model and returns a syntax error stating that the parameter b_cr has been given no declared initial estimate"
+      - "treats b_cr as a covariate and therefore expects a b_cr column in the data: the run stops on an error that blames the data, not the model"
+      - "estimates b_cr anyway, assigning it a default initial estimate of 1, and flags the addition through a plain informational console message"
+      - "refuses to build the model and returns a syntax error stating that the parameter b_cr was given no declared initial estimate in ini"
     correct: 0
   - prompt: "About random seeds in nlmixr2 and rxode2..."
     options:
-      - "SAEM starts from a fixed default seed: a run reproduces identically while never revealing that it is only one realisation among many, and varying seed is how you test robustness"
-      - "SAEM draws a different seed on every call, so you must set saemControl(seed=) for the same script to return exactly the same result twice"
+      - "SAEM starts from a fixed default seed: a run reproduces identically while never revealing it is only one realisation among many, and varying seed tests robustness"
+      - "SAEM draws a different seed on every call, so you must set saemControl(seed=) for one and the same script to return exactly the same result twice"
       - "SAEM and rxode2 both inherit the seed set by set.seed(), so a single set.seed() at the top of the script is enough to pin estimation and simulations"
     correct: 0
   - prompt: "With babelmixr2, running an estimation with est = nonmem..."
     options:
-      - "writes the control stream, runs NONMEM and reimports the result as an nlmixr2 fit object: you therefore need a licensed NONMEM install, and the OFV obtained does not compare to a SAEM run"
+      - "writes the control stream, runs NONMEM and reimports the result as an nlmixr2 fit: you need a licensed NONMEM install, and its OFV does not compare to a SAEM run"
       - "reimplements NONMEM's algorithms inside nlmixr2, which avoids any external installation and reproduces the estimates of a native NONMEM run exactly"
-      - "merely translates the model into a control stream for you to run elsewhere, the reported OFV staying comparable to the SAEM run on the same data"
+      - "merely translates the model into a control stream for you to run elsewhere, the reported OFV staying directly comparable to the SAEM run on the same data"
     correct: 0
 ---
 

@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'EC50 est la concentration qui produit..."
     options:
-      - "la moitié de l'Emax"
-      - "un effet nul"
-      - "deux fois la valeur de base"
+      - "la moitié de l'effet maximal (Emax)"
+      - "la totalité de l'effet maximal (Emax)"
+      - "un effet égal à la valeur de base E0"
     correct: 0
   - prompt: "Un coefficient de Hill supérieur à 1 rend la courbe..."
     options:
-      - "plus raide"
-      - "plate à toutes les concentrations"
-      - "indépendante de la concentration"
+      - "plus raide et plus proche du tout ou rien"
+      - "plus plate, l'effet variant très progressivement"
+      - "décalée vers les concentrations plus élevées"
     correct: 0
   - prompt: "Les modèles de turnover sont utiles quand..."
     options:
       - "l'effet est retardé car la variable de réponse évolue dans le temps"
-      - "il n'y a aucune variable de réponse"
-      - "les données PK ne peuvent pas être mesurées"
+      - "l'effet est retardé parce que le médicament se distribue lentement"
+      - "le retard vient d'un équilibrage lent entre plasma et site d'effet"
     correct: 0
 ---
 

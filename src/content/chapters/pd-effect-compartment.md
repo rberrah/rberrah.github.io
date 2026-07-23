@@ -18,20 +18,20 @@ quiz:
   - prompt: "Le modèle à compartiment d'effet explique l'hystérésis par..."
     options:
       - "un délai d'équilibration entre plasma et site d'effet (ke0)"
-      - "une erreur de mesure"
-      - "un changement de dose"
+      - "un métabolite actif qui se forme lentement après la molécule mère"
+      - "une saturation des récepteurs aux concentrations élevées"
     correct: 0
   - prompt: "Le paramètre ke0 contrôle..."
     options:
       - "la vitesse d'équilibration vers le compartiment d'effet"
-      - "la clairance plasmatique"
-      - "la biodisponibilité"
+      - "la vitesse d'élimination du médicament hors du plasma"
+      - "la vitesse d'absorption depuis le site d'administration"
     correct: 0
   - prompt: "Une boucle d'hystérésis concentration–effet indique que..."
     options:
       - "l'effet est décalé par rapport à la concentration plasmatique"
-      - "l'effet est instantané"
-      - "il n'y a pas d'effet"
+      - "l'effet suit instantanément la concentration plasmatique"
+      - "l'effet plafonne dès que les récepteurs sont totalement saturés"
     correct: 0
 ---
 

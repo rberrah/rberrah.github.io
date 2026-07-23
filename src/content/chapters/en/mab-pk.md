@@ -13,15 +13,15 @@ slides: []
 quiz:
   - prompt: "The long half-life (weeks) of IgG antibodies is mainly explained by..."
     options:
-      - "recycling by the FcRn receptor"
-      - "high lipophilicity"
-      - "fast renal elimination"
+      - "recycling of IgG by the FcRn receptor"
+      - "their strong binding to plasma proteins"
+      - "their large size blocking renal filtration"
     correct: 0
   - prompt: "The volume of distribution of a monoclonal antibody is..."
     options:
       - "small (close to plasma and interstitium)"
-      - "very large (deep tissues)"
-      - "zero"
+      - "large, as the molecule diffuses into all tissues"
+      - "close to total body water (~42 L)"
     correct: 0
 ---
 

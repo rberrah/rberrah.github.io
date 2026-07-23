@@ -16,8 +16,8 @@ quiz:
   - prompt: "Une entrée d'ordre 0 signifie que le débit d'entrée est..."
     options:
       - "constant, indépendant de la concentration"
-      - "proportionnel à la concentration"
-      - "nul"
+      - "proportionnel à la concentration présente"
+      - "proportionnel à la quantité restant à absorber"
     correct: 0
   - prompt: "La concentration à l'équilibre d'une perfusion vaut..."
     options:
@@ -27,9 +27,9 @@ quiz:
     correct: 0
   - prompt: "Doubler le débit de perfusion R0..."
     options:
-      - "double la Css sans changer le temps pour l'atteindre"
-      - "atteint la Css deux fois plus vite"
-      - "ne change pas la Css"
+      - "double la Css sans accélérer son atteinte"
+      - "double la Css et l'atteint deux fois plus vite"
+      - "atteint la Css deux fois plus rapidement"
     correct: 0
 ---
 

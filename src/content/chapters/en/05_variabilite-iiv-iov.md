@@ -13,21 +13,21 @@ slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
 quiz:
   - prompt: "IIV means..."
     options:
-      - "differences between patients"
-      - "differences between assay machines only"
-      - "differences between drug names"
+      - "stable differences from one patient to another"
+      - "differences within one patient from occasion to occasion"
+      - "measurement scatter at the level of each observation"
     correct: 0
   - prompt: "IOV means..."
     options:
       - "differences within one patient across occasions"
-      - "the typical value"
-      - "the structural ODE"
+      - "stable differences from one patient to a different patient"
+      - "measurement noise added to each individual observation"
     correct: 0
   - prompt: "Residual error is mostly..."
     options:
       - "the unexplained gap at the observation level"
-      - "the whole population variability"
-      - "a covariate effect"
+      - "the total variability observed between patients"
+      - "the share of variability explained by a covariate"
     correct: 0
 ---
 

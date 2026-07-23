@@ -24,14 +24,14 @@ quiz:
   - prompt: "linCmt() selects the PK model..."
     options:
       - "from the names of the parameters defined in the model block: ka, cl and v give a 1-compartment oral model"
-      - "from a model number passed as an argument, on the principle of the ADVAN routines in NONMEM"
-      - "from the number of d/dt() lines written just before the call inside the model block"
+      - "from a model number passed as an argument, exactly on the principle of the ADVAN routines in NONMEM"
+      - "from the number of d/dt() lines present in the model block just before the linCmt() call"
     correct: 0
   - prompt: "In the model block, the line cp ~ prop(prop.sd) means that..."
     options:
       - "cp is the prediction confronted with the observations, with a proportional error of standard deviation prop.sd"
-      - "cp follows a proportional probability distribution, of which prop.sd is the variance to be estimated"
-      - "cp is one more random parameter, whose between-subject variability is set by prop.sd"
+      - "cp follows a proportional probability distribution, of which the parameter prop.sd is the variance to be estimated"
+      - "cp is one more random parameter, whose between-subject variability in the population is set by prop.sd"
     correct: 0
 ---
 

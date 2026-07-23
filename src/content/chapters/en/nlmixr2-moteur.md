@@ -17,21 +17,21 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "You fit the same model twice, once with est = saem and once with est = focei, and subtract the two reported OFVs. What does that difference measure?"
     options:
-      - "Nothing usable: both numbers are values of the FOCEi objective evaluated at two different parameter sets, and their gap mostly says which of the two optimisers came closer to the minimum of that function."
+      - "Nothing usable: both numbers are values of the FOCEi objective evaluated at two different parameter sets, and their gap mostly says which optimiser came closer to that function's minimum."
       - "A valid likelihood ratio test as soon as the two models are nested: nlmixr2 brings both OFVs onto the same scale, which makes their difference directly interpretable."
-      - "The approximation gap between SAEM and FOCEI: it simply has to be subtracted from the ΔOFV before comparing the latter to the one degree of freedom χ² threshold."
+      - "The approximation gap between SAEM and FOCEI: it simply has to be subtracted from the ΔOFV before comparing the latter to the one degree of freedom χ² threshold to conclude."
     correct: 0
   - prompt: "What exactly does est = posthoc do in nlmixr2?"
     options:
       - "It fixes the population parameters at the values in the ini block and estimates only the individual η: it is a posterior Bayesian estimation, not a population fit."
-      - "It re-estimates the population parameters from the individual η of the previous run, which refines the θ without launching a full optimisation again."
-      - "It restarts a FOCEI estimation from the estimates of the previous run, which mainly serves to check that an optimum found is not a local one."
+      - "It re-estimates the population parameters from the individual η of the previous run, which refines the θ without launching a full population optimisation again."
+      - "It restarts a FOCEI estimation from the estimates of the previous run, which mainly serves to check that an optimum already found is not merely a local one."
     correct: 0
   - prompt: "On a Michaelis-Menten elimination model with two samples per subject, why does SAEM run where FOCEI stalls?"
     options:
       - "Its inner loop only samples: it proposes an η, solves the model forward once, accepts or rejects — with no derivative with respect to η and no individual mode to find."
       - "It solves the system with a more tolerant integrator, which absorbs the stiffness that the FOCEI solver cannot get past without collapsing its integration step."
-      - "It estimates the η by Gauss-Hermite quadrature, whose accuracy does not degrade when the subject's conditional distribution becomes very wide."
+      - "It estimates the η by Gauss-Hermite quadrature, whose accuracy does not degrade even when the subject's conditional distribution becomes very wide with two points."
     correct: 0
 ---
 

@@ -18,25 +18,25 @@ quiz:
     options:
       - "Dose / (CL · τ)"
       - "Dose · CL · τ"
-      - "CL / Dose"
+      - "Dose / (V · τ)"
     correct: 0
   - prompt: "Le temps pour atteindre l'état d'équilibre dépend surtout de..."
     options:
-      - "la demi-vie (≈ 4 à 5 t½)"
-      - "la dose administrée"
-      - "le débit de perfusion"
+      - "la demi-vie d'élimination"
+      - "la dose administrée à chaque prise"
+      - "le débit de perfusion utilisé"
     correct: 0
   - prompt: "En perfusion continue, la concentration à l'équilibre vaut..."
     options:
-      - "le débit divisé par la clairance (Css = R₀ / CL)"
-      - "le débit multiplié par le volume"
-      - "la dose divisée par la demi-vie"
+      - "le débit de perfusion divisé par la clairance"
+      - "le débit de perfusion multiplié par le volume"
+      - "la dose divisée par la demi-vie d'élimination"
     correct: 0
   - prompt: "Une dose de charge sert à..."
     options:
-      - "atteindre plus vite la zone thérapeutique, sans changer le plateau final"
-      - "diminuer la Css finale"
-      - "changer la demi-vie"
+      - "atteindre plus vite la zone thérapeutique"
+      - "abaisser la Css finale à l'état d'équilibre"
+      - "raccourcir la demi-vie d'élimination"
     correct: 0
 ---
 

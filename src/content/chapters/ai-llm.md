@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un LLM est, à la base, entraîné à..."
     options:
       - "prédire le prochain token à partir des précédents"
-      - "résoudre des équations différentielles"
-      - "trier des tableaux"
+      - "rechercher la réponse exacte dans une base de connaissances"
+      - "classer chaque phrase dans une catégorie définie à l'avance"
     correct: 0
   - prompt: "Le mécanisme d'attention permet à un token de..."
     options:
       - "pondérer les autres tokens selon leur pertinence"
-      - "ignorer tout le contexte"
-      - "supprimer des mots au hasard"
+      - "ne regarder que le token immédiatement précédent"
+      - "mémoriser une position fixe indépendante du contexte"
     correct: 0
   - prompt: "Un risque majeur d'un LLM en contexte clinique est..."
     options:
       - "l'hallucination (affirmations fausses mais plausibles)"
-      - "l'impossibilité de produire du texte"
-      - "une vitesse trop faible"
+      - "un temps de réponse trop long pour un usage au lit du patient"
+      - "la production d'un texte identique quelle que soit la question posée"
     correct: 0
 ---
 

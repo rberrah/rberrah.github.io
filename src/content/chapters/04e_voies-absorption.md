@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Par voie intraveineuse (IV), la biodisponibilité F vaut..."
     options:
-      - "1 (toute la dose atteint la circulation, pas d'absorption)"
-      - "toujours 0,5"
-      - "0 (rien n'atteint le sang)"
+      - "1, toute la dose atteignant la circulation"
+      - "variable selon le premier passage hépatique"
+      - "inférieure à 1, comme pour la voie orale"
     correct: 0
   - prompt: "La voie sublinguale/buccale est intéressante car elle..."
     options:
       - "contourne le premier passage hépatique"
-      - "ralentit toujours l'absorption"
-      - "augmente la clairance rénale"
+      - "accélère le premier passage hépatique"
+      - "améliore l'absorption gastro-intestinale"
     correct: 0
   - prompt: "Un patch transdermique produit typiquement une absorption..."
     options:
-      - "d'ordre 0 (débit constant, comme une perfusion lente)"
-      - "instantanée"
-      - "nulle"
+      - "d'ordre 0, à débit constant et prolongé"
+      - "d'ordre 1, proportionnelle à la dose restante"
+      - "rapide avec un pic précoce, comme la voie orale"
     correct: 0
 ---
 

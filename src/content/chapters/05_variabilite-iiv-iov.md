@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'IIV désigne..."
     options:
-      - "les différences entre patients"
-      - "les différences entre appareils de dosage seulement"
-      - "les différences entre noms de médicaments"
+      - "les différences durables d'un patient à l'autre"
+      - "les différences chez un même patient selon l'occasion"
+      - "les écarts de mesure au niveau de chaque observation"
     correct: 0
   - prompt: "L'IOV désigne..."
     options:
       - "les différences chez un même patient d'une occasion à l'autre"
-      - "la valeur typique"
-      - "l'EDO structurale"
+      - "les différences stables d'un patient à un autre patient"
+      - "le bruit de mesure ajouté à chaque observation individuelle"
     correct: 0
   - prompt: "L'erreur résiduelle correspond surtout à..."
     options:
       - "l'écart inexpliqué au niveau de l'observation"
-      - "toute la variabilité de population"
-      - "l'effet d'une covariable"
+      - "la variabilité totale observée entre les patients"
+      - "la part de variabilité expliquée par une covariable"
     correct: 0
 ---
 

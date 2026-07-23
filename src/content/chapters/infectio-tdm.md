@@ -16,14 +16,14 @@ quiz:
   - prompt: "Pour la vancomycine, la cible actuelle privilégiée est..."
     options:
       - "l'AUC₂₄/CMI ≥ 400 (estimée par Bayes)"
-      - "la couleur des urines"
-      - "la dose fixe pour tous"
+      - "une résiduelle cible de 15–20 mg/L"
+      - "un pic Cmax/CMI ≥ 8 au premier dosage"
     correct: 0
   - prompt: "En réanimation, la clairance rénale augmentée (ARC) tend à..."
     options:
       - "sous-doser les antibiotiques hydrophiles"
-      - "surdoser systématiquement"
-      - "ne rien changer"
+      - "surexposer les antibiotiques hydrophiles"
+      - "n'affecter que les antibiotiques lipophiles"
     correct: 0
 ---
 

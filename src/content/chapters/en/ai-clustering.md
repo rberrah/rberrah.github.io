@@ -16,20 +16,20 @@ quiz:
   - prompt: "Grouping individual parameters (EBEs) by cancer type can reveal..."
     options:
       - "that a parameter (e.g. clearance) depends on cancer type → a covariate"
-      - "the optimal dose without data"
-      - "the chemical structure"
+      - "that residual variability alone explains the observed gaps"
+      - "that cancer type should become the response variable to predict"
     correct: 0
   - prompt: "PCA (principal component analysis) is used to..."
     options:
       - "reduce dimension by keeping the directions of largest variance"
-      - "remove patients"
-      - "increase the number of parameters"
+      - "group patients into classes from their known labels"
+      - "select the covariates most correlated with the response"
     correct: 0
   - prompt: "In RMT (Random Matrix Theory), an eigenvalue above the Marchenko-Pastur edge λ₊ indicates..."
     options:
       - "a real correlation (signal), not noise"
-      - "a computation error"
-      - "an outlier patient"
+      - "sampling noise, to be discarded as irrelevant"
+      - "a perfect collinearity between two model parameters"
     correct: 0
 ---
 

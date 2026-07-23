@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un SVM linéaire choisit la frontière qui..."
     options:
       - "maximise la marge entre les deux classes"
-      - "passe par tous les points"
-      - "minimise le nombre de covariables"
+      - "relie les centres de gravité des deux classes"
+      - "minimise l'erreur de classement sur l'échantillon"
     correct: 0
   - prompt: "Les vecteurs de support sont..."
     options:
       - "les points situés sur (ou dans) la marge, qui définissent la frontière"
-      - "toutes les observations"
-      - "les points les plus éloignés"
+      - "les points les plus éloignés de la frontière, au cœur de chaque classe"
+      - "les centres de gravité respectifs des deux nuages de points"
     correct: 0
   - prompt: "Le kernel trick permet de..."
     options:
       - "séparer des classes non linéairement, sans calculer explicitement les nouvelles dimensions"
-      - "supprimer la régularisation"
-      - "transformer un SVM en arbre"
+      - "projeter explicitement les données dans un espace de bien plus grande dimension"
+      - "réduire d'abord la dimension des données pour accélérer l'apprentissage du SVM"
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "Ka mainly controls..."
     options:
       - "how fast the drug enters the central compartment"
-      - "the number of organs in a PBPK model"
-      - "the assay calibration curve"
+      - "how fast the drug leaves the central compartment"
+      - "the fraction of the dose that reaches the systemic circulation"
     correct: 0
   - prompt: "The lag time Tlag represents..."
     options:
       - "a delay before absorption begins"
-      - "the terminal half-life"
-      - "the maximal effect"
+      - "the time needed to reach the peak concentration"
+      - "the total duration of the absorption phase"
     correct: 0
   - prompt: "Flip-flop kinetics can occur when..."
     options:
       - "absorption is slower than elimination"
-      - "clearance is zero"
-      - "volume equals exactly 1 L"
+      - "elimination is slower than absorption"
+      - "distribution is slower than elimination"
     correct: 0
 ---
 

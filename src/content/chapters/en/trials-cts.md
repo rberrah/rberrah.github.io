@@ -14,20 +14,20 @@ quiz:
   - prompt: "Clinical trial simulation (CTS) allows one to..."
     options:
       - "evaluate designs, doses and power before launching the trial"
-      - "permanently replace real trials"
-      - "measure a concentration"
+      - "confirm clinical efficacy in place of an actual phase III trial"
+      - "estimate a patient's PK parameters from their measured samples"
     correct: 0
   - prompt: "To simulate a realistic virtual population, one needs..."
     options:
-      - "a PK/PD model + correlated covariates + variability"
-      - "only the mean dose"
-      - "a single typical patient"
+      - "a PK/PD model, correlated covariates and inter-individual variability"
+      - "an average PK/PD model applied to median values only, without variability"
+      - "covariates drawn independently, without accounting for their correlations"
     correct: 0
   - prompt: "A trial's probability of success (power) depends mainly on..."
     options:
       - "the effect size, the variability and the sample size"
-      - "the tablet colour"
-      - "the molecule's name"
+      - "the mean clearance and the volume of distribution of the drug"
+      - "the maximum tolerated dose and the observed elimination half-life"
     correct: 0
 ---
 

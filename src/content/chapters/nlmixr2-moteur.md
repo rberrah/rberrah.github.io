@@ -17,21 +17,21 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "On ajuste le même modèle deux fois, une fois avec est = saem et une fois avec est = focei, et on soustrait les deux OFV rendus. Que mesure cette différence ?"
     options:
-      - "Rien d'exploitable : les deux nombres sont des valeurs de l'objectif FOCEi évaluées à deux jeux de paramètres différents, et leur écart dit surtout lequel des deux optimiseurs s'est le plus approché du maximum de cette fonction."
+      - "Rien d'exploitable : les deux nombres sont des valeurs de l'objectif FOCEi évaluées à deux jeux de paramètres différents, et leur écart dit surtout lequel des optimiseurs s'est le plus approché du maximum."
       - "Un test du rapport de vraisemblance valide dès lors que les deux modèles sont emboîtés : nlmixr2 ramène les deux OFV sur la même échelle, ce qui rend leur différence directement interprétable."
-      - "L'écart d'approximation entre le SAEM et le FOCEI : il suffit de le retrancher du ΔOFV avant de comparer celui-ci au seuil du χ² à un degré de liberté."
+      - "L'écart d'approximation entre le SAEM et le FOCEI : il suffit de le retrancher du ΔOFV avant de comparer ce dernier au seuil du χ² à un degré de liberté pour trancher entre les modèles."
     correct: 0
   - prompt: "Que fait exactement est = posthoc dans nlmixr2 ?"
     options:
       - "Il fixe les paramètres de population aux valeurs du bloc ini et n'estime que les η individuels : c'est une estimation bayésienne a posteriori, pas un ajustement de population."
-      - "Il réestime les paramètres de population à partir des η individuels du run précédent, ce qui affine les θ sans relancer une optimisation complète."
-      - "Il relance une estimation FOCEI en partant des estimations du run précédent, ce qui sert surtout à vérifier qu'un optimum trouvé n'est pas local."
+      - "Il réestime les paramètres de population à partir des η individuels du run précédent, ce qui affine les θ sans relancer une optimisation complète de la population."
+      - "Il relance une estimation FOCEI en partant des estimations du run précédent, ce qui sert surtout à vérifier qu'un optimum déjà trouvé n'est pas seulement local."
     correct: 0
   - prompt: "Sur un modèle à élimination de Michaelis-Menten avec deux prélèvements par sujet, pourquoi le SAEM tourne-t-il là où le FOCEI patine ?"
     options:
       - "Sa boucle interne ne fait qu'échantillonner : elle propose un η, résout le modèle en avant une seule fois, accepte ou rejette — sans dérivée par rapport à η ni recherche de mode individuel."
       - "Il résout le système avec un intégrateur plus tolérant, ce qui absorbe la raideur que le solveur du FOCEI ne parvient pas à franchir sans effondrer son pas d'intégration."
-      - "Il estime les η par quadrature de Gauss-Hermite, dont la précision ne se dégrade pas quand la distribution conditionnelle du sujet devient très large."
+      - "Il estime les η par quadrature de Gauss-Hermite, dont la précision ne se dégrade pas même quand la distribution conditionnelle du sujet devient très large avec deux points."
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "Therapeutic drug monitoring (TDM) uses drug measurements to..."
     options:
       - "inform the interpretation of exposure and future dosing decisions"
-      - "replace all clinical judgement"
-      - "avoid knowing the sampling time"
+      - "confirm only that the patient has taken all their doses"
+      - "set the dose automatically without clinical interpretation"
     correct: 0
   - prompt: "For model-based TDM, the sampling time is..."
     options:
-      - "critical"
-      - "irrelevant"
-      - "always unknown"
+      - "crucial information to know"
+      - "a secondary detail for the estimate"
+      - "useful only for a trough sample"
     correct: 0
   - prompt: "This educational site should be used for..."
     options:
       - "learning concepts, not dosing a specific patient"
-      - "automatic prescriptions"
-      - "ignoring uncertainty"
+      - "prescribing doses directly to real patients"
+      - "replacing validated clinical dosing tools"
     correct: 0
 ---
 

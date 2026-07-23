@@ -14,14 +14,14 @@ quiz:
   - prompt: "The main contribution of ML to TDM is to..."
     options:
       - "predict exposure (AUC) from few samples"
-      - "replace the clinician"
-      - "remove external validation"
+      - "remove any need for a blood sample from the patient"
+      - "estimate individual clearance by fitting a mechanistic ODE"
     correct: 0
   - prompt: "A hybrid PopPK + ML model aims to..."
     options:
       - "combine mechanistic structure and learning flexibility"
-      - "abandon all pharmacology"
-      - "ignore uncertainty"
+      - "replace the PopPK entirely with a network learned from the data"
+      - "use the PopPK only to simulate ML training data"
     correct: 0
 ---
 

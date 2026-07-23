@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Estimer signifie..."
     options:
-      - "trouver des valeurs de paramètres qui rendent le modèle plausible pour les données"
-      - "tracer une courbe à la main seulement"
-      - "retirer la variabilité des données"
+      - "trouver les valeurs de paramètres qui expliquent le mieux les données"
+      - "simuler des concentrations à partir de paramètres déjà connus"
+      - "ajuster une courbe moyenne en ignorant la variabilité entre patients"
     correct: 0
   - prompt: "FOCE-I et SAEM sont..."
     options:
-      - "des algorithmes d'estimation"
-      - "des classes de médicaments"
-      - "des unités de clairance"
+      - "des algorithmes d'estimation des paramètres"
+      - "des critères de sélection entre modèles concurrents"
+      - "des méthodes de diagnostic graphique du modèle"
     correct: 0
   - prompt: "Un AIC plus bas est utile mais..."
     options:
       - "doit s'interpréter avec les diagnostics et la plausibilité"
       - "prouve toujours que le modèle est cliniquement correct"
-      - "supprime le besoin de validation"
+      - "garantit à lui seul de bonnes prédictions sur de nouveaux patients"
     correct: 0
 ---
 

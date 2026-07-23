@@ -14,20 +14,20 @@ quiz:
   - prompt: "ADA (anti-drug antibodies) are..."
     options:
       - "the patient's antibodies directed against the biologic drug"
-      - "a form of the drug"
-      - "inactive metabolites"
+      - "fragments released as the biologic drug is catabolised"
+      - "the drug's antibodies directed against the patient's cells"
     correct: 0
   - prompt: "The appearance of ADA often tends to..."
     options:
-      - "increase clearance and reduce exposure"
-      - "decrease clearance"
-      - "have no effect"
+      - "increase clearance and thus reduce the drug's exposure"
+      - "decrease clearance by shielding the drug from catabolism"
+      - "increase exposure via complexes with a prolonged half-life"
     correct: 0
   - prompt: "A 'neutralising' ADA (NAb)..."
     options:
       - "directly blocks the drug's activity (binding site)"
-      - "increases the drug's effect"
-      - "is always harmless"
+      - "binds the drug away from its active site, without neutralising it"
+      - "speeds up the drug's clearance but leaves its activity intact"
     correct: 0
 ---
 

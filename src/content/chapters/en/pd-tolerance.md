@@ -14,20 +14,20 @@ quiz:
   - prompt: "Pharmacodynamic tolerance shows as..."
     options:
       - "an effect that decreases under constant exposure"
-      - "an effect that increases indefinitely"
-      - "modified PK"
+      - "an effect that intensifies over prolonged exposure"
+      - "a fall in effect caused by declining plasma exposure"
     correct: 0
   - prompt: "A rebound on treatment withdrawal is often explained by..."
     options:
       - "a counter-regulator that rose during treatment"
-      - "a dosing error"
-      - "too small a volume"
+      - "rapid elimination of the drug once dosing stops"
+      - "a down-regulation of the receptors during treatment"
     correct: 0
   - prompt: "A precursor-pool model can produce..."
     options:
       - "depletion then recovery of the response"
-      - "a strictly linear effect"
-      - "no dynamics"
+      - "a steady rise of the response with no depletion"
+      - "a stable plateau with no recovery phase"
     correct: 0
 ---
 

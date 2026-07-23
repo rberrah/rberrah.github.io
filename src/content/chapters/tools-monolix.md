@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."
     options:
-      - "le SAEM (avec diagnostics et VPC intégrés)"
-      - "uniquement FOCE"
-      - "aucun"
+      - "le SAEM, une approximation stochastique de l'algorithme espérance-maximisation"
+      - "le FOCE-I, une linéarisation de la vraisemblance autour des modes individuels"
+      - "les moindres carrés étendus, qui ignorent la variabilité inter-individuelle"
     correct: 0
   - prompt: "mlxtran est..."
     options:
-      - "le langage de description du modèle dans Monolix"
-      - "un format de données brut"
-      - "un tableur"
+      - "le langage de description du modèle structural et statistique"
+      - "le format tabulaire du jeu de données lu en entrée par Monolix"
+      - "l'algorithme qui estime les paramètres en maximisant la vraisemblance"
     correct: 0
   - prompt: "L'atout principal de Monolix par rapport à NONMEM est..."
     options:
-      - "une interface graphique et des diagnostics prêts à l'emploi"
-      - "l'absence de tout modèle statistique"
-      - "l'impossibilité de simuler"
+      - "une interface graphique complète et des diagnostics prêts à l'emploi"
+      - "une estimation exacte de la vraisemblance, sans aucune approximation"
+      - "une OFV directement comparable à celle d'un run FOCE de NONMEM"
     correct: 0
 ---
 

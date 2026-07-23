@@ -16,8 +16,8 @@ quiz:
   - prompt: "Une VPC compare les données observées avec..."
     options:
       - "des données simulées à partir du modèle ajusté"
-      - "les données du seul premier patient"
-      - "un tableau de prix de médicaments"
+      - "les prédictions individuelles du modèle pour chaque patient"
+      - "la seule courbe de prédiction typique de la population"
     correct: 0
   - prompt: "Un bon flux de diagnostic demande si..."
     options:
@@ -27,9 +27,9 @@ quiz:
     correct: 0
   - prompt: "Un piège diagnostique fréquent est..."
     options:
-      - "de regarder les graphes"
+      - "de faire confiance à un modèle du seul fait qu'il a convergé"
       - "de conclure au succès à partir d'une seule métrique"
-      - "de simuler à partir du modèle"
+      - "de prendre un motif de résidus systématique pour du bruit"
     correct: 1
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "An EBE is..."
     options:
       - "an empirical Bayes estimate of an individual's random effect"
-      - "a slide title"
-      - "a concentration unit"
+      - "the estimate of a fixed effect shared by all patients in the population"
+      - "the typical population value before any individual measurement"
     correct: 0
   - prompt: "Shrinkage is high when..."
     options:
-      - "individual data are weak and estimates move toward the population"
-      - "all patients are perfectly observed"
-      - "there is no population model"
+      - "individual data are poor and the EBEs are pulled toward the population"
+      - "individual data are rich and highly informative about the patient"
+      - "the estimated between-patient variability of the parameter is very large"
     correct: 0
   - prompt: "MAP estimation combines..."
     options:
       - "prior population information and the individual observations"
-      - "only the last observation"
-      - "only the dose amount"
+      - "the individual observations alone, without any population prior"
+      - "the population prior alone, without the patient's measurements"
     correct: 0
 ---
 

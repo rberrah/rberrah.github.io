@@ -15,12 +15,12 @@ quiz:
     options:
       - "A(t) = A₀ · e^(−k·t)"
       - "A(t) = A₀ − k·t"
-      - "A(t) = A₀ · k·t"
+      - "A(t) = A₀ · e^(+k·t)"
     correct: 0
   - prompt: "On a semi-log scale, first-order decay looks like..."
     options:
       - "a straight line"
-      - "a parabola"
+      - "a curved line"
       - "a plateau"
     correct: 0
 ---

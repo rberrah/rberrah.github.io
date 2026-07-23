@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:
-      - "grandit avec la concentration prédite (un %CV à peu près constant)"
+      - "augmente en proportion de la concentration prédite"
       - "est de largeur constante à toute concentration"
-      - "n'existe pas"
+      - "diminue quand la concentration prédite augmente"
     correct: 0
   - prompt: "Un graphique |IWRES| vs prédictions en forme d'entonnoir indique..."
     options:
-      - "un modèle d'erreur mal choisi (souvent additive au lieu de combinée)"
-      - "un excellent ajustement"
-      - "une erreur de dose"
+      - "un modèle d'erreur inadapté à ces données"
+      - "un ajustement globalement satisfaisant du modèle"
+      - "un biais systématique du modèle structural"
     correct: 0
   - prompt: "Le modèle d'erreur combinée est utile parce qu'il..."
     options:
-      - "gère à la fois un plancher (additive) et un %CV (proportionnelle)"
-      - "supprime toute variabilité"
-      - "impose une erreur nulle près de zéro"
+      - "combine un plancher additif et un %CV proportionnel"
+      - "élimine le besoin de variabilité inter-individuelle"
+      - "impose une erreur constante quelle que soit la valeur"
     correct: 0
 ---
 

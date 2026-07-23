@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "In the Claret model, the treatment effect on the tumour..."
     options:
-      - "fades over time (resistance develops)"
-      - "is constant forever"
-      - "does not depend on exposure"
+      - "fades over time as resistance gradually develops"
+      - "stays constant as long as treatment continues"
+      - "grows progressively as the dose accumulates"
     correct: 0
   - prompt: "A joint TGI–survival model links..."
     options:
       - "tumour-size dynamics to the risk of progression/death"
-      - "dose to body weight only"
-      - "two independent PK models"
+      - "plasma concentration to the patient's individual clearance"
+      - "tumour shrinkage to the observed haematological toxicity"
     correct: 0
   - prompt: "The joint-model parameter β measures..."
     options:
       - "the strength of the link between tumour size and hazard"
-      - "the drug clearance"
-      - "the oral bioavailability"
+      - "the unperturbed tumour growth rate before treatment (K_G)"
+      - "the baseline hazard independent of tumour size (h₀)"
     correct: 0
 ---
 

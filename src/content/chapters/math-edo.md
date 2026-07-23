@@ -17,12 +17,12 @@ quiz:
     options:
       - "A(t) = A₀ · e^(−k·t)"
       - "A(t) = A₀ − k·t"
-      - "A(t) = A₀ · k·t"
+      - "A(t) = A₀ · e^(+k·t)"
     correct: 0
   - prompt: "Sur une échelle semi-logarithmique, une décroissance d'ordre 1 apparaît..."
     options:
       - "comme une droite"
-      - "comme une parabole"
+      - "comme une courbe"
       - "comme un plateau"
     correct: 0
 ---

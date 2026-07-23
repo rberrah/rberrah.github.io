@@ -15,19 +15,19 @@ quiz:
     options:
       - "real organs linked by the blood circulation"
       - "mathematical abstractions with no physiological meaning"
-      - "doses"
+      - "groups of tissues clustered by their equilibration kinetics"
     correct: 0
   - prompt: "A 'perfusion-limited' organ is limited by..."
     options:
       - "the blood flow that supplies it"
-      - "the tissue colour"
-      - "the administered dose"
+      - "the permeability of its cell membranes"
+      - "its enzymatic metabolic capacity"
     correct: 0
   - prompt: "The major strength of PBPK is to..."
     options:
       - "extrapolate across species, doses and populations via physiology"
-      - "avoid any data"
-      - "remove variability"
+      - "empirically fit its parameters to the observed data"
+      - "reduce the number of parameters versus empirical models"
     correct: 0
 ---
 

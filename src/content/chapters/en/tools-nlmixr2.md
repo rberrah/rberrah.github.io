@@ -16,20 +16,20 @@ quiz:
   - prompt: "nlmixr2 stands out mainly for..."
     options:
       - "being open-source, entirely in R"
-      - "its high licence cost"
-      - "the absence of any algorithm"
+      - "a paid commercial licence, like NONMEM"
+      - "a closed engine, separate from the R world"
     correct: 0
   - prompt: "nlmixr2 offers..."
     options:
       - "several algorithms, including SAEM and FOCEI"
-      - "only simulation"
-      - "no estimation"
+      - "only SAEM, with no equivalent of FOCEI"
+      - "a single Bayesian MCMC engine, no SAEM"
     correct: 0
   - prompt: "The ODE engine under nlmixr2 is..."
     options:
       - "rxode2 (usable standalone to simulate)"
-      - "a spreadsheet"
-      - "NM-TRAN"
+      - "NM-TRAN, the NONMEM control translator"
+      - "mlxtran, the Monolix model language"
     correct: 0
 ---
 

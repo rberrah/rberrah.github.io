@@ -16,20 +16,20 @@ quiz:
   - prompt: "MAP (maximum a posteriori) estimation combines..."
     options:
       - "the population model (prior) and the patient's concentrations"
-      - "only the last dose"
-      - "only the weight"
+      - "only the measured concentrations, with no population prior"
+      - "only the population prior, without the patient's measurements"
     correct: 0
   - prompt: "mapbayr (R) relies on..."
     options:
       - "an mrgsolve model for individual MAP estimation"
-      - "a spreadsheet"
-      - "an image generator"
+      - "an nlmixr2/rxode2 model fitted to the patient's data"
+      - "a plain linear regression on the measured concentrations"
     correct: 0
   - prompt: "MIPD (model-informed precision dosing) aims to..."
     options:
       - "individualise the dose from the model and measurements"
-      - "give everyone the same dose"
-      - "remove monitoring"
+      - "apply a fixed nomogram based on weight and renal function"
+      - "estimate population parameters across an entire cohort"
     correct: 0
 ---
 

@@ -16,20 +16,20 @@ quiz:
   - prompt: "Une copule décrit..."
     options:
       - "la structure de dépendance entre variables, séparée de leurs lois marginales"
-      - "la moyenne d'une variable"
-      - "l'erreur résiduelle d'un modèle"
+      - "la loi marginale de chaque variable prise indépendamment des autres"
+      - "le coefficient de corrélation linéaire entre deux variables données"
     correct: 0
   - prompt: "Pour simuler des patients virtuels réalistes, ignorer la corrélation poids–ClCr..."
     options:
       - "crée des combinaisons impossibles (ex. poids faible + ClCr énorme)"
-      - "n'a aucune conséquence"
-      - "améliore le modèle"
+      - "gonfle un peu la variance mais conserve des profils réalistes"
+      - "préserve les marges, donc reste sans effet sur le réalisme"
     correct: 0
   - prompt: "Le théorème de Sklar affirme qu'une loi jointe se décompose en..."
     options:
-      - "ses marges et une copule"
-      - "une seule exponentielle"
-      - "un arbre de décision"
+      - "ses lois marginales et une copule"
+      - "le produit de ses marges indépendantes"
+      - "une moyenne et une matrice de covariance"
     correct: 0
 ---
 

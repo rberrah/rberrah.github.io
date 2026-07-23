@@ -13,21 +13,21 @@ slides: ["s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s35", "s36"]
 quiz:
   - prompt: "EC50 is the concentration that produces..."
     options:
-      - "half of Emax"
-      - "no effect"
-      - "twice the baseline"
+      - "half of the maximal effect (Emax)"
+      - "the full maximal effect (Emax)"
+      - "an effect equal to the baseline E0"
     correct: 0
   - prompt: "A Hill coefficient greater than 1 makes the curve..."
     options:
-      - "steeper"
-      - "flat at all concentrations"
-      - "independent of concentration"
+      - "steeper, closer to all-or-nothing"
+      - "flatter, with the effect changing very gradually"
+      - "shifted toward higher concentrations"
     correct: 0
   - prompt: "Turnover models are useful when..."
     options:
       - "the effect is delayed because the response variable changes over time"
-      - "there is no response variable"
-      - "PK data cannot be measured"
+      - "the effect is delayed because the drug distributes slowly"
+      - "the delay comes from slow equilibration between plasma and effect site"
     correct: 0
 ---
 

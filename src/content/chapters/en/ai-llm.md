@@ -14,20 +14,20 @@ quiz:
   - prompt: "An LLM is, at its core, trained to..."
     options:
       - "predict the next token from the previous ones"
-      - "solve differential equations"
-      - "sort tables"
+      - "look up the exact answer in an internal knowledge base"
+      - "assign each sentence to a category defined in advance"
     correct: 0
   - prompt: "The attention mechanism lets a token..."
     options:
       - "weight the other tokens by their relevance"
-      - "ignore all context"
-      - "delete words at random"
+      - "look only at the immediately preceding token"
+      - "memorise a fixed position independent of the context"
     correct: 0
   - prompt: "A major risk of an LLM in a clinical context is..."
     options:
       - "hallucination (false but plausible statements)"
-      - "the inability to produce text"
-      - "being too slow"
+      - "a response time too slow for use at the patient's bedside"
+      - "producing identical text whatever the question asked"
     correct: 0
 ---
 

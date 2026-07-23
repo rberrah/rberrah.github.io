@@ -14,20 +14,20 @@ quiz:
   - prompt: "An individual clearance is often modelled with a..."
     options:
       - "log-normal law (positive, skewed)"
-      - "normal law centred at zero"
-      - "uniform law"
+      - "normal law, symmetric about its mean value"
+      - "exponential law, decaying from zero"
     correct: 0
   - prompt: "A 95% confidence interval means that..."
     options:
       - "the procedure captures the true parameter 95 times out of 100 on repetition"
-      - "95% of patients lie inside it"
-      - "the parameter equals the bound exactly"
+      - "the true parameter has a 95% probability of lying in this interval"
+      - "95% of the individual observations fall within this interval"
     correct: 0
   - prompt: "A small p-value indicates..."
     options:
       - "data that are unlikely under the null hypothesis"
-      - "that the effect is large"
-      - "that the model is validated"
+      - "that the observed effect is large in size"
+      - "that the null hypothesis is probably false"
     correct: 0
 ---
 

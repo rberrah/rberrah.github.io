@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "In the MAP estimation objective, what does a smaller residual error σ do?"
     options:
-      - "It increases the weight of observed concentrations: the posterior follows the patient's data more closely."
-      - "It increases the weight of the population prior."
-      - "It has no effect on the estimation."
+      - "It increases the weight of observed concentrations: the posterior follows the patient's data."
+      - "It increases the weight of the population prior: the posterior stays very close to the average model."
+      - "It only widens the prediction intervals, leaving the point estimate unchanged."
     correct: 0
   - prompt: "What is the main risk of a near-zero residual error on noisy or sparse data?"
     options:
-      - "Underfitting: the posterior sticks to the prior."
-      - "Overfitting: the model reads measurement noise as signal and yields implausible AUCs."
-      - "No risk — it is always the best choice."
+      - "Underfitting: the posterior stays glued to the prior and neglects the measured concentrations."
+      - "Overfitting: the model mistakes noise for signal and yields implausible AUCs."
+      - "Systematic bias: the model under-estimates all AUCs by a roughly constant offset."
     correct: 1
   - prompt: "According to Berrah et al., which proportional error is a good pragmatic default in high-quality analytical settings?"
     options:
-      - "About 1% (the 'Flat1' scenario)."
-      - "Exactly the published model value, always."
-      - "50%."
+      - "About 1% (the 'Flat1' scenario), small but non-zero."
+      - "The published model value, reused exactly as it stands."
+      - "A zero error (σ = 0), to hug the measurements as closely as possible."
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "The trapezoidal method computes the AUC by..."
     options:
       - "summing the area of trapezoids between successive points"
-      - "taking the maximum concentration"
-      - "differentiating the curve"
+      - "summing the area of rectangles under each concentration"
+      - "multiplying the maximum concentration by the total time"
     correct: 0
   - prompt: "λz (terminal slope) is estimated by log-linear regression..."
     options:
       - "over the last points of the elimination phase"
-      - "over the concentration peak"
-      - "over a single point"
+      - "over the first points of the absorption phase"
+      - "over all points, from the peak to the last sample"
     correct: 0
   - prompt: "A too-large extrapolated fraction (> 20%) signals..."
     options:
       - "insufficient terminal sampling, unreliable AUC"
-      - "an excellent protocol"
-      - "too low a dose"
+      - "a well-defined terminal phase, a very reliable AUC"
+      - "a half-life too short for the sampling window"
     correct: 0
 ---
 

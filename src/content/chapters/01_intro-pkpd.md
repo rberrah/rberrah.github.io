@@ -17,19 +17,19 @@ quiz:
     options:
       - "ce que le médicament fait à l'organisme"
       - "ce que l'organisme fait au médicament"
-      - "le prix d'un traitement"
+      - "la relation entre concentration et effet"
     correct: 1
   - prompt: "Dans la métaphore des blocs, la PD correspond le mieux à..."
     options:
       - "le trajet des blocs dans la salle"
       - "ce que fait la construction finale"
-      - "la couleur de la boîte"
+      - "la vitesse d'évacuation des blocs"
     correct: 1
   - prompt: "Deux patients reçoivent la même dose mais répondent différemment. C'est une bonne image de..."
     options:
       - "la variabilité interindividuelle"
-      - "une légende d'axe manquante"
-      - "un effet fixe uniquement"
+      - "une erreur résiduelle de mesure"
+      - "un effet fixe identique chez tous"
     correct: 0
 ---
 

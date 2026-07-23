@@ -13,21 +13,21 @@ slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
 quiz:
   - prompt: "Estimation means..."
     options:
-      - "finding parameter values that make the model plausible for the data"
-      - "drawing a curve by hand only"
-      - "removing variability from the data"
+      - "finding the parameter values that best explain the data"
+      - "simulating concentrations from parameters already known"
+      - "fitting one average curve while ignoring between-patient variability"
     correct: 0
   - prompt: "FOCE-I and SAEM are..."
     options:
-      - "estimation algorithms"
-      - "drug classes"
-      - "clearance units"
+      - "parameter estimation algorithms"
+      - "criteria for selecting between competing models"
+      - "methods for graphical model diagnostics"
     correct: 0
   - prompt: "A lower AIC is useful but..."
     options:
       - "must be read with diagnostics and plausibility"
       - "always proves the model is clinically correct"
-      - "removes the need for validation"
+      - "on its own guarantees good predictions in new patients"
     correct: 0
 ---
 

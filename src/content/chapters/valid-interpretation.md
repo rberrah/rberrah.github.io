@@ -18,20 +18,20 @@ quiz:
   - prompt: "Des CWRES en forme de U (négatifs au milieu, positifs aux extrêmes) évoquent..."
     options:
       - "une mauvaise spécification structurale (ex. compartiment manquant)"
-      - "un bon modèle"
-      - "une erreur de dose"
+      - "un modèle d'erreur résiduelle inadapté (additive vs combinée)"
+      - "une variabilité inter-individuelle mal spécifiée sur la clairance"
     correct: 0
   - prompt: "Un nuage de résidus en « trompette » (qui s'évase) appelle..."
     options:
-      - "à revoir le modèle d'erreur résiduelle (additive → combinée/proportionnelle)"
-      - "à supprimer des patients"
-      - "à doubler la dose"
+      - "à revoir le modèle d'erreur résiduelle (additive → combinée)"
+      - "à ajouter un compartiment de distribution au modèle structural"
+      - "à introduire une covariable poids sur le volume de distribution"
     correct: 0
   - prompt: "Une moyenne de résidus non nulle dans un sous-groupe (ex. insuffisants rénaux) suggère..."
     options:
-      - "une covariable manquante sur un paramètre"
-      - "un modèle parfait"
-      - "un problème d'unité seulement"
+      - "une covariable manquante sur un paramètre de disposition"
+      - "un simple hasard d'échantillonnage dans ce sous-groupe"
+      - "une erreur résiduelle plus forte dans ce sous-groupe"
     correct: 0
 ---
 

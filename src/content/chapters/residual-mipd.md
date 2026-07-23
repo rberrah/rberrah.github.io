@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans l'objectif de l'estimation MAP, que fait une erreur résiduelle σ plus petite ?"
     options:
-      - "Elle augmente le poids des concentrations observées : le postérieur suit davantage les données du patient."
-      - "Elle augmente le poids du prior de population."
-      - "Elle n'a aucun effet sur l'estimation."
+      - "Elle augmente le poids des concentrations observées : le postérieur suit les données du patient."
+      - "Elle augmente le poids du prior de population : le postérieur reste très proche du modèle moyen."
+      - "Elle n'élargit que les intervalles de prédiction, sans déplacer l'estimation ponctuelle."
     correct: 0
   - prompt: "Quel est le risque principal d'une erreur résiduelle fixée quasi nulle sur des données bruitées ou éparses ?"
     options:
-      - "Le sous-ajustement : le postérieur colle au prior."
-      - "Le surajustement : le modèle interprète le bruit de mesure comme un signal et produit des AUC implausibles."
-      - "Aucun risque, c'est toujours le meilleur choix."
+      - "Le sous-ajustement : le postérieur reste collé au prior et néglige les concentrations mesurées."
+      - "Le surajustement : le modèle prend le bruit pour un signal et produit des AUC implausibles."
+      - "Le biais systématique : le modèle sous-estime toutes les AUC d'un décalage à peu près constant."
     correct: 1
   - prompt: "Selon Berrah et al., quelle valeur d'erreur proportionnelle constitue un bon défaut pragmatique en contexte analytique de haute qualité ?"
     options:
-      - "Environ 1 % (scénario « Flat1 »)."
-      - "Exactement la valeur publiée du modèle, toujours."
-      - "50 %."
+      - "Environ 1 % (le scénario « Flat1 »), petit mais non nul."
+      - "La valeur publiée du modèle, reprise systématiquement telle quelle."
+      - "Une erreur nulle (σ = 0), pour coller au plus près des mesures."
     correct: 0
 ---
 

@@ -19,9 +19,9 @@ quiz:
     correct: 1
   - prompt: "Half-life depends on..."
     options:
-      - "CL only"
-      - "V only"
-      - "both V and CL"
+      - "clearance CL alone"
+      - "the distribution volume V alone"
+      - "both V and CL together"
     correct: 2
   - prompt: "A larger V at the same dose usually gives..."
     options:

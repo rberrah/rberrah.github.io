@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Sur un graphique observations vs prédictions, un bon modèle donne..."
     options:
-      - "un nuage symétrique autour de la diagonale (identité)"
-      - "des points tous au-dessus de la diagonale"
-      - "une droite horizontale"
+      - "un nuage symétrique et dispersé autour de la diagonale (identité)"
+      - "un nuage incurvé passant sous la diagonale aux fortes valeurs"
+      - "un alignement parfait, sans aucune dispersion autour de la droite"
     correct: 0
   - prompt: "Une tendance des CWRES en fonction du temps indique..."
     options:
       - "une mauvaise spécification du modèle structural"
-      - "un bon ajustement"
-      - "une erreur d'unité"
+      - "un modèle d'erreur résiduelle mal dimensionné"
+      - "une variance des effets aléatoires sous-estimée"
     correct: 0
   - prompt: "Les CWRES bien spécifiés doivent être..."
     options:
       - "centrés sur 0, sans tendance, majoritairement dans ±2"
-      - "tous positifs"
-      - "croissants avec le temps"
+      - "centrés sur 0 mais tous confinés dans ±1, sans exception"
+      - "centrés sur 0, mais croissants avec la concentration prédite"
     correct: 0
 ---
 

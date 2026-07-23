@@ -14,14 +14,14 @@ quiz:
   - prompt: "Estimating a parameter by maximum likelihood means finding the value that..."
     options:
       - "makes the observed data most plausible"
-      - "cancels every residual"
-      - "maximises the number of parameters"
+      - "minimises the sum of squared residuals always"
+      - "maximises the parameter's prior probability"
     correct: 0
   - prompt: "A log-linear regression of ln(C) vs t directly gives..."
     options:
       - "the elimination rate constant (slope) and C₀ (intercept)"
-      - "the dose"
-      - "the patient's weight"
+      - "the volume of distribution (slope) and the clearance (intercept)"
+      - "the half-life (slope) and the total AUC (intercept)"
     correct: 0
 ---
 

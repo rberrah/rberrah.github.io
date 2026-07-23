@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un eta-shrinkage élevé signifie que les EBE..."
     options:
-      - "sont ramenés vers la moyenne de population (données individuelles peu informatives)"
-      - "sont parfaitement estimés"
-      - "n'existent pas"
+      - "sont ramenés vers la moyenne de population (données peu informatives)"
+      - "sont dispersés bien au-delà de la variabilité ω attendue"
+      - "reflètent fidèlement chaque patient grâce à des données riches"
     correct: 0
   - prompt: "Un epsilon-shrinkage élevé rend peu fiables..."
     options:
       - "les graphiques diagnostiques individuels (IPRED, IWRES)"
-      - "la dose administrée"
-      - "la valeur de la clairance de population"
+      - "les diagnostics de population fondés sur PRED et CWRES"
+      - "les estimations des effets fixes θ de la population"
     correct: 0
   - prompt: "Le eta-shrinkage se calcule par..."
     options:
-      - "1 − SD(η̂) / ω"
-      - "SD(η̂) × ω"
-      - "la moyenne des concentrations"
+      - "1 − SD(η̂)/ω"
+      - "SD(η̂)/ω"
+      - "1 − ω/SD(η̂)"
     correct: 0
 ---
 

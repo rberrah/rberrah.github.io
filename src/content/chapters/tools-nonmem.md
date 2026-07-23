@@ -18,14 +18,14 @@ quiz:
   - prompt: "NONMEM s'utilise principalement via..."
     options:
       - "un fichier de contrôle texte (control stream) prétraité par NM-TRAN"
-      - "une interface glisser-déposer"
-      - "un tableur"
+      - "une interface graphique où l'on assemble le modèle par menus déroulants"
+      - "un script R qui décrit le modèle et appelle le moteur d'estimation"
     correct: 0
   - prompt: "La méthode d'estimation historique de NONMEM est..."
     options:
-      - "FOCE (avec interaction)"
-      - "aucune"
-      - "un réseau de neurones"
+      - "FOCE-I, une estimation conditionnelle du premier ordre avec interaction"
+      - "le SAEM, une approximation stochastique de l'espérance-maximisation"
+      - "les moindres carrés ordinaires appliqués aux concentrations moyennes"
     correct: 0
 ---
 

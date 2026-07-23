@@ -18,20 +18,20 @@ quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
     options:
       - "s'épuise avec le temps (apparition d'une résistance)"
-      - "est constant à vie"
-      - "ne dépend pas de l'exposition"
+      - "reste constant tant que le traitement est poursuivi"
+      - "augmente progressivement à mesure que la dose s'accumule"
     correct: 0
   - prompt: "Un modèle joint TGI–survie relie..."
     options:
       - "la dynamique de la taille tumorale au risque de progression/décès"
-      - "la dose au poids du patient uniquement"
-      - "deux modèles PK indépendants"
+      - "la concentration plasmatique à la clairance individuelle du patient"
+      - "la réduction tumorale à la toxicité hématologique observée"
     correct: 0
   - prompt: "Le paramètre β d'un modèle joint mesure..."
     options:
-      - "la force du lien entre taille tumorale et hasard"
-      - "la clairance du médicament"
-      - "la biodisponibilité orale"
+      - "la force du lien entre la taille tumorale et le hasard"
+      - "la vitesse de croissance tumorale non perturbée (K_G)"
+      - "le risque de base indépendant de la taille tumorale (h₀)"
     correct: 0
 ---
 

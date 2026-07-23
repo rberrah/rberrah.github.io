@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Si le modèle est correct, les NPDE suivent une loi..."
     options:
-      - "normale standard N(0,1)"
-      - "uniforme"
-      - "exponentielle"
+      - "normale standard N(0,1), de moyenne 0 et variance 1"
+      - "uniforme sur [0,1], comme les pde avant transformation"
+      - "du χ² à un degré de liberté, car ce sont des carrés"
     correct: 0
   - prompt: "Les NPDE se construisent en..."
     options:
       - "comparant chaque observation à une distribution simulée sous le modèle"
-      - "dérivant la courbe de concentration"
-      - "moyennant les doses"
+      - "comparant chaque observation à sa prédiction individuelle IPRED"
+      - "standardisant les résidus pondérés par leur écart-type théorique"
     correct: 0
   - prompt: "Un décalage de la moyenne des NPDE loin de 0 indique..."
     options:
-      - "un biais du modèle"
-      - "un bon ajustement"
-      - "une erreur d'unité seulement"
+      - "un biais systématique du modèle (sur- ou sous-prédiction)"
+      - "une sur-dispersion, soit une variance des NPDE supérieure à 1"
+      - "un écart à la normalité affectant surtout les queues"
     correct: 0
 ---
 

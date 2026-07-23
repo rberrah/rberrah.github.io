@@ -17,21 +17,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans un modèle parent/métabolite, le métabolite apparaît d'abord..."
     options:
-      - "par formation à partir du parent (montée puis descente)"
+      - "par formation progressive à partir du parent"
       - "instantanément à sa concentration finale"
-      - "avant l'administration"
+      - "en même temps que le pic de concentration du parent"
     correct: 0
   - prompt: "Si le métabolite s'élimine plus lentement que le parent (km < k), sa pente terminale est..."
     options:
-      - "gouvernée par sa propre élimination (km) : il persiste"
-      - "toujours identique à celle du parent"
-      - "nulle"
+      - "fixée par sa propre élimination lente (km)"
+      - "identique à la pente terminale du parent"
+      - "plus raide que la pente terminale du parent"
     correct: 0
   - prompt: "Un métabolite actif est important car..."
     options:
-      - "il contribue à l'effet (et parfois à la toxicité)"
-      - "il n'a jamais d'effet"
-      - "il change la dose du parent"
+      - "il contribue à l'effet, parfois à la toxicité"
+      - "il accélère l'élimination du médicament parent"
+      - "il modifie la biodisponibilité du parent"
     correct: 0
 ---
 

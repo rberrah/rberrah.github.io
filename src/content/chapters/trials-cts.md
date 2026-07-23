@@ -16,20 +16,20 @@ quiz:
   - prompt: "La simulation d'essais cliniques (CTS) permet de..."
     options:
       - "évaluer designs, doses et puissance avant de lancer l'essai"
-      - "remplacer définitivement les essais réels"
-      - "mesurer une concentration"
+      - "confirmer l'efficacité clinique à la place d'un essai de phase III"
+      - "estimer les paramètres PK d'un patient à partir de ses prélèvements"
     correct: 0
   - prompt: "Pour simuler une population virtuelle réaliste, il faut..."
     options:
-      - "un modèle PK/PD + des covariables corrélées + la variabilité"
-      - "seulement la dose moyenne"
-      - "un unique patient typique"
+      - "un modèle PK/PD, des covariables corrélées et la variabilité inter-individuelle"
+      - "un modèle PK/PD moyen appliqué aux seules valeurs médianes, sans variabilité"
+      - "des covariables tirées indépendamment, sans tenir compte de leurs corrélations"
     correct: 0
   - prompt: "La probabilité de succès d'un essai (power) dépend surtout de..."
     options:
       - "la taille d'effet, la variabilité et la taille d'échantillon"
-      - "la couleur du comprimé"
-      - "le nom de la molécule"
+      - "la clairance moyenne et le volume de distribution du médicament"
+      - "la dose maximale tolérée et la demi-vie d'élimination observée"
     correct: 0
 ---
 

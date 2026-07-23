@@ -14,20 +14,20 @@ quiz:
   - prompt: "IVIVE consists of..."
     options:
       - "extrapolating a clearance measured in vitro to in vivo"
-      - "measuring the AUC in animals"
-      - "ignoring metabolism"
+      - "extrapolating PK from animal to human by allometric scaling"
+      - "deducing in-vitro clearance from observed clinical data"
     correct: 0
   - prompt: "PBPK predicts an interaction (DDI) by..."
     options:
       - "changing enzyme activity (inhibition/induction) in the modelled liver"
-      - "changing the drug colour"
-      - "removing the dose"
+      - "changing the hepatic blood flow of the perpetrator and victim"
+      - "simply adding the clearances of the two co-administered drugs"
     correct: 0
   - prompt: "For paediatrics, PBPK mainly adjusts..."
     options:
       - "volumes, flows and enzyme maturation by age"
-      - "nothing, dose is proportional to weight"
-      - "only the colour"
+      - "body weight only, keeping the other parameters fixed"
+      - "mainly the tissue partition coefficients (Kp) by age"
     correct: 0
 ---
 

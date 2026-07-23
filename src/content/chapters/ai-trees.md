@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un arbre de décision seul produit une fonction..."
     options:
       - "en marches (constante par morceaux), qui tend à surajuster"
-      - "toujours linéaire"
-      - "toujours lisse"
+      - "linéaire par morceaux, avec une pente ajustée dans chaque zone"
+      - "lisse et continue, obtenue en interpolant entre les feuilles"
     correct: 0
   - prompt: "Une forêt aléatoire améliore l'arbre unique en..."
     options:
       - "moyennant de nombreux arbres décorrélés (bagging + sous-ensembles de variables)"
-      - "augmentant la profondeur d'un seul arbre"
-      - "supprimant les covariables"
+      - "augmentant sans limite la profondeur d'un unique arbre très détaillé"
+      - "élaguant agressivement un seul arbre pour réduire sa variance résiduelle"
     correct: 0
   - prompt: "L'importance des variables d'une forêt sert à..."
     options:
       - "repérer les covariables les plus prédictives"
-      - "fixer la dose"
-      - "calculer l'AUC par trapèzes"
+      - "mesurer l'effet causal de chaque covariable sur la réponse"
+      - "classer les patients selon leur profil de covariables"
     correct: 0
 ---
 

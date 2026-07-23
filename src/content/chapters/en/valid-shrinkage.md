@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "A high eta-shrinkage means the EBEs..."
     options:
-      - "are pulled toward the population mean (weak individual data)"
-      - "are perfectly estimated"
-      - "do not exist"
+      - "are pulled toward the population mean (weakly informative data)"
+      - "are scattered well beyond the model's expected variability ω"
+      - "faithfully reflect each patient, backed by rich data"
     correct: 0
   - prompt: "A high epsilon-shrinkage makes unreliable..."
     options:
       - "individual diagnostic plots (IPRED, IWRES)"
-      - "the administered dose"
-      - "the population clearance value"
+      - "population diagnostics based on PRED and CWRES"
+      - "the population fixed-effect (θ) estimates"
     correct: 0
   - prompt: "Eta-shrinkage is computed as..."
     options:
-      - "1 − SD(η̂) / ω"
-      - "SD(η̂) × ω"
-      - "the mean of the concentrations"
+      - "1 − SD(η̂)/ω"
+      - "SD(η̂)/ω"
+      - "1 − ω/SD(η̂)"
     correct: 0
 ---
 

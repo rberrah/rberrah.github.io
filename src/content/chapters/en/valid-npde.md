@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "If the model is correct, NPDE follow a..."
     options:
-      - "standard normal law N(0,1)"
-      - "uniform law"
-      - "exponential law"
+      - "standard normal law N(0,1), with mean 0 and variance 1"
+      - "uniform law on [0,1], like the pde before transformation"
+      - "chi-squared law with one degree of freedom, being squares"
     correct: 0
   - prompt: "NPDE are built by..."
     options:
       - "comparing each observation to a distribution simulated under the model"
-      - "differentiating the concentration curve"
-      - "averaging doses"
+      - "comparing each observation to its individual prediction IPRED"
+      - "standardising weighted residuals by their theoretical SD"
     correct: 0
   - prompt: "A shift of the NPDE mean away from 0 indicates..."
     options:
-      - "a model bias"
-      - "a good fit"
-      - "only a unit error"
+      - "a systematic model bias (over- or under-prediction)"
+      - "over-dispersion, i.e. an NPDE variance above 1"
+      - "a departure from normality, mainly in the tails"
     correct: 0
 ---
 

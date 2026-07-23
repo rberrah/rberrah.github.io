@@ -14,20 +14,20 @@ quiz:
   - prompt: "A model-based dose finding is more efficient because..."
     options:
       - "it uses the continuous dose–response relationship, not just pairwise comparisons"
-      - "it tests a single dose"
-      - "it ignores efficacy"
+      - "it compares each dose to placebo separately, correcting for the test multiplicity"
+      - "it makes do with two doses only by assuming a strictly linear response"
     correct: 0
   - prompt: "An adaptive design allows one to..."
     options:
       - "modify the trial according to pre-specified interim analyses"
-      - "change the protocol at random mid-way"
-      - "remove the control group"
+      - "freely revise the protocol after seeing the final results"
+      - "extend the trial until a statistically significant result is reached"
     correct: 0
   - prompt: "MCP-Mod combines..."
     options:
       - "a dose–response trend test and modelling to estimate the dose"
-      - "two independent PK models"
-      - "a simple average of the groups"
+      - "a pairwise comparison of the doses with a multiplicity correction"
+      - "fitting a single Emax model chosen in advance, without model averaging"
     correct: 0
 ---
 

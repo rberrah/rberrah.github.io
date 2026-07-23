@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "In a parent/metabolite model, the metabolite first appears..."
     options:
-      - "by formation from the parent (rise then fall)"
+      - "gradually, by formation from the parent"
       - "instantly at its final concentration"
-      - "before dosing"
+      - "at the same time as the parent's peak"
     correct: 0
   - prompt: "If the metabolite is eliminated more slowly than the parent (km < k), its terminal slope is..."
     options:
-      - "governed by its own elimination (km): it persists"
-      - "always identical to the parent's"
-      - "zero"
+      - "set by its own slow elimination (km)"
+      - "identical to the parent's terminal slope"
+      - "steeper than the parent's terminal slope"
     correct: 0
   - prompt: "An active metabolite matters because..."
     options:
-      - "it contributes to the effect (and sometimes toxicity)"
-      - "it never has an effect"
-      - "it changes the parent's dose"
+      - "it adds to the effect, sometimes toxicity"
+      - "it speeds up the parent drug's elimination"
+      - "it alters the parent drug's bioavailability"
     correct: 0
 ---
 

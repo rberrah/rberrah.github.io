@@ -14,20 +14,20 @@ quiz:
   - prompt: "The partition coefficient Kp,T describes..."
     options:
       - "the tissue/plasma concentration ratio at equilibrium"
-      - "the administered dose"
-      - "the renal elimination rate"
+      - "the ratio of free to total drug concentration"
+      - "the rate of diffusion across the tissue membrane"
     correct: 0
   - prompt: "A highly lipophilic molecule will tend to..."
     options:
       - "accumulate in fatty tissues (large volume)"
-      - "stay only in plasma"
-      - "be eliminated without distributing"
+      - "stay in plasma, strongly bound to albumin"
+      - "be cleared by the kidney without really distributing"
     correct: 0
   - prompt: "Only the ... fraction of the drug diffuses and acts."
     options:
       - "free (unbound to proteins)"
-      - "protein-bound"
-      - "metabolised"
+      - "bound to plasma proteins"
+      - "ionised at physiological pH"
     correct: 0
 ---
 

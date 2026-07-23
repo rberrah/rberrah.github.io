@@ -14,20 +14,20 @@ quiz:
   - prompt: "A copula describes..."
     options:
       - "the dependence structure between variables, separate from their marginal laws"
-      - "the mean of a variable"
-      - "a model's residual error"
+      - "the marginal law of each variable, taken on its own"
+      - "the linear correlation coefficient between two given variables"
     correct: 0
   - prompt: "When simulating realistic virtual patients, ignoring the weight–CrCl correlation..."
     options:
       - "creates impossible combinations (e.g. low weight + huge CrCl)"
-      - "has no consequence"
-      - "improves the model"
+      - "slightly inflates the variance but keeps realistic profiles"
+      - "preserves the margins, so it has no effect on realism"
     correct: 0
   - prompt: "Sklar's theorem states that a joint law decomposes into..."
     options:
-      - "its margins and a copula"
-      - "a single exponential"
-      - "a decision tree"
+      - "its marginal laws and a copula"
+      - "the product of its independent margins"
+      - "a mean vector and a covariance matrix"
     correct: 0
 ---
 

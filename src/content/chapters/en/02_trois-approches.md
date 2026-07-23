@@ -13,21 +13,21 @@ slides: ["s23", "s34", "s45", "s56", "s73"]
 quiz:
   - prompt: "Non-compartmental analysis (NCA) is mainly used to..."
     options:
-      - "describe the observed exposure"
+      - "describe the observed exposure without a model"
       - "simulate unobserved patients with covariates"
-      - "build a full physiological model"
+      - "build a full physiological model of the body"
     correct: 0
   - prompt: "PopPK is especially useful when you want to..."
     options:
-      - "ignore variability"
-      - "estimate typical parameters and variability across a population"
-      - "avoid any model"
+      - "describe one patient's exposure without a model"
+      - "estimate typical parameters and their variability"
+      - "rebuild the body's full physiology from scratch"
     correct: 1
   - prompt: "A common PBPK risk is..."
     options:
-      - "too few parameters"
-      - "over-parameterization beyond what the data support"
-      - "never using physiology"
+      - "an inability to extrapolate to new scenarios"
+      - "too many parameters for what the data support"
+      - "a lack of mechanistic physiological basis"
     correct: 1
 ---
 

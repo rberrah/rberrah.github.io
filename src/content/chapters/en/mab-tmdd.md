@@ -13,15 +13,15 @@ slides: []
 quiz:
   - prompt: "TMDD (target-mediated drug disposition) produces PK that is..."
     options:
-      - "nonlinear: clearance depends on dose"
-      - "perfectly linear at all doses"
-      - "independent of the target"
+      - "nonlinear: clearance decreases as the dose increases"
+      - "linear: target binding does not alter elimination"
+      - "nonlinear: clearance increases as the dose increases"
     correct: 0
   - prompt: "At high dose, with the target saturated, a mAb's PK becomes..."
     options:
-      - "nearly linear (target route negligible)"
-      - "faster and faster"
-      - "zero"
+      - "nearly linear: the target route becomes negligible"
+      - "faster and faster: the target captures more of the drug"
+      - "strongly nonlinear: the target route dominates elimination"
     correct: 0
 ---
 

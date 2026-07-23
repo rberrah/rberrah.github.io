@@ -15,15 +15,15 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La demi-vie longue (semaines) des anticorps IgG s'explique surtout par..."
     options:
-      - "le recyclage par le récepteur FcRn"
-      - "une forte lipophilie"
-      - "une élimination rénale rapide"
+      - "le recyclage des IgG par le récepteur FcRn"
+      - "leur forte liaison aux protéines plasmatiques"
+      - "leur grande taille bloquant la filtration rénale"
     correct: 0
   - prompt: "Le volume de distribution d'un anticorps monoclonal est..."
     options:
       - "petit (proche du plasma et de l'interstitium)"
-      - "très grand (tissus profonds)"
-      - "nul"
+      - "grand, car la molécule diffuse dans tous les tissus"
+      - "proche de l'eau totale de l'organisme (~42 L)"
     correct: 0
 ---
 

@@ -15,19 +15,19 @@ quiz:
     options:
       - "what the drug does to the body"
       - "what the body does to the drug"
-      - "the price of a treatment"
+      - "how concentration drives effect"
     correct: 1
   - prompt: "In the building-block metaphor, PD is closest to..."
     options:
       - "how the blocks travel through the room"
       - "what the finished construction does"
-      - "the colour of the box"
+      - "how fast the blocks leave the room"
     correct: 1
   - prompt: "Two patients get the same dose but respond differently. This illustrates..."
     options:
       - "inter-individual variability"
-      - "a missing axis label"
-      - "a fixed effect only"
+      - "residual measurement error"
+      - "a fixed effect shared by everyone"
     correct: 0
 ---
 

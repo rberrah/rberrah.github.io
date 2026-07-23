@@ -17,9 +17,9 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "MU-referencing speeds up SAEM because..."
     options:
-      - "MU_n depends only on THETAs and on covariates constant within a subject, which makes the population-parameter update analytic at every iteration"
-      - "it reduces the number of subjects simulated during the E step, so that each iteration processes far less individual data"
-      - "it replaces numerical integration of the likelihood with a linearisation of the model around the zero values of the ETAs"
+      - "MU_n depends only on THETAs and on covariates constant within a subject, which makes the population-parameter update analytic"
+      - "it reduces the number of subjects simulated during the E step, so that each iteration processes far less individual-level data"
+      - "it replaces numerical integration of the likelihood with a linearisation of the model around the current ETA values of the subject"
     correct: 0
   - prompt: "For a bioavailability that must stay between 0 and 1, the right parameterisation is..."
     options:
@@ -31,7 +31,7 @@ quiz:
     options:
       - "the new data cannot inform that parameter, while a published source provides an estimate of it together with its uncertainty"
       - "the new data inform that parameter well, and the prior serves to confirm that the published value is reproduced"
-      - "the parameter is the one the study aims to measure, and the prior serves to shrink its final standard error"
+      - "the parameter is precisely the one the study aims to measure, and the prior serves to shrink its final standard error"
     correct: 0
 ---
 

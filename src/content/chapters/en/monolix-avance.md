@@ -30,8 +30,8 @@ quiz:
   - prompt: "Automatic initialisation of the parameters in Monolix..."
     options:
       - "proposes a starting point for the structural parameters, but validates neither the structural model nor the units of the dataset"
-      - "estimates the population parameters by a fast method, which SAEM then merely refines at the margin"
-      - "guarantees that SAEM starts in the right basin of attraction and shields the run from local optima"
+      - "estimates the population parameters by a fast method, which SAEM then merely refines at the margin without questioning them"
+      - "guarantees that SAEM starts in the right basin of attraction and shields the run from local optima from the first iteration"
     correct: 0
 ---
 

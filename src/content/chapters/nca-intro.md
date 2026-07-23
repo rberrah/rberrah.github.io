@@ -16,14 +16,14 @@ quiz:
   - prompt: "La NCA se distingue d'un modèle compartimental car elle..."
     options:
       - "ne suppose aucune structure de compartiments"
-      - "exige toujours 3 compartiments"
-      - "ignore les concentrations"
+      - "impose un modèle à deux compartiments par défaut"
+      - "estime les constantes de transfert entre compartiments"
     correct: 0
   - prompt: "La NCA suppose principalement une cinétique..."
     options:
-      - "linéaire (proportionnelle à la dose)"
-      - "toujours non linéaire"
-      - "sans élimination"
+      - "linéaire (exposition proportionnelle à la dose)"
+      - "saturable, de type Michaelis-Menten à haute dose"
+      - "d'ordre zéro, à vitesse d'élimination constante"
     correct: 0
 ---
 

@@ -17,21 +17,21 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Why does the OFV of a METHOD=0 (FO) run not compare with that of a METHOD=1 INTER (FOCE-I) run?"
     options:
-      - "Because each method computes a different approximation of the same integral: the OFV gap then measures the change of approximation, not a gain in fit."
-      - "Because FO estimates fewer parameters than FOCE-I: the OFV gap must first be corrected by the difference in degrees of freedom."
-      - "Because FO works on concentrations and FOCE-I on their logarithms: the two OFVs must first be brought onto a common scale."
+      - "Because each method computes a different approximation of the same integral: the OFV gap measures the change of approximation, not a gain in fit."
+      - "Because FO estimates fewer parameters than FOCE-I: the OFV gap must first be corrected by the difference in degrees of freedom between the runs."
+      - "Because FO works on concentrations and FOCE-I on their logarithms: the two OFVs must first be brought onto a common scale before subtracting."
     correct: 0
   - prompt: "In METHOD=1 INTER, what exactly does the INTER option do?"
     options:
       - "It evaluates the residual variance at the individual η̂ rather than at η = 0, which changes the result as soon as the error is proportional or combined."
-      - "It allows a correlation between the clearance and volume η values, which changes the result as soon as the OMEGA block is diagonal."
-      - "It interpolates predictions between two observation times, which changes the result as soon as samples are widely spaced."
+      - "It allows a correlation between the clearance and volume η values, which changes the result as soon as the OMEGA block is declared diagonal."
+      - "It interpolates predictions between two consecutive observation times, which changes the result as soon as the samples are widely spaced."
     correct: 0
   - prompt: "A run ends with MINIMIZATION TERMINATED DUE TO ROUNDING ERRORS. This means that..."
     options:
-      - "the optimiser can no longer reach the requested precision, often through over-parameterisation or poor numerical scaling: the estimates need checking, not necessarily discarding."
-      - "the structural model is refuted by the data: the number of compartments must be changed before considering any other correction."
-      - "the data file contains outlying or missing rows: the columns must be cleaned before the estimation is launched again."
+      - "the optimiser no longer reaches the requested precision, often from over-parameterisation or poor scaling: estimates to check, not to discard."
+      - "the structural model is refuted by the data: the number of compartments or the input route must be changed before any other correction."
+      - "the data file contains outlying rows or missing values, which must all be cleaned out before the entire estimation is relaunched."
     correct: 0
 ---
 

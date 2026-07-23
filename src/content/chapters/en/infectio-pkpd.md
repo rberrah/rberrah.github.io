@@ -14,14 +14,14 @@ quiz:
   - prompt: "For beta-lactams, the PK/PD index predictive of efficacy is..."
     options:
       - "the time spent above the MIC (T>MIC)"
-      - "the patient's weight"
-      - "the colour of the solution"
+      - "the peak concentration over MIC (Cmax/MIC)"
+      - "the area under the curve over MIC (AUC/MIC)"
     correct: 0
   - prompt: "A concentration-dependent antibiotic (aminoglycoside) is optimised by..."
     options:
       - "a high Cmax/MIC (large, spaced doses)"
-      - "small very frequent doses"
-      - "no infusion at all"
+      - "a high T>MIC via prolonged continuous infusion"
+      - "small, closely spaced doses to smooth the peak"
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "In a viral kinetics model, the biphasic decline reflects..."
     options:
       - "clearance of free virus then loss of infected cells"
-      - "two measurement errors"
-      - "dose and weight"
+      - "loss of infected cells then clearance of free virus"
+      - "distribution then elimination of the antiviral drug"
     correct: 0
   - prompt: "An antiviral's efficacy parameter ε represents..."
     options:
       - "the fraction of viral production blocked"
-      - "the renal clearance"
-      - "the volume of distribution"
+      - "the clearance rate of free virus (c, per day)"
+      - "the loss rate of infected cells (δ, per day)"
     correct: 0
   - prompt: "Insufficient efficacy favours..."
     options:
       - "the emergence of resistance (residual replication)"
-      - "faster cure"
-      - "a drop in viral load"
+      - "a viral rebound driven by patient non-adherence alone"
+      - "a prolonged phase 2 with no selection of variants"
     correct: 0
 ---
 

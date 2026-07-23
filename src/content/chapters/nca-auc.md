@@ -16,20 +16,20 @@ quiz:
   - prompt: "La méthode des trapèzes calcule l'AUC en..."
     options:
       - "sommant l'aire de trapèzes entre points successifs"
-      - "prenant la concentration maximale"
-      - "dérivant la courbe"
+      - "sommant l'aire de rectangles sous chaque concentration"
+      - "multipliant la concentration maximale par le temps total"
     correct: 0
   - prompt: "λz (pente terminale) s'estime par régression log-linéaire..."
     options:
       - "sur les derniers points de la phase d'élimination"
-      - "sur le pic de concentration"
-      - "sur un seul point"
+      - "sur les premiers points de la phase d'absorption"
+      - "sur tous les points, du pic jusqu'au dernier prélèvement"
     correct: 0
   - prompt: "Une fraction extrapolée trop grande (> 20 %) signale..."
     options:
       - "un échantillonnage terminal insuffisant, AUC peu fiable"
-      - "un excellent protocole"
-      - "une dose trop faible"
+      - "une phase terminale bien définie, une AUC très fiable"
+      - "une demi-vie trop courte pour la fenêtre de prélèvement"
     correct: 0
 ---
 

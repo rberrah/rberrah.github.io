@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "The effect-compartment model explains hysteresis by..."
     options:
-      - "an equilibration delay between plasma and the effect site (ke0)"
-      - "a measurement error"
-      - "a dose change"
+      - "an equilibration delay between plasma and effect site (ke0)"
+      - "an active metabolite that slowly forms after the parent drug"
+      - "a saturation of the receptors at high concentrations"
     correct: 0
   - prompt: "The ke0 parameter controls..."
     options:
       - "the equilibration rate toward the effect compartment"
-      - "the plasma clearance"
-      - "the bioavailability"
+      - "the elimination rate of the drug out of the plasma"
+      - "the absorption rate from the administration site"
     correct: 0
   - prompt: "A concentration–effect hysteresis loop indicates that..."
     options:
       - "the effect is shifted relative to the plasma concentration"
-      - "the effect is instantaneous"
-      - "there is no effect"
+      - "the effect follows the plasma concentration instantly"
+      - "the effect plateaus once the receptors become fully saturated"
     correct: 0
 ---
 

@@ -16,25 +16,25 @@ quiz:
     options:
       - "Dose / (CL · τ)"
       - "Dose · CL · τ"
-      - "CL / Dose"
+      - "Dose / (V · τ)"
     correct: 0
   - prompt: "The time to reach steady state depends mainly on..."
     options:
-      - "the half-life (≈ 4 to 5 t½)"
-      - "the dose given"
-      - "the infusion rate"
+      - "the elimination half-life"
+      - "the dose given at each intake"
+      - "the infusion rate used"
     correct: 0
   - prompt: "During a continuous infusion, the steady-state concentration equals..."
     options:
-      - "the rate divided by clearance (Css = R₀ / CL)"
-      - "the rate times the volume"
-      - "the dose divided by the half-life"
+      - "the infusion rate divided by clearance"
+      - "the infusion rate times the volume"
+      - "the dose divided by the elimination half-life"
     correct: 0
   - prompt: "A loading dose is used to..."
     options:
-      - "reach the therapeutic window faster, without changing the final plateau"
-      - "lower the final Css"
-      - "change the half-life"
+      - "reach the therapeutic window faster"
+      - "lower the final steady-state Css"
+      - "shorten the elimination half-life"
     correct: 0
 ---
 

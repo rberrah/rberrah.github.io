@@ -16,20 +16,20 @@ quiz:
   - prompt: "Une covariable est utile quand elle..."
     options:
       - "explique une part de la variabilité d'un paramètre"
-      - "rallonge seulement le modèle"
-      - "supprime le besoin de diagnostics"
+      - "atteint le seuil de significativité statistique fixé"
+      - "réduit systématiquement l'erreur résiduelle du modèle"
     correct: 0
   - prompt: "Centrer le poids à 70 kg aide parce que..."
     options:
       - "le paramètre typique reste interprétable"
-      - "tous les patients deviennent 70 kg"
-      - "le modèle n'a plus besoin d'unités"
+      - "l'effet du poids sur la clairance disparaît alors"
+      - "la constante 70 doit égaler la moyenne des poids"
     correct: 0
   - prompt: "L'allométrie met souvent la clairance à l'échelle du poids avec un exposant proche de..."
     options:
       - "0,75"
-      - "7,5"
-      - "75"
+      - "1,00"
+      - "0,67"
     correct: 0
 ---
 

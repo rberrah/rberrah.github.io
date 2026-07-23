@@ -16,20 +16,20 @@ quiz:
   - prompt: "Dans un modèle de réponse indirecte, le délai de l'effet vient..."
     options:
       - "du renouvellement (kout) de la réponse, pas de la PK"
-      - "de la vitesse d'absorption"
-      - "du volume de distribution"
+      - "de l'absorption lente du médicament vers le plasma"
+      - "de la distribution lente du médicament vers les tissus"
     correct: 0
   - prompt: "Combien de modèles de base de réponse indirecte a décrit Dayneka ?"
     options:
       - "quatre (inhibition/stimulation de kin ou kout)"
-      - "un seul"
-      - "dix"
+      - "deux (inhibition ou stimulation d'une seule vitesse)"
+      - "six (inhibition/stimulation de kin, kout et R)"
     correct: 0
   - prompt: "À l'état basal, la réponse R0 vaut..."
     options:
       - "kin / kout"
       - "kin × kout"
-      - "la dose"
+      - "kout / kin"
     correct: 0
 ---
 

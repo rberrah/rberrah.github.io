@@ -18,8 +18,8 @@ quiz:
   - prompt: "Avec une erreur proportionnelle ou combinée, l'option INTER du bloc ESTIMATION est nécessaire parce que..."
     options:
       - "l'écart-type résiduel dépend de la prédiction individuelle, donc de l'ETA du sujet, et doit être évalué à son ETA estimé"
-      - "elle accélère la minimisation en évitant le calcul numérique des dérivées secondes de la vraisemblance"
-      - "elle autorise les EPS à être corrélés entre eux via un bloc SIGMA non diagonal de type BLOCK"
+      - "elle accélère la minimisation en évitant le calcul numérique des dérivées secondes de la vraisemblance à chaque itération"
+      - "elle autorise une corrélation entre les EPS via un bloc SIGMA non diagonal, à la manière d'un OMEGA BLOCK"
     correct: 0
   - prompt: "La méthode M3 de Beal traite une donnée sous la LOQ en..."
     options:

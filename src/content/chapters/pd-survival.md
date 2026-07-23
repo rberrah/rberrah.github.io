@@ -16,20 +16,20 @@ quiz:
   - prompt: "La différence entre OS et PFS est que..."
     options:
       - "l'OS mesure le temps jusqu'au décès, la PFS jusqu'à progression ou décès"
-      - "l'OS est toujours plus courte que la PFS"
-      - "ce sont des synonymes"
+      - "la PFS mesure le temps jusqu'au décès, l'OS jusqu'à la progression tumorale"
+      - "l'OS compte tous les décès, la PFS seulement ceux liés au cancer"
     correct: 0
   - prompt: "La censure (à droite) survient quand..."
     options:
       - "l'événement n'a pas eu lieu à la fin du suivi"
-      - "le patient a deux événements"
-      - "la dose est inconnue"
+      - "l'événement est survenu avant le début du suivi"
+      - "l'événement est observé précisément pendant le suivi"
     correct: 0
   - prompt: "Relier l'exposition à la survie via un modèle de hasard permet de..."
     options:
-      - "prédire l'effet d'une dose sur l'OS/PFS"
-      - "calculer l'AUC"
-      - "mesurer la Cmax"
+      - "prédire l'effet d'une dose donnée sur l'OS/PFS"
+      - "remonter à la dose à partir de la survie observée"
+      - "estimer la survie sans tenir compte de la dose"
     correct: 0
 ---
 

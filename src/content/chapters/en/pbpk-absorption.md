@@ -14,20 +14,20 @@ quiz:
   - prompt: "A mechanistic absorption model (ACAT/ADAM) divides the gut into..."
     options:
       - "successive segments with dissolution, permeability and transit"
-      - "a single instantaneous compartment"
-      - "no compartment"
+      - "a single compartment where dissolution and absorption are instantaneous"
+      - "two compartments separating the stomach from the small intestine"
     correct: 0
   - prompt: "The hepatic first-pass effect reduces..."
     options:
       - "the fraction of dose reaching the systemic circulation"
-      - "the terminal half-life"
-      - "the volume of distribution"
+      - "the terminal half-life by speeding up drug elimination"
+      - "the volume of distribution by trapping the drug in the liver"
     correct: 0
   - prompt: "In the BCS classification, a molecule depends mainly on its..."
     options:
       - "solubility and permeability"
-      - "colour"
-      - "lethal dose"
+      - "dissolution and lipophilicity"
+      - "bioavailability and half-life"
     correct: 0
 ---
 

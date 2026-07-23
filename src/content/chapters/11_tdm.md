@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
     options:
-      - "éclairer l'interprétation de l'exposition et les décisions posologiques futures"
-      - "remplacer tout jugement clinique"
-      - "éviter de connaître l'heure du prélèvement"
+      - "éclairer l'interprétation de l'exposition et les choix de dose à venir"
+      - "confirmer seulement que le patient a bien pris toutes ses doses"
+      - "fixer automatiquement la dose sans interprétation clinique du résultat"
     correct: 0
   - prompt: "Pour un TDM basé sur un modèle, le moment du prélèvement est..."
     options:
-      - "critique"
-      - "sans importance"
-      - "toujours inconnu"
+      - "une information cruciale à connaître"
+      - "un détail secondaire pour l'estimation"
+      - "utile seulement pour un prélèvement résiduel"
     correct: 0
   - prompt: "Ce site pédagogique doit servir à..."
     options:
       - "apprendre des concepts, pas à doser un patient précis"
-      - "des prescriptions automatiques"
-      - "ignorer l'incertitude"
+      - "prescrire directement des doses aux patients réels"
+      - "remplacer les outils cliniques validés de dosage"
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "The difference between OS and PFS is that..."
     options:
       - "OS measures time to death, PFS time to progression or death"
-      - "OS is always shorter than PFS"
-      - "they are synonyms"
+      - "PFS measures time to death, OS time to tumour progression"
+      - "OS counts all deaths, PFS only the cancer-related ones"
     correct: 0
   - prompt: "(Right) censoring occurs when..."
     options:
       - "the event has not happened by the end of follow-up"
-      - "the patient has two events"
-      - "the dose is unknown"
+      - "the event occurred before follow-up began"
+      - "the event is observed precisely during follow-up"
     correct: 0
   - prompt: "Linking exposure to survival via a hazard model allows one to..."
     options:
-      - "predict a dose's effect on OS/PFS"
-      - "compute the AUC"
-      - "measure the Cmax"
+      - "predict a given dose's effect on OS/PFS"
+      - "infer the dose from the observed survival"
+      - "estimate survival, ignoring the dose given"
     correct: 0
 ---
 

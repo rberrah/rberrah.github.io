@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "By the intravenous (IV) route, the bioavailability F is..."
     options:
-      - "1 (all the dose reaches the circulation, no absorption)"
-      - "always 0.5"
-      - "0 (nothing reaches the blood)"
+      - "1, since the whole dose reaches the blood"
+      - "variable, depending on the hepatic first-pass"
+      - "reduced below 1, as with the oral route"
     correct: 0
   - prompt: "The sublingual/buccal route is valuable because it..."
     options:
       - "bypasses the hepatic first-pass"
-      - "always slows absorption"
-      - "increases renal clearance"
+      - "speeds up the hepatic first-pass"
+      - "improves gastrointestinal absorption"
     correct: 0
   - prompt: "A transdermal patch typically produces absorption that is..."
     options:
-      - "zero-order (constant rate, like a slow infusion)"
-      - "instantaneous"
-      - "zero"
+      - "zero-order, a constant and prolonged rate"
+      - "first-order, proportional to the amount left"
+      - "fast with an early peak, like the oral route"
     correct: 0
 ---
 

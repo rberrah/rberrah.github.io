@@ -16,8 +16,8 @@ quiz:
   - prompt: "La biodisponibilité absolue F se calcule en comparant..."
     options:
       - "l'AUC orale (dose-normalisée) à l'AUC IV"
-      - "Cmax à Tmax"
-      - "λz oral à λz IV"
+      - "le Cmax oral (dose-normalisé) au Cmax IV"
+      - "la pente terminale orale à la pente terminale IV"
     correct: 0
   - prompt: "Cmax et Tmax renseignent surtout sur..."
     options:

@@ -16,20 +16,20 @@ quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
     options:
       - "le plus faible niveau d'effet biologique anticipé (pharmacologie)"
-      - "la dose maximale tolérée"
-      - "le poids du patient"
+      - "la plus forte dose sans effet indésirable observé chez l'animal"
+      - "l'exposition équivalente à la dose thérapeutique établie chez l'animal"
     correct: 0
   - prompt: "Le NOAEL provient..."
     options:
       - "des études de toxicologie animale (dose sans effet indésirable observé)"
-      - "d'un essai de phase III"
-      - "du dossier de fabrication"
+      - "des études de pharmacologie in vitro (affinité et puissance sur la cible)"
+      - "de la modélisation de l'occupation du récepteur cible chez l'homme"
     correct: 0
   - prompt: "Pour les molécules très actives (agonistes immunitaires), on privilégie..."
     options:
-      - "MABEL plutôt que NOAEL, plus prudent"
-      - "la dose la plus élevée possible"
-      - "aucune modélisation"
+      - "le MABEL plutôt que le NOAEL, approche jugée plus prudente"
+      - "le NOAEL divisé par un facteur de sécurité nettement plus grand"
+      - "la moyenne entre la dose issue du NOAEL et celle issue du MABEL"
     correct: 0
 ---
 

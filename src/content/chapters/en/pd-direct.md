@@ -14,20 +14,20 @@ quiz:
   - prompt: "A direct-effect model assumes the effect..."
     options:
       - "follows the concentration with no delay"
-      - "always appears with a lag"
-      - "is independent of concentration"
+      - "always appears with a lag after the dose"
+      - "is independent of the concentration reached"
     correct: 0
   - prompt: "In the Emax model, EC50 is the concentration giving..."
     options:
-      - "half the maximal effect"
-      - "the maximal effect"
-      - "no effect"
+      - "half the maximal attainable effect"
+      - "the maximal effect, at the curve plateau"
+      - "half the concentration at the peak"
     correct: 0
   - prompt: "The Hill coefficient (n) controls..."
     options:
       - "the steepness of the concentration–effect curve"
-      - "the drug half-life"
-      - "the volume of distribution"
+      - "the height of the plateau, i.e. the maximal effect"
+      - "the concentration producing half the effect"
     correct: 0
 ---
 

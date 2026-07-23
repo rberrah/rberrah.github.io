@@ -17,9 +17,9 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "With a proportional or combined error, the INTER option of the ESTIMATION block is required because..."
     options:
-      - "the residual standard deviation depends on the individual prediction, hence on the subject ETA, and must be evaluated at their estimated ETA"
-      - "it speeds up the minimisation by avoiding the numerical computation of the second derivatives of the likelihood"
-      - "it allows the EPS terms to be correlated with each other through a non-diagonal SIGMA of the BLOCK kind"
+      - "the residual standard deviation depends on the individual prediction, hence on the subject ETA, and is evaluated at that estimated ETA"
+      - "it speeds up the minimisation by avoiding the numerical computation of the second derivatives of the likelihood at each iteration"
+      - "it allows the EPS terms to be correlated with one another through a non-diagonal SIGMA block, exactly as an OMEGA BLOCK does"
     correct: 0
   - prompt: "Beal's M3 method handles a below-LOQ observation by..."
     options:

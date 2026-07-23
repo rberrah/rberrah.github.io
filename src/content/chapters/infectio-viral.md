@@ -16,20 +16,20 @@ quiz:
   - prompt: "Dans un modèle de cinétique virale, la décroissance biphasique reflète..."
     options:
       - "la clairance du virus libre puis la perte des cellules infectées"
-      - "deux erreurs de mesure"
-      - "la dose et le poids"
+      - "la perte des cellules infectées puis la clairance du virus libre"
+      - "la distribution puis l'élimination du médicament antiviral"
     correct: 0
   - prompt: "Le paramètre d'efficacité ε d'un antiviral représente..."
     options:
       - "la fraction de production virale bloquée"
-      - "la clairance rénale"
-      - "le volume de distribution"
+      - "le taux de clairance du virus libre (c, en j⁻¹)"
+      - "la vitesse de perte des cellules infectées (δ)"
     correct: 0
   - prompt: "Une efficacité insuffisante favorise..."
     options:
       - "l'émergence de résistance (réplication résiduelle)"
-      - "une guérison plus rapide"
-      - "une baisse de la charge virale"
+      - "un rebond viral dû à la seule inobservance du patient"
+      - "une phase 2 prolongée sans sélection de variants"
     correct: 0
 ---
 

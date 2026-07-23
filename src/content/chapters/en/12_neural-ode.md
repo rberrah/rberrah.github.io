@@ -14,20 +14,20 @@ quiz:
   - prompt: "A grey-box model combines..."
     options:
       - "a mechanistic structure and flexible data-driven components"
-      - "no assumptions and no data"
-      - "only a spreadsheet"
+      - "a fully mechanistic structure that forbids any learned data-driven component"
+      - "an unconstrained neural network with no underlying mechanistic structure"
     correct: 0
   - prompt: "A Neural ODE is useful when..."
     options:
       - "you want flexible dynamics while keeping an ODE framework"
-      - "you want to avoid validation"
-      - "you have no time variable"
+      - "you want a closed-form analytic solution without solving any ODE"
+      - "you want to replace the ODE with a static network that ignores time"
     correct: 0
   - prompt: "A major risk of ML in pharmacometrics is..."
     options:
       - "overfitting and poor extrapolation"
-      - "too much mechanistic interpretability"
-      - "using units"
+      - "underfitting caused by an overly constrained model"
+      - "excessively slow convergence of the optimization algorithm"
     correct: 0
 ---
 

@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "The objective function (OFV = −2 log L) of a good model is..."
     options:
-      - "lower (the data are more likely)"
-      - "higher"
-      - "always zero"
+      - "lower, meaning the data are more likely under it"
+      - "higher: a good model maximises the objective function"
+      - "near zero, a perfect model driving it to nothing"
     correct: 0
   - prompt: "Adding a parameter always..."
     options:
-      - "lowers (or matches) the OFV — hence the need to penalise complexity"
-      - "raises the OFV"
-      - "changes the dose"
+      - "lowers (or matches) the OFV, hence the need to penalise complexity"
+      - "lowers the OFV by at least 3.84, the χ² threshold at 5%"
+      - "leaves the OFV unchanged if the parameter is non-significant"
     correct: 0
   - prompt: "The likelihood-ratio test (ΔOFV ~ χ²) applies..."
     options:
       - "to nested models (one is a special case of the other)"
-      - "to any models"
-      - "with no degrees of freedom"
+      - "to any two models, nested or not, on the same data"
+      - "to models fitted with different estimation methods"
     correct: 0
 ---
 

@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le modèle de croissance de Gompertz décrit une croissance..."
     options:
-      - "qui ralentit à mesure que la tumeur grossit (plateau)"
-      - "toujours exponentielle sans limite"
-      - "strictement linéaire"
+      - "qui ralentit quand la tumeur approche sa taille limite (plateau)"
+      - "qui reste exponentielle à taux constant, sans jamais plafonner"
+      - "qui devient linéaire dès que la tumeur dépasse un seuil de taille"
     correct: 0
   - prompt: "Les modèles à deux populations cellulaires servent surtout à représenter..."
     options:
-      - "la résistance (cellules sensibles vs résistantes)"
-      - "la couleur de la tumeur"
-      - "la dose administrée"
+      - "la résistance : cellules sensibles au traitement vs résistantes"
+      - "la variabilité entre deux sous-groupes de patients (mixture)"
+      - "la diffusion du médicament entre deux compartiments tissulaires"
     correct: 0
   - prompt: "Un modèle TGI-OS relie..."
     options:
-      - "la dynamique tumorale précoce à la survie globale"
-      - "la dose au poids"
-      - "deux modèles PK"
+      - "la dynamique tumorale précoce à la survie globale du patient"
+      - "l'exposition plasmatique à la réduction tumorale précoce"
+      - "la profondeur du nadir hématologique à la dose reçue"
     correct: 0
 ---
 

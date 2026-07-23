@@ -22,9 +22,9 @@ quiz:
     correct: 1
   - prompt: "La demi-vie dépend de..."
     options:
-      - "CL seulement"
-      - "V seulement"
-      - "à la fois V et CL"
+      - "de la clairance CL uniquement"
+      - "du volume de distribution seul"
+      - "à la fois de V et de CL"
     correct: 2
   - prompt: "Un V plus grand, à même dose, donne en général..."
     options:

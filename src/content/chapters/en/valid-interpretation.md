@@ -16,20 +16,20 @@ quiz:
   - prompt: "U-shaped CWRES (negative in the middle, positive at the extremes) suggest..."
     options:
       - "a structural misspecification (e.g. a missing compartment)"
-      - "a good model"
-      - "a dosing error"
+      - "an unsuitable residual-error model (additive vs combined)"
+      - "a mis-specified between-subject variability on clearance"
     correct: 0
   - prompt: "A 'trumpet'-shaped (flaring) residual cloud calls for..."
     options:
-      - "revisiting the residual-error model (additive → combined/proportional)"
-      - "removing patients"
-      - "doubling the dose"
+      - "revisiting the residual-error model (additive → combined)"
+      - "adding a distribution compartment to the structural model"
+      - "introducing a weight covariate on the volume of distribution"
     correct: 0
   - prompt: "A non-zero residual mean in a subgroup (e.g. renal impairment) suggests..."
     options:
-      - "a missing covariate on a parameter"
-      - "a perfect model"
-      - "only a unit problem"
+      - "a missing covariate on a disposition parameter"
+      - "mere sampling chance within this particular subgroup"
+      - "a stronger residual error within this subgroup"
     correct: 0
 ---
 

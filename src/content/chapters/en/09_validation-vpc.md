@@ -14,8 +14,8 @@ quiz:
   - prompt: "A VPC compares observed data with..."
     options:
       - "data simulated from the fitted model"
-      - "only the first patient's data"
-      - "a table of drug prices"
+      - "the model's individual predictions for each patient"
+      - "the single typical prediction curve of the population"
     correct: 0
   - prompt: "A good diagnostic workflow asks whether..."
     options:
@@ -25,9 +25,9 @@ quiz:
     correct: 0
   - prompt: "A common diagnostic pitfall is..."
     options:
-      - "looking at plots"
+      - "trusting a model just because it converged"
       - "declaring success from a single metric"
-      - "simulating from the model"
+      - "taking a systematic residual pattern for noise"
     correct: 1
 ---
 

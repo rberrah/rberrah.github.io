@@ -14,20 +14,20 @@ quiz:
   - prompt: "A single decision tree produces a function that is..."
     options:
       - "piecewise-constant (steps), prone to overfitting"
-      - "always linear"
-      - "always smooth"
+      - "piecewise-linear, with a fitted slope in each region"
+      - "smooth and continuous, interpolating between the leaves"
     correct: 0
   - prompt: "A random forest improves on a single tree by..."
     options:
       - "averaging many decorrelated trees (bagging + random feature subsets)"
-      - "increasing the depth of one tree"
-      - "deleting covariates"
+      - "growing a single very detailed tree without any depth limit"
+      - "aggressively pruning a single tree to cut its residual variance"
     correct: 0
   - prompt: "A forest's variable importance is used to..."
     options:
       - "spot the most predictive covariates"
-      - "set the dose"
-      - "compute the AUC by trapezoids"
+      - "measure the causal effect of each covariate on the response"
+      - "rank the patients according to their covariate profile"
     correct: 0
 ---
 

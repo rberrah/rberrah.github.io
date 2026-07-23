@@ -15,21 +15,21 @@ slides: []
 quiz:
   - prompt: "Monolix's default estimation engine is..."
     options:
-      - "SAEM (with built-in diagnostics and VPC)"
-      - "FOCE only"
-      - "none"
+      - "SAEM, a stochastic approximation of the expectation-maximisation algorithm"
+      - "FOCE-I, a linearisation of the likelihood around the individual modes"
+      - "ordinary least squares, which ignore the between-subject variability"
     correct: 0
   - prompt: "mlxtran is..."
     options:
-      - "the model-description language in Monolix"
-      - "a raw data format"
-      - "a spreadsheet"
+      - "the language that describes the structural and statistical model"
+      - "the tabular format of the dataset read in as input by Monolix"
+      - "the algorithm that estimates the parameters by maximising the likelihood"
     correct: 0
   - prompt: "Monolix's main advantage over NONMEM is..."
     options:
-      - "a graphical interface and ready-made diagnostics"
-      - "the absence of any statistical model"
-      - "the inability to simulate"
+      - "a graphical interface with a full set of ready-made diagnostics"
+      - "an exact likelihood computed without any approximation at all"
+      - "an OFV that is directly comparable to that of a NONMEM FOCE run"
     correct: 0
 ---
 

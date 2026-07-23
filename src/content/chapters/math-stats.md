@@ -16,20 +16,20 @@ quiz:
   - prompt: "Une clairance individuelle est souvent modélisée par une loi..."
     options:
       - "log-normale (positive, asymétrique)"
-      - "normale centrée en zéro"
-      - "uniforme"
+      - "normale, symétrique autour de sa valeur moyenne"
+      - "exponentielle, décroissante depuis zéro"
     correct: 0
   - prompt: "Un intervalle de confiance à 95 % signifie que..."
     options:
       - "la procédure capture le vrai paramètre 95 fois sur 100 en répétant l'étude"
-      - "il y a 95 % de patients dedans"
-      - "le paramètre vaut exactement la borne"
+      - "le vrai paramètre a 95 % de probabilité d'être dans cet intervalle"
+      - "95 % des observations individuelles tombent dans cet intervalle"
     correct: 0
   - prompt: "Une p-value faible indique..."
     options:
       - "des données peu probables sous l'hypothèse nulle"
-      - "que l'effet est grand"
-      - "que le modèle est validé"
+      - "que l'effet observé est de grande taille"
+      - "que l'hypothèse nulle est probablement fausse"
     correct: 0
 ---
 

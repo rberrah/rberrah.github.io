@@ -14,20 +14,20 @@ quiz:
   - prompt: "The Fisher information matrix (FIM) is used to..."
     options:
       - "predict parameter estimation precision for a given design"
-      - "compute the AUC"
-      - "choose the therapeutic dose"
+      - "estimate the parameter values of the model directly"
+      - "measure the model's goodness of fit to the data"
     correct: 0
   - prompt: "The Cramér-Rao bound says the variance of an unbiased estimator is..."
     options:
       - "at least the inverse of the Fisher information"
-      - "always zero"
-      - "independent of the design"
+      - "exactly equal to the inverse of the Fisher information"
+      - "at most the inverse of the Fisher information"
     correct: 0
   - prompt: "An optimal design aims to..."
     options:
       - "place samples at the most informative times"
-      - "add samples at random"
-      - "reduce the number of patients to one"
+      - "spread samples at regular intervals over time"
+      - "maximise the total number of samples per patient"
     correct: 0
 ---
 

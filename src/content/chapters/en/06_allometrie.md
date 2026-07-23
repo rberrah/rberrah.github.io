@@ -14,20 +14,20 @@ quiz:
   - prompt: "A covariate is useful when it..."
     options:
       - "explains part of a parameter's variability"
-      - "only makes the model longer"
-      - "removes the need for diagnostics"
+      - "reaches the preset threshold of statistical significance"
+      - "systematically reduces the model's residual error"
     correct: 0
   - prompt: "Centering weight at 70 kg helps because..."
     options:
       - "the typical parameter stays interpretable"
-      - "all patients become 70 kg"
-      - "the model no longer needs units"
+      - "the weight effect on clearance then disappears"
+      - "the constant 70 must equal the mean weight"
     correct: 0
   - prompt: "Allometry often scales clearance with weight using an exponent near..."
     options:
       - "0.75"
-      - "7.5"
-      - "75"
+      - "1.00"
+      - "0.67"
     correct: 0
 ---
 

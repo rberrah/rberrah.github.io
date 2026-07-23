@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un modèle grey-box combine..."
     options:
       - "une structure mécaniste et des composants flexibles pilotés par les données"
-      - "aucune hypothèse et aucune donnée"
-      - "seulement un tableur"
+      - "une structure entièrement mécaniste qui interdit tout composant appris des données"
+      - "un réseau de neurones libre, sans aucune structure mécaniste sous-jacente"
     correct: 0
   - prompt: "Une Neural ODE est utile quand..."
     options:
       - "on veut une dynamique flexible tout en gardant un cadre d'EDO"
-      - "on veut éviter la validation"
-      - "on n'a pas de variable temps"
+      - "on veut une solution analytique fermée sans résoudre la moindre EDO"
+      - "on veut remplacer l'EDO par un réseau statique sans notion de temps"
     correct: 0
   - prompt: "Un risque majeur du ML en pharmacométrie est..."
     options:
       - "le surapprentissage et la mauvaise extrapolation"
-      - "trop d'interprétabilité mécaniste"
-      - "l'usage des unités"
+      - "le sous-apprentissage dû à un modèle trop fortement contraint"
+      - "la convergence trop lente de l'algorithme d'optimisation"
     correct: 0
 ---
 

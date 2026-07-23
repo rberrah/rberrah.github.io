@@ -16,20 +16,20 @@ quiz:
   - prompt: "Une recherche de dose fondée sur un modèle (model-based) est plus efficace car..."
     options:
       - "elle utilise la relation dose–réponse continue, pas seulement des comparaisons par paires"
-      - "elle teste une seule dose"
-      - "elle ignore l'efficacité"
+      - "elle compare chaque dose au placebo séparément en corrigeant la multiplicité des tests"
+      - "elle se contente de deux doses grâce à une hypothèse de réponse strictement linéaire"
     correct: 0
   - prompt: "Un design adaptatif permet de..."
     options:
       - "modifier l'essai selon des analyses intermédiaires prédéfinies"
-      - "changer le protocole au hasard en cours de route"
-      - "supprimer le groupe témoin"
+      - "réviser librement le protocole après avoir vu les résultats finaux"
+      - "prolonger l'essai jusqu'à obtenir un résultat statistiquement significatif"
     correct: 0
   - prompt: "MCP-Mod combine..."
     options:
       - "test de tendance dose–réponse et modélisation pour estimer la dose"
-      - "deux modèles PK indépendants"
-      - "une simple moyenne des groupes"
+      - "comparaison par paires des doses avec correction de la multiplicité"
+      - "ajustement d'un seul modèle Emax fixé d'avance, sans moyenne de modèles"
     correct: 0
 ---
 

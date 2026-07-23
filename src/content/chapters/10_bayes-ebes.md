@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un EBE est..."
     options:
       - "une estimation bayésienne empirique de l'effet aléatoire d'un individu"
-      - "un titre de slide"
-      - "une unité de concentration"
+      - "l'estimation d'un effet fixe commun à tous les patients de la population"
+      - "la valeur typique de population avant toute mesure individuelle"
     correct: 0
   - prompt: "Le shrinkage est élevé quand..."
     options:
-      - "les données individuelles sont faibles et les estimations se rapprochent de la population"
-      - "tous les patients sont parfaitement observés"
-      - "il n'y a aucun modèle de population"
+      - "les données individuelles sont pauvres et les EBE tirés vers la population"
+      - "les données individuelles sont riches et très informatives sur le patient"
+      - "la variabilité inter-individuelle estimée du paramètre est très grande"
     correct: 0
   - prompt: "L'estimation MAP combine..."
     options:
       - "l'information a priori de la population et les observations individuelles"
-      - "la dernière observation seulement"
-      - "la dose seulement"
+      - "les observations individuelles seules, sans a priori de population"
+      - "l'a priori de population seul, sans les mesures du patient"
     correct: 0
 ---
 

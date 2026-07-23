@@ -17,21 +17,21 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Pourquoi l'OFV d'un run METHOD=0 (FO) ne se compare-t-il pas à celui d'un run METHOD=1 INTER (FOCE-I) ?"
     options:
-      - "Parce que chaque méthode calcule une approximation différente de la même intégrale : l'écart d'OFV mesure alors le changement d'approximation, pas un gain d'ajustement."
-      - "Parce que FO estime moins de paramètres que FOCE-I : l'écart d'OFV doit d'abord être corrigé par la différence de degrés de liberté."
-      - "Parce que FO travaille sur les concentrations et FOCE-I sur leurs logarithmes : il faut d'abord ramener les deux OFV sur une échelle commune."
+      - "Parce que chaque méthode calcule une approximation différente de la même intégrale : l'écart d'OFV mesure le changement d'approximation, pas un gain d'ajustement."
+      - "Parce que FO estime moins de paramètres que FOCE-I : l'écart d'OFV doit d'abord être corrigé par la différence de degrés de liberté entre les deux runs."
+      - "Parce que FO travaille sur les concentrations et FOCE-I sur leurs logarithmes : il faut d'abord ramener les deux OFV sur une même échelle avant de les soustraire."
     correct: 0
   - prompt: "Dans METHOD=1 INTER, à quoi sert exactement l'option INTER ?"
     options:
       - "À évaluer la variance résiduelle au η̂ individuel plutôt qu'à η = 0, ce qui change le résultat dès que l'erreur est proportionnelle ou combinée."
-      - "À autoriser une corrélation entre les η de clairance et de volume, ce qui change le résultat dès que le bloc OMEGA est diagonal."
-      - "À interpoler les prédictions entre deux temps d'observation, ce qui change le résultat dès que les prélèvements sont espacés."
+      - "À autoriser une corrélation entre les η de clairance et de volume, ce qui change le résultat dès que le bloc OMEGA est déclaré diagonal."
+      - "À interpoler les prédictions entre deux temps d'observation consécutifs, ce qui change le résultat dès que les prélèvements sont espacés."
     correct: 0
   - prompt: "Un run se termine par MINIMIZATION TERMINATED DUE TO ROUNDING ERRORS. Cela signifie que..."
     options:
-      - "l'optimiseur n'atteint plus la précision demandée, souvent par sur-paramétrisation ou mauvais cadrage numérique : les estimations sont à vérifier, pas forcément à jeter."
-      - "le modèle structural est réfuté par les données : il faut changer le nombre de compartiments avant d'envisager toute autre correction."
-      - "le fichier de données contient des lignes aberrantes ou manquantes : il faut nettoyer les colonnes avant de relancer l'estimation."
+      - "l'optimiseur n'atteint plus la précision demandée, souvent par sur-paramétrisation ou mauvais cadrage numérique : estimations à vérifier, pas à jeter d'emblée."
+      - "le modèle structural est réfuté par les données : il faut revoir le nombre de compartiments ou la voie d'entrée avant toute autre correction."
+      - "le fichier de données contient des lignes aberrantes ou des valeurs manquantes qu'il faut nettoyer avant de relancer entièrement l'estimation."
     correct: 0
 ---
 

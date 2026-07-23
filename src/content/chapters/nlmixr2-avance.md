@@ -17,27 +17,27 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Pour borner un paramètre dans ]0,1[ avec nlmixr2, on..."
     options:
-      - "écrit la transformation soi-même dans le bloc model, par expit(tf + eta.f) : il n'y a pas de mot-clé de distribution, l'algèbre que l'on tape tient lieu de fonction de lien"
-      - "déclare distribution = logitNormal dans le bloc ini, que nlmixr2 applique ensuite à l'effet aléatoire correspondant au moment de l'estimation"
-      - "borne l'effet aléatoire lui-même dans le bloc ini, en assortissant la ligne eta.f ~ 0.81 d'une limite basse et d'une limite haute"
+      - "écrit la transformation dans le bloc model, par expit(tf + eta.f) : il n'y a aucun mot-clé de distribution, l'algèbre tapée tient lieu de lien"
+      - "déclare distribution = logitNormal dans le bloc ini, que nlmixr2 applique alors à l'effet aléatoire correspondant au moment de l'estimation"
+      - "borne l'effet aléatoire lui-même dans le bloc ini, en dotant la ligne eta.f ~ 0.81 d'une limite basse et d'une limite haute respectées"
     correct: 0
   - prompt: "On pipe model(cl <- exp(tcl + eta.cl + b_cr * log(CRCL/90))) sans ajouter la ligne ini(b_cr = 0.5). nlmixr2..."
     options:
-      - "déclare b_cr comme une covariable et attend donc une colonne b_cr dans le jeu de données : le run s'arrête sur une erreur qui accuse les données, alors que la faute est dans le modèle"
-      - "estime quand même b_cr en lui attribuant d'office une valeur initiale de 1, et signale l'ajout par un simple message d'information dans la console"
-      - "refuse de construire le modèle et renvoie une erreur de syntaxe indiquant que le paramètre b_cr n'a pas reçu de valeur initiale déclarée"
+      - "prend b_cr pour une covariable et réclame donc une colonne b_cr dans les données : le run s'arrête sur une erreur qui accuse les données, non le modèle"
+      - "estime quand même b_cr en lui attribuant d'office une valeur initiale de 1, et signale l'ajout par un simple message d'information en console"
+      - "refuse de bâtir le modèle et renvoie une erreur de syntaxe indiquant que le paramètre b_cr n'a reçu aucune valeur initiale dans le bloc ini"
     correct: 0
   - prompt: "À propos des graines aléatoires sous nlmixr2 et rxode2..."
     options:
-      - "le SAEM part d'une graine fixe par défaut : un run se reproduit à l'identique sans jamais montrer qu'il n'est qu'une réalisation parmi d'autres, et c'est en variant seed qu'on teste la robustesse"
+      - "le SAEM part d'une graine fixe par défaut : un run se reproduit à l'identique sans montrer qu'il n'est qu'une réalisation parmi d'autres, et varier seed teste sa robustesse"
       - "le SAEM tire une graine différente à chaque appel, si bien qu'il faut renseigner saemControl(seed=) pour qu'un même script rende deux fois exactement le même résultat"
       - "le SAEM et rxode2 héritent tous deux de la graine posée par set.seed(), si bien qu'un seul set.seed() en tête de script suffit à figer estimation et simulations"
     correct: 0
   - prompt: "Avec babelmixr2, lancer une estimation avec est = nonmem..."
     options:
-      - "écrit le control stream, lance NONMEM et réimporte le résultat en objet de fit nlmixr2 : il faut donc une installation de NONMEM sous licence, et l'OFV obtenu ne se compare pas à celui d'un run SAEM"
+      - "écrit le control stream, lance NONMEM et réimporte le résultat en fit nlmixr2 : il exige une installation NONMEM sous licence, et son OFV ne se compare pas à un run SAEM"
       - "réimplémente les algorithmes de NONMEM à l'intérieur de nlmixr2, ce qui évite toute installation externe et reproduit exactement les estimations d'un run NONMEM natif"
-      - "se contente de traduire le modèle en control stream à lancer ailleurs, l'OFV rapporté restant comparable à celui du run SAEM mené sur les mêmes données"
+      - "se contente de traduire le modèle en control stream à lancer ailleurs, l'OFV rapporté restant directement comparable à celui du run SAEM sur les mêmes données"
     correct: 0
 ---
 

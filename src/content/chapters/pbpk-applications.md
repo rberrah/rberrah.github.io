@@ -16,20 +16,20 @@ quiz:
   - prompt: "L'IVIVE consiste à..."
     options:
       - "extrapoler une clairance mesurée in vitro vers l'in vivo"
-      - "mesurer l'AUC chez l'animal"
-      - "ignorer le métabolisme"
+      - "extrapoler la PK de l'animal vers l'homme par allométrie"
+      - "déduire la clairance in vitro à partir des données cliniques"
     correct: 0
   - prompt: "La PBPK prédit une interaction (DDI) en..."
     options:
       - "modifiant l'activité enzymatique (inhibition/induction) dans le foie modélisé"
-      - "changeant la couleur du médicament"
-      - "supprimant la dose"
+      - "modifiant le débit sanguin hépatique du perpétrateur et de la victime"
+      - "additionnant simplement les clairances des deux médicaments coadministrés"
     correct: 0
   - prompt: "Pour la pédiatrie, la PBPK ajuste surtout..."
     options:
       - "les volumes, débits et la maturation enzymatique selon l'âge"
-      - "rien, la dose est proportionnelle au poids"
-      - "seulement la couleur"
+      - "uniquement le poids corporel, les autres paramètres restant fixes"
+      - "surtout les coefficients de partage tissulaires (Kp) selon l'âge"
     correct: 0
 ---
 

@@ -14,20 +14,20 @@ quiz:
   - prompt: "VSURF selects variables by..."
     options:
       - "two steps (interpretation then prediction) based on forest importance"
-      - "keeping all variables"
-      - "drawing at random"
+      - "classic stepwise regression based on each covariate's p-value"
+      - "a single threshold on each variable's correlation with the response"
     correct: 0
   - prompt: "OrdinalForest is designed for a response that is..."
     options:
       - "ordinal (ordered categories, e.g. toxicity grades)"
-      - "strictly continuous"
-      - "binary only"
+      - "continuous, like a measured plasma concentration"
+      - "binary, like the presence or absence of an effect"
     correct: 0
   - prompt: "Keeping noise variables (near-zero importance)..."
     options:
       - "degrades generalisation (overfitting)"
-      - "always improves the model"
-      - "has no effect"
+      - "inflates the performance measured in cross-validation"
+      - "only affects the model's computation time"
     correct: 0
 ---
 

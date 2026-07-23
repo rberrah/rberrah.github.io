@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un forest plot d'effets de covariables montre..."
     options:
       - "l'ampleur de chaque effet (ratio) avec son intervalle de confiance"
-      - "la concentration au cours du temps"
-      - "la structure du modèle"
+      - "l'évolution de la concentration prédite pour chaque sous-groupe"
+      - "la matrice de corrélation entre les covariables retenues au modèle"
     correct: 0
   - prompt: "Un effet de covariable est cliniquement pertinent s'il..."
     options:
-      - "sort de la zone jugée sans conséquence (ex. ±20 %)"
-      - "est simplement statistiquement significatif"
-      - "concerne beaucoup de patients"
+      - "sort de la zone jugée sans conséquence clinique (ex. ±20 %)"
+      - "atteint le seuil de significativité statistique (p < 0,05)"
+      - "concerne une covariable fréquente dans la population étudiée"
     correct: 0
   - prompt: "Un intervalle de confiance qui croise 1 (pas d'effet) signifie..."
     options:
-      - "que l'effet est incertain"
-      - "que l'effet est fort"
-      - "qu'il faut augmenter la dose"
+      - "que l'effet n'est pas statistiquement distinct de l'absence d'effet"
+      - "que l'effet est certain mais de trop faible ampleur pour compter"
+      - "que le ratio d'effet vaut exactement 1 dans toute la population"
     correct: 0
 ---
 

@@ -15,21 +15,21 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:
-      - "décrire l'exposition observée"
+      - "décrire l'exposition observée sans modèle"
       - "simuler des patients non observés avec covariables"
       - "construire un modèle physiologique complet"
     correct: 0
   - prompt: "La PopPK est particulièrement utile quand on veut..."
     options:
-      - "ignorer la variabilité"
-      - "estimer les paramètres typiques et la variabilité d'une population"
-      - "éviter tout modèle"
+      - "décrire l'exposition d'un patient donné sans modèle"
+      - "estimer les paramètres typiques et leur variabilité"
+      - "reconstruire toute la physiologie du corps humain"
     correct: 1
   - prompt: "Un risque fréquent de la PBPK est..."
     options:
-      - "trop peu de paramètres"
-      - "la sur-paramétrisation au-delà de ce que les données soutiennent"
-      - "de ne jamais utiliser la physiologie"
+      - "l'incapacité à extrapoler à des scénarios nouveaux"
+      - "trop de paramètres pour ce que les données soutiennent"
+      - "un manque de fondement mécanistique physiologique"
     correct: 1
 ---
 

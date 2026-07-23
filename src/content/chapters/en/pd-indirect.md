@@ -14,20 +14,20 @@ quiz:
   - prompt: "In an indirect-response model, the effect delay comes from..."
     options:
       - "the turnover (kout) of the response, not the PK"
-      - "the absorption rate"
-      - "the volume of distribution"
+      - "the slow absorption of the drug into the plasma"
+      - "the slow distribution of the drug into the tissues"
     correct: 0
   - prompt: "How many basic indirect-response models did Dayneka describe?"
     options:
       - "four (inhibition/stimulation of kin or kout)"
-      - "one"
-      - "ten"
+      - "two (inhibition or stimulation of a single rate)"
+      - "six (inhibition/stimulation of kin, kout and R)"
     correct: 0
   - prompt: "At baseline, the response R0 equals..."
     options:
       - "kin / kout"
       - "kin × kout"
-      - "the dose"
+      - "kout / kin"
     correct: 0
 ---
 

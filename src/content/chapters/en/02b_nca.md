@@ -14,20 +14,20 @@ quiz:
   - prompt: "NCA mainly needs..."
     options:
       - "the dose and route of administration"
-      - "a full physiological model"
-      - "a trained neural network"
+      - "a full physiologically based model"
+      - "an assumption about the number of compartments"
     correct: 0
   - prompt: "First-order kinetics means the rate..."
     options:
       - "is proportional to concentration"
       - "is constant regardless of concentration"
-      - "is zero"
+      - "grows with the square of concentration"
     correct: 0
   - prompt: "Extrapolating the AUC to infinity uses..."
     options:
       - "the last concentration and the terminal slope λz"
-      - "only the dose"
-      - "the patient's weight"
+      - "the first concentration and the absorption constant ka"
+      - "the peak concentration Cmax and its time Tmax"
     correct: 0
 ---
 

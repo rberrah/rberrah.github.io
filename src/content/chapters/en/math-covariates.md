@@ -14,20 +14,20 @@ quiz:
   - prompt: "Adding a relevant covariate to a population model..."
     options:
       - "explains part of the inter-individual variability (omega drops)"
-      - "always increases variability"
-      - "has no effect on omega"
+      - "mainly reduces the residual error (sigma), not omega"
+      - "shifts the typical value without reducing inter-individual variability"
     correct: 0
   - prompt: "Allometry describes the effect of weight on clearance by..."
     options:
       - "a power law with exponent ~0.75"
       - "a linear relationship with exponent 1"
-      - "no relationship"
+      - "a power law with exponent near 0.67 (surface area)"
     correct: 0
   - prompt: "Stepwise selection (SCM) risks..."
     options:
       - "over-selecting and biasing effects (data reused)"
-      - "always giving the true model"
-      - "ignoring covariates"
+      - "under-selecting and missing genuinely true covariates"
+      - "lengthening the computation without changing the final model"
     correct: 0
 ---
 

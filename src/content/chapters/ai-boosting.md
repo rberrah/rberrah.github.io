@@ -16,20 +16,20 @@ quiz:
   - prompt: "Le principe du gradient boosting est de..."
     options:
       - "ajouter séquentiellement des arbres qui corrigent les résidus (le gradient)"
-      - "moyenner des arbres indépendants"
-      - "entraîner un seul très grand arbre"
+      - "moyenner des arbres profonds entraînés indépendamment en parallèle"
+      - "entraîner un unique arbre très profond couvrant toutes les interactions"
     correct: 0
   - prompt: "Par rapport au gradient boosting classique, XGBoost ajoute surtout..."
     options:
       - "une régularisation et une optimisation au second ordre"
-      - "la suppression des covariables"
-      - "un modèle linéaire obligatoire"
+      - "une agrégation bootstrap des arbres pour réduire la variance"
+      - "un élagage systématique de chaque arbre après l'entraînement"
     correct: 0
   - prompt: "CatBoost est particulièrement adapté quand..."
     options:
       - "il y a beaucoup de variables catégorielles"
-      - "il n'y a aucune donnée"
-      - "la réponse est constante"
+      - "il y a de très nombreuses variables numériques continues"
+      - "le jeu de données est trop petit pour tout autre modèle"
     correct: 0
 ---
 

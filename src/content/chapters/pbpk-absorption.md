@@ -16,20 +16,20 @@ quiz:
   - prompt: "Un modèle d'absorption mécaniste (ACAT/ADAM) découpe l'intestin en..."
     options:
       - "segments successifs avec dissolution, perméabilité et transit"
-      - "un seul compartiment instantané"
-      - "aucun compartiment"
+      - "un compartiment unique où dissolution et absorption sont instantanées"
+      - "deux compartiments séparant l'estomac de l'intestin grêle"
     correct: 0
   - prompt: "L'effet de premier passage hépatique réduit..."
     options:
       - "la fraction de dose atteignant la circulation systémique"
-      - "la demi-vie terminale"
-      - "le volume de distribution"
+      - "la demi-vie terminale en accélérant l'élimination du médicament"
+      - "le volume de distribution en piégeant le médicament dans le foie"
     correct: 0
   - prompt: "Dans la classification BCS, une molécule dépend surtout de sa..."
     options:
       - "solubilité et sa perméabilité"
-      - "couleur"
-      - "dose létale"
+      - "dissolution et sa lipophilie"
+      - "biodisponibilité et sa demi-vie"
     correct: 0
 ---
 

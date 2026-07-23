@@ -16,20 +16,20 @@ quiz:
   - prompt: "Le coefficient de partage Kp,T décrit..."
     options:
       - "le rapport de concentration tissu/plasma à l'équilibre"
-      - "la dose administrée"
-      - "la vitesse d'élimination rénale"
+      - "le rapport entre concentration libre et concentration totale"
+      - "la vitesse de diffusion à travers la membrane tissulaire"
     correct: 0
   - prompt: "Une molécule très lipophile aura tendance à..."
     options:
       - "s'accumuler dans les tissus gras (grand volume)"
-      - "rester uniquement dans le plasma"
-      - "être éliminée sans distribution"
+      - "rester dans le plasma, fortement liée à l'albumine"
+      - "être éliminée par le rein sans vraiment se distribuer"
     correct: 0
   - prompt: "Seule la fraction ... du médicament diffuse et agit."
     options:
       - "libre (non liée aux protéines)"
-      - "liée aux protéines"
-      - "métabolisée"
+      - "liée aux protéines plasmatiques"
+      - "ionisée au pH physiologique"
     correct: 0
 ---
 

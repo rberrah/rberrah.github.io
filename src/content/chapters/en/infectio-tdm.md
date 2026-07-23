@@ -14,14 +14,14 @@ quiz:
   - prompt: "For vancomycin, the currently preferred target is..."
     options:
       - "AUC₂₄/MIC ≥ 400 (Bayesian-estimated)"
-      - "the colour of the urine"
-      - "a fixed dose for everyone"
+      - "a steady-state trough of 15–20 mg/L"
+      - "a Cmax/MIC ≥ 8 peak on the first sample"
     correct: 0
   - prompt: "In the ICU, augmented renal clearance (ARC) tends to..."
     options:
       - "under-dose hydrophilic antibiotics"
-      - "systematically overdose"
-      - "change nothing"
+      - "over-expose hydrophilic antibiotics"
+      - "affect only lipophilic antibiotics"
     correct: 0
 ---
 

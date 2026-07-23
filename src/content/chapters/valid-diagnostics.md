@@ -18,20 +18,20 @@ quiz:
   - prompt: "Aucun graphique diagnostique unique ne suffit ; on les croise parce que..."
     options:
       - "chacun révèle un type de défaut différent (structure, variabilité, erreur)"
-      - "ils disent tous la même chose"
-      - "c'est une obligation réglementaire arbitraire"
+      - "ils explorent tous le même défaut, on cumule pour gagner en puissance"
+      - "seule la VPC compte vraiment, les autres ne font que la confirmer"
     correct: 0
   - prompt: "Sur |IWRES| vs prédictions, une tendance croissante signale..."
     options:
       - "un modèle d'erreur résiduelle mal choisi (hétéroscédasticité)"
-      - "un bon ajustement"
-      - "une erreur de dose"
+      - "un modèle structural inadéquat (compartiment manquant)"
+      - "un effet covariable non modélisé sur la clairance"
     correct: 0
   - prompt: "La distribution des effets aléatoires (η) doit idéalement être..."
     options:
       - "centrée sur 0 et à peu près symétrique/gaussienne"
-      - "toujours bimodale"
-      - "strictement positive"
+      - "centrée sur la valeur typique du paramètre, pas sur zéro"
+      - "strictement positive, comme les paramètres PK eux-mêmes"
     correct: 0
 ---
 

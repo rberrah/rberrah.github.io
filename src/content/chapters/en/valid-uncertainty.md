@@ -14,20 +14,20 @@ quiz:
   - prompt: "The RSE (relative standard error) of a parameter measures..."
     options:
       - "the relative uncertainty of its estimate (SE/estimate)"
-      - "its inter-individual variability"
-      - "its mean value"
+      - "its inter-individual variability, i.e. its omega"
+      - "the model's residual error scaled by the estimate"
     correct: 0
   - prompt: "The bootstrap estimates uncertainty by..."
     options:
       - "resampling subjects and re-estimating the model"
-      - "removing parameters"
-      - "increasing the dose"
+      - "linearising the likelihood around the final estimate"
+      - "simulating new observations under the fitted model"
     correct: 0
   - prompt: "A very high RSE (e.g. > 50%) on a parameter suggests..."
     options:
-      - "it is poorly identified by the data"
-      - "it is perfectly estimated"
-      - "the dose is too low"
+      - "it is poorly identified by the available data"
+      - "it varies strongly between patients (high omega)"
+      - "it is strongly correlated with another parameter"
     correct: 0
 ---
 

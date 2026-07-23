@@ -13,21 +13,21 @@ slides: []
 quiz:
   - prompt: "The Gompertz growth model describes growth that..."
     options:
-      - "slows as the tumour grows (plateau)"
-      - "is always exponential without limit"
-      - "is strictly linear"
+      - "slows as the tumour approaches a limiting size (plateau)"
+      - "stays exponential at a constant rate, never plateauing"
+      - "becomes linear once the tumour passes a size threshold"
     correct: 0
   - prompt: "Two-population cell models mainly represent..."
     options:
-      - "resistance (sensitive vs resistant cells)"
-      - "the tumour colour"
-      - "the administered dose"
+      - "resistance: treatment-sensitive vs resistant cells"
+      - "variability between two patient subgroups (mixture)"
+      - "drug distribution across two tissue compartments"
     correct: 0
   - prompt: "A TGI-OS model links..."
     options:
-      - "early tumour dynamics to overall survival"
-      - "dose to weight"
-      - "two PK models"
+      - "early tumour dynamics to the patient's overall survival"
+      - "plasma exposure to the early tumour shrinkage observed"
+      - "the haematological nadir depth to the dose received"
     correct: 0
 ---
 

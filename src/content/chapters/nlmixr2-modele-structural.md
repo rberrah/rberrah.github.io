@@ -24,14 +24,14 @@ quiz:
   - prompt: "linCmt() sélectionne le modèle de PK..."
     options:
       - "d'après les noms des paramètres définis dans le bloc model : ka, cl et v donnent un 1 compartiment oral"
-      - "d'après un numéro de modèle passé en argument, sur le principe des routines ADVAN de NONMEM"
-      - "d'après le nombre de lignes d/dt() écrites juste avant son appel dans le bloc model"
+      - "d'après un numéro de modèle passé en argument, exactement sur le principe des routines ADVAN de NONMEM"
+      - "d'après le nombre de lignes d/dt() présentes dans le bloc model juste avant l'appel de linCmt()"
     correct: 0
   - prompt: "Dans le bloc model, la ligne cp ~ prop(prop.sd) signifie que..."
     options:
       - "cp est la prédiction confrontée aux observations, avec une erreur proportionnelle d'écart-type prop.sd"
-      - "cp suit une loi de probabilité proportionnelle, dont prop.sd est la variance à estimer"
-      - "cp est un paramètre aléatoire de plus, dont prop.sd fixe la variabilité inter-individuelle"
+      - "cp suit une loi de probabilité proportionnelle, dont le paramètre prop.sd est la variance à estimer"
+      - "cp est un paramètre aléatoire supplémentaire, dont prop.sd fixe la variabilité inter-individuelle"
     correct: 0
 ---
 

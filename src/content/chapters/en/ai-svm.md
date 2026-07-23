@@ -14,20 +14,20 @@ quiz:
   - prompt: "A linear SVM chooses the boundary that..."
     options:
       - "maximises the margin between the two classes"
-      - "passes through every point"
-      - "minimises the number of covariates"
+      - "connects the centres of gravity of the two classes"
+      - "minimises the classification error on the sample"
     correct: 0
   - prompt: "The support vectors are..."
     options:
       - "the points on (or inside) the margin, which define the boundary"
-      - "all observations"
-      - "the farthest points"
+      - "the points farthest from the boundary, deep inside each class"
+      - "the respective centres of gravity of the two point clouds"
     correct: 0
   - prompt: "The kernel trick allows one to..."
     options:
       - "separate classes non-linearly without explicitly computing the new dimensions"
-      - "remove regularisation"
-      - "turn an SVM into a tree"
+      - "explicitly project the data into a much higher-dimensional feature space"
+      - "reduce the data's dimension beforehand to make the SVM linear and fast"
     correct: 0
 ---
 

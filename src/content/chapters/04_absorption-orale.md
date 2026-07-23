@@ -16,20 +16,20 @@ quiz:
   - prompt: "Ka contrôle principalement..."
     options:
       - "la vitesse d'entrée du médicament dans le compartiment central"
-      - "le nombre d'organes d'un modèle PBPK"
-      - "la courbe d'étalonnage du dosage"
+      - "la vitesse d'élimination du médicament hors du compartiment central"
+      - "la fraction de la dose qui atteint la circulation systémique"
     correct: 0
   - prompt: "Le temps de latence Tlag représente..."
     options:
       - "un délai avant le début de l'absorption"
-      - "la demi-vie terminale"
-      - "l'effet maximal"
+      - "le temps pour atteindre la concentration maximale"
+      - "la durée totale de la phase d'absorption"
     correct: 0
   - prompt: "Une cinétique flip-flop peut survenir quand..."
     options:
       - "l'absorption est plus lente que l'élimination"
-      - "la clairance est nulle"
-      - "le volume vaut exactement 1 L"
+      - "l'élimination est plus lente que l'absorption"
+      - "la distribution est plus lente que l'élimination"
     correct: 0
 ---
 

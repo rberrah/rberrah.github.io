@@ -16,20 +16,20 @@ quiz:
   - prompt: "Les ADA (anti-drug antibodies) sont..."
     options:
       - "des anticorps du patient dirigés contre le médicament biologique"
-      - "une forme du médicament"
-      - "des métabolites inactifs"
+      - "des fragments issus du catabolisme du médicament, sans activité"
+      - "des anticorps du médicament dirigés contre les cellules du patient"
     correct: 0
   - prompt: "L'apparition d'ADA tend souvent à..."
     options:
-      - "augmenter la clairance et réduire l'exposition"
-      - "diminuer la clairance"
-      - "n'avoir aucun effet"
+      - "augmenter la clairance et donc réduire l'exposition au médicament"
+      - "diminuer la clairance en protégeant le médicament du catabolisme"
+      - "augmenter l'exposition via des complexes à demi-vie prolongée"
     correct: 0
   - prompt: "Un ADA dit 'neutralisant' (NAb)..."
     options:
       - "bloque directement l'activité du médicament (site de liaison)"
-      - "augmente l'effet du médicament"
-      - "est toujours sans conséquence"
+      - "se lie au médicament à distance de son site actif, sans le neutraliser"
+      - "accélère la clairance du médicament mais laisse son activité intacte"
     correct: 0
 ---
 

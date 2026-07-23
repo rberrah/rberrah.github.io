@@ -13,15 +13,15 @@ slides: []
 quiz:
   - prompt: "NCA differs from a compartmental model because it..."
     options:
-      - "assumes no compartmental structure"
-      - "always requires 3 compartments"
-      - "ignores concentrations"
+      - "assumes no particular compartmental structure"
+      - "imposes a two-compartment model by default"
+      - "estimates transfer constants between compartments"
     correct: 0
   - prompt: "NCA mainly assumes kinetics that are..."
     options:
-      - "linear (proportional to dose)"
-      - "always non-linear"
-      - "without elimination"
+      - "linear (exposure proportional to the dose)"
+      - "saturable, of Michaelis-Menten type at high dose"
+      - "zero-order, at a constant elimination rate"
     correct: 0
 ---
 

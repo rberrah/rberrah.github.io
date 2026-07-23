@@ -16,20 +16,20 @@ quiz:
   - prompt: "VSURF sélectionne les variables en..."
     options:
       - "deux étapes (interprétation puis prédiction) fondées sur l'importance des forêts"
-      - "gardant toutes les variables"
-      - "tirant au hasard"
+      - "une régression pas à pas classique fondée sur les p-values des covariables"
+      - "un seuil unique appliqué à la corrélation entre chaque variable et la réponse"
     correct: 0
   - prompt: "OrdinalForest est conçu pour une réponse..."
     options:
       - "ordinale (catégories ordonnées, ex. grades de toxicité)"
-      - "strictement continue"
-      - "binaire uniquement"
+      - "continue, comme une concentration plasmatique mesurée"
+      - "binaire, comme la présence ou l'absence d'un effet"
     correct: 0
   - prompt: "Garder des variables de bruit (importance quasi nulle)..."
     options:
       - "dégrade la généralisation (surajustement)"
-      - "améliore toujours le modèle"
-      - "n'a aucun effet"
+      - "gonfle la performance mesurée en validation croisée"
+      - "n'a d'effet que sur le temps de calcul du modèle"
     correct: 0
 ---
 

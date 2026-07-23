@@ -17,9 +17,9 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
     options:
-      - "MU_n ne dépend que des THETA et de covariables constantes chez le sujet, ce qui rend la mise à jour des paramètres de population analytique à chaque itération"
+      - "MU_n ne dépend que des THETA et de covariables constantes du sujet, ce qui rend analytique la mise à jour des paramètres de population"
       - "il réduit le nombre de sujets simulés pendant l'étape E, si bien que chaque itération traite beaucoup moins de données individuelles"
-      - "il remplace l'intégration numérique de la vraisemblance par une linéarisation du modèle autour des valeurs nulles des ETA"
+      - "il remplace l'intégration numérique de la vraisemblance par une linéarisation du modèle autour des valeurs courantes des ETA du sujet"
     correct: 0
   - prompt: "Pour une biodisponibilité qui doit rester entre 0 et 1, la paramétrisation adaptée est..."
     options:
@@ -31,7 +31,7 @@ quiz:
     options:
       - "les nouvelles données ne peuvent pas informer ce paramètre, alors qu'une source publiée en donne une estimation et son incertitude"
       - "les nouvelles données informent bien ce paramètre, et l'a priori sert à confirmer que la valeur publiée est reproduite"
-      - "le paramètre est celui que l'étude cherche à mesurer, et l'a priori sert à réduire son erreur type finale"
+      - "le paramètre est précisément celui que l'étude cherche à mesurer, et l'a priori sert à en réduire l'erreur type finale"
     correct: 0
 ---
 

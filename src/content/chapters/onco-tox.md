@@ -16,14 +16,14 @@ quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."
     options:
       - "avec un délai (temps de maturation), après le pic de concentration"
-      - "exactement au pic de concentration"
-      - "avant l'administration"
+      - "exactement au pic de concentration plasmatique du médicament"
+      - "dès la fin de la perfusion, avant la maturation des cellules"
     correct: 0
   - prompt: "Le rétrocontrôle (Circ₀/Circ)^γ sert à..."
     options:
-      - "faire remonter la production après le nadir"
-      - "supprimer la toxicité"
-      - "changer la clairance du médicament"
+      - "faire remonter la production de la moelle après le nadir"
+      - "accélérer la maturation des cellules en cours de transit"
+      - "amplifier l'effet inhibiteur du médicament sur la moelle"
     correct: 0
 ---
 

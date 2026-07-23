@@ -18,20 +18,20 @@ quiz:
   - prompt: "nlmixr2 se distingue surtout par..."
     options:
       - "son caractère open-source, entièrement en R"
-      - "son coût de licence élevé"
-      - "l'absence de tout algorithme"
+      - "sa licence commerciale payante, comme NONMEM"
+      - "son moteur propriétaire, séparé de l'écosystème R"
     correct: 0
   - prompt: "nlmixr2 propose..."
     options:
       - "plusieurs algorithmes, dont SAEM et FOCEI"
-      - "uniquement de la simulation"
-      - "aucune estimation"
+      - "seulement le SAEM, sans équivalent du FOCEI"
+      - "un unique moteur bayésien MCMC, sans SAEM"
     correct: 0
   - prompt: "Le moteur d'ODE sous nlmixr2 est..."
     options:
       - "rxode2 (réutilisable seul pour simuler)"
-      - "un tableur"
-      - "NM-TRAN"
+      - "NM-TRAN, le traducteur de contrôle NONMEM"
+      - "mlxtran, le langage de modèle Monolix"
     correct: 0
 ---
 

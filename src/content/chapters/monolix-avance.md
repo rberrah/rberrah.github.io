@@ -24,14 +24,14 @@ quiz:
   - prompt: "L'export d'un projet Monolix vers NONMEM produit..."
     options:
       - "un brouillon de control stream à relire et à relancer : la traduction porte sur la syntaxe, pas sur l'algorithme, donc les estimations diffèrent"
-      - "une reproduction fidèle du run Monolix : le modèle et les données étant les mêmes, les estimations et l'OFV sont identiques"
-      - "une simple conversion du jeu de données au format NONMEM, le modèle restant entièrement à réécrire à la main"
+      - "une reproduction fidèle du run Monolix : le modèle et les données étant identiques, les estimations et l'OFV se retrouvent à l'identique après relance"
+      - "une simple conversion du jeu de données au format NONMEM, tout le modèle restant à réécrire entièrement à la main dans le control stream"
     correct: 0
   - prompt: "L'auto-initialisation des paramètres dans Monolix..."
     options:
       - "propose un point de départ pour les paramètres de structure, mais ne valide ni le modèle structural ni les unités du jeu de données"
-      - "estime les paramètres de population par une méthode rapide, que le SAEM se contente ensuite d'affiner à la marge"
-      - "garantit que le SAEM démarre dans le bon bassin d'attraction et met le run à l'abri des optimums locaux"
+      - "estime les paramètres de population par une méthode rapide, que le SAEM se contente ensuite d'affiner à la marge sans les remettre en cause"
+      - "garantit que le SAEM démarre dans le bon bassin d'attraction et met le run à l'abri des optimums locaux dès la première itération"
     correct: 0
 ---
 
