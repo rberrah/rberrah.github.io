@@ -52,7 +52,9 @@ $$ y = f + \varepsilon_{add} \quad|\quad y = f\,(1 + \varepsilon_{prop}) \quad|\
 
 - **additive**: $\varepsilon \sim \mathcal{N}(0, a^2)$ — constant noise (good near the quantification limit);
 - **proportional**: standard deviation $= b\cdot f$ — constant %CV (good at high concentrations);
-- **combined**: $\sqrt{a^2 + (b f)^2}$ — an additive **floor** + a proportional **percentage**.
+- **combined**: two ways to write the standard deviation — as a **simple sum** ($\sigma = a + b\,f$, called *combined1*) or in **quadrature** ($\sigma = \sqrt{a^2 + (b f)^2}$, called *combined2*). Both mix an additive **floor** and a proportional **percentage**.
+
+**Note —** in practice the true residual error is **rarely** exactly the quadrature form (*combined2*) that the "clean" formulas suggest. The simple sum (*combined1*, $\sigma = a + b\,f$) often describes the data just as well, or better, and is more stable to estimate. The lesson: do not copy *combined2* by default — pick the form that actually matches the residuals.
 
 **How to read it — the scales metaphor.** A kitchen scale has a **fixed** precision (±1 g): additive error. An industrial scale reads a **percentage** (±0.5% of the load): proportional error. A real scale combines both — a floor **and** a %.
 
@@ -68,7 +70,7 @@ Hence the frequent choice of a **combined** error in practice: it covers both lo
 <!-- step:title="Common pitfall" -->
 A wrong error model distorts everything else.
 
-**Pitfall —** an **additive** error on wide-range data over-weights high concentrations and underestimates precision at low ones. Result: wrong **weighting** in estimation, unrealistic prediction intervals, and a **funnel** on the residuals. Always check the error model on $|IWRES|$ vs predictions before concluding.
+**Pitfall —** an **additive** error on wide-range data over-weights high concentrations and underestimates precision at low ones. Result: wrong **weighting** in estimation and unrealistic prediction intervals. Always check the error model on the $|IWRES|$ vs predictions plot before concluding.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

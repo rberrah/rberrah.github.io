@@ -1,95 +1,88 @@
 ---
-id: "nca"
-slug: "nca"
-title: "L'analyse non compartimentale (NCA)"
-description: "Décrire l'exposition sans modèle : AUC, Cmax, λz et les ordres de cinétique."
-summary: "Une plongée dans la NCA : paramètres primaires/secondaires, trapèzes, extrapolation et limites."
+id: "micro-macro"
+slug: "micro-macro"
+title: "Micro ou macro : deux écritures d'un même modèle"
+description: "Le même modèle compartimental s'écrit en constantes de vitesse (ke, k12, k21) ou en clairances et volumes (CL, Q, V). Pourquoi on choisit CL/V."
+summary: "Paramétrisation micro (constantes de vitesse) vs macro (clairances/volumes) : deux langages pour un même modèle, et pourquoi on garde CL/V."
 track: "core"
 order: 2.5
-duration: "14 min"
+duration: "6 min"
 level: "beginner"
-tags: ["nca", "auc", "approaches"]
-slides: ["s23", "s34", "s45"]
-sources: ["yamaoka-moments", "holford-clearance", "gibaldi-perrier"]
-reviewed_on: "2026-07-09"
+tags: ["parametrisation", "micro", "macro", "clairance"]
+slides: []
+sources: ["gibaldi-perrier", "rowland-tozer", "holford-clearance"]
+reviewed_on: "2026-07-14"
 quiz:
-  - prompt: "La NCA a surtout besoin de..."
+  - prompt: "Dans un modèle à un compartiment, quelle égalité relie l'écriture micro à l'écriture macro ?"
     options:
-      - "la dose et la voie d'administration"
-      - "un modèle physiologique complet"
-      - "une hypothèse sur le nombre de compartiments"
+      - "kₑ = CL / V"
+      - "kₑ = CL × V"
+      - "kₑ = V / CL"
     correct: 0
-  - prompt: "Une cinétique d'ordre 1 signifie que la vitesse..."
+  - prompt: "Pourquoi ce cours privilégie-t-il l'écriture en CL, Q et V (macro) ?"
     options:
-      - "est proportionnelle à la concentration"
-      - "est constante quelle que soit la concentration"
-      - "croît avec le carré de la concentration"
+      - "parce que ces grandeurs ont un sens physiologique parlant (épuration, débit, espace de distribution)"
+      - "parce que les constantes de vitesse micro sont fausses"
+      - "parce que les logiciels n'acceptent que CL et V"
     correct: 0
-  - prompt: "L'extrapolation de l'AUC jusqu'à l'infini utilise..."
+  - prompt: "Une constante de transfert k₁₂ (micro)…"
     options:
-      - "la dernière concentration et la pente terminale λz"
-      - "la première concentration et la constante d'absorption ka"
-      - "la Cmax et le temps du pic Tmax observés"
+      - "décrit une vitesse d'échange, sans grandeur physiologique directement mesurable"
+      - "se mesure directement chez le patient au lit du malade"
+      - "vaut toujours le double de k₂₁"
     correct: 0
 ---
 
-<!-- step:title="Pourquoi ce chapitre" slides="s23" viz="04_ThreeApproaches" -->
-Avant de construire un modèle, on peut déjà **décrire** ce qu'on observe. C'est le rôle de l'**analyse non compartimentale** (NCA).
+<!-- step:title="Pourquoi ce chapitre" -->
+Un même modèle compartimental peut s'écrire de **deux façons**. Elles décrivent exactement la même courbe : ce n'est pas une différence de modèle, mais une différence de **langage**.
 
-Elle ne demande que la **dose** et la **voie d'administration**, calcule l'exposition par géométrie et algèbre, et sert souvent à **valider grossièrement** un protocole (ordre de grandeur de la demi-vie) avant une analyse plus lourde.
+- L'écriture **micro** utilise des **constantes de vitesse** : $k_e$ (élimination), $k_{12}$ et $k_{21}$ (échanges entre compartiments).
+- L'écriture **macro** utilise des **clairances et des volumes** : $CL$ (épuration), $Q$ (débit inter-compartimental), $V_1$, $V_2$.
+
+Ce court chapitre précise le lien entre les deux, et pourquoi la suite du cours garde le langage **macro**.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s34" viz="AUCTrap" -->
-La NCA « laisse parler les données » : pas de compartiments, pas d'hypothèse de structure.
+<!-- step:title="Intuition" -->
+Les deux écritures sont comme deux systèmes de coordonnées pour décrire le même point.
 
-On mesure directement la surface sous la courbe (l'**exposition**) en découpant le profil en **trapèzes** entre les points de prélèvement.
+- Les constantes **micro** disent « à quelle **vitesse** » le médicament passe d'un compartiment à l'autre. Ce sont des taux, par unité de temps.
+- Les grandeurs **macro** disent « **quelle capacité** d'épuration » ($CL$), « **quel débit** » entre compartiments ($Q$) et « **quel espace** » de distribution ($V$). Ce sont des grandeurs **physiologiques**.
+
+Une constante de vitesse comme $k_{12}$ ne se mesure pas au chevet du patient ; une clairance, un volume, un débit sanguin, si — au moins par analogie physiologique.
 <!-- /step -->
 
-<!-- step:title="Ordres de cinétique" slides="s34" viz="AUCTrap" -->
-Les transferts ADME suivent des **vitesses**. Trois régimes reviennent sans cesse :
+<!-- step:title="La formule décortiquée" viz="10_PK2C" -->
+Le pont entre les deux est purement algébrique. Pour un modèle à **un compartiment** :
 
-- **Ordre 1** : la vitesse est **proportionnelle à la concentration** (plus il y a de médicament, plus ça va vite). La décroissance est exponentielle.
-- **Ordre 0** : la vitesse est **constante** (ex. perfusion, enzyme saturée) — plus il y en a, plus c'est long.
-- **Michaélien** : saturable — d'ordre 1 à basse concentration, d'ordre 0 quand les enzymes/transporteurs saturent. La saturation annonce souvent la zone toxique.
+$$ k_e = \frac{CL}{V} $$
 
-:::note
-Une même cinétique peut **alterner** les ordres selon la concentration.
-:::
-<!-- /step -->
+Pour un modèle à **deux compartiments** (central 1, périphérique 2), les constantes micro se déduisent des grandeurs macro :
 
-<!-- step:title="La formule décortiquée" slides="s34" viz="AUCTrap" -->
-On classe les paramètres NCA par **P-H-A-M** : **P**ente (ke, ka), **H**auteur (C0, Cmax, Css), **A**ire (AUC), **M**oment (AUMC).
-
-L'aire par trapèzes couvre les points observés ; on **extrapole** la queue par la pente terminale :
-
-$$ \mathrm{AUC}_{0-\infty} = \mathrm{AUC}_{0-t} + \frac{C_{last}}{\lambda_z} $$
+$$ k_e = \frac{CL}{V_1}, \qquad k_{12} = \frac{Q}{V_1}, \qquad k_{21} = \frac{Q}{V_2} $$
 
 :::math
-On en déduit les paramètres « primaires » : clairance $CL/F = \text{Dose}/\mathrm{AUC}$, demi-vie $t_{1/2} = \ln 2/\lambda_z$, et volume $V_z/F = \dfrac{CL/F}{\lambda_z}$.
+Chaque constante de vitesse est un **rapport d'un débit sur un volume**. C'est la même information, réécrite : connaître $CL, Q, V_1, V_2$ suffit à retrouver toutes les constantes micro, et réciproquement.
 :::
 <!-- /step -->
 
-<!-- step:title="Exemple concret" slides="s45" viz="AUCTrap" -->
-Pour la warfarine, la NCA donne rapidement l'AUC de chaque sujet et une demi-vie approximative.
+<!-- step:title="Exemple concret" viz="10_PK2C" -->
+Prenons un modèle à deux compartiments avec $CL = 6$ L/h, $Q = 4$ L/h, $V_1 = 30$ L, $V_2 = 20$ L.
 
-Mais dès qu'on veut expliquer **pourquoi** les patients diffèrent (poids, génotype) ou **simuler** une autre posologie, il faut passer à une approche compartimentale / PopPK.
+En écriture micro : $k_e = 6/30 = 0{,}20$ h⁻¹, $k_{12} = 4/30 = 0{,}13$ h⁻¹, $k_{21} = 4/20 = 0{,}20$ h⁻¹.
+
+Les deux jeux de nombres décrivent **la même courbe**. Mais « $CL = 6$ L/h » dit tout de suite quelque chose d'utile au clinicien (la capacité d'épuration), là où « $k_e = 0{,}20$ h⁻¹ » demande un détour.
 <!-- /step -->
 
-<!-- step:title="Piège fréquent" slides="s45" -->
-La NCA décrit, elle ne prédit pas — et elle est sensible à l'échantillonnage.
+<!-- step:title="Piège fréquent" -->
+Ne mélangez pas les deux écritures dans une même équation, et sachez toujours **laquelle** un article ou un logiciel utilise.
 
 :::pitfall
-La **méthode analytique** compte : une limite de quantification élevée peut masquer une phase de décroissance, changeant radicalement la demi-vie estimée. Trop peu de points en fin de courbe rendent λz (donc l'AUC extrapolée) peu fiable.
+Comparer ou transférer des paramètres d'un modèle à l'autre sans vérifier la paramétrisation est une erreur classique : un $k_{12}$ n'est pas un $Q$, et deux modèles « équivalents » peuvent afficher des nombres très différents selon l'écriture choisie. Les constantes micro n'ont par ailleurs **pas** de sens physiologique directement mesurable — c'est une raison de plus de raisonner en $CL$, $Q$, $V$.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- La NCA est descriptive : dose + voie suffisent, robuste mais non prédictive.
-- Ordres de cinétique : 1 (proportionnel), 0 (constant), michaélien (saturable).
-- AUC par trapèzes + extrapolation $C_{last}/\lambda_z$ ; on en tire CL/F, t½, Vz/F.
-- Rappel : ~5 à 6 demi-vies pour éliminer (ou atteindre) l'essentiel.
-
-:::note
-**Pour aller plus loin.** Ce chapitre est la **porte d'entrée** du tronc commun. Le parcours d'approfondissement **« Analyse non-compartimentale »** (4 chapitres) reprend le sujet en détail : calcul de l'AUC, paramètres dérivés, phase d'absorption.
-:::
+- Un modèle compartimental s'écrit en **micro** (constantes de vitesse $k_e$, $k_{12}$, $k_{21}$) **ou** en **macro** (clairances et volumes $CL$, $Q$, $V$) : même courbe, deux langages.
+- Le pont est algébrique : chaque constante de vitesse est un **débit divisé par un volume** ($k_e = CL/V$, $k_{12} = Q/V_1$, $k_{21} = Q/V_2$).
+- **On choisit le langage macro** ($CL$, $Q$, $V$) pour la suite : ces grandeurs parlent à la médecine (épuration, débit, espace de distribution), là où les constantes micro sont équivalentes mais peu interprétables.
 <!-- /step -->

@@ -56,11 +56,22 @@ For an IV bolus in a one-compartment model, concentration starts at:
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-then decays as the body clears the drug:
+Recall what a **concentration** is: an amount over a volume. The starting concentration is therefore the **dose divided by the volume** it spreads into — a volume that pharmacometrics calls the **volume of distribution** $V$.
+
+Concentration then decays as the body clears the drug:
 
 $$ C(t) = \frac{\text{Dose}}{V}\, e^{-\frac{CL}{V}\,t} $$
 
-**Math —** volume sets the initial dilution; clearance sets how fast the blocks are removed relative to that space. The ratio $CL/V$ drives the slope.
+This decay is **exponential**: like a geometric sequence, a fixed **percentage** of what remains is removed each time unit — not a fixed amount. Two equivalent ways to quantify that speed:
+
+- **clearance** $CL$ — a cleared flow, a speed relative to the volume;
+- the **elimination rate constant** $k_e = CL/V$ — a pure rate (per unit time).
+
+But the most **telling** measure of the decay is the **half-life** $t_{1/2}$: the time to eliminate half of the drug.
+
+**Math —** volume sets the initial dilution; clearance sets how fast the drug is removed relative to that space. The ratio $CL/V = k_e$ drives the slope, and $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.
+
+In a **linear** model (the simple case) this speed does **not** depend on concentration: the half-life is then a property of the **molecule** (and its volume), not of the dose given.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="IVBolus" -->
@@ -70,7 +81,7 @@ This is why pharmacometrics reasons about **parameters** (CL, V), not just obser
 <!-- /step -->
 
 <!-- step:title="Common pitfall" slides="s02" -->
-Do not put every difference in one bucket called "noise".
+**Every patient is different.** We now know the "one size fits all" — the same dose for everyone — is, sadly, false. But do not, for that reason, put every difference in one bucket called "noise".
 
 A difference between observations may come from very different sources:
 

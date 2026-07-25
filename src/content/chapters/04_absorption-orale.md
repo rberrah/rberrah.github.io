@@ -37,32 +37,48 @@ quiz:
 La plupart des médicaments ne sont pas injectés directement dans le plasma : ils sont avalés, absorbés, distribués, puis éliminés.
 
 C'est pourquoi les courbes orales concentration-temps **montent**, atteignent un pic, puis redescendent. La phase ascendante n'est pas du bruit : c'est l'absorption.
+
+L'absorption ne dépend pas que de la molécule : elle dépend aussi de la **galénique** (la forme pharmaceutique). Un même principe actif en comprimé à libération immédiate, en gélule ou en forme à libération prolongée entre dans le sang à des vitesses très différentes. C'est pourquoi la vitesse d'absorption est un paramètre à **estimer**, pas une constante universelle de la molécule.
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s07" viz="OralAbsorption" -->
-Avec une dose orale, les blocs attendent d'abord hors de la salle principale.
+Commençons par le modèle le plus simple : une **seule** constante d'absorption.
 
-La constante d'absorption $K_a$ fixe la vitesse d'entrée des blocs. Un temps de latence $T_{lag}$ signifie que la porte reste fermée un moment avant que l'entrée commence.
+Avec une dose orale, les blocs attendent d'abord hors de la salle principale. La constante d'absorption $K_a$ fixe la **vitesse d'entrée** des blocs dans le compartiment central : plus $K_a$ est grande, plus l'entrée est rapide.
 
 :::key
-La courbe observée est une **compétition** entre l'entrée (absorption) et la sortie (élimination). Le pic apparaît quand les deux s'équilibrent.
+La courbe observée est une **compétition** entre l'entrée (absorption, pilotée par $K_a$) et la sortie (élimination, pilotée par $k = CL/V$). Le pic apparaît quand les deux flux s'équilibrent.
 :::
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" slides="s07" viz="OralAbsorption" -->
-Un modèle oral d'ordre 1 courant (courbe de Bateman) :
+Le modèle oral d'ordre 1 le plus simple (courbe de Bateman), **sans latence** :
 
-$$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) $$
+$$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-kt}-e^{-K_a t}\right) $$
 
-Pas besoin de mémoriser l'expression entière : lisez-la comme une entrée par absorption ($K_a$) opposée à une sortie par élimination ($k = CL/V$).
+Pas besoin de mémoriser l'expression entière : lisez-la comme une entrée par absorption ($K_a$) opposée à une sortie par élimination ($k = CL/V$). Les deux exponentielles se soustraient : au début l'absorption domine (la courbe monte), puis l'élimination l'emporte (la courbe descend).
 
 :::math
-Augmentez $K_a$ : le pic arrive plus tôt et plus haut. Augmentez $T_{lag}$ : tout le début de la courbe se décale vers la droite.
+Augmentez $K_a$ : le pic arrive plus tôt et plus haut. C'est le seul paramètre qui gouverne la **vitesse** de la montée dans ce modèle de base.
 :::
 <!-- /step -->
 
+<!-- step:title="Temps de latence" slides="s07" viz="OralAbsorption" -->
+Parfois, rien n'entre dans le sang pendant un moment après la prise (temps de désagrégation, vidange gastrique). On ajoute alors un **temps de latence** $T_{lag}$, qui décale simplement le départ de l'absorption :
+
+$$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) \quad \text{pour } t \geq T_{lag} $$
+
+:::note
+Le temps de latence est avant tout un **outil mathématique**, avec peu de sens physiologique direct, mais **très utile** pour décrire un retard d'absorption sans compliquer le modèle. C'est une « rustine » commode : elle capte le délai observé sans prétendre expliquer *pourquoi* il existe.
+:::
+
+Dans l'explorateur : augmentez $T_{lag}$ et tout le début de la courbe se décale vers la droite, sans changer la hauteur du pic.
+<!-- /step -->
+
 <!-- step:title="Compartiments de transit" slides="s07" viz="OralAbsorption" -->
-Un modèle à un seul $K_a$ suppose une montée immédiate, ce qui colle mal quand l'absorption est **progressive** (dissolution, vidange gastrique).
+Le $T_{lag}$ décale le départ mais garde une montée brutale. Quand l'absorption est **progressive** (dissolution, vidange gastrique), on peut faire mieux — et de façon plus physiologique — avec les compartiments de transit.
+
+Un modèle à un seul $K_a$ suppose une montée immédiate, ce qui colle mal à une entrée étalée dans le temps.
 
 Les **compartiments de transit** remplacent l'entrée unique par une **chaîne** de $n$ compartiments traversés au rythme $k_{tr}$. Le médicament met un **temps de transit moyen** $\text{MTT} = n / k_{tr}$ à parvenir au compartiment central.
 

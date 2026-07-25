@@ -49,6 +49,12 @@ Imagine each patient builds from the same box of blocks.
 - **PBPK** rebuilds the whole room: tables, shelves, doors and the routes between them.
 
 NCA is a ruler; PopPK a classroom model; PBPK a building plan — powerful, but every extra room needs assumptions.
+
+Beyond the question they answer, the three approaches rest on different **principles**:
+
+- **NCA** is **descriptive**: it summarizes what is observed, with no underlying model;
+- **PopPK** is **empirical and statistical**: starting from the data (observations over time), it builds a "mean" predictive model and its variability;
+- **PBPK** is **knowledge-based**: the model is built from known physiology, then evaluated against the data.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" slides="s34" viz="AUCTrap" -->
@@ -78,8 +84,12 @@ Do not use NCA as if it were predictive.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- NCA describes observed exposure.
-- PopPK explains population variability and enables simulation.
-- PBPK extrapolates through physiology but depends heavily on assumptions.
+- NCA describes observed exposure (principle: **descriptive**).
+- PopPK explains population variability and enables simulation (principle: **empirical and statistical**).
+- PBPK extrapolates through physiology but depends heavily on assumptions (principle: **knowledge-based**).
 - Start from the question, then choose the method.
+
+:::note
+**Going further.** Each of these approaches has its own deep-dive track: **"Non-compartmental analysis"**, **"PBPK"** and **"Pharmacodynamics"**. The **rest of the core track** is devoted to **PopPK** — the heart of applied pharmacometrics.
+:::
 <!-- /step -->

@@ -3,7 +3,7 @@ id: "allometrie"
 slug: "allometrie"
 title: "Covariates and allometry"
 description: "How weight, renal function and other covariates explain part of the variability."
-summary: "A student-oriented introduction to covariate models, centering and allometric scaling."
+summary: "An introduction to covariate models, centering and allometric scaling."
 track: "core"
 order: 6
 duration: "14 min"
@@ -38,11 +38,14 @@ Weight, renal function, age, genotype, disease status, co-medications can all ac
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s19,s20" viz="14_AllometryCentering" -->
-If students have different hand sizes, table space or experience, they build differently.
+A covariate is **one measured feature** (weight, renal function, age, genotype…) that helps explain why the same dosing schedule does not produce the same exposure in everyone.
 
-A covariate is **one measured feature** that helps explain why the same instruction sheet does not work identically for everyone.
+The guiding idea is to link each parameter to a **physiologically coherent** covariate:
 
-**Key point —** weight is like room size; renal function is like cleanup capacity. Covariates do not explain everything, but they reduce the **unexplained** variability.
+- the **volume of distribution** can be linked to **weight**, because it partly reflects the drug's diffusion into tissues, notably fat;
+- **clearance** can be linked to **renal function**, which is precisely the rate of renal elimination.
+
+**Key point —** a well-chosen covariate does not erase variability: it moves part of it from the **unexplained** (random effects) to the **explained**. It is a physiological link, not a mere correlation to exploit.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" slides="s20,s21" viz="14_AllometryCentering" -->
@@ -57,6 +60,8 @@ $$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0.75} \qquad V_i = V_{70} \left(
 In a pediatric or mixed-weight dataset, weight often explains a visible part of the clearance and volume variability.
 
 After adding allometry, the random effect on clearance can **shrink**: the model has moved variability from "unexplained patient difference" to "explained by weight".
+
+**Note — in pediatrics, weight is not enough.** It is often used as a *proxy* for maturity, but organs do not all mature at the same pace: renal function and hepatic enzymes develop over weeks to years. In neonates and infants, allometry is therefore complemented by a **maturation function** (typically sigmoidal in post-menstrual age), to link clearance to **organ** maturation, not to weight alone.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" slides="s22" -->
@@ -64,12 +69,12 @@ Do not add a covariate just because it is available.
 
 **Pitfall —** a covariate should be biologically plausible, supported by the data and checked with diagnostics. Automated forward/backward selection helps but does not replace interpretation.
 
-**In the clinic —** a statistically significant covariate is not automatically clinically useful: the effect may be real yet negligible against residual variability.
+**In the clinic —** a statistically significant covariate does not imply **causality**. It may only be a **proxy** for another factor: **weight** is often a proxy for **fat mass**; **ethnicity**, a proxy for **genetic factors** (enzyme or transporter polymorphisms). The model captures a correlation useful for prediction, without proving the underlying mechanism.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- Covariates explain part of a parameter's variability.
+- Covariates explain part of a parameter's variability, through a physiological link (volume ↔ tissue diffusion, clearance ↔ renal function).
 - Centering keeps typical values interpretable.
-- Allometry is a weight-based power-law scaling rule.
-- Significant does not mean clinically relevant.
+- Allometry is a weight-based power-law scaling rule; in pediatrics, complement it with a maturation function (organs mature at different paces).
+- Significant does not mean causal: a covariate is often a proxy (weight ↔ fat mass, ethnicity ↔ genetics).
 <!-- /step -->

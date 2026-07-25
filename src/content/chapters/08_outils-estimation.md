@@ -57,6 +57,13 @@ où $p$ est le nombre de paramètres estimés.
 :::math
 Baisser $-2\log L$ (mieux coller) est bon ; mais chaque paramètre ajouté coûte $+2$. L'AIC arbitre entre ajustement et parcimonie — sans garantir la pertinence clinique.
 :::
+
+:::note
+**Deux grandes familles d'algorithmes** approchent cette vraisemblance, difficile à calculer exactement à cause des effets aléatoires :
+
+- **FOCE** (*First-Order Conditional Estimation*, avec interaction : **FOCE-I**) — la méthode historique de **NONMEM**. Elle **linéarise** le modèle autour de l'estimation individuelle la plus probable, puis maximise la vraisemblance approchée. Rapide et précise quand le modèle est proche de la linéarité, mais elle peut mal converger sur des modèles fortement non linéaires.
+- **SAEM** (*Stochastic Approximation Expectation-Maximization*) — la méthode de **Monolix** (aussi disponible dans NONMEM et nlmixr2). Elle **échantillonne** les effets aléatoires (étape stochastique) et met à jour les paramètres par itérations successives, **sans linéariser**. Plus robuste sur les modèles très non linéaires, au prix d'un calcul plus lourd.
+:::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" slides="s39,s40" -->

@@ -53,6 +53,12 @@ Imaginez que chaque patient bâtit avec la même boîte de blocs.
 - La **PBPK** reconstruit toute la salle : tables, étagères, portes et trajets entre elles.
 
 La NCA est une règle graduée ; la PopPK, un modèle de classe ; la PBPK, un plan de bâtiment — puissant, mais chaque nouvelle pièce exige des hypothèses.
+
+Au-delà de la question posée, ces trois approches reposent sur des **principes** différents :
+
+- la **NCA** se veut **descriptive** : elle résume ce qu'on observe, sans modèle sous-jacent ;
+- la **PopPK** se veut **empirique et statistique** : on part des données (observations en fonction du temps) pour construire un modèle prédictif « moyen » et sa variabilité ;
+- la **PBPK** se veut **fondée sur la connaissance** (*knowledge-based*) : on bâtit le modèle à partir de la physiologie connue, puis on l'évalue sur les données.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" slides="s34" viz="AUCTrap" -->
@@ -86,8 +92,12 @@ La NCA décrit parfaitement les profils observés, mais elle n'a ni effet aléat
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- La NCA décrit l'exposition observée.
-- La PopPK explique la variabilité de population et permet la simulation.
-- La PBPK extrapole via la physiologie, mais dépend fortement des hypothèses.
+- La NCA décrit l'exposition observée (principe : **descriptif**).
+- La PopPK explique la variabilité de population et permet la simulation (principe : **empirique et statistique**).
+- La PBPK extrapole via la physiologie, mais dépend fortement des hypothèses (principe : **fondé sur la connaissance**).
 - Partez de la question, puis choisissez la méthode.
+
+:::note
+**Pour aller plus loin.** Chacune de ces approches a son propre parcours d'approfondissement : **« Analyse non-compartimentale »**, **« PBPK »** et **« Pharmacodynamie »**. La **suite du tronc commun**, elle, est consacrée à la **PopPK** — le cœur de la pharmacométrie appliquée.
+:::
 <!-- /step -->

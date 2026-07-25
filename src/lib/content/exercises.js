@@ -413,7 +413,7 @@ export const exercises = [
     en: { q: "An EBE (empirical Bayes estimate) is…", options: ["the estimate of the individual deviation (η) informed by the population", "a measured concentration", "a loading dose"], explain: "CL_i = CL_typ·e^η̂; when data are sparse, η̂ is pulled toward 0 (shrinkage)." } },
 
   // ═══ Compléments de couverture ═══
-  { cat: 'NCA', chapter: 'nca', type: 'mcq', correct: 0,
+  { cat: 'NCA', chapter: 'nca-intro', type: 'mcq', correct: 0,
     q: "La NCA se distingue d'un modèle compartimental car elle…",
     options: ["ne suppose aucune structure de compartiments", "exige toujours 3 compartiments", "ignore les concentrations"],
     explain: "La NCA « laisse parler les données » : AUC par trapèzes et pente terminale λz, sans modèle structural.",

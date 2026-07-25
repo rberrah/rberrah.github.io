@@ -54,7 +54,11 @@ $$ y = f + \varepsilon_{add} \quad|\quad y = f\,(1 + \varepsilon_{prop}) \quad|\
 
 - **additive** : $\varepsilon \sim \mathcal{N}(0, a^2)$ — bruit constant (bon près de la limite de quantification) ;
 - **proportionnelle** : écart-type $= b\cdot f$ — %CV constant (bon aux fortes concentrations) ;
-- **combinée** : $\sqrt{a^2 + (b f)^2}$ — un **plancher** additif + un **pourcentage** proportionnel.
+- **combinée** : deux écritures possibles de l'écart-type — en **somme simple** ($\sigma = a + b\,f$, dite *combined1*) ou en **quadrature** ($\sigma = \sqrt{a^2 + (b f)^2}$, dite *combined2*). Les deux mêlent un **plancher** additif et un **pourcentage** proportionnel.
+
+:::note
+En pratique, l'erreur résiduelle réelle est **rarement** exactement la forme en quadrature (*combined2*) que suggèrent les formules « propres ». La somme simple (*combined1*, $\sigma = a + b\,f$) décrit souvent aussi bien, voire mieux, les données, et reste plus stable à estimer. La leçon : ne recopiez pas *combined2* par défaut — choisissez la forme qui colle réellement aux résidus.
+:::
 
 :::howto
 **La métaphore de la balance.** Une balance de cuisine a une précision **fixe** (±1 g) : erreur additive. Une balance industrielle affiche un **pourcentage** (±0,5 % de la charge) : erreur proportionnelle. Une vraie balance combine les deux — un plancher **et** un %.
@@ -73,7 +77,7 @@ D'où le choix fréquent d'une erreur **combinée** en pratique : elle couvre le
 Une erreur mal choisie fausse tout le reste.
 
 :::pitfall
-Une erreur **additive** sur des données à large gamme sur-pondère les hautes concentrations et sous-estime la précision aux basses. Résultat : mauvais **poids** dans l'estimation, intervalles de prédiction irréalistes, et un **entonnoir** sur les résidus. Toujours vérifier le modèle d'erreur sur $|IWRES|$ vs prédictions avant de conclure.
+Une erreur **additive** sur des données à large gamme sur-pondère les hautes concentrations et sous-estime la précision aux basses. Résultat : mauvais **poids** dans l'estimation et intervalles de prédiction irréalistes. Vérifiez toujours le modèle d'erreur sur le graphe $|IWRES|$ vs prédictions avant de conclure.
 :::
 <!-- /step -->
 

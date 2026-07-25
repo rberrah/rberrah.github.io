@@ -72,7 +72,17 @@ $$ \text{Dose de charge} = C_{ss} \cdot V $$
 :::howto
 **La métaphore de l'évier.** Le robinet (débit de dose) remplit ; la bonde (clairance) vide. Le **niveau** d'équilibre dépend du rapport robinet/bonde — pas de la vitesse à laquelle on ouvre. Le **temps** de remplissage, lui, ne dépend que de la taille de la bonde (la demi-vie).
 
-**Côté maths.** On atteint **~90 %** de l'équilibre en **~3,3 demi-vies** (et ~94 % en 4), quelle que soit la dose. Doubler la dose **double** la Css sans changer le temps d'atteinte : la dose fixe le *niveau*, pas la *vitesse*.
+**Côté maths.** La fraction de l'équilibre atteinte après un temps $t$ suit une montée exponentielle miroir de la décroissance :
+
+$$ f(t) = 1 - e^{-k_e\,t} = 1 - 2^{-\,t/t_{1/2}} $$
+
+En comptant en demi-vies (avec $t = n\cdot t_{1/2}$, donc $f = 1 - 2^{-n}$) :
+
+- **4 demi-vies** → $1 - 2^{-4} = $ **94 %**
+- **5 demi-vies** → $1 - 2^{-5} = $ **97 %**
+- **6 demi-vies** → $1 - 2^{-6} = $ **98,5 %**
+
+En pratique, on considère l'équilibre « atteint » vers **4 à 5 demi-vies**. Ce temps ne dépend **que** de la demi-vie : doubler la dose **double** la Css sans changer le temps d'atteinte — la dose fixe le *niveau*, pas la *vitesse*.
 :::
 <!-- /step -->
 

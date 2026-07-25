@@ -3,7 +3,7 @@ id: "allometrie"
 slug: "allometrie"
 title: "Covariables et allométrie"
 description: "Comment le poids, la fonction rénale et d'autres covariables expliquent une part de la variabilité."
-summary: "Introduction, pour étudiants, aux modèles de covariables, au centrage et à la mise à l'échelle allométrique."
+summary: "Introduction aux modèles de covariables, au centrage et à la mise à l'échelle allométrique."
 track: "core"
 order: 6
 duration: "14 min"
@@ -40,12 +40,15 @@ Poids, fonction rénale, âge, génotype, statut pathologique, co-médications :
 <!-- /step -->
 
 <!-- step:title="Intuition" slides="s19,s20" viz="14_AllometryCentering" -->
-Si des élèves ont des mains, un espace de table ou une expérience différents, ils construisent différemment.
+Une covariable est **une caractéristique mesurée** (poids, fonction rénale, âge, génotype…) qui aide à expliquer pourquoi un même schéma posologique ne produit pas la même exposition chez tout le monde.
 
-Une covariable est **une caractéristique mesurée** qui aide à expliquer pourquoi la même notice ne fonctionne pas de façon identique pour tout le monde.
+L'idée directrice est de relier chaque paramètre à une covariable **physiologiquement cohérente** :
+
+- le **volume de distribution** peut être relié au **poids**, parce qu'il reflète en partie la diffusion du médicament dans les tissus, notamment la graisse ;
+- la **clairance** peut être reliée à la **fonction rénale**, qui décrit justement la vitesse d'élimination rénale.
 
 :::key
-Le poids est comme la taille de la salle ; la fonction rénale, comme la puissance de l'équipe de nettoyage. Les covariables n'expliquent pas tout, mais elles réduisent la variabilité **inexpliquée**.
+Une covariable bien choisie ne supprime pas la variabilité : elle en déplace une part de l'**inexpliqué** (effets aléatoires) vers l'**expliqué**. C'est un lien physiologique, pas une simple corrélation à exploiter.
 :::
 <!-- /step -->
 
@@ -63,6 +66,10 @@ Le dénominateur 70 **centre** le modèle : $CL_{70}$ désigne la clairance typi
 Dans un jeu de données pédiatrique ou à poids mélangés, le poids explique souvent une part visible de la variabilité de clairance et de volume.
 
 Après ajout de l'allométrie, l'effet aléatoire sur la clairance peut **diminuer** : le modèle a déplacé de la variabilité depuis « différence inexpliquée entre patients » vers « expliquée par le poids ».
+
+:::note
+**En pédiatrie, le poids ne suffit pas.** On l'utilise souvent comme *proxy* de la maturité, mais les organes ne mûrissent pas tous au même rythme : la fonction rénale et les enzymes hépatiques se développent sur des semaines à des années. Chez le nouveau-né et le nourrisson, on complète donc l'allométrie par une **fonction de maturation** (typiquement sigmoïde en fonction de l'âge post-menstruel), afin de relier la clairance à la maturation **des organes**, et pas seulement au poids.
+:::
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s22" -->
@@ -73,13 +80,13 @@ Une covariable doit être biologiquement plausible, soutenue par les données et
 :::
 
 :::clinical
-Une covariable statistiquement significative n'est pas automatiquement cliniquement utile : l'effet peut être réel mais négligeable devant la variabilité résiduelle.
+Une covariable statistiquement significative ne signifie pas pour autant une **causalité**. Elle peut n'être qu'un **proxy** d'un autre facteur : le **poids** est souvent un proxy de la **masse grasse** ; l'**ethnie**, un proxy de **facteurs génétiques** (polymorphismes d'enzymes ou de transporteurs). Le modèle capte une corrélation utile pour prédire, sans démontrer le mécanisme sous-jacent.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- Les covariables expliquent une part de la variabilité des paramètres.
+- Les covariables expliquent une part de la variabilité des paramètres, via un lien physiologique (volume ↔ diffusion tissulaire, clairance ↔ fonction rénale).
 - Le centrage garde les valeurs typiques interprétables.
-- L'allométrie est une règle de mise à l'échelle par le poids.
-- Significatif ne veut pas dire cliniquement pertinent.
+- L'allométrie est une règle de mise à l'échelle par le poids ; en pédiatrie, la compléter par une fonction de maturation (les organes mûrissent à des rythmes différents).
+- Significatif ne veut pas dire causal : une covariable est souvent un proxy (poids ↔ masse grasse, ethnie ↔ génétique).
 <!-- /step -->

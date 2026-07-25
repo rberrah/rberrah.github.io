@@ -51,6 +51,11 @@ $$ \mathrm{AIC} = -2 \log L + 2p $$
 where $p$ is the number of estimated parameters.
 
 **Math —** lowering $-2\log L$ (fitting better) is good; but each added parameter costs $+2$. AIC trades off fit against parsimony — without guaranteeing clinical relevance.
+
+**Two main families of algorithms** approximate this likelihood, which is hard to compute exactly because of the random effects:
+
+- **FOCE** (*First-Order Conditional Estimation*, with interaction: **FOCE-I**) — the historical method of **NONMEM**. It **linearises** the model around the most likely individual estimate, then maximises the approximate likelihood. Fast and accurate when the model is close to linear, but it can converge poorly on strongly non-linear models.
+- **SAEM** (*Stochastic Approximation Expectation-Maximization*) — the method of **Monolix** (also available in NONMEM and nlmixr2). It **samples** the random effects (stochastic step) and updates the parameters over successive iterations, **without linearising**. More robust on highly non-linear models, at the cost of heavier computation.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s39,s40" -->

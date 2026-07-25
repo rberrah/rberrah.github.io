@@ -1,8 +1,8 @@
 ---
 id: "voies-absorption"
 slug: "voies-absorption"
-title: "Les voies d'absorption"
-description: "IV, orale, sous-cutanée, transdermique, inhalée : chaque voie façonne la courbe et la biodisponibilité."
+title: "Les voies d'absorption & la biodisponibilité"
+description: "IV, orale, sous-cutanée, transdermique, inhalée : chaque voie façonne la courbe et la biodisponibilité — et sans référence IV, F n'est pas identifiable."
 summary: "Panorama des voies d'administration et de leurs conséquences PK : vitesse d'absorption, premier passage, biodisponibilité."
 track: "core"
 order: 4.2
@@ -68,6 +68,24 @@ Réf. : cadre BCS (solubilité/perméabilité) et modèles d'absorption (voir au
 :::
 <!-- /step -->
 
+<!-- step:title="Biodisponibilité et paramètres apparents" viz="OralAbsorption" -->
+Peut-on toujours **mesurer** $F$ ? Non : cela dépend des données dont on dispose.
+
+**Avec une référence IV.** La biodisponibilité absolue se calcule en comparant les expositions, normalisées par la dose :
+
+$$ F = \frac{\mathrm{AUC}_{po}\,/\,\mathrm{Dose}_{po}}{\mathrm{AUC}_{iv}\,/\,\mathrm{Dose}_{iv}} $$
+
+Il faut donc les **deux voies** chez les mêmes sujets (typiquement un essai croisé) pour isoler $F$.
+
+**Avec la seule voie orale.** En popPK, on ne dispose souvent **que** de données orales. Or la quantité qui entre réellement dans le sang est $F\cdot\text{Dose}$ : $F$ est **confondu** avec la clairance et le volume. On ne peut alors estimer que les **rapports** :
+
+$$ \frac{CL}{F} \quad\text{(clairance apparente)}, \qquad \frac{V}{F} \quad\text{(volume apparent)} $$
+
+:::key
+Sans référence IV, $F$ n'est **pas identifiable** séparément : les logiciels rapportent CL/F et V/F. Une CL/F qui « augmente » peut donc venir d'une vraie hausse de clairance **ou** d'une baisse de biodisponibilité — impossible de les distinguer sur les seules données orales.
+:::
+<!-- /step -->
+
 <!-- step:title="Exemple concret" viz="Infusion" -->
 La **trinitrine** en **sublingual** agit en minutes car elle évite le premier passage (qui la détruirait per os). Un **patch** de fentanyl libère à **débit constant** (ordre 0), comme une perfusion lente — d'où un plateau prolongé.
 
@@ -87,4 +105,5 @@ Si l'absorption est plus lente que l'élimination ($k_a < k_e$), la **pente term
 - IV : F = 1, référence. Orale : F = fa·Fg·Fh, premier passage possible.
 - Sublinguale/rectale basse contournent le premier passage ; patch = ordre 0 ; SC = lent (lymphatique).
 - Attention au flip-flop : ka < ke ⇒ la pente terminale reflète l'absorption.
+- F ne se mesure qu'avec une **référence IV** ; sur données orales seules, on n'estime que la clairance et le volume **apparents** (CL/F, V/F).
 <!-- /step -->

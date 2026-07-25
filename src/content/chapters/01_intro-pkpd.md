@@ -66,12 +66,23 @@ Pour un bolus intraveineux dans un modèle à un compartiment, la concentration 
 
 $$ C_0 = \frac{\text{Dose}}{V} $$
 
-puis décroît à mesure que l'organisme épure le médicament :
+Rappelez-vous ce qu'est une **concentration** : une quantité rapportée à un volume. La concentration de départ, c'est donc la **dose divisée par le volume** dans lequel elle se dilue — un volume qu'en pharmacométrie on appelle le **volume de distribution** $V$.
+
+La concentration décroît ensuite à mesure que l'organisme épure le médicament :
 
 $$ C(t) = \frac{\text{Dose}}{V}\, e^{-\frac{CL}{V}\,t} $$
 
+Cette décroissance est **exponentielle** : à la manière d'une suite géométrique, on retire à chaque unité de temps un même **pourcentage** de ce qui reste — pas une quantité fixe. Pour chiffrer cette vitesse, on dispose de deux mesures équivalentes :
+
+- la **clairance** $CL$ — un débit épuré, une vitesse rapportée au volume ;
+- la **constante d'élimination** $k_e = CL/V$ — une vitesse pure (par unité de temps).
+
+Mais la mesure la plus **parlante** de cette décroissance reste la **demi-vie** $t_{1/2}$ : le temps qu'il faut pour éliminer la moitié du produit.
+
 :::math
-En clair : le **volume** fixe la dilution initiale ; la **clairance** fixe la vitesse à laquelle les blocs sont retirés par rapport à cet espace. Le rapport $CL/V$ gouverne la pente.
+Le **volume** fixe la dilution initiale ; la **clairance** fixe la vitesse à laquelle le produit est retiré par rapport à cet espace. Le rapport $CL/V = k_e$ gouverne la pente, et $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.
+
+Dans un modèle **linéaire** (le cas simple), cette vitesse ne dépend **pas** de la concentration : la demi-vie est alors une propriété de la **molécule** (et de son volume), non de la dose reçue.
 :::
 <!-- /step -->
 
@@ -84,7 +95,7 @@ C'est pourquoi la pharmacométrie raisonne sur des **paramètres** (CL, V) plut�
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s02" -->
-Ne rangez pas toutes les différences dans une seule boîte appelée « bruit ».
+**Tous les patients sont différents.** On sait aujourd'hui que le « *one size fits all* » — une même dose pour tous — est hélas faux. Mais ne rangez pas pour autant toutes les différences dans une seule boîte appelée « bruit ».
 
 Une différence entre observations peut venir de sources très distinctes :
 

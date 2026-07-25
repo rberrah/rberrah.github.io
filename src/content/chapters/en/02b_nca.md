@@ -1,87 +1,83 @@
 ---
-id: "nca"
-slug: "nca"
-title: "Non-compartmental analysis (NCA)"
-description: "Describing exposure without a model: AUC, Cmax, λz and the orders of kinetics."
-summary: "A deeper look at NCA: primary/secondary parameters, trapezoids, extrapolation and limits."
+id: "micro-macro"
+slug: "micro-macro"
+title: "Micro or macro: two ways to write one model"
+description: "The same compartmental model can be written with rate constants (ke, k12, k21) or with clearances and volumes (CL, Q, V). Why we choose CL/V."
+summary: "Micro (rate constants) vs macro (clearances/volumes) parametrization: two languages for one model, and why we keep CL/V."
 track: "core"
 order: 2.5
-duration: "14 min"
+duration: "6 min"
 level: "beginner"
-tags: ["nca", "auc", "approaches"]
-slides: ["s23", "s34", "s45"]
+tags: ["parametrisation", "micro", "macro", "clairance"]
+slides: []
+reviewed_on: "2026-07-14"
 quiz:
-  - prompt: "NCA mainly needs..."
+  - prompt: "In a one-compartment model, which identity links the micro and macro forms?"
     options:
-      - "the dose and route of administration"
-      - "a full physiologically based model"
-      - "an assumption about the number of compartments"
+      - "kₑ = CL / V"
+      - "kₑ = CL × V"
+      - "kₑ = V / CL"
     correct: 0
-  - prompt: "First-order kinetics means the rate..."
+  - prompt: "Why does this course favour the CL, Q, V (macro) form?"
     options:
-      - "is proportional to concentration"
-      - "is constant regardless of concentration"
-      - "grows with the square of concentration"
+      - "because these quantities have a telling physiological meaning (clearance, flow, distribution space)"
+      - "because the micro rate constants are wrong"
+      - "because software only accepts CL and V"
     correct: 0
-  - prompt: "Extrapolating the AUC to infinity uses..."
+  - prompt: "A transfer constant k₁₂ (micro)…"
     options:
-      - "the last concentration and the terminal slope λz"
-      - "the first concentration and the absorption constant ka"
-      - "the peak concentration Cmax and its time Tmax"
+      - "describes an exchange rate, with no directly measurable physiological quantity"
+      - "is measured directly at the patient's bedside"
+      - "always equals twice k₂₁"
     correct: 0
 ---
 
-<!-- step:title="Why this chapter" slides="s23" viz="04_ThreeApproaches" -->
-Before building a model, you can already **describe** what you observe. That is the role of **non-compartmental analysis** (NCA).
+<!-- step:title="Why this chapter" -->
+The same compartmental model can be written in **two ways**. They describe exactly the same curve: this is not a difference of model, but a difference of **language**.
 
-It only needs the **dose** and the **route**, computes exposure by geometry and algebra, and is often used to **roughly validate** a protocol (order of magnitude of the half-life) before a heavier analysis.
+- The **micro** form uses **rate constants**: $k_e$ (elimination), $k_{12}$ and $k_{21}$ (exchange between compartments).
+- The **macro** form uses **clearances and volumes**: $CL$ (clearance), $Q$ (inter-compartmental flow), $V_1$, $V_2$.
+
+This short chapter makes the link explicit, and explains why the rest of the course keeps the **macro** language.
 <!-- /step -->
 
-<!-- step:title="Intuition" slides="s34" viz="AUCTrap" -->
-NCA "lets the data speak": no compartments, no structural assumption.
+<!-- step:title="Intuition" -->
+The two forms are like two coordinate systems describing the same point.
 
-You measure the area under the curve (the **exposure**) directly by cutting the profile into **trapezoids** between sampling points.
+- The **micro** constants say "how **fast**" the drug moves from one compartment to another. They are rates, per unit time.
+- The **macro** quantities say "what **clearing capacity**" ($CL$), "what **flow**" between compartments ($Q$) and "what **space**" of distribution ($V$). They are **physiological** quantities.
+
+A rate constant like $k_{12}$ cannot be measured at the bedside; a clearance, a volume, a blood flow can — at least by physiological analogy.
 <!-- /step -->
 
-<!-- step:title="Orders of kinetics" slides="s34" viz="AUCTrap" -->
-ADME transfers follow **rates**. Three regimes recur:
+<!-- step:title="The formula, unpacked" viz="10_PK2C" -->
+The bridge between the two is purely algebraic. For a **one-compartment** model:
 
-- **First order**: the rate is **proportional to concentration** (more drug, faster). Exponential decay.
-- **Zero order**: the rate is **constant** (e.g. infusion, saturated enzyme) — more drug, longer it takes.
-- **Michaelian**: saturable — first-order at low concentration, zero-order once enzymes/transporters saturate. Saturation often heralds the toxic zone.
+$$ k_e = \frac{CL}{V} $$
 
-**Note —** the same kinetics can **switch** order depending on the concentration.
+For a **two-compartment** model (central 1, peripheral 2), the micro constants follow from the macro quantities:
+
+$$ k_e = \frac{CL}{V_1}, \qquad k_{12} = \frac{Q}{V_1}, \qquad k_{21} = \frac{Q}{V_2} $$
+
+**Math —** each rate constant is a **flow over a volume**. It is the same information, rewritten: knowing $CL, Q, V_1, V_2$ is enough to recover all the micro constants, and vice versa.
 <!-- /step -->
 
-<!-- step:title="The formula, unpacked" slides="s34" viz="AUCTrap" -->
-NCA parameters sort into **S-H-A-M**: **S**lope (ke, ka), **H**eight (C0, Cmax, Css), **A**rea (AUC), **M**oment (AUMC).
+<!-- step:title="Worked example" viz="10_PK2C" -->
+Take a two-compartment model with $CL = 6$ L/h, $Q = 4$ L/h, $V_1 = 30$ L, $V_2 = 20$ L.
 
-The trapezoidal area covers the observed points; the tail is **extrapolated** by the terminal slope:
+In micro form: $k_e = 6/30 = 0.20$ h⁻¹, $k_{12} = 4/30 = 0.13$ h⁻¹, $k_{21} = 4/20 = 0.20$ h⁻¹.
 
-$$ \mathrm{AUC}_{0-\infty} = \mathrm{AUC}_{0-t} + \frac{C_{last}}{\lambda_z} $$
-
-**Math —** this yields the "primary" parameters: clearance $CL/F = \text{Dose}/\mathrm{AUC}$, half-life $t_{1/2} = \ln 2/\lambda_z$, and volume $V_z/F = CL/\lambda_z$.
+Both sets of numbers describe **the same curve**. But "$CL = 6$ L/h" says something immediately useful to the clinician (clearing capacity), where "$k_e = 0.20$ h⁻¹" needs a detour.
 <!-- /step -->
 
-<!-- step:title="Worked example" slides="s45" viz="AUCTrap" -->
-For warfarin, NCA quickly gives each subject's AUC and an approximate half-life.
+<!-- step:title="Common pitfall" -->
+Do not mix the two forms in one equation, and always know **which** one a paper or a piece of software uses.
 
-But as soon as you want to explain **why** patients differ (weight, genotype) or **simulate** another dosing schedule, you must move to a compartmental / PopPK approach.
-<!-- /step -->
-
-<!-- step:title="Common pitfall" slides="s45" -->
-NCA describes, it does not predict — and it is sensitive to sampling.
-
-**Pitfall —** the **analytical method** matters: a high limit of quantification can hide a decay phase, drastically changing the estimated half-life. Too few late points make λz (and the extrapolated AUC) unreliable.
+**Pitfall —** comparing or transferring parameters from one model to another without checking the parametrization is a classic mistake: a $k_{12}$ is not a $Q$, and two "equivalent" models can display very different numbers depending on the chosen form. The micro constants also have **no** directly measurable physiological meaning — one more reason to reason in $CL$, $Q$, $V$.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- NCA is descriptive: dose + route are enough, robust but not predictive.
-- Orders of kinetics: 1 (proportional), 0 (constant), Michaelian (saturable).
-- Trapezoidal AUC + $C_{last}/\lambda_z$ tail; yields CL/F, t½, Vz/F.
-- Reminder: ~5–6 half-lives to eliminate (or reach) most of the drug.
-
-:::note
-**Going further.** This chapter is the **entry point** of the core track. The advanced track **"Non-compartmental analysis"** (4 chapters) covers the topic in depth: AUC computation, derived parameters, the absorption phase.
-:::
+- A compartmental model can be written in **micro** (rate constants $k_e$, $k_{12}$, $k_{21}$) **or** in **macro** (clearances and volumes $CL$, $Q$, $V$): same curve, two languages.
+- The bridge is algebraic: each rate constant is a **flow over a volume** ($k_e = CL/V$, $k_{12} = Q/V_1$, $k_{21} = Q/V_2$).
+- **We choose the macro language** ($CL$, $Q$, $V$) for the rest of the course: these quantities speak to medicine (clearance, flow, distribution space), where the micro constants are equivalent but hard to interpret.
 <!-- /step -->

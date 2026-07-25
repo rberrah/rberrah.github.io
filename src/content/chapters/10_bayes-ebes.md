@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
 slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
-sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation"]
+sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation", "berrah-residual", "hughes-keizer"]
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un EBE est..."
@@ -50,16 +50,25 @@ Une estimation bayésienne ne saute pas à une conclusion extrême : elle éloig
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" slides="s53,s54" viz="BayesUpdate" -->
-Idée MAP simplifiée :
+Le raisonnement bayésien part du **théorème de Bayes**. Pour l'écart individuel $\eta_i$ :
 
-$$ \text{estimation individuelle} = \text{attente de population} + \text{écart soutenu par les données} $$
+$$ \underbrace{p(\eta_i \mid y_i)}_{\text{a posteriori}} \;\propto\; \underbrace{p(y_i \mid \eta_i)}_{\text{vraisemblance}} \;\times\; \underbrace{p(\eta_i)}_{\text{a priori}} $$
 
-En notation PopPK, les paramètres individuels utilisent souvent des EBE :
+L'**a priori** $p(\eta_i)$ est le modèle de population (une gaussienne de variance $\Omega$, la variabilité inter-individuelle). La **vraisemblance** $p(y_i \mid \eta_i)$ mesure l'accord aux observations, pondéré par l'**erreur résiduelle** $\sigma$.
 
-$$ CL_i = CL_{\mathrm{typique}}\, e^{\hat{\eta}_i} $$
+L'estimation **MAP** (*maximum a posteriori*) maximise cet a posteriori, ce qui revient à minimiser l'objectif individuel :
+
+$$ \hat{\eta}_i = \arg\min_{\eta}\;\sum_j \frac{\bigl(y_{ij} - f(\eta)\bigr)^2}{\sigma^2} \;+\; \eta^{\mathsf T}\,\Omega^{-1}\,\eta $$
+
+L'individu s'écrit alors avec son EBE : $CL_i = CL_{\mathrm{typique}}\, e^{\hat{\eta}_i}$.
 
 :::math
-$\hat{\eta}_i$ est l'écart individuel **estimé**. Quand les données du patient sont pauvres, $\hat{\eta}_i$ est tiré vers 0 (vers la population) : c'est le shrinkage.
+Lisez les **deux termes** comme une balance :
+
+- le premier **colle aux données** — d'autant plus fort que l'erreur résiduelle $\sigma$ est **petite** ;
+- le second **rappelle vers la population** ($\eta = 0$) — d'autant plus fort que la variabilité $\Omega$ est **petite**.
+
+Quand les données sont pauvres (ou $\sigma$ grand), le second terme l'emporte et $\hat{\eta}_i \to 0$ : c'est le **shrinkage**.
 :::
 <!-- /step -->
 
@@ -67,6 +76,10 @@ $\hat{\eta}_i$ est l'écart individuel **estimé**. Quand les données du patien
 En suivi thérapeutique, une seule concentration après une dose peut mettre à jour la clairance estimée d'un patient.
 
 Si la concentration observée est plus basse que prévu, le modèle peut inférer une clairance plus élevée — mais l'ampleur de l'ajustement dépend du **moment** du prélèvement, de l'erreur de dosage, de la variabilité a priori et de tout l'historique posologique.
+
+:::note
+**La qualité de l'estimation bayésienne dépend directement de $\sigma$ et $\Omega$.** Mal spécifier l'erreur résiduelle biaise l'estimation individuelle : un $\sigma$ trop petit fait **trop confiance** à une mesure bruitée (sous-shrinkage), un $\sigma$ trop grand **écrase** l'information du patient vers la population. C'est le levier étudié par Berrah *et al.* — l'erreur résiduelle comme « levier caché » du dosage de précision. Symétriquement, Hughes & Keizer montrent qu'**assouplir sélectivement l'a priori** (*flatten the prior* : élargir $\Omega$) laisse davantage parler les données et peut **surpasser** le MAP bayésien standard.
+:::
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" slides="s57" -->
@@ -79,7 +92,8 @@ Un shrinkage élevé signifie que les estimations individuelles sont fortement t
 
 <!-- step:title="À retenir" -->
 - Les EBE sont des estimations individuelles informées par le modèle de population.
-- Le MAP combine l'a priori de population et les observations du patient.
+- Le MAP combine l'a priori de population et les observations du patient (théorème de Bayes).
+- L'estimation arbitre entre coller aux données (pondéré par $\sigma$) et rappeler vers la population (pondéré par $\Omega$) : elle dépend **fortement** de l'erreur résiduelle et de la variabilité choisies.
 - Le shrinkage avertit que les estimations individuelles sont peu informées.
-- La mise à jour bayésienne est centrale en TDM, mais dépend de la qualité des données.
+- La mise à jour bayésienne est centrale en TDM, mais dépend de la qualité des données et de la spécification de $\sigma$ et $\Omega$.
 <!-- /step -->

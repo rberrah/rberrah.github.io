@@ -70,7 +70,17 @@ $$ \text{Loading dose} = C_{ss} \cdot V $$
 :::howto
 **The sink metaphor.** The tap (dosing rate) fills; the drain (clearance) empties. The steady-state **level** depends on the tap/drain ratio — not on how fast you open the tap. The **time** to fill depends only on the size of the drain (the half-life).
 
-**On the maths.** You reach ~90% of steady state in **~4 half-lives**, whatever the dose. Doubling the dose **doubles** Css without changing the time to get there: the dose sets the *level*, not the *speed*.
+**On the maths.** The fraction of steady state reached after a time $t$ follows a rise that mirrors the decay:
+
+$$ f(t) = 1 - e^{-k_e\,t} = 1 - 2^{-\,t/t_{1/2}} $$
+
+Counting in half-lives (with $t = n\cdot t_{1/2}$, so $f = 1 - 2^{-n}$):
+
+- **4 half-lives** → $1 - 2^{-4} = $ **94%**
+- **5 half-lives** → $1 - 2^{-5} = $ **97%**
+- **6 half-lives** → $1 - 2^{-6} = $ **98.5%**
+
+In practice steady state is taken as "reached" around **4 to 5 half-lives**. This time depends **only** on the half-life: doubling the dose **doubles** Css without changing the time to get there — the dose sets the *level*, not the *speed*.
 :::
 <!-- /step -->
 

@@ -1,8 +1,8 @@
 ---
 id: "voies-absorption"
 slug: "voies-absorption"
-title: "Routes of absorption"
-description: "IV, oral, subcutaneous, transdermal, inhaled: each route shapes the curve and the bioavailability."
+title: "Routes of absorption & bioavailability"
+description: "IV, oral, subcutaneous, transdermal, inhaled: each route shapes the curve and the bioavailability — and without an IV reference, F is not identifiable."
 summary: "An overview of administration routes and their PK consequences: absorption rate, first-pass, bioavailability."
 track: "core"
 order: 4.2
@@ -64,6 +64,22 @@ The table of routes:
 **Note —** the BCS framework (solubility/permeability) and absorption models (see also the PBPK absorption chapter).
 <!-- /step -->
 
+<!-- step:title="Bioavailability and apparent parameters" viz="OralAbsorption" -->
+Can we always **measure** $F$? No: it depends on the data at hand.
+
+**With an IV reference.** Absolute bioavailability is computed by comparing exposures, dose-normalised:
+
+$$ F = \frac{\mathrm{AUC}_{po}\,/\,\mathrm{Dose}_{po}}{\mathrm{AUC}_{iv}\,/\,\mathrm{Dose}_{iv}} $$
+
+So you need **both routes** in the same subjects (typically a cross-over trial) to isolate $F$.
+
+**With the oral route only.** In popPK you often have **only** oral data. But the amount that actually enters the blood is $F\cdot\text{Dose}$: $F$ is **confounded** with clearance and volume. You can then estimate only the **ratios**:
+
+$$ \frac{CL}{F} \quad\text{(apparent clearance)}, \qquad \frac{V}{F} \quad\text{(apparent volume)} $$
+
+**Key point —** without an IV reference, $F$ is **not identifiable** on its own: software reports CL/F and V/F. A CL/F that "rises" may come from a genuine increase in clearance **or** a drop in bioavailability — impossible to tell apart from oral data alone.
+<!-- /step -->
+
 <!-- step:title="Worked example" viz="Infusion" -->
 **Nitroglycerin** given **sublingually** acts within minutes because it avoids the first-pass (which would destroy it orally). A fentanyl **patch** releases at a **constant rate** (zero-order), like a slow infusion — hence a prolonged plateau.
 
@@ -81,4 +97,5 @@ Slow absorption can mask elimination.
 - IV: F = 1, the reference. Oral: F = fa·Fg·Fh, possible first-pass.
 - Sublingual/low rectal bypass the first-pass; patch = zero-order; SC = slow (lymphatic).
 - Beware flip-flop: ka < ke ⇒ the terminal slope reflects absorption.
+- F is only measurable with an **IV reference**; from oral data alone, you estimate only the **apparent** clearance and volume (CL/F, V/F).
 <!-- /step -->
