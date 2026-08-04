@@ -105,6 +105,83 @@
         "inLanguage": "fr",
         "mainEntity": { "@id": "https://rberrah.github.io/#racym-berrah" },
         "license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      },
+      {
+        "@type": "ScholarlyArticle",
+        "name": "Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing",
+        "datePublished": "2026",
+        "inLanguage": "en",
+        "identifier": [{ "@type": "PropertyValue", "propertyID": "DOI", "value": "10.1097/FTD.0000000000001413" }],
+        "sameAs": "https://doi.org/10.1097/FTD.0000000000001413",
+        "author": [
+          { "@id": "https://rberrah.github.io/#racym-berrah" },
+          { "@type": "Person", "name": "Iris Minichmayr" },
+          { "@type": "Person", "name": "Jean-Baptiste Woillard" }
+        ],
+        "isPartOf": { "@type": "Periodical", "name": "Therapeutic Drug Monitoring" }
+      },
+      {
+        "@type": "ScholarlyArticle",
+        "name": "From AUC/MIC to AUCss and Cmin: Optimizing Micafungin Therapy in the Critically Ill through Model-Informed Precision Dosing",
+        "datePublished": "2025",
+        "inLanguage": "en",
+        "identifier": [{ "@type": "PropertyValue", "propertyID": "DOI", "value": "10.1208/s12248-025-01173-z" }],
+        "sameAs": "https://doi.org/10.1208/s12248-025-01173-z",
+        "author": [
+          { "@id": "https://rberrah.github.io/#racym-berrah" },
+          { "@type": "Person", "name": "Franck Saint-Marcoux" },
+          { "@type": "Person", "name": "Caroline Monchaud" },
+          { "@type": "Person", "name": "Olivier Cointault" },
+          { "@type": "Person", "name": "Matthieu Conseil" },
+          { "@type": "Person", "name": "Samir Jaber" },
+          { "@type": "Person", "name": "Boris Jung" },
+          { "@type": "Person", "name": "Jean-Baptiste Woillard" }
+        ],
+        "isPartOf": { "@type": "Periodical", "name": "The AAPS Journal" }
+      },
+      {
+        "@type": "ScholarlyArticle",
+        "name": "Human serum albumin profiling by top-down analysis enables multi-class liver fibrosis staging",
+        "datePublished": "2026",
+        "inLanguage": "en",
+        "identifier": [{ "@type": "PropertyValue", "propertyID": "DOI", "value": "10.1038/s41598-026-57614-y" }],
+        "sameAs": "https://doi.org/10.1038/s41598-026-57614-y",
+        "author": [
+          { "@type": "Person", "name": "Souleiman El Balkhi" },
+          { "@id": "https://rberrah.github.io/#racym-berrah" },
+          { "@type": "Person", "name": "François-Ludovic Sauvage" },
+          { "@type": "Person", "name": "Léa Le Du" },
+          { "@type": "Person", "name": "Mohamad Ali Rahali" },
+          { "@type": "Person", "name": "Roy Lakis" },
+          { "@type": "Person", "name": "Pierre Marquet" },
+          { "@type": "Person", "name": "Franck Saint-Marcoux" },
+          { "@type": "Person", "name": "Véronique Loustaud-Ratti" },
+          { "@type": "Person", "name": "Paul Carrier" }
+        ],
+        "isPartOf": { "@type": "Periodical", "name": "Scientific Reports" }
+      },
+      {
+        "@type": "ScholarlyArticle",
+        "name": "Dosing and route of administration of clindamycin given in combination with rifampicin",
+        "datePublished": "2025",
+        "inLanguage": "en",
+        "identifier": [{ "@type": "PropertyValue", "propertyID": "DOI", "value": "10.1016/j.cmi.2025.01.005" }],
+        "sameAs": "https://doi.org/10.1016/j.cmi.2025.01.005",
+        "author": [
+          { "@type": "Person", "name": "Sophie Magreault" },
+          { "@id": "https://rberrah.github.io/#racym-berrah" },
+          { "@type": "Person", "name": "Younes Kerroumi" },
+          { "@type": "Person", "name": "Léa Mimram" },
+          { "@type": "Person", "name": "Dominique Salmon" },
+          { "@type": "Person", "name": "Tiphaine Goulenok" },
+          { "@type": "Person", "name": "Amandine de la Selle" },
+          { "@type": "Person", "name": "Agnès Lefort" },
+          { "@type": "Person", "name": "Simon Marmor" },
+          { "@type": "Person", "name": "Najoua El Helali" },
+          { "@type": "Person", "name": "Valérie Zeller" },
+          { "@type": "Person", "name": "Vincent Jullien" }
+        ],
+        "isPartOf": { "@type": "Periodical", "name": "Clinical Microbiology and Infection" }
       }
     ]
   }
@@ -120,6 +197,15 @@
     .bio-label { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3); margin: 1.2rem 0 0.35rem; }
     .bio-label:first-child { margin-top: 0; }
     .bio p { font-size: 0.94rem; color: var(--ink-2); }
+    /* Sous-titres de la section Travaux : sans-serif, discrets, filet de séparation —
+       ce sont des étiquettes de regroupement, pas des titres de section. */
+    .groupe-titre {
+      font-family: var(--sans); font-size: 0.95rem; font-weight: 600; letter-spacing: 0;
+      margin: 2.2rem 0 1rem; padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--border-strong); max-width: var(--measure);
+    }
+    .groupe-titre:first-of-type { margin-top: 0; }
+    .ref .status { margin-right: 0.5rem; }
   </style>
 </head>
 <body>
@@ -132,8 +218,6 @@
       <a class="course c-internat" href="/internat/">Internat</a>
       <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
       <span class="nav-sep" aria-hidden="true"></span>
-      <a href="/demos/">Démonstrations</a>
-      <a href="/recherche/">Recherche</a>
       <a href="/a-propos/" aria-current="page">À propos</a>
       <a href="/contact/">Contact</a>
     </div>
@@ -155,7 +239,6 @@
         </ul>
 
         <div class="cta">
-          <a class="btn ghost" href="/recherche/">La thèse, les travaux et les communications →</a>
         </div>
       </section>
 
@@ -213,21 +296,83 @@
             à mes propres explications, puis j'ai écrit les cours autour de ces objets.
           </p>
           <p>
-            Le même geste conduit à la thèse en cours, « JUMP PHARMA : création de JUMeaux
-            numériques Pharmacologiques par approche hybride : exploitation des modèles
-            mécanistiques et des large language models en PHARMAcologie ». Construire un
-            modèle est un travail largement textuel : élicitation des connaissances
-            antérieures, hypothèses de covariables, choix du modèle d'erreur, rédaction de
-            l'argument de crédibilité. C'est exactement la classe de tâches sur laquelle un
-            modèle de langage est compétent, et celle sur laquelle il échoue de façon subtile.
-            La position que je défends tient en une phrase : <em>le modèle de langage est une
-            couche d'assemblage, de paramétrage et de documentation, pas un substitut à la
-            structure.</em>
-          </p>
-          <p class="small">
-            <a href="/recherche/">Le détail du sujet, les travaux publiés et les questions ouvertes →</a>
+            Le même geste conduit à la thèse en cours, à l'intersection de l'intelligence
+            artificielle et de la pharmacométrie, avec pour objectif les jumeaux numériques.
+            Elle n'est pas détaillée ici.
           </p>
         </div>
+      </section>
+
+      <!-- ============ 3 bis. TRAVAUX ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Travaux</h2>
+          <p>
+            Articles évalués par les pairs, communications et thèse en cours. Les identifiants
+            sont donnés pour que chaque référence puisse être vérifiée à la source.
+          </p>
+        </div>
+
+        <h3 class="groupe-titre">Articles évalués par les pairs</h3>
+        <ul class="linklist measure">
+          <li class="ref">
+            <span class="me">Berrah R</span><span class="who">, Minichmayr I, Woillard JB ; IATDMCT Pharmacometrics Group.</span>
+            Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.
+            <span class="journal">Therapeutic Drug Monitoring</span>, 2026.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a></span>
+          </li>
+          <li class="ref">
+            <span class="me">Berrah R</span><span class="who">, Saint-Marcoux F, Monchaud C, Cointault O, Conseil M, Jaber S, Jung B, Woillard JB.</span>
+            From AUC/MIC to AUC<sub>ss</sub> and C<sub>min</sub>: Optimizing Micafungin Therapy in the Critically Ill through Model-Informed Precision Dosing.
+            <span class="journal">The AAPS Journal</span>, 2025.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1208/s12248-025-01173-z">10.1208/s12248-025-01173-z</a></span>
+          </li>
+          <li class="ref">
+            <span class="who">El Balkhi S, </span><span class="me">Berrah R</span><span class="who">, Sauvage FL, Le Du L, Rahali MA, Lakis R, Marquet P, Saint-Marcoux F, Loustaud-Ratti V, Carrier P.</span>
+            Human serum albumin profiling by top-down analysis enables multi-class liver fibrosis staging.
+            <span class="journal">Scientific Reports</span>, 2026.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1038/s41598-026-57614-y">10.1038/s41598-026-57614-y</a></span>
+          </li>
+          <li class="ref">
+            <span class="who">Magreault S, </span><span class="me">Berrah R</span><span class="who">, Kerroumi Y, Mimram L, Salmon D, Goulenok T, de la Selle A, Lefort A, Marmor S, El Helali N, Zeller V, Jullien V.</span>
+            Dosing and route of administration of clindamycin given in combination with rifampicin.
+            <span class="journal">Clinical Microbiology and Infection</span>, 2025.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1016/j.cmi.2025.01.005">10.1016/j.cmi.2025.01.005</a></span>
+          </li>
+        </ul>
+
+        <h3 class="groupe-titre">Communications</h3>
+        <ul class="linklist measure">
+          <li class="ref">
+            <span class="status">Poster</span>
+            Impact of Residual Error Handling on Model Informed Precision Dosing and AUC
+            Calculation: A Case Study with Tacrolimus.
+            <span class="journal">PAGE Meeting</span>, Thessalonique, 4–6 juin 2025 — abstract I-034.
+            <span class="meta"><a href="https://www.page-meeting.org/?abstract=I-034">page-meeting.org</a></span>
+          </li>
+          <li class="ref">
+            <span class="status">Communication annoncée</span>
+            PAGE Meeting, Dubrovnik, 2–5 juin 2026. Le détail sera reporté ici lorsqu'il sera public.
+          </li>
+        </ul>
+
+        <h3 class="groupe-titre">Thèse</h3>
+        <ul class="linklist measure">
+          <li class="ref">
+            <span class="status">En cours · 2025–2028</span>
+            Doctorat de pharmacologie, à l'intersection de l'intelligence artificielle et de la
+            pharmacométrie, avec pour objectif les jumeaux numériques. Université de Limoges,
+            INSERM UMR 1248 « Pharmacologie et Transplantation ». Direction :
+            Pr Jean-Baptiste Woillard. Inscription du 1<sup>er</sup> novembre 2025 au
+            31 octobre 2028, dans le cadre du consortium DIGPHAT.
+            <span class="meta">Travaux en cours, non détaillés ici.</span>
+          </li>
+        </ul>
+
+        <p class="small measure" style="margin-top:1.6rem">
+          La liste à jour est tenue sur
+          <a href="https://orcid.org/0009-0001-6432-2880">ORCID&nbsp;0009-0001-6432-2880</a>.
+        </p>
       </section>
 
       <!-- ============ 4. POURQUOI CES TROIS SITES ============ -->
@@ -354,12 +499,9 @@
             INSERM UMR 1248 « Pharmacologie et Transplantation » (Université de Limoges,
             INSERM, CHU de Limoges), et membre du consortium DIGPHAT, consacré aux jumeaux
             pharmacologiques numériques. Sa thèse, dirigée par le Pr Jean-Baptiste Woillard,
-            « JUMP PHARMA : création de JUMeaux
-            numériques Pharmacologiques par approche hybride : exploitation des modèles
-            mécanistiques et des large language models en PHARMAcologie », porte sur la place
-            d'un modèle de langage dans la boucle de construction des modèles
-            pharmacocinétiques : une couche d'assemblage, de paramétrage et de documentation,
-            pas un substitut à la structure. Ses travaux publiés portent sur le traitement de
+            se situe à l'intersection de l'intelligence artificielle et de la pharmacométrie,
+            avec pour objectif les jumeaux numériques.
+            Ses travaux publiés portent sur le traitement de
             l'erreur résiduelle en adaptation de dose guidée par les modèles et sur
             l'optimisation posologique des antifongiques en réanimation. Il écrit et maintient
             trois cours ouverts, en pharmacométrie, en préparation de l'internat en pharmacie

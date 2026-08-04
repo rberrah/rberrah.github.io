@@ -78,7 +78,7 @@ jobs:
           for f in \
             dist/index.html \
             dist/assets/site.css \
-            dist/recherche/index.html \
+            dist/a-propos/index.html \
             dist/pharmacometrie/index.html
           do
             if [ -f "$f" ]; then

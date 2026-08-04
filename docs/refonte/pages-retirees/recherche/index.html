@@ -209,169 +209,25 @@
             notamment en transplantation, en réanimation et en oncologie.
           </p>
           <p>
-            Ce qui limite l'usage de ces modèles n'est pas le calcul. C'est le travail humain,
-            lent et peu reproductible, de les construire, de les régler et d'en documenter les
-            hypothèses.
+            Mes travaux publiés portent sur cette individualisation : le traitement de l'erreur
+            résiduelle dans le calcul des expositions individuelles, et l'optimisation posologique
+            des antifongiques chez le patient de réanimation. Ils sont listés plus bas, avec
+            leurs identifiants.
           </p>
         </div>
 
         <div class="note accent pull measure">
           <p>
             <strong>Une équation qui ne change aucune prescription n'a rien produit.</strong>
-            Ma thèse porte sur une seule question : que peut-on confier à un modèle de langage
-            dans cette boucle de construction, et où passe exactement la frontière de ce qu'on
-            ne doit pas lui confier ?
           </p>
         </div>
-      </section>
 
-      <!-- ============ 2 — LE SUJET, TROIS NIVEAUX ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>Le sujet, à trois niveaux de lecture</h2>
-          <p>Le même travail expliqué trois fois. Lisez celui qui vous convient.</p>
-        </div>
-
-        <div class="levels">
-
-          <div class="level">
-            <p class="eyebrow">En une phrase</p>
-            <p>
-              J'examine si un modèle de langage peut aider à construire les modèles mathématiques
-              qui servent à choisir la dose d'un médicament chez un patient donné, et jusqu'où on
-              peut lui faire confiance : le modèle de langage est une couche d'assemblage, de
-              paramétrage et de documentation, pas un substitut à la structure.
-            </p>
-          </div>
-
-          <div class="level">
-            <p class="eyebrow">Pour un scientifique d'un autre domaine</p>
-            <p>
-              Selon la molécule, l'écart d'exposition entre deux patients recevant la même dose va
-              d'un facteur deux à un facteur dix. La pharmacométrie modélise cette variabilité :
-              un système d'équations différentielles décrit le devenir du médicament dans
-              l'organisme, un modèle statistique décrit comment ses paramètres varient d'un
-              individu à l'autre, et l'on ajuste l'ensemble aux quelques concentrations mesurées
-              chez un patient pour lui proposer une dose.
-            </p>
-            <p>
-              Ces modèles fonctionnent. Ce qui ne passe pas à l'échelle, c'est leur
-              <em>fabrication</em> : choisir la structure, poser les hypothèses, sélectionner les
-              covariables, écrire le code, puis documenter et justifier chaque décision. Ce travail
-              est textuel, conduit par un petit nombre de spécialistes, et rarement reproductible à
-              l'identique. C'est précisément la classe de tâches sur laquelle les modèles de langage
-              sont compétents — et aussi celle sur laquelle ils échouent de façon subtile et
-              difficile à détecter. Ma thèse porte sur cette intersection : non pas remplacer le
-              modèle mécanistique, mais déterminer ce qu'un modèle de langage peut faire
-              <em>autour</em> de lui sans dégrader la fiabilité de la décision de dose.
-            </p>
-            <p>
-              Le nom que le champ donne à l'objet visé est <strong>jumeau pharmacologique
-              numérique</strong>. Il vaut mieux le définir par la négative : ce n'est pas un avatar
-              du patient, et ce n'est pas une prédiction extraite d'un dossier patient informatisé.
-              C'est un modèle pharmacologique individualisé, mis à jour par les données du patient,
-              et interrogeable sur une dose qui n'a pas encore été administrée.
-            </p>
-          </div>
-
-          <div class="level peer">
-            <p class="eyebrow">Pour un pair</p>
-            <p>
-              La brique de base reste un modèle non linéaire à effets mixtes : un système d'équations
-              différentielles ordinaires pour la cinétique, un modèle de variabilité inter-individuelle,
-              un modèle d'erreur résiduelle, et une estimation bayésienne <em>maximum a posteriori</em>
-              pour l'individualisation. Ce qui limite le passage à l'échelle n'est pas le solveur, c'est
-              la boucle de construction : élicitation des <em>a priori</em> depuis la littérature,
-              génération et test d'hypothèses de covariables, choix du modèle d'erreur, écriture du flux
-              de contrôle, puis rédaction de l'argument de crédibilité — question d'intérêt, contexte
-              d'usage, niveau de risque, domaine de validité déclaré. Cette boucle est textuelle, lente
-              et faiblement reproductible.
-            </p>
-            <p>
-              La modélisation hybride documentée aujourd'hui en pharmacométrie porte sur le champ de
-              vecteurs lui-même : <em>neural ODE</em> lorsque le champ entier est appris,
-              <em>universal differential equation</em> lorsque les termes mécanistiques connus sont
-              préservés et que le réseau ne prend en charge que les termes incertains. Mon travail
-              porte sur une autre couche : le modèle de langage n'entre pas dans le champ de vecteurs.
-              Il intervient dans la boucle de construction et de documentation, où sa nature textuelle
-              est un atout plutôt qu'un défaut.
-            </p>
-            <p>
-              Deux difficultés structurent le travail. <strong>Le critère d'évaluation</strong> d'abord :
-              l'objectif ne peut pas être « le modèle écrit un flux de contrôle correct », qui est une
-              métrique de complaisance. Le critère porte sur la décision — la dose proposée
-              change-t-elle, l'incertitude qui l'accompagne est-elle correctement propagée, l'argument
-              reste-t-il auditable par un tiers ? <strong>La frontière</strong> ensuite :
-              l'identifiabilité, structurelle et pratique, ne se délègue pas ; rien dans un modèle de
-              langage ne la garantit, et un modèle de langage est particulièrement doué pour produire
-              un artefact plausible sur un problème non identifiable. Mon point d'entrée expérimental
-              est le modèle d'erreur résiduelle, dont j'ai montré ailleurs qu'il constitue un levier
-              sous-estimé du <em lang="en">model-informed precision dosing</em>. Le vocabulaire de
-              référence est celui du <em lang="en">model-informed drug development</em> (MIDD), tel
-              qu'il est fixé par la ligne directrice ICH M15 : contexte d'usage, évaluation de la
-              crédibilité proportionnée au risque.
-            </p>
-            <p class="keywords" lang="en">
-              model-informed precision dosing · therapeutic drug monitoring · population
-              pharmacokinetics · nonlinear mixed-effects models · residual error models ·
-              hybrid modelling · universal differential equations · neural ODE ·
-              digital pharmacological twin · large language models · identifiability ·
-              credibility assessment · ICH M15
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ============ 3 — CE QUE CE TRAVAIL N'EST PAS ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>Ce que ce travail n'est pas</h2>
+        <div class="measure" style="margin-top:1.8rem">
           <p>
-            Quatre précisions. Elles délimitent le sujet plus efficacement qu'une définition, et
-            elles reprennent les critiques que le champ s'adresse à lui-même.
+            Ma thèse se situe à l'intersection de l'<strong>intelligence artificielle</strong> et
+            de la <strong>pharmacométrie</strong>, avec pour objectif les <strong>jumeaux
+            numériques</strong>. Elle est en cours et n'est pas détaillée ici.
           </p>
-        </div>
-
-        <div class="negs">
-          <div>
-            <h3>Ce n'est pas un outil de décision clinique.</h3>
-            <p>
-              Rien de ce qui est décrit ici n'est destiné, en l'état, à produire une posologie chez
-              un patient réel. Le travail porte sur la manière dont un modèle est construit, réglé
-              et documenté, en amont de tout usage clinique, et sous supervision d'un pharmacologue.
-            </p>
-          </div>
-          <div>
-            <h3>Ce n'est pas un système déployé.</h3>
-            <p>
-              Il n'y a pas de logiciel en service, pas d'installation hospitalière, pas d'utilisateur
-              autre que moi. Ce qui existe est un protocole d'évaluation et des expérimentations
-              méthodologiques. Une entrée apparaîtra dans « Travaux » quand elle aura une trace
-              publique et vérifiable, pas avant.
-            </p>
-          </div>
-          <div>
-            <h3>Ce n'est pas une prédiction automatique tirée de dossiers patients.</h3>
-            <p>
-              Des travaux prédisent l'évolution de variables cliniques directement à partir de
-              données de dossiers électroniques, sans modèle mécanistique. C'est de la prévision
-              statistique : la relation dose–exposition–effet n'y figure pas, et l'on ne peut donc
-              pas interroger le modèle sur une dose qui n'a pas été administrée. C'est exactement
-              ce qui distingue un jumeau pharmacologique numérique de ces approches.
-            </p>
-          </div>
-          <div>
-            <h3>Ce n'est pas un changement de paradigme.</h3>
-            <p>
-              La littérature du domaine rappelle elle-même que la plupart des propriétés attribuées
-              aux jumeaux pharmacologiques numériques — simulation individuelle, mise à jour
-              séquentielle, quantification de l'incertitude orientée décision — relèvent de la
-              pharmacométrie établie, et que l'identifiabilité continue d'imposer des limites dures.
-              Cette critique est fondée. Elle définit le seuil que ce travail doit franchir pour
-              valoir quelque chose.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -485,13 +341,13 @@
           <ul class="linklist measure">
             <li class="ref">
               <span class="entryhead"><span class="gutter">2025–2028</span><span class="status">En cours</span></span>
-              « JUMP PHARMA : création de JUMeaux numériques Pharmacologiques par approche hybride :
-              exploitation des modèles mécanistiques et des large language models en PHARMAcologie ».
-              Doctorat de pharmacologie, Université de Limoges, INSERM UMR 1248 « Pharmacologie et
-              Transplantation ». Direction : Pr Jean-Baptiste Woillard.
+              Doctorat de pharmacologie, à l'intersection de l'intelligence artificielle et de la
+              pharmacométrie, avec pour objectif les jumeaux numériques.
+              Université de Limoges, INSERM UMR 1248 « Pharmacologie et Transplantation ».
+              Direction : Pr Jean-Baptiste Woillard.
               Inscription du 1<sup>er</sup> novembre 2025 au 31 octobre 2028.
               Travail mené dans le cadre du consortium DIGPHAT.
-              <span class="meta">Aucun document déposé n'est encore citable ; cette entrée n'a pas de DOI.</span>
+              <span class="meta">Travaux en cours, non détaillés ici.</span>
             </li>
           </ul>
         </div>
@@ -530,64 +386,6 @@
             y compris payant, sont autorisés, à condition de citer et de partager aux mêmes conditions.
             <a href="/citer/">Comment citer</a>.
           </p>
-        </div>
-      </section>
-
-      <!-- ============ 6 — QUESTIONS OUVERTES ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>Questions ouvertes</h2>
-          <p>Ce que je ne sais pas encore, et qui structure le travail en cours.</p>
-        </div>
-
-        <div class="qa">
-          <div>
-            <h3>Comment évalue-t-on une aide qui ne produit pas un chiffre ?</h3>
-            <p>
-              Mesurer la justesse du code généré est une métrique de complaisance : elle est facile à
-              obtenir et ne dit rien de l'usage. Le critère pertinent porte sur la décision — la dose
-              proposée change-t-elle, le temps de construction change-t-il, l'argument reste-t-il
-              reconstituable par un tiers ? Je n'ai pas encore de protocole satisfaisant pour le
-              troisième point.
-            </p>
-          </div>
-          <div>
-            <h3>Qu'est-ce qui ne doit jamais être délégué ?</h3>
-            <p>
-              L'identifiabilité, structurelle et pratique, est le meilleur candidat : c'est exactement
-              le point où un modèle de langage produit un artefact plausible et faux, sans signal
-              d'alerte. Reste à savoir si cette frontière peut être rendue opérationnelle,
-              c'est-à-dire vérifiable automatiquement, ou si elle relève irréductiblement de
-              l'expertise humaine.
-            </p>
-          </div>
-          <div>
-            <h3>Un argument de crédibilité reste-t-il auditable si une partie du modèle a été assemblée par une machine ?</h3>
-            <p>
-              L'ICH M15 demande de documenter le contexte d'usage, le domaine de validité et le niveau
-              de risque. Une chaîne partiellement automatisée doit produire cette documentation, pas la
-              contourner. C'est peut-être l'apport le plus solide d'un modèle de langage, et c'est le
-              moins spectaculaire.
-            </p>
-          </div>
-          <div>
-            <h3>Que faire de la faible représentation de la pharmacométrie dans les corpus d'entraînement ?</h3>
-            <p>
-              Les modèles généralistes ont vu très peu de flux de contrôle NONMEM, de rapports de
-              modélisation et de littérature du domaine. C'est une contrainte de fond, pas un défaut
-              passager, et elle conditionne ce qu'on peut espérer d'un ancrage documentaire ou d'un
-              ajustement fin.
-            </p>
-          </div>
-          <div>
-            <h3>Le modèle d'erreur résiduelle est-il un point d'entrée généralisable ?</h3>
-            <p>
-              C'est mon entrée expérimentale, parce que son effet sur l'exposition estimée est
-              mesurable et parce qu'il est rarement discuté. Reste à savoir si ce qui vaut pour
-              l'erreur résiduelle vaut pour les autres décisions de construction, ou si c'est un cas
-              particulier commode.
-            </p>
-          </div>
         </div>
       </section>
 

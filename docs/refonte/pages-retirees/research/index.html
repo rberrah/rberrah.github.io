@@ -209,161 +209,24 @@
             care and oncology.
           </p>
           <p>
-            What limits these models in practice is not computation. It is the human work —
-            slow, and poorly reproducible — of building them, tuning them, and documenting the
-            assumptions they rest on.
+            My published work addresses that individualisation: how residual error is handled
+            when individual exposures are computed, and dose optimisation of antifungals in
+            critically ill patients. It is listed below, with identifiers.
           </p>
         </div>
 
         <div class="note accent pull measure">
           <p>
             <strong>An equation that changes no prescription has produced nothing.</strong>
-            My doctoral work asks one question: what can safely be handed to a language model
-            inside that model-building loop, and where exactly does the line fall beyond which
-            it must not go?
           </p>
         </div>
-      </section>
 
-      <!-- ============ 2 — THREE READING LEVELS ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>The subject, at three reading levels</h2>
-          <p>The same work explained three times. Read whichever suits you.</p>
-        </div>
-
-        <div class="levels">
-
-          <div class="level">
-            <p class="eyebrow">In one sentence</p>
-            <p>
-              I am testing whether a large language model can help build the mathematical models
-              used to choose a drug dose for a given patient, and how far it can be trusted: the
-              language model is a layer of assembly, parameterisation and documentation — not a
-              substitute for structure.
-            </p>
-          </div>
-
-          <div class="level">
-            <p class="eyebrow">For a scientist from another field</p>
-            <p>
-              Depending on the drug, exposure between two patients on the same dose can differ by
-              a factor of two to a factor of ten. Pharmacometrics models that variability: a system
-              of differential equations describes the fate of the drug in the body, a statistical
-              model describes how its parameters vary between individuals, and the whole is fitted
-              to the few concentrations measured in one patient in order to propose a dose.
-            </p>
-            <p>
-              The models work. What does not scale is how they are <em>made</em>: choosing the
-              structure, stating the assumptions, screening covariates, writing the code, then
-              documenting and justifying every decision. That work is textual, carried out by a
-              small number of specialists, and rarely reproducible exactly. It is precisely the
-              class of task large language models are good at — and also the class of task on which
-              they fail in subtle, hard-to-detect ways. My work sits at that intersection: not
-              replacing the mechanistic model, but establishing what a language model can do
-              <em>around</em> it without degrading the reliability of the dosing decision.
-            </p>
-            <p>
-              The field's name for the object being built is a <strong>digital pharmacological
-              twin</strong>. It is best defined negatively: it is not an avatar of the patient, and
-              it is not a prediction extracted from an electronic health record. It is an
-              individualised pharmacological model, updated by that patient's data, and capable of
-              answering questions about a dose that has not yet been given.
-            </p>
-          </div>
-
-          <div class="level peer">
-            <p class="eyebrow">For a peer</p>
-            <p>
-              The base object remains a nonlinear mixed-effects model: an ODE system for the
-              kinetics, an inter-individual variability model, a residual error model, and maximum
-              a posteriori Bayesian estimation for individualisation. What limits scale is not the
-              solver but the construction loop — prior elicitation from the literature, covariate
-              hypothesis generation and testing, choice of residual error structure, control-stream
-              authoring, and the written credibility argument: question of interest, context of
-              use, risk level, declared domain of validity. That loop is textual, slow and weakly
-              reproducible.
-            </p>
-            <p>
-              Hybrid modelling as currently documented in pharmacometrics acts on the vector field
-              itself: neural ODEs when the whole field is learned, universal differential equations
-              when known mechanistic terms are preserved and the network only carries the uncertain
-              ones. My work addresses a different layer. The language model does not enter the
-              vector field; it operates in the construction and documentation loop, where being
-              textual is an asset rather than a defect.
-            </p>
-            <p>
-              Two difficulties shape the work. <strong>The evaluation endpoint.</strong> It cannot
-              be "the model writes a correct control stream", which is a self-congratulatory metric.
-              The endpoint is the decision: does the proposed dose change, is the uncertainty around
-              it propagated correctly, does the argument remain auditable by a third party?
-              <strong>The boundary.</strong> Structural and practical identifiability cannot be
-              delegated; nothing in a language model guarantees it, and a language model is
-              particularly good at producing a plausible artefact for a non-identifiable problem.
-              My experimental entry point is the residual error model, which I have argued elsewhere
-              is an underused lever in model-informed precision dosing. The reference vocabulary is
-              that of model-informed drug development (MIDD) as fixed by the ICH M15 guideline:
-              context of use, and risk-proportionate credibility assessment.
-            </p>
-            <p class="keywords">
-              model-informed precision dosing · therapeutic drug monitoring · population
-              pharmacokinetics · nonlinear mixed-effects models · residual error models ·
-              hybrid modelling · universal differential equations · neural ODE ·
-              digital pharmacological twin · large language models · identifiability ·
-              credibility assessment · ICH M15
-            </p>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- ============ 3 — WHAT THIS WORK IS NOT ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>What this work is not</h2>
+        <div class="measure" style="margin-top:1.8rem">
           <p>
-            Four clarifications. They delimit the subject more efficiently than a definition would,
-            and they restate the criticisms the field addresses to itself.
+            My doctoral work sits at the intersection of <strong>artificial intelligence</strong>
+            and <strong>pharmacometrics</strong>, and aims at <strong>digital twins</strong>.
+            It is ongoing and is not detailed here.
           </p>
-        </div>
-
-        <div class="negs">
-          <div>
-            <h3>It is not a clinical decision tool.</h3>
-            <p>
-              Nothing described here is intended, as it stands, to produce a dose for a real
-              patient. The work concerns how a model is built, tuned and documented — upstream of
-              any clinical use, and under the supervision of a pharmacologist.
-            </p>
-          </div>
-          <div>
-            <h3>It is not a deployed system.</h3>
-            <p>
-              There is no software in service, no hospital installation, no user other than me.
-              What exists is an evaluation protocol and methodological experiments. An entry will
-              appear under "Work" once it has a public, verifiable trace — not before.
-            </p>
-          </div>
-          <div>
-            <h3>It is not automated prediction from patient records.</h3>
-            <p>
-              Some work predicts the trajectory of clinical variables directly from electronic
-              health record data, with no mechanistic model. That is statistical forecasting: the
-              dose–exposure–response relationship is absent, so the model cannot be queried about a
-              dose that was never given. That absence is exactly what separates a digital
-              pharmacological twin from those approaches.
-            </p>
-          </div>
-          <div>
-            <h3>It is not a paradigm shift.</h3>
-            <p>
-              The literature itself points out that most properties attributed to digital
-              pharmacological twins — individual simulation, sequential updating, decision-oriented
-              uncertainty quantification — belong to established pharmacometrics, and that
-              identifiability keeps imposing hard limits. That criticism is sound. It sets the bar
-              this work has to clear to be worth anything.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -475,14 +338,12 @@
           <ul class="linklist measure">
             <li class="ref">
               <span class="entryhead"><span class="gutter">2025–2028</span><span class="status">In progress</span></span>
-              <span lang="fr">« JUMP PHARMA : création de JUMeaux numériques Pharmacologiques par
-              approche hybride : exploitation des modèles mécanistiques et des large language models
-              en PHARMAcologie »</span> — building digital pharmacological twins through a hybrid
-              approach, combining mechanistic models and large language models. PhD in pharmacology,
+              PhD in pharmacology, at the intersection of artificial intelligence and
+              pharmacometrics, aiming at digital twins.
               University of Limoges, INSERM UMR 1248 "Pharmacology and Transplantation", supervised
               by Prof. Jean-Baptiste Woillard, registered 1 November 2025 to 31 October 2028,
               within the DIGPHAT consortium.
-              <span class="meta">No deposited document is citable yet; this entry has no DOI.</span>
+              <span class="meta">Work in progress, not detailed here.</span>
             </li>
           </ul>
         </div>
@@ -523,62 +384,6 @@
             paid teaching — are permitted, provided you give credit and share alike.
             <a href="/citer/">How to cite</a>.
           </p>
-        </div>
-      </section>
-
-      <!-- ============ 6 — OPEN QUESTIONS ============ -->
-      <section class="band">
-        <div class="section-head">
-          <h2>Open questions</h2>
-          <p>What I do not know yet, and what the current work is organised around.</p>
-        </div>
-
-        <div class="qa">
-          <div>
-            <h3>How do you evaluate an assistant that does not output a number?</h3>
-            <p>
-              Scoring the correctness of generated code is a self-congratulatory metric: easy to
-              obtain, and silent about use. The relevant endpoint concerns the decision — does the
-              proposed dose change, does build time change, can a third party reconstruct the
-              argument? I have no satisfactory protocol for the third yet.
-            </p>
-          </div>
-          <div>
-            <h3>What must never be delegated?</h3>
-            <p>
-              Structural and practical identifiability is the strongest candidate: it is exactly
-              where a language model produces a plausible, wrong artefact with no warning signal.
-              Whether that boundary can be made operational — that is, checked automatically — or
-              whether it remains irreducibly a matter of human expertise, is open.
-            </p>
-          </div>
-          <div>
-            <h3>Can a credibility argument stay auditable if part of the model was assembled by a machine?</h3>
-            <p>
-              ICH M15 requires the context of use, the domain of validity and the risk level to be
-              documented. A partly automated pipeline has to produce that documentation, not bypass
-              it. This may be the most solid contribution a language model can make, and it is the
-              least spectacular.
-            </p>
-          </div>
-          <div>
-            <h3>What follows from pharmacometrics being thinly represented in training corpora?</h3>
-            <p>
-              General-purpose models have seen very little NONMEM control-stream code, few modelling
-              reports and little of the domain literature. That is a structural constraint rather
-              than a passing defect, and it bounds what can be expected from retrieval grounding or
-              fine-tuning.
-            </p>
-          </div>
-          <div>
-            <h3>Is the residual error model a generalisable entry point?</h3>
-            <p>
-              It is my experimental entry point, because its effect on estimated exposure is
-              measurable and because it is rarely discussed. Whether what holds for residual error
-              also holds for other construction decisions, or whether it is a convenient special
-              case, is still open.
-            </p>
-          </div>
         </div>
       </section>
 
