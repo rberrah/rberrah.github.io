@@ -246,59 +246,36 @@
       <section class="band">
         <div class="section-head">
           <h2>Du médicament au modèle</h2>
-          <p>Trois déplacements, dans cet ordre. Chacun répond à une question que le précédent laissait ouverte.</p>
         </div>
 
         <div class="etape">
           <h3>Soigner</h3>
           <p>
-            On apprend la pharmacie autour d'une question : quel médicament, dans quelle
-            situation, avec quelles surveillances. La dose, elle, arrive comme une donnée du
-            problème — le résumé des caractéristiques du produit indique un schéma, et l'on
-            apprend ce schéma.
-          </p>
-          <p>
-            Ce qui déplace cette question, c'est de regarder des concentrations mesurées chez
-            des patients. Même molécule, même dose, même indication, et des expositions qui ne
-            se ressemblent pas. La question cesse alors d'être « faut-il augmenter ou
-            diminuer ? » et devient « de combien, pour ce patient-là, et avec quelle
-            incertitude ? ».
+            On apprend la pharmacie autour du choix du médicament ; la dose arrive comme une
+            donnée du problème. Regarder des concentrations mesurées déplace la question : même
+            molécule, même dose, et des expositions qui ne se ressemblent pas.
           </p>
         </div>
 
         <div class="etape">
           <h3>Modéliser</h3>
           <p>
-            Cette question est quantitative, et le raisonnement clinique seul n'y répond pas.
-            La pharmacométrie y répond : un système d'équations différentielles décrit le
-            devenir du médicament dans l'organisme, un modèle statistique décrit comment ses
-            paramètres varient d'un individu à l'autre, et une estimation bayésienne ajuste
-            l'ensemble aux quelques concentrations disponibles chez un patient donné.
-          </p>
-          <p>
-            Passer de la pharmacie à la modélisation n'a donc pas été un changement de métier,
-            mais le prolongement de la même question avec un outil capable d'y répondre. Ce
-            que la formation de pharmacien apporte au modélisateur est concret : un horaire de
-            prélèvement noté à la minute et administré vingt minutes plus tard, une perfusion
-            reconstituée autrement que dans le protocole, une observance qui n'est pas un
-            paramètre binaire. Un modèle ajusté sur des données propres est une belle chose ;
-            les données ne sont jamais propres, et savoir <em>pourquoi</em> elles ne le sont
-            pas change les hypothèses qu'on ose poser.
+            La pharmacométrie répond à cette question : des équations pour le devenir du
+            médicament, un modèle statistique pour la variabilité entre individus, une
+            estimation bayésienne pour ajuster l'ensemble aux quelques concentrations d'un
+            patient donné. La formation de pharmacien y sert directement — elle apprend
+            pourquoi les données ne sont jamais propres.
           </p>
         </div>
 
         <div class="etape">
           <h3>Écrire</h3>
           <p>
-            Un modèle se comprend mieux lorsqu'on peut le manipuler : déplacer une dose,
-            modifier une constante d'élimination, regarder la courbe répondre. Aucune figure
-            fixe ne fait cela. J'ai appris à programmer pour produire les objets qui manquaient
-            à mes propres explications, puis j'ai écrit les cours autour de ces objets.
-          </p>
-          <p>
-            Le même geste conduit à la thèse en cours, à l'intersection de l'intelligence
-            artificielle et de la pharmacométrie, avec pour objectif les jumeaux numériques.
-            Elle n'est pas détaillée ici.
+            Un modèle se comprend quand on peut le manipuler. J'ai appris à programmer pour
+            produire les objets qui manquaient à mes explications, puis j'ai écrit les cours
+            autour. Ma thèse prolonge la même trajectoire, à l'intersection de l'intelligence
+            artificielle et de la pharmacométrie, avec pour objectif les jumeaux numériques ;
+            elle est en cours et n'est pas détaillée ici.
           </p>
         </div>
       </section>
@@ -383,25 +360,18 @@
         <div class="measure">
           <p>
             <strong>Le premier usage est le mien.</strong> Écrire un chapitre est la manière la
-            plus fiable que je connaisse de découvrir qu'on n'a pas compris. Un raisonnement
-            qu'on croit tenir résiste tant qu'on ne le rédige pas ; il cède dès qu'il faut le
-            mettre en ordre, poser les notations et tracer la figure. Une part importante de ce
-            que je sais en pharmacométrie, je l'ai appris en essayant de l'expliquer.
+            plus fiable que je connaisse de découvrir qu'on n'a pas compris.
           </p>
           <p>
-            <strong>Le second est une question de forme.</strong> Beaucoup de notions de ce
-            domaine s'expliquent mal par un texte et bien par un objet qu'on manipule : le
-            shrinkage des estimations individuelles, l'effet d'une covariable sur une
-            clairance, la différence entre un intervalle de confiance et un intervalle de
-            prédiction. Ces objets n'existent que s'ils sont programmés. Les 103 visualisations
-            du site sont là pour cette raison, pas pour l'illustration.
+            <strong>Ensuite, la forme.</strong> Le shrinkage, l'effet d'une covariable sur une
+            clairance, la différence entre intervalle de confiance et de prédiction :
+            ces notions s'expliquent mal par un texte et bien par un objet qu'on manipule.
+            D'où les 103 visualisations, qui ne sont pas des illustrations.
           </p>
           <p>
-            <strong>Le troisième est la langue.</strong> Les trois corpus sont d'abord écrits
-            en français, parce que c'est la langue dans laquelle j'ai eu besoin de les lire :
-            88 chapitres de pharmacométrie, 186 chapitres couvrant le programme officiel de
-            l'internat en pharmacie tel que publié, 45 chapitres de biostatistique. La
-            pharmacométrie est également disponible en anglais, chapitre pour chapitre.
+            <strong>Enfin, la langue.</strong> Tout est écrit d'abord en français — 88 chapitres
+            de pharmacométrie, 186 sur le programme de l'internat, 45 de biostatistique. La
+            pharmacométrie existe aussi en anglais, chapitre pour chapitre.
           </p>
         </div>
       </section>
@@ -410,33 +380,26 @@
       <section class="band">
         <div class="section-head">
           <h2>Comment c'est fait</h2>
-          <p>Une note technique, parce qu'elle conditionne ce que vaut le contenu.</p>
         </div>
         <div class="measure">
           <p>
-            Les trois cours sont des sites statiques écrits en <strong>SvelteKit</strong>,
-            précalculés au build et déployés sur <strong>GitHub Pages</strong>. Les
-            visualisations utilisent <strong>D3</strong> et calculent réellement les valeurs
-            qu'elles affichent ; les formules sont rendues avec <strong>KaTeX</strong>. Aucune
-            page n'appelle de service tiers au moment de l'affichage. Le
+            Sites statiques en <strong>SvelteKit</strong>, précalculés au build et déployés sur
+            <strong>GitHub Pages</strong>. Les visualisations sont en <strong>D3</strong> et
+            calculent réellement les valeurs qu'elles affichent, les formules sont rendues avec
+            <strong>KaTeX</strong>, et aucune page n'appelle de service tiers à l'affichage. Le
             <a href="https://github.com/rberrah">code source est public</a>.
           </p>
           <p>
-            Le contenu est original. <strong>Chaque chapitre porte ses sources</strong> —
-            références bibliographiques nominatives, tirées d'un ensemble fermé de références
-            vérifiées — <strong>et la date de sa dernière révision</strong>, affichée en tête
-            de page. Les corrections signalées sont appliquées, datées et créditées.
+            Le contenu est original. Chaque chapitre porte <strong>ses sources</strong> et
+            <strong>la date de sa dernière révision</strong> ; les corrections signalées sont
+            appliquées, datées et créditées — <a href="/contact/">en public</a>.
           </p>
           <p>
-            Le texte et les figures sont sous licence
+            Texte et figures sous
             <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC BY-SA 4.0</a>,
-            le code sous licence MIT. La reprise, l'adaptation et la traduction, y compris dans
-            un enseignement, sont autorisées à condition de citer la source et de partager aux
-            mêmes conditions. <a href="/citer/">Les formats de citation sont sur une page dédiée</a>.
-          </p>
-          <p>
-            Une erreur, une imprécision, une référence mal attribuée :
-            <a href="/contact/">le signalement se fait en public</a>, avec une trace datée.
+            code sous MIT : reprise, adaptation et traduction autorisées, y compris en
+            enseignement, à condition de citer et de partager aux mêmes conditions.
+            <a href="/citer/">Formats de citation</a>.
           </p>
         </div>
       </section>
@@ -448,26 +411,21 @@
         </div>
         <div class="measure">
           <p>
-            Le contenu est <strong>pédagogique</strong>. Il décrit des méthodes, des modèles et
-            des raisonnements ; il ne statue sur aucune situation clinique particulière.
-          </p>
-          <p>
+            Le contenu est <strong>pédagogique</strong> : il décrit des méthodes et des
+            raisonnements, il ne statue sur aucune situation clinique.
             <strong>Aucun contenu de ce site ne constitue un avis thérapeutique ni une
-            recommandation posologique.</strong> Les exemples chiffrés, les jeux de données et
-            les visualisations servent à faire comprendre un mécanisme de calcul. Ils ne
-            valent ni prescription, ni adaptation de dose, ni avis de pharmacien ou de médecin.
+            recommandation posologique.</strong>
           </p>
           <p>
-            Ce site ne remplace pas les références officielles : résumés des caractéristiques
-            du produit, recommandations des agences et des sociétés savantes, référentiels
-            hospitaliers en vigueur. En cas de désaccord entre une page de ce site et l'une de
-            ces sources, c'est la source officielle qui fait foi — et le désaccord mérite un
-            signalement.
+            Il ne remplace pas les références officielles — résumés des caractéristiques du
+            produit, recommandations des agences et des sociétés savantes, référentiels
+            hospitaliers. En cas de désaccord, c'est la source officielle qui fait foi, et le
+            désaccord mérite un signalement.
           </p>
           <p>
             Ce n'est pas un site institutionnel : rien de ce qui est écrit ici n'engage
-            l'Université de Limoges, l'INSERM ou le CHU de Limoges. Le site ne dépose pas de
-            traceur, n'affiche pas de publicité et ne demande la création d'aucun compte.
+            l'Université de Limoges, l'INSERM ou le CHU de Limoges. Pas de traceur, pas de
+            publicité, aucun compte à créer.
           </p>
         </div>
       </section>
@@ -477,38 +435,23 @@
         <div class="section-head">
           <h2>Notice biographique</h2>
           <p>
-            Tout le reste de cette page est écrit à la première personne. L'encadré ci-dessous
-            est la seule exception : il est rédigé à la troisième personne pour être repris tel
-            quel par un organisateur de séminaire, un comité de congrès ou une lettre
-            d'information de laboratoire. Aucune autorisation n'est nécessaire pour l'utiliser.
+            À la troisième personne, pour être reprise telle quelle. Aucune autorisation
+            nécessaire.
           </p>
         </div>
 
         <aside class="note accent bio" aria-label="Notice biographique réutilisable">
-          <p class="bio-label">Notice biographique — réutilisable telle quelle · version courte (français)</p>
+          <p class="bio-label">Français</p>
           <p>
             Racym Berrah est docteur en pharmacie et doctorant en pharmacologie à l'unité
             INSERM UMR 1248 « Pharmacologie et Transplantation » (Université de Limoges,
-            INSERM, CHU de Limoges). Ses travaux portent sur l'adaptation de dose guidée par
-            les modèles et sur les jumeaux pharmacologiques numériques.
+            INSERM, CHU de Limoges), sous la direction du Pr Jean-Baptiste Woillard, et membre
+            du consortium DIGPHAT. Ses travaux portent sur l'adaptation de dose guidée par les
+            modèles. Il écrit et maintient trois cours ouverts, en pharmacométrie, en
+            préparation de l'internat en pharmacie et en biostatistique.
           </p>
 
-          <p class="bio-label">Notice biographique — réutilisable telle quelle · version longue (français)</p>
-          <p>
-            Racym Berrah est docteur en pharmacie et doctorant en pharmacologie à l'unité
-            INSERM UMR 1248 « Pharmacologie et Transplantation » (Université de Limoges,
-            INSERM, CHU de Limoges), et membre du consortium DIGPHAT, consacré aux jumeaux
-            pharmacologiques numériques. Sa thèse, dirigée par le Pr Jean-Baptiste Woillard,
-            se situe à l'intersection de l'intelligence artificielle et de la pharmacométrie,
-            avec pour objectif les jumeaux numériques.
-            Ses travaux publiés portent sur le traitement de
-            l'erreur résiduelle en adaptation de dose guidée par les modèles et sur
-            l'optimisation posologique des antifongiques en réanimation. Il écrit et maintient
-            trois cours ouverts, en pharmacométrie, en préparation de l'internat en pharmacie
-            et en biostatistique, publiés sous licence CC BY-SA 4.0.
-          </p>
-
-          <p class="bio-label">Short biographical note — free to reuse as is (English)</p>
+          <p class="bio-label">English</p>
           <p lang="en">
             Racym Berrah is a doctor of pharmacy (PharmD) and a PhD student in pharmacology at
             INSERM UMR 1248 “Pharmacology and Transplantation” (University of Limoges, INSERM,
@@ -522,7 +465,6 @@
       <section class="band">
         <div class="section-head">
           <h2>Identifiants</h2>
-          <p>Pour désambiguïser une citation, une affiliation ou une signature d'article.</p>
         </div>
         <p class="idline">
           ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
