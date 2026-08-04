@@ -71,7 +71,10 @@ const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?ra
 /**
  * @typedef {{title:string, slides?:string, viz?:string}} StepMeta
  * @typedef {{title:string, html:string, slides:string[], viz?:string}} Step
- * @typedef {{id:string, slug:string, title:string, description:string, order:number, track:string, tags:string[], prerequisites:string[], glossary:string[], slides:string[], quiz:{prompt:string,options:string[],correct:number}[], steps:Step[]}} Chapter
+ * Le typedef décrit l'objet RÉELLEMENT produit par `parseChapter` — sources, date de
+ * révision et traductions comprises : ces champs sont lus par le pied de chapitre, le
+ * bloc de citation et le plan du site.
+ * @typedef {{id:string, slug:string, title:string, description:string, summary:string, order:number, duration:string, level:string, layer:string, track:string, tags:string[], prerequisites:string[], glossary:string[], slides:string[], sources:string[], reviewed_on:string, status:string, quiz:{prompt:string,options:string[],correct:number}[], steps:Step[], translations?:Record<string, Chapter>}} Chapter
  */
 
 /** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */

@@ -1,0 +1,1828 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Un jumeau pharmacologique numérique, prélèvement par prélèvement — démonstration interactive</title>
+  <meta name="description" content="Ce qu'est, exactement, un jumeau pharmacologique numérique : un modèle mécanistique individualisé dont l'incertitude est explicite. Grille bayésienne réellement calculée dans la page ; la bande de crédibilité se resserre à chaque prélèvement ajouté." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/demos/jumeau-pharmacologique/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Un jumeau pharmacologique numérique, prélèvement par prélèvement" />
+  <meta property="og:description" content="Un jumeau n'est pas une prédiction : c'est une incertitude qui se réduit. Et elle ne se réduit pas de la même façon selon où l'on prélève." />
+  <meta property="og:url" content="https://rberrah.github.io/demos/jumeau-pharmacologique/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+
+  <style>
+    /* ---------------------------------------------------------------
+       Styles LOCAUX à cette démonstration. Aucune couleur en dur :
+       tout passe par les variables du socle, pour que le thème clair
+       et le thème sombre soient tous les deux corrects.
+    --------------------------------------------------------------- */
+
+    .lab { display: grid; gap: 1.1rem; grid-template-columns: 1fr; margin: 1.8rem 0 0; }
+    @media (min-width: 960px) {
+      .lab { grid-template-columns: 310px 1fr; align-items: start; }
+      .lab-controls { position: sticky; top: 4.2rem; }
+    }
+
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.05rem 1.1rem;
+    }
+    .panel + .panel { margin-top: 1rem; }
+    .panel h3 {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3);
+      margin: 0 0 0.85rem;
+    }
+
+    /* ---- Contrôles ---- */
+    .ctl { margin-bottom: 0.95rem; }
+    .ctl:last-child { margin-bottom: 0; }
+    .ctl-top {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 0.6rem; margin-bottom: 0.2rem;
+    }
+    .ctl label { font-size: 0.845rem; color: var(--ink-2); line-height: 1.35; }
+    .ctl output {
+      font-family: var(--mono); font-size: 0.79rem; color: var(--ink);
+      font-weight: 600; white-space: nowrap;
+    }
+    .ctl .hint { font-size: 0.755rem; color: var(--ink-3); line-height: 1.45; margin: 0.3rem 0 0; }
+
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 22px; background: transparent; margin: 0; display: block;
+    }
+    input[type="range"]::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: var(--border-strong); }
+    input[type="range"]::-moz-range-track { height: 3px; border-radius: 2px; background: var(--border-strong); }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--surface);
+      margin-top: -6px; cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--surface); cursor: pointer;
+    }
+    input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+
+    /* ---- Segments (cible) ---- */
+    .seg { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      display: block; text-align: center; cursor: pointer;
+      font-size: 0.78rem; padding: 0.4rem 0.2rem; border-radius: 7px;
+      border: 1px solid var(--border-strong); color: var(--ink-2);
+      transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+    }
+    .seg label:hover { border-color: var(--ink-3); color: var(--ink); }
+    .seg input:checked + label {
+      background: var(--accent); border-color: var(--accent);
+      color: var(--paper); font-weight: 600;
+    }
+    .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ---- Petits boutons ---- */
+    .minibtns { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .minibtn {
+      font-family: inherit; font-size: 0.775rem; line-height: 1.3;
+      padding: 0.34rem 0.62rem; border-radius: 7px; cursor: pointer;
+      border: 1px solid var(--border-strong); background: transparent; color: var(--ink-2);
+      transition: border-color 0.13s ease, color 0.13s ease;
+    }
+    .minibtn:hover { border-color: var(--ink); color: var(--ink); }
+    .minibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .minibtn[disabled] { opacity: 0.42; cursor: not-allowed; }
+    .minibtn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600; }
+    .minibtn.primary:hover { opacity: 0.87; color: var(--paper); }
+
+    .seedrow { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .seedrow input[type="number"] {
+      font-family: var(--mono); font-size: 0.78rem; width: 10ch;
+      padding: 0.3rem 0.45rem; border-radius: 6px;
+      border: 1px solid var(--border-strong); background: var(--paper); color: var(--ink);
+    }
+    .seedrow input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .chk { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.845rem; color: var(--ink-2); line-height: 1.4; cursor: pointer; }
+    .chk input { margin-top: 0.22rem; accent-color: var(--accent); }
+
+    /* ---- Tuiles de résultat ---- */
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    @media (min-width: 620px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+    .stat { background: var(--surface); padding: 0.85rem 0.9rem; }
+    .stat .k {
+      font-family: var(--mono); font-size: 0.665rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-3); display: block; margin-bottom: 0.28rem;
+      line-height: 1.35; min-height: 2.8em;
+    }
+    .stat .v {
+      font-family: var(--serif); font-size: 1.42rem; font-weight: 600;
+      letter-spacing: -0.02em; color: var(--ink); line-height: 1.12;
+      display: block; font-variant-numeric: tabular-nums;
+    }
+    .stat .u { font-size: 0.78rem; color: var(--ink-3); font-family: var(--sans); font-weight: 400; letter-spacing: 0; }
+    .stat.hero .v { color: var(--terra); }
+
+    /* ---- Graphiques ---- */
+    .chart { position: relative; margin-top: 1rem; }
+    .chart .cap { font-size: 0.845rem; color: var(--ink-2); margin: 0 0 0.55rem; line-height: 1.45; }
+    .chart .cap b { color: var(--ink); font-weight: 600; }
+    .chart svg { width: 100%; height: auto; display: block; }
+    .duo { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+    @media (min-width: 1040px) { .duo { grid-template-columns: 1fr 1fr; } .duo .chart { margin-top: 0; } }
+
+    /* Deux teintes seulement : accent = ce que le jumeau croit,
+       terracotta = le patient réel (caché par défaut). Le gris est réservé
+       aux références et à l'a priori. */
+    .k-band   { fill: var(--accent); fill-opacity: 0.15; stroke: none; }
+    .k-edge   { fill: none; stroke: var(--accent); stroke-opacity: 0.45; stroke-width: 1; }
+    .k-med    { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+    .k-true   { fill: none; stroke: var(--terra); stroke-width: 1.9; stroke-dasharray: 6 4; }
+    .k-obs    { fill: var(--terra); stroke: var(--surface); stroke-width: 1.8; }
+    .k-dens   { fill: var(--accent); shape-rendering: crispEdges; }
+    .k-prior  { fill: none; stroke: var(--ink-3); stroke-width: 1.4; stroke-dasharray: 5 4; }
+    .k-mean   { fill: var(--accent); stroke: var(--surface); stroke-width: 1.6; }
+    .k-pt     { fill: var(--terra); stroke: var(--surface); stroke-width: 1.6; }
+    .k-pcurve { fill: var(--accent); fill-opacity: 0.13; stroke: var(--accent); stroke-width: 1.9; }
+    .k-cibar  { fill: var(--accent); fill-opacity: 0.30; stroke: var(--accent); stroke-width: 1.2; }
+    .k-citick { stroke: var(--ink); stroke-width: 2; }
+    .k-dose   { stroke: var(--ink-3); stroke-width: 1.4; }
+    .k-guide  { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; }
+    .k-tgt    { stroke: var(--ink-3); stroke-width: 1.3; stroke-dasharray: 4 3; fill: none; }
+    .k-hit    { fill: transparent; cursor: crosshair; }
+
+    .ax    { stroke: var(--border-strong); stroke-width: 1; fill: none; }
+    .grid  { stroke: var(--border); stroke-width: 1; fill: none; }
+    .tk    { fill: var(--ink-3); font-family: var(--mono); font-size: 10.5px; }
+    .axlab { fill: var(--ink-2); font-family: var(--sans); font-size: 11.5px; }
+    .glab  { fill: var(--ink-3); font-family: var(--sans); font-size: 10.5px; }
+    .glab.t { fill: var(--terra); }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1.05rem; font-size: 0.79rem; color: var(--ink-2); margin: 0.5rem 0 0; }
+    .legend span { display: inline-flex; align-items: center; gap: 0.36rem; }
+    .legend i { width: 15px; height: 0; border-top-width: 2px; border-top-style: solid; display: inline-block; }
+    .legend i.g-med { border-color: var(--accent); }
+    .legend i.g-true { border-color: var(--terra); border-top-style: dashed; }
+    .legend i.g-band { height: 10px; width: 15px; border: 0; background: var(--accent); opacity: 0.28; border-radius: 2px; }
+    .legend i.g-obs { width: 9px; height: 9px; border: 0; border-radius: 50%; background: var(--terra); box-shadow: 0 0 0 1.5px var(--surface); }
+
+    .tip {
+      position: absolute; pointer-events: none; opacity: 0; z-index: 5;
+      background: var(--surface); border: 1px solid var(--border-strong);
+      border-radius: 8px; padding: 0.45rem 0.6rem; box-shadow: var(--shadow);
+      font-family: var(--mono); font-size: 0.735rem; line-height: 1.5; color: var(--ink-2);
+      white-space: nowrap; transition: opacity 0.1s ease;
+    }
+    .tip b { color: var(--ink); font-weight: 600; }
+
+    .perf { font-family: var(--mono); font-size: 0.715rem; color: var(--ink-3); margin: 0.9rem 0 0; text-align: right; }
+
+    .fixed-params { font-family: var(--mono); font-size: 0.75rem; color: var(--ink-3); line-height: 1.65; margin: 0; }
+    .fixed-params b { color: var(--ink-2); font-weight: 600; }
+
+    .verdict {
+      font-size: 0.9rem; line-height: 1.6; color: var(--ink-2);
+      border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.85rem;
+    }
+    .verdict b { color: var(--ink); font-weight: 600; }
+    .warnline { color: var(--terra); font-size: 0.82rem; margin: 0.55rem 0 0; }
+
+    table.histt td.num, table.histt th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.83rem; padding-right: 1rem; }
+    table.histt tbody tr:last-child td { color: var(--ink); font-weight: 600; }
+
+    ul.tight { padding-left: 1.15rem; }
+    ul.tight li { margin-bottom: 0.5rem; }
+    ul.tight li:last-child { margin-bottom: 0; }
+
+    .eq {
+      font-family: var(--mono); font-size: 0.8rem; line-height: 1.7;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.85rem 1rem; margin: 0.9rem 0;
+      overflow-x: auto; white-space: pre; color: var(--ink-2);
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/" aria-current="page">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ================= 1. TITRE + QUESTION ================= -->
+      <section class="band" style="border-bottom:0; padding-bottom:1.4rem;">
+        <p class="eyebrow"><a href="/demos/">Démonstrations</a> · jumeaux numériques et adaptation de dose</p>
+        <h1 class="measure">Un jumeau pharmacologique numérique, prélèvement par prélèvement</h1>
+        <p class="lede" style="margin-top:1.2rem">
+          Que veut dire exactement « jumeau numérique » d'un patient en pharmacologie — et
+          que se passe-t-il, concrètement, quand on l'observe une fois de plus&nbsp;?
+        </p>
+
+        <div class="note accent measure">
+          <p style="margin-bottom:0.6rem"><strong>Ce qu'il faut comprendre en trente secondes.</strong></p>
+          <p style="margin-bottom:0">
+            Un jumeau n'est pas une prédiction&nbsp;: c'est une <strong>incertitude qui se
+            réduit</strong>. Avant tout prélèvement, le jumeau existe déjà — c'est le modèle de
+            population, et il n'est pas faux, il est large. Chaque mesure le resserre. Mais
+            <strong>il ne se resserre pas de la même façon selon l'endroit où l'on
+            prélève</strong>, et il ne se resserre jamais jusqu'à un point.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 2. SUR LE MOT ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Sur le mot « jumeau »</h2></div>
+        <div class="measure">
+          <p>
+            Dans cette page, « jumeau pharmacologique numérique » désigne une chose précise et
+            rien d'autre&nbsp;: <strong>un modèle mécanistique — ici un modèle de
+            pharmacocinétique — dont les paramètres sont individualisés pour un patient donné à
+            partir de ses propres mesures, et dont l'incertitude restante est explicite et
+            chiffrée.</strong> Trois éléments, tous obligatoires&nbsp;: une structure posée
+            avant les données, des paramètres qui appartiennent à ce patient-là, une
+            distribution plutôt qu'un nombre.
+          </p>
+          <p>Par la négative, et c'est là que le mot se salit dans l'usage courant&nbsp;:</p>
+          <ul class="tight">
+            <li>
+              <strong>Ce n'est pas un avatar.</strong> Il n'y a ni image, ni corps, ni organe
+              simulé, ni représentation anatomique. Il y a une clairance, un volume, une
+              constante d'élimination, et l'incertitude qui les entoure.
+            </li>
+            <li>
+              <strong>Ce n'est pas une prédiction extraite d'un dossier patient
+              informatisé.</strong> Le modèle n'apprend pas des régularités d'un entrepôt de
+              données&nbsp;: il repose sur une structure — compartiments, clairance, volume,
+              erreur — écrite avant d'avoir vu la moindre observation, et que les observations
+              peuvent contredire.
+            </li>
+            <li>
+              <strong>Ce n'est pas un système qui déciderait à la place du clinicien.</strong>
+              Il rend une distribution de doses, avec sa largeur. Il ne rend pas un ordre. La
+              largeur est précisément l'information dont la décision a besoin.
+            </li>
+          </ul>
+          <p style="margin-top:1.1rem">
+            Et la phrase qui tient lieu de critère&nbsp;:
+            <strong>un jumeau qu'on ne peut pas mettre en défaut n'est pas un outil de
+            décision.</strong> Un modèle individualisé qui ne dit pas de quelle largeur est son
+            incertitude, et que le prélèvement suivant ne peut pas contredire, n'est pas un
+            instrument&nbsp;: c'est une illustration.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 3. LA DÉMONSTRATION ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>La démonstration</h2>
+          <p>
+            Un médicament fictif, intraveineux, perfusé en une heure, 1&nbsp;000&nbsp;mg toutes
+            les douze heures. Un patient est tiré au sort dans la population&nbsp;: vous ne
+            connaissez ni sa clairance ni son volume. <strong>Prélevez</strong> — en cliquant
+            dans le graphique, ou avec le curseur de temps. À chaque prélèvement, la
+            distribution a posteriori des paramètres individuels est <strong>réellement
+            recalculée</strong> sur une grille bayésienne, et tout ce que vous voyez à l'écran
+            en découle.
+          </p>
+        </div>
+
+        <div class="lab">
+
+          <!-- ---------- COLONNE DE CONTRÔLES ---------- -->
+          <div class="lab-controls">
+
+            <div class="panel">
+              <h3>Prélever</h3>
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="rng-t">Temps du prélèvement</label>
+                  <output id="out-t" for="rng-t">24,0 h</output>
+                </div>
+                <input type="range" id="rng-t" min="0.25" max="96" step="0.25" value="24" />
+                <p class="hint">Ou cliquez directement dans le graphique du profil.</p>
+              </div>
+              <div class="minibtns">
+                <button type="button" class="minibtn primary" id="btn-sample">Prélever</button>
+                <button type="button" class="minibtn" id="btn-undo">Retirer le dernier</button>
+                <button type="button" class="minibtn" id="btn-clear">Tout effacer</button>
+              </div>
+              <p class="hint" id="obs-count" style="margin-top:0.55rem; font-size:0.755rem; color:var(--ink-3)">Aucun prélèvement. Le jumeau est encore la population.</p>
+            </div>
+
+            <div class="panel">
+              <h3>Le patient</h3>
+              <div class="ctl">
+                <div class="seedrow">
+                  <label for="seed" style="font-size:0.845rem; color:var(--ink-2)">Graine</label>
+                  <input type="number" id="seed" min="0" max="4294967295" step="1" value="1248" />
+                  <button type="button" class="minibtn" id="btn-newpat">Nouveau patient</button>
+                </div>
+                <p class="hint">Le patient « vrai » et le bruit de mesure sont tirés d'un
+                  générateur pseudo-aléatoire à graine. Même graine, mêmes prélèvements aux
+                  mêmes instants&nbsp;: même résultat, à la décimale près.</p>
+              </div>
+              <div class="ctl">
+                <label class="chk" for="chk-reveal">
+                  <input type="checkbox" id="chk-reveal" />
+                  <span>Révéler le vrai patient (CL, V, profil, dose exacte)</span>
+                </label>
+                <p class="hint" id="truth-line">Masqué. Prélevez d'abord, révélez ensuite&nbsp;: c'est la seule manière de savoir si le jumeau était honnête.</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>La mesure</h3>
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="rng-sig">Incertitude analytique σ</label>
+                  <output id="out-sig" for="rng-sig">0,15</output>
+                </div>
+                <input type="range" id="rng-sig" min="0.05" max="0.4" step="0.01" value="0.15" />
+                <p class="hint" id="sig-hint">Écart-type résiduel sur l'échelle logarithmique.</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>La cible thérapeutique</h3>
+              <div class="ctl">
+                <div class="seg" role="radiogroup" aria-label="Nature de la cible">
+                  <input type="radio" name="tgtmode" id="tgt-auc" value="auc" checked />
+                  <label for="tgt-auc">AUC sur 24 h</label>
+                  <input type="radio" name="tgtmode" id="tgt-cmin" value="cmin" />
+                  <label for="tgt-cmin">Résiduelle</label>
+                </div>
+              </div>
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="rng-tgt" id="lbl-tgt">Cible d'AUC sur 24 h</label>
+                  <output id="out-tgt" for="rng-tgt">500 mg·h/L</output>
+                </div>
+                <input type="range" id="rng-tgt" min="200" max="900" step="10" value="500" />
+                <p class="hint">La dose recommandée est celle qui atteindrait exactement cette
+                  cible à l'état d'équilibre, pour ce patient.</p>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Fixé, non réglable</h3>
+              <p class="fixed-params">
+                dose administrée <b>1 000 mg</b> · perfusion <b>1 h</b><br />
+                intervalle <b>12 h</b> · <b>8</b> administrations<br />
+                CL population <b>4,0 L/h</b> · ω<sub>CL</sub> <b>0,35</b><br />
+                V population <b>50 L</b> · ω<sub>V</sub> <b>0,28</b><br />
+                demi-vie typique <b>8,7 h</b><br />
+                grille <b>79 × 63 = 4 977</b> points
+              </p>
+            </div>
+
+          </div><!-- /lab-controls -->
+
+          <!-- ---------- COLONNE DE RÉSULTATS ---------- -->
+          <div class="lab-out">
+
+            <div class="stats" id="stats">
+              <div class="stat hero">
+                <span class="k">Dose requise — intervalle de crédibilité à 90 %</span>
+                <span class="v" id="v-ci">—</span>
+              </div>
+              <div class="stat hero">
+                <span class="k">Largeur de cet intervalle</span>
+                <span class="v" id="v-width">—</span>
+              </div>
+              <div class="stat hero">
+                <span class="k">Probabilité d'être dans la cible à ±20 % avec la dose médiane</span>
+                <span class="v" id="v-ptar">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">Prélèvements utilisés</span>
+                <span class="v" id="v-n">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">Bande à 90 % au dernier creux (96 h)</span>
+                <span class="v" id="v-trough">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">Moyenne a posteriori (CL · V)</span>
+                <span class="v" id="v-mean">—</span>
+              </div>
+            </div>
+
+            <p class="verdict" id="verdict" aria-live="polite">—</p>
+            <p class="warnline" id="warn-grid" hidden></p>
+
+            <!-- Graphique 1 : profil + bande -->
+            <div class="chart" id="ch-prof">
+              <p class="cap"><b>1. Le profil concentration-temps, et ce que le jumeau ne sait pas encore.</b>
+                La bande couvre 90&nbsp;% de la distribution a posteriori de la concentration,
+                <em>instant par instant</em>&nbsp;; le trait plein est la médiane. Les repères
+                sous l'axe marquent les huit administrations.
+                <b>Cliquez dans le cadre pour prélever.</b></p>
+              <div class="legend">
+                <span><i class="g-band"></i>Bande de crédibilité à 90 %</span>
+                <span><i class="g-med"></i>Médiane a posteriori</span>
+                <span><i class="g-true"></i>Patient réel (si révélé)</span>
+                <span><i class="g-obs"></i>Concentrations mesurées</span>
+              </div>
+              <div class="tip" id="tip-prof" role="status" aria-live="off"></div>
+              <svg id="svg-prof" viewBox="0 0 720 380" role="img" aria-labelledby="t-pr d-pr">
+                <title id="t-pr">Profil concentration-temps avec bande de crédibilité à 90 %</title>
+                <desc id="d-pr">Le graphique n'a pas encore été calculé.</desc>
+                <defs><clipPath id="clip-pr"><rect x="58" y="18" width="644" height="314" /></clipPath></defs>
+                <g id="g-pr-static"></g>
+                <g id="g-pr-dyn"></g>
+              </svg>
+            </div>
+
+            <div class="duo">
+              <!-- Graphique 2 : densité a posteriori -->
+              <div class="chart" id="ch-map">
+                <p class="cap"><b>2. Ce que le jumeau croit des paramètres.</b>
+                  Densité a posteriori sur (CL, V), échelles logarithmiques. L'ellipse en
+                  tirets est la région à 90&nbsp;% de l'a priori de population.</p>
+                <div class="tip" id="tip-map" role="status" aria-live="off"></div>
+                <svg id="svg-map" viewBox="0 0 360 320" role="img" aria-labelledby="t-mp d-mp">
+                  <title id="t-mp">Densité a posteriori sur la clairance et le volume de distribution</title>
+                  <desc id="d-mp">Le graphique n'a pas encore été calculé.</desc>
+                  <g id="g-mp-static"></g>
+                  <g id="g-mp-dens"></g>
+                  <g id="g-mp-dyn"></g>
+                </svg>
+              </div>
+
+              <!-- Graphique 3 : dose -->
+              <div class="chart" id="ch-dose">
+                <p class="cap"><b>3. Ce que ça donne en milligrammes.</b>
+                  En haut&nbsp;: l'intervalle à 90&nbsp;% de la dose qui atteindrait exactement
+                  la cible. En bas&nbsp;: la probabilité a posteriori d'être dans la cible à
+                  ±20&nbsp;%, dose par dose.</p>
+                <div class="tip" id="tip-dose" role="status" aria-live="off"></div>
+                <svg id="svg-dose" viewBox="0 0 360 320" role="img" aria-labelledby="t-ds d-ds">
+                  <title id="t-ds">Distribution a posteriori de la dose requise et probabilité d'atteinte de la cible</title>
+                  <desc id="d-ds">Le graphique n'a pas encore été calculé.</desc>
+                  <g id="g-ds-static"></g>
+                  <g id="g-ds-dyn"></g>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Le compteur -->
+            <div class="chart">
+              <p class="cap"><b>4. Le compteur — prélèvement par prélèvement.</b>
+                Une ligne par observation ajoutée, dans l'ordre où vous les avez ajoutées.
+                C'est la leçon de la page, en chiffres.</p>
+              <div class="tablewrap">
+                <table class="histt">
+                  <thead>
+                    <tr>
+                      <th scope="col" class="num">n</th>
+                      <th scope="col">Prélèvement ajouté</th>
+                      <th scope="col" class="num">Dose médiane</th>
+                      <th scope="col" class="num">Intervalle à 90 %</th>
+                      <th scope="col" class="num">Largeur</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hist-body"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <p class="perf" id="perf"></p>
+          </div><!-- /lab-out -->
+
+        </div><!-- /lab -->
+      </section>
+
+      <!-- ================= 4. CE QUE VOUS MANIPULEZ ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Ce que vous manipulez</h2></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Contrôle</th><th scope="col">Ce qu'il change</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Prélever à un temps donné</strong></td>
+                <td>Le geste central. Ajoute une observation&nbsp;: la concentration du patient
+                  réel à cet instant, bruitée. La distribution a posteriori des paramètres est
+                  entièrement recalculée, et avec elle la bande, la carte et la dose. Huit
+                  prélèvements au maximum, dans l'ordre où vous les posez. Le curseur de temps
+                  et le bouton offrent le même geste au clavier.</td>
+              </tr>
+              <tr>
+                <td><strong>Retirer le dernier · Tout effacer</strong></td>
+                <td>Reviennent en arrière sans changer de patient. Retirer puis reprélever au
+                  même instant redonne exactement la même mesure&nbsp;: le bruit est indexé sur
+                  le rang du prélèvement, pas sur l'instant où vous cliquez.</td>
+              </tr>
+              <tr>
+                <td><strong>Graine · Nouveau patient</strong></td>
+                <td>Tirent un nouveau patient dans l'a priori de population, et une nouvelle
+                  série de bruits de mesure. Les prélèvements en cours sont effacés, parce
+                  qu'ils appartenaient à quelqu'un d'autre. La graine est affichée et
+                  modifiable&nbsp;: à graine égale, la page est reproductible.</td>
+              </tr>
+              <tr>
+                <td><strong>Révéler le vrai patient</strong></td>
+                <td>Affiche ses paramètres, son profil réel et la dose qui lui conviendrait
+                  exactement. C'est le test&nbsp;: la vérité doit tomber dans la bande à
+                  90&nbsp;% environ neuf fois sur dix, pas dix fois sur dix. Un jumeau dont
+                  l'intervalle contient toujours la vérité est un jumeau trop large.</td>
+              </tr>
+              <tr>
+                <td><strong>Incertitude analytique σ</strong></td>
+                <td>L'écart-type résiduel, sur l'échelle logarithmique. Il agit deux fois&nbsp;:
+                  il bruite davantage les mesures, et il indique au calcul de leur accorder
+                  moins de poids face à l'a priori. Monter σ élargit tout, et rend chaque
+                  prélèvement moins rentable.</td>
+              </tr>
+              <tr>
+                <td><strong>Nature et valeur de la cible</strong></td>
+                <td>Bascule entre une cible d'exposition (AUC sur 24 h à l'état d'équilibre) et
+                  une cible de concentration résiduelle. Ne change rien à ce que le jumeau sait
+                  du patient — seulement la question qu'on lui pose, et donc la dose et la
+                  probabilité d'atteinte.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 5. CE QUE ÇA MONTRE ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Ce que ça montre</h2></div>
+        <ul class="tight measure">
+          <li>
+            <strong>À zéro prélèvement, le jumeau existe déjà.</strong> Ce n'est pas une page
+            blanche&nbsp;: c'est l'a priori de population, et il donne déjà une dose — avec un
+            intervalle qui couvre un facteur trois ou quatre. Il n'est pas faux. Il est large.
+            Tout ce que fait un prélèvement, c'est le rétrécir.
+          </li>
+          <li>
+            <strong>La réduction n'est pas uniforme&nbsp;: elle dépend d'où l'on prélève.</strong>
+            Un point au creux, juste avant l'administration suivante, resserre surtout la
+            clairance. Un point en fin de perfusion resserre surtout le volume. Regardez la
+            carte&nbsp;(CL,&nbsp;V)&nbsp;: elle ne se contracte pas en rond, elle se contracte
+            dans une direction et reste étalée dans l'autre. Trois prélèvements au même endroit
+            ne valent pas trois prélèvements bien répartis.
+          </li>
+          <li>
+            <strong>Les premiers prélèvements font l'essentiel du travail.</strong> Comparez les
+            largeurs successives dans le compteur&nbsp;: du premier au deuxième, la chute est
+            franche&nbsp;; du cinquième au sixième, elle devient marginale. Le jumeau cesse
+            d'apprendre bien avant qu'on cesse de prélever — et ce n'est pas un défaut de
+            l'algorithme, c'est la limite de ce que ce protocole peut révéler.
+          </li>
+          <li>
+            <strong>La dose n'est jamais un nombre.</strong> C'est un intervalle, et sa largeur
+            est l'information la plus utile de la page. Un jumeau qui afficherait
+            «&nbsp;1&nbsp;040&nbsp;mg&nbsp;» sans dire «&nbsp;entre 890 et 1&nbsp;210&nbsp;»
+            aurait supprimé ce qui permet de décider — et ce qui permet de le contredire.
+          </li>
+          <li>
+            <strong>La précision de la mesure se paie en milligrammes.</strong> Montez σ de 0,10
+            à 0,30 et regardez le compteur&nbsp;: trois prélèvements imprécis peuvent laisser un
+            intervalle plus large qu'un seul prélèvement précis. La qualité analytique n'est pas
+            un détail de laboratoire, c'est un terme de l'équation de la dose.
+          </li>
+          <li>
+            <strong>Le jumeau peut être mis en défaut, et il faut l'y mettre.</strong> Révélez le
+            vrai patient après un seul prélèvement, puis recommencez avec d'autres graines. La
+            vérité sortira de l'intervalle à 90&nbsp;% dans environ un cas sur dix. C'est
+            exactement ce qui doit arriver. Un intervalle qui ne se trompe jamais est un
+            intervalle qui ne dit rien.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================= 6. SOUS LE CAPOT ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Sous le capot</h2>
+          <p>Assez précis pour être reproduit. Tout est calculé dans la page, à chaque clic et
+            à chaque mouvement de curseur&nbsp;; rien n'est pré-enregistré.</p>
+        </div>
+
+        <div class="measure">
+          <h3 style="margin-bottom:0.5rem">Modèle structural</h3>
+          <p>
+            Un compartiment, perfusion intraveineuse de durée T<sub>perf</sub> = 1 h, dose
+            D = 1 000 mg répétée toutes les τ = 12 h, huit administrations (t = 0, 12, …, 84 h),
+            horizon 0–96 h. On note k = CL/V.
+          </p>
+          <p>Pour une administration unique commencée en t₀, avec u = t − t₀&nbsp;:</p>
+          <div class="eq">u &lt; T_perf :  C(u) = D / (T_perf · CL) · ( 1 − e^(−k·u) )
+u ≥ T_perf :  C(u) = D / (T_perf · CL) · ( 1 − e^(−k·T_perf) ) · e^(−k·(u − T_perf))</div>
+          <p>
+            Le profil complet est la somme des contributions de toutes les administrations déjà
+            données&nbsp;: le modèle est linéaire, la superposition est exacte, il n'y a aucune
+            approximation à ce niveau.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">A priori de population</h3>
+          <p>Log-normal, inventé pour la démonstration, et indépendant entre les deux paramètres&nbsp;:</p>
+          <div class="eq">ln CL ~ N( ln 4,0 ; 0,35² )   CL en L/h
+ln V  ~ N( ln 50  ; 0,28² )   V  en L</div>
+          <p>
+            Le patient « vrai » est un tirage dans cet a priori, tronqué à ±2,5 écarts-types sur
+            chaque paramètre pour que la démonstration reste lisible. Cette troncature est une
+            entorse assumée&nbsp;: elle biaise très légèrement la population simulée vers son
+            centre.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Modèle d'erreur résiduelle</h3>
+          <p>
+            Exponentiel — c'est-à-dire proportionnel sur l'échelle logarithmique. Il garantit des
+            concentrations positives et rend la vraisemblance normale en ln&nbsp;:
+          </p>
+          <div class="eq">ln C_obs = ln C_pred(θ) + ε ,   ε ~ N(0, σ²)</div>
+          <p>
+            σ est réglable de 0,05 à 0,40. Le coefficient de variation approché affiché à côté du
+            curseur vaut 100·√(e^(σ²) − 1) %. Le même σ sert à générer les mesures et à les
+            interpréter&nbsp;: le modèle d'erreur est ici parfaitement spécifié, ce qui est une
+            situation favorable et rare.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Distribution a posteriori — grille bayésienne</h3>
+          <p>
+            Pas de recherche d'optimum, pas d'échantillonnage&nbsp;: la loi a posteriori est
+            évaluée point par point sur une grille régulière en (ln CL, ln V), puis normalisée
+            numériquement. C'est exact sur la grille, et directement lisible.
+          </p>
+          <div class="eq">log p(θ | y) = log p(θ)  −  Σᵢ ( ln yᵢ − ln C_pred(tᵢ, θ) )² / (2σ²)  + cte
+
+grille : pas h = 0,03 en unités logarithmiques
+         ln CL sur ±1,17  (soit 3,34 écarts-types a priori)  → 79 points
+         ln V  sur ±0,93  (soit 3,32 écarts-types a priori)  → 63 points
+         total 4 977 points, normalisation par sommation (règle du rectangle)</div>
+          <p>
+            Une remarque de calcul, parce qu'elle est ce qui rend la page fluide&nbsp;: le pas
+            étant le même dans les deux dimensions, ln k = ln CL − ln V ne prend que
+            79 + 63 − 1 = 141 valeurs distinctes sur toute la grille. Les 141 profils
+            correspondants sont tabulés une fois pour toutes sur les 121 instants de la grille
+            temporelle&nbsp;; chaque point de grille se ramène ensuite à une addition. Aucune
+            exponentielle n'est recalculée pendant l'interaction.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Bande de crédibilité</h3>
+          <p>
+            À chacun des 121 instants, la distribution a posteriori de C(t) est reconstituée par
+            histogramme pondéré à 200 classes sur ln C, et les quantiles 5&nbsp;%, 50&nbsp;% et
+            95&nbsp;% en sont extraits. Ce point mérite d'être dit clairement&nbsp;: la bande
+            n'est pas l'enveloppe de deux courbes «&nbsp;extrêmes&nbsp;». C'est un intervalle
+            ponctuel, instant par instant. Aucune trajectoire individuelle ne suit son bord.
+          </p>
+          <p>
+            La grille temporelle place quinze instants par intervalle de douze heures, dont un
+            exactement à la fin de la perfusion&nbsp;: les pics ne sont pas rabotés par
+            l'échantillonnage du tracé.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">De la distribution à la dose</h3>
+          <p>La dose requise est linéaire en la cible, ce qui permet de la calculer exactement en chaque point de grille&nbsp;:</p>
+          <div class="eq">Cible AUC sur 24 h à l'équilibre :
+  AUC₂₄ = (24 / τ) · D / CL        →   D = cible · CL · τ / 24
+
+Cible résiduelle à l'équilibre :
+  C_min = D/(T_perf·CL) · (1 − e^(−k·T_perf)) · e^(−k·(τ − T_perf)) / (1 − e^(−k·τ))
+  →   D = cible · T_perf · CL · (1 − e^(−k·τ)) / [ (1 − e^(−k·T_perf)) · e^(−k·(τ − T_perf)) ]</div>
+          <p>
+            La distribution a posteriori de la dose requise est celle de ces expressions évaluées
+            en chaque point de grille, pondérées par les poids a posteriori. Ses quantiles sont
+            lus sur un histogramme pondéré à 400 classes en ln D. La probabilité d'atteinte
+            affichée en bas du troisième graphique en découle directement&nbsp;: pour une dose
+            d administrée, être dans la cible à ±20 % équivaut à ce que la dose requise du
+            patient soit comprise entre d/1,2 et d/0,8.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Contrôle numérique</h3>
+          <p>
+            Une intégration indépendante tourne à chaque mise à jour, pour vérifier que le tracé
+            et l'algèbre disent la même chose. Pour le jeu de paramètres moyen a posteriori
+            courant, l'AUC de l'intervalle 84–96 h est calculée par la méthode des trapèzes sur
+            la grille temporelle, puis comparée à D/CL, sa valeur exacte à l'état d'équilibre.
+          </p>
+          <p class="fixed-params" id="chk-auc">—</p>
+          <p class="small">
+            L'écart affiché mélange deux choses&nbsp;: l'erreur de la méthode des trapèzes sur une
+            grille finie, et le fait qu'après sept intervalles l'état d'équilibre est très proche
+            mais pas tout à fait atteint. Il doit rester de l'ordre du pour cent. S'il s'en
+            éloigne, c'est le tracé qu'il faut soupçonner, pas le patient.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Couverture de la grille</h3>
+          <p>
+            La grille ne couvre qu'un domaine fini. Si la masse a posteriori venait toucher son
+            bord, les quantiles affichés seraient tronqués&nbsp;: la page le surveille et le dit.
+            C'est une vérification élémentaire, et c'est exactement le genre de chose qu'un
+            jumeau doit exposer plutôt que masquer.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Nombres aléatoires</h3>
+          <p>
+            Générateur mulberry32 à graine, transformation de Box-Muller pour les tirages normaux,
+            avec conservation de la valeur conjuguée. Deux tirages pour les paramètres du patient,
+            puis huit tirages réservés d'avance pour le bruit de mesure, indexés sur le rang du
+            prélèvement. À graine, temps et rangs identiques, les mesures sont strictement
+            reproductibles — y compris après un retour en arrière.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 7. LES LIMITES ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Ce que cette démonstration ne montre pas</h2>
+          <p>Le bloc le plus important de la page — et, sur ce sujet-là, celui qui la distingue
+            d'une brochure.</p>
+        </div>
+        <ul class="tight measure">
+          <li>
+            <strong>L'a priori de population est inventé.</strong> CL 4,0 L/h, ω 0,35, V 50 L,
+            ω 0,28&nbsp;: ces valeurs ne proviennent d'aucune analyse publiée et ne décrivent
+            aucun médicament. Elles ont été choisies pour que le comportement soit lisible.
+            Aucun nombre de cette page n'a de valeur posologique, pour aucune molécule.
+          </li>
+          <li>
+            <strong>Le modèle structural est supposé vrai — et c'est l'hypothèse la plus lourde
+            de toutes.</strong> La grille explore CL et V. Elle n'explore ni le nombre de
+            compartiments, ni la linéarité de l'élimination, ni la constance de la clairance sur
+            96 heures, ni la validité de la perfusion telle qu'elle est décrite. Toute
+            l'incertitude affichée est <em>conditionnelle à une structure qui n'est jamais
+            testée ici</em>. Un jumeau numérique dont on ne peut pas remettre en cause la
+            structure ne peut pas être mis en défaut sur ce qui compte le plus.
+          </li>
+          <li>
+            <strong>L'identifiabilité borne ce que les données peuvent dire.</strong> Certaines
+            directions du plan (CL, V) restent indéterminées quel que soit le nombre de
+            prélèvements, si ceux-ci sont mal placés&nbsp;: la crête de la densité a posteriori
+            s'allonge au lieu de se contracter. C'est visible sur le deuxième graphique, et
+            c'est le sujet entier d'une autre page&nbsp;:
+            <a href="/demos/identifiabilite/">Deux modèles, une seule courbe</a>.
+          </li>
+          <li>
+            <strong>CL et V sont supposés indépendants a priori.</strong> Un modèle de population
+            réel comporte presque toujours une matrice de covariance Ω non diagonale, et souvent
+            des covariables — poids, fonction rénale, âge — qui déplacent l'a priori avant même
+            le premier prélèvement. Ici, aucune covariable&nbsp;: le patient n'a pas de dossier.
+          </li>
+          <li>
+            <strong>Le modèle d'erreur résiduelle est parfaitement spécifié.</strong> Le même σ
+            génère les mesures et les interprète. En pratique il ne l'est pas, et le choix du
+            modèle d'erreur déplace l'exposition individuelle estimée — donc la dose. C'est un
+            levier discret, et il a sa propre page&nbsp;:
+            <a href="/demos/erreur-residuelle/">Le levier de l'erreur résiduelle</a>.
+          </li>
+          <li>
+            <strong>Aucune variabilité inter-occasion.</strong> Les paramètres du patient sont
+            supposés constants sur les 96 heures. Chez un patient de réanimation, la clairance
+            peut changer d'un jour à l'autre plus que l'incertitude affichée ici, et alors le
+            prélèvement d'hier informe mal sur la dose de demain.
+          </li>
+          <li>
+            <strong>Le protocole est supposé exact.</strong> Heure réelle d'administration, durée
+            réelle de perfusion, heure réelle de prélèvement, dose réellement passée&nbsp;: tout
+            est supposé connu sans erreur. C'est rarement le cas, et les écarts de protocole
+            s'ajoutent à l'incertitude comme s'ils étaient du bruit analytique.
+          </li>
+          <li>
+            <strong>La probabilité d'atteinte affichée est incomplète.</strong> Elle ne tient
+            compte que de l'incertitude sur les paramètres. Elle ignore la variabilité
+            inter-occasion, l'erreur de la mesure future, et le fait que la cible elle-même —
+            la valeur d'AUC ou de résiduelle jugée souhaitable — est une convention issue de
+            données cliniques, avec sa propre incertitude.
+          </li>
+          <li>
+            <strong>Aucune donnée patient réelle, aucune validation clinique.</strong> Rien ici
+            n'a été confronté à des concentrations mesurées chez des patients, ni à des critères
+            de jugement. Ce n'est <strong>ni un dispositif médical, ni une aide à la
+            décision</strong>. C'est une maquette de raisonnement.
+          </li>
+        </ul>
+
+        <div class="note measure">
+          <p style="margin-bottom:0">
+            Ma thèse porte sur ce type de modèle, et sur ce qu'un modèle de langage peut y
+            apporter&nbsp;: «&nbsp;JUMP PHARMA&nbsp;: création de JUMeaux numériques
+            Pharmacologiques par approche hybride&nbsp;: exploitation des modèles mécanistiques
+            et des large language models en PHARMAcologie&nbsp;». La position que j'y défends
+            est celle-ci&nbsp;: <em>le modèle de langage est une couche d'assemblage, de
+            paramétrage et de documentation, pas un substitut à la structure.</em> La structure
+            — les compartiments, la clairance, le volume, l'erreur, l'a priori — reste ce qui est
+            manipulé sur cette page. <a href="/recherche/">Les travaux en cours</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 8. OÙ LA MÉTHODE EST EXPLIQUÉE ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Où la méthode est expliquée</h2></div>
+        <ul class="linklist measure">
+          <li>
+            <a href="/pharmacometrie/chapitres/bayes-ebes/">Estimation bayésienne et paramètres individuels</a>
+            <span class="meta">A priori, vraisemblance, a posteriori&nbsp;: d'où viennent les
+              paramètres individuels, et pourquoi ils restent attachés à leur population.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/math-bayes/">Le théorème de Bayes, appliqué aux paramètres</a>
+            <span class="meta">Le calcul exact derrière la grille de cette page&nbsp;: produit de
+              la vraisemblance et de l'a priori, normalisation, quantiles.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/tdm/">Suivi thérapeutique pharmacologique</a>
+            <span class="meta">Du prélèvement à la décision&nbsp;: où se place ce calcul dans la
+              chaîne de soins, et ce qu'il ne remplace pas.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/tools-mipd/">Les outils d'adaptation de dose guidée par les modèles</a>
+            <span class="meta">Ce que font les logiciels qui industrialisent ce raisonnement, et
+              ce qu'ils affichent — ou n'affichent pas — de leur incertitude.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================= 9. CITER ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Citer cette démonstration</h2></div>
+        <div class="measure">
+          <p class="small" style="margin-bottom:0.3rem">APA</p>
+          <pre class="cite">Berrah, R. (2026). Un jumeau pharmacologique numérique, prélèvement
+par prélèvement [Démonstration interactive].
+https://rberrah.github.io/demos/jumeau-pharmacologique/</pre>
+
+          <p class="small" style="margin:1.2rem 0 0.3rem">BibTeX</p>
+          <pre class="cite">@misc{berrah2026jumeau,
+  author       = {Berrah, Racym},
+  title        = {Un jumeau pharmacologique num\'erique, pr\'el\`evement par pr\'el\`evement},
+  year         = {2026},
+  howpublished = {D\'emonstration interactive},
+  url          = {https://rberrah.github.io/demos/jumeau-pharmacologique/},
+  urldate      = {2026-08-04}
+}</pre>
+
+          <p style="margin-top:1.4rem">
+            Pour les travaux publiés dont cette page emprunte le raisonnement — le poids du
+            modèle d'erreur dans l'estimation de l'exposition individuelle, et l'adaptation de
+            dose guidée par les modèles chez le patient de réanimation&nbsp;:
+          </p>
+          <p class="ref">
+            <span class="me">Berrah R</span><span class="who">, Minichmayr I, Woillard JB ; IATDMCT Pharmacometrics Group.</span>
+            Better Dosing Through Better Error: Residual Error as a Hidden Lever in
+            Model-Informed Precision Dosing. <span class="journal">Therapeutic Drug Monitoring</span>, 2026.
+            <a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a>
+          </p>
+          <p class="ref">
+            <span class="me">Berrah R</span><span class="who">, Saint-Marcoux F, Monchaud C, Cointault O, Conseil M, Jaber S, Jung B, Woillard JB.</span>
+            From AUC/MIC to AUC<sub>ss</sub> and C<sub>min</sub>: Optimizing Micafungin Therapy in
+            the Critically Ill through Model-Informed Precision Dosing.
+            <span class="journal">The AAPS Journal</span>, 2025.
+            <a class="doi" href="https://doi.org/10.1208/s12248-025-01173-z">10.1208/s12248-025-01173-z</a>
+          </p>
+
+          <p class="small" style="margin-top:1.4rem">
+            Texte sous CC BY-SA 4.0, code sous licence MIT. La reprise en enseignement est
+            autorisée, y compris payante, à condition de citer et de partager aux mêmes
+            conditions.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 10. RAPPEL ================= -->
+      <section class="band">
+        <div class="note measure">
+          <p style="margin-bottom:0">
+            <strong>Aucun contenu de cette page ne constitue un avis thérapeutique ni une
+            recommandation posologique.</strong> Les doses affichées en milligrammes sont
+            calculées sur un médicament fictif et un modèle de population inventé, pour un
+            patient simulé. Elles ne s'appliquent à aucune molécule et à aucun patient.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     0. Utilitaires
+  ===================================================================== */
+  var NS = 'http://www.w3.org/2000/svg';
+  function E(n, a, p) {
+    var e = document.createElementNS(NS, n);
+    if (a) { for (var k in a) e.setAttribute(k, a[k]); }
+    if (p) p.appendChild(e);
+    return e;
+  }
+  function $(id) { return document.getElementById(id); }
+  /* Un formateur par nombre de décimales, construit une fois : instancier un
+     Intl.NumberFormat à chaque appel coûterait plus cher que tout le calcul. */
+  var nfCache = {};
+  function nf(x, d) {
+    if (x === null || x === undefined || !isFinite(x)) return '—';
+    var f = nfCache[d];
+    if (!f) {
+      try { f = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+      catch (e) { f = { format: function (v) { return v.toFixed(d).replace('.', ','); } }; }
+      nfCache[d] = f;
+    }
+    return f.format(x);
+  }
+  function fmtT(t) { return nf(t, 2).replace(/,00$/, '').replace(/0$/, ''); }
+  function niceCeil(x) {
+    if (!(x > 0)) return 1;
+    var e = Math.pow(10, Math.floor(Math.log(x) / Math.LN10));
+    var m = x / e, n;
+    if (m <= 1) n = 1; else if (m <= 1.5) n = 1.5; else if (m <= 2) n = 2;
+    else if (m <= 2.5) n = 2.5; else if (m <= 3) n = 3; else if (m <= 4) n = 4;
+    else if (m <= 5) n = 5; else if (m <= 7.5) n = 7.5; else n = 10;
+    return n * e;
+  }
+
+  /* ---------- générateur pseudo-aléatoire à graine ---------- */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function normStream(seed) {
+    var r = mulberry32(seed >>> 0), spare = null;
+    return function () {
+      if (spare !== null) { var s = spare; spare = null; return s; }
+      var u1 = Math.max(r(), 1e-12), u2 = r();
+      var m = Math.sqrt(-2 * Math.log(u1)), th = 6.283185307179586 * u2;
+      spare = m * Math.sin(th);
+      return m * Math.cos(th);
+    };
+  }
+
+  /* =====================================================================
+     1. Le modèle
+  ===================================================================== */
+  var TAU = 12, TINF = 1, NDOSE = 8, TMAX = NDOSE * TAU, DOSE = 1000;
+  var TH_CL = 4.0, OM_CL = 0.35, TH_V = 50.0, OM_V = 0.28;
+  var LCL0 = Math.log(TH_CL), LV0 = Math.log(TH_V);
+  var LOGAC = Math.log(DOSE / TINF);
+  var MAXOBS = 8;
+
+  /* Somme de superposition, sans dimension. C(t) = D/(T_perf·CL) · S(k,t) */
+  function Sval(k, t) {
+    if (t <= 0) return 0;
+    var nd = Math.floor(t / TAU) + 1;
+    if (nd > NDOSE) nd = NDOSE;
+    var s = 0, e1 = 1 - Math.exp(-k * TINF);
+    for (var j = 0; j < nd; j++) {
+      var u = t - j * TAU;
+      if (u <= 0) break;
+      if (u < TINF) s += 1 - Math.exp(-k * u);
+      else s += e1 * Math.exp(-k * (u - TINF));
+    }
+    return s;
+  }
+
+  /* =====================================================================
+     2. La grille bayésienne
+  ===================================================================== */
+  var H = 0.03, nHCL = 39, nHV = 31;
+  var nCL = 2 * nHCL + 1, nV = 2 * nHV + 1, NG = nCL * nV, nK = nCL + nV - 1;
+  var i, j, m, l, b;
+
+  var lnCL = new Float64Array(nCL), lnV = new Float64Array(nV), logA = new Float64Array(nCL);
+  var kArr = new Float64Array(nK), lnkArr = new Float64Array(nK);
+  for (i = 0; i < nCL; i++) { lnCL[i] = LCL0 + (i - nHCL) * H; logA[i] = LOGAC - lnCL[i]; }
+  for (j = 0; j < nV; j++) { lnV[j] = LV0 + (j - nHV) * H; }
+  for (m = 0; m < nK; m++) {
+    lnkArr[m] = (LCL0 - LV0) + (m - (nV - 1) - nHCL + nHV) * H;
+    kArr[m] = Math.exp(lnkArr[m]);
+  }
+
+  var lpr = new Float64Array(NG);
+  for (i = 0; i < nCL; i++) {
+    var za = (lnCL[i] - LCL0) / OM_CL, off0 = i * nV;
+    for (j = 0; j < nV; j++) {
+      var zb = (lnV[j] - LV0) / OM_V;
+      lpr[off0 + j] = -0.5 * (za * za + zb * zb);
+    }
+  }
+
+  /* ---------- grille temporelle : 15 instants par intervalle, pic exact ---------- */
+  var OFFS = [0, 0.2, 0.45, 0.7, 1.0, 1.25, 1.6, 2.0, 2.5, 3.2, 4.2, 5.4, 7.0, 9.0, 11.0];
+  var tGrid = [];
+  for (var dd = 0; dd < NDOSE; dd++) { for (var oo = 0; oo < OFFS.length; oo++) tGrid.push(dd * TAU + OFFS[oo]); }
+  tGrid.push(TMAX);
+  var nT = tGrid.length;
+
+  var logST = new Array(nT);
+  for (l = 0; l < nT; l++) {
+    if (tGrid[l] <= 0) { logST[l] = null; continue; }
+    var arr = new Float64Array(nK);
+    for (m = 0; m < nK; m++) arr[m] = Math.log(Sval(kArr[m], tGrid[l]));
+    logST[l] = arr;
+  }
+
+  var acc = new Float64Array(NG), wtmp = new Float64Array(NG),
+      curW = new Float64Array(NG), priorW = new Float64Array(NG);
+
+  function normalizeTo(src, out) {
+    var mx = -Infinity, q;
+    for (q = 0; q < NG; q++) if (src[q] > mx) mx = src[q];
+    var s = 0;
+    for (q = 0; q < NG; q++) { var v = Math.exp(src[q] - mx); out[q] = v; s += v; }
+    var inv = 1 / s;
+    for (q = 0; q < NG; q++) out[q] *= inv;
+  }
+  normalizeTo(lpr, priorW);
+
+  /* =====================================================================
+     3. Bande de crédibilité (histogrammes pondérés, instant par instant)
+  ===================================================================== */
+  var NBB = 200, bhist = new Float64Array(NBB);
+  var bq05 = new Float64Array(nT), bq50 = new Float64Array(nT), bq95 = new Float64Array(nT);
+  var pq05 = new Float64Array(nT), pq50 = new Float64Array(nT), pq95 = new Float64Array(nT);
+
+  /* Liste compacte des points de grille qui pèsent réellement. Le seuil est
+     relatif au maximum a posteriori : quand la loi se concentre, la liste fond,
+     et le calcul de la bande avec elle. La masse écartée reste sous 10⁻⁴. */
+  var actA = new Float64Array(NG), actW = new Float64Array(NG), actM = new Int32Array(NG), nAct = 0;
+  function buildActive(w) {
+    var mx = 0, q;
+    for (q = 0; q < NG; q++) if (w[q] > mx) mx = w[q];
+    var thr = mx * 1e-7;
+    nAct = 0;
+    for (var ii = 0; ii < nCL; ii++) {
+      var a = logA[ii], base = ii + nV - 1, of = ii * nV;
+      for (var jj = 0; jj < nV; jj++) {
+        var wv = w[of + jj];
+        if (wv < thr) continue;
+        actA[nAct] = a; actM[nAct] = base - jj; actW[nAct] = wv; nAct++;
+      }
+    }
+  }
+
+  function computeBand() {
+    for (var L = 0; L < nT; L++) {
+      var LS = logST[L];
+      if (!LS) { bq05[L] = 0; bq50[L] = 0; bq95[L] = 0; continue; }
+      var lo = Infinity, hi = -Infinity, v, q;
+      for (q = 0; q < nAct; q++) {
+        v = actA[q] + LS[actM[q]];
+        if (v < lo) lo = v;
+        if (v > hi) hi = v;
+      }
+      if (lo === Infinity) { bq05[L] = 0; bq50[L] = 0; bq95[L] = 0; continue; }
+      if (hi - lo < 1e-12) { var c0 = Math.exp(lo); bq05[L] = c0; bq50[L] = c0; bq95[L] = c0; continue; }
+      var step = (hi - lo) / NBB, inv = 1 / step, tot = 0, bb;
+      bhist.fill(0);
+      for (q = 0; q < nAct; q++) {
+        v = actA[q] + LS[actM[q]];
+        bb = ((v - lo) * inv) | 0;
+        if (bb >= NBB) bb = NBB - 1; else if (bb < 0) bb = 0;
+        bhist[bb] += actW[q]; tot += actW[q];
+      }
+      var t05 = 0.05 * tot, t50 = 0.5 * tot, t95 = 0.95 * tot;
+      var cum = 0, got = 0, r05 = lo, r50 = lo, r95 = hi;
+      for (bb = 0; bb < NBB; bb++) {
+        var prev = cum; cum += bhist[bb];
+        var hb = bhist[bb];
+        if (got === 0 && cum >= t05) { r05 = lo + (bb + (hb > 0 ? (t05 - prev) / hb : 0.5)) * step; got = 1; }
+        if (got === 1 && cum >= t50) { r50 = lo + (bb + (hb > 0 ? (t50 - prev) / hb : 0.5)) * step; got = 2; }
+        if (got === 2 && cum >= t95) { r95 = lo + (bb + (hb > 0 ? (t95 - prev) / hb : 0.5)) * step; got = 3; break; }
+      }
+      bq05[L] = Math.exp(r05); bq50[L] = Math.exp(r50); bq95[L] = Math.exp(r95);
+    }
+  }
+
+  /* =====================================================================
+     4. Dose requise : distribution a posteriori exacte sur la grille
+  ===================================================================== */
+  var lnD = new Float64Array(NG), lnDmin = 0, lnDmax = 1, DMAX = 3000;
+  var NBD = 400, dhist = new Float64Array(NBD), dcum = new Float64Array(NBD), dcumTot = 1;
+  var gArr = new Float64Array(nK);
+
+  function gOf(k) {
+    return (1 - Math.exp(-k * TAU)) / ((1 - Math.exp(-k * TINF)) * Math.exp(-k * (TAU - TINF)));
+  }
+
+  function buildDose() {
+    var q, of, v, base;
+    if (st.mode === 'auc') {
+      var c0 = Math.log(st.target * TAU / 24);
+      for (q = 0; q < nCL; q++) { v = c0 + lnCL[q]; of = q * nV; for (j = 0; j < nV; j++) lnD[of + j] = v; }
+    } else {
+      for (m = 0; m < nK; m++) gArr[m] = Math.log(gOf(kArr[m]));
+      var c1 = Math.log(st.target * TINF);
+      for (q = 0; q < nCL; q++) {
+        v = c1 + lnCL[q]; of = q * nV; base = q + nV - 1;
+        for (j = 0; j < nV; j++) lnD[of + j] = v + gArr[base - j];
+      }
+    }
+    lnDmin = Infinity; lnDmax = -Infinity;
+    for (q = 0; q < NG; q++) { if (lnD[q] < lnDmin) lnDmin = lnD[q]; if (lnD[q] > lnDmax) lnDmax = lnD[q]; }
+    lnDmin -= 0.02; lnDmax += 0.02;
+    var s = doseStats(priorW, [0.995]);
+    DMAX = niceCeil(s[0] * 1.15);
+  }
+
+  function doseStats(w, ps) {
+    dhist.fill(0);
+    var inv = NBD / (lnDmax - lnDmin), tot = 0, q, bb;
+    for (q = 0; q < NG; q++) {
+      var wv = w[q]; if (wv <= 0) continue;
+      bb = ((lnD[q] - lnDmin) * inv) | 0;
+      if (bb < 0) bb = 0; else if (bb >= NBD) bb = NBD - 1;
+      dhist[bb] += wv; tot += wv;
+    }
+    var c = 0;
+    for (bb = 0; bb < NBD; bb++) { c += dhist[bb]; dcum[bb] = c; }
+    dcumTot = tot;
+    var step = (lnDmax - lnDmin) / NBD, out = [];
+    for (var p = 0; p < ps.length; p++) {
+      var tgt = ps[p] * tot, loI = 0, hiI = NBD - 1;
+      while (loI < hiI) { var mid = (loI + hiI) >> 1; if (dcum[mid] < tgt) loI = mid + 1; else hiI = mid; }
+      var prev = loI > 0 ? dcum[loI - 1] : 0, hb = dhist[loI];
+      var frac = hb > 0 ? (tgt - prev) / hb : 0.5;
+      out.push(Math.exp(lnDmin + (loI + frac) * step));
+    }
+    return out;
+  }
+
+  function cdfDose(x) {
+    if (!(x > 0)) return 0;
+    var lx = Math.log(x);
+    if (lx <= lnDmin) return 0;
+    if (lx >= lnDmax) return 1;
+    var step = (lnDmax - lnDmin) / NBD, pos = (lx - lnDmin) / step;
+    var bb = pos | 0; if (bb >= NBD) bb = NBD - 1;
+    var prev = bb > 0 ? dcum[bb - 1] : 0;
+    return (prev + (pos - bb) * dhist[bb]) / dcumTot;
+  }
+  function pTarget(d) { var v = cdfDose(d / 0.8) - cdfDose(d / 1.2); return v > 0 ? v : 0; }
+
+  var NPD = 61, pdX = new Float64Array(NPD), pdY = new Float64Array(NPD);
+  function attain() {
+    for (var q = 0; q < NPD; q++) { var d = DMAX * q / (NPD - 1); pdX[q] = d; pdY[q] = pTarget(d); }
+  }
+
+  /* =====================================================================
+     5. État
+  ===================================================================== */
+  var st = {
+    seed: 1248, sigma: 0.15, mode: 'auc', target: 500,
+    obs: [], znoise: [], reveal: false,
+    trueLnCL: 0, trueLnV: 0, trueK: 0, trueLogA: 0
+  };
+  var rows = [], curQ = [0, 0, 0], meanCL = 0, meanV = 0, borderMass = 0, aucChk = null;
+
+  function newPatient(seed) {
+    st.seed = seed >>> 0;
+    var g = normStream(st.seed);
+    var z1 = g(), z2 = g();
+    if (z1 > 2.5) z1 = 2.5; if (z1 < -2.5) z1 = -2.5;
+    if (z2 > 2.5) z2 = 2.5; if (z2 < -2.5) z2 = -2.5;
+    st.trueLnCL = LCL0 + OM_CL * z1;
+    st.trueLnV = LV0 + OM_V * z2;
+    st.trueK = Math.exp(st.trueLnCL - st.trueLnV);
+    st.trueLogA = LOGAC - st.trueLnCL;
+    st.znoise = [];
+    for (var q = 0; q < MAXOBS; q++) st.znoise.push(g());
+    st.obs = [];
+  }
+
+  function addObs(t) {
+    if (st.obs.length >= MAXOBS) return false;
+    t = Math.round(t * 4) / 4;
+    if (t < 0.25) t = 0.25;
+    if (t > TMAX) t = TMAX;
+    var LS = new Float64Array(nK);
+    for (var q = 0; q < nK; q++) LS[q] = Math.log(Sval(kArr[q], t));
+    st.obs.push({ t: t, rank: st.obs.length, logS: LS, lnCtrue: st.trueLogA + Math.log(Sval(st.trueK, t)) });
+    return true;
+  }
+
+  /* =====================================================================
+     6. Le calcul complet
+  ===================================================================== */
+  function computeAll(needBand) {
+    var n = st.obs.length, sig = st.sigma, inv2 = 1 / (2 * sig * sig);
+    acc.set(lpr);
+    rows = [];
+    for (var p = 0; p <= n; p++) {
+      if (p > 0) {
+        var o = st.obs[p - 1], ly = o.lnCtrue + sig * st.znoise[o.rank], LS = o.logS;
+        for (i = 0; i < nCL; i++) {
+          var a = logA[i], base = i + nV - 1, of = i * nV;
+          for (j = 0; j < nV; j++) { var r = ly - (a + LS[base - j]); acc[of + j] -= r * r * inv2; }
+        }
+      }
+      normalizeTo(acc, wtmp);
+      var q3 = doseStats(wtmp, [0.05, 0.5, 0.95]);
+      rows.push({ n: p, t: p > 0 ? st.obs[p - 1].t : null, q05: q3[0], q50: q3[1], q95: q3[2] });
+      if (p === n) { curW.set(wtmp); curQ = q3; }
+    }
+
+    /* moyenne a posteriori, sur l'échelle logarithmique */
+    var mlc = 0, mlv = 0, s;
+    for (i = 0; i < nCL; i++) { s = 0; var of2 = i * nV; for (j = 0; j < nV; j++) s += curW[of2 + j]; mlc += s * lnCL[i]; }
+    for (j = 0; j < nV; j++) { s = 0; for (i = 0; i < nCL; i++) s += curW[i * nV + j]; mlv += s * lnV[j]; }
+    meanCL = Math.exp(mlc); meanV = Math.exp(mlv);
+
+    /* masse a posteriori sur le bord de la grille */
+    borderMass = 0;
+    for (j = 0; j < nV; j++) { borderMass += curW[j]; borderMass += curW[(nCL - 1) * nV + j]; }
+    for (i = 1; i < nCL - 1; i++) { borderMass += curW[i * nV]; borderMass += curW[i * nV + nV - 1]; }
+
+    /* contrôle numérique : trapèzes contre D/CL */
+    aucChk = aucTrapeze(meanCL, meanCL / meanV);
+
+    buildActive(curW);
+    /* Sans aucune observation, la loi a posteriori EST l'a priori : la bande ne
+       dépend alors ni de σ ni de la cible, et n'a pas à être recalculée. */
+    if (needBand !== false) {
+      if (n === 0) { bq05.set(pq05); bq50.set(pq50); bq95.set(pq95); }
+      else computeBand();
+    }
+    attain();
+  }
+
+  function aucTrapeze(CLm, km) {
+    var A = DOSE / (TINF * CLm), s = 0, pt = null, pc = null, t0 = (NDOSE - 1) * TAU;
+    for (var L = 0; L < nT; L++) {
+      var t = tGrid[L];
+      if (t < t0 - 1e-9) continue;
+      var c = A * Sval(km, t);
+      if (pt !== null) s += (c + pc) * 0.5 * (t - pt);
+      pt = t; pc = c;
+    }
+    var exact = DOSE / CLm;
+    return { trap: s, exact: exact, pct: 100 * (s - exact) / exact };
+  }
+
+  /* =====================================================================
+     7. Géométrie des graphiques
+  ===================================================================== */
+  /* --- 1. profil --- */
+  var P = { ml: 58, mr: 18, mt: 18, mb: 48, w: 720, h: 380 };
+  P.pw = P.w - P.ml - P.mr; P.ph = P.h - P.mt - P.mb;
+  var YMAX = 1;
+  function fx(t) { return P.ml + t / TMAX * P.pw; }
+  function fxi(x) { return (x - P.ml) / P.pw * TMAX; }
+  function fy(c) { return P.mt + (1 - c / YMAX) * P.ph; }
+
+  /* --- 2. carte --- */
+  var M = { ml: 56, mr: 14, mt: 14, mb: 48, w: 360, h: 320 };
+  M.pw = M.w - M.ml - M.mr; M.ph = M.h - M.mt - M.mb;
+  var lcMin = lnCL[0] - H / 2, lcMax = lnCL[nCL - 1] + H / 2;
+  var lvMin = lnV[0] - H / 2, lvMax = lnV[nV - 1] + H / 2;
+  function mx(lc) { return M.ml + (lc - lcMin) / (lcMax - lcMin) * M.pw; }
+  function my(lv) { return M.mt + (lvMax - lv) / (lvMax - lvMin) * M.ph; }
+
+  /* --- 3. dose --- */
+  var D3 = { ml: 56, mr: 14, mt: 14, mb: 48, w: 360, h: 320 };
+  D3.pw = D3.w - D3.ml - D3.mr;
+  var RUG_Y = 24, RUG_H = 14, PY_TOP = 78, PY_BOT = 272;
+  function dx(d) { var v = D3.ml + d / DMAX * D3.pw; return v < D3.ml ? D3.ml : (v > D3.ml + D3.pw ? D3.ml + D3.pw : v); }
+  function dy(p) { return PY_BOT - p * (PY_BOT - PY_TOP); }
+
+  /* =====================================================================
+     8. Construction des SVG
+  ===================================================================== */
+  var elBand, elE05, elE95, elMed, elTruth, elTgtLine, elTgtLabel, obsPool = [],
+      elGuide, elMapDens = [], elMapMean, elMapTrue, elMapTrueLbl,
+      elDoseCurve, elDoseBar, elDoseTick, elDoseTrue, elDoseTrueLbl;
+
+  function buildProfile() {
+    var g = $('g-pr-static'), gd = $('g-pr-dyn'), t, x, y, k;
+    /* axe Y */
+    for (k = 0; k <= 5; k++) {
+      y = P.mt + k / 5 * P.ph;
+      var val = YMAX * (1 - k / 5);
+      E('line', { x1: P.ml, y1: y, x2: P.ml + P.pw, y2: y, 'class': k === 5 ? 'ax' : 'grid' }, g);
+      var tx = E('text', { x: P.ml - 8, y: y + 3.6, 'class': 'tk', 'text-anchor': 'end' }, g);
+      tx.textContent = nf(val, val >= 10 ? 0 : 1);
+    }
+    /* axe X */
+    for (k = 0; k <= 8; k++) {
+      t = k * TAU; x = fx(t);
+      E('line', { x1: x, y1: P.mt, x2: x, y2: P.mt + P.ph, 'class': k === 0 ? 'ax' : 'grid' }, g);
+      var tx2 = E('text', { x: x, y: P.mt + P.ph + 17, 'class': 'tk', 'text-anchor': 'middle' }, g);
+      tx2.textContent = String(t);
+    }
+    /* repères d'administration */
+    for (k = 0; k < NDOSE; k++) {
+      x = fx(k * TAU);
+      E('line', { x1: x, y1: P.mt + P.ph + 1, x2: x, y2: P.mt + P.ph + 7, 'class': 'k-dose' }, g);
+    }
+    var lx = E('text', { x: P.ml + P.pw / 2, y: P.h - 10, 'class': 'axlab', 'text-anchor': 'middle' }, g);
+    lx.textContent = 'temps depuis la première administration (h)';
+    var ly = E('text', { x: 15, y: P.mt + P.ph / 2, 'class': 'axlab', 'text-anchor': 'middle', transform: 'rotate(-90 15 ' + (P.mt + P.ph / 2) + ')' }, g);
+    ly.textContent = 'concentration (mg/L)';
+    var la = E('text', { x: P.ml + P.pw - 2, y: P.mt + P.ph + 30, 'class': 'glab', 'text-anchor': 'end' }, g);
+    la.textContent = 'repères sous l’axe : les huit administrations';
+
+    /* dynamique */
+    elBand = E('path', { 'class': 'k-band', 'clip-path': 'url(#clip-pr)', d: '' }, gd);
+    elE05 = E('path', { 'class': 'k-edge', 'clip-path': 'url(#clip-pr)', d: '' }, gd);
+    elE95 = E('path', { 'class': 'k-edge', 'clip-path': 'url(#clip-pr)', d: '' }, gd);
+    elTgtLine = E('line', { 'class': 'k-tgt', x1: P.ml, x2: P.ml + P.pw, y1: 0, y2: 0, visibility: 'hidden' }, gd);
+    elTgtLabel = E('text', { 'class': 'glab', x: P.ml + 5, y: 0, visibility: 'hidden' }, gd);
+    elTruth = E('path', { 'class': 'k-true', 'clip-path': 'url(#clip-pr)', d: '', visibility: 'hidden' }, gd);
+    elMed = E('path', { 'class': 'k-med', 'clip-path': 'url(#clip-pr)', d: '' }, gd);
+    for (k = 0; k < MAXOBS; k++) obsPool.push(E('circle', { 'class': 'k-obs', r: 4.2, cx: 0, cy: 0, visibility: 'hidden' }, gd));
+    elGuide = E('line', { 'class': 'k-guide', x1: 0, x2: 0, y1: P.mt, y2: P.mt + P.ph, visibility: 'hidden' }, gd);
+    E('rect', { 'class': 'k-hit', x: P.ml, y: P.mt, width: P.pw, height: P.ph, id: 'hit-pr' }, gd);
+  }
+
+  function buildMap() {
+    var g = $('g-mp-static'), gd = $('g-mp-dyn'), gdn = $('g-mp-dens'), k, v, x, y;
+    var tCL = [2, 3, 4, 6, 8, 12], tV = [20, 30, 40, 60, 80, 120];
+    E('rect', { x: M.ml, y: M.mt, width: M.pw, height: M.ph, fill: 'none', 'class': 'ax' }, g);
+    for (k = 0; k < tCL.length; k++) {
+      v = Math.log(tCL[k]); if (v < lcMin || v > lcMax) continue;
+      x = mx(v);
+      E('line', { x1: x, y1: M.mt, x2: x, y2: M.mt + M.ph, 'class': 'grid' }, g);
+      var t1 = E('text', { x: x, y: M.mt + M.ph + 16, 'class': 'tk', 'text-anchor': 'middle' }, g);
+      t1.textContent = String(tCL[k]);
+    }
+    for (k = 0; k < tV.length; k++) {
+      v = Math.log(tV[k]); if (v < lvMin || v > lvMax) continue;
+      y = my(v);
+      E('line', { x1: M.ml, y1: y, x2: M.ml + M.pw, y2: y, 'class': 'grid' }, g);
+      var t2 = E('text', { x: M.ml - 8, y: y + 3.6, 'class': 'tk', 'text-anchor': 'end' }, g);
+      t2.textContent = String(tV[k]);
+    }
+    var lx = E('text', { x: M.ml + M.pw / 2, y: M.h - 12, 'class': 'axlab', 'text-anchor': 'middle' }, g);
+    lx.textContent = 'clairance CL (L/h), échelle log';
+    var ly = E('text', { x: 14, y: M.mt + M.ph / 2, 'class': 'axlab', 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + (M.mt + M.ph / 2) + ')' }, g);
+    ly.textContent = 'volume V (L), échelle log';
+
+    /* cellules de densité : blocs 3 × 3 de la grille fine */
+    var BS = 3;
+    for (var bi = 0; bi * BS < nCL; bi++) {
+      for (var bj = 0; bj * BS < nV; bj++) {
+        var i0 = bi * BS, i1 = Math.min(i0 + BS - 1, nCL - 1);
+        var j0 = bj * BS, j1 = Math.min(j0 + BS - 1, nV - 1);
+        var xa = mx(lnCL[i0] - H / 2), xb = mx(lnCL[i1] + H / 2);
+        var yb = my(lnV[j1] + H / 2), ya = my(lnV[j0] - H / 2);
+        var rc = E('rect', { 'class': 'k-dens', x: xa, y: yb, width: Math.max(0.6, xb - xa), height: Math.max(0.6, ya - yb), 'fill-opacity': 0 }, gdn);
+        elMapDens.push({ el: rc, i0: i0, i1: i1, j0: j0, j1: j1 });
+      }
+    }
+
+    /* région à 90 % de l'a priori (khi-deux à 2 ddl : rayon 2,146 σ) */
+    var R = 2.1460;
+    E('ellipse', {
+      'class': 'k-prior', cx: mx(LCL0), cy: my(LV0),
+      rx: R * OM_CL / (lcMax - lcMin) * M.pw, ry: R * OM_V / (lvMax - lvMin) * M.ph
+    }, gd);
+    elMapTrue = E('circle', { 'class': 'k-pt', r: 5, cx: 0, cy: 0, visibility: 'hidden' }, gd);
+    elMapTrueLbl = E('text', { 'class': 'glab t', x: 0, y: 0, visibility: 'hidden', 'text-anchor': 'middle' }, gd);
+    elMapTrueLbl.textContent = 'patient réel';
+    elMapMean = E('circle', { 'class': 'k-mean', r: 4, cx: 0, cy: 0 }, gd);
+  }
+
+  function buildDoseChart() {
+    var g = $('g-ds-static'), gd = $('g-ds-dyn'), k, y;
+    var lr = E('text', { x: D3.ml, y: RUG_Y - 6, 'class': 'glab', 'text-anchor': 'start' }, g);
+    lr.textContent = 'dose qui atteindrait exactement la cible';
+    E('line', { x1: D3.ml, y1: RUG_Y + RUG_H + 10, x2: D3.ml + D3.pw, y2: RUG_Y + RUG_H + 10, 'class': 'grid' }, g);
+    for (k = 0; k <= 2; k++) {
+      y = dy(k / 2);
+      E('line', { x1: D3.ml, y1: y, x2: D3.ml + D3.pw, y2: y, 'class': k === 0 ? 'ax' : 'grid' }, g);
+      var t1 = E('text', { x: D3.ml - 8, y: y + 3.6, 'class': 'tk', 'text-anchor': 'end' }, g);
+      t1.textContent = k === 0 ? '0' : (k === 2 ? '1' : '0,5');
+    }
+    var lp = E('text', { x: D3.ml, y: PY_TOP - 8, 'class': 'glab', 'text-anchor': 'start' }, g);
+    lp.textContent = 'probabilité d’être dans la cible à ±20 %';
+    var ly = E('text', { x: 14, y: (PY_TOP + PY_BOT) / 2, 'class': 'axlab', 'text-anchor': 'middle', transform: 'rotate(-90 14 ' + ((PY_TOP + PY_BOT) / 2) + ')' }, g);
+    ly.textContent = 'probabilité';
+    var lx = E('text', { x: D3.ml + D3.pw / 2, y: D3.h - 12, 'class': 'axlab', 'text-anchor': 'middle' }, g);
+    lx.textContent = 'dose administrée toutes les 12 h (mg)';
+    /* les graduations de l'axe des doses dépendent de DMAX : groupe séparé */
+    E('g', { id: 'g-ds-xt' }, g);
+
+    elDoseCurve = E('path', { 'class': 'k-pcurve', d: '' }, gd);
+    elDoseBar = E('rect', { 'class': 'k-cibar', x: 0, y: RUG_Y, width: 0, height: RUG_H, rx: 3 }, gd);
+    elDoseTick = E('line', { 'class': 'k-citick', x1: 0, x2: 0, y1: RUG_Y - 3, y2: RUG_Y + RUG_H + 3 }, gd);
+    elDoseTrue = E('line', { 'class': 'k-true', x1: 0, x2: 0, y1: RUG_Y - 3, y2: PY_BOT, visibility: 'hidden' }, gd);
+    elDoseTrueLbl = E('text', { 'class': 'glab t', x: 0, y: PY_BOT + 16, 'text-anchor': 'middle', visibility: 'hidden' }, gd);
+    elDoseTrueLbl.textContent = 'dose exacte';
+  }
+
+  function drawDoseTicks() {
+    var g = $('g-ds-xt');
+    while (g.firstChild) g.removeChild(g.firstChild);
+    var nTick = 5, k, v, x;
+    for (k = 0; k <= nTick; k++) {
+      v = DMAX * k / nTick; x = dx(v);
+      E('line', { x1: x, y1: PY_BOT, x2: x, y2: PY_BOT + 5, 'class': 'ax' }, g);
+      var t1 = E('text', { x: x, y: PY_BOT + 17, 'class': 'tk', 'text-anchor': 'middle' }, g);
+      t1.textContent = nf(v, 0);
+    }
+  }
+
+  /* =====================================================================
+     9. Tracé
+  ===================================================================== */
+  function pathBand() {
+    var up = [], dn = [], L;
+    for (L = 0; L < nT; L++) up.push((L ? 'L' : 'M') + fx(tGrid[L]).toFixed(1) + ' ' + fy(bq95[L]).toFixed(1));
+    for (L = nT - 1; L >= 0; L--) dn.push('L' + fx(tGrid[L]).toFixed(1) + ' ' + fy(bq05[L]).toFixed(1));
+    return up.join('') + dn.join('') + 'Z';
+  }
+  function pathOf(arr) {
+    var s = [], L;
+    for (L = 0; L < nT; L++) s.push((L ? 'L' : 'M') + fx(tGrid[L]).toFixed(1) + ' ' + fy(arr[L]).toFixed(1));
+    return s.join('');
+  }
+
+  function drawProfile() {
+    elBand.setAttribute('d', pathBand());
+    elE05.setAttribute('d', pathOf(bq05));
+    elE95.setAttribute('d', pathOf(bq95));
+    elMed.setAttribute('d', pathOf(bq50));
+
+    if (st.reveal) {
+      var A = DOSE / (TINF * Math.exp(st.trueLnCL)), s = [], L;
+      for (L = 0; L < nT; L++) s.push((L ? 'L' : 'M') + fx(tGrid[L]).toFixed(1) + ' ' + fy(A * Sval(st.trueK, tGrid[L])).toFixed(1));
+      elTruth.setAttribute('d', s.join(''));
+      elTruth.setAttribute('visibility', 'visible');
+    } else elTruth.setAttribute('visibility', 'hidden');
+
+    for (var q = 0; q < MAXOBS; q++) {
+      if (q < st.obs.length) {
+        var o = st.obs[q], c = Math.exp(o.lnCtrue + st.sigma * st.znoise[o.rank]);
+        var yy = fy(c);
+        if (yy < P.mt - 6) yy = P.mt - 6;
+        obsPool[q].setAttribute('cx', fx(o.t).toFixed(1));
+        obsPool[q].setAttribute('cy', yy.toFixed(1));
+        obsPool[q].setAttribute('visibility', 'visible');
+      } else obsPool[q].setAttribute('visibility', 'hidden');
+    }
+
+    if (st.mode === 'cmin' && st.target <= YMAX) {
+      var yt = fy(st.target);
+      elTgtLine.setAttribute('y1', yt); elTgtLine.setAttribute('y2', yt);
+      elTgtLine.setAttribute('visibility', 'visible');
+      elTgtLabel.setAttribute('y', yt - 5);
+      elTgtLabel.textContent = 'cible résiduelle ' + nf(st.target, 1) + ' mg/L';
+      elTgtLabel.setAttribute('visibility', 'visible');
+    } else {
+      elTgtLine.setAttribute('visibility', 'hidden');
+      elTgtLabel.setAttribute('visibility', 'hidden');
+    }
+
+    var iT = nT - 1;
+    $('d-pr').textContent =
+      'Profil sous 1 000 mg toutes les 12 heures. Avec ' + st.obs.length + ' prélèvement' +
+      (st.obs.length > 1 ? 's' : '') + ', la bande de crédibilité à 90 % au dernier creux, à 96 heures, ' +
+      'va de ' + nf(bq05[iT], 1) + ' à ' + nf(bq95[iT], 1) + ' milligrammes par litre, ' +
+      'de médiane ' + nf(bq50[iT], 1) + '.';
+  }
+
+  function drawMap() {
+    var q, mxw = 0, sums = new Float64Array(elMapDens.length);
+    for (q = 0; q < elMapDens.length; q++) {
+      var c = elMapDens[q], s = 0;
+      for (i = c.i0; i <= c.i1; i++) { var of = i * nV; for (j = c.j0; j <= c.j1; j++) s += curW[of + j]; }
+      sums[q] = s; if (s > mxw) mxw = s;
+    }
+    var inv = mxw > 0 ? 1 / mxw : 0;
+    for (q = 0; q < elMapDens.length; q++) {
+      var r = sums[q] * inv;
+      var op = r < 0.004 ? 0 : Math.pow(r, 0.55) * 0.92;
+      elMapDens[q].el.setAttribute('fill-opacity', op.toFixed(3));
+    }
+    elMapMean.setAttribute('cx', mx(Math.log(meanCL)).toFixed(1));
+    elMapMean.setAttribute('cy', my(Math.log(meanV)).toFixed(1));
+    if (st.reveal) {
+      var tx = mx(st.trueLnCL), ty = my(st.trueLnV);
+      elMapTrue.setAttribute('cx', tx.toFixed(1)); elMapTrue.setAttribute('cy', ty.toFixed(1));
+      elMapTrue.setAttribute('visibility', 'visible');
+      elMapTrueLbl.setAttribute('x', tx.toFixed(1));
+      elMapTrueLbl.setAttribute('y', (ty > M.mt + 24 ? ty - 9 : ty + 17).toFixed(1));
+      elMapTrueLbl.setAttribute('visibility', 'visible');
+    } else {
+      elMapTrue.setAttribute('visibility', 'hidden');
+      elMapTrueLbl.setAttribute('visibility', 'hidden');
+    }
+    $('d-mp').textContent =
+      'Densité a posteriori sur la clairance et le volume. Moyenne a posteriori : clairance ' +
+      nf(meanCL, 2) + ' litres par heure, volume ' + nf(meanV, 1) + ' litres.';
+  }
+
+  function drawDose() {
+    var s = [], q;
+    s.push('M' + dx(0).toFixed(1) + ' ' + dy(0).toFixed(1));
+    for (q = 0; q < NPD; q++) s.push('L' + dx(pdX[q]).toFixed(1) + ' ' + dy(pdY[q]).toFixed(1));
+    s.push('L' + dx(DMAX).toFixed(1) + ' ' + dy(0).toFixed(1) + 'Z');
+    elDoseCurve.setAttribute('d', s.join(''));
+
+    var xa = dx(curQ[0]), xb = dx(curQ[2]);
+    elDoseBar.setAttribute('x', xa.toFixed(1));
+    elDoseBar.setAttribute('width', Math.max(2.5, xb - xa).toFixed(1));
+    elDoseTick.setAttribute('x1', dx(curQ[1]).toFixed(1));
+    elDoseTick.setAttribute('x2', dx(curQ[1]).toFixed(1));
+
+    if (st.reveal) {
+      var td = trueDose(), xt = dx(td);
+      elDoseTrue.setAttribute('x1', xt.toFixed(1)); elDoseTrue.setAttribute('x2', xt.toFixed(1));
+      elDoseTrue.setAttribute('visibility', 'visible');
+      elDoseTrueLbl.setAttribute('x', Math.min(Math.max(xt, D3.ml + 26), D3.ml + D3.pw - 26).toFixed(1));
+      elDoseTrueLbl.setAttribute('visibility', 'visible');
+      elDoseTrueLbl.textContent = 'dose exacte ' + nf(td, 0) + ' mg';
+    } else {
+      elDoseTrue.setAttribute('visibility', 'hidden');
+      elDoseTrueLbl.setAttribute('visibility', 'hidden');
+    }
+    $('d-ds').textContent =
+      'Dose requise : médiane ' + nf(curQ[1], 0) + ' milligrammes, intervalle de crédibilité à 90 % de ' +
+      nf(curQ[0], 0) + ' à ' + nf(curQ[2], 0) + ' milligrammes.';
+  }
+
+  function trueDose() {
+    var CL = Math.exp(st.trueLnCL);
+    if (st.mode === 'auc') return st.target * CL * TAU / 24;
+    return st.target * TINF * CL * gOf(st.trueK);
+  }
+
+  /* =====================================================================
+     10. Textes
+  ===================================================================== */
+  function drawTexts() {
+    var n = st.obs.length, r0 = rows[0], rn = rows[n];
+    $('v-ci').innerHTML = nf(rn.q05, 0) + ' – ' + nf(rn.q95, 0) + ' <span class="u">mg</span>';
+    var wN = rn.q95 - rn.q05, w0 = r0.q95 - r0.q05;
+    $('v-width').innerHTML = nf(wN, 0) + ' <span class="u">mg</span>';
+    $('v-ptar').innerHTML = nf(100 * pTarget(rn.q50), 0) + ' <span class="u">%</span>';
+    $('v-n').innerHTML = n + ' <span class="u">/ ' + MAXOBS + '</span>';
+    var iT = nT - 1;
+    $('v-trough').innerHTML = nf(bq05[iT], 1) + ' – ' + nf(bq95[iT], 1) + ' <span class="u">mg/L</span>';
+    $('v-mean').innerHTML = nf(meanCL, 2) + ' <span class="u">L/h</span> · ' + nf(meanV, 1) + ' <span class="u">L</span>';
+
+    var cible = st.mode === 'auc'
+      ? 'une AUC de ' + nf(st.target, 0) + ' mg·h/L sur 24 h'
+      : 'une résiduelle de ' + nf(st.target, 1) + ' mg/L';
+    var txt = '';
+    if (n === 0) {
+      txt = '<b>Avec 0 prélèvement</b>, la dose qui atteindrait ' + cible + ' est comprise entre <b>' +
+        nf(r0.q05, 0) + '</b> et <b>' + nf(r0.q95, 0) + ' mg</b> — un rapport de ' +
+        nf(r0.q95 / r0.q05, 1) + ' entre les deux bornes. Ce n’est pas une absence de réponse : ' +
+        'c’est la réponse de la population. Prélevez une fois, et regardez la bande se resserrer.';
+    } else {
+      var fac = wN > 0 ? w0 / wN : Infinity;
+      txt = '<b>Avec 0 prélèvement</b>, l’intervalle de dose allait de <b>' + nf(r0.q05, 0) + '</b> à <b>' +
+        nf(r0.q95, 0) + ' mg</b>. <b>Avec ' + n + '</b>, il va de <b>' + nf(rn.q05, 0) + '</b> à <b>' +
+        nf(rn.q95, 0) + ' mg</b> — largeur divisée par <b>' + nf(fac, 1) + '</b>. ';
+      if (n >= 2) {
+        var wp = rows[n - 1].q95 - rows[n - 1].q05, gain = wp - wN;
+        var g1 = w0 - (rows[1].q95 - rows[1].q05);
+        if (gain >= 0) {
+          txt += 'Le dernier prélèvement, à t = ' + fmtT(rows[n].t) + ' h, a retiré <b>' +
+            nf(gain, 0) + ' mg</b> de largeur — contre ' + nf(g1, 0) + ' mg pour le premier.';
+        } else {
+          txt += 'Le dernier prélèvement, à t = ' + fmtT(rows[n].t) + ' h, a <b>élargi</b> ' +
+            'l’intervalle de ' + nf(-gain, 0) + ' mg : une mesure qui contredit les précédentes ' +
+            'déplace le jumeau au lieu de le resserrer. C’est ce qu’on attend d’une mesure.';
+        }
+      }
+    }
+    $('verdict').innerHTML = txt;
+
+    var oc = $('obs-count');
+    if (n === 0) oc.textContent = 'Aucun prélèvement. Le jumeau est encore la population.';
+    else if (n >= MAXOBS) oc.textContent = n + ' prélèvements — maximum atteint. Retirez-en un pour en replacer un ailleurs.';
+    else oc.textContent = n + ' prélèvement' + (n > 1 ? 's' : '') + ' : ' +
+      st.obs.map(function (o) { return fmtT(o.t) + ' h'; }).join(' · ');
+
+    var wg = $('warn-grid');
+    if (borderMass > 0.005) {
+      wg.hidden = false;
+      wg.textContent = 'Attention : ' + nf(100 * borderMass, 1) + ' % de la masse a posteriori touche le bord de la grille. ' +
+        'Les quantiles affichés sont tronqués par le domaine de calcul, pas par les données.';
+    } else wg.hidden = true;
+
+    $('chk-auc').innerHTML =
+      'CL moyenne a posteriori <b>' + nf(meanCL, 3) + ' L/h</b> · V <b>' + nf(meanV, 2) + ' L</b><br />' +
+      'AUC 84–96 h par trapèzes <b>' + nf(aucChk.trap, 2) + ' mg·h/L</b><br />' +
+      'D/CL (exact à l’équilibre) <b>' + nf(aucChk.exact, 2) + ' mg·h/L</b><br />' +
+      'écart <b>' + nf(aucChk.pct, 2) + ' %</b>';
+
+    var tl = $('truth-line');
+    if (st.reveal) {
+      tl.innerHTML = 'Patient réel : CL = <b>' + nf(Math.exp(st.trueLnCL), 2) + ' L/h</b>, V = <b>' +
+        nf(Math.exp(st.trueLnV), 1) + ' L</b>, demi-vie <b>' + nf(Math.LN2 / st.trueK, 1) +
+        ' h</b>. Dose exacte pour la cible : <b>' + nf(trueDose(), 0) + ' mg</b>.';
+    } else {
+      tl.textContent = 'Masqué. Prélevez d’abord, révélez ensuite : c’est la seule manière de savoir si le jumeau était honnête.';
+    }
+
+    /* le compteur */
+    var tb = $('hist-body'), html = '';
+    for (var q = 0; q < rows.length; q++) {
+      var rw = rows[q];
+      html += '<tr><td class="num">' + rw.n + '</td><td>' +
+        (rw.n === 0 ? 'aucun — a priori de population' : 't = ' + fmtT(rw.t) + ' h') +
+        '</td><td class="num">' + nf(rw.q50, 0) + ' mg</td><td class="num">' +
+        nf(rw.q05, 0) + ' – ' + nf(rw.q95, 0) + ' mg</td><td class="num">' +
+        nf(rw.q95 - rw.q05, 0) + ' mg</td></tr>';
+    }
+    tb.innerHTML = html;
+
+    $('btn-sample').disabled = (n >= MAXOBS);
+    $('btn-undo').disabled = (n === 0);
+    $('btn-clear').disabled = (n === 0);
+  }
+
+  /* =====================================================================
+     11. Boucle principale
+  ===================================================================== */
+  var perfEl;
+  function update(needBand, needDoseAxis) {
+    var t0 = performance.now();
+    if (needDoseAxis !== false) { buildDose(); drawDoseTicks(); }
+    computeAll(needBand);
+    drawProfile(); drawMap(); drawDose(); drawTexts();
+    var dt = performance.now() - t0;
+    perfEl.textContent = 'grille ' + nCL + ' × ' + nV + ' = ' + nf(NG, 0) + ' points · ' + nT +
+      ' instants · ' + nf(nAct, 0) + ' points actifs · recalcul complet en ' + nf(dt, 1) +
+      ' ms · graine ' + st.seed;
+  }
+
+  /* =====================================================================
+     12. Interactions
+  ===================================================================== */
+  function syncTargetControl() {
+    var r = $('rng-tgt');
+    if (st.mode === 'auc') {
+      r.min = 200; r.max = 900; r.step = 10;
+      if (st.target < 200 || st.target > 900) st.target = 500;
+      r.value = st.target;
+      $('lbl-tgt').textContent = 'Cible d’AUC sur 24 h';
+      $('out-tgt').textContent = nf(st.target, 0) + ' mg·h/L';
+    } else {
+      r.min = 4; r.max = 30; r.step = 0.5;
+      if (st.target < 4 || st.target > 30) st.target = 13;
+      r.value = st.target;
+      $('lbl-tgt').textContent = 'Cible de concentration résiduelle';
+      $('out-tgt').textContent = nf(st.target, 1) + ' mg/L';
+    }
+  }
+
+  function svgPoint(svg, ev) {
+    var r = svg.getBoundingClientRect(), vb = svg.viewBox.baseVal;
+    /* preserveAspectRatio par défaut : xMidYMid meet */
+    var sc = Math.min(r.width / vb.width, r.height / vb.height);
+    var ox = (r.width - vb.width * sc) / 2, oy = (r.height - vb.height * sc) / 2;
+    return { x: (ev.clientX - r.left - ox) / sc + vb.x, y: (ev.clientY - r.top - oy) / sc + vb.y };
+  }
+
+  function wire() {
+    var rngT = $('rng-t'), outT = $('out-t');
+    function showT() { outT.textContent = nf(parseFloat(rngT.value), 2).replace(/,00$/, ',0') + ' h'; }
+    rngT.addEventListener('input', showT); showT();
+
+    $('btn-sample').addEventListener('click', function () {
+      if (addObs(parseFloat(rngT.value))) update(true);
+    });
+    $('btn-undo').addEventListener('click', function () {
+      if (st.obs.length) { st.obs.pop(); update(true); }
+    });
+    $('btn-clear').addEventListener('click', function () { st.obs = []; update(true); });
+
+    $('btn-newpat').addEventListener('click', function () {
+      var s = (Math.imul(st.seed, 1664525) + 1013904223) >>> 0;
+      $('seed').value = s; newPatient(s); update(true);
+    });
+    $('seed').addEventListener('change', function () {
+      var v = parseInt(this.value, 10);
+      if (!isFinite(v) || v < 0) v = 0;
+      v = v >>> 0; this.value = v; newPatient(v); update(true);
+    });
+    $('chk-reveal').addEventListener('change', function () {
+      st.reveal = this.checked;
+      drawProfile(); drawMap(); drawDose(); drawTexts();
+    });
+
+    var rngS = $('rng-sig');
+    rngS.addEventListener('input', function () {
+      st.sigma = parseFloat(this.value);
+      $('out-sig').textContent = nf(st.sigma, 2);
+      $('sig-hint').textContent = 'Écart-type résiduel sur l’échelle logarithmique — soit environ ' +
+        nf(100 * Math.sqrt(Math.exp(st.sigma * st.sigma) - 1), 0) + ' % de coefficient de variation.';
+      update(true, false);
+    });
+
+    var radios = document.querySelectorAll('input[name="tgtmode"]');
+    for (var q = 0; q < radios.length; q++) {
+      radios[q].addEventListener('change', function () {
+        st.mode = this.value; st.target = (st.mode === 'auc') ? 500 : 13;
+        syncTargetControl(); update(false, true);
+      });
+    }
+    $('rng-tgt').addEventListener('input', function () {
+      st.target = parseFloat(this.value);
+      $('out-tgt').textContent = st.mode === 'auc' ? nf(st.target, 0) + ' mg·h/L' : nf(st.target, 1) + ' mg/L';
+      update(false, true);
+    });
+
+    /* clic dans le graphique = prélèvement */
+    var svgP = $('svg-prof'), hit = $('hit-pr'), tip = $('tip-prof'), wrapP = $('ch-prof');
+    hit.addEventListener('click', function (ev) {
+      var p = svgPoint(svgP, ev), t = fxi(p.x);
+      if (t < 0.25) t = 0.25; if (t > TMAX) t = TMAX;
+      rngT.value = Math.round(t * 4) / 4; showT();
+      if (addObs(t)) update(true);
+    });
+    hit.addEventListener('mousemove', function (ev) {
+      var p = svgPoint(svgP, ev), t = fxi(p.x);
+      if (t < 0) t = 0; if (t > TMAX) t = TMAX;
+      var best = 0, bd = Infinity;
+      for (var L = 0; L < nT; L++) { var d = Math.abs(tGrid[L] - t); if (d < bd) { bd = d; best = L; } }
+      elGuide.setAttribute('x1', fx(t).toFixed(1));
+      elGuide.setAttribute('x2', fx(t).toFixed(1));
+      elGuide.setAttribute('visibility', 'visible');
+      tip.innerHTML = '<b>t = ' + nf(t, 1) + ' h</b><br />bande 90 % : ' + nf(bq05[best], 2) + ' – ' + nf(bq95[best], 2) + ' mg/L';
+      var r = wrapP.getBoundingClientRect();
+      tip.style.left = Math.min(Math.max(ev.clientX - r.left + 12, 4), r.width - 175) + 'px';
+      tip.style.top = (ev.clientY - r.top - 46) + 'px';
+      tip.style.opacity = '1';
+    });
+    hit.addEventListener('mouseleave', function () {
+      elGuide.setAttribute('visibility', 'hidden');
+      tip.style.opacity = '0';
+    });
+  }
+
+  /* =====================================================================
+     13. Démarrage
+  ===================================================================== */
+  perfEl = $('perf');
+  newPatient(1248);
+  buildDose();
+  buildActive(priorW);
+  computeBand();
+  pq05.set(bq05); pq50.set(bq50); pq95.set(bq95);
+  var mx95 = 0;
+  for (l = 0; l < nT; l++) if (bq95[l] > mx95) mx95 = bq95[l];
+  YMAX = niceCeil(mx95 * 1.3);
+
+  buildProfile();
+  buildMap();
+  buildDoseChart();
+  syncTargetControl();
+  $('out-sig').textContent = nf(st.sigma, 2);
+  $('sig-hint').textContent = 'Écart-type résiduel sur l’échelle logarithmique — soit environ ' +
+    nf(100 * Math.sqrt(Math.exp(st.sigma * st.sigma) - 1), 0) + ' % de coefficient de variation.';
+  wire();
+  update(true);
+})();
+</script>
+</body>
+</html>

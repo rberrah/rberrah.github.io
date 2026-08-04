@@ -1,3 +1,5 @@
-# allow crawling everything by default
+# Tout le site est indexable ; aucune section n'est privée.
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://rberrah.github.io/pharmacometrie/sitemap.xml

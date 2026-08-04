@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — Racym Berrah</title>
+  <meta name="description" content="Signaler une erreur dans un chapitre, une référence mal citée ou une démonstration qui ne tient pas : ticket public sur GitHub. Pour le reste, une adresse électronique. Pas de formulaire." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/contact/" />
+  <link rel="me" href="https://orcid.org/0009-0001-6432-2880" />
+  <link rel="me" href="https://www.linkedin.com/in/racym-berrah-114387175/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Contact — Racym Berrah" />
+  <meta property="og:description" content="Le signalement d'une erreur se fait en public, avec une trace datée. Pour le reste, une adresse." />
+  <meta property="og:url" content="https://rberrah.github.io/contact/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    /* Le thème choisi dans les cours suit le lecteur jusqu'ici. */
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <style>
+    /* Classes locales à cette page. */
+    .adresse {
+      font-family: var(--mono); font-size: clamp(1rem, 2.4vw, 1.25rem);
+      color: var(--ink); word-break: break-word; margin: 0 0 0.4rem;
+    }
+    .bienvenue { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; max-width: var(--measure); }
+    .bienvenue li { padding-left: 1.05rem; position: relative; color: var(--ink-2); font-size: 0.95rem; }
+    .bienvenue li::before {
+      content: ""; position: absolute; left: 0; top: 0.62em;
+      width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+    }
+    .bienvenue li strong { color: var(--ink); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/" aria-current="page">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ============ EN-TÊTE ============ -->
+      <section class="band" style="border-bottom:0; padding-bottom:1.4rem;">
+        <p class="eyebrow">Contact</p>
+        <h1 class="measure">Deux canaux, selon ce que vous avez à dire.</h1>
+        <p class="lede" style="margin-top:1.2rem">
+          Une erreur dans un chapitre se signale en public, sur GitHub : le ticket est daté, la
+          correction est traçable et le lecteur suivant voit l'historique. Tout le reste passe
+          par une adresse électronique. Il n'y a pas de formulaire sur ce site : un site
+          statique ne peut pas en traiter un sans confier vos messages à un service tiers.
+        </p>
+      </section>
+
+      <!-- ============ CANAL 1 — SIGNALER UNE ERREUR ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Signaler une erreur — canal prioritaire</h2>
+          <p>
+            Une équation fausse, une unité qui ne suit pas, une référence mal citée ou
+            attribuée, une figure qui contredit le texte, un chiffre qui ne correspond plus à
+            la source : ouvrir un ticket est le geste le plus utile.
+          </p>
+        </div>
+
+        <div class="cta" style="margin-top:0">
+          <a class="btn" href="https://github.com/rberrah/rberrah.github.io/issues/new">Ouvrir un ticket sur GitHub →</a>
+        </div>
+
+        <div class="measure" style="margin-top:1.6rem">
+          <p>
+            Trois choses à indiquer, quand elles sont connues : <strong>l'adresse de la page</strong>,
+            <strong>le passage exact</strong> (titre de section ou numéro d'équation) et
+            <strong>ce qui devrait s'y trouver</strong>. Une référence à l'appui est utile, elle
+            n'est pas obligatoire.
+          </p>
+          <p>
+            Ce dépôt convient quel que soit le cours concerné — pharmacométrie, internat ou
+            biostatistique. Si le ticket relève d'un autre dépôt, je le déplace.
+          </p>
+          <p class="small">
+            Les corrections retenues sont appliquées, datées dans l'historique du chapitre et
+            créditées au nom de la personne qui les a signalées, sauf demande contraire.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ CANAL 2 — ÉCRIRE ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Écrire</h2>
+          <p>Pour tout ce qui n'est pas une correction ponctuelle.</p>
+        </div>
+
+        <p class="adresse"><a href="mailto:racym.berrah@inserm.fr">racym.berrah@inserm.fr</a></p>
+        <p class="small measure">
+          Adresse professionnelle. Les messages qui concernent un chapitre reçoivent une
+          réponse plus rapide s'ils en citent le titre ou l'adresse exacte.
+        </p>
+
+        <h3 style="margin-top:2.2rem">Ce qui est bienvenu</h3>
+        <ul class="bienvenue" style="margin-top:1rem">
+          <li><strong>Une erreur dans un chapitre</strong> — si vous préférez ne pas ouvrir de ticket public, l'adresse convient aussi.</li>
+          <li><strong>Une référence mal citée</strong>, mal attribuée, ou dont l'édition ne correspond pas à ce qui est écrit.</li>
+          <li><strong>Une démonstration qui ne tient pas</strong> : un calcul qui ne se reproduit pas, une visualisation qui donne un résultat incohérent avec le texte, un cas limite où le modèle affiché sort de son domaine de validité.</li>
+          <li><strong>Une question de méthode</strong> portant sur un chapitre : ce qui est démontré, ce qui est admis, et pourquoi telle hypothèse a été retenue plutôt qu'une autre.</li>
+          <li><strong>Une proposition de relecture</strong> d'un chapitre ou d'un parcours, dans votre domaine.</li>
+          <li><strong>Une proposition de traduction.</strong> La licence l'autorise sans autorisation préalable ; écrire avant permet d'éviter deux traductions parallèles du même chapitre, et de garder un lien réciproque avec l'original.</li>
+          <li><strong>Une discussion académique</strong> : pharmacométrie, adaptation de dose guidée par les modèles, modèles d'erreur résiduelle, jumeaux pharmacologiques numériques, place des modèles de langage dans la construction d'un modèle.</li>
+        </ul>
+
+        <h3 style="margin-top:2.4rem">Ce à quoi je ne peux pas répondre</h3>
+        <div class="measure" style="margin-top:0.9rem">
+          <p>
+            Les questions portant sur un patient identifié — posologie, interaction,
+            interprétation d'un dosage. Elles relèvent du pharmacien ou du médecin qui suit la
+            personne concernée, avec le dossier sous les yeux, et elles n'ont pas leur place
+            dans un courrier électronique.
+          </p>
+          <p>
+            Délai de réponse habituel : quelques jours ouvrés, davantage pendant les périodes
+            de rédaction et de congrès.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ AUTRES REPÈRES ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Ailleurs</h2>
+        </div>
+        <p class="idline">
+          ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+          <a href="https://github.com/rberrah">GitHub&nbsp;/&nbsp;rberrah</a> ·
+          <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+        </p>
+        <p class="small measure" style="margin-top:1rem">
+          Réutiliser un chapitre en cours ou en formation ne demande aucune permission : la
+          licence CC BY-SA 4.0 l'autorise déjà. <a href="/citer/">Les formats de citation et
+          le texte d'attribution</a> sont sur une page dédiée.
+        </p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -20,7 +20,9 @@ export const dictionary = {
       primary: 'Primary'
     },
     footer: {
-      license: 'Pharmacométrie Explain · Text CC BY-NC-SA 4.0 · Code MIT · 2026',
+      // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
+      licenseIntro: 'Pharmacométrie Pratique · Text',
+      licenseOutro: '· Code MIT · 2026',
       author: 'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics',
       report: 'Spotted an error? Report it',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
@@ -81,7 +83,13 @@ export const dictionary = {
       recallTitle: 'Before you start',
       prereqLabel: 'Prerequisites',
       glossaryLabel: 'Key terms',
-      vizCaption: 'About this animation'
+      vizCaption: 'About this animation',
+      // Signature d'auteur (en tête) et bloc de citation (en pied).
+      reviewedOn: 'Last revised',
+      citeTitle: 'Cite this page',
+      citeCopy: 'Copy',
+      citeCopied: 'Copied',
+      citeNote: 'Text licensed under CC BY-SA 4.0'
     },
     quiz: {
       correct: 'correct',
@@ -98,7 +106,7 @@ export const dictionary = {
       aboutItems: [
         'Written by a pharmacist (PharmD) who practises pharmacometrics: made to be clear before being exhaustive.',
         'Every chapter carries its SOURCES (an identifiable paper or reference), its last-revision date, and a link to report an error.',
-        'Free and open-source (text CC BY-NC-SA 4.0, code MIT) — non-commercial reuse and contributions welcome.',
+        'Open-source and freely reusable (text CC BY-SA 4.0, code MIT): reuse in teaching, including paid teaching, is allowed provided you credit the source and share alike.',
         'Educational only — no medical advice and no dosing recommendation.',
         'Bilingual (French / English), built with SvelteKit and deployed on GitHub Pages.'
       ],
@@ -153,7 +161,9 @@ export const dictionary = {
       primary: 'Navigation principale'
     },
     footer: {
-      license: 'Pharmacométrie Explain · Texte CC BY-NC-SA 4.0 · Code MIT · 2026',
+      // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
+      licenseIntro: 'Pharmacométrie Pratique · Texte',
+      licenseOutro: '· Code MIT · 2026',
       author: 'Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie',
       report: 'Une erreur ? Signalez-la',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
@@ -214,7 +224,13 @@ export const dictionary = {
       recallTitle: 'Avant de commencer',
       prereqLabel: 'Prérequis',
       glossaryLabel: 'Termes clés',
-      vizCaption: 'À propos de cette animation'
+      vizCaption: 'À propos de cette animation',
+      // Signature d'auteur (en tête) et bloc de citation (en pied).
+      reviewedOn: 'Dernière révision',
+      citeTitle: 'Citer cette page',
+      citeCopy: 'Copier',
+      citeCopied: 'Copié',
+      citeNote: 'Texte sous licence CC BY-SA 4.0'
     },
     quiz: {
       correct: 'correct',
@@ -231,7 +247,7 @@ export const dictionary = {
       aboutItems: [
         "Écrit par un pharmacien (PharmD) qui pratique la pharmacométrie : pensé pour être clair avant d'être exhaustif.",
         "Chaque chapitre porte ses SOURCES (article ou référence identifiable), sa date de dernière révision, et un lien pour signaler une erreur.",
-        'Gratuit et open-source (texte CC BY-NC-SA 4.0, code MIT) — réutilisation non commerciale et contributions bienvenues.',
+        "Open-source et librement réutilisable (texte CC BY-SA 4.0, code MIT) : la reprise en enseignement, y compris payant, est autorisée à condition de citer et de partager aux mêmes conditions.",
         'Usage pédagogique uniquement — aucun conseil médical ni recommandation posologique.',
         'Bilingue (français / anglais), construit avec SvelteKit et déployé sur GitHub Pages.'
       ],

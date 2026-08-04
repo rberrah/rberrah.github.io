@@ -3,107 +3,244 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ressources pédagogiques en pharmacie — R. Berrah</title>
-  <meta name="description" content="Portail des sites pédagogiques : préparation à l'internat en pharmacie et pharmacométrie pratique." />
-  <style>
-    :root {
-      --teal: #1f7a6d; --terra: #b85c38; --indigo: #4f46b8;
-      --bg: #f7f5f2; --surface: #ffffff; --border: #e6e1da;
-      --text: #23201d; --muted: #6b645c; --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #14120f; --surface: #1e1b17; --border: #322d27;
-        --text: #ece7e0; --muted: #a49c92; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4);
-        /* Les accents DOIVENT être éclaircis sur fond sombre : les versions claires
-           tombaient à 2,58:1 (indigo) et 3,62:1 (teal), en dessous du seuil lisible. */
-        --teal: #3fbfa9; --terra: #e8845c; --indigo: #8b83e6;
-      }
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; }
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg); color: var(--text);
-      -webkit-font-smoothing: antialiased; line-height: 1.6;
-      min-height: 100dvh; display: flex; flex-direction: column;
-    }
-    .wrap { width: 100%; max-width: 940px; margin: 0 auto; padding: clamp(2rem, 6vw, 5rem) 1.4rem 2rem; flex: 1; }
-    header { margin-bottom: clamp(2rem, 5vw, 3.5rem); }
-    .eyebrow { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0 0 .9rem; font-weight: 600; }
-    h1 { font-size: clamp(1.8rem, 4.5vw, 2.9rem); line-height: 1.12; margin: 0 0 .8rem; letter-spacing: -0.02em; }
-    h1 .grad { background: linear-gradient(90deg, var(--terra), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .lede { font-size: clamp(1rem, 2.2vw, 1.18rem); color: var(--muted); max-width: 54ch; margin: 0; }
-
-    .grid { display: grid; gap: 1.1rem; grid-template-columns: 1fr; }
-    @media (min-width: 680px) { .grid { grid-template-columns: 1fr 1fr; } }
-
-    .card {
-      position: relative; display: flex; flex-direction: column;
-      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-      padding: 1.5rem 1.6rem 1.4rem; text-decoration: none; color: inherit;
-      box-shadow: var(--shadow); overflow: hidden;
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--accent, var(--border)); }
-    a.card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,.06), 0 18px 44px rgba(0,0,0,.12); border-color: var(--accent); }
-    a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-    .card.internat { --accent: var(--teal); }
-    .card.pharma { --accent: var(--terra); }
-    .card.stats { --accent: var(--indigo); }
-
-    .tag { display: inline-flex; align-items: center; gap: .45rem; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--accent, var(--muted)); margin-bottom: .8rem; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent, var(--muted)); }
-    .card h2 { font-size: 1.35rem; margin: 0 0 .4rem; letter-spacing: -0.01em; }
-    .card p { margin: 0; color: var(--muted); font-size: .96rem; }
-    .go { margin-top: 1.1rem; font-weight: 600; font-size: .92rem; color: var(--accent); display: inline-flex; align-items: center; gap: .35rem; }
-    a.card:hover .go { gap: .6rem; }
-
-    .card.soon { border-style: dashed; box-shadow: none; opacity: .8; }
-    .card.soon .tag, .card.soon .go { color: var(--muted); }
-    .card.soon .dot { background: var(--muted); }
-
-    footer { border-top: 1px solid var(--border); }
-    .fwrap { max-width: 940px; margin: 0 auto; padding: 1.4rem; color: var(--muted); font-size: .82rem; display: flex; flex-wrap: wrap; gap: .4rem .9rem; justify-content: space-between; }
-    footer a { color: var(--muted); }
-  </style>
+  <title>Racym Berrah — pharmacométrie, biostatistique, pharmacologie clinique</title>
+  <meta name="description" content="Cours ouverts et démonstrations interactives en pharmacométrie, biostatistique et pharmacologie clinique. Racym Berrah, docteur en pharmacie, doctorant à l'INSERM UMR 1248 Pharmacologie et Transplantation, Limoges." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/" />
+  <link rel="me" href="https://orcid.org/0009-0001-6432-2880" />
+  <link rel="me" href="https://www.linkedin.com/in/racym-berrah-114387175/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="profile" />
+  <meta property="og:title" content="Racym Berrah — pharmacométrie, biostatistique, pharmacologie clinique" />
+  <meta property="og:description" content="Trois cours ouverts et des démonstrations interactives : on déplace une dose, on change une constante d'élimination, la courbe répond." />
+  <meta property="og:url" content="https://rberrah.github.io/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    /* Le thème choisi dans les cours suit le lecteur jusqu'ici. */
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": "https://rberrah.github.io/#racym-berrah",
+    "name": "Racym Berrah",
+    "givenName": "Racym",
+    "familyName": "Berrah",
+    "url": "https://rberrah.github.io/",
+    "identifier": "https://orcid.org/0009-0001-6432-2880",
+    "jobTitle": "Doctorant en pharmacologie",
+    "honorificSuffix": "PharmD",
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Université Paris Cité", "url": "https://u-paris.fr/" },
+    "knowsAbout": [
+      "Pharmacométrie",
+      "Model-informed precision dosing",
+      "Suivi thérapeutique pharmacologique",
+      "Pharmacocinétique de population",
+      "Biostatistique",
+      "Modélisation hybride mécanistique et apprentissage automatique"
+    ],
+    "knowsLanguage": ["fr", "en"],
+    "affiliation": {
+      "@type": "ResearchOrganization",
+      "name": "UMR 1248 Pharmacologie et Transplantation (INSERM, Université de Limoges, CHU de Limoges)",
+      "url": "https://www.unilim.fr/p-and-t/",
+      "address": { "@type": "PostalAddress", "addressLocality": "Limoges", "addressCountry": "FR" }
+    },
+    "memberOf": { "@type": "Organization", "name": "Consortium DIGPHAT" },
+    "sameAs": [
+      "https://orcid.org/0009-0001-6432-2880",
+      "https://www.linkedin.com/in/racym-berrah-114387175/",
+      "https://github.com/rberrah"
+    ]
+  }
+  </script>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <p class="eyebrow">Ressources pédagogiques</p>
-      <h1>La pharmacie <span class="grad">expliquée</span>,<br />pas seulement énumérée.</h1>
-      <p class="lede">Trois sites interactifs pour comprendre le raisonnement — le mécanisme avant la liste. Choisissez votre destination.</p>
-    </header>
+  <a class="skip" href="#main">Aller au contenu</a>
 
-    <main class="grid">
-      <a class="card internat" href="/internat/">
-        <span class="tag"><span class="dot"></span>Concours</span>
-        <h2>Internat Pharma</h2>
-        <p>Préparation au concours de l'internat en pharmacie : programme officiel, fiches, QCM et dossiers, lexique clinique et arbres diagnostiques.</p>
-        <span class="go">Entrer &rarr;</span>
-      </a>
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
 
-      <a class="card pharma" href="/pharmacometrie/">
-        <span class="tag"><span class="dot"></span>Modélisation</span>
-        <h2>Pharmacométrie Pratique</h2>
-        <p>PK/PD, cinétiques et modélisation rendues intuitives : cours interactifs, visualisations et exercices pour raisonner la pharmacométrie.</p>
-        <span class="go">Entrer &rarr;</span>
-      </a>
+  <main id="main">
+    <div class="wrap">
 
-      <a class="card stats" href="/stats/">
-        <span class="tag"><span class="dot"></span>Biostatistique</span>
-        <h2>Stat &amp; Biologie</h2>
-        <p>La statistique médicale rendue intuitive : loi normale, tests, χ², corrélation et tests des rangs, avec des visualisations que l'on manipule.</p>
-        <span class="go">Entrer &rarr;</span>
-      </a>
-    </main>
-  </div>
+      <!-- ============ HÉRO ============ -->
+      <section class="band" style="border-bottom:0; padding-bottom:2rem;">
+        <p class="kicker">
+          <strong>Racym Berrah</strong> — docteur en pharmacie · doctorant en pharmacologie ·
+          INSERM UMR 1248 <span style="white-space:nowrap">Pharmacologie et Transplantation</span>, Limoges
+        </p>
 
-  <footer>
+        <h1 class="measure">Un modèle qu'on ne peut pas manipuler<br />n'est pas encore expliqué.</h1>
+
+        <p class="lede" style="margin-top:1.3rem">
+          J'écris des cours de pharmacométrie, de biostatistique et de pharmacologie clinique,
+          en accès libre et en français. Chaque notion difficile est accompagnée d'un objet
+          interactif : on déplace une dose, on change une constante d'élimination, on regarde
+          la courbe répondre. Le code est ouvert, les sources sont citées, les erreurs se
+          corrigent en public.
+        </p>
+
+        <div class="cta">
+          <a class="btn" href="/pharmacometrie/">Commencer par la pharmacométrie</a>
+          <a class="btn ghost" href="/demos/">Voir les démonstrations</a>
+        </div>
+
+        <p class="proof">
+          <span><b>3</b> cours ouverts</span>
+          <span><b>319</b> chapitres en français</span>
+          <span><b>88</b> traduits en anglais</span>
+          <span><b>103</b> visualisations interactives</span>
+          <span>code source public</span>
+          <span>licence CC&nbsp;BY-SA&nbsp;4.0</span>
+        </p>
+      </section>
+
+      <!-- ============ LES TROIS COURS ============ -->
+      <section class="band" id="cours">
+        <div class="section-head">
+          <h2>Trois cours ouverts, en français.</h2>
+          <p>
+            Pharmacométrie, internat en pharmacie, biostatistique : 319 chapitres écrits,
+            sourcés et datés, dont 88 traduits en anglais. Aucun compte, aucune inscription.
+            La licence Creative Commons BY-SA autorise la reprise, l'adaptation et la
+            traduction, y compris en enseignement, à condition de citer et de partager
+            aux mêmes conditions.
+          </p>
+        </div>
+
+        <div class="courses">
+          <a class="course-card pharma" href="/pharmacometrie/">
+            <span class="tag">Modélisation</span>
+            <h3>Pharmacométrie Pratique</h3>
+            <p>PK/PD, pharmacocinétique de population, analyse non compartimentale, PBPK,
+              validation de modèle, suivi thérapeutique, NONMEM, Monolix, nlmixr2.</p>
+            <span class="count">88 chapitres · 88 en anglais · 63 visualisations</span>
+            <span class="go">Ouvrir le cours →</span>
+          </a>
+
+          <a class="course-card internat" href="/internat/">
+            <span class="tag">Concours</span>
+            <h3>Internat Pharma</h3>
+            <p>Le programme officiel de l'internat en pharmacie, chapitre par chapitre :
+              fiches, arbres de décision, lexique clinique, annales et QCM corrigés.</p>
+            <span class="count">186 chapitres · 30 visualisations</span>
+            <span class="go">Ouvrir le cours →</span>
+          </a>
+
+          <a class="course-card stats" href="/stats/">
+            <span class="tag">Biostatistique</span>
+            <h3>Stat &amp; Biologie</h3>
+            <p>Loi normale, tests, intervalles de confiance, χ², corrélation, tests des rangs,
+              survie, régression — et comment choisir le test qui convient.</p>
+            <span class="count">45 chapitres · 10 visualisations</span>
+            <span class="go">Ouvrir le cours →</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ============ DÉMONSTRATIONS ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>103 visualisations, toutes manipulables.</h2>
+          <p>
+            Chaque objet interactif calcule pour de vrai : une dose se déplace, une constante
+            d'élimination se change, une courbe répond. Chaque visualisation affiche ses
+            hypothèses et ses limites — incertitude sur les paramètres, identifiabilité,
+            sensibilité aux hypothèses de structure. Le code source est public.
+          </p>
+        </div>
+        <div class="cta" style="margin-top:0">
+          <a class="btn ghost" href="/demos/">Entrer dans les démonstrations →</a>
+        </div>
+      </section>
+
+      <!-- ============ RECHERCHE ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Recherche</h2>
+          <p>
+            Mes travaux publiés portent sur l'adaptation de dose guidée par les modèles :
+            le traitement de l'erreur résiduelle dans le calcul des expositions individuelles,
+            et l'optimisation posologique des antifongiques chez le patient de réanimation.
+            Ma thèse porte sur les jumeaux pharmacologiques numériques, et plus précisément
+            sur ce qu'un modèle de langage peut apporter à un modèle mécanistique :
+            <em>une couche d'assemblage, de paramétrage et de documentation, pas un substitut
+            à la structure.</em>
+          </p>
+        </div>
+        <ul class="linklist measure">
+          <li class="ref">
+            <span class="me">Berrah R</span><span class="who">, Minichmayr I, Woillard JB ; IATDMCT Pharmacometrics Group.</span>
+            Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.
+            <span class="journal">Therapeutic Drug Monitoring</span>, 2026.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a></span>
+          </li>
+          <li class="ref">
+            <span class="me">Berrah R</span><span class="who">, Saint-Marcoux F, Monchaud C, Cointault O, Conseil M, Jaber S, Jung B, Woillard JB.</span>
+            From AUC/MIC to AUC<sub>ss</sub> and C<sub>min</sub>: Optimizing Micafungin Therapy in the Critically Ill through Model-Informed Precision Dosing.
+            <span class="journal">The AAPS Journal</span>, 2025.
+            <span class="meta"><a class="doi" href="https://doi.org/10.1208/s12248-025-01173-z">10.1208/s12248-025-01173-z</a></span>
+          </li>
+        </ul>
+        <div class="cta" style="margin-top:1.4rem">
+          <a class="btn ghost" href="/recherche/">Tous les travaux, la thèse et les communications →</a>
+        </div>
+      </section>
+
+      <!-- ============ À PROPOS ============ -->
+      <section class="band">
+        <div class="section-head"><h2>À propos</h2></div>
+        <div class="measure">
+          <p>
+            Je suis docteur en pharmacie et je prépare un doctorat en pharmacologie à l'unité
+            INSERM UMR 1248 « Pharmacologie et Transplantation », portée par l'Université de
+            Limoges, l'INSERM et le CHU de Limoges. Je suis membre du consortium DIGPHAT, qui
+            travaille sur les jumeaux pharmacologiques numériques.
+          </p>
+          <p>
+            À côté de la recherche, j'écris et je développe trois cours ouverts. Chaque
+            chapitre porte ses références et la date de sa dernière révision. Les corrections
+            signalées sont appliquées et datées.
+          </p>
+          <div class="cta" style="margin-top:1.2rem">
+            <a class="btn ghost" href="/a-propos/">Le parcours en entier →</a>
+            <a class="btn ghost" href="/contact/">Écrire →</a>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
     <div class="fwrap">
-      <span>Écrit et maintenu par <strong>Racym Berrah</strong>, PharmD, doctorant en pharmacométrie — contenu original, CC BY-NC-SA 4.0</span>
-      <span>Une erreur ? <a href="https://github.com/rberrah/rberrah.github.io/issues/new" target="_blank" rel="noopener noreferrer">Signalez-la</a> · support pédagogique, ne remplace pas les références officielles</span>
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
     </div>
   </footer>
 </body>

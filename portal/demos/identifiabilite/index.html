@@ -1,0 +1,1666 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deux modèles, une seule courbe — identifiabilité pratique | Racym Berrah</title>
+  <meta name="description" content="Démonstration interactive : deux jeux de paramètres pharmacocinétiques éloignés de plusieurs dizaines de pour cent produisent la même courbe observée. Surface de vraisemblance, courbes de niveau et conditionnement calculés en direct." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/demos/identifiabilite/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Deux modèles, une seule courbe" />
+  <meta property="og:description" content="Deux jeux de paramètres différents peuvent-ils produire exactement la même courbe observée — et que devient alors un jumeau individualisé ?" />
+  <meta property="og:url" content="https://rberrah.github.io/demos/identifiabilite/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <style>
+    /* ---- Mise en page de l'atelier ---- */
+    .lab { display: grid; gap: 1.1rem; grid-template-columns: 1fr; margin: 1.4rem 0 0; }
+    @media (min-width: 1000px) { .lab { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); align-items: start; } }
+
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.9rem 1rem 1rem;
+    }
+    .panel h3 {
+      font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3);
+      margin: 0 0 0.7rem;
+    }
+    .panel > svg { display: block; width: 100%; height: auto; }
+
+    /* ---- Contrôles ---- */
+    .ctrls { display: grid; gap: 0.9rem; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); margin-top: 1.1rem; }
+    .cbox { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 0.95rem 0.95rem; }
+    .cbox h4 {
+      font-family: var(--mono); font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 0.65rem;
+    }
+    .fld { margin-bottom: 0.62rem; }
+    .fld:last-child { margin-bottom: 0; }
+    .fld label { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; font-size: 0.83rem; color: var(--ink-2); margin-bottom: 0.15rem; }
+    .fld label .v { font-family: var(--mono); font-size: 0.79rem; color: var(--ink); font-weight: 600; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; height: 1.5rem; }
+    input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    select, input[type="number"] {
+      font: inherit; font-size: 0.85rem; color: var(--ink); background: var(--paper);
+      border: 1px solid var(--border-strong); border-radius: 7px; padding: 0.3rem 0.45rem; width: 100%;
+    }
+    select:focus-visible, input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .bgrid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .mini {
+      font: inherit; font-size: 0.79rem; font-weight: 600; cursor: pointer;
+      background: var(--paper); color: var(--ink); border: 1px solid var(--border-strong);
+      border-radius: 7px; padding: 0.34rem 0.62rem; line-height: 1.3;
+    }
+    .mini:hover { border-color: var(--ink); }
+    .mini:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .mini.key { background: var(--accent-soft); border-color: var(--accent); }
+    .seedrow { display: flex; gap: 0.4rem; align-items: center; }
+    .seedrow input[type="number"] { width: 8.5em; font-family: var(--mono); font-size: 0.79rem; }
+
+    /* ---- Lectures chiffrées ---- */
+    .reads { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); margin-top: 0.2rem; }
+    .read { border: 1px solid var(--border); border-radius: 9px; padding: 0.5rem 0.6rem; background: var(--paper); }
+    .read .k { font-family: var(--mono); font-size: 0.63rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); display: block; line-height: 1.4; }
+    .read .n { font-family: var(--mono); font-size: 1.02rem; font-weight: 600; color: var(--ink); display: block; margin-top: 0.1rem; }
+    .read .u { font-size: 0.72rem; color: var(--ink-3); font-weight: 400; }
+    .read.hi { border-color: var(--accent); background: var(--accent-soft); }
+    .read.warn { border-color: var(--terra); }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.78rem; color: var(--ink-2); margin-top: 0.6rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .swatch { width: 15px; height: 3px; border-radius: 2px; display: inline-block; }
+    .sw-fit { background: var(--accent); }
+    .sw-twin { background: var(--terra); }
+    .sw-true { background: var(--ink-3); }
+    .sw-obs { width: 9px; height: 9px; border-radius: 50%; background: var(--ink); }
+    .sw-opt { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); }
+
+    .kappanote {
+      font-family: var(--mono); font-size: 0.78rem; color: var(--ink-2);
+      margin-top: 0.6rem; min-height: 1.3em;
+    }
+    .kappanote b { color: var(--ink); }
+
+    /* ---- Tableau des deux jeux ---- */
+    .twin-tbl { font-size: 0.85rem; }
+    .twin-tbl td.num, .twin-tbl th.num { text-align: right; font-family: var(--mono); font-size: 0.81rem; padding-right: 0.7rem; }
+    .twin-tbl .dlt { font-weight: 600; }
+    .twin-tbl tr.sep td { border-top: 1px solid var(--border-strong); }
+
+    /* ---- SVG : couleurs pilotées par les variables du socle ---- */
+    .ax-line { stroke: var(--border-strong); stroke-width: 1; fill: none; }
+    .ax-grid { stroke: var(--border); stroke-width: 1; fill: none; }
+    .ax-grid.minor { stroke: var(--border); stroke-width: 0.5; opacity: 0.6; }
+    .ax-txt { fill: var(--ink-3); font-family: var(--mono); font-size: 10px; }
+    .ax-title { fill: var(--ink-2); font-family: var(--sans); font-size: 11px; }
+
+    .c-fit { stroke: var(--accent); stroke-width: 2.1; fill: none; stroke-linejoin: round; }
+    .c-twin { stroke: var(--terra); stroke-width: 2.1; fill: none; stroke-dasharray: 6 4; stroke-linejoin: round; }
+    .c-true { stroke: var(--ink-3); stroke-width: 1.2; fill: none; stroke-dasharray: 2 3; opacity: 0.85; }
+    .obs-pt { fill: var(--ink); stroke: var(--paper); stroke-width: 1.2; }
+    .obs-stem { stroke: var(--ink-3); stroke-width: 0.8; opacity: 0.5; }
+
+    .rug-bg { fill: var(--paper); stroke: var(--border); stroke-width: 1; }
+    .handle { fill: var(--surface); stroke: var(--ink-2); stroke-width: 1.4; cursor: ew-resize; }
+    .handle:hover { fill: var(--accent-soft); stroke: var(--accent); }
+    .handle.on { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+    .hg:focus { outline: none; }
+    .hg:focus-visible .handle { stroke: var(--accent); stroke-width: 2.4; }
+    .hline { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.75; }
+    .opt-mark { stroke: var(--teal); stroke-width: 1.6; stroke-dasharray: 4 3; }
+    .opt-dot { fill: var(--teal); }
+    .opt-txt { fill: var(--teal); font-family: var(--mono); font-size: 10px; }
+
+    .win-band { fill: var(--accent); opacity: 0.07; }
+    .noise-line { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 5 4; }
+    .noise-txt { fill: var(--ink-3); font-family: var(--mono); font-size: 9.5px; }
+    .diff-curve { stroke: var(--terra); stroke-width: 1.9; fill: none; }
+
+    /* bandes de la surface d'objectif */
+    .sf0 { fill: var(--accent); fill-opacity: 0.50; }
+    .sf1 { fill: var(--accent); fill-opacity: 0.34; }
+    .sf2 { fill: var(--accent); fill-opacity: 0.23; }
+    .sf3 { fill: var(--accent); fill-opacity: 0.15; }
+    .sf4 { fill: var(--accent); fill-opacity: 0.095; }
+    .sf5 { fill: var(--accent); fill-opacity: 0.05; }
+    .sf6 { fill: var(--accent); fill-opacity: 0.02; }
+    .sf7 { fill: none; }
+    .ctr { stroke: var(--accent); stroke-width: 0.9; fill: none; opacity: 0.55; }
+    .ctr.key { stroke: var(--accent); stroke-width: 2; opacity: 1; }
+    .ridge-line { stroke: var(--terra); stroke-width: 1.2; stroke-dasharray: 5 4; opacity: 0.9; }
+    .m-true { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+    .m-fit { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+    .m-twin { fill: var(--terra); stroke: var(--paper); stroke-width: 1.3; }
+    .m-txt { fill: var(--ink-2); font-family: var(--mono); font-size: 9.5px; }
+
+    .flat-warn { color: var(--terra); font-weight: 600; }
+    .eq { font-family: var(--mono); font-size: 0.83rem; color: var(--ink-2); line-height: 1.9; overflow-x: auto; }
+    .eq b { color: var(--ink); font-weight: 600; }
+    ul.tight { margin: 0 0 1rem; padding-left: 1.15rem; }
+    ul.tight li { margin-bottom: 0.42rem; max-width: var(--measure); }
+    ol.tight { margin: 0 0 1rem; padding-left: 1.25rem; }
+    ol.tight li { margin-bottom: 0.42rem; max-width: var(--measure); }
+    .nojs { border-left: 3px solid var(--terra); padding: 0.8rem 1rem; background: var(--surface); border-radius: 0 10px 10px 0; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/" aria-current="page">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- 1. TITRE + QUESTION -->
+      <section class="band">
+        <p class="eyebrow">Démonstration interactive · 2 sur 3</p>
+        <h1>Deux modèles, une seule courbe</h1>
+        <p class="lede">
+          Deux jeux de paramètres différents peuvent-ils produire exactement la même courbe
+          observée — et que devient alors un jumeau numérique individualisé&nbsp;?
+        </p>
+        <p class="measure">
+          La réponse courte est oui, et ce n'est ni un défaut de l'estimateur, ni un manque
+          de données. Sur cette page, la surface de vraisemblance est réellement calculée à
+          chaque mouvement de curseur&nbsp;: vous verrez que la région compatible avec les
+          observations n'est pas un point, mais une vallée allongée le long de laquelle les
+          paramètres se déplacent de plusieurs dizaines de pour cent sans que la courbe
+          bouge là où on la mesure.
+        </p>
+      </section>
+
+      <!-- 2. SUR LE MOT -->
+      <section class="band">
+        <h2>Sur le mot «&nbsp;identifiable&nbsp;»</h2>
+        <p class="measure">
+          Le mot ne veut rien dire tant qu'on n'a pas nommé le protocole. Il faut distinguer
+          deux situations que l'usage courant confond.
+        </p>
+        <ul class="tight">
+          <li>
+            <strong>Non-identifiabilité structurelle.</strong> Deux jeux de paramètres donnent
+            la même courbe <em>à tout instant</em>, exactement, même sans bruit. Aucun protocole
+            de prélèvement ne peut les séparer. L'exemple classique est le <em>flip-flop</em> du
+            modèle oral à un compartiment&nbsp;: échanger la constante d'absorption et la
+            constante d'élimination, puis multiplier le volume par leur rapport, laisse la
+            courbe rigoureusement inchangée. C'est une propriété de l'équation, pas des données.
+          </li>
+          <li>
+            <strong>Non-identifiabilité pratique.</strong> Le modèle est structurellement
+            identifiable — en théorie, une courbe parfaite et continue déterminerait les
+            paramètres — mais <em>avec ce protocole et ce niveau de bruit</em>, les données
+            ne les séparent pas. C'est le cas de figure de cette page.
+          </li>
+        </ul>
+        <div class="note accent">
+          <p class="small" style="margin:0">
+            La démonstration ci-dessous porte sur le second cas. Le modèle à deux compartiments
+            est structurellement identifiable après un bolus intraveineux&nbsp;; c'est le fait de
+            ne prélever qu'après la phase de distribution qui rend deux mondes indiscernables.
+            Autrement dit&nbsp;: le problème est dans le calendrier de prélèvement, pas dans
+            l'algorithme d'estimation.
+          </p>
+        </div>
+      </section>
+
+      <!-- 3. LA DÉMONSTRATION -->
+      <section class="band" id="demo">
+        <div class="section-head">
+          <h2>La démonstration</h2>
+          <p>
+            Bolus intraveineux de 100&nbsp;mg, modèle à deux compartiments. Les observations
+            sont simulées à partir des paramètres de référence, puis deux d'entre eux sont
+            réestimés sur ces observations. Tout ce qui suit est calculé dans la page.
+          </p>
+        </div>
+
+        <noscript>
+          <div class="nojs">
+            <p style="margin:0">
+              Cette démonstration repose entièrement sur du calcul exécuté dans le navigateur
+              (intégration du modèle, surface de vraisemblance, courbes de niveau, hessienne).
+              Elle nécessite JavaScript. Le reste de la page — le modèle, les équations, les
+              limites — reste lisible sans.
+            </p>
+          </div>
+        </noscript>
+
+        <div class="lab">
+          <!-- Colonne gauche : profils + écart -->
+          <div>
+            <div class="panel">
+              <h3>Profil de concentration</h3>
+              <svg id="svgProfile" viewBox="0 0 660 400" role="img" aria-labelledby="profTitle profDesc">
+                <title id="profTitle">Profil de concentration en fonction du temps</title>
+                <desc id="profDesc">Concentration en échelle logarithmique contre le temps en échelle racine carrée. La courbe ajustée et la courbe du jumeau se superposent dans la fenêtre de prélèvement et divergent avant elle. Les temps de prélèvement sont déplaçables.</desc>
+              </svg>
+              <div class="legend">
+                <span><i class="swatch sw-fit"></i>ajustement sur les données</span>
+                <span><i class="swatch sw-twin"></i>second jeu, même vallée</span>
+                <span><i class="swatch sw-true"></i>modèle ayant simulé</span>
+                <span><i class="swatch sw-obs"></i>observations</span>
+                <span><i class="swatch sw-opt"></i>prélèvement suggéré</span>
+              </div>
+              <p class="small" style="margin:0.55rem 0 0">
+                Les losanges sous le graphique sont les temps de prélèvement&nbsp;: faites-les
+                glisser à la souris, ou sélectionnez-en un au clavier et utilisez les flèches.
+              </p>
+            </div>
+
+            <div class="panel" style="margin-top:1.1rem">
+              <h3>Écart entre les deux modèles</h3>
+              <svg id="svgDiff" viewBox="0 0 660 190" role="img" aria-labelledby="diffTitle diffDesc">
+                <title id="diffTitle">Écart relatif entre les deux jeux de paramètres</title>
+                <desc id="diffDesc">Écart relatif en pourcentage entre les deux courbes, en fonction du temps. La zone ombrée est la fenêtre de prélèvement, la ligne pointillée horizontale le niveau de bruit.</desc>
+              </svg>
+              <p class="small" style="margin:0.5rem 0 0">
+                Tant que la courbe rouge reste sous la ligne du bruit à l'intérieur de la zone
+                ombrée, les deux jeux de paramètres sont indiscernables sur ces données.
+              </p>
+            </div>
+          </div>
+
+          <!-- Colonne droite : surface + lectures -->
+          <div>
+            <div class="panel">
+              <h3>Surface d'objectif <span style="text-transform:none;letter-spacing:0">(−2&nbsp;log&nbsp;L)</span></h3>
+              <svg id="svgSurf" viewBox="0 0 470 430" role="img" aria-labelledby="surfTitle surfDesc">
+                <title id="surfTitle">Surface d'objectif et courbes de niveau</title>
+                <desc id="surfDesc">Carte des écarts de −2 log-vraisemblance sur deux paramètres en échelle logarithmique. Les courbes de niveau dessinent une vallée allongée. Le minimum, la valeur de référence et le second jeu de paramètres y sont repérés.</desc>
+              </svg>
+              <p class="small" style="margin:0.55rem 0 0">
+                Niveaux tracés à ΔOFV = 1&nbsp;; 3,84&nbsp;; <b>5,99</b>&nbsp;; 10&nbsp;; 20 et 50.
+                Le niveau épais (5,99) est la région de confiance jointe à 95&nbsp;% approchée
+                pour deux paramètres.
+              </p>
+            </div>
+
+            <div class="panel" style="margin-top:1.1rem">
+              <h3>Conditionnement</h3>
+              <div class="reads">
+                <div class="read hi">
+                  <span class="k">κ du plan (Fisher)</span>
+                  <span class="n" id="rKapDes">—</span>
+                </div>
+                <div class="read">
+                  <span class="k">κ hessienne au minimum</span>
+                  <span class="n" id="rKapObs">—</span>
+                </div>
+                <div class="read">
+                  <span class="k">colinéarité |cos|</span>
+                  <span class="n" id="rCos">—</span>
+                </div>
+                <div class="read">
+                  <span class="k">det (matrice de Fisher)</span>
+                  <span class="n" id="rDet">—</span>
+                </div>
+              </div>
+              <p class="kappanote" id="kappaNote"></p>
+              <p class="small" style="margin:0.5rem 0 0">
+                κ est le rapport de la plus grande à la plus petite valeur propre. Sa racine
+                carrée, <b id="rSqrtK">—</b>, est le rapport des longueurs des axes de
+                l'ellipse de confiance&nbsp;: la région compatible avec les données est
+                <b id="rSqrtK2">—</b> fois plus longue que large.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contrôles -->
+        <div class="ctrls">
+          <div class="cbox">
+            <h4>Paramètres de référence</h4>
+            <div class="fld">
+              <label for="sCL">Clairance CL <span class="v"><span id="vCL"></span> L/h</span></label>
+              <input type="range" id="sCL" min="0.5" max="20" step="0.1" value="4" />
+            </div>
+            <div class="fld">
+              <label for="sV1">Volume central V<sub>1</sub> <span class="v"><span id="vV1"></span> L</span></label>
+              <input type="range" id="sV1" min="2" max="40" step="0.5" value="10" />
+            </div>
+            <div class="fld">
+              <label for="sQ">Débit inter-compartimental Q <span class="v"><span id="vQ"></span> L/h</span></label>
+              <input type="range" id="sQ" min="0.5" max="60" step="0.5" value="25" />
+            </div>
+            <div class="fld">
+              <label for="sV2">Volume périphérique V<sub>2</sub> <span class="v"><span id="vV2"></span> L</span></label>
+              <input type="range" id="sV2" min="5" max="150" step="1" value="35" />
+            </div>
+          </div>
+
+          <div class="cbox">
+            <h4>Bruit et tirage</h4>
+            <div class="fld">
+              <label for="sSig">Erreur proportionnelle σ <span class="v"><span id="vSig"></span> %</span></label>
+              <input type="range" id="sSig" min="1" max="40" step="1" value="10" />
+            </div>
+            <div class="fld">
+              <label for="iSeed">Graine du générateur</label>
+              <div class="seedrow">
+                <input type="number" id="iSeed" value="20260804" step="1" />
+                <button class="mini" type="button" id="bSeed">Nouvelle graine</button>
+              </div>
+            </div>
+            <p class="small" style="margin:0.5rem 0 0">
+              Générateur mulberry32, transformation de Box-Muller. La même graine redonne
+              exactement les mêmes observations.
+            </p>
+          </div>
+
+          <div class="cbox">
+            <h4>Protocole de prélèvement</h4>
+            <div class="fld">
+              <label>Temps actuels <span class="v"><span id="vN"></span> pts</span></label>
+              <p class="small" id="vTimes" style="margin:0.1rem 0 0;font-family:var(--mono);font-size:0.76rem;color:var(--ink-2);word-spacing:0.2em"></p>
+            </div>
+            <div class="bgrid">
+              <button class="mini key" type="button" id="bOpt">Ajouter un prélèvement au bon endroit</button>
+              <button class="mini" type="button" id="bBad">Ajouter 10 prélèvements tardifs</button>
+              <button class="mini" type="button" id="bAdd">+ 1 point</button>
+              <button class="mini" type="button" id="bDel">− 1 point</button>
+              <button class="mini" type="button" id="bLate">Protocole tardif</button>
+              <button class="mini" type="button" id="bRich">Protocole riche</button>
+            </div>
+          </div>
+
+          <div class="cbox">
+            <h4>Surface et crête</h4>
+            <div class="fld">
+              <label for="selX">Paramètre en abscisse</label>
+              <select id="selX">
+                <option value="CL">CL — clairance</option>
+                <option value="V1">V1 — volume central</option>
+                <option value="Q" selected>Q — débit inter-compartimental</option>
+                <option value="V2">V2 — volume périphérique</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label for="selY">Paramètre en ordonnée</label>
+              <select id="selY">
+                <option value="CL">CL — clairance</option>
+                <option value="V1">V1 — volume central</option>
+                <option value="Q">Q — débit inter-compartimental</option>
+                <option value="V2" selected>V2 — volume périphérique</option>
+              </select>
+            </div>
+            <div class="fld">
+              <label for="sRidge">Position sur la crête <span class="v"><span id="vRidge"></span></span></label>
+              <input type="range" id="sRidge" min="-2" max="2" step="0.01" value="1" />
+            </div>
+            <div class="bgrid">
+              <button class="mini" type="button" id="bReset">Tout réinitialiser</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panneau : deux jeux, une courbe -->
+        <div class="panel" style="margin-top:1.1rem">
+          <h3>Deux jeux de paramètres, une courbe</h3>
+          <div class="reads" style="margin-bottom:0.9rem">
+            <div class="read" id="boxDofv">
+              <span class="k">ΔOFV entre les deux jeux</span>
+              <span class="n" id="rDofv">—</span>
+            </div>
+            <div class="read hi">
+              <span class="k">écart max — fenêtre prélevée</span>
+              <span class="n" id="rEcW">—</span>
+            </div>
+            <div class="read warn">
+              <span class="k">écart max — profil entier</span>
+              <span class="n" id="rEcA">—</span>
+            </div>
+            <div class="read">
+              <span class="k">verdict sur ces données</span>
+              <span class="n" id="rVerdict" style="font-size:0.83rem">—</span>
+            </div>
+          </div>
+          <div class="tablewrap">
+            <table class="twin-tbl">
+              <thead>
+                <tr>
+                  <th>Grandeur</th>
+                  <th class="num">Ajustement</th>
+                  <th class="num">Second jeu</th>
+                  <th class="num">Écart</th>
+                  <th>Lecture</th>
+                </tr>
+              </thead>
+              <tbody id="twinBody"></tbody>
+            </table>
+          </div>
+          <p class="small" style="margin:0.8rem 0 0">
+            Le second jeu est obtenu en se déplaçant le long de la direction propre la plus
+            plate de la hessienne, puis en re-minimisant dans la direction orthogonale pour
+            rester au fond de la vallée. Ce n'est donc pas un point choisi à la main&nbsp;:
+            c'est la crête que le calcul désigne.
+          </p>
+        </div>
+      </section>
+
+      <!-- 4. CE QUE VOUS MANIPULEZ -->
+      <section class="band">
+        <h2>Ce que vous manipulez</h2>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>Contrôle</th><th>Signification</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>CL, V<sub>1</sub>, Q, V<sub>2</sub></b></td>
+                <td>Les paramètres du modèle à deux compartiments qui <em>simulent</em> les observations. Ils fixent la vitesse de distribution et la pente terminale, donc la difficulté du problème. Augmenter Q raccourcit la phase de distribution et la rend d'autant plus facile à manquer.</td>
+              </tr>
+              <tr>
+                <td><b>σ</b></td>
+                <td>Écart-type de l'erreur proportionnelle sur les observations. Il règle la <em>taille</em> de la région de confiance — et presque pas sa <em>forme</em>&nbsp;: c'est un point important, développé plus bas.</td>
+              </tr>
+              <tr>
+                <td><b>Graine</b></td>
+                <td>Entier qui détermine le tirage aléatoire. Deux visiteurs qui saisissent la même graine voient exactement les mêmes points.</td>
+              </tr>
+              <tr>
+                <td><b>Temps de prélèvement</b></td>
+                <td>Déplaçables un par un sur l'axe (souris ou flèches du clavier). C'est le vrai levier de la démonstration.</td>
+              </tr>
+              <tr>
+                <td><b>Ajouter un prélèvement au bon endroit</b></td>
+                <td>Cherche, sur 120 instants candidats, celui qui maximise le déterminant de la matrice de Fisher — un critère de D-optimalité. Le temps retenu n'est pas choisi à l'avance&nbsp;: il est calculé.</td>
+              </tr>
+              <tr>
+                <td><b>Ajouter 10 prélèvements tardifs</b></td>
+                <td>Réplique le protocole existant dans la fenêtre déjà couverte. À comparer avec le bouton précédent&nbsp;: dix points contre un.</td>
+              </tr>
+              <tr>
+                <td><b>Paramètres en abscisse et ordonnée</b></td>
+                <td>Le couple sur lequel la surface d'objectif est calculée. Les deux autres restent fixés à leur valeur de référence.</td>
+              </tr>
+              <tr>
+                <td><b>Position sur la crête</b></td>
+                <td>Déplacement, en unités logarithmiques, le long de la direction la plus plate de la surface. À zéro, le second jeu est confondu avec l'ajustement. Le sens positif est orienté vers les paramètres de référence&nbsp;: en glissant vers la droite, vous ramenez le second jeu vers les valeurs qui ont réellement simulé les données — et vous constatez qu'elles expliquent les observations aussi bien que le minimum.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 5. CE QUE ÇA MONTRE -->
+      <section class="band">
+        <h2>Ce que ça montre</h2>
+        <ol class="tight">
+          <li>
+            <strong>La région compatible avec les données n'est pas un point.</strong> Avec le
+            protocole tardif proposé par défaut, les courbes de niveau dessinent une banane
+            étroite et longue. Tout point à l'intérieur du niveau 5,99 explique les
+            observations aussi bien que le minimum.
+          </li>
+          <li>
+            <strong>Deux jeux éloignés donnent la même courbe là où on la mesure.</strong>
+            Avec les réglages par défaut, Q change d'environ 60&nbsp;% et l'écart maximal entre
+            les deux profils reste inférieur au niveau de bruit dans la fenêtre prélevée —
+            tout en dépassant 80&nbsp;% sur le profil entier. Les deux modèles ne diffèrent
+            que là où personne n'a regardé.
+          </li>
+          <li>
+            <strong>Le conditionnement ne dépend pas du bruit.</strong> Faites glisser σ de 2 à
+            40&nbsp;%&nbsp;: le déterminant de la matrice de Fisher varie de cinq ordres de
+            grandeur, et le κ du plan ne bouge pas d'un chiffre. C'est une conséquence exacte
+            du facteur scalaire (1/σ² + 2) démontré plus bas. σ règle la <em>taille</em> de la
+            région de confiance, la géométrie du protocole règle sa <em>forme</em>. C'est
+            pourquoi «&nbsp;mesurer plus précisément&nbsp;» ne résout pas ce problème-là — mais
+            «&nbsp;mesurer ailleurs&nbsp;», si.
+          </li>
+          <li>
+            <strong>Un prélèvement bien placé referme la crête&nbsp;; dix mal placés ne la
+            referment pas.</strong> Avec les réglages par défaut, ajouter dix prélèvements dans
+            la fenêtre déjà couverte multiplie le déterminant de la matrice de Fisher par
+            environ six — donc la précision — sans améliorer le conditionnement du tout&nbsp;:
+            κ passe de 31 à 33, c'est-à-dire nulle part. Un <em>seul</em> prélèvement placé
+            pendant la phase de distribution, vers une demi-heure, divise κ par près de dix.
+            La raison est algébrique&nbsp;: répliquer exactement un protocole multiplie la
+            matrice de Fisher par un scalaire, ce qui multiplie les deux valeurs propres par le
+            même facteur et laisse κ <em>rigoureusement</em> inchangé. Répliquer achète de la
+            précision, pas de l'identifiabilité.
+          </li>
+          <li>
+            <strong>Conséquence pour un jumeau numérique.</strong> Un jumeau ajusté sur ces
+            données prédira correctement ce qui dépend de la fenêtre observée — la concentration
+            résiduelle, l'aire sous la courbe si la clairance est fixée. Il prédira mal tout ce
+            qui dépend de la phase non observée&nbsp;: le pic, le volume à l'équilibre, une dose
+            de charge. Le jumeau n'est pas faux&nbsp;: il est valide sur un domaine qu'il faut
+            nommer.
+          </li>
+        </ol>
+      </section>
+
+      <!-- 6. SOUS LE CAPOT -->
+      <section class="band">
+        <h2>Sous le capot</h2>
+        <p class="measure">
+          Tout est recalculé à chaque interaction, sans bibliothèque externe. Voici de quoi
+          reproduire la page à l'identique.
+        </p>
+
+        <h3 style="margin-top:1.4rem">Modèle</h3>
+        <p class="measure small">
+          Deux compartiments, bolus intraveineux instantané, dose <em>D</em> = 100&nbsp;mg.
+          La dose n'a aucun effet sur l'identifiabilité ici&nbsp;: avec une erreur strictement
+          proportionnelle, elle se simplifie dans la vraisemblance.
+        </p>
+        <div class="eq">
+          k<sub>10</sub> = CL / V<sub>1</sub>&nbsp;;&nbsp; k<sub>12</sub> = Q / V<sub>1</sub>&nbsp;;&nbsp; k<sub>21</sub> = Q / V<sub>2</sub><br />
+          s = k<sub>10</sub> + k<sub>12</sub> + k<sub>21</sub><br />
+          <b>α</b> = ½ · [ s + √( s² − 4·k<sub>10</sub>·k<sub>21</sub> ) ]&nbsp;&nbsp;&nbsp;
+          <b>β</b> = ½ · [ s − √( s² − 4·k<sub>10</sub>·k<sub>21</sub> ) ]<br />
+          <b>A</b> = (D/V<sub>1</sub>)·(α − k<sub>21</sub>)/(α − β)&nbsp;&nbsp;&nbsp;
+          <b>B</b> = (D/V<sub>1</sub>)·(k<sub>21</sub> − β)/(α − β)<br />
+          <b>C(t)</b> = A·e<sup>−αt</sup> + B·e<sup>−βt</sup>
+        </div>
+        <p class="measure small">
+          Le discriminant s² − 4·k<sub>10</sub>·k<sub>21</sub> est toujours positif ou nul&nbsp;:
+          (k<sub>10</sub>+k<sub>12</sub>+k<sub>21</sub>)² ≥ (k<sub>10</sub>+k<sub>21</sub>)² ≥
+          4·k<sub>10</sub>·k<sub>21</sub>. Les deux exponentielles sont donc toujours réelles.
+          Aucune valeur de α, β, A ou B n'est écrite en dur&nbsp;: toutes sont dérivées de
+          CL, V<sub>1</sub>, Q, V<sub>2</sub>.
+        </p>
+
+        <h3 style="margin-top:1.4rem">Observations et vraisemblance</h3>
+        <div class="eq">
+          y<sub>i</sub> = C(t<sub>i</sub>) · (1 + ε<sub>i</sub>)&nbsp;,&nbsp; ε<sub>i</sub> ~ N(0, σ²)<br />
+          −2·log&nbsp;L = Σ<sub>i</sub> [ log(2π σ² f<sub>i</sub>²) + (y<sub>i</sub> − f<sub>i</sub>)² / (σ² f<sub>i</sub>²) ]&nbsp;,&nbsp; f<sub>i</sub> = C(t<sub>i</sub>; θ)
+        </div>
+        <p class="measure small">
+          σ est supposé <em>connu</em> et fixé à sa valeur de simulation. Le terme
+          log(f<sub>i</sub>²) n'est pas une constante&nbsp;: il dépend des paramètres et il est
+          conservé. La carte affiche ΔOFV, l'écart au minimum, ce qui élimine les constantes
+          additives. Les tirages ε sont pré-calculés par indice de prélèvement, de sorte que
+          déplacer un temps ne change pas son aléa.
+        </p>
+
+        <h3 style="margin-top:1.4rem">Matrice de Fisher</h3>
+        <p class="measure small">
+          Pour une observation gaussienne dont la moyenne <em>et</em> la variance dépendent des
+          paramètres, l'information s'écrit
+          μ′ᵀV⁻¹μ′ + ½·tr(V⁻¹V′V⁻¹V′). Avec V = σ²f², les deux termes se recombinent et le
+          résultat se factorise&nbsp;:
+        </p>
+        <div class="eq">
+          <b>M</b><sub>jk</sub> = (1/σ² + 2) · Σ<sub>i</sub> s<sub>j</sub>(t<sub>i</sub>)·s<sub>k</sub>(t<sub>i</sub>)&nbsp;,&nbsp;
+          s<sub>j</sub>(t) = ∂ log f(t) / ∂ log θ<sub>j</sub>
+        </div>
+        <p class="measure small">
+          Les sensibilités relatives s<sub>j</sub> sont obtenues par différences centrées d'un
+          pas de 0,01 en échelle logarithmique. Deux conséquences directes, toutes deux visibles
+          dans la page&nbsp;: le facteur (1/σ² + 2) est <em>scalaire</em>, donc σ n'agit pas sur
+          le conditionnement&nbsp;; et répliquer un protocole multiplie <b>M</b> par un entier,
+          donc laisse κ inchangé.
+        </p>
+
+        <h3 style="margin-top:1.4rem">Optimisation, hessienne, crête</h3>
+        <ul class="tight small">
+          <li>Le minimum est cherché par balayage grossier 60×60 sur une boîte large, puis affiné par un simplexe de Nelder-Mead en paramètres logarithmiques (réflexion, expansion, contraction, rétrécissement&nbsp;; 400 itérations au plus).</li>
+          <li>La hessienne de −2&nbsp;log&nbsp;L est approchée au minimum par différences finies centrées, pas h = 0,012 en échelle logarithmique&nbsp;: termes diagonaux à trois points, terme croisé à quatre points. Travailler en logarithmes rend κ sans unité et insensible au choix des unités de volume ou de débit.</li>
+          <li>Les valeurs propres d'une matrice 2×2 symétrique sont obtenues analytiquement&nbsp;; le vecteur propre associé à la plus petite donne la direction plate.</li>
+          <li>Le second jeu est placé à une distance donnée le long de cette direction, puis re-minimisé dans la direction orthogonale par section dorée (55 itérations) pour rester au fond de la vallée.</li>
+          <li>Le prélèvement suggéré maximise le déterminant de <b>M</b> parmi 120 instants répartis géométriquement entre 0,03 et 24&nbsp;h, la matrice étant évaluée aux paramètres de référence.</li>
+        </ul>
+
+        <h3 style="margin-top:1.4rem">Surface et courbes de niveau</h3>
+        <ul class="tight small">
+          <li>Grille de 80×80 points, soit 6&nbsp;400 évaluations de −2&nbsp;log&nbsp;L à chaque interaction, sur une plage logarithmique cadrée pour contenir à la fois le minimum et la valeur de référence.</li>
+          <li>Les aplats sont construits en regroupant les cellules par bande de ΔOFV en un seul tracé par bande.</li>
+          <li>Les courbes de niveau sont produites par <em>marching squares</em> implémenté dans la page&nbsp;: index à quatre bits par cellule, interpolation linéaire sur les arêtes, et désambiguïsation des deux cas de selle par la valeur moyenne au centre de la cellule.</li>
+          <li>Les seuils 3,84 et 5,99 sont les quantiles à 95&nbsp;% d'un χ² à un et deux degrés de liberté&nbsp;: ce sont des approximations asymptotiques.</li>
+        </ul>
+
+        <h3 style="margin-top:1.4rem">Représentation</h3>
+        <p class="measure small">
+          L'axe des temps est en racine carrée, pour rendre la phase de distribution
+          manipulable à la souris sans écraser les temps tardifs&nbsp;; les graduations portent
+          les heures réelles. L'axe des concentrations et celui des écarts sont
+          logarithmiques. Les deux axes de la surface sont logarithmiques. Aucune couleur n'est
+          écrite en dur&nbsp;: le tracé n'utilise que les variables du socle du site, ce qui le
+          rend correct en thème clair comme en thème sombre.
+        </p>
+      </section>
+
+      <!-- 7. LIMITES -->
+      <section class="band">
+        <h2>Ce que cette démonstration ne montre pas</h2>
+        <p class="measure">
+          Le bloc le plus important de la page. Chacune de ces limites va dans le sens d'une
+          situation réelle <em>plus</em> difficile que celle qui est simulée ici.
+        </p>
+        <ul class="tight">
+          <li>
+            <strong>Deux paramètres seulement sont réestimés.</strong> Les deux autres sont
+            maintenus à la valeur exacte qui a servi à simuler — une information dont personne
+            ne dispose en pratique. Estimer les quatre élargit la région de confiance et peut
+            faire apparaître d'autres directions plates. La démonstration est donc
+            <em>optimiste</em>.
+          </li>
+          <li>
+            <strong>σ est supposé connu.</strong> L'estimer conjointement ajoute une dimension
+            et de l'incertitude. Le modèle d'erreur lui-même est supposé exact, ce qui n'est
+            jamais vérifié sur des données réelles.
+          </li>
+          <li>
+            <strong>Le modèle ajusté est celui qui a généré les données.</strong> Il n'y a
+            aucune erreur de structure&nbsp;: pas de troisième compartiment ignoré, pas de
+            clairance non linéaire, pas d'erreur sur les heures de prélèvement ou de perfusion.
+            En situation réelle, la mauvaise spécification s'ajoute à la non-identifiabilité et
+            les deux se confondent facilement.
+          </li>
+          <li>
+            <strong>Un seul individu, aucune structure de population.</strong> Pas de
+            variabilité inter-individuelle, pas d'estimation bayésienne <em>a posteriori</em>,
+            pas de rétrécissement. Une information <em>a priori</em> de population referme
+            souvent une partie de cette vallée — c'est précisément son rôle — mais au prix
+            d'une hypothèse supplémentaire, qui doit alors être discutée et non subie.
+          </li>
+          <li>
+            <strong>La lecture de la hessienne est quadratique.</strong> κ décrit une ellipse
+            tangente au fond de la vallée&nbsp;; la région réelle est courbe, comme le montrent
+            les courbes de niveau. Loin du minimum, l'ellipse cesse d'être une bonne
+            description, et les seuils χ² ne sont valides qu'asymptotiquement.
+          </li>
+          <li>
+            <strong>Le critère de D-optimalité est local.</strong> Le prélèvement suggéré est
+            optimal <em>pour les paramètres de référence</em>. On ne les connaît pas avant
+            d'avoir mesuré&nbsp;: c'est la difficulté classique du plan expérimental optimal, à
+            laquelle on répond par des plans robustes ou adaptatifs, non traités ici.
+          </li>
+          <li>
+            <strong>Aucune validation clinique.</strong> Les valeurs numériques sont
+            plausibles, pas issues d'un médicament particulier. Rien ici n'a été confronté à
+            des données de patients.
+          </li>
+        </ul>
+        <div class="note">
+          <p class="small" style="margin:0">
+            L'identifiabilité des modèles individualisés est un point de discussion actif dans
+            le domaine, en particulier depuis que le vocabulaire des jumeaux numériques s'est
+            diffusé en pharmacologie. Cette page ne prétend pas trancher ce débat&nbsp;: elle en
+            rend une objection manipulable, pour qu'elle puisse être opposée à un modèle plutôt
+            que récitée. Un jumeau reste utile&nbsp;; il faut seulement énoncer le domaine sur
+            lequel il a été contraint par des mesures, et celui sur lequel il extrapole.
+          </p>
+        </div>
+      </section>
+
+      <!-- 8. OÙ LA MÉTHODE EST EXPLIQUÉE -->
+      <section class="band">
+        <h2>Où la méthode est expliquée</h2>
+        <ul class="linklist">
+          <li>
+            <a href="/pharmacometrie/chapitres/clairance-volume-demi-vie/">Clairance, volume, demi-vie</a>
+            <span class="meta">D'où viennent CL, V<sub>1</sub>, Q et V<sub>2</sub>, et pourquoi la demi-vie terminale n'est pas un paramètre du modèle mais une conséquence.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/math-fisher/">Information de Fisher</a>
+            <span class="meta">La matrice qui sert ici à chiffrer le conditionnement et à choisir le prélèvement suggéré&nbsp;; d'où vient le facteur (1/σ² + 2) et pourquoi répliquer un plan ne change pas sa forme.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/outils-estimation/">Outils d'estimation</a>
+            <span class="meta">Vraisemblance, fonction objectif, ΔOFV et seuils du χ²&nbsp;: ce que veut dire «&nbsp;ces deux modèles ne sont pas distinguables&nbsp;».</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/nonmem-modele-structural/">NONMEM — modèle structural</a>
+            <span class="meta">Écrire un deux-compartiments, et reconnaître à la sortie les signes d'une vallée plate plutôt que d'un minimum net.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- 9. CITER -->
+      <section class="band">
+        <h2>Citer cette démonstration</h2>
+        <pre class="cite">Berrah, R. (2026). Deux modèles, une seule courbe : identifiabilité pratique
+d'un modèle pharmacocinétique à deux compartiments [Démonstration interactive].
+https://rberrah.github.io/demos/identifiabilite/</pre>
+        <pre class="cite">@misc{berrah2026identifiabilite,
+  author       = {Berrah, Racym},
+  title        = {Deux mod{\`e}les, une seule courbe : identifiabilit{\'e} pratique
+                  d'un mod{\`e}le pharmacocin{\'e}tique {\`a} deux compartiments},
+  year         = {2026},
+  howpublished = {D{\'e}monstration interactive},
+  url          = {https://rberrah.github.io/demos/identifiabilite/}
+}</pre>
+        <p class="small measure">
+          Le texte de cette page est réutilisable sous CC&nbsp;BY-SA&nbsp;4.0, le code sous
+          licence MIT. Le calcul est intégralement lisible dans la source de la page.
+        </p>
+      </section>
+
+      <!-- 10. RAPPEL -->
+      <section class="band">
+        <div class="note">
+          <p style="margin:0">
+            <strong>Aucun contenu de cette page ne constitue un avis thérapeutique ni une
+            recommandation posologique.</strong> Les valeurs de paramètres, les concentrations
+            et les temps de prélèvement affichés sont des illustrations numériques. Ils ne
+            correspondent à aucun médicament ni à aucun patient, et ne doivent servir à
+            calculer aucune dose.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================================================================
+     1. Générateur pseudo-aléatoire à graine + normales
+     =================================================================== */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function makeNormals(seed, n) {
+    var r = mulberry32(seed | 0), out = new Float64Array(n), i, u1, u2, m;
+    for (i = 0; i < n; i += 2) {
+      u1 = Math.max(r(), 1e-12); u2 = r();
+      m = Math.sqrt(-2 * Math.log(u1));
+      out[i] = m * Math.cos(2 * Math.PI * u2);
+      if (i + 1 < n) out[i + 1] = m * Math.sin(2 * Math.PI * u2);
+    }
+    return out;
+  }
+
+  /* ===================================================================
+     2. Modèle à deux compartiments — bolus IV
+     =================================================================== */
+  var DOSE = 100, TMAX = 24, MAXPTS = 48;
+
+  function pkConst(th) {
+    var k10 = th.CL / th.V1, k12 = th.Q / th.V1, k21 = th.Q / th.V2;
+    var s = k10 + k12 + k21;
+    var disc = s * s - 4 * k10 * k21;
+    if (disc < 0) disc = 0;
+    var r = Math.sqrt(disc);
+    var al = 0.5 * (s + r), be = 0.5 * (s - r);
+    var den = al - be;
+    if (den < 1e-12) den = 1e-12;
+    var c0 = DOSE / th.V1;
+    return { al: al, be: be, A: c0 * (al - k21) / den, B: c0 * (k21 - be) / den };
+  }
+  function conc(p, t) { return p.A * Math.exp(-p.al * t) + p.B * Math.exp(-p.be * t); }
+
+  /* ===================================================================
+     3. État
+     =================================================================== */
+  var PARAMS = ['CL', 'V1', 'Q', 'V2'];
+  var PLABEL = { CL: 'CL', V1: 'V₁', Q: 'Q', V2: 'V₂' };
+  var PUNIT = { CL: 'L/h', V1: 'L', Q: 'L/h', V2: 'L' };
+  var BOX = { CL: [0.2, 80], V1: [1, 250], Q: [0.15, 400], V2: [1, 600] };
+
+  var DEF_TIMES = [3, 5, 8, 12, 18, 24];
+  var st = {
+    ref: { CL: 4, V1: 10, Q: 25, V2: 35 },
+    sigma: 0.10,
+    seed: 20260804,
+    times: DEF_TIMES.slice(),
+    selX: 'Q', selY: 'V2',
+    ridge: 1.0
+  };
+  var eps = makeNormals(st.seed, 64);
+  var obs = [];
+  var prevKapDes = null, noteMsg = '';
+  var optT = null;
+
+  /* ===================================================================
+     4. Vraisemblance
+     =================================================================== */
+  function simulate() {
+    var p = pkConst(st.ref);
+    obs = st.times.map(function (t, i) {
+      var v = conc(p, t) * (1 + st.sigma * eps[i % eps.length]);
+      return v < 1e-4 ? 1e-4 : v;
+    });
+  }
+  function thetaFrom(lx, ly) {
+    var th = { CL: st.ref.CL, V1: st.ref.V1, Q: st.ref.Q, V2: st.ref.V2 };
+    var bx = BOX[st.selX], by = BOX[st.selY];
+    th[st.selX] = Math.min(Math.max(Math.exp(lx), bx[0]), bx[1]);
+    th[st.selY] = Math.min(Math.max(Math.exp(ly), by[0]), by[1]);
+    return th;
+  }
+  function ofvTheta(th) {
+    var p = pkConst(th), s = 0, i, f, r;
+    for (i = 0; i < st.times.length; i++) {
+      f = conc(p, st.times[i]);
+      if (f < 1e-10) f = 1e-10;
+      r = (obs[i] - f) / (st.sigma * f);
+      s += r * r + 2 * Math.log(st.sigma * f);
+    }
+    return s;
+  }
+  function F(v) { return ofvTheta(thetaFrom(v[0], v[1])); }
+
+  /* ===================================================================
+     5. Optimisation : Nelder-Mead 2D + section dorée
+     =================================================================== */
+  function nelderMead(fn, x0, step, iters) {
+    var sx = [x0.slice(), [x0[0] + step, x0[1]], [x0[0], x0[1] + step]];
+    var fv = sx.map(fn), it, idx, c, xr, fr, xe, fe, xc, fc, i;
+    for (it = 0; it < iters; it++) {
+      idx = [0, 1, 2].sort(function (a, b) { return fv[a] - fv[b]; });
+      sx = idx.map(function (k) { return sx[k]; });
+      fv = idx.map(function (k) { return fv[k]; });
+      if (Math.abs(fv[2] - fv[0]) < 1e-12) break;
+      c = [(sx[0][0] + sx[1][0]) / 2, (sx[0][1] + sx[1][1]) / 2];
+      xr = [2 * c[0] - sx[2][0], 2 * c[1] - sx[2][1]]; fr = fn(xr);
+      if (fr < fv[0]) {
+        xe = [3 * c[0] - 2 * sx[2][0], 3 * c[1] - 2 * sx[2][1]]; fe = fn(xe);
+        if (fe < fr) { sx[2] = xe; fv[2] = fe; } else { sx[2] = xr; fv[2] = fr; }
+      } else if (fr < fv[1]) { sx[2] = xr; fv[2] = fr; }
+      else {
+        xc = [c[0] + 0.5 * (sx[2][0] - c[0]), c[1] + 0.5 * (sx[2][1] - c[1])]; fc = fn(xc);
+        if (fc < fv[2]) { sx[2] = xc; fv[2] = fc; }
+        else {
+          for (i = 1; i < 3; i++) {
+            sx[i] = [(sx[i][0] + sx[0][0]) / 2, (sx[i][1] + sx[0][1]) / 2];
+            fv[i] = fn(sx[i]);
+          }
+        }
+      }
+    }
+    var bi = 0;
+    if (fv[1] < fv[bi]) bi = 1;
+    if (fv[2] < fv[bi]) bi = 2;
+    return { x: sx[bi], f: fv[bi] };
+  }
+  function golden(g, a, b, iters) {
+    var gr = (Math.sqrt(5) - 1) / 2;
+    var c = b - gr * (b - a), d = a + gr * (b - a), fc = g(c), fd = g(d), i;
+    for (i = 0; i < iters; i++) {
+      if (fc < fd) { b = d; d = c; fd = fc; c = b - gr * (b - a); fc = g(c); }
+      else { a = c; c = d; fc = fd; d = a + gr * (b - a); fd = g(d); }
+    }
+    return (a + b) / 2;
+  }
+
+  /* ===================================================================
+     6. Sensibilités et information de Fisher
+     =================================================================== */
+  function sensAt(th, t) {
+    var h = 0.01, out = [0, 0], j, a, b, fa, fb, nm;
+    for (j = 0; j < 2; j++) {
+      nm = (j === 0) ? st.selX : st.selY;
+      a = { CL: th.CL, V1: th.V1, Q: th.Q, V2: th.V2 };
+      b = { CL: th.CL, V1: th.V1, Q: th.Q, V2: th.V2 };
+      a[nm] = th[nm] * Math.exp(h);
+      b[nm] = th[nm] * Math.exp(-h);
+      fa = conc(pkConst(a), t); fb = conc(pkConst(b), t);
+      if (fa < 1e-14) fa = 1e-14;
+      if (fb < 1e-14) fb = 1e-14;
+      out[j] = (Math.log(fa) - Math.log(fb)) / (2 * h);
+    }
+    return out;
+  }
+  function fisher(th, ts) {
+    var a = 0, b = 0, c = 0, i, s;
+    for (i = 0; i < ts.length; i++) {
+      s = sensAt(th, ts[i]);
+      a += s[0] * s[0]; b += s[0] * s[1]; c += s[1] * s[1];
+    }
+    var k = 1 / (st.sigma * st.sigma) + 2;
+    return { a: k * a, b: k * b, c: k * c, ra: a, rb: b, rc: c };
+  }
+  function eig2(a, b, c) {
+    var tr = a + c, det = a * c - b * b;
+    var d = Math.sqrt(Math.max(tr * tr - 4 * det, 0));
+    var l1 = (tr + d) / 2, l2 = (tr - d) / 2;
+    var v;
+    if (Math.abs(b) > 1e-14) {
+      v = [b, l2 - a];
+    } else {
+      v = (a <= c) ? [1, 0] : [0, 1];
+    }
+    var n = Math.hypot(v[0], v[1]) || 1;
+    v = [v[0] / n, v[1] / n];
+    if (v[0] < 0) { v = [-v[0], -v[1]]; }
+    return { l1: l1, l2: l2, det: det, vmin: v, vmax: [-v[1], v[0]] };
+  }
+
+  /* ===================================================================
+     7. Marching squares
+     =================================================================== */
+  function marchingSquares(Z, n, level) {
+    var segs = [], ix, iy, v0, v1, v2, v3, idx, cen;
+    function ip(xa, ya, va, xb, yb, vb) {
+      var d = vb - va;
+      var t = (Math.abs(d) < 1e-30) ? 0.5 : (level - va) / d;
+      if (t < 0) t = 0; else if (t > 1) t = 1;
+      return [xa + (xb - xa) * t, ya + (yb - ya) * t];
+    }
+    for (iy = 0; iy < n - 1; iy++) {
+      for (ix = 0; ix < n - 1; ix++) {
+        v0 = Z[iy * n + ix];
+        v1 = Z[iy * n + ix + 1];
+        v2 = Z[(iy + 1) * n + ix + 1];
+        v3 = Z[(iy + 1) * n + ix];
+        idx = 0;
+        if (v0 > level) idx |= 1;
+        if (v1 > level) idx |= 2;
+        if (v2 > level) idx |= 4;
+        if (v3 > level) idx |= 8;
+        if (idx === 0 || idx === 15) continue;
+        var eA = null, eB = null, eC = null, eD = null;
+        // A : bas (c0-c1) ; B : droite (c1-c2) ; C : haut (c3-c2) ; D : gauche (c0-c3)
+        if ((idx & 1) !== (idx & 2) >> 1) eA = ip(ix, iy, v0, ix + 1, iy, v1);
+        if (((idx & 2) >> 1) !== (idx & 4) >> 2) eB = ip(ix + 1, iy, v1, ix + 1, iy + 1, v2);
+        if (((idx & 8) >> 3) !== (idx & 4) >> 2) eC = ip(ix, iy + 1, v3, ix + 1, iy + 1, v2);
+        if ((idx & 1) !== (idx & 8) >> 3) eD = ip(ix, iy, v0, ix, iy + 1, v3);
+        function push(p, q) { if (p && q) segs.push([p[0], p[1], q[0], q[1]]); }
+        switch (idx) {
+          case 1: push(eD, eA); break;
+          case 2: push(eA, eB); break;
+          case 3: push(eD, eB); break;
+          case 4: push(eB, eC); break;
+          case 6: push(eA, eC); break;
+          case 7: push(eD, eC); break;
+          case 8: push(eC, eD); break;
+          case 9: push(eC, eA); break;
+          case 11: push(eC, eB); break;
+          case 12: push(eB, eD); break;
+          case 13: push(eB, eA); break;
+          case 14: push(eA, eD); break;
+          case 5:
+            cen = (v0 + v1 + v2 + v3) / 4;
+            if (cen > level) { push(eA, eB); push(eC, eD); }
+            else { push(eD, eA); push(eB, eC); }
+            break;
+          case 10:
+            cen = (v0 + v1 + v2 + v3) / 4;
+            if (cen > level) { push(eD, eA); push(eB, eC); }
+            else { push(eA, eB); push(eC, eD); }
+            break;
+        }
+      }
+    }
+    return segs;
+  }
+
+  /* ===================================================================
+     8. Utilitaires de formatage et d'échelle
+     =================================================================== */
+  function fr(x, d) {
+    if (!isFinite(x)) return '∞';
+    var s = Math.abs(x) >= 1000 ? Math.round(x).toString() : x.toFixed(d === undefined ? 2 : d);
+    return s.replace('.', ',');
+  }
+  function frBig(x) {
+    if (!isFinite(x) || x > 1e9) return '> 10⁹';
+    if (x >= 10000) return Math.round(x / 1000).toString().replace('.', ',') + ' 000';
+    if (x >= 100) return Math.round(x).toString();
+    if (x >= 10) return fr(x, 1);
+    return fr(x, 2);
+  }
+  function logTicks(lo, hi) {
+    var out = [], d = Math.floor(Math.log10(lo)), top = Math.ceil(Math.log10(hi)), m, v;
+    for (; d <= top; d++) {
+      var ms = [1, 2, 5];
+      for (m = 0; m < 3; m++) {
+        v = ms[m] * Math.pow(10, d);
+        if (v >= lo * 0.9999 && v <= hi * 1.0001) out.push(v);
+      }
+    }
+    while (out.length > 8) {
+      out = out.filter(function (_, i) { return i % 2 === 0; });
+    }
+    return out;
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  /* ===================================================================
+     9. Le calcul complet
+     =================================================================== */
+  var R = {};
+  function compute() {
+    simulate();
+
+    var lx0 = Math.log(st.ref[st.selX]), ly0 = Math.log(st.ref[st.selY]);
+
+    // -- balayage grossier 60x60 sur une boîte large
+    var wide = Math.log(12);
+    var best = [lx0, ly0], bf = F(best), i, j, lx, ly, f;
+    for (i = 0; i < 60; i++) {
+      lx = lx0 + (i / 59 - 0.5) * 2 * wide;
+      for (j = 0; j < 60; j++) {
+        ly = ly0 + (j / 59 - 0.5) * 2 * wide;
+        f = F([lx, ly]);
+        if (f < bf) { bf = f; best = [lx, ly]; }
+      }
+    }
+    var nm = nelderMead(F, best, 0.12, 400);
+    var m = nm.x, f0 = nm.f;
+
+    // -- hessienne par différences finies (échelle log)
+    var h = 0.012;
+    var Ha = (F([m[0] + h, m[1]]) - 2 * f0 + F([m[0] - h, m[1]])) / (h * h);
+    var Hc = (F([m[0], m[1] + h]) - 2 * f0 + F([m[0], m[1] - h])) / (h * h);
+    var Hb = (F([m[0] + h, m[1] + h]) - F([m[0] + h, m[1] - h])
+            - F([m[0] - h, m[1] + h]) + F([m[0] - h, m[1] - h])) / (4 * h * h);
+    var eH = eig2(Ha, Hb, Hc);
+    var kapObs = (eH.l2 > 1e-9) ? eH.l1 / eH.l2 : Infinity;
+
+    // -- information de Fisher au point de référence (propriété du plan)
+    var fi = fisher(st.ref, st.times);
+    var eF = eig2(fi.a, fi.b, fi.c);
+    var kapDes = (eF.l2 > 1e-12) ? eF.l1 / eF.l2 : Infinity;
+    var cosang = Math.abs(fi.rb) / Math.sqrt(Math.max(fi.ra * fi.rc, 1e-300));
+
+    // -- cadrage de la grille : contient le minimum et la référence
+    var ex = Math.exp(m[0]), ey = Math.exp(m[1]);
+    var tx = st.ref[st.selX], ty = st.ref[st.selY];
+    function span(e, t, bx) {
+      var c = Math.sqrt(e * t), lo = c / 7, hi = c * 7;
+      lo = Math.min(lo, Math.min(e, t) / 1.7);
+      hi = Math.max(hi, Math.max(e, t) * 1.7);
+      lo = Math.max(lo, bx[0] * 0.9); hi = Math.min(hi, bx[1] * 1.1);
+      if (hi <= lo * 1.2) { hi = lo * 4; }
+      return [lo, hi];
+    }
+    var sxr = span(ex, tx, BOX[st.selX]), syr = span(ey, ty, BOX[st.selY]);
+
+    // -- grille 80x80 de ΔOFV
+    var N = 80, Z = new Float64Array(N * N);
+    var la = Math.log(sxr[0]), lb = Math.log(sxr[1]);
+    var lc = Math.log(syr[0]), ld = Math.log(syr[1]);
+    var zmin = Infinity;
+    for (j = 0; j < N; j++) {
+      ly = lc + (ld - lc) * j / (N - 1);
+      for (i = 0; i < N; i++) {
+        lx = la + (lb - la) * i / (N - 1);
+        f = F([lx, ly]);
+        Z[j * N + i] = f;
+        if (f < zmin) zmin = f;
+      }
+    }
+    var base = Math.min(zmin, f0);
+    for (i = 0; i < Z.length; i++) Z[i] -= base;
+
+    // -- second jeu sur la crête
+    // La direction plate est orientée vers la valeur de référence : se déplacer dans le
+    // sens positif ramène donc vers les paramètres qui ont réellement simulé les données.
+    var vmin = eH.vmin, vmax = eH.vmax;
+    var dr = [lx0 - m[0], ly0 - m[1]];
+    if (vmin[0] * dr[0] + vmin[1] * dr[1] < 0) {
+      vmin = [-vmin[0], -vmin[1]];
+      vmax = [-vmax[0], -vmax[1]];
+    }
+    var p0 = [m[0] + st.ridge * vmin[0], m[1] + st.ridge * vmin[1]];
+    var u = golden(function (uu) { return F([p0[0] + uu * vmax[0], p0[1] + uu * vmax[1]]); }, -2, 2, 55);
+    var q = [p0[0] + u * vmax[0], p0[1] + u * vmax[1]];
+
+    var thFit = thetaFrom(m[0], m[1]);
+    var thTwin = thetaFrom(q[0], q[1]);
+    // ΔOFV est par construction positif : on absorbe le bruit numérique du minimiseur.
+    var dofv = F(q) - f0;
+    if (dofv < 0) dofv = 0;
+
+    // -- écarts entre les deux profils
+    var pF = pkConst(thFit), pT = pkConst(thTwin);
+    var t0 = Math.min.apply(null, st.times), t1 = Math.max.apply(null, st.times);
+    var mxW = 0, mxA = 0, k, t, ca, cb, rd;
+    for (k = 1; k <= 600; k++) {
+      t = TMAX * Math.pow(k / 600, 2);
+      ca = conc(pF, t); cb = conc(pT, t);
+      if (ca < 1e-12) continue;
+      rd = Math.abs(cb - ca) / ca * 100;
+      if (rd > mxA) mxA = rd;
+      if (t >= t0 && t <= t1 && rd > mxW) mxW = rd;
+    }
+
+    R = {
+      m: m, f0: f0, Z: Z, N: N, gx: [la, lb], gy: [lc, ld],
+      kapObs: kapObs, kapDes: kapDes, cos: cosang, detF: eF.det,
+      vmin: vmin, vmax: vmax, thFit: thFit, thTwin: thTwin, qlog: q,
+      dofv: dofv, mxW: mxW, mxA: mxA, pF: pF, pT: pT,
+      pRef: pkConst(st.ref), t0: t0, t1: t1
+    };
+  }
+
+  /* ===================================================================
+     10. Tracé — profil de concentration
+     =================================================================== */
+  var PX0 = 54, PY0 = 16, PW = 590, PH = 286, PYB = PY0 + PH, RUGY = 322, RUGH = 20;
+  function xT(t) { return PX0 + Math.sqrt(Math.max(t, 0) / TMAX) * PW; }
+  function tX(x) { var r = (x - PX0) / PW; if (r < 0) r = 0; if (r > 1) r = 1; return TMAX * r * r; }
+
+  function drawProfile() {
+    var s = [], i, k, t, c;
+    var pF = R.pF, pT = R.pT, pR = R.pRef;
+
+    // bornes verticales
+    var hiC = Math.max(conc(pF, 0), conc(pT, 0), conc(pR, 0));
+    var loC = Infinity;
+    for (k = 0; k <= 60; k++) {
+      t = TMAX * Math.pow(k / 60, 2);
+      loC = Math.min(loC, conc(pF, t), conc(pT, t), conc(pR, t));
+    }
+    for (i = 0; i < obs.length; i++) { loC = Math.min(loC, obs[i]); hiC = Math.max(hiC, obs[i]); }
+    var yhi = Math.pow(10, Math.ceil(Math.log10(hiC * 1.05)));
+    var ylo = Math.pow(10, Math.floor(Math.log10(Math.max(loC * 0.75, 1e-4))));
+    if (yhi / ylo < 100) ylo = yhi / 100;
+    var lyhi = Math.log10(yhi), lylo = Math.log10(ylo);
+    function yC(c) {
+      var v = Math.log10(Math.max(c, ylo * 0.2));
+      return PY0 + PH - (v - lylo) / (lyhi - lylo) * PH;
+    }
+
+    // grille horizontale
+    var dec;
+    for (dec = Math.ceil(lylo); dec <= Math.floor(lyhi); dec++) {
+      var yy = yC(Math.pow(10, dec));
+      s.push('<line class="ax-grid" x1="' + PX0 + '" y1="' + yy.toFixed(1) + '" x2="' + (PX0 + PW) + '" y2="' + yy.toFixed(1) + '"/>');
+      s.push('<text class="ax-txt" x="' + (PX0 - 7) + '" y="' + (yy + 3.4).toFixed(1) + '" text-anchor="end">' + fr(Math.pow(10, dec), dec < 0 ? -dec : 0) + '</text>');
+      var mm;
+      for (mm = 2; mm <= 9; mm++) {
+        var vmv = mm * Math.pow(10, dec);
+        if (vmv > yhi || vmv < ylo) continue;
+        var ym = yC(vmv);
+        s.push('<line class="ax-grid minor" x1="' + PX0 + '" y1="' + ym.toFixed(1) + '" x2="' + (PX0 + PW) + '" y2="' + ym.toFixed(1) + '"/>');
+      }
+    }
+    // grille verticale
+    var TT = [0, 0.25, 1, 2, 4, 8, 12, 18, 24];
+    for (i = 0; i < TT.length; i++) {
+      var xx = xT(TT[i]);
+      s.push('<line class="ax-grid" x1="' + xx.toFixed(1) + '" y1="' + PY0 + '" x2="' + xx.toFixed(1) + '" y2="' + PYB + '"/>');
+      s.push('<text class="ax-txt" x="' + xx.toFixed(1) + '" y="' + (PYB + 14) + '" text-anchor="middle">' + fr(TT[i], TT[i] < 1 && TT[i] > 0 ? 2 : 0) + '</text>');
+    }
+    s.push('<text class="ax-title" x="' + (PX0 + PW / 2) + '" y="' + (PYB + 30) + '" text-anchor="middle">temps (h) — échelle en racine carrée</text>');
+    s.push('<text class="ax-title" transform="translate(13,' + (PY0 + PH / 2) + ') rotate(-90)" text-anchor="middle">concentration (mg/L)</text>');
+
+    // fenêtre de prélèvement
+    s.push('<rect class="win-band" x="' + xT(R.t0).toFixed(1) + '" y="' + PY0 + '" width="' + Math.max(xT(R.t1) - xT(R.t0), 1).toFixed(1) + '" height="' + PH + '"/>');
+
+    // courbes
+    function path(p) {
+      var d = '', kk, tt, cc2, first = true;
+      for (kk = 0; kk <= 300; kk++) {
+        tt = TMAX * Math.pow(kk / 300, 2);
+        cc2 = conc(p, tt);
+        if (cc2 < ylo * 0.2) cc2 = ylo * 0.2;
+        d += (first ? 'M' : 'L') + xT(tt).toFixed(1) + ' ' + yC(cc2).toFixed(1);
+        first = false;
+      }
+      return d;
+    }
+    s.push('<path class="c-true" d="' + path(pR) + '"/>');
+    s.push('<path class="c-fit" d="' + path(pF) + '"/>');
+    if (Math.abs(st.ridge) > 1e-6) s.push('<path class="c-twin" d="' + path(pT) + '"/>');
+
+    // observations
+    for (i = 0; i < st.times.length; i++) {
+      var ox = xT(st.times[i]), oy = yC(obs[i]);
+      s.push('<line class="obs-stem" x1="' + ox.toFixed(1) + '" y1="' + oy.toFixed(1) + '" x2="' + ox.toFixed(1) + '" y2="' + RUGY + '"/>');
+      s.push('<circle class="obs-pt" cx="' + ox.toFixed(1) + '" cy="' + oy.toFixed(1) + '" r="3.6"/>');
+    }
+
+    // prélèvement suggéré
+    if (optT !== null) {
+      var xo = xT(optT);
+      s.push('<line class="opt-mark" x1="' + xo.toFixed(1) + '" y1="' + PY0 + '" x2="' + xo.toFixed(1) + '" y2="' + PYB + '"/>');
+      s.push('<text class="opt-txt" x="' + (xo + 5).toFixed(1) + '" y="' + (PY0 + 12) + '">' + fr(optT, 2) + ' h</text>');
+    }
+
+    // réglette des temps
+    s.push('<rect class="rug-bg" x="' + PX0 + '" y="' + RUGY + '" width="' + PW + '" height="' + RUGH + '" rx="4"/>');
+    for (i = 0; i < st.times.length; i++) {
+      var hx = xT(st.times[i]), hy = RUGY + RUGH / 2;
+      s.push('<g class="hg" tabindex="0" role="slider" data-i="' + i + '"'
+        + ' aria-label="Temps du prélèvement ' + (i + 1) + '"'
+        + ' aria-valuemin="0.02" aria-valuemax="24" aria-valuenow="' + st.times[i].toFixed(2) + '"'
+        + ' aria-valuetext="' + fr(st.times[i], 2) + ' heures">'
+        + '<line class="hline" x1="' + hx.toFixed(1) + '" y1="' + PYB + '" x2="' + hx.toFixed(1) + '" y2="' + RUGY + '"/>'
+        + '<rect class="handle" x="' + (hx - 5.5).toFixed(1) + '" y="' + (hy - 7.5) + '" width="11" height="15" rx="3"/>'
+        + '</g>');
+    }
+    document.getElementById('svgProfile').innerHTML =
+      '<title id="profTitle">Profil de concentration en fonction du temps</title>'
+      + '<desc id="profDesc">Concentration en échelle logarithmique contre le temps en échelle racine carrée.</desc>'
+      + s.join('');
+  }
+
+  /* ===================================================================
+     11. Tracé — écart entre les deux modèles
+     =================================================================== */
+  var DX0 = 54, DY0 = 14, DW = 590, DH = 118, DYB = DY0 + DH;
+  function drawDiff() {
+    var s = [], k, t, ca, cb, rd, i;
+    var lo = 0.005, hi = 400;
+    var llo = Math.log10(lo), lhi = Math.log10(hi);
+    function yD(v) {
+      var x = Math.log10(Math.min(Math.max(v, lo), hi));
+      return DY0 + DH - (x - llo) / (lhi - llo) * DH;
+    }
+    var dec;
+    for (dec = -2; dec <= 2; dec++) {
+      var yy = yD(Math.pow(10, dec));
+      s.push('<line class="ax-grid" x1="' + DX0 + '" y1="' + yy.toFixed(1) + '" x2="' + (DX0 + DW) + '" y2="' + yy.toFixed(1) + '"/>');
+      s.push('<text class="ax-txt" x="' + (DX0 - 7) + '" y="' + (yy + 3.4).toFixed(1) + '" text-anchor="end">' + fr(Math.pow(10, dec), dec < 0 ? -dec : 0) + '%</text>');
+    }
+    var TT = [0, 0.25, 1, 2, 4, 8, 12, 18, 24];
+    for (i = 0; i < TT.length; i++) {
+      var xx = DX0 + (xT(TT[i]) - PX0) / PW * DW;
+      s.push('<line class="ax-grid" x1="' + xx.toFixed(1) + '" y1="' + DY0 + '" x2="' + xx.toFixed(1) + '" y2="' + DYB + '"/>');
+      s.push('<text class="ax-txt" x="' + xx.toFixed(1) + '" y="' + (DYB + 14) + '" text-anchor="middle">' + fr(TT[i], TT[i] < 1 && TT[i] > 0 ? 2 : 0) + '</text>');
+    }
+    s.push('<text class="ax-title" x="' + (DX0 + DW / 2) + '" y="' + (DYB + 30) + '" text-anchor="middle">temps (h)</text>');
+    s.push('<text class="ax-title" transform="translate(13,' + (DY0 + DH / 2) + ') rotate(-90)" text-anchor="middle">écart relatif</text>');
+
+    function xd(t) { return DX0 + Math.sqrt(Math.max(t, 0) / TMAX) * DW; }
+    s.push('<rect class="win-band" x="' + xd(R.t0).toFixed(1) + '" y="' + DY0 + '" width="' + Math.max(xd(R.t1) - xd(R.t0), 1).toFixed(1) + '" height="' + DH + '"/>');
+
+    var yn = yD(st.sigma * 100);
+    s.push('<line class="noise-line" x1="' + DX0 + '" y1="' + yn.toFixed(1) + '" x2="' + (DX0 + DW) + '" y2="' + yn.toFixed(1) + '"/>');
+    s.push('<text class="noise-txt" x="' + (DX0 + DW - 3) + '" y="' + (yn - 4).toFixed(1) + '" text-anchor="end">niveau de bruit σ = ' + Math.round(st.sigma * 100) + '%</text>');
+
+    var d = '', first = true;
+    for (k = 1; k <= 400; k++) {
+      t = TMAX * Math.pow(k / 400, 2);
+      ca = conc(R.pF, t); cb = conc(R.pT, t);
+      if (ca < 1e-12) continue;
+      rd = Math.abs(cb - ca) / ca * 100;
+      d += (first ? 'M' : 'L') + xd(t).toFixed(1) + ' ' + yD(rd).toFixed(1);
+      first = false;
+    }
+    if (!first) s.push('<path class="diff-curve" d="' + d + '"/>');
+    for (i = 0; i < st.times.length; i++) {
+      s.push('<line class="hline" x1="' + xd(st.times[i]).toFixed(1) + '" y1="' + DYB + '" x2="' + xd(st.times[i]).toFixed(1) + '" y2="' + (DYB - 7) + '"/>');
+    }
+    document.getElementById('svgDiff').innerHTML =
+      '<title id="diffTitle">Écart relatif entre les deux jeux de paramètres</title>'
+      + '<desc id="diffDesc">Écart relatif en pourcentage entre les deux courbes en fonction du temps.</desc>'
+      + s.join('');
+  }
+
+  /* ===================================================================
+     12. Tracé — surface d'objectif
+     =================================================================== */
+  var SX0 = 66, SY0 = 14, SW = 386, SH = 344, SYB = SY0 + SH;
+  function drawSurf() {
+    var s = [], i, j;
+    var N = R.N, Z = R.Z;
+    var la = R.gx[0], lb = R.gx[1], lc = R.gy[0], ld = R.gy[1];
+    function px(ix) { return SX0 + (ix / (N - 1)) * SW; }
+    function py(iy) { return SY0 + SH - (iy / (N - 1)) * SH; }
+    function pxv(v) { return SX0 + (Math.log(v) - la) / (lb - la) * SW; }
+    function pyv(v) { return SY0 + SH - (Math.log(v) - lc) / (ld - lc) * SH; }
+
+    // aplats par bande
+    var LV = [1, 3.84, 5.99, 10, 20, 50, 150];
+    var paths = ['', '', '', '', '', '', '', ''];
+    var cw = SW / (N - 1), ch = SH / (N - 1);
+    for (j = 0; j < N - 1; j++) {
+      for (i = 0; i < N - 1; i++) {
+        var v = (Z[j * N + i] + Z[j * N + i + 1] + Z[(j + 1) * N + i] + Z[(j + 1) * N + i + 1]) / 4;
+        var b = 0;
+        while (b < LV.length && v > LV[b]) b++;
+        var x0 = px(i), y0 = py(j + 1);
+        paths[b] += 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1)
+          + 'h' + cw.toFixed(2) + 'v' + ch.toFixed(2) + 'h' + (-cw).toFixed(2) + 'z';
+      }
+    }
+    for (i = 0; i < 8; i++) {
+      if (paths[i]) s.push('<path class="sf' + i + '" d="' + paths[i] + '"/>');
+    }
+
+    // courbes de niveau
+    var levels = [1, 3.84, 5.99, 10, 20, 50];
+    for (i = 0; i < levels.length; i++) {
+      var segs = marchingSquares(Z, N, levels[i]);
+      if (!segs.length) continue;
+      var d = '', k;
+      for (k = 0; k < segs.length; k++) {
+        d += 'M' + px(segs[k][0]).toFixed(1) + ' ' + py(segs[k][1]).toFixed(1)
+          + 'L' + px(segs[k][2]).toFixed(1) + ' ' + py(segs[k][3]).toFixed(1);
+      }
+      s.push('<path class="ctr' + (levels[i] === 5.99 ? ' key' : '') + '" d="' + d + '"/>');
+    }
+
+    // axes
+    var xt = logTicks(Math.exp(la), Math.exp(lb));
+    for (i = 0; i < xt.length; i++) {
+      var xx = pxv(xt[i]);
+      s.push('<line class="ax-grid" x1="' + xx.toFixed(1) + '" y1="' + SY0 + '" x2="' + xx.toFixed(1) + '" y2="' + SYB + '"/>');
+      s.push('<text class="ax-txt" x="' + xx.toFixed(1) + '" y="' + (SYB + 14) + '" text-anchor="middle">' + fr(xt[i], xt[i] < 1 ? 2 : (xt[i] < 10 ? 1 : 0)) + '</text>');
+    }
+    var yt = logTicks(Math.exp(lc), Math.exp(ld));
+    for (i = 0; i < yt.length; i++) {
+      var yy = pyv(yt[i]);
+      s.push('<line class="ax-grid" x1="' + SX0 + '" y1="' + yy.toFixed(1) + '" x2="' + (SX0 + SW) + '" y2="' + yy.toFixed(1) + '"/>');
+      s.push('<text class="ax-txt" x="' + (SX0 - 7) + '" y="' + (yy + 3.4).toFixed(1) + '" text-anchor="end">' + fr(yt[i], yt[i] < 1 ? 2 : (yt[i] < 10 ? 1 : 0)) + '</text>');
+    }
+    s.push('<rect class="ax-line" x="' + SX0 + '" y="' + SY0 + '" width="' + SW + '" height="' + SH + '"/>');
+    s.push('<text class="ax-title" x="' + (SX0 + SW / 2) + '" y="' + (SYB + 32) + '" text-anchor="middle">'
+      + esc(st.selX) + ' (' + PUNIT[st.selX] + ') — échelle log</text>');
+    s.push('<text class="ax-title" transform="translate(15,' + (SY0 + SH / 2) + ') rotate(-90)" text-anchor="middle">'
+      + esc(st.selY) + ' (' + PUNIT[st.selY] + ') — échelle log</text>');
+
+    // direction de la crête
+    var mx = R.m[0], my = R.m[1];
+    var L = 6;
+    var a1x = mx - L * R.vmin[0], a1y = my - L * R.vmin[1];
+    var a2x = mx + L * R.vmin[0], a2y = my + L * R.vmin[1];
+    s.push('<line class="ridge-line" x1="' + (SX0 + (a1x - la) / (lb - la) * SW).toFixed(1)
+      + '" y1="' + (SY0 + SH - (a1y - lc) / (ld - lc) * SH).toFixed(1)
+      + '" x2="' + (SX0 + (a2x - la) / (lb - la) * SW).toFixed(1)
+      + '" y2="' + (SY0 + SH - (a2y - lc) / (ld - lc) * SH).toFixed(1) + '"/>');
+
+    // repères
+    var trx = pxv(st.ref[st.selX]), try_ = pyv(st.ref[st.selY]);
+    s.push('<g><line class="m-true" x1="' + (trx - 6).toFixed(1) + '" y1="' + try_.toFixed(1) + '" x2="' + (trx + 6).toFixed(1) + '" y2="' + try_.toFixed(1) + '"/>'
+      + '<line class="m-true" x1="' + trx.toFixed(1) + '" y1="' + (try_ - 6).toFixed(1) + '" x2="' + trx.toFixed(1) + '" y2="' + (try_ + 6).toFixed(1) + '"/></g>');
+    s.push('<text class="m-txt" x="' + (trx + 8).toFixed(1) + '" y="' + (try_ - 7).toFixed(1) + '">référence</text>');
+
+    var fx = pxv(R.thFit[st.selX]), fy = pyv(R.thFit[st.selY]);
+    s.push('<circle class="m-fit" cx="' + fx.toFixed(1) + '" cy="' + fy.toFixed(1) + '" r="5.5"/>');
+    s.push('<text class="m-txt" x="' + (fx + 8).toFixed(1) + '" y="' + (fy + 12).toFixed(1) + '">minimum</text>');
+
+    if (Math.abs(st.ridge) > 1e-6) {
+      var tx2 = pxv(R.thTwin[st.selX]), ty2 = pyv(R.thTwin[st.selY]);
+      s.push('<circle class="m-twin" cx="' + tx2.toFixed(1) + '" cy="' + ty2.toFixed(1) + '" r="5.5"/>');
+    }
+
+    document.getElementById('svgSurf').innerHTML =
+      '<title id="surfTitle">Surface d\'objectif et courbes de niveau</title>'
+      + '<desc id="surfDesc">Carte des écarts de −2 log-vraisemblance sur deux paramètres en échelle logarithmique.</desc>'
+      + s.join('');
+  }
+
+  /* ===================================================================
+     13. Lectures chiffrées
+     =================================================================== */
+  function drawReads() {
+    document.getElementById('rKapDes').textContent = frBig(R.kapDes);
+    document.getElementById('rKapObs').textContent = frBig(R.kapObs);
+    document.getElementById('rCos').textContent = fr(R.cos, 4);
+    document.getElementById('rDet').textContent = R.detF > 0 ? R.detF.toExponential(2).replace('.', ',') : '≈ 0';
+    var sk = Math.sqrt(R.kapDes);
+    document.getElementById('rSqrtK').textContent = frBig(sk);
+    document.getElementById('rSqrtK2').textContent = frBig(sk);
+    document.getElementById('kappaNote').innerHTML = noteMsg;
+
+    document.getElementById('rDofv').textContent = fr(R.dofv, 2);
+    document.getElementById('rEcW').textContent = fr(R.mxW, 2) + ' %';
+    document.getElementById('rEcA').textContent = fr(R.mxA, 1) + ' %';
+
+    var vd, cls = '';
+    if (Math.abs(st.ridge) < 1e-6) { vd = 'jeux confondus'; }
+    else if (R.dofv < 3.84) { vd = 'indiscernables'; cls = 'flat-warn'; }
+    else if (R.dofv < 5.99) { vd = 'quasi indiscernables'; cls = 'flat-warn'; }
+    else { vd = 'distinguables'; }
+    var ve = document.getElementById('rVerdict');
+    ve.textContent = vd; ve.className = 'n ' + cls;
+    document.getElementById('boxDofv').className = 'read' + (R.dofv < 5.99 && Math.abs(st.ridge) > 1e-6 ? ' warn' : '');
+
+    // tableau
+    var rows = [], i, nm2, a, b, d;
+    for (i = 0; i < PARAMS.length; i++) {
+      nm2 = PARAMS[i];
+      a = R.thFit[nm2]; b = R.thTwin[nm2];
+      d = (a > 0) ? (b / a - 1) * 100 : 0;
+      var isSel = (nm2 === st.selX || nm2 === st.selY);
+      rows.push('<tr><td>' + PLABEL[nm2] + ' <span class="small">(' + PUNIT[nm2] + ')</span></td>'
+        + '<td class="num">' + fr(a, 2) + '</td>'
+        + '<td class="num">' + fr(b, 2) + '</td>'
+        + '<td class="num dlt">' + (Math.abs(d) < 0.05 ? '—' : (d > 0 ? '+' : '') + fr(d, 0) + ' %') + '</td>'
+        + '<td class="small">' + (isSel ? 'réestimé' : 'fixé à la référence') + '</td></tr>');
+    }
+    var vssA = R.thFit.V1 + R.thFit.V2, vssB = R.thTwin.V1 + R.thTwin.V2;
+    var thA = Math.LN2 / R.pF.be, thB = Math.LN2 / R.pT.be;
+    var tdA = Math.LN2 / R.pF.al, tdB = Math.LN2 / R.pT.al;
+    var aucA = DOSE / R.thFit.CL, aucB = DOSE / R.thTwin.CL;
+    function drow(lab, a2, b2, dg, unit, note, sep) {
+      var dd = (a2 > 0) ? (b2 / a2 - 1) * 100 : 0;
+      return '<tr' + (sep ? ' class="sep"' : '') + '><td>' + lab + ' <span class="small">(' + unit + ')</span></td>'
+        + '<td class="num">' + fr(a2, dg) + '</td><td class="num">' + fr(b2, dg) + '</td>'
+        + '<td class="num dlt">' + (Math.abs(dd) < 0.05 ? '—' : (dd > 0 ? '+' : '') + fr(dd, 0) + ' %') + '</td>'
+        + '<td class="small">' + note + '</td></tr>';
+    }
+    rows.push(drow('V<sub>ss</sub> = V<sub>1</sub>+V<sub>2</sub>', vssA, vssB, 1, 'L', 'gouverne une dose de charge', true));
+    rows.push(drow('Demi-vie terminale', thA, thB, 2, 'h', 'gouverne l\'accumulation', false));
+    rows.push(drow('Demi-vie de distribution', tdA, tdB, 3, 'h', 'phase non observée ici', false));
+    rows.push(drow('AUC<sub>0−∞</sub> = D/CL', aucA, aucB, 1, 'mg·h/L', 'inchangée si CL est fixée', false));
+    document.getElementById('twinBody').innerHTML = rows.join('');
+
+    document.getElementById('vN').textContent = st.times.length;
+    document.getElementById('vTimes').textContent = st.times.slice().sort(function (a3, b3) { return a3 - b3; })
+      .map(function (t) { return fr(t, 2); }).join('  ·  ') + '  h';
+  }
+
+  /* ===================================================================
+     14. Rendu global
+     =================================================================== */
+  var pending = false;
+  function render() {
+    compute();
+    drawProfile(); drawDiff(); drawSurf(); drawReads();
+  }
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function () { pending = false; render(); });
+  }
+
+  /* ===================================================================
+     15. Contrôles
+     =================================================================== */
+  function bindRange(id, vid, key, scale, dg) {
+    var el = document.getElementById(id), out = document.getElementById(vid);
+    function upd() {
+      var v = parseFloat(el.value);
+      out.textContent = fr(v, dg);
+      if (key === 'sigma') st.sigma = v / 100;
+      else st.ref[key] = v;
+      optT = null; noteMsg = ''; schedule();
+    }
+    el.addEventListener('input', upd);
+    out.textContent = fr(parseFloat(el.value), dg);
+  }
+  bindRange('sCL', 'vCL', 'CL', 1, 1);
+  bindRange('sV1', 'vV1', 'V1', 1, 1);
+  bindRange('sQ', 'vQ', 'Q', 1, 1);
+  bindRange('sV2', 'vV2', 'V2', 1, 0);
+  bindRange('sSig', 'vSig', 'sigma', 1, 0);
+
+  var rg = document.getElementById('sRidge'), rgv = document.getElementById('vRidge');
+  rg.addEventListener('input', function () {
+    st.ridge = parseFloat(rg.value);
+    rgv.textContent = fr(st.ridge, 2);
+    schedule();
+  });
+  rgv.textContent = fr(st.ridge, 2);
+
+  var selX = document.getElementById('selX'), selY = document.getElementById('selY');
+  function onSel(which) {
+    return function () {
+      var nx = selX.value, ny = selY.value;
+      if (nx === ny) {
+        // échange pour éviter un couple dégénéré
+        if (which === 'x') { ny = st.selX; selY.value = ny; }
+        else { nx = st.selY; selX.value = nx; }
+      }
+      st.selX = nx; st.selY = ny; optT = null; noteMsg = ''; schedule();
+    };
+  }
+  selX.addEventListener('change', onSel('x'));
+  selY.addEventListener('change', onSel('y'));
+
+  var seedEl = document.getElementById('iSeed');
+  seedEl.addEventListener('change', function () {
+    var v = parseInt(seedEl.value, 10);
+    if (!isFinite(v)) v = 1;
+    st.seed = v; eps = makeNormals(st.seed, 64); noteMsg = ''; schedule();
+  });
+  document.getElementById('bSeed').addEventListener('click', function () {
+    st.seed = (Math.floor(Math.random() * 2147483000) % 2147483647) + 1;
+    seedEl.value = st.seed;
+    eps = makeNormals(st.seed, 64); noteMsg = ''; schedule();
+  });
+
+  function sortTimes() { st.times.sort(function (a, b) { return a - b; }); }
+
+  document.getElementById('bLate').addEventListener('click', function () {
+    st.times = DEF_TIMES.slice(); optT = null; noteMsg = ''; schedule();
+  });
+  document.getElementById('bRich').addEventListener('click', function () {
+    st.times = [0.08, 0.25, 0.5, 1, 2, 4, 8, 12, 18, 24]; optT = null; noteMsg = ''; schedule();
+  });
+  document.getElementById('bAdd').addEventListener('click', function () {
+    if (st.times.length >= MAXPTS) return;
+    st.times.push(12); sortTimes(); optT = null; noteMsg = ''; schedule();
+  });
+  document.getElementById('bDel').addEventListener('click', function () {
+    if (st.times.length <= 3) return;
+    st.times.pop(); optT = null; noteMsg = ''; schedule();
+  });
+
+  document.getElementById('bOpt').addEventListener('click', function () {
+    var before = R.kapDes, bestT = null, bestD = -1, i, t, fi2, dt;
+    for (i = 0; i <= 120; i++) {
+      t = 0.03 * Math.pow(TMAX / 0.03, i / 120);
+      fi2 = fisher(st.ref, st.times.concat([t]));
+      dt = fi2.a * fi2.c - fi2.b * fi2.b;
+      if (dt > bestD) { bestD = dt; bestT = t; }
+    }
+    if (bestT === null || st.times.length >= MAXPTS) return;
+    optT = Math.round(bestT * 100) / 100;
+    st.times.push(optT); sortTimes();
+    render();
+    noteMsg = 'Prélèvement ajouté à <b>' + fr(optT, 2) + '&nbsp;h</b> (D-optimal). '
+      + 'κ&nbsp;du plan&nbsp;: <b>' + frBig(before) + '</b> → <b>' + frBig(R.kapDes) + '</b>.';
+    drawReads();
+  });
+
+  document.getElementById('bBad').addEventListener('click', function () {
+    var before = R.kapDes, i, src = st.times.slice(), n0 = src.length;
+    if (!n0) return;
+    for (i = 0; i < 10 && st.times.length < MAXPTS; i++) st.times.push(src[i % n0]);
+    sortTimes(); optT = null;
+    render();
+    noteMsg = '10 prélèvements ajoutés dans la fenêtre déjà couverte. '
+      + 'κ&nbsp;du plan&nbsp;: <b>' + frBig(before) + '</b> → <b>' + frBig(R.kapDes) + '</b>. '
+      + 'Le déterminant augmente — donc la précision — mais le conditionnement, non.';
+    drawReads();
+  });
+
+  document.getElementById('bReset').addEventListener('click', function () {
+    st.ref = { CL: 4, V1: 10, Q: 25, V2: 35 };
+    st.sigma = 0.10; st.times = DEF_TIMES.slice();
+    st.selX = 'Q'; st.selY = 'V2'; st.ridge = 1.0; st.seed = 20260804;
+    eps = makeNormals(st.seed, 64);
+    document.getElementById('sCL').value = 4; document.getElementById('vCL').textContent = fr(4, 1);
+    document.getElementById('sV1').value = 10; document.getElementById('vV1').textContent = fr(10, 1);
+    document.getElementById('sQ').value = 25; document.getElementById('vQ').textContent = fr(25, 1);
+    document.getElementById('sV2').value = 35; document.getElementById('vV2').textContent = fr(35, 0);
+    document.getElementById('sSig').value = 10; document.getElementById('vSig').textContent = fr(10, 0);
+    rg.value = 1; rgv.textContent = fr(1, 2);
+    selX.value = 'Q'; selY.value = 'V2'; seedEl.value = 20260804;
+    optT = null; noteMsg = ''; schedule();
+  });
+
+  /* ---- déplacement des temps : souris et clavier ---- */
+  var svgP = document.getElementById('svgProfile');
+  var dragI = -1;
+  function svgX(ev) {
+    var r = svgP.getBoundingClientRect();
+    return (ev.clientX - r.left) / r.width * 660;
+  }
+  svgP.addEventListener('pointerdown', function (ev) {
+    var g = ev.target.closest ? ev.target.closest('.hg') : null;
+    if (!g) return;
+    dragI = parseInt(g.getAttribute('data-i'), 10);
+    g.querySelector('.handle').classList.add('on');
+    svgP.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  svgP.addEventListener('pointermove', function (ev) {
+    if (dragI < 0) return;
+    var t = tX(svgX(ev));
+    t = Math.min(Math.max(t, 0.02), TMAX);
+    st.times[dragI] = Math.round(t * 100) / 100;
+    optT = null; noteMsg = '';
+    schedule();
+  });
+  function endDrag(ev) {
+    if (dragI < 0) return;
+    dragI = -1;
+    if (ev.pointerId !== undefined && svgP.hasPointerCapture && svgP.hasPointerCapture(ev.pointerId)) {
+      svgP.releasePointerCapture(ev.pointerId);
+    }
+    sortTimes(); schedule();
+  }
+  svgP.addEventListener('pointerup', endDrag);
+  svgP.addEventListener('pointercancel', endDrag);
+
+  svgP.addEventListener('keydown', function (ev) {
+    var g = ev.target.closest ? ev.target.closest('.hg') : null;
+    if (!g) return;
+    var i = parseInt(g.getAttribute('data-i'), 10);
+    var k = ev.key, f = ev.shiftKey ? 0.2 : 0.05, t = st.times[i];
+    if (k === 'ArrowLeft' || k === 'ArrowDown') t = t * Math.exp(-f);
+    else if (k === 'ArrowRight' || k === 'ArrowUp') t = t * Math.exp(f);
+    else if (k === 'Home') t = 0.02;
+    else if (k === 'End') t = TMAX;
+    else return;
+    ev.preventDefault();
+    st.times[i] = Math.round(Math.min(Math.max(t, 0.02), TMAX) * 100) / 100;
+    optT = null; noteMsg = '';
+    render();
+    var gs = svgP.querySelectorAll('.hg');
+    if (gs[i]) gs[i].focus();
+  });
+
+  /* ===================================================================
+     16. Départ
+     =================================================================== */
+  render();
+})();
+</script>
+</body>
+</html>

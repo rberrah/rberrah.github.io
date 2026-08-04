@@ -50,4 +50,8 @@ npm run build        # build statique
 - Accès direct aux routes (refresh sur `/chapitres/<slug>/`) supporté via trailing slash et fallback.
 
 ## Licences
-- Texte : CC-BY-SA. Code : MIT. Pas de conseil médical (pédagogie uniquement).
+- Texte : **CC BY-SA 4.0** (https://creativecommons.org/licenses/by-sa/4.0/deed.fr) — la reprise,
+  l'adaptation et la traduction sont autorisées, y compris en enseignement payant, à condition de
+  citer l'auteur et de partager aux mêmes conditions.
+- Code : **MIT**.
+- Pas de conseil médical (pédagogie uniquement).

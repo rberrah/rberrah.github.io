@@ -5,11 +5,22 @@
   import chapters from '$lib/content/loadChapters';
   import Quiz from '$lib/components/ui/Quiz.svelte';
   import ChapterFooter from '$lib/components/ui/ChapterFooter.svelte';
+  import AuthorSignature from '$lib/components/ui/AuthorSignature.svelte';
+  import CiteBlock from '$lib/components/ui/CiteBlock.svelte';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import { exercisesForChapter } from '$lib/content/exercises';
   import { describeViz } from '$lib/content/vizDescriptions';
   import { language } from '$lib/stores/language';
   import { localizeChapter, ui } from '$lib/i18n/translations';
+  import {
+    alternateUrl,
+    AUTHOR,
+    canonicalUrl,
+    COURSE_NAME,
+    jsonLdScript,
+    LICENSE_URL,
+    SITE_URL
+  } from '$lib/site';
 
   import { fade, fly } from 'svelte/transition';
   import { cubicOut } from 'svelte/easing';
@@ -48,6 +59,40 @@
   $: hasRecall = prereqs.length > 0 || glossaryTerms.length > 0;
   // Description de l'animation active (localisée).
   $: vizDesc = describeViz(activeViz, $language);
+
+  // --- Citabilité et référencement ---------------------------------------------------
+  // URL canonique absolue de CE chapitre (https://rberrah.github.io/pharmacometrie/...).
+  $: canonical = canonicalUrl($page.url.pathname);
+  // Une alternance anglaise ne s'annonce que si la traduction existe réellement :
+  // sinon la page anglaise servirait le texte français, et l'annonce serait fausse.
+  $: hasEnglish = Boolean(chapter?.translations?.en);
+  // Langue effectivement affichée (le repli sur le français en est une).
+  $: shownLang = $language === 'en' && !isFallback ? 'en' : 'fr';
+  // JSON-LD : une ressource pédagogique, rattachée au cours. Pas d'article scientifique.
+  $: chapterJsonLd = displayChapter
+    ? jsonLdScript({
+        '@context': 'https://schema.org',
+        '@type': 'LearningResource',
+        name: displayChapter.title,
+        description: displayChapter.description,
+        url: canonical,
+        inLanguage: shownLang,
+        license: LICENSE_URL,
+        author: {
+          '@type': 'Person',
+          name: AUTHOR.name,
+          identifier: AUTHOR.orcid,
+          url: AUTHOR.url
+        },
+        isPartOf: {
+          '@type': 'Course',
+          name: COURSE_NAME,
+          url: SITE_URL
+        },
+        // `dateModified` n'apparaît que si le frontmatter porte une date de révision.
+        ...(chapter?.reviewed_on ? { dateModified: chapter.reviewed_on } : {})
+      })
+    : '';
 
   // Mise en page à DEUX régimes.
   //  - Desktop (≥ 920 px) : un panneau collant, une viz à la fois, pilotée par le défilement.
@@ -152,6 +197,12 @@
 <svelte:head>
   {#if displayChapter}
     <title>{displayChapter.title} — Pharmacométrie Pratique</title>
+    <link rel="alternate" hreflang="fr" href={canonical} />
+    {#if hasEnglish}
+      <link rel="alternate" hreflang="en" href={alternateUrl(canonical)} />
+    {/if}
+    <link rel="alternate" hreflang="x-default" href={canonical} />
+    {@html chapterJsonLd}
   {/if}
 </svelte:head>
 
@@ -167,6 +218,7 @@
     <a class="back" href={`${base}/chapitres`} data-testid="back-link">{copy.chapter.back}</a>
     <p class="eyebrow">{copy.chapter.label(String(idx + 1).padStart(2, '0'))}</p>
     <h1 data-testid="chapter-title">{displayChapter.title}</h1>
+    <AuthorSignature reviewedOn={chapter?.reviewed_on ?? ''} />
     <p class="desc">{displayChapter.description}</p>
     {#if isFallback}
       <p class="fallback-notice" data-testid="chapter-language-fallback">{copy.chapter.fallbackNotice}</p>
@@ -235,6 +287,8 @@
       {/if}
 
       <ChapterFooter {chapter} />
+      <!-- Après les sources : on cite une page dont on vient de voir sur quoi elle s'appuie. -->
+      <CiteBlock chapter={{ ...displayChapter, slug: chapter?.slug, reviewed_on: chapter?.reviewed_on }} url={canonical} />
 
       <nav class="chap-nav" data-testid="chapter-nav">
         {#if prev}

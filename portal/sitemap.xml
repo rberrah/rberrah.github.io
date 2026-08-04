@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap de la RACINE du site (le portail) uniquement.
+  Les trois cours produisent chacun le leur, généré à la construction :
+    /pharmacometrie/sitemap.xml, /internat/sitemap.xml, /stats/sitemap.xml
+  L'ensemble est agrégé par /sitemap-index.xml, qui est l'URL à soumettre aux
+  outils pour webmasters.
+
+  Ni <changefreq> ni <priority> : les moteurs les ignorent depuis longtemps.
+  Seul <lastmod> est effectivement pris en compte, et seulement s'il est exact —
+  le mettre à jour à chaque publication, ne jamais l'automatiser à « aujourd'hui ».
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://rberrah.github.io/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+
+  <!-- Paire FR / EN : les deux pages se déclarent mutuellement, et chacune se
+       déclare elle-même. Sans cette réciprocité complète, le groupe est ignoré. -->
+  <url>
+    <loc>https://rberrah.github.io/recherche/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rberrah.github.io/recherche/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rberrah.github.io/research/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rberrah.github.io/recherche/"/>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/research/</loc>
+    <lastmod>2026-08-04</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://rberrah.github.io/recherche/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://rberrah.github.io/research/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://rberrah.github.io/recherche/"/>
+  </url>
+
+  <url>
+    <loc>https://rberrah.github.io/a-propos/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/contact/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/citer/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+
+  <url>
+    <loc>https://rberrah.github.io/demos/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/demos/erreur-residuelle/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/demos/identifiabilite/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
+    <loc>https://rberrah.github.io/demos/jumeau-pharmacologique/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+
+</urlset>

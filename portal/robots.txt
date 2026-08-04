@@ -1,0 +1,22 @@
+# https://rberrah.github.io/robots.txt
+#
+# Sur GitHub Pages, un seul robots.txt fait autorité pour tout le domaine : celui
+# servi à la racine, c'est-à-dire CE fichier (dépôt du portail). Les robots.txt
+# présents dans les dépôts des cours sont servis sous /pharmacometrie/robots.txt,
+# /internat/robots.txt et /stats/robots.txt : ils documentent leur sous-site mais
+# ne sont lus par aucun robot. Toute règle réellement opposable s'écrit ici.
+#
+# Rien n'est privé sur ce site : tout est indexable, y compris les trois cours.
+
+User-agent: *
+Allow: /
+
+# Point d'entrée recommandé : l'index agrège la racine et les trois cours.
+Sitemap: https://rberrah.github.io/sitemap-index.xml
+
+# Les sitemaps sont aussi déclarés individuellement : si un outil ne suit pas les
+# index, il découvre quand même les quatre ensembles d'URL.
+Sitemap: https://rberrah.github.io/sitemap.xml
+Sitemap: https://rberrah.github.io/pharmacometrie/sitemap.xml
+Sitemap: https://rberrah.github.io/internat/sitemap.xml
+Sitemap: https://rberrah.github.io/stats/sitemap.xml

@@ -1,0 +1,264 @@
+/* ---------------------------------------------------------------------------
+   Socle du site personnel (racine de rberrah.github.io).
+   Volontairement monochrome : la SEULE couleur du site est celle des trois cours
+   (terracotta = pharmacométrie, teal = internat, indigo = stat). La couche
+   personnelle reste encre sur papier — c'est ce qui la distingue des trois sites
+   pédagogiques au lieu d'entrer en concurrence avec eux.
+   Aucune requête externe : polices système uniquement (pas de CDN, pas de FOUT).
+--------------------------------------------------------------------------- */
+
+:root {
+  /* Encre / papier */
+  --ink: #171412;
+  --ink-2: #423b34;
+  --ink-3: #6b635a;
+  --paper: #faf8f5;
+  --surface: #ffffff;
+  --border: #e4ded5;
+  --border-strong: #cec6ba;
+
+  /* Un seul accent pour l'interactif. Assez sombre pour passer AA sur papier. */
+  --accent: #1f5f8b;
+  --accent-soft: #eaf1f7;
+
+  /* Couleurs des trois cours — utilisées UNIQUEMENT pour les identifier */
+  --terra: #b85c38;
+  --teal: #1f7a6d;
+  --indigo: #4f46b8;
+
+  --shadow: 0 1px 2px rgba(23, 20, 18, 0.04), 0 8px 24px rgba(23, 20, 18, 0.06);
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --measure: 66ch;
+  --wrap: 1080px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ece7e0;
+    --ink-2: #c3bbb1;
+    --ink-3: #989086;
+    --paper: #14120f;
+    --surface: #1d1a16;
+    --border: #322d27;
+    --border-strong: #4a4239;
+    --accent: #7fb6da;
+    --accent-soft: #1b2a35;
+    --terra: #e8845c;
+    --teal: #3fbfa9;
+    --indigo: #8b83e6;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Le sélecteur de thème explicite doit gagner dans LES DEUX sens. */
+:root[data-theme="light"] {
+  --ink: #171412; --ink-2: #423b34; --ink-3: #6b635a;
+  --paper: #faf8f5; --surface: #ffffff; --border: #e4ded5; --border-strong: #cec6ba;
+  --accent: #1f5f8b; --accent-soft: #eaf1f7;
+  --terra: #b85c38; --teal: #1f7a6d; --indigo: #4f46b8;
+}
+:root[data-theme="dark"] {
+  --ink: #ece7e0; --ink-2: #c3bbb1; --ink-3: #98908e;
+  --paper: #14120f; --surface: #1d1a16; --border: #322d27; --border-strong: #4a4239;
+  --accent: #7fb6da; --accent-soft: #1b2a35;
+  --terra: #e8845c; --teal: #3fbfa9; --indigo: #8b83e6;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Liens ---------- */
+a { color: inherit; text-decoration-color: var(--border-strong); text-underline-offset: 0.18em; }
+a:hover { text-decoration-color: currentColor; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+/* ---------- Squelette ---------- */
+.wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 1.4rem; }
+main { flex: 1; }
+
+/* ---------- Barre de navigation ----------
+   Les TROIS COURS y figurent nommément, sur chaque page : c'est le chemin le plus
+   court entre n'importe quel visiteur et le contenu pédagogique. Aucun menu
+   déroulant, aucun JavaScript — ça se replie tout seul sur petit écran. */
+.nav {
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(8px);
+  position: sticky; top: 0; z-index: 40;
+}
+.nav-in {
+  max-width: var(--wrap); margin: 0 auto; padding: 0.65rem 1.4rem;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1.15rem;
+}
+.nav-name {
+  font-family: var(--serif); font-size: 1.02rem; font-weight: 600;
+  letter-spacing: -0.01em; text-decoration: none; margin-right: auto; white-space: nowrap;
+}
+.nav a { font-size: 0.87rem; color: var(--ink-2); text-decoration: none; padding: 0.2rem 0; }
+.nav a:hover { color: var(--ink); }
+.nav a[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.nav .course { position: relative; padding-left: 0.72rem; }
+.nav .course::before {
+  content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 6px; height: 6px; border-radius: 50%; background: var(--dot, var(--ink-3));
+}
+.nav .c-pharma { --dot: var(--terra); }
+.nav .c-internat { --dot: var(--teal); }
+.nav .c-stats { --dot: var(--indigo); }
+.nav-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0.1rem 0.2rem; }
+@media (max-width: 700px) { .nav-sep { display: none; } .nav-in { gap: 0.35rem 0.9rem; } }
+
+/* ---------- Typographie ---------- */
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.015em; line-height: 1.18; margin: 0; }
+h1 { font-size: clamp(1.9rem, 4.6vw, 3.05rem); }
+h2 { font-size: clamp(1.35rem, 2.6vw, 1.75rem); }
+h3 { font-size: 1.1rem; }
+p { margin: 0 0 1rem; }
+.measure { max-width: var(--measure); }
+
+.eyebrow {
+  font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
+  letter-spacing: 0.11em; color: var(--ink-3); margin: 0 0 0.85rem;
+}
+.lede { font-size: clamp(1.02rem, 1.9vw, 1.16rem); color: var(--ink-2); max-width: var(--measure); }
+.small { font-size: 0.87rem; color: var(--ink-3); }
+
+/* ---------- Bandeau d'identité (kicker) ---------- */
+.kicker {
+  font-size: 0.9rem; color: var(--ink-2); margin: 0 0 1.4rem;
+  max-width: 62ch; line-height: 1.5;
+}
+.kicker strong { font-weight: 600; color: var(--ink); }
+
+/* ---------- Bande de preuve ---------- */
+.proof {
+  display: flex; flex-wrap: wrap; gap: 0.35rem 1.4rem;
+  font-family: var(--mono); font-size: 0.795rem; color: var(--ink-3);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 0.9rem 0; margin: 2.2rem 0 0;
+}
+.proof b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Sections ---------- */
+section.band { padding: clamp(2.6rem, 6vw, 4.4rem) 0; border-bottom: 1px solid var(--border); }
+section.band:last-of-type { border-bottom: 0; }
+.section-head { margin-bottom: 1.8rem; }
+.section-head p { color: var(--ink-2); max-width: var(--measure); margin: 0.55rem 0 0; }
+
+/* ---------- Cartes de cours ---------- */
+.courses { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 760px) { .courses { grid-template-columns: repeat(3, 1fr); } }
+
+.course-card {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1.35rem 1.4rem 1.2rem; text-decoration: none; color: inherit;
+  box-shadow: var(--shadow); overflow: hidden;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.course-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent-c); }
+a.course-card:hover { transform: translateY(-2px); border-color: var(--accent-c); box-shadow: 0 4px 8px rgba(0,0,0,.05), 0 16px 40px rgba(0,0,0,.1); }
+.course-card.pharma { --accent-c: var(--terra); }
+.course-card.internat { --accent-c: var(--teal); }
+.course-card.stats { --accent-c: var(--indigo); }
+.course-card h3 { font-size: 1.18rem; margin: 0 0 0.35rem; }
+.course-card p { color: var(--ink-2); font-size: 0.92rem; margin: 0; }
+.course-card .tag {
+  font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--accent-c); margin-bottom: 0.6rem;
+}
+.course-card .count { font-family: var(--mono); font-size: 0.76rem; color: var(--ink-3); margin-top: 0.9rem; }
+.course-card .go { margin-top: 0.35rem; font-size: 0.88rem; font-weight: 600; color: var(--accent-c); }
+a.course-card:hover .go { text-decoration: underline; }
+
+/* ---------- Listes de liens sobres ---------- */
+.linklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.linklist li { padding-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
+.linklist li:last-child { border-bottom: 0; }
+.linklist a { font-weight: 600; text-decoration: none; }
+.linklist a:hover { text-decoration: underline; }
+.linklist .meta { display: block; color: var(--ink-3); font-size: 0.85rem; margin-top: 0.15rem; }
+
+/* ---------- Référence bibliographique ---------- */
+.ref { font-size: 0.94rem; line-height: 1.55; }
+.ref .who { color: var(--ink-2); }
+.ref .me { font-weight: 700; color: var(--ink); }
+.ref .journal { font-style: italic; }
+.ref .doi { font-family: var(--mono); font-size: 0.79rem; }
+
+/* ---------- Étiquettes de statut ---------- */
+.status {
+  display: inline-block; font-family: var(--mono); font-size: 0.68rem;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  border: 1px solid var(--border-strong); border-radius: 999px;
+  padding: 0.08rem 0.5rem; color: var(--ink-3); vertical-align: 0.1em;
+}
+
+/* ---------- Encadré ---------- */
+.note {
+  border-left: 3px solid var(--border-strong); background: var(--surface);
+  padding: 1rem 1.2rem; border-radius: 0 10px 10px 0; margin: 1.6rem 0;
+}
+.note p:last-child { margin-bottom: 0; }
+.note.accent { border-left-color: var(--accent); background: var(--accent-soft); }
+
+/* ---------- Bloc de citation / code ---------- */
+pre.cite {
+  font-family: var(--mono); font-size: 0.79rem; line-height: 1.55;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.95rem 1.1rem; overflow-x: auto; margin: 0.8rem 0;
+  white-space: pre; color: var(--ink-2);
+}
+
+/* ---------- Boutons ---------- */
+.btn {
+  display: inline-block; font-size: 0.9rem; font-weight: 600; text-decoration: none;
+  padding: 0.55rem 1.05rem; border-radius: 8px; border: 1px solid var(--ink);
+  background: var(--ink); color: var(--paper); transition: opacity 0.15s ease;
+}
+.btn:hover { opacity: 0.86; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--border-strong); }
+.btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+.cta { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
+
+/* ---------- Tableau ---------- */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.55rem 0.8rem 0.55rem 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; }
+
+/* ---------- Pied de page ---------- */
+footer.site { border-top: 1px solid var(--border); margin-top: 2rem; }
+footer.site .fwrap {
+  max-width: var(--wrap); margin: 0 auto; padding: 1.6rem 1.4rem 2.2rem;
+  color: var(--ink-3); font-size: 0.82rem; display: grid; gap: 0.45rem;
+}
+footer.site a { color: var(--ink-2); }
+.idline { font-family: var(--mono); font-size: 0.76rem; }
+
+/* ---------- Accessibilité ---------- */
+.skip {
+  position: absolute; left: -9999px; top: 0; background: var(--ink); color: var(--paper);
+  padding: 0.6rem 1rem; z-index: 100; border-radius: 0 0 8px 0;
+}
+.skip:focus { left: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

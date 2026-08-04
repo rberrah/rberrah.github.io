@@ -12,6 +12,7 @@
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
   import { ui } from '$lib/i18n/translations';
   import { language } from '$lib/stores/language';
+  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL } from '$lib/site';
   let { children } = $props();
 
   let copy = $derived(ui($language));
@@ -36,10 +37,24 @@
   $effect(() => {
     document.documentElement.lang = $language === 'en' ? 'en' : 'fr';
   });
+
+  // URL canonique ABSOLUE, dérivée du seul chemin de route : aucune valeur lue dans le
+  // navigateur, donc identique au prérendu et après hydratation.
+  let canonical = $derived(canonicalUrl($page.url.pathname));
+  // Les alternances de langue des CHAPITRES sont posées par la route de chapitre, qui
+  // seule sait si la traduction anglaise existe. Ici : toutes les autres pages, dont
+  // l'interface est traduite intégralement.
+  let isChapterRoute = $derived($page.route.id === '/chapitres/[slug]');
 </script>
 
 <svelte:head>
   <title>Pharmacométrie Pratique</title>
+  <link rel="canonical" href={canonical} />
+  {#if !isChapterRoute}
+    <link rel="alternate" hreflang="fr" href={canonical} />
+    <link rel="alternate" hreflang="en" href={alternateUrl(canonical)} />
+    <link rel="alternate" hreflang="x-default" href={canonical} />
+  {/if}
 </svelte:head>
 
 <a class="skip-link" href="#main-content">{$language === 'en' ? 'Skip to content' : 'Aller au contenu'}</a>
@@ -73,7 +88,11 @@
   </main>
 
   <footer>
-    <span>{copy.footer.license}</span>
+    <span>
+      {copy.footer.licenseIntro}
+      <a href={LICENSE_URL} target="_blank" rel="license noopener noreferrer">{LICENSE_LABEL}</a>
+      {copy.footer.licenseOutro}
+    </span>
     <span class="muted">
       {copy.footer.author} ·
       <a href={copy.footer.reportUrl} target="_blank" rel="noopener noreferrer">{copy.footer.report}</a>

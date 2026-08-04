@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Index de sitemaps : le point d'entrée unique à soumettre à la Search Console et
+  à Bing Webmaster Tools. Il agrège la racine et les trois cours, qui sont servis
+  depuis trois dépôts distincts mais sur le même hôte — condition nécessaire pour
+  qu'un index de sitemaps soit accepté.
+
+  Les <lastmod> des sitemaps de cours sont ceux de leur dernière construction ;
+  ils sont volontairement identiques ici et n'ont pas besoin d'être exacts à la
+  journée : un index sert à faire découvrir des sitemaps, pas des pages.
+-->
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://rberrah.github.io/sitemap.xml</loc>
+    <lastmod>2026-08-04</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://rberrah.github.io/pharmacometrie/sitemap.xml</loc>
+    <lastmod>2026-08-04</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://rberrah.github.io/internat/sitemap.xml</loc>
+    <lastmod>2026-08-04</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://rberrah.github.io/stats/sitemap.xml</loc>
+    <lastmod>2026-08-04</lastmod>
+  </sitemap>
+</sitemapindex>

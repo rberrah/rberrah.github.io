@@ -1,0 +1,1587 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Le levier de l'erreur résiduelle — démonstration interactive</title>
+  <meta name="description" content="Pourquoi le modèle d'erreur résiduelle déclaré à l'estimateur change la dose recommandée, alors qu'il ne décrit ni le patient ni le médicament. Estimation MAP réellement calculée sur une population virtuelle." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/demos/erreur-residuelle/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Le levier de l'erreur résiduelle" />
+  <meta property="og:description" content="Sigma n'est pas un paramètre de nuisance : c'est le poids relatif des données du patient face à l'a priori de population. Et ça se traduit en milligrammes." />
+  <meta property="og:url" content="https://rberrah.github.io/demos/erreur-residuelle/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+
+  <style>
+    /* ---------------------------------------------------------------
+       Styles LOCAUX à cette démonstration. Aucune couleur en dur :
+       tout passe par les variables du socle, pour que le thème clair
+       et le thème sombre soient tous les deux corrects.
+    --------------------------------------------------------------- */
+
+    .lab {
+      display: grid; gap: 1.1rem; grid-template-columns: 1fr;
+      margin: 1.8rem 0 0;
+    }
+    @media (min-width: 960px) {
+      .lab { grid-template-columns: 310px 1fr; align-items: start; }
+      .lab-controls { position: sticky; top: 4.2rem; }
+    }
+
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.05rem 1.1rem;
+    }
+    .panel + .panel { margin-top: 1rem; }
+    .panel h3 {
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-3);
+      margin: 0 0 0.85rem;
+    }
+
+    /* ---- Contrôles ---- */
+    .ctl { margin-bottom: 0.95rem; }
+    .ctl:last-child { margin-bottom: 0; }
+    .ctl-top {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 0.6rem; margin-bottom: 0.2rem;
+    }
+    .ctl label { font-size: 0.845rem; color: var(--ink-2); line-height: 1.35; }
+    .ctl output {
+      font-family: var(--mono); font-size: 0.79rem; color: var(--ink);
+      font-weight: 600; white-space: nowrap;
+    }
+    .ctl.off { opacity: 0.42; }
+    .ctl.off output { font-weight: 400; }
+
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 22px; background: transparent; margin: 0; display: block;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px; border-radius: 2px; background: var(--border-strong);
+    }
+    input[type="range"]::-moz-range-track {
+      height: 3px; border-radius: 2px; background: var(--border-strong);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--surface);
+      margin-top: -6px; cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--accent); border: 2px solid var(--surface); cursor: pointer;
+    }
+    input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+    input[type="range"]:disabled::-webkit-slider-thumb { background: var(--ink-3); cursor: not-allowed; }
+    input[type="range"]:disabled::-moz-range-thumb { background: var(--ink-3); cursor: not-allowed; }
+
+    /* ---- Groupe de boutons radio (modèle déclaré) ---- */
+    .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      display: block; text-align: center; cursor: pointer;
+      font-size: 0.78rem; padding: 0.4rem 0.2rem; border-radius: 7px;
+      border: 1px solid var(--border-strong); color: var(--ink-2);
+      transition: background 0.13s ease, color 0.13s ease, border-color 0.13s ease;
+    }
+    .seg label:hover { border-color: var(--ink-3); color: var(--ink); }
+    .seg input:checked + label {
+      background: var(--accent); border-color: var(--accent);
+      color: var(--surface); font-weight: 600;
+    }
+    :root[data-theme="dark"] .seg input:checked + label,
+    .seg input:checked + label { color: var(--paper); }
+    .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ---- Petits boutons ---- */
+    .minibtns { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .minibtn {
+      font-family: inherit; font-size: 0.775rem; line-height: 1.3;
+      padding: 0.34rem 0.62rem; border-radius: 7px; cursor: pointer;
+      border: 1px solid var(--border-strong); background: transparent; color: var(--ink-2);
+      transition: border-color 0.13s ease, color 0.13s ease;
+    }
+    .minibtn:hover { border-color: var(--ink); color: var(--ink); }
+    .minibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .seedrow { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .seedrow input[type="number"] {
+      font-family: var(--mono); font-size: 0.78rem; width: 12ch;
+      padding: 0.3rem 0.45rem; border-radius: 6px;
+      border: 1px solid var(--border-strong); background: var(--paper); color: var(--ink);
+      -moz-appearance: textfield;
+    }
+    .seedrow input[type="number"]::-webkit-outer-spin-button,
+    .seedrow input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .seedrow input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    /* ---- Bandeau de comparaison sigma ---- */
+    .sigbar {
+      font-family: var(--mono); font-size: 0.775rem; line-height: 1.5;
+      color: var(--ink-2); border-top: 1px solid var(--border);
+      margin-top: 0.9rem; padding-top: 0.75rem;
+    }
+    .sigbar b { color: var(--ink); font-weight: 600; }
+    .sigbar .verdict { display: block; margin-top: 0.3rem; color: var(--ink-3); }
+    .sigbar .verdict.warn { color: var(--terra); }
+
+    /* ---- Tuiles de résultat ---- */
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    @media (min-width: 620px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+    .stat { background: var(--surface); padding: 0.85rem 0.9rem; }
+    .stat .k {
+      font-family: var(--mono); font-size: 0.665rem; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ink-3); display: block; margin-bottom: 0.28rem;
+      line-height: 1.35; min-height: 2.1em;
+    }
+    .stat .v {
+      font-family: var(--serif); font-size: 1.55rem; font-weight: 600;
+      letter-spacing: -0.02em; color: var(--ink); line-height: 1.1;
+      display: block; font-variant-numeric: tabular-nums;
+    }
+    .stat .u { font-size: 0.78rem; color: var(--ink-3); font-family: var(--sans); font-weight: 400; letter-spacing: 0; }
+    .stat.hero .v { color: var(--terra); }
+
+    /* ---- Graphiques ---- */
+    .chart { position: relative; margin-top: 1rem; }
+    .chart .cap {
+      font-size: 0.845rem; color: var(--ink-2); margin: 0 0 0.55rem; line-height: 1.45;
+    }
+    .chart .cap b { color: var(--ink); font-weight: 600; }
+    .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+    /* Séries : deux hues seulement (terracotta = vérité, accent = estimation).
+       L'a priori de population est une référence grise en tirets — volontairement
+       récessive, et distinguée par le trait ET par son étiquette, pas par la
+       couleur seule. */
+    .s-true   { stroke: var(--terra);  fill: none; stroke-width: 2; }
+    .s-est    { stroke: var(--accent); fill: none; stroke-width: 2; }
+    .s-prior  { stroke: var(--ink-3);  fill: none; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .dot-obs  { fill: var(--ink); stroke: var(--surface); stroke-width: 1.8; }
+    .dot-sc   { fill: var(--accent); stroke: var(--surface); stroke-width: 1.1; }
+    /* Une seule série, donc une seule couleur : le signe de l'écart est déjà porté
+       par la position par rapport au repère « dose exacte ». Réutiliser ici le
+       terracotta et le bleu leur ferait dire autre chose que dans le graphique 3. */
+    .bar      { fill: var(--accent); }
+    .ident    { stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+
+    .ax   { stroke: var(--border-strong); stroke-width: 1; }
+    .grid { stroke: var(--border); stroke-width: 1; }
+    .tk   { fill: var(--ink-3); font-family: var(--mono); font-size: 10.5px; }
+    .axlab{ fill: var(--ink-2); font-family: var(--sans); font-size: 11.5px; }
+    .dlab { font-family: var(--sans); font-size: 11.5px; font-weight: 600; }
+    .dlab.t { fill: var(--terra); }
+    .dlab.e { fill: var(--accent); }
+    .dlab.p { fill: var(--ink-3); font-weight: 400; }
+
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 0.3rem 1.05rem;
+      font-size: 0.79rem; color: var(--ink-2); margin: 0.5rem 0 0;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 0.36rem; }
+    .legend i { width: 15px; height: 0; border-top-width: 2px; border-top-style: solid; display: inline-block; }
+    .legend i.k-true  { border-color: var(--terra); }
+    .legend i.k-est   { border-color: var(--accent); }
+    .legend i.k-prior { border-color: var(--ink-3); border-top-style: dashed; }
+    .legend i.k-obs {
+      width: 9px; height: 9px; border: 0; border-radius: 50%;
+      background: var(--ink); box-shadow: 0 0 0 1.5px var(--surface);
+    }
+
+    /* ---- Infobulle ---- */
+    .tip {
+      position: absolute; pointer-events: none; opacity: 0; z-index: 5;
+      background: var(--surface); border: 1px solid var(--border-strong);
+      border-radius: 8px; padding: 0.45rem 0.6rem; box-shadow: var(--shadow);
+      font-family: var(--mono); font-size: 0.735rem; line-height: 1.5; color: var(--ink-2);
+      white-space: nowrap; transition: opacity 0.1s ease;
+    }
+    .tip b { color: var(--ink); font-weight: 600; }
+
+    .perf {
+      font-family: var(--mono); font-size: 0.715rem; color: var(--ink-3);
+      margin: 0.9rem 0 0; text-align: right;
+    }
+
+    .fixed-params {
+      font-family: var(--mono); font-size: 0.75rem; color: var(--ink-3);
+      line-height: 1.65; margin: 0;
+    }
+    .fixed-params b { color: var(--ink-2); font-weight: 600; }
+
+    ul.tight { padding-left: 1.15rem; }
+    ul.tight li { margin-bottom: 0.5rem; }
+    ul.tight li:last-child { margin-bottom: 0; }
+
+    .eq {
+      font-family: var(--mono); font-size: 0.8rem; line-height: 1.7;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.85rem 1rem; margin: 0.9rem 0;
+      overflow-x: auto; white-space: pre; color: var(--ink-2);
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/" aria-current="page">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ================= 1. TITRE + QUESTION ================= -->
+      <section class="band" style="border-bottom:0; padding-bottom:1.4rem;">
+        <p class="eyebrow">Démonstration · adaptation de dose guidée par les modèles</p>
+        <h1 class="measure">Le levier de l'erreur résiduelle</h1>
+        <p class="lede" style="margin-top:1.2rem">
+          Pourquoi le modèle d'erreur résiduelle <em>déclaré au moment de l'estimation</em>
+          change-t-il la dose recommandée, alors qu'il ne décrit ni le patient ni le
+          médicament ?
+        </p>
+
+        <div class="note accent measure">
+          <p style="margin-bottom:0.6rem"><strong>Ce qu'il faut comprendre en trente secondes.</strong></p>
+          <p style="margin-bottom:0">
+            σ n'est pas un paramètre de nuisance. C'est le <strong>poids relatif des données
+            du patient face à l'a priori de population</strong>. Sous-déclarer σ, c'est dire à
+            l'estimateur que les mesures sont plus fiables qu'elles ne le sont : il surajuste
+            le bruit. Sur-déclarer σ, c'est lui dire l'inverse : il ramène le patient vers sa
+            population. Les deux erreurs se traduisent en milligrammes.
+          </p>
+        </div>
+
+        <p class="small measure">
+          Cette page est la version manipulable de&nbsp;:
+          <span class="ref" style="font-size:inherit">
+            <span class="me">Berrah R</span><span class="who">, Minichmayr I, Woillard JB ; IATDMCT Pharmacometrics Group.</span>
+            Better Dosing Through Better Error: Residual Error as a Hidden Lever in
+            Model-Informed Precision Dosing. <span class="journal">Therapeutic Drug Monitoring</span>, 2026.
+            <a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a>
+          </span>
+        </p>
+      </section>
+
+      <!-- ================= 2. SUR LE MOT ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Sur le mot « erreur »</h2></div>
+        <div class="measure">
+          <p>
+            L'erreur résiduelle n'est pas une faute, ni le bruit de l'automate de dosage seul.
+            C'est le terme qui absorbe <strong>tout ce que le modèle ne prédit pas</strong> :
+            l'imprécision analytique, mais aussi l'heure de prélèvement notée à cinq minutes
+            près, la structure du modèle qui n'est pas tout à fait la bonne, la dose
+            réellement administrée qui n'est pas tout à fait celle qui est prescrite.
+          </p>
+          <p>
+            Dans cette page, « déclarer σ » a un sens restrictif et unique : c'est fixer la
+            <strong>variance que l'estimateur attribue à chaque observation</strong> lorsqu'il
+            cherche les paramètres individuels. Rien d'autre. Cette variance n'est pas mesurée
+            sur le patient : elle est héritée du modèle de population qu'on a choisi
+            d'utiliser. C'est précisément ce qui rend le levier discret — et manipulable.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 3. LA DÉMONSTRATION ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>La démonstration</h2>
+          <p>
+            Une population virtuelle est simulée, puis <strong>réellement ré-estimée</strong>,
+            sujet par sujet, par maximum a posteriori. Les mesures sont générées avec un
+            modèle d'erreur ; l'estimateur, lui, n'utilise que ce que vous lui déclarez.
+            Vous pouvez donc vous tromper volontairement, et lire la facture en milligrammes.
+          </p>
+        </div>
+
+        <div class="lab">
+
+          <!-- ---------- COLONNE DE CONTRÔLES ---------- -->
+          <div class="lab-controls">
+
+            <div class="panel">
+              <h3>Ce que l'estimateur croit</h3>
+
+              <div class="ctl">
+                <div class="ctl-top"><label id="lab-decl">Modèle d'erreur déclaré</label></div>
+                <div class="seg" role="radiogroup" aria-labelledby="lab-decl">
+                  <input type="radio" id="d-add" name="decl" value="add" />
+                  <label for="d-add">Additif</label>
+                  <input type="radio" id="d-prop" name="decl" value="prop" />
+                  <label for="d-prop">Propor.</label>
+                  <input type="radio" id="d-comb" name="decl" value="comb" checked />
+                  <label for="d-comb">Combiné</label>
+                </div>
+              </div>
+
+              <div class="ctl" id="c-sad">
+                <div class="ctl-top">
+                  <label for="sad">σ additif déclaré</label>
+                  <output for="sad" id="o-sad">0,40 mg/L</output>
+                </div>
+                <input type="range" id="sad" min="0.02" max="2" step="0.02" value="0.4" />
+              </div>
+
+              <div class="ctl" id="c-spd">
+                <div class="ctl-top">
+                  <label for="spd">σ proportionnel déclaré</label>
+                  <output for="spd" id="o-spd">12 %</output>
+                </div>
+                <input type="range" id="spd" min="1" max="40" step="1" value="12" />
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Ce qui a vraiment généré les mesures</h3>
+              <p class="small" style="margin:-0.3rem 0 0.85rem">
+                La vérité est toujours un modèle combiné. L'estimateur ne la connaît pas.
+              </p>
+
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="sat">σ additif vrai</label>
+                  <output for="sat" id="o-sat">0,40 mg/L</output>
+                </div>
+                <input type="range" id="sat" min="0.02" max="2" step="0.02" value="0.4" />
+              </div>
+
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="spt">σ proportionnel vrai</label>
+                  <output for="spt" id="o-spt">12 %</output>
+                </div>
+                <input type="range" id="spt" min="1" max="40" step="1" value="12" />
+              </div>
+
+              <p class="sigbar" id="sigbar"></p>
+            </div>
+
+            <div class="panel">
+              <h3>Le protocole de prélèvement</h3>
+
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="ns">Nombre de prélèvements</label>
+                  <output for="ns" id="o-ns">3</output>
+                </div>
+                <input type="range" id="ns" min="1" max="6" step="1" value="3" />
+              </div>
+
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="t1">Premier prélèvement</label>
+                  <output for="t1" id="o-t1">1,0 h</output>
+                </div>
+                <input type="range" id="t1" min="0.25" max="6" step="0.25" value="1" />
+              </div>
+
+              <div class="ctl" id="c-tn">
+                <div class="ctl-top">
+                  <label for="tn">Dernier prélèvement</label>
+                  <output for="tn" id="o-tn">12,0 h</output>
+                </div>
+                <input type="range" id="tn" min="2" max="24" step="0.5" value="12" />
+              </div>
+
+              <p class="sigbar" id="timesbar" style="margin-top:0.75rem"></p>
+            </div>
+
+            <div class="panel">
+              <h3>La population virtuelle</h3>
+
+              <div class="ctl">
+                <div class="ctl-top">
+                  <label for="nn">Nombre de sujets</label>
+                  <output for="nn" id="o-nn">150</output>
+                </div>
+                <input type="range" id="nn" min="50" max="400" step="25" value="150" />
+              </div>
+
+              <div class="ctl">
+                <div class="ctl-top"><label for="seed">Graine du générateur</label></div>
+                <div class="seedrow">
+                  <input type="number" id="seed" value="20260804" min="1" step="1" />
+                  <button type="button" class="minibtn" id="reseed">Nouvelle graine</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Scénarios</h3>
+              <div class="minibtns">
+                <button type="button" class="minibtn" data-preset="exact">σ déclaré = σ vrai</button>
+                <button type="button" class="minibtn" data-preset="under">σ sous-déclaré (÷4)</button>
+                <button type="button" class="minibtn" data-preset="over">σ sur-déclaré (×4)</button>
+                <button type="button" class="minibtn" data-preset="addonly">Additif seul déclaré</button>
+                <button type="button" class="minibtn" data-preset="proponly">Proportionnel seul déclaré</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Paramètres fixes</h3>
+              <p class="fixed-params">
+                Dose <b>500 mg</b> IV bolus<br />
+                CL population <b>4 L/h</b> · ω<sub>CL</sub> <b>0,30</b><br />
+                V population <b>40 L</b> · ω<sub>V</sub> <b>0,20</b><br />
+                demi-vie typique <b>6,9 h</b><br />
+                AUC cible <b>125 mg·h/L</b>
+              </p>
+            </div>
+
+          </div><!-- /lab-controls -->
+
+          <!-- ---------- COLONNE DE RÉSULTATS ---------- -->
+          <div class="lab-out">
+
+            <div class="stats" id="stats">
+              <div class="stat hero">
+                <span class="k">Biais de dose (moyen, signé)</span>
+                <span class="v" id="v-dbias">—</span>
+              </div>
+              <div class="stat hero">
+                <span class="k">Écart de dose absolu médian</span>
+                <span class="v" id="v-dmg">—</span>
+              </div>
+              <div class="stat hero">
+                <span class="k">Sujets au-delà de ±20 %</span>
+                <span class="v" id="v-d20">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">Biais d'AUC</span>
+                <span class="v" id="v-abias">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">RMSE d'AUC</span>
+                <span class="v" id="v-armse">—</span>
+              </div>
+              <div class="stat">
+                <span class="k">Écart de dose maximal observé</span>
+                <span class="v" id="v-dmax">—</span>
+              </div>
+            </div>
+
+            <!-- Graphique 1 : nuage AUC -->
+            <div class="chart" id="ch-scatter">
+              <p class="cap"><b>1. AUC individuelle estimée contre AUC vraie.</b>
+                Chaque point est un sujet. La diagonale en tirets est l'estimation parfaite.
+                Un nuage qui s'aplatit vers l'horizontale signale un retour vers la moyenne
+                de population ; un nuage qui s'étale signale un surajustement du bruit.</p>
+              <div class="tip" id="tip-scatter" role="status" aria-live="off"></div>
+              <svg id="svg-scatter" viewBox="0 0 720 430" role="img" aria-labelledby="t-sc d-sc"></svg>
+            </div>
+
+            <!-- Graphique 2 : histogramme -->
+            <div class="chart" id="ch-hist">
+              <p class="cap"><b>2. Distribution de l'écart de dose.</b>
+                Écart entre la dose qu'on recommanderait à partir des paramètres estimés et
+                celle qu'on recommanderait en connaissant les vrais paramètres, pour une même
+                AUC cible. Zéro est la bonne réponse.</p>
+              <div class="tip" id="tip-hist" role="status" aria-live="off"></div>
+              <svg id="svg-hist" viewBox="0 0 720 400" role="img" aria-labelledby="t-hi d-hi"></svg>
+            </div>
+
+            <!-- Graphique 3 : profil individuel -->
+            <div class="chart" id="ch-prof">
+              <p class="cap"><b>3. Un sujet, en détail.</b>
+                Échelle semi-logarithmique : sur ce graphique, un modèle à un compartiment en
+                bolus est une droite, et la pente est k<sub>e</sub> = CL/V. L'écart entre la
+                droite orangée et la droite bleue est l'erreur d'estimation, en clair.</p>
+              <div class="legend">
+                <span><i class="k-true"></i>Profil vrai</span>
+                <span><i class="k-est"></i>Profil estimé (MAP)</span>
+                <span><i class="k-prior"></i>A priori de population</span>
+                <span><i class="k-obs"></i>Concentrations mesurées</span>
+              </div>
+              <div class="tip" id="tip-prof" role="status" aria-live="off"></div>
+              <svg id="svg-prof" viewBox="0 0 720 400" role="img" aria-labelledby="t-pr d-pr"></svg>
+              <div class="minibtns" style="margin-top:0.6rem">
+                <button type="button" class="minibtn" id="nextsub">Autre sujet</button>
+                <span class="small" id="sublab" style="align-self:center"></span>
+              </div>
+            </div>
+
+            <p class="perf" id="perf"></p>
+          </div><!-- /lab-out -->
+
+        </div><!-- /lab -->
+      </section>
+
+      <!-- ================= 4. CE QUE VOUS MANIPULEZ ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Ce que vous manipulez</h2></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th scope="col">Contrôle</th><th scope="col">Ce qu'il change</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Modèle d'erreur déclaré</strong></td>
+                <td>La forme de la variance que l'estimateur attribue à chaque observation :
+                  constante (additif), proportionnelle à la concentration prédite
+                  (proportionnel), ou les deux (combiné). Ce choix ne touche pas les données —
+                  seulement leur pondération.</td>
+              </tr>
+              <tr>
+                <td><strong>σ additif et σ proportionnel déclarés</strong></td>
+                <td>L'amplitude de cette variance. Le curseur inutilisé par le modèle déclaré
+                  est désactivé, pas masqué : c'est une information en soi.</td>
+              </tr>
+              <tr>
+                <td><strong>σ additif et σ proportionnel vrais</strong></td>
+                <td>Le bruit qui contamine réellement les mesures simulées. Toujours un modèle
+                  combiné. L'estimateur ne le voit jamais. Les faire diverger des σ déclarés
+                  est tout l'objet de la page.</td>
+              </tr>
+              <tr>
+                <td><strong>Nombre et position des prélèvements</strong></td>
+                <td>De 1 à 6 prélèvements, répartis géométriquement entre le premier et le
+                  dernier temps. Moins il y a de points, plus l'a priori de population pèse,
+                  et plus la déclaration de σ devient déterminante.</td>
+              </tr>
+              <tr>
+                <td><strong>Nombre de sujets</strong></td>
+                <td>La taille de la population virtuelle, de 50 à 400. N'améliore pas
+                  l'estimation individuelle : stabilise seulement les statistiques affichées.</td>
+              </tr>
+              <tr>
+                <td><strong>Graine</strong></td>
+                <td>Le générateur pseudo-aléatoire est déterministe. À graine égale, les
+                  résultats sont identiques d'une visite à l'autre et d'une machine à l'autre.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 5. CE QUE ÇA MONTRE ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Ce que ça montre</h2></div>
+        <ul class="tight measure">
+          <li>
+            <strong>Quand σ déclaré est égal à σ vrai, l'estimateur reste à peu près centré.</strong>
+            Il subsiste quelques pour cent de biais — le bruit ne disparaît pas, et l'écart de
+            dose est une grandeur asymétrique — mais l'erreur n'est pas orientée. C'est la
+            situation de référence à laquelle comparer toutes les autres.
+          </li>
+          <li>
+            <strong>Sous-déclarer σ fait surajuster le bruit.</strong> L'estimateur croit ses
+            observations plus précises qu'elles ne le sont, donc il les suit. Avec les valeurs
+            par défaut, diviser σ par 4 fait passer la pente du nuage de 0,76 à environ 1,0 :
+            le rétrécissement vers la population disparaît, ce qui a l'air d'un progrès. Mais
+            la dispersion, elle, augmente. L'estimateur a cessé de faire la part du bruit.
+          </li>
+          <li>
+            <strong>Sur-déclarer σ ramène le patient vers sa population.</strong> Multiplier σ
+            par 4 écrase la pente du nuage autour de 0,24 : les AUC élevées sont sous-estimées,
+            les basses sur-estimées. Les estimations se ressemblent toutes, ce qui donne une
+            impression de stabilité — alors que l'erreur de dose double, et que la part des
+            sujets au-delà de ±20 % passe d'environ 14 % à environ 40 %. C'est la
+            mis-déclaration la plus coûteuse, et la plus discrète.
+          </li>
+          <li>
+            <strong>Le levier n'agit que là où il y a quelque chose à peser</strong> — et il
+            agit d'autant plus fort qu'on a prélevé davantage. C'est le résultat le moins
+            intuitif de la page. Avec un seul prélèvement, CL et V ne sont pas identifiables :
+            l'estimation est dominée par l'a priori quel que soit σ, et multiplier σ par 4 ne
+            déplace pratiquement pas la dose. Il n'y a rien à mal pondérer. Mais dès deux
+            points, la même mis-déclaration fait presque doubler l'écart de dose, et l'effet
+            ne s'atténue pas quand on ajoute des points : il s'amplifie.
+          </li>
+          <li>
+            <strong>Mal déclarer σ, c'est jeter l'information qu'on a payée pour l'obtenir.</strong>
+            Avec les réglages par défaut, six prélèvements correctement pondérés ramènent
+            l'écart de dose absolu médian autour de 35 mg. Les six mêmes prélèvements avec un σ
+            sur-déclaré d'un facteur 4 le renvoient au-delà de 80 mg —
+            <strong>soit un résultat pire que trois prélèvements correctement pondérés</strong>,
+            et pire que deux. Le prélèvement supplémentaire a été fait, analysé, facturé, puis
+            neutralisé par une ligne de paramétrage.
+          </li>
+          <li>
+            <strong>La forme de σ compte, pas seulement sa valeur.</strong> Déclarer un modèle
+            additif sur des données à composante proportionnelle déplace le poids vers les
+            concentrations basses, donc vers les prélèvements tardifs, qui gouvernent la pente
+            d'élimination et donc la clairance. Déclarer un modèle purement proportionnel
+            produit l'effet inverse et concentre le poids sur les points précoces.
+          </li>
+          <li>
+            <strong>Tout cela se lit en milligrammes.</strong> C'est le seul chiffre qui arrive
+            au lit du patient. Sur trois prélèvements et une dose de 500 mg, sur-déclarer σ
+            d'un facteur 4 fait passer l'écart de dose absolu médian d'environ 40 mg à environ
+            75 mg — sans qu'aucune donnée du patient, ni aucun paramètre du médicament, n'ait
+            changé. Les valeurs exactes dépendent de la graine et de l'effectif ; l'ordre de
+            grandeur, non.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================= 6. SOUS LE CAPOT ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Sous le capot</h2>
+          <p>Assez précis pour être reproduit. Tout est calculé dans la page, à chaque
+            mouvement de curseur ; rien n'est pré-enregistré.</p>
+        </div>
+
+        <div class="measure">
+          <h3 style="margin-bottom:0.5rem">Modèle pharmacocinétique</h3>
+          <p>Un compartiment, administration intraveineuse en bolus, dose D = 500 mg.</p>
+          <div class="eq">C(t) = (D / V) · exp( −(CL / V) · t )
+AUC(0→∞) = D / CL</div>
+          <p>
+            Paramètres de population : CL = 4 L/h, V = 40 L. Variabilité interindividuelle
+            log-normale, ω<sub>CL</sub> = 0,30 et ω<sub>V</sub> = 0,20 (écarts-types sur
+            l'échelle logarithmique). Pour chaque sujet, CL<sub>i</sub> = 4 · exp(η<sub>CL</sub>)
+            et V<sub>i</sub> = 40 · exp(η<sub>V</sub>), avec η tiré selon une loi normale
+            centrée. Les η<sub>CL</sub> et η<sub>V</sub> sont tirés indépendamment.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Génération des observations</h3>
+          <p>
+            La vérité est un modèle d'erreur combiné. Pour un temps t et une concentration
+            vraie C&nbsp;:
+          </p>
+          <div class="eq">obs = C + sd · ε ,  ε ~ N(0, 1)
+sd  = √( σ²_add,vrai + (σ_prop,vrai · C)² )</div>
+          <p>
+            Les observations sont bornées par le bas à 0,01 mg/L : un tirage additif peut
+            produire une valeur négative, qu'aucun dosage ne rendrait. Ce plancher remplace
+            la gestion des valeurs sous la limite de quantification, qui n'est pas traitée ici.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Estimation individuelle</h3>
+          <p>
+            Maximum a posteriori. Pour chaque sujet, on minimise l'objectif suivant sur
+            (ln CL, ln V) — la variance déclarée dépend de la prédiction, donc le terme
+            ln(var) ne peut pas être omis&nbsp;:
+          </p>
+          <div class="eq">OFV = Σᵢ [ (obsᵢ − prédᵢ)² / varᵢ + ln(varᵢ) ]
+    + (ln CL − ln 4)² / 0,30²
+    + (ln V  − ln 40)² / 0,20²
+
+varᵢ  =  σ²_add,déclaré                          (additif)
+     ou  (σ_prop,déclaré · prédᵢ)²                (proportionnel)
+     ou  σ²_add,déclaré + (σ_prop,déclaré · prédᵢ)²  (combiné)</div>
+          <p>
+            La minimisation utilise un simplexe de Nelder-Mead en deux dimensions
+            (réflexion 1, expansion 2, contraction 0,5, rétrécissement 0,5), initialisé aux
+            valeurs de population avec un pas de 0,25 sur l'échelle logarithmique, au plus
+            120 itérations, tolérance 10⁻⁹ sur l'amplitude de l'objectif. Le travail sur
+            ln CL et ln V garantit des paramètres positifs sans contrainte explicite.
+            La variance déclarée est bornée par le bas à 10⁻¹⁰ pour éviter une division par
+            zéro quand un modèle purement proportionnel rencontre une prédiction proche de
+            zéro.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Du paramètre à la dose</h3>
+          <p>
+            Pour une AUC cible fixée à 125 mg·h/L — la valeur qu'atteint le sujet typique
+            sous 500 mg — la dose se déduit directement de la clairance&nbsp;:
+          </p>
+          <div class="eq">D_cible = AUC_cible · CL
+écart (%)  = 100 · (CL_estimée − CL_vraie) / CL_vraie
+écart (mg) = AUC_cible · (CL_estimée − CL_vraie)</div>
+          <p>
+            Dans ce modèle, l'écart de dose ne dépend que de l'erreur sur la clairance. V
+            n'intervient pas dans l'AUC, mais il intervient dans l'estimation de CL, puisque
+            les deux sont estimés ensemble à partir des mêmes points.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Nombres aléatoires</h3>
+          <p>
+            Générateur mulberry32 à graine, transformation de Box-Muller pour les tirages
+            normaux, avec conservation de la valeur conjuguée. La graine est affichée et
+            modifiable&nbsp;: à graine, protocole et effectif identiques, les résultats sont
+            strictement reproductibles.
+          </p>
+
+          <h3 style="margin:1.6rem 0 0.5rem">Temps de prélèvement</h3>
+          <p>
+            Les n temps sont répartis géométriquement entre le premier et le dernier, ce qui
+            respecte la décroissance exponentielle mieux qu'une répartition régulière. Avec un
+            seul prélèvement, seul le premier temps est utilisé et le curseur du dernier
+            prélèvement est désactivé.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 7. LES LIMITES ================= -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Ce que cette démonstration ne montre pas</h2>
+          <p>Le bloc le plus important de la page.</p>
+        </div>
+        <ul class="tight measure">
+          <li>
+            <strong>Aucune donnée patient réelle.</strong> La population est entièrement
+            simulée. Les paramètres — CL 4 L/h, V 40 L, ω 0,30 et 0,20 — sont inventés à des
+            fins pédagogiques et ne correspondent à aucun médicament. Aucun chiffre de cette
+            page ne doit être transposé à une molécule réelle.
+          </li>
+          <li>
+            <strong>Un compartiment, bolus intraveineux.</strong> Pas de phase de
+            distribution, pas d'absorption, pas de perfusion, pas d'état d'équilibre, pas de
+            covariables, pas de variabilité inter-occasion. Un modèle à deux compartiments
+            change la sensibilité aux temps de prélèvement, et donc une partie des
+            conclusions sur la position des points.
+          </li>
+          <li>
+            <strong>L'estimateur est simplifié.</strong> Un logiciel de pharmacométrie fait
+            davantage : gradients analytiques, critères de convergence multiples, gestion des
+            données sous la limite de quantification, estimation conjointe de σ, intervalles
+            de confiance sur les paramètres individuels. Ici σ n'est jamais estimé — il est
+            imposé, ce qui est justement le point de la démonstration, mais ce n'est pas
+            toujours le cas en pratique.
+          </li>
+          <li>
+            <strong>La structure du modèle est supposée exacte.</strong> Le modèle qui génère
+            et le modèle qui estime ont la même équation ; seule l'erreur résiduelle diffère.
+            En situation réelle, une erreur de structure et une erreur de σ se compensent
+            partiellement, et on ne peut pas les séparer avec les seules données d'un patient.
+          </li>
+          <li>
+            <strong>Identifiabilité.</strong> Avec un seul prélèvement, CL et V ne sont pas
+            identifiables séparément : ce que vous lisez alors est très largement l'a priori
+            de population, légèrement déplacé. Le résultat reste calculé, mais il informe plus
+            sur le modèle que sur le sujet.
+          </li>
+          <li>
+            <strong>Aucune validation clinique.</strong> Rien ici n'a été confronté à des
+            concentrations mesurées chez des patients, ni à des critères de jugement. Les
+            écarts en milligrammes servent à donner une échelle, pas une règle.
+          </li>
+          <li>
+            <strong>Ce que la démonstration ne quantifie pas :</strong> l'incertitude sur les
+            paramètres de population eux-mêmes. Ils sont traités comme connus et exacts, ce
+            qu'ils ne sont jamais.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================= 8. OÙ LA MÉTHODE EST EXPLIQUÉE ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Où la méthode est expliquée</h2></div>
+        <ul class="linklist measure">
+          <li>
+            <a href="/pharmacometrie/chapitres/erreur-residuelle/">L'erreur résiduelle</a>
+            <span class="meta">Modèles additif, proportionnel, combiné : ce que chacun suppose,
+              et comment on les départage.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/residual-mipd/">Erreur résiduelle et adaptation de dose</a>
+            <span class="meta">Le chapitre dont cette démonstration est l'illustration
+              manipulable.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/bayes-ebes/">Estimation bayésienne et paramètres individuels</a>
+            <span class="meta">Maximum a posteriori, rétrécissement vers la population,
+              lecture des estimations individuelles.</span>
+          </li>
+          <li>
+            <a href="/pharmacometrie/chapitres/tdm/">Suivi thérapeutique pharmacologique</a>
+            <span class="meta">Du prélèvement à la décision : où se place le calcul dans la
+              chaîne de soins.</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================= 9. CITER ================= -->
+      <section class="band">
+        <div class="section-head"><h2>Citer cette démonstration</h2></div>
+        <div class="measure">
+          <p class="small" style="margin-bottom:0.3rem">APA</p>
+          <pre class="cite">Berrah, R. (2026). Le levier de l'erreur résiduelle
+[Démonstration interactive]. https://rberrah.github.io/demos/erreur-residuelle/</pre>
+
+          <p class="small" style="margin:1.2rem 0 0.3rem">BibTeX</p>
+          <pre class="cite">@misc{berrah2026levier,
+  author       = {Berrah, Racym},
+  title        = {Le levier de l'erreur r\'esiduelle},
+  year         = {2026},
+  howpublished = {D\'emonstration interactive},
+  url          = {https://rberrah.github.io/demos/erreur-residuelle/},
+  urldate      = {2026-08-04}
+}</pre>
+
+          <p style="margin-top:1.4rem">
+            Pour le travail publié dont cette page est dérivée, citez l'article&nbsp;:
+          </p>
+          <p class="ref">
+            <span class="me">Berrah R</span><span class="who">, Minichmayr I, Woillard JB ; IATDMCT Pharmacometrics Group.</span>
+            Better Dosing Through Better Error: Residual Error as a Hidden Lever in
+            Model-Informed Precision Dosing. <span class="journal">Therapeutic Drug Monitoring</span>, 2026.
+            <a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a>
+          </p>
+
+          <p class="small" style="margin-top:1.4rem">
+            Texte sous CC BY-SA 4.0, code sous licence MIT. La reprise en enseignement est
+            autorisée, y compris payante, à condition de citer et de partager aux mêmes
+            conditions.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= 10. RAPPEL ================= -->
+      <section class="band">
+        <div class="note measure">
+          <p style="margin-bottom:0">
+            <strong>Aucun contenu de cette page ne constitue un avis thérapeutique ni une
+            recommandation posologique.</strong> Les doses affichées sont issues d'une
+            simulation à visée pédagogique, construite sur des paramètres inventés. Elles ne
+            s'appliquent à aucun médicament et à aucun patient.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================================
+     Constantes du modèle. Inventées à des fins pédagogiques.
+  ===================================================================== */
+  var DOSE   = 500;    // mg, bolus IV
+  var CL_POP = 4;      // L/h
+  var V_POP  = 40;     // L
+  var OM_CL  = 0.30;   // écart-type log-normal
+  var OM_V   = 0.20;
+  var AUC_TGT = 125;   // mg·h/L
+
+  /* =====================================================================
+     Générateur pseudo-aléatoire à graine + tirages normaux (Box-Muller).
+  ===================================================================== */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gaussian(rng) {
+    var spare = null;
+    return function () {
+      if (spare !== null) { var s = spare; spare = null; return s; }
+      var u = 1 - rng(), v = rng();
+      var r = Math.sqrt(-2 * Math.log(u)), th = 2 * Math.PI * v;
+      spare = r * Math.sin(th);
+      return r * Math.cos(th);
+    };
+  }
+
+  /* =====================================================================
+     Nelder-Mead en dimension 2, sur (ln CL, ln V).
+  ===================================================================== */
+  function nelderMead(f, x0, step, maxIter, tol) {
+    var n = 2;
+    var p = [x0.slice(), [x0[0] + step, x0[1]], [x0[0], x0[1] + step]];
+    var v = [f(p[0]), f(p[1]), f(p[2])];
+    var alpha = 1, gamma = 2, rho = 0.5, sig = 0.5;
+    var i, j, tmp;
+
+    for (var it = 0; it < maxIter; it++) {
+      /* tri à 3 éléments, sans allocation */
+      for (i = 0; i < 3; i++) {
+        for (j = i + 1; j < 3; j++) {
+          if (v[j] < v[i]) {
+            tmp = v[i]; v[i] = v[j]; v[j] = tmp;
+            tmp = p[i]; p[i] = p[j]; p[j] = tmp;
+          }
+        }
+      }
+      if (Math.abs(v[2] - v[0]) < tol) break;
+
+      var c0 = (p[0][0] + p[1][0]) / n;
+      var c1 = (p[0][1] + p[1][1]) / n;
+
+      var r0 = c0 + alpha * (c0 - p[2][0]);
+      var r1 = c1 + alpha * (c1 - p[2][1]);
+      var fr = f([r0, r1]);
+
+      if (fr < v[0]) {
+        var e0 = c0 + gamma * (r0 - c0);
+        var e1 = c1 + gamma * (r1 - c1);
+        var fe = f([e0, e1]);
+        if (fe < fr) { p[2] = [e0, e1]; v[2] = fe; }
+        else { p[2] = [r0, r1]; v[2] = fr; }
+      } else if (fr < v[1]) {
+        p[2] = [r0, r1]; v[2] = fr;
+      } else {
+        var k0 = c0 + rho * (p[2][0] - c0);
+        var k1 = c1 + rho * (p[2][1] - c1);
+        var fk = f([k0, k1]);
+        if (fk < v[2]) { p[2] = [k0, k1]; v[2] = fk; }
+        else {
+          for (i = 1; i < 3; i++) {
+            p[i] = [p[0][0] + sig * (p[i][0] - p[0][0]),
+                    p[0][1] + sig * (p[i][1] - p[0][1])];
+            v[i] = f(p[i]);
+          }
+        }
+      }
+    }
+    var b = 0;
+    if (v[1] < v[b]) b = 1;
+    if (v[2] < v[b]) b = 2;
+    return p[b];
+  }
+
+  /* =====================================================================
+     Variance déclarée et objectif MAP.
+  ===================================================================== */
+  function declVar(pred, type, sAdd, sProp) {
+    var va;
+    if (type === "add") va = sAdd * sAdd;
+    else if (type === "prop") va = (sProp * pred) * (sProp * pred);
+    else va = sAdd * sAdd + (sProp * pred) * (sProp * pred);
+    return va < 1e-10 ? 1e-10 : va;
+  }
+
+  function makeObjective(obs, times, type, sAdd, sProp) {
+    var lnCLpop = Math.log(CL_POP), lnVpop = Math.log(V_POP);
+    return function (lp) {
+      var CL = Math.exp(lp[0]), V = Math.exp(lp[1]);
+      var ke = CL / V, ofv = 0, i, pred, va, r;
+      for (i = 0; i < times.length; i++) {
+        pred = (DOSE / V) * Math.exp(-ke * times[i]);
+        va = declVar(pred, type, sAdd, sProp);
+        r = obs[i] - pred;
+        ofv += (r * r) / va + Math.log(va);
+      }
+      var dCL = lp[0] - lnCLpop, dV = lp[1] - lnVpop;
+      ofv += (dCL * dCL) / (OM_CL * OM_CL) + (dV * dV) / (OM_V * OM_V);
+      return ofv;
+    };
+  }
+
+  /* =====================================================================
+     Temps de prélèvement : répartition géométrique.
+  ===================================================================== */
+  function sampleTimes(n, t1, tn) {
+    if (n <= 1) return [t1];
+    if (tn <= t1) tn = t1 + 0.5;
+    var a = Math.log(t1), b = Math.log(tn), out = [];
+    for (var i = 0; i < n; i++) out.push(Math.exp(a + (b - a) * i / (n - 1)));
+    return out;
+  }
+
+  /* =====================================================================
+     Simulation + ré-estimation de la population entière.
+  ===================================================================== */
+  function simulate(cfg) {
+    var t0 = performance.now();
+    var rng = mulberry32(cfg.seed >>> 0);
+    var rnorm = gaussian(rng);
+    var times = sampleTimes(cfg.n, cfg.t1, cfg.tn);
+    var subs = [];
+    var i, s;
+
+    for (s = 0; s < cfg.N; s++) {
+      var CLt = CL_POP * Math.exp(OM_CL * rnorm());
+      var Vt  = V_POP  * Math.exp(OM_V  * rnorm());
+      var ket = CLt / Vt;
+
+      var obs = [];
+      for (i = 0; i < times.length; i++) {
+        var c = (DOSE / Vt) * Math.exp(-ket * times[i]);
+        var sd = Math.sqrt(cfg.sAddT * cfg.sAddT + (cfg.sPropT * c) * (cfg.sPropT * c));
+        var o = c + sd * rnorm();
+        if (o < 0.01) o = 0.01;      /* plancher : pas de concentration négative */
+        obs.push(o);
+      }
+
+      var f = makeObjective(obs, times, cfg.type, cfg.sAddD, cfg.sPropD);
+      var lp = nelderMead(f, [Math.log(CL_POP), Math.log(V_POP)], 0.25, 120, 1e-9);
+      var CLh = Math.exp(lp[0]), Vh = Math.exp(lp[1]);
+
+      var aucT = DOSE / CLt, aucH = DOSE / CLh;
+      subs.push({
+        CLt: CLt, Vt: Vt, CLh: CLh, Vh: Vh,
+        aucT: aucT, aucH: aucH,
+        obs: obs,
+        dPct: 100 * (CLh - CLt) / CLt,
+        dMg: AUC_TGT * (CLh - CLt),
+        aPct: 100 * (aucH - aucT) / aucT
+      });
+    }
+
+    /* ---- statistiques ---- */
+    var n = subs.length, sumD = 0, sumA = 0, sumA2 = 0, beyond = 0, maxAbs = 0;
+    var absMg = [];
+    for (s = 0; s < n; s++) {
+      sumD += subs[s].dPct;
+      sumA += subs[s].aPct;
+      sumA2 += subs[s].aPct * subs[s].aPct;
+      if (Math.abs(subs[s].dPct) > 20) beyond++;
+      if (Math.abs(subs[s].dPct) > Math.abs(maxAbs)) maxAbs = subs[s].dPct;
+      absMg.push(Math.abs(subs[s].dMg));
+    }
+    absMg.sort(function (a, b) { return a - b; });
+    var med = absMg.length % 2
+      ? absMg[(absMg.length - 1) / 2]
+      : (absMg[absMg.length / 2 - 1] + absMg[absMg.length / 2]) / 2;
+
+    return {
+      subs: subs, times: times,
+      doseBias: sumD / n,
+      aucBias: sumA / n,
+      aucRmse: Math.sqrt(sumA2 / n),
+      medAbsMg: med,
+      pct20: 100 * beyond / n,
+      maxDev: maxAbs,
+      ms: performance.now() - t0
+    };
+  }
+
+  /* =====================================================================
+     Utilitaires de tracé.
+  ===================================================================== */
+  function ticks(lo, hi, want) {
+    var span = hi - lo;
+    if (!(span > 0)) return [lo];
+    var step = Math.pow(10, Math.floor(Math.log(span / want) / Math.LN10));
+    var err = (span / want) / step;
+    if (err >= 7.5) step *= 10; else if (err >= 3.5) step *= 5; else if (err >= 1.5) step *= 2;
+    var out = [], t = Math.ceil(lo / step) * step;
+    for (var g = 0; g < 200 && t <= hi + step * 1e-6; g++, t += step) out.push(Number(t.toFixed(10)));
+    return out;
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  function fmt(x, d) {
+    if (!isFinite(x)) return "—";
+    return x.toFixed(d).replace(".", ",");
+  }
+  function signed(x, d, unit) {
+    return (x >= 0 ? "+" : "−") + fmt(Math.abs(x), d) + (unit || "");
+  }
+  function barPath(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h);
+    if (h <= 0.4) return "";
+    return "M" + x + "," + (y + h) + " V" + (y + r) +
+           " Q" + x + "," + y + " " + (x + r) + "," + y +
+           " H" + (x + w - r) +
+           " Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) +
+           " V" + (y + h) + " Z";
+  }
+
+  /* =====================================================================
+     Infobulles : la couche survol est attachée au conteneur, qui survit
+     au remplacement du SVG.
+  ===================================================================== */
+  function attachTip(wrapId, tipId, store) {
+    var wrap = document.getElementById(wrapId);
+    var tip = document.getElementById(tipId);
+    wrap.addEventListener("pointermove", function (ev) {
+      var pts = store.pts;
+      if (!pts || !pts.length) { tip.style.opacity = 0; return; }
+      var svg = wrap.querySelector("svg");
+      var box = svg.getBoundingClientRect();
+      var vb = svg.viewBox.baseVal;
+      var sx = vb.width / box.width, sy = vb.height / box.height;
+      var mx = (ev.clientX - box.left) * sx, my = (ev.clientY - box.top) * sy;
+      var best = null, bd = Infinity;
+      for (var i = 0; i < pts.length; i++) {
+        var dx = pts[i].x - mx, dy = pts[i].y - my;
+        var d = pts[i].band ? Math.abs(dx) : Math.sqrt(dx * dx + dy * dy);
+        if (d < bd) { bd = d; best = pts[i]; }
+      }
+      if (!best || bd > (best.band ? 22 : 26)) { tip.style.opacity = 0; return; }
+      tip.innerHTML = best.html;
+      tip.style.opacity = 1;
+      var wb = wrap.getBoundingClientRect();
+      var px = box.left - wb.left + best.x / sx;
+      var py = box.top - wb.top + best.y / sy;
+      var tw = tip.offsetWidth, th = tip.offsetHeight;
+      var left = px - tw / 2;
+      if (left < 0) left = 0;
+      if (left + tw > wb.width) left = wb.width - tw;
+      var top = py - th - 12;
+      if (top < 0) top = py + 14;
+      tip.style.left = left + "px";
+      tip.style.top = top + "px";
+    });
+    wrap.addEventListener("pointerleave", function () { tip.style.opacity = 0; });
+  }
+  var storeSc = { pts: [] }, storeHi = { pts: [] }, storePr = { pts: [] };
+  attachTip("ch-scatter", "tip-scatter", storeSc);
+  attachTip("ch-hist", "tip-hist", storeHi);
+  attachTip("ch-prof", "tip-prof", storePr);
+
+  /* =====================================================================
+     Graphique 1 — nuage AUC estimée vs AUC vraie.
+  ===================================================================== */
+  function drawScatter(res) {
+    var W = 720, H = 430, ml = 62, mr = 18, mt = 16, mb = 48;
+    var iw = W - ml - mr, ih = H - mt - mb;
+    var subs = res.subs, i;
+
+    var lo = Infinity, hi = -Infinity;
+    for (i = 0; i < subs.length; i++) {
+      lo = Math.min(lo, subs[i].aucT, subs[i].aucH);
+      hi = Math.max(hi, subs[i].aucT, subs[i].aucH);
+    }
+    var pad = (hi - lo) * 0.06 || 1;
+    lo -= pad; hi += pad;
+    if (lo < 0) lo = 0;
+
+    function X(v) { return ml + (v - lo) / (hi - lo) * iw; }
+    function Y(v) { return mt + ih - (v - lo) / (hi - lo) * ih; }
+
+    var tk = ticks(lo, hi, 6), g = "", pts = [];
+
+    for (i = 0; i < tk.length; i++) {
+      g += '<line class="grid" x1="' + ml + '" y1="' + Y(tk[i]).toFixed(1) +
+           '" x2="' + (ml + iw) + '" y2="' + Y(tk[i]).toFixed(1) + '"/>';
+      g += '<line class="grid" x1="' + X(tk[i]).toFixed(1) + '" y1="' + mt +
+           '" x2="' + X(tk[i]).toFixed(1) + '" y2="' + (mt + ih) + '"/>';
+      g += '<text class="tk" x="' + (ml - 8) + '" y="' + (Y(tk[i]) + 3.5).toFixed(1) +
+           '" text-anchor="end">' + fmt(tk[i], 0) + '</text>';
+      g += '<text class="tk" x="' + X(tk[i]).toFixed(1) + '" y="' + (mt + ih + 17) +
+           '" text-anchor="middle">' + fmt(tk[i], 0) + '</text>';
+    }
+
+    /* première bissectrice */
+    g += '<line class="ident" x1="' + X(lo) + '" y1="' + Y(lo) + '" x2="' + X(hi) + '" y2="' + Y(hi) + '"/>';
+    g += '<text class="dlab p" x="' + (X(hi) - 6) + '" y="' + (Y(hi) + 16) +
+         '" text-anchor="end">estimation parfaite</text>';
+
+    var r = subs.length <= 100 ? 4.4 : subs.length <= 250 ? 3.6 : 3.0;
+    for (i = 0; i < subs.length; i++) {
+      var cx = X(subs[i].aucT), cy = Y(subs[i].aucH);
+      g += '<circle class="dot-sc" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) +
+           '" r="' + r + '" fill-opacity="0.62"/>';
+      pts.push({
+        x: cx, y: cy,
+        html: "<b>Sujet " + (i + 1) + "</b><br>AUC vraie " + fmt(subs[i].aucT, 1) +
+              "<br>AUC estimée " + fmt(subs[i].aucH, 1) +
+              "<br>dose " + signed(subs[i].dMg, 0, " mg") + " (" + signed(subs[i].dPct, 1, " %") + ")"
+      });
+    }
+    storeSc.pts = pts;
+
+    g += '<line class="ax" x1="' + ml + '" y1="' + (mt + ih) + '" x2="' + (ml + iw) + '" y2="' + (mt + ih) + '"/>';
+    g += '<line class="ax" x1="' + ml + '" y1="' + mt + '" x2="' + ml + '" y2="' + (mt + ih) + '"/>';
+    g += '<text class="axlab" x="' + (ml + iw / 2) + '" y="' + (H - 8) +
+         '" text-anchor="middle">AUC vraie (mg·h/L)</text>';
+    g += '<text class="axlab" transform="translate(14,' + (mt + ih / 2) +
+         ') rotate(-90)" text-anchor="middle">AUC estimée (mg·h/L)</text>';
+
+    document.getElementById("svg-scatter").innerHTML =
+      '<title id="t-sc">AUC individuelle estimée en fonction de l\'AUC vraie</title>' +
+      '<desc id="d-sc">Nuage de ' + subs.length + ' sujets virtuels. Biais moyen d\'AUC ' +
+      fmt(res.aucBias, 1) + ' pour cent, RMSE ' + fmt(res.aucRmse, 1) + ' pour cent.</desc>' + g;
+  }
+
+  /* =====================================================================
+     Graphique 2 — histogramme de l'écart de dose.
+  ===================================================================== */
+  function drawHist(res) {
+    var W = 720, H = 400, ml = 56, mr = 18, mt = 16, mb = 50;
+    var iw = W - ml - mr, ih = H - mt - mb;
+    var subs = res.subs, i;
+
+    var abs = [];
+    for (i = 0; i < subs.length; i++) abs.push(Math.abs(subs[i].dPct));
+    abs.sort(function (a, b) { return a - b; });
+    var q98 = abs[Math.min(abs.length - 1, Math.floor(abs.length * 0.98))];
+    var lim = Math.max(10, Math.ceil(q98 / 5) * 5);
+
+    var NB = 31;
+    var bw = (2 * lim) / NB;
+    var counts = new Array(NB);
+    for (i = 0; i < NB; i++) counts[i] = 0;
+    var clipped = 0;
+    for (i = 0; i < subs.length; i++) {
+      var v = subs[i].dPct;
+      if (v < -lim) { v = -lim; clipped++; }
+      if (v > lim) { v = lim; clipped++; }
+      var b = Math.floor((v + lim) / bw);
+      if (b < 0) b = 0; if (b >= NB) b = NB - 1;
+      counts[b]++;
+    }
+    var maxC = 0;
+    for (i = 0; i < NB; i++) if (counts[i] > maxC) maxC = counts[i];
+
+    function X(v) { return ml + (v + lim) / (2 * lim) * iw; }
+    function Y(c) { return mt + ih - (c / (maxC || 1)) * ih; }
+
+    var g = "", pts = [];
+    var ctk = ticks(0, maxC, 4);
+    for (i = 0; i < ctk.length; i++) {
+      if (ctk[i] !== Math.round(ctk[i])) continue;
+      g += '<line class="grid" x1="' + ml + '" y1="' + Y(ctk[i]).toFixed(1) +
+           '" x2="' + (ml + iw) + '" y2="' + Y(ctk[i]).toFixed(1) + '"/>';
+      g += '<text class="tk" x="' + (ml - 8) + '" y="' + (Y(ctk[i]) + 3.5).toFixed(1) +
+           '" text-anchor="end">' + ctk[i] + '</text>';
+    }
+
+    var xtk = ticks(-lim, lim, 6);
+    for (i = 0; i < xtk.length; i++) {
+      g += '<text class="tk" x="' + X(xtk[i]).toFixed(1) + '" y="' + (mt + ih + 17) +
+           '" text-anchor="middle">' + (xtk[i] > 0 ? "+" : "") + fmt(xtk[i], 0) + '</text>';
+    }
+
+    /* barres : 2 px de respiration, extrémité arrondie ancrée à la ligne de base */
+    var pxw = iw / NB;
+    for (i = 0; i < NB; i++) {
+      if (!counts[i]) continue;
+      var c0 = -lim + i * bw, c1 = c0 + bw;
+      var x = ml + i * pxw + 1;
+      var w = pxw - 2;
+      var y = Y(counts[i]);
+      var h = mt + ih - y;
+      g += '<path class="bar" d="' + barPath(x, y, w, h, 4) + '"/>';
+      pts.push({
+        x: x + w / 2, y: y, band: true,
+        html: "<b>" + counts[i] + " sujet" + (counts[i] > 1 ? "s" : "") + "</b><br>écart " +
+              (c0 > 0 ? "+" : "") + fmt(c0, 1) + " à " + (c1 > 0 ? "+" : "") + fmt(c1, 1) + " %" +
+              "<br>≈ " + signed(AUC_TGT * CL_POP * c0 / 100, 0, "") + " à " +
+              signed(AUC_TGT * CL_POP * c1 / 100, 0, " mg") +
+              "<br><span style=\"opacity:.7\">(sujet typique, CL = 4 L/h)</span>"
+      });
+    }
+    storeHi.pts = pts;
+
+    /* zéro = la bonne réponse */
+    g += '<line class="ident" x1="' + X(0).toFixed(1) + '" y1="' + mt +
+         '" x2="' + X(0).toFixed(1) + '" y2="' + (mt + ih) + '"/>';
+    g += '<text class="dlab p" x="' + (X(0) + 6).toFixed(1) + '" y="' + (mt + 11) +
+         '">dose exacte</text>';
+
+    g += '<line class="ax" x1="' + ml + '" y1="' + (mt + ih) + '" x2="' + (ml + iw) + '" y2="' + (mt + ih) + '"/>';
+    g += '<text class="axlab" x="' + (ml + iw / 2) + '" y="' + (H - 10) +
+         '" text-anchor="middle">Écart entre la dose recommandée et la dose exacte (%)</text>';
+    g += '<text class="axlab" transform="translate(13,' + (mt + ih / 2) +
+         ') rotate(-90)" text-anchor="middle">Nombre de sujets</text>';
+    if (clipped) {
+      g += '<text class="tk" x="' + (ml + iw) + '" y="' + (mt + 11) + '" text-anchor="end">' +
+           clipped + ' sujet' + (clipped > 1 ? 's' : '') + ' hors cadre, ramené' +
+           (clipped > 1 ? 's' : '') + ' aux bords</text>';
+    }
+
+    document.getElementById("svg-hist").innerHTML =
+      '<title id="t-hi">Distribution de l\'écart de dose</title>' +
+      '<desc id="d-hi">Histogramme sur ' + subs.length + ' sujets. Biais moyen ' +
+      fmt(res.doseBias, 1) + ' pour cent ; ' + fmt(res.pct20, 0) +
+      ' pour cent des sujets au-delà de plus ou moins 20 pour cent.</desc>' + g;
+  }
+
+  /* =====================================================================
+     Graphique 3 — un profil individuel, échelle semi-logarithmique.
+  ===================================================================== */
+  function drawProfile(res, idx) {
+    var W = 720, H = 400, ml = 58, mr = 96, mt = 18, mb = 48;
+    var iw = W - ml - mr, ih = H - mt - mb;
+    var s = res.subs[idx], times = res.times, i;
+
+    var tMax = Math.max(times[times.length - 1] * 1.28, 2);
+    var cMax = Math.max(DOSE / s.Vt, DOSE / s.Vh, DOSE / V_POP) * 1.5;
+
+    /* La borne basse suit les données : partir d'une constante écraserait les
+       courbes dans le haut du cadre et masquerait justement l'écart de pente. */
+    var cMin = Infinity;
+    for (i = 0; i < s.obs.length; i++) cMin = Math.min(cMin, s.obs[i] * 0.55);
+    cMin = Math.min(cMin,
+      (DOSE / s.Vt)  * Math.exp(-(s.CLt / s.Vt)   * tMax) * 0.6,
+      (DOSE / s.Vh)  * Math.exp(-(s.CLh / s.Vh)   * tMax) * 0.6,
+      (DOSE / V_POP) * Math.exp(-(CL_POP / V_POP) * tMax) * 0.6);
+    if (!isFinite(cMin) || cMin < 0.01) cMin = 0.01;
+    if (cMin > cMax / 3) cMin = cMax / 3;
+
+    var lgMin = Math.log(cMin) / Math.LN10, lgMax = Math.log(cMax) / Math.LN10;
+    function X(t) { return ml + (t / tMax) * iw; }
+    function Y(c) {
+      var l = Math.log(Math.max(c, cMin * 0.5)) / Math.LN10;
+      return mt + ih - (l - lgMin) / (lgMax - lgMin) * ih;
+    }
+
+    var g = "", pts = [];
+
+    /* grille logarithmique : décades + 2 et 5 */
+    var d0 = Math.floor(lgMin), d1 = Math.ceil(lgMax);
+    for (var d = d0; d <= d1; d++) {
+      var mult = [1, 2, 5];
+      for (var m = 0; m < 3; m++) {
+        var val = mult[m] * Math.pow(10, d);
+        if (val < cMin || val > cMax) continue;
+        var yy = Y(val);
+        g += '<line class="grid" x1="' + ml + '" y1="' + yy.toFixed(1) +
+             '" x2="' + (ml + iw) + '" y2="' + yy.toFixed(1) + '"/>';
+        g += '<text class="tk" x="' + (ml - 8) + '" y="' + (yy + 3.5).toFixed(1) +
+             '" text-anchor="end">' + (val >= 1 ? fmt(val, 0) : fmt(val, 2)) + '</text>';
+      }
+    }
+    var xtk = ticks(0, tMax, 6);
+    for (i = 0; i < xtk.length; i++) {
+      if (xtk[i] < 0) continue;
+      g += '<line class="grid" x1="' + X(xtk[i]).toFixed(1) + '" y1="' + mt +
+           '" x2="' + X(xtk[i]).toFixed(1) + '" y2="' + (mt + ih) + '"/>';
+      g += '<text class="tk" x="' + X(xtk[i]).toFixed(1) + '" y="' + (mt + ih + 17) +
+           '" text-anchor="middle">' + fmt(xtk[i], 0) + '</text>';
+    }
+
+    function curve(CL, V) {
+      var p = "", NPT = 140;
+      for (var k = 0; k <= NPT; k++) {
+        var t = tMax * k / NPT;
+        var c = (DOSE / V) * Math.exp(-(CL / V) * t);
+        if (c < cMin * 0.5) break;
+        p += (k === 0 ? "M" : "L") + X(t).toFixed(1) + "," + Y(c).toFixed(1);
+      }
+      return p;
+    }
+    function endY(CL, V) {
+      var c = (DOSE / V) * Math.exp(-(CL / V) * tMax);
+      return Y(Math.max(c, cMin * 0.6));
+    }
+
+    g += '<path class="s-prior" d="' + curve(CL_POP, V_POP) + '"/>';
+    g += '<path class="s-true" d="' + curve(s.CLt, s.Vt) + '"/>';
+    g += '<path class="s-est" d="' + curve(s.CLh, s.Vh) + '"/>';
+
+    /* Étiquettes directes en bout de courbe. Les trois valeurs peuvent être très
+       proches (c'est même le cas intéressant), donc on les sépare vraiment :
+       tri, écartement minimal, puis recentrage si le paquet sort du cadre. */
+    var labs = [
+      { y: endY(s.CLt, s.Vt),   cls: "t", txt: "vrai" },
+      { y: endY(s.CLh, s.Vh),   cls: "e", txt: "estimé" },
+      { y: endY(CL_POP, V_POP), cls: "p", txt: "population" }
+    ];
+    labs.sort(function (a, b) { return a.y - b.y; });
+    var MINGAP = 14;
+    for (i = 1; i < labs.length; i++) {
+      if (labs[i].y - labs[i - 1].y < MINGAP) labs[i].y = labs[i - 1].y + MINGAP;
+    }
+    var overflow = labs[labs.length - 1].y - (mt + ih);
+    if (overflow > 0) for (i = 0; i < labs.length; i++) labs[i].y -= overflow;
+    if (labs[0].y < mt + 6) { var up = mt + 6 - labs[0].y; for (i = 0; i < labs.length; i++) labs[i].y += up; }
+
+    var lx = ml + iw + 7;
+    for (i = 0; i < labs.length; i++) {
+      g += '<text class="dlab ' + labs[i].cls + '" x="' + lx + '" y="' +
+           (labs[i].y + 3.5).toFixed(1) + '">' + labs[i].txt + '</text>';
+    }
+
+    for (i = 0; i < times.length; i++) {
+      var cx = X(times[i]), cy = Y(s.obs[i]);
+      g += '<circle class="dot-obs" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="4.6"/>';
+      var predT = (DOSE / s.Vt) * Math.exp(-(s.CLt / s.Vt) * times[i]);
+      pts.push({
+        x: cx, y: cy,
+        html: "<b>t = " + fmt(times[i], 2) + " h</b><br>mesurée " + fmt(s.obs[i], 2) + " mg/L" +
+              "<br>vraie " + fmt(predT, 2) + " mg/L"
+      });
+    }
+    storePr.pts = pts;
+
+    g += '<line class="ax" x1="' + ml + '" y1="' + (mt + ih) + '" x2="' + (ml + iw) + '" y2="' + (mt + ih) + '"/>';
+    g += '<line class="ax" x1="' + ml + '" y1="' + mt + '" x2="' + ml + '" y2="' + (mt + ih) + '"/>';
+    g += '<text class="axlab" x="' + (ml + iw / 2) + '" y="' + (H - 8) +
+         '" text-anchor="middle">Temps après la dose (h)</text>';
+    g += '<text class="axlab" transform="translate(13,' + (mt + ih / 2) +
+         ') rotate(-90)" text-anchor="middle">Concentration (mg/L)</text>';
+
+    document.getElementById("svg-prof").innerHTML =
+      '<title id="t-pr">Profil de concentration du sujet ' + (idx + 1) + '</title>' +
+      '<desc id="d-pr">Échelle semi-logarithmique. Clairance vraie ' + fmt(s.CLt, 2) +
+      ' litres par heure, estimée ' + fmt(s.CLh, 2) + '. Écart de dose ' +
+      fmt(s.dMg, 0) + ' milligrammes.</desc>' + g;
+
+    document.getElementById("sublab").textContent =
+      "Sujet " + (idx + 1) + " · CL vraie " + fmt(s.CLt, 2) + " L/h · CL estimée " +
+      fmt(s.CLh, 2) + " L/h · dose " + signed(s.dMg, 0, " mg");
+  }
+
+  /* =====================================================================
+     Lecture de l'interface, rendu, boucle de mise à jour.
+  ===================================================================== */
+  var el = {};
+  ["sad", "spd", "sat", "spt", "ns", "t1", "tn", "nn", "seed"].forEach(function (k) {
+    el[k] = document.getElementById(k);
+  });
+
+  function readCfg() {
+    var type = document.querySelector('input[name="decl"]:checked').value;
+    var n = +el.ns.value;
+    var t1 = +el.t1.value;
+    var tn = +el.tn.value;
+    if (tn <= t1) tn = t1 + 0.5;
+    return {
+      type: type,
+      sAddD: +el.sad.value, sPropD: +el.spd.value / 100,
+      sAddT: +el.sat.value, sPropT: +el.spt.value / 100,
+      n: n, t1: t1, tn: tn,
+      N: +el.nn.value,
+      seed: Math.max(1, Math.floor(+el.seed.value || 1))
+    };
+  }
+
+  var lastRes = null, exIdx = 0;
+
+  function syncLabels(cfg) {
+    document.getElementById("o-sad").textContent = fmt(cfg.sAddD, 2) + " mg/L";
+    document.getElementById("o-spd").textContent = Math.round(cfg.sPropD * 100) + " %";
+    document.getElementById("o-sat").textContent = fmt(cfg.sAddT, 2) + " mg/L";
+    document.getElementById("o-spt").textContent = Math.round(cfg.sPropT * 100) + " %";
+    document.getElementById("o-ns").textContent = cfg.n;
+    document.getElementById("o-t1").textContent = fmt(cfg.t1, 2) + " h";
+    document.getElementById("o-tn").textContent = fmt(cfg.tn, 1) + " h";
+    document.getElementById("o-nn").textContent = cfg.N;
+
+    /* le curseur non utilisé par le modèle déclaré est désactivé, pas caché */
+    var offAdd = (cfg.type === "prop"), offProp = (cfg.type === "add");
+    el.sad.disabled = offAdd;
+    el.spd.disabled = offProp;
+    document.getElementById("c-sad").classList.toggle("off", offAdd);
+    document.getElementById("c-spd").classList.toggle("off", offProp);
+
+    var oneSample = cfg.n <= 1;
+    el.tn.disabled = oneSample;
+    document.getElementById("c-tn").classList.toggle("off", oneSample);
+  }
+
+  function syncSigmaBar(cfg, times) {
+    /* comparaison à la concentration typique du temps médian de prélèvement */
+    var tMed = times[Math.floor(times.length / 2)];
+    var cRef = (DOSE / V_POP) * Math.exp(-(CL_POP / V_POP) * tMed);
+    var sdT = Math.sqrt(cfg.sAddT * cfg.sAddT + (cfg.sPropT * cRef) * (cfg.sPropT * cRef));
+    var sdD = Math.sqrt(declVar(cRef, cfg.type, cfg.sAddD, cfg.sPropD));
+    var ratio = sdD / sdT;
+
+    var verdict, warn = false;
+    if (ratio > 1.6) { verdict = "σ sur-déclaré : l'estimateur se méfie des mesures et ramène le sujet vers la population."; warn = true; }
+    else if (ratio < 0.625) { verdict = "σ sous-déclaré : l'estimateur fait trop confiance aux mesures et suit le bruit."; warn = true; }
+    else { verdict = "Déclaration proche de la vérité : c'est la situation de référence."; }
+
+    document.getElementById("sigbar").innerHTML =
+      "À C = <b>" + fmt(cRef, 2) + " mg/L</b> (t = " + fmt(tMed, 2) + " h)<br>" +
+      "σ vrai <b>" + fmt(sdT, 3) + "</b> · σ déclaré <b>" + fmt(sdD, 3) + "</b> mg/L<br>" +
+      "rapport déclaré / vrai <b>×" + fmt(ratio, 2) + "</b>" +
+      '<span class="verdict' + (warn ? " warn" : "") + '">' + verdict + "</span>";
+  }
+
+  function syncTimesBar(times) {
+    var s = [];
+    for (var i = 0; i < times.length; i++) s.push(fmt(times[i], 2));
+    document.getElementById("timesbar").innerHTML =
+      "Temps retenus : <b>" + s.join(" · ") + "</b> h";
+  }
+
+  function render() {
+    var cfg = readCfg();
+    syncLabels(cfg);
+
+    var res = simulate(cfg);
+    lastRes = res;
+    if (exIdx >= res.subs.length) exIdx = 0;
+
+    syncSigmaBar(cfg, res.times);
+    syncTimesBar(res.times);
+
+    document.getElementById("v-dbias").innerHTML = signed(res.doseBias, 1, '<span class="u"> %</span>');
+    document.getElementById("v-dmg").innerHTML = fmt(res.medAbsMg, 0) + '<span class="u"> mg</span>';
+    document.getElementById("v-d20").innerHTML = fmt(res.pct20, 0) + '<span class="u"> %</span>';
+    document.getElementById("v-abias").innerHTML = signed(res.aucBias, 1, '<span class="u"> %</span>');
+    document.getElementById("v-armse").innerHTML = fmt(res.aucRmse, 1) + '<span class="u"> %</span>';
+    document.getElementById("v-dmax").innerHTML = signed(res.maxDev, 0, '<span class="u"> %</span>');
+
+    drawScatter(res);
+    drawHist(res);
+    drawProfile(res, exIdx);
+
+    document.getElementById("perf").textContent =
+      res.subs.length + " sujets simulés et ré-estimés en " + res.ms.toFixed(1) +
+      " ms · graine " + cfg.seed;
+  }
+
+  /* Recalcul au prochain rafraîchissement : le glissement reste fluide. */
+  var queued = false;
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; render(); });
+  }
+
+  ["sad", "spd", "sat", "spt", "ns", "t1", "tn", "nn"].forEach(function (k) {
+    el[k].addEventListener("input", schedule);
+  });
+  el.seed.addEventListener("input", schedule);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name="decl"]'), function (r) {
+    r.addEventListener("change", schedule);
+  });
+
+  document.getElementById("reseed").addEventListener("click", function () {
+    el.seed.value = 1 + Math.floor(Math.random() * 99999999);
+    render();
+  });
+
+  document.getElementById("nextsub").addEventListener("click", function () {
+    if (!lastRes) return;
+    exIdx = (exIdx + 1) % lastRes.subs.length;
+    drawProfile(lastRes, exIdx);
+  });
+
+  var PRESETS = {
+    exact:    function () { setDecl("comb"); el.sad.value = el.sat.value; el.spd.value = el.spt.value; },
+    under:    function () { setDecl("comb"); el.sad.value = (+el.sat.value / 4).toFixed(2); el.spd.value = Math.max(1, Math.round(+el.spt.value / 4)); },
+    over:     function () { setDecl("comb"); el.sad.value = Math.min(2, +el.sat.value * 4).toFixed(2); el.spd.value = Math.min(40, Math.round(+el.spt.value * 4)); },
+    addonly:  function () { setDecl("add"); el.sad.value = el.sat.value; },
+    proponly: function () { setDecl("prop"); el.spd.value = el.spt.value; }
+  };
+  function setDecl(v) { document.getElementById("d-" + v).checked = true; }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function (b) {
+    b.addEventListener("click", function () {
+      PRESETS[b.getAttribute("data-preset")]();
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

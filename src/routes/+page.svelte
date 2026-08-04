@@ -4,12 +4,42 @@
   import { tracks, chaptersByTrack } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
   import { localizeChapter, localizeTrack, ui } from '$lib/i18n/translations';
+  import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL } from '$lib/site';
 
   const grouped = chaptersByTrack(chapters);
   const firstCore = grouped.core[0];
   const coreCount = grouped.core.length;
   $: copy = ui($language);
+
+  // Le seul JSON-LD `Course` du site : il décrit le cours ENTIER. Chaque chapitre se
+  // rattache à lui par `isPartOf` — le déclarer deux fois créerait deux cours distincts.
+  const courseJsonLd = jsonLdScript({
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: COURSE_NAME,
+    description:
+      "Cours visuel et interactif de pharmacométrie : PK/PD, modélisation de population, analyse non-compartimentale, PBPK, suivi thérapeutique, validation de modèle et IA appliquée.",
+    url: SITE_URL,
+    inLanguage: ['fr', 'en'],
+    isAccessibleForFree: true,
+    license: LICENSE_URL,
+    author: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+      identifier: AUTHOR.orcid,
+      url: AUTHOR.url
+    },
+    provider: {
+      '@type': 'Person',
+      name: AUTHOR.name,
+      url: AUTHOR.url
+    }
+  });
 </script>
+
+<svelte:head>
+  {@html courseJsonLd}
+</svelte:head>
 
 <section class="hero" data-testid="hero">
   <p class="eyebrow">{copy.home.eyebrow}</p>

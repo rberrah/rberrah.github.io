@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Comment citer — Racym Berrah</title>
+  <meta name="description" content="Formats de citation APA et BibTeX pour un chapitre ou pour un cours entier, texte d'attribution CC BY-SA 4.0 prêt à copier, et ce que la licence autorise et exige." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/citer/" />
+  <link rel="me" href="https://orcid.org/0009-0001-6432-2880" />
+  <link rel="me" href="https://www.linkedin.com/in/racym-berrah-114387175/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Comment citer — Racym Berrah" />
+  <meta property="og:description" content="APA, BibTeX, texte d'attribution CC BY-SA 4.0 : tout ce qu'il faut pour citer un chapitre ou reprendre un cours en enseignement." />
+  <meta property="og:url" content="https://rberrah.github.io/citer/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    /* Le thème choisi dans les cours suit le lecteur jusqu'ici. */
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <style>
+    /* Classes locales à cette page. */
+    .exemple { margin: 0 0 2.4rem; }
+    .exemple:last-child { margin-bottom: 0; }
+    .exemple > h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+    .cours-tag {
+      font-family: var(--mono); font-size: 0.66rem; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--tag-c, var(--ink-3));
+      border: 1px solid currentColor; border-radius: 999px; padding: 0.05rem 0.5rem;
+      white-space: nowrap;
+    }
+    .t-pharma { --tag-c: var(--terra); }
+    .t-internat { --tag-c: var(--teal); }
+    .t-stats { --tag-c: var(--indigo); }
+    .cite-label {
+      font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--ink-3); margin: 1.2rem 0 0.1rem;
+    }
+    .champs { margin: 0; }
+    .champs dt { font-family: var(--mono); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin-top: 0.85rem; }
+    .champs dd { margin: 0.15rem 0 0; color: var(--ink-2); font-size: 0.94rem; }
+    .regle { max-width: var(--measure); margin: 0 0 1rem; padding-left: 1rem; border-left: 2px solid var(--border-strong); }
+    .regle strong { color: var(--ink); }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ============ EN-TÊTE ============ -->
+      <section class="band" style="border-bottom:0; padding-bottom:1.4rem;">
+        <p class="eyebrow">Comment citer</p>
+        <h1 class="measure">Citer un chapitre, citer un cours,<br />ou le reprendre en enseignement.</h1>
+        <p class="lede" style="margin-top:1.2rem">
+          Le contenu de ces trois cours est original, sourcé chapitre par chapitre et daté à
+          chaque révision. Il se cite donc comme une ressource pédagogique en ligne, avec un
+          auteur, une date et une adresse stable. La licence CC BY-SA 4.0 autorise en outre la
+          reprise et l'adaptation, y compris dans un enseignement, y compris payant — à
+          condition de citer et de partager aux mêmes conditions.
+        </p>
+      </section>
+
+      <!-- ============ 1. POURQUOI CITER ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Pourquoi citer</h2>
+        </div>
+        <div class="measure">
+          <p>
+            Trois raisons, dont une seule est juridique.
+          </p>
+          <p>
+            <strong>Parce que le contenu est daté et révisable.</strong> Un chapitre porte en
+            tête sa date de dernière révision. Citer cette date permet à votre lecteur de
+            retrouver l'état exact du texte auquel vous vous référez, y compris après une
+            correction. Une référence sans date à un texte vivant n'est pas vérifiable.
+          </p>
+          <p>
+            <strong>Parce que le contenu porte ses propres sources.</strong> Chaque chapitre
+            renvoie à des références nominatives. Citer le chapitre plutôt que d'en recopier
+            une affirmation permet de remonter cette chaîne jusqu'à la source primaire.
+          </p>
+          <p>
+            <strong>Parce que la licence l'exige.</strong> CC BY-SA 4.0 autorise beaucoup et
+            demande peu, mais l'attribution n'est pas facultative : c'est la contrepartie de
+            l'autorisation.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ 2. CE QU'IL FAUT POUR CITER ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Les champs d'une référence</h2>
+          <p>Tout se lit sur la page du chapitre : la ligne de signature, sous le titre, porte l'auteur, la date de révision et la licence. L'adresse canonique est celle de la barre du navigateur.</p>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Champ</th>
+                <th scope="col">Valeur</th>
+                <th scope="col">Où le trouver</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Auteur</td>
+                <td>Berrah, R.</td>
+                <td>Ligne de signature du chapitre</td>
+              </tr>
+              <tr>
+                <td>Titre</td>
+                <td>Titre du chapitre, tel qu'affiché</td>
+                <td>Titre de la page</td>
+              </tr>
+              <tr>
+                <td>Nom du cours</td>
+                <td>Pharmacométrie Pratique · Internat Pharma · Stat &amp; Biologie</td>
+                <td>En-tête du site</td>
+              </tr>
+              <tr>
+                <td>Année</td>
+                <td>Année de la dernière révision</td>
+                <td>Ligne de signature</td>
+              </tr>
+              <tr>
+                <td>URL canonique</td>
+                <td>Adresse du chapitre, avec la barre oblique finale</td>
+                <td>Barre du navigateur</td>
+              </tr>
+              <tr>
+                <td>Date de consultation</td>
+                <td>Facultative en APA, usuelle en France</td>
+                <td>La date du jour</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="small measure" style="margin-top:1.1rem">
+          L'adresse d'un chapitre est construite sur son identifiant interne, pas sur son
+          titre : reformuler un titre ne casse pas une référence déjà écrite.
+        </p>
+      </section>
+
+      <!-- ============ 3. CITER UN CHAPITRE ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Citer un chapitre</h2>
+          <p>
+            Un exemple réel et complet par cours. Remplacez le titre, l'adresse et l'année par
+            ceux du chapitre que vous citez ; le reste ne change pas. L'entrée BibTeX est de
+            type <code>@misc</code> : un chapitre de cours n'est pas un article de revue, et
+            <code>@article</code> serait une imprécision bibliographique.
+          </p>
+        </div>
+
+        <!-- --- Pharmacométrie --- -->
+        <div class="exemple">
+          <h3><span class="cours-tag t-pharma">Pharmacométrie Pratique</span> Raisonnement bayésien, EBE et shrinkage</h3>
+
+          <p class="cite-label">APA (7<sup>e</sup> édition)</p>
+          <pre class="cite">Berrah, R. (2026, 9 juillet). Raisonnement bayésien, EBE et shrinkage.
+Pharmacométrie Pratique. Consulté le 4 août 2026, à l'adresse
+https://rberrah.github.io/pharmacometrie/chapitres/bayes-ebes/</pre>
+
+          <p class="cite-label">BibTeX</p>
+          <pre class="cite">@misc{berrah_bayes_2026,
+  author       = {Berrah, Racym},
+  title        = {Raisonnement bayésien, {EBE} et shrinkage},
+  howpublished = {Pharmacométrie Pratique},
+  year         = {2026},
+  month        = {7},
+  url          = {https://rberrah.github.io/pharmacometrie/chapitres/bayes-ebes/},
+  urldate      = {2026-08-04},
+  note         = {Chapitre de cours en ligne, licence CC BY-SA 4.0}
+}</pre>
+        </div>
+
+        <!-- --- Internat --- -->
+        <div class="exemple">
+          <h3><span class="cours-tag t-internat">Internat Pharma</span> Tests paramétriques de comparaison</h3>
+
+          <p class="cite-label">APA (7<sup>e</sup> édition)</p>
+          <pre class="cite">Berrah, R. (2026, 9 juillet). Tests paramétriques de comparaison.
+Internat Pharma. Consulté le 4 août 2026, à l'adresse
+https://rberrah.github.io/internat/chapitres/i-17-tests-parametriques/</pre>
+
+          <p class="cite-label">BibTeX</p>
+          <pre class="cite">@misc{berrah_tests_2026,
+  author       = {Berrah, Racym},
+  title        = {Tests paramétriques de comparaison},
+  howpublished = {Internat Pharma},
+  year         = {2026},
+  month        = {7},
+  url          = {https://rberrah.github.io/internat/chapitres/i-17-tests-parametriques/},
+  urldate      = {2026-08-04},
+  note         = {Chapitre de cours en ligne, licence CC BY-SA 4.0}
+}</pre>
+        </div>
+
+        <!-- --- Stats --- -->
+        <div class="exemple">
+          <h3><span class="cours-tag t-stats">Stat &amp; Biologie</span> Le test du χ² : ajustement à une répartition théorique</h3>
+
+          <p class="cite-label">APA (7<sup>e</sup> édition)</p>
+          <pre class="cite">Berrah, R. (2026, 9 juillet). Le test du χ² : ajustement à une répartition
+théorique. Stat &amp; Biologie. Consulté le 4 août 2026, à l'adresse
+https://rberrah.github.io/stats/chapitres/a-5-test-chi2/</pre>
+
+          <p class="cite-label">BibTeX</p>
+          <pre class="cite">@misc{berrah_chi2_2026,
+  author       = {Berrah, Racym},
+  title        = {Le test du $\chi^2$ : ajustement à une répartition théorique},
+  howpublished = {Stat \&amp; Biologie},
+  year         = {2026},
+  month        = {7},
+  url          = {https://rberrah.github.io/stats/chapitres/a-5-test-chi2/},
+  urldate      = {2026-08-04},
+  note         = {Chapitre de cours en ligne, licence CC BY-SA 4.0}
+}</pre>
+        </div>
+
+        <aside class="note">
+          <p class="small" style="margin:0">
+            <strong>Deux détails d'implémentation.</strong> Les entrées ci-dessus sont écrites
+            en UTF-8 : elles se compilent telles quelles avec <code>biblatex</code> et
+            <code>biber</code>. Avec la chaîne historique BibTeX + pdfLaTeX, remplacez les
+            lettres accentuées par leurs séquences d'échappement
+            (<code>é</code> → <code>\'e</code>). L'esperluette de « Stat &amp; Biologie » doit
+            rester échappée (<code>\&amp;</code>) dans un fichier <code>.bib</code>. Si votre
+            gestionnaire de références préfère <code>@online</code>, il accepte les mêmes
+            champs, avec <code>organization</code> à la place de <code>howpublished</code> et
+            <code>date</code> à la place de <code>year</code>.
+          </p>
+        </aside>
+      </section>
+
+      <!-- ============ 4. CITER UN COURS ENTIER ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Citer un cours entier</h2>
+          <p>
+            À utiliser lorsque la référence porte sur le corpus et non sur un chapitre
+            particulier : bibliographie d'un syllabus, section « ressources » d'un support de
+            cours, mention dans un rapport.
+          </p>
+        </div>
+
+        <div class="exemple">
+          <h3><span class="cours-tag t-pharma">Pharmacométrie Pratique</span></h3>
+          <pre class="cite">APA
+Berrah, R. (2026). Pharmacométrie Pratique [Ressource pédagogique en ligne].
+https://rberrah.github.io/pharmacometrie/
+
+BibTeX
+@misc{berrah_pharmacometrie_2026,
+  author       = {Berrah, Racym},
+  title        = {Pharmacométrie Pratique},
+  howpublished = {Ressource pédagogique en ligne},
+  year         = {2026},
+  url          = {https://rberrah.github.io/pharmacometrie/},
+  urldate      = {2026-08-04},
+  note         = {88 chapitres en français, 88 en anglais, 63 visualisations.
+                  Licence CC BY-SA 4.0}
+}</pre>
+        </div>
+
+        <div class="exemple">
+          <h3><span class="cours-tag t-internat">Internat Pharma</span></h3>
+          <pre class="cite">APA
+Berrah, R. (2026). Internat Pharma [Ressource pédagogique en ligne].
+https://rberrah.github.io/internat/
+
+BibTeX
+@misc{berrah_internat_2026,
+  author       = {Berrah, Racym},
+  title        = {Internat Pharma},
+  howpublished = {Ressource pédagogique en ligne},
+  year         = {2026},
+  url          = {https://rberrah.github.io/internat/},
+  urldate      = {2026-08-04},
+  note         = {186 chapitres, 30 visualisations. Licence CC BY-SA 4.0}
+}</pre>
+        </div>
+
+        <div class="exemple">
+          <h3><span class="cours-tag t-stats">Stat &amp; Biologie</span></h3>
+          <pre class="cite">APA
+Berrah, R. (2026). Stat &amp; Biologie [Ressource pédagogique en ligne].
+https://rberrah.github.io/stats/
+
+BibTeX
+@misc{berrah_stats_2026,
+  author       = {Berrah, Racym},
+  title        = {Stat \&amp; Biologie},
+  howpublished = {Ressource pédagogique en ligne},
+  year         = {2026},
+  url          = {https://rberrah.github.io/stats/},
+  urldate      = {2026-08-04},
+  note         = {45 chapitres, 10 visualisations. Licence CC BY-SA 4.0}
+}</pre>
+        </div>
+      </section>
+
+      <!-- ============ 5. ATTRIBUTION CC BY-SA ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Reprendre un contenu : le texte d'attribution</h2>
+          <p>
+            Une citation bibliographique sert à renvoyer vers un texte. L'attribution sert à
+            autre chose : elle accompagne un contenu que vous <em>reprenez</em> — une figure
+            dans une diapositive, un paragraphe dans un polycopié, un chapitre traduit. Les
+            deux ne se remplacent pas.
+          </p>
+        </div>
+
+        <p class="cite-label">Gabarit — quatre éléments, dans cet ordre</p>
+        <pre class="cite">« TITRE DU CHAPITRE », par Racym Berrah — NOM DU COURS
+Source : URL DU CHAPITRE
+Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/deed.fr
+Modifications : DÉCRIRE LES MODIFICATIONS, ou supprimer cette ligne si le
+contenu est repris sans changement.</pre>
+
+        <p class="cite-label">Exemple rempli, contenu modifié</p>
+        <pre class="cite">« Raisonnement bayésien, EBE et shrinkage », par Racym Berrah
+— Pharmacométrie Pratique
+Source : https://rberrah.github.io/pharmacometrie/chapitres/bayes-ebes/
+Licence : CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/deed.fr
+Modifications : figure redessinée aux couleurs du support, exemple numérique
+remplacé par un cas de tacrolimus, section sur le shrinkage abrégée.</pre>
+
+        <p class="cite-label">Même attribution, en HTML, pour une page web</p>
+        <pre class="cite">&lt;p&gt;
+  &lt;a href="https://rberrah.github.io/pharmacometrie/chapitres/bayes-ebes/"&gt;
+    Raisonnement bayésien, EBE et shrinkage&lt;/a&gt;
+  par &lt;a href="https://rberrah.github.io/a-propos/"&gt;Racym Berrah&lt;/a&gt;,
+  licence &lt;a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"
+     rel="license"&gt;CC BY-SA 4.0&lt;/a&gt;. Contenu modifié.
+&lt;/p&gt;</pre>
+
+        <p class="small measure" style="margin-top:1.2rem">
+          Sur une diapositive, une seule ligne suffit :
+          <em>Racym Berrah, « Pharmacométrie Pratique », CC BY-SA 4.0</em>, avec l'adresse
+          lisible ou un lien actif. Ce qui compte est que le lecteur puisse remonter à la
+          source et à la licence sans chercher.
+        </p>
+      </section>
+
+      <!-- ============ 6. CE QUE LA LICENCE AUTORISE ET EXIGE ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Ce que la licence autorise, ce qu'elle exige</h2>
+        </div>
+
+        <p class="regle">
+          <strong>Elle autorise</strong> — copier, redistribuer, adapter, traduire, imprimer et
+          enseigner à partir de ce contenu, sur tout support, y compris dans un enseignement
+          payant et dans un cadre commercial.
+        </p>
+        <p class="regle">
+          <strong>Elle exige</strong> — citer l'auteur, donner un lien vers la source et un lien
+          vers la licence, signaler les modifications lorsqu'il y en a, et placer toute
+          adaptation sous la même licence CC BY-SA 4.0.
+        </p>
+        <p class="regle">
+          <strong>Elle ne couvre pas tout</strong> — le code des visualisations est sous licence
+          MIT, qui demande l'attribution mais pas le partage à l'identique ; et les rares
+          éléments dont je ne suis pas l'auteur sont signalés comme tels dans le chapitre
+          concerné, avec leur propre licence.
+        </p>
+
+        <p class="small measure" style="margin-top:1.4rem">
+          Ces trois lignes résument la licence pour un usage courant ; elles ne la remplacent
+          pas et ne constituent pas un conseil juridique. Le texte qui fait foi est celui de
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/legalcode.fr" rel="license">CC
+          BY-SA 4.0</a> ; le <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">résumé
+          publié par Creative Commons</a> en donne une version lisible.
+        </p>
+        <p class="small measure">
+          Reprendre un chapitre en cours ne demande donc aucune autorisation. Un message
+          n'est pas nécessaire ; il reste utile pour éviter deux traductions parallèles du
+          même chapitre — <a href="/contact/">l'adresse est ici</a>.
+        </p>
+      </section>
+
+      <!-- ============ 7. IDENTIFIANTS PÉRENNES ============ -->
+      <section class="band">
+        <div class="section-head">
+          <h2>Sur les identifiants pérennes</h2>
+        </div>
+        <div class="measure">
+          <p>
+            Une réserve, énoncée franchement. Les identifiants pérennes qu'on attend d'une
+            ressource citable — un DOI d'archive pour chaque corpus, un dépôt dans HAL — sont
+            en cours de mise en place. Ils ne figurent donc pas encore dans les modèles
+            ci-dessus.
+          </p>
+          <p>
+            En attendant, <strong>l'URL canonique fait foi</strong>, accompagnée de la date de
+            révision affichée en tête de chapitre. Ces adresses sont construites sur
+            l'identifiant interne du chapitre et sont stables. Une référence rédigée
+            aujourd'hui restera donc exacte lorsque les identifiants existeront : il sera
+            seulement possible d'y ajouter une ligne.
+          </p>
+          <p class="small">
+            L'identifiant qui, lui, est déjà stable et pérenne du côté de l'auteur est l'ORCID :
+            <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a>. Il lève
+            toute ambiguïté d'homonymie dans une bibliographie, et il peut être ajouté dès
+            maintenant à côté du nom.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>

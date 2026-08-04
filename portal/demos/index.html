@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Démonstrations — Racym Berrah</title>
+  <meta name="description" content="Démonstrations interactives en pharmacométrie : erreur résiduelle, identifiabilité, jumeau pharmacologique numérique. Le calcul s'exécute dans votre navigateur, les limites et la méthode sont écrites sur chaque page." />
+  <meta name="author" content="Racym Berrah" />
+  <link rel="canonical" href="https://rberrah.github.io/demos/" />
+  <link rel="stylesheet" href="/assets/site.css" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Démonstrations — Racym Berrah" />
+  <meta property="og:description" content="Un modèle qui tourne dans la page : intégration, estimation, tirages aléatoires réellement calculés à chaque mouvement de curseur. Régime d'exécution, méthode et limites annoncés avant le clic." />
+  <meta property="og:url" content="https://rberrah.github.io/demos/" />
+  <meta name="twitter:card" content="summary" />
+  <script>
+    /* Le thème choisi dans les cours suit le lecteur jusqu'ici. */
+    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <style>
+    /* ---------- Styles locaux à /demos/ (rien d'autre ne les utilise) ---------- */
+
+    .badge {
+      display: inline-block; font-family: var(--mono); font-size: 0.67rem;
+      text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+      border: 1px solid var(--border-strong); border-radius: 999px;
+      padding: 0.1rem 0.55rem; color: var(--ink-3);
+    }
+    .badge.natif { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .badgeline { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.65rem; margin-bottom: 0.8rem; }
+    .cost { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-3); }
+
+    /* Les trois régimes d'exécution */
+    .regimes { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: 1.7rem; }
+    @media (min-width: 840px) { .regimes { grid-template-columns: repeat(3, 1fr); } }
+    .regime {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.15rem 1.2rem;
+    }
+    .regime .num { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.09em; color: var(--ink-3); }
+    .regime h3 { font-size: 1.02rem; margin: 0.45rem 0 0.5rem; }
+    .regime p { font-size: 0.895rem; color: var(--ink-2); margin: 0 0 0.6rem; }
+    .regime p:last-child { margin-bottom: 0; }
+
+    /* Cartes de démonstration — monochromes : la couleur reste celle des trois cours */
+    .demos { display: grid; gap: 1rem; grid-template-columns: 1fr; margin-top: 1.8rem; }
+    @media (min-width: 900px) { .demos { grid-template-columns: repeat(3, 1fr); } }
+    .demo-card {
+      position: relative; display: flex; flex-direction: column;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.3rem 1.35rem 1.2rem; box-shadow: var(--shadow); overflow: hidden;
+      transition: border-color 0.16s ease, transform 0.16s ease;
+    }
+    .demo-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent); }
+    .demo-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .demo-card h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+    .demo-card h3 a { text-decoration: none; }
+    .demo-card h3 a:hover { text-decoration: underline; }
+    .demo-card .q { font-size: 0.92rem; font-weight: 600; color: var(--ink); margin: 0 0 0.6rem; }
+    .demo-card p { font-size: 0.9rem; color: var(--ink-2); margin: 0 0 0.75rem; }
+    .demo-card .src {
+      font-size: 0.79rem; color: var(--ink-3);
+      border-top: 1px solid var(--border); padding-top: 0.7rem; margin-bottom: 0;
+    }
+    .demo-card .src .doi { font-family: var(--mono); font-size: 0.74rem; }
+    .demo-card .go {
+      margin-top: auto; padding-top: 0.85rem;
+      font-size: 0.88rem; font-weight: 600; color: var(--accent); text-decoration: none;
+    }
+    .demo-card .go:hover { text-decoration: underline; }
+
+    /* Listes sobres à tiret */
+    ul.plain { list-style: none; margin: 1.3rem 0 0; padding: 0; display: grid; gap: 0.85rem; max-width: var(--measure); }
+    ul.plain li { position: relative; padding-left: 1.2rem; color: var(--ink-2); font-size: 0.95rem; }
+    ul.plain li::before { content: "—"; position: absolute; left: 0; top: 0; color: var(--ink-3); }
+    ul.plain li strong { color: var(--ink); font-weight: 600; }
+
+    /* Anatomie d'une page de démonstration */
+    .anatomy { display: grid; gap: 1.15rem; margin: 1.6rem 0 0; max-width: var(--measure); }
+    .anatomy dt { font-family: var(--serif); font-size: 1.02rem; font-weight: 600; letter-spacing: -0.01em; }
+    .anatomy dd { margin: 0.25rem 0 0; color: var(--ink-2); font-size: 0.93rem; }
+
+    /* En préparation */
+    .soon { display: grid; gap: 1.5rem; margin-top: 1.7rem; }
+    .soon article { border-left: 3px solid var(--border-strong); padding-left: 1.15rem; max-width: var(--measure); }
+    .soon h3 { font-size: 1.05rem; margin: 0 0 0.4rem; }
+    .soon p { font-size: 0.93rem; color: var(--ink-2); margin: 0 0 0.55rem; }
+    .soon p:last-child { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <nav class="nav" aria-label="Navigation principale">
+    <div class="nav-in">
+      <a class="nav-name" href="/">Racym Berrah</a>
+      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
+      <a class="course c-internat" href="/internat/">Internat</a>
+      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
+      <span class="nav-sep" aria-hidden="true"></span>
+      <a href="/demos/" aria-current="page">Démonstrations</a>
+      <a href="/recherche/">Recherche</a>
+      <a href="/a-propos/">À propos</a>
+      <a href="/contact/">Contact</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="wrap">
+
+      <!-- ============ EN-TÊTE ============ -->
+      <section class="band" style="border-bottom:0; padding-bottom:2rem;">
+        <p class="eyebrow">Démonstrations</p>
+
+        <h1 class="measure">Un modèle qui tourne, pas une image d'un modèle.</h1>
+
+        <p class="lede" style="margin-top:1.3rem">
+          Chaque page de cette section contient un calcul réel : intégration numérique,
+          estimation, tirages aléatoires, surface d'objectif — recalculés à chaque mouvement
+          de curseur. Rien n'est pré-enregistré, rien n'est animé. Le calcul s'exécute dans
+          votre navigateur, et ce que vous réglez ne quitte pas votre machine.
+        </p>
+
+        <p class="proof">
+          <span><b>3</b> démonstrations publiées</span>
+          <span>calcul natif</span>
+          <span><b>0</b> Mo à télécharger</span>
+          <span>JavaScript sans dépendance</span>
+          <span>méthode et limites écrites sur chaque page</span>
+        </p>
+      </section>
+
+      <!-- ============ TROIS RÉGIMES D'EXÉCUTION ============ -->
+      <section class="band" id="regimes">
+        <div class="section-head">
+          <h2>Trois régimes d'exécution</h2>
+          <p>
+            Une démonstration coûte quelque chose à celui qui l'ouvre : du temps d'attente,
+            de la bande passante, parfois une requête vers un tiers. Le régime d'exécution
+            et le coût d'entrée chiffré sont donc écrits sur la carte, avant le clic, et le
+            vocabulaire est fermé : il n'y a que ces trois mots-là sur toute la section.
+          </p>
+        </div>
+
+        <div class="regimes">
+          <div class="regime">
+            <span class="num">RÉGIME A</span>
+            <h3><span class="badge natif">Calcul natif</span></h3>
+            <p>
+              Le modèle est intégré et estimé en direct dans la page. Aucune requête réseau
+              n'a lieu après le chargement, aucun poids n'est téléchargé, rien n'est mis en
+              cache. La démonstration fonctionne hors ligne et sur mobile.
+            </p>
+            <p class="cost">Coût d'entrée : 0 Mo · immédiat</p>
+          </div>
+
+          <div class="regime">
+            <span class="num">RÉGIME B</span>
+            <h3><span class="badge">Trace enregistrée</span></h3>
+            <p>
+              Régime réservé à ce qui fait intervenir un modèle de langage. La sortie du
+              modèle a été produite une fois, puis enregistrée avec l'identifiant exact du
+              modèle, la date, la température, la graine et l'empreinte SHA-256 du prompt
+              et de la réponse brute, et versionnée dans le dépôt.
+            </p>
+            <p>
+              La page rejoue cette trace. Les vérifications qui l'entourent — analyse du
+              code proposé, contrôles de cohérence, simulation du modèle proposé par le
+              solveur du site — s'exécutent, elles, en direct chez vous.
+            </p>
+          </div>
+
+          <div class="regime">
+            <span class="num">RÉGIME C</span>
+            <h3><span class="badge">Modèle chargé</span></h3>
+            <p>
+              Un modèle neuronal est téléchargé dans le navigateur au clic, jamais au
+              chargement de la page, puis conservé par le cache. La taille mesurée et le
+              temps d'attente sont annoncés avant le clic.
+            </p>
+            <p>
+              Le clic explicite n'est pas une formalité : tant qu'il n'a pas eu lieu, aucune
+              requête n'est adressée à l'hébergeur des poids, donc aucune adresse IP ne part
+              chez un tiers.
+            </p>
+          </div>
+        </div>
+
+        <div class="note accent" style="max-width:var(--measure)">
+          <p>
+            <strong>Au 4 août 2026, les trois démonstrations publiées relèvent toutes du
+            régime A</strong> : calcul natif, 0 Mo, aucune requête réseau après le chargement.
+            Les régimes B et C décrivent des démonstrations en cours d'écriture. Ils sont
+            documentés ici parce que la règle vaut aussi pour ce qui n'existe pas encore :
+            le régime s'annonce avant le clic, pas après.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ POURQUOI DES TRACES ============ -->
+      <section class="band" id="traces">
+        <div class="section-head">
+          <h2>Pourquoi des traces enregistrées plutôt que des appels en direct</h2>
+        </div>
+
+        <div class="measure">
+          <p>
+            L'intuition courante est inversée. Un appel à un modèle de langage en direct
+            n'est pas reproductible : le modèle est mis à jour côté fournisseur sans que le
+            visiteur en soit informé, l'échantillonnage est stochastique, la réponse obtenue
+            aujourd'hui n'est pas celle de la semaine prochaine, et personne ne peut auditer
+            ni rejouer ce qui vient de s'afficher. Ce qu'une telle démonstration donne à
+            voir n'est pas un résultat, c'est une anecdote.
+          </p>
+          <p>
+            Une trace enregistrée est un artefact vérifiable. Identifiant de modèle, date,
+            température, graine, empreinte du prompt, empreinte de la réponse brute, script
+            d'enregistrement versionné : un lecteur peut la relire, la comparer à la sienne,
+            et la contredire. Le problème d'honnêteté n'est donc pas le rejeu — c'est le
+            rejeu non déclaré et le rejeu trié.
+          </p>
+          <p>Deux règles suffisent à l'écarter, et elles s'appliquent sans exception.</p>
+        </div>
+
+        <ul class="plain">
+          <li>
+            <strong>Le régime est annoncé avant le clic.</strong> Une trace rejouée est
+            étiquetée comme telle sur la carte, sur la page, et à côté du contenu rejoué.
+            Rien n'est présenté comme un calcul en direct qui n'en est pas un.
+          </li>
+          <li>
+            <strong>Le corpus de traces publié contiendra aussi les échecs</strong>, c'est-à-dire
+            des propositions fausses, avec la faute exacte annotée — bloc de covariance
+            incohérent avec le nombre de paramètres aléatoires déclarés, modèle
+            sous-déterminé par le protocole de prélèvement, état d'équilibre jamais atteint.
+            Une démonstration qui ne montrerait que des réussites ne démontrerait rien.
+          </li>
+        </ul>
+
+        <div class="note" style="max-width:var(--measure)">
+          <p class="small" style="margin:0">
+            Au 4 août 2026, aucune trace n'est publiée : la démonstration qui les emploiera
+            est en cours d'écriture. Cette section décrit donc le régime auquel elle sera
+            soumise, pas un contenu disponible.
+          </p>
+        </div>
+      </section>
+
+      <!-- ============ CE QUE CE N'EST PAS ============ -->
+      <section class="band" id="limites">
+        <div class="section-head">
+          <h2>Ce que ces démonstrations ne sont pas</h2>
+          <p>
+            Ce bloc figure ici, et sous une forme spécifique sur chaque page. C'est le
+            premier paragraphe à lire pour qui connaît le domaine.
+          </p>
+        </div>
+
+        <ul class="plain">
+          <li>
+            <strong>Ce ne sont pas des outils cliniques.</strong> Aucune ne doit servir à
+            adapter une dose chez un patient réel. Les milligrammes affichés sont ceux d'un
+            modèle appliqué à un patient simulé, dont les vrais paramètres sont connus de la
+            page — situation qu'aucune consultation ne présente jamais.
+          </li>
+          <li>
+            <strong>Ce ne sont pas des validations.</strong> Une démonstration montre le
+            comportement d'une méthode sur un cas construit. Elle ne dit rien de sa
+            performance clinique, qui est une question empirique et se tranche sur données
+            réelles, par comparaison, pas sur une page web.
+          </li>
+          <li>
+            <strong>Le modèle structural y est le plus souvent exact par construction.</strong>
+            Les données sont simulées par le modèle même qui les ajuste. C'est l'hypothèse
+            la plus fragile de tout l'exercice, et elle est rappelée sur chaque page
+            concernée : aucune mauvaise spécification de structure n'est en jeu.
+          </li>
+          <li>
+            <strong>L'identifiabilité borne ce que l'individualisation peut atteindre.</strong>
+            Au-delà d'un certain nombre de paramètres individualisés, des combinaisons
+            différentes produisent la même courbe et l'ajout d'observations ne les sépare
+            pas. C'est le sujet d'une démonstration à part entière plutôt qu'une note de
+            bas de page.
+          </li>
+          <li>
+            <strong>Ce ne sont pas des logiciels d'analyse.</strong> Il n'y a ni import de
+            données, ni compte, ni sauvegarde, ni suivi d'audience à l'intérieur des pages.
+            Ce qui est calculé dans la page reste dans la page.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ============ COMMENT LIRE UNE DÉMONSTRATION ============ -->
+      <section class="band" id="anatomie">
+        <div class="section-head">
+          <h2>Comment lire une démonstration</h2>
+          <p>Quatre blocs fixes, dans le même ordre sur chaque page.</p>
+        </div>
+
+        <dl class="anatomy">
+          <div>
+            <dt>Sous le capot</dt>
+            <dd>
+              Le calcul réellement effectué, avec ses paramètres numériques : équations du
+              modèle, schéma d'intégration et pas de temps, méthode d'estimation et critère
+              d'arrêt, taille des tirages, graine. Assez précis pour être reproduit ailleurs.
+            </dd>
+          </div>
+          <div>
+            <dt>Ce que cette démonstration ne montre pas</dt>
+            <dd>
+              Les limites, énumérées. Hypothèses de structure, incertitude non représentée,
+              identifiabilité, absence de validation clinique. Ce bloc n'est jamais absent.
+            </dd>
+          </div>
+          <div>
+            <dt>Où la méthode est expliquée</dt>
+            <dd>
+              Les liens vers les chapitres du cours qui portent la théorie. La démonstration
+              ne réécrit pas le cours : elle ajoute la manipulation, la provenance et les
+              limites, et renvoie au chapitre pour le reste.
+            </dd>
+          </div>
+          <div>
+            <dt>Citer cette démonstration</dt>
+            <dd>
+              La citation courte et son entrée BibTeX, avec la version et la date de
+              révision. Le texte est sous licence CC&nbsp;BY-SA&nbsp;4.0 et le code sous
+              licence MIT : la reprise en enseignement, y compris payant, est autorisée, à
+              condition de citer et de partager aux mêmes conditions.
+            </dd>
+          </div>
+        </dl>
+
+        <p class="small measure" style="margin-top:1.4rem">
+          Chaque page est un fichier HTML autonome : le JavaScript qui calcule est écrit en
+          clair dans la page, sans bibliothèque ni dépendance externe. Il est lisible
+          directement depuis le navigateur, sans passer par le dépôt.
+        </p>
+      </section>
+
+      <!-- ============ LES DÉMONSTRATIONS ============ -->
+      <section class="band" id="liste">
+        <div class="section-head">
+          <h2>Les démonstrations</h2>
+          <p>
+            Trois, publiées au 4 août 2026, toutes en calcul natif. L'ordre proposé va de la
+            plus courte à la plus longue ; chacune se lit indépendamment des autres.
+          </p>
+        </div>
+
+        <div class="demos">
+
+          <article class="demo-card">
+            <div class="badgeline">
+              <span class="badge natif">Calcul natif</span>
+              <span class="cost">0 Mo · immédiat</span>
+            </div>
+            <h3><a href="/demos/erreur-residuelle/">Le levier de l'erreur résiduelle</a></h3>
+            <p class="q">
+              Pourquoi le modèle d'erreur déclaré à l'estimateur change-t-il la dose
+              recommandée, alors qu'il ne décrit ni le patient ni le médicament ?
+            </p>
+            <p>
+              σ n'est pas un paramètre de nuisance : c'est le poids relatif des données du
+              patient face à l'a priori de population. Sous-déclaré, l'estimateur surajuste
+              le bruit ; surdéclaré, il rend le patient à sa population. Les deux se lisent
+              en milligrammes.
+            </p>
+            <p class="src">
+              Prolonge <span style="font-style:italic">Better Dosing Through Better Error:
+              Residual Error as a Hidden Lever in Model-Informed Precision Dosing</span>
+              (Therapeutic Drug Monitoring, 2026), article dont je suis premier auteur —
+              <a class="doi" href="https://doi.org/10.1097/FTD.0000000000001413">10.1097/FTD.0000000000001413</a>
+            </p>
+            <a class="go" href="/demos/erreur-residuelle/">Ouvrir la démonstration →</a>
+          </article>
+
+          <article class="demo-card">
+            <div class="badgeline">
+              <span class="badge natif">Calcul natif</span>
+              <span class="cost">0 Mo · immédiat</span>
+            </div>
+            <h3><a href="/demos/identifiabilite/">Deux modèles, une seule courbe</a></h3>
+            <p class="q">
+              Deux jeux de paramètres différents peuvent-ils produire la même courbe
+              observée — et que devient alors un jumeau individualisé ?
+            </p>
+            <p>
+              Les paramètres se déplacent de plusieurs dizaines de pour cent, la courbe ne
+              bouge pas. Ce n'est ni un défaut de l'estimateur ni un manque de sujets : avec
+              ce protocole, le modèle ne distingue pas ces deux mondes. Un prélèvement au
+              bon endroit casse la crête de vraisemblance ; dix au mauvais endroit ne la
+              cassent pas.
+            </p>
+            <p class="src">
+              Surface d'objectif calculée sur une grille, courbes de niveau tracées en
+              direct, indicateur de conditionnement affiché.
+            </p>
+            <a class="go" href="/demos/identifiabilite/">Ouvrir la démonstration →</a>
+          </article>
+
+          <article class="demo-card">
+            <div class="badgeline">
+              <span class="badge natif">Calcul natif</span>
+              <span class="cost">0 Mo · immédiat</span>
+            </div>
+            <h3><a href="/demos/jumeau-pharmacologique/">Un jumeau pharmacologique numérique, prélèvement par prélèvement</a></h3>
+            <p class="q">
+              Que sait un modèle individualisé d'un patient après un prélèvement, après
+              deux, après quatre — et à partir de quand cesse-t-il d'apprendre ?
+            </p>
+            <p>
+              Le jumeau ne devient pas le patient. Il se déplace de la population vers
+              l'individu d'une distance qui dépend du rapport σ/ω et de l'information
+              apportée par chaque observation. Un prélèvement : c'est encore la population.
+              Quatre bien placés : c'est presque l'individu. Vingt mal placés : il n'apprend
+              plus rien.
+            </p>
+            <p class="src">
+              La page définit d'abord le terme employé — jumeau <em>pharmacologique</em>
+              numérique — avant de s'en servir.
+            </p>
+            <a class="go" href="/demos/jumeau-pharmacologique/">Ouvrir la démonstration →</a>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ============ EN PRÉPARATION ============ -->
+      <section class="band" id="en-preparation">
+        <div class="section-head">
+          <h2>En préparation</h2>
+          <p>
+            Deux démonstrations sont en cours d'écriture. Elles sont nommées ici parce
+            qu'elles précisent ce que la section cherche à montrer, et non pour annoncer un
+            calendrier : aucune date n'est promise, et ce paragraphe sera remplacé par les
+            pages elles-mêmes.
+          </p>
+        </div>
+
+        <div class="soon">
+          <article>
+            <div class="badgeline">
+              <span class="badge natif">Calcul natif</span>
+            </div>
+            <h3>Où prélever ?</h3>
+            <p>
+              À nombre de prélèvements égal, combien d'information gagne-t-on en changeant
+              seulement leurs horaires ? La démonstration calcule la matrice d'information
+              de Fisher en direct — dérivées de sensibilité par différences finies sur le
+              solveur, inversion de matrice dans la page — et affiche l'erreur standard
+              relative attendue sur la clairance, le volume et l'exposition, à budget de
+              prélèvements constant.
+            </p>
+            <p>
+              Ce qu'elle établit : un protocole « creux plus pic » n'est pas une convention
+              héritée, c'est un optimum approché — et il n'est pas optimal pour tous les
+              paramètres à la fois.
+            </p>
+          </article>
+
+          <article>
+            <div class="badgeline">
+              <span class="badge">Trace enregistrée</span>
+              <span class="badge natif">+ vérification native</span>
+            </div>
+            <h3>Ce qu'un modèle de langage propose, ce qu'un vérificateur mécaniste réfute</h3>
+            <p>
+              Une description d'étude est choisie dans une liste courte ; la proposition de
+              modèle produite par un modèle de langage est rejouée depuis sa trace ; puis un
+              vérificateur écrit en JavaScript s'exécute réellement dans la page. Il analyse
+              le code proposé, confronte le nombre de paramètres estimables au protocole de
+              prélèvement de l'étude choisie, et simule le modèle proposé à côté des données.
+              Chaque contrôle est activable et désactivable, pour voir ce que chacun attrape.
+            </p>
+            <p>
+              La proposition est syntaxiquement impeccable et parfois structurellement
+              indéfendable — et ce n'est pas le modèle de langage qui le dit, c'est le
+              simulateur. C'est la démonstration la plus proche de mon sujet de thèse :
+              <em>le modèle de langage est une couche d'assemblage, de paramétrage et de
+              documentation, pas un substitut à la structure.</em>
+            </p>
+            <p class="small">
+              Le travail de thèse et les publications sont détaillés sur la page
+              <a href="/recherche/">Recherche</a>.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ SIGNALER UNE ERREUR ============ -->
+      <section class="band" id="signaler">
+        <div class="section-head">
+          <h2>Signaler une erreur</h2>
+          <p>
+            Les erreurs de méthode, de calcul, de référence ou de formulation sont les
+            bienvenues, y compris sur des détails. Une démonstration fausse est plus nuisible
+            qu'une démonstration absente : un signalement est traité, appliqué et daté sur la
+            page concernée.
+          </p>
+        </div>
+
+        <div class="cta" style="margin-top:0">
+          <a class="btn ghost" href="https://github.com/rberrah/rberrah.github.io/issues/new?title=D%C3%A9monstration%20%E2%80%94%20signalement">Ouvrir un signalement sur GitHub →</a>
+          <a class="btn ghost" href="/contact/">Écrire →</a>
+        </div>
+
+        <div class="note" style="max-width:var(--measure)">
+          <p style="margin:0">
+            <strong>Aucun contenu de cette section ne constitue un avis thérapeutique ni une
+            recommandation posologique.</strong> Les doses qu'affichent ces pages sont celles
+            d'un modèle appliqué à un patient simulé.
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site">
+    <div class="fwrap">
+      <span>
+        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
+        code sous licence MIT. <a href="/citer/">Comment citer</a>.
+      </span>
+      <span>
+        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
+        thérapeutique ni une recommandation posologique.</strong>
+      </span>
+      <span class="idline">
+        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
+        <a href="https://github.com/rberrah">GitHub</a> ·
+        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
+      </span>
+    </div>
+  </footer>
+</body>
+</html>
