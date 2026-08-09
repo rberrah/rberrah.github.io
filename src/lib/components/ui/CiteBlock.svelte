@@ -54,10 +54,14 @@
   let resetTimer;
 
   /**
+   * NE PAS renommer en `copy` : ce nom est déjà pris par la variable réactive
+   * d'internationalisation (`$: copy = ui($language)`). La collision faisait échouer
+   * l'hydratation de TOUTE la page de chapitre — Svelte câblait la même identité comme
+   * état réactif et comme fonction, et levait « e.equals is not a function ».
    * @param {string} text
    * @param {string} which
    */
-  async function copy(text, which) {
+  async function copierTexte(text, which) {
     try {
       await navigator.clipboard.writeText(text);
       copied = which;
@@ -75,7 +79,7 @@
   <div class="row">
     <p class="citation" data-testid="cite-citation">{citation}</p>
     {#if canCopy}
-      <button type="button" class="copy" onclick={() => copy(citation, 'citation')}>
+      <button type="button" class="copy" onclick={() => copierTexte(citation, 'citation')}>
         {copied === 'citation' ? copy.chapter.citeCopied : copy.chapter.citeCopy}
       </button>
     {/if}
@@ -84,7 +88,7 @@
   <div class="row">
     <pre class="bibtex" data-testid="cite-bibtex">{bibtex}</pre>
     {#if canCopy}
-      <button type="button" class="copy" onclick={() => copy(bibtex, 'bibtex')}>
+      <button type="button" class="copy" onclick={() => copierTexte(bibtex, 'bibtex')}>
         {copied === 'bibtex' ? copy.chapter.citeCopied : copy.chapter.citeCopy}
       </button>
     {/if}

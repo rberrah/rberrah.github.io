@@ -19,6 +19,7 @@
 		"slides:export": "bash scripts/export_pptx_png.sh"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.62.1",
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
