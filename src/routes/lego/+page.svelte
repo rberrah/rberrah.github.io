@@ -205,23 +205,271 @@
     }).concat(concSources().map((n) => `C_${n.name} = ${n.name} / V_${n.name}`));
   })();
 
-  // ── code nlmixr2 ──
-  $: code = (() => {
-    if (!nodes.length) return '# ajoutez des compartiments';
-    const nm = (/** @type {number} */ id) => nodes.find((n) => n.id === id)?.name ?? '?';
-    const L = ['model({'];
-    for (const n of nodes) {
-      if (n.kind === 'effect') { L.push(`  d/dt(${n.name}) = ke0*(C_${nm(n.source ?? -1)} - ${n.name})`); continue; }
-      if (n.kind === 'response') { L.push(`  d/dt(${n.name}) = kin*(1+smax*Cp/(sc50+Cp)) - kout*${n.name}`); continue; }
-      const terms = [];
-      for (const e of edges.filter((e) => e.to === n.id)) terms.push(`+ k_${nm(e.from)}_${n.name}*${nm(e.from)}`);
-      for (const e of edges.filter((e) => e.from === n.id)) terms.push(`- k_${n.name}_${e.to === 'OUT' ? 'e' : nm(e.to)}*${n.name}`);
-      L.push(`  d/dt(${n.name}) = ${terms.join(' ') || '0'}`);
+  // ── génération de code ───────────────────────────────────────────────────────────
+  // Deux cibles, deux usages, et les DEUX sont complètes : on doit pouvoir les coller
+  // dans R sans rien y ajouter. nlmixr2 sert à ESTIMER sur des données (d'où le bloc
+  // `ini()`, les paramètres déclarés, la variabilité inter-individuelle, le modèle
+  // d'erreur et l'emplacement d'une covariable) ; mrgsolve sert à SIMULER avec les
+  // valeurs réglées ici (d'où les doses et l'horizon repris de l'atelier).
+  // L'ancien générateur n'émettait qu'un bloc `model({…})` : illisible pour R.
+
+  /** Identifiant sûr en R comme en C++ : sans accent, sans espace, jamais initié par un chiffre. */
+  const rid = (/** @type {string} */ s) =>
+    String(s ?? 'x').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^A-Za-z0-9_]/g, '_').replace(/^(?=\d)/, 'c_') || 'x';
+
+  /** Nombre lisible : ni notation exponentielle, ni décimales inutiles. */
+  const fmt = (/** @type {number} */ v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return '0';
+    return String(Math.round(n * 1e6) / 1e6);
+  };
+
+  const nmOf = (/** @type {number} */ id) => rid(nodes.find((n) => n.id === id)?.name ?? 'x');
+
+  /**
+   * Tous les paramètres du graphe courant, avec leur valeur, leur unité et un
+   * commentaire. `iiv` marque ceux qui reçoivent une variabilité inter-individuelle
+   * par défaut — clairance et volume, les deux seuls qu'un jeu de données ordinaire
+   * permet d'identifier.
+   */
+  function modelParams() {
+    /** @type {{name:string, value:number, unit:string, note:string, iiv:boolean}[]} */
+    const out = [];
+    for (const e of edges) {
+      const from = nmOf(e.from);
+      const to = e.to === 'OUT' ? 'e' : nmOf(e.to);
+      out.push({
+        name: `k_${from}_${to}`, value: e.k, unit: '1/h',
+        note: e.to === 'OUT' ? `elimination depuis ${from}` : `transfert ${from} -> ${to}`,
+        iiv: e.to === 'OUT'
+      });
     }
-    for (const n of concSources()) L.push(`  C_${n.name} = ${n.name}/v_${n.name}`);
-    L.push('})');
+    for (const n of concSources()) {
+      out.push({ name: `v_${rid(n.name)}`, value: n.vol ?? 1, unit: 'L', note: `volume de ${rid(n.name)}`, iiv: n.kind === 'central' });
+    }
+    for (const n of nodes) {
+      const b = rid(n.name);
+      if (n.kind === 'effect') out.push({ name: `ke0_${b}`, value: n.ke0 ?? 0.4, unit: '1/h', note: `equilibrage du compartiment d'effet ${b}`, iiv: false });
+      if (n.kind === 'response') {
+        out.push({ name: `kin_${b}`, value: n.kin ?? 10, unit: 'u/h', note: `production de ${b}`, iiv: false });
+        out.push({ name: `kout_${b}`, value: n.kout ?? 0.15, unit: '1/h', note: `degradation de ${b}`, iiv: false });
+        out.push({ name: `smax_${b}`, value: n.smax ?? 3, unit: '-', note: `effet maximal sur ${b}`, iiv: false });
+        out.push({ name: `sc50_${b}`, value: n.sc50 ?? 3, unit: 'mg/L', note: `concentration a 50 % de l'effet`, iiv: false });
+      }
+    }
+    return out;
+  }
+
+  /** Termes de l'EDO d'un compartiment de masse, dans la syntaxe passée en argument. */
+  function massTerms(/** @type {any} */ n) {
+    const b = rid(n.name);
+    const terms = [];
+    for (const e of edges.filter((x) => x.to === n.id)) terms.push(`+ k_${nmOf(e.from)}_${b}*${nmOf(e.from)}`);
+    for (const e of edges.filter((x) => x.from === n.id)) terms.push(`- k_${b}_${e.to === 'OUT' ? 'e' : nmOf(e.to)}*${b}`);
+    return terms.join(' ') || '0';
+  }
+
+  /**
+   * Concentration pilotant un bloc PD : celle de son compartiment source.
+   * Toujours PARENTHÉSÉE — l'expression est insérée au milieu d'un produit et d'un
+   * quotient (`smax*C/(sc50+C)`), où une division nue changerait le résultat dès que
+   * la source cesse d'être un simple rapport.
+   */
+  function driverConc(/** @type {any} */ n) {
+    const src = nodes.find((s) => s.id === n.source);
+    if (!src) return '0';
+    return KINDS[src.kind]?.vol ? `(${rid(src.name)}/v_${rid(src.name)})` : rid(src.name);
+  }
+
+  /** Compartiment observé : le central si présent, sinon la première concentration. */
+  $: observed = nodes.find((n) => n.kind === 'central') ?? concSources()[0] ?? null;
+
+  // ── nlmixr2 (estimation) ──
+  $: codeNlmixr = (() => {
+    if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
+    const P = modelParams();
+    const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
+    const w = Math.max(...P.map((p) => p.name.length), 6);
+    const L = [];
+
+    L.push('library(nlmixr2)');
+    L.push('');
+    L.push('# ---------------------------------------------------------------------------');
+    L.push('# Jeu de donnees attendu : une ligne par enregistrement, colonnes');
+    L.push('#   ID, TIME, DV, AMT, EVID, CMT  (+ vos covariables, p. ex. WT)');
+    if (dosed.length) {
+      L.push(`#   Les lignes de dose portent EVID = 1 et CMT = "${rid(dosed[0].name)}"` +
+        (dosed.length > 1 ? ` (autres compartiments dosés : ${dosed.slice(1).map((n) => rid(n.name)).join(', ')})` : ''));
+    } else {
+      L.push('#   Aucun compartiment ne porte de dose dans l\'atelier : réglez-en une.');
+    }
+    if (observed) L.push(`#   Les lignes d'observation portent EVID = 0 et CMT = "C_${rid(observed.name)}"`);
+    L.push('# ---------------------------------------------------------------------------');
+    L.push('');
+    L.push('lego_model <- function() {');
+    L.push('  ini({');
+    L.push('    # Effets fixes estimes sur l\'echelle log : la valeur reste positive.');
+    for (const p of P) L.push(`    l${p.name.padEnd(w)} <- log(${fmt(p.value)})${' '.repeat(Math.max(1, 10 - fmt(p.value).length))}# ${p.note} (${p.unit})`);
+    const iiv = P.filter((p) => p.iiv);
+    if (iiv.length) {
+      L.push('');
+      L.push('    # Variabilite inter-individuelle : variances des eta (0.09 ~ 30 % de CV).');
+      for (const p of iiv) L.push(`    eta_${p.name.padEnd(w)} ~ 0.09`);
+    }
+    L.push('');
+    L.push('    # Covariable : decommenter cette ligne ET la ligne correspondante du bloc');
+    L.push('    # model() pour estimer un effet du poids sur le volume central.');
+    if (observed) L.push(`    # beta_WT_v_${rid(observed.name)} <- 0.75`);
+    L.push('');
+    L.push('    # Erreur residuelle (combinee : additive + proportionnelle).');
+    L.push('    add_err <- 0.05      # mg/L');
+    L.push('    prop_err <- 0.2      # fraction');
+    L.push('  })');
+    L.push('');
+    L.push('  model({');
+    L.push('    # Retour a l\'echelle naturelle, eta compris.');
+    const volObs = observed ? `v_${rid(observed.name)}` : null;
+    for (const p of P) {
+      const eta = p.iiv ? ` + eta_${p.name}` : '';
+      L.push(`    ${p.name.padEnd(w)} <- exp(l${p.name}${eta})`);
+      // Le commentaire de covariable se place JUSTE sous la ligne qu'il remplace,
+      // sinon « la ligne ci-dessus » ne désigne plus rien.
+      if (volObs && p.name === volObs) {
+        L.push(`    # Covariable : remplacer la ligne ci-dessus par celle-ci (poids centre a 70 kg).`);
+        L.push(`    # ${volObs.padEnd(w)} <- exp(l${volObs} + beta_WT_${volObs}*log(WT/70)${p.iiv ? ` + eta_${volObs}` : ''})`);
+      }
+    }
+    const resp = nodes.filter((n) => n.kind === 'response');
+    if (resp.length) {
+      L.push('');
+      L.push('    # Etat initial des reponses : le systeme part de son equilibre.');
+      for (const n of resp) L.push(`    ${rid(n.name)}(0) <- kin_${rid(n.name)}/kout_${rid(n.name)}`);
+    }
+    L.push('');
+    for (const n of nodes) {
+      const b = rid(n.name);
+      if (n.kind === 'effect') { L.push(`    d/dt(${b}) = ke0_${b}*(${driverConc(n)} - ${b})`); continue; }
+      if (n.kind === 'response') { L.push(`    d/dt(${b}) = kin_${b}*(1 + smax_${b}*${driverConc(n)}/(sc50_${b} + ${driverConc(n)})) - kout_${b}*${b}`); continue; }
+      L.push(`    d/dt(${b}) = ${massTerms(n)}`);
+    }
+    L.push('');
+    for (const n of concSources()) L.push(`    C_${rid(n.name)} <- ${rid(n.name)}/v_${rid(n.name)}`);
+    if (observed) {
+      L.push('');
+      L.push(`    C_${rid(observed.name)} ~ add(add_err) + prop(prop_err)`);
+    }
+    L.push('  })');
+    L.push('}');
+    L.push('');
+    L.push('# ---------------------------------------------------------------------------');
+    L.push('fit <- nlmixr2(lego_model, data, est = "saem",');
+    L.push('               control = saemControl(print = 0),');
+    L.push('               table   = tableControl(cwres = TRUE, npde = TRUE))');
+    L.push('print(fit)');
+    L.push('plot(fit)   # diagnostics : GOF, VPC-like, distributions des eta');
     return L.join('\n');
   })();
+
+  // ── mrgsolve (simulation avec les valeurs de l'atelier) ──
+  $: codeMrgsolve = (() => {
+    if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
+    const P = modelParams();
+    const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
+    const w = Math.max(...P.map((p) => p.name.length), 6);
+    const L = [];
+
+    L.push('library(mrgsolve)');
+    L.push('library(dplyr)');
+    L.push('');
+    // Chaîne BRUTE de R (`r"( … )"`, R ≥ 4.0) et non une chaîne entre apostrophes :
+    // les annotations françaises contiennent des apostrophes (« compartiment d'effet »)
+    // qui refermeraient la chaîne au milieu du modèle.
+    L.push('code <- r"(');
+    L.push('$PARAM @annotated');
+    for (const p of P) L.push(`${p.name.padEnd(w)} : ${fmt(p.value)} : ${p.note} (${p.unit})`);
+    L.push(`${'WT'.padEnd(w)} : 70 : poids corporel (kg) [covariable, non utilisee par defaut]`);
+    L.push('');
+    L.push('$CMT @annotated');
+    for (const n of nodes) {
+      const b = rid(n.name);
+      const u = n.kind === 'effect' ? 'concentration a l\'effet (mg/L)'
+        : n.kind === 'response' ? 'reponse (unites du marqueur)'
+        : `quantite dans ${b} (mg)`;
+      L.push(`${b.padEnd(w)} : ${u}`);
+    }
+    const resp = nodes.filter((n) => n.kind === 'response');
+    if (resp.length) {
+      L.push('');
+      L.push('$MAIN');
+      L.push('// Le systeme de turnover demarre a son equilibre, pas a zero.');
+      for (const n of resp) L.push(`${rid(n.name)}_0 = kin_${rid(n.name)}/kout_${rid(n.name)};`);
+    }
+    L.push('');
+    L.push('$ODE');
+    // Les concentrations qui pilotent un bloc PD sont écrites en toutes lettres dans
+    // l'équation : déclarer un `double` intermédiaire ici le laisserait inutilisé.
+    for (const n of nodes) {
+      const b = rid(n.name);
+      if (n.kind === 'effect') { L.push(`dxdt_${b} = ke0_${b}*(${driverConc(n).replace('/', '/')} - ${b});`); continue; }
+      if (n.kind === 'response') { L.push(`dxdt_${b} = kin_${b}*(1 + smax_${b}*${driverConc(n)}/(sc50_${b} + ${driverConc(n)})) - kout_${b}*${b};`); continue; }
+      L.push(`dxdt_${b} = ${massTerms(n)};`);
+    }
+    if (concSources().length) {
+      L.push('');
+      L.push('$TABLE');
+      for (const n of concSources()) L.push(`double CONC_${rid(n.name)} = ${rid(n.name)}/v_${rid(n.name)};`);
+    }
+    L.push('');
+    L.push('$CAPTURE @annotated');
+    for (const n of concSources()) L.push(`CONC_${rid(n.name)} : concentration dans ${rid(n.name)} (mg/L)`);
+    for (const n of nodes.filter((x) => x.kind === 'effect' || x.kind === 'response')) {
+      L.push(`${rid(n.name)} : ${n.kind === 'effect' ? 'concentration au site d\'effet (mg/L)' : 'reponse'}`);
+    }
+    L.push(')"');
+    L.push('');
+    L.push('mod <- mcode("lego", code)');
+    L.push('');
+    L.push('# Doses telles qu\'elles sont reglees dans l\'atelier.');
+    if (dosed.length) {
+      const evs = dosed.map((n) => `ev(amt = ${fmt(n.dose ?? 0)}, cmt = "${rid(n.name)}", time = 0)`);
+      L.push(`dose <- ${evs.join(' + ')}`);
+    } else {
+      L.push('dose <- ev(amt = 100, cmt = "' + rid(nodes[0].name) + '", time = 0)   # aucune dose reglee dans l\'atelier');
+    }
+    L.push('');
+    // `mrgsim(events = ...)` et non `%>% ev(dose)` : `ev()` construit un objet
+    // d'événements, il ne sait pas en recevoir un déjà construit.
+    L.push(`out <- mod %>% mrgsim(events = dose, end = ${fmt(tMax)}, delta = ${fmt(Math.max(0.01, Math.round((tMax / 400) * 1000) / 1000))})`);
+    L.push('');
+    if (observed) L.push(`plot(out, CONC_${rid(observed.name)} ~ time)`);
+    else L.push('plot(out)');
+    L.push('');
+    L.push('# Pour rejouer une population plutot qu\'un sujet type, ajouter par exemple :');
+    L.push('#   idata <- tibble(ID = 1:100, ' +
+      (observed ? `v_${rid(observed.name)} = ${fmt(observed.vol ?? 30)}*exp(rnorm(100, 0, 0.3))` : 'CL = 1') + ')');
+    L.push('#   mod %>% idata_set(idata) %>% mrgsim(events = dose, end = ' + fmt(tMax) + ') %>% plot()');
+    return L.join('\n');
+  })();
+
+  // ── onglets + copie ──
+  // ATTENTION : ne PAS nommer cette fonction `copy` — ce nom est déjà celui de la
+  // variable réactive d'internationalisation ci-dessus, et la collision casse
+  // l'hydratation de toute la page.
+  let codeTab = 'nlmixr2';
+  let copiedTab = '';
+  /** @type {ReturnType<typeof setTimeout> | undefined} */ let copyTimer;
+  $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr : codeMrgsolve;
+  async function copierCode() {
+    try {
+      await navigator.clipboard.writeText(activeCode);
+      copiedTab = codeTab;
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => (copiedTab = ''), 2000);
+    } catch (e) {
+      // Presse-papiers refusé : le texte reste sélectionnable à la main.
+    }
+  }
 
   /** @param {Node} n */
   const cxn = (n) => n.x + NW / 2;
@@ -370,8 +618,16 @@
     <pre class="eqs"><code>{odes.join('\n')}</code></pre>
   </section>
   <section class="out">
-    <h2>{copy.pages.legoCode}</h2>
-    <pre class="codeblk"><code>{code}</code></pre>
+    <div class="codehead">
+      <h2>{copy.pages.legoCode}</h2>
+      <div class="tabs" role="tablist" aria-label={copy.pages.legoCode}>
+        <button role="tab" aria-selected={codeTab === 'nlmixr2'} class:on={codeTab === 'nlmixr2'} on:click={() => (codeTab = 'nlmixr2')}>nlmixr2</button>
+        <button role="tab" aria-selected={codeTab === 'mrgsolve'} class:on={codeTab === 'mrgsolve'} on:click={() => (codeTab = 'mrgsolve')}>mrgsolve</button>
+      </div>
+      <button class="cp" on:click={copierCode}>{copiedTab === codeTab ? copy.pages.legoCopied : copy.pages.legoCopy}</button>
+    </div>
+    <p class="codenote">{codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr : copy.pages.legoNoteMrgsolve}</p>
+    <pre class="codeblk"><code>{activeCode}</code></pre>
   </section>
 </div>
 
@@ -436,4 +692,20 @@
   .eqs { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-subtle); }
   .codeblk { background: #1a1f2b; color: #e6edf3; }
   .eqs code, .codeblk code { white-space: pre; }
+  .codehead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-2); }
+  .codehead h2 { margin: 0; }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button {
+    font-family: var(--font-mono); font-size: var(--text-xs); padding: 4px 10px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: var(--bg-primary);
+    color: var(--text-secondary); border-radius: 999px;
+  }
+  .tabs button.on { background: var(--accent-pk); border-color: var(--accent-pk); color: #fff; }
+  .cp {
+    margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xs);
+    padding: 4px 10px; cursor: pointer; border: 1px solid var(--border-strong);
+    background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px;
+  }
+  .cp:hover { border-color: var(--accent-pk); color: var(--accent-pk); }
+  .codenote { font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-2); max-width: 70ch; }
 </style>

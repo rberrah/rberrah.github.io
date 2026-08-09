@@ -127,9 +127,15 @@ export const dictionary = {
       exercisesRetry: 'Try again',
       legoEyebrow: 'Build-a-model lab',
       legoTitle: 'Lego lab — assemble a PK/PD model',
-      legoIntro: 'Click the blocks to build your model — absorption, compartments, elimination, PD. The ODE system, the nlmixr2 code and the simulated curves update live.',
+      legoIntro: 'Click the blocks to build your model — absorption, compartments, elimination, PD. The ODE system, the runnable R code and the simulated curves update live.',
       legoEquations: 'Model (ODEs)',
-      legoCode: 'nlmixr2 code',
+      legoCode: 'R code',
+      legoCopy: 'Copy',
+      legoCopied: 'Copied',
+      legoNoteNlmixr:
+        'Ready to fit. Fixed effects are estimated on the log scale, between-subject variability is on clearance and volume, the residual error is combined, and a commented line shows where a covariate goes. Supply your own dataset as `data`.',
+      legoNoteMrgsolve:
+        'Ready to run as is: parameters, compartments, ODEs and doses all carry the values set above. Paste into R and you get the same curves as the plot on this page.',
       slidesTitle: 'Slides catalog',
       slidesIntro:
         'Source of truth: src/content/slides/slide_catalog.yaml. PNGs must live in static/slides/.',
@@ -268,9 +274,15 @@ export const dictionary = {
       exercisesRetry: 'Réessayer',
       legoEyebrow: 'Atelier « construire un modèle »',
       legoTitle: 'Atelier Lego — assemblez un modèle PK/PD',
-      legoIntro: 'Cliquez les blocs pour construire votre modèle — absorption, compartiments, élimination, PD. Le système d’EDO, le code nlmixr2 et les courbes simulées se mettent à jour en direct.',
+      legoIntro: 'Cliquez les blocs pour construire votre modèle — absorption, compartiments, élimination, PD. Le système d’EDO, le code R exécutable et les courbes simulées se mettent à jour en direct.',
       legoEquations: 'Modèle (EDO)',
-      legoCode: 'Code nlmixr2',
+      legoCode: 'Code R',
+      legoCopy: 'Copier',
+      legoCopied: 'Copié',
+      legoNoteNlmixr:
+        "Prêt à estimer. Les effets fixes sont sur l'échelle log, la variabilité inter-individuelle porte sur la clairance et le volume, l'erreur résiduelle est combinée, et une ligne commentée montre où placer une covariable. Fournissez votre jeu de données sous le nom `data`.",
+      legoNoteMrgsolve:
+        'Exécutable tel quel : paramètres, compartiments, EDO et doses reprennent les valeurs réglées ci-dessus. Collé dans R, ce code redonne les courbes affichées sur cette page.',
       slidesTitle: 'Catalogue des slides',
       slidesIntro:
         'Source de vérité : src/content/slides/slide_catalog.yaml. Les PNG doivent être dans static/slides/.',

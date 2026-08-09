@@ -14,7 +14,15 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'on-first-retry'
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // `PW_CHANNEL=msedge` réutilise le navigateur déjà installé sur la machine et évite
+  // le téléchargement de ~150 Mo (`npx playwright install`). Sans cette variable, on
+  // retombe sur le Chromium géré par Playwright — c'est ce que fait le CI.
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], channel: process.env.PW_CHANNEL || undefined }
+    }
+  ],
   webServer: {
     command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
