@@ -1,0 +1,7 @@
+arguments <- commandArgs(trailingOnly = FALSE)
+file_argument <- sub("^--file=", "", grep("^--file=", arguments, value = TRUE)[1])
+app_dir <- normalizePath(dirname(file_argument), winslash = "/", mustWork = TRUE)
+if (.Platform$OS.type == "windows") invisible(suppressWarnings(Sys.setlocale("LC_CTYPE", ".UTF-8")))
+Sys.setenv(ALLOW_CUSTOM_MODELS = "true")
+setwd(app_dir)
+shiny::runApp(appDir = app_dir, host = "127.0.0.1", port = 3838, launch.browser = FALSE)

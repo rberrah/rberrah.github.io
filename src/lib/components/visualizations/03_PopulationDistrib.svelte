@@ -32,7 +32,10 @@
   // n'occupaient que 32 px sur 160 et les trois courbes se confondaient en bas du cadre.
   $: cMax = Math.max(...curves.flatMap((cu) => cu.points)) * 1.1 || 1;
   const plotH = 150; // hauteur utile dans le viewBox (0..180, marge basse 30)
-  $: yOf = (c) => 160 - (c / cMax) * plotH;
+  /** @param {number} c */
+  function yOf(c) {
+    return 160 - (c / cMax) * plotH;
+  }
 </script>
 
 <div class="pop">

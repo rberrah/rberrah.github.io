@@ -4,10 +4,13 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
+		"predev": "node scripts/generate_tdm_catalog.mjs",
 		"dev": "vite dev",
+		"prebuild": "node scripts/generate_tdm_catalog.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
+		"precheck": "node scripts/generate_tdm_catalog.mjs",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"validate": "node scripts/validate_content.mjs",
@@ -16,7 +19,11 @@
 		"test:e2e": "playwright test",
 		"slides:index": "node scripts/generate_slide_index.mjs",
 		"slides:catalog": "node scripts/sync_slide_catalog.mjs",
-		"slides:export": "bash scripts/export_pptx_png.sh"
+		"slides:export": "bash scripts/export_pptx_png.sh",
+		"tdm:index": "node scripts/generate_tdm_catalog.mjs",
+		"tdm:run": "Rscript tdm-engine/run_local.R",
+		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
+		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",

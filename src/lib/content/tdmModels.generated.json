@@ -1,0 +1,1482 @@
+{
+  "version": 2,
+  "models": [
+    {
+      "id": "amik_burdet",
+      "file": "amik_burdet.cpp",
+      "drugKey": "amik",
+      "drug": "Amikacine",
+      "source": "Burdet",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amik_burdet.cpp",
+      "citation": "Burdet C et al. Eur J Clin Pharmacol. 2015;71:127-137.",
+      "doi": "10.1007/s00228-014-1766-y",
+      "population": "Adultes en réanimation, ventilation mécanique, pneumonie associée à la ventilation.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Ventilé"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Amikacine",
+        "Burdet",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Ventilé"
+      ]
+    },
+    {
+      "id": "amiodarone_pollak_ddi",
+      "file": "amiodarone_pollak_ddi.cpp",
+      "drugKey": "amiodarone",
+      "drug": "Amiodarone",
+      "source": "Pollak Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amiodarone_pollak_ddi.cpp",
+      "citation": "Pollak PT et al. Clin Pharmacol Ther. 2000;67:642-652.",
+      "doi": "10.1067/mcp.2000.107047",
+      "population": "Adultes recevant une amiodarone orale au long cours pour arythmie cardiaque.",
+      "populationTags": [
+        "Adulte",
+        "Cardiologie",
+        "Hors ICU non précisé"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Amiodarone",
+        "Pollak Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Cardiologie",
+        "Hors ICU non précisé"
+      ]
+    },
+    {
+      "id": "amox_carlier",
+      "file": "amox_carlier.cpp",
+      "drugKey": "amox",
+      "drug": "Amoxicilline",
+      "source": "Carlier",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amox_carlier.cpp",
+      "citation": "Carlier M et al. J Antimicrob Chemother. 2013;68:2600-2608.",
+      "doi": "10.1093/jac/dkt240",
+      "population": "Adultes en état critique hospitalisés en réanimation.",
+      "populationTags": [
+        "Adulte",
+        "ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Amoxicilline",
+        "Carlier",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU"
+      ]
+    },
+    {
+      "id": "amox_fournier",
+      "file": "amox_fournier.cpp",
+      "drugKey": "amox",
+      "drug": "Amoxicilline",
+      "source": "Fournier",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amox_fournier.cpp",
+      "citation": "Fournier A et al. Antimicrob Agents Chemother. 2018;62:e00505-18.",
+      "doi": "10.1128/AAC.00505-18",
+      "population": "Adultes gravement brûlés hospitalisés en réanimation.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Brûlé"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Amoxicilline",
+        "Fournier",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Brûlé"
+      ]
+    },
+    {
+      "id": "amox_mellon",
+      "file": "amox_mellon.cpp",
+      "drugKey": "amox",
+      "drug": "Amoxicilline",
+      "source": "Mellon",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amox_mellon.cpp",
+      "citation": "Mellon G et al. J Antimicrob Chemother. 2020;75:3611-3620.",
+      "doi": "10.1093/jac/dkaa368",
+      "population": "Adultes obèses recevant de l'amoxicilline/acide clavulanique IV ou oral.",
+      "populationTags": [
+        "Adulte",
+        "Obèse",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Amoxicilline",
+        "Mellon",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Obèse",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "amox_rambaud",
+      "file": "amox_rambaud.cpp",
+      "drugKey": "amox",
+      "drug": "Amoxicilline",
+      "source": "Rambaud",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/amox_rambaud.cpp",
+      "citation": "Rambaud J et al. J Antimicrob Chemother. 2020;75:3294-3302.",
+      "doi": "10.1093/jac/dkaa232",
+      "population": "Adultes traités pour une endocardite infectieuse.",
+      "populationTags": [
+        "Adulte",
+        "Endocardite",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Amoxicilline",
+        "Rambaud",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Endocardite",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "cefazoline_cheng",
+      "file": "cefazoline_cheng.cpp",
+      "drugKey": "cefazoline",
+      "drug": "Cefazoline",
+      "source": "Cheng",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefazoline_cheng.cpp",
+      "citation": "Cheng V et al. Anaesth Crit Care Pain Med. 2026;45:101653.",
+      "doi": "10.1016/j.accpm.2025.101653",
+      "population": "Enfants opérés en chirurgie cardiaque avec circulation extracorporelle.",
+      "populationTags": [
+        "Pédiatrique",
+        "Chirurgie",
+        "CEC"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefazoline",
+        "Cheng",
+        "PopPK publié",
+        "PopPK Model",
+        "Pédiatrique",
+        "Chirurgie",
+        "CEC"
+      ]
+    },
+    {
+      "id": "cefazoline_lanoiselee",
+      "file": "cefazoline_lanoiselee.cpp",
+      "drugKey": "cefazoline",
+      "drug": "Cefazoline",
+      "source": "Lanoiselee",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefazoline_lanoiselee.cpp",
+      "citation": "Lanoiselée J et al. Sci Rep. 2021;11:19763.",
+      "doi": "10.1038/s41598-021-99162-7",
+      "population": "Adultes de 24 à 91 ans opérés d'une arthroplastie totale de hanche.",
+      "populationTags": [
+        "Adulte",
+        "Chirurgie orthopédique",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefazoline",
+        "Lanoiselee",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Chirurgie orthopédique",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "cefazoline_schmitz",
+      "file": "cefazoline_schmitz.cpp",
+      "drugKey": "cefazoline",
+      "drug": "Cefazoline",
+      "source": "Schmitz",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefazoline_schmitz.cpp",
+      "citation": "Schmitz ML et al. Antimicrob Agents Chemother. 2015;59:3217-3224.",
+      "doi": "10.1128/AAC.00082-15",
+      "population": "Patients chirurgicaux pédiatriques, principalement 10-12 ans, avec comparaison adulte.",
+      "populationTags": [
+        "Pédiatrique",
+        "Adulte",
+        "Chirurgie"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefazoline",
+        "Schmitz",
+        "PopPK publié",
+        "PopPK Model",
+        "Pédiatrique",
+        "Adulte",
+        "Chirurgie"
+      ]
+    },
+    {
+      "id": "cefepime_an",
+      "file": "cefepime_an.cpp",
+      "drugKey": "cefepime",
+      "drug": "Cefepime",
+      "source": "An",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefepime_an.cpp",
+      "citation": "An G et al. J Antimicrob Chemother. 2023;78:1419-1428.",
+      "doi": "10.1093/jac/dkad106",
+      "population": "Adultes en état critique hospitalisés en réanimation.",
+      "populationTags": [
+        "Adulte",
+        "ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefepime",
+        "An",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU"
+      ]
+    },
+    {
+      "id": "cefepime_jonckheere",
+      "file": "cefepime_jonckheere.cpp",
+      "drugKey": "cefepime",
+      "drug": "Cefepime",
+      "source": "Jonckheere",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefepime_jonckheere.cpp",
+      "citation": "Jonckheere S et al. J Antimicrob Chemother. 2016;71:1733-1741.",
+      "doi": "10.1093/jac/dkw171",
+      "population": "Adultes en réanimation, incluant insuffisance rénale et hémodialyse intermittente.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Insuffisance rénale",
+        "Dialyse"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefepime",
+        "Jonckheere",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Insuffisance rénale",
+        "Dialyse"
+      ]
+    },
+    {
+      "id": "cefepime_seo",
+      "file": "cefepime_seo.cpp",
+      "drugKey": "cefepime",
+      "drug": "Cefepime",
+      "source": "Seo",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cefepime_seo.cpp",
+      "citation": "Seo H et al. Infect Chemother. 2023;55:82-95.",
+      "doi": "10.3947/ic.2022.0087",
+      "population": "Adultes en état critique avec pneumonie nosocomiale ou associée à la ventilation.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Pneumonie",
+        "Ventilé"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Cefepime",
+        "Seo",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Pneumonie",
+        "Ventilé"
+      ]
+    },
+    {
+      "id": "ciclosporine_press_ddi",
+      "file": "ciclosporine_press_ddi.cpp",
+      "drugKey": "ciclosporine",
+      "drug": "Ciclosporine",
+      "source": "Press Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/ciclosporine_press_ddi.cpp",
+      "citation": "Press RR et al. Eur J Clin Pharmacol. 2010;66:315-325.",
+      "doi": "10.1007/s00228-010-0810-9",
+      "population": "Adultes au début de la période suivant une transplantation rénale.",
+      "populationTags": [
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Ciclosporine",
+        "Press Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "cobicistat_mathias_ddi",
+      "file": "cobicistat_mathias_ddi.cpp",
+      "drugKey": "cobicistat",
+      "drug": "Cobicistat",
+      "source": "Mathias Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/cobicistat_mathias_ddi.cpp",
+      "citation": "Mathias AA et al. Clin Pharmacol Ther. 2010;87:322-329.",
+      "doi": "10.1038/clpt.2009.228",
+      "population": "Adultes sains inclus dans une étude pharmacocinétique de recherche de dose.",
+      "populationTags": [
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module de sensibilité déterministe",
+      "sourceStatus": "verified",
+      "note": "Validé uniquement comme module de sensibilité 50 mg; extrapolation à 150 mg non supportée.",
+      "tags": [
+        "Cobicistat",
+        "Mathias Ddi",
+        "Module de sensibilité déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "dapto_dvorchik_IV_adults",
+      "file": "dapto_dvorchik_IV_adults.cpp",
+      "drugKey": "dapto",
+      "drug": "Daptomycine",
+      "source": "Dvorchik IV Adults",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/dapto_dvorchik_IV_adults.cpp",
+      "citation": "Dvorchik BH et al. Antimicrob Agents Chemother. 2004;48:2799-2807.",
+      "doi": "10.1128/AAC.48.8.2799-2807.2004",
+      "population": "Adultes sains et adultes infectés issus d'essais cliniques regroupés.",
+      "populationTags": [
+        "Adulte",
+        "Population mixte",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Daptomycine",
+        "Dvorchik IV Adults",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Population mixte",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "dapto_garreau",
+      "file": "dapto_garreau.cpp",
+      "drugKey": "dapto",
+      "drug": "Daptomycine",
+      "source": "Garreau",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/dapto_garreau.cpp",
+      "citation": "Garreau R et al. J Antimicrob Chemother. 2021;76:1212-1220.",
+      "doi": "10.1093/jac/dkab006",
+      "population": "Adultes traités pour une infection ostéo-articulaire.",
+      "populationTags": [
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Daptomycine",
+        "Garreau",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "diltiazem_hermann_ddi",
+      "file": "diltiazem_hermann_ddi.cpp",
+      "drugKey": "diltiazem",
+      "drug": "Diltiazem",
+      "source": "Hermann Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/diltiazem_hermann_ddi.cpp",
+      "citation": "Hermann P et al. Eur J Clin Pharmacol. 1983;24:349-352.",
+      "doi": "10.1007/BF00610053",
+      "population": "Adultes sains après diltiazem oral et intraveineux.",
+      "populationTags": [
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Diltiazem",
+        "Hermann Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "erythromycine_mather_ddi",
+      "file": "erythromycine_mather_ddi.cpp",
+      "drugKey": "erythromycine",
+      "drug": "Érythromycine",
+      "source": "Mather Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/erythromycine_mather_ddi.cpp",
+      "citation": "Mather LE et al. Br J Clin Pharmacol. 1981;12:131-140.",
+      "doi": "10.1111/j.1365-2125.1981.tb01191.x",
+      "population": "Adultes sains dans des études d'absorption et de biodisponibilité orale.",
+      "populationTags": [
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Érythromycine",
+        "Mather Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "everolimus_moes_ddi",
+      "file": "everolimus_moes_ddi.cpp",
+      "drugKey": "everolimus",
+      "drug": "Évérolimus",
+      "source": "Moes Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/everolimus_moes_ddi.cpp",
+      "citation": "Moes DJAR et al. Clin Pharmacokinet. 2012;51:467-480.",
+      "doi": "10.2165/11599710-000000000-00000",
+      "population": "Adultes transplantés rénaux sous schéma sans inhibiteur de calcineurine.",
+      "populationTags": [
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Évérolimus",
+        "Moes Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "everolimus_terheine_ddi",
+      "file": "everolimus_terheine_ddi.cpp",
+      "drugKey": "everolimus",
+      "drug": "Évérolimus",
+      "source": "Terheine Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/everolimus_terheine_ddi.cpp",
+      "citation": "ter Heine R et al. Br J Clin Pharmacol. 2018;84:1575-1586.",
+      "doi": "10.1111/bcp.13591",
+      "population": "Adultes: cancers métastatiques thyroïdiens ou mammaires et transplantés rénaux.",
+      "populationTags": [
+        "Adulte",
+        "Cancer",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK mécanistique adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Évérolimus",
+        "Terheine Ddi",
+        "PopPK mécanistique adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Cancer",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "fluconazole_debruyne_ddi",
+      "file": "fluconazole_debruyne_ddi.cpp",
+      "drugKey": "fluconazole",
+      "drug": "Fluconazole",
+      "source": "Debruyne Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/fluconazole_debruyne_ddi.cpp",
+      "citation": "Debruyne D, Ryckelynck JP. Clin Pharmacokinet. 1993;24:10-27.",
+      "doi": "10.2165/00003088-199324010-00002",
+      "population": "Adultes issus des études de pharmacocinétique clinique synthétisées dans la revue.",
+      "populationTags": [
+        "Adulte",
+        "Population mixte",
+        "Hors ICU non précisé"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module fondé sur une revue; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Fluconazole",
+        "Debruyne Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Population mixte",
+        "Hors ICU non précisé"
+      ]
+    },
+    {
+      "id": "genta_debord",
+      "file": "genta_debord.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Debord",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_debord.cpp",
+      "citation": "Prior Abbottbase reproduit dans Lee J et al. Drug Des Devel Ther. 2014;8:1097-1106.",
+      "doi": "10.2147/DDDT.S66981",
+      "population": "Prior adulte général évalué secondairement chez des adultes coréens avec endocardite ou autres infections.",
+      "populationTags": [
+        "Adulte",
+        "Endocardite",
+        "Population mixte"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "Prior PK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le nom historique Debord n'est pas confirmé; le DOI documente les mêmes équations Abbottbase, pas leur publication primaire.",
+      "tags": [
+        "Gentamicine",
+        "Debord",
+        "Prior PK secondaire",
+        "PopPK Model",
+        "Adulte",
+        "Endocardite",
+        "Population mixte"
+      ]
+    },
+    {
+      "id": "genta_evers_icu",
+      "file": "genta_evers_icu.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Evers Icu",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_evers_icu.cpp",
+      "citation": "Paramètres Evers reproduits secondairement dans Gomes A et al. PLoS One. 2017;12:e0177324.",
+      "doi": "10.1371/journal.pone.0177324",
+      "population": "Version destinée aux adultes en réanimation; publication primaire Evers non identifiée dans le fichier.",
+      "populationTags": [
+        "Adulte",
+        "ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le DOI pointe vers la source secondaire qui reproduit le modèle.",
+      "tags": [
+        "Gentamicine",
+        "Evers Icu",
+        "PopPK secondaire",
+        "PopPK Model",
+        "Adulte",
+        "ICU"
+      ]
+    },
+    {
+      "id": "genta_evers_standard",
+      "file": "genta_evers_standard.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Evers Standard",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_evers_standard.cpp",
+      "citation": "Paramètres Evers reproduits secondairement dans Gomes A et al. PLoS One. 2017;12:e0177324.",
+      "doi": "10.1371/journal.pone.0177324",
+      "population": "Version adulte standard hors réanimation; publication primaire Evers non identifiée dans le fichier.",
+      "populationTags": [
+        "Adulte",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le DOI pointe vers la source secondaire qui reproduit le modèle.",
+      "tags": [
+        "Gentamicine",
+        "Evers Standard",
+        "PopPK secondaire",
+        "PopPK Model",
+        "Adulte",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "genta_franck",
+      "file": "genta_franck.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Franck",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_franck.cpp",
+      "citation": "Franck B et al. Eur J Clin Pharmacol. 2020;76:947-955.",
+      "doi": "10.1007/s00228-020-02867-3",
+      "population": "Adultes, majoritairement âgés, sous hémodialyse chronique.",
+      "populationTags": [
+        "Adulte",
+        "Âgé",
+        "Hémodialyse"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Gentamicine",
+        "Franck",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Âgé",
+        "Hémodialyse"
+      ]
+    },
+    {
+      "id": "genta_gomes",
+      "file": "genta_gomes.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Gomes",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_gomes.cpp",
+      "citation": "Gomes A et al. PLoS One. 2017;12:e0177324.",
+      "doi": "10.1371/journal.pone.0177324",
+      "population": "Adultes traités pour une endocardite infectieuse, hors dialyse.",
+      "populationTags": [
+        "Adulte",
+        "Endocardite",
+        "Hors dialyse"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Gentamicine",
+        "Gomes",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Endocardite",
+        "Hors dialyse"
+      ]
+    },
+    {
+      "id": "genta_hodiamont",
+      "file": "genta_hodiamont.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Hodiamont",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_hodiamont.cpp",
+      "citation": "Hodiamont CJ et al. Int J Antimicrob Agents. 2017;49:204-211.",
+      "doi": "10.1016/j.ijantimicag.2016.10.022",
+      "population": "Adultes en réanimation, incluant hypoalbuminémie et certains patients sous épuration continue.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "CRRT"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Gentamicine",
+        "Hodiamont",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "CRRT"
+      ]
+    },
+    {
+      "id": "genta_rosario_clcr",
+      "file": "genta_rosario_clcr.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Rosario Clcr",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_rosario_clcr.cpp",
+      "citation": "Rosario MC et al. Br J Clin Pharmacol. 1998;46:229-236.",
+      "doi": "10.1046/j.1365-2125.1998.00779.x",
+      "population": "Adultes atteints de cancer; variante utilisant la clairance de la créatinine.",
+      "populationTags": [
+        "Adulte",
+        "Cancer",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Gentamicine",
+        "Rosario Clcr",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Cancer",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "genta_rosario_clinical",
+      "file": "genta_rosario_clinical.cpp",
+      "drugKey": "genta",
+      "drug": "Gentamicine",
+      "source": "Rosario Clinical",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/genta_rosario_clinical.cpp",
+      "citation": "Rosario MC et al. Br J Clin Pharmacol. 1998;46:229-236.",
+      "doi": "10.1046/j.1365-2125.1998.00779.x",
+      "population": "Adultes atteints de cancer; variante à covariables cliniques.",
+      "populationTags": [
+        "Adulte",
+        "Cancer",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Gentamicine",
+        "Rosario Clinical",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Cancer",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "isavuconazole_desai_ddi",
+      "file": "isavuconazole_desai_ddi.cpp",
+      "drugKey": "isavuconazole",
+      "drug": "Isavuconazole",
+      "source": "Desai Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/isavuconazole_desai_ddi.cpp",
+      "citation": "Desai A et al. Antimicrob Agents Chemother. 2016;60:5483-5491.",
+      "doi": "10.1128/AAC.02819-15",
+      "population": "Adultes sains et adultes avec infection fongique invasive, essais de phase 1 et SECURE.",
+      "populationTags": [
+        "Adulte",
+        "Infection fongique",
+        "Population mixte"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Absorption Weibull conservée; prior résiduel adapté pour mapbayr.",
+      "tags": [
+        "Isavuconazole",
+        "Desai Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Infection fongique",
+        "Population mixte"
+      ]
+    },
+    {
+      "id": "isavuconazole_groll_ddi",
+      "file": "isavuconazole_groll_ddi.cpp",
+      "drugKey": "isavuconazole",
+      "drug": "Isavuconazole",
+      "source": "Groll Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/isavuconazole_groll_ddi.cpp",
+      "citation": "Groll AH et al. Clin Pharmacol Drug Dev. 2017;6:76-85.",
+      "doi": "10.1002/cpdd.284",
+      "population": "Adultes sains inclus dans des études contrôlées d'interactions médicamenteuses.",
+      "populationTags": [
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Isavuconazole",
+        "Groll Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "levo_canoui",
+      "file": "levo_canoui.cpp",
+      "drugKey": "levo",
+      "drug": "Levofloxacine",
+      "source": "Canoui",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/levo_canoui.cpp",
+      "citation": "Canouï E et al. J Antimicrob Chemother. 2022;77:1454-1462.",
+      "doi": "10.1093/jac/dkac031",
+      "population": "Adultes traités pour une infection ostéo-articulaire.",
+      "populationTags": [
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Levofloxacine",
+        "Canoui",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "levo_gergs",
+      "file": "levo_gergs.cpp",
+      "drugKey": "levo",
+      "drug": "Levofloxacine",
+      "source": "Gergs",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/levo_gergs.cpp",
+      "citation": "Gergs U et al. Clin Pharmacol Drug Dev. 2018;7:117-125.",
+      "doi": "10.1002/cpdd.418",
+      "population": "Adultes opérés d'une arthroplastie élective de hanche ou de genou.",
+      "populationTags": [
+        "Adulte",
+        "Chirurgie orthopédique",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Levofloxacine",
+        "Gergs",
+        "PK publié",
+        "PopPK Model",
+        "Adulte",
+        "Chirurgie orthopédique",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "linez_buerger",
+      "file": "linez_buerger.cpp",
+      "drugKey": "linez",
+      "drug": "Linezolide",
+      "source": "Buerger",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/linez_buerger.cpp",
+      "citation": "Buerger C et al. Antimicrob Agents Chemother. 2006;50:2455-2463.",
+      "doi": "10.1128/AAC.01468-05",
+      "population": "Adultes en réanimation, sepsis sévère ou choc septique, ventilés.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Sepsis",
+        "Ventilé"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Analyse PK individuelle publiée, adaptée ici comme prior populationnel.",
+      "tags": [
+        "Linezolide",
+        "Buerger",
+        "PK publié adapté",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Sepsis",
+        "Ventilé"
+      ]
+    },
+    {
+      "id": "linez_sasaki",
+      "file": "linez_sasaki.cpp",
+      "drugKey": "linez",
+      "drug": "Linezolide",
+      "source": "Sasaki",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/linez_sasaki.cpp",
+      "citation": "Sasaki T et al. Antimicrob Agents Chemother. 2011;55:1867-1873.",
+      "doi": "10.1128/AAC.01185-10",
+      "population": "Adultes japonais hospitalisés pour infection.",
+      "populationTags": [
+        "Adulte",
+        "Hospitalisé",
+        "Hors ICU non précisé"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Linezolide",
+        "Sasaki",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Hospitalisé",
+        "Hors ICU non précisé"
+      ]
+    },
+    {
+      "id": "posaconazole_dolton_ddi",
+      "file": "posaconazole_dolton_ddi.cpp",
+      "drugKey": "posaconazole",
+      "drug": "Posaconazole",
+      "source": "Dolton Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/posaconazole_dolton_ddi.cpp",
+      "citation": "Dolton MJ et al. Antimicrob Agents Chemother. 2014;58:6879-6885.",
+      "doi": "10.1128/AAC.03777-14",
+      "population": "Adultes sains et patients adultes sous posaconazole en prophylaxie ou traitement.",
+      "populationTags": [
+        "Adulte",
+        "Infection fongique",
+        "Population mixte"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Posaconazole",
+        "Dolton Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Infection fongique",
+        "Population mixte"
+      ]
+    },
+    {
+      "id": "rifampicine_chang",
+      "file": "rifampicine_chang.cpp",
+      "drugKey": "rifampicine",
+      "drug": "Rifampicine",
+      "source": "Chang",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/rifampicine_chang.cpp",
+      "citation": "Chang MJ et al. (2015), paramètres reproduits dans Ju G et al. Clin Pharmacol Adv Appl. 2025.",
+      "doi": "10.2147/CPAA.S502272",
+      "population": "54 adultes sud-coréens avec tuberculose pulmonaire et diabète.",
+      "populationTags": [
+        "Adulte",
+        "Tuberculose",
+        "Diabète",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le DOI pointe vers le répertoire secondaire de modèles de rifampicine.",
+      "tags": [
+        "Rifampicine",
+        "Chang",
+        "PopPK secondaire",
+        "PopPK Model",
+        "Adulte",
+        "Tuberculose",
+        "Diabète",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "rifampicine_jeremiah",
+      "file": "rifampicine_jeremiah.cpp",
+      "drugKey": "rifampicine",
+      "drug": "Rifampicine",
+      "source": "Jeremiah",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/rifampicine_jeremiah.cpp",
+      "citation": "Jeremiah K et al. (2014), paramètres reproduits dans Ju G et al. Clin Pharmacol Adv Appl. 2025.",
+      "doi": "10.2147/CPAA.S502272",
+      "population": "100 adultes tanzaniens avec tuberculose pulmonaire, avec ou sans VIH.",
+      "populationTags": [
+        "Adulte",
+        "Tuberculose",
+        "VIH",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le DOI pointe vers le répertoire secondaire de modèles de rifampicine.",
+      "tags": [
+        "Rifampicine",
+        "Jeremiah",
+        "PopPK secondaire",
+        "PopPK Model",
+        "Adulte",
+        "Tuberculose",
+        "VIH",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "rifampicine_jing",
+      "file": "rifampicine_jing.cpp",
+      "drugKey": "rifampicine",
+      "drug": "Rifampicine",
+      "source": "Jing",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/rifampicine_jing.cpp",
+      "citation": "Jing Y et al. J Clin Pharmacol. 2016;56:1009-1017.",
+      "doi": "10.1002/jcph.643",
+      "population": "Adultes chinois traités pour une tuberculose pulmonaire.",
+      "populationTags": [
+        "Adulte",
+        "Tuberculose",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Rifampicine",
+        "Jing",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Tuberculose",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "rifampicine_loos_ddi",
+      "file": "rifampicine_loos_ddi.cpp",
+      "drugKey": "rifampicine",
+      "drug": "Rifampicine",
+      "source": "Loos Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/rifampicine_loos_ddi.cpp",
+      "citation": "Loos U et al. Klin Wochenschr. 1985;63:1205-1211.",
+      "doi": "10.1007/BF01733779",
+      "population": "Adultes sains après rifampicine orale et intraveineuse en administration chronique.",
+      "populationTags": [
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Rifampicine",
+        "Loos Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "Volontaire sain",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "rifampicine_marsot",
+      "file": "rifampicine_marsot.cpp",
+      "drugKey": "rifampicine",
+      "drug": "Rifampicine",
+      "source": "Marsot",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/rifampicine_marsot.cpp",
+      "citation": "Marsot A et al. Br J Clin Pharmacol. 2017;83:1039-1047.",
+      "doi": "10.1111/bcp.13178",
+      "population": "Adultes traités pour une infection ostéo-articulaire, avec ou sans acide fusidique.",
+      "populationTags": [
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Rifampicine",
+        "Marsot",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Infection ostéo-articulaire",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "ritonavir_kappelhoff_ddi",
+      "file": "ritonavir_kappelhoff_ddi.cpp",
+      "drugKey": "ritonavir",
+      "drug": "Ritonavir",
+      "source": "Kappelhoff Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/ritonavir_kappelhoff_ddi.cpp",
+      "citation": "Kappelhoff BS et al. Br J Clin Pharmacol. 2005;59:174-182.",
+      "doi": "10.1111/j.1365-2125.2004.02241.x",
+      "population": "Adultes vivant avec le VIH-1, ritonavir utilisé comme booster ou antiviral.",
+      "populationTags": [
+        "Adulte",
+        "VIH",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK déterministe",
+      "sourceStatus": "verified",
+      "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "tags": [
+        "Ritonavir",
+        "Kappelhoff Ddi",
+        "Module PK déterministe",
+        "DDI Manager+",
+        "Adulte",
+        "VIH",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "sirolimus_djebli_ddi",
+      "file": "sirolimus_djebli_ddi.cpp",
+      "drugKey": "sirolimus",
+      "drug": "Sirolimus",
+      "source": "Djebli Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/sirolimus_djebli_ddi.cpp",
+      "citation": "Djebli N et al. Clin Pharmacokinet. 2006;45:1135-1148.",
+      "doi": "10.2165/00003088-200645110-00007",
+      "population": "Adultes transplantés rénaux sous sirolimus et mycophénolate, sans inhibiteur de calcineurine.",
+      "populationTags": [
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Sirolimus",
+        "Djebli Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "tacrolimus_kamp_envarsus_ddi",
+      "file": "tacrolimus_kamp_envarsus_ddi.cpp",
+      "drugKey": "tacrolimus",
+      "drug": "Tacrolimus",
+      "source": "Kamp Envarsus Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/tacrolimus_kamp_envarsus_ddi.cpp",
+      "citation": "Kamp J et al. Pharmaceutics. 2024;16:17.",
+      "doi": "10.3390/pharmaceutics16010017",
+      "population": "Adultes transplantés rénaux recevant tacrolimus Envarsus.",
+      "populationTags": [
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Tacrolimus",
+        "Kamp Envarsus Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "tacrolimus_woillard_ddi",
+      "file": "tacrolimus_woillard_ddi.cpp",
+      "drugKey": "tacrolimus",
+      "drug": "Tacrolimus",
+      "source": "Woillard Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/tacrolimus_woillard_ddi.cpp",
+      "citation": "Woillard JB et al. Br J Clin Pharmacol. 2011;71:391-402.",
+      "doi": "10.1111/j.1365-2125.2010.03837.x",
+      "population": "Adultes transplantés rénaux recevant Prograf ou Advagraf.",
+      "populationTags": [
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "PopPK publié adapté",
+      "sourceStatus": "verified",
+      "note": "Adaptation PK autonome; mécanismes DDI retirés.",
+      "tags": [
+        "Tacrolimus",
+        "Woillard Ddi",
+        "PopPK publié adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Transplantation rénale",
+        "Hors ICU"
+      ]
+    },
+    {
+      "id": "vanco_goti",
+      "file": "vanco_goti.cpp",
+      "drugKey": "vanco",
+      "drug": "Vancomycine",
+      "source": "Goti",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/vanco_goti.cpp",
+      "citation": "Goti V et al. Ther Drug Monit. 2018;40:212-221.",
+      "doi": "10.1097/FTD.0000000000000490",
+      "population": "Adultes hospitalisés avec ou sans hémodialyse.",
+      "populationTags": [
+        "Adulte",
+        "Hospitalisé",
+        "Hémodialyse"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Vancomycine",
+        "Goti",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "Hospitalisé",
+        "Hémodialyse"
+      ]
+    },
+    {
+      "id": "vanco_pkjust",
+      "file": "vanco_pkjust.cpp",
+      "drugKey": "vanco",
+      "drug": "Vancomycine",
+      "source": "Pkjust",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/vanco_pkjust.cpp",
+      "citation": "Implémentation de l'équation Revilla et al. Br J Clin Pharmacol. 2010;70:201-212.",
+      "doi": "10.1111/j.1365-2125.2010.03679.x",
+      "population": "Adultes en réanimation; modèle fondé sur l'âge, la fonction rénale et le poids.",
+      "populationTags": [
+        "Adulte",
+        "ICU"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK adapté",
+      "sourceStatus": "secondary",
+      "note": "Nom de fichier historique PKJust; l'équation correspond au modèle Revilla cité.",
+      "tags": [
+        "Vancomycine",
+        "Pkjust",
+        "PopPK adapté",
+        "PopPK Model",
+        "Adulte",
+        "ICU"
+      ]
+    },
+    {
+      "id": "vanco_revilla",
+      "file": "vanco_revilla.cpp",
+      "drugKey": "vanco",
+      "drug": "Vancomycine",
+      "source": "Revilla",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/vanco_revilla.cpp",
+      "citation": "Modèle KKGT reproduit dans Marsot A et al. Pharmacol Res. 2018;134:104-116.",
+      "doi": "10.1016/j.phrs.2018.07.005",
+      "population": "Prior néonatal KKGT de vancomycine; la formule rénale ajoutée dans ce fichier reste à valider.",
+      "populationTags": [
+        "Néonatal",
+        "Pédiatrique",
+        "Population à confirmer"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "Prior PK secondaire",
+      "sourceStatus": "secondary",
+      "note": "Le nom historique Revilla est incohérent avec les paramètres Kelm/Kelr/V1/K12/K21 du modèle néonatal KKGT; ne pas utiliser comme modèle adulte Revilla.",
+      "tags": [
+        "Vancomycine",
+        "Revilla",
+        "Prior PK secondaire",
+        "PopPK Model",
+        "Néonatal",
+        "Pédiatrique",
+        "Population à confirmer"
+      ]
+    },
+    {
+      "id": "vanco_roberts",
+      "file": "vanco_roberts.cpp",
+      "drugKey": "vanco",
+      "drug": "Vancomycine",
+      "source": "Roberts",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/vanco_roberts.cpp",
+      "citation": "Roberts JA et al. Antimicrob Agents Chemother. 2011;55:2704-2709.",
+      "doi": "10.1128/AAC.01808-10",
+      "population": "Adultes septiques en réanimation recevant la vancomycine en perfusion continue.",
+      "populationTags": [
+        "Adulte",
+        "ICU",
+        "Sepsis"
+      ],
+      "provenance": "PopPK Model",
+      "modelType": "PopPK publié",
+      "sourceStatus": "verified",
+      "tags": [
+        "Vancomycine",
+        "Roberts",
+        "PopPK publié",
+        "PopPK Model",
+        "Adulte",
+        "ICU",
+        "Sepsis"
+      ]
+    },
+    {
+      "id": "voriconazole_vandenborn_ddi",
+      "file": "voriconazole_vandenborn_ddi.cpp",
+      "drugKey": "voriconazole",
+      "drug": "Voriconazole",
+      "source": "Vandenborn Ddi",
+      "format": "mrgsolve/C++",
+      "href": "/tdm/models/voriconazole_vandenborn_ddi.cpp",
+      "citation": "van den Born D et al. Int J Antimicrob Agents. 2023;61:106750.",
+      "doi": "10.1016/j.ijantimicag.2023.106750",
+      "population": "Adultes traités par voriconazole; modèle non linéaire intégrant la CRP.",
+      "populationTags": [
+        "Adulte",
+        "Infection fongique",
+        "Hospitalisé"
+      ],
+      "provenance": "DDI Manager+",
+      "modelType": "Module PK adapté",
+      "sourceStatus": "verified",
+      "note": "Prior OMEGA/SIGMA d'ingénierie ajouté pour la compatibilité MAP.",
+      "tags": [
+        "Voriconazole",
+        "Vandenborn Ddi",
+        "Module PK adapté",
+        "DDI Manager+",
+        "Adulte",
+        "Infection fongique",
+        "Hospitalisé"
+      ]
+    }
+  ]
+}

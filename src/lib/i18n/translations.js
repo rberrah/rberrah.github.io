@@ -12,6 +12,7 @@ export const dictionary = {
       course: 'Course',
       example: 'Case study',
       exercises: 'Exercises',
+      tdm: 'TDM',
       lego: 'Lego lab',
       playground: 'Playground',
       glossary: 'Glossary',
@@ -135,7 +136,10 @@ export const dictionary = {
       legoNoteNlmixr:
         'Ready to fit. Fixed effects are estimated on the log scale, between-subject variability is on clearance and volume, the residual error is combined, and a commented line shows where a covariate goes. Supply your own dataset as `data`.',
       legoNoteMrgsolve:
-        'Ready to run as is: parameters, compartments, ODEs and doses all carry the values set above. Paste into R and you get the same curves as the plot on this page.',
+        'TDM-ready mrgsolve model: structural parameters, default inter-individual variability and residual error. Patient data and dosing are entered in the TDM engine.',
+      legoOpenTdm: 'Open in TDM',
+      legoTdmSent: 'Sent to TDM',
+      legoTdmUnavailable: 'Add a concentration compartment first',
       slidesTitle: 'Slides catalog',
       slidesIntro:
         'Source of truth: src/content/slides/slide_catalog.yaml. PNGs must live in static/slides/.',
@@ -159,6 +163,7 @@ export const dictionary = {
       course: 'Cours',
       example: 'Cas pratique',
       exercises: 'Exercices',
+      tdm: 'TDM',
       lego: 'Atelier Lego',
       playground: 'Playground',
       glossary: 'Glossaire',
@@ -282,7 +287,10 @@ export const dictionary = {
       legoNoteNlmixr:
         "Prêt à estimer. Les effets fixes sont sur l'échelle log, la variabilité inter-individuelle porte sur la clairance et le volume, l'erreur résiduelle est combinée, et une ligne commentée montre où placer une covariable. Fournissez votre jeu de données sous le nom `data`.",
       legoNoteMrgsolve:
-        'Exécutable tel quel : paramètres, compartiments, EDO et doses reprennent les valeurs réglées ci-dessus. Collé dans R, ce code redonne les courbes affichées sur cette page.',
+        "Modèle mrgsolve prêt pour le TDM : structure, variabilité interindividuelle et erreur résiduelle par défaut. Les données patient et les doses sont renseignées dans le moteur TDM.",
+      legoOpenTdm: 'Ouvrir dans TDM',
+      legoTdmSent: 'Envoyé au TDM',
+      legoTdmUnavailable: "Ajoutez d'abord un compartiment de concentration",
       slidesTitle: 'Catalogue des slides',
       slidesIntro:
         'Source de vérité : src/content/slides/slide_catalog.yaml. Les PNG doivent être dans static/slides/.',

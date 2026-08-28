@@ -5,6 +5,7 @@
   // Sortie : diagramme éditable + EDO générées + code nlmixr2 + simulation (RK4).
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
+  import { tdmEngineUrl } from '$lib/tdm/engine';
   $: copy = ui($language);
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
@@ -371,24 +372,32 @@
     return L.join('\n');
   })();
 
-  // ── mrgsolve (simulation avec les valeurs de l'atelier) ──
+  // ── mrgsolve compatible avec le moteur TDM/mapbayr ──
+  $: tdmReady = Boolean(observed && modelParams().length);
   $: codeMrgsolve = (() => {
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
+    if (!observed) return '# Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
     const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
-    const w = Math.max(...P.map((p) => p.name.length), 6);
+    const adm = dosed[0] ?? nodes.find((n) => n.kind !== 'effect' && n.kind !== 'response') ?? nodes[0];
+    const randomParams = P.filter((p) => p.iiv);
+    if (!randomParams.length && P.length) randomParams.push(P[0]);
+    const etaIndex = new Map(randomParams.map((p, index) => [p.name, index + 1]));
+    const w = Math.max(...P.map((p) => `TV_${p.name}`.length), 8);
     const L = [];
 
-    L.push('library(mrgsolve)');
-    L.push('library(dplyr)');
-    L.push('');
-    // Chaîne BRUTE de R (`r"( … )"`, R ≥ 4.0) et non une chaîne entre apostrophes :
-    // les annotations françaises contiennent des apostrophes (« compartiment d'effet »)
-    // qui refermeraient la chaîne au milieu du modèle.
-    L.push('code <- r"(');
     L.push('$PARAM @annotated');
-    for (const p of P) L.push(`${p.name.padEnd(w)} : ${fmt(p.value)} : ${p.note} (${p.unit})`);
-    L.push(`${'WT'.padEnd(w)} : 70 : poids corporel (kg) [covariable, non utilisee par defaut]`);
+    for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
+    for (const [index, p] of randomParams.entries()) {
+      L.push(`${`ETA${index + 1}`.padEnd(w)} : 0 : effet individuel sur ${p.name}`);
+    }
+    L.push('');
+    L.push('$OMEGA @annotated');
+    for (const p of randomParams) L.push(`IIV_${p.name} : 0.09 : variance interindividuelle sur ${p.name}`);
+    L.push('');
+    L.push('$SIGMA @annotated');
+    L.push('PROP : 0.04 : variance de l\'erreur proportionnelle');
+    L.push('ADD  : 0.01 : variance de l\'erreur additive');
     L.push('');
     L.push('$CMT @annotated');
     for (const n of nodes) {
@@ -396,12 +405,21 @@
       const u = n.kind === 'effect' ? 'concentration a l\'effet (mg/L)'
         : n.kind === 'response' ? 'reponse (unites du marqueur)'
         : `quantite dans ${b} (mg)`;
-      L.push(`${b.padEnd(w)} : ${u}`);
+      const tags = [];
+      if (n.id === adm.id) tags.push('ADM');
+      if (n.id === observed.id) tags.push('OBS');
+      L.push(`${b.padEnd(w)} : ${u}${tags.length ? ` [${tags.join(', ')}]` : ''}`);
+    }
+    L.push('');
+    L.push('$MAIN');
+    L.push('// Parametres individuels. Les covariables seront ajoutees ulterieurement.');
+    for (const p of P) {
+      const eta = etaIndex.get(p.name);
+      L.push(`double ${p.name} = TV_${p.name}${eta ? ` * exp(ETA${eta} + ETA(${eta}))` : ''};`);
     }
     const resp = nodes.filter((n) => n.kind === 'response');
     if (resp.length) {
       L.push('');
-      L.push('$MAIN');
       L.push('// Le systeme de turnover demarre a son equilibre, pas a zero.');
       for (const n of resp) L.push(`${rid(n.name)}_0 = kin_${rid(n.name)}/kout_${rid(n.name)};`);
     }
@@ -419,36 +437,17 @@
       L.push('');
       L.push('$TABLE');
       for (const n of concSources()) L.push(`double CONC_${rid(n.name)} = ${rid(n.name)}/v_${rid(n.name)};`);
+      L.push(`double IPRED = CONC_${rid(observed.name)};`);
+      L.push('double DV = IPRED * (1 + EPS(1)) + EPS(2);');
+      L.push('if (DV < 0) DV = 0;');
     }
     L.push('');
     L.push('$CAPTURE @annotated');
+    L.push('DV : concentration simulee avec erreur residuelle (mg/L)');
     for (const n of concSources()) L.push(`CONC_${rid(n.name)} : concentration dans ${rid(n.name)} (mg/L)`);
     for (const n of nodes.filter((x) => x.kind === 'effect' || x.kind === 'response')) {
       L.push(`${rid(n.name)} : ${n.kind === 'effect' ? 'concentration au site d\'effet (mg/L)' : 'reponse'}`);
     }
-    L.push(')"');
-    L.push('');
-    L.push('mod <- mcode("lego", code)');
-    L.push('');
-    L.push('# Doses telles qu\'elles sont reglees dans l\'atelier.');
-    if (dosed.length) {
-      const evs = dosed.map((n) => `ev(amt = ${fmt(n.dose ?? 0)}, cmt = "${rid(n.name)}", time = 0)`);
-      L.push(`dose <- ${evs.join(' + ')}`);
-    } else {
-      L.push('dose <- ev(amt = 100, cmt = "' + rid(nodes[0].name) + '", time = 0)   # aucune dose reglee dans l\'atelier');
-    }
-    L.push('');
-    // `mrgsim(events = ...)` et non `%>% ev(dose)` : `ev()` construit un objet
-    // d'événements, il ne sait pas en recevoir un déjà construit.
-    L.push(`out <- mod %>% mrgsim(events = dose, end = ${fmt(tMax)}, delta = ${fmt(Math.max(0.01, Math.round((tMax / 400) * 1000) / 1000))})`);
-    L.push('');
-    if (observed) L.push(`plot(out, CONC_${rid(observed.name)} ~ time)`);
-    else L.push('plot(out)');
-    L.push('');
-    L.push('# Pour rejouer une population plutot qu\'un sujet type, ajouter par exemple :');
-    L.push('#   idata <- tibble(ID = 1:100, ' +
-      (observed ? `v_${rid(observed.name)} = ${fmt(observed.vol ?? 30)}*exp(rnorm(100, 0, 0.3))` : 'CL = 1') + ')');
-    L.push('#   mod %>% idata_set(idata) %>% mrgsim(events = dose, end = ' + fmt(tMax) + ') %>% plot()');
     return L.join('\n');
   })();
 
@@ -458,6 +457,7 @@
   // l'hydratation de toute la page.
   let codeTab = 'nlmixr2';
   let copiedTab = '';
+  let transferredCode = '';
   /** @type {ReturnType<typeof setTimeout> | undefined} */ let copyTimer;
   $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr : codeMrgsolve;
   async function copierCode() {
@@ -469,6 +469,51 @@
     } catch (e) {
       // Presse-papiers refusé : le texte reste sélectionnable à la main.
     }
+  }
+
+  async function ouvrirDansTdm() {
+    if (!tdmReady) return;
+    codeTab = 'mrgsolve';
+    const code = codeMrgsolve;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      copiedTab = 'mrgsolve';
+    } catch (e) {
+      // Le transfert direct reste disponible si le presse-papiers est refusé.
+    }
+
+    const targetUrl = new URL(tdmEngineUrl, window.location.href);
+    targetUrl.searchParams.set('source', 'custom');
+    targetUrl.searchParams.set('bridge', 'lego');
+    const targetWindow = window.open(targetUrl.toString(), 'pk_tdm_engine');
+    if (!targetWindow) return;
+
+    const targetOrigin = targetUrl.origin;
+    const message = { type: 'pk-lego-model', name: 'lego_model', code };
+    let attempts = 0;
+    /** @type {ReturnType<typeof setInterval> | undefined} */
+    let transferTimer;
+
+    const cleanup = () => {
+      if (transferTimer) clearInterval(transferTimer);
+      window.removeEventListener('message', acknowledge);
+    };
+    /** @param {MessageEvent} event */
+    const acknowledge = (event) => {
+      if (event.source !== targetWindow || event.origin !== targetOrigin || event.data?.type !== 'pk-lego-model-ack') return;
+      transferredCode = code;
+      cleanup();
+    };
+    const transmit = () => {
+      attempts += 1;
+      if (attempts > 40 || targetWindow.closed) return cleanup();
+      targetWindow.postMessage(message, targetOrigin);
+    };
+
+    window.addEventListener('message', acknowledge);
+    transmit();
+    transferTimer = setInterval(transmit, 500);
   }
 
   /** @param {Node} n */
@@ -625,6 +670,12 @@
         <button role="tab" aria-selected={codeTab === 'mrgsolve'} class:on={codeTab === 'mrgsolve'} on:click={() => (codeTab = 'mrgsolve')}>mrgsolve</button>
       </div>
       <button class="cp" on:click={copierCode}>{copiedTab === codeTab ? copy.pages.legoCopied : copy.pages.legoCopy}</button>
+      <button
+        class="tdm-launch"
+        disabled={!tdmReady}
+        title={tdmReady ? copy.pages.legoOpenTdm : copy.pages.legoTdmUnavailable}
+        on:click={ouvrirDansTdm}
+      >{transferredCode === codeMrgsolve ? copy.pages.legoTdmSent : copy.pages.legoOpenTdm}</button>
     </div>
     <p class="codenote">{codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr : copy.pages.legoNoteMrgsolve}</p>
     <pre class="codeblk"><code>{activeCode}</code></pre>
@@ -647,7 +698,7 @@
   .toolbar .s input { grid-column: 1 / -1; }
   .builder { display: grid; gap: var(--space-4); }
   @media (min-width: 980px) { .builder { grid-template-columns: 1fr 260px; align-items: start; } }
-  .stage { display: grid; gap: var(--space-4); }
+  .stage { display: grid; gap: var(--space-4); min-width: 0; }
   .canvas { width: 100%; height: auto; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; touch-action: none; }
   .node { cursor: grab; }
   .node rect { stroke-width: 2; transition: filter 0.15s; }
@@ -665,7 +716,7 @@
   .serie.dash { stroke-dasharray: 5 3; }
   .lbl { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; text-anchor: middle; }
   .leg { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 9px; }
-  .side { display: grid; gap: var(--space-4); align-content: start; }
+  .side { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
   .editor, .rates { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
   .ehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3); }
   .ehead strong { font-family: var(--font-mono); }
@@ -685,10 +736,11 @@
   .rn { color: var(--text-secondary); white-space: nowrap; }
   .rate strong { color: var(--accent-pk); min-width: 30px; text-align: right; }
   .rx { border: none; background: none; color: #b0392b; cursor: pointer; font-size: 15px; }
-  .outputs { display: grid; gap: var(--space-4); margin-top: var(--space-6); }
+  .outputs { display: grid; gap: var(--space-4); margin-top: var(--space-6); min-width: 0; }
   @media (min-width: 900px) { .outputs { grid-template-columns: 1fr 1fr; } }
+  .out { min-width: 0; }
   .out h2 { font-size: var(--text-sm); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-pk); margin-bottom: var(--space-2); }
-  .eqs, .codeblk { border-radius: var(--radius); padding: var(--space-4); overflow-x: auto; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.6; }
+  .eqs, .codeblk { width: 100%; max-width: 100%; border-radius: var(--radius); padding: var(--space-4); overflow-x: auto; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.6; }
   .eqs { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-subtle); }
   .codeblk { background: #1a1f2b; color: #e6edf3; }
   .eqs code, .codeblk code { white-space: pre; }
@@ -707,5 +759,14 @@
     background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px;
   }
   .cp:hover { border-color: var(--accent-pk); color: var(--accent-pk); }
+  .tdm-launch {
+    font-family: var(--font-mono); font-size: var(--text-xs); padding: 5px 11px; cursor: pointer;
+    border: 1px solid var(--accent-pd); border-radius: 6px; background: var(--accent-pd); color: #fff;
+  }
+  .tdm-launch:disabled { cursor: not-allowed; opacity: 0.45; }
   .codenote { font-size: var(--text-xs); color: var(--text-muted); margin: 0 0 var(--space-2); max-width: 70ch; }
+  @media (max-width: 640px) {
+    .codehead { align-items: flex-start; }
+    .cp { margin-left: 0; }
+  }
 </style>

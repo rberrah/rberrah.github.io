@@ -1,0 +1,79 @@
+name: Nouveau modele TDM
+description: Proposer un modele PopPK pour la bibliotheque TDM
+title: "[TDM model] "
+labels: ["tdm-model"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de proposer un modele uniquement si la source bibliographique et les limites d'utilisation sont explicites.
+        Cette bibliotheque est pedagogique et ne fournit pas de recommandation posologique patient-specifique.
+  - type: input
+    id: molecule
+    attributes:
+      label: Molecule
+      placeholder: Vancomycine, cefepime, gentamicine...
+    validations:
+      required: true
+  - type: input
+    id: reference
+    attributes:
+      label: Reference bibliographique
+      placeholder: DOI, PubMed, citation complete
+    validations:
+      required: true
+  - type: input
+    id: doi
+    attributes:
+      label: DOI de la source primaire
+      placeholder: 10.xxxx/xxxxx
+    validations:
+      required: true
+  - type: textarea
+    id: population
+    attributes:
+      label: Population de développement
+      description: Préciser adulte/pédiatrique, ICU ou non, et les états particuliers comme brûlure, obésité, transplantation ou dialyse.
+      placeholder: Population, effectif, contexte de soins et principaux critères cliniques.
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Format du modele
+      options:
+        - mrgsolve/C++
+        - nlmixr2/R
+        - Monolix/mlxtran
+        - NONMEM/control stream
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Code du modele
+      description: Coller le fichier complet ou donner un lien public vers le fichier.
+      render: cpp
+    validations:
+      required: true
+  - type: textarea
+    id: metadata
+    attributes:
+      label: Metadonnees minimales
+      description: Structure, parametres, unitees, covariables, variabilite, erreur residuelle, population d'origine.
+      placeholder: |
+        Structure:
+        Parametres et unitees:
+        Covariables:
+        Population:
+        Limites:
+    validations:
+      required: true
+  - type: textarea
+    id: test
+    attributes:
+      label: Scenario de test
+      description: Dose, patient synthétique, sortie attendue ou script de simulation. Ne joindre aucune donnée réelle.
+    validations:
+      required: false
