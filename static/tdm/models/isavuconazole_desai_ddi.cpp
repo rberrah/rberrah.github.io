@@ -1,10 +1,10 @@
 $PLUGIN tad
 $PROB
 // Isavuconazole population PK model (Desai et al.)
-// Source: Desai A et al. Antimicrob Agents Chemother. 2016;60:5483-5491.
+// Article: Desai A et al. Antimicrob Agents Chemother. 2016;60:5483-5491.
 // DOI: 10.1128/AAC.02819-15
 // Population: Healthy adults and adults with invasive fungal infections in phase 1 and SECURE phase 3 trials.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // The published time-dependent Weibull absorption is retained; the residual prior is an engineering adaptation for mapbayr.
 
 $PARAM @annotated

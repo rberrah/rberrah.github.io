@@ -288,7 +288,7 @@ app_ui <- page_navbar(
     div(
       class = "plain-page",
       h1("Bibliothèque de modèles"),
-      p("Les modèles sont synchronisés depuis static/tdm/models. Un redéploiement suffit pour publier un fichier accepté par revue."),
+      p("Chaque modèle est associé à l'article qui décrit ses paramètres et sa population. Toute nouvelle entrée est relue avant publication."),
       DTOutput("catalog_table")
     )
   ),
@@ -983,7 +983,7 @@ server <- function(input, output, session) {
   )
 
   output$catalog_table <- renderDT({
-    table <- MODEL_CATALOG[, c("drug", "source", "population", "doi", "provenance", "modelType", "sourceStatus")]
+    table <- MODEL_CATALOG[, c("drug", "model", "citation", "population", "doi", "modelType", "sourceStatus")]
     has_doi <- !is.na(table$doi) & nzchar(table$doi)
     table$doi <- ifelse(
       has_doi,
@@ -997,7 +997,7 @@ server <- function(input, output, session) {
       filter = "top",
       escape = FALSE,
       options = list(pageLength = 20, scrollX = TRUE),
-      colnames = c("Molécule", "Source", "Population source", "DOI", "Provenance", "Type", "Statut")
+      colnames = c("Molécule", "Modèle", "Article source", "Population de l'article", "DOI", "Type", "Statut bibliographique")
     )
   })
 }

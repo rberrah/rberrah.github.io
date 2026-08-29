@@ -1,9 +1,9 @@
 $PROB
 // Ritonavir PK module
-// Source: Kappelhoff BS et al. Br J Clin Pharmacol. 2005;59:174-182.
+// Article: Kappelhoff BS et al. Br J Clin Pharmacol. 2005;59:174-182.
 // DOI: 10.1111/j.1365-2125.2004.02241.x
 // Population: Adults living with HIV-1; ritonavir used as booster or antiviral.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

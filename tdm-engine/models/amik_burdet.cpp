@@ -8,7 +8,7 @@
 //   of single-dose amikacin in critically ill patients with suspected
 //   ventilator-associated pneumonia." Eur J Clin Pharmacol 2015;71(1):75-83.
 //   doi:10.1007/s00228-014-1766-y. IMPACT trial, NCT00950222.
-//   PDF: PopPK Model/Reference/popPK single dose amikacin Burdet.pdf
+//   PDF: popPK single dose amikacin Burdet.pdf
 //   Parameters below are Table 2, "Basic model (60 patients)" column.
 //
 // POPULATION

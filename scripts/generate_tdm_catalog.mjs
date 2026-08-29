@@ -48,26 +48,31 @@ function parseModelFile(file, metadata) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
   const suffix = stem.slice(drugKey.length + 1);
-  const source = suffix.split('_').filter(Boolean).map(titleCase).join(' ');
+  const model = suffix.split('_').filter((part) => part && part.toLowerCase() !== 'ddi').map(titleCase).join(' ');
   const drug = drugLabels[drugKey] ?? titleCase(drugKey);
 
   const details = metadata[stem];
   if (!details) throw new Error(`Missing TDM metadata for ${stem}.`);
+  if ('provenance' in details) throw new Error(`Application provenance is not an article source: ${stem}.`);
+  if (!details.citation || (!details.doi && !details.sourceUrl)) {
+    throw new Error(`Missing article citation or stable article link for ${stem}.`);
+  }
 
   return {
     id: stem,
     file,
     drugKey,
     drug,
-    source,
+    model,
     format: 'mrgsolve/C++',
     href: `/tdm/models/${file}`,
     ...details,
     tags: Array.from(new Set([
       drug,
-      source,
+      model,
       details.modelType,
-      details.provenance,
+      details.citation,
+      details.doi,
       ...(details.populationTags ?? [])
     ].filter(Boolean)))
   };
@@ -97,7 +102,7 @@ async function main() {
   const extraMetadata = Object.keys(metadata).filter((id) => !ids.has(id));
   if (extraMetadata.length) throw new Error(`Metadata without a matching model: ${extraMetadata.join(', ')}`);
 
-  const output = `${JSON.stringify({ version: 2, models }, null, 2)}\n`;
+  const output = `${JSON.stringify({ version: 3, models }, null, 2)}\n`;
   const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
   if (previous !== output) await fs.writeFile(outputFile, output, 'utf8');
 

@@ -7,7 +7,7 @@
 //   Analysis of Linezolid and a Hematologic Side Effect, Thrombocytopenia,
 //   in Japanese Patients." Antimicrob Agents Chemother 2011;55(5):1867-1873.
 //   doi:10.1128/AAC.01185-10
-//   PDF: PopPK Model/Reference/popPK linezolide Sasaki.pdf
+//   PDF: popPK linezolide Sasaki.pdf
 //   Read here with `pdftotext -layout` (/mingw64/bin/pdftotext, 513 lines,
 //   all 7 pages = journal pp. 1867-1873). The final-model equations were read
 //   off the Results paragraph on p.1870 verbatim; Table 2 was cross-checked

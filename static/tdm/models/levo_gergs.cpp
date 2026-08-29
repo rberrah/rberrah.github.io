@@ -4,7 +4,7 @@
 // SOURCE
 //   Gergs U. et al., "Population Pharmacokinetics of Levofloxacin in Plasma
 //   and Bone of Patients Undergoing Hip or Knee Surgery".
-//   PDF: PopPK Model/Reference/Gergs - Population Pharmacokinetics of
+//   PDF: Gergs - Population Pharmacokinetics of
 //        Levofloxacin in Plasma and Bone of Patients.pdf
 //
 // POPULATION  42 adult patients undergoing elective hip or knee arthroplasty,

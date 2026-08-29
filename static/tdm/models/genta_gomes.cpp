@@ -6,7 +6,7 @@
 //   modeling of gentamicin in treatment of infective endocarditis: model
 //   development and validation of existing models." PLoS ONE 2017;12(5):
 //   e0177324.
-//   PDF: PopPK Model/Reference/Pharmacokinetic modeling of gentamicin in
+//   PDF: Pharmacokinetic modeling of gentamicin in
 //        treatment of infective endocarditis ... Gomes.pdf
 //
 // POPULATION

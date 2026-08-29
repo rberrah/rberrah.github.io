@@ -4,9 +4,9 @@
 // SOURCE
 //   Franck B. et al., "Population pharmacokinetics of gentamicin in
 //   haemodialysis", Eur J Clin Pharmacol 2020;76:947-955.
-//   PDF : PopPK Model/Reference/Population pharmacokinetics of gentamicin in
+//   PDF : Population pharmacokinetics of gentamicin in
 //         haemodialysis Benedicte Franck.pdf
-//   ESM1: PopPK Model/Reference/ESM1_Franck Bene.docx  (Pmetrics model file and
+//   ESM1: ESM1_Franck Bene.docx  (Pmetrics model file and
 //         the 14 non-parametric support points -- without it this model has no
 //         reproducible between-subject variability at all)
 //

@@ -14,7 +14,7 @@ const victimModels = {
   'ciclosporine_press_ddi.cpp': 'DEPOT_CSA'
 };
 
-const provenanceNote = `// Standalone TDM adaptation from DDI Manager+.
+const adaptationNote = `// Standalone PK adaptation for TDM.
 // The DDI mechanism placeholders were removed: this file describes baseline PK only.
 // No patient data or pasted model is persisted by the application.
 `;
@@ -23,21 +23,22 @@ async function normalizeVictimModel(file, administrationCompartment) {
   const target = path.join(outputDirectory, file);
   let code = await fs.readFile(target, 'utf8');
   code = code
+    .replace(/^\/\/ Standalone TDM adaptation from DDI Manager\+\.\r?\n\/\/ The DDI mechanism placeholders were removed: this file describes baseline PK only\.\r?\n\/\/ No patient data or pasted model is persisted by the application\.\r?\n/, '')
     .replace(/^.*\{\{[A-Z_]+\}\}.*(?:\r?\n|$)/gm, '')
     .replace(/@covariate\b/g, '@covariates');
   const compartmentPattern = new RegExp(`^(\\s*${administrationCompartment}\\s*:[^\\r\\n]*?)(?:\\s*\\[ADM\\])?\\s*$`, 'm');
   code = code.replace(compartmentPattern, '$1 [ADM]');
-  if (!code.includes('Standalone TDM adaptation from DDI Manager+')) code = `${provenanceNote}${code}`;
+  if (!code.includes('Standalone PK adaptation for TDM.')) code = `${adaptationNote}${code}`;
   await fs.writeFile(target, code, 'utf8');
 }
 
 function commonHeader({ title, citation, doi, population, limitation }) {
   return `$PROB
 // ${title}
-// Source: ${citation}
+// Article: ${citation}
 // DOI: ${doi || 'not available'}
 // Population: ${population}
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // ${limitation || 'OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.'}
 `;
 }

@@ -1,9 +1,9 @@
 $PROB
 // Posaconazole integrated PK module
-// Source: Dolton MJ et al. Antimicrob Agents Chemother. 2014;58:6879-6885.
+// Article: Dolton MJ et al. Antimicrob Agents Chemother. 2014;58:6879-6885.
 // DOI: 10.1128/AAC.03777-14
 // Population: Healthy adults and adult patients receiving posaconazole for prophylaxis or treatment.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

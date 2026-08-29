@@ -1,9 +1,9 @@
 $PROB
 // Rifampicin chronic-dose PK module
-// Source: Loos U et al. Klin Wochenschr. 1985;63:1205-1211.
+// Article: Loos U et al. Klin Wochenschr. 1985;63:1205-1211.
 // DOI: 10.1007/BF01733779
 // Population: Healthy adults receiving oral and intravenous rifampicin during chronic administration.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

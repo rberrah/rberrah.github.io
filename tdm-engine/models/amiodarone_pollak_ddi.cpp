@@ -1,9 +1,9 @@
 $PROB
 // Long-term oral amiodarone PK module
-// Source: Pollak PT et al. Clin Pharmacol Ther. 2000;67:642-652.
+// Article: Pollak PT et al. Clin Pharmacol Ther. 2000;67:642-652.
 // DOI: 10.1067/mcp.2000.107047
 // Population: Adults receiving long-term oral amiodarone therapy for cardiac arrhythmia.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

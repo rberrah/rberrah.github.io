@@ -1,4 +1,4 @@
-// Standalone TDM adaptation from DDI Manager+.
+// Standalone PK adaptation for TDM.
 // The DDI mechanism placeholders were removed: this file describes baseline PK only.
 // No patient data or pasted model is persisted by the application.
 $PLUGIN tad

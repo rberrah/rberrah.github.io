@@ -12,7 +12,7 @@ if (!file.exists(catalog_path)) {
 }
 
 MODEL_CATALOG <- jsonlite::fromJSON(catalog_path, simplifyDataFrame = TRUE)$models
-MODEL_CATALOG$label <- paste(MODEL_CATALOG$drug, MODEL_CATALOG$source, sep = " - ")
+MODEL_CATALOG$label <- paste(MODEL_CATALOG$drug, MODEL_CATALOG$model, sep = " - ")
 
 .model_cache <- new.env(parent = emptyenv())
 

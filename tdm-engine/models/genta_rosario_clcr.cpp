@@ -9,7 +9,7 @@
 //   Clinical Pharmacokinetics and Biometrics Unit, University Department of
 //   Medicine and Therapeutics, and Beatson Oncology Centre, West Glasgow
 //   Hospitals University NHS Trust, Glasgow, UK.
-//   PDF: PopPK Model/Reference/Rosario - Population pharmacokinetics of
+//   PDF: Rosario - Population pharmacokinetics of
 //        gentamicin in patients with cancer.pdf
 //   Read here as pdftotext -layout (643 lines, all 8 pages) plus 300-400 dpi
 //   page renders of Table 1 (p.232) and Table 5 (p.234), because the text

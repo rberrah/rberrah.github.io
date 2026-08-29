@@ -1,9 +1,9 @@
 $PROB
 // Isavuconazole DDI study PK module
-// Source: Groll AH et al. Clin Pharmacol Drug Dev. 2017;6:76-85.
+// Article: Groll AH et al. Clin Pharmacol Drug Dev. 2017;6:76-85.
 // DOI: 10.1002/cpdd.284
 // Population: Healthy adults in controlled drug-drug interaction studies.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

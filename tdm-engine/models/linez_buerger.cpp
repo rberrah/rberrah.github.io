@@ -8,7 +8,7 @@
 //   patients after multiple dosing using microdialysis."
 //   Antimicrob Agents Chemother 2006 Jul;50(7):2455-2463.
 //   doi:10.1128/AAC.01468-05
-//   PDF: PopPK Model/Reference/harmacokinetics of Unbound Linezolid in
+//   PDF: harmacokinetics of Unbound Linezolid in
 //        Plasma and Tissue Buerger.pdf
 //   Read here with `pdftotext -layout` (/mingw64/bin, 536-line dump, all 9
 //   pages). NOTE FOR THE RECORD: `pdftoppm` is genuinely absent from this

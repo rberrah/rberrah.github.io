@@ -6,7 +6,7 @@
 //   van Hest RM. "Determinants of gentamicin concentrations in critically ill
 //   patients: a population pharmacokinetic analysis."
 //   Int J Antimicrob Agents 2017;49:204-211.
-//   PDF: PopPK Model/Reference/Determinants of gentamicin concentrations in
+//   PDF: Determinants of gentamicin concentrations in
 //        critically ill patients Hodiamont 2017.pdf
 //
 // POPULATION

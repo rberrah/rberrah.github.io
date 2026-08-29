@@ -9,19 +9,18 @@
   const repoIssueUrl = 'https://github.com/rberrah/rberrah.github.io/issues/new?template=tdm-model.yml';
   const tdmxUrl = 'https://www.tdmx.eu/';
   /** @param {{ doi?: string | null, sourceUrl?: string | null }} model */
-  const sourceHref = (model) => model.doi ? `https://doi.org/${model.doi}` : model.sourceUrl;
+  const articleHref = (model) => model.doi ? `https://doi.org/${model.doi}` : model.sourceUrl;
   let drugs = $derived(['all', ...Array.from(new Set(tdmModels.map((model) => model.drug))).sort()]);
   let filteredModels = $derived(
     tdmModels.filter((model) => {
       const haystack = [
         model.drug,
-        model.source,
+        model.model,
         model.file,
         model.format,
         model.citation,
         model.doi,
         model.population,
-        model.provenance,
         ...model.tags
       ].filter(Boolean).join(' ').toLowerCase();
       const matchesQuery = haystack.includes(query.trim().toLowerCase());
@@ -113,7 +112,7 @@
     <article>
       <span>2</span>
       <h3>Validation</h3>
-      <p>Le fichier est relu avant integration: unitees, compartiments, variabilite, erreur residuelle, source.</p>
+      <p>Le fichier est relu avant integration: unitees, compartiments, variabilite, erreur residuelle et article source.</p>
     </article>
     <article>
       <span>3</span>
@@ -126,7 +125,7 @@
 <section id="modeles" class="models" aria-labelledby="models-title">
   <div class="section-head">
     <div>
-      <p class="eyebrow">PopPK Model</p>
+      <p class="eyebrow">Modeles pharmacometriques publies</p>
       <h2 id="models-title">Bibliotheque de modeles</h2>
     </div>
     <span class="muted">{filteredModels.length} / {tdmModels.length} modeles</span>
@@ -154,28 +153,30 @@
           <div class="model-main">
             <div class="model-kicker">
               <span class="drug">{model.drug}</span>
-              <span class="provenance">{model.provenance}</span>
             </div>
-            <h3>{model.source}</h3>
+            <h3>{model.model}</h3>
             <p class="population">{model.population}</p>
             <div class="population-tags" aria-label="Population source">
               {#each model.populationTags as tag}
                 <span>{tag}</span>
               {/each}
             </div>
-            <p class="citation">{model.citation}</p>
+            <div class="article-source">
+              <span>Article source</span>
+              <p class="citation">{model.citation}</p>
+              {#if articleHref(model)}
+                <a href={articleHref(model)} target="_blank" rel="noopener noreferrer">
+                  {model.doi ? `DOI ${model.doi}` : 'Consulter l’article'}
+                </a>
+              {:else}
+                <strong>Reference bibliographique a confirmer</strong>
+              {/if}
+            </div>
             {#if model.note}<p class="model-note">{model.note}</p>{/if}
           </div>
           <div class="model-meta">
-            <div class="source-meta">
+            <div class="model-type">
               <span>{model.modelType}</span>
-              {#if sourceHref(model)}
-                <a href={sourceHref(model)} target="_blank" rel="noopener noreferrer">
-                  {model.doi ? `DOI ${model.doi}` : 'Consulter la source'}
-                </a>
-              {:else}
-                <strong>Source a confirmer</strong>
-              {/if}
             </div>
             <div class="model-actions">
               <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}`} target="_blank" rel="noopener noreferrer">Utiliser</a>
@@ -279,19 +280,20 @@
   .model-card { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-5); min-height: 330px; }
   .model-kicker { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
   .drug { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-pk); text-transform: uppercase; }
-  .provenance { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); text-align: right; }
   .model-card h3 { margin: var(--space-2) 0; }
   .model-card p { color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
   .model-card .population { color: var(--text-secondary); margin-top: var(--space-3); }
   .population-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
   .population-tags span { border: 1px solid var(--border-subtle); border-radius: 3px; color: var(--text-secondary); font-size: var(--text-xs); padding: 2px var(--space-2); }
+  .article-source { display: grid; gap: 4px; border-left: 2px solid var(--accent-ai); margin-top: var(--space-3); padding-left: var(--space-3); }
+  .article-source > span { color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .article-source a, .article-source strong { font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
+  .article-source strong { color: var(--accent-pd); }
   .model-card .citation { font-size: var(--text-sm); }
   .model-card .model-note { border-left: 2px solid var(--accent-pd); font-size: var(--text-xs); margin-top: var(--space-3); padding-left: var(--space-3); }
   .model-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-4); }
-  .source-meta { display: grid; gap: 3px; min-width: 0; }
-  .source-meta span, .source-meta a, .source-meta strong { font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
-  .source-meta span { color: var(--text-secondary); }
-  .source-meta strong { color: var(--accent-pd); }
+  .model-type { display: grid; gap: 3px; min-width: 0; }
+  .model-type span { color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
   .model-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
   .btn.sm { padding: var(--space-2) var(--space-4); font-size: var(--text-sm); }
   .empty { color: var(--text-secondary); padding: var(--space-8) 0; }

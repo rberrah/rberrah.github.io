@@ -1,9 +1,9 @@
 $PROB
 // Diltiazem oral PK module
-// Source: Hermann P et al. Eur J Clin Pharmacol. 1983;24:349-352.
+// Article: Hermann P et al. Eur J Clin Pharmacol. 1983;24:349-352.
 // DOI: 10.1007/BF00610053
 // Population: Healthy adults after intravenous and oral diltiazem.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

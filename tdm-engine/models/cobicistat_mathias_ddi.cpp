@@ -1,9 +1,9 @@
 $PROB
 // Cobicistat 50 mg sensitivity module
-// Source: Mathias AA et al. Clin Pharmacol Ther. 2010;87:322-329.
+// Article: Mathias AA et al. Clin Pharmacol Ther. 2010;87:322-329.
 // DOI: 10.1038/clpt.2009.228
 // Population: Healthy adults in a dose-ranging pharmacokinetic study.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // Validated only as a 50 mg once-daily sensitivity module; extrapolation to marketed 150 mg is not supported. OMEGA/SIGMA are engineering priors.
 
 $PARAM @annotated

@@ -1,9 +1,9 @@
 $PROB
 // Voriconazole nonlinear PK model (van den Born et al.)
-// Source: van den Born DA et al. Int J Antimicrob Agents. 2023;61:106750.
+// Article: van den Born DA et al. Int J Antimicrob Agents. 2023;61:106750.
 // DOI: 10.1016/j.ijantimicag.2023.106750
 // Population: 54 predominantly adult patients treated with voriconazole; mixed hospital setting.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // Published IIV was retained for Vmax; the residual prior is an engineering adaptation for mapbayr.
 
 $PARAM @annotated

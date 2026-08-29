@@ -7,7 +7,7 @@
 //   gentamicin model, the default for gentamicin dosing in the Netherlands.
 //   Parameters as REPRODUCED in Gomes 2017 Table 3 (PLoS ONE 12(5):e0177324);
 //   the original publication was not available to this project.
-//   PDF: PopPK Model/Reference/Pharmacokinetic modeling of gentamicin in
+//   PDF: Pharmacokinetic modeling of gentamicin in
 //        treatment of infective endocarditis ... Gomes.pdf
 //
 // POPULATION

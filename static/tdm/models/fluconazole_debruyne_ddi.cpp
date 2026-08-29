@@ -1,9 +1,9 @@
 $PROB
 // Fluconazole clinical PK module
-// Source: Debruyne D, Ryckelynck JP. Clin Pharmacokinet. 1993;24:10-27.
+// Article: Debruyne D, Ryckelynck JP. Clin Pharmacokinet. 1993;24:10-27.
 // DOI: 10.2165/00003088-199324010-00002
 // Population: Adults from clinical pharmacokinetic studies summarized in the source review.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated

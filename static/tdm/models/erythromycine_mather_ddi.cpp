@@ -1,9 +1,9 @@
 $PROB
 // Erythromycin oral PK module
-// Source: Mather LE et al. Br J Clin Pharmacol. 1981;12:131-140.
+// Article: Mather LE et al. Br J Clin Pharmacol. 1981;12:131-140.
 // DOI: 10.1111/j.1365-2125.1981.tb01191.x
 // Population: Healthy adults in oral absorption and bioavailability studies.
-// Provenance: deterministic PK module imported from DDI Manager+.
+// Implementation: deterministic PK module adapted for standalone TDM.
 // OMEGA and SIGMA below are engineering priors added for MAP compatibility; they were not estimated in the cited source.
 
 $PARAM @annotated
