@@ -17,7 +17,8 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 
 ## Fonctionnalités
 
-- sélection d'un modèle de la bibliothèque ou collage d'un modèle mrgsolve;
+- sélection d'un modèle de la bibliothèque ou import/collage d'un modèle produit par l'Atelier Lego;
+- compilation C++ libre uniquement en exécution locale ou sur une infrastructure isolée;
 - historique de plusieurs administrations et concentrations;
 - covariables générées depuis `$PARAM @covariates` et saisies à l'heure de chaque prélèvement;
 - estimation MAP bayésienne avec `mapbayr`;
@@ -34,14 +35,16 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 - le JSON importé est limité à 1 Mo, validé puis supprimé immédiatement du dossier temporaire;
 - les données restent dans la mémoire de la session Shiny et sont libérées à sa fermeture;
 - le code C++ personnalisé n'est jamais inclus dans l'export patient;
-- les modèles C++ personnalisés sont compilés dans un dossier propre à la session, déchargés puis supprimés à sa fermeture;
+- les modèles Lego sont régénérés côté serveur puis compilés dans un dossier propre à la session, déchargés et supprimés à sa fermeture;
 - les modèles publiés sont livrés avec l'application et aucun modèle soumis par un visiteur n'est ajouté automatiquement au serveur.
 
 ## Flux Atelier Lego vers TDM
 
 L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il n'ajoute actuellement aucune covariable.
 
-L'action **Ouvrir dans TDM** copie le modèle puis l'envoie à la fenêtre Shiny avec `postMessage`. Le moteur ouvre le mode C++ personnalisé et demande toujours une validation explicite avant l'analyse. Les administrations, concentrations observées et autres données du patient sont saisies uniquement dans le TDM.
+Le code généré contient une spécification JSON versionnée. L'action **Ouvrir dans TDM** l'envoie à la fenêtre Shiny avec `postMessage`; un copier-coller du code complet conserve aussi cette spécification. Le serveur valide les types, identifiants, bornes, compartiments et transferts, puis régénère lui-même un code mrgsolve équivalent. Il ne compile jamais directement le texte C++ reçu.
+
+Le moteur ouvre ensuite le mode Atelier Lego / C++ et demande toujours une validation explicite avant l'analyse. Les administrations, concentrations observées et autres données du patient sont saisies uniquement dans le TDM.
 
 ## Déploiement
 
@@ -58,13 +61,14 @@ Pour un serveur public:
 ALLOW_CUSTOM_MODELS=false
 ```
 
-La compilation de modèles soumis par des visiteurs exige un service isolé: conteneur éphémère, système de fichiers en lecture seule, absence de réseau sortant, limites CPU/mémoire/temps et aucune donnée patient persistante.
+Avec `ALLOW_CUSTOM_MODELS=false`, les modèles Lego contrôlés restent utilisables publiquement, mais tout C++ arbitraire est refusé. La compilation libre exige un service isolé: conteneur éphémère, système de fichiers en lecture seule, absence de réseau sortant, limites CPU/mémoire/temps et aucune donnée patient persistante.
 
 ## Test d'intégration
 
 ```powershell
 Rscript tdm-engine/tests/smoke_test.R
+Rscript tdm-engine/tests/safe_lego_test.R
 npm run tdm:validate-library
 ```
 
-Le smoke test estime les quatre modèles vancomycine avec des covariables variant dans le temps, calcule l'AUC0-24/C0 actuelles, leurs poids AIC et explore une petite grille de doses. La validation de bibliothèque compile les 50 fichiers et vérifie le contrat `mapbayr` de chacun.
+Le smoke test estime les quatre modèles vancomycine avec des covariables variant dans le temps, calcule l'AUC0-24/C0 actuelles, leurs poids AIC et explore une petite grille de doses. Le test Lego compile un modèle contrôlé en mode public et vérifie le refus du C++ libre et des spécifications invalides. La validation de bibliothèque compile les 50 fichiers et vérifie le contrat `mapbayr` de chacun.

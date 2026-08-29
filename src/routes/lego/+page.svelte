@@ -217,7 +217,7 @@
   /** Identifiant sûr en R comme en C++ : sans accent, sans espace, jamais initié par un chiffre. */
   const rid = (/** @type {string} */ s) =>
     String(s ?? 'x').normalize('NFD').replace(/[̀-ͯ]/g, '')
-      .replace(/[^A-Za-z0-9_]/g, '_').replace(/^(?=\d)/, 'c_') || 'x';
+      .replace(/[^A-Za-z0-9_]/g, '_').replace(/^(?=\d)/, 'c_').slice(0, 32) || 'x';
 
   /** Nombre lisible : ni notation exponentielle, ni décimales inutiles. */
   const fmt = (/** @type {number} */ v) => {
@@ -285,6 +285,33 @@
 
   /** Compartiment observé : le central si présent, sinon la première concentration. */
   $: observed = nodes.find((n) => n.kind === 'central') ?? concSources()[0] ?? null;
+
+  // Le serveur public ne compile jamais le texte C++ recu. Cette specification est
+  // validee puis transformee en code mrgsolve cote R, ce qui rend le pont Lego sur.
+  function tdmModelSpec() {
+    const safeNodes = nodes.map((n) => {
+      /** @type {Record<string, string|number>} */
+      const item = { id: n.id, kind: n.kind, name: rid(n.name), dose: Number(n.dose ?? 0) };
+      if (KINDS[n.kind].vol) item.vol = Number(n.vol ?? 1);
+      if (n.kind === 'effect') {
+        item.ke0 = Number(n.ke0 ?? 0.4);
+        item.source = Number(n.source ?? 0);
+      }
+      if (n.kind === 'response') {
+        item.kin = Number(n.kin ?? 10);
+        item.kout = Number(n.kout ?? 0.15);
+        item.smax = Number(n.smax ?? 3);
+        item.sc50 = Number(n.sc50 ?? 3);
+        item.source = Number(n.source ?? 0);
+      }
+      return item;
+    });
+    return {
+      version: 1,
+      nodes: safeNodes,
+      edges: edges.map((e) => ({ from: e.from, to: e.to, k: Number(e.k) }))
+    };
+  }
 
   // ── nlmixr2 (estimation) ──
   $: codeNlmixr = (() => {
@@ -386,6 +413,7 @@
     const w = Math.max(...P.map((p) => `TV_${p.name}`.length), 8);
     const L = [];
 
+    L.push(`// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
     L.push('$PARAM @annotated');
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
     for (const [index, p] of randomParams.entries()) {
@@ -490,7 +518,7 @@
     if (!targetWindow) return;
 
     const targetOrigin = targetUrl.origin;
-    const message = { type: 'pk-lego-model', name: 'lego_model', code };
+    const message = { type: 'pk-lego-model', name: 'lego_model', code, spec: tdmModelSpec() };
     let attempts = 0;
     /** @type {ReturnType<typeof setInterval> | undefined} */
     let transferTimer;

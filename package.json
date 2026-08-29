@@ -23,6 +23,7 @@
 		"tdm:index": "node scripts/generate_tdm_catalog.mjs",
 		"tdm:run": "Rscript tdm-engine/run_local.R",
 		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
+		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
 	},
 	"devDependencies": {

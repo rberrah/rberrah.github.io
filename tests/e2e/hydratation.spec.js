@@ -85,15 +85,14 @@ test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) 
 
   await page.getByRole('tab', { name: 'mrgsolve' }).click();
   const mrg = await bloc.innerText();
+  expect(mrg).toContain('// PK_LEGO_SPEC_V1:');
   expect(mrg).toContain('$PARAM @annotated');
+  expect(mrg).toContain('$OMEGA @annotated');
+  expect(mrg).toContain('$SIGMA @annotated');
   expect(mrg).toContain('$CMT @annotated');
   expect(mrg).toContain('$ODE');
-  expect(mrg).toContain('mcode("lego", code)');
-  // Chaîne BRUTE de R : les annotations contiennent des apostrophes, une chaîne
-  // délimitée par des apostrophes se refermerait au milieu du modèle.
-  expect(mrg).toContain('code <- r"(');
-  const corps = mrg.slice(mrg.indexOf('r"('), mrg.indexOf(')"'));
-  expect(corps.length).toBeGreaterThan(50);
+  expect(mrg).toContain('$CAPTURE @annotated');
+  expect(mrg).toContain('double DV = IPRED');
 
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });

@@ -85,6 +85,7 @@ app_ui <- page_navbar(
         if (!window.Shiny || typeof window.Shiny.setInputValue !== 'function') return;
         window.Shiny.setInputValue('lego_model_import', {
           code: payload.code,
+          spec: payload.spec || null,
           name: payload.name || 'lego_model',
           nonce: Date.now()
         }, { priority: 'event' });
@@ -119,7 +120,7 @@ app_ui <- page_navbar(
               radioButtons(
                 "model_source",
                 NULL,
-                choices = c("Biblioth\u00e8que" = "library", "Code C++" = "custom"),
+                choices = c("Biblioth\u00e8que" = "library", "Atelier Lego / C++" = "custom"),
                 selected = "library",
                 inline = TRUE
               ),
@@ -141,11 +142,11 @@ app_ui <- page_navbar(
               conditionalPanel(
                 "input.model_source == 'custom'",
                 div(
-                  class = if (ALLOW_CUSTOM_MODELS) "custom-note local" else "custom-note blocked",
+                  class = "custom-note local",
                   if (ALLOW_CUSTOM_MODELS) {
-                    "Compilation locale autorisée. Le code s'exécute avec les droits du processus R."
+                    "Mode local : le C++ libre est autorisé et s'exécute avec les droits du processus R."
                   } else {
-                    "Compilation désactivée sur ce serveur. Utilisez run_local.R ou un service de compilation isolé."
+                    "Serveur public : seuls les modèles portant la spécification contrôlée de l'Atelier Lego sont acceptés. Le C++ libre reste bloqué."
                   }
                 )
               ),
@@ -295,7 +296,7 @@ app_ui <- page_navbar(
       h2("Model averaging"),
       p("Chaque modèle analyse les mêmes données. Les prédictions sont moyennées avec des poids issus de la vraisemblance ou du critère d'Akaike."),
       h2("Sécurité"),
-      p("Un modèle C++ collé ne doit jamais être compilé sur un serveur public partagé sans isolation forte. En production, ALLOW_CUSTOM_MODELS doit rester à false ou la compilation doit être déportée dans un conteneur éphémère sans réseau ni données persistantes."),
+      p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
       p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données."),
       h2("Statut"),
       p("Prototype de recherche non enregistré comme dispositif médical. Toute utilisation clinique exige validation, qualification de l'hébergement, traçabilité et gouvernance des modèles.")
@@ -390,12 +391,20 @@ server <- function(input, output, session) {
     if (nchar(code, type = "bytes") > 200000) {
       return(showNotification("Le modèle Lego dépasse la taille autorisée.", type = "error"))
     }
+    safe_code <- tryCatch(
+      safe_lego_model_code(code = code, specification = payload$spec %||% NULL),
+      error = function(error) {
+        showNotification(conditionMessage(error), type = "error", duration = 10)
+        NULL
+      }
+    )
+    if (is.null(safe_code)) return()
     updateRadioButtons(session, "model_source", selected = "custom")
-    updateTextAreaInput(session, "custom_code", value = code)
+    updateTextAreaInput(session, "custom_code", value = safe_code)
     validation_store(NULL)
     analysis_store(NULL)
     bslib::nav_select("analysis_tabs", "model")
-    showNotification("Modèle Lego importé. Vérifiez-le avant de lancer l'analyse.", type = "message", duration = 5)
+    showNotification("Modèle Lego validé et régénéré côté serveur. Vérifiez-le avant de lancer l'analyse.", type = "message", duration = 5)
   }, ignoreInit = TRUE)
 
   selected_model_ids <- reactive({
