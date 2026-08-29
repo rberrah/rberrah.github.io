@@ -30,11 +30,16 @@ oral_one_compartment <- list(
   edges = list(
     list(from = 1, to = 2, k = 1),
     list(from = 2, to = "OUT", k = 0.2)
+  ),
+  covariates = list(
+    list(name = "WT", target = "v_centr", reference = 70, beta = 0.75)
   )
 )
 
 safe_code <- lego_model_code(oral_one_compartment)
 stopifnot(startsWith(safe_code, LEGO_SPEC_PREFIX))
+stopifnot(grepl("$PARAM @covariates", safe_code, fixed = TRUE))
+stopifnot(grepl("pow(WT/70", safe_code, fixed = TRUE))
 
 session_dir <- tempfile("safe-lego-test-")
 dir.create(session_dir, recursive = TRUE)
@@ -48,6 +53,9 @@ model <- compile_model(
 )
 contract <- validate_model_contract(model)
 if (!isTRUE(contract$ok)) stop(paste(contract$errors, collapse = " | "))
+stopifnot("WT" %in% model_param_names(model))
+covariate_definition <- parse_covariates(safe_code)
+stopifnot(nrow(covariate_definition) == 1L, covariate_definition$name[[1]] == "WT")
 
 expect_error(
   compile_model(
@@ -67,5 +75,13 @@ unknown_source$nodes[[3]] <- list(
   id = 3, kind = "effect", name = "Ce", dose = 0, ke0 = 0.4, source = 999
 )
 expect_error(lego_model_code(unknown_source), "does not exist")
+
+invalid_covariate <- oral_one_compartment
+invalid_covariate$covariates[[1]]$name <- "DV"
+expect_error(lego_model_code(invalid_covariate), "Reserved Lego covariate name")
+
+unknown_target <- oral_one_compartment
+unknown_target$covariates[[1]]$target <- "CL_DOES_NOT_EXIST"
+expect_error(lego_model_code(unknown_target), "Unknown Lego covariate target")
 
 cat("Safe Lego compilation OK; arbitrary C++ and invalid specifications rejected.\n")

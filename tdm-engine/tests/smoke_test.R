@@ -16,7 +16,7 @@ APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 
-doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1)
+doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, ss = 0)
 observations <- data.frame(time = 47.5, concentration = 18)
 covariates <- list(WT = 70, AGE = 65, CREAT = 90, CREAT2 = 90, SEX = 0, HT = 175, DIAL = 0)
 covariate_history <- data.frame(
@@ -49,6 +49,23 @@ if (length(valid) != length(model_ids)) {
   stop("Some vancomycin models failed: ", paste(messages, collapse = " | "))
 }
 stopifnot(identical(as.numeric(valid[[1]]$current_covariates$WT), 74))
+
+steady_doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 0, ss = 1)
+steady_observations <- data.frame(time = 11.5, concentration = 18)
+steady_fits <- fit_model_set(
+  specifications[4],
+  steady_doses,
+  steady_observations,
+  covariates,
+  allow_custom = FALSE,
+  covariate_history = covariate_history
+)
+steady_valid <- successful_fits(steady_fits)
+if (length(steady_valid) != 1L) stop("The steady-state MAP fit failed: ", steady_fits[[1]]$message %||% "unknown error")
+steady_dose_row <- steady_valid[[1]]$data[steady_valid[[1]]$data$evid == 1, , drop = FALSE]
+stopifnot(nrow(steady_dose_row) == 1L, steady_dose_row$ss[[1]] == 1L, steady_dose_row$addl[[1]] == 0)
+steady_exposure <- current_regimen_exposure(steady_fits, c(vanco_roberts = 1), steady_doses)
+stopifnot(isTRUE(steady_exposure$steady_state), !isTRUE(steady_exposure$single_dose))
 
 weights <- compute_model_weights(fits, scheme = "AIC")
 stopifnot(length(weights) == 4, abs(sum(weights) - 1) < 1e-8)

@@ -41,6 +41,10 @@ carry_covariates <- function(event_times, covariate_history, covariates) {
 
 build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL) {
   if (!nrow(doses)) stop("At least one administered dose is required.")
+  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
+  if (any(!dose_ss %in% c(0L, 1L)) || any(dose_ss == 1L & doses$interval <= 0)) {
+    stop("Steady-state doses require ss = 1 and a positive interval.")
+  }
 
   dose_rows <- data.frame(
     ID = 1,
@@ -50,7 +54,8 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
     amt = doses$amount,
     rate = ifelse(doses$infusion > 0, doses$amount / doses$infusion, 0),
     ii = doses$interval,
-    addl = pmax(0, doses$count - 1),
+    addl = ifelse(dose_ss == 1L, 0, pmax(0, doses$count - 1)),
+    ss = dose_ss,
     DV = NA_real_,
     mdv = 1,
     stringsAsFactors = FALSE
@@ -65,6 +70,7 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
     rate = rep(0, nrow(observations)),
     ii = rep(0, nrow(observations)),
     addl = rep(0, nrow(observations)),
+    ss = rep(0L, nrow(observations)),
     DV = observations$concentration,
     mdv = rep(0, nrow(observations)),
     stringsAsFactors = FALSE
@@ -269,10 +275,12 @@ simulate_averaged_regimen <- function(fits, weights, dose, interval, infusion) {
 
 current_regimen_exposure <- function(fits, weights, doses) {
   if (!nrow(doses)) stop("At least one administered dose is required.")
-  last_administration <- doses$time + doses$interval * pmax(0, doses$count - 1)
+  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
+  last_administration <- doses$time + ifelse(dose_ss == 1L, 0, doses$interval * pmax(0, doses$count - 1))
   regimen <- doses[which.max(last_administration), , drop = FALSE]
+  steady_state <- "ss" %in% names(regimen) && isTRUE(as.integer(regimen$ss[[1]]) == 1L)
   recorded_interval <- as.numeric(regimen$interval[[1]])
-  single_dose <- !is.finite(recorded_interval) || recorded_interval <= 0
+  single_dose <- !steady_state && (!is.finite(recorded_interval) || recorded_interval <= 0)
   interval <- if (single_dose) 24 else recorded_interval
   dose <- as.numeric(regimen$amount[[1]])
   infusion <- as.numeric(regimen$infusion[[1]])
@@ -322,6 +330,7 @@ current_regimen_exposure <- function(fits, weights, doses) {
     interval = interval,
     recorded_interval = recorded_interval,
     infusion = infusion,
+    steady_state = steady_state,
     single_dose = single_dose
   )
 }

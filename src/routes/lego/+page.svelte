@@ -10,6 +10,7 @@
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number}} Edge */
+  /** @typedef {{id:number, name:string, target:string, reference:number, beta:number}} Covariate */
 
   /** @type {Record<string, {label:string, color:string, vol:boolean, plot:boolean, special?:string}>} */
   const KINDS = {
@@ -28,6 +29,8 @@
   let nodes = [];
   /** @type {Edge[]} */
   let edges = [];
+  /** @type {Covariate[]} */
+  let covariates = [];
   let mode = 'select'; // 'select' | 'connect'
   /** @type {number|null} */ let selectedId = null;
   /** @type {number|null} */ let connectFrom = null;
@@ -62,6 +65,7 @@
     nodes = nodes.filter((n) => n.id !== id);
     edges = edges.filter((e) => e.from !== id && e.to !== id);
     nodes = nodes.map((n) => (n.source === id ? { ...n, source: firstPlotSource() } : n));
+    reconcileCovariates();
     if (selectedId === id) selectedId = null;
   }
   /** @param {number} id */
@@ -70,15 +74,22 @@
       if (connectFrom === null) connectFrom = id;
       else {
         if (connectFrom !== id) edges = [...edges, { id: uid++, from: connectFrom, to: id, k: 0.5 }];
+        reconcileCovariates();
         connectFrom = null; mode = 'select';
       }
     } else selectedId = id;
   }
   /** @param {number} id */
-  function addElim(id) { edges = [...edges, { id: uid++, from: id, to: 'OUT', k: 0.2 }]; }
+  function addElim(id) {
+    edges = [...edges, { id: uid++, from: id, to: 'OUT', k: 0.2 }];
+    reconcileCovariates();
+  }
   /** @param {number} id */
-  function deleteEdge(id) { edges = edges.filter((e) => e.id !== id); }
-  function clearAll() { nodes = []; edges = []; selectedId = null; }
+  function deleteEdge(id) {
+    edges = edges.filter((e) => e.id !== id);
+    reconcileCovariates();
+  }
+  function clearAll() { nodes = []; edges = []; covariates = []; selectedId = null; }
 
   // ── presets (points de départ, entièrement modifiables ensuite) ──
   /** @param {string} name */
@@ -234,22 +245,23 @@
    * par défaut — clairance et volume, les deux seuls qu'un jeu de données ordinaire
    * permet d'identifier.
    */
-  function modelParams() {
+  function modelParams(currentNodes = nodes, currentEdges = edges) {
     /** @type {{name:string, value:number, unit:string, note:string, iiv:boolean}[]} */
     const out = [];
-    for (const e of edges) {
-      const from = nmOf(e.from);
-      const to = e.to === 'OUT' ? 'e' : nmOf(e.to);
+    const localName = (/** @type {number} */ id) => rid(currentNodes.find((node) => node.id === id)?.name ?? 'x');
+    for (const e of currentEdges) {
+      const from = localName(e.from);
+      const to = e.to === 'OUT' ? 'e' : localName(e.to);
       out.push({
         name: `k_${from}_${to}`, value: e.k, unit: '1/h',
         note: e.to === 'OUT' ? `elimination depuis ${from}` : `transfert ${from} -> ${to}`,
         iiv: e.to === 'OUT'
       });
     }
-    for (const n of concSources()) {
+    for (const n of currentNodes.filter((node) => KINDS[node.kind].vol)) {
       out.push({ name: `v_${rid(n.name)}`, value: n.vol ?? 1, unit: 'L', note: `volume de ${rid(n.name)}`, iiv: n.kind === 'central' });
     }
-    for (const n of nodes) {
+    for (const n of currentNodes) {
       const b = rid(n.name);
       if (n.kind === 'effect') out.push({ name: `ke0_${b}`, value: n.ke0 ?? 0.4, unit: '1/h', note: `equilibrage du compartiment d'effet ${b}`, iiv: false });
       if (n.kind === 'response') {
@@ -261,6 +273,56 @@
     }
     return out;
   }
+
+  const covariateName = (/** @type {string} */ value) => rid(value).toUpperCase();
+
+  /** @param {ReturnType<typeof modelParams>} [parameters] */
+  function validCovariates(parameters = modelParams(), currentCovariates = covariates) {
+    const targets = new Set(parameters.map((parameter) => parameter.name));
+    return currentCovariates.filter((covariate) =>
+      targets.has(covariate.target) &&
+      String(covariate.name ?? '').trim().length > 0 &&
+      /^[A-Z][A-Z0-9_]{0,23}$/.test(covariateName(covariate.name)) &&
+      Number.isFinite(Number(covariate.reference)) && Number(covariate.reference) > 0 &&
+      Number.isFinite(Number(covariate.beta))
+    );
+  }
+
+  /** @param {ReturnType<typeof modelParams>} [parameters] */
+  function covariatesAreValid(parameters = modelParams(), currentCovariates = covariates) {
+    const valid = validCovariates(parameters, currentCovariates);
+    const names = valid.map((covariate) => covariateName(covariate.name));
+    return valid.length === currentCovariates.length && new Set(names).size === names.length;
+  }
+
+  function reconcileCovariates() {
+    const targets = modelParams().map((parameter) => parameter.name);
+    if (!targets.length) {
+      covariates = [];
+      return;
+    }
+    covariates = covariates.map((covariate) => ({
+      ...covariate,
+      target: targets.includes(covariate.target) ? covariate.target : targets[0]
+    }));
+  }
+
+  function addCovariate() {
+    const target = modelParams()[0]?.name;
+    if (!target) return;
+    let index = covariates.length + 1;
+    let name = index === 1 ? 'WT' : `COV${index}`;
+    const existing = new Set(covariates.map((covariate) => covariateName(covariate.name)));
+    while (existing.has(name)) name = `COV${++index}`;
+    covariates = [...covariates, { id: uid++, name, target, reference: name === 'WT' ? 70 : 1, beta: 0.75 }];
+  }
+
+  /** @param {number} id */
+  function deleteCovariate(id) {
+    covariates = covariates.filter((covariate) => covariate.id !== id);
+  }
+
+  $: parameterChoices = modelParams(nodes, edges);
 
   /** Termes de l'EDO d'un compartiment de masse, dans la syntaxe passée en argument. */
   function massTerms(/** @type {any} */ n) {
@@ -309,7 +371,13 @@
     return {
       version: 1,
       nodes: safeNodes,
-      edges: edges.map((e) => ({ from: e.from, to: e.to, k: Number(e.k) }))
+      edges: edges.map((e) => ({ from: e.from, to: e.to, k: Number(e.k) })),
+      covariates: validCovariates(modelParams(), covariates).map((covariate) => ({
+        name: covariateName(covariate.name),
+        target: covariate.target,
+        reference: Number(covariate.reference),
+        beta: Number(covariate.beta)
+      }))
     };
   }
 
@@ -317,6 +385,7 @@
   $: codeNlmixr = (() => {
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     const P = modelParams();
+    const C = validCovariates(P, covariates);
     const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
     const w = Math.max(...P.map((p) => p.name.length), 6);
     const L = [];
@@ -345,10 +414,14 @@
       L.push('    # Variabilite inter-individuelle : variances des eta (0.09 ~ 30 % de CV).');
       for (const p of iiv) L.push(`    eta_${p.name.padEnd(w)} ~ 0.09`);
     }
-    L.push('');
-    L.push('    # Covariable : decommenter cette ligne ET la ligne correspondante du bloc');
-    L.push('    # model() pour estimer un effet du poids sur le volume central.');
-    if (observed) L.push(`    # beta_WT_v_${rid(observed.name)} <- 0.75`);
+    if (C.length) {
+      L.push('');
+      L.push('    # Effets simples de covariables continues, centres sur leur reference.');
+      for (const covariate of C) {
+        const name = covariateName(covariate.name);
+        L.push(`    beta_${name}_${covariate.target} <- ${fmt(covariate.beta)}`);
+      }
+    }
     L.push('');
     L.push('    # Erreur residuelle (combinee : additive + proportionnelle).');
     L.push('    add_err <- 0.05      # mg/L');
@@ -357,16 +430,16 @@
     L.push('');
     L.push('  model({');
     L.push('    # Retour a l\'echelle naturelle, eta compris.');
-    const volObs = observed ? `v_${rid(observed.name)}` : null;
     for (const p of P) {
       const eta = p.iiv ? ` + eta_${p.name}` : '';
-      L.push(`    ${p.name.padEnd(w)} <- exp(l${p.name}${eta})`);
-      // Le commentaire de covariable se place JUSTE sous la ligne qu'il remplace,
-      // sinon « la ligne ci-dessus » ne désigne plus rien.
-      if (volObs && p.name === volObs) {
-        L.push(`    # Covariable : remplacer la ligne ci-dessus par celle-ci (poids centre a 70 kg).`);
-        L.push(`    # ${volObs.padEnd(w)} <- exp(l${volObs} + beta_WT_${volObs}*log(WT/70)${p.iiv ? ` + eta_${volObs}` : ''})`);
-      }
+      const effects = C
+        .filter((covariate) => covariate.target === p.name)
+        .map((covariate) => {
+          const name = covariateName(covariate.name);
+          return ` + beta_${name}_${p.name}*log(${name}/${fmt(covariate.reference)})`;
+        })
+        .join('');
+      L.push(`    ${p.name.padEnd(w)} <- exp(l${p.name}${effects}${eta})`);
     }
     const resp = nodes.filter((n) => n.kind === 'response');
     if (resp.length) {
@@ -400,11 +473,12 @@
   })();
 
   // ── mrgsolve compatible avec le moteur TDM/mapbayr ──
-  $: tdmReady = Boolean(observed && modelParams().length);
+  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates));
   $: codeMrgsolve = (() => {
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '# Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
+    const C = validCovariates(P, covariates);
     const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
     const adm = dosed[0] ?? nodes.find((n) => n.kind !== 'effect' && n.kind !== 'response') ?? nodes[0];
     const randomParams = P.filter((p) => p.iiv);
@@ -416,8 +490,20 @@
     L.push(`// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
     L.push('$PARAM @annotated');
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
+    for (const covariate of C) {
+      const name = covariateName(covariate.name);
+      L.push(`BETA_${name}_${covariate.target} : ${fmt(covariate.beta)} : effet puissance de ${name} sur ${covariate.target}`);
+    }
     for (const [index, p] of randomParams.entries()) {
       L.push(`${`ETA${index + 1}`.padEnd(w)} : 0 : effet individuel sur ${p.name}`);
+    }
+    if (C.length) {
+      L.push('');
+      L.push('$PARAM @covariates @annotated');
+      for (const covariate of C) {
+        const name = covariateName(covariate.name);
+        L.push(`${name} : ${fmt(covariate.reference)} : covariable continue, valeur de reference`);
+      }
     }
     L.push('');
     L.push('$OMEGA @annotated');
@@ -440,10 +526,17 @@
     }
     L.push('');
     L.push('$MAIN');
-    L.push('// Parametres individuels. Les covariables seront ajoutees ulterieurement.');
+    L.push('// Parametres individuels et effets simples de covariables continues.');
     for (const p of P) {
       const eta = etaIndex.get(p.name);
-      L.push(`double ${p.name} = TV_${p.name}${eta ? ` * exp(ETA${eta} + ETA(${eta}))` : ''};`);
+      const effects = C
+        .filter((covariate) => covariate.target === p.name)
+        .map((covariate) => {
+          const name = covariateName(covariate.name);
+          return ` * pow(${name}/${fmt(covariate.reference)}, BETA_${name}_${p.name})`;
+        })
+        .join('');
+      L.push(`double ${p.name} = TV_${p.name}${effects}${eta ? ` * exp(ETA${eta} + ETA(${eta}))` : ''};`);
     }
     const resp = nodes.filter((n) => n.kind === 'response');
     if (resp.length) {
@@ -582,7 +675,7 @@
     <button on:click={() => preset('effect')}>Effet (ke0)</button>
     <button class="clear" on:click={clearAll}>Effacer</button>
   </div>
-  <label class="s"><span>Durée (h)</span><strong>{tMax}</strong><input type="range" min="6" max="72" step="6" bind:value={tMax} /></label>
+  <label class="s"><span>Durée (h)</span><input class="num" type="number" min="1" step="1" bind:value={tMax} /></label>
 </div>
 
 <div class="builder">
@@ -643,17 +736,18 @@
     {#if selected}
       <div class="editor">
         <div class="ehead"><strong>{selected.name}</strong><span>{KINDS[selected.kind].label}</span></div>
-        <label class="s"><span>Nom</span><input class="txt" bind:value={selected.name} on:input={() => (nodes = nodes)} /></label>
-        {#if KINDS[selected.kind].vol}<label class="s"><span>Volume (L)</span><strong>{selected.vol}</strong><input type="range" min="2" max="120" step="1" bind:value={selected.vol} on:input={() => (nodes = nodes)} /></label>{/if}
-        {#if selected.kind === 'depot' || selected.kind === 'central'}<label class="s"><span>Dose (mg)</span><strong>{selected.dose}</strong><input type="range" min="0" max="500" step="10" bind:value={selected.dose} on:input={() => (nodes = nodes)} /></label>{/if}
+        <label class="s"><span>Nom</span><input class="txt" bind:value={selected.name} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
+        {#if KINDS[selected.kind].vol}<label class="s"><span>Volume (L)</span><input class="num" type="number" min="0.001" step="0.1" bind:value={selected.vol} on:input={() => (nodes = nodes)} /></label>{/if}
+        {#if selected.kind === 'depot' || selected.kind === 'central'}<label class="s"><span>Dose (mg)</span><input class="num" type="number" min="0" step="1" bind:value={selected.dose} on:input={() => (nodes = nodes)} /></label>{/if}
         {#if selected.kind === 'effect'}
-          <label class="s"><span>ke0 (1/h)</span><strong>{selected.ke0?.toFixed(2)}</strong><input type="range" min="0.05" max="2" step="0.05" bind:value={selected.ke0} on:input={() => (nodes = nodes)} /></label>
+          <label class="s"><span>ke0 (1/h)</span><input class="num" type="number" min="0" step="0.01" bind:value={selected.ke0} on:input={() => (nodes = nodes)} /></label>
           <label class="s src"><span>Source</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
         {/if}
         {#if selected.kind === 'response'}
-          <label class="s"><span>kin</span><strong>{selected.kin}</strong><input type="range" min="1" max="30" step="1" bind:value={selected.kin} on:input={() => (nodes = nodes)} /></label>
-          <label class="s"><span>kout (1/h)</span><strong>{selected.kout?.toFixed(2)}</strong><input type="range" min="0.02" max="1" step="0.02" bind:value={selected.kout} on:input={() => (nodes = nodes)} /></label>
-          <label class="s"><span>Smax</span><strong>{selected.smax}</strong><input type="range" min="0" max="8" step="0.5" bind:value={selected.smax} on:input={() => (nodes = nodes)} /></label>
+          <label class="s"><span>kin</span><input class="num" type="number" min="0" step="0.1" bind:value={selected.kin} on:input={() => (nodes = nodes)} /></label>
+          <label class="s"><span>kout (1/h)</span><input class="num" type="number" min="0.0001" step="0.01" bind:value={selected.kout} on:input={() => (nodes = nodes)} /></label>
+          <label class="s"><span>Smax</span><input class="num" type="number" step="0.1" bind:value={selected.smax} on:input={() => (nodes = nodes)} /></label>
+          <label class="s"><span>SC50 (mg/L)</span><input class="num" type="number" min="0.0001" step="0.1" bind:value={selected.sc50} on:input={() => (nodes = nodes)} /></label>
           <label class="s src"><span>Source</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
         {/if}
         <div class="ebtns">
@@ -674,14 +768,29 @@
           {#if from && to}
             <div class="rate">
               <span class="rn">{from.name}→{to.name}</span>
-              <input type="range" min="0.02" max="3" step="0.02" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`Constante de vitesse ${from.name} vers ${to.name}`} />
-              <strong>{e.k.toFixed(2)}</strong>
+              <input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`Constante de vitesse ${from.name} vers ${to.name}`} />
               <button class="rx" on:click={() => deleteEdge(e.id)}>×</button>
             </div>
           {/if}
         {/each}
       </div>
     {/if}
+
+    <div class="covariates-editor">
+      <div class="cov-head">
+        <strong>Covariables continues</strong>
+        <button on:click={addCovariate} disabled={!parameterChoices.length} aria-label="Ajouter une covariable">+</button>
+      </div>
+      {#each covariates as covariate}
+        <div class="cov-row">
+          <label><span>Nom</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
+          <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`Supprimer ${covariate.name}`}>×</button>
+          <label class="cov-target"><span>Paramètre cible</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
+          <label><span>Référence</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
+          <label><span>β</span><input class="num" type="number" step="0.05" bind:value={covariate.beta} on:input={() => (covariates = [...covariates])} /></label>
+        </div>
+      {/each}
+    </div>
   </div>
 </div>
 
@@ -745,25 +854,34 @@
   .lbl { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; text-anchor: middle; }
   .leg { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 9px; }
   .side { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
-  .editor, .rates { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
+  .editor, .rates, .covariates-editor { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
   .ehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3); }
   .ehead strong { font-family: var(--font-mono); }
   .ehead span { font-size: var(--text-xs); color: var(--text-muted); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); margin-bottom: var(--space-2); }
   .s span { color: var(--text-secondary); }
-  .s strong { color: var(--accent-pk); }
-  .s input[type=range] { grid-column: 1 / -1; }
-  .txt, .s select { grid-column: 1 / -1; padding: 4px 6px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .txt, .num, .s select, .cov-row select { padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: var(--text-xs); min-width: 0; }
+  .txt, .s select { grid-column: 1 / -1; width: 100%; }
+  .num { width: 92px; }
   .src select { grid-column: auto; }
   .ebtns { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
   .ebtns button { flex: 1; font-size: var(--text-xs); padding: 6px; border: 1px solid var(--border-strong); background: var(--bg-primary); border-radius: 6px; cursor: pointer; font-family: var(--font-mono); }
   .ebtns .del { color: #b0392b; border-color: #b0392b; }
   .tip { color: var(--text-muted); font-size: var(--text-sm); line-height: 1.5; }
   .rlabel { display: block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: var(--space-2); }
-  .rate { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); margin-bottom: 4px; }
+  .rate { display: grid; grid-template-columns: minmax(0, 1fr) 82px auto; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); margin-bottom: 6px; }
   .rn { color: var(--text-secondary); white-space: nowrap; }
-  .rate strong { color: var(--accent-pk); min-width: 30px; text-align: right; }
+  .rate .num { width: 82px; }
   .rx { border: none; background: none; color: #b0392b; cursor: pointer; font-size: 15px; }
+  .cov-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
+  .cov-head strong { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+  .cov-head button { width: 28px; height: 28px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--accent-pk); border-radius: 6px; cursor: pointer; font-size: 18px; line-height: 1; }
+  .cov-head button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .cov-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 9px 0; border-top: 1px solid var(--border-subtle); }
+  .cov-row label { display: grid; gap: 3px; min-width: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
+  .cov-row .cov-target { grid-column: 1 / -1; }
+  .cov-row .txt, .cov-row select { width: 100%; }
+  .cov-row .num { width: 100%; }
   .outputs { display: grid; gap: var(--space-4); margin-top: var(--space-6); min-width: 0; }
   @media (min-width: 900px) { .outputs { grid-template-columns: 1fr 1fr; } }
   .out { min-width: 0; }

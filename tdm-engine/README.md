@@ -20,6 +20,7 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 - sélection d'un modèle de la bibliothèque ou import/collage d'un modèle produit par l'Atelier Lego;
 - compilation C++ libre uniquement en exécution locale ou sur une infrastructure isolée;
 - historique de plusieurs administrations et concentrations;
+- administrations répétées par nombre de doses ou directement à l'état stationnaire avec `ss = 1`;
 - covariables générées depuis `$PARAM @covariates` et saisies à l'heure de chaque prélèvement;
 - estimation MAP bayésienne avec `mapbayr`;
 - model averaging AIC ou log-vraisemblance;
@@ -40,7 +41,7 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 
 ## Flux Atelier Lego vers TDM
 
-L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il n'ajoute actuellement aucune covariable.
+L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il permet d'ajouter jusqu'à dix covariables continues simples. Chaque effet suit la forme normalisée `paramètre × (covariable / référence)^β`; aucune expression C++ libre n'est acceptée par ce constructeur.
 
 Le code généré contient une spécification JSON versionnée. L'action **Ouvrir dans TDM** l'envoie à la fenêtre Shiny avec `postMessage`; un copier-coller du code complet conserve aussi cette spécification. Le serveur valide les types, identifiants, bornes, compartiments et transferts, puis régénère lui-même un code mrgsolve équivalent. Il ne compile jamais directement le texte C++ reçu.
 

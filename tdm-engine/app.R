@@ -41,7 +41,7 @@ APP_THEME <- bs_theme(
 
 model_choices <- catalog_choices()
 
-dose_row_ui <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1) {
+dose_row_ui <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, steady_state = FALSE) {
   div(
     id = paste0("dose_row_", index),
     class = "record-row dose-row",
@@ -49,8 +49,15 @@ dose_row_ui <- function(index, time = 0, amount = 1000, interval = 12, count = 4
     numericInput(paste0("dose_time_", index), "Début (h)", time, min = 0, step = 0.5),
     numericInput(paste0("dose_amount_", index), "Dose (mg)", amount, min = 0, step = 50),
     numericInput(paste0("dose_interval_", index), "Intervalle (h)", interval, min = 0, step = 1),
-    numericInput(paste0("dose_count_", index), "Nombre", count, min = 1, step = 1),
-    numericInput(paste0("dose_infusion_", index), "Perfusion (h)", infusion, min = 0, step = 0.25)
+    div(
+      class = "dose-repeat-control",
+      checkboxInput(paste0("dose_ss_", index), "Steady state (ss = 1)", value = steady_state),
+      conditionalPanel(
+        condition = sprintf("input.dose_ss_%d != true", index),
+        numericInput(paste0("dose_count_", index), "Nombre", count, min = 1, step = 1)
+      )
+    ),
+    numericInput(paste0("dose_infusion_", index), "Perfusion (h, 0 = bolus ou oral)", infusion, min = 0, step = 0.25)
   )
 }
 
@@ -176,7 +183,7 @@ app_ui <- page_navbar(
                 selected = c(8, 12, 24),
                 inline = TRUE
               ),
-              numericInput("future_infusion", "Durée de perfusion (h, 0 = bolus)", 1, min = 0, step = 0.25)
+              numericInput("future_infusion", "Durée de perfusion (h, 0 = bolus ou oral)", 1, min = 0, step = 0.25)
             )
           ),
           actionButton("run_analysis", "Lancer l'analyse", class = "btn-primary run-button w-100")
@@ -332,11 +339,11 @@ server <- function(input, output, session) {
     unlink(session_model_dir, recursive = TRUE, force = TRUE)
   })
 
-  insert_dose_row <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1) {
+  insert_dose_row <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, steady_state = FALSE) {
     insertUI(
       selector = "#dose_rows",
       where = "beforeEnd",
-      ui = dose_row_ui(index, time, amount, interval, count, infusion)
+      ui = dose_row_ui(index, time, amount, interval, count, infusion, steady_state)
     )
   }
 
@@ -352,7 +359,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_dose, {
     index <- dose_count() + 1L
     dose_count(index)
-    insert_dose_row(index, time = 48, amount = 1000, interval = 12, count = 4, infusion = 1)
+    insert_dose_row(index, time = 48, amount = 1000, interval = 12, count = 4, infusion = 1, steady_state = FALSE)
   })
 
   observeEvent(input$remove_dose, {
@@ -485,17 +492,22 @@ server <- function(input, output, session) {
 
   read_doses <- function() {
     rows <- lapply(seq_len(isolate(dose_count())), function(index) {
+      steady_state <- isTRUE(isolate(input[[paste0("dose_ss_", index)]]))
+      count <- if (steady_state) 1L else as.integer(isolate(input[[paste0("dose_count_", index)]]))
       data.frame(
         time = as.numeric(isolate(input[[paste0("dose_time_", index)]])),
         amount = as.numeric(isolate(input[[paste0("dose_amount_", index)]])),
         interval = as.numeric(isolate(input[[paste0("dose_interval_", index)]])),
-        count = as.integer(isolate(input[[paste0("dose_count_", index)]])),
-        infusion = as.numeric(isolate(input[[paste0("dose_infusion_", index)]]))
+        count = count,
+        infusion = as.numeric(isolate(input[[paste0("dose_infusion_", index)]])),
+        ss = as.integer(steady_state)
       )
     })
     data <- do.call(rbind, rows)
     shiny::validate(shiny::need(all(is.finite(as.matrix(data))), "Toutes les administrations doivent être numériques."))
-    shiny::validate(shiny::need(all(data$time >= 0 & data$amount > 0 & data$interval >= 0 & data$count >= 1 & data$infusion >= 0), "Administration invalide."))
+    valid <- data$time >= 0 & data$amount > 0 & data$interval >= 0 & data$count >= 1 & data$infusion >= 0 &
+      data$ss %in% c(0L, 1L) & (data$ss == 0L | data$interval > 0)
+    shiny::validate(shiny::need(all(valid), "Administration invalide. Un steady state nécessite un intervalle strictement positif."))
     data
   }
 
@@ -541,7 +553,8 @@ server <- function(input, output, session) {
         amount = data$amount[[index]],
         interval = data$interval[[index]],
         count = data$count[[index]],
-        infusion = data$infusion[[index]]
+        infusion = data$infusion[[index]],
+        steady_state = isTRUE(data$ss[[index]] == 1)
       )
     }
   }
@@ -649,9 +662,13 @@ server <- function(input, output, session) {
 
       doses <- validate_patient_table(document$doses, c("time", "amount", "interval", "count", "infusion"), "administrations")
       observations <- validate_patient_table(document$observations, c("time", "concentration"), "observations")
-      if (any(doses$time < 0 | doses$amount <= 0 | doses$interval < 0 | doses$count < 1 | doses$infusion < 0)) stop("Administration invalide dans le fichier.")
+      if (!"ss" %in% names(doses)) doses$ss <- 0
+      invalid_doses <- doses$time < 0 | doses$amount <= 0 | doses$interval < 0 | doses$count < 1 | doses$infusion < 0 |
+        !doses$ss %in% c(0, 1) | (doses$ss == 1 & doses$interval <= 0)
+      if (any(invalid_doses)) stop("Administration invalide dans le fichier. Un steady state nécessite ss = 1 et un intervalle positif.")
       if (any(observations$time < 0 | observations$concentration < 0)) stop("Observation invalide dans le fichier.")
       doses$count <- as.integer(doses$count)
+      doses$ss <- as.integer(doses$ss)
 
       model <- document$model %||% list()
       expected_model_ids <- character()
@@ -844,7 +861,9 @@ server <- function(input, output, session) {
     result <- analysis_store()
     if (is.null(result)) return(NULL)
     exposure <- result$current_exposure
-    regimen_label <- if (isTRUE(exposure$single_dose)) {
+    regimen_label <- if (isTRUE(exposure$steady_state)) {
+      paste0(format_metric(exposure$dose), " mg / ", format_metric(exposure$interval), " h · État stationnaire")
+    } else if (isTRUE(exposure$single_dose)) {
       paste0("Dose unique · ", format_metric(exposure$dose), " mg")
     } else {
       paste0(format_metric(exposure$dose), " mg / ", format_metric(exposure$interval), " h")
@@ -863,7 +882,11 @@ server <- function(input, output, session) {
       class = "exposure-strip",
       div(span("AUC0-24 actuelle"), strong(format_metric(exposure$auc24)), tags$small("Selon le dernier schéma renseigné")),
       div(span("C0 actuelle"), strong(format_metric(exposure$c0)), tags$small(c0_detail)),
-      div(span("Schéma actuel"), strong(regimen_label), tags$small(paste0("Perfusion : ", format_metric(exposure$infusion), " h"))),
+      div(
+        span("Schéma actuel"),
+        strong(regimen_label),
+        tags$small(if (exposure$infusion > 0) paste0("Perfusion : ", format_metric(exposure$infusion), " h") else "Bolus ou oral · perfusion = 0 h")
+      ),
       div(span("Estimation"), strong(method), tags$small(if (length(result$weights) > 1) "Prédiction pondérée par model averaging" else "Modèle individuel sélectionné"))
     )
   })

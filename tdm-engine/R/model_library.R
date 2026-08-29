@@ -89,6 +89,9 @@ LEGO_SPEC_PREFIX <- "// PK_LEGO_SPEC_V1:"
 LEGO_NODE_KINDS <- c("depot", "transit", "central", "periph", "metab", "effect", "response")
 LEGO_VOLUME_KINDS <- c("central", "periph", "metab")
 LEGO_PD_KINDS <- c("effect", "response")
+LEGO_RESERVED_COVARIATES <- c(
+  "ID", "TIME", "CMT", "AMT", "EVID", "RATE", "II", "ADDL", "SS", "DV", "MDV", "IPRED", "ETA", "EPS"
+)
 
 lego_record_list <- function(value, field) {
   if (is.null(value)) return(list())
@@ -134,11 +137,13 @@ normalize_lego_spec <- function(specification) {
   version <- lego_number(specification$version, "version", 1, 1, integer = TRUE)
   input_nodes <- lego_record_list(specification$nodes, "nodes")
   input_edges <- lego_record_list(specification$edges, "edges")
+  input_covariates <- lego_record_list(specification$covariates, "covariates")
 
   if (!length(input_nodes) || length(input_nodes) > 20L) {
     stop("A Lego model must contain between 1 and 20 compartments.")
   }
   if (length(input_edges) > 60L) stop("A Lego model cannot contain more than 60 transfers.")
+  if (length(input_covariates) > 10L) stop("A Lego model cannot contain more than 10 covariates.")
 
   nodes <- lapply(seq_along(input_nodes), function(index) {
     input <- input_nodes[[index]]
@@ -209,7 +214,24 @@ normalize_lego_spec <- function(specification) {
     stop("A Lego TDM model requires a central, peripheral or metabolite compartment.")
   }
 
-  list(version = version, nodes = nodes, edges = edges)
+  covariates <- lapply(seq_along(input_covariates), function(index) {
+    input <- input_covariates[[index]]
+    if (!is.list(input)) stop("Each Lego covariate must be an object.")
+    name <- lego_text(input$name, paste0("covariates[", index, "].name"), "^[A-Z][A-Z0-9_]*$", 24L)
+    if (name %in% LEGO_RESERVED_COVARIATES || grepl("^(ETA|EPS)[0-9]*$", name)) {
+      stop("Reserved Lego covariate name: ", name)
+    }
+    list(
+      name = name,
+      target = lego_text(input$target, paste0("covariates[", index, "].target"), "^[A-Za-z_][A-Za-z0-9_]*$", 96L),
+      reference = lego_number(input$reference, paste0("covariates[", index, "].reference"), 1e-12, 1e12),
+      beta = lego_number(input$beta, paste0("covariates[", index, "].beta"), -10, 10)
+    )
+  })
+  covariate_names <- vapply(covariates, `[[`, character(1), "name")
+  if (anyDuplicated(covariate_names)) stop("Lego covariate names must be unique.")
+
+  list(version = version, nodes = nodes, edges = edges, covariates = covariates)
 }
 
 lego_spec_from_code <- function(code) {
@@ -246,6 +268,7 @@ lego_model_code <- function(specification) {
     as.character(ids)
   )
   name_for <- function(id) unname(internal[[as.character(id)]])
+  client_name_for <- function(id) nodes[[match(id, ids)]]$name
   volume_nodes <- Filter(function(node) node$kind %in% LEGO_VOLUME_KINDS, nodes)
   central_nodes <- Filter(function(node) identical(node$kind, "central"), nodes)
   observed <- if (length(central_nodes)) central_nodes[[1]] else volume_nodes[[1]]
@@ -259,6 +282,7 @@ lego_model_code <- function(specification) {
     to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
     parameters[[length(parameters) + 1L]] <- list(
       name = paste0("k_", from, "_", to),
+      client_name = paste0("k_", client_name_for(edge$from), "_", if (identical(edge$to, "OUT")) "e" else client_name_for(edge$to)),
       value = edge$k,
       note = if (identical(edge$to, "OUT")) paste0("elimination from ", from) else paste0("transfer ", from, " to ", to),
       iiv = identical(edge$to, "OUT")
@@ -267,24 +291,36 @@ lego_model_code <- function(specification) {
   for (node in volume_nodes) {
     name <- name_for(node$id)
     parameters[[length(parameters) + 1L]] <- list(
-      name = paste0("v_", name), value = node$vol, note = paste0("volume of ", name), iiv = identical(node$kind, "central")
+      name = paste0("v_", name), client_name = paste0("v_", node$name), value = node$vol, note = paste0("volume of ", name), iiv = identical(node$kind, "central")
     )
   }
   for (node in nodes) {
     name <- name_for(node$id)
     if (identical(node$kind, "effect")) {
-      parameters[[length(parameters) + 1L]] <- list(name = paste0("ke0_", name), value = node$ke0, note = paste0("effect equilibration for ", name), iiv = FALSE)
+      parameters[[length(parameters) + 1L]] <- list(name = paste0("ke0_", name), client_name = paste0("ke0_", node$name), value = node$ke0, note = paste0("effect equilibration for ", name), iiv = FALSE)
     }
     if (identical(node$kind, "response")) {
       parameters <- c(parameters, list(
-        list(name = paste0("kin_", name), value = node$kin, note = paste0("production of ", name), iiv = FALSE),
-        list(name = paste0("kout_", name), value = node$kout, note = paste0("degradation of ", name), iiv = FALSE),
-        list(name = paste0("smax_", name), value = node$smax, note = paste0("maximum effect on ", name), iiv = FALSE),
-        list(name = paste0("sc50_", name), value = node$sc50, note = paste0("half effect concentration for ", name), iiv = FALSE)
+        list(name = paste0("kin_", name), client_name = paste0("kin_", node$name), value = node$kin, note = paste0("production of ", name), iiv = FALSE),
+        list(name = paste0("kout_", name), client_name = paste0("kout_", node$name), value = node$kout, note = paste0("degradation of ", name), iiv = FALSE),
+        list(name = paste0("smax_", name), client_name = paste0("smax_", node$name), value = node$smax, note = paste0("maximum effect on ", name), iiv = FALSE),
+        list(name = paste0("sc50_", name), client_name = paste0("sc50_", node$name), value = node$sc50, note = paste0("half effect concentration for ", name), iiv = FALSE)
       ))
     }
   }
   if (!length(parameters)) stop("The Lego model does not expose any pharmacometric parameter.")
+
+  client_parameter_names <- vapply(parameters, `[[`, character(1), "client_name")
+  if (anyDuplicated(client_parameter_names)) stop("Lego parameter targets must be unique.")
+  covariate_effects <- lapply(seq_along(spec$covariates), function(index) {
+    covariate <- spec$covariates[[index]]
+    target_index <- match(covariate$target, client_parameter_names)
+    if (is.na(target_index)) stop("Unknown Lego covariate target: ", covariate$target)
+    c(covariate, list(
+      target_name = parameters[[target_index]]$name,
+      beta_name = paste0("BETA_", covariate$name, "_", index)
+    ))
+  })
 
   random_parameters <- Filter(function(parameter) isTRUE(parameter$iiv), parameters)
   if (!length(random_parameters)) random_parameters <- parameters[1]
@@ -298,9 +334,18 @@ lego_model_code <- function(specification) {
   for (parameter in parameters) {
     lines <- c(lines, paste0(pad(paste0("TV_", parameter$name)), " : ", lego_format_number(parameter$value), " : ", parameter$note))
   }
+  for (covariate in covariate_effects) {
+    lines <- c(lines, paste0(covariate$beta_name, " : ", lego_format_number(covariate$beta), " : power effect of ", covariate$name, " on ", covariate$target))
+  }
   for (index in seq_along(random_parameters)) {
     parameter <- random_parameters[[index]]
     lines <- c(lines, paste0(pad(paste0("ETA", index)), " : 0 : individual effect on ", parameter$name))
+  }
+  if (length(covariate_effects)) {
+    lines <- c(lines, "", "$PARAM @covariates @annotated")
+    for (covariate in covariate_effects) {
+      lines <- c(lines, paste0(covariate$name, " : ", lego_format_number(covariate$reference), " : continuous covariate, reference value"))
+    }
   }
 
   lines <- c(lines, "", "$OMEGA @annotated")
@@ -327,7 +372,13 @@ lego_model_code <- function(specification) {
   for (parameter in parameters) {
     index <- unname(eta_index[parameter$name])
     eta <- if (length(index) && is.finite(index)) paste0(" * exp(ETA", index, " + ETA(", index, "))") else ""
-    lines <- c(lines, paste0("double ", parameter$name, " = TV_", parameter$name, eta, ";"))
+    effects <- Filter(function(covariate) identical(covariate$target_name, parameter$name), covariate_effects)
+    effect_code <- paste0(vapply(
+      effects,
+      function(covariate) paste0(" * pow(", covariate$name, "/", lego_format_number(covariate$reference), ", ", covariate$beta_name, ")"),
+      character(1)
+    ), collapse = "")
+    lines <- c(lines, paste0("double ", parameter$name, " = TV_", parameter$name, effect_code, eta, ";"))
   }
   response_nodes <- Filter(function(node) identical(node$kind, "response"), nodes)
   for (node in response_nodes) {
