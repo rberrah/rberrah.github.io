@@ -41,7 +41,7 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 
 ## Flux Atelier Lego vers TDM
 
-L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il permet d'ajouter jusqu'à dix covariables continues simples. Chaque effet suit la forme normalisée `paramètre × (covariable / référence)^β`; aucune expression C++ libre n'est acceptée par ce constructeur.
+L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il permet d'ajouter jusqu'à dix covariables continues ou catégorielles simples. Une covariable continue suit `paramètre × (covariable / référence)^β`; une covariable catégorielle suit `paramètre × exp(β)` pour la modalité comparée et conserve la valeur typique pour la référence. Aucune expression C++ libre n'est acceptée par ce constructeur.
 
 Le code généré contient une spécification JSON versionnée. L'action **Ouvrir dans TDM** l'envoie à la fenêtre Shiny avec `postMessage`; un copier-coller du code complet conserve aussi cette spécification. Le serveur valide les types, identifiants, bornes, compartiments et transferts, puis régénère lui-même un code mrgsolve équivalent. Il ne compile jamais directement le texte C++ reçu.
 

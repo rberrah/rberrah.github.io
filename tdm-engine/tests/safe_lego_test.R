@@ -32,7 +32,8 @@ oral_one_compartment <- list(
     list(from = 2, to = "OUT", k = 0.2)
   ),
   covariates = list(
-    list(name = "WT", target = "v_centr", reference = 70, beta = 0.75)
+    list(name = "WT", type = "continuous", target = "v_centr", reference = 70, comparison = 90, beta = 0.75),
+    list(name = "SEX", type = "categorical", target = "v_centr", reference = 0, comparison = 1, beta = 0.2)
   )
 )
 
@@ -40,6 +41,14 @@ safe_code <- lego_model_code(oral_one_compartment)
 stopifnot(startsWith(safe_code, LEGO_SPEC_PREFIX))
 stopifnot(grepl("$PARAM @covariates", safe_code, fixed = TRUE))
 stopifnot(grepl("pow(WT/70", safe_code, fixed = TRUE))
+stopifnot(grepl("exp(BETA_SEX_2 * (SEX == 1))", safe_code, fixed = TRUE))
+
+legacy_specification <- oral_one_compartment
+legacy_specification$covariates <- list(
+  list(name = "WT", target = "v_centr", reference = 70, beta = 0.75)
+)
+legacy_code <- lego_model_code(legacy_specification)
+stopifnot(grepl("pow(WT/70", legacy_code, fixed = TRUE))
 
 session_dir <- tempfile("safe-lego-test-")
 dir.create(session_dir, recursive = TRUE)
@@ -53,9 +62,9 @@ model <- compile_model(
 )
 contract <- validate_model_contract(model)
 if (!isTRUE(contract$ok)) stop(paste(contract$errors, collapse = " | "))
-stopifnot("WT" %in% model_param_names(model))
+stopifnot(all(c("WT", "SEX") %in% model_param_names(model)))
 covariate_definition <- parse_covariates(safe_code)
-stopifnot(nrow(covariate_definition) == 1L, covariate_definition$name[[1]] == "WT")
+stopifnot(nrow(covariate_definition) == 2L, all(c("WT", "SEX") %in% covariate_definition$name))
 
 expect_error(
   compile_model(
@@ -83,5 +92,13 @@ expect_error(lego_model_code(invalid_covariate), "Reserved Lego covariate name")
 unknown_target <- oral_one_compartment
 unknown_target$covariates[[1]]$target <- "CL_DOES_NOT_EXIST"
 expect_error(lego_model_code(unknown_target), "Unknown Lego covariate target")
+
+invalid_type <- oral_one_compartment
+invalid_type$covariates[[1]]$type <- "free_cpp"
+expect_error(lego_model_code(invalid_type), "Invalid Lego text field")
+
+same_categories <- oral_one_compartment
+same_categories$covariates[[2]]$comparison <- 0
+expect_error(lego_model_code(same_categories), "reference and comparison must differ")
 
 cat("Safe Lego compilation OK; arbitrary C++ and invalid specifications rejected.\n")

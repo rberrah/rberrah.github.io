@@ -35,7 +35,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
         { from: 2, to: 'OUT', k: 0.2 }
       ],
       covariates: [
-        { name: 'WT', target: 'v_centr', reference: 70, beta: 0.75 }
+        { name: 'WT', type: 'continuous', target: 'v_centr', reference: 70, comparison: 90, beta: 0.75 },
+        { name: 'SEX', type: 'categorical', target: 'v_centr', reference: 0, comparison: 1, beta: 0.2 }
       ]
     };
 
@@ -53,6 +54,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(code).toHaveValue(/PK_LEGO_SPEC_V1/);
     await expect(code).not.toHaveValue(/texte client/);
     await expect(page.locator('#observation_cov_WT_1')).toHaveValue('70');
+    await expect(page.locator('#observation_cov_SEX_1')).toHaveValue('0');
     await page.locator('#validate_model').click();
     await expect(page.locator('.status-pill.ok')).toHaveText('Modèle valide', { timeout: 60_000 });
     await expect(page.locator('.contract-ok')).toContainText('Contrat mapbayr valide');

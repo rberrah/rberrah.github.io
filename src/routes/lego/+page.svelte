@@ -10,7 +10,7 @@
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number}} Edge */
-  /** @typedef {{id:number, name:string, target:string, reference:number, beta:number}} Covariate */
+  /** @typedef {{id:number, name:string, type:'continuous'|'categorical', target:string, reference:number, comparison:number, beta:number, compare:boolean}} Covariate */
 
   /** @type {Record<string, {label:string, color:string, vol:boolean, plot:boolean, special?:string}>} */
   const KINDS = {
@@ -145,32 +145,69 @@
   function endDrag() { dragId = null; }
 
   $: selected = nodes.find((n) => n.id === selectedId) ?? null;
-  $: plotNodes = nodes.filter((n) => KINDS[n.kind].plot);
   const concSources = () => nodes.filter((n) => KINDS[n.kind].vol);
+  const SCENARIO_COLORS = ['#2a4b7c', '#4a5d23', '#9c4f6a', '#b85c38', '#59636e', '#7b5b2e'];
 
   // ── simulation (RK4) ──
-  $: sim = (() => {
-    const N = nodes.length;
+  function covariateType(/** @type {Covariate} */ covariate) {
+    return covariate.type === 'categorical' ? 'categorical' : 'continuous';
+  }
+
+  function covariateFactor(/** @type {Covariate} */ covariate, /** @type {number} */ value) {
+    if (covariateType(covariate) === 'categorical') {
+      return value === Number(covariate.comparison) ? Math.exp(Number(covariate.beta)) : 1;
+    }
+    return Math.pow(value / Number(covariate.reference), Number(covariate.beta));
+  }
+
+  function simulateModel(currentNodes = nodes, currentEdges = edges, currentCovariates = covariates, horizon = tMax) {
+    const N = currentNodes.length;
     if (!N) return { out: [], series: [] };
-    const idx = new Map(nodes.map((n, i) => [n.id, i]));
-    const y0 = nodes.map((n) => (n.kind === 'response' ? (n.kin ?? 0) / (n.kout || 1) : (n.dose ?? 0)));
+    const parameters = modelParams(currentNodes, currentEdges);
+    const usableCovariates = validCovariates(parameters, currentCovariates);
+    const plotNodes = currentNodes.filter((node) => KINDS[node.kind].plot);
+
+    const run = (/** @type {Map<string, number>} */ values) => {
+      const adjusted = (/** @type {string} */ name, /** @type {number} */ base) => usableCovariates
+        .filter((covariate) => covariate.target === name)
+        .reduce((value, covariate) => value * covariateFactor(covariate, values.get(covariateName(covariate.name)) ?? Number(covariate.reference)), base);
+      const localNodes = currentNodes.map((node) => {
+        const name = rid(node.name);
+        return {
+          ...node,
+          vol: node.vol === undefined ? undefined : adjusted(`v_${name}`, Number(node.vol)),
+          ke0: node.ke0 === undefined ? undefined : adjusted(`ke0_${name}`, Number(node.ke0)),
+          kin: node.kin === undefined ? undefined : adjusted(`kin_${name}`, Number(node.kin)),
+          kout: node.kout === undefined ? undefined : adjusted(`kout_${name}`, Number(node.kout)),
+          smax: node.smax === undefined ? undefined : adjusted(`smax_${name}`, Number(node.smax)),
+          sc50: node.sc50 === undefined ? undefined : adjusted(`sc50_${name}`, Number(node.sc50))
+        };
+      });
+      const localEdges = currentEdges.map((edge) => {
+        const from = rid(currentNodes.find((node) => node.id === edge.from)?.name ?? 'x');
+        const to = edge.to === 'OUT' ? 'e' : rid(currentNodes.find((node) => node.id === edge.to)?.name ?? 'x');
+        return { ...edge, k: adjusted(`k_${from}_${to}`, Number(edge.k)) };
+      });
+      const idx = new Map(localNodes.map((node, index) => [node.id, index]));
+      const y0 = localNodes.map((node) => (node.kind === 'response' ? (node.kin ?? 0) / (node.kout || 1) : (node.dose ?? 0)));
+
     /** @param {number[]} y */
     function deriv(y) {
       const dy = new Array(N).fill(0);
-      for (const e of edges) {
+        for (const e of localEdges) {
         const fi = idx.get(e.from); if (fi === undefined) continue;
-        if (nodes[fi].kind === 'effect' || nodes[fi].kind === 'response') continue; // pas de transfert de masse depuis un bloc PD
+          if (localNodes[fi].kind === 'effect' || localNodes[fi].kind === 'response') continue;
         const rate = e.k * y[fi];
         dy[fi] -= rate;
-        if (e.to !== 'OUT') { const ti = idx.get(e.to); if (ti !== undefined && nodes[ti].kind !== 'effect' && nodes[ti].kind !== 'response') dy[ti] += rate; }
+          if (e.to !== 'OUT') { const ti = idx.get(e.to); if (ti !== undefined && localNodes[ti].kind !== 'effect' && localNodes[ti].kind !== 'response') dy[ti] += rate; }
       }
-      nodes.forEach((n, i) => {
-        if (n.kind === 'effect') { const si = idx.get(n.source ?? -1); const cp = si !== undefined ? (nodes[si].vol ? y[si] / (nodes[si].vol || 1) : y[si]) : 0; dy[i] = (n.ke0 ?? 0) * (cp - y[i]); }
-        else if (n.kind === 'response') { const si = idx.get(n.source ?? -1); const cp = si !== undefined ? (nodes[si].vol ? y[si] / (nodes[si].vol || 1) : y[si]) : 0; dy[i] = (n.kin ?? 0) * (1 + (n.smax ?? 0) * cp / ((n.sc50 || 1) + cp)) - (n.kout ?? 0) * y[i]; }
+        localNodes.forEach((n, i) => {
+          if (n.kind === 'effect') { const si = idx.get(n.source ?? -1); const cp = si !== undefined ? (localNodes[si].vol ? y[si] / (localNodes[si].vol || 1) : y[si]) : 0; dy[i] = (n.ke0 ?? 0) * (cp - y[i]); }
+          else if (n.kind === 'response') { const si = idx.get(n.source ?? -1); const cp = si !== undefined ? (localNodes[si].vol ? y[si] / (localNodes[si].vol || 1) : y[si]) : 0; dy[i] = (n.kin ?? 0) * (1 + (n.smax ?? 0) * cp / ((n.sc50 || 1) + cp)) - (n.kout ?? 0) * y[i]; }
       });
       return dy;
     }
-    const steps = 800, dt = tMax / steps;
+      const steps = 800, dt = horizon / steps;
     let y = y0.slice();
     /** @type {{t:number, y:number[]}[]} */
     const out = [];
@@ -182,14 +219,38 @@
       const k4 = deriv(y.map((v, i) => v + dt * k3[i]));
       y = y.map((v, i) => v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
     }
-    const series = plotNodes.map((n) => {
-      const i = nodes.indexOf(n);
+      const series = plotNodes.map((n) => {
+        const i = localNodes.findIndex((node) => node.id === n.id);
+        const local = localNodes[i];
       const isResp = n.kind === 'response';
-      const vals = out.map((o) => (n.vol ? o.y[i] / (n.vol || 1) : o.y[i]));
+        const vals = out.map((o) => (local.vol ? o.y[i] / (local.vol || 1) : o.y[i]));
       return { name: n.name, color: KINDS[n.kind].color, resp: isResp, vals };
     });
     return { out, series };
-  })();
+    };
+
+    const referenceValues = new Map(usableCovariates.map((covariate) => [covariateName(covariate.name), Number(covariate.reference)]));
+    const comparisons = usableCovariates.filter((covariate) => covariate.compare);
+    const reference = run(referenceValues);
+    const referenceSeries = reference.series.map((serie) => ({
+      ...serie,
+      label: comparisons.length ? `${serie.name} · référence` : serie.name,
+      dash: serie.resp
+    }));
+    const comparisonSeries = comparisons.flatMap((covariate, scenarioIndex) => {
+      const values = new Map(referenceValues);
+      values.set(covariateName(covariate.name), Number(covariate.comparison));
+      return run(values).series.map((serie, serieIndex) => ({
+        ...serie,
+        color: SCENARIO_COLORS[(scenarioIndex * Math.max(1, plotNodes.length) + serieIndex) % SCENARIO_COLORS.length],
+        label: `${serie.name} · ${covariateName(covariate.name)} = ${fmt(Number(covariate.comparison))}`,
+        dash: true
+      }));
+    });
+    return { out: reference.out, series: [...referenceSeries, ...comparisonSeries] };
+  }
+
+  $: sim = simulateModel(nodes, edges, covariates, tMax);
 
   // échelles : concentrations (mg/L) sur l'axe ; réponses (turnover) rééchelonnées
   $: concMax = Math.max(0.01, ...sim.series.filter((s) => !s.resp).flatMap((s) => s.vals));
@@ -281,9 +342,15 @@
     const targets = new Set(parameters.map((parameter) => parameter.name));
     return currentCovariates.filter((covariate) =>
       targets.has(covariate.target) &&
+      ['continuous', 'categorical'].includes(covariateType(covariate)) &&
       String(covariate.name ?? '').trim().length > 0 &&
       /^[A-Z][A-Z0-9_]{0,23}$/.test(covariateName(covariate.name)) &&
-      Number.isFinite(Number(covariate.reference)) && Number(covariate.reference) > 0 &&
+      Number.isFinite(Number(covariate.reference)) &&
+      (covariateType(covariate) === 'categorical' || Number(covariate.reference) > 0) &&
+      Number.isFinite(Number(covariate.comparison)) &&
+      (covariateType(covariate) === 'categorical'
+        ? Number(covariate.comparison) !== Number(covariate.reference)
+        : Number(covariate.comparison) > 0) &&
       Number.isFinite(Number(covariate.beta))
     );
   }
@@ -303,18 +370,44 @@
     }
     covariates = covariates.map((covariate) => ({
       ...covariate,
-      target: targets.includes(covariate.target) ? covariate.target : targets[0]
+      type: covariateType(covariate),
+      target: targets.includes(covariate.target) ? covariate.target : targets[0],
+      comparison: Number.isFinite(Number(covariate.comparison))
+        ? Number(covariate.comparison)
+        : covariateType(covariate) === 'categorical' ? 1 : Number(covariate.reference) * 1.25,
+      compare: covariate.compare !== false
     }));
   }
 
-  function addCovariate() {
+  function addCovariate(/** @type {'continuous'|'categorical'} */ type = 'continuous') {
     const target = modelParams()[0]?.name;
-    if (!target) return;
+    if (!target || covariates.length >= 10) return;
     let index = covariates.length + 1;
-    let name = index === 1 ? 'WT' : `COV${index}`;
     const existing = new Set(covariates.map((covariate) => covariateName(covariate.name)));
-    while (existing.has(name)) name = `COV${++index}`;
-    covariates = [...covariates, { id: uid++, name, target, reference: name === 'WT' ? 70 : 1, beta: 0.75 }];
+    let name = type === 'categorical'
+      ? (existing.has('SEX') ? `CAT${index}` : 'SEX')
+      : (existing.has('WT') ? `COV${index}` : 'WT');
+    while (existing.has(name)) name = `${type === 'categorical' ? 'CAT' : 'COV'}${++index}`;
+    const reference = type === 'continuous' && name === 'WT' ? 70 : type === 'continuous' ? 1 : 0;
+    covariates = [...covariates, {
+      id: uid++, name, type, target, reference,
+      comparison: type === 'continuous' ? reference * 1.25 : 1,
+      beta: type === 'continuous' ? 0.75 : 0.2,
+      compare: true
+    }];
+  }
+
+  function resetCovariateType(/** @type {Covariate} */ covariate) {
+    if (covariateType(covariate) === 'categorical') {
+      covariate.reference = 0;
+      covariate.comparison = 1;
+      covariate.beta = 0.2;
+    } else {
+      covariate.reference = covariateName(covariate.name) === 'WT' ? 70 : 1;
+      covariate.comparison = covariate.reference * 1.25;
+      covariate.beta = 0.75;
+    }
+    covariates = [...covariates];
   }
 
   /** @param {number} id */
@@ -374,8 +467,10 @@
       edges: edges.map((e) => ({ from: e.from, to: e.to, k: Number(e.k) })),
       covariates: validCovariates(modelParams(), covariates).map((covariate) => ({
         name: covariateName(covariate.name),
+        type: covariateType(covariate),
         target: covariate.target,
         reference: Number(covariate.reference),
+        comparison: Number(covariate.comparison),
         beta: Number(covariate.beta)
       }))
     };
@@ -416,7 +511,7 @@
     }
     if (C.length) {
       L.push('');
-      L.push('    # Effets simples de covariables continues, centres sur leur reference.');
+      L.push('    # Covariables : effet puissance pour une continue, effet exponentiel pour une categorie.');
       for (const covariate of C) {
         const name = covariateName(covariate.name);
         L.push(`    beta_${name}_${covariate.target} <- ${fmt(covariate.beta)}`);
@@ -436,7 +531,9 @@
         .filter((covariate) => covariate.target === p.name)
         .map((covariate) => {
           const name = covariateName(covariate.name);
-          return ` + beta_${name}_${p.name}*log(${name}/${fmt(covariate.reference)})`;
+          return covariateType(covariate) === 'categorical'
+            ? ` + beta_${name}_${p.name}*(${name} == ${fmt(covariate.comparison)})`
+            : ` + beta_${name}_${p.name}*log(${name}/${fmt(covariate.reference)})`;
         })
         .join('');
       L.push(`    ${p.name.padEnd(w)} <- exp(l${p.name}${effects}${eta})`);
@@ -492,7 +589,8 @@
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
     for (const covariate of C) {
       const name = covariateName(covariate.name);
-      L.push(`BETA_${name}_${covariate.target} : ${fmt(covariate.beta)} : effet puissance de ${name} sur ${covariate.target}`);
+      const effect = covariateType(covariate) === 'categorical' ? 'effet categoriel' : 'effet puissance';
+      L.push(`BETA_${name}_${covariate.target} : ${fmt(covariate.beta)} : ${effect} de ${name} sur ${covariate.target}`);
     }
     for (const [index, p] of randomParams.entries()) {
       L.push(`${`ETA${index + 1}`.padEnd(w)} : 0 : effet individuel sur ${p.name}`);
@@ -502,7 +600,10 @@
       L.push('$PARAM @covariates @annotated');
       for (const covariate of C) {
         const name = covariateName(covariate.name);
-        L.push(`${name} : ${fmt(covariate.reference)} : covariable continue, valeur de reference`);
+        const description = covariateType(covariate) === 'categorical'
+          ? `covariable categorielle, reference ${fmt(covariate.reference)}, modalite avec effet ${fmt(covariate.comparison)}`
+          : 'covariable continue, valeur de reference';
+        L.push(`${name} : ${fmt(covariate.reference)} : ${description}`);
       }
     }
     L.push('');
@@ -526,14 +627,16 @@
     }
     L.push('');
     L.push('$MAIN');
-    L.push('// Parametres individuels et effets simples de covariables continues.');
+    L.push('// Parametres individuels et effets simples de covariables.');
     for (const p of P) {
       const eta = etaIndex.get(p.name);
       const effects = C
         .filter((covariate) => covariate.target === p.name)
         .map((covariate) => {
           const name = covariateName(covariate.name);
-          return ` * pow(${name}/${fmt(covariate.reference)}, BETA_${name}_${p.name})`;
+          return covariateType(covariate) === 'categorical'
+            ? ` * exp(BETA_${name}_${p.name} * (${name} == ${fmt(covariate.comparison)}))`
+            : ` * pow(${name}/${fmt(covariate.reference)}, BETA_${name}_${p.name})`;
         })
         .join('');
       L.push(`double ${p.name} = TV_${p.name}${effects}${eta ? ` * exp(ETA${eta} + ETA(${eta}))` : ''};`);
@@ -715,21 +818,28 @@
     </svg>
 
     <!-- courbe simulée -->
-    <svg viewBox={`0 0 ${CW} ${CH}`} class="chart" role="img" aria-label="Simulation du modèle">
-      <g transform={`translate(${cm.left},${cm.top})`}>
-        <line x1="0" x2="0" y1="0" y2={ciH} class="axis" />
-        <line x1="0" x2={ciW} y1={ciH} y2={ciH} class="axis" />
-        {#each sim.series as s}
-          <path d={pathOf(s)} style={`stroke:${s.color}`} class="serie" class:dash={s.resp} />
-        {/each}
-        <text x={ciW / 2} y={ciH + 24} class="lbl">Temps (h)</text>
-        <g transform="translate(4,2)">
-          {#each sim.series as s, i}
-            <rect x="0" y={i * 13} width="12" height="3" style={`fill:${s.color}`} /><text x="17" y={i * 13 + 4} class="leg">{s.name}{s.resp ? ' (rééch.)' : ' (mg/L)'}</text>
+    <div class="chart-panel">
+      <svg viewBox={`0 0 ${CW} ${CH}`} class="chart" role="img" aria-label="Simulation du modèle et comparaison des covariables">
+        <g transform={`translate(${cm.left},${cm.top})`}>
+          <line x1="0" x2="0" y1="0" y2={ciH} class="axis" />
+          <line x1="0" x2={ciW} y1={ciH} y2={ciH} class="axis" />
+          {#each sim.series as s}
+            <path d={pathOf(s)} style={`stroke:${s.color}`} class="serie" class:dash={s.dash} />
           {/each}
+          <text x={ciW / 2} y={ciH + 24} class="lbl">Temps (h)</text>
         </g>
-      </g>
-    </svg>
+      </svg>
+      {#if sim.series.length}
+        <div class="chart-legend" aria-label="Légende des courbes">
+          {#each sim.series as s}
+            <span class="legend-item">
+              <i style={`--series-color:${s.color}`} class:dash={s.dash}></i>
+              <span>{s.label}{s.resp ? ' (rééch.)' : ' (mg/L)'}</span>
+            </span>
+          {/each}
+        </div>
+      {/if}
+    </div>
   </div>
 
   <div class="side">
@@ -778,16 +888,27 @@
 
     <div class="covariates-editor">
       <div class="cov-head">
-        <strong>Covariables continues</strong>
-        <button on:click={addCovariate} disabled={!parameterChoices.length} aria-label="Ajouter une covariable">+</button>
+        <strong>Covariables</strong>
+        <div class="cov-add">
+          <button on:click={() => addCovariate('continuous')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label="Ajouter une covariable continue">+ Continue</button>
+          <button on:click={() => addCovariate('categorical')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label="Ajouter une covariable catégorielle">+ Catég.</button>
+        </div>
       </div>
+      <p class="cov-help">Continue : P = TV × (COV/réf)<sup>β</sup>. Catégorielle : P = TV × exp(β) pour la modalité comparée, sinon TV.</p>
       {#each covariates as covariate}
         <div class="cov-row">
-          <label><span>Nom</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
-          <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`Supprimer ${covariate.name}`}>×</button>
-          <label class="cov-target"><span>Paramètre cible</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
-          <label><span>Référence</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
-          <label><span>β</span><input class="num" type="number" step="0.05" bind:value={covariate.beta} on:input={() => (covariates = [...covariates])} /></label>
+          <div class="cov-row-head">
+            <label><span>Nom</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
+            <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`Supprimer ${covariate.name}`}>×</button>
+          </div>
+          <div class="cov-fields">
+            <label><span>Type</span><select bind:value={covariate.type} on:change={() => resetCovariateType(covariate)}><option value="continuous">Continue</option><option value="categorical">Catégorielle</option></select></label>
+            <label class="cov-target"><span>Paramètre cible</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
+            <label><span>{covariate.type === 'categorical' ? 'Modalité réf.' : 'Référence'}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
+            <label><span>β</span><input class="num" type="number" step="0.05" bind:value={covariate.beta} on:input={() => (covariates = [...covariates])} /></label>
+            <label class="cov-comparison"><span>{covariate.type === 'categorical' ? 'Modalité comparée' : 'Valeur comparée'}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.comparison} on:input={() => (covariates = [...covariates])} /></label>
+            <label class="cov-toggle"><input type="checkbox" bind:checked={covariate.compare} on:change={() => (covariates = [...covariates])} /><span>Comparer sur la courbe</span></label>
+          </div>
         </div>
       {/each}
     </div>
@@ -847,12 +968,16 @@
   .klbl { font-family: var(--font-mono); font-size: 9px; fill: var(--text-secondary); text-anchor: middle; }
   .elim { font-family: var(--font-mono); font-size: 8px; fill: var(--accent-pk); text-anchor: middle; }
   .hintxt { text-anchor: middle; fill: var(--text-muted); font-size: 13px; }
-  .chart { width: 100%; height: auto; }
+  .chart-panel { min-width: 0; }
+  .chart { display: block; width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
   .serie { fill: none; stroke-width: 2.4; }
   .serie.dash { stroke-dasharray: 5 3; }
   .lbl { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; text-anchor: middle; }
-  .leg { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 9px; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 6px var(--space-4); padding: 0 var(--space-3); }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; min-width: 0; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .legend-item i { width: 18px; flex: 0 0 18px; border-top: 3px solid var(--series-color); }
+  .legend-item i.dash { border-top-style: dashed; }
   .side { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
   .editor, .rates, .covariates-editor { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
   .ehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3); }
@@ -873,15 +998,22 @@
   .rn { color: var(--text-secondary); white-space: nowrap; }
   .rate .num { width: 82px; }
   .rx { border: none; background: none; color: #b0392b; cursor: pointer; font-size: 15px; }
-  .cov-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
+  .cov-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
   .cov-head strong { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
-  .cov-head button { width: 28px; height: 28px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--accent-pk); border-radius: 6px; cursor: pointer; font-size: 18px; line-height: 1; }
+  .cov-add { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+  .cov-head button { min-width: 0; min-height: 28px; padding: 5px 7px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--accent-pk); border-radius: 6px; cursor: pointer; font-family: var(--font-mono); font-size: 10px; line-height: 1.2; }
   .cov-head button:disabled { opacity: 0.45; cursor: not-allowed; }
-  .cov-row { display: grid; grid-template-columns: 1fr auto; gap: 7px; padding: 9px 0; border-top: 1px solid var(--border-subtle); }
-  .cov-row label { display: grid; gap: 3px; min-width: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
+  .cov-help { margin: 0 0 var(--space-2); color: var(--text-muted); font-size: 11px; line-height: 1.45; }
+  .cov-row { padding: 10px 0; border-top: 1px solid var(--border-subtle); }
+  .cov-row-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px; margin-bottom: 8px; }
+  .cov-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .cov-row label { display: grid; align-content: end; gap: 3px; min-width: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
   .cov-row .cov-target { grid-column: 1 / -1; }
+  .cov-row .cov-comparison, .cov-row .cov-toggle { grid-column: 1 / -1; }
   .cov-row .txt, .cov-row select { width: 100%; }
   .cov-row .num { width: 100%; }
+  .cov-toggle { grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-content: start; padding-top: 2px; }
+  .cov-toggle input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent-pk); }
   .outputs { display: grid; gap: var(--space-4); margin-top: var(--space-6); min-width: 0; }
   @media (min-width: 900px) { .outputs { grid-template-columns: 1fr 1fr; } }
   .out { min-width: 0; }

@@ -72,8 +72,16 @@ test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) 
   await page.goto('/lego/');
   await page.waitForLoadState('networkidle');
   await page.locator('.toolbar button', { hasText: 'Oral 1-cpt' }).click();
-  await expect(page.locator('input[type="range"]')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Ajouter une covariable' }).click();
+    await expect(page.locator('input[type="range"]')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Ajouter une covariable continue', exact: true }).click();
+    await page.getByRole('button', { name: 'Ajouter une covariable catégorielle' }).click();
+    await expect(page.locator('.chart .serie')).toHaveCount(3);
+    await expect(page.locator('.chart-legend')).toContainText('WT = 87.5');
+    await expect(page.locator('.chart-legend')).toContainText('SEX = 1');
+    await page.locator('.cov-toggle input').first().uncheck();
+    await expect(page.locator('.chart .serie')).toHaveCount(2);
+    await page.locator('.cov-toggle input').first().check();
+    await expect(page.locator('.chart .serie')).toHaveCount(3);
 
   const bloc = page.locator('pre.codeblk code');
 
@@ -84,8 +92,10 @@ test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) 
   expect(nlmixr).toContain('model({');
   expect(nlmixr).toContain('nlmixr2(lego_model');
   expect(nlmixr).toMatch(/~ add\(add_err\) \+ prop\(prop_err\)/);
-  expect(nlmixr).toContain('beta_WT_');
-  expect(nlmixr).toContain('log(WT/70)');
+    expect(nlmixr).toContain('beta_WT_');
+    expect(nlmixr).toContain('log(WT/70)');
+    expect(nlmixr).toContain('beta_SEX_');
+    expect(nlmixr).toContain('(SEX == 1)');
 
   await page.getByRole('tab', { name: 'mrgsolve' }).click();
   const mrg = await bloc.innerText();
@@ -93,8 +103,9 @@ test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) 
   expect(mrg).toContain('$PARAM @annotated');
   expect(mrg).toContain('$OMEGA @annotated');
   expect(mrg).toContain('$SIGMA @annotated');
-  expect(mrg).toContain('$PARAM @covariates @annotated');
-  expect(mrg).toContain('pow(WT/70');
+    expect(mrg).toContain('$PARAM @covariates @annotated');
+    expect(mrg).toContain('pow(WT/70');
+    expect(mrg).toMatch(/exp\(BETA_SEX_.+ \* \(SEX == 1\)\)/);
   expect(mrg).toContain('$CMT @annotated');
   expect(mrg).toContain('$ODE');
   expect(mrg).toContain('$CAPTURE @annotated');

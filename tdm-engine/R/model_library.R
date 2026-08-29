@@ -221,10 +221,34 @@ normalize_lego_spec <- function(specification) {
     if (name %in% LEGO_RESERVED_COVARIATES || grepl("^(ETA|EPS)[0-9]*$", name)) {
       stop("Reserved Lego covariate name: ", name)
     }
+    type <- if (is.null(input$type)) {
+      "continuous"
+    } else {
+      lego_text(input$type, paste0("covariates[", index, "].type"), "^(continuous|categorical)$", 16L)
+    }
+    reference <- lego_number(
+      input$reference,
+      paste0("covariates[", index, "].reference"),
+      if (identical(type, "continuous")) 1e-12 else -1e12,
+      1e12
+    )
+    comparison_default <- if (identical(type, "continuous")) reference * 1.25 else if (reference == 0) 1 else 0
+    comparison <- lego_number(
+      input$comparison,
+      paste0("covariates[", index, "].comparison"),
+      if (identical(type, "continuous")) 1e-12 else -1e12,
+      1e12,
+      default = comparison_default
+    )
+    if (identical(type, "categorical") && comparison == reference) {
+      stop("Categorical Lego covariate reference and comparison must differ: ", name)
+    }
     list(
       name = name,
+      type = type,
       target = lego_text(input$target, paste0("covariates[", index, "].target"), "^[A-Za-z_][A-Za-z0-9_]*$", 96L),
-      reference = lego_number(input$reference, paste0("covariates[", index, "].reference"), 1e-12, 1e12),
+      reference = reference,
+      comparison = comparison,
       beta = lego_number(input$beta, paste0("covariates[", index, "].beta"), -10, 10)
     )
   })
@@ -335,7 +359,8 @@ lego_model_code <- function(specification) {
     lines <- c(lines, paste0(pad(paste0("TV_", parameter$name)), " : ", lego_format_number(parameter$value), " : ", parameter$note))
   }
   for (covariate in covariate_effects) {
-    lines <- c(lines, paste0(covariate$beta_name, " : ", lego_format_number(covariate$beta), " : power effect of ", covariate$name, " on ", covariate$target))
+    effect_label <- if (identical(covariate$type, "categorical")) "categorical effect of " else "power effect of "
+    lines <- c(lines, paste0(covariate$beta_name, " : ", lego_format_number(covariate$beta), " : ", effect_label, covariate$name, " on ", covariate$target))
   }
   for (index in seq_along(random_parameters)) {
     parameter <- random_parameters[[index]]
@@ -344,7 +369,12 @@ lego_model_code <- function(specification) {
   if (length(covariate_effects)) {
     lines <- c(lines, "", "$PARAM @covariates @annotated")
     for (covariate in covariate_effects) {
-      lines <- c(lines, paste0(covariate$name, " : ", lego_format_number(covariate$reference), " : continuous covariate, reference value"))
+      description <- if (identical(covariate$type, "categorical")) {
+        paste0("categorical covariate, reference ", lego_format_number(covariate$reference), ", affected category ", lego_format_number(covariate$comparison))
+      } else {
+        "continuous covariate, reference value"
+      }
+      lines <- c(lines, paste0(covariate$name, " : ", lego_format_number(covariate$reference), " : ", description))
     }
   }
 
@@ -375,7 +405,13 @@ lego_model_code <- function(specification) {
     effects <- Filter(function(covariate) identical(covariate$target_name, parameter$name), covariate_effects)
     effect_code <- paste0(vapply(
       effects,
-      function(covariate) paste0(" * pow(", covariate$name, "/", lego_format_number(covariate$reference), ", ", covariate$beta_name, ")"),
+      function(covariate) {
+        if (identical(covariate$type, "categorical")) {
+          paste0(" * exp(", covariate$beta_name, " * (", covariate$name, " == ", lego_format_number(covariate$comparison), "))")
+        } else {
+          paste0(" * pow(", covariate$name, "/", lego_format_number(covariate$reference), ", ", covariate$beta_name, ")")
+        }
+      },
       character(1)
     ), collapse = "")
     lines <- c(lines, paste0("double ", parameter$name, " = TV_", parameter$name, effect_code, eta, ";"))
