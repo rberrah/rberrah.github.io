@@ -1,9 +1,12 @@
 $PROB
 # Rifampicin PopPK -- Jeremiah et al. (2014)
 #
-# Source: Table 2 of Ju G et al., "Parametric Population Pharmacokinetics Model
-# Repository of Rifampicin", Clin Pharmacol Adv Appl 2025;17:49-... (ref 24 therein,
-# Jeremiah 2014, Tanzania, n=100 adults, pulmonary TB +/- HIV, 450-600 mg oral).
+# Primary source: Jeremiah K et al. Antimicrob Agents Chemother.
+# 2014;58:3468-3474. DOI: 10.1128/AAC.02307-13
+# Tanzania, n=100 adults with pulmonary TB, with or without HIV, 450-600 mg oral.
+# The structural parameters were checked against Table 2. This implementation
+# does not yet include the published HIV, nutritional-supplementation,
+# continuation-phase, or interoccasion effects.
 #
 # Structure: one compartment, first-order elimination, TRANSIT-compartment
 # absorption, and -- the reason this model is worth having -- an explicit

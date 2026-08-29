@@ -54,8 +54,17 @@ function parseModelFile(file, metadata) {
   const details = metadata[stem];
   if (!details) throw new Error(`Missing TDM metadata for ${stem}.`);
   if ('provenance' in details) throw new Error(`Application provenance is not an article source: ${stem}.`);
-  if (!details.citation || (!details.doi && !details.sourceUrl)) {
-    throw new Error(`Missing article citation or stable article link for ${stem}.`);
+  if (!details.citation || !details.doi) {
+    throw new Error(`Missing primary article citation or DOI for ${stem}.`);
+  }
+  if (!/^10\.\d{4,9}\//i.test(details.doi)) throw new Error(`Invalid DOI for ${stem}: ${details.doi}`);
+
+  const displayModel = details.model ?? model;
+  if (!details.citation.toLocaleLowerCase('fr').startsWith(displayModel.toLocaleLowerCase('fr'))) {
+    throw new Error(`Displayed model name must match the citation first author for ${stem}.`);
+  }
+  if (details.sourceStatus === 'secondary') {
+    throw new Error(`Secondary references cannot be published in the TDM catalog: ${stem}.`);
   }
 
   return {
@@ -63,7 +72,7 @@ function parseModelFile(file, metadata) {
     file,
     drugKey,
     drug,
-    model,
+    model: displayModel,
     format: 'mrgsolve/C++',
     href: `/tdm/models/${file}`,
     ...details,
@@ -80,14 +89,14 @@ function parseModelFile(file, metadata) {
 
 async function main() {
   const entries = await fs.readdir(modelsDirectory, { withFileTypes: true });
-  const files = entries
+  const allFiles = entries
     .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.cpp'))
     .map((entry) => entry.name)
     .sort((a, b) => a.localeCompare(b, 'en'));
 
-  if (!files.length) throw new Error(`No .cpp model found in ${modelsDirectory}`);
+  if (!allFiles.length) throw new Error(`No .cpp model found in ${modelsDirectory}`);
 
-  for (const file of files) {
+  for (const file of allFiles) {
     const filePath = path.join(modelsDirectory, file);
     const code = await fs.readFile(filePath, 'utf8');
     const normalized = code.replace(/[ \t]+$/gm, '');
@@ -96,10 +105,15 @@ async function main() {
 
   const metadataDocument = JSON.parse(await fs.readFile(metadataFile, 'utf8'));
   const metadata = metadataDocument.models ?? {};
+  const allIds = new Set(allFiles.map((file) => file.replace(/\.cpp$/i, '')));
+  const missingMetadata = [...allIds].filter((id) => !metadata[id]);
+  if (missingMetadata.length) throw new Error(`Missing TDM metadata for: ${missingMetadata.join(', ')}`);
+
+  const files = allFiles.filter((file) => metadata[file.replace(/\.cpp$/i, '')].listed !== false);
   const models = files.map((file) => parseModelFile(file, metadata));
   const ids = new Set(models.map((model) => model.id));
   if (ids.size !== models.length) throw new Error('Duplicate TDM model identifiers detected.');
-  const extraMetadata = Object.keys(metadata).filter((id) => !ids.has(id));
+  const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id));
   if (extraMetadata.length) throw new Error(`Metadata without a matching model: ${extraMetadata.join(', ')}`);
 
   const output = `${JSON.stringify({ version: 3, models }, null, 2)}\n`;

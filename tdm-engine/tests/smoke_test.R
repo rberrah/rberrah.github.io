@@ -18,18 +18,19 @@ source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 
 doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, ss = 0)
 observations <- data.frame(time = 47.5, concentration = 18)
-covariates <- list(WT = 70, AGE = 65, CREAT = 90, CREAT2 = 90, SEX = 0, HT = 175, DIAL = 0)
+covariates <- list(WT = 70, AGE = 65, CREAT = 90, CREAT2 = 90, CRCL = 90, SEX = 0, HT = 175, DIAL = 0)
 covariate_history <- data.frame(
   time = c(0, 47.5),
   WT = c(70, 74),
   AGE = c(65, 65),
   CREAT = c(90, 110),
   CREAT2 = c(90, 110),
+  CRCL = c(90, 110),
   SEX = c(0, 0),
   HT = c(175, 175),
   DIAL = c(0, 0)
 )
-model_ids <- c("vanco_goti", "vanco_pkjust", "vanco_revilla", "vanco_roberts")
+model_ids <- c("vanco_goti", "vanco_pkjust", "vanco_roberts")
 specifications <- lapply(model_ids, function(id) {
   record <- model_record(id)
   list(id = id, label = record$label[[1]], code = NULL)
@@ -53,7 +54,7 @@ stopifnot(identical(as.numeric(valid[[1]]$current_covariates$WT), 74))
 steady_doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 0, ss = 1)
 steady_observations <- data.frame(time = 11.5, concentration = 18)
 steady_fits <- fit_model_set(
-  specifications[4],
+  specifications[match("vanco_roberts", model_ids)],
   steady_doses,
   steady_observations,
   covariates,
@@ -68,7 +69,7 @@ steady_exposure <- current_regimen_exposure(steady_fits, c(vanco_roberts = 1), s
 stopifnot(isTRUE(steady_exposure$steady_state), !isTRUE(steady_exposure$single_dose))
 
 weights <- compute_model_weights(fits, scheme = "AIC")
-stopifnot(length(weights) == 4, abs(sum(weights) - 1) < 1e-8)
+stopifnot(length(weights) == length(model_ids), abs(sum(weights) - 1) < 1e-8)
 
 carried <- carry_covariates(
   event_times = c(0, 12, 47.5, 60),

@@ -1,9 +1,11 @@
 $PROB
 # Rifampicin PopPK -- Jing et al. (2016)
 #
-# Source: Table 2 of Ju G et al., "Parametric Population Pharmacokinetics Model
-# Repository of Rifampicin", Clin Pharmacol Adv Appl 2025;17 (ref 25 therein,
-# Jing 2016, China, n=54 adults, pulmonary TB, 150-450 mg oral).
+# Primary source: Jing Y et al. J Clin Pharmacol. 2016;56:622-627.
+# DOI: 10.1002/jcph.643
+# China, n=54 adults with pulmonary TB, 150-450 mg oral. The equations were
+# initially transcribed from the Ju et al. repository and must remain consistent
+# with the primary article.
 #
 # Structure: one-compartment open model, first-order absorption and elimination,
 # NO COVARIATES AT ALL:

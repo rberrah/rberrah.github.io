@@ -1,10 +1,11 @@
 $PROB
 # Rifampicin PopPK -- Chang et al. (2015)
 #
-# Source: Table 2 of Ju G et al., "Parametric Population Pharmacokinetics Model
-# Repository of Rifampicin", Clin Pharmacol Adv Appl 2025;17 (ref 20 therein,
-# Chang 2015, South Korea, n=54 adults, pulmonary TB with diabetes mellitus,
-# 450-600 mg oral).
+# Primary source: Chang MJ et al. Tuberculosis (Edinb). 2015;95:54-59.
+# DOI: 10.1016/j.tube.2014.10.013
+# South Korea, n=54 adults with pulmonary TB and diabetes mellitus, 450-600 mg
+# oral. The equations below were initially transcribed from the Ju et al. model
+# repository and still require comparison with the Chang full text.
 #
 # Structure: one compartment, first-order elimination, transit-compartment
 # absorption. What makes it a useful second family is that the covariate model is
