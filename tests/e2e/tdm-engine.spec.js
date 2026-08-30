@@ -10,6 +10,9 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.goto(engineUrl);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
 
+    const abisLink = page.locator('.status-disclaimer a[href="https://abis.chu-limoges.fr/"]');
+    await expect(abisLink).toHaveText('ABIS du CHU de Limoges.');
+    await expect(abisLink).toHaveAttribute('target', '_blank');
     await expect(page.locator('#administration_route')).toHaveValue('IV');
     await expect(page.locator('label[for="dose_infusion_1"]')).toContainText('0 = bolus IV');
     await page.locator('#time_entry_mode').evaluate((element) => {

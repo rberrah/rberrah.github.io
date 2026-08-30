@@ -422,7 +422,16 @@ app_ui <- page_navbar(
         class = "status-disclaimer",
         tags$strong("Avertissement obligatoire"),
         p("Ce prototype est destiné à la recherche et à l'enseignement. Il n'est pas enregistré comme dispositif médical, ne garantit ni l'exactitude d'un résultat ni son applicabilité à un patient particulier et ne remplace pas le jugement clinique."),
-        p("Toute décision de dose reste sous la responsabilité du professionnel de santé et exige la vérification de la voie, des horaires, des unités, de la population source, des covariables, des concentrations, de la fonction d'organe et des recommandations locales. Une validation indépendante et une gouvernance documentée sont nécessaires avant toute utilisation clinique.")
+        p("Toute décision de dose reste sous la responsabilité du professionnel de santé et exige la vérification de la voie, des horaires, des unités, de la population source, des covariables, des concentrations, de la fonction d'organe et des recommandations locales. Une validation indépendante et une gouvernance documentée sont nécessaires avant toute utilisation clinique."),
+        p(
+          "Si vous recherchez un véritable dispositif médical avec expertise, consultez ",
+          tags$a(
+            "ABIS du CHU de Limoges.",
+            href = "https://abis.chu-limoges.fr/",
+            target = "_blank",
+            rel = "noopener noreferrer"
+          )
+        )
       )
     )
   ),
