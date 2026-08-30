@@ -160,7 +160,43 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(html).toContain('AUC actuelle glissante');
     expect(html).toContain('Empreintes SHA-256 des modèles');
     expect(html).toContain('mapbayr');
-    expect(html).toContain('Aucun artefact ML validé et compatible');
+    expect(html).toContain("Aucun prédicteur direct d'AUC24 validé et compatible");
+  });
+
+  test("Revilla expose une AUC24 ML expérimentale avec deux prélèvements", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto(engineUrl);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.$socket?.readyState === 1);
+
+    await page.locator('#model_id-selectized').click();
+    await page.locator('.selectize-dropdown-content [data-value="vanco_pkjust"]').click();
+    await expect(page.locator('.model-context-head')).toContainText('Revilla', { timeout: 15_000 });
+    await expect(page.locator('.ml-status.available')).toContainText("prédicteur(s) direct(s) d'AUC24");
+    await expect(page.locator('#enable_experimental_ml')).toBeVisible();
+
+    await page.locator('#add_observation').click();
+    await expect(page.locator('#observation_time_2')).toBeVisible();
+    await page.locator('#observation_time_2').fill('38');
+    await page.locator('#observation_concentration_2').fill('30');
+    await page.locator('#dose_time_1').fill('36');
+    await page.locator('#dose_ss_1').check();
+    await page.locator('#enable_experimental_ml').check();
+    await page.locator('#accept_disclaimer').check();
+    await page.locator('#run_analysis').click();
+
+    const exposure = page.locator('.exposure-strip');
+    await expect(exposure).toContainText('AUC24 ML expérimentale', { timeout: 120_000 });
+    await expect(page.locator('.analysis-diagnostics')).toContainText('AUC24 ML expérimentale');
+    await expect(page.locator('#model_table')).toContainText('vanco_pkjust-intermittent-auc24-xgb-v1');
+
+    const reportPromise = page.waitForEvent('download');
+    await page.locator('#download_report').click();
+    const report = await reportPromise;
+    const stream = await report.createReadStream();
+    let html = '';
+    for await (const chunk of stream) html += chunk.toString();
+    expect(html).toContain('AUC24 ML expérimentale');
+    expect(html).toContain('vanco_pkjust-intermittent-auc24-xgb-v1');
   });
 
   test('la configuration mobile est accessible sans débordement de la zone de travail', async ({ page }) => {

@@ -1,48 +1,71 @@
-# Correcteurs hybrides PopPK + ML
+# Prédiction directe de l'AUC par PopPK + ML
 
-Ce dossier ne contient aucune donnée patient. Un artefact est optionnel et doit être lié à un seul modèle mrgsolve par son identifiant, sa voie et son empreinte SHA-256.
+Ce dossier ne contient aucune donnée patient. Il implémente la méthodologie d'entraînement de XGBoost sur des profils pharmacocinétiques simulés, validée pour le tacrolimus par Woillard et al. : doi:10.1016/j.phrs.2021.105578.
 
-Le manifeste exige trois gains RMSE strictement positifs avant toute activation de recherche : validation croisée répétée et imbriquée, jeu de test interne non touché, puis validation sur des simulations issues d'un autre modèle PopPK. Le statut clinique reste faux tant qu'une validation favorable sur patients réels indépendants n'est pas documentée.
+Le modèle ML prédit directement l'AUC24 à partir de concentrations parcimonieuses, de leurs horaires exacts, de la posologie et des covariables. La version publiée exige deux prélèvements dans le même intervalle et une administration déclarée à l'état stationnaire (`ss = 1`), conformément aux simulations d'entraînement. Il ne corrige pas un ETA et ne modifie pas la trajectoire MAP. Dans l'application, l'AUC24 ML est affichée séparément; les projections et recommandations restent calculées avec mrgsolve, mapbayr et, le cas échéant, le model averaging.
 
-Les performances doivent être comparées au MAP seul et à une régression pénalisée. La sélection des variables et des hyperparamètres reste dans les plis internes. Le jeu de test final ne sert jamais à choisir l'artefact.
+## Contrat d'artefact
 
-Les artefacts de DDI Academy ne sont pas copiés ici : ils ont été entraînés avec des couples victime-perpétrateur et des modèles de base différents.
+Un artefact est lié à un seul modèle mrgsolve par son identifiant, sa voie et son empreinte SHA-256. La validation croisée répétée et imbriquée ainsi que le jeu de test interne non touché doivent respecter les seuils préspecifiés de biais, RMSE relative et proportion d'erreurs dans ±20 %. La validation sur un autre générateur PopPK mesure séparément la transportabilité; elle ne remplace pas la validation externe sur patients utilisée dans l'article. Les résultats face au MAP et au model averaging sont rapportés sans exiger artificiellement que XGBoost surpasse le modèle qui a généré ses propres données d'entraînement.
 
-Exemple de contrat d'artefact :
+Le statut clinique reste faux tant qu'une validation favorable sur des patients réels indépendants atteints par la molécule étudiée n'est pas documentée. L'activation d'un artefact de recherche est toujours volontaire dans l'interface.
 
 ```json
 {
-  "id": "drug-author-route-v1",
+  "id": "vanco-roberts-auc24-xgb-v1",
   "drug": "Vancomycine",
   "route": "IV",
+  "administrationMode": "intermittent",
   "baseModelId": "vanco_roberts",
   "baseModelSha256": "<sha256>",
-  "artifactPath": "artifacts/drug-author-route-v1.rds",
+  "artifactPath": "artifacts/vanco-roberts-auc24-xgb-v1.rds",
+  "artifactSha256": "<sha256>",
   "featureSchema": [
-    { "name": "MAP_ETA1", "source": "eta", "key": "ETA1" },
-    { "name": "WT", "source": "covariate", "key": "WT" }
+    { "name": "WT", "source": "covariate", "key": "WT" },
+    { "name": "DOSE", "source": "regimen", "key": "DOSE" },
+    { "name": "LAST_CONC", "source": "observation", "key": "LAST_CONC" },
+    { "name": "LAST_TIME", "source": "observation", "key": "LAST_TIME" }
   ],
-  "correction": { "type": "eta_additive", "eta": "ETA1", "maxAbsDelta": 0.5 },
+  "prediction": {
+    "type": "auc24_direct",
+    "metric": "AUC24",
+    "unit": "mg.h/L",
+    "horizonHours": 24
+  },
   "validation": {
-    "repeatedNestedCvGainPct": 0,
-    "untouchedHoldoutGainPct": 0,
-    "alternatePopPkGainPct": 0,
+    "repeatedNestedCv": {
+      "passed": true,
+      "relativeRmsePct": 0,
+      "relativeBiasPct": 0,
+      "within20Pct": 0,
+      "gainVsMapPct": 0,
+      "gainVsAveragingPct": 0
+    },
+    "untouchedHoldout": { "passed": true },
+    "alternatePopPk": { "passed": true },
     "realPatient": { "status": "pending", "gainPct": null }
   }
 }
 ```
 
-Le moteur n'accepte actuellement que des boosters `xgb.Booster` RDS et une correction additive bornée d'un ETA. Toute variable manquante, empreinte différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP sans correction.
+Toute variable manquante, mode de perfusion incompatible, empreinte du modèle ou du booster différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP. Le manifeste conserve aussi la graine, les effectifs, les hyperparamètres et les versions logicielles de l'entraînement.
 
-## Evaluation vancomycine
+## Évaluation vancomycine
 
-`train_vancomycin_xgboost.R` teste uniquement Goti, Revilla et Roberts, tous par voie IV. Il ne lit aucune donnée patient, ne sauvegarde aucun booster et ne modifie jamais `manifest.json`.
+`train_vancomycin_xgboost.R` sépare les domaines d'administration. Goti et Revilla sont évalués pour la perfusion intermittente; Revilla et Roberts pour la perfusion continue. Pour chaque patient virtuel, il :
 
-Le protocole sépare le hold-out avant tout réglage, estime le gain par validation croisée répétée et imbriquée, compare XGBoost à une régression elastic net, puis teste le correcteur sur des profils simulés par les deux autres modèles PopPK. La cible est la correction de l'ETA de clairance entre une estimation MAP parcimonieuse et une estimation de référence fondée sur un profil riche. Ces simulations constituent un test méthodologique, pas une validation clinique.
+1. simule un profil riche à l'état stationnaire et calcule l'AUC24 trapézoïdale de référence;
+2. extrait deux prélèvements avec erreur résiduelle, un après la perfusion et un en fin d'intervalle;
+3. calcule les références MAP et model averaging sur les mêmes prélèvements;
+4. entraîne XGBoost et une régression elastic net sur l'AUC24 directe;
+5. mesure le biais relatif, la RMSE relative et la proportion des erreurs dans ±20 %;
+6. réserve l'autre générateur compatible avec le même mode de perfusion, totalement absent du développement, à la validation externe simulée.
 
 ```powershell
 Rscript ml/train_vancomycin_xgboost.R --smoke --base=all
-Rscript ml/train_vancomycin_xgboost.R --n=300 --base=vanco_roberts --report=ml/validation/roberts.csv
+Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=intermittent --base=vanco_pkjust --report=ml/validation/revilla.csv
+Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=continuous --base=vanco_roberts
+Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=intermittent --base=vanco_pkjust --publish-research
 ```
 
-Un candidat n'est considéré favorable que si les gains XGBoost sont strictement positifs en CV imbriquée, sur le hold-out intact et sur les PopPK alternatifs. Même dans ce cas, le script conserve `artifact_saved = FALSE`; une validation favorable sur patients réels indépendants reste obligatoire avant toute activation clinique.
+`--publish-research` est refusé en mode smoke ou avec moins de 1 000 patients virtuels par cohorte. Même après publication de recherche, `realPatient.status` reste `pending` et l'interface indique explicitement que la validation externe propre à la vancomycine n'est pas acquise.

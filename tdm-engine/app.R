@@ -523,7 +523,8 @@ app_ui <- page_navbar(
       h2("Distribution"),
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
-      p("Le moteur accepte uniquement des correcteurs hybrides explicitement liés au même modèle PK, à la même voie, au même schéma de variables et à l'empreinte exacte du fichier mrgsolve. Un artefact n'est activable que si ses validations croisée, interne non touchée et externe sont favorables. En l'absence d'artefact compatible, le moteur conserve automatiquement l'estimation MAP."),
+      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires récents, la dose, l'intervalle, la durée de perfusion et les covariables du modèle."),
+      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Son activation est volontaire et l'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
       h2("Sécurité"),
       p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
       p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données."),
@@ -814,10 +815,19 @@ server <- function(input, output, session) {
 
   output$ml_status_ui <- renderUI({
     if (identical(input$model_source %||% "library", "custom")) {
-      return(div(class = "ml-status", "ML hybride : indisponible pour un modèle de session."))
+      return(div(class = "ml-status", "ML : indisponible pour un modèle de session."))
     }
     status <- ml_status_summary(selected_model_ids(), input$administration_route %||% "")
-    div(class = if (status$available) "ml-status available" else "ml-status", status$message)
+    tagList(
+      div(class = if (status$available) "ml-status available" else "ml-status", status$message),
+      if (status$available) {
+        checkboxInput(
+          "enable_experimental_ml",
+          "Afficher l'estimation AUC24 ML expérimentale",
+          value = isTRUE(isolate(input$enable_experimental_ml))
+        )
+      }
+    )
   })
   shiny::outputOptions(output, "ml_status_ui", suspendWhenHidden = FALSE)
 
@@ -1322,7 +1332,8 @@ server <- function(input, output, session) {
           predictionInterval = as.numeric(isolate(input$prediction_interval)),
           variability = isolate(input$variability_components %||% character()),
           posteriorReplicates = as.integer(isolate(input$posterior_replicates %||% 20)),
-          blqMethod = isolate(input$blq_method %||% "exclude")
+          blqMethod = isolate(input$blq_method %||% "exclude"),
+          experimentalML = isTRUE(isolate(input$enable_experimental_ml))
         )
       )
       jsonlite::write_json(document, file, pretty = TRUE, auto_unbox = TRUE, dataframe = "rows", null = "null")
@@ -1428,6 +1439,7 @@ server <- function(input, output, session) {
       if ((settings$blqMethod %||% "") %in% c("exclude", "lloq_half")) {
         updateSelectInput(session, "blq_method", selected = settings$blqMethod)
       }
+      updateCheckboxInput(session, "enable_experimental_ml", value = isTRUE(settings$experimentalML))
 
       updateSelectInput(session, "time_entry_mode", selected = "relative_hours")
       replace_dose_rows(doses)
@@ -1561,7 +1573,11 @@ server <- function(input, output, session) {
           custom_soloc = session_model_dir,
           custom_cache = session_model_cache
         )
-        fits <- apply_hybrid_ml_to_fits(fits, route)
+        fits <- apply_hybrid_ml_to_fits(
+          fits,
+          route,
+          enabled = isTRUE(isolate(input$enable_experimental_ml))
+        )
         valid <- successful_fits(fits)
         if (!length(valid)) {
           messages <- vapply(fits, function(item) item$message %||% "Unknown error", character(1))
@@ -1692,7 +1708,7 @@ server <- function(input, output, session) {
           weighting_scheme = isolate(input$weighting_scheme %||% "AIC"),
           quality = quality,
           provenance = analysis_provenance(specifications),
-          ml_status = ml_application_summary(fits),
+          ml_status = ml_application_summary(fits, weights),
           settings = list(
             delta = delta,
             additional_doses = as.integer(isolate(input$additional_doses %||% 6)),
@@ -1763,6 +1779,13 @@ server <- function(input, output, session) {
         strong(format_metric(exposure$historical_auc24)),
         tags$small(paste0("MAP sur les dernières ", format_metric(exposure$historical_coverage_hours), " h disponibles"))
       ),
+      if (is.finite(result$ml_status$auc24 %||% NA_real_)) {
+        div(
+          span("AUC24 ML expérimentale"),
+          strong(format_metric(result$ml_status$auc24)),
+          tags$small("Estimation directe issue des prélèvements récents · non utilisée pour la recommandation")
+        )
+      },
       div(
         span("C0 actuelle"),
         strong(format_metric(exposure$historical_c0)),
@@ -1879,7 +1902,7 @@ server <- function(input, output, session) {
       table,
       rownames = FALSE,
       options = list(dom = "t", pageLength = nrow(table), scrollX = TRUE),
-      colnames = c("Modèle", "Statut", "Poids", "CL", "ETA", "ML hybride", "Détail")
+      colnames = c("Modèle", "Statut", "Poids", "CL", "ETA", "AUC24 ML", "Détail")
     )
   })
 
@@ -2043,6 +2066,9 @@ server <- function(input, output, session) {
           div(
             class = "summary",
             div(span("AUC actuelle glissante"), strong(format_metric(exposure$historical_auc24))),
+            if (is.finite(result$ml_status$auc24 %||% NA_real_)) {
+              div(span("AUC24 ML expérimentale"), strong(format_metric(result$ml_status$auc24)))
+            },
             div(span("C0 actuelle (MAP)"), strong(format_metric(exposure$historical_c0))),
             div(span("AUC0-24 à l'état stationnaire"), strong(format_metric(exposure$steady_state_auc24))),
             div(span("C0 à l'état stationnaire"), strong(format_metric(exposure$steady_state_c0))),

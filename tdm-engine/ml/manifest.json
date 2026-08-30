@@ -1,4 +1,216 @@
 {
-  "version": 1,
-  "artifacts": []
+  "version": 2,
+  "artifacts": [
+    {
+      "id": "vanco_pkjust-intermittent-auc24-xgb-v1",
+      "drug": "Vancomycine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "samplingProtocol": {
+        "minimumObservations": 2,
+        "steadyStateRequired": true,
+        "description": "post-infusion and late-interval concentrations at steady state"
+      },
+      "baseModelId": "vanco_pkjust",
+      "baseModelSha256": "29dbdbf030ebe585af586ba179ada17e3f613a07ae7ee7be8c780c99766e4453",
+      "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1.rds",
+      "artifactSha256": "2d4705d8223963cf63d9bf6a7949c0e740a32ed425c9ebe8cc33bc0ef3447a1c",
+      "featureSchema": [
+        {
+          "name": "WT",
+          "source": "covariate",
+          "key": "WT"
+        },
+        {
+          "name": "AGE",
+          "source": "covariate",
+          "key": "AGE"
+        },
+        {
+          "name": "CREAT",
+          "source": "covariate",
+          "key": "CREAT"
+        },
+        {
+          "name": "SEX",
+          "source": "covariate",
+          "key": "SEX"
+        },
+        {
+          "name": "DOSE",
+          "source": "regimen",
+          "key": "DOSE"
+        },
+        {
+          "name": "INTERVAL",
+          "source": "regimen",
+          "key": "INTERVAL"
+        },
+        {
+          "name": "INFUSION",
+          "source": "regimen",
+          "key": "INFUSION"
+        },
+        {
+          "name": "PREV_CONC",
+          "source": "observation",
+          "key": "PREV_CONC"
+        },
+        {
+          "name": "PREV_TIME",
+          "source": "observation",
+          "key": "PREV_TIME"
+        },
+        {
+          "name": "LAST_CONC",
+          "source": "observation",
+          "key": "LAST_CONC"
+        },
+        {
+          "name": "LAST_TIME",
+          "source": "observation",
+          "key": "LAST_TIME"
+        },
+        {
+          "name": "CONC_DIFF",
+          "source": "observation",
+          "key": "CONC_DIFF"
+        },
+        {
+          "name": "TIME_DIFF",
+          "source": "observation",
+          "key": "TIME_DIFF"
+        }
+      ],
+      "prediction": {
+        "type": "auc24_direct",
+        "metric": "AUC24",
+        "unit": "mg.h/L",
+        "horizonHours": 24
+      },
+      "methodology": {
+        "label": "Simulation-trained direct AUC prediction",
+        "doi": "10.1016/j.phrs.2021.105578",
+        "developmentGenerators": "vanco_pkjust",
+        "developmentModelSha256": {
+          "vanco_pkjust": "29dbdbf030ebe585af586ba179ada17e3f613a07ae7ee7be8c780c99766e4453"
+        },
+        "unseenValidationGenerator": "vanco_goti",
+        "realPatientValidation": "Pending for vancomycin"
+      },
+      "training": {
+        "seed": 20260830,
+        "nVirtualDevelopment": 1000,
+        "nTraining": 750,
+        "nUntouchedHoldout": 250,
+        "nUnseenPopPk": 1000,
+        "hyperparameters": {
+          "max_depth": 4,
+          "eta": 0.05,
+          "min_child_weight": 5,
+          "subsample": 0.8,
+          "colsample_bytree": 0.8,
+          "nrounds": 300
+        },
+        "software": {
+          "R": "R version 4.4.1 (2024-06-14 ucrt)",
+          "mrgsolve": "1.7.2",
+          "mapbayr": "0.10.2",
+          "xgboost": "3.2.1.1",
+          "glmnet": "4.1.10"
+        }
+      },
+      "trainingDomain": {
+        "auc24": {
+          "min": 100,
+          "max": 1200
+        },
+        "concentrationMax": 120,
+        "features": {
+          "WT": {
+            "min": 45.6153,
+            "max": 129.8482
+          },
+          "AGE": {
+            "min": 18.0066,
+            "max": 89.6716
+          },
+          "CREAT": {
+            "min": 35.5846,
+            "max": 259.9767
+          },
+          "SEX": {
+            "min": 0,
+            "max": 1
+          },
+          "DOSE": {
+            "min": 500,
+            "max": 2000
+          },
+          "INTERVAL": {
+            "min": 8,
+            "max": 24
+          },
+          "INFUSION": {
+            "min": 1,
+            "max": 4
+          },
+          "PREV_CONC": {
+            "min": 4.2823,
+            "max": 63.3186
+          },
+          "PREV_TIME": {
+            "min": 1.2075,
+            "max": 6.9261
+          },
+          "LAST_CONC": {
+            "min": 0.9101,
+            "max": 49.3994
+          },
+          "LAST_TIME": {
+            "min": 6.5217,
+            "max": 23.8281
+          },
+          "CONC_DIFF": {
+            "min": -33.3356,
+            "max": 7.2055
+          },
+          "TIME_DIFF": {
+            "min": 0.6643,
+            "max": 21.948
+          }
+        }
+      },
+      "validation": {
+        "repeatedNestedCv": {
+          "passed": true,
+          "relativeRmsePct": 5.1583,
+          "relativeBiasPct": -0.0242,
+          "within20Pct": 99.2667,
+          "gainVsMapPct": 30.9379,
+          "gainVsAveragingPct": 31.4181
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 3.4981,
+          "relativeBiasPct": 0.0398,
+          "within20Pct": 98.4,
+          "gainVsMapPct": 56.3964,
+          "gainVsAveragingPct": 57.2045
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 17.0008,
+          "relativeBiasPct": -3.6825,
+          "within20Pct": 72.2,
+          "gainVsMapPct": 5.3406,
+          "gainVsAveragingPct": -4.8867
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    }
+  ]
 }

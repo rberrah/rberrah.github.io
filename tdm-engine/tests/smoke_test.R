@@ -186,7 +186,49 @@ sensitivity <- model_averaging_sensitivity(
   delta = 0.2
 )
 stopifnot(nrow(sensitivity) >= 2L, all(is.finite(sensitivity$target_value)))
-stopifnot(length(read_ml_manifest()$artifacts) == 0L)
+ml_manifest <- read_ml_manifest()
+stopifnot(
+  identical(as.integer(ml_manifest$version), 2L),
+  length(ml_manifest$artifacts) == 1L,
+  identical(ml_manifest$artifacts[[1]]$id, "vanco_pkjust-intermittent-auc24-xgb-v1")
+)
+published_eligibility <- ml_artifact_eligibility(
+  ml_manifest$artifacts[[1]],
+  "vanco_pkjust",
+  "Vancomycine",
+  "IV"
+)
+stopifnot(
+  isTRUE(published_eligibility$research),
+  !isTRUE(published_eligibility$transportability),
+  !isTRUE(published_eligibility$clinical)
+)
+
+revilla_observations <- data.frame(
+  time = c(38, 47.5),
+  concentration = c(30, 18)
+)
+revilla_doses <- doses
+revilla_doses$time <- 36
+revilla_doses$count <- 1L
+revilla_doses$ss <- 1L
+revilla_fits <- fit_model_set(
+  specifications[match("vanco_pkjust", model_ids)],
+  revilla_doses,
+  revilla_observations,
+  covariates,
+  allow_custom = FALSE,
+  covariate_history = covariate_history
+)
+revilla_fits <- apply_hybrid_ml_to_fits(revilla_fits, "IV", enabled = TRUE)
+stopifnot(
+  isTRUE(revilla_fits[[1]]$ml_correction$applied),
+  identical(revilla_fits[[1]]$ml_correction$type, "auc24_direct"),
+  revilla_fits[[1]]$ml_auc24 >= 100,
+  revilla_fits[[1]]$ml_auc24 <= 1200
+)
+revilla_ml_summary <- ml_application_summary(revilla_fits, c(vanco_pkjust = 1))
+stopifnot(revilla_ml_summary$available == 1L, is.finite(revilla_ml_summary$auc24))
 
 default_fits <- fit_model_set(
   specifications[match("vanco_roberts", model_ids)],
@@ -228,6 +270,19 @@ stopifnot(isTRUE(default_distribution$posterior_available))
 
 default_fits <- apply_hybrid_ml_to_fits(default_fits, "IV")
 stopifnot(!isTRUE(default_fits[[1]]$ml_correction$applied))
+stopifnot(identical(default_fits[[1]]$ml_correction$reason, "no_compatible_artifact"))
+
+runtime_regimen <- ml_latest_regimen(default_fits[[1]])
+runtime_observations <- ml_observation_values(default_fits[[1]])
+stopifnot(
+  identical(unname(runtime_regimen[["DOSE"]]), 1000),
+  identical(unname(runtime_regimen[["INTERVAL"]]), 12),
+  identical(unname(runtime_regimen[["INFUSION"]]), 1),
+  identical(unname(runtime_observations[["LAST_CONC"]]), 18),
+  abs(runtime_observations[["LAST_TIME"]] - 11.5) < 1e-8,
+  identical(unname(runtime_observations[["HAS_PREV"]]), 0)
+)
+
 hash <- model_sha256("vanco_roberts")
 if (!is.na(hash)) {
   eligible_artifact <- list(
@@ -236,6 +291,8 @@ if (!is.na(hash)) {
     baseModelSha256 = hash,
     drug = "Vancomycine",
     route = "IV",
+    administrationMode = "intermittent",
+    prediction = list(type = "auc24_direct", metric = "AUC24", unit = "mg.h/L"),
     validation = list(
       repeatedNestedCvGainPct = 5,
       untouchedHoldoutGainPct = 3,
@@ -247,6 +304,49 @@ if (!is.na(hash)) {
   stopifnot(isTRUE(eligibility$research), !isTRUE(eligibility$clinical))
   eligible_artifact$validation$untouchedHoldoutGainPct <- -1
   stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")$research))
+
+  test_ml_root <- tempfile("tdm-ml-")
+  dir.create(test_ml_root)
+  training_matrix <- matrix(
+    c(500, 10, 1000, 18, 1500, 24, 2000, 30),
+    ncol = 2,
+    byrow = TRUE,
+    dimnames = list(NULL, c("DOSE", "LAST_CONC"))
+  )
+  training_target <- c(300, 420, 550, 700)
+  booster <- xgboost::xgb.train(
+    params = list(objective = "reg:squarederror", max_depth = 2, eta = 0.3, min_child_weight = 1, nthread = 1),
+    data = xgboost::xgb.DMatrix(training_matrix, label = training_target),
+    nrounds = 8,
+    verbose = 0
+  )
+  saveRDS(booster, file.path(test_ml_root, "direct-auc24.rds"))
+  old_ml_root <- ML_ROOT
+  ML_ROOT <- test_ml_root
+  eligible_artifact$artifactPath <- "direct-auc24.rds"
+  eligible_artifact$artifactSha256 <- digest::digest(
+    file.path(test_ml_root, "direct-auc24.rds"),
+    algo = "sha256",
+    file = TRUE,
+    serialize = FALSE
+  )
+  eligible_artifact$featureSchema <- list(
+    list(name = "DOSE", source = "regimen", key = "DOSE"),
+    list(name = "LAST_CONC", source = "observation", key = "LAST_CONC")
+  )
+  eligible_artifact$validation$untouchedHoldoutGainPct <- 3
+  ml_fit <- apply_ml_artifact(default_fits[[1]], eligible_artifact)
+  ML_ROOT <- old_ml_root
+  unlink(test_ml_root, recursive = TRUE, force = TRUE)
+  stopifnot(
+    isTRUE(ml_fit$ml_correction$applied),
+    identical(ml_fit$ml_correction$type, "auc24_direct"),
+    is.finite(ml_fit$ml_auc24),
+    ml_fit$ml_auc24 > 0,
+    !length(ml_fit$ml_eta_override %||% numeric())
+  )
+  ml_summary <- ml_application_summary(list(vanco_roberts = ml_fit), c(vanco_roberts = 1))
+  stopifnot(ml_summary$available == 1L, is.finite(ml_summary$auc24), !isTRUE(ml_summary$clinical))
 }
 
 cat("TDM engine smoke test OK\n")

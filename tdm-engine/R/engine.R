@@ -1001,7 +1001,11 @@ model_summary <- function(fits, weights) {
     )
     ml <- fit$ml_correction %||% list(applied = FALSE, reason = "not_evaluated")
     ml_label <- if (isTRUE(ml$applied)) {
-      paste0(ml$artifact_id, " · ", ml$eta, " ", if (ml$applied_delta >= 0) "+" else "", round(ml$applied_delta, 4))
+      if (identical(ml$type %||% "", "auc24_direct")) {
+        paste0(ml$artifact_id, " · AUC24 ", round(ml$auc24, 1), " ", ml$unit %||% "mg.h/L")
+      } else {
+        paste0(ml$artifact_id, " · ", ml$eta, " ", if (ml$applied_delta >= 0) "+" else "", round(ml$applied_delta, 4))
+      }
     } else {
       "Repli MAP"
     }
