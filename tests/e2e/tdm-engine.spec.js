@@ -10,7 +10,15 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.goto(engineUrl);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
 
-    await expect(page.locator('label[for="dose_infusion_1"]')).toContainText('0 = bolus ou oral');
+    await expect(page.locator('#administration_route')).toHaveValue('IV');
+    await expect(page.locator('label[for="dose_infusion_1"]')).toContainText('0 = bolus IV');
+    await page.locator('#time_entry_mode').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('relative_days');
+    });
+    await expect(page.locator('#dose_days_ago_1')).toBeAttached();
+    await page.locator('#time_entry_mode').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('relative_hours');
+    });
     await expect(page.locator('#dose_count_1')).toBeVisible();
     await page.locator('#dose_ss_1').check();
     await expect(page.locator('#dose_count_1')).not.toBeVisible();
@@ -21,6 +29,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     let downloadedJson = '';
     for await (const chunk of stream) downloadedJson += chunk.toString();
     const exportedPatient = JSON.parse(downloadedJson);
+    expect(exportedPatient.version).toBe(2);
+    expect(exportedPatient.model.route).toBe('IV');
     expect(exportedPatient.doses[0].ss).toBe(1);
     expect(exportedPatient.doses[0].count).toBe(1);
 

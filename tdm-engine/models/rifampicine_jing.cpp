@@ -3,9 +3,8 @@ $PROB
 #
 # Primary source: Jing Y et al. J Clin Pharmacol. 2016;56:622-627.
 # DOI: 10.1002/jcph.643
-# China, n=54 adults with pulmonary TB, 150-450 mg oral. The equations were
-# initially transcribed from the Ju et al. repository and must remain consistent
-# with the primary article.
+# China, n=54 adults with pulmonary TB, 150-450 mg oral. The complete primary
+# article was checked against the implementation.
 #
 # Structure: one-compartment open model, first-order absorption and elimination,
 # NO COVARIATES AT ALL:
@@ -23,11 +22,8 @@ $PROB
 # do measurably worse here, and the size of that gap is informative rather than a
 # defect.
 #
-# Note the additive residual error is large (6.55 mg/L variance as published,
-# i.e. about 2.6 mg/L SD) relative to rifampicin concentrations of order 5-15 mg/L.
-# That is what the source reports and it is not adjusted here; it means this family
-# also carries the noisiest observations, which is a second reason held-out
-# performance on it should be read carefully.
+# The additive residual standard deviation is 6.55 mg/L in Table 2. mrgsolve
+# expects SIGMA as a variance, hence 6.55^2 = 42.9025 below.
 #
 # CAVEAT ON TRANSPORTABILITY: pulmonary-tuberculosis population at doses of
 # 150-450 mg, which are LOWER than the 600-900 mg used in prosthetic-joint infection.
@@ -67,7 +63,7 @@ ETA_CL : 0.3479 : IIV on CL, from 64.5 %CV
 ETA_VD : 0.0428 : IIV on Vd, from 20.9 %CV
 
 $SIGMA @annotated @diagonal
-ADD : 6.55 : Additive residual error VARIANCE (mg/L)^2, as published
+ADD : 42.9025 : Additive residual error variance, from SD 6.55 mg/L
 
 $CMT @annotated
 DEPOT : Absorption compartment (mg) [ADM]

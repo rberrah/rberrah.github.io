@@ -33,8 +33,30 @@ covariate_history <- data.frame(
 model_ids <- c("vanco_goti", "vanco_pkjust", "vanco_roberts")
 specifications <- lapply(model_ids, function(id) {
   record <- model_record(id)
-  list(id = id, label = record$label[[1]], code = NULL)
+  list(
+    id = id,
+    label = record$label[[1]],
+    code = NULL,
+    route = "IV",
+    adm_cmt_name = model_administration_cmt(record, "IV")
+  )
 })
+
+mellon_record <- model_record("amox_mellon")
+stopifnot(identical(model_routes(mellon_record), c("IV", "Oral")))
+mellon_model <- compile_model(model_id = "amox_mellon")
+mellon_contract <- validate_model_contract(mellon_model)
+stopifnot(resolve_administration_cmt(
+  mellon_model,
+  mellon_contract,
+  list(label = "Mellon oral", adm_cmt_name = model_administration_cmt(mellon_record, "Oral"))
+) == match("DEPOT", mellon_model@cmtL))
+
+route_error <- tryCatch({
+  validate_model_route_set(list(list(route = "IV"), list(route = "Oral")))
+  NULL
+}, error = identity)
+stopifnot(inherits(route_error, "error"))
 
 fits <- fit_model_set(
   specifications,
@@ -108,6 +130,39 @@ stopifnot(all(is.finite(recommendations$auc24)))
 stopifnot(all(recommendations$auc24 > 0))
 
 best <- recommendations[1, ]
+comparison <- compare_future_regimens(
+  fits,
+  weights,
+  doses,
+  observations,
+  recommended = best,
+  additional_doses = 4,
+  delta = 0.2
+)
+stopifnot(nrow(comparison$profiles) > 0)
+stopifnot(identical(sort(unique(comparison$profiles$scenario)), sort(c(
+  "Poursuite de la dernière posologie",
+  "Application de la recommandation"
+))))
+
+distribution <- simulate_regimen_distribution(
+  fits,
+  weights,
+  dose = best$dose,
+  interval = best$interval,
+  infusion = best$infusion,
+  metric = "AUC24",
+  replicates = 60,
+  interval_level = 90,
+  delta = 0.2,
+  include_iiv = TRUE,
+  include_residual = FALSE
+)
+stopifnot(nrow(distribution$data) == 60L)
+stopifnot(all(is.finite(c(distribution$lower, distribution$median, distribution$upper))))
+stopifnot(distribution$lower <= distribution$median, distribution$median <= distribution$upper)
+stopifnot(distribution$lower < distribution$upper)
+
 cat("TDM engine smoke test OK\n")
 cat("Weights:", paste(names(weights), round(weights, 4), collapse = " | "), "\n")
 cat("Current exposure: AUC0-24", round(current_exposure$auc24, 1), "; C0", round(current_exposure$c0, 2), "\n")

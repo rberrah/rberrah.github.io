@@ -44,7 +44,35 @@ function titleCase(part) {
   return `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`;
 }
 
-function parseModelFile(file, metadata) {
+function administrationRoutes(code, stem) {
+  const cmtBlock = code.match(
+    /^\s*(?:\$CMT|\[CMT\])[^\r\n]*\r?\n([\s\S]*?)(?=^\s*(?:\$[A-Z]|\[[A-Z]+\])|(?![\s\S]))/m
+  )?.[1] ?? '';
+  const compartments = cmtBlock
+    .split(/\r?\n/)
+    .map((line) => line.match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s*:\s*(.*?)\s*\[([^\]]+)\]\s*$/))
+    .filter(Boolean)
+    .filter((match) => match[3].split(',').some((tag) => tag.trim() === 'ADM'))
+    .map((match) => ({ name: match[1], description: match[2] }));
+
+  if (!compartments.length) throw new Error(`No annotated [ADM] compartment found for ${stem}.`);
+
+  const routeCompartments = {};
+  for (const compartment of compartments) {
+    const descriptor = `${compartment.name} ${compartment.description}`;
+    const route = /oral|gut|depot|transit|absorp/i.test(descriptor) ? 'Oral' : 'IV';
+    routeCompartments[route] ??= compartment.name;
+  }
+
+  const routes = ['IV', 'Oral'].filter((route) => routeCompartments[route]);
+  return {
+    routes,
+    ivCmt: routeCompartments.IV ?? null,
+    oralCmt: routeCompartments.Oral ?? null
+  };
+}
+
+function parseModelFile(file, metadata, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
   const suffix = stem.slice(drugKey.length + 1);
@@ -66,6 +94,7 @@ function parseModelFile(file, metadata) {
   if (details.sourceStatus === 'secondary') {
     throw new Error(`Secondary references cannot be published in the TDM catalog: ${stem}.`);
   }
+  const routeDetails = administrationRoutes(code, stem);
 
   return {
     id: stem,
@@ -76,12 +105,14 @@ function parseModelFile(file, metadata) {
     format: 'mrgsolve/C++',
     href: `/tdm/models/${file}`,
     ...details,
+    ...routeDetails,
     tags: Array.from(new Set([
       drug,
       model,
       details.modelType,
       details.citation,
       details.doi,
+      ...routeDetails.routes,
       ...(details.populationTags ?? [])
     ].filter(Boolean)))
   };
@@ -110,13 +141,17 @@ async function main() {
   if (missingMetadata.length) throw new Error(`Missing TDM metadata for: ${missingMetadata.join(', ')}`);
 
   const files = allFiles.filter((file) => metadata[file.replace(/\.cpp$/i, '')].listed !== false);
-  const models = files.map((file) => parseModelFile(file, metadata));
+  const modelCode = new Map(await Promise.all(files.map(async (file) => [
+    file,
+    await fs.readFile(path.join(modelsDirectory, file), 'utf8')
+  ])));
+  const models = files.map((file) => parseModelFile(file, metadata, modelCode.get(file)));
   const ids = new Set(models.map((model) => model.id));
   if (ids.size !== models.length) throw new Error('Duplicate TDM model identifiers detected.');
   const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id));
   if (extraMetadata.length) throw new Error(`Metadata without a matching model: ${extraMetadata.join(', ')}`);
 
-  const output = `${JSON.stringify({ version: 3, models }, null, 2)}\n`;
+  const output = `${JSON.stringify({ version: 4, models }, null, 2)}\n`;
   const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
   if (previous !== output) await fs.writeFile(outputFile, output, 'utf8');
 

@@ -153,6 +153,7 @@
           <div class="model-main">
             <div class="model-kicker">
               <span class="drug">{model.drug}</span>
+              <span class="route">{model.routes.join(' + ')}</span>
             </div>
             <h3>{model.model}</h3>
             <p class="population">{model.population}</p>
@@ -280,6 +281,7 @@
   .model-card { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-5); min-height: 330px; }
   .model-kicker { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
   .drug { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-pk); text-transform: uppercase; }
+  .route { border-left: 2px solid var(--accent-pd); color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); padding-left: var(--space-2); }
   .model-card h3 { margin: var(--space-2) 0; }
   .model-card p { color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
   .model-card .population { color: var(--text-secondary); margin-top: var(--space-3); }

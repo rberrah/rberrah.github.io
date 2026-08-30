@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "models": [
     {
       "id": "amik_burdet",
@@ -19,12 +19,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Amikacine",
         "Burdet",
         "PopPK publié",
         "Burdet C et al. Eur J Clin Pharmacol. 2015;71:75-83.",
         "10.1007/s00228-014-1766-y",
+        "IV",
         "Adulte",
         "ICU",
         "Ventilé"
@@ -49,12 +55,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Amiodarone",
         "Pollak",
         "Module PK déterministe",
         "Pollak PT et al. Clin Pharmacol Ther. 2000;67:642-652.",
         "10.1067/mcp.2000.107047",
+        "Oral",
         "Adulte",
         "Cardiologie",
         "Hors ICU non précisé"
@@ -77,12 +89,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Amoxicilline",
         "Carlier",
         "PopPK publié",
         "Carlier M et al. J Antimicrob Chemother. 2013;68:2600-2608.",
         "10.1093/jac/dkt240",
+        "IV",
         "Adulte",
         "ICU"
       ]
@@ -105,12 +123,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Amoxicilline",
         "Fournier",
         "PopPK publié",
         "Fournier A et al. Antimicrob Agents Chemother. 2018;62:e00505-18.",
         "10.1128/AAC.00505-18",
+        "IV",
         "Adulte",
         "ICU",
         "Brûlé"
@@ -134,12 +158,20 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV",
+        "Oral"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": "DEPOT",
       "tags": [
         "Amoxicilline",
         "Mellon",
         "PopPK publié",
         "Mellon G et al. J Antimicrob Chemother. 2020;75:3611-3618.",
         "10.1093/jac/dkaa368",
+        "IV",
+        "Oral",
         "Adulte",
         "Obèse",
         "Hors ICU"
@@ -163,12 +195,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Amoxicilline",
         "Rambaud",
         "PopPK publié",
         "Rambaud J et al. J Antimicrob Chemother. 2020;75:2941-2950.",
         "10.1093/jac/dkaa232",
+        "IV",
         "Adulte",
         "Endocardite",
         "Hors ICU"
@@ -192,12 +230,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefazoline",
         "Cheng",
         "PopPK publié",
         "Cheng V et al. Anaesth Crit Care Pain Med. 2026;45:101653.",
         "10.1016/j.accpm.2025.101653",
+        "IV",
         "Pédiatrique",
         "Chirurgie",
         "CEC"
@@ -221,12 +265,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefazoline",
         "Lanoiselee",
         "PopPK publié",
         "Lanoiselée J et al. Sci Rep. 2021;11:19763.",
         "10.1038/s41598-021-99162-7",
+        "IV",
         "Adulte",
         "Chirurgie orthopédique",
         "Hors ICU"
@@ -250,12 +300,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefazoline",
         "Schmitz",
         "PopPK publié",
         "Schmitz ML et al. Antimicrob Agents Chemother. 2015;59:4173-4180.",
         "10.1128/AAC.00082-15",
+        "IV",
         "Pédiatrique",
         "Adulte",
         "Chirurgie"
@@ -278,12 +334,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefepime",
         "An",
         "PopPK publié",
         "An G et al. J Antimicrob Chemother. 2023;78:1460-1470.",
         "10.1093/jac/dkad106",
+        "IV",
         "Adulte",
         "ICU"
       ]
@@ -307,12 +369,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefepime",
         "Jonckheere",
         "PopPK publié",
         "Jonckheere S et al. J Antimicrob Chemother. 2016;71:2538-2546.",
         "10.1093/jac/dkw171",
+        "IV",
         "Adulte",
         "ICU",
         "Insuffisance rénale",
@@ -338,12 +406,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Cefepime",
         "Seo",
         "PopPK publié",
         "Seo H et al. Infect Chemother. 2023;55:29-41.",
         "10.3947/ic.2022.0087",
+        "IV",
         "Adulte",
         "ICU",
         "Pneumonie",
@@ -368,12 +442,18 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_CSA",
       "tags": [
         "Ciclosporine",
         "Press",
         "PopPK publié adapté",
         "Press RR et al. Eur J Clin Pharmacol. 2010;66:579-590.",
         "10.1007/s00228-010-0810-9",
+        "Oral",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU"
@@ -398,12 +478,18 @@
       "modelType": "Module de sensibilité déterministe",
       "sourceStatus": "verified",
       "note": "Validé uniquement comme module de sensibilité 50 mg; extrapolation à 150 mg non supportée.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Cobicistat",
         "Mathias",
         "Module de sensibilité déterministe",
         "Mathias AA et al. Clin Pharmacol Ther. 2010;87:322-329.",
         "10.1038/clpt.2009.228",
+        "Oral",
         "Adulte",
         "Volontaire sain",
         "Hors ICU"
@@ -427,12 +513,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Daptomycine",
         "Dvorchik IV Adults",
         "PopPK publié",
         "Dvorchik BH et al. Antimicrob Agents Chemother. 2004;48:2799-2807.",
         "10.1128/AAC.48.8.2799-2807.2004",
+        "IV",
         "Adulte",
         "Population mixte",
         "Hors ICU"
@@ -456,12 +548,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Daptomycine",
         "Garreau",
         "PopPK publié",
         "Garreau R et al. J Antimicrob Chemother. 2021;76:1250-1257.",
         "10.1093/jac/dkab006",
+        "IV",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU"
@@ -486,12 +584,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Diltiazem",
         "Hermann",
         "Module PK déterministe",
         "Hermann P et al. Eur J Clin Pharmacol. 1983;24:349-352.",
         "10.1007/BF00610053",
+        "Oral",
         "Adulte",
         "Volontaire sain",
         "Hors ICU"
@@ -516,12 +620,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Érythromycine",
         "Mather",
         "Module PK déterministe",
         "Mather LE et al. Br J Clin Pharmacol. 1981;12:131-140.",
         "10.1111/j.1365-2125.1981.tb01191.x",
+        "Oral",
         "Adulte",
         "Volontaire sain",
         "Hors ICU"
@@ -545,12 +655,18 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_EVE",
       "tags": [
         "Évérolimus",
         "Moes",
         "PopPK publié adapté",
         "Moes DJAR et al. Clin Pharmacokinet. 2012;51:467-480.",
         "10.2165/11599710-000000000-00000",
+        "Oral",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU"
@@ -575,12 +691,18 @@
       ],
       "modelType": "PopPK mécanistique adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_EVE",
       "tags": [
         "Évérolimus",
         "Terheine",
         "PopPK mécanistique adapté",
         "ter Heine R et al. Br J Clin Pharmacol. 2018;84:1575-1586.",
         "10.1111/bcp.13591",
+        "Oral",
         "Adulte",
         "Cancer",
         "Transplantation rénale",
@@ -606,12 +728,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module fondé sur une revue; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Fluconazole",
         "Debruyne",
         "Module PK déterministe",
         "Debruyne D, Ryckelynck JP. Clin Pharmacokinet. 1993;24:10-27.",
         "10.2165/00003088-199324010-00002",
+        "Oral",
         "Adulte",
         "Population mixte",
         "Hors ICU non précisé"
@@ -635,12 +763,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Gentamicine",
         "Franck",
         "PopPK publié",
         "Franck B et al. Eur J Clin Pharmacol. 2020;76:947-955.",
         "10.1007/s00228-020-02867-3",
+        "IV",
         "Adulte",
         "Âgé",
         "Hémodialyse"
@@ -664,12 +798,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Gentamicine",
         "Gomes",
         "PopPK publié",
         "Gomes A et al. PLoS One. 2017;12:e0177324.",
         "10.1371/journal.pone.0177324",
+        "IV",
         "Adulte",
         "Endocardite",
         "Hors dialyse"
@@ -693,12 +833,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Gentamicine",
         "Hodiamont",
         "PopPK publié",
         "Hodiamont CJ et al. Int J Antimicrob Agents. 2017;49:204-211.",
         "10.1016/j.ijantimicag.2016.10.022",
+        "IV",
         "Adulte",
         "ICU",
         "CRRT"
@@ -722,12 +868,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Gentamicine",
         "Rosario Clcr",
         "PopPK publié",
         "Rosario MC et al. Br J Clin Pharmacol. 1998;46:229-236.",
         "10.1046/j.1365-2125.1998.00779.x",
+        "IV",
         "Adulte",
         "Cancer",
         "Hors ICU"
@@ -751,12 +903,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Gentamicine",
         "Rosario Clinical",
         "PopPK publié",
         "Rosario MC et al. Br J Clin Pharmacol. 1998;46:229-236.",
         "10.1046/j.1365-2125.1998.00779.x",
+        "IV",
         "Adulte",
         "Cancer",
         "Hors ICU"
@@ -781,12 +939,18 @@
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
       "note": "Absorption Weibull conservée; prior résiduel adapté pour mapbayr.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Isavuconazole",
         "Desai",
         "PopPK publié adapté",
         "Desai A et al. Antimicrob Agents Chemother. 2016;60:5483-5491.",
         "10.1128/AAC.02819-15",
+        "Oral",
         "Adulte",
         "Infection fongique",
         "Population mixte"
@@ -811,12 +975,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Isavuconazole",
         "Groll",
         "Module PK déterministe",
         "Groll AH et al. Clin Pharmacol Drug Dev. 2017;6:76-85.",
         "10.1002/cpdd.284",
+        "Oral",
         "Adulte",
         "Volontaire sain",
         "Hors ICU"
@@ -840,12 +1010,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Levofloxacine",
         "Canoui",
         "PopPK publié",
         "Canouï E et al. J Antimicrob Chemother. 2022;77:1344-1352.",
         "10.1093/jac/dkac031",
+        "Oral",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU"
@@ -869,12 +1045,18 @@
       ],
       "modelType": "PK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Levofloxacine",
         "Gergs",
         "PK publié",
         "Gergs U et al. Clin Pharmacol Drug Dev. 2018;7:692-698.",
         "10.1002/cpdd.418",
+        "IV",
         "Adulte",
         "Chirurgie orthopédique",
         "Hors ICU"
@@ -900,12 +1082,18 @@
       "modelType": "PK publié adapté",
       "sourceStatus": "verified",
       "note": "Analyse PK individuelle publiée, adaptée ici comme prior populationnel.",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Linezolide",
         "Buerger",
         "PK publié adapté",
         "Buerger C et al. Antimicrob Agents Chemother. 2006;50:2455-2463.",
         "10.1128/AAC.01468-05",
+        "IV",
         "Adulte",
         "ICU",
         "Sepsis",
@@ -930,12 +1118,20 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV",
+        "Oral"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": "GUT",
       "tags": [
         "Linezolide",
         "Sasaki",
         "PopPK publié",
         "Sasaki T et al. Antimicrob Agents Chemother. 2011;55:1867-1873.",
         "10.1128/AAC.01185-10",
+        "IV",
+        "Oral",
         "Adulte",
         "Hospitalisé",
         "Hors ICU non précisé"
@@ -960,12 +1156,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Posaconazole",
         "Dolton",
         "Module PK déterministe",
         "Dolton MJ et al. Antimicrob Agents Chemother. 2014;58:6879-6885.",
         "10.1128/AAC.03777-14",
+        "Oral",
         "Adulte",
         "Infection fongique",
         "Population mixte"
@@ -981,7 +1183,7 @@
       "href": "/tdm/models/rifampicine_chang.cpp",
       "citation": "Chang MJ et al. Tuberculosis (Edinb). 2015;95:54-59.",
       "doi": "10.1016/j.tube.2014.10.013",
-      "population": "54 adultes sud-coréens avec tuberculose pulmonaire et diabète.",
+      "population": "54 adultes sud-coréens avec tuberculose pulmonaire, dont 21 avec diabète.",
       "populationTags": [
         "Adulte",
         "Tuberculose",
@@ -989,14 +1191,20 @@
         "Hors ICU"
       ],
       "modelType": "PopPK publié adapté",
-      "sourceStatus": "pending",
-      "note": "Le DOI et l'auteur primaires sont confirmés; les équations restent à contrôler sur le texte intégral.",
+      "sourceStatus": "verified",
+      "note": "Texte intégral vérifié. L'article imprime l'effet du BMI sur CL sans opérateur avant 6,22; l'interprétation historique du dépôt est conservée et signalée dans le modèle.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT",
       "tags": [
         "Rifampicine",
         "Chang",
         "PopPK publié adapté",
         "Chang MJ et al. Tuberculosis (Edinb). 2015;95:54-59.",
         "10.1016/j.tube.2014.10.013",
+        "Oral",
         "Adulte",
         "Tuberculose",
         "Diabète",
@@ -1023,12 +1231,18 @@
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
       "note": "Structure et paramètres vérifiés dans l'article; les effets VIH, supplémentation et variabilités interoccasion ne sont pas encore implémentés.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "TR1",
       "tags": [
         "Rifampicine",
         "Jeremiah",
         "PopPK publié adapté",
         "Jeremiah K et al. Antimicrob Agents Chemother. 2014;58:3468-3474.",
         "10.1128/AAC.02307-13",
+        "Oral",
         "Adulte",
         "Tuberculose",
         "VIH",
@@ -1045,21 +1259,26 @@
       "href": "/tdm/models/rifampicine_jing.cpp",
       "citation": "Jing Y et al. J Clin Pharmacol. 2016;56:622-627.",
       "doi": "10.1002/jcph.643",
-      "population": "Adultes chinois traités pour une tuberculose pulmonaire.",
+      "population": "54 adultes chinois traités par rifampicine orale pour une tuberculose pulmonaire.",
       "populationTags": [
         "Adulte",
         "Tuberculose",
         "Hors ICU"
       ],
       "modelType": "PopPK publié",
-      "sourceStatus": "pending",
-      "note": "Le DOI, l'auteur, CL et V sont confirmés; Ka et l'erreur résiduelle restent à contrôler sur le texte intégral.",
+      "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT",
       "tags": [
         "Rifampicine",
         "Jing",
         "PopPK publié",
         "Jing Y et al. J Clin Pharmacol. 2016;56:622-627.",
         "10.1002/jcph.643",
+        "Oral",
         "Adulte",
         "Tuberculose",
         "Hors ICU"
@@ -1084,12 +1303,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Rifampicine",
         "Loos",
         "Module PK déterministe",
         "Loos U et al. Klin Wochenschr. 1985;63:1205-1211.",
         "10.1007/BF01733779",
+        "Oral",
         "Adulte",
         "Volontaire sain",
         "Hors ICU"
@@ -1113,12 +1338,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "TR",
       "tags": [
         "Rifampicine",
         "Marsot",
         "PopPK publié",
         "Marsot A et al. Br J Clin Pharmacol. 2017;83:1039-1047.",
         "10.1111/bcp.13178",
+        "Oral",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU"
@@ -1143,12 +1374,18 @@
       "modelType": "Module PK déterministe",
       "sourceStatus": "verified",
       "note": "Module DDI simplifié; prior OMEGA/SIGMA d'ingénierie.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Ritonavir",
         "Kappelhoff",
         "Module PK déterministe",
         "Kappelhoff BS et al. Br J Clin Pharmacol. 2005;59:174-182.",
         "10.1111/j.1365-2125.2004.02241.x",
+        "Oral",
         "Adulte",
         "VIH",
         "Hors ICU"
@@ -1172,12 +1409,18 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_SIR",
       "tags": [
         "Sirolimus",
         "Djebli",
         "PopPK publié adapté",
         "Djebli N et al. Clin Pharmacokinet. 2006;45:1135-1148.",
         "10.2165/00003088-200645110-00007",
+        "Oral",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU"
@@ -1201,12 +1444,18 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_TAC",
       "tags": [
         "Tacrolimus",
         "Kamp Envarsus",
         "PopPK publié adapté",
         "Kamp J et al. Pharmaceutics. 2024;16:17.",
         "10.3390/pharmaceutics16010017",
+        "Oral",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU"
@@ -1230,12 +1479,18 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "DEPOT_TAC",
       "tags": [
         "Tacrolimus",
         "Woillard",
         "PopPK publié adapté",
         "Woillard JB et al. Br J Clin Pharmacol. 2011;71:391-402.",
         "10.1111/j.1365-2125.2010.03837.x",
+        "Oral",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU"
@@ -1259,12 +1514,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Vancomycine",
         "Goti",
         "PopPK publié",
         "Goti V et al. Ther Drug Monit. 2018;40:212-221.",
         "10.1097/FTD.0000000000000490",
+        "IV",
         "Adulte",
         "Hospitalisé",
         "Hémodialyse"
@@ -1287,12 +1548,18 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Vancomycine",
         "Pkjust",
         "PopPK publié",
         "Revilla N et al. Br J Clin Pharmacol. 2010;70:201-212.",
         "10.1111/j.1365-2125.2010.03679.x",
+        "IV",
         "Adulte",
         "ICU"
       ]
@@ -1316,12 +1583,18 @@
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
       "note": "La clairance utilise la clairance urinaire de créatinine sur 24 h normalisée à 1,73 m², conformément à l'article.",
+      "routes": [
+        "IV"
+      ],
+      "ivCmt": "CENT",
+      "oralCmt": null,
       "tags": [
         "Vancomycine",
         "Roberts",
         "PopPK publié",
         "Roberts JA et al. Antimicrob Agents Chemother. 2011;55:2704-2709.",
         "10.1128/AAC.01708-10",
+        "IV",
         "Adulte",
         "ICU",
         "Sepsis"
@@ -1346,12 +1619,18 @@
       "modelType": "Module PK adapté",
       "sourceStatus": "verified",
       "note": "Prior OMEGA/SIGMA d'ingénierie ajouté pour la compatibilité MAP.",
+      "routes": [
+        "Oral"
+      ],
+      "ivCmt": null,
+      "oralCmt": "GUT",
       "tags": [
         "Voriconazole",
         "Vandenborn",
         "Module PK adapté",
         "van den Born D et al. Int J Antimicrob Agents. 2023;61:106750.",
         "10.1016/j.ijantimicag.2023.106750",
+        "Oral",
         "Adulte",
         "Infection fongique",
         "Hospitalisé"

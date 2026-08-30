@@ -20,14 +20,19 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 - sélection d'un modèle de la bibliothèque ou import/collage d'un modèle produit par l'Atelier Lego;
 - compilation C++ libre uniquement en exécution locale ou sur une infrastructure isolée;
 - historique de plusieurs administrations et concentrations;
+- saisie en heures relatives, en jours avant une date de référence ou en dates/heures calendaires;
 - administrations répétées par nombre de doses ou directement à l'état stationnaire avec `ss = 1`;
+- sélection explicite de la voie IV ou orale selon les compartiments exécutables du modèle;
 - covariables générées depuis `$PARAM @covariates` et saisies à l'heure de chaque prélèvement;
 - estimation MAP bayésienne avec `mapbayr`;
-- model averaging AIC ou log-vraisemblance;
+- model averaging AIC ou log-vraisemblance, limité à une même molécule et une même voie;
 - affichage de l'AUC0-24 et de la C0 actuelles à partir des paramètres postérieurs;
 - simulation de profils individualisés;
+- comparaison de la poursuite de la dernière posologie avec l'application de la recommandation sur plusieurs doses futures;
 - classement de scénarios par AUC24, Cmin ou Cmax;
-- export CSV de la grille posologique.
+- distribution prédictive Monte Carlo configurable avec variabilité interindividuelle et erreur résiduelle;
+- export CSV de la grille posologique;
+- génération d'un rapport HTML autonome sans identifiant patient;
 - import et export JSON des administrations, observations, covariables et cibles.
 
 ## Confidentialité et absence de persistance
@@ -36,6 +41,7 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 - le JSON importé est limité à 1 Mo, validé puis supprimé immédiatement du dossier temporaire;
 - les données restent dans la mémoire de la session Shiny et sont libérées à sa fermeture;
 - le code C++ personnalisé n'est jamais inclus dans l'export patient;
+- aucune donnée patient n'est placée dans une URL partageable, un stockage navigateur ou une base de données;
 - les modèles Lego sont régénérés côté serveur puis compilés dans un dossier propre à la session, déchargés et supprimés à sa fermeture;
 - les modèles publiés sont livrés avec l'application et aucun modèle soumis par un visiteur n'est ajouté automatiquement au serveur.
 
@@ -72,4 +78,4 @@ Rscript tdm-engine/tests/safe_lego_test.R
 npm run tdm:validate-library
 ```
 
-Le smoke test estime les quatre modèles vancomycine avec des covariables variant dans le temps, calcule l'AUC0-24/C0 actuelles, leurs poids AIC et explore une petite grille de doses. Le test Lego compile un modèle contrôlé en mode public et vérifie le refus du C++ libre et des spécifications invalides. La validation de bibliothèque compile les 50 fichiers et vérifie le contrat `mapbayr` de chacun.
+Le smoke test estime trois modèles vancomycine avec des covariables variant dans le temps, calcule l'AUC0-24/C0 actuelles, leurs poids AIC, compare les doses futures et vérifie la distribution prédictive. Le test Lego compile un modèle contrôlé en mode public et vérifie le refus du C++ libre et des spécifications invalides. La validation de bibliothèque compile les 46 fichiers et vérifie le contrat `mapbayr` de chacun.

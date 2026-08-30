@@ -227,6 +227,28 @@ h6 {
   font-size: 0.8rem;
 }
 
+.timeline-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(360px, 2fr);
+  align-items: end;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+  background: #fbfcfc;
+}
+
+.timeline-controls > .form-group,
+.timeline-controls > .shiny-panel-conditional > .form-group {
+  margin-bottom: 0;
+}
+
+.timeline-controls > .shiny-panel-conditional {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.6fr);
+  gap: 10px;
+}
+
 .workspace-section h3 {
   margin: 24px 0 12px;
   font-size: 1.15rem;
@@ -287,6 +309,36 @@ h6 {
 
 .record-row .form-group {
   margin-bottom: 0;
+}
+
+.time-entry,
+.time-entry > .shiny-panel-conditional {
+  min-width: 0;
+}
+
+.compact-time-grid {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(90px, 0.7fr);
+  gap: 8px;
+}
+
+.route-readonly {
+  display: grid;
+  align-content: center;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--teal);
+  background: #eaf3f3;
+  color: #294a4d;
+  font-size: 0.76rem;
+}
+
+.route-readonly span {
+  color: var(--muted);
+}
+
+.route-readonly.compact {
+  margin-bottom: 12px;
 }
 
 .dose-repeat-control {
@@ -390,6 +442,49 @@ h6 {
   margin-bottom: 24px;
 }
 
+.comparison-strip,
+.distribution-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.distribution-strip {
+  grid-template-columns: 0.8fr 1.2fr 2fr;
+}
+
+.comparison-strip > div,
+.distribution-strip > div {
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.comparison-strip span,
+.distribution-strip span,
+.comparison-strip strong,
+.distribution-strip strong {
+  display: block;
+}
+
+.comparison-strip span,
+.distribution-strip span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.comparison-strip strong,
+.distribution-strip strong {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+}
+
 .exposure-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -462,6 +557,44 @@ h6 {
   max-width: 780px;
 }
 
+.settings-page {
+  max-width: 980px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 26px;
+}
+
+.settings-group {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.settings-group h2 {
+  margin: 0 0 18px;
+  font-size: 1.2rem;
+}
+
+.settings-privacy {
+  margin-top: 18px;
+}
+
+.status-disclaimer {
+  padding: 16px 18px;
+  border: 1px solid #dbc89e;
+  border-left: 4px solid #b16916;
+  background: #fffaf0;
+  color: #5e4b23;
+}
+
+.status-disclaimer p:last-child {
+  margin-bottom: 0;
+}
+
 .method-page h2 {
   margin-top: 32px;
   font-size: 1.3rem;
@@ -482,6 +615,11 @@ h6 {
 
   .recommendation-strip {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .comparison-strip,
+  .distribution-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .exposure-strip {
@@ -520,6 +658,14 @@ h6 {
     grid-template-columns: 1fr;
   }
 
+  .comparison-strip,
+  .distribution-strip,
+  .settings-grid,
+  .timeline-controls,
+  .timeline-controls > .shiny-panel-conditional {
+    grid-template-columns: 1fr;
+  }
+
   .exposure-strip {
     grid-template-columns: 1fr;
   }
@@ -528,7 +674,8 @@ h6 {
   .table-toolbar,
   .section-heading,
   .patient-file-actions,
-  .privacy-notice {
+  .privacy-notice,
+  .timeline-controls {
     align-items: stretch;
     flex-direction: column;
   }

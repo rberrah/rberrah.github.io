@@ -3,25 +3,21 @@ $PROB
 #
 # Primary source: Chang MJ et al. Tuberculosis (Edinb). 2015;95:54-59.
 # DOI: 10.1016/j.tube.2014.10.013
-# South Korea, n=54 adults with pulmonary TB and diabetes mellitus, 450-600 mg
-# oral. The equations below were initially transcribed from the Ju et al. model
-# repository and still require comparison with the Chang full text.
+# South Korea, n=54 adults with pulmonary TB, including 21 with diabetes
+# mellitus, 450-600 mg administered orally after an overnight fast.
 #
-# Structure: one compartment, first-order elimination, transit-compartment
-# absorption. What makes it a useful second family is that the covariate model is
-# LINEAR rather than allometric-power, and it carries a categorical DIABETES effect
-# on both volume and absorption:
+# Structure: one compartment, first-order absorption and elimination. The primary
+# article explicitly reports ADVAN2/TRANS2; no transit compartment is used.
 #
 #   CL = 6.10 + (BMI/20.3) * 6.22
 #   Vd = 48.0 + DM * 16.2
 #   Ka = 1.31 + DM * 1.56
 #
-# Structural diversity of this kind is exactly what the leave-one-model-out split
-# needs: a model whose functional form differs, not merely its numbers.
-#
-# The source table reports the absorption as transit-compartment but does not give
-# MTT or NN for this study, so plain first-order absorption is used and that
-# substitution is recorded here. It is a simplification of the published model.
+# IMPORTANT SOURCE AMBIGUITY: the printed CL equation contains
+# `(BMI/20.3)6.22` without an operator, while Table 2 reports CL 6.10 L/h and a
+# bootstrap median of 6.22 L/h. The multiplication above is the pre-existing
+# repository interpretation; it is retained and documented rather than silently
+# replacing the malformed published expression with an invented exponent.
 #
 # CAVEAT ON TRANSPORTABILITY: pulmonary-tuberculosis population with diabetes, not a
 # bone or prosthetic-joint infection population. Using it for PJI is an
@@ -41,8 +37,10 @@ $PROB
 # is osteoarticular. Provenance metadata taken from that review should be treated
 # with corresponding caution.
 #
-# IIV converted from published %CV by omega^2 = ln(1 + CV^2):
-#   CL 53.7% -> 0.2535 | Vd 32.8% -> 0.1022 | Ka 49.9% -> 0.2224
+# IIV from Table 2:
+#   CL 32.8% exponential -> ln(1 + 0.328^2) = 0.1022
+#   Vd 53.7% exponential -> ln(1 + 0.537^2) = 0.2535
+#   Ka 49.9% proportional normal -> variance 0.499^2 = 0.2490
 
 $PARAM @annotated
 CL_INT  : 6.10  : Clearance intercept (L/h)
@@ -63,9 +61,9 @@ HT  : 165.0 : Height (cm)
 DM  : 0.0   : Diabetes mellitus (0 = no, 1 = yes)
 
 $OMEGA @annotated @diagonal
-ETA_CL : 0.2535 : IIV on CL, from 53.7 %CV
-ETA_VD : 0.1022 : IIV on Vd, from 32.8 %CV
-ETA_KA : 0.2224 : IIV on Ka, from 49.9 %CV
+ETA_CL : 0.1022 : IIV on CL, from 32.8 %CV
+ETA_VD : 0.2535 : IIV on Vd, from 53.7 %CV
+ETA_KA : 0.2490 : Proportional IIV on Ka, from 49.9 %CV
 
 $SIGMA @annotated @diagonal
 PROP : 0.0144 : Proportional residual error ((0.12)^2)
@@ -92,7 +90,7 @@ if(BMI > 60.0) BMI = 60.0;
 // library. Kept exactly as published, including the intercept.
 double CL = (CL_INT + (BMI / BMIREF) * CL_BMI) * exp(ETA1 + ETA(1));
 double V  = (VD_INT + DM * VD_DM)              * exp(ETA2 + ETA(2));
-double Ka = (KA_INT + DM * KA_DM)              * exp(ETA3 + ETA(3));
+double Ka = (KA_INT + DM * KA_DM)              * (1.0 + ETA3 + ETA(3));
 
 if(CL < 0.001) CL = 0.001;
 if(V  < 1.0)   V  = 1.0;

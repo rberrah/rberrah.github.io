@@ -29,9 +29,32 @@ safe_model_id <- function(value) {
   substr(value, 1, 48)
 }
 
-catalog_choices <- function(drug = NULL) {
+model_routes <- function(record) {
+  values <- record$routes
+  if (is.list(values)) values <- values[[1]]
+  unique(as.character(values[!is.na(values) & nzchar(values)]))
+}
+
+model_supports_route <- function(record, route) {
+  route %in% model_routes(record)
+}
+
+model_administration_cmt <- function(record, route) {
+  column <- if (identical(route, "Oral")) "oralCmt" else "ivCmt"
+  value <- record[[column]]
+  if (is.list(value)) value <- value[[1]]
+  value <- as.character(value[[1]] %||% "")
+  if (is.na(value) || !nzchar(value)) stop("No ", route, " administration compartment is declared for this model.")
+  value
+}
+
+catalog_choices <- function(drug = NULL, route = NULL) {
   rows <- MODEL_CATALOG
   if (!is.null(drug)) rows <- rows[rows$drug == drug, , drop = FALSE]
+  if (!is.null(route)) {
+    keep <- vapply(seq_len(nrow(rows)), function(index) model_supports_route(rows[index, , drop = FALSE], route), logical(1))
+    rows <- rows[keep, , drop = FALSE]
+  }
   stats::setNames(rows$id, rows$label)
 }
 
