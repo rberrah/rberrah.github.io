@@ -94,7 +94,10 @@ dose_row_ui <- function(
       ),
       selected = status
     ),
-    numericInput(paste0("dose_time_uncertainty_", index), "Incertitude horaire (± h)", time_uncertainty, min = 0, max = 24, step = 0.25),
+    conditionalPanel(
+      condition = sprintf("input.dose_status_%d == 'uncertain'", index),
+      numericInput(paste0("dose_time_uncertainty_", index), "Incertitude horaire (± h)", time_uncertainty, min = 0, max = 24, step = 0.25)
+    ),
     numericInput(paste0("dose_interval_", index), "Intervalle (h)", interval, min = 0, step = 1),
     div(
       class = "dose-repeat-control",
@@ -132,7 +135,10 @@ observation_row_ui <- function(
     div(class = "time-entry", time_input_ui("observation", index, time = time)),
     numericInput(paste0("observation_concentration_", index), "Concentration", concentration, min = 0, step = 0.1),
     checkboxInput(paste0("observation_blq_", index), "Sous la limite de quantification (BLQ)", blq),
-    numericInput(paste0("observation_lloq_", index), "LLOQ", lloq, min = 0, step = 0.1),
+    conditionalPanel(
+      condition = sprintf("input.observation_blq_%d == true", index),
+      numericInput(paste0("observation_lloq_", index), "LLOQ", lloq, min = 0, step = 0.1)
+    ),
     selectInput(
       paste0("observation_matrix_", index),
       "Matrice biologique",
@@ -229,10 +235,29 @@ app_ui <- page_navbar(
                 selected = "library",
                 inline = TRUE
               ),
-              uiOutput("administration_route_ui"),
               conditionalPanel(
                 "input.model_source == 'library'",
-                selectInput("model_id", "Modèle principal", choices = model_choices, selected = DEFAULT_MODEL),
+                selectInput("model_id", "Modèle principal", choices = model_choices, selected = DEFAULT_MODEL)
+              ),
+              conditionalPanel(
+                "input.model_source == 'custom'",
+                div(
+                  class = "custom-note local",
+                  if (ALLOW_CUSTOM_MODELS) {
+                    "Mode local : le C++ libre est autorisé et s'exécute avec les droits du processus R."
+                  } else {
+                    "Serveur public : seuls les modèles portant la spécification contrôlée de l'Atelier Lego sont acceptés. Le C++ libre reste bloqué."
+                  }
+                )
+              ),
+              selectInput(
+                "administration_route",
+                "Voie d'administration",
+                choices = "IV",
+                selected = "IV"
+              ),
+              conditionalPanel(
+                "input.model_source == 'library'",
                 uiOutput("model_context_ui"),
                 uiOutput("ml_status_ui"),
                 checkboxInput("enable_averaging", "Activer le model averaging", FALSE),
@@ -246,17 +271,6 @@ app_ui <- page_navbar(
                     choices = stats::setNames(c("AIC", "LL"), c("Crit\u00e8re d'Akaike", "Log-vraisemblance")),
                     selected = "AIC"
                   )
-                )
-              ),
-              conditionalPanel(
-                "input.model_source == 'custom'",
-                div(
-                  class = "custom-note local",
-                  if (ALLOW_CUSTOM_MODELS) {
-                    "Mode local : le C++ libre est autorisé et s'exécute avec les droits du processus R."
-                  } else {
-                    "Serveur public : seuls les modèles portant la spécification contrôlée de l'Atelier Lego sont acceptés. Le C++ libre reste bloqué."
-                  }
                 )
               ),
               actionButton("validate_model", "Valider le modèle", class = "btn-outline-primary w-100")
@@ -577,7 +591,7 @@ server <- function(input, output, session) {
     status <- input[[paste0("dose_status_", index)]] %||% "administered"
     amount <- numeric_input_value(paste0("dose_amount_", index))
     interval <- numeric_input_value(paste0("dose_interval_", index))
-    uncertainty <- numeric_input_value(paste0("dose_time_uncertainty_", index), 0)
+    uncertainty <- if (identical(status, "uncertain")) numeric_input_value(paste0("dose_time_uncertainty_", index), 0) else 0
     steady_state <- isTRUE(input[[paste0("dose_ss_", index)]])
     count <- if (steady_state) 1 else numeric_input_value(paste0("dose_count_", index))
     infusion <- if (identical(input$administration_route, "Oral")) 0 else numeric_input_value(paste0("dose_infusion_", index))
@@ -598,7 +612,7 @@ server <- function(input, output, session) {
   observation_row_messages <- function(index) {
     blq <- isTRUE(input[[paste0("observation_blq_", index)]])
     concentration <- numeric_input_value(paste0("observation_concentration_", index))
-    lloq <- numeric_input_value(paste0("observation_lloq_", index))
+    lloq <- if (blq) numeric_input_value(paste0("observation_lloq_", index)) else 0
     uncertainty <- numeric_input_value(paste0("observation_time_uncertainty_", index), 0)
     matrix <- input[[paste0("observation_matrix_", index)]] %||% "unspecified"
     definition <- covariate_definition()
@@ -713,23 +727,22 @@ server <- function(input, output, session) {
     query_applied(TRUE)
   })
 
-  output$administration_route_ui <- renderUI({
+  observe({
     if (identical(input$model_source %||% "library", "custom")) {
       routes <- c("IV", "Oral")
     } else {
-      shiny::req(input$model_id)
-      routes <- model_routes(model_record(input$model_id))
+      model_id <- input$model_id %||% DEFAULT_MODEL
+      routes <- model_routes(model_record(model_id))
     }
     current <- isolate(input$administration_route %||% "")
     selected <- if (current %in% routes) current else routes[[1]]
-    selectInput(
+    updateSelectInput(
+      session,
       "administration_route",
-      "Voie d'administration",
       choices = stats::setNames(routes, routes),
       selected = selected
     )
   })
-  shiny::outputOptions(output, "administration_route_ui", suspendWhenHidden = FALSE)
 
   shiny::observeEvent(input$lego_model_import, {
     payload <- input$lego_model_import
@@ -756,9 +769,9 @@ server <- function(input, output, session) {
   }, ignoreInit = TRUE)
 
   selected_model_ids <- reactive({
-    shiny::req(input$model_id)
-    if (!identical(input$model_source, "library")) return(character())
-    ids <- if (!isTRUE(input$enable_averaging)) input$model_id else unique(c(input$model_id, input$average_model_ids %||% character()))
+    if (!identical(input$model_source %||% "library", "library")) return(character())
+    primary_id <- input$model_id %||% DEFAULT_MODEL
+    ids <- if (!isTRUE(input$enable_averaging)) primary_id else unique(c(primary_id, input$average_model_ids %||% character()))
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
     compatible <- vapply(ids, function(id) model_supports_route(model_record(id), route), logical(1))
@@ -767,8 +780,8 @@ server <- function(input, output, session) {
   })
 
   output$average_models_ui <- renderUI({
-    shiny::req(input$model_id)
-    drug <- model_record(input$model_id)$drug[[1]]
+    primary_id <- input$model_id %||% DEFAULT_MODEL
+    drug <- model_record(primary_id)$drug[[1]]
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
     choices <- catalog_choices(drug, route)
@@ -776,14 +789,13 @@ server <- function(input, output, session) {
       "average_model_ids",
       paste0("Modèles de ", drug, " · voie ", route),
       choices = choices,
-      selected = input$model_id
+      selected = primary_id
     )
   })
   shiny::outputOptions(output, "average_models_ui", suspendWhenHidden = FALSE)
 
   output$model_context_ui <- renderUI({
-    shiny::req(input$model_id)
-    record <- model_record(input$model_id)
+    record <- model_record(input$model_id %||% DEFAULT_MODEL)
     tags_value <- record$populationTags[[1]] %||% character()
     routes <- paste(model_routes(record), collapse = " + ")
     doi <- as.character(record$doi[[1]] %||% "")
@@ -970,6 +982,7 @@ server <- function(input, output, session) {
   read_doses <- function(include_missed = FALSE) {
     rows <- lapply(seq_len(isolate(dose_count())), function(index) {
       steady_state <- isTRUE(isolate(input[[paste0("dose_ss_", index)]]))
+      status <- as.character(isolate(input[[paste0("dose_status_", index)]]) %||% "administered")
       count <- if (steady_state) 1L else as.integer(isolate(input[[paste0("dose_count_", index)]]))
       data.frame(
         time = read_record_time("dose", index),
@@ -978,8 +991,8 @@ server <- function(input, output, session) {
         count = count,
         infusion = if (identical(isolate(input$administration_route), "Oral")) 0 else as.numeric(isolate(input[[paste0("dose_infusion_", index)]])),
         ss = as.integer(steady_state),
-        status = as.character(isolate(input[[paste0("dose_status_", index)]]) %||% "administered"),
-        time_uncertainty = as.numeric(isolate(input[[paste0("dose_time_uncertainty_", index)]]) %||% 0),
+        status = status,
+        time_uncertainty = if (identical(status, "uncertain")) as.numeric(isolate(input[[paste0("dose_time_uncertainty_", index)]]) %||% 0) else 0,
         stringsAsFactors = FALSE
       )
     })
@@ -999,11 +1012,12 @@ server <- function(input, output, session) {
   read_observation_records <- function() {
     definition <- isolate(covariate_definition())
     rows <- lapply(seq_len(isolate(observation_count())), function(index) {
+      blq <- isTRUE(isolate(input[[paste0("observation_blq_", index)]]))
       row <- data.frame(
         time = read_record_time("observation", index),
         concentration = as.numeric(isolate(input[[paste0("observation_concentration_", index)]])),
-        blq = isTRUE(isolate(input[[paste0("observation_blq_", index)]])),
-        lloq = as.numeric(isolate(input[[paste0("observation_lloq_", index)]]) %||% 0),
+        blq = blq,
+        lloq = if (blq) as.numeric(isolate(input[[paste0("observation_lloq_", index)]]) %||% 0) else 0,
         matrix = as.character(isolate(input[[paste0("observation_matrix_", index)]]) %||% "unspecified"),
         time_uncertainty = as.numeric(isolate(input[[paste0("observation_time_uncertainty_", index)]]) %||% 0),
         stringsAsFactors = FALSE
@@ -1487,8 +1501,7 @@ server <- function(input, output, session) {
   })
 
   output$library_code <- renderText({
-    shiny::req(input$model_id)
-    read_library_code(input$model_id)
+    read_library_code(input$model_id %||% DEFAULT_MODEL)
   })
 
   output$model_contract <- renderUI({

@@ -507,6 +507,8 @@ h6 {
 }
 
 .record-index {
+  grid-column: 1;
+  grid-row: 1 / span 20;
   display: grid;
   place-items: center;
   align-self: stretch;
@@ -863,10 +865,6 @@ h6 {
 
   .row-validation {
     grid-column: 2;
-  }
-
-  .record-index {
-    grid-row: 1 / span 20;
   }
 
   .record-row > :not(.record-index) {

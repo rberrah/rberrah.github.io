@@ -9,13 +9,68 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
   test('le serveur régénère et compile une spécification Lego contrôlée', async ({ page }) => {
     test.setTimeout(90_000);
     await page.goto(engineUrl);
-    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.$socket?.readyState === 1);
 
     const abisLink = page.locator('.status-disclaimer a[href="https://abis.chu-limoges.fr/"]');
     await expect(abisLink).toHaveText('ABIS du CHU de Limoges.');
     await expect(abisLink).toHaveAttribute('target', '_blank');
     await expect(page.locator('#administration_route')).toHaveValue('IV');
     await expect(page.locator('label[for="dose_infusion_1"]')).toContainText('0 = bolus IV');
+
+    const controlPositions = await page.evaluate(() => {
+      const model = document.querySelector('#model_id')?.closest('.shiny-input-container');
+      const route = document.querySelector('#administration_route')?.closest('.shiny-input-container');
+      if (!model || !route) throw new Error('Les contrôles modèle et voie doivent être visibles.');
+      return { modelTop: model.getBoundingClientRect().top, routeTop: route.getBoundingClientRect().top };
+    });
+    expect(controlPositions.routeTop).toBeGreaterThan(controlPositions.modelTop);
+
+    const intervalInput = page.locator('#dose_interval_1');
+    await expect(intervalInput).toBeVisible();
+    expect((await intervalInput.boundingBox())?.width).toBeGreaterThan(100);
+    await intervalInput.fill('8');
+    await expect(intervalInput).toHaveValue('8');
+
+    await expect(page.locator('#dose_time_uncertainty_1')).not.toBeVisible();
+    await page.locator('#dose_status_1').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('uncertain');
+    });
+    await expect(page.locator('#dose_time_uncertainty_1')).toBeVisible();
+    await page.locator('#dose_time_uncertainty_1').fill('2');
+    await page.locator('#dose_status_1').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('administered');
+    });
+    await expect(page.locator('#dose_time_uncertainty_1')).not.toBeVisible();
+
+    await expect(page.locator('#observation_lloq_1')).not.toBeVisible();
+    await page.locator('#observation_blq_1').check();
+    await expect(page.locator('#observation_lloq_1')).toBeVisible();
+    expect((await page.locator('#observation_lloq_1').boundingBox())?.width).toBeGreaterThan(100);
+    await page.locator('#observation_lloq_1').fill('1');
+    await page.locator('#observation_blq_1').uncheck();
+    await expect(page.locator('#observation_lloq_1')).not.toBeVisible();
+
+    await page.waitForFunction(() => !document.documentElement.classList.contains('shiny-busy'));
+    await page.locator('#model_id-selectized').click();
+    await page.locator('.selectize-dropdown-content [data-value="tacrolimus_woillard_ddi"]').click();
+    await expect(page.locator('.model-context-head')).toContainText('Woillard', { timeout: 15_000 });
+    await expect(page.locator('#administration_route')).toHaveValue('Oral');
+    await expect(page.locator('#dose_infusion_1')).not.toBeVisible();
+    await expect(page.locator('.dose-row .route-readonly')).toContainText('perfusion est imposée à 0 h');
+
+    await page.locator('#model_id-selectized').click();
+    await page.locator('.selectize-dropdown-content [data-value="amox_mellon"]').click();
+    await expect(page.locator('.model-context-head')).toContainText('Mellon', { timeout: 15_000 });
+    await expect(page.locator('#administration_route')).toHaveValue('Oral');
+    const mellonRoutes = await page.locator('#administration_route').evaluate((element) => {
+      return Object.keys(/** @type {any} */ (element).selectize.options).sort();
+    });
+    expect(mellonRoutes).toEqual(['IV', 'Oral']);
+    await page.locator('#administration_route').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('IV');
+    });
+    await expect(page.locator('#dose_infusion_1')).toBeVisible();
+
     await page.locator('#time_entry_mode').evaluate((element) => {
       /** @type {any} */ (element).selectize.setValue('relative_days');
     });
@@ -38,6 +93,9 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(exportedPatient.doses[0].ss).toBe(1);
     expect(exportedPatient.doses[0].count).toBe(1);
     expect(exportedPatient.doses[0].status).toBe('administered');
+    expect(exportedPatient.doses[0].time_uncertainty).toBe(0);
+    expect(exportedPatient.observations[0].blq).toBe(false);
+    expect(exportedPatient.observations[0].lloq).toBe(0);
 
     const specification = {
       version: 1,
