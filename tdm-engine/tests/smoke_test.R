@@ -15,6 +15,7 @@ APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/
 
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
 doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, ss = 0)
 observations <- data.frame(time = 47.5, concentration = 18)
@@ -107,9 +108,11 @@ stopifnot(all(is.finite(profiles$average$concentration)))
 summary_table <- model_summary(fits, weights)
 stopifnot(nrow(summary_table) == length(model_ids))
 
-current_exposure <- current_regimen_exposure(fits, weights, doses)
+current_exposure <- current_regimen_exposure(fits, weights, doses, observations)
 stopifnot(is.finite(current_exposure$auc24), current_exposure$auc24 > 0)
 stopifnot(is.finite(current_exposure$c0), current_exposure$c0 >= 0)
+stopifnot(is.finite(current_exposure$steady_state_auc24), current_exposure$steady_state_auc24 > 0)
+stopifnot(is.finite(current_exposure$steady_state_c0), current_exposure$steady_state_c0 >= 0)
 stopifnot(identical(current_exposure$interval, 12))
 
 recommendations <- recommend_regimens(
@@ -123,6 +126,18 @@ recommendations <- recommend_regimens(
   metric = "AUC24",
   target_low = 400,
   target_high = 600
+)
+
+recommendations <- rank_regimens_by_pta(
+  recommendations,
+  fits,
+  weights,
+  metric = "AUC24",
+  target_low = 400,
+  target_high = 600,
+  replicates = 40,
+  delta = 0.2,
+  top_n = 3
 )
 
 stopifnot(nrow(recommendations) == 9)
@@ -141,8 +156,8 @@ comparison <- compare_future_regimens(
 )
 stopifnot(nrow(comparison$profiles) > 0)
 stopifnot(identical(sort(unique(comparison$profiles$scenario)), sort(c(
-  "Poursuite de la dernière posologie",
-  "Application de la recommandation"
+  SCENARIO_MAINTAIN,
+  SCENARIO_RECOMMENDED
 ))))
 
 distribution <- simulate_regimen_distribution(
@@ -155,13 +170,84 @@ distribution <- simulate_regimen_distribution(
   replicates = 60,
   interval_level = 90,
   delta = 0.2,
-  include_iiv = TRUE,
+  include_posterior = TRUE,
   include_residual = FALSE
 )
 stopifnot(nrow(distribution$data) == 60L)
 stopifnot(all(is.finite(c(distribution$lower, distribution$median, distribution$upper))))
 stopifnot(distribution$lower <= distribution$median, distribution$median <= distribution$upper)
 stopifnot(distribution$lower < distribution$upper)
+
+sensitivity <- model_averaging_sensitivity(
+  fits, weights,
+  dose_min = 500, dose_max = 1500, dose_step = 500,
+  intervals = c(8, 12, 24), infusion = 1,
+  metric = "AUC24", target_low = 400, target_high = 600,
+  delta = 0.2
+)
+stopifnot(nrow(sensitivity) >= 2L, all(is.finite(sensitivity$target_value)))
+stopifnot(length(read_ml_manifest()$artifacts) == 0L)
+
+default_fits <- fit_model_set(
+  specifications[match("vanco_roberts", model_ids)],
+  doses,
+  observations,
+  list(WT = 74.8, CRCL = 90.7),
+  allow_custom = FALSE,
+  covariate_history = data.frame(time = 47.5, WT = 74.8, CRCL = 90.7)
+)
+default_weights <- compute_model_weights(default_fits, "AIC")
+default_recommendations <- recommend_regimens(
+  default_fits, default_weights,
+  dose_min = 250, dose_max = 2000, dose_step = 250,
+  intervals = c(8, 12, 24), infusion = 1,
+  metric = "AUC24", target_low = 400, target_high = 600,
+  delta = 0.1
+)
+default_recommendations <- rank_regimens_by_pta(
+  default_recommendations, default_fits, default_weights,
+  metric = "AUC24", target_low = 400, target_high = 600,
+  replicates = 150, delta = 0.1
+)
+default_best <- default_recommendations[1, , drop = FALSE]
+default_sensitivity <- model_averaging_sensitivity(
+  default_fits, default_weights,
+  dose_min = 250, dose_max = 2000, dose_step = 250,
+  intervals = c(8, 12, 24), infusion = 1,
+  metric = "AUC24", target_low = 400, target_high = 600,
+  delta = 0.1
+)
+default_distribution <- simulate_regimen_distribution(
+  default_fits, default_weights,
+  dose = default_best$dose, interval = default_best$interval, infusion = 1,
+  metric = "AUC24", replicates = 250, interval_level = 90, delta = 0.1,
+  include_posterior = TRUE, include_residual = FALSE, include_timing = FALSE
+)
+stopifnot(nrow(default_sensitivity) == 1L, nrow(default_distribution$data) == 250L)
+stopifnot(isTRUE(default_distribution$posterior_available))
+
+default_fits <- apply_hybrid_ml_to_fits(default_fits, "IV")
+stopifnot(!isTRUE(default_fits[[1]]$ml_correction$applied))
+hash <- model_sha256("vanco_roberts")
+if (!is.na(hash)) {
+  eligible_artifact <- list(
+    id = "test-artifact",
+    baseModelId = "vanco_roberts",
+    baseModelSha256 = hash,
+    drug = "Vancomycine",
+    route = "IV",
+    validation = list(
+      repeatedNestedCvGainPct = 5,
+      untouchedHoldoutGainPct = 3,
+      alternatePopPkGainPct = 2,
+      realPatient = list(status = "pending")
+    )
+  )
+  eligibility <- ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")
+  stopifnot(isTRUE(eligibility$research), !isTRUE(eligibility$clinical))
+  eligible_artifact$validation$untouchedHoldoutGainPct <- -1
+  stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")$research))
+}
 
 cat("TDM engine smoke test OK\n")
 cat("Weights:", paste(names(weights), round(weights, 4), collapse = " | "), "\n")

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 const engineUrl = /** @type {any} */ (globalThis).process?.env?.TDM_ENGINE_E2E_URL;
 
 test.describe('pont Atelier Lego vers le moteur TDM', () => {
+  test.describe.configure({ mode: 'serial' });
   test.skip(!engineUrl, 'Définir TDM_ENGINE_E2E_URL pour tester un moteur Shiny local.');
 
   test('le serveur régénère et compile une spécification Lego contrôlée', async ({ page }) => {
@@ -32,10 +33,11 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     let downloadedJson = '';
     for await (const chunk of stream) downloadedJson += chunk.toString();
     const exportedPatient = JSON.parse(downloadedJson);
-    expect(exportedPatient.version).toBe(2);
+    expect(exportedPatient.version).toBe(3);
     expect(exportedPatient.model.route).toBe('IV');
     expect(exportedPatient.doses[0].ss).toBe(1);
     expect(exportedPatient.doses[0].count).toBe(1);
+    expect(exportedPatient.doses[0].status).toBe('administered');
 
     const specification = {
       version: 1,
@@ -71,5 +73,64 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('#validate_model').click();
     await expect(page.locator('.status-pill.ok')).toHaveText('Modèle valide', { timeout: 60_000 });
     await expect(page.locator('.contract-ok')).toContainText('Contrat mapbayr valide');
+  });
+
+  test('une analyse expose historique, état stationnaire, PTA et traçabilité', async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.goto(engineUrl);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+
+    await page.locator('#accept_disclaimer').check();
+    await page.locator('#run_analysis').click();
+
+    const exposure = page.locator('.exposure-strip');
+    await expect(exposure).toContainText('AUC actuelle', { timeout: 120_000 });
+    await expect(exposure).toContainText("AUC0-24 à l'état stationnaire");
+    await expect(exposure).toContainText('C0 actuelle');
+    await expect(page.locator('#future_comparison_plot img')).toBeVisible();
+    await expect(page.locator('#averaging_sensitivity_table')).toBeVisible();
+    await page.locator('#analysis_tabs a[data-value="dosing"]').click();
+    await expect(page.locator('.recommendation-strip')).toContainText("Probabilité d'atteindre la cible");
+    await page.locator('#analysis_tabs a[data-value="fit"]').click();
+
+    const reportPromise = page.waitForEvent('download');
+    await page.locator('#download_report').click();
+    const report = await reportPromise;
+    const stream = await report.createReadStream();
+    let html = '';
+    for await (const chunk of stream) html += chunk.toString();
+    expect(html).toContain('AUC actuelle glissante');
+    expect(html).toContain('Empreintes SHA-256 des modèles');
+    expect(html).toContain('mapbayr');
+    expect(html).toContain('Aucun artefact ML validé et compatible');
+  });
+
+  test('la configuration mobile est accessible sans débordement de la zone de travail', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(engineUrl);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+
+    await expect(page.locator('.mobile-configure-button')).toBeVisible();
+    await expect(page.locator('#dose_status_1')).toContainText('Administrée');
+    const widths = await page.evaluate(() => {
+      const main = document.querySelector('.bslib-sidebar-layout > .main');
+      const workspace = document.querySelector('.workspace');
+      return {
+        bodyClient: document.body.clientWidth,
+        bodyScroll: document.body.scrollWidth,
+        mainClient: main?.clientWidth || 0,
+        mainScroll: main?.scrollWidth || 0,
+        workspaceClient: workspace?.clientWidth || 0,
+        workspaceScroll: workspace?.scrollWidth || 0
+      };
+    });
+    expect(widths.bodyScroll).toBeLessThanOrEqual(widths.bodyClient + 1);
+    expect(widths.mainScroll).toBeLessThanOrEqual(widths.mainClient + 1);
+    expect(widths.workspaceScroll).toBeLessThanOrEqual(widths.workspaceClient + 1);
+
+    await page.locator('.mobile-configure-button').click();
+    await expect(page.locator('.collapse-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.collapse-toggle')).toHaveAttribute('aria-label', 'Fermer la configuration');
+    await expect(page.locator('.sidebar-heading')).toBeVisible();
   });
 });

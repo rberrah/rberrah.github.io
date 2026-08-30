@@ -149,7 +149,7 @@ fit_one_model <- function(
     estimate <- mapbayr::mapbayest(
       x = model,
       data = data,
-      hessian = TRUE,
+      hessian = stats::optimHess,
       verbose = FALSE,
       progress = FALSE
     )
@@ -162,9 +162,16 @@ fit_one_model <- function(
     estimate = estimate,
     data = data,
     contract = contract,
-    current_covariates = current_covariates
+    current_covariates = current_covariates,
+    source_doses = doses,
+    source_observations = observations,
+    source_covariates = model_covariates,
+    source_covariate_history = covariate_history
   )
 }
+
+SCENARIO_MAINTAIN <- "Poursuite de la derni\u00e8re posologie"
+SCENARIO_RECOMMENDED <- "Application de la recommandation"
 
 fit_model_set <- function(
   specifications,
@@ -225,6 +232,9 @@ compute_model_weights <- function(fits, scheme = "AIC") {
 
 individual_model <- function(fit) {
   model <- if (is.null(fit$estimate)) fit$model else mapbayr::use_posterior(fit$estimate)
+  if (length(fit$ml_eta_override %||% numeric())) {
+    model <- safe_param(model, as.list(fit$ml_eta_override))
+  }
   model <- safe_param(model, fit$current_covariates %||% list())
   mrgsolve::zero_re(model)
 }
@@ -299,7 +309,81 @@ simulate_averaged_regimen <- function(fits, weights, dose, interval, infusion, h
   list(profile = averaged, metrics = profile_metrics(averaged), per_model = profiles)
 }
 
-current_regimen_exposure <- function(fits, weights, doses) {
+simulate_known_history <- function(fit, end_time, delta = 0.05) {
+  model <- individual_model(fit)
+  event_columns <- c("ID", "time", "evid", "cmt", "amt", "rate", "ii", "addl", "ss")
+  covariate_names <- intersect(names(fit$current_covariates %||% list()), model_param_names(model))
+  columns <- c(event_columns, covariate_names)
+  history <- fit$data[fit$data$evid == 1, , drop = FALSE]
+  for (name in setdiff(columns, names(history))) history[[name]] <- 0
+  history <- history[, columns, drop = FALSE]
+  simulation <- mrgsolve::mrgsim_d(
+    model,
+    data = history,
+    start = 0,
+    end = max(0, end_time),
+    delta = delta,
+    recsort = 3
+  ) |>
+    as.data.frame()
+  column <- pick_concentration_column(simulation)
+  data.frame(
+    time = simulation$time,
+    concentration = pmax(0, simulation[[column]]),
+    model = fit$id,
+    stringsAsFactors = FALSE
+  )
+}
+
+historical_exposure <- function(fits, weights, doses, observations = data.frame(), delta = 0.05) {
+  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
+  last_administration <- doses$time + ifelse(dose_ss == 1L, 0, doses$interval * pmax(0, doses$count - 1))
+  observation_end <- if (nrow(observations)) max(observations$time, na.rm = TRUE) else -Inf
+  decision_time <- max(max(last_administration, na.rm = TRUE), observation_end)
+  context <- regimen_context(doses, observations)
+  current_c0_time <- context$future_start
+  window_start <- max(0, decision_time - 24)
+  valid <- successful_fits(fits)
+  profiles <- lapply(valid, simulate_known_history, end_time = current_c0_time, delta = delta)
+  names(profiles) <- names(valid)
+  average <- average_profiles(profiles, weights)
+  rows <- average$time >= window_start - 1e-8 & average$time <= decision_time + 1e-8
+  current <- if (nrow(average) < 2L) {
+    average$concentration[[nrow(average)]]
+  } else {
+    stats::approx(
+      average$time,
+      average$concentration,
+      xout = decision_time,
+      rule = 2,
+      ties = "ordered"
+    )$y[[1]]
+  }
+  current_c0 <- if (nrow(average) < 2L) {
+    average$concentration[[nrow(average)]]
+  } else {
+    stats::approx(
+      average$time,
+      average$concentration,
+      xout = current_c0_time,
+      rule = 2,
+      ties = "ordered"
+    )$y[[1]]
+  }
+  auc <- if (sum(rows) < 2L) 0 else trap_auc(average$time[rows], average$concentration[rows])
+  list(
+    auc24 = auc,
+    concentration = current,
+    c0 = current_c0,
+    c0_time = current_c0_time,
+    decision_time = decision_time,
+    window_start = window_start,
+    coverage_hours = decision_time - window_start,
+    profile = average
+  )
+}
+
+current_regimen_exposure <- function(fits, weights, doses, observations = data.frame()) {
   if (!nrow(doses)) stop("At least one administered dose is required.")
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
   last_administration <- doses$time + ifelse(dose_ss == 1L, 0, doses$interval * pmax(0, doses$count - 1))
@@ -349,9 +433,20 @@ current_regimen_exposure <- function(fits, weights, doses) {
     ties = "ordered"
   )$y[[1]]
 
+  history <- historical_exposure(fits, weights, doses, observations)
+
   list(
-    auc24 = auc24,
-    c0 = c0,
+    auc24 = history$auc24,
+    c0 = history$c0,
+    historical_auc24 = history$auc24,
+    historical_concentration = history$concentration,
+    historical_c0 = history$c0,
+    historical_c0_time = history$c0_time,
+    historical_window_start = history$window_start,
+    historical_decision_time = history$decision_time,
+    historical_coverage_hours = history$coverage_hours,
+    steady_state_auc24 = auc24,
+    steady_state_c0 = c0,
     dose = dose,
     interval = interval,
     recorded_interval = recorded_interval,
@@ -486,17 +581,16 @@ compare_future_regimens <- function(
   current <- context$regimen
   current_interval <- context$interval
   current_infusion <- as.numeric(current$infusion[[1]])
-  scenarios <- list(
-    "Poursuite de la dernière posologie" = list(
-      dose = as.numeric(current$amount[[1]]),
-      interval = current_interval,
-      infusion = current_infusion
-    ),
-    "Application de la recommandation" = list(
-      dose = as.numeric(recommended$dose[[1]]),
-      interval = as.numeric(recommended$interval[[1]]),
-      infusion = as.numeric(recommended$infusion[[1]] %||% current_infusion)
-    )
+  scenarios <- list()
+  scenarios[[SCENARIO_MAINTAIN]] <- list(
+    dose = as.numeric(current$amount[[1]]),
+    interval = current_interval,
+    infusion = current_infusion
+  )
+  scenarios[[SCENARIO_RECOMMENDED]] <- list(
+    dose = as.numeric(recommended$dose[[1]]),
+    interval = as.numeric(recommended$interval[[1]]),
+    infusion = as.numeric(recommended$infusion[[1]] %||% current_infusion)
   )
   maximum_interval <- max(vapply(scenarios, `[[`, numeric(1), "interval"))
   end_time <- context$future_start + max(1L, as.integer(additional_doses)) * maximum_interval
@@ -529,6 +623,99 @@ compare_future_regimens <- function(
   )
 }
 
+draw_multivariate_normal <- function(count, center, covariance) {
+  center <- as.numeric(center)
+  covariance <- as.matrix(covariance)
+  if (!length(center)) return(matrix(numeric(), nrow = count, ncol = 0))
+  covariance <- (covariance + t(covariance)) / 2
+  decomposition <- eigen(covariance, symmetric = TRUE)
+  values <- pmax(decomposition$values, 0)
+  transform <- decomposition$vectors %*% diag(sqrt(values), nrow = length(values))
+  draws <- matrix(stats::rnorm(count * length(center)), nrow = count) %*% t(transform)
+  sweep(draws, 2, center, "+")
+}
+
+timing_eta_offsets <- function(fit, count, seed = 419) {
+  if (is.null(fit$estimate) || count <= 0) return(matrix(numeric(), nrow = 0, ncol = 0))
+  doses <- fit$source_doses
+  observations <- fit$source_observations
+  dose_uncertainty <- suppressWarnings(as.numeric(doses$time_uncertainty %||% rep(0, nrow(doses))))
+  observation_uncertainty <- suppressWarnings(as.numeric(observations$time_uncertainty %||% rep(0, nrow(observations))))
+  dose_uncertainty[!is.finite(dose_uncertainty)] <- 0
+  observation_uncertainty[!is.finite(observation_uncertainty)] <- 0
+  if (!any(c(dose_uncertainty, observation_uncertainty) > 0)) {
+    return(matrix(numeric(), nrow = 0, ncol = 0))
+  }
+
+  center_source <- fit$estimate$final_eta[[1]]
+  center <- as.numeric(center_source)
+  names(center) <- names(center_source)
+  set.seed(seed)
+  rows <- lapply(seq_len(min(20L, as.integer(count))), function(index) {
+    jittered_doses <- doses
+    jittered_observations <- observations
+    jittered_doses$time <- pmax(0, doses$time + stats::runif(nrow(doses), -dose_uncertainty, dose_uncertainty))
+    if (nrow(observations)) {
+      shifts <- stats::runif(nrow(observations), -observation_uncertainty, observation_uncertainty)
+      jittered_observations$time <- pmax(0, observations$time + shifts)
+    }
+    data <- build_map_data(
+      doses = jittered_doses,
+      observations = jittered_observations,
+      adm_cmt = fit$contract$adm_cmt,
+      obs_cmt = fit$contract$obs_cmt,
+      covariates = fit$source_covariates,
+      covariate_history = fit$source_covariate_history
+    )
+    eta <- tryCatch(
+      mapbayr::mapbayest(
+        x = fit$model,
+        data = data,
+        hessian = FALSE,
+        output = "eta",
+        verbose = FALSE,
+        progress = FALSE
+      ),
+      error = function(error) NULL
+    )
+    if (is.null(eta)) return(NULL)
+    as.numeric(eta[1, ]) - center
+  })
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) return(matrix(numeric(), nrow = 0, ncol = 0))
+  output <- do.call(rbind, rows)
+  colnames(output) <- names(center)
+  output
+}
+
+posterior_eta_draws <- function(fit, count, include_posterior = TRUE, include_timing = FALSE, timing_refits = 20L, seed = 381) {
+  if (is.null(fit$estimate)) {
+    return(list(draws = NULL, available = FALSE, mode = if (include_posterior) "population_iiv" else "population_fixed", timing_available = FALSE))
+  }
+  center <- fit$ml_eta_override %||% fit$estimate$final_eta[[1]]
+  covariance <- fit$estimate$covariance[[1]]
+  covariance_valid <- is.matrix(covariance) && all(dim(covariance) == length(center)) && all(is.finite(covariance))
+  set.seed(seed)
+  draws <- if (isTRUE(include_posterior) && covariance_valid) {
+    draw_multivariate_normal(count, center, covariance)
+  } else {
+    matrix(rep(as.numeric(center), each = count), nrow = count)
+  }
+  colnames(draws) <- names(center)
+
+  timing_offsets <- if (isTRUE(include_timing)) timing_eta_offsets(fit, min(count, timing_refits), seed = seed + 97L) else matrix(numeric(), 0, 0)
+  if (nrow(timing_offsets)) {
+    selected <- sample(seq_len(nrow(timing_offsets)), count, replace = TRUE)
+    draws <- draws + timing_offsets[selected, , drop = FALSE]
+  }
+  list(
+    draws = draws,
+    available = covariance_valid,
+    mode = if (include_posterior && covariance_valid) "posterior_map" else "map_fixed",
+    timing_available = nrow(timing_offsets) > 0
+  )
+}
+
 simulate_model_distribution <- function(
   fit,
   dose,
@@ -536,26 +723,30 @@ simulate_model_distribution <- function(
   infusion,
   replicates,
   delta,
-  include_iiv,
-  include_residual
+  include_posterior,
+  include_residual,
+  include_timing = FALSE,
+  timing_refits = 20L,
+  seed = 381
 ) {
-  zero_mode <- if (include_iiv && include_residual) {
-    "none"
-  } else if (include_iiv) {
-    "sigma"
-  } else if (include_residual) {
-    "omega"
-  } else {
-    "both"
-  }
-  model <- if (is.null(fit$estimate)) {
-    fit$model
-  } else {
-    mapbayr::use_posterior(fit$estimate, .zero_re = zero_mode)
-  }
+  eta_draws <- posterior_eta_draws(
+    fit,
+    replicates,
+    include_posterior = include_posterior,
+    include_timing = include_timing,
+    timing_refits = timing_refits,
+    seed = seed
+  )
+  model <- fit$model
   model <- safe_param(model, fit$current_covariates %||% list())
-  if (is.null(fit$estimate) && !include_iiv) model <- mrgsolve::zero_re(model, omega)
-  if (is.null(fit$estimate) && !include_residual) model <- mrgsolve::zero_re(model, sigma)
+  if (!is.null(fit$estimate)) {
+    model <- mrgsolve::zero_re(model, omega)
+    idata <- data.frame(ID = seq_len(replicates), eta_draws$draws, check.names = FALSE)
+    model <- mrgsolve::idata_set(model, idata)
+  } else if (!include_posterior) {
+    model <- mrgsolve::zero_re(model, omega)
+  }
+  if (!include_residual) model <- mrgsolve::zero_re(model, sigma)
   event <- mrgsolve::ev(
     amt = dose,
     ii = interval,
@@ -580,8 +771,14 @@ simulate_model_distribution <- function(
   })
   output <- do.call(rbind, rows)
   output$model <- fit$id
+  output$uncertainty_mode <- eta_draws$mode
   rownames(output) <- NULL
-  output
+  list(
+    data = output,
+    posterior_available = eta_draws$available,
+    timing_available = eta_draws$timing_available,
+    uncertainty_mode = eta_draws$mode
+  )
 }
 
 simulate_regimen_distribution <- function(
@@ -594,8 +791,10 @@ simulate_regimen_distribution <- function(
   replicates = 250,
   interval_level = 90,
   delta = 0.1,
-  include_iiv = TRUE,
+  include_posterior = TRUE,
   include_residual = FALSE,
+  include_timing = FALSE,
+  timing_refits = 20L,
   seed = 381
 ) {
   valid <- successful_fits(fits)
@@ -608,16 +807,21 @@ simulate_regimen_distribution <- function(
   selected <- sample(names(valid), size = replicates, replace = TRUE, prob = probabilities)
   allocations <- table(factor(selected, levels = names(valid)))
 
-  rows <- lapply(names(valid), function(name) {
+  simulations <- lapply(seq_along(valid), function(index) {
+    name <- names(valid)[[index]]
     count <- as.integer(allocations[[name]])
     if (count <= 0) return(NULL)
     simulate_model_distribution(
       valid[[name]], dose, interval, infusion, count, delta,
-      include_iiv = include_iiv,
-      include_residual = include_residual
+      include_posterior = include_posterior,
+      include_residual = include_residual,
+      include_timing = include_timing,
+      timing_refits = timing_refits,
+      seed = seed + index * 101L
     )
   })
-  distribution <- do.call(rbind, Filter(Negate(is.null), rows))
+  simulations <- Filter(Negate(is.null), simulations)
+  distribution <- do.call(rbind, lapply(simulations, `[[`, "data"))
   value_column <- switch(metric, AUC24 = "auc24", Cmin = "cmin", Cmax = "cmax")
   distribution$value <- distribution[[value_column]]
   alpha <- (100 - interval_level) / 200
@@ -629,20 +833,139 @@ simulate_regimen_distribution <- function(
     upper = quantiles[[3]],
     interval_level = interval_level,
     metric = metric,
-    include_iiv = include_iiv,
-    include_residual = include_residual
+    include_posterior = include_posterior,
+    include_residual = include_residual,
+    include_timing = include_timing,
+    posterior_available = all(vapply(simulations, `[[`, logical(1), "posterior_available")),
+    timing_available = any(vapply(simulations, `[[`, logical(1), "timing_available")),
+    uncertainty_modes = unique(vapply(simulations, `[[`, character(1), "uncertainty_mode"))
   )
+}
+
+rank_regimens_by_pta <- function(
+  recommendations,
+  fits,
+  weights,
+  metric,
+  target_low,
+  target_high,
+  replicates = 100,
+  delta = 0.1,
+  include_posterior = TRUE,
+  include_residual = FALSE,
+  top_n = 12L,
+  seed = 773
+) {
+  output <- recommendations
+  output$p_under <- NA_real_
+  output$p_target <- NA_real_
+  output$p_over <- NA_real_
+  output$pta_evaluated <- FALSE
+  candidates <- seq_len(min(nrow(output), max(1L, as.integer(top_n))))
+  for (index in candidates) {
+    distribution <- simulate_regimen_distribution(
+      fits = fits,
+      weights = weights,
+      dose = output$dose[[index]],
+      interval = output$interval[[index]],
+      infusion = output$infusion[[index]],
+      metric = metric,
+      replicates = replicates,
+      interval_level = 90,
+      delta = delta,
+      include_posterior = include_posterior,
+      include_residual = include_residual,
+      include_timing = FALSE,
+      seed = seed
+    )
+    values <- distribution$data$value
+    output$p_under[[index]] <- mean(values < target_low, na.rm = TRUE)
+    output$p_target[[index]] <- mean(values >= target_low & values <= target_high, na.rm = TRUE)
+    output$p_over[[index]] <- mean(values > target_high, na.rm = TRUE)
+    output$pta_evaluated[[index]] <- TRUE
+  }
+  evaluated <- output[output$pta_evaluated, , drop = FALSE]
+  unevaluated <- output[!output$pta_evaluated, , drop = FALSE]
+  evaluated <- evaluated[order(-evaluated$p_target, evaluated$p_over, evaluated$p_under, evaluated$distance, evaluated$center_distance), , drop = FALSE]
+  output <- rbind(evaluated, unevaluated)
+  rownames(output) <- NULL
+  output
+}
+
+model_averaging_sensitivity <- function(
+  fits,
+  selected_weights,
+  dose_min,
+  dose_max,
+  dose_step,
+  intervals,
+  infusion,
+  metric,
+  target_low,
+  target_high,
+  delta = 0.1
+) {
+  valid <- successful_fits(fits)
+  if (!length(valid)) return(data.frame())
+  normalize <- function(values) {
+    values <- values[names(valid)]
+    values[!is.finite(values) | values < 0] <- 0
+    if (sum(values) <= 0) values[] <- 1
+    values / sum(values)
+  }
+  sets <- list()
+  sets[["Pond\u00e9ration s\u00e9lectionn\u00e9e"]] <- normalize(selected_weights)
+  if (length(valid) > 1L) {
+    sets[["Poids égaux"]] <- stats::setNames(rep(1 / length(valid), length(valid)), names(valid))
+    sets[["AIC"]] <- normalize(compute_model_weights(fits, "AIC"))
+    sets[["Log-vraisemblance"]] <- normalize(compute_model_weights(fits, "LL"))
+    for (excluded in names(valid)) {
+      remaining <- setdiff(names(valid), excluded)
+      if (!length(remaining)) next
+      values <- selected_weights
+      values[excluded] <- 0
+      sets[[paste0("Sans ", valid[[excluded]]$label)]] <- normalize(values)
+    }
+  }
+  keys <- vapply(sets, function(values) paste(round(values, 8), collapse = ":"), character(1))
+  sets <- sets[!duplicated(keys)]
+  rows <- lapply(names(sets), function(label) {
+    weights <- sets[[label]]
+    recommendation <- recommend_regimens(
+      fits, weights, dose_min, dose_max, dose_step, intervals, infusion,
+      metric, target_low, target_high, delta
+    )[1, , drop = FALSE]
+    data.frame(
+      scenario = label,
+      dose = recommendation$dose,
+      interval = recommendation$interval,
+      auc24 = recommendation$auc24,
+      cmin = recommendation$cmin,
+      cmax = recommendation$cmax,
+      target_value = recommendation$value,
+      in_target = recommendation$in_target,
+      weights = paste(paste(names(weights), round(weights, 3), sep = "="), collapse = " | "),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
 }
 
 fit_profiles <- function(fits, weights, end_time, delta = 0.25) {
   valid <- successful_fits(fits)
   profiles <- list()
   for (name in names(valid)) {
-    estimate <- valid[[name]]$estimate
+    fit <- valid[[name]]
+    estimate <- fit$estimate
     if (is.null(estimate)) next
-    augmented <- mapbayr::augment(estimate, end = end_time, delta = delta)$aug_tab
-    profile <- augmented[augmented$type == "IPRED", c("time", "value"), drop = FALSE]
-    names(profile) <- c("time", "concentration")
+    profile <- if (length(fit$ml_eta_override %||% numeric())) {
+      simulate_known_history(fit, end_time = end_time, delta = delta)[, c("time", "concentration"), drop = FALSE]
+    } else {
+      augmented <- mapbayr::augment(estimate, end = end_time, delta = delta)$aug_tab
+      output <- augmented[augmented$type == "IPRED", c("time", "value"), drop = FALSE]
+      names(output) <- c("time", "concentration")
+      output
+    }
     profile$model <- name
     profiles[[name]] <- profile
   }
@@ -663,6 +986,7 @@ model_summary <- function(fits, weights) {
         weight = 0,
         clearance = NA_real_,
         eta = "",
+        ml = "Non appliqué",
         detail = fit$message,
         stringsAsFactors = FALSE
       ))
@@ -675,12 +999,19 @@ model_summary <- function(fits, weights) {
       if (is.null(fit$estimate)) "Population" else paste(round(mapbayr::get_eta(fit$estimate), 4), collapse = ", "),
       error = function(error) ""
     )
+    ml <- fit$ml_correction %||% list(applied = FALSE, reason = "not_evaluated")
+    ml_label <- if (isTRUE(ml$applied)) {
+      paste0(ml$artifact_id, " · ", ml$eta, " ", if (ml$applied_delta >= 0) "+" else "", round(ml$applied_delta, 4))
+    } else {
+      "Repli MAP"
+    }
     data.frame(
       model = fit$label,
       status = if (is.null(fit$estimate)) "Population" else "MAP",
       weight = weights[[name]] %||% 0,
       clearance = clearance,
       eta = eta,
+      ml = ml_label,
       detail = paste0(fit$contract$n_eta, " ETA; ", fit$contract$n_sigma, " residual terms"),
       stringsAsFactors = FALSE
     )
