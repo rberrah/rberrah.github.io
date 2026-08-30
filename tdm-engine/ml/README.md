@@ -33,3 +33,16 @@ Exemple de contrat d'artefact :
 ```
 
 Le moteur n'accepte actuellement que des boosters `xgb.Booster` RDS et une correction additive bornée d'un ETA. Toute variable manquante, empreinte différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP sans correction.
+
+## Evaluation vancomycine
+
+`train_vancomycin_xgboost.R` teste uniquement Goti, Revilla et Roberts, tous par voie IV. Il ne lit aucune donnée patient, ne sauvegarde aucun booster et ne modifie jamais `manifest.json`.
+
+Le protocole sépare le hold-out avant tout réglage, estime le gain par validation croisée répétée et imbriquée, compare XGBoost à une régression elastic net, puis teste le correcteur sur des profils simulés par les deux autres modèles PopPK. La cible est la correction de l'ETA de clairance entre une estimation MAP parcimonieuse et une estimation de référence fondée sur un profil riche. Ces simulations constituent un test méthodologique, pas une validation clinique.
+
+```powershell
+Rscript ml/train_vancomycin_xgboost.R --smoke --base=all
+Rscript ml/train_vancomycin_xgboost.R --n=300 --base=vanco_roberts --report=ml/validation/roberts.csv
+```
+
+Un candidat n'est considéré favorable que si les gains XGBoost sont strictement positifs en CV imbriquée, sur le hold-out intact et sur les PopPK alternatifs. Même dans ce cas, le script conserve `artifact_saved = FALSE`; une validation favorable sur patients réels indépendants reste obligatoire avant toute activation clinique.
