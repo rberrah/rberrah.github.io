@@ -188,6 +188,8 @@ sensitivity <- model_averaging_sensitivity(
 stopifnot(nrow(sensitivity) >= 2L, all(is.finite(sensitivity$target_value)))
 ml_manifest <- read_ml_manifest()
 stopifnot(
+  identical(basename(ML_MANIFEST_PATH), "registry.json"),
+  file.exists(ML_MANIFEST_PATH),
   identical(as.integer(ml_manifest$version), 2L),
   length(ml_manifest$artifacts) == 1L,
   identical(ml_manifest$artifacts[[1]]$id, "vanco_pkjust-intermittent-auc24-xgb-v1")

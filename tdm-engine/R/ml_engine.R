@@ -3,7 +3,7 @@ if (!exists("APP_ROOT", inherits = TRUE)) {
   APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 }
 ML_ROOT <- file.path(APP_ROOT, "ml")
-ML_MANIFEST_PATH <- file.path(ML_ROOT, "manifest.json")
+ML_MANIFEST_PATH <- file.path(ML_ROOT, "registry.json")
 
 model_sha256 <- function(model_id) {
   if (!requireNamespace("digest", quietly = TRUE)) return(NA_character_)
