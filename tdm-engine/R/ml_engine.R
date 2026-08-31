@@ -287,18 +287,32 @@ build_ml_explanation <- function(artifact, booster, feature_row) {
   )
 }
 
+ml_feature_domain_warnings <- function(values, artifact) {
+  domain <- artifact$trainingDomain %||% list()
+  bounds <- domain$features %||% list()
+  warnings <- lapply(intersect(names(bounds), names(values)), function(name) {
+    lower <- suppressWarnings(as.numeric(bounds[[name]]$min %||% NA_real_))
+    upper <- suppressWarnings(as.numeric(bounds[[name]]$max %||% NA_real_))
+    below <- is.finite(lower) && values[[name]] < lower
+    above <- is.finite(upper) && values[[name]] > upper
+    if (!below && !above) return(NULL)
+    list(
+      feature = name,
+      value = as.numeric(values[[name]]),
+      min = lower,
+      max = upper,
+      direction = if (below) "below" else "above",
+      artifact_id = artifact$id %||% "unnamed"
+    )
+  })
+  Filter(Negate(is.null), warnings)
+}
+
 apply_ml_artifact <- function(fit, artifact) {
   feature_row <- ml_feature_row(fit, artifact)
   values <- feature_row$values
   domain <- artifact$trainingDomain %||% list()
-  bounds <- domain$features %||% list()
-  for (name in intersect(names(bounds), names(values))) {
-    lower <- suppressWarnings(as.numeric(bounds[[name]]$min %||% NA_real_))
-    upper <- suppressWarnings(as.numeric(bounds[[name]]$max %||% NA_real_))
-    if (is.finite(lower) && values[[name]] < lower || is.finite(upper) && values[[name]] > upper) {
-      stop("ML feature outside its training domain: ", name)
-    }
-  }
+  domain_warnings <- ml_feature_domain_warnings(values, artifact)
 
   if (!requireNamespace("xgboost", quietly = TRUE)) stop("Package xgboost unavailable; MAP fallback used.")
   artifact_path <- verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)
@@ -337,6 +351,7 @@ apply_ml_artifact <- function(fit, artifact) {
     }
     fit$ml_auc24 <- prediction_value
     fit$ml_features <- as.list(values)
+    fit$ml_domain_warnings <- domain_warnings
     fit$ml_explanation <- tryCatch(
       build_ml_explanation(artifact, booster, feature_row),
       error = function(error) list(available = FALSE, reason = conditionMessage(error))
@@ -347,6 +362,7 @@ apply_ml_artifact <- function(fit, artifact) {
       artifact_id = artifact$id %||% "unnamed",
       auc24 = prediction_value,
       unit = (artifact$prediction %||% list())$unit %||% "mg.h/L",
+      extrapolated = length(domain_warnings) > 0L,
       clinical_validation = isTRUE(ml_artifact_eligibility(
         artifact,
         fit$id,
@@ -368,6 +384,7 @@ apply_ml_artifact <- function(fit, artifact) {
   bounded <- max(-maximum, min(maximum, prediction_value))
   center[[eta_name]] <- center[[eta_name]] + bounded
   fit$ml_eta_override <- center
+  fit$ml_domain_warnings <- domain_warnings
   fit$ml_correction <- list(
     applied = TRUE,
     type = prediction_type,
@@ -376,6 +393,7 @@ apply_ml_artifact <- function(fit, artifact) {
     raw_delta = prediction_value,
     applied_delta = bounded,
     bounded = !isTRUE(all.equal(prediction_value, bounded)),
+    extrapolated = length(domain_warnings) > 0L,
     clinical_validation = isTRUE(ml_artifact_eligibility(
       artifact,
       fit$id,
@@ -437,16 +455,27 @@ ml_application_summary <- function(fits, weights = NULL) {
         reason = "L'explication locale n'est affichée que pour un prédicteur ML individuel, sans model averaging."
       )
     }
+    domain_warnings <- unlist(
+      lapply(valid, function(fit) fit$ml_domain_warnings %||% list()),
+      recursive = FALSE,
+      use.names = FALSE
+    )
     return(list(
       available = length(valid),
       auc24 = auc24,
       clinical = clinical,
       artifacts = labels,
       explanation = explanation,
+      domain_warnings = domain_warnings,
       message = paste0(
         "AUC24 ML expérimentale : ", round(auc24, 1),
         " mg.h/L. Les projections de doses restent calculées par MAP",
-        if (length(valid) > 1L) " et model averaging." else "."
+        if (length(valid) > 1L) " et model averaging." else ".",
+        if (length(domain_warnings)) paste0(
+          " Avertissement : extrapolation hors du domaine d'entraînement pour ",
+          length(domain_warnings),
+          " variable(s)."
+        ) else ""
       )
     ))
   }

@@ -357,8 +357,18 @@ if (!is.na(hash)) {
     list(name = "DOSE", source = "regimen", key = "DOSE"),
     list(name = "LAST_CONC", source = "observation", key = "LAST_CONC")
   )
+  eligible_artifact$trainingDomain <- list(
+    auc24 = list(min = 1, max = 2000),
+    features = list(
+      DOSE = list(min = 500, max = 2000),
+      LAST_CONC = list(min = 0.5, max = 100)
+    )
+  )
   eligible_artifact$validation$untouchedHoldoutGainPct <- 3
   ml_fit <- apply_ml_artifact(default_fits[[1]], eligible_artifact)
+  extrapolation_artifact <- eligible_artifact
+  extrapolation_artifact$trainingDomain$features$DOSE$max <- 100
+  extrapolated_ml_fit <- apply_ml_artifact(default_fits[[1]], extrapolation_artifact)
   ML_ROOT <- old_ml_root
   unlink(test_ml_root, recursive = TRUE, force = TRUE)
   stopifnot(
@@ -368,8 +378,21 @@ if (!is.na(hash)) {
     ml_fit$ml_auc24 > 0,
     !length(ml_fit$ml_eta_override %||% numeric())
   )
+  stopifnot(
+    isTRUE(extrapolated_ml_fit$ml_correction$applied),
+    isTRUE(extrapolated_ml_fit$ml_correction$extrapolated),
+    length(extrapolated_ml_fit$ml_domain_warnings) == 1L,
+    identical(extrapolated_ml_fit$ml_domain_warnings[[1]]$feature, "DOSE")
+  )
   ml_summary <- ml_application_summary(list(vanco_roberts = ml_fit), c(vanco_roberts = 1))
   stopifnot(ml_summary$available == 1L, is.finite(ml_summary$auc24), !isTRUE(ml_summary$clinical))
+  extrapolated_summary <- ml_application_summary(list(vanco_roberts = extrapolated_ml_fit), c(vanco_roberts = 1))
+  stopifnot(
+    extrapolated_summary$available == 1L,
+    is.finite(extrapolated_summary$auc24),
+    length(extrapolated_summary$domain_warnings) == 1L,
+    grepl("extrapolation", extrapolated_summary$message, fixed = TRUE)
+  )
 }
 
 cat("TDM engine smoke test OK\n")

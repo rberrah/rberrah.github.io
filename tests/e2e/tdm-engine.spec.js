@@ -163,7 +163,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(html).toContain("Aucun prédicteur direct d'AUC24 validé et compatible");
   });
 
-  test("Revilla expose une AUC24 ML expérimentale avec deux prélèvements", async ({ page }) => {
+  test("Revilla conserve l'AUC24 ML avec un avertissement hors domaine", async ({ page }) => {
     test.setTimeout(180_000);
     await page.goto(engineUrl);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.$socket?.readyState === 1);
@@ -177,7 +177,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('#add_observation').click();
     await expect(page.locator('#observation_time_2')).toBeVisible();
     await page.locator('#observation_time_2').fill('38');
-    await page.locator('#observation_concentration_2').fill('30');
+    await page.locator('#observation_concentration_2').fill('80');
     await page.locator('#dose_time_1').fill('36');
     await page.locator('#dose_ss_1').check();
     await page.locator('#enable_experimental_ml').check();
@@ -187,6 +187,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     const exposure = page.locator('.exposure-strip');
     await expect(exposure).toContainText('AUC24 ML expérimentale', { timeout: 120_000 });
     await expect(page.locator('.analysis-diagnostics > .ml-result-status')).toContainText('AUC24 ML expérimentale');
+    await expect(page.locator('.analysis-diagnostics .ml-domain-warning')).toContainText('prédiction ML extrapolée');
+    await expect(page.locator('.analysis-diagnostics .ml-domain-warning')).toContainText('Première concentration récente : 80 mg/L');
     await expect(page.locator('#model_table')).toContainText('vanco_pkjust-intermittent-auc24-xgb-v1');
     await expect(page.locator('#ml_interpretation_panel')).toContainText('Concordance MAP-BE et ML');
     await expect(page.locator('#ml_interpretation_panel')).toContainText('Écart relatif');
@@ -203,6 +205,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(html).toContain('AUC24 ML expérimentale');
     expect(html).toContain('vanco_pkjust-intermittent-auc24-xgb-v1');
     expect(html).toContain('Concordance MAP-BE et ML');
+    expect(html).toContain('Avertissement : prédiction ML extrapolée');
+    expect(html).toContain('Première concentration récente : 80 mg/L');
     expect(html).toContain("Explication locale DALEX de l'AUC24 ML");
   });
 

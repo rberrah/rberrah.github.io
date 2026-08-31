@@ -791,6 +791,21 @@ h6 {
   color: var(--muted);
 }
 
+.ml-domain-warning {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border-left: 4px solid #b16916;
+  background: #fffaf0;
+  color: #5e4b23;
+  font-size: 0.8rem;
+}
+
+.ml-domain-warning ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
 .sensitivity-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

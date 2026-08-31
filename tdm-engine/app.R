@@ -144,6 +144,29 @@ format_ml_feature_value <- function(name, value) {
   paste0(format(signif(value, 4), trim = TRUE), unit)
 }
 
+format_ml_domain_warning <- function(item) {
+  name <- as.character(item$feature %||% "")
+  label <- unname(ML_FEATURE_LABELS[name])
+  if (!length(label) || is.na(label) || !nzchar(label)) label <- name
+  lower <- if (is.finite(item$min %||% NA_real_)) format_ml_feature_value(name, item$min) else "sans borne basse"
+  upper <- if (is.finite(item$max %||% NA_real_)) format_ml_feature_value(name, item$max) else "sans borne haute"
+  paste0(
+    label, " : ", format_ml_feature_value(name, item$value),
+    " ; plage d'entraînement [", lower, " ; ", upper, "]."
+  )
+}
+
+ml_domain_warning_block <- function(status) {
+  warnings <- status$domain_warnings %||% list()
+  if (!length(warnings)) return(NULL)
+  div(
+    class = "ml-domain-warning",
+    tags$strong("Avertissement : prédiction ML extrapolée"),
+    tags$ul(lapply(warnings, function(item) tags$li(format_ml_domain_warning(item)))),
+    span("Le résultat ML est affiché à titre expérimental, mais sa fiabilité peut être réduite. La recommandation reste calculée par MAP-BE.")
+  )
+}
+
 build_ml_explanation_plot <- function(explanation, max_features = 8L) {
   if (!isTRUE((explanation %||% list())$available)) return(NULL)
   contributions <- as.data.frame(explanation$contributions, stringsAsFactors = FALSE)
@@ -701,7 +724,7 @@ app_ui <- page_navbar(
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
       p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires récents, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
-      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Son activation est volontaire et l'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
+      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Une variable hors des bornes empiriques d'entraînement est signalée comme extrapolation sans masquer l'estimation expérimentale; une donnée manquante, un protocole incompatible ou une AUC prédite invalide restent bloquants. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
       h2("Sécurité"),
       p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
       p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données."),
@@ -1924,7 +1947,8 @@ server <- function(input, output, session) {
       tags$strong("Applicabilité et qualité des données"),
       if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else span("Aucune anomalie générique détectée."),
       if (length(population_rows)) tagList(span("Populations sources à comparer au patient :"), tags$ul(population_rows)),
-      span(class = "ml-result-status", result$ml_status$message)
+      span(class = "ml-result-status", result$ml_status$message),
+      ml_domain_warning_block(result$ml_status)
     )
   })
 
@@ -2055,6 +2079,7 @@ server <- function(input, output, session) {
     )
     tagList(
       h3("Concordance MAP-BE et ML"),
+      ml_domain_warning_block(result$ml_status),
       div(
         class = "comparison-strip ml-comparison-strip",
         div(span("AUC24 MAP-BE"), strong(format_metric(concordance$map_auc24)), tags$small("mrgsolve + mapbayr")),
@@ -2331,6 +2356,17 @@ server <- function(input, output, session) {
               h2("Concordance MAP-BE et ML"),
               p(concordance$interpretation),
               tags$img(src = report_plot_uri(ml_comparison_plot, height = 4), alt = "Comparaison des AUC24 MAP-BE et ML")
+            )
+          },
+          if (length(result$ml_status$domain_warnings %||% list())) {
+            div(
+              class = "warning",
+              tags$strong("Avertissement : prédiction ML extrapolée"),
+              tags$ul(lapply(
+                result$ml_status$domain_warnings,
+                function(item) tags$li(format_ml_domain_warning(item))
+              )),
+              p("La recommandation de dose reste calculée par MAP-BE.")
             )
           },
           if (isTRUE(ml_explanation$available) && !is.null(ml_explanation_plot)) {
