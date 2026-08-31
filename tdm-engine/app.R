@@ -25,6 +25,182 @@ source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
+ml_concordance <- function(result) {
+  map_auc24 <- suppressWarnings(as.numeric(result$current_exposure$steady_state_auc24 %||% NA_real_))
+  ml_auc24 <- suppressWarnings(as.numeric(result$ml_status$auc24 %||% NA_real_))
+  if (!is.finite(map_auc24) || map_auc24 <= 0 || !is.finite(ml_auc24) || ml_auc24 <= 0) return(NULL)
+  relative_gap <- 100 * (ml_auc24 / map_auc24 - 1)
+  absolute_gap <- abs(relative_gap)
+  level <- if (absolute_gap <= 10) "close" else if (absolute_gap <= 20) "moderate" else "divergent"
+  interpretation <- switch(
+    level,
+    close = paste0(
+      "Les estimations sont proches (écart relatif ", format_metric(absolute_gap),
+      " %). Cette concordance soutient la cohérence du résultat pour ce profil, sans constituer une validation clinique du ML."
+    ),
+    moderate = paste0(
+      "L'écart entre MAP-BE et ML est modéré (", format_metric(absolute_gap),
+      " %). Vérifiez en priorité les horaires, les doses et les covariables avant d'interpréter l'estimation ML."
+    ),
+    divergent = paste0(
+      "Les deux méthodes divergent de ", format_metric(absolute_gap),
+      " %. Cette discordance doit conduire à contrôler les données et à privilégier l'analyse pharmacométrique validée; elle ne permet pas de choisir la valeur la plus favorable."
+    )
+  )
+  list(
+    map_auc24 = map_auc24,
+    ml_auc24 = ml_auc24,
+    relative_gap = relative_gap,
+    absolute_gap = absolute_gap,
+    level = level,
+    interpretation = interpretation
+  )
+}
+
+build_ml_comparison_plot <- function(result) {
+  concordance <- ml_concordance(result)
+  if (is.null(concordance)) return(NULL)
+  data <- data.frame(
+    method = factor(c("MAP-BE", "ML"), levels = c("MAP-BE", "ML")),
+    auc24 = c(concordance$map_auc24, concordance$ml_auc24)
+  )
+  color <- switch(concordance$level, close = "#287a4d", moderate = "#b16916", divergent = "#a43d35")
+  limit_values <- data$auc24
+  if (identical(result$target_metric, "AUC24")) {
+    limit_values <- c(limit_values, result$target_low, result$target_high)
+  }
+  limit_span <- diff(range(limit_values, na.rm = TRUE))
+  limit_padding <- max(25, 0.18 * if (is.finite(limit_span) && limit_span > 0) limit_span else max(limit_values))
+  y_limits <- c(max(0, min(limit_values) - limit_padding), max(limit_values) + limit_padding)
+  plot <- ggplot(data, aes(method, auc24, group = 1))
+  if (identical(result$target_metric, "AUC24")) {
+    plot <- plot + annotate(
+      "rect",
+      xmin = -Inf,
+      xmax = Inf,
+      ymin = result$target_low,
+      ymax = result$target_high,
+      fill = "#dcece5",
+      alpha = 0.7
+    )
+  }
+  plot +
+    geom_line(color = color, linewidth = 1.2) +
+    geom_point(aes(fill = method), shape = 21, size = 6, color = "white", stroke = 1.1) +
+    geom_text(aes(label = sprintf("%.1f", auc24)), vjust = -1.15, fontface = "bold", color = "#17202a") +
+    scale_fill_manual(values = c("MAP-BE" = "#176b70", "ML" = "#a4441f"), guide = "none") +
+    coord_cartesian(ylim = y_limits, clip = "off") +
+    labs(
+      x = NULL,
+      y = "AUC0-24 à l'état stationnaire (mg.h/L)",
+      subtitle = if (identical(result$target_metric, "AUC24")) "La zone verte représente la cible définie dans les réglages." else NULL,
+      caption = paste(strwrap(concordance$interpretation, width = 105), collapse = "\n")
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(face = "bold", color = "#17202a"),
+      plot.caption = element_text(hjust = 0, color = "#43515c", size = 10)
+    )
+}
+
+ML_FEATURE_LABELS <- c(
+  WT = "Poids",
+  AGE = "Âge",
+  CREAT = "Créatinine",
+  SEX = "Sexe",
+  DOSE = "Dose",
+  INTERVAL = "Intervalle d'administration",
+  INFUSION = "Durée de perfusion",
+  PREV_CONC = "Première concentration récente",
+  PREV_TIME = "Horaire de la première concentration",
+  LAST_CONC = "Dernière concentration",
+  LAST_TIME = "Horaire de la dernière concentration",
+  CONC_DIFF = "Variation entre les concentrations",
+  TIME_DIFF = "Délai entre les concentrations"
+)
+
+format_ml_feature_value <- function(name, value) {
+  value <- suppressWarnings(as.numeric(value))
+  if (!is.finite(value)) return("valeur indisponible")
+  if (identical(name, "SEX")) return(if (value >= 0.5) "femme (1)" else "homme (0)")
+  unit <- switch(
+    name,
+    WT = " kg",
+    AGE = " ans",
+    CREAT = " micromol/L",
+    DOSE = " mg",
+    INTERVAL = " h",
+    INFUSION = " h",
+    PREV_CONC = " mg/L",
+    LAST_CONC = " mg/L",
+    CONC_DIFF = " mg/L",
+    PREV_TIME = " h après la dose",
+    LAST_TIME = " h après la dose",
+    TIME_DIFF = " h",
+    ""
+  )
+  paste0(format(signif(value, 4), trim = TRUE), unit)
+}
+
+build_ml_explanation_plot <- function(explanation, max_features = 8L) {
+  if (!isTRUE((explanation %||% list())$available)) return(NULL)
+  contributions <- as.data.frame(explanation$contributions, stringsAsFactors = FALSE)
+  if (!nrow(contributions)) return(NULL)
+  contributions <- contributions[order(-abs(contributions$contribution)), , drop = FALSE]
+  labels <- vapply(seq_len(nrow(contributions)), function(index) {
+    name <- contributions$variable[[index]]
+    label <- unname(ML_FEATURE_LABELS[name])
+    if (!length(label) || is.na(label) || !nzchar(label)) label <- name
+    paste0(
+      label,
+      "\n",
+      format_ml_feature_value(name, contributions$value[[index]])
+    )
+  }, character(1))
+  effects <- contributions$contribution
+  if (length(effects) > max_features) {
+    labels <- c(labels[seq_len(max_features)], "Autres informations\ncombinées")
+    effects <- c(effects[seq_len(max_features)], sum(effects[(max_features + 1L):length(effects)]))
+  }
+  data <- data.frame(
+    label = factor(labels, levels = rev(labels)),
+    effect = effects,
+    direction = ifelse(effects >= 0, "increase", "decrease")
+  )
+  range <- max(abs(data$effect), na.rm = TRUE)
+  if (!is.finite(range) || range <= 0) range <- 1
+  ggplot(data, aes(effect, label, fill = direction)) +
+    geom_col(width = 0.66) +
+    geom_vline(xintercept = 0, color = "#17202a", linewidth = 0.5) +
+    geom_text(
+      aes(label = sprintf("%+.1f", effect), hjust = ifelse(effect >= 0, -0.15, 1.15)),
+      color = "#17202a",
+      size = 3.4
+    ) +
+    scale_fill_manual(values = c(increase = "#287a4d", decrease = "#a4441f"), guide = "none") +
+    scale_x_continuous(limits = c(-1.45 * range, 1.45 * range)) +
+    labs(
+      x = "Contribution à l'AUC24 ML (mg.h/L)",
+      y = NULL,
+      subtitle = "À droite, l'information augmente l'AUC prédite; à gauche, elle la diminue.",
+      caption = paste0(
+        "Référence DALEX synthétique ", format_metric(explanation$baseline),
+        " + contributions = AUC24 ML ", format_metric(explanation$prediction),
+        " mg.h/L · référence fondée sur ", explanation$background_size, " profils simulés."
+      )
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      axis.text.y = element_text(size = 9.5, lineheight = 1.05, color = "#17202a"),
+      plot.subtitle = element_text(size = 10, color = "#43515c"),
+      plot.caption = element_text(size = 10, color = "#43515c", hjust = 0)
+    )
+}
+
 ALLOW_CUSTOM_MODELS <- identical(tolower(Sys.getenv("ALLOW_CUSTOM_MODELS", "false")), "true")
 DEFAULT_MODEL <- if ("vanco_roberts" %in% MODEL_CATALOG$id) "vanco_roberts" else MODEL_CATALOG$id[[1]]
 DEFAULT_CODE <- read_library_code(DEFAULT_MODEL)
@@ -405,6 +581,7 @@ app_ui <- page_navbar(
                 h3("Doses supplémentaires : poursuivre ou modifier"),
                 uiOutput("future_comparison_summary"),
                 plotOutput("future_comparison_plot", height = "430px"),
+                uiOutput("ml_interpretation_panel"),
                 h3("Sensibilité du model averaging"),
                 uiOutput("averaging_sensitivity_summary"),
                 DTOutput("averaging_sensitivity_table"),
@@ -523,7 +700,7 @@ app_ui <- page_navbar(
       h2("Distribution"),
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
-      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires récents, la dose, l'intervalle, la durée de perfusion et les covariables du modèle."),
+      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires récents, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
       p("Chaque artefact reste lié au même modèle PK, à la même voie, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Son activation est volontaire et l'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
       h2("Sécurité"),
       p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
@@ -1864,6 +2041,68 @@ server <- function(input, output, session) {
       theme(panel.grid.minor = element_blank(), legend.position = "top")
   })
 
+  output$ml_interpretation_panel <- renderUI({
+    result <- analysis_store()
+    if (is.null(result)) return(NULL)
+    concordance <- ml_concordance(result)
+    if (is.null(concordance)) return(NULL)
+    explanation <- result$ml_status$explanation %||% list(available = FALSE, reason = "Explication DALEX indisponible.")
+    agreement_label <- switch(
+      concordance$level,
+      close = "Estimations proches",
+      moderate = "Écart modéré",
+      divergent = "Divergence importante"
+    )
+    tagList(
+      h3("Concordance MAP-BE et ML"),
+      div(
+        class = "comparison-strip ml-comparison-strip",
+        div(span("AUC24 MAP-BE"), strong(format_metric(concordance$map_auc24)), tags$small("mrgsolve + mapbayr")),
+        div(span("AUC24 ML"), strong(format_metric(concordance$ml_auc24)), tags$small("XGBoost direct")),
+        div(
+          span("Écart relatif"),
+          strong(paste0(if (concordance$relative_gap >= 0) "+" else "", format_metric(concordance$relative_gap), " %")),
+          tags$small("ML par rapport au MAP-BE")
+        ),
+        div(span("Lecture"), strong(agreement_label), tags$small(concordance$interpretation))
+      ),
+      plotOutput("ml_comparison_plot", height = "330px"),
+      h3("Explication locale DALEX de l'AUC24 ML"),
+      if (isTRUE(explanation$available)) {
+        tagList(
+          plotOutput("ml_explanation_plot", height = "470px"),
+          div(
+            class = "analysis-diagnostics ml-explanation-help",
+            tags$strong("Comment lire cette figure"),
+            tags$ul(
+              tags$li("Chaque barre montre comment une information de ce patient déplace la prédiction par rapport à la référence synthétique DALEX."),
+              tags$li("Les contributions expliquent le calcul de XGBoost; elles ne démontrent pas une relation causale."),
+              tags$li("Une concordance MAP-BE/ML est un contrôle de cohérence, pas une validation clinique indépendante.")
+            )
+          )
+        )
+      } else {
+        div(class = "empty-state compact", paste0("Explication DALEX indisponible : ", explanation$reason %||% "raison inconnue"))
+      }
+    )
+  })
+
+  output$ml_comparison_plot <- renderPlot({
+    result <- analysis_store()
+    shiny::req(result)
+    plot <- build_ml_comparison_plot(result)
+    shiny::validate(shiny::need(!is.null(plot), "La comparaison MAP-BE/ML n'est pas calculable."))
+    plot
+  })
+
+  output$ml_explanation_plot <- renderPlot({
+    result <- analysis_store()
+    shiny::req(result)
+    plot <- build_ml_explanation_plot(result$ml_status$explanation)
+    shiny::validate(shiny::need(!is.null(plot), "L'explication DALEX n'est pas disponible."))
+    plot
+  })
+
   output$averaging_sensitivity_summary <- renderUI({
     result <- analysis_store()
     if (is.null(result)) return(NULL)
@@ -2029,6 +2268,10 @@ server <- function(input, output, session) {
         labs(x = "Temps (h)", y = "Concentration", color = NULL, linetype = NULL) +
         theme_minimal(base_size = 11) +
         theme(legend.position = "top")
+      concordance <- ml_concordance(result)
+      ml_comparison_plot <- build_ml_comparison_plot(result)
+      ml_explanation <- result$ml_status$explanation %||% list(available = FALSE)
+      ml_explanation_plot <- build_ml_explanation_plot(ml_explanation)
 
       model_table <- result$model_summary
       model_table$weight <- round(model_table$weight, 4)
@@ -2083,6 +2326,20 @@ server <- function(input, output, session) {
           h2("Comparaison des doses supplémentaires"),
           p(paste0(comparison$additional_doses, " doses simulées à partir de h ", format_metric(comparison$future_start), ".")),
           tags$img(src = report_plot_uri(comparison_plot), alt = "Comparaison de posologies"),
+          if (!is.null(concordance) && !is.null(ml_comparison_plot)) {
+            tagList(
+              h2("Concordance MAP-BE et ML"),
+              p(concordance$interpretation),
+              tags$img(src = report_plot_uri(ml_comparison_plot, height = 4), alt = "Comparaison des AUC24 MAP-BE et ML")
+            )
+          },
+          if (isTRUE(ml_explanation$available) && !is.null(ml_explanation_plot)) {
+            tagList(
+              h2("Explication locale DALEX de l'AUC24 ML"),
+              p("Les contributions décrivent le calcul de XGBoost par rapport à une référence synthétique; elles ne sont pas causales."),
+              tags$img(src = report_plot_uri(ml_explanation_plot, height = 6), alt = "Décomposition locale DALEX de l'AUC24 ML")
+            )
+          },
           h2("Distribution prédictive"),
           p(paste0("Médiane ", format_metric(result$distribution$median), " · intervalle prédictif ", result$distribution$interval_level, " % : ", format_metric(result$distribution$lower), "–", format_metric(result$distribution$upper), ".")),
           h2("Sensibilité du model averaging"),

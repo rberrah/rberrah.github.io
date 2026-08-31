@@ -20,6 +20,13 @@ Le statut clinique reste faux tant qu'une validation favorable sur des patients 
   "baseModelSha256": "<sha256>",
   "artifactPath": "artifacts/vanco-roberts-auc24-xgb-v1.rds",
   "artifactSha256": "<sha256>",
+  "explanation": {
+    "type": "dalex_break_down",
+    "backgroundPath": "artifacts/vanco-roberts-auc24-xgb-v1-dalex-background.rds",
+    "backgroundSha256": "<sha256>",
+    "sampleSize": 200,
+    "synthetic": true
+  },
   "featureSchema": [
     { "name": "WT", "source": "covariate", "key": "WT" },
     { "name": "DOSE", "source": "regimen", "key": "DOSE" },
@@ -48,7 +55,7 @@ Le statut clinique reste faux tant qu'une validation favorable sur des patients 
 }
 ```
 
-Toute variable manquante, mode de perfusion incompatible, empreinte du modèle ou du booster différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP. Le manifeste conserve aussi la graine, les effectifs, les hyperparamètres et les versions logicielles de l'entraînement.
+Toute variable manquante, mode de perfusion incompatible, empreinte du modèle ou du booster différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP. Le manifeste conserve aussi la graine, les effectifs, les hyperparamètres et les versions logicielles de l'entraînement. L'explication locale DALEX repose sur un sous-échantillon des profils simulés d'entraînement, stocké séparément avec sa propre empreinte; elle ne contient aucune donnée patient réelle.
 
 ## Évaluation vancomycine
 
@@ -59,7 +66,8 @@ Toute variable manquante, mode de perfusion incompatible, empreinte du modèle o
 3. calcule les références MAP et model averaging sur les mêmes prélèvements;
 4. entraîne XGBoost et une régression elastic net sur l'AUC24 directe;
 5. mesure le biais relatif, la RMSE relative et la proportion des erreurs dans ±20 %;
-6. réserve l'autre générateur compatible avec le même mode de perfusion, totalement absent du développement, à la validation externe simulée.
+6. réserve l'autre générateur compatible avec le même mode de perfusion, totalement absent du développement, à la validation externe simulée;
+7. publie un échantillon synthétique de référence pour décomposer localement chaque prédiction avec DALEX.
 
 ```powershell
 Rscript ml/train_vancomycin_xgboost.R --smoke --base=all

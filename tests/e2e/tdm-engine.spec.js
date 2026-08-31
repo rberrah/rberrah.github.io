@@ -186,8 +186,13 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
 
     const exposure = page.locator('.exposure-strip');
     await expect(exposure).toContainText('AUC24 ML expérimentale', { timeout: 120_000 });
-    await expect(page.locator('.analysis-diagnostics')).toContainText('AUC24 ML expérimentale');
+    await expect(page.locator('.analysis-diagnostics > .ml-result-status')).toContainText('AUC24 ML expérimentale');
     await expect(page.locator('#model_table')).toContainText('vanco_pkjust-intermittent-auc24-xgb-v1');
+    await expect(page.locator('#ml_interpretation_panel')).toContainText('Concordance MAP-BE et ML');
+    await expect(page.locator('#ml_interpretation_panel')).toContainText('Écart relatif');
+    await expect(page.locator('#ml_comparison_plot img')).toBeVisible();
+    await expect(page.locator('#ml_explanation_plot img')).toBeVisible();
+    await expect(page.locator('#ml_interpretation_panel')).toContainText('Explication locale DALEX');
 
     const reportPromise = page.waitForEvent('download');
     await page.locator('#download_report').click();
@@ -197,6 +202,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     for await (const chunk of stream) html += chunk.toString();
     expect(html).toContain('AUC24 ML expérimentale');
     expect(html).toContain('vanco_pkjust-intermittent-auc24-xgb-v1');
+    expect(html).toContain('Concordance MAP-BE et ML');
+    expect(html).toContain("Explication locale DALEX de l'AUC24 ML");
   });
 
   test('la configuration mobile est accessible sans débordement de la zone de travail', async ({ page }) => {

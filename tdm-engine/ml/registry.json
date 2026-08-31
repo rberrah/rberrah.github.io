@@ -15,6 +15,13 @@
       "baseModelSha256": "29dbdbf030ebe585af586ba179ada17e3f613a07ae7ee7be8c780c99766e4453",
       "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1.rds",
       "artifactSha256": "2d4705d8223963cf63d9bf6a7949c0e740a32ed425c9ebe8cc33bc0ef3447a1c",
+      "explanation": {
+        "type": "dalex_break_down",
+        "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1-dalex-background.rds",
+        "backgroundSha256": "efada8cd3b3de57a857b0418aad35d881be231b202f87e9e004f88bc7c34ee5b",
+        "sampleSize": 200,
+        "synthetic": true
+      },
       "featureSchema": [
         {
           "name": "WT",

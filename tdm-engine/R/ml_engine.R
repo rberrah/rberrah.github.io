@@ -4,6 +4,7 @@ if (!exists("APP_ROOT", inherits = TRUE)) {
 }
 ML_ROOT <- file.path(APP_ROOT, "ml")
 ML_MANIFEST_PATH <- file.path(ML_ROOT, "registry.json")
+.ml_explainer_cache <- new.env(parent = emptyenv())
 
 model_sha256 <- function(model_id) {
   if (!requireNamespace("digest", quietly = TRUE)) return(NA_character_)
@@ -178,6 +179,20 @@ ml_feature_value <- function(feature, fit) {
   value
 }
 
+ml_feature_row <- function(fit, artifact) {
+  features <- artifact$featureSchema %||% list()
+  if (!length(features)) stop("ML feature schema is empty.")
+  feature_names <- vapply(features, function(feature) as.character(feature$name %||% ""), character(1))
+  if (any(!nzchar(feature_names)) || anyDuplicated(feature_names)) stop("ML feature names are invalid.")
+  values <- vapply(features, ml_feature_value, numeric(1), fit = fit)
+  names(values) <- feature_names
+  list(
+    values = values,
+    data = as.data.frame(as.list(values), check.names = FALSE),
+    matrix = matrix(values, nrow = 1L, dimnames = list(NULL, feature_names))
+  )
+}
+
 resolve_ml_artifact_path <- function(relative_path) {
   relative_path <- as.character(relative_path %||% "")
   if (!nzchar(relative_path) || !grepl("\\.rds$", relative_path, ignore.case = TRUE)) {
@@ -189,12 +204,92 @@ resolve_ml_artifact_path <- function(relative_path) {
   path
 }
 
+verified_ml_rds_path <- function(relative_path, expected_hash, label = "ML artifact") {
+  path <- resolve_ml_artifact_path(relative_path)
+  expected_hash <- tolower(as.character(expected_hash %||% ""))
+  if (!nzchar(expected_hash) || !requireNamespace("digest", quietly = TRUE)) {
+    stop(label, " fingerprint is unavailable.")
+  }
+  actual_hash <- digest::digest(path, algo = "sha256", file = TRUE, serialize = FALSE)
+  if (!identical(expected_hash, tolower(actual_hash))) {
+    stop(label, " fingerprint does not match the registry.")
+  }
+  path
+}
+
+build_ml_explanation <- function(artifact, booster, feature_row) {
+  configuration <- artifact$explanation %||% list()
+  if (!identical(configuration$type %||% "", "dalex_break_down")) {
+    stop("DALEX explanation is not configured for this predictor.")
+  }
+  if (!requireNamespace("DALEX", quietly = TRUE)) stop("Package DALEX is unavailable.")
+  background_path <- verified_ml_rds_path(
+    configuration$backgroundPath,
+    configuration$backgroundSha256,
+    "DALEX background"
+  )
+  background <- readRDS(background_path)
+  feature_names <- names(feature_row$values)
+  if (!is.data.frame(background) || !all(feature_names %in% names(background))) {
+    stop("DALEX background does not match the ML feature schema.")
+  }
+  background <- background[, feature_names, drop = FALSE]
+  background[] <- lapply(background, function(value) suppressWarnings(as.numeric(value)))
+  if (!nrow(background) || any(!vapply(background, function(value) all(is.finite(value)), logical(1)))) {
+    stop("DALEX background contains invalid values.")
+  }
+
+  cache_key <- paste(
+    artifact$id %||% "unnamed",
+    artifact$artifactSha256 %||% "",
+    configuration$backgroundSha256 %||% "",
+    sep = ":"
+  )
+  explainer <- .ml_explainer_cache[[cache_key]]
+  if (is.null(explainer)) {
+    explainer <- DALEX::explain(
+      model = booster,
+      data = background,
+      y = NULL,
+      predict_function = function(model, newdata) {
+        as.numeric(stats::predict(model, as.matrix(newdata)))
+      },
+      label = "AUC24 ML",
+      verbose = FALSE
+    )
+    .ml_explainer_cache[[cache_key]] <- explainer
+  }
+  parts <- as.data.frame(DALEX::predict_parts(
+    explainer = explainer,
+    new_observation = feature_row$data,
+    type = "break_down"
+  ))
+  parts$variable_name <- as.character(parts$variable_name)
+  baseline_row <- which(parts$variable_name == "intercept")
+  contribution_rows <- which(nzchar(parts$variable_name) & parts$variable_name != "intercept")
+  if (!length(baseline_row) || !length(contribution_rows)) stop("DALEX returned an incomplete explanation.")
+  contributions <- data.frame(
+    variable = parts$variable_name[contribution_rows],
+    value = as.numeric(feature_row$values[parts$variable_name[contribution_rows]]),
+    contribution = as.numeric(parts$contribution[contribution_rows]),
+    stringsAsFactors = FALSE
+  )
+  prediction <- tail(parts$cumulative[is.finite(parts$cumulative)], 1L)
+  list(
+    available = TRUE,
+    method = "DALEX break_down",
+    baseline = as.numeric(parts$contribution[baseline_row[[1]]]),
+    prediction = as.numeric(prediction),
+    contributions = contributions,
+    background_size = nrow(background),
+    background_sha256 = configuration$backgroundSha256,
+    synthetic = isTRUE(configuration$synthetic)
+  )
+}
+
 apply_ml_artifact <- function(fit, artifact) {
-  features <- artifact$featureSchema %||% list()
-  if (!length(features)) stop("ML feature schema is empty.")
-  feature_names <- vapply(features, function(feature) as.character(feature$name %||% ""), character(1))
-  if (any(!nzchar(feature_names)) || anyDuplicated(feature_names)) stop("ML feature names are invalid.")
-  values <- vapply(features, ml_feature_value, numeric(1), fit = fit)
+  feature_row <- ml_feature_row(fit, artifact)
+  values <- feature_row$values
   domain <- artifact$trainingDomain %||% list()
   bounds <- domain$features %||% list()
   for (name in intersect(names(bounds), names(values))) {
@@ -204,21 +299,12 @@ apply_ml_artifact <- function(fit, artifact) {
       stop("ML feature outside its training domain: ", name)
     }
   }
-  matrix <- matrix(values, nrow = 1L, dimnames = list(NULL, feature_names))
 
   if (!requireNamespace("xgboost", quietly = TRUE)) stop("Package xgboost unavailable; MAP fallback used.")
-  artifact_path <- resolve_ml_artifact_path(artifact$artifactPath)
-  expected_artifact_hash <- tolower(as.character(artifact$artifactSha256 %||% ""))
-  if (!nzchar(expected_artifact_hash) || !requireNamespace("digest", quietly = TRUE)) {
-    stop("ML artifact fingerprint is unavailable.")
-  }
-  actual_artifact_hash <- digest::digest(artifact_path, algo = "sha256", file = TRUE, serialize = FALSE)
-  if (!identical(expected_artifact_hash, tolower(actual_artifact_hash))) {
-    stop("ML artifact fingerprint does not match the manifest.")
-  }
+  artifact_path <- verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)
   booster <- readRDS(artifact_path)
   if (!inherits(booster, "xgb.Booster")) stop("ML artifact is not an xgboost booster.")
-  prediction_value <- as.numeric(stats::predict(booster, matrix))[[1]]
+  prediction_value <- as.numeric(stats::predict(booster, feature_row$matrix))[[1]]
   prediction_type <- ml_prediction_type(artifact)
 
   if (identical(prediction_type, "auc24_direct")) {
@@ -250,6 +336,11 @@ apply_ml_artifact <- function(fit, artifact) {
       stop("ML AUC24 prediction is outside its validated domain.")
     }
     fit$ml_auc24 <- prediction_value
+    fit$ml_features <- as.list(values)
+    fit$ml_explanation <- tryCatch(
+      build_ml_explanation(artifact, booster, feature_row),
+      error = function(error) list(available = FALSE, reason = conditionMessage(error))
+    )
     fit$ml_correction <- list(
       applied = TRUE,
       type = prediction_type,
@@ -338,11 +429,20 @@ ml_application_summary <- function(fits, weights = NULL) {
     auc24 <- sum(values * selected_weights)
     clinical <- all(vapply(valid, function(fit) isTRUE(fit$ml_correction$clinical_validation), logical(1)))
     labels <- vapply(valid, function(fit) fit$ml_correction$artifact_id, character(1))
+    explanation <- if (length(valid) == 1L) {
+      valid[[1]]$ml_explanation %||% list(available = FALSE, reason = "Explication DALEX indisponible.")
+    } else {
+      list(
+        available = FALSE,
+        reason = "L'explication locale n'est affichée que pour un prédicteur ML individuel, sans model averaging."
+      )
+    }
     return(list(
       available = length(valid),
       auc24 = auc24,
       clinical = clinical,
       artifacts = labels,
+      explanation = explanation,
       message = paste0(
         "AUC24 ML expérimentale : ", round(auc24, 1),
         " mg.h/L. Les projections de doses restent calculées par MAP",

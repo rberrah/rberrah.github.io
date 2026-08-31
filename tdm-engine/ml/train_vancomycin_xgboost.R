@@ -59,6 +59,7 @@ MIN_WITHIN_20_PCT <- 80
 MIN_AUC24 <- 100
 MAX_AUC24 <- 1200
 MAX_CONCENTRATION <- 120
+DALEX_BACKGROUND_SIZE <- 200L
 
 XGB_GRID <- if (smoke) {
   list(
@@ -520,6 +521,13 @@ evaluate_base_model <- function(base_id, index) {
   nested <- nested_validate(training, predictors, seed + index * 10000L)
   final_parameters <- select_xgb_parameters(training, predictors, seed + index * 20000L)
   booster <- fit_booster(training, final_parameters, predictors)
+  set.seed(seed + index * 40000L)
+  explanation_rows <- sample(
+    seq_len(nrow(training)),
+    min(DALEX_BACKGROUND_SIZE, nrow(training)),
+    replace = FALSE
+  )
+  explanation_background <- training[explanation_rows, predictors, drop = FALSE]
   elastic <- fit_elastic(training, predictors, seed + index * 30000L)
   holdout_metrics <- evaluate_predictions(holdout, booster, elastic, predictors)
   alternate_metrics <- evaluate_predictions(alternate, booster, elastic, predictors)
@@ -573,6 +581,7 @@ evaluate_base_model <- function(base_id, index) {
   list(
     row = row,
     booster = booster,
+    explanation_background = explanation_background,
     predictors = predictors,
     schema = feature_schema(base_id, predictors),
     parameters = final_parameters,
@@ -593,8 +602,11 @@ publish_candidate <- function(evaluation) {
   artifact_directory <- file.path(ML_ROOT, "artifacts")
   if (!dir.exists(artifact_directory)) dir.create(artifact_directory, recursive = TRUE)
   artifact_file <- file.path(artifact_directory, paste0(artifact_id, ".rds"))
+  background_file <- file.path(artifact_directory, paste0(artifact_id, "-dalex-background.rds"))
   saveRDS(evaluation$booster, artifact_file)
+  saveRDS(evaluation$explanation_background, background_file)
   artifact_sha256 <- digest::digest(artifact_file, algo = "sha256", file = TRUE, serialize = FALSE)
+  background_sha256 <- digest::digest(background_file, algo = "sha256", file = TRUE, serialize = FALSE)
 
   manifest <- read_ml_manifest()
   artifact <- list(
@@ -611,6 +623,13 @@ publish_candidate <- function(evaluation) {
     baseModelSha256 = model_sha256(base_id),
     artifactPath = paste0("artifacts/", basename(artifact_file)),
     artifactSha256 = artifact_sha256,
+    explanation = list(
+      type = "dalex_break_down",
+      backgroundPath = paste0("artifacts/", basename(background_file)),
+      backgroundSha256 = background_sha256,
+      sampleSize = nrow(evaluation$explanation_background),
+      synthetic = TRUE
+    ),
     featureSchema = evaluation$schema,
     prediction = list(type = "auc24_direct", metric = "AUC24", unit = "mg.h/L", horizonHours = 24),
     methodology = list(

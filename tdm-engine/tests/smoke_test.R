@@ -205,6 +205,17 @@ stopifnot(
   !isTRUE(published_eligibility$transportability),
   !isTRUE(published_eligibility$clinical)
 )
+published_explanation <- ml_manifest$artifacts[[1]]$explanation
+stopifnot(
+  identical(published_explanation$type, "dalex_break_down"),
+  isTRUE(published_explanation$synthetic),
+  published_explanation$sampleSize >= 100L
+)
+invisible(verified_ml_rds_path(
+  published_explanation$backgroundPath,
+  published_explanation$backgroundSha256,
+  "DALEX background"
+))
 
 revilla_observations <- data.frame(
   time = c(38, 47.5),
@@ -227,10 +238,20 @@ stopifnot(
   isTRUE(revilla_fits[[1]]$ml_correction$applied),
   identical(revilla_fits[[1]]$ml_correction$type, "auc24_direct"),
   revilla_fits[[1]]$ml_auc24 >= 100,
-  revilla_fits[[1]]$ml_auc24 <= 1200
+  revilla_fits[[1]]$ml_auc24 <= 1200,
+  isTRUE(revilla_fits[[1]]$ml_explanation$available),
+  abs(
+    revilla_fits[[1]]$ml_explanation$baseline +
+      sum(revilla_fits[[1]]$ml_explanation$contributions$contribution) -
+      revilla_fits[[1]]$ml_auc24
+  ) < 1e-3
 )
 revilla_ml_summary <- ml_application_summary(revilla_fits, c(vanco_pkjust = 1))
-stopifnot(revilla_ml_summary$available == 1L, is.finite(revilla_ml_summary$auc24))
+stopifnot(
+  revilla_ml_summary$available == 1L,
+  is.finite(revilla_ml_summary$auc24),
+  isTRUE(revilla_ml_summary$explanation$available)
+)
 
 default_fits <- fit_model_set(
   specifications[match("vanco_roberts", model_ids)],
