@@ -5,6 +5,6 @@ account: tdmhub
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 17776160
-bundleId: 12484041
+bundleId: 12486149
 url: https://tdmhub.shinyapps.io/MIPD_Engine/
 version: 1
