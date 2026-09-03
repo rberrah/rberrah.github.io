@@ -128,15 +128,19 @@ export const dictionary = {
       exercisesRetry: 'Try again',
       legoEyebrow: 'Build-a-model lab',
       legoTitle: 'Lego lab — assemble a PK/PD model',
-      legoIntro: 'Click the blocks to build your model — absorption, compartments, elimination, PD. The ODE system, the runnable R code and the simulated curves update live.',
+      legoIntro: 'Click the blocks to build your model — absorption, compartments, elimination, PD. The ODE system, generated code and simulated curves update live.',
       legoEquations: 'Model (ODEs)',
-      legoCode: 'R code',
+      legoCode: 'Generated code',
       legoCopy: 'Copy',
       legoCopied: 'Copied',
       legoNoteNlmixr:
         'Ready to fit. Fixed effects are estimated on the log scale, between-subject variability is on clearance and volume, the residual error is combined, and a commented line shows where a covariate goes. Supply your own dataset as `data`.',
       legoNoteMrgsolve:
         'TDM-ready mrgsolve model: structural parameters, default inter-individual variability and residual error. Patient data and dosing are entered in the TDM engine.',
+      legoNoteMlxtran:
+        'Complete MLXTRAN model for MonolixSuite: covariate, individual, structural and combined-error sections. Suggested initial values are listed at the top; data mapping and estimation tasks remain configured in Monolix or Simulx.',
+      legoNoteNonmem:
+        'NONMEM ADVAN13 control stream with FOCE-I, covariates, inter-individual variability and combined residual error. Adapt the data.csv path and verify the generated CMT mapping before running it.',
       legoOpenTdm: 'Open in TDM',
       legoTdmSent: 'Sent to TDM',
       legoTdmUnavailable: 'Add a concentration compartment first',
@@ -279,15 +283,19 @@ export const dictionary = {
       exercisesRetry: 'Réessayer',
       legoEyebrow: 'Atelier « construire un modèle »',
       legoTitle: 'Atelier Lego — assemblez un modèle PK/PD',
-      legoIntro: 'Cliquez les blocs pour construire votre modèle — absorption, compartiments, élimination, PD. Le système d’EDO, le code R exécutable et les courbes simulées se mettent à jour en direct.',
+      legoIntro: 'Cliquez les blocs pour construire votre modèle — absorption, compartiments, élimination, PD. Le système d’EDO, les codes générés et les courbes simulées se mettent à jour en direct.',
       legoEquations: 'Modèle (EDO)',
-      legoCode: 'Code R',
+      legoCode: 'Code généré',
       legoCopy: 'Copier',
       legoCopied: 'Copié',
       legoNoteNlmixr:
         "Prêt à estimer. Les effets fixes sont sur l'échelle log, la variabilité inter-individuelle porte sur la clairance et le volume, l'erreur résiduelle est combinée, et une ligne commentée montre où placer une covariable. Fournissez votre jeu de données sous le nom `data`.",
       legoNoteMrgsolve:
         "Modèle mrgsolve prêt pour le TDM : structure, variabilité interindividuelle et erreur résiduelle par défaut. Les données patient et les doses sont renseignées dans le moteur TDM.",
+      legoNoteMlxtran:
+        "Modèle MLXTRAN complet pour MonolixSuite : covariables, modèle individuel, structure et erreur combinée. Les valeurs initiales suggérées figurent en tête ; l'association des données et les tâches d'estimation restent à régler dans Monolix ou Simulx.",
+      legoNoteNonmem:
+        "Control stream NONMEM ADVAN13 avec FOCE-I, covariables, variabilité interindividuelle et erreur combinée. Adaptez le chemin data.csv et vérifiez la correspondance des CMT générés avant l'exécution.",
       legoOpenTdm: 'Ouvrir dans TDM',
       legoTdmSent: 'Envoyé au TDM',
       legoTdmUnavailable: "Ajoutez d'abord un compartiment de concentration",

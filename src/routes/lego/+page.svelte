@@ -2,7 +2,7 @@
   // Atelier « Lego » — constructeur de modèles LIBRE.
   // On ajoute des compartiments (dépôt, transit, central, périphérique, métabolite, PD)
   // et des flèches (constantes de transfert) entre N'IMPORTE quels compartiments.
-  // Sortie : diagramme éditable + EDO générées + code nlmixr2 + simulation (RK4).
+  // Sortie : diagramme éditable + EDO générées + nlmixr2/mrgsolve/MLXTRAN/NONMEM + simulation (RK4).
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
   import { tdmEngineUrl } from '$lib/tdm/engine';
@@ -279,11 +279,9 @@
   })();
 
   // ── génération de code ───────────────────────────────────────────────────────────
-  // Deux cibles, deux usages, et les DEUX sont complètes : on doit pouvoir les coller
-  // dans R sans rien y ajouter. nlmixr2 sert à ESTIMER sur des données (d'où le bloc
-  // `ini()`, les paramètres déclarés, la variabilité inter-individuelle, le modèle
-  // d'erreur et l'emplacement d'une covariable) ; mrgsolve sert à SIMULER avec les
-  // valeurs réglées ici (d'où les doses et l'horizon repris de l'atelier).
+  // Quatre cibles synchronisées : nlmixr2 et NONMEM pour l'estimation, mrgsolve pour
+  // la simulation et le pont TDM, MLXTRAN pour MonolixSuite. Chaque sortie reprend
+  // les paramètres, la variabilité, l'erreur résiduelle et les covariables du graphe.
   // L'ancien générateur n'émettait qu'un bloc `model({…})` : illisible pour R.
 
   /** Identifiant sûr en R comme en C++ : sans accent, sans espace, jamais initié par un chiffre. */
@@ -675,6 +673,270 @@
     return L.join('\n');
   })();
 
+  // ── MLXTRAN complet (Monolix / Simulx) ──
+  $: codeMlxtran = (() => {
+    if (!nodes.length) return '; Ajoutez des compartiments : le code se génère au fur et à mesure.';
+    if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
+    const P = modelParams();
+    const C = validCovariates(P, covariates);
+    const dosed = nodes.filter((n) => (n.dose ?? 0) > 0);
+    const continuous = C.filter((covariate) => covariateType(covariate) === 'continuous');
+    const categorical = C.filter((covariate) => covariateType(covariate) === 'categorical');
+    const betaName = (/** @type {Covariate} */ covariate) => `beta_${covariateName(covariate.name)}_${covariate.target}`;
+    const transformedName = (/** @type {Covariate} */ covariate) => `logt_${covariateName(covariate.name)}`;
+    const individualInputs = [
+      ...P.map((parameter) => `${parameter.name}_pop`),
+      ...P.filter((parameter) => parameter.iiv).map((parameter) => `omega_${parameter.name}`),
+      ...C.map(betaName),
+      ...continuous.map(transformedName),
+      ...categorical.map((covariate) => covariateName(covariate.name))
+    ];
+    const L = [];
+
+    L.push('DESCRIPTION:');
+    L.push('Modele genere par l\'Atelier Lego de Pharmacometrie Pratique.');
+    L.push('');
+    L.push('; Valeurs initiales suggerees pour les parametres de population :');
+    for (const parameter of P) {
+      L.push(`;   ${parameter.name}_pop = ${fmt(parameter.value)} ; ${parameter.note} (${parameter.unit})`);
+      if (parameter.iiv) L.push(`;   omega_${parameter.name} = 0.3 ; ecart-type interindividuel`);
+    }
+    for (const covariate of C) L.push(`;   ${betaName(covariate)} = ${fmt(covariate.beta)}`);
+    L.push(';   a = 0.1 ; erreur additive, b = 0.2 ; erreur proportionnelle');
+
+    if (C.length) {
+      L.push('');
+      L.push('[COVARIATE]');
+      L.push(`input = {${C.map((covariate) => covariateName(covariate.name)).join(', ')}}`);
+      for (const covariate of categorical) {
+        const name = covariateName(covariate.name);
+        L.push(`${name} = {type=categorical, categories={${fmt(covariate.reference)}, ${fmt(covariate.comparison)}}}`);
+      }
+      if (continuous.length) {
+        L.push('');
+        L.push('EQUATION:');
+        for (const covariate of continuous) {
+          const name = covariateName(covariate.name);
+          L.push(`${transformedName(covariate)} = log(${name}/${fmt(covariate.reference)})`);
+        }
+      }
+    }
+
+    L.push('');
+    L.push('[INDIVIDUAL]');
+    L.push(`input = {${individualInputs.join(', ')}}`);
+    for (const covariate of categorical) {
+      const name = covariateName(covariate.name);
+      L.push(`${name} = {type=categorical, categories={${fmt(covariate.reference)}, ${fmt(covariate.comparison)}}}`);
+    }
+    L.push('');
+    L.push('DEFINITION:');
+    for (const parameter of P) {
+      const effects = C.filter((covariate) => covariate.target === parameter.name);
+      const options = [
+        'distribution=logNormal',
+        `typical=${parameter.name}_pop`
+      ];
+      if (effects.length) {
+        const covariateTerms = effects.map((covariate) => covariateType(covariate) === 'continuous'
+          ? transformedName(covariate)
+          : covariateName(covariate.name));
+        const coefficientTerms = effects.map((covariate) => covariateType(covariate) === 'continuous'
+          ? betaName(covariate)
+          : `{0, ${betaName(covariate)}}`);
+        options.push(`covariate=${effects.length === 1 ? covariateTerms[0] : `{${covariateTerms.join(', ')}}`}`);
+        options.push(`coefficient=${effects.length === 1 ? coefficientTerms[0] : `{${coefficientTerms.join(', ')}}`}`);
+      }
+      options.push(parameter.iiv ? `sd=omega_${parameter.name}` : 'no-variability');
+      L.push(`${parameter.name} = {${options.join(', ')}}`);
+    }
+
+    L.push('');
+    L.push('[LONGITUDINAL]');
+    L.push(`input = {${[...P.map((parameter) => parameter.name), 'a', 'b'].join(', ')}}`);
+    L.push('');
+    L.push('PK:');
+    if (dosed.length) {
+      dosed.forEach((node, index) => {
+        const administration = dosed.length > 1 ? `, adm=${index + 1}` : '';
+        L.push(`depot(target=${rid(node.name)}${administration})`);
+      });
+    } else {
+      L.push('; Aucun compartiment dose : attribuez une dose dans l\'atelier.');
+    }
+    L.push('');
+    L.push('EQUATION:');
+    L.push('odeType = stiff');
+    L.push('t_0 = 0');
+    for (const node of nodes) {
+      const name = rid(node.name);
+      const initial = node.kind === 'response' ? `kin_${name}/kout_${name}` : '0';
+      L.push(`${name}_0 = ${initial}`);
+    }
+    L.push('');
+    for (const node of nodes) {
+      const name = rid(node.name);
+      if (node.kind === 'effect') {
+        L.push(`ddt_${name} = ke0_${name}*(${driverConc(node)} - ${name})`);
+      } else if (node.kind === 'response') {
+        L.push(`ddt_${name} = kin_${name}*(1 + smax_${name}*${driverConc(node)}/(sc50_${name} + ${driverConc(node)})) - kout_${name}*${name}`);
+      } else {
+        L.push(`ddt_${name} = ${massTerms(node)}`);
+      }
+    }
+    L.push('');
+    for (const node of concSources()) L.push(`C_${rid(node.name)} = ${rid(node.name)}/v_${rid(node.name)}`);
+    L.push('');
+    L.push('DEFINITION:');
+    L.push(`DV = {distribution=normal, prediction=C_${rid(observed.name)}, errorModel=combined1(a, b)}`);
+    L.push('');
+    L.push('OUTPUT:');
+    L.push('output = {DV}');
+    const tableOutputs = [
+      ...concSources().map((node) => `C_${rid(node.name)}`),
+      ...nodes.filter((node) => node.kind === 'effect' || node.kind === 'response').map((node) => rid(node.name))
+    ];
+    if (tableOutputs.length) L.push(`table = {${tableOutputs.join(', ')}}`);
+    return L.join('\n');
+  })();
+
+  // ── NONMEM / NM-TRAN : ODE générales avec ADVAN13 ──
+  $: codeNonmem = (() => {
+    if (!nodes.length) return '; Ajoutez des compartiments : le control stream se génère au fur et à mesure.';
+    if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
+    const P = modelParams();
+    const C = validCovariates(P, covariates);
+    const dosed = nodes.filter((node) => (node.dose ?? 0) > 0);
+    const adm = dosed[0] ?? nodes.find((node) => node.kind !== 'effect' && node.kind !== 'response') ?? nodes[0];
+    const nodeIndex = new Map(nodes.map((node, index) => [node.id, index + 1]));
+    const parameterVariable = new Map(P.map((parameter, index) => [parameter.name, `P${index + 1}`]));
+    const thetaIndex = new Map(P.map((parameter, index) => [parameter.name, index + 1]));
+    const betaIndex = new Map(C.map((covariate, index) => [covariate.id, P.length + index + 1]));
+    const randomParameters = P.filter((parameter) => parameter.iiv);
+    const etaIndex = new Map(randomParameters.map((parameter, index) => [parameter.name, index + 1]));
+    const categorical = C.filter((covariate) => covariateType(covariate) === 'categorical');
+    const categoryIndicator = new Map(categorical.map((covariate, index) => [covariate.id, `CAT${index + 1}`]));
+    const nonmemCovariate = new Map(C.map((covariate, index) => {
+      const name = covariateName(covariate.name);
+      return [covariate.id, name.length <= 20 ? name : `COV${index + 1}_${name.slice(0, 13)}`];
+    }));
+    const pvar = (/** @type {string} */ name) => parameterVariable.get(name) ?? '0';
+    const state = (/** @type {number} */ id) => `A(${nodeIndex.get(id) ?? 1})`;
+    const nonmemDriver = (/** @type {Node} */ node) => {
+      const source = nodes.find((candidate) => candidate.id === node.source);
+      if (!source) return '0';
+      const amount = state(source.id);
+      return KINDS[source.kind]?.vol ? `(${amount}/${pvar(`v_${rid(source.name)}`)})` : amount;
+    };
+    const nonmemMassTerms = (/** @type {Node} */ node) => {
+      const terms = [];
+      for (const edge of edges.filter((candidate) => candidate.to === node.id)) {
+        terms.push(`+ ${pvar(`k_${nmOf(edge.from)}_${rid(node.name)}`)}*${state(edge.from)}`);
+      }
+      for (const edge of edges.filter((candidate) => candidate.from === node.id)) {
+        terms.push(`- ${pvar(`k_${rid(node.name)}_${edge.to === 'OUT' ? 'e' : nmOf(edge.to)}`)}*${state(node.id)}`);
+      }
+      return terms.join(' ') || '0';
+    };
+    const L = [];
+
+    L.push('$PROBLEM Atelier Lego - modele PK/PD genere');
+    L.push('; Donnees attendues : une ligne par evenement dans data.csv.');
+    L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + (C.length ? ` ${C.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));
+    L.push(`; Compartiment dose par defaut : ${nodeIndex.get(adm.id)} (${rid(adm.name)}). Observation : ${nodeIndex.get(observed.id)} (${rid(observed.name)}).`);
+    for (const covariate of C) {
+      const sourceName = covariateName(covariate.name);
+      const dataName = nonmemCovariate.get(covariate.id);
+      if (sourceName !== dataName) L.push(`; Renommer la colonne ${sourceName} en ${dataName} pour NONMEM.`);
+    }
+    L.push(`$INPUT ID TIME DV AMT EVID MDV CMT${C.length ? ` ${C.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''}`);
+    L.push('$DATA data.csv IGNORE=@');
+    L.push('$SUBROUTINES ADVAN13 TOL=9');
+    L.push('$MODEL');
+    for (const node of nodes) {
+      const tags = [];
+      if (node.id === adm.id) tags.push('DEFDOSE');
+      if (node.id === observed.id) tags.push('DEFOBS');
+      const compartmentName = `C${nodeIndex.get(node.id)}_${rid(node.name).toUpperCase().slice(0, 12)}`;
+      L.push(`COMP=(${compartmentName}${tags.length ? `,${tags.join(',')}` : ''})`);
+    }
+    L.push('');
+    L.push('$PK');
+    L.push('; P1, P2, ... correspondent aux parametres listes dans $THETA.');
+    for (const covariate of categorical) {
+      const indicator = categoryIndicator.get(covariate.id);
+      const name = nonmemCovariate.get(covariate.id);
+      L.push(`${indicator}=0`);
+      L.push(`IF (${name}.EQ.${fmt(covariate.comparison)}) ${indicator}=1`);
+    }
+    for (const parameter of P) {
+      const typical = `TV${parameterVariable.get(parameter.name)}`;
+      const effects = C
+        .filter((covariate) => covariate.target === parameter.name)
+        .map((covariate) => {
+          const beta = `THETA(${betaIndex.get(covariate.id)})`;
+          return covariateType(covariate) === 'categorical'
+            ? `*EXP(${beta}*${categoryIndicator.get(covariate.id)})`
+            : `*(${nonmemCovariate.get(covariate.id)}/${fmt(covariate.reference)})**${beta}`;
+        })
+        .join('');
+      L.push(`${typical}=THETA(${thetaIndex.get(parameter.name)})${effects}`);
+      const eta = etaIndex.get(parameter.name);
+      L.push(`${parameterVariable.get(parameter.name)}=${typical}${eta ? `*EXP(ETA(${eta}))` : ''}`);
+    }
+    const responseNodes = nodes.filter((candidate) => candidate.kind === 'response');
+    if (responseNodes.length) {
+      L.push('IF (A_0FLG.EQ.1) THEN');
+      for (const node of responseNodes) {
+        const name = rid(node.name);
+        L.push(`  A_0(${nodeIndex.get(node.id)})=${pvar(`kin_${name}`)}/${pvar(`kout_${name}`)}`);
+      }
+      L.push('ENDIF');
+    }
+    L.push('');
+    L.push('$DES');
+    for (const node of nodes) {
+      const name = rid(node.name);
+      const index = nodeIndex.get(node.id);
+      if (node.kind === 'effect') {
+        L.push(`DADT(${index})=${pvar(`ke0_${name}`)}*(${nonmemDriver(node)}-A(${index}))`);
+      } else if (node.kind === 'response') {
+        const driver = nonmemDriver(node);
+        L.push(`DADT(${index})=${pvar(`kin_${name}`)}*(1+${pvar(`smax_${name}`)}*${driver}/(${pvar(`sc50_${name}`)}+${driver}))-${pvar(`kout_${name}`)}*A(${index})`);
+      } else {
+        L.push(`DADT(${index})=${nonmemMassTerms(node)}`);
+      }
+    }
+    L.push('');
+    L.push('$ERROR');
+    L.push(`IPRED=A(${nodeIndex.get(observed.id)})/${pvar(`v_${rid(observed.name)}`)}`);
+    L.push('Y=IPRED*(1+EPS(1))+EPS(2)');
+    L.push('');
+    L.push('$THETA');
+    for (const parameter of P) {
+      L.push(`(0, ${fmt(parameter.value)}) ; THETA(${thetaIndex.get(parameter.name)}) -> ${parameterVariable.get(parameter.name)} = ${parameter.name}, ${parameter.note} (${parameter.unit})`);
+    }
+    for (const covariate of C) {
+      L.push(`(-10, ${fmt(covariate.beta)}, 10) ; THETA(${betaIndex.get(covariate.id)}) -> effet ${covariateName(covariate.name)} sur ${covariate.target}`);
+    }
+    L.push('');
+    L.push('$OMEGA');
+    if (randomParameters.length) {
+      for (const parameter of randomParameters) L.push(`0.09 ; ETA(${etaIndex.get(parameter.name)}) -> IIV ${parameter.name}`);
+    } else {
+      L.push('0 FIX ; aucune variabilite interindividuelle selectionnee');
+    }
+    L.push('');
+    L.push('$SIGMA');
+    L.push('0.04 ; EPS(1), variance proportionnelle');
+    L.push('0.01 ; EPS(2), variance additive');
+    L.push('');
+    L.push('$ESTIMATION METHOD=1 INTERACTION MAXEVAL=9999 PRINT=5 SIGDIGITS=3');
+    L.push('$COVARIANCE PRINT=E MATRIX=S');
+    L.push('$TABLE ID TIME DV IPRED CWRES NOPRINT ONEHEADER FILE=lego_results.csv');
+    return L.join('\n');
+  })();
+
   // ── onglets + copie ──
   // ATTENTION : ne PAS nommer cette fonction `copy` — ce nom est déjà celui de la
   // variable réactive d'internationalisation ci-dessus, et la collision casse
@@ -683,7 +945,14 @@
   let copiedTab = '';
   let transferredCode = '';
   /** @type {ReturnType<typeof setTimeout> | undefined} */ let copyTimer;
-  $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr : codeMrgsolve;
+  $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr
+    : codeTab === 'mrgsolve' ? codeMrgsolve
+      : codeTab === 'mlxtran' ? codeMlxtran
+        : codeNonmem;
+  $: activeCodeNote = codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr
+    : codeTab === 'mrgsolve' ? copy.pages.legoNoteMrgsolve
+      : codeTab === 'mlxtran' ? copy.pages.legoNoteMlxtran
+        : copy.pages.legoNoteNonmem;
   async function copierCode() {
     try {
       await navigator.clipboard.writeText(activeCode);
@@ -926,6 +1195,8 @@
       <div class="tabs" role="tablist" aria-label={copy.pages.legoCode}>
         <button role="tab" aria-selected={codeTab === 'nlmixr2'} class:on={codeTab === 'nlmixr2'} on:click={() => (codeTab = 'nlmixr2')}>nlmixr2</button>
         <button role="tab" aria-selected={codeTab === 'mrgsolve'} class:on={codeTab === 'mrgsolve'} on:click={() => (codeTab = 'mrgsolve')}>mrgsolve</button>
+        <button role="tab" aria-selected={codeTab === 'mlxtran'} class:on={codeTab === 'mlxtran'} on:click={() => (codeTab = 'mlxtran')}>MLXTRAN</button>
+        <button role="tab" aria-selected={codeTab === 'nonmem'} class:on={codeTab === 'nonmem'} on:click={() => (codeTab = 'nonmem')}>NONMEM</button>
       </div>
       <button class="cp" on:click={copierCode}>{copiedTab === codeTab ? copy.pages.legoCopied : copy.pages.legoCopy}</button>
       <button
@@ -935,7 +1206,7 @@
         on:click={ouvrirDansTdm}
       >{transferredCode === codeMrgsolve ? copy.pages.legoTdmSent : copy.pages.legoOpenTdm}</button>
     </div>
-    <p class="codenote">{codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr : copy.pages.legoNoteMrgsolve}</p>
+    <p class="codenote">{activeCodeNote}</p>
     <pre class="codeblk"><code>{activeCode}</code></pre>
   </section>
 </div>
@@ -1024,7 +1295,7 @@
   .eqs code, .codeblk code { white-space: pre; }
   .codehead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-2); }
   .codehead h2 { margin: 0; }
-  .tabs { display: flex; gap: 4px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
   .tabs button {
     font-family: var(--font-mono); font-size: var(--text-xs); padding: 4px 10px; cursor: pointer;
     border: 1px solid var(--border-strong); background: var(--bg-primary);

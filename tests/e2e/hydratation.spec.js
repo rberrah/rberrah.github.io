@@ -66,7 +66,7 @@ test("« Ouvrir le parcours » ouvre réellement le premier chapitre", async ({ 
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 
-test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) => {
+test("l'atelier Lego génère les quatre langages de modélisation", async ({ page }) => {
   const erreurs = collecteErreurs(page);
 
   await page.goto('/lego/');
@@ -110,6 +110,47 @@ test("l'atelier Lego génère du code R dans les deux cibles", async ({ page }) 
   expect(mrg).toContain('$ODE');
   expect(mrg).toContain('$CAPTURE @annotated');
   expect(mrg).toContain('double DV = IPRED');
+
+  await page.getByRole('tab', { name: 'MLXTRAN' }).click();
+  const mlxtran = await bloc.innerText();
+  expect(mlxtran).toContain('[COVARIATE]');
+  expect(mlxtran).toContain('[INDIVIDUAL]');
+  expect(mlxtran).toContain('[LONGITUDINAL]');
+  expect(mlxtran).toContain('logt_WT = log(WT/70)');
+  expect(mlxtran).toContain('SEX = {type=categorical, categories={0, 1}}');
+  expect(mlxtran).toContain('ddt_depot =');
+  expect(mlxtran).toContain('errorModel=combined1(a, b)');
+  expect(mlxtran).toContain('output = {DV}');
+
+  await page.getByRole('tab', { name: 'NONMEM' }).click();
+  const nonmem = await bloc.innerText();
+  expect(nonmem).toContain('$PROBLEM Atelier Lego');
+  expect(nonmem).toContain('$INPUT ID TIME DV AMT EVID MDV CMT WT SEX');
+  expect(nonmem).toContain('$SUBROUTINES ADVAN13 TOL=9');
+  expect(nonmem).toContain('$MODEL');
+  expect(nonmem).toContain('$PK');
+  expect(nonmem).toContain('IF (SEX.EQ.1) CAT1=1');
+  expect(nonmem).toContain('$DES');
+  expect(nonmem).toContain('DADT(1)=');
+  expect(nonmem).toContain('$ERROR');
+  expect(nonmem).toContain('Y=IPRED*(1+EPS(1))+EPS(2)');
+  expect(nonmem).toContain('$ESTIMATION METHOD=1 INTERACTION');
+
+  await page.locator('.toolbar button.add', { hasText: 'Effet' }).click();
+  await page.locator('.toolbar button.add', { hasText: 'Réponse' }).click();
+  await page.getByRole('tab', { name: 'MLXTRAN' }).click();
+  const mlxtranPd = await bloc.innerText();
+  expect(mlxtranPd).toContain('ddt_Ce = ke0_Ce*');
+  expect(mlxtranPd).toContain('R_0 = kin_R/kout_R');
+  expect(mlxtranPd).toContain('ddt_R = kin_R*');
+
+  await page.getByRole('tab', { name: 'NONMEM' }).click();
+  const nonmemPd = await bloc.innerText();
+  expect(nonmemPd).toContain('IF (A_0FLG.EQ.1) THEN');
+  expect(nonmemPd).toContain('A_0(4)=');
+  expect(nonmemPd).toContain('DADT(3)=');
+  expect(nonmemPd).toContain('DADT(4)=');
+  expect(nonmemPd).toContain('ENDIF');
 
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
