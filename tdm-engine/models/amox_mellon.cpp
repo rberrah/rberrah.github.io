@@ -10,9 +10,9 @@ $PROB
 # - IV : administrer dans CENT, cmt = 1, par exemple perfusion 1000 mg sur 30 min.
 # - Oral : administrer dans DEPOT, cmt = 3.
 #
-# Remarque :
-# - La corrélation CL-Q rapportée dans l'article n'est pas codée ici afin de rester
-#   homogène avec le format diagonal utilisé dans les modèles cefepime du logiciel.
+# Adaptation note:
+# - The main article does not provide the executable transit-model equations.
+#   The fixed two-stage transit chain below is an approximation.
 
 $PARAM @annotated
 TVF        : 0.797 : Bioavailability orale typique, fraction
@@ -43,15 +43,15 @@ CREAT : 70.0  : Créatinine sérique, conservée pour compatibilité
 SEX   : 1.0   : Sexe (0 = Homme, 1 = Femme), conservé pour compatibilité
 BSA   : 1.73  : Surface corporelle, conservée pour compatibilité
 
-$OMEGA @annotated @diagonal
-ETA_F   : 1.0000 : Variabilité interindividuelle sur F, variance logit
-ETA_MTT : 0.0625 : Variabilité interindividuelle sur MTT
-ETA_KTR : 0.2401 : Variabilité interindividuelle sur KTR
-ETA_KA  : 0.0625 : Variabilité interindividuelle sur KA
-ETA_V1  : 0.2500 : Variabilité interindividuelle sur V1
-ETA_CL  : 0.0729 : Variabilité interindividuelle sur CL
-ETA_V2  : 0.0900 : Variabilité interindividuelle sur V2
-ETA_Q   : 0.3481 : Variabilité interindividuelle sur Q
+$OMEGA @block
+1.0000
+0.0000 0.0625
+0.0000 0.0000 0.2401
+0.0000 0.0000 0.0000 0.0625
+0.0000 0.0000 0.0000 0.0000 0.2500
+0.0000 0.0000 0.0000 0.0000 0.0000 0.0729
+0.0000 0.0000 0.0000 0.0000 0.0000 0.0000 0.0900
+0.0000 0.0000 0.0000 0.0000 0.0000 0.14337 0.0000 0.3481
 
 $SIGMA @annotated @diagonal
 PROP : 0.01716 : Erreur résiduelle proportionnelle, variance correspondant à 13.1%

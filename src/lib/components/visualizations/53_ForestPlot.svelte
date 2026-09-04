@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Forest plot des effets de covariables : chaque effet (ratio vs référence) avec son
   // IC 95 %. La ligne à 1 = pas d'effet ; la bande = zone « cliniquement non pertinente ».
   // Un effet est important s'il SORT de la bande ; il est incertain s'il CROISE 1.
@@ -32,16 +33,16 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Zone de non-pertinence</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
+    <label class="s"><span>{$language === 'en' ? 'No-effect zone' : 'Zone de non-pertinence'}</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
     <div class="readout">
-      <p><span class="dot pert"></span> pertinent (hors bande)</p>
-      <p><span class="dot faible"></span> effet faible</p>
-      <p><span class="dot inc"></span> incertain (croise 1)</p>
+      <p><span class="dot pert"></span> {$language === 'en' ? 'relevant (outside band)' : 'pertinent (hors bande)'}</p>
+      <p><span class="dot faible"></span> {$language === 'en' ? 'small effect' : 'effet faible'}</p>
+      <p><span class="dot inc"></span> {$language === 'en' ? 'uncertain (crosses 1)' : 'incertain (croise 1)'}</p>
     </div>
-    <p class="hint">Un effet de covariable compte s'il sort de la bande « sans conséquence clinique » <em>et</em> si son IC 95 % ne croise pas 1.</p>
+    <p class="hint">{#if $language === 'en'}A covariate effect matters if it lies outside the clinically unimportant band <em>and</em> its 95% CI does not cross 1.{:else}Un effet de covariable compte s'il sort de la bande « sans conséquence clinique » <em>et</em> si son IC 95 % ne croise pas 1.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Forest plot des effets de covariables">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Forest plot of covariate effects' : 'Forest plot des effets de covariables'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x={sx(bLo)} y="0" width={sx(bHi) - sx(bLo)} height={effects.length * rowH} class="band" />
       <line x1={sx(1)} x2={sx(1)} y1="0" y2={effects.length * rowH} class="ref" />
@@ -50,7 +51,7 @@
       {/each}
       {#each effects as e, i}
         {@const cy = i * rowH + rowH / 2}
-        <text x="-10" y={cy + 3} class="name">{e.name}</text>
+        <text x="-10" y={cy + 3} class="name">{$language === 'en' ? e.name.replace('Poids', 'Weight').replace('Âge 80 ans', 'Age 80 years').replace('Génotype', 'Genotype').replace('Sexe féminin', 'Female sex') : e.name}</text>
         <line x1={sx(e.lo)} x2={sx(e.hi)} y1={cy} y2={cy} class="ci" />
         <circle cx={sx(e.est)} cy={cy} r="5"
           class:pert={status(e) === 'pertinent'} class:faible={status(e) === 'faible'} class:inc={status(e) === 'incertain'} />

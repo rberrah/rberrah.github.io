@@ -7,6 +7,7 @@
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   /** @type {'sans' | 'faible' | 'forte'} */
   let preset = 'faible';
@@ -51,7 +52,7 @@
   });
 
   // IOV demo sur un seul patient (3 occasions)
-  const occasions = ['Jour 1', 'Jour 2', 'Jour 3'];
+  const occasions = ['1', '2', '3'];
   $: iovCurves = occasions.map((_, idx) =>
     times.map((t) => ({
       t,
@@ -97,11 +98,11 @@
 <div class="var">
   <div class="controls">
     <label>
-      Preset
+      {$language === 'en' ? 'Preset' : 'Préréglage'}
       <select bind:value={preset} on:change={(e) => applyPreset(e.target.value)}>
-        <option value="sans">Sans variabilité</option>
-        <option value="faible">Faible</option>
-        <option value="forte">Forte</option>
+        <option value="sans">{$language === 'en' ? 'No variability' : 'Sans variabilité'}</option>
+        <option value="faible">{$language === 'en' ? 'Low' : 'Faible'}</option>
+        <option value="forte">{$language === 'en' ? 'High' : 'Forte'}</option>
       </select>
     </label>
     <Slider label="omega (IIV)" min={0} max={1} step={0.05} bind:value={omega} />
@@ -109,7 +110,7 @@
     <Slider label="sigma (résiduel prop)" min={0} max={0.5} step={0.02} bind:value={sigma} />
     <label class="toggle"><input type="checkbox" bind:checked={iivEnabled} /> IIV on/off</label>
     <label class="toggle"><input type="checkbox" bind:checked={iovEnabled} /> IOV on/off</label>
-    <label class="toggle"><input type="checkbox" bind:checked={resEnabled} /> Résiduel on/off</label>
+    <label class="toggle"><input type="checkbox" bind:checked={resEnabled} /> {$language === 'en' ? 'Residual' : 'Résiduel'} on/off</label>
   </div>
   <ChartFrame width={380} height={240} margin={{ top: 16, right: 14, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
@@ -134,7 +135,7 @@
     </svelte:fragment>
   </ChartFrame>
   <div class="iov">
-    <div class="label">IOV (même patient, 3 occasions)</div>
+    <div class="label">IOV ({$language === 'en' ? 'same patient, 3 occasions' : 'même patient, 3 occasions'})</div>
     <svg viewBox="0 0 360 120">
       {#each iovCurves as c, idx}
         <polyline
@@ -143,7 +144,7 @@
           stroke-width="2"
           points={c.map((p) => `${20 + p.t * 8},${100 - p.dv * 10}`).join(' ')}
         />
-        <text x="300" y={20 + idx * 18} font-size="10" fill="var(--text-primary)">{occasions[idx]}</text>
+        <text x="300" y={20 + idx * 18} font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Day' : 'Jour'} {occasions[idx]}</text>
       {/each}
     </svg>
   </div>

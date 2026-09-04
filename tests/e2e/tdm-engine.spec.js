@@ -133,22 +133,35 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(page.locator('.contract-ok')).toContainText('Contrat mapbayr valide');
   });
 
-  test('une analyse expose historique, état stationnaire, PTA et traçabilité', async ({ page }) => {
+  test('une analyse anglaise expose historique, état stationnaire, PTA et traçabilité', async ({ page }) => {
     test.setTimeout(180_000);
-    await page.goto(engineUrl);
+    await page.goto(`${engineUrl}?lang=en`);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+
+    await expect(page.getByRole('heading', { name: 'Treatment history', exact: true })).toBeVisible();
+    const timeMode = await page.locator('#time_entry_mode').evaluate((element) => ({
+      value: element.value,
+      selectizeValue: /** @type {any} */ (element).selectize?.getValue()
+    }));
+    expect(timeMode).toEqual({
+      value: 'relative_hours',
+      selectizeValue: 'relative_hours'
+    });
+    await expect(page.locator('label[for="dose_interval_1"]')).toContainText('Interval (h)');
+    await expect(page.getByRole('button', { name: 'Remove last', exact: true })).toHaveCount(2);
+    await expect(page.locator('body')).not.toContainText(/Retirer le dernier|La frise apparaîtra/);
 
     await page.locator('#accept_disclaimer').check();
     await page.locator('#run_analysis').click();
 
     const exposure = page.locator('.exposure-strip');
-    await expect(exposure).toContainText('AUC actuelle', { timeout: 120_000 });
-    await expect(exposure).toContainText("AUC0-24 à l'état stationnaire");
-    await expect(exposure).toContainText('C0 actuelle');
+    await expect(exposure).toContainText('Current AUC', { timeout: 120_000 });
+    await expect(exposure).toContainText('Steady-state AUC0-24');
+    await expect(exposure).toContainText('Current C0');
     await expect(page.locator('#future_comparison_plot img')).toBeVisible();
     await expect(page.locator('#averaging_sensitivity_table')).toBeVisible();
     await page.locator('#analysis_tabs a[data-value="dosing"]').click();
-    await expect(page.locator('.recommendation-strip')).toContainText("Probabilité d'atteindre la cible");
+    await expect(page.locator('.recommendation-strip')).toContainText('Target attainment probability');
     await page.locator('#analysis_tabs a[data-value="fit"]').click();
 
     const reportPromise = page.waitForEvent('download');
@@ -157,10 +170,10 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     const stream = await report.createReadStream();
     let html = '';
     for await (const chunk of stream) html += chunk.toString();
-    expect(html).toContain('AUC actuelle glissante');
-    expect(html).toContain('Empreintes SHA-256 des modèles');
+    expect(html).toContain('Current rolling AUC');
+    expect(html).toContain('Model SHA-256 fingerprints');
     expect(html).toContain('mapbayr');
-    expect(html).toContain("Aucun prédicteur direct d'AUC24 validé et compatible");
+    expect(html).toContain('No validated compatible direct AUC24 predictor');
   });
 
   test("Revilla conserve l'AUC24 ML avec un avertissement hors domaine", async ({ page }) => {

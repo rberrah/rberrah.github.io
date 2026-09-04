@@ -8,20 +8,51 @@
   import { tdmEngineUrl } from '$lib/tdm/engine';
   $: copy = ui($language);
 
+  const LEGO_UI = {
+    fr: {
+      lede: "Construisez n'importe quel modèle : ajoutez des compartiments et reliez-les par des flèches (constantes de transfert). Transit en chaîne, périphériques multiples, métabolite, blocs PD… sans bibliothèque figée.",
+      kinds: { depot: 'Dépôt', transit: 'Transit', central: 'Central', periph: 'Périph.', metab: 'Métabolite', effect: 'Effet (ke0)', response: 'Réponse' },
+      add: 'Ajouter', arrow: 'Flèche', templates: 'Modèles types', clickSource: 'Cliquez la source…', clickTarget: 'Cliquez la cible…', connect: 'Relier deux compartiments',
+      parentMetabolite: 'Parent/métabolite', clear: 'Effacer', duration: 'Durée (h)', editorAria: 'Éditeur de modèle compartimental', eliminationShort: 'élim.',
+      emptyCanvas: 'Ajoutez un compartiment, ou choisissez un modèle type ci-dessus.', chartAria: 'Simulation du modèle et comparaison des covariables', time: 'Temps (h)', legendAria: 'Légende des courbes',
+      reference: 'référence', rescaled: 'rééch.', name: 'Nom', source: 'Source', addElimination: 'Ajouter une élimination', remove: 'Supprimer',
+      editorTip: "Cliquez un compartiment pour l'éditer (nom, volume, dose…), puis glissez-le pour le déplacer.", transferRates: 'Constantes de transfert', rateAria: 'Constante de vitesse', to: 'vers',
+      covariates: 'Covariables', addContinuousAria: 'Ajouter une covariable continue', addCategoricalAria: 'Ajouter une covariable catégorielle', continuous: 'Continue', categorical: 'Catégorielle',
+      covariateHelp: 'Continue : P = TV × (COV/réf)^β. Catégorielle : P = TV × exp(β) pour la modalité comparée, sinon TV.', type: 'Type', targetParameter: 'Paramètre cible',
+      categoryReference: 'Modalité réf.', referenceValue: 'Référence', categoryComparison: 'Modalité comparée', comparisonValue: 'Valeur comparée', compareCurve: 'Comparer sur la courbe',
+      emptyEquations: '(ajoutez des compartiments)'
+    },
+    en: {
+      lede: 'Build any model: add compartments and connect them with arrows (transfer rate constants). Transit chains, multiple peripheral compartments, metabolites and PD blocks are not restricted to a fixed library.',
+      kinds: { depot: 'Depot', transit: 'Transit', central: 'Central', periph: 'Peripheral', metab: 'Metabolite', effect: 'Effect (ke0)', response: 'Response' },
+      add: 'Add', arrow: 'Arrow', templates: 'Templates', clickSource: 'Select the source…', clickTarget: 'Select the target…', connect: 'Connect two compartments',
+      parentMetabolite: 'Parent/metabolite', clear: 'Clear', duration: 'Duration (h)', editorAria: 'Compartmental model editor', eliminationShort: 'elim.',
+      emptyCanvas: 'Add a compartment or choose a template above.', chartAria: 'Model simulation and covariate comparison', time: 'Time (h)', legendAria: 'Curve legend',
+      reference: 'reference', rescaled: 'rescaled', name: 'Name', source: 'Source', addElimination: 'Add elimination', remove: 'Remove',
+      editorTip: 'Select a compartment to edit its name, volume or dose, then drag it to reposition it.', transferRates: 'Transfer rate constants', rateAria: 'Rate constant', to: 'to',
+      covariates: 'Covariates', addContinuousAria: 'Add a continuous covariate', addCategoricalAria: 'Add a categorical covariate', continuous: 'Continuous', categorical: 'Categorical',
+      covariateHelp: 'Continuous: P = TV × (COV/ref)^β. Categorical: P = TV × exp(β) for the compared category, otherwise TV.', type: 'Type', targetParameter: 'Target parameter',
+      categoryReference: 'Reference category', referenceValue: 'Reference', categoryComparison: 'Compared category', comparisonValue: 'Compared value', compareCurve: 'Compare on chart',
+      emptyEquations: '(add compartments)'
+    }
+  };
+  $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
+
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number}} Edge */
   /** @typedef {{id:number, name:string, type:'continuous'|'categorical', target:string, reference:number, comparison:number, beta:number, compare:boolean}} Covariate */
 
-  /** @type {Record<string, {label:string, color:string, vol:boolean, plot:boolean, special?:string}>} */
+  /** @type {Record<string, {color:string, vol:boolean, plot:boolean, special?:string}>} */
   const KINDS = {
-    depot:    { label: 'Dépôt',       color: '#2a4b7c', vol: false, plot: false },
-    transit:  { label: 'Transit',     color: '#4f6f8f', vol: false, plot: false },
-    central:  { label: 'Central',     color: '#b85c38', vol: true,  plot: true },
-    periph:   { label: 'Périph.',     color: '#4a5d23', vol: true,  plot: false },
-    metab:    { label: 'Métabolite',  color: '#9c4f6a', vol: true,  plot: true },
-    effect:   { label: 'Effet (ke0)', color: '#7a8084', vol: false, plot: true, special: 'effect' },
-    response: { label: 'Réponse',     color: '#5b8c3a', vol: false, plot: true, special: 'turnover' }
+    depot:    { color: '#2a4b7c', vol: false, plot: false },
+    transit:  { color: '#4f6f8f', vol: false, plot: false },
+    central:  { color: '#b85c38', vol: true,  plot: true },
+    periph:   { color: '#4a5d23', vol: true,  plot: false },
+    metab:    { color: '#9c4f6a', vol: true,  plot: true },
+    effect:   { color: '#7a8084', vol: false, plot: true, special: 'effect' },
+    response: { color: '#5b8c3a', vol: false, plot: true, special: 'turnover' }
   };
+  const kindLabel = (/** @type {string} */ kind) => /** @type {Record<string, string>} */ (lego.kinds)[kind] ?? kind;
   const order = ['depot', 'transit', 'central', 'periph', 'metab', 'effect', 'response'];
 
   let uid = 1;
@@ -160,7 +191,7 @@
     return Math.pow(value / Number(covariate.reference), Number(covariate.beta));
   }
 
-  function simulateModel(currentNodes = nodes, currentEdges = edges, currentCovariates = covariates, horizon = tMax) {
+  function simulateModel(currentNodes = nodes, currentEdges = edges, currentCovariates = covariates, horizon = tMax, referenceLabel = 'reference') {
     const N = currentNodes.length;
     if (!N) return { out: [], series: [] };
     const parameters = modelParams(currentNodes, currentEdges);
@@ -234,7 +265,7 @@
     const reference = run(referenceValues);
     const referenceSeries = reference.series.map((serie) => ({
       ...serie,
-      label: comparisons.length ? `${serie.name} · référence` : serie.name,
+      label: comparisons.length ? `${serie.name} · ${referenceLabel}` : serie.name,
       dash: serie.resp
     }));
     const comparisonSeries = comparisons.flatMap((covariate, scenarioIndex) => {
@@ -250,7 +281,7 @@
     return { out: reference.out, series: [...referenceSeries, ...comparisonSeries] };
   }
 
-  $: sim = simulateModel(nodes, edges, covariates, tMax);
+  $: sim = simulateModel(nodes, edges, covariates, tMax, lego.reference);
 
   // échelles : concentrations (mg/L) sur l'axe ; réponses (turnover) rééchelonnées
   $: concMax = Math.max(0.01, ...sim.series.filter((s) => !s.resp).flatMap((s) => s.vals));
@@ -267,7 +298,7 @@
 
   // ── EDO générées ──
   $: odes = (() => {
-    if (!nodes.length) return ['(ajoutez des compartiments)'];
+    if (!nodes.length) return [lego.emptyEquations];
     const nm = (/** @type {number} */ id) => nodes.find((n) => n.id === id)?.name ?? '?';
     return nodes.map((n) => {
       if (n.kind === 'effect') return `dCe/dt = ke0·(${nodes.find((s) => s.id === n.source)?.name ?? 'Cp'}/V − Ce)`;
@@ -1018,41 +1049,37 @@
 <header class="head">
   <p class="eyebrow">{copy.pages.legoEyebrow}</p>
   <h1>{copy.pages.legoTitle}</h1>
-  {#if $language === 'en'}
-    <p class="lede">Build <strong>any</strong> model: add compartments and connect them with arrows (transfer rate constants). Transit chains, multiple peripherals, metabolite, PD blocks… no fixed library.</p>
-  {:else}
-    <p class="lede">Construisez <strong>n'importe quel</strong> modèle : ajoutez des compartiments et reliez-les par des flèches (constantes de transfert). Transit en chaîne, périphériques multiples, métabolite, blocs PD… sans bibliothèque figée.</p>
-  {/if}
+  <p class="lede">{lego.lede}</p>
 </header>
 
 <div class="toolbar">
   <div class="tgroup">
-    <span class="tlabel">Ajouter</span>
+    <span class="tlabel">{lego.add}</span>
     {#each order as kind}
-      <button class="add" style={`--c:${KINDS[kind].color}`} on:click={() => addNode(kind)}>+ {KINDS[kind].label}</button>
+      <button class="add" style={`--c:${KINDS[kind].color}`} on:click={() => addNode(kind)}>+ {kindLabel(kind)}</button>
     {/each}
   </div>
   <div class="tgroup">
-    <span class="tlabel">Flèche</span>
+    <span class="tlabel">{lego.arrow}</span>
     <button class:on={mode === 'connect'} on:click={() => { mode = mode === 'connect' ? 'select' : 'connect'; connectFrom = null; }}>
-      {mode === 'connect' ? (connectFrom === null ? 'Cliquez la source…' : 'Cliquez la cible…') : '↳ Relier deux compartiments'}
+      {mode === 'connect' ? (connectFrom === null ? lego.clickSource : lego.clickTarget) : `↳ ${lego.connect}`}
     </button>
   </div>
   <div class="tgroup">
-    <span class="tlabel">Modèles types</span>
+    <span class="tlabel">{lego.templates}</span>
     <button on:click={() => preset('oral1')}>Oral 1-cpt</button>
     <button on:click={() => preset('iv2')}>IV 2-cpt</button>
     <button on:click={() => preset('transit')}>Transit ×3</button>
-    <button on:click={() => preset('metab')}>Parent/métabolite</button>
-    <button on:click={() => preset('effect')}>Effet (ke0)</button>
-    <button class="clear" on:click={clearAll}>Effacer</button>
+    <button on:click={() => preset('metab')}>{lego.parentMetabolite}</button>
+    <button on:click={() => preset('effect')}>{kindLabel('effect')}</button>
+    <button class="clear" on:click={clearAll}>{lego.clear}</button>
   </div>
-  <label class="s"><span>Durée (h)</span><input class="num" type="number" min="1" step="1" bind:value={tMax} /></label>
+  <label class="s"><span>{lego.duration}</span><input class="num" type="number" min="1" step="1" bind:value={tMax} /></label>
 </div>
 
 <div class="builder">
   <div class="stage">
-    <svg bind:this={svgEl} viewBox={`0 0 ${VBW} ${VBH}`} class="canvas" on:pointermove={moveDrag} on:pointerup={endDrag} on:pointerleave={endDrag} role="application" aria-label="Éditeur de modèle compartimental">
+    <svg bind:this={svgEl} viewBox={`0 0 ${VBW} ${VBH}`} class="canvas" on:pointermove={moveDrag} on:pointerup={endDrag} on:pointerleave={endDrag} role="application" aria-label={lego.editorAria}>
       <defs>
         <marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--text-secondary)" /></marker>
       </defs>
@@ -1063,7 +1090,7 @@
           {#if e.to === 'OUT'}
             <line x1={cxn(from)} y1={from.y + NH} x2={cxn(from)} y2={from.y + NH + 30} class="edge" marker-end="url(#arw)" />
             <text x={cxn(from) + 6} y={from.y + NH + 22} class="klbl">k={e.k.toFixed(2)}</text>
-            <text x={cxn(from) - 6} y={from.y + NH + 34} class="elim">élim.</text>
+            <text x={cxn(from) - 6} y={from.y + NH + 34} class="elim">{lego.eliminationShort}</text>
           {:else}
             {@const to = nodes.find((n) => n.id === e.to)}
             {#if to}
@@ -1080,30 +1107,30 @@
            on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nodeClick(n.id); } }} role="button" tabindex="0">
           <rect width={NW} height={NH} rx="7" style={`fill:color-mix(in srgb, ${KINDS[n.kind].color} 15%, var(--bg-tertiary)); stroke:${KINDS[n.kind].color}`} />
           <text x={NW / 2} y={17} class="nname">{n.name}</text>
-          <text x={NW / 2} y={31} class="nkind">{KINDS[n.kind].label}{n.dose ? ` · ${n.dose}mg` : ''}</text>
+          <text x={NW / 2} y={31} class="nkind">{kindLabel(n.kind)}{n.dose ? ` · ${n.dose}mg` : ''}</text>
         </g>
       {/each}
-      {#if !nodes.length}<text x={VBW / 2} y={VBH / 2} class="hintxt">Ajoutez un compartiment, ou choisissez un modèle type ci-dessus.</text>{/if}
+      {#if !nodes.length}<text x={VBW / 2} y={VBH / 2} class="hintxt">{lego.emptyCanvas}</text>{/if}
     </svg>
 
     <!-- courbe simulée -->
     <div class="chart-panel">
-      <svg viewBox={`0 0 ${CW} ${CH}`} class="chart" role="img" aria-label="Simulation du modèle et comparaison des covariables">
+      <svg viewBox={`0 0 ${CW} ${CH}`} class="chart" role="img" aria-label={lego.chartAria}>
         <g transform={`translate(${cm.left},${cm.top})`}>
           <line x1="0" x2="0" y1="0" y2={ciH} class="axis" />
           <line x1="0" x2={ciW} y1={ciH} y2={ciH} class="axis" />
           {#each sim.series as s}
             <path d={pathOf(s)} style={`stroke:${s.color}`} class="serie" class:dash={s.dash} />
           {/each}
-          <text x={ciW / 2} y={ciH + 24} class="lbl">Temps (h)</text>
+          <text x={ciW / 2} y={ciH + 24} class="lbl">{lego.time}</text>
         </g>
       </svg>
       {#if sim.series.length}
-        <div class="chart-legend" aria-label="Légende des courbes">
+        <div class="chart-legend" aria-label={lego.legendAria}>
           {#each sim.series as s}
             <span class="legend-item">
               <i style={`--series-color:${s.color}`} class:dash={s.dash}></i>
-              <span>{s.label}{s.resp ? ' (rééch.)' : ' (mg/L)'}</span>
+              <span>{s.label}{s.resp ? ` (${lego.rescaled})` : ' (mg/L)'}</span>
             </span>
           {/each}
         </div>
@@ -1114,40 +1141,40 @@
   <div class="side">
     {#if selected}
       <div class="editor">
-        <div class="ehead"><strong>{selected.name}</strong><span>{KINDS[selected.kind].label}</span></div>
-        <label class="s"><span>Nom</span><input class="txt" bind:value={selected.name} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
+        <div class="ehead"><strong>{selected.name}</strong><span>{kindLabel(selected.kind)}</span></div>
+        <label class="s"><span>{lego.name}</span><input class="txt" bind:value={selected.name} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
         {#if KINDS[selected.kind].vol}<label class="s"><span>Volume (L)</span><input class="num" type="number" min="0.001" step="0.1" bind:value={selected.vol} on:input={() => (nodes = nodes)} /></label>{/if}
         {#if selected.kind === 'depot' || selected.kind === 'central'}<label class="s"><span>Dose (mg)</span><input class="num" type="number" min="0" step="1" bind:value={selected.dose} on:input={() => (nodes = nodes)} /></label>{/if}
         {#if selected.kind === 'effect'}
           <label class="s"><span>ke0 (1/h)</span><input class="num" type="number" min="0" step="0.01" bind:value={selected.ke0} on:input={() => (nodes = nodes)} /></label>
-          <label class="s src"><span>Source</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
+          <label class="s src"><span>{lego.source}</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
         {/if}
         {#if selected.kind === 'response'}
           <label class="s"><span>kin</span><input class="num" type="number" min="0" step="0.1" bind:value={selected.kin} on:input={() => (nodes = nodes)} /></label>
           <label class="s"><span>kout (1/h)</span><input class="num" type="number" min="0.0001" step="0.01" bind:value={selected.kout} on:input={() => (nodes = nodes)} /></label>
           <label class="s"><span>Smax</span><input class="num" type="number" step="0.1" bind:value={selected.smax} on:input={() => (nodes = nodes)} /></label>
           <label class="s"><span>SC50 (mg/L)</span><input class="num" type="number" min="0.0001" step="0.1" bind:value={selected.sc50} on:input={() => (nodes = nodes)} /></label>
-          <label class="s src"><span>Source</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
+          <label class="s src"><span>{lego.source}</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
         {/if}
         <div class="ebtns">
-          <button on:click={() => addElim(selected.id)}>+ élimination</button>
-          <button class="del" on:click={() => deleteNode(selected.id)}>Supprimer</button>
+          <button on:click={() => addElim(selected.id)}>+ {lego.addElimination}</button>
+          <button class="del" on:click={() => deleteNode(selected.id)}>{lego.remove}</button>
         </div>
       </div>
     {:else}
-      <p class="tip">Cliquez un compartiment pour l'éditer (nom, volume, dose…), glissez-le pour le déplacer.</p>
+      <p class="tip">{lego.editorTip}</p>
     {/if}
 
     {#if edges.length}
       <div class="rates">
-        <span class="rlabel">Constantes de transfert</span>
+        <span class="rlabel">{lego.transferRates}</span>
         {#each edges as e}
           {@const from = nodes.find((n) => n.id === e.from)}
-          {@const to = e.to === 'OUT' ? { name: 'élim' } : nodes.find((n) => n.id === e.to)}
+          {@const to = e.to === 'OUT' ? { name: lego.eliminationShort } : nodes.find((n) => n.id === e.to)}
           {#if from && to}
             <div class="rate">
               <span class="rn">{from.name}→{to.name}</span>
-              <input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`Constante de vitesse ${from.name} vers ${to.name}`} />
+              <input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} />
               <button class="rx" on:click={() => deleteEdge(e.id)}>×</button>
             </div>
           {/if}
@@ -1157,26 +1184,26 @@
 
     <div class="covariates-editor">
       <div class="cov-head">
-        <strong>Covariables</strong>
+        <strong>{lego.covariates}</strong>
         <div class="cov-add">
-          <button on:click={() => addCovariate('continuous')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label="Ajouter une covariable continue">+ Continue</button>
-          <button on:click={() => addCovariate('categorical')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label="Ajouter une covariable catégorielle">+ Catég.</button>
+          <button on:click={() => addCovariate('continuous')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label={lego.addContinuousAria}>+ {lego.continuous}</button>
+          <button on:click={() => addCovariate('categorical')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label={lego.addCategoricalAria}>+ {lego.categorical}</button>
         </div>
       </div>
-      <p class="cov-help">Continue : P = TV × (COV/réf)<sup>β</sup>. Catégorielle : P = TV × exp(β) pour la modalité comparée, sinon TV.</p>
+      <p class="cov-help">{lego.covariateHelp}</p>
       {#each covariates as covariate}
         <div class="cov-row">
           <div class="cov-row-head">
-            <label><span>Nom</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
-            <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`Supprimer ${covariate.name}`}>×</button>
+            <label><span>{lego.name}</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
+            <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`${lego.remove} ${covariate.name}`}>×</button>
           </div>
           <div class="cov-fields">
-            <label><span>Type</span><select bind:value={covariate.type} on:change={() => resetCovariateType(covariate)}><option value="continuous">Continue</option><option value="categorical">Catégorielle</option></select></label>
-            <label class="cov-target"><span>Paramètre cible</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
-            <label><span>{covariate.type === 'categorical' ? 'Modalité réf.' : 'Référence'}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
+            <label><span>{lego.type}</span><select bind:value={covariate.type} on:change={() => resetCovariateType(covariate)}><option value="continuous">{lego.continuous}</option><option value="categorical">{lego.categorical}</option></select></label>
+            <label class="cov-target"><span>{lego.targetParameter}</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
+            <label><span>{covariate.type === 'categorical' ? lego.categoryReference : lego.referenceValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
             <label><span>β</span><input class="num" type="number" step="0.05" bind:value={covariate.beta} on:input={() => (covariates = [...covariates])} /></label>
-            <label class="cov-comparison"><span>{covariate.type === 'categorical' ? 'Modalité comparée' : 'Valeur comparée'}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.comparison} on:input={() => (covariates = [...covariates])} /></label>
-            <label class="cov-toggle"><input type="checkbox" bind:checked={covariate.compare} on:change={() => (covariates = [...covariates])} /><span>Comparer sur la courbe</span></label>
+            <label class="cov-comparison"><span>{covariate.type === 'categorical' ? lego.categoryComparison : lego.comparisonValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.comparison} on:input={() => (covariates = [...covariates])} /></label>
+            <label class="cov-toggle"><input type="checkbox" bind:checked={covariate.compare} on:change={() => (covariates = [...covariates])} /><span>{lego.compareCurve}</span></label>
           </div>
         </div>
       {/each}

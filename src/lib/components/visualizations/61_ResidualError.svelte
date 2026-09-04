@@ -4,6 +4,7 @@
   // dépend du modèle d'erreur :  additive (largeur constante), proportionnelle (∝ prédiction),
   // combinée (plancher + pourcentage). On lit le % de points réels tombant dans la bande.
   import { warfarinPK } from '$lib/content/warfarinData';
+  import { language } from '$lib/stores/language';
 
   /** @type {'add'|'prop'|'comb'} */
   let mode = 'comb';
@@ -52,25 +53,25 @@
   <div class="controls">
     <div class="modes">
       <button class:on={mode === 'add'} on:click={() => (mode = 'add')}>Additive</button>
-      <button class:on={mode === 'prop'} on:click={() => (mode = 'prop')}>Proportionnelle</button>
-      <button class:on={mode === 'comb'} on:click={() => (mode = 'comb')}>Combinée</button>
+      <button class:on={mode === 'prop'} on:click={() => (mode = 'prop')}>{$language === 'en' ? 'Proportional' : 'Proportionnelle'}</button>
+      <button class:on={mode === 'comb'} on:click={() => (mode = 'comb')}>{$language === 'en' ? 'Combined' : 'Combinée'}</button>
     </div>
     <label class="s"><span>Amplitude</span><strong>×{level.toFixed(1)}</strong><input type="range" min="0.4" max="2" step="0.1" bind:value={level} /></label>
     <div class="readout">
-      <div><span>Points dans la bande</span><strong>{pct.toFixed(0)} %</strong></div>
-      <div class="verdict" class:ok={pct >= 90 && pct <= 98}>{pct >= 90 && pct <= 98 ? '≈ 95 % attendu : bon' : pct < 90 ? 'bande trop étroite' : 'bande trop large'}</div>
+      <div><span>{$language === 'en' ? 'Points within band' : 'Points dans la bande'}</span><strong>{pct.toFixed(0)} %</strong></div>
+      <div class="verdict" class:ok={pct >= 90 && pct <= 98}>{pct >= 90 && pct <= 98 ? ($language === 'en' ? '≈ 95% expected: good' : '≈ 95 % attendu : bon') : pct < 90 ? ($language === 'en' ? 'band too narrow' : 'bande trop étroite') : ($language === 'en' ? 'band too wide' : 'bande trop large')}</div>
     </div>
-    <p class="hint">Additive = largeur <em>constante</em> (bien à basse concentration). Proportionnelle = s'élargit avec la prédiction (bien à haute). La combinée fait les deux — visez ≈ 95 % des points dans la bande.</p>
+    {#if $language === 'en'}<p class="hint">Additive means <em>constant</em> width at low concentration. Proportional widens with prediction at high concentration. Combined does both; aim for approximately 95% of points within the band.</p>{:else}<p class="hint">Additive = largeur <em>constante</em> (bien à basse concentration). Proportionnelle = s'élargit avec la prédiction (bien à haute). La combinée fait les deux — visez ≈ 95 % des points dans la bande.</p>{/if}
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Modèle d'erreur résiduelle sur données Warfarin">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Residual error model on Warfarin data' : "Modèle d'erreur résiduelle sur données Warfarin"}>
     <g transform={`translate(${m.left},${m.top})`}>
       <path d={band} class="band" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <path d={curve} class="fit" />
       {#each pts as p}<circle cx={p.px} cy={p.py} r="2.4" class:out={!p.in} class="pt" />{/each}
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

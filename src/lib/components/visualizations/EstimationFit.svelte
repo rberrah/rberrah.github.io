@@ -4,6 +4,7 @@
   // « ajuster » cherche le minimum — c'est ce que font FOCE-I / SAEM.
   import { onDestroy } from 'svelte';
   import { reducedMotion } from '$lib/motion/reducedMotion';
+  import { language } from '$lib/stores/language';
 
   const dose = 100;
   // Données observées (générées depuis CL=5, V=30 + bruit, figées pour la démo).
@@ -88,22 +89,22 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Clairance CL</span><strong>{cl.toFixed(1)}</strong><input type="range" min="1" max="15" step="0.1" bind:value={cl} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Clearance CL' : 'Clairance CL'}</span><strong>{cl.toFixed(1)}</strong><input type="range" min="1" max="15" step="0.1" bind:value={cl} /></label>
     <label class="s"><span>Volume V</span><strong>{v.toFixed(0)}</strong><input type="range" min="10" max="60" step="0.5" bind:value={v} /></label>
     <div class="actions">
-      <button on:click={autofit} disabled={running}>⚙ Ajuster</button>
+      <button on:click={autofit} disabled={running}>⚙ {$language === 'en' ? 'Fit' : 'Ajuster'}</button>
       <button on:click={stop} disabled={!running}>■ Stop</button>
-      <button on:click={reset}>↺ Réinit.</button>
+      <button on:click={reset}>↺ {$language === 'en' ? 'Reset' : 'Réinit.'}</button>
     </div>
     <div class="readout">
-      <div><span>OFV (à minimiser)</span><strong>{currentOfv.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'OFV (minimize)' : 'OFV (à minimiser)'}</span><strong>{currentOfv.toFixed(2)}</strong></div>
       <div><span>OFV optimal ≈</span><strong>{bestOfv.toFixed(2)}</strong></div>
-      <div class:good={quality === 'bon'} class:bad={quality === 'mauvais'}><span>Ajustement</span><strong>{quality}</strong></div>
+      <div class:good={quality === 'bon'} class:bad={quality === 'mauvais'}><span>{$language === 'en' ? 'Fit' : 'Ajustement'}</span><strong>{$language === 'en' ? (quality === 'bon' ? 'good' : quality === 'moyen' ? 'moderate' : 'poor') : quality}</strong></div>
     </div>
-    <p class="hint">Baissez l'OFV en bougeant CL et V, ou lancez « Ajuster » : l'algorithme cherche le minimum. Un OFV bas ne prouve pas que le modèle est juste — il faut les diagnostics.</p>
+    <p class="hint">{$language === 'en' ? 'Lower OFV by moving CL and V, or run Fit to find the minimum. A low OFV does not prove the model is correct; diagnostics are still required.' : "Baissez l'OFV en bougeant CL et V, ou lancez « Ajuster » : l'algorithme cherche le minimum. Un OFV bas ne prouve pas que le modèle est juste — il faut les diagnostics."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Ajustement du modèle aux données">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Model fit to data' : 'Ajustement du modèle aux données'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -112,7 +113,7 @@
         <line x1={xt(o.t)} x2={xt(o.t)} y1={yc(o.c)} y2={yc(pred(o.t, cl, v))} class="resid" />
         <circle cx={xt(o.t)} cy={yc(o.c)} r="4.5" class="obs" />
       {/each}
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-38,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

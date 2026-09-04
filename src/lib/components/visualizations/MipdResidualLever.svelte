@@ -6,6 +6,7 @@
   // mesure. On lit la courbe postérieure (compromis), l'AUC estimée et son écart
   // à la référence individuelle — et le risque de surajustement quand σ→0 sur des
   // données bruitées. Illustration pédagogique (pondération par précision).
+  import { language } from '$lib/stores/language';
   let sigma = 0.10;   // erreur résiduelle proportionnelle (RUV), fraction
   let bruit = 0.05;   // bruit de mesure des prélèvements, fraction
 
@@ -61,7 +62,7 @@
 </script>
 
 <div class="viz">
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Levier de l'erreur résiduelle en MAPBE">
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={$language === 'en' ? 'Residual-error lever in MAPBE' : "Levier de l'erreur résiduelle en MAPBE"}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
@@ -70,26 +71,26 @@
       {#each obs as o}
         <circle cx={xOf(o.t)} cy={yOf(o.c)} r="4" class="obs" />
       {/each}
-      <text x={iW - 2} y={yOf(conc(2, CLprior)) - 4} class="lbl prior">prior (population)</text>
-      <text x={iW - 2} y={yOf(conc(2, CLpost)) + 12} class="lbl post">postérieur</text>
-      <text x={iW / 2} y={iH + 24} class="axlbl">temps (h)</text>
+      <text x={iW - 2} y={yOf(conc(2, CLprior)) - 4} class="lbl prior">{$language === 'en' ? 'prior (population)' : 'a priori (population)'}</text>
+      <text x={iW - 2} y={yOf(conc(2, CLpost)) + 12} class="lbl post">{$language === 'en' ? 'posterior' : 'a posteriori'}</text>
+      <text x={iW / 2} y={iH + 24} class="axlbl">{$language === 'en' ? 'time (h)' : 'temps (h)'}</text>
       <text transform={`translate(-30,${iH / 2}) rotate(-90)`} class="axlbl">concentration</text>
     </g>
   </svg>
 
   <div class="stats">
-    <span class="pill w">poids sur les données : {(wData * 100).toFixed(0)} %</span>
-    <span class="pill err" class:bad={Math.abs(aucErr) > 15}>écart AUC : {aucErr > 0 ? '+' : ''}{aucErr.toFixed(0)} %</span>
-    {#if overfit}<span class="pill of">⚠ surajustement : le modèle suit le bruit</span>{/if}
+    <span class="pill w">{$language === 'en' ? 'data weight' : 'poids sur les données'} : {(wData * 100).toFixed(0)} %</span>
+    <span class="pill err" class:bad={Math.abs(aucErr) > 15}>{$language === 'en' ? 'AUC difference' : 'écart AUC'} : {aucErr > 0 ? '+' : ''}{aucErr.toFixed(0)} %</span>
+    {#if overfit}<span class="pill of">⚠ {$language === 'en' ? 'overfitting: the model follows noise' : 'surajustement : le modèle suit le bruit'}</span>{/if}
   </div>
 
   <div class="controls">
-    <label>Erreur résiduelle σ (RUV) <span>{(sigma * 100).toFixed(0)} %</span>
+    <label>{$language === 'en' ? 'Residual error σ (RUV)' : 'Erreur résiduelle σ (RUV)'} <span>{(sigma * 100).toFixed(0)} %</span>
       <input type="range" min="0.01" max="0.5" step="0.01" bind:value={sigma} /></label>
-    <label>Bruit de mesure des prélèvements <span>{(bruit * 100).toFixed(0)} %</span>
+    <label>{$language === 'en' ? 'Sampling measurement noise' : 'Bruit de mesure des prélèvements'} <span>{(bruit * 100).toFixed(0)} %</span>
       <input type="range" min="0" max="0.25" step="0.01" bind:value={bruit} /></label>
   </div>
-  <p class="hint">Baissez σ : le poids passe aux <strong>données</strong>, la courbe postérieure quitte le prior pour épouser les prélèvements du patient — l'AUC se rapproche de la vérité individuelle. Mais montez le <strong>bruit</strong> puis ramenez σ à 1 % : le modèle se met à <strong>poursuivre le bruit</strong> et l'AUC dérape. Tout l'art est de choisir un σ petit <em>mais non nul</em>.</p>
+  <p class="hint">{#if $language === 'en'}Lower σ: weight shifts to the <strong>data</strong>, the posterior leaves the prior and follows patient samples, bringing AUC closer to the individual truth. Increase <strong>noise</strong> and reduce σ to 1%: the model starts <strong>chasing noise</strong> and AUC drifts. σ should be small, <em>but not zero</em>.{:else}Baissez σ : le poids passe aux <strong>données</strong>, la courbe postérieure quitte le prior pour épouser les prélèvements du patient — l'AUC se rapproche de la vérité individuelle. Mais montez le <strong>bruit</strong> puis ramenez σ à 1 % : le modèle se met à <strong>poursuivre le bruit</strong> et l'AUC dérape. Tout l'art est de choisir un σ petit <em>mais non nul</em>.{/if}</p>
 </div>
 
 <style>

@@ -2,6 +2,7 @@
   // One-compartment IV bolus explorer.
   // C(t) = (Dose / V) * exp(-(CL/V) * t)
   import { scaleLinear, scaleLog } from 'd3-scale';
+  import { language } from '$lib/stores/language';
 
   export let dose = 100; // mg
   export let v = 30; // L
@@ -55,7 +56,7 @@
       <input type="range" min="5" max="80" step="1" bind:value={v} data-testid="slider-volume" />
     </label>
     <label class="slider">
-      <span>Clearance CL <em>(L/h)</em></span><strong>{cl}</strong>
+      <span>{$language === 'en' ? 'Clearance' : 'Clairance'} CL <em>(L/h)</em></span><strong>{cl}</strong>
       <input type="range" min="0.5" max="25" step="0.5" bind:value={cl} data-testid="slider-clearance" />
     </label>
 
@@ -67,11 +68,11 @@
     </div>
 
     <button class="toggle" class:on={logScale} on:click={() => (logScale = !logScale)} data-testid="toggle-log-scale">
-      {logScale ? 'Semi-log view (linear decay)' : 'Linear view'}
+      {logScale ? ($language === 'en' ? 'Semi-log view (linear decay)' : 'Vue semi-log (décroissance linéaire)') : ($language === 'en' ? 'Linear view' : 'Vue linéaire')}
     </button>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" data-testid="pkpd-interactive-chart" role="img" aria-label="IV bolus concentration over time">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" data-testid="pkpd-interactive-chart" role="img" aria-label={$language === 'en' ? 'IV bolus concentration over time' : 'Concentration après bolus IV'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each yTicks as t}
         <line x1="0" x2={innerW} y1={y(t)} y2={y(t)} class="grid" />
@@ -91,7 +92,7 @@
 
       <line x1="0" x2="0" y1="0" y2={innerH} class="axis" />
       <line x1="0" x2={innerW} y1={innerH} y2={innerH} class="axis" />
-      <text x={innerW / 2} y={innerH + 40} class="axislabel">Time (h)</text>
+      <text x={innerW / 2} y={innerH + 40} class="axislabel">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-46,${innerH / 2}) rotate(-90)`} class="axislabel">Concentration (mg/L)</text>
     </g>
   </svg>

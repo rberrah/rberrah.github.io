@@ -324,8 +324,8 @@
           <SlideFigure slideIds={activeSlideIds} />
         {:else if requestedViz && !vizMap[requestedViz]}
           <div class="viz-empty">
-            <p><strong>Visualisation introuvable&nbsp;:</strong> <code>{requestedViz}</code></p>
-            <p class="hint">Vérifiez le nom du composant dans <code>src/lib/components/visualizations/</code>. Clés disponibles&nbsp;:</p>
+            <p><strong>{copy.chapter.vizMissing}</strong> <code>{requestedViz}</code></p>
+            <p class="hint">{copy.chapter.vizCheck} <code>src/lib/components/visualizations/</code>. {copy.chapter.vizAvailable}</p>
             <p class="keys">{availableVizKeys.join(' · ')}</p>
           </div>
         {:else}

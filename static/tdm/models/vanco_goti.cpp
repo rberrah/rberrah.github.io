@@ -1,57 +1,71 @@
+$PROB
+// Vancomycin population PK model (Goti et al., 2018).
+// Population: hospitalized adults with and without intermittent hemodialysis.
+// DIAL is the study hemodialysis-status covariate, not a time-varying dialysis clearance.
+// Reference: doi:10.1097/FTD.0000000000000490.
+
 $PARAM @annotated
-TVCL:  4.5 : Clearance
-TVV1: 58.4 : Central volume
-TVV2  : 38.4 : Peripheral volume of distribution
-TVQ   :  6.5 : Intercompartmental clearance
-CCRCL: 0.8 : effect of Cokroft creat cl on CL
-DCL: 0.7 : effect of dialysis on cl
-DVC: 0.5 : effect of dialysis on V1
+TVCL     : 4.5   : Typical clearance at CRCL 120 mL/min without dialysis (L/h)
+TVV1     : 58.4  : Typical central volume at 70 kg without dialysis (L)
+TVV2     : 38.4  : Typical peripheral volume (L)
+TVQ      : 6.5   : Typical intercompartmental clearance (L/h)
+CRCL_CL  : 0.8   : Cockcroft-Gault clearance exponent on CL
+DIAL_CL  : 0.7   : Hemodialysis-status factor on CL
+DIAL_V1  : 0.5   : Hemodialysis-status factor on V1
+REF_CRCL : 120.0 : Reference creatinine clearance (mL/min)
+REF_WT   : 70.0  : Reference body weight (kg)
+ETA1 : 0.0 : Posterior ETA offset on CL
+ETA2 : 0.0 : Posterior ETA offset on V1
+ETA3 : 0.0 : Posterior ETA offset on V2
 
-ETA1: 0 : Clearance (L/h)
-ETA2: 0 : Central volume (L)
-ETA3: 0 : peripheral volume (L)
-
-$PARAM @annotated @covariates
-DIAL : 0 : dialysis 1 or not 0
-CREAT : 80 : mean  creatinine µM
-AGE: 50 : mean age year
-WT : 70 : mean wt kg
-HT : 175 : mean taille cm
-SEX: 0 : 0 = homme 1  = femme
-
-$OMEGA 0.158 0.51 0.28
-
-$SIGMA
-0.05 // proportional
-3.4 // additive
+$PARAM @covariates @annotated
+AGE   : 50.0 : Age (years)
+WT    : 70.0 : Body weight (kg)
+CREAT : 80.0 : Serum creatinine (micromol/L)
+SEX   : 0.0  : Sex (0 = male, 1 = female)
+DIAL  : 0.0  : Hemodialysis status (0 = no, 1 = yes)
 
 $CMT @annotated
-CENT  : Central compartment (mg/L)[ADM, OBS]
-PERIPH: Peripheral compartment (mg)
+CENT   : Central compartment (mg) [ADM, OBS]
+PERIPH : Peripheral compartment (mg)
 
-$TABLE
-double DV = (CENT/V1) *(1 + EPS(1)) + EPS(2);
+$OMEGA @annotated @diagonal
+ETA_CL : 0.158 : Between-subject variance on CL
+ETA_V1 : 0.510 : Between-subject variance on V1
+ETA_V2 : 0.280 : Between-subject variance on V2
 
-int i = 0;
-while(DV<0 && i <100) {
-simeps();
-DV = (CENT/V1) *(1 + EPS(1)) + EPS(2);
-++i;
-}
+$SIGMA @annotated @diagonal
+PROP : 0.051529 : Proportional residual variance (CV 22.7%)
+ADD  : 11.56    : Additive residual variance (SD 3.4 mg/L)
 
 $MAIN
-// Calculate CCL
-double CCL = (SEX == 0 ? 1.25 : 1.04) * WT * (140 - AGE) / CREAT;
-double CL = TVCL * pow(CCL / 120, CCRCL) * pow(DCL, DIAL) * exp(ETA1 + ETA(1));
-double V1 = TVV1 * (WT / 70) * pow(DVC, DIAL) * exp(ETA2 + ETA(2)) ;
-double V2 = TVV2 * exp(ETA3 + ETA(3)) ;
-double Q = TVQ ;
-double K12 = Q / V1  ;
-double K21 = Q / V2  ;
-double K10 = CL / V1 ;
+double age_safe = (AGE > 0.0 && AGE < 140.0) ? AGE : 50.0;
+double wt_safe = (WT > 0.0) ? WT : REF_WT;
+double creat_safe = (CREAT > 0.0) ? CREAT : 80.0;
+double sex_coefficient = (SEX >= 0.5) ? 1.04 : 1.25;
+double CRCL = sex_coefficient * wt_safe * (140.0 - age_safe) / creat_safe;
+if (CRCL < 0.1) CRCL = 0.1;
+double dialysis = (DIAL >= 0.5) ? 1.0 : 0.0;
+
+double CL = TVCL * pow(CRCL / REF_CRCL, CRCL_CL) * pow(DIAL_CL, dialysis) * exp(ETA(1) + ETA1);
+double V1 = TVV1 * (wt_safe / REF_WT) * pow(DIAL_V1, dialysis) * exp(ETA(2) + ETA2);
+double V2 = TVV2 * exp(ETA(3) + ETA3);
+double Q = TVQ;
 
 $ODE
-dxdt_CENT   =  K21 * PERIPH - (K10 + K12) * CENT ;
-dxdt_PERIPH =  K12 * CENT - K21 * PERIPH ;
+double CP = CENT / V1;
+double CPP = PERIPH / V2;
+dxdt_CENT = -CL * CP - Q * (CP - CPP);
+dxdt_PERIPH = Q * (CP - CPP);
 
-$CAPTURE DV CL V1 V2 Q
+$TABLE
+double DV = CP * (1.0 + EPS(1)) + EPS(2);
+
+$CAPTURE @annotated
+DV   : Simulated plasma concentration (mg/L)
+CP   : Predicted plasma concentration (mg/L)
+CL   : Individual clearance (L/h)
+V1   : Individual central volume (L)
+V2   : Individual peripheral volume (L)
+Q    : Intercompartmental clearance (L/h)
+CRCL : Cockcroft-Gault creatinine clearance (mL/min)

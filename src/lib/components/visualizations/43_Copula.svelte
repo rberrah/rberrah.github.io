@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Copule gaussienne : deux covariables (poids, ClCr) avec des marges FIXES mais une
   // DÉPENDANCE réglable. On génère (z1, z2) normaux, puis z2' = ρ·z1 + √(1−ρ²)·z2.
   // Les histogrammes marginaux ne changent pas ; seule la corrélation change.
@@ -38,19 +39,19 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Corrélation ρ</span><strong>{rho.toFixed(2)}</strong><input type="range" min="-0.9" max="0.9" step="0.05" bind:value={rho} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Correlation ρ' : 'Corrélation ρ'}</span><strong>{rho.toFixed(2)}</strong><input type="range" min="-0.9" max="0.9" step="0.05" bind:value={rho} /></label>
     <div class="readout">
-      <div><span>Dépendance</span><strong>{Math.abs(rho) < 0.15 ? 'quasi nulle' : rho > 0 ? 'positive' : 'négative'}</strong></div>
-      <div><span>Marges</span><strong>inchangées</strong></div>
+      <div><span>{$language === 'en' ? 'Dependence' : 'Dépendance'}</span><strong>{Math.abs(rho) < 0.15 ? ($language === 'en' ? 'almost none' : 'quasi nulle') : rho > 0 ? 'positive' : ($language === 'en' ? 'negative' : 'négative')}</strong></div>
+      <div><span>{$language === 'en' ? 'Marginals' : 'Marges'}</span><strong>{$language === 'en' ? 'unchanged' : 'inchangées'}</strong></div>
     </div>
-    <p class="hint">Une copule décrit la <em>dépendance</em> entre covariables indépendamment de leurs lois marginales. Ici les histogrammes de poids et de ClCr restent identiques ; seul leur lien change.</p>
+    <p class="hint">{#if $language === 'en'}A copula describes <em>dependence</em> between covariates independently of their marginal distributions. Here, weight and CrCl histograms remain unchanged; only their relationship changes.{:else}Une copule décrit la <em>dépendance</em> entre covariables indépendamment de leurs lois marginales. Ici les histogrammes de poids et de ClCr restent identiques ; seul leur lien change.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Nuage de covariables corrélées">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Correlated covariate scatter plot' : 'Nuage de covariables corrélées'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
       {#each pts as p}<circle cx={sx(p.x)} cy={sy(p.y)} r="3" class="pt" />{/each}
-      <text x={iW / 2} y={iH + 28} class="lbl">Poids (kg)</text>
+      <text x={iW / 2} y={iH + 28} class="lbl">{$language === 'en' ? 'Weight (kg)' : 'Poids (kg)'}</text>
       <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">ClCr (mL/min)</text>
     </g>
   </svg>

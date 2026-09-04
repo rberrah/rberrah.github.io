@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   export let age = 52;
   export let smoker = false;
 
@@ -7,21 +8,23 @@
   $: path = [];
   $: {
     path = [];
-    path.push({ label: 'Âge > 50 ?', branch: age > 50 ? 'oui' : 'non' });
-    path.push({ label: 'Fumeur ?', branch: smoker ? 'oui' : 'non' });
+    path.push({ label: $language === 'en' ? 'Age > 50?' : 'Âge > 50 ?', branch: age > 50 ? ($language === 'en' ? 'yes' : 'oui') : ($language === 'en' ? 'no' : 'non') });
+    path.push({ label: $language === 'en' ? 'Smoker?' : 'Fumeur ?', branch: smoker ? ($language === 'en' ? 'yes' : 'oui') : ($language === 'en' ? 'no' : 'non') });
   }
   // La CONCLUSION de l'arbre — la catégorie de clairance — n'était portée que par la position
   // de la bille orange : invisible pour un lecteur d'écran, ambiguë pour un daltonien. On la
   // calcule explicitement, on l'écrit en toutes lettres, et on la met dans l'aria-label du SVG.
   $: clx = age > 50 ? (smoker ? 90 : 150) : smoker ? 270 : 230;
-  $: clLabel = age > 50 ? (smoker ? 'CL basse' : 'CL moyenne') : smoker ? 'CL très élevée' : 'CL élevée';
+  $: clLabel = age > 50
+    ? (smoker ? ($language === 'en' ? 'low CL' : 'CL basse') : ($language === 'en' ? 'moderate CL' : 'CL moyenne'))
+    : smoker ? ($language === 'en' ? 'very high CL' : 'CL très élevée') : ($language === 'en' ? 'high CL' : 'CL élevée');
 </script>
 
 <div class="tree">
   <svg
     viewBox="0 0 320 220"
     role="img"
-    aria-label={`Arbre de décision : ${age > 50 ? 'âge > 50' : 'âge ≤ 50'}, ${smoker ? 'fumeur' : 'non fumeur'} → ${clLabel}`}
+    aria-label={`${$language === 'en' ? 'Decision tree' : 'Arbre de décision'} : ${age > 50 ? ($language === 'en' ? 'age > 50' : 'âge > 50') : ($language === 'en' ? 'age ≤ 50' : 'âge ≤ 50')}, ${smoker ? ($language === 'en' ? 'smoker' : 'fumeur') : ($language === 'en' ? 'non-smoker' : 'non fumeur')} → ${clLabel}`}
   >
     <line x1="160" y1="20" x2="120" y2="80" stroke="var(--text-primary)" />
     <line x1="160" y1="20" x2="200" y2="80" stroke="var(--text-primary)" />
@@ -38,13 +41,13 @@
     <circle cx="230" cy="150" r="10" fill="var(--bg-secondary)" />
     <circle cx="270" cy="150" r="10" fill="var(--bg-secondary)" />
 
-    <text x="140" y="26" font-size="11" fill="var(--bg-tertiary)">Âge</text>
-    <text x="100" y="86" font-size="10" fill="var(--text-primary)">Fumeur</text>
-    <text x="185" y="86" font-size="10" fill="var(--text-primary)">Non fumeur</text>
-    <text x="60" y="170" font-size="10" fill="var(--text-primary)">CL basse</text>
-    <text x="135" y="170" font-size="10" fill="var(--text-primary)">CL moyenne</text>
-    <text x="215" y="170" font-size="10" fill="var(--text-primary)">CL élevée</text>
-    <text x="258" y="170" font-size="10" fill="var(--text-primary)">CL très élevée</text>
+    <text x="140" y="26" font-size="11" fill="var(--bg-tertiary)">{$language === 'en' ? 'Age' : 'Âge'}</text>
+    <text x="100" y="86" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Smoker' : 'Fumeur'}</text>
+    <text x="185" y="86" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Non-smoker' : 'Non fumeur'}</text>
+    <text x="60" y="170" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Low CL' : 'CL basse'}</text>
+    <text x="135" y="170" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Moderate CL' : 'CL moyenne'}</text>
+    <text x="215" y="170" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'High CL' : 'CL élevée'}</text>
+    <text x="258" y="170" font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Very high CL' : 'CL très élevée'}</text>
 
     <circle class="ball" cx={clx} cy="150" r="7" fill="#f97316" />
   </svg>
@@ -57,7 +60,7 @@
       </div>
     {/each}
     <div class="step result">
-      <strong>Résultat</strong>
+      <strong>{$language === 'en' ? 'Result' : 'Résultat'}</strong>
       <span>{clLabel}</span>
     </div>
   </div>

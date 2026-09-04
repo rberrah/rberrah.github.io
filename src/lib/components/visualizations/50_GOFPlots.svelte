@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Graphiques diagnostiques (GOF) : observations vs prédictions + résidus (CWRES).
   // Un curseur de « mauvaise spécification » montre à quoi ressemble un bon vs un
   // mauvais ajustement : nuage sur la diagonale et CWRES centrés = bon modèle.
@@ -47,20 +48,20 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Mauvaise spécification</span><strong>{(mis * 100).toFixed(0)}%</strong><input type="range" min="0" max="1" step="0.05" bind:value={mis} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Misspecification' : 'Mauvaise spécification'}</span><strong>{(mis * 100).toFixed(0)}%</strong><input type="range" min="0" max="1" step="0.05" bind:value={mis} /></label>
     <div class="readout">
-      <div class="verdict" class:ok={mis < 0.2} class:bad={mis >= 0.5}>{mis < 0.2 ? 'Bon ajustement' : mis >= 0.5 ? 'Modèle biaisé' : 'À surveiller'}</div>
+      <div class="verdict" class:ok={mis < 0.2} class:bad={mis >= 0.5}>{mis < 0.2 ? ($language === 'en' ? 'Good fit' : 'Bon ajustement') : mis >= 0.5 ? ($language === 'en' ? 'Biased model' : 'Modèle biaisé') : ($language === 'en' ? 'Monitor' : 'À surveiller')}</div>
     </div>
-    <p class="hint">Bon modèle : nuage sur la diagonale (gauche) et CWRES centrés sur 0 sans tendance (droite). Augmentez le curseur : un biais systématique apparaît aux fortes valeurs.</p>
+    <p class="hint">{$language === 'en' ? 'Good model: points follow the diagonal on the left and CWRES are centered on zero without a trend on the right. Increase misspecification to reveal systematic bias at high values.' : 'Bon modèle : nuage sur la diagonale (gauche) et CWRES centrés sur 0 sans tendance (droite). Augmentez le curseur : un biais systématique apparaît aux fortes valeurs.'}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Graphiques diagnostiques">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Diagnostic plots' : 'Graphiques diagnostiques'}>
     <!-- Panneau 1 : DV vs PRED -->
     <line x1={pad} y1={pad + ph} x2={pad + pw} y2={pad + ph} class="axis" />
     <line x1={pad} y1={pad} x2={pad} y2={pad + ph} class="axis" />
     <line x1={dx(0)} y1={dyv(0)} x2={dx(dMax)} y2={dyv(dMax)} class="ident" />
     {#each rows as r}<circle cx={dx(r.pred)} cy={dyv(r.obs)} r="3" class="pt" />{/each}
-    <text x={pad + pw / 2} y={H - 8} class="lbl">Prédictions (PRED)</text>
+    <text x={pad + pw / 2} y={H - 8} class="lbl">{$language === 'en' ? 'Predictions (PRED)' : 'Prédictions (PRED)'}</text>
     <text transform={`translate(${pad - 22},${pad + ph / 2}) rotate(-90)`} class="lbl">Obs (DV)</text>
 
     <!-- Panneau 2 : CWRES vs PRED -->
@@ -70,7 +71,7 @@
     <line x1={p2x0} y1={c2y(2)} x2={p2x0 + pw} y2={c2y(2)} class="band" />
     <line x1={p2x0} y1={c2y(-2)} x2={p2x0 + pw} y2={c2y(-2)} class="band" />
     {#each rows as r}<circle cx={c2x(r.pred)} cy={c2y(r.cwres)} r="3" class="pt" />{/each}
-    <text x={p2x0 + pw / 2} y={H - 8} class="lbl">Prédictions (PRED)</text>
+    <text x={p2x0 + pw / 2} y={H - 8} class="lbl">{$language === 'en' ? 'Predictions (PRED)' : 'Prédictions (PRED)'}</text>
     <text transform={`translate(${p2x0 - 22},${pad + ph / 2}) rotate(-90)`} class="lbl">CWRES</text>
   </svg>
 </div>

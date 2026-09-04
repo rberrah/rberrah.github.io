@@ -19,6 +19,9 @@ Thumbs.db
 !.env.example
 !.env.test
 
+# Institutionally licensed reference articles must remain local.
+*.pdf
+
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

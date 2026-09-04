@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // TMDD : PK non linéaire médiée par la cible (approximation Michaelis-Menten).
   //   dC/dt = −(CLlin/V)·C − (Vmax/V)·C/(Km + C)
   // À faible concentration, la voie cible (saturable) domine → élimination rapide.
@@ -54,13 +55,13 @@
   <div class="controls">
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="10" max="400" step="10" bind:value={dose} /></label>
     <div class="readout">
-      <div><span>Demi-vie terminale</span><strong>{thalfEnd.toFixed(1)} j</strong></div>
-      <div><span>Régime</span><strong>{dose >= 200 ? 'cible saturée (linéaire)' : 'cible active (rapide)'}</strong></div>
+      <div><span>{$language === 'en' ? 'Terminal half-life' : 'Demi-vie terminale'}</span><strong>{thalfEnd.toFixed(1)} {$language === 'en' ? 'd' : 'j'}</strong></div>
+      <div><span>{$language === 'en' ? 'Regime' : 'Régime'}</span><strong>{dose >= 200 ? ($language === 'en' ? 'saturated target (linear)' : 'cible saturée (linéaire)') : ($language === 'en' ? 'active target (fast)' : 'cible active (rapide)')}</strong></div>
     </div>
-    <p class="hint">À faible dose, la cible est <em>libre</em> : la voie cible domine → élimination rapide. À forte dose, la cible est <em>saturée</em> : il ne reste que le catabolisme lent → la pente terminale s'allonge, la clairance <em>diminue</em> quand la dose augmente.</p>
+    <p class="hint">{#if $language === 'en'}At low doses, the target is <em>available</em> and target-mediated elimination dominates. At high doses, the target is <em>saturated</em>, leaving slow catabolism: the terminal slope lengthens and clearance <em>decreases</em> as dose increases.{:else}À faible dose, la cible est <em>libre</em> : la voie cible domine → élimination rapide. À forte dose, la cible est <em>saturée</em> : il ne reste que le catabolisme lent → la pente terminale s'allonge, la clairance <em>diminue</em> quand la dose augmente.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="PK non linéaire (TMDD) en échelle log">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Nonlinear PK (TMDD) on a log scale' : 'PK non linéaire (TMDD) en échelle log'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each [-2, -1, 0, 1, 2, 3] as g}
         <line x1="0" x2={iW} y1={yv(Math.pow(10, g))} y2={yv(Math.pow(10, g))} class="grid" />
@@ -70,10 +71,10 @@
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       {#each curves as c}<path d={pathOf(c.pts)} class="ref" />{/each}
       <path d={pathOf(sel)} class="sel" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (jours)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (days)' : 'Temps (jours)'}</text>
       <text transform={`translate(-38,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
       <g class="legend" transform={`translate(${iW - 150},2)`}>
-        <rect x="0" y="0" width="12" height="3" class="sel" /><text x="18" y="4" class="leg">Dose choisie</text>
+        <rect x="0" y="0" width="12" height="3" class="sel" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Selected dose' : 'Dose choisie'}</text>
         <rect x="0" y="15" width="12" height="3" class="ref" /><text x="18" y="19" class="leg">30 / 100 / 300 mg</text>
       </g>
     </g>

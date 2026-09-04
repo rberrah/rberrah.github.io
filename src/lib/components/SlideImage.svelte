@@ -1,6 +1,8 @@
 <script>
   import { base } from '$app/paths';
   import catalog from '../../content/slides/slide_catalog.json';
+  import { language } from '$lib/stores/language';
+  import { ui } from '$lib/i18n/translations';
 
   export let n;
   export let alt = 'Slide PPTX';
@@ -13,6 +15,7 @@
   const slideTitle = entry?.title || '';
 
   let missing = false;
+  $: copy = ui($language);
 </script>
 
 <figure class="slide-img">
@@ -24,9 +27,9 @@
       on:error={() => (missing = true)}
     />
   {:else}
-    <div class="placeholder" role="img" aria-label={`Slide ${num} absente`}>
-      <span>Slide {num} non fournie</span>
-      <a href={pptxHref}>Ouvrir le PPTX</a>
+    <div class="placeholder" role="img" aria-label={copy.pages.slideMissing(num)}>
+      <span>{copy.pages.slideMissing(num)}</span>
+      <a href={pptxHref}>{copy.pages.openPptx}</a>
     </div>
   {/if}
   <figcaption>{caption || slideTitle || `Slide ${num}`}</figcaption>

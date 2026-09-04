@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Tolérance et rebond : sous exposition CONSTANTE, l'effet s'atténue (un modérateur M
   // monte lentement et augmente l'élimination de la réponse). À l'arrêt, M reste élevé
   // → la réponse chute sous la ligne de base (rebond) avant de récupérer.
@@ -40,27 +41,27 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Vitesse tolérance</span><strong>{ktol.toFixed(2)}</strong><input type="range" min="0" max="0.2" step="0.01" bind:value={ktol} /></label>
-    <label class="s"><span>Intensité effet</span><strong>{strength.toFixed(1)}</strong><input type="range" min="0.2" max="1.5" step="0.1" bind:value={strength} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Tolerance rate' : 'Vitesse tolérance'}</span><strong>{ktol.toFixed(2)}</strong><input type="range" min="0" max="0.2" step="0.01" bind:value={ktol} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Effect intensity' : 'Intensité effet'}</span><strong>{strength.toFixed(1)}</strong><input type="range" min="0.2" max="1.5" step="0.1" bind:value={strength} /></label>
     <div class="readout">
-      <div><span>Pic d'effet</span><strong>{((peak.R / R0 - 1) * 100).toFixed(0)} %</strong></div>
-      <div><span>Rebond (sous base)</span><strong>{reboundDepth > 0.5 ? '−' + ((reboundDepth / R0) * 100).toFixed(0) + ' %' : '—'}</strong></div>
+      <div><span>{$language === 'en' ? 'Peak effect' : "Pic d'effet"}</span><strong>{((peak.R / R0 - 1) * 100).toFixed(0)} %</strong></div>
+      <div><span>{$language === 'en' ? 'Rebound (below baseline)' : 'Rebond (sous base)'}</span><strong>{reboundDepth > 0.5 ? '−' + ((reboundDepth / R0) * 100).toFixed(0) + ' %' : '—'}</strong></div>
     </div>
-    <p class="hint">Sous exposition constante, l'effet monte puis <em>s'émousse</em> (tolérance). À l'arrêt (ligne pointillée), la réponse plonge sous la base : c'est le <em>rebond</em>.</p>
+    <p class="hint">{#if $language === 'en'}Under constant exposure, the effect rises then <em>wanes</em> as tolerance develops. After treatment stops at the dashed line, response drops below baseline: this is <em>rebound</em>.{:else}Sous exposition constante, l'effet monte puis <em>s'émousse</em> (tolérance). À l'arrêt (ligne pointillée), la réponse plonge sous la base : c'est le <em>rebond</em>.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Tolérance et rebond de la réponse">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tolerance and response rebound' : 'Tolérance et rebond de la réponse'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <rect x="0" y="0" width={xt(tOff)} height={iH} class="onzone" />
-      <text x="6" y="12" class="zonelbl">exposition</text>
+      <text x="6" y="12" class="zonelbl">{$language === 'en' ? 'exposure' : 'exposition'}</text>
       <line x1="0" x2={iW} y1={yv(R0)} y2={yv(R0)} class="base" />
-      <text x="2" y={yv(R0) - 4} class="baselbl">ligne de base</text>
+      <text x="2" y={yv(R0) - 4} class="baselbl">{$language === 'en' ? 'baseline' : 'ligne de base'}</text>
       <line x1={xt(tOff)} x2={xt(tOff)} y1="0" y2={iH} class="off" />
       <path d={pathR} class="rline" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
-      <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">Réponse</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
+      <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Response' : 'Réponse'}</text>
     </g>
   </svg>
 </div>

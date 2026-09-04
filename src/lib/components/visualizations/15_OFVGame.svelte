@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   const candidates = [
     { id: 'poids', label: 'Poids', delta: -5.0 },
     { id: 'age', label: 'Âge', delta: -2.5 },
@@ -31,12 +32,12 @@
   <div class="chips">
     {#each candidates as c}
       <button class:selected={selected.has(c.id)} on:click={() => toggle(c.id)}>
-        {c.label} ({c.delta})
+        {c.id === 'poids' && $language === 'en' ? 'Weight' : c.id === 'age' && $language === 'en' ? 'Age' : c.id === 'creat' && $language === 'en' ? 'Creatinine' : c.id === 'sexe' && $language === 'en' ? 'Sex' : c.label} ({c.delta})
       </button>
     {/each}
   </div>
   <div class="result">
-    ΔOFV total : {totalDelta.toFixed(2)} — {decision}
+    {$language === 'en' ? 'Total ΔOFV' : 'ΔOFV total'} : {totalDelta.toFixed(2)} — {$language === 'en' ? (totalDelta <= -6.63 ? 'p < 0.01 (retain in backward selection)' : totalDelta <= -3.84 ? 'p < 0.05 (retain in forward selection)' : 'not significant') : decision}
   </div>
 </div>
 

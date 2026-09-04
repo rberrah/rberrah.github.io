@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Explorateur Emax / sigmoïde de Hill (chapitre PK/PD).
   //   E(C) = E0 + Emax · C^h / (EC50^h + C^h)
   // EC50 = concentration donnant la moitié de l'effet ; h (Hill) = raideur.
@@ -57,15 +58,15 @@
     <label class="s"><span>Emax</span><strong>{emax}</strong><input type="range" min="20" max="150" step="5" bind:value={emax} /></label>
     <label class="s"><span>EC₅₀</span><strong>{ec50}</strong><input type="range" min="2" max="80" step="1" bind:value={ec50} /></label>
     <label class="s"><span>Hill h</span><strong>{hill.toFixed(1)}</strong><input type="range" min="0.5" max="5" step="0.1" bind:value={hill} /></label>
-    <button class="toggle" class:on={logScale} on:click={() => (logScale = !logScale)}>{logScale ? 'Axe log C' : 'Axe linéaire'}</button>
+    <button class="toggle" class:on={logScale} on:click={() => (logScale = !logScale)}>{logScale ? ($language === 'en' ? 'Log C axis' : 'Axe log C') : ($language === 'en' ? 'Linear axis' : 'Axe linéaire')}</button>
     <div class="readout">
-      <div><span>Effet à EC₅₀</span><strong>{halfE.toFixed(0)}</strong></div>
+      <div><span>{$language === 'en' ? 'Effect at EC₅₀' : 'Effet à EC₅₀'}</span><strong>{halfE.toFixed(0)}</strong></div>
       <div><span>= E₀ + Emax/2</span><strong>{(e0 + emax / 2).toFixed(0)}</strong></div>
       <div><span>Plateau (C→∞)</span><strong>{(e0 + emax).toFixed(0)}</strong></div>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Courbe effet-concentration Emax/Hill">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Emax/Hill concentration-effect curve' : 'Courbe effet-concentration Emax/Hill'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={innerH} class="axis" />
       <line x1="0" x2={innerW} y1={innerH} y2={innerH} class="axis" />
@@ -81,7 +82,7 @@
       <path d={path} class="cline" />
       <circle cx={xpos(ec50)} cy={ypos(halfE)} r="4.5" class="dot" />
       <text x={innerW / 2} y={innerH + 38} class="lbl">Concentration{logScale ? ' (log)' : ''}</text>
-      <text transform={`translate(-40,${innerH / 2}) rotate(-90)`} class="lbl">Effet</text>
+      <text transform={`translate(-40,${innerH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Effect' : 'Effet'}</text>
     </g>
   </svg>
 </div>

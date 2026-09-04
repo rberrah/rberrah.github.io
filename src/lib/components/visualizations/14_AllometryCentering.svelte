@@ -4,6 +4,7 @@
   import Axis from '$lib/charts/Axis.svelte';
   import Slider from '$lib/components/ui/Slider.svelte';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   const clStd = 6; // CL population (L/h) à 70 kg
   const wtStd = 70;
@@ -53,13 +54,13 @@
     <Slider label="Poids patient (kg)" min={40} max={140} step={1} bind:value={weight} />
     <Slider label="Exposant allométrique" min={0.5} max={1} step={0.05} bind:value={exponent} disabled={mode !== 'allometric'} />
     <div class="mode">
-      <span>Modèle :</span>
-      <button class:active={mode === 'allometric'} on:click={() => (mode = 'allometric')}>Allométrique</button>
-      <button class:active={mode === 'linear'} on:click={() => (mode = 'linear')}>Linéaire (règle de 3)</button>
+      <span>{$language === 'en' ? 'Model:' : 'Modèle :'}</span>
+      <button class:active={mode === 'allometric'} on:click={() => (mode = 'allometric')}>{$language === 'en' ? 'Allometric' : 'Allométrique'}</button>
+      <button class:active={mode === 'linear'} on:click={() => (mode = 'linear')}>{$language === 'en' ? 'Linear (rule of three)' : 'Linéaire (règle de 3)'}</button>
     </div>
     <div class="stat">
-      CL patient estimée : <strong>{selectedCL.toFixed(2)} L/h</strong>
-      {mode === 'allometric' ? ' (loi de Kleiber)' : ' (proportionnel au poids)'}
+      {$language === 'en' ? 'Estimated patient CL:' : 'CL patient estimée :'} <strong>{selectedCL.toFixed(2)} L/h</strong>
+      {mode === 'allometric' ? ($language === 'en' ? ' (Kleiber law)' : ' (loi de Kleiber)') : ($language === 'en' ? ' (proportional to weight)' : ' (proportionnel au poids)')}
     </div>
   </div>
 
@@ -102,8 +103,7 @@
   </ChartFrame>
 
   <div class="callout">
-    <strong>À retenir :</strong> l'exposant allométrique 0,75 fait que les enfants ne sont pas des “adultes miniatures”.
-    Une règle de 3 linéaire surestime souvent la dose chez l'enfant et la sous-estime chez l'adulte obèse.
+    {#if $language === 'en'}<strong>Key point:</strong> an allometric exponent of 0.75 means children are not miniature adults. A linear rule of three often overestimates doses in children and underestimates them in adults with obesity.{:else}<strong>À retenir :</strong> l'exposant allométrique 0,75 fait que les enfants ne sont pas des “adultes miniatures”. Une règle de 3 linéaire surestime souvent la dose chez l'enfant et la sous-estime chez l'adulte obèse.{/if}
   </div>
 </div>
 

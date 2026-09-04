@@ -10,6 +10,7 @@ const outputFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated
 const engineModelsDirectory = path.join(root, 'tdm-engine', 'models');
 const engineCatalogFile = path.join(engineModelsDirectory, 'catalog.json');
 const metadataFile = path.join(root, 'static', 'tdm', 'model-metadata.json');
+const englishMetadataFile = path.join(root, 'static', 'tdm', 'model-i18n.en.json');
 
 const drugLabels = {
   amik: 'Amikacine',
@@ -35,6 +36,81 @@ const drugLabels = {
   voriconazole: 'Voriconazole',
   amiodarone: 'Amiodarone',
   vanco: 'Vancomycine'
+};
+
+const drugLabelsEn = {
+  amik: 'Amikacin',
+  amox: 'Amoxicillin',
+  cefazoline: 'Cefazolin',
+  cefepime: 'Cefepime',
+  ciclosporine: 'Cyclosporine',
+  cobicistat: 'Cobicistat',
+  dapto: 'Daptomycin',
+  diltiazem: 'Diltiazem',
+  erythromycine: 'Erythromycin',
+  everolimus: 'Everolimus',
+  fluconazole: 'Fluconazole',
+  genta: 'Gentamicin',
+  isavuconazole: 'Isavuconazole',
+  levo: 'Levofloxacin',
+  linez: 'Linezolid',
+  posaconazole: 'Posaconazole',
+  rifampicine: 'Rifampicin',
+  ritonavir: 'Ritonavir',
+  sirolimus: 'Sirolimus',
+  tacrolimus: 'Tacrolimus',
+  voriconazole: 'Voriconazole',
+  amiodarone: 'Amiodarone',
+  vanco: 'Vancomycin'
+};
+
+const populationTagEn = {
+  'Adulte': 'Adult',
+  'Âgé': 'Older adult',
+  'Brûlé': 'Burn',
+  'Cancer': 'Cancer',
+  'Cardiologie': 'Cardiology',
+  'CEC': 'CPB',
+  'Chirurgie': 'Surgery',
+  'Chirurgie orthopédique': 'Orthopedic surgery',
+  'CRRT': 'CRRT',
+  'Diabète': 'Diabetes',
+  'Dialyse': 'Dialysis',
+  'Endocardite': 'Endocarditis',
+  'Hémodialyse': 'Hemodialysis',
+  'Hors dialyse': 'Not on dialysis',
+  'Hors ICU': 'Non-ICU',
+  'Hors ICU non précisé': 'ICU status not specified',
+  'Hospitalisé': 'Hospitalized',
+  'ICU': 'ICU',
+  'Infection fongique': 'Fungal infection',
+  'Infection ostéo-articulaire': 'Bone and joint infection',
+  'Insuffisance rénale': 'Renal impairment',
+  'Néonatal': 'Neonatal',
+  'Obèse': 'Obesity',
+  'Pédiatrique': 'Pediatric',
+  'Pneumonie': 'Pneumonia',
+  'Population à confirmer': 'Population pending verification',
+  'Population mixte': 'Mixed population',
+  'Sepsis': 'Sepsis',
+  'Transplantation rénale': 'Kidney transplantation',
+  'Tuberculose': 'Tuberculosis',
+  'Ventilé': 'Mechanically ventilated',
+  'VIH': 'HIV',
+  'Volontaire sain': 'Healthy volunteer'
+};
+
+const modelTypeEn = {
+  'Module de sensibilité déterministe': 'Deterministic sensitivity module',
+  'Module PK adapté': 'Adapted PK module',
+  'Module PK déterministe': 'Deterministic PK module',
+  'PK publié': 'Published PK',
+  'PK publié adapté': 'Adapted published PK',
+  'PopPK à vérifier': 'PopPK pending verification',
+  'PopPK mécanistique adapté': 'Adapted mechanistic PopPK',
+  'PopPK publié': 'Published PopPK',
+  'PopPK publié adapté': 'Adapted published PopPK',
+  'Prior PK à vérifier': 'PK prior pending verification'
 };
 
 const drugKeys = Object.keys(drugLabels);
@@ -72,7 +148,7 @@ function administrationRoutes(code, stem) {
   };
 }
 
-function parseModelFile(file, metadata, code) {
+function parseModelFile(file, metadata, englishMetadata, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
   const suffix = stem.slice(drugKey.length + 1);
@@ -80,7 +156,9 @@ function parseModelFile(file, metadata, code) {
   const drug = drugLabels[drugKey] ?? titleCase(drugKey);
 
   const details = metadata[stem];
+  const english = englishMetadata[stem];
   if (!details) throw new Error(`Missing TDM metadata for ${stem}.`);
+  if (!english?.population) throw new Error(`Missing English TDM population for ${stem}.`);
   if ('provenance' in details) throw new Error(`Application provenance is not an article source: ${stem}.`);
   if (!details.citation || !details.doi) {
     throw new Error(`Missing primary article citation or DOI for ${stem}.`);
@@ -101,10 +179,15 @@ function parseModelFile(file, metadata, code) {
     file,
     drugKey,
     drug,
+    drugEn: drugLabelsEn[drugKey] ?? drug,
     model: displayModel,
     format: 'mrgsolve/C++',
     href: `/tdm/models/${file}`,
     ...details,
+    populationEn: english.population,
+    populationTagsEn: (details.populationTags ?? []).map((tag) => populationTagEn[tag] ?? tag),
+    modelTypeEn: modelTypeEn[details.modelType] ?? details.modelType,
+    noteEn: english.note ?? '',
     ...routeDetails,
     tags: Array.from(new Set([
       drug,
@@ -112,8 +195,11 @@ function parseModelFile(file, metadata, code) {
       details.modelType,
       details.citation,
       details.doi,
+      english.population,
+      drugLabelsEn[drugKey],
       ...routeDetails.routes,
-      ...(details.populationTags ?? [])
+      ...(details.populationTags ?? []),
+      ...(details.populationTags ?? []).map((tag) => populationTagEn[tag] ?? tag)
     ].filter(Boolean)))
   };
 }
@@ -136,6 +222,8 @@ async function main() {
 
   const metadataDocument = JSON.parse(await fs.readFile(metadataFile, 'utf8'));
   const metadata = metadataDocument.models ?? {};
+  const englishMetadataDocument = JSON.parse(await fs.readFile(englishMetadataFile, 'utf8'));
+  const englishMetadata = englishMetadataDocument.models ?? {};
   const allIds = new Set(allFiles.map((file) => file.replace(/\.cpp$/i, '')));
   const missingMetadata = [...allIds].filter((id) => !metadata[id]);
   if (missingMetadata.length) throw new Error(`Missing TDM metadata for: ${missingMetadata.join(', ')}`);
@@ -145,7 +233,7 @@ async function main() {
     file,
     await fs.readFile(path.join(modelsDirectory, file), 'utf8')
   ])));
-  const models = files.map((file) => parseModelFile(file, metadata, modelCode.get(file)));
+  const models = files.map((file) => parseModelFile(file, metadata, englishMetadata, modelCode.get(file)));
   const ids = new Set(models.map((model) => model.id));
   if (ids.size !== models.length) throw new Error('Duplicate TDM model identifiers detected.');
   const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id));

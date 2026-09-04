@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation de
   // paramètres individuels. Sous l'hypothèse « pur bruit », les valeurs propres suivent la
   // loi de Marchenko-Pastur, bornée par λ± = (1 ± √(p/n))². Les vraies corrélations
@@ -91,17 +92,17 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Vrais facteurs</span><strong>{kfac}</strong><input type="range" min="0" max="5" step="1" bind:value={kfac} /></label>
-    <label class="s"><span>Patients n</span><strong>{n}</strong><input type="range" min="30" max="180" step="10" bind:value={n} /></label>
+    <label class="s"><span>{$language === 'en' ? 'True factors' : 'Vrais facteurs'}</span><strong>{kfac}</strong><input type="range" min="0" max="5" step="1" bind:value={kfac} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Patients n' : 'Patients n'}</span><strong>{n}</strong><input type="range" min="30" max="180" step="10" bind:value={n} /></label>
     <div class="readout">
       <div><span>p / n (q)</span><strong>{q.toFixed(2)}</strong></div>
-      <div><span>Seuil bruit λ₊</span><strong>{lamP.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={signal === kfac}>{signal} valeur(s) &gt; λ₊ (signal) · {kfac} injecté(s)</div>
+      <div><span>{$language === 'en' ? 'Noise threshold λ₊' : 'Seuil bruit λ₊'}</span><strong>{lamP.toFixed(2)}</strong></div>
+      <div class="verdict" class:ok={signal === kfac}>{signal} {$language === 'en' ? 'value(s)' : 'valeur(s)'} &gt; λ₊ ({$language === 'en' ? 'signal' : 'signal'}) · {kfac} {$language === 'en' ? 'injected' : 'injecté(s)'}</div>
     </div>
-    <p class="hint">Les valeurs propres sous λ₊ sont du <em>bruit</em> (loi de Marchenko-Pastur, courbe). Celles qui dépassent λ₊ sont de <em>vraies</em> corrélations. Plus de patients (n) resserre le bruit et fait ressortir le signal.</p>
+    <p class="hint">{#if $language === 'en'}Eigenvalues below λ₊ are <em>noise</em> under the Marchenko-Pastur law. Values above λ₊ reflect <em>true</em> correlations. More patients narrow the noise spectrum and reveal the signal.{:else}Les valeurs propres sous λ₊ sont du <em>bruit</em> (loi de Marchenko-Pastur, courbe). Celles qui dépassent λ₊ sont de <em>vraies</em> corrélations. Plus de patients (n) resserre le bruit et fait ressortir le signal.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Spectre des valeurs propres vs Marchenko-Pastur">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Eigenvalue spectrum vs Marchenko-Pastur' : 'Spectre des valeurs propres vs Marchenko-Pastur'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -112,8 +113,8 @@
       <path d={mpPath} class="mp" />
       <line x1={bx(lamP)} x2={bx(lamP)} y1="0" y2={iH} class="edge" />
       <text x={bx(lamP)} y="10" class="edgelbl">λ₊</text>
-      <text x={iW / 2} y={iH + 32} class="lbl">Valeur propre</text>
-      <text transform={`translate(-26,${iH / 2}) rotate(-90)`} class="lbl">Effectif</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Eigenvalue' : 'Valeur propre'}</text>
+      <text transform={`translate(-26,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Count' : 'Effectif'}</text>
     </g>
   </svg>
 </div>

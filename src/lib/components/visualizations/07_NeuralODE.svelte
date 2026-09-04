@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   export let noise = 0.3;
 </script>
 
@@ -20,7 +21,7 @@
       </div>
     {/each}
   </div>
-  <p class="legend">Le réseau apprend la partie manquante de l’équation (grey box).</p>
+  <p class="legend">{$language === 'en' ? 'The network learns the missing part of the equation (grey box).' : 'Le réseau apprend la partie manquante de l’équation (grey box).'}</p>
 </div>
 
 <style>

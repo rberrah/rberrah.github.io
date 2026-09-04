@@ -3,6 +3,7 @@
   // On échantillonne une vraie courbe orale ; l'AUC des trapèzes dépend de la
   // densité de prélèvements. Extrapolation de la queue : + Clast / λz.
   import { aucTrap } from '$lib/utils/math';
+  import { language } from '$lib/stores/language';
 
   // Vraie courbe (Bateman orale) : C(t) = A·(e^-ke·t − e^-ka·t)
   const A = 12, ke = 0.25, ka = 1.1;
@@ -46,22 +47,22 @@
 <div class="wrap">
   <div class="controls">
     <div class="seg">
-      <button class:on={scheme === 'riche'} on:click={() => (scheme = 'riche')}>Riche (10 pts)</button>
-      <button class:on={scheme === 'pauvre'} on:click={() => (scheme = 'pauvre')}>Pauvre (5)</button>
-      <button class:on={scheme === 'tres-pauvre'} on:click={() => (scheme = 'tres-pauvre')}>Très pauvre (3)</button>
+      <button class:on={scheme === 'riche'} on:click={() => (scheme = 'riche')}>{$language === 'en' ? 'Rich (10 pts)' : 'Riche (10 pts)'}</button>
+      <button class:on={scheme === 'pauvre'} on:click={() => (scheme = 'pauvre')}>{$language === 'en' ? 'Sparse (5)' : 'Pauvre (5)'}</button>
+      <button class:on={scheme === 'tres-pauvre'} on:click={() => (scheme = 'tres-pauvre')}>{$language === 'en' ? 'Very sparse (3)' : 'Très pauvre (3)'}</button>
     </div>
-    <label class="chk"><input type="checkbox" bind:checked={extrapolate} /> Extrapoler la queue (+ Clast/λz)</label>
+    <label class="chk"><input type="checkbox" bind:checked={extrapolate} /> {$language === 'en' ? 'Extrapolate the tail (+ Clast/λz)' : 'Extrapoler la queue (+ Clast/λz)'}</label>
     <div class="readout">
-      <div><span>AUC trapèzes</span><strong>{aucObs.toFixed(1)}</strong></div>
-      {#if extrapolate}<div><span>+ queue Clast/λz</span><strong>{tail.toFixed(1)}</strong></div>{/if}
-      <div><span>AUC totale</span><strong>{aucTot.toFixed(1)}</strong></div>
-      <div class="vrai"><span>AUC vraie (0→∞)</span><strong>{aucTrueInf.toFixed(1)}</strong></div>
-      <div class:bad={Math.abs(errPct) > 5}><span>Écart</span><strong>{errPct >= 0 ? '+' : ''}{errPct.toFixed(1)} %</strong></div>
+      <div><span>{$language === 'en' ? 'Trapezoidal AUC' : 'AUC trapèzes'}</span><strong>{aucObs.toFixed(1)}</strong></div>
+      {#if extrapolate}<div><span>+ {$language === 'en' ? 'tail' : 'queue'} Clast/λz</span><strong>{tail.toFixed(1)}</strong></div>{/if}
+      <div><span>{$language === 'en' ? 'Total AUC' : 'AUC totale'}</span><strong>{aucTot.toFixed(1)}</strong></div>
+      <div class="vrai"><span>{$language === 'en' ? 'True AUC (0→∞)' : 'AUC vraie (0→∞)'}</span><strong>{aucTrueInf.toFixed(1)}</strong></div>
+      <div class:bad={Math.abs(errPct) > 5}><span>{$language === 'en' ? 'Difference' : 'Écart'}</span><strong>{errPct >= 0 ? '+' : ''}{errPct.toFixed(1)} %</strong></div>
     </div>
-    <p class="hint">Moins de points ⇒ les trapèzes recoupent moins bien la courbe : l'AUC dérive. La NCA est robuste mais <em>descriptive</em>.</p>
+    <p class="hint">{#if $language === 'en'}Fewer points mean the trapezoids approximate the curve less accurately and the AUC drifts. NCA is robust but <em>descriptive</em>.{:else}Moins de points ⇒ les trapèzes recoupent moins bien la courbe : l'AUC dérive. La NCA est robuste mais <em>descriptive</em>.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="AUC par la méthode des trapèzes">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'AUC by the trapezoidal rule' : 'AUC par la méthode des trapèzes'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <!-- trapèzes -->
       {#each pts.slice(1) as p, i}
@@ -83,7 +84,7 @@
       {/each}
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-40,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

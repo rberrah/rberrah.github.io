@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Modèle de Sheiner : compartiment d'effet relié au plasma par ke0.
   //   Cp(t) : concentration plasmatique (bolus IV)
   //   dCe/dt = ke0·(Cp − Ce) : concentration au site d'effet, en retard
@@ -45,37 +46,37 @@
   <div class="controls">
     <label class="s"><span>ke0 (1/h)</span><strong>{ke0.toFixed(2)}</strong><input type="range" min="0.05" max="3" step="0.05" bind:value={ke0} /></label>
     <div class="readout">
-      <div><span>t½ d'équilibrage</span><strong>{thalfKe0.toFixed(2)}</strong> h</div>
+      <div><span>{$language === 'en' ? 'Equilibration t½' : "t½ d'équilibrage"}</span><strong>{thalfKe0.toFixed(2)}</strong> h</div>
       <div><span>Pic Cp</span><strong>t = 0 h</strong></div>
-      <div><span>Pic effet (Ce)</span><strong>t = {cePeak.t.toFixed(1)} h</strong></div>
+      <div><span>{$language === 'en' ? 'Effect peak (Ce)' : 'Pic effet (Ce)'}</span><strong>t = {cePeak.t.toFixed(1)} h</strong></div>
     </div>
-    <p class="hint">Le plasma pique à t=0, mais l'effet (site d'effet Ce) pique plus tard : le <em>délai</em> vient de ke0, pas de la PK. Cela crée l'<strong>hystérèse</strong> effet–concentration.</p>
+    <p class="hint">{#if $language === 'en'}Plasma peaks at t=0, but effect-site Ce peaks later: the <em>delay</em> comes from ke0, not PK. This creates effect-concentration <strong>hysteresis</strong>.{:else}Le plasma pique à t=0, mais l'effet (site d'effet Ce) pique plus tard : le <em>délai</em> vient de ke0, pas de la PK. Cela crée l'<strong>hystérèse</strong> effet–concentration.{/if}</p>
   </div>
 
   <div class="stage">
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Concentration plasma et site d'effet">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={$language === 'en' ? 'Plasma and effect-site concentrations' : "Concentration plasma et site d'effet"}>
       <g transform={`translate(${m.left},${m.top})`}>
         <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
         <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
         <path d={cpPath} class="cp" />
         <path d={cePath} class="ce" />
         <line x1={xt(cePeak.t)} x2={xt(cePeak.t)} y1={yc(cePeak.ce)} y2={iH} class="guide" />
-        <text x={iW / 2} y={iH + 26} class="lbl">Temps (h)</text>
+        <text x={iW / 2} y={iH + 26} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
         <g transform="translate(4,2)">
           <rect x="0" y="0" width="12" height="3" class="cp" /><text x="16" y="4" class="leg">Cp (plasma)</text>
-          <rect x="0" y="13" width="12" height="3" class="ce" /><text x="16" y="16" class="leg">Ce (effet)</text>
+          <rect x="0" y="13" width="12" height="3" class="ce" /><text x="16" y="16" class="leg">Ce ({$language === 'en' ? 'effect' : 'effet'})</text>
         </g>
       </g>
     </svg>
 
-    <svg viewBox={`0 0 ${HW} ${HH}`} role="img" aria-label="Boucle d'hystérèse">
+    <svg viewBox={`0 0 ${HW} ${HH}`} role="img" aria-label={$language === 'en' ? 'Hysteresis loop' : "Boucle d'hystérèse"}>
       <g transform={`translate(${hm.left},${hm.top})`}>
         <line x1="0" x2="0" y1="0" y2={hiH} class="axis" />
         <line x1="0" x2={hiW} y1={hiH} y2={hiH} class="axis" />
         <path d={hystPath} class="hyst" />
         <text x={hiW / 2} y={hiH + 26} class="lbl">Cp</text>
-        <text transform={`translate(-28,${hiH / 2}) rotate(-90)`} class="lbl">Ce (effet)</text>
-        <text x={hiW / 2} y={10} class="ann">hystérèse</text>
+        <text transform={`translate(-28,${hiH / 2}) rotate(-90)`} class="lbl">Ce ({$language === 'en' ? 'effect' : 'effet'})</text>
+        <text x={hiW / 2} y={10} class="ann">{$language === 'en' ? 'hysteresis' : 'hystérèse'}</text>
       </g>
     </svg>
   </div>

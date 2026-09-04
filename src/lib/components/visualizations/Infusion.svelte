@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Perfusion IV (entrée d'ordre 0, débit constant R0).
   //   Pendant la perfusion : C(t) = (R0/CL)·(1 − e^(−ke·t)),  Css = R0/CL
   //   Après l'arrêt (à Tinf) : décroissance exponentielle.
@@ -36,25 +37,25 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Débit R₀ (mg/h)</span><strong>{r0}</strong><input type="range" min="5" max="100" step="5" bind:value={r0} /></label>
-    <label class="s"><span>Durée perfusion (h)</span><strong>{tinf}</strong><input type="range" min="1" max="24" step="1" bind:value={tinf} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Rate R₀ (mg/h)' : 'Débit R₀ (mg/h)'}</span><strong>{r0}</strong><input type="range" min="5" max="100" step="5" bind:value={r0} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Infusion duration (h)' : 'Durée perfusion (h)'}</span><strong>{tinf}</strong><input type="range" min="1" max="24" step="1" bind:value={tinf} /></label>
     <label class="s"><span>CL (L/h)</span><strong>{cl}</strong><input type="range" min="1" max="15" step="0.5" bind:value={cl} /></label>
     <label class="s"><span>V (L)</span><strong>{v}</strong><input type="range" min="10" max="70" step="1" bind:value={v} /></label>
     <div class="readout">
       <div><span>Css = R₀/CL</span><strong>{css.toFixed(2)}</strong> mg/L</div>
       <div><span>t½</span><strong>{thalf.toFixed(1)}</strong> h</div>
-      <div><span>~90 % de Css</span><strong>{t90.toFixed(1)}</strong> h</div>
-      <div><span>C à l'arrêt</span><strong>{cAtStop.toFixed(2)}</strong> mg/L</div>
+      <div><span>~90 % {$language === 'en' ? 'of' : 'de'} Css</span><strong>{t90.toFixed(1)}</strong> h</div>
+      <div><span>{$language === 'en' ? 'C at stop' : "C à l'arrêt"}</span><strong>{cAtStop.toFixed(2)}</strong> mg/L</div>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Perfusion IV">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'IV infusion' : 'Perfusion IV'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2={iW} y1={yc(css)} y2={yc(css)} class="css" />
       <text x={iW - 2} y={yc(css) - 4} class="csslabel">Css = R₀/CL</text>
       <!-- zone de perfusion -->
       <rect x="0" y="0" width={xt(tinf)} height={iH} class="infzone" />
-      <text x={xt(tinf) / 2} y={iH - 6} class="inflabel">perfusion</text>
+      <text x={xt(tinf) / 2} y={iH - 6} class="inflabel">{$language === 'en' ? 'infusion' : 'perfusion'}</text>
       {#if t90 < tinf}
         <line x1={xt(t90)} x2={xt(t90)} y1={yc(css)} y2={iH} class="t90" />
       {/if}
@@ -62,7 +63,7 @@
       <path d={path} class="line" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-40,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

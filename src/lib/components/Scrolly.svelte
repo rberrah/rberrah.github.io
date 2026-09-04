@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { language } from '$lib/stores/language';
 
   /** @type {{id:string, title?:string, content?:string}[]} */
   export let steps = [];
@@ -43,7 +44,7 @@
         class="step"
         bind:this={stepRefs[i]}
         data-step={step.id}
-        aria-label={`Étape ${step.id}`}
+        aria-label={`${$language === 'en' ? 'Step' : 'Étape'} ${step.id}`}
       >
         <p class="step__title">{step.title || step.id}</p>
         <p class="step__body" aria-live="polite">{@html step.content}</p>

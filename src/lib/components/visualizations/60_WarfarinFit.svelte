@@ -4,6 +4,7 @@
   //   C(τ) = D·ka / (V·(ka−ke)) · (e^(−ke·τ) − e^(−ka·τ)),  τ = t − Tlag,  ke = CL/V
   // Mode « Profil » : nuage réel + courbe du modèle. Mode « Obs vs préd » : GoF réel.
   import { warfarinPK } from '$lib/content/warfarinData';
+  import { language } from '$lib/stores/language';
 
   /** @type {'time'|'gof'} */
   export let initialMode = 'time';
@@ -50,34 +51,34 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>Profil (DV vs temps)</button>
-      <button class:on={mode === 'gof'} on:click={() => (mode = 'gof')}>Obs vs préd</button>
+      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>{$language === 'en' ? 'Profile (DV vs time)' : 'Profil (DV vs temps)'}</button>
+      <button class:on={mode === 'gof'} on:click={() => (mode = 'gof')}>{$language === 'en' ? 'Obs vs pred' : 'Obs vs préd'}</button>
     </div>
     <label class="s"><span>Ka (1/h)</span><strong>{ka.toFixed(2)}</strong><input type="range" min="0.1" max="2" step="0.05" bind:value={ka} /></label>
     <label class="s"><span>CL (L/h)</span><strong>{cl.toFixed(3)}</strong><input type="range" min="0.05" max="0.3" step="0.005" bind:value={cl} /></label>
     <label class="s"><span>V (L)</span><strong>{v.toFixed(1)}</strong><input type="range" min="4" max="14" step="0.5" bind:value={v} /></label>
     <label class="s"><span>Tlag (h)</span><strong>{tlag.toFixed(1)}</strong><input type="range" min="0" max="2" step="0.1" bind:value={tlag} /></label>
     <div class="readout">
-      <div><span>Demi-vie</span><strong>{thalf.toFixed(0)} h</strong></div>
+      <div><span>{$language === 'en' ? 'Half-life' : 'Demi-vie'}</span><strong>{thalf.toFixed(0)} h</strong></div>
       <div><span>RMSE</span><strong>{rmse.toFixed(2)} mg/L</strong></div>
-      <div><span>Données</span><strong>{warfarinPK.length} pts · 32 sujets</strong></div>
+      <div><span>{$language === 'en' ? 'Data' : 'Données'}</span><strong>{warfarinPK.length} pts · 32 {$language === 'en' ? 'subjects' : 'sujets'}</strong></div>
     </div>
-    <p class="hint">Points réels de la base Warfarin. Ajustez Ka, CL, V et Tlag pour rapprocher la courbe du nuage — le <strong>RMSE</strong> baisse quand l'ajustement s'améliore.</p>
+    <p class="hint">{$language === 'en' ? 'Real points from the Warfarin dataset. Adjust Ka, CL, V, and Tlag to bring the curve closer to the cloud; ' : 'Points réels de la base Warfarin. Ajustez Ka, CL, V et Tlag pour rapprocher la courbe du nuage — le '}<strong>RMSE</strong>{$language === 'en' ? ' decreases as the fit improves.' : " baisse quand l'ajustement s'améliore."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Ajustement du modèle aux données Warfarin réelles">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Model fit to real Warfarin data' : 'Ajustement du modèle aux données Warfarin réelles'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       {#if mode === 'time'}
         {#each timePts as p}<circle cx={p.px} cy={p.py} r="2.4" class="pt" />{/each}
         <path d={curve} class="fit" />
-        <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
+        <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
         <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
       {:else}
         <line x1={gx(0)} y1={gy(0)} x2={gx(cMax)} y2={gy(cMax)} class="ident" />
         {#each gofPts as p}<circle cx={p.px} cy={p.py} r="2.6" class="pt" />{/each}
-        <text x={iW / 2} y={iH + 32} class="lbl">Prédictions (mg/L)</text>
+        <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Predictions (mg/L)' : 'Prédictions (mg/L)'}</text>
         <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Observations (mg/L)</text>
       {/if}
     </g>

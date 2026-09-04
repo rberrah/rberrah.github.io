@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Modèle d'inhibition de la croissance tumorale (TGI) de type Claret.
   //   dTS/dt = KG·TS  −  K·exposition·exp(−λ·t)·TS
   //   • KG           : croissance tumorale exponentielle (sans traitement)
@@ -42,9 +43,9 @@
   $: bestChange = ((nadir.ts - TS0) / TS0) * 100; // % vs baseline
   /** @returns {string} */
   function recist(/** @type {number} */ pct) {
-    if (pct <= -30) return 'Réponse partielle (RP)';
-    if (pct >= 20) return 'Progression (PD)';
-    return 'Stable (SD)';
+    if (pct <= -30) return $language === 'en' ? 'Partial response (PR)' : 'Réponse partielle (RP)';
+    if (pct >= 20) return $language === 'en' ? 'Progressive disease (PD)' : 'Progression (PD)';
+    return $language === 'en' ? 'Stable disease (SD)' : 'Stable (SD)';
   }
 
   const W = 480, H = 300, m = { top: 18, right: 16, bottom: 44, left: 48 };
@@ -63,17 +64,17 @@
 <div class="wrap">
   <div class="controls">
     <label class="s"><span>Exposition (AUC)</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
-    <label class="s"><span>Croissance K<sub>G</sub></span><strong>{kg.toFixed(3)}</strong><input type="range" min="0.01" max="0.07" step="0.005" bind:value={kg} /></label>
-    <label class="s"><span>Résistance λ</span><strong>{lambda.toFixed(3)}</strong><input type="range" min="0" max="0.06" step="0.005" bind:value={lambda} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Growth' : 'Croissance'} K<sub>G</sub></span><strong>{kg.toFixed(3)}</strong><input type="range" min="0.01" max="0.07" step="0.005" bind:value={kg} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Resistance' : 'Résistance'} λ</span><strong>{lambda.toFixed(3)}</strong><input type="range" min="0" max="0.06" step="0.005" bind:value={lambda} /></label>
     <div class="readout">
-      <div><span>Nadir</span><strong>{nadir.ts.toFixed(0)} mm à {nadir.t.toFixed(0)} sem</strong></div>
-      <div><span>Meilleure réponse</span><strong>{bestChange >= 0 ? '+' : ''}{bestChange.toFixed(0)}%</strong></div>
+      <div><span>Nadir</span><strong>{nadir.ts.toFixed(0)} mm {$language === 'en' ? 'at' : 'à'} {nadir.t.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
+      <div><span>{$language === 'en' ? 'Best response' : 'Meilleure réponse'}</span><strong>{bestChange >= 0 ? '+' : ''}{bestChange.toFixed(0)}%</strong></div>
       <div class="verdict" class:pr={bestChange <= -30} class:pd={bestChange >= 20}>{recist(bestChange)}</div>
     </div>
-    <p class="hint">Montez l'exposition : la tumeur régresse, puis peut <em>ré-échapper</em> quand la résistance (λ) épuise l'effet.</p>
+    <p class="hint">{#if $language === 'en'}Increase exposure: the tumor shrinks, then may <em>regrow</em> as resistance (λ) exhausts the effect.{:else}Montez l'exposition : la tumeur régresse, puis peut <em>ré-échapper</em> quand la résistance (λ) épuise l'effet.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Taille tumorale au cours du temps">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tumor size over time' : 'Taille tumorale au cours du temps'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -87,11 +88,11 @@
       <path d={pathT} class="tline" />
       <!-- nadir -->
       <circle cx={xt(nadir.t)} cy={yv(nadir.ts)} r="4.5" class="ndot" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (semaines)</text>
-      <text transform={`translate(-36,${iH / 2}) rotate(-90)`} class="lbl">Taille tumorale (mm)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (weeks)' : 'Temps (semaines)'}</text>
+      <text transform={`translate(-36,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Tumor size (mm)' : 'Taille tumorale (mm)'}</text>
       <g class="legend" transform={`translate(6,4)`}>
-        <rect x="0" y="0" width="12" height="3" class="tline" /><text x="18" y="4" class="leg">Traité</text>
-        <rect x="0" y="16" width="12" height="3" class="uline" /><text x="18" y="20" class="leg">Sans traitement</text>
+        <rect x="0" y="0" width="12" height="3" class="tline" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Treated' : 'Traité'}</text>
+        <rect x="0" y="16" width="12" height="3" class="uline" /><text x="18" y="20" class="leg">{$language === 'en' ? 'Untreated' : 'Sans traitement'}</text>
       </g>
     </g>
   </svg>

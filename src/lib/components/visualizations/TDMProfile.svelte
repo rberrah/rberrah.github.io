@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Precision dosing / TDM : à partir d'UNE concentration mesurée, on met à jour
   // (Bayes/MAP) la clairance individuelle → courbe IPRED (individuelle) vs PRED
   // (population, a priori). Cycle : Mesurer → Estimer → Ajuster.
@@ -44,41 +45,41 @@
     return `${i ? 'L' : 'M'}${xt(t).toFixed(1)},${yc(pred(t, clInd)).toFixed(1)}`;
   }).join(' ');
 
-  $: verdict = clInd > CLpop * 1.15 ? 'élimine plus vite → envisager une dose plus élevée / rapprochée'
-    : clInd < CLpop * 0.85 ? 'élimine plus lentement → envisager une dose plus basse / espacée'
-    : 'proche du profil typique';
+  $: verdict = clInd > CLpop * 1.15 ? ($language === 'en' ? 'eliminates faster: consider a higher or more frequent dose' : 'élimine plus vite → envisager une dose plus élevée / rapprochée')
+    : clInd < CLpop * 0.85 ? ($language === 'en' ? 'eliminates more slowly: consider a lower or less frequent dose' : 'élimine plus lentement → envisager une dose plus basse / espacée')
+    : ($language === 'en' ? 'is close to the typical profile' : 'proche du profil typique');
 </script>
 
 <div class="wrap">
   <div class="controls">
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="100" max="600" step="10" bind:value={dose} /></label>
-    <label class="s"><span>Prélèvement t (h)</span><strong>{tObs.toFixed(1)}</strong><input type="range" min="0.5" max="18" step="0.5" bind:value={tObs} /></label>
-    <label class="s"><span>Mesure (mg/L)</span><strong>{cObs.toFixed(1)}</strong><input type="range" min="0.3" max="12" step="0.1" bind:value={cObs} /></label>
-    <div class="cycle"><span>Mesurer</span> → <span>Estimer</span> → <span>Ajuster</span></div>
+    <label class="s"><span>{$language === 'en' ? 'Sample t (h)' : 'Prélèvement t (h)'}</span><strong>{tObs.toFixed(1)}</strong><input type="range" min="0.5" max="18" step="0.5" bind:value={tObs} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Measurement (mg/L)' : 'Mesure (mg/L)'}</span><strong>{cObs.toFixed(1)}</strong><input type="range" min="0.3" max="12" step="0.1" bind:value={cObs} /></label>
+    <div class="cycle"><span>{$language === 'en' ? 'Measure' : 'Mesurer'}</span> → <span>{$language === 'en' ? 'Estimate' : 'Estimer'}</span> → <span>{$language === 'en' ? 'Adjust' : 'Ajuster'}</span></div>
     <div class="readout">
       <div><span>CL population</span><strong>{CLpop.toFixed(1)}</strong> L/h</div>
-      <div><span>CL individuelle (EBE)</span><strong>{clInd.toFixed(2)}</strong> L/h</div>
+      <div><span>{$language === 'en' ? 'Individual CL (EBE)' : 'CL individuelle (EBE)'}</span><strong>{clInd.toFixed(2)}</strong> L/h</div>
     </div>
-    <p class="hint">Le patient {verdict}.</p>
+    <p class="hint">{$language === 'en' ? 'The patient' : 'Le patient'} {verdict}.</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Profil TDM : population vs individuel">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'TDM profile: population vs individual' : 'Profil TDM : population vs individuel'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <!-- fenêtre thérapeutique -->
       <rect x="0" y={yc(targetHi)} width={iW} height={Math.max(0, yc(targetLo) - yc(targetHi))} class="target" />
-      <text x={iW - 4} y={yc(targetHi) - 4} class="tlabel">fenêtre cible</text>
+      <text x={iW - 4} y={yc(targetHi) - 4} class="tlabel">{$language === 'en' ? 'target range' : 'fenêtre cible'}</text>
       <path d={predPath} class="pred" />
       <path d={ipredPath} class="ipred" />
       <line x1={xt(tObs)} x2={xt(tObs)} y1={yc(cObs)} y2={iH} class="obsguide" />
       <circle cx={xt(tObs)} cy={yc(cObs)} r="5" class="obs" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-36,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
       <g class="legend" transform="translate(6,2)">
         <rect x="0" y="0" width="14" height="3" class="pred" /><text x="20" y="4" class="leg">PRED (population)</text>
-        <rect x="0" y="15" width="14" height="3" class="ipred" /><text x="20" y="19" class="leg">IPRED (individuel)</text>
-        <circle cx="7" cy="32" r="4" class="obs" /><text x="20" y="35" class="leg">mesure</text>
+        <rect x="0" y="15" width="14" height="3" class="ipred" /><text x="20" y="19" class="leg">IPRED ({$language === 'en' ? 'individual' : 'individuel'})</text>
+        <circle cx="7" cy="32" r="4" class="obs" /><text x="20" y="35" class="leg">{$language === 'en' ? 'measurement' : 'mesure'}</text>
       </g>
     </g>
   </svg>

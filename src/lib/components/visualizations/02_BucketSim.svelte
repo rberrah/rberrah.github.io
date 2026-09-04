@@ -6,6 +6,7 @@
   import { concMono } from '$lib/utils/math';
   import { reducedMotion } from '$lib/motion/reducedMotion';
   import Slider from '$lib/components/ui/Slider.svelte';
+  import { language } from '$lib/stores/language';
 
   let dose = 100; // mg
   let volume = 25; // L
@@ -72,7 +73,7 @@
 
 <div class="hydro">
   <div class="stage">
-    <svg viewBox="0 0 280 250" class="tank-svg" role="img" aria-label="Modèle hydraulique : réservoir et robinet">
+    <svg viewBox="0 0 280 250" class="tank-svg" role="img" aria-label={$language === 'en' ? 'Hydraulic model: tank and tap' : 'Modèle hydraulique : réservoir et robinet'}>
       <!-- paroi du réservoir -->
       <rect x={tankX} y={tankTop} width={tankW} height={H - 10} rx="8" class="tank" />
       <!-- liquide -->
@@ -89,18 +90,18 @@
         </g>
       {/if}
       <!-- légendes -->
-      <text x={tankX + tankW / 2} y={tankTop + H + 14} class="lbl">largeur = V ({volume} L)</text>
-      <text x={tankX + tankW + 20} y={tankTop + H - 30} class="lbl small">robinet = CL</text>
-      <text x={tankX + tankW / 2} y={tankTop - 6} class="lbl">niveau = C(t)</text>
+      <text x={tankX + tankW / 2} y={tankTop + H + 14} class="lbl">{$language === 'en' ? 'width' : 'largeur'} = V ({volume} L)</text>
+      <text x={tankX + tankW + 20} y={tankTop + H - 30} class="lbl small">{$language === 'en' ? 'tap' : 'robinet'} = CL</text>
+      <text x={tankX + tankW / 2} y={tankTop - 6} class="lbl">{$language === 'en' ? 'level' : 'niveau'} = C(t)</text>
     </svg>
 
-    <svg viewBox={`0 0 ${CW} ${CH}`} class="curve-svg" role="img" aria-label="Courbe concentration-temps">
+    <svg viewBox={`0 0 ${CW} ${CH}`} class="curve-svg" role="img" aria-label={$language === 'en' ? 'Concentration-time curve' : 'Courbe concentration-temps'}>
       <line x1={pad} y1={CH - pad} x2={CW - 4} y2={CH - pad} class="axis" />
       <line x1={pad} y1={4} x2={pad} y2={CH - pad} class="axis" />
       <path d={path} class="cline" />
       <circle cx={cx(time)} cy={cy(level)} r="4" class="dot" />
       <line x1={cx(time)} y1={cy(level)} x2={cx(time)} y2={CH - pad} class="guide" />
-      <text x={CW / 2} y={CH - 6} class="lbl small">Temps (h)</text>
+      <text x={CW / 2} y={CH - 6} class="lbl small">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(10,${CH / 2}) rotate(-90)`} class="lbl small">C (mg/L)</text>
     </svg>
   </div>
@@ -111,9 +112,9 @@
     <Slider label="Clairance CL (L/h) — robinet" min={1} max={20} step={0.5} bind:value={cl} />
     <Slider label="Temps (h)" min={0} max={duration} step={0.1} bind:value={time} />
     <div class="actions">
-      <button on:click={play} disabled={playing}>▶ Lecture</button>
+      <button on:click={play} disabled={playing}>▶ {$language === 'en' ? 'Play' : 'Lecture'}</button>
       <button on:click={pause} disabled={!playing}>❚❚ Pause</button>
-      <button on:click={reset}>↺ Réinit.</button>
+      <button on:click={reset}>↺ {$language === 'en' ? 'Reset' : 'Réinit.'}</button>
     </div>
     <div class="readout">
       <div><span>C₀ = Dose/V</span><strong>{c0.toFixed(2)}</strong> mg/L</div>

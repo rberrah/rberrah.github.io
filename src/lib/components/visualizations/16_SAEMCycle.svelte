@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   const steps = ['S (Simulation)', 'A1 (Exploration)', 'A2 (Lissage)', 'M (Maximisation)'];
   let idx = 0;
   const next = () => (idx = (idx + 1) % steps.length);
@@ -12,12 +13,12 @@
     {/each}
   </div>
   <div class="llh">
-    <div class="label">Log-vraisemblance</div>
+    <div class="label">{$language === 'en' ? 'Log-likelihood' : 'Log-vraisemblance'}</div>
     <div class="bar">
       <div class="fill" style={`width:${bar[idx]}%`}></div>
     </div>
   </div>
-  <button on:click={next}>Suivant</button>
+  <button on:click={next}>{$language === 'en' ? 'Next' : 'Suivant'}</button>
 </div>
 
 <style>

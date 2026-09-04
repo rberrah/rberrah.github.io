@@ -6,6 +6,7 @@
   let dOFV = 12; // baisse de l'OFV en ajoutant les paramètres
   let ddf = 1; // nombre de paramètres ajoutés (degrés de liberté)
   let n = 200; // nombre d'observations (pour le BIC)
+  import { language } from '$lib/stores/language';
 
   // valeurs critiques du χ² à 5 % (df = 1..4)
   /** @type {Record<number, number>} */
@@ -55,26 +56,26 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>ΔOFV (baisse)</span><strong>{dOFV.toFixed(1)}</strong><input type="range" min="0" max="20" step="0.5" bind:value={dOFV} /></label>
-    <label class="s"><span>Paramètres ajoutés</span><strong>{ddf}</strong><input type="range" min="1" max="4" step="1" bind:value={ddf} /></label>
+    <label class="s"><span>{$language === 'en' ? 'ΔOFV (decrease)' : 'ΔOFV (baisse)'}</span><strong>{dOFV.toFixed(1)}</strong><input type="range" min="0" max="20" step="0.5" bind:value={dOFV} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Added parameters' : 'Paramètres ajoutés'}</span><strong>{ddf}</strong><input type="range" min="1" max="4" step="1" bind:value={ddf} /></label>
     <label class="s"><span>Observations n</span><strong>{n}</strong><input type="range" min="50" max="1000" step="50" bind:value={n} /></label>
     <div class="readout">
-      <div><span>Seuil χ² (5 %)</span><strong>{seuil.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={significatif} class:no={!significatif}>{significatif ? 'Gain significatif (LRT)' : 'Non significatif'}</div>
+      <div><span>{$language === 'en' ? 'χ² threshold (5%)' : 'Seuil χ² (5 %)'}</span><strong>{seuil.toFixed(2)}</strong></div>
+      <div class="verdict" class:ok={significatif} class:no={!significatif}>{significatif ? ($language === 'en' ? 'Significant gain (LRT)' : 'Gain significatif (LRT)') : ($language === 'en' ? 'Not significant' : 'Non significatif')}</div>
       <div><span>ΔAIC</span><strong class:good={dAIC < 0}>{dAIC >= 0 ? '+' : ''}{dAIC.toFixed(1)}</strong></div>
       <div><span>ΔBIC</span><strong class:good={dBIC < 0}>{dBIC >= 0 ? '+' : ''}{dBIC.toFixed(1)}</strong></div>
     </div>
-    <p class="hint">ΔOFV à droite du seuil = le modèle plus riche vaut la peine (LRT). AIC/BIC négatifs = ils confirment ; le BIC pénalise plus fort quand n est grand.</p>
+    <p class="hint">{$language === 'en' ? 'ΔOFV to the right of the threshold favors the richer model (LRT). Negative AIC/BIC differences support it; BIC penalizes complexity more strongly as n increases.' : 'ΔOFV à droite du seuil = le modèle plus riche vaut la peine (LRT). AIC/BIC négatifs = ils confirment ; le BIC pénalise plus fort quand n est grand.'}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Loi du χ² et statistique observée">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Chi-square distribution and observed statistic' : 'Loi du χ² et statistique observée'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       {#if reject}<path d={reject} class="reject" />{/if}
       <path d={curve} class="dens" />
       <line x1={xt(seuil)} x2={xt(seuil)} y1="0" y2={iH} class="crit" />
-      <text x={xt(seuil)} y="10" class="critlbl">seuil {seuil.toFixed(1)}</text>
+      <text x={xt(seuil)} y="10" class="critlbl">{$language === 'en' ? 'threshold' : 'seuil'} {seuil.toFixed(1)}</text>
       <line x1={xt(dOFV)} x2={xt(dOFV)} y1="0" y2={iH} class="obs" class:ok={significatif} />
       <text x={xt(dOFV)} y={iH - 6} class="obslbl" class:ok={significatif}>ΔOFV</text>
       <text x={iW / 2} y={iH + 32} class="lbl">χ² (Δdf = {ddf})</text>

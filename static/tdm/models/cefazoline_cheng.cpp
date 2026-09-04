@@ -2,7 +2,10 @@ $PROB
 Cefazolin PopPK Model (Cheng et al. 2025)
 Reference: Cheng V et al. Anaesth Crit Care Pain Med. 2025; 45:10653.
 Population: Pediatric cardiac surgery patients with CPB
-Structure: 2 compartments, IOV, separate V1 for intra/post-op
+Structure: 2 compartments, separate V1 for intra/post-op.
+The published inter-occasion variability on CL and V1 is omitted because the
+current MAP workflow does not represent peri-operative occasions with
+independent random effects.
 $PARAM @annotated
 TVCL        : 1.84  : Typical Clearance (L/h)
 TVV1_INTRA  : 1.76  : Typical Central Volume Intra-op (L)
@@ -18,12 +21,10 @@ ETA1 : 0.0 : Mapbayr ETA BSV on CL
 ETA2 : 0.0 : Mapbayr ETA BSV on V1
 ETA3 : 0.0 : Mapbayr ETA BSV on Q
 ETA4 : 0.0 : Mapbayr ETA BSV on V2
-ETA5 : 0.0 : Mapbayr ETA IOV on CL
-ETA6 : 0.0 : Mapbayr ETA IOV on V1
 $PARAM @annotated @covariates
 WT     : 6.8  : Body Weight (kg)
 HT     : 65.0 : Height (cm)
-CREAT  : 35.0 : Serum Creatinine (mol/L)
+CREAT  : 35.0 : Serum Creatinine (micromol/L)
 PERIOD : 0.0  : Surgical Period (0 = Intra-op [0-6h], 1 = Post-op [6-30h])
 $CMT @annotated
 CENT   : Central Compartment (mg) [ADM, OBS]
@@ -33,9 +34,6 @@ ETA_CL : 0.033649 : Variance BSV on CL
 ETA_V1 : 0.082319 : Variance BSV on V1
 ETA_Q  : 0.436228 : Variance BSV on Q
 ETA_V2 : 0.280802 : Variance BSV on V2
-$OMEGA @annotated @block
-ETA_IOV_CL : 0.257367             : Variance IOV on CL
-ETA_IOV_V1 : 0.100190   0.156065  : Covariance IOV CL-V1 / Variance IOV on V1
 $SIGMA @annotated @diagonal
 PROP : 0.078400 : Proportional error variance
 ADD  : 0.000000 : Additive error variance
@@ -48,8 +46,8 @@ double eGFR_calc  = 0.413 * ht_safe / creat_mgdl;
 eGFR_calc = (eGFR_calc < 1.0)   ? 1.0   : eGFR_calc;
 eGFR_calc = (eGFR_calc > 400.0) ? 400.0 : eGFR_calc;
 double TVV1 = (PERIOD >= 1.0) ? TVV1_POST : TVV1_INTRA;
-double CL = TVCL * pow(wt_safe / REF_WT, CL_WT_EXP) * pow(eGFR_calc / REF_eGFR, CL_eGFR_EXP) * exp(ETA(1) + ETA1 + ETA(5) + ETA5);
-double V1 = TVV1 * (wt_safe / REF_WT) * exp(ETA(2) + ETA2 + ETA(6) + ETA6);
+double CL = TVCL * pow(wt_safe / REF_WT, CL_WT_EXP) * pow(eGFR_calc / REF_eGFR, CL_eGFR_EXP) * exp(ETA(1) + ETA1);
+double V1 = TVV1 * (wt_safe / REF_WT) * exp(ETA(2) + ETA2);
 double Q  = TVQ  * pow(wt_safe / REF_WT, Q_WT_EXP) * exp(ETA(3) + ETA3);
 double V2 = TVV2 * (wt_safe / REF_WT) * exp(ETA(4) + ETA4);
 $ODE

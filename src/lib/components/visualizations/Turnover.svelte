@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Modèle de réponse indirecte (turnover) : la concentration agit sur la
   // PRODUCTION ou l'ÉLIMINATION d'une variable de réponse R.
   //   dR/dt = kin·(1 + f(C)) − kout·R      (stimulation de kin)
@@ -56,21 +57,21 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'stim'} on:click={() => (mode = 'stim')}>Stimule kin</button>
-      <button class:on={mode === 'inhib'} on:click={() => (mode = 'inhib')}>Inhibe kout</button>
+      <button class:on={mode === 'stim'} on:click={() => (mode = 'stim')}>{$language === 'en' ? 'Stimulate kin' : 'Stimule kin'}</button>
+      <button class:on={mode === 'inhib'} on:click={() => (mode = 'inhib')}>{$language === 'en' ? 'Inhibit kout' : 'Inhibe kout'}</button>
     </div>
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="25" max="300" step="5" bind:value={dose} /></label>
     <label class="s"><span>kout (1/h)</span><strong>{kout.toFixed(2)}</strong><input type="range" min="0.05" max="1" step="0.05" bind:value={kout} /></label>
-    <label class="s"><span>Force effet</span><strong>{strength.toFixed(1)}</strong><input type="range" min="0" max="0.95" step="0.05" bind:value={strength} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Effect strength' : 'Force effet'}</span><strong>{strength.toFixed(1)}</strong><input type="range" min="0" max="0.95" step="0.05" bind:value={strength} /></label>
     <div class="readout">
       <div><span>Pic C</span><strong>t = 0 h</strong></div>
-      <div><span>{mode === 'stim' ? 'Pic R' : 'Nadir R'}</span><strong>t = {rExtremum.t.toFixed(1)} h</strong></div>
-      <div><span>Délai PD</span><strong>{rExtremum.t.toFixed(1)} h</strong></div>
+      <div><span>{mode === 'stim' ? ($language === 'en' ? 'Peak R' : 'Pic R') : 'Nadir R'}</span><strong>t = {rExtremum.t.toFixed(1)} h</strong></div>
+      <div><span>{$language === 'en' ? 'PD delay' : 'Délai PD'}</span><strong>{rExtremum.t.toFixed(1)} h</strong></div>
     </div>
-    <p class="hint">Le pic de concentration est à t = 0, mais la réponse met du temps : ce <em>délai</em> vient de kout, pas de la PK.</p>
+    <p class="hint">{#if $language === 'en'}Concentration peaks at t=0, but the response takes time: this <em>delay</em> comes from kout, not PK.{:else}Le pic de concentration est à t = 0, mais la réponse met du temps : ce <em>délai</em> vient de kout, pas de la PK.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Concentration et réponse au cours du temps">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Concentration and response over time' : 'Concentration et réponse au cours du temps'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -81,10 +82,10 @@
       <!-- délai -->
       <line x1={xt(rExtremum.t)} x2={xt(rExtremum.t)} y1={yR(rExtremum.R)} y2={iH} class="guide" />
       <circle cx={xt(rExtremum.t)} cy={yR(rExtremum.R)} r="4.5" class="rdot" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <g class="legend" transform={`translate(${iW - 150},4)`}>
         <rect x="0" y="0" width="12" height="3" class="cline" /><text x="18" y="4" class="leg">Concentration</text>
-        <rect x="0" y="16" width="12" height="3" class="rline" /><text x="18" y="20" class="leg">Réponse R</text>
+        <rect x="0" y="16" width="12" height="3" class="rline" /><text x="18" y="20" class="leg">{$language === 'en' ? 'Response R' : 'Réponse R'}</text>
       </g>
     </g>
   </svg>

@@ -39,7 +39,7 @@
       </header>
       <SlideImage n={s.slide} alt={s.title} caption={s.title || s.file} />
       <ul class="meta">
-        <li><strong>Tags</strong> {s.tags?.join(', ') || '—'}</li>
+        <li><strong>{copy.pages.tags}</strong> {s.tags?.join(', ') || '—'}</li>
         <li><strong>{copy.pages.suggestedModule}</strong> {s.suggested_module || '—'}</li>
         <li><strong>{copy.pages.keyPoints}</strong> {s.key_points?.join(' · ') || '—'}</li>
       </ul>

@@ -32,6 +32,15 @@ const CALLOUTS = {
   howto: 'Comment la lire',
   recall: 'Rappel'
 };
+const CALLOUTS_EN = {
+  pitfall: 'Pitfall',
+  key: 'Key point',
+  clinical: 'Clinical context',
+  note: 'Note',
+  math: 'Mathematical detail',
+  howto: 'How to read it',
+  recall: 'Reminder'
+};
 
 // Rend un segment Markdown : KaTeX au build (renderMath) PUIS MarkdownIt.
 // (fusion patch « encadrés » + v2 « KaTeX server-side »)
@@ -45,7 +54,7 @@ function renderMd(src) {
  * @param {string} body
  * @returns {string}
  */
-function renderBody(body) {
+function renderBody(body, lang = 'fr') {
   const re = /^:::(\w+)[ \t]*\n([\s\S]*?)\n:::[ \t]*$/gm;
   let out = '';
   let last = 0;
@@ -53,7 +62,7 @@ function renderBody(body) {
   while ((m = re.exec(body)) !== null) {
     out += renderMd(body.slice(last, m.index));
     const type = m[1].toLowerCase();
-    const label = CALLOUTS[type] ?? type;
+    const label = (lang === 'en' ? CALLOUTS_EN : CALLOUTS)[type] ?? type;
     const inner = renderMd(m[2]);
     out += `<aside class="callout callout-${type}"><p class="callout-label">${label}</p>${inner}</aside>\n`;
     last = re.lastIndex;
@@ -78,24 +87,24 @@ const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?ra
  */
 
 /** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */
-function bySlug(globbed) {
+function bySlug(globbed, lang) {
   return new Map(
     Object.entries(globbed).map(([path, raw]) => {
-      const chapter = parseChapter(path, raw);
+      const chapter = parseChapter(path, raw, lang);
       return [chapter.slug, chapter];
     })
   );
 }
 
-const enBySlug = bySlug(enFiles);
-const frBySlug = bySlug(frFiles);
+const enBySlug = bySlug(enFiles, 'en');
+const frBySlug = bySlug(frFiles, 'fr');
 
 const chapters = Object.entries(files)
   // Les fichiers préfixés par « _ » sont des brouillons/modèles ignorés au build.
   // Ex. `_TEMPLATE.md` sert de point de départ à copier-coller.
   .filter(([path]) => !/\/_[^/]*\.md$/.test(path))
   .map(([path, raw]) => {
-    const chapter = parseChapter(path, raw);
+    const chapter = parseChapter(path, raw, 'fr');
     /** @type {Record<string, Chapter>} */
     const translations = {};
     const en = enBySlug.get(chapter.slug);
@@ -105,10 +114,10 @@ const chapters = Object.entries(files)
     return Object.keys(translations).length ? { ...chapter, translations } : chapter;
   });
 
-function parseChapter(path, raw) {
+function parseChapter(path, raw, lang = 'fr') {
   const { data, content } = matter(raw);
   /** @type {Step[]} */
-  const steps = extractSteps(content);
+  const steps = extractSteps(content, lang);
   /** @type {Chapter} */
   const chapter = {
     id: data.id,
@@ -144,7 +153,7 @@ export default sorted;
  * @param {string} content
  * @returns {Step[]}
  */
-function extractSteps(content) {
+function extractSteps(content, lang = 'fr') {
   /** @type {Step[]} */
   const blocks = [];
   const regex = /<!--\s*step:([^>]*)-->([\s\S]*?)<!--\s*\/step\s*-->/g;
@@ -155,8 +164,8 @@ function extractSteps(content) {
     const meta = parseMeta(metaRaw);
     const slides = meta.slides ? meta.slides.split(',').map((s) => s.trim()).filter(Boolean) : [];
     blocks.push({
-      title: meta.title ?? 'Étape',
-      html: renderBody(body),
+      title: meta.title ?? (lang === 'en' ? 'Step' : 'Étape'),
+      html: renderBody(body, lang),
       slides,
       viz: meta.viz
     });

@@ -28,7 +28,7 @@
     <ADEChooser />
   </section>
   <section class="card">
-    <h3>Variability</h3>
+    <h3>{$language === 'en' ? 'Variability' : 'Variabilité'}</h3>
     <VariabilitySandbox />
   </section>
   <section class="card">
@@ -36,7 +36,7 @@
     <VPCCrashTest />
   </section>
   <section class="card">
-    <h3>Bayesian</h3>
+    <h3>{$language === 'en' ? 'Bayesian' : 'Bayésien'}</h3>
     <BayesianShrinkage />
   </section>
 </div>

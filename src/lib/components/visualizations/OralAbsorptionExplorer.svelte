@@ -4,6 +4,7 @@
   //   Bateman : C(t) = (Dose/V)·Ka/(Ka−k)·(e^-k(t−Tlag) − e^-Ka(t−Tlag))
   //   Transit : dT1/dt=−ktr·T1 ; dTi/dt=ktr·T(i−1)−ktr·Ti ; dA/dt=ktr·Tn−k·A
   import { scaleLinear } from 'd3-scale';
+  import { language } from '$lib/stores/language';
 
   export let dose = 100; // mg
   export let ka = 1.0; // 1/h
@@ -79,7 +80,7 @@
     <label class="slider"><span>V <em>(L)</em></span><strong>{v}</strong>
       <input type="range" min="5" max="80" step="1" bind:value={v} data-testid="slider-volume" /></label>
 
-    <label class="chk"><input type="checkbox" bind:checked={showTransit} /> Comparer aux compartiments de transit</label>
+    <label class="chk"><input type="checkbox" bind:checked={showTransit} /> {$language === 'en' ? 'Compare with transit compartments' : 'Comparer aux compartiments de transit'}</label>
     {#if showTransit}
       <label class="slider"><span>Transit <em>(n)</em></span><strong>{nTransit}</strong>
         <input type="range" min="1" max="8" step="1" bind:value={nTransit} /></label>
@@ -88,17 +89,17 @@
     {/if}
 
     <div class="readout" data-testid="oral-readout">
-      <div><span>Cmax (1er ordre)</span><strong>{cmaxPoint.c.toFixed(2)}</strong> mg/L</div>
-      <div><span>Tmax (1er ordre)</span><strong>{cmaxPoint.t.toFixed(2)}</strong> h</div>
+      <div><span>Cmax ({$language === 'en' ? 'first order' : '1er ordre'})</span><strong>{cmaxPoint.c.toFixed(2)}</strong> mg/L</div>
+      <div><span>Tmax ({$language === 'en' ? 'first order' : '1er ordre'})</span><strong>{cmaxPoint.t.toFixed(2)}</strong> h</div>
       {#if showTransit}<div><span>Tmax (transit)</span><strong>{transitCmax.t.toFixed(2)}</strong> h</div>{/if}
     </div>
 
     {#if flipFlop}
-      <p class="note" data-testid="flipflop-note">Ka &lt; k : l'absorption est limitante (flip-flop). La pente terminale reflète Ka, pas l'élimination.</p>
+      <p class="note" data-testid="flipflop-note">{$language === 'en' ? 'Ka < k: absorption is rate limiting (flip-flop). The terminal slope reflects Ka, not elimination.' : "Ka < k : l'absorption est limitante (flip-flop). La pente terminale reflète Ka, pas l'élimination."}</p>
     {/if}
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" data-testid="pkpd-interactive-chart" role="img" aria-label="Absorption orale : concentration au cours du temps">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" data-testid="pkpd-interactive-chart" role="img" aria-label={$language === 'en' ? 'Oral absorption: concentration over time' : 'Absorption orale : concentration au cours du temps'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each yTicks as t}
         <line x1="0" x2={innerW} y1={y(t)} y2={y(t)} class="grid" />
@@ -123,11 +124,11 @@
 
       <line x1="0" x2="0" y1="0" y2={innerH} class="axis" />
       <line x1="0" x2={innerW} y1={innerH} y2={innerH} class="axis" />
-      <text x={innerW / 2} y={innerH + 40} class="axislabel">Temps (h)</text>
+      <text x={innerW / 2} y={innerH + 40} class="axislabel">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-46,${innerH / 2}) rotate(-90)`} class="axislabel">Concentration (mg/L)</text>
 
       <g class="legend" transform="translate(6,4)">
-        <rect x="0" y="0" width="14" height="3" class="pk-line" /><text x="20" y="4" class="leg">1er ordre + Tlag</text>
+        <rect x="0" y="0" width="14" height="3" class="pk-line" /><text x="20" y="4" class="leg">{$language === 'en' ? 'First order + Tlag' : '1er ordre + Tlag'}</text>
         {#if showTransit}<rect x="0" y="15" width="14" height="3" class="transit-line" /><text x="20" y="19" class="leg">Transit (n={nTransit})</text>{/if}
       </g>
     </g>

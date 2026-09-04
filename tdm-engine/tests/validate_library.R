@@ -65,6 +65,35 @@ if (!identical(model_routes(model_record("tacrolimus_woillard_ddi")), "Oral")) {
   stop("The Woillard tacrolimus model must be oral-only.")
 }
 
+expected_covariates <- list(
+  amox_carlier = "CRCL",
+  cefepime_jonckheere = c("CRCL", "IHD"),
+  dapto_garreau = c("CLCR", "AGE", "WT", "SEX", "RIF"),
+  levo_canoui = c("CLCR", "AGE"),
+  dapto_dvorchik_IV_adults = c("WT", "SEX"),
+  rifampicine_marsot = "FUS"
+)
+for (model_id in names(expected_covariates)) {
+  parsed <- parse_covariates(read_library_code(model_id))$name
+  missing <- setdiff(expected_covariates[[model_id]], parsed)
+  if (length(missing)) stop(model_id, " is missing parsed covariates: ", paste(missing, collapse = ", "))
+}
+
+reference_parameters <- list(
+  amox_carlier = c(TVCL = 10.0, REF_CRCL = 102.0),
+  cefepime_jonckheere = c(TVV1 = 18.3, TVV2 = 11.1, TVQ = 6.63, THETA1 = 2.88, THETA2 = 0.368, CLDIAL = 5.74, CLOTHER = 0.87),
+  dapto_garreau = c(TVCL = 0.365, TVV1 = 3.59, TVQ = 0.752, TVV2 = 4.71, RIF_V1 = -0.121),
+  levo_canoui = c(TVCL = 5.57, TVV = 96.3, KA = 1.6, CLCR_CL = 0.684, AGE_CL = -0.312),
+  vanco_goti = c(TVCL = 4.5, TVV1 = 58.4, TVV2 = 38.4, TVQ = 6.5, DIAL_CL = 0.7, DIAL_V1 = 0.5)
+)
+for (model_id in names(reference_parameters)) {
+  model <- compile_model(model_id = model_id)
+  actual <- unlist(param(model))[names(reference_parameters[[model_id]])]
+  if (!isTRUE(all.equal(actual, reference_parameters[[model_id]], tolerance = 1e-12, check.attributes = FALSE))) {
+    stop(model_id, " reference parameters differ from the audited publication values.")
+  }
+}
+
 if (length(failures)) {
   stop(length(failures), " model(s) failed library validation.")
 }

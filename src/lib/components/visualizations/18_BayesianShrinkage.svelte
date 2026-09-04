@@ -3,6 +3,7 @@
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   let iiv = 0.3;
   let sigma = 0.1;
@@ -23,12 +24,12 @@
   <div class="controls">
     <label>IIV <input type="range" min="0.05" max="1" step="0.05" bind:value={iiv} /></label>
     <label>σ <input type="range" min="0.05" max="0.5" step="0.02" bind:value={sigma} /></label>
-    <label>Mesure <input type="range" min="2" max="15" step="0.5" bind:value={meas} /></label>
+    <label>{$language === 'en' ? 'Measurement' : 'Mesure'} <input type="range" min="2" max="15" step="0.5" bind:value={meas} /></label>
   </div>
 
   <div class="cards">
-    <div class="card">Prior: {prior}</div>
-    <div class="card">Mesure: {meas}</div>
+    <div class="card">{$language === 'en' ? 'Prior' : 'A priori'}: {prior}</div>
+    <div class="card">{$language === 'en' ? 'Measurement' : 'Mesure'}: {meas}</div>
     <div class="card">EBE: {ebe}</div>
     <div class="card">Shrinkage: {shrink.toFixed(0)}%</div>
   </div>
@@ -38,8 +39,8 @@
       <line x1="0" x2="40" y1={yScale(prior)} y2={yScale(prior)} stroke="var(--border-subtle)" stroke-width="6" stroke-linecap="round" />
       <line x1="0" x2="40" y1={yScale(meas)} y2={yScale(meas)} stroke="#f97316" stroke-width="6" stroke-linecap="round" />
       <line x1="0" x2="40" y1={yScale(ebe)} y2={yScale(ebe)} stroke="#22c55e" stroke-width="6" stroke-linecap="round" />
-      <text x="45" y={yScale(prior) + 4} font-size="10" fill="var(--text-secondary)">Prior</text>
-      <text x="45" y={yScale(meas) + 4} font-size="10" fill="var(--text-secondary)">Mesure</text>
+      <text x="45" y={yScale(prior) + 4} font-size="10" fill="var(--text-secondary)">{$language === 'en' ? 'Prior' : 'A priori'}</text>
+      <text x="45" y={yScale(meas) + 4} font-size="10" fill="var(--text-secondary)">{$language === 'en' ? 'Measurement' : 'Mesure'}</text>
       <text x="45" y={yScale(ebe) + 4} font-size="10" fill="var(--text-secondary)">EBE</text>
       <Axis orient="left" scale={yScale} length={innerHeight} label="Valeur" />
     </svelte:fragment>

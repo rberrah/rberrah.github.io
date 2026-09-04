@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // SAEM = approximation stochastique en deux phases. On suit un paramètre de population
   // (ex. CL_pop) au fil des itérations. Phase 1 « exploratoire » (pas constant) : la valeur
   // saute autour de la vraie (les η sont simulés au hasard). Phase 2 « lissage » (pas
@@ -45,29 +46,29 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Passage lissage K₁</span><strong>{K1}</strong><input type="range" min="15" max="70" step="5" bind:value={K1} /></label>
-    <label class="s"><span>Graine (aléa)</span><strong>{seed}</strong><input type="range" min="1" max="12" step="1" bind:value={seed} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Smoothing starts at K₁' : 'Passage lissage K₁'}</span><strong>{K1}</strong><input type="range" min="15" max="70" step="5" bind:value={K1} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Random seed' : 'Graine (aléa)'}</span><strong>{seed}</strong><input type="range" min="1" max="12" step="1" bind:value={seed} /></label>
     <div class="readout">
-      <div><span>Vraie valeur θ*</span><strong>{thetaStar.toFixed(1)}</strong></div>
-      <div><span>Estimation finale</span><strong>{finalV.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={Math.abs(finalV - thetaStar) < 0.3}>{Math.abs(finalV - thetaStar) < 0.3 ? 'Convergé vers θ*' : 'Pas encore convergé'}</div>
+      <div><span>{$language === 'en' ? 'True value θ*' : 'Vraie valeur θ*'}</span><strong>{thetaStar.toFixed(1)}</strong></div>
+      <div><span>{$language === 'en' ? 'Final estimate' : 'Estimation finale'}</span><strong>{finalV.toFixed(2)}</strong></div>
+      <div class="verdict" class:ok={Math.abs(finalV - thetaStar) < 0.3}>{Math.abs(finalV - thetaStar) < 0.3 ? ($language === 'en' ? 'Converged to θ*' : 'Convergé vers θ*') : ($language === 'en' ? 'Not yet converged' : 'Pas encore convergé')}</div>
     </div>
-    <p class="hint">Phase 1 (exploratoire) : la valeur <em>saute</em> autour de θ* (η simulés). Phase 2 (lissage, pas décroissant) : elle <em>converge</em>. Changez la graine : chemin différent, même destination.</p>
+    <p class="hint">{#if $language === 'en'}Phase 1 explores: the value <em>jumps</em> around θ* using simulated η. Phase 2 smooths with decreasing steps and <em>converges</em>. Change the seed: a different path, the same destination.{:else}Phase 1 (exploratoire) : la valeur <em>saute</em> autour de θ* (η simulés). Phase 2 (lissage, pas décroissant) : elle <em>converge</em>. Changez la graine : chemin différent, même destination.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Convergence du SAEM en deux phases">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Two-phase SAEM convergence' : 'Convergence du SAEM en deux phases'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x="0" y="0" width={xk(K1)} height={iH} class="phase1" />
-      <text x="6" y="12" class="phaselbl">exploratoire</text>
-      <text x={xk(K1) + 6} y="12" class="phaselbl">lissage</text>
+      <text x="6" y="12" class="phaselbl">{$language === 'en' ? 'exploration' : 'exploratoire'}</text>
+      <text x={xk(K1) + 6} y="12" class="phaselbl">{$language === 'en' ? 'smoothing' : 'lissage'}</text>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={yv(thetaStar)} y2={yv(thetaStar)} class="truth" />
       <text x={iW - 2} y={yv(thetaStar) - 4} class="truthlbl">θ*</text>
       <line x1={xk(K1)} x2={xk(K1)} y1="0" y2={iH} class="sep" />
       <path d={path} class="trace" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Itérations SAEM</text>
-      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Paramètre θ (ex. CL_pop)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'SAEM iterations' : 'Itérations SAEM'}</text>
+      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Parameter θ (e.g. CL_pop)' : 'Paramètre θ (ex. CL_pop)'}</text>
     </g>
   </svg>
 </div>

@@ -1,5 +1,7 @@
 <script>
   import { scaleLinear } from 'd3-scale';
+  import { language } from '$lib/stores/language';
+  import { vizText } from '$lib/i18n/visualizations';
   export let scale = scaleLinear();
   export let orient = 'bottom'; // bottom or left
   export let length = 300;
@@ -7,6 +9,7 @@
   /** @param {number} d */
   export let format = (d) => d;
   export let label = '';
+  $: localizedLabel = vizText($language, label);
 </script>
 
 {#if orient === 'bottom'}
@@ -17,7 +20,7 @@
         <text y="18" text-anchor="middle" font-size="10" fill="#475569">{format(t)}</text>
       </g>
     {/each}
-    <text x={length / 2} y="32" text-anchor="middle" font-size="11" fill="#0f172a">{label}</text>
+    <text x={length / 2} y="32" text-anchor="middle" font-size="11" fill="#0f172a">{localizedLabel}</text>
   </g>
 {:else}
   <g>
@@ -27,6 +30,6 @@
         <text x="-10" y="4" text-anchor="end" font-size="10" fill="#475569">{format(t)}</text>
       </g>
     {/each}
-    <text x="-42" y={length / 2} text-anchor="middle" font-size="11" fill="#0f172a" transform="rotate(-90 -42 {length / 2})">{label}</text>
+    <text x="-42" y={length / 2} text-anchor="middle" font-size="11" fill="#0f172a" transform="rotate(-90 -42 {length / 2})">{localizedLabel}</text>
   </g>
 {/if}

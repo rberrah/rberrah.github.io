@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Cinétique virale sous traitement (modèle à cellules cibles simplifié, type Neumann-Perelson).
   //   dI/dt = −δ·I                         (perte des cellules infectées)
   //   dV/dt = (1−ε)·p·I − c·V              (production bloquée à (1−ε), clairance c)
@@ -41,17 +42,17 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Efficacité ε</span><strong>{eps.toFixed(3)}</strong><input type="range" min="0.5" max="0.999" step="0.001" bind:value={eps} /></label>
-    <label class="s"><span>Perte cellules δ</span><strong>{delta.toFixed(2)}</strong><input type="range" min="0.05" max="0.5" step="0.01" bind:value={delta} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Efficacy ε' : 'Efficacité ε'}</span><strong>{eps.toFixed(3)}</strong><input type="range" min="0.5" max="0.999" step="0.001" bind:value={eps} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Infected-cell loss δ' : 'Perte cellules δ'}</span><strong>{delta.toFixed(2)}</strong><input type="range" min="0.05" max="0.5" step="0.01" bind:value={delta} /></label>
     <div class="readout">
-      <div><span>Chute à J{T}</span><strong>{logDrop.toFixed(1)} log₁₀</strong></div>
-      <div><span>Phase 1</span><strong>clairance virale (c)</strong></div>
-      <div><span>Phase 2</span><strong>perte cellules (δ)</strong></div>
+      <div><span>{$language === 'en' ? `Drop at D${T}` : `Chute à J${T}`}</span><strong>{logDrop.toFixed(1)} log₁₀</strong></div>
+      <div><span>Phase 1</span><strong>{$language === 'en' ? 'viral clearance (c)' : 'clairance virale (c)'}</strong></div>
+      <div><span>Phase 2</span><strong>{$language === 'en' ? 'infected-cell loss (δ)' : 'perte cellules (δ)'}</strong></div>
     </div>
-    <p class="hint">Une efficacité forte donne une 1ʳᵉ phase rapide (clairance du virus) ; la 2ᵉ phase, plus lente, reflète l'élimination des cellules infectées (δ).</p>
+    <p class="hint">{$language === 'en' ? 'High efficacy produces a rapid first phase driven by viral clearance; the slower second phase reflects infected-cell loss (δ).' : "Une efficacité forte donne une 1ʳᵉ phase rapide (clairance du virus) ; la 2ᵉ phase, plus lente, reflète l'élimination des cellules infectées (δ)."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Charge virale au cours du temps (échelle log)">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Viral load over time (log scale)' : 'Charge virale au cours du temps (échelle log)'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each [0, 1, 2, 3, 4, 5, 6] as g}
         <line x1="0" x2={iW} y1={yv(Math.pow(10, g))} y2={yv(Math.pow(10, g))} class="grid" />
@@ -60,8 +61,8 @@
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <path d={pathV} class="vline" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (jours)</text>
-      <text transform={`translate(-38,${iH / 2}) rotate(-90)`} class="lbl">Charge virale (copies/mL)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (days)' : 'Temps (jours)'}</text>
+      <text transform={`translate(-38,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Viral load (copies/mL)' : 'Charge virale (copies/mL)'}</text>
     </g>
   </svg>
 </div>

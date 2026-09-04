@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Indices PK/PD des anti-infectieux : concentration au cours du temps vs la CMI.
   // Visualise T>CMI (temps au-dessus), Cmax/CMI (hauteur du pic) et AUC/CMI (aire).
   let dose = 750; // mg (bolus IV répété)
@@ -49,28 +50,28 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>T&gt;CMI</button>
-      <button class:on={mode === 'peak'} on:click={() => (mode = 'peak')}>Cmax/CMI</button>
-      <button class:on={mode === 'auc'} on:click={() => (mode = 'auc')}>AUC/CMI</button>
+      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>T&gt;{$language === 'en' ? 'MIC' : 'CMI'}</button>
+      <button class:on={mode === 'peak'} on:click={() => (mode = 'peak')}>Cmax/{$language === 'en' ? 'MIC' : 'CMI'}</button>
+      <button class:on={mode === 'auc'} on:click={() => (mode = 'auc')}>AUC/{$language === 'en' ? 'MIC' : 'CMI'}</button>
     </div>
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="250" max="1500" step="50" bind:value={dose} /></label>
-    <label class="s"><span>CMI (mg/L)</span><strong>{mic}</strong><input type="range" min="0.5" max="8" step="0.5" bind:value={mic} /></label>
-    <label class="s"><span>Intervalle τ (h)</span><strong>{tau}</strong><input type="range" min="4" max="12" step="1" bind:value={tau} /></label>
+    <label class="s"><span>{$language === 'en' ? 'MIC (mg/L)' : 'CMI (mg/L)'}</span><strong>{mic}</strong><input type="range" min="0.5" max="8" step="0.5" bind:value={mic} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Interval τ (h)' : 'Intervalle τ (h)'}</span><strong>{tau}</strong><input type="range" min="4" max="12" step="1" bind:value={tau} /></label>
     <div class="readout">
-      <div class:hi={mode === 'time'}><span>T &gt; CMI</span><strong>{pctTime.toFixed(0)} %</strong></div>
-      <div class:hi={mode === 'peak'}><span>Cmax / CMI</span><strong>{(cmax / mic).toFixed(1)}</strong></div>
-      <div class:hi={mode === 'auc'}><span>AUC₂₄ / CMI</span><strong>{aucMic.toFixed(0)}</strong></div>
+      <div class:hi={mode === 'time'}><span>T &gt; {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{pctTime.toFixed(0)} %</strong></div>
+      <div class:hi={mode === 'peak'}><span>Cmax / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{(cmax / mic).toFixed(1)}</strong></div>
+      <div class:hi={mode === 'auc'}><span>AUC₂₄ / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{aucMic.toFixed(0)}</strong></div>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Concentration vs CMI">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Concentration vs MIC' : 'Concentration vs CMI'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#if mode === 'auc'}<path d={aucArea} class="aucfill" />{/if}
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <!-- CMI -->
       <line x1="0" x2={iW} y1={yv(mic)} y2={yv(mic)} class="mic" />
-      <text x={iW - 2} y={yv(mic) - 4} class="miclbl">CMI</text>
+      <text x={iW - 2} y={yv(mic) - 4} class="miclbl">{$language === 'en' ? 'MIC' : 'CMI'}</text>
       <!-- bande T>CMI -->
       {#if mode === 'time'}
         {#each sim as p, i}{#if p.C >= mic}<rect x={xt(p.t)} y={iH - 6} width={iW / sim.length + 0.6} height="6" class="tband" />{/if}{/each}
@@ -80,7 +81,7 @@
         <circle cx={xt(peak.t)} cy={yv(peak.C)} r="5" class="peak" />
         <line x1={xt(peak.t)} x2={xt(peak.t)} y1={yv(peak.C)} y2={yv(mic)} class="peakline" />
       {/if}
-      <text x={iW / 2} y={iH + 34} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 34} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

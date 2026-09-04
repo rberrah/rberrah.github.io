@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Modèle de myélosuppression de Friberg (2002).
   //   Prol → Transit1 → Transit2 → Transit3 → Circ
   //   dProl = ktr·Prol·(1 − Edrug)·(Circ0/Circ)^γ − ktr·Prol
@@ -64,16 +65,16 @@
   <div class="controls">
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="20" max="300" step="10" bind:value={dose} /></label>
     <label class="s"><span>MTT (h)</span><strong>{mtt}</strong><input type="range" min="60" max="220" step="10" bind:value={mtt} /></label>
-    <label class="s"><span>Rétrocontrôle γ</span><strong>{gamma.toFixed(2)}</strong><input type="range" min="0" max="0.4" step="0.01" bind:value={gamma} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Feedback γ' : 'Rétrocontrôle γ'}</span><strong>{gamma.toFixed(2)}</strong><input type="range" min="0" max="0.4" step="0.01" bind:value={gamma} /></label>
     <div class="readout">
       <div><span>Nadir ANC</span><strong>{nadir.Circ.toFixed(2)} G/L</strong></div>
-      <div><span>à</span><strong>J{days(nadir.t)}</strong></div>
+      <div><span>{$language === 'en' ? 'at' : 'à'}</span><strong>{$language === 'en' ? 'D' : 'J'}{days(nadir.t)}</strong></div>
       <div class="verdict" class:g3={nadir.Circ < 1.0} class:g4={nadir.Circ < 0.5}>{grade(nadir.Circ)}</div>
     </div>
-    <p class="hint">Le nadir survient <em>plusieurs jours après</em> le pic plasmatique : c'est la maturation (MTT), pas la PK.</p>
+    <p class="hint">{#if $language === 'en'}The nadir occurs <em>several days after</em> the plasma peak because of maturation (MTT), not PK.{:else}Le nadir survient <em>plusieurs jours après</em> le pic plasmatique : c'est la maturation (MTT), pas la PK.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Neutrophiles et concentration au cours du temps">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Neutrophils and concentration over time' : 'Neutrophiles et concentration au cours du temps'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -85,9 +86,9 @@
       <path d={pathN} class="nline" />
       <line x1={xt(nadir.t)} x2={xt(nadir.t)} y1={yN(nadir.Circ)} y2={iH} class="guide" />
       <circle cx={xt(nadir.t)} cy={yN(nadir.Circ)} r="4.5" class="ndot" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <g class="legend" transform={`translate(${iW - 128},4)`}>
-        <rect x="0" y="0" width="12" height="3" class="nline" /><text x="18" y="4" class="leg">Neutrophiles</text>
+        <rect x="0" y="0" width="12" height="3" class="nline" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Neutrophils' : 'Neutrophiles'}</text>
         <rect x="0" y="16" width="12" height="3" class="cline" /><text x="18" y="20" class="leg">Concentration</text>
       </g>
     </g>

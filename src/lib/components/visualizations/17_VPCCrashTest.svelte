@@ -6,6 +6,7 @@
   import { scaleLinear } from 'd3-scale';
   import { bin as d3bin } from 'd3-array';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   // Observations (temps, concentration)
   const obs = [
@@ -88,13 +89,13 @@
 
 <div class="vpc">
   <div class="controls">
-    <label>Bins <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
-    <span>{bins} bins</span>
+    <label>{$language === 'en' ? 'Bins' : 'Classes'} <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
+    <span>{bins} {$language === 'en' ? 'bins' : 'classes'}</span>
     <label class="toggle">
       <input type="checkbox" bind:checked={binning} />
-      Binning on
+      {$language === 'en' ? 'Binning on' : 'Regroupement activé'}
     </label>
-    <small>Binning groups times to stabilize simulated percentiles.</small>
+    <small>{$language === 'en' ? 'Binning groups times to stabilize simulated percentiles.' : 'Le regroupement des temps stabilise les percentiles simulés.'}</small>
   </div>
 
   {#if binning}
@@ -144,7 +145,7 @@
         <circle cx={xScale(p.t)} cy={yScale(p.c)} r="4" fill="#ef4444" />
       {/each}
 
-      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
       <g transform="translate(-8,0)">
         <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
       </g>
@@ -166,7 +167,7 @@
   </ChartFrame>
 
     <div class="note">
-      If red points leave the blue tunnel (p10–p90), the model is biased or binning is inappropriate.
+      {$language === 'en' ? 'If red points leave the blue tunnel (p10–p90), the model is biased or binning is inappropriate.' : 'Si les points rouges sortent du tunnel bleu (p10–p90), le modèle est biaisé ou le regroupement est inadapté.'}
     </div>
 </div>
 

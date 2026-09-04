@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Doses répétées : superposition de bolus IV toutes les τ heures.
   //   C(t) = Σ (Dose/V)·e^(-ke·(t-nτ))   pour nτ ≤ t,  ke = CL/V
   // Illustre l'accumulation vers l'état d'équilibre (Css) et l'effet de τ.
@@ -50,23 +51,23 @@
 <div class="wrap">
   <div class="controls">
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="25" max="300" step="5" bind:value={dose} /></label>
-    <label class="s"><span>Intervalle τ (h)</span><strong>{tau}</strong><input type="range" min="2" max="24" step="1" bind:value={tau} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Interval τ (h)' : 'Intervalle τ (h)'}</span><strong>{tau}</strong><input type="range" min="2" max="24" step="1" bind:value={tau} /></label>
     <label class="s"><span>CL (L/h)</span><strong>{cl}</strong><input type="range" min="1" max="15" step="0.5" bind:value={cl} /></label>
     <label class="s"><span>V (L)</span><strong>{v}</strong><input type="range" min="10" max="70" step="1" bind:value={v} /></label>
-    <label class="chk"><input type="checkbox" bind:checked={loading} /> Dose de charge (= Dose × R_ac)</label>
+    <label class="chk"><input type="checkbox" bind:checked={loading} /> {$language === 'en' ? 'Loading dose (= Dose × R_ac)' : 'Dose de charge (= Dose × R_ac)'}</label>
     <div class="readout">
       <div><span>t½</span><strong>{thalf.toFixed(1)}</strong> h</div>
-      <div><span>Css moyenne</span><strong>{cssAvg.toFixed(2)}</strong> mg/L</div>
+      <div><span>{$language === 'en' ? 'Mean Css' : 'Css moyenne'}</span><strong>{cssAvg.toFixed(2)}</strong> mg/L</div>
       <div><span>Cmax,ss / Cmin,ss</span><strong>{cMaxSS.toFixed(1)} / {cMinSS.toFixed(1)}</strong></div>
-      <div><span>Ratio accumulation</span><strong>{rac.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'Accumulation ratio' : 'Ratio accumulation'}</span><strong>{rac.toFixed(2)}</strong></div>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Doses répétées et accumulation">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Repeated doses and accumulation' : 'Doses répétées et accumulation'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <!-- Css moyenne -->
       <line x1="0" x2={iW} y1={yc(cssAvg)} y2={yc(cssAvg)} class="css" />
-      <text x={iW - 2} y={yc(cssAvg) - 4} class="csslabel">Css moy.</text>
+      <text x={iW - 2} y={yc(cssAvg) - 4} class="csslabel">{$language === 'en' ? 'Mean Css' : 'Css moy.'}</text>
       <!-- ~90% équilibre -->
       {#if t90 < tEnd}
         <line x1={xt(t90)} x2={xt(t90)} y1="0" y2={iH} class="t90" />
@@ -75,7 +76,7 @@
       <path d={path} class="line" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <text x={iW / 2} y={iH + 36} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-40,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

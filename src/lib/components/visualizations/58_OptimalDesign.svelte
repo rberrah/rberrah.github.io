@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Design optimal : où placer 2 prélèvements pour estimer V et k avec précision ?
   // On calcule la matrice de Fisher 2×2 à partir des sensibilités de C(t)=(D/V)e^{-kt},
   // on l'inverse, et on affiche les RSE. Un point précoce (info sur V) + un point tardif
@@ -44,17 +45,17 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Prélèvement 1 (h)</span><strong>{t1.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t1} /></label>
-    <label class="s"><span>Prélèvement 2 (h)</span><strong>{t2.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t2} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Sample 1 (h)' : 'Prélèvement 1 (h)'}</span><strong>{t1.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t1} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Sample 2 (h)' : 'Prélèvement 2 (h)'}</span><strong>{t2.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t2} /></label>
     <div class="readout">
-      <div><span>RSE sur V</span><strong>{rseV.toFixed(0)} %</strong></div>
-      <div><span>RSE sur k</span><strong>{rseK.toFixed(0)} %</strong></div>
-      <div class="verdict" class:ok={quality === 'bon'} class:bad={quality === 'mauvais'}>Design {quality}</div>
+      <div><span>{$language === 'en' ? 'RSE for V' : 'RSE sur V'}</span><strong>{rseV.toFixed(0)} %</strong></div>
+      <div><span>{$language === 'en' ? 'RSE for k' : 'RSE sur k'}</span><strong>{rseK.toFixed(0)} %</strong></div>
+      <div class="verdict" class:ok={quality === 'bon'} class:bad={quality === 'mauvais'}>{$language === 'en' ? 'Design' : 'Plan'} {$language === 'en' ? (quality === 'bon' ? 'good' : quality === 'mauvais' ? 'poor' : 'moderate') : quality}</div>
     </div>
-    <p class="hint">Un point <em>précoce</em> informe sur V, un point <em>tardif</em> sur k. Rapprochez les deux : la matrice de Fisher se dégrade et les RSE explosent.</p>
+    <p class="hint">{#if $language === 'en'}An <em>early</em> sample informs V and a <em>late</em> sample informs k. Move them closer together and the Fisher matrix deteriorates while RSE rises sharply.{:else}Un point <em>précoce</em> informe sur V, un point <em>tardif</em> sur k. Rapprochez les deux : la matrice de Fisher se dégrade et les RSE explosent.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Placement des prélèvements et précision">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Sample timing and precision' : 'Placement des prélèvements et précision'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -63,7 +64,7 @@
         <line x1={xt(ts)} x2={xt(ts)} y1={yv(conc(ts))} y2={iH} class="samp" />
         <circle cx={xt(ts)} cy={yv(conc(ts))} r="5" class="sampdot" />
       {/each}
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

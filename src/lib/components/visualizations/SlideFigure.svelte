@@ -1,6 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import catalog from '../../../content/slides/slide_catalog.json';
+  import { language } from '$lib/stores/language';
 
   /**
    * @typedef {{ id:string, slide:number, file:string, title?:string, purpose?:string }} SlideEntry
@@ -17,7 +18,7 @@
   }, /** @type {SlideEntry[]} */ ([]));
 </script>
 
-<section class="slide-figure" aria-label="PowerPoint illustration">
+<section class="slide-figure" aria-label={$language === 'en' ? 'PowerPoint illustration' : 'Illustration PowerPoint'}>
   {#if entries.length}
     {#each entries as slide}
       <figure>
@@ -35,7 +36,7 @@
       </figure>
     {/each}
   {:else}
-    <div class="empty">No PowerPoint illustration linked to this step.</div>
+    <div class="empty">{$language === 'en' ? 'No PowerPoint illustration linked to this step.' : 'Aucune illustration PowerPoint liée à cette étape.'}</div>
   {/if}
 </section>
 

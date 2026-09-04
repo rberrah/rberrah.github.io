@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Sélection de variables par importance (esprit VSURF / OrdinalForest) :
   // une forêt attribue une IMPORTANCE à chaque covariable ; on garde celles au-dessus
   // d'un seuil. Le curseur montre le compromis pertinence vs bruit.
@@ -31,23 +32,23 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Seuil d'importance</span><strong>{threshold.toFixed(2)}</strong><input type="range" min="0" max="0.6" step="0.01" bind:value={threshold} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Importance threshold' : "Seuil d'importance"}</span><strong>{threshold.toFixed(2)}</strong><input type="range" min="0" max="0.6" step="0.01" bind:value={threshold} /></label>
     <div class="readout">
-      <div><span>Variables retenues</span><strong>{selected.length} / {vars.length}</strong></div>
-      <div class="chips">{#each selected as v}<span class="chip">{v.name}</span>{/each}</div>
+      <div><span>{$language === 'en' ? 'Selected variables' : 'Variables retenues'}</span><strong>{selected.length} / {vars.length}</strong></div>
+      <div class="chips">{#each selected as v}<span class="chip">{$language === 'en' ? ({ Poids: 'Weight', 'ClCr (rénal)': 'CrCl (renal)', 'Génotype CYP': 'CYP genotype', 'Âge': 'Age', Albumine: 'Albumin', Sexe: 'Sex', Comédication: 'Comedication', 'Bruit A': 'Noise A', 'Bruit B': 'Noise B', 'Bruit C': 'Noise C' }[v.name] ?? v.name) : v.name}</span>{/each}</div>
     </div>
-    <p class="hint">Trop bas → on garde du bruit (surajustement) ; trop haut → on perd des variables utiles. VSURF automatise ce tri en deux étapes (interprétation puis prédiction).</p>
+    <p class="hint">{$language === 'en' ? 'Too low retains noise (overfitting); too high discards useful variables. VSURF automates this screening in two stages: interpretation, then prediction.' : 'Trop bas → on garde du bruit (surajustement) ; trop haut → on perd des variables utiles. VSURF automatise ce tri en deux étapes (interprétation puis prédiction).'}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Importance des variables">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Variable importance' : 'Importance des variables'}>
     <g transform={`translate(${mrg.left},${mrg.top})`}>
       {#each vars as v, i}
-        <text x="-8" y={i * rowH + rowH / 2 + 3} class="name" class:dim={v.imp < threshold}>{v.name}</text>
+        <text x="-8" y={i * rowH + rowH / 2 + 3} class="name" class:dim={v.imp < threshold}>{$language === 'en' ? ({ Poids: 'Weight', 'ClCr (rénal)': 'CrCl (renal)', 'Génotype CYP': 'CYP genotype', 'Âge': 'Age', Albumine: 'Albumin', Sexe: 'Sex', Comédication: 'Comedication', 'Bruit A': 'Noise A', 'Bruit B': 'Noise B', 'Bruit C': 'Noise C' }[v.name] ?? v.name) : v.name}</text>
         <rect x="0" y={i * rowH + 3} width={bw(v.imp)} height={rowH - 8} rx="2"
           class:keep={v.imp >= threshold} class:drop={v.imp < threshold} />
       {/each}
       <line x1={xThr} x2={xThr} y1="0" y2={vars.length * rowH} class="thr" />
-      <text x={xThr} y={vars.length * rowH + 20} class="thrlbl">seuil</text>
+      <text x={xThr} y={vars.length * rowH + 20} class="thrlbl">{$language === 'en' ? 'threshold' : 'seuil'}</text>
     </g>
   </svg>
 </div>

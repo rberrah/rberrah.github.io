@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Modèle parent → métabolite (échelle semi-log).
   //   dApar/dt = −k·Apar          (parent, dose IV)
   //   dAmet/dt = fm·k·Apar − km·Amet   (formation depuis le parent, élimination km)
@@ -36,17 +37,17 @@
 <div class="wrap">
   <div class="controls">
     <label class="s"><span>k parent (1/h)</span><strong>{k.toFixed(2)}</strong><input type="range" min="0.05" max="0.5" step="0.01" bind:value={k} /></label>
-    <label class="s"><span>km métabolite (1/h)</span><strong>{km.toFixed(2)}</strong><input type="range" min="0.02" max="0.6" step="0.01" bind:value={km} /></label>
+    <label class="s"><span>km {$language === 'en' ? 'metabolite' : 'métabolite'} (1/h)</span><strong>{km.toFixed(2)}</strong><input type="range" min="0.02" max="0.6" step="0.01" bind:value={km} /></label>
     <label class="s"><span>Fraction fm</span><strong>{fm.toFixed(1)}</strong><input type="range" min="0.1" max="1" step="0.05" bind:value={fm} /></label>
     <div class="readout">
-      <div class="verdict">{elimLimited ? 'Limité par l’élimination' : 'Limité par la formation'}</div>
-      <div><span>Pente terminale ≈</span><strong>{elimLimited ? 'km' : 'k'}</strong></div>
+      <div class="verdict">{elimLimited ? ($language === 'en' ? 'Elimination-rate limited' : 'Limité par l’élimination') : ($language === 'en' ? 'Formation-rate limited' : 'Limité par la formation')}</div>
+      <div><span>{$language === 'en' ? 'Terminal slope ≈' : 'Pente terminale ≈'}</span><strong>{elimLimited ? 'km' : 'k'}</strong></div>
       <div><span>t½ terminal</span><strong>{thalfTerm.toFixed(0)} h</strong></div>
     </div>
-    <p class="hint">Si km &lt; k, le métabolite <em>persiste</em> après le parent (sa pente = km). Si km &gt; k, il suit le parent (pente = k) : « flip-flop » de métabolite.</p>
+    <p class="hint">{#if $language === 'en'}If km &lt; k, the metabolite <em>persists</em> after the parent and its slope equals km. If km &gt; k, it follows the parent with slope k: metabolite flip-flop.{:else}Si km &lt; k, le métabolite <em>persiste</em> après le parent (sa pente = km). Si km &gt; k, il suit le parent (pente = k) : « flip-flop » de métabolite.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Cinétique parent et métabolite en échelle log">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Parent and metabolite kinetics on a log scale' : 'Cinétique parent et métabolite en échelle log'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each [-1, 0, 1, 2] as g}
         <line x1="0" x2={iW} y1={yv(Math.pow(10, g))} y2={yv(Math.pow(10, g))} class="grid" />
@@ -56,11 +57,11 @@
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <path d={pathPar} class="par" />
       <path d={pathMet} class="met" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-38,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
       <g class="legend" transform={`translate(${iW - 116},2)`}>
         <rect x="0" y="0" width="12" height="3" class="par" /><text x="18" y="4" class="leg">Parent</text>
-        <rect x="0" y="15" width="12" height="3" class="met" /><text x="18" y="19" class="leg">Métabolite</text>
+        <rect x="0" y="15" width="12" height="3" class="met" /><text x="18" y="19" class="leg">{$language === 'en' ? 'Metabolite' : 'Métabolite'}</text>
       </g>
     </g>
   </svg>

@@ -2,6 +2,7 @@
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
+  import { language } from '$lib/stores/language';
 
   const times = Array.from({ length: 101 }, (_, i) => i * 0.2); // 0..20 h
   const baseline = times.map((t) => 10 * Math.exp(-0.35 * t)); // ODE pure
@@ -20,7 +21,7 @@
   <div class="toggles">
     <button class:active={mode === 'white'} on:click={() => (mode = 'white')}>White box (ODE)</button>
     <button class:active={mode === 'grey'} on:click={() => (mode = 'grey')}>Grey box (ODE + NN)</button>
-    <button class:active={mode === 'black'} on:click={() => (mode = 'black')}>Black box (NN seule)</button>
+    <button class:active={mode === 'black'} on:click={() => (mode = 'black')}>Black box ({$language === 'en' ? 'NN only' : 'NN seule'})</button>
   </div>
 
   <ChartFrame width={420} height={260} margin={{ top: 16, right: 16, bottom: 50, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
@@ -62,11 +63,11 @@
 
   <div class="legend">
     {#if mode === 'white'}
-      dC/dt = -k · C &nbsp; (pas de correction → le “bump” est manqué)
+      dC/dt = -k · C &nbsp; {$language === 'en' ? '(no correction: the bump is missed)' : '(pas de correction → le “bump” est manqué)'}
     {:else if mode === 'grey'}
-      dC/dt = -k · C + NN(t) &nbsp; (le NN apprend la portion manquante et colle au bump)
+      dC/dt = -k · C + NN(t) &nbsp; {$language === 'en' ? '(the NN learns the missing portion and fits the bump)' : '(le NN apprend la portion manquante et colle au bump)'}
     {:else}
-      NN(t) seul (boîte noire) : flexible mais interprétabilité minimale.
+      {$language === 'en' ? 'NN(t) alone (black box): flexible but minimally interpretable.' : 'NN(t) seul (boîte noire) : flexible mais interprétabilité minimale.'}
     {/if}
   </div>
 </div>

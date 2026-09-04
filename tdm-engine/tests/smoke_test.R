@@ -14,8 +14,18 @@ file_argument <- sub("^--file=", "", grep("^--file=", arguments, value = TRUE)[1
 APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/", mustWork = TRUE)
 
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
+
+stopifnot(
+  identical(app_language_from_query("?model=vanco_roberts&lang=en"), "en"),
+  identical(app_language_from_query("?lang=de"), "fr"),
+  identical(app_t("en", "Analyse"), "Analysis"),
+  identical(names(app_t("en", stats::setNames(c("Analyse", "Réglages"), c("analysis", "settings")))), c("analysis", "settings")),
+  inherits(app_t("en", htmltools::HTML("<strong>test</strong>")), "html"),
+  any(grepl("Vancomycin", names(catalog_choices_i18n(lang = "en")), fixed = TRUE))
+)
 
 doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, ss = 0)
 observations <- data.frame(time = 47.5, concentration = 18)

@@ -38,6 +38,27 @@ h6 {
   font-weight: 700;
 }
 
+.app-language-switch {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 8px;
+}
+
+.app-language-switch button {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.7rem;
+  padding: 2px 5px;
+}
+
+.app-language-switch button.active {
+  background: #fff;
+  color: #16383d;
+}
+
 .brand-mark {
   display: inline-grid;
   place-items: center;

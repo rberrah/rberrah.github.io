@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   const pkBlocks = [
     { label: 'Dose', tone: 'dose' },
     { label: 'Absorption', tone: 'absorption' },
@@ -13,14 +14,14 @@
   ];
 </script>
 
-<section class="viz" aria-label="Building-block metaphor for PK and PD">
+<section class="viz" aria-label={$language === 'en' ? 'Building-block metaphor for PK and PD' : 'Métaphore des briques pour la PK et la PD'}>
   <div class="rail">
     <div class="side pk">
       <p class="kicker">PK</p>
-      <h3>Where the blocks go</h3>
+      <h3>{$language === 'en' ? 'Where the blocks go' : 'Où vont les briques'}</h3>
       <div class="blocks">
         {#each pkBlocks as block}
-          <span class={`block ${block.tone}`}>{block.label}</span>
+          <span class={`block ${block.tone}`}>{$language === 'en' ? block.label : ({ Clearance: 'Clairance' }[block.label] ?? block.label)}</span>
         {/each}
       </div>
     </div>
@@ -29,10 +30,10 @@
 
     <div class="side pd">
       <p class="kicker">PD</p>
-      <h3>What the construction does</h3>
+      <h3>{$language === 'en' ? 'What the construction does' : 'Ce que produit la construction'}</h3>
       <div class="blocks">
         {#each pdBlocks as block}
-          <span class={`block ${block.tone}`}>{block.label}</span>
+          <span class={`block ${block.tone}`}>{$language === 'en' ? block.label : ({ Target: 'Cible', Effect: 'Effet', Toxicity: 'Toxicité' }[block.label] ?? block.label)}</span>
         {/each}
       </div>
     </div>
@@ -40,16 +41,16 @@
 
   <div class="legend">
     <div>
-      <strong>Model</strong>
-      <span>the instruction sheet</span>
+      <strong>{$language === 'en' ? 'Model' : 'Modèle'}</strong>
+      <span>{$language === 'en' ? 'the instruction sheet' : "la notice d'assemblage"}</span>
     </div>
     <div>
-      <strong>Variability</strong>
-      <span>students build differently</span>
+      <strong>{$language === 'en' ? 'Variability' : 'Variabilité'}</strong>
+      <span>{$language === 'en' ? 'students build differently' : 'les étudiants construisent différemment'}</span>
     </div>
     <div>
-      <strong>Uncertainty</strong>
-      <span>the photo is incomplete</span>
+      <strong>{$language === 'en' ? 'Uncertainty' : 'Incertitude'}</strong>
+      <span>{$language === 'en' ? 'the photo is incomplete' : 'la photo est incomplète'}</span>
     </div>
   </div>
 </section>

@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Illustration conceptuelle d'un SVM linéaire : deux classes, un hyperplan séparateur
   // à MARGE MAXIMALE, et les vecteurs de support (points dans la marge). Le paramètre C
   // arbitre marge large (soft, tolérante) vs marge étroite (hard, peu tolérante).
@@ -50,15 +51,15 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Régularisation C</span><strong>{C.toFixed(1)}</strong><input type="range" min="0.2" max="8" step="0.2" bind:value={C} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Regularization C' : 'Régularisation C'}</span><strong>{C.toFixed(1)}</strong><input type="range" min="0.2" max="8" step="0.2" bind:value={C} /></label>
     <div class="readout">
-      <div><span>Type de marge</span><strong>{C >= 4 ? 'étroite (hard)' : C <= 1 ? 'large (soft)' : 'intermédiaire'}</strong></div>
-      <div><span>Vecteurs de support</span><strong>{support.length}</strong></div>
+      <div><span>{$language === 'en' ? 'Margin type' : 'Type de marge'}</span><strong>{C >= 4 ? ($language === 'en' ? 'narrow (hard)' : 'étroite (hard)') : C <= 1 ? ($language === 'en' ? 'wide (soft)' : 'large (soft)') : ($language === 'en' ? 'intermediate' : 'intermédiaire')}</strong></div>
+      <div><span>{$language === 'en' ? 'Support vectors' : 'Vecteurs de support'}</span><strong>{support.length}</strong></div>
     </div>
-    <p class="hint">Le SVM cherche la frontière qui <em>maximise la marge</em>. Seuls les points de la marge (les <em>vecteurs de support</em>) la définissent. C petit → marge large et tolérante.</p>
+    <p class="hint">{#if $language === 'en'}The SVM finds the boundary that <em>maximizes the margin</em>. Only points within the margin, the <em>support vectors</em>, define it. A small C gives a wide, tolerant margin.{:else}Le SVM cherche la frontière qui <em>maximise la marge</em>. Seuls les points de la marge (les <em>vecteurs de support</em>) la définissent. C petit → marge large et tolérante.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Frontière SVM à marge maximale">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Maximum-margin SVM boundary' : 'Frontière SVM à marge maximale'}>
     <g transform={`translate(${mrg.left},${mrg.top})`}>
       <clipPath id="svmbox"><rect x="0" y="0" width={iW} height={iH} /></clipPath>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
@@ -71,7 +72,7 @@
         <circle cx={sx(p.x)} cy={sy(p.y)} r={support.includes(p) ? 5 : 3.5}
           class:pos={p.c === 1} class:neg={p.c === -1} class:sv={support.includes(p)} />
       {/each}
-      <text x={iW / 2} y={iH + 26} class="lbl">Covariable 1</text>
+      <text x={iW / 2} y={iH + 26} class="lbl">{$language === 'en' ? 'Covariate 1' : 'Covariable 1'}</text>
     </g>
   </svg>
 </div>

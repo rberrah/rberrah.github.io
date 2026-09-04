@@ -6,6 +6,7 @@
   import { scaleLinear } from 'd3-scale';
   import { simulatePopulation } from '$lib/sim/population';
   import Slider from '$lib/components/ui/Slider.svelte';
+  import { language } from '$lib/stores/language';
 
   let route = 'oral_1st';
   let nCompartments = 1;
@@ -114,32 +115,32 @@
 
 <div class="playground">
   <aside class="sidebar">
-    <h2>Modèle</h2>
+    <h2>{$language === 'en' ? 'Model' : 'Modèle'}</h2>
     <label>Route
       <select bind:value={route}>
-        <option value="oral_1st">Oral 1er ordre</option>
-        <option value="iv_bolus">IV bolus</option>
-        <option value="iv_infusion">Perfusion</option>
+        <option value="oral_1st">{$language === 'en' ? 'First-order oral' : 'Oral 1er ordre'}</option>
+        <option value="iv_bolus">{$language === 'en' ? 'IV bolus' : 'Bolus IV'}</option>
+        <option value="iv_infusion">{$language === 'en' ? 'IV infusion' : 'Perfusion'}</option>
       </select>
     </label>
-    <label>Compartiments
+    <label>{$language === 'en' ? 'Compartments' : 'Compartiments'}
       <select bind:value={nCompartments}>
-        <option value="1">1 compartiment</option>
-        <option value="2">2 compartiments</option>
-        <option value="3">3 compartiments</option>
+        <option value="1">1 {$language === 'en' ? 'compartment' : 'compartiment'}</option>
+        <option value="2">2 {$language === 'en' ? 'compartments' : 'compartiments'}</option>
+        <option value="3">3 {$language === 'en' ? 'compartments' : 'compartiments'}</option>
       </select>
     </label>
     <div class="card">
       <Slider label="Dose" min={50} max={800} step={10} bind:value={dose} />
       {#if route === 'iv_infusion'}
-        <Slider label="Durée perf (h)" min={0.5} max={8} step={0.1} bind:value={infusionDuration} />
+        <Slider label={$language === 'en' ? 'Infusion duration (h)' : 'Durée perf (h)'} min={0.5} max={8} step={0.1} bind:value={infusionDuration} />
       {/if}
       {#if route === 'oral_1st'}
         <Slider label="Ka (1/h)" min={0.1} max={3} step={0.05} bind:value={ka} />
-        <label>Absorption delay
+        <label>{$language === 'en' ? 'Absorption delay' : "Délai d'absorption"}
           <select bind:value={absorptionMode}>
-            <option value="none">Aucun</option>
-            <option value="lag">Lag time</option>
+            <option value="none">{$language === 'en' ? 'None' : 'Aucun'}</option>
+            <option value="lag">{$language === 'en' ? 'Lag time' : 'Temps de latence'}</option>
             <option value="transit">Transit</option>
           </select>
         </label>
@@ -162,11 +163,11 @@
       {/if}
     </div>
 
-    <h2>Variabilité</h2>
+    <h2>{$language === 'en' ? 'Variability' : 'Variabilité'}</h2>
     <div class="card toggles">
       <label><input type="checkbox" bind:checked={iivEnabled} /> IIV</label>
       <label><input type="checkbox" bind:checked={iovEnabled} /> IOV</label>
-      <label><input type="checkbox" bind:checked={resEnabled} /> Résiduel</label>
+      <label><input type="checkbox" bind:checked={resEnabled} /> {$language === 'en' ? 'Residual' : 'Résiduel'}</label>
     </div>
     <div class="card">
       <Slider label="ω CL" min={0} max={0.8} step={0.05} bind:value={omegaCL} />
@@ -180,26 +181,26 @@
 
     <h2>Population</h2>
     <div class="card">
-      <Slider label="N individus" min={10} max={300} step={10} bind:value={nInd} />
-      <Slider label="Seed" min={1} max={999} step={1} bind:value={seed} />
-      <label>Échantillonnage
+      <Slider label={$language === 'en' ? 'N subjects' : 'N individus'} min={10} max={300} step={10} bind:value={nInd} />
+      <Slider label={$language === 'en' ? 'Seed' : 'Graine'} min={1} max={999} step={1} bind:value={seed} />
+      <label>{$language === 'en' ? 'Sampling' : 'Échantillonnage'}
         <select bind:value={samplingPreset}>
-          <option value="rich">Riche (q30 min)</option>
-          <option value="sparse">Sparse</option>
-          <option value="tdm">TDM trough</option>
+          <option value="rich">{$language === 'en' ? 'Rich (q30 min)' : 'Riche (q30 min)'}</option>
+          <option value="sparse">{$language === 'en' ? 'Sparse' : 'Épars'}</option>
+          <option value="tdm">{$language === 'en' ? 'TDM trough' : 'Résiduelle TDM'}</option>
         </select>
       </label>
     </div>
 
-    <button class="export" on:click={downloadCsv}>Exporter CSV</button>
+    <button class="export" on:click={downloadCsv}>{$language === 'en' ? 'Export CSV' : 'Exporter CSV'}</button>
   </aside>
 
   <main class="main">
     <div class="chart-card">
       <div class="chart-header">
         <div>
-          <div class="title">Spaghetti + bandes (p5/p50/p95)</div>
-          <small>Rouge = observations simulées (DV), bande bleue = prédites</small>
+          <div class="title">Spaghetti + {$language === 'en' ? 'bands' : 'bandes'} (p5/p50/p95)</div>
+          <small>{$language === 'en' ? 'Red = simulated observations (DV), blue band = predictions' : 'Rouge = observations simulées (DV), bande bleue = prédites'}</small>
         </div>
       </div>
       <ChartFrame width={620} height={380} margin={{ top: 22, right: 24, bottom: 52, left: 78 }} xScale={xScale} yScale={yScale} grid={true}>
@@ -226,7 +227,7 @@
               points={prof.points.map((p) => `${xScale(p.t)},${yScale(p.dv)}`).join(' ')}
             />
           {/each}
-          <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+          <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
           <g transform={`translate(-10,0)`}>
             <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
           </g>
@@ -234,9 +235,9 @@
       </ChartFrame>
     </div>
     <div class="kpi-row">
-      <div class="kpi"><span>AUC médiane</span><strong>{kpi.aucMed.toFixed(1)}</strong></div>
-      <div class="kpi"><span>Cmax médiane</span><strong>{kpi.cmaxMed.toFixed(2)}</strong></div>
-      <div class="kpi"><span>Tmax médiane</span><strong>{kpi.tmaxMed.toFixed(2)} h</strong></div>
+      <div class="kpi"><span>{$language === 'en' ? 'Median AUC' : 'AUC médiane'}</span><strong>{kpi.aucMed.toFixed(1)}</strong></div>
+      <div class="kpi"><span>{$language === 'en' ? 'Median Cmax' : 'Cmax médiane'}</span><strong>{kpi.cmaxMed.toFixed(2)}</strong></div>
+      <div class="kpi"><span>{$language === 'en' ? 'Median Tmax' : 'Tmax médiane'}</span><strong>{kpi.tmaxMed.toFixed(2)} h</strong></div>
     </div>
   </main>
 </div>

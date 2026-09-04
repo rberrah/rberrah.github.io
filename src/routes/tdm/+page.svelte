@@ -1,6 +1,8 @@
 <script>
   import { base } from '$app/paths';
   import { tdmModels, tdmModelStats } from '$lib/content/tdmModels';
+  import { ui } from '$lib/i18n/translations';
+  import { language } from '$lib/stores/language';
   import { tdmEngineUrl } from '$lib/tdm/engine';
 
   let query = $state('');
@@ -8,9 +10,27 @@
 
   const repoIssueUrl = 'https://github.com/rberrah/rberrah.github.io/issues/new?template=tdm-model.yml';
   const tdmxUrl = 'https://www.tdmx.eu/';
+  let copy = $derived(ui($language).tdm);
   /** @param {{ doi?: string | null, sourceUrl?: string | null }} model */
   const articleHref = (model) => model.doi ? `https://doi.org/${model.doi}` : model.sourceUrl;
-  let drugs = $derived(['all', ...Array.from(new Set(tdmModels.map((model) => model.drug))).sort()]);
+  /** @param {any} model */
+  const localizedModel = (model) => ({
+    ...model,
+    drug: $language === 'en' ? model.drugEn : model.drug,
+    population: $language === 'en' ? model.populationEn : model.population,
+    populationTags: $language === 'en' ? model.populationTagsEn : model.populationTags,
+    modelType: $language === 'en' ? model.modelTypeEn : model.modelType,
+    note: $language === 'en' ? model.noteEn : model.note
+  });
+  let drugs = $derived([
+    { key: 'all', label: copy.all },
+    ...Array.from(new Set(tdmModels.map((model) => model.drugKey)))
+      .map((key) => {
+        const model = tdmModels.find((item) => item.drugKey === key);
+        return { key, label: model ? ($language === 'en' ? model.drugEn : model.drug) : key };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label, $language === 'en' ? 'en' : 'fr'))
+  ]);
   let filteredModels = $derived(
     tdmModels.filter((model) => {
       const haystack = [
@@ -24,123 +44,101 @@
         ...model.tags
       ].filter(Boolean).join(' ').toLowerCase();
       const matchesQuery = haystack.includes(query.trim().toLowerCase());
-      const matchesDrug = selectedDrug === 'all' || model.drug === selectedDrug;
+      const matchesDrug = selectedDrug === 'all' || model.drugKey === selectedDrug;
       return matchesQuery && matchesDrug;
     })
   );
 </script>
 
 <svelte:head>
-  <title>TDM et bibliotheque PopPK | Pharmacometrie Pratique</title>
+  <title>{copy.metaTitle}</title>
   <meta
     name="description"
-    content="Bibliotheque partagee de modeles PopPK pour le suivi therapeutique pharmacologique et la precision dosing."
+    content={copy.metaDescription}
   />
 </svelte:head>
 
 <section class="tdm-hero">
   <div class="hero-copy">
-    <p class="eyebrow">Therapeutic drug monitoring</p>
-    <h1>Precision dosing avec mrgsolve, mapbayr et model averaging.</h1>
-    <p class="lede">
-      Selectionnez un modele PopPK, renseignez les administrations, concentrations et covariables, puis
-      estimez les parametres individuels et comparez les schemas de dose dans le moteur R. Plusieurs
-      modeles peuvent etre combines par ponderation AIC ou vraisemblance.
-    </p>
+    <p class="eyebrow">{copy.eyebrow}</p>
+    <h1>{copy.title}</h1>
+    <p class="lede">{copy.lede}</p>
     <div class="cta">
-      <a class="btn btn-primary" href={tdmEngineUrl} target="_blank" rel="noopener noreferrer">Lancer le moteur R</a>
-      <a class="btn btn-outline" href="#modeles">Choisir un modele</a>
-      <a class="btn btn-outline" href={`${base}/lego/`}>Creer un modele sans coder</a>
-      <a class="btn btn-outline" href={repoIssueUrl} target="_blank" rel="noopener noreferrer">Proposer un modele</a>
+      <a class="btn btn-primary" href={`${tdmEngineUrl}/?lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.launch}</a>
+      <a class="btn btn-outline" href="#modeles">{copy.choose}</a>
+      <a class="btn btn-outline" href={`${base}/lego/`}>{copy.create}</a>
+      <a class="btn btn-outline" href={repoIssueUrl} target="_blank" rel="noopener noreferrer">{copy.propose}</a>
     </div>
   </div>
 
-  <div class="tdm-panel" aria-label="Resume de la bibliotheque TDM">
+  <div class="tdm-panel" aria-label={copy.panelAria}>
     <div class="panel-top">
       <span class="status-dot"></span>
-      <span>Moteur R + bibliotheque ouverte</span>
+      <span>{copy.panelStatus}</span>
     </div>
     <div class="stat-grid">
       <div>
         <strong>{tdmModelStats.total}</strong>
-        <span>modeles</span>
+        <span>{copy.models}</span>
       </div>
       <div>
         <strong>{tdmModelStats.drugs}</strong>
-        <span>molecules</span>
+        <span>{copy.molecules}</span>
       </div>
       <div>
         <strong>MAP</strong>
-        <span>Bayesien</span>
+        <span>{copy.bayesian}</span>
       </div>
     </div>
-    <p>
-      Le calcul s'execute dans une application Shiny separee avec <code>mrgsolve</code> et
-      <code>mapbayr</code>. Les donnees patient et les modeles C++ colles restent limites a la session
-      de calcul et ne sont pas conserves par le site.
-    </p>
+    <p>{copy.privacy}</p>
   </div>
 </section>
 
 <section class="engine-band" aria-labelledby="engine-title">
   <div>
-    <p class="eyebrow">Moteur pharmacometrique</p>
-    <h2 id="engine-title">Du dosage observe a la proposition de dose</h2>
+    <p class="eyebrow">{copy.engineEyebrow}</p>
+    <h2 id="engine-title">{copy.engineTitle}</h2>
   </div>
   <div class="engine-features">
-    <span>Estimation MAP individuelle</span>
-    <span>Predictions population et individuelles</span>
-    <span>AUC24, Cmin et Cmax</span>
-    <span>Grille dose x intervalle</span>
-    <span>Model averaging AIC ou LL</span>
-    <span>Modele mrgsolve/C++ personnalise</span>
-    <span>Import et export local du dossier JSON</span>
+    {#each copy.features as feature}<span>{feature}</span>{/each}
   </div>
 </section>
 
 <section class="workflow" aria-labelledby="workflow-title">
   <div>
-    <p class="eyebrow">Contribution</p>
-    <h2 id="workflow-title">Possible, mais pas en push direct depuis le navigateur.</h2>
+    <p class="eyebrow">{copy.contribution}</p>
+    <h2 id="workflow-title">{copy.contributionTitle}</h2>
   </div>
   <div class="workflow-grid">
-    <article>
-      <span>1</span>
-      <h3>Soumission GitHub</h3>
-      <p>Le contributeur ouvre une issue structuree avec le modele, sa reference, les covariables et les limites.</p>
-    </article>
-    <article>
-      <span>2</span>
-      <h3>Validation</h3>
-      <p>Le fichier est relu avant integration: unitees, compartiments, variabilite, erreur residuelle et article source.</p>
-    </article>
-    <article>
-      <span>3</span>
-      <h3>Publication</h3>
-      <p>Une PR ou une action GitHub ajoute le modele a la bibliotheque statique, puis le site se redeploie.</p>
-    </article>
+    {#each copy.workflow as item, index}
+      <article>
+        <span>{index + 1}</span>
+        <h3>{item[0]}</h3>
+        <p>{item[1]}</p>
+      </article>
+    {/each}
   </div>
 </section>
 
 <section id="modeles" class="models" aria-labelledby="models-title">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Modeles pharmacometriques publies</p>
-      <h2 id="models-title">Bibliotheque de modeles</h2>
+      <p class="eyebrow">{copy.modelsEyebrow}</p>
+      <h2 id="models-title">{copy.libraryTitle}</h2>
     </div>
-    <span class="muted">{filteredModels.length} / {tdmModels.length} modeles</span>
+    <span class="muted">{copy.modelCount(filteredModels.length, tdmModels.length)}</span>
   </div>
 
   <div class="filters">
     <label>
-      <span>Recherche</span>
-      <input bind:value={query} type="search" placeholder="Molecule, auteur, fichier..." />
+      <span>{copy.search}</span>
+      <input bind:value={query} type="search" placeholder={copy.searchPlaceholder} />
     </label>
     <label>
-      <span>Molecule</span>
+      <span>{copy.molecule}</span>
       <select bind:value={selectedDrug}>
         {#each drugs as drug}
-          <option value={drug}>{drug === 'all' ? 'Toutes' : drug}</option>
+          <option value={drug.key}>{drug.label}</option>
         {/each}
       </select>
     </label>
@@ -149,65 +147,60 @@
   {#if filteredModels.length}
     <div class="model-grid">
       {#each filteredModels as model}
+        {@const display = localizedModel(model)}
         <article class="model-card card">
           <div class="model-main">
             <div class="model-kicker">
-              <span class="drug">{model.drug}</span>
+              <span class="drug">{display.drug}</span>
               <span class="route">{model.routes.join(' + ')}</span>
             </div>
             <h3>{model.model}</h3>
-            <p class="population">{model.population}</p>
-            <div class="population-tags" aria-label="Population source">
-              {#each model.populationTags as tag}
+            <p class="population">{display.population}</p>
+            <div class="population-tags" aria-label={copy.populationAria}>
+              {#each display.populationTags as tag}
                 <span>{tag}</span>
               {/each}
             </div>
             <div class="article-source">
-              <span>Article source</span>
+              <span>{copy.sourceArticle}</span>
               <p class="citation">{model.citation}</p>
               {#if articleHref(model)}
                 <a href={articleHref(model)} target="_blank" rel="noopener noreferrer">
-                  {model.doi ? `DOI ${model.doi}` : 'Consulter l’article'}
+                  {model.doi ? `DOI ${model.doi}` : copy.consult}
                 </a>
               {:else}
-                <strong>Reference bibliographique a confirmer</strong>
+                <strong>{copy.referencePending}</strong>
               {/if}
             </div>
-            {#if model.note}<p class="model-note">{model.note}</p>{/if}
+            {#if display.note}<p class="model-note">{display.note}</p>{/if}
           </div>
           <div class="model-meta">
             <div class="model-type">
-              <span>{model.modelType}</span>
+              <span>{display.modelType}</span>
             </div>
             <div class="model-actions">
-              <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}`} target="_blank" rel="noopener noreferrer">Utiliser</a>
-              <a class="btn btn-outline sm" href={`${base}${model.href}`} download>Telecharger</a>
+              <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}&lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+              <a class="btn btn-outline sm" href={`${base}${model.href}`} download>{copy.download}</a>
             </div>
           </div>
         </article>
       {/each}
     </div>
   {:else}
-    <p class="empty">Aucun modele ne correspond a ces filtres.</p>
+    <p class="empty">{copy.empty}</p>
   {/if}
 </section>
 
 <section class="governance">
-  <h2>Regles minimales pour accepter un modele</h2>
+  <h2>{copy.governanceTitle}</h2>
   <div class="rule-grid">
-    <div>Reference bibliographique identifiable</div>
-    <div>Parametres typiques et unitees explicites</div>
-    <div>Covariables documentees</div>
-    <div>Erreur residuelle et variabilite decrites</div>
-    <div>Jeu de test ou scenario de simulation</div>
-    <div>Licence compatible avec une diffusion publique</div>
+    {#each copy.rules as rule}<div>{rule}</div>{/each}
   </div>
 </section>
 
 <p class="reference">
-  Application inspiree de <a href={tdmxUrl} target="_blank" rel="noopener noreferrer">TDMx</a>.
-  Les resultats ne constituent pas une recommandation clinique et exigent une validation locale des modeles.
-  Aucun dossier patient ni modele colle n'est conserve par le site.
+  {copy.inspiredPrefix} <a href={tdmxUrl} target="_blank" rel="noopener noreferrer">TDMx</a>.
+  {copy.disclaimer}
 </p>
 
 <style>

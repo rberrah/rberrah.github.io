@@ -3,6 +3,7 @@
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   const base = [
     { t: 0, c: 0 },
@@ -42,9 +43,9 @@
 
 <div class="res">
   <div class="controls">
-    <button class:active={mode === 'none'} on:click={() => (mode = 'none')}>Sans erreur</button>
-    <button class:active={mode === 'low'} on:click={() => (mode = 'low')}>Faible</button>
-    <button class:active={mode === 'high'} on:click={() => (mode = 'high')}>Forte</button>
+    <button class:active={mode === 'none'} on:click={() => (mode = 'none')}>{$language === 'en' ? 'No error' : 'Sans erreur'}</button>
+    <button class:active={mode === 'low'} on:click={() => (mode = 'low')}>{$language === 'en' ? 'Low' : 'Faible'}</button>
+    <button class:active={mode === 'high'} on:click={() => (mode = 'high')}>{$language === 'en' ? 'High' : 'Forte'}</button>
   </div>
   <ChartFrame width={360} height={220} margin={{ top: 16, right: 12, bottom: 40, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>

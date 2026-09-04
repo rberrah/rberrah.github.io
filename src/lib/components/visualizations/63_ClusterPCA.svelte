@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Découvrir des sous-groupes : paramètres individuels (CL, V) de patients de 3 types de
   // cancer. Mode « Vrai type » (couleur = type) vs « Clusters » (k-means non supervisé).
   // Quand la clairance dépend du type de cancer, le clustering retrouve les groupes.
@@ -77,28 +78,28 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'true'} on:click={() => (mode = 'true')}>Vrai type</button>
+      <button class:on={mode === 'true'} on:click={() => (mode = 'true')}>{$language === 'en' ? 'True type' : 'Vrai type'}</button>
       <button class:on={mode === 'kmeans'} on:click={() => (mode = 'kmeans')}>Clusters (k-means)</button>
     </div>
-    <label class="s"><span>Séparation</span><strong>{sep.toFixed(1)}</strong><input type="range" min="0" max="1.6" step="0.1" bind:value={sep} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Separation' : 'Séparation'}</span><strong>{sep.toFixed(1)}</strong><input type="range" min="0" max="1.6" step="0.1" bind:value={sep} /></label>
     {#if mode === 'kmeans'}<label class="s"><span>Clusters k</span><strong>{k}</strong><input type="range" min="2" max="4" step="1" bind:value={k} /></label>{/if}
     <div class="readout">
       {#if mode === 'true'}
-        {#each means as g}<div class="line"><span class="dot" style={`background:${g.color}`}></span>{g.name}<strong>CL {g.cl.toFixed(2)} L/h</strong></div>{/each}
+        {#each means as g}<div class="line"><span class="dot" style={`background:${g.color}`}></span>{$language === 'en' ? ({ Poumon: 'Lung', Sein: 'Breast', 'Côlon': 'Colon' }[g.name] ?? g.name) : g.name}<strong>CL {g.cl.toFixed(2)} L/h</strong></div>{/each}
       {:else}
-        <div class="km">k-means regroupe sans connaître le type. Comparez au « Vrai type » : quand la séparation est forte, les clusters retrouvent les cancers.</div>
+        <div class="km">{$language === 'en' ? 'k-means groups patients without knowing cancer type. With strong separation, clusters recover the true cancer groups.' : 'k-means regroupe sans connaître le type. Comparez au « Vrai type » : quand la séparation est forte, les clusters retrouvent les cancers.'}</div>
       {/if}
     </div>
-    <p class="hint">Chaque point = un patient (ses paramètres individuels estimés). Baissez la séparation : les groupes se confondent et le clustering échoue.</p>
+    <p class="hint">{$language === 'en' ? 'Each point is a patient represented by estimated individual parameters. Reduce separation: groups overlap and clustering fails.' : 'Chaque point = un patient (ses paramètres individuels estimés). Baissez la séparation : les groupes se confondent et le clustering échoue.'}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Clustering des paramètres individuels par type de cancer">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Clustering of individual parameters by cancer type' : 'Clustering des paramètres individuels par type de cancer'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
       {#each pts as p, i}
         <circle cx={sx(p.cl)} cy={sy(p.v)} r="4" style={`fill:${mode === 'true' ? groups[p.gi].color : kColors[km[i]]}`} class="pt" />
       {/each}
-      <text x={iW / 2} y={iH + 30} class="lbl">Clairance CL (L/h)</text>
+      <text x={iW / 2} y={iH + 30} class="lbl">{$language === 'en' ? 'Clearance CL (L/h)' : 'Clairance CL (L/h)'}</text>
       <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Volume V (L)</text>
     </g>
   </svg>

@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Galerie de motifs de résidus (CWRES vs prédictions) : à chaque forme, une cause et un
   // remède. Aléatoire (bon), U / U inversé (biais structural), trompette (mauvaise erreur),
   // pente (biais systématique). Pédagogie : « lire la forme → améliorer le modèle ».
@@ -13,6 +14,13 @@
     trend: { label: 'Pente', interp: 'Biais systématique (dérive avec la prédiction).', fix: 'Covariable manquante ou structure inadaptée.' }
   };
   $: cur = modes[mode];
+  $: curEn = {
+    good: { label: 'Random', interp: 'Neutral residuals centered on zero.', fix: 'Adequate model: no change needed.' },
+    u: { label: 'U shape', interp: 'Curved bias: underprediction at the extremes.', fix: 'Structure: add a compartment or revise absorption/elimination.' },
+    invu: { label: 'Inverted U', interp: 'Opposite curved bias: overprediction at the extremes.', fix: 'Revise the structural model.' },
+    trumpet: { label: 'Funnel', interp: 'Variance increases with prediction.', fix: 'Error model: additive to proportional or combined.' },
+    trend: { label: 'Trend', interp: 'Systematic bias that drifts with prediction.', fix: 'Missing covariate or unsuitable structure.' }
+  }[mode];
 
   /** @param {number} a @returns {() => number} */
   function mulberry32(a) {
@@ -54,28 +62,28 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'good'} on:click={() => (mode = 'good')}>Aléatoire</button>
+      <button class:on={mode === 'good'} on:click={() => (mode = 'good')}>{$language === 'en' ? 'Random' : 'Aléatoire'}</button>
       <button class:on={mode === 'u'} on:click={() => (mode = 'u')}>U</button>
-      <button class:on={mode === 'invu'} on:click={() => (mode = 'invu')}>U inversé</button>
-      <button class:on={mode === 'trumpet'} on:click={() => (mode = 'trumpet')}>Trompette</button>
-      <button class:on={mode === 'trend'} on:click={() => (mode = 'trend')}>Pente</button>
+      <button class:on={mode === 'invu'} on:click={() => (mode = 'invu')}>{$language === 'en' ? 'Inverted U' : 'U inversé'}</button>
+      <button class:on={mode === 'trumpet'} on:click={() => (mode = 'trumpet')}>{$language === 'en' ? 'Funnel' : 'Trompette'}</button>
+      <button class:on={mode === 'trend'} on:click={() => (mode = 'trend')}>{$language === 'en' ? 'Trend' : 'Pente'}</button>
     </div>
     <div class="readout" class:ok={mode === 'good'}>
-      <div class="motif">{cur.label}</div>
-      <div class="line"><span>Interprétation</span>{cur.interp}</div>
-      <div class="line"><span>Remède</span>{cur.fix}</div>
+      <div class="motif">{$language === 'en' ? curEn.label : cur.label}</div>
+      <div class="line"><span>{$language === 'en' ? 'Interpretation' : 'Interprétation'}</span>{$language === 'en' ? curEn.interp : cur.interp}</div>
+      <div class="line"><span>{$language === 'en' ? 'Remedy' : 'Remède'}</span>{$language === 'en' ? curEn.fix : cur.fix}</div>
     </div>
-    <p class="hint">La <em>forme</em> du nuage de résidus révèle le défaut. Comparez « Aléatoire » (bon) aux motifs biaisés.</p>
+    <p class="hint">{#if $language === 'en'}The <em>shape</em> of the residual cloud reveals the defect. Compare the good random pattern with biased patterns.{:else}La <em>forme</em> du nuage de résidus révèle le défaut. Comparez « Aléatoire » (bon) aux motifs biaisés.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Motifs de résidus">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Residual patterns' : 'Motifs de résidus'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
       <line x1="0" x2={iW} y1={py(2)} y2={py(2)} class="band" />
       <line x1="0" x2={iW} y1={py(-2)} y2={py(-2)} class="band" />
       <line x1="0" x2={iW} y1={py(0)} y2={py(0)} class="zero" />
       {#each pts as p}<circle cx={px(p.xn)} cy={py(p.r)} r="3" class="pt" class:bad={Math.abs(p.r) > 2 && mode !== 'good'} />{/each}
-      <text x={iW / 2} y={iH + 30} class="lbl">Prédictions</text>
+      <text x={iW / 2} y={iH + 30} class="lbl">{$language === 'en' ? 'Predictions' : 'Prédictions'}</text>
       <text transform={`translate(-28,${iH / 2}) rotate(-90)`} class="lbl">CWRES</text>
     </g>
   </svg>

@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   const stages = [
     { name: 'Thresholding', desc: 'Filtre les variables faibles', color: '#2563eb' },
     { name: 'Interpretation', desc: 'Garde les variables stables', color: '#f97316' },
@@ -14,7 +15,7 @@
         <div class="dot" style={`background:${s.color}`}></div>
         <div>
           <strong>{s.name}</strong>
-          <p>{s.desc}</p>
+          <p>{$language === 'en' ? (s.name === 'Thresholding' ? 'Filters weak variables' : s.name === 'Interpretation' ? 'Keeps stable variables' : 'Optimizes the final model') : s.desc}</p>
         </div>
       </div>
     {/each}
@@ -22,7 +23,7 @@
   <div class="bars">
     {#each vars as v, i}
       <div class="bar">
-        <span>{v}</span>
+        <span>{$language === 'en' ? ({ Poids: 'Weight', 'Âge': 'Age', Albumine: 'Albumin', Fumeur: 'Smoker' }[v] ?? v) : v}</span>
         <div class="track">
           <div class="fill" style={`width:${60 + (i % 3) * 10}%`}></div>
         </div>

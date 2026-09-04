@@ -2,6 +2,7 @@
   import Tooltip from '$lib/components/ui/Tooltip.svelte';
   import { clAllo, concMono } from '$lib/utils/math';
   import { makeRng } from '$lib/sim/random';
+  import { language } from '$lib/stores/language';
 
   let showWeight = true;
   // PRNG SEEDÉ, pas Math.random() : le composant est prérendu (SSR) puis hydraté côté client.
@@ -42,10 +43,10 @@
   <div class="controls">
     <label>
       <input type="checkbox" bind:checked={showWeight} />
-      Effet du poids (tri dynamique)
+      {$language === 'en' ? 'Weight effect (dynamic sorting)' : 'Effet du poids (tri dynamique)'}
     </label>
-    <Tooltip text="CL = CLpop × (Poids/70)^0.75">
-      <span class="formula">CL = CLpop × (Poids/70)^0.75</span>
+    <Tooltip text={`CL = CLpop × (${$language === 'en' ? 'Weight' : 'Poids'}/70)^0.75`}>
+      <span class="formula">CL = CLpop × ({$language === 'en' ? 'Weight' : 'Poids'}/70)^0.75</span>
     </Tooltip>
   </div>
 
@@ -54,7 +55,7 @@
       <div
         class="avatar"
         style={`--w:${person.weight}; transform: translateY(${(person.weight - 70) * 0.4}px);`}
-        title={`Poids ${person.weight.toFixed(1)} kg`}
+        title={`${$language === 'en' ? 'Weight' : 'Poids'} ${person.weight.toFixed(1)} kg`}
       ></div>
     {/each}
   </div>
@@ -68,7 +69,7 @@
         points={curve.points.map((c, t) => `${20 + t * 10},${yOf(c).toFixed(1)}`).join(' ')}
       />
     {/each}
-    <text x="24" y="22" font-size="11" fill="var(--text-primary)">Courbes par poids</text>
+    <text x="24" y="22" font-size="11" fill="var(--text-primary)">{$language === 'en' ? 'Curves by weight' : 'Courbes par poids'}</text>
   </svg>
 </div>
 

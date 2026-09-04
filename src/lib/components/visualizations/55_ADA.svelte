@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Immunogénicité (ADA) : après séroconversion, la clairance augmente et les
   // concentrations résiduelles s'effondrent → perte de réponse secondaire.
   //   CL(t) = CL0 · [1 + θ·A(t)],  A(t) = montée logistique après la semaine d'apparition
@@ -48,26 +49,26 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Effet ADA (θ)</span><strong>{theta.toFixed(1)}</strong><input type="range" min="0" max="6" step="0.5" bind:value={theta} /></label>
-    <label class="s"><span>Apparition (sem)</span><strong>{onset}</strong><input type="range" min="2" max="14" step="1" bind:value={onset} /></label>
+    <label class="s"><span>{$language === 'en' ? 'ADA effect (θ)' : 'Effet ADA (θ)'}</span><strong>{theta.toFixed(1)}</strong><input type="range" min="0" max="6" step="0.5" bind:value={theta} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Onset (wk)' : 'Apparition (sem)'}</span><strong>{onset}</strong><input type="range" min="2" max="14" step="1" bind:value={onset} /></label>
     <div class="readout">
-      <div><span>Résiduelle finale</span><strong>{lastTrough.toFixed(1)} mg/L</strong></div>
-      <div><span>Cible</span><strong>{target} mg/L</strong></div>
-      <div class="verdict" class:lost>{lost ? 'Perte de réponse' : 'Exposition maintenue'}</div>
+      <div><span>{$language === 'en' ? 'Final trough' : 'Résiduelle finale'}</span><strong>{lastTrough.toFixed(1)} mg/L</strong></div>
+      <div><span>{$language === 'en' ? 'Target' : 'Cible'}</span><strong>{target} mg/L</strong></div>
+      <div class="verdict" class:lost>{lost ? ($language === 'en' ? 'Loss of response' : 'Perte de réponse') : ($language === 'en' ? 'Exposure maintained' : 'Exposition maintenue')}</div>
     </div>
-    <p class="hint">Sans ADA (θ = 0), les résiduelles restent au-dessus de la cible. Dès la séroconversion, la clairance monte et les creux s'effondrent.</p>
+    <p class="hint">{$language === 'en' ? 'Without ADA (θ = 0), troughs remain above target. After seroconversion, clearance rises and troughs collapse.' : "Sans ADA (θ = 0), les résiduelles restent au-dessus de la cible. Dès la séroconversion, la clairance monte et les creux s'effondrent."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Concentrations sous anticorps avec apparition d'ADA">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Antibody concentrations with ADA development' : "Concentrations sous anticorps avec apparition d'ADA"}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={yv(target)} y2={yv(target)} class="target" />
-      <text x="2" y={yv(target) - 4} class="targetlbl">cible</text>
+      <text x="2" y={yv(target) - 4} class="targetlbl">{$language === 'en' ? 'target' : 'cible'}</text>
       {#if theta > 0}<line x1={xt(onset)} x2={xt(onset)} y1="0" y2={iH} class="onset" /><text x={xt(onset) + 3} y="12" class="onsetlbl">ADA</text>{/if}
       <path d={pathC} class="cline" />
       {#each troughs as tr}<circle cx={xt(tr.t)} cy={yv(tr.C)} r="3" class:low={tr.C < target} class="trough" />{/each}
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (semaines)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (weeks)' : 'Temps (semaines)'}</text>
       <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">Concentration (mg/L)</text>
     </g>
   </svg>

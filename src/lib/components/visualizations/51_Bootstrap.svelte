@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Bootstrap : distribution d'un paramètre ré-estimé sur des jeux ré-échantillonnés.
   // Plus le jeu de données est grand, plus la distribution est étroite → RSE plus petit.
   let nData = 40; // taille du jeu de données (pilote la précision)
@@ -49,16 +50,16 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Taille du jeu (N)</span><strong>{nData}</strong><input type="range" min="10" max="200" step="5" bind:value={nData} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Dataset size (N)' : 'Taille du jeu (N)'}</span><strong>{nData}</strong><input type="range" min="10" max="200" step="5" bind:value={nData} /></label>
     <div class="readout">
-      <div><span>Estimation (moy.)</span><strong>{mean.toFixed(2)} L/h</strong></div>
-      <div><span>IC 95 %</span><strong>{lo.toFixed(2)}–{hi.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'Estimate (mean)' : 'Estimation (moy.)'}</span><strong>{mean.toFixed(2)} L/h</strong></div>
+      <div><span>{$language === 'en' ? '95% CI' : 'IC 95 %'}</span><strong>{lo.toFixed(2)}–{hi.toFixed(2)}</strong></div>
       <div><span>RSE</span><strong>{rse.toFixed(1)} %</strong></div>
     </div>
-    <p class="hint">Chaque barre = une ré-estimation sur un jeu ré-échantillonné. Plus N est grand, plus la distribution se resserre : l'IC 95 % et le RSE diminuent.</p>
+    <p class="hint">{$language === 'en' ? 'Each bar is an estimate from a resampled dataset. As N increases, the distribution narrows and the 95% CI and RSE decrease.' : "Chaque barre = une ré-estimation sur un jeu ré-échantillonné. Plus N est grand, plus la distribution se resserre : l'IC 95 % et le RSE diminuent."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Distribution bootstrap d'un paramètre">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Bootstrap distribution of a parameter' : "Distribution bootstrap d'un paramètre"}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -66,10 +67,10 @@
         <rect x={(i / nBins) * iW + 1} y={iH - (b / bMax) * iH} width={iW / nBins - 2} height={(b / bMax) * iH} class="bar" />
       {/each}
       <line x1={bx(trueCL)} x2={bx(trueCL)} y1="0" y2={iH} class="truth" />
-      <text x={bx(trueCL)} y="10" class="truthlbl">vraie valeur</text>
+      <text x={bx(trueCL)} y="10" class="truthlbl">{$language === 'en' ? 'true value' : 'vraie valeur'}</text>
       <line x1={bx(lo)} x2={bx(lo)} y1="0" y2={iH} class="ci" />
       <line x1={bx(hi)} x2={bx(hi)} y1="0" y2={iH} class="ci" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Clairance estimée (L/h)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Estimated clearance (L/h)' : 'Clairance estimée (L/h)'}</text>
     </g>
   </svg>
 </div>

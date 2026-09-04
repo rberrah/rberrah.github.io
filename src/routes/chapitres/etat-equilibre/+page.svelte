@@ -4,25 +4,27 @@
   // l'ancienne URL pour ne casser aucun lien enregistré.
   import { base } from '$app/paths';
   import { onMount } from 'svelte';
+  import { language } from '$lib/stores/language';
 
   const target = `${base}/chapitres/doses-repetees`;
   onMount(() => { window.location.replace(target); });
 </script>
 
 <svelte:head>
-  <title>Redirection → Doses répétées et état d'équilibre</title>
+  <title>{$language === 'en' ? 'Redirect → Repeated doses and steady state' : "Redirection → Doses répétées et état d'équilibre"}</title>
   <meta name="robots" content="noindex" />
   <meta http-equiv="refresh" content={`0; url=${target}`} />
 </svelte:head>
 
 <div class="redir">
-  <p class="eyebrow">Chapitre fusionné</p>
-  <h1>Ce chapitre a déménagé</h1>
-  <p>
-    « L'état d'équilibre » a été fusionné avec <strong>« Doses répétées et état d'équilibre »</strong>,
-    qui couvre désormais l'accumulation, la Css, la perfusion et la dose de charge.
-  </p>
-  <p><a class="btn btn-primary" href={target}>Aller au chapitre →</a></p>
+  <p class="eyebrow">{$language === 'en' ? 'Merged chapter' : 'Chapitre fusionné'}</p>
+  <h1>{$language === 'en' ? 'This chapter has moved' : 'Ce chapitre a déménagé'}</h1>
+  {#if $language === 'en'}
+    <p>“Steady state” was merged into <strong>“Repeated doses and steady state”</strong>, which now covers accumulation, Css, infusion, and loading doses.</p>
+  {:else}
+    <p>« L'état d'équilibre » a été fusionné avec <strong>« Doses répétées et état d'équilibre »</strong>, qui couvre désormais l'accumulation, la Css, la perfusion et la dose de charge.</p>
+  {/if}
+  <p><a class="btn btn-primary" href={target}>{$language === 'en' ? 'Go to chapter →' : 'Aller au chapitre →'}</a></p>
 </div>
 
 <style>

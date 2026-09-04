@@ -3,6 +3,7 @@
   // si le modèle est correct. Un curseur de mauvaise spécification décale/étale
   // la distribution — l'écart à la gaussienne standard signale un problème.
   let mis = 0; // 0 = modèle correct ; augmente le décalage/étalement
+  import { language } from '$lib/stores/language';
 
   /** @param {number} a @returns {() => number} */
   function mulberry32(a) {
@@ -56,16 +57,16 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Mauvaise spécification</span><strong>{(mis * 100).toFixed(0)}%</strong><input type="range" min="0" max="1" step="0.05" bind:value={mis} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Misspecification' : 'Mauvaise spécification'}</span><strong>{(mis * 100).toFixed(0)}%</strong><input type="range" min="0" max="1" step="0.05" bind:value={mis} /></label>
     <div class="readout">
-      <div><span>Moyenne (cible 0)</span><strong>{mean.toFixed(2)}</strong></div>
-      <div><span>Écart-type (cible 1)</span><strong>{sd.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15} class:bad={Math.abs(mean) > 0.4 || Math.abs(sd - 1) > 0.4}>{Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15 ? 'Compatible N(0,1)' : 'Écart à N(0,1)'}</div>
+      <div><span>{$language === 'en' ? 'Mean (target 0)' : 'Moyenne (cible 0)'}</span><strong>{mean.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'SD (target 1)' : 'Écart-type (cible 1)'}</span><strong>{sd.toFixed(2)}</strong></div>
+      <div class="verdict" class:ok={Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15} class:bad={Math.abs(mean) > 0.4 || Math.abs(sd - 1) > 0.4}>{Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15 ? 'Compatible N(0,1)' : ($language === 'en' ? 'Departure from N(0,1)' : 'Écart à N(0,1)')}</div>
     </div>
-    <p class="hint">Si le modèle est correct, les NPDE suivent la gaussienne standard (courbe). Un décalage de la moyenne ou un étalement de l'écart-type révèle une mauvaise spécification.</p>
+    <p class="hint">{$language === 'en' ? 'With a correct model, NPDE follow the standard Gaussian curve. A shifted mean or incorrect standard deviation reveals misspecification.' : "Si le modèle est correct, les NPDE suivent la gaussienne standard (courbe). Un décalage de la moyenne ou un étalement de l'écart-type révèle une mauvaise spécification."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Distribution des NPDE vs N(0,1)">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'NPDE distribution vs N(0,1)' : 'Distribution des NPDE vs N(0,1)'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />

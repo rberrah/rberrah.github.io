@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // FOCE = linéarisation. Le paramètre individuel est non linéaire en η (ex. CL = CL_pop·e^η).
   // FOCE remplace cette COURBE par sa TANGENTE autour de l'estimation individuelle η̂ :
   // exact au point, mais l'erreur grandit quand la courbure (non-linéarité) augmente.
@@ -33,16 +34,16 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Courbure (non-linéarité)</span><strong>{b.toFixed(2)}</strong><input type="range" min="0.1" max="1.1" step="0.05" bind:value={b} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Curvature (nonlinearity)' : 'Courbure (non-linéarité)'}</span><strong>{b.toFixed(2)}</strong><input type="range" min="0.1" max="1.1" step="0.05" bind:value={b} /></label>
     <label class="s"><span>Point η̂</span><strong>{etahat.toFixed(1)}</strong><input type="range" min="-2" max="2" step="0.1" bind:value={etahat} /></label>
     <div class="readout">
-      <div><span>Erreur à η̂+1</span><strong>{errPct.toFixed(0)} %</strong></div>
-      <div class="verdict" class:bad={errPct > 25}>{errPct < 10 ? 'Approximation fidèle' : errPct > 25 ? 'Approximation grossière' : 'Approximation acceptable'}</div>
+      <div><span>{$language === 'en' ? 'Error at η̂+1' : 'Erreur à η̂+1'}</span><strong>{errPct.toFixed(0)} %</strong></div>
+      <div class="verdict" class:bad={errPct > 25}>{errPct < 10 ? ($language === 'en' ? 'Accurate approximation' : 'Approximation fidèle') : errPct > 25 ? ($language === 'en' ? 'Poor approximation' : 'Approximation grossière') : ($language === 'en' ? 'Acceptable approximation' : 'Approximation acceptable')}</div>
     </div>
-    <p class="hint">FOCE remplace la <em>courbe</em> (vraie réponse en η) par sa <em>tangente</em> en η̂. Montez la courbure : loin de η̂, la tangente s'écarte — d'où le biais de FOCE sur les modèles très non linéaires.</p>
+    <p class="hint">{#if $language === 'en'}FOCE replaces the <em>curve</em>, the true response in η, with its <em>tangent</em> at η̂. Increase curvature: away from η̂, the tangent diverges, explaining FOCE bias in highly nonlinear models.{:else}FOCE remplace la <em>courbe</em> (vraie réponse en η) par sa <em>tangente</em> en η̂. Montez la courbure : loin de η̂, la tangente s'écarte — d'où le biais de FOCE sur les modèles très non linéaires.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Linéarisation FOCE : courbe et tangente">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'FOCE linearization: curve and tangent' : 'Linéarisation FOCE : courbe et tangente'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <path d={gap} class="gap" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
@@ -52,11 +53,11 @@
       <line x1={sx(etahat)} x2={sx(etahat)} y1={sy(f(etahat))} y2={iH} class="guide" />
       <circle cx={sx(etahat)} cy={sy(f(etahat))} r="4.5" class="dot" />
       <text x={sx(etahat)} y={iH - 6} class="dotlbl">η̂</text>
-      <text x={iW / 2} y={iH + 32} class="lbl">Effet aléatoire η</text>
-      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Paramètre (ex. CL)</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Random effect η' : 'Effet aléatoire η'}</text>
+      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Parameter (e.g. CL)' : 'Paramètre (ex. CL)'}</text>
       <g class="legend" transform={`translate(6,2)`}>
-        <rect x="0" y="0" width="12" height="3" class="curve" /><text x="18" y="4" class="leg">Vraie fonction</text>
-        <rect x="0" y="14" width="12" height="3" class="tangent" /><text x="18" y="18" class="leg">Tangente (FOCE)</text>
+        <rect x="0" y="0" width="12" height="3" class="curve" /><text x="18" y="4" class="leg">{$language === 'en' ? 'True function' : 'Vraie fonction'}</text>
+        <rect x="0" y="14" width="12" height="3" class="tangent" /><text x="18" y="18" class="leg">{$language === 'en' ? 'Tangent (FOCE)' : 'Tangente (FOCE)'}</text>
       </g>
     </g>
   </svg>

@@ -4,6 +4,7 @@
   // courbe 1-compartiment en référence (même CL, même V central).
   import { scaleLinear, scaleLog } from 'd3-scale';
   import { concTwoComp, concMono } from '$lib/utils/math';
+  import { language } from '$lib/stores/language';
 
   let dose = 150;
   let cl = 6;   // L/h
@@ -46,15 +47,15 @@
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="25" max="400" step="5" bind:value={dose} /></label>
     <label class="s"><span>CL (L/h)</span><strong>{cl}</strong><input type="range" min="2" max="20" step="0.5" bind:value={cl} /></label>
     <label class="s"><span>Q (L/h)</span><strong>{q}</strong><input type="range" min="1" max="25" step="0.5" bind:value={q} /></label>
-    <label class="s"><span>V1 central (L)</span><strong>{v1}</strong><input type="range" min="5" max="40" step="1" bind:value={v1} /></label>
-    <label class="s"><span>V2 périph. (L)</span><strong>{v2}</strong><input type="range" min="10" max="120" step="1" bind:value={v2} /></label>
+    <label class="s"><span>V1 {$language === 'en' ? 'central' : 'central'} (L)</span><strong>{v1}</strong><input type="range" min="5" max="40" step="1" bind:value={v1} /></label>
+    <label class="s"><span>V2 {$language === 'en' ? 'peripheral' : 'périph.'} (L)</span><strong>{v2}</strong><input type="range" min="10" max="120" step="1" bind:value={v2} /></label>
     <div class="toggles">
-      <button class:on={logScale} on:click={() => (logScale = !logScale)}>{logScale ? 'Semi-log' : 'Linéaire'}</button>
-      <label class="chk"><input type="checkbox" bind:checked={showMono} /> Réf. 1-cmt</label>
+      <button class:on={logScale} on:click={() => (logScale = !logScale)}>{logScale ? 'Semi-log' : ($language === 'en' ? 'Linear' : 'Linéaire')}</button>
+      <label class="chk"><input type="checkbox" bind:checked={showMono} /> {$language === 'en' ? '1-cpt reference' : 'Réf. 1-cmt'}</label>
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Modèle bi-compartimental">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Two-compartment model' : 'Modèle bi-compartimental'}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each yTicks as t}
         <line x1="0" x2={iW} y1={y(t)} y2={y(t)} class="grid" />
@@ -66,17 +67,17 @@
       <path d={twoPath} class="two" />
 
       <!-- annotations de phases -->
-      <text x={x(1.5)} y={14} class="ann alpha">phase α (distribution)</text>
-      <text x={x(tEnd * 0.55)} y={y(c0 * (logScale ? 0.12 : 0.35)) - 6} class="ann beta">phase β (élimination)</text>
+      <text x={x(1.5)} y={14} class="ann alpha">{$language === 'en' ? 'α phase (distribution)' : 'phase α (distribution)'}</text>
+      <text x={x(tEnd * 0.55)} y={y(c0 * (logScale ? 0.12 : 0.35)) - 6} class="ann beta">{$language === 'en' ? 'β phase (elimination)' : 'phase β (élimination)'}</text>
 
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
-      <text x={iW / 2} y={iH + 40} class="lbl">Temps (h)</text>
+      <text x={iW / 2} y={iH + 40} class="lbl">{$language === 'en' ? 'Time (h)' : 'Temps (h)'}</text>
       <text transform={`translate(-44,${iH / 2}) rotate(-90)`} class="lbl">Concentration{logScale ? ' (log)' : ''}</text>
 
       <g class="legend" transform={`translate(${iW - 130},2)`}>
-        <rect x="0" y="0" width="14" height="3" class="two" /><text x="20" y="4" class="leg">2 compartiments</text>
-        {#if showMono}<rect x="0" y="15" width="14" height="3" class="mono" /><text x="20" y="19" class="leg">1 compartiment</text>{/if}
+        <rect x="0" y="0" width="14" height="3" class="two" /><text x="20" y="4" class="leg">2 {$language === 'en' ? 'compartments' : 'compartiments'}</text>
+        {#if showMono}<rect x="0" y="15" width="14" height="3" class="mono" /><text x="20" y="19" class="leg">1 {$language === 'en' ? 'compartment' : 'compartiment'}</text>{/if}
       </g>
     </g>
   </svg>

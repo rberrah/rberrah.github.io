@@ -3,14 +3,15 @@
   // à chaque approche. Style aligné sur le deck (cartes propres, couleurs du thème).
   import { fade } from 'svelte/transition';
   import { reducedMotion } from '$lib/motion/reducedMotion';
+  import { language } from '$lib/stores/language';
 
   const approaches = [
-    { id: 'nca', label: 'NCA', tag: 'Descriptif', accent: 'var(--accent-pk)',
-      tagline: 'Analyse non compartimentale', blurb: "Laisse parler les données : AUC, Cmax, T½ par la règle des trapèzes. Robuste mais ne prédit pas." },
-    { id: 'poppk', label: 'PopPK', tag: 'Prédictif', accent: 'var(--accent-pd)',
-      tagline: 'PK de population', blurb: "Top-down : estime les paramètres typiques et la variabilité, permet la simulation. Le standard du cours." },
-    { id: 'pbpk', label: 'PBPK', tag: 'Mécaniste', accent: 'var(--accent-ai)',
-      tagline: 'Physiologiquement fondé', blurb: "Bottom-up : un compartiment par organe relié par les débits sanguins. Puissant mais gourmand en hypothèses." }
+    { id: 'nca', label: 'NCA', tag: ['Descriptif', 'Descriptive'], accent: 'var(--accent-pk)',
+      tagline: ['Analyse non compartimentale', 'Noncompartmental analysis'], blurb: ["Laisse parler les données : AUC, Cmax, T½ par la règle des trapèzes. Robuste mais ne prédit pas.", 'Lets the data speak: AUC, Cmax and half-life by the trapezoidal rule. Robust, but not predictive.'] },
+    { id: 'poppk', label: 'PopPK', tag: ['Prédictif', 'Predictive'], accent: 'var(--accent-pd)',
+      tagline: ['PK de population', 'Population PK'], blurb: ["Top-down : estime les paramètres typiques et la variabilité, permet la simulation. Le standard du cours.", 'Top-down: estimates typical parameters and variability, and enables simulation. The course standard.'] },
+    { id: 'pbpk', label: 'PBPK', tag: ['Mécaniste', 'Mechanistic'], accent: 'var(--accent-ai)',
+      tagline: ['Physiologiquement fondé', 'Physiology-based'], blurb: ["Bottom-up : un compartiment par organe relié par les débits sanguins. Puissant mais gourmand en hypothèses.", 'Bottom-up: one compartment per organ connected by blood flows. Powerful, but assumption intensive.'] }
   ];
   let active = 'nca';
   $: current = approaches.find((a) => a.id === active) ?? approaches[0];
@@ -43,10 +44,10 @@
 
   // --- PBPK : schéma d'organes ---
   const organs = [
-    { x: 250, y: 24, label: 'Poumon' },
-    { x: 250, y: 150, label: 'Foie' },
-    { x: 360, y: 60, label: 'Rein' },
-    { x: 360, y: 120, label: 'Tissus' }
+    { x: 250, y: 24, label: ['Poumon', 'Lung'] },
+    { x: 250, y: 150, label: ['Foie', 'Liver'] },
+    { x: 360, y: 60, label: ['Rein', 'Kidney'] },
+    { x: 360, y: 120, label: ['Tissus', 'Tissues'] }
   ];
 </script>
 
@@ -58,9 +59,9 @@
         style={`--c:${a.accent}`}
         on:click={() => (active = a.id)}
       >
-        <span class="tag">{a.tag}</span>
+        <span class="tag">{a.tag[$language === 'en' ? 1 : 0]}</span>
         <strong>{a.label}</strong>
-        <span class="tagline">{a.tagline}</span>
+        <span class="tagline">{a.tagline[$language === 'en' ? 1 : 0]}</span>
       </button>
     {/each}
   </div>
@@ -77,23 +78,23 @@
               {/each}
               <path d={ncaCurve} class="line" />
               {#each ncaPts as p}<circle cx={nx(p.t)} cy={ny(p.c)} r="3.5" class="dot" />{/each}
-              <text x={iW * 0.62} y={30} class="ann">AUC = Σ trapèzes</text>
+              <text x={iW * 0.62} y={30} class="ann">AUC = Σ {$language === 'en' ? 'trapezoids' : 'trapèzes'}</text>
             {:else if active === 'poppk'}
               {#each etas as e}
                 <path d={popCurve(0.22 * Math.exp(e))} class="thin" />
               {/each}
               <path d={popCurve(0.22)} class="line" />
-              <text x={iW * 0.5} y={20} class="ann">médiane + variabilité (spaghetti)</text>
+              <text x={iW * 0.5} y={20} class="ann">{$language === 'en' ? 'median + variability (spaghetti)' : 'médiane + variabilité (spaghetti)'}</text>
             {:else}
               <!-- PBPK : sang central + organes -->
               <rect x="70" y="70" width="90" height="52" rx="8" class="node central" />
-              <text x="115" y="100" class="nlabel">Sang</text>
+              <text x="115" y="100" class="nlabel">{$language === 'en' ? 'Blood' : 'Sang'}</text>
               {#each organs as o}
                 <line x1="160" y1="96" x2={o.x} y2={o.y + 16} class="flow" />
                 <rect x={o.x} y={o.y} width="86" height="32" rx="6" class="node" />
-                <text x={o.x + 43} y={o.y + 20} class="nlabel">{o.label}</text>
+                <text x={o.x + 43} y={o.y + 20} class="nlabel">{o.label[$language === 'en' ? 1 : 0]}</text>
               {/each}
-              <text x="70" y={iH + 6} class="ann">un compartiment par organe, relié par les débits</text>
+              <text x="70" y={iH + 6} class="ann">{$language === 'en' ? 'one compartment per organ, connected by flows' : 'un compartiment par organe, relié par les débits'}</text>
             {/if}
             <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
             <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -103,7 +104,7 @@
     {/key}
   </div>
 
-  <p class="blurb" style={`--c:${current.accent}`}>{current.blurb}</p>
+  <p class="blurb" style={`--c:${current.accent}`}>{current.blurb[$language === 'en' ? 1 : 0]}</p>
 </div>
 
 <style>

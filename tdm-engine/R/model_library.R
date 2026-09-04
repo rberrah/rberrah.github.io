@@ -72,7 +72,7 @@ read_library_code <- function(model_id) {
 
 parse_covariates <- function(code) {
   lines <- strsplit(code, "\n", fixed = TRUE)[[1]]
-  starts <- which(grepl("^\\s*\\$PARAM.*@covariates", lines, ignore.case = TRUE))
+  starts <- which(grepl("^\\s*(?:\\$PARAM|\\[PARAM\\]).*@covariates", lines, ignore.case = TRUE, perl = TRUE))
   if (!length(starts)) {
     return(data.frame(name = character(), value = numeric(), description = character()))
   }
@@ -81,7 +81,7 @@ parse_covariates <- function(code) {
   index <- 1L
   for (start in starts) {
     following <- if (start < length(lines)) seq.int(start + 1L, length(lines)) else integer()
-    stop_at <- following[grepl("^\\s*\\$[A-Za-z]", lines[following])][1]
+    stop_at <- following[grepl("^\\s*(?:\\$[A-Za-z]|\\[[A-Za-z]+\\])", lines[following], perl = TRUE)][1]
     if (is.na(stop_at)) stop_at <- length(lines) + 1L
     block <- lines[seq.int(start + 1L, stop_at - 1L)]
 

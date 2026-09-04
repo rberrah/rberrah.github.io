@@ -33,6 +33,7 @@ test('un chapitre affiche titre, visualisation et exercices', async ({ page }) =
 
 test('la page exercices permet de répondre', async ({ page }) => {
   await page.goto('/exercices');
+  await page.waitForLoadState('networkidle');
   const firstOption = page.locator('.opt').first();
   await expect(firstOption).toBeVisible();
   await firstOption.click();
@@ -48,7 +49,15 @@ test('la page Pour aller plus loin liste des liens externes', async ({ page }) =
 
 test('le sélecteur de langue bascule en anglais', async ({ page }) => {
   await page.goto('/chapitres');
-  await page.getByRole('button', { name: /EN|English/i }).first().click().catch(() => {});
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('button', { name: /EN|English/i }).first().click();
   // le titre de section « Chapters » (EN) ou un libellé de parcours anglais apparaît
   await expect(page.locator('body')).toContainText(/Chapters|Track|Course/i);
+});
+
+test('les libellés scientifiques des visualisations passent en anglais', async ({ page }) => {
+  await page.goto('/chapitres/infectio-pkpd?lang=en');
+  await expect(page.getByTestId('viz-panel')).toContainText('MIC (mg/L)');
+  await expect(page.getByTestId('viz-panel')).not.toContainText('CMI (mg/L)');
+  await expect(page.getByTestId('viz-panel').locator('svg')).toContainText('Time (h)');
 });

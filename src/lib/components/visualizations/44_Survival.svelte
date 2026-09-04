@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Courbes de survie OS et PFS (modèle paramétrique de Weibull) avec effet traitement.
   //   S(t) = exp(−(t/λ)^k) ,  hasard h(t) = (k/λ)(t/λ)^(k−1)
   // La PFS (progression) survient plus tôt que l'OS (décès) : hasard plus élevé.
@@ -42,29 +43,29 @@
   <div class="controls">
     <label class="s"><span>Hazard ratio (HR)</span><strong>{hr.toFixed(2)}</strong><input type="range" min="0.3" max="1" step="0.05" bind:value={hr} /></label>
     <div class="readout">
-      <div><span>Médiane PFS (traité)</span><strong>{mPfsTrt.toFixed(1)} mois</strong></div>
-      <div><span>Médiane OS (traité)</span><strong>{mOsTrt >= T ? '> ' : ''}{Math.min(mOsTrt, T).toFixed(1)} mois</strong></div>
-      <div><span>Effet</span><strong>{hr < 1 ? 'bénéfice' : 'nul'}</strong></div>
+      <div><span>{$language === 'en' ? 'Median PFS (treated)' : 'Médiane PFS (traité)'}</span><strong>{mPfsTrt.toFixed(1)} {$language === 'en' ? 'months' : 'mois'}</strong></div>
+      <div><span>{$language === 'en' ? 'Median OS (treated)' : 'Médiane OS (traité)'}</span><strong>{mOsTrt >= T ? '> ' : ''}{Math.min(mOsTrt, T).toFixed(1)} {$language === 'en' ? 'months' : 'mois'}</strong></div>
+      <div><span>{$language === 'en' ? 'Effect' : 'Effet'}</span><strong>{hr < 1 ? ($language === 'en' ? 'benefit' : 'bénéfice') : ($language === 'en' ? 'none' : 'nul')}</strong></div>
     </div>
-    <p class="hint">La PFS chute avant l'OS. Un HR &lt; 1 (traitement efficace) décale les deux courbes vers la droite : la survie médiane augmente.</p>
+    <p class="hint">{$language === 'en' ? 'PFS declines before OS. An HR below 1 shifts both curves to the right and increases median survival.' : "La PFS chute avant l'OS. Un HR < 1 (traitement efficace) décale les deux courbes vers la droite : la survie médiane augmente."}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Courbes de survie OS et PFS">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'OS and PFS survival curves' : 'Courbes de survie OS et PFS'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={yS(0.5)} y2={yS(0.5)} class="med" />
-      <text x="2" y={yS(0.5) - 4} class="medlbl">médiane</text>
+      <text x="2" y={yS(0.5) - 4} class="medlbl">{$language === 'en' ? 'median' : 'médiane'}</text>
       <path d={path(pfsCtrl)} class="ctrl" />
       <path d={path(osCtrl)} class="ctrl" />
       <path d={path(pfsTrt)} class="pfs" />
       <path d={path(osTrt)} class="os" />
-      <text x={iW / 2} y={iH + 32} class="lbl">Temps (mois)</text>
-      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">Probabilité de survie</text>
+      <text x={iW / 2} y={iH + 32} class="lbl">{$language === 'en' ? 'Time (months)' : 'Temps (mois)'}</text>
+      <text transform={`translate(-32,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Survival probability' : 'Probabilité de survie'}</text>
       <g class="legend" transform={`translate(${iW - 118},2)`}>
-        <rect x="0" y="0" width="12" height="3" class="pfs" /><text x="18" y="4" class="leg">PFS (traité)</text>
-        <rect x="0" y="15" width="12" height="3" class="os" /><text x="18" y="19" class="leg">OS (traité)</text>
-        <rect x="0" y="30" width="12" height="3" class="ctrl" /><text x="18" y="34" class="leg">Témoin</text>
+        <rect x="0" y="0" width="12" height="3" class="pfs" /><text x="18" y="4" class="leg">PFS ({$language === 'en' ? 'treated' : 'traité'})</text>
+        <rect x="0" y="15" width="12" height="3" class="os" /><text x="18" y="19" class="leg">OS ({$language === 'en' ? 'treated' : 'traité'})</text>
+        <rect x="0" y="30" width="12" height="3" class="ctrl" /><text x="18" y="34" class="leg">{$language === 'en' ? 'Control' : 'Témoin'}</text>
       </g>
     </g>
   </svg>

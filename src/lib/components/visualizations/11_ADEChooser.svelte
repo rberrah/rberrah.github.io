@@ -6,6 +6,7 @@
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
+  import { language } from '$lib/stores/language';
 
   let dose = 200;
   let ka = 1.2;
@@ -61,7 +62,7 @@
 
 <div class="ade">
   <div class="toggles">
-    <label><input type="checkbox" bind:checked={order0} /> Ordre 0 (perfusion)</label>
+    <label><input type="checkbox" bind:checked={order0} /> {$language === 'en' ? 'Zero order (infusion)' : 'Ordre 0 (perfusion)'}</label>
     {#if order0}
       <Slider label="Durée perf (h)" min={0.5} max={6} step={0.1} bind:value={infusionDuration} />
     {:else}

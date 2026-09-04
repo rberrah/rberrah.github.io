@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Mise à jour bayésienne (conjuguée gaussienne) sur un paramètre individuel,
   // ex. la clairance CL d'un patient :
   //   a priori  N(CLpop, ω²)   ×   vraisemblance  N(mesure, σ²)   →   a posteriori
@@ -45,16 +46,16 @@
   <div class="controls">
     <label class="s"><span>CLpop (a priori)</span><strong>{clPop.toFixed(1)}</strong><input type="range" min="2" max="12" step="0.5" bind:value={clPop} /></label>
     <label class="s"><span>ω (IIV a priori)</span><strong>{omega.toFixed(1)}</strong><input type="range" min="0.5" max="4" step="0.1" bind:value={omega} /></label>
-    <label class="s"><span>Mesure patient</span><strong>{obs.toFixed(1)}</strong><input type="range" min="2" max="14" step="0.5" bind:value={obs} /></label>
-    <label class="s"><span>σ (incert. données)</span><strong>{sigma.toFixed(1)}</strong><input type="range" min="0.3" max="4" step="0.1" bind:value={sigma} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Patient measurement' : 'Mesure patient'}</span><strong>{obs.toFixed(1)}</strong><input type="range" min="2" max="14" step="0.5" bind:value={obs} /></label>
+    <label class="s"><span>σ ({$language === 'en' ? 'data uncertainty' : 'incert. données'})</span><strong>{sigma.toFixed(1)}</strong><input type="range" min="0.3" max="4" step="0.1" bind:value={sigma} /></label>
     <div class="readout">
-      <div><span>CL a posteriori</span><strong>{muPost.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'Posterior CL' : 'CL a posteriori'}</span><strong>{muPost.toFixed(2)}</strong></div>
       <div><span>Shrinkage</span><strong>{(shrink * 100).toFixed(0)} %</strong></div>
     </div>
-    <p class="hint">Augmentez σ (données pauvres) : la vraisemblance s'aplatit, l'a posteriori revient vers la population — c'est le <em>shrinkage</em>.</p>
+    <p class="hint">{#if $language === 'en'}Increase σ for sparse or imprecise data: the likelihood flattens and the posterior returns toward the population. This is <em>shrinkage</em>.{:else}Augmentez σ (données pauvres) : la vraisemblance s'aplatit, l'a posteriori revient vers la population — c'est le <em>shrinkage</em>.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="A priori, vraisemblance et a posteriori">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Prior, likelihood and posterior' : 'A priori, vraisemblance et a posteriori'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <path d={priorPath} class="prior" />
@@ -63,11 +64,11 @@
       <line x1={xt(clPop)} x2={xt(clPop)} y1={yv(1)} y2={iH} class="mk prior" />
       <line x1={xt(obs)} x2={xt(obs)} y1={yv(1)} y2={iH} class="mk like" />
       <line x1={xt(muPost)} x2={xt(muPost)} y1={yv(1)} y2={iH} class="mk post" />
-      <text x={iW / 2} y={iH + 34} class="lbl">Clairance CL (L/h)</text>
+      <text x={iW / 2} y={iH + 34} class="lbl">{$language === 'en' ? 'Clearance CL (L/h)' : 'Clairance CL (L/h)'}</text>
       <g class="legend" transform="translate(6,2)">
-        <rect x="0" y="0" width="12" height="3" class="prior" /><text x="17" y="4" class="leg">a priori (pop.)</text>
-        <rect x="0" y="15" width="12" height="3" class="like" /><text x="17" y="19" class="leg">vraisemblance</text>
-        <rect x="0" y="30" width="12" height="3" class="post" /><text x="17" y="34" class="leg">a posteriori</text>
+        <rect x="0" y="0" width="12" height="3" class="prior" /><text x="17" y="4" class="leg">{$language === 'en' ? 'prior (pop.)' : 'a priori (pop.)'}</text>
+        <rect x="0" y="15" width="12" height="3" class="like" /><text x="17" y="19" class="leg">{$language === 'en' ? 'likelihood' : 'vraisemblance'}</text>
+        <rect x="0" y="30" width="12" height="3" class="post" /><text x="17" y="34" class="leg">{$language === 'en' ? 'posterior' : 'a posteriori'}</text>
       </g>
     </g>
   </svg>

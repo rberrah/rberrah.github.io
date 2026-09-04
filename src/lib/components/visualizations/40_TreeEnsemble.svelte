@@ -1,4 +1,5 @@
 <script>
+  import { language } from '$lib/stores/language';
   // Ensembles d'arbres sur une régression 1D : arbre unique, forêt aléatoire, boosting.
   // Illustre pourquoi un ARBRE fait des marches, pourquoi une FORÊT lisse en moyennant,
   // et pourquoi le BOOSTING affine séquentiellement en corrigeant les résidus.
@@ -78,7 +79,7 @@
   })();
 
   $: knobMax = mode === 'tree' ? 6 : 40;
-  $: knobLabel = mode === 'tree' ? 'Profondeur' : mode === 'forest' ? 'Nombre d’arbres' : 'Itérations';
+  $: knobLabel = mode === 'tree' ? ($language === 'en' ? 'Depth' : 'Profondeur') : mode === 'forest' ? ($language === 'en' ? 'Number of trees' : 'Nombre d’arbres') : ($language === 'en' ? 'Iterations' : 'Itérations');
   /** @param {string} m */
   function setMode(m) { mode = m; knob = m === 'tree' ? 3 : 20; }
 
@@ -95,19 +96,19 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'tree'} on:click={() => setMode('tree')}>Arbre</button>
-      <button class:on={mode === 'forest'} on:click={() => setMode('forest')}>Forêt</button>
+      <button class:on={mode === 'tree'} on:click={() => setMode('tree')}>{$language === 'en' ? 'Tree' : 'Arbre'}</button>
+      <button class:on={mode === 'forest'} on:click={() => setMode('forest')}>{$language === 'en' ? 'Forest' : 'Forêt'}</button>
       <button class:on={mode === 'boost'} on:click={() => setMode('boost')}>Boosting</button>
     </div>
     <label class="s"><span>{knobLabel}</span><strong>{knob}</strong><input type="range" min="1" max={knobMax} step="1" bind:value={knob} /></label>
     <div class="readout">
-      {#if mode === 'tree'}<p>Un seul arbre : fonction <em>en marches</em>. Plus profond = plus de marches, mais on colle au bruit (surajustement).</p>
-      {:else if mode === 'forest'}<p>Forêt : on <em>moyenne</em> beaucoup d'arbres (bootstrap). Le résultat se lisse et généralise mieux.</p>
-      {:else}<p>Boosting : chaque petit arbre corrige les <em>résidus</em> du précédent. L'ajustement s'affine itération après itération.</p>{/if}
+      {#if mode === 'tree'}<p>{$language === 'en' ? 'A single tree is a step function. Greater depth adds steps but can fit noise (overfitting).' : 'Un seul arbre : fonction en marches. Plus profond = plus de marches, mais on colle au bruit (surajustement).'}</p>
+      {:else if mode === 'forest'}<p>{$language === 'en' ? 'A forest averages many bootstrap trees. The result is smoother and generalizes better.' : "Forêt : on moyenne beaucoup d'arbres (bootstrap). Le résultat se lisse et généralise mieux."}</p>
+      {:else}<p>{$language === 'en' ? 'Boosting uses each small tree to correct the previous residuals. The fit improves one iteration at a time.' : "Boosting : chaque petit arbre corrige les résidus du précédent. L'ajustement s'affine itération après itération."}</p>{/if}
     </div>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label="Ajustement d'un ensemble d'arbres">
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tree ensemble fit' : "Ajustement d'un ensemble d'arbres"}>
     <g transform={`translate(${mrg.left},${mrg.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -115,10 +116,10 @@
       {#each data as p}<circle cx={xt(p.x)} cy={yv(p.y)} r="3" class="pt" />{/each}
       <path d={pathFit} class="fit" />
       <text x={iW / 2} y={iH + 32} class="lbl">Variable x</text>
-      <text transform={`translate(-30,${iH / 2}) rotate(-90)`} class="lbl">Réponse y</text>
+      <text transform={`translate(-30,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Response y' : 'Réponse y'}</text>
       <g class="legend" transform="translate(6,2)">
-        <rect x="0" y="0" width="12" height="3" class="fit" /><text x="18" y="4" class="leg">Modèle</text>
-        <rect x="0" y="14" width="12" height="3" class="truth" /><text x="18" y="18" class="leg">Vraie fonction</text>
+        <rect x="0" y="0" width="12" height="3" class="fit" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Model' : 'Modèle'}</text>
+        <rect x="0" y="14" width="12" height="3" class="truth" /><text x="18" y="18" class="leg">{$language === 'en' ? 'True function' : 'Vraie fonction'}</text>
       </g>
     </g>
   </svg>
