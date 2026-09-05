@@ -39,6 +39,33 @@ model_supports_route <- function(record, route) {
   route %in% model_routes(record)
 }
 
+model_administration_modes <- function(record, route = NULL) {
+  values <- record$administrationModes
+  if (is.list(values)) values <- values[[1]]
+  values <- unique(as.character(values[!is.na(values) & nzchar(values)]))
+  if (is.null(route)) return(values)
+  values[if (identical(route, "Oral")) values == "ORAL" else startsWith(values, "IV_")]
+}
+
+model_administration_mode <- function(record, route) {
+  modes <- model_administration_modes(record, route)
+  if (length(modes) != 1L) stop("The model must declare exactly one administration mode for route ", route, ".")
+  modes[[1]]
+}
+
+model_supports_administration_mode <- function(record, route, mode) {
+  model_supports_route(record, route) && mode %in% model_administration_modes(record, route)
+}
+
+administration_mode_label <- function(mode, lang = "fr") {
+  labels <- if (identical(lang, "en")) {
+    c(ORAL = "Oral", IV_INTERMITTENT = "Intermittent IV", IV_CONTINUOUS = "Continuous IV")
+  } else {
+    c(ORAL = "Orale", IV_INTERMITTENT = "IV intermittente", IV_CONTINUOUS = "IV continue")
+  }
+  unname(labels[[mode]] %||% mode)
+}
+
 model_administration_cmt <- function(record, route) {
   column <- if (identical(route, "Oral")) "oralCmt" else "ivCmt"
   value <- record[[column]]
@@ -48,11 +75,15 @@ model_administration_cmt <- function(record, route) {
   value
 }
 
-catalog_choices <- function(drug = NULL, route = NULL) {
+catalog_choices <- function(drug = NULL, route = NULL, mode = NULL) {
   rows <- MODEL_CATALOG
   if (!is.null(drug)) rows <- rows[rows$drug == drug, , drop = FALSE]
   if (!is.null(route)) {
     keep <- vapply(seq_len(nrow(rows)), function(index) model_supports_route(rows[index, , drop = FALSE], route), logical(1))
+    rows <- rows[keep, , drop = FALSE]
+  }
+  if (!is.null(mode)) {
+    keep <- vapply(seq_len(nrow(rows)), function(index) model_supports_administration_mode(rows[index, , drop = FALSE], route, mode), logical(1))
     rows <- rows[keep, , drop = FALSE]
   }
   stats::setNames(rows$id, rows$label)

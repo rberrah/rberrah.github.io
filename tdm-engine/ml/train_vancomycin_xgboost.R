@@ -171,8 +171,8 @@ simulate_rich_profile <- function(model_id, covariates, eta, regimen, delta = 0.
 
 add_observation_error <- function(concentrations, model_id) {
   sigma <- diag(as.matrix(mrgsolve::smat(compiled_model(model_id))))
-  proportional_sd <- if (length(sigma) >= 1L) sqrt(max(0, sigma[[1]])) else 0
-  additive_sd <- if (length(sigma) >= 2L) sqrt(max(0, sigma[[2]])) else 0
+  proportional_sd <- sqrt(max(0, sigma[[1]]))
+  additive_sd <- sqrt(max(0, sigma[[2]]))
   pmax(
     0.001,
     concentrations * (1 + stats::rnorm(length(concentrations), 0, proportional_sd)) +
@@ -227,6 +227,7 @@ vancomycin_specifications <- function() {
       label = record$label[[1]],
       code = NULL,
       route = "IV",
+      mode = if (identical(mode_argument, "continuous")) "IV_CONTINUOUS" else "IV_INTERMITTENT",
       adm_cmt_name = model_administration_cmt(record, "IV")
     )
   })
@@ -249,7 +250,10 @@ fit_sparse_benchmarks <- function(base_id, covariates, regimen, observations) {
     allow_custom = FALSE
   )
   valid <- successful_fits(fits)
-  if (!base_id %in% names(valid)) stop("Sparse MAP failed for ", base_id, ".")
+  if (!base_id %in% names(valid)) {
+    detail <- fits[[base_id]]$message %||% "unknown MAP error"
+    stop("Sparse MAP failed for ", base_id, ": ", detail)
+  }
   weights <- compute_model_weights(fits, "AIC")
   base_profile <- simulate_regimen(
     valid[[base_id]],

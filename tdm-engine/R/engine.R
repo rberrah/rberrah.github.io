@@ -39,8 +39,16 @@ carry_covariates <- function(event_times, covariate_history, covariates) {
   as.data.frame(output, check.names = FALSE)
 }
 
+normalize_steady_state_doses <- function(doses) {
+  if (!nrow(doses)) return(doses)
+  dose_ss <- if ("ss" %in% names(doses)) suppressWarnings(as.integer(doses$ss)) else rep(0L, nrow(doses))
+  doses$time[dose_ss == 1L] <- 0
+  doses
+}
+
 build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL) {
   if (!nrow(doses)) stop("At least one administered dose is required.")
+  doses <- normalize_steady_state_doses(doses)
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
   if (any(!dose_ss %in% c(0L, 1L)) || any(dose_ss == 1L & doses$interval <= 0)) {
     stop("Steady-state doses require ss = 1 and a positive interval.")
@@ -88,6 +96,9 @@ validate_model_route_set <- function(specifications) {
   routes <- unique(vapply(specifications, function(item) as.character(item$route %||% ""), character(1)))
   routes <- routes[nzchar(routes)]
   if (length(routes) > 1L) stop("Model averaging is only allowed for models using the same administration route.")
+  modes <- unique(vapply(specifications, function(item) as.character(item$mode %||% ""), character(1)))
+  modes <- modes[nzchar(modes)]
+  if (length(modes) > 1L) stop("Model averaging is only allowed for models using the same administration mode.")
   invisible(if (length(routes)) routes[[1]] else "")
 }
 
@@ -184,6 +195,7 @@ fit_model_set <- function(
   custom_cache = NULL
 ) {
   validate_model_route_set(specifications)
+  doses <- normalize_steady_state_doses(doses)
   fits <- lapply(specifications, function(specification) {
     tryCatch(
       fit_one_model(
@@ -509,6 +521,7 @@ recommend_regimens <- function(
 }
 
 regimen_context <- function(doses, observations = data.frame()) {
+  doses <- normalize_steady_state_doses(doses)
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
   last_administration <- doses$time + ifelse(dose_ss == 1L, 0, doses$interval * pmax(0, doses$count - 1))
   regimen <- doses[which.max(last_administration), , drop = FALSE]

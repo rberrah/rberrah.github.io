@@ -7,6 +7,7 @@
 
   let query = $state('');
   let selectedDrug = $state('all');
+  let selectedAdministration = $state('all');
 
   const repoIssueUrl = 'https://github.com/rberrah/rberrah.github.io/issues/new?template=tdm-model.yml';
   const tdmxUrl = 'https://www.tdmx.eu/';
@@ -20,6 +21,8 @@
     population: $language === 'en' ? model.populationEn : model.population,
     populationTags: $language === 'en' ? model.populationTagsEn : model.populationTags,
     modelType: $language === 'en' ? model.modelTypeEn : model.modelType,
+    administrationCategories: $language === 'en' ? model.administrationCategoriesEn : model.administrationCategories,
+    implementationStatusLabel: $language === 'en' ? model.implementationStatusLabelEn : model.implementationStatusLabel,
     note: $language === 'en' ? model.noteEn : model.note
   });
   let drugs = $derived([
@@ -30,6 +33,10 @@
         return { key, label: model ? ($language === 'en' ? model.drugEn : model.drug) : key };
       })
       .sort((a, b) => a.label.localeCompare(b.label, $language === 'en' ? 'en' : 'fr'))
+  ]);
+  let administrationModes = $derived([
+    { key: 'all', label: copy.all },
+    ...Object.entries(copy.administrationModes).map(([key, label]) => ({ key, label }))
   ]);
   let filteredModels = $derived(
     tdmModels.filter((model) => {
@@ -45,7 +52,8 @@
       ].filter(Boolean).join(' ').toLowerCase();
       const matchesQuery = haystack.includes(query.trim().toLowerCase());
       const matchesDrug = selectedDrug === 'all' || model.drugKey === selectedDrug;
-      return matchesQuery && matchesDrug;
+      const matchesAdministration = selectedAdministration === 'all' || model.administrationModes.includes(selectedAdministration);
+      return matchesQuery && matchesDrug && matchesAdministration;
     })
   );
 </script>
@@ -142,6 +150,14 @@
         {/each}
       </select>
     </label>
+    <label>
+      <span>{copy.administration}</span>
+      <select bind:value={selectedAdministration}>
+        {#each administrationModes as mode}
+          <option value={mode.key}>{mode.label}</option>
+        {/each}
+      </select>
+    </label>
   </div>
 
   {#if filteredModels.length}
@@ -152,7 +168,7 @@
           <div class="model-main">
             <div class="model-kicker">
               <span class="drug">{display.drug}</span>
-              <span class="route">{model.routes.join(' + ')}</span>
+              <span class="route">{display.administrationCategories.join(' + ')}</span>
             </div>
             <h3>{model.model}</h3>
             <p class="population">{display.population}</p>
@@ -177,6 +193,7 @@
           <div class="model-meta">
             <div class="model-type">
               <span>{display.modelType}</span>
+              <span>{display.implementationStatusLabel}</span>
             </div>
             <div class="model-actions">
               <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}&lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.use}</a>
@@ -255,7 +272,7 @@
   .section-head { display: flex; justify-content: space-between; gap: var(--space-4); align-items: end; }
   .filters {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) minmax(180px, 260px);
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(180px, 240px));
     gap: var(--space-4);
     margin: var(--space-6) 0;
   }

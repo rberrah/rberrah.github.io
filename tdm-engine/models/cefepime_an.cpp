@@ -5,6 +5,7 @@ $PROB
 
 $PARAM @annotated
 TVCLR    : 2.00   : Clairance Renale Typique (L/h)
+TVCLCRRT : 1.64   : Clairance sous CRRT (L/h)
 TVCLNR   : 0.526  : Clairance Non-Renale Typique (L/h)
 TVVC     : 13.4   : Volume Central Typique (L) à 90 kg TBW
 TVVP     : 7.52   : Volume Périphérique Typique (L)
@@ -22,6 +23,7 @@ WT    : 90   : Poids Total du patient - TBW (kg)
 HT    : 170  : Taille du patient (cm)
 CREAT : 70   : Créatinine Sérique (µmol/L)
 SEX   : 0    : Sexe (0 = Homme, 1 = Femme)
+CRRT  : 0    : Epuration continue (0 = Non, 1 = Oui)
 
 $OMEGA @annotated @diagonal
 // Variances approximées par ln(CV^2 + 1)
@@ -31,7 +33,7 @@ ETA_VP  : 0.02949 : IIV Volume Périphérique (CV 17.3%)
 
 $SIGMA @annotated
 PROP : 0.050176 : Erreur résiduelle proportionnelle (CV 22.4%)
-ADD  : 6.44 : Erreur résiduelle additive (6.44 mg/L)
+ADD  : 41.4736 : Variance résiduelle additive (SD 6.44 mg/L)
 
 $CMT @annotated
 CENT   : Compartiment Central (mg) [ADM, OBS]
@@ -48,7 +50,8 @@ if (LBW < 30.0) { LBW = 30.0; }
 double sex_factor = (SEX == 1) ? 0.85 : 1.0;
 double clcr_calc = sex_factor * (1.23 * (140.0 - AGE) * LBW) / CREAT;
 
-double TVCL = TVCLR * (clcr_calc / REF_CLCR) + TVCLNR; // CL = CLCR + CLNR
+double on_crrt = CRRT >= 0.5 ? 1.0 : 0.0;
+double TVCL = TVCLR * (clcr_calc / REF_CLCR) * (1.0 - on_crrt) + TVCLNR + TVCLCRRT * on_crrt;
 double TVV1 = TVVC  * (WT / REF_WT);
 
 // Individuels
@@ -77,3 +80,4 @@ VC            : Volume Central Individuel (L)
 CP            : Concentration Plasmatique (mg/L)
 LBW           : Poids Maigre Calculé en Interne (kg)
 clcr_calc     : CLCR calculée par Cockcroft-Gault sur LBW (mL/min)
+on_crrt       : Indicateur CRRT utilisé dans la clairance

@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "models": [
     {
       "id": "amik_burdet",
@@ -33,6 +33,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Amikacine",
         "Burdet",
@@ -42,6 +54,11 @@
         "Mechanically ventilated adults in intensive care with ventilator-associated pneumonia.",
         "Amikacin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Ventilé",
@@ -82,6 +99,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Amiodarone",
         "Pollak",
@@ -90,6 +119,10 @@
         "10.1067/mcp.2000.107047",
         "Adults receiving long-term oral amiodarone for cardiac arrhythmia.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Cardiologie",
         "Hors ICU non précisé",
@@ -128,6 +161,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Amoxicilline",
         "Carlier",
@@ -137,6 +182,11 @@
         "Critically ill adults hospitalized in intensive care.",
         "Amoxicillin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Adult"
@@ -174,6 +224,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Amoxicilline",
         "Fournier",
@@ -183,6 +245,11 @@
         "Severely burned adults hospitalized in intensive care.",
         "Amoxicillin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Brûlé",
@@ -224,6 +291,21 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": "DEPOT",
+      "administrationModes": [
+        "IV_INTERMITTENT",
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "IV intermittente",
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV",
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Amoxicilline",
         "Mellon",
@@ -234,6 +316,13 @@
         "Amoxicillin",
         "IV",
         "Oral",
+        "IV_INTERMITTENT",
+        "ORAL",
+        "IV intermittente",
+        "Orale",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Obèse",
         "Hors ICU",
@@ -261,6 +350,9 @@
       ],
       "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "administrationModes": [
+        "IV_CONTINUOUS"
+      ],
       "note": "Le modèle source NPAG est non paramétrique. L'équation CKD-EPI 2009 et le modèle d'erreur publiés sont conservés, mais le prior OMEGA log-normal est une approximation pour MAP/mapbayr.",
       "populationEn": "Adults treated for infective endocarditis.",
       "populationTagsEn": [
@@ -275,6 +367,15 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationCategories": [
+        "IV continue"
+      ],
+      "administrationCategoriesEn": [
+        "Continuous IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Amoxicilline",
         "Rambaud",
@@ -284,6 +385,11 @@
         "Adults treated for infective endocarditis.",
         "Amoxicillin",
         "IV",
+        "IV_CONTINUOUS",
+        "IV continue",
+        "Continuous IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Endocardite",
         "Hors ICU",
@@ -325,6 +431,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Cefazoline",
         "Cheng",
@@ -334,6 +452,11 @@
         "Children undergoing cardiac surgery with cardiopulmonary bypass.",
         "Cefazolin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Pédiatrique",
         "Chirurgie",
         "CEC",
@@ -374,6 +497,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Cefazoline",
         "Lanoiselee",
@@ -383,6 +518,11 @@
         "Adults aged 24 to 91 years undergoing total hip arthroplasty.",
         "Cefazolin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Chirurgie orthopédique",
         "Hors ICU",
@@ -423,6 +563,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Cefazoline",
         "Schmitz",
@@ -432,6 +584,11 @@
         "Pediatric surgical patients, mainly aged 10 to 12 years, with an adult comparison group.",
         "Cefazolin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Pédiatrique",
         "Adulte",
         "Chirurgie",
@@ -458,18 +615,31 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "note": "La branche CRRT publiée (CLCRRT 1,64 L/h) et l'erreur combinée (CV 22,4 %, SD additive 6,44 mg/L) sont implémentées.",
       "populationEn": "Critically ill adults hospitalized in intensive care.",
       "populationTagsEn": [
         "Adult",
         "ICU"
       ],
       "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "noteEn": "The published CRRT branch (CLCRRT 1.64 L/h) and combined error (22.4% CV, additive SD 6.44 mg/L) are implemented.",
       "routes": [
         "IV"
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Cefepime",
         "An",
@@ -478,6 +648,11 @@
         "10.1093/jac/dkad106",
         "Critically ill adults hospitalized in intensive care.",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Adult"
@@ -517,6 +692,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Cefepime",
         "Jonckheere",
@@ -525,6 +712,11 @@
         "10.1093/jac/dkw171",
         "Adults in intensive care, including renal impairment and intermittent hemodialysis.",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Insuffisance rénale",
@@ -568,6 +760,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Cefepime",
         "Seo",
@@ -576,6 +780,11 @@
         "10.3947/ic.2022.0087",
         "Critically ill adults with hospital-acquired or ventilator-associated pneumonia.",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Pneumonie",
@@ -617,6 +826,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_CSA",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Ciclosporine",
         "Press",
@@ -626,6 +847,10 @@
         "Adults in the early period after kidney transplantation.",
         "Cyclosporine",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU",
@@ -667,6 +892,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Cobicistat",
         "Mathias",
@@ -675,6 +912,10 @@
         "10.1038/clpt.2009.228",
         "Healthy adults enrolled in a dose-finding pharmacokinetic study.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Volontaire sain",
         "Hors ICU",
@@ -702,6 +943,7 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "note": "Les branches dialyse/non-dialyse, l'effet du sexe sur CL et l'effet de l'infection sur V2 sont explicites. L'erreur additive correspond à l'essai LC/MS/MS (variance 4,28).",
       "populationEn": "Healthy and infected adults pooled from clinical trials.",
       "populationTagsEn": [
         "Adult",
@@ -709,12 +951,24 @@
         "Non-ICU"
       ],
       "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "noteEn": "Dialysis/non-dialysis branches, the sex effect on CL, and the infection effect on V2 are explicit. Additive error uses the LC/MS/MS assay (variance 4.28).",
       "routes": [
         "IV"
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Daptomycine",
         "Dvorchik IV Adults",
@@ -724,6 +978,11 @@
         "Healthy and infected adults pooled from clinical trials.",
         "Daptomycin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Population mixte",
         "Hors ICU",
@@ -765,6 +1024,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Daptomycine",
         "Garreau",
@@ -774,6 +1045,11 @@
         "Adults treated for bone and joint infection.",
         "Daptomycin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU",
@@ -815,6 +1091,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Diltiazem",
         "Hermann",
@@ -823,6 +1111,10 @@
         "10.1007/BF00610053",
         "Healthy adults after oral and intravenous diltiazem.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Volontaire sain",
         "Hors ICU",
@@ -864,6 +1156,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Érythromycine",
         "Mather",
@@ -873,6 +1177,10 @@
         "Healthy adults in oral absorption and bioavailability studies.",
         "Erythromycin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Volontaire sain",
         "Hors ICU",
@@ -913,6 +1221,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_EVE",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Évérolimus",
         "Moes",
@@ -922,6 +1242,10 @@
         "Adult kidney transplant recipients on a calcineurin-inhibitor-free regimen.",
         "Everolimus",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU",
@@ -964,6 +1288,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_EVE",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Évérolimus",
         "Terheine",
@@ -973,6 +1309,10 @@
         "Adults with metastatic thyroid or breast cancer and adult kidney transplant recipients.",
         "Everolimus",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Cancer",
         "Transplantation rénale",
@@ -1015,6 +1355,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Fluconazole",
         "Debruyne",
@@ -1023,6 +1375,10 @@
         "10.2165/00003088-199324010-00002",
         "Adults from the clinical pharmacokinetic studies summarized in the review.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Population mixte",
         "Hors ICU non précisé",
@@ -1063,6 +1419,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Gentamicine",
         "Franck",
@@ -1072,6 +1440,11 @@
         "Adults, mostly older, receiving chronic hemodialysis.",
         "Gentamicin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Âgé",
         "Hémodialyse",
@@ -1112,6 +1485,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Gentamicine",
         "Gomes",
@@ -1121,6 +1506,11 @@
         "Adults treated for infective endocarditis, excluding dialysis.",
         "Gentamicin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Endocardite",
         "Hors dialyse",
@@ -1161,6 +1551,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Gentamicine",
         "Hodiamont",
@@ -1170,6 +1572,11 @@
         "Adults in intensive care, including hypoalbuminemia and some patients receiving continuous renal replacement therapy.",
         "Gentamicin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "ICU",
         "CRRT",
@@ -1208,6 +1615,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Gentamicine",
         "Rosario Clcr",
@@ -1217,6 +1636,11 @@
         "Adults with cancer; variant using creatinine clearance.",
         "Gentamicin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Cancer",
         "Hors ICU",
@@ -1256,6 +1680,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Gentamicine",
         "Rosario Clinical",
@@ -1265,6 +1701,11 @@
         "Adults with cancer; variant using clinical covariates.",
         "Gentamicin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Cancer",
         "Hors ICU",
@@ -1305,6 +1746,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Isavuconazole",
         "Desai",
@@ -1313,6 +1766,10 @@
         "10.1128/AAC.02819-15",
         "Healthy adults and adults with invasive fungal infection from phase 1 and SECURE trials.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Infection fongique",
         "Population mixte",
@@ -1354,6 +1811,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Isavuconazole",
         "Groll",
@@ -1362,6 +1831,10 @@
         "10.1002/cpdd.284",
         "Healthy adults enrolled in controlled drug-interaction studies.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Volontaire sain",
         "Hors ICU",
@@ -1402,6 +1875,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Levofloxacine",
         "Canoui",
@@ -1411,6 +1896,10 @@
         "Adults treated for bone and joint infection.",
         "Levofloxacin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU",
@@ -1451,6 +1940,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Levofloxacine",
         "Gergs",
@@ -1460,6 +1961,11 @@
         "Adults undergoing elective hip or knee arthroplasty.",
         "Levofloxacin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Chirurgie orthopédique",
         "Hors ICU",
@@ -1503,6 +2009,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Linezolide",
         "Buerger",
@@ -1512,6 +2030,11 @@
         "Mechanically ventilated adults in intensive care with severe sepsis or septic shock.",
         "Linezolid",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "ICU",
         "Sepsis",
@@ -1553,6 +2076,21 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": "GUT",
+      "administrationModes": [
+        "IV_INTERMITTENT",
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "IV intermittente",
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV",
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Linezolide",
         "Sasaki",
@@ -1563,6 +2101,13 @@
         "Linezolid",
         "IV",
         "Oral",
+        "IV_INTERMITTENT",
+        "ORAL",
+        "IV intermittente",
+        "Orale",
+        "Intermittent IV",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Hospitalisé",
         "Hors ICU non précisé",
@@ -1604,6 +2149,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Posaconazole",
         "Dolton",
@@ -1612,6 +2169,10 @@
         "10.1128/AAC.03777-14",
         "Healthy adults and adult patients receiving posaconazole for prophylaxis or treatment.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Infection fongique",
         "Population mixte",
@@ -1655,6 +2216,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Rifampicine",
         "Chang",
@@ -1664,6 +2237,10 @@
         "54 South Korean adults with pulmonary tuberculosis, including 21 with diabetes.",
         "Rifampicin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Tuberculose",
         "Diabète",
@@ -1709,6 +2286,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "TR1",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Rifampicine",
         "Jeremiah",
@@ -1718,6 +2307,10 @@
         "100 Tanzanian adults with pulmonary tuberculosis, with or without HIV.",
         "Rifampicin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Tuberculose",
         "VIH",
@@ -1760,6 +2353,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Rifampicine",
         "Jing",
@@ -1769,6 +2374,10 @@
         "54 Chinese adults receiving oral rifampicin for pulmonary tuberculosis.",
         "Rifampicin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Tuberculose",
         "Hors ICU",
@@ -1810,6 +2419,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Rifampicine",
         "Loos",
@@ -1819,6 +2440,10 @@
         "Healthy adults after chronic oral and intravenous rifampicin.",
         "Rifampicin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Volontaire sain",
         "Hors ICU",
@@ -1859,6 +2484,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "TR",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Rifampicine",
         "Marsot",
@@ -1868,6 +2505,10 @@
         "Adults treated for bone and joint infection, with or without fusidic acid.",
         "Rifampicin",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Infection ostéo-articulaire",
         "Hors ICU",
@@ -1909,6 +2550,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Ritonavir",
         "Kappelhoff",
@@ -1917,6 +2570,10 @@
         "10.1111/j.1365-2125.2004.02241.x",
         "Adults living with HIV-1 receiving ritonavir as a booster or antiviral.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "VIH",
         "Hors ICU",
@@ -1957,6 +2614,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_SIR",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Sirolimus",
         "Djebli",
@@ -1965,6 +2634,10 @@
         "10.2165/00003088-200645110-00007",
         "Adult kidney transplant recipients receiving sirolimus and mycophenolate without a calcineurin inhibitor.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU",
@@ -2005,6 +2678,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_TAC",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Tacrolimus",
         "Kamp Envarsus",
@@ -2013,6 +2698,10 @@
         "10.3390/pharmaceutics16010017",
         "Adult kidney transplant recipients receiving Envarsus tacrolimus.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU",
@@ -2053,6 +2742,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "DEPOT_TAC",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Tacrolimus",
         "Woillard",
@@ -2061,6 +2762,10 @@
         "10.1111/j.1365-2125.2010.03837.x",
         "Adult kidney transplant recipients receiving Prograf or Advagraf.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Transplantation rénale",
         "Hors ICU",
@@ -2101,6 +2806,18 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Vancomycine",
         "Goti",
@@ -2110,6 +2827,11 @@
         "Hospitalized adults with or without hemodialysis.",
         "Vancomycin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "Hospitalisé",
         "Hémodialyse",
@@ -2136,18 +2858,31 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "note": "CRCL est la clairance de créatinine mesurée sur 24 h, comme dans l'article, et non une estimation de Cockcroft-Gault. Le modèle résiduel est additif (SD 4,23 mg/L).",
       "populationEn": "Adults in intensive care; model based on age, renal function and body weight.",
       "populationTagsEn": [
         "Adult",
         "ICU"
       ],
       "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "noteEn": "CRCL is the 24-hour measured creatinine clearance used in the article, not a Cockcroft-Gault estimate. The residual model is additive (SD 4.23 mg/L).",
       "routes": [
         "IV"
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationModes": [
+        "IV_INTERMITTENT"
+      ],
+      "administrationCategories": [
+        "IV intermittente"
+      ],
+      "administrationCategoriesEn": [
+        "Intermittent IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Vancomycine",
         "Pkjust",
@@ -2157,6 +2892,11 @@
         "Adults in intensive care; model based on age, renal function and body weight.",
         "Vancomycin",
         "IV",
+        "IV_INTERMITTENT",
+        "IV intermittente",
+        "Intermittent IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Adult"
@@ -2181,6 +2921,9 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "administrationModes": [
+        "IV_CONTINUOUS"
+      ],
       "note": "La clairance utilise la clairance urinaire de créatinine sur 24 h normalisée à 1,73 m², conformément à l'article.",
       "populationEn": "Adults with sepsis in intensive care receiving vancomycin by continuous infusion.",
       "populationTagsEn": [
@@ -2195,6 +2938,15 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
+      "administrationCategories": [
+        "IV continue"
+      ],
+      "administrationCategoriesEn": [
+        "Continuous IV"
+      ],
+      "implementationStatus": "ARTICLE",
+      "implementationStatusLabel": "Implémentation de l'article",
+      "implementationStatusLabelEn": "Article implementation",
       "tags": [
         "Vancomycine",
         "Roberts",
@@ -2204,6 +2956,11 @@
         "Adults with sepsis in intensive care receiving vancomycin by continuous infusion.",
         "Vancomycin",
         "IV",
+        "IV_CONTINUOUS",
+        "IV continue",
+        "Continuous IV",
+        "Implémentation de l'article",
+        "Article implementation",
         "Adulte",
         "ICU",
         "Sepsis",
@@ -2243,6 +3000,18 @@
       ],
       "ivCmt": null,
       "oralCmt": "GUT",
+      "administrationModes": [
+        "ORAL"
+      ],
+      "administrationCategories": [
+        "Orale"
+      ],
+      "administrationCategoriesEn": [
+        "Oral"
+      ],
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Voriconazole",
         "Vandenborn",
@@ -2251,6 +3020,10 @@
         "10.1016/j.ijantimicag.2023.106750",
         "Adults treated with voriconazole; nonlinear model incorporating CRP.",
         "Oral",
+        "ORAL",
+        "Orale",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Infection fongique",
         "Hospitalisé",

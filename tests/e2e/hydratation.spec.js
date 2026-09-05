@@ -163,9 +163,17 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await expect(card).toHaveCount(1);
   await expect(card.getByRole('heading', { level: 3 })).toHaveText('Woillard');
   await expect(card).toContainText('Article source');
+  await expect(card).toContainText('Orale');
+  await expect(card).toContainText('Adaptation documentée');
   await expect(card).toContainText('Woillard JB et al.');
   await expect(card.getByRole('link', { name: /DOI 10\.1111\/j\.1365-2125\.2010\.03837\.x/ })).toBeVisible();
   await expect(page.locator('body')).not.toContainText('Woillard DDI');
   await expect(page.locator('body')).not.toContainText('DDI Manager+');
   await expect(page.locator('body')).not.toContainText('PopPK Model');
+
+  await page.getByRole('searchbox', { name: 'Recherche' }).fill('');
+  await page.getByRole('combobox', { name: "Voie d'administration" }).selectOption('IV_CONTINUOUS');
+  await expect(page.locator('.model-card')).toHaveCount(2);
+  await expect(page.locator('.model-card')).toContainText(['Rambaud', 'Roberts']);
+  await expect(page.locator('.model-card').first()).toContainText('IV continue');
 });

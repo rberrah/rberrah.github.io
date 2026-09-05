@@ -41,17 +41,20 @@ covariate_history <- data.frame(
   HT = c(175, 175),
   DIAL = c(0, 0)
 )
-model_ids <- c("vanco_goti", "vanco_pkjust", "vanco_roberts")
-specifications <- lapply(model_ids, function(id) {
+model_specification <- function(id) {
   record <- model_record(id)
   list(
     id = id,
     label = record$label[[1]],
     code = NULL,
     route = "IV",
+    mode = model_administration_mode(record, "IV"),
     adm_cmt_name = model_administration_cmt(record, "IV")
   )
-})
+}
+model_ids <- c("vanco_goti", "vanco_pkjust")
+specifications <- lapply(model_ids, model_specification)
+roberts_specification <- list(model_specification("vanco_roberts"))
 
 mellon_record <- model_record("amox_mellon")
 stopifnot(identical(model_routes(mellon_record), c("IV", "Oral")))
@@ -68,6 +71,14 @@ route_error <- tryCatch({
   NULL
 }, error = identity)
 stopifnot(inherits(route_error, "error"))
+mode_error <- tryCatch({
+  validate_model_route_set(list(
+    list(route = "IV", mode = "IV_INTERMITTENT"),
+    list(route = "IV", mode = "IV_CONTINUOUS")
+  ))
+  NULL
+}, error = identity)
+stopifnot(inherits(mode_error, "error"))
 
 fits <- fit_model_set(
   specifications,
@@ -84,10 +95,10 @@ if (length(valid) != length(model_ids)) {
 }
 stopifnot(identical(as.numeric(valid[[1]]$current_covariates$WT), 74))
 
-steady_doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 0, ss = 1)
+steady_doses <- data.frame(time = 36, amount = 1000, interval = 12, count = 1, infusion = 12, ss = 1)
 steady_observations <- data.frame(time = 11.5, concentration = 18)
 steady_fits <- fit_model_set(
-  specifications[match("vanco_roberts", model_ids)],
+  roberts_specification,
   steady_doses,
   steady_observations,
   covariates,
@@ -97,9 +108,25 @@ steady_fits <- fit_model_set(
 steady_valid <- successful_fits(steady_fits)
 if (length(steady_valid) != 1L) stop("The steady-state MAP fit failed: ", steady_fits[[1]]$message %||% "unknown error")
 steady_dose_row <- steady_valid[[1]]$data[steady_valid[[1]]$data$evid == 1, , drop = FALSE]
-stopifnot(nrow(steady_dose_row) == 1L, steady_dose_row$ss[[1]] == 1L, steady_dose_row$addl[[1]] == 0)
+stopifnot(nrow(steady_dose_row) == 1L, steady_dose_row$time[[1]] == 0, steady_dose_row$ss[[1]] == 1L, steady_dose_row$addl[[1]] == 0)
 steady_exposure <- current_regimen_exposure(steady_fits, c(vanco_roberts = 1), steady_doses)
 stopifnot(isTRUE(steady_exposure$steady_state), !isTRUE(steady_exposure$single_dose))
+steady_context <- regimen_context(steady_doses, data.frame(time = 20, concentration = 18))
+stopifnot(steady_context$decision_time == 20, steady_context$future_start == 24)
+steady_comparison <- compare_future_regimens(
+  steady_fits,
+  c(vanco_roberts = 1),
+  steady_doses,
+  data.frame(time = 20, concentration = 18),
+  recommended = data.frame(dose = 750, interval = 12, infusion = 12),
+  additional_doses = 3,
+  delta = 0.2
+)
+stopifnot(
+  steady_comparison$future_start == 24,
+  steady_comparison$additional_doses == 3L,
+  max(steady_comparison$profiles$time) >= 60
+)
 
 weights <- compute_model_weights(fits, scheme = "AIC")
 stopifnot(length(weights) == length(model_ids), abs(sum(weights) - 1) < 1e-8)
@@ -264,7 +291,7 @@ stopifnot(
 )
 
 default_fits <- fit_model_set(
-  specifications[match("vanco_roberts", model_ids)],
+  roberts_specification,
   doses,
   observations,
   list(WT = 74.8, CRCL = 90.7),
@@ -315,6 +342,20 @@ stopifnot(
   abs(runtime_observations[["LAST_TIME"]] - 11.5) < 1e-8,
   identical(unname(runtime_observations[["HAS_PREV"]]), 0)
 )
+
+same_interval_fit <- default_fits[[1]]
+same_interval_fit$source_doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 3, infusion = 1, ss = 0)
+same_interval_fit$source_observations <- data.frame(time = c(3, 8, 25), concentration = c(31, 18, 12))
+same_interval_values <- ml_observation_values(same_interval_fit)
+stopifnot(
+  same_interval_values[["N_OBS"]] == 2,
+  same_interval_values[["PREV_TIME"]] == 3,
+  same_interval_values[["LAST_TIME"]] == 8,
+  same_interval_values[["LAST_CONC"]] == 18
+)
+split_interval_fit <- same_interval_fit
+split_interval_fit$source_observations <- data.frame(time = c(3, 15), concentration = c(31, 18))
+stopifnot(ml_observation_values(split_interval_fit)[["N_OBS"]] == 1)
 
 hash <- model_sha256("vanco_roberts")
 if (!is.na(hash)) {

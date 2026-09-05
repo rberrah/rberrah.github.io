@@ -138,10 +138,15 @@ ml_observation_values <- function(fit) {
   last_observation_time <- observations$time[[nrow(observations)]]
   occurrences <- ml_dose_occurrences(fit$source_doses, last_observation_time)
   if (!length(occurrences)) stop("No dose precedes the concentration used by ML AUC24.")
-  anchor <- max(occurrences[occurrences <= last_observation_time + 1e-8])
-  current_interval <- observations$time >= anchor - 1e-8
-  observations <- observations[current_interval, , drop = FALSE]
-  if (!nrow(observations)) stop("No concentration is available in the latest dosing interval.")
+  interval_index <- findInterval(observations$time + 1e-8, occurrences)
+  observations <- observations[interval_index > 0L, , drop = FALSE]
+  interval_index <- interval_index[interval_index > 0L]
+  if (!nrow(observations)) stop("No concentration follows an available dose for ML AUC24.")
+  interval_counts <- table(interval_index)
+  eligible_intervals <- as.integer(names(interval_counts)[interval_counts >= 2L])
+  selected_interval <- if (length(eligible_intervals)) max(eligible_intervals) else max(interval_index)
+  observations <- observations[interval_index == selected_interval, , drop = FALSE]
+  anchor <- occurrences[[selected_interval]]
   observations$relative_time <- observations$time - anchor
   last <- observations[nrow(observations), , drop = FALSE]
   has_previous <- nrow(observations) >= 2L
@@ -328,7 +333,7 @@ apply_ml_artifact <- function(fit, artifact) {
       (artifact$samplingProtocol %||% list())$minimumObservations %||% 1L
     ))
     if (observation_values[["N_OBS"]] < minimum_observations) {
-      stop("le prédicteur AUC24 ML exige au moins ", minimum_observations, " concentrations dans le dernier intervalle")
+      stop("le prédicteur AUC24 ML exige au moins ", minimum_observations, " concentrations dans un même intervalle posologique")
     }
     if (isTRUE((artifact$samplingProtocol %||% list())$steadyStateRequired) &&
         !ml_latest_regimen_is_steady_state(fit)) {

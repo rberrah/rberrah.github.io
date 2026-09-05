@@ -2,27 +2,27 @@
 
 Ce dossier ne contient aucune donnée patient. Il implémente la méthodologie d'entraînement de XGBoost sur des profils pharmacocinétiques simulés, validée pour le tacrolimus par Woillard et al. : doi:10.1016/j.phrs.2021.105578.
 
-Le modèle ML prédit directement l'AUC24 à partir de concentrations parcimonieuses, de leurs horaires exacts, de la posologie et des covariables. La version publiée exige deux prélèvements dans le même intervalle et une administration déclarée à l'état stationnaire (`ss = 1`), conformément aux simulations d'entraînement. Il ne corrige pas un ETA et ne modifie pas la trajectoire MAP. Dans l'application, l'AUC24 ML est affichée séparément; les projections et recommandations restent calculées avec mrgsolve, mapbayr et, le cas échéant, le model averaging.
+Le modèle ML prédit directement l'AUC24 à partir de concentrations parcimonieuses, de leurs horaires exacts, de la posologie et des covariables. La version publiée exige deux prélèvements dans un même intervalle posologique, qui ne doit pas nécessairement être le dernier, et une administration déclarée à l'état stationnaire (`ss = 1`), conformément aux simulations d'entraînement. Il ne corrige pas un ETA et ne modifie pas la trajectoire MAP. Dans l'application, l'AUC24 ML est affichée séparément; les projections et recommandations restent calculées avec mrgsolve, mapbayr et, le cas échéant, le model averaging.
 
 ## Contrat d'artefact
 
-Un artefact est lié à un seul modèle mrgsolve par son identifiant, sa voie et son empreinte SHA-256. La validation croisée répétée et imbriquée ainsi que le jeu de test interne non touché doivent respecter les seuils préspecifiés de biais, RMSE relative et proportion d'erreurs dans ±20 %. La validation sur un autre générateur PopPK mesure séparément la transportabilité; elle ne remplace pas la validation externe sur patients utilisée dans l'article. Les résultats face au MAP et au model averaging sont rapportés sans exiger artificiellement que XGBoost surpasse le modèle qui a généré ses propres données d'entraînement.
+Un artefact est lié à un seul modèle mrgsolve par son identifiant, sa voie, son mode d'administration et son empreinte SHA-256. La validation croisée répétée et imbriquée ainsi que le jeu de test interne non touché doivent respecter les seuils préspecifiés de biais, RMSE relative et proportion d'erreurs dans ±20 %. La validation sur un autre générateur PopPK mesure séparément la transportabilité; elle ne remplace pas la validation externe sur patients utilisée dans l'article. Les résultats face au MAP et au model averaging sont rapportés sans exiger artificiellement que XGBoost surpasse le modèle qui a généré ses propres données d'entraînement.
 
 Le statut clinique reste faux tant qu'une validation favorable sur des patients réels indépendants atteints par la molécule étudiée n'est pas documentée. L'activation d'un artefact de recherche est toujours volontaire dans l'interface.
 
 ```json
 {
-  "id": "vanco-roberts-auc24-xgb-v1",
+  "id": "vanco_pkjust-intermittent-auc24-xgb-v1",
   "drug": "Vancomycine",
   "route": "IV",
   "administrationMode": "intermittent",
-  "baseModelId": "vanco_roberts",
+  "baseModelId": "vanco_pkjust",
   "baseModelSha256": "<sha256>",
-  "artifactPath": "artifacts/vanco-roberts-auc24-xgb-v1.rds",
+  "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1.rds",
   "artifactSha256": "<sha256>",
   "explanation": {
     "type": "dalex_break_down",
-    "backgroundPath": "artifacts/vanco-roberts-auc24-xgb-v1-dalex-background.rds",
+    "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1-dalex-background.rds",
     "backgroundSha256": "<sha256>",
     "sampleSize": 200,
     "synthetic": true

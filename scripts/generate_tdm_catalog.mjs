@@ -113,6 +113,20 @@ const modelTypeEn = {
   'Prior PK à vérifier': 'PK prior pending verification'
 };
 
+const administrationModeLabels = {
+  ORAL: { fr: 'Orale', en: 'Oral' },
+  IV_INTERMITTENT: { fr: 'IV intermittente', en: 'Intermittent IV' },
+  IV_CONTINUOUS: { fr: 'IV continue', en: 'Continuous IV' }
+};
+
+const additionallyAdaptedModels = new Set([
+  'genta_hodiamont',
+  'genta_rosario_clcr',
+  'genta_rosario_clinical',
+  'levo_gergs',
+  'linez_sasaki'
+]);
+
 const drugKeys = Object.keys(drugLabels);
 
 function titleCase(part) {
@@ -148,6 +162,29 @@ function administrationRoutes(code, stem) {
   };
 }
 
+function administrationModes(routes, details, stem) {
+  const defaults = routes.flatMap((route) => route === 'Oral' ? ['ORAL'] : ['IV_INTERMITTENT']);
+  const modes = [...new Set(details.administrationModes ?? defaults)];
+  const unknown = modes.filter((mode) => !administrationModeLabels[mode]);
+  if (unknown.length) throw new Error(`Unknown administration mode for ${stem}: ${unknown.join(', ')}`);
+  const modeRoutes = modes.map((mode) => mode === 'ORAL' ? 'Oral' : 'IV');
+  if (modeRoutes.some((route) => !routes.includes(route)) || routes.some((route) => !modeRoutes.includes(route))) {
+    throw new Error(`Administration modes do not cover the declared routes for ${stem}.`);
+  }
+  return {
+    administrationModes: modes,
+    administrationCategories: modes.map((mode) => administrationModeLabels[mode].fr),
+    administrationCategoriesEn: modes.map((mode) => administrationModeLabels[mode].en)
+  };
+}
+
+function implementationStatus(details, stem) {
+  const adapted = additionallyAdaptedModels.has(stem) || /adapté|module/i.test(details.modelType);
+  return adapted
+    ? { implementationStatus: 'ADAPTED', implementationStatusLabel: 'Adaptation documentée', implementationStatusLabelEn: 'Documented adaptation' }
+    : { implementationStatus: 'ARTICLE', implementationStatusLabel: "Implémentation de l'article", implementationStatusLabelEn: 'Article implementation' };
+}
+
 function parseModelFile(file, metadata, englishMetadata, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
@@ -173,6 +210,8 @@ function parseModelFile(file, metadata, englishMetadata, code) {
     throw new Error(`Secondary references cannot be published in the TDM catalog: ${stem}.`);
   }
   const routeDetails = administrationRoutes(code, stem);
+  const modeDetails = administrationModes(routeDetails.routes, details, stem);
+  const implementationDetails = implementationStatus(details, stem);
 
   return {
     id: stem,
@@ -189,6 +228,8 @@ function parseModelFile(file, metadata, englishMetadata, code) {
     modelTypeEn: modelTypeEn[details.modelType] ?? details.modelType,
     noteEn: english.note ?? '',
     ...routeDetails,
+    ...modeDetails,
+    ...implementationDetails,
     tags: Array.from(new Set([
       drug,
       model,
@@ -198,6 +239,11 @@ function parseModelFile(file, metadata, englishMetadata, code) {
       english.population,
       drugLabelsEn[drugKey],
       ...routeDetails.routes,
+      ...modeDetails.administrationModes,
+      ...modeDetails.administrationCategories,
+      ...modeDetails.administrationCategoriesEn,
+      implementationDetails.implementationStatusLabel,
+      implementationDetails.implementationStatusLabelEn,
       ...(details.populationTags ?? []),
       ...(details.populationTags ?? []).map((tag) => populationTagEn[tag] ?? tag)
     ].filter(Boolean)))
@@ -239,7 +285,7 @@ async function main() {
   const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id));
   if (extraMetadata.length) throw new Error(`Metadata without a matching model: ${extraMetadata.join(', ')}`);
 
-  const output = `${JSON.stringify({ version: 4, models }, null, 2)}\n`;
+  const output = `${JSON.stringify({ version: 5, models }, null, 2)}\n`;
   const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
   if (previous !== output) await fs.writeFile(outputFile, output, 'utf8');
 

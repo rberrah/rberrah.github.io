@@ -248,7 +248,7 @@ ml_status_message <- function(status, lang = "fr") {
     reason <- sub("^AUC24 ML non appliquée : ", "", message)
     reason <- sub("\\. Estimation MAP conservée\\.$", "", reason)
     reason <- gsub("le prédicteur AUC24 ML exige au moins", "the ML AUC24 predictor requires at least", reason, fixed = TRUE)
-    reason <- gsub("concentrations dans le dernier intervalle", "concentrations in the latest interval", reason, fixed = TRUE)
+    reason <- gsub("concentrations dans un même intervalle posologique", "concentrations in the same dosing interval", reason, fixed = TRUE)
     reason <- gsub("une administration déclarée à l'état stationnaire", "an administration declared at steady state", reason, fixed = TRUE)
     return(paste0("ML AUC24 not applied: ", reason, ". MAP estimate retained."))
   }
@@ -312,7 +312,14 @@ dose_row_ui <- function(
     id = paste0("dose_row_", index),
     class = "record-row dose-row",
     div(class = "record-index", paste0("A", index)),
-    div(class = "time-entry", time_input_ui("dose", index, time = time, lang = lang)),
+    conditionalPanel(
+      condition = sprintf("input.dose_ss_%d != true", index),
+      div(class = "time-entry", time_input_ui("dose", index, time = time, lang = lang))
+    ),
+    conditionalPanel(
+      condition = sprintf("input.dose_ss_%d == true", index),
+      div(class = "route-readonly", tags$strong("Steady state"), span("Temps imposé à t = 0 h (ss = 1)."))
+    ),
     numericInput(paste0("dose_amount_", index), "Dose (mg)", amount, min = 0, step = 50),
     selectInput(
       paste0("dose_status_", index),
@@ -510,7 +517,7 @@ app_ui <- function(request) {
                 checkboxInput("enable_averaging", "Activer le model averaging", FALSE),
                 conditionalPanel(
                   "input.enable_averaging == true",
-                  div(class = "custom-note", "Seuls les modèles de la même molécule compatibles avec la voie sélectionnée sont proposés."),
+                  div(class = "custom-note", "Seuls les modèles de la même molécule, de la même voie et du même mode d'administration sont proposés."),
                   uiOutput("average_models_ui"),
                   selectInput(
                     "weighting_scheme",
@@ -761,22 +768,32 @@ app_ui <- function(request) {
       h2("Estimation individuelle"),
       p("Les effets aléatoires individuels sont estimés par maximum a posteriori avec mapbayr. Les administrations, covariables datées et concentrations sont converties en événements NM-TRAN puis simulées avec mrgsolve."),
       h2("Model averaging"),
-      p("Chaque modèle analyse les mêmes données. Les prédictions sont moyennées avec des poids issus de la vraisemblance ou du critère d'Akaike. Le serveur refuse l'agrégation de modèles ne partageant pas la même molécule et la même voie d'administration."),
+      p("Chaque modèle analyse les mêmes données. Les prédictions sont moyennées avec des poids issus de la vraisemblance ou du critère d'Akaike. Le serveur refuse l'agrégation de modèles ne partageant pas la même molécule, la même voie et le même mode d'administration."),
       p("La robustesse est explorée avec des poids égaux, AIC, log-vraisemblance et des analyses laissant successivement de côté chaque modèle. Une divergence des doses proposées doit conduire à revoir l'applicabilité du model averaging."),
       h2("Exposition et scénarios"),
       p("L'exposition historique sur les dernières 24 heures est distinguée de l'exposition à l'état stationnaire du dernier schéma. La projection compare le maintien de la dernière posologie à l'application du scénario classé en tête, sur le nombre de doses supplémentaires choisi dans Réglages."),
+      p("Une administration déclarée à l'état stationnaire est initialisée à t = 0 avec ss = 1. Les doses de la projection sont ensuite ajoutées explicitement avec ss = 0; la comparaison des doses supplémentaires continue donc au-delà de cet état initial."),
       p("Les scénarios sont d'abord classés sur leur prédiction moyenne. La probabilité d'atteindre la cible, de sous-exposition et de surexposition est ensuite simulée pour les douze scénarios moyens les plus proches, puis utilisée pour leur classement final."),
       h2("Qualité des données"),
       p("Les doses oubliées sont exclues. Les horaires incertains peuvent faire l'objet de réestimations de sensibilité. Les valeurs BLQ sont exclues par défaut; l'imputation LLOQ/2 est uniquement exploratoire. La matrice, les unités et le domaine exact des covariables ne sont jamais convertis ou déduits automatiquement."),
       h2("Distribution"),
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
-      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires récents, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
-      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Une variable hors des bornes empiriques d'entraînement est signalée comme extrapolation sans masquer l'estimation expérimentale; une donnée manquante, un protocole incompatible ou une AUC prédite invalide restent bloquants. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
+      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
+      p("L'artefact actuellement déployé concerne le modèle Revilla de vancomycine IV intermittente et exige une administration à l'état stationnaire (ss = 1). Un seul épisode de TDM suffit s'il contient au moins deux concentrations dans un même intervalle posologique; cet intervalle n'a pas besoin d'être le plus récent. Les deux concentrations les plus récentes de l'intervalle admissible le plus récent alimentent le prédicteur."),
+      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même mode d'administration, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Une variable hors des bornes empiriques d'entraînement déclenche un avertissement sans masquer l'estimation. Une donnée manquante, moins de deux concentrations dans un même intervalle, l'absence de steady state, un protocole incompatible ou une AUC invalide restent bloquants. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
+      p("Pour l'artefact actuel, la validation externe simulée sur le modèle Goti n'atteint pas les seuils préspecifiés de transportabilité. Cette limite et l'absence de validation sur des patients réels indépendants interdisent d'interpréter le résultat ML comme une validation clinique."),
       h2("Sécurité"),
       p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
-      p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données."),
-      h2("Statut"),
+      p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données.")
+    )
+  ),
+  nav_panel(
+    "Statut",
+    value = "status",
+    div(
+      class = "plain-page status-page",
+      h1("Statut"),
       div(
         class = "status-disclaimer",
         tags$strong("Avertissement obligatoire"),
@@ -853,7 +870,7 @@ server <- function(input, output, session) {
     count <- if (steady_state) 1 else numeric_input_value(paste0("dose_count_", index))
     infusion <- if (identical(input$administration_route, "Oral")) 0 else numeric_input_value(paste0("dose_infusion_", index))
     c(
-      row_time_messages("dose", index),
+      if (!steady_state) row_time_messages("dose", index),
       if (!is.finite(amount) || amount <= 0) "La dose doit être strictement positive.",
       if (!is.finite(interval) || interval < 0) "L'intervalle doit être positif ou nul.",
       if (steady_state && (!is.finite(interval) || interval <= 0)) "Le steady state exige un intervalle strictement positif.",
@@ -1036,10 +1053,13 @@ server <- function(input, output, session) {
     ids <- if (!isTRUE(input$enable_averaging)) primary_id else unique(c(primary_id, input$average_model_ids %||% character()))
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
-    compatible <- vapply(ids, function(id) model_supports_route(model_record(id), route), logical(1))
+    primary_record <- model_record(primary_id)
+    shiny::req(model_supports_route(primary_record, route))
+    mode <- model_administration_mode(primary_record, route)
+    compatible <- vapply(ids, function(id) model_supports_administration_mode(model_record(id), route, mode), logical(1))
     shiny::validate(shiny::need(all(compatible), tx(
-      "Tous les modèles moyennés doivent utiliser la même voie d'administration.",
-      "All averaged models must use the same administration route."
+      "Tous les modèles moyennés doivent utiliser la même voie et le même mode d'administration.",
+      "All averaged models must use the same administration route and mode."
     )))
     ids
   })
@@ -1049,11 +1069,15 @@ server <- function(input, output, session) {
     drug <- model_record(primary_id)$drug[[1]]
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
-    choices <- catalog_choices_i18n(drug, route, current_language())
+    primary_record <- model_record(primary_id)
+    shiny::req(model_supports_route(primary_record, route))
+    mode <- model_administration_mode(primary_record, route)
+    choices <- catalog_choices_i18n(drug, route, mode, current_language())
     drug_label <- if (identical(current_language(), "en")) model_record(primary_id)$drugEn[[1]] else drug
+    mode_label <- administration_mode_label(mode, current_language())
     localized(checkboxGroupInput(
       "average_model_ids",
-      tx(paste0("Modèles de ", drug_label, " · voie ", route), paste0(drug_label, " models · route ", route)),
+      tx(paste0("Modèles de ", drug_label, " · ", mode_label), paste0(drug_label, " models · ", mode_label)),
       choices = choices,
       selected = primary_id
     ))
@@ -1064,13 +1088,13 @@ server <- function(input, output, session) {
     record <- model_record(current_model_id())
     english <- identical(current_language(), "en")
     tags_value <- if (english) record$populationTagsEn[[1]] %||% character() else record$populationTags[[1]] %||% character()
-    routes <- paste(model_routes(record), collapse = " + ")
+    categories <- if (english) record$administrationCategoriesEn[[1]] else record$administrationCategories[[1]]
     doi <- as.character(record$doi[[1]] %||% "")
     drug <- if (english) record$drugEn[[1]] else record$drug[[1]]
     population <- if (english) record$populationEn[[1]] else record$population[[1]]
     div(
       class = "model-context",
-      div(class = "model-context-head", tags$strong(record$model[[1]]), span(paste0(drug, " · ", routes))),
+      div(class = "model-context-head", tags$strong(record$model[[1]]), span(paste0(drug, " · ", paste(categories, collapse = " + ")))),
       p(population),
       div(class = "population-tags", lapply(tags_value, function(value) span(value))),
       if (nzchar(doi) && !is.na(doi)) {
@@ -1275,7 +1299,7 @@ server <- function(input, output, session) {
       status <- as.character(isolate(input[[paste0("dose_status_", index)]]) %||% "administered")
       count <- if (steady_state) 1L else as.integer(isolate(input[[paste0("dose_count_", index)]]))
       data.frame(
-        time = read_record_time("dose", index),
+        time = if (steady_state) 0 else read_record_time("dose", index),
         amount = as.numeric(isolate(input[[paste0("dose_amount_", index)]])),
         interval = as.numeric(isolate(input[[paste0("dose_interval_", index)]])),
         count = count,
@@ -1692,6 +1716,7 @@ server <- function(input, output, session) {
         routes <- model_routes(record)
         route <- as.character(model$route %||% routes[[1]])
         if (!route %in% routes) route <- routes[[1]]
+        mode <- model_administration_mode(record, route)
         averaging <- model$averaging %||% list()
         updateCheckboxInput(session, "enable_averaging", value = isTRUE(averaging$enabled))
         if ((averaging$scheme %||% "AIC") %in% c("AIC", "LL")) {
@@ -1699,7 +1724,7 @@ server <- function(input, output, session) {
         }
         model_drug <- record$drug[[1]]
         route_compatible <- vapply(seq_len(nrow(MODEL_CATALOG)), function(index) {
-          MODEL_CATALOG$drug[[index]] == model_drug && model_supports_route(MODEL_CATALOG[index, , drop = FALSE], route)
+          MODEL_CATALOG$drug[[index]] == model_drug && model_supports_administration_mode(MODEL_CATALOG[index, , drop = FALSE], route, mode)
         }, logical(1))
         allowed_ids <- MODEL_CATALOG$id[route_compatible]
         selected_ids <- intersect(averaging$ids %||% character(), allowed_ids)
@@ -1760,7 +1785,8 @@ server <- function(input, output, session) {
     route <- isolate(input$administration_route %||% "")
     if (identical(isolate(input$model_source), "custom")) {
       if (!nzchar(route)) route <- "IV"
-      return(list(list(id = "custom", label = "Modèle personnalisé", code = isolate(input$custom_code), route = route, adm_cmt_name = NULL)))
+      mode <- if (identical(route, "Oral")) "ORAL" else "IV_INTERMITTENT"
+      return(list(list(id = "custom", label = "Modèle personnalisé", code = isolate(input$custom_code), route = route, mode = mode, adm_cmt_name = NULL)))
     }
     primary_id <- isolate(input$model_id)
     primary_record <- model_record(primary_id)
@@ -1770,8 +1796,9 @@ server <- function(input, output, session) {
     } else {
       unique(c(primary_id, isolate(input$average_model_ids %||% character())))
     }
-    compatible <- vapply(ids, function(id) model_supports_route(model_record(id), route), logical(1))
-    shiny::validate(shiny::need(all(compatible), tx("Tous les modèles moyennés doivent utiliser la même voie d'administration.", "All averaged models must use the same administration route.")))
+    mode <- model_administration_mode(primary_record, route)
+    compatible <- vapply(ids, function(id) model_supports_administration_mode(model_record(id), route, mode), logical(1))
+    shiny::validate(shiny::need(all(compatible), tx("Tous les modèles moyennés doivent utiliser la même voie et le même mode d'administration.", "All averaged models must use the same administration route and mode.")))
     lapply(ids, function(id) {
       record <- model_record(id)
       list(
@@ -1779,6 +1806,7 @@ server <- function(input, output, session) {
         label = record$label[[1]],
         code = NULL,
         route = route,
+        mode = mode,
         adm_cmt_name = model_administration_cmt(record, route)
       )
     })
@@ -2538,22 +2566,22 @@ server <- function(input, output, session) {
 
   output$catalog_table <- renderDT({
     english <- identical(current_language(), "en")
-    table <- MODEL_CATALOG[, c(if (english) "drugEn" else "drug", "model", "routes", "citation", if (english) "populationEn" else "population", "doi", if (english) "modelTypeEn" else "modelType", "sourceStatus")]
-    table$routes <- vapply(table$routes, function(routes) paste(routes, collapse = " + "), character(1))
+    table <- MODEL_CATALOG[, c(if (english) "drugEn" else "drug", "model", if (english) "administrationCategoriesEn" else "administrationCategories", "citation", if (english) "populationEn" else "population", "doi", if (english) "modelTypeEn" else "modelType", if (english) "implementationStatusLabelEn" else "implementationStatusLabel")]
+    administration_column <- if (english) "administrationCategoriesEn" else "administrationCategories"
+    table[[administration_column]] <- vapply(table[[administration_column]], function(values) paste(values, collapse = " + "), character(1))
     has_doi <- !is.na(table$doi) & nzchar(table$doi)
     table$doi <- ifelse(
       has_doi,
       paste0('<a href="https://doi.org/', table$doi, '" target="_blank" rel="noopener noreferrer">', table$doi, "</a>"),
       tx("Source à confirmer", "Source to be confirmed")
     )
-    table$sourceStatus <- ifelse(table$sourceStatus == "verified", tx("Vérifiée", "Verified"), ifelse(table$sourceStatus == "secondary", tx("Secondaire", "Secondary"), tx("À confirmer", "To be confirmed")))
     datatable(
       table,
       rownames = FALSE,
       filter = "top",
       escape = FALSE,
       options = list(pageLength = 20, scrollX = TRUE),
-      colnames = app_t(current_language(), c("Molécule", "Modèle", "Voie", "Article source", "Population de l'article", "DOI", "Type", "Statut bibliographique"))
+      colnames = app_t(current_language(), c("Molécule", "Modèle", "Administration", "Article source", "Population de l'article", "DOI", "Type", "Implémentation"))
     )
   })
 }

@@ -12,13 +12,13 @@
         "description": "post-infusion and late-interval concentrations at steady state"
       },
       "baseModelId": "vanco_pkjust",
-      "baseModelSha256": "29dbdbf030ebe585af586ba179ada17e3f613a07ae7ee7be8c780c99766e4453",
+      "baseModelSha256": "9bd56aec7dbcd05c726a4d4c1c6cfd8fec8242c393b1674a092fefb22ee8ee26",
       "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1.rds",
-      "artifactSha256": "2d4705d8223963cf63d9bf6a7949c0e740a32ed425c9ebe8cc33bc0ef3447a1c",
+      "artifactSha256": "b2c952aaff07f360beab6c49ea9b66b5279908472ce8238064b8e68b5514f2ac",
       "explanation": {
         "type": "dalex_break_down",
         "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1-dalex-background.rds",
-        "backgroundSha256": "efada8cd3b3de57a857b0418aad35d881be231b202f87e9e004f88bc7c34ee5b",
+        "backgroundSha256": "7600d472a92eef70e1347875a693db40bd599277e2e3ec5d4402f703b6dcac2c",
         "sampleSize": 200,
         "synthetic": true
       },
@@ -39,9 +39,9 @@
           "key": "CREAT"
         },
         {
-          "name": "SEX",
+          "name": "CRCL",
           "source": "covariate",
-          "key": "SEX"
+          "key": "CRCL"
         },
         {
           "name": "DOSE",
@@ -100,7 +100,7 @@
         "doi": "10.1016/j.phrs.2021.105578",
         "developmentGenerators": "vanco_pkjust",
         "developmentModelSha256": {
-          "vanco_pkjust": "29dbdbf030ebe585af586ba179ada17e3f613a07ae7ee7be8c780c99766e4453"
+          "vanco_pkjust": "9bd56aec7dbcd05c726a4d4c1c6cfd8fec8242c393b1674a092fefb22ee8ee26"
         },
         "unseenValidationGenerator": "vanco_goti",
         "realPatientValidation": "Pending for vancomycin"
@@ -112,9 +112,9 @@
         "nUntouchedHoldout": 250,
         "nUnseenPopPk": 1000,
         "hyperparameters": {
-          "max_depth": 4,
+          "max_depth": 3,
           "eta": 0.05,
-          "min_child_weight": 5,
+          "min_child_weight": 15,
           "subsample": 0.8,
           "colsample_bytree": 0.8,
           "nrounds": 300
@@ -135,20 +135,20 @@
         "concentrationMax": 120,
         "features": {
           "WT": {
-            "min": 45.6153,
-            "max": 129.8482
+            "min": 45.1259,
+            "max": 129.7732
           },
           "AGE": {
-            "min": 18.0066,
-            "max": 89.6716
+            "min": 18.2977,
+            "max": 89.1879
           },
           "CREAT": {
-            "min": 35.5846,
-            "max": 259.9767
+            "min": 35.2769,
+            "max": 259.6264
           },
-          "SEX": {
-            "min": 0,
-            "max": 1
+          "CRCL": {
+            "min": 14.3835,
+            "max": 220
           },
           "DOSE": {
             "min": 500,
@@ -163,55 +163,55 @@
             "max": 4
           },
           "PREV_CONC": {
-            "min": 4.2823,
-            "max": 63.3186
+            "min": 0.001,
+            "max": 59.0632
           },
           "PREV_TIME": {
-            "min": 1.2075,
-            "max": 6.9261
+            "min": 1.2044,
+            "max": 6.9151
           },
           "LAST_CONC": {
-            "min": 0.9101,
-            "max": 49.3994
+            "min": 0.001,
+            "max": 51.7652
           },
           "LAST_TIME": {
-            "min": 6.5217,
-            "max": 23.8281
+            "min": 6.5257,
+            "max": 23.8284
           },
           "CONC_DIFF": {
-            "min": -33.3356,
-            "max": 7.2055
+            "min": -34.2349,
+            "max": 13.1335
           },
           "TIME_DIFF": {
-            "min": 0.6643,
-            "max": 21.948
+            "min": 1.3374,
+            "max": 22.0553
           }
         }
       },
       "validation": {
         "repeatedNestedCv": {
           "passed": true,
-          "relativeRmsePct": 5.1583,
-          "relativeBiasPct": -0.0242,
-          "within20Pct": 99.2667,
-          "gainVsMapPct": 30.9379,
-          "gainVsAveragingPct": 31.4181
+          "relativeRmsePct": 10.0565,
+          "relativeBiasPct": -0.2146,
+          "within20Pct": 88.6,
+          "gainVsMapPct": 27.9866,
+          "gainVsAveragingPct": 27.1463
         },
         "untouchedHoldout": {
           "passed": true,
-          "relativeRmsePct": 3.4981,
-          "relativeBiasPct": 0.0398,
-          "within20Pct": 98.4,
-          "gainVsMapPct": 56.3964,
-          "gainVsAveragingPct": 57.2045
+          "relativeRmsePct": 9.2076,
+          "relativeBiasPct": -0.9253,
+          "within20Pct": 92,
+          "gainVsMapPct": 30.9974,
+          "gainVsAveragingPct": 31.0386
         },
         "alternatePopPk": {
           "passed": false,
-          "relativeRmsePct": 17.0008,
-          "relativeBiasPct": -3.6825,
-          "within20Pct": 72.2,
-          "gainVsMapPct": 5.3406,
-          "gainVsAveragingPct": -4.8867
+          "relativeRmsePct": 19.5209,
+          "relativeBiasPct": -8.3441,
+          "within20Pct": 66,
+          "gainVsMapPct": -2.9124,
+          "gainVsAveragingPct": -16.6837
         },
         "realPatient": {
           "status": "pending",
