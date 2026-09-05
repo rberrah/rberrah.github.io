@@ -781,7 +781,8 @@ app_ui <- function(request) {
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
       p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
-      p("L'artefact actuellement déployé concerne le modèle Revilla de vancomycine IV intermittente et exige une administration à l'état stationnaire (ss = 1). Un seul épisode de TDM suffit s'il contient au moins deux concentrations dans un même intervalle posologique; cet intervalle n'a pas besoin d'être le plus récent. Les deux concentrations les plus récentes de l'intervalle admissible le plus récent alimentent le prédicteur."),
+      p("L'artefact actuellement déployé concerne le modèle Revilla de vancomycine IV intermittente et exige une administration à l'état stationnaire (ss = 1). Un seul épisode de TDM suffit s'il contient au moins deux concentrations dans un même intervalle posologique; cet intervalle n'a pas besoin d'être le plus récent. Les simulations d'entraînement répartissent les deux horaires entre 0,2 h après la dose et 0,15 h avant la dose suivante, avec au moins 0,5 h entre eux. Les deux concentrations les plus récentes de l'intervalle admissible le plus récent alimentent le prédicteur."),
+      p("L'estimation ML est une AUC24 directe. Elle est comparée à l'AUC24 MAP du schéma répété à l'état stationnaire, et non à l'intégrale MAP historique partielle lorsque moins de 24 h sont disponibles."),
       p("Chaque artefact reste lié au même modèle PK, à la même voie, au même mode d'administration, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Une variable hors des bornes empiriques d'entraînement déclenche un avertissement sans masquer l'estimation. Une donnée manquante, moins de deux concentrations dans un même intervalle, l'absence de steady state, un protocole incompatible ou une AUC invalide restent bloquants. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
       p("Pour l'artefact actuel, la validation externe simulée sur le modèle Goti n'atteint pas les seuils préspecifiés de transportabilité. Cette limite et l'absence de validation sur des patients réels indépendants interdisent d'interpréter le résultat ML comme une validation clinique."),
       h2("Sécurité"),
@@ -2131,12 +2132,17 @@ server <- function(input, output, session) {
     } else {
       tx("Prédiction populationnelle", "Population prediction")
     }
+    partial_auc_detail <- if (exposure$historical_coverage_hours < 24 - 1e-8) {
+      tx("Intégrale MAP partielle, non directement comparable à une AUC24", "Partial MAP integral, not directly comparable with an AUC24")
+    } else {
+      tx("Fenêtre MAP complète de 24 h", "Complete 24-hour MAP window")
+    }
     div(
       class = "exposure-strip",
       div(
-        span(tx("AUC actuelle · fenêtre glissante", "Current AUC · rolling window")),
-        strong(format_metric(exposure$historical_auc24)),
-        tags$small(tx(paste0("MAP sur les dernières ", format_metric(exposure$historical_coverage_hours), " h disponibles"), paste0("MAP over the latest ", format_metric(exposure$historical_coverage_hours), " available hours")))
+        span(tx("AUC24 MAP · état stationnaire", "MAP AUC24 · steady state")),
+        strong(format_metric(exposure$steady_state_auc24)),
+        tags$small(tx("Horizon de 24 h comparable au ML", "24-hour horizon comparable with ML"))
       ),
       if (is.finite(result$ml_status$auc24 %||% NA_real_)) {
         div(
@@ -2146,11 +2152,15 @@ server <- function(input, output, session) {
         )
       },
       div(
+        span(tx(paste0("AUC MAP · fenêtre ", format_metric(exposure$historical_coverage_hours), " h"), paste0("MAP AUC · ", format_metric(exposure$historical_coverage_hours), "-hour window"))),
+        strong(format_metric(exposure$historical_auc24)),
+        tags$small(partial_auc_detail)
+      ),
+      div(
         span(tx("C0 actuelle", "Current C0")),
         strong(format_metric(exposure$historical_c0)),
         tags$small(tx(paste0("MAP juste avant la prochaine dose à h ", format_metric(exposure$historical_c0_time)), paste0("MAP immediately before the next dose at h ", format_metric(exposure$historical_c0_time))))
       ),
-      div(span(tx("AUC0-24 à l'état stationnaire", "Steady-state AUC0-24")), strong(format_metric(exposure$steady_state_auc24)), tags$small(tx("Dernier schéma renseigné répété", "Last entered regimen repeated"))),
       div(span(tx("C0 à l'état stationnaire", "Steady-state C0")), strong(format_metric(exposure$steady_state_c0)), tags$small(c0_detail)),
       div(
         span(tx("Schéma actuel", "Current regimen")),
@@ -2453,6 +2463,11 @@ server <- function(input, output, session) {
       shiny::req(result)
       exposure <- result$current_exposure
       best <- result$best
+      partial_auc_detail <- if (exposure$historical_coverage_hours < 24 - 1e-8) {
+        tx("Intégrale MAP partielle, non directement comparable à une AUC24", "Partial MAP integral, not directly comparable with an AUC24")
+      } else {
+        tx("Fenêtre MAP complète de 24 h", "Complete 24-hour MAP window")
+      }
       fit_plot <- ggplot() +
         geom_line(data = result$fit_profiles$average, aes(time, concentration), color = "#176b70", linewidth = 1.1) +
         geom_point(data = result$observations, aes(time, concentration), color = "#a4441f", size = 2.5) +
@@ -2505,7 +2520,7 @@ server <- function(input, output, session) {
         tags$head(
           tags$meta(charset = "utf-8"),
           tags$title("Rapport TDM"),
-          tags$style(HTML("body{font-family:Arial,sans-serif;color:#17202a;max-width:1050px;margin:32px auto;padding:0 24px;line-height:1.45}h1{border-bottom:3px solid #176b70;padding-bottom:12px}h2{margin-top:30px;border-bottom:1px solid #dfe4e8;padding-bottom:6px}.summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #dfe4e8}.summary div{padding:12px;border-right:1px solid #dfe4e8;border-bottom:1px solid #dfe4e8}.summary span{display:block;color:#66717c;font-size:11px;text-transform:uppercase}.summary strong{display:block;margin-top:4px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #dfe4e8;padding:7px;text-align:left}th{background:#f1f4f5}img{width:100%;height:auto}.warning{border-left:4px solid #b16916;background:#fffaf0;padding:12px 15px;margin-top:28px;color:#5e4b23}.meta{color:#66717c;font-size:12px}.provenance{font-family:Consolas,monospace;font-size:11px;overflow-wrap:anywhere}@media print{body{margin:0}.no-print{display:none}h2{break-after:avoid}table,img{break-inside:avoid}}"))
+          tags$style(HTML("body{font-family:Arial,sans-serif;color:#17202a;max-width:1050px;margin:32px auto;padding:0 24px;line-height:1.45}h1{border-bottom:3px solid #176b70;padding-bottom:12px}h2{margin-top:30px;border-bottom:1px solid #dfe4e8;padding-bottom:6px}.summary{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #dfe4e8}.summary div{padding:12px;border-right:1px solid #dfe4e8;border-bottom:1px solid #dfe4e8}.summary span{display:block;color:#66717c;font-size:11px;text-transform:uppercase}.summary strong{display:block;margin-top:4px}.summary small{display:block;margin-top:3px;color:#66717c}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #dfe4e8;padding:7px;text-align:left}th{background:#f1f4f5}img{width:100%;height:auto}.warning{border-left:4px solid #b16916;background:#fffaf0;padding:12px 15px;margin-top:28px;color:#5e4b23}.meta{color:#66717c;font-size:12px}.provenance{font-family:Consolas,monospace;font-size:11px;overflow-wrap:anywhere}@media print{body{margin:0}.no-print{display:none}h2{break-after:avoid}table,img{break-inside:avoid}}"))
         ),
         tags$body(
           h1("Rapport d'analyse TDM"),
@@ -2515,12 +2530,12 @@ server <- function(input, output, session) {
           )),
           div(
             class = "summary",
-            div(span("AUC actuelle glissante"), strong(format_metric(exposure$historical_auc24))),
+            div(span(tx("AUC24 MAP · état stationnaire", "MAP AUC24 · steady state")), strong(format_metric(exposure$steady_state_auc24)), tags$small(tx("Horizon de 24 h comparable au ML", "24-hour horizon comparable with ML"))),
             if (is.finite(result$ml_status$auc24 %||% NA_real_)) {
-              div(span("AUC24 ML expérimentale"), strong(format_metric(result$ml_status$auc24)))
+              div(span(tx("AUC24 ML expérimentale", "Experimental ML AUC24")), strong(format_metric(result$ml_status$auc24)), tags$small(tx("Prédiction directe sur 24 h", "Direct 24-hour prediction")))
             },
+            div(span(tx(paste0("AUC MAP · fenêtre ", format_metric(exposure$historical_coverage_hours), " h"), paste0("MAP AUC · ", format_metric(exposure$historical_coverage_hours), "-hour window"))), strong(format_metric(exposure$historical_auc24)), tags$small(partial_auc_detail)),
             div(span("C0 actuelle (MAP)"), strong(format_metric(exposure$historical_c0))),
-            div(span("AUC0-24 à l'état stationnaire"), strong(format_metric(exposure$steady_state_auc24))),
             div(span("C0 à l'état stationnaire"), strong(format_metric(exposure$steady_state_c0))),
             div(span("Recommandation"), strong(paste0(best$dose, " mg / ", best$interval, " h"))),
             div(span("PTA / cible"), strong(paste0(round(100 * best$p_target), " % · ", result$target_metric, " ", result$target_low, "–", result$target_high)))

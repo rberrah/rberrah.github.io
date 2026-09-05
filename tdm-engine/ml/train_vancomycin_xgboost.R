@@ -184,10 +184,11 @@ sample_sparse_profile <- function(profile, regimen, model_id) {
   times <- if (identical(mode_argument, "continuous")) {
     sort(c(stats::runif(1, 4, 12), stats::runif(1, 12, 23.5)))
   } else {
-    late_time <- regimen$interval - stats::runif(1, 0.15, min(1.5, regimen$interval / 4))
-    early_upper <- max(regimen$infusion + 0.3, min(regimen$interval - 0.5, regimen$infusion + 3))
-    early_time <- stats::runif(1, regimen$infusion + 0.2, early_upper)
-    sort(c(early_time, late_time))
+    repeat {
+      candidate <- sort(stats::runif(2, 0.2, regimen$interval - 0.15))
+      if (diff(candidate) >= 0.5) break
+    }
+    candidate
   }
   concentrations <- stats::approx(
     profile$time,
@@ -602,7 +603,7 @@ publish_candidate <- function(evaluation) {
   row <- evaluation$row
   if (!isTRUE(row$research_gates_pass[[1]])) return(FALSE)
   base_id <- row$base_model[[1]]
-  artifact_id <- paste0(base_id, "-", mode_argument, "-auc24-xgb-v1")
+  artifact_id <- paste0(base_id, "-", mode_argument, "-auc24-xgb-v2")
   artifact_directory <- file.path(ML_ROOT, "artifacts")
   if (!dir.exists(artifact_directory)) dir.create(artifact_directory, recursive = TRUE)
   artifact_file <- file.path(artifact_directory, paste0(artifact_id, ".rds"))
@@ -621,7 +622,7 @@ publish_candidate <- function(evaluation) {
     samplingProtocol = list(
       minimumObservations = 2L,
       steadyStateRequired = TRUE,
-      description = "post-infusion and late-interval concentrations at steady state"
+      description = "two concentrations across the same steady-state dosing interval"
     ),
     baseModelId = base_id,
     baseModelSha256 = model_sha256(base_id),
@@ -674,8 +675,13 @@ publish_candidate <- function(evaluation) {
       realPatient = list(status = "pending", gainPct = NULL)
     )
   )
-  existing_ids <- vapply(manifest$artifacts, function(item) as.character(item$id %||% ""), character(1))
-  manifest$artifacts <- c(manifest$artifacts[existing_ids != artifact_id], list(artifact))
+  same_scope <- vapply(manifest$artifacts, function(item) {
+    identical(item$baseModelId %||% "", base_id) &&
+      identical(item$route %||% "", "IV") &&
+      identical(item$administrationMode %||% "", mode_argument) &&
+      identical(ml_prediction_type(item), "auc24_direct")
+  }, logical(1))
+  manifest$artifacts <- c(manifest$artifacts[!same_scope], list(artifact))
   jsonlite::write_json(manifest, ML_MANIFEST_PATH, auto_unbox = TRUE, pretty = TRUE, null = "null")
   TRUE
 }

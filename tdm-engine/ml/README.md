@@ -12,17 +12,17 @@ Le statut clinique reste faux tant qu'une validation favorable sur des patients 
 
 ```json
 {
-  "id": "vanco_pkjust-intermittent-auc24-xgb-v1",
+  "id": "vanco_pkjust-intermittent-auc24-xgb-v2",
   "drug": "Vancomycine",
   "route": "IV",
   "administrationMode": "intermittent",
   "baseModelId": "vanco_pkjust",
   "baseModelSha256": "<sha256>",
-  "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1.rds",
+  "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v2.rds",
   "artifactSha256": "<sha256>",
   "explanation": {
     "type": "dalex_break_down",
-    "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v1-dalex-background.rds",
+    "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v2-dalex-background.rds",
     "backgroundSha256": "<sha256>",
     "sampleSize": 200,
     "synthetic": true
@@ -62,7 +62,7 @@ Toute variable manquante, mode de perfusion incompatible, empreinte du modèle o
 `train_vancomycin_xgboost.R` sépare les domaines d'administration. Goti et Revilla sont évalués pour la perfusion intermittente; Revilla et Roberts pour la perfusion continue. Pour chaque patient virtuel, il :
 
 1. simule un profil riche à l'état stationnaire et calcule l'AUC24 trapézoïdale de référence;
-2. extrait deux prélèvements avec erreur résiduelle, un après la perfusion et un en fin d'intervalle;
+2. extrait deux prélèvements avec erreur résiduelle, répartis sur l'ensemble du même intervalle posologique avec au moins 0,5 h entre eux;
 3. calcule les références MAP et model averaging sur les mêmes prélèvements;
 4. entraîne XGBoost et une régression elastic net sur l'AUC24 directe;
 5. mesure le biais relatif, la RMSE relative et la proportion des erreurs dans ±20 %;

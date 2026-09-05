@@ -243,7 +243,9 @@ stopifnot(
   file.exists(ML_MANIFEST_PATH),
   identical(as.integer(ml_manifest$version), 2L),
   length(ml_manifest$artifacts) == 1L,
-  identical(ml_manifest$artifacts[[1]]$id, "vanco_pkjust-intermittent-auc24-xgb-v1")
+  identical(ml_manifest$artifacts[[1]]$id, "vanco_pkjust-intermittent-auc24-xgb-v2"),
+  ml_manifest$artifacts[[1]]$trainingDomain$features$PREV_TIME$min <= 8,
+  ml_manifest$artifacts[[1]]$trainingDomain$features$PREV_TIME$max >= 8
 )
 published_eligibility <- ml_artifact_eligibility(
   ml_manifest$artifacts[[1]],
@@ -296,6 +298,25 @@ stopifnot(
       sum(revilla_fits[[1]]$ml_explanation$contributions$contribution) -
       revilla_fits[[1]]$ml_auc24
   ) < 1e-3
+)
+boundary_fits <- fit_model_set(
+  specifications[match("vanco_pkjust", model_ids)],
+  data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 1, ss = 1),
+  data.frame(time = c(8, 12), concentration = c(18, 15)),
+  list(WT = 73, AGE = 61.1, CREAT = 123.8, CRCL = 74.7),
+  allow_custom = FALSE,
+  covariate_history = data.frame(
+    time = c(8, 12), WT = c(74.8, 73), AGE = 61.1,
+    CREAT = 123.8, CRCL = c(90.7, 74.7)
+  )
+)
+boundary_fits <- apply_hybrid_ml_to_fits(boundary_fits, "IV", enabled = TRUE)
+boundary_ml_summary <- ml_application_summary(boundary_fits, c(vanco_pkjust = 1))
+stopifnot(
+  boundary_ml_summary$available == 1L,
+  is.finite(boundary_ml_summary$auc24),
+  !length(boundary_ml_summary$domain_warnings),
+  identical(unname(boundary_ml_summary$artifacts), "vanco_pkjust-intermittent-auc24-xgb-v2")
 )
 revilla_ml_summary <- ml_application_summary(revilla_fits, c(vanco_pkjust = 1))
 stopifnot(
