@@ -4,7 +4,7 @@
     "amik_burdet": {"population":"Mechanically ventilated adults in intensive care with ventilator-associated pneumonia."},
     "amiodarone_pollak_ddi": {"population":"Adults receiving long-term oral amiodarone for cardiac arrhythmia.","note":"Simplified DDI module with an engineering OMEGA/SIGMA prior."},
     "amox_carlier": {"population":"Critically ill adults hospitalized in intensive care."},
-    "amox_fournier": {"population":"Severely burned adults hospitalized in intensive care."},
+    "amox_fournier": {"population":"Severely burned adults hospitalized in intensive care.","note":"The article reports θCLCR = 0.53 as a proportional increase but prints an equation without a scale factor. The implementation applies the centered effect normalized by the 110 mL/min reference creatinine clearance, consistently with the published clearance values."},
     "amox_mellon": {"population":"Adults with obesity receiving intravenous or oral amoxicillin/clavulanate.","note":"The published CL-Q correlation is retained. The oral transit chain remains an approximation because the main article does not provide executable equations that reproduce Mtt and Ktr simultaneously."},
     "amox_rambaud": {"population":"Adults treated for infective endocarditis.","note":"The source NPAG model is non-parametric. The published 2009 CKD-EPI equation and error model are retained, but the log-normal OMEGA prior is an approximation for MAP/mapbayr."},
     "cefazoline_cheng": {"population":"Children undergoing cardiac surgery with cardiopulmonary bypass.","note":"The peri-operative and postoperative fixed effects are retained. Published IOV on CL and V1 is omitted because the current engine does not yet represent independent random effects by occasion."},

@@ -209,16 +209,17 @@
         "ICU",
         "Brûlé"
       ],
-      "modelType": "PopPK publié",
+      "modelType": "PopPK publié adapté",
       "sourceStatus": "verified",
+      "note": "L'article rapporte θCLCR = 0,53 comme une augmentation proportionnelle mais imprime une équation sans facteur d'échelle. L'implémentation applique l'effet centré normalisé par la CLCR de référence de 110 mL/min, cohérent avec les valeurs de clairance publiées.",
       "populationEn": "Severely burned adults hospitalized in intensive care.",
       "populationTagsEn": [
         "Adult",
         "ICU",
         "Burn"
       ],
-      "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "modelTypeEn": "Adapted published PopPK",
+      "noteEn": "The article reports θCLCR = 0.53 as a proportional increase but prints an equation without a scale factor. The implementation applies the centered effect normalized by the 110 mL/min reference creatinine clearance, consistently with the published clearance values.",
       "routes": [
         "IV"
       ],
@@ -233,13 +234,13 @@
       "administrationCategoriesEn": [
         "Intermittent IV"
       ],
-      "implementationStatus": "ARTICLE",
-      "implementationStatusLabel": "Implémentation de l'article",
-      "implementationStatusLabelEn": "Article implementation",
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "tags": [
         "Amoxicilline",
         "Fournier",
-        "PopPK publié",
+        "PopPK publié adapté",
         "Fournier A et al. Antimicrob Agents Chemother. 2018;62:e00505-18.",
         "10.1128/AAC.00505-18",
         "Severely burned adults hospitalized in intensive care.",
@@ -248,8 +249,8 @@
         "IV_INTERMITTENT",
         "IV intermittente",
         "Intermittent IV",
-        "Implémentation de l'article",
-        "Article implementation",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "ICU",
         "Brûlé",
