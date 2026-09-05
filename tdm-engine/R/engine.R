@@ -145,6 +145,7 @@ fit_one_model <- function(
   if (!contract$ok) stop(paste(contract$errors, collapse = " "))
   contract$adm_cmt <- resolve_administration_cmt(model, contract, specification)
   contract$route <- specification$route %||% "Unspecified"
+  contract$mode <- specification$mode %||% ""
 
   data <- build_map_data(
     doses = doses,

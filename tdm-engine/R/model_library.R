@@ -47,8 +47,10 @@ model_administration_modes <- function(record, route = NULL) {
   values[if (identical(route, "Oral")) values == "ORAL" else startsWith(values, "IV_")]
 }
 
-model_administration_mode <- function(record, route) {
+model_administration_mode <- function(record, route, selected = NULL) {
   modes <- model_administration_modes(record, route)
+  selected <- as.character(selected %||% "")
+  if (length(selected) && selected[[1]] %in% modes) return(selected[[1]])
   if (length(modes) != 1L) stop("The model must declare exactly one administration mode for route ", route, ".")
   modes[[1]]
 }

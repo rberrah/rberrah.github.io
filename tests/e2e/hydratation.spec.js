@@ -173,7 +173,7 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
 
   await page.getByRole('searchbox', { name: 'Recherche' }).fill('');
   await page.getByRole('combobox', { name: "Voie d'administration" }).selectOption('IV_CONTINUOUS');
-  await expect(page.locator('.model-card')).toHaveCount(2);
-  await expect(page.locator('.model-card')).toContainText(['Rambaud', 'Roberts']);
+  await expect(page.locator('.model-card')).toHaveCount(3);
+  await expect(page.locator('.model-card')).toContainText(['Rambaud', 'Revilla', 'Roberts']);
   await expect(page.locator('.model-card').first()).toContainText('IV continue');
 });

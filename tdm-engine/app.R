@@ -510,6 +510,7 @@ app_ui <- function(request) {
                 choices = "IV",
                 selected = "IV"
               ),
+              uiOutput("administration_mode_ui"),
               conditionalPanel(
                 "input.model_source == 'library'",
                 uiOutput("model_context_ui"),
@@ -823,6 +824,19 @@ server <- function(input, output, session) {
     value <- input$model_id %||% ""
     if (length(value) && nzchar(value[[1]]) && value[[1]] %in% MODEL_CATALOG$id) value[[1]] else DEFAULT_MODEL
   })
+  current_administration_mode <- reactive({
+    route <- input$administration_route %||% ""
+    shiny::req(nzchar(route))
+    if (identical(input$model_source %||% "library", "custom")) {
+      return(if (identical(route, "Oral")) "ORAL" else "IV_INTERMITTENT")
+    }
+    record <- model_record(current_model_id())
+    shiny::req(model_supports_route(record, route))
+    modes <- model_administration_modes(record, route)
+    shiny::req(length(modes))
+    selected <- input$administration_mode %||% ""
+    if (selected %in% modes) selected else modes[[1]]
+  })
   dose_count <- reactiveVal(1L)
   observation_count <- reactiveVal(1L)
   analysis_store <- reactiveVal(NULL)
@@ -1055,7 +1069,7 @@ server <- function(input, output, session) {
     shiny::req(nzchar(route))
     primary_record <- model_record(primary_id)
     shiny::req(model_supports_route(primary_record, route))
-    mode <- model_administration_mode(primary_record, route)
+    mode <- current_administration_mode()
     compatible <- vapply(ids, function(id) model_supports_administration_mode(model_record(id), route, mode), logical(1))
     shiny::validate(shiny::need(all(compatible), tx(
       "Tous les modèles moyennés doivent utiliser la même voie et le même mode d'administration.",
@@ -1071,7 +1085,7 @@ server <- function(input, output, session) {
     shiny::req(nzchar(route))
     primary_record <- model_record(primary_id)
     shiny::req(model_supports_route(primary_record, route))
-    mode <- model_administration_mode(primary_record, route)
+    mode <- current_administration_mode()
     choices <- catalog_choices_i18n(drug, route, mode, current_language())
     drug_label <- if (identical(current_language(), "en")) model_record(primary_id)$drugEn[[1]] else drug
     mode_label <- administration_mode_label(mode, current_language())
@@ -1112,7 +1126,7 @@ server <- function(input, output, session) {
     if (identical(input$model_source %||% "library", "custom")) {
       return(div(class = "ml-status", tx("ML : indisponible pour un modèle de session.", "ML: unavailable for a session model.")))
     }
-    status <- ml_status_summary(selected_model_ids(), input$administration_route %||% "")
+    status <- ml_status_summary(selected_model_ids(), input$administration_route %||% "", current_administration_mode())
     localized(tagList(
       div(class = if (status$available) "ml-status available" else "ml-status", ml_status_message(status, current_language())),
       if (status$available) {
@@ -1629,6 +1643,7 @@ server <- function(input, output, session) {
           source = model_source,
           id = if (identical(model_source, "library")) isolate(input$model_id) else NULL,
           route = isolate(input$administration_route),
+          mode = isolate(current_administration_mode()),
           averaging = list(
             enabled = identical(model_source, "library") && isTRUE(isolate(input$enable_averaging)),
             ids = if (identical(model_source, "library")) isolate(input$average_model_ids %||% character()) else character(),
@@ -1716,7 +1731,9 @@ server <- function(input, output, session) {
         routes <- model_routes(record)
         route <- as.character(model$route %||% routes[[1]])
         if (!route %in% routes) route <- routes[[1]]
-        mode <- model_administration_mode(record, route)
+        modes <- model_administration_modes(record, route)
+        mode <- as.character(model$mode %||% modes[[1]])
+        if (!mode %in% modes) mode <- modes[[1]]
         averaging <- model$averaging %||% list()
         updateCheckboxInput(session, "enable_averaging", value = isTRUE(averaging$enabled))
         if ((averaging$scheme %||% "AIC") %in% c("AIC", "LL")) {
@@ -1731,7 +1748,10 @@ server <- function(input, output, session) {
         expected_model_ids <- if (isTRUE(averaging$enabled)) unique(c(model$id, selected_ids)) else model$id
         session$onFlushed(function() {
           updateSelectInput(session, "administration_route", selected = route)
-          updateCheckboxGroupInput(session, "average_model_ids", selected = selected_ids)
+          session$onFlushed(function() {
+            updateSelectInput(session, "administration_mode", selected = mode)
+            updateCheckboxGroupInput(session, "average_model_ids", selected = selected_ids)
+          }, once = TRUE)
         }, once = TRUE)
       } else if (identical(model$source %||% "", "custom")) {
         showNotification(tx(
@@ -1796,7 +1816,7 @@ server <- function(input, output, session) {
     } else {
       unique(c(primary_id, isolate(input$average_model_ids %||% character())))
     }
-    mode <- model_administration_mode(primary_record, route)
+    mode <- isolate(current_administration_mode())
     compatible <- vapply(ids, function(id) model_supports_administration_mode(model_record(id), route, mode), logical(1))
     shiny::validate(shiny::need(all(compatible), tx("Tous les modèles moyennés doivent utiliser la même voie et le même mode d'administration.", "All averaged models must use the same administration route and mode.")))
     lapply(ids, function(id) {
@@ -2247,6 +2267,22 @@ server <- function(input, output, session) {
       } else {
         div(class = "empty-state compact", tx(paste0("Explication DALEX indisponible : ", explanation$reason %||% "raison inconnue"), paste0("DALEX explanation unavailable: ", explanation$reason %||% "unknown reason")))
       }
+    )
+  })
+
+  output$administration_mode_ui <- renderUI({
+    if (identical(input$model_source %||% "library", "custom")) return(NULL)
+    record <- model_record(current_model_id())
+    route <- input$administration_route %||% ""
+    shiny::req(model_supports_route(record, route))
+    modes <- model_administration_modes(record, route)
+    selected <- input$administration_mode %||% ""
+    if (!selected %in% modes) selected <- modes[[1]]
+    selectInput(
+      "administration_mode",
+      tx("Mode d'administration", "Administration mode"),
+      choices = stats::setNames(modes, vapply(modes, administration_mode_label, character(1), lang = current_language())),
+      selected = selected
     )
   })
 

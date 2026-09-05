@@ -47,7 +47,7 @@
     "tacrolimus_kamp_envarsus_ddi": {"population":"Adult kidney transplant recipients receiving Envarsus tacrolimus."},
     "tacrolimus_woillard_ddi": {"population":"Adult kidney transplant recipients receiving Prograf or Advagraf."},
     "vanco_goti": {"population":"Hospitalized adults with or without hemodialysis."},
-    "vanco_pkjust": {"population":"Adults in intensive care; model based on age, renal function and body weight.","note":"CRCL is the 24-hour measured creatinine clearance used in the article, not a Cockcroft-Gault estimate. The residual model is additive (SD 4.23 mg/L)."},
+    "vanco_pkjust": {"population":"Adults in intensive care receiving intermittent or continuous IV vancomycin; model based on age, renal function and body weight.","note":"CRCL is the 24-hour measured creatinine clearance used in the article, not a Cockcroft-Gault estimate. The residual model is additive (SD 4.23 mg/L)."},
     "vanco_revilla": {"population":"Neonatal vancomycin KKGT prior; the renal equation added to this file still requires validation.","note":"Excluded from the catalog because the author and DOI exactly matching the equations have not been established."},
     "vanco_roberts": {"population":"Adults with sepsis in intensive care receiving vancomycin by continuous infusion.","note":"Clearance uses 24-hour urinary creatinine clearance normalized to 1.73 m2, as reported in the article."},
     "voriconazole_vandenborn_ddi": {"population":"Adults treated with voriconazole; nonlinear model incorporating CRP.","note":"Engineering OMEGA/SIGMA prior added for MAP compatibility."}

@@ -30,11 +30,21 @@ ml_prediction_type <- function(artifact) {
   as.character((artifact$prediction %||% list())$type %||% (artifact$correction %||% list())$type %||% "")
 }
 
-ml_artifact_eligibility <- function(artifact, model_id, drug, route) {
+ml_administration_mode <- function(value) {
+  value <- toupper(as.character(value %||% ""))
+  if (value %in% c("INTERMITTENT", "IV_INTERMITTENT")) return("IV_INTERMITTENT")
+  if (value %in% c("CONTINUOUS", "IV_CONTINUOUS")) return("IV_CONTINUOUS")
+  if (value == "ORAL") return("ORAL")
+  ""
+}
+
+ml_artifact_eligibility <- function(artifact, model_id, drug, route, administration_mode = "") {
   validation <- artifact$validation %||% list()
+  expected_mode <- ml_administration_mode(administration_mode)
+  mode_ok <- !nzchar(expected_mode) || identical(ml_administration_mode(artifact$administrationMode), expected_mode)
   identity_ok <- identical(artifact$baseModelId %||% "", model_id) &&
     identical(artifact$drug %||% "", drug) &&
-    identical(artifact$route %||% "", route)
+    identical(artifact$route %||% "", route) && mode_ok
   expected_hash <- model_sha256(model_id)
   hash_ok <- is.character(expected_hash) && length(expected_hash) == 1L && !is.na(expected_hash) &&
     identical(tolower(artifact$baseModelSha256 %||% ""), tolower(expected_hash))
@@ -54,7 +64,7 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route) {
     is.finite(suppressWarnings(as.numeric(real_patient$gainPct %||% NA_real_))) &&
     as.numeric(real_patient$gainPct) > 0
   reasons <- c(
-    if (!identity_ok) "molécule, voie ou modèle de base incompatible",
+    if (!identity_ok) "molécule, voie, mode d'administration ou modèle de base incompatible",
     if (!hash_ok) "empreinte SHA-256 du modèle incompatible ou indisponible",
     if (!supported_type) "type de prédiction ML non pris en charge",
     if (!nested_ok) "validation croisée répétée/imbriquée non favorable",
@@ -64,11 +74,11 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route) {
   list(research = research_ok, transportability = alternate_ok, clinical = clinical_ok, reasons = unique(reasons))
 }
 
-compatible_ml_artifacts <- function(model_id, drug, route) {
+compatible_ml_artifacts <- function(model_id, drug, route, administration_mode = "") {
   artifacts <- read_ml_manifest()$artifacts
   if (!length(artifacts)) return(list())
   Filter(function(artifact) {
-    eligibility <- ml_artifact_eligibility(artifact, model_id, drug, route)
+    eligibility <- ml_artifact_eligibility(artifact, model_id, drug, route, administration_mode)
     isTRUE(eligibility$research)
   }, artifacts)
 }
@@ -372,7 +382,8 @@ apply_ml_artifact <- function(fit, artifact) {
         artifact,
         fit$id,
         model_record(fit$id)$drug[[1]],
-        fit$contract$route
+        fit$contract$route,
+        fit$contract$mode %||% ""
       )$clinical)
     )
     return(fit)
@@ -403,7 +414,8 @@ apply_ml_artifact <- function(fit, artifact) {
       artifact,
       fit$id,
       model_record(fit$id)$drug[[1]],
-      fit$contract$route
+      fit$contract$route,
+      fit$contract$mode %||% ""
     )$clinical)
   )
   fit
@@ -414,7 +426,7 @@ apply_hybrid_ml_to_fits <- function(fits, route, enabled = FALSE) {
     fit <- fits[[id]]
     if (inherits(fit, "tdm_fit_error") || !id %in% MODEL_CATALOG$id) return(fit)
     record <- model_record(id)
-    artifacts <- compatible_ml_artifacts(id, record$drug[[1]], route)
+    artifacts <- compatible_ml_artifacts(id, record$drug[[1]], route, fit$contract$mode %||% "")
     if (!isTRUE(enabled)) {
       fit$ml_correction <- list(
         applied = FALSE,
@@ -515,13 +527,13 @@ ml_application_summary <- function(fits, weights = NULL) {
   )
 }
 
-ml_status_summary <- function(model_ids = character(), route = "") {
+ml_status_summary <- function(model_ids = character(), route = "", administration_mode = "") {
   if (!length(model_ids)) {
     return(list(available = 0L, message = "ML : indisponible pour un modèle de session."))
   }
   counts <- vapply(model_ids, function(id) {
     record <- model_record(id)
-    length(compatible_ml_artifacts(id, record$drug[[1]], route))
+    length(compatible_ml_artifacts(id, record$drug[[1]], route, administration_mode))
   }, integer(1))
   list(
     available = sum(counts),

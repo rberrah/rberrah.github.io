@@ -41,14 +41,15 @@ covariate_history <- data.frame(
   HT = c(175, 175),
   DIAL = c(0, 0)
 )
-model_specification <- function(id) {
+model_specification <- function(id, mode = NULL) {
   record <- model_record(id)
+  if (is.null(mode)) mode <- model_administration_modes(record, "IV")[[1]]
   list(
     id = id,
     label = record$label[[1]],
     code = NULL,
     route = "IV",
-    mode = model_administration_mode(record, "IV"),
+    mode = model_administration_mode(record, "IV", mode),
     adm_cmt_name = model_administration_cmt(record, "IV")
   )
 }
@@ -289,6 +290,10 @@ stopifnot(
   is.finite(revilla_ml_summary$auc24),
   isTRUE(revilla_ml_summary$explanation$available)
 )
+stopifnot(
+  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_INTERMITTENT")) == 1L,
+  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_CONTINUOUS")) == 0L
+)
 
 default_fits <- fit_model_set(
   roberts_specification,
@@ -374,8 +379,9 @@ if (!is.na(hash)) {
       realPatient = list(status = "pending")
     )
   )
-  eligibility <- ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")
+  eligibility <- ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV", "IV_INTERMITTENT")
   stopifnot(isTRUE(eligibility$research), !isTRUE(eligibility$clinical))
+  stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV", "IV_CONTINUOUS")$research))
   eligible_artifact$validation$untouchedHoldoutGainPct <- -1
   stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")$research))
 

@@ -2851,15 +2851,19 @@
       "href": "/tdm/models/vanco_pkjust.cpp",
       "citation": "Revilla N et al. Br J Clin Pharmacol. 2010;70:201-212.",
       "doi": "10.1111/j.1365-2125.2010.03679.x",
-      "population": "Adultes en réanimation; modèle fondé sur l'âge, la fonction rénale et le poids.",
+      "population": "Adultes en réanimation recevant la vancomycine IV intermittente ou continue; modèle fondé sur l'âge, la fonction rénale et le poids.",
       "populationTags": [
         "Adulte",
         "ICU"
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "administrationModes": [
+        "IV_INTERMITTENT",
+        "IV_CONTINUOUS"
+      ],
       "note": "CRCL est la clairance de créatinine mesurée sur 24 h, comme dans l'article, et non une estimation de Cockcroft-Gault. Le modèle résiduel est additif (SD 4,23 mg/L).",
-      "populationEn": "Adults in intensive care; model based on age, renal function and body weight.",
+      "populationEn": "Adults in intensive care receiving intermittent or continuous IV vancomycin; model based on age, renal function and body weight.",
       "populationTagsEn": [
         "Adult",
         "ICU"
@@ -2871,14 +2875,13 @@
       ],
       "ivCmt": "CENT",
       "oralCmt": null,
-      "administrationModes": [
-        "IV_INTERMITTENT"
-      ],
       "administrationCategories": [
-        "IV intermittente"
+        "IV intermittente",
+        "IV continue"
       ],
       "administrationCategoriesEn": [
-        "Intermittent IV"
+        "Intermittent IV",
+        "Continuous IV"
       ],
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
@@ -2889,12 +2892,15 @@
         "PopPK publié",
         "Revilla N et al. Br J Clin Pharmacol. 2010;70:201-212.",
         "10.1111/j.1365-2125.2010.03679.x",
-        "Adults in intensive care; model based on age, renal function and body weight.",
+        "Adults in intensive care receiving intermittent or continuous IV vancomycin; model based on age, renal function and body weight.",
         "Vancomycin",
         "IV",
         "IV_INTERMITTENT",
+        "IV_CONTINUOUS",
         "IV intermittente",
+        "IV continue",
         "Intermittent IV",
+        "Continuous IV",
         "Implémentation de l'article",
         "Article implementation",
         "Adulte",

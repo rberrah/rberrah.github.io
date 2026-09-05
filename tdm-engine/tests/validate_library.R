@@ -47,7 +47,7 @@ for (model_id in MODEL_CATALOG$id) {
     contract <- validate_model_contract(model)
     if (!isTRUE(contract$ok)) stop(paste(contract$errors, collapse = " | "))
     for (route in routes) {
-      model_administration_mode(record, route)
+      if (!length(model_administration_modes(record, route))) stop("No administration mode declared for route ", route, ".")
       compartment <- model_administration_cmt(record, route)
       if (!compartment %in% model@cmtL) {
         stop(route, " administration compartment `", compartment, "` is absent from the compiled model.")
@@ -77,9 +77,9 @@ if (!identical(model_administration_mode(model_record("vanco_roberts"), "IV"), "
     !identical(model_administration_mode(model_record("amox_rambaud"), "IV"), "IV_CONTINUOUS")) {
   stop("Roberts and Rambaud must be categorized as continuous IV models.")
 }
-if (!identical(model_administration_mode(model_record("vanco_pkjust"), "IV"), "IV_INTERMITTENT") ||
+if (!setequal(model_administration_modes(model_record("vanco_pkjust"), "IV"), c("IV_INTERMITTENT", "IV_CONTINUOUS")) ||
     !identical(model_administration_mode(model_record("vanco_goti"), "IV"), "IV_INTERMITTENT")) {
-  stop("Revilla and Goti must be categorized as intermittent IV models.")
+  stop("Revilla must support both IV modes and Goti must remain intermittent IV.")
 }
 
 expected_covariates <- list(

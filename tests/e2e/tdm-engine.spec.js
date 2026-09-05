@@ -97,6 +97,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     const exportedPatient = JSON.parse(downloadedJson);
     expect(exportedPatient.version).toBe(3);
     expect(exportedPatient.model.route).toBe('IV');
+    expect(exportedPatient.model.mode).toBe('IV_INTERMITTENT');
     expect(exportedPatient.doses[0].ss).toBe(1);
     expect(exportedPatient.doses[0].time).toBe(0);
     expect(exportedPatient.doses[0].count).toBe(1);
@@ -192,6 +193,14 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('#model_id-selectized').click();
     await page.locator('.selectize-dropdown-content [data-value="vanco_pkjust"]').click();
     await expect(page.locator('.model-context-head')).toContainText('Revilla', { timeout: 15_000 });
+    await expect(page.locator('#administration_mode-selectized')).toBeVisible();
+    const revillaModes = await page.locator('#administration_mode').evaluate((element) => {
+      return Object.keys(/** @type {any} */ (element).selectize.options).sort();
+    });
+    expect(revillaModes).toEqual(['IV_CONTINUOUS', 'IV_INTERMITTENT']);
+    await page.locator('#administration_mode').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('IV_INTERMITTENT');
+    });
     await expect(page.locator('.ml-status.available')).toContainText("prédicteur(s) direct(s) d'AUC24");
     await expect(page.locator('#enable_experimental_ml')).toBeVisible();
 
@@ -210,7 +219,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(page.locator('.analysis-diagnostics > .ml-result-status')).toContainText('AUC24 ML expérimentale');
     await expect(page.locator('.analysis-diagnostics .ml-domain-warning')).toContainText('prédiction ML extrapolée');
     await expect(page.locator('.analysis-diagnostics .ml-domain-warning')).toContainText('Première concentration récente : 80 mg/L');
-    await expect(page.locator('#model_table')).toContainText('vanco_pkjust-intermittent-auc24-xgb-v1');
+    await expect(page.locator('#model_table')).toContainText('vanco_pkjust-intermittent-auc24-xgb-v1', { timeout: 15_000 });
     await expect(page.locator('#ml_interpretation_panel')).toContainText('Concordance MAP-BE et ML');
     await expect(page.locator('#ml_interpretation_panel')).toContainText('Écart relatif');
     await expect(page.locator('#ml_comparison_plot img')).toBeVisible();
