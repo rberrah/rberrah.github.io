@@ -148,7 +148,9 @@ ml_observation_values <- function(fit) {
   last_observation_time <- observations$time[[nrow(observations)]]
   occurrences <- ml_dose_occurrences(fit$source_doses, last_observation_time)
   if (!length(occurrences)) stop("No dose precedes the concentration used by ML AUC24.")
-  interval_index <- findInterval(observations$time + 1e-8, occurrences)
+  # A concentration sampled exactly at the next scheduled dose is a pre-dose
+  # concentration and belongs to the dosing interval that just ended.
+  interval_index <- findInterval(observations$time - 1e-8, occurrences)
   observations <- observations[interval_index > 0L, , drop = FALSE]
   interval_index <- interval_index[interval_index > 0L]
   if (!nrow(observations)) stop("No concentration follows an available dose for ML AUC24.")

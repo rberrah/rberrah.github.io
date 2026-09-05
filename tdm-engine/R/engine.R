@@ -46,15 +46,33 @@ normalize_steady_state_doses <- function(doses) {
   doses
 }
 
-build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL) {
-  if (!nrow(doses)) stop("At least one administered dose is required.")
+expand_steady_state_doses <- function(doses, end_time) {
   doses <- normalize_steady_state_doses(doses)
-  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
-  if (any(!dose_ss %in% c(0L, 1L)) || any(dose_ss == 1L & doses$interval <= 0)) {
-    stop("Steady-state doses require ss = 1 and a positive interval.")
-  }
+  if (!nrow(doses) || !"ss" %in% names(doses) || !is.finite(end_time)) return(doses)
 
-  dose_rows <- data.frame(
+  rows <- lapply(seq_len(nrow(doses)), function(index) {
+    dose <- doses[index, , drop = FALSE]
+    steady_state <- suppressWarnings(as.integer(dose$ss[[1]])) == 1L
+    interval <- suppressWarnings(as.numeric(dose$interval[[1]]))
+    if (!steady_state || !is.finite(interval) || interval <= 0) return(dose)
+
+    repetitions <- max(0L, floor((end_time - dose$time[[1]] + 1e-8) / interval))
+    expanded <- dose[rep(1L, repetitions + 1L), , drop = FALSE]
+    expanded$time <- dose$time[[1]] + seq.int(0L, repetitions) * interval
+    expanded$count <- 1L
+    expanded$ss <- c(1L, rep(0L, repetitions))
+    expanded
+  })
+  output <- do.call(rbind, rows)
+  output <- output[order(output$time), , drop = FALSE]
+  rownames(output) <- NULL
+  output
+}
+
+dose_event_rows <- function(doses, adm_cmt, end_time) {
+  doses <- expand_steady_state_doses(doses, end_time)
+  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
+  data.frame(
     ID = 1,
     time = doses$time,
     evid = 1,
@@ -64,10 +82,22 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
     ii = doses$interval,
     addl = ifelse(dose_ss == 1L, 0, pmax(0, doses$count - 1)),
     ss = dose_ss,
-    DV = NA_real_,
-    mdv = 1,
     stringsAsFactors = FALSE
   )
+}
+
+build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL) {
+  if (!nrow(doses)) stop("At least one administered dose is required.")
+  doses <- normalize_steady_state_doses(doses)
+  dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
+  if (any(!dose_ss %in% c(0L, 1L)) || any(dose_ss == 1L & doses$interval <= 0)) {
+    stop("Steady-state doses require ss = 1 and a positive interval.")
+  }
+
+  dose_horizon <- if (nrow(observations)) max(observations$time, na.rm = TRUE) else max(doses$time, na.rm = TRUE)
+  dose_rows <- dose_event_rows(doses, adm_cmt, dose_horizon)
+  dose_rows$DV <- NA_real_
+  dose_rows$mdv <- 1
 
   observation_rows <- data.frame(
     ID = rep(1, nrow(observations)),
@@ -325,9 +355,15 @@ simulate_averaged_regimen <- function(fits, weights, dose, interval, infusion, h
 simulate_known_history <- function(fit, end_time, delta = 0.05) {
   model <- individual_model(fit)
   event_columns <- c("ID", "time", "evid", "cmt", "amt", "rate", "ii", "addl", "ss")
-  covariate_names <- intersect(names(fit$current_covariates %||% list()), model_param_names(model))
+  history <- dose_event_rows(fit$source_doses, fit$contract$adm_cmt, max(0, end_time))
+  time_covariates <- carry_covariates(
+    history$time,
+    fit$source_covariate_history %||% NULL,
+    fit$source_covariates %||% list()
+  )
+  covariate_names <- intersect(names(time_covariates), model_param_names(model))
   columns <- c(event_columns, covariate_names)
-  history <- fit$data[fit$data$evid == 1, , drop = FALSE]
+  for (name in names(time_covariates)) history[[name]] <- time_covariates[[name]]
   for (name in setdiff(columns, names(history))) history[[name]] <- 0
   history <- history[, columns, drop = FALSE]
   simulation <- mrgsolve::mrgsim_d(
@@ -970,16 +1006,8 @@ fit_profiles <- function(fits, weights, end_time, delta = 0.25) {
   profiles <- list()
   for (name in names(valid)) {
     fit <- valid[[name]]
-    estimate <- fit$estimate
-    if (is.null(estimate)) next
-    profile <- if (length(fit$ml_eta_override %||% numeric())) {
-      simulate_known_history(fit, end_time = end_time, delta = delta)[, c("time", "concentration"), drop = FALSE]
-    } else {
-      augmented <- mapbayr::augment(estimate, end = end_time, delta = delta)$aug_tab
-      output <- augmented[augmented$type == "IPRED", c("time", "value"), drop = FALSE]
-      names(output) <- c("time", "concentration")
-      output
-    }
+    if (is.null(fit$estimate)) next
+    profile <- simulate_known_history(fit, end_time = end_time, delta = delta)[, c("time", "concentration"), drop = FALSE]
     profile$model <- name
     profiles[[name]] <- profile
   }

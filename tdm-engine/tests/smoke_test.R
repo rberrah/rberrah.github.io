@@ -110,6 +110,19 @@ steady_valid <- successful_fits(steady_fits)
 if (length(steady_valid) != 1L) stop("The steady-state MAP fit failed: ", steady_fits[[1]]$message %||% "unknown error")
 steady_dose_row <- steady_valid[[1]]$data[steady_valid[[1]]$data$evid == 1, , drop = FALSE]
 stopifnot(nrow(steady_dose_row) == 1L, steady_dose_row$time[[1]] == 0, steady_dose_row$ss[[1]] == 1L, steady_dose_row$addl[[1]] == 0)
+steady_events <- dose_event_rows(steady_doses, steady_valid[[1]]$contract$adm_cmt, end_time = 36)
+stopifnot(
+  identical(as.numeric(steady_events$time), c(0, 12, 24, 36)),
+  identical(as.integer(steady_events$ss), c(1L, 0L, 0L, 0L))
+)
+steady_profiles <- fit_profiles(steady_fits, c(vanco_roberts = 1), end_time = 36, delta = 0.25)
+steady_cycle_concentrations <- stats::approx(
+  steady_profiles$average$time,
+  steady_profiles$average$concentration,
+  xout = c(11.5, 35.5),
+  ties = "ordered"
+)$y
+stopifnot(abs(diff(steady_cycle_concentrations)) < 0.1)
 steady_exposure <- current_regimen_exposure(steady_fits, c(vanco_roberts = 1), steady_doses)
 stopifnot(isTRUE(steady_exposure$steady_state), !isTRUE(steady_exposure$single_dose))
 steady_context <- regimen_context(steady_doses, data.frame(time = 20, concentration = 18))
@@ -361,6 +374,17 @@ stopifnot(
 split_interval_fit <- same_interval_fit
 split_interval_fit$source_observations <- data.frame(time = c(3, 15), concentration = c(31, 18))
 stopifnot(ml_observation_values(split_interval_fit)[["N_OBS"]] == 1)
+
+steady_boundary_fit <- same_interval_fit
+steady_boundary_fit$source_doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 1, ss = 1)
+steady_boundary_fit$source_observations <- data.frame(time = c(8, 12), concentration = c(18, 15))
+steady_boundary_values <- ml_observation_values(steady_boundary_fit)
+stopifnot(
+  steady_boundary_values[["N_OBS"]] == 2,
+  steady_boundary_values[["PREV_TIME"]] == 8,
+  steady_boundary_values[["LAST_TIME"]] == 12,
+  steady_boundary_values[["LAST_CONC"]] == 15
+)
 
 hash <- model_sha256("vanco_roberts")
 if (!is.na(hash)) {
