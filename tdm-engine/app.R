@@ -47,6 +47,7 @@ ml_concordance <- function(result, lang = "fr") {
   list(
     map_auc24 = map_auc24,
     ml_auc24 = ml_auc24,
+    unit = result$ml_status$unit %||% "mg.h/L",
     relative_gap = relative_gap,
     absolute_gap = absolute_gap,
     level = level,
@@ -89,7 +90,7 @@ build_ml_comparison_plot <- function(result, lang = "fr") {
     coord_cartesian(ylim = y_limits, clip = "off") +
     labs(
       x = NULL,
-      y = app_t(lang, "AUC0-24 à l'état stationnaire (mg.h/L)", "Steady-state AUC0-24 (mg.h/L)"),
+      y = app_t(lang, paste0("AUC0-24 à l'état stationnaire (", concordance$unit, ")"), paste0("Steady-state AUC0-24 (", concordance$unit, ")")),
       subtitle = if (identical(result$target_metric, "AUC24")) app_t(lang, "La zone verte représente la cible définie dans les réglages.", "The green area represents the target defined in settings.") else NULL,
       caption = paste(strwrap(concordance$interpretation, width = 105), collapse = "\n")
     ) +
@@ -110,20 +111,28 @@ ML_FEATURE_LABELS <- c(
   DOSE = "Dose",
   INTERVAL = "Intervalle d'administration",
   INFUSION = "Durée de perfusion",
+  POP_AUC24 = "AUC24 populationnelle",
   PREV_CONC = "Première concentration récente",
   PREV_TIME = "Horaire de la première concentration",
   LAST_CONC = "Dernière concentration",
   LAST_TIME = "Horaire de la dernière concentration",
   CONC_DIFF = "Variation entre les concentrations",
-  TIME_DIFF = "Délai entre les concentrations"
+  TIME_DIFF = "Délai entre les concentrations",
+  PREV_POP_CONC = "Première concentration populationnelle",
+  LAST_POP_CONC = "Dernière concentration populationnelle",
+  PREV_CONC_RATIO = "Rapport observé/prédit initial",
+  LAST_CONC_RATIO = "Rapport observé/prédit final"
 )
 
 ML_FEATURE_LABELS_EN <- c(
   WT = "Weight", AGE = "Age", CREAT = "Creatinine", SEX = "Sex", DOSE = "Dose",
   INTERVAL = "Dosing interval", INFUSION = "Infusion duration",
+  POP_AUC24 = "Population AUC24",
   PREV_CONC = "First recent concentration", PREV_TIME = "First concentration time",
   LAST_CONC = "Last concentration", LAST_TIME = "Last concentration time",
-  CONC_DIFF = "Concentration difference", TIME_DIFF = "Time between concentrations"
+  CONC_DIFF = "Concentration difference", TIME_DIFF = "Time between concentrations",
+  PREV_POP_CONC = "First population concentration", LAST_POP_CONC = "Last population concentration",
+  PREV_CONC_RATIO = "Initial observed/predicted ratio", LAST_CONC_RATIO = "Final observed/predicted ratio"
 )
 
 ml_feature_label <- function(name, lang = "fr") {
@@ -132,10 +141,11 @@ ml_feature_label <- function(name, lang = "fr") {
   if (!length(label) || is.na(label) || !nzchar(label)) name else label
 }
 
-format_ml_feature_value <- function(name, value, lang = "fr") {
+format_ml_feature_value <- function(name, value, lang = "fr", auc_unit = "mg.h/L") {
   value <- suppressWarnings(as.numeric(value))
   if (!is.finite(value)) return(app_t(lang, "valeur indisponible", "unavailable"))
   if (identical(name, "SEX")) return(if (value >= 0.5) app_t(lang, "femme (1)", "female (1)") else app_t(lang, "homme (0)", "male (0)"))
+  concentration_unit <- sub("\\.h", "", auc_unit)
   unit <- switch(
     name,
     WT = " kg",
@@ -144,9 +154,12 @@ format_ml_feature_value <- function(name, value, lang = "fr") {
     DOSE = " mg",
     INTERVAL = " h",
     INFUSION = " h",
-    PREV_CONC = " mg/L",
-    LAST_CONC = " mg/L",
-    CONC_DIFF = " mg/L",
+    POP_AUC24 = paste0(" ", auc_unit),
+    PREV_CONC = paste0(" ", concentration_unit),
+    LAST_CONC = paste0(" ", concentration_unit),
+    PREV_POP_CONC = paste0(" ", concentration_unit),
+    LAST_POP_CONC = paste0(" ", concentration_unit),
+    CONC_DIFF = paste0(" ", concentration_unit),
     PREV_TIME = app_t(lang, " h après la dose", " h after dose"),
     LAST_TIME = app_t(lang, " h après la dose", " h after dose"),
     TIME_DIFF = " h",
@@ -155,14 +168,14 @@ format_ml_feature_value <- function(name, value, lang = "fr") {
   paste0(format(signif(value, 4), trim = TRUE), unit)
 }
 
-format_ml_domain_warning <- function(item, lang = "fr") {
+format_ml_domain_warning <- function(item, lang = "fr", auc_unit = "mg.h/L") {
   name <- as.character(item$feature %||% "")
   label <- ml_feature_label(name, lang)
-  lower <- if (is.finite(item$min %||% NA_real_)) format_ml_feature_value(name, item$min, lang) else app_t(lang, "sans borne basse", "no lower bound")
-  upper <- if (is.finite(item$max %||% NA_real_)) format_ml_feature_value(name, item$max, lang) else app_t(lang, "sans borne haute", "no upper bound")
+  lower <- if (is.finite(item$min %||% NA_real_)) format_ml_feature_value(name, item$min, lang, auc_unit) else app_t(lang, "sans borne basse", "no lower bound")
+  upper <- if (is.finite(item$max %||% NA_real_)) format_ml_feature_value(name, item$max, lang, auc_unit) else app_t(lang, "sans borne haute", "no upper bound")
   app_t(lang,
-    paste0(label, " : ", format_ml_feature_value(name, item$value, lang), " ; plage d'entraînement [", lower, " ; ", upper, "]."),
-    paste0(label, ": ", format_ml_feature_value(name, item$value, lang), "; training range [", lower, "; ", upper, "]."))
+    paste0(label, " : ", format_ml_feature_value(name, item$value, lang, auc_unit), " ; plage d'entraînement [", lower, " ; ", upper, "]."),
+    paste0(label, ": ", format_ml_feature_value(name, item$value, lang, auc_unit), "; training range [", lower, "; ", upper, "]."))
 }
 
 ml_domain_warning_block <- function(status, lang = "fr") {
@@ -171,12 +184,12 @@ ml_domain_warning_block <- function(status, lang = "fr") {
   div(
     class = "ml-domain-warning",
     tags$strong(app_t(lang, "Avertissement : prédiction ML extrapolée", "Warning: extrapolated ML prediction")),
-    tags$ul(lapply(warnings, function(item) tags$li(format_ml_domain_warning(item, lang)))),
+    tags$ul(lapply(warnings, function(item) tags$li(format_ml_domain_warning(item, lang, status$unit %||% "mg.h/L")))),
     span(app_t(lang, "Le résultat ML est affiché à titre expérimental, mais sa fiabilité peut être réduite. La recommandation reste calculée par MAP-BE.", "The ML result is shown for experimental use, but reliability may be reduced. The recommendation remains MAP-BE based."))
   )
 }
 
-build_ml_explanation_plot <- function(explanation, max_features = 8L, lang = "fr") {
+build_ml_explanation_plot <- function(explanation, max_features = 8L, lang = "fr", unit = "mg.h/L") {
   if (!isTRUE((explanation %||% list())$available)) return(NULL)
   contributions <- as.data.frame(explanation$contributions, stringsAsFactors = FALSE)
   if (!nrow(contributions)) return(NULL)
@@ -187,7 +200,7 @@ build_ml_explanation_plot <- function(explanation, max_features = 8L, lang = "fr
     paste0(
       label,
       "\n",
-      format_ml_feature_value(name, contributions$value[[index]], lang)
+      format_ml_feature_value(name, contributions$value[[index]], lang, unit)
     )
   }, character(1))
   effects <- contributions$contribution
@@ -213,12 +226,12 @@ build_ml_explanation_plot <- function(explanation, max_features = 8L, lang = "fr
     scale_fill_manual(values = c(increase = "#287a4d", decrease = "#a4441f"), guide = "none") +
     scale_x_continuous(limits = c(-1.45 * range, 1.45 * range)) +
     labs(
-      x = app_t(lang, "Contribution à l'AUC24 ML (mg.h/L)", "Contribution to ML AUC24 (mg.h/L)"),
+      x = app_t(lang, paste0("Contribution à l'AUC24 ML (", unit, ")"), paste0("Contribution to ML AUC24 (", unit, ")")),
       y = NULL,
       subtitle = app_t(lang, "À droite, l'information augmente l'AUC prédite; à gauche, elle la diminue.", "Information to the right increases predicted AUC; information to the left decreases it."),
       caption = app_t(lang,
-        paste0("Référence DALEX synthétique ", format_metric(explanation$baseline), " + contributions = AUC24 ML ", format_metric(explanation$prediction), " mg.h/L · référence fondée sur ", explanation$background_size, " profils simulés."),
-        paste0("Synthetic DALEX baseline ", format_metric(explanation$baseline), " + contributions = ML AUC24 ", format_metric(explanation$prediction), " mg.h/L · baseline from ", explanation$background_size, " simulated profiles."))
+        paste0("Référence DALEX synthétique ", format_metric(explanation$baseline), " + contributions = AUC24 ML ", format_metric(explanation$prediction), " ", unit, " · référence fondée sur ", explanation$background_size, " profils simulés."),
+        paste0("Synthetic DALEX baseline ", format_metric(explanation$baseline), " + contributions = ML AUC24 ", format_metric(explanation$prediction), " ", unit, " · baseline from ", explanation$background_size, " simulated profiles."))
     ) +
     theme_minimal(base_size = 13) +
     theme(
@@ -235,15 +248,17 @@ ml_status_message <- function(status, lang = "fr") {
   if (!identical(normalize_app_language(lang), "en")) return(message)
   auc24 <- suppressWarnings(as.numeric(status$auc24 %||% NA_real_))
   if (is.finite(auc24)) {
+    unit <- status$unit %||% "mg.h/L"
     suffix <- if (length(status$artifacts %||% character()) > 1L) " and model averaging." else "."
     warning <- if (length(status$domain_warnings %||% list())) paste0(" Warning: extrapolation outside the training domain for ", length(status$domain_warnings), " feature(s).") else ""
-    return(paste0("Experimental ML AUC24: ", round(auc24, 1), " mg.h/L. Dose projections remain MAP based", suffix, warning))
+    validation_warning <- if (isFALSE(status$research %||% TRUE)) " One or more artifacts remain below the internal performance thresholds and are shown for experimental use only." else ""
+    return(paste0("Experimental ML AUC24: ", round(auc24, 1), " ", unit, ". Dose projections remain MAP based", suffix, warning, validation_warning))
   }
-  if (grepl("prédicteur\\(s\\).*disponible", message)) return(paste(status$available %||% 0L, "research direct AUC24 predictor(s) available."))
+  if (grepl("prédicteur\\(s\\).*disponible", message)) return(paste(status$available %||% 0L, "evaluated experimental direct AUC24 predictor(s) available."))
   if (grepl("non activée", message, fixed = TRUE)) return("Experimental ML AUC24 not enabled: MAP estimate retained.")
   if (grepl("Artefacts ML incomplets", message, fixed = TRUE)) return("Incomplete ML artifacts for the selected models: aggregate estimate not shown.")
   if (grepl("modèle de session", message, fixed = TRUE)) return("ML: unavailable for a session model.")
-  if (grepl("Aucun prédicteur", message, fixed = TRUE)) return("No validated compatible direct AUC24 predictor: MAP estimate retained.")
+  if (grepl("Aucun prédicteur", message, fixed = TRUE)) return("No evaluated compatible direct AUC24 predictor: MAP estimate retained.")
   if (grepl("AUC24 ML non appliquée", message, fixed = TRUE)) {
     reason <- sub("^AUC24 ML non appliquée : ", "", message)
     reason <- sub("\\. Estimation MAP conservée\\.$", "", reason)
@@ -780,11 +795,11 @@ app_ui <- function(request) {
       h2("Distribution"),
       p("La distribution prédictive est exploratoire. Après un ajustement, elle repose sur un bootstrap paramétrique de l'estimation MAP, auquel peuvent s'ajouter l'erreur résiduelle, l'incertitude des horaires et l'incertitude entre modèles. Sans concentration exploitable, elle revient à une simulation populationnelle."),
       h2("Apprentissage automatique"),
-      p("Le module expérimental estime directement l'AUC24 avec XGBoost à partir de profils simulés par mrgsolve, selon la méthodologie publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). Il utilise les concentrations et horaires, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
-      p("L'artefact actuellement déployé concerne le modèle Revilla de vancomycine IV intermittente et exige une administration à l'état stationnaire (ss = 1). Un seul épisode de TDM suffit s'il contient au moins deux concentrations dans un même intervalle posologique; cet intervalle n'a pas besoin d'être le plus récent. Les simulations d'entraînement répartissent les deux horaires entre 0,2 h après la dose et 0,15 h avant la dose suivante, avec au moins 0,5 h entre eux. Les deux concentrations les plus récentes de l'intervalle admissible le plus récent alimentent le prédicteur."),
-      p("L'estimation ML est une AUC24 directe. Elle est comparée à l'AUC24 MAP du schéma répété à l'état stationnaire, et non à l'intégrale MAP historique partielle lorsque moins de 24 h sont disponibles."),
-      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même mode d'administration, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Il doit être favorable en validation croisée imbriquée et sur un test interne non touché; sa transportabilité vers un autre PopPK est rapportée séparément. Une variable hors des bornes empiriques d'entraînement déclenche un avertissement sans masquer l'estimation. Une donnée manquante, moins de deux concentrations dans un même intervalle, l'absence de steady state, un protocole incompatible ou une AUC invalide restent bloquants. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation propre à la vancomycine sur patients externes n'est pas documentée."),
-      p("Pour l'artefact actuel, la validation externe simulée sur le modèle Goti n'atteint pas les seuils préspecifiés de transportabilité. Cette limite et l'absence de validation sur des patients réels indépendants interdisent d'interpréter le résultat ML comme une validation clinique."),
+      p("Le module expérimental adapte à chaque modèle de la bibliothèque la méthodologie de simulation publiée pour le tacrolimus (doi:10.1016/j.phrs.2021.105578). XGBoost apprend le logarithme du rapport entre l'AUC24 individuelle simulée et l'AUC24 populationnelle du même schéma. Il utilise les concentrations et horaires, leurs prédictions populationnelles, la dose, l'intervalle, la durée de perfusion et les covariables du modèle. Une décomposition locale DALEX explique la prédiction par rapport à un échantillon de référence entièrement synthétique."),
+      p("Une administration déclarée à l'état stationnaire (ss = 1) et au moins deux concentrations dans un même intervalle posologique sont requises. Cet intervalle ne doit pas nécessairement être le dernier. Les deux concentrations les plus récentes de l'intervalle admissible le plus récent alimentent le prédicteur."),
+      p("L'estimation ML est une AUC24 expérimentale. Elle est comparée à l'AUC24 MAP du schéma répété à l'état stationnaire, et non à l'intégrale MAP historique partielle lorsque moins de 24 h sont disponibles. En model averaging, chaque modèle produit sa propre AUC24 ML, puis les estimations sont agrégées avec les poids de l'analyse. Tous les modèles doivent disposer d'un artefact compatible et partager la même voie et le même mode d'administration."),
+      p("Chaque artefact reste lié au même modèle PK, à la même voie, au même mode d'administration, au même schéma de variables et aux empreintes exactes du fichier mrgsolve et du booster. Le statut recherche exige le respect des seuils préspecifiés en validation croisée répétée et sur un test interne non touché; un artefact évalué mais sous ces seuils reste signalé comme expérimental. La transportabilité vers un autre modèle PopPK est rapportée séparément."),
+      p("Une variable hors des bornes empiriques d'entraînement déclenche un avertissement sans masquer l'estimation. Une donnée manquante, moins de deux concentrations dans un même intervalle, l'absence d'état stationnaire, un protocole incompatible ou une AUC invalide restent bloquants. Ces entraînements synthétiques ne constituent pas une validation clinique pour les autres molécules. L'estimation ML ne remplace pas les projections de dose MAP tant qu'une validation favorable sur des patients réels indépendants n'est pas documentée."),
       h2("Sécurité"),
       p("Le serveur public ne compile jamais directement le C++ reçu. Pour un modèle Atelier Lego, il extrait une spécification JSON, la valide, régénère lui-même le code mrgsolve puis compile uniquement ce code contrôlé. Tout autre C++ reste refusé tant qu'il n'est pas exécuté dans un conteneur éphémère isolé."),
       p("Les imports JSON sont traités dans la session Shiny et leur fichier temporaire est supprimé immédiatement après lecture. Les exports sont produits à la demande sans base de données.")
@@ -2307,7 +2322,7 @@ server <- function(input, output, session) {
   output$ml_explanation_plot <- renderPlot({
     result <- analysis_store()
     shiny::req(result)
-    plot <- build_ml_explanation_plot(result$ml_status$explanation, lang = current_language())
+    plot <- build_ml_explanation_plot(result$ml_status$explanation, lang = current_language(), unit = result$ml_status$unit %||% "mg.h/L")
     shiny::validate(shiny::need(!is.null(plot), tx("L'explication DALEX n'est pas disponible.", "The DALEX explanation is unavailable.")))
     plot
   })
@@ -2485,7 +2500,7 @@ server <- function(input, output, session) {
       concordance <- ml_concordance(result, current_language())
       ml_comparison_plot <- build_ml_comparison_plot(result, current_language())
       ml_explanation <- result$ml_status$explanation %||% list(available = FALSE)
-      ml_explanation_plot <- build_ml_explanation_plot(ml_explanation, lang = current_language())
+      ml_explanation_plot <- build_ml_explanation_plot(ml_explanation, lang = current_language(), unit = result$ml_status$unit %||% "mg.h/L")
 
       model_table <- result$model_summary
       model_table$weight <- round(model_table$weight, 4)
@@ -2561,7 +2576,7 @@ server <- function(input, output, session) {
               tags$strong("Avertissement : prédiction ML extrapolée"),
               tags$ul(lapply(
                 result$ml_status$domain_warnings,
-                function(item) tags$li(format_ml_domain_warning(item, current_language()))
+                function(item) tags$li(format_ml_domain_warning(item, current_language(), result$ml_status$unit %||% "mg.h/L"))
               )),
               p("La recommandation de dose reste calculée par MAP-BE.")
             )

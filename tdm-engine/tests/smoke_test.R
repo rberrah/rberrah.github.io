@@ -238,27 +238,83 @@ sensitivity <- model_averaging_sensitivity(
 )
 stopifnot(nrow(sensitivity) >= 2L, all(is.finite(sensitivity$target_value)))
 ml_manifest <- read_ml_manifest()
+artifact_for <- function(model_id, mode) {
+  matches <- Filter(function(artifact) {
+    identical(artifact$baseModelId, model_id) &&
+      identical(ml_administration_mode(artifact$administrationMode), ml_administration_mode(mode))
+  }, ml_manifest$artifacts)
+  stopifnot(length(matches) == 1L)
+  matches[[1]]
+}
+expected_ml_scopes <- unlist(lapply(seq_len(nrow(MODEL_CATALOG)), function(index) {
+  record <- MODEL_CATALOG[index, , drop = FALSE]
+  paste(record$id[[1]], vapply(model_administration_modes(record), ml_administration_mode, character(1)), sep = "::")
+}), use.names = FALSE)
+actual_ml_scopes <- vapply(ml_manifest$artifacts, function(artifact) {
+  paste(artifact$baseModelId, ml_administration_mode(artifact$administrationMode), sep = "::")
+}, character(1))
+published_artifact <- artifact_for("vanco_pkjust", "IV_INTERMITTENT")
 stopifnot(
   identical(basename(ML_MANIFEST_PATH), "registry.json"),
   file.exists(ML_MANIFEST_PATH),
   identical(as.integer(ml_manifest$version), 2L),
-  length(ml_manifest$artifacts) == 1L,
-  identical(ml_manifest$artifacts[[1]]$id, "vanco_pkjust-intermittent-auc24-xgb-v2"),
-  ml_manifest$artifacts[[1]]$trainingDomain$features$PREV_TIME$min <= 8,
-  ml_manifest$artifacts[[1]]$trainingDomain$features$PREV_TIME$max >= 8
+  length(ml_manifest$artifacts) == length(expected_ml_scopes),
+  setequal(actual_ml_scopes, expected_ml_scopes),
+  !anyDuplicated(actual_ml_scopes),
+  published_artifact$trainingDomain$features$PREV_TIME$min <= 8,
+  published_artifact$trainingDomain$features$PREV_TIME$max >= 8,
+  abs(ml_prediction_value(
+    log(2),
+    list(prediction = list(transform = "exp_times_feature", scaleFeature = "POP_AUC24")),
+    data.frame(POP_AUC24 = 50)
+  ) - 100) < 1e-10
 )
+invisible(lapply(ml_manifest$artifacts, function(artifact) {
+  eligibility <- ml_artifact_eligibility(
+    artifact,
+    artifact$baseModelId,
+    artifact$drug,
+    artifact$route,
+    artifact$administrationMode
+  )
+  stopifnot(
+    isTRUE(eligibility$experimental),
+    identical(artifact$releaseLevel, if (isTRUE(eligibility$research)) "research" else "experimental")
+  )
+  verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)
+  verified_ml_rds_path(
+    artifact$explanation$backgroundPath,
+    artifact$explanation$backgroundSha256,
+    "DALEX background"
+  )
+}))
 published_eligibility <- ml_artifact_eligibility(
-  ml_manifest$artifacts[[1]],
+  published_artifact,
   "vanco_pkjust",
   "Vancomycine",
-  "IV"
+  "IV",
+  "IV_INTERMITTENT"
 )
 stopifnot(
-  isTRUE(published_eligibility$research),
-  !isTRUE(published_eligibility$transportability),
-  !isTRUE(published_eligibility$clinical)
+  isTRUE(published_eligibility$experimental),
+  !isTRUE(published_eligibility$clinical),
+  identical(
+    published_artifact$releaseLevel,
+    if (isTRUE(published_eligibility$research)) "research" else "experimental"
+  )
 )
-published_explanation <- ml_manifest$artifacts[[1]]$explanation
+experimental_contract <- published_artifact
+experimental_contract$validation$repeatedCv$passed <- FALSE
+experimental_contract$validation$untouchedHoldout$passed <- FALSE
+experimental_eligibility <- ml_artifact_eligibility(
+  experimental_contract,
+  "vanco_pkjust",
+  "Vancomycine",
+  "IV",
+  "IV_INTERMITTENT"
+)
+stopifnot(isTRUE(experimental_eligibility$experimental), !isTRUE(experimental_eligibility$research))
+published_explanation <- published_artifact$explanation
 stopifnot(
   identical(published_explanation$type, "dalex_break_down"),
   isTRUE(published_explanation$synthetic),
@@ -316,7 +372,7 @@ stopifnot(
   boundary_ml_summary$available == 1L,
   is.finite(boundary_ml_summary$auc24),
   !length(boundary_ml_summary$domain_warnings),
-  identical(unname(boundary_ml_summary$artifacts), "vanco_pkjust-intermittent-auc24-xgb-v2")
+  identical(unname(boundary_ml_summary$artifacts), published_artifact$id)
 )
 revilla_ml_summary <- ml_application_summary(revilla_fits, c(vanco_pkjust = 1))
 stopifnot(
@@ -326,7 +382,26 @@ stopifnot(
 )
 stopifnot(
   length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_INTERMITTENT")) == 1L,
-  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_CONTINUOUS")) == 0L
+  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_CONTINUOUS")) == 1L
+)
+
+averaging_fits <- fit_model_set(
+  specifications,
+  revilla_doses,
+  revilla_observations,
+  covariates,
+  allow_custom = FALSE,
+  covariate_history = covariate_history
+)
+averaging_weights <- compute_model_weights(averaging_fits, "AIC")
+averaging_fits <- apply_hybrid_ml_to_fits(averaging_fits, "IV", enabled = TRUE)
+averaging_ml_summary <- ml_application_summary(averaging_fits, averaging_weights)
+stopifnot(
+  averaging_ml_summary$available == 2L,
+  is.finite(averaging_ml_summary$auc24),
+  length(averaging_ml_summary$artifacts) == 2L,
+  !isTRUE(averaging_ml_summary$explanation$available),
+  !grepl("Artefacts ML incomplets", averaging_ml_summary$message, fixed = TRUE)
 )
 
 default_fits <- fit_model_set(
@@ -369,7 +444,7 @@ stopifnot(isTRUE(default_distribution$posterior_available))
 
 default_fits <- apply_hybrid_ml_to_fits(default_fits, "IV")
 stopifnot(!isTRUE(default_fits[[1]]$ml_correction$applied))
-stopifnot(identical(default_fits[[1]]$ml_correction$reason, "no_compatible_artifact"))
+stopifnot(identical(default_fits[[1]]$ml_correction$reason, "experimental_ml_disabled"))
 
 runtime_regimen <- ml_latest_regimen(default_fits[[1]])
 runtime_observations <- ml_observation_values(default_fits[[1]])
@@ -380,6 +455,28 @@ stopifnot(
   identical(unname(runtime_observations[["LAST_CONC"]]), 18),
   abs(runtime_observations[["LAST_TIME"]] - 11.5) < 1e-8,
   identical(unname(runtime_observations[["HAS_PREV"]]), 0)
+)
+
+long_interval_fit <- default_fits[[1]]
+long_interval_fit$source_doses <- data.frame(
+  time = 0, amount = 1000, interval = 48, count = 1, infusion = 1, ss = 1
+)
+long_interval_fit$source_observations <- data.frame(
+  time = c(8, 36), concentration = c(18, 6)
+)
+long_interval_features <- ml_feature_row(long_interval_fit, list(featureSchema = list(
+  list(name = "LAST_POP_CONC", source = "population_observation", key = "LAST_POP_CONC")
+)))
+long_interval_profile <- ml_population_profile(long_interval_fit, 36)
+expected_long_concentration <- stats::approx(
+  long_interval_profile$time,
+  long_interval_profile$concentration,
+  xout = 36,
+  ties = "ordered"
+)$y
+stopifnot(
+  max(long_interval_profile$time) >= 36,
+  abs(long_interval_features$values[["LAST_POP_CONC"]] - expected_long_concentration) < 1e-8
 )
 
 same_interval_fit <- default_fits[[1]]
@@ -418,16 +515,16 @@ if (!is.na(hash)) {
     administrationMode = "intermittent",
     prediction = list(type = "auc24_direct", metric = "AUC24", unit = "mg.h/L"),
     validation = list(
-      repeatedNestedCvGainPct = 5,
-      untouchedHoldoutGainPct = 3,
-      alternatePopPkGainPct = 2,
+      repeatedCv = list(passed = TRUE, relativeRmsePct = 10, relativeBiasPct = 1, within20Pct = 90),
+      untouchedHoldout = list(passed = TRUE, relativeRmsePct = 11, relativeBiasPct = 2, within20Pct = 88),
+      alternatePopPk = list(passed = TRUE, relativeRmsePct = 12, relativeBiasPct = 2, within20Pct = 85),
       realPatient = list(status = "pending")
     )
   )
   eligibility <- ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV", "IV_INTERMITTENT")
   stopifnot(isTRUE(eligibility$research), !isTRUE(eligibility$clinical))
   stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV", "IV_CONTINUOUS")$research))
-  eligible_artifact$validation$untouchedHoldoutGainPct <- -1
+  eligible_artifact$validation$untouchedHoldout$passed <- FALSE
   stopifnot(!isTRUE(ml_artifact_eligibility(eligible_artifact, "vanco_roberts", "Vancomycine", "IV")$research))
 
   test_ml_root <- tempfile("tdm-ml-")
@@ -466,7 +563,7 @@ if (!is.na(hash)) {
       LAST_CONC = list(min = 0.5, max = 100)
     )
   )
-  eligible_artifact$validation$untouchedHoldoutGainPct <- 3
+  eligible_artifact$validation$untouchedHoldout$passed <- TRUE
   ml_fit <- apply_ml_artifact(default_fits[[1]], eligible_artifact)
   extrapolation_artifact <- eligible_artifact
   extrapolation_artifact$trainingDomain$features$DOSE$max <- 100

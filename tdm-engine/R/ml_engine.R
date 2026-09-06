@@ -30,6 +30,20 @@ ml_prediction_type <- function(artifact) {
   as.character((artifact$prediction %||% list())$type %||% (artifact$correction %||% list())$type %||% "")
 }
 
+ml_prediction_value <- function(value, artifact, feature_data = NULL) {
+  transform <- as.character((artifact$prediction %||% list())$transform %||% "identity")
+  if (identical(transform, "identity")) return(as.numeric(value))
+  if (identical(transform, "exp")) return(exp(as.numeric(value)))
+  if (identical(transform, "exp_times_feature")) {
+    feature <- as.character((artifact$prediction %||% list())$scaleFeature %||% "")
+    if (is.null(feature_data) || !nzchar(feature) || !feature %in% names(feature_data)) {
+      stop("ML prediction scale feature is unavailable.")
+    }
+    return(exp(as.numeric(value)) * as.numeric(feature_data[[feature]]))
+  }
+  stop("Unsupported ML prediction transform: ", transform)
+}
+
 ml_administration_mode <- function(value) {
   value <- toupper(as.character(value %||% ""))
   if (value %in% c("INTERMITTENT", "IV_INTERMITTENT")) return("IV_INTERMITTENT")
@@ -55,10 +69,19 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route, administrat
     legacy_value <- suppressWarnings(as.numeric(validation[[legacy_name]] %||% NA_real_))
     is.finite(legacy_value) && legacy_value > 0
   }
-  nested_ok <- validation_passed("repeatedNestedCv", "repeatedNestedCvGainPct")
+  validation_evaluated <- function(name) {
+    block <- validation[[name]] %||% list()
+    is.list(block) && is.finite(suppressWarnings(as.numeric(block$relativeRmsePct %||% NA_real_))) &&
+      is.finite(suppressWarnings(as.numeric(block$relativeBiasPct %||% NA_real_))) &&
+      is.finite(suppressWarnings(as.numeric(block$within20Pct %||% NA_real_)))
+  }
+  nested_ok <- validation_passed("repeatedCv", "repeatedCvGainPct") ||
+    validation_passed("repeatedNestedCv", "repeatedNestedCvGainPct")
   holdout_ok <- validation_passed("untouchedHoldout", "untouchedHoldoutGainPct")
   alternate_ok <- validation_passed("alternatePopPk", "alternatePopPkGainPct")
-  research_ok <- identity_ok && hash_ok && supported_type && nested_ok && holdout_ok
+  repeated_evaluated <- validation_evaluated("repeatedCv") || validation_evaluated("repeatedNestedCv")
+  experimental_ok <- identity_ok && hash_ok && supported_type && repeated_evaluated && validation_evaluated("untouchedHoldout")
+  research_ok <- experimental_ok && nested_ok && holdout_ok
   real_patient <- validation$realPatient %||% list()
   clinical_ok <- research_ok && identical(real_patient$status %||% "", "validated") &&
     is.finite(suppressWarnings(as.numeric(real_patient$gainPct %||% NA_real_))) &&
@@ -71,7 +94,7 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route, administrat
     if (!holdout_ok) "jeu de test interne non touché non favorable",
     if (!clinical_ok) "validation sur patients réels absente ou non favorable"
   )
-  list(research = research_ok, transportability = alternate_ok, clinical = clinical_ok, reasons = unique(reasons))
+  list(experimental = experimental_ok, research = research_ok, transportability = alternate_ok, clinical = clinical_ok, reasons = unique(reasons))
 }
 
 compatible_ml_artifacts <- function(model_id, drug, route, administration_mode = "") {
@@ -79,7 +102,7 @@ compatible_ml_artifacts <- function(model_id, drug, route, administration_mode =
   if (!length(artifacts)) return(list())
   Filter(function(artifact) {
     eligibility <- ml_artifact_eligibility(artifact, model_id, drug, route, administration_mode)
-    isTRUE(eligibility$research)
+    isTRUE(eligibility$experimental)
   }, artifacts)
 }
 
@@ -175,7 +198,42 @@ ml_observation_values <- function(fit) {
   )
 }
 
-ml_feature_value <- function(feature, fit) {
+ml_population_profile <- function(fit, horizon = 24) {
+  regimen <- ml_latest_regimen(fit)
+  population_fit <- fit
+  population_fit$estimate <- NULL
+  population_fit$ml_eta_override <- NULL
+  simulate_regimen(
+    population_fit,
+    dose = regimen[["DOSE"]],
+    interval = regimen[["INTERVAL"]],
+    infusion = regimen[["INFUSION"]],
+    horizon = max(24, horizon),
+    delta = 0.1
+  )
+}
+
+ml_population_observation_values <- function(profile, observations) {
+  predicted <- stats::approx(
+    profile$time,
+    profile$concentration,
+    xout = c(observations[["PREV_TIME"]], observations[["LAST_TIME"]]),
+    rule = 2,
+    ties = "ordered"
+  )$y
+  ratios <- pmax(1e-4, pmin(1e4, c(
+    observations[["PREV_CONC"]] / max(predicted[[1]], 1e-8),
+    observations[["LAST_CONC"]] / max(predicted[[2]], 1e-8)
+  )))
+  c(
+    PREV_POP_CONC = predicted[[1]],
+    LAST_POP_CONC = predicted[[2]],
+    PREV_CONC_RATIO = ratios[[1]],
+    LAST_CONC_RATIO = ratios[[2]]
+  )
+}
+
+ml_feature_value <- function(feature, fit, context = list()) {
   source <- feature$source %||% ""
   key <- feature$key %||% feature$name %||% ""
   if (!nzchar(key)) stop("ML feature key is missing.")
@@ -187,6 +245,8 @@ ml_feature_value <- function(feature, fit) {
       as.numeric(mapbayr::get_param(fit$estimate, key))[[1]],
       error = function(error) NA_real_
     ),
+    population_auc24 = context$population_auc24 %||% NA_real_,
+    population_observation = (context$population_observations %||% numeric())[[key]] %||% NA_real_,
     regimen = ml_latest_regimen(fit)[[key]] %||% NA_real_,
     observation = ml_observation_values(fit)[[key]] %||% NA_real_,
     stop("Unsupported ML feature source: ", source)
@@ -201,7 +261,19 @@ ml_feature_row <- function(fit, artifact) {
   if (!length(features)) stop("ML feature schema is empty.")
   feature_names <- vapply(features, function(feature) as.character(feature$name %||% ""), character(1))
   if (any(!nzchar(feature_names)) || anyDuplicated(feature_names)) stop("ML feature names are invalid.")
-  values <- vapply(features, ml_feature_value, numeric(1), fit = fit)
+  sources <- vapply(features, function(feature) as.character(feature$source %||% ""), character(1))
+  context <- list()
+  if (any(sources %in% c("population_auc24", "population_observation"))) {
+    observations <- if ("population_observation" %in% sources) ml_observation_values(fit) else NULL
+    horizon <- if (is.null(observations)) 24 else max(24, observations[["LAST_TIME"]])
+    profile <- ml_population_profile(fit, horizon)
+    auc_profile <- profile[profile$time <= 24 + 1e-8, , drop = FALSE]
+    context$population_auc24 <- trap_auc(auc_profile$time, auc_profile$concentration)
+    if ("population_observation" %in% sources) {
+      context$population_observations <- ml_population_observation_values(profile, observations)
+    }
+  }
+  values <- vapply(features, ml_feature_value, numeric(1), fit = fit, context = context)
   names(values) <- feature_names
   list(
     values = values,
@@ -269,7 +341,7 @@ build_ml_explanation <- function(artifact, booster, feature_row) {
       data = background,
       y = NULL,
       predict_function = function(model, newdata) {
-        as.numeric(stats::predict(model, as.matrix(newdata)))
+        ml_prediction_value(stats::predict(model, as.matrix(newdata)), artifact, newdata)
       },
       label = "AUC24 ML",
       verbose = FALSE
@@ -335,7 +407,7 @@ apply_ml_artifact <- function(fit, artifact) {
   artifact_path <- verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)
   booster <- readRDS(artifact_path)
   if (!inherits(booster, "xgb.Booster")) stop("ML artifact is not an xgboost booster.")
-  prediction_value <- as.numeric(stats::predict(booster, feature_row$matrix))[[1]]
+  prediction_value <- ml_prediction_value(stats::predict(booster, feature_row$matrix), artifact, feature_row$data)[[1]]
   prediction_type <- ml_prediction_type(artifact)
 
   if (identical(prediction_type, "auc24_direct")) {
@@ -380,6 +452,13 @@ apply_ml_artifact <- function(fit, artifact) {
       auc24 = prediction_value,
       unit = (artifact$prediction %||% list())$unit %||% "mg.h/L",
       extrapolated = length(domain_warnings) > 0L,
+      research_validation = isTRUE(ml_artifact_eligibility(
+        artifact,
+        fit$id,
+        model_record(fit$id)$drug[[1]],
+        fit$contract$route,
+        fit$contract$mode %||% ""
+      )$research),
       clinical_validation = isTRUE(ml_artifact_eligibility(
         artifact,
         fit$id,
@@ -458,6 +537,15 @@ ml_application_summary <- function(fits, weights = NULL) {
   direct <- vapply(valid, function(fit) identical((fit$ml_correction %||% list())$type %||% "", "auc24_direct"), logical(1))
   if (all(applied & direct)) {
     values <- vapply(valid, function(fit) as.numeric(fit$ml_auc24), numeric(1))
+    units <- unique(vapply(valid, function(fit) as.character(fit$ml_correction$unit %||% "mg.h/L"), character(1)))
+    if (length(units) != 1L) {
+      return(list(
+        available = length(valid),
+        auc24 = NA_real_,
+        clinical = FALSE,
+        message = "Unités AUC incompatibles entre les artefacts ML sélectionnés."
+      ))
+    }
     if (is.null(weights) || !length(weights)) weights <- stats::setNames(rep(1 / length(valid), length(valid)), names(valid))
     selected_weights <- as.numeric(weights[names(valid)])
     selected_weights[!is.finite(selected_weights) | selected_weights < 0] <- 0
@@ -465,6 +553,7 @@ ml_application_summary <- function(fits, weights = NULL) {
     selected_weights <- selected_weights / sum(selected_weights)
     auc24 <- sum(values * selected_weights)
     clinical <- all(vapply(valid, function(fit) isTRUE(fit$ml_correction$clinical_validation), logical(1)))
+    research <- all(vapply(valid, function(fit) isTRUE(fit$ml_correction$research_validation), logical(1)))
     labels <- vapply(valid, function(fit) fit$ml_correction$artifact_id, character(1))
     explanation <- if (length(valid) == 1L) {
       valid[[1]]$ml_explanation %||% list(available = FALSE, reason = "Explication DALEX indisponible.")
@@ -482,19 +571,22 @@ ml_application_summary <- function(fits, weights = NULL) {
     return(list(
       available = length(valid),
       auc24 = auc24,
+      unit = units[[1]],
       clinical = clinical,
+      research = research,
       artifacts = labels,
       explanation = explanation,
       domain_warnings = domain_warnings,
       message = paste0(
         "AUC24 ML expérimentale : ", round(auc24, 1),
-        " mg.h/L. Les projections de doses restent calculées par MAP",
+        " ", units[[1]], ". Les projections de doses restent calculées par MAP",
         if (length(valid) > 1L) " et model averaging." else ".",
         if (length(domain_warnings)) paste0(
           " Avertissement : extrapolation hors du domaine d'entraînement pour ",
           length(domain_warnings),
           " variable(s)."
-        ) else ""
+        ) else "",
+        if (!research) " Un ou plusieurs artefacts restent sous les seuils de performance internes et sont affichés uniquement comme expérimentaux." else ""
       )
     ))
   }
@@ -524,7 +616,7 @@ ml_application_summary <- function(fits, weights = NULL) {
     message = if ("experimental_ml_disabled" %in% reasons) {
       "AUC24 ML expérimentale non activée : estimation MAP conservée."
     } else {
-      "Aucun prédicteur direct d'AUC24 validé et compatible : estimation MAP conservée."
+      "Aucun prédicteur direct d'AUC24 évalué et compatible : estimation MAP conservée."
     }
   )
 }
@@ -540,9 +632,9 @@ ml_status_summary <- function(model_ids = character(), route = "", administratio
   list(
     available = sum(counts),
     message = if (sum(counts)) {
-      paste(sum(counts), "prédicteur(s) direct(s) d'AUC24 de recherche disponible(s).")
+      paste(sum(counts), "prédicteur(s) direct(s) d'AUC24 expérimental(aux) évalué(s) disponible(s).")
     } else {
-      "Aucun prédicteur direct d'AUC24 validé et compatible : estimation MAP conservée."
+      "Aucun prédicteur direct d'AUC24 évalué et compatible : estimation MAP conservée."
     }
   )
 }

@@ -1,79 +1,73 @@
-# Prédiction directe de l'AUC par PopPK + ML
+# Entrainement PopPK + XGBoost de l'AUC24
 
-Ce dossier ne contient aucune donnée patient. Il implémente la méthodologie d'entraînement de XGBoost sur des profils pharmacocinétiques simulés, validée pour le tacrolimus par Woillard et al. : doi:10.1016/j.phrs.2021.105578.
+Ce dossier ne contient aucune donnee patient. Le pipeline entraine un predicteur XGBoost distinct pour chaque couple modele mrgsolve / mode d'administration a partir de profils entierement simules. Il adapte a l'ensemble de la bibliotheque le principe valide pour le tacrolimus par Woillard et al. (doi:10.1016/j.phrs.2021.105578), sans extrapoler cette validation clinique aux autres molecules.
 
-Le modèle ML prédit directement l'AUC24 à partir de concentrations parcimonieuses, de leurs horaires exacts, de la posologie et des covariables. La version publiée exige deux prélèvements dans un même intervalle posologique, qui ne doit pas nécessairement être le dernier, et une administration déclarée à l'état stationnaire (`ss = 1`), conformément aux simulations d'entraînement. Il ne corrige pas un ETA et ne modifie pas la trajectoire MAP. Dans l'application, l'AUC24 ML est affichée séparément; les projections et recommandations restent calculées avec mrgsolve, mapbayr et, le cas échéant, le model averaging.
+## Principe
 
-## Contrat d'artefact
+Pour chaque patient virtuel, le script :
 
-Un artefact est lié à un seul modèle mrgsolve par son identifiant, sa voie, son mode d'administration et son empreinte SHA-256. La validation croisée répétée et imbriquée ainsi que le jeu de test interne non touché doivent respecter les seuils préspecifiés de biais, RMSE relative et proportion d'erreurs dans ±20 %. La validation sur un autre générateur PopPK mesure séparément la transportabilité; elle ne remplace pas la validation externe sur patients utilisée dans l'article. Les résultats face au MAP et au model averaging sont rapportés sans exiger artificiellement que XGBoost surpasse le modèle qui a généré ses propres données d'entraînement.
+1. tire les covariables et effets aleatoires dans le domaine defini pour le modele;
+2. simule un schema a l'etat stationnaire avec mrgsolve et l'erreur residuelle du modele;
+3. selectionne deux concentrations dans un meme intervalle posologique;
+4. calcule l'AUC24 individuelle vraie et l'AUC24 populationnelle du meme schema;
+5. entraine XGBoost sur `log(AUC24 vraie / AUC24 populationnelle)`;
+6. reconstruit l'estimation par `AUC24 populationnelle * exp(prediction)`;
+7. evalue le modele par validation croisee repetee, jeu de test interne non touche et, lorsqu'un autre modele compatible existe, transportabilite PopPK simulee;
+8. produit un fond synthetique pour l'explication locale DALEX.
 
-Le statut clinique reste faux tant qu'une validation favorable sur des patients réels indépendants atteints par la molécule étudiée n'est pas documentée. L'activation d'un artefact de recherche est toujours volontaire dans l'interface.
+Les variables comprennent les covariables du modele, la dose, l'intervalle, la duree de perfusion, les horaires et concentrations, les predictions populationnelles correspondantes et les rapports observe/predit. Les domaines de dose et d'intervalle sont explicites dans `training-regimens.json`.
 
-```json
-{
-  "id": "vanco_pkjust-intermittent-auc24-xgb-v2",
-  "drug": "Vancomycine",
-  "route": "IV",
-  "administrationMode": "intermittent",
-  "baseModelId": "vanco_pkjust",
-  "baseModelSha256": "<sha256>",
-  "artifactPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v2.rds",
-  "artifactSha256": "<sha256>",
-  "explanation": {
-    "type": "dalex_break_down",
-    "backgroundPath": "artifacts/vanco_pkjust-intermittent-auc24-xgb-v2-dalex-background.rds",
-    "backgroundSha256": "<sha256>",
-    "sampleSize": 200,
-    "synthetic": true
-  },
-  "featureSchema": [
-    { "name": "WT", "source": "covariate", "key": "WT" },
-    { "name": "DOSE", "source": "regimen", "key": "DOSE" },
-    { "name": "LAST_CONC", "source": "observation", "key": "LAST_CONC" },
-    { "name": "LAST_TIME", "source": "observation", "key": "LAST_TIME" }
-  ],
-  "prediction": {
-    "type": "auc24_direct",
-    "metric": "AUC24",
-    "unit": "mg.h/L",
-    "horizonHours": 24
-  },
-  "validation": {
-    "repeatedNestedCv": {
-      "passed": true,
-      "relativeRmsePct": 0,
-      "relativeBiasPct": 0,
-      "within20Pct": 0,
-      "gainVsMapPct": 0,
-      "gainVsAveragingPct": 0
-    },
-    "untouchedHoldout": { "passed": true },
-    "alternatePopPk": { "passed": true },
-    "realPatient": { "status": "pending", "gainPct": null }
-  }
-}
-```
+Dans l'application, l'AUC24 ML reste separee de l'estimation MAP-BE. Elle ne modifie ni les trajectoires, ni les simulations de doses, ni la recommandation MAP-BE.
 
-Toute variable manquante, mode de perfusion incompatible, empreinte du modèle ou du booster différente, validation non favorable ou dépendance indisponible provoque un repli explicite sur le MAP. Le manifeste conserve aussi la graine, les effectifs, les hyperparamètres et les versions logicielles de l'entraînement. L'explication locale DALEX repose sur un sous-échantillon des profils simulés d'entraînement, stocké séparément avec sa propre empreinte; elle ne contient aucune donnée patient réelle.
+## Model averaging
 
-## Évaluation vancomycine
+Il n'existe pas d'artefact supplementaire propre au model averaging. Chaque modele selectionne produit son AUC24 ML, puis l'application applique les memes poids d'averaging que pour l'analyse pharmacometrique. L'agregation est disponible uniquement si tous les modeles ajustes disposent d'un artefact compatible et partagent la meme molecule, la meme voie et le meme mode d'administration.
 
-`train_vancomycin_xgboost.R` sépare les domaines d'administration. Goti et Revilla sont évalués pour la perfusion intermittente; Revilla et Roberts pour la perfusion continue. Pour chaque patient virtuel, il :
+## Utilisation
 
-1. simule un profil riche à l'état stationnaire et calcule l'AUC24 trapézoïdale de référence;
-2. extrait deux prélèvements avec erreur résiduelle, répartis sur l'ensemble du même intervalle posologique avec au moins 0,5 h entre eux;
-3. calcule les références MAP et model averaging sur les mêmes prélèvements;
-4. entraîne XGBoost et une régression elastic net sur l'AUC24 directe;
-5. mesure le biais relatif, la RMSE relative et la proportion des erreurs dans ±20 %;
-6. réserve l'autre générateur compatible avec le même mode de perfusion, totalement absent du développement, à la validation externe simulée;
-7. publie un échantillon synthétique de référence pour décomposer localement chaque prédiction avec DALEX.
+Depuis `tdm-engine` :
 
 ```powershell
-Rscript ml/train_vancomycin_xgboost.R --smoke --base=all
-Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=intermittent --base=vanco_pkjust --report=ml/validation/revilla.csv
-Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=continuous --base=vanco_roberts
-Rscript ml/train_vancomycin_xgboost.R --n=1000 --mode=intermittent --base=vanco_pkjust --publish-research
+# Verification rapide sans publier
+Rscript ml/train_models_xgboost.R --smoke --base=all
+
+# Evaluation d'un modele ou d'une molecule
+Rscript ml/train_models_xgboost.R --n=1000 --base=vanco_pkjust --mode=IV_INTERMITTENT
+Rscript ml/train_models_xgboost.R --n=1000 --drug=Vancomycine
+
+# Entrainement et publication de toute la bibliotheque
+Rscript ml/train_models_xgboost.R --n=1000 --base=all --publish --report=ml/validation/all-models.csv
 ```
 
-`--publish-research` est refusé en mode smoke ou avec moins de 1 000 patients virtuels par cohorte. Même après publication de recherche, `realPatient.status` reste `pending` et l'interface indique explicitement que la validation externe propre à la vancomycine n'est pas acquise.
+Options disponibles :
+
+- `--base=all` ou une liste d'identifiants separes par des virgules;
+- `--drug=all`, une cle de molecule ou son nom;
+- `--mode=all`, `ORAL`, `IV_INTERMITTENT` ou `IV_CONTINUOUS`;
+- `--n=1000` pour l'effectif par couple modele/mode;
+- `--seed=20260906` pour reproduire un entrainement;
+- `--publish` pour ecrire les RDS et mettre a jour `registry.json`;
+- `--report=...csv` pour conserver les metriques synthetiques.
+
+La publication est refusee en mode `--smoke` ou avec moins de 1 000 profils par couple modele/mode. Pour ajouter un modele, il faut d'abord l'ajouter au catalogue et definir chaque schema d'administration pris en charge dans `training-regimens.json`, puis relancer le script sur son identifiant. Aucun fichier patient n'est lu ou ecrit.
+
+## Contrat et niveaux de preuve
+
+Chaque artefact est lie a l'identifiant du modele, la molecule, la voie, le mode d'administration, le schema de variables et l'empreinte SHA-256 exacte du fichier mrgsolve. Le manifeste enregistre egalement la graine, l'effectif, les hyperparametres, les versions logicielles, le domaine d'entrainement et les metriques.
+
+- `experimental` : artefact evalue en interne mais au moins un seuil de performance prespecifie n'est pas atteint;
+- `research` : validation croisee repetee et jeu de test interne conformes aux seuils;
+- validation clinique : toujours absente tant qu'une validation favorable sur des patients reels independants de la molecule concernee n'est pas documentee.
+
+Une valeur hors du domaine empirique declenche un avertissement sans bloquer l'affichage. Une variable manquante, moins de deux concentrations dans un meme intervalle, l'absence d'etat stationnaire, un mode d'administration incompatible, une empreinte differente ou une AUC invalide restent bloquants. L'explication DALEX utilise exclusivement un echantillon synthetique stocke separement avec sa propre empreinte.
+
+## Fichiers publies
+
+Pour chaque couple modele/mode, `--publish` produit :
+
+```text
+artifacts/<modele>-<mode>-auc24-xgb-v3.rds
+artifacts/<modele>-<mode>-auc24-xgb-v3-dalex-background.rds
+```
+
+Le premier RDS contient le booster XGBoost. Le second contient au maximum 200 profils synthetiques servant de reference DALEX. `registry.json` est le seul index charge par l'application.
