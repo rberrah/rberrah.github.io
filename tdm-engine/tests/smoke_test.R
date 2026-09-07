@@ -15,6 +15,7 @@ APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/
 
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
@@ -61,6 +62,19 @@ mellon_record <- model_record("amox_mellon")
 stopifnot(identical(model_routes(mellon_record), c("IV", "Oral")))
 mellon_model <- compile_model(model_id = "amox_mellon")
 mellon_contract <- validate_model_contract(mellon_model)
+fixed_residual_model <- apply_residual_error_setting(mellon_model, "fixed_cv", 1)
+fixed_log_model <- apply_residual_error_setting(compile_model(model_id = "amox_carlier"), "fixed_cv", 1.5)
+stopifnot(
+  isTRUE(all.equal(diag(as.matrix(mrgsolve::smat(fixed_residual_model))), c(0.0001, 0), tolerance = 1e-12)),
+  isTRUE(all.equal(
+    diag(as.matrix(mrgsolve::smat(fixed_log_model))),
+    c(0, log1p(0.015^2)),
+    tolerance = 1e-12
+  )),
+  identical(clinical_target_preset(model_record("vanco_roberts"), "IV_CONTINUOUS")$target_metric, "Cmin"),
+  identical(clinical_target_preset(model_record("vanco_goti"), "IV_INTERMITTENT")$target_low, 400),
+  is.null(clinical_target_preset(model_record("amox_carlier"), "IV_INTERMITTENT"))
+)
 stopifnot(resolve_administration_cmt(
   mellon_model,
   mellon_contract,
@@ -95,6 +109,23 @@ if (length(valid) != length(model_ids)) {
   stop("Some vancomycin models failed: ", paste(messages, collapse = " | "))
 }
 stopifnot(identical(as.numeric(valid[[1]]$current_covariates$WT), 74))
+
+fixed_residual_fits <- fit_model_set(
+  specifications[1],
+  doses,
+  observations,
+  covariates,
+  allow_custom = FALSE,
+  covariate_history = covariate_history,
+  residual_error_mode = "fixed_cv",
+  fixed_residual_cv = 1.5
+)
+fixed_residual_valid <- successful_fits(fixed_residual_fits)
+if (length(fixed_residual_valid) != 1L) stop("The fixed residual-error MAP fit failed: ", fixed_residual_fits[[1]]$message %||% "unknown error")
+stopifnot(
+  identical(fixed_residual_valid[[1]]$residual_error$mode, "fixed_cv"),
+  isTRUE(all.equal(diag(as.matrix(mrgsolve::smat(fixed_residual_valid[[1]]$model))), c(0.000225, 0), tolerance = 1e-12))
+)
 
 steady_doses <- data.frame(time = 36, amount = 1000, interval = 12, count = 1, infusion = 12, ss = 1)
 steady_observations <- data.frame(time = 11.5, concentration = 18)

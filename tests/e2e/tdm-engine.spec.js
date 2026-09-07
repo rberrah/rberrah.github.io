@@ -20,6 +20,20 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('a[data-value="analysis"]').click();
     await expect(page.locator('#administration_route')).toHaveValue('IV');
     await expect(page.locator('label[for="dose_infusion_1"]')).toContainText('0 = bolus IV');
+    await expect(page.locator('.target-preset')).toContainText('Préréglage documenté appliqué');
+    await expect(page.locator('#target_metric')).toHaveValue('Cmin');
+    await expect(page.locator('#target_low')).toHaveValue('20');
+    await expect(page.locator('#target_high')).toHaveValue('25');
+
+    await page.locator('a[data-value="settings"]').click();
+    await expect(page.locator('#residual_error_mode')).toHaveValue('model');
+    await expect(page.locator('#fixed_residual_cv')).not.toBeVisible();
+    await page.locator('#residual_error_mode').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('fixed_cv');
+    });
+    await expect(page.locator('#fixed_residual_cv')).toBeVisible();
+    await page.locator('#fixed_residual_cv').fill('1.5');
+    await page.locator('a[data-value="analysis"]').click();
 
     const controlPositions = await page.evaluate(() => {
       const model = document.querySelector('#model_id')?.closest('.shiny-input-container');
@@ -59,6 +73,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('.selectize-dropdown-content [data-value="tacrolimus_woillard_ddi"]').click();
     await expect(page.locator('.model-context-head')).toContainText('Woillard', { timeout: 15_000 });
     await expect(page.locator('#administration_route')).toHaveValue('Oral');
+    await expect(page.locator('.target-preset.unavailable')).toContainText('Aucun préréglage clinique universel');
     await expect(page.locator('#dose_infusion_1')).not.toBeVisible();
     await expect(page.locator('.dose-row .route-readonly', { hasText: 'perfusion est imposée à 0 h' })).toBeVisible();
 
@@ -95,7 +110,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     let downloadedJson = '';
     for await (const chunk of stream) downloadedJson += chunk.toString();
     const exportedPatient = JSON.parse(downloadedJson);
-    expect(exportedPatient.version).toBe(3);
+    expect(exportedPatient.version).toBe(4);
     expect(exportedPatient.model.route).toBe('IV');
     expect(exportedPatient.model.mode).toBe('IV_INTERMITTENT');
     expect(exportedPatient.doses[0].ss).toBe(1);
@@ -105,6 +120,30 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(exportedPatient.doses[0].time_uncertainty).toBe(0);
     expect(exportedPatient.observations[0].blq).toBe(false);
     expect(exportedPatient.observations[0].lloq).toBe(0);
+    expect(exportedPatient.settings.residualErrorMode).toBe('fixed_cv');
+    expect(exportedPatient.settings.fixedResidualCv).toBe(1.5);
+
+    exportedPatient.model.id = 'vanco_goti';
+    exportedPatient.model.route = 'IV';
+    exportedPatient.model.mode = 'IV_INTERMITTENT';
+    exportedPatient.target.metric = 'AUC24';
+    exportedPatient.target.low = 321;
+    exportedPatient.target.high = 654;
+    exportedPatient.target.doseMin = 375;
+    exportedPatient.target.doseMax = 2375;
+    exportedPatient.target.doseStep = 125;
+    exportedPatient.target.intervals = [8];
+    exportedPatient.target.infusion = 2;
+    await page.locator('#upload_patient').setInputFiles({
+      name: 'patient-import.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(exportedPatient))
+    });
+    await expect(page.locator('.model-context-head')).toContainText('Goti', { timeout: 15_000 });
+    await expect(page.locator('#target_low')).toHaveValue('321');
+    await expect(page.locator('#target_high')).toHaveValue('654');
+    await expect(page.locator('#dose_min')).toHaveValue('375');
+    await expect(page.locator('#future_infusion')).toHaveValue('2');
 
     const specification = {
       version: 1,
@@ -164,8 +203,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.locator('#run_analysis').click();
 
     const exposure = page.locator('.exposure-strip');
-    await expect(exposure).toContainText('Current AUC', { timeout: 120_000 });
-    await expect(exposure).toContainText('Steady-state AUC0-24');
+    await expect(exposure).toContainText('MAP AUC24 · steady state', { timeout: 120_000 });
+    await expect(exposure).toContainText('MAP AUC · 24.0-hour window');
     await expect(exposure).toContainText('Current C0');
     await expect(page.locator('#future_comparison_plot img')).toBeVisible();
     await expect(page.locator('#averaging_sensitivity_table')).toBeVisible();
@@ -179,7 +218,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     const stream = await report.createReadStream();
     let html = '';
     for await (const chunk of stream) html += chunk.toString();
-    expect(html).toContain('Current rolling AUC');
+    expect(html).toContain('MAP AUC · 24.0-hour window');
     expect(html).toContain('Model SHA-256 fingerprints');
     expect(html).toContain('mapbayr');
     expect(html).toContain('Experimental ML AUC24 not enabled');

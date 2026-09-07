@@ -436,7 +436,14 @@ apply_ml_artifact <- function(fit, artifact) {
     auc_min <- suppressWarnings(as.numeric(auc_domain$min %||% NA_real_))
     auc_max <- suppressWarnings(as.numeric(auc_domain$max %||% NA_real_))
     if (is.finite(auc_min) && prediction_value < auc_min || is.finite(auc_max) && prediction_value > auc_max) {
-      stop("ML AUC24 prediction is outside its validated domain.")
+      domain_warnings <- c(domain_warnings, list(list(
+        feature = "ML_AUC24",
+        value = as.numeric(prediction_value),
+        min = auc_min,
+        max = auc_max,
+        direction = if (is.finite(auc_min) && prediction_value < auc_min) "below" else "above",
+        artifact_id = artifact$id %||% "unnamed"
+      )))
     }
     fit$ml_auc24 <- prediction_value
     fit$ml_features <- as.list(values)

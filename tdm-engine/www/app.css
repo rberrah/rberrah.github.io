@@ -234,6 +234,36 @@ h6 {
   overflow-wrap: anywhere;
 }
 
+.target-preset {
+  display: grid;
+  gap: 5px;
+  padding: 10px 11px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--green);
+  background: #e8f4ed;
+  color: #28533b;
+  font-size: 0.76rem;
+}
+
+.target-preset.unavailable {
+  border-left-color: #b16916;
+  background: #fffaf0;
+  color: #5e4b23;
+}
+
+.target-preset a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+
+.residual-setting-warning {
+  padding: 8px 10px;
+  margin-top: 10px;
+  border-left: 3px solid #b16916;
+  background: #fffaf0;
+  color: #5e4b23;
+}
+
 .ml-status {
   padding: 7px 9px;
   margin: -5px 0 12px;
@@ -728,7 +758,7 @@ h6 {
 
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   margin-top: 26px;
 }

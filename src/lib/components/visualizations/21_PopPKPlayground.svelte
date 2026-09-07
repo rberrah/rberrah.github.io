@@ -107,7 +107,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'poppk_playground.csv';
+    a.download = 'poppk_simulation.csv';
     a.click();
     URL.revokeObjectURL(url);
   }

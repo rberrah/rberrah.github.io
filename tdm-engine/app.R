@@ -23,6 +23,7 @@ format_metric <- function(value, digits = 1, lang = "fr") {
 APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
@@ -112,6 +113,7 @@ ML_FEATURE_LABELS <- c(
   INTERVAL = "Intervalle d'administration",
   INFUSION = "Durée de perfusion",
   POP_AUC24 = "AUC24 populationnelle",
+  ML_AUC24 = "AUC24 prédite par ML",
   PREV_CONC = "Première concentration récente",
   PREV_TIME = "Horaire de la première concentration",
   LAST_CONC = "Dernière concentration",
@@ -128,6 +130,7 @@ ML_FEATURE_LABELS_EN <- c(
   WT = "Weight", AGE = "Age", CREAT = "Creatinine", SEX = "Sex", DOSE = "Dose",
   INTERVAL = "Dosing interval", INFUSION = "Infusion duration",
   POP_AUC24 = "Population AUC24",
+  ML_AUC24 = "ML-predicted AUC24",
   PREV_CONC = "First recent concentration", PREV_TIME = "First concentration time",
   LAST_CONC = "Last concentration", LAST_TIME = "Last concentration time",
   CONC_DIFF = "Concentration difference", TIME_DIFF = "Time between concentrations",
@@ -155,6 +158,7 @@ format_ml_feature_value <- function(name, value, lang = "fr", auc_unit = "mg.h/L
     INTERVAL = " h",
     INFUSION = " h",
     POP_AUC24 = paste0(" ", auc_unit),
+    ML_AUC24 = paste0(" ", auc_unit),
     PREV_CONC = paste0(" ", concentration_unit),
     LAST_CONC = paste0(" ", concentration_unit),
     PREV_POP_CONC = paste0(" ", concentration_unit),
@@ -548,6 +552,7 @@ app_ui <- function(request) {
             accordion_panel(
               "Cible et grille de doses",
               value = "target_settings",
+              uiOutput("target_preset_ui"),
               selectInput(
                 "target_metric",
                 "Métrique",
@@ -770,6 +775,24 @@ app_ui <- function(request) {
             choices = if (lang == "en") c("Exclude from fit" = "exclude", "LLOQ / 2 (exploratory)" = "lloq_half") else c("Exclure de l'ajustement" = "exclude", "LLOQ / 2 (exploratoire)" = "lloq_half"),
             selected = "exclude"
           )
+        ),
+        div(
+          class = "settings-group",
+          h2("Erreur résiduelle MAP"),
+          selectInput(
+            "residual_error_mode",
+            "Erreur utilisée pour l'ajustement",
+            choices = c("Conserver l'erreur du modèle" = "model", "Fixer un CV proportionnel" = "fixed_cv"),
+            selected = "model"
+          ),
+          conditionalPanel(
+            "input.residual_error_mode == 'fixed_cv'",
+            numericInput("fixed_residual_cv", "CV proportionnel fixé (%)", 1, min = 0.1, max = 100, step = 0.1)
+          ),
+          div(
+            class = "custom-note",
+            "Le mode fixé remplace les SIGMA de l'ajustement par le CV proportionnel choisi, ou son équivalent logarithmique pour un modèle exponentiel. Il modifie le poids des concentrations dans MAP-BE."
+          )
         )
       ),
       div(class = "privacy-notice settings-privacy", tags$strong("Pas de lien partageable"), span("Les données patient ne sont pas encodées dans l'URL afin d'éviter leur présence dans l'historique du navigateur, les journaux réseau ou les outils d'analytique."))
@@ -783,6 +806,8 @@ app_ui <- function(request) {
       h1("Méthode et limites"),
       h2("Estimation individuelle"),
       p("Les effets aléatoires individuels sont estimés par maximum a posteriori avec mapbayr. Les administrations, covariables datées et concentrations sont converties en événements NM-TRAN puis simulées avec mrgsolve."),
+      h2("Erreur résiduelle"),
+      p("Par défaut, l'ajustement conserve les variances résiduelles du modèle publié. Le réglage CV proportionnel fixé remplace chaque paire SIGMA par une variance proportionnelle commune, ou sa variance logarithmique équivalente si le modèle utilise une erreur exponentielle. Ce choix change le poids des observations dans l'estimation MAP et doit être documenté."),
       h2("Model averaging"),
       p("Chaque modèle analyse les mêmes données. Les prédictions sont moyennées avec des poids issus de la vraisemblance ou du critère d'Akaike. Le serveur refuse l'agrégation de modèles ne partageant pas la même molécule, la même voie et le même mode d'administration."),
       p("La robustesse est explorée avec des poids égaux, AIC, log-vraisemblance et des analyses laissant successivement de côté chaque modèle. Une divergence des doses proposées doit conduire à revoir l'applicabilité du model averaging."),
@@ -858,6 +883,7 @@ server <- function(input, output, session) {
   analysis_store <- reactiveVal(NULL)
   validation_store <- reactiveVal(NULL)
   query_applied <- reactiveVal(FALSE)
+  pending_import_target <- reactiveVal(NULL)
   pending_import_covariates <- reactiveVal(NULL)
   pending_lego_covariates <- reactiveVal(NULL)
   session_model_dir <- tempfile("pk-mipd-custom-session-")
@@ -867,6 +893,19 @@ server <- function(input, output, session) {
   numeric_input_value <- function(id, fallback = NA_real_) {
     value <- suppressWarnings(as.numeric(input[[id]] %||% fallback))
     if (length(value) != 1L || !is.finite(value)) fallback else value
+  }
+
+  update_target_inputs <- function(target) {
+    if ((target$metric %||% "") %in% c("AUC24", "Cmin", "Cmax")) {
+      updateSelectInput(session, "target_metric", selected = target$metric)
+    }
+    numeric_targets <- c(low = "target_low", high = "target_high", doseMin = "dose_min", doseMax = "dose_max", doseStep = "dose_step", infusion = "future_infusion")
+    for (name in names(numeric_targets)) {
+      value <- suppressWarnings(as.numeric(target[[name]] %||% NA_real_))
+      if (is.finite(value) && value >= 0) updateNumericInput(session, numeric_targets[[name]], value = value)
+    }
+    intervals <- intersect(as.character(as.numeric(target$intervals %||% numeric())), c("6", "8", "12", "24", "48"))
+    if (length(intervals)) updateCheckboxGroupInput(session, "candidate_intervals", selected = intervals)
   }
 
   row_time_messages <- function(prefix, index) {
@@ -1652,7 +1691,7 @@ server <- function(input, output, session) {
       model_source <- isolate(input$model_source %||% "library")
       document <- list(
         schema = "pk-mipd-patient",
-        version = 3L,
+        version = 4L,
         privacy = list(containsIdentity = FALSE, customCodeIncluded = FALSE),
         timeline = list(mode = "relative_hours", origin = "first_administration"),
         model = list(
@@ -1686,6 +1725,8 @@ server <- function(input, output, session) {
           variability = isolate(input$variability_components %||% character()),
           posteriorReplicates = as.integer(isolate(input$posterior_replicates %||% 20)),
           blqMethod = isolate(input$blq_method %||% "exclude"),
+          residualErrorMode = isolate(input$residual_error_mode %||% "model"),
+          fixedResidualCv = as.numeric(isolate(input$fixed_residual_cv %||% 1)),
           experimentalML = isTRUE(isolate(input$enable_experimental_ml))
         )
       )
@@ -1701,7 +1742,7 @@ server <- function(input, output, session) {
       document <- jsonlite::fromJSON(file_info$datapath[[1]], simplifyDataFrame = TRUE)
       unlink(file_info$datapath[[1]], force = TRUE)
       version <- as.integer(document$version %||% 0)
-      if (!identical(document$schema %||% "", "pk-mipd-patient") || !version %in% c(1L, 2L, 3L)) {
+      if (!identical(document$schema %||% "", "pk-mipd-patient") || !version %in% c(1L, 2L, 3L, 4L)) {
         stop(tx("Format de fichier patient non reconnu.", "Unrecognized patient file format."))
       }
 
@@ -1738,6 +1779,7 @@ server <- function(input, output, session) {
       doses$count <- as.integer(doses$count)
       doses$ss <- as.integer(doses$ss)
 
+      target <- document$target %||% list()
       model <- document$model %||% list()
       expected_model_ids <- character()
       if (identical(model$source %||% "", "library") && (model$id %||% "") %in% MODEL_CATALOG$id) {
@@ -1750,6 +1792,12 @@ server <- function(input, output, session) {
         modes <- model_administration_modes(record, route)
         mode <- as.character(model$mode %||% modes[[1]])
         if (!mode %in% modes) mode <- modes[[1]]
+        imported_target_key <- paste("library", model$id, route, mode, sep = "::")
+        if (!identical(isolate(target_preset_key()), imported_target_key)) {
+          pending_import_target(list(key = imported_target_key, target = target))
+        } else {
+          pending_import_target(NULL)
+        }
         averaging <- model$averaging %||% list()
         updateCheckboxInput(session, "enable_averaging", value = isTRUE(averaging$enabled))
         if ((averaging$scheme %||% "AIC") %in% c("AIC", "LL")) {
@@ -1776,15 +1824,7 @@ server <- function(input, output, session) {
         ), type = "warning", duration = 8)
       }
 
-      target <- document$target %||% list()
-      if ((target$metric %||% "") %in% c("AUC24", "Cmin", "Cmax")) updateSelectInput(session, "target_metric", selected = target$metric)
-      numeric_targets <- c(low = "target_low", high = "target_high", doseMin = "dose_min", doseMax = "dose_max", doseStep = "dose_step", infusion = "future_infusion")
-      for (name in names(numeric_targets)) {
-        value <- suppressWarnings(as.numeric(target[[name]] %||% NA_real_))
-        if (is.finite(value) && value >= 0) updateNumericInput(session, numeric_targets[[name]], value = value)
-      }
-      intervals <- intersect(as.character(as.numeric(target$intervals %||% numeric())), c("6", "8", "12", "24", "48"))
-      if (length(intervals)) updateCheckboxGroupInput(session, "candidate_intervals", selected = intervals)
+      update_target_inputs(target)
 
       settings <- document$settings %||% list()
       if ((settings$delta %||% "") %in% c(0.05, 0.1, 0.25)) updateSelectInput(session, "simulation_delta", selected = as.character(settings$delta))
@@ -1804,6 +1844,13 @@ server <- function(input, output, session) {
       if ((settings$blqMethod %||% "") %in% c("exclude", "lloq_half")) {
         updateSelectInput(session, "blq_method", selected = settings$blqMethod)
       }
+      if ((settings$residualErrorMode %||% "") %in% c("model", "fixed_cv")) {
+        updateSelectInput(session, "residual_error_mode", selected = settings$residualErrorMode)
+      }
+      fixed_residual_cv <- suppressWarnings(as.numeric(settings$fixedResidualCv %||% NA_real_))
+      if (is.finite(fixed_residual_cv) && fixed_residual_cv > 0 && fixed_residual_cv <= 100) {
+        updateNumericInput(session, "fixed_residual_cv", value = fixed_residual_cv)
+      }
       updateCheckboxInput(session, "enable_experimental_ml", value = isTRUE(settings$experimentalML))
 
       updateSelectInput(session, "time_entry_mode", selected = "relative_hours")
@@ -1812,6 +1859,7 @@ server <- function(input, output, session) {
       analysis_store(NULL)
       validation_store(NULL)
     }, error = function(error) {
+      pending_import_target(NULL)
       if (file.exists(file_info$datapath[[1]])) unlink(file_info$datapath[[1]], force = TRUE)
       showNotification(conditionMessage(error), type = "error", duration = 10)
     })
@@ -1859,6 +1907,11 @@ server <- function(input, output, session) {
     } else {
       model <- compile_model(model_id = isolate(input$model_id))
     }
+    model <- apply_residual_error_setting(
+      model,
+      isolate(input$residual_error_mode %||% "model"),
+      isolate(input$fixed_residual_cv %||% 1)
+    )
     contract <- validate_model_contract(model)
     specification <- model_specifications()[[1]]
     if (isTRUE(contract$ok)) contract$adm_cmt <- resolve_administration_cmt(model, contract, specification)
@@ -1928,11 +1981,15 @@ server <- function(input, output, session) {
       infusion <- if (identical(route, "Oral")) 0 else as.numeric(isolate(input$future_infusion))
       delta <- as.numeric(isolate(input$simulation_delta %||% 0.1))
       variability <- isolate(input$variability_components %||% character())
+      residual_error_mode <- isolate(input$residual_error_mode %||% "model")
+      fixed_residual_cv <- as.numeric(isolate(input$fixed_residual_cv %||% 1))
 
       analysis_stage <- tx("validation des réglages", "validating settings")
       shiny::validate(shiny::need(length(intervals), tx("Sélectionnez au moins un intervalle de dose.", "Select at least one dosing interval.")))
       shiny::validate(shiny::need(input$target_high > input$target_low, tx("La borne haute doit dépasser la borne basse.", "The upper bound must exceed the lower bound.")))
       shiny::validate(shiny::need(input$dose_max >= input$dose_min && input$dose_step > 0, tx("La grille de doses est invalide.", "The dose grid is invalid.")))
+      shiny::validate(shiny::need(residual_error_mode %in% c("model", "fixed_cv"), tx("Le réglage de l'erreur résiduelle est invalide.", "The residual error setting is invalid.")))
+      shiny::validate(shiny::need(!identical(residual_error_mode, "fixed_cv") || (is.finite(fixed_residual_cv) && fixed_residual_cv > 0 && fixed_residual_cv <= 100), tx("Le CV résiduel fixé doit être compris entre 0 et 100 %.", "The fixed residual CV must be between 0 and 100%.")))
 
       result <- withProgress(message = tx("Analyse pharmacométrique", "Pharmacometric analysis"), value = 0, {
         analysis_stage <- tx("ajustement MAP", "MAP fitting")
@@ -1945,7 +2002,9 @@ server <- function(input, output, session) {
           ALLOW_CUSTOM_MODELS,
           covariate_history = observation_records$covariate_history,
           custom_soloc = session_model_dir,
-          custom_cache = session_model_cache
+          custom_cache = session_model_cache,
+          residual_error_mode = residual_error_mode,
+          fixed_residual_cv = fixed_residual_cv
         )
         fits <- apply_hybrid_ml_to_fits(
           fits,
@@ -2079,6 +2138,7 @@ server <- function(input, output, session) {
           target_metric = isolate(input$target_metric),
           target_low = isolate(input$target_low),
           target_high = isolate(input$target_high),
+          target_preset = active_target_preset(),
           weighting_scheme = isolate(input$weighting_scheme %||% "AIC"),
           quality = quality,
           provenance = analysis_provenance(specifications),
@@ -2091,6 +2151,8 @@ server <- function(input, output, session) {
             prediction_interval = as.numeric(isolate(input$prediction_interval %||% 90)),
             variability = variability,
             blq_method = isolate(input$blq_method %||% "exclude"),
+            residual_error_mode = residual_error_mode,
+            fixed_residual_cv = if (identical(residual_error_mode, "fixed_cv")) fixed_residual_cv else NA_real_,
             show_component_profiles = isTRUE(isolate(input$show_component_profiles))
           )
         )
@@ -2121,6 +2183,15 @@ server <- function(input, output, session) {
       tags$strong(tx("Applicabilité et qualité des données", "Applicability and data quality")),
       if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else span(tx("Aucune anomalie générique détectée.", "No generic issue detected.")),
       if (length(population_rows)) tagList(span(tx("Populations sources à comparer au patient :", "Source populations to compare with the patient:")), tags$ul(population_rows)),
+      if (identical(result$settings$residual_error_mode, "fixed_cv")) {
+        div(
+          class = "residual-setting-warning",
+          tx(
+            paste0("Ajustement MAP avec un CV résiduel proportionnel fixé à ", format_metric(result$settings$fixed_residual_cv), " %; représentation SIGMA adaptée à l'échelle d'erreur du modèle."),
+            paste0("MAP fit with proportional residual CV fixed at ", format_metric(result$settings$fixed_residual_cv), "%; SIGMA representation adapted to the model error scale.")
+          )
+        )
+      },
       span(class = "ml-result-status", ml_status_message(result$ml_status, current_language())),
       ml_domain_warning_block(result$ml_status, current_language())
     )
@@ -2311,6 +2382,70 @@ server <- function(input, output, session) {
     )
   })
 
+  active_target_preset <- reactive({
+    if (identical(input$model_source %||% "library", "custom")) return(NULL)
+    record <- model_record(current_model_id())
+    clinical_target_preset(record, current_administration_mode())
+  })
+
+  target_preset_key <- reactive({
+    paste(
+      input$model_source %||% "library",
+      current_model_id(),
+      input$administration_route %||% "",
+      current_administration_mode(),
+      sep = "::"
+    )
+  })
+
+  observeEvent(target_preset_key(), {
+    pending <- pending_import_target()
+    if (!is.null(pending)) {
+      if (!identical(target_preset_key(), pending$key)) return()
+      update_target_inputs(pending$target)
+      pending_import_target(NULL)
+      return()
+    }
+    preset <- active_target_preset()
+    if (is.null(preset)) return()
+    updateSelectInput(session, "target_metric", selected = preset$target_metric)
+    updateNumericInput(session, "target_low", value = preset$target_low)
+    updateNumericInput(session, "target_high", value = preset$target_high)
+    updateNumericInput(session, "dose_min", value = preset$dose_min)
+    updateNumericInput(session, "dose_max", value = preset$dose_max)
+    updateNumericInput(session, "dose_step", value = preset$dose_step)
+    updateCheckboxGroupInput(session, "candidate_intervals", selected = as.character(preset$intervals))
+    updateNumericInput(session, "future_infusion", value = preset$infusion)
+  }, ignoreInit = FALSE)
+
+  output$target_preset_ui <- renderUI({
+    preset <- active_target_preset()
+    if (is.null(preset)) {
+      return(div(
+        class = "target-preset unavailable",
+        tags$strong(tx("Aucun préréglage clinique universel", "No universal clinical preset")),
+        span(tx(
+          "La cible et la grille affichées doivent être définies selon l'indication, le protocole local et le patient; elles ne constituent pas une recommandation.",
+          "The displayed target and grid must be defined for the indication, local protocol, and patient; they are not a recommendation."
+        ))
+      ))
+    }
+    scope <- if (identical(current_language(), "en")) preset$scope_en else preset$scope_fr
+    grid_note <- if (identical(current_language(), "en")) preset$grid_note_en else preset$grid_note_fr
+    div(
+      class = "target-preset",
+      tags$strong(tx("Préréglage documenté appliqué", "Documented preset applied")),
+      span(paste0(scope, " ", grid_note)),
+      tags$a(
+        paste0(preset$citation, " DOI ", preset$doi),
+        href = paste0("https://doi.org/", preset$doi),
+        target = "_blank",
+        rel = "noopener noreferrer"
+      )
+    )
+  })
+  shiny::outputOptions(output, "target_preset_ui", suspendWhenHidden = FALSE)
+
   output$ml_comparison_plot <- renderPlot({
     result <- analysis_store()
     shiny::req(result)
@@ -2404,7 +2539,16 @@ server <- function(input, output, session) {
     distribution <- result$distribution
     components <- c(
       if (isTRUE(distribution$include_posterior)) tx("incertitude postérieure MAP", "MAP posterior uncertainty"),
-      if (isTRUE(distribution$include_residual)) tx("erreur résiduelle", "residual error"),
+      if (isTRUE(distribution$include_residual)) {
+        if (identical(distribution$residual_error_mode, "fixed_cv")) {
+          tx(
+            paste0("erreur résiduelle fixée à ", format_metric(distribution$fixed_residual_cv), " % CV"),
+            paste0("residual error fixed at ", format_metric(distribution$fixed_residual_cv), "% CV")
+          )
+        } else {
+          tx("erreur résiduelle du modèle", "model residual error")
+        }
+      },
       if (isTRUE(distribution$include_timing) && isTRUE(distribution$timing_available)) tx("incertitude des horaires", "timing uncertainty"),
       if (length(result$weights) > 1L) tx("incertitude entre modèles", "between-model uncertainty")
     )
@@ -2524,6 +2668,14 @@ server <- function(input, output, session) {
         record <- model_record(id)
         tags$li(record$citation[[1]], " · ", tags$a(paste0("DOI ", record$doi[[1]]), href = paste0("https://doi.org/", record$doi[[1]])))
       })
+      if (!is.null(result$target_preset)) {
+        references <- c(references, list(tags$li(
+          tx("Préréglage de cible : ", "Target preset: "),
+          result$target_preset$citation,
+          " · ",
+          tags$a(paste0("DOI ", result$target_preset$doi), href = paste0("https://doi.org/", result$target_preset$doi))
+        )))
+      }
       sensitivity_table <- result$averaging_sensitivity
       sensitivity_table[c("auc24", "cmin", "cmax", "target_value")] <- lapply(sensitivity_table[c("auc24", "cmin", "cmax", "target_value")], round, 2)
       provenance <- result$provenance
@@ -2558,6 +2710,20 @@ server <- function(input, output, session) {
           h2("Applicabilité et qualité"),
           if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else p("Aucune anomalie générique détectée."),
           tags$ul(lapply(result$quality$populations, function(item) tags$li(tags$strong(item$model), paste0(" : ", item$population)))),
+          h2("Réglages appliqués"),
+          p(tx(
+            if (identical(result$settings$residual_error_mode, "fixed_cv")) {
+              paste0("Erreur résiduelle MAP : CV proportionnel fixé à ", format_metric(result$settings$fixed_residual_cv), " %, avec représentation SIGMA adaptée à l'échelle d'erreur du modèle.")
+            } else {
+              "Erreur résiduelle MAP : valeurs du modèle."
+            },
+            if (identical(result$settings$residual_error_mode, "fixed_cv")) {
+              paste0("MAP residual error: proportional CV fixed at ", format_metric(result$settings$fixed_residual_cv), "%, with SIGMA representation adapted to the model error scale.")
+            } else {
+              "MAP residual error: model values."
+            }
+          )),
+          if (!is.null(result$target_preset)) p(tx("La cible a été initialisée depuis le préréglage documenté cité dans les références; les valeurs du rapport sont celles utilisées lors de l'analyse.", "The target was initialized from the documented preset cited in the references; report values are those used for the analysis.")),
           h2("Ajustement"),
           tags$img(src = report_plot_uri(fit_plot), alt = "Ajustement pharmacocinétique"),
           h2("Comparaison des doses supplémentaires"),

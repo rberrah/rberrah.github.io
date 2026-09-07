@@ -140,6 +140,24 @@ resolve_administration_cmt <- function(model, contract, specification) {
   position
 }
 
+apply_residual_error_setting <- function(model, mode = "model", fixed_cv = 1) {
+  if (identical(mode, "model")) return(model)
+  if (!identical(mode, "fixed_cv")) stop("Unknown residual error setting: ", mode, ".")
+
+  fixed_cv <- suppressWarnings(as.numeric(fixed_cv))
+  if (length(fixed_cv) != 1L || !is.finite(fixed_cv) || fixed_cv <= 0 || fixed_cv > 100) {
+    stop("The fixed proportional residual error must be between 0 and 100%.")
+  }
+
+  sigma <- as.matrix(mrgsolve::smat(model))
+  outcome_count <- max(1L, ceiling(nrow(sigma) / 2L))
+  cv <- fixed_cv / 100
+  uses_log_error <- isTRUE(getFromNamespace("log_transformation", "mapbayr")(model))
+  sigma_pair <- if (uses_log_error) c(0, log1p(cv^2)) else c(cv^2, 0)
+  diagonal <- rep(sigma_pair, outcome_count)
+  mrgsolve::smat(model, diag(diagonal, nrow = length(diagonal)))
+}
+
 fit_one_model <- function(
   specification,
   doses,
@@ -148,7 +166,9 @@ fit_one_model <- function(
   allow_custom,
   covariate_history = NULL,
   custom_soloc = NULL,
-  custom_cache = NULL
+  custom_cache = NULL,
+  residual_error_mode = "model",
+  fixed_residual_cv = 1
 ) {
   model <- compile_model(
     model_id = specification$id,
@@ -157,6 +177,7 @@ fit_one_model <- function(
     custom_soloc = custom_soloc,
     custom_cache = custom_cache
   )
+  model <- apply_residual_error_setting(model, residual_error_mode, fixed_residual_cv)
   accepted_covariates <- model_param_names(model)
   model_covariates <- covariates[names(covariates) %in% accepted_covariates]
   current_covariates <- model_covariates
@@ -208,7 +229,13 @@ fit_one_model <- function(
     source_doses = doses,
     source_observations = observations,
     source_covariates = model_covariates,
-    source_covariate_history = covariate_history
+    source_covariate_history = covariate_history,
+    residual_error = list(
+      mode = residual_error_mode,
+      fixed_cv = if (identical(residual_error_mode, "fixed_cv")) fixed_residual_cv else NA_real_,
+      scale = if (identical(residual_error_mode, "fixed_cv") &&
+        isTRUE(getFromNamespace("log_transformation", "mapbayr")(model))) "log" else "standard"
+    )
   )
 }
 
@@ -223,7 +250,9 @@ fit_model_set <- function(
   allow_custom,
   covariate_history = NULL,
   custom_soloc = NULL,
-  custom_cache = NULL
+  custom_cache = NULL,
+  residual_error_mode = "model",
+  fixed_residual_cv = 1
 ) {
   validate_model_route_set(specifications)
   doses <- normalize_steady_state_doses(doses)
@@ -237,7 +266,9 @@ fit_model_set <- function(
         allow_custom,
         covariate_history,
         custom_soloc,
-        custom_cache
+        custom_cache,
+        residual_error_mode,
+        fixed_residual_cv
       ),
       error = function(error) structure(list(
         id = specification$id %||% "custom",
@@ -796,7 +827,9 @@ simulate_model_distribution <- function(
   } else if (!include_posterior) {
     model <- mrgsolve::zero_re(model, omega)
   }
-  if (!include_residual) model <- mrgsolve::zero_re(model, sigma)
+  fixed_residual_cv <- suppressWarnings(as.numeric(fit$residual_error$fixed_cv %||% NA_real_))
+  use_fixed_residual <- include_residual && identical(fit$residual_error$mode %||% "model", "fixed_cv") && is.finite(fixed_residual_cv)
+  if (!include_residual || use_fixed_residual) model <- mrgsolve::zero_re(model, sigma)
   event <- mrgsolve::ev(
     amt = dose,
     ii = interval,
@@ -810,8 +843,12 @@ simulate_model_distribution <- function(
     mrgsolve::mrgsim(start = 0, end = 24, delta = delta, nid = replicates, recsort = 3) |>
     as.data.frame()
   column <- pick_concentration_column(simulation)
+  if (use_fixed_residual) set.seed(seed + 41L)
   rows <- lapply(split(simulation, simulation$ID), function(profile) {
     values <- pmax(0, profile[[column]])
+    if (use_fixed_residual) {
+      values <- pmax(0, values * (1 + stats::rnorm(length(values), 0, fixed_residual_cv / 100)))
+    }
     data.frame(
       auc24 = trap_auc(profile$time, values),
       cmin = min(values, na.rm = TRUE),
@@ -885,6 +922,8 @@ simulate_regimen_distribution <- function(
     metric = metric,
     include_posterior = include_posterior,
     include_residual = include_residual,
+    residual_error_mode = if (include_residual && length(valid)) valid[[1]]$residual_error$mode %||% "model" else "none",
+    fixed_residual_cv = if (include_residual && length(valid)) valid[[1]]$residual_error$fixed_cv %||% NA_real_ else NA_real_,
     include_timing = include_timing,
     posterior_available = all(vapply(simulations, `[[`, logical(1), "posterior_available")),
     timing_available = any(vapply(simulations, `[[`, logical(1), "timing_available")),

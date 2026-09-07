@@ -3,7 +3,11 @@
   import { language } from '$lib/stores/language';
 </script>
 
-<h1>{$language === 'en' ? 'PopPK / PKPD playground' : 'Playground PopPK / PKPD'}</h1>
+<svelte:head>
+  <title>{$language === 'en' ? 'PopPK / PKPD simulation' : 'Simulation PopPK / PKPD'} · Pharmacométrie Pratique</title>
+</svelte:head>
+
+<h1>{$language === 'en' ? 'PopPK / PKPD simulation' : 'Simulation PopPK / PKPD'}</h1>
 <p>{$language === 'en' ? 'Simulate compartments, administration route, IIV/IOV, residual error, sampling, and CSV export in real time.' : 'Simule en direct : nombre de compartiments, voie d’administration, IIV/IOV, erreur résiduelle, sampling, export CSV.'}</p>
 
 <PopPKPlayground />
