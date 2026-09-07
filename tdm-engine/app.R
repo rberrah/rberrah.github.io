@@ -20,6 +20,52 @@ format_metric <- function(value, digits = 1, lang = "fr") {
   format(round(as.numeric(value[[1]]), digits), nsmall = digits, trim = TRUE)
 }
 
+target_metric_label <- function(metric, lang = "fr") {
+  labels <- if (identical(normalize_app_language(lang), "en")) {
+    c(AUC24 = "AUC 0-24 h", Cmin = "Cmin", Cmax = "Cmax", TimeAbove = "% time above threshold", CminCmax = "Cmin + Cmax")
+  } else {
+    c(AUC24 = "AUC 0-24 h", Cmin = "Cmin", Cmax = "Cmax", TimeAbove = "% temps au-dessus du seuil", CminCmax = "Cmin + Cmax")
+  }
+  unname(labels[[metric]] %||% metric)
+}
+
+target_definition_label <- function(metric, low, high, options = list(), lang = "fr") {
+  if (identical(metric, "TimeAbove")) {
+    return(app_t(
+      lang,
+      paste0("%T > ", format_metric(options$concentration_threshold), " : ", format_metric(low), " - ", format_metric(high), " %"),
+      paste0("%T > ", format_metric(options$concentration_threshold), ": ", format_metric(low), " - ", format_metric(high), "%")
+    ))
+  }
+  if (identical(metric, "CminCmax")) {
+    component_label <- function(name, operator, lower, upper) {
+      if (identical(operator, "above")) return(paste(name, ">=", format_metric(lower)))
+      if (identical(operator, "below")) return(paste(name, "<=", format_metric(upper)))
+      paste(name, format_metric(lower), "-", format_metric(upper))
+    }
+    return(paste0(
+      component_label("Cmin", options$cmin_operator %||% "range", low, high),
+      " ; ",
+      component_label("Cmax", options$cmax_operator %||% "range", options$cmax_low, options$cmax_high)
+    ))
+  }
+  paste0(target_metric_label(metric, lang), " ", format_metric(low), " - ", format_metric(high))
+}
+
+target_component_plot_bounds <- function(operator, low, high) {
+  if (identical(operator, "above")) return(c(low, Inf))
+  if (identical(operator, "below")) return(c(-Inf, high))
+  c(low, high)
+}
+
+target_value_label <- function(metric, row, lang = "fr") {
+  if (identical(metric, "CminCmax")) {
+    return(paste0("Cmin ", format_metric(row$cmin), " / Cmax ", format_metric(row$cmax)))
+  }
+  if (identical(metric, "TimeAbove")) return(paste0(format_metric(row$time_above_pct), " %"))
+  format_metric(row$value)
+}
+
 APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
@@ -277,6 +323,9 @@ ml_status_message <- function(status, lang = "fr") {
 ALLOW_CUSTOM_MODELS <- identical(tolower(Sys.getenv("ALLOW_CUSTOM_MODELS", "false")), "true")
 DEFAULT_MODEL <- if ("vanco_roberts" %in% MODEL_CATALOG$id) "vanco_roberts" else MODEL_CATALOG$id[[1]]
 DEFAULT_CODE <- read_library_code(DEFAULT_MODEL)
+DEFAULT_ROUTE <- model_routes(model_record(DEFAULT_MODEL))[[1]]
+DEFAULT_MODE <- model_administration_modes(model_record(DEFAULT_MODEL), DEFAULT_ROUTE)[[1]]
+DEFAULT_TARGET_PRESET <- clinical_target_preset(model_record(DEFAULT_MODEL), DEFAULT_MODE)
 
 APP_THEME <- bs_theme(
   version = 5,
@@ -556,27 +605,80 @@ app_ui <- function(request) {
               selectInput(
                 "target_metric",
                 "Métrique",
-                choices = c("AUC 0-24 h" = "AUC24", "Concentration minimale" = "Cmin", "Concentration maximale" = "Cmax")
+                choices = c(
+                  "AUC 0-24 h" = "AUC24",
+                  "Concentration minimale" = "Cmin",
+                  "Concentration maximale" = "Cmax",
+                  "% du temps au-dessus d'une concentration" = "TimeAbove",
+                  "Cmin et Cmax simultanément" = "CminCmax"
+                ),
+                selected = DEFAULT_TARGET_PRESET$target_metric %||% "AUC24"
+              ),
+              conditionalPanel(
+                "input.target_metric == 'TimeAbove'",
+                numericInput("target_concentration_threshold", "Seuil de concentration", 1, min = 0, step = 0.1),
+                div(class = "custom-note", "Les bornes ci-dessous indiquent le pourcentage cible de l'intervalle posologique passé au-dessus du seuil.")
+              ),
+              conditionalPanel(
+                "input.target_metric == 'CminCmax'",
+                div(class = "custom-note", if (lang == "en") "Choose an independent rule for Cmin and Cmax. Both rules must be met." else "Choisissez une règle indépendante pour Cmin et Cmax. Les deux règles doivent être respectées."),
+                selectInput(
+                  "target_cmin_operator",
+                  "Cmin",
+                  choices = stats::setNames(c("range", "above", "below"), if (lang == "en") c("Within a range", "At or above a threshold", "At or below a threshold") else c("Dans un intervalle", "Au-dessus ou égal à un seuil", "En dessous ou égal à un seuil")),
+                  selected = "range"
+                ),
+                conditionalPanel(
+                  "input.target_cmin_operator == 'range'",
+                  fluidRow(
+                    column(6, numericInput("target_cmin_low", "Cmin basse", 5, min = 0, step = 0.1)),
+                    column(6, numericInput("target_cmin_high", "Cmin haute", 15, min = 0, step = 0.1))
+                  )
+                ),
+                conditionalPanel(
+                  "input.target_cmin_operator != 'range'",
+                  numericInput("target_cmin_threshold", if (lang == "en") "Cmin threshold" else "Seuil de Cmin", 10, min = 0, step = 0.1)
+                ),
+                selectInput(
+                  "target_cmax_operator",
+                  "Cmax",
+                  choices = stats::setNames(c("range", "above", "below"), if (lang == "en") c("Within a range", "At or above a threshold", "At or below a threshold") else c("Dans un intervalle", "Au-dessus ou égal à un seuil", "En dessous ou égal à un seuil")),
+                  selected = "range"
+                ),
+                conditionalPanel(
+                  "input.target_cmax_operator == 'range'",
+                  fluidRow(
+                    column(6, numericInput("target_cmax_low", "Cmax basse", 20, min = 0, step = 0.1)),
+                    column(6, numericInput("target_cmax_high", "Cmax haute", 40, min = 0, step = 0.1))
+                  )
+                ),
+                conditionalPanel(
+                  "input.target_cmax_operator != 'range'",
+                  numericInput("target_cmax_threshold", if (lang == "en") "Cmax threshold" else "Seuil de Cmax", 30, min = 0, step = 0.1)
+                )
+              ),
+              conditionalPanel(
+                "input.target_metric != 'CminCmax'",
+                fluidRow(
+                  column(6, numericInput("target_low", "Borne basse", DEFAULT_TARGET_PRESET$target_low %||% 400, min = 0)),
+                  column(6, numericInput("target_high", "Borne haute", DEFAULT_TARGET_PRESET$target_high %||% 600, min = 0))
+                )
               ),
               fluidRow(
-                column(6, numericInput("target_low", "Borne basse", 400, min = 0)),
-                column(6, numericInput("target_high", "Borne haute", 600, min = 0))
-              ),
-              fluidRow(
-                column(4, numericInput("dose_min", "Dose min", 250, min = 0, step = 50)),
-                column(4, numericInput("dose_max", "Dose max", 2000, min = 0, step = 50)),
-                column(4, numericInput("dose_step", "Pas", 250, min = 1, step = 50))
+                column(4, numericInput("dose_min", "Dose min", DEFAULT_TARGET_PRESET$dose_min %||% 250, min = 0, step = 50)),
+                column(4, numericInput("dose_max", "Dose max", DEFAULT_TARGET_PRESET$dose_max %||% 2000, min = 0, step = 50)),
+                column(4, numericInput("dose_step", "Pas", DEFAULT_TARGET_PRESET$dose_step %||% 250, min = 1, step = 50))
               ),
               checkboxGroupInput(
                 "candidate_intervals",
                 "Intervalles testés",
                 choices = c("6 h" = 6, "8 h" = 8, "12 h" = 12, "24 h" = 24, "48 h" = 48),
-                selected = c(8, 12, 24),
+                selected = DEFAULT_TARGET_PRESET$intervals %||% c(8, 12, 24),
                 inline = TRUE
               ),
               conditionalPanel(
                 "input.administration_route == 'IV'",
-                numericInput("future_infusion", "Durée de perfusion (h, 0 = bolus IV)", 1, min = 0, step = 0.25)
+                numericInput("future_infusion", "Durée de perfusion (h, 0 = bolus IV)", DEFAULT_TARGET_PRESET$infusion %||% 1, min = 0, step = 0.25)
               ),
               conditionalPanel(
                 "input.administration_route == 'Oral'",
@@ -813,7 +915,10 @@ app_ui <- function(request) {
       p("La robustesse est explorée avec des poids égaux, AIC, log-vraisemblance et des analyses laissant successivement de côté chaque modèle. Une divergence des doses proposées doit conduire à revoir l'applicabilité du model averaging."),
       h2("Exposition et scénarios"),
       p("L'exposition historique sur les dernières 24 heures est distinguée de l'exposition à l'état stationnaire du dernier schéma. La projection compare le maintien de la dernière posologie à l'application du scénario classé en tête, sur le nombre de doses supplémentaires choisi dans Réglages."),
+      h2("Cibles pharmacocinétiques"),
+      p("La cible temps au-dessus d'un seuil est calculée sur un intervalle posologique complet à l'état stationnaire et exprimée en pourcentage. Les franchissements du seuil sont interpolés entre deux points simulés. Pour la cible combinée, Cmin et Cmax suivent chacun une contrainte indépendante: intervalle, valeur minimale ou valeur maximale. Les deux contraintes doivent être respectées; aucune moyenne entre les deux critères n'est utilisée."),
       p("Une administration déclarée à l'état stationnaire est initialisée à t = 0 avec ss = 1. Les doses de la projection sont ensuite ajoutées explicitement avec ss = 0; la comparaison des doses supplémentaires continue donc au-delà de cet état initial."),
+      p("Pour un modèle Lego qui répartit une dose entre une ou plusieurs voies d'entrée, l'état stationnaire est approché par 50 administrations explicites avant t = 0. Cette phase de préchauffage évite d'appliquer séparément ss = 1 à chaque voie, ce qui serait incorrect pour des cinétiques parallèles ou non linéaires."),
       p("Les scénarios sont d'abord classés sur leur prédiction moyenne. La probabilité d'atteindre la cible, de sous-exposition et de surexposition est ensuite simulée pour les douze scénarios moyens les plus proches, puis utilisée pour leur classement final."),
       h2("Qualité des données"),
       p("Les doses oubliées sont exclues. Les horaires incertains peuvent faire l'objet de réestimations de sensibilité. Les valeurs BLQ sont exclues par défaut; l'imputation LLOQ/2 est uniquement exploratoire. La matrice, les unités et le domaine exact des covariables ne sont jamais convertis ou déduits automatiquement."),
@@ -884,6 +989,7 @@ server <- function(input, output, session) {
   validation_store <- reactiveVal(NULL)
   query_applied <- reactiveVal(FALSE)
   pending_import_target <- reactiveVal(NULL)
+  last_target_preset_key <- reactiveVal(NULL)
   pending_import_covariates <- reactiveVal(NULL)
   pending_lego_covariates <- reactiveVal(NULL)
   session_model_dir <- tempfile("pk-mipd-custom-session-")
@@ -896,10 +1002,32 @@ server <- function(input, output, session) {
   }
 
   update_target_inputs <- function(target) {
-    if ((target$metric %||% "") %in% c("AUC24", "Cmin", "Cmax")) {
+    if ((target$metric %||% "") %in% c("AUC24", "Cmin", "Cmax", "TimeAbove", "CminCmax")) {
       updateSelectInput(session, "target_metric", selected = target$metric)
     }
-    numeric_targets <- c(low = "target_low", high = "target_high", doseMin = "dose_min", doseMax = "dose_max", doseStep = "dose_step", infusion = "future_infusion")
+    cmin_operator <- target$cminOperator %||% "range"
+    cmax_operator <- target$cmaxOperator %||% "range"
+    if (cmin_operator %in% c("range", "above", "below")) updateSelectInput(session, "target_cmin_operator", selected = cmin_operator)
+    if (cmax_operator %in% c("range", "above", "below")) updateSelectInput(session, "target_cmax_operator", selected = cmax_operator)
+    target$cminLow <- target$cminLow %||% target$low
+    target$cminHigh <- target$cminHigh %||% target$high
+    target$cminThreshold <- target$cminThreshold %||% target$low
+    target$cmaxThreshold <- target$cmaxThreshold %||% if (identical(cmax_operator, "below")) target$cmaxHigh else target$cmaxLow
+    numeric_targets <- c(
+      low = "target_low",
+      high = "target_high",
+      concentrationThreshold = "target_concentration_threshold",
+      cminLow = "target_cmin_low",
+      cminHigh = "target_cmin_high",
+      cminThreshold = "target_cmin_threshold",
+      cmaxLow = "target_cmax_low",
+      cmaxHigh = "target_cmax_high",
+      cmaxThreshold = "target_cmax_threshold",
+      doseMin = "dose_min",
+      doseMax = "dose_max",
+      doseStep = "dose_step",
+      infusion = "future_infusion"
+    )
     for (name in names(numeric_targets)) {
       value <- suppressWarnings(as.numeric(target[[name]] %||% NA_real_))
       if (is.finite(value) && value >= 0) updateNumericInput(session, numeric_targets[[name]], value = value)
@@ -1691,7 +1819,7 @@ server <- function(input, output, session) {
       model_source <- isolate(input$model_source %||% "library")
       document <- list(
         schema = "pk-mipd-patient",
-        version = 4L,
+        version = 6L,
         privacy = list(containsIdentity = FALSE, customCodeIncluded = FALSE),
         timeline = list(mode = "relative_hours", origin = "first_administration"),
         model = list(
@@ -1711,6 +1839,15 @@ server <- function(input, output, session) {
           metric = isolate(input$target_metric),
           low = isolate(input$target_low),
           high = isolate(input$target_high),
+          concentrationThreshold = isolate(input$target_concentration_threshold),
+          cminOperator = isolate(input$target_cmin_operator %||% "range"),
+          cminLow = isolate(input$target_cmin_low),
+          cminHigh = isolate(input$target_cmin_high),
+          cminThreshold = isolate(input$target_cmin_threshold),
+          cmaxOperator = isolate(input$target_cmax_operator %||% "range"),
+          cmaxLow = isolate(input$target_cmax_low),
+          cmaxHigh = isolate(input$target_cmax_high),
+          cmaxThreshold = isolate(input$target_cmax_threshold),
           doseMin = isolate(input$dose_min),
           doseMax = isolate(input$dose_max),
           doseStep = isolate(input$dose_step),
@@ -1742,7 +1879,7 @@ server <- function(input, output, session) {
       document <- jsonlite::fromJSON(file_info$datapath[[1]], simplifyDataFrame = TRUE)
       unlink(file_info$datapath[[1]], force = TRUE)
       version <- as.integer(document$version %||% 0)
-      if (!identical(document$schema %||% "", "pk-mipd-patient") || !version %in% c(1L, 2L, 3L, 4L)) {
+      if (!identical(document$schema %||% "", "pk-mipd-patient") || !version %in% c(1L, 2L, 3L, 4L, 5L, 6L)) {
         stop(tx("Format de fichier patient non reconnu.", "Unrecognized patient file format."))
       }
 
@@ -1983,10 +2120,44 @@ server <- function(input, output, session) {
       variability <- isolate(input$variability_components %||% character())
       residual_error_mode <- isolate(input$residual_error_mode %||% "model")
       fixed_residual_cv <- as.numeric(isolate(input$fixed_residual_cv %||% 1))
+      target_metric <- isolate(input$target_metric %||% "AUC24")
+      cmin_operator <- isolate(input$target_cmin_operator %||% "range")
+      cmax_operator <- isolate(input$target_cmax_operator %||% "range")
+      target_low <- if (identical(target_metric, "CminCmax")) {
+        if (identical(cmin_operator, "range")) as.numeric(isolate(input$target_cmin_low)) else as.numeric(isolate(input$target_cmin_threshold))
+      } else {
+        as.numeric(isolate(input$target_low))
+      }
+      target_high <- if (identical(target_metric, "CminCmax")) {
+        if (identical(cmin_operator, "range")) as.numeric(isolate(input$target_cmin_high)) else target_low
+      } else {
+        as.numeric(isolate(input$target_high))
+      }
+      cmax_low <- if (identical(cmax_operator, "range")) as.numeric(isolate(input$target_cmax_low)) else as.numeric(isolate(input$target_cmax_threshold))
+      cmax_high <- if (identical(cmax_operator, "range")) as.numeric(isolate(input$target_cmax_high)) else cmax_low
+      target_options <- list(
+        concentration_threshold = as.numeric(isolate(input$target_concentration_threshold %||% 1)),
+        cmin_operator = cmin_operator,
+        cmax_operator = cmax_operator,
+        cmax_low = cmax_low,
+        cmax_high = cmax_high
+      )
 
       analysis_stage <- tx("validation des réglages", "validating settings")
       shiny::validate(shiny::need(length(intervals), tx("Sélectionnez au moins un intervalle de dose.", "Select at least one dosing interval.")))
-      shiny::validate(shiny::need(input$target_high > input$target_low, tx("La borne haute doit dépasser la borne basse.", "The upper bound must exceed the lower bound.")))
+      shiny::validate(shiny::need(target_metric %in% c("AUC24", "Cmin", "Cmax", "TimeAbove", "CminCmax"), tx("La métrique cible est invalide.", "The target metric is invalid.")))
+      shiny::validate(shiny::need(is.finite(target_low) && is.finite(target_high) && (
+        identical(target_metric, "CminCmax") || target_high > target_low
+      ), tx("La borne haute doit dépasser la borne basse.", "The upper bound must exceed the lower bound.")))
+      shiny::validate(shiny::need(!identical(target_metric, "TimeAbove") || (
+        is.finite(target_options$concentration_threshold) && target_options$concentration_threshold >= 0 && target_low >= 0 && target_high <= 100
+      ), tx("La cible temps > seuil exige un seuil positif ou nul et des bornes comprises entre 0 et 100 %.", "The time-above-threshold target requires a non-negative threshold and bounds between 0 and 100%.")))
+      shiny::validate(shiny::need(!identical(target_metric, "CminCmax") || (
+        cmin_operator %in% c("range", "above", "below") && cmax_operator %in% c("range", "above", "below") &&
+          target_low >= 0 && target_high >= 0 && is.finite(cmax_low) && is.finite(cmax_high) && cmax_low >= 0 && cmax_high >= 0 &&
+          (!identical(cmin_operator, "range") || target_high > target_low) &&
+          (!identical(cmax_operator, "range") || cmax_high > cmax_low)
+      ), tx("Les contraintes combinées Cmin/Cmax sont invalides.", "The combined Cmin/Cmax constraints are invalid.")))
       shiny::validate(shiny::need(input$dose_max >= input$dose_min && input$dose_step > 0, tx("La grille de doses est invalide.", "The dose grid is invalid.")))
       shiny::validate(shiny::need(residual_error_mode %in% c("model", "fixed_cv"), tx("Le réglage de l'erreur résiduelle est invalide.", "The residual error setting is invalid.")))
       shiny::validate(shiny::need(!identical(residual_error_mode, "fixed_cv") || (is.finite(fixed_residual_cv) && fixed_residual_cv > 0 && fixed_residual_cv <= 100), tx("Le CV résiduel fixé doit être compris entre 0 et 100 %.", "The fixed residual CV must be between 0 and 100%.")))
@@ -2036,9 +2207,10 @@ server <- function(input, output, session) {
           dose_step = isolate(input$dose_step),
           intervals = intervals,
           infusion = infusion,
-          metric = isolate(input$target_metric),
-          target_low = isolate(input$target_low),
-          target_high = isolate(input$target_high),
+          metric = target_metric,
+          target_low = target_low,
+          target_high = target_high,
+          target_options = target_options,
           delta = delta
         )
         analysis_stage <- tx("probabilité d'atteindre la cible", "target attainment probability")
@@ -2046,9 +2218,10 @@ server <- function(input, output, session) {
           recommendations = recommendations,
           fits = fits,
           weights = weights,
-          metric = isolate(input$target_metric),
-          target_low = isolate(input$target_low),
-          target_high = isolate(input$target_high),
+          metric = target_metric,
+          target_low = target_low,
+          target_high = target_high,
+          target_options = target_options,
           replicates = min(150L, as.integer(isolate(input$mc_replicates %||% 250))),
           delta = delta,
           include_posterior = "POSTERIOR" %in% variability,
@@ -2061,7 +2234,8 @@ server <- function(input, output, session) {
           dose = best$dose[[1]],
           interval = best$interval[[1]],
           infusion = infusion,
-          delta = delta
+          delta = delta,
+          concentration_threshold = target_options$concentration_threshold
         )$profile
 
         analysis_stage <- tx("sensibilité du model averaging", "model averaging sensitivity")
@@ -2073,9 +2247,10 @@ server <- function(input, output, session) {
           dose_step = isolate(input$dose_step),
           intervals = intervals,
           infusion = infusion,
-          metric = isolate(input$target_metric),
-          target_low = isolate(input$target_low),
-          target_high = isolate(input$target_high),
+          metric = target_metric,
+          target_low = target_low,
+          target_high = target_high,
+          target_options = target_options,
           delta = delta
         )
 
@@ -2099,14 +2274,17 @@ server <- function(input, output, session) {
           dose = best$dose[[1]],
           interval = best$interval[[1]],
           infusion = infusion,
-          metric = isolate(input$target_metric),
+          metric = target_metric,
           replicates = isolate(input$mc_replicates %||% 250),
           interval_level = as.numeric(isolate(input$prediction_interval %||% 90)),
           delta = delta,
           include_posterior = "POSTERIOR" %in% variability,
           include_residual = "RESID" %in% variability,
           include_timing = "TIMING" %in% variability,
-          timing_refits = as.integer(isolate(input$posterior_replicates %||% 20))
+          timing_refits = as.integer(isolate(input$posterior_replicates %||% 20)),
+          target_low = target_low,
+          target_high = target_high,
+          target_options = target_options
         )
 
         analysis_stage <- tx("qualité et traçabilité", "quality and traceability")
@@ -2135,10 +2313,11 @@ server <- function(input, output, session) {
           observation_records = observation_records$raw,
           route = route,
           infusion = infusion,
-          target_metric = isolate(input$target_metric),
-          target_low = isolate(input$target_low),
-          target_high = isolate(input$target_high),
-          target_preset = active_target_preset(),
+          target_metric = target_metric,
+          target_low = target_low,
+          target_high = target_high,
+          target_options = target_options,
+          target_preset = applied_target_preset(),
           weighting_scheme = isolate(input$weighting_scheme %||% "AIC"),
           quality = quality,
           provenance = analysis_provenance(specifications),
@@ -2372,7 +2551,7 @@ server <- function(input, output, session) {
     route <- input$administration_route %||% ""
     shiny::req(model_supports_route(record, route))
     modes <- model_administration_modes(record, route)
-    selected <- input$administration_mode %||% ""
+    selected <- isolate(input$administration_mode %||% "")
     if (!selected %in% modes) selected <- modes[[1]]
     selectInput(
       "administration_mode",
@@ -2388,6 +2567,16 @@ server <- function(input, output, session) {
     clinical_target_preset(record, current_administration_mode())
   })
 
+  applied_target_preset <- reactive({
+    preset <- active_target_preset()
+    if (is.null(preset)) return(NULL)
+    if (!identical(input$target_metric %||% "", preset$target_metric)) return(NULL)
+    low <- suppressWarnings(as.numeric(input$target_low %||% NA_real_))
+    high <- suppressWarnings(as.numeric(input$target_high %||% NA_real_))
+    if (!isTRUE(all.equal(low, preset$target_low)) || !isTRUE(all.equal(high, preset$target_high))) return(NULL)
+    preset
+  })
+
   target_preset_key <- reactive({
     paste(
       input$model_source %||% "library",
@@ -2399,13 +2588,21 @@ server <- function(input, output, session) {
   })
 
   observeEvent(target_preset_key(), {
+    key <- target_preset_key()
     pending <- pending_import_target()
     if (!is.null(pending)) {
-      if (!identical(target_preset_key(), pending$key)) return()
+      if (!identical(key, pending$key)) return()
+      last_target_preset_key(key)
       update_target_inputs(pending$target)
       pending_import_target(NULL)
       return()
     }
+    if (is.null(last_target_preset_key())) {
+      last_target_preset_key(key)
+      return()
+    }
+    if (identical(last_target_preset_key(), key)) return()
+    last_target_preset_key(key)
     preset <- active_target_preset()
     if (is.null(preset)) return()
     updateSelectInput(session, "target_metric", selected = preset$target_metric)
@@ -2427,6 +2624,16 @@ server <- function(input, output, session) {
         span(tx(
           "La cible et la grille affichées doivent être définies selon l'indication, le protocole local et le patient; elles ne constituent pas une recommandation.",
           "The displayed target and grid must be defined for the indication, local protocol, and patient; they are not a recommendation."
+        ))
+      ))
+    }
+    if (is.null(applied_target_preset())) {
+      return(div(
+        class = "target-preset unavailable",
+        tags$strong(tx("Cible personnalisée", "Custom target")),
+        span(tx(
+          "Les valeurs affichées diffèrent du préréglage documenté de cette molécule; elles seront utilisées telles quelles.",
+          "The displayed values differ from this drug's documented preset and will be used as entered."
         ))
       ))
     }
@@ -2469,11 +2676,19 @@ server <- function(input, output, session) {
     if (!nrow(table) || nrow(table) == 1L) {
       return(div(class = "empty-state compact", tx("Un seul jeu de poids distinct : aucune sensibilité inter-modèles calculable.", "Only one distinct weight set: no between-model sensitivity can be calculated.")))
     }
+    target_range <- paste0(format_metric(min(table$target_value)), "–", format_metric(max(table$target_value)))
+    target_label <- tx("Valeur cible", "Target value")
+    if (identical(result$target_metric, "TimeAbove")) {
+      target_range <- paste0(format_metric(min(table$time_above_pct)), "–", format_metric(max(table$time_above_pct)), " %")
+      target_label <- target_metric_label(result$target_metric, current_language())
+    } else if (identical(result$target_metric, "CminCmax")) {
+      target_label <- tx("Écart maximal aux deux cibles", "Maximum distance from both targets")
+    }
     div(
       class = "sensitivity-strip",
       div(span(tx("Dose proposée", "Proposed dose")), strong(paste0(min(table$dose), "–", max(table$dose), " mg"))),
       div(span(tx("Intervalles proposés", "Proposed intervals")), strong(paste(sort(unique(table$interval)), collapse = ", "), " h")),
-      div(span(tx("Valeur cible", "Target value")), strong(paste0(format_metric(min(table$target_value)), "–", format_metric(max(table$target_value)))))
+      div(span(target_label), strong(target_range))
     )
   })
 
@@ -2481,12 +2696,24 @@ server <- function(input, output, session) {
     result <- analysis_store()
     shiny::req(result)
     table <- result$averaging_sensitivity
-    table[c("auc24", "cmin", "cmax", "target_value")] <- lapply(table[c("auc24", "cmin", "cmax", "target_value")], round, 2)
+    if (identical(result$target_metric, "TimeAbove")) {
+      table$target_value <- NULL
+    } else {
+      table$time_above_pct <- NULL
+    }
+    rounding_columns <- intersect(c("auc24", "cmin", "cmax", "time_above_pct", "target_value"), names(table))
+    table[rounding_columns] <- lapply(table[rounding_columns], round, 2)
+    labels <- if (identical(current_language(), "en")) {
+      c(scenario = "Analysis", dose = "Dose", interval = "Interval", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > threshold", target_value = "Target value", in_target = "In target", weights = "Weights")
+    } else {
+      c(scenario = "Analyse", dose = "Dose", interval = "Intervalle", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > seuil", target_value = "Valeur cible", in_target = "Dans cible", weights = "Poids")
+    }
+    if (identical(result$target_metric, "CminCmax")) labels[["target_value"]] <- tx("Écart cible max.", "Maximum target distance")
     datatable(
       table,
       rownames = FALSE,
       options = list(dom = "t", pageLength = nrow(table), scrollX = TRUE),
-      colnames = app_t(current_language(), c("Analyse", "Dose", "Intervalle", "AUC24", "Cmin", "Cmax", "Valeur cible", "Dans cible", "Poids"))
+      colnames = unname(labels[names(table)])
     )
   })
 
@@ -2511,7 +2738,7 @@ server <- function(input, output, session) {
     div(
       class = "recommendation-strip",
       div(span(tx("Scénario le plus proche de la cible", "Scenario closest to target")), strong(tx(paste0(best$dose, " mg toutes les ", best$interval, " h"), paste0(best$dose, " mg every ", best$interval, " h")))),
-      div(span(result$target_metric), strong(round(best$value, 1))),
+      div(span(target_metric_label(result$target_metric, current_language())), strong(target_value_label(result$target_metric, best, current_language()))),
       div(span(tx("Probabilité d'atteindre la cible", "Target attainment probability")), strong(if (is.finite(best$p_target)) paste0(round(100 * best$p_target), " %") else tx("Non calculée", "Not calculated"))),
       div(span("AUC 0-24 h"), strong(round(best$auc24, 1))),
       div(span("Cmin / Cmax"), strong(paste(round(best$cmin, 1), round(best$cmax, 1), sep = " / ")))
@@ -2521,13 +2748,28 @@ server <- function(input, output, session) {
   output$recommended_profile <- renderPlot({
     result <- analysis_store()
     shiny::req(result)
-    metric_label <- switch(result$target_metric, AUC24 = "AUC 0-24 h", Cmin = "Cmin", Cmax = "Cmax")
-    ggplot(result$best_profile, aes(time, concentration)) +
+    metric <- result$target_metric
+    profile <- result$best_profile
+    if (!identical(metric, "AUC24")) profile <- profile[profile$time <= result$best$interval[[1]] + 1e-8, , drop = FALSE]
+    plot <- ggplot(profile, aes(time, concentration))
+    if (metric %in% c("Cmin", "Cmax")) {
+      plot <- plot + annotate("rect", xmin = -Inf, xmax = Inf, ymin = result$target_low, ymax = result$target_high, fill = "#dcece5", alpha = 0.65)
+    } else if (identical(metric, "CminCmax")) {
+      cmin_bounds <- target_component_plot_bounds(result$target_options$cmin_operator %||% "range", result$target_low, result$target_high)
+      cmax_bounds <- target_component_plot_bounds(result$target_options$cmax_operator %||% "range", result$target_options$cmax_low, result$target_options$cmax_high)
+      plot <- plot +
+        annotate("rect", xmin = -Inf, xmax = Inf, ymin = cmin_bounds[[1]], ymax = cmin_bounds[[2]], fill = "#dcece5", alpha = 0.55) +
+        annotate("rect", xmin = -Inf, xmax = Inf, ymin = cmax_bounds[[1]], ymax = cmax_bounds[[2]], fill = "#f3dfc5", alpha = 0.45)
+    } else if (identical(metric, "TimeAbove")) {
+      plot <- plot + geom_hline(yintercept = result$target_options$concentration_threshold, color = "#a4441f", linetype = "dashed", linewidth = 0.9)
+    }
+    plot +
       geom_line(color = "#176b70", linewidth = 1.2) +
       labs(
         x = tx("Temps depuis la dose (h)", "Time since dose (h)"),
         y = "Concentration",
-        title = tx(paste0("Profil moyen pondéré · cible ", metric_label, " ", result$target_low, "–", result$target_high), paste0("Weighted mean profile · target ", metric_label, " ", result$target_low, "–", result$target_high))
+        title = tx("Profil moyen pondéré", "Weighted mean profile"),
+        subtitle = target_definition_label(metric, result$target_low, result$target_high, result$target_options, current_language())
       ) +
       theme_minimal(base_size = 13) +
       theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold"))
@@ -2552,9 +2794,21 @@ server <- function(input, output, session) {
       if (isTRUE(distribution$include_timing) && isTRUE(distribution$timing_available)) tx("incertitude des horaires", "timing uncertainty"),
       if (length(result$weights) > 1L) tx("incertitude entre modèles", "between-model uncertainty")
     )
+    if (identical(distribution$metric, "CminCmax")) {
+      cmin <- distribution$component_quantiles$cmin
+      cmax <- distribution$component_quantiles$cmax
+      return(div(
+        class = "distribution-strip",
+        div(span(tx("Cmin médiane", "Median Cmin")), strong(format_metric(cmin[["median"]]))),
+        div(span(tx(paste0("Cmin · intervalle ", distribution$interval_level, " %"), paste0("Cmin · ", distribution$interval_level, "% interval"))), strong(paste0(format_metric(cmin[["lower"]]), " – ", format_metric(cmin[["upper"]])))),
+        div(span(tx("Cmax médiane", "Median Cmax")), strong(format_metric(cmax[["median"]]))),
+        div(span(tx(paste0("Cmax · intervalle ", distribution$interval_level, " %"), paste0("Cmax · ", distribution$interval_level, "% interval"))), strong(paste0(format_metric(cmax[["lower"]]), " – ", format_metric(cmax[["upper"]])))),
+        div(span(tx("Composantes", "Components")), strong(if (length(components)) paste(components, collapse = ", ") else tx("Aucune variabilité aléatoire", "No random variability")))
+      ))
+    }
     div(
       class = "distribution-strip",
-      div(span(tx("Médiane", "Median")), strong(format_metric(distribution$median))),
+      div(span(tx("Médiane", "Median")), strong(paste0(format_metric(distribution$median), if (identical(distribution$metric, "TimeAbove")) " %" else ""))),
       div(span(tx(paste0("Intervalle prédictif ", distribution$interval_level, " %"), paste0("Prediction interval ", distribution$interval_level, "%"))), strong(paste0(format_metric(distribution$lower), " – ", format_metric(distribution$upper)))),
       div(span(tx("Composantes", "Components")), strong(if (length(components)) paste(components, collapse = ", ") else tx("Aucune variabilité aléatoire", "No random variability")))
     )
@@ -2564,12 +2818,25 @@ server <- function(input, output, session) {
     result <- analysis_store()
     shiny::req(result)
     distribution <- result$distribution
-    metric_label <- switch(distribution$metric, AUC24 = "AUC 0-24 h", Cmin = "Cmin", Cmax = "Cmax")
+    title <- tx(paste0("Distribution du scénario ", result$best$dose, " mg / ", result$best$interval, " h"), paste0("Scenario distribution ", result$best$dose, " mg / ", result$best$interval, " h"))
+    if (identical(distribution$metric, "CminCmax")) {
+      cmin_bounds <- target_component_plot_bounds(result$target_options$cmin_operator %||% "range", result$target_low, result$target_high)
+      cmax_bounds <- target_component_plot_bounds(result$target_options$cmax_operator %||% "range", result$target_options$cmax_low, result$target_options$cmax_high)
+      return(ggplot(distribution$data, aes(cmin, cmax)) +
+        annotate("rect", xmin = cmin_bounds[[1]], xmax = cmin_bounds[[2]], ymin = cmax_bounds[[1]], ymax = cmax_bounds[[2]], fill = "#dcece5", color = "#287a4d", alpha = 0.55) +
+        geom_point(aes(color = in_target), alpha = 0.55, size = 1.8) +
+        scale_color_manual(values = c(`TRUE` = "#287a4d", `FALSE` = "#a4441f"), guide = "none") +
+        labs(x = "Cmin", y = "Cmax", title = title, subtitle = target_definition_label(distribution$metric, result$target_low, result$target_high, result$target_options, current_language())) +
+        theme_minimal(base_size = 13) +
+        theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold")))
+    }
+    metric_label <- target_metric_label(distribution$metric, current_language())
     ggplot(distribution$data, aes(value)) +
+      annotate("rect", xmin = result$target_low, xmax = result$target_high, ymin = -Inf, ymax = Inf, fill = "#dcece5", alpha = 0.55) +
       geom_histogram(bins = 30, fill = "#9fc9c8", color = "#176b70", linewidth = 0.25) +
       geom_vline(xintercept = c(distribution$lower, distribution$upper), color = "#a4441f", linetype = "dashed") +
       geom_vline(xintercept = distribution$median, color = "#176b70", linewidth = 1) +
-      labs(x = metric_label, y = tx("Réplications", "Replicates"), title = tx(paste0("Distribution du scénario ", result$best$dose, " mg / ", result$best$interval, " h"), paste0("Scenario distribution ", result$best$dose, " mg / ", result$best$interval, " h"))) +
+      labs(x = metric_label, y = tx("Réplications", "Replicates"), title = title) +
       theme_minimal(base_size = 13) +
       theme(panel.grid.minor = element_blank(), plot.title = element_text(face = "bold"))
   })
@@ -2581,6 +2848,7 @@ server <- function(input, output, session) {
     table$auc24 <- round(table$auc24, 1)
     table$cmin <- round(table$cmin, 2)
     table$cmax <- round(table$cmax, 2)
+    table$time_above_pct <- round(table$time_above_pct, 2)
     table$value <- round(table$value, 2)
     table$p_under <- round(100 * table$p_under, 1)
     table$p_target <- round(100 * table$p_target, 1)
@@ -2588,12 +2856,28 @@ server <- function(input, output, session) {
     table$distance <- round(table$distance, 3)
     table$center_distance <- NULL
     table$pta_evaluated <- NULL
+    if (identical(result$target_metric, "TimeAbove")) {
+      table$value <- NULL
+    } else {
+      table$time_above_pct <- NULL
+    }
+    if (identical(result$target_metric, "CminCmax")) {
+      table$value <- NULL
+      table$p_under <- NULL
+      table$p_over <- NULL
+    }
+    labels <- if (identical(current_language(), "en")) {
+      c(dose = "Dose", interval = "Interval", infusion = "Infusion", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > threshold", value = "Target value", in_target = "In target", distance = "Distance", p_under = "Below target (%)", p_target = "In target (%)", p_over = "Above target (%)")
+    } else {
+      c(dose = "Dose", interval = "Intervalle", infusion = "Perfusion", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > seuil", value = "Valeur cible", in_target = "Dans cible", distance = "Distance", p_under = "Sous-cible (%)", p_target = "Dans cible (%)", p_over = "Sur-cible (%)")
+    }
+    if (identical(result$target_metric, "CminCmax")) labels[["distance"]] <- tx("Écart cible max.", "Maximum target distance")
     datatable(
       table,
       rownames = FALSE,
       filter = "top",
       options = list(pageLength = 12, scrollX = TRUE),
-      colnames = app_t(current_language(), c("Dose", "Intervalle", "Perfusion", "AUC24", "Cmin", "Cmax", "Valeur cible", "Dans cible", "Distance", "Sous-cible (%)", "Dans cible (%)", "Sur-cible (%)"))
+      colnames = unname(labels[names(table)])
     ) |>
       formatStyle("in_target", target = "row", backgroundColor = styleEqual(c(TRUE, FALSE), c("#e8f4ed", "transparent")))
   })
@@ -2645,6 +2929,21 @@ server <- function(input, output, session) {
       ml_comparison_plot <- build_ml_comparison_plot(result, current_language())
       ml_explanation <- result$ml_status$explanation %||% list(available = FALSE)
       ml_explanation_plot <- build_ml_explanation_plot(ml_explanation, lang = current_language(), unit = result$ml_status$unit %||% "mg.h/L")
+      target_definition <- target_definition_label(result$target_metric, result$target_low, result$target_high, result$target_options, current_language())
+      distribution_summary_text <- if (identical(result$distribution$metric, "CminCmax")) {
+        cmin <- result$distribution$component_quantiles$cmin
+        cmax <- result$distribution$component_quantiles$cmax
+        tx(
+          paste0("Cmin médiane ", format_metric(cmin[["median"]]), " (intervalle prédictif ", result$distribution$interval_level, " % : ", format_metric(cmin[["lower"]]), " - ", format_metric(cmin[["upper"]]), ") ; Cmax médiane ", format_metric(cmax[["median"]]), " (", format_metric(cmax[["lower"]]), " - ", format_metric(cmax[["upper"]]), ")."),
+          paste0("Median Cmin ", format_metric(cmin[["median"]]), " (", result$distribution$interval_level, "% prediction interval: ", format_metric(cmin[["lower"]]), " - ", format_metric(cmin[["upper"]]), "); median Cmax ", format_metric(cmax[["median"]]), " (", format_metric(cmax[["lower"]]), " - ", format_metric(cmax[["upper"]]), ").")
+        )
+      } else {
+        suffix <- if (identical(result$distribution$metric, "TimeAbove")) " %" else ""
+        tx(
+          paste0("Médiane ", format_metric(result$distribution$median), suffix, " · intervalle prédictif ", result$distribution$interval_level, " % : ", format_metric(result$distribution$lower), " - ", format_metric(result$distribution$upper), suffix, "."),
+          paste0("Median ", format_metric(result$distribution$median), suffix, " · ", result$distribution$interval_level, "% prediction interval: ", format_metric(result$distribution$lower), " - ", format_metric(result$distribution$upper), suffix, ".")
+        )
+      }
 
       model_table <- result$model_summary
       model_table$weight <- round(model_table$weight, 4)
@@ -2677,7 +2976,20 @@ server <- function(input, output, session) {
         )))
       }
       sensitivity_table <- result$averaging_sensitivity
-      sensitivity_table[c("auc24", "cmin", "cmax", "target_value")] <- lapply(sensitivity_table[c("auc24", "cmin", "cmax", "target_value")], round, 2)
+      if (identical(result$target_metric, "TimeAbove")) {
+        sensitivity_table$target_value <- NULL
+      } else {
+        sensitivity_table$time_above_pct <- NULL
+      }
+      rounding_columns <- intersect(c("auc24", "cmin", "cmax", "time_above_pct", "target_value"), names(sensitivity_table))
+      sensitivity_table[rounding_columns] <- lapply(sensitivity_table[rounding_columns], round, 2)
+      sensitivity_names <- if (identical(current_language(), "en")) {
+        c(scenario = "Analysis", dose = "Dose", interval = "Interval", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > threshold", target_value = "Target value", in_target = "In target", weights = "Weights")
+      } else {
+        c(scenario = "Analyse", dose = "Dose", interval = "Intervalle", auc24 = "AUC24", cmin = "Cmin", cmax = "Cmax", time_above_pct = "%T > seuil", target_value = "Valeur cible", in_target = "Dans cible", weights = "Poids")
+      }
+      if (identical(result$target_metric, "CminCmax")) sensitivity_names[["target_value"]] <- tx("Écart cible max.", "Maximum target distance")
+      names(sensitivity_table) <- unname(sensitivity_names[names(sensitivity_table)])
       provenance <- result$provenance
       model_fingerprints <- lapply(provenance$models, function(item) {
         tags$li(paste0(item$id, " : ", item$sha256 %||% tx("empreinte indisponible", "fingerprint unavailable")))
@@ -2705,7 +3017,7 @@ server <- function(input, output, session) {
             div(span("C0 actuelle (MAP)"), strong(format_metric(exposure$historical_c0))),
             div(span("C0 à l'état stationnaire"), strong(format_metric(exposure$steady_state_c0))),
             div(span("Recommandation"), strong(paste0(best$dose, " mg / ", best$interval, " h"))),
-            div(span("PTA / cible"), strong(paste0(round(100 * best$p_target), " % · ", result$target_metric, " ", result$target_low, "–", result$target_high)))
+            div(span("PTA / cible"), strong(paste0(if (is.finite(best$p_target)) paste0(round(100 * best$p_target), " %") else tx("Non calculée", "Not calculated"), " · ", target_definition)))
           ),
           h2("Applicabilité et qualité"),
           if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else p("Aucune anomalie générique détectée."),
@@ -2723,6 +3035,7 @@ server <- function(input, output, session) {
               "MAP residual error: model values."
             }
           )),
+          p(tx("Cible analysée : ", "Analyzed target: "), tags$strong(target_definition)),
           if (!is.null(result$target_preset)) p(tx("La cible a été initialisée depuis le préréglage documenté cité dans les références; les valeurs du rapport sont celles utilisées lors de l'analyse.", "The target was initialized from the documented preset cited in the references; report values are those used for the analysis.")),
           h2("Ajustement"),
           tags$img(src = report_plot_uri(fit_plot), alt = "Ajustement pharmacocinétique"),
@@ -2755,10 +3068,7 @@ server <- function(input, output, session) {
             )
           },
           h2("Distribution prédictive"),
-          p(tx(
-            paste0("Médiane ", format_metric(result$distribution$median), " · intervalle prédictif ", result$distribution$interval_level, " % : ", format_metric(result$distribution$lower), "–", format_metric(result$distribution$upper), "."),
-            paste0("Median ", format_metric(result$distribution$median), " · ", result$distribution$interval_level, "% prediction interval: ", format_metric(result$distribution$lower), "–", format_metric(result$distribution$upper), ".")
-          )),
+          p(distribution_summary_text),
           h2("Sensibilité du model averaging"),
           report_table(sensitivity_table),
           h2("Modèles et pondérations"),

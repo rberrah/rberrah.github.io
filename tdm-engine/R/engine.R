@@ -69,8 +69,28 @@ expand_steady_state_doses <- function(doses, end_time) {
   output
 }
 
-dose_event_rows <- function(doses, adm_cmt, end_time) {
+LEGO_STEADY_STATE_WARMUP_DOSES <- 50L
+
+is_split_lego_model <- function(model) {
+  "LEGO_INPUT" %in% model@cmtL
+}
+
+dose_event_rows <- function(doses, adm_cmt, end_time, split_lego = FALSE) {
   doses <- expand_steady_state_doses(doses, end_time)
+  if (isTRUE(split_lego) && nrow(doses)) {
+    rows <- lapply(seq_len(nrow(doses)), function(index) {
+      dose <- doses[index, , drop = FALSE]
+      if (as.integer(dose$ss[[1]] %||% 0L) != 1L) return(dose)
+      interval <- as.numeric(dose$interval[[1]])
+      warmup <- dose[rep(1L, LEGO_STEADY_STATE_WARMUP_DOSES + 1L), , drop = FALSE]
+      warmup$time <- dose$time[[1]] + seq.int(-LEGO_STEADY_STATE_WARMUP_DOSES, 0L) * interval
+      warmup$count <- 1L
+      warmup$ss <- 0L
+      warmup
+    })
+    doses <- do.call(rbind, rows)
+    doses <- doses[order(doses$time), , drop = FALSE]
+  }
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
   data.frame(
     ID = 1,
@@ -86,7 +106,7 @@ dose_event_rows <- function(doses, adm_cmt, end_time) {
   )
 }
 
-build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL) {
+build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL, split_lego = FALSE) {
   if (!nrow(doses)) stop("At least one administered dose is required.")
   doses <- normalize_steady_state_doses(doses)
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
@@ -95,7 +115,7 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
   }
 
   dose_horizon <- if (nrow(observations)) max(observations$time, na.rm = TRUE) else max(doses$time, na.rm = TRUE)
-  dose_rows <- dose_event_rows(doses, adm_cmt, dose_horizon)
+  dose_rows <- dose_event_rows(doses, adm_cmt, dose_horizon, split_lego = split_lego)
   dose_rows$DV <- NA_real_
   dose_rows$mdv <- 1
 
@@ -197,6 +217,7 @@ fit_one_model <- function(
   contract$adm_cmt <- resolve_administration_cmt(model, contract, specification)
   contract$route <- specification$route %||% "Unspecified"
   contract$mode <- specification$mode %||% ""
+  split_lego <- is_split_lego_model(model)
 
   data <- build_map_data(
     doses = doses,
@@ -204,7 +225,8 @@ fit_one_model <- function(
     adm_cmt = contract$adm_cmt,
     obs_cmt = contract$obs_cmt,
     covariates = model_covariates,
-    covariate_history = covariate_history
+    covariate_history = covariate_history,
+    split_lego = split_lego
   )
 
   estimate <- NULL
@@ -225,6 +247,7 @@ fit_one_model <- function(
     estimate = estimate,
     data = data,
     contract = contract,
+    split_lego = split_lego,
     current_covariates = current_covariates,
     source_doses = doses,
     source_observations = observations,
@@ -316,18 +339,22 @@ individual_model <- function(fit) {
 simulate_regimen <- function(fit, dose, interval, infusion, horizon = 24, delta = 0.1) {
   model <- individual_model(fit)
   extra_doses <- max(0, floor((horizon - 1e-8) / interval))
+  warmup_doses <- if (isTRUE(fit$split_lego)) LEGO_STEADY_STATE_WARMUP_DOSES else 0L
+  warmup_time <- warmup_doses * interval
   event <- mrgsolve::ev(
     amt = dose,
     ii = interval,
     cmt = fit$contract$adm_cmt,
-    ss = 1,
-    addl = extra_doses,
+    ss = if (isTRUE(fit$split_lego)) 0 else 1,
+    addl = warmup_doses + extra_doses,
     rate = if (infusion > 0) dose / infusion else 0
   )
   simulation <- model |>
     mrgsolve::ev(event) |>
-    mrgsolve::mrgsim(start = 0, end = horizon, delta = delta, recsort = 3) |>
+    mrgsolve::mrgsim(start = warmup_time, end = warmup_time + horizon, delta = delta, recsort = 3) |>
     as.data.frame()
+  simulation$time <- simulation$time - warmup_time
+  simulation <- simulation[simulation$time >= -1e-8 & simulation$time <= horizon + 1e-8, , drop = FALSE]
   column <- pick_concentration_column(simulation)
   data.frame(
     time = simulation$time,
@@ -359,16 +386,121 @@ average_profiles <- function(profiles, weights) {
   data.frame(time = grid, concentration = averaged / used_weight)
 }
 
-profile_metrics <- function(profile) {
-  data.frame(
-    auc24 = trap_auc(profile$time, profile$concentration),
-    cmin = min(profile$concentration, na.rm = TRUE),
-    cmax = max(profile$concentration, na.rm = TRUE)
+time_above_threshold_pct <- function(time, concentration, threshold) {
+  threshold <- suppressWarnings(as.numeric(threshold))
+  if (length(threshold) != 1L || !is.finite(threshold)) return(NA_real_)
+  keep <- is.finite(time) & is.finite(concentration)
+  time <- as.numeric(time[keep])
+  concentration <- as.numeric(concentration[keep])
+  if (length(time) < 2L) return(NA_real_)
+  order_index <- order(time)
+  time <- time[order_index]
+  concentration <- concentration[order_index]
+  duration <- diff(time)
+  if (sum(duration) <= 0) return(NA_real_)
+  left <- head(concentration, -1L)
+  right <- tail(concentration, -1L)
+  above <- ifelse(
+    left > threshold & right > threshold,
+    duration,
+    ifelse(
+      left <= threshold & right <= threshold,
+      0,
+      duration * ifelse(left > threshold, left - threshold, right - threshold) / abs(right - left)
+    )
+  )
+  100 * sum(above) / sum(duration)
+}
+
+normalized_range_distance <- function(value, low, high) {
+  span <- max(high - low, .Machine$double.eps)
+  ifelse(value < low, (low - value) / span, ifelse(value > high, (value - high) / span, 0))
+}
+
+score_target_component <- function(value, operator = "range", low, high = low) {
+  operator <- as.character(operator %||% "range")[[1]]
+  scale <- max(abs(c(low, high)), 1, na.rm = TRUE)
+  if (identical(operator, "above")) {
+    distance <- ifelse(value >= low, 0, (low - value) / scale)
+  } else if (identical(operator, "below")) {
+    distance <- ifelse(value <= high, 0, (value - high) / scale)
+  } else if (identical(operator, "range")) {
+    distance <- normalized_range_distance(value, low, high)
+  } else {
+    stop("Unknown target operator: ", operator, ".")
+  }
+  list(distance = distance, in_target = distance == 0)
+}
+
+score_target_metrics <- function(data, metric, target_low, target_high, target_options = list()) {
+  if (identical(metric, "CminCmax")) {
+    cmin_operator <- as.character(target_options$cmin_operator %||% "range")[[1]]
+    cmax_operator <- as.character(target_options$cmax_operator %||% "range")[[1]]
+    cmax_low <- suppressWarnings(as.numeric(target_options$cmax_low %||% NA_real_))
+    cmax_high <- suppressWarnings(as.numeric(target_options$cmax_high %||% NA_real_))
+    if (!cmin_operator %in% c("range", "above", "below") ||
+        !cmax_operator %in% c("range", "above", "below") ||
+        !is.finite(target_low) || !is.finite(target_high) ||
+        !is.finite(cmax_low) || !is.finite(cmax_high) ||
+        (identical(cmin_operator, "range") && target_high <= target_low) ||
+        (identical(cmax_operator, "range") && cmax_high <= cmax_low)) {
+      stop("Combined Cmin/Cmax target constraints are invalid.")
+    }
+    cmin_score <- score_target_component(data$cmin, cmin_operator, target_low, target_high)
+    cmax_score <- score_target_component(data$cmax, cmax_operator, cmax_low, cmax_high)
+    distance <- pmax(cmin_score$distance, cmax_score$distance)
+    return(list(
+      value = distance,
+      in_target = cmin_score$in_target & cmax_score$in_target,
+      distance = distance,
+      center_distance = distance
+    ))
+  }
+
+  selected <- switch(
+    metric,
+    AUC24 = data$auc24,
+    Cmin = data$cmin,
+    Cmax = data$cmax,
+    TimeAbove = data$time_above_pct,
+    stop("Unknown target metric: ", metric, ".")
+  )
+  center <- (target_low + target_high) / 2
+  list(
+    value = selected,
+    in_target = selected >= target_low & selected <= target_high,
+    distance = normalized_range_distance(selected, target_low, target_high),
+    center_distance = abs(selected - center) / max(abs(center), .Machine$double.eps)
   )
 }
 
-simulate_averaged_regimen <- function(fits, weights, dose, interval, infusion, horizon = 24, delta = 0.1) {
+profile_metrics <- function(profile, interval = 24, concentration_threshold = NA_real_) {
+  auc_profile <- profile[profile$time <= 24 + 1e-8, , drop = FALSE]
+  interval_profile <- profile[profile$time <= interval + 1e-8, , drop = FALSE]
+  data.frame(
+    auc24 = trap_auc(auc_profile$time, auc_profile$concentration),
+    cmin = min(interval_profile$concentration, na.rm = TRUE),
+    cmax = max(interval_profile$concentration, na.rm = TRUE),
+    time_above_pct = time_above_threshold_pct(
+      interval_profile$time,
+      interval_profile$concentration,
+      concentration_threshold
+    )
+  )
+}
+
+simulate_averaged_regimen <- function(
+  fits,
+  weights,
+  dose,
+  interval,
+  infusion,
+  horizon = NULL,
+  delta = 0.1,
+  concentration_threshold = NA_real_
+) {
   valid <- successful_fits(fits)
+  horizon <- max(24, interval, suppressWarnings(as.numeric(horizon %||% 0)), na.rm = TRUE)
   profiles <- lapply(
     valid,
     simulate_regimen,
@@ -380,13 +512,17 @@ simulate_averaged_regimen <- function(fits, weights, dose, interval, infusion, h
   )
   names(profiles) <- names(valid)
   averaged <- average_profiles(profiles, weights)
-  list(profile = averaged, metrics = profile_metrics(averaged), per_model = profiles)
+  list(
+    profile = averaged,
+    metrics = profile_metrics(averaged, interval, concentration_threshold),
+    per_model = profiles
+  )
 }
 
 simulate_known_history <- function(fit, end_time, delta = 0.05) {
   model <- individual_model(fit)
   event_columns <- c("ID", "time", "evid", "cmt", "amt", "rate", "ii", "addl", "ss")
-  history <- dose_event_rows(fit$source_doses, fit$contract$adm_cmt, max(0, end_time))
+  history <- dose_event_rows(fit$source_doses, fit$contract$adm_cmt, max(0, end_time), split_lego = isTRUE(fit$split_lego))
   time_covariates <- carry_covariates(
     history$time,
     fit$source_covariate_history %||% NULL,
@@ -400,12 +536,13 @@ simulate_known_history <- function(fit, end_time, delta = 0.05) {
   simulation <- mrgsolve::mrgsim_d(
     model,
     data = history,
-    start = 0,
+    start = min(0, history$time, na.rm = TRUE),
     end = max(0, end_time),
     delta = delta,
     recsort = 3
   ) |>
     as.data.frame()
+  simulation <- simulation[simulation$time >= -1e-8, , drop = FALSE]
   column <- pick_concentration_column(simulation)
   data.frame(
     time = simulation$time,
@@ -547,6 +684,7 @@ recommend_regimens <- function(
   metric,
   target_low,
   target_high,
+  target_options = list(),
   delta = 0.1
 ) {
   doses <- seq(dose_min, dose_max, by = dose_step)
@@ -566,23 +704,18 @@ recommend_regimens <- function(
       dose = scenarios$dose[[index]],
       interval = scenarios$interval[[index]],
       infusion = infusion,
-      delta = delta
+      delta = delta,
+      concentration_threshold = target_options$concentration_threshold %||% NA_real_
     )$metrics
     result
   })
   metrics <- do.call(rbind, metrics)
   output <- cbind(scenarios, metrics)
-  selected <- switch(metric, AUC24 = output$auc24, Cmin = output$cmin, Cmax = output$cmax)
-  span <- max(target_high - target_low, .Machine$double.eps)
-  output$value <- selected
-  output$in_target <- selected >= target_low & selected <= target_high
-  output$distance <- ifelse(
-    selected < target_low,
-    (target_low - selected) / span,
-    ifelse(selected > target_high, (selected - target_high) / span, 0)
-  )
-  center <- (target_low + target_high) / 2
-  output$center_distance <- abs(selected - center) / max(abs(center), .Machine$double.eps)
+  scores <- score_target_metrics(output, metric, target_low, target_high, target_options)
+  output$value <- scores$value
+  output$in_target <- scores$in_target
+  output$distance <- scores$distance
+  output$center_distance <- scores$center_distance
   output <- output[order(output$distance, output$center_distance, output$dose), , drop = FALSE]
   rownames(output) <- NULL
   output
@@ -634,12 +767,13 @@ simulate_projected_history <- function(fit, dose, interval, infusion, future_sta
   simulation <- mrgsolve::mrgsim_d(
     model,
     data = events,
-    start = 0,
+    start = min(0, events$time, na.rm = TRUE),
     end = end_time,
     delta = delta,
     recsort = 3
   ) |>
     as.data.frame()
+  simulation <- simulation[simulation$time >= -1e-8, , drop = FALSE]
   column <- pick_concentration_column(simulation)
   data.frame(
     time = simulation$time,
@@ -746,7 +880,8 @@ timing_eta_offsets <- function(fit, count, seed = 419) {
       adm_cmt = fit$contract$adm_cmt,
       obs_cmt = fit$contract$obs_cmt,
       covariates = fit$source_covariates,
-      covariate_history = fit$source_covariate_history
+      covariate_history = fit$source_covariate_history,
+      split_lego = isTRUE(fit$split_lego)
     )
     eta <- tryCatch(
       mapbayr::mapbayest(
@@ -808,6 +943,7 @@ simulate_model_distribution <- function(
   include_residual,
   include_timing = FALSE,
   timing_refits = 20L,
+  concentration_threshold = NA_real_,
   seed = 381
 ) {
   eta_draws <- posterior_eta_draws(
@@ -830,18 +966,23 @@ simulate_model_distribution <- function(
   fixed_residual_cv <- suppressWarnings(as.numeric(fit$residual_error$fixed_cv %||% NA_real_))
   use_fixed_residual <- include_residual && identical(fit$residual_error$mode %||% "model", "fixed_cv") && is.finite(fixed_residual_cv)
   if (!include_residual || use_fixed_residual) model <- mrgsolve::zero_re(model, sigma)
+  horizon <- max(24, interval)
+  warmup_doses <- if (isTRUE(fit$split_lego)) LEGO_STEADY_STATE_WARMUP_DOSES else 0L
+  warmup_time <- warmup_doses * interval
   event <- mrgsolve::ev(
     amt = dose,
     ii = interval,
     cmt = fit$contract$adm_cmt,
-    ss = 1,
-    addl = max(0, floor((24 - 1e-8) / interval)),
+    ss = if (isTRUE(fit$split_lego)) 0 else 1,
+    addl = warmup_doses + max(0, floor((horizon - 1e-8) / interval)),
     rate = if (infusion > 0) dose / infusion else 0
   )
   simulation <- model |>
     mrgsolve::ev(event) |>
-    mrgsolve::mrgsim(start = 0, end = 24, delta = delta, nid = replicates, recsort = 3) |>
+    mrgsolve::mrgsim(start = warmup_time, end = warmup_time + horizon, delta = delta, nid = replicates, recsort = 3) |>
     as.data.frame()
+  simulation$time <- simulation$time - warmup_time
+  simulation <- simulation[simulation$time >= -1e-8 & simulation$time <= horizon + 1e-8, , drop = FALSE]
   column <- pick_concentration_column(simulation)
   if (use_fixed_residual) set.seed(seed + 41L)
   rows <- lapply(split(simulation, simulation$ID), function(profile) {
@@ -849,11 +990,10 @@ simulate_model_distribution <- function(
     if (use_fixed_residual) {
       values <- pmax(0, values * (1 + stats::rnorm(length(values), 0, fixed_residual_cv / 100)))
     }
-    data.frame(
-      auc24 = trap_auc(profile$time, values),
-      cmin = min(values, na.rm = TRUE),
-      cmax = max(values, na.rm = TRUE),
-      stringsAsFactors = FALSE
+    profile_metrics(
+      data.frame(time = profile$time, concentration = values),
+      interval = interval,
+      concentration_threshold = concentration_threshold
     )
   })
   output <- do.call(rbind, rows)
@@ -882,6 +1022,9 @@ simulate_regimen_distribution <- function(
   include_residual = FALSE,
   include_timing = FALSE,
   timing_refits = 20L,
+  target_low = NA_real_,
+  target_high = NA_real_,
+  target_options = list(),
   seed = 381
 ) {
   valid <- successful_fits(fits)
@@ -904,15 +1047,24 @@ simulate_regimen_distribution <- function(
       include_residual = include_residual,
       include_timing = include_timing,
       timing_refits = timing_refits,
+      concentration_threshold = target_options$concentration_threshold %||% NA_real_,
       seed = seed + index * 101L
     )
   })
   simulations <- Filter(Negate(is.null), simulations)
   distribution <- do.call(rbind, lapply(simulations, `[[`, "data"))
-  value_column <- switch(metric, AUC24 = "auc24", Cmin = "cmin", Cmax = "cmax")
-  distribution$value <- distribution[[value_column]]
+  scores <- score_target_metrics(distribution, metric, target_low, target_high, target_options)
+  distribution$value <- scores$value
+  distribution$in_target <- scores$in_target
   alpha <- (100 - interval_level) / 200
   quantiles <- stats::quantile(distribution$value, probs = c(alpha, 0.5, 1 - alpha), na.rm = TRUE, names = FALSE)
+  component_quantiles <- lapply(c("cmin", "cmax"), function(name) {
+    stats::setNames(
+      stats::quantile(distribution[[name]], probs = c(alpha, 0.5, 1 - alpha), na.rm = TRUE, names = FALSE),
+      c("lower", "median", "upper")
+    )
+  })
+  names(component_quantiles) <- c("cmin", "cmax")
   list(
     data = distribution,
     lower = quantiles[[1]],
@@ -920,6 +1072,7 @@ simulate_regimen_distribution <- function(
     upper = quantiles[[3]],
     interval_level = interval_level,
     metric = metric,
+    component_quantiles = component_quantiles,
     include_posterior = include_posterior,
     include_residual = include_residual,
     residual_error_mode = if (include_residual && length(valid)) valid[[1]]$residual_error$mode %||% "model" else "none",
@@ -938,6 +1091,7 @@ rank_regimens_by_pta <- function(
   metric,
   target_low,
   target_high,
+  target_options = list(),
   replicates = 100,
   delta = 0.1,
   include_posterior = TRUE,
@@ -965,12 +1119,17 @@ rank_regimens_by_pta <- function(
       include_posterior = include_posterior,
       include_residual = include_residual,
       include_timing = FALSE,
+      target_low = target_low,
+      target_high = target_high,
+      target_options = target_options,
       seed = seed
     )
     values <- distribution$data$value
-    output$p_under[[index]] <- mean(values < target_low, na.rm = TRUE)
-    output$p_target[[index]] <- mean(values >= target_low & values <= target_high, na.rm = TRUE)
-    output$p_over[[index]] <- mean(values > target_high, na.rm = TRUE)
+    output$p_target[[index]] <- mean(distribution$data$in_target, na.rm = TRUE)
+    if (!identical(metric, "CminCmax")) {
+      output$p_under[[index]] <- mean(values < target_low, na.rm = TRUE)
+      output$p_over[[index]] <- mean(values > target_high, na.rm = TRUE)
+    }
     output$pta_evaluated[[index]] <- TRUE
   }
   evaluated <- output[output$pta_evaluated, , drop = FALSE]
@@ -992,6 +1151,7 @@ model_averaging_sensitivity <- function(
   metric,
   target_low,
   target_high,
+  target_options = list(),
   delta = 0.1
 ) {
   valid <- successful_fits(fits)
@@ -1022,7 +1182,7 @@ model_averaging_sensitivity <- function(
     weights <- sets[[label]]
     recommendation <- recommend_regimens(
       fits, weights, dose_min, dose_max, dose_step, intervals, infusion,
-      metric, target_low, target_high, delta
+      metric, target_low, target_high, target_options, delta
     )[1, , drop = FALSE]
     data.frame(
       scenario = label,
@@ -1031,6 +1191,7 @@ model_averaging_sensitivity <- function(
       auc24 = recommendation$auc24,
       cmin = recommendation$cmin,
       cmax = recommendation$cmax,
+      time_above_pct = recommendation$time_above_pct,
       target_value = recommendation$value,
       in_target = recommendation$in_target,
       weights = paste(paste(names(weights), round(weights, 3), sep = "="), collapse = " | "),

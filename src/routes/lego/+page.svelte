@@ -20,6 +20,10 @@
       covariates: 'Covariables', addContinuousAria: 'Ajouter une covariable continue', addCategoricalAria: 'Ajouter une covariable catégorielle', continuous: 'Continue', categorical: 'Catégorielle',
       covariateHelp: 'Continue : P = TV × (COV/réf)^β. Catégorielle : P = TV × exp(β) pour la modalité comparée, sinon TV.', type: 'Type', targetParameter: 'Paramètre cible',
       categoryReference: 'Modalité réf.', referenceValue: 'Référence', categoryComparison: 'Modalité comparée', comparisonValue: 'Valeur comparée', compareCurve: 'Comparer sur la courbe',
+      inputSettings: 'Administration dans ce compartiment', inputType: "Type d'entrée", bolusInput: 'Bolus / entrée instantanée', zeroOrderInput: "Entrée d'ordre zéro", inputDuration: "Durée d'entrée (h)", lagTime: 'Délai Tlag (h)', doseFraction: 'Fraction de dose (%)',
+      inputHelp: "Plusieurs compartiments dosés créent des voies parallèles. Les fractions s'appliquent à une même dose et doivent totaliser 100 %. Reliez les compartiments en chaîne pour une absorption séquentielle.",
+      kinetics: 'Cinétique', firstOrder: 'Premier ordre', michaelisMenten: 'Michaelis-Menten', eliminationParameter: "Paramètre d'élimination", rateConstant: 'Constante k', clearance: 'Clairance CL',
+      dualAbsorption: 'Double absorption', tdmMultiRoute: "Le pont TDM accepte aussi les voies parallèles; une dose est répartie automatiquement selon les fractions.",
       emptyEquations: '(ajoutez des compartiments)'
     },
     en: {
@@ -33,13 +37,17 @@
       covariates: 'Covariates', addContinuousAria: 'Add a continuous covariate', addCategoricalAria: 'Add a categorical covariate', continuous: 'Continuous', categorical: 'Categorical',
       covariateHelp: 'Continuous: P = TV × (COV/ref)^β. Categorical: P = TV × exp(β) for the compared category, otherwise TV.', type: 'Type', targetParameter: 'Target parameter',
       categoryReference: 'Reference category', referenceValue: 'Reference', categoryComparison: 'Compared category', comparisonValue: 'Compared value', compareCurve: 'Compare on chart',
+      inputSettings: 'Administration into this compartment', inputType: 'Input type', bolusInput: 'Bolus / instantaneous input', zeroOrderInput: 'Zero-order input', inputDuration: 'Input duration (h)', lagTime: 'Tlag (h)', doseFraction: 'Dose fraction (%)',
+      inputHelp: 'Multiple dosed compartments create parallel pathways. Fractions apply to one common dose and must total 100%. Connect compartments in a chain for sequential absorption.',
+      kinetics: 'Kinetics', firstOrder: 'First order', michaelisMenten: 'Michaelis-Menten', eliminationParameter: 'Elimination parameter', rateConstant: 'Rate constant k', clearance: 'Clearance CL',
+      dualAbsorption: 'Dual absorption', tdmMultiRoute: 'The TDM bridge also accepts parallel pathways; one dose is automatically split according to the fractions.',
       emptyEquations: '(add compartments)'
     }
   };
   $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
 
-  /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
-  /** @typedef {{id:number, from:number, to:number|'OUT', k:number}} Edge */
+  /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, tlag?:number, doseFraction?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
+  /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten', vmax?:number, km?:number, eliminationParameterization?:'rate'|'clearance', cl?:number}} Edge */
   /** @typedef {{id:number, name:string, type:'continuous'|'categorical', target:string, reference:number, comparison:number, beta:number, compare:boolean}} Covariate */
 
   /** @type {Record<string, {color:string, vol:boolean, plot:boolean, special?:string}>} */
@@ -54,6 +62,7 @@
   };
   const kindLabel = (/** @type {string} */ kind) => /** @type {Record<string, string>} */ (lego.kinds)[kind] ?? kind;
   const order = ['depot', 'transit', 'central', 'periph', 'metab', 'effect', 'response'];
+  const isMassNode = (/** @type {Node} */ node) => !['effect', 'response'].includes(node.kind);
 
   let uid = 1;
   /** @type {Node[]} */
@@ -84,8 +93,13 @@
     /** @type {Node} */
     const n = { id: uid++, kind, name: defaultName(kind), x: 40 + (i % 5) * 116, y: 40 + Math.floor(i / 5) * 100 };
     if (KINDS[kind].vol) n.vol = kind === 'central' ? 30 : kind === 'metab' ? 20 : 40;
-    if (kind === 'depot') n.dose = 100;
-    if (kind === 'central') n.dose = 0;
+    if (isMassNode(n)) {
+      n.dose = kind === 'depot' ? 100 : 0;
+      n.inputType = 'bolus';
+      n.inputDuration = 1;
+      n.tlag = 0;
+      n.doseFraction = 100;
+    }
     if (kind === 'effect') { n.ke0 = 0.4; n.source = firstPlotSource(); }
     if (kind === 'response') { n.kin = 10; n.kout = 0.15; n.smax = 3; n.sc50 = 3; n.source = firstPlotSource(); }
     nodes = [...nodes, n];
@@ -104,7 +118,7 @@
     if (mode === 'connect') {
       if (connectFrom === null) connectFrom = id;
       else {
-        if (connectFrom !== id) edges = [...edges, { id: uid++, from: connectFrom, to: id, k: 0.5 }];
+        if (connectFrom !== id) edges = [...edges, { id: uid++, from: connectFrom, to: id, k: 0.5, kinetics: 'first_order' }];
         reconcileCovariates();
         connectFrom = null; mode = 'select';
       }
@@ -112,12 +126,21 @@
   }
   /** @param {number} id */
   function addElim(id) {
-    edges = [...edges, { id: uid++, from: id, to: 'OUT', k: 0.2 }];
+    edges = [...edges, { id: uid++, from: id, to: 'OUT', k: 0.2, kinetics: 'first_order', eliminationParameterization: 'rate', cl: 5 }];
     reconcileCovariates();
   }
   /** @param {number} id */
   function deleteEdge(id) {
     edges = edges.filter((e) => e.id !== id);
+    reconcileCovariates();
+  }
+  function updateEdge(/** @type {Edge} */ edge) {
+    if (edgeKinetics(edge) === 'michaelis_menten') {
+      edge.vmax = Number(edge.vmax ?? 10);
+      edge.km = Number(edge.km ?? 10);
+    }
+    if (eliminationParameterization(edge) === 'clearance') edge.cl = Number(edge.cl ?? 5);
+    edges = [...edges];
     reconcileCovariates();
   }
   function clearAll() { nodes = []; edges = []; covariates = []; selectedId = null; }
@@ -129,6 +152,13 @@
     const mk = (/** @type {string} */ kind, /** @type {number} */ x, /** @type {number} */ y, /** @type {any} */ extra = {}) => {
       const n = { id: uid++, kind, name: defaultName(kind), x, y, ...extra };
       if (KINDS[kind].vol && n.vol === undefined) n.vol = kind === 'central' ? 30 : 40;
+      if (isMassNode(n)) {
+        n.dose ??= 0;
+        n.inputType ??= 'bolus';
+        n.inputDuration ??= 1;
+        n.tlag ??= 0;
+        n.doseFraction ??= 100;
+      }
       nodes = [...nodes, n];
       return n.id;
     };
@@ -148,6 +178,15 @@
     } else if (name === 'effect') {
       const c = mk('central', 160, 90, { vol: 30, dose: 100 }); mk('effect', 400, 200, { ke0: 0.4, source: c });
       edges = [{ id: uid++, from: c, to: 'OUT', k: 0.2 }];
+    } else if (name === 'dual') {
+      const rapid = mk('depot', 30, 80, { name: 'rapid', dose: 100, inputType: 'zero_order', inputDuration: 1.5, doseFraction: 30 });
+      const slow = mk('depot', 30, 210, { name: 'slow', dose: 100, inputType: 'bolus', tlag: 1.5, doseFraction: 70 });
+      const c = mk('central', 330, 140, { vol: 30 });
+      edges = [
+        { id: uid++, from: rapid, to: c, k: 2, kinetics: 'first_order' },
+        { id: uid++, from: slow, to: c, k: 0.35, kinetics: 'first_order' },
+        { id: uid++, from: c, to: 'OUT', k: 0.17, kinetics: 'first_order', eliminationParameterization: 'clearance', cl: 5.1 }
+      ];
     }
     selectedId = null;
   }
@@ -211,24 +250,46 @@
           kin: node.kin === undefined ? undefined : adjusted(`kin_${name}`, Number(node.kin)),
           kout: node.kout === undefined ? undefined : adjusted(`kout_${name}`, Number(node.kout)),
           smax: node.smax === undefined ? undefined : adjusted(`smax_${name}`, Number(node.smax)),
-          sc50: node.sc50 === undefined ? undefined : adjusted(`sc50_${name}`, Number(node.sc50))
+          sc50: node.sc50 === undefined ? undefined : adjusted(`sc50_${name}`, Number(node.sc50)),
+          inputDuration: adjusted(`tk0_${name}`, Number(node.inputDuration ?? 1)),
+          tlag: adjusted(`tlag_${name}`, Number(node.tlag ?? 0)),
+          doseFraction: adjusted(`f_${name}`, Number(node.doseFraction ?? 100))
         };
       });
       const localEdges = currentEdges.map((edge) => {
         const from = rid(currentNodes.find((node) => node.id === edge.from)?.name ?? 'x');
         const to = edge.to === 'OUT' ? 'e' : rid(currentNodes.find((node) => node.id === edge.to)?.name ?? 'x');
-        return { ...edge, k: adjusted(`k_${from}_${to}`, Number(edge.k)) };
+        return {
+          ...edge,
+          kinetics: edge.kinetics ?? 'first_order',
+          eliminationParameterization: edge.eliminationParameterization ?? 'rate',
+          k: adjusted(`k_${from}_${to}`, Number(edge.k)),
+          cl: adjusted(`cl_${from}`, Number(edge.cl ?? edge.k)),
+          vmax: adjusted(`vmax_${from}_${to}`, Number(edge.vmax ?? 10)),
+          km: adjusted(`km_${from}_${to}`, Number(edge.km ?? 10))
+        };
       });
       const idx = new Map(localNodes.map((node, index) => [node.id, index]));
-      const y0 = localNodes.map((node) => (node.kind === 'response' ? (node.kin ?? 0) / (node.kout || 1) : (node.dose ?? 0)));
+      const y0 = localNodes.map((node) => (node.kind === 'response' ? (node.kin ?? 0) / (node.kout || 1) : 0));
 
-    /** @param {number[]} y */
-    function deriv(y) {
+    /** @param {number} time @param {number[]} y */
+    function deriv(time, y) {
       const dy = new Array(N).fill(0);
+        localNodes.forEach((node, index) => {
+          if ((node.dose ?? 0) <= 0 || node.inputType !== 'zero_order') return;
+          const start = Number(node.tlag ?? 0);
+          const duration = Math.max(Number(node.inputDuration ?? 1), 1e-9);
+          if (time >= start && time < start + duration) dy[index] += Number(node.dose) * Number(node.doseFraction ?? 100) / 100 / duration;
+        });
         for (const e of localEdges) {
         const fi = idx.get(e.from); if (fi === undefined) continue;
           if (localNodes[fi].kind === 'effect' || localNodes[fi].kind === 'response') continue;
-        const rate = e.k * y[fi];
+        const amount = Math.max(0, y[fi]);
+        const rate = e.kinetics === 'michaelis_menten'
+          ? e.vmax * amount / Math.max(e.km + amount, 1e-12)
+          : e.to === 'OUT' && e.eliminationParameterization === 'clearance'
+            ? e.cl * amount / Math.max(Number(localNodes[fi].vol ?? 1), 1e-12)
+            : e.k * amount;
         dy[fi] -= rate;
           if (e.to !== 'OUT') { const ti = idx.get(e.to); if (ti !== undefined && localNodes[ti].kind !== 'effect' && localNodes[ti].kind !== 'response') dy[ti] += rate; }
       }
@@ -240,14 +301,21 @@
     }
       const steps = 800, dt = horizon / steps;
     let y = y0.slice();
+    const administeredBolus = new Set();
     /** @type {{t:number, y:number[]}[]} */
     const out = [];
     for (let s = 0; s <= steps; s++) {
-      out.push({ t: s * dt, y: y.slice() });
-      const k1 = deriv(y);
-      const k2 = deriv(y.map((v, i) => v + (dt / 2) * k1[i]));
-      const k3 = deriv(y.map((v, i) => v + (dt / 2) * k2[i]));
-      const k4 = deriv(y.map((v, i) => v + dt * k3[i]));
+      const time = s * dt;
+      localNodes.forEach((node, index) => {
+        if ((node.dose ?? 0) <= 0 || node.inputType === 'zero_order' || administeredBolus.has(node.id) || time + 1e-9 < Number(node.tlag ?? 0)) return;
+        y[index] += Number(node.dose) * Number(node.doseFraction ?? 100) / 100;
+        administeredBolus.add(node.id);
+      });
+      out.push({ t: time, y: y.slice() });
+      const k1 = deriv(time, y);
+      const k2 = deriv(time + dt / 2, y.map((v, i) => v + (dt / 2) * k1[i]));
+      const k3 = deriv(time + dt / 2, y.map((v, i) => v + (dt / 2) * k2[i]));
+      const k4 = deriv(time + dt, y.map((v, i) => v + dt * k3[i]));
       y = y.map((v, i) => v + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
     }
       const series = plotNodes.map((n) => {
@@ -303,8 +371,13 @@
     return nodes.map((n) => {
       if (n.kind === 'effect') return `dCe/dt = ke0·(${nodes.find((s) => s.id === n.source)?.name ?? 'Cp'}/V − Ce)`;
       if (n.kind === 'response') return `dR/dt = kin·(1 + Smax·Cp/(SC50+Cp)) − kout·R`;
-      const inflow = edges.filter((e) => e.to === n.id).map((e) => `+ k_${nm(e.from)}_${n.name}·${nm(e.from)}`);
-      const outflow = edges.filter((e) => e.from === n.id).map((e) => `− k_${n.name}_${e.to === 'OUT' ? 'elim' : nm(e.to)}·${n.name}`);
+      const displayFlux = (/** @type {Edge} */ edge, /** @type {string} */ amount) => {
+        if (edgeKinetics(edge) === 'michaelis_menten') return `Vmax·${amount}/(Km+${amount})`;
+        if (eliminationParameterization(edge) === 'clearance') return `CL·${amount}/V_${n.name}`;
+        return `k·${amount}`;
+      };
+      const inflow = edges.filter((e) => e.to === n.id).map((e) => `+ ${displayFlux(e, nm(e.from))}`);
+      const outflow = edges.filter((e) => e.from === n.id).map((e) => `− ${displayFlux(e, n.name)}`);
       return `d${n.name}/dt = ${[...inflow, ...outflow].join(' ') || '0'}`;
     }).concat(concSources().map((n) => `C_${n.name} = ${n.name} / V_${n.name}`));
   })();
@@ -329,6 +402,21 @@
 
   const nmOf = (/** @type {number} */ id) => rid(nodes.find((n) => n.id === id)?.name ?? 'x');
 
+  const edgeKinetics = (/** @type {Edge} */ edge) => edge.kinetics === 'michaelis_menten' ? 'michaelis_menten' : 'first_order';
+  const eliminationParameterization = (/** @type {Edge} */ edge) => edge.to === 'OUT' && edge.eliminationParameterization === 'clearance' ? 'clearance' : 'rate';
+  const edgeSuffix = (/** @type {Edge} */ edge, currentNodes = nodes) => {
+    const from = rid(currentNodes.find((node) => node.id === edge.from)?.name ?? 'x');
+    const to = edge.to === 'OUT' ? 'e' : rid(currentNodes.find((node) => node.id === edge.to)?.name ?? 'x');
+    return { from, to };
+  };
+
+  function edgeFlux(/** @type {Edge} */ edge, /** @type {string} */ amount, currentNodes = nodes) {
+    const { from, to } = edgeSuffix(edge, currentNodes);
+    if (edgeKinetics(edge) === 'michaelis_menten') return `vmax_${from}_${to}*${amount}/(km_${from}_${to} + ${amount})`;
+    if (eliminationParameterization(edge) === 'clearance') return `cl_${from}*${amount}/v_${from}`;
+    return `k_${from}_${to}*${amount}`;
+  }
+
   /**
    * Tous les paramètres du graphe courant, avec leur valeur, leur unité et un
    * commentaire. `iiv` marque ceux qui reçoivent une variabilité inter-individuelle
@@ -342,17 +430,29 @@
     for (const e of currentEdges) {
       const from = localName(e.from);
       const to = e.to === 'OUT' ? 'e' : localName(e.to);
-      out.push({
-        name: `k_${from}_${to}`, value: e.k, unit: '1/h',
-        note: e.to === 'OUT' ? `elimination depuis ${from}` : `transfert ${from} -> ${to}`,
-        iiv: e.to === 'OUT'
-      });
+      if (edgeKinetics(e) === 'michaelis_menten') {
+        out.push({ name: `vmax_${from}_${to}`, value: e.vmax ?? 10, unit: 'mg/h', note: `vitesse maximale ${from} -> ${to}`, iiv: false });
+        out.push({ name: `km_${from}_${to}`, value: e.km ?? 10, unit: 'mg', note: `constante de Michaelis ${from} -> ${to}`, iiv: false });
+      } else if (eliminationParameterization(e) === 'clearance') {
+        out.push({ name: `cl_${from}`, value: e.cl ?? 5, unit: 'L/h', note: `clairance depuis ${from}`, iiv: true });
+      } else {
+        out.push({
+          name: `k_${from}_${to}`, value: e.k, unit: '1/h',
+          note: e.to === 'OUT' ? `elimination depuis ${from}` : `transfert ${from} -> ${to}`,
+          iiv: e.to === 'OUT'
+        });
+      }
     }
     for (const n of currentNodes.filter((node) => KINDS[node.kind].vol)) {
       out.push({ name: `v_${rid(n.name)}`, value: n.vol ?? 1, unit: 'L', note: `volume de ${rid(n.name)}`, iiv: n.kind === 'central' });
     }
     for (const n of currentNodes) {
       const b = rid(n.name);
+      if ((n.dose ?? 0) > 0) {
+        if ((n.tlag ?? 0) > 0) out.push({ name: `tlag_${b}`, value: n.tlag ?? 0, unit: 'h', note: `delai d'administration vers ${b}`, iiv: false });
+        if (n.inputType === 'zero_order') out.push({ name: `tk0_${b}`, value: n.inputDuration ?? 1, unit: 'h', note: `duree d'administration vers ${b}`, iiv: false });
+        if (currentNodes.filter((node) => (node.dose ?? 0) > 0).length > 1) out.push({ name: `f_${b}`, value: (n.doseFraction ?? 100) / 100, unit: '-', note: `fraction de dose vers ${b}`, iiv: false });
+      }
       if (n.kind === 'effect') out.push({ name: `ke0_${b}`, value: n.ke0 ?? 0.4, unit: '1/h', note: `equilibrage du compartiment d'effet ${b}`, iiv: false });
       if (n.kind === 'response') {
         out.push({ name: `kin_${b}`, value: n.kin ?? 10, unit: 'u/h', note: `production de ${b}`, iiv: false });
@@ -450,8 +550,8 @@
   function massTerms(/** @type {any} */ n) {
     const b = rid(n.name);
     const terms = [];
-    for (const e of edges.filter((x) => x.to === n.id)) terms.push(`+ k_${nmOf(e.from)}_${b}*${nmOf(e.from)}`);
-    for (const e of edges.filter((x) => x.from === n.id)) terms.push(`- k_${b}_${e.to === 'OUT' ? 'e' : nmOf(e.to)}*${b}`);
+    for (const e of edges.filter((x) => x.to === n.id)) terms.push(`+ ${edgeFlux(e, nmOf(e.from))}`);
+    for (const e of edges.filter((x) => x.from === n.id)) terms.push(`- ${edgeFlux(e, b)}`);
     return terms.join(' ') || '0';
   }
 
@@ -477,6 +577,12 @@
       /** @type {Record<string, string|number>} */
       const item = { id: n.id, kind: n.kind, name: rid(n.name), dose: Number(n.dose ?? 0) };
       if (KINDS[n.kind].vol) item.vol = Number(n.vol ?? 1);
+      if (isMassNode(n)) {
+        item.inputType = n.inputType ?? 'bolus';
+        item.inputDuration = Number(n.inputDuration ?? 1);
+        item.tlag = Number(n.tlag ?? 0);
+        item.doseFraction = Number(n.doseFraction ?? 100);
+      }
       if (n.kind === 'effect') {
         item.ke0 = Number(n.ke0 ?? 0.4);
         item.source = Number(n.source ?? 0);
@@ -491,9 +597,18 @@
       return item;
     });
     return {
-      version: 1,
+      version: 2,
       nodes: safeNodes,
-      edges: edges.map((e) => ({ from: e.from, to: e.to, k: Number(e.k) })),
+      edges: edges.map((e) => ({
+        from: e.from,
+        to: e.to,
+        kinetics: edgeKinetics(e),
+        k: Number(e.k),
+        vmax: Number(e.vmax ?? 10),
+        km: Number(e.km ?? 10),
+        eliminationParameterization: eliminationParameterization(e),
+        cl: Number(e.cl ?? 5)
+      })),
       covariates: validCovariates(modelParams(), covariates).map((covariate) => ({
         name: covariateName(covariate.name),
         type: covariateType(covariate),
@@ -521,7 +636,8 @@
     L.push('#   ID, TIME, DV, AMT, EVID, CMT  (+ vos covariables, p. ex. WT)');
     if (dosed.length) {
       L.push(`#   Les lignes de dose portent EVID = 1 et CMT = "${rid(dosed[0].name)}"` +
-        (dosed.length > 1 ? ` (autres compartiments dosés : ${dosed.slice(1).map((n) => rid(n.name)).join(', ')})` : ''));
+        (dosed.length > 1 ? `. Dupliquez chaque dose vers ${dosed.slice(1).map((n) => rid(n.name)).join(', ')}; f() applique les fractions.` : '.'));
+      if (dosed.some((node) => node.inputType === 'zero_order')) L.push('#   Pour une entree d ordre zero modelisee par dur(), utilisez RATE = -2.');
     } else {
       L.push('#   Aucun compartiment ne porte de dose dans l\'atelier : réglez-en une.');
     }
@@ -567,6 +683,16 @@
         .join('');
       L.push(`    ${p.name.padEnd(w)} <- exp(l${p.name}${effects}${eta})`);
     }
+    if (dosed.length) {
+      L.push('');
+      L.push('    # Administration : fraction, delai et duree modelisee par voie.');
+      for (const node of dosed) {
+        const name = rid(node.name);
+        if (dosed.length > 1) L.push(`    f(${name}) <- f_${name}`);
+        if ((node.tlag ?? 0) > 0) L.push(`    alag(${name}) <- tlag_${name}`);
+        if (node.inputType === 'zero_order') L.push(`    dur(${name}) <- tk0_${name}`);
+      }
+    }
     const resp = nodes.filter((n) => n.kind === 'response');
     if (resp.length) {
       L.push('');
@@ -599,7 +725,23 @@
   })();
 
   // ── mrgsolve compatible avec le moteur TDM/mapbayr ──
-  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates));
+  function advancedInputsAreValid() {
+    const dosed = nodes.filter((node) => isMassNode(node) && Number(node.dose ?? 0) > 0);
+    if (!dosed.length) return false;
+    if (dosed.some((node) => Number(node.tlag ?? 0) < 0 || Number(node.doseFraction ?? 100) <= 0 ||
+      (node.inputType === 'zero_order' && Number(node.inputDuration ?? 0) <= 0))) return false;
+    if (dosed.length > 1 && Math.abs(dosed.reduce((total, node) => total + Number(node.doseFraction ?? 100), 0) - 100) > 0.001) return false;
+    return edges.every((edge) => {
+      if (edgeKinetics(edge) === 'michaelis_menten') return Number(edge.vmax ?? 0) > 0 && Number(edge.km ?? 0) > 0;
+      if (eliminationParameterization(edge) === 'clearance') {
+        const source = nodes.find((node) => node.id === edge.from);
+        return Boolean(source && KINDS[source.kind].vol && Number(edge.cl ?? 0) > 0);
+      }
+      return Number(edge.k ?? -1) >= 0;
+    });
+  }
+
+  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates) && advancedInputsAreValid());
   $: codeMrgsolve = (() => {
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '# Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
@@ -614,6 +756,7 @@
     const L = [];
 
     L.push(`// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
+    if (dosed.length) L.push('$PLUGIN evtools');
     L.push('$PARAM @annotated');
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
     for (const covariate of C) {
@@ -644,19 +787,21 @@
     L.push('ADD  : 0.01 : variance de l\'erreur additive');
     L.push('');
     L.push('$CMT @annotated');
+    if (dosed.length) L.push(`${'LEGO_INPUT'.padEnd(w)} : entree de dose repartie [ADM]`);
     for (const n of nodes) {
       const b = rid(n.name);
       const u = n.kind === 'effect' ? 'concentration a l\'effet (mg/L)'
         : n.kind === 'response' ? 'reponse (unites du marqueur)'
         : `quantite dans ${b} (mg)`;
       const tags = [];
-      if (n.id === adm.id) tags.push('ADM');
       if (n.id === observed.id) tags.push('OBS');
+      if (!dosed.length && n.id === adm.id) tags.push('ADM');
       L.push(`${b.padEnd(w)} : ${u}${tags.length ? ` [${tags.join(', ')}]` : ''}`);
     }
     L.push('');
     L.push('$MAIN');
     L.push('// Parametres individuels et effets simples de covariables.');
+    if (dosed.length) L.push('F_LEGO_INPUT = 0;');
     for (const p of P) {
       const eta = etaIndex.get(p.name);
       const effects = C
@@ -678,6 +823,7 @@
     }
     L.push('');
     L.push('$ODE');
+    if (dosed.length) L.push('dxdt_LEGO_INPUT = 0;');
     // Les concentrations qui pilotent un bloc PD sont écrites en toutes lettres dans
     // l'équation : déclarer un `double` intermédiaire ici le laisserait inutilisé.
     for (const n of nodes) {
@@ -685,6 +831,25 @@
       if (n.kind === 'effect') { L.push(`dxdt_${b} = ke0_${b}*(${driverConc(n).replace('/', '/')} - ${b});`); continue; }
       if (n.kind === 'response') { L.push(`dxdt_${b} = kin_${b}*(1 + smax_${b}*${driverConc(n)}/(sc50_${b} + ${driverConc(n)})) - kout_${b}*${b};`); continue; }
       L.push(`dxdt_${b} = ${massTerms(n)};`);
+    }
+    if (dosed.length) {
+      L.push('');
+      L.push('$EVENT');
+      L.push('if ((EVID == 1 || EVID == 4) && CMT == 1) {');
+      dosed.forEach((node, index) => {
+        const name = rid(node.name);
+        const amount = dosed.length > 1 ? `AMT*f_${name}` : 'AMT';
+        const cmt = nodes.findIndex((candidate) => candidate.id === node.id) + 2;
+        const variable = `route_${index + 1}`;
+        if (node.inputType === 'zero_order') {
+          L.push(`  evt::ev ${variable} = evt::infuse(${amount}, ${cmt}, ${amount}/tk0_${name});`);
+        } else {
+          L.push(`  evt::ev ${variable} = evt::bolus(${amount}, ${cmt});`);
+        }
+        if ((node.tlag ?? 0) > 0) L.push(`  evt::retime(${variable}, TIME + tlag_${name});`);
+        L.push(`  self.push(${variable});`);
+      });
+      L.push('}');
     }
     if (concSources().length) {
       L.push('');
@@ -788,9 +953,13 @@
     L.push('');
     L.push('PK:');
     if (dosed.length) {
-      dosed.forEach((node, index) => {
-        const administration = dosed.length > 1 ? `, adm=${index + 1}` : '';
-        L.push(`depot(target=${rid(node.name)}${administration})`);
+      dosed.forEach((node) => {
+        const name = rid(node.name);
+        const options = [`target=${name}`];
+        if (dosed.length > 1) options.push('adm=1', `p=f_${name}`);
+        if ((node.tlag ?? 0) > 0) options.push(`Tlag=tlag_${name}`);
+        if (node.inputType === 'zero_order') options.push(`Tk0=tk0_${name}`);
+        L.push(`depot(${options.join(', ')})`);
       });
     } else {
       L.push('; Aucun compartiment dose : attribuez une dose dans l\'atelier.');
@@ -862,10 +1031,22 @@
     const nonmemMassTerms = (/** @type {Node} */ node) => {
       const terms = [];
       for (const edge of edges.filter((candidate) => candidate.to === node.id)) {
-        terms.push(`+ ${pvar(`k_${nmOf(edge.from)}_${rid(node.name)}`)}*${state(edge.from)}`);
+        const { from, to } = edgeSuffix(edge);
+        const amount = state(edge.from);
+        const flux = edgeKinetics(edge) === 'michaelis_menten'
+          ? `${pvar(`vmax_${from}_${to}`)}*${amount}/(${pvar(`km_${from}_${to}`)}+${amount})`
+          : `${pvar(`k_${from}_${to}`)}*${amount}`;
+        terms.push(`+ ${flux}`);
       }
       for (const edge of edges.filter((candidate) => candidate.from === node.id)) {
-        terms.push(`- ${pvar(`k_${rid(node.name)}_${edge.to === 'OUT' ? 'e' : nmOf(edge.to)}`)}*${state(node.id)}`);
+        const { from, to } = edgeSuffix(edge);
+        const amount = state(node.id);
+        const flux = edgeKinetics(edge) === 'michaelis_menten'
+          ? `${pvar(`vmax_${from}_${to}`)}*${amount}/(${pvar(`km_${from}_${to}`)}+${amount})`
+          : eliminationParameterization(edge) === 'clearance'
+            ? `${pvar(`cl_${from}`)}*${amount}/${pvar(`v_${from}`)}`
+            : `${pvar(`k_${from}_${to}`)}*${amount}`;
+        terms.push(`- ${flux}`);
       }
       return terms.join(' ') || '0';
     };
@@ -875,6 +1056,8 @@
     L.push('; Donnees attendues : une ligne par evenement dans data.csv.');
     L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + (C.length ? ` ${C.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));
     L.push(`; Compartiment dose par defaut : ${nodeIndex.get(adm.id)} (${rid(adm.name)}). Observation : ${nodeIndex.get(observed.id)} (${rid(observed.name)}).`);
+    if (dosed.length > 1) L.push(`; Voies paralleles : dupliquez chaque dose vers CMT ${dosed.map((node) => nodeIndex.get(node.id)).join(', ')}; F1, F2, ... appliquent les fractions.`);
+    if (dosed.some((node) => node.inputType === 'zero_order')) L.push('; Pour chaque voie d ordre zero, utilisez RATE=-2 afin que Dn fixe la duree.');
     for (const covariate of C) {
       const sourceName = covariateName(covariate.name);
       const dataName = nonmemCovariate.get(covariate.id);
@@ -914,6 +1097,13 @@
       L.push(`${typical}=THETA(${thetaIndex.get(parameter.name)})${effects}`);
       const eta = etaIndex.get(parameter.name);
       L.push(`${parameterVariable.get(parameter.name)}=${typical}${eta ? `*EXP(ETA(${eta}))` : ''}`);
+    }
+    for (const node of dosed) {
+      const index = nodeIndex.get(node.id);
+      const name = rid(node.name);
+      if (dosed.length > 1) L.push(`F${index}=${pvar(`f_${name}`)}`);
+      if ((node.tlag ?? 0) > 0) L.push(`ALAG${index}=${pvar(`tlag_${name}`)}`);
+      if (node.inputType === 'zero_order') L.push(`D${index}=${pvar(`tk0_${name}`)}`);
     }
     const responseNodes = nodes.filter((candidate) => candidate.kind === 'response');
     if (responseNodes.length) {
@@ -1070,6 +1260,7 @@
     <button on:click={() => preset('oral1')}>Oral 1-cpt</button>
     <button on:click={() => preset('iv2')}>IV 2-cpt</button>
     <button on:click={() => preset('transit')}>Transit ×3</button>
+    <button on:click={() => preset('dual')}>{lego.dualAbsorption}</button>
     <button on:click={() => preset('metab')}>{lego.parentMetabolite}</button>
     <button on:click={() => preset('effect')}>{kindLabel('effect')}</button>
     <button class="clear" on:click={clearAll}>{lego.clear}</button>
@@ -1089,13 +1280,13 @@
         {#if from}
           {#if e.to === 'OUT'}
             <line x1={cxn(from)} y1={from.y + NH} x2={cxn(from)} y2={from.y + NH + 30} class="edge" marker-end="url(#arw)" />
-            <text x={cxn(from) + 6} y={from.y + NH + 22} class="klbl">k={e.k.toFixed(2)}</text>
+            <text x={cxn(from) + 6} y={from.y + NH + 22} class="klbl">{edgeKinetics(e) === 'michaelis_menten' ? 'MM' : eliminationParameterization(e) === 'clearance' ? `CL=${Number(e.cl ?? 0).toFixed(1)}` : `k=${Number(e.k).toFixed(2)}`}</text>
             <text x={cxn(from) - 6} y={from.y + NH + 34} class="elim">{lego.eliminationShort}</text>
           {:else}
             {@const to = nodes.find((n) => n.id === e.to)}
             {#if to}
               <line x1={cxn(from)} y1={cyn(from)} x2={cxn(to)} y2={cyn(to)} class="edge" marker-end="url(#arw)" />
-              <text x={(cxn(from) + cxn(to)) / 2} y={(cyn(from) + cyn(to)) / 2 - 4} class="klbl">k={e.k.toFixed(2)}</text>
+              <text x={(cxn(from) + cxn(to)) / 2} y={(cyn(from) + cyn(to)) / 2 - 4} class="klbl">{edgeKinetics(e) === 'michaelis_menten' ? 'MM' : `k=${Number(e.k).toFixed(2)}`}</text>
             {/if}
           {/if}
         {/if}
@@ -1144,7 +1335,17 @@
         <div class="ehead"><strong>{selected.name}</strong><span>{kindLabel(selected.kind)}</span></div>
         <label class="s"><span>{lego.name}</span><input class="txt" bind:value={selected.name} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
         {#if KINDS[selected.kind].vol}<label class="s"><span>Volume (L)</span><input class="num" type="number" min="0.001" step="0.1" bind:value={selected.vol} on:input={() => (nodes = nodes)} /></label>{/if}
-        {#if selected.kind === 'depot' || selected.kind === 'central'}<label class="s"><span>Dose (mg)</span><input class="num" type="number" min="0" step="1" bind:value={selected.dose} on:input={() => (nodes = nodes)} /></label>{/if}
+        {#if isMassNode(selected)}
+          <div class="input-settings">
+            <strong>{lego.inputSettings}</strong>
+            <label class="s"><span>Dose (mg)</span><input class="num" type="number" min="0" step="1" bind:value={selected.dose} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
+            <label class="s"><span>{lego.inputType}</span><select bind:value={selected.inputType} on:change={() => { nodes = nodes; reconcileCovariates(); }}><option value="bolus">{lego.bolusInput}</option><option value="zero_order">{lego.zeroOrderInput}</option></select></label>
+            {#if selected.inputType === 'zero_order'}<label class="s"><span>{lego.inputDuration}</span><input class="num" type="number" min="0.001" step="0.1" bind:value={selected.inputDuration} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>{/if}
+            <label class="s"><span>{lego.lagTime}</span><input class="num" type="number" min="0" step="0.1" bind:value={selected.tlag} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
+            <label class="s"><span>{lego.doseFraction}</span><input class="num" type="number" min="0.001" max="100" step="1" bind:value={selected.doseFraction} on:input={() => { nodes = nodes; reconcileCovariates(); }} /></label>
+            <p>{lego.inputHelp}</p>
+          </div>
+        {/if}
         {#if selected.kind === 'effect'}
           <label class="s"><span>ke0 (1/h)</span><input class="num" type="number" min="0" step="0.01" bind:value={selected.ke0} on:input={() => (nodes = nodes)} /></label>
           <label class="s src"><span>{lego.source}</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
@@ -1157,7 +1358,7 @@
           <label class="s src"><span>{lego.source}</span><select bind:value={selected.source} on:change={() => (nodes = nodes)}>{#each concSources() as c}<option value={c.id}>{c.name}</option>{/each}</select></label>
         {/if}
         <div class="ebtns">
-          <button on:click={() => addElim(selected.id)}>+ {lego.addElimination}</button>
+          {#if isMassNode(selected)}<button on:click={() => addElim(selected.id)}>+ {lego.addElimination}</button>{/if}
           <button class="del" on:click={() => deleteNode(selected.id)}>{lego.remove}</button>
         </div>
       </div>
@@ -1174,7 +1375,20 @@
           {#if from && to}
             <div class="rate">
               <span class="rn">{from.name}→{to.name}</span>
-              <input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => (edges = edges)} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} />
+              <label><span>{lego.kinetics}</span><select bind:value={e.kinetics} on:change={() => updateEdge(e)}><option value="first_order">{lego.firstOrder}</option><option value="michaelis_menten">{lego.michaelisMenten}</option></select></label>
+              {#if edgeKinetics(e) === 'michaelis_menten'}
+                <label><span>Vmax (mg/h)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.vmax} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+                <label><span>Km (mg)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.km} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+              {:else}
+                {#if e.to === 'OUT' && KINDS[from.kind].vol}
+                  <label><span>{lego.eliminationParameter}</span><select bind:value={e.eliminationParameterization} on:change={() => updateEdge(e)}><option value="rate">{lego.rateConstant}</option><option value="clearance">{lego.clearance}</option></select></label>
+                {/if}
+                {#if eliminationParameterization(e) === 'clearance'}
+                  <label><span>CL (L/h)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.cl} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+                {:else}
+                  <label><span>k (1/h)</span><input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => { edges = edges; reconcileCovariates(); }} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} /></label>
+                {/if}
+              {/if}
               <button class="rx" on:click={() => deleteEdge(e.id)}>×</button>
             </div>
           {/if}
@@ -1253,7 +1467,7 @@
   .toolbar .s { display: grid; grid-template-columns: auto auto; gap: 0 var(--space-2); align-items: center; font-family: var(--font-mono); font-size: var(--text-xs); margin-left: auto; }
   .toolbar .s input { grid-column: 1 / -1; }
   .builder { display: grid; gap: var(--space-4); }
-  @media (min-width: 980px) { .builder { grid-template-columns: 1fr 260px; align-items: start; } }
+  @media (min-width: 980px) { .builder { grid-template-columns: minmax(0, 1fr) 330px; align-items: start; } }
   .stage { display: grid; gap: var(--space-4); min-width: 0; }
   .canvas { width: 100%; height: auto; background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; touch-action: none; }
   .node { cursor: grab; }
@@ -1287,14 +1501,19 @@
   .txt, .s select { grid-column: 1 / -1; width: 100%; }
   .num { width: 92px; }
   .src select { grid-column: auto; }
+  .input-settings { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
+  .input-settings > strong { display: block; margin-bottom: var(--space-2); color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .input-settings p { margin: var(--space-2) 0 0; color: var(--text-muted); font-size: 11px; line-height: 1.45; }
   .ebtns { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
   .ebtns button { flex: 1; font-size: var(--text-xs); padding: 6px; border: 1px solid var(--border-strong); background: var(--bg-primary); border-radius: 6px; cursor: pointer; font-family: var(--font-mono); }
   .ebtns .del { color: #b0392b; border-color: #b0392b; }
   .tip { color: var(--text-muted); font-size: var(--text-sm); line-height: 1.5; }
   .rlabel { display: block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: var(--space-2); }
-  .rate { display: grid; grid-template-columns: minmax(0, 1fr) 82px auto; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); margin-bottom: 6px; }
+  .rate { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px; padding: 9px 0; border-top: 1px solid var(--border-subtle); font-family: var(--font-mono); font-size: var(--text-xs); }
   .rn { color: var(--text-secondary); white-space: nowrap; }
-  .rate .num { width: 82px; }
+  .rate label { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 1fr); align-items: center; gap: var(--space-2); color: var(--text-muted); font-size: 10px; }
+  .rate label select, .rate .num { width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .rate .rx { grid-column: 2; grid-row: 1; }
   .rx { border: none; background: none; color: #b0392b; cursor: pointer; font-size: 15px; }
   .cov-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-2); }
   .cov-head strong { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }

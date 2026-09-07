@@ -1,5 +1,7 @@
 suppressPackageStartupMessages({
   library(mrgsolve)
+  library(mapbayr)
+  library(dplyr)
   library(jsonlite)
 })
 
@@ -20,6 +22,7 @@ expect_error <- function(expression, pattern) {
 }
 
 `%||%` <- function(value, fallback) if (is.null(value) || !length(value)) fallback else value
+source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 
 oral_one_compartment <- list(
   version = 1,
@@ -65,6 +68,102 @@ if (!isTRUE(contract$ok)) stop(paste(contract$errors, collapse = " | "))
 stopifnot(all(c("WT", "SEX") %in% model_param_names(model)))
 covariate_definition <- parse_covariates(safe_code)
 stopifnot(nrow(covariate_definition) == 2L, all(c("WT", "SEX") %in% covariate_definition$name))
+
+advanced_absorption <- list(
+  version = 2,
+  nodes = list(
+    list(id = 1, kind = "depot", name = "rapid", dose = 100, inputType = "zero_order", inputDuration = 1.5, tlag = 0, doseFraction = 30),
+    list(id = 2, kind = "depot", name = "slow", dose = 100, inputType = "bolus", inputDuration = 1, tlag = 1.5, doseFraction = 70),
+    list(id = 3, kind = "central", name = "centr", dose = 0, vol = 30, inputType = "bolus", inputDuration = 1, tlag = 0, doseFraction = 100)
+  ),
+  edges = list(
+    list(from = 1, to = 3, kinetics = "michaelis_menten", k = 1, vmax = 40, km = 20, eliminationParameterization = "rate", cl = 5),
+    list(from = 2, to = 3, kinetics = "first_order", k = 0.35, vmax = 10, km = 10, eliminationParameterization = "rate", cl = 5),
+    list(from = 3, to = "OUT", kinetics = "first_order", k = 0.17, vmax = 10, km = 10, eliminationParameterization = "clearance", cl = 5)
+  ),
+  covariates = list()
+)
+advanced_code <- lego_model_code(advanced_absorption)
+stopifnot(
+  grepl("$PLUGIN evtools", advanced_code, fixed = TRUE),
+  grepl("split dose input [ADM]", advanced_code, fixed = TRUE),
+  grepl("evt::infuse(AMT*f_L1_rapid", advanced_code, fixed = TRUE),
+  grepl("evt::retime(route_2, TIME + tlag_L2_slow)", advanced_code, fixed = TRUE),
+  grepl("vmax_L1_rapid_L3_centr", advanced_code, fixed = TRUE),
+  grepl("cl_L3_centr*L3_centr/v_L3_centr", advanced_code, fixed = TRUE)
+)
+advanced_model <- compile_model(
+  custom_code = advanced_code,
+  allow_custom = FALSE,
+  custom_soloc = session_dir,
+  custom_cache = new.env(parent = emptyenv())
+)
+advanced_contract <- validate_model_contract(advanced_model)
+if (!isTRUE(advanced_contract$ok)) stop(paste(advanced_contract$errors, collapse = " | "))
+advanced_map_data <- build_map_data(
+  doses = data.frame(time = 0, amount = 100, interval = 12, count = 1, infusion = 0, ss = 1),
+  observations = data.frame(time = 6, concentration = 2),
+  adm_cmt = advanced_contract$adm_cmt,
+  obs_cmt = advanced_contract$obs_cmt,
+  covariates = list(),
+  split_lego = TRUE
+)
+stopifnot(min(advanced_map_data$time) == -600, all(advanced_map_data$ss == 0))
+advanced_estimate <- mapbayr::mapbayest(
+  advanced_model,
+  data = advanced_map_data,
+  hessian = FALSE,
+  verbose = FALSE,
+  progress = FALSE
+)
+stopifnot(inherits(advanced_estimate, "mapbayests"))
+advanced_output <- as.data.frame(mrgsolve::mrgsim(
+  mrgsolve::zero_re(advanced_model),
+  events = mrgsolve::ev(amt = 100, cmt = advanced_contract$adm_cmt),
+  end = 12,
+  delta = 0.1
+))
+stopifnot(any(advanced_output$DV > 0), all(is.finite(advanced_output$DV)))
+advanced_ss_output <- as.data.frame(mrgsolve::mrgsim(
+  mrgsolve::zero_re(advanced_model),
+  events = mrgsolve::ev(amt = 100, cmt = advanced_contract$adm_cmt, ii = 12, addl = 50),
+  start = 600,
+  end = 612,
+  delta = 0.1,
+  recsort = 3
+))
+advanced_ss_output$time <- advanced_ss_output$time - 600
+concentration_column <- grep("^CONC_.*centr$", names(advanced_ss_output), value = TRUE)[[1]]
+stopifnot(max(advanced_ss_output[[concentration_column]][advanced_ss_output$time == 0]) > 0, all(is.finite(advanced_ss_output[[concentration_column]])))
+advanced_long_output <- as.data.frame(mrgsolve::mrgsim(
+  mrgsolve::zero_re(advanced_model),
+  events = mrgsolve::ev(amt = 100, cmt = advanced_contract$adm_cmt, ii = 12, addl = 99),
+  end = 1200,
+  delta = 0.1,
+  recsort = 3
+))
+steady_profile <- advanced_ss_output[advanced_ss_output$time > 0, , drop = FALSE]
+long_profile <- advanced_long_output[advanced_long_output$time > 1188, , drop = FALSE]
+long_profile$time <- long_profile$time - 1188
+for (check_time in c(3, 6, 9, 12)) {
+  steady_value <- stats::approx(steady_profile$time, steady_profile[[concentration_column]], xout = check_time, ties = "ordered")$y
+  long_value <- stats::approx(long_profile$time, long_profile[[concentration_column]], xout = check_time, ties = "ordered")$y
+  stopifnot(abs(steady_value / long_value - 1) < 0.1)
+}
+advanced_fit <- list(
+  id = "advanced_lego",
+  model = advanced_model,
+  estimate = NULL,
+  contract = advanced_contract,
+  current_covariates = list(),
+  split_lego = TRUE
+)
+engine_profile <- simulate_regimen(advanced_fit, dose = 100, interval = 12, infusion = 0, horizon = 12, delta = 0.1)
+stopifnot(abs(min(engine_profile$time)) < 1e-8, abs(max(engine_profile$time) - 12) < 1e-8, max(engine_profile$concentration) > 0)
+
+invalid_fractions <- advanced_absorption
+invalid_fractions$nodes[[2]]$doseFraction <- 60
+expect_error(lego_model_code(invalid_fractions), "must total 100%")
 
 expect_error(
   compile_model(

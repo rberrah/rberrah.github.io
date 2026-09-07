@@ -155,6 +155,63 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 
+test("l'atelier Lego construit une double absorption retardée, d'ordre zéro et saturable", async ({ page }) => {
+  const erreurs = collecteErreurs(page);
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.toolbar button', { hasText: 'Double absorption' }).click();
+
+  await expect(page.locator('.canvas .node')).toHaveCount(3);
+  await expect(page.locator('.chart .serie')).toHaveCount(1);
+  await page.locator('.canvas .node').first().click();
+  await expect(page.locator('.input-settings')).toContainText("Entrée d'ordre zéro");
+  await expect(page.locator('.input-settings')).toContainText('Fraction de dose (%)');
+  await expect(page.locator('.input-settings input[type="number"]')).toHaveCount(4);
+
+  const firstTransfer = page.locator('.rate').first();
+  await firstTransfer.locator('select').first().selectOption('michaelis_menten');
+  await expect(firstTransfer).toContainText('Vmax');
+  await expect(firstTransfer).toContainText('Km');
+
+  const bloc = page.locator('pre.codeblk code');
+  await page.getByRole('tab', { name: 'mrgsolve' }).click();
+  const mrg = await bloc.innerText();
+  expect(mrg).toContain('$PLUGIN evtools');
+  expect(mrg).toContain('evt::infuse(AMT*f_rapid');
+  expect(mrg).toContain('evt::retime(route_2, TIME + tlag_slow)');
+  expect(mrg).toContain('vmax_rapid_centr');
+  expect(mrg).toContain('cl_centr*centr/v_centr');
+
+  await page.getByRole('tab', { name: 'nlmixr2' }).click();
+  const nlmixr = await bloc.innerText();
+  expect(nlmixr).toContain('f(rapid) <- f_rapid');
+  expect(nlmixr).toContain('dur(rapid) <- tk0_rapid');
+  expect(nlmixr).toContain('alag(slow) <- tlag_slow');
+
+  await page.getByRole('tab', { name: 'MLXTRAN' }).click();
+  const mlxtran = await bloc.innerText();
+  expect(mlxtran).toContain('depot(target=rapid, adm=1, p=f_rapid, Tk0=tk0_rapid)');
+  expect(mlxtran).toContain('depot(target=slow, adm=1, p=f_slow, Tlag=tlag_slow)');
+
+  await page.getByRole('tab', { name: 'NONMEM' }).click();
+  const nonmem = await bloc.innerText();
+  expect(nonmem).toContain('F1=');
+  expect(nonmem).toContain('D1=');
+  expect(nonmem).toContain('ALAG2=');
+  expect(nonmem).toContain('RATE=-2');
+
+  await page.screenshot({ path: 'test-results/lego-dual-absorption.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await page.locator('.toolbar button', { hasText: 'Double absorption' }).click();
+  await page.locator('.canvas .node').first().click();
+  const mobileWidth = await page.evaluate(() => ({ viewport: window.innerWidth, content: document.documentElement.scrollWidth }));
+  expect(mobileWidth.content).toBeLessThanOrEqual(mobileWidth.viewport + 1);
+  await expect(page.locator('.input-settings')).toBeVisible();
+  await page.screenshot({ path: 'test-results/lego-dual-absorption-mobile.png', fullPage: true });
+  expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
 test("la bibliothèque TDM attribue les modèles aux articles", async ({ page }) => {
   await page.goto('/tdm/');
   await page.getByRole('searchbox', { name: 'Recherche' }).fill('Woillard');

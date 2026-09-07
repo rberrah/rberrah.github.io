@@ -20,6 +20,45 @@ source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
 stopifnot(
+  isTRUE(all.equal(time_above_threshold_pct(c(0, 1, 2), c(0, 2, 0), 1), 50)),
+  identical(time_above_threshold_pct(c(0, 1), c(1, 1), 1), 0)
+)
+combined_scores <- score_target_metrics(
+  data.frame(cmin = c(10, 4, 10), cmax = c(30, 30, 50)),
+  "CminCmax",
+  target_low = 8,
+  target_high = 12,
+  target_options = list(cmax_low = 25, cmax_high = 35)
+)
+stopifnot(
+  identical(combined_scores$in_target, c(TRUE, FALSE, FALSE)),
+  identical(combined_scores$value, combined_scores$distance),
+  combined_scores$distance[[1]] == 0,
+  all(combined_scores$distance[-1] > 0)
+)
+combined_operator_cases <- list(
+  above_above = list(cmin = c(11, 9, 11), cmax = c(21, 21, 19), cmin_operator = "above", cmax_operator = "above"),
+  above_below = list(cmin = c(11, 9, 11), cmax = c(19, 19, 21), cmin_operator = "above", cmax_operator = "below"),
+  below_above = list(cmin = c(9, 11, 9), cmax = c(21, 21, 19), cmin_operator = "below", cmax_operator = "above"),
+  below_below = list(cmin = c(9, 11, 9), cmax = c(19, 19, 21), cmin_operator = "below", cmax_operator = "below")
+)
+for (case in combined_operator_cases) {
+  score <- score_target_metrics(
+    data.frame(cmin = case$cmin, cmax = case$cmax),
+    "CminCmax",
+    target_low = 10,
+    target_high = 10,
+    target_options = list(
+      cmin_operator = case$cmin_operator,
+      cmax_operator = case$cmax_operator,
+      cmax_low = 20,
+      cmax_high = 20
+    )
+  )
+  stopifnot(identical(score$in_target, c(TRUE, FALSE, FALSE)), score$distance[[1]] == 0, all(score$distance[-1] > 0))
+}
+
+stopifnot(
   identical(app_language_from_query("?model=vanco_roberts&lang=en"), "en"),
   identical(app_language_from_query("?lang=de"), "fr"),
   identical(app_t("en", "Analyse"), "Analysis"),
@@ -176,6 +215,22 @@ stopifnot(
 weights <- compute_model_weights(fits, scheme = "AIC")
 stopifnot(length(weights) == length(model_ids), abs(sum(weights) - 1) < 1e-8)
 
+long_interval <- simulate_averaged_regimen(
+  fits,
+  weights,
+  dose = 1000,
+  interval = 48,
+  infusion = 1,
+  delta = 0.2,
+  concentration_threshold = 10
+)
+stopifnot(
+  max(long_interval$profile$time) >= 48,
+  all(is.finite(unlist(long_interval$metrics))),
+  long_interval$metrics$time_above_pct >= 0,
+  long_interval$metrics$time_above_pct <= 100
+)
+
 carried <- carry_covariates(
   event_times = c(0, 12, 47.5, 60),
   covariate_history = covariate_history[, c("time", "WT")],
@@ -225,6 +280,37 @@ recommendations <- rank_regimens_by_pta(
 stopifnot(nrow(recommendations) == 9)
 stopifnot(all(is.finite(recommendations$auc24)))
 stopifnot(all(recommendations$auc24 > 0))
+
+time_recommendations <- recommend_regimens(
+  fits = fits,
+  weights = weights,
+  dose_min = 500,
+  dose_max = 1000,
+  dose_step = 500,
+  intervals = c(12, 24),
+  infusion = 1,
+  metric = "TimeAbove",
+  target_low = 30,
+  target_high = 80,
+  target_options = list(concentration_threshold = 10)
+)
+time_recommendations <- rank_regimens_by_pta(
+  time_recommendations,
+  fits,
+  weights,
+  metric = "TimeAbove",
+  target_low = 30,
+  target_high = 80,
+  target_options = list(concentration_threshold = 10),
+  replicates = 20,
+  delta = 0.2,
+  top_n = 2
+)
+stopifnot(
+  all(is.finite(time_recommendations$time_above_pct)),
+  all(time_recommendations$time_above_pct >= 0 & time_recommendations$time_above_pct <= 100),
+  all(is.finite(time_recommendations$p_target[time_recommendations$pta_evaluated]))
+)
 
 best <- recommendations[1, ]
 comparison <- compare_future_regimens(

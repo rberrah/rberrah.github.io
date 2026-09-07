@@ -190,7 +190,7 @@ lego_text <- function(value, field, pattern, maximum = 32L) {
 
 normalize_lego_spec <- function(specification) {
   if (!is.list(specification)) stop("The Lego specification must be a JSON object.")
-  version <- lego_number(specification$version, "version", 1, 1, integer = TRUE)
+  version <- lego_number(specification$version, "version", 1, 2, integer = TRUE)
   input_nodes <- lego_record_list(specification$nodes, "nodes")
   input_edges <- lego_record_list(specification$edges, "edges")
   input_covariates <- lego_record_list(specification$covariates, "covariates")
@@ -214,6 +214,12 @@ normalize_lego_spec <- function(specification) {
       name = name,
       dose = lego_number(input$dose, paste0("nodes[", index, "].dose"), 0, 1e9, default = 0)
     )
+    if (!kind %in% LEGO_PD_KINDS) {
+      node$inputType <- lego_text(input$inputType %||% "bolus", paste0("nodes[", index, "].inputType"), "^(bolus|zero_order)$", 16L)
+      node$inputDuration <- lego_number(input$inputDuration, paste0("nodes[", index, "].inputDuration"), 1e-6, 1e6, default = 1)
+      node$tlag <- lego_number(input$tlag, paste0("nodes[", index, "].tlag"), 0, 1e6, default = 0)
+      node$doseFraction <- lego_number(input$doseFraction, paste0("nodes[", index, "].doseFraction"), 1e-6, 100, default = 100)
+    }
     if (kind %in% LEGO_VOLUME_KINDS) {
       node$vol <- lego_number(input$vol, paste0("nodes[", index, "].vol"), 1e-6, 1e9)
     }
@@ -241,6 +247,11 @@ normalize_lego_spec <- function(specification) {
       stop("The source of Lego compartment `", node$name, "` does not exist.")
     }
   }
+  dosed_nodes <- Filter(function(node) !node$kind %in% LEGO_PD_KINDS && node$dose > 0, nodes)
+  if (length(dosed_nodes) > 1L) {
+    fraction_total <- sum(vapply(dosed_nodes, `[[`, numeric(1), "doseFraction"))
+    if (abs(fraction_total - 100) > 1e-3) stop("Parallel Lego dose fractions must total 100%.")
+  }
 
   edges <- lapply(seq_along(input_edges), function(index) {
     input <- input_edges[[index]]
@@ -257,10 +268,21 @@ normalize_lego_spec <- function(specification) {
       stop("A Lego transfer references an unknown destination compartment.")
     }
     if (!identical(to, "OUT") && identical(from, to)) stop("A Lego transfer cannot loop to itself.")
+    kinetics <- lego_text(input$kinetics %||% "first_order", paste0("edges[", index, "].kinetics"), "^(first_order|michaelis_menten)$", 24L)
+    parameterization <- lego_text(input$eliminationParameterization %||% "rate", paste0("edges[", index, "].eliminationParameterization"), "^(rate|clearance)$", 16L)
+    source_node <- nodes[[match(from, node_ids)]]
+    if (identical(parameterization, "clearance") && (!identical(to, "OUT") || !source_node$kind %in% LEGO_VOLUME_KINDS)) {
+      stop("Clearance parameterization requires elimination from a volume compartment.")
+    }
     list(
       from = from,
       to = to,
-      k = lego_number(input$k, paste0("edges[", index, "].k"), 0, 1e6)
+      kinetics = kinetics,
+      k = lego_number(input$k, paste0("edges[", index, "].k"), 0, 1e6, default = 0.2),
+      vmax = lego_number(input$vmax, paste0("edges[", index, "].vmax"), 1e-12, 1e12, default = 10),
+      km = lego_number(input$km, paste0("edges[", index, "].km"), 1e-12, 1e12, default = 10),
+      eliminationParameterization = parameterization,
+      cl = lego_number(input$cl, paste0("edges[", index, "].cl"), 1e-12, 1e12, default = 5)
     )
   })
 
@@ -360,13 +382,26 @@ lego_model_code <- function(specification) {
   for (edge in edges) {
     from <- name_for(edge$from)
     to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
-    parameters[[length(parameters) + 1L]] <- list(
-      name = paste0("k_", from, "_", to),
-      client_name = paste0("k_", client_name_for(edge$from), "_", if (identical(edge$to, "OUT")) "e" else client_name_for(edge$to)),
-      value = edge$k,
-      note = if (identical(edge$to, "OUT")) paste0("elimination from ", from) else paste0("transfer ", from, " to ", to),
-      iiv = identical(edge$to, "OUT")
-    )
+    client_suffix <- paste0(client_name_for(edge$from), "_", if (identical(edge$to, "OUT")) "e" else client_name_for(edge$to))
+    if (identical(edge$kinetics, "michaelis_menten")) {
+      parameters <- c(parameters, list(
+        list(name = paste0("vmax_", from, "_", to), client_name = paste0("vmax_", client_suffix), value = edge$vmax, note = paste0("maximum transfer rate from ", from, " to ", to), iiv = FALSE),
+        list(name = paste0("km_", from, "_", to), client_name = paste0("km_", client_suffix), value = edge$km, note = paste0("Michaelis constant from ", from, " to ", to), iiv = FALSE)
+      ))
+    } else if (identical(edge$eliminationParameterization, "clearance")) {
+      parameters[[length(parameters) + 1L]] <- list(
+        name = paste0("cl_", from), client_name = paste0("cl_", client_name_for(edge$from)), value = edge$cl,
+        note = paste0("clearance from ", from), iiv = TRUE
+      )
+    } else {
+      parameters[[length(parameters) + 1L]] <- list(
+        name = paste0("k_", from, "_", to),
+        client_name = paste0("k_", client_suffix),
+        value = edge$k,
+        note = if (identical(edge$to, "OUT")) paste0("elimination from ", from) else paste0("transfer ", from, " to ", to),
+        iiv = identical(edge$to, "OUT")
+      )
+    }
   }
   for (node in volume_nodes) {
     name <- name_for(node$id)
@@ -376,6 +411,11 @@ lego_model_code <- function(specification) {
   }
   for (node in nodes) {
     name <- name_for(node$id)
+    if (node$dose > 0) {
+      if (node$tlag > 0) parameters[[length(parameters) + 1L]] <- list(name = paste0("tlag_", name), client_name = paste0("tlag_", node$name), value = node$tlag, note = paste0("administration lag to ", name), iiv = FALSE)
+      if (identical(node$inputType, "zero_order")) parameters[[length(parameters) + 1L]] <- list(name = paste0("tk0_", name), client_name = paste0("tk0_", node$name), value = node$inputDuration, note = paste0("administration duration to ", name), iiv = FALSE)
+      if (length(dosed) > 1L) parameters[[length(parameters) + 1L]] <- list(name = paste0("f_", name), client_name = paste0("f_", node$name), value = node$doseFraction / 100, note = paste0("dose fraction to ", name), iiv = FALSE)
+    }
     if (identical(node$kind, "effect")) {
       parameters[[length(parameters) + 1L]] <- list(name = paste0("ke0_", name), client_name = paste0("ke0_", node$name), value = node$ke0, note = paste0("effect equilibration for ", name), iiv = FALSE)
     }
@@ -409,7 +449,7 @@ lego_model_code <- function(specification) {
   pad <- function(text) sprintf("%-*s", width, text)
   spec_json <- jsonlite::toJSON(spec, auto_unbox = TRUE, null = "null", digits = 10)
   marker <- paste0(LEGO_SPEC_PREFIX, utils::URLencode(spec_json, reserved = TRUE))
-  lines <- c(marker, "$PARAM @annotated")
+  lines <- c(marker, if (length(dosed)) "$PLUGIN evtools", "$PARAM @annotated")
 
   for (parameter in parameters) {
     lines <- c(lines, paste0(pad(paste0("TV_", parameter$name)), " : ", lego_format_number(parameter$value), " : ", parameter$note))
@@ -447,14 +487,18 @@ lego_model_code <- function(specification) {
     "",
     "$CMT @annotated"
   )
+  if (length(dosed)) {
+    lines <- c(lines, paste0(pad("LEGO_INPUT"), " : split dose input [ADM]"))
+  }
   for (node in nodes) {
     name <- name_for(node$id)
-    tags <- c(if (identical(node$id, adm$id)) "ADM", if (identical(node$id, observed$id)) "OBS")
+    tags <- c(if (!length(dosed) && identical(node$id, adm$id)) "ADM", if (identical(node$id, observed$id)) "OBS")
     tag_text <- if (length(tags)) paste0(" [", paste(tags, collapse = ", "), "]") else ""
     lines <- c(lines, paste0(pad(name), " : model state ", name, tag_text))
   }
 
   lines <- c(lines, "", "$MAIN")
+  if (length(dosed)) lines <- c(lines, "F_LEGO_INPUT = 0;")
   for (parameter in parameters) {
     index <- unname(eta_index[parameter$name])
     eta <- if (length(index) && is.finite(index)) paste0(" * exp(ETA", index, " + ETA(", index, "))") else ""
@@ -486,14 +530,27 @@ lego_model_code <- function(specification) {
   mass_terms <- function(node) {
     incoming <- Filter(function(edge) !identical(edge$to, "OUT") && identical(edge$to, node$id), edges)
     outgoing <- Filter(function(edge) identical(edge$from, node$id), edges)
+    flux <- function(edge) {
+      from <- name_for(edge$from)
+      to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
+      amount <- from
+      if (identical(edge$kinetics, "michaelis_menten")) {
+        return(paste0("vmax_", from, "_", to, "*", amount, "/(km_", from, "_", to, " + ", amount, ")"))
+      }
+      if (identical(edge$eliminationParameterization, "clearance")) {
+        return(paste0("cl_", from, "*", amount, "/v_", from))
+      }
+      paste0("k_", from, "_", to, "*", amount)
+    }
     terms <- c(
-      vapply(incoming, function(edge) paste0("+ k_", name_for(edge$from), "_", name_for(edge$to), "*", name_for(edge$from)), character(1)),
-      vapply(outgoing, function(edge) paste0("- k_", name_for(edge$from), "_", if (identical(edge$to, "OUT")) "e" else name_for(edge$to), "*", name_for(edge$from)), character(1))
+      vapply(incoming, function(edge) paste0("+ ", flux(edge)), character(1)),
+      vapply(outgoing, function(edge) paste0("- ", flux(edge)), character(1))
     )
     if (length(terms)) paste(terms, collapse = " ") else "0"
   }
 
   lines <- c(lines, "", "$ODE")
+  if (length(dosed)) lines <- c(lines, "dxdt_LEGO_INPUT = 0;")
   for (node in nodes) {
     name <- name_for(node$id)
     if (identical(node$kind, "effect")) {
@@ -504,6 +561,25 @@ lego_model_code <- function(specification) {
     } else {
       lines <- c(lines, paste0("dxdt_", name, " = ", mass_terms(node), ";"))
     }
+  }
+
+  if (length(dosed)) {
+    lines <- c(lines, "", "$EVENT", "if ((EVID == 1 || EVID == 4) && CMT == 1) {")
+    for (index in seq_along(dosed)) {
+      node <- dosed[[index]]
+      name <- name_for(node$id)
+      amount <- if (length(dosed) > 1L) paste0("AMT*f_", name) else "AMT"
+      cmt <- match(node$id, ids) + 1L
+      event_name <- paste0("route_", index)
+      if (identical(node$inputType, "zero_order")) {
+        lines <- c(lines, paste0("  evt::ev ", event_name, " = evt::infuse(", amount, ", ", cmt, ", ", amount, "/tk0_", name, ");"))
+      } else {
+        lines <- c(lines, paste0("  evt::ev ", event_name, " = evt::bolus(", amount, ", ", cmt, ");"))
+      }
+      if (node$tlag > 0) lines <- c(lines, paste0("  evt::retime(", event_name, ", TIME + tlag_", name, ");"))
+      lines <- c(lines, paste0("  self.push(", event_name, ");"))
+    }
+    lines <- c(lines, "}")
   }
 
   lines <- c(lines, "", "$TABLE")

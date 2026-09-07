@@ -25,11 +25,11 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 - sélection explicite de la voie IV ou orale selon les compartiments exécutables du modèle;
 - covariables générées depuis `$PARAM @covariates` et saisies à l'heure de chaque prélèvement;
 - estimation MAP bayésienne avec `mapbayr`;
-- model averaging AIC ou log-vraisemblance, limité à une même molécule et une même voie;
+- model averaging AIC ou log-vraisemblance, limité à une même molécule, une même voie et un même mode d'administration;
 - affichage de l'AUC0-24 et de la C0 actuelles à partir des paramètres postérieurs;
 - simulation de profils individualisés;
 - comparaison de la poursuite de la dernière posologie avec l'application de la recommandation sur plusieurs doses futures;
-- classement de scénarios par AUC24, Cmin ou Cmax;
+- classement de scénarios par AUC24, Cmin, Cmax, pourcentage d'un intervalle posologique au-dessus d'une concentration ou contraintes simultanées et indépendantes sur Cmin et Cmax (intervalle, minimum ou maximum);
 - distribution prédictive Monte Carlo configurable avec variabilité interindividuelle et erreur résiduelle;
 - export CSV de la grille posologique;
 - génération d'un rapport HTML autonome sans identifiant patient;
@@ -47,11 +47,11 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 
 ## Flux Atelier Lego vers TDM
 
-L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il permet d'ajouter jusqu'à dix covariables continues ou catégorielles simples. Une covariable continue suit `paramètre × (covariable / référence)^β`; une covariable catégorielle suit `paramètre × exp(β)` pour la modalité comparée et conserve la valeur typique pour la référence. Aucune expression C++ libre n'est acceptée par ce constructeur.
+L'atelier Lego génère un modèle mrgsolve compatible avec le contrat `mapbayr`: tags `[ADM]` et `[OBS]`, effets aléatoires, `OMEGA`, `SIGMA` et sortie `DV`. Il prend en charge les entrées instantanées ou d'ordre zéro, `Tlag`, les voies parallèles avec fractions de dose, les transferts de Michaelis-Menten et l'élimination paramétrée par `k` ou `CL`. Il permet aussi d'ajouter jusqu'à dix covariables continues ou catégorielles simples. Une covariable continue suit `paramètre × (covariable / référence)^β`; une covariable catégorielle suit `paramètre × exp(β)` pour la modalité comparée et conserve la valeur typique pour la référence. Aucune expression C++ libre n'est acceptée par ce constructeur.
 
 Le code généré contient une spécification JSON versionnée. L'action **Ouvrir dans TDM** l'envoie à la fenêtre Shiny avec `postMessage`; un copier-coller du code complet conserve aussi cette spécification. Le serveur valide les types, identifiants, bornes, compartiments et transferts, puis régénère lui-même un code mrgsolve équivalent. Il ne compile jamais directement le texte C++ reçu.
 
-Le moteur ouvre ensuite le mode Atelier Lego / C++ et demande toujours une validation explicite avant l'analyse. Les administrations, concentrations observées et autres données du patient sont saisies uniquement dans le TDM.
+Le moteur ouvre ensuite le mode Atelier Lego / C++ et demande toujours une validation explicite avant l'analyse. Les administrations, concentrations observées et autres données du patient sont saisies uniquement dans le TDM. Pour une dose répartie par le modèle Lego, le moteur approche l'état stationnaire par 50 administrations de préchauffage plutôt que par des événements `ss = 1` séparés sur chaque voie.
 
 ## Déploiement
 
