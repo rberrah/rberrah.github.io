@@ -75,6 +75,7 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
     await expect(page.locator('input[type="range"]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Ajouter une covariable continue', exact: true }).click();
     await page.getByRole('button', { name: 'Ajouter une covariable catégorielle' }).click();
+    await page.locator('.cov-row').first().locator('select').nth(1).selectOption('administration');
     await expect(page.locator('.chart .serie')).toHaveCount(3);
     await expect(page.locator('.chart-legend')).toContainText('WT = 87.5');
     await expect(page.locator('.chart-legend')).toContainText('SEX = 1');
@@ -104,12 +105,16 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(mrg).toContain('$OMEGA @annotated');
   expect(mrg).toContain('$SIGMA @annotated');
     expect(mrg).toContain('$PARAM @covariates @annotated');
+    expect(mrg).toContain('[administration]');
     expect(mrg).toContain('pow(WT/70');
     expect(mrg).toMatch(/exp\(BETA_SEX_.+ \* \(SEX == 1\)\)/);
   expect(mrg).toContain('$CMT @annotated');
   expect(mrg).toContain('$ODE');
   expect(mrg).toContain('$CAPTURE @annotated');
   expect(mrg).toContain('double DV = IPRED');
+  expect(mrg).not.toContain('$PLUGIN evtools');
+  expect(mrg).not.toContain('LEGO_INPUT');
+  expect(mrg).toMatch(/depot\s+:.*\[ADM\]/);
 
   await page.getByRole('tab', { name: 'MLXTRAN' }).click();
   const mlxtran = await bloc.innerText();
@@ -199,6 +204,29 @@ test("l'atelier Lego construit une double absorption retardée, d'ordre zéro et
   expect(nonmem).toContain('D1=');
   expect(nonmem).toContain('ALAG2=');
   expect(nonmem).toContain('RATE=-2');
+
+  await page.locator('.toolbar button', { hasText: 'KOKA (Samtani)' }).click();
+  await expect(page.locator('.rate').nth(0).locator('input[type="number"]')).toHaveValue('0.000488');
+  await expect(page.locator('.rate').nth(1).locator('input[type="number"]')).toHaveValue('4.95');
+  await page.locator('.canvas .node', { hasText: 'central' }).click();
+  await expect(page.locator('.input-settings')).toContainText('Durée égale au Tlag de');
+  await expect(page.locator('.input-settings select').nth(1)).toHaveValue(/\d+/);
+  await page.getByRole('tab', { name: 'mrgsolve' }).click();
+  const koka = await bloc.innerText();
+  expect(koka).toContain('evt::infuse(AMT*f_central');
+  expect(koka).toContain('AMT*f_central/tlag_slow');
+  expect(koka).toContain('evt::bolus(AMT*(1-f_central)');
+  expect(koka).not.toContain('TV_f_slow');
+  expect(koka).not.toContain('TV_tk0_central');
+
+  await page.locator('.toolbar button', { hasText: "PP6M (T'jollyn)" }).click();
+  await expect(page.locator('.rate').first()).toContainText('Saturable de Hill');
+  await expect(page.locator('.rate').first()).toContainText('A50');
+  await expect(page.locator('.rate').first()).toContainText('γ');
+  await page.getByRole('tab', { name: 'mrgsolve' }).click();
+  const pp6m = await bloc.innerText();
+  expect(pp6m).toContain('pow(slow, gamma_slow_central)');
+  expect(pp6m).toContain('AMT*(1-f_slow)');
 
   await page.screenshot({ path: 'test-results/lego-dual-absorption.png', fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

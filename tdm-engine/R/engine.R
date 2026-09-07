@@ -92,7 +92,7 @@ dose_event_rows <- function(doses, adm_cmt, end_time, split_lego = FALSE) {
     doses <- doses[order(doses$time), , drop = FALSE]
   }
   dose_ss <- if ("ss" %in% names(doses)) as.integer(doses$ss) else rep(0L, nrow(doses))
-  data.frame(
+  output <- data.frame(
     ID = 1,
     time = doses$time,
     evid = 1,
@@ -104,6 +104,9 @@ dose_event_rows <- function(doses, adm_cmt, end_time, split_lego = FALSE) {
     ss = dose_ss,
     stringsAsFactors = FALSE
   )
+  administration_names <- setdiff(names(doses), c("time", "amount", "interval", "count", "infusion", "ss", "status", "time_uncertainty"))
+  for (name in administration_names) output[[name]] <- doses[[name]]
+  output
 }
 
 build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, covariate_history = NULL, split_lego = FALSE) {
@@ -116,6 +119,10 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
 
   dose_horizon <- if (nrow(observations)) max(observations$time, na.rm = TRUE) else max(doses$time, na.rm = TRUE)
   dose_rows <- dose_event_rows(doses, adm_cmt, dose_horizon, split_lego = split_lego)
+  event_columns <- c("ID", "time", "evid", "cmt", "amt", "rate", "ii", "addl", "ss")
+  administration_names <- setdiff(names(dose_rows), event_columns)
+  administration_history <- if (length(administration_names)) dose_rows[, c("time", administration_names), drop = FALSE] else NULL
+  dose_rows <- dose_rows[, event_columns, drop = FALSE]
   dose_rows$DV <- NA_real_
   dose_rows$mdv <- 1
 
@@ -138,6 +145,10 @@ build_map_data <- function(doses, observations, adm_cmt, obs_cmt, covariates, co
   data <- data[order(data$time, -data$evid), , drop = FALSE]
   time_covariates <- carry_covariates(data$time, covariate_history, covariates)
   for (name in names(time_covariates)) data[[name]] <- time_covariates[[name]]
+  if (length(administration_names)) {
+    administration_covariates <- carry_covariates(data$time, administration_history, as.list(administration_history[1, administration_names, drop = FALSE]))
+    for (name in administration_names) data[[name]] <- administration_covariates[[name]]
+  }
   rownames(data) <- NULL
   data
 }

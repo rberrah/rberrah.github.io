@@ -45,6 +45,7 @@ stopifnot(startsWith(safe_code, LEGO_SPEC_PREFIX))
 stopifnot(grepl("$PARAM @covariates", safe_code, fixed = TRUE))
 stopifnot(grepl("pow(WT/70", safe_code, fixed = TRUE))
 stopifnot(grepl("exp(BETA_SEX_2 * (SEX == 1))", safe_code, fixed = TRUE))
+stopifnot(!grepl("LEGO_INPUT", safe_code, fixed = TRUE), !grepl("$PLUGIN evtools", safe_code, fixed = TRUE))
 
 legacy_specification <- oral_one_compartment
 legacy_specification$covariates <- list(
@@ -160,6 +161,61 @@ advanced_fit <- list(
 )
 engine_profile <- simulate_regimen(advanced_fit, dose = 100, interval = 12, infusion = 0, horizon = 12, delta = 0.1)
 stopifnot(abs(min(engine_profile$time)) < 1e-8, abs(max(engine_profile$time) - 12) < 1e-8, max(engine_profile$concentration) > 0)
+
+koka <- list(
+  version = 3,
+  nodes = list(
+    list(id = 1, kind = "central", name = "central", dose = 100, vol = 391, inputType = "zero_order", inputDuration = 319, inputDurationTlagOf = 2, tlag = 0, doseFraction = 16.8),
+    list(id = 2, kind = "depot", name = "slow", dose = 100, inputType = "bolus", inputDuration = 1, tlag = 319, doseFraction = 83.2, fractionComplementOf = 1)
+  ),
+  edges = list(
+    list(from = 2, to = 1, kinetics = "first_order", k = 0.000488),
+    list(from = 1, to = "OUT", kinetics = "first_order", k = 0.005, eliminationParameterization = "clearance", cl = 4.95)
+  ),
+  covariates = list(
+    list(name = "IVOL", type = "continuous", scope = "administration", target = "f_central", reference = 1.75, comparison = 1, beta = 0.2),
+    list(name = "IVOL", type = "continuous", scope = "administration", target = "cl_central", reference = 1.75, comparison = 1, beta = 0.1)
+  )
+)
+koka_code <- lego_model_code(koka)
+stopifnot(
+  grepl("evt::infuse(AMT*f_L1_central, 2, AMT*f_L1_central/tlag_L2_slow)", koka_code, fixed = TRUE),
+  grepl("evt::bolus(AMT*(1-f_L1_central), 3)", koka_code, fixed = TRUE),
+  grepl("[administration]", koka_code, fixed = TRUE),
+  !grepl("TV_f_L2_slow", koka_code, fixed = TRUE),
+  !grepl("TV_tk0_L1_central", koka_code, fixed = TRUE)
+)
+koka_model <- compile_model(custom_code = koka_code, allow_custom = FALSE, custom_soloc = session_dir, custom_cache = new.env(parent = emptyenv()))
+koka_contract <- validate_model_contract(koka_model)
+stopifnot(isTRUE(koka_contract$ok), identical(parse_covariates(koka_code)$scope, "administration"))
+koka_data <- build_map_data(
+  doses = data.frame(time = c(0, 24), amount = 100, interval = 24, count = 1, infusion = 0, ss = 0, IVOL = c(1.75, 2.5)),
+  observations = data.frame(time = c(12, 36), concentration = c(0.01, 0.02)),
+  adm_cmt = koka_contract$adm_cmt,
+  obs_cmt = koka_contract$obs_cmt,
+  covariates = list(IVOL = 1.75),
+  split_lego = TRUE
+)
+stopifnot(koka_data$IVOL[koka_data$time == 12] == 1.75, koka_data$IVOL[koka_data$time == 36] == 2.5)
+
+pp6m <- list(
+  version = 3,
+  nodes = list(
+    list(id = 1, kind = "depot", name = "slow", dose = 1000, doseFraction = 79.1),
+    list(id = 2, kind = "depot", name = "rapid", dose = 1000, doseFraction = 20.9, fractionComplementOf = 1),
+    list(id = 3, kind = "central", name = "central", dose = 0, vol = 1960)
+  ),
+  edges = list(
+    list(from = 1, to = 3, kinetics = "hill", k = 0.1, vmax = 0.0904, km = 120, gamma = 1.44),
+    list(from = 2, to = 3, kinetics = "hill", k = 0.1, vmax = 0.149, km = 23.8, gamma = 1),
+    list(from = 3, to = "OUT", kinetics = "first_order", k = 0.002, eliminationParameterization = "clearance", cl = 3.9)
+  ),
+  covariates = list()
+)
+pp6m_code <- lego_model_code(pp6m)
+stopifnot(grepl("pow(L1_slow, gamma_L1_slow_L3_central)", pp6m_code, fixed = TRUE))
+pp6m_model <- compile_model(custom_code = pp6m_code, allow_custom = FALSE, custom_soloc = session_dir, custom_cache = new.env(parent = emptyenv()))
+stopifnot(isTRUE(validate_model_contract(pp6m_model)$ok))
 
 invalid_fractions <- advanced_absorption
 invalid_fractions$nodes[[2]]$doseFraction <- 60

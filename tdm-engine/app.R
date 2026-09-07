@@ -419,6 +419,14 @@ dose_row_ui <- function(
       condition = "input.administration_route == 'Oral'",
       div(class = "route-readonly", tags$strong("Voie orale"), span("La perfusion est imposée à 0 h."))
     ),
+    conditionalPanel(
+      condition = "input.administration_route == 'IM'",
+      div(class = "route-readonly", tags$strong("Voie intramusculaire"), span("La perfusion externe est imposée à 0 h; l'absorption est définie par le modèle."))
+    ),
+    div(
+      class = "observation-covariates dose-covariates",
+      uiOutput(paste0("dose_covariates_", index))
+    ),
     div(class = "row-validation", uiOutput(paste0("dose_validation_", index)))
   ), lang)
 }
@@ -683,6 +691,10 @@ app_ui <- function(request) {
               conditionalPanel(
                 "input.administration_route == 'Oral'",
                 div(class = "route-readonly compact", "Voie orale : durée de perfusion fixée à 0 h.")
+              ),
+              conditionalPanel(
+                "input.administration_route == 'IM'",
+                div(class = "route-readonly compact", "Voie intramusculaire : perfusion externe fixée à 0 h; absorption définie par le modèle.")
               )
             )
           ),
@@ -974,7 +986,7 @@ server <- function(input, output, session) {
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
     if (identical(input$model_source %||% "library", "custom")) {
-      return(if (identical(route, "Oral")) "ORAL" else "IV_INTERMITTENT")
+      return(if (identical(route, "Oral")) "ORAL" else if (identical(route, "IM")) "IM" else "IV_INTERMITTENT")
     }
     record <- model_record(current_model_id())
     shiny::req(model_supports_route(record, route))
@@ -991,6 +1003,7 @@ server <- function(input, output, session) {
   pending_import_target <- reactiveVal(NULL)
   last_target_preset_key <- reactiveVal(NULL)
   pending_import_covariates <- reactiveVal(NULL)
+  pending_import_dose_covariates <- reactiveVal(NULL)
   pending_lego_covariates <- reactiveVal(NULL)
   session_model_dir <- tempfile("pk-mipd-custom-session-")
   dir.create(session_model_dir, recursive = TRUE, showWarnings = FALSE)
@@ -1065,7 +1078,13 @@ server <- function(input, output, session) {
     uncertainty <- if (identical(status, "uncertain")) numeric_input_value(paste0("dose_time_uncertainty_", index), 0) else 0
     steady_state <- isTRUE(input[[paste0("dose_ss_", index)]])
     count <- if (steady_state) 1 else numeric_input_value(paste0("dose_count_", index))
-    infusion <- if (identical(input$administration_route, "Oral")) 0 else numeric_input_value(paste0("dose_infusion_", index))
+    infusion <- if (identical(input$administration_route, "IV")) numeric_input_value(paste0("dose_infusion_", index)) else 0
+    administration_definition <- administration_covariate_definition()
+    invalid_covariates <- if (nrow(administration_definition)) {
+      administration_definition$name[!vapply(administration_definition$name, function(name) {
+        is.finite(numeric_input_value(paste0("dose_cov_", name, "_", index)))
+      }, logical(1))]
+    } else character()
     c(
       if (!steady_state) row_time_messages("dose", index),
       if (!is.finite(amount) || amount <= 0) "La dose doit être strictement positive.",
@@ -1076,7 +1095,8 @@ server <- function(input, output, session) {
       if (is.finite(infusion) && is.finite(interval) && interval > 0 && infusion > interval) "La perfusion dépasse l'intervalle entre deux doses.",
       if (!is.finite(uncertainty) || uncertainty < 0) "L'incertitude horaire doit être positive ou nulle.",
       if (identical(status, "uncertain") && (!is.finite(uncertainty) || uncertainty <= 0)) "Précisez une incertitude horaire pour cette dose.",
-      if (identical(status, "missed")) "Cette dose sera exclue des administrations reçues."
+      if (identical(status, "missed")) "Cette dose sera exclue des administrations reçues.",
+      if (length(invalid_covariates)) paste0("Covariable(s) d'administration invalide(s) : ", paste(invalid_covariates, collapse = ", "), ".")
     )
   }
 
@@ -1147,6 +1167,7 @@ server <- function(input, output, session) {
   })
 
   insert_dose_row <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, steady_state = FALSE, status = "administered", time_uncertainty = 0) {
+    register_dose_covariates(index)
     register_dose_validation(index)
     insertUI(
       selector = "#dose_rows",
@@ -1202,7 +1223,7 @@ server <- function(input, output, session) {
 
   observe({
     if (identical(input$model_source %||% "library", "custom")) {
-      routes <- c("IV", "Oral")
+      routes <- c("IV", "Oral", "IM")
     } else {
       model_id <- current_model_id()
       routes <- model_routes(model_record(model_id))
@@ -1335,17 +1356,48 @@ server <- function(input, output, session) {
     if (!length(ids)) ids <- DEFAULT_MODEL
     definitions <- lapply(ids, function(id) parse_covariates(read_library_code(id)))
     definitions <- Filter(nrow, definitions)
-    if (!length(definitions)) return(data.frame(name = character(), value = numeric(), description = character()))
+    if (!length(definitions)) return(data.frame(name = character(), value = numeric(), description = character(), scope = character()))
     combined <- do.call(rbind, definitions)
     combined[!duplicated(combined$name), , drop = FALSE]
   })
+
+  patient_covariate_definition <- reactive({
+    definition <- covariate_definition()
+    definition[definition$scope != "administration", , drop = FALSE]
+  })
+
+  administration_covariate_definition <- reactive({
+    definition <- covariate_definition()
+    definition[definition$scope == "administration", , drop = FALSE]
+  })
+
+  register_dose_covariates <- function(index) {
+    local({
+      row_index <- index
+      output_id <- paste0("dose_covariates_", row_index)
+      output[[output_id]] <- renderUI({
+        definition <- administration_covariate_definition()
+        if (!nrow(definition)) return(NULL)
+        tagList(lapply(seq_len(nrow(definition)), function(definition_index) {
+          name <- definition$name[[definition_index]]
+          input_id <- paste0("dose_cov_", name, "_", row_index)
+          pending <- pending_lego_covariates()
+          current <- if (!is.null(pending) && identical(input$custom_code, pending$code)) NULL else isolate(input[[input_id]])
+          value <- suppressWarnings(as.numeric(current))
+          if (length(value) != 1L || !is.finite(value)) value <- definition$value[[definition_index]]
+          numericInput(input_id, paste0(name, " · ", tx("à cette administration", "at this administration")), value = value)
+        }))
+      })
+      shiny::outputOptions(output, output_id, suspendWhenHidden = FALSE)
+    })
+  }
 
   register_observation_covariates <- function(index) {
     local({
       row_index <- index
       output_id <- paste0("observation_covariates_", row_index)
       output[[output_id]] <- renderUI({
-        definition <- covariate_definition()
+        definition <- patient_covariate_definition()
         if (!nrow(definition)) {
           return(div(class = "empty-state compact", tx("Aucune covariable pour ce modèle.", "This model has no covariates.")))
         }
@@ -1353,7 +1405,8 @@ server <- function(input, output, session) {
         tagList(lapply(seq_len(nrow(definition)), function(definition_index) {
           name <- definition$name[[definition_index]]
           input_id <- paste0("observation_cov_", name, "_", row_index)
-          current <- isolate(input[[input_id]])
+          pending <- pending_lego_covariates()
+          current <- if (!is.null(pending) && identical(input$custom_code, pending$code)) NULL else isolate(input[[input_id]])
           value <- suppressWarnings(as.numeric(current))
           if (length(value) != 1L || !is.finite(value)) value <- definition$value[[definition_index]]
           numericInput(
@@ -1372,6 +1425,7 @@ server <- function(input, output, session) {
   }
 
   register_dose_validation(1L)
+  register_dose_covariates(1L)
   register_observation_covariates(1L)
   register_observation_validation(1L)
 
@@ -1381,25 +1435,33 @@ server <- function(input, output, session) {
     shiny::req(identical(input$model_source, "custom"))
     shiny::req(identical(input$custom_code, pending$code))
     definition <- pending$definition
-    input_ids <- unlist(lapply(seq_len(observation_count()), function(index) {
-      paste0("observation_cov_", definition$name, "_", index)
-    }))
+    patient_definition <- definition[definition$scope != "administration", , drop = FALSE]
+    administration_definition <- definition[definition$scope == "administration", , drop = FALSE]
+    input_ids <- c(
+      unlist(lapply(seq_len(observation_count()), function(index) paste0("observation_cov_", patient_definition$name, "_", index))),
+      unlist(lapply(seq_len(dose_count()), function(index) paste0("dose_cov_", administration_definition$name, "_", index)))
+    )
     if (length(input_ids)) shiny::req(all(vapply(input_ids, function(id) !is.null(input[[id]]), logical(1))))
 
     for (index in seq_len(observation_count())) {
-      for (definition_index in seq_len(nrow(definition))) {
+      for (definition_index in seq_len(nrow(patient_definition))) {
         updateNumericInput(
           session,
-          paste0("observation_cov_", definition$name[[definition_index]], "_", index),
-          value = definition$value[[definition_index]]
+          paste0("observation_cov_", patient_definition$name[[definition_index]], "_", index),
+          value = patient_definition$value[[definition_index]]
         )
+      }
+    }
+    for (index in seq_len(dose_count())) {
+      for (definition_index in seq_len(nrow(administration_definition))) {
+        updateNumericInput(session, paste0("dose_cov_", administration_definition$name[[definition_index]], "_", index), value = administration_definition$value[[definition_index]])
       }
     }
     pending_lego_covariates(NULL)
   })
 
   output$observation_covariate_notice <- renderUI({
-    definition <- covariate_definition()
+    definition <- patient_covariate_definition()
     if (!nrow(definition)) {
       return(div(class = "covariate-notice empty", tx("Ce modèle ne déclare aucune covariable.", "This model declares no covariates.")))
     }
@@ -1491,21 +1553,29 @@ server <- function(input, output, session) {
   }
 
   read_doses <- function(include_missed = FALSE) {
+    administration_definition <- isolate(administration_covariate_definition())
     rows <- lapply(seq_len(isolate(dose_count())), function(index) {
       steady_state <- isTRUE(isolate(input[[paste0("dose_ss_", index)]]))
       status <- as.character(isolate(input[[paste0("dose_status_", index)]]) %||% "administered")
       count <- if (steady_state) 1L else as.integer(isolate(input[[paste0("dose_count_", index)]]))
-      data.frame(
+      row <- data.frame(
         time = if (steady_state) 0 else read_record_time("dose", index),
         amount = as.numeric(isolate(input[[paste0("dose_amount_", index)]])),
         interval = as.numeric(isolate(input[[paste0("dose_interval_", index)]])),
         count = count,
-        infusion = if (identical(isolate(input$administration_route), "Oral")) 0 else as.numeric(isolate(input[[paste0("dose_infusion_", index)]])),
+        infusion = if (identical(isolate(input$administration_route), "IV")) as.numeric(isolate(input[[paste0("dose_infusion_", index)]])) else 0,
         ss = as.integer(steady_state),
         status = status,
         time_uncertainty = if (identical(status, "uncertain")) as.numeric(isolate(input[[paste0("dose_time_uncertainty_", index)]]) %||% 0) else 0,
         stringsAsFactors = FALSE
       )
+      for (definition_index in seq_len(nrow(administration_definition))) {
+        name <- administration_definition$name[[definition_index]]
+        candidate <- suppressWarnings(as.numeric(isolate(input[[paste0("dose_cov_", name, "_", index)]])))
+        if (length(candidate) != 1L || !is.finite(candidate)) candidate <- administration_definition$value[[definition_index]]
+        row[[name]] <- candidate
+      }
+      row
     })
     data <- do.call(rbind, rows)
     numeric_columns <- c("time", "amount", "interval", "count", "infusion", "ss", "time_uncertainty")
@@ -1521,7 +1591,7 @@ server <- function(input, output, session) {
   }
 
   read_observation_records <- function() {
-    definition <- isolate(covariate_definition())
+    definition <- isolate(patient_covariate_definition())
     rows <- lapply(seq_len(isolate(observation_count())), function(index) {
       blq <- isTRUE(isolate(input[[paste0("observation_blq_", index)]]))
       row <- data.frame(
@@ -1735,6 +1805,7 @@ server <- function(input, output, session) {
         time_uncertainty = as.numeric(data$time_uncertainty[[index]] %||% 0)
       )
     }
+    pending_import_dose_covariates(data)
   }
 
   replace_observation_rows <- function(data, expected_model_ids = character()) {
@@ -1755,6 +1826,22 @@ server <- function(input, output, session) {
   }
 
   observe({
+    data <- pending_import_dose_covariates()
+    shiny::req(data)
+    definition <- administration_covariate_definition()
+    names_to_apply <- intersect(definition$name, names(data))
+    input_ids <- unlist(lapply(seq_len(nrow(data)), function(index) paste0("dose_cov_", names_to_apply, "_", index)))
+    if (length(input_ids)) shiny::req(all(vapply(input_ids, function(id) !is.null(input[[id]]), logical(1))))
+    for (index in seq_len(nrow(data))) {
+      for (name in names_to_apply) {
+        value <- suppressWarnings(as.numeric(data[[name]][[index]]))
+        if (is.finite(value)) updateNumericInput(session, paste0("dose_cov_", name, "_", index), value = value)
+      }
+    }
+    pending_import_dose_covariates(NULL)
+  })
+
+  observe({
     pending <- pending_import_covariates()
     shiny::req(pending)
     expected_model_ids <- pending$expected_model_ids %||% character()
@@ -1762,7 +1849,7 @@ server <- function(input, output, session) {
       shiny::req(all(expected_model_ids %in% selected_model_ids()))
     }
     data <- pending$data
-    definition <- covariate_definition()
+    definition <- patient_covariate_definition()
     observation_fields <- c("time", "concentration", "blq", "lloq", "matrix", "time_uncertainty")
     covariate_names <- intersect(setdiff(names(data), observation_fields), definition$name)
     input_ids <- unlist(lapply(seq_len(nrow(data)), function(index) {
@@ -1852,7 +1939,7 @@ server <- function(input, output, session) {
           doseMax = isolate(input$dose_max),
           doseStep = isolate(input$dose_step),
           intervals = as.numeric(isolate(input$candidate_intervals)),
-          infusion = if (identical(isolate(input$administration_route), "Oral")) 0 else isolate(input$future_infusion)
+          infusion = if (identical(isolate(input$administration_route), "IV")) isolate(input$future_infusion) else 0
         ),
         settings = list(
           delta = as.numeric(isolate(input$simulation_delta)),
@@ -2006,7 +2093,7 @@ server <- function(input, output, session) {
     route <- isolate(input$administration_route %||% "")
     if (identical(isolate(input$model_source), "custom")) {
       if (!nzchar(route)) route <- "IV"
-      mode <- if (identical(route, "Oral")) "ORAL" else "IV_INTERMITTENT"
+      mode <- if (identical(route, "Oral")) "ORAL" else if (identical(route, "IM")) "IM" else "IV_INTERMITTENT"
       return(list(list(id = "custom", label = "Modèle personnalisé", code = isolate(input$custom_code), route = route, mode = mode, adm_cmt_name = NULL)))
     }
     primary_id <- isolate(input$model_id)
@@ -2111,11 +2198,15 @@ server <- function(input, output, session) {
       observation_records <- timeline$observations
       observations <- observation_records$observations
       covariates <- observation_records$baseline
+      administration_names <- intersect(administration_covariate_definition()$name, names(doses))
+      if (length(administration_names)) {
+        covariates <- c(covariates, as.list(doses[nrow(doses), administration_names, drop = FALSE]))
+      }
       specifications <- model_specifications()
       library_model_ids <- intersect(vapply(specifications, `[[`, character(1), "id"), MODEL_CATALOG$id)
       intervals <- as.numeric(isolate(input$candidate_intervals))
       route <- isolate(input$administration_route)
-      infusion <- if (identical(route, "Oral")) 0 else as.numeric(isolate(input$future_infusion))
+      infusion <- if (identical(route, "IV")) as.numeric(isolate(input$future_infusion)) else 0
       delta <- as.numeric(isolate(input$simulation_delta %||% 0.1))
       variability <- isolate(input$variability_components %||% character())
       residual_error_mode <- isolate(input$residual_error_mode %||% "model")
@@ -2434,6 +2525,8 @@ server <- function(input, output, session) {
           tx(paste0("Perfusion IV : ", format_metric(exposure$infusion), " h"), paste0("IV infusion: ", format_metric(exposure$infusion), " h"))
         } else if (identical(result$route, "Oral")) {
           tx("Administration orale · perfusion = 0 h", "Oral administration · infusion = 0 h")
+        } else if (identical(result$route, "IM")) {
+          tx("Administration intramusculaire · absorption définie par le modèle", "Intramuscular administration · absorption defined by the model")
         } else {
           tx("Bolus IV · perfusion = 0 h", "IV bolus · infusion = 0 h")
         })
@@ -2957,7 +3050,9 @@ server <- function(input, output, session) {
         time = "Time (h)", amount = "Dose (mg)", interval = "Interval (h)", count = "Count",
         infusion = "Infusion (h)", ss = "SS", status = "Status", time_uncertainty = "Time uncertainty (± h)"
       )
-      names(dose_table) <- unname(dose_names[names(dose_table)])
+      renamed_dose_columns <- unname(dose_names[names(dose_table)])
+      renamed_dose_columns[is.na(renamed_dose_columns)] <- names(dose_table)[is.na(renamed_dose_columns)]
+      names(dose_table) <- renamed_dose_columns
       observation_table <- result$observation_records
       names(observation_table)[names(observation_table) == "time"] <- "Temps (h)"
       names(observation_table)[names(observation_table) == "concentration"] <- "Concentration"

@@ -44,7 +44,11 @@ model_administration_modes <- function(record, route = NULL) {
   if (is.list(values)) values <- values[[1]]
   values <- unique(as.character(values[!is.na(values) & nzchar(values)]))
   if (is.null(route)) return(values)
-  values[if (identical(route, "Oral")) values == "ORAL" else startsWith(values, "IV_")]
+  values[
+    if (identical(route, "Oral")) values == "ORAL"
+    else if (identical(route, "IM")) values == "IM"
+    else startsWith(values, "IV_")
+  ]
 }
 
 model_administration_mode <- function(record, route, selected = NULL) {
@@ -61,15 +65,15 @@ model_supports_administration_mode <- function(record, route, mode) {
 
 administration_mode_label <- function(mode, lang = "fr") {
   labels <- if (identical(lang, "en")) {
-    c(ORAL = "Oral", IV_INTERMITTENT = "Intermittent IV", IV_CONTINUOUS = "Continuous IV")
+    c(ORAL = "Oral", IM = "Intramuscular", IV_INTERMITTENT = "Intermittent IV", IV_CONTINUOUS = "Continuous IV")
   } else {
-    c(ORAL = "Orale", IV_INTERMITTENT = "IV intermittente", IV_CONTINUOUS = "IV continue")
+    c(ORAL = "Orale", IM = "Intramusculaire", IV_INTERMITTENT = "IV intermittente", IV_CONTINUOUS = "IV continue")
   }
   unname(labels[[mode]] %||% mode)
 }
 
 model_administration_cmt <- function(record, route) {
-  column <- if (identical(route, "Oral")) "oralCmt" else "ivCmt"
+  column <- if (identical(route, "Oral")) "oralCmt" else if (identical(route, "IM")) "imCmt" else "ivCmt"
   value <- record[[column]]
   if (is.list(value)) value <- value[[1]]
   value <- as.character(value[[1]] %||% "")
@@ -107,7 +111,7 @@ parse_covariates <- function(code) {
   lines <- strsplit(code, "\n", fixed = TRUE)[[1]]
   starts <- which(grepl("^\\s*(?:\\$PARAM|\\[PARAM\\]).*@covariates", lines, ignore.case = TRUE, perl = TRUE))
   if (!length(starts)) {
-    return(data.frame(name = character(), value = numeric(), description = character()))
+    return(data.frame(name = character(), value = numeric(), description = character(), scope = character()))
   }
 
   parsed <- list()
@@ -125,10 +129,14 @@ parse_covariates <- function(code) {
       if (length(parts) < 2 || !grepl("^[A-Za-z_][A-Za-z0-9_]*$", parts[[1]])) next
       value <- suppressWarnings(as.numeric(parts[[2]]))
       if (!is.finite(value)) next
+      description <- if (length(parts) > 2) paste(parts[-c(1, 2)], collapse = ": ") else ""
+      scope <- if (grepl("\\[administration\\]", description, ignore.case = TRUE)) "administration" else "patient"
+      description <- trimws(gsub("\\s*\\[administration\\]\\s*", "", description, ignore.case = TRUE))
       parsed[[index]] <- data.frame(
         name = parts[[1]],
         value = value,
-        description = if (length(parts) > 2) paste(parts[-c(1, 2)], collapse = ": ") else "",
+        description = description,
+        scope = scope,
         stringsAsFactors = FALSE
       )
       index <- index + 1L
@@ -136,7 +144,7 @@ parse_covariates <- function(code) {
   }
 
   if (!length(parsed)) {
-    return(data.frame(name = character(), value = numeric(), description = character()))
+    return(data.frame(name = character(), value = numeric(), description = character(), scope = character()))
   }
   unique(do.call(rbind, parsed))
 }
@@ -190,7 +198,7 @@ lego_text <- function(value, field, pattern, maximum = 32L) {
 
 normalize_lego_spec <- function(specification) {
   if (!is.list(specification)) stop("The Lego specification must be a JSON object.")
-  version <- lego_number(specification$version, "version", 1, 2, integer = TRUE)
+  version <- lego_number(specification$version, "version", 1, 3, integer = TRUE)
   input_nodes <- lego_record_list(specification$nodes, "nodes")
   input_edges <- lego_record_list(specification$edges, "edges")
   input_covariates <- lego_record_list(specification$covariates, "covariates")
@@ -219,6 +227,8 @@ normalize_lego_spec <- function(specification) {
       node$inputDuration <- lego_number(input$inputDuration, paste0("nodes[", index, "].inputDuration"), 1e-6, 1e6, default = 1)
       node$tlag <- lego_number(input$tlag, paste0("nodes[", index, "].tlag"), 0, 1e6, default = 0)
       node$doseFraction <- lego_number(input$doseFraction, paste0("nodes[", index, "].doseFraction"), 1e-6, 100, default = 100)
+      node$inputDurationTlagOf <- if (is.null(input$inputDurationTlagOf)) NULL else lego_number(input$inputDurationTlagOf, paste0("nodes[", index, "].inputDurationTlagOf"), 1, 1000000, integer = TRUE)
+      node$fractionComplementOf <- if (is.null(input$fractionComplementOf)) NULL else lego_number(input$fractionComplementOf, paste0("nodes[", index, "].fractionComplementOf"), 1, 1000000, integer = TRUE)
     }
     if (kind %in% LEGO_VOLUME_KINDS) {
       node$vol <- lego_number(input$vol, paste0("nodes[", index, "].vol"), 1e-6, 1e9)
@@ -248,8 +258,31 @@ normalize_lego_spec <- function(specification) {
     }
   }
   dosed_nodes <- Filter(function(node) !node$kind %in% LEGO_PD_KINDS && node$dose > 0, nodes)
+  dosed_ids <- vapply(dosed_nodes, `[[`, integer(1), "id")
+  for (node in dosed_nodes) {
+    if (!is.null(node$fractionComplementOf)) {
+      if (identical(node$id, node$fractionComplementOf) || !node$fractionComplementOf %in% dosed_ids) {
+        stop("A complementary Lego fraction must reference another dosed compartment.")
+      }
+      source <- nodes[[match(node$fractionComplementOf, node_ids)]]
+      if (!is.null(source$fractionComplementOf)) stop("Chained complementary Lego fractions are not supported.")
+    }
+    if (!is.null(node$inputDurationTlagOf)) {
+      if (identical(node$id, node$inputDurationTlagOf) || !node$inputDurationTlagOf %in% dosed_ids) {
+        stop("A linked Lego duration must reference another dosed compartment.")
+      }
+      source <- nodes[[match(node$inputDurationTlagOf, node_ids)]]
+      if (source$tlag <= 0) stop("A linked Lego duration requires a strictly positive source Tlag.")
+    }
+  }
   if (length(dosed_nodes) > 1L) {
-    fraction_total <- sum(vapply(dosed_nodes, `[[`, numeric(1), "doseFraction"))
+    fraction_value <- function(node) {
+      if (is.null(node$fractionComplementOf)) return(node$doseFraction)
+      100 - nodes[[match(node$fractionComplementOf, node_ids)]]$doseFraction
+    }
+    fractions <- vapply(dosed_nodes, fraction_value, numeric(1))
+    if (any(fractions <= 0)) stop("Parallel Lego dose fractions must be strictly positive.")
+    fraction_total <- sum(fractions)
     if (abs(fraction_total - 100) > 1e-3) stop("Parallel Lego dose fractions must total 100%.")
   }
 
@@ -268,7 +301,7 @@ normalize_lego_spec <- function(specification) {
       stop("A Lego transfer references an unknown destination compartment.")
     }
     if (!identical(to, "OUT") && identical(from, to)) stop("A Lego transfer cannot loop to itself.")
-    kinetics <- lego_text(input$kinetics %||% "first_order", paste0("edges[", index, "].kinetics"), "^(first_order|michaelis_menten)$", 24L)
+    kinetics <- lego_text(input$kinetics %||% "first_order", paste0("edges[", index, "].kinetics"), "^(first_order|michaelis_menten|hill)$", 24L)
     parameterization <- lego_text(input$eliminationParameterization %||% "rate", paste0("edges[", index, "].eliminationParameterization"), "^(rate|clearance)$", 16L)
     source_node <- nodes[[match(from, node_ids)]]
     if (identical(parameterization, "clearance") && (!identical(to, "OUT") || !source_node$kind %in% LEGO_VOLUME_KINDS)) {
@@ -278,9 +311,10 @@ normalize_lego_spec <- function(specification) {
       from = from,
       to = to,
       kinetics = kinetics,
-      k = lego_number(input$k, paste0("edges[", index, "].k"), 0, 1e6, default = 0.2),
+      k = lego_number(input[["k"]], paste0("edges[", index, "].k"), 0, 1e6, default = 0.2),
       vmax = lego_number(input$vmax, paste0("edges[", index, "].vmax"), 1e-12, 1e12, default = 10),
       km = lego_number(input$km, paste0("edges[", index, "].km"), 1e-12, 1e12, default = 10),
+      gamma = lego_number(input$gamma, paste0("edges[", index, "].gamma"), 1e-6, 100, default = 1),
       eliminationParameterization = parameterization,
       cl = lego_number(input$cl, paste0("edges[", index, "].cl"), 1e-12, 1e12, default = 5)
     )
@@ -324,6 +358,7 @@ normalize_lego_spec <- function(specification) {
     list(
       name = name,
       type = type,
+      scope = lego_text(input$scope %||% "patient", paste0("covariates[", index, "].scope"), "^(patient|administration)$", 16L),
       target = lego_text(input$target, paste0("covariates[", index, "].target"), "^[A-Za-z_][A-Za-z0-9_]*$", 96L),
       reference = reference,
       comparison = comparison,
@@ -331,7 +366,13 @@ normalize_lego_spec <- function(specification) {
     )
   })
   covariate_names <- vapply(covariates, `[[`, character(1), "name")
-  if (anyDuplicated(covariate_names)) stop("Lego covariate names must be unique.")
+  effect_keys <- vapply(covariates, function(item) paste(item$name, item$target, sep = "::"), character(1))
+  if (anyDuplicated(effect_keys)) stop("Lego covariate effects must target a parameter only once.")
+  for (name in unique(covariate_names)) {
+    definitions <- Filter(function(item) identical(item$name, name), covariates)
+    signatures <- vapply(definitions, function(item) paste(item$type, item$scope, item$reference, item$comparison, sep = "::"), character(1))
+    if (length(unique(signatures)) > 1L) stop("Repeated Lego covariates must share type, scope, reference and comparison: ", name)
+  }
 
   list(version = version, nodes = nodes, edges = edges, covariates = covariates)
 }
@@ -377,17 +418,36 @@ lego_model_code <- function(specification) {
   dosed <- Filter(function(node) is.finite(node$dose) && node$dose > 0, nodes)
   mass_nodes <- Filter(function(node) !node$kind %in% LEGO_PD_KINDS, nodes)
   adm <- if (length(dosed)) dosed[[1]] else if (length(mass_nodes)) mass_nodes[[1]] else nodes[[1]]
+  node_for <- function(id) nodes[[match(id, ids)]]
+  fraction_parameter <- function(node) {
+    source <- if (is.null(node$fractionComplementOf)) node else node_for(node$fractionComplementOf)
+    paste0("f_", name_for(source$id))
+  }
+  fraction_expression <- function(node) {
+    parameter <- fraction_parameter(node)
+    if (is.null(node$fractionComplementOf)) parameter else paste0("(1-", parameter, ")")
+  }
+  duration_parameter <- function(node) {
+    if (is.null(node$inputDurationTlagOf)) paste0("tk0_", name_for(node$id)) else paste0("tlag_", name_for(node$inputDurationTlagOf))
+  }
+  route_doses <- length(dosed) > 1L || any(vapply(dosed, function(node) identical(node$inputType, "zero_order") || node$tlag > 0, logical(1)))
 
   parameters <- list()
   for (edge in edges) {
     from <- name_for(edge$from)
     to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
     client_suffix <- paste0(client_name_for(edge$from), "_", if (identical(edge$to, "OUT")) "e" else client_name_for(edge$to))
-    if (identical(edge$kinetics, "michaelis_menten")) {
+    if (edge$kinetics %in% c("michaelis_menten", "hill")) {
       parameters <- c(parameters, list(
         list(name = paste0("vmax_", from, "_", to), client_name = paste0("vmax_", client_suffix), value = edge$vmax, note = paste0("maximum transfer rate from ", from, " to ", to), iiv = FALSE),
         list(name = paste0("km_", from, "_", to), client_name = paste0("km_", client_suffix), value = edge$km, note = paste0("Michaelis constant from ", from, " to ", to), iiv = FALSE)
       ))
+      if (identical(edge$kinetics, "hill")) {
+        parameters[[length(parameters) + 1L]] <- list(
+          name = paste0("gamma_", from, "_", to), client_name = paste0("gamma_", client_suffix), value = edge$gamma,
+          note = paste0("Hill exponent from ", from, " to ", to), iiv = FALSE
+        )
+      }
     } else if (identical(edge$eliminationParameterization, "clearance")) {
       parameters[[length(parameters) + 1L]] <- list(
         name = paste0("cl_", from), client_name = paste0("cl_", client_name_for(edge$from)), value = edge$cl,
@@ -413,8 +473,8 @@ lego_model_code <- function(specification) {
     name <- name_for(node$id)
     if (node$dose > 0) {
       if (node$tlag > 0) parameters[[length(parameters) + 1L]] <- list(name = paste0("tlag_", name), client_name = paste0("tlag_", node$name), value = node$tlag, note = paste0("administration lag to ", name), iiv = FALSE)
-      if (identical(node$inputType, "zero_order")) parameters[[length(parameters) + 1L]] <- list(name = paste0("tk0_", name), client_name = paste0("tk0_", node$name), value = node$inputDuration, note = paste0("administration duration to ", name), iiv = FALSE)
-      if (length(dosed) > 1L) parameters[[length(parameters) + 1L]] <- list(name = paste0("f_", name), client_name = paste0("f_", node$name), value = node$doseFraction / 100, note = paste0("dose fraction to ", name), iiv = FALSE)
+      if (identical(node$inputType, "zero_order") && is.null(node$inputDurationTlagOf)) parameters[[length(parameters) + 1L]] <- list(name = paste0("tk0_", name), client_name = paste0("tk0_", node$name), value = node$inputDuration, note = paste0("administration duration to ", name), iiv = FALSE)
+      if (length(dosed) > 1L && is.null(node$fractionComplementOf)) parameters[[length(parameters) + 1L]] <- list(name = paste0("f_", name), client_name = paste0("f_", node$name), value = node$doseFraction / 100, note = paste0("dose fraction to ", name), iiv = FALSE)
     }
     if (identical(node$kind, "effect")) {
       parameters[[length(parameters) + 1L]] <- list(name = paste0("ke0_", name), client_name = paste0("ke0_", node$name), value = node$ke0, note = paste0("effect equilibration for ", name), iiv = FALSE)
@@ -441,6 +501,7 @@ lego_model_code <- function(specification) {
       beta_name = paste0("BETA_", covariate$name, "_", index)
     ))
   })
+  data_covariates <- covariate_effects[!duplicated(vapply(covariate_effects, `[[`, character(1), "name"))]
 
   random_parameters <- Filter(function(parameter) isTRUE(parameter$iiv), parameters)
   if (!length(random_parameters)) random_parameters <- parameters[1]
@@ -449,7 +510,7 @@ lego_model_code <- function(specification) {
   pad <- function(text) sprintf("%-*s", width, text)
   spec_json <- jsonlite::toJSON(spec, auto_unbox = TRUE, null = "null", digits = 10)
   marker <- paste0(LEGO_SPEC_PREFIX, utils::URLencode(spec_json, reserved = TRUE))
-  lines <- c(marker, if (length(dosed)) "$PLUGIN evtools", "$PARAM @annotated")
+  lines <- c(marker, if (route_doses) "$PLUGIN evtools", "$PARAM @annotated")
 
   for (parameter in parameters) {
     lines <- c(lines, paste0(pad(paste0("TV_", parameter$name)), " : ", lego_format_number(parameter$value), " : ", parameter$note))
@@ -464,13 +525,14 @@ lego_model_code <- function(specification) {
   }
   if (length(covariate_effects)) {
     lines <- c(lines, "", "$PARAM @covariates @annotated")
-    for (covariate in covariate_effects) {
+    for (covariate in data_covariates) {
       description <- if (identical(covariate$type, "categorical")) {
         paste0("categorical covariate, reference ", lego_format_number(covariate$reference), ", affected category ", lego_format_number(covariate$comparison))
       } else {
         "continuous covariate, reference value"
       }
-      lines <- c(lines, paste0(covariate$name, " : ", lego_format_number(covariate$reference), " : ", description))
+      scope <- if (identical(covariate$scope, "administration")) " [administration]" else ""
+      lines <- c(lines, paste0(covariate$name, " : ", lego_format_number(covariate$reference), " : ", description, scope))
     }
   }
 
@@ -487,18 +549,18 @@ lego_model_code <- function(specification) {
     "",
     "$CMT @annotated"
   )
-  if (length(dosed)) {
+  if (route_doses) {
     lines <- c(lines, paste0(pad("LEGO_INPUT"), " : split dose input [ADM]"))
   }
   for (node in nodes) {
     name <- name_for(node$id)
-    tags <- c(if (!length(dosed) && identical(node$id, adm$id)) "ADM", if (identical(node$id, observed$id)) "OBS")
+    tags <- c(if (!route_doses && identical(node$id, adm$id)) "ADM", if (identical(node$id, observed$id)) "OBS")
     tag_text <- if (length(tags)) paste0(" [", paste(tags, collapse = ", "), "]") else ""
     lines <- c(lines, paste0(pad(name), " : model state ", name, tag_text))
   }
 
   lines <- c(lines, "", "$MAIN")
-  if (length(dosed)) lines <- c(lines, "F_LEGO_INPUT = 0;")
+  if (route_doses) lines <- c(lines, "F_LEGO_INPUT = 0;")
   for (parameter in parameters) {
     index <- unname(eta_index[parameter$name])
     eta <- if (length(index) && is.finite(index)) paste0(" * exp(ETA", index, " + ETA(", index, "))") else ""
@@ -534,6 +596,10 @@ lego_model_code <- function(specification) {
       from <- name_for(edge$from)
       to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
       amount <- from
+      if (identical(edge$kinetics, "hill")) {
+        gamma <- paste0("gamma_", from, "_", to)
+        return(paste0("vmax_", from, "_", to, "*pow(", amount, ", ", gamma, ")/(pow(km_", from, "_", to, ", ", gamma, ") + pow(", amount, ", ", gamma, "))"))
+      }
       if (identical(edge$kinetics, "michaelis_menten")) {
         return(paste0("vmax_", from, "_", to, "*", amount, "/(km_", from, "_", to, " + ", amount, ")"))
       }
@@ -550,7 +616,7 @@ lego_model_code <- function(specification) {
   }
 
   lines <- c(lines, "", "$ODE")
-  if (length(dosed)) lines <- c(lines, "dxdt_LEGO_INPUT = 0;")
+  if (route_doses) lines <- c(lines, "dxdt_LEGO_INPUT = 0;")
   for (node in nodes) {
     name <- name_for(node$id)
     if (identical(node$kind, "effect")) {
@@ -563,16 +629,16 @@ lego_model_code <- function(specification) {
     }
   }
 
-  if (length(dosed)) {
+  if (route_doses) {
     lines <- c(lines, "", "$EVENT", "if ((EVID == 1 || EVID == 4) && CMT == 1) {")
     for (index in seq_along(dosed)) {
       node <- dosed[[index]]
       name <- name_for(node$id)
-      amount <- if (length(dosed) > 1L) paste0("AMT*f_", name) else "AMT"
+      amount <- if (length(dosed) > 1L) paste0("AMT*", fraction_expression(node)) else "AMT"
       cmt <- match(node$id, ids) + 1L
       event_name <- paste0("route_", index)
       if (identical(node$inputType, "zero_order")) {
-        lines <- c(lines, paste0("  evt::ev ", event_name, " = evt::infuse(", amount, ", ", cmt, ", ", amount, "/tk0_", name, ");"))
+        lines <- c(lines, paste0("  evt::ev ", event_name, " = evt::infuse(", amount, ", ", cmt, ", ", amount, "/", duration_parameter(node), ");"))
       } else {
         lines <- c(lines, paste0("  evt::ev ", event_name, " = evt::bolus(", amount, ", ", cmt, ");"))
       }

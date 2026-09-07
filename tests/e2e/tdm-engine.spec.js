@@ -208,8 +208,15 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(code).not.toHaveValue(/texte client/);
     await expect(page.locator('#observation_cov_WT_1')).toHaveValue('70');
     await expect(page.locator('#observation_cov_SEX_1')).toHaveValue('0');
+    const customRoutes = await page.locator('#administration_route').evaluate((element) => Object.keys(/** @type {any} */ (element).selectize.options).sort());
+    expect(customRoutes).toEqual(['IM', 'IV', 'Oral']);
+    await page.locator('#administration_route').evaluate((element) => /** @type {any} */ (element).selectize.setValue('IM'));
+    await page.locator('#analysis_tabs a[data-value="data"]').click();
+    await expect(page.locator('#dose_infusion_1')).not.toBeVisible();
+    await expect(page.locator('#dose_row_1 .route-readonly', { hasText: 'Voie intramusculaire' })).toBeVisible();
     await page.locator('#validate_model').click();
     await expect(page.locator('.status-pill.ok')).toHaveText('Modèle valide', { timeout: 60_000 });
+    await page.locator('#analysis_tabs a[data-value="model"]').click();
     await expect(page.locator('.contract-ok')).toContainText('Contrat mapbayr valide');
   });
 
@@ -229,7 +236,9 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
         { from: 2, to: 3, kinetics: 'first_order', k: 0.35, vmax: 10, km: 10, eliminationParameterization: 'rate', cl: 5 },
         { from: 3, to: 'OUT', kinetics: 'first_order', k: 0.17, vmax: 10, km: 10, eliminationParameterization: 'clearance', cl: 5 }
       ],
-      covariates: []
+      covariates: [
+        { name: 'IVOL', type: 'continuous', scope: 'administration', target: 'vmax_rapid_centr', reference: 1.75, comparison: 1, beta: 0.89 }
+      ]
     };
     await page.evaluate((spec) => {
       const marker = `// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(spec))}`;
@@ -246,8 +255,12 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(code).toHaveValue(/evt::infuse\(AMT\*f_L1_rapid/);
     await expect(code).toHaveValue(/vmax_L1_rapid_L3_centr/);
     await expect(code).toHaveValue(/cl_L3_centr\*L3_centr\/v_L3_centr/);
+    await page.locator('#analysis_tabs a[data-value="data"]').click();
+    await expect(page.locator('#dose_cov_IVOL_1')).toHaveValue('1.75');
+    await expect(page.locator('#observation_cov_IVOL_1')).toHaveCount(0);
     await page.locator('#validate_model').click();
     await expect(page.locator('.status-pill.ok')).toHaveText('Modèle valide', { timeout: 60_000 });
+    await page.locator('#analysis_tabs a[data-value="model"]').click();
     await expect(page.locator('.contract-ok')).toContainText('Contrat mapbayr valide');
   });
 
