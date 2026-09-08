@@ -6,6 +6,7 @@
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
   import { tdmEngineUrl } from '$lib/tdm/engine';
+  import { parseModelCode } from '$lib/lego/mlxtran.js';
   $: copy = ui($language);
 
   const LEGO_UI = {
@@ -52,7 +53,24 @@
       emptyEquations: '(add compartments)'
     }
   };
+  const MODEL_IMPORT_UI = {
+    fr: {
+      importModel: 'Importer un modèle', modelCode: 'Code du modèle', placeholder: 'Collez le code MLXTRAN, mrgsolve ou NONMEM…',
+      modelFile: 'Choisir un fichier modèle', format: 'Format source', applyImport: 'Construire le schéma', importExact: 'Modèle Lego restauré exactement.',
+      importRecognized: 'Structure reconnue et convertie en schéma Lego.', importWarnings: 'Points à vérifier',
+      errors: { emptyOrTooLarge: 'Le code est vide ou dépasse 200 ko.', invalidEmbeddedSpec: 'La spécification Lego embarquée est invalide.', unsupportedStructure: "Aucune structure PK compatible n'a été reconnue dans ce format." },
+      warnings: { populationDefaults: 'Valeurs populationnelles absentes ou incomplètes : valeurs initiales proposées pour', multipleAdministrations: "Plusieurs identifiants d'administration détectés; seule la voie adm retenue est", bioavailabilityNotTransferred: "La biodisponibilité d'une voie unique ne peut pas encore être représentée et doit être vérifiée.", covariateTargetNotMapped: 'Effet de covariable non rattaché au schéma', categoricalCollapsed: 'Covariable à plus de deux modalités réduite à la première comparaison', categoricalLabelsMapped: 'Modalités textuelles remplacées par 0 et 1 pour', covariateFormApproximated: 'Forme de covariable approchée localement par une relation puissance pour', templatePlaceholdersIgnored: 'Les blocs de gabarit {{…}} ne sont pas exécutables et ont été ignorés.', customOdeReview: 'Des EDO personnalisées sont présentes : vérifiez le schéma reconstruit avant export.' }
+    },
+    en: {
+      importModel: 'Import a model', modelCode: 'Model code', placeholder: 'Paste MLXTRAN, mrgsolve, or NONMEM code…',
+      modelFile: 'Choose a model file', format: 'Source format', applyImport: 'Build the diagram', importExact: 'Lego model restored exactly.',
+      importRecognized: 'Structure recognized and converted into a Lego diagram.', importWarnings: 'Items to review',
+      errors: { emptyOrTooLarge: 'The code is empty or larger than 200 kB.', invalidEmbeddedSpec: 'The embedded Lego specification is invalid.', unsupportedStructure: 'No compatible PK structure was recognized in this format.' },
+      warnings: { populationDefaults: 'Population values were absent or incomplete; suggested initial values were used for', multipleAdministrations: 'Several administration identifiers were detected; the retained adm route is', bioavailabilityNotTransferred: 'Single-route bioavailability cannot yet be represented and must be reviewed.', covariateTargetNotMapped: 'Covariate effect could not be mapped to the diagram', categoricalCollapsed: 'Covariate with more than two categories reduced to the first comparison', categoricalLabelsMapped: 'Text categories replaced with 0 and 1 for', covariateFormApproximated: 'Covariate form locally approximated by a power relationship for', templatePlaceholdersIgnored: 'Template blocks {{…}} are not executable and were ignored.', customOdeReview: 'Custom ODEs are present: review the reconstructed diagram before export.' }
+    }
+  };
   $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
+  $: importUi = MODEL_IMPORT_UI[$language === 'en' ? 'en' : 'fr'];
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, inputDurationTlagOf?:number, tlag?:number, doseFraction?:number, fractionComplementOf?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten'|'hill', vmax?:number, km?:number, gamma?:number, eliminationParameterization?:'rate'|'clearance', cl?:number}} Edge */
@@ -84,6 +102,10 @@
   /** @type {number|null} */ let connectFrom = null;
   let tMax = 24;
   let activePreset = '';
+  let importFormat = 'mlxtran';
+  let importText = '';
+  /** @type {{kind:'ok'|'error', format?:string, mode?:string, warnings?:{code:string, detail?:string}[], code?:string}|null} */
+  let modelImportStatus = null;
 
   const VBW = 620, VBH = 320, NW = 88, NH = 42;
 
@@ -159,6 +181,86 @@
     reconcileCovariates();
   }
   function clearAll() { nodes = []; edges = []; covariates = []; selectedId = null; activePreset = ''; }
+
+  function importWarningText(/** @type {{code:string, detail?:string}} */ warning) {
+    const messages = /** @type {Record<string, string>} */ (importUi.warnings);
+    const base = messages[warning.code] ?? warning.code;
+    return warning.detail ? `${base} : ${warning.detail}` : base;
+  }
+
+  function hydrateLegoSpec(/** @type {any} */ specification) {
+    if (!Array.isArray(specification?.nodes) || !specification.nodes.length || specification.nodes.length > 20) throw new Error('unsupportedStructure');
+    const importedNodes = specification.nodes.map((/** @type {any} */ node, /** @type {number} */ index) => {
+      if (!KINDS[node.kind]) throw new Error('unsupportedStructure');
+      const id = Number(node.id);
+      if (!Number.isInteger(id) || id <= 0) throw new Error('unsupportedStructure');
+      const hydrated = {
+        ...node, id, name: rid(node.name),
+        x: Number.isFinite(Number(node.x)) ? Number(node.x) : 35 + (index % 5) * 116,
+        y: Number.isFinite(Number(node.y)) ? Number(node.y) : 45 + Math.floor(index / 5) * 92
+      };
+      if (isMassNode(hydrated)) {
+        hydrated.dose = Number(node.dose ?? 0);
+        hydrated.inputType = node.inputType === 'zero_order' ? 'zero_order' : 'bolus';
+        hydrated.inputDuration = Number(node.inputDuration ?? 1);
+        hydrated.tlag = Number(node.tlag ?? 0);
+        hydrated.doseFraction = Number(node.doseFraction ?? 100);
+      }
+      if (KINDS[node.kind].vol) hydrated.vol = Number(node.vol ?? 1);
+      return hydrated;
+    });
+    const ids = new Set(importedNodes.map((/** @type {any} */ node) => node.id));
+    if (ids.size !== importedNodes.length) throw new Error('unsupportedStructure');
+    let next = Math.max(...ids) + 1;
+    const importedEdges = (specification.edges ?? []).map((/** @type {any} */ edge) => {
+      const from = Number(edge.from);
+      const to = edge.to === 'OUT' ? 'OUT' : Number(edge.to);
+      if (!ids.has(from) || (to !== 'OUT' && !ids.has(to))) throw new Error('unsupportedStructure');
+      return {
+        ...edge, id: next++, from, to,
+        kinetics: ['michaelis_menten', 'hill'].includes(edge.kinetics) ? edge.kinetics : 'first_order',
+        k: Number(edge.k ?? 0.2), vmax: Number(edge.vmax ?? 10), km: Number(edge.km ?? 10), gamma: Number(edge.gamma ?? 1),
+        eliminationParameterization: edge.eliminationParameterization === 'clearance' ? 'clearance' : 'rate', cl: Number(edge.cl ?? 5)
+      };
+    });
+    nodes = importedNodes;
+    edges = importedEdges;
+    covariates = (specification.covariates ?? []).slice(0, 50).map((/** @type {any} */ covariate) => ({
+      ...covariate, id: next++, type: covariate.type === 'categorical' ? 'categorical' : 'continuous',
+      scope: covariate.scope === 'administration' ? 'administration' : 'patient',
+      reference: Number(covariate.reference), comparison: Number(covariate.comparison), beta: Number(covariate.beta), compare: true
+    }));
+    uid = next;
+    selectedId = nodes[0]?.id ?? null;
+    activePreset = '';
+    tMax = 24;
+    reconcileCovariates();
+  }
+
+  function importerModel() {
+    try {
+      const result = parseModelCode(importText, importFormat);
+      hydrateLegoSpec(result.spec);
+      codeTab = importFormat;
+      modelImportStatus = { kind: 'ok', format: importFormat, mode: result.mode, warnings: result.warnings };
+    } catch (error) {
+      const failure = /** @type {any} */ (error);
+      modelImportStatus = { kind: 'error', format: importFormat, code: failure?.code ?? failure?.message ?? 'unsupportedStructure' };
+    }
+  }
+
+  async function lireFichierModele(/** @type {Event} */ event) {
+    const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.size > 200000) {
+      modelImportStatus = { kind: 'error', format: importFormat, code: 'emptyOrTooLarge' };
+      return;
+    }
+    importText = await file.text();
+    importerModel();
+    input.value = '';
+  }
 
   // ── presets (points de départ, entièrement modifiables ensuite) ──
   /** @param {string} name */
@@ -598,7 +700,7 @@
 
   function addCovariate(/** @type {'continuous'|'categorical'} */ type = 'continuous') {
     const target = modelParams()[0]?.name;
-    if (!target || covariates.length >= 10) return;
+    if (!target || covariates.length >= 50) return;
     let index = covariates.length + 1;
     const existing = new Set(covariates.map((covariate) => covariateName(covariate.name)));
     let name = type === 'categorical'
@@ -994,6 +1096,8 @@
     ];
     const L = [];
 
+    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
+    L.push('');
     L.push('DESCRIPTION:');
     L.push('Modele genere par l\'Atelier Lego de Pharmacometrie Pratique.');
     L.push('');
@@ -1163,6 +1267,7 @@
     };
     const L = [];
 
+    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
     L.push('$PROBLEM Atelier Lego - modele PK/PD genere');
     L.push('; Donnees attendues : une ligne par evenement dans data.csv.');
     L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + (U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));
@@ -1384,6 +1489,45 @@
   <label class="s"><span>{lego.duration}</span><input class="num" type="number" min="1" step="1" bind:value={tMax} /></label>
 </div>
 
+<details class="mlxtran-import">
+  <summary>{importUi.importModel}</summary>
+  <div class="mlxtran-import-body">
+    <div class="import-formats" role="tablist" aria-label={importUi.format}>
+      {#each [['mlxtran', 'MLXTRAN'], ['mrgsolve', 'mrgsolve'], ['nonmem', 'NONMEM']] as format}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={importFormat === format[0]}
+          class:on={importFormat === format[0]}
+          on:click={() => { importFormat = format[0]; modelImportStatus = null; }}
+        >{format[1]}</button>
+      {/each}
+    </div>
+    <label>
+      <span>{importUi.modelCode} · {importFormat === 'mlxtran' ? 'MLXTRAN' : importFormat === 'mrgsolve' ? 'mrgsolve' : 'NONMEM'}</span>
+      <textarea rows="9" bind:value={importText} placeholder={importUi.placeholder}></textarea>
+    </label>
+    <div class="mlxtran-import-actions">
+      <label class="file-button">
+        <input type="file" accept=".txt,.mlxtran,.cpp,.cc,.cxx,.mod,.ctl,text/plain" on:change={lireFichierModele} />
+        <span>{importUi.modelFile}</span>
+      </label>
+      <button class="import-button" disabled={!importText.trim()} on:click={importerModel}>{importUi.applyImport}</button>
+    </div>
+    {#if modelImportStatus?.kind === 'error'}
+      <p class="import-status error" role="alert">{/** @type {Record<string, string>} */ (importUi.errors)[modelImportStatus.code ?? 'unsupportedStructure'] ?? importUi.errors.unsupportedStructure}</p>
+    {:else if modelImportStatus?.kind === 'ok'}
+      <div class="import-status ok" role="status">
+        <strong>{modelImportStatus.mode === 'exact' ? importUi.importExact : importUi.importRecognized}</strong>
+        {#if modelImportStatus.warnings?.length}
+          <span>{importUi.importWarnings}</span>
+          <ul>{#each modelImportStatus.warnings as warning}<li>{importWarningText(warning)}</li>{/each}</ul>
+        {/if}
+      </div>
+    {/if}
+  </div>
+</details>
+
 {#if activePreset === 'koka' || activePreset === 'pp6m'}
   <p class="template-note">
     {activePreset === 'koka' ? lego.kokaNote : lego.pp6mNote}
@@ -1528,8 +1672,8 @@
       <div class="cov-head">
         <strong>{lego.covariates}</strong>
         <div class="cov-add">
-          <button on:click={() => addCovariate('continuous')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label={lego.addContinuousAria}>+ {lego.continuous}</button>
-          <button on:click={() => addCovariate('categorical')} disabled={!parameterChoices.length || covariates.length >= 10} aria-label={lego.addCategoricalAria}>+ {lego.categorical}</button>
+          <button on:click={() => addCovariate('continuous')} disabled={!parameterChoices.length || covariates.length >= 50} aria-label={lego.addContinuousAria}>+ {lego.continuous}</button>
+          <button on:click={() => addCovariate('categorical')} disabled={!parameterChoices.length || covariates.length >= 50} aria-label={lego.addCategoricalAria}>+ {lego.categorical}</button>
         </div>
       </div>
       <p class="cov-help">{lego.covariateHelp}</p>
@@ -1597,6 +1741,24 @@
   .template-note a { margin-left: 0.4em; font-family: var(--font-mono); }
   .toolbar .s { display: grid; grid-template-columns: auto auto; gap: 0 var(--space-2); align-items: center; font-family: var(--font-mono); font-size: var(--text-xs); margin-left: auto; }
   .toolbar .s input { grid-column: 1 / -1; }
+  .mlxtran-import { margin: 0 0 var(--space-4); border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-tertiary); }
+  .mlxtran-import summary { padding: 10px 13px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; }
+  .mlxtran-import-body { display: grid; gap: var(--space-3); padding: 0 13px 13px; }
+  .import-formats { display: inline-grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 360px); border: 1px solid var(--border-strong); border-radius: 4px; overflow: hidden; }
+  .import-formats button { min-height: 34px; border: 0; border-right: 1px solid var(--border-strong); border-radius: 0; background: var(--bg-primary); color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .import-formats button:last-child { border-right: 0; }
+  .import-formats button.on { background: var(--text-primary); color: var(--bg-primary); }
+  .mlxtran-import-body > label { display: grid; gap: 5px; color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .mlxtran-import textarea { width: 100%; resize: vertical; padding: 9px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .mlxtran-import-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+  .mlxtran-import-actions button, .file-button span { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg-primary); color: var(--text-secondary); cursor: pointer; font-family: var(--font-mono); font-size: var(--text-xs); }
+  .mlxtran-import-actions .import-button { border-color: var(--accent-pk); background: var(--accent-pk); color: #fff; }
+  .mlxtran-import-actions .import-button:disabled { cursor: not-allowed; opacity: 0.45; }
+  .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .import-status { margin: 0; padding: 9px 10px; border-left: 3px solid var(--accent-pd); background: var(--bg-primary); font-size: var(--text-xs); }
+  .import-status.error { border-left-color: #b0392b; color: #8b3026; }
+  .import-status strong, .import-status span { display: block; }
+  .import-status ul { margin: 5px 0 0; padding-left: 18px; }
   .builder { display: grid; gap: var(--space-4); }
   @media (min-width: 980px) { .builder { grid-template-columns: minmax(0, 1fr) 330px; align-items: start; } }
   .stage { display: grid; gap: var(--space-4); min-width: 0; }

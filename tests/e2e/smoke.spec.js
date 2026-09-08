@@ -55,6 +55,16 @@ test('le sélecteur de langue bascule en anglais', async ({ page }) => {
   await expect(page.locator('body')).toContainText(/Chapters|Track|Course/i);
 });
 
+test('la page interactions présente le module DDI', async ({ page }) => {
+  await page.goto('/interactions');
+  await expect(page.getByRole('heading', { name: 'Interactions médicamenteuses' })).toBeVisible();
+  await expect(page.getByTestId('ddi-builder')).toContainText(/Modèle 1|Model 1/);
+  await expect(page.getByTestId('ddi-builder')).toContainText('Interaction');
+  await expect(page.getByTestId('ddi-builder')).toContainText(/Modèle 2|Model 2/);
+  await expect(page.locator('.intro')).toContainText('Interactions en cours de développement');
+  await expect(page.getByRole('link', { name: 'Ouvrir le moteur DDI' })).toHaveCount(0);
+});
+
 test('les libellés scientifiques des visualisations passent en anglais', async ({ page }) => {
   await page.goto('/chapitres/infectio-pkpd?lang=en');
   await expect(page.getByTestId('viz-panel')).toContainText('MIC (mg/L)');

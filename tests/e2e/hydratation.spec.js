@@ -129,6 +129,7 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
 
   await page.getByRole('tab', { name: 'NONMEM' }).click();
   const nonmem = await bloc.innerText();
+  expect(nonmem).toContain('; PK_LEGO_SPEC_V1:');
   expect(nonmem).toContain('$PROBLEM Atelier Lego');
   expect(nonmem).toContain('$INPUT ID TIME DV AMT EVID MDV CMT WT SEX');
   expect(nonmem).toContain('$SUBROUTINES ADVAN13 TOL=9');
@@ -157,6 +158,152 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(nonmemPd).toContain('DADT(4)=');
   expect(nonmemPd).toContain('ENDIF');
 
+  expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
+test("l'atelier Lego importe un modèle MLXTRAN et conserve les exports TDM", async ({ page }) => {
+  const erreurs = collecteErreurs(page);
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.mlxtran-import summary').click();
+  await page.locator('.mlxtran-import textarea').fill(`
+; ka_pop = 1.2
+; V_pop = 35
+; Cl_pop = 4.5
+; Q_pop = 3
+; V2_pop = 50
+; beta_WT_Cl = 0.6
+; beta_SEX_Cl = -0.2
+[COVARIATE]
+input = {WT, SEX}
+SEX = {type=categorical, categories={0, 1}}
+EQUATION:
+logt_WT = log(WT/70)
+[INDIVIDUAL]
+DEFINITION:
+Cl = {distribution=logNormal, typical=Cl_pop, covariate={logt_WT, SEX}, coefficient={beta_WT_Cl, {0, beta_SEX_Cl}}, sd=omega_Cl}
+V = {distribution=logNormal, typical=V_pop, sd=omega_V}
+[LONGITUDINAL]
+input = {ka, V, Cl, Q, V2, a, b}
+PK:
+Cc = pkmodel(ka, V, Cl, Q, V2)
+DEFINITION:
+DV = {distribution=normal, prediction=Cc, errorModel=combined1(a,b)}
+OUTPUT:
+output = {DV}
+  `);
+  await page.getByRole('button', { name: 'Construire le schéma' }).click();
+
+  await expect(page.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(3);
+  await expect(page.locator('.cov-row')).toHaveCount(2);
+  await expect(page.locator('.tdm-launch')).toBeEnabled();
+  await expect(page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN' })).toHaveAttribute('aria-selected', 'true');
+
+  await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' }).click();
+  const mrgsolve = await page.locator('pre.codeblk code').innerText();
+  expect(mrgsolve).toContain('// PK_LEGO_SPEC_V1:');
+  expect(mrgsolve).toContain('$PARAM @covariates @annotated');
+  expect(mrgsolve).toContain('BETA_WT_cl_central');
+  expect(mrgsolve).toContain('BETA_SEX_cl_central');
+  expect(mrgsolve).toContain('(SEX == 1)');
+
+  for (let index = 0; index < 10; index++) {
+    await page.getByRole('button', { name: 'Ajouter une covariable continue', exact: true }).click();
+  }
+  await expect(page.locator('.cov-row')).toHaveCount(12);
+
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.locator('.mlxtran-import summary')).toHaveText('Import a model');
+  expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
+test("l'import MLXTRAN reconnaît un régresseur dans les équations structurelles", async ({ page }) => {
+  const erreurs = collecteErreurs(page);
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.mlxtran-import summary').click();
+  await page.locator('.mlxtran-import textarea').fill(String.raw`
+[LONGITUDINAL]
+input = {Vstd, Clstd, POIDS, E0, slope}
+POIDS = {use=regressor}
+PK:
+V = Vstd \* (POIDS / 1.1)
+Cl = Clstd \* (POIDS / 1.1)\^0.75
+Cc = pkmodel(V, Cl)
+EQUATION:
+E = E0 + slope \* log(1+max(Cc,0))
+OUTPUT:
+output = {Cc, E}
+  `);
+  await page.getByRole('button', { name: 'Construire le schéma' }).click();
+
+  await expect(page.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(1);
+  await expect(page.locator('.cov-row')).toHaveCount(2);
+
+  await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' }).click();
+  const mrgsolve = await page.locator('pre.codeblk code').innerText();
+  expect(mrgsolve).toContain('pow(POIDS/1.1, BETA_POIDS_v_central)');
+  expect(mrgsolve).toContain('pow(POIDS/1.1, BETA_POIDS_cl_central)');
+  expect(mrgsolve).toContain('BETA_POIDS_v_central : 1');
+  expect(mrgsolve).toContain('BETA_POIDS_cl_central : 0.75');
+  expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
+test("l'atelier Lego importe aussi mrgsolve et NONMEM", async ({ page }) => {
+  const erreurs = collecteErreurs(page);
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.mlxtran-import summary').click();
+  const importer = page.locator('.mlxtran-import');
+
+  await importer.getByRole('tab', { name: 'mrgsolve' }).click();
+  await importer.locator('textarea').fill(`
+$PARAM TVCL=5, TVV=30, TVKA=1.2, WT=70, BETA_WT_CL=0.75
+$PARAM @covariates @annotated
+WT : 70 : weight
+$CMT @annotated
+GUT : depot [ADM]
+CENT : central [OBS]
+$MAIN
+double CL=TVCL*pow(WT/70,BETA_WT_CL);
+double V=TVV;
+double KA=TVKA;
+$ODE
+dxdt_GUT=-KA*GUT;
+dxdt_CENT=KA*GUT-CL*CENT/V;
+  `);
+  await importer.getByRole('button', { name: 'Construire le schéma' }).click();
+  await expect(importer.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(2);
+  await expect(page.locator('.cov-row')).toHaveCount(1);
+  await expect(page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('pre.codeblk code')).toContainText('pow(WT/70');
+
+  await importer.getByRole('tab', { name: 'NONMEM' }).click();
+  await importer.locator('textarea').fill(`
+$PROBLEM Oral model
+$INPUT ID TIME DV AMT EVID MDV CMT WT
+$SUBROUTINES ADVAN2 TRANS2
+$PK
+TVCL=THETA(1)*(WT/70)**THETA(4)
+CL=TVCL*EXP(ETA(1))
+V=THETA(2)
+KA=THETA(3)
+$THETA
+(0,5) ; CL
+(0,30) ; V
+(0,1.2) ; KA
+(-2,0.75,2) ; weight effect
+  `);
+  await importer.getByRole('button', { name: 'Construire le schéma' }).click();
+  await expect(importer.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(2);
+  await expect(page.locator('.cov-row')).toHaveCount(1);
+  await expect(page.locator('.codehead').getByRole('tab', { name: 'NONMEM' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('pre.codeblk code')).toContainText('(WT/70)**');
+  await expect(page.locator('.tdm-launch')).toBeEnabled();
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 

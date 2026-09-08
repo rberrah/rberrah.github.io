@@ -22,6 +22,7 @@
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
+    { href: '/interactions', key: 'interactions', label: copy.nav.interactions },
     { href: '/lego', key: 'lego', label: copy.nav.lego },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
@@ -143,17 +144,17 @@
   main { flex: 1; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-24); }
   footer {
     display: flex; flex-direction: column; gap: 2px; text-align: center;
-    padding: var(--space-8) var(--space-6) calc(var(--space-12) + 16px);
+    padding: var(--space-8) var(--space-6);
     color: var(--text-secondary); font-size: var(--text-sm);
     border-top: 1px solid var(--border-subtle); background: var(--bg-secondary);
   }
   .disclaimer {
-    position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
+    width: 100%;
     background: var(--disclaimer-bg); color: var(--disclaimer-text);
     text-align: center; padding: 6px var(--space-4);
     font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.02em;
   }
-  @media (max-width: 760px) {
+  @media (max-width: 1279px) {
     .burger { display: flex; }
     nav { position: absolute; top: 100%; right: 0; left: 0; flex-direction: column;
       background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
@@ -161,6 +162,8 @@
     nav.open { display: flex; }
     .tools { margin: var(--space-2) 0 0; }
     nav :global(.language-toggle) { width: max-content; }
+  }
+  @media (max-width: 760px) {
     main { padding: var(--space-6) var(--space-4) var(--space-24); }
   }
 </style>

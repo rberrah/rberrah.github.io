@@ -54,6 +54,14 @@ legacy_specification$covariates <- list(
 legacy_code <- lego_model_code(legacy_specification)
 stopifnot(grepl("pow(WT/70", legacy_code, fixed = TRUE))
 
+many_covariates <- oral_one_compartment
+many_covariates$covariates <- lapply(seq_len(12), function(index) list(
+  name = paste0("COV", index), type = "continuous", target = "v_centr",
+  reference = 1, comparison = 1.25, beta = 0.1
+))
+many_covariate_code <- lego_model_code(many_covariates)
+stopifnot(nrow(parse_covariates(many_covariate_code)) == 12L)
+
 session_dir <- tempfile("safe-lego-test-")
 dir.create(session_dir, recursive = TRUE)
 on.exit(unlink(session_dir, recursive = TRUE, force = TRUE), add = TRUE)

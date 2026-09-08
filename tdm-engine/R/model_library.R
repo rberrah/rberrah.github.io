@@ -207,7 +207,7 @@ normalize_lego_spec <- function(specification) {
     stop("A Lego model must contain between 1 and 20 compartments.")
   }
   if (length(input_edges) > 60L) stop("A Lego model cannot contain more than 60 transfers.")
-  if (length(input_covariates) > 10L) stop("A Lego model cannot contain more than 10 covariates.")
+  if (length(input_covariates) > 50L) stop("A Lego model cannot contain more than 50 covariates.")
 
   nodes <- lapply(seq_along(input_nodes), function(index) {
     input <- input_nodes[[index]]
