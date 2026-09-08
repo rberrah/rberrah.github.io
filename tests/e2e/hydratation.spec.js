@@ -307,6 +307,65 @@ $THETA
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 
+test("KOKA conserve le modèle et la courbe après export puis réimport", async ({ page }) => {
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  const code = page.locator('pre.codeblk code');
+  const importer = page.locator('.mlxtran-import');
+  await importer.locator('summary').click();
+  for (const [preset, format, horizon] of [
+    ['KOKA (Samtani)', 'MLXTRAN', 1500],
+    ['KOKA (Samtani)', 'mrgsolve', 1500],
+    ['KOKA (Samtani)', 'NONMEM', 1500],
+    ["PP6M (T'jollyn)", 'MLXTRAN', 5000]
+  ]) {
+    await page.locator('.toolbar button', { hasText: preset }).click();
+    if (horizon === 5000) {
+      await page.getByRole('button', { name: 'Ajouter une covariable continue', exact: true }).click();
+      await page.locator('.cov-toggle input').first().uncheck();
+    }
+    await page.locator('.codehead').getByRole('tab', { name: format, exact: true }).click();
+    const originalCode = await code.innerText();
+    const originalCurve = await page.locator('.chart .serie').first().getAttribute('d');
+    const originalLayout = await page.locator('.canvas .node').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('transform')));
+    await page.locator('.toolbar button', { hasText: 'Effacer' }).click();
+    await page.locator('.toolbar input[type="number"]').fill('24');
+    await importer.getByRole('tab', { name: format, exact: true }).click();
+    await importer.locator('textarea').fill(originalCode);
+    await importer.getByRole('button', { name: 'Construire le schéma' }).click();
+    await expect(page.locator('.toolbar input[type="number"]')).toHaveValue(String(horizon));
+    await expect(page.locator('.canvas .node')).toHaveCount(originalLayout.length);
+    await expect(page.locator('.chart .serie').first()).toHaveAttribute('d', originalCurve);
+    expect(await page.locator('.canvas .node').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('transform')))).toEqual(originalLayout);
+    expect(await code.innerText()).toBe(originalCode);
+    await expect(page.locator('.tdm-launch')).toBeEnabled();
+  }
+});
+
+test("KOKA MLXTRAN conserve ses deux voies sans le marqueur Lego", async ({ page }) => {
+  await page.goto('/lego/');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.toolbar button', { hasText: 'KOKA (Samtani)' }).click();
+  await page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN', exact: true }).click();
+  const original = await page.locator('pre.codeblk code').innerText();
+  const plainCode = original.replace(/^; PK_LEGO_SPEC_V1:.*\r?\n/m, '');
+  const importer = page.locator('.mlxtran-import');
+  await importer.locator('summary').click();
+  await importer.locator('textarea').fill(plainCode);
+  await importer.getByRole('button', { name: 'Construire le schéma' }).click();
+  await expect(page.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(2);
+  await expect(page.locator('.rate')).toHaveCount(2);
+  const regenerated = await page.locator('pre.codeblk code').innerText();
+  expect(regenerated).toContain('depot(target=central, adm=1, p=f_central, Tk0=tlag_slow)');
+  expect(regenerated).toContain('depot(target=slow, adm=1, p=(1-f_central), Tlag=tlag_slow)');
+  expect(regenerated).toContain('cl_central_pop = 4.95');
+  expect(regenerated).toContain('k_slow_central_pop = 0.000488');
+  expect(regenerated).toContain('v_central_pop = 391');
+  await expect(page.locator('.toolbar input[type="number"]')).toHaveValue('1500');
+  await expect(page.locator('.tdm-launch')).toBeEnabled();
+});
+
 test("l'atelier Lego construit une double absorption retardée, d'ordre zéro et saturable", async ({ page }) => {
   const erreurs = collecteErreurs(page);
   await page.goto('/lego/');

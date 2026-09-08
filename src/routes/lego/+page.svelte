@@ -228,12 +228,13 @@
     covariates = (specification.covariates ?? []).slice(0, 50).map((/** @type {any} */ covariate) => ({
       ...covariate, id: next++, type: covariate.type === 'categorical' ? 'categorical' : 'continuous',
       scope: covariate.scope === 'administration' ? 'administration' : 'patient',
-      reference: Number(covariate.reference), comparison: Number(covariate.comparison), beta: Number(covariate.beta), compare: true
+      reference: Number(covariate.reference), comparison: Number(covariate.comparison), beta: Number(covariate.beta), compare: covariate.compare !== false
     }));
     uid = next;
     selectedId = nodes[0]?.id ?? null;
-    activePreset = '';
-    tMax = 24;
+    activePreset = ['oral1', 'iv2', 'transit', 'metab', 'effect', 'dual', 'koka', 'pp6m'].includes(specification.simulation?.preset) ? specification.simulation.preset : '';
+    const horizon = Number(specification.simulation?.horizon);
+    if (Number.isFinite(horizon) && horizon >= 1) tMax = horizon;
     reconcileCovariates();
   }
 
@@ -814,6 +815,18 @@
     };
   }
 
+  function legoExportSpec(/** @type {number} */ horizon, /** @type {string} */ presetName) {
+    const specification = tdmModelSpec();
+    return {
+      ...specification,
+      simulation: { horizon, preset: presetName },
+      nodes: specification.nodes.map((node, index) => ({ ...node, x: nodes[index].x, y: nodes[index].y })),
+      covariates: specification.covariates.map((covariate, index) => ({
+        ...covariate, compare: validCovariates()[index].compare !== false
+      }))
+    };
+  }
+
   // ── nlmixr2 (estimation) ──
   $: codeNlmixr = (() => {
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
@@ -960,7 +973,7 @@
     const w = Math.max(...P.map((p) => `TV_${p.name}`.length), 8);
     const L = [];
 
-    L.push(`// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
+    L.push(`// PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoExportSpec(tMax, activePreset)))}`);
     if (router) L.push('$PLUGIN evtools');
     L.push('$PARAM @annotated');
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
@@ -1096,7 +1109,7 @@
     ];
     const L = [];
 
-    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
+    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoExportSpec(tMax, activePreset)))}`);
     L.push('');
     L.push('DESCRIPTION:');
     L.push('Modele genere par l\'Atelier Lego de Pharmacometrie Pratique.');
@@ -1267,7 +1280,7 @@
     };
     const L = [];
 
-    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(tdmModelSpec()))}`);
+    L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoExportSpec(tMax, activePreset)))}`);
     L.push('$PROBLEM Atelier Lego - modele PK/PD genere');
     L.push('; Donnees attendues : une ligne par evenement dans data.csv.');
     L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + (U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));

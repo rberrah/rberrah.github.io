@@ -53,9 +53,22 @@ function argument(args, ...names) {
 }
 
 function calls(code, names) {
-  const wanted = names.join('|');
-  return [...code.matchAll(new RegExp(`\\b(${wanted})\\s*\\(([^()]*)\\)`, 'gi'))]
-    .map((match) => ({ name: match[1].toLowerCase(), args: parseArguments(match[2]) }));
+  const matcher = new RegExp(`\\b(${names.join('|')})\\s*\\(`, 'gi');
+  const output = [];
+  let match;
+  while ((match = matcher.exec(code))) {
+    const start = matcher.lastIndex;
+    let end = start;
+    let depth = 1;
+    for (; end < code.length && depth; end++) {
+      if (code[end] === '(') depth++;
+      else if (code[end] === ')') depth--;
+    }
+    if (depth) throw new MlxtranImportError('unsupportedStructure');
+    output.push({ name: match[1].toLowerCase(), args: parseArguments(code.slice(start, end - 1)) });
+    matcher.lastIndex = end;
+  }
+  return output;
 }
 
 function collectNumericHints(raw) {
@@ -286,6 +299,14 @@ function parsePiecewise(raw, builder, warnings) {
     if (!byCmt.size) byCmt.set(1, node);
     register(equation[3], `v_${node.name}`);
   }
+  for (const equation of clean.matchAll(/^\s*ddt_([A-Za-z_]\w*)\s*=/gm)) {
+    const name = equation[1];
+    if (byAmount.has(name.toLowerCase())) continue;
+    if (!macros.some((macro) => macro.name === 'depot' && argument(macro.args, 'target')?.toLowerCase() === name.toLowerCase())) continue;
+    const node = addNode('depot', name);
+    byAmount.set(name.toLowerCase(), node);
+  }
+  if (/\bddt_/.test(clean)) addNamedGraph(builder, builder.hints);
   if (!byCmt.size) {
     const central = addNode('central', 'central', { vol: 30 });
     byCmt.set(1, central);
@@ -296,6 +317,9 @@ function parsePiecewise(raw, builder, warnings) {
   const selectedAdministration = administrationIds[0] ?? 1;
   if (administrationIds.length > 1) warnings.push({ code: 'multipleAdministrations', detail: String(selectedAdministration) });
   const doseNodes = [];
+  const fractionSources = new Map();
+  const lagSources = new Map();
+  const doseMacros = [];
   for (const [index, macro] of administrations.filter((item) => Number(argument(item.args, 'adm') ?? 1) === selectedAdministration).entries()) {
     const cmt = Number(argument(macro.args, 'cmt') ?? 1);
     const targetName = argument(macro.args, 'target');
@@ -304,9 +328,10 @@ function parsePiecewise(raw, builder, warnings) {
     const ka = argument(macro.args, 'ka');
     const tk0 = argument(macro.args, 'Tk0');
     const tlag = argument(macro.args, 'Tlag');
-    const fraction = argument(macro.args, 'p', 'F');
+    const fraction = argument(macro.args, 'p', 'F')?.replace(/^\((.*)\)$/, '$1');
     let dosed = target;
-    if (macro.name === 'depot' || ((macro.name === 'absorption' || macro.name === 'oral') && ka)) {
+    // depot(target=...) administers into an existing state, without an extra compartment.
+    if ((macro.name === 'absorption' || macro.name === 'oral') && ka) {
       dosed = addNode('depot', `depot${index + 1}`, { dose: 100, tlag: value(tlag, 0) });
       const edge = addEdge(dosed, target, { k: value(ka ?? 'ka', 1) });
       register(ka ?? 'ka', parameterName(edge));
@@ -321,7 +346,24 @@ function parsePiecewise(raw, builder, warnings) {
     }
     if (tlag) register(tlag, `tlag_${dosed.name}`);
     dosed.doseFraction = 100 * value(fraction ?? '1', 1);
+    if (fraction && /^[A-Za-z_]\w*$/.test(fraction)) {
+      fractionSources.set(fraction.toLowerCase(), dosed);
+      register(fraction, `f_${dosed.name}`);
+    }
+    if (tlag) lagSources.set(tlag.toLowerCase(), dosed);
+    doseMacros.push({ node: dosed, fraction, tk0 });
     doseNodes.push(dosed);
+  }
+  for (const { node, fraction, tk0 } of doseMacros) {
+    const complement = fraction?.match(/^1\s*-\s*([A-Za-z_]\w*)$/);
+    const fractionSource = complement && fractionSources.get(complement[1].toLowerCase());
+    if (fractionSource) node.fractionComplementOf = fractionSource.id;
+    const lagSource = tk0 && lagSources.get(tk0.toLowerCase());
+    if (lagSource) {
+      node.inputDurationTlagOf = lagSource.id;
+      const targets = builder.targets.get(tk0.toLowerCase()) ?? [];
+      builder.targets.set(tk0.toLowerCase(), targets.filter((target) => target.target !== `tk0_${node.name}`));
+    }
   }
   if (doseNodes.length > 1) {
     const total = doseNodes.reduce((sum, node) => sum + node.doseFraction, 0) || doseNodes.length;

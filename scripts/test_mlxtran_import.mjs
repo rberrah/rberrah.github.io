@@ -100,6 +100,47 @@ assert.equal(piecewise.mode, 'recognized');
 assert.equal(piecewise.spec.nodes.length, 3);
 assert.equal(piecewise.spec.edges.length, 4);
 
+const kokaWithoutMarker = parseMlxtran(`
+; v_central_pop = 391
+; k_slow_central_pop = 0.000488
+; cl_central_pop = 4.95
+; f_central_pop = 0.168
+; tlag_slow_pop = 319
+; beta_WT_tlag_slow = 0.2
+[COVARIATE]
+input = {WT}
+EQUATION:
+logt_WT = log(WT/70)
+[INDIVIDUAL]
+DEFINITION:
+tlag_slow = {distribution=logNormal, typical=tlag_slow_pop, covariate=logt_WT, coefficient=beta_WT_tlag_slow, no-variability}
+[LONGITUDINAL]
+input = {v_central, k_slow_central, cl_central, f_central, tlag_slow, a, b}
+PK:
+depot(target=central, adm=1, p=f_central, Tk0=tlag_slow)
+depot(target=slow, adm=1, p=(1-f_central), Tlag=tlag_slow)
+EQUATION:
+ddt_central = + k_slow_central*slow - cl_central*central/v_central
+ddt_slow = - k_slow_central*slow
+C_central = central/v_central
+`);
+assert.equal(kokaWithoutMarker.mode, 'recognized');
+assert.equal(kokaWithoutMarker.spec.nodes.length, 2);
+assert.equal(kokaWithoutMarker.spec.edges.length, 2);
+const kokaCentral = kokaWithoutMarker.spec.nodes.find((node) => node.name === 'central');
+const kokaSlow = kokaWithoutMarker.spec.nodes.find((node) => node.name === 'slow');
+assert.equal(kokaCentral.vol, 391);
+assert.equal(kokaCentral.inputType, 'zero_order');
+assert.equal(kokaCentral.inputDuration, 319);
+assert.equal(kokaCentral.inputDurationTlagOf, kokaSlow.id);
+assert(Math.abs(kokaCentral.doseFraction - 16.8) < 1e-12);
+assert.equal(kokaSlow.tlag, 319);
+assert.equal(kokaSlow.fractionComplementOf, kokaCentral.id);
+assert(Math.abs(kokaSlow.doseFraction - 83.2) < 1e-12);
+assert.equal(kokaWithoutMarker.spec.edges.find((edge) => edge.to === kokaCentral.id).k, 0.000488);
+assert.equal(kokaWithoutMarker.spec.edges.find((edge) => edge.to === 'OUT').cl, 4.95);
+assert.deepEqual(kokaWithoutMarker.spec.covariates.map((covariate) => covariate.target), ['tlag_slow']);
+
 const mrgsolveModel = `
 $PARAM @annotated
 TVCL : 5 : clearance
