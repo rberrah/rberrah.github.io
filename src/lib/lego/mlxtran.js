@@ -1,5 +1,5 @@
 // @ts-nocheck
-const SPEC_MARKER = /^(?:;|\/\/)\s*PK_LEGO_SPEC_V1:(.+)$/m;
+const SPEC_MARKER = /^[ \t]*(?:;|\/\/)\s*PK_LEGO_SPEC_V1:(.+)$/m;
 const NUMBER = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
 
 export class MlxtranImportError extends Error {
@@ -294,6 +294,8 @@ function parsePiecewise(raw, builder, warnings) {
   const concentrationEquations = [...clean.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*([A-Za-z_]\w*)\s*\/\s*([A-Za-z_]\w*)\s*$/gm)];
   for (const equation of concentrationEquations) {
     if (byAmount.has(equation[2].toLowerCase())) continue;
+    // A parameter ratio (e.g. response_0 = kin/kout) is not a concentration.
+    if (!new RegExp(`\\bddt_${equation[2]}\\s*=`, 'i').test(clean)) continue;
     const node = addNode(builder.nodes.length ? 'metab' : 'central', equation[2], { vol: value(equation[3], 30) });
     byAmount.set(equation[2].toLowerCase(), node);
     if (!byCmt.size) byCmt.set(1, node);
@@ -302,11 +304,13 @@ function parsePiecewise(raw, builder, warnings) {
   for (const equation of clean.matchAll(/^\s*ddt_([A-Za-z_]\w*)\s*=/gm)) {
     const name = equation[1];
     if (byAmount.has(name.toLowerCase())) continue;
-    if (!macros.some((macro) => macro.name === 'depot' && argument(macro.args, 'target')?.toLowerCase() === name.toLowerCase())) continue;
     const node = addNode('depot', name);
     byAmount.set(name.toLowerCase(), node);
   }
-  if (/\bddt_/.test(clean)) addNamedGraph(builder, builder.hints);
+  if (/\bddt_/.test(clean)) {
+    addNamedGraph(builder, builder.hints);
+    recoverNamedNodeTypes(builder, clean, builder.hints);
+  }
   if (!byCmt.size) {
     const central = addNode('central', 'central', { vol: 30 });
     byCmt.set(1, central);
@@ -618,7 +622,7 @@ function normalizeMrgsolveSource(raw) {
   return raw
     .replace(/\u00a0/g, ' ')
     .replace(/\\([_*^])/g, '$1')
-    .replace(/([^\r\n])(\$(?:PLUGIN|SET|PARAM|OMEGA|SIGMA|CMT|MAIN|PREAMBLE|GLOBAL|ODE|DES|TABLE|CAPTURE|PKMODEL)\b)/gi, '$1\n$2');
+    .replace(/([^\r\n])(\$(?:PLUGIN|SET|PARAM|OMEGA|SIGMA|CMT|MAIN|PREAMBLE|GLOBAL|ODE|DES|TABLE|EVENT|CAPTURE|PKMODEL)\b)/gi, '$1\n$2');
 }
 
 function rememberValue(values, name, value) {
@@ -634,6 +638,114 @@ function parseNamedValues(blocks) {
     }
   }
   return values;
+}
+
+function canonicalValues(values) {
+  const output = new Map();
+  for (const [name, value] of values) {
+    const canonical = name.replace(/^tv_/, '').replace(/_pop$/, '');
+    if (!output.has(canonical)) output.set(canonical, value);
+  }
+  return output;
+}
+
+function recoverNamedNodeTypes(builder, raw, values) {
+  const named = canonicalValues(values);
+  const escape = (name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (const node of builder.nodes) {
+    const name = node.name.toLowerCase();
+    const effect = named.has(`ke0_${name}`);
+    const response = named.has(`kin_${name}`) && named.has(`kout_${name}`);
+    if (effect || response) {
+      node.kind = effect ? 'effect' : 'response';
+      delete node.vol;
+      node.dose = 0;
+      for (const param of effect ? ['ke0'] : ['kin', 'kout', 'smax', 'sc50']) {
+        node[param] = named.get(`${param}_${name}`);
+        builder.register(`${param}_${name}`, `${param}_${node.name}`);
+      }
+      const equation = raw.match(new RegExp(`(?:dxdt_|ddt_)${escape(node.name)}\\s*=([^;\\r\\n]+)`, 'i'))?.[1] ?? '';
+      const source = builder.nodes.find((candidate) => candidate !== node && new RegExp(`\\b${escape(candidate.name)}\\b`, 'i').test(equation));
+      if (!source) throw new MlxtranImportError('unsupportedStructure');
+      node.source = source.id;
+    } else if (named.has(`v_${name}`)) {
+      node.vol = named.get(`v_${name}`);
+      if (node.kind !== 'central') node.kind = /^met(?:ab|_|$)/i.test(name) ? 'metab' : 'periph';
+    } else if (builder.edges.some((edge) => edge.from === node.id || edge.to === node.id)) {
+      // Only infer volume-free states when the graph uses explicit named parameters.
+      if ([...named.keys()].some((key) => key.startsWith('v_'))) {
+        node.kind = /^(t|tr|transit)\d+(?:_|$)/i.test(name) ? 'transit' : 'depot';
+        delete node.vol;
+      }
+    }
+  }
+}
+
+function applyDoseRoutes(builder, routes, values) {
+  const named = canonicalValues(values);
+  const resolve = (expression, fallback) => {
+    const text = String(expression ?? '').trim().replace(/^\((.*)\)$/, '$1');
+    const number = Number(text);
+    if (text && Number.isFinite(number)) return number;
+    if (/^1\s*-/.test(text)) return 1 - resolve(text.replace(/^1\s*-\s*/, ''), 0.5);
+    if (named.has(text.toLowerCase())) return named.get(text.toLowerCase());
+    if (text) builder.missing.add(text);
+    return fallback;
+  };
+  const clean = (value) => String(value ?? '').replace(/^\((.*)\)$/, '$1').toLowerCase();
+  for (const node of builder.nodes) node.dose = 0;
+  for (const route of routes) {
+    const node = route.node;
+    node.dose = 100;
+    node.tlag = resolve(route.lag, 0);
+    node.doseFraction = resolve(route.fraction ?? '1', 1) * 100;
+    node.inputType = route.duration ? 'zero_order' : 'bolus';
+    node.inputDuration = resolve(route.duration, 1);
+    if (route.lag) builder.register(clean(route.lag), `tlag_${node.name}`);
+    if (route.fraction && !clean(route.fraction).startsWith('1-')) builder.register(clean(route.fraction), `f_${node.name}`);
+    const complement = clean(route.fraction).match(/^1\s*-\s*([A-Za-z_]\w*)$/);
+    const source = complement && routes.find((other) => clean(other.fraction) === complement[1]);
+    if (source) node.fractionComplementOf = source.node.id;
+    const durationSource = route.duration && routes.find((other) => clean(other.lag) === clean(route.duration));
+    if (durationSource) node.inputDurationTlagOf = durationSource.node.id;
+    else if (route.duration) builder.register(clean(route.duration), `tk0_${node.name}`);
+  }
+}
+
+function mrgsolveDoseRoutes(raw, builder, definitions, values) {
+  const eventCode = sourceBlocks(raw, 'EVENT').join('\n');
+  const router = definitions.find((definition) => definition.name.toUpperCase() === 'LEGO_INPUT');
+  if (!router) return;
+  const index = definitions.indexOf(router) + 1;
+  if (!new RegExp(`\\bCMT\\s*==\\s*${index}\\b`).test(eventCode) || !/F_LEGO_INPUT\s*=\s*0\s*;/.test(raw)) {
+    throw new MlxtranImportError('unsupportedStructure');
+  }
+  const routes = [];
+  const constructors = /evt::ev\s+([A-Za-z_]\w*)\s*=\s*evt::(bolus|infuse)\s*\(/g;
+  for (const constructor of eventCode.matchAll(constructors)) {
+    const start = constructor.index + constructor[0].length;
+    let end = start;
+    let depth = 1;
+    for (; end < eventCode.length && depth; end++) {
+      if (eventCode[end] === '(') depth++;
+      else if (eventCode[end] === ')') depth--;
+    }
+    const [amount, cmt, rate] = splitList(eventCode.slice(start, end - 1));
+    const definition = definitions[Number(cmt) - 1];
+    const node = definition && findNode(builder.nodes, definition.name);
+    if (!node || !/^AMT(?:\s*\*|$)/.test(amount)) throw new MlxtranImportError('unsupportedStructure');
+    const fraction = amount.replace(/^AMT\s*\*?\s*/, '') || '1';
+    const duration = constructor[2] === 'infuse' ? rate?.match(/\/\s*([A-Za-z_]\w*|[\d.]+)\s*$/)?.[1] : undefined;
+    if (constructor[2] === 'infuse' && !duration) throw new MlxtranImportError('unsupportedStructure');
+    const lag = eventCode.match(new RegExp(`evt::retime\\(\\s*${constructor[1]}\\s*,\\s*TIME\\s*\\+\\s*([A-Za-z_]\\w*|[\\d.]+)\\s*\\)`))?.[1];
+    if (!new RegExp(`self\\.push\\(\\s*${constructor[1]}\\s*\\)`).test(eventCode)) throw new MlxtranImportError('unsupportedStructure');
+    routes.push({ node, fraction, duration, lag });
+  }
+  if (!routes.length) throw new MlxtranImportError('unsupportedStructure');
+  const input = findNode(builder.nodes, router.name);
+  if (builder.edges.some((edge) => edge.from === input.id || edge.to === input.id)) throw new MlxtranImportError('unsupportedStructure');
+  builder.nodes.splice(builder.nodes.indexOf(input), 1);
+  applyDoseRoutes(builder, routes, values);
 }
 
 function knownEntry(values, names) {
@@ -918,9 +1030,10 @@ function addNamedGraph(builder, values) {
         const km = graphValues.get(`km_${vmax[1]}`) ?? 10;
         const gamma = graphValues.get(`gamma_${vmax[1]}`);
         const edge = builder.addEdge(endpoints.from, endpoints.to, { kinetics: Number.isFinite(gamma) ? 'hill' : 'michaelis_menten', vmax: value, km, gamma: gamma ?? 1 });
+        const suffix = `${endpoints.from.name}_${endpoints.to === 'OUT' ? 'e' : endpoints.to.name}`;
         builder.register(name, builder.parameterName(edge));
-        builder.register(`km_${vmax[1]}`, `km_${vmax[1]}`);
-        if (Number.isFinite(gamma)) builder.register(`gamma_${vmax[1]}`, `gamma_${vmax[1]}`);
+        builder.register(`km_${vmax[1]}`, `km_${suffix}`);
+        if (Number.isFinite(gamma)) builder.register(`gamma_${vmax[1]}`, `gamma_${suffix}`);
       }
     }
   }
@@ -995,11 +1108,16 @@ export function parseMrgsolve(raw) {
   populateAliases(source, values, 'mrgsolve');
   const builder = modelBuilder(source);
   for (const [name, value] of values) builder.hints.set(name, value);
-  addCompartments(builder, compartmentDefinitions(source, 'mrgsolve'), values);
+  const definitions = compartmentDefinitions(source, 'mrgsolve');
+  addCompartments(builder, definitions, values);
   ensureClassicCompartments(builder, values, /depot\s*=\s*true/i.test(source));
   addNamedGraph(builder, values);
-  addTransitGraph(builder, values);
-  addClassicGraph(builder, values);
+  if (!builder.edges.length) {
+    addTransitGraph(builder, values);
+    addClassicGraph(builder, values);
+  }
+  recoverNamedNodeTypes(builder, source, values);
+  mrgsolveDoseRoutes(source, builder, definitions, values);
   if (!builder.nodes.length || !builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
   const warnings = [];
   const covariates = parseExpressionCovariates(source, builder, values, 'mrgsolve', warnings);
@@ -1043,10 +1161,30 @@ export function parseNonmem(raw) {
   addCompartments(builder, compartmentDefinitions(raw, 'nonmem'), values);
   ensureClassicCompartments(builder, values, oral, peripheralCount);
   addNamedGraph(builder, values);
-  addClassicGraph(builder, values);
+  const aliases = new Map([...raw.matchAll(/->\s*(P\d+)\s*=\s*([A-Za-z_]\w*)/gi)].map((match) => [match[1].toLowerCase(), match[2]]));
+  // Generated NM-TRAN uses indexed parameters/states. Resolve them before reading
+  // dose routes, PD equations and covariate effects, just as for named ODEs.
+  const namedSource = raw
+    .replace(/\b(TV)?P\d+\b/gi, (token) => {
+      const name = aliases.get(token.replace(/^TV/i, '').toLowerCase());
+      return name ? `${/^TV/i.test(token) ? 'TV_' : ''}${name}` : token;
+    })
+    .replace(/\bDADT\((\d+)\)/gi, (_, index) => `ddt_${builder.nodes[Number(index) - 1]?.name ?? 'UNKNOWN'}`)
+    .replace(/\bA\((\d+)\)/gi, (_, index) => builder.nodes[Number(index) - 1]?.name ?? 'UNKNOWN');
+  if (!builder.edges.length) addClassicGraph(builder, values);
+  recoverNamedNodeTypes(builder, namedSource, values);
+  const pk = sourceBlocks(namedSource, 'PK').join('\n');
+  const routes = builder.nodes.flatMap((node, index) => {
+    const assignment = (prefix) => pk.match(new RegExp(`^\\s*${prefix}${index + 1}\\s*=([^;\\r\\n]+)`, 'im'))?.[1]?.trim();
+    const fraction = assignment('F');
+    const lag = assignment('ALAG');
+    const duration = assignment('D');
+    return node.dose > 0 || fraction || lag || duration ? [{ node, fraction, lag, duration }] : [];
+  });
+  if (routes.length) applyDoseRoutes(builder, routes, values);
   if (!builder.nodes.length || !builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
   const warnings = [];
-  const covariates = parseExpressionCovariates(raw, builder, values, 'nonmem', warnings);
+  const covariates = parseExpressionCovariates(namedSource, builder, values, 'nonmem', warnings);
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
   if (/\$DES\b/i.test(raw)) warnings.push({ code: 'customOdeReview' });
   return { spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates }, mode: 'recognized', warnings };

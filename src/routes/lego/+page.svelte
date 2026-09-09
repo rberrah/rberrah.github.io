@@ -1082,9 +1082,7 @@
     L.push('$CAPTURE @annotated');
     L.push('DV : concentration simulee avec erreur residuelle (mg/L)');
     for (const n of concSources()) L.push(`CONC_${rid(n.name)} : concentration dans ${rid(n.name)} (mg/L)`);
-    for (const n of nodes.filter((x) => x.kind === 'effect' || x.kind === 'response')) {
-      L.push(`${rid(n.name)} : ${n.kind === 'effect' ? 'concentration au site d\'effet (mg/L)' : 'reponse'}`);
-    }
+    // Compartment states, including PD, are already returned by mrgsolve.
     return L.join('\n');
   })();
 
@@ -1232,6 +1230,7 @@
     const dosed = dosedNodes();
     const adm = dosed[0] ?? nodes.find((node) => node.kind !== 'effect' && node.kind !== 'response') ?? nodes[0];
     const nodeIndex = new Map(nodes.map((node, index) => [node.id, index + 1]));
+    const rateColumn = dosed.some((node) => node.inputType === 'zero_order') ? ' RATE' : '';
     const parameterVariable = new Map(P.map((parameter, index) => [parameter.name, `P${index + 1}`]));
     const thetaIndex = new Map(P.map((parameter, index) => [parameter.name, index + 1]));
     const betaIndex = new Map(C.map((covariate, index) => [covariate.id, P.length + index + 1]));
@@ -1283,7 +1282,7 @@
     L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoExportSpec(tMax, activePreset)))}`);
     L.push('$PROBLEM Atelier Lego - modele PK/PD genere');
     L.push('; Donnees attendues : une ligne par evenement dans data.csv.');
-    L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + (U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));
+    L.push('; Colonnes minimales : ID TIME DV AMT EVID MDV CMT' + rateColumn + (U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''));
     L.push(`; Compartiment dose par defaut : ${nodeIndex.get(adm.id)} (${rid(adm.name)}). Observation : ${nodeIndex.get(observed.id)} (${rid(observed.name)}).`);
     if (dosed.length > 1) L.push(`; Voies paralleles : dupliquez chaque dose vers CMT ${dosed.map((node) => nodeIndex.get(node.id)).join(', ')}; F1, F2, ... appliquent les fractions.`);
     if (dosed.some((node) => node.inputType === 'zero_order')) L.push('; Pour chaque voie d ordre zero, utilisez RATE=-2 afin que Dn fixe la duree.');
@@ -1292,7 +1291,7 @@
       const dataName = nonmemCovariate.get(covariate.id);
       if (sourceName !== dataName) L.push(`; Renommer la colonne ${sourceName} en ${dataName} pour NONMEM.`);
     }
-    L.push(`$INPUT ID TIME DV AMT EVID MDV CMT${U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''}`);
+    L.push(`$INPUT ID TIME DV AMT EVID MDV CMT${rateColumn}${U.length ? ` ${U.map((covariate) => nonmemCovariate.get(covariate.id)).join(' ')}` : ''}`);
     L.push('$DATA data.csv IGNORE=@');
     L.push('$SUBROUTINES ADVAN13 TOL=9');
     L.push('$MODEL');
@@ -1844,7 +1843,7 @@
   .eqs, .codeblk { width: 100%; max-width: 100%; border-radius: var(--radius); padding: var(--space-4); overflow-x: auto; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.6; }
   .eqs { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-subtle); }
   .codeblk { background: #1a1f2b; color: #e6edf3; }
-  .eqs code, .codeblk code { white-space: pre; }
+  .eqs code, .codeblk code { white-space: pre; background: transparent; color: inherit; padding: 0; }
   .codehead { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); margin-bottom: var(--space-2); }
   .codehead h2 { margin: 0; }
   .tabs { display: flex; flex-wrap: wrap; gap: 4px; }

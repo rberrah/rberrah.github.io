@@ -263,4 +263,24 @@ assert.equal(nonmem.spec.edges.length, 2);
 assert(nonmem.spec.covariates.some((covariate) => covariate.name === 'WT' && covariate.target === 'cl_central' && covariate.beta === 0.75));
 assert(nonmem.spec.covariates.some((covariate) => covariate.name === 'SEX' && covariate.type === 'categorical' && covariate.target === 'cl_central' && covariate.beta === -0.2));
 
+const turnover = parseMlxtran(`
+; kin_response_pop = 10
+; kout_response_pop = 0.15
+; smax_response_pop = 3
+; sc50_response_pop = 3
+; v_central_pop = 30
+; cl_central_pop = 5
+[LONGITUDINAL]
+PK:
+depot(target=central)
+EQUATION:
+response_0 = kin_response/kout_response
+ddt_central = -cl_central*central/v_central
+ddt_response = kin_response*(1+smax_response*(central/v_central)/(sc50_response+central/v_central))-kout_response*response
+C_central = central/v_central
+`);
+assert.equal(turnover.spec.nodes.length, 2);
+assert.equal(turnover.spec.nodes.find((node) => node.kind === 'central')?.name, 'central');
+assert.equal(turnover.spec.nodes.find((node) => node.kind === 'response')?.source, turnover.spec.nodes[0].id);
+
 console.log('MLXTRAN, mrgsolve, and NONMEM import tests passed.');
