@@ -72,6 +72,15 @@ source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "ddi_engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "ddi_builder.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "pd_engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "pd_pk.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "pd_observations.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "pd_module.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "onco_engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "onco_module.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "workbench_bridge.R"), local = TRUE)
 
 ml_concordance <- function(result, lang = "fr") {
   map_auc24 <- suppressWarnings(as.numeric(result$current_exposure$steady_state_auc24 %||% NA_real_))
@@ -474,8 +483,86 @@ observation_row_ui <- function(
   ), lang)
 }
 
+ddi_panel <- function(lang = "fr") {
+  t <- function(fr, en) app_t(lang, fr, en)
+  choices <- catalog_choices_i18n(lang = lang)
+  model_panel <- function(side, default, dose) {
+    id <- function(name) paste0("ddi_", name, "_", side)
+    accordion_panel(
+      if (side == 1) t("1 - Molécule affectée", "1 - Affected drug") else t("3 - Molécule interagissante", "3 - Interacting drug"),
+      value = paste0("ddi_model_", side, "_panel"),
+      ddi_paste_ui(side, t),
+      conditionalPanel(paste0("input.", id("source"), " != 'code'"),
+        selectInput(id("model"), t("Modele", "Model"), choices, default), uiOutput(paste0("ddi_route_", side, "_ui"))),
+      fluidRow(
+        column(4, numericInput(id("dose"), t("Dose", "Dose"), dose, min = 0.001)),
+        column(4, numericInput(id("interval"), t("Intervalle (h)", "Interval (h)"), 12, min = 0.25)),
+        column(4, numericInput(id("infusion"), t("Perfusion (h)", "Infusion (h)"), 0, min = 0))),
+      tags$small(class = "form-text", t("Perfusion = 0 pour oral ou bolus IV. Dose et concentration dans les unites du modele.", "Infusion = 0 for oral or IV bolus. Dose and concentration use model units.")),
+      div(class = "ddi-patient-actions",
+        actionButton(id("use_tdm"), t("Reprendre TDM / Lego", "Use TDM / Lego fit"), icon = icon("file-import"), class = "btn-outline-primary btn-sm"),
+        actionButton(id("use_population"), t("Valeurs populationnelles", "Population values"), icon = icon("users"), class = "btn-outline-secondary btn-sm")),
+      uiOutput(id("source_note")),
+      if (side == 2) fluidRow(
+        column(4, numericInput("ddi_start_day", t("Debut (jour)", "Start (day)"), 3, min = 0.25)),
+        column(4, numericInput("ddi_stop_day", t("Arret (jour)", "Stop (day)"), 10, min = 0.5)),
+        column(4, numericInput("ddi_followup", t("Suivi (jours)", "Follow-up (days)"), 3, min = 0))))
+  }
+  nav_panel(t("Interactions", "Interactions"), value = "ddi",
+    div(class = "ddi-shell",
+      fileInput("ddi_workshop_file", t("Importer un atelier (.json)", "Import workshop (.json)"), accept = ".json"),
+      div(class = "safety-banner",
+        div(tags$strong(t("Prototype de recherche et d'enseignement", "Research and teaching prototype")),
+          span(t("Relation definie par l'utilisateur, sans validation clinique. Session uniquement.", "User-defined relationship, not clinically validated. Session only."))),
+        span(class = "engine-badge", "mrgsolve / DDI")),
+      tags$button(type = "button", class = "mobile-configure-button ddi-mobile-configure-button",
+        onclick = "var r=this.closest('.ddi-shell');var b=r.querySelector('.collapse-toggle');if(b&&b.getAttribute('aria-expanded')!=='true')b.click();",
+        t("Configurer l'interaction", "Configure interaction")),
+      layout_sidebar(sidebar = sidebar(width = 410, open = "desktop",
+        div(class = "sidebar-heading", h2(t("Atelier DDI", "DDI builder")), uiOutput("ddi_status")),
+        accordion(id = "ddi_settings", open = c("ddi_model_1_panel", "ddi_interaction_panel"),
+          model_panel(1, "tacrolimus_woillard_ddi", 3),
+          accordion_panel(t("2 - Interaction", "2 - Interaction"), value = "ddi_interaction_panel",
+            uiOutput("ddi_target_ui"),
+            ddi_mechanism_ui(t)),
+          model_panel(2, "voriconazole_vandenborn_ddi", 200)),
+        div(class = "analysis-actions ddi-actions",
+          actionButton("assemble_ddi", t("Generer le modele", "Generate model"), icon = icon("code"), class = "btn-outline-primary w-100"),
+          checkboxInput("ddi_accept_disclaimer", t("Usage exploratoire, sous ma responsabilite", "Exploratory use, under my responsibility"), FALSE),
+          actionButton("run_ddi", t("Simuler l'interaction", "Simulate interaction"), icon = icon("play"), class = "btn-primary w-100"))),
+        div(class = "ddi-workspace",
+          uiOutput("ddi_chain"),
+          navset_tab(id = "ddi_tabs",
+            nav_panel(t("Modele assemble", "Assembled model"), value = "model",
+              uiOutput("ddi_code_status"), verbatimTextOutput("ddi_generated_code"),
+              conditionalPanel("output.ddi_code_ready",
+                div(class = "workbench-downloads",
+                  downloadButton("download_ddi_code", t("Modele 1 + interaction (.cpp)", "Model 1 + interaction (.cpp)")),
+                  downloadButton("download_ddi_r", t("Simulation couplee (.R)", "Coupled simulation (.R)"))))),
+            nav_panel(t("Simulation", "Simulation"), value = "simulation",
+              uiOutput("ddi_empty"), conditionalPanel("output.ddi_ready",
+                uiOutput("ddi_metrics"), h3(t("Molecule affectee", "Affected drug")),
+                plotOutput("ddi_concentration_plot", height = "420px"),
+                h3(t("Parametre et exposition du modele 2", "Parameter and model 2 exposure")),
+                plotOutput("ddi_effect_plot", height = "310px"), DTOutput("ddi_schedule"),
+                downloadButton("download_ddi_report", t("Creer le rapport", "Create report")))),
+            nav_panel(t("Methode et sources", "Methods and sources"),
+              tags$p(t("Le modele 1 commence a l'etat stationnaire et sa posologie est maintenue. Le modele 2 commence sans exposition prealable au jour choisi, puis ses doses sont arretees. Les AUC et extrema comparent les 24 dernieres heures avant cet arret (ou la fenetre disponible si elle est plus courte).",
+                "Model 1 starts at steady state and its regimen is maintained. Model 2 starts without prior exposure on the selected day, then its doses are stopped. AUC and extrema compare the final 24 hours before this stop (or the available window if shorter).")),
+              tags$p(t("Couplage unidirectionnel sur une grille de 0,1 h. Les mecanismes dynamiques integrent une activite A(0)=1 avec renouvellement kdeg : inhibition dependante du temps (kinact/KI) ou induction de la synthese (Emax/EC50). La recuperation continue apres l'arret. Les facteurs inhibiteurs sont bornes a 1 %; aucun calcul de fraction metabolisee ou d'extraction hepatique.",
+                "Unidirectional coupling on a 0.1 h grid. Dynamic mechanisms integrate activity A(0)=1 with kdeg turnover: time-dependent inhibition (kinact/KI) or synthesis induction (Emax/EC50). Recovery continues after stopping treatment. Inhibitory factors have a 1% floor; no fraction-metabolized or hepatic extraction calculation.")),
+              tags$p(t("Pour les mecanismes dynamiques, le C++ attend DDI_ACTIVITY, calculee par le script R couple. Il ne contient pas lui-meme l'ODE enzymatique. Une inhibition enzymatique doit cibler un parametre compatible (p. ex. clairance), pas un volume sans justification mecanistique.",
+                "For dynamic mechanisms, C++ expects DDI_ACTIVITY calculated by the coupled R script. It does not itself contain the enzyme ODE. Enzyme inhibition must target a compatible parameter (e.g. clearance), not a volume without mechanistic justification.")),
+              tags$a(href = "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/m12-drug-interaction-studies", target = "_blank", rel = "noopener noreferrer", "ICH M12: enzyme inhibition and induction"),
+              tags$p(t("Le script R conserve les deux modeles et les parametres selectionnes. Le C++ expose DDI_CP (concentration externe) et DDI_ACTIVE (facteur actif); seul, il ne simule pas la molecule 2. Les valeurs du C++ sont populationnelles; le script R conserve aussi les instantanes TDM.",
+                "The R script retains both models and selected parameters. C++ exposes DDI_CP (external concentration) and DDI_ACTIVE (active factor); alone it does not simulate drug 2. C++ defaults are population values; the R script also preserves TDM snapshots.")),
+              uiOutput("ddi_method")))))))
+}
+
 app_ui <- function(request) {
   lang <- app_language_from_request(request)
+  query <- parseQueryString(tryCatch(request$QUERY_STRING, error = function(error) "") %||% "")
+  initial_view <- if ((query$view %||% "") %in% c("ddi", "pd")) query$view else "analysis"
   model_choices <- catalog_choices_i18n(lang = lang)
   localize_ui(page_navbar(
   title = div(
@@ -489,10 +576,12 @@ app_ui <- function(request) {
     )
   ),
   id = "main_navigation",
+  selected = initial_view,
   theme = APP_THEME,
   fillable = FALSE,
   header = tags$head(
     tags$link(rel = "stylesheet", href = "app.css"),
+    tags$script(src = "workbench.js"),
     tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
     tags$script(HTML("(function () {
       window.addEventListener('message', function (event) {
@@ -500,7 +589,7 @@ app_ui <- function(request) {
         var payload = event.data || {};
         if (query.get('bridge') !== 'lego' || event.source !== window.opener) return;
         if (payload.type !== 'pk-lego-model' || typeof payload.code !== 'string') return;
-        if (!window.Shiny || typeof window.Shiny.setInputValue !== 'function') return;
+        if (!window.Shiny || typeof window.Shiny.setInputValue !== 'function' || !window.Shiny.shinyapp || !window.Shiny.shinyapp.config || !window.Shiny.shinyapp.config.sessionId) return;
         window.Shiny.setInputValue('lego_model_import', {
           code: payload.code,
           spec: payload.spec || null,
@@ -837,6 +926,8 @@ app_ui <- function(request) {
       )
     )
   ),
+  ddi_panel(lang),
+  pd_panel(lang),
   nav_panel(
     "Bibliothèque",
     value = "library",
@@ -998,9 +1089,18 @@ server <- function(input, output, session) {
   dose_count <- reactiveVal(1L)
   observation_count <- reactiveVal(1L)
   analysis_store <- reactiveVal(NULL)
+  ddi_store <- reactiveVal(NULL)
+  ddi_assembly <- reactiveVal(NULL)
+  ddi_custom_1 <- reactiveVal(NULL)
+  ddi_custom_2 <- reactiveVal(NULL)
+  ddi_subject_1 <- reactiveVal(NULL)
+  ddi_subject_2 <- reactiveVal(NULL)
   validation_store <- reactiveVal(NULL)
   query_applied <- reactiveVal(FALSE)
   pending_import_target <- reactiveVal(NULL)
+  workbench_import <- reactiveVal(NULL)
+  pending_ddi_target <- reactiveVal(NULL)
+  pending_ddi_routes <- reactiveVal(list())
   last_target_preset_key <- reactiveVal(NULL)
   pending_import_covariates <- reactiveVal(NULL)
   pending_import_dose_covariates <- reactiveVal(NULL)
@@ -1152,6 +1252,12 @@ server <- function(input, output, session) {
 
   session$onSessionEnded(function() {
     analysis_store(NULL)
+    ddi_store(NULL)
+    ddi_assembly(NULL)
+    ddi_custom_1(NULL)
+    ddi_custom_2(NULL)
+    ddi_subject_1(NULL)
+    ddi_subject_2(NULL)
     validation_store(NULL)
     loaded <- getLoadedDLLs()
     session_path <- normalizePath(session_model_dir, winslash = "/", mustWork = FALSE)
@@ -1218,6 +1324,9 @@ server <- function(input, output, session) {
     requested <- query$model %||% ""
     if (requested %in% MODEL_CATALOG$id) updateSelectInput(session, "model_id", selected = requested)
     if (identical(query$source %||% "", "custom")) updateRadioButtons(session, "model_source", selected = "custom")
+    if (identical(query$view %||% "", "ddi")) {
+      session$onFlushed(function() bslib::nav_select("main_navigation", "ddi"), once = TRUE)
+    }
     query_applied(TRUE)
   })
 
@@ -1263,7 +1372,7 @@ server <- function(input, output, session) {
       "Modèle Lego validé et régénéré côté serveur. Vérifiez-le avant de lancer l'analyse.",
       "The Lego model was validated and regenerated on the server. Review it before running the analysis."
     ), type = "message", duration = 5)
-  }, ignoreInit = TRUE)
+  }, ignoreNULL = TRUE)
 
   selected_model_ids <- reactive({
     if (!identical(input$model_source %||% "library", "library")) return(character())
@@ -1656,7 +1765,7 @@ server <- function(input, output, session) {
       if (length(messages) > 8) span(tx(paste0("+ ", length(messages) - 8, " autre(s) message(s) dans les lignes."), paste0("+ ", length(messages) - 8, " other row message(s).")))
     ))
   })
-  shiny::outputOptions(output, "data_quality_preview", suspendWhenHidden = FALSE)
+  shiny::outputOptions(output, "data_quality_preview", suspendWhenHidden = TRUE)
 
   output$therapy_timeline <- renderPlot({
     reactiveValuesToList(input)
@@ -1704,7 +1813,7 @@ server <- function(input, output, session) {
       theme_minimal(base_size = 11) +
       theme(panel.grid = element_blank(), legend.position = "bottom", plot.title = element_text(face = "bold", size = 12))
   })
-  shiny::outputOptions(output, "therapy_timeline", suspendWhenHidden = FALSE)
+  shiny::outputOptions(output, "therapy_timeline", suspendWhenHidden = TRUE)
 
   build_quality_diagnostics <- function(dose_records, observation_records, model_ids, blq_method) {
     english <- identical(current_language(), "en")
@@ -3189,6 +3298,457 @@ server <- function(input, output, session) {
           )
         )
       ), current_language())
+      htmltools::save_html(document, file = file)
+    }
+  )
+
+  pd_server("pd", analysis_store, report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache)
+  onco_server("onco", report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache)
+
+  apply_workbench <- function(raw) {
+    payload <- workbench_payload(raw)
+    if (payload$view == "ddi") {
+      config <- payload$config
+      pending_ddi_target(config$target)
+      pending_ddi_routes(stats::setNames(lapply(payload$models, function(model) list(model = model$id, route = model$route)), c("1", "2")))
+      ddi_subject_1(NULL); ddi_subject_2(NULL); ddi_custom_1(NULL); ddi_custom_2(NULL)
+      for (side in 1:2) {
+        model <- payload$models[[side]]
+        updateRadioButtons(session, paste0("ddi_source_", side), selected = model$source)
+        if (model$source == "code") updateTextAreaInput(session, paste0("ddi_code_", side), value = model$code)
+        else {
+          updateSelectInput(session, paste0("ddi_model_", side), selected = model$id)
+          updateSelectInput(session, paste0("ddi_route_", side), selected = model$route)
+        }
+        regimen <- if (side == 1) config$affected else config$driver
+        for (name in c("dose", "interval", "infusion")) updateNumericInput(session, paste0("ddi_", name, "_", side), value = regimen[[name]])
+      }
+      updateSelectInput(session, "ddi_interaction_type", selected = config$type)
+      updateSelectInput(session, "ddi_target_parameter", selected = config$target)
+      for (name in c("factor", "strength", "c50", "hill", "kdeg", "kinact", "start_day", "stop_day")) updateNumericInput(session, paste0("ddi_", name), value = config[[name]])
+      updateNumericInput(session, "ddi_followup", value = config$followup_days)
+      ddi_store(NULL); ddi_assembly(NULL)
+      bslib::nav_select("main_navigation", "ddi", session = session)
+      session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = TRUE))
+    } else {
+      bslib::nav_select("main_navigation", "pd", session = session)
+      bslib::nav_select("pd_workspace", if (payload$view == "onco") "oncology" else "general", session = session)
+    }
+    workbench_import(payload)
+  }
+  observeEvent(input$workbench_payload, tryCatch(apply_workbench(input$workbench_payload),
+    error = function(e) session$sendCustomMessage("workbench-ack", list(id = input$workbench_payload$id, ok = FALSE, error = conditionMessage(e)))))
+  for (file_id in c("ddi_workshop_file", "pd_workshop_file", "onco_workshop_file")) local({
+    id <- file_id
+    observeEvent(input[[id]], tryCatch({
+      file <- input[[id]]
+      on.exit(unlink(file$datapath), add = TRUE)
+      if (file$size > 450000) stop("Workshop JSON limit: 450 kB.")
+      payload <- jsonlite::fromJSON(file$datapath, simplifyVector = FALSE)
+      if (!is.list(payload) || !identical(payload$type, "pk-workbench")) stop("Invalid workshop JSON.")
+      payload$id <- paste0("file-", gsub("[^a-zA-Z0-9]", "", basename(tempfile())))
+      apply_workbench(payload)
+      showNotification(tx("Atelier importe. Le code personnel doit etre compile explicitement.", "Workshop imported. Custom code must be compiled explicitly."), type = "message")
+    }, error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10)))
+  })
+  observeEvent(input$ddi_target_parameter, {
+    if (identical(input$ddi_target_parameter, pending_ddi_target())) pending_ddi_target(NULL)
+  })
+  session$onSessionEnded(function() { workbench_import(NULL); pending_ddi_target(NULL); pending_ddi_routes(list()) })
+
+  ddi_choices_for <- function(side) {
+    choices <- catalog_choices_i18n(lang = current_language())
+    snapshot <- if (side == 1L) ddi_subject_1() else ddi_subject_2()
+    if (!is.null(snapshot) && !snapshot$id %in% unname(choices)) {
+      choices <- c(choices, stats::setNames(snapshot$id, paste0(snapshot$label, " · TDM/Lego")))
+    }
+    choices
+  }
+
+  ddi_route_ui <- function(side) {
+    model_id <- input[[paste0("ddi_model_", side)]] %||% ""
+    snapshot <- if (side == 1L) ddi_subject_1() else ddi_subject_2()
+    routes <- if (!is.null(snapshot) && identical(snapshot$id, model_id) && !model_id %in% MODEL_CATALOG$id) {
+      snapshot$route
+    } else if (model_id %in% MODEL_CATALOG$id) {
+      model_routes(model_record(model_id))
+    } else character()
+    shiny::req(length(routes))
+    pending <- pending_ddi_routes()[[as.character(side)]]
+    selected <- if (!is.null(pending) && identical(pending$model, model_id)) pending$route else isolate(input[[paste0("ddi_route_", side)]]) %||% routes[[1]]
+    if (!selected %in% routes) selected <- routes[[1]]
+    labels <- vapply(routes, function(route) {
+      if (identical(route, "Oral")) tx("Orale", "Oral") else if (identical(route, "IV")) "IV" else route
+    }, character(1))
+    selectInput(paste0("ddi_route_", side), tx("Voie d'administration", "Administration route"), choices = stats::setNames(routes, labels), selected = selected)
+  }
+
+  output$ddi_route_1_ui <- renderUI(ddi_route_ui(1L))
+  output$ddi_route_2_ui <- renderUI(ddi_route_ui(2L))
+  observeEvent(list(input$ddi_route_1, input$ddi_route_2, input$ddi_model_1, input$ddi_model_2), {
+    pending <- pending_ddi_routes()
+    for (side in names(pending)) {
+      value <- pending[[side]]
+      if (identical(value$model, input[[paste0("ddi_model_", side)]]) && identical(value$route, input[[paste0("ddi_route_", side)]])) pending[[side]] <- NULL
+    }
+    pending_ddi_routes(pending)
+  })
+
+  ddi_context_for <- function(side) {
+    if (identical(input[[paste0("ddi_source_", side)]], "code")) {
+      context <- if (side == 1L) ddi_custom_1() else ddi_custom_2()
+      if (is.null(context) || !identical(context$code, input[[paste0("ddi_code_", side)]])) stop(tx("Compilez d'abord le code actuel.", "Compile the current code first."))
+      context$adm_cmt <- as.integer(input[[paste0("ddi_adm_", side)]] %||% 1L)
+      if (!context$adm_cmt %in% seq_along(context$model@cmtL)) stop("Invalid administration compartment.")
+      return(context)
+    }
+    model_id <- input[[paste0("ddi_model_", side)]] %||% ""
+    route <- input[[paste0("ddi_route_", side)]] %||% NULL
+    snapshot <- if (side == 1L) ddi_subject_1() else ddi_subject_2()
+    context <- if (!is.null(snapshot) && identical(snapshot$id, model_id)) snapshot else ddi_library_context(model_id, route)
+    ddi_context_with_route(context, route)
+  }
+
+  output$ddi_target_ui <- renderUI({
+    model_id <- input$ddi_model_1 %||% ""
+    snapshot <- ddi_subject_1()
+    parameters <- tryCatch({
+      if (identical(input$ddi_source_1, "code")) {
+        context <- ddi_custom_1()
+        if (!is.null(context) && identical(context$code, input$ddi_code_1)) ddi_parameter_table(context) else data.frame()
+      } else if (!is.null(snapshot) && identical(snapshot$id, model_id)) ddi_parameter_table(snapshot)
+      else if (model_id %in% MODEL_CATALOG$id) ddi_code_parameter_table(read_library_code(model_id))
+      else data.frame()
+    }, error = function(error) data.frame())
+    if (!nrow(parameters)) return(div(class = "ddi-source-note", tx("Aucun paramètre structurel positif n'est disponible.", "No positive structural parameter is available.")))
+    choices <- stats::setNames(parameters$name, paste0(parameters$name, " (", signif(parameters$value, 5), ")"))
+    selected <- pending_ddi_target() %||% isolate(input$ddi_target_parameter) %||% ""
+    if (!selected %in% parameters$name) {
+      clearance <- grep("(^CL$|CL_|_CL$|TVCL)", parameters$name, value = TRUE, ignore.case = TRUE)
+      selected <- if (length(clearance)) clearance[[1]] else parameters$name[[1]]
+    }
+    tagList(
+      selectInput("ddi_target_parameter", tx("Paramètre du modèle 1", "Model 1 parameter"), choices = choices, selected = selected),
+      tags$small(class = "form-text", tx("La relation multiplie ce paramètre; les covariables, ETA et erreurs résiduelles sont exclues.", "The relationship multiplies this parameter; covariates, ETAs, and residual errors are excluded."))
+    )
+  })
+
+  observeEvent(input$ddi_model_1, {
+    snapshot <- ddi_subject_1()
+    if (!is.null(snapshot) && !identical(snapshot$id, input$ddi_model_1)) ddi_subject_1(NULL)
+    ddi_store(NULL)
+  }, ignoreInit = TRUE)
+  observeEvent(input$ddi_model_2, {
+    snapshot <- ddi_subject_2()
+    if (!is.null(snapshot) && !identical(snapshot$id, input$ddi_model_2)) ddi_subject_2(NULL)
+    ddi_store(NULL)
+  }, ignoreInit = TRUE)
+
+  ddi_snapshot_tdm <- function(side) {
+    result <- analysis_store()
+    if (is.null(result)) {
+      return(showNotification(tx("Lancez d'abord un ajustement dans l'onglet Analyse.", "First run a fit in the Analysis tab."), type = "warning", duration = 6))
+    }
+    fits <- successful_fits(result$fits)
+    if (!length(fits)) return(showNotification(tx("Aucun ajustement exploitable n'est disponible.", "No usable fit is available."), type = "warning", duration = 6))
+    selected <- input[[paste0("ddi_model_", side)]] %||% ""
+    indexes <- which(vapply(fits, function(fit) identical(fit$id, selected), logical(1)))
+    if (!length(indexes) && length(fits) == 1L) indexes <- 1L
+    if (!length(indexes)) {
+      return(showNotification(tx("Sélectionnez dans ce bloc un modèle présent dans le dernier ajustement TDM.", "In this block, select a model included in the latest TDM fit."), type = "warning", duration = 7))
+    }
+    fit <- fits[[indexes[[1]]]]
+    context <- ddi_fit_context(fit)
+    updateRadioButtons(session, paste0("ddi_source_", side), selected = "library")
+    if (side == 1L) ddi_subject_1(context) else ddi_subject_2(context)
+    updateSelectInput(session, paste0("ddi_model_", side), choices = ddi_choices_for(side), selected = context$id)
+
+    doses <- fit$source_doses %||% data.frame()
+    if (nrow(doses)) {
+      dose <- doses[order(doses$time), , drop = FALSE][nrow(doses), , drop = FALSE]
+      if (is.finite(as.numeric(dose$amount))) updateNumericInput(session, paste0("ddi_dose_", side), value = as.numeric(dose$amount))
+      if (is.finite(as.numeric(dose$interval)) && as.numeric(dose$interval) > 0) updateNumericInput(session, paste0("ddi_interval_", side), value = as.numeric(dose$interval))
+      if (is.finite(as.numeric(dose$infusion))) updateNumericInput(session, paste0("ddi_infusion_", side), value = as.numeric(dose$infusion))
+    }
+    ddi_store(NULL)
+    showNotification(tx(paste0("Ajustement TDM repris pour le modèle ", side, "."), paste0("TDM fit loaded for model ", side, ".")), type = "message", duration = 4)
+  }
+
+  observeEvent(input$ddi_use_tdm_1, ddi_snapshot_tdm(1L))
+  observeEvent(input$ddi_use_tdm_2, ddi_snapshot_tdm(2L))
+
+  ddi_use_population <- function(side) {
+    if (identical(input[[paste0("ddi_source_", side)]], "code")) return(ddi_load_custom(side))
+    model_id <- input[[paste0("ddi_model_", side)]] %||% ""
+    if (side == 1L) ddi_subject_1(NULL) else ddi_subject_2(NULL)
+    choices <- catalog_choices_i18n(lang = current_language())
+    if (!model_id %in% unname(choices)) model_id <- if (side == 1L) DEFAULT_MODEL else unname(choices)[[min(2, length(choices))]]
+    updateSelectInput(session, paste0("ddi_model_", side), choices = choices, selected = model_id)
+    ddi_store(NULL)
+  }
+  observeEvent(input$ddi_use_population_1, ddi_use_population(1L))
+  observeEvent(input$ddi_use_population_2, ddi_use_population(2L))
+
+  ddi_source_ui <- function(side) {
+    if (identical(input[[paste0("ddi_source_", side)]], "code")) return(NULL)
+    snapshot <- if (side == 1L) ddi_subject_1() else ddi_subject_2()
+    model_id <- input[[paste0("ddi_model_", side)]] %||% ""
+    if (!is.null(snapshot) && identical(snapshot$id, model_id)) {
+      div(class = "ddi-source-note personalized", tx("Paramètres du dernier ajustement TDM ou modèle Lego, conservés uniquement dans cette session.", "Parameters from the latest TDM fit or Lego model, retained only in this session."))
+    } else {
+      div(class = "ddi-source-note", tx("Paramètres populationnels du modèle sélectionné.", "Population parameters from the selected model."))
+    }
+  }
+  output$ddi_source_note_1 <- renderUI(ddi_source_ui(1L))
+  output$ddi_source_note_2 <- renderUI(ddi_source_ui(2L))
+
+  ddi_load_custom <- function(side) tryCatch({
+    context <- withProgress(message = tx("Compilation mrgsolve", "Compiling mrgsolve"), value = 0.2,
+      ddi_custom_context(input[[paste0("ddi_code_", side)]], side, session_model_dir, session_model_cache, ALLOW_CUSTOM_MODELS))
+    if (side == 1L) ddi_custom_1(context) else ddi_custom_2(context)
+    ddi_store(NULL); ddi_assembly(NULL)
+  }, error = function(error) showNotification(conditionMessage(error), type = "error", duration = 10))
+  observeEvent(input$ddi_load_code_1, ddi_load_custom(1L))
+  observeEvent(input$ddi_load_code_2, ddi_load_custom(2L))
+  for (side in 1:2) local({
+    side <- side
+    context <- reactive(if (side == 1L) ddi_custom_1() else ddi_custom_2())
+    output[[paste0("ddi_custom_status_", side)]] <- renderUI({
+      value <- context()
+      p(class = "ddi-source-note", if (is.null(value) || !identical(value$code, input[[paste0("ddi_code_", side)]]))
+        tx("Code non compile ou modifie.", "Code not compiled or modified.") else tx("Modele compile pour cette session.", "Model compiled for this session."))
+    })
+    output[[paste0("ddi_custom_adm_", side)]] <- renderUI({
+      value <- context(); shiny::req(value)
+      selectInput(paste0("ddi_adm_", side), tx("Compartiment d'administration", "Administration compartment"),
+        stats::setNames(seq_along(value$model@cmtL), value$model@cmtL), value$adm_cmt)
+    })
+  })
+
+  observeEvent(input$ddi_interaction_type, {
+    inhibition <- input$ddi_interaction_type %in% c("inhibition", "hill_inhibition")
+    updateNumericInput(session, "ddi_strength", max = if (inhibition) 1 else 20,
+      value = if (inhibition) min(input$ddi_strength %||% 1, 1) else input$ddi_strength %||% 1)
+  })
+
+  ddi_config_from_inputs <- function() {
+    list(
+      affected = list(dose = numeric_input_value("ddi_dose_1"), interval = numeric_input_value("ddi_interval_1"), infusion = numeric_input_value("ddi_infusion_1", 0)),
+      driver = list(dose = numeric_input_value("ddi_dose_2"), interval = numeric_input_value("ddi_interval_2"), infusion = numeric_input_value("ddi_infusion_2", 0)),
+      target = input$ddi_target_parameter %||% "",
+      type = input$ddi_interaction_type %||% "factor",
+      factor = numeric_input_value("ddi_factor", 0.5),
+      strength = numeric_input_value("ddi_strength", 1),
+      c50 = numeric_input_value("ddi_c50", 1),
+      hill = numeric_input_value("ddi_hill", 2),
+      kdeg = numeric_input_value("ddi_kdeg", 0.02),
+      kinact = numeric_input_value("ddi_kinact", 0.1),
+      start_day = numeric_input_value("ddi_start_day", 3),
+      stop_day = numeric_input_value("ddi_stop_day", 10),
+      followup_days = numeric_input_value("ddi_followup", 3)
+    )
+  }
+
+  output$ddi_status <- renderUI({
+    if (is.null(ddi_store())) span(class = "status-pill idle", tx("Non simulé", "Not simulated"))
+    else span(class = "status-pill ok", tx("Simulation prête", "Simulation ready"))
+  })
+
+  observeEvent(list(ddi_config_from_inputs(), input$ddi_model_1, input$ddi_model_2,
+    input$ddi_source_1, input$ddi_source_2, input$ddi_code_1, input$ddi_code_2, input$ddi_adm_1, input$ddi_adm_2,
+    input$ddi_route_1, input$ddi_route_2, ddi_subject_1(), ddi_subject_2()), {
+    ddi_store(NULL); ddi_assembly(NULL)
+  }, ignoreInit = TRUE)
+  output$ddi_chain <- renderUI({
+    label <- function(side) {
+      if (identical(input[[paste0("ddi_source_", side)]], "code")) return(paste("mrgsolve", side))
+      id <- input[[paste0("ddi_model_", side)]] %||% ""
+      if (id %in% MODEL_CATALOG$id) model_record(id)$label[[1]] else paste("TDM / Lego", side)
+    }
+    div(class = "model-chain",
+      div(class = "model-block exposure", icon("pills"), h3(label(1)), tags$small(tx("Molecule affectee", "Affected drug"))),
+      span(class = "model-arrow", icon("arrow-right")),
+      div(class = "model-block delay", icon("link"), h3(input$ddi_target_parameter %||% "..."),
+        tags$code(ddi_mechanism_equation(input$ddi_interaction_type %||% "factor"))),
+      span(class = "model-arrow", icon("arrow-left")),
+      div(class = "model-block response", icon("pills"), h3(label(2)), tags$small(tx("Molecule interagissante", "Interacting drug"))))
+  })
+  observeEvent(input$assemble_ddi, tryCatch({
+    ddi_assembly(NULL)
+    contexts <- withProgress(message = tx("Assemblage", "Assembly"), value = 0.2, list(ddi_context_for(1L), ddi_context_for(2L)))
+    config <- ddi_config_from_inputs()
+    code <- ddi_model_code(contexts[[1]], config)
+    # Compile the generated model before offering a C++ download.
+    compile_model(custom_code = code, allow_custom = ALLOW_CUSTOM_MODELS, custom_soloc = session_model_dir, custom_cache = session_model_cache)
+    ddi_assembly(list(code = code, script = ddi_export_script(config, contexts[[1]], contexts[[2]])))
+    bslib::nav_select("ddi_tabs", "model", session = session)
+  }, error = function(error) showNotification(conditionMessage(error), type = "error", duration = 10)))
+  output$ddi_code_ready <- reactive(!is.null(ddi_assembly()))
+  outputOptions(output, "ddi_code_ready", suspendWhenHidden = FALSE)
+  output$ddi_code_status <- renderUI(p(if (is.null(ddi_assembly()))
+    tx("Aucun modele assemble pour les valeurs actuelles.", "No model assembled for the current values.") else
+    tx("C++ compile. Entrees externes : DDI_CP, DDI_ACTIVE ou DDI_ACTIVITY selon le mecanisme. Le script R calcule le couplage dynamique et simule les deux modeles.", "C++ compiled. External inputs: DDI_CP, DDI_ACTIVE or DDI_ACTIVITY depending on mechanism. The R script computes dynamic coupling and simulates both models.")))
+  output$ddi_generated_code <- renderText({ shiny::req(ddi_assembly()); ddi_assembly()$code })
+  output$download_ddi_code <- downloadHandler(filename = function() "pk-interaction.cpp", content = function(file) { shiny::req(ddi_assembly()); writeLines(ddi_assembly()$code, file) })
+  output$download_ddi_r <- downloadHandler(filename = function() "pk-interaction.R", content = function(file) { shiny::req(ddi_assembly()); writeLines(ddi_assembly()$script, file) })
+
+  observeEvent(input$run_ddi, {
+    ddi_store(NULL)
+    tryCatch({
+      shiny::validate(shiny::need(isTRUE(input$ddi_accept_disclaimer), tx("Lisez et acceptez l'avertissement avant de lancer la simulation.", "Read and accept the warning before running the simulation.")))
+      result <- withProgress(message = tx("Simulation de l'interaction", "Simulating interaction"), value = 0.1, {
+        context_1 <- ddi_context_for(1L)
+        incProgress(0.3, detail = tx("Préparation du modèle 1", "Preparing model 1"))
+        context_2 <- ddi_context_for(2L)
+        incProgress(0.3, detail = tx("Préparation du modèle 2", "Preparing model 2"))
+        ddi_simulate(ddi_config_from_inputs(), context_1, context_2, delta = 0.1)
+      })
+      ddi_store(result)
+      bslib::nav_select("ddi_tabs", "simulation", session = session)
+      showNotification(tx("Simulation DDI terminée.", "DDI simulation completed."), type = "message", duration = 3)
+    }, error = function(error) {
+      showNotification(paste0(tx("Simulation impossible : ", "Simulation failed: "), conditionMessage(error)), type = "error", duration = 9)
+    })
+  })
+
+  output$ddi_ready <- reactive(!is.null(ddi_store()))
+  shiny::outputOptions(output, "ddi_ready", suspendWhenHidden = FALSE)
+  output$ddi_empty <- renderUI({
+    if (!is.null(ddi_store())) return(NULL)
+    div(class = "empty-results ddi-empty", tags$strong(tx("Assemblez puis simulez l'interaction.", "Assemble and simulate the interaction.")), span(tx("Le modèle 2 pilote une modification choisie d'un paramètre structurel du modèle 1.", "Model 2 drives a selected modification of one structural parameter in model 1.")))
+  })
+
+  ddi_concentration_figure <- function(result) {
+    data <- result$affected_profile
+    labels <- c(baseline = tx("Sans interaction", "Without interaction"), interaction = tx("Avec interaction", "With interaction"))
+    data$scenario <- factor(data$scenario, levels = names(labels), labels = unname(labels))
+    ggplot(data, aes(day, concentration, color = scenario, linetype = scenario)) +
+      annotate("rect", xmin = result$config$start_day, xmax = result$config$stop_day, ymin = -Inf, ymax = Inf, fill = "#f4e4dc", alpha = 0.6) +
+      geom_vline(xintercept = c(result$config$start_day, result$config$stop_day), color = "#8b756d", linetype = "dotted") +
+      geom_line(linewidth = 1) +
+      scale_color_manual(values = stats::setNames(c("#59636c", "#176b70"), unname(labels))) +
+      scale_linetype_manual(values = stats::setNames(c("dashed", "solid"), unname(labels))) +
+      labs(x = tx("Jour", "Day"), y = tx("Concentration (unité du modèle)", "Concentration (model unit)"), color = NULL, linetype = NULL, caption = paste0(result$affected$label, " · ", result$config$target)) +
+      theme_minimal(base_size = 13) +
+      theme(panel.grid.minor = element_blank(), legend.position = "top", plot.caption = element_text(hjust = 0, color = "#66717c"))
+  }
+
+  ddi_effect_figure <- function(result) {
+    effect <- result$effect
+    maximum <- max(effect$driver_concentration, na.rm = TRUE)
+    driver_relative <- if (is.finite(maximum) && maximum > 0) 100 * effect$driver_concentration / maximum else 0
+    data <- rbind(
+      data.frame(day = effect$day, value = 100 * effect$modifier, metric = paste0(result$config$target, tx(" relatif", " relative"))),
+      data.frame(day = effect$day, value = driver_relative, metric = tx("Exposition du modèle 2 (normalisée)", "Model 2 exposure (normalized)"))
+    )
+    ggplot(data, aes(day, value, color = metric, linetype = metric)) +
+      annotate("rect", xmin = result$config$start_day, xmax = result$config$stop_day, ymin = -Inf, ymax = Inf, fill = "#f4e4dc", alpha = 0.6) +
+      geom_hline(yintercept = 100, color = "#8c969f", linewidth = 0.5) +
+      geom_vline(xintercept = c(result$config$start_day, result$config$stop_day), color = "#8b756d", linetype = "dotted") +
+      geom_line(linewidth = 1) +
+      scale_color_manual(values = c("#176b70", "#a4441f")) +
+      labs(x = tx("Jour", "Day"), y = tx("Valeur relative (%)", "Relative value (%)"), color = NULL, linetype = NULL) +
+      theme_minimal(base_size = 13) +
+      theme(panel.grid.minor = element_blank(), legend.position = "top")
+  }
+
+  output$ddi_metrics <- renderUI({
+    result <- ddi_store()
+    shiny::req(result)
+    metrics <- result$metrics
+    div(
+      class = "exposure-strip ddi-metrics",
+      div(span(tx("AUC24 sans interaction", "AUC24 without interaction")), strong(format_metric(metrics$baseline$auc)), tags$small(tx("unité concentration·h", "concentration unit·h"))),
+      div(span(tx("AUC24 avec interaction", "AUC24 with interaction")), strong(format_metric(metrics$interaction$auc)), tags$small(paste0("×", format_metric(metrics$auc_ratio, 2)))),
+      div(span(tx("Cmin avec / sans", "Cmin with / without")), strong(paste0("×", format_metric(metrics$cmin_ratio, 2))), tags$small(paste(format_metric(metrics$baseline$cmin), "→", format_metric(metrics$interaction$cmin)))),
+      div(span(tx("Cmax avec / sans", "Cmax with / without")), strong(paste0("×", format_metric(metrics$cmax_ratio, 2))), tags$small(paste(format_metric(metrics$baseline$cmax), "→", format_metric(metrics$interaction$cmax)))),
+      div(span(tx("Paramètre initial", "Initial parameter")), strong(format_metric(metrics$baseline_parameter, 3)), tags$small(result$config$target)),
+      div(span(tx("Facteur min · max", "Minimum · maximum factor")), strong(paste(format_metric(metrics$minimum_modifier, 2), "·", format_metric(metrics$maximum_modifier, 2))), tags$small(tx("sur l'horizon simulé", "over the simulated horizon")))
+    )
+  })
+
+  output$ddi_concentration_plot <- renderPlot({ shiny::req(ddi_store()); ddi_concentration_figure(ddi_store()) })
+  output$ddi_effect_plot <- renderPlot({ shiny::req(ddi_store()); ddi_effect_figure(ddi_store()) })
+
+  ddi_schedule_table <- function(result) {
+    table <- result$schedule
+    data.frame(
+      `Modèle` = table$model,
+      Source = ifelse(table$source == "tdm", "TDM", tx("Population", "Population")),
+      Voie = table$route,
+      `Début (jour)` = table$start_day,
+      `Fin (jour)` = table$stop_day,
+      Dose = table$dose,
+      `Intervalle (h)` = table$interval,
+      `Perfusion (h)` = table$infusion,
+      check.names = FALSE
+    )
+  }
+
+  output$ddi_schedule <- renderDT({
+    result <- ddi_store()
+    shiny::req(result)
+    table <- ddi_schedule_table(result)
+    if (identical(current_language(), "en")) names(table) <- c("Model", "Source", "Route", "Start (day)", "Stop (day)", "Dose", "Interval (h)", "Infusion (h)")
+    datatable(table, rownames = FALSE, options = list(dom = "t", pageLength = 2, scrollX = TRUE))
+  })
+
+  ddi_interaction_description <- function(result) {
+    if (result$config$type %in% c("reversible", "hill_inhibition", "tdi", "turnover_induction")) {
+      fields <- c("target", "c50", "hill", "kdeg", "kinact", "strength")
+      return(paste(ddi_mechanism_equation(result$config$type), "|", paste(fields, unlist(result$config[fields]), sep = "=", collapse = "; ")))
+    }
+    switch(result$config$type,
+      factor = tx(paste0(result$config$target, " × ", format_metric(result$config$factor, 2), " pendant le traitement du modèle 2."), paste0(result$config$target, " × ", format_metric(result$config$factor, 2), " during model 2 treatment.")),
+      inhibition = paste0(result$config$target, " × [1 - ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)]"),
+      induction = paste0(result$config$target, " × [1 + ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)]")
+    )
+  }
+
+  ddi_reference_tag <- function(context) {
+    tagList(
+      tags$strong(context$label),
+      p(context$citation),
+      if (nzchar(context$doi)) tags$a(paste0("DOI ", context$doi), href = paste0("https://doi.org/", context$doi), target = "_blank", rel = "noopener noreferrer")
+    )
+  }
+
+  output$ddi_method <- renderUI({
+    result <- ddi_store()
+    shiny::req(result)
+    tagList(
+      div(class = "ddi-method-grid", div(ddi_reference_tag(result$affected)), div(ddi_reference_tag(result$driver)), div(tags$strong(tx("Relation simulée", "Simulated relationship")), p(ddi_interaction_description(result)))),
+      div(class = "analysis-diagnostics", tags$strong(tx("Limites d'interprétation", "Interpretation limits")), p(tx("Le lien entre les deux modèles est une relation utilisateur appliquée au paramètre choisi. Il ne démontre ni un mécanisme biologique ni une interaction clinique validée. Pour les relations Emax, la valeur IC50/EC50 doit employer exactement l'unité de concentration capturée par le modèle 2.", "The link between models is a user-defined relationship applied to the selected parameter. It demonstrates neither a biological mechanism nor a validated clinical interaction. For Emax relationships, IC50/EC50 must use exactly the concentration unit captured by model 2.")), p(tx("Les valeurs populationnelles conservent les covariables par défaut du fichier de modèle. L'option TDM reprend un instantané des paramètres individuels de chaque molécule; elle ne fusionne pas les dossiers ni les données brutes.", "Population values retain the model file's default covariates. The TDM option uses a snapshot of each drug's individual parameters; it does not merge records or raw data."))),
+      div(class = "privacy-notice ddi-privacy", tags$strong(tx("Session uniquement", "Session only")), span(tx("Aucun modèle importé, paramètre individuel ou résultat de simulation n'est conservé par ce module.", "No imported model, individual parameter, or simulation result is retained by this module.")))
+    )
+  })
+
+  output$download_ddi_report <- downloadHandler(
+    filename = function() paste0(if (identical(current_language(), "en")) "ddi-report-" else "rapport-ddi-", Sys.Date(), ".html"),
+    content = function(file) {
+      result <- ddi_store()
+      shiny::req(result)
+      metrics <- result$metrics
+      schedule <- ddi_schedule_table(result)
+      if (identical(current_language(), "en")) names(schedule) <- c("Model", "Source", "Route", "Start (day)", "Stop (day)", "Dose", "Interval (h)", "Infusion (h)")
+      document <- tags$html(
+        tags$head(tags$meta(charset = "utf-8"), tags$title(tx("Rapport de simulation DDI", "DDI simulation report")), tags$style(HTML("body{font-family:Arial,sans-serif;color:#17202a;max-width:1050px;margin:32px auto;padding:0 20px;line-height:1.5}img{max-width:100%;height:auto}table{width:100%;border-collapse:collapse}th,td{padding:8px;border:1px solid #dfe4e8;text-align:left}.warning{border-left:4px solid #b16916;background:#fffaf0;padding:12px;margin-top:24px}"))),
+        tags$body(
+          h1(tx("Simulation d'interaction médicamenteuse", "Drug-interaction simulation")),
+          p(paste(result$affected$label, "+", result$driver$label)),
+          p(ddi_interaction_description(result)),
+          h2(tx("Exposition comparée", "Exposure comparison")),
+          p(paste0("AUC24: ", format_metric(metrics$baseline$auc), " → ", format_metric(metrics$interaction$auc), " (×", format_metric(metrics$auc_ratio, 2), ")")),
+          tags$img(src = report_plot_uri(ddi_concentration_figure(result), height = 5), alt = tx("Concentrations comparées", "Compared concentrations")),
+          h2(tx("Relation d'interaction", "Interaction relationship")),
+          tags$img(src = report_plot_uri(ddi_effect_figure(result), height = 4), alt = tx("Paramètre et exposition relative", "Relative parameter and exposure")),
+          h2(tx("Scénario", "Scenario")),
+          report_table(schedule),
+          h2(tx("Sources des modèles", "Model sources")),
+          tags$ul(tags$li(result$affected$citation, if (nzchar(result$affected$doi)) paste0(" DOI ", result$affected$doi)), tags$li(result$driver$citation, if (nzchar(result$driver$doi)) paste0(" DOI ", result$driver$doi))),
+          div(class = "warning", tags$b(tx("Prototype de recherche et d'enseignement", "Research and teaching prototype")), p(tx("La relation d'interaction est une hypothèse définie par l'utilisateur. Ce rapport n'est ni une prescription ni un dispositif médical.", "The interaction relationship is a user-defined assumption. This report is neither a prescription nor a medical device.")))
+        )
+      )
       htmltools::save_html(document, file = file)
     }
   )

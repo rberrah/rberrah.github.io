@@ -23,6 +23,7 @@
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
     { href: '/interactions', key: 'interactions', label: copy.nav.interactions },
+    { href: '/pharmacodynamie', key: 'pharmacodynamics', label: copy.nav.pharmacodynamics },
     { href: '/lego', key: 'lego', label: copy.nav.lego },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
@@ -154,7 +155,7 @@
     text-align: center; padding: 6px var(--space-4);
     font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.02em;
   }
-  @media (max-width: 1279px) {
+  @media (max-width: 1499px) {
     .burger { display: flex; }
     nav { position: absolute; top: 100%; right: 0; left: 0; flex-direction: column;
       background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);

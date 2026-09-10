@@ -213,6 +213,7 @@ output = {DV}
   }
   await expect(page.locator('.cov-row')).toHaveCount(12);
 
+  if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
   await page.getByRole('button', { name: 'EN', exact: true }).click();
   await expect(page.locator('.mlxtran-import summary')).toHaveText('Import a model');
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);

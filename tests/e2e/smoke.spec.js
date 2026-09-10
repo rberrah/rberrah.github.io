@@ -50,7 +50,8 @@ test('la page Pour aller plus loin liste des liens externes', async ({ page }) =
 test('le sélecteur de langue bascule en anglais', async ({ page }) => {
   await page.goto('/chapitres');
   await page.waitForLoadState('networkidle');
-  await page.getByRole('button', { name: /EN|English/i }).first().click();
+  if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
   // le titre de section « Chapters » (EN) ou un libellé de parcours anglais apparaît
   await expect(page.locator('body')).toContainText(/Chapters|Track|Course/i);
 });
@@ -58,11 +59,17 @@ test('le sélecteur de langue bascule en anglais', async ({ page }) => {
 test('la page interactions présente le module DDI', async ({ page }) => {
   await page.goto('/interactions');
   await expect(page.getByRole('heading', { name: 'Interactions médicamenteuses' })).toBeVisible();
-  await expect(page.getByTestId('ddi-builder')).toContainText(/Modèle 1|Model 1/);
-  await expect(page.getByTestId('ddi-builder')).toContainText('Interaction');
-  await expect(page.getByTestId('ddi-builder')).toContainText(/Modèle 2|Model 2/);
-  await expect(page.locator('.intro')).toContainText('Interactions en cours de développement');
-  await expect(page.getByRole('link', { name: 'Ouvrir le moteur DDI' })).toHaveCount(0);
+  await expect(page.getByTestId('ddi-workbench')).toContainText('Recherche / en cours');
+  await expect(page.locator('iframe')).toHaveCount(0);
+  await expect(page.getByTestId('curve-ddi_time')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ouvrir dans le moteur' })).toBeVisible();
+});
+
+test('la page pharmacodynamie ouvre son atelier', async ({ page }) => {
+  await page.goto('/pharmacodynamie');
+  await expect(page.getByRole('heading', { name: 'Pharmacodynamie' })).toBeVisible();
+  await expect(page.locator('iframe')).toHaveCount(0);
+  await expect(page.getByTestId('curve-tumor_comparison')).toBeVisible();
 });
 
 test('les libellés scientifiques des visualisations passent en anglais', async ({ page }) => {

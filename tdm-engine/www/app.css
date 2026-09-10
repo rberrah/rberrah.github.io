@@ -279,6 +279,143 @@ h6 {
   color: #28533b;
 }
 
+.ddi-shell {
+  width: min(1560px, 100%);
+  margin: 0 auto;
+  padding: 20px 22px 42px;
+}
+
+.ddi-shell > .bslib-sidebar-layout {
+  min-height: calc(100vh - 155px);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.ddi-builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1.15fr) 20px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.ddi-block {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  min-height: 78px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--teal);
+  background: #fff;
+  text-align: center;
+}
+
+.ddi-block.mechanism { border-top-color: #b16916; }
+.ddi-block.perpetrator { border-top-color: var(--terracotta); }
+
+.ddi-block span,
+.ddi-block small {
+  color: var(--muted);
+  font-size: 0.65rem;
+}
+
+.ddi-block strong {
+  overflow-wrap: anywhere;
+  font-size: 0.76rem;
+}
+
+.ddi-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+.ddi-validation-badge {
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-left: 3px solid var(--green);
+  background: #e8f4ed;
+  color: #28533b;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.ddi-patient-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ddi-source-note {
+  padding: 8px 10px;
+  margin-top: 8px;
+  border-left: 3px solid #9aa5ae;
+  background: #f7f8fa;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.ddi-source-note.personalized {
+  border-left-color: var(--teal);
+  background: #eaf3f3;
+  color: #294a4d;
+}
+
+.ddi-actions { margin-top: 12px; }
+
+.ddi-workspace {
+  min-width: 0;
+  background: var(--paper);
+}
+
+.ddi-empty {
+  display: grid;
+  gap: 6px;
+  margin: 28px 30px;
+}
+
+.ddi-results .result-toolbar {
+  align-items: flex-start;
+  margin: 0 0 18px;
+}
+
+.ddi-results .result-toolbar h1 {
+  margin: 0 0 4px;
+  font-size: 1.7rem;
+}
+
+.ddi-results .result-toolbar p { margin: 0; color: var(--muted); }
+
+.ddi-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.ddi-method-grid > div {
+  padding: 11px 12px;
+  border-top: 3px solid var(--teal);
+  background: #f7f8fa;
+}
+
+.ddi-method-grid > div:nth-child(2) { border-top-color: var(--terracotta); }
+.ddi-method-grid > div:nth-child(3) { border-top-color: #b16916; }
+.ddi-method-grid p { margin: 5px 0 0; color: var(--muted); font-size: 0.8rem; }
+
+.ddi-privacy { margin: 14px 0 0; }
+
+@media (max-width: 760px) {
+  .ddi-shell { padding: 12px 10px 34px; }
+  .ddi-builder { grid-template-columns: 1fr; }
+  .ddi-arrow { min-height: 18px; transform: rotate(90deg); }
+  .ddi-method-grid { grid-template-columns: 1fr; }
+  .ddi-results .result-toolbar { display: grid; }
+  .ddi-empty { margin: 20px 16px; }
+}
+
 .population-tags {
   display: flex;
   flex-wrap: wrap;
@@ -972,6 +1109,10 @@ h6 {
     min-height: calc(100vh - 120px);
   }
 
+  .ddi-shell > .bslib-sidebar-layout {
+    min-height: 0;
+  }
+
   .bslib-sidebar-layout > .sidebar {
     width: min(92vw, 390px) !important;
   }
@@ -981,12 +1122,10 @@ h6 {
   }
 
   .mobile-configure-button {
-    position: fixed;
-    right: 12px;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    z-index: 1035;
     display: block;
+    width: 100%;
     min-height: 44px;
+    margin: 0 0 10px;
     padding: 9px 14px;
     border: 1px solid #0f5559;
     border-radius: 4px;
@@ -999,4 +1138,56 @@ h6 {
   .analysis-shell:has(.bslib-sidebar-layout:not(.sidebar-collapsed)) .mobile-configure-button {
     display: none;
   }
+
+  .ddi-shell:has(.bslib-sidebar-layout:not(.sidebar-collapsed)) .ddi-mobile-configure-button {
+    display: none;
+  }
+}
+.model-chain {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr) 24px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+  margin: 16px 0 24px;
+}
+.model-block { min-width: 0; padding: 16px 12px; border: 1px solid #ccd6d5; border-top: 3px solid #196f76; border-radius: 4px; background: #f8fbfa; overflow-wrap: anywhere; }
+.model-block.delay { border-top-color: #b45c39; background: #fdf9f6; }
+.model-block.response { border-top-color: #497d4c; background: #f6faf6; }
+.model-block h3 { margin: 8px 0; font-size: 1rem; line-height: 1.35; letter-spacing: 0; }
+.model-block code { font-size: 0.75rem; white-space: normal; }
+.model-block .form-group { margin: 8px 0 0; width: 100%; }
+.model-block .selectize-control { width: 100%; }
+.model-arrow { align-self: center; justify-self: center; width: 24px; height: 24px; color: #64766f; text-align: center; pointer-events: none; }
+.pd-parameter-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pd-parameter-grid .form-group { width: 100%; margin-bottom: 0; }
+.pd-status { padding: 12px 0; font-size: 0.85rem; color: #436459; }
+.pd-workspace, .ddi-workspace { min-width: 0; }
+.pd-workspace pre, .ddi-workspace pre { max-height: 560px; overflow: auto; font-size: 0.8rem; }
+.pd-shell .bslib-sidebar-layout, .ddi-shell .bslib-sidebar-layout { box-shadow: none; border-radius: 0; }
+.pd-shell h3 { font-size: 1.05rem; }
+.workbench-downloads { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.workbench-downloads .btn { white-space: normal; }
+.ddi-workspace .nav-tabs { flex-wrap: wrap; }
+@media (min-width: 901px) {
+  .ddi-shell .sidebar-content, .pd-shell .sidebar-content { max-height: calc(100dvh - 230px); overflow-y: auto; }
+}
+@media (max-width: 900px) {
+  .model-chain { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .model-arrow { transform: rotate(90deg); }
+  .model-block { padding: 10px 12px; }
+  .model-block h3 { display: inline; margin: 0 8px; }
+  .model-block small, .model-block code { display: block; margin-top: 6px; }
+  .pd-workspace, .ddi-workspace { padding: 8px; }
+}
+.onco-shell .sidebar-content { max-height: calc(100dvh - 230px); overflow-y: auto; }
+.onco-shell .workspace { min-width: 0; }
+.onco-shell .model-block h3 { font-size: 1.1rem; }
+.onco-shell .sidebar fieldset { margin-bottom: 20px; }
+.onco-shell .sidebar legend { font-size: 0.95rem; font-weight: 650; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 10px; }
+.pd-parameter-grid label { overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  .onco-shell .sidebar-content { max-height: none; }
+  .onco-shell > .bslib-sidebar-layout > .main { padding-inline: 12px; }
+  .onco-shell .workspace .nav-tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .onco-shell .workspace .nav-link { white-space: nowrap; }
 }

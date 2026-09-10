@@ -70,6 +70,24 @@
     }
   };
   $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
+  Object.assign(MODEL_IMPORT_UI.fr.errors, {
+    unsupportedEquation: "Une équation ou une condition ne peut pas être représentée fidèlement par les blocs Lego. Le schéma précédent est conservé. Le code mrgsolve natif reste utilisable dans le moteur TDM.",
+    unsupportedAdministration: "Cette biodisponibilité ou cette logique d'administration n'est pas encore représentable dans Lego. Utilisez le modèle natif dans le moteur."
+  });
+  Object.assign(MODEL_IMPORT_UI.en.errors, {
+    unsupportedEquation: 'An equation or condition cannot be represented faithfully by Lego blocks. The previous diagram is retained. Native mrgsolve code can still be used in the TDM engine.',
+    unsupportedAdministration: 'This bioavailability or administration logic cannot yet be represented in Lego. Use the native model in the engine.'
+  });
+  Object.assign(MODEL_IMPORT_UI.fr.warnings, {
+    populationDefaults: 'Paramètres absents initialisés à 1, à remplacer par vos estimations avant simulation :',
+    populationGraph: "Structure populationnelle : les effets aléatoires, l'erreur résiduelle, les changements de covariables dans le temps et les unités de sortie ne sont pas importés. Vérifiez-les dans le logiciel d'estimation.",
+    derivedParameters: 'Paramètres dérivés : les coefficients de covariables sur Km dépendent du Hill importé. Si Hill change, ces coefficients doivent être recalculés ou le code original réimporté.'
+  });
+  Object.assign(MODEL_IMPORT_UI.en.warnings, {
+    populationDefaults: 'Missing parameters initialized to 1; replace with your estimates before simulation:',
+    populationGraph: 'Population structure: random effects, residual error, time-varying covariates and output units are not imported. Review these in the estimation software.',
+    derivedParameters: 'Derived parameters: covariate coefficients on Km depend on the imported Hill value. If Hill changes, recalculate these coefficients or reimport the original code.'
+  });
   $: importUi = MODEL_IMPORT_UI[$language === 'en' ? 'en' : 'fr'];
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, inputDurationTlagOf?:number, tlag?:number, doseFraction?:number, fractionComplementOf?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number}} Node */
@@ -104,7 +122,7 @@
   let activePreset = '';
   let importFormat = 'mlxtran';
   let importText = '';
-  /** @type {{kind:'ok'|'error', format?:string, mode?:string, warnings?:{code:string, detail?:string}[], code?:string}|null} */
+  /** @type {{kind:'ok'|'error', format?:string, mode?:string, warnings?:{code:string, detail?:string}[], code?:string, detail?:string}|null} */
   let modelImportStatus = null;
 
   const VBW = 620, VBH = 320, NW = 88, NH = 42;
@@ -246,7 +264,7 @@
       modelImportStatus = { kind: 'ok', format: importFormat, mode: result.mode, warnings: result.warnings };
     } catch (error) {
       const failure = /** @type {any} */ (error);
-      modelImportStatus = { kind: 'error', format: importFormat, code: failure?.code ?? failure?.message ?? 'unsupportedStructure' };
+      modelImportStatus = { kind: 'error', format: importFormat, code: failure?.code ?? failure?.message ?? 'unsupportedStructure', detail: failure?.detail };
     }
   }
 
@@ -574,7 +592,7 @@
   const fmt = (/** @type {number} */ v) => {
     const n = Number(v);
     if (!Number.isFinite(n)) return '0';
-    return String(Math.round(n * 1e6) / 1e6);
+    return String(Number(n.toPrecision(12)));
   };
 
   const nmOf = (/** @type {number} */ id) => rid(nodes.find((n) => n.id === id)?.name ?? 'x');
@@ -1527,7 +1545,7 @@
       <button class="import-button" disabled={!importText.trim()} on:click={importerModel}>{importUi.applyImport}</button>
     </div>
     {#if modelImportStatus?.kind === 'error'}
-      <p class="import-status error" role="alert">{/** @type {Record<string, string>} */ (importUi.errors)[modelImportStatus.code ?? 'unsupportedStructure'] ?? importUi.errors.unsupportedStructure}</p>
+      <p class="import-status error" role="alert">{/** @type {Record<string, string>} */ (importUi.errors)[modelImportStatus.code ?? 'unsupportedStructure'] ?? importUi.errors.unsupportedStructure}{#if modelImportStatus.detail} <code>{modelImportStatus.detail}</code>{/if}</p>
     {:else if modelImportStatus?.kind === 'ok'}
       <div class="import-status ok" role="status">
         <strong>{modelImportStatus.mode === 'exact' ? importUi.importExact : importUi.importRecognized}</strong>
@@ -1767,7 +1785,7 @@
   .mlxtran-import-actions .import-button { border-color: var(--accent-pk); background: var(--accent-pk); color: #fff; }
   .mlxtran-import-actions .import-button:disabled { cursor: not-allowed; opacity: 0.45; }
   .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-  .import-status { margin: 0; padding: 9px 10px; border-left: 3px solid var(--accent-pd); background: var(--bg-primary); font-size: var(--text-xs); }
+  .import-status { margin: 0; padding: 9px 10px; border-left: 3px solid var(--accent-pd); background: var(--bg-primary); font-size: var(--text-xs); overflow-wrap: anywhere; }
   .import-status.error { border-left-color: #b0392b; color: #8b3026; }
   .import-status strong, .import-status span { display: block; }
   .import-status ul { margin: 5px 0 0; padding-left: 18px; }

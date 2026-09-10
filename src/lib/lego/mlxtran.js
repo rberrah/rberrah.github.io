@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { equationReader, reconstructOdes, codeOdeGraph } from './odeImport.js';
 const SPEC_MARKER = /^[ \t]*(?:;|\/\/)\s*PK_LEGO_SPEC_V1:(.+)$/m;
 const NUMBER = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
 
@@ -117,7 +118,7 @@ function modelBuilder(raw) {
       const key = text.toLowerCase();
       if (hints.has(key)) return hints.get(key);
       missing.add(text);
-      return fallback ?? defaultValue(text);
+      return 1;
     }
     const terms = text.replace(/[()]/g, '').split(/([*/])/).map((item) => item.trim()).filter(Boolean);
     if (terms.length > 1) {
@@ -129,7 +130,7 @@ function modelBuilder(raw) {
       if (Number.isFinite(result)) return result;
     }
     missing.add(text);
-    return fallback ?? defaultValue(text);
+    return 1;
   };
 
   const addNode = (kind, name, extra = {}) => {
@@ -182,9 +183,12 @@ function parsePkmodel(raw, builder) {
   if (!match) return false;
   const args = parseArguments(match[1]);
   const token = (...names) => argument(args, ...names);
-  const { addNode, addEdge, parameterName, register, registerExpression, value } = builder;
+  const { addNode, addEdge, parameterName, register, registerExpression } = builder;
+  const regressors=balancedDefinitions(raw).filter(d=>/\buse\s*=\s*regressor\b/i.test(d.body)).map(d=>d.name);
+  const reader=equationReader(clean,builder,regressors);
+  const value=reader.value;
   const volume = token('V', 'V1', 'Vc') ?? 'V';
-  const central = addNode('central', 'central', { vol: value(volume, 30) });
+  const central = addNode('central', 'central', { vol: reader.bind(volume,'v_central') });
   register(volume, `v_${central.name}`);
 
   const ka = token('ka');
@@ -198,14 +202,17 @@ function parsePkmodel(raw, builder) {
     for (let index = 2; index <= count; index++) {
       const current = addNode('transit', `transit${index}`);
       const edge = addEdge(previous, current, { k: value(ktr, 1) });
+      edge.k=reader.bind(ktr,parameterName(edge));
       register(ktr, parameterName(edge));
       previous = current;
     }
     const edge = addEdge(previous, central, { k: value(ka ?? ktr, 1) });
+    edge.k=reader.bind(ka??ktr,parameterName(edge));
     register(ka ?? ktr, parameterName(edge));
   } else if (ka) {
     const depot = addNode('depot', 'depot', { dose: 100 });
     const edge = addEdge(depot, central, { k: value(ka, 1) });
+    edge.k=reader.bind(ka,parameterName(edge));
     register(ka, parameterName(edge));
     administration = depot;
   } else {
@@ -213,13 +220,13 @@ function parsePkmodel(raw, builder) {
   }
   const tlag = token('Tlag');
   if (tlag) {
-    administration.tlag = value(tlag, 0);
+    administration.tlag = reader.bind(tlag,`tlag_${administration.name}`);
     register(tlag, `tlag_${administration.name}`);
   }
   const tk0 = token('Tk0');
   if (tk0) {
     administration.inputType = 'zero_order';
-    administration.inputDuration = value(tk0, 1);
+    administration.inputDuration = reader.bind(tk0,`tk0_${administration.name}`);
     register(tk0, `tk0_${administration.name}`);
   }
 
@@ -229,13 +236,17 @@ function parsePkmodel(raw, builder) {
   const km = token('Km');
   if (vm && km) {
     const edge = addEdge(central, 'OUT', { kinetics: 'michaelis_menten', vmax: value(vm, 10), km: value(km, 10) });
+    edge.vmax=reader.bind(vm,parameterName(edge));
+    edge.km=reader.bind(km,`km_${central.name}_e`);
     register(vm, parameterName(edge));
     register(km, `km_${central.name}_e`);
   } else if (cl) {
     const edge = addEdge(central, 'OUT', { eliminationParameterization: 'clearance', cl: value(cl, 5) });
+    edge.cl=reader.bind(cl,parameterName(edge));
     register(cl, parameterName(edge));
   } else {
     const edge = addEdge(central, 'OUT', { k: value(eliminationRate ?? 'k', 0.2) });
+    edge.k=reader.bind(eliminationRate??'k',parameterName(edge));
     register(eliminationRate ?? 'k', parameterName(edge));
   }
 
@@ -244,6 +255,8 @@ function parsePkmodel(raw, builder) {
     const peripheral = addNode('periph', `periph${number}`, { vol: 40 });
     const forward = addEdge(central, peripheral, { k: value(outward, 0.1) });
     const backward = addEdge(peripheral, central, { k: value(inward, 0.1) });
+    forward.k=reader.bind(outward,parameterName(forward));
+    backward.k=reader.bind(inward,parameterName(backward));
     registerExpression(outward, parameterName(forward));
     registerExpression(inward, parameterName(backward));
   };
@@ -257,9 +270,12 @@ function parsePkmodel(raw, builder) {
   for (const [number, q, peripheralVolume] of clearancePairs) {
     if (!q || !peripheralVolume || builder.nodes.some((node) => node.name === `periph${number}`)) continue;
     const peripheral = addNode('periph', `periph${number}`, { vol: value(peripheralVolume, 40) });
+    peripheral.vol=reader.bind(peripheralVolume,`v_${peripheral.name}`);
     register(peripheralVolume, `v_${peripheral.name}`);
     const forward = addEdge(central, peripheral, { k: value(q, 3) / central.vol });
     const backward = addEdge(peripheral, central, { k: value(q, 3) / peripheral.vol });
+    forward.k=reader.bind(`${q}/${volume}`,parameterName(forward));
+    backward.k=reader.bind(`${q}/${peripheralVolume}`,parameterName(backward));
     register(q, parameterName(forward));
     register(q, parameterName(backward));
     register(volume, parameterName(forward), -1);
@@ -269,8 +285,10 @@ function parsePkmodel(raw, builder) {
   const ke0 = token('ke0');
   if (ke0) {
     const effect = addNode('effect', 'effect', { ke0: value(ke0, 0.4), source: central.id });
+    effect.ke0=reader.bind(ke0,`ke0_${effect.name}`);
     register(ke0, `ke0_${effect.name}`);
   }
+  builder.odeCovariates=reader.covariates;
   return true;
 }
 
@@ -278,7 +296,10 @@ function parsePiecewise(raw, builder, warnings) {
   const clean = raw.replace(/;.*$/gm, '');
   const macros = calls(clean, ['compartment', 'absorption', 'oral', 'iv', 'depot', 'elimination', 'peripheral', 'transfer']);
   if (!macros.length) return false;
-  const { addNode, addEdge, parameterName, register, registerExpression, value } = builder;
+  const { addNode, addEdge, parameterName, register, registerExpression } = builder;
+  let reader = null;
+  const value = (expression, fallback) => reader ? reader.value(expression, fallback) : builder.value(expression, fallback);
+  const volumes = new Map();
   const byCmt = new Map();
   const byAmount = new Map();
   const compartments = macros.filter((macro) => macro.name === 'compartment');
@@ -289,6 +310,7 @@ function parsePiecewise(raw, builder, warnings) {
     const node = addNode(cmt === 1 ? 'central' : 'periph', amount, { vol: value(volume, cmt === 1 ? 30 : 40) });
     byCmt.set(cmt, node);
     byAmount.set(String(amount).toLowerCase(), node);
+    volumes.set(node.id, volume);
     register(volume, `v_${node.name}`);
   }
   const concentrationEquations = [...clean.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*([A-Za-z_]\w*)\s*\/\s*([A-Za-z_]\w*)\s*$/gm)];
@@ -299,6 +321,7 @@ function parsePiecewise(raw, builder, warnings) {
     const node = addNode(builder.nodes.length ? 'metab' : 'central', equation[2], { vol: value(equation[3], 30) });
     byAmount.set(equation[2].toLowerCase(), node);
     if (!byCmt.size) byCmt.set(1, node);
+    volumes.set(node.id, equation[3]);
     register(equation[3], `v_${node.name}`);
   }
   for (const equation of clean.matchAll(/^\s*ddt_([A-Za-z_]\w*)\s*=/gm)) {
@@ -310,6 +333,16 @@ function parsePiecewise(raw, builder, warnings) {
   if (/\bddt_/.test(clean)) {
     addNamedGraph(builder, builder.hints);
     recoverNamedNodeTypes(builder, clean, builder.hints);
+    if (!builder.edges.length) {
+      const regressors = balancedDefinitions(raw).filter(d=>/\buse\s*=\s*regressor\b/i.test(d.body)).map(d=>d.name);
+      reader = equationReader(clean, builder, regressors);
+      for (const [id, volume] of volumes) {
+        const node = builder.nodes.find(n=>n.id===id);
+        node.vol = reader.bind(volume, `v_${node.name}`);
+      }
+      reconstructOdes(clean, builder, reader, volumes);
+      builder.odeCovariates = reader.covariates;
+    }
   }
   if (!byCmt.size) {
     const central = addNode('central', 'central', { vol: 30 });
@@ -349,10 +382,13 @@ function parsePiecewise(raw, builder, warnings) {
       }
     }
     if (tlag) register(tlag, `tlag_${dosed.name}`);
+    if (reader && tlag) dosed.tlag = reader.bind(tlag, `tlag_${dosed.name}`);
+    if (reader && tk0) dosed.inputDuration = reader.bind(tk0, `tk0_${dosed.name}`);
     dosed.doseFraction = 100 * value(fraction ?? '1', 1);
     if (fraction && /^[A-Za-z_]\w*$/.test(fraction)) {
       fractionSources.set(fraction.toLowerCase(), dosed);
       register(fraction, `f_${dosed.name}`);
+      if (reader) dosed.doseFraction = 100 * reader.bind(fraction, `f_${dosed.name}`);
     }
     if (tlag) lagSources.set(tlag.toLowerCase(), dosed);
     doseMacros.push({ node: dosed, fraction, tk0 });
@@ -461,6 +497,7 @@ function defaultCovariateReference(name, builder) {
 }
 
 function parseCovariates(raw, builder, warnings) {
+  if (!balancedDefinitions(raw).some(d=>definitionField(d.body,'covariate'))) return [];
   const transformed = new Map();
   for (const match of raw.matchAll(new RegExp(`\\b([A-Za-z_]\\w*)\\s*=\\s*log\\(\\s*([A-Za-z_]\\w*)\\s*\\/\\s*([A-Za-z_]\\w*|${NUMBER})\\s*\\)`, 'gi'))) {
     transformed.set(match[1].toLowerCase(), { name: match[2], reference: builder.value(match[3], 1), exact: true });
@@ -573,6 +610,19 @@ function validateSource(raw) {
   if (typeof raw !== 'string' || !raw.trim() || raw.length > 200000) throw new MlxtranImportError('emptyOrTooLarge');
 }
 
+function positionImportedGraph(builder) {
+  if (builder.nodes.length > 3) return;
+  const central=builder.nodes.find(n=>n.kind==='central');
+  if (!central) return;
+  const others=builder.nodes.filter(n=>n!==central);
+  central.x=others.some(n=>n.kind==='depot')?330:180;
+  central.y=140;
+  others.forEach((node,index)=>{
+    node.x=node.kind==='depot'?40:450;
+    node.y=others.length===2 && others.every(n=>n.kind==='depot')?(index===0?60:220):140;
+  });
+}
+
 function embeddedSpec(raw) {
   const marker = raw.match(SPEC_MARKER);
   if (!marker) return null;
@@ -592,16 +642,21 @@ export function parseMlxtran(raw) {
 
   const builder = modelBuilder(raw);
   const warnings = [];
-  const recognized = parsePkmodel(raw, builder) || parsePiecewise(raw, builder, warnings);
+  const section=raw.search(/^\s*\[(?:COVARIATE|INDIVIDUAL|LONGITUDINAL)\]/im);
+  const source=section>=0?raw.slice(section):raw;
+  const recognized = parsePkmodel(source, builder) || parsePiecewise(source, builder, warnings);
   if (!recognized || !builder.nodes.length || !builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
-  const covariates = parseCovariates(raw, builder, warnings);
+  const covariates = parseCovariates(source, builder, warnings);
   const existing = new Set(covariates.map((covariate) => `${covariate.name}::${covariate.target}`));
-  for (const covariate of parseStructuralCovariates(raw, builder)) {
+  for (const covariate of builder.odeCovariates ?? parseStructuralCovariates(source, builder)) {
     const key = `${covariate.name}::${covariate.target}`;
-    if (!existing.has(key)) covariates.push(covariate);
+    if (!existing.has(key)) { covariates.push(covariate); existing.add(key); }
   }
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
+  if (builder.odeCovariates) warnings.push({code:'populationGraph'});
+  if (builder.derivedParameters) warnings.push({code:'derivedParameters'});
   if (/\bddt_[A-Za-z_]/i.test(raw)) warnings.push({ code: 'customOdeReview' });
+  positionImportedGraph(builder);
   return {
     spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates },
     mode: 'recognized',
@@ -622,7 +677,12 @@ function normalizeMrgsolveSource(raw) {
   return raw
     .replace(/\u00a0/g, ' ')
     .replace(/\\([_*^])/g, '$1')
-    .replace(/([^\r\n])(\$(?:PLUGIN|SET|PARAM|OMEGA|SIGMA|CMT|MAIN|PREAMBLE|GLOBAL|ODE|DES|TABLE|EVENT|CAPTURE|PKMODEL)\b)/gi, '$1\n$2');
+    .replace(/^\s*\[(PLUGIN|SET|PARAM|OMEGA|SIGMA|CMT|MAIN|PREAMBLE|GLOBAL|ODE|DES|TABLE|EVENT|CAPTURE|PKMODEL)\]/gim, '$$$1')
+    .split(/\r?\n/).map(line => {
+      const comment=line.indexOf('//');
+      const code=comment<0?line:line.slice(0,comment);
+      return code.replace(/([^\r\n])(\$(?:PLUGIN|SET|PARAM|OMEGA|SIGMA|CMT|MAIN|PREAMBLE|GLOBAL|ODE|DES|TABLE|EVENT|CAPTURE|PKMODEL)\b)/gi, '$1\n$2') + (comment<0?'':line.slice(comment));
+    }).join('\n');
 }
 
 function rememberValue(values, name, value) {
@@ -632,7 +692,8 @@ function rememberValue(values, name, value) {
 
 function parseNamedValues(blocks) {
   const values = new Map();
-  for (const block of blocks) {
+  for (const raw of blocks) {
+    const block=raw.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g,'');
     for (const match of block.matchAll(new RegExp(`\\b([A-Za-z_]\\w*)\\s*(?::|=)\\s*(${NUMBER})(?=\\s*(?::|,|$|\\r?\\n))`, 'gim'))) {
       rememberValue(values, match[1], match[2]);
     }
@@ -797,7 +858,7 @@ function inputNames(raw, format) {
   if (format === 'mrgsolve') {
     for (const block of sourceBlocks(raw, 'PARAM')) {
       if (!/@covariates?\b/i.test(block)) continue;
-      for (const match of block.matchAll(/\b([A-Za-z_]\w*)\s*(?::|=)/g)) names.add(match[1].toLowerCase());
+      for (const match of block.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g,'').matchAll(/\b([A-Za-z_]\w*)\s*(?::|=)/g)) names.add(match[1].toLowerCase());
     }
   } else {
     for (const block of sourceBlocks(raw, 'INPUT')) {
@@ -931,6 +992,9 @@ function addCompartments(builder, definitions, values) {
     name: cleanName(definition.name.replace(/^C\d+_/i, ''))
   }));
   const explicitCentral = cleaned.find((item) => /OBS|DEFOBS/i.test(item.tags)) ?? cleaned.find((item) => /cent|central/i.test(item.name));
+  const taggedDose = cleaned.filter(item=>/ADM|DEFDOSE/i.test(item.tags));
+  const selectedDose = taggedDose[0] ?? cleaned.find(item=>/depot|gut|abs/i.test(item.name)) ?? explicitCentral ?? cleaned[0];
+  if (taggedDose.length > 1) builder.selectedAdministration = selectedDose.name;
   for (const [index, definition] of cleaned.entries()) {
     const central = definition === explicitCentral || (!explicitCentral && index === 0);
     const transit = !central && /(?:^|_)(?:tr|transit)\d*(?:_|$)/i.test(definition.name);
@@ -942,11 +1006,62 @@ function addCompartments(builder, definitions, values) {
     const volume = knownValue(values, [`v_${definition.name}`, definition.name === explicitCentral?.name ? 'v' : `v${index + 1}`]);
     builder.addNode(kind, definition.name, {
       ...(kind === 'central' || kind === 'periph' || kind === 'metab' ? { vol: volume ?? (kind === 'central' ? 30 : 40) } : {}),
-      dose: depot || /ADM|DEFDOSE/i.test(definition.tags) ? 100 : 0
+      dose: definition === selectedDose ? 100 : 0
     });
   }
   const central = builder.nodes.find((node) => node.kind === 'central');
   if (central && !builder.nodes.some((node) => (node.dose ?? 0) > 0)) central.dose = 100;
+}
+
+function classicCodeGraph(raw, builder, values, regressors) {
+  const central=builder.nodes.find(n=>n.kind==='central');
+  const depot=builder.nodes.find(n=>n.kind==='depot');
+  if (!central || builder.nodes.some(n=>!['central','depot','periph'].includes(n.kind))) throw new MlxtranImportError('unsupportedStructure');
+  const reader=equationReader(raw,builder,regressors);
+  const volume=knownEntry(values,['v','vc','v1'])?.[0];
+  const clearance=knownEntry(values,['cl','clearance'])?.[0];
+  const kel=knownEntry(values,['kel','ke','k10'])?.[0];
+  if (!volume || (!clearance && !kel)) throw new MlxtranImportError('unsupportedStructure');
+  central.vol=reader.bind(volume,`v_${central.name}`);
+  const elimination=builder.addEdge(central,'OUT');
+  if (clearance) {
+    elimination.eliminationParameterization='clearance';
+    elimination.cl=reader.bind(clearance,`cl_${central.name}`);
+  } else elimination.k=reader.bind(kel,`k_${central.name}_e`);
+  if (depot) {
+    const ka=knownEntry(values,['ka'])?.[0];
+    if (!ka) throw new MlxtranImportError('unsupportedStructure');
+    builder.addEdge(depot,central,{k:reader.bind(ka,`k_${depot.name}_${central.name}`)});
+  }
+  builder.nodes.filter(n=>n.kind==='periph').forEach((node,index)=>{
+    const q=knownEntry(values,[index===0?'q':`q${index+2}`])?.[0];
+    const v=knownEntry(values,[`v${index+2}`,index===0?'vp':`vp${index+1}`])?.[0];
+    if (!q || !v) throw new MlxtranImportError('unsupportedStructure');
+    node.vol=reader.bind(v,`v_${node.name}`);
+    builder.addEdge(central,node,{k:reader.bind(`${q}/${volume}`,`k_${central.name}_${node.name}`)});
+    builder.addEdge(node,central,{k:reader.bind(`${q}/${v}`,`k_${node.name}_${central.name}`)});
+  });
+  builder.odeCovariates=reader.covariates;
+  return reader;
+}
+
+function singleCodeAdministration(builder, raw, reader, format) {
+  if (!reader) return;
+  const node=builder.nodes.find(n=>n.dose>0);
+  if (!node) return;
+  const index=builder.nodes.indexOf(node)+1;
+  const symbol=prefix=>format==='mrgsolve'?`${prefix}_${node.name}`:`${prefix==='F'?'F':prefix==='D'?'D':'ALAG'}${index}`;
+  const expression=prefix=>reader.assignments.has(symbol(prefix).toLowerCase()) ? symbol(prefix) : null;
+  const fraction=expression('F');
+  if (fraction) {
+    const count=reader.covariates.length;
+    if (reader.bind(fraction,`f_${node.name}`)!==1 || reader.covariates.length!==count) throw new MlxtranImportError('unsupportedAdministration');
+  }
+  const lag=expression('ALAG');
+  const duration=expression('D');
+  if (lag) node.tlag=reader.bind(lag,`tlag_${node.name}`);
+  if (duration) { node.inputType='zero_order'; node.inputDuration=reader.bind(duration,`tk0_${node.name}`); }
+  if (format==='mrgsolve' && /\$EVENT\b|self\.push\s*\(/i.test(raw)) throw new MlxtranImportError('unsupportedAdministration');
 }
 
 function addTransitGraph(builder, values) {
@@ -1099,6 +1214,17 @@ function populateAliases(raw, values, format) {
   }
 }
 
+// Numeric declarations only, for workshop selectors; compilation remains authoritative.
+export function mrgsolveParameterChoices(raw) {
+  const source = normalizeMrgsolveSource(raw);
+  validateSource(source);
+  const blocks = sourceBlocks(source, 'PARAM').filter((block) => !/@covariates?\b/i.test(block));
+  const values = parseNamedValues(blocks);
+  const names = [...blocks.join('\n').matchAll(/\b([A-Za-z_]\w*)\s*[:=]/g)].map((match) => match[1]);
+  return [...new Set(names)].map((name) => ({ name, value: values.get(name.toLowerCase()) }))
+    .filter(({ name, value }) => Number.isFinite(value) && value > 0 && !/^(ETA|BETA|EPS|SIGMA|OMEGA|RUV|ERR|RES)/i.test(name) && !/(^|_)(PROP|ADD|CV)(_|$)/i.test(name));
+}
+
 export function parseMrgsolve(raw) {
   const source = normalizeMrgsolveSource(raw);
   validateSource(source);
@@ -1107,23 +1233,32 @@ export function parseMrgsolve(raw) {
   const values = parseNamedValues(sourceBlocks(source, 'PARAM'));
   populateAliases(source, values, 'mrgsolve');
   const builder = modelBuilder(source);
+  builder.strictParameters = true;
   for (const [name, value] of values) builder.hints.set(name, value);
   const definitions = compartmentDefinitions(source, 'mrgsolve');
   addCompartments(builder, definitions, values);
   ensureClassicCompartments(builder, values, /depot\s*=\s*true/i.test(source));
   addNamedGraph(builder, values);
+  let reader=null;
   if (!builder.edges.length) {
-    addTransitGraph(builder, values);
-    addClassicGraph(builder, values);
+    const code=sourceBlocks(source,'MAIN').concat(sourceBlocks(source,'ODE'),sourceBlocks(source,'TABLE')).join('\n').replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*/g,'');
+    if (/\bdxdt_\w+\s*=/.test(source)) reader=codeOdeGraph(code,builder,[...inputNames(source,'mrgsolve')]);
+    else if (/\$PKMODEL\b/i.test(source)) reader=classicCodeGraph(code,builder,values,[...inputNames(source,'mrgsolve')]);
+    else throw new MlxtranImportError('unsupportedStructure');
   }
   recoverNamedNodeTypes(builder, source, values);
   mrgsolveDoseRoutes(source, builder, definitions, values);
+  singleCodeAdministration(builder,source,reader,'mrgsolve');
   if (!builder.nodes.length || !builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
   const warnings = [];
-  const covariates = parseExpressionCovariates(source, builder, values, 'mrgsolve', warnings);
+  if (builder.selectedAdministration) warnings.push({code:'multipleAdministrations',detail:builder.selectedAdministration});
+  if (reader) warnings.push({code:'populationGraph'});
+  if (builder.derivedParameters) warnings.push({code:'derivedParameters'});
+  const covariates = builder.odeCovariates ?? parseExpressionCovariates(source, builder, values, 'mrgsolve', warnings);
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
   if (/\{\{[A-Za-z0-9_]+\}\}/.test(source)) warnings.push({ code: 'templatePlaceholdersIgnored' });
   if (/\$ODE\b/i.test(source)) warnings.push({ code: 'customOdeReview' });
+  positionImportedGraph(builder);
   return { spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates }, mode: 'recognized', warnings };
 }
 
@@ -1154,6 +1289,7 @@ export function parseNonmem(raw) {
   if (exact) return exact;
   const values = parseThetaValues(raw);
   const builder = modelBuilder(raw);
+  builder.strictParameters = true;
   for (const [name, value] of values) builder.hints.set(name, value);
   const advan = Number(raw.match(/\bADVAN\s*(\d+)/i)?.[1] ?? 0);
   const oral = [2, 4, 12].includes(advan);
@@ -1171,7 +1307,13 @@ export function parseNonmem(raw) {
     })
     .replace(/\bDADT\((\d+)\)/gi, (_, index) => `ddt_${builder.nodes[Number(index) - 1]?.name ?? 'UNKNOWN'}`)
     .replace(/\bA\((\d+)\)/gi, (_, index) => builder.nodes[Number(index) - 1]?.name ?? 'UNKNOWN');
-  if (!builder.edges.length) addClassicGraph(builder, values);
+  let reader=null;
+  if (!builder.edges.length) {
+    const code=sourceBlocks(namedSource,'PK').concat(sourceBlocks(namedSource,'DES'),sourceBlocks(namedSource,'ERROR')).join('\n').replace(/;[^\r\n]*/g,'').replace(/\.EQ\./gi,'==');
+    if (/\$DES\b/i.test(raw)) reader=codeOdeGraph(code,builder,[...inputNames(raw,'nonmem')]);
+    else if ([1,2,3,4,11,12].includes(advan)) reader=classicCodeGraph(code,builder,values,[...inputNames(raw,'nonmem')]);
+    else throw new MlxtranImportError('unsupportedStructure');
+  }
   recoverNamedNodeTypes(builder, namedSource, values);
   const pk = sourceBlocks(namedSource, 'PK').join('\n');
   const routes = builder.nodes.flatMap((node, index) => {
@@ -1181,12 +1323,17 @@ export function parseNonmem(raw) {
     const duration = assignment('D');
     return node.dose > 0 || fraction || lag || duration ? [{ node, fraction, lag, duration }] : [];
   });
-  if (routes.length) applyDoseRoutes(builder, routes, values);
+  if (!reader && routes.length) applyDoseRoutes(builder, routes, values);
+  singleCodeAdministration(builder,raw,reader,'nonmem');
   if (!builder.nodes.length || !builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
   const warnings = [];
-  const covariates = parseExpressionCovariates(namedSource, builder, values, 'nonmem', warnings);
+  if (builder.selectedAdministration) warnings.push({code:'multipleAdministrations',detail:builder.selectedAdministration});
+  if (reader) warnings.push({code:'populationGraph'});
+  if (builder.derivedParameters) warnings.push({code:'derivedParameters'});
+  const covariates = builder.odeCovariates ?? parseExpressionCovariates(namedSource, builder, values, 'nonmem', warnings);
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
   if (/\$DES\b/i.test(raw)) warnings.push({ code: 'customOdeReview' });
+  positionImportedGraph(builder);
   return { spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates }, mode: 'recognized', warnings };
 }
 

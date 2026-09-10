@@ -1,0 +1,58 @@
+pd_observations_ui <- function(id, t) {
+  ns <- NS(id)
+  tagList(DTOutput(ns("table")), div(class = "workbench-downloads",
+    actionButton(ns("add"), t("Ajouter", "Add"), icon = icon("plus")),
+    actionButton(ns("remove"), t("Supprimer la selection", "Remove selected"), icon = icon("trash"))))
+}
+
+pd_observations_server <- function(id, columns, initial, oncology = FALSE) {
+  moduleServer(id, function(input, output, session) {
+    t <- function(fr, en) app_t(app_language_from_query(session$clientData$url_search %||% ""), fr, en)
+    stores <- reactiveVal(setNames(list(initial), paste(names(initial), collapse = ",")))
+    revision <- reactiveVal(0L)
+    key <- reactive(paste(columns(), collapse = ","))
+    rows <- reactive(stores()[[key()]] %||% initial[FALSE, , drop = FALSE][, FALSE, drop = FALSE])
+    validate <- function(data) {
+      if (nrow(data) > 2000 || !identical(names(data), columns())) stop("Invalid observation columns or row count.")
+      for (name in setdiff(names(data), "endpoint")) {
+        supplied <- data[[name]]
+        data[[name]] <- suppressWarnings(as.numeric(supplied))
+        if (any(is.na(data[[name]]) & !is.na(supplied) & nzchar(trimws(as.character(supplied)))) || any(is.infinite(data[[name]]))) stop("Observations must be numeric and finite.")
+      }
+      if (any(data[[1]] < 0, na.rm = TRUE) || oncology && (any(data$value <= 0, na.rm = TRUE) || any(!data$endpoint %in% c("tumor", "anc")))) stop("Invalid observation: time >= 0; oncology value > 0; endpoint tumor or anc.")
+      data
+    }
+    replace <- function(data) {
+      data <- validate(data)
+      value <- isolate(stores()); value[[isolate(key())]] <- data; stores(value)
+    }
+    output$table <- renderDT({
+      revision()
+      data <- rows()
+      if (!ncol(data)) data <- as.data.frame(setNames(lapply(columns(), function(name) if (name == "endpoint") character() else numeric()), columns()))
+      labels <- c(time = if (oncology) t("Jour", "Day") else t("Temps (h)", "Time (h)"), concentration = "Concentration", effect = t("Valeur observee", "Observed value"), endpoint = t("Mesure", "Endpoint"), value = t("Valeur", "Value"))
+      datatable(data, colnames = unname(labels[names(data)]), rownames = FALSE, selection = "multiple", editable = "cell",
+        callback = DT::JS("table.on('keydown', 'tbody input', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.blur(); } });"),
+        options = list(pageLength = 8, lengthChange = FALSE, searching = FALSE, scrollX = TRUE, dom = "tip",
+          language = list(emptyTable = t("Aucune observation", "No observations"), info = t("_START_ a _END_ sur _TOTAL_", "_START_ to _END_ of _TOTAL_"), infoEmpty = "0",
+            paginate = list(previous = t("Precedent", "Previous"), "next" = t("Suivant", "Next")))))
+    }, server = FALSE)
+    handle <- function(fn) tryCatch(fn(), error = function(e) { showNotification(conditionMessage(e), type = "error", duration = 7); revision(isolate(revision()) + 1L) })
+    observeEvent(input$table_cell_edit, handle(function() {
+      edit <- input$table_cell_edit; data <- rows()
+      if (!edit$row %in% seq_len(nrow(data)) || !edit$col %in% (seq_len(ncol(data)) - 1L)) stop("Invalid table cell.")
+      data[edit$row, edit$col + 1L] <- edit$value
+      replace(data)
+    }))
+    observeEvent(input$add, handle(function() {
+      row <- as.data.frame(setNames(lapply(columns(), function(name) if (name == "endpoint") "tumor" else if (name %in% c("value", "effect")) NA_real_ else 0), columns()))
+      replace(if (ncol(rows())) rbind(rows(), row) else row)
+    }))
+    observeEvent(input$remove, handle(function() {
+      selected <- input$table_rows_selected
+      if (length(selected)) replace(rows()[-selected, , drop = FALSE])
+    }))
+    session$onSessionEnded(function() stores(list()))
+    list(data = rows, replace = replace)
+  })
+}

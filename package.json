@@ -24,7 +24,7 @@
 		"tdm:run": "Rscript tdm-engine/run_local.R",
 		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
 		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
-		"test:mlxtran": "node scripts/test_mlxtran_import.mjs",
+		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
 	},
 	"devDependencies": {
@@ -48,6 +48,7 @@
 		"d3-shape": "^3.2.0",
 		"gray-matter": "^4.0.3",
 		"js-yaml": "^4.1.0",
+		"jsep": "^1.4.0",
 		"katex": "^0.16.28",
 		"layercake": "^10.0.2",
 		"markdown-it": "^14.1.0",

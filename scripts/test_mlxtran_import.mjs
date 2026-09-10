@@ -233,7 +233,8 @@ assert(templatedMrgsolve.spec.covariates.some((covariate) => covariate.name === 
 assert(templatedMrgsolve.spec.covariates.some((covariate) => covariate.name === 'ST'
   && covariate.target.toLowerCase() === 'v_cent_tac' && Math.abs(covariate.beta - Math.log(0.29)) < 1e-12));
 assert.equal(templatedMrgsolve.spec.covariates.filter((covariate) => covariate.name === 'ST'
-  && covariate.target.toLowerCase().startsWith('k_')).length, 4);
+  && covariate.target.toLowerCase().startsWith('k_') && Math.abs(covariate.beta-Math.log(1.53))<1e-12).length, 4);
+assert(templatedMrgsolve.spec.covariates.some(c=>c.name==='ST' && c.target.toLowerCase()==='k_cent_tac_peri_tac' && Math.abs(c.beta+Math.log(0.29))<1e-12));
 assert(templatedMrgsolve.warnings.some((warning) => warning.code === 'templatePlaceholdersIgnored'));
 
 const nonmemModel = `

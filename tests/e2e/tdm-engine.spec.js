@@ -223,7 +223,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
   test('le pont sécurisé compile une double absorption Lego v2', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto(engineUrl);
-    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.config?.sessionId);
+    await expect(page.locator('#model_context_ui')).toContainText('Roberts');
     const specification = {
       version: 2,
       nodes: [
@@ -430,7 +431,8 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.goto(engineUrl);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
 
-    await expect(page.locator('.mobile-configure-button')).toBeVisible();
+    const configureButton = page.locator('.analysis-shell:not(.pd-shell):not(.onco-shell) .mobile-configure-button');
+    await expect(configureButton).toBeVisible();
     await expect(page.locator('#dose_status_1')).toContainText('Administrée');
     const widths = await page.evaluate(() => {
       const main = document.querySelector('.bslib-sidebar-layout > .main');
@@ -448,9 +450,29 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(widths.mainScroll).toBeLessThanOrEqual(widths.mainClient + 1);
     expect(widths.workspaceScroll).toBeLessThanOrEqual(widths.workspaceClient + 1);
 
-    await page.locator('.mobile-configure-button').click();
-    await expect(page.locator('.collapse-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.locator('.collapse-toggle')).toHaveAttribute('aria-label', 'Fermer la configuration');
-    await expect(page.locator('.sidebar-heading')).toBeVisible();
+    await configureButton.click();
+    await expect(page.locator('.analysis-shell:not(.pd-shell):not(.onco-shell) .collapse-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.analysis-shell:not(.pd-shell):not(.onco-shell) .collapse-toggle')).toHaveAttribute('aria-label', 'Fermer la configuration');
+    await expect(page.locator('.analysis-shell:not(.pd-shell):not(.onco-shell) .sidebar-heading')).toBeVisible();
+  });
+
+  test("le module DDI mobile ouvre sa propre configuration sans débordement", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${engineUrl}?lang=en&view=ddi`);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.setInputValue);
+
+    const configureButton = page.locator('.ddi-shell .ddi-mobile-configure-button');
+    await expect(configureButton).toBeVisible();
+    const widths = await page.evaluate(() => ({
+      client: document.body.clientWidth,
+      scroll: document.body.scrollWidth
+    }));
+    expect(widths.scroll).toBeLessThanOrEqual(widths.client + 1);
+
+    await configureButton.click();
+    await expect(page.locator('.ddi-shell .collapse-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.ddi-shell .sidebar-heading')).toContainText('DDI builder');
+    await expect(page.locator('#ddi_model_1')).toBeAttached();
+    await expect(page.locator('#ddi_target_parameter')).toBeAttached();
   });
 });
