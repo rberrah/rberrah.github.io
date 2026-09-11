@@ -19,7 +19,7 @@ Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et
 
 ### Ateliers Locaux Interactions et Pharmacodynamie
 
-Ces ateliers sont des prototypes locaux, non déployés. Accès direct : `?view=ddi` et `?view=pd`.
+Ces ateliers sont des prototypes de recherche intégrés au moteur. Accès direct : `?view=ddi` et `?view=pd`. Sur le serveur public, les modèles de bibliothèque et Lego contrôlés sont disponibles ; le C++ arbitraire reste désactivé.
 Le port du lanceur local est configurable avec `TDM_PORT` (3838 par défaut).
 
 - Interactions : bibliothèque ou collage mrgsolve pour chaque molécule, instantanés TDM indépendants, paramètre cible. Sept relations : facteur constant, inhibition/stimulation Emax instantanées, inhibition réversible Ki, inhibition Hill, inhibition dépendante du temps (kinact/KI), induction avec renouvellement enzymatique (Emax/EC50/kdeg).
@@ -96,6 +96,11 @@ Le code généré contient une spécification JSON versionnée. L'action **Ouvri
 Le moteur ouvre ensuite le mode Atelier Lego / C++ et demande toujours une validation explicite avant l'analyse. Les administrations, concentrations observées et autres données du patient sont saisies uniquement dans le TDM. Pour une dose répartie par le modèle Lego, le moteur approche l'état stationnaire par 50 administrations de préchauffage plutôt que par des événements `ss = 1` séparés sur chaque voie.
 
 ## Déploiement
+
+Depuis la racine du dépôt, `Rscript scripts/deploy_shiny.R` vérifie la liste des
+fichiers publics et les dépendances. Ajouter `--deploy` publie cette liste sur
+`https://tdmhub.shinyapps.io/MIPD_Engine/`. Le paquet exclut les PDF, les exemples
+locaux, les tests et les fichiers non suivis par Git.
 
 GitHub Pages ne peut pas exécuter R. Déployer ce dossier séparément sur une infrastructure Shiny ou dans un conteneur R, puis fournir l'URL au build Svelte:
 

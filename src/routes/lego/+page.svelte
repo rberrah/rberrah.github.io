@@ -71,12 +71,12 @@
   };
   $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
   Object.assign(MODEL_IMPORT_UI.fr.errors, {
-    unsupportedEquation: "Une équation ou une condition ne peut pas être représentée fidèlement par les blocs Lego. Le schéma précédent est conservé. Le code mrgsolve natif reste utilisable dans le moteur TDM.",
-    unsupportedAdministration: "Cette biodisponibilité ou cette logique d'administration n'est pas encore représentable dans Lego. Utilisez le modèle natif dans le moteur."
+    unsupportedEquation: "L'importeur Lego ne prend pas encore en charge une équation ou une condition de ce modèle. Cela ne signifie pas que le code source est invalide. Le schéma précédent est conservé ; aucune conversion partielle n'est appliquée. Consultez le détail ci-dessous et utilisez le logiciel du format source pour ce modèle.",
+    unsupportedAdministration: "Cette biodisponibilité ou cette logique d'administration n'est pas encore représentable dans Lego. Le schéma précédent est conservé. Utilisez le logiciel du format source pour ce modèle."
   });
   Object.assign(MODEL_IMPORT_UI.en.errors, {
-    unsupportedEquation: 'An equation or condition cannot be represented faithfully by Lego blocks. The previous diagram is retained. Native mrgsolve code can still be used in the TDM engine.',
-    unsupportedAdministration: 'This bioavailability or administration logic cannot yet be represented in Lego. Use the native model in the engine.'
+    unsupportedEquation: 'The Lego importer does not yet support an equation or condition in this model. This does not mean the source code is invalid. The previous diagram is retained; no partial conversion is applied. Review the detail below and use the software for the source format for this model.',
+    unsupportedAdministration: 'This bioavailability or administration logic cannot yet be represented in Lego. The previous diagram is retained. Use the software for the source format for this model.'
   });
   Object.assign(MODEL_IMPORT_UI.fr.warnings, {
     populationDefaults: 'Paramètres absents initialisés à 1, à remplacer par vos estimations avant simulation :',
