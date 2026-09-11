@@ -28,7 +28,9 @@ onco_ui <- function(t) {
         accordion_panel(t("Cycles et historique", "Cycles and history"), value = "cycles",
           numericInput(ns("decision"), t("Prochaine dose / decision (jour)", "Next dose / decision (day)"), 42, min = 0),
           numericInput(ns("horizon"), t("Horizon (jours)", "Horizon (days)"), 84, min = 1, max = 730),
-          textAreaInput(ns("history"), t("Doses passees : jour, unite PK, perfusion h", "Past doses: day, PK unit, infusion h"), "time,amount,infusion\n0,100,1\n21,100,1", rows = 5),
+          tags$h4(t("Doses passees", "Past doses")),
+          pd_observations_ui(ns("history"), t),
+          tags$small(t("Perfusion : 0 h = oral / bolus IV. Doses strictement anterieures au jour de decision.", "Infusion: 0 h = oral / IV bolus. Doses strictly before the decision day.")),
           numericInput(ns("dose"), t("Dose future de reference (unite PK)", "Reference future dose (PK unit)"), 100, min = 0),
           numericInput(ns("interval"), t("Intervalle de reference (jours)", "Reference interval (days)"), 21, min = 0.25),
           numericInput(ns("infusion"), t("Perfusion (h; 0 = oral / bolus IV)", "Infusion (h; 0 = oral / IV bolus)"), 1, min = 0)),
@@ -84,6 +86,8 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
     fit_store <- reactiveVal(NULL); comparison <- reactiveVal(NULL); imported_parameters <- reactiveVal(NULL)
     pk <- pd_pk_server("pk", soloc, cache, reactive(if (identical(imported()$view, "onco")) imported()$models[[1]] else NULL))
     pk_context <- reactive(if (identical(input$pk_mode, "free")) pk() else NULL)
+    history <- pd_observations_server("history", reactive(c("time", "amount", "infusion")),
+      data.frame(time = c(0, 21), amount = c(100, 100), infusion = c(1, 1)), dose_history = TRUE)
     observations <- pd_observations_server("observations", reactive(c("time", "endpoint", "value")),
       data.frame(time = c(0, 14, 28, 42, 0, 7, 14, 28), endpoint = rep(c("tumor", "anc"), each = 4), value = c(60, 52, 46, 44, 4, 2, 3, 2)), oncology = TRUE)
     active <- reactive(c("V", "CL", "T0", "KG", if ((input$growth %||% "exponential") != "exponential") "CAP", "KILL", "EC50", "RES", if (isTRUE(input$toxicity)) c("ANC0", "MTT", "GAMMA", "SLOPE")))
@@ -99,13 +103,12 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
       p <- ONCO_DEFAULTS
       for (name in active()) p[[name]] <- input[[name]] %||% (imported_parameters() %||% list())[[name]] %||% ONCO_DEFAULTS[[name]]
       values <- list(parameters = p, growth = input$growth %||% "exponential", toxicity = isTRUE(input$toxicity), free_pk = identical(input$pk_mode, "free"),
-        history = if (!nzchar(trimws(input$history %||% ""))) data.frame(time = numeric(), amount = numeric(), infusion = numeric()) else
-          pd_read_table(input$history, c("time", "amount", "infusion")))
+        history = history$data())
       for (name in c("decision", "horizon", "dose", "interval", "infusion", "anc_floor", "tumor_goal", "sigma_tumor", "sigma_anc")) values[[name]] <- input[[name]]
       onco_config(values)
     })
     handle <- function(fn) tryCatch(fn(), error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10))
-    observeEvent(list(input$growth, input$toxicity, input$history, input$decision, input$horizon, input$dose, input$interval, input$infusion,
+    observeEvent(list(input$growth, input$toxicity, history$data(), input$decision, input$horizon, input$dose, input$interval, input$infusion,
       input$pk_mode, observations$data(), input$sigma_tumor, input$sigma_anc, lapply(names(ONCO_DEFAULTS), function(name) input[[name]])), {
       fit_store(NULL); comparison(NULL)
     }, ignoreInit = TRUE)
@@ -224,7 +227,7 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
         for (name in c("decision", "horizon", "dose", "interval", "infusion", "anc_floor", "tumor_goal", "sigma_tumor", "sigma_anc")) updateNumericInput(session, name, value = config[[name]])
         for (name in names(ONCO_DEFAULTS)) updateNumericInput(session, name, value = config$parameters[[name]])
         updateNumericInput(session, "new_interval", value = config$interval)
-        updateTextAreaInput(session, "history", value = paste(capture.output(write.csv(config$history, row.names = FALSE)), collapse = "\n"))
+        history$replace(config$history)
         fit_store(NULL); comparison(NULL)
         session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = TRUE))
       }, error = function(e) session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = FALSE, error = conditionMessage(e))))

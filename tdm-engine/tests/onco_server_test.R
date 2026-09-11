@@ -6,9 +6,12 @@ environment <- new.env(parent = globalenv())
 sys.source(file.path(APP_ROOT, "app.R"), envir = environment)
 shiny::testServer(environment$onco_server, args = list(report_plot_uri = function(plot) ""), {
   session$setInputs(growth = "exponential", toxicity = TRUE, decision = 42, horizon = 84, dose = 100, interval = 21, infusion = 1,
-    history = "time,amount,infusion\n0,100,1\n21,100,1", fraction = 75, delay = 7, new_interval = 21, anc_floor = 1, tumor_goal = 0.8)
+    fraction = 75, delay = 7, new_interval = 21, anc_floor = 1, tumor_goal = 0.8)
+  stopifnot(nrow(configuration()$history) == 2)
   session$setInputs(compare = 1)
   stopifnot(!is.null(comparison()), length(output$metrics) > 0, length(output$tumor_plot) > 0, length(output$anc_plot) > 0)
+  session$setInputs(`history-table_cell_edit` = list(row = 2, col = 1, value = "125"))
+  stopifnot(configuration()$history$amount[2] == 125, is.null(comparison()))
   session$setInputs(fraction = 50)
   stopifnot(is.null(comparison()))
   session$setInputs(compare = 2)
@@ -21,11 +24,39 @@ shiny::testServer(environment$onco_server, args = list(report_plot_uri = functio
 cat("Oncology Shiny: rendered curves, metrics, invalidation and fitting acknowledgement passed.\n")
 import_store <- shiny::reactiveVal(NULL)
 shiny::testServer(environment$onco_server, args = list(report_plot_uri = function(plot) "", imported = import_store), {
-  session$setInputs(growth = "gompertz", toxicity = TRUE, history = "time,amount,infusion\n0,100,1\n21,100,1")
-  config <- environment$onco_config(list(growth = "gompertz", parameters = list(T0 = 75, CAP = 280)))
+  session$setInputs(growth = "gompertz", toxicity = TRUE)
+  config <- environment$onco_config(list(growth = "gompertz", parameters = list(T0 = 75, CAP = 280),
+    history = data.frame(time = c(1, 18), amount = c(80, 90), infusion = c(0, 2))))
   import_store(list(id = "test-import", view = "onco", config = config))
   session$flushReact()
   # No numeric parameter inputs are mounted: opening an accordion must not be required.
   stopifnot(configuration()$parameters$T0 == 75, configuration()$parameters$CAP == 280)
+  stopifnot(identical(configuration()$history, config$history))
+  config$history <- config$history[FALSE, ]
+  import_store(list(id = "empty-history", view = "onco", config = config))
+  session$flushReact()
+  stopifnot(nrow(configuration()$history) == 0)
 })
 cat("Oncology workshop import preserves parameters before opening the parameter panel.\n")
+
+shiny::testServer(environment$pd_observations_server, args = list(
+  columns = shiny::reactive(c("time", "amount", "infusion")),
+  initial = data.frame(time = c(0, 21), amount = c(100, 100), infusion = c(1, 1)), dose_history = TRUE), {
+  session$setInputs(table_cell_edit = list(row = 2, col = 1, value = "125"))
+  stopifnot(rows()$amount[2] == 125)
+  session$setInputs(table_cell_edit = list(row = 2, col = 1, value = "-5"))
+  stopifnot(rows()$amount[2] == 125)
+  session$setInputs(table_cell_edit = list(row = 1, col = 2, value = "0"))
+  stopifnot(rows()$infusion[1] == 0)
+  session$setInputs(table_cell_edit = list(row = 1, col = 2, value = "169"))
+  stopifnot(rows()$infusion[1] == 0)
+  session$setInputs(table_cell_edit = list(row = 1, col = 0, value = "invalid"))
+  stopifnot(rows()$time[1] == 0)
+  session$setInputs(add = 1)
+  stopifnot(nrow(rows()) == 3, is.na(rows()$amount[3]))
+  stopifnot(inherits(try(environment$onco_config(list(history = rows())), silent = TRUE), "try-error"))
+  session$setInputs(table_rows_selected = 1:3, remove = 1)
+  stopifnot(nrow(rows()) == 0)
+  stopifnot(nrow(environment$onco_config(list(history = rows()))$history) == 0)
+})
+cat("Dose table: editing, validation, add/remove and empty history passed.\n")

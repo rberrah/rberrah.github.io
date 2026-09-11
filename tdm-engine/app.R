@@ -526,7 +526,7 @@ ddi_panel <- function(lang = "fr") {
             uiOutput("ddi_target_ui"),
             ddi_mechanism_ui(t)),
           model_panel(2, "voriconazole_vandenborn_ddi", 200)),
-        div(class = "analysis-actions ddi-actions",
+        div(class = "ddi-actions",
           actionButton("assemble_ddi", t("Generer le modele", "Generate model"), icon = icon("code"), class = "btn-outline-primary w-100"),
           checkboxInput("ddi_accept_disclaimer", t("Usage exploratoire, sous ma responsabilite", "Exploratory use, under my responsibility"), FALSE),
           actionButton("run_ddi", t("Simuler l'interaction", "Simulate interaction"), icon = icon("play"), class = "btn-primary w-100"))),
