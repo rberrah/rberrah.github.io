@@ -21,7 +21,7 @@
   $: doses = schedule(lab, p);
   $: g = sceneLayout(width, lab);
   $: if (journeys) { tracked = journeys.find(item => item.visits.some(visit => visit.room === 'peripheral'))?.id ?? 0; probe = null; }
-  $: roomNames = { central: 'Central', peripheral: en ? 'Peripheral' : 'Périphérique', eliminated: en ? 'Eliminated' : 'Éliminé' };
+  $: roomNames = { central: 'Central', peripheral: en ? 'Peripheral' : 'Périphérique', eliminated: en ? 'Eliminated' : 'Éliminé', depot: en ? 'Oral depot' : 'Dépôt oral', lost: en ? 'Presystemic loss' : 'Perte présystémique', reservoir: en ? 'Infusion bag' : 'Poche de perfusion' };
   $: selected = journeys[tracked];
   $: selectedVisit = selected ? particleVisit(selected, time) : -1;
   $: selectedRoom = selectedVisit < 0 ? (en ? 'Not administered' : 'Non administrée') : roomNames[selected.visits[selectedVisit].room];
@@ -30,7 +30,8 @@
   $: probePoint = probe ? { x: probe.x * width, y: probe.y * g.height } : { x: g.rooms.central.x + g.rooms.central.w * .58, y: g.rooms.central.y + g.rooms.central.h * .45 };
   $: probeRoom = ['central', ...(lab === 'distribution' ? ['peripheral'] : [])].find(key => inside(probePoint, g.rooms[key]));
   $: probeValue = probeRoom === 'central' ? state.c : probeRoom === 'peripheral' ? state.cp : null;
-  $: massParts = [['central', state.central, '#147ea5'], ...(lab === 'distribution' ? [['peripheral', state.peripheral, '#168d71']] : []), ['eliminated', state.eliminated, '#7d6f84']];
+  $: massParts = [...(lab === 'absorption' ? [['depot', state.depot, '#c97532'], ['lost', state.lost, '#ac4c60']] : lab === 'infusion' ? [['reservoir', state.reservoir, '#168d71']] : []), ['central', state.central, '#147ea5'], ...(lab === 'distribution' ? [['peripheral', state.peripheral, '#168d71']] : []), ['eliminated', state.eliminated, '#7d6f84']];
+  $: massTotal = lab === 'infusion' ? p.dose : state.administered;
 
   function inside(point, room) { return point.x >= room.x && point.x <= room.x + room.w && point.y >= room.y && point.y <= room.y + room.h; }
   function nextParticle() {
@@ -90,9 +91,9 @@
     };
     const vessel = (key, title, volume) => {
       const r = g.rooms[key];
-      const concentration = key === 'central' ? state.c : state.cp;
+      const concentration = key === 'central' ? state.c : key === 'peripheral' ? state.cp : state[key] / p.vc;
       label(title, r.x+r.w/2, r.y-27, 16, '#254b56', r.w+8);
-      label(`${Number(volume.toPrecision(4))} L`, r.x+r.w/2, r.y-9, 12);
+      label(volume ? `${Number(volume.toPrecision(4))} L` : `${state[key].toFixed(1)} mg`, r.x+r.w/2, r.y-9, 12);
       ctx.fillStyle = '#ffffff'; ctx.fillRect(r.x,r.y,r.w,r.h);
       ctx.save(); ctx.beginPath(); ctx.rect(r.x+3,r.y+3,r.w-6,r.h-6); ctx.clip();
       ctx.fillStyle = `rgba(35,160,186,${.06 + .18 * Math.min(1, concentration / (p.dose / p.vc))})`;
@@ -124,7 +125,7 @@
       label('mg/h',g.gapCenter,g.forwardY+44,10);
       label(state.backward.toFixed(1),g.gapCenter,g.backwardY+30,12,'#168d71');
       label('mg/h',g.gapCenter,g.backwardY+44,10);
-    } else {
+    } else if (lab === 'accumulation') {
       label(en?'Administrations':'Administrations',r.x+r.w/2,r.y-27,15,'#294651',r.w+8);
       label(`${given} / ${doses.length}`,r.x+r.w/2,r.y-9,12);
       const columns = g.narrow ? 3 : 5;
@@ -137,8 +138,35 @@
       });
       label(nextDose?`${nextDose.time-time < 1 ? (nextDose.time-time).toFixed(1) : (nextDose.time-time).toFixed(0)} h`: (en?'Completed':'Terminé'),r.x+r.w/2,c.y+c.h+26,18,'#147ea5',r.w);
       label(nextDose?(en?'until next bolus':'avant le prochain bolus'):'',r.x+r.w/2,c.y+c.h+43,11,'#294651',r.w+10);
+    } else {
+      const source = lab === 'absorption' ? 'depot' : 'reservoir';
+      vessel(source, roomNames[source], null);
+      pipe(c.x+c.w-4,g.backwardY,r.x+4,g.backwardY,state.inputRate,true);
+      label(lab === 'absorption' ? `ka ${p.ka}` : `R0 ${(time < p.duration ? p.dose / p.duration : 0).toFixed(1)}`,g.gapCenter,142,12,'#294651',r.x-c.x-c.w-4);
+      label(lab === 'absorption' ? '1/h' : 'mg/h',g.gapCenter,157,10);
+      label(`${state.inputRate.toFixed(1)}`,g.gapCenter,g.backwardY+30,12,'#147ea5');
+      label('mg/h',g.gapCenter,g.backwardY+44,10);
+      if (lab === 'absorption') {
+        const loss = g.rooms.lost, drain = r.x + r.w / 2;
+        ctx.fillStyle = '#f8e6e9'; ctx.fillRect(loss.x,loss.y,loss.w,loss.h);
+        ctx.strokeStyle = '#ac4c60'; ctx.lineWidth = 2; ctx.strokeRect(loss.x,loss.y,loss.w,loss.h);
+        pipe(drain,r.y+r.h-5,drain,loss.y+8,(1-p.f)*p.ka*state.depot);
+        label(`F = ${(p.f*100).toFixed(0)} %`,c.x+c.w/2,55,15,'#ac4c60',c.w);
+        label(en?'Presystemic loss':'Perte présystémique',loss.x+loss.w/2,loss.y+loss.h+17,12,'#ac4c60',loss.w);
+        // A capsule marks the oral input, independently of the fraction reaching plasma.
+        ctx.save(); ctx.translate(c.x+c.w/2,26); ctx.rotate(-.25);
+        ctx.fillStyle='#c97532'; ctx.beginPath(); ctx.roundRect(-22,-9,44,18,9); ctx.fill();
+        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.roundRect(0,-8,21,16,[0,8,8,0]); ctx.fill(); ctx.restore();
+      } else {
+        const fraction = Math.max(0,1-time/p.duration);
+        ctx.fillStyle='#d0e8e0'; ctx.fillRect(r.x,r.y+20,r.w,35);
+        ctx.fillStyle='#168d71'; ctx.fillRect(r.x,r.y+20,r.w*fraction,35);
+        label(time < p.duration ? (en?'Infusing':'En cours') : (en?'Stopped':'Arrêtée'),c.x+c.w/2,40,16,'#168d71',c.w);
+        label(`${p.duration} h`,c.x+c.w/2,60,12);
+      }
     }
     // Syringe and piston mark the dose event; the numerical IV bolus is instantaneous.
+    if (['distribution','accumulation'].includes(lab)) {
     const syringeX = c.x + 9, syringeY = 22;
     const sinceDose = time - doses[Math.max(0,given-1)].time;
     const piston = Math.min(1, sinceDose / .6);
@@ -149,15 +177,16 @@
     line(syringeX+9,syringeY+42,syringeX+9,c.y+18,'#819fa9',2);
     label('IV',c.x+c.w*.67,35,13,'#147ea5',c.w-35);
     label(`${doses[Math.max(0,given-1)].amount} mg`,c.x+c.w*.67,54,13,'#294651',c.w-35);
+    }
     label(`${time.toFixed(1)} h`,width-50,29,17);
 
     ctx.fillStyle='#e9e8ef'; ctx.fillRect(e.x,e.y,e.w,e.h);
     ctx.strokeStyle='#918a9d'; ctx.lineWidth=2; ctx.strokeRect(e.x,e.y,e.w,e.h);
     pipe(g.drainX,c.y+c.h-5,g.drainX,e.y+8,state.eliminationRate);
-    const drainTextX = Math.min(width-75,g.drainX+90), drainTextY = (c.y+c.h+e.y)/2;
-    label(`CL ${Number(p.cl.toPrecision(3))} L/h`,drainTextX,drainTextY-6,13);
+    const drainTextX = lab === 'absorption' ? g.gapCenter : Math.min(width-75,g.drainX+90), drainTextY = (c.y+c.h+e.y)/2;
+    label(`CL ${Number(p.cl.toPrecision(3))} L/h`,drainTextX,drainTextY-6,13,'#294651',lab==='absorption'?e.w-10:180);
     label(`${state.eliminationRate.toFixed(1)} mg/h`,drainTextX,drainTextY+12,12,'#7a557f');
-    label(`${en?'Eliminated':'Éliminé'} : ${state.eliminated.toFixed(1)} mg`,e.x+e.w*.72,e.y-13,13,'#6a5674',e.w*.52);
+    label(`${en?'Eliminated':'Éliminé'} : ${state.eliminated.toFixed(1)} mg`,e.x+e.w*(lab==='absorption'?.5:.72),lab==='absorption'?e.y+e.h+17:e.y-13,13,'#6a5674',e.w*(lab==='absorption'?.95:.52));
 
     const colorFor = item => tracking && item.id===tracked ? '#efb827' : lab==='accumulation' && doseColors ? colors[item.dose%colors.length] : '#147ea5';
     const positioned = journeys.map(item=>({item,pos:particlePosition(item,time,g,reduced)})).filter(item=>item.pos);
@@ -171,11 +200,11 @@
       ctx.stroke();
     }
     for (const {item,pos} of positioned.filter(({item})=>!tracking||item.id!==tracked)) {
-      if (!reduced && pos.room!=='eliminated') {
+      if (!reduced && !['eliminated','lost'].includes(pos.room)) {
         const before=particlePosition(item,Math.max(item.born,time-.035),g,false);
         if(before)line(before.x,before.y,pos.x,pos.y,'#147ea52b',3);
       }
-      ball(pos.x,pos.y,pos.room==='eliminated' && !(lab==='accumulation'&&doseColors)?'#918998':colorFor(item),g.narrow?3.6:4.6);
+      ball(pos.x,pos.y,pos.room==='lost'?'#ac4c60':pos.room==='depot'?'#c97532':pos.room==='eliminated' && !(lab==='accumulation'&&doseColors)?'#918998':colorFor(item),g.narrow?3.6:4.6);
     }
     const tracer = positioned.find(({item})=>tracking&&item.id===tracked);
     if(tracer)ball(tracer.pos.x,tracer.pos.y,'#efb827',g.narrow?5:6,true);
@@ -187,7 +216,6 @@
 <div class="scene-tools">
   <label><input type="checkbox" bind:checked={animateParticles}/><Play size={17}/>{en?'Animate particles':'Animer les particules'}</label>
   <label><input type="checkbox" bind:checked={tracking}/><LocateFixed size={17}/>{en?'Follow a particle':'Suivre une particule'}</label>
-  <button type="button" class="tool" on:click={nextParticle} title={en?'Next particle':'Particule suivante'} aria-label={en?'Next particle':'Particule suivante'}><SkipForward size={18}/></button>
   <label><input type="checkbox" bind:checked={probeEnabled}/><Pipette size={17}/>{en?'Probe':'Sonde'}</label>
   {#if lab==='accumulation'}<label><input type="checkbox" bind:checked={doseColors}/>{en?'Color by dose':'Couleur par dose'}</label>{/if}
 </div>
@@ -202,10 +230,11 @@
   {#if tracking}<div class="tracker" data-testid="particle-readout"><span class="tracer-dot"></span><span>{en?'Particle':'Particule'} {tracked+1}<small>{en?'Dose':'Dose'} {selected?.dose+1} · {selectedRoom}</small></span><label class="trail"><input type="checkbox" bind:checked={trails}/>{en?'Trail':'Trajectoire'}</label></div>{/if}
   {#if probeEnabled}<div class="probe-reading" data-testid="probe-readout"><select aria-label={en?'Probe location':'Emplacement de la sonde'} value={probeRoom??''} on:change={event=>placeProbe(event.currentTarget.value)}><option value="" disabled>{en?'Outside compartment':'Hors compartiment'}</option><option value="central">Central</option>{#if lab==='distribution'}<option value="peripheral">{en?'Peripheral':'Périphérique'}</option>{/if}</select><strong>{probeValue===null?'--':probeValue.toFixed(2)} <small>mg/L</small></strong></div>{/if}
   {#if lab==='accumulation'}<button class="dose-action" disabled={!nextDose} on:click={()=>dispatch('seek',nextDose.time)}><SkipForward size={17}/>{en?'Next dose':'Dose suivante'}</button>{/if}
+  {#if lab==='infusion'}<button class="dose-action" disabled={time>=p.duration || p.duration>p.end} on:click={()=>dispatch('seek',p.duration)}><SkipForward size={17}/>{en?'End of infusion':'Fin de perfusion'}</button>{/if}
 </div>
 <div class="mass-balance" aria-label={en?'Calculated mass balance':'Bilan de masse calculé'}>
-  <div class="mass-bar">{#each massParts as [room,amount,color]}<span style:width={`${100*amount/Math.max(1,state.administered)}%`} style:background={color}></span>{/each}</div>
-  <div class="mass-values">{#each massParts as [room,amount,color]}<span><i style:background={color}></i>{roomNames[room]} <b>{(100*amount/Math.max(1,state.administered)).toFixed(0)} %</b></span>{/each}</div>
+  <div class="mass-bar">{#each massParts as [room,amount,color]}<span style:width={`${100*amount/Math.max(1,massTotal)}%`} style:background={color}></span>{/each}</div>
+  <div class="mass-values">{#each massParts as [room,amount,color]}<span><i style:background={color}></i>{roomNames[room]} <b>{(100*amount/Math.max(1,massTotal)).toFixed(0)} %</b></span>{/each}</div>
 </div>
 
 <style>
@@ -216,7 +245,6 @@
   input { accent-color:#147ea5; }
   button, select { font:inherit; color:var(--text-primary); border:1px solid var(--border-strong); background:var(--bg-tertiary); border-radius:4px; }
   button { cursor:pointer; } button:disabled { opacity:.5; cursor:default; }
-  .tool { width:32px; height:32px; display:grid; place-items:center; }
   .scene-play { position:absolute; right:28px; top:43px; display:grid; place-items:center; width:40px; height:40px; background:#147ea5; color:#fff; border-color:#12627e; border-radius:50%; }
   .probe { position:absolute; transform:translate(-50%,-50%); width:34px; height:34px; padding:4px; background:#fff; color:#212d35; border:2px solid #334854; border-radius:50%; display:grid; place-items:center; cursor:grab; touch-action:none; box-shadow:0 2px 5px #1c394733; }
   .probe:active { cursor:grabbing; }

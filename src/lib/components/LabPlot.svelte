@@ -37,6 +37,9 @@
     }
     ctx.textAlign = 'left'; ctx.fillText(`C (mg/L) / ${logarithmic ? (en ? 'Semi-log' : 'Semi-logarithmique') : (en ? 'Linear' : 'Lineaire')}`, 48, 14);
     ctx.textAlign = 'right'; ctx.fillText(en ? 'Time (h)' : 'Temps (h)', width - 16, height - 5);
+    if (logarithmic && !values.length) {
+      ctx.textAlign = 'center'; ctx.fillText(en ? 'No positive concentration' : 'Aucune concentration positive', (width + 32) / 2, 60);
+    }
     /** @param {{t:number,c:number}[]} points @param {string} color @param {boolean} dashed */
     const trace = (points, color, dashed) => {
       ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dashed ? [6, 4] : []); ctx.beginPath();

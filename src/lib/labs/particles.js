@@ -12,7 +12,7 @@ const visitIndex = bisector(/** @param {Visit} visit */ visit => visit.time).rig
 export function particleJourneys(lab, supplied) {
   const p = validateParameters(lab, supplied), doses = schedule(lab, p);
   const q = lab === 'distribution' ? p.q : 0;
-  const rates = { central: (p.cl + q) / p.vc, peripheral: q / p.vp };
+  const rates = { central: (p.cl + q) / p.vc, peripheral: q ? q / p.vp : 0 };
   const total = doses.reduce((sum, d) => sum + d.amount, 0);
   // Bound visual work even for fast exchange and the longest allowed horizon.
   const budget = Math.max(12, Math.min(480, Math.floor(60000 / (1 + p.end * Math.max(...Object.values(rates))))));
@@ -25,12 +25,13 @@ export function particleJourneys(lab, supplied) {
       const id = result.length, seed = (id + 1) * 7919;
       const rng = randomLcg(seed), exponential = randomExponential.source(rng);
       const waitCentral = exponential(rates.central), waitPeripheral = rates.peripheral ? exponential(rates.peripheral) : () => Infinity;
-      let room = 'central', time = administration.time;
+      let room = lab === 'absorption' ? 'depot' : lab === 'infusion' ? 'reservoir' : 'central', time = administration.time;
       const visits = [{ time, room }];
-      while (room !== 'eliminated' && visits.length < 12000) {
-        time += Math.max(1e-9, room === 'central' ? waitCentral() : waitPeripheral());
+      while (!['eliminated', 'lost'].includes(room) && visits.length < 12000) {
+        const wait = room === 'depot' ? exponential(p.ka)() : room === 'reservoir' ? p.duration * (i + 0.5) / count : room === 'central' ? waitCentral() : waitPeripheral();
+        time += Math.max(1e-9, wait);
         if (time > p.end) break;
-        room = room === 'peripheral' ? 'central' : rng() < p.cl / (p.cl + q) ? 'eliminated' : 'peripheral';
+        room = room === 'depot' ? (rng() < p.f ? 'central' : 'lost') : ['peripheral', 'reservoir'].includes(room) ? 'central' : rng() < p.cl / (p.cl + q) ? 'eliminated' : 'peripheral';
         visits.push({ time, room });
       }
       result.push({ id, dose, born: administration.time, seed, visits });
@@ -55,6 +56,14 @@ export function sceneLayout(width, lab) {
     peripheral: { x: width - margin - w, y, w, h },
     eliminated: { x: margin, y: height - 92, w: width - margin * 2, h: 68 }
   };
+  rooms.depot = { ...rooms.peripheral };
+  rooms.reservoir = { ...rooms.peripheral };
+  rooms.lost = { ...rooms.eliminated };
+  if (lab === 'absorption') {
+    rooms.eliminated.w = (width - margin * 2 - 20) / 2;
+    rooms.lost.x = rooms.eliminated.x + rooms.eliminated.w + 20;
+    rooms.lost.w = rooms.eliminated.w;
+  }
   const c = rooms.central, r = rooms.peripheral, e = rooms.eliminated;
   return { width, height, narrow, rooms, lab,
     forwardY: y + h * .34, backwardY: y + h * .70,
@@ -81,6 +90,7 @@ function wander(particle, room, time, still) {
 /** @param {string} from @param {string} to @param {Layout} g */
 export function journeyPorts(from, to, g) {
   const c = g.rooms.central, r = g.rooms.peripheral;
+  if (to === 'lost') return [{ x: r.x + r.w / 2, y: r.y + r.h - 8 }, { x: r.x + r.w / 2, y: g.rooms.lost.y + 10 }];
   if (to === 'eliminated') return [{ x: g.drainX, y: c.y + c.h - 8 }, g.collectorPort];
   if (from === 'central') return [{ x: c.x + c.w - 8, y: g.forwardY }, { x: r.x + 8, y: g.forwardY }];
   return [{ x: r.x + 8, y: g.backwardY }, { x: c.x + c.w - 8, y: g.backwardY }];
@@ -92,7 +102,7 @@ export function particlePosition(particle, time, g, still = false) {
   if (index < 0) return null;
   const current = particle.visits[index], next = particle.visits[index + 1];
   const previous = particle.visits[index - 1];
-  let pos = wander(particle, g.rooms[current.room], time, still || current.room === 'eliminated');
+  let pos = wander(particle, g.rooms[current.room], time, still || ['eliminated', 'lost'].includes(current.room));
   if (still) return { ...pos, room: current.room, transit: false };
   const residence = next ? next.time - current.time : 100;
   const arrival = Math.min(.35, residence * .2);

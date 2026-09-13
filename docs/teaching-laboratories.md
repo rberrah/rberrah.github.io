@@ -1,9 +1,13 @@
 # Teaching laboratories (pilot)
 
-Local implementation, 2026-09-12. This is an educational simulation, not a
+Updated 2026-09-13. This Pages release adds absorption/infusion after the
+distribution/accumulation and semi-log release (`d638246`). The separate
+"Next particle" toolbar button is removed; canvas selection remains accessible
+by pointer and keyboard. Shiny deployment remains independent.
+This is an educational simulation, not a
 drug-specific population model or a clinically validated dosing tool.
 
-## Two experiments
+## Experiments
 
 - **Distribution:** single IV bolus, two well-mixed compartments, linear central
   elimination. Inputs: dose, CL, Vc, Q and Vp. At Q = 0 the peripheral amount stays
@@ -11,11 +15,20 @@ drug-specific population model or a clinically validated dosing tool.
 - **Accumulation:** finite repeated IV boluses in a linear one-compartment model,
   with a first-dose multiplier. The last planned administration is followed by
   washout. It approaches steady state; it does not initialize an exact SS state.
+- **Oral absorption:** one dose, first-order depot emptying at ka. The
+  absorbed flow splits into systemic input `F * ka * depot` and presystemic loss
+  `(1-F) * ka * depot`. F aggregates bioavailability without resolving gut/liver
+  mechanisms. Loss is not counted as systemic elimination or included in AUC.
+- **IV infusion:** one fixed total dose delivered at `dose / duration`,
+  then zero input. The bag is undelivered mass, separate from administered mass.
+  The end-of-infusion control seeks to the exact stopping time without changing
+  the prescribed duration. There is no instantaneous initial bolus.
 
 Amounts and concentrations come from closed-form solutions, superposed over the
 actual dose schedule. Particles are symbolic; their positions are not a transport
 solver or an anatomical representation. The eliminated amount is
-`administered - central - peripheral`; `AUC(0,t) = eliminated / CL` for these models.
+`administered - central - peripheral - oral depot - presystemic loss`;
+`AUC(0,t) = eliminated / CL` for these models.
 The displayed AUC is not automatically an AUC24. At a bolus time the numeric state
 is post-dose; plotted curves include both pre-dose and post-dose states.
 
@@ -24,6 +37,18 @@ Both curves use the current model's display horizon and the same axes. The
 current model is solid and the reference is dashed; tables and exports use these
 names rather than A/B. Existing shared links retain their compatible schema.
 Units throughout: mg, L, h, mg/L, mg.h/L.
+
+The new labs also show analytical single-dose Cmax/Tmax, AUC(0,infinity), and
+terminal half-life. For oral absorption this half-life uses `min(ka, CL/V)`,
+including flip-flop absorption. At F = 0, Tmax is undefined. The peak and terminal
+phase may lie beyond the plotted horizon; these are theoretical landmarks, not
+sampled extrema. The oral convolution uses `expm1` and its equal-rate limit to
+remain stable at ka = CL/V. Infusion curves include the exact stop time.
+
+Oral particles start in the depot and either enter central or the separate loss
+collector. Infusion particles wait in the bag and enter central at uniformly
+spaced illustrative times. Both reuse the seeded central residence times and
+continuous passageway geometry. Counts never replace the analytical results.
 
 ## Playback and particles
 
@@ -98,6 +123,13 @@ Existing language/theme preferences are independent of scientific data.
 | Interactions | Model 1 as a validated Lego-marked PK, maintenance dose/interval, zero infusion | Finite dose count/loading dose; existing model 2 and interaction settings remain |
 | General PD | Validated Lego-marked PK, h and mg/L, maintenance dose/interval, horizon | Finite dose count/loading dose; existing PD settings remain |
 
+This table applies to distribution/accumulation. The two new labs currently
+transfer only to Lego. Oral absorption exports two depot exits, `ka*F` and
+`ka*(1-F)`, whose sum is ka; changing these independently in Lego no longer fixes
+ka/F. Infusion exports a single zero-order input with the specified duration.
+Direct TDM/DDI/PD transfer is disabled and rejected by the shared handoff helper
+until the regimen/route contract is verified. No silent IV-bolus substitution.
+
 DDI/PD apply their own repeated-dose workflows, not the laboratory's complete
 history. The destination warning makes this difference explicit. The model's
 illustrative OMEGA/SIGMA allow the Lego contract but are not clinical priors.
@@ -115,11 +147,13 @@ From the repository root:
 ```sh
 npm run test:labs
 Rscript tdm-engine/tests/teaching_lab_test.R
+Rscript tdm-engine/tests/input_labs_test.R
 Rscript tdm-engine/tests/safe_lego_test.R
 npm run check
 npm test
 npm run build
 npx playwright test tests/e2e/laboratories.spec.js
+npx playwright test tests/e2e/lab-inputs.spec.js
 ```
 
 `LABS_E2E_URL` optionally targets an already-running site. The browser checks
@@ -161,3 +195,21 @@ Defaults/semi-log revision on 2026-09-13: check (0 errors/warnings), build,
 numeric/particle tests and nine browser tests passed. Checks include both
 axes, zero concentrations at extreme elimination rates, synchronized cursors,
 initial control states, no autoplay and 320/390/1440 px screenshots.
+These nine browser tests also passed against the public Pages URL after deployment.
+
+Technical references: [D3 logarithmic scales](https://d3js.org/d3-scale/log)
+require a strictly positive domain; zero values are excluded. The independent
+R checks use [mrgsolve events](https://mrgsolve.org/docs/reference/ev.html), with
+infusion rate equal to amount/duration, and a separate ODE formulation.
+
+Input laboratories, local verification on 2026-09-13: 21 numerical scenarios
+passed (10 existing and 11 new), plus particle identity/continuity/bounds tests.
+The 11 new cases include F=0/1, ka=CL/V and near equality, slow/fast absorption,
+short/long infusion and an infusion stop beyond the selected horizon. Both the
+independent ODE and the actual Lego-regenerated model match each new case within
+1e-6. The 20 existing mrgsolve export/server comparisons were rerun and passed.
+Svelte check (0 errors/warnings), build, content tests and all 14 browser tests
+passed. Screenshots at 320/390/768/1440 px and French/dark mobile were inspected.
+Pixel tests verify input-pipe movement, reproducible seeking, pause, and no input
+after the infusion stops. Publication of the two new labs was requested after
+this local review; it does not include a Shiny deployment.

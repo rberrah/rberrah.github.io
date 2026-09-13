@@ -25,7 +25,7 @@
 		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
 		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
 		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs",
-		"test:labs": "node scripts/test_labs.mjs",
+		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
 	},
 	"devDependencies": {

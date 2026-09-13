@@ -5,7 +5,7 @@
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
   import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
-  import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule } from '$lib/labs/model.js';
+  import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule, singleDoseSummary } from '$lib/labs/model.js';
   import { prepareHandoff } from '$lib/labs/handoff.js';
   import LabScene from './LabScene.svelte';
   import LabPlot from './LabPlot.svelte';
@@ -15,7 +15,9 @@
   let root, animationArea, raf = 0, last = 0, visible = true, ready = false;
   let animateParticles = true;
   $: en = $language === 'en';
-  $: titles = en ? { distribution: 'Two-compartment distribution', accumulation: 'Accumulation and repeated doses' } : { distribution: 'Distribution à deux compartiments', accumulation: 'Accumulation et doses répétées' };
+  $: titles = en ? { distribution: 'Two-compartment distribution', accumulation: 'Accumulation and repeated doses', absorption: 'Oral absorption and bioavailability', infusion: 'IV infusion and washout' } : { distribution: 'Distribution à deux compartiments', accumulation: 'Accumulation et doses répétées', absorption: 'Absorption orale et biodisponibilité', infusion: 'Perfusion IV et décroissance après arrêt' };
+  $: newLab = ['absorption', 'infusion'].includes(lab);
+  $: route = lab === 'absorption' ? (en ? 'Oral' : 'Orale') : lab === 'infusion' ? (en ? 'IV infusion' : 'Perfusion IV') : 'IV bolus';
   $: validation = (() => { try { return { value: validateParameters(lab, p), error: '' }; } catch (e) { return { value: null, error: String(e.message) }; } })();
   $: valid = validation.value;
   $: end = valid ? valid.end : 48;
@@ -23,8 +25,12 @@
   $: refState = valid ? stateAt(lab, reference, time) : null;
   $: b = valid ? series(lab, valid, end) : [];
   $: a = valid ? series(lab, reference, end) : [];
-  $: names = { dose: 'Dose (mg)', cl: 'CL (L/h)', vc: lab === 'distribution' ? 'Vc (L)' : 'V (L)', q: 'Q (L/h)', vp: 'Vp (L)', tau: en ? 'Interval (h)' : 'Intervalle (h)', count: en ? 'Number of doses' : 'Nombre de doses', loading: en ? 'First dose multiplier' : 'Multiplicateur premiere dose', end: en ? 'Horizon (h)' : 'Horizon (h)' };
-  $: fields = lab === 'distribution' ? ['dose', 'cl', 'vc', 'q', 'vp', 'end'] : ['dose', 'cl', 'vc', 'tau', 'count', 'loading', 'end'];
+  $: names = { dose: 'Dose (mg)', cl: 'CL (L/h)', vc: lab === 'distribution' ? 'Vc (L)' : 'V (L)', q: 'Q (L/h)', vp: 'Vp (L)', tau: en ? 'Interval (h)' : 'Intervalle (h)', count: en ? 'Number of doses' : 'Nombre de doses', loading: en ? 'First dose multiplier' : 'Multiplicateur premiere dose', end: 'Horizon (h)', ka: 'ka (1/h)', f: 'F (0-1)', duration: en ? 'Infusion duration (h)' : 'Durée de perfusion (h)' };
+  $: fields = lab === 'distribution' ? ['dose', 'cl', 'vc', 'q', 'vp', 'end'] : lab === 'absorption' ? ['dose', 'cl', 'vc', 'ka', 'f', 'end'] : lab === 'infusion' ? ['dose', 'cl', 'vc', 'duration', 'end'] : ['dose', 'cl', 'vc', 'tau', 'count', 'loading', 'end'];
+  $: landmarks = valid && newLab ? singleDoseSummary(lab, valid) : null;
+  $: quantities = [['central', 'Central (mg)'], ...(lab === 'absorption' ? [['depot', en ? 'Oral depot (mg)' : 'Dépôt oral (mg)'], ['lost', en ? 'Presystemic loss (mg)' : 'Perte présystémique (mg)']] : lab === 'infusion' ? [['reservoir', en ? 'Infusion bag (mg)' : 'Poche de perfusion (mg)']] : [['peripheral', en ? 'Peripheral (mg)' : 'Périphérique (mg)']]), ['eliminated', en ? 'Eliminated (mg)' : 'Éliminé (mg)'], ...(newLab ? [['inputRate', en ? 'Systemic input (mg/h)' : 'Entrée systémique (mg/h)']] : [['forward', 'Q Cc (mg/h)'], ['backward', 'Q Cp (mg/h)']]), ['eliminationRate', 'CL Cc (mg/h)']];
+  $: question = lab === 'absorption' ? (en ? 'If F increases with ka, CL and V fixed, what happens to total exposure (AUC)?' : 'Si F augmente à ka, CL et V fixes, que devient l’exposition totale (AUC) ?') : (en ? 'For the same total dose, what happens to Cmax if the infusion takes longer?' : 'Pour une même dose totale, que devient Cmax si la perfusion dure plus longtemps ?');
+  $: explanation = lab === 'absorption' ? (en ? 'AUC(0,infinity) = F * dose / CL. Increasing ka changes the timing and peak, not total exposure at fixed F.' : 'AUC(0,infini) = F * dose / CL. Augmenter ka change le pic et son horaire, pas l’exposition totale à F fixe.') : (en ? 'A longer infusion lowers the input rate and Cmax. Total AUC stays dose / CL; after stopping, concentration declines with half-life ln(2) * V / CL.' : 'Une perfusion plus longue diminue le débit et Cmax. L’AUC totale reste dose / CL ; après arrêt, la demi-vie est ln(2) * V / CL.');
   $: if (!teacher) hidden = false;
   $: if (hidden || !valid) pause();
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
@@ -69,7 +75,7 @@
     catch { message = en ? 'Scenario link ready below.' : 'Lien du scenario disponible ci-dessous.'; }
   }
   function csv() {
-    const data = [['scenario','time_h','concentration_mg_L','central_mg','peripheral_mg','eliminated_mg','auc_0_t_mg_h_L'], ...[['reference', a], ['current', b]].flatMap(([label, values]) => values.map(row => [label, row.t, row.c, row.central, row.peripheral, row.eliminated, row.auc]))];
+    const data = [['scenario','time_h','concentration_mg_L','central_mg','peripheral_mg','eliminated_mg','auc_0_t_mg_h_L','oral_depot_mg','presystemic_loss_mg','infusion_bag_mg','administered_mg'], ...[['reference', a], ['current', b]].flatMap(([label, values]) => values.map(row => [label, row.t, row.c, row.central, row.peripheral, row.eliminated, row.auc, row.depot, row.lost, row.reservoir, row.administered]))];
     blobDownload(new Blob([data.map(row => row.join(',')).join('\n')], { type: 'text/csv' }), `${lab}.csv`);
   }
   function figure() {
@@ -77,7 +83,7 @@
     const output = document.createElement('canvas'); output.width = Math.max(1000, source.width); output.height = source.height + logPlot.height + scene.height + 210;
     const ctx = output.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, output.width, output.height);
     ctx.fillStyle = '#173b40'; ctx.font = '20px sans-serif'; ctx.fillText(titles[lab], 20, 32);
-    ctx.font = '14px sans-serif'; ctx.fillText(`${compare ? (en ? 'Reference: dashed / ' : 'Reference : pointilles / ') : ''}${en ? 'Current: solid' : 'Modele actuel : continu'} | IV bolus | mg, L, h | t=${time.toFixed(2)} h`, 20, 57);
+    ctx.font = '14px sans-serif'; ctx.fillText(`${compare ? (en ? 'Reference: dashed / ' : 'Reference : pointilles / ') : ''}${en ? 'Current: solid' : 'Modele actuel : continu'} | ${route} | mg, L, h | t=${time.toFixed(2)} h`, 20, 57);
     ctx.fillText(`${en ? 'Current model' : 'Modele actuel'}: ${fields.map(key => `${key}=${p[key]}`).join('; ')}`, 20, 80);
     ctx.drawImage(scene, (output.width - scene.width) / 2, 100); ctx.drawImage(source, (output.width - source.width) / 2, 100 + scene.height);
     ctx.drawImage(logPlot, (output.width - logPlot.width) / 2, 100 + scene.height + source.height);
@@ -94,30 +100,36 @@
   <div class="lab-tabs" role="group" aria-label={en ? 'Laboratory' : 'Laboratoire'}>
     <button class:active={lab === 'distribution'} aria-pressed={lab === 'distribution'} on:click={() => select('distribution')}>{en ? '01 / Distribution' : '01 / Distribution'}</button>
     <button class:active={lab === 'accumulation'} aria-pressed={lab === 'accumulation'} on:click={() => select('accumulation')}>02 / Accumulation</button>
+    <button class:active={lab === 'absorption'} aria-pressed={lab === 'absorption'} on:click={() => select('absorption')}>03 / Absorption</button>
+    <button class:active={lab === 'infusion'} aria-pressed={lab === 'infusion'} on:click={() => select('infusion')}>04 / {en ? 'Infusion' : 'Perfusion'}</button>
   </div>
   <div class="title-row"><h2>{titles[lab]}</h2><label class="check"><GraduationCap size={19}/><input type="checkbox" bind:checked={teacher}/>{en ? 'Teacher mode' : 'Mode enseignant'}</label></div>
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
-      <div class="parameter-head"><strong>{en ? 'Current model' : 'Modèle actuel'}</strong><span>IV bolus</span></div>
+      <div class="parameter-head"><strong>{en ? 'Current model' : 'Modèle actuel'}</strong><span>{route}</span></div>
       <div class="numbers">{#each fields as key}<label for={`lab-${key}`}>{names[key]}<input id={`lab-${key}`} type="number" min={limits[key][0]} max={limits[key][1]} step={key === 'count' ? '1' : 'any'} value={p[key]} on:input={event => change(key, event)}/></label>{/each}</div>
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
       <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer à la référence'}</label>
       <button class="command" disabled={!valid} on:click={() => { reference = { ...valid }; }}><Copy size={17}/>{en ? 'Use this model as the new reference' : 'Prendre ce modèle comme nouvelle référence'}</button>
       {#if compare}<details><summary>{en ? 'Reference parameters' : 'Paramètres de la référence'}</summary><dl>{#each fields.filter(key => key !== 'end') as key}<div><dt>{names[key]}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
-      <div class="question"><strong>{en ? 'Predict' : 'Predire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "A dose d'entretien et clairance constantes, raccourcir l'intervalle change comment la concentration moyenne a l'equilibre ?")}</p>
+      {#if newLab}<div class="question"><strong>{en ? 'Predict' : 'Prédire'}</strong><p>{question}</p>
+        <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prédiction'}</option><option value="up">{en ? 'Higher' : 'Plus élevée'}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{en ? 'Lower' : 'Plus faible'}</option></select>
+        <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
+        {#if answer && !hidden}<p class="feedback" role="status">{prediction === (lab === 'absorption' ? 'up' : 'down') ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{explanation}</p>{/if}
+      </div>{:else}<div class="question"><strong>{en ? 'Predict' : 'Predire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "A dose d'entretien et clairance constantes, raccourcir l'intervalle change comment la concentration moyenne a l'equilibre ?")}</p>
         <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prediction'}</option><option value="up">{lab === 'distribution' ? (en ? 'Faster' : 'Plus rapide') : (en ? 'Higher' : 'Plus elevee')}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{lab === 'distribution' ? (en ? 'Slower' : 'Plus lente') : (en ? 'Lower' : 'Plus faible')}</option></select>
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Verifier la prediction'}</button>
         {#if answer && !hidden}<p class="feedback" role="status">{prediction === 'up' ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{lab === 'distribution' ? (en ? 'The initial outward transfer rises. Distribution is not elimination: drug can return from the peripheral compartment.' : "Le transfert sortant initial augmente. La distribution n'est pas une elimination : le medicament peut revenir du compartiment peripherique.") : (en ? 'The dose rate increases. For this linear model, Css,mean = dose / (CL * interval).' : 'Le debit de dose augmente. Pour ce modele lineaire, Cmoy,ss = dose / (CL * intervalle).')}</p>{/if}
-      </div>
+      </div>{/if}
     </aside>
     <div class="experiment">
       <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}>{#each [['intuition','Intuition'], ['model','Equations']] as [key,label]}<button class:active={mode === key} aria-pressed={mode === key} on:click={() => mode = key}>{label}</button>{/each}</div>
       <div bind:this={animationArea}>
       {#if valid && !hidden}
-        {#if mode === 'model'}<div class="equations"><code>{lab === 'distribution' ? 'dAc/dt = -(CL + Q) Ac/Vc + Q Ap/Vp\ndAp/dt = Q Ac/Vc - Q Ap/Vp\nCc = Ac/Vc; Cp = Ap/Vp' : 'dA/dt = -(CL/V) A\nA(tdose+) = A(tdose-) + dose\nC = A/V; Cmoy,ss = dose/(CL * interval)'}</code><p>{en ? 'Linear elimination. Fixed parameters. Instantaneous IV bolus input. No variability or measurement error.' : 'Elimination lineaire. Parametres fixes. Entree IV bolus instantanee. Sans variabilite ni erreur de mesure.'}</p></div>{/if}
+        {#if mode === 'model'}<div class="equations"><code>{lab === 'absorption' ? 'dAg/dt = -ka Ag; Ag(0) = dose\ndAc/dt = F ka Ag - (CL/V) Ac\ndLoss/dt = (1-F) ka Ag; C = Ac/V' : lab === 'infusion' ? 'R0 = dose/duration (0 <= t < duration), then 0\ndAc/dt = R0 - (CL/V) Ac; Ac(0) = 0\nC = Ac/V' : lab === 'distribution' ? 'dAc/dt = -(CL + Q) Ac/Vc + Q Ap/Vp\ndAp/dt = Q Ac/Vc - Q Ap/Vp\nCc = Ac/Vc; Cp = Ap/Vp' : 'dA/dt = -(CL/V) A\nA(tdose+) = A(tdose-) + dose\nC = A/V; Cmoy,ss = dose/(CL * interval)'}</code><p>{route}. {en ? 'Linear elimination. Fixed parameters. No variability or measurement error.' : 'Élimination linéaire. Paramètres fixes. Sans variabilité ni erreur de mesure.'}</p></div>{/if}
         <LabScene {lab} p={valid} {state} {time} {en} {playing} bind:animateParticles on:play={() => playing ? pause() : play()} on:seek={event => { pause(); time = Math.min(end, event.detail); }}/>
-        <p class="scene-note">{en ? 'Illustrative particle journeys, not exact molecule counts or anatomy. Concentrations, AUC and mass balance use the continuous PK model. IV bolus; mg, L, h.' : 'Trajectoires particulaires illustratives, sans comptage moléculaire exact ni représentation anatomique. Concentrations, AUC et bilan de masse issus du modèle PK continu. Bolus IV ; mg, L, h.'}</p>
+        <p class="scene-note">{en ? 'Illustrative particle journeys, not exact molecule counts or anatomy. Concentrations, AUC and mass balance use the continuous PK model.' : 'Trajectoires particulaires illustratives, sans comptage moléculaire exact ni représentation anatomique. Concentrations, AUC et bilan de masse issus du modèle PK continu.'} {route} ; mg, L, h.</p>
       {:else}<div class="hidden-scene"><EyeOff size={28}/><strong>{hidden ? (en ? 'Results hidden' : 'Resultats masques') : (en ? 'Parameters to review' : 'Parametres a verifier')}</strong></div>{/if}
       <div class="timebar">
         <button class="icon-button" title={playing ? 'Pause' : (en ? 'Play' : 'Lecture')} aria-label={playing ? 'Pause' : (en ? 'Play' : 'Lecture')} disabled={!valid || hidden} on:click={() => playing ? pause() : play()}>{#if playing}<Pause size={19}/>{:else}<Play size={19}/>{/if}</button>
@@ -132,8 +144,13 @@
         <div class="plot-legend"><span>{en ? 'Current model' : 'Modèle actuel'}</span>{#if compare}<span class="reference">{en ? 'Reference' : 'Référence'}</span>{/if}</div>
         <LabPlot {a} {b} {time} {en} {compare} concentration={state.c}/>
         <LabPlot {a} {b} {time} {en} {compare} concentration={state.c} logarithmic/>
+        {#if landmarks}<div class="landmarks" data-testid="lab-landmarks">
+          <span>Cmax <b>{landmarks.cmax.toFixed(2)} mg/L</b></span><span>Tmax <b>{landmarks.cmax > 0 ? `${landmarks.tmax.toFixed(2)} h` : '--'}</b></span>
+          <span>AUC 0-{en ? 'infinity' : 'infini'} <b>{landmarks.aucInfinity.toFixed(2)} mg.h/L</b></span>
+          <span>{en ? 'Terminal half-life' : 'Demi-vie terminale'} <b>{landmarks.terminalHalfLife.toFixed(2)} h</b></span>
+        </div>{/if}
         <div class="metrics"><div><span>C(t) · mg/L</span><strong data-testid="lab-concentration">{state.c.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} h · mg.h/L</span><strong>{state.auc.toFixed(2)}</strong></div><div><span>{en ? 'Eliminated / given (mg)' : 'Elimine / administre (mg)'}</span><strong>{state.eliminated.toFixed(1)} / {state.administered.toFixed(0)}</strong></div></div>
-        <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each [['central',en ? 'Central (mg)' : 'Central (mg)'], ['peripheral',en ? 'Peripheral (mg)' : 'Peripherique (mg)'], ['eliminated',en ? 'Eliminated (mg)' : 'Elimine (mg)'], ['forward','Q Cc (mg/h)'], ['backward','Q Cp (mg/h)'], ['eliminationRate','CL Cc (mg/h)']] as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned IV bolus administrations' : 'Administrations IV bolus prevues'}</caption><thead><tr><th>h</th><th>mg</th></tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td></tr>{/each}</tbody></table></div></details>
+        <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each quantities as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned administrations' : 'Administrations prévues'} · {route}</caption><thead><tr><th>h</th><th>mg</th>{#if lab === 'infusion'}<th>{en ? 'Duration (h)' : 'Durée (h)'}</th>{/if}</tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td>{#if lab === 'infusion'}<td>{dose.infusion}</td>{/if}</tr>{/each}</tbody></table></div></details>
       {/if}
       {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scenario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les resultats a l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Parametres synthetiques uniquement. L'apprenant peut reveler les resultats ; ce n'est pas un examen verrouille."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Reveler les resultats') : (en ? 'Hide results' : 'Masquer les resultats')}</button></section>{/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" disabled={!valid || hidden} on:click={figure}><ImageDown size={17}/>{en ? 'Figure' : 'Figure'}</button><button class="command" on:click={() => select(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
@@ -143,10 +160,10 @@
   </div>
   <section class="continuity"><h2>{en ? 'Continue the experiment' : "Poursuivre l'experience"}</h2><div class="next-actions">
     <button class="command" disabled={!valid} on:click={() => continueIn('lego','/lego/')}><ArrowRight size={18}/>{en ? 'Build in Lego' : 'Construire dans Lego'}</button>
-    <button class="command" disabled={!valid} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
-    <button class="command" disabled={!valid} on:click={() => continueIn('ddi','/interactions/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
-    <button class="command" disabled={!valid} on:click={() => continueIn('pd','/pharmacodynamie/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
-  </div><a href={`${base}/chapitres/${lab === 'distribution' ? 'clairance-volume-demi-vie' : 'doses-repetees'}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associe'}</a></section>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/interactions/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pharmacodynamie/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
+  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{:else}<a href={`${base}/chapitres/${lab === 'distribution' ? 'clairance-volume-demi-vie' : 'doses-repetees'}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associe'}</a>{/if}</section>
 </section>
 
 <style>
@@ -157,7 +174,7 @@
   .research { border-left: 3px solid var(--teal); padding-left: 12px; font-size: 13px; }
   button, input, select { font: inherit; letter-spacing: 0; } button { cursor: pointer; } button:disabled { cursor: default; opacity: .5; }
   button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
-  .lab-tabs, .display-modes { display: flex; gap: 0; border-bottom: 1px solid var(--border-strong); }
+  .lab-tabs, .display-modes { display: flex; flex-wrap: wrap; gap: 0; border-bottom: 1px solid var(--border-strong); }
   .lab-tabs button, .display-modes button { border: 0; border-bottom: 3px solid transparent; background: none; color: var(--text-secondary); padding: 14px 18px; font-size: 14px; }
   .lab-tabs button.active, .display-modes button.active { border-bottom-color: var(--teal); color: var(--text-primary); font-weight: 700; }
   .lab-grid { display: grid; grid-template-columns: 265px minmax(0,1fr); border-top: 1px solid var(--border-subtle); }
@@ -184,6 +201,8 @@
   .plot-legend .reference:before { border-color: var(--plum); border-top-style: dashed; }
   .metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); padding: 16px 0; gap: 12px; }
   .metrics span { display: block; font-size: 11px; color: var(--text-secondary); } .metrics strong { font-size: 21px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .landmarks { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; padding: 18px 0; border-top: 1px solid var(--border-subtle); font-size: 12px; }
+  .landmarks b { display: block; margin-top: 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .exports, .next-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
   details { margin: 18px 0; font-size: 13px; } summary { cursor: pointer; padding: 7px 0; } dl div { display: flex; justify-content: space-between; } dd { margin: 0; }
   .table-scroll { overflow-x: auto; } table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; } td, th { text-align: right; padding: 7px; border-bottom: 1px solid var(--border-subtle); } th:first-child { text-align: left; } caption { text-align: left; padding: 12px 0; }

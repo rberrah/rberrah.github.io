@@ -198,9 +198,9 @@ test('particle selection, draggable exact-concentration probe, slow motion and d
   await page.getByLabel('Follow a particle', { exact: true }).check();
   await page.getByLabel('Probe', { exact: true }).check();
   const tracked = await page.getByTestId('particle-readout').innerText();
-  await page.getByRole('button', { name: 'Next particle', exact: true }).click();
-  await expect(page.getByTestId('particle-readout')).not.toHaveText(tracked);
+  await expect(page.getByRole('button', { name: 'Next particle', exact: true })).toHaveCount(0);
   await page.getByTestId('lab-scene').focus(); await page.keyboard.press('Enter');
+  await expect(page.getByTestId('particle-readout')).not.toHaveText(tracked);
   await expect(page.getByTestId('probe-readout')).toContainText('10.00');
   await page.getByTestId('lab-time').fill('2');
   await expect(page.getByTestId('probe-readout')).toContainText(await page.getByTestId('lab-concentration').innerText());

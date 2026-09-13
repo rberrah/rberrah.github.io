@@ -13,6 +13,25 @@ export function concMono(t, dose, cl, v) {
   return (dose / v) * Math.exp(-ke * t);
 }
 
+/** One oral dose, first-order absorption. Stable also when ka = CL/V.
+ * @param {number} t @param {number} dose @param {number} cl
+ * @param {number} v @param {number} ka @param {number} f
+ */
+export function concOral(t, dose, cl, v, ka, f = 1) {
+  const ke = cl / v, gap = Math.abs(ka - ke);
+  const convolution = gap === 0 ? t : -Math.expm1(-gap * t) / gap;
+  return f * dose / v * ka * Math.exp(-Math.min(ka, ke) * t) * convolution;
+}
+
+/** One constant-rate IV infusion, including its washout.
+ * @param {number} t @param {number} dose @param {number} cl
+ * @param {number} v @param {number} duration
+ */
+export function concInfusion(t, dose, cl, v, duration) {
+  const ke = cl / v;
+  return dose / (duration * cl) * -Math.expm1(-ke * Math.min(t, duration)) * Math.exp(-ke * Math.max(0, t - duration));
+}
+
 /**
  * Half-life from clearance and volume (or ke directly).
  * @param {number} cl L/h

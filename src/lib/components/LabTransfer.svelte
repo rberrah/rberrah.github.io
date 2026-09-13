@@ -19,7 +19,7 @@
 {#if pending}
   <section class="transfer" aria-label={en ? 'Pending transfer' : 'Transfert en attente'} data-testid="lab-transfer">
     <strong>{en ? 'Resume the laboratory experiment?' : "Reprendre l'experience du laboratoire ?"}</strong>
-    <p>IV bolus · mg · L · h · CL = {pending.spec.parameters.cl} L/h · V = {pending.spec.parameters.vc} L</p>
+    <p>{pending.spec.lab === 'absorption' ? (en ? 'Oral' : 'Orale') : pending.spec.lab === 'infusion' ? (en ? 'IV infusion' : 'Perfusion IV') : 'IV bolus'} · mg · L · h · CL = {pending.spec.parameters.cl} L/h · V = {pending.spec.parameters.vc} L</p>
     <p>{note}</p>
     <div>
       <button on:click={confirm}><ArrowRight size={17}/>{en ? 'Apply experiment' : "Appliquer l'experience"}</button>
