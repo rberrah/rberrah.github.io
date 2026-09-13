@@ -397,7 +397,7 @@ lego_spec_from_code <- function(code) {
 }
 
 lego_format_number <- function(value) {
-  formatted <- format(round(as.numeric(value), 6), scientific = FALSE, trim = TRUE, nsmall = 0)
+  formatted <- format(as.numeric(value), digits = 15, scientific = FALSE, trim = TRUE, nsmall = 0)
   sub("\\.$", "", formatted)
 }
 

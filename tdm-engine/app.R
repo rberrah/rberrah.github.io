@@ -81,6 +81,7 @@ source(file.path(APP_ROOT, "R", "pd_module.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "onco_engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "onco_module.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "workbench_bridge.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "teaching_lab.R"), local = TRUE)
 
 ml_concordance <- function(result, lang = "fr") {
   map_auc24 <- suppressWarnings(as.numeric(result$current_exposure$steady_state_auc24 %||% NA_real_))
@@ -584,12 +585,30 @@ app_ui <- function(request) {
     tags$script(src = "workbench.js"),
     tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
     tags$script(HTML("(function () {
+      var labRequests = new Map();
+      function registerLabAck() {
+        if (!window.Shiny || typeof Shiny.addCustomMessageHandler !== 'function') return;
+        Shiny.addCustomMessageHandler('teaching-lab-ack', function (reply) {
+          var request = labRequests.get(reply.id);
+          if (request) { request.source.postMessage(Object.assign({ type: 'pk-lego-model-ack' }, reply), request.origin); labRequests.delete(reply.id); }
+        });
+      }
+      document.addEventListener('shiny:connected', registerLabAck);
+      document.addEventListener('DOMContentLoaded', registerLabAck);
       window.addEventListener('message', function (event) {
         var query = new URLSearchParams(window.location.search);
         var payload = event.data || {};
         if (query.get('bridge') !== 'lego' || event.source !== window.opener) return;
+        if (query.has('origin') && event.origin !== query.get('origin')) return;
         if (payload.type !== 'pk-lego-model' || typeof payload.code !== 'string') return;
         if (!window.Shiny || typeof window.Shiny.setInputValue !== 'function' || !window.Shiny.shinyapp || !window.Shiny.shinyapp.config || !window.Shiny.shinyapp.config.sessionId) return;
+        if (payload.teaching) {
+          if (typeof payload.id !== 'string' || !/^[a-zA-Z0-9-]{1,80}$/.test(payload.id)) return;
+          if (labRequests.has(payload.id)) return;
+          labRequests.set(payload.id, { source: event.source, origin: event.origin });
+          window.Shiny.setInputValue('teaching_lab_import', { id: payload.id, spec: payload.teaching }, { priority: 'event' });
+          return;
+        }
         window.Shiny.setInputValue('lego_model_import', {
           code: payload.code,
           spec: payload.spec || null,
@@ -1346,6 +1365,30 @@ server <- function(input, output, session) {
       selected = selected
     )
   })
+
+  shiny::observeEvent(input$teaching_lab_import, {
+    payload <- input$teaching_lab_import
+    id <- payload$id
+    if (!is.character(id) || length(id) != 1 || !grepl("^[a-zA-Z0-9-]{1,80}$", id)) return()
+    tryCatch({
+      imported <- teaching_lab_import(payload$spec)
+      pending_lego_covariates(list(code = imported$code, definition = parse_covariates(imported$code)))
+      updateRadioButtons(session, "model_source", selected = "custom")
+      updateTextAreaInput(session, "custom_code", value = imported$code)
+      updateSelectInput(session, "administration_route", selected = "IV")
+      updateSelectInput(session, "time_entry_mode", selected = "relative_hours")
+      updateCheckboxInput(session, "enable_averaging", value = FALSE)
+      updateCheckboxInput(session, "enable_experimental_ml", value = FALSE)
+      replace_dose_rows(imported$doses)
+      replace_observation_rows(data.frame(time = 0, concentration = NA_real_))
+      validation_store(NULL)
+      analysis_store(NULL)
+      bslib::nav_select("analysis_tabs", "model")
+      session$sendCustomMessage("teaching-lab-ack", list(id = id, ok = TRUE))
+      showNotification(tx("Experience synthetique importee : bolus IV, mg, L, h. Aucune concentration observee. Variabilite illustrative uniquement.",
+                          "Synthetic experiment imported: IV bolus, mg, L, h. No observed concentration. Illustrative variability only."), duration = 12)
+    }, error = function(error) session$sendCustomMessage("teaching-lab-ack", list(id = id, ok = FALSE, error = conditionMessage(error))))
+  }, ignoreInit = TRUE)
 
   shiny::observeEvent(input$lego_model_import, {
     payload <- input$lego_model_import

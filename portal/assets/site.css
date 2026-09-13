@@ -188,6 +188,8 @@ a.course-card:hover { transform: translateY(-2px); border-color: var(--accent-c)
 a.course-card:hover .go { text-decoration: underline; }
 
 /* ---------- Listes de liens sobres ---------- */
+.objective-links { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.8rem 1.5rem; }
+.objective-links a { display: block; border-bottom: 2px solid #087b83; padding: 0.7rem 0; font-size: 0.95rem; letter-spacing: 0; }
 .linklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
 .linklist li { padding-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
 .linklist li:last-child { border-bottom: 0; }

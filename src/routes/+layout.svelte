@@ -7,6 +7,7 @@
   import '@fontsource-variable/jetbrains-mono';
   import '$lib/styles/theme.css';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+  import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
   import { base } from '$app/paths';
   import { page } from '$app/stores';
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
@@ -30,6 +31,20 @@
     { href: '/references', key: 'references', label: copy.nav.references },
     { href: '/a-propos', key: 'about', label: copy.nav.about }
   ]);
+  let groups = $derived([
+    { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
+    { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: FlaskConical, keys: ['laboratories', 'playground'] },
+    { key: 'build', label: $language === 'en' ? 'Build' : 'Construire', icon: Blocks, keys: ['lego', 'interactions', 'pharmacodynamics'] },
+    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm'] },
+    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about'] }
+  ]);
+  let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
+  /** @type {HTMLElement | undefined} */
+  let navigation = $state();
+  function closeNavigation() {
+    menuOpen = false;
+    navigation?.querySelectorAll('details[open]').forEach(item => item.removeAttribute('open'));
+  }
 
   let menuOpen = $state(false);
   const isActive = (/** @type {string} */ href) =>
@@ -49,6 +64,8 @@
   // l'interface est traduite intégralement.
   let isChapterRoute = $derived($page.route.id === '/chapitres/[slug]');
 </script>
+
+<svelte:window onclick={(event) => { if (navigation && event.target instanceof Node && !navigation.contains(event.target) && !(event.target instanceof Element && event.target.closest('.burger'))) closeNavigation(); }} onkeydown={(event) => { if (event.key === 'Escape') { const summary = navigation?.querySelector('details[open] summary'); if (summary instanceof HTMLElement) summary.focus(); closeNavigation(); } }} />
 
 <svelte:head>
   <title>Pharmacométrie Pratique</title>
@@ -70,14 +87,12 @@
     <button class="burger" aria-label="Menu" aria-expanded={menuOpen} aria-controls="site-nav" onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
       <span></span><span></span><span></span>
     </button>
-    <nav id="site-nav" class:open={menuOpen} aria-label={copy.nav.primary}>
-      {#each links as link}
-        <a
-          class:active={isActive(link.href)}
-          href={`${base}${link.href}`}
-          onclick={() => (menuOpen = false)}
-          data-testid={`nav-${link.key}`}
-        >{link.label}</a>
+    <nav id="site-nav" bind:this={navigation} class:open={menuOpen} aria-label={copy.nav.primary}>
+      {#each groups as group}
+        <details class="goal" name="site-objective" data-testid={`goal-${group.key}`}>
+          <summary class:active={objectiveLinks.some(link => group.keys.includes(link.key) && isActive(link.href))}><group.icon size={16}/>{group.label}<ChevronDown size={13}/></summary>
+          <div class="goal-links">{#each group.keys as key}{@const link = objectiveLinks.find(item => item.key === key)}{#if link}<a class:active={isActive(link.href)} aria-current={isActive(link.href) ? 'page' : undefined} href={`${base}${link.href}`} onclick={closeNavigation} data-testid={`nav-${link.key}`}>{link.label}</a>{/if}{/each}</div>
+        </details>
       {/each}
       <div class="tools">
         <LanguageToggle />
@@ -131,6 +146,14 @@
   .word { font-family: var(--font-heading); font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; }
   .word em { font-style: normal; color: var(--accent-pk); }
   nav { display: flex; gap: var(--space-1); }
+  .goal { position: relative; margin: 0; }
+  .goal summary { list-style: none; display: flex; align-items: center; gap: 7px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-secondary); white-space: nowrap; }
+  .goal summary::-webkit-details-marker { display: none; }
+  .goal summary.active { color: var(--accent-pk); }
+  .goal[open] summary, .goal summary:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .goal-links { position: absolute; top: 100%; left: 0; min-width: 220px; display: flex; flex-direction: column; background: var(--bg-primary); border: 1px solid var(--border-strong); padding: 6px; box-shadow: 0 8px 18px #0001; }
+  .goal:last-of-type .goal-links { left: auto; right: 0; }
+  .goal-links a { white-space: normal; }
   .tools { display: flex; align-items: center; gap: var(--space-2); margin-left: var(--space-2); }
   nav :global(.language-toggle) { margin-left: 0; }
   nav a {
@@ -155,12 +178,14 @@
     text-align: center; padding: 6px var(--space-4);
     font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: 0.02em;
   }
-  @media (max-width: 1499px) {
+  @media (max-width: 1100px) {
     .burger { display: flex; }
     nav { position: absolute; top: 100%; right: 0; left: 0; flex-direction: column;
       background: var(--bg-primary); border-bottom: 1px solid var(--border-subtle);
       padding: var(--space-3) var(--space-6); display: none; }
     nav.open { display: flex; }
+    nav { max-height: calc(100dvh - var(--header-h)); overflow-y: auto; }
+    .goal-links, .goal:last-of-type .goal-links { position: static; min-width: 0; box-shadow: none; border: 0; border-left: 2px solid var(--border-strong); margin-left: 18px; }
     .tools { margin: var(--space-2) 0 0; }
     nav :global(.language-toggle) { width: max-content; }
   }

@@ -4,6 +4,8 @@
   // et des flèches (constantes de transfert) entre N'IMPORTE quels compartiments.
   // Sortie : diagramme éditable + EDO générées + nlmixr2/mrgsolve/MLXTRAN/NONMEM + simulation (RK4).
   import { language } from '$lib/stores/language';
+  import LabTransfer from '$lib/components/LabTransfer.svelte';
+  import { legoSpec } from '$lib/labs/model.js';
   import { ui } from '$lib/i18n/translations';
   import { tdmEngineUrl } from '$lib/tdm/engine';
   import { parseModelCode } from '$lib/lego/mlxtran.js';
@@ -1488,6 +1490,7 @@
 <header class="head">
   <p class="eyebrow">{copy.pages.legoEyebrow}</p>
   <h1>{copy.pages.legoTitle}</h1>
+  <LabTransfer destination="lego" apply={spec => hydrateLegoSpec(legoSpec(spec.lab, spec.parameters))} note={$language === 'en' ? 'Transfers structure, PK parameters, units, horizon and first dose. Lego simulates a single dose; use TDM for the full repeated-dose schedule. Existing diagram will be replaced.' : 'Transfert de la structure, des parametres PK, des unites, de l\'horizon et de la premiere dose. Lego simule une dose unique ; utiliser TDM pour le calendrier complet. Le schema actuel sera remplace.'}/>
   <p class="lede">{lego.lede}</p>
 </header>
 

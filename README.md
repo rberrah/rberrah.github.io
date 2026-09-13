@@ -1,6 +1,26 @@
-# Pharmacométrie Explain – cours interactif (SvelteKit)
+# Pharmacométrie Pratique – portail, cours et outils
 
-Site éducatif scrollytelling (type MLU-Explain) couvrant PK/PD, PopPK, diagnostics, TDM, IA/Neural ODE. Déploiement 100 % statique (adapter-static) pour GitHub Pages.
+Ce dépôt réunit le portail académique, le cours interactif SvelteKit et les outils
+de recherche TDM/MIPD, interactions et pharmacodynamie. Le portail et le site
+SvelteKit sont statiques ; le moteur R/Shiny est déployé séparément.
+
+**Évolutions prévues : [roadmap priorisée](ROADMAP.md).** Elle distingue les
+fonctions déjà livrées, les travaux à réaliser et les décisions d'architecture
+encore à arbitrer. Aucune séparation de dépôt ou modification de licence n'est
+actée par cette documentation.
+
+## Organisation
+- `portal/` : portail publié à la racine `https://rberrah.github.io/`.
+- `src/` et `static/` : cours, simulations, ateliers Lego/DDI/PD et interface TDM,
+  publiés sous `https://rberrah.github.io/pharmacometrie/`.
+- `tdm-engine/` : application R/Shiny et modules de calcul, modèles et artefacts ML.
+  Voir [installation et déploiement Shiny](tdm-engine/README.md).
+- `static/tdm/` et `scripts/generate_tdm_catalog.mjs` : bibliothèque et génération
+  du catalogue, avec synchronisation vers le moteur ; voir les
+  [règles de contribution](CONTRIBUTING_TDM_MODELS.md).
+- `docs/`, `scripts/` et `tests/` : documentation, contrôles de contenu et tests navigateur.
+
+Les PDF institutionnels et les données patients ne doivent jamais être publiés.
 
 ## Installer / lancer
 ```sh
@@ -10,7 +30,9 @@ npm run check        # lint + svelte-check
 npm run build        # build statique
 ```
 
-> GitHub Pages : `BASE_PATH` est automatiquement détecté par le workflow. En local, définir `BASE_PATH=/rberrah.github.io` (user site) ou `BASE_PATH=/nom-du-repo` (project site) avant `npm run build` si besoin.  
+> GitHub Pages : le workflow fixe `BASE_PATH=/pharmacometrie`. En local, laisser
+> `BASE_PATH` vide pour servir l'application à la racine, ou utiliser
+> `/pharmacometrie` pour reproduire le préfixe de production.
 > Trailing slash activé : les routes sont servies en `/chapitres/slug/`.
 
 ## Architecture contenu (gold standard)
@@ -27,9 +49,13 @@ npm run build        # build statique
 - Charts : `src/lib/charts/` (axes chiffrés, autoscale)
 - Math (KaTeX CDN) : `src/lib/components/MathBlock.svelte`
 - Slides : `static/slides/slide-XX.png` + page `/slides` pour debug
-- Pages : home, chapitres (scrolly), playground PopPK, glossaire, QA, slides, à-propos
+- Pages : accueil, chapitres, Simulation PopPK, Lego, TDM, interactions,
+  pharmacodynamie, exercices, glossaire, références, QA, slides et à-propos.
 
 ## Scripts utilitaires
+- `npm run test:labs` : bilan de masse, doses et scenarios des deux laboratoires.
+- [Laboratoires pedagogiques](docs/teaching-laboratories.md) : hypotheses, mode
+  enseignant, contrats de transfert et tests R/navigateur. Route `/laboratoires/`.
 - `npm run validate` : valide catalogue + chapitres (slides existantes, IDs uniques)
 - `npm run slides:export` : export LibreOffice → PNG + renommage `slide-XX.png`
 
@@ -44,8 +70,13 @@ npm run build        # build statique
 
 ## Déploiement GitHub Pages
 - Workflow `.github/workflows/deploy-pages.yml` :
-  - détecte BASE_PATH (`""` si user site `rberrah.github.io`, sinon `/<repo>`)
-  - build + upload `build/`
+  - construit SvelteKit avec `BASE_PATH=/pharmacometrie` ;
+  - copie `portal/` à la racine de `dist/` et `build/` dans `dist/pharmacometrie/` ;
+  - vérifie les collisions et les fichiers essentiels, puis publie `dist/`.
+- Ce workflow ne déploie pas Shiny. Depuis la racine du dépôt,
+  `Rscript scripts/deploy_shiny.R` vérifie les fichiers et dépendances ; ajouter
+  `--deploy` publie le moteur avec le compte configuré. Aucun PDF, test ou fichier
+  local non suivi par Git n'est inclus dans cette sélection.
 - Static hosting : `adapter-static` + `fallback: 404.html` + `static/.nojekyll`.
 - Accès direct aux routes (refresh sur `/chapitres/<slug>/`) supporté via trailing slash et fallback.
 

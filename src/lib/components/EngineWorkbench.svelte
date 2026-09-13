@@ -6,6 +6,17 @@
   import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec } from '$lib/tdm/workbenches';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
+  import LabTransfer from './LabTransfer.svelte';
+  import { mrgsolveCode } from '$lib/labs/model.js';
+
+  /** @param {any} spec */
+  function applyLaboratory(spec) {
+    const p = spec.parameters;
+    const pk = { source: 'code', id: '', route: 'IV', code: mrgsolveCode(spec.lab, p) };
+    const regimen = { dose: p.dose, interval: p.tau, infusion: 0 };
+    if (view === 'ddi') { model1 = pk; ddi.affected = regimen; ddi.target = 'TV_cl_L1_CENT'; tab = 'model1'; }
+    else { pkPd = { ...pk, time_unit: 'h', concentration_scale: 1 }; pdMode = 'pd'; pd.exposure = 'pk'; pd.regimen = regimen; pd.horizon = p.end; }
+  }
 
   let { view } = $props();
   let english = $derived($language === 'en');
@@ -65,6 +76,7 @@
 
 <section class="workbench" data-testid={`${view}-workbench`}>
   <header><div><p class="eyebrow">{t('Atelier de modelisation', 'Modeling workshop')}</p><h1>{title}</h1></div><span class="status">{t('Recherche / en cours', 'Research / in development')}</span></header>
+  <LabTransfer destination={view} apply={applyLaboratory} note={t('Le modele PK et la dose d\'entretien remplacent la PK 1 / PK generale actuelle. Ici les doses sont repetees : le nombre fini de doses et la dose de charge ne sont pas repris. Les parametres d\'interaction / PD restent illustratifs. Rien n\'est lance automatiquement.', 'The PK model and maintenance dose replace the current PK 1 / general PK. Doses repeat here: the finite dose count and loading dose are not retained. Interaction / PD parameters remain illustrative. Nothing runs automatically.')}/>
   <p class="intro">{view === 'ddi'
     ? t('Une interaction relie l’exposition d’une molecule a un parametre d’une autre. Assemblez les deux modeles PK et leur mecanisme, puis explorez les concentrations et la recuperation dans le moteur R.', 'An interaction links one drug’s exposure to another drug’s parameter. Assemble the two PK models and their mechanism, then explore concentrations and recovery in the R engine.')
     : pdMode === 'onco' ? t('De l’exposition a la reponse : assemblez croissance tumorale, effet du traitement et toxicite retardee. Le moteur R permet ensuite l’ajustement individuel et la comparaison des cycles futurs.', 'From exposure to response: assemble tumor growth, treatment effect and delayed toxicity. The R engine then supports individual fitting and comparison of future cycles.')

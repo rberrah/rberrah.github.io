@@ -11,7 +11,7 @@ export default defineConfig({
   fullyParallel: true,
   reporter: 'list',
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: process.env.LABS_E2E_URL || `http://localhost:${PORT}`,
     trace: 'on-first-retry'
   },
   // `PW_CHANNEL=msedge` réutilise le navigateur déjà installé sur la machine et évite
@@ -23,7 +23,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], channel: process.env.PW_CHANNEL || undefined }
     }
   ],
-  webServer: {
+  webServer: process.env.LABS_E2E_URL ? undefined : {
     command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     timeout: 120_000,

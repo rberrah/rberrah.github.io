@@ -246,6 +246,9 @@
       </aside>
     {/if}
   </header>
+  {#if ['clairance-volume-demi-vie', 'micro-macro', 'doses-repetees'].includes(slug ?? '')}
+    <p><a class="btn btn-outline" href={`${base}/laboratoires/?lab=${slug === 'doses-repetees' ? 'accumulation' : 'distribution'}`}>{$language === 'en' ? 'Explore this concept in the animated laboratory' : 'Explorer ce concept dans le laboratoire anime'}</a></p>
+  {/if}
 
   <div class="scrolly">
     <div class="narrative" bind:this={articleEl}>

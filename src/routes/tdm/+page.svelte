@@ -1,5 +1,18 @@
 <script>
   import { base } from '$app/paths';
+  import { onDestroy } from 'svelte';
+  import { ArrowRight } from '@lucide/svelte';
+  import LabTransfer from '$lib/components/LabTransfer.svelte';
+  import { openLaboratoryTdm } from '$lib/labs/tdm.js';
+  import { schedule } from '$lib/labs/model.js';
+  let laboratory = $state(/** @type {any} */ (null));
+  let labStatus = $state(''), labError = $state('');
+  let cleanupLab = () => {};
+  onDestroy(() => cleanupLab());
+  function launchLaboratory() {
+    cleanupLab();
+    cleanupLab = openLaboratoryTdm(tdmEngineUrl, $language ?? 'fr', laboratory, (state, detail) => { labStatus = state; labError = detail ?? ''; });
+  }
   import { tdmModels, tdmModelStats } from '$lib/content/tdmModels';
   import { ui } from '$lib/i18n/translations';
   import { language } from '$lib/stores/language';
@@ -65,6 +78,14 @@
     content={copy.metaDescription}
   />
 </svelte:head>
+
+<LabTransfer destination="tdm" apply={spec => laboratory = spec} note={$language === 'en' ? 'Synthetic PK and full IV bolus dose schedule. Opens a new session with no observed concentrations. The illustrative Lego variability is not a validated population model or a clinical prior.' : 'PK synthetique et calendrier complet des bolus IV. Nouvelle session sans concentrations observees. La variabilite illustrative Lego ne constitue pas un modele populationnel valide ni un a priori clinique.'}/>
+{#if laboratory}<section class="lab-session">
+  <h2>{$language === 'en' ? 'Synthetic laboratory session' : 'Session synthetique du laboratoire'}</h2>
+  <p>{laboratory.lab} / IV bolus / mg, L, h / {schedule(laboratory.lab, laboratory.parameters).length} {$language === 'en' ? 'doses' : 'doses'}</p>
+  <button class="btn btn-outline" onclick={launchLaboratory}><ArrowRight size={17}/>{$language === 'en' ? 'Open this experiment in the R engine' : 'Ouvrir cette experience dans le moteur R'}</button>
+  {#if labStatus}<p role="status">{({ sending: $language === 'en' ? 'Transferring...' : 'Transfert en cours...', done: $language === 'en' ? 'Model and doses validated in the engine. No analysis launched.' : 'Modele et doses valides dans le moteur. Aucune analyse lancee.', blocked: $language === 'en' ? 'New window blocked.' : 'Nouvelle fenetre bloquee.', timeout: $language === 'en' ? 'Transfer not confirmed. The engine may need an update; do not assume the dose schedule was imported.' : 'Transfert non confirme. Le moteur peut necessiter une mise a jour ; ne pas supposer que les doses ont ete importees.', error: labError })[labStatus]}</p>{/if}
+</section>{/if}
 
 <section class="tdm-hero">
   <div class="hero-copy">
@@ -221,6 +242,8 @@
 </p>
 
 <style>
+  .lab-session { padding: 16px 0 24px; border-bottom: 1px solid var(--border-strong); margin-bottom: 24px; }
+  .lab-session h2 { font-size: 22px; letter-spacing: 0; }
   .tdm-hero {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);

@@ -1,5 +1,6 @@
 <script>
   import { base } from '$app/paths';
+  import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, GraduationCap, ArrowRight } from '@lucide/svelte';
   import chapters from '$lib/content/loadChapters';
   import { tracks, chaptersByTrack } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
@@ -10,6 +11,13 @@
   const firstCore = grouped.core[0];
   const coreCount = grouped.core.length;
   $: copy = ui($language);
+  $: goals = [
+    { icon: BookOpen, fr: 'Comprendre un concept', en: 'Understand a concept', href: '/chapitres/' },
+    { icon: FlaskConical, fr: 'Explorer une experience', en: 'Explore an experiment', href: '/laboratoires/' },
+    { icon: Blocks, fr: 'Construire un modele', en: 'Build a model', href: '/lego/' },
+    { icon: ChartNoAxesCombined, fr: 'Analyser une exposition', en: 'Analyze an exposure', href: '/tdm/' },
+    { icon: GraduationCap, fr: 'Preparer un cours', en: 'Prepare a lesson', href: '/laboratoires/?lab=distribution&teacher=1&hide=1' }
+  ];
 
   // Le seul JSON-LD `Course` du site : il décrit le cours ENTIER. Chaque chapitre se
   // rattache à lui par `isPartOf` — le déclarer deux fois créerait deux cours distincts.
@@ -52,6 +60,11 @@
     <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
   </div>
   <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>
+</section>
+
+<section class="objectives" aria-labelledby="objectives-title">
+  <h2 id="objectives-title">{$language === 'en' ? 'What is your objective?' : 'Quel est votre objectif ?'}</h2>
+  <div>{#each goals as goal}<a href={`${base}${goal.href}`}><svelte:component this={goal.icon} size={21}/><span>{$language === 'en' ? goal.en : goal.fr}</span><ArrowRight size={17}/></a>{/each}</div>
 </section>
 
 <section class="resource-band" data-testid="teaching-resources">
@@ -125,6 +138,11 @@
 </section>
 
 <style>
+  .objectives { padding: 24px 0; border-block: 1px solid var(--border-strong); margin-bottom: 24px; }
+  .objectives h2 { font-size: 22px; letter-spacing: 0; }
+  .objectives > div { display: grid; grid-template-columns: repeat(auto-fit,minmax(205px,1fr)); gap: 12px 24px; }
+  .objectives a { display: flex; align-items: center; gap: 10px; padding: 12px 0; color: var(--text-primary); font-size: 14px; text-decoration: none; border-bottom: 2px solid #087b83; }
+  .objectives a :global(svg) { flex-shrink: 0; } .objectives a span { flex: 1; }
   .hero { max-width: 820px; padding: var(--space-16) 0 var(--space-12); }
   .hl { color: var(--accent-pk); }
   h1 { font-size: var(--text-4xl); font-weight: 900; margin: var(--space-3) 0 var(--space-6); }

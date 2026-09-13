@@ -25,6 +25,7 @@
 		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
 		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
 		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs",
+		"test:labs": "node scripts/test_labs.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
 	},
 	"devDependencies": {
@@ -41,6 +42,7 @@
 		"@fontsource-variable/inter": "^5.2.8",
 		"@fontsource-variable/jetbrains-mono": "^5.2.8",
 		"@fontsource-variable/source-serif-4": "^5.2.9",
+		"@lucide/svelte": "^1.45.0",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"d3": "^7.9.0",
 		"d3-scale": "^4.0.2",

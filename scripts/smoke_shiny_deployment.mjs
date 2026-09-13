@@ -36,7 +36,7 @@ try {
   });
   await expect(page.locator('.shiny-output-error:visible')).toHaveCount(0);
   await page.locator('a[data-value="general"]').click();
-  await expect(page.locator('#pd-observations-table tbody tr')).toHaveCount(7);
+  await expect(page.locator('#pd-observations-table tbody tr')).toHaveCount(7, { timeout: 30000 });
   await page.locator('#pd-simulate').click();
   await page.waitForFunction(() => !document.documentElement.classList.contains('shiny-busy'));
   await expect(page.locator('.shiny-output-error:visible')).toHaveCount(0);
