@@ -129,7 +129,9 @@ test('responsive scenes, reduced motion and no overflow', async ({ page }) => {
     await page.setViewportSize({ width, height: 950 });
     await open(page);
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
-    await expect(page.getByLabel('Animate particles')).not.toBeChecked();
+    await expect(page.getByLabel('Animate particles')).toBeChecked();
+    await expect(page.getByTestId('lab-time')).toHaveValue('0.0');
+    await page.getByLabel('Animate particles').uncheck();
     await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect.poll(async () => Number(await page.getByTestId('lab-time').inputValue())).toBeGreaterThan(.2);
     await page.getByRole('button', { name: 'Pause', exact: true }).click();
@@ -188,6 +190,13 @@ test('particles travel on both transfer lanes and through the elimination outlet
 test('particle selection, draggable exact-concentration probe, slow motion and dose cohorts', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await open(page);
+  await expect(page.getByLabel('Follow a particle', { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel('Probe', { exact: true })).not.toBeChecked();
+  await expect(page.getByTestId('particle-readout')).toHaveCount(0);
+  await expect(page.getByTestId('probe-readout')).toHaveCount(0);
+  await expect(page.locator('.scene-tools').getByLabel('Animate particles')).toBeChecked();
+  await page.getByLabel('Follow a particle', { exact: true }).check();
+  await page.getByLabel('Probe', { exact: true }).check();
   const tracked = await page.getByTestId('particle-readout').innerText();
   await page.getByRole('button', { name: 'Next particle', exact: true }).click();
   await expect(page.getByTestId('particle-readout')).not.toHaveText(tracked);
@@ -237,4 +246,40 @@ test('play works when its toolbar is visible but the canvas is above the viewpor
   const time = await page.getByTestId('lab-time').inputValue();
   await page.waitForTimeout(200);
   await expect(page.getByTestId('lab-time')).toHaveValue(time);
+});
+
+test('linear and semi-log curves remain finite, synchronized and responsive', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.invalidLabCoordinates = [];
+    for (const name of ['moveTo', 'lineTo', 'arc']) {
+      const original = CanvasRenderingContext2D.prototype[name];
+      CanvasRenderingContext2D.prototype[name] = function (...args) {
+        if (this.canvas.dataset.testid?.startsWith('lab-') && args.some(value => typeof value === 'number' && !Number.isFinite(value))) window.invalidLabCoordinates.push(name);
+        return original.apply(this, args);
+      };
+    }
+  });
+  await open(page);
+  const linear = page.getByTestId('lab-plot'), log = page.getByTestId('lab-log-plot');
+  await expect(log).toBeVisible();
+  expect((await log.boundingBox()).y).toBeGreaterThanOrEqual((await linear.boundingBox()).y + (await linear.boundingBox()).height);
+  const first = await pixels(log);
+  expect(first.colored).toBeGreaterThan(400);
+  expect(first.sum).not.toBe((await pixels(linear)).sum);
+  await page.getByTestId('lab-time').fill('8');
+  expect((await pixels(log)).sum).not.toBe(first.sum);
+  await page.getByLabel('Compare with reference').uncheck();
+  await page.locator('#lab-q').fill('0');
+  await page.locator('#lab-vc').fill('5');
+  await page.locator('#lab-cl').fill('30');
+  await page.locator('#lab-end').fill('336');
+  await page.getByTestId('lab-time').fill('336');
+  await expect(page.getByTestId('lab-concentration')).toHaveText('0.00');
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 950 });
+    await log.scrollIntoViewIfNeeded();
+    expect((await pixels(log)).colored).toBeGreaterThan(200);
+    await page.screenshot({ path: `test-results/lab-semilog-${width}.png` });
+  }
+  expect(await page.evaluate(() => window.invalidLabCoordinates)).toEqual([]);
 });

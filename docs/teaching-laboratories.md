@@ -63,9 +63,14 @@ returning to the same time reproduces the same scene. Background tabs and leavin
 the whole simulation area pause playback. The observed area includes the time
 controls so playback still works when only those controls are visible.
 
-Reduced-motion preferences switch moving particles off, not the Play button.
-The clock and numeric results remain usable; "Animate particles" is an explicit
-opt-in to motion and can also be switched off independently.
+"Animate particles" is checked initially, alongside the initially unchecked
+"Follow a particle" and "Probe" controls. Playback never starts automatically,
+including with a reduced-motion preference. Unchecking animation preserves the
+clock and numeric results without animated trajectories.
+
+Linear and semi-log concentration plots share the same clock, horizon and frozen
+reference. The logarithmic plot excludes zero/non-finite concentrations instead
+of substituting a positive floor. Both plots are included in the PNG export.
 
 ## Teacher mode and privacy
 
@@ -151,3 +156,8 @@ only the time controls visible are covered. Captures at 320/390/768/1440 px and
 French/dark mode were inspected. The scientific solver and Shiny were unchanged;
 the R integration tests were not rerun. Full assistive-technology and real-device
 touch audits remain pending.
+
+Defaults/semi-log revision on 2026-09-13: check (0 errors/warnings), build,
+numeric/particle tests and nine browser tests passed. Checks include both
+axes, zero concentrations at extreme elimination rates, synchronized cursors,
+initial control states, no autoplay and 320/390/1440 px screenshots.

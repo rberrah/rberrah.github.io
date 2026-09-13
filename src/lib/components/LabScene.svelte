@@ -9,10 +9,11 @@
   export let state;
   export let time = 0;
   export let en = false;
-  export let reduced = false;
+  export let animateParticles = true;
+  $: reduced = !animateParticles;
   export let playing = false;
   let canvas, stage, width = 700, mounted = false;
-  let tracked = 0, tracking = true, trails = true, probeEnabled = true, doseColors = true;
+  let tracked = 0, tracking = false, trails = true, probeEnabled = false, doseColors = true;
   let probe = null, dragging = false;
   const dispatch = createEventDispatcher();
   const colors = ['#147ea5', '#de6636', '#7354b0', '#168d71', '#b83b66'];
@@ -184,6 +185,7 @@
 </script>
 
 <div class="scene-tools">
+  <label><input type="checkbox" bind:checked={animateParticles}/><Play size={17}/>{en?'Animate particles':'Animer les particules'}</label>
   <label><input type="checkbox" bind:checked={tracking}/><LocateFixed size={17}/>{en?'Follow a particle':'Suivre une particule'}</label>
   <button type="button" class="tool" on:click={nextParticle} title={en?'Next particle':'Particule suivante'} aria-label={en?'Next particle':'Particule suivante'}><SkipForward size={18}/></button>
   <label><input type="checkbox" bind:checked={probeEnabled}/><Pipette size={17}/>{en?'Probe':'Sonde'}</label>

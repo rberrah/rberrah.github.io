@@ -4,7 +4,6 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
   import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
   import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule } from '$lib/labs/model.js';
   import { prepareHandoff } from '$lib/labs/handoff.js';
@@ -14,7 +13,7 @@
   let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition';
   let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '';
   let root, animationArea, raf = 0, last = 0, visible = true, ready = false;
-  $: animateParticles = !$reducedMotion;
+  let animateParticles = true;
   $: en = $language === 'en';
   $: titles = en ? { distribution: 'Two-compartment distribution', accumulation: 'Accumulation and repeated doses' } : { distribution: 'Distribution à deux compartiments', accumulation: 'Accumulation et doses répétées' };
   $: validation = (() => { try { return { value: validateParameters(lab, p), error: '' }; } catch (e) { return { value: null, error: String(e.message) }; } })();
@@ -74,13 +73,14 @@
     blobDownload(new Blob([data.map(row => row.join(',')).join('\n')], { type: 'text/csv' }), `${lab}.csv`);
   }
   function figure() {
-    const source = root.querySelector('[data-testid="lab-plot"]'), scene = root.querySelector('[data-testid="lab-scene"]');
-    const output = document.createElement('canvas'); output.width = Math.max(1000, source.width); output.height = source.height + scene.height + 210;
+    const source = root.querySelector('[data-testid="lab-plot"]'), logPlot = root.querySelector('[data-testid="lab-log-plot"]'), scene = root.querySelector('[data-testid="lab-scene"]');
+    const output = document.createElement('canvas'); output.width = Math.max(1000, source.width); output.height = source.height + logPlot.height + scene.height + 210;
     const ctx = output.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, output.width, output.height);
     ctx.fillStyle = '#173b40'; ctx.font = '20px sans-serif'; ctx.fillText(titles[lab], 20, 32);
     ctx.font = '14px sans-serif'; ctx.fillText(`${compare ? (en ? 'Reference: dashed / ' : 'Reference : pointilles / ') : ''}${en ? 'Current: solid' : 'Modele actuel : continu'} | IV bolus | mg, L, h | t=${time.toFixed(2)} h`, 20, 57);
     ctx.fillText(`${en ? 'Current model' : 'Modele actuel'}: ${fields.map(key => `${key}=${p[key]}`).join('; ')}`, 20, 80);
     ctx.drawImage(scene, (output.width - scene.width) / 2, 100); ctx.drawImage(source, (output.width - source.width) / 2, 100 + scene.height);
+    ctx.drawImage(logPlot, (output.width - logPlot.width) / 2, 100 + scene.height + source.height);
     ctx.fillText(`Reference: ${fields.map(key => `${key}=${reference[key]}`).join('; ')}`, 20, output.height - 30);
     output.toBlob(blob => { if (blob) blobDownload(blob, `${lab}.png`); });
   }
@@ -116,7 +116,7 @@
       <div bind:this={animationArea}>
       {#if valid && !hidden}
         {#if mode === 'model'}<div class="equations"><code>{lab === 'distribution' ? 'dAc/dt = -(CL + Q) Ac/Vc + Q Ap/Vp\ndAp/dt = Q Ac/Vc - Q Ap/Vp\nCc = Ac/Vc; Cp = Ap/Vp' : 'dA/dt = -(CL/V) A\nA(tdose+) = A(tdose-) + dose\nC = A/V; Cmoy,ss = dose/(CL * interval)'}</code><p>{en ? 'Linear elimination. Fixed parameters. Instantaneous IV bolus input. No variability or measurement error.' : 'Elimination lineaire. Parametres fixes. Entree IV bolus instantanee. Sans variabilite ni erreur de mesure.'}</p></div>{/if}
-        <LabScene {lab} p={valid} {state} {time} {en} {playing} reduced={!animateParticles} on:play={() => playing ? pause() : play()} on:seek={event => { pause(); time = Math.min(end, event.detail); }}/>
+        <LabScene {lab} p={valid} {state} {time} {en} {playing} bind:animateParticles on:play={() => playing ? pause() : play()} on:seek={event => { pause(); time = Math.min(end, event.detail); }}/>
         <p class="scene-note">{en ? 'Illustrative particle journeys, not exact molecule counts or anatomy. Concentrations, AUC and mass balance use the continuous PK model. IV bolus; mg, L, h.' : 'Trajectoires particulaires illustratives, sans comptage moléculaire exact ni représentation anatomique. Concentrations, AUC et bilan de masse issus du modèle PK continu. Bolus IV ; mg, L, h.'}</p>
       {:else}<div class="hidden-scene"><EyeOff size={28}/><strong>{hidden ? (en ? 'Results hidden' : 'Resultats masques') : (en ? 'Parameters to review' : 'Parametres a verifier')}</strong></div>{/if}
       <div class="timebar">
@@ -126,12 +126,12 @@
         <label class="time-input">t (h)<input type="number" min="0" max={end} step="0.1" value={time.toFixed(1)} on:input={event => { pause(); const value = event.currentTarget.valueAsNumber; if (Number.isFinite(value)) time = Math.max(0, Math.min(end, value)); }} data-testid="lab-time"/></label>
         <label class="speed">{en ? 'Speed' : 'Vitesse'}<select bind:value={speed} aria-label={en ? 'Speed' : 'Vitesse'}><option value={0.1}>0.1 h/s</option><option value={0.25}>0.25 h/s</option><option value={0.5}>0.5 h/s</option><option value={1}>1 h/s</option><option value={4}>4 h/s</option><option value={12}>12 h/s</option></select></label>
       </div>
-      <label class="check"><input type="checkbox" bind:checked={animateParticles}/>{en ? 'Animate particles' : 'Animer les particules'}</label>
       <input class="timeline" aria-label={en ? 'Simulation time' : 'Temps de simulation'} type="range" min="0" max={end} step="0.1" value={time} disabled={!valid || hidden} on:input={event => { pause(); time = event.currentTarget.valueAsNumber; }}/>
       </div>
       {#if valid && !hidden}
         <div class="plot-legend"><span>{en ? 'Current model' : 'Modèle actuel'}</span>{#if compare}<span class="reference">{en ? 'Reference' : 'Référence'}</span>{/if}</div>
         <LabPlot {a} {b} {time} {en} {compare} concentration={state.c}/>
+        <LabPlot {a} {b} {time} {en} {compare} concentration={state.c} logarithmic/>
         <div class="metrics"><div><span>C(t) · mg/L</span><strong data-testid="lab-concentration">{state.c.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} h · mg.h/L</span><strong>{state.auc.toFixed(2)}</strong></div><div><span>{en ? 'Eliminated / given (mg)' : 'Elimine / administre (mg)'}</span><strong>{state.eliminated.toFixed(1)} / {state.administered.toFixed(0)}</strong></div></div>
         <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each [['central',en ? 'Central (mg)' : 'Central (mg)'], ['peripheral',en ? 'Peripheral (mg)' : 'Peripherique (mg)'], ['eliminated',en ? 'Eliminated (mg)' : 'Elimine (mg)'], ['forward','Q Cc (mg/h)'], ['backward','Q Cp (mg/h)'], ['eliminationRate','CL Cc (mg/h)']] as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned IV bolus administrations' : 'Administrations IV bolus prevues'}</caption><thead><tr><th>h</th><th>mg</th></tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td></tr>{/each}</tbody></table></div></details>
       {/if}

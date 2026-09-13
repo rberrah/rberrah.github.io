@@ -1,7 +1,8 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-13. Etat publie de reference : commit `0bf97dc`.
-Le lot laboratoires/navigation/enseignant ci-dessous est local, non publie.
+Mise a jour : 2026-09-13. Site publie : commit `f2a72e3` (laboratoires/navigation/enseignant).
+Shiny est deploye separement ; le nouveau transfert Laboratoires -> TDM reste
+a deployer dans le moteur R. Publier le site ne met pas Shiny a jour.
 
 Ce document regroupe les demandes recentes et les pistes des deux discussions
 avec les agents. Il ne vaut pas autorisation de changer les licences, de rendre
@@ -107,6 +108,9 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L05b / P1 - Retour utilisateur du 13/09** Particules sur les trajets aller/retour et vers l'elimination ; Lecture utilisable avec mouvement reduit et commandes visibles seules ; activation volontaire des particules. Sept tests navigateur passes, dont pixels des trois trajets, pause et retour au meme instant.
 - [x] **L05c / P1 - Animation approfondie, verifiee localement** Identite conservee pour chaque particule, agitation et passages continus, particule traceuse, sonde de concentration deplacable et accessible au clavier, couleurs par dose, ralenti, lecture dans la scene et courbe progressive. Valeurs quantitatives toujours issues du modele PK continu, distinctes des trajectoires illustratives. Huit tests navigateur passes ; tests des identites, administrations, transitions continues, cas limites et geometries mobiles passes.
 - [ ] **L06 / P1** Integrer le meme laboratoire dans le chapitre et dans Simulation. Observer son usage par quelques etudiants/enseignants avant de generaliser ; noter les incomprehensions et corrections necessaires.
+- [x] **L05d / P1** Animation cochee sans lecture automatique, suivi et sonde decoches ; trois options dans la meme barre. Courbe C(t) semi-log sous la courbe lineaire et ajout a l'export PNG.
+- [ ] **L05e / P1** Publier L05d puis comparer site local, Pages et Shiny ; ne pas confondre code R sur GitHub et moteur deploye.
+- [ ] **L08b / P1** Nouveaux laboratoires locaux : absorption orale/biodisponibilite et perfusion IV/arret, avec trajets particulaires et bilan quantitatif testes.
 - [ ] **L07 / P2** Etendre a l'accumulation : doses repetees, etat stationnaire, fluctuations, dose de charge et interruption. Conserver une reference pour comparer les intervalles.
 - [ ] **L08 / P2** Etendre a PK 1 compartiment / absorption : dose, CL, V, ka, F, voie ; AUC avec fenetre explicite, Cmax/Tmax et demi-vie sous leurs hypotheses de validite.
 - [ ] **L09 / P2** Etendre a la variabilite : meme population virtuelle et meme graine pour separer effets de covariables, IIV/IOV et bruit residuel ; mediane et intervalles avec definition explicite.
