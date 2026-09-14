@@ -150,9 +150,9 @@ parse_covariates <- function(code) {
 }
 
 LEGO_SPEC_PREFIX <- "// PK_LEGO_SPEC_V1:"
-LEGO_NODE_KINDS <- c("depot", "transit", "central", "periph", "metab", "effect", "response")
+LEGO_NODE_KINDS <- c("depot", "transit", "central", "periph", "metab", "effect", "response", "tumor", "interaction")
 LEGO_VOLUME_KINDS <- c("central", "periph", "metab")
-LEGO_PD_KINDS <- c("effect", "response")
+LEGO_PD_KINDS <- c("effect", "response", "tumor", "interaction")
 LEGO_RESERVED_COVARIATES <- c(
   "ID", "TIME", "CMT", "AMT", "EVID", "RATE", "II", "ADDL", "SS", "DV", "MDV", "IPRED", "ETA", "EPS"
 )
@@ -196,9 +196,47 @@ lego_text <- function(value, field, pattern, maximum = 32L) {
   text
 }
 
+
+lego_advanced_fields <- function(node) {
+  if (identical(node$kind, "tumor")) return(c("t0", "kg", if (node$growth != "exponential") "cap", "kill", "ec50", "res"))
+  if (!identical(node$kind, "interaction")) return(character())
+  switch(node$mechanism, factor = "factor", reversible = "c50",
+    inhibition = c("strength", "c50"), hill_inhibition = c("strength", "c50", "hill"),
+    induction = c("strength", "c50"), tdi = c("c50", "kinact", "kdeg"),
+    turnover_induction = c("strength", "c50", "kdeg"))
+}
+
+# Only validated graph fields reach these templates, never user-supplied C++.
+lego_advanced_expression <- function(node, cp, state, p) {
+  c <- paste0("fmax(0.0,", cp, ")")
+  if (node$kind == "tumor") {
+    size <- paste0("fmax(0.0,", state, ")")
+    growth <- switch(node$growth,
+      exponential = "", logistic = paste0("*(1-", size, "/", p("cap"), ")"),
+      gompertz = paste0("*log(", p("cap"), "/fmax(1e-12,", size, "))"))
+    return(list(initial = p("t0"), factor = "1", derivative = paste0(
+      p("kg"), "*", size, growth, "-", p("kill"), "*", c, "/(", p("ec50"), "+", c,
+      ")*exp(-", p("res"), "*SOLVERTIME)*", size)))
+  }
+  raised <- function(x) paste0("pow(", x, ",", p("hill"), ")")
+  factor <- switch(node$mechanism,
+    factor = p("factor"),
+    reversible = paste0("1/(1+", c, "/", p("c50"), ")"),
+    inhibition = paste0("1-", p("strength"), "*", c, "/(", p("c50"), "+", c, ")"),
+    hill_inhibition = paste0("1-", p("strength"), "*", raised(c), "/(", raised(p("c50")), "+", raised(c), ")"),
+    induction = paste0("1+", p("strength"), "*", c, "/(", p("c50"), "+", c, ")"),
+    tdi = state, turnover_induction = state)
+  derivative <- switch(node$mechanism,
+    tdi = paste0(p("kdeg"), "*(1-", state, ")-", p("kinact"), "*", c, "/(", p("c50"), "+", c, ")*", state),
+    turnover_induction = paste0(p("kdeg"), "*(1+", p("strength"), "*", c, "/(", p("c50"), "+", c, ")-", state, ")"),
+    "0")
+  if (!node$mechanism %in% c("factor", "induction")) factor <- paste0("fmax(0.01,", factor, ")")
+  list(initial = "1", derivative = derivative, factor = paste0("(", factor, ")"))
+}
+
 normalize_lego_spec <- function(specification) {
   if (!is.list(specification)) stop("The Lego specification must be a JSON object.")
-  version <- lego_number(specification$version, "version", 1, 3, integer = TRUE)
+  version <- lego_number(specification$version, "version", 1, 4, integer = TRUE)
   input_nodes <- lego_record_list(specification$nodes, "nodes")
   input_edges <- lego_record_list(specification$edges, "edges")
   input_covariates <- lego_record_list(specification$covariates, "covariates")
@@ -244,6 +282,21 @@ normalize_lego_spec <- function(specification) {
       node$sc50 <- lego_number(input$sc50, paste0("nodes[", index, "].sc50"), 1e-12, 1e12, default = 3)
       node$source <- lego_number(input$source, paste0("nodes[", index, "].source"), 1, 1000000, integer = TRUE)
     }
+    if (kind %in% c("tumor", "interaction")) {
+      node$source <- lego_number(input$source, "source", 1, 1000000, integer = TRUE)
+      if (kind == "tumor") node$growth <- lego_text(input$growth, "growth", "^(exponential|logistic|gompertz)$", 16L)
+      if (kind == "interaction") {
+        node$mechanism <- lego_text(input$mechanism, "mechanism", "^(factor|reversible|inhibition|hill_inhibition|induction|tdi|turnover_induction)$", 24L)
+        node$targetFrom <- lego_number(input$targetFrom, "targetFrom", 1, 1000000, integer = TRUE)
+        node$targetTo <- if (identical(input$targetTo, "OUT")) "OUT" else lego_number(input$targetTo, "targetTo", 1, 1000000, integer = TRUE)
+      }
+      for (key in lego_advanced_fields(node)) {
+        lower <- if (key %in% c("kg", "kill", "res", "strength", "kinact")) 0 else 1e-6
+        upper <- if (key == "strength" && grepl("inhibition", node$mechanism %||% "")) 1 else 1e6
+        node[[key]] <- lego_number(input[[key]], key, lower, upper)
+      }
+    }
+    if (kind %in% LEGO_PD_KINDS && node$dose != 0) stop("A PD or interaction block cannot receive drug mass.")
     node
   })
 
@@ -255,6 +308,16 @@ normalize_lego_spec <- function(specification) {
   for (node in nodes) {
     if (node$kind %in% LEGO_PD_KINDS && !node$source %in% node_ids) {
       stop("The source of Lego compartment `", node$name, "` does not exist.")
+    }
+  }
+  for (node in Filter(function(n) n$kind %in% LEGO_PD_KINDS, nodes)) {
+    source <- nodes[[match(node$source, node_ids)]]
+    if (source$id == node$id || !source$kind %in% c(LEGO_VOLUME_KINDS, "effect")) stop("A block source must be a concentration.")
+    visited <- node$id
+    while (identical(source$kind, "effect")) {
+      if (source$id %in% visited) stop("Cyclic Lego effect sources are not supported.")
+      visited <- c(visited, source$id)
+      source <- nodes[[match(source$source, node_ids)]]
     }
   }
   dosed_nodes <- Filter(function(node) !node$kind %in% LEGO_PD_KINDS && node$dose > 0, nodes)
@@ -304,6 +367,7 @@ normalize_lego_spec <- function(specification) {
     kinetics <- lego_text(input$kinetics %||% "first_order", paste0("edges[", index, "].kinetics"), "^(first_order|michaelis_menten|hill)$", 24L)
     parameterization <- lego_text(input$eliminationParameterization %||% "rate", paste0("edges[", index, "].eliminationParameterization"), "^(rate|clearance)$", 16L)
     source_node <- nodes[[match(from, node_ids)]]
+    if (source_node$kind %in% LEGO_PD_KINDS || (!identical(to, "OUT") && nodes[[match(to, node_ids)]]$kind %in% LEGO_PD_KINDS)) stop("Mass transfers cannot enter or leave PD/interaction blocks.")
     if (identical(parameterization, "clearance") && (!identical(to, "OUT") || !source_node$kind %in% LEGO_VOLUME_KINDS)) {
       stop("Clearance parameterization requires elimination from a volume compartment.")
     }
@@ -322,6 +386,9 @@ normalize_lego_spec <- function(specification) {
 
   edge_keys <- vapply(edges, function(edge) paste(edge$from, edge$to, sep = "->"), character(1))
   if (anyDuplicated(edge_keys)) stop("Duplicate Lego transfers are not supported.")
+  for (node in Filter(function(n) n$kind == "interaction", nodes)) {
+    if (!paste(node$targetFrom, node$targetTo, sep = "->") %in% edge_keys) stop("The interaction target flux does not exist.")
+  }
   if (!any(vapply(nodes, function(node) node$kind %in% LEGO_VOLUME_KINDS, logical(1)))) {
     stop("A Lego TDM model requires a central, peripheral or metabolite compartment.")
   }
@@ -471,6 +538,10 @@ lego_model_code <- function(specification) {
   }
   for (node in nodes) {
     name <- name_for(node$id)
+    for (key in lego_advanced_fields(node)) parameters[[length(parameters) + 1L]] <- list(
+      name = paste0(key, "_", name), client_name = paste0(key, "_", node$name),
+      value = node[[key]], note = paste(key, name), iiv = FALSE
+    )
     if (node$dose > 0) {
       if (node$tlag > 0) parameters[[length(parameters) + 1L]] <- list(name = paste0("tlag_", name), client_name = paste0("tlag_", node$name), value = node$tlag, note = paste0("administration lag to ", name), iiv = FALSE)
       if (identical(node$inputType, "zero_order") && is.null(node$inputDurationTlagOf)) parameters[[length(parameters) + 1L]] <- list(name = paste0("tk0_", name), client_name = paste0("tk0_", node$name), value = node$inputDuration, note = paste0("administration duration to ", name), iiv = FALSE)
@@ -589,10 +660,14 @@ lego_model_code <- function(specification) {
     source_name <- name_for(source$id)
     if (source$kind %in% LEGO_VOLUME_KINDS) paste0("(", source_name, "/v_", source_name, ")") else source_name
   }
+  special <- function(node) lego_advanced_expression(node, driver_concentration(node), name_for(node$id), function(key) paste0(key, "_", name_for(node$id)))
+  for (node in Filter(function(n) n$kind %in% c("tumor", "interaction"), nodes)) {
+    lines <- c(lines, paste0(name_for(node$id), "_0 = ", special(node)$initial, ";"))
+  }
   mass_terms <- function(node) {
     incoming <- Filter(function(edge) !identical(edge$to, "OUT") && identical(edge$to, node$id), edges)
     outgoing <- Filter(function(edge) identical(edge$from, node$id), edges)
-    flux <- function(edge) {
+    base_flux <- function(edge) {
       from <- name_for(edge$from)
       to <- if (identical(edge$to, "OUT")) "e" else name_for(edge$to)
       amount <- from
@@ -608,6 +683,10 @@ lego_model_code <- function(specification) {
       }
       paste0("k_", from, "_", to, "*", amount)
     }
+    flux <- function(edge) {
+      modifiers <- Filter(function(n) n$kind == "interaction" && n$targetFrom == edge$from && identical(n$targetTo, edge$to), nodes)
+      paste0(base_flux(edge), paste0(vapply(modifiers, function(n) paste0("*(", special(n)$factor, ")"), character(1)), collapse = ""))
+    }
     terms <- c(
       vapply(incoming, function(edge) paste0("+ ", flux(edge)), character(1)),
       vapply(outgoing, function(edge) paste0("- ", flux(edge)), character(1))
@@ -619,7 +698,9 @@ lego_model_code <- function(specification) {
   if (route_doses) lines <- c(lines, "dxdt_LEGO_INPUT = 0;")
   for (node in nodes) {
     name <- name_for(node$id)
-    if (identical(node$kind, "effect")) {
+    if (node$kind %in% c("tumor", "interaction")) {
+      lines <- c(lines, paste0("dxdt_", name, " = ", special(node)$derivative, ";"))
+    } else if (identical(node$kind, "effect")) {
       lines <- c(lines, paste0("dxdt_", name, " = ke0_", name, "*", "(", driver_concentration(node), " - ", name, ");"))
     } else if (identical(node$kind, "response")) {
       driver <- driver_concentration(node)
@@ -654,6 +735,9 @@ lego_model_code <- function(specification) {
     lines <- c(lines, paste0("double CONC_", name, " = ", name, "/v_", name, ";"))
   }
   observed_name <- name_for(observed$id)
+  for (node in Filter(function(n) n$kind == "interaction", nodes)) {
+    lines <- c(lines, paste0("double MOD_", name_for(node$id), " = ", special(node)$factor, ";"))
+  }
   lines <- c(
     lines,
     paste0("double IPRED = CONC_", observed_name, ";"),
@@ -666,6 +750,9 @@ lego_model_code <- function(specification) {
   for (node in volume_nodes) {
     name <- name_for(node$id)
     lines <- c(lines, paste0("CONC_", name, " : concentration in ", name))
+  }
+  for (node in Filter(function(n) n$kind == "interaction", nodes)) {
+    lines <- c(lines, paste0("MOD_", name_for(node$id), " : flux divided by baseline flux"))
   }
   paste(lines, collapse = "\n")
 }

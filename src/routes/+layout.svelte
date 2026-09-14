@@ -23,9 +23,11 @@
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
-    { href: '/interactions', key: 'interactions', label: copy.nav.interactions },
-    { href: '/pharmacodynamie', key: 'pharmacodynamics', label: copy.nav.pharmacodynamics },
-    { href: '/lego', key: 'lego', label: copy.nav.lego },
+    { href: '/translator', key: 'translator', label: 'Translator' },
+    { href: '/pk', key: 'pk', label: 'PK' },
+    { href: '/pd', key: 'pd', label: 'PD' },
+    { href: '/ddi', key: 'ddi', label: 'DDI' },
+    { href: '/advanced', key: 'advanced', label: 'Advanced' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
     { href: '/references', key: 'references', label: copy.nav.references },
@@ -33,8 +35,8 @@
   ]);
   let groups = $derived([
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
-    { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: FlaskConical, keys: ['laboratories', 'playground'] },
-    { key: 'build', label: $language === 'en' ? 'Build' : 'Construire', icon: Blocks, keys: ['lego', 'interactions', 'pharmacodynamics'] },
+    { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'ddi', 'advanced'] },
+    { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about'] }
   ]);
@@ -47,8 +49,10 @@
   }
 
   let menuOpen = $state(false);
-  const isActive = (/** @type {string} */ href) =>
-    href === '/' ? $page.url.pathname === `${base}/` || $page.url.pathname === base + '/' : $page.url.pathname.startsWith(`${base}${href}`);
+  const isActive = (/** @type {string} */ href) => {
+    const path = $page.url.pathname.replace(/\/lego\/?$/, '/advanced/').replace(/\/interactions\/?$/, '/ddi/').replace(/\/pharmacodynamie\/?$/, '/pd/');
+    return href === '/' ? path === `${base}/` : path.startsWith(`${base}${href}/`) || path === `${base}${href}`;
+  };
 
   // Sans ceci, un lecteur d'écran prononce l'anglais avec une voix française — et les moteurs
   // indexent la mauvaise langue. Le document est en français par défaut (app.html).

@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import { advancedDefaults, advancedDerivative, interactionFactor, advancedExpressions, advancedGraphValid } from '../src/lib/lego/advanced.js';
+import { basicIvModel } from '../src/lib/tdm/workbenches.js';
+const tumor = {kind:'tumor', id:2, source:1, ...advancedDefaults.tumor};
+assert.equal(advancedDerivative(tumor,0,60,0), tumor.kg*60);
+assert.ok(advancedDerivative(tumor,10,60,0) < advancedDerivative(tumor,0,60,0));
+assert.equal(advancedDerivative({...tumor, growth:'logistic'},0,300,0),0);
+assert.equal(advancedDerivative({...tumor, growth:'gompertz'},0,300,0),0);
+const interaction = {id:3, kind:'interaction', source:1, targetFrom:1, targetTo:'OUT', ...advancedDefaults.interaction};
+assert.equal(interactionFactor({...interaction, mechanism:'factor',factor:1},10,1),1);
+assert.equal(interactionFactor(interaction,0,1),1);
+assert.equal(interactionFactor(interaction,1,1),0.5);
+assert.ok(advancedDerivative({...interaction,mechanism:'tdi'},1,1,0)<0);
+assert.ok(advancedDerivative({...interaction,mechanism:'tdi'},0,0.1,10)>0);
+const pk = {id:1,kind:'central'};
+const edges=[{from:1,to:'OUT'}];
+assert.ok(advancedGraphValid([pk,tumor,interaction],edges));
+assert.ok(!advancedGraphValid([pk,tumor,{...interaction,targetTo:2}],edges));
+assert.ok(!advancedGraphValid([pk,tumor,interaction],[...edges,{from:1,to:2}]));
+assert.ok(!advancedGraphValid([pk,{...tumor,source:99},interaction],edges));
+assert.ok(!advancedGraphValid([pk,{id:4,kind:'effect',source:5},{id:5,kind:'effect',source:4}],edges));
+for(const lang of ['cpp','r','mlx','nonmem']) {
+  const expression=advancedExpressions(tumor,'CP','TUMOR',key => key.toUpperCase(),lang);
+  assert.ok(expression.derivative.includes(lang === 'cpp' ? 'SOLVERTIME' : lang === 'nonmem' ? 'RES*T' : 'res*t'.toUpperCase().replace('T','t')));
+  assert.equal(expression.initial,'T0');
+}
+const model = basicIvModel(20,2);
+assert.equal(model.route,'IV');
+const spec=JSON.parse(decodeURIComponent(model.code.match(/PK_LEGO_SPEC_V1:([^\n]+)/)[1]));
+assert.equal(spec.nodes[0].vol,20);
+assert.equal(spec.edges[0].cl,2);
+console.log('Advanced equations, neutral limits, graph validation and basic IV contract OK.');

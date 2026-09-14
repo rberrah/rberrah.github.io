@@ -1,5 +1,5 @@
 <script>
-  import EngineWorkbench from '$lib/components/EngineWorkbench.svelte';
+  import Pd from '../pd/+page.svelte';
 </script>
 
-<EngineWorkbench view="pd" />
+<Pd />

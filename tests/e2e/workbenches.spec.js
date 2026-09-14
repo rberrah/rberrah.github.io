@@ -125,8 +125,10 @@ test.describe('local DDI and PD workbenches', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
       if (route === 'pharmacodynamie') {
         const curve = page.locator('[data-testid="curve-tumor_comparison"] [data-series="treated"]');
-        await expect(page.getByRole('group', {name:'Initial conditions', exact:true})).toBeVisible();
         await expect(page.getByRole('group', {name:'PK model and parameters', exact:true})).toBeVisible();
+        await page.getByRole('button', {name:'Initial conditions', exact:true}).click();
+        await expect(page.getByRole('group', {name:'Initial conditions', exact:true})).toBeVisible();
+        await page.locator('.tabs').getByRole('button', {name:'PD', exact:true}).click();
         await expect(page.getByRole('group', {name:'PD parameters', exact:true})).toBeVisible();
         const previous = await curve.getAttribute('d');
         await page.getByLabel('Resistance (1/day)', { exact: true }).fill('0.03');
@@ -159,8 +161,10 @@ test.describe('local DDI and PD workbenches', () => {
 
   test('oncology handoff preserves parameters and compares future cycles', async ({ page }) => {
     await page.goto('/pharmacodynamie?lang=en');
+    await page.locator('.tabs').getByRole('button', {name:'PD', exact:true}).click();
     await page.getByRole('combobox', { name: 'Tumor growth', exact: true }).selectOption('gompertz');
     await page.getByLabel('CAP (mm)', { exact: true }).fill('280');
+    await page.getByRole('button', {name:'Initial conditions', exact:true}).click();
     await page.getByLabel('SLD(0) (mm)', { exact: true }).fill('75');
     const popup = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Open in engine', exact: true }).click();
@@ -188,9 +192,12 @@ test.describe('local DDI and PD workbenches', () => {
     await page.goto('/pharmacodynamie?lang=en');
     await page.getByRole('button', { name: 'General PD', exact: true }).click();
     await expect(page.getByRole('link', { name: /Dayneka/ })).toBeVisible();
+    await page.locator('.tabs').getByRole('button', {name:'PD', exact:true}).click();
     await page.getByRole('combobox', { name: 'Response model', exact: true }).selectOption('hill');
-    await page.getByLabel('Effect compartment', { exact: true }).check();
     await page.getByLabel('HILL', { exact: true }).fill('2.7');
+    await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'PD', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Effect compartment', exact: true }).setChecked(true);
+  await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'Ce', exact: true }).click();
     await page.getByLabel('KE0', { exact: true }).fill('0.35');
     const popup = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Open in engine', exact: true }).click();
@@ -219,6 +226,7 @@ test.describe('local DDI and PD workbenches', () => {
 
   test('DDI handoff transfers both PK models, route and dynamic mechanism', async ({ page }) => {
     await page.goto('/interactions?lang=fr');
+    await expect(page.getByTestId('ddi-workbench')).not.toHaveAttribute('inert', '');
     await page.locator('#model-1').selectOption('amox_mellon');
     await page.locator('#route-1').selectOption('IV');
     await page.getByRole('button', { name: 'Interaction', exact: true }).click();
@@ -256,6 +264,7 @@ test.describe('local DDI and PD workbenches', () => {
     await page.locator('input[type="radio"][value="code"]').check();
     await page.locator('#cpp-onco').fill('$PARAM KA=1, CL=2, V=10\n$CMT DEPOT CENT\n$ODE dxdt_DEPOT=-KA*DEPOT; dxdt_CENT=KA*DEPOT-CL/V*CENT;\n$TABLE double CP=CENT/V;\n$CAPTURE CP');
     await page.locator('#route-onco').selectOption('Oral');
+    await page.getByRole('button', {name:'Cycles and doses', exact:true}).click();
     await page.getByLabel('Next dose (day)', {exact:true}).fill('2');
     await page.getByLabel('Horizon (days)', {exact:true}).fill('6');
     await page.getByLabel('Interval (days)', {exact:true}).fill('2');
@@ -302,7 +311,7 @@ test.describe('local DDI and PD workbenches', () => {
     await page.goto(`${engineUrl}?view=pd&lang=en`);
     await page.locator('a[data-value="general"]').click();
     const rows = page.locator('#pd-observations-table tbody tr');
-    await expect(rows).toHaveCount(7);
+    await expect(rows).toHaveCount(9);
     await rows.first().locator('td').nth(1).dblclick();
     const editor = rows.first().locator('input, textarea');
     await editor.fill('145');

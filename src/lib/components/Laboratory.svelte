@@ -159,10 +159,10 @@
     </div>
   </div>
   <section class="continuity"><h2>{en ? 'Continue the experiment' : "Poursuivre l'experience"}</h2><div class="next-actions">
-    <button class="command" disabled={!valid} on:click={() => continueIn('lego','/lego/')}><ArrowRight size={18}/>{en ? 'Build in Lego' : 'Construire dans Lego'}</button>
+    <button class="command" disabled={!valid} on:click={() => continueIn('lego','/pk/')}><ArrowRight size={18}/>{en ? 'Build in PK' : 'Construire dans PK'}</button>
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/interactions/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pharmacodynamie/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/ddi/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
   </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{:else}<a href={`${base}/chapitres/${lab === 'distribution' ? 'clairance-volume-demi-vie' : 'doses-repetees'}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associe'}</a>{/if}</section>
 </section>
 

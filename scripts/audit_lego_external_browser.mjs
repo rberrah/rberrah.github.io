@@ -25,10 +25,9 @@ await mkdir('test-results',{recursive:true});
 try {
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   const errors=[]; page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(`${process.env.LEGO_AUDIT_URL??'http://127.0.0.1:4173'}/lego/`);
+  await page.goto(`${process.env.LEGO_AUDIT_URL??'http://127.0.0.1:4173'}/translator/`);
   await page.waitForLoadState('networkidle');
   const importer=page.locator('.mlxtran-import');
-  await importer.locator('summary').click();
   const tab=format=>format==='mrgsolve'?format:format.toUpperCase();
   const apply=async(code,format)=>{
     await importer.getByRole('tab',{name:tab(format),exact:true}).click();

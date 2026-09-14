@@ -84,7 +84,7 @@ for (const lab of ['absorption','infusion']) {
       const pending=page.waitForEvent('download');await page.getByRole('button',{name,exact:true}).click();
       const download=await pending;expect(await download.failure()).toBeNull();
     }
-    await page.getByRole('button',{name:'Build in Lego',exact:true}).click();
+    await page.getByRole('button',{name:'Build in PK',exact:true}).click();
     await expect(page.getByTestId('lab-transfer')).toContainText(lab==='absorption'?'Oral':'IV infusion');
     await page.getByRole('button',{name:'Apply experiment',exact:true}).click();
     await expect(page.getByRole('status').first()).toContainText('Laboratory parameters applied');

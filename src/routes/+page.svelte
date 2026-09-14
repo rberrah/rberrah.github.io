@@ -14,7 +14,7 @@
   $: goals = [
     { icon: BookOpen, fr: 'Comprendre un concept', en: 'Understand a concept', href: '/chapitres/' },
     { icon: FlaskConical, fr: 'Explorer une experience', en: 'Explore an experiment', href: '/laboratoires/' },
-    { icon: Blocks, fr: 'Construire un modele', en: 'Build a model', href: '/lego/' },
+    { icon: Blocks, fr: 'Construire un modele', en: 'Build a model', href: '/pk/' },
     { icon: ChartNoAxesCombined, fr: 'Analyser une exposition', en: 'Analyze an exposure', href: '/tdm/' },
     { icon: GraduationCap, fr: 'Preparer un cours', en: 'Prepare a lesson', href: '/laboratoires/?lab=distribution&teacher=1&hide=1' }
   ];

@@ -40,10 +40,9 @@ const failures = [];
 try {
   const page = await browser.newPage();
   page.setDefaultTimeout(15000);
-  await page.goto(`${process.env.LEGO_AUDIT_URL ?? 'http://127.0.0.1:5174'}/lego/`);
+  await page.goto(`${process.env.LEGO_AUDIT_URL ?? 'http://127.0.0.1:5174'}/translator/`);
   await page.waitForLoadState('networkidle');
   const importer = page.locator('.mlxtran-import');
-  await importer.locator('summary').click();
   const importSpec = async (spec) => {
     await importer.getByRole('tab', { name: 'MLXTRAN', exact: true }).click();
     await importer.locator('textarea').fill(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(spec))}\n[LONGITUDINAL]`);

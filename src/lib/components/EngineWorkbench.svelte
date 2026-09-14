@@ -1,9 +1,11 @@
 <script>
-  import { onDestroy } from 'svelte';
+  import { onMount, onDestroy, flushSync } from 'svelte';
+  import { ArrowRight } from '@lucide/svelte';
+  import { readDraft, writeDraft, takeDraft } from '$lib/workshops/session.js';
   import { language } from '$lib/stores/language';
   import { tdmEngineUrl } from '$lib/tdm/engine';
   import { tdmModels } from '$lib/content/tdmModels';
-  import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec } from '$lib/tdm/workbenches';
+  import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec, basicIvModel } from '$lib/tdm/workbenches';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
   import LabTransfer from './LabTransfer.svelte';
@@ -15,7 +17,7 @@
     const pk = { source: 'code', id: '', route: 'IV', code: mrgsolveCode(spec.lab, p) };
     const regimen = { dose: p.dose, interval: p.tau, infusion: 0 };
     if (view === 'ddi') { model1 = pk; ddi.affected = regimen; ddi.target = 'TV_cl_L1_CENT'; tab = 'model1'; }
-    else { pkPd = { ...pk, time_unit: 'h', concentration_scale: 1 }; pdMode = 'pd'; pd.exposure = 'pk'; pd.regimen = regimen; pd.horizon = p.end; }
+    else { pkPd = { ...pk, time_unit: 'h', concentration_scale: 1 }; pdMode = 'pd'; pdBlock = 'exposure'; pd.exposure = 'pk'; pd.regimen = regimen; pd.horizon = p.end; }
   }
 
   let { view } = $props();
@@ -24,6 +26,9 @@
   const t = (fr, en) => english ? en : fr;
   let tab = $state('model1');
   let pdMode = $state('onco');
+  let pdBlock = $state('exposure');
+  let mounted = $state(false);
+  let incomingPk = $state(/** @type {any} */ (null));
   let model1 = $state({ source: 'library', id: 'tacrolimus_woillard_ddi', route: 'Oral', code: '' });
   let model2 = $state({ source: 'library', id: 'voriconazole_vandenborn_ddi', route: 'Oral', code: '' });
   let pkOnco = $state({ source: 'library', id: 'vanco_revilla', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
@@ -35,26 +40,51 @@
   /** @param {{name:string,value:number}[]} values */
   function setTargets(values) {
     targets = values;
-    if (values.length && !values.some((value) => value.name === ddi.target)) ddi.target = (values.find((value) => /CL/i.test(value.name)) ?? values[0]).name;
+    if (values.length && !values.some((value) => value.name === ddi.target)) ddi.target = (values.find((value) => /CL/i.test(value.name)) ?? values.find((value) => /^TV_k_.+_e$/i.test(value.name)) ?? values[0]).name;
   }
   let mechanism = $derived(ddiMechanisms.find((item) => item.id === ddi.type) ?? ddiMechanisms[0]);
   let onco = $state({ growth: 'exponential', toxicity: true, free_pk: false, parameters: { ...oncoDefaults }, horizon: 84, decision: 42, dose: 100, interval: 21, infusion: 1, anc_floor: 1, tumor_goal: 0.8,
     history: [{ time: 0, amount: 100, infusion: 1 }, { time: 21, amount: 100, infusion: 1 }] });
-  let pd = $state({ type: 'emax', delay: false, exposure: 'exponential', c0: 10, kel: 0.1, horizon: 24, regimen: {dose:100, interval:24, infusion:0}, parameters: /** @type {Record<string, number>} */ ({ E0: 100, SLOPE: 2, EMAX: 50, EC50: 2, HILL: 1.5, KE0: 0.5, KOUT: 0.15 }) });
+  let pd = $state({ type: 'emax', delay: false, exposure: 'iv1', v: 10, cl: 1, c0: 10, kel: 0.1, horizon: 24, regimen: {dose:100, interval:24, infusion:0}, parameters: /** @type {Record<string, number>} */ ({ E0: 100, SLOPE: 2, EMAX: 50, EC50: 2, HILL: 1.5, KE0: 0.5, KOUT: 0.15 }) });
   const pdTypes = ['linear', 'emax', 'hill', 'inhibit_in', 'stimulate_in', 'inhibit_out', 'stimulate_out'];
   const pdFr = ['Lineaire', 'Emax', 'Hill', 'Inhiber la production', 'Stimuler la production', 'Inhiber la degradation', 'Stimuler la degradation'];
   const pdEn = ['Linear', 'Emax', 'Hill', 'Inhibit production', 'Stimulate production', 'Inhibit loss', 'Stimulate loss'];
   let activePd = $derived(['E0', ...(pd.type === 'linear' ? ['SLOPE'] : ['EMAX', 'EC50']), ...(pd.type === 'hill' ? ['HILL'] : []), ...(pd.delay ? ['KE0'] : []), ...(/_(in|out)$/.test(pd.type) ? ['KOUT'] : [])]);
   let activeOnco = $derived(['V', 'CL', 'T0', 'KG', ...(onco.growth === 'exponential' ? [] : ['CAP']), 'KILL', 'EC50', 'RES', ...(onco.toxicity ? ['ANC0', 'MTT', 'GAMMA', 'SLOPE'] : [])]);
   let title = $derived(view === 'ddi' ? t('Interactions médicamenteuses', 'Drug interactions') : t('Pharmacodynamie', 'Pharmacodynamics'));
-  let spec = $derived(view === 'ddi' ? workshopSpec('ddi', ddi, [model1, model2]) : workshopSpec(pdMode, pdMode === 'onco' ? onco : pd, pdMode === 'onco' ? (onco.free_pk ? [pkOnco] : undefined) : (pd.exposure === 'pk' ? [pkPd] : undefined)));
+  let spec = $derived(view === 'ddi' ? workshopSpec('ddi', ddi, [model1, model2]) : workshopSpec(pdMode, pdMode === 'onco' ? onco : { ...pd, exposure: 'pk', c0: pd.exposure === 'iv1' ? pd.regimen.dose / pd.v : pd.c0 }, pdMode === 'onco' ? (onco.free_pk ? [pkOnco] : undefined) : [pd.exposure === 'pk' ? pkPd : basicIvModel(pd.v, pd.cl)]));
   let returned = $state(/** @type {{key: string, data: any} | null} */ (null));
   let computed = $derived(returned?.key === JSON.stringify(spec) ? returned?.data : null);
   let transfer = $state('');
   let transferError = $state('');
   let feedback = $derived({ sending: t('Transfert en cours...', 'Transfer in progress...'), done: t('Atelier transmis au moteur.', 'Workshop transferred to engine.'), blocked: t('Ouverture bloquee par le navigateur.', 'Browser blocked the new window.'), timeout: t('Moteur non joignable ou transfert non confirme.', 'Engine unreachable or transfer not confirmed.'), error: transferError }[transfer] ?? '');
   let cleanup = () => {};
-  onDestroy(() => cleanup());
+  onMount(() => {
+    const draft = readDraft(`workbench:${view}`);
+    if (draft) ({ tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, ddi, onco, pd } = draft);
+    if (pd.exposure === 'exponential') {
+      pd.v = 10; pd.cl = pd.kel * pd.v; pd.regimen.dose = pd.c0 * pd.v; pd.exposure = 'iv1';
+    }
+    incomingPk = readDraft(`incoming:${view}:pk`);
+    mounted = true;
+  });
+  onDestroy(() => {
+    cleanup();
+    if (mounted) writeDraft(`workbench:${view}`, { tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, ddi, onco, pd });
+  });
+  function applyIncomingPk() {
+    if (!incomingPk) return;
+    const model = incomingPk.model;
+    if (view === 'ddi') {
+      if (incomingPk.side === '2') { model2 = model; tab = 'model2'; }
+      else { model1 = model; tab = 'model1'; }
+    } else if (pdMode === 'onco') {
+      pkOnco = model; onco.free_pk = true; pdBlock = 'exposure';
+      if (model.route === 'Oral') { onco.infusion = 0; onco.history.forEach(dose => dose.infusion = 0); }
+    } else { pkPd = model; pd.exposure = 'pk'; pdBlock = 'exposure'; }
+    takeDraft(`incoming:${view}:pk`);
+    incomingPk = null;
+  }
   function launch() {
     cleanup();
     const key = JSON.stringify(spec);
@@ -74,18 +104,26 @@
 
 <svelte:head><title>{title} | Pharmacometrie Pratique</title><meta name="description" content={title} /></svelte:head>
 
-<section class="workbench" data-testid={`${view}-workbench`}>
+<section class="workbench" data-testid={`${view}-workbench`} inert={!mounted}>
   <header><div><p class="eyebrow">{t('Atelier de modelisation', 'Modeling workshop')}</p><h1>{title}</h1></div><span class="status">{t('Recherche / en cours', 'Research / in development')}</span></header>
+  {#if incomingPk}
+    <section class="incoming" aria-label={t('Modele PK transmis', 'Transferred PK model')}>
+      <strong>{t('Modele PK transmis', 'Transferred PK model')} / {incomingPk.model.route}</strong>
+      <p>{t('Les covariables et le code du modele sont repris. Verifiez les unites et les doses de cet atelier ; le calendrier de simulation PK ne les remplace pas.', 'Model code and covariates are transferred. Check this workshop\'s units and doses; the PK simulation schedule does not replace them.')}</p>
+      <button type="button" data-testid="apply-pk" onclick={applyIncomingPk}><ArrowRight size={16}/>{view === 'ddi' ? `PK ${incomingPk.side}` : pdMode === 'onco' ? t('Reprendre en oncologie', 'Use in oncology') : t('Reprendre en PD generale', 'Use in general PD')}</button>
+      <button type="button" onclick={() => { takeDraft(`incoming:${view}:pk`); incomingPk = null; }}>{t('Ignorer', 'Dismiss')}</button>
+    </section>
+  {/if}
   <LabTransfer destination={view} apply={applyLaboratory} note={t('Le modele PK et la dose d\'entretien remplacent la PK 1 / PK generale actuelle. Ici les doses sont repetees : le nombre fini de doses et la dose de charge ne sont pas repris. Les parametres d\'interaction / PD restent illustratifs. Rien n\'est lance automatiquement.', 'The PK model and maintenance dose replace the current PK 1 / general PK. Doses repeat here: the finite dose count and loading dose are not retained. Interaction / PD parameters remain illustrative. Nothing runs automatically.')}/>
   <p class="intro">{view === 'ddi'
     ? t('Une interaction relie l’exposition d’une molecule a un parametre d’une autre. Assemblez les deux modeles PK et leur mecanisme, puis explorez les concentrations et la recuperation dans le moteur R.', 'An interaction links one drug’s exposure to another drug’s parameter. Assemble the two PK models and their mechanism, then explore concentrations and recovery in the R engine.')
     : pdMode === 'onco' ? t('De l’exposition a la reponse : assemblez croissance tumorale, effet du traitement et toxicite retardee. Le moteur R permet ensuite l’ajustement individuel et la comparaison des cycles futurs.', 'From exposure to response: assemble tumor growth, treatment effect and delayed toxicity. The R engine then supports individual fitting and comparison of future cycles.')
     : t('Reliez une exposition a un effet direct ou indirect, avec un compartiment d’effet optionnel. Le moteur R simule la reponse et ajuste les parametres sur les observations.', 'Link exposure to a direct or indirect effect, with an optional effect compartment. The R engine simulates the response and fits parameters to observations.')}</p>
   {#if view === 'pd'}<div class="modes" role="group" aria-label={t('Domaine', 'Domain')}>
-    <button type="button" class:active={pdMode === 'onco'} aria-pressed={pdMode === 'onco'} onclick={() => pdMode = 'onco'}>{t('Oncologie', 'Oncology')}</button>
-    <button type="button" class:active={pdMode === 'pd'} aria-pressed={pdMode === 'pd'} onclick={() => pdMode = 'pd'}>{t('PD generale', 'General PD')}</button>
+    <button type="button" class:active={pdMode === 'onco'} aria-pressed={pdMode === 'onco'} onclick={() => { pdMode = 'onco'; pdBlock = 'exposure'; }}>{t('Oncologie', 'Oncology')}</button>
+    <button type="button" class:active={pdMode === 'pd'} aria-pressed={pdMode === 'pd'} onclick={() => { pdMode = 'pd'; pdBlock = 'exposure'; }}>{t('PD generale', 'General PD')}</button>
   </div>{/if}
-  <div class="assembly" aria-label={t('Schema du modele', 'Model diagram')}>
+  <div class="assembly" class:two-blocks={view === 'pd' && (pdMode === 'onco' ? !onco.toxicity : !pd.delay)} aria-label={t('Schema du modele', 'Model diagram')}>
     {#if view === 'ddi'}
       <button class="block pk" class:selected={tab === 'model1'} onclick={() => tab = 'model1'}><span>PK 1</span><strong>{modelLabel(model1)}</strong><small>{t('Molecule affectee', 'Affected drug')}</small></button>
       <span class="connector" aria-hidden="true">&#8592;</span>
@@ -93,21 +131,32 @@
       <span class="connector" aria-hidden="true">&#8592;</span>
       <button class="block response" class:selected={tab === 'model2'} onclick={() => tab = 'model2'}><span>PK 2</span><strong>{modelLabel(model2)}</strong><small>{t('Molecule interagissante', 'Interacting drug')}</small></button>
     {:else if pdMode === 'onco'}
-      <div class="block pk"><span>PK</span><strong>{t('Exposition par cycles', 'Exposure by cycles')}</strong><small>{onco.free_pk ? modelLabel(pkOnco) : 'IV / 1 CMT / mg/L'}</small></div><span class="connector" aria-hidden="true">&#8594;</span>
-      <div class="block response"><span>TGI</span><strong>{t('Croissance + destruction', 'Growth + killing')}</strong><small>{onco.growth} / Emax / {t('resistance', 'resistance')}</small></div><span class="connector" aria-hidden="true">+</span>
-      <div class="block mechanism" class:inactive={!onco.toxicity}><span>ANC</span><strong>{t('Myelosuppression', 'Myelosuppression')}</strong><small>{onco.toxicity ? 'Prol > T1 > T2 > T3 > ANC' : t('Desactivee', 'Disabled')}</small></div>
+      <button class="block pk" class:selected={pdBlock === 'exposure'} onclick={() => pdBlock = 'exposure'}><span>PK</span><strong>{t('Exposition par cycles', 'Exposure by cycles')}</strong><small>{onco.free_pk ? modelLabel(pkOnco) : 'IV / 1 CMT / mg/L'}</small></button><span class="connector" aria-hidden="true">&#8594;</span>
+      <button class="block response" class:selected={pdBlock === 'response'} onclick={() => pdBlock = 'response'}><span>TGI</span><strong>{t('Croissance + destruction', 'Growth + killing')}</strong><small>{onco.growth} / Emax / {t('resistance', 'resistance')}</small></button>
+      {#if onco.toxicity}<span class="connector" aria-hidden="true">+</span><button class="block mechanism" class:selected={pdBlock === 'modifier'} onclick={() => pdBlock = 'modifier'}><span>ANC</span><strong>{t('Myelosuppression', 'Myelosuppression')}</strong><small>Prol > T1 > T2 > T3 > ANC</small></button>{/if}
     {:else}
-      <div class="block pk"><span>Cp</span><strong>{t('Exposition', 'Exposure')}</strong><small>{pd.exposure === 'pk' ? modelLabel(pkPd) : 'C(0) exp(-kel*t)'}</small></div><span class="connector" aria-hidden="true">&#8594;</span>
-      <div class="block mechanism"><span>{pd.delay ? 'Ce' : 'Cp'}</span><strong>{pd.delay ? t('Compartiment d’effet', 'Effect compartment') : t('Sans delai', 'No delay')}</strong><small>{pd.delay ? 'dCe/dt = KE0*(Cp-Ce)' : 'Cdriver = Cp'}</small></div><span class="connector" aria-hidden="true">&#8594;</span>
-      <div class="block response"><span>PD</span><strong>{(english ? pdEn : pdFr)[pdTypes.indexOf(pd.type)]}</strong><small>{(/_(in|out)$/.test(pd.type)) ? 'kin / kout' : 'E(C)'}</small></div>
+      <button class="block pk" class:selected={pdBlock === 'exposure'} onclick={() => pdBlock = 'exposure'}><span>Cp</span><strong>{t('Exposition', 'Exposure')}</strong><small>{pd.exposure === 'pk' ? modelLabel(pkPd) : 'IV / 1 CMT / CL / V'}</small></button><span class="connector" aria-hidden="true">&#8594;</span>
+      {#if pd.delay}<button class="block mechanism" class:selected={pdBlock === 'modifier'} onclick={() => pdBlock = 'modifier'}><span>Ce</span><strong>{t('Compartiment d’effet', 'Effect compartment')}</strong><small>dCe/dt = KE0*(Cp-Ce)</small></button><span class="connector" aria-hidden="true">&#8594;</span>{/if}
+      <button class="block response" class:selected={pdBlock === 'response'} onclick={() => pdBlock = 'response'}><span>PD</span><strong>{(english ? pdEn : pdFr)[pdTypes.indexOf(pd.type)]}</strong><small>{(/_(in|out)$/.test(pd.type)) ? 'kin / kout' : 'E(C)'}</small></button>
     {/if}
   </div>
-  <form onsubmit={(event) => { event.preventDefault(); launch(); }}>
+  {#if view === 'pd'}<nav class="tabs" aria-label={t('Reglages PD', 'PD settings')}>
+    {#each [['exposure', 'PK'], ['response', 'PD'], ...(pdMode === 'onco' ? [['initial', t('Conditions initiales', 'Initial conditions')], ['regimen', t('Cycles et doses', 'Cycles and doses')]] : []), ...((pdMode === 'onco' ? onco.toxicity : pd.delay) ? [['modifier', pdMode === 'onco' ? 'ANC' : 'Ce']] : [])] as [id, label]}
+      <button class:active={pdBlock === id} aria-pressed={pdBlock === id} onclick={() => pdBlock = id}>{label}</button>
+    {/each}
+  </nav>{/if}
+  <form oninvalidcapture={(event) => {
+    const panel = event.target instanceof Element ? event.target.closest('[data-block]') : null;
+    if (panel instanceof HTMLElement) flushSync(() => {
+      if (view === 'ddi') tab = panel.dataset.block ?? 'model1';
+      else pdBlock = panel.dataset.block ?? 'exposure';
+    });
+  }} onsubmit={(event) => { event.preventDefault(); launch(); }}>
     {#if view === 'ddi'}
       <nav class="tabs" aria-label={t('Blocs DDI', 'DDI blocks')}>{#each [['model1', t('Modele 1', 'Model 1')], ['mechanism', t('Interaction', 'Interaction')], ['model2', t('Modele 2', 'Model 2')]] as [id,label]}<button type="button" class:active={tab === id} aria-pressed={tab === id} onclick={() => tab = id}>{label}</button>{/each}</nav>
-      <div hidden={tab !== 'model1'}><PkWorkshopModel bind:model={model1} bind:regimen={ddi.affected} side={1} onparameters={setTargets} /></div>
-      <div hidden={tab !== 'model2'}><PkWorkshopModel bind:model={model2} bind:regimen={ddi.driver} side={2} /></div>
-      <div hidden={tab !== 'mechanism'}>
+      <div data-block="model1" hidden={tab !== 'model1'}><PkWorkshopModel bind:model={model1} bind:regimen={ddi.affected} side={1} onparameters={setTargets} /></div>
+      <div data-block="model2" hidden={tab !== 'model2'}><PkWorkshopModel bind:model={model2} bind:regimen={ddi.driver} side={2} /></div>
+      <div data-block="mechanism" hidden={tab !== 'mechanism'}>
         <div class="fields">
           <label>{t('Parametre cible (PK 1)', 'Target parameter (PK 1)')}{#if targets.length}<select bind:value={ddi.target}>{#each targets as target}<option value={target.name}>{target.name} ({target.value})</option>{/each}</select>{:else}<input bind:value={ddi.target} pattern="[A-Za-z_][A-Za-z0-9_]*" required />{/if}</label>
           <label>{t('Mecanisme', 'Mechanism')}<select bind:value={ddi.type} onchange={() => { if (ddi.type.includes('inhibition')) ddi.strength = Math.min(1, ddi.strength); }}>{#each ddiMechanisms as item}<option value={item.id}>{english ? item.en : item.fr}</option>{/each}</select></label>
@@ -121,18 +170,18 @@
         </div>
       </div>
     {:else if pdMode === 'onco'}
-      <div class="fields structure"><label>{t('Croissance tumorale', 'Tumor growth')}<select bind:value={onco.growth}><option value="exponential">{t('Exponentielle', 'Exponential')}</option><option value="logistic">{t('Logistique', 'Logistic')}</option><option value="gompertz">Gompertz</option></select></label><label class="toggle"><input type="checkbox" bind:checked={onco.toxicity} /> {t('Myelosuppression avec retrocontrole', 'Myelosuppression with feedback')}</label></div>
+      <div class="fields structure" hidden={pdBlock !== 'response'}><label>{t('Croissance tumorale', 'Tumor growth')}<select bind:value={onco.growth}><option value="exponential">{t('Exponentielle', 'Exponential')}</option><option value="logistic">{t('Logistique', 'Logistic')}</option><option value="gompertz">Gompertz</option></select></label><label class="toggle"><input type="checkbox" bind:checked={onco.toxicity} /> {t('Myelosuppression avec retrocontrole', 'Myelosuppression with feedback')}</label></div>
       <div class="oncology-layout">
         <div class="parameter-sections">
-          <fieldset><legend>{t('Conditions initiales', 'Initial conditions')}</legend><div class="fields compact">{#each activeOnco.filter((name) => ['T0','ANC0'].includes(name)) as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div></fieldset>
-          <fieldset><legend>{t('Modele et parametres PK', 'PK model and parameters')}</legend>
+          <fieldset data-block="initial" hidden={pdBlock !== 'initial'}><legend>{t('Conditions initiales', 'Initial conditions')}</legend><div class="fields compact">{#each activeOnco.filter((name) => ['T0','ANC0'].includes(name)) as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div></fieldset>
+          <fieldset data-block="exposure" hidden={pdBlock !== 'exposure'}><legend>{t('Modele et parametres PK', 'PK model and parameters')}</legend>
             <label class="toggle"><input type="checkbox" bind:checked={onco.free_pk} /> {t('Modele PK libre', 'Free PK model')}</label>
             {#if onco.free_pk}<PkWorkshopModel bind:model={pkOnco} side="onco" showRegimen={false} units={true} />
             {:else}<div class="fields compact">{#each ['V','CL'] as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div>{/if}
           </fieldset>
-          <fieldset><legend>{t('Parametres PD', 'PD parameters')}</legend><div class="fields compact">{#each activeOnco.filter((name) => !['T0','ANC0','V','CL'].includes(name)) as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min={['KG','KILL','RES','GAMMA','SLOPE'].includes(name) ? 0 : 0.000001} required /></label>{/each}</div></fieldset>
+          <fieldset data-block={pdBlock === 'modifier' ? 'modifier' : 'response'} hidden={!['response', 'modifier'].includes(pdBlock)}><legend>{pdBlock === 'modifier' ? 'ANC' : t('Parametres PD', 'PD parameters')}</legend><div class="fields compact">{#each activeOnco.filter((name) => !['T0','ANC0','V','CL'].includes(name)) as name}<label data-block={['MTT','GAMMA','SLOPE'].includes(name) ? 'modifier' : 'response'} hidden={(['MTT','GAMMA','SLOPE'].includes(name) ? 'modifier' : 'response') !== pdBlock}>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min={['KG','KILL','RES','GAMMA','SLOPE'].includes(name) ? 0 : 0.000001} required /></label>{/each}</div></fieldset>
         </div>
-        <fieldset><legend>{t('Cycles de reference', 'Reference cycles')}</legend><div class="fields compact">
+        <fieldset data-block="regimen" hidden={pdBlock !== 'regimen'}><legend>{t('Cycles de reference', 'Reference cycles')}</legend><div class="fields compact">
           <label>{t('Prochaine dose (jour)', 'Next dose (day)')}<input type="number" bind:value={onco.decision} min="0" max={onco.horizon - 0.1} step="any" required /></label>
           <label>{t('Horizon (jours)', 'Horizon (days)')}<input type="number" bind:value={onco.horizon} min="1" max="730" step="any" required /></label>
           <label>{onco.free_pk ? t('Dose future (unite PK)', 'Future dose (PK unit)') : t('Dose future (mg)', 'Future dose (mg)')}<input type="number" bind:value={onco.dose} min="0" step="any" required /></label>
@@ -151,11 +200,17 @@
       <p class="equation"><code>dT/dt = growth(T) - KILL*C/(EC50+C)*exp(-RES*t)*T</code></p>
       <p>{t('Le traitement ralentit ou inverse la croissance. RES fait decroitre la sensibilite avec le temps. La maturation hematologique retarde le nadir par rapport au pic de concentration.', 'Treatment slows or reverses growth. RES reduces sensitivity with time. Hematological maturation delays the nadir relative to peak concentration.')}</p>
     {:else}
-      <fieldset><legend>{t('Exposition PK', 'PK exposure')}</legend><label>{t('Source PK', 'PK source')}<select bind:value={pd.exposure}><option value="exponential">{t('Profil exponentiel', 'Exponential profile')}</option><option value="pk">{t('Modele PK libre', 'Free PK model')}</option></select></label>
+      <fieldset data-block="exposure" hidden={pdBlock !== 'exposure'}><legend>{t('Exposition PK', 'PK exposure')}</legend><label>{t('Source PK', 'PK source')}<select bind:value={pd.exposure}><option value="iv1">{t('IV 1 compartiment', 'IV one compartment')}</option><option value="pk">{t('Modele PK libre', 'Free PK model')}</option></select></label>
       {#if pd.exposure === 'pk'}<PkWorkshopModel bind:model={pkPd} bind:regimen={pd.regimen} side="pd" units={true} />{/if}</fieldset>
-      <div class="fields structure"><label>{t('Modele de reponse', 'Response model')}<select bind:value={pd.type} onchange={() => { if (/^inhibit/.test(pd.type)) pd.parameters.EMAX = Math.min(1, Math.max(0,pd.parameters.EMAX)); }}>{#each pdTypes as type,index}<option value={type}>{(english ? pdEn : pdFr)[index]}</option>{/each}</select></label><label class="toggle"><input type="checkbox" bind:checked={pd.delay} /> {t('Compartiment d’effet', 'Effect compartment')}</label></div>
-      <div class="fields">{#each activePd as name}<label>{name}<input type="number" bind:value={pd.parameters[name]} step="any" required max={name === 'EMAX' && pd.type.startsWith('inhibit') ? 1 : undefined} /></label>{/each}
-        {#if pd.exposure === 'exponential'}<label>C(0)<input type="number" bind:value={pd.c0} min="0" step="any" required /></label><label>kel (1/h)<input type="number" bind:value={pd.kel} min="0" step="any" required /></label>{/if}<label>{t('Horizon (h)', 'Horizon (h)')}<input type="number" bind:value={pd.horizon} min="0.01" max="2400" step="any" required /></label>
+      <div class="fields structure" hidden={pdBlock !== 'response'}><label>{t('Modele de reponse', 'Response model')}<select bind:value={pd.type} onchange={() => { if (/^inhibit/.test(pd.type)) pd.parameters.EMAX = Math.min(1, Math.max(0,pd.parameters.EMAX)); }}>{#each pdTypes as type,index}<option value={type}>{(english ? pdEn : pdFr)[index]}</option>{/each}</select></label><label class="toggle"><input type="checkbox" bind:checked={pd.delay} /> {t('Compartiment d’effet', 'Effect compartment')}</label></div>
+      <div class="fields" data-block={pdBlock === 'modifier' ? 'modifier' : 'response'} hidden={!['response', 'modifier'].includes(pdBlock)}>{#each activePd as name}<label data-block={name === 'KE0' ? 'modifier' : 'response'} hidden={(name === 'KE0' ? 'modifier' : 'response') !== pdBlock}>{name}<input type="number" bind:value={pd.parameters[name]} step="any" required max={name === 'EMAX' && pd.type.startsWith('inhibit') ? 1 : undefined} /></label>{/each}
+        </div><div class="fields" data-block="exposure" hidden={pdBlock !== 'exposure'}>{#if pd.exposure === 'iv1'}
+          <label>V (L)<input type="number" bind:value={pd.v} min="0.000001" step="any" required /></label>
+          <label>CL (L/h)<input type="number" bind:value={pd.cl} min="0.000001" step="any" required /></label>
+          <label>Dose (mg)<input type="number" bind:value={pd.regimen.dose} min="0.000001" step="any" required /></label>
+          <label>{t('Intervalle (h)', 'Interval (h)')}<input type="number" bind:value={pd.regimen.interval} min="0.000001" step="any" required /></label>
+          <label>{t('Perfusion (h ; 0 = bolus IV)', 'Infusion (h; 0 = IV bolus)')}<input type="number" bind:value={pd.regimen.infusion} min="0" max={pd.regimen.interval} step="any" required /></label>
+        {/if}<label>{t('Horizon (h)', 'Horizon (h)')}<input type="number" bind:value={pd.horizon} min="0.01" max="2400" step="any" required /></label>
       </div><p>{t('Effet direct : reponse instantanee. Compartiment d’effet : delai de distribution. Reponse indirecte : modification de la production ou de la degradation d’un marqueur.', 'Direct effect: instantaneous response. Effect compartment: distribution delay. Indirect response: altered production or loss of a marker.')}</p>
     {/if}
     <div class="actions"><button class="primary" type="submit">{t('Ouvrir dans le moteur', 'Open in engine')}</button><button type="button" onclick={download}>{t('Exporter l’atelier (.json)', 'Export workshop (.json)')}</button><span role="status">{feedback}</span></div>
@@ -183,6 +238,11 @@
 </section>
 
 <style>
+  [hidden] { display: none !important; }
+  .incoming { border-block: 1px solid var(--border-strong); padding: 16px 0; margin: 16px 0; }
+  .incoming p { max-width: 85ch; font-size: 0.85rem; }
+  .incoming button { display: inline-flex; align-items: center; gap: 6px; }
+  .assembly.two-blocks { grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr); }
   .workbench { min-width: 0; letter-spacing: 0; }
   header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
   h1 { font-size: 2rem; line-height: 1.2; margin: 0; letter-spacing: 0; } h2 { font-size: 1.4rem; letter-spacing: 0; } h3 { font-size: 1rem; letter-spacing: 0; }
@@ -190,7 +250,7 @@
   .assembly { display: grid; grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr) 28px minmax(0,1fr); align-items: stretch; gap: 8px; margin: 22px 0; }
   .block { border: 1px solid var(--border-strong); border-top: 4px solid #11756c; border-radius: 4px; background: var(--bg-tertiary); padding: 18px; min-width: 0; min-height: 144px; display: flex; flex-direction: column; justify-content: center; text-align: left; color: var(--text-primary); overflow-wrap: anywhere; }
   .block span { font: 0.75rem var(--font-mono); color: var(--text-secondary); } .block strong { font-size: 1rem; line-height: 1.5; margin: 5px 0; } .block small { font-size: 0.75rem; color: var(--text-secondary); }
-  .block.mechanism { border-top-color: #9e4162; } .block.response { border-top-color: #857125; } .block.selected { outline: 2px solid #11756c; outline-offset: 3px; } .block.inactive { opacity: 0.6; }
+  .block.mechanism { border-top-color: #9e4162; } .block.response { border-top-color: #857125; } .block.selected { outline: 2px solid #11756c; outline-offset: 3px; }
   .connector { align-self: center; text-align: center; font-size: 1.5rem; }
   button { font: inherit; font-size: 0.85rem; color: var(--text-primary); cursor: pointer; padding: 9px 14px; border-radius: 4px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); }
   button:hover { background: var(--bg-secondary); } button:focus-visible { outline: 3px solid #168879; outline-offset: 2px; }
@@ -199,7 +259,7 @@
   .fields { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; } .fields.compact { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px 16px; }
   .fields.structure { grid-template-columns: repeat(2,minmax(0,1fr)); padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); }
   label { display: block; font-size: 0.8rem; } input:not([type=checkbox]), select { width: 100%; min-width: 0; display: block; box-sizing: border-box; padding: 9px; margin-top: 5px; border: 1px solid var(--border-strong); border-radius: 4px; font: inherit; background: var(--bg-tertiary); color: var(--text-primary); }
-  .toggle { display: flex; align-items: center; gap: 9px; } .oncology-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; }
+  .toggle { display: flex; align-items: center; gap: 9px; } .oncology-layout { display: grid; gap: 16px; max-width: 850px; }
   fieldset { border: 0; padding: 0; min-width: 0; } legend { font-size: 1rem; font-weight: 650; margin-bottom: 15px; }
   .parameter-sections { display: grid; gap: 24px; } .parameter-sections fieldset + fieldset { padding-top: 20px; border-top: 1px solid var(--border-subtle); }
   .dose-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) 34px; align-items: end; gap: 8px; margin-bottom: 10px; } .remove { padding: 0; width: 34px; height: 36px; font-size: 1.2rem; }
@@ -207,6 +267,6 @@
   .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 24px; padding: 18px 0; border-top: 1px solid var(--border-subtle); } .actions .primary { background: #126e64; color: white; border-color: #126e64; } .actions span { font-size: 0.8rem; }
   .explanation { border-top: 1px solid var(--border-strong); margin-top: 32px; padding-top: 18px; } .reading-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 28px; }
   .reading-grid p, form p { font-size: 0.9rem; } .privacy { font-size: 0.85rem; padding: 16px 0; border-block: 1px solid var(--border-subtle); }
-  @media (max-width: 760px) { .oncology-layout, .reading-grid { grid-template-columns: 1fr; gap: 22px; } .fields { grid-template-columns: repeat(2,minmax(0,1fr)); } .assembly { grid-template-columns: 1fr; } .connector { transform: rotate(90deg); width: 28px; height: 28px; justify-self: center; } .block { min-height: 110px; } h1 { font-size: 1.65rem; } }
+  @media (max-width: 760px) { .oncology-layout, .reading-grid { grid-template-columns: 1fr; gap: 22px; } .fields { grid-template-columns: repeat(2,minmax(0,1fr)); } .assembly, .assembly.two-blocks { grid-template-columns: 1fr; } .connector { transform: rotate(90deg); width: 28px; height: 28px; justify-self: center; } .block { min-height: 110px; } h1 { font-size: 1.65rem; } }
   @media (max-width: 430px) { .fields.structure { grid-template-columns: 1fr; } .actions button { width: 100%; } }
 </style>

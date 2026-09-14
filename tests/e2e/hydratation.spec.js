@@ -163,9 +163,8 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
 
 test("l'atelier Lego importe un modèle MLXTRAN et conserve les exports TDM", async ({ page }) => {
   const erreurs = collecteErreurs(page);
-  await page.goto('/lego/');
+  await page.goto('/translator/');
   await page.waitForLoadState('networkidle');
-  await page.locator('.mlxtran-import summary').click();
   await page.locator('.mlxtran-import textarea').fill(`
 ; ka_pop = 1.2
 ; V_pop = 35
@@ -221,9 +220,8 @@ output = {DV}
 
 test("l'import MLXTRAN reconnaît un régresseur dans les équations structurelles", async ({ page }) => {
   const erreurs = collecteErreurs(page);
-  await page.goto('/lego/');
+  await page.goto('/translator/');
   await page.waitForLoadState('networkidle');
-  await page.locator('.mlxtran-import summary').click();
   await page.locator('.mlxtran-import textarea').fill(String.raw`
 [LONGITUDINAL]
 input = {Vstd, Clstd, POIDS, E0, slope}
@@ -254,9 +252,8 @@ output = {Cc, E}
 
 test("l'atelier Lego importe aussi mrgsolve et NONMEM", async ({ page }) => {
   const erreurs = collecteErreurs(page);
-  await page.goto('/lego/');
+  await page.goto('/translator/');
   await page.waitForLoadState('networkidle');
-  await page.locator('.mlxtran-import summary').click();
   const importer = page.locator('.mlxtran-import');
 
   await importer.getByRole('tab', { name: 'mrgsolve' }).click();
@@ -309,11 +306,10 @@ $THETA
 });
 
 test("KOKA conserve le modèle et la courbe après export puis réimport", async ({ page }) => {
-  await page.goto('/lego/');
+  await page.goto('/translator/');
   await page.waitForLoadState('networkidle');
   const code = page.locator('pre.codeblk code');
   const importer = page.locator('.mlxtran-import');
-  await importer.locator('summary').click();
   for (const [preset, format, horizon] of [
     ['KOKA (Samtani)', 'MLXTRAN', 1500],
     ['KOKA (Samtani)', 'mrgsolve', 1500],
@@ -344,14 +340,13 @@ test("KOKA conserve le modèle et la courbe après export puis réimport", async
 });
 
 test("KOKA MLXTRAN conserve ses deux voies sans le marqueur Lego", async ({ page }) => {
-  await page.goto('/lego/');
+  await page.goto('/translator/');
   await page.waitForLoadState('networkidle');
   await page.locator('.toolbar button', { hasText: 'KOKA (Samtani)' }).click();
   await page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN', exact: true }).click();
   const original = await page.locator('pre.codeblk code').innerText();
   const plainCode = original.replace(/^; PK_LEGO_SPEC_V1:.*\r?\n/m, '');
   const importer = page.locator('.mlxtran-import');
-  await importer.locator('summary').click();
   await importer.locator('textarea').fill(plainCode);
   await importer.getByRole('button', { name: 'Construire le schéma' }).click();
   await expect(page.locator('.import-status')).toContainText('Structure reconnue');

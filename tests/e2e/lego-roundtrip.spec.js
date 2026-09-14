@@ -13,7 +13,7 @@ const idName = (spec, id) => spec.nodes.find((node) => node.id === id)?.name.toL
 for (const preset of ['KOKA (Samtani)', "PP6M (T'jollyn)"]) {
   for (const format of ['mrgsolve', 'MLXTRAN', 'NONMEM']) {
     test(`${preset}: ${format} sans marqueur conserve les voies et les equations`, async ({ page }) => {
-      await page.goto('/lego/');
+      await page.goto('/advanced/');
       await page.waitForLoadState('networkidle');
       await page.locator('.toolbar').getByRole('button', { name: preset, exact: true }).click();
       await page.locator('.codehead').getByRole('tab', { name: format, exact: true }).click();
@@ -21,8 +21,8 @@ for (const preset of ['KOKA (Samtani)', "PP6M (T'jollyn)"]) {
       await expect(page.locator('pre.codeblk code')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       const marker = /^(?:;|\/\/) PK_LEGO_SPEC_V1:([^\r\n]+)/m;
       const original = snapshot(code);
+      await page.getByTestId('workshop-nav').getByRole('link', {name: 'Translator', exact: true}).click();
       const importer = page.locator('.mlxtran-import');
-      await importer.locator('summary').click();
       await importer.getByRole('tab', { name: format, exact: true }).click();
       await importer.locator('textarea').fill(code.replace(marker, ''));
       await importer.getByRole('button', { name: 'Construire le sch\u00e9ma', exact: true }).click();

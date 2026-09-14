@@ -24,7 +24,7 @@
     // d'adresse.
     (function () {
       var p = location.pathname;
-      var moved = ['/chapitres', '/exercices', '/glossaire', '/a-propos', '/exemple', '/lego', '/slides', '/downloads', '/fiches', '/references', '/qa', '/playground'];
+      var moved = ['/chapitres', '/exercices', '/glossaire', '/a-propos', '/exemple', '/lego', '/translator', '/pk', '/pd', '/ddi', '/advanced', '/slides', '/downloads', '/fiches', '/references', '/qa', '/playground'];
       var isPharma = moved.some(function (x) { return p === x || p.indexOf(x + '/') === 0; });
       if (isPharma && p.indexOf('/pharmacometrie/') !== 0) {
         location.replace('/pharmacometrie' + p + location.search + location.hash);

@@ -75,7 +75,7 @@ test('French dark mode, keyboard menu and motion pause outside the scene', async
   await page.screenshot({ path: 'test-results/lab-fr-dark.png' });
   await page.setViewportSize({ width: 390, height: 950 });
   await page.getByTestId('nav-toggle').click();
-  await page.getByTestId('goal-explore').locator('summary').focus(); await page.keyboard.press('Enter');
+  await page.getByTestId('goal-simulate').locator('summary').focus(); await page.keyboard.press('Enter');
   await expect(page.getByTestId('nav-laboratories')).toBeVisible();
   await page.getByTestId('nav-laboratories').click();
   await expect(page.getByTestId('nav-toggle')).toHaveAttribute('aria-expanded', 'false');
@@ -105,7 +105,7 @@ test('teacher scenario reload, reveal and explicit exports', async ({ page }) =>
 });
 
 test('objective navigation, confirmation and transfer into four tools', async ({ page }) => {
-  for (const [label, path] of [['Build in Lego','lego'],['Add an interaction','interactions'],['Add a PD response','pharmacodynamie'],['Open in TDM','tdm']]) {
+  for (const [label, path] of [['Build in PK','pk'],['Add an interaction','ddi'],['Add a PD response','pd'],['Open in TDM','tdm']]) {
     await open(page); await page.locator('#lab-cl').fill('9');
     await page.getByRole('button', { name: label, exact: true }).click();
     await expect(page).toHaveURL(new RegExp(`/${path}/`), { timeout: 20000 });
@@ -113,14 +113,14 @@ test('objective navigation, confirmation and transfer into four tools', async ({
     await page.getByRole('button', { name: 'Apply experiment', exact: true }).click();
     await expect(page.getByTestId('lab-transfer')).toHaveCount(0);
     await expect(page.getByRole('status').first()).toContainText('Laboratory parameters applied');
-    if (path === 'lego') await expect(page.locator('body')).toContainText('PERI');
-    if (path === 'interactions' || path === 'pharmacodynamie') await expect(page.locator('textarea').first()).toHaveValue(/TV_cl_L1_CENT : 9/);
+    if (path === 'pk') await expect(page.locator('body')).toContainText('PERI');
+    if (path === 'ddi' || path === 'pd') await expect(page.locator('textarea').first()).toHaveValue(/TV_cl_L1_CENT : 9/);
     if (path === 'tdm') await expect(page.getByRole('button', { name: 'Open this experiment in the R engine' })).toBeVisible();
   }
   if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
-  await page.getByTestId('goal-explore').locator('summary').focus(); await page.keyboard.press('Enter');
+  await page.getByTestId('goal-simulate').locator('summary').focus(); await page.keyboard.press('Enter');
   await expect(page.getByTestId('nav-laboratories')).toBeVisible();
-  await page.keyboard.press('Escape'); await expect(page.getByTestId('goal-explore')).not.toHaveAttribute('open');
+  await page.keyboard.press('Escape'); await expect(page.getByTestId('goal-simulate')).not.toHaveAttribute('open');
 });
 
 test('responsive scenes, reduced motion and no overflow', async ({ page }) => {

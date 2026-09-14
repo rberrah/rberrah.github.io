@@ -1,6 +1,6 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-13. Lot Pages : publication des quatre laboratoires et
+Mise a jour : 2026-09-14. Lot Pages : publication des quatre laboratoires et
 retrait du bouton Particule suivante ; lot precedent `d638246` (options et semi-log).
 Shiny est deploye separement ; le nouveau transfert Laboratoires -> TDM reste
 a deployer dans le moteur R. Publier le site ne met pas Shiny a jour.
@@ -13,6 +13,36 @@ Statuts : `[x]` livre et verifie pour le perimetre indique ; `[ ]` a faire.
 Les pistes marquees **A arbitrer** ou **Exploratoire** ne sont pas des engagements.
 Priorites : P0 = fondations ; P1 = prochain lot ; P2 = suite ; P3 = conditionnel.
 Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
+
+## Lot Local : Ateliers Specialises (2026-09-13 / 14)
+
+Demande actuelle : **local uniquement, sans commit, push ni deploiement**.
+
+- [x] Explorer : Translator, PK, PD, DDI, Advanced ; laboratoires et simulation sous Simuler.
+- [x] Extraire l'editeur compartimental partage ; PK limite sa palette aux blocs PK, Advanced conserve les blocs metabolite/PD et les entrees complexes.
+- [x] Separer l'import de code dans Translator, sans changer les equations ni masquer les refus de conversion.
+- [x] PD / oncologie : un seul menu par structure, sans palette redondante ; blocs selectionnables et inspecteurs separes. PK generale de base : IV 1 compartiment (CL, V, dose, intervalle, perfusion).
+- [x] DDI : menu unique des sept mecanismes, deux PK independantes, reprise explicite de la PK sur la molecule choisie.
+- [x] Advanced : un seul graphe compartimental, sans sous-pages PD/DDI. Blocs TGI (trois croissances, Emax, resistance) et interaction (sept mecanismes appliques a un flux k/CL/Vmax), en plus des blocs existants.
+- [x] Advanced : exemples PK + Ce + TGI et PK + auto-inhibition + TGI ; liens d'information distincts des transferts de masse ; courbes par unite, TGI traite / non traite.
+- [x] Etendre le contrat Lego a la version 4 pour ces nouveaux blocs, avec regeneration R securisee. Versions 1-3 conservees. Aucun C++ arbitraire active.
+- [x] Conserver les brouillons uniquement en memoire lors des navigations ; aucun code personnel dans une URL ou dans le stockage du navigateur.
+- [x] Maintenir les anciennes URL et les contrats existants vers le moteur R.
+- [x] Verifier les parcours navigateur, les allers-retours KOKA/PP6M dans les trois formats, les transferts Shiny locaux et les vues ordinateur/mobile. Un modele genere dans PK a ete compile et simule dans le moteur PD local.
+- [ ] Apres revue par l'utilisateur seulement : decider d'un commit et d'une publication.
+
+Ce lot ne cree pas de traducteur universel. Le graphe Advanced couple maintenant
+PK, modulation de flux et TGI, mais les entrees dosees paralleles partagent une
+meme dose. Deux calendriers medicamenteux independants restent dans DDI.
+Les effets sur les volumes ou une fraction metabolisee ne sont pas des blocs
+Advanced de ce lot. Les nouveaux exports gardent leur specification embarquee
+pour un aller-retour exact ; cela ne rend pas tout code externe importable.
+Le pont TDM conserve l'observation PK : il ne fait pas d'ajustement tumoral
+automatique a partir d'un bloc TGI.
+Les tests couvrent aussi la navigation Advanced / PD, le passage du
+code DDI vers Translator, le choix independant de PK 1 / PK 2 et la validation
+d'un parametre dont l'inspecteur a ete masque. Les brouillons disparaissent
+au rechargement ; les exports volontaires restent a la main de l'utilisateur.
 
 ## 1. Etat actuel
 

@@ -1,4 +1,56 @@
-# Local / publication - 2026-09-13
+# Local / publication - 2026-09-14
+
+## Publication Des Ateliers Autorisee
+
+La revue locale est terminee. L'utilisateur demande maintenant le commit et
+la publication Pages des routes Translator, PK, PD, DDI et Advanced, de leurs
+blocs specialises et de la memoire temporaire de navigation. La reference
+publique avant cette publication est `02ad523` (quatre laboratoires publies).
+Le resultat du workflow et le controle du site seront consignes apres le push.
+Le deploiement Shiny n'est pas inclus dans cette publication.
+
+Les anciens chemins `/lego/`, `/interactions/` et `/pharmacodynamie/` restent
+utilisables. Les messages vers R restent `pk-lego-model` et `pk-workbench` :
+aucune nouvelle ouverture de la compilation C++ arbitraire et aucun changement
+des modeles de bibliotheque ou de l'entrainement ML. La revision Advanced ajoute
+un contrat Lego v4 et sa validation/regeneration dans `R/model_library.R`.
+Le moteur public ne recoit pas ces changements tant qu'il n'est pas redeploye.
+
+Controles locaux : build, verifications de contenu et des importeurs, scenarios
+numeriques des laboratoires, tests navigateur ordinateur/mobile, conservation
+des covariables et absence de stockage navigateur des brouillons. Les essais
+Shiny confirment les transferts PD/oncologie/DDI et l'import JSON ; un modele
+genere dans PK a ete compile puis simule en PD avec le C++ arbitraire desactive.
+Ces controles techniques ne constituent pas une validation clinique.
+
+Resultats de la premiere reorganisation du 2026-09-14 : 0 erreur et 0 avertissement Svelte ; build reussi ;
+50 tests navigateur du site et des ateliers passes, plus 5 tests d'integration
+des ateliers avec Shiny local. Le serveur de revue `http://127.0.0.1:4175/pk/`
+a egalement ete teste, avec le moteur local sur `http://127.0.0.1:3841/`.
+
+Revision suivant la revue utilisateur : choix redondants retires de PD,
+oncologie et DDI ; PK de base IV 1 compartiment ; Advanced devient un graphe
+unique avec TGI et interaction. Le serveur de revue 4175 ouvre desormais le
+moteur mis a jour sur `http://127.0.0.1:3842/`, C++ arbitraire desactive.
+Verification numerique : neuf exports mrgsolve compares au generateur R
+securise, avec controles des limites sans traitement et rejet des liens
+invalides. MLXTRAN et NONMEM : generation et restauration du graphe controlees,
+pas d'execution native Monolix/NONMEM. Les calendriers de deux medicaments
+independants restent dans l'atelier DDI.
+
+Controles de cette revision : build statique reussi, 18 tests navigateur du
+site et des traductions passes, 6 parcours Shiny locaux passes (dont compilation
+du graphe Advanced v4), regressions de compilation securisee KOKA/PP6M passees.
+Les neuf modeles mrgsolve de test concordent entre export et regeneration R ;
+le graphe compose concorde aussi avec les valeurs finales du navigateur.
+Les avertissements de build sur gray-matter et la taille des anciens bundles
+restent presents. Aucun test Monolix/NONMEM natif n'a ete execute.
+
+Tests numeriques reproductibles :
+`node scripts/test_advanced_blocks.mjs`, puis
+`tdm-engine/tests/advanced_lego_test.R` apres generation des fixtures par
+`tests/e2e/advanced-blocks.spec.js`. Les fixtures sont des exemples synthetiques
+dans `test-results/`, hors suivi Git.
 
 ## Site public
 

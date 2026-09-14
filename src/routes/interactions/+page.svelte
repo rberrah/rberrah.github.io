@@ -1,5 +1,5 @@
 <script>
-  import EngineWorkbench from '$lib/components/EngineWorkbench.svelte';
+  import Ddi from '../ddi/+page.svelte';
 </script>
 
-<EngineWorkbench view="ddi" />
+<Ddi />

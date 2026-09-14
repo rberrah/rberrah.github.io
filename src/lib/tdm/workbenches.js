@@ -21,6 +21,25 @@ export function workshopSpec(view, config, models) {
   return { type: 'pk-workbench', version: 1, view, config, ...(models ? { models } : {}) };
 }
 
+/** Basic IV PK uses the same validated Lego contract as a user-built model.
+ * @param {number} volume @param {number} clearance
+ */
+export function basicIvModel(volume, clearance) {
+  const v = Number(volume), cl = Number(clearance);
+  if (![v, cl].every(value => Number.isFinite(value) && value > 0)) return { source: 'code', id: '', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 };
+  const spec = { version: 3, nodes: [{id: 1, kind: 'central', name: 'CENT', vol: v, dose: 100}], edges: [{from: 1, to: 'OUT', kinetics: 'first_order', eliminationParameterization: 'clearance', cl, k: cl/v}], covariates: [] };
+  const code = [
+    '// PK_LEGO_SPEC_V1:' + encodeURIComponent(JSON.stringify(spec)),
+    '$PARAM', 'TV_V = ' + v + ', TV_CL = ' + cl + ', ETA1 = 0, ETA2 = 0',
+    '$OMEGA 0.09 0.09', '$SIGMA 0.04 0.01',
+    '$CMT @annotated', 'CENT : Central amount (mg) [ADM, OBS]',
+    '$MAIN', 'double V = TV_V * exp(ETA1 + ETA(1));', 'double CL = TV_CL * exp(ETA2 + ETA(2));',
+    '$ODE', 'dxdt_CENT = -CL / V * CENT;', '$TABLE',
+    'double IPRED = CENT / V;', 'double DV = IPRED * (1 + EPS(1)) + EPS(2);', '$CAPTURE IPRED DV'
+  ].join('\n');
+  return { source: 'code', id: '', route: 'IV', code, time_unit: 'h', concentration_scale: 1 };
+}
+
 /** Session-only handoff; nothing is stored in URLs, browser storage or a database.
  * @param {string} engine @param {string} lang @param {any} spec
  * @param {(state: string, detail?: string) => void} status
