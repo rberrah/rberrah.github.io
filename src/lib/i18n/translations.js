@@ -29,7 +29,7 @@ export const dictionary = {
       author: 'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics',
       report: 'Spotted an error? Report it',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
-      built: 'Built with SvelteKit · static, no tracking',
+      built: 'Static site · GoatCounter audience measurement',
       disclaimer: 'Educational content only. Not medical advice. No patient-specific dosing.'
     },
     home: {
@@ -239,7 +239,7 @@ export const dictionary = {
       author: 'Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie',
       report: 'Une erreur ? Signalez-la',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
-      built: 'Construit avec SvelteKit · statique, sans suivi',
+      built: 'Site statique · mesure d’audience GoatCounter',
       disclaimer: "Contenu pédagogique uniquement. Pas de conseil médical. Pas d'ajustement posologique patient-spécifique."
     },
     home: {

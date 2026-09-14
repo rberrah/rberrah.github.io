@@ -1,7 +1,6 @@
 <script>
   import 'katex/dist/katex.min.css';
-  // Polices AUTO-HÉBERGÉES : Vite les intègre au build. Aucune requête vers un tiers —
-  // Google Fonts enverrait l'IP de chaque lecteur à Google, ce que le site promet d'éviter.
+  // Polices auto-hebergees : aucune requete a Google Fonts.
   import '@fontsource-variable/source-serif-4';
   import '@fontsource-variable/inter';
   import '@fontsource-variable/jetbrains-mono';
@@ -10,11 +9,22 @@
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
   import { base } from '$app/paths';
   import { page } from '$app/stores';
+  import { afterNavigate } from '$app/navigation';
+  import { countPage } from '$lib/analytics';
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
   import { ui } from '$lib/i18n/translations';
   import { language } from '$lib/stores/language';
   import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL } from '$lib/site';
   let { children } = $props();
+
+  afterNavigate(() => {
+    // The initial navigation event can have a null route on prerendered pages.
+    const route = $page.status === 200 ? $page.route.id : null;
+    // Chapter pages count only after resolving a slug from the public catalogue.
+    if (route === '/chapitres/[slug]') return;
+    countPage(route && !route.includes('[') && !['/qa', '/slides', '/chapitres/etat-equilibre'].includes(route)
+      ? `/pharmacometrie${route === '/' ? '/' : `${route}/`}` : null);
+  });
 
   let copy = $derived(ui($language));
   let links = $derived([
@@ -119,7 +129,7 @@
       {copy.footer.author} ·
       <a href={copy.footer.reportUrl} target="_blank" rel="noopener noreferrer">{copy.footer.report}</a>
     </span>
-    <span class="muted">{copy.footer.built}</span>
+    <span class="muted">{copy.footer.built} · <a href={`${base}/confidentialite/`}>{$language === 'en' ? 'Privacy' : 'Confidentialité'}</a></span>
   </footer>
 
   <div class="disclaimer" data-testid="educational-disclaimer" role="note">

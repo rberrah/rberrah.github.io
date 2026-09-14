@@ -6,7 +6,9 @@ La revue locale est terminee. L'utilisateur demande maintenant le commit et
 la publication Pages des routes Translator, PK, PD, DDI et Advanced, de leurs
 blocs specialises et de la memoire temporaire de navigation. La reference
 publique avant cette publication est `02ad523` (quatre laboratoires publies).
-Le resultat du workflow et le controle du site seront consignes apres le push.
+Le commit `5b86ccd` est publie : [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/34853467707).
+Les cinq routes ont ete ouvertes dans Chromium sur le site public : HTTP 200,
+navigation Translator / PK / PD / DDI / Advanced presente sur chaque page.
 Le deploiement Shiny n'est pas inclus dans cette publication.
 
 Les anciens chemins `/lego/`, `/interactions/` et `/pharmacodynamie/` restent
@@ -53,6 +55,15 @@ Tests numeriques reproductibles :
 dans `test-results/`, hors suivi Git.
 
 ## Site public
+
+Lot GoatCounter suivant les ateliers : build au chemin `/pharmacometrie`
+reussi, check Svelte sans erreur/avertissement, tests de contenu reussis et
+dix tests navigateur passes sur le build de production. Les requetes des
+fixtures sont interceptees, jamais envoyees au service. Captures FR/mobile et
+EN/ordinateur inspectees. L'injection du portail est idempotente et exclut les
+redirections/404. Aucun PDF, modele personnel ou dossier patient ajoute.
+Voir [perimetre et reproduction des tests](analytics.md). Ce lot ne redeploie
+pas Shiny et ne change ni les modeles PK ni les artefacts ML.
 
 Le lot precedent `d638246`, apres `f2a72e3`, a publie : navigation par objectif,
 mode enseignant, continuite entre outils et deux laboratoires Distribution /

@@ -108,6 +108,9 @@ jobs:
                 done
           fi
 
+      - name: Integrate privacy-preserving portal analytics
+        run: node scripts/add_portal_analytics.mjs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

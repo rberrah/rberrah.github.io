@@ -1,7 +1,7 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-14. Lot Pages : publication des quatre laboratoires et
-retrait du bouton Particule suivante ; lot precedent `d638246` (options et semi-log).
+Mise a jour : 2026-09-14. Les cinq ateliers sont publies dans le lot `5b86ccd`,
+apres les quatre laboratoires. Lot suivant : GoatCounter verifie, pret pour Pages.
 Shiny est deploye separement ; le nouveau transfert Laboratoires -> TDM reste
 a deployer dans le moteur R. Publier le site ne met pas Shiny a jour.
 
@@ -14,9 +14,9 @@ Les pistes marquees **A arbitrer** ou **Exploratoire** ne sont pas des engagemen
 Priorites : P0 = fondations ; P1 = prochain lot ; P2 = suite ; P3 = conditionnel.
 Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 
-## Lot Local : Ateliers Specialises (2026-09-13 / 14)
+## Ateliers Specialises (2026-09-13 / 14)
 
-Demande actuelle : **local uniquement, sans commit, push ni deploiement**.
+Revue locale terminee ; commit et publication Pages autorises par l'utilisateur.
 
 - [x] Explorer : Translator, PK, PD, DDI, Advanced ; laboratoires et simulation sous Simuler.
 - [x] Extraire l'editeur compartimental partage ; PK limite sa palette aux blocs PK, Advanced conserve les blocs metabolite/PD et les entrees complexes.
@@ -29,7 +29,8 @@ Demande actuelle : **local uniquement, sans commit, push ni deploiement**.
 - [x] Conserver les brouillons uniquement en memoire lors des navigations ; aucun code personnel dans une URL ou dans le stockage du navigateur.
 - [x] Maintenir les anciennes URL et les contrats existants vers le moteur R.
 - [x] Verifier les parcours navigateur, les allers-retours KOKA/PP6M dans les trois formats, les transferts Shiny locaux et les vues ordinateur/mobile. Un modele genere dans PK a ete compile et simule dans le moteur PD local.
-- [ ] Apres revue par l'utilisateur seulement : decider d'un commit et d'une publication.
+- [x] Apres revue : commit `5b86ccd`, push, workflow Pages reussi et verification des cinq routes publiques dans Chromium. Shiny non redeploye.
+- [x] GoatCounter : compteur commun portail/SvelteKit, sans parametres d'URL ni donnees saisies ; confidentialite FR/EN et desactivation. Dix tests navigateur passes, build et check valides. Aucun suivi ajoute dans Shiny.
 
 Ce lot ne cree pas de traducteur universel. Le graphe Advanced couple maintenant
 PK, modulation de flux et TGI, mais les entrees dosees paralleles partagent une

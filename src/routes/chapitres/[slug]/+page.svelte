@@ -3,6 +3,8 @@
   import { onMount, onDestroy, tick } from 'svelte';
   import { page } from '$app/stores';
   import chapters from '$lib/content/loadChapters';
+  import { afterNavigate } from '$app/navigation';
+  import { countPage } from '$lib/analytics';
   import Quiz from '$lib/components/ui/Quiz.svelte';
   import ChapterFooter from '$lib/components/ui/ChapterFooter.svelte';
   import AuthorSignature from '$lib/components/ui/AuthorSignature.svelte';
@@ -34,6 +36,11 @@
 
   $: slug = $page.params.slug;
   $: chapter = chapters.find((c) => c.slug === slug);
+  afterNavigate(() => {
+    if ($page.route.id !== '/chapitres/[slug]') return;
+    const known = $page.status === 200 && chapters.find(c => c.slug === $page.params.slug);
+    countPage(known ? `/pharmacometrie/chapitres/${known.slug}/` : null);
+  });
   $: localizedResult = localizeChapter(chapter, $language);
   $: displayChapter = localizedResult.chapter;
   $: isFallback = localizedResult.isFallback;

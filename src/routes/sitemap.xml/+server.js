@@ -27,7 +27,8 @@ const FIXED_PAGES = [
   '/playground/',
   '/glossaire/',
   '/references/',
-  '/a-propos/'
+  '/a-propos/',
+  '/confidentialite/'
 ];
 
 /** @param {string} route */
