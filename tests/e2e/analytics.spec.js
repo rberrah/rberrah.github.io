@@ -76,12 +76,34 @@ test('portal pages use the same counter and opt-out control', async ({ page }) =
   await expect.poll(() => paths(counts).at(-1)).toBe('/contact/');
 });
 
-for (const mode of ['DNT', 'GPC', 'local', 'storage-disabled']) {
+for (const mode of ['DNT', 'GPC', 'both']) {
+  test(`${mode} does not disable counting; manual opt-out still applies`, async ({ page }) => {
+    const counts = await site(page);
+    await page.addInitScript(mode => {
+      if (mode !== 'GPC') Object.defineProperty(navigator, 'doNotTrack', { value: '1' });
+      if (mode !== 'DNT') Object.defineProperty(navigator, 'globalPrivacyControl', { value: true });
+    }, mode);
+    await page.goto(`${origin}/`);
+    await expect.poll(() => paths(counts)).toEqual(['/']);
+    await page.goto(`${origin}/pharmacometrie/confidentialite/?lang=en`);
+    await expect.poll(() => paths(counts)).toEqual(['/', '/pharmacometrie/confidentialite/']);
+    const checkbox = page.locator('.privacy-page input');
+    await expect(checkbox).toBeEnabled();
+    await expect(checkbox).toBeChecked();
+    await expect(page.locator('.privacy-page')).toContainText('do not automatically disable');
+    await checkbox.uncheck();
+    await page.goto(`${origin}/pharmacometrie/pk/?lang=en`);
+    await expect(page.locator('.canvas .node')).toHaveCount(2);
+    await page.goto(`${origin}/contact/`);
+    await page.waitForTimeout(250);
+    expect(counts).toHaveLength(2);
+  });
+}
+
+for (const mode of ['local', 'storage-disabled']) {
   test(`no analytics with ${mode}`, async ({ page }) => {
     const counts = await site(page);
     await page.addInitScript(mode => {
-      if (mode === 'DNT') Object.defineProperty(navigator, 'doNotTrack', { value: '1' });
-      if (mode === 'GPC') Object.defineProperty(navigator, 'globalPrivacyControl', { value: true });
       if (mode === 'storage-disabled') Storage.prototype.getItem = () => { throw new Error('blocked'); };
     }, mode);
     await page.goto(`${mode === 'local' ? 'http://127.0.0.1:4180' : origin}/pharmacometrie/pk/?lang=en`);

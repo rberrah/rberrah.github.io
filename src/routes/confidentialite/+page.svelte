@@ -1,15 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import { language } from '$lib/stores/language';
-  import { isOptedOut, privacySignal, setOptOut } from '$lib/analytics';
+  import { isOptedOut, setOptOut } from '$lib/analytics';
   let optedOut = $state(true);
-  let signal = $state(false);
   let ready = $state(false);
   let storageError = $state(false);
   let en = $derived($language === 'en');
   onMount(() => {
     optedOut = isOptedOut();
-    signal = privacySignal();
     ready = true;
   });
   /** @param {Event & {currentTarget: HTMLInputElement}} event */
@@ -38,10 +36,11 @@
   <p><a href="https://www.goatcounter.com/help/sessions" target="_blank" rel="noreferrer">GoatCounter: sessions</a> · <a href="https://www.goatcounter.com/privacy" target="_blank" rel="noreferrer">GoatCounter: privacy</a></p>
 
   <h2>{en ? 'Your preference' : 'Votre choix'}</h2>
-  <label class="preference"><input type="checkbox" checked={!optedOut && !signal} disabled={!ready || signal} onchange={update} />{en ? 'Allow page audience measurement in this browser' : 'Autoriser la mesure d’audience des pages dans ce navigateur'}</label>
-  <p role="status">{signal
-    ? (en ? 'Disabled by your browser privacy signal (DNT or GPC).' : 'Désactivé par le signal de confidentialité du navigateur (DNT ou GPC).')
-    : (optedOut ? (en ? 'Audience measurement is disabled.' : 'La mesure d’audience est désactivée.') : (en ? 'Audience measurement is enabled on the public site.' : 'La mesure d’audience est activée sur le site public.'))}</p>
+  <label class="preference"><input type="checkbox" checked={!optedOut} disabled={!ready} onchange={update} />{en ? 'Allow page audience measurement in this browser' : 'Autoriser la mesure d’audience des pages dans ce navigateur'}</label>
+  <p role="status">{optedOut ? (en ? 'Audience measurement is disabled.' : 'La mesure d’audience est désactivée.') : (en ? 'Audience measurement is enabled on the public site.' : 'La mesure d’audience est activée sur le site public.')}</p>
+  <p>{en
+    ? 'DNT (Do Not Track) and GPC (Global Privacy Control) browser signals do not automatically disable this audience measurement. Your manual choice on this page remains effective.'
+    : 'Les signaux DNT (Do Not Track) et GPC (Global Privacy Control) du navigateur ne désactivent pas automatiquement cette mesure d’audience. Votre choix manuel sur cette page reste appliqué.'}</p>
   {#if storageError}<p role="alert">{en ? 'The browser could not save this preference.' : 'Le navigateur ne peut pas enregistrer ce choix.'}</p>{/if}
   <p>{en
     ? 'Opting out stores only the preference skipgc in this browser, shared by the portal and course. It takes effect for subsequent page views and does not erase earlier aggregate statistics. Local previews and embedded frames do not send audience measurements.'

@@ -3,11 +3,6 @@
 export const GOATCOUNTER_ENDPOINT = 'https://rberrah.goatcounter.com/count';
 let lastPage = '';
 
-export function privacySignal() {
-  return typeof navigator !== 'undefined' &&
-    (navigator.doNotTrack === '1' || /** @type {Navigator & {globalPrivacyControl?: boolean}} */ (navigator).globalPrivacyControl === true);
-}
-
 export function isOptedOut() {
   try { return localStorage.getItem('skipgc') === 't'; }
   catch { return true; }
@@ -28,7 +23,7 @@ export function countPage(path) {
   if (!path) { lastPage = ''; return; }
   if (!/^\/(?:[a-z0-9-]+\/)*$/.test(path) || path === lastPage) return;
   if (location.hostname !== 'rberrah.github.io' || location.protocol !== 'https:' ||
-      window !== window.top || privacySignal() || isOptedOut()) return;
+      window !== window.top || isOptedOut()) return;
   lastPage = path;
   // count.js also sends location.search in `q`, even with an explicit path.
   // The documented pixel endpoint lets us omit query, title, referrer and screen.

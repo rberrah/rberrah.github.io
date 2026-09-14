@@ -13,10 +13,12 @@ after Pages assembly. No changes to Shiny or the R deployment.
   browser flag (`b=153`) only. No title, referrer, query, fragment or screen size.
 - Fetch uses `credentials: omit` and `referrerPolicy: no-referrer`.
 - No click/form/download/model/simulation events, DOM inspection or message
-  listeners. No analytics on local hosts, in iframes, with DNT/GPC, or when
+  listeners. No analytics on local hosts, in iframes, or when
   browser storage is unavailable. Unknown chapter slugs are not counted.
 - `skipgc=t` is an opt-out preference, not a visitor identifier. The privacy
   page controls it; it applies to both portal and course on this origin.
+- DNT/GPC signals do not automatically disable counting. Manual opt-out still
+  takes precedence; the public privacy page explains this behaviour in FR/EN.
 - French/English toggles and fragment changes do not send duplicate visits.
   Back/forward navigation is counted; GoatCounter's session settings determine
   how repeated visits appear in the dashboard.
