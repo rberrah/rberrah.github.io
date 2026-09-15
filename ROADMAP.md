@@ -16,12 +16,22 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 
 ## Portail Academique (2026-09-14 / 15)
 
-### Origine Publique (2026-09-15, local)
+### Publications Et Talks (2026-09-15, local)
+
+- [x] Ajouter neuf volets de lecture : syntheses sourcees des articles et posters, contexte de la correspondance, abstracts des deux manuscrits fournis par l'auteur.
+- [x] Conserver les DOI et lier directement l'abstract PAGE 2025 ; ajouter des liens partageables vers chaque volet.
+- [x] Distinguer publications, abstracts de congres et versions de travail ; ne copier aucun DOCX, PPTX, ZIP ou dossier clinique dans le site.
+- [x] Controles reussis : 17 tests navigateur (clavier, liens directs, sans JavaScript, mobile et themes), captures inspectees et 3 tests de configuration du portail. Modifications locales, non publiees.
+- [ ] Videos Djamzi Studio : ajouter uniquement des exports finaux approuves, avec sous-titres et transcription ; aucun lecteur vide ni diaporama provisoire.
+
+Sources et procedure de mise a jour : [fiches de recherche](docs/research-details.md).
+
+### Origine Publique (2026-09-15, publie)
 
 - [x] Centraliser l'origine du site et du portail dans `PUBLIC_SITE_ORIGIN`, sans changer `/pharmacometrie/`.
 - [x] Deriver metadonnees, citations, sitemaps, robots et origine autorisee du compteur ; conserver les liens externes.
 - [x] Resoudre les marqueurs du portail apres assemblage et bloquer un build provenant d'une autre origine.
-- [x] Builds et assemblages verifies sur le domaine de test et celui par defaut ; 16 tests compteur sur chaque origine, 13 tests portail, 3 tests de configuration, check et tests de contenu reussis. Non publie.
+- [x] Builds et assemblages verifies sur le domaine de test et celui par defaut ; 16 tests compteur sur chaque origine, 13 tests portail, 3 tests de configuration, check et tests de contenu reussis. Commit `2e9a3d1` publie et verifie sur Pages.
 - [ ] Avant une migration reelle : configurer DNS/Pages, les sites Internat/Stats et l'origine autorisee du pont Shiny, puis redeployer ce moteur separement.
 
 Configuration et controles : [origine publique](docs/site-origin.md).

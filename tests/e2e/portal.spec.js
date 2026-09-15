@@ -129,6 +129,76 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   }
 });
 
+test('research details open with keyboard, retain sources and support direct links', async ({ page }) => {
+  await page.goto(origin + '/publications/');
+  const details = page.locator('details.research-detail');
+  await expect(details).toHaveCount(9);
+  await expect(page.locator('details.research-detail[open]')).toHaveCount(0);
+  for (const detail of await details.all()) {
+    const summary = detail.locator('summary');
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    await expect(detail).toHaveAttribute('open', '');
+    await expect(detail.locator('.detail-body')).toBeVisible();
+    await expect(detail.locator('.detail-source')).toBeVisible();
+    await page.keyboard.press('Space');
+    await expect(detail).not.toHaveAttribute('open');
+  }
+  await page.goto(origin + '/publications/#tacddi-details');
+  await expect(page.locator('#tacddi-details')).toHaveAttribute('open', '');
+  await expect(page.locator('#tacddi-details')).toContainText('394 trough');
+  await expect(page.locator('#tacddi-details h4').filter({ hasText: /^Abstract$/ })).toHaveCount(1);
+  await expect(page.locator('.research-status')).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText('Manuscript abstract');
+  await page.goto(origin + '/publications/#missed-dose-details');
+  await expect(page.locator('#missed-dose-details')).toHaveAttribute('open', '');
+  await expect(page.locator('#missed-dose-details')).toContainText('97.7%');
+  await expect(page.locator('#missed-dose-details h4').filter({ hasText: /^Abstract$/ })).toHaveCount(1);
+  await expect(page.locator('#missed-dose-details')).toContainText('not 11 distinct active substances');
+  await page.goto(origin + '/publications/#page-2025-details');
+  await page.locator('#page-2025-details').getByRole('link', { name: 'Better Dosing Through Better Error' }).click();
+  await expect(page.locator('#residual-error-details')).toHaveAttribute('open', '');
+  const abstract = 'https://www.page-meeting.org/Abstracts/impact-of-residual-error-handling-on-model-informed-precision-dosing-and-auc-calculation-a-case-study-with-tacrolimus/';
+  await expect(page.locator('a[href="' + abstract + '"]').filter({ hasText: 'Conference abstract' })).toHaveCount(1);
+  await expect(page.getByText('Conference record', { exact: false })).toHaveCount(0);
+  await expect(page.locator('a[href$=".pptx"],a[href$=".docx"],a[href$=".zip"],iframe,video')).toHaveCount(0);
+});
+
+for (const width of [320, 1440]) {
+  test('expanded abstracts fit at ' + width + 'px', async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(origin + '/publications/');
+    for (const theme of ['light', 'dark']) {
+      await page.locator('#theme').selectOption(theme);
+      for (const summary of await page.locator('.research-detail > summary').all()) {
+        const detail = summary.locator('..');
+        if (!await detail.evaluate(node => node.open)) await summary.click();
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      for (const body of await page.locator('.detail-body').all()) {
+        await expect(body).toBeVisible();
+        const bounds = await body.boundingBox();
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(width + 1);
+      }
+      await page.locator('#tacddi-details > summary').evaluate(node => node.scrollIntoView({ block: 'start' }));
+      await page.screenshot({ path: 'test-results/publication-detail-' + width + '-' + theme + '.png' });
+    }
+  });
+}
+
+test('research abstracts remain readable without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  try {
+    const page = await context.newPage();
+    await page.goto(origin + '/publications/');
+    for (const detail of await page.locator('.research-detail').all()) {
+      await detail.locator('summary').click();
+      await expect(detail.locator('.detail-body')).toBeVisible();
+    }
+  } finally { await context.close(); }
+});
+
 test('essential navigation works without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

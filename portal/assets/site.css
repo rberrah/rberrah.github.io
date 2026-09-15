@@ -100,6 +100,18 @@ ul { padding-left: 1.3rem; }
 .authors, .journal { font-size: .85rem; color: var(--ink-2); margin-bottom: .5rem; }
 .authors strong { color: var(--ink); }
 .citation-links { font-size: .81rem; margin: .8rem 0 0; }
+.research-detail { margin-top: 1.1rem; border-top: 1px solid var(--border); scroll-margin-top: 2rem; }
+.research-detail > summary { cursor: pointer; padding-block: .8rem; color: var(--accent); font-size: .9rem; font-weight: 600; min-height: 44px; }
+.research-detail > summary:hover { text-decoration: underline; }
+.research-detail[open] > summary { color: var(--ink); }
+.detail-body { max-width: 76ch; padding-block: .3rem 1rem; color: var(--ink-2); }
+.detail-body h4 { margin-top: 1.3rem; font-size: 1rem; line-height: 1.5; }
+.detail-body > :first-child { margin-top: 0; }
+.detail-body p { font-size: .95rem; line-height: 1.75; }
+.detail-body .detail-source, .detail-body .detail-links { font-size: .82rem; color: var(--ink-3); }
+.detail-body .links { font-size: .88rem; }
+.research-detail:target { border-top-color: var(--accent); }
+.talks .detail-body strong { font: inherit; font-weight: 600; color: var(--ink); }
 .conference { background: var(--accent-soft); }
 .talks { list-style: none; margin: 1.5rem 0; padding: 0; }
 .talks li { margin-block: 1.4rem; }

@@ -4,6 +4,16 @@ try {
   if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
 } catch {}
 document.addEventListener('DOMContentLoaded', () => {
+  // Open a linked abstract without storing reading state or making requests.
+  function openLinkedAbstract() {
+    let id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+    const detail = document.getElementById(id);
+    if (!detail?.matches('details.research-detail')) return;
+    detail.open = true;
+  }
+  openLinkedAbstract();
+  window.addEventListener('hashchange', openLinkedAbstract);
   const select = document.querySelector('#theme');
   if (!select) return;
   select.value = document.documentElement.dataset.theme || 'system';
