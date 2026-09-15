@@ -1,0 +1,42 @@
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import path from 'node:path';
+
+const port = Number(process.argv[2] || 4181);
+const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.xml': 'application/xml',
+  '.woff2': 'font/woff2', '.txt': 'text/plain', '.ico': 'image/x-icon', '.webp': 'image/webp' };
+
+// Local preview only. Mirrors Pages' portal/app mount without modifying the build.
+createServer(async (request, response) => {
+  const url = new URL(request.url, 'http://127.0.0.1');
+  let pathname;
+  try { pathname = decodeURIComponent(url.pathname); }
+  catch { response.writeHead(400).end(); return; }
+  if (/^\/(internat|stats)(\/|$)/.test(pathname)) {
+    response.writeHead(302, { Location: 'https://rberrah.github.io' + url.pathname + url.search }).end();
+    return;
+  }
+  const app = pathname === '/pharmacometrie' || pathname.startsWith('/pharmacometrie/');
+  const root = path.resolve(app ? 'build' : 'portal');
+  const relative = app ? pathname.slice('/pharmacometrie'.length) : pathname;
+  let file = path.resolve(root, '.' + relative);
+  if (file !== root && !file.startsWith(root + path.sep)) {
+    response.writeHead(403).end(); return;
+  }
+  try {
+    if ((await stat(file)).isDirectory()) {
+      if (!pathname.endsWith('/')) {
+        response.writeHead(301, { Location: url.pathname + '/' + url.search }).end(); return;
+      }
+      file = path.join(file, 'index.html');
+    }
+    const body = await readFile(file);
+    response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream',
+      'Cache-Control': 'no-store' }).end(body);
+  } catch {
+    const body = await readFile('portal/404.html');
+    response.writeHead(404, { 'Content-Type': types['.html'] }).end(body);
+  }
+}).listen(port, '127.0.0.1', () => console.log('Portal preview: http://127.0.0.1:' + port))
+  .on('error', error => { console.error(error.message); process.exit(1); });

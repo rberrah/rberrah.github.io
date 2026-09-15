@@ -35,6 +35,10 @@ npm run build        # build statique
 > `/pharmacometrie` pour reproduire le préfixe de production.
 > Trailing slash activé : les routes sont servies en `/chapitres/slug/`.
 
+Pour le portail personnel en anglais : [structure et revue locale](docs/refonte/06-academic-portal.md).
+Apres un build avec `BASE_PATH=/pharmacometrie`, `node scripts/preview_portal.mjs 4181`
+sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
+
 ## Architecture contenu (gold standard)
 - Chapitres = Markdown : `src/content/chapters/*.md`
   - Frontmatter : id, slug, title, description, order, tags, slides: ["s01", …]

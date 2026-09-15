@@ -17,7 +17,9 @@ async function inject(directory) {
     const route = relative ? `/${relative}/` : '/';
     const snippet = `<script type="module" data-portal-analytics>import { countPage } from '/assets/analytics.js'; countPage(${JSON.stringify(route)});</script>`;
     html = html.replace('</head>', `${snippet}\n</head>`);
-    html = html.replace('</footer>', '<p><a href="/pharmacometrie/confidentialite/">Confidentialité / Privacy</a></p>\n</footer>');
+    if (!html.includes('href="/pharmacometrie/confidentialite/"')) {
+      html = html.replace('</footer>', '<p><a href="/pharmacometrie/confidentialite/">Privacy</a></p>\n</footer>');
+    }
     await writeFile(file, html);
     console.log(`GoatCounter portal: ${route}`);
   }

@@ -7,6 +7,7 @@ const PORT = 4173;
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: '**/portal.spec.js', // Separate root/app mounts: playwright.portal.config.js.
   timeout: 30_000,
   fullyParallel: true,
   reporter: 'list',

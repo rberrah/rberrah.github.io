@@ -1,7 +1,7 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-14. Les cinq ateliers sont publies dans le lot `5b86ccd`,
-apres les quatre laboratoires. Lot suivant : GoatCounter verifie, pret pour Pages.
+Mise a jour : 2026-09-15. Les cinq ateliers sont publies dans le lot `5b86ccd`,
+apres les quatre laboratoires. Lot actuel : portail academique valide, publication autorisee.
 Shiny est deploye separement ; le nouveau transfert Laboratoires -> TDM reste
 a deployer dans le moteur R. Publier le site ne met pas Shiny a jour.
 
@@ -13,6 +13,18 @@ Statuts : `[x]` livre et verifie pour le perimetre indique ; `[ ]` a faire.
 Les pistes marquees **A arbitrer** ou **Exploratoire** ne sont pas des engagements.
 Priorites : P0 = fondations ; P1 = prochain lot ; P2 = suite ; P3 = conditionnel.
 Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
+
+## Portail Academique (2026-09-14 / 15)
+
+- [x] Recentrer la racine sur Racym Berrah, quantitative pharmacology, pharmacometrics et AI.
+- [x] Ajouter Tools & Projects, Publications & Talks et Other Projects ; conserver les URL historiques.
+- [x] Verifier les DOI, la contribution egale albumine et les communications PAGE ; ne pas inventer de statut de manuscrit.
+- [x] Conserver les applications, modeles, contrats, licences et comportement du compteur ; aucune donnee ni PDF ajoute.
+- [x] Verifier les sept pages, le clavier et les themes sur mobile/ordinateur : 13 tests navigateur.
+- [x] Build de production complet, check sans erreur ni avertissement, tests de contenu et 12 tests de regression du compteur.
+- [x] Revue locale validee : commit/push autorises le 15 septembre ; lien public TacDDI ajoute, GRAD reste sans lien.
+
+Details : [refonte minimale du portail](docs/refonte/06-academic-portal.md).
 
 ## Ateliers Specialises (2026-09-13 / 14)
 

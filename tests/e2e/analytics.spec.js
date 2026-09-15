@@ -1,11 +1,22 @@
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
-import { readFile, stat } from 'node:fs/promises';
+import { cp, readFile, stat } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import path from 'node:path';
 
 const origin = 'https://rberrah.github.io';
 const endpoint = 'https://rberrah.goatcounter.com/count';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' };
+let portalRoot;
+
+test.beforeAll(async ({}, workerInfo) => {
+  // Playwright clears outputDir before starting workers. Build fixtures afterwards,
+  // independently per worker, so no manually prepared directory can disappear.
+  portalRoot = path.resolve(workerInfo.project.outputDir, 'analytics-portal-' + workerInfo.workerIndex);
+  await cp('portal', portalRoot, { recursive: true });
+  await promisify(execFile)(process.execPath, ['scripts/add_portal_analytics.mjs', portalRoot]);
+});
 
 // Serve the actual production build on a mocked production origin. All external
 // requests are intercepted, so synthetic fixtures never reach GoatCounter.
@@ -19,7 +30,7 @@ async function site(page, { blocked = false } = {}) {
     }
     if (![origin, 'http://127.0.0.1:4180'].includes(url.origin)) return route.abort();
     const app = url.pathname.startsWith('/pharmacometrie/');
-    const root = path.resolve(app ? 'build' : 'test-results/analytics-portal');
+    const root = app ? path.resolve('build') : portalRoot;
     let file = path.resolve(root, '.' + (app ? url.pathname.slice('/pharmacometrie'.length) : url.pathname));
     if (!file.startsWith(root + path.sep) && file !== root) return route.abort();
     try {
@@ -31,6 +42,19 @@ async function site(page, { blocked = false } = {}) {
 }
 
 function paths(counts) { return counts.map(c => new URL(c.url).searchParams.get('p')); }
+
+test('new portal routes are counted once with one privacy link; aliases are not instrumented', async ({ page }) => {
+  const counts = await site(page);
+  for (const route of ['/tools/', '/publications/', '/other-projects/']) {
+    await page.goto(origin + route + '?private=synthetic-secret');
+    await expect.poll(() => paths(counts).at(-1)).toBe(route);
+    await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
+  }
+  expect(paths(counts)).toEqual(['/tools/', '/publications/', '/other-projects/']);
+  expect(JSON.stringify(counts)).not.toContain('synthetic-secret');
+  for (const route of ['research', 'recherche', 'demos'])
+    expect(await readFile(path.join(portalRoot, route, 'index.html'), 'utf8')).not.toContain('data-portal-analytics');
+});
 
 test('SPA counts public routes once, excludes query/hash/input/title/referrer and preserves back navigation', async ({ page }) => {
   const counts = await site(page);
@@ -60,7 +84,7 @@ test('portal pages use the same counter and opt-out control', async ({ page }) =
   const counts = await site(page);
   await page.goto(`${origin}/?patient=synthetic-secret#private-code`);
   await expect.poll(() => paths(counts)).toEqual(['/']);
-  await page.getByRole('link', { name: 'Confidentialité / Privacy', exact: true }).click();
+  await page.locator('footer a[href="/pharmacometrie/confidentialite/"]').click();
   const checkbox = page.locator('.privacy-page input');
   await expect(checkbox).toBeEnabled();
   await checkbox.uncheck();

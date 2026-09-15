@@ -1,213 +1,118 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Racym Berrah — pharmacométrie, biostatistique, pharmacologie clinique</title>
-  <meta name="description" content="Racym Berrah, docteur en pharmacie, doctorant en pharmacologie à l'INSERM UMR 1248 Pharmacologie et Transplantation (Limoges). Trois cours ouverts en français : pharmacométrie, internat en pharmacie, biostatistique." />
-  <meta name="author" content="Racym Berrah" />
-  <link rel="canonical" href="https://rberrah.github.io/" />
-  <link rel="me" href="https://orcid.org/0009-0001-6432-2880" />
-  <link rel="me" href="https://www.linkedin.com/in/racym-berrah-114387175/" />
-  <link rel="stylesheet" href="/assets/site.css" />
-  <meta property="og:type" content="profile" />
-  <meta property="og:title" content="Racym Berrah — pharmacométrie, biostatistique, pharmacologie clinique" />
-  <meta property="og:description" content="Trois cours ouverts en français — pharmacométrie, internat en pharmacie, biostatistique — où chaque notion difficile s'accompagne d'un objet qu'on manipule." />
-  <meta property="og:url" content="https://rberrah.github.io/" />
-  <meta name="twitter:card" content="summary" />
-  <script>
-    /* Le thème choisi dans les cours suit le lecteur jusqu'ici. */
-    try { var t = localStorage.getItem('pk-theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
-  </script>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "@id": "https://rberrah.github.io/#racym-berrah",
-    "name": "Racym Berrah",
-    "givenName": "Racym",
-    "familyName": "Berrah",
-    "url": "https://rberrah.github.io/",
-    "identifier": "https://orcid.org/0009-0001-6432-2880",
-    "jobTitle": "Doctorant en pharmacologie",
-    "honorificSuffix": "PharmD",
-    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Université Paris Cité", "url": "https://u-paris.fr/" },
-    "knowsAbout": [
-      "Pharmacométrie",
-      "Model-informed precision dosing",
-      "Suivi thérapeutique pharmacologique",
-      "Pharmacocinétique de population",
-      "Biostatistique",
-      "Modélisation hybride mécanistique et apprentissage automatique"
-    ],
-    "knowsLanguage": ["fr", "en"],
-    "affiliation": {
-      "@type": "ResearchOrganization",
-      "name": "UMR 1248 Pharmacologie et Transplantation (INSERM, Université de Limoges, CHU de Limoges)",
-      "url": "https://www.unilim.fr/p-and-t/",
-      "address": { "@type": "PostalAddress", "addressLocality": "Limoges", "addressCountry": "FR" }
-    },
-    "memberOf": { "@type": "Organization", "name": "Consortium DIGPHAT" },
-    "sameAs": [
-      "https://orcid.org/0009-0001-6432-2880",
-      "https://www.linkedin.com/in/racym-berrah-114387175/",
-      "https://github.com/rberrah"
-    ]
-  }
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Racym Berrah | Pharmacometrics, Quantitative Pharmacology &amp; AI</title>
+  <meta name="description" content="Racym Berrah is a PharmD and PhD researcher working on pharmacometrics, model-informed precision dosing, mechanistic modelling and artificial intelligence in quantitative pharmacology.">
+  <meta name="author" content="Racym Berrah">
+  <link rel="canonical" href="https://rberrah.github.io/">
+  <link rel="me" href="https://orcid.org/0009-0001-6432-2880">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:title" content="Racym Berrah | Pharmacometrics, Quantitative Pharmacology &amp; AI">
+  <meta property="og:description" content="Racym Berrah is a PharmD and PhD researcher working on pharmacometrics, model-informed precision dosing, mechanistic modelling and artificial intelligence in quantitative pharmacology.">
+  <meta property="og:url" content="https://rberrah.github.io/">
+  <meta property="og:image" content="https://rberrah.github.io/assets/distribution-lab.png">
+  <meta property="og:image:alt" content="Two-compartment distribution experiment in Pharmacometrics Explain">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/site.js"></script>
+  <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": "https://rberrah.github.io/#racym-berrah",
+  "name": "Racym Berrah",
+  "honorificSuffix": "PharmD",
+  "url": "https://rberrah.github.io/",
+  "jobTitle": "PhD candidate in Pharmacology",
+  "identifier": "https://orcid.org/0009-0001-6432-2880",
+  "affiliation": {
+    "@type": "Organization",
+    "name": "INSERM UMR 1248, Pharmacology & Transplantation, University of Limoges / Limoges University Hospital",
+    "url": "https://www.unilim.fr/p-and-t/"
+  },
+  "sameAs": [
+    "https://orcid.org/0009-0001-6432-2880",
+    "https://github.com/rberrah",
+    "https://www.linkedin.com/in/racym-berrah-114387175/"
+  ],
+  "knowsAbout": [
+    "Pharmacometrics",
+    "Quantitative pharmacology",
+    "Model-informed precision dosing",
+    "Mechanistic modelling",
+    "Artificial intelligence"
+  ]
+}</script>
 </head>
 <body>
-  <a class="skip" href="#main">Aller au contenu</a>
-
-  <nav class="nav" aria-label="Navigation principale">
-    <div class="nav-in">
-      <a class="nav-name" href="/">Racym Berrah</a>
-      <a class="course c-pharma" href="/pharmacometrie/">Pharmacométrie</a>
-      <a class="course c-internat" href="/internat/">Internat</a>
-      <a class="course c-stats" href="/stats/">Stat &amp; Biologie</a>
-      <span class="nav-sep" aria-hidden="true"></span>
-      <a href="/a-propos/">À propos</a>
-      <a href="/contact/">Contact</a>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <nav class="wrap navigation" aria-label="Main navigation">
+    <a class="nav-name" href="/" aria-current="page">Racym Berrah</a>
+    <div class="nav-links">
+      <a href="/#pharmacometrics">Pharmacometrics</a>
+      <a href="/tools/">Tools &amp; Projects</a>
+      <a href="/publications/">Publications &amp; Talks</a>
+      <a href="/a-propos/">About</a>
     </div>
   </nav>
+</header>
+<main id="main" tabindex="-1">
 
-  <main id="main">
-    <div class="wrap">
-
-      <!-- ============ HÉRO ============ -->
-      <section class="band" style="border-bottom:0; padding-bottom:2rem;">
-        <p class="kicker">
-          <strong>Racym Berrah</strong> — docteur en pharmacie · doctorant en pharmacologie ·
-          INSERM UMR 1248 <span style="white-space:nowrap">Pharmacologie et Transplantation</span>, Limoges
-        </p>
-
-        <h1 class="measure">Un modèle qu'on ne peut pas manipuler<br />n'est pas encore expliqué.</h1>
-
-        <p class="lede" style="margin-top:1.3rem">
-          J'écris des cours de pharmacométrie, de biostatistique et de pharmacologie clinique,
-          en accès libre et en français. Chaque notion difficile est accompagnée d'un objet
-          interactif : on déplace une dose, on change une constante d'élimination, on regarde
-          la courbe répondre. Le code est ouvert, les sources sont citées, les erreurs se
-          corrigent en public.
-        </p>
-
-        <div class="cta">
-          <a class="btn" href="/pharmacometrie/">Commencer par la pharmacométrie</a>
-        </div>
-
-        <p class="proof">
-          <span><b>3</b> cours ouverts</span>
-          <span><b>319</b> chapitres en français</span>
-          <span><b>88</b> traduits en anglais</span>
-          <span><b>103</b> visualisations interactives</span>
-          <span>code source public</span>
-          <span>licence CC&nbsp;BY-SA&nbsp;4.0</span>
-        </p>
-      </section>
-
-      <section class="band" aria-labelledby="pk-objectives">
-        <h2 id="pk-objectives">Pharmacométrie : quel est votre objectif ?</h2>
-        <ul class="objective-links">
-          <li><a href="/pharmacometrie/chapitres/">Apprendre un concept</a></li>
-          <li><a href="/pharmacometrie/laboratoires/">Explorer les laboratoires animés</a></li>
-          <li><a href="/pharmacometrie/pk/">Construire un modèle</a></li>
-          <li><a href="/pharmacometrie/tdm/">Analyser une exposition</a></li>
-          <li><a href="/pharmacometrie/laboratoires/?lab=distribution&amp;teacher=1&amp;hide=1">Préparer un cours</a></li>
-        </ul>
-      </section>
-
-      <!-- ============ LES TROIS COURS ============ -->
-      <section class="band" id="cours">
-        <div class="section-head">
-          <h2>Trois cours ouverts, en français.</h2>
-          <p>
-            Pharmacométrie, internat en pharmacie, biostatistique : 319 chapitres écrits,
-            sourcés et datés, dont 88 traduits en anglais. Aucun compte, aucune inscription.
-            La licence Creative Commons BY-SA autorise la reprise, l'adaptation et la
-            traduction, y compris en enseignement, à condition de citer et de partager
-            aux mêmes conditions.
-          </p>
-        </div>
-
-        <div class="courses">
-          <a class="course-card pharma" href="/pharmacometrie/">
-            <span class="tag">Modélisation</span>
-            <h3>Pharmacométrie Pratique</h3>
-            <p>PK/PD, pharmacocinétique de population, analyse non compartimentale, PBPK,
-              validation de modèle, suivi thérapeutique, NONMEM, Monolix, nlmixr2.</p>
-            <span class="count">88 chapitres · 88 en anglais · 63 visualisations</span>
-            <span class="go">Ouvrir le cours →</span>
-          </a>
-
-          <a class="course-card internat" href="/internat/">
-            <span class="tag">Concours</span>
-            <h3>Internat Pharma</h3>
-            <p>Le programme officiel de l'internat en pharmacie, chapitre par chapitre :
-              fiches, arbres de décision, lexique clinique, annales et QCM corrigés.</p>
-            <span class="count">186 chapitres · 30 visualisations</span>
-            <span class="go">Ouvrir le cours →</span>
-          </a>
-
-          <a class="course-card stats" href="/stats/">
-            <span class="tag">Biostatistique</span>
-            <h3>Stat &amp; Biologie</h3>
-            <p>Loi normale, tests, intervalles de confiance, χ², corrélation, tests des rangs,
-              survie, régression — et comment choisir le test qui convient.</p>
-            <span class="count">45 chapitres · 10 visualisations</span>
-            <span class="go">Ouvrir le cours →</span>
-          </a>
-        </div>
-      </section>
-
-      <!-- ============ QUI JE SUIS ============ -->
-      <section class="band">
-        <div class="section-head"><h2>Qui je suis</h2></div>
-        <div class="measure">
-          <p>
-            Je suis docteur en pharmacie et je prépare un doctorat en pharmacologie à l'unité
-            INSERM UMR 1248 « Pharmacologie et Transplantation », portée par l'Université de
-            Limoges, l'INSERM et le CHU de Limoges, sous la direction du Pr Jean-Baptiste
-            Woillard. Je suis membre du consortium DIGPHAT.
-          </p>
-          <p>
-            Mes travaux publiés portent sur l'adaptation de dose guidée par les modèles : le
-            traitement de l'erreur résiduelle dans le calcul des expositions individuelles, et
-            l'optimisation posologique des antifongiques chez le patient de réanimation. Ma
-            thèse se situe à l'intersection de l'intelligence artificielle et de la
-            pharmacométrie, avec pour objectif les jumeaux numériques.
-          </p>
-          <p>
-            À côté de la recherche, j'écris et je développe ces trois cours. Chaque chapitre
-            porte ses références et la date de sa dernière révision ; les corrections signalées
-            sont appliquées et datées.
-          </p>
-          <div class="cta" style="margin-top:1.2rem">
-            <a class="btn ghost" href="/a-propos/">Le parcours, les publications et le but de ce site →</a>
-            <a class="btn ghost" href="/contact/">Écrire →</a>
-          </div>
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <footer class="site">
-    <div class="fwrap">
-      <span>
-        Écrit et maintenu par <strong>Racym Berrah</strong>. Texte sous
-        <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr" rel="license">CC&nbsp;BY-SA&nbsp;4.0</a>,
-        code sous licence MIT. <a href="/citer/">Comment citer</a>.
-      </span>
-      <span>
-        Contenu pédagogique. <strong>Aucun contenu de ce site ne constitue un avis
-        thérapeutique ni une recommandation posologique.</strong>
-      </span>
-      <span class="idline">
-        ORCID <a href="https://orcid.org/0009-0001-6432-2880">0009-0001-6432-2880</a> ·
-        <a href="https://github.com/rberrah">GitHub</a> ·
-        <a href="https://www.linkedin.com/in/racym-berrah-114387175/">LinkedIn</a>
-      </span>
-    </div>
-  </footer>
+<section class="wrap introduction" aria-labelledby="identity">
+  <h1 id="identity">Racym Berrah <span class="degree">PharmD</span></h1>
+  <p class="research-line">Quantitative Pharmacology,<br>Pharmacometrics &amp; AI</p>
+  <p class="intro-copy">I develop pharmacometric models, precision-dosing tools and AI-assisted approaches for quantitative pharmacology.</p>
+  <p class="affiliation">PhD candidate in Pharmacology<br>INSERM UMR 1248 &middot; Pharmacology &amp; Transplantation<br>University of Limoges / Limoges University Hospital, France</p>
+  <div class="links social"><a href="https://orcid.org/0009-0001-6432-2880" rel="me">ORCID</a><a href="https://github.com/rberrah" rel="me">GitHub</a><a href="https://www.linkedin.com/in/racym-berrah-114387175/" rel="me">LinkedIn</a><a href="/contact/">Contact</a></div>
+</section>
+<section class="feature band" id="pharmacometrics" aria-labelledby="explain-title"><div class="wrap">
+  <p class="eyebrow">Pharmacometrics</p>
+  <div class="section-head"><div><h2 id="explain-title">Pharmacometrics Explain</h2><p class="lede">An open environment to learn, explore, simulate, build and apply pharmacometric models.</p></div><a class="btn primary" href="/pharmacometrie/?lang=en">Open Pharmacometrics Explain <span aria-hidden="true">&rarr;</span></a></div>
+  <div class="pathways">
+    <section><h3><a href="/pharmacometrie/chapitres/?lang=en">Learn <span aria-hidden="true">&nearr;</span></a></h3><p>15 learning tracks, chapters, exercises and worked examples. In English and French.</p><div class="links"><a href="/pharmacometrie/exercices/?lang=en">Exercises</a><a href="/pharmacometrie/exemple/?lang=en">Example</a></div></section>
+    <section><h3><a href="/pharmacometrie/translator/?lang=en">Explore <span aria-hidden="true">&nearr;</span></a></h3><p>Specialised workshops for pharmacokinetics, pharmacodynamics and interactions.</p><div class="links"><a href="/pharmacometrie/translator/?lang=en">Translator</a><a href="/pharmacometrie/pk/?lang=en">PK</a><a href="/pharmacometrie/pd/?lang=en">PD</a><a href="/pharmacometrie/ddi/?lang=en">DDI</a><a href="/pharmacometrie/advanced/?lang=en">Advanced</a></div></section>
+    <section><h3><a href="/pharmacometrie/laboratoires/?lang=en">Simulate <span aria-hidden="true">&nearr;</span></a></h3><p>Concentration-time profiles and animated experiments in drug disposition.</p><div class="links"><a href="/pharmacometrie/playground/?lang=en">Simulation</a><a href="/pharmacometrie/laboratoires/?lang=en">Laboratories</a></div></section>
+    <section><h3><a href="/pharmacometrie/pk/?lang=en">Build <span aria-hidden="true">&nearr;</span></a></h3><p>Compartmental models and covariates. Controlled exports to mrgsolve, MLXTRAN and NONMEM.</p><div class="links"><a href="/pharmacometrie/pk/?lang=en">PK builder</a><a href="/pharmacometrie/advanced/?lang=en">Advanced builder</a></div></section>
+    <section><h3><a href="/pharmacometrie/tdm/?lang=en">Analyze <span aria-hidden="true">&nearr;</span></a></h3><p>Bayesian MAP estimation, a PopPK library, future doses, compatible model averaging and experimental ML comparisons.</p><div class="links"><a href="/pharmacometrie/tdm/?lang=en">MIPD Engine</a></div></section>
+  </div>
+  <figure class="product-figure"><a href="/pharmacometrie/laboratoires/?lang=en" aria-label="Open the two-compartment distribution laboratory"><img src="/assets/distribution-lab.png" alt="Central and peripheral compartments with illustrative drug particles and elimination, from the two-compartment laboratory." width="943" height="510" loading="lazy"></a><figcaption>Two-compartment distribution laboratory. Synthetic experiment; particle trajectories are illustrative.</figcaption></figure>
+  <p class="small">Research and educational software, not a clinical medical device. Code translation covers supported structures; it is not a universal model converter. ML estimates remain experimental.</p>
+</div></section>
+<section class="wrap band" aria-labelledby="projects-title">
+  <div class="section-head"><h2 id="projects-title">Selected tools &amp; projects</h2><a href="/tools/">All tools &amp; projects <span aria-hidden="true">&rarr;</span></a></div>
+  <div class="project-grid">
+    <article><p class="eyebrow">Precision dosing</p><h3><a href="/tools/#tacddi">TacDDI</a></h3><p>Tacrolimus precision dosing under complex drug-drug interactions, with Bayesian estimation.</p><a href="/tools/#tacddi">Project &amp; communication <span aria-hidden="true">&rarr;</span></a></article>
+    <article><p class="eyebrow">PopPK simulation</p><h3><a href="/tools/#misseddose">MissedDose</a></h3><p>Model-based guidance for missed and delayed oral doses, explored through population simulations.</p><a href="/tools/#misseddose">Project &amp; application <span aria-hidden="true">&rarr;</span></a></article>
+    <article><p class="eyebrow">Biomedical AI</p><h3><a href="/tools/#grad">GRAD</a></h3><p>Local-first AI agents for healthcare and biomedical science. A research and development project.</p><a href="/tools/#grad">Research project <span aria-hidden="true">&rarr;</span></a></article>
+  </div>
+</section>
+<section class="wrap band" aria-labelledby="work-title"><div class="section-head"><h2 id="work-title">Selected work</h2><a href="/publications/">All publications &amp; talks <span aria-hidden="true">&rarr;</span></a></div><article class="publication" id="residual-error"><p class="publication-year">2026</p><div><h3><a href="https://doi.org/10.1097/FTD.0000000000001413">Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing</a></h3><p class="authors"><strong>Berrah R</strong>, Minichmayr I, Woillard JB.</p><p class="small">On behalf of the IATDMCT Pharmacometrics Group.</p><p class="journal"><cite>Therapeutic Drug Monitoring</cite>, 2026. 48(4):443-450. First published online 8 December 2025.</p><p class="links citation-links"><a href="https://doi.org/10.1097/FTD.0000000000001413">DOI: 10.1097/FTD.0000000000001413</a><a href="https://pubmed.ncbi.nlm.nih.gov/41358610/">PubMed</a></p></div></article>
+<article class="publication" id="albumin"><p class="publication-year">2026</p><div><h3><a href="https://doi.org/10.1038/s41598-026-57614-y">Human serum albumin profiling by top-down analysis enables multi-class liver fibrosis staging: a cross-platform validation study</a></h3><p class="authors">El Balkhi S, <strong>Berrah R</strong>, Sauvage FL, Le Du L, Rahali MA, Lakis R, Marquet P, Saint-Marcoux F, Loustaud-Ratti V, Carrier P.</p><p class="small">Souleiman El Balkhi and Racym Berrah contributed equally.</p><p class="journal"><cite>Scientific Reports</cite>, 2026. 16:27911.</p><p class="links citation-links"><a href="https://doi.org/10.1038/s41598-026-57614-y">DOI: 10.1038/s41598-026-57614-y</a></p></div></article>
+<article class="publication" id="micafungin"><p class="publication-year">2025</p><div><h3><a href="https://doi.org/10.1208/s12248-025-01173-z">From AUC/MIC to AUCss and Cmin: Optimizing Micafungin Therapy in the Critically Ill through Model-Informed Precision Dosing</a></h3><p class="authors"><strong>Berrah R</strong>, Saint-Marcoux F, Monchaud C, Cointault O, Conseil M, Jaber S, Jung B, Woillard JB.</p><p class="journal"><cite>The AAPS Journal</cite>, 2025. 28(1):18. Published online 11 November 2025.</p><p class="links citation-links"><a href="https://doi.org/10.1208/s12248-025-01173-z">DOI: 10.1208/s12248-025-01173-z</a><a href="https://pubmed.ncbi.nlm.nih.gov/41219680/">PubMed</a></p></div></article></section>
+<!-- Removable conference block; the permanent record is on /publications/. -->
+<aside class="conference band" aria-labelledby="conference-title"><div class="wrap"><p class="eyebrow">27-30 September 2026 &middot; Rennes, France</p><h2 id="conference-title">IATDMCT &amp; SFPT 2026</h2><ul class="talks compact"><li><strong>Oral communication</strong><h3>TacDDI: A precision dosing tool integrating Bayesian estimation to manage complex drug-drug interactions</h3></li><li><strong>Oral communication</strong><h3>Beyond &lsquo;Skip or Take&rsquo;: Evidence-Based Missed-Dose Guidance Using PopPK Simulations</h3></li></ul><a href="/publications/#talks">Communications &amp; conference details <span aria-hidden="true">&rarr;</span></a></div></aside>
+<section class="wrap band about-short" aria-labelledby="about-title"><h2 id="about-title">About</h2><p>I am a pharmacist and PhD researcher at INSERM UMR 1248 in Limoges. My work connects mechanistic pharmacology, pharmacometrics and artificial intelligence, alongside open scientific software and teaching resources.</p><a href="/a-propos/">Research interests &amp; contact <span aria-hidden="true">&rarr;</span></a></section>
+</main>
+<footer class="site">
+  <div class="wrap footer-top">
+    <div><a class="nav-name" href="/">Racym Berrah</a><p>Quantitative pharmacology, pharmacometrics &amp; AI.</p></div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="https://orcid.org/0009-0001-6432-2880" rel="me">ORCID</a>
+      <a href="https://github.com/rberrah" rel="me">GitHub</a>
+      <a href="/contact/">Contact</a>
+      <a href="/other-projects/">Other Projects</a>
+      <a href="/citer/">Citation &amp; reuse</a>
+      <a href="/pharmacometrie/confidentialite/">Privacy</a>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">
+    <p>Text: <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>. Code: <a href="https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE">MIT</a>.</p>
+    <p>Research and education. Not medical advice or a clinical medical device.</p>
+    <label class="theme-control" hidden>Appearance <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+  </div>
+</footer>
 </body>
 </html>
