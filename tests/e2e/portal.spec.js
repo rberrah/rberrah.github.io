@@ -2,10 +2,11 @@
 import { test, expect } from '@playwright/test';
 import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
+import { getSiteOrigin } from '../../site.config.js';
 
 const origin = process.env.PORTAL_E2E_URL || 'http://127.0.0.1:4181';
 const pages = ['/', '/tools/', '/publications/', '/a-propos/', '/contact/', '/citer/', '/other-projects/'];
-const publicOrigin = 'https://rberrah.github.io';
+const publicOrigin = getSiteOrigin();
 
 test.beforeEach(async ({ page }) => {
   // Browser tests must never send synthetic visits or data to external services.

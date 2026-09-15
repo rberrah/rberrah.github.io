@@ -1,5 +1,0 @@
-# Tout le site est indexable ; aucune section n'est privée.
-User-agent: *
-Allow: /
-
-Sitemap: https://rberrah.github.io/pharmacometrie/sitemap.xml

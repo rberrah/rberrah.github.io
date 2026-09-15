@@ -10,9 +10,9 @@ encore à arbitrer. Aucune séparation de dépôt ou modification de licence n'e
 actée par cette documentation.
 
 ## Organisation
-- `portal/` : portail publié à la racine `https://rberrah.github.io/`.
+- `portal/` : sources du portail, publié à la racine de `PUBLIC_SITE_ORIGIN`.
 - `src/` et `static/` : cours, simulations, ateliers Lego/DDI/PD et interface TDM,
-  publiés sous `https://rberrah.github.io/pharmacometrie/`.
+  publiés sous `${PUBLIC_SITE_ORIGIN}/pharmacometrie/`.
 - `tdm-engine/` : application R/Shiny et modules de calcul, modèles et artefacts ML.
   Voir [installation et déploiement Shiny](tdm-engine/README.md).
 - `static/tdm/` et `scripts/generate_tdm_catalog.mjs` : bibliothèque et génération
@@ -73,10 +73,13 @@ sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
 - Page `http://localhost:5173/slides/` : listing des 74 slides (ou placeholders).
 
 ## Déploiement GitHub Pages
+- `PUBLIC_SITE_ORIGIN` configure le domaine au build, indépendamment de `BASE_PATH`.
+  Voir [configuration et migration du domaine](docs/site-origin.md).
 - Workflow `.github/workflows/deploy-pages.yml` :
   - construit SvelteKit avec `BASE_PATH=/pharmacometrie` ;
   - copie `portal/` à la racine de `dist/` et `build/` dans `dist/pharmacometrie/` ;
-  - vérifie les collisions et les fichiers essentiels, puis publie `dist/`.
+  - résout les marqueurs `__SITE_ORIGIN__`, vérifie les fichiers et sitemaps,
+    puis injecte le compteur et publie `dist/`.
 - Ce workflow ne déploie pas Shiny. Depuis la racine du dépôt,
   `Rscript scripts/deploy_shiny.R` vérifie les fichiers et dépendances ; ajouter
   `--deploy` publie le moteur avec le compte configuré. Aucun PDF, test ou fichier

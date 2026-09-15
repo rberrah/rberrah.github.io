@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { language } from '$lib/stores/language';
   import { isOptedOut, setOptOut } from '$lib/analytics';
+  import { SITE_ORIGIN } from '$lib/site';
   let optedOut = $state(true);
   let ready = $state(false);
   let storageError = $state(false);
@@ -49,7 +50,7 @@
   <p>{en
     ? 'GitHub Pages hosts the public site; Shiny is hosted separately. Their technical logs and policies are distinct from this audience measurement. GoatCounter is not loaded in Shiny and does not receive data exchanged with the R engine. Personal models and patient data are not added to the analytics or the repository.'
     : 'GitHub Pages héberge le site public ; Shiny est hébergé séparément. Leurs journaux techniques et politiques sont distincts de cette mesure d’audience. GoatCounter n’est pas chargé dans Shiny et ne reçoit pas les données échangées avec le moteur R. Les modèles personnels et les données patient ne sont pas ajoutés aux statistiques ni au dépôt.'}</p>
-  <p><a href="https://rberrah.github.io/contact/" data-sveltekit-reload>Contact</a></p>
+  <p><a href={`${SITE_ORIGIN}/contact/`} data-sveltekit-reload>Contact</a></p>
 </section>
 
 <style>

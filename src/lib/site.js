@@ -1,12 +1,8 @@
 // @ts-nocheck
-// Identité PUBLIQUE du site : origine, chemin de déploiement, auteur, licence.
-//
-// Pourquoi ne pas se contenter de `base` ($app/paths) : `base` vaut '' en local et
-// '/pharmacometrie' en CI (BASE_PATH). Il ne porte JAMAIS l'origine. Toute URL absolue
-// écrite dans une balise <link rel="canonical">, un JSON-LD ou le plan du site doit
-// pointer vers l'URL réellement publiée — d'où ces constantes, indépendantes du build.
-/** Origine publique (GitHub Pages, compte rberrah). */
-export const SITE_ORIGIN = 'https://rberrah.github.io';
+// Public identity shared by canonical URLs, structured metadata and citations.
+// The build origin is independent of BASE_PATH and the local development URL.
+import { SITE_ORIGIN } from './site-origin.js';
+export { SITE_ORIGIN };
 
 /** Chemin public du cours sous cette origine (cf. .github/workflows : BASE_PATH=/pharmacometrie). */
 export const SITE_BASE = '/pharmacometrie';
@@ -34,7 +30,7 @@ export const AUTHOR = {
   bibtexName: 'Berrah, Racym',
   orcid: 'https://orcid.org/0009-0001-6432-2880',
   /** Page « à propos » du portail, hors de ce sous-site. */
-  url: 'https://rberrah.github.io/a-propos/'
+  url: `${SITE_ORIGIN}/a-propos/`
 };
 
 /**

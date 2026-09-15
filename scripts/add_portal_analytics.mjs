@@ -1,8 +1,10 @@
 import { cp, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { configureSiteOrigin } from './configure_site_origin.mjs';
 
 const target = path.resolve(process.argv[2] || 'dist');
 await mkdir(path.join(target, 'assets'), { recursive: true });
+await configureSiteOrigin(target);
 await cp('src/lib/analytics.js', path.join(target, 'assets/analytics.js'));
 
 async function inject(directory) {

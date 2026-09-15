@@ -1,5 +1,6 @@
 // Shared by SvelteKit and the static portal. Only callers' public route names
 // are accepted: never pass patient/model state or a browser URL to this module.
+import { SITE_ORIGIN } from './site-origin.js';
 export const GOATCOUNTER_ENDPOINT = 'https://rberrah.goatcounter.com/count';
 let lastPage = '';
 
@@ -22,7 +23,7 @@ export function countPage(path) {
   if (typeof window === 'undefined') return;
   if (!path) { lastPage = ''; return; }
   if (!/^\/(?:[a-z0-9-]+\/)*$/.test(path) || path === lastPage) return;
-  if (location.hostname !== 'rberrah.github.io' || location.protocol !== 'https:' ||
+  if (location.origin !== SITE_ORIGIN ||
       window !== window.top || isOptedOut()) return;
   lastPage = path;
   // count.js also sends location.search in `q`, even with an explicit path.

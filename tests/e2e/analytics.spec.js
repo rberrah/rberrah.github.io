@@ -4,8 +4,9 @@ import { cp, readFile, stat } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
+import { getSiteOrigin } from '../../site.config.js';
 
-const origin = 'https://rberrah.github.io';
+const origin = getSiteOrigin();
 const endpoint = 'https://rberrah.goatcounter.com/count';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2' };
 let portalRoot;
@@ -20,7 +21,7 @@ test.beforeAll(async ({}, workerInfo) => {
 
 // Serve the actual production build on a mocked production origin. All external
 // requests are intercepted, so synthetic fixtures never reach GoatCounter.
-async function site(page, { blocked = false } = {}) {
+async function site(page, { blocked = false, aliases = [] } = {}) {
   const counts = [];
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
@@ -28,7 +29,7 @@ async function site(page, { blocked = false } = {}) {
       counts.push({ url: url.href, headers: await route.request().allHeaders() });
       return blocked ? route.abort() : route.fulfill({ status: 200, body: '' });
     }
-    if (![origin, 'http://127.0.0.1:4180'].includes(url.origin)) return route.abort();
+    if (![origin, 'http://127.0.0.1:4180', ...aliases].includes(url.origin)) return route.abort();
     const app = url.pathname.startsWith('/pharmacometrie/');
     const root = app ? path.resolve('build') : portalRoot;
     let file = path.resolve(root, '.' + (app ? url.pathname.slice('/pharmacometrie'.length) : url.pathname));
@@ -42,6 +43,56 @@ async function site(page, { blocked = false } = {}) {
 }
 
 function paths(counts) { return counts.map(c => new URL(c.url).searchParams.get('p')); }
+
+for (const component of ['host', 'protocol', 'port']) {
+  test('analytics rejects a different origin ' + component, async ({ page }) => {
+    const other = new URL(origin);
+    if (component === 'host') other.hostname = 'not-configured.example';
+    if (component === 'protocol') other.protocol = other.protocol === 'https:' ? 'http:' : 'https:';
+    if (component === 'port') other.port = other.port === '9443' ? '9444' : '9443';
+    const counts = await site(page, { aliases: [other.origin] });
+    for (const route of ['/', '/pharmacometrie/pk/?lang=en']) {
+      await page.goto(other.origin + route);
+      await expect(page.locator('h1')).toBeVisible();
+      await page.waitForTimeout(200);
+    }
+    expect(counts).toEqual([]);
+  });
+}
+
+test('configured origin is shared by portal and application metadata', async ({ page }) => {
+  await site(page);
+  for (const route of ['/', '/publications/', '/pharmacometrie/pk/',
+    '/pharmacometrie/chapitres/bayes-ebes/']) {
+    await page.goto(origin + route);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', origin + route);
+    if (!route.startsWith('/pharmacometrie/'))
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', origin + route);
+    expect(await page.content()).not.toContain('__SITE_ORIGIN__');
+    const metadata = await page.locator('script[type="application/ld+json"]').evaluateAll(
+      scripts => scripts.map(script => JSON.parse(script.textContent)));
+    if (route === '/') expect(metadata.find(item => item['@type'] === 'Person').url).toBe(origin + '/');
+    if (route.includes('/chapitres/')) {
+      const chapter = metadata.find(item => item['@type'] === 'LearningResource');
+      expect(chapter.url).toBe(origin + route);
+      expect(chapter.author.url).toBe(origin + '/a-propos/');
+      expect(chapter.isPartOf.url).toBe(origin + '/pharmacometrie/');
+    }
+  }
+  await page.goto(origin + '/pharmacometrie/confidentialite/?lang=en');
+  await expect(page.locator('.privacy-page a').filter({ hasText: 'Contact' }))
+    .toHaveAttribute('href', origin + '/contact/');
+  for (const prefix of ['', '/pharmacometrie']) {
+    const robots = await page.evaluate(url => fetch(url).then(response => response.text()), prefix + '/robots.txt');
+    expect(robots).toContain(origin + prefix + (prefix ? '/sitemap.xml' : '/sitemap-index.xml'));
+    const locations = await page.evaluate(async url => {
+      const xml = new DOMParser().parseFromString(await (await fetch(url)).text(), 'application/xml');
+      return [...xml.querySelectorAll('loc')].map(node => node.textContent);
+    }, prefix + '/sitemap.xml');
+    expect(locations.length).toBeGreaterThan(0);
+    expect(locations.every(url => new URL(url).origin === origin)).toBe(true);
+  }
+});
 
 test('new portal routes are counted once with one privacy link; aliases are not instrumented', async ({ page }) => {
   const counts = await site(page);

@@ -68,7 +68,7 @@
   $: vizDesc = describeViz(activeViz, $language);
 
   // --- Citabilité et référencement ---------------------------------------------------
-  // URL canonique absolue de CE chapitre (https://rberrah.github.io/pharmacometrie/...).
+  // URL canonique absolue de ce chapitre, issue de l'origine publique du build.
   $: canonical = canonicalUrl($page.url.pathname);
   // Une alternance anglaise ne s'annonce que si la traduction existe réellement :
   // sinon la page anglaise servirait le texte français, et l'annonce serait fausse.

@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
+  BASE_PATH: /pharmacometrie
+
 permissions:
   contents: read
   pages: write
@@ -30,11 +34,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Test public origin configuration
+        run: node --test scripts/test_site_origin.mjs
+
       # La pharmacométrie est désormais servie sous /pharmacometrie/ ; la vraie
       # racine (/) héberge le portail statique (dossier portal/).
       - name: Build (pharmacométrie)
-        env:
-          BASE_PATH: /pharmacometrie
         run: npm run build
 
       - name: Assemble portail + pharmacométrie
@@ -93,20 +98,7 @@ jobs:
             exit 1
           fi
 
-          # Contrôle non bloquant : toute URL annoncée dans le sitemap racine
-          # doit correspondre à un fichier réellement présent. Les avertissements
-          # remontent dans le résumé du run sans casser le déploiement.
-          if [ -f dist/sitemap.xml ]; then
-            grep -o '<loc>[^<]*</loc>' dist/sitemap.xml \
-              | sed -e 's|<loc>https://rberrah.github.io||' -e 's|</loc>||' \
-              | while read -r url; do
-                  case "$url" in
-                    */) cible="dist${url}index.html" ;;
-                    *)  cible="dist${url}" ;;
-                  esac
-                  [ -f "$cible" ] || echo "::warning::sitemap : $url est annoncé mais $cible est absent de dist."
-                done
-          fi
+          node scripts/configure_site_origin.mjs
 
       - name: Integrate privacy-preserving portal analytics
         run: node scripts/add_portal_analytics.mjs

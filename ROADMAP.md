@@ -16,6 +16,18 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 
 ## Portail Academique (2026-09-14 / 15)
 
+### Origine Publique (2026-09-15, local)
+
+- [x] Centraliser l'origine du site et du portail dans `PUBLIC_SITE_ORIGIN`, sans changer `/pharmacometrie/`.
+- [x] Deriver metadonnees, citations, sitemaps, robots et origine autorisee du compteur ; conserver les liens externes.
+- [x] Resoudre les marqueurs du portail apres assemblage et bloquer un build provenant d'une autre origine.
+- [x] Builds et assemblages verifies sur le domaine de test et celui par defaut ; 16 tests compteur sur chaque origine, 13 tests portail, 3 tests de configuration, check et tests de contenu reussis. Non publie.
+- [ ] Avant une migration reelle : configurer DNS/Pages, les sites Internat/Stats et l'origine autorisee du pont Shiny, puis redeployer ce moteur separement.
+
+Configuration et controles : [origine publique](docs/site-origin.md).
+
+### Portail Publie
+
 - [x] Recentrer la racine sur Racym Berrah, quantitative pharmacology, pharmacometrics et AI.
 - [x] Ajouter Tools & Projects, Publications & Talks et Other Projects ; conserver les URL historiques.
 - [x] Verifier les DOI, la contribution egale albumine et les communications PAGE ; ne pas inventer de statut de manuscrit.
