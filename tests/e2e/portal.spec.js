@@ -26,6 +26,11 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', publicOrigin + route);
     await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
+    if (route === '/') {
+      await expect(page.locator('.project-grid h3')).toHaveText(['TacDDI', 'MissedDose', 'MIPD Engine']);
+      await expect(page.locator('.project-grid').getByRole('link', { name: 'Open MIPD Engine' }))
+        .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
+    }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
     if (route === '/tools/') {
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
