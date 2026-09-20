@@ -58,7 +58,7 @@ Un **intervalle de confiance** à 95 % d'un paramètre $\hat\theta$ : $\hat\thet
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="13_ResidualError" -->
-On compare deux modèles emboîtés par un **test du rapport de vraisemblance** : la différence d'OFV ($-2\log L$) suit approximativement un $\chi^2$. Ajouter une covariable qui fait chuter l'OFV de 3,84 (1 ddl) est « significatif » à 5 %.
+On compare deux modèles emboîtés par un **test du rapport de vraisemblance** : sous conditions de régularité, la différence d'OFV ($-2\log L$) suit approximativement un $\chi^2$. Ajouter une covariable qui fait chuter l'OFV de 3,84 (1 ddl) est « significatif » à 5 % seulement si ces conditions tiennent. Cas important en pharmacométrie : tester une variance à zéro place $H_0$ sur la **frontière** de l'espace des paramètres ; le seuil χ² simple peut alors être inadapté.
 
 Mais **significatif ≠ pertinent** : un effet minuscule peut être significatif sur un gros jeu de données.
 <!-- /step -->
@@ -74,6 +74,6 @@ Une p-value mesure la **surprise des données** sous l'hypothèse nulle, pas la 
 <!-- step:title="À retenir" -->
 - Distinguer variabilité (entre patients) et incertitude (d'estimation).
 - Paramètres positifs → loi log-normale ; erreur résiduelle → souvent normale.
-- IC 95 % ≈ estimation ± 1,96·SE ; test du rapport de vraisemblance (ΔOFV ~ χ²).
+- IC 95 % ≈ estimation ± 1,96·SE ; test du rapport de vraisemblance (ΔOFV ~ χ²) sous conditions, attention aux paramètres aux frontières.
 - Significatif n'est pas pertinent ; toujours regarder l'amplitude de l'effet.
 <!-- /step -->

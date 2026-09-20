@@ -25,7 +25,7 @@ quiz:
     correct: 0
   - prompt: "A very high RSE (e.g. > 50%) on a parameter suggests..."
     options:
-      - "it is poorly identified by the available data"
+      - "it is estimated with low precision from the available data"
       - "it varies strongly between patients (high omega)"
       - "it is strongly correlated with another parameter"
     correct: 0
@@ -58,7 +58,7 @@ Three complementary approaches:
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="51_Bootstrap" -->
-A model gives $Q$ (inter-compartmental clearance) with an **RSE of 80%**: the parameter is poorly identified — the data barely "see" the distribution phase.
+A model gives $Q$ (inter-compartmental clearance) with an **RSE of 80%**: the parameter is estimated with low precision — the data barely "see" the distribution phase. Identifiability is a stronger concept, to assess with the model, data and diagnostics.
 
 The bootstrap confirms it: the distribution of $Q$ is wide and skewed. We simplify the model or enrich the sampling.
 <!-- /step -->
@@ -73,5 +73,5 @@ Do not confuse uncertainty and variability.
 - Every estimate must come with its uncertainty (RSE, CI).
 - RSE = SE/estimate; comes from the covariance matrix (inverse of the FIM).
 - Bootstrap and likelihood profiling: CIs without a normality assumption.
-- RSE ≠ variability (omega); a high RSE = a poorly identified parameter.
+- RSE ≠ variability (omega); a high RSE = low estimation precision, not by itself formal proof of non-identifiability.
 <!-- /step -->

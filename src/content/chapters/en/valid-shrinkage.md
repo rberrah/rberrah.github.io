@@ -17,7 +17,7 @@ quiz:
       - "are scattered well beyond the model's expected variability ω"
       - "faithfully reflect each patient, backed by rich data"
     correct: 0
-  - prompt: "A high epsilon-shrinkage makes unreliable..."
+  - prompt: "A high epsilon-shrinkage makes less informative..."
     options:
       - "individual diagnostic plots (IPRED, IWRES)"
       - "population diagnostics based on PRED and CWRES"
@@ -59,7 +59,7 @@ $$ sh_\eta = 1 - \frac{SD(\hat\eta)}{\omega} $$
 
 $$ sh_\varepsilon = 1 - SD(IWRES) $$
 
-**Ref —** Savic R.M. & Karlsson M.O., *AAPS J* 2009 — the importance of shrinkage for interpreting diagnostics. A shrinkage > 20–30% is generally considered concerning.
+**Ref —** Savic R.M. & Karlsson M.O., *AAPS J* 2009 — the importance of shrinkage for interpreting diagnostics. A shrinkage > 20–30% is a generally concerning **heuristic**, not a universal invalidity threshold.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="18_BayesianShrinkage" -->
@@ -71,12 +71,12 @@ Direct consequence: an **η̂ vs covariate** plot (weight, CrCl) looks "flat" �
 <!-- step:title="Common pitfall" -->
 Do not build a covariate model on shrunken EBEs.
 
-**Pitfall —** with high shrinkage, selecting covariates on the η̂ or judging the fit on **individual** plots (IPRED, IWRES) is misleading: these diagnostics look good **by construction**. One must rely instead on **simulation-based** diagnostics (VPC, NPDE) and consider **simplifying** the variability (removing a poorly identified η) or enriching the sampling.
+**Pitfall —** with high shrinkage, selecting covariates on the η̂ or judging the fit on **individual** plots (IPRED, IWRES) becomes less informative: these diagnostics can look good **by construction**. One must rely instead on **simulation-based** diagnostics (VPC, NPDE) and consider **simplifying** the variability (removing a poorly identified η) or enriching the sampling.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - EBEs collapse toward the population when individual data are sparse: this is shrinkage.
 - eta-shrinkage = 1 − SD(η̂)/ω; epsilon-shrinkage = 1 − SD(IWRES).
-- High shrinkage (> 20–30%) makes individual diagnostics and covariate selection unreliable.
+- High shrinkage (> 20–30%, heuristic) makes individual diagnostics and covariate selection less informative.
 - Remedies: simulation-based diagnostics (VPC/NPDE), simplify the IIV, enrich sampling.
 <!-- /step -->

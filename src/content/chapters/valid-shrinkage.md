@@ -21,7 +21,7 @@ quiz:
       - "sont dispersés bien au-delà de la variabilité ω attendue"
       - "reflètent fidèlement chaque patient grâce à des données riches"
     correct: 0
-  - prompt: "Un epsilon-shrinkage élevé rend peu fiables..."
+  - prompt: "Un epsilon-shrinkage élevé rend moins informatifs..."
     options:
       - "les graphiques diagnostiques individuels (IPRED, IWRES)"
       - "les diagnostics de population fondés sur PRED et CWRES"
@@ -66,7 +66,7 @@ Le **epsilon-shrinkage** concerne l'erreur résiduelle, via les résidus individ
 $$ sh_\varepsilon = 1 - SD(IWRES) $$
 
 :::note
-Réf. : Savic R.M. & Karlsson M.O., *AAPS J* 2009 — importance du shrinkage pour l'interprétation des diagnostics. Un shrinkage > 20–30 % est généralement jugé préoccupant.
+Réf. : Savic R.M. & Karlsson M.O., *AAPS J* 2009 — importance du shrinkage pour l'interprétation des diagnostics. Un shrinkage > 20–30 % est une **heuristique** généralement préoccupante, pas un seuil universel d'invalidité.
 :::
 <!-- /step -->
 
@@ -80,13 +80,13 @@ Conséquence directe : un graphique **η̂ vs covariable** (poids, ClCr) semble 
 Ne bâtissez pas un modèle de covariables sur des EBE rétrécis.
 
 :::pitfall
-Avec un shrinkage élevé, sélectionner des covariables sur les η̂ ou juger l'ajustement sur les graphiques **individuels** (IPRED, IWRES) est trompeur : ces diagnostics paraissent bons **par construction**. Il faut alors s'appuyer sur des diagnostics fondés sur la **simulation** (VPC, NPDE) et envisager de **simplifier** la variabilité (retirer un η mal identifié) ou d'enrichir l'échantillonnage.
+Avec un shrinkage élevé, sélectionner des covariables sur les η̂ ou juger l'ajustement sur les graphiques **individuels** (IPRED, IWRES) devient moins informatif : ces diagnostics peuvent paraître bons **par construction**. Il faut alors s'appuyer sur des diagnostics fondés sur la **simulation** (VPC, NPDE) et envisager de **simplifier** la variabilité (retirer un η mal identifié) ou d'enrichir l'échantillonnage.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Les EBE se replient vers la population quand les données individuelles sont pauvres : c'est le shrinkage.
 - eta-shrinkage = 1 − SD(η̂)/ω ; epsilon-shrinkage = 1 − SD(IWRES).
-- Un shrinkage élevé (> 20–30 %) rend les diagnostics individuels et la sélection de covariables non fiables.
+- Un shrinkage élevé (> 20–30 %, heuristique) rend les diagnostics individuels et la sélection de covariables moins informatifs.
 - Remèdes : diagnostics par simulation (VPC/NPDE), simplifier l'IIV, enrichir l'échantillonnage.
 <!-- /step -->

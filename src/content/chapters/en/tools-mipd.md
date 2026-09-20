@@ -56,7 +56,7 @@ $$ \hat\eta_i = \arg\min_{\eta}\; \underbrace{\sum_j \frac{(y_j - f_j)^2}{\sigma
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="TDMProfile" -->
-A patient on vancomycin: a trough is measured. mapbayr estimates **their** clearance (e.g. increased), simulates their AUC₂₄, and proposes the dose reaching the AUC/MIC target — far more reliable than a fixed nomogram.
+A patient on vancomycin: a trough is measured. mapbayr estimates **their** clearance (e.g. increased), simulates their AUC₂₄, and proposes the dose reaching the AUC/MIC target. The advantage over a fixed nomogram depends on the population model, design, sampling information and transportability to this patient.
 
 It is the same reasoning as the TDM chapter, **tooled** for practice.
 <!-- /step -->
@@ -64,12 +64,12 @@ It is the same reasoning as the TDM chapter, **tooled** for practice.
 <!-- step:title="Common pitfall" -->
 A good tool does not fix a poor prior model.
 
-**Pitfall —** MIPD inherits the chosen **population model**: an unsuitable prior (wrong population, ignored covariates) biases the estimate. Beware **shrinkage** if the samples are too sparse, and the **sampling time**, which governs the information.
+**Pitfall —** MIPD inherits the chosen **population model**: an unsuitable prior (wrong population, ignored covariates) biases the estimate. Beware **shrinkage** if the samples are too sparse, the **sampling time**, sampling design and model transportability, which govern the information.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - MIPD individualises the dose from the model (prior) and the patient's measurements.
 - MAP estimation = data + pull toward the population; few samples suffice.
 - mapbayr (R) performs the MAP from an mrgsolve model and proposes the target dose.
-- Depends on the prior's quality; beware shrinkage and the sampling time.
+- Depends on prior quality, design, sampling time and transportability.
 <!-- /step -->

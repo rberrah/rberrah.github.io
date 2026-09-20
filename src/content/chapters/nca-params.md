@@ -54,6 +54,8 @@ Les **moments** de la courbe donnent le temps de séjour moyen et le volume à l
 
 $$ MRT = \frac{\text{AUMC}}{\text{AUC}}, \qquad V_{ss} = CL\cdot MRT $$
 
+Cette écriture est directe pour un **bolus IV**. Après **perfusion IV**, le temps d'entrée doit être retiré du moment moyen : on utilise typiquement $MRT = AUMC/AUC - T_{inf}/2$ avant de calculer $V_{ss}$.
+
 :::math
 $V_z$ dépend de $\lambda_z$ (phase terminale) ; $V_{ss}$ est indépendant de la voie d'élimination et souvent préféré pour la distribution.
 :::
@@ -75,7 +77,7 @@ Sans IV, on ne connaît pas la fraction absorbée $F$ : on obtient $CL/F$ et $V/
 
 <!-- step:title="À retenir" -->
 - CL = Dose/AUC∞ (IV) ; Vz = CL/λz.
-- MRT = AUMC/AUC ; Vss = CL·MRT (préféré pour la distribution).
+- MRT = AUMC/AUC en bolus IV ; après perfusion, corriger typiquement par −Tinf/2 avant Vss = CL·MRT.
 - Par voie orale, on obtient CL/F et V/F (apparents), car F est inconnu.
 - Les moments (AUMC) amplifient les erreurs d'échantillonnage terminal.
 <!-- /step -->

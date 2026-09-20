@@ -27,7 +27,7 @@ quiz:
     correct: 0
   - prompt: "Un RSE très élevé (ex. > 50 %) sur un paramètre suggère..."
     options:
-      - "qu'il est mal identifié par les données disponibles"
+      - "qu'il est estimé avec une faible précision par les données disponibles"
       - "qu'il varie fortement entre patients (oméga élevé)"
       - "qu'il est fortement corrélé à un autre paramètre"
     correct: 0
@@ -62,7 +62,7 @@ Le bootstrap et le profil de vraisemblance ne supposent pas la normalité, contr
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="51_Bootstrap" -->
-Un modèle donne $Q$ (clairance inter-compartimentale) avec un **RSE de 80 %** : le paramètre est mal identifié — les données ne « voient » pas bien la phase de distribution.
+Un modèle donne $Q$ (clairance inter-compartimentale) avec un **RSE de 80 %** : le paramètre est estimé avec une faible précision — les données ne « voient » pas bien la phase de distribution. L'identifiabilité est un concept plus fort, à examiner avec le modèle, les données et les diagnostics.
 
 Le bootstrap le confirme : la distribution de $Q$ est large et asymétrique. On simplifie le modèle ou on enrichit l'échantillonnage.
 <!-- /step -->
@@ -79,5 +79,5 @@ Le **RSE** (incertitude d'estimation) n'est pas l'**oméga** (variabilité inter
 - Toute estimation doit s'accompagner de son incertitude (RSE, IC).
 - RSE = SE/estimation ; vient de la matrice de covariance (inverse de la FIM).
 - Bootstrap et profil de vraisemblance : IC sans hypothèse de normalité.
-- RSE ≠ variabilité (oméga) ; un RSE élevé = paramètre mal identifié.
+- RSE ≠ variabilité (oméga) ; un RSE élevé = faible précision d'estimation, pas à lui seul une preuve formelle de non-identifiabilité.
 <!-- /step -->

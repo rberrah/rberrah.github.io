@@ -25,7 +25,7 @@ quiz:
     correct: 0
   - prompt: "Linking exposure to survival via a hazard model allows one to..."
     options:
-      - "predict a given dose's effect on OS/PFS"
+      - "simulate the expected effect of exposure on OS/PFS under model assumptions"
       - "infer the dose from the observed survival"
       - "estimate survival, ignoring the dose given"
     correct: 0
@@ -34,13 +34,13 @@ quiz:
 <!-- step:title="Why this chapter" -->
 In oncology and beyond, the final endpoint is neither a concentration nor a size, but a **time to event**: death (**OS**, overall survival) or progression (**PFS**, progression-free survival).
 
-Pharmacometrics links **exposure → biomarker → survival**, allowing us to anticipate a dose's effect on clinical benefit.
+Pharmacometrics links **exposure → biomarker → survival**, allowing us to simulate expected clinical benefit under the model assumptions.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="44_Survival" -->
-**Survival** $S(t)$ is the probability of not having had the event by time $t$: it starts at 1 and decreases. **PFS** falls before **OS** (progressing precedes dying).
+**Survival** $S(t)$ is the probability of not having had the event by time $t$: it starts at 1 and decreases. **PFS** is time to **progression or death**; it is therefore often earlier than OS, without being a mandatory step toward death.
 
-An effective treatment **shifts** these curves to the right. Adjust the hazard ratio and watch the median survival rise.
+A lower hazard ratio **shifts** these curves to the right in the model. Adjust the hazard ratio and watch the simulated median survival rise.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="44_Survival" -->
@@ -52,7 +52,7 @@ We choose a parametric form (exponential, **Weibull**, Gompertz, log-logistic). 
 
 $$ h(t) = h_0(t)\,\exp(\beta\,x) $$
 
-where $x$ can be exposure or a dynamic biomarker (tumour size) — this is the **joint model**.
+where $x$ can be exposure or a dynamic biomarker (tumour size). If this is only a time-dependent covariate in a survival model, it is not automatically a **joint model**: a joint model models the longitudinal process and the event jointly.
 
 **Ref —** time-to-event methodology in NLME developed notably at **IAME** (Bichat) and **Leiden**; in mathematical oncology, the **COMPO** team (Marseille — Ciccolini, Benzekry) links mechanistic models to survival.
 <!-- /step -->
@@ -60,7 +60,7 @@ where $x$ can be exposure or a dynamic biomarker (tumour size) — this is the *
 <!-- step:title="Worked example" viz="44_Survival" -->
 In a trial, we estimate a **hazard ratio** between arms: HR = 0.65 means 35% less instantaneous risk. The **median survival** (time where $S=0.5$) summarises the benefit.
 
-By linking AUC to hazard, we **simulate** the effect of a dosing schedule on PFS before testing it — a key use of modelling.
+By linking AUC to hazard, we **simulate** the expected effect of a dosing schedule on PFS before testing it — a prediction conditional on the model, not proof that increasing the dose causally improves survival.
 <!-- /step -->
 
 <!-- step:title="The link with machine learning" viz="44_Survival" -->
@@ -76,8 +76,8 @@ Censoring and surrogate endpoints mislead.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- OS = time to death; PFS = time to progression or death (falls earlier).
+- OS = time to death; PFS = time to progression or death.
 - S(t) = exp(−∫h); parametric forms (Weibull…); proportional hazards h0·exp(βx).
-- Link exposure/biomarker to hazard (joint model) → predict a dose's OS/PFS.
+- Link exposure/biomarker to hazard → simulate OS/PFS under assumptions; joint model only when longitudinal and event processes are modelled jointly.
 - Handle censoring; PFS is not a guaranteed surrogate for OS.
 <!-- /step -->

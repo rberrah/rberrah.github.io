@@ -30,7 +30,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-**NONMEM** (NONlinear Mixed-Effects Modeling) est le **logiciel fondateur** de la pharmacométrie, créé par **Beal & Sheiner** à la fin des années 1970. Il reste la **référence réglementaire** : la plupart des dossiers d'AMM reposent sur lui.
+**NONMEM** (NONlinear Mixed-Effects Modeling) est le **logiciel fondateur** de la pharmacométrie, créé par **Beal & Sheiner** à la fin des années 1970. Il reste **très largement utilisé dans les soumissions réglementaires** : beaucoup de dossiers d'AMM reposent sur lui.
 
 Austère mais **éprouvé**, il impose une façon de penser que tout pharmacométricien connaît.
 <!-- /step -->
@@ -67,7 +67,7 @@ Réf. : Beal, Sheiner, Boeckmann — *NONMEM Users Guides* ; distribué par ICON
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="15_OFVGame" -->
-Pour une **soumission réglementaire**, un modèle NONMEM (control stream + tables de sortie) est le format attendu par la FDA et l'EMA. Sa robustesse et son historique en font le **standard** des dossiers.
+Pour une **soumission réglementaire**, un modèle NONMEM (control stream + tables de sortie) est très souvent utilisé et facilement relu par les équipes spécialisées. Ce n'est pas un format exigé par la FDA ou l'EMA, mais sa robustesse et son historique en font un standard de fait dans de nombreux dossiers.
 
 Autour de lui, des outils R (**Xpose**, **PsN**) gèrent les diagnostics, les bootstraps et les VPC.
 <!-- /step -->
@@ -81,7 +81,7 @@ Une erreur de **colonne de données**, d'unité ou de bloc `$` passe inaperçue 
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- NONMEM : le logiciel fondateur (Beal & Sheiner), référence réglementaire.
+- NONMEM : le logiciel fondateur (Beal & Sheiner), très largement utilisé dans les dossiers réglementaires sans être exigé comme format par les agences.
 - Usage par fichier de contrôle (blocs `$`), prétraité par NM-TRAN ; méthode historique FOCE-I.
 - Écosystème R autour (Xpose, PsN, Pirana) pour diagnostics et bootstraps.
 - Puissant et éprouvé, mais austère ; attention aux erreurs de données et à la non-convergence.

@@ -27,7 +27,7 @@ quiz:
     correct: 0
   - prompt: "Relier l'exposition à la survie via un modèle de hasard permet de..."
     options:
-      - "prédire l'effet d'une dose donnée sur l'OS/PFS"
+      - "simuler l'effet attendu d'une exposition sur l'OS/PFS sous les hypothèses du modèle"
       - "remonter à la dose à partir de la survie observée"
       - "estimer la survie sans tenir compte de la dose"
     correct: 0
@@ -36,13 +36,13 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 En oncologie et au-delà, le critère final n'est pas une concentration ni une taille, mais un **temps jusqu'à événement** : décès (**OS**, overall survival) ou progression (**PFS**, progression-free survival).
 
-La pharmacométrie relie **exposition → biomarqueur → survie**, ce qui permet d'anticiper l'effet d'une dose sur le bénéfice clinique.
+La pharmacométrie relie **exposition → biomarqueur → survie**, ce qui permet de simuler un bénéfice clinique attendu sous les hypothèses du modèle.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="44_Survival" -->
-La **survie** $S(t)$ est la probabilité de ne pas avoir eu l'événement au temps $t$ : elle part de 1 et décroît. La **PFS** chute avant l'**OS** (progresser précède mourir).
+La **survie** $S(t)$ est la probabilité de ne pas avoir eu l'événement au temps $t$ : elle part de 1 et décroît. La **PFS** correspond au temps jusqu'à **progression ou décès** ; elle est donc souvent plus précoce que l'OS, sans être une étape obligée vers le décès.
 
-Un traitement efficace **décale** ces courbes vers la droite. Jouez sur le hazard ratio et observez la survie médiane augmenter.
+Un hazard ratio plus faible **décale** ces courbes vers la droite dans le modèle. Jouez sur le hazard ratio et observez la survie médiane simulée augmenter.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="44_Survival" -->
@@ -54,7 +54,7 @@ On choisit une forme paramétrique (exponentielle, **Weibull**, Gompertz, log-lo
 
 $$ h(t) = h_0(t)\,\exp(\beta\,x) $$
 
-où $x$ peut être l'exposition ou un biomarqueur dynamique (taille tumorale) — c'est le **modèle joint**.
+où $x$ peut être l'exposition ou un biomarqueur dynamique (taille tumorale). S'il s'agit seulement d'une covariable dépendante du temps dans un modèle de survie, ce n'est pas automatiquement un **modèle joint** : un joint model modélise conjointement le processus longitudinal et l'événement.
 
 :::note
 Réf. : méthodologie time-to-event en NLME développée notamment à **IAME** (Bichat) et à **Leiden** ; en oncologie mathématique, l'équipe **COMPO** (Marseille — Ciccolini, Benzekry) relie modèles mécanistes et survie.
@@ -64,7 +64,7 @@ Réf. : méthodologie time-to-event en NLME développée notamment à **IAME** (
 <!-- step:title="Exemple concret" viz="44_Survival" -->
 Dans un essai, on estime un **hazard ratio** entre bras : HR = 0,65 signifie 35 % de risque instantané en moins. La **survie médiane** (temps où $S=0{,}5$) résume le bénéfice.
 
-En reliant l'AUC au hasard, on **simule** l'effet d'un schéma posologique sur la PFS avant de le tester — un usage clé de la modélisation.
+En reliant l'AUC au hasard, on **simule** l'effet attendu d'un schéma posologique sur la PFS avant de le tester — une prédiction conditionnelle au modèle, pas une preuve causale qu'augmenter la dose améliore la survie.
 <!-- /step -->
 
 <!-- step:title="Le lien avec le machine learning" viz="44_Survival" -->
@@ -84,8 +84,8 @@ Ignorer la **censure** (patients non suivis jusqu'à l'événement) biaise l'est
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- OS = temps jusqu'au décès ; PFS = jusqu'à progression ou décès (chute plus tôt).
+- OS = temps jusqu'au décès ; PFS = jusqu'à progression ou décès.
 - S(t) = exp(−∫h) ; formes paramétriques (Weibull…) ; hasards proportionnels h0·exp(βx).
-- Relier exposition/biomarqueur au hasard (modèle joint) → prédire OS/PFS d'une dose.
+- Relier exposition/biomarqueur au hasard → simuler OS/PFS sous hypothèses ; modèle joint seulement si longitudinal et événement sont modélisés conjointement.
 - Gérer la censure ; PFS n'est pas un substitut garanti de l'OS.
 <!-- /step -->

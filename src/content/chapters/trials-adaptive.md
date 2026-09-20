@@ -34,7 +34,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Choisir la **dose** est la décision la plus coûteuse d'un développement. Les approches **fondées sur le modèle** et les designs **adaptatifs** trouvent la bonne dose avec moins de patients et plus de fiabilité que les comparaisons classiques.
+Choisir la **dose** est la décision la plus coûteuse d'un développement. Les approches **fondées sur le modèle** et les designs **adaptatifs** peuvent améliorer l'efficacité sous certaines hypothèses, mais ils peuvent aussi augmenter la taille maximale, la complexité opérationnelle ou les exigences de simulation.
 
 C'est là que la pharmacométrie rejoint directement la stratégie d'essai.
 <!-- /step -->
@@ -67,7 +67,7 @@ Une analyse **intermédiaire** peut alors abandonner les doses inefficaces et co
 Adaptatif ne veut pas dire improvisé.
 
 :::pitfall
-Un design adaptatif doit être **entièrement pré-spécifié** et validé par simulation : changer les règles en cours de route gonfle le risque d'erreur de type I. Et estimer la dose par un **seul** modèle mal choisi biaise le résultat — d'où l'intérêt de la moyenne de modèles de MCP-Mod.
+Un design adaptatif doit être **entièrement pré-spécifié** et validé par simulation : changer les règles en cours de route gonfle le risque d'erreur de type I. Le gain n'est pas automatique ; il dépend des hypothèses, de la logistique, des délais de lecture et du contrôle opérationnel. Et estimer la dose par un **seul** modèle mal choisi biaise le résultat — d'où l'intérêt de la moyenne de modèles de MCP-Mod.
 :::
 <!-- /step -->
 

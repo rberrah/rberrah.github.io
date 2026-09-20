@@ -36,7 +36,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 Once a model is estimated, half its value comes from **simulation**: predicting dosing scenarios, building a VPC, generating virtual trials. You need a **fast** engine able to integrate ODEs over large populations.
 
-In R, two tools dominate: **mrgsolve** and **rxode2**.
+In R, two tools are widely used: **mrgsolve** and **rxode2**.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="21_PopPKPlayground" -->

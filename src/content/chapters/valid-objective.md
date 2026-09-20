@@ -23,7 +23,7 @@ quiz:
     correct: 0
   - prompt: "Ajouter un paramètre fait toujours..."
     options:
-      - "baisser (ou égaler) l'OFV, d'où le besoin de pénaliser la complexité"
+      - "baisser (ou égaler) l'OFV dans le cas idéal emboîté au maximum global, d'où le besoin de pénaliser la complexité"
       - "baisser l'OFV d'au moins 3,84 points, le seuil du χ² à 5 %"
       - "laisser l'OFV inchangé si le paramètre n'est pas significatif"
     correct: 0
@@ -44,7 +44,7 @@ Sans eux, on empilerait des paramètres à l'infini. Avec eux, on arbitre entre 
 <!-- step:title="Intuition" viz="59_ModelSelection" -->
 La **fonction objective** (OFV = $-2\log L$) mesure la « surprise » des données : plus elle est **basse**, plus le modèle rend les observations probables.
 
-Problème : ajouter un paramètre fait **toujours** baisser l'OFV, même si le paramètre est inutile. Il faut donc un juge qui demande : la baisse est-elle **plus grande que le hasard** ? Et vaut-elle la complexité ajoutée ?
+Problème : dans un problème de maximum de vraisemblance emboîté idéal, au maximum global, ajouter un paramètre ne peut que baisser ou égaler l'OFV. En NLME numérique, convergence, approximations et paramètres aux frontières peuvent casser cette lecture simple. Il faut donc un juge qui demande : la baisse est-elle **plus grande que le hasard** ? Et vaut-elle la complexité ajoutée ?
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="59_ModelSelection" -->
@@ -53,11 +53,11 @@ Pour deux modèles **emboîtés** (l'un est un cas particulier de l'autre), le *
 $$ \Delta OFV = OFV_{\text{réduit}} - OFV_{\text{complet}} \;\sim\; \chi^2_{\Delta df} \quad (\text{sous } H_0) $$
 
 :::howto
-**La métaphore du procès.** $H_0$ = « le paramètre en plus ne sert à rien » (présumé coupable d'inutilité). Le χ² fixe le **seuil du doute raisonnable** (3,84 pour 1 paramètre à 5 %). Si la baisse d'OFV **dépasse** ce seuil, les preuves suffisent : on garde le paramètre.
+**La métaphore du procès.** $H_0$ = « le paramètre en plus ne sert à rien » (présumé coupable d'inutilité). Le χ² fixe le **seuil du doute raisonnable** (3,84 pour 1 paramètre à 5 %) sous ses conditions de régularité. Si la baisse d'OFV **dépasse** ce seuil, les preuves statistiques soutiennent le paramètre ; il faut encore vérifier convergence, frontières, diagnostics et pertinence scientifique.
 
 **Côté maths.** 1 paramètre ⇒ seuil $\chi^2_{1,\,0{,}05}=3{,}84$ ; 2 ⇒ 5,99 ; 3 ⇒ 7,81. Pour des modèles **non emboîtés**, le χ² ne s'applique pas : on utilise alors les critères pénalisés
 $$ AIC = OFV + 2k, \qquad BIC = OFV + k\ln(n) $$
-où $k$ = nombre de paramètres et $n$ = nombre d'observations. Le plus **bas** gagne ; le BIC pénalise plus fort quand $n$ est grand.
+où $k$ = nombre de paramètres et $n$ = nombre d'observations. Le plus **bas** est préféré pour cette comparaison, mais ne remplace ni les diagnostics ni la pertinence scientifique ; le BIC pénalise plus fort quand $n$ est grand.
 :::
 <!-- /step -->
 
@@ -71,13 +71,13 @@ Warfarine : ajouter un **temps de latence** (1 paramètre) fait chuter l'OFV de 
 L'OFV ne se compare pas n'importe comment.
 
 :::pitfall
-On ne compare l'OFV que sur **exactement les mêmes données**. Le test du χ² exige des modèles **emboîtés** et estimés avec la **même méthode** (attention aux approximations FOCE-I). Enfin, un modèle peut gagner sur l'AIC tout en ayant de **mauvais graphiques** : le nombre ne remplace jamais les diagnostics visuels.
+On ne compare l'OFV que sur **exactement les mêmes données**. Le test du χ² exige des modèles **emboîtés**, estimés avec la **même méthode**, une convergence correcte et des conditions de régularité ; attention aux approximations FOCE-I et aux paramètres testés à la frontière, comme une variance fixée à zéro. Enfin, un modèle peut gagner sur l'AIC tout en ayant de **mauvais graphiques** : le nombre ne remplace jamais les diagnostics visuels.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- OFV = −2 log L ; plus bas = données plus vraisemblables. Ajouter un paramètre baisse toujours l'OFV.
-- Modèles emboîtés : ΔOFV ~ χ² (seuil 3,84 pour 1 ddl à 5 %) — test du rapport de vraisemblance.
-- Modèles non emboîtés : AIC = OFV + 2k, BIC = OFV + k·ln(n) ; le plus bas gagne.
+- OFV = −2 log L ; plus bas = données plus vraisemblables.
+- Modèles emboîtés : ΔOFV ~ χ² seulement sous conditions ; seuil 3,84 pour 1 ddl à 5 % si les hypothèses du LRT tiennent.
+- Modèles non emboîtés : AIC = OFV + 2k, BIC = OFV + k·ln(n) ; le plus bas est préféré, sans remplacer diagnostics et plausibilité.
 - Comparer sur les mêmes données ; les nombres complètent, ne remplacent pas, les graphiques.
 <!-- /step -->

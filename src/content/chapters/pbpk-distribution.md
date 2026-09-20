@@ -25,7 +25,7 @@ quiz:
       - "rester dans le plasma, fortement liée à l'albumine"
       - "être éliminée par le rein sans vraiment se distribuer"
     correct: 0
-  - prompt: "Seule la fraction ... du médicament diffuse et agit."
+  - prompt: "La théorie de la fraction libre rappelle que la fraction ... est la plus directement disponible."
     options:
       - "libre (non liée aux protéines)"
       - "liée aux protéines plasmatiques"
@@ -55,7 +55,7 @@ Les $K_p$ se **prédisent** à partir de la lipophilie ($\log P$), du pKa et des
 $$ C_{libre} = f_u\cdot C_{plasma} $$
 
 :::math
-Seule la fraction **libre** diffuse et agit. Un changement de liaison protéique (albumine basse) modifie $f_u$ — donc la distribution et parfois l'effet.
+La fraction **libre** est la plus directement disponible pour diffuser, se lier aux cibles et être éliminée. Mais une hausse de $f_u$ ne signifie pas automatiquement une hausse d'exposition libre à l'état stationnaire : l'effet d'une modification de liaison dépend aussi de la clairance, de la distribution et du contexte.
 :::
 <!-- /step -->
 
@@ -69,13 +69,13 @@ Une molécule très lipophile ($\log P$ élevé) présente de grands $K_p$ dans 
 La fraction libre est un piège classique.
 
 :::pitfall
-Raisonner sur la concentration **totale** en ignorant $f_u$ trompe : en cas d'hypoalbuminémie, la fraction libre monte alors que la concentration totale peut sembler « normale ». C'est la concentration **libre** qui compte pour l'effet et pour les interactions de liaison.
+Raisonner sur la concentration **totale** en ignorant $f_u$ peut tromper : en cas d'hypoalbuminémie, la fraction libre monte alors que la concentration totale peut sembler « normale ». L'interprétation doit distinguer fraction libre, concentration libre et exposition libre à l'équilibre.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Kp,T = affinité tissu/plasma ; il relie physico-chimie et distribution.
 - Vss = Vp + Σ V_T·Kp,T ; les Kp se prédisent (Poulin-Theil, Rodgers-Rowland).
-- Seule la fraction libre (fu) diffuse et agit ; l'albumine la module.
+- La fraction libre (fu) guide diffusion, cible et élimination, mais une hausse de fu n'augmente pas automatiquement l'exposition libre à l'état stationnaire.
 - Lipophilie élevée → accumulation graisseuse, grand volume, demi-vie longue.
 <!-- /step -->

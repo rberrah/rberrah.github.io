@@ -36,13 +36,13 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-En oncologie, la « réponse » n'est plus une concentration mais la **taille de la tumeur**, puis la **survie**. La pharmacométrie construit la chaîne : exposition (AUC) → dynamique tumorale → bénéfice clinique.
+En oncologie, la « réponse » n'est plus une concentration mais la **taille de la tumeur**, puis la **survie**. La pharmacométrie construit une chaîne de prédiction : exposition (AUC) → dynamique tumorale → bénéfice clinique attendu sous hypothèses.
 
 C'est le cœur des **modèles joints**, qui assemblent PK, taille tumorale (TGI) et survie pour anticiper les résultats d'un essai avant de le lancer.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="30_TumorGrowth" -->
-Une tumeur **croît spontanément** (exponentielle) ; le traitement en **tue une partie**, d'autant plus que l'exposition est forte.
+Une tumeur **croît spontanément** (exponentielle) ; dans ce modèle, le traitement réduit la croissance ou la taille tumorale d'autant plus que l'exposition est forte.
 
 Mais l'effet n'est pas éternel : une **résistance** apparaît progressivement, l'effet s'épuise, et la tumeur peut **ré-échapper**. Montez l'exposition et observez le nadir, puis la reprise.
 <!-- /step -->
@@ -71,16 +71,16 @@ $$ h(t) = h_0(t)\cdot e^{\,\beta\, f(TS(t))}, \qquad S(t) = e^{-\int_0^t h} $$
 :::howto
 **La métaphore du thermostat.** Le hasard $h(t)$ est le risque instantané de progression, comme la puissance d'un chauffage. La taille tumorale joue le thermostat : plus la tumeur est grosse, plus $h$ monte. Le paramètre $\beta$ est la **sensibilité du thermostat** — $\beta$ grand = le risque réagit fortement à la tumeur.
 
-**Côté maths.** $h_0(t)$ est le risque de base ; le facteur $e^{\beta f(TS)}$ le **module** (× > 1 si la tumeur grossit, × < 1 si elle régresse). La survie $S(t)=e^{-\int h}$ **accumule** ce risque : tant que $h$ reste bas (tumeur réduite), $S$ décroît lentement — la courbe de survie est repoussée vers la droite.
+**Côté maths.** $h_0(t)$ est le risque de base ; le facteur $e^{\beta f(TS)}$ le **module** (× > 1 si la tumeur grossit, × < 1 si elle régresse). La survie $S(t)=e^{-\int h}$ **accumule** ce risque : si le modèle prédit un $h$ plus bas (tumeur réduite), $S$ décroît plus lentement.
 :::
 
-$f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC… Plus $|\beta|$ est grand, plus le lien tumeur → survie est fort. Faire régresser la tumeur **repousse la courbe de survie** vers la droite.
+$f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC… Plus $|\beta|$ est grand, plus le lien tumeur → survie est fort dans le modèle. Une régression tumorale peut alors prédire une survie plus longue, conditionnellement aux hypothèses et à la validation du lien.
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="31_JointSurvival" -->
 Les modèles joints PK–TGI–survie sont très utilisés pour les **anticorps monoclonaux** d'immuno-oncologie (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A) : ils permettent de **prédire les résultats d'un essai** (par ex. une étude plateforme) avant sa réalisation.
 
-En simulant l'exposition de chaque schéma, on prédit la réduction tumorale, donc la **survie sans progression (PFS)** — un outil de choix de dose et de design.
+En simulant l'exposition de chaque schéma, on prédit une dynamique tumorale puis une **survie sans progression (PFS)** conditionnelle au modèle — un outil de choix de dose et de design, pas une preuve causale automatique.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -94,7 +94,7 @@ Un bon effet tumoral à court terme ne garantit pas le bénéfice de survie (ré
 <!-- step:title="À retenir" -->
 - La réponse oncologique = taille tumorale puis survie ; l'effet dépend de l'exposition (PK).
 - Modèle de Claret : croissance $K_G$ − rétrécissement $K\cdot expo\cdot e^{-\lambda t}$ (résistance).
-- Un modèle joint relie la taille tumorale au hasard de progression via $\beta$ → prédit la PFS.
+- Un modèle joint relie la taille tumorale au hasard de progression via $\beta$ → prédit la PFS sous hypothèses.
 - Application : anticorps d'immuno-oncologie, prédiction d'essais cliniques.
 - Réserve : court terme ≠ survie ; validation externe indispensable.
 <!-- /step -->

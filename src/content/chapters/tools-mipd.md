@@ -60,7 +60,7 @@ Réf. : mapbayr (F. Le Louedec et coll.), package R open-source ; s'inscrit dans
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="TDMProfile" -->
-Un patient sous vancomycine : une résiduelle est mesurée. mapbayr estime **sa** clairance (ex. augmentée), simule son AUC₂₄, et propose la dose qui atteint la cible AUC/CMI — bien plus fiable qu'un abaque fixe.
+Un patient sous vancomycine : une résiduelle est mesurée. mapbayr estime **sa** clairance (ex. augmentée), simule son AUC₂₄, et propose la dose qui atteint la cible AUC/CMI. L'intérêt par rapport à un abaque fixe dépend du modèle populationnel, du design, de l'information portée par le prélèvement et de la transportabilité à ce patient.
 
 C'est le même raisonnement que le chapitre TDM, **outillé** pour la pratique.
 <!-- /step -->
@@ -69,7 +69,7 @@ C'est le même raisonnement que le chapitre TDM, **outillé** pour la pratique.
 Un bon outil ne corrige pas un mauvais modèle a priori.
 
 :::pitfall
-Le MIPD hérite du **modèle de population** choisi : un a priori inadapté (mauvaise population, covariables ignorées) biaise l'estimation. Attention au **shrinkage** si les prélèvements sont trop pauvres, et au **moment** du prélèvement, qui conditionne l'information.
+Le MIPD hérite du **modèle de population** choisi : un a priori inadapté (mauvaise population, covariables ignorées) biaise l'estimation. Attention au **shrinkage** si les prélèvements sont trop pauvres, au **moment** du prélèvement, au design d'échantillonnage et à la transportabilité du modèle, qui conditionnent l'information.
 :::
 <!-- /step -->
 
@@ -77,5 +77,5 @@ Le MIPD hérite du **modèle de population** choisi : un a priori inadapté (mau
 - Le MIPD individualise la dose à partir du modèle (a priori) et de mesures du patient.
 - L'estimation MAP = données + rappel vers la population ; peu de prélèvements suffisent.
 - mapbayr (R) réalise le MAP à partir d'un modèle mrgsolve et propose la dose cible.
-- Dépend de la qualité de l'a priori ; attention au shrinkage et au moment du prélèvement.
+- Dépend de la qualité de l'a priori, du design, du moment du prélèvement et de la transportabilité.
 <!-- /step -->

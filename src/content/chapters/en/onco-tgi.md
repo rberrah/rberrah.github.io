@@ -32,13 +32,13 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-In oncology the "response" is no longer a concentration but the **tumour size**, then **survival**. Pharmacometrics builds the chain: exposure (AUC) → tumour dynamics → clinical benefit.
+In oncology the "response" is no longer a concentration but the **tumour size**, then **survival**. Pharmacometrics builds a prediction chain: exposure (AUC) → tumour dynamics → expected clinical benefit under assumptions.
 
 This is the heart of **joint models**, which assemble PK, tumour size (TGI) and survival to anticipate a trial's results before running it.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="30_TumorGrowth" -->
-A tumour **grows spontaneously** (exponential); treatment **kills part of it**, the more so as exposure is high.
+A tumour **grows spontaneously** (exponential); in this model, treatment reduces growth or tumour size more strongly as exposure increases.
 
 But the effect is not eternal: **resistance** appears progressively, the effect fades, and the tumour can **escape again**. Raise the exposure and watch the nadir, then the regrowth.
 <!-- /step -->
@@ -64,15 +64,15 @@ $$ h(t) = h_0(t)\cdot e^{\,\beta\, f(TS(t))}, \qquad S(t) = e^{-\int_0^t h} $$
 
 **How to read it — the thermostat metaphor.** The hazard $h(t)$ is the instantaneous risk of progression, like a heater's power. Tumour size acts as the thermostat: the bigger the tumour, the higher $h$. The parameter $\beta$ is the **thermostat's sensitivity** — large $\beta$ = risk reacts strongly to the tumour.
 
-**On the maths side.** $h_0(t)$ is the baseline risk; the factor $e^{\beta f(TS)}$ **modulates** it (× > 1 if the tumour grows, × < 1 if it shrinks). Survival $S(t)=e^{-\int h}$ **accumulates** that risk: while $h$ stays low (shrunken tumour), $S$ falls slowly — the survival curve is pushed to the right.
+**On the maths side.** $h_0(t)$ is the baseline risk; the factor $e^{\beta f(TS)}$ **modulates** it (× > 1 if the tumour grows, × < 1 if it shrinks). Survival $S(t)=e^{-\int h}$ **accumulates** that risk: if the model predicts a lower $h$ (shrunken tumour), $S$ falls more slowly.
 
-$f$ can be the current size, the change from baseline (CFB), its AUC… The larger $|\beta|$, the stronger the tumour → survival link. Shrinking the tumour **pushes the survival curve to the right**.
+$f$ can be the current size, the change from baseline (CFB), its AUC… The larger $|\beta|$, the stronger the tumour → survival link in the model. Tumour shrinkage may then predict longer survival, conditional on the assumptions and validation of that link.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="31_JointSurvival" -->
 Joint PK–TGI–survival models are widely used for **monoclonal antibodies** in immuno-oncology (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A): they help **predict a trial's results** (e.g. a platform study) before it is run.
 
-By simulating the exposure of each schedule, one predicts tumour shrinkage, hence **progression-free survival (PFS)** — a tool for dose and design choices.
+By simulating the exposure of each schedule, one predicts tumour dynamics and then **progression-free survival (PFS)** conditional on the model — a tool for dose and design choices, not automatic causal proof.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -84,7 +84,7 @@ Early tumour size is not survival.
 <!-- step:title="Key takeaways" -->
 - The oncology response = tumour size then survival; effect depends on exposure (PK).
 - Claret model: growth $K_G$ − shrinkage $K\cdot expo\cdot e^{-\lambda t}$ (resistance).
-- A joint model links tumour size to the progression hazard via $\beta$ → predicts PFS.
+- A joint model links tumour size to the progression hazard via $\beta$ → predicts PFS under assumptions.
 - Application: immuno-oncology antibodies, clinical-trial prediction.
 - Caveat: short term ≠ survival; external validation is essential.
 <!-- /step -->

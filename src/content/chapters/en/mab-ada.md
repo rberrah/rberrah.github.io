@@ -19,7 +19,7 @@ quiz:
     correct: 0
   - prompt: "The appearance of ADA often tends to..."
     options:
-      - "increase clearance and thus reduce the drug's exposure"
+      - "sometimes increase clearance and reduce the drug's exposure"
       - "decrease clearance by shielding the drug from catabolism"
       - "increase exposure via complexes with a prolonged half-life"
     correct: 0
@@ -34,11 +34,11 @@ quiz:
 <!-- step:title="Why this chapter" -->
 A therapeutic antibody is a **foreign protein**: the patient's immune system may make **anti-drug antibodies** (ADA). This is **immunogenicity**.
 
-It can reduce exposure, effect duration, and even trigger reactions — a major concern for all biologics.
+It can reduce exposure, effect duration, and even trigger reactions — a major concern for biologics, with an impact that strongly depends on the drug, assay and ADA type.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="55_ADA" -->
-After a few administrations, some patients develop ADA that **bind** the drug. The complexes formed are **eliminated faster** → the concentration drops in these patients.
+After a few administrations, some patients develop ADA that **bind** the drug. The complexes formed may be **eliminated faster** → concentration can drop in these patients.
 
 Typical result: PK that "drops off" after a few weeks, with strong **inter-individual variability**.
 <!-- /step -->
@@ -46,10 +46,10 @@ Typical result: PK that "drops off" after a few weeks, with strong **inter-indiv
 <!-- step:title="The formula, unpacked" viz="55_ADA" -->
 We distinguish two ADA types:
 
-- **Binding**: form complexes → accelerate **clearance** (exposure ↓).
+- **Binding**: form complexes → can accelerate **clearance** (exposure ↓), depending on titre, persistence, complexes, assay and molecule.
 - **Neutralising (NAb)**: also block the **active site** → the effect falls even at equal concentration.
 
-A simple model raises clearance after seroconversion:
+A simple model may raise clearance after seroconversion:
 
 $$ CL(t) = CL_0\,\big[1 + \theta_{ADA}\cdot A(t)\big] $$
 
@@ -59,7 +59,7 @@ where $A(t)$ captures the (often delayed) appearance of ADA.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="55_ADA" -->
-A patient on an antibody sees the trough concentration **collapse** in the 3rd month: ADA test positive. Insufficient exposure explains the **loss of response** (secondary failure).
+A patient on an antibody sees the trough concentration **collapse** in the 3rd month: ADA test positive. Insufficient exposure may explain the **loss of response** (secondary failure), but the link must be confirmed.
 
 Strategies: co-immunosuppression, induction schedules, molecular engineering (de-immunisation) to reduce immunogenicity.
 <!-- /step -->
@@ -67,12 +67,12 @@ Strategies: co-immunosuppression, induction schedules, molecular engineering (de
 <!-- step:title="Common pitfall" -->
 A negative ADA test does not rule everything out.
 
-**Pitfall —** ADA assays are **interfered with** by circulating drug: a high drug level can **mask** ADA (false negatives). Interpretation depends on the sampling time and the assay's sensitivity. An unexplained exposure drop should raise immunogenicity even if the test is negative.
+**Pitfall —** ADA assays are **interfered with** by circulating drug: a high drug level can **mask** ADA (false negatives). Interpretation depends on sampling time, titre, persistence, neutralisation, complexes and assay sensitivity. Some biologics show little or no measurable PK effect from ADA.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - ADA are the patient's antibodies against the biologic drug (immunogenicity).
-- Binding → clearance ↑, exposure ↓; neutralising → effect blocked as well.
-- Modelling: increased clearance after seroconversion, strong variability.
+- Binding → may increase clearance and lower exposure; neutralising → may also block effect.
+- Modelling: clearance sometimes increased after seroconversion, strong variability.
 - ADA assays are prone to interference (false negatives); suspect on an exposure drop.
 <!-- /step -->

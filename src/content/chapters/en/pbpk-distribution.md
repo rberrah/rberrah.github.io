@@ -23,7 +23,7 @@ quiz:
       - "stay in plasma, strongly bound to albumin"
       - "be cleared by the kidney without really distributing"
     correct: 0
-  - prompt: "Only the ... fraction of the drug diffuses and acts."
+  - prompt: "The free-fraction theory reminds us that the ... fraction is most directly available."
     options:
       - "free (unbound to proteins)"
       - "bound to plasma proteins"
@@ -52,7 +52,7 @@ The $K_p$ are **predicted** from lipophilicity ($\log P$), pKa and free fraction
 
 $$ C_{free} = f_u\cdot C_{plasma} $$
 
-**Math —** only the **free** fraction diffuses and acts. A change in protein binding (low albumin) changes $f_u$ — hence distribution and sometimes effect.
+**Math —** the **free** fraction is most directly available to diffuse, bind to targets and be eliminated. But an increase in $f_u$ does not automatically increase steady-state free exposure: the effect of changing binding also depends on clearance, distribution and context.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="01_HumanBody" -->
@@ -64,12 +64,12 @@ Conversely, a hydrophilic, strongly protein-bound compound stays in plasma: smal
 <!-- step:title="Common pitfall" -->
 The free fraction is a classic trap.
 
-**Pitfall —** reasoning on the **total** concentration while ignoring $f_u$ misleads: in hypoalbuminaemia, the free fraction rises while total concentration may look "normal". It is the **free** concentration that matters for effect and for binding interactions.
+**Pitfall —** reasoning on the **total** concentration while ignoring $f_u$ can mislead: in hypoalbuminaemia, the free fraction rises while total concentration may look "normal". Interpretation must distinguish free fraction, free concentration and steady-state free exposure.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Kp,T = tissue/plasma affinity; it links physicochemistry and distribution.
 - Vss = Vp + Σ V_T·Kp,T; the Kp are predicted (Poulin-Theil, Rodgers-Rowland).
-- Only the free fraction (fu) diffuses and acts; albumin modulates it.
+- Free fraction (fu) guides diffusion, target binding and elimination, but higher fu does not automatically increase steady-state free exposure.
 - High lipophilicity → fat accumulation, large volume, long half-life.
 <!-- /step -->

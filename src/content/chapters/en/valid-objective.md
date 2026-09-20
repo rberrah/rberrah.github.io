@@ -21,7 +21,7 @@ quiz:
     correct: 0
   - prompt: "Adding a parameter always..."
     options:
-      - "lowers (or matches) the OFV, hence the need to penalise complexity"
+      - "lowers (or matches) the OFV in the ideal nested/global-maximum case, hence the need to penalise complexity"
       - "lowers the OFV by at least 3.84, the χ² threshold at 5%"
       - "leaves the OFV unchanged if the parameter is non-significant"
     correct: 0
@@ -42,7 +42,7 @@ Without them, we would pile up parameters endlessly. With them, we arbitrate bet
 <!-- step:title="Intuition" viz="59_ModelSelection" -->
 The **objective function** (OFV = $-2\log L$) measures the data's "surprise": the **lower** it is, the more probable the model makes the observations.
 
-The catch: adding a parameter **always** lowers the OFV, even a useless one. So we need a judge asking: is the drop **larger than chance**? And is it worth the added complexity?
+The catch: in an ideal nested maximum-likelihood problem, at the global maximum, adding a parameter can only lower or match the OFV. In numerical NLME work, convergence, approximations and boundary parameters can break that simple reading. So we need a judge asking: is the drop **larger than chance**? And is it worth the added complexity?
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="59_ModelSelection" -->
@@ -50,11 +50,11 @@ For two **nested** models (one is a special case of the other), the **likelihood
 
 $$ \Delta OFV = OFV_{reduced} - OFV_{full} \;\sim\; \chi^2_{\Delta df} \quad (\text{under } H_0) $$
 
-**How to read it — the courtroom metaphor.** $H_0$ = "the extra parameter is useless" (presumed guilty of uselessness). The χ² sets the **reasonable-doubt threshold** (3.84 for 1 parameter at 5%). If the OFV drop **exceeds** it, the evidence suffices: we keep the parameter.
+**How to read it — the courtroom metaphor.** $H_0$ = "the extra parameter is useless" (presumed guilty of uselessness). The χ² sets the **reasonable-doubt threshold** (3.84 for 1 parameter at 5%) under its regularity conditions. If the OFV drop **exceeds** it, the statistical evidence supports the parameter; still check convergence, boundaries, diagnostics and scientific relevance.
 
 **On the maths side.** 1 parameter ⇒ threshold $\chi^2_{1,\,0.05}=3.84$; 2 ⇒ 5.99; 3 ⇒ 7.81. For **non-nested** models, χ² does not apply: we use the penalised criteria
 $$ AIC = OFV + 2k, \qquad BIC = OFV + k\ln(n) $$
-where $k$ = number of parameters and $n$ = number of observations. The **lowest** wins; BIC penalises harder when $n$ is large.
+where $k$ = number of parameters and $n$ = number of observations. The **lowest** is preferred for this comparison, but does not replace diagnostics or scientific relevance; BIC penalises harder when $n$ is large.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="59_ModelSelection" -->
@@ -66,12 +66,12 @@ Conversely, moving to **2 compartments** may lower the OFV a little, but not eno
 <!-- step:title="Common pitfall" -->
 The OFV cannot be compared any old way.
 
-**Pitfall —** compare the OFV only on **exactly the same data**. The χ² test requires **nested** models estimated with the **same method** (mind FOCE-I approximations). Finally, a model can win on AIC yet have **poor plots**: the number never replaces the visual diagnostics.
+**Pitfall —** compare the OFV only on **exactly the same data**. The χ² test requires **nested** models, the **same method**, adequate convergence and regularity conditions; beware FOCE-I approximations and parameters tested on the boundary, such as a variance fixed to zero. Finally, a model can win on AIC yet have **poor plots**: the number never replaces visual diagnostics.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- OFV = −2 log L; lower = more likely data. Adding a parameter always lowers the OFV.
-- Nested models: ΔOFV ~ χ² (threshold 3.84 for 1 df at 5%) — the likelihood-ratio test.
-- Non-nested models: AIC = OFV + 2k, BIC = OFV + k·ln(n); the lowest wins.
+- OFV = −2 log L; lower = more likely data.
+- Nested models: ΔOFV ~ χ² only under assumptions; threshold 3.84 for 1 df at 5% if the LRT assumptions hold.
+- Non-nested models: AIC = OFV + 2k, BIC = OFV + k·ln(n); the lowest is preferred, without replacing diagnostics or plausibility.
 - Compare on the same data; numbers complement, not replace, the plots.
 <!-- /step -->

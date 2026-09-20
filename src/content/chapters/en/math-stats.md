@@ -54,7 +54,7 @@ On the log scale, $\ln CL_i$ is **normal** with variance $\omega^2$; the approxi
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="13_ResidualError" -->
-Two nested models are compared with a **likelihood-ratio test**: the OFV difference ($-2\log L$) follows an approximate $\chi^2$. Adding a covariate that drops the OFV by 3.84 (1 df) is "significant" at 5%.
+Two nested models are compared with a **likelihood-ratio test**: under regularity conditions, the OFV difference ($-2\log L$) follows an approximate $\chi^2$. Adding a covariate that drops the OFV by 3.84 (1 df) is "significant" at 5% only if those conditions hold. Important pharmacometric case: testing a variance at zero puts $H_0$ on the **boundary** of the parameter space; the simple χ² threshold may then be inappropriate.
 
 But **significant ≠ relevant**: a tiny effect can be significant on a large dataset.
 <!-- /step -->
@@ -68,6 +68,6 @@ The p-value is not the probability that the hypothesis is true.
 <!-- step:title="Key takeaways" -->
 - Distinguish variability (between patients) from uncertainty (of estimation).
 - Positive parameters → log-normal; residual error → often normal.
-- 95% CI ≈ estimate ± 1.96·SE; likelihood-ratio test (ΔOFV ~ χ²).
+- 95% CI ≈ estimate ± 1.96·SE; likelihood-ratio test (ΔOFV ~ χ²) under assumptions, beware boundary parameters.
 - Significant is not relevant; always look at the effect magnitude.
 <!-- /step -->

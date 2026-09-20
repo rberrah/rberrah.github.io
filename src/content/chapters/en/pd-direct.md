@@ -38,7 +38,7 @@ Understanding its parameters (E0, Emax, EC50, n) illuminates all more complex mo
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="EmaxHill" -->
-At low concentration, each dose increment adds a lot of effect. At high concentration, receptors **saturate**: the effect plateaus.
+At low concentration, each concentration increment adds a lot of effect. At high concentration, the model **saturates**: the effect plateaus. This effect saturation is not necessarily receptor saturation.
 
 Hence a curve that **rises then saturates** — the opposite of a straight line. The Hill sigmoid adds an adjustable **steepness**.
 <!-- /step -->
@@ -59,9 +59,9 @@ The **linear** ($E=E_0+S\cdot C$) and **log-linear** ($E=E_0+S\cdot\ln C$) forms
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="EmaxHill" -->
-An antihypertensive: the drop in pressure follows the concentration almost without delay. We estimate $E_{max}$ (maximal drop) and $EC_{50}$ (target concentration).
+An antihypertensive: the drop in pressure follows the concentration almost without delay. We estimate $E_{max}$ (maximal drop) and $EC_{50}$ (concentration giving half the maximal effect, not a therapeutic target by itself).
 
-Beyond ~$5\times EC_{50}$, raising the dose adds almost no effect — but can add toxicity.
+With Hill = 1, $5\times EC_{50}$ gives only $5/6$, or **83.3% of $E_{max}$**: raising the dose adds less effect, but not zero, and can add toxicity.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

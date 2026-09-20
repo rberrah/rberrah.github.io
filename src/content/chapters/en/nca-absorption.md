@@ -44,7 +44,7 @@ $$ F = \frac{\text{AUC}_{oral}/\text{Dose}_{oral}}{\text{AUC}_{IV}/\text{Dose}_{
 
 **Relative bioavailability** compares two oral formulations (test vs reference). **Cmax** and **Tmax** are read directly off the curve (no calculation).
 
-**Math —** in **bioequivalence**, the test/reference ratios of AUC and Cmax must fall within **80–125%** (90% CI).
+**Math —** in **bioequivalence**, the **90% CI for the test/reference ratio of geometric means** for AUC and Cmax, usually after log transformation, must lie within the applicable limits (often **80–125%**).
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="OralAbsorption" -->
@@ -62,6 +62,6 @@ Cmax depends on sampling.
 <!-- step:title="Key takeaways" -->
 - Cmax and Tmax describe the absorption rate (observed values).
 - Absolute F = oral vs IV AUC (dose-normalised); relative F = two formulations.
-- Bioequivalence: AUC and Cmax ratios within 80–125% (90% CI).
+- Bioequivalence: 90% CI for test/reference geometric-mean ratios of AUC and Cmax, usually on the log scale, within the applicable limits.
 - Sampling around the peak governs the reliability of Cmax/Tmax.
 <!-- /step -->

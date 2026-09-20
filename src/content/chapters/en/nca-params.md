@@ -52,6 +52,8 @@ The curve's **moments** give the mean residence time and the steady-state volume
 
 $$ MRT = \frac{\text{AUMC}}{\text{AUC}}, \qquad V_{ss} = CL\cdot MRT $$
 
+This expression is direct for an **IV bolus**. After an **IV infusion**, the input duration must be removed from the mean residence time: typically $MRT = AUMC/AUC - T_{inf}/2$ before computing $V_{ss}$.
+
 **Math —** $V_z$ depends on $\lambda_z$ (terminal phase); $V_{ss}$ is independent of the elimination route and often preferred for distribution.
 <!-- /step -->
 
@@ -69,7 +71,7 @@ After the oral route, CL and V are "apparent".
 
 <!-- step:title="Key takeaways" -->
 - CL = Dose/AUC∞ (IV); Vz = CL/λz.
-- MRT = AUMC/AUC; Vss = CL·MRT (preferred for distribution).
+- MRT = AUMC/AUC for IV bolus; after infusion, typically correct by −Tinf/2 before Vss = CL·MRT.
 - After the oral route, we get CL/F and V/F (apparent), because F is unknown.
 - Moments (AUMC) amplify terminal-sampling errors.
 <!-- /step -->

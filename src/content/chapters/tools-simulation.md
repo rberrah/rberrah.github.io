@@ -38,7 +38,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Une fois un modèle estimé, la moitié de sa valeur vient de la **simulation** : prédire des scénarios de dose, construire une VPC, générer des essais virtuels. Il faut un moteur **rapide** capable d'intégrer des ODE sur de grandes populations.
 
-En R, deux outils dominent : **mrgsolve** et **rxode2**.
+En R, deux outils sont largement utilisés : **mrgsolve** et **rxode2**.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="21_PopPKPlayground" -->

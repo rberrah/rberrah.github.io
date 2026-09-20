@@ -40,7 +40,7 @@ Comprendre ses paramètres (E0, Emax, EC50, n) éclaire tous les modèles plus c
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="EmaxHill" -->
-À faible concentration, chaque incrément de dose ajoute beaucoup d'effet. À forte concentration, les récepteurs **saturent** : l'effet plafonne.
+À faible concentration, chaque incrément de concentration ajoute beaucoup d'effet. À forte concentration, le modèle **sature** : l'effet plafonne. Cette saturation d'effet n'est pas forcément une saturation de récepteurs.
 
 D'où une courbe qui **monte puis sature** — l'inverse d'une droite. La sigmoïde de Hill ajoute une **raideur** réglable.
 <!-- /step -->
@@ -63,9 +63,9 @@ Pour $n = 1$ et $C \ll EC_{50}$, l'Emax se comporte comme un modèle **linéaire
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="EmaxHill" -->
-Un antihypertenseur : la baisse de pression suit la concentration presque sans délai. On estime $E_{max}$ (baisse maximale) et $EC_{50}$ (concentration cible).
+Un antihypertenseur : la baisse de pression suit la concentration presque sans délai. On estime $E_{max}$ (baisse maximale) et $EC_{50}$ (concentration donnant la moitié de l'effet maximal, pas une cible thérapeutique en soi).
 
-Au-delà de ~$5\times EC_{50}$, augmenter la dose n'apporte quasiment plus d'effet — mais peut ajouter de la toxicité.
+Avec Hill = 1, $5\times EC_{50}$ donne seulement $5/6$, soit **83,3 % d'$E_{max}$** : augmenter la dose ajoute moins d'effet, mais pas zéro, et peut ajouter de la toxicité.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

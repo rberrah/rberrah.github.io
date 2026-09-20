@@ -47,7 +47,7 @@ $$ F = \frac{\text{AUC}_{oral}/\text{Dose}_{oral}}{\text{AUC}_{IV}/\text{Dose}_{
 La **biodisponibilité relative** compare deux formulations orales (test vs référence). **Cmax** et **Tmax** se lisent directement sur la courbe (pas de calcul).
 
 :::math
-En **bioéquivalence**, on exige que les rapports test/référence de l'AUC et de la Cmax tombent dans **80–125 %** (IC 90 %).
+En **bioéquivalence**, on exige généralement que l'**IC 90 % du ratio test/référence des moyennes géométriques** d'AUC et de Cmax, le plus souvent après transformation log, soit contenu dans les limites applicables (souvent **80–125 %**).
 :::
 <!-- /step -->
 
@@ -68,6 +68,6 @@ Cmax et Tmax sont des valeurs **observées** : si aucun prélèvement n'a lieu p
 <!-- step:title="À retenir" -->
 - Cmax et Tmax décrivent la vitesse d'absorption (valeurs observées).
 - F absolue = AUC orale vs IV (dose-normalisées) ; F relative = deux formulations.
-- Bioéquivalence : rapports AUC et Cmax dans 80–125 % (IC 90 %).
+- Bioéquivalence : IC 90 % du ratio test/référence des moyennes géométriques d'AUC et Cmax, généralement sur l'échelle log, dans les limites applicables.
 - L'échantillonnage autour du pic conditionne la fiabilité de Cmax/Tmax.
 <!-- /step -->

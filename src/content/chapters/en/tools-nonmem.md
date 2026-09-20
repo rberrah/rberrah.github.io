@@ -28,7 +28,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-**NONMEM** (NONlinear Mixed-Effects Modeling) is pharmacometrics' **founding software**, created by **Beal & Sheiner** in the late 1970s. It remains the **regulatory reference**: most marketing dossiers rely on it.
+**NONMEM** (NONlinear Mixed-Effects Modeling) is pharmacometrics' **founding software**, created by **Beal & Sheiner** in the late 1970s. It remains **very widely used in regulatory submissions**: many marketing dossiers rely on it.
 
 Austere but **proven**, it imposes a way of thinking every pharmacometrician knows.
 <!-- /step -->
@@ -63,7 +63,7 @@ $ESTIMATION METHOD=1 INTER     ; FOCE with interaction
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="15_OFVGame" -->
-For a **regulatory submission**, a NONMEM model (control stream + output tables) is the format expected by the FDA and EMA. Its robustness and track record make it the **standard** for dossiers.
+For a **regulatory submission**, a NONMEM model (control stream + output tables) is very often used and easy for specialist teams to review. It is not a format required by FDA or EMA, but its robustness and track record make it a de facto standard in many dossiers.
 
 Around it, R tools (**Xpose**, **PsN**) handle diagnostics, bootstraps and VPCs.
 <!-- /step -->
@@ -75,7 +75,7 @@ The control file's rigour is a trap for beginners.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- NONMEM: the founding software (Beal & Sheiner), the regulatory reference.
+- NONMEM: the founding software (Beal & Sheiner), very widely used in regulatory dossiers without being required as an agency format.
 - Used via a control stream (`$` blocks), preprocessed by NM-TRAN; historical method FOCE-I.
 - R ecosystem around it (Xpose, PsN, Pirana) for diagnostics and bootstraps.
 - Powerful and proven, but austere; beware data errors and non-convergence.

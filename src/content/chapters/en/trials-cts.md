@@ -2,7 +2,7 @@
 id: "trials-cts"
 slug: "trials-cts"
 title: "Clinical trial simulation"
-description: "Testing a trial before running it: virtual populations, dosing schedules and probability of success."
+description: "Testing a trial before running it: virtual populations, dosing schedules and operating characteristics."
 summary: "Clinical trial simulation (CTS): generating virtual patients to compare designs and doses."
 track: "trials"
 order: 101
@@ -23,7 +23,7 @@ quiz:
       - "an average PK/PD model applied to median values only, without variability"
       - "covariates drawn independently, without accounting for their correlations"
     correct: 0
-  - prompt: "A trial's probability of success (power) depends mainly on..."
+  - prompt: "A simulated trial's conditional power depends mainly on..."
     options:
       - "the effect size, the variability and the sample size"
       - "the mean clearance and the volume of distribution of the drug"
@@ -40,7 +40,7 @@ It is the culmination of modelling: turning a model into a development **decisio
 <!-- step:title="Intuition" viz="12_VariabilitySandbox" -->
 We generate **virtual patients** — each with covariates and variability — then apply the simulated protocol and PK/PD model to them.
 
-By repeating the trial thousands of times, we obtain the **distribution** of possible results, hence the probability of meeting the endpoint (the "power").
+By repeating the trial thousands of times under a fixed scenario, we obtain the **distribution** of possible results, hence an operating characteristic: the conditional power to meet the endpoint.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="12_VariabilitySandbox" -->
@@ -50,9 +50,9 @@ A CTS chains three blocks:
 2. a **PK/PD model** (with IIV, IOV, residual error);
 3. a **trial model** (schedule, inclusion criteria, analysis, stopping rules).
 
-We then estimate metrics: **probability of success**, optimal dose, required sample size.
+We then estimate metrics: **conditional power / operating characteristics**, optimal dose, required sample size. Use PoS/assurance/predictive probability for frameworks that explicitly integrate the corresponding uncertainty.
 
-$$ \widehat{PoS} = \frac{1}{N_{sim}}\sum_{s=1}^{N_{sim}} \mathbf{1}(\text{trial } s \text{ positive}) $$
+$$ \widehat{Power}_{scenario} = \frac{1}{N_{sim}}\sum_{s=1}^{N_{sim}} \mathbf{1}(\text{trial } s \text{ positive}) $$
 
 **Ref —** Holford N., Kimko H. et al. — the clinical trial simulation framework; used for adaptive designs and dose selection.
 <!-- /step -->
@@ -72,6 +72,6 @@ The simulation inherits the model's weaknesses.
 <!-- step:title="Key takeaways" -->
 - CTS "replays" a trial on virtual populations to inform the design.
 - Three blocks: virtual population + PK/PD model + trial model.
-- Provides probability of success, dose and sample size.
+- Provides conditional power/operating characteristics, dose and sample size; PoS/assurance only if uncertainty is integrated.
 - Propagate parameter uncertainty, otherwise false confidence.
 <!-- /step -->
