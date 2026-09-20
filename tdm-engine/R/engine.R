@@ -955,8 +955,15 @@ simulate_model_distribution <- function(
   include_timing = FALSE,
   timing_refits = 20L,
   concentration_threshold = NA_real_,
-  seed = 381
+  seed = 381,
+  return_profiles = FALSE,
+  hours_per_model_time = 1,
+  concentration_column = NULL,
+  concentration_scale = 1
 ) {
+  if (!is.finite(hours_per_model_time) || hours_per_model_time <= 0 ||
+      !is.finite(concentration_scale) || concentration_scale <= 0) stop("Invalid profile unit conversion.")
+  if (return_profiles && include_residual) stop("Exposure profiles require residual error disabled.")
   eta_draws <- posterior_eta_draws(
     fit,
     replicates,
@@ -982,19 +989,27 @@ simulate_model_distribution <- function(
   warmup_time <- warmup_doses * interval
   event <- mrgsolve::ev(
     amt = dose,
-    ii = interval,
+    ii = interval / hours_per_model_time,
     cmt = fit$contract$adm_cmt,
     ss = if (isTRUE(fit$split_lego)) 0 else 1,
     addl = warmup_doses + max(0, floor((horizon - 1e-8) / interval)),
-    rate = if (infusion > 0) dose / infusion else 0
+    rate = if (infusion > 0) dose / infusion * hours_per_model_time else 0
   )
   simulation <- model |>
     mrgsolve::ev(event) |>
-    mrgsolve::mrgsim(start = warmup_time, end = warmup_time + horizon, delta = delta, nid = replicates, recsort = 3) |>
+    mrgsolve::mrgsim(start = warmup_time / hours_per_model_time, end = (warmup_time + horizon) / hours_per_model_time,
+      delta = delta / hours_per_model_time, nid = replicates, recsort = 3) |>
     as.data.frame()
-  simulation$time <- simulation$time - warmup_time
+  simulation$time <- simulation$time * hours_per_model_time - warmup_time
   simulation <- simulation[simulation$time >= -1e-8 & simulation$time <= horizon + 1e-8, , drop = FALSE]
-  column <- pick_concentration_column(simulation)
+  column <- concentration_column %||% pick_concentration_column(simulation)
+  if (!column %in% names(simulation)) stop("Concentration output is unavailable.")
+  if (return_profiles) {
+    values <- simulation[[column]] * concentration_scale
+    if (any(!is.finite(values)) || any(values < -1e-6)) stop("Invalid simulated concentrations.")
+    return(list(profiles = data.frame(ID = simulation$ID, time = simulation$time, concentration = pmax(0, values)),
+      posterior_available = eta_draws$available, uncertainty_mode = eta_draws$mode))
+  }
   if (use_fixed_residual) set.seed(seed + 41L)
   rows <- lapply(split(simulation, simulation$ID), function(profile) {
     values <- pmax(0, profile[[column]])

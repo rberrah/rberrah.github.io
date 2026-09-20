@@ -16,6 +16,26 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 
 ## Portail Academique (2026-09-14 / 15)
 
+### Infectiologie PK/PD (2026-09-20)
+
+- [x] Ajouter l'atelier infectiologie dans PD et le pont vers Shiny, avec bibliotheque PK/code libre ou reprise du TDM.
+- [x] Calculer les indices PK/PD et comparer deux posologies stationnaires en PTA populationnelle/posterieure, y compris model averaging.
+- [x] Tester les indices analytiques, unites, alea reproductible, covariance, invalidation et le connecteur EUCAST en lecture seule.
+- [x] Verifier le transfert site vers Shiny, rapports, invalidation, mobile/ordinateur et regressions du moteur TDM.
+- [x] Simplifier les champs CMI, k et cible; remplacer les deux posologies par une posologie actuelle et une grille min/max/pas/intervalles.
+- [x] Ajouter l'illustration graphique du site et le retour des vraies courbes d'exposition/PTA depuis R, avec invalidation.
+- [x] Placer PD generale avant oncologie et infectiologie; separer covariables patient et coefficients avances; prendre les unites de la bibliotheque automatiquement.
+- [x] Raccorder les trois ateliers a l'estimation PK mapbayr dans Analyse, avec retour a l'atelier et reprise du posterior. Test d'une vraie estimation et absence de substitution ML.
+- [x] Alleger l'oncologie : toxicite optionnelle, libelles explicites et reglages avances replies. Verifier les cinq parcours navigateur cibles, dont les unites d'un code PK importe, et les tests R PK/PD, PTA, oncologie et TDM.
+- [x] Remplacer les concentrations d'illustration par la PK IV du modele : E(t)/C(t) a deux axes, puis E(C); retour des profils R pour les PK libres.
+- [x] Ajouter une PTA IV 1 compartiment sur le site, avec variabilite PK explicite; remplacer AntibioMIC par des references methodologiques primaires.
+- [x] Ajouter les blocs Exposition / CMI / Cible dans Shiny et une grille de doses/intervalles avec selection du comparateur en oncologie.
+- [x] Remplacer la saisie libre de la mesure oncologique par un menu Tumeur / Neutrophiles (ANC), avec validation serveur.
+- [ ] Deploiements separes du site et de Shiny autorises le 20 septembre; verifier les versions en ligne.
+- [ ] Validation clinique, cibles sourcees par population/site infectieux, liaison variable aux proteines, modeles de toxicite et de destruction bacterienne.
+
+Perimetre, sources et limites : [infectiologie](docs/infectiology.md).
+
 ### Publications Et Talks (2026-09-15, local)
 
 - [x] Ajouter neuf volets de lecture : syntheses sourcees des articles et posters, contexte de la correspondance, abstracts des deux manuscrits fournis par l'auteur.

@@ -155,11 +155,8 @@ onco_fit <- function(config, data, estimate = c("KILL", "SLOPE"), pk_context = N
     objective = sum(residual(fit$par)^2), ill_conditioned = singular, boundary = boundary)
 }
 
-onco_compare <- function(config, fraction = 0.75, delay = 0, interval = config$interval, pk_context = NULL) {
-  config <- onco_config(config)
-  schedules <- list(maintain = onco_schedule(config), change = onco_schedule(config, fraction, delay, interval))
-  curves <- lapply(schedules, function(doses) onco_simulate(config, doses, pk_context = pk_context))
-  metrics <- do.call(rbind, lapply(names(curves), function(name) {
+onco_metrics <- function(config, curves, schedules) {
+  do.call(rbind, lapply(names(curves), function(name) {
     data <- curves[[name]]
     future <- data[data$time >= config$decision, ]
     ratio <- tail(data$tumor_ratio, 1)
@@ -169,11 +166,54 @@ onco_compare <- function(config, fraction = 0.75, delay = 0, interval = config$i
       tumor_goal_met = ratio <= config$tumor_goal, anc_goal_met = if (config$toxicity) nadir >= config$anc_floor else NA,
       future_dose_mg = sum(schedules[[name]]$amount[schedules[[name]]$time >= config$decision]))
   }))
+}
+
+onco_compare <- function(config, fraction = 0.75, delay = 0, interval = config$interval, pk_context = NULL) {
+  config <- onco_config(config)
+  schedules <- list(maintain = onco_schedule(config), change = onco_schedule(config, fraction, delay, interval))
+  curves <- lapply(schedules, function(doses) onco_simulate(config, doses, pk_context = pk_context))
+  metrics <- onco_metrics(config, curves, schedules)
   curves$untreated <- onco_simulate(config, config$history[FALSE, ], exposure = data.frame(time = c(0, config$horizon), concentration = 0))
   pk_metadata <- if (is.null(pk_context)) NULL else c(pk_context[intersect(names(pk_context), c("label", "route", "adm_cmt", "time_unit", "concentration", "concentration_scale"))],
     list(parameters = as.list(mrgsolve::param(pk_context$model))))
   list(config = config, curves = curves, schedules = schedules, metrics = metrics, pk = pk_metadata,
     change = list(fraction = fraction, delay = delay, interval = interval))
+}
+
+onco_compare_grid <- function(config, grid, delay = 0, pk_context = NULL) {
+  config <- onco_config(config)
+  minimum <- ddi_numeric(grid$min, "Dose min", 0, 1e5)
+  maximum <- ddi_numeric(grid$max, "Dose max", minimum, 1e5)
+  step <- ddi_numeric(grid$step, "Dose step", 1e-6, 1e5)
+  delay <- ddi_numeric(delay, "Delay (days)", 0, min(180, config$horizon - config$decision - 1e-8))
+  intervals <- sort(unique(suppressWarnings(as.numeric(unlist(grid$intervals)))))
+  if (!length(intervals) || any(!is.finite(intervals) | intervals < max(.25, config$infusion / 24) | intervals > 180)) stop("Choose valid cycle intervals (days), not shorter than the infusion.")
+  count <- floor((maximum - minimum) / step + 1e-9) + 1
+  if (!is.finite(count) || count * length(intervals) > 24) stop("Oncology grid: maximum 24 candidates.")
+  candidates <- expand.grid(dose = minimum + seq.int(0, count - 1) * step, interval = intervals)
+  candidates$scenario <- paste0("candidate_", seq_len(nrow(candidates)))
+  regimens <- rbind(data.frame(dose = config$dose, interval = config$interval, scenario = "maintain"), candidates)
+  schedules <- setNames(lapply(seq_len(nrow(regimens)), function(i) {
+    candidate <- config; candidate$dose <- regimens$dose[i]
+    onco_schedule(candidate, delay = if (i == 1) 0 else delay, interval = regimens$interval[i])
+  }), regimens$scenario)
+  curves <- lapply(schedules, function(doses) onco_simulate(config, doses, pk_context = pk_context))
+  metrics <- cbind(regimens, onco_metrics(config, curves, schedules)[, -1, drop = FALSE])
+  metrics$targets_met <- metrics$tumor_goal_met & (!config$toxicity | metrics$anc_goal_met)
+  curves$untreated <- onco_simulate(config, config$history[FALSE, ], exposure = data.frame(time = c(0, config$horizon), concentration = 0))
+  pk_metadata <- if (is.null(pk_context)) NULL else c(pk_context[intersect(names(pk_context), c("label", "route", "adm_cmt", "time_unit", "concentration", "concentration_scale"))], list(parameters = as.list(mrgsolve::param(pk_context$model))))
+  list(config = config, grid = grid, delay = delay, regimens = regimens, curves = curves, schedules = schedules, metrics = metrics, pk = pk_metadata)
+}
+
+onco_grid_selection <- function(result, selected) {
+  if (!selected %in% result$regimens$scenario || selected == "maintain") stop("Choose a candidate regimen.")
+  pair <- result
+  pair$curves <- setNames(result$curves[c("maintain", selected, "untreated")], c("maintain", "change", "untreated"))
+  pair$schedules <- setNames(result$schedules[c("maintain", selected)], c("maintain", "change"))
+  pair$metrics <- result$metrics[match(c("maintain", selected), result$metrics$scenario), setdiff(names(result$metrics), c("dose", "interval", "targets_met"))]
+  pair$metrics$scenario <- c("maintain", "change")
+  pair$change <- result$regimens[result$regimens$scenario == selected, ]
+  pair
 }
 
 onco_model_code <- function(config) {
@@ -195,16 +235,18 @@ onco_model_code <- function(config) {
     if (!external) "$TABLE double CP=CENT/V;", "$CAPTURE CP"), collapse = "\n")
 }
 
-onco_export_script <- function(config, fraction = 0.75, delay = 0, interval = config$interval, pk_context = NULL) {
+onco_export_script <- function(config, fraction = 0.75, delay = 0, interval = config$interval, pk_context = NULL, grid = NULL) {
   dump <- function(x) paste(capture.output(dput(x)), collapse = "\n")
-  helpers <- c("ddi_numeric", "pd_pk_profile", "onco_config", "onco_schedule", "onco_exposure", "onco_rhs", "onco_simulate", "onco_compare")
+  helpers <- c("ddi_numeric", "pd_pk_profile", "onco_config", "onco_schedule", "onco_exposure", "onco_rhs", "onco_simulate", "onco_metrics", "onco_compare", "onco_compare_grid")
   paste(c("# Exploratory oncology simulation. Requires deSolve; time in days, dose in mg.",
     "# Selected PK + tumor growth/inhibition + modified Friberg structure.",
     "# Not a validated anticancer-drug model. Contains the explicitly exported dose history.",
     "`%||%` <- function(x,y) if (is.null(x) || !length(x)) y else x", paste0("ONCO_DEFAULTS <- ", dump(ONCO_DEFAULTS)),
     vapply(helpers, function(name) paste0(name, " <- ", paste(deparse(get(name, mode = "function")), collapse = "\n")), character(1)),
     pd_pk_export_setup(pk_context), paste0("config <- ", dump(config)),
-    paste0("result <- onco_compare(config, fraction=", fraction, ", delay=", delay, ", interval=", interval, ", pk_context=pk_context)"),
+    if (is.null(grid)) paste0("result <- onco_compare(config, fraction=", fraction, ", delay=", delay, ", interval=", interval, ", pk_context=pk_context)") else
+      paste0("result <- onco_compare_grid(config, grid=", dump(grid), ", delay=", delay, ", pk_context=pk_context)"),
     "print(result$metrics)", "with(result$curves$maintain, plot(time,TUMOR,type='l',lty=2,xlab='Day',ylab='Tumor size'))",
-    "with(result$curves$change, lines(time,TUMOR,col='#196f76'))"), collapse = "\n\n")
+    if (is.null(grid)) "with(result$curves$change, lines(time,TUMOR,col='#196f76'))" else
+      "for (name in setdiff(names(result$curves),c('maintain','untreated'))) with(result$curves[[name]], lines(time,TUMOR,col='#196f76'))"), collapse = "\n\n")
 }

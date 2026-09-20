@@ -1,27 +1,81 @@
-pd_pk_ui <- function(id, t) {
+pd_builtin_iv_context <- function(volume, clearance, soloc, cache) {
+  volume <- ddi_numeric(volume, "V", 1e-6, 1e6)
+  clearance <- ddi_numeric(clearance, "CL", 1e-6, 1e6)
+  # Compile one trusted Lego structure per session; changing CL/V only updates parameters.
+  specification <- list(version = 3, nodes = list(list(id = 1, kind = "central", name = "CENT", vol = 20, dose = 100)),
+    edges = list(list(from = 1, to = "OUT", kinetics = "first_order", eliminationParameterization = "clearance", cl = 4, k = .2)), covariates = list())
+  code <- safe_lego_model_code(specification = specification)
+  model <- compile_model(custom_code = code, allow_custom = FALSE, custom_soloc = soloc, custom_cache = cache)
+  model <- safe_param(model, list(TV_v_L1_CENT = volume, TV_cl_L1_CENT = clearance))
+  list(id = "custom-pk", label = "IV / 1 CMT", model = mrgsolve::zero_re(model), code = code,
+    adm_cmt = 1L, route = "IV", source = "code", concentration = "CONC_L1_CENT", time_unit = "h", concentration_scale = 1,
+    covariate_names = character())
+}
+
+pd_pk_units <- function(id, scale = 1, time_unit = "h") {
+  if (id %in% MODEL_CATALOG$id) {
+    record <- model_record(id)
+    unit <- record$concentrationUnit[[1]]
+    return(list(time_unit = record$timeUnit[[1]], concentration_scale = if (unit == "ng/mL") .001 else 1, unit = unit))
+  }
+  scale <- ddi_numeric(scale, "PK concentration unit", 1e-9, 1e9)
+  list(time_unit = time_unit, concentration_scale = scale,
+    unit = switch(as.character(scale), "1" = "mg/L", "0.001" = "ng/mL", "1000" = "mg/mL", "custom"))
+}
+
+pd_pk_tdm_context <- function(fit, scale = 1) {
+  if (is.null(fit$estimate)) stop("A Bayesian PK fit is required. Run the TDM analysis first.")
+  # PD uses the MAP estimate, never the experimental ML override.
+  fit$ml_eta_override <- NULL
+  value <- ddi_fit_context(fit)
+  captures <- model_capture_names(value$model)
+  preferred <- intersect(c("CP", "CONC", "IPRED", "CONC_PLASMA", "CONCENTRATION", "DV"), captures)
+  if (!length(preferred)) stop("No PK concentration output found.")
+  value$concentration <- preferred[[1]]
+  utils::modifyList(value, pd_pk_units(value$id, scale))
+}
+
+pd_pk_ui <- function(id, t, allow_tdm = TRUE) {
   ns <- NS(id)
   tagList(
-    radioButtons(ns("source"), t("Source PK", "PK source"), c("MIPD" = "library", "mrgsolve / Lego" = "code"), inline = TRUE),
+    radioButtons(ns("source"), t("Source PK", "PK source"), c("MIPD" = "library", "mrgsolve / Lego" = "code", if (allow_tdm) c("TDM / MAP-BE" = "tdm")), inline = TRUE),
     conditionalPanel(sprintf("input['%s']=='library'", ns("source")),
-      selectInput(ns("model"), t("Modele PK", "PK model"), catalog_choices_i18n(), DEFAULT_MODEL), uiOutput(ns("route_ui"))),
+      selectInput(ns("model"), t("Modele PK", "PK model"), catalog_choices_i18n(lang = t("fr", "en")), "vanco_pkjust"), uiOutput(ns("route_ui"))),
     conditionalPanel(sprintf("input['%s']=='code'", ns("source")),
       textAreaInput(ns("code"), "mrgsolve / C++", rows = 8),
       selectInput(ns("custom_route"), t("Voie", "Route"), c("IV", "Oral"))),
-    actionButton(ns("load"), t("Charger / compiler la PK", "Load / compile PK"), icon = icon("gears")),
+    conditionalPanel(sprintf("input['%s']!='tdm'", ns("source")),
+      actionButton(ns("load"), t("Charger / compiler la PK", "Load / compile PK"), icon = icon("gears")),
+      actionButton(ns("estimate"), t("Estimer la PK avec le TDM", "Estimate PK with TDM"), icon = icon("chart-line"))),
+    conditionalPanel(sprintf("input['%s']=='tdm'", ns("source")), uiOutput(ns("tdm_models"))),
     uiOutput(ns("status")),
-    selectInput(ns("time_unit"), t("Unite de temps du code PK", "PK code time unit"), c("h" = "h", "day" = "day")),
-    numericInput(ns("scale"), t("Facteur de conversion des concentrations vers les unites PD", "Concentration conversion factor to PD units"), 1, min = 1e-9),
+    conditionalPanel(sprintf("input['%s']=='code'", ns("source")),
+      selectInput(ns("time_unit"), t("Unite de temps du code PK", "PK code time unit"), c("h" = "h", "day" = "day"))),
+    uiOutput(ns("units")),
     uiOutput(ns("outputs")),
-    accordion(accordion_panel(t("Parametres et covariables PK fixes", "Fixed PK parameters and covariates"), uiOutput(ns("parameters"))))
+    uiOutput(ns("covariates")),
+    conditionalPanel(sprintf("input['%s']!='tdm'", ns("source")),
+      tags$details(tags$summary(t("Parametres populationnels avances", "Advanced population parameters")), uiOutput(ns("parameters"))))
   )
 }
 
-pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL)) {
+pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL), analysis_store = reactive(NULL), open_tdm = NULL, allow_tdm = TRUE) {
   moduleServer(id, function(input, output, session) {
     t <- function(fr, en) app_t(app_language_from_query(session$clientData$url_search %||% ""), fr, en)
     loaded <- reactiveVal(NULL)
     generation <- reactiveVal(0L)
     pending <- reactiveVal(NULL)
+    output$tdm_models <- renderUI({
+      fits <- successful_fits(analysis_store()$fits %||% list())
+      if (!length(fits)) return(p(t("Aucune estimation. Lancez une analyse TDM dans Analyse.", "No estimate. Run a TDM analysis in Analysis.")))
+      selectInput(session$ns("tdm_model"), t("Estimation bayesienne", "Bayesian estimate"), setNames(names(fits), vapply(fits, `[[`, character(1), "label")))
+    })
+    observeEvent(input$estimate, tryCatch({
+      if (is.null(open_tdm)) stop("TDM navigation is unavailable.")
+      if (identical(input$source, "code") && identical(input$time_unit, "day")) stop(t("L'analyse TDM utilise des heures. Convertissez d'abord les constantes de temps du code PK en heures.", "TDM analysis uses hours. Convert PK code time constants to hours first."))
+      open_tdm(list(source = input$source, id = input$model, route = if (input$source == "code") input$custom_route else input$route, code = input$code))
+      if (allow_tdm) updateRadioButtons(session, "source", selected = "tdm")
+    }, error = function(e) showNotification(conditionMessage(e), type = "error", duration = 12)))
     output$route_ui <- renderUI({
       model <- input$model %||% DEFAULT_MODEL
       routes <- model_routes(model_record(model))
@@ -38,7 +92,7 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL)) {
         updateSelectInput(session, "custom_route", selected = spec$route %||% "IV")
       } else updateSelectInput(session, "model", selected = spec$id)
       updateSelectInput(session, "time_unit", selected = spec$time_unit %||% "h")
-      updateNumericInput(session, "scale", value = spec$concentration_scale %||% 1)
+      updateSelectInput(session, "scale", selected = as.character(spec$concentration_scale %||% 1))
     })
     observeEvent(input$load, tryCatch({
       value <- withProgress(message = t("Chargement PK", "Loading PK"), value = 0.3, {
@@ -49,14 +103,16 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL)) {
           if (!length(model@cmtL) || !length(model_capture_names(model))) stop("PK requires compartments and a captured concentration.")
           adm <- tagged_compartment(model, "ADM")
           list(id = "custom-pk", label = "mrgsolve / Lego", model = model, code = code,
-            adm_cmt = if (is.finite(adm)) adm else 1L, route = input$custom_route, source = "code")
+            adm_cmt = if (is.finite(adm)) adm else 1L, route = input$custom_route, source = "code", covariate_names = parse_covariates(code)$name)
         } else ddi_library_context(input$model, input$route)
       })
       generation(generation() + 1L)
       value$generation <- generation()
       loaded(value)
+      pending(NULL)
     }, error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10)))
     valid_loaded <- reactive({
+      if (identical(input$source, "tdm")) return(NULL)
       value <- loaded()
       if (is.null(value)) return(NULL)
       if (identical(input$source, "code")) {
@@ -64,20 +120,48 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL)) {
       } else if (!identical(value$id, input$model)) return(NULL)
       value
     })
-    output$status <- renderUI(p(if (is.null(valid_loaded())) t("PK non chargee ou code modifie.", "PK not loaded or code modified.") else valid_loaded()$label))
+    output$status <- renderUI({
+      if (identical(input$source, "tdm")) return(p(t("PK issue de mapbayr; covariables de la derniere analyse. Modifiez les donnees dans Analyse puis relancez l'estimation.", "PK from mapbayr; covariates from the latest analysis. Edit data in Analysis and rerun estimation.")))
+      p(if (is.null(valid_loaded())) t("PK non chargee ou code modifie.", "PK not loaded or code modified.") else valid_loaded()$label)
+    })
+    output$units <- renderUI({
+      id <- if (identical(input$source, "tdm")) input$tdm_model %||% "" else if (identical(input$source, "library")) input$model %||% "" else ""
+      if (id %in% MODEL_CATALOG$id) return(p(paste(t("Unites PK :", "PK units:"), "h /", pd_pk_units(id)$unit)))
+      selected <- as.character(pending()$concentration_scale %||% isolate(input$scale) %||% 1)
+      choices <- c("mg/L (= ug/mL)" = "1", "ng/mL (= ug/L)" = "0.001", "mg/mL" = "1000")
+      if (!selected %in% unname(choices)) choices <- c(choices, setNames(selected, t("Unite de l'atelier importe", "Imported workshop unit")))
+      selectInput(session$ns("scale"), t("Unite des concentrations PK", "PK concentration unit"), choices, selected)
+    })
     output$outputs <- renderUI({
       value <- valid_loaded(); shiny::req(value)
       captures <- model_capture_names(value$model)
-      preferred <- intersect(c("CP", "CONC", "CONC_PLASMA", "CONCENTRATION", "DV"), captures)
+      if (value$id %in% MODEL_CATALOG$id) return(NULL)
+      preferred <- intersect(c("CP", "CONC", "IPRED", "CONC_PLASMA", "CONCENTRATION", "DV"), captures)
       tagList(selectInput(session$ns("concentration"), t("Sortie concentration", "Concentration output"), captures, if (length(preferred)) preferred[[1]] else captures[[1]]),
         if (identical(value$id, "custom-pk")) selectInput(session$ns("adm"), t("Compartiment d'administration", "Administration compartment"), setNames(seq_along(value$model@cmtL), value$model@cmtL), value$adm_cmt))
     })
     output$parameters <- renderUI({
       value <- valid_loaded(); shiny::req(value)
       p <- as.list(mrgsolve::param(value$model))
-      div(class = "pd-parameter-grid", lapply(names(p), function(name) numericInput(session$ns(paste0("param_", value$generation, "_", name)), name, p[[name]], step = NA)))
+      names <- setdiff(names(p), c(value$covariate_names, grep("^ETA[0-9]+$", names(p), value = TRUE)))
+      div(class = "pd-parameter-grid", lapply(names, function(name) numericInput(session$ns(paste0("param_", value$generation, "_", name)), name, p[[name]], step = NA)))
+    })
+    output$covariates <- renderUI({
+      value <- valid_loaded(); shiny::req(value)
+      p <- as.list(mrgsolve::param(value$model))
+      covs <- parse_covariates(value$code)
+      if (!nrow(covs)) return(NULL)
+      tagList(h4(t("Covariables patient", "Patient covariates")), lapply(seq_len(nrow(covs)), function(i) {
+        name <- covs$name[i]
+        numericInput(session$ns(paste0("param_", value$generation, "_", name)), paste(name, covs$description[i], sep = " : "), p[[name]], step = NA)
+      }))
     })
     context <- reactive({
+      if (identical(input$source, "tdm")) {
+        fit <- successful_fits(analysis_store()$fits %||% list())[[input$tdm_model %||% ""]]
+        if (is.null(fit)) stop(t("Selectionnez une estimation TDM disponible.", "Select an available TDM estimate."))
+        return(pd_pk_tdm_context(fit, input$scale %||% 1))
+      }
       value <- valid_loaded()
       if (is.null(value)) stop(t("Chargez / compilez le modele PK selectionne.", "Load / compile the selected PK model."))
       if (identical(value$id, "custom-pk")) {
@@ -89,12 +173,10 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL)) {
       for (name in names(p)) p[[name]] <- ddi_numeric(input[[paste0("param_", value$generation, "_", name)]] %||% p[[name]], name)
       value$model <- mrgsolve::param(value$model, p)
       captures <- model_capture_names(value$model)
-      preferred <- intersect(c("CP", "CONC", "CONC_PLASMA", "CONCENTRATION", "DV"), captures)
-      value$concentration <- input$concentration %||% if (length(preferred)) preferred[[1]] else captures[[1]]
+      preferred <- intersect(c("CP", "CONC", "IPRED", "CONC_PLASMA", "CONCENTRATION", "DV"), captures)
+      value$concentration <- if (value$id %in% MODEL_CATALOG$id) preferred[[1]] else input$concentration %||% if (length(preferred)) preferred[[1]] else captures[[1]]
       if (!value$concentration %in% captures) stop("Select the PK concentration output.")
-      value$time_unit <- input$time_unit %||% "h"
-      value$concentration_scale <- ddi_numeric(input$scale %||% 1, "Concentration scale", 1e-9, 1e9)
-      value
+      utils::modifyList(value, pd_pk_units(value$id, input$scale %||% 1, input$time_unit %||% "h"))
     })
     session$onSessionEnded(function() { loaded(NULL); pending(NULL) })
     context

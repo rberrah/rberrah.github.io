@@ -8,6 +8,7 @@
   import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec, basicIvModel } from '$lib/tdm/workbenches';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
+  import InfectionWorkbench from './InfectionWorkbench.svelte';
   import LabTransfer from './LabTransfer.svelte';
   import { mrgsolveCode } from '$lib/labs/model.js';
 
@@ -25,14 +26,15 @@
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => english ? en : fr;
   let tab = $state('model1');
-  let pdMode = $state('onco');
+  let pdMode = $state('pd');
   let pdBlock = $state('exposure');
   let mounted = $state(false);
   let incomingPk = $state(/** @type {any} */ (null));
   let model1 = $state({ source: 'library', id: 'tacrolimus_woillard_ddi', route: 'Oral', code: '' });
   let model2 = $state({ source: 'library', id: 'voriconazole_vandenborn_ddi', route: 'Oral', code: '' });
-  let pkOnco = $state({ source: 'library', id: 'vanco_revilla', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
-  let pkPd = $state({ source: 'library', id: 'vanco_revilla', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
+  let pkOnco = $state({ source: 'library', id: 'vanco_pkjust', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
+  let pkPd = $state({ source: 'library', id: 'vanco_pkjust', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
+  let pkInfection = $state(/** @type {any} */ ({ source: 'builtin', v: 20, cl: 4, id: 'vanco_pkjust', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 }));
   let ddi = $state({ type: 'tdi', target: 'TVCL_TAC', factor: 0.5, strength: 1, c50: 1, hill: 2, kdeg: 0.02, kinact: 0.1,
     start_day: 3, stop_day: 10, followup_days: 3, affected: { dose: 3, interval: 12, infusion: 0 }, driver: { dose: 200, interval: 12, infusion: 0 } });
   /** @type {{name: string, value: number}[]} */
@@ -43,7 +45,7 @@
     if (values.length && !values.some((value) => value.name === ddi.target)) ddi.target = (values.find((value) => /CL/i.test(value.name)) ?? values.find((value) => /^TV_k_.+_e$/i.test(value.name)) ?? values[0]).name;
   }
   let mechanism = $derived(ddiMechanisms.find((item) => item.id === ddi.type) ?? ddiMechanisms[0]);
-  let onco = $state({ growth: 'exponential', toxicity: true, free_pk: false, parameters: { ...oncoDefaults }, horizon: 84, decision: 42, dose: 100, interval: 21, infusion: 1, anc_floor: 1, tumor_goal: 0.8,
+  let onco = $state({ growth: 'exponential', toxicity: false, free_pk: false, parameters: { ...oncoDefaults }, horizon: 84, decision: 42, dose: 100, interval: 21, infusion: 1, anc_floor: 1, tumor_goal: 0.8,
     history: [{ time: 0, amount: 100, infusion: 1 }, { time: 21, amount: 100, infusion: 1 }] });
   let pd = $state({ type: 'emax', delay: false, exposure: 'iv1', v: 10, cl: 1, c0: 10, kel: 0.1, horizon: 24, regimen: {dose:100, interval:24, infusion:0}, parameters: /** @type {Record<string, number>} */ ({ E0: 100, SLOPE: 2, EMAX: 50, EC50: 2, HILL: 1.5, KE0: 0.5, KOUT: 0.15 }) });
   const pdTypes = ['linear', 'emax', 'hill', 'inhibit_in', 'stimulate_in', 'inhibit_out', 'stimulate_out'];
@@ -51,6 +53,8 @@
   const pdEn = ['Linear', 'Emax', 'Hill', 'Inhibit production', 'Stimulate production', 'Inhibit loss', 'Stimulate loss'];
   let activePd = $derived(['E0', ...(pd.type === 'linear' ? ['SLOPE'] : ['EMAX', 'EC50']), ...(pd.type === 'hill' ? ['HILL'] : []), ...(pd.delay ? ['KE0'] : []), ...(/_(in|out)$/.test(pd.type) ? ['KOUT'] : [])]);
   let activeOnco = $derived(['V', 'CL', 'T0', 'KG', ...(onco.growth === 'exponential' ? [] : ['CAP']), 'KILL', 'EC50', 'RES', ...(onco.toxicity ? ['ANC0', 'MTT', 'GAMMA', 'SLOPE'] : [])]);
+  /** @type {Record<string,string>} */
+  let oncoNames = $derived({ ...oncoLabels, T0: t('Taille tumorale initiale (mm)', 'Initial tumor size (mm)'), KG: t('Vitesse de croissance (1/jour)', 'Growth rate (1/day)'), KILL: t('Effet maximal du traitement (1/jour)', 'Maximum treatment effect (1/day)'), CAP: t('Taille limite (mm)', 'Limiting size (mm)'), ANC0: t('Neutrophiles initiaux (10^9/L)', 'Initial neutrophils (10^9/L)') });
   let title = $derived(view === 'ddi' ? t('Interactions médicamenteuses', 'Drug interactions') : t('Pharmacodynamie', 'Pharmacodynamics'));
   let spec = $derived(view === 'ddi' ? workshopSpec('ddi', ddi, [model1, model2]) : workshopSpec(pdMode, pdMode === 'onco' ? onco : { ...pd, exposure: 'pk', c0: pd.exposure === 'iv1' ? pd.regimen.dose / pd.v : pd.c0 }, pdMode === 'onco' ? (onco.free_pk ? [pkOnco] : undefined) : [pd.exposure === 'pk' ? pkPd : basicIvModel(pd.v, pd.cl)]));
   let returned = $state(/** @type {{key: string, data: any} | null} */ (null));
@@ -61,7 +65,7 @@
   let cleanup = () => {};
   onMount(() => {
     const draft = readDraft(`workbench:${view}`);
-    if (draft) ({ tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, ddi, onco, pd } = draft);
+    if (draft) { ({ tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, ddi, onco, pd } = draft); if (draft.pkInfection) pkInfection = draft.pkInfection; }
     if (pd.exposure === 'exponential') {
       pd.v = 10; pd.cl = pd.kel * pd.v; pd.regimen.dose = pd.c0 * pd.v; pd.exposure = 'iv1';
     }
@@ -70,7 +74,7 @@
   });
   onDestroy(() => {
     cleanup();
-    if (mounted) writeDraft(`workbench:${view}`, { tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, ddi, onco, pd });
+    if (mounted) writeDraft(`workbench:${view}`, { tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, pkInfection, ddi, onco, pd });
   });
   function applyIncomingPk() {
     if (!incomingPk) return;
@@ -81,7 +85,8 @@
     } else if (pdMode === 'onco') {
       pkOnco = model; onco.free_pk = true; pdBlock = 'exposure';
       if (model.route === 'Oral') { onco.infusion = 0; onco.history.forEach(dose => dose.infusion = 0); }
-    } else { pkPd = model; pd.exposure = 'pk'; pdBlock = 'exposure'; }
+    } else if (pdMode === 'infection') { pkInfection = model; }
+    else { pkPd = model; pd.exposure = 'pk'; pdBlock = 'exposure'; }
     takeDraft(`incoming:${view}:pk`);
     incomingPk = null;
   }
@@ -110,19 +115,24 @@
     <section class="incoming" aria-label={t('Modele PK transmis', 'Transferred PK model')}>
       <strong>{t('Modele PK transmis', 'Transferred PK model')} / {incomingPk.model.route}</strong>
       <p>{t('Les covariables et le code du modele sont repris. Verifiez les unites et les doses de cet atelier ; le calendrier de simulation PK ne les remplace pas.', 'Model code and covariates are transferred. Check this workshop\'s units and doses; the PK simulation schedule does not replace them.')}</p>
-      <button type="button" data-testid="apply-pk" onclick={applyIncomingPk}><ArrowRight size={16}/>{view === 'ddi' ? `PK ${incomingPk.side}` : pdMode === 'onco' ? t('Reprendre en oncologie', 'Use in oncology') : t('Reprendre en PD generale', 'Use in general PD')}</button>
+      <button type="button" data-testid="apply-pk" onclick={applyIncomingPk}><ArrowRight size={16}/>{view === 'ddi' ? `PK ${incomingPk.side}` : pdMode === 'onco' ? t('Reprendre en oncologie', 'Use in oncology') : pdMode === 'infection' ? t('Reprendre en infectiologie', 'Use in infectiology') : t('Reprendre en PD generale', 'Use in general PD')}</button>
       <button type="button" onclick={() => { takeDraft(`incoming:${view}:pk`); incomingPk = null; }}>{t('Ignorer', 'Dismiss')}</button>
     </section>
   {/if}
   <LabTransfer destination={view} apply={applyLaboratory} note={t('Le modele PK et la dose d\'entretien remplacent la PK 1 / PK generale actuelle. Ici les doses sont repetees : le nombre fini de doses et la dose de charge ne sont pas repris. Les parametres d\'interaction / PD restent illustratifs. Rien n\'est lance automatiquement.', 'The PK model and maintenance dose replace the current PK 1 / general PK. Doses repeat here: the finite dose count and loading dose are not retained. Interaction / PD parameters remain illustrative. Nothing runs automatically.')}/>
   <p class="intro">{view === 'ddi'
     ? t('Une interaction relie l’exposition d’une molecule a un parametre d’une autre. Assemblez les deux modeles PK et leur mecanisme, puis explorez les concentrations et la recuperation dans le moteur R.', 'An interaction links one drug’s exposure to another drug’s parameter. Assemble the two PK models and their mechanism, then explore concentrations and recovery in the R engine.')
+    : pdMode === 'infection' ? t('Reliez une exposition antibiotique, une CMI et une cible PK/PD. Distinguez l’indice individuel estime par TDM de la probabilite d’atteinte de cible sur des profils simules.', 'Link antibiotic exposure, an MIC and a PK/PD target. Distinguish the individual TDM-derived index from target attainment probability over simulated profiles.')
     : pdMode === 'onco' ? t('De l’exposition a la reponse : assemblez croissance tumorale, effet du traitement et toxicite retardee. Le moteur R permet ensuite l’ajustement individuel et la comparaison des cycles futurs.', 'From exposure to response: assemble tumor growth, treatment effect and delayed toxicity. The R engine then supports individual fitting and comparison of future cycles.')
     : t('Reliez une exposition a un effet direct ou indirect, avec un compartiment d’effet optionnel. Le moteur R simule la reponse et ajuste les parametres sur les observations.', 'Link exposure to a direct or indirect effect, with an optional effect compartment. The R engine simulates the response and fits parameters to observations.')}</p>
   {#if view === 'pd'}<div class="modes" role="group" aria-label={t('Domaine', 'Domain')}>
-    <button type="button" class:active={pdMode === 'onco'} aria-pressed={pdMode === 'onco'} onclick={() => { pdMode = 'onco'; pdBlock = 'exposure'; }}>{t('Oncologie', 'Oncology')}</button>
     <button type="button" class:active={pdMode === 'pd'} aria-pressed={pdMode === 'pd'} onclick={() => { pdMode = 'pd'; pdBlock = 'exposure'; }}>{t('PD generale', 'General PD')}</button>
+    <button type="button" class:active={pdMode === 'onco'} aria-pressed={pdMode === 'onco'} onclick={() => { pdMode = 'onco'; pdBlock = 'exposure'; }}>{t('Oncologie', 'Oncology')}</button>
+    <button type="button" class:active={pdMode === 'infection'} aria-pressed={pdMode === 'infection'} onclick={() => pdMode = 'infection'}>{t('Infectiologie', 'Infectiology')}</button>
   </div>{/if}
+  {#if view === 'pd' && pdMode === 'infection'}
+    <InfectionWorkbench bind:model={pkInfection}/>
+  {:else}
   <div class="assembly" class:two-blocks={view === 'pd' && (pdMode === 'onco' ? !onco.toxicity : !pd.delay)} aria-label={t('Schema du modele', 'Model diagram')}>
     {#if view === 'ddi'}
       <button class="block pk" class:selected={tab === 'model1'} onclick={() => tab = 'model1'}><span>PK 1</span><strong>{modelLabel(model1)}</strong><small>{t('Molecule affectee', 'Affected drug')}</small></button>
@@ -173,13 +183,15 @@
       <div class="fields structure" hidden={pdBlock !== 'response'}><label>{t('Croissance tumorale', 'Tumor growth')}<select bind:value={onco.growth}><option value="exponential">{t('Exponentielle', 'Exponential')}</option><option value="logistic">{t('Logistique', 'Logistic')}</option><option value="gompertz">Gompertz</option></select></label><label class="toggle"><input type="checkbox" bind:checked={onco.toxicity} /> {t('Myelosuppression avec retrocontrole', 'Myelosuppression with feedback')}</label></div>
       <div class="oncology-layout">
         <div class="parameter-sections">
-          <fieldset data-block="initial" hidden={pdBlock !== 'initial'}><legend>{t('Conditions initiales', 'Initial conditions')}</legend><div class="fields compact">{#each activeOnco.filter((name) => ['T0','ANC0'].includes(name)) as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div></fieldset>
+          <fieldset data-block="initial" hidden={pdBlock !== 'initial'}><legend>{t('Conditions initiales', 'Initial conditions')}</legend><div class="fields compact">{#each activeOnco.filter((name) => ['T0','ANC0'].includes(name)) as name}<label>{oncoNames[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div></fieldset>
           <fieldset data-block="exposure" hidden={pdBlock !== 'exposure'}><legend>{t('Modele et parametres PK', 'PK model and parameters')}</legend>
             <label class="toggle"><input type="checkbox" bind:checked={onco.free_pk} /> {t('Modele PK libre', 'Free PK model')}</label>
             {#if onco.free_pk}<PkWorkshopModel bind:model={pkOnco} side="onco" showRegimen={false} units={true} />
             {:else}<div class="fields compact">{#each ['V','CL'] as name}<label>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min="0.000001" required /></label>{/each}</div>{/if}
           </fieldset>
-          <fieldset data-block={pdBlock === 'modifier' ? 'modifier' : 'response'} hidden={!['response', 'modifier'].includes(pdBlock)}><legend>{pdBlock === 'modifier' ? 'ANC' : t('Parametres PD', 'PD parameters')}</legend><div class="fields compact">{#each activeOnco.filter((name) => !['T0','ANC0','V','CL'].includes(name)) as name}<label data-block={['MTT','GAMMA','SLOPE'].includes(name) ? 'modifier' : 'response'} hidden={(['MTT','GAMMA','SLOPE'].includes(name) ? 'modifier' : 'response') !== pdBlock}>{oncoLabels[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min={['KG','KILL','RES','GAMMA','SLOPE'].includes(name) ? 0 : 0.000001} required /></label>{/each}</div></fieldset>
+          <fieldset data-block={pdBlock === 'modifier' ? 'modifier' : 'response'} hidden={!['response', 'modifier'].includes(pdBlock)}><legend>{pdBlock === 'modifier' ? 'ANC' : t('Parametres PD', 'PD parameters')}</legend><div class="fields compact">{#each activeOnco.filter((name) => !['T0','ANC0','V','CL','RES','GAMMA'].includes(name)) as name}<label data-block={['MTT','SLOPE'].includes(name) ? 'modifier' : 'response'} hidden={(['MTT','SLOPE'].includes(name) ? 'modifier' : 'response') !== pdBlock}>{oncoNames[name]}<input type="number" bind:value={onco.parameters[name]} step="any" min={['KG','KILL','SLOPE'].includes(name) ? 0 : 0.000001} required /></label>{/each}</div>
+            <details><summary>{t('Parametres avances', 'Advanced parameters')}</summary><div class="fields compact">{#each (pdBlock === 'modifier' ? ['GAMMA'] : ['RES']) as name}<label>{oncoNames[name]}<input type="number" bind:value={onco.parameters[name]} min="0" step="any" required/></label>{/each}</div></details>
+          </fieldset>
         </div>
         <fieldset data-block="regimen" hidden={pdBlock !== 'regimen'}><legend>{t('Cycles de reference', 'Reference cycles')}</legend><div class="fields compact">
           <label>{t('Prochaine dose (jour)', 'Next dose (day)')}<input type="number" bind:value={onco.decision} min="0" max={onco.horizon - 0.1} step="any" required /></label>
@@ -215,18 +227,18 @@
     {/if}
     <div class="actions"><button class="primary" type="submit">{t('Ouvrir dans le moteur', 'Open in engine')}</button><button type="button" onclick={download}>{t('Exporter l’atelier (.json)', 'Export workshop (.json)')}</button><span role="status">{feedback}</span></div>
   </form>
-  <WorkshopFigures view={spec.view} config={spec.config} {computed} />
+  <WorkshopFigures view={spec.view} config={view === 'pd' && pdMode === 'pd' ? pd : spec.config} {computed} />
   <section class="explanation">
     <h2>{t('Du schema a la simulation', 'From diagram to simulation')}</h2>
     <div class="reading-grid">
       {#if view === 'pd' && pdMode === 'pd'}
         <div><h3>{t('Construire', 'Build')}</h3><p>{t('L’effet direct depend de Cp ou de Ce. Les quatre reponses indirectes modifient la production ou la degradation d’un marqueur, par inhibition ou stimulation. Le compartiment d’effet ajoute un delai de distribution.', 'Direct effect depends on Cp or Ce. The four indirect responses modify marker production or loss through inhibition or stimulation. An effect compartment adds a distribution delay.')}</p></div>
         <div><h3>{t('Ajuster et comparer', 'Fit and compare')}</h3><p>{t('Les paires concentration-effet permettent l’ajustement des relations directes sans delai. Un modele avec delai ou reponse indirecte exige des observations datees et un profil d’exposition. Le moteur compare predictions et observations et affiche les residus.', 'Concentration-effect pairs support fitting direct relationships without delay. Delayed or indirect models require timed observations and an exposure profile. The engine compares predictions with observations and displays residuals.')}</p></div>
-        <div><h3>{t('Interpreter avec les limites', 'Interpret within limits')}</h3><p>{t('Ajustement individuel par moindres carres, sans MAP-BE ni propagation de l’incertitude PK. Les parametres et les unites d’effet doivent correspondre au marqueur etudie. Ce module general ne propose pas de recommandation posologique.', 'Individual least squares, without MAP-BE or PK uncertainty propagation. Parameters and effect units must match the marker studied. This general module does not provide a dosing recommendation.')}</p></div>
+        <div><h3>{t('Interpreter avec les limites', 'Interpret within limits')}</h3><p>{t('La PK peut reprendre une estimation bayesienne mapbayr. L’ajustement PD reste par moindres carres, sans propagation de l’incertitude PK. Les unites d’effet doivent correspondre au marqueur. Aucune recommandation posologique.', 'PK can reuse a mapbayr Bayesian estimate. PD fitting remains least squares, without PK uncertainty propagation. Effect units must match the marker. No dosing recommendation.')}</p></div>
       {:else}
       <div><h3>{t('Construire', 'Build')}</h3><p>{view === 'ddi' ? t('Le modele 2 fournit C2. La relation multiplie un parametre du modele 1. Une inhibition enzymatique exige un parametre compatible, par exemple une clairance : l’appliquer a un volume necessite une autre justification.', 'Model 2 supplies C2. The relationship multiplies a parameter of model 1. Enzyme inhibition requires a compatible parameter, for example clearance: applying it to volume requires a different justification.') : t('Les blocs definissent les equations. La PK provient du modele mrgsolve choisi ou de l’exemple IV. Les parametres PD par defaut sont illustratifs, sans attribution a un anticancereux. La taille est une somme des diametres (SLD), pas un volume.', 'Blocks define the equations. PK comes from the selected mrgsolve model or the IV example. Default PD parameters are illustrative, not attributed to an anticancer drug. Size is sum of longest diameters (SLD), not volume.')}</p></div>
       <div><h3>{t('Individualiser et comparer', 'Individualize and compare')}</h3><p>{view === 'ddi' ? t('Dans le moteur, chaque molecule peut conserver ses parametres populationnels ou reprendre son ajustement TDM. Les courbes comparent la molecule affectee avec et sans interaction. La recuperation enzymatique continue apres l’arret.', 'In the engine, each drug can retain population parameters or use its TDM fit. Curves compare the affected drug with and without interaction. Enzyme recovery continues after stopping.') : t('Renseignez les observations et n’estimez que les parametres identifiables. Comparez maintien, reduction, report ou nouvel intervalle a partir de la prochaine dose. L’historique et les etats sont conserves entre cycles.', 'Enter observations and estimate only identifiable parameters. Compare continuation, reduction, delay or a new interval from the next dose. History and states are preserved between cycles.')}</p></div>
-      <div><h3>{t('Interpreter avec les limites', 'Interpret within limits')}</h3><p>{view === 'ddi' ? t('Couplage unidirectionnel, sans fraction metabolisee ni PBPK. Plancher inhibiteur de 1 %. Ki/IC50 utilisent la meme concentration que le modele 2, sans conversion libre/totale automatique. Le C++ attend des entrees externes ; le script R exporte integre l’activite enzymatique et simule les deux PK.', 'Unidirectional coupling, no fraction metabolized or PBPK. Inhibition floor: 1%. Ki/IC50 use the same concentration as model 2, without automatic unbound/total conversion. C++ expects external inputs; the exported R script integrates enzyme activity and simulates both PK models.') : t('Moindres carres individuels, pas de MAP-BE. La structure de Friberg est adaptee avec un effet lineaire borne. Cibles exploratoires, sans RECIST, survie, recommandation clinique ni probabilite de securite. Les scenarios futurs ne sont pas une optimisation validee.', 'Individual least squares, not MAP-BE. Friberg’s structure is adapted with a capped linear effect. Exploratory targets, without RECIST, survival, clinical recommendation or safety probability. Future scenarios are not validated optimization.')}</p></div>
+      <div><h3>{t('Interpreter avec les limites', 'Interpret within limits')}</h3><p>{view === 'ddi' ? t('Couplage unidirectionnel, sans fraction metabolisee ni PBPK. Plancher inhibiteur de 1 %. Ki/IC50 utilisent la meme concentration que le modele 2, sans conversion libre/totale automatique. Le C++ attend des entrees externes ; le script R exporte integre l’activite enzymatique et simule les deux PK.', 'Unidirectional coupling, no fraction metabolized or PBPK. Inhibition floor: 1%. Ki/IC50 use the same concentration as model 2, without automatic unbound/total conversion. C++ expects external inputs; the exported R script integrates enzyme activity and simulates both PK models.') : t('PK populationnelle ou bayesienne mapbayr; ajustement PD par moindres carres, sans propagation de l’incertitude PK. Friberg adapte avec effet lineaire borne. Sans RECIST, survie, recommandation clinique ni probabilite de securite. Les scenarios ne sont pas une optimisation validee.', 'Population or mapbayr Bayesian PK; least-squares PD fitting, without PK uncertainty propagation. Adapted Friberg structure with capped linear effect. No RECIST, survival, clinical recommendation or safety probability. Scenarios are not validated optimization.')}</p></div>
       {/if}
     </div>
     <p class="privacy">{t('Session uniquement : aucun modele personnel ni aucune donnee patient ne sont sauvegardes automatiquement. Seuls vos telechargements sont conserves.', 'Session only: no personal model or patient data are saved automatically. Only your explicit downloads are retained.')}</p>
@@ -235,6 +247,7 @@
     {:else if pdMode === 'onco'}<a href="https://doi.org/10.1200/JCO.2002.02.140" target="_blank" rel="noopener noreferrer">Friberg et al., 2002 / Myelosuppression</a>
     {:else}<a href="https://doi.org/10.1007/BF01061691" target="_blank" rel="noopener noreferrer">Dayneka, Garg &amp; Jusko, 1993 / {t('Reponses indirectes', 'Indirect responses')}</a>{/if}
   </section>
+  {/if}
 </section>
 
 <style>

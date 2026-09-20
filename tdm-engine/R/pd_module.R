@@ -55,19 +55,19 @@ pd_general_panel <- function(lang = "fr") {
               tags$h3(t("Perimetre", "Scope")),
               tags$p(t("Les effets directs peuvent etre ajustes sur des couples concentration-effet. Un delai ou une reponse indirecte exige des temps et un historique d'exposition couvrant toute la simulation.", "Direct effects support concentration-effect pairs. A delay or indirect response requires times and an exposure history covering the simulation.")),
               tags$p(t("Les etats initiaux sont Ce(0)=0 et R(0)=E0. Pour les reponses indirectes, kin=E0*kout. L'inhibition est bornee entre 0 et 1. Les unites de concentration, EC50 et des observations doivent etre coherentes.", "Initial states are Ce(0)=0 and R(0)=E0. For indirect responses, kin=E0*kout. Inhibition is bounded between 0 and 1. Concentration, EC50 and observation units must be consistent.")),
-              tags$p(t("La PK libre utilise un modele mrgsolve de la bibliotheque ou colle, charge explicitement. Les doses sont dans l'unite du modele; les temps de la PD et les perfusions sont en heures. L'horloge du code PK (heures ou jours), la voie, le compartiment d'administration et le facteur de conversion des concentrations sont explicites. Les parametres et covariables PK restent fixes pendant l'ajustement PD.", "Free PK uses a library or pasted mrgsolve model, loaded explicitly. Doses use the model's unit; PD times and infusions use hours. PK code time units (hours or days), route, dosing compartment and concentration conversion factor are explicit. PK parameters and covariates remain fixed during PD fitting.")),
-              tags$p(t("Integration LSODA (deSolve). Ajustement non lineaire par Levenberg-Marquardt borne, erreur additive. Pas d'effets aleatoires, de MAP-BE ni d'intervalle de confiance garanti. La convergence n'etablit pas l'identifiabilite ou la validite clinique.", "LSODA integration (deSolve). Bounded nonlinear Levenberg-Marquardt fitting, additive error. No random effects, MAP-BE or guaranteed confidence intervals. Convergence does not establish identifiability or clinical validity.")),
+              tags$p(t("La PK provient d'un modele populationnel avec covariables renseignees, ou de l'estimation bayesienne mapbayr realisee dans Analyse. Les unites de la bibliotheque sont connues; un code externe demande ses unites. Les concentrations sont exprimees en mg/L. La PK est ensuite maintenue fixe pendant l'ajustement PD.", "PK comes from a population model with entered covariates, or from the mapbayr Bayesian estimate in Analysis. Library units are known; external code requires its units. Concentrations use mg/L. PK is then held fixed during PD fitting.")),
+              tags$p(t("Integration LSODA (deSolve). Ajustement PD par Levenberg-Marquardt borne, erreur additive : ce n'est pas une estimation bayesienne PD. L'incertitude PK n'est pas propagee. La convergence n'etablit pas l'identifiabilite ou la validite clinique.", "LSODA integration (deSolve). PD fitting uses bounded Levenberg-Marquardt with additive error, not Bayesian PD estimation. PK uncertainty is not propagated. Convergence does not establish identifiability or clinical validity.")),
               tags$p(t("Le fichier C++ utilise CP comme entree externe. Le script R exporte reproduit l'exposition et les equations utilisees ici. En PK libre, il contient le profil calcule, fige pour les conditions exportees, et ne recalcule pas la PK si vous modifiez la dose. Les donnees restent en session; seuls vos telechargements les conservent.", "The C++ file uses CP as an external input. The exported R script reproduces the exposure and equations used here. With free PK it contains the calculated profile, fixed for the exported conditions, and does not recalculate PK if you change the dose. Data remain in session; only your downloads retain them.")),
               tags$a(href = "https://desolve.r-forge.r-project.org/main.html", target = "_blank", rel = "noopener noreferrer", "deSolve"), " / ",
               tags$a(href = "https://mrgsolve.org/user-guide/specification.html", target = "_blank", rel = "noopener noreferrer", "mrgsolve")))))))
 }
 
-pd_server <- function(id, analysis_store, report_plot_uri, imported = reactive(NULL), soloc = tempdir(), cache = new.env()) {
+pd_server <- function(id, analysis_store, report_plot_uri, imported = reactive(NULL), soloc = tempdir(), cache = new.env(), open_tdm = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     t <- function(fr, en) app_t(app_language_from_query(session$clientData$url_search %||% ""), fr, en)
     fit_store <- reactiveVal(NULL)
     imported_parameters <- reactiveVal(NULL)
-    pk <- pd_pk_server("pk", soloc, cache, reactive(if (identical(imported()$view, "pd")) imported()$models[[1]] else NULL))
+    pk <- pd_pk_server("pk", soloc, cache, reactive(if (identical(imported()$view, "pd")) imported()$models[[1]] else NULL), analysis_store, open_tdm)
     observations <- pd_observations_server("observations", reactive(c(if (identical(input$data_mode, "concentration")) "concentration" else "time", "effect")),
       data.frame(time = c(0, 2, 4, 8, 12, 18, 24), effect = c(140, 139, 136, 132, 127, 122, 115)))
     pk_profile <- reactive({
@@ -158,8 +158,28 @@ pd_server <- function(id, analysis_store, report_plot_uri, imported = reactive(N
       result <- fit_store()
       div(class = "pd-status", if (is.null(result)) t("Simulation avec les parametres saisis", "Simulation with entered parameters") else t("Parametres ajustes; conditions de l'ajustement conservees", "Fitted parameters; fitting conditions retained"))
     })
-    effect_figure <- function() ggplot(curve(), aes(time, effect)) + geom_hline(aes(yintercept = baseline), linetype = "dashed", color = "#65706d") +
-      geom_line(color = "#196f76", linewidth = 1) + labs(x = t("Temps (h)", "Time (h)"), y = t("Effet", "Effect")) + theme_minimal(base_size = 13)
+    effect_figure <- function() {
+      data <- curve()
+      scale <- max(1e-6, max(abs(data$effect))) / max(1e-6, max(data$concentration))
+      ggplot(data, aes(time)) + geom_line(aes(y = effect, color = "E(t)", linetype = "E(t)"), linewidth = .9) +
+        geom_line(aes(y = concentration * scale, color = "C(t)", linetype = "C(t)"), linewidth = .9) +
+        scale_y_continuous(name = t("Effet E(t)", "Effect E(t)"), sec.axis = sec_axis(~ . / scale, name = "C(t) (mg/L)")) +
+        scale_color_manual(values = c("E(t)" = "#a44430", "C(t)" = "#08796d")) +
+        scale_linetype_manual(values = c("E(t)" = "solid", "C(t)" = "dashed")) +
+        labs(x = t("Temps (h)", "Time (h)"), color = NULL, linetype = NULL) + theme_minimal(base_size = 13) +
+        theme(legend.position = "bottom", axis.title.y.left = element_text(color = "#a44430"), axis.title.y.right = element_text(color = "#08796d"))
+    }
+    observe({
+      payload <- imported(); if (!identical(payload$view, "pd")) return()
+      data <- tryCatch(curve(), error = function(e) NULL)
+      if (is.null(data)) {
+        session$sendCustomMessage("workbench-result", list(id = payload$id, view = "pd", invalidated = TRUE)); return()
+      }
+      data <- data[unique(round(seq(1, nrow(data), length.out = min(1500, nrow(data))))), ]
+      curves <- lapply(c("response", "concentration", "trajectory"), function(key) list(key = key, points = unname(lapply(seq_len(nrow(data)), function(i)
+        list(x = if (key == "trajectory") data$concentration[i] else data$time[i], y = if (key == "concentration") data$concentration[i] else data$effect[i])))))
+      session$sendCustomMessage("workbench-result", list(id = payload$id, view = "pd", curves = curves))
+    })
     output$effect_plot <- renderPlot(effect_figure())
     output$hysteresis_plot <- renderPlot(ggplot(curve(), aes(concentration, effect, color = time)) + geom_path(linewidth = 1) +
       scale_color_gradient(low = "#c24c32", high = "#196f76") + labs(x = "Concentration", y = t("Effet", "Effect"), color = t("Temps", "Time")) + theme_minimal(base_size = 13))

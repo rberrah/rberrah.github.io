@@ -80,6 +80,9 @@ source(file.path(APP_ROOT, "R", "pd_observations.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "pd_module.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "onco_engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "onco_module.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "infection_engine.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "eucast.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "infection_module.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "workbench_bridge.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "teaching_lab.R"), local = TRUE)
 
@@ -649,6 +652,7 @@ app_ui <- function(request) {
         ),
         span(class = "engine-badge", "mrgsolve + mapbayr")
       ),
+      uiOutput("pd_tdm_return"),
       tags$button(
         type = "button",
         class = "mobile-configure-button",
@@ -3345,8 +3349,31 @@ server <- function(input, output, session) {
     }
   )
 
-  pd_server("pd", analysis_store, report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache)
-  onco_server("onco", report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache)
+  pd_return <- reactiveVal(NULL)
+  pd_open_tdm <- function(view) function(spec = NULL) {
+    if (!is.null(spec)) {
+      updateRadioButtons(session, "model_source", selected = if (spec$source == "code") "custom" else "library")
+      if (spec$source == "code") updateTextAreaInput(session, "custom_code", value = spec$code)
+      else updateSelectInput(session, "model_id", selected = spec$id)
+      updateCheckboxInput(session, "enable_averaging", value = FALSE)
+      session$onFlushed(function() updateSelectInput(session, "administration_route", selected = spec$route), once = TRUE)
+    }
+    pd_return(view)
+    bslib::nav_select("main_navigation", "analysis", session = session)
+    bslib::nav_select("analysis_tabs", "data", session = session)
+    showNotification(tx("Renseignez doses, concentrations et covariables, puis lancez l'analyse mapbayr. Les donnees existantes ne sont pas remplacees.", "Enter doses, concentrations and covariates, then run the mapbayr analysis. Existing data are not replaced."), duration = 15)
+  }
+  output$pd_tdm_return <- renderUI({
+    shiny::req(pd_return())
+    actionButton("return_to_pd", tx("Retour a la pharmacodynamie", "Return to pharmacodynamics"), icon = icon("arrow-left"))
+  })
+  observeEvent(input$return_to_pd, {
+    bslib::nav_select("main_navigation", "pd", session = session)
+    bslib::nav_select("pd_workspace", pd_return(), session = session)
+  })
+  pd_server("pd", analysis_store, report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache, pd_open_tdm("general"))
+  onco_server("onco", report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache, analysis_store, pd_open_tdm("oncology"))
+  infection_server("infection", analysis_store, report_plot_uri, reactive(workbench_import()), session_model_dir, session_model_cache, pd_open_tdm("infection"))
 
   apply_workbench <- function(raw) {
     payload <- workbench_payload(raw)
@@ -3375,13 +3402,13 @@ server <- function(input, output, session) {
       session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = TRUE))
     } else {
       bslib::nav_select("main_navigation", "pd", session = session)
-      bslib::nav_select("pd_workspace", if (payload$view == "onco") "oncology" else "general", session = session)
+      bslib::nav_select("pd_workspace", switch(payload$view, onco = "oncology", infection = "infection", "general"), session = session)
     }
     workbench_import(payload)
   }
   observeEvent(input$workbench_payload, tryCatch(apply_workbench(input$workbench_payload),
     error = function(e) session$sendCustomMessage("workbench-ack", list(id = input$workbench_payload$id, ok = FALSE, error = conditionMessage(e)))))
-  for (file_id in c("ddi_workshop_file", "pd_workshop_file", "onco_workshop_file")) local({
+  for (file_id in c("ddi_workshop_file", "pd_workshop_file", "onco_workshop_file", "infection_workshop_file")) local({
     id <- file_id
     observeEvent(input[[id]], tryCatch({
       file <- input[[id]]

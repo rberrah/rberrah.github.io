@@ -56,9 +56,9 @@
     <a href={`${base}/translator/`} onclick={() => { const source = model.source === 'code' ? model.code : code; if (source.trim()) writeDraft('source:translator', {code: source}); }}>Translator</a>
     <a href={`${base}/advanced/`}>Advanced</a>
   </div>
-  {#if units}<div class="numbers">
+  {#if units && model.source === 'code'}<div class="numbers">
     <label>{english ? 'PK code time unit' : 'Unite de temps du code PK'}<select bind:value={model.time_unit}><option value="h">h</option><option value="day">{english ? 'Day' : 'Jour'}</option></select></label>
-    <label>{english ? 'Concentration factor to PD units' : 'Facteur concentration vers unites PD'}<input type="number" bind:value={model.concentration_scale} min="0.000000001" step="any" required /></label>
+    <label>{english ? 'PK concentration unit' : 'Unite des concentrations PK'}<select value={model.concentration_scale ?? 1} onchange={(event) => model.concentration_scale = Number(event.currentTarget.value)}><option value="1">mg/L (= ug/mL)</option><option value="0.001">ng/mL (= ug/L)</option><option value="1000">mg/mL</option>{#if model.concentration_scale != null && ![1,.001,1000].includes(model.concentration_scale)}<option value={model.concentration_scale}>{english ? 'Imported workshop unit' : 'Unite de l’atelier importe'}</option>{/if}</select></label>
   </div>{/if}
   {#if showRegimen}
   <div class="numbers">

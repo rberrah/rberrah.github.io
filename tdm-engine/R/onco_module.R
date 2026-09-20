@@ -1,11 +1,11 @@
 pd_panel <- function(lang = "fr") {
   t <- function(fr, en) app_t(lang, fr, en)
   nav_panel(t("Pharmacodynamie", "Pharmacodynamics"), value = "pd",
-    navset_tab(id = "pd_workspace", nav_panel(t("Oncologie", "Oncology"), value = "oncology", onco_ui(t)), pd_general_panel(lang)))
+    navset_tab(id = "pd_workspace", pd_general_panel(lang), nav_panel(t("Oncologie", "Oncology"), value = "oncology", onco_ui(t)), infection_panel(lang)))
 }
 
-onco_parameter_labels <- function(t) c(V = "V (L)", CL = "CL (L/day)", T0 = "SLD(0) (mm)", KG = "KG (1/day)", CAP = "CAP (mm)",
-  KILL = "KILL max (1/day)", EC50 = "EC50 (mg/L)", RES = "Resistance (1/day)", ANC0 = "ANC(0) (10^9/L)",
+onco_parameter_labels <- function(t) c(V = t("Volume V (L)", "Volume V (L)"), CL = t("Clairance (L/jour)", "Clearance (L/day)"), T0 = t("Taille tumorale initiale (mm)", "Initial tumor size (mm)"), KG = t("Vitesse de croissance (1/jour)", "Growth rate (1/day)"), CAP = t("Taille limite (mm)", "Limiting size (mm)"),
+  KILL = t("Effet maximal du traitement (1/jour)", "Maximum treatment effect (1/day)"), EC50 = "EC50 (mg/L)", RES = t("Perte de sensibilite (1/jour)", "Sensitivity loss (1/day)"), ANC0 = t("Neutrophiles initiaux (10^9/L)", "Initial neutrophils (10^9/L)"),
   MTT = t("MTT (jours)", "MTT (days)"), GAMMA = t("Retrocontrole gamma", "Feedback gamma"), SLOPE = "SLOPE (L/mg)")
 
 onco_ui <- function(t) {
@@ -21,22 +21,22 @@ onco_ui <- function(t) {
       div(class = "model-block response", icon("chart-line"), h3(t("Reponse tumorale", "Tumor response")),
         selectInput(ns("growth"), t("Croissance", "Growth"), stats::setNames(c("exponential", "logistic", "gompertz"), c(t("Exponentielle", "Exponential"), t("Logistique", "Logistic"), "Gompertz")))),
       span(class = "model-arrow", icon("plus")),
-      div(class = "model-block delay", icon("droplet"), h3(t("Myelosuppression", "Myelosuppression")), checkboxInput(ns("toxicity"), t("Structure de Friberg", "Friberg structure"), TRUE))),
+      div(class = "model-block delay", icon("droplet"), h3(t("Toxicite optionnelle", "Optional toxicity")), checkboxInput(ns("toxicity"), t("Myelosuppression (Friberg)", "Myelosuppression (Friberg)"), FALSE))),
     tags$button(type = "button", class = "mobile-configure-button", onclick = "var r=this.closest('.onco-shell');var b=r.querySelector('.collapse-toggle');if(b&&b.getAttribute('aria-expanded')!=='true')b.click();", t("Parametres et donnees", "Parameters and data")),
     layout_sidebar(sidebar = sidebar(width = 370, open = "desktop",
       accordion(open = "cycles",
         accordion_panel(t("Cycles et historique", "Cycles and history"), value = "cycles",
           numericInput(ns("decision"), t("Prochaine dose / decision (jour)", "Next dose / decision (day)"), 42, min = 0),
           numericInput(ns("horizon"), t("Horizon (jours)", "Horizon (days)"), 84, min = 1, max = 730),
-          tags$h4(t("Doses passees", "Past doses")),
+          tags$details(tags$summary(t("Doses passees", "Past doses")),
           pd_observations_ui(ns("history"), t),
-          tags$small(t("Perfusion : 0 h = oral / bolus IV. Doses strictement anterieures au jour de decision.", "Infusion: 0 h = oral / IV bolus. Doses strictly before the decision day.")),
+          tags$small(t("Perfusion : 0 h = oral / bolus IV. Doses strictement anterieures au jour de decision.", "Infusion: 0 h = oral / IV bolus. Doses strictly before the decision day."))),
           numericInput(ns("dose"), t("Dose future de reference (unite PK)", "Reference future dose (PK unit)"), 100, min = 0),
           numericInput(ns("interval"), t("Intervalle de reference (jours)", "Reference interval (days)"), 21, min = 0.25),
           numericInput(ns("infusion"), t("Perfusion (h; 0 = oral / bolus IV)", "Infusion (h; 0 = oral / IV bolus)"), 1, min = 0)),
         accordion_panel(t("Modele PK libre", "Free PK model"), value = "free_pk",
           conditionalPanel(sprintf("input['%s']=='free'", ns("pk_mode")), pd_pk_ui(ns("pk"), t)),
-          p(t("Les temps des cycles restent en jours. Le facteur convertit la concentration du modele PK en mg/L pour EC50 et SLOPE.", "Cycle times remain in days. The factor converts PK model concentration to mg/L for EC50 and SLOPE."))),
+          p(t("Les cycles utilisent des jours. La PK de la bibliotheque est automatiquement convertie en mg/L et synchronisee avec les cycles.", "Cycles use days. Library PK is automatically converted to mg/L and synchronized with cycles."))),
         accordion_panel(t("Parametres PK/PD", "PK/PD parameters"), value = "parameters", uiOutput(ns("parameters"))),
         accordion_panel(t("Observations et ajustement", "Observations and fitting"), value = "observations",
           fileInput(ns("file"), t("Importer CSV", "Import CSV"), accept = ".csv"),
@@ -44,21 +44,25 @@ onco_ui <- function(t) {
           tags$small(t("Jour; tumor = somme des diametres (mm); anc = neutrophiles (10^9/L). Valeurs strictement positives, sans observation posterieure a la decision.", "Day; tumor = sum of diameters (mm); anc = neutrophils (10^9/L). Strictly positive values; no observation after the decision.")),
           actionButton(ns("example"), t("Generer des observations synthetiques", "Generate synthetic observations"), icon = icon("flask")),
           uiOutput(ns("estimate_ui")),
-          numericInput(ns("sigma_tumor"), t("Ecart-type log : tumeur", "Log SD: tumor"), 0.15, min = 0.001),
-          numericInput(ns("sigma_anc"), t("Ecart-type log : ANC", "Log SD: ANC"), 0.2, min = 0.001),
+          tags$details(tags$summary(t("Erreur des observations", "Observation error")),
+            numericInput(ns("sigma_tumor"), t("Ecart-type log : tumeur", "Log SD: tumor"), 0.15, min = 0.001),
+            conditionalPanel(sprintf("input['%s']", ns("toxicity")), numericInput(ns("sigma_anc"), t("Ecart-type log : ANC", "Log SD: ANC"), 0.2, min = 0.001))),
           checkboxInput(ns("accept"), t("Usage de recherche uniquement", "Research use only"), FALSE),
           actionButton(ns("fit"), t("Ajuster sur les observations", "Fit observations"), icon = icon("sliders")),
           actionButton(ns("reset_fit"), t("Revenir aux parametres saisis", "Return to entered parameters"), icon = icon("rotate-left"))),
-        accordion_panel(t("Scenario futur et cibles", "Future scenario and targets"), value = "future",
-          numericInput(ns("fraction"), t("Dose comparee (% reference)", "Compared dose (% reference)"), 75, min = 0, max = 200),
+        accordion_panel(t("Cibles et grille de doses", "Targets and dose grid"), value = "future",
+          fluidRow(column(4, numericInput(ns("dose_min"), "Dose min", 50, min = 0)),
+            column(4, numericInput(ns("dose_max"), "Dose max", 150, min = 0)),
+            column(4, numericInput(ns("dose_step"), t("Pas", "Step"), 25, min = .001))),
+          selectizeInput(ns("intervals"), t("Intervalles proposes (jours)", "Candidate intervals (days)"), c(7, 14, 21, 28), selected = 21, multiple = TRUE, options = list(create = TRUE)),
           numericInput(ns("delay"), t("Report de la prochaine dose (jours)", "Delay next dose (days)"), 0, min = 0, max = 180),
-          numericInput(ns("new_interval"), t("Nouvel intervalle (jours)", "New interval (days)"), 21, min = 0.25, max = 180),
-          numericInput(ns("anc_floor"), t("Plancher ANC exploratoire (10^9/L)", "Exploratory ANC floor (10^9/L)"), 1, min = 0),
+          conditionalPanel(sprintf("input['%s']", ns("toxicity")), numericInput(ns("anc_floor"), t("Plancher ANC exploratoire (10^9/L)", "Exploratory ANC floor (10^9/L)"), 1, min = 0)),
           numericInput(ns("tumor_goal"), t("Plafond final tumeur / baseline", "Final tumor / baseline ceiling"), 0.8, min = 0.001))),
-      actionButton(ns("compare"), t("Comparer les cycles futurs", "Compare future cycles"), icon = icon("play"), class = "btn-primary w-100")),
+      actionButton(ns("compare"), t("Evaluer la grille de doses", "Evaluate dose grid"), icon = icon("play"), class = "btn-primary w-100")),
       div(class = "workspace", uiOutput(ns("status")), navset_tab(id = ns("tabs"),
         nav_panel(t("Reponse et toxicite", "Response and toxicity"), value = "simulation",
           uiOutput(ns("empty")), conditionalPanel(sprintf("output['%s']", ns("ready")),
+            uiOutput(ns("candidate_ui")), DTOutput(ns("grid_metrics")),
             plotOutput(ns("tumor_plot"), height = "310px"),
             conditionalPanel(sprintf("input['%s']", ns("toxicity")), plotOutput(ns("anc_plot"), height = "280px")),
             plotOutput(ns("pk_plot"), height = "230px"), DTOutput(ns("metrics")), DTOutput(ns("schedule")),
@@ -68,23 +72,31 @@ onco_ui <- function(t) {
           downloadButton(ns("download_code"), "mrgsolve .cpp"), downloadButton(ns("download_r"), "R / deSolve"),
           conditionalPanel(sprintf("output['%s']", ns("ready")), downloadButton(ns("download_report"), t("Rapport HTML", "HTML report")))),
         nav_panel(t("Methodes et limites", "Methods and limitations"),
-          p(t("PK IV d'exemple ou modele mrgsolve libre, avec voie et compartiment de dose explicites. Les cycles sont en jours; le code PK peut utiliser heures ou jours. Le facteur concentration doit convertir la sortie PK en mg/L. PK et covariables restent fixes pendant l'ajustement PD. Le traitement maintenu et modifie partage le meme historique; la courbe sans traitement exclut toutes les doses depuis t=0.",
-            "Built-in IV example or free mrgsolve PK, with explicit route and dosing compartment. Cycles use days; PK code can use hours or days. The concentration factor must convert the PK output to mg/L. PK and covariates stay fixed during PD fitting. Maintained and changed treatment share the same history; the untreated curve excludes every dose from t=0.")),
+          p(t("PK IV d'exemple, modele populationnel avec covariables, ou estimation bayesienne mapbayr depuis Analyse. Cycles en jours, concentrations en mg/L; unites de la bibliotheque automatiques. La PK reste fixe pendant l'ajustement PD. Les scenarios maintenu et modifie partagent l'historique; sans traitement exclut toutes les doses depuis t=0.",
+            "Built-in IV PK, population model with covariates, or mapbayr Bayesian estimate from Analysis. Cycles use days and concentrations mg/L; library units are automatic. PK remains fixed during PD fitting. Maintained and changed scenarios share history; untreated excludes all doses since t=0.")),
           p("dT/dt = growth(T) - KILL*C/(EC50+C)*exp(-RES*t)*T; ktr = 4/MTT."),
           p(t("La myelosuppression reprend les 5 compartiments et le retrocontrole de Friberg. Modification explicite : inhibition lineaire bornee a 1, avec valeurs initiales toutes egales a ANC0. Ce n'est pas une reproduction d'un modele medicament particulier. RES est une perte empirique de sensibilite avec le temps, pas une population cellulaire resistante.",
             "Myelosuppression uses Friberg's 5 compartments and feedback. Explicit modification: linear inhibition capped at 1, all initial counts equal ANC0. This is not a reproduction of a particular drug model. RES is empirical loss of sensitivity with time, not a resistant cell population.")),
-          p(t("Ajustement individuel par moindres carres ponderes sur log(valeur), avec les ecarts-types fixes saisis; pas de MAP-BE, ni de propagation de l'incertitude. La classification des cibles est deterministe sur une grille de 0,05 jour, pas une probabilite de succes. Les scenarios ne sont pas classes en recommandation. Sans toxicite active, aucune conclusion de securite n'est possible.",
-            "Individual weighted least squares on log(value), using entered fixed SDs; no MAP-BE or uncertainty propagation. Target classification is deterministic on a 0.05-day grid, not a success probability. Scenarios are not ranked as recommendations. Without active toxicity, no safety conclusion is possible.")),
+          p(t("Ajustement PD par moindres carres ponderes sur log(valeur), pas de MAP-BE PD ni de propagation de l'incertitude PK. Classification deterministe des cibles sur une grille de 0,05 jour, pas une probabilite de succes. Aucun classement en recommandation. Sans toxicite active, aucune conclusion de securite n'est possible.",
+            "PD fitting uses weighted least squares on log(value), not PD MAP-BE or PK uncertainty propagation. Deterministic target classification on a 0.05-day grid, not a success probability. No ranking as recommendations. Without active toxicity, no safety conclusion is possible.")),
           p(t("La taille est une somme des diametres (SLD), pas un volume. Aucun classement RECIST ni prediction de survie. Pas de G-CSF, de toxicite non hematologique, de combinaisons anticancereuses ni de parametres cliniques valides par molecule. Les donnees restent dans la session, sauf telechargement explicite.",
             "Size is sum of longest diameters (SLD), not volume. No RECIST classification or survival prediction. No G-CSF, nonhematological toxicity, anticancer combinations, or drug-specific validated clinical parameters. Data remain in session unless explicitly downloaded.")),
           tags$a(href = "https://doi.org/10.1200/JCO.2002.02.140", target = "_blank", rel = "noopener noreferrer", "Friberg et al., 2002"))))))
 }
 
-onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = tempdir(), cache = new.env()) {
+onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = tempdir(), cache = new.env(), analysis_store = reactive(NULL), open_tdm = NULL) {
   moduleServer(id, function(input, output, session) {
     t <- function(fr, en) app_t(app_language_from_query(session$clientData$url_search %||% ""), fr, en)
-    fit_store <- reactiveVal(NULL); comparison <- reactiveVal(NULL); imported_parameters <- reactiveVal(NULL)
-    pk <- pd_pk_server("pk", soloc, cache, reactive(if (identical(imported()$view, "onco")) imported()$models[[1]] else NULL))
+    fit_store <- reactiveVal(NULL); grid_results <- reactiveVal(NULL); imported_parameters <- reactiveVal(NULL)
+    dose_grid <- reactive(list(min = input$dose_min, max = input$dose_max, step = input$dose_step, intervals = as.numeric(input$intervals)))
+    comparison <- reactive({
+      result <- grid_results(); if (is.null(result)) return(NULL)
+      choices <- setdiff(result$regimens$scenario, "maintain")
+      selected <- input$candidate
+      if (is.null(selected) || !selected %in% choices) selected <- choices[[1]]
+      onco_grid_selection(result, selected)
+    })
+    pk <- pd_pk_server("pk", soloc, cache, reactive(if (identical(imported()$view, "onco")) imported()$models[[1]] else NULL), analysis_store, open_tdm)
     pk_context <- reactive(if (identical(input$pk_mode, "free")) pk() else NULL)
     history <- pd_observations_server("history", reactive(c("time", "amount", "infusion")),
       data.frame(time = c(0, 21), amount = c(100, 100), infusion = c(1, 1)), dose_history = TRUE)
@@ -94,9 +106,11 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
     output$parameters <- renderUI({
       groups <- list(initial = intersect(c("T0", "ANC0"), active()), pk = if (!identical(input$pk_mode, "free")) c("V", "CL"), pd = setdiff(active(), c("T0", "ANC0", "V", "CL")))
       labels <- c(initial = t("Conditions initiales", "Initial conditions"), pk = t("Parametres PK", "PK parameters"), pd = t("Parametres PD", "PD parameters"))
+      control <- function(name) numericInput(session$ns(name), onco_parameter_labels(t)[[name]],
+        isolate(input[[name]]) %||% (imported_parameters() %||% list())[[name]] %||% ONCO_DEFAULTS[[name]], min = 0)
       tagList(lapply(names(groups), function(group) if (length(groups[[group]])) tags$fieldset(tags$legend(labels[[group]]),
-        div(class = "pd-parameter-grid", lapply(groups[[group]], function(name) numericInput(session$ns(name),
-          onco_parameter_labels(t)[[name]], isolate(input[[name]]) %||% (imported_parameters() %||% list())[[name]] %||% ONCO_DEFAULTS[[name]], min = 0))))))
+        div(class = "pd-parameter-grid", lapply(setdiff(groups[[group]], c("RES", "GAMMA")), control)),
+        if (group == "pd") tags$details(tags$summary(t("Sensibilite et retrocontrole avances", "Advanced sensitivity and feedback")), lapply(intersect(groups[[group]], c("RES", "GAMMA")), control)))))
     })
     output$estimate_ui <- renderUI(checkboxGroupInput(session$ns("estimate"), t("Parametres a estimer", "Parameters to estimate"), setdiff(active(), c("V", "CL")), intersect(c("KILL", "SLOPE"), active())))
     configuration <- reactive({
@@ -110,11 +124,11 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
     handle <- function(fn) tryCatch(fn(), error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10))
     observeEvent(list(input$growth, input$toxicity, history$data(), input$decision, input$horizon, input$dose, input$interval, input$infusion,
       input$pk_mode, observations$data(), input$sigma_tumor, input$sigma_anc, lapply(names(ONCO_DEFAULTS), function(name) input[[name]])), {
-      fit_store(NULL); comparison(NULL)
+      fit_store(NULL); grid_results(NULL)
     }, ignoreInit = TRUE)
-    observeEvent(tryCatch(pk_context(), error = function(e) NULL), { fit_store(NULL); comparison(NULL) }, ignoreInit = TRUE, ignoreNULL = FALSE)
-    observeEvent(list(input$fraction, input$delay, input$new_interval, input$anc_floor, input$tumor_goal), comparison(NULL), ignoreInit = TRUE)
-    observeEvent(input$reset_fit, { fit_store(NULL); comparison(NULL) })
+    observeEvent(tryCatch(pk_context(), error = function(e) NULL), { fit_store(NULL); grid_results(NULL) }, ignoreInit = TRUE, ignoreNULL = FALSE)
+    observeEvent(list(dose_grid(), input$delay, input$anc_floor, input$tumor_goal), grid_results(NULL), ignoreInit = TRUE)
+    observeEvent(input$reset_fit, { fit_store(NULL); grid_results(NULL) })
     current <- reactive({
       config <- if (is.null(fit_store())) configuration() else fit_store()$config
       config$anc_floor <- input$anc_floor %||% 1; config$tumor_goal <- input$tumor_goal %||% 0.8
@@ -134,18 +148,36 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
       observations$replace(data)
     }))
     observeEvent(input$fit, handle(function() {
-      fit_store(NULL); comparison(NULL)
+      fit_store(NULL); grid_results(NULL)
       if (!isTRUE(input$accept)) stop(t("Confirmez l'usage de recherche.", "Confirm research use."))
       result <- withProgress(message = t("Ajustement oncologique", "Oncology fitting"), value = 0.2,
         onco_fit(configuration(), observations$data(), input$estimate, pk_context = pk_context()))
       fit_store(result); bslib::nav_select("tabs", "fit", session = session)
     }))
     observeEvent(input$compare, handle(function() {
-      comparison(NULL)
-      result <- withProgress(message = t("Comparaison des cycles", "Comparing cycles"), value = 0.3,
-        onco_compare(current(), input$fraction / 100, input$delay, input$new_interval, pk_context = pk_context()))
-      comparison(result); bslib::nav_select("tabs", "simulation", session = session)
+      grid_results(NULL)
+      result <- withProgress(message = t("Evaluation de la grille", "Evaluating dose grid"), value = 0.3,
+        onco_compare_grid(current(), dose_grid(), input$delay, pk_context = pk_context()))
+      grid_results(result); bslib::nav_select("tabs", "simulation", session = session)
+    }))
+    output$candidate_ui <- renderUI({
+      result <- grid_results(); shiny::req(result)
+      rows <- result$regimens[result$regimens$scenario != "maintain", ]
+      selectInput(session$ns("candidate"), t("Posologie comparee", "Compared regimen"),
+        setNames(rows$scenario, paste(rows$dose, "/", rows$interval, t("jours", "days"))), selected = isolate(input$candidate) %||% rows$scenario[[1]])
+    })
+    output$grid_metrics <- renderDT({
+      result <- grid_results(); shiny::req(result)
+      data <- result$metrics[, c("dose", "interval", "final_tumor_ratio", if (result$config$toxicity) "future_anc_nadir", "targets_met")]
+      data$targets_met <- ifelse(data$targets_met, t("Oui", "Yes"), t("Non", "No"))
+      names(data) <- c(t("Dose (unite PK)", "Dose (PK unit)"), t("Intervalle (jours)", "Interval (days)"), t("Ratio tumoral final", "Final tumor ratio"), if (result$config$toxicity) t("Nadir ANC futur", "Future ANC nadir"), t("Cibles atteintes", "Targets met"))
+      data <- cbind(setNames(data.frame(ifelse(result$metrics$scenario == "maintain", t("Maintenir", "Maintain"), t("Candidate", "Candidate"))), t("Posologie", "Regimen")), data)
+      datatable(data, rownames = FALSE, options = list(dom = "t", scrollX = TRUE, paging = FALSE)) |> DT::formatRound(columns = which(vapply(data, is.numeric, logical(1))), digits = 3)
+    })
+    observe({
       if (identical(imported()$view, "onco")) {
+        result <- comparison()
+        if (is.null(result)) { session$sendCustomMessage("workbench-result", list(id = imported()$id, view = "onco", invalidated = TRUE)); return() }
         curves <- lapply(c("untreated", "maintain"), function(name) {
           data <- result$curves[[name]]
           data <- data[unique(round(seq(1, nrow(data), length.out = min(1500, nrow(data))))), ]
@@ -153,7 +185,7 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
         })
         session$sendCustomMessage("workbench-result", list(id = imported()$id, view = "onco", curves = curves))
       }
-    }))
+    })
     output$status <- renderUI(p(if (is.null(fit_store())) t("Parametres saisis, sans individualisation.", "Entered parameters, no individualization.") else
       t("Parametres ajustes sur l'historique disponible au jour de decision.", "Parameters fitted to history available at the decision day.")))
     output$ready <- reactive(!is.null(comparison()))
@@ -187,6 +219,7 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
       data$scenario <- ifelse(data$scenario == "maintain", t("Maintenir", "Maintain"), t("Modifier", "Change"))
       names(data) <- c(t("Scenario", "Scenario"), t("Ratio tumoral final", "Final tumor ratio"), t("Nadir ANC futur", "Future ANC nadir"),
         t("Jours sous plancher", "Days below floor"), t("Cible tumorale atteinte", "Tumor goal met"), t("Cible ANC atteinte", "ANC goal met"), t("Dose future totale (unite PK)", "Total future dose (PK unit)"))
+      if (!comparison()$config$toxicity) data <- data[, -c(3, 4, 6), drop = FALSE]
       numeric_columns <- which(vapply(data, is.numeric, logical(1)))
       datatable(data, rownames = FALSE, options = list(dom = "t", scrollX = TRUE)) |> DT::formatRound(columns = numeric_columns, digits = 3)
     })
@@ -201,7 +234,7 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
     output$fit_data <- renderDT({ shiny::req(fit_store()); datatable(fit_store()$data, rownames = FALSE, options = list(pageLength = 8, scrollX = TRUE)) })
     output$code <- renderText(onco_model_code(current()))
     output$download_code <- downloadHandler(filename = function() "oncology.cpp", content = function(file) writeLines(onco_model_code(current()), file))
-    output$download_r <- downloadHandler(filename = function() "oncology.R", content = function(file) writeLines(onco_export_script(current(), input$fraction / 100, input$delay, input$new_interval, pk_context = pk_context()), file))
+    output$download_r <- downloadHandler(filename = function() "oncology.R", content = function(file) writeLines(onco_export_script(current(), delay = input$delay, pk_context = pk_context(), grid = dose_grid()), file))
     output$download_curves <- downloadHandler(filename = function() "oncology-curves.csv", content = function(file) {
       shiny::req(comparison()); write.csv(do.call(rbind, lapply(names(comparison()$curves), function(name) transform(comparison()$curves[[name]], scenario = name))), file, row.names = FALSE)
     })
@@ -210,7 +243,8 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
       htmltools::save_html(tags$html(tags$head(tags$meta(charset = "utf-8"), tags$title("Oncology report")), tags$body(
         h1(t("Oncologie : comparaison exploratoire", "Oncology: exploratory comparison")),
         p(t("Aucune recommandation clinique. Structures generiques, sans validation par molecule ni incertitude predictive.", "No clinical recommendation. Generic structures, no drug-specific validation or predictive uncertainty.")),
-        tags$pre(paste(capture.output(dput(result[c("config", "pk", "change", "metrics", "schedules")])), collapse = "\n")),
+        tags$pre(paste(capture.output(dput(grid_results()[c("config", "pk", "grid", "delay", "metrics", "schedules")])), collapse = "\n")),
+        tags$pre(paste(capture.output(dput(list(compared_regimen = result$change))), collapse = "\n")),
         tags$img(src = report_plot_uri(figure("TUMOR")), alt = "Tumor response"),
         if (result$config$toxicity) tags$img(src = report_plot_uri(figure("ANC")), alt = "ANC"),
         if (!is.null(fit_store())) tags$pre(paste(capture.output(dput(fit_store())), collapse = "\n")),
@@ -226,13 +260,16 @@ onco_server <- function(id, report_plot_uri, imported = reactive(NULL), soloc = 
         updateCheckboxInput(session, "toxicity", value = config$toxicity)
         for (name in c("decision", "horizon", "dose", "interval", "infusion", "anc_floor", "tumor_goal", "sigma_tumor", "sigma_anc")) updateNumericInput(session, name, value = config[[name]])
         for (name in names(ONCO_DEFAULTS)) updateNumericInput(session, name, value = config$parameters[[name]])
-        updateNumericInput(session, "new_interval", value = config$interval)
+        updateNumericInput(session, "dose_min", value = config$dose * .5)
+        updateNumericInput(session, "dose_max", value = config$dose * 1.5)
+        updateNumericInput(session, "dose_step", value = max(.001, config$dose * .25))
+        updateSelectizeInput(session, "intervals", choices = sort(unique(c(7, 14, 21, 28, config$interval))), selected = config$interval)
         history$replace(config$history)
-        fit_store(NULL); comparison(NULL)
+        fit_store(NULL); grid_results(NULL)
         session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = TRUE))
       }, error = function(e) session$sendCustomMessage("workbench-ack", list(id = payload$id, ok = FALSE, error = conditionMessage(e))))
     })
-    session$onSessionEnded(function() { fit_store(NULL); comparison(NULL); imported_parameters(NULL) })
+    session$onSessionEnded(function() { fit_store(NULL); grid_results(NULL); imported_parameters(NULL) })
     list(configuration = configuration, fit = fit_store, comparison = comparison)
   })
 }

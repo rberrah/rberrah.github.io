@@ -6,13 +6,13 @@ environment <- new.env(parent = globalenv())
 sys.source(file.path(APP_ROOT, "app.R"), envir = environment)
 shiny::testServer(environment$onco_server, args = list(report_plot_uri = function(plot) ""), {
   session$setInputs(growth = "exponential", toxicity = TRUE, decision = 42, horizon = 84, dose = 100, interval = 21, infusion = 1,
-    fraction = 75, delay = 7, new_interval = 21, anc_floor = 1, tumor_goal = 0.8)
+    dose_min = 75, dose_max = 100, dose_step = 25, intervals = "21", delay = 7, anc_floor = 1, tumor_goal = 0.8)
   stopifnot(nrow(configuration()$history) == 2)
   session$setInputs(compare = 1)
   stopifnot(!is.null(comparison()), length(output$metrics) > 0, length(output$tumor_plot) > 0, length(output$anc_plot) > 0)
   session$setInputs(`history-table_cell_edit` = list(row = 2, col = 1, value = "125"))
   stopifnot(configuration()$history$amount[2] == 125, is.null(comparison()))
-  session$setInputs(fraction = 50)
+  session$setInputs(dose_min = 50)
   stopifnot(is.null(comparison()))
   session$setInputs(compare = 2)
   stopifnot(!is.null(comparison()))
@@ -60,3 +60,20 @@ shiny::testServer(environment$pd_observations_server, args = list(
   stopifnot(nrow(environment$onco_config(list(history = rows()))$history) == 0)
 })
 cat("Dose table: editing, validation, add/remove and empty history passed.\n")
+
+shiny::testServer(environment$pd_observations_server, args = list(
+  columns = shiny::reactive(c("time", "endpoint", "value")),
+  initial = data.frame(time = c(0, 14), endpoint = c("tumor", "anc"), value = c(60, 4)), oncology = TRUE), {
+  stopifnot(grepl("pd-endpoint", output$table, fixed = TRUE))
+  session$setInputs(endpoint_edit = list(row = 1, value = "anc"))
+  stopifnot(rows()$endpoint[1] == "anc")
+  session$setInputs(endpoint_edit = list(row = 1, value = "unknown"))
+  stopifnot(rows()$endpoint[1] == "anc")
+  session$setInputs(endpoint_edit = list(row = 99, value = "tumor"))
+  stopifnot(nrow(rows()) == 2)
+  session$setInputs(table_cell_edit = list(row = 1, col = 1, value = "unknown"))
+  stopifnot(rows()$endpoint[1] == "anc")
+  session$setInputs(endpoint_edit = list(row = 2, value = "tumor"))
+  stopifnot(identical(rows()$endpoint, c("anc", "tumor")))
+})
+cat("Oncology endpoint dropdown: valid edits accepted; unknown endpoints and rows rejected.\n")

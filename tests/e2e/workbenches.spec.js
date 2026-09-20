@@ -118,6 +118,7 @@ test.describe('local DDI and PD workbenches', () => {
     for (const width of [1440, 390]) for (const route of ['pharmacodynamie', 'interactions']) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/${route}?lang=en`);
+      if (route === 'pharmacodynamie') await page.getByRole('button', {name:'Oncology', exact:true}).click();
       await expect(page.locator('iframe')).toHaveCount(0);
       await expect(page.getByRole('button', { name: 'Open in engine', exact: true })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'From diagram to simulation' })).toBeVisible();
@@ -131,10 +132,12 @@ test.describe('local DDI and PD workbenches', () => {
         await page.locator('.tabs').getByRole('button', {name:'PD', exact:true}).click();
         await expect(page.getByRole('group', {name:'PD parameters', exact:true})).toBeVisible();
         const previous = await curve.getAttribute('d');
+        await page.getByText('Advanced parameters', {exact:true}).click();
         await page.getByLabel('Resistance (1/day)', { exact: true }).fill('0.03');
         await expect(curve).not.toHaveAttribute('d', previous ?? '');
         await page.getByRole('combobox', { name: 'Tumor growth', exact: true }).selectOption('gompertz');
-        await expect(page.getByLabel('CAP (mm)', { exact: true })).toBeVisible();
+        await expect(page.getByLabel('Limiting size (mm)', { exact: true })).toBeVisible();
+        await page.getByLabel('Myelosuppression with feedback').check();
         if (width === 390) {
           await expect(page.locator('.mobile-scheme')).toBeVisible();
           const bounds = await page.locator('.mobile-scheme').boundingBox();
@@ -144,7 +147,7 @@ test.describe('local DDI and PD workbenches', () => {
           await page.screenshot({ path: '.playwright/pd-figures-mobile.png', fullPage: true });
         }
         await page.getByLabel('Myelosuppression with feedback').uncheck();
-        await expect(page.getByLabel('ANC(0) (10^9/L)', { exact: true })).toHaveCount(0);
+        await expect(page.getByLabel('Initial neutrophils (10^9/L)', { exact: true })).toHaveCount(0);
       } else {
         await page.getByRole('button', { name: 'Interaction', exact: true }).click();
         await page.getByRole('combobox', { name: 'Mechanism', exact: true }).selectOption('turnover_induction');
@@ -161,11 +164,13 @@ test.describe('local DDI and PD workbenches', () => {
 
   test('oncology handoff preserves parameters and compares future cycles', async ({ page }) => {
     await page.goto('/pharmacodynamie?lang=en');
+    await page.getByRole('button', {name:'Oncology', exact:true}).click();
     await page.locator('.tabs').getByRole('button', {name:'PD', exact:true}).click();
     await page.getByRole('combobox', { name: 'Tumor growth', exact: true }).selectOption('gompertz');
-    await page.getByLabel('CAP (mm)', { exact: true }).fill('280');
+    await page.getByLabel('Limiting size (mm)', { exact: true }).fill('280');
+    await page.getByLabel('Myelosuppression with feedback').check();
     await page.getByRole('button', {name:'Initial conditions', exact:true}).click();
-    await page.getByLabel('SLD(0) (mm)', { exact: true }).fill('75');
+    await page.getByLabel('Initial tumor size (mm)', { exact: true }).fill('75');
     const popup = page.waitForEvent('popup');
     await page.getByRole('button', { name: 'Open in engine', exact: true }).click();
     const engine = await popup;
@@ -212,6 +217,8 @@ test.describe('local DDI and PD workbenches', () => {
   test('oncology mobile simulation displays metrics and curves', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 900 });
     await page.goto(`${engineUrl}?view=pd&lang=fr`);
+    await page.locator('a[data-value="oncology"]').click();
+    await page.locator('#onco-toxicity').check();
     await page.locator('.onco-shell .mobile-configure-button').click();
     await expect(page.locator('#onco-compare')).toBeVisible();
     await page.locator('#onco-compare').click();
@@ -260,6 +267,7 @@ test.describe('local DDI and PD workbenches', () => {
 
   test('oncology uses pasted oral PK and returns the treated curve to the site', async ({ page }) => {
     await page.goto('/pharmacodynamie?lang=en');
+    await page.getByRole('button', {name:'Oncology', exact:true}).click();
     await page.getByLabel('Free PK model', {exact:true}).check();
     await page.locator('input[type="radio"][value="code"]').check();
     await page.locator('#cpp-onco').fill('$PARAM KA=1, CL=2, V=10\n$CMT DEPOT CENT\n$ODE dxdt_DEPOT=-KA*DEPOT; dxdt_CENT=KA*DEPOT-CL/V*CENT;\n$TABLE double CP=CENT/V;\n$CAPTURE CP');

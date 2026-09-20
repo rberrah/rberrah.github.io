@@ -8,6 +8,8 @@ try {
   page.setDefaultTimeout(120000);
   await page.goto(`${base}?view=pd&lang=en`, { timeout: 120000 });
   await page.waitForFunction(() => window.Shiny?.shinyapp?.config?.sessionId && window.Shiny.shinyapp.$socket?.readyState === 1);
+  await expect(page.locator('#pd_workspace a[data-value="general"]')).toHaveClass(/active/);
+  await page.locator('#pd_workspace a[data-value="oncology"]').click();
   await expect(page.locator('#onco-compare')).toBeVisible();
   const history = page.locator('#onco-history-table');
   await expect(history.locator('tbody tr')).toHaveCount(2);

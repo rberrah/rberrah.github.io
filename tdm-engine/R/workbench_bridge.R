@@ -12,7 +12,7 @@ workbench_pk_model <- function(model) {
 workbench_payload <- function(payload) {
   if (!is.list(payload) || !identical(payload$version, 1L) && !identical(payload$version, 1) ||
       !is.character(payload$id) || length(payload$id) != 1 || !grepl("^[a-zA-Z0-9-]{1,80}$", payload$id) ||
-      !is.character(payload$view) || length(payload$view) != 1 || !payload$view %in% c("ddi", "pd", "onco")) stop("Unsupported workshop payload.")
+      !is.character(payload$view) || length(payload$view) != 1 || !payload$view %in% c("ddi", "pd", "onco", "infection")) stop("Unsupported workshop payload.")
   if (nchar(jsonlite::toJSON(payload, auto_unbox = TRUE), type = "bytes") > 450000) stop("Workshop payload too large.")
   if (!is.list(payload$config)) stop("Missing workshop configuration.")
   if (!is.null(payload$models)) payload$models <- lapply(payload$models, workbench_pk_model)
@@ -23,6 +23,11 @@ workbench_payload <- function(payload) {
         do.call(rbind, lapply(history, function(row) as.data.frame(row, stringsAsFactors = FALSE)))
     }
     payload$config <- onco_config(payload$config)
+  } else if (payload$view == "infection") {
+    payload$config <- infection_config(payload$config)
+    expected <- if (payload$config$source == "pk") 1L else 0L
+    if (length(payload$models) != expected) stop("Infectiology requires one PK model, or the current engine TDM session.")
+    if (expected == 1L && payload$models[[1]]$route == "Oral" && (payload$config$infusion > 0 || payload$config$infusion2 > 0)) stop("Oral dosing requires infusion = 0.")
   } else if (payload$view == "pd") {
     exposure <- payload$config$exposure
     if (!exposure %in% c("exponential", "pk")) stop("Import concentration tables inside the engine.")

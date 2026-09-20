@@ -61,8 +61,10 @@ export function openWorkshop(engine, lang, spec, status, receive = () => {}) {
   const acknowledge = (event) => {
     if (event.source !== target || event.origin !== url.origin || event.data?.id !== payload.id) return;
     if (event.data.type === 'pk-workbench-result') {
+      if (event.data.view === spec.view && event.data.invalidated === true) { receive(null); return; }
       const curves = event.data.curves;
-      if (event.data.view !== 'onco' || !Array.isArray(curves) || curves.length !== 2 || !curves.every((/** @type {any} */ c) => ['untreated','treated'].includes(c.key) && Array.isArray(c.points) && c.points.length <= 2000 && c.points.every((/** @type {any} */ p) => Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.y >= 0))) return;
+      const keys = spec.view === 'infection' ? ['exposure_current', 'exposure_compare', 'pta_current', 'pta_compare'] : spec.view === 'pd' ? ['response', 'concentration', 'trajectory'] : ['untreated', 'treated'];
+      if (event.data.view !== spec.view || !['onco', 'infection', 'pd'].includes(spec.view) || !Array.isArray(curves) || curves.length !== keys.length || new Set(curves.map((/** @type {any} */ c) => c.key)).size !== keys.length || !curves.every((/** @type {any} */ c) => keys.includes(c.key) && Array.isArray(c.points) && c.points.length > 0 && c.points.length <= 2000 && c.points.every((/** @type {any} */ p) => Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && (spec.view === 'pd' && c.key !== 'concentration' || p.y >= 0)))) return;
       receive({curves}); return;
     }
     if (event.data.type !== 'pk-workbench-ack') return;
@@ -71,7 +73,8 @@ export function openWorkshop(engine, lang, spec, status, receive = () => {}) {
     if (!event.data.ok) cleanup();
   };
   const transmit = () => {
-    if (target.closed || attempts++ > 120) { status('timeout'); cleanup(); return; }
+    // A cold R session can take over a minute before accepting the first payload.
+    if (target.closed || attempts++ > 360) { status('timeout'); cleanup(); return; }
     target.postMessage(payload, url.origin);
   };
   status('sending');

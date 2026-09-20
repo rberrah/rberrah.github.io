@@ -217,6 +217,8 @@ function parseModelFile(file, metadata, englishMetadata, code) {
     id: stem,
     file,
     drugKey,
+    timeUnit: 'h',
+    concentrationUnit: ['ciclosporine', 'everolimus', 'sirolimus', 'tacrolimus'].includes(drugKey) ? 'ng/mL' : 'mg/L',
     drug,
     drugEn: drugLabelsEn[drugKey] ?? drug,
     model: displayModel,

@@ -35,9 +35,30 @@ pd_observations_server <- function(id, columns, initial, oncology = FALSE, dose_
       if (!ncol(data)) data <- as.data.frame(setNames(lapply(columns(), function(name) if (name == "endpoint") character() else numeric()), columns()))
       labels <- c(time = if (oncology || dose_history) t("Jour", "Day") else t("Temps (h)", "Time (h)"), concentration = "Concentration", effect = t("Valeur observee", "Observed value"), endpoint = t("Mesure", "Endpoint"), value = t("Valeur", "Value"),
         amount = t("Dose (unite PK)", "Dose (PK unit)"), infusion = t("Perfusion (h)", "Infusion (h)"))
-      datatable(data, colnames = unname(labels[names(data)]), rownames = FALSE, selection = "multiple", editable = "cell",
-        callback = DT::JS("table.on('keydown', 'tbody input', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.blur(); } });"),
+      endpoint <- match("endpoint", names(data)) - 1L
+      callback <- "table.on('keydown', 'tbody input', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.blur(); } });"
+      definitions <- NULL
+      if (oncology) {
+        choices <- c(tumor = t("Tumeur", "Tumor"), anc = t("Neutrophiles (ANC)", "Neutrophils (ANC)"))
+        definitions <- list(list(targets = endpoint, render = DT::JS(sprintf("function(data, type) {
+          if (type !== 'display') return data;
+          var select = document.createElement('select');
+          select.className = 'pd-endpoint'; select.setAttribute('aria-label', %s);
+          var labels = %s;
+          Object.keys(labels).forEach(function(key) { select.add(new Option(labels[key], key, key === data, key === data)); });
+          return select.outerHTML;
+        }", jsonlite::toJSON(unname(labels['endpoint']), auto_unbox = TRUE), jsonlite::toJSON(as.list(choices), auto_unbox = TRUE)))))
+        callback <- paste(callback, sprintf("table.on('click dblclick', 'select.pd-endpoint', function(e) { e.stopPropagation(); });
+          table.on('change', 'select.pd-endpoint', function() {
+            var index = table.cell($(this).closest('td')).index();
+            Shiny.setInputValue(%s, {row: index.row + 1, value: this.value}, {priority: 'event'});
+          });", jsonlite::toJSON(session$ns('endpoint_edit'), auto_unbox = TRUE)))
+      }
+      datatable(data, colnames = unname(labels[names(data)]), rownames = FALSE, selection = "multiple",
+        editable = if (oncology) list(target = "cell", disable = list(columns = endpoint)) else "cell",
+        callback = DT::JS(callback),
         options = list(pageLength = 8, lengthChange = FALSE, searching = FALSE, scrollX = TRUE, dom = "tip",
+          columnDefs = definitions,
           language = list(emptyTable = if (dose_history) t("Aucune dose passee", "No past doses") else t("Aucune observation", "No observations"), info = t("_START_ a _END_ sur _TOTAL_", "_START_ to _END_ of _TOTAL_"), infoEmpty = "0",
             paginate = list(previous = t("Precedent", "Previous"), "next" = t("Suivant", "Next")))))
     }, server = FALSE)
@@ -46,6 +67,13 @@ pd_observations_server <- function(id, columns, initial, oncology = FALSE, dose_
       edit <- input$table_cell_edit; data <- rows()
       if (!edit$row %in% seq_len(nrow(data)) || !edit$col %in% (seq_len(ncol(data)) - 1L)) stop("Invalid table cell.")
       data[edit$row, edit$col + 1L] <- edit$value
+      replace(data)
+    }))
+    observeEvent(input$endpoint_edit, handle(function() {
+      edit <- input$endpoint_edit; data <- rows()
+      if (!oncology || length(edit$row) != 1L || !edit$row %in% seq_len(nrow(data)) ||
+          length(edit$value) != 1L || !edit$value %in% c("tumor", "anc")) stop("Invalid oncology endpoint.")
+      data$endpoint[edit$row] <- edit$value
       replace(data)
     }))
     observeEvent(input$add, handle(function() {

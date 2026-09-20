@@ -1,4 +1,4 @@
-// Analytical teaching curves, deliberately separate from patient simulation in R.
+import { pdIvProfile, infectionIvCurves } from './workshopPk.js';
 /** @param {number} from @param {number} to @param {number} [n] */
 const grid = (from, to, n = 201) => Array.from({ length: n }, (_, i) => from + (to - from) * i / (n - 1));
 
@@ -87,10 +87,24 @@ export function treatedTumor(config) {
 }
 
 /** @param {string} view @param {any} config @param {number} concentration @param {any} [computed]
- * @returns {{key:string, x:string, y:string, series:{key:string, points:{x:number,y:number}[]}[]}[]}
+ * @returns {{key:string, x:string, y:string, y2?:string, series:{key:string, axis?:string, points:{x:number,y:number}[]}[]}[]}
  */
 export function workshopCurves(view, config, concentration = 1, computed = null) {
-  const p = config.parameters;
+  if (view === 'infection') {
+    let curves = computed?.curves;
+    if (!curves) {
+      if (config.source !== 'pk' || config.exposure !== 'iv1') return [];
+      if (!config.preview_regimen) throw new Error('Invalid dose grid');
+      const current = infectionIvCurves(config, config);
+      const compared = infectionIvCurves(config, config.preview_regimen);
+      curves = [{ key: 'exposure_current', points: current.exposure }, { key: 'exposure_compare', points: compared.exposure },
+        { key: 'pta_current', points: current.pta }, { key: 'pta_compare', points: compared.pta }];
+    }
+    return [
+      { key: 'infection_exposure', x: 'h', y: config.basis === 'free' ? 'C free (mg/L)' : 'C (mg/L)', series: curves.filter((/** @type {any} */ s) => s.key.startsWith('exposure_')) },
+      { key: 'infection_pta', x: 'MIC (mg/L)', y: 'PTA (%)', series: curves.filter((/** @type {any} */ s) => s.key.startsWith('pta_')) }
+    ];
+  }
   if (view === 'ddi') {
     const horizon = config.stop_day + config.followup_days;
     const times = [...new Set([...grid(0, horizon), config.start_day - 1e-8, config.start_day, config.stop_day - 1e-8, config.stop_day])].filter((x) => x >= 0 && x <= horizon).sort((a,b) => a-b);
@@ -106,14 +120,18 @@ export function workshopCurves(view, config, concentration = 1, computed = null)
     { key: 'untreated', points: grid(0, config.horizon).map((x) => ({ x, y: untreatedTumor(config, x) })) },
     ...(!config.free_pk ? [{ key: 'treated', points: treatedTumor(config) }] : [])
   ] }];
-  const effectAtExposure = pdEquilibrium(config, concentration);
-  const indirect = /_(in|out)$/.test(config.type);
+  let curves = computed?.curves;
+  if (!curves) {
+    if (config.exposure !== 'iv1') return [];
+    const rows = pdIvProfile(config);
+    curves = [
+      { key: 'response', points: rows.map(p => ({ x: p.time, y: p.effect })) },
+      { key: 'concentration', points: rows.map(p => ({ x: p.time, y: p.concentration })) },
+      { key: 'trajectory', points: rows.map(p => ({ x: p.concentration, y: p.effect })) }
+    ];
+  }
   return [
-    { key: 'pd_relation', x: 'C', y: 'E', series: [{ key: 'equilibrium', points: grid(0, Math.max(1, config.c0, p.EC50 * 5)).map((x) => ({ x, y: pdEquilibrium(config, x) })) }] },
-    { key: config.delay ? 'effect_compartment' : 'pd_time', x: 'h', y: config.delay ? 'Ce' : 'E', series: [{ key: config.delay ? 'ce' : 'response', points: grid(0, config.horizon).map((x) => {
-      if (config.delay) return { x, y: concentration * -Math.expm1(-p.KE0 * x) };
-      const loss = /_out$/.test(config.type) ? p.KOUT * p.E0 / effectAtExposure : p.KOUT;
-      return { x, y: indirect ? effectAtExposure + (p.E0 - effectAtExposure) * Math.exp(-loss * x) : effectAtExposure };
-    }) }] }
+    { key: 'pd_time', x: 'h', y: 'E', y2: 'C (mg/L)', series: curves.filter((/** @type {any} */ s) => s.key !== 'trajectory').map((/** @type {any} */ s) => ({ ...s, axis: s.key === 'concentration' ? 'right' : 'left' })) },
+    { key: 'pd_relation', x: 'C (mg/L)', y: 'E', series: curves.filter((/** @type {any} */ s) => s.key === 'trajectory') }
   ];
 }

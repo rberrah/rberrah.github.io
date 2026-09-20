@@ -1181,6 +1181,13 @@ h6 {
 }
 .onco-shell .sidebar-content { max-height: calc(100dvh - 230px); overflow-y: auto; }
 .onco-shell .workspace { min-width: 0; }
+.infection-shell .workspace { min-width: 0; }
+.infection-shell .workspace .nav-link { white-space: nowrap; }
+.infection-shell .sidebar h4 { font-family: inherit; font-size: 1rem; }
+.infection-shell details { margin-block: 12px; }
+@media (min-width: 901px) {
+  .infection-shell .sidebar-content { max-height: calc(100dvh - 230px); overflow-y: auto; }
+}
 .onco-shell .model-block h3 { font-size: 1.1rem; }
 .onco-shell .sidebar fieldset { margin-bottom: 20px; }
 .onco-shell .sidebar legend { font-size: 0.95rem; font-weight: 650; border-bottom: 1px solid var(--line); padding-bottom: 6px; margin-bottom: 10px; }
