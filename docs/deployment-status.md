@@ -1,4 +1,27 @@
-# Local / publication - 2026-09-14
+# Publication - 2026-09-20
+
+## Etat Actuel
+
+- Revision fonctionnelle : `05b9ef7`, fusionnee avec les commits du portail
+  presents sur GitHub, sans ecrasement de leur historique.
+- Site publie au commit `ef0a96d` : [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/35512964796).
+- Moteur [MIPD Engine](https://tdmhub.shinyapps.io/MIPD_Engine/) redeploye :
+  application `17776160`, bundle `12580315`. Le paquet comprend 167 fichiers
+  de code et modeles publics. Aucun PDF prive ni donnees patient.
+- Courbes PD E(t)/C(t) a deux axes, puis E(C); atelier IV 1 compartiment et PTA
+  en infectiologie; grille oncologique et choix ferme Tumeur / Neutrophiles.
+  Le perimetre reste exploratoire, sans validation clinique.
+- Verification locale : check Svelte sans erreur/avertissement, build et
+  tests de contenu reussis, 10 parcours navigateur cibles, tests numeriques JS
+  et R PK/PD/PTA, tests des serveurs PD/oncologie et validation des observations.
+- Verification publique : dix parcours reussis, dont quatre sur les courbes
+  mobile/ordinateur, trois dans Shiny, deux transferts aller-retour PD/PTA
+  (avec rapport HTML et invalidation), et les liens des sept pages du portail.
+
+## Archive - 2026-09-14
+
+Les sections suivantes conservent l'historique des publications anterieures;
+leurs differences local/public ne decrivent plus l'etat actuel ci-dessus.
 
 ## Publication Des Ateliers Autorisee
 

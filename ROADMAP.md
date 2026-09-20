@@ -1,9 +1,9 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-15. Les cinq ateliers sont publies dans le lot `5b86ccd`,
-apres les quatre laboratoires. Lot actuel : portail academique valide, publication autorisee.
-Shiny est deploye separement ; le nouveau transfert Laboratoires -> TDM reste
-a deployer dans le moteur R. Publier le site ne met pas Shiny a jour.
+Mise a jour : 2026-09-20. Les cinq ateliers et les quatre laboratoires sont publies.
+Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
+Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
+Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
 
 Ce document regroupe les demandes recentes et les pistes des deux discussions
 avec les agents. Il ne vaut pas autorisation de changer les licences, de rendre
@@ -31,7 +31,7 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 - [x] Ajouter une PTA IV 1 compartiment sur le site, avec variabilite PK explicite; remplacer AntibioMIC par des references methodologiques primaires.
 - [x] Ajouter les blocs Exposition / CMI / Cible dans Shiny et une grille de doses/intervalles avec selection du comparateur en oncologie.
 - [x] Remplacer la saisie libre de la mesure oncologique par un menu Tumeur / Neutrophiles (ANC), avec validation serveur.
-- [ ] Deploiements separes du site et de Shiny autorises le 20 septembre; verifier les versions en ligne.
+- [x] Publier le site (Pages `ef0a96d`) et Shiny (bundle `12580315`); verifier les courbes mobile/ordinateur, la grille oncologique, le menu de mesures et la PTA IV sur les URL publiques.
 - [ ] Validation clinique, cibles sourcees par population/site infectieux, liaison variable aux proteines, modeles de toxicite et de destruction bacterienne.
 
 Perimetre, sources et limites : [infectiologie](docs/infectiology.md).
