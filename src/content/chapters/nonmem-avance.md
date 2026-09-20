@@ -132,7 +132,7 @@ $ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; OFV exact
 KA se stabilise à 1,2 h⁻¹. Surtout, CL et V — les paramètres que l'étude renseigne **réellement** — redeviennent estimables, avec des ET de 12 % et 15 %.
 
 :::key
-On met un a priori sur ce que les nouvelles données **ne peuvent pas** apprendre, jamais sur ce qu'on veut mesurer. Un a priori sur la clairance pédiatrique répondrait à la question **à la place** de l'étude.
+On met surtout un a priori sur ce que les nouvelles données **ne peuvent pas** apprendre seules. Un a priori informatif sur ce qu'on veut mesurer peut être légitime, mais il doit être explicite, justifié et évalué par analyse de sensibilité ; sinon il répond à la question **à la place** de l'étude.
 :::
 
 Reste à vérifier le modèle. NONMEM ne trace **aucun** graphique : tout passe par l'écosystème R, piloté en ligne de commande par PsN.
@@ -174,7 +174,7 @@ Second piège, plus discret : **l'a priori trop serré**. Une variance a priori 
 <!-- step:title="À retenir" -->
 - La **transformation**, pas l'ETA, définit le domaine d'un paramètre : `EXP()` pour un positif non borné, logit pour une fraction dans ]0, 1[, identité pour une grandeur qui peut être négative.
 - Le **MU-referencing** — `MU_n` fonction des seuls THETA et covariables individuelles constantes, puis paramètre écrit exactement `MU_n + ETA(n)` — rend l'étape M analytique : SAEM accélère nettement, et BAYES en dépend.
-- Un **a priori** injecte un modèle publié dans une analyse pauvre en données ; il se met sur ce que les données ne peuvent pas informer, jamais sur ce qu'on veut mesurer.
+- Un **a priori** injecte un modèle publié dans une analyse pauvre en données ; il se met de préférence sur ce que les données ne peuvent pas informer, et tout prior informatif sur la cible doit être explicité et testé.
 - **PsN** automatise bootstrap, VPC et SCM ; **Xpose** trace ; **Pirana** organise. NONMEM ne produit aucun graphique : l'écosystème n'est pas un luxe.
 - Le bloc `$SIMULATION` — une graine, des `SUBPROBLEMS` — transforme un modèle estimé en générateur de populations virtuelles.
 <!-- /step -->

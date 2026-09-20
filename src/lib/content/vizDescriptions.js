@@ -166,12 +166,12 @@ const D = {
     en: "Individual parameters (CL, V) of patients from 3 cancer types. Toggle 'True type' ↔ 'Clusters (k-means)' and adjust the separation: when clear, clustering recovers the groups."
   },
   '64_RMT': {
-    fr: "Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation. Sous λ₊ = bruit (loi de Marchenko-Pastur) ; au-dessus = vraies corrélations. Réglez le nombre de facteurs et de patients.",
-    en: "Random Matrix Theory: the eigenvalue spectrum of a correlation matrix. Below λ₊ = noise (Marchenko-Pastur law); above = real correlations. Adjust the number of factors and patients."
+    fr: "Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation. Sous λ₊ = compatible avec un bruit idéal ; au-dessus = signal statistique possible à confirmer. Réglez le nombre de facteurs et de patients.",
+    en: "Random Matrix Theory: the eigenvalue spectrum of a correlation matrix. Below λ₊ = compatible with ideal noise; above = possible statistical signal to confirm. Adjust the number of factors and patients."
   },
   '62_ResidualPatterns': {
-    fr: "Galerie de motifs de résidus (CWRES) : aléatoire (bon), U / U inversé (structure), trompette (modèle d'erreur), pente (covariable). Chaque motif affiche sa cause et son remède.",
-    en: "A gallery of residual patterns (CWRES): random (good), U / inverted U (structure), trumpet (error model), slope (covariate). Each pattern shows its cause and fix."
+    fr: "Galerie de motifs de résidus (CWRES) : aléatoire, U / U inversé, trompette, pente. Chaque motif propose des hypothèses compatibles et des tests de correction.",
+    en: "A gallery of residual patterns (CWRES): random, U / inverted U, trumpet, slope. Each pattern proposes compatible hypotheses and correction tests."
   },
   '61_ResidualError': {
     fr: "Modèle d'erreur résiduelle sur les vraies données Warfarin : bande à ±1,96·SD (additive, proportionnelle ou combinée) autour de la courbe. On lit le % de points réels dans la bande (cible ≈ 95 %).",

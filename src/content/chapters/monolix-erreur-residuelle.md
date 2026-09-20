@@ -57,7 +57,7 @@ Un dosage réel a deux régimes de bruit, et ils n'ont rien à voir l'un avec l'
 - un **plancher**, en mg/L, indifférent à la concentration — bruit de fond, ligne de base, tout ce qui subsiste quand il n'y a presque plus rien à mesurer. C'est `constant(a)` ;
 - un **pourcentage**, qui grandit avec la concentration — dilutions, pipetage, calibration. C'est `proportional(b)`.
 
-Un jeu de données de PK couvre couramment deux ou trois ordres de grandeur, du pic au dernier creux. Il traverse donc les deux régimes. Aucun modèle à un seul terme n'est juste sur toute la gamme : c'est très exactement pourquoi les modèles **combinés** existent, et pourquoi ils sont la réponse par défaut.
+Un jeu de données de PK couvre couramment deux ou trois ordres de grandeur, du pic au dernier creux. Il traverse donc les deux régimes. Aucun modèle à un seul terme n'est juste sur toute la gamme : c'est très exactement pourquoi les modèles **combinés** existent, et pourquoi ils sont un candidat fréquent.
 
 :::key
 Le vrai levier est ailleurs : $g(f)$ est le **poids**. Dans la vraisemblance, un point coûte $(y-f)^2/g^2$. Petit $g$ = point déclaré précis = point lourd. Déclarer une erreur proportionnelle, c'est dire au SAEM « les creux sont mes points précis, obéis-leur ». Déclarer une erreur constante, c'est dire « le pic et le creux sont aussi précis l'un que l'autre » — et comme seuls les points élevés peuvent produire de gros écarts en mg/L, ce sont eux qui domineront la somme. Vous ne décrivez pas un dosage : vous arbitrez quelle partie du profil le modèle a le droit de manquer.

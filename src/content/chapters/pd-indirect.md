@@ -42,7 +42,7 @@ Les modèles de **réponse indirecte** (turnover) capturent ce délai de façon 
 <!-- step:title="Intuition" viz="Turnover" -->
 Une réponse $R$ est produite (vitesse $k_{in}$) et éliminée (vitesse $k_{out}$). Sans médicament, elle reste à l'équilibre $R_0 = k_{in}/k_{out}$.
 
-Le médicament pousse sur l'une des deux vitesses. La réponse met du temps à bouger : ce **délai** vient de $k_{out}$, pas de la pharmacocinétique.
+Le médicament pousse sur l'une des deux vitesses. La réponse met du temps à bouger : ce **délai** est souvent dominé par $k_{out}$, mais la pharmacocinétique peut encore le modifier si l'exposition monte lentement ou fluctue fortement.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="Turnover" -->
@@ -68,13 +68,13 @@ Le nadir de l'effet ne coïncide donc **pas** avec le pic plasmatique.
 Ne pas confondre délai PK et délai PD.
 
 :::pitfall
-Le retard d'un modèle turnover vient du **renouvellement** biologique, pas de l'absorption. Augmenter la dose ne raccourcit pas ce délai (il dépend de $k_{out}$) — cela ne fait qu'approfondir l'effet.
+Le retard d'un modèle turnover vient surtout du **renouvellement** biologique, pas seulement de l'absorption. Augmenter la dose ne change pas directement $k_{out}$ ; cela approfondit surtout l'effet, même si le profil PK peut modifier le temps apparent du maximum.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Réponse indirecte : le médicament agit sur kin (production) ou kout (dégradation).
 - Quatre modèles de Dayneka (inhibition/stimulation × kin/kout).
-- R0 = kin/kout ; le délai de l'effet vient de kout, pas de la PK.
+- R0 = kin/kout ; le délai de l'effet est souvent piloté par kout, avec une contribution possible du profil PK.
 - Le nadir de l'effet ne coïncide pas avec le pic plasmatique.
 <!-- /step -->

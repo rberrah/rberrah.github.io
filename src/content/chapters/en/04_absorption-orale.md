@@ -52,6 +52,8 @@ The simplest first-order oral model (Bateman curve), **without lag**:
 
 $$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-kt}-e^{-K_a t}\right) $$
 
+Here bioavailability $F$ is implicitly folded into the $\text{Dose}/V$ term; for a real extravascular route, this is often written $F\cdot\text{Dose}/V$.
+
 No need to memorize the whole expression: read it as input by absorption ($K_a$) opposed to output by elimination ($k = CL/V$). The two exponentials subtract: early on, absorption dominates (the curve rises), then elimination takes over (the curve falls).
 
 **Math —** increase $K_a$: the peak arrives earlier and higher. It is the only parameter that governs the **speed** of the rise in this basic model.
@@ -61,6 +63,8 @@ No need to memorize the whole expression: read it as input by absorption ($K_a$)
 Sometimes nothing enters the blood for a while after intake (disintegration time, gastric emptying). We then add a **lag time** $T_{lag}$, which simply shifts the start of absorption:
 
 $$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) \quad \text{for } t \geq T_{lag} $$
+
+Same convention: $F$ is omitted to keep the formula readable, but it returns as soon as oral exposure is interpreted in terms of the dose that actually becomes available.
 
 **Note —** the lag time is above all a **mathematical device**, with little direct physiological meaning, but **very useful** to describe an absorption delay without complicating the model. It is a handy patch: it captures the observed delay without claiming to explain *why* it exists.
 

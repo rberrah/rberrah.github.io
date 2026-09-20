@@ -54,7 +54,7 @@ and tends toward the plateau:
 
 $$ C_{ss} = \frac{R_0}{CL} $$
 
-**Math —** Css depends only on the **rate** and the **clearance**. You reach ~90% of Css in **~4 half-lives**; after stopping, the decay is exponential (first-order elimination).
+**Math —** Css depends only on the **rate** and the **clearance**. You reach 90% of Css in about **3.3 half-lives**; at **4 half-lives**, you are already near 94%. After stopping, the decay is exponential (first-order elimination).
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s12" viz="Infusion" -->

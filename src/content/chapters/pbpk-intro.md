@@ -34,7 +34,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-La **PBPK** (physiologically-based PK) construit le modèle à partir de la **physiologie réelle** : chaque compartiment est un organe, relié aux autres par le sang. Contrairement aux modèles empiriques, ses paramètres ont un **sens biologique**.
+La **PBPK** (physiologically-based PK) construit le modèle à partir de la **physiologie réelle** : chaque compartiment représente souvent un organe ou un tissu, relié aux autres par le sang. Contrairement aux modèles purement empiriques, beaucoup de paramètres ont un **sens biologique**, même si des scalars, regroupements et paramètres ajustés restent possibles.
 
 Cela permet d'**extrapoler** là où les données manquent : animal → homme, adulte → enfant, interactions médicamenteuses.
 <!-- /step -->

@@ -84,6 +84,6 @@ Une erreur **additive** sur des données à large gamme sur-pondère les hautes 
 <!-- step:title="À retenir" -->
 - L'erreur résiduelle = écart entre prédiction individuelle et observation (mesure, temps, non-modélisé).
 - Additive (largeur constante), proportionnelle (%CV constant), combinée (plancher + %).
-- La combinée est le choix par défaut réaliste : plancher additif près de la LOQ, % aux fortes concentrations.
+- La combinée est souvent utile sur des données à large gamme : plancher additif près de la LOQ, % aux fortes concentrations. Elle reste à vérifier sur les résidus.
 - Diagnostic : |IWRES| vs prédictions ; un entonnoir = mauvais modèle d'erreur.
 <!-- /step -->

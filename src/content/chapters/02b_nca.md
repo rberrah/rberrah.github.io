@@ -21,7 +21,7 @@ quiz:
     correct: 0
   - prompt: "Pourquoi ce cours privilégie-t-il l'écriture en CL, Q et V (macro) ?"
     options:
-      - "parce que ces grandeurs ont un sens physiologique parlant (épuration, débit, espace de distribution)"
+      - "parce que ces grandeurs ont une interprétation physiologique utile, même si elles restent des paramètres de modèle"
       - "parce que les constantes de vitesse micro sont fausses"
       - "parce que les logiciels n'acceptent que CL et V"
     correct: 0
@@ -46,9 +46,9 @@ Ce court chapitre précise le lien entre les deux, et pourquoi la suite du cours
 Les deux écritures sont comme deux systèmes de coordonnées pour décrire le même point.
 
 - Les constantes **micro** disent « à quelle **vitesse** » le médicament passe d'un compartiment à l'autre. Ce sont des taux, par unité de temps.
-- Les grandeurs **macro** disent « **quelle capacité** d'épuration » ($CL$), « **quel débit** » entre compartiments ($Q$) et « **quel espace** » de distribution ($V$). Ce sont des grandeurs **physiologiques**.
+- Les grandeurs **macro** disent « **quelle capacité** d'épuration » ($CL$), « **quel débit apparent** » entre compartiments ($Q$) et « **quel espace apparent** » de distribution ($V$). Elles ont une **interprétation physiologique**, mais restent des paramètres de modèle : $Q$ n'est pas forcément un débit anatomique mesuré, et $V$ est souvent apparent.
 
-Une constante de vitesse comme $k_{12}$ ne se mesure pas au chevet du patient ; une clairance, un volume, un débit sanguin, si — au moins par analogie physiologique.
+Une constante de vitesse comme $k_{12}$ ne se mesure pas au chevet du patient ; une clairance, un volume ou un débit apparent sont plus parlants — au moins par analogie physiologique.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="10_PK2C" -->
@@ -77,7 +77,7 @@ Les deux jeux de nombres décrivent **la même courbe**. Mais « $CL = 6$ L/h »
 Ne mélangez pas les deux écritures dans une même équation, et sachez toujours **laquelle** un article ou un logiciel utilise.
 
 :::pitfall
-Comparer ou transférer des paramètres d'un modèle à l'autre sans vérifier la paramétrisation est une erreur classique : un $k_{12}$ n'est pas un $Q$, et deux modèles « équivalents » peuvent afficher des nombres très différents selon l'écriture choisie. Les constantes micro n'ont par ailleurs **pas** de sens physiologique directement mesurable — c'est une raison de plus de raisonner en $CL$, $Q$, $V$.
+Comparer ou transférer des paramètres d'un modèle à l'autre sans vérifier la paramétrisation est une erreur classique : un $k_{12}$ n'est pas un $Q$, et deux modèles « équivalents » peuvent afficher des nombres très différents selon l'écriture choisie. Les constantes micro n'ont par ailleurs **pas** de sens physiologique directement mesurable — c'est une raison de plus de raisonner en $CL$, $Q$, $V$, sans oublier leur caractère apparent.
 :::
 <!-- /step -->
 

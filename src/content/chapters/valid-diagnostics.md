@@ -72,14 +72,14 @@ Bon modèle : les percentiles observés tombent **dans** les tunnels. Médiane h
 <!-- step:title="Exemple concret" viz="52_NPDE" -->
 Les **NPDE** (résidus par simulation) doivent former une gaussienne standard. Un **décalage de moyenne** dans un sous-groupe (ex. insuffisants rénaux) trahit une **covariable manquante** ; un **étalement** signale une variabilité mal capturée.
 
-Enfin, la **distribution des η** doit être centrée sur 0 et symétrique — une bosse à part suggère une **sous-population** (phénotype métaboliseur) non modélisée.
+Enfin, la **distribution des η** devrait être centrée sur 0 et assez symétrique — une bosse à part suggère une **hypothèse** de sous-population (phénotype métaboliseur) non modélisée, à confirmer.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
 Les graphiques individuels peuvent mentir.
 
 :::pitfall
-Un **DV vs IPRED** parfait peut venir d'un **shrinkage** élevé (le modèle « colle » par surajustement), pas d'un bon modèle de population. Toujours regarder les diagnostics **population** (PRED, CWRES, VPC) et vérifier le shrinkage avant d'interpréter η vs covariables.
+Un **DV vs IPRED** parfait peut être trompeur avec un **shrinkage** élevé : les diagnostics individuels deviennent peu informatifs, sans que cela signifie automatiquement surajustement. Toujours regarder les diagnostics **population** (PRED, CWRES, VPC) et vérifier le shrinkage avant d'interpréter η vs covariables.
 :::
 <!-- /step -->
 

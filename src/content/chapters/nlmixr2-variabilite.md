@@ -348,6 +348,6 @@ La borne n'était pas seulement **mal échelonnée** : elle était **inutile**. 
 - `eta.cl + eta.v ~ c(0.1, 0.05, 0.1)` donne le **triangle inférieur** de la covariance : la covariance est au **milieu**. `cor()` permet de saisir SD et corrélation à la place.
 - L'IOV est un **niveau** (`iov.cl ~ 0.03 | occ`) : une seule variance quel que soit le nombre d'occasions, donc pas de `SAME` à écrire. Sans elle, l'IIV absorbe l'IOV et se retrouve surestimée.
 - Les covariables sont du R ordinaire dans `model({})`, sans bloc dédié. Sur l'échelle log, `beta*log(CRCL/90)` **est** le modèle puissance. Une bonne covariable fait baisser l'oméga, pas seulement l'OFV.
-- Sur un theta log-transformé, le `%RSE` est trompeur près de zéro : jugez sur l'**intervalle rétro-transformé**. `fit$omegaR` se lit sans calcul (SD sur la diagonale, corrélations ailleurs) ; `fit$shrink` au-delà de 20–30 % invalide les graphiques eta contre covariable.
+- Sur un theta log-transformé, le `%RSE` est trompeur près de zéro : jugez sur l'**intervalle rétro-transformé**. `fit$omegaR` se lit sans calcul (SD sur la diagonale, corrélations ailleurs) ; `fit$shrink` au-delà de 20–30 % rend les graphiques eta contre covariable peu informatifs.
 - Ne mettez **aucune borne** sur un paramètre enveloppé d'`exp()` : elle est inutile et son échelle est trompeuse. SAEM les ignore en vous prévenant, FOCEI les applique en silence — le moteur dangereux est celui qui se tait.
 <!-- /step -->

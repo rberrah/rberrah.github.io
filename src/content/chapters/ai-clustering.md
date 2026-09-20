@@ -29,7 +29,7 @@ quiz:
     correct: 0
   - prompt: "En RMT (Random Matrix Theory), une valeur propre au-dessus du seuil λ₊ de Marchenko-Pastur indique..."
     options:
-      - "une vraie corrélation (signal), pas du bruit"
+      - "une déviation au modèle de bruit sous ses hypothèses"
       - "du bruit d'échantillonnage, à écarter comme non pertinent"
       - "une colinéarité parfaite entre deux paramètres du modèle"
     correct: 0
@@ -38,13 +38,13 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Après avoir estimé un modèle de population, on obtient les **paramètres individuels** de chaque patient (les EBE : clairance, volume…). Ces paramètres sont une mine : parfois, un sous-groupe **non prévu** s'y cache — par exemple la **clairance qui dépend du type de cancer**.
 
-Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la **PCA** (analyse en composantes principales, pour visualiser en 2D), et la **RMT** (théorie des matrices aléatoires, pour distinguer une vraie corrélation d'un artefact du hasard).
+Trois outils pour l'explorer : le **clustering** (regrouper sans étiquette), la **PCA** (analyse en composantes principales, pour visualiser en 2D), et la **RMT** (théorie des matrices aléatoires, pour repérer des composantes incompatibles avec un modèle de bruit simple).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->
 Tracez les paramètres individuels et **colorez par type de cancer** : si les nuages se séparent, c'est qu'un paramètre varie selon le groupe.
 
-Un algorithme de **clustering** fait l'inverse : il regroupe les points **sans connaître** le type, à partir de leur seule position. Quand la séparation est nette, il **retrouve** les cancers — la preuve qu'il y a une vraie structure.
+Un algorithme de **clustering** fait l'inverse : il regroupe les points **sans connaître** le type, à partir de leur seule position. Quand la séparation est nette, il peut **retrouver** les cancers — un argument pour une structure à confirmer, pas une preuve biologique à lui seul.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="63_ClusterPCA" -->
@@ -81,9 +81,9 @@ Sous l'hypothèse « **tout est bruit** », les valeurs propres de la matrice de
 $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 
 :::howto
-**La métaphore du brouhaha.** Dans une salle bruyante, la plupart des « signaux » ne sont que du bruit de fond (la cloche de Marchenko-Pastur). Une **vraie** conversation dépasse ce fond : de même, une valeur propre **au-dessus de $\lambda_+$** est une **vraie** corrélation (un facteur réel) ; en dessous, c'est du hasard.
+**La métaphore du brouhaha.** Dans une salle bruyante, la plupart des « signaux » ne sont que du bruit de fond (la cloche de Marchenko-Pastur). Une conversation peut dépasser ce fond : de même, une valeur propre **au-dessus de $\lambda_+$** est incompatible avec le modèle de bruit idéal. Cela suggère un signal à examiner, sans prouver à lui seul un facteur biologique réel.
 
-**Côté maths.** Le seuil $\lambda_+$ dépend du rapport $p/n$ : plus on a de **patients** ($n$ grand), plus le fond de bruit se resserre et plus le signal ressort. On « nettoie » ainsi la matrice de corrélation en ne gardant que les composantes au-dessus de $\lambda_+$.
+**Côté maths.** Le seuil $\lambda_+$ dépend du rapport $p/n$ et des hypothèses du modèle nul (variables centrées, bruit idéal, indépendance approximative). Plus on a de **patients** ($n$ grand), plus le fond de bruit se resserre. On peut ainsi proposer un « nettoyage » de la matrice de corrélation, à valider par stabilité et sens biologique.
 :::
 <!-- /step -->
 
@@ -105,6 +105,6 @@ Le k-means renverra $k$ groupes même dans du bruit pur — la structure n'est r
 - Les paramètres individuels (EBE) peuvent révéler des sous-groupes non prévus (ex. CL selon le type de cancer).
 - Clustering (k-means) pour regrouper sans étiquette ; kNN pour classer ; toujours standardiser.
 - PCA : réduire la dimension en gardant les directions de plus grande variance, pour visualiser.
-- RMT : au-dessus de λ₊ = signal, en dessous = bruit ; plus de patients fait ressortir le vrai.
+- RMT : au-dessus de λ₊ = signal statistique possible sous les hypothèses du modèle nul, pas preuve biologique ; plus de patients stabilise le seuil.
 - Le clustering génère des hypothèses ; le modèle (covariable + OFV/VPC) les valide.
 <!-- /step -->

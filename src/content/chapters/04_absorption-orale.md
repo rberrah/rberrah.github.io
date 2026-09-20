@@ -56,6 +56,8 @@ Le modèle oral d'ordre 1 le plus simple (courbe de Bateman), **sans latence** :
 
 $$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-kt}-e^{-K_a t}\right) $$
 
+Ici, la biodisponibilité $F$ est implicitement absorbée dans le terme $\text{Dose}/V$ ; pour une voie extravasculaire réelle, on écrit souvent $F\cdot\text{Dose}/V$.
+
 Pas besoin de mémoriser l'expression entière : lisez-la comme une entrée par absorption ($K_a$) opposée à une sortie par élimination ($k = CL/V$). Les deux exponentielles se soustraient : au début l'absorption domine (la courbe monte), puis l'élimination l'emporte (la courbe descend).
 
 :::math
@@ -67,6 +69,8 @@ Augmentez $K_a$ : le pic arrive plus tôt et plus haut. C'est le seul paramètre
 Parfois, rien n'entre dans le sang pendant un moment après la prise (temps de désagrégation, vidange gastrique). On ajoute alors un **temps de latence** $T_{lag}$, qui décale simplement le départ de l'absorption :
 
 $$ C(t) = \frac{\text{Dose}}{V}\,\frac{K_a}{K_a-k}\left(e^{-k(t-T_{lag})}-e^{-K_a(t-T_{lag})}\right) \quad \text{pour } t \geq T_{lag} $$
+
+Même convention : $F$ est omis pour garder la formule lisible, mais il revient dès qu'on interprète une exposition orale en termes de dose réellement disponible.
 
 :::note
 Le temps de latence est avant tout un **outil mathématique**, avec peu de sens physiologique direct, mais **très utile** pour décrire un retard d'absorption sans compliquer le modèle. C'est une « rustine » commode : elle capte le délai observé sans prétendre expliquer *pourquoi* il existe.

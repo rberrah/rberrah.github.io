@@ -27,7 +27,7 @@ quiz:
     correct: 0
   - prompt: "In RMT (Random Matrix Theory), an eigenvalue above the Marchenko-Pastur edge λ₊ indicates..."
     options:
-      - "a real correlation (signal), not noise"
+      - "a deviation from the noise model under its assumptions"
       - "sampling noise, to be discarded as irrelevant"
       - "a perfect collinearity between two model parameters"
     correct: 0
@@ -36,13 +36,13 @@ quiz:
 <!-- step:title="Why this chapter" -->
 Once a population model is estimated, we obtain each patient's **individual parameters** (the EBEs: clearance, volume…). These are a goldmine: sometimes an **unforeseen** subgroup hides in them — for example a **clearance that depends on cancer type**.
 
-Three tools to explore it: **clustering** (grouping without labels), **PCA** (principal component analysis, to visualise in 2D), and **RMT** (random matrix theory, to tell a real correlation from a chance artefact).
+Three tools to explore it: **clustering** (grouping without labels), **PCA** (principal component analysis, to visualise in 2D), and **RMT** (random matrix theory, to flag components incompatible with a simple noise model).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="63_ClusterPCA" -->
 Plot the individual parameters and **colour by cancer type**: if the clouds separate, a parameter varies by group.
 
-A **clustering** algorithm does the reverse: it groups the points **without knowing** the type, from their positions alone. When the separation is clear, it **recovers** the cancers — proof that real structure exists.
+A **clustering** algorithm does the reverse: it groups the points **without knowing** the type, from their positions alone. When the separation is clear, it may **recover** the cancers — evidence for structure to confirm, not biological proof by itself.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="63_ClusterPCA" -->
@@ -74,9 +74,9 @@ Under the "**everything is noise**" hypothesis, the eigenvalues of the correlati
 
 $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 
-**How to read it — the background-noise metaphor.** In a noisy room, most "signals" are just background hum (the Marchenko-Pastur bell). A **real** conversation rises above it: likewise, an eigenvalue **above $\lambda_+$** is a **real** correlation (a true factor); below it, chance.
+**How to read it — the background-noise metaphor.** In a noisy room, most "signals" are just background hum (the Marchenko-Pastur bell). A conversation can rise above it: likewise, an eigenvalue **above $\lambda_+$** is incompatible with the ideal noise model. It suggests a signal to examine, without proving a true biological factor by itself.
 
-**On the maths side.** The edge $\lambda_+$ depends on the ratio $p/n$: the more **patients** ($n$ large), the tighter the noise floor and the more the signal stands out. This "cleans" the correlation matrix by keeping only the components above $\lambda_+$.
+**On the maths side.** The edge $\lambda_+$ depends on the ratio $p/n$ and on the null-model assumptions (centred variables, ideal noise, approximate independence). The more **patients** ($n$ large), the tighter the noise floor. This can propose a "cleaned" correlation matrix, to validate by stability and biological sense.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="63_ClusterPCA" -->
@@ -95,6 +95,6 @@ A clustering algorithm **always** finds clusters.
 - Individual parameters (EBEs) can reveal unforeseen subgroups (e.g. CL by cancer type).
 - Clustering (k-means) to group without labels; kNN to classify; always standardise.
 - PCA: reduce dimension by keeping the largest-variance directions, to visualise.
-- RMT: above λ₊ = signal, below = noise; more patients makes the real stand out.
+- RMT: above λ₊ = possible statistical signal under the null assumptions, not biological proof; more patients stabilises the edge.
 - Clustering generates hypotheses; the model (covariate + OFV/VPC) validates them.
 <!-- /step -->

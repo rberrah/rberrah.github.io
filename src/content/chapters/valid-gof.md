@@ -19,9 +19,9 @@ quiz:
       - "un nuage incurvé passant sous la diagonale aux fortes valeurs"
       - "un alignement parfait, sans aucune dispersion autour de la droite"
     correct: 0
-  - prompt: "Une tendance des CWRES en fonction du temps indique..."
+  - prompt: "Une tendance des CWRES en fonction du temps évoque d'abord..."
     options:
-      - "une mauvaise spécification du modèle structural"
+      - "une hypothèse de mauvaise spécification à explorer"
       - "un modèle d'erreur résiduelle mal dimensionné"
       - "une variance des effets aléatoires sous-estimée"
     correct: 0
@@ -58,13 +58,13 @@ Les **CWRES** (Hooker et al., *Pharm Res* 2007) remplacent les WRES car ils tien
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="50_GOFPlots" -->
-Si les points **DV vs PRED** s'incurvent (le modèle sous-prédit les fortes concentrations), le modèle structural est en cause : peut-être manque-t-il un compartiment ou une non-linéarité.
+Si les points **DV vs PRED** s'incurvent (le modèle sous-prédit les fortes concentrations), le modèle structural devient suspect : peut-être manque-t-il un compartiment, une non-linéarité, une covariable ou une forme d'erreur adaptée.
 
-Une tendance des **CWRES au cours du temps** (positifs tôt, négatifs tard) trahit une mauvaise phase d'absorption ou d'élimination.
+Une tendance des **CWRES au cours du temps** (positifs tôt, négatifs tard) est compatible avec une mauvaise phase d'absorption ou d'élimination, mais ce n'est pas une signature unique.
 <!-- /step -->
 
 <!-- step:title="Cas pratique : lire les motifs" viz="62_ResidualPatterns" -->
-Chaque **forme** de résidus a une cause et un remède : un **U** (ou U inversé) = mauvaise **structure** (compartiment manquant) ; une **trompette** (nuage qui s'évase) = mauvais **modèle d'erreur** (additive → combinée) ; une **pente** = biais, souvent une **covariable manquante**.
+Chaque **forme** de résidus oriente vers des hypothèses à tester : un **U** (ou U inversé) évoque souvent une mauvaise **structure** ; une **trompette** (nuage qui s'évase) évoque un **modèle d'erreur** inadapté ; une **pente** évoque un biais, parfois une **covariable manquante**.
 
 Faites défiler les motifs. Le guide complet motif → cause → remède est détaillé dans le chapitre « Cas pratique : améliorer le modèle ».
 <!-- /step -->
@@ -73,13 +73,13 @@ Faites défiler les motifs. Le guide complet motif → cause → remède est dé
 Un beau IPRED vs DV ne suffit pas.
 
 :::pitfall
-Les graphiques **individuels** (IPRED) peuvent sembler parfaits par **surajustement** (shrinkage élevé) alors que le modèle de population est mauvais. Toujours regarder les diagnostics **population** (PRED, CWRES) et se méfier d'un shrinkage important.
+Les graphiques **individuels** (IPRED) peuvent sembler parfaits alors que les EBE sont peu informatifs, notamment avec un **shrinkage** important. Le shrinkage n'est pas du surajustement en soi : il signale surtout que les diagnostics individuels portent peu d'information. Toujours regarder les diagnostics **population** (PRED, CWRES, VPC/NPDE).
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Les GOF révèlent visuellement les biais d'un modèle.
 - DV vs PRED/IPRED : nuage sur la diagonale ; CWRES : centrés sur 0, sans tendance.
-- Une tendance des CWRES = mauvaise spécification structurale ou résiduelle.
-- Méfiance : un IPRED parfait peut venir d'un shrinkage élevé.
+- Une tendance des CWRES suggère une mauvaise spécification structurale ou résiduelle, à confirmer.
+- Méfiance : un IPRED parfait avec shrinkage élevé peut être peu informatif.
 <!-- /step -->

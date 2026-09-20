@@ -80,7 +80,7 @@ Une covariable doit être biologiquement plausible, soutenue par les données et
 :::
 
 :::clinical
-Une covariable statistiquement significative ne signifie pas pour autant une **causalité**. Elle peut n'être qu'un **proxy** d'un autre facteur : le **poids** est souvent un proxy de la **masse grasse** ; l'**ethnie**, un proxy de **facteurs génétiques** (polymorphismes d'enzymes ou de transporteurs). Le modèle capte une corrélation utile pour prédire, sans démontrer le mécanisme sous-jacent.
+Une covariable statistiquement significative ne signifie pas pour autant une **causalité**. Elle peut n'être qu'un **proxy** d'un autre facteur : le **poids** est souvent un proxy de la **masse grasse** ; l'ascendance ou l'ethnie déclarée peut mêler effets génétiques, environnementaux et d'accès aux soins. Le modèle capte une corrélation utile pour prédire, sans démontrer le mécanisme sous-jacent.
 :::
 <!-- /step -->
 
@@ -88,5 +88,5 @@ Une covariable statistiquement significative ne signifie pas pour autant une **c
 - Les covariables expliquent une part de la variabilité des paramètres, via un lien physiologique (volume ↔ diffusion tissulaire, clairance ↔ fonction rénale).
 - Le centrage garde les valeurs typiques interprétables.
 - L'allométrie est une règle de mise à l'échelle par le poids ; en pédiatrie, la compléter par une fonction de maturation (les organes mûrissent à des rythmes différents).
-- Significatif ne veut pas dire causal : une covariable est souvent un proxy (poids ↔ masse grasse, ethnie ↔ génétique).
+- Significatif ne veut pas dire causal : une covariable est souvent un proxy, parfois de plusieurs mécanismes à la fois.
 <!-- /step -->

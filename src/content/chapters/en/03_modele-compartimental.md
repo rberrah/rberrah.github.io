@@ -74,7 +74,7 @@ Patients A and B each receive 100 mg.
 
 If A has $V = 10\ \text{L}$, then $C_0 = 10\ \text{mg/L}$. If B has $V = 20\ \text{L}$, then $C_0 = 5\ \text{mg/L}$.
 
-Same dose, different apparent space, different starting concentration. Slide V in the figure: the whole curve moves up or down without changing its slope.
+Same dose, different apparent space, different starting concentration. Slide V in the figure: at fixed clearance, the curve starts lower **and** its terminal slope changes, because $k = CL/V$. Saying that V "only shifts" the curve is true only when $k$ is kept constant.
 <!-- /step -->
 
 <!-- step:title="Two compartments" slides="s08" viz="10_PK2C" -->
@@ -83,9 +83,9 @@ Many drugs do not distribute instantly: they first enter a **central compartment
 On a **semi-logarithmic** curve this gives **two slopes**:
 
 - the **α phase** (fast): distribution into tissues;
-- the **β phase** (slow): true elimination.
+- the **β phase** (slow): a terminal hybrid phase, influenced by elimination **and** exchange between compartments.
 
-**Key point —** hence several volumes: $V_1$ (central), $V_{ss}$ (steady state) and $V_{area}$ (β phase). The terminal half-life depends on the β phase, not on the initial distribution.
+**Key point —** hence several volumes: $V_1$ (central), $V_{ss}$ (steady state) and $V_{area}$ (β phase). The terminal half-life depends on this hybrid β constant; it should not be read as a pure elimination clearance.
 
 Compare with the one-compartment reference: ignoring distribution over-estimates the early concentrations.
 <!-- /step -->

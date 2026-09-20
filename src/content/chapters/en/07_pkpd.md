@@ -48,7 +48,7 @@ $E_0$ is the baseline effect (no drug) and $S$ (the slope) says how much the eff
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked: the Emax model" slides="s28" viz="EmaxHill" -->
-In reality, the effect **saturates**: once the targets (receptors, enzymes) are occupied, raising concentration adds almost nothing. That is the **Emax** idea.
+In reality, the effect often **saturates**: beyond a certain exposure, the response increases less and less. This may reflect target occupancy (receptors, enzymes), but also a limited biological cascade. That is the **Emax** idea.
 
 Direct Emax model:
 

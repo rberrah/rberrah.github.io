@@ -56,7 +56,7 @@ La NCA est une règle graduée ; la PopPK, un modèle de classe ; la PBPK, un pl
 
 Au-delà de la question posée, ces trois approches reposent sur des **principes** différents :
 
-- la **NCA** se veut **descriptive** : elle résume ce qu'on observe, sans modèle sous-jacent ;
+- la **NCA** se veut **descriptive** : elle résume ce qu'on observe, sans structure compartimentale, mais avec des hypothèses d'interpolation et de phase terminale ;
 - la **PopPK** se veut **empirique et statistique** : on part des données (observations en fonction du temps) pour construire un modèle prédictif « moyen » et sa variabilité ;
 - la **PBPK** se veut **fondée sur la connaissance** (*knowledge-based*) : on bâtit le modèle à partir de la physiologie connue, puis on l'évalue sur les données.
 <!-- /step -->

@@ -19,7 +19,7 @@ quiz:
     correct: 0
   - prompt: "When simulating realistic virtual patients, ignoring the weight–CrCl correlation..."
     options:
-      - "creates impossible combinations (e.g. low weight + huge CrCl)"
+      - "creates rare or incoherent combinations (e.g. low weight + huge CrCl)"
       - "slightly inflates the variance but keeps realistic profiles"
       - "preserves the margins, so it has no effect on realism"
     correct: 0
@@ -32,7 +32,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-To **simulate** trials or virtual patients, we must generate **realistic** covariates. Yet weight, height, CrCl and age are **correlated**: drawing them independently produces impossible individuals.
+To **simulate** trials or virtual patients, we must generate **realistic** covariates. Yet weight, height, CrCl and age are **correlated**: drawing them independently too often produces rare or incoherent individuals.
 
 **Copulas** reproduce the observed dependence while keeping the correct marginal laws.
 <!-- /step -->
@@ -56,7 +56,7 @@ $$ u_j = \Phi(z_j),\quad z \sim \mathcal{N}(0,\Sigma),\quad x_j = F_j^{-1}(u_j) 
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="43_Copula" -->
-For a **VPC** or a trial simulation, we want patients whose weight and CrCl covary as in the real population. A Gaussian copula fitted to the data avoids creating a 45 kg subject with a CrCl of 160 mL/min.
+For a **VPC** or a trial simulation, we want patients whose weight and CrCl covary as in the real population. A Gaussian copula fitted to the data limits poorly plausible combinations, such as a 45 kg subject with a CrCl of 160 mL/min.
 
 Non-Gaussian copulas (Clayton, Gumbel) capture **tail** dependence (co-occurrence of extremes).
 <!-- /step -->
@@ -70,6 +70,6 @@ Linear correlation does not tell everything.
 <!-- step:title="Key takeaways" -->
 - A copula separates the margins (each covariate) from the dependence (their link).
 - Sklar's theorem: joint law = margins + copula.
-- Useful to simulate realistic covariates (VPC, virtual trials) without impossible individuals.
+- Useful to simulate realistic covariates (VPC, virtual trials) with fewer rare or incoherent combinations.
 - The Gaussian copula ignores tail dependence; choose the right family.
 <!-- /step -->

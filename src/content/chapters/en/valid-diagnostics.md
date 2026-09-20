@@ -74,7 +74,7 @@ Finally, the **distribution of η** should be centred on 0 and symmetric — a s
 <!-- step:title="Common pitfall" -->
 Individual plots can lie.
 
-**Pitfall —** a perfect **DV vs IPRED** can come from high **shrinkage** (the model "sticks" by overfitting), not from a good population model. Always inspect **population** diagnostics (PRED, CWRES, VPC) and check shrinkage before interpreting η vs covariates.
+**Pitfall —** a perfect **DV vs IPRED** can be misleading with high **shrinkage**: individual diagnostics become weakly informative, without automatically meaning overfitting. Always inspect **population** diagnostics (PRED, CWRES, VPC) and check shrinkage before interpreting η vs covariates.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

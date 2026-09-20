@@ -71,7 +71,7 @@ La **morphine** produit le **M6G**, un métabolite **actif** (analgésique) éli
 On ne peut pas toujours tout identifier.
 
 :::pitfall
-Avec les seules données du métabolite, on **ne sépare pas** $f_m$ de son volume : on estime $f_m/V_{met}$ (paramètres **apparents**), sauf à disposer d'une administration directe du métabolite. Et un métabolite **actif** ignoré fausse la relation exposition–effet : l'effet peut persister alors que le **parent** a disparu.
+Avec les seules données du métabolite, on **ne sépare pas** $f_m$ de son volume : on estime $f_m/V_{met}$ (paramètres **apparents**). Une administration directe du métabolite, une fraction formée connue ou une information externe peut lever une partie de cette ambiguïté. Et un métabolite **actif** ignoré fausse la relation exposition–effet : l'effet peut persister alors que le **parent** a disparu.
 :::
 <!-- /step -->
 

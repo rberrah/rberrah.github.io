@@ -42,7 +42,7 @@ Comprendre leur mécanique évite deux écueils symétriques : la magie et le re
 <!-- step:title="Intuition" -->
 Un LLM est un **prédicteur du mot suivant** entraîné sur d'immenses corpus. À partir d'un contexte, il estime la distribution du **token** suivant, en tire un, puis recommence — c'est **auto-régressif**.
 
-De cette tâche simple, répétée à très grande échelle, émergent des capacités de raisonnement, de résumé et de code.
+De cette tâche simple, répétée à très grande échelle, émergent des capacités utiles de résumé, de code et parfois de raisonnement apparent — à évaluer par des tests externes plutôt qu'à supposer.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" -->

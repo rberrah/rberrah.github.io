@@ -132,7 +132,7 @@ $ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; exact OFV
 KA settles at 1.2 h⁻¹. More importantly, CL and V — the parameters the study **actually** informs — become estimable again, with SEs of 12 % and 15 %.
 
 :::key
-Put a prior on what the new data **cannot** learn, never on what you set out to measure. A prior on paediatric clearance would answer the question **instead of** the study.
+Put a prior mainly on what the new data **cannot** learn alone. An informative prior on what you set out to measure can be legitimate, but it must be explicit, justified and sensitivity-tested; otherwise it answers the question **instead of** the study.
 :::
 
 The model still has to be checked. NONMEM draws **no** graphics at all: everything goes through the R ecosystem, driven from the command line by PsN.
@@ -174,7 +174,7 @@ A second, quieter trap: **the over-tight prior**. A prior variance of 0.0001 on 
 <!-- step:title="Key takeaways" -->
 - The **transformation**, not the ETA, defines a parameter's domain: `EXP()` for an unbounded positive, logit for a fraction in ]0, 1[, identity for a quantity that may be negative.
 - **MU-referencing** — `MU_n` a function of THETAs and constant individual covariates only, then the parameter written exactly as `MU_n + ETA(n)` — makes the M step analytic: SAEM speeds up markedly, and BAYES depends on it.
-- A **prior** injects a published model into a data-poor analysis; put it on what the data cannot inform, never on what you want to measure.
+- A **prior** injects a published model into a data-poor analysis; preferably put it on what the data cannot inform, and make any informative prior on the target explicit and sensitivity-tested.
 - **PsN** automates bootstrap, VPC and SCM; **Xpose** plots; **Pirana** organises. NONMEM produces no graphics: the ecosystem is not a luxury.
 - The `$SIMULATION` block — a seed, some `SUBPROBLEMS` — turns an estimated model into a generator of virtual populations.
 <!-- /step -->

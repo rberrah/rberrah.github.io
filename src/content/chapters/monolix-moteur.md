@@ -38,7 +38,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Ce qui distingue Monolix n'est pas son interface — c'est son moteur, et le fait qu'il n'y en ait qu'un. NONMEM propose le SAEM parmi une dizaine de méthodes d'estimation ; Monolix est **construit autour** du SAEM. Ce n'est pas une entrée dans une liste déroulante, c'est l'architecture du logiciel.
 
-Trois particularités, souvent vécues comme des bizarreries par qui arrive de NONMEM, en découlent directement : la vraisemblance est une **tâche séparée** qu'il faut penser à demander ; le graphe de convergence a **deux phases** séparées par un trait vertical ; et un run **ne peut pas échouer** au sens où un run NONMEM échoue. Aucune des trois n'est un choix d'ergonomie. Ce chapitre remonte de ces symptômes à leur cause commune.
+Trois particularités, souvent vécues comme des bizarreries par qui arrive de NONMEM, en découlent directement : la vraisemblance est une **tâche séparée** qu'il faut penser à demander ; le graphe de convergence a **deux phases** séparées par un trait vertical ; et un run **n'échoue pas comme** un run NONMEM. Il peut tout de même s'arrêter sans convergence satisfaisante, ou au nombre maximal d'itérations. Aucune des trois n'est un choix d'ergonomie. Ce chapitre remonte de ces symptômes à leur cause commune.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="16_SAEMCycle" -->
@@ -155,7 +155,7 @@ Le remède est arithmétique. L'erreur de Monte-Carlo décroît en $1/\sqrt{M}$ 
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
-Le SAEM ne peut pas échouer. Il fait les itérations que vous lui avez demandées, il s'arrête, il affiche des paramètres. Il n'existe pas de `MINIMIZATION SUCCESSFUL` chez Monolix, parce qu'il n'existe rien qui puisse renvoyer l'inverse. Le seul juge est le graphe de convergence — et c'est précisément là que le piège se referme.
+Le SAEM échoue autrement. Il fait les itérations que vous lui avez demandées, il s'arrête, il affiche parfois des paramètres, mais cela ne garantit pas que la convergence soit satisfaisante : la documentation Monolix prévoit explicitement des critères de convergence non atteints et l'arrêt au nombre maximal d'itérations. Le juge pratique reste le graphe de convergence — et c'est précisément là que le piège se referme.
 
 :::pitfall
 **La platitude de la phase 2 ne prouve rien : elle est garantie par construction.** En phase de lissage, $\gamma_k \to 0$, donc chaque nouvelle simulation ne corrige plus $\theta_k$ que d'une fraction décroissante. La trajectoire s'aplatit **parce que le pas s'éteint**, pas parce que le maximum est atteint. Si un paramètre montait encore au moment de la bascule, la phase 2 le **fige en pleine montée** et vous dessine une belle ligne horizontale à une valeur fausse. Vous lisez « convergé » sur ce qui n'est qu'une capture.

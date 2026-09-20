@@ -44,7 +44,7 @@ Les trois indices (Craig, 1998) :
 
 - **T > CMI** (temps-dépendant) : bêta-lactamines. On l'optimise par des **perfusions prolongées/continues**.
 - **Cmax / CMI** (concentration-dépendant) : aminosides, fluoroquinolones. On l'optimise par de **fortes doses espacées**.
-- **AUC / CMI** : fluoroquinolones, glycopeptides (vancomycine : cible AUC₂₄/CMI ≥ 400).
+- **AUC / CMI** : fluoroquinolones, glycopeptides. Pour la vancomycine dans les infections graves à MRSA, le consensus récent vise en général une **AUC₂₄/CMI de 400–600** lorsque la CMI est interprétable.
 
 $$ \%T_{>CMI}, \qquad \frac{C_{max}}{CMI}, \qquad \frac{AUC_{24}}{CMI} $$
 

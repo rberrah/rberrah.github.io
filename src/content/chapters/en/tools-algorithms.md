@@ -81,13 +81,13 @@ $$ s_{k+1} = s_k + \gamma_k\big(S(\eta^{(k)}) - s_k\big) $$
 
 **How to read it — the polling metaphor.** Rather than computing an impossible exact average, we **poll a sample** at each iteration, and refine the estimate by averaging — ever more finely.
 
-**Consequence.** SAEM does **not** linearise: it converges to the **true** maximum likelihood (asymptotically), and stays **robust** on non-linear, complex models. It is **Monolix**'s engine and an option in **nlmixr2/NONMEM**. The final likelihood is computed separately, by **importance sampling**.
+**Consequence.** SAEM does **not** linearise: under its convergence conditions, it targets maximum likelihood through stochastic approximation, and is often more robust on non-linear, complex models. It is **Monolix**'s engine and an option in **nlmixr2/NONMEM**. The final likelihood is computed separately, by **importance sampling**.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="66_FOCELinearization" -->
 On a **simple** model, FOCE-I and SAEM give almost the **same** estimates: the linearisation is faithful.
 
-On a **difficult** model (steep Emax, TMDD, very sparse data), FOCE-I may **diverge** or **bias** the estimates, where SAEM converges calmly — hence its growing popularity.
+On a **difficult** model (steep Emax, TMDD, very sparse data), FOCE-I may **diverge** or **bias** the estimates, while SAEM may remain usable — hence its growing popularity. Convergence still has to be checked.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -99,6 +99,6 @@ Comparing OFVs across methods is meaningless.
 <!-- step:title="Key takeaways" -->
 - The NLME likelihood = an integral over the random effects, with no closed form.
 - FOCE: linearises around the individual η̂ — fast, approximate, historical (NONMEM).
-- SAEM: simulates the η (E) then updates the parameters (M) — exact (ML), robust (Monolix).
+- SAEM: simulates the η (E) then updates the parameters (M) — stochastic ML approximation, often robust (Monolix).
 - OFVs compare only with the same method and data; convergence ≠ a good model.
 <!-- /step -->

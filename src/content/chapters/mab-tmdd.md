@@ -55,7 +55,7 @@ Chaque terme se lit :
 - $k_{syn}$ / $k_{deg}$ : **synthèse** et **dégradation** de la cible en l'absence de médicament ;
 - $k_{int}$ : **internalisation** du complexe (la cible « emporte » le médicament — la voie qui sature).
 
-En pratique, on utilise souvent l'**approximation quasi-équilibre (QSS)** de ce système (Gibiansky & Gibiansky, 2008), qui le réduit à une forme de type **Michaelis-Menten** : le complexe est supposé à l'équilibre, ce qui élimine $k_{on}$ et $k_{off}$ au profit d'une seule constante $K_{ss} = (k_{off}+k_{int})/k_{on}$.
+En pratique, on utilise souvent l'approximation **quasi-steady-state (QSS)** de ce système (Gibiansky & Gibiansky, 2008), qui le réduit à une forme de type **Michaelis-Menten**. QSS n'est pas le quasi-équilibre : l'internalisation du complexe compte dans la constante apparente, d'où $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
 :::howto
 **La métaphore du parking.** La cible, ce sont des places de parking. À faible dose (peu de voitures), chaque molécule trouve vite une place et y est « retirée » de la circulation : élimination rapide. À forte dose, toutes les places sont **prises** (cible saturée) : les molécules en trop restent dans le sang et ne partent que par la voie lente. D'où une clairance qui **baisse** quand la dose monte.

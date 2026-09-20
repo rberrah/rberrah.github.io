@@ -50,7 +50,7 @@ La biodisponibilité orale se factorise :
 
 $$ F = f_a \cdot F_g \cdot F_h $$
 
-- $f_a$ : fraction dissoute et absorbée (solubilité × perméabilité) ;
+- $f_a$ : fraction absorbée, déterminée notamment par dissolution, solubilité, perméabilité, transit et formulation ;
 - $F_g$ : fraction échappant au métabolisme intestinal ;
 - $F_h$ : fraction échappant au **premier passage** hépatique, $F_h = 1 - E_h$.
 

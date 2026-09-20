@@ -54,7 +54,7 @@ Ce modèle linéaire est souvent **suffisant** dans la plage de concentrations r
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée : le modèle Emax" slides="s28" viz="EmaxHill" -->
-En réalité, l'effet **sature** : une fois les cibles (récepteurs, enzymes) occupées, augmenter la concentration n'apporte presque plus rien. C'est l'idée du modèle **Emax**.
+En réalité, l'effet **sature** souvent : au-delà d'une certaine exposition, la réponse augmente de moins en moins. Cela peut refléter l'occupation de cibles (récepteurs, enzymes), mais aussi une cascade biologique limitée. C'est l'idée du modèle **Emax**.
 
 Modèle Emax direct :
 

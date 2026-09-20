@@ -11,9 +11,9 @@ level: "intermediate"
 tags: ["infectious-diseases", "tdm", "vancomycin", "icu"]
 slides: []
 quiz:
-  - prompt: "For vancomycin, the currently preferred target is..."
+  - prompt: "For vancomycin in serious MRSA infections, the currently preferred target is..."
     options:
-      - "AUC₂₄/MIC ≥ 400 (Bayesian-estimated)"
+      - "AUC₂₄/MIC 400–600 (Bayesian-estimated)"
       - "a steady-state trough of 15–20 mg/L"
       - "a Cmax/MIC ≥ 8 peak on the first sample"
     correct: 0
@@ -38,11 +38,11 @@ The infectious specificity: the target is a **PK/PD index** (AUC/MIC, Cmax/MIC),
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="MultiDose" -->
-Vancomycin example: recent guidelines target **AUC₂₄/MIC ≥ 400**, estimated by a **Bayesian** approach from 1–2 samples (rather than the trough alone).
+Vancomycin example: for serious MRSA infections, recent guidelines generally target **AUC₂₄/MIC 400–600**, estimated by a **Bayesian** approach from 1–2 samples (rather than the trough alone).
 
 $$ \text{AUC}_{24} = \frac{\text{Dose}_{24}}{CL} $$
 
-**Ref —** Rybak M.J. et al., *Am J Health-Syst Pharm* 2020 (vancomycin consensus, AUC/MIC target); Roberts J.A. et al., *Clin Infect Dis* 2014 (DALI study: frequent beta-lactam under-exposure in the ICU).
+**Ref —** Rybak M.J. et al., *Am J Health-Syst Pharm* 2020 (vancomycin consensus, AUC/MIC 400–600 target in that setting); Roberts J.A. et al., *Clin Infect Dis* 2014 (DALI study: frequent beta-lactam under-exposure in the ICU).
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="TDMProfile" -->
@@ -59,7 +59,7 @@ Do not set a dose on a concentration without its context.
 
 <!-- step:title="Key takeaways" -->
 - TDM concerns narrow-index or highly variable antibiotics (ICU).
-- The target is a PK/PD index (vancomycin: AUC₂₄/MIC ≥ 400) estimated by Bayes.
+- The target is a PK/PD index (serious MRSA vancomycin: AUC₂₄/MIC 400–600) estimated by Bayes.
 - Augmented renal clearance under-doses hydrophilic antibiotics.
 - Sampling time, renal function and MIC drive the adjustment.
 <!-- /step -->

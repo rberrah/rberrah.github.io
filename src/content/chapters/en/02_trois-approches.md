@@ -52,7 +52,7 @@ NCA is a ruler; PopPK a classroom model; PBPK a building plan — powerful, but 
 
 Beyond the question they answer, the three approaches rest on different **principles**:
 
-- **NCA** is **descriptive**: it summarizes what is observed, with no underlying model;
+- **NCA** is **descriptive**: it summarizes what is observed, without a compartmental structure, but with interpolation and terminal-phase assumptions;
 - **PopPK** is **empirical and statistical**: starting from the data (observations over time), it builds a "mean" predictive model and its variability;
 - **PBPK** is **knowledge-based**: the model is built from known physiology, then evaluated against the data.
 <!-- /step -->

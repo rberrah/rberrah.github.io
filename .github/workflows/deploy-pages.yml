@@ -37,6 +37,12 @@ jobs:
       - name: Test public origin configuration
         run: node --test scripts/test_site_origin.mjs
 
+      - name: Test educational content
+        run: npm test
+
+      - name: Check Svelte
+        run: npm run check
+
       # La pharmacométrie est désormais servie sous /pharmacometrie/ ; la vraie
       # racine (/) héberge le portail statique (dossier portal/).
       - name: Build (pharmacométrie)

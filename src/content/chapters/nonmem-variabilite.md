@@ -229,5 +229,5 @@ Le shrinkage disqualifie les **EBE** comme outil de diagnostic, pas les **param�
 - `DIAGONAL` suppose les etas indépendants ; `BLOCK(n)` estime leurs covariances pour $n(n+1)/2$ paramètres, et se juge par un rapport de vraisemblance. La corrélation CL–V est physiologique : l'ignorer fausse les simulations.
 - L'IOV se code par un eta par occasion, avec `SAME` pour leur imposer une variance commune — deux etas, un seul paramètre.
 - Les covariables entrent dans le typique (`TVCL`), en amont de `EXP(ETA)` ; une bonne covariable fait baisser `$OMEGA`, pas seulement l'OFV.
-- Un shrinkage supérieur à 20–30 % invalide les graphiques ETA vs covariable, dans les deux sens : il masque des relations vraies et en invente des fausses. On tranche alors dans le modèle, pas sur le nuage.
+- Un shrinkage supérieur à 20–30 % rend les graphiques ETA vs covariable peu informatifs, dans les deux sens : il peut masquer des relations vraies ou suggérer des artefacts. On tranche alors dans le modèle, pas sur le nuage.
 <!-- /step -->

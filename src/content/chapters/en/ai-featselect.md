@@ -13,7 +13,7 @@ slides: []
 quiz:
   - prompt: "VSURF selects variables by..."
     options:
-      - "two steps (interpretation then prediction) based on forest importance"
+      - "three steps: thresholding, interpretation then prediction"
       - "classic stepwise regression based on each covariate's p-value"
       - "a single threshold on each variable's correlation with the response"
     correct: 0
@@ -69,7 +69,7 @@ Importance is not causality — and depends on correlations.
 
 <!-- step:title="Key takeaways" -->
 - Importance (by permutation) ranks covariates by predictive power.
-- VSURF selects in two stages: interpretation (all that matters) then prediction (minimal).
+- VSURF selects in three stages: noise thresholding, interpretation (all that matters) then prediction (minimal).
 - OrdinalForest handles ordinal responses (toxicity grades, RECIST).
 - Beware correlations, causality and leakage in validation.
 <!-- /step -->

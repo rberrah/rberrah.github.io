@@ -42,7 +42,7 @@ The three indices (Craig, 1998):
 
 - **T > MIC** (time-dependent): beta-lactams. Optimised by **prolonged/continuous infusions**.
 - **Cmax / MIC** (concentration-dependent): aminoglycosides, fluoroquinolones. Optimised by **large spaced doses**.
-- **AUC / MIC**: fluoroquinolones, glycopeptides (vancomycin: target AUC₂₄/MIC ≥ 400).
+- **AUC / MIC**: fluoroquinolones, glycopeptides. For vancomycin in serious MRSA infections, recent consensus generally targets **AUC₂₄/MIC 400–600** when the MIC is interpretable.
 
 $$ \%T_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{AUC_{24}}{MIC} $$
 

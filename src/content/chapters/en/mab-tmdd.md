@@ -51,7 +51,7 @@ Each term reads:
 - $k_{syn}$ / $k_{deg}$: target **synthesis** and **degradation** in the absence of drug;
 - $k_{int}$: **internalisation** of the complex (the target "carries away" the drug — the route that saturates).
 
-In practice, the **quasi-steady-state (QSS)** approximation of this system is often used (Gibiansky & Gibiansky, 2008), reducing it to a **Michaelis-Menten** form: the complex is taken at equilibrium, replacing $k_{on}$ and $k_{off}$ by a single constant $K_{ss} = (k_{off}+k_{int})/k_{on}$.
+In practice, the **quasi-steady-state (QSS)** approximation of this system is often used (Gibiansky & Gibiansky, 2008), reducing it to a **Michaelis-Menten** form. QSS is not quasi-equilibrium: complex internalisation enters the apparent constant, hence $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
 **How to read it — the parking-lot metaphor.** The target is a set of parking spaces. At low dose (few cars), each molecule quickly finds a spot and is "removed" from circulation: fast elimination. At high dose, every space is **taken** (target saturated): the extra molecules stay in the blood and leave only by the slow route. Hence a clearance that **drops** as the dose rises.
 

@@ -88,14 +88,14 @@ $$ s_{k+1} = s_k + \gamma_k\big(S(\eta^{(k)}) - s_k\big) $$
 :::howto
 **La métaphore du sondage.** Plutôt que de calculer une moyenne exacte impossible, on **interroge un échantillon** à chaque itération, et on affine l'estimation en moyennant — de plus en plus finement.
 
-**Conséquence.** SAEM ne linéarise **pas** : il converge vers le **vrai** maximum de vraisemblance (asymptotiquement), et reste **robuste** sur les modèles non linéaires et complexes. C'est le moteur de **Monolix** et une option de **nlmixr2/NONMEM**. La vraisemblance finale se calcule à part, par **échantillonnage d'importance**.
+**Conséquence.** SAEM ne linéarise **pas** : sous ses conditions de convergence, il vise le maximum de vraisemblance par approximation stochastique, et se montre souvent plus robuste sur les modèles non linéaires et complexes. C'est le moteur de **Monolix** et une option de **nlmixr2/NONMEM**. La vraisemblance finale se calcule à part, par **échantillonnage d'importance**.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="66_FOCELinearization" -->
 Sur un modèle **simple**, FOCE-I et SAEM donnent quasiment les **mêmes** estimations : la linéarisation est fidèle.
 
-Sur un modèle **difficile** (Emax raide, TMDD, données très éparses), FOCE-I peut **diverger** ou **biaiser** les estimations, là où SAEM converge tranquillement — d'où sa popularité croissante.
+Sur un modèle **difficile** (Emax raide, TMDD, données très éparses), FOCE-I peut **diverger** ou **biaiser** les estimations, alors que SAEM peut rester exploitable — d'où sa popularité croissante. Cela ne dispense pas de vérifier la convergence.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -109,6 +109,6 @@ FOCE et SAEM **approchent** la vraisemblance différemment : leurs **OFV ne sont
 <!-- step:title="À retenir" -->
 - La vraisemblance NLME = une intégrale sur les effets aléatoires, sans forme close.
 - FOCE : linéarise autour des η̂ individuels — rapide, approximatif, historique (NONMEM).
-- SAEM : simule les η (E) puis met à jour les paramètres (M) — exact (ML), robuste (Monolix).
+- SAEM : simule les η (E) puis met à jour les paramètres (M) — approximation stochastique du ML, souvent robuste (Monolix).
 - Les OFV ne se comparent qu'à méthode et données identiques ; convergence ≠ bon modèle.
 <!-- /step -->

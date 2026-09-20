@@ -42,7 +42,7 @@ C'est le pont entre l'analyse statistique et la pratique.
 <!-- step:title="Intuition" viz="53_ForestPlot" -->
 Un **forest plot** aligne les effets : chaque covariable déplace un paramètre (ex. la clairance) d'un certain **facteur**, avec une barre d'incertitude.
 
-Deux repères : la ligne à **1** (pas d'effet) et une **bande** de non-pertinence clinique. Un effet compte s'il **sort** de la bande et si sa barre ne croise pas 1.
+Deux repères : la ligne à **1** (pas d'effet) et une **bande** de non-pertinence clinique, définie à l'avance selon le médicament, la cible et le contexte. Un effet compte s'il **sort** de cette bande et si son incertitude reste compatible avec une décision.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="53_ForestPlot" -->
@@ -53,7 +53,7 @@ $$ \frac{CL(x)}{CL_{ref}} = \left(\frac{x}{x_{ref}}\right)^{\theta} $$
 On juge sur **deux critères** conjoints :
 
 - **statistique** : l'IC à 95 % du ratio exclut-il 1 ?
-- **clinique** : le ratio dépasse-t-il le seuil de pertinence (souvent ±20 %, soit la zone 0,8–1,25) ?
+- **clinique** : le ratio dépasse-t-il le seuil de pertinence défini pour cette décision ? La zone 0,8–1,25 vient de la bioéquivalence et peut servir de repère pédagogique, mais ce n'est pas un critère universel d'adaptation posologique.
 
 :::note
 Un effet peut être significatif (grand échantillon) mais **cliniquement négligeable**, et inversement un effet pertinent peut rester incertain (IC large).
@@ -77,6 +77,6 @@ Sur un grand jeu de données, presque tout devient **statistiquement significati
 <!-- step:title="À retenir" -->
 - Le forest plot montre l'ampleur et l'incertitude de chaque effet de covariable.
 - Effet exprimé en ratio vs référence ; juger statistique ET clinique.
-- Pertinent = hors bande (ex. ±20 %) et IC ne croisant pas 1.
+- Pertinent = hors d'une bande clinique justifiée pour le médicament, avec une incertitude compatible avec l'action envisagée.
 - Significatif ≠ pertinent ; méfiance sur les covariables corrélées.
 <!-- /step -->

@@ -66,7 +66,7 @@ Conversely, a metabolite cleared faster than the parent stays low: its kinetics 
 <!-- step:title="Common pitfall" -->
 You cannot always identify everything.
 
-**Pitfall —** with metabolite data alone, you **cannot separate** $f_m$ from its volume: you estimate $f_m/V_{met}$ (**apparent** parameters), unless the metabolite is given directly. And an ignored **active** metabolite distorts the exposure–effect relationship: the effect may persist after the **parent** is gone.
+**Pitfall —** with metabolite data alone, you **cannot separate** $f_m$ from its volume: you estimate $f_m/V_{met}$ (**apparent** parameters). Direct metabolite administration, a known fraction formed or external information can remove part of this ambiguity. And an ignored **active** metabolite distorts the exposure–effect relationship: the effect may persist after the **parent** is gone.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

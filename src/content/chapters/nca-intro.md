@@ -61,7 +61,7 @@ Les autorités (EMA, FDA) exigent d'ailleurs des critères NCA (rapports d'AUC/C
 La NCA ne dispense pas de bons prélèvements.
 
 :::pitfall
-Si la **phase terminale** est mal échantillonnée, $\lambda_z$ et l'AUC extrapolée sont fausses. Et la NCA suppose la **linéarité** : à des doses saturantes (TMDD, Michaelis-Menten), l'AUC n'est plus proportionnelle à la dose et la NCA induit en erreur.
+Si la **phase terminale** est mal échantillonnée, $\lambda_z$ et l'AUC extrapolée sont fausses. La NCA peut décrire des données non linéaires, mais les interprétations simples de clairance et de dose-proportionnalité supposent une cinétique linéaire : à des doses saturantes (TMDD, Michaelis-Menten), l'AUC n'est plus proportionnelle à la dose.
 :::
 <!-- /step -->
 
@@ -69,5 +69,5 @@ Si la **phase terminale** est mal échantillonnée, $\lambda_z$ et l'AUC extrapo
 - La NCA estime l'exposition sans supposer de structure compartimentale.
 - Piliers : AUC (exposition) et λz (pente terminale d'élimination).
 - Méthode de référence en bioéquivalence (critères réglementaires).
-- Suppose la linéarité et une phase terminale bien échantillonnée.
+- Prudence : phase terminale bien échantillonnée ; interprétation de CL et dose-proportionnalité seulement si la linéarité est raisonnable.
 <!-- /step -->

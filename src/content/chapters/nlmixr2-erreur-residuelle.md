@@ -63,7 +63,7 @@ Reste à répondre à la seule question que pose le modèle d'erreur : **quelle 
 - un **plancher**, en mg/L, indifférent à la concentration — bruit de fond, ligne de base, tout ce qui subsiste quand il n'y a presque plus rien à mesurer. C'est `add()` ;
 - un **pourcentage**, qui grandit avec la concentration — dilutions, pipetage, calibration. C'est `prop()`.
 
-Un profil de PK couvre couramment deux ou trois ordres de grandeur, du pic au dernier creux. Il traverse donc les deux régimes, et aucune forme à un seul terme n'est juste sur toute la gamme. C'est très exactement pourquoi `add() + prop()` est la réponse par défaut.
+Un profil de PK couvre couramment deux ou trois ordres de grandeur, du pic au dernier creux. Il traverse donc les deux régimes, et aucune forme à un seul terme n'est juste sur toute la gamme. C'est très exactement pourquoi `add() + prop()` est un candidat fréquent, à confirmer sur les résidus.
 
 :::key
 Le vrai levier est ailleurs : l'écart-type $g(f)$ est le **poids**. Dans la vraisemblance, un point coûte $(y-f)^2/g^2$. Petit $g$ = point déclaré précis = point lourd. Déclarer `prop()` seul, c'est dire au SAEM « les creux sont mes points précis, obéis-leur ». Déclarer `add()` seul, c'est dire « le pic et le creux sont aussi précis l'un que l'autre » — et comme seuls les points élevés peuvent produire de gros écarts en mg/L, ce sont eux qui domineront la somme. Vous ne décrivez pas un dosage : vous arbitrez quelle partie du profil le modèle a le droit de manquer.
@@ -269,4 +269,3 @@ Le SAEM ne produit pas de vraisemblance comme sous-produit de son itération : n
 - Jugez $g$ sur les IWRES contre **prédictions**, en lisant la **largeur** : qui s'ouvre = pourcentage manquant ; qui se resserre = plancher manquant ; courbé = structural. Mais lisez `sd(fit$IWRES)` d'abord — sous $\varepsilon$-shrinkage, un beau nuage ne prouve rien.
 - Un %RSE énorme sur `add.err` signale un plancher que plus aucune donnée basse n'informe — typiquement des BQL jetés.
 <!-- /step -->
-

@@ -42,11 +42,11 @@ A **criterion** measures the curve–point distance; estimation finds the minimu
 
 $$ -2\log L = \sum \frac{(y_i - \hat y_i)^2}{\sigma_i^2} + \dots $$
 
-**Math —** a simple case used in practicals: a **log-linear regression** $\ln C = \ln C_0 - k_e\,t$ gives $k_e$ (slope) and $C_0$ (intercept), hence $V_d = \text{Dose}/C_0$ and $CL = k_e\cdot V_d$.
+**Math —** a simple case used in practicals: for a first-order **mono-exponential** profile, a **log-linear regression** $\ln C = \ln C_0 - k_e\,t$ gives $k_e$ (slope) and $C_0$ (intercept), hence $V_d = \text{Dose}/C_0$ and $CL = k_e\cdot V_d$.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="AUCTrap" -->
-On a semi-log IV profile, the **terminal slope** estimates $k_e$; the intercept estimates $C_0$.
+On a one-compartment semi-log IV profile, the **terminal slope** estimates $k_e$; in a multi-compartment model it estimates a terminal hybrid constant, not pure elimination.
 
 From the concentrations, regression yields $k_e$, $V_d$ and $CL$ — then the AUC by the trapezoidal rule completes the NCA analysis.
 <!-- /step -->

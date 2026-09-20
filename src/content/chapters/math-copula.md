@@ -21,7 +21,7 @@ quiz:
     correct: 0
   - prompt: "Pour simuler des patients virtuels réalistes, ignorer la corrélation poids–ClCr..."
     options:
-      - "crée des combinaisons impossibles (ex. poids faible + ClCr énorme)"
+      - "crée des combinaisons rares ou incohérentes (ex. poids faible + ClCr énorme)"
       - "gonfle un peu la variance mais conserve des profils réalistes"
       - "préserve les marges, donc reste sans effet sur le réalisme"
     correct: 0
@@ -34,7 +34,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Pour **simuler** des essais ou des patients virtuels, il faut générer des covariables **réalistes**. Or poids, taille, ClCr, âge sont **corrélés** : les tirer indépendamment produit des individus impossibles.
+Pour **simuler** des essais ou des patients virtuels, il faut générer des covariables **réalistes**. Or poids, taille, ClCr, âge sont **corrélés** : les tirer indépendamment produit trop souvent des individus rares ou incohérents.
 
 Les **copules** permettent de reproduire la dépendance observée tout en gardant les bonnes lois marginales.
 <!-- /step -->
@@ -60,7 +60,7 @@ On estime $\Sigma$ (ou $\rho$) sur une base de covariables réelles, puis on **s
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="43_Copula" -->
-Pour un **VPC** ou une simulation d'essai, on veut des patients dont poids et ClCr covarient comme dans la vraie population. Une copule gaussienne calée sur les données évite de créer un sujet de 45 kg avec une ClCr de 160 mL/min.
+Pour un **VPC** ou une simulation d'essai, on veut des patients dont poids et ClCr covarient comme dans la vraie population. Une copule gaussienne calée sur les données limite les combinaisons peu plausibles, comme un sujet de 45 kg avec une ClCr de 160 mL/min.
 
 Des copules non gaussiennes (Clayton, Gumbel) capturent des dépendances **de queue** (co-occurrence d'extrêmes).
 <!-- /step -->
@@ -76,6 +76,6 @@ Une copule gaussienne ne capture pas les **dépendances de queue** : deux covari
 <!-- step:title="À retenir" -->
 - Une copule sépare les marges (chaque covariable) de la dépendance (leur lien).
 - Théorème de Sklar : loi jointe = marges + copule.
-- Utile pour simuler des covariables réalistes (VPC, essais virtuels) sans individus impossibles.
+- Utile pour simuler des covariables réalistes (VPC, essais virtuels) avec moins de combinaisons rares ou incohérentes.
 - La copule gaussienne ignore les dépendances de queue ; choisir la famille adaptée.
 <!-- /step -->

@@ -3,6 +3,4 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap><loc>__SITE_ORIGIN__/sitemap.xml</loc></sitemap>
   <sitemap><loc>__SITE_ORIGIN__/pharmacometrie/sitemap.xml</loc></sitemap>
-  <sitemap><loc>__SITE_ORIGIN__/internat/sitemap.xml</loc></sitemap>
-  <sitemap><loc>__SITE_ORIGIN__/stats/sitemap.xml</loc></sitemap>
 </sitemapindex>

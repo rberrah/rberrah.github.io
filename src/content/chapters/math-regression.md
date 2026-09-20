@@ -45,12 +45,12 @@ Les **moindres carrés** minimisent $\sum (y_i - \hat y_i)^2$. La **vraisemblanc
 $$ -2\log L = \sum \frac{(y_i - \hat y_i)^2}{\sigma_i^2} + \dots $$
 
 :::math
-Cas simple utilisé en TP : une **régression log-linéaire** $\ln C = \ln C_0 - k_e\,t$ donne $k_e$ (pente) et $C_0$ (ordonnée), d'où $V_d = \text{Dose}/C_0$ et $CL = k_e\cdot V_d$.
+Cas simple utilisé en TP : pour un profil **mono-exponentiel** d'ordre 1, une **régression log-linéaire** $\ln C = \ln C_0 - k_e\,t$ donne $k_e$ (pente) et $C_0$ (ordonnée), d'où $V_d = \text{Dose}/C_0$ et $CL = k_e\cdot V_d$.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="AUCTrap" -->
-Sur un profil IV en semi-log, la **pente terminale** estime $k_e$ ; l'ordonnée estime $C_0$.
+Sur un profil IV mono-compartimental en semi-log, la **pente terminale** estime $k_e$ ; dans un modèle multi-compartimental, elle estime une constante terminale hybride, pas une élimination pure.
 
 C'est la démarche des TP de M2 (E. Curis) : à partir des concentrations, la régression fournit $k_e$, $V_d$ et $CL$ — puis l'AUC par trapèzes complète l'analyse NCA.
 <!-- /step -->

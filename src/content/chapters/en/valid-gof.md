@@ -17,9 +17,9 @@ quiz:
       - "a cloud curving below the diagonal at high values"
       - "a perfect alignment with no scatter around the line"
     correct: 0
-  - prompt: "A trend of CWRES versus time indicates..."
+  - prompt: "A trend of CWRES versus time first suggests..."
     options:
-      - "a misspecified structural model"
+      - "a misspecification hypothesis to investigate"
       - "an ill-sized residual-error model"
       - "underestimated random-effect variance"
     correct: 0
@@ -54,13 +54,13 @@ The canonical plots:
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="50_GOFPlots" -->
-If the **DV vs PRED** points curve (the model underpredicts high concentrations), the structural model is at fault: perhaps a compartment or a non-linearity is missing.
+If the **DV vs PRED** points curve (the model underpredicts high concentrations), the structural model becomes suspect: perhaps a compartment, non-linearity, covariate or residual-error form is missing.
 
-A trend of **CWRES over time** (positive early, negative late) betrays a poor absorption or elimination phase.
+A trend of **CWRES over time** (positive early, negative late) is compatible with a poor absorption or elimination phase, but it is not a unique signature.
 <!-- /step -->
 
 <!-- step:title="Case study: reading the patterns" viz="62_ResidualPatterns" -->
-Each residual **shape** has a cause and a fix: a **U** (or inverted U) = wrong **structure** (missing compartment); a **trumpet** (flaring cloud) = wrong **error model** (additive → combined); a **slope** = bias, often a **missing covariate**.
+Each residual **shape** points to hypotheses to test: a **U** (or inverted U) often suggests wrong **structure**; a **trumpet** (flaring cloud) suggests an unsuitable **error model**; a **slope** suggests bias, sometimes a **missing covariate**.
 
 Cycle through the patterns. The full pattern → cause → fix guide is detailed in the "Case study: improve the model" chapter.
 <!-- /step -->
@@ -68,12 +68,12 @@ Cycle through the patterns. The full pattern → cause → fix guide is detailed
 <!-- step:title="Common pitfall" -->
 A nice IPRED vs DV is not enough.
 
-**Pitfall —** **individual** plots (IPRED) may look perfect through **overfitting** (high shrinkage) while the population model is poor. Always inspect **population** diagnostics (PRED, CWRES) and beware substantial shrinkage.
+**Pitfall —** **individual** plots (IPRED) may look perfect while EBEs carry little information, especially with substantial **shrinkage**. Shrinkage is not overfitting by itself: it mainly warns that individual diagnostics are weak. Always inspect **population** diagnostics (PRED, CWRES, VPC/NPDE).
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - GOF plots visually reveal a model's biases.
 - DV vs PRED/IPRED: cloud on the diagonal; CWRES: centred on 0, no trend.
-- A CWRES trend = structural or residual misspecification.
-- Caution: a perfect IPRED can come from high shrinkage.
+- A CWRES trend suggests structural or residual misspecification, to be confirmed.
+- Caution: a perfect IPRED with high shrinkage may be uninformative.
 <!-- /step -->

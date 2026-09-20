@@ -40,7 +40,7 @@ Understanding their mechanics avoids two symmetric traps: magic and rejection.
 <!-- step:title="Intuition" -->
 An LLM is a **next-word predictor** trained on huge corpora. From a context, it estimates the distribution of the next **token**, samples one, then repeats — this is **auto-regressive**.
 
-From this simple task, repeated at massive scale, emerge abilities of reasoning, summarising and coding.
+From this simple task, repeated at massive scale, emerge useful abilities for summarising, coding and sometimes apparent reasoning — to evaluate with external tests rather than assume.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" -->

@@ -2,8 +2,8 @@
 id: "valid-interpretation"
 slug: "valid-interpretation"
 title: "Case study: read the GoF and improve the model"
-description: "Each residual pattern (U, inverted U, trumpet, trend) has a cause and a concrete fix."
-summary: "A troubleshooting guide: translating diagnostic-plot shapes into action on the model."
+description: "Each residual pattern (U, inverted U, trumpet, trend) points to correction hypotheses."
+summary: "A troubleshooting guide: translating diagnostic-plot shapes into hypotheses to test."
 track: "valid"
 order: 96
 duration: "13 min"
@@ -15,7 +15,7 @@ slides: []
 quiz:
   - prompt: "U-shaped CWRES (negative in the middle, positive at the extremes) suggest..."
     options:
-      - "a structural misspecification (e.g. a missing compartment)"
+      - "a structural misspecification hypothesis"
       - "an unsuitable residual-error model (additive vs combined)"
       - "a mis-specified between-subject variability on clearance"
     correct: 0
@@ -34,9 +34,9 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-A diagnostic plot is useless if you do not know **what to do with it**. This chapter is a **troubleshooting guide**: each residual shape maps to a **likely cause** and a **concrete fix** on the model.
+A diagnostic plot is useless if you do not know **what to do with it**. This chapter is a **troubleshooting guide**: each residual shape maps to **likely hypotheses** and corrections to test on the model.
 
-It is the reflex that separates the beginner ("the plot looks bad") from the modeller ("a compartment is missing").
+It is the reflex that separates the beginner ("the plot looks bad") from the modeller ("which hypotheses explain this pattern?").
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="62_ResidualPatterns" -->
@@ -46,16 +46,16 @@ Any **structure** — curvature, flaring, slope — is a message. Cycle through 
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="62_ResidualPatterns" -->
-The **catalogue** pattern → cause → fix:
+The **catalogue** pattern → hypotheses → tests:
 
-- **Random cloud, centred on 0** → adequate model. Nothing to change.
-- **U shape** (residuals negative in the middle, positive at the extremes) → the model **underpredicts** at the extremes: wrong **structure**. Fix: add a **compartment**, revisit absorption/elimination, or a non-linearity.
-- **Inverted U** → the opposite bias (overprediction at the extremes). Same fix family: revisit the structural model.
-- **Trumpet / funnel** (variance **growing** with the prediction) → wrong **residual-error model**. Fix: switch from **additive** to **proportional** or **combined** error.
-- **Slope / trend** (systematic drift) → bias: **missing covariate** or unsuitable structure.
-- **Offset in a subgroup** (mean ≠ 0 in renal impairment, children…) → **missing covariate** on the relevant parameter (e.g. CrCl on clearance).
+- **Random cloud, centred on 0** → model compatible with the observed data. Nothing to change without another signal.
+- **U shape** (residuals negative in the middle, positive at the extremes) → the model **underpredicts** at the extremes: structural **hypothesis**. Tests: add a **compartment**, revisit absorption/elimination, or a non-linearity.
+- **Inverted U** → the opposite bias (overprediction at the extremes). Same hypothesis family: revisit the structural model.
+- **Trumpet / funnel** (variance **growing** with the prediction) → possible unsuitable **residual-error model**. Tests: **proportional** or **combined** error, assay/matrix stratification if justified.
+- **Slope / trend** (systematic drift) → bias compatible with a **missing covariate**, unsuitable structure or wrongly coded time.
+- **Offset in a subgroup** (mean ≠ 0 in renal impairment, children…) → possible **missing covariate** on the relevant parameter (e.g. CrCl on clearance), to confirm in the model.
 
-**How to read it — the medical-diagnosis metaphor.** The residual is a **symptom**, not the disease. A U = "curved fever" → think structure; a trumpet = "the measurement blurs when it's large" → think error model; a subgroup offset = "only some patients are affected" → think covariate.
+**How to read it — the medical-diagnosis metaphor.** The residual is a **symptom**, not the disease. A U = "curved fever" → think structure; a trumpet = "the measurement blurs when it's large" → think error model; a subgroup offset = "only some patients are affected" → think covariate, then test.
 
 **On the maths side.** On $|IWRES|$ vs predictions, a **positive** slope = growing variance = insufficient additive error. On **CWRES vs time**, curvature = a phase (absorption or elimination) poorly described. On **η vs covariate**, a slope = a covariate to add.
 <!-- /step -->
@@ -73,8 +73,8 @@ Do not over-react to a pattern.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- The shape of residuals translates into action: read the pattern, fix the cause.
-- U / inverted U → structure (compartment, absorption). Trumpet → error model (combined).
-- Slope or subgroup offset → missing covariate.
+- The shape of residuals translates into hypotheses: read the pattern, test the correction.
+- U / inverted U → possible structure issue (compartment, absorption). Trumpet → possible error-model issue (combined).
+- Slope or subgroup offset → possible missing covariate.
 - Check the data before adding complexity; confirm any fix with the OFV/AIC and the VPC.
 <!-- /step -->

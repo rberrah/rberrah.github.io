@@ -50,7 +50,7 @@ Deux lectures utiles :
 - en **échelle semi-log**, $\ln A(t) = \ln A_0 - k\,t$ devient une **droite** de pente $-k$.
 
 :::math
-C'est pourquoi on trace les concentrations en log : une seule phase = une droite ; deux phases = deux droites (bi-compartimental).
+C'est pourquoi on trace les concentrations en log : une exponentielle devient une droite. Plusieurs phases visibles suggèrent plusieurs exponentielles, mais le nombre de segments apparents n'est pas une preuve générale du nombre de compartiments.
 :::
 <!-- /step -->
 
@@ -73,6 +73,6 @@ Une exponentielle ne devient jamais nulle « d'un coup » : elle diminue d'un fa
 <!-- step:title="À retenir" -->
 - Une EDO relie une grandeur à sa vitesse de variation.
 - Ordre 1 : $dA/dt = -k A \Rightarrow A(t)=A_0 e^{-kt}$, demi-vie $\ln2/k$.
-- L'échelle semi-log linéarise ; le nombre de droites = nombre de compartiments.
+- L'échelle semi-log linéarise une exponentielle ; plusieurs segments suggèrent plusieurs phases, sans prouver à eux seuls le nombre de compartiments.
 - Modèle multi-compartimental = somme d'exponentielles.
 <!-- /step -->

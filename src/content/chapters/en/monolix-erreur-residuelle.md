@@ -57,7 +57,7 @@ A real assay has two noise regimes, and they have nothing to do with each other:
 - a **floor**, in mg/L, indifferent to the concentration — background noise, baseline, everything that remains when there is almost nothing left to measure. That is `constant(a)`;
 - a **percentage**, which grows with the concentration — dilutions, pipetting, calibration. That is `proportional(b)`.
 
-A PK dataset routinely spans two or three orders of magnitude, from the peak to the last trough. So it crosses both regimes. No single-term model is right across the whole range: that is exactly why the **combined** models exist, and why they are the default answer.
+A PK dataset routinely spans two or three orders of magnitude, from the peak to the last trough. So it crosses both regimes. No single-term model is right across the whole range: that is exactly why the **combined** models exist, and why they are a frequent candidate.
 
 :::key
 The real lever is elsewhere: $g(f)$ is the **weight**. In the likelihood, a point costs $(y-f)^2/g^2$. Small $g$ = point declared precise = heavy point. Declaring a proportional error tells SAEM "the troughs are my precise points, obey them". Declaring a constant error tells it "the peak and the trough are equally precise" — and since only high points can produce large deviations in mg/L, they are the ones that will dominate the sum. You are not describing an assay: you are arbitrating which part of the profile the model is allowed to miss.

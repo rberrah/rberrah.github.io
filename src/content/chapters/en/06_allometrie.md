@@ -69,12 +69,12 @@ Do not add a covariate just because it is available.
 
 **Pitfall —** a covariate should be biologically plausible, supported by the data and checked with diagnostics. Automated forward/backward selection helps but does not replace interpretation.
 
-**In the clinic —** a statistically significant covariate does not imply **causality**. It may only be a **proxy** for another factor: **weight** is often a proxy for **fat mass**; **ethnicity**, a proxy for **genetic factors** (enzyme or transporter polymorphisms). The model captures a correlation useful for prediction, without proving the underlying mechanism.
+**In the clinic —** a statistically significant covariate does not imply **causality**. It may only be a **proxy** for another factor: **weight** is often a proxy for **fat mass**; ancestry or self-reported ethnicity can mix genetic, environmental and care-access effects. The model captures a correlation useful for prediction, without proving the underlying mechanism.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Covariates explain part of a parameter's variability, through a physiological link (volume ↔ tissue diffusion, clearance ↔ renal function).
 - Centering keeps typical values interpretable.
 - Allometry is a weight-based power-law scaling rule; in pediatrics, complement it with a maturation function (organs mature at different paces).
-- Significant does not mean causal: a covariate is often a proxy (weight ↔ fat mass, ethnicity ↔ genetics).
+- Significant does not mean causal: a covariate is often a proxy, sometimes for several mechanisms at once.
 <!-- /step -->

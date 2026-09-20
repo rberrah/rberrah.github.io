@@ -65,7 +65,21 @@
   $: glossaryTerms = chapter?.glossary ?? [];
   $: hasRecall = prereqs.length > 0 || glossaryTerms.length > 0;
   // Description de l'animation active (localisée).
-  $: vizDesc = describeViz(activeViz, $language);
+  $: vizDesc = activeViz ? describeViz(activeViz, $language) : '';
+  $: activeVizStatus = vizStatus(activeViz, $language);
+
+  const realDataViz = new Set(['60_WarfarinFit', '61_ResidualError']);
+  /**
+   * @param {string | null | undefined} viz
+   * @param {string | null | undefined} lang
+   */
+  function vizStatus(viz, lang) {
+    if (!viz) return '';
+    if (realDataViz.has(viz)) {
+      return lang === 'en' ? 'Teaching real data' : "Données réelles d'enseignement";
+    }
+    return lang === 'en' ? 'Teaching simulation' : 'Simulation pédagogique';
+  }
 
   // --- Citabilité et référencement ---------------------------------------------------
   // URL canonique absolue de ce chapitre, issue de l'origine publique du build.
@@ -273,6 +287,7 @@
           <!-- Mobile : la figure de CETTE étape, à côté de son texte. -->
           {#if !isDesktop && step.viz && vizMap[step.viz]}
             <figure class="viz-inline" data-testid="viz-inline">
+              <div class="viz-status">{vizStatus(step.viz, $language)}</div>
               <svelte:component this={vizMap[step.viz]} />
               {#if describeViz(step.viz, $language)}
                 <figcaption>{describeViz(step.viz, $language)}</figcaption>
@@ -324,6 +339,9 @@
               in:fly={{ y: $reducedMotion ? 0 : 14, duration: $reducedMotion ? 0 : 320, easing: cubicOut }}
               out:fade={{ duration: $reducedMotion ? 0 : 120 }}
             >
+              {#if activeVizStatus}
+                <div class="viz-status">{activeVizStatus}</div>
+              {/if}
               <svelte:component this={vizMap[activeViz]} />
               {#if vizDesc}
                 <p class="viz-caption" data-testid="viz-caption"><span class="viz-caption-label">{copy.chapter.vizCaption}</span> {vizDesc}</p>
@@ -426,6 +444,7 @@
 
   .viz-caption { margin: var(--space-4) 0 0; padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.5; }
   .viz-caption-label { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-ai); display: block; margin-bottom: 2px; }
+  .viz-status { display: inline-flex; width: fit-content; margin: 0 0 var(--space-3); padding: 3px 8px; border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--bg-secondary); color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.2; text-transform: uppercase; letter-spacing: 0.04em; }
 
   .viz-panel { position: relative; }
   @media (min-width: 920px) {

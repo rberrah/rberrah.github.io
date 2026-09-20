@@ -71,7 +71,7 @@ But the most **telling** measure of the decay is the **half-life** $t_{1/2}$: th
 
 **Math —** volume sets the initial dilution; clearance sets how fast the drug is removed relative to that space. The ratio $CL/V = k_e$ drives the slope, and $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.
 
-In a **linear** model (the simple case) this speed does **not** depend on concentration: the half-life is then a property of the **molecule** (and its volume), not of the dose given.
+In a **linear** model (the simple case) this speed does **not** depend on concentration: half-life is then a property of the **drug-patient system** through $CL$ and $V$, not of the dose given. In nonlinear PK, it can change with concentration.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="IVBolus" -->

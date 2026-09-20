@@ -38,7 +38,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 What sets Monolix apart is not its interface — it is its engine, and the fact that there is only one. NONMEM offers SAEM among a dozen estimation methods; Monolix is **built around** SAEM. It is not an entry in a drop-down list, it is the architecture of the software.
 
-Three peculiarities, often experienced as oddities by anyone arriving from NONMEM, follow directly from that: the likelihood is a **separate task** you must remember to request; the convergence plot has **two phases** separated by a vertical line; and a run **cannot fail** in the way a NONMEM run fails. None of the three is an ergonomic choice. This chapter traces those symptoms back to their common cause.
+Three peculiarities, often experienced as oddities by anyone arriving from NONMEM, follow directly from that: the likelihood is a **separate task** you must remember to request; the convergence plot has **two phases** separated by a vertical line; and a run **does not fail like** a NONMEM run. It can still stop without satisfactory convergence, or at the maximum number of iterations. None of the three is an ergonomic choice. This chapter traces those symptoms back to their common cause.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="16_SAEMCycle" -->
@@ -155,7 +155,7 @@ The remedy is arithmetic. The Monte Carlo error decays as $1/\sqrt{M}$: taking `
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
-SAEM cannot fail. It runs the iterations you asked for, it stops, it prints parameters. There is no `MINIMIZATION SUCCESSFUL` in Monolix, because there is nothing that could return the opposite. The only judge is the convergence plot — and that is exactly where the trap springs.
+SAEM fails differently. It runs the iterations you asked for, stops, and may print parameters, but that does not guarantee satisfactory convergence: Monolix documentation explicitly allows convergence criteria not being met and stopping at the maximum number of iterations. The practical judge remains the convergence plot — and that is exactly where the trap springs.
 
 :::pitfall
 **Flatness in phase 2 proves nothing: it is guaranteed by construction.** In the smoothing phase $\gamma_k \to 0$, so each new simulation only corrects $\theta_k$ by a shrinking fraction. The trajectory flattens **because the step is dying out**, not because the maximum has been reached. If a parameter was still climbing at the switch, phase 2 **freezes it mid-climb** and draws you a beautiful horizontal line at a wrong value. You read "converged" on what is merely a capture.

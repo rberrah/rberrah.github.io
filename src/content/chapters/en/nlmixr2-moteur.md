@@ -163,7 +163,7 @@ The parameters look alike, and that is reassuring: on a well-posed model, the es
 The mechanics are legible. With two points per subject, the conditional distribution of $\eta$ is very wide and its surface almost flat: FOCEI must hunt for its mode for every subject, at every outer iteration, and the inner optimisation wanders across a plateau. The sensitivities $\partial f / \partial \eta$ through a Michaelis-Menten system do not help. SAEM proposes an $\eta$, solves forward once, accepts or rejects: the missing information becomes a **variance**, not a failure.
 
 :::pitfall
-Beware the easy conclusion. SAEM did not find the truth — it **cannot** fail, so it returns a number whatever happens. Its $\omega_{Vm}$ at 46% says exactly what FOCEI was shouting: two samples per subject do not identify a $V_m$ and a $K_m$ separately. You switch engine to obtain an estimate despite a stiff model; never to silence an engine that was right.
+Beware the easy conclusion. SAEM did not find the truth — it can return a number despite poor convergence or identifiability. Its $\omega_{Vm}$ at 46% says exactly what FOCEI was shouting: two samples per subject do not identify a $V_m$ and a $K_m$ separately. You switch engine to obtain an estimate despite a stiff model; never to silence an engine that was right.
 :::
 
 :::howto

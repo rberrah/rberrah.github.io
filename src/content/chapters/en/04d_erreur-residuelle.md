@@ -76,6 +76,6 @@ A wrong error model distorts everything else.
 <!-- step:title="Key takeaways" -->
 - Residual error = the gap between individual prediction and observation (measurement, timing, unmodelled).
 - Additive (constant width), proportional (constant %CV), combined (floor + %).
-- Combined is the realistic default: additive floor near the LOQ, % at high concentrations.
+- Combined is often useful on wide-range data: additive floor near the LOQ, % at high concentrations. It still has to be checked on residuals.
 - Diagnostic: |IWRES| vs predictions; a funnel = a wrong error model.
 <!-- /step -->

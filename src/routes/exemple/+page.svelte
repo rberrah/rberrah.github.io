@@ -205,7 +205,7 @@ cp ~ add(add.err) + prop(prop.err)   # combined: additive floor + percentage`;
       </tbody>
     </table>
   </div>
-  {#if $language === 'en'}<p class="note">Adding Tlag (<code>r01</code>→<code>r02</code>) lowers AIC by about 118 points, a substantial improvement. Moving to two compartments (<code>r03</code>) <em>worsens</em> AIC: more complex is not necessarily better.</p>{:else}<p class="note">Ajouter le Tlag (<code>r01</code>→<code>r02</code>) fait chuter l'AIC de ~118 points : largement significatif. Passer à 2 compartiments (<code>r03</code>) <em>dégrade</em> l'AIC : plus complexe n'est pas meilleur.</p>{/if}
+  {#if $language === 'en'}<p class="note">Adding Tlag (<code>r01</code>→<code>r02</code>) lowers AIC by about 118 points, so the lag model is strongly favoured in this comparison. Moving to two compartments (<code>r03</code>) <em>worsens</em> AIC: more complex is not necessarily better.</p>{:else}<p class="note">Ajouter le Tlag (<code>r01</code>→<code>r02</code>) fait chuter l'AIC de ~118 points : le modèle avec délai est très fortement favorisé dans cette comparaison. Passer à 2 compartiments (<code>r03</code>) <em>dégrade</em> l'AIC : plus complexe n'est pas meilleur.</p>{/if}
 </section>
 
 <section>

@@ -82,7 +82,7 @@ Mais la mesure la plus **parlante** de cette décroissance reste la **demi-vie**
 :::math
 Le **volume** fixe la dilution initiale ; la **clairance** fixe la vitesse à laquelle le produit est retiré par rapport à cet espace. Le rapport $CL/V = k_e$ gouverne la pente, et $t_{1/2} = \ln 2 / k_e = 0{,}693\,V/CL$.
 
-Dans un modèle **linéaire** (le cas simple), cette vitesse ne dépend **pas** de la concentration : la demi-vie est alors une propriété de la **molécule** (et de son volume), non de la dose reçue.
+Dans un modèle **linéaire** (le cas simple), cette vitesse ne dépend **pas** de la concentration : la demi-vie est alors une propriété du **système médicament-patient** via $CL$ et $V$, non de la dose reçue. En PK non linéaire, elle peut changer avec la concentration.
 :::
 <!-- /step -->
 

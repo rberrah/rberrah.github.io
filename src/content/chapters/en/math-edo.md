@@ -56,6 +56,8 @@ With several compartments, the solution is a **sum of exponentials**:
 $$ C(t) = A\,e^{-\alpha t} + B\,e^{-\beta t} $$
 
 Each exponential is a "phase" (fast distribution α, slow elimination β). Switch the figure to semi-log: the two slopes appear.
+
+The visual rule is only a clue: one exponential becomes one straight line, but the number of apparent segments is not a general proof of the number of compartments.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -67,6 +69,6 @@ Do not confuse **exponential** and **linear** decay.
 <!-- step:title="Key takeaways" -->
 - An ODE links a quantity to its rate of change.
 - First order: $dA/dt = -k A \Rightarrow A(t)=A_0 e^{-kt}$, half-life $\ln2/k$.
-- The semi-log scale linearises; the number of lines = number of compartments.
+- The semi-log scale linearises one exponential; several segments suggest several phases, but do not by themselves prove the number of compartments.
 - A multi-compartment model is a sum of exponentials.
 <!-- /step -->

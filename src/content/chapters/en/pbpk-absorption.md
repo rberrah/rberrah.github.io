@@ -48,7 +48,7 @@ Oral bioavailability factorises:
 
 $$ F = f_a \cdot F_g \cdot F_h $$
 
-- $f_a$: fraction dissolved and absorbed (solubility × permeability);
+- $f_a$: fraction absorbed, driven by dissolution, solubility, permeability, transit and formulation;
 - $F_g$: fraction escaping gut metabolism;
 - $F_h$: fraction escaping hepatic **first-pass**, $F_h = 1 - E_h$.
 

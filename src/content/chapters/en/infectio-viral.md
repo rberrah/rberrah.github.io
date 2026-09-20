@@ -58,7 +58,7 @@ At high efficacy, the first slope ≈ $c$, the second ≈ $\delta$.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="45_ViralKinetics" -->
-For **HCV**, phase 1 must be read two different ways: its **slope** measures the clearance of free virus ($c$), while the **depth** of the drop — the plateau reached, $\approx V_0(1-\varepsilon)$ — measures treatment **efficacy** $\varepsilon$. Phase 2 gives the elimination rate of infected hepatocytes — hence a prediction of the **time to cure**.
+For **HCV**, phase 1 must be read two different ways: its **slope** measures the clearance of free virus ($c$), while the **depth** of the drop — the plateau reached, $\approx V_0(1-\varepsilon)$ — measures treatment **efficacy** $\varepsilon$. Phase 2 gives the elimination rate of infected hepatocytes — hence an order-of-magnitude estimate of **viral decline time**, not an individual guarantee of cure.
 
 This framework guided the development of direct-acting antivirals and the optimisation of treatment durations.
 <!-- /step -->

@@ -13,9 +13,9 @@ slides: []
 sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
 reviewed_on: "2026-07-09"
 quiz:
-  - prompt: "Pour la vancomycine, la cible actuelle privilégiée est..."
+  - prompt: "Pour la vancomycine dans les infections graves à MRSA, la cible actuelle privilégiée est..."
     options:
-      - "l'AUC₂₄/CMI ≥ 400 (estimée par Bayes)"
+      - "l'AUC₂₄/CMI 400–600 (estimée par Bayes)"
       - "une résiduelle cible de 15–20 mg/L"
       - "un pic Cmax/CMI ≥ 8 au premier dosage"
     correct: 0
@@ -40,12 +40,12 @@ La particularité infectieuse : la cible est un **indice PK/PD** (AUC/CMI, Cmax/
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="MultiDose" -->
-Exemple de la **vancomycine** : les recommandations récentes ciblent l'**AUC₂₄/CMI ≥ 400**, estimée par approche **bayésienne** à partir de 1–2 prélèvements (plutôt que la seule résiduelle).
+Exemple de la **vancomycine** : pour les infections graves à MRSA, les recommandations récentes ciblent en général une **AUC₂₄/CMI de 400–600**, estimée par approche **bayésienne** à partir de 1–2 prélèvements (plutôt que la seule résiduelle).
 
 $$ \text{AUC}_{24} = \frac{\text{Dose}_{24}}{CL} $$
 
 :::note
-Réf. : Rybak M.J. et al., *Am J Health-Syst Pharm* 2020 (consensus vancomycine, cible AUC/CMI) ; Roberts J.A. et al., *Clin Infect Dis* 2014 (étude DALI : sous-exposition fréquente des bêta-lactamines en réanimation).
+Réf. : Rybak M.J. et al., *Am J Health-Syst Pharm* 2020 (consensus vancomycine, cible AUC/CMI 400–600 dans ce cadre) ; Roberts J.A. et al., *Clin Infect Dis* 2014 (étude DALI : sous-exposition fréquente des bêta-lactamines en réanimation).
 :::
 <!-- /step -->
 
@@ -65,7 +65,7 @@ Le **moment du prélèvement** et la **fonction rénale** (souvent instable en r
 
 <!-- step:title="À retenir" -->
 - Le TDM concerne les antibiotiques à index étroit ou très variables (réanimation).
-- La cible est un indice PK/PD (vancomycine : AUC₂₄/CMI ≥ 400) estimé par Bayes.
+- La cible est un indice PK/PD (vancomycine MRSA grave : AUC₂₄/CMI 400–600) estimé par Bayes.
 - La clairance rénale augmentée sous-dose les antibiotiques hydrophiles.
 - Moment de prélèvement, fonction rénale et CMI conditionnent l'ajustement.
 <!-- /step -->

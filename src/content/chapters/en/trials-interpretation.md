@@ -40,7 +40,7 @@ It is the bridge between statistical analysis and practice.
 <!-- step:title="Intuition" viz="53_ForestPlot" -->
 A **forest plot** lines up the effects: each covariate shifts a parameter (e.g. clearance) by a certain **factor**, with an uncertainty bar.
 
-Two landmarks: the line at **1** (no effect) and a **band** of clinical irrelevance. An effect matters if it **leaves** the band and its bar does not cross 1.
+Two landmarks: the line at **1** (no effect) and a **band** of clinical irrelevance, defined in advance from the drug, target and setting. An effect matters if it **leaves** that band and its uncertainty remains compatible with a decision.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="53_ForestPlot" -->
@@ -51,7 +51,7 @@ $$ \frac{CL(x)}{CL_{ref}} = \left(\frac{x}{x_{ref}}\right)^{\theta} $$
 We judge on **two joint criteria**:
 
 - **statistical**: does the 95% CI of the ratio exclude 1?
-- **clinical**: does the ratio exceed the relevance threshold (often ±20%, i.e. the 0.8–1.25 zone)?
+- **clinical**: does the ratio exceed the relevance threshold defined for this decision? The 0.8–1.25 zone comes from bioequivalence and can be a teaching landmark, but it is not a universal dosing-relevance rule.
 
 **Note —** an effect can be significant (large sample) yet **clinically negligible**, and conversely a relevant effect may remain uncertain (wide CI).
 <!-- /step -->
@@ -71,6 +71,6 @@ Significant is not relevant.
 <!-- step:title="Key takeaways" -->
 - The forest plot shows the magnitude and uncertainty of each covariate effect.
 - Effect expressed as a ratio vs reference; judge statistical AND clinical.
-- Relevant = outside the band (e.g. ±20%) and CI not crossing 1.
+- Relevant = outside a clinically justified band for the drug, with uncertainty compatible with the intended action.
 - Significant ≠ relevant; caution with correlated covariates.
 <!-- /step -->

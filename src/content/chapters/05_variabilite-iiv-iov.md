@@ -86,7 +86,7 @@ Prenons une population de clairance typique $CL_{pop} = 5\ \text{L/h}$, avec une
 | IIV — patient B | $\eta_B = -0{,}36$ | $5 \cdot e^{-0{,}36}$ | 3,5 |
 | IOV — A, occasion 2 | $\kappa = +0{,}22$ | $5 \cdot e^{\eta_A + \kappa}$ | 7,5 |
 
-Lecture : le patient A élimine plus vite que le typique (6,0 vs 5,0), B plus lentement (3,5) — c'est l'**IIV**. Le même patient A passe de 6,0 à 7,5 entre deux occasions — c'est l'**IOV**. Et chaque point mesuré reste dispersé de ±10 % autour de sa prédiction individuelle — c'est l'**erreur résiduelle**.
+Lecture : le patient A élimine plus vite que le typique (6,0 vs 5,0), B plus lentement (3,5) — c'est l'**IIV**. Le même patient A passe de 6,0 à 7,5 entre deux occasions — c'est l'**IOV**. Et chaque point mesuré reste dispersé avec un **CV résiduel d'environ 10 %** autour de sa prédiction individuelle — ce n'est pas une borne fixe, c'est l'**erreur résiduelle**.
 
 :::key
 Trois couches, trois nombres : $\eta$ situe le patient, $\kappa$ décale une occasion, $\varepsilon$ bruite chaque mesure.

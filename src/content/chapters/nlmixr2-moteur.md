@@ -163,7 +163,7 @@ Les paramètres se ressemblent, et c'est rassurant : sur un modèle bien posé, 
 La mécanique est lisible. Avec deux points par sujet, la distribution conditionnelle de $\eta$ est très large et sa surface presque plate : FOCEI doit en chercher le mode pour chaque sujet, à chaque itération externe, et l'optimisation interne erre sur un plateau. Les sensibilités $\partial f / \partial \eta$ à travers un système de Michaelis-Menten n'arrangent rien. SAEM, lui, propose un $\eta$, résout une fois en avant, accepte ou rejette : l'information manquante devient une **variance**, pas une panne.
 
 :::pitfall
-Attention à la conclusion facile. Le SAEM n'a pas trouvé la vérité — il ne **peut pas** échouer, donc il rend un nombre quoi qu'il arrive. Son $\omega_{Vm}$ à 46 % dit exactement ce que criait FOCEI : deux prélèvements par sujet n'identifient pas un $V_m$ et un $K_m$ séparément. On change de moteur pour obtenir une estimation malgré un modèle raide ; jamais pour faire taire un moteur qui avait raison.
+Attention à la conclusion facile. Le SAEM n'a pas trouvé la vérité — il peut rendre un nombre malgré une convergence ou une identifiabilité médiocre. Son $\omega_{Vm}$ à 46 % dit exactement ce que criait FOCEI : deux prélèvements par sujet n'identifient pas un $V_m$ et un $K_m$ séparément. On change de moteur pour obtenir une estimation malgré un modèle raide ; jamais pour faire taire un moteur qui avait raison.
 :::
 
 :::howto

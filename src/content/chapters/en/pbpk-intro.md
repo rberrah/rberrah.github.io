@@ -32,7 +32,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-**PBPK** (physiologically-based PK) builds the model from **real physiology**: each compartment is an organ, linked to the others by blood. Unlike empirical models, its parameters have a **biological meaning**.
+**PBPK** (physiologically-based PK) builds the model from **real physiology**: each compartment often represents an organ or tissue, linked to the others by blood. Unlike purely empirical models, many parameters have a **biological meaning**, although scalars, lumping and fitted parameters can still be used.
 
 This allows **extrapolation** where data are missing: animal → human, adult → child, drug interactions.
 <!-- /step -->

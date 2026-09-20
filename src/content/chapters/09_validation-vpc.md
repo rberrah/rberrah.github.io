@@ -79,7 +79,7 @@ Comment savoir si le modèle est robuste, ou s'il a simplement eu de la chance a
 Le **bootstrap** rééchantillonne l'étude (tirage avec remise) pour créer des centaines d'études virtuelles, puis réajuste le modèle sur chacune.
 
 :::key
-On obtient un **intervalle de confiance** pour chaque paramètre : un IC 95 % étroit signale un modèle stable ; un IC large trahit une estimation fragile.
+On obtient un **intervalle de confiance** pour chaque paramètre : un IC 95 % étroit signale une estimation stable dans ce plan d'étude ; un IC large signale une estimation fragile. Cela ne prouve pas que la structure du modèle soit vraie.
 :::
 <!-- /step -->
 

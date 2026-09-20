@@ -28,7 +28,7 @@ quiz:
   - prompt: "Monolix's main advantage over NONMEM is..."
     options:
       - "a graphical interface with a full set of ready-made diagnostics"
-      - "an exact likelihood computed without any approximation at all"
+      - "a stochastic estimation approach without linearising the structural model"
       - "an OFV that is directly comparable to that of a NONMEM FOCE run"
     correct: 0
 ---
@@ -42,7 +42,7 @@ Its engine, **SAEM**, and its built-in plots have made it a standard, especially
 <!-- step:title="Intuition" viz="67_SAEMConvergence" -->
 You load the data, choose (or write) a model, click **Run**, and Monolix launches **SAEM** then directly shows the **diagnostics**: VPC, parameter distributions, residuals.
 
-Exact estimation (SAEM) + immediate visualisation shorten the "estimate → diagnose → fix" loop.
+Stochastic SAEM estimation + immediate visualisation shorten the "estimate → diagnose → fix" loop.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="67_SAEMConvergence" -->

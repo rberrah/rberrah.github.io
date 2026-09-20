@@ -27,7 +27,7 @@ quiz:
       - "accélère le premier passage hépatique"
       - "améliore l'absorption gastro-intestinale"
     correct: 0
-  - prompt: "Un patch transdermique produit typiquement une absorption..."
+  - prompt: "Un patch transdermique bien conçu cherche typiquement une absorption..."
     options:
       - "d'ordre 0, à débit constant et prolongé"
       - "d'ordre 1, proportionnelle à la dose restante"
@@ -44,7 +44,7 @@ Choisir la voie, c'est déjà faire de la pharmacocinétique.
 <!-- step:title="Intuition" viz="OralAbsorption" -->
 La voie **IV** court-circuite l'absorption : toute la dose est dans le sang, tout de suite ($F=1$). Toute autre voie doit d'abord **absorber**, ce qui étale et retarde le pic.
 
-Plus l'absorption est lente, plus le pic est bas et tardif ; certaines voies (patch) imposent un débit **constant**.
+Plus l'absorption est lente, plus le pic est bas et tardif ; certaines formulations (notamment certains patchs) cherchent un débit **quasi constant**.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="OralAbsorption" -->
@@ -57,10 +57,10 @@ $$ F = f_a \cdot F_g \cdot F_h $$
 Le tableau des voies :
 
 - **IV** : $F=1$, pas d'absorption ni de premier passage — référence.
-- **Orale** : absorption d'ordre 1 ($k_a$), premier passage possible → $F$ souvent < 1.
+- **Orale** : absorption souvent décrite par un ordre 1 ($k_a$), mais ce n'est pas obligatoire (dissolution, transit, libération prolongée). Premier passage possible → $F$ souvent < 1.
 - **Sous-cutanée / IM** : absorption lente (lymphatique pour les grosses protéines), $F$ variable.
 - **Sublinguale / buccale / rectale (basse)** : **contournent** en partie le premier passage.
-- **Transdermique (patch)** : absorption d'**ordre 0** (débit constant).
+- **Transdermique (patch)** : libération souvent approchée par un **ordre 0** ou un débit contrôlé, selon la formulation.
 - **Inhalée** : rapide, effet local, absorption systémique partielle.
 
 :::note
@@ -75,7 +75,7 @@ Peut-on toujours **mesurer** $F$ ? Non : cela dépend des données dont on dispo
 
 $$ F = \frac{\mathrm{AUC}_{po}\,/\,\mathrm{Dose}_{po}}{\mathrm{AUC}_{iv}\,/\,\mathrm{Dose}_{iv}} $$
 
-Il faut donc les **deux voies** chez les mêmes sujets (typiquement un essai croisé) pour isoler $F$.
+Il faut donc une **référence IV** et une comparaison dose-normalisée ; un essai croisé chez les mêmes sujets est idéal, mais des groupes parallèles peuvent être utilisés si le plan le justifie.
 
 **Avec la seule voie orale.** En popPK, on ne dispose souvent **que** de données orales. Or la quantité qui entre réellement dans le sang est $F\cdot\text{Dose}$ : $F$ est **confondu** avec la clairance et le volume. On ne peut alors estimer que les **rapports** :
 
@@ -87,7 +87,7 @@ Sans référence IV, $F$ n'est **pas identifiable** séparément : les logiciels
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="Infusion" -->
-La **trinitrine** en **sublingual** agit en minutes car elle évite le premier passage (qui la détruirait per os). Un **patch** de fentanyl libère à **débit constant** (ordre 0), comme une perfusion lente — d'où un plateau prolongé.
+La **trinitrine** en **sublingual** agit en minutes car elle évite le premier passage (qui la détruirait per os). Un **patch** de fentanyl vise une libération contrôlée, souvent assimilée à un débit constant sur sa fenêtre utile — comme une perfusion lente — d'où un plateau prolongé.
 
 Un **anticorps** en **sous-cutané** met des jours à être absorbé (voie lymphatique), avec $F$ ≈ 50–80 %.
 <!-- /step -->
@@ -103,7 +103,7 @@ Si l'absorption est plus lente que l'élimination ($k_a < k_e$), la **pente term
 <!-- step:title="À retenir" -->
 - La voie fixe F (combien), la vitesse d'absorption (quand) et le premier passage.
 - IV : F = 1, référence. Orale : F = fa·Fg·Fh, premier passage possible.
-- Sublinguale/rectale basse contournent le premier passage ; patch = ordre 0 ; SC = lent (lymphatique).
+- Sublinguale/rectale basse contournent le premier passage ; certains patchs approchent un ordre 0 ; SC = souvent lent (lymphatique).
 - Attention au flip-flop : ka < ke ⇒ la pente terminale reflète l'absorption.
 - F ne se mesure qu'avec une **référence IV** ; sur données orales seules, on n'estime que la clairance et le volume **apparents** (CL/F, V/F).
 <!-- /step -->

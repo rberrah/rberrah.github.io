@@ -15,7 +15,7 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."
     options:
-      - "deux étapes (interprétation puis prédiction) fondées sur l'importance des forêts"
+      - "trois étapes : seuillage, interprétation puis prédiction"
       - "une régression pas à pas classique fondée sur les p-values des covariables"
       - "un seuil unique appliqué à la corrélation entre chaque variable et la réponse"
     correct: 0
@@ -75,7 +75,7 @@ Deux covariables **corrélées** se partagent l'importance (l'une peut masquer l
 
 <!-- step:title="À retenir" -->
 - L'importance (par permutation) classe les covariables selon leur pouvoir prédictif.
-- VSURF sélectionne en deux temps : interprétation (tout ce qui compte) puis prédiction (minimal).
+- VSURF sélectionne en trois temps : seuillage du bruit, interprétation (tout ce qui compte) puis prédiction (minimal).
 - OrdinalForest gère les réponses ordinales (grades de toxicité, RECIST).
 - Attention aux corrélations, à la causalité et à la fuite dans la validation.
 <!-- /step -->

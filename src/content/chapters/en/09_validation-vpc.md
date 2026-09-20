@@ -70,7 +70,7 @@ How do we know the model is robust, or simply lucky with these patients?
 
 The **bootstrap** resamples the study (with replacement) to create hundreds of virtual studies, then re-fits the model on each.
 
-**Key point —** you get a **confidence interval** for each parameter: a narrow 95% CI signals a stable model; a wide CI reveals a fragile estimate.
+**Key point —** you get a **confidence interval** for each parameter: a narrow 95% CI signals a stable estimate in this study design; a wide CI reveals a fragile estimate. It does not prove that the model structure is true.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

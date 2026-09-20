@@ -20,7 +20,7 @@ quiz:
     correct: 0
   - prompt: "Why does this course favour the CL, Q, V (macro) form?"
     options:
-      - "because these quantities have a telling physiological meaning (clearance, flow, distribution space)"
+      - "because these quantities have a useful physiological interpretation, while remaining model parameters"
       - "because the micro rate constants are wrong"
       - "because software only accepts CL and V"
     correct: 0
@@ -45,9 +45,9 @@ This short chapter makes the link explicit, and explains why the rest of the cou
 The two forms are like two coordinate systems describing the same point.
 
 - The **micro** constants say "how **fast**" the drug moves from one compartment to another. They are rates, per unit time.
-- The **macro** quantities say "what **clearing capacity**" ($CL$), "what **flow**" between compartments ($Q$) and "what **space**" of distribution ($V$). They are **physiological** quantities.
+- The **macro** quantities say "what **clearing capacity**" ($CL$), "what **apparent flow**" between compartments ($Q$) and "what **apparent space**" of distribution ($V$). They have a **physiological interpretation**, but remain model parameters: $Q$ is not necessarily a measured anatomical flow, and $V$ is often apparent.
 
-A rate constant like $k_{12}$ cannot be measured at the bedside; a clearance, a volume, a blood flow can — at least by physiological analogy.
+A rate constant like $k_{12}$ cannot be measured at the bedside; a clearance, volume or apparent flow is easier to reason about — at least by physiological analogy.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="10_PK2C" -->
@@ -73,7 +73,7 @@ Both sets of numbers describe **the same curve**. But "$CL = 6$ L/h" says someth
 <!-- step:title="Common pitfall" -->
 Do not mix the two forms in one equation, and always know **which** one a paper or a piece of software uses.
 
-**Pitfall —** comparing or transferring parameters from one model to another without checking the parametrization is a classic mistake: a $k_{12}$ is not a $Q$, and two "equivalent" models can display very different numbers depending on the chosen form. The micro constants also have **no** directly measurable physiological meaning — one more reason to reason in $CL$, $Q$, $V$.
+**Pitfall —** comparing or transferring parameters from one model to another without checking the parametrization is a classic mistake: a $k_{12}$ is not a $Q$, and two "equivalent" models can display very different numbers depending on the chosen form. The micro constants also have **no** directly measurable physiological meaning — one more reason to reason in $CL$, $Q$, $V$, while remembering their apparent nature.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -63,7 +63,7 @@ That leaves the only question the error model asks: **how wide is the bar, and h
 - a **floor**, in mg/L, indifferent to concentration — background noise, baseline, everything that remains when there is almost nothing left to measure. That is `add()`;
 - a **percentage**, growing with concentration — dilutions, pipetting, calibration. That is `prop()`.
 
-A PK profile routinely spans two or three orders of magnitude, from peak to last trough. It therefore crosses both regimes, and no single-term form is right across the whole range. That is exactly why `add() + prop()` is the default answer.
+A PK profile routinely spans two or three orders of magnitude, from peak to last trough. It therefore crosses both regimes, and no single-term form is right across the whole range. That is exactly why `add() + prop()` is a frequent candidate, to confirm on residuals.
 
 :::key
 The real lever is elsewhere: the standard deviation $g(f)$ is the **weight**. In the likelihood, a point costs $(y-f)^2/g^2$. Small $g$ = point declared precise = heavy point. Declaring `prop()` alone tells SAEM "the troughs are my precise points, obey them". Declaring `add()` alone says "the peak and the trough are equally precise" — and since only the high points can produce large deviations in mg/L, they are the ones that will dominate the sum. You are not describing an assay: you are arbitrating which part of the profile the model is allowed to miss.

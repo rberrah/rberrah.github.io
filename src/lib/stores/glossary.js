@@ -24,7 +24,7 @@ const items = [
   { term: 'Tlag', full: 'Temps de latence', cat: 'Paramètres PK', def: "Délai entre l'administration et le début de l'absorption (dissolution, vidange gastrique). Avant Tlag, la concentration reste nulle." },
   { term: 'Compartiments de transit', full: 'MTT, ktr', cat: 'Modèles', def: "Chaîne de n compartiments traversés au rythme ktr modélisant une absorption progressive. Le temps de transit moyen MTT = n/ktr ; alternative souple au Tlag." },
   { term: 'Michaelis-Menten', full: 'Vmax, Km', cat: 'Modèles', def: "Élimination saturable : vitesse = Vmax·C/(Km+C). Aux fortes concentrations l'élimination sature (cinétique non linéaire) ; Km est la concentration donnant la moitié de Vmax." },
-  { term: 'Phases α et β', full: 'Modèle bi-compartimental', cat: 'Modèles', def: "Sur une courbe semi-log à deux compartiments, la phase α (rapide) traduit la distribution vers les tissus, la phase β (lente) l'élimination réelle. La demi-vie terminale suit la phase β." },
+  { term: 'Phases α et β', full: 'Modèle bi-compartimental', cat: 'Modèles', def: "Sur une courbe semi-log à deux compartiments, la phase α (rapide) traduit surtout la distribution vers les tissus, la phase β (lente) est une phase terminale hybride influencée par l'élimination et les échanges intercompartimentaux. La demi-vie terminale suit la phase β." },
 
   // ── Modèles structuraux ─────────────────────────────────────────────────────
   { term: 'Modèle compartimental', cat: 'Modèles', def: "Représentation de l'organisme par un ou plusieurs compartiments bien mélangés reliés par des débits, décrits par des équations différentielles." },

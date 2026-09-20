@@ -25,7 +25,7 @@ quiz:
       - "speeds up the hepatic first-pass"
       - "improves gastrointestinal absorption"
     correct: 0
-  - prompt: "A transdermal patch typically produces absorption that is..."
+  - prompt: "A well-designed transdermal patch typically aims for absorption that is..."
     options:
       - "zero-order, a constant and prolonged rate"
       - "first-order, proportional to the amount left"
@@ -42,7 +42,7 @@ Choosing the route is already doing pharmacokinetics.
 <!-- step:title="Intuition" viz="OralAbsorption" -->
 The **IV** route short-circuits absorption: the whole dose is in the blood at once ($F=1$). Any other route must first **absorb**, which spreads and delays the peak.
 
-The slower the absorption, the lower and later the peak; some routes (patch) impose a **constant** rate.
+The slower the absorption, the lower and later the peak; some formulations (notably some patches) aim for a **near-constant** rate.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="OralAbsorption" -->
@@ -55,10 +55,10 @@ $$ F = f_a \cdot F_g \cdot F_h $$
 The table of routes:
 
 - **IV**: $F=1$, no absorption or first-pass — the reference.
-- **Oral**: first-order absorption ($k_a$), possible first-pass → $F$ often < 1.
+- **Oral**: often described by first-order absorption ($k_a$), but not necessarily so (dissolution, transit, controlled release). Possible first-pass → $F$ often < 1.
 - **Subcutaneous / IM**: slow absorption (lymphatic for large proteins), variable $F$.
 - **Sublingual / buccal / (low) rectal**: partly **bypass** the first-pass.
-- **Transdermal (patch)**: **zero-order** absorption (constant rate).
+- **Transdermal (patch)**: often approximated by **zero-order** or controlled-rate input, depending on the formulation.
 - **Inhaled**: fast, local effect, partial systemic absorption.
 
 **Note —** the BCS framework (solubility/permeability) and absorption models (see also the PBPK absorption chapter).
@@ -71,7 +71,7 @@ Can we always **measure** $F$? No: it depends on the data at hand.
 
 $$ F = \frac{\mathrm{AUC}_{po}\,/\,\mathrm{Dose}_{po}}{\mathrm{AUC}_{iv}\,/\,\mathrm{Dose}_{iv}} $$
 
-So you need **both routes** in the same subjects (typically a cross-over trial) to isolate $F$.
+So you need an **IV reference** and dose-normalised comparison; a same-subject cross-over trial is ideal, but justified parallel groups can also be used.
 
 **With the oral route only.** In popPK you often have **only** oral data. But the amount that actually enters the blood is $F\cdot\text{Dose}$: $F$ is **confounded** with clearance and volume. You can then estimate only the **ratios**:
 
@@ -81,7 +81,7 @@ $$ \frac{CL}{F} \quad\text{(apparent clearance)}, \qquad \frac{V}{F} \quad\text{
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="Infusion" -->
-**Nitroglycerin** given **sublingually** acts within minutes because it avoids the first-pass (which would destroy it orally). A fentanyl **patch** releases at a **constant rate** (zero-order), like a slow infusion — hence a prolonged plateau.
+**Nitroglycerin** given **sublingually** acts within minutes because it avoids the first-pass (which would destroy it orally). A fentanyl **patch** aims for controlled release, often approximated as a constant rate over its useful window — like a slow infusion — hence a prolonged plateau.
 
 An **antibody** given **subcutaneously** takes days to be absorbed (lymphatic route), with $F$ ≈ 50–80%.
 <!-- /step -->
@@ -95,7 +95,7 @@ Slow absorption can mask elimination.
 <!-- step:title="Key takeaways" -->
 - The route sets F (how much), the absorption rate (when) and the first-pass.
 - IV: F = 1, the reference. Oral: F = fa·Fg·Fh, possible first-pass.
-- Sublingual/low rectal bypass the first-pass; patch = zero-order; SC = slow (lymphatic).
+- Sublingual/low rectal bypass the first-pass; some patches approximate zero-order input; SC is often slow (lymphatic).
 - Beware flip-flop: ka < ke ⇒ the terminal slope reflects absorption.
 - F is only measurable with an **IV reference**; from oral data alone, you estimate only the **apparent** clearance and volume (CL/F, V/F).
 <!-- /step -->

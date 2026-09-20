@@ -67,6 +67,8 @@ Finally, the **loading dose** fills the tank in one go:
 
 $$ \text{Loading dose} = C_{ss} \cdot V $$
 
+For an extravascular route, this expression implicitly assumes $F=1$; otherwise adjust for bioavailability and formulation/salt as appropriate.
+
 :::howto
 **The sink metaphor.** The tap (dosing rate) fills; the drain (clearance) empties. The steady-state **level** depends on the tap/drain ratio — not on how fast you open the tap. The **time** to fill depends only on the size of the drain (the half-life).
 
@@ -100,7 +102,7 @@ Do not confuse the **level** of steady state with the **time** to reach it.
 :::pitfall
 Raising the dose lifts Css but does **not** speed up the approach to steady state (still ~4–5 t½). To enter the window faster, use a **loading dose**, not a bigger maintenance dose.
 
-A second trap: **superposition** (Css ∝ dose) only holds under **linear** kinetics. Under saturation (Michaelis-Menten, TMDD), accumulation becomes unpredictable and a modest dose increase can send concentrations soaring.
+A second trap: **superposition** (Css ∝ dose) only holds under **linear** kinetics. Under saturation (Michaelis-Menten, TMDD), accumulation is no longer proportional: a modest dose increase can send concentrations sharply upward, but the behaviour remains modelable with an appropriate nonlinear PK model.
 :::
 <!-- /step -->
 
@@ -109,5 +111,5 @@ A second trap: **superposition** (Css ∝ dose) only holds under **linear** kine
 - Level: $C_{ss,\text{avg}} = F\cdot\text{Dose}/(CL\cdot\tau)$; for an infusion $C_{ss} = R_0/CL$. Clearance and dosing rate set the plateau.
 - Time: ≈ **4 to 5 half-lives**, independent of dose and rate.
 - **Loading dose** = $C_{ss}\cdot V$: it speeds up entry into the window without changing the final plateau.
-- Superposition (Css ∝ dose) assumes **linear** kinetics; under saturation, everything breaks down.
+- Superposition (Css ∝ dose) assumes **linear** kinetics; under saturation, a nonlinear model is needed.
 <!-- /step -->

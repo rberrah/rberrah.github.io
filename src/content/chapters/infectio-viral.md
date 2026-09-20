@@ -62,7 +62,7 @@ Réf. : Neumann A.U. et al., *Science* 1998 (dynamique du VHC sous interféron) 
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="45_ViralKinetics" -->
-Pour le **VHC**, ce sont deux lectures différentes de la phase 1 qu'il faut distinguer : sa **pente** mesure la clairance du virus libre ($c$), tandis que la **profondeur** de la chute — le palier atteint, $\approx V_0(1-\varepsilon)$ — mesure l'**efficacité** $\varepsilon$ du traitement. La phase 2, elle, donne la vitesse d'élimination des hépatocytes infectés — d'où une prédiction du **temps de guérison**.
+Pour le **VHC**, ce sont deux lectures différentes de la phase 1 qu'il faut distinguer : sa **pente** mesure la clairance du virus libre ($c$), tandis que la **profondeur** de la chute — le palier atteint, $\approx V_0(1-\varepsilon)$ — mesure l'**efficacité** $\varepsilon$ du traitement. La phase 2, elle, donne la vitesse d'élimination des hépatocytes infectés — d'où une estimation de l'ordre de grandeur du **temps de décroissance virale**, pas une garantie individuelle de guérison.
 
 Ce cadre a guidé le développement des antiviraux à action directe et l'optimisation des durées de traitement.
 <!-- /step -->

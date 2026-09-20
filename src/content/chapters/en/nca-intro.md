@@ -56,12 +56,12 @@ Regulators (EMA, FDA) indeed require NCA criteria (AUC/Cmax ratios within 80–1
 <!-- step:title="Common pitfall" -->
 NCA does not excuse poor sampling.
 
-**Pitfall —** if the **terminal phase** is poorly sampled, $\lambda_z$ and the extrapolated AUC are wrong. And NCA assumes **linearity**: at saturating doses (TMDD, Michaelis-Menten), the AUC is no longer proportional to dose and NCA misleads.
+**Pitfall —** if the **terminal phase** is poorly sampled, $\lambda_z$ and the extrapolated AUC are wrong. NCA can describe nonlinear data, but simple clearance and dose-proportionality interpretations assume linear kinetics: at saturating doses (TMDD, Michaelis-Menten), AUC is no longer proportional to dose.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - NCA estimates exposure without assuming a compartmental structure.
 - Pillars: AUC (exposure) and λz (terminal elimination slope).
 - Reference method for bioequivalence (regulatory criteria).
-- Assumes linearity and a well-sampled terminal phase.
+- Caution: a well-sampled terminal phase is needed; CL and dose-proportionality interpretations require reasonable linearity.
 <!-- /step -->

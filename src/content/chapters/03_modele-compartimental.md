@@ -91,7 +91,7 @@ Les patients A et B reçoivent chacun 100 mg.
 
 Si A a $V = 10\ \text{L}$, alors $C_0 = 10\ \text{mg/L}$. Si B a $V = 20\ \text{L}$, alors $C_0 = 5\ \text{mg/L}$.
 
-Même dose, espace apparent différent, concentration de départ différente. Faites glisser V dans la figure : la courbe entière monte ou descend sans changer sa pente.
+Même dose, espace apparent différent, concentration de départ différente. Faites glisser V dans la figure : à clairance fixée, la courbe démarre plus bas **et** sa pente terminale change, car $k = CL/V$. Dire que V « déplace seulement » la courbe n'est vrai que si l'on garde $k$ constant.
 <!-- /step -->
 
 <!-- step:title="Deux compartiments" slides="s08" viz="10_PK2C" -->
@@ -100,10 +100,10 @@ Beaucoup de médicaments ne se distribuent pas instantanément : ils passent d'a
 Sur une courbe **semi-logarithmique**, cela donne **deux pentes** :
 
 - la **phase α** (rapide) : distribution vers les tissus ;
-- la **phase β** (lente) : élimination réelle.
+- la **phase β** (lente) : phase terminale hybride, influencée par l'élimination **et** les échanges entre compartiments.
 
 :::key
-D'où plusieurs volumes : $V_1$ (central), $V_{ss}$ (à l'équilibre) et $V_{aire}$ (de la phase β). La demi-vie terminale dépend de la phase β, pas de la distribution initiale.
+D'où plusieurs volumes : $V_1$ (central), $V_{ss}$ (à l'équilibre) et $V_{aire}$ (de la phase β). La demi-vie terminale dépend de cette constante hybride β ; elle ne doit pas être lue comme une clairance d'élimination pure.
 :::
 
 Comparez à la référence 1-compartiment : ignorer la distribution surestime les concentrations précoces.

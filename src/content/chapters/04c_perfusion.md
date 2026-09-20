@@ -59,7 +59,7 @@ et tend vers le plateau :
 $$ C_{ss} = \frac{R_0}{CL} $$
 
 :::math
-La Css ne dépend que du **débit** et de la **clairance**. On atteint ~90 % de la Css en **~4 demi-vies** ; à l'arrêt, la décroissance est exponentielle (élimination d'ordre 1).
+La Css ne dépend que du **débit** et de la **clairance**. On atteint 90 % de la Css en environ **3,3 demi-vies** ; à **4 demi-vies**, on est déjà proche de 94 %. À l'arrêt, la décroissance est exponentielle (élimination d'ordre 1).
 :::
 <!-- /step -->
 

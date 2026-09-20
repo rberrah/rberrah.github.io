@@ -229,5 +229,5 @@ Shrinkage disqualifies the **EBEs** as a diagnostic tool, not the **population p
 - `DIAGONAL` assumes independent etas; `BLOCK(n)` estimates their covariances for $n(n+1)/2$ parameters, and is judged by a likelihood ratio test. The CL–V correlation is physiological: ignoring it distorts simulations.
 - IOV is coded with one eta per occasion, plus `SAME` to impose a common variance — two etas, one single parameter.
 - Covariates enter the typical value (`TVCL`), upstream of `EXP(ETA)`; a good covariate lowers `$OMEGA`, not only the OFV.
-- Shrinkage above 20–30% invalidates ETA vs covariate plots, in both directions: it hides true relationships and invents false ones. You then decide inside the model, not on the cloud.
+- Shrinkage above 20–30% makes ETA vs covariate plots weakly informative, in both directions: it can hide true relationships or suggest artefacts. You then decide inside the model, not on the cloud.
 <!-- /step -->

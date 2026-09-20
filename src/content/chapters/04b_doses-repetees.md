@@ -69,6 +69,8 @@ Enfin, la **dose de charge** remplit le réservoir d'un coup :
 
 $$ \text{Dose de charge} = C_{ss} \cdot V $$
 
+Pour une voie extravasculaire, cette écriture suppose implicitement $F=1$ ; sinon on corrige par la biodisponibilité et le sel/la forme galénique selon le contexte.
+
 :::howto
 **La métaphore de l'évier.** Le robinet (débit de dose) remplit ; la bonde (clairance) vide. Le **niveau** d'équilibre dépend du rapport robinet/bonde — pas de la vitesse à laquelle on ouvre. Le **temps** de remplissage, lui, ne dépend que de la taille de la bonde (la demi-vie).
 
@@ -102,7 +104,7 @@ Ne confondez pas le **niveau** de l'équilibre et le **temps** pour l'atteindre.
 :::pitfall
 Augmenter la dose monte la Css mais n'accélère **pas** l'arrivée à l'équilibre (toujours ~4–5 t½). Pour entrer plus vite dans la fenêtre : une **dose de charge**, pas une dose d'entretien plus forte.
 
-Second piège : le principe de **superposition** (Css ∝ dose) ne tient qu'en cinétique **linéaire**. Sous saturation (Michaelis-Menten, TMDD), l'accumulation devient imprévisible et une hausse modeste de dose peut faire s'envoler la concentration.
+Second piège : le principe de **superposition** (Css ∝ dose) ne tient qu'en cinétique **linéaire**. Sous saturation (Michaelis-Menten, TMDD), l'accumulation n'est plus proportionnelle : une hausse modeste de dose peut faire fortement monter la concentration, mais le phénomène reste modélisable avec une PK non linéaire adaptée.
 :::
 <!-- /step -->
 
@@ -111,5 +113,5 @@ Second piège : le principe de **superposition** (Css ∝ dose) ne tient qu'en c
 - Niveau : $C_{ss,\text{moy}} = F\cdot\text{Dose}/(CL\cdot\tau)$ ; en perfusion $C_{ss} = R_0/CL$. La clairance et le débit de dose fixent le plateau.
 - Temps : ≈ **4 à 5 demi-vies**, indépendant de la dose et du débit.
 - **Dose de charge** = $C_{ss}\cdot V$ : elle accélère l'entrée dans la fenêtre sans changer le plateau final.
-- La superposition (Css ∝ dose) suppose une cinétique **linéaire** ; sous saturation, tout se dérègle.
+- La superposition (Css ∝ dose) suppose une cinétique **linéaire** ; sous saturation, il faut un modèle non linéaire.
 <!-- /step -->

@@ -63,7 +63,7 @@ The effect nadir therefore does **not** coincide with the plasma peak.
 <!-- step:title="Common pitfall" -->
 Do not confuse PK delay and PD delay.
 
-**Pitfall —** the lag of a turnover model comes from **biological** turnover, not absorption. Raising the dose does not shorten this delay (it depends on $k_{out}$) — it only deepens the effect.
+**Pitfall —** the lag of a turnover model mostly comes from **biological** turnover, not only absorption. Raising the dose does not directly change $k_{out}$; it mainly deepens the effect, although the PK profile can change the apparent time of maximum effect.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
