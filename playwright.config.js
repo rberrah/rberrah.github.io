@@ -10,6 +10,8 @@ export default defineConfig({
   testIgnore: '**/portal.spec.js', // Separate root/app mounts: playwright.portal.config.js.
   timeout: 30_000,
   fullyParallel: true,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 2 : undefined,
   reporter: 'list',
   use: {
     baseURL: process.env.LABS_E2E_URL || `http://localhost:${PORT}`,
