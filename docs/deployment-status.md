@@ -1,22 +1,25 @@
-# Publication - 2026-09-20
+# Publication - 2026-09-21
 
 ## Etat Actuel
 
-- Revision fonctionnelle : `05b9ef7`, fusionnee avec les commits du portail
-  presents sur GitHub, sans ecrasement de leur historique.
-- Site publie au commit `ef0a96d` : [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/35512964796).
-- Moteur [MIPD Engine](https://tdmhub.shinyapps.io/MIPD_Engine/) redeploye :
-  application `17776160`, bundle `12580315`. Le paquet comprend 167 fichiers
-  de code et modeles publics. Aucun PDF prive ni donnees patient.
-- Courbes PD E(t)/C(t) a deux axes, puis E(C); atelier IV 1 compartiment et PTA
-  en infectiologie; grille oncologique et choix ferme Tumeur / Neutrophiles.
-  Le perimetre reste exploratoire, sans validation clinique.
-- Verification locale : check Svelte sans erreur/avertissement, build et
-  tests de contenu reussis, 10 parcours navigateur cibles, tests numeriques JS
-  et R PK/PD/PTA, tests des serveurs PD/oncologie et validation des observations.
-- Verification publique : dix parcours reussis, dont quatre sur les courbes
-  mobile/ordinateur, trois dans Shiny, deux transferts aller-retour PD/PTA
-  (avec rapport HTML et invalidation), et les liens des sept pages du portail.
+- Revision auditee : `3d4a950`, publiee par le
+  [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/35641527776).
+- Version citable `2026.2` datee du 21 septembre 2026. Les dates de mise a jour
+  et de revue scientifique sont desormais distinctes dans les metadonnees.
+- Corrections scientifiques FR/EN harmonisees pour NCA, modeles de survie,
+  essais adaptatifs et simules, variabilite, incertitude, MIPD et outils.
+- Catalogue TDM explicite pour chaque modele : source, implementation,
+  verification logicielle, validation et contexte d'utilisation. Ces statuts
+  ne constituent ni une validation clinique ni une certification reglementaire.
+- Controles bloquants Pages : contenu et structure FR/EN, check Svelte, build,
+  laboratoires et imports, tests navigateur application et portail, noyau R
+  MAP/model averaging/steady state/recommandations, contrat Lego securise et
+  compilation/validation des 46 modeles publics.
+- Le smoke test complet des artefacts ML pre-entraines reste execute localement
+  ou manuellement tant que leur portabilite RDS multi-plateforme n'est pas
+  garantie. Le CI bloque toutefois sur le noyau R et le registre de modeles.
+- Aucun PDF institutionnel ni aucune donnee patient n'a ete ajoute. Ce lot ne
+  redeploie pas l'application Shiny publique.
 
 ## Archive - 2026-09-14
 
