@@ -209,11 +209,11 @@ test('particle selection, draggable exact-concentration probe, slow motion and d
   expect(peripheral).not.toContain(await page.getByTestId('lab-concentration').innerText());
   const scene = page.getByTestId('lab-scene');
   await scene.evaluate(node => node.scrollIntoView({ block: 'start' }));
-  const rect = await scene.boundingBox(), g = sceneLayout(rect.width, 'distribution');
-  const probe = await page.getByRole('button', { name: 'Move concentration probe' }).boundingBox();
-  await page.mouse.move(probe.x+probe.width/2,probe.y+probe.height/2); await page.mouse.down();
-  await page.mouse.move(rect.x+g.rooms.central.x+g.rooms.central.w*.5,rect.y+g.rooms.central.y+g.rooms.central.h*.5,{ steps:12 });
-  await page.mouse.up();
+  const width = await scene.evaluate(node => node.clientWidth), g = sceneLayout(width, 'distribution');
+  await page.getByRole('button', { name: 'Move concentration probe' }).dragTo(scene, {
+    force: true,
+    targetPosition: { x: g.rooms.central.x + g.rooms.central.w * .5, y: g.rooms.central.y + g.rooms.central.h * .5 }
+  });
   await expect(page.getByLabel('Probe location')).toHaveValue('central');
   await expect(page.getByTestId('probe-readout')).toContainText(await page.getByTestId('lab-concentration').innerText());
   await page.getByRole('button', { name: 'Move concentration probe' }).focus(); await page.keyboard.press('ArrowLeft');
@@ -237,9 +237,10 @@ test('play works when its toolbar is visible but the canvas is above the viewpor
   await page.setViewportSize({ width: 390, height: 650 });
   await open(page);
   const play = page.getByRole('button', { name: 'Play', exact: true });
-  await play.focus();
-  await page.locator('.timebar').evaluate(node => node.scrollIntoView({ block: 'start' }));
+  await page.getByTestId('lab-scene').evaluate(node => window.scrollTo(0, window.scrollY + node.getBoundingClientRect().bottom + 20));
   expect(await page.getByTestId('lab-scene').evaluate(node => node.getBoundingClientRect().bottom)).toBeLessThan(0);
+  await expect(play).toBeInViewport();
+  await play.focus();
   await page.keyboard.press('Space');
   await expect.poll(async () => Number(await page.getByTestId('lab-time').inputValue())).toBeGreaterThan(.3);
   await page.keyboard.press('Space');
