@@ -9,6 +9,18 @@ suppressPackageStartupMessages({
   if (is.null(value) || !length(value)) fallback else value
 }
 
+smoke_phase <- "startup"
+if (identical(Sys.getenv("GITHUB_ACTIONS"), "true")) {
+  options(error = function() {
+    message <- paste0("Phase ", smoke_phase, ": ", geterrmessage())
+    message <- gsub("%", "%25", message, fixed = TRUE)
+    message <- gsub("\r", "%0D", message, fixed = TRUE)
+    message <- gsub("\n", "%0A", message, fixed = TRUE)
+    cat("::error title=TDM engine smoke test::", message, "\n", sep = "")
+    quit(save = "no", status = 1L)
+  })
+}
+
 arguments <- commandArgs(trailingOnly = FALSE)
 file_argument <- sub("^--file=", "", grep("^--file=", arguments, value = TRUE)[1])
 APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/", mustWork = TRUE)
@@ -67,6 +79,7 @@ stopifnot(
   any(grepl("Vancomycin", names(catalog_choices_i18n(lang = "en")), fixed = TRUE))
 )
 
+smoke_phase <- "model compilation and contracts"
 doses <- data.frame(time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, ss = 0)
 observations <- data.frame(time = 47.5, concentration = 18)
 covariates <- list(WT = 70, AGE = 65, CREAT = 90, CREAT2 = 90, CRCL = 90, SEX = 0, HT = 175, DIAL = 0)
@@ -134,6 +147,7 @@ mode_error <- tryCatch({
 }, error = identity)
 stopifnot(inherits(mode_error, "error"))
 
+smoke_phase <- "MAP fits and residual error"
 fits <- fit_model_set(
   specifications,
   doses,
@@ -166,6 +180,7 @@ stopifnot(
   isTRUE(all.equal(diag(as.matrix(mrgsolve::smat(fixed_residual_valid[[1]]$model))), c(0.000225, 0), tolerance = 1e-12))
 )
 
+smoke_phase <- "steady-state dosing"
 steady_doses <- data.frame(time = 36, amount = 1000, interval = 12, count = 1, infusion = 12, ss = 1)
 steady_observations <- data.frame(time = 11.5, concentration = 18)
 steady_fits <- fit_model_set(
@@ -212,6 +227,7 @@ stopifnot(
   max(steady_comparison$profiles$time) >= 60
 )
 
+smoke_phase <- "model averaging and exposure"
 weights <- compute_model_weights(fits, scheme = "AIC")
 stopifnot(length(weights) == length(model_ids), abs(sum(weights) - 1) < 1e-8)
 
@@ -252,6 +268,7 @@ stopifnot(is.finite(current_exposure$steady_state_auc24), current_exposure$stead
 stopifnot(is.finite(current_exposure$steady_state_c0), current_exposure$steady_state_c0 >= 0)
 stopifnot(identical(current_exposure$interval, 12))
 
+smoke_phase <- "dose recommendations and PTA"
 recommendations <- recommend_regimens(
   fits = fits,
   weights = weights,
@@ -328,6 +345,7 @@ stopifnot(identical(sort(unique(comparison$profiles$scenario)), sort(c(
   SCENARIO_RECOMMENDED
 ))))
 
+smoke_phase <- "uncertainty distribution"
 distribution <- simulate_regimen_distribution(
   fits,
   weights,
@@ -346,6 +364,7 @@ stopifnot(all(is.finite(c(distribution$lower, distribution$median, distribution$
 stopifnot(distribution$lower <= distribution$median, distribution$median <= distribution$upper)
 stopifnot(distribution$lower < distribution$upper)
 
+smoke_phase <- "model-averaging sensitivity"
 sensitivity <- model_averaging_sensitivity(
   fits, weights,
   dose_min = 500, dose_max = 1500, dose_step = 500,
