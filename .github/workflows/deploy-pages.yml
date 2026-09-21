@@ -143,7 +143,7 @@ jobs:
         with:
           use-public-rspm: true
       - name: Install R dependencies
-        run: Rscript -e "install.packages(c('mrgsolve', 'mapbayr', 'dplyr', 'jsonlite'))"
+        run: Rscript -e "install.packages(c('mrgsolve', 'mapbayr', 'dplyr', 'jsonlite', 'xgboost', 'DALEX', 'digest'))"
       - name: Test TDM engine
         run: Rscript tdm-engine/tests/smoke_test.R
       - name: Test safe Lego contract
