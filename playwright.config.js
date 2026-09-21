@@ -27,7 +27,9 @@ export default defineConfig({
     }
   ],
   webServer: process.env.LABS_E2E_URL ? undefined : {
-    command: `npm run build && npm run preview -- --port ${PORT} --strictPort`,
+    command: process.env.LABS_E2E_PREBUILT
+      ? `npm run preview -- --port ${PORT} --strictPort`
+      : `npm run build && npm run preview -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI
