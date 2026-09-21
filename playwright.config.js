@@ -4,6 +4,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4173;
+const BASE_URL = process.env.LABS_E2E_URL || `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -14,7 +15,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['list'], ['github']] : 'list',
   use: {
-    baseURL: process.env.LABS_E2E_URL || `http://localhost:${PORT}`,
+    baseURL: BASE_URL,
     trace: 'on-first-retry'
   },
   // `PW_CHANNEL=msedge` réutilise le navigateur déjà installé sur la machine et évite
@@ -28,9 +29,9 @@ export default defineConfig({
   ],
   webServer: process.env.LABS_E2E_URL ? undefined : {
     command: process.env.LABS_E2E_PREBUILT
-      ? `npm run preview -- --port ${PORT} --strictPort`
-      : `npm run build && npm run preview -- --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}`,
+      ? `node scripts/preview_portal.mjs ${PORT} --app-only`
+      : `npm run build && node scripts/preview_portal.mjs ${PORT} --app-only`,
+    url: BASE_URL,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI
   }

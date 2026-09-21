@@ -4,6 +4,7 @@ import path from 'node:path';
 import { getSiteOrigin, SITE_ORIGIN_TOKEN } from '../site.config.js';
 
 const port = Number(process.argv[2] || 4181);
+const appOnly = process.argv.includes('--app-only');
 const publicOrigin = getSiteOrigin();
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript',
   '.png': 'image/png', '.svg': 'image/svg+xml', '.json': 'application/json', '.xml': 'application/xml',
@@ -19,9 +20,12 @@ createServer(async (request, response) => {
     response.writeHead(302, { Location: publicOrigin + url.pathname + url.search }).end();
     return;
   }
-  const app = pathname === '/pharmacometrie' || pathname.startsWith('/pharmacometrie/');
+  const prefixedApp = pathname === '/pharmacometrie' || pathname.startsWith('/pharmacometrie/');
+  const app = appOnly || prefixedApp;
   const root = path.resolve(app ? 'build' : 'portal');
-  const relative = app ? pathname.slice('/pharmacometrie'.length) : pathname;
+  const relative = prefixedApp
+    ? pathname.slice('/pharmacometrie'.length)
+    : pathname;
   let file = path.resolve(root, '.' + relative);
   if (file !== root && !file.startsWith(root + path.sep)) {
     response.writeHead(403).end(); return;
@@ -40,8 +44,9 @@ createServer(async (request, response) => {
     response.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream',
       'Cache-Control': 'no-store' }).end(body);
   } catch {
-    const body = (await readFile('portal/404.html', 'utf8')).replaceAll(SITE_ORIGIN_TOKEN, publicOrigin);
+    const fallback = appOnly ? 'build/404.html' : 'portal/404.html';
+    const body = (await readFile(fallback, 'utf8')).replaceAll(SITE_ORIGIN_TOKEN, publicOrigin);
     response.writeHead(404, { 'Content-Type': types['.html'] }).end(body);
   }
-}).listen(port, '127.0.0.1', () => console.log('Portal preview: http://127.0.0.1:' + port))
+}).listen(port, '127.0.0.1', () => console.log(`${appOnly ? 'App' : 'Portal'} preview: http://127.0.0.1:${port}`))
   .on('error', error => { console.error(error.message); process.exit(1); });
