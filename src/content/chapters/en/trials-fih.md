@@ -25,7 +25,7 @@ quiz:
     correct: 0
   - prompt: "For highly active molecules (immune agonists), we favour..."
     options:
-      - "MABEL over NOAEL, as it is the more conservative approach"
+      - "a cautious integration of MABEL/PAD/NOAEL evidence"
       - "the NOAEL divided by a markedly larger safety factor than usual"
       - "the average of the NOAEL-derived and the MABEL-derived doses"
     correct: 0
@@ -34,13 +34,13 @@ quiz:
 <!-- step:title="Why this chapter" -->
 The very first human dose is decided **without human data**: it must be extrapolated from animals and pharmacology. Too high a dose is dangerous (the **TGN1412** disaster showed this), too low delays development.
 
-Pharmacometrics provides a rational framework: NOAEL, MRSD and, above all, **MABEL**.
+Pharmacometrics provides a rational framework integrating several lines of evidence: NOAEL/MRSD, **MABEL** and, depending on context, pharmacologically active dose (PAD).
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="EmaxHill" -->
 Two philosophies. **Toxicology** starts from the top: the highest dose **without adverse effect** in animals (NOAEL), divided by safety margins.
 
-**Pharmacology** starts from the bottom: the lowest dose producing a detectable **biological effect** (MABEL). For a highly active molecule, this second route is far more prudent.
+**Pharmacology** starts from the bottom: the lowest dose expected to produce an anticipated **biological effect** (MABEL/PAD), estimated from potency, target occupancy, PK/PD and translational uncertainty. For a highly active molecule, this route may be more prudent.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="EmaxHill" -->
@@ -48,26 +48,26 @@ From the animal **NOAEL**, we derive the maximum recommended starting dose (MRSD
 
 $$ \text{HED} = \text{NOAEL}\times\left(\frac{W_{animal}}{W_{human}}\right)^{0.33},\qquad \text{MRSD} = \frac{\text{HED}}{\text{safety factor}} $$
 
-The **MABEL** rests on the **exposure–target-occupancy** relationship (often an Emax): we choose a dose giving low occupancy (e.g. 10%), integrating affinity, in-vitro potency and PK/PD.
+The **MABEL** rests on a body of pharmacology data: exposure–target occupancy, in-vitro activity, PK/PD, relevant species and uncertainty. Low occupancy (for example 10%) may be one calculation scenario, but it is not a general rule.
 
 **Ref —** FDA *Guidance for Estimating the Maximum Safe Starting Dose* (2005); EMA *Guideline on first-in-human clinical trials* (revised 2017, after TGN1412).
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="EmaxHill" -->
-For an **immune agonist**, the NOAEL can yield a dangerously active human starting dose (poorly predictive species). The **MABEL**, anchored on receptor occupancy, proposes a much lower dose — the right choice.
+For an **immune agonist**, the NOAEL can yield a dangerously active human starting dose (poorly predictive species). A MABEL/PAD approach anchored in anticipated human pharmacology may propose a much lower dose.
 
-We generally keep the most **conservative** dose between the approaches.
+We generally choose a starting dose from a **cautious integration** of approaches, not from a mechanical competition between NOAEL and MABEL.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
 The NOAEL is not always protective.
 
-**Pitfall —** for **highly potent** biologics or mechanisms absent in animals, the NOAEL can badly **underestimate** the human risk. This is the TGN1412 lesson: favour MABEL and translational PK/PD modelling, not toxicology alone.
+**Pitfall —** for **highly potent** biologics or mechanisms absent in animals, the NOAEL can badly **underestimate** the human risk. This is the TGN1412 lesson: integrate MABEL/PAD, translational PK/PD modelling and toxicology, rather than relying on a single rule.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - The FIH starting dose is extrapolated from animals and pharmacology, without human data.
 - NOAEL → HED (allometry) → MRSD (safety factors).
-- MABEL: lowest dose with biological effect, based on exposure–occupancy (Emax).
-- For highly active molecules, MABEL takes precedence over NOAEL (TGN1412 lesson).
+- MABEL/PAD: pharmacology-based approach integrating exposure, target, potency, PK/PD and uncertainty.
+- For highly active molecules, integrate MABEL/PAD and NOAEL cautiously rather than mechanically prioritising one over the other.
 <!-- /step -->

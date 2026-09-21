@@ -44,7 +44,7 @@ If the model is correct, these (normalised) positions spread like a **standard G
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="52_NPDE" -->
-We simulate $K$ datasets under the model, compute the **position** of each observation within the predicted distribution (pde), then transform it by the inverse normal $\Phi^{-1}$:
+We simulate $K$ datasets under the model. For each individual, simulations provide the mean and covariance of repeated observations; observations are therefore centred and **decorrelated** before computing their **position** within the predicted distribution (PDE), then transformed by the inverse normal $\Phi^{-1}$:
 
 $$ npde_{ij} = \Phi^{-1}\big(pde_{ij}\big) $$
 
@@ -66,7 +66,7 @@ A global histogram can hide local deviations.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- NPDE compare each observation to a distribution simulated under the model.
+- NPDE compare each observation to a distribution simulated under the model, after within-individual centring and decorrelation.
 - Correct model ⇒ NPDE ~ N(0,1) (mean, variance, normality tests).
 - Robust because no linearisation; examine stratified (covariate, time).
 - A local shift/spread reveals a bias (often a missing covariate).

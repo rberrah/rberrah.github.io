@@ -75,7 +75,7 @@ Réf. : Lixoft / Simulations Plus ; documentation Monolix. mlxtran est partagé 
 <!-- step:title="Exemple concret" viz="67_SAEMConvergence" -->
 Sur un modèle difficile (Emax raide, données éparses), le **SAEM** de Monolix converge là où FOCE peinerait, et la **VPC intégrée** confirme (ou infirme) le modèle en un clic.
 
-Beaucoup d'équipes prototypent et enseignent avec Monolix pour sa **lisibilité**, puis traduisent en NONMEM si le dossier réglementaire l'exige.
+Beaucoup d'équipes prototypent et enseignent avec Monolix pour sa **lisibilité**, puis comparent ou traduisent parfois vers NONMEM selon leur organisation, pour une analyse de sensibilité inter-logiciels ou pour collaborer avec des équipes déjà structurées autour de NONMEM.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

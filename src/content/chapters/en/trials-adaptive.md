@@ -32,7 +32,9 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-Choosing the **dose** is the costliest decision in development. **Model-based** approaches and **adaptive** designs can improve efficiency under some assumptions, but they may also increase maximum sample size, operational complexity or simulation requirements.
+Choosing the **dose** is the costliest decision in development. **Model-based** approaches use the whole dose–response curve instead of stacking isolated comparisons; **adaptive** designs can then reallocate information during the trial according to pre-specified rules.
+
+The expected benefit is straightforward: learn faster which dose range deserves to move forward and avoid exposing too many patients to uninformative doses. The limitations come next: that gain depends on assumptions, readout timing, logistics and error-control simulations.
 
 This is where pharmacometrics directly meets trial strategy.
 <!-- /step -->
@@ -62,7 +64,7 @@ An **interim** analysis can then drop ineffective doses and concentrate patients
 <!-- step:title="Common pitfall" -->
 Adaptive does not mean improvised.
 
-**Pitfall —** an adaptive design must be **fully pre-specified** and validated by simulation: changing the rules mid-way inflates the type-I error risk. The gain is not automatic; it depends on assumptions, logistics, readout timing and operational control. And estimating the dose from a **single** poorly chosen model biases the result — hence the value of MCP-Mod's model averaging.
+**Pitfall —** an adaptive design must be **fully pre-specified** and validated by simulation: changing the rules mid-way inflates the type-I error risk. The limits are design-specific: sometimes larger maximum sample size, operational complexity, biomarker or event readout delays, and risk from a poorly chosen model — hence the value of MCP-Mod's model averaging.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -65,9 +65,9 @@ Dividing by $\sigma_i^2$ says it all: the **smaller** σ, the **larger** $1/\sig
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
-Since the published σ was estimated on *another* population and *other* conditions, keeping it blindly can under-use the patient's measurements. The consequence is direct: **lowering σ improves the precision of the individual AUC**.
+Since the published σ was estimated on *another* population and *other* conditions, keeping it blindly can under-use the patient's measurements. In the models and datasets studied, **lowering σ could improve the precision of the individual AUC**.
 
-This is the central result of **Berrah et al. (2025)**. On rich datasets of tacrolimus, iohexol and mycophenolic acid, with only 3 samples per patient, reducing the proportional error cut the AUC **RMSE by 30–40%** versus the original model. For tacrolimus, RMSE fell from **28.5% to 16.3%** at a 1% error; for iohexol, a near-zero error reached up to **40%** reduction.
+This is the central result of **Berrah et al. (Epub 2025, print publication 2026)**. In the rich datasets studied for tacrolimus, iohexol and mycophenolic acid, with only 3 samples per patient, reducing the proportional error cut the AUC **RMSE by 30–40%** versus the original model. For tacrolimus, RMSE fell from **28.5% to 16.3%** at a 1% error; for iohexol, a near-zero error reached up to **40%** reduction.
 
 :::key
 The more reliable the analytics, the more legitimate it is to trust the measurements. Lowering σ **strengthens the influence of observed data** on the posterior, without changing the model structure or collecting extra samples: a "free" gain in precision.
@@ -89,14 +89,14 @@ In their analysis the trap stayed rare (3 of 321 patients), but it is a reminder
 <!-- step:title="What to choose in practice" -->
 The guidance proposed by Berrah et al. is a trade-off between individualisation and robustness:
 
-| Context | Recommended proportional σ |
+| Context | Tested proportional σ / pragmatic scenario |
 |---|---|
 | High-quality analytics (LC-MS/MS), well-documented sampling | ≈ **1%** ("Flat1"), small but **non-zero** |
 | Higher observation noise, looser TDM practice | **2 – 5%** |
 | When in doubt | quick sweep **0.5 – 3%** + diagnostics (visual fits, residuals) |
 | Imprecise timing / variable handling | add a small **additive** term to the error |
 
-The **Flat1 (1%)** scenario stands out as a good default at the *population* level; at the *individual* level, zero error was often the most accurate for extreme profiles, but at the cost of overfitting risk. A **small but non-zero** σ keeps the prior from crushing sparse data while damping the noise.
+The **Flat1 (1%)** scenario stood out in the models and datasets studied at the *population* level; at the *individual* level, zero error was often the most accurate for extreme profiles, but at the cost of overfitting risk. A **small but non-zero** σ keeps the prior from crushing sparse data while damping the noise.
 
 :::note
 This approach is a **cousin** of Hughes & Keizer's *prior flattening* (inflating $\omega^2$ to lighten the prior): both hand weight back to the data. Berrah et al. act on σ rather than $\omega$ to isolate the residual-error effect. In both cases the study recommends **explicitly documenting** the chosen parameter and its rationale when reusing a published model.
@@ -105,12 +105,12 @@ This approach is a **cousin** of Hughes & Keizer's *prior flattening* (inflating
 
 <!-- step:title="Key takeaways" -->
 - In MIPD, residual error σ is **not** a fixed constant: it is a lever that sets the weight of the **patient's data** against the population **prior** in MAP estimation.
-- **Lowering σ** strengthens the influence of the measurements and **improves AUC precision** — Berrah et al. report 30–40% lower RMSE (tacrolimus: 28.5% → 16.3% at 1%), with no new samples or model redevelopment.
+- **Lowering σ** strengthens the influence of the measurements and **improved AUC precision in the models and datasets studied** — Berrah et al. report 30–40% lower RMSE (tacrolimus: 28.5% → 16.3% at 1%), with no new samples or model redevelopment.
 - **σ too small** (≈ 0) on noisy data → **overfitting**: the model follows the noise and produces implausible AUCs.
-- Pragmatic default: **≈ 1%** in high-quality settings, **2–5%** otherwise; check with a sensitivity sweep and diagnostics; add an additive term if timing is imprecise.
+- Pragmatic starting point to verify: **≈ 1%** in high-quality settings, **2–5%** otherwise; check with a sensitivity sweep and diagnostics; add an additive term if timing is imprecise.
 - **Document** the chosen σ and its rationale when reusing a published model.
 
 :::note
-**Reference.** Berrah R, Minichmayr IK, Woillard JB, on behalf of the IATDMCT Pharmacometrics Group. *Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.* Ther Drug Monit. 2025.
+**Reference.** Berrah R, Minichmayr IK, Woillard JB, on behalf of the IATDMCT Pharmacometrics Group. *Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.* Ther Drug Monit. 2026;48(4):443-450. Epub 2025 Dec 8. PMID: 41358610.
 :::
 <!-- /step -->

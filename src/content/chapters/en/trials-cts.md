@@ -34,6 +34,8 @@ quiz:
 <!-- step:title="Why this chapter" -->
 A clinical trial costs years and millions. **Clinical trial simulation** (CTS) lets us "rehearse" it virtually: which design, dose and sample size give the best chance of success?
 
+Its practical role is **de-risking**: detect inefficient designs before the trial, reduce real-world iterations, avoid unnecessary dedicated studies and limit the number of patients exposed to uninformative scenarios.
+
 It is the culmination of modelling: turning a model into a development **decision**.
 <!-- /step -->
 
@@ -72,6 +74,7 @@ The simulation inherits the model's weaknesses.
 <!-- step:title="Key takeaways" -->
 - CTS "replays" a trial on virtual populations to inform the design.
 - Three blocks: virtual population + PK/PD model + trial model.
-- Provides conditional power/operating characteristics, dose and sample size; PoS/assurance only if uncertainty is integrated.
+- Supports de-risking: compare designs, doses and sample sizes before the real trial.
+- Provides conditional power/operating characteristics; PoS/assurance only if uncertainty is integrated.
 - Propagate parameter uncertainty, otherwise false confidence.
 <!-- /step -->

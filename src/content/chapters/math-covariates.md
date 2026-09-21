@@ -21,13 +21,13 @@ quiz:
     correct: 0
   - prompt: "L'allométrie décrit l'effet du poids sur la clairance par..."
     options:
-      - "une loi puissance d'exposant ~0,75"
+      - "une loi puissance, souvent pré-spécifiée autour de 0,75 pour la clairance"
       - "une relation linéaire d'exposant 1"
       - "une loi puissance d'exposant proche de 0,67 (surface)"
     correct: 0
   - prompt: "La sélection pas-à-pas (SCM) risque..."
     options:
-      - "de sur-sélectionner et de biaiser les effets (données réutilisées)"
+      - "d'induire une sélection instable et de surestimer les effets (données réutilisées)"
       - "de sous-sélectionner en manquant des covariables vraies"
       - "de rallonger les calculs sans changer le modèle final"
     correct: 0
@@ -51,7 +51,7 @@ La forme la plus courante, centrée et en loi puissance :
 $$ CL_i = CL_{ref}\left(\frac{W_i}{70}\right)^{0{,}75}\cdot e^{\eta_i} $$
 
 - **Centrage** sur 70 kg : $CL_{ref}$ = clairance du sujet de référence ;
-- **Allométrie** : exposant **0,75** pour la clairance, **1** pour les volumes.
+- **Allométrie** : les exposants **0,75** pour la clairance et **1** pour les volumes sont des choix usuels ou pré-spécifiés, pas une loi universelle imposée par les données.
 
 Pour la **sélection**, plusieurs stratégies : **SCM** (stepwise covariate modeling, forward/backward sur l'OFV), **full model** (tout inclure puis juger la pertinence), et des approches modernes (**SAMBA**, sélection pénalisée) plus rapides et moins biaisées.
 
@@ -70,13 +70,13 @@ On juge chaque covariable non seulement sur l'OFV mais sur son **ampleur cliniqu
 La sélection pas-à-pas se piège elle-même.
 
 :::pitfall
-Le **SCM** teste beaucoup de covariables sur les **mêmes** données : il en **sur-sélectionne** et **surestime** les effets (biais de sélection). Les covariables **corrélées** (poids, taille, ClCr) se substituent l'une à l'autre. Préférer des formes pré-spécifiées, l'allométrie physiologique, et valider les effets retenus.
+Le **SCM** teste beaucoup de covariables sur les **mêmes** données : il peut induire une **sélection instable** et **surestimer** les effets retenus (biais de sélection). Les covariables **corrélées** (poids, taille, ClCr) se substituent l'une à l'autre. Préférer des formes pré-spécifiées, l'allométrie physiologique, et valider les effets retenus.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Une covariable pertinente explique une part de l'IIV (l'oméga diminue).
-- Centrer la covariable ; utiliser l'allométrie (CL ∝ poids^0,75, V ∝ poids).
+- Centrer la covariable ; utiliser l'allométrie avec des exposants usuels ou pré-spécifiés (souvent CL ∝ poids^0,75, V ∝ poids).
 - Sélection : SCM (stepwise), full model, ou approches modernes (SAMBA, pénalisation).
-- Le SCM sur-sélectionne et biaise ; attention aux covariables corrélées.
+- Le SCM peut induire une sélection instable et surestimer les effets ; attention aux covariables corrélées.
 <!-- /step -->

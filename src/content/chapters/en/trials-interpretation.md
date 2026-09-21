@@ -40,7 +40,7 @@ It is the bridge between statistical analysis and practice.
 <!-- step:title="Intuition" viz="53_ForestPlot" -->
 A **forest plot** lines up the effects: each covariate shifts a parameter (e.g. clearance) by a certain **factor**, with an uncertainty bar.
 
-Two landmarks: the line at **1** (no effect) and a **band** of clinical irrelevance, defined in advance from the drug, target and setting. An effect matters if it **leaves** that band and its uncertainty remains compatible with a decision.
+Two landmarks: the line at **1** (no effect) and a **band** of clinical irrelevance, defined in advance from the drug, target and setting. An effect matters when its **magnitude**, **uncertainty** and consequence for exposure/response are compatible with a decision; excluding 1 is not mandatory.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="53_ForestPlot" -->
@@ -48,16 +48,16 @@ A covariate effect is expressed as a **ratio** relative to the reference patient
 
 $$ \frac{CL(x)}{CL_{ref}} = \left(\frac{x}{x_{ref}}\right)^{\theta} $$
 
-We judge on **two joint criteria**:
+We judge on a body of evidence:
 
-- **statistical**: does the 95% CI of the ratio exclude 1?
-- **clinical**: does the ratio exceed the relevance threshold defined for this decision? The 0.8–1.25 zone comes from bioequivalence and can be a teaching landmark, but it is not a universal dosing-relevance rule.
+- **statistical**: what is the effect magnitude and uncertainty?
+- **clinical**: does that uncertainty change the decision through the exposure target, therapeutic margin and exposure–response relationship? The 0.8–1.25 zone comes from bioequivalence and can be a teaching landmark, but it is not a universal dosing-relevance rule.
 
 **Note —** an effect can be significant (large sample) yet **clinically negligible**, and conversely a relevant effect may remain uncertain (wide CI).
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="53_ForestPlot" -->
-On the forest plot, a **low CrCl** reduces clearance by 38% (CI outside the band): dose adjustment justified. **Sex** shifts clearance by 5% (inside the band, CI crossing 1): inconsequential.
+On the forest plot, a **low CrCl** reduces clearance by 38% (CI outside the band): this may justify evaluating dose adjustment, depending on the exposure target, therapeutic margin and exposure–response relationship. **Sex** shifts clearance by 5% (inside the band, CI crossing 1): probably inconsequential for dosing.
 
 This is how we build **dosing recommendations** by subgroup.
 <!-- /step -->

@@ -46,7 +46,7 @@ Si le modèle est correct, ces positions (normalisées) se répartissent comme u
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="52_NPDE" -->
-On simule $K$ jeux sous le modèle, on calcule la **position** de chaque observation dans la distribution prédite (pde), puis on la transforme par l'inverse de la normale $\Phi^{-1}$ :
+On simule $K$ jeux sous le modèle. Pour chaque individu, les simulations donnent une moyenne et une covariance des observations répétées ; on centre et **décorrèle** donc les observations avant de calculer leur **position** dans la distribution prédite (PDE), puis on transforme cette position par l'inverse de la normale $\Phi^{-1}$ :
 
 $$ npde_{ij} = \Phi^{-1}\big(pde_{ij}\big) $$
 
@@ -72,7 +72,7 @@ Des NPDE globalement N(0,1) peuvent **masquer** des biais opposés dans deux sou
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- Les NPDE comparent chaque observation à une distribution simulée sous le modèle.
+- Les NPDE comparent chaque observation à une distribution simulée sous le modèle, après centrage et décorrélation intra-individuelle.
 - Modèle correct ⇒ NPDE ~ N(0,1) (tests de moyenne, variance, normalité).
 - Robustes car sans linéarisation ; à examiner stratifiés (covariable, temps).
 - Un décalage/étalement local révèle un biais (souvent une covariable manquante).

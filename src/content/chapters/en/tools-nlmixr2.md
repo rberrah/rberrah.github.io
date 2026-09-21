@@ -72,7 +72,7 @@ fit <- nlmixr2(mod, data, est = "saem")   # or est = "focei"
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="67_SAEMConvergence" -->
-A student or a small team can **do everything** in nlmixr2 — estimate, simulate (rxode2), diagnose (ggPMX) — without a licence. Many **prototype** in nlmixr2 then **confirm** in NONMEM for the regulatory dossier, the estimates being very close.
+A student or a small team can **do everything** in nlmixr2 — estimate, simulate (rxode2), diagnose (ggPMX) — without a licence. Some teams **prototype** in nlmixr2 then compare in another tool depending on their workflow; similarity of estimates must be checked model by model, with the same data, assumptions and OFV calculation method.
 
 It is also an excellent **teaching** aid: the R code is readable and reproducible.
 <!-- /step -->

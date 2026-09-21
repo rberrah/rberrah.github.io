@@ -3,7 +3,7 @@ id: "monolix-moteur"
 slug: "monolix-moteur"
 title: "Monolix — le moteur SAEM"
 description: "Pourquoi une approximation stochastique de l'EM plutôt qu'une linéarisation : les deux phases, la vraisemblance calculée à part, et ce que convergence veut dire ici."
-summary: "Le SAEM ne déforme jamais le modèle, il l'échantillonne : exploration puis lissage, -2LL par échantillonnage d'importance, et une OFV non comparable à FOCE."
+summary: "Le SAEM évite la linéarisation locale du modèle : exploration puis lissage, -2LL par échantillonnage d'importance, et une OFV non comparable à FOCE."
 track: "monolix"
 order: 224
 duration: "10 min"
@@ -42,9 +42,9 @@ Trois particularités, souvent vécues comme des bizarreries par qui arrive de N
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="16_SAEMCycle" -->
-La vraisemblance de population exige d'intégrer les paramètres individuels, qu'on n'observe pas. Cette intégrale n'a pas de forme close dès que le modèle est non linéaire en ces paramètres — c'est-à-dire toujours, en PK/PD. Deux écoles s'affrontent depuis quarante ans.
+La vraisemblance de population exige d'intégrer les paramètres individuels, qu'on n'observe pas. Cette intégrale n'a pas de forme close dès que le modèle est non linéaire en ces paramètres — situation fréquente en PK/PD. Deux écoles s'affrontent depuis quarante ans.
 
-**Déformer le modèle jusqu'à ce que l'intégrale devienne facile.** C'est FO, FOCE, Laplace : on linéarise le modèle autour de $\eta = 0$ ou autour du mode individuel, ce qui rend l'intégrande gaussien et l'intégrale analytique. On maximise ensuite *exactement* une fonction *approchée*.
+**Approximer localement le modèle ou l'intégrale.** FO et FOCE utilisent une approximation de Taylor du modèle autour de $\eta = 0$ ou autour du mode individuel ; Laplace approxime l'intégrale autour de ce mode. On maximise ensuite *exactement* une fonction *approchée*.
 
 **Ne pas calculer l'intégrale du tout.** C'est l'EM, et sa version stochastique le SAEM : les paramètres individuels sont traités comme des **données manquantes**, qu'on simule au lieu de les intégrer. Le modèle n'est jamais déformé — il est seulement évalué, en avant, pour des valeurs de paramètres tirées au sort.
 
@@ -111,7 +111,7 @@ Deux réglages méritent un mot. `nbchains` : quand les sujets sont peu nombreux
 
 **La vraisemblance, calculée à part.** Relisez le M-step : il ne touche qu'à $s_{k+1}$, des statistiques du modèle à **données complètes**. À aucun moment l'algorithme n'évalue $L(\theta)$. Le SAEM maximise la vraisemblance sans jamais la calculer. À la fin du run vous avez $\hat{\theta}$ et rien à mettre en face — d'où la tâche `logLikelihood`, séparée.
 
-Deux méthodes s'offrent alors, et le choix n'est pas neutre. `Linearization` linéarise le modèle autour des modes individuels : rapide, mais elle réintroduit exactement l'approximation que le SAEM avait évitée. `ImportanceSampling` est l'option honnête : elle réécrit l'intégrale du sujet $i$ comme une espérance sous une loi de proposition $h$ qu'on sait simuler,
+Deux méthodes s'offrent alors, et le choix n'est pas neutre. `Linearization` linéarise le modèle autour des modes individuels : rapide, mais elle réintroduit l'approximation locale que le SAEM avait évitée pendant l'estimation. `ImportanceSampling` est l'option la plus cohérente avec ce moteur : elle réécrit l'intégrale du sujet $i$ comme une espérance sous une loi de proposition $h$ qu'on sait simuler,
 
 $$ p(y_i \mid \theta) = \int p(y_i \mid \psi_i)\, p(\psi_i \mid \theta)\, d\psi_i = \mathbb{E}_h\!\left[ \frac{p(y_i \mid \psi_i)\; p(\psi_i \mid \theta)}{h(\psi_i)} \right] $$
 
@@ -170,9 +170,9 @@ Et le contrôle qui tranche : **relancez avec une autre graine et d'autres valeu
 
 <!-- step:title="À retenir" -->
 - Monolix ne propose pas le SAEM parmi d'autres méthodes : il est construit autour. Ses trois bizarreries apparentes en découlent.
-- FOCE déforme le modèle pour rendre l'intégrale calculable ; le SAEM ne l'approche pas, il l'échantillonne. Pas de dérivée, pas d'optimisation interne par sujet : d'où la robustesse aux modèles raides et aux données éparses.
+- FO/FOCE utilisent une approximation locale du modèle, Laplace une approximation locale de l'intégrale ; le SAEM évite cette linéarisation pendant l'estimation et échantillonne les effets individuels. Pas de dérivée, pas d'optimisation interne par sujet : d'où la robustesse aux modèles raides et aux données éparses.
 - Deux phases : exploration à pas constant ($\gamma_k = 1$, aucune mémoire, on erre exprès), puis lissage à pas décroissant ($\gamma_k \approx 1/k$, le bruit se moyenne, on converge). Fondement : Delyon–Lavielle–Moulines (1999), porté au non linéaire par Kuhn–Lavielle (2004).
-- Le SAEM maximise la vraisemblance sans jamais l'évaluer : le $-2LL$ est une **tâche séparée**, par échantillonnage d'importance (l'option honnête) ou par linéarisation (celle qui annule l'avantage du moteur).
+- Le SAEM maximise la vraisemblance sans jamais l'évaluer : le $-2LL$ est une **tâche séparée**, par échantillonnage d'importance ou par linéarisation.
 - Le $-2LL$ par échantillonnage d'importance est bruité : lisez son erreur de Monte-Carlo, et augmentez `nbfixediterations` avant de trancher un LRT serré.
 - Le diagnostic de convergence est dans la phase 1. La phase 2 est plate par construction, y compris sur un paramètre figé au mauvais endroit.
 - $-2LL$ de Monolix et OFV de NONMEM ne sont pas comparables en valeur absolue : fonctions différentes, plus une constante $n_{obs}\log(2\pi)$ d'écart.

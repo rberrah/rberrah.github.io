@@ -3,7 +3,7 @@ id: "monolix-moteur"
 slug: "monolix-moteur"
 title: "Monolix — the SAEM engine"
 description: "Why a stochastic approximation of EM rather than a linearisation: the two phases, the likelihood computed separately, and what convergence means here."
-summary: "SAEM never deforms the model, it samples it: exploration then smoothing, -2LL by importance sampling, and an OFV that is not comparable to FOCE."
+summary: "SAEM avoids local model linearisation: exploration then smoothing, -2LL by importance sampling, and an OFV that is not comparable to FOCE."
 track: "monolix"
 order: 224
 duration: "10 min"
@@ -42,11 +42,11 @@ Three peculiarities, often experienced as oddities by anyone arriving from NONME
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="16_SAEMCycle" -->
-The population likelihood requires integrating out the individual parameters, which we never observe. That integral has no closed form as soon as the model is nonlinear in those parameters — that is, always, in PK/PD. Two schools have been fighting over it for forty years.
+The population likelihood requires integrating out the individual parameters, which we never observe. That integral has no closed form as soon as the model is nonlinear in those parameters — a frequent situation in PK/PD. Two schools have been working around it for forty years.
 
-**Deform the model until the integral becomes easy.** That is FO, FOCE, Laplace: linearise the model around $\eta = 0$ or around the individual mode, which makes the integrand Gaussian and the integral analytical. You then maximise *exactly* an *approximate* function.
+**Approximate the model or the integral locally.** FO and FOCE use a Taylor approximation of the model around $\eta = 0$ or around the individual mode; Laplace approximates the integral around that mode. You then maximise *exactly* an *approximate* function.
 
-**Do not compute the integral at all.** That is EM, and its stochastic version SAEM: the individual parameters are treated as **missing data**, which you simulate instead of integrating. The model is never deformed — it is only ever evaluated, forward, at parameter values drawn at random.
+**Do not compute the integral directly during estimation.** That is EM, and its stochastic version SAEM: the individual parameters are treated as **missing data**, which you simulate instead of integrating explicitly. The model is evaluated forward at sampled parameter values rather than locally linearised.
 
 The difference shows up mechanically, in the inner loop. At every iteration, FOCE must solve **for each subject** an optimisation problem — find the mode $\hat{\eta}_i$ — and needs the derivatives of the model with respect to $\eta$. Two things can break: the inner optimisation may fail to converge, and the derivatives may mean nothing at all (a finite difference across a stiff ODE or the near-vertical flank of an Emax measures only integrator noise). SAEM's inner loop, by contrast, is a Metropolis-Hastings step: propose an $\eta$, evaluate the model **once**, accept or reject on a likelihood ratio. No derivative, no inner optimum.
 
@@ -111,7 +111,7 @@ Two settings deserve a word. `nbchains`: when subjects are few, a single chain p
 
 **The likelihood, computed separately.** Re-read the M-step: it only ever touches $s_{k+1}$, statistics of the **complete-data** model. At no point does the algorithm evaluate $L(\theta)$. SAEM maximises the likelihood without ever computing it. At the end of the run you have $\hat{\theta}$ and nothing to put beside it — hence the separate `logLikelihood` task.
 
-Two methods are then available, and the choice is not neutral. `Linearization` linearises the model around the individual modes: fast, but it reintroduces precisely the approximation SAEM had avoided. `ImportanceSampling` is the honest option: it rewrites subject $i$'s integral as an expectation under a proposal distribution $h$ we know how to simulate,
+Two methods are then available, and the choice is not neutral. `Linearization` linearises the model around the individual modes: fast, but it reintroduces the local approximation SAEM had avoided during estimation. `ImportanceSampling` is the option most consistent with that engine: it rewrites subject $i$'s integral as an expectation under a proposal distribution $h$ we know how to simulate,
 
 $$ p(y_i \mid \theta) = \int p(y_i \mid \psi_i)\, p(\psi_i \mid \theta)\, d\psi_i = \mathbb{E}_h\!\left[ \frac{p(y_i \mid \psi_i)\; p(\psi_i \mid \theta)}{h(\psi_i)} \right] $$
 
@@ -170,9 +170,9 @@ And the check that settles it: **re-run with a different seed and different init
 
 <!-- step:title="Key takeaways" -->
 - Monolix does not offer SAEM among other methods: it is built around it. Its three apparent oddities all follow from that.
-- FOCE deforms the model to make the integral computable; SAEM does not approximate the integral, it samples it. No derivative, no per-subject inner optimisation: hence the robustness to stiff models and sparse data.
+- FO/FOCE use a local approximation of the model, Laplace a local approximation of the integral; SAEM avoids that linearisation during estimation and samples the individual effects. No derivative, no per-subject inner optimisation: hence the robustness to stiff models and sparse data.
 - Two phases: exploration at constant step ($\gamma_k = 1$, no memory, wandering on purpose), then smoothing at decaying step ($\gamma_k \approx 1/k$, the noise averages out, it converges). Foundation: Delyon–Lavielle–Moulines (1999), carried over to the nonlinear case by Kuhn–Lavielle (2004).
-- SAEM maximises the likelihood without ever evaluating it: the $-2LL$ is a **separate task**, by importance sampling (the honest option) or by linearisation (the one that cancels the engine's advantage).
+- SAEM maximises the likelihood without ever evaluating it directly: the $-2LL$ is a **separate task**, by importance sampling or by linearisation.
 - The $-2LL$ from importance sampling is noisy: read its Monte Carlo error, and raise `nbfixediterations` before settling a tight LRT.
 - The convergence diagnostic is in phase 1. Phase 2 is flat by construction, including on a parameter frozen in the wrong place.
 - Monolix's $-2LL$ and NONMEM's OFV are not comparable in absolute value: different functions, plus a constant $n_{obs}\log(2\pi)$ of offset.

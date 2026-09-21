@@ -67,9 +67,9 @@ La division par $\sigma_i^2$ dit tout : plus σ est **petit**, plus $1/\sigma_i^
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
-Puisque la valeur publiée de σ a été estimée sur *une autre* population et *d'autres* conditions, la garder aveuglément peut sous-exploiter les mesures du patient. La conséquence est directe : **réduire σ améliore la précision de l'AUC individuelle**.
+Puisque la valeur publiée de σ a été estimée sur *une autre* population et *d'autres* conditions, la garder aveuglément peut sous-exploiter les mesures du patient. Dans les modèles et jeux de données étudiés, **réduire σ pouvait améliorer la précision de l'AUC individuelle**.
 
-C'est le résultat central de **Berrah et al. (2025)**. Sur des jeux riches de tacrolimus, iohexol et acide mycophénolique, avec seulement 3 prélèvements par patient, abaisser l'erreur proportionnelle a réduit la **RMSE** des AUC de **30 à 40 %** par rapport au modèle d'origine. Pour le tacrolimus, la RMSE tombe de **28,5 % à 16,3 %** en passant à une erreur de 1 % ; pour l'iohexol, une erreur quasi nulle atteint jusqu'à **40 %** de réduction.
+C'est le résultat central de **Berrah et al. (Epub 2025, publication imprimée 2026)**. Sur les jeux riches étudiés de tacrolimus, iohexol et acide mycophénolique, avec seulement 3 prélèvements par patient, abaisser l'erreur proportionnelle a réduit la **RMSE** des AUC de **30 à 40 %** par rapport au modèle d'origine. Pour le tacrolimus, la RMSE tombe de **28,5 % à 16,3 %** en passant à une erreur de 1 % ; pour l'iohexol, une erreur quasi nulle atteint jusqu'à **40 %** de réduction.
 
 :::key
 Plus l'analytique est fiable, plus il est légitime de faire confiance aux mesures. Réduire σ **renforce l'influence des données observées** sur le postérieur, sans changer la structure du modèle ni collecter de prélèvements supplémentaires : un gain « gratuit » de précision.
@@ -91,14 +91,14 @@ Dans leur analyse, ce piège restait rare (3 patients sur 321), mais il rappelle
 <!-- step:title="Que choisir en pratique" -->
 La ligne de conduite proposée par Berrah et al. est un compromis entre individualisation et robustesse :
 
-| Contexte | σ proportionnel conseillé |
+| Contexte | σ proportionnel testé / scénario pragmatique |
 |---|---|
 | Analytique de haute qualité (LC-MS/MS), prélèvements bien tracés | ≈ **1 %** (« Flat1 »), petit mais **non nul** |
 | Bruit d'observation plus élevé, TDM moins maîtrisé | **2 – 5 %** |
 | En cas de doute | balayage rapide **0,5 – 3 %** + diagnostics (fits visuels, résidus) |
 | Horaires imprécis / manipulation variable | ajouter un petit terme **additif** à l'erreur |
 
-Le scénario **Flat1 (1 %)** ressort comme un bon défaut au niveau *population* ; au niveau *individuel*, l'erreur nulle était souvent la plus exacte pour capter les profils extrêmes, mais au prix d'un risque de surajustement. Un σ **petit mais non nul** empêche le prior d'écraser des données éparses tout en amortissant le bruit.
+Le scénario **Flat1 (1 %)** ressort comme performant dans les modèles et données étudiés au niveau *population* ; au niveau *individuel*, l'erreur nulle était souvent la plus exacte pour capter les profils extrêmes, mais au prix d'un risque de surajustement. Un σ **petit mais non nul** empêche le prior d'écraser des données éparses tout en amortissant le bruit.
 
 :::note
 Cette approche est un **cousin** du *flattening the prior* de Hughes & Keizer (gonfler $\omega^2$ pour alléger le prior) : les deux redonnent du poids aux données. Berrah et al. agissent sur σ plutôt que sur $\omega$ pour isoler l'effet de l'erreur résiduelle. Dans les deux cas, l'étude recommande de **documenter explicitement** le paramètre choisi et sa justification lorsqu'on réutilise un modèle publié.
@@ -107,12 +107,12 @@ Cette approche est un **cousin** du *flattening the prior* de Hughes & Keizer (g
 
 <!-- step:title="À retenir" -->
 - En MIPD, l'erreur résiduelle σ n'est **pas** une constante figée : c'est un levier qui règle le poids des **données du patient** face au **prior** de population dans l'estimation MAP.
-- **Réduire σ** renforce l'influence des mesures et **améliore la précision de l'AUC** — Berrah et al. rapportent 30–40 % de RMSE en moins (tacrolimus : 28,5 % → 16,3 % à 1 %), sans nouveau prélèvement ni redéveloppement du modèle.
+- **Réduire σ** renforce l'influence des mesures et a **amélioré la précision de l'AUC dans les modèles et jeux de données étudiés** — Berrah et al. rapportent 30–40 % de RMSE en moins (tacrolimus : 28,5 % → 16,3 % à 1 %), sans nouveau prélèvement ni redéveloppement du modèle.
 - **σ trop petit** (≈ 0) sur des données bruitées → **surajustement** : le modèle suit le bruit et produit des AUC invraisemblables.
-- Défaut pragmatique : **≈ 1 %** en contexte de haute qualité, **2–5 %** sinon ; vérifier par un balayage de sensibilité et des diagnostics ; ajouter un terme additif si les horaires sont imprécis.
+- Point de départ pragmatique à vérifier : **≈ 1 %** en contexte de haute qualité, **2–5 %** sinon ; vérifier par un balayage de sensibilité et des diagnostics ; ajouter un terme additif si les horaires sont imprécis.
 - **Documenter** le σ retenu et sa justification lors de la réutilisation d'un modèle publié.
 
 :::note
-**Référence.** Berrah R, Minichmayr IK, Woillard JB, au nom du groupe Pharmacométrie de l'IATDMCT. *Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.* Ther Drug Monit. 2025.
+**Référence.** Berrah R, Minichmayr IK, Woillard JB, au nom du groupe Pharmacométrie de l'IATDMCT. *Better Dosing Through Better Error: Residual Error as a Hidden Lever in Model-Informed Precision Dosing.* Ther Drug Monit. 2026;48(4):443-450. Epub 2025 Dec 8. PMID: 41358610.
 :::
 <!-- /step -->

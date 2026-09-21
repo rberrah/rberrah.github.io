@@ -76,7 +76,7 @@ Réf. : projet nlmixr2 (Fidler, Wang, Hallow et coll.), open-source (R) ; s'int�
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="67_SAEMConvergence" -->
-Un étudiant ou une petite équipe peut **tout faire** en nlmixr2 — estimer, simuler (rxode2), diagnostiquer (ggPMX) — sans licence. Beaucoup **prototypent** en nlmixr2 puis **confirment** en NONMEM pour le dossier réglementaire, les estimations étant très proches.
+Un étudiant ou une petite équipe peut **tout faire** en nlmixr2 — estimer, simuler (rxode2), diagnostiquer (ggPMX) — sans licence. Certaines équipes **prototypent** en nlmixr2 puis comparent dans un autre outil selon leur workflow ; la proximité des estimations doit se vérifier modèle par modèle, avec les mêmes données, hypothèses et méthodes de calcul de l'OFV.
 
 C'est aussi un excellent support **pédagogique** : le code R est lisible et reproductible.
 <!-- /step -->

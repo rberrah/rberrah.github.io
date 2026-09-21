@@ -71,7 +71,7 @@ Estimation uses **SAEM** (see the algorithms chapter), with the likelihood compu
 <!-- step:title="Worked example" viz="67_SAEMConvergence" -->
 On a difficult model (steep Emax, sparse data), Monolix's **SAEM** converges where FOCE would struggle, and the **built-in VPC** confirms (or refutes) the model in one click.
 
-Many teams prototype and teach with Monolix for its **readability**, then translate to NONMEM if the regulatory dossier requires it.
+Many teams prototype and teach with Monolix for its **readability**, then sometimes compare or translate to NONMEM depending on organisational workflows, cross-tool sensitivity analyses, or collaboration with teams already built around NONMEM.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

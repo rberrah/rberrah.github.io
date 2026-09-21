@@ -36,6 +36,8 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Un essai clinique coûte des années et des millions. La **simulation d'essais cliniques** (CTS) permet de le « répéter » virtuellement : quel design, quelle dose, quelle taille d'échantillon donnent la meilleure chance de succès ?
 
+Son rôle pratique est le **de-risking** : repérer avant l'essai les designs inefficaces, réduire les itérations réelles, éviter des études dédiées inutiles et limiter le nombre de patients exposés à des scénarios peu informatifs.
+
 C'est l'aboutissement de la modélisation : transformer un modèle en **décision** de développement.
 <!-- /step -->
 
@@ -78,6 +80,7 @@ Une CTS ne vaut que ce que valent ses **hypothèses** : un modèle mal validé, 
 <!-- step:title="À retenir" -->
 - La CTS « rejoue » un essai sur des populations virtuelles pour éclairer le design.
 - Trois briques : population virtuelle + modèle PK/PD + modèle d'essai.
-- Fournit puissance conditionnelle/caractéristiques opératoires, dose et taille d'échantillon ; PoS/assurance seulement si l'incertitude est intégrée.
+- Sert au de-risking : comparer designs, doses et tailles d'échantillon avant l'essai réel.
+- Fournit puissance conditionnelle/caractéristiques opératoires ; PoS/assurance seulement si l'incertitude est intégrée.
 - Propager l'incertitude des paramètres, sinon confiance illusoire.
 <!-- /step -->

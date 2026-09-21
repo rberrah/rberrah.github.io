@@ -34,7 +34,9 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Choisir la **dose** est la décision la plus coûteuse d'un développement. Les approches **fondées sur le modèle** et les designs **adaptatifs** peuvent améliorer l'efficacité sous certaines hypothèses, mais ils peuvent aussi augmenter la taille maximale, la complexité opérationnelle ou les exigences de simulation.
+Choisir la **dose** est la décision la plus coûteuse d'un développement. Les approches **fondées sur le modèle** utilisent toute la courbe dose–réponse au lieu de juxtaposer des comparaisons isolées ; les designs **adaptatifs** peuvent ensuite réallouer l'information pendant l'essai selon des règles pré-spécifiées.
+
+Le bénéfice attendu est clair : apprendre plus vite quelle zone de dose mérite d'être poursuivie et éviter d'exposer trop de patients à des doses peu informatives. La limite vient ensuite : ce gain dépend des hypothèses, des délais de lecture, de la logistique et des simulations de contrôle d'erreur.
 
 C'est là que la pharmacométrie rejoint directement la stratégie d'essai.
 <!-- /step -->
@@ -67,7 +69,7 @@ Une analyse **intermédiaire** peut alors abandonner les doses inefficaces et co
 Adaptatif ne veut pas dire improvisé.
 
 :::pitfall
-Un design adaptatif doit être **entièrement pré-spécifié** et validé par simulation : changer les règles en cours de route gonfle le risque d'erreur de type I. Le gain n'est pas automatique ; il dépend des hypothèses, de la logistique, des délais de lecture et du contrôle opérationnel. Et estimer la dose par un **seul** modèle mal choisi biaise le résultat — d'où l'intérêt de la moyenne de modèles de MCP-Mod.
+Un design adaptatif doit être **entièrement pré-spécifié** et validé par simulation : changer les règles en cours de route gonfle le risque d'erreur de type I. Les limites sont spécifiques au design : taille maximale parfois plus grande, complexité opérationnelle, délais de biomarqueurs ou d'événements, et risque de modèle mal choisi — d'où l'intérêt de la moyenne de modèles de MCP-Mod.
 :::
 <!-- /step -->
 

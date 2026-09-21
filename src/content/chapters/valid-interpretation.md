@@ -74,7 +74,7 @@ Si les résidus s'**évasent** aux fortes concentrations, on **remplace l'erreur
 Ne sur-réagissez pas à un motif.
 
 :::pitfall
-Un **seul point** extrême n'est pas un motif (vérifier la donnée avant de complexifier). Un motif sur les graphiques **individuels** (IPRED, IWRES) peut être un artefact de **shrinkage** élevé — s'appuyer d'abord sur les diagnostics de **population** (CWRES, VPC, NPDE). Enfin, un remède doit **améliorer l'OFV/AIC** : sinon, on a ajouté de la complexité pour rien.
+Un **seul point** extrême n'est pas un motif (vérifier la donnée avant de complexifier). Un motif sur les graphiques **individuels** (IPRED, IWRES) peut être un artefact de **shrinkage** élevé — s'appuyer d'abord sur les diagnostics de **population** (CWRES, VPC, NPDE). Enfin, un remède ne se juge pas seulement à l'OFV/AIC : ces critères comptent quand ils sont pertinents, mais il faut aussi regarder VPC/NPDE, précision des paramètres, performance prédictive ou externe, et plausibilité scientifique.
 :::
 <!-- /step -->
 
@@ -82,5 +82,5 @@ Un **seul point** extrême n'est pas un motif (vérifier la donnée avant de com
 - La forme des résidus se traduit en hypothèses : lire le motif, tester la correction.
 - U / U inversé → structure possible (compartiment, absorption). Trompette → modèle d'erreur possible (combinée).
 - Pente ou décalage de sous-groupe → covariable manquante possible.
-- Vérifier la donnée avant de complexifier ; confirmer tout remède par l'OFV/AIC et la VPC.
+- Vérifier la donnée avant de complexifier ; confirmer tout remède par un ensemble cohérent : OFV/AIC quand pertinent, VPC/NPDE, précision, prédiction externe et plausibilité.
 <!-- /step -->

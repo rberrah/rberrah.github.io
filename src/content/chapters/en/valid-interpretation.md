@@ -69,12 +69,12 @@ If residuals **flare** at high concentrations, we **replace the additive error w
 <!-- step:title="Common pitfall" -->
 Do not over-react to a pattern.
 
-**Pitfall —** a **single** extreme point is not a pattern (check the data before adding complexity). A pattern on **individual** plots (IPRED, IWRES) may be a high-**shrinkage** artefact — rely first on **population** diagnostics (CWRES, VPC, NPDE). Finally, a fix must **improve the OFV/AIC**: otherwise you have added complexity for nothing.
+**Pitfall —** a **single** extreme point is not a pattern (check the data before adding complexity). A pattern on **individual** plots (IPRED, IWRES) may be a high-**shrinkage** artefact — rely first on **population** diagnostics (CWRES, VPC, NPDE). Finally, a fix is not judged only by OFV/AIC: these criteria matter when relevant, but VPC/NPDE, parameter precision, predictive or external performance, and scientific plausibility must also support the change.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - The shape of residuals translates into hypotheses: read the pattern, test the correction.
 - U / inverted U → possible structure issue (compartment, absorption). Trumpet → possible error-model issue (combined).
 - Slope or subgroup offset → possible missing covariate.
-- Check the data before adding complexity; confirm any fix with the OFV/AIC and the VPC.
+- Check the data before adding complexity; confirm any fix with a coherent set of evidence: OFV/AIC when relevant, VPC/NPDE, precision, external prediction and plausibility.
 <!-- /step -->

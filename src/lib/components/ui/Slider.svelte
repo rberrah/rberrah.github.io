@@ -24,7 +24,7 @@
   .slider {
     display: block;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--text-primary);
   }
   .slider__top {
     display: flex;
@@ -32,6 +32,9 @@
     align-items: center;
     font-size: 0.95rem;
     margin-bottom: 6px;
+  }
+  .slider__top strong {
+    color: var(--text-primary);
   }
   input[type='range'] {
     width: 100%;

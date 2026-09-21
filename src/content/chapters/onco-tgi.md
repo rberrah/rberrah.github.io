@@ -17,7 +17,7 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
     options:
-      - "s'épuise avec le temps (apparition d'une résistance)"
+      - "présente une perte d'effet dépendante du temps"
       - "reste constant tant que le traitement est poursuivi"
       - "augmente progressivement à mesure que la dose s'accumule"
     correct: 0
@@ -44,7 +44,7 @@ C'est le cœur des **modèles joints**, qui assemblent PK, taille tumorale (TGI)
 <!-- step:title="Intuition" viz="30_TumorGrowth" -->
 Une tumeur **croît spontanément** (exponentielle) ; dans ce modèle, le traitement réduit la croissance ou la taille tumorale d'autant plus que l'exposition est forte.
 
-Mais l'effet n'est pas éternel : une **résistance** apparaît progressivement, l'effet s'épuise, et la tumeur peut **ré-échapper**. Montez l'exposition et observez le nadir, puis la reprise.
+Mais l'effet n'est pas éternel : le modèle introduit une **perte d'effet dépendante du temps**, souvent interprétée phénoménologiquement comme une résistance, et la tumeur peut **ré-échapper**. Montez l'exposition et observez le nadir, puis la reprise.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="30_TumorGrowth" -->
@@ -54,7 +54,7 @@ $$ \frac{dTS}{dt} = K_{G}\,TS \;-\; K\cdot expo\cdot e^{-\lambda t}\,TS $$
 
 - $K_G$ : vitesse de croissance non perturbée ;
 - $K\cdot expo$ : rétrécissement proportionnel à l'**exposition** (concentration ou AUC) ;
-- $e^{-\lambda t}$ : apparition progressive d'une **résistance** ($\lambda$).
+- $e^{-\lambda t}$ : **perte d'effet dépendante du temps**, souvent interprétée phénoménologiquement comme une résistance ($\lambda$).
 
 Certaines variantes séparent une population **sensible** et une population **résistante** (fraction $f$).
 
@@ -93,7 +93,7 @@ Un bon effet tumoral à court terme ne garantit pas le bénéfice de survie (ré
 
 <!-- step:title="À retenir" -->
 - La réponse oncologique = taille tumorale puis survie ; l'effet dépend de l'exposition (PK).
-- Modèle de Claret : croissance $K_G$ − rétrécissement $K\cdot expo\cdot e^{-\lambda t}$ (résistance).
+- Modèle de Claret : croissance $K_G$ − rétrécissement $K\cdot expo\cdot e^{-\lambda t}$ (perte d'effet dépendante du temps, souvent interprétée comme résistance).
 - Un modèle joint relie la taille tumorale au hasard de progression via $\beta$ → prédit la PFS sous hypothèses.
 - Application : anticorps d'immuno-oncologie, prédiction d'essais cliniques.
 - Réserve : court terme ≠ survie ; validation externe indispensable.

@@ -13,7 +13,7 @@ slides: []
 quiz:
   - prompt: "In the Claret model, the treatment effect on the tumour..."
     options:
-      - "fades over time as resistance gradually develops"
+      - "has a time-dependent loss of effect"
       - "stays constant as long as treatment continues"
       - "grows progressively as the dose accumulates"
     correct: 0
@@ -40,7 +40,7 @@ This is the heart of **joint models**, which assemble PK, tumour size (TGI) and 
 <!-- step:title="Intuition" viz="30_TumorGrowth" -->
 A tumour **grows spontaneously** (exponential); in this model, treatment reduces growth or tumour size more strongly as exposure increases.
 
-But the effect is not eternal: **resistance** appears progressively, the effect fades, and the tumour can **escape again**. Raise the exposure and watch the nadir, then the regrowth.
+But the effect is not eternal: the model introduces a **time-dependent loss of effect**, often interpreted phenomenologically as resistance, and the tumour can **escape again**. Raise the exposure and watch the nadir, then the regrowth.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="30_TumorGrowth" -->
@@ -50,7 +50,7 @@ $$ \frac{dTS}{dt} = K_{G}\,TS \;-\; K\cdot expo\cdot e^{-\lambda t}\,TS $$
 
 - $K_G$: unperturbed growth rate;
 - $K\cdot expo$: shrinkage proportional to **exposure** (concentration or AUC);
-- $e^{-\lambda t}$: progressive appearance of **resistance** ($\lambda$).
+- $e^{-\lambda t}$: **time-dependent loss of effect**, often interpreted phenomenologically as resistance ($\lambda$).
 
 Some variants separate a **sensitive** and a **resistant** cell population (fraction $f$).
 
@@ -83,7 +83,7 @@ Early tumour size is not survival.
 
 <!-- step:title="Key takeaways" -->
 - The oncology response = tumour size then survival; effect depends on exposure (PK).
-- Claret model: growth $K_G$ − shrinkage $K\cdot expo\cdot e^{-\lambda t}$ (resistance).
+- Claret model: growth $K_G$ − shrinkage $K\cdot expo\cdot e^{-\lambda t}$ (time-dependent loss of effect, often interpreted as resistance).
 - A joint model links tumour size to the progression hazard via $\beta$ → predicts PFS under assumptions.
 - Application: immuno-oncology antibodies, clinical-trial prediction.
 - Caveat: short term ≠ survival; external validation is essential.

@@ -42,7 +42,7 @@ C'est le pont entre l'analyse statistique et la pratique.
 <!-- step:title="Intuition" viz="53_ForestPlot" -->
 Un **forest plot** aligne les effets : chaque covariable déplace un paramètre (ex. la clairance) d'un certain **facteur**, avec une barre d'incertitude.
 
-Deux repères : la ligne à **1** (pas d'effet) et une **bande** de non-pertinence clinique, définie à l'avance selon le médicament, la cible et le contexte. Un effet compte s'il **sort** de cette bande et si son incertitude reste compatible avec une décision.
+Deux repères : la ligne à **1** (pas d'effet) et une **bande** de non-pertinence clinique, définie à l'avance selon le médicament, la cible et le contexte. Un effet compte si son **amplitude**, son **incertitude** et sa conséquence sur l'exposition/réponse restent compatibles avec une décision ; exclure 1 n'est pas une condition obligatoire.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="53_ForestPlot" -->
@@ -50,10 +50,10 @@ Un effet de covariable s'exprime en **ratio** par rapport au patient de référe
 
 $$ \frac{CL(x)}{CL_{ref}} = \left(\frac{x}{x_{ref}}\right)^{\theta} $$
 
-On juge sur **deux critères** conjoints :
+On juge sur un faisceau d'arguments :
 
-- **statistique** : l'IC à 95 % du ratio exclut-il 1 ?
-- **clinique** : le ratio dépasse-t-il le seuil de pertinence défini pour cette décision ? La zone 0,8–1,25 vient de la bioéquivalence et peut servir de repère pédagogique, mais ce n'est pas un critère universel d'adaptation posologique.
+- **statistique** : quelle est l'amplitude de l'effet et son incertitude ?
+- **clinique** : cette incertitude change-t-elle la décision via la cible d'exposition, la marge thérapeutique et la relation exposition–réponse ? La zone 0,8–1,25 vient de la bioéquivalence et peut servir de repère pédagogique, mais ce n'est pas un critère universel d'adaptation posologique.
 
 :::note
 Un effet peut être significatif (grand échantillon) mais **cliniquement négligeable**, et inversement un effet pertinent peut rester incertain (IC large).
@@ -61,7 +61,7 @@ Un effet peut être significatif (grand échantillon) mais **cliniquement négli
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="53_ForestPlot" -->
-Sur le forest plot, une **ClCr basse** réduit la clairance de 38 % (IC hors bande) : adaptation de dose justifiée. Le **sexe** déplace la clairance de 5 % (dans la bande, IC croisant 1) : sans conséquence.
+Sur le forest plot, une **ClCr basse** réduit la clairance de 38 % (IC hors bande) : cela peut justifier d'évaluer une adaptation de dose, selon la cible d'exposition, la marge thérapeutique et la relation exposition–réponse. Le **sexe** déplace la clairance de 5 % (dans la bande, IC croisant 1) : effet probablement sans conséquence posologique.
 
 C'est ainsi qu'on construit des **recommandations posologiques** par sous-groupe.
 <!-- /step -->

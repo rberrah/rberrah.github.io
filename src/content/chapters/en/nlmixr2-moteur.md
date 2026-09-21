@@ -44,13 +44,13 @@ The cost is just as real, and less visible. Four engines return four numbers, al
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="66_FOCELinearization" -->
-All four engines chase **the same integral**. For each subject, the likelihood of the observations requires averaging over every $\eta$ compatible with the population, and that integral has no closed form as soon as the model is nonlinear in $\eta$ — that is, always, in PK. The model says nothing about that integral: it merely supplies what is needed to write it down. What `est =` picks is the **way around it**.
+All four engines chase **the same integral**. For each subject, the likelihood of the observations requires averaging over every $\eta$ compatible with the population, and that integral has no closed form as soon as the model is nonlinear in $\eta$ — a frequent situation in PK. The model says nothing about that integral: it merely supplies what is needed to write it down. What `est =` picks is the **way to approximate or sample it**.
 
-**FOCEI deforms it.** It replaces the model by its tangent at the individual mode $\hat{\eta}_i$, which makes the integrand Gaussian and the integral analytical. The price: $\hat{\eta}_i$ must be found for every subject at every population iteration, and the derivatives $\partial f / \partial \eta$ are required. An optimisation loop inside an optimisation loop.
+**FOCEI uses a local approximation.** It replaces the model by its tangent at the individual mode $\hat{\eta}_i$, which makes the integrand Gaussian and the integral analytical. The price: $\hat{\eta}_i$ must be found for every subject at every population iteration, and the derivatives $\partial f / \partial \eta$ are required. An optimisation loop inside an optimisation loop.
 
 **SAEM does not compute it.** It treats the individual parameters as missing data and simulates them by MCMC instead of integrating them out. Its inner loop proposes an $\eta$, evaluates the model **once**, accepts or rejects. No derivative, no mode to find.
 
-**nlme deforms it too**, by another route: the Lindstrom-Bates alternating algorithm, which chains a penalised nonlinear least squares step and a linear mixed effects step. In practice it lands on an approximation very close to FOCE **without** interaction.
+**nlme uses another local approximation**, through the Lindstrom-Bates alternating algorithm, which chains a penalised nonlinear least squares step and a linear mixed effects step. In practice it lands on an approximation very close to FOCE **without** interaction.
 
 **posthoc never faces it.** The population parameters are fixed; all that remains is to find the $\hat{\eta}_i$. There is no population likelihood left to maximise.
 
@@ -114,12 +114,14 @@ But the nuance matters. SAEM only asks for **forward** solves: it consumes the l
 # the OFV returned after a SAEM run: by default, the FOCEi objective at the SAEM estimates
 f2 <- nlmixr2(mod, dat, est = "saem", control = saemControl(logLik = FALSE))
 
-# or a genuine Gauss-Hermite quadrature: nnodes.gq = 1 gives Laplace
+# or a genuine Gauss-Hermite quadrature: nnodesGq = 1 gives Laplace
 f2q <- nlmixr2(mod, dat, est = "saem",
-               control = saemControl(logLik = TRUE, nnodes.gq = 3, nsd.gq = 1.6))
+               control = saemControl(logLik = TRUE, nnodesGq = 3, nsdGq = 1.6))
 ```
 
-Direct consequence: in nlmixr2, the OFV of a SAEM fit and that of a FOCEI fit are on the **same scale**, produced by the **same function**. That is more honest than letting two programs display two incomparable quantities. It is also far more dangerous, because the two numbers look alike enough to be subtracted without a second thought. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention: the number even has the familiar look.
+Option names are version-dependent: the examples use the current `nnodesGq` / `nsdGq` convention. Check your installed documentation before recycling an old script.
+
+Direct consequence: in nlmixr2, the OFV of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same function**. That is more explicit than letting two programs display two incomparable quantities. It is also far more dangerous, because the two numbers look alike enough to be subtracted without a second thought. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention: the number even has the familiar look.
 
 :::note
 Ref.: Fidler M. et al., *CPT Pharmacometrics Syst Pharmacol* 2019, for the design of nlmixr and the sharing of one model across several estimators; Wang W., Hallow K. M., James D. A., *CPT Pharmacometrics Syst Pharmacol* 2016, for RxODE and the compilation of the ODE system; Lindstrom M. J., Bates D. M., *Biometrics* 1990, for the alternating algorithm underlying `est = "nlme"`; nlmixr2 project documentation for the names of the methods and control options.
@@ -198,7 +200,7 @@ The discipline is simple, and it is entirely on you: **one engine per comparison
 
 <!-- step:title="Key takeaways" -->
 - The design trait of nlmixr2: the model is an R object, the estimator is an **argument**. `ini({})` and `model({})` describe the densities; the $\int$ sign belongs to the engine, hence `est =`.
-- Four engines for the same integral: `"focei"` deforms it (tangent at $\hat{\eta}_i$, with interaction), `"saem"` samples it, `"nlme"` deforms it differently (Lindstrom-Bates, $\approx$ FOCE without interaction), `"posthoc"` never faces it ($\theta$ fixed, only the $\hat{\eta}_i$ are sought).
+- Four engines for the same integral: `"focei"` approximates it by a tangent at $\hat{\eta}_i$ with interaction, `"saem"` samples it, `"nlme"` approximates it differently (Lindstrom-Bates, $\approx$ FOCE without interaction), `"posthoc"` never faces it ($\theta$ fixed, only the $\hat{\eta}_i$ are sought).
 - **rxode2** compiles the model into C, once, and every solve afterwards is machine code. FOCEI needs the sensitivities $\partial f / \partial \eta$, which rxode2 differentiates and compiles in addition: same source, different compiled object — hence the recompilation when going from SAEM to FOCEI.
 - **SAEM** for stiff systems, sparse data, dubious initial values: no derivative, no individual mode to find. **FOCEI** whenever a chain of ΔOFV is at stake, or the work will end up in NONMEM.
 - The OFV of a SAEM run is **not** a SAEM number: nlmixr2 computes it afterwards with the FOCEi evaluator (default), or by Gauss-Hermite quadrature with `saemControl(logLik = TRUE)` — on a different scale.

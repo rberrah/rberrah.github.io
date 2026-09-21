@@ -19,13 +19,13 @@ quiz:
     correct: 0
   - prompt: "Allometry describes the effect of weight on clearance by..."
     options:
-      - "a power law with exponent ~0.75"
+      - "a power law, often pre-specified around 0.75 for clearance"
       - "a linear relationship with exponent 1"
       - "a power law with exponent near 0.67 (surface area)"
     correct: 0
   - prompt: "Stepwise selection (SCM) risks..."
     options:
-      - "over-selecting and biasing effects (data reused)"
+      - "unstable selection and overestimation of effects (data reused)"
       - "under-selecting and missing genuinely true covariates"
       - "lengthening the computation without changing the final model"
     correct: 0
@@ -49,7 +49,7 @@ The most common form, centred and power-law:
 $$ CL_i = CL_{ref}\left(\frac{W_i}{70}\right)^{0.75}\cdot e^{\eta_i} $$
 
 - **Centering** on 70 kg: $CL_{ref}$ = clearance of the reference subject;
-- **Allometry**: exponent ~0.75 for clearance, 1 for volumes.
+- **Allometry**: exponents around 0.75 for clearance and 1 for volumes are common or pre-specified choices, not universal laws imposed by the data.
 
 For **selection**, several strategies: **SCM** (stepwise covariate modeling, forward/backward on the OFV), **full model** (include everything then judge relevance), and modern approaches (**SAMBA**, penalised selection) that are faster and less biased.
 
@@ -65,12 +65,12 @@ Each covariate is judged not only on the OFV but on its **clinical magnitude** (
 <!-- step:title="Common pitfall" -->
 Stepwise selection traps itself.
 
-**Pitfall —** **SCM** tests many covariates on the **same** data: it **over-selects** and **overestimates** effects (selection bias). **Correlated** covariates (weight, height, CrCl) substitute for one another. Prefer pre-specified forms, physiological allometry, and validate the retained effects.
+**Pitfall —** **SCM** tests many covariates on the **same** data: it can induce **unstable selection** and **overestimate** retained effects (selection bias). **Correlated** covariates (weight, height, CrCl) substitute for one another. Prefer pre-specified forms, physiological allometry, and validate the retained effects.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - A relevant covariate explains part of the IIV (omega decreases).
-- Centre the covariate; use allometry (CL ∝ weight^0.75, V ∝ weight).
+- Centre the covariate; use allometry with common or pre-specified exponents (often CL ∝ weight^0.75, V ∝ weight).
 - Selection: SCM (stepwise), full model, or modern approaches (SAMBA, penalisation).
-- SCM over-selects and biases; beware correlated covariates.
+- SCM can induce unstable selection and overestimate effects; beware correlated covariates.
 <!-- /step -->
