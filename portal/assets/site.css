@@ -184,7 +184,7 @@ details.legacy-guide > summary { cursor: pointer; font-weight: 600; padding: 1re
 @media (max-width: 370px) {
   .navigation { padding-block: .8rem .6rem; gap: .45rem; }
   .nav-links a { padding-block: .25rem; }
-  .introduction { padding-block: 1.25rem; }
+  .introduction { padding-block: 1.25rem .25rem; }
   .introduction h1 { font-size: 2.6rem; margin-bottom: .75rem; }
   .degree { display: block; font-size: 1.05rem; margin-top: .15rem; }
   .intro-copy { font-size: .94rem; line-height: 1.55; margin-block: 1rem; }
