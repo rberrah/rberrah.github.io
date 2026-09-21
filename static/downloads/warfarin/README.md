@@ -4,6 +4,14 @@ This folder is reserved for the Warfarin PK/PD case study.
 
 The Warfarin material should be treated as an advanced practical module, not as the first entry point for the course.
 
+## Provenance and redistribution
+
+- Source family: classic Warfarin PK/PD teaching dataset, as used in Monolix examples and in `nlmixr2data`.
+- Files in this folder: CSV plus teaching notebooks derived for this site.
+- Transformations: keep only the variables needed for the teaching case and harmonise names/units for the notebooks and browser visualisations.
+- Licence: third-party dataset rights are not re-licensed by this repository. Reuse outside this teaching context should cite the original Monolix/nlmixr2data source and follow its redistribution terms.
+- Citation: cite this site for the adapted teaching material, and cite the original dataset/software source when using the data itself.
+
 ## Intended educational use
 
 Use this material to build chapters and visualizations about:

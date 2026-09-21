@@ -126,7 +126,7 @@ $PRIOR   NWPRI NTHETA=3 NETA=2 NTHP=1 NETP=0
 $THETAP  (1.1) FIX
 $THETAPV (0.0121) FIX
 $ESTIMATION METHOD=SAEM INTERACTION NBURN=2000 NITER=1000
-$ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; exact OFV
+$ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; Monte Carlo estimate of the OFV / marginal likelihood
 ```
 
 KA settles at 1.2 h⁻¹. More importantly, CL and V — the parameters the study **actually** informs — become estimable again, with SEs of 12 % and 15 %.

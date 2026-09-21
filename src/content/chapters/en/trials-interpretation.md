@@ -19,7 +19,7 @@ quiz:
     correct: 0
   - prompt: "A covariate effect is clinically relevant if it..."
     options:
-      - "leaves the zone deemed clinically inconsequential (e.g. ±20%)"
+      - "has a magnitude and uncertainty compatible with the exposure-response relationship and a prespecified decision"
       - "reaches the threshold of statistical significance (p < 0.05)"
       - "concerns a covariate that is frequent in the studied population"
     correct: 0
@@ -65,7 +65,7 @@ This is how we build **dosing recommendations** by subgroup.
 <!-- step:title="Common pitfall" -->
 Significant is not relevant.
 
-**Pitfall —** on a large dataset, almost everything becomes **statistically significant**. The useful question is the **magnitude**: a 5% effect does not change the dose. And beware **correlated** covariates (weight and CrCl), whose effects merge.
+**Pitfall —** very small effects can become **statistically significant** in large samples. The useful question is the **magnitude**: a 5% effect does not change the dose. And beware **correlated** covariates (weight and CrCl), whose effects merge.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -91,7 +91,8 @@ export const dictionary = {
       vizCheck: 'Check the component name in',
       vizAvailable: 'Available keys:',
       // Signature d'auteur (en tête) et bloc de citation (en pied).
-      reviewedOn: 'Last revised',
+      updatedOn: 'Updated',
+      scientificallyReviewedOn: 'Scientific review',
       citeTitle: 'Cite this page',
       citeCopy: 'Copy',
       citeCopied: 'Copied',
@@ -117,7 +118,7 @@ export const dictionary = {
       models: 'models',
       molecules: 'drugs',
       bayesian: 'Bayesian',
-      privacy: 'Calculations run in a separate Shiny application using mrgsolve and mapbayr. Patient data and pasted C++ models remain limited to the computation session and are not retained by the site.',
+      privacy: 'Calculations run in a separate Shiny application using mrgsolve and mapbayr. The application is designed not to persist patient data or personal models beyond the computation session; they are not added to the repository or audience analytics. Shiny hosting logs and runtime mechanisms follow separate policies.',
       engineEyebrow: 'Pharmacometric engine',
       engineTitle: 'From an observed concentration to a dosing proposal',
       features: ['Individual MAP estimation', 'Population and individual predictions', 'AUC24, Cmin and Cmax', 'Dose by interval grid', 'AIC or likelihood model averaging', 'Custom mrgsolve/C++ model', 'Local JSON patient import and export'],
@@ -139,6 +140,16 @@ export const dictionary = {
       all: 'All',
       populationAria: 'Source population',
       sourceArticle: 'Source article',
+      maturity: {
+        title: 'Evidence status', source: 'Source', sourceVerified: 'Primary article verified',
+        implementation: 'Implementation', verification: 'Verification',
+        softwareTested: 'Compilation and software contract tested; numerical reproduction not demonstrated',
+        notTested: 'Not tested', numericallyReproduced: 'Numerically reproduced',
+        validation: 'Validation', validationNone: 'No external validation documented',
+        validationInternal: 'Internal validation', validationExternal: 'External validation',
+        context: 'Context of use', teachingResearch: 'Teaching and research simulation',
+        exploratoryMipd: 'Exploratory MIPD', clinicallyValidated: 'Clinically validated'
+      },
       consult: 'View article',
       referencePending: 'Bibliographic reference pending confirmation',
       use: 'Use',
@@ -147,7 +158,7 @@ export const dictionary = {
       governanceTitle: 'Minimum requirements for accepting a model',
       rules: ['Identifiable bibliographic reference', 'Explicit typical parameters and units', 'Documented covariates', 'Described residual error and variability', 'Test case or simulation scenario', 'License compatible with public distribution'],
       inspiredPrefix: 'Application inspired by',
-      disclaimer: 'Results are not a clinical recommendation and require local model validation. No patient record or pasted model is retained by the site.'
+      disclaimer: 'Results are not a clinical recommendation and require local model validation. The application is designed not to persist patient records or pasted models beyond the computation session.'
     },
     pages: {
       glossaryTitle: 'Glossary',
@@ -301,7 +312,8 @@ export const dictionary = {
       vizCheck: 'Vérifiez le nom du composant dans',
       vizAvailable: 'Clés disponibles :',
       // Signature d'auteur (en tête) et bloc de citation (en pied).
-      reviewedOn: 'Dernière révision',
+      updatedOn: 'Mise à jour',
+      scientificallyReviewedOn: 'Relecture scientifique',
       citeTitle: 'Citer cette page',
       citeCopy: 'Copier',
       citeCopied: 'Copié',
@@ -327,7 +339,7 @@ export const dictionary = {
       models: 'modèles',
       molecules: 'molécules',
       bayesian: 'Bayésien',
-      privacy: "Le calcul s'exécute dans une application Shiny séparée avec mrgsolve et mapbayr. Les données patient et les modèles C++ collés restent limités à la session de calcul et ne sont pas conservés par le site.",
+      privacy: "Le calcul s'exécute dans une application Shiny séparée avec mrgsolve et mapbayr. L'application est conçue pour ne pas persister les données patient ni les modèles personnels au-delà de la session de calcul ; ils ne sont pas ajoutés au dépôt ni aux statistiques d'audience. Les journaux techniques et mécanismes d'hébergement de Shiny suivent des politiques distinctes.",
       engineEyebrow: 'Moteur pharmacométrique',
       engineTitle: 'Du dosage observé à la proposition de dose',
       features: ['Estimation MAP individuelle', 'Prédictions population et individuelles', 'AUC24, Cmin et Cmax', 'Grille dose par intervalle', 'Model averaging AIC ou vraisemblance', 'Modèle mrgsolve/C++ personnalisé', 'Import et export local du dossier JSON'],
@@ -349,6 +361,16 @@ export const dictionary = {
       all: 'Toutes',
       populationAria: 'Population source',
       sourceArticle: 'Article source',
+      maturity: {
+        title: 'Statut des preuves', source: 'Source', sourceVerified: 'Article primaire vérifié',
+        implementation: 'Implémentation', verification: 'Vérification',
+        softwareTested: 'Compilation et contrat logiciel testés ; reproduction numérique non démontrée',
+        notTested: 'Non testée', numericallyReproduced: 'Reproduction numérique démontrée',
+        validation: 'Validation', validationNone: 'Aucune validation externe documentée',
+        validationInternal: 'Validation interne', validationExternal: 'Validation externe',
+        context: "Contexte d'usage", teachingResearch: "Enseignement et simulation de recherche",
+        exploratoryMipd: 'MIPD exploratoire', clinicallyValidated: 'Validation clinique'
+      },
       consult: "Consulter l'article",
       referencePending: 'Référence bibliographique à confirmer',
       use: 'Utiliser',
@@ -357,7 +379,7 @@ export const dictionary = {
       governanceTitle: 'Règles minimales pour accepter un modèle',
       rules: ['Référence bibliographique identifiable', 'Paramètres typiques et unités explicites', 'Covariables documentées', 'Erreur résiduelle et variabilité décrites', 'Jeu de test ou scénario de simulation', 'Licence compatible avec une diffusion publique'],
       inspiredPrefix: 'Application inspirée de',
-      disclaimer: "Les résultats ne constituent pas une recommandation clinique et exigent une validation locale des modèles. Aucun dossier patient ni modèle collé n'est conservé par le site."
+      disclaimer: "Les résultats ne constituent pas une recommandation clinique et exigent une validation locale des modèles. L'application est conçue pour ne pas persister les dossiers patient ni les modèles collés au-delà de la session de calcul."
     },
     pages: {
       glossaryTitle: 'Glossaire',

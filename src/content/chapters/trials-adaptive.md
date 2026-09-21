@@ -10,7 +10,8 @@ duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "adaptive-design", "dose-finding", "mcp-mod"]
 slides: []
-sources: ["bretz-mcp-mod", "holford-sheiner-dose-effect", "ich-e4", "mould-upton"]
+sources: ["bretz-mcp-mod", "holford-sheiner-dose-effect", "ich-e4", "ich-m15", "mould-upton"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une recherche de dose fondée sur un modèle (model-based) est plus efficace car..."
@@ -42,7 +43,7 @@ C'est là que la pharmacométrie rejoint directement la stratégie d'essai.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="EmaxHill" -->
-Comparer quelques doses deux à deux **gaspille** l'information : la relation dose–réponse est **continue**. Un modèle (souvent un Emax) relie toutes les doses et estime la **dose cible** (ex. celle donnant 80 % de l'effet).
+Des comparaisons dose par dose exploitent moins directement la structure continue de la relation dose–réponse. Un modèle (souvent un Emax) relie toutes les doses et estime la **dose cible** (ex. celle donnant 80 % de l'effet).
 
 Un design **adaptatif** va plus loin : il ajuste l'allocation des patients aux doses **en cours d'essai**, selon ce qu'on apprend.
 <!-- /step -->

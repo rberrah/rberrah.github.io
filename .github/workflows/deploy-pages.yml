@@ -48,6 +48,12 @@ jobs:
       - name: Build (pharmacométrie)
         run: npm run build
 
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test application in browser
+        run: npm run test:e2e
+
       - name: Assemble portail + pharmacométrie
         run: |
           set -euo pipefail
@@ -109,13 +115,47 @@ jobs:
       - name: Integrate privacy-preserving portal analytics
         run: node scripts/add_portal_analytics.mjs
 
+      - name: Test assembled portal in browser
+        run: npx playwright test --config playwright.portal.config.js
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
+  scientific-js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test laboratories and model imports
+        run: npm run test:labs && npm run test:mlxtran
+
+  scientific-r:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::mrgsolve
+            any::mapbayr
+            any::dplyr
+            any::jsonlite
+      - name: Test TDM engine and safe Lego contract
+        run: |
+          Rscript tdm-engine/tests/smoke_test.R
+          Rscript tdm-engine/tests/safe_lego_test.R
+      - name: Compile and validate the model library
+        run: Rscript tdm-engine/tests/validate_library.R
+
   deploy:
-    needs: build
+    needs: [build, scientific-js, scientific-r]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

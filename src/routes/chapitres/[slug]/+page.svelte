@@ -110,8 +110,8 @@
           name: COURSE_NAME,
           url: SITE_URL
         },
-        // `dateModified` n'apparaît que si le frontmatter porte une date de révision.
-        ...(chapter?.reviewed_on ? { dateModified: chapter.reviewed_on } : {})
+        // La mise à jour éditoriale est distincte de la relecture scientifique.
+        ...((chapter?.updated_on || chapter?.reviewed_on) ? { dateModified: chapter.updated_on || chapter.reviewed_on } : {})
       })
     : '';
 
@@ -239,7 +239,7 @@
     <a class="back" href={`${base}/chapitres`} data-testid="back-link">{copy.chapter.back}</a>
     <p class="eyebrow">{copy.chapter.label(String(idx + 1).padStart(2, '0'))}</p>
     <h1 data-testid="chapter-title">{displayChapter.title}</h1>
-    <AuthorSignature reviewedOn={chapter?.reviewed_on ?? ''} />
+    <AuthorSignature updatedOn={chapter?.updated_on ?? ''} reviewedOn={chapter?.reviewed_on ?? ''} />
     <p class="desc">{displayChapter.description}</p>
     {#if isFallback}
       <p class="fallback-notice" data-testid="chapter-language-fallback">{copy.chapter.fallbackNotice}</p>
@@ -313,7 +313,7 @@
 
       <ChapterFooter {chapter} />
       <!-- Après les sources : on cite une page dont on vient de voir sur quoi elle s'appuie. -->
-      <CiteBlock chapter={{ ...displayChapter, slug: chapter?.slug, reviewed_on: chapter?.reviewed_on }} url={canonical} />
+      <CiteBlock chapter={{ ...displayChapter, slug: chapter?.slug, updated_on: chapter?.updated_on, reviewed_on: chapter?.reviewed_on }} url={canonical} />
 
       <nav class="chap-nav" data-testid="chapter-nav">
         {#if prev}

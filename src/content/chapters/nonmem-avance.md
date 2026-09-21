@@ -13,6 +13,7 @@ prerequisites: ["tools-nonmem"]
 glossary: []
 slides: []
 sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karlsson-scm"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
@@ -126,7 +127,7 @@ $PRIOR   NWPRI NTHETA=3 NETA=2 NTHP=1 NETP=0
 $THETAP  (1.1) FIX
 $THETAPV (0.0121) FIX
 $ESTIMATION METHOD=SAEM INTERACTION NBURN=2000 NITER=1000
-$ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; OFV exact
+$ESTIMATION METHOD=IMP EONLY=1 NITER=10 ISAMPLE=3000   ; estimation Monte-Carlo de l'OFV / vraisemblance marginale
 ```
 
 KA se stabilise à 1,2 h⁻¹. Surtout, CL et V — les paramètres que l'étude renseigne **réellement** — redeviennent estimables, avec des ET de 12 % et 15 %.

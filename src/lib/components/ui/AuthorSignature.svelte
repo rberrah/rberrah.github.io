@@ -10,6 +10,8 @@
 
   /** @type {string} */
   export let reviewedOn = '';
+  /** @type {string} */
+  export let updatedOn = '';
 
   $: copy = ui($language);
 </script>
@@ -18,9 +20,13 @@
   <a class="who" href={AUTHOR.url}>{AUTHOR.name}</a>, {AUTHOR.credential}
   <span class="sep" aria-hidden="true">·</span>
   <span class="course">{COURSE_NAME}</span>
+  {#if updatedOn}
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="rev">{copy.chapter.updatedOn} : <time datetime={updatedOn}>{updatedOn}</time></span>
+  {/if}
   {#if reviewedOn}
     <span class="sep" aria-hidden="true">·</span>
-    <span class="rev">{copy.chapter.reviewedOn} : <time datetime={reviewedOn}>{reviewedOn}</time></span>
+    <span class="rev">{copy.chapter.scientificallyReviewedOn} : <time datetime={reviewedOn}>{reviewedOn}</time></span>
   {/if}
   <span class="sep" aria-hidden="true">·</span>
   <a class="orcid" href={AUTHOR.orcid} rel="me noopener noreferrer" target="_blank">ORCID</a>

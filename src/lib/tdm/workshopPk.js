@@ -100,7 +100,7 @@ export function ivIndex(pk, config, mic) {
 export function infectionIvCurves(config, regimen) {
   const normal = randomNormal.source(randomLcg(20260919))(0, .3);
   const n = config.replicates;
-  if (!(n >= 50 && n <= 1000) || !(config.mic > 0 && config.target > 0 && config.fu > 0 && config.fu <= 1)) throw new Error('Invalid PTA preview');
+  if (!(n >= 50 && n <= 5000) || !(config.mic > 0 && config.target > 0 && config.fu > 0 && config.fu <= 1)) throw new Error('Invalid PTA preview');
   const pk = { v: config.v, cl: config.cl, ...regimen };
   ivConcentration(0, pk, true);
   const population = Array.from({ length: n }, () => ({ ...pk, v: pk.v * Math.exp(normal()), cl: pk.cl * Math.exp(normal()) }));

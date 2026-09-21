@@ -21,7 +21,8 @@
   // Année : celle de la dernière révision si le frontmatter la porte, sinon l'année
   // du site. Jamais `new Date()` — la valeur serait figée au prérendu puis recalculée
   // à l'hydratation, et les deux pourraient diverger.
-  $: year = /^\d{4}/.test(chapter?.reviewed_on ?? '') ? chapter.reviewed_on.slice(0, 4) : String(SITE_YEAR);
+  $: citationDate = chapter?.updated_on || chapter?.reviewed_on || '';
+  $: year = /^\d{4}/.test(citationDate) ? citationDate.slice(0, 4) : String(SITE_YEAR);
   // Un titre qui se termine déjà par une ponctuation forte n'en reçoit pas une seconde
   // (« Pourquoi la pharmacométrie ?. » serait fautif).
   $: titleStop = /[.?!]$/.test(title.trim()) ? '' : '.';

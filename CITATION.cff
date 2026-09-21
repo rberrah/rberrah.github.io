@@ -44,8 +44,8 @@ keywords:
 license: CC-BY-SA-4.0
 repository-code: "https://github.com/rberrah/rberrah.github.io"
 url: "https://rberrah.github.io/pharmacometrie/"
-version: "2026.1"
-date-released: "2026-08-04"
+version: "2026.2"
+date-released: "2026-09-21"
 # À compléter après la première release archivée (DOI de concept, qui résout
 # toujours vers la dernière version). Ne pas laisser de valeur fictive ici :
 # un identifiant faux est pire qu'un identifiant absent.

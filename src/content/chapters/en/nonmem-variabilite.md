@@ -209,7 +209,7 @@ Continuing run 003: you plot `ETA(2)` against body weight to decide whether weig
 That is a reasoning error. With 47% shrinkage, the EBEs of `ETA(2)` have been **squeezed towards zero** by the population prior: the true relationship is crushed inside the cloud before you even look at it. The plot does not say "no weight effect"; it says "not enough data for this eta to speak".
 
 :::pitfall
-Above 20 to 30% shrinkage, ETA vs covariate plots lose their evidential value. They can **hide a real relationship** (flattened cloud) and, more insidiously, **manufacture a trend that does not exist**, because the contraction towards zero is not the same depending on how rich each patient's sampling is. The same caveats apply to IPRED-based diagnostics, squeezed by EPS shrinkage.
+Information in ETA-versus-covariate plots decreases progressively as shrinkage rises; 20–30% is a practical warning signal, not an invalidity boundary. These plots can **hide a real relationship** (flattened cloud) or **suggest an artificial trend**, because contraction towards zero differs with each patient's sampling richness. The same caveats apply to IPRED-based diagnostics, squeezed by EPS shrinkage.
 :::
 
 Three reflexes once shrinkage is established:
@@ -229,5 +229,5 @@ Shrinkage disqualifies the **EBEs** as a diagnostic tool, not the **population p
 - `DIAGONAL` assumes independent etas; `BLOCK(n)` estimates their covariances for $n(n+1)/2$ parameters, and is judged by a likelihood ratio test. The CL–V correlation is physiological: ignoring it distorts simulations.
 - IOV is coded with one eta per occasion, plus `SAME` to impose a common variance — two etas, one single parameter.
 - Covariates enter the typical value (`TVCL`), upstream of `EXP(ETA)`; a good covariate lowers `$OMEGA`, not only the OFV.
-- Shrinkage above 20–30% makes ETA vs covariate plots weakly informative, in both directions: it can hide true relationships or suggest artefacts. You then decide inside the model, not on the cloud.
+- Information in ETA-versus-covariate plots decreases with shrinkage; 20–30% is a warning heuristic, not an invalidity threshold.
 <!-- /step -->

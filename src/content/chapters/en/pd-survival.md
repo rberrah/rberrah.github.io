@@ -58,7 +58,7 @@ where $x$ can be exposure or a dynamic biomarker (tumour size). If this is only 
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="44_Survival" -->
-In a trial, we estimate a **hazard ratio** between arms: HR = 0.65 means 35% less instantaneous risk. The **median survival** (time where $S=0.5$) summarises the benefit.
+In a trial, we estimate a **hazard ratio** between arms: HR = 0.65 means a relative reduction in the instantaneous hazard under the model, not an absolute 35% risk reduction. The **median survival** (time where $S=0.5$) summarises the benefit.
 
 By linking AUC to hazard, we **simulate** the expected effect of a dosing schedule on PFS before testing it — a prediction conditional on the model, not proof that increasing the dose causally improves survival.
 <!-- /step -->

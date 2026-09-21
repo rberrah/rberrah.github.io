@@ -69,7 +69,8 @@ test('la page pharmacodynamie ouvre son atelier', async ({ page }) => {
   await page.goto('/pharmacodynamie');
   await expect(page.getByRole('heading', { name: 'Pharmacodynamie' })).toBeVisible();
   await expect(page.locator('iframe')).toHaveCount(0);
-  await expect(page.getByTestId('curve-tumor_comparison')).toBeVisible();
+  await expect(page.getByTestId('curve-pd_time')).toBeVisible();
+  await expect(page.getByTestId('curve-pd_relation')).toBeVisible();
 });
 
 test('les libellés scientifiques des visualisations passent en anglais', async ({ page }) => {

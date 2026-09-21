@@ -13,6 +13,7 @@ prerequisites: ["erreur-residuelle", "bayes-ebes", "tools-mipd"]
 glossary: ["MAP", "TDM", "RUV", "ε / σ", "Precision dosing"]
 slides: []
 sources: ["berrah-residual", "sheiner-forecasting", "hughes-keizer", "minichmayr-mipd"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans l'objectif de l'estimation MAP, que fait une erreur résiduelle σ plus petite ?"
@@ -72,7 +73,7 @@ Puisque la valeur publiée de σ a été estimée sur *une autre* population et 
 C'est le résultat central de **Berrah et al. (Epub 2025, publication imprimée 2026)**. Sur les jeux riches étudiés de tacrolimus, iohexol et acide mycophénolique, avec seulement 3 prélèvements par patient, abaisser l'erreur proportionnelle a réduit la **RMSE** des AUC de **30 à 40 %** par rapport au modèle d'origine. Pour le tacrolimus, la RMSE tombe de **28,5 % à 16,3 %** en passant à une erreur de 1 % ; pour l'iohexol, une erreur quasi nulle atteint jusqu'à **40 %** de réduction.
 
 :::key
-Plus l'analytique est fiable, plus il est légitime de faire confiance aux mesures. Réduire σ **renforce l'influence des données observées** sur le postérieur, sans changer la structure du modèle ni collecter de prélèvements supplémentaires : un gain « gratuit » de précision.
+Plus l'analytique est fiable, plus il est légitime de faire confiance aux mesures. Réduire σ **renforce l'influence des données observées** sur le postérieur, sans changer la structure du modèle ni collecter de prélèvements supplémentaires : un gain de précision possible, au prix d'une hypothèse plus forte sur le bruit d'observation et donc d'un risque de surpondération de mesures bruitées.
 :::
 
 Fait notable de l'étude : c'est quand le modèle d'origine était **le moins précis** que la réduction de σ apportait le plus — l'augmentation du poids des données corrige en partie l'imprécision d'un modèle importé d'un autre contexte (par ex. développé sur des patients de réanimation puis appliqué en population générale).
@@ -89,7 +90,7 @@ Dans leur analyse, ce piège restait rare (3 patients sur 321), mais il rappelle
 <!-- /step -->
 
 <!-- step:title="Que choisir en pratique" -->
-La ligne de conduite proposée par Berrah et al. est un compromis entre individualisation et robustesse :
+La ligne de conduite proposée par Berrah et al. est un ensemble de scénarios pragmatiques à explorer, pas des standards universels de MIPD :
 
 | Contexte | σ proportionnel testé / scénario pragmatique |
 |---|---|

@@ -13,6 +13,7 @@ prerequisites: ["pd-survival"]
 glossary: ["AUC", "Emax", "Covariable"]
 slides: []
 sources: ["claret-tgi-os", "simeoni", "wulfsohn-tsiatis-joint", "holford-tte-tutorial"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
@@ -80,7 +81,7 @@ $f$ peut être la taille courante, sa variation depuis le début (CFB), son AUC�
 <!-- step:title="Exemple concret" viz="31_JointSurvival" -->
 Les modèles joints PK–TGI–survie sont très utilisés pour les **anticorps monoclonaux** d'immuno-oncologie (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A) : ils permettent de **prédire les résultats d'un essai** (par ex. une étude plateforme) avant sa réalisation.
 
-En simulant l'exposition de chaque schéma, on prédit une dynamique tumorale puis une **survie sans progression (PFS)** conditionnelle au modèle — un outil de choix de dose et de design, pas une preuve causale automatique.
+En simulant l'exposition de chaque schéma, on prédit une dynamique tumorale puis une **survie sans progression (PFS)** conditionnelle au modèle — une information possible pour le choix de dose et le design, pas une preuve causale automatique.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

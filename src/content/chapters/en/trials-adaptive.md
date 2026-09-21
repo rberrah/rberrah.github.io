@@ -40,7 +40,7 @@ This is where pharmacometrics directly meets trial strategy.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="EmaxHill" -->
-Comparing a few doses pairwise **wastes** information: the dose–response relationship is **continuous**. A model (often an Emax) links all doses and estimates the **target dose** (e.g. the one giving 80% of the effect).
+Dose-by-dose comparisons use the continuous structure of the dose–response relationship less directly. A model (often an Emax) links all doses and estimates the **target dose** (e.g. the one giving 80% of the effect).
 
 An **adaptive** design goes further: it adjusts patient allocation across doses **during the trial**, based on what is learned.
 <!-- /step -->

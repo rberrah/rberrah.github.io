@@ -11,6 +11,7 @@ level: "advanced"
 tags: ["pharmacodynamics", "survival", "time-to-event", "os-pfs"]
 slides: []
 sources: ["holford-tte-tutorial", "kaplan-meier-1958", "cox-1972", "claret-tgi-os"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "La différence entre OS et PFS est que..."
@@ -62,7 +63,7 @@ Réf. : méthodologie time-to-event en NLME développée notamment à **IAME** (
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="44_Survival" -->
-Dans un essai, on estime un **hazard ratio** entre bras : HR = 0,65 signifie 35 % de risque instantané en moins. La **survie médiane** (temps où $S=0{,}5$) résume le bénéfice.
+Dans un essai, on estime un **hazard ratio** entre bras : HR = 0,65 signifie une réduction relative du hasard instantané sous le modèle, pas une réduction absolue du risque de 35 %. La **survie médiane** (temps où $S=0{,}5$) résume le bénéfice.
 
 En reliant l'AUC au hasard, on **simule** l'effet attendu d'un schéma posologique sur la PFS avant de le tester — une prédiction conditionnelle au modèle, pas une preuve causale qu'augmenter la dose améliore la survie.
 <!-- /step -->

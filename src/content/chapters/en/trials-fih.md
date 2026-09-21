@@ -46,7 +46,9 @@ Two philosophies. **Toxicology** starts from the top: the highest dose **without
 <!-- step:title="The formula, unpacked" viz="EmaxHill" -->
 From the animal **NOAEL**, we derive the maximum recommended starting dose (MRSD) via allometric scaling and safety factors:
 
-$$ \text{HED} = \text{NOAEL}\times\left(\frac{W_{animal}}{W_{human}}\right)^{0.33},\qquad \text{MRSD} = \frac{\text{HED}}{\text{safety factor}} $$
+$$ \text{HED}_{mg/kg} = \text{NOAEL}_{mg/kg}\times\left(\frac{W_{animal}}{W_{human}}\right)^{0.33},\qquad \text{MRSD} = \frac{\text{HED}}{\text{safety factor}} $$
+
+This expression is a teaching representation of body-surface-area conversion; it is not the only possible method for choosing a starting dose.
 
 The **MABEL** rests on a body of pharmacology data: exposure–target occupancy, in-vitro activity, PK/PD, relevant species and uncertainty. Low occupancy (for example 10%) may be one calculation scenario, but it is not a general rule.
 

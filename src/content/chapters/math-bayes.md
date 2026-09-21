@@ -13,6 +13,7 @@ prerequisites: ["math-regression"]
 glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "Vraisemblance", "MAP", "Shrinkage"]
 slides: []
 sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "minichmayr-mipd"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le théorème de Bayes combine..."
@@ -77,7 +78,7 @@ Avec deux ou trois prélèvements concordants, le posterior se resserre et s'él
 Le prior n'est pas neutre.
 
 :::pitfall
-Un prior **mal choisi** (mauvais modèle de population, covariables ignorées) tire le posterior au mauvais endroit. Et quand les données sont pauvres, l'estimation « colle » au prior : c'est le **rétrécissement** (shrinkage). Un shrinkage élevé (> 20–30 %) rend les EBE peu informatifs et fausse les graphiques de diagnostic.
+Un prior **mal choisi** (mauvais modèle de population, covariables ignorées) tire le posterior au mauvais endroit. Et quand les données sont pauvres, l'estimation « colle » au prior : c'est le **rétrécissement** (shrinkage). L'information portée par les EBE décroît progressivement avec le shrinkage ; 20–30 % est souvent utilisé comme signal d'alerte pratique, pas comme seuil d'invalidation.
 :::
 <!-- /step -->
 

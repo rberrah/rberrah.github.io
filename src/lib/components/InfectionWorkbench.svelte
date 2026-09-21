@@ -13,7 +13,7 @@
   const t = (fr, en) => english ? en : fr;
   let block = $state('pk');
   let cfg = $state({ source: 'pk', metric: 'time', basis: 'free', fu: 1, mic: 1, multiple: 1, target: 100,
-    replicates: 250, delta: .05, dose: 1000, interval: 12, infusion: 1, dose2: 1000, interval2: 8, infusion2: 1, pta_target: 90,
+    replicates: 1000, delta: .05, dose: 1000, interval: 12, infusion: 1, dose2: 1000, interval2: 8, infusion2: 1, pta_target: 90,
     grid: { min: 500, max: 1500, step: 500, intervals: [8,12], infusion: 1, continuous: false } });
   let computed = $state(null);
   let computedKey = $state('');
@@ -105,7 +105,7 @@
         {#if cfg.basis === 'free'}<label>{t('Fraction libre fu', 'Unbound fraction fu')}<input type="number" bind:value={cfg.fu} min="0.000001" max="1" step="any" required/></label>{/if}
         {#if cfg.metric === 'time'}<label>k<input type="number" bind:value={cfg.multiple} min="0.01" max="1000" step="any" required/></label>{/if}
         <label>{t('Probabilite d’atteinte souhaitee (%)', 'Desired target attainment probability (%)')}<input type="number" bind:value={cfg.pta_target} min="0.001" max="100" step="any" required/></label>
-        <label>{t('Tirages Monte Carlo', 'Monte Carlo draws')}<input type="number" bind:value={cfg.replicates} min="50" max="1000" step="1" required/></label>
+        <label>{t('Tirages Monte Carlo', 'Monte Carlo draws')}<input type="number" bind:value={cfg.replicates} min="50" max="5000" step="1" required/></label>
       </div>
       <p class="equation">{equation}</p>
       <p>{t('Les valeurs initiales sont des exemples, pas des recommandations par molecule. L’indice, sa cible, la matrice et la fraction libre doivent correspondre a la reference scientifique choisie. Pour une sortie deja libre, fu = 1.', 'Initial values are examples, not drug-specific recommendations. The index, target, matrix and unbound fraction must match the chosen scientific reference. For an already unbound output, fu = 1.')}</p>
@@ -117,7 +117,7 @@
   <section class="methods"><h2>{t('De l’exposition a la PTA', 'From exposure to PTA')}</h2>
     <div class="reading"><div><h3>{t('Interprétation TDM', 'TDM interpretation')}</h3><p>{t('Un profil individuel donne un indice PK/PD estime sur la fenetre disponible. Une AUC de 12 h n’est pas une AUC24 ; ce resultat ponctuel n’est pas une probabilite.', 'An individual profile yields an estimated PK/PD index over the available window. A 12-hour AUC is not an AUC24; this point estimate is not a probability.')}</p></div>
       <div><h3>{t('Population ou posterior', 'Population or posterior')}</h3><p>{t('La PTA compte les profils simules atteignant la cible. Avant TDM, la variabilite vient d’OMEGA. Apres TDM, elle vient de l’incertitude posterieure. L’erreur de mesure n’est pas ajoutee.', 'PTA counts simulated profiles attaining the target. Before TDM, variability comes from OMEGA. After TDM, it comes from posterior uncertainty. Measurement error is not added.')}</p></div>
-      <div><h3>{t('Limites', 'Limitations')}</h3><p>{t('Fraction libre fixe, approximation du posterior, pas de modele de toxicite ou de resistance. Atteindre une cible n’est pas garantir un succes clinique. Usage de recherche uniquement.', 'Fixed unbound fraction, approximate posterior, no toxicity or resistance model. Target attainment does not guarantee clinical success. Research use only.')}</p></div></div>
+      <div><h3>{t('Limites', 'Limitations')}</h3><p>{t('Fraction libre fixe, approximation du posterior, pas de modele de toxicite ou de resistance. Atteindre une cible n’est pas garantir un succes clinique. La precision Monte Carlo depend du nombre de tirages : 250 est rapide, 1000 ou plus est preferable pres d’une decision. Usage de recherche uniquement.', 'Fixed unbound fraction, approximate posterior, no toxicity or resistance model. Target attainment does not guarantee clinical success. Monte Carlo precision depends on the number of draws: 250 is fast, 1000 or more is preferable near a decision. Research use only.')}</p></div></div>
     <h3>{t('References pour comprendre', 'Background references')}</h3>
     <ul><li><a href="https://doi.org/10.1093/jac/dki079" target="_blank" rel="noopener noreferrer">Mouton et al., 2005</a> : {t('definitions des indices PK/PD, de la PTA et de la CFR.', 'definitions of PK/PD indices, PTA and CFR.')}</li>
       <li><a href="https://doi.org/10.1128/AAC.46.3.913-916.2002" target="_blank" rel="noopener noreferrer">Drusano et al., 2002</a> : {t('exemple de selection de dose par PK populationnelle et simulation Monte Carlo (antiviral).', 'a dose-selection example using population PK and Monte Carlo simulation (antiviral).')}</li>

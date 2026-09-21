@@ -70,7 +70,7 @@ Since the published σ was estimated on *another* population and *other* conditi
 This is the central result of **Berrah et al. (Epub 2025, print publication 2026)**. In the rich datasets studied for tacrolimus, iohexol and mycophenolic acid, with only 3 samples per patient, reducing the proportional error cut the AUC **RMSE by 30–40%** versus the original model. For tacrolimus, RMSE fell from **28.5% to 16.3%** at a 1% error; for iohexol, a near-zero error reached up to **40%** reduction.
 
 :::key
-The more reliable the analytics, the more legitimate it is to trust the measurements. Lowering σ **strengthens the influence of observed data** on the posterior, without changing the model structure or collecting extra samples: a "free" gain in precision.
+The more reliable the analytics, the more legitimate it is to trust the measurements. Lowering σ **strengthens the influence of observed data** on the posterior, without changing the model structure or collecting extra samples: a possible gain in precision, at the price of a stronger assumption on observation noise and therefore a risk of overweighting noisy measurements.
 :::
 
 A striking finding: the improvement was largest when the original model was **least precise** — boosting the data's weight partly corrects the imprecision of a model imported from another context (e.g. developed on ICU patients then applied to a general population).
@@ -87,7 +87,7 @@ In their analysis the trap stayed rare (3 of 321 patients), but it is a reminder
 <!-- /step -->
 
 <!-- step:title="What to choose in practice" -->
-The guidance proposed by Berrah et al. is a trade-off between individualisation and robustness:
+The guidance proposed by Berrah et al. is a set of pragmatic scenarios to explore, not universal MIPD standards:
 
 | Context | Tested proportional σ / pragmatic scenario |
 |---|---|

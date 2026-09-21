@@ -13,6 +13,7 @@ prerequisites: ["tools-nonmem"]
 glossary: []
 slides: []
 sources: ["nonmem", "karlsson-sheiner-iov", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Dans un control stream, que représente la valeur 0.09 écrite dans `$OMEGA 0.09` ?"
@@ -209,7 +210,7 @@ Suite du run 003 : on trace `ETA(2)` contre le poids pour décider si le poids e
 C'est une erreur de raisonnement. Avec 47 % de shrinkage, les EBE de `ETA(2)` ont été **tassés vers zéro** par le prior de population : la relation vraie est écrasée dans le nuage avant même d'être regardée. Le graphique ne dit pas « pas d'effet du poids » ; il dit « pas assez de données pour que cet eta parle ».
 
 :::pitfall
-Au-dessus de 20 à 30 % de shrinkage, les graphiques ETA vs covariable perdent leur valeur de preuve. Ils peuvent **masquer une relation réelle** (nuage aplati) et, plus vicieux, **fabriquer une tendance qui n'existe pas**, parce que la contraction vers zéro n'est pas la même selon la richesse du protocole de chaque patient. Les mêmes réserves valent pour les diagnostics IPRED, tassés par le shrinkage de l'EPS.
+L'information des graphiques ETA vs covariable décroît progressivement avec le shrinkage ; 20–30 % est un signal d'alerte pratique, pas une frontière d'invalidation. Ils peuvent **masquer une relation réelle** (nuage aplati) ou **suggérer une tendance artificielle**, parce que la contraction vers zéro n'est pas la même selon la richesse du protocole de chaque patient. Les mêmes réserves valent pour les diagnostics IPRED, tassés par le shrinkage de l'EPS.
 :::
 
 Trois réflexes une fois le shrinkage constaté :
@@ -229,5 +230,5 @@ Le shrinkage disqualifie les **EBE** comme outil de diagnostic, pas les **param�
 - `DIAGONAL` suppose les etas indépendants ; `BLOCK(n)` estime leurs covariances pour $n(n+1)/2$ paramètres, et se juge par un rapport de vraisemblance. La corrélation CL–V est physiologique : l'ignorer fausse les simulations.
 - L'IOV se code par un eta par occasion, avec `SAME` pour leur imposer une variance commune — deux etas, un seul paramètre.
 - Les covariables entrent dans le typique (`TVCL`), en amont de `EXP(ETA)` ; une bonne covariable fait baisser `$OMEGA`, pas seulement l'OFV.
-- Un shrinkage supérieur à 20–30 % rend les graphiques ETA vs covariable peu informatifs, dans les deux sens : il peut masquer des relations vraies ou suggérer des artefacts. On tranche alors dans le modèle, pas sur le nuage.
+- L'information des graphiques ETA vs covariable décroît avec le shrinkage ; 20–30 % est une heuristique d'alerte, pas un seuil d'invalidation.
 <!-- /step -->

@@ -185,6 +185,22 @@ function implementationStatus(details, stem) {
     : { implementationStatus: 'ARTICLE', implementationStatusLabel: "Implémentation de l'article", implementationStatusLabelEn: 'Article implementation' };
 }
 
+function maturityStatus(details, stem) {
+  const verificationStatus = details.verificationStatus ?? 'SOFTWARE_TESTED';
+  const validationStatus = details.validationStatus ?? 'NONE';
+  const contextOfUse = details.contextOfUse ?? 'TEACHING_RESEARCH';
+  if (!['NOT_TESTED', 'SOFTWARE_TESTED', 'NUMERICALLY_REPRODUCED'].includes(verificationStatus)) {
+    throw new Error(`Unknown verification status for ${stem}: ${verificationStatus}`);
+  }
+  if (!['NONE', 'INTERNAL', 'EXTERNAL'].includes(validationStatus)) {
+    throw new Error(`Unknown validation status for ${stem}: ${validationStatus}`);
+  }
+  if (!['TEACHING_RESEARCH', 'EXPLORATORY_MIPD', 'CLINICALLY_VALIDATED'].includes(contextOfUse)) {
+    throw new Error(`Unknown context of use for ${stem}: ${contextOfUse}`);
+  }
+  return { verificationStatus, validationStatus, contextOfUse };
+}
+
 function parseModelFile(file, metadata, englishMetadata, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
@@ -212,6 +228,7 @@ function parseModelFile(file, metadata, englishMetadata, code) {
   const routeDetails = administrationRoutes(code, stem);
   const modeDetails = administrationModes(routeDetails.routes, details, stem);
   const implementationDetails = implementationStatus(details, stem);
+  const maturityDetails = maturityStatus(details, stem);
 
   return {
     id: stem,
@@ -232,6 +249,7 @@ function parseModelFile(file, metadata, englishMetadata, code) {
     ...routeDetails,
     ...modeDetails,
     ...implementationDetails,
+    ...maturityDetails,
     tags: Array.from(new Set([
       drug,
       model,

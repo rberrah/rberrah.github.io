@@ -11,6 +11,7 @@ level: "intermediate"
 tags: ["clinical-trials", "interpretation", "covariates", "forest-plot"]
 slides: []
 sources: ["fda-poppk", "ema-poppk", "ribbing-selection-bias", "ema-bioequivalence"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un forest plot d'effets de covariables montre..."
@@ -21,7 +22,7 @@ quiz:
     correct: 0
   - prompt: "Un effet de covariable est cliniquement pertinent s'il..."
     options:
-      - "sort de la zone jugée sans conséquence clinique (ex. ±20 %)"
+      - "a une amplitude et une incertitude compatibles avec la relation exposition-réponse et une décision pré-spécifiée"
       - "atteint le seuil de significativité statistique (p < 0,05)"
       - "concerne une covariable fréquente dans la population étudiée"
     correct: 0
@@ -70,13 +71,13 @@ C'est ainsi qu'on construit des **recommandations posologiques** par sous-groupe
 Significatif n'est pas pertinent.
 
 :::pitfall
-Sur un grand jeu de données, presque tout devient **statistiquement significatif**. La question utile est l'**ampleur** : un effet de 5 % ne change pas la dose. Et attention aux covariables **corrélées** (poids et ClCr), dont les effets se confondent.
+De très petits effets peuvent devenir **statistiquement significatifs** dans de grands échantillons. La question utile est l'**ampleur** : un effet de 5 % ne change pas la dose. Et attention aux covariables **corrélées** (poids et ClCr), dont les effets se confondent.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Le forest plot montre l'ampleur et l'incertitude de chaque effet de covariable.
 - Effet exprimé en ratio vs référence ; juger statistique ET clinique.
-- Pertinent = hors d'une bande clinique justifiée pour le médicament, avec une incertitude compatible avec l'action envisagée.
+- La pertinence clinique dépend de l'amplitude, de l'incertitude, de la relation exposition–réponse, de la marge thérapeutique et du contexte décisionnel pré-spécifié.
 - Significatif ≠ pertinent ; méfiance sur les covariables corrélées.
 <!-- /step -->

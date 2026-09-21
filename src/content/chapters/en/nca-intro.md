@@ -3,7 +3,7 @@ id: "nca-intro"
 slug: "nca-intro"
 title: "Principles of non-compartmental analysis"
 description: "Estimating exposure without assuming a structure: the assumptions and scope of NCA."
-summary: "What NCA is, what it assumes (linearity, terminal phase) and when to prefer it over a model."
+summary: "What NCA is, what it measures, what its interpretations assume and when to prefer it over a model."
 track: "nca"
 order: 80
 duration: "11 min"
@@ -17,9 +17,9 @@ quiz:
       - "imposes a two-compartment model by default"
       - "estimates transfer constants between compartments"
     correct: 0
-  - prompt: "NCA mainly assumes kinetics that are..."
+  - prompt: "NCA can describe a nonlinear profile, but interpreting Dose/AUC as constant clearance assumes..."
     options:
-      - "linear (exposure proportional to the dose)"
+      - "kinetics sufficiently linear in the studied range"
       - "saturable, of Michaelis-Menten type at high dose"
       - "zero-order, at a constant elimination rate"
     correct: 0
@@ -38,11 +38,11 @@ No compartments, no differential equations to fit — but also no mechanistic ex
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="04_ThreeApproaches" -->
-NCA rests on two pillars: the **AUC** (exposure) and the terminal slope $\lambda_z$ (elimination).
+NCA rests on two pillars: the **AUC** (exposure) and the apparent terminal slope $\lambda_z$.
 
 $$ \text{AUC}_{0-\infty} = \text{AUC}_{0-t_{last}} + \frac{C_{last}}{\lambda_z} $$
 
-It assumes **linear** kinetics (AUC proportional to dose) and a well-defined log-linear **terminal phase**.
+NCA does not require a compartmental model and can describe a nonlinear profile. However, interpreting Dose/AUC as a constant clearance or extrapolating proportionally between doses assumes kinetics that are sufficiently **linear** in the studied range. Extrapolation to infinity also assumes a well-defined log-linear **terminal phase**.
 
 **Note —** this track deepens the introductory chapter of the core track; the next chapters detail the AUC, derived parameters and the oral case.
 <!-- /step -->
@@ -50,7 +50,7 @@ It assumes **linear** kinetics (AUC proportional to dose) and a well-defined log
 <!-- step:title="Worked example" viz="04_ThreeApproaches" -->
 In **bioequivalence**, we compare the AUC and Cmax of a generic vs the reference: NCA is enough, because we seek not a mechanism but **exposure equivalence**.
 
-Regulators (EMA, FDA) indeed require NCA criteria (AUC/Cmax ratios within 80–125%).
+Regulators (EMA, FDA) generally rely on the **90% CI for the test/reference ratio of geometric means** of AUC and Cmax, often after log transformation, within the applicable limits (often 80–125% for non-scaled average bioequivalence).
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -61,7 +61,7 @@ NCA does not excuse poor sampling.
 
 <!-- step:title="Key takeaways" -->
 - NCA estimates exposure without assuming a compartmental structure.
-- Pillars: AUC (exposure) and λz (terminal elimination slope).
-- Reference method for bioequivalence (regulatory criteria).
+- Pillars: AUC (exposure) and λz (apparent terminal slope).
+- Reference method for bioequivalence: 90% CIs for test/reference AUC and Cmax ratios within the applicable limits.
 - Caution: a well-sampled terminal phase is needed; CL and dose-proportionality interpretations require reasonable linearity.
 <!-- /step -->

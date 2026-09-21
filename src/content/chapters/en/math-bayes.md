@@ -68,7 +68,7 @@ With two or three consistent samples, the posterior tightens and moves clearly a
 <!-- step:title="Common pitfall" -->
 The prior is not neutral.
 
-**Pitfall —** a **poorly chosen** prior (wrong population model, ignored covariates) pulls the posterior to the wrong place. And when data are sparse, the estimate "sticks" to the prior: this is **shrinkage**. High shrinkage (> 20–30%) makes EBEs uninformative and distorts diagnostic plots.
+**Pitfall —** a **poorly chosen** prior (wrong population model, ignored covariates) pulls the posterior to the wrong place. And when data are sparse, the estimate "sticks" to the prior: this is **shrinkage**. Information carried by EBEs decreases progressively as shrinkage rises; 20–30% is often used as a practical warning signal, not an invalidity threshold.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -13,6 +13,7 @@ prerequisites: ["tools-monolix"]
 glossary: []
 slides: []
 sources: ["monolix", "lavielle", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Vous traduisez en Monolix un modèle NONMEM dont l'IIV sur la clairance est déclarée par `$OMEGA 0.09`. Quelle valeur donner à `omega_cl` ?"
@@ -263,7 +264,7 @@ Deux réserves sur ces $\Delta$. D'abord, le $-2LL$ de Monolix est calculé par 
 | `gamma_cl` | 0,18 | 17 |
 | `corr_cl_v` | 0,52 | 21 |
 
-Tout se lit sans conversion : 0,29 d'écart-type, soit ~30 % de CV ; 0,52 de corrélation. Les paramètres de variabilité ont des RSE structurellement plus élevées que les effets fixes — c'est normal, il faut beaucoup de sujets pour estimer une dispersion. Au-delà de **50 % de RSE sur un `omega`**, en revanche, l'IIV n'est pas soutenue par les données et la question de la retirer se pose.
+Tout se lit sans conversion : 0,29 d'écart-type, soit ~30 % de CV ; 0,52 de corrélation. Les paramètres de variabilité ont des RSE structurellement plus élevées que les effets fixes. Un **RSE supérieur à 50 % sur un `omega`** signale d'abord une estimation imprécise de la variance ; il invite à réexaminer l'effet aléatoire, sans démontrer son absence.
 
 Et en face, le shrinkage :
 
@@ -310,5 +311,5 @@ Le test tient en une phrase à compléter : « `cl_pop` est la clairance typique
 - L'IOV est un **niveau** (`varlevel={id, id*occ}`), pas une liste d'etas : une seule variance par construction, donc pas de `SAME` à écrire. Sans niveau d'occasion, l'IIV absorbe l'IOV et se retrouve surestimée.
 - Sur une logNormale, `covariate=log(CRCL/90)` avec un coefficient **est** le modèle puissance. Une covariable utile fait baisser `omega`, pas seulement le $-2LL$.
 - Centrez toujours les covariables continues : un `log(WT)` non centré donne le même ajustement mais rend `v_pop` illisible et son estimation mal conditionnée.
-- Lecture des sorties : RSE > 50 % sur un `omega` = IIV non soutenue par les données ; shrinkage élevé = paramètres individuels tassés vers la population ; $\Delta(-2LL)$ de 2 ou 3 points = bruit de l'échantillonnage d'importance.
+- Lecture des sorties : un RSE > 50 % sur un `omega` signale une variance imprécisément estimée, pas l'absence d'IIV ; le shrinkage réduit progressivement l'information individuelle ; $\Delta(-2LL)$ de 2 ou 3 points peut relever du bruit de l'échantillonnage d'importance.
 <!-- /step -->

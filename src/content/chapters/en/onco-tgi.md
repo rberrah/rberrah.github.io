@@ -72,7 +72,7 @@ $f$ can be the current size, the change from baseline (CFB), its AUC… The larg
 <!-- step:title="Worked example" viz="31_JointSurvival" -->
 Joint PK–TGI–survival models are widely used for **monoclonal antibodies** in immuno-oncology (anti-PD-1, anti-TIM-3, anti-CD73, anti-NKG2A): they help **predict a trial's results** (e.g. a platform study) before it is run.
 
-By simulating the exposure of each schedule, one predicts tumour dynamics and then **progression-free survival (PFS)** conditional on the model — a tool for dose and design choices, not automatic causal proof.
+By simulating the exposure of each schedule, one predicts tumour dynamics and then **progression-free survival (PFS)** conditional on the model — possible information for dose and design choices, not automatic causal proof.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

@@ -55,7 +55,7 @@ $$ E = E_0 + \frac{E_{max}\,C^{\,n}}{EC_{50}^{\,n} + C^{\,n}} $$
 
 The **linear** ($E=E_0+S\cdot C$) and **log-linear** ($E=E_0+S\cdot\ln C$) forms are valid approximations over a narrow range.
 
-**Math —** for $C \ll EC_{50}$, Emax behaves like a **linear** model of slope $E_{max}/EC_{50}$.
+**Math —** for $n = 1$ and $C \ll EC_{50}$, Emax behaves like a **linear** model of slope $E_{max}/EC_{50}$. For $n \neq 1$, the initial rise follows $(C/EC_{50})^{n}$ — quadratic when $n=2$, square-root shaped when $n=0.5$ — and that slope no longer applies.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="EmaxHill" -->

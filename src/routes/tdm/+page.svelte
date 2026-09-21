@@ -38,6 +38,23 @@
     implementationStatusLabel: $language === 'en' ? model.implementationStatusLabelEn : model.implementationStatusLabel,
     note: $language === 'en' ? model.noteEn : model.note
   });
+  /** @param {any} model */
+  const maturityRows = (model) => {
+    const labels = copy.maturity;
+    const verification = model.verificationStatus === 'NUMERICALLY_REPRODUCED'
+      ? labels.numericallyReproduced : model.verificationStatus === 'SOFTWARE_TESTED' ? labels.softwareTested : labels.notTested;
+    const validation = model.validationStatus === 'EXTERNAL'
+      ? labels.validationExternal : model.validationStatus === 'INTERNAL' ? labels.validationInternal : labels.validationNone;
+    const context = model.contextOfUse === 'CLINICALLY_VALIDATED'
+      ? labels.clinicallyValidated : model.contextOfUse === 'EXPLORATORY_MIPD' ? labels.exploratoryMipd : labels.teachingResearch;
+    return [
+      [labels.source, labels.sourceVerified],
+      [labels.implementation, model.implementationStatusLabel],
+      [labels.verification, verification],
+      [labels.validation, validation],
+      [labels.context, context]
+    ];
+  };
   let drugs = $derived([
     { key: 'all', label: copy.all },
     ...Array.from(new Set(tdmModels.map((model) => model.drugKey)))
@@ -120,6 +137,9 @@
       </div>
     </div>
     <p>{copy.privacy}</p>
+    <p class="maturity-note">{$language === 'en'
+      ? 'Model status separates source traceability from numerical reproduction, external validation and clinical context of use. A verified source does not imply a clinically validated implementation.'
+      : 'Le statut d’un modèle distingue la traçabilité de la source, la reproduction numérique, la validation externe et le contexte d’usage clinique. Une source vérifiée ne signifie pas une implémentation cliniquement validée.'}</p>
   </div>
 </section>
 
@@ -210,6 +230,11 @@
               {/if}
             </div>
             {#if display.note}<p class="model-note">{display.note}</p>{/if}
+            <dl class="evidence-status" aria-label={copy.maturity.title}>
+              {#each maturityRows(display) as row}
+                <div><dt>{row[0]}</dt><dd>{row[1]}</dd></div>
+              {/each}
+            </dl>
           </div>
           <div class="model-meta">
             <div class="model-type">
@@ -271,6 +296,10 @@
   .stat-grid strong { display: block; font-family: var(--font-heading); font-size: var(--text-2xl); line-height: 1; }
   .stat-grid span { color: var(--text-muted); font-size: var(--text-sm); }
   .tdm-panel p { color: var(--text-secondary); margin-bottom: 0; }
+  .evidence-status { margin: var(--space-5) 0 0; display: grid; gap: var(--space-2); }
+  .evidence-status div { display: grid; grid-template-columns: minmax(105px, 0.35fr) 1fr; gap: var(--space-3); }
+  .evidence-status dt { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
+  .evidence-status dd { margin: 0; color: var(--text-secondary); font-size: var(--text-xs); }
 
   .engine-band, .workflow, .models, .governance { margin-top: var(--space-12); }
   .engine-band {

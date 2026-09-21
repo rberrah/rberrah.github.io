@@ -14,7 +14,8 @@ failures <- list()
 required_metadata <- c(
   "model", "citation", "doi", "population", "modelType", "sourceStatus",
   "administrationModes", "administrationCategories", "administrationCategoriesEn",
-  "implementationStatus", "implementationStatusLabel", "implementationStatusLabelEn"
+  "implementationStatus", "implementationStatusLabel", "implementationStatusLabelEn",
+  "verificationStatus", "validationStatus", "contextOfUse"
 )
 missing_metadata <- setdiff(required_metadata, names(MODEL_CATALOG))
 if (length(missing_metadata)) stop("Missing catalog metadata: ", paste(missing_metadata, collapse = ", "))

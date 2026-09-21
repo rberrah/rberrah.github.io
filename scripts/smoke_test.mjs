@@ -4,6 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import matter from 'gray-matter';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const chaptersDir = path.join(root, 'src', 'content', 'chapters');
@@ -43,7 +44,7 @@ for (const f of frFiles) {
 }
 if (!vizBad) ok(`${vizRefs} références viz résolvent toutes (${vizKeys.size} clés)`);
 
-// ── 2. Parité FR/EN + 3. unicité des slugs + 4. parcours valides ──
+// ── 2. Couverture et structure FR/EN + 3. unicité des slugs + 4. parcours valides ──
 const { tracks } = await import(new URL('../src/lib/content/tracks.js', import.meta.url));
 const trackIds = new Set(tracks.map((/** @type {any} */ t) => t.id));
 const slugs = new Set();
@@ -54,9 +55,30 @@ for (const f of frFiles) {
   const track = field(raw, 'track') || 'core';
   if (slug) { if (slugs.has(slug)) fail(`slug dupliqué : ${slug}`); slugs.add(slug); }
   if (!trackIds.has(track)) fail(`track inconnu "${track}" dans ${f}`);
-  if (!fs.existsSync(path.join(chaptersDir, 'en', f))) { fail(`traduction EN manquante : ${f}`); parityBad++; }
+  const enPath = path.join(chaptersDir, 'en', f);
+  if (!fs.existsSync(enPath)) { fail(`traduction EN manquante : ${f}`); parityBad++; }
+  else {
+    const enRaw = fs.readFileSync(enPath, 'utf8');
+    const frParsed = matter(raw);
+    const enParsed = matter(enRaw);
+    const frSteps = (frParsed.content.match(/<!--\s*step:/g) ?? []).length;
+    const enSteps = (enParsed.content.match(/<!--\s*step:/g) ?? []).length;
+    const mathCount = (content) => {
+      const noCode = content.replace(/```[\s\S]*?```/g, '').replace(/`[^`]*`/g, '');
+      const display = (noCode.match(/\$\$/g) ?? []).length / 2;
+      const inline = (noCode.replace(/\$\$[\s\S]*?\$\$/g, '').match(/\$/g) ?? []).length / 2;
+      return display + inline;
+    };
+    if (frSteps !== enSteps) { fail(`structure FR/EN différente dans ${f} : ${frSteps}/${enSteps} étapes`); parityBad++; }
+    if ((frParsed.data.quiz?.length ?? 0) !== (enParsed.data.quiz?.length ?? 0)) {
+      fail(`quiz FR/EN de longueur différente dans ${f}`); parityBad++;
+    }
+    if (mathCount(frParsed.content) !== mathCount(enParsed.content)) {
+      fail(`nombre de formules FR/EN différent dans ${f}`); parityBad++;
+    }
+  }
 }
-if (!parityBad) ok(`parité FR/EN complète (${frFiles.length} chapitres)`);
+if (!parityBad) ok(`couverture fichiers et structure FR/EN cohérentes (${frFiles.length} chapitres)`);
 ok(`${slugs.size} slugs uniques, ${trackIds.size} parcours`);
 
 // ── 5. Exercices : intégrité, bilinguisme, chapitre résolu ──

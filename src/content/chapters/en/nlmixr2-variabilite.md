@@ -348,6 +348,6 @@ The bound was not merely **wrongly scaled**: it was **unnecessary**. `exp()` can
 - `eta.cl + eta.v ~ c(0.1, 0.05, 0.1)` gives the **lower triangle** of the covariance: the covariance is in the **middle**. `cor()` lets you enter SDs and a correlation instead.
 - IOV is a **level** (`iov.cl ~ 0.03 | occ`): one single variance whatever the number of occasions, so there is no `SAME` to write. Without it, IIV absorbs the IOV and ends up overestimated.
 - Covariates are plain R inside `model({})`, with no dedicated block. On the log scale, `beta*log(CRCL/90)` **is** the power model. A good covariate lowers omega, not only the OFV.
-- On a log-transformed theta the `%RSE` is misleading near zero: judge on the **back-transformed interval**. `fit$omegaR` reads without arithmetic (SDs on the diagonal, correlations elsewhere); `fit$shrink` above 20–30% makes eta versus covariate plots weakly informative.
+- On a log-transformed theta the `%RSE` is misleading near zero: judge on the **back-transformed interval**. `fit$omegaR` reads without arithmetic; information in eta-versus-covariate plots decreases with shrinkage, with 20–30% remaining a warning heuristic.
 - Put **no bound** on a parameter wrapped in `exp()`: it is unnecessary and its scale is misleading. SAEM ignores bounds and warns you, FOCEI applies them in silence — the dangerous engine is the quiet one.
 <!-- /step -->

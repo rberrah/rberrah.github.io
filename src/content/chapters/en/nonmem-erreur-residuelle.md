@@ -150,7 +150,7 @@ Asking for `METHOD=1` without `INTER` alongside a proportional or combined error
 
 Yet a proportional error is precisely what makes the standard deviation depend on $F$, hence on the subject's ETA. A patient whose clearance is twice the typical value genuinely has lower concentrations, hence a genuinely smaller absolute error: giving them the average patient's error bar distorts their weight. The extreme subjects are the worst served, the residual variance comes out biased, and the ETAs deform to compensate.
 
-The rule has no exception: **non-additive error → `INTER`**. The overhead is a few minutes of computation. With a strictly additive error, `INTER` changes nothing, since the standard deviation no longer depends on the ETA.
+With FOCE, as soon as the error model makes the residual variance depend on the individual prediction — the usual case for proportional or combined errors — use `INTER`. The overhead is a few minutes of computation. With a strictly additive homoscedastic error, the η–ε interaction generally disappears, since the standard deviation no longer depends on the ETA.
 
 :::pitfall
 **The forgotten `FIX`.** With `Y = IPRED + W*EPS(1)`, if the residual variance is estimated instead of being fixed to 1, then `W` and $\sigma$ **multiply** each other: only their product is identifiable, never the two separately. NONMEM does not refuse to run — it drifts, the covariance step fails or returns a singular matrix, and THETA(4)/THETA(5) take values that no longer mean anything. In this parameterisation, `1 FIX` is not a matter of style.
@@ -161,7 +161,7 @@ The rule has no exception: **non-additive error → `INTER`**. The overhead is a
 - The error block does not describe noise: it hands out the **weights** of the estimation. Every point enters the likelihood divided by its standard deviation.
 - Three forms: additive (`Y = F + EPS(1)`), proportional (`Y = F*(1+EPS(1))`), combined (`Y = F*(1+EPS(1)) + EPS(2)`). The residual variance is declared as a **variance**, not a standard deviation.
 - Prefer the `W` parameterisation with the variance fixed to 1: terms readable in physical units, positivity guaranteed, IWRES available.
-- Non-additive error → `INTER` at estimation, no exception.
+- Under FOCE, use `INTER` as soon as residual variance depends on the individual prediction; the effect generally disappears with a strictly additive homoscedastic error.
 - BQL: M1 truncates the tail from below and underestimates clearance; M3 treats the points as **censored** (`F_FLAG` at 1, `PHI`, `LAPLACIAN`) and remains the default choice beyond a few percent of BQL.
 - Diagnostics: **IWRES** judges the error model, **CWRES** judges the rest, **WRES** is a relic computed under FO.
 <!-- /step -->

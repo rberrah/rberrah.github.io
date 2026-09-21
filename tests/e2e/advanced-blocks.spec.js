@@ -69,6 +69,7 @@ test('specialized workshops have one selector per mechanism and an actual IV PK 
   }));
   await page.goto('/pd/?lang=en');
   await expect(page.locator('.palette')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Oncology', exact: true }).click();
   await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'PD', exact: true }).click();
   await expect(page.getByRole('combobox', { name: 'Tumor growth', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Gompertz', exact: true })).toHaveCount(0);

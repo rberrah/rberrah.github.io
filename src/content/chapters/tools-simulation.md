@@ -13,6 +13,7 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["mrgsolve", "nlmixr2 / rxode2", "VPC", "Jumeau numérique"]
 slides: []
 sources: ["mrgsolve", "fidler-nlmixr", "bergstrand-pcvpc", "mould-upton"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "mrgsolve et rxode2 servent surtout à..."
@@ -56,12 +57,12 @@ $$ \frac{dA}{dt} = f(A, \theta_i, t), \qquad \theta_i = \theta\cdot e^{\eta_i} $
 - **rxode2** : le moteur d'ODE sous **nlmixr2**, utilisable seul pour simuler.
 
 :::note
-La simulation réutilise le **modèle estimé** (θ, Ω, Σ). Propager l'**incertitude** des paramètres (pas seulement la variabilité) pour des prédictions honnêtes.
+La simulation réutilise le **modèle estimé** (θ, Ω, Σ). Pour une prédiction prospective ou une assurance intégrée, propager l'**incertitude** des paramètres ; pour une étude conditionnelle à un scénario fixé, indiquer explicitement cette condition.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="21_PopPKPlayground" -->
-Pour une **VPC**, on simule des centaines de jeux sous le modèle et on compare les percentiles aux observations. Pour un **essai virtuel**, on teste plusieurs doses et tailles d'échantillon afin d'estimer la probabilité de succès.
+Pour une **VPC**, on simule des centaines de jeux sous le modèle et on compare les percentiles aux observations. Pour un **essai virtuel** à paramètres générateurs fixés, on estime d'abord une fréquence de succès conditionnelle, c'est-à-dire une caractéristique opératoire ou une puissance sous ce scénario. Le terme probabilité de succès/assurance suppose d'intégrer l'incertitude pertinente sur les paramètres ou les scénarios.
 
 mrgsolve rend ces simulations quasi instantanées, même sur des dizaines de milliers de sujets.
 <!-- /step -->
@@ -70,7 +71,7 @@ mrgsolve rend ces simulations quasi instantanées, même sur des dizaines de mil
 Une simulation hérite des faiblesses du modèle.
 
 :::pitfall
-« Garbage in, garbage out » : une simulation n'est fiable que si le modèle est **validé** et si l'on propage l'**incertitude** des paramètres. Simuler hors du **domaine** des données (doses, populations non observées) est une extrapolation risquée.
+« Garbage in, garbage out » : une simulation n'est fiable que si le modèle est **validé** et si la question précise ce qui est propagé. Simuler hors du **domaine** des données (doses, populations non observées) est une extrapolation risquée.
 :::
 <!-- /step -->
 
@@ -78,5 +79,5 @@ Une simulation hérite des faiblesses du modèle.
 - mrgsolve / rxode2 : intégrateurs d'ODE rapides en R pour la simulation.
 - Simuler = faire tourner le modèle en avant, avec variabilité, sur une population virtuelle.
 - Usages : VPC, scénarios de dose, essais virtuels ; mrgsolve est la base de mapbayr.
-- Propager l'incertitude ; ne pas extrapoler hors du domaine des données.
+- Propager l'incertitude pour les prédictions prospectives ; annoncer les analyses conditionnelles à un scénario fixé ; ne pas extrapoler hors du domaine des données.
 <!-- /step -->

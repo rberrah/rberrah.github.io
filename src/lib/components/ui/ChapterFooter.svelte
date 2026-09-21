@@ -10,10 +10,10 @@
   export let chapter = null;
 
   const T = {
-    fr: { sources: 'Sources', reviewed: 'Dernière révision', report: 'Signaler une erreur',
+    fr: { sources: 'Sources', updated: 'Mise à jour', reviewed: 'Relecture scientifique', report: 'Signaler une erreur',
           brouillon: 'Brouillon', relu: 'Relu', valide: 'Validé',
           body: (t, s) => `Chapitre : ${t} (\`${s}\`)\n\nDécrivez l'erreur ou l'imprécision :\n\n` },
-    en: { sources: 'Sources', reviewed: 'Last reviewed', report: 'Report an error',
+    en: { sources: 'Sources', updated: 'Updated', reviewed: 'Scientific review', report: 'Report an error',
           brouillon: 'Draft', relu: 'Reviewed', valide: 'Validated',
           body: (t, s) => `Chapter: ${t} (\`${s}\`)\n\nDescribe the error or inaccuracy:\n\n` }
   };
@@ -49,6 +49,7 @@
 
   <div class="meta">
     {#if st}<span class="badge {st.cls}">{st.label}</span>{/if}
+    {#if chapter?.updated_on}<span class="rev">{t.updated} : {chapter.updated_on}</span>{/if}
     {#if chapter?.reviewed_on}<span class="rev">{t.reviewed} : {chapter.reviewed_on}</span>{/if}
     <a class="report" href={issueUrl} target="_blank" rel="noopener noreferrer">{t.report}</a>
   </div>

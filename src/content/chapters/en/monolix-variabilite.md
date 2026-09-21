@@ -263,7 +263,7 @@ Two caveats on those $\Delta$. First, Monolix's $-2LL$ is computed by **importan
 | `gamma_cl` | 0.18 | 17 |
 | `corr_cl_v` | 0.52 | 21 |
 
-Everything reads without conversion: 0.29 of standard deviation, so ~30 % CV; 0.52 of correlation. Variability parameters carry structurally higher RSEs than the fixed effects — that is normal, estimating a spread takes many subjects. Beyond **50 % RSE on an `omega`**, however, the IIV is not supported by the data and the question of removing it is on the table.
+Everything reads without conversion: 0.29 of standard deviation, so ~30 % CV; 0.52 of correlation. Variability parameters carry structurally higher RSEs than fixed effects. An **RSE above 50% on an `omega`** primarily signals imprecise variance estimation; it calls for reassessing the random effect without demonstrating its absence.
 
 And facing them, the shrinkage:
 
@@ -310,5 +310,5 @@ The test fits in one sentence to complete: "`cl_pop` is the typical clearance of
 - IOV is a **level** (`varlevel={id, id*occ}`), not a list of etas: one variance by construction, so no `SAME` to write. Without an occasion level, IIV absorbs IOV and ends up overstated.
 - On a logNormal, `covariate=log(CRCL/90)` with a coefficient **is** the power model. A useful covariate lowers `omega`, not only the $-2LL$.
 - Always centre continuous covariates: an uncentred `log(WT)` gives the same fit but makes `v_pop` unreadable and its estimation ill-conditioned.
-- Reading the outputs: RSE > 50 % on an `omega` = IIV unsupported by the data; high shrinkage = individual parameters pulled towards the population; a $\Delta(-2LL)$ of 2 or 3 points = importance-sampling noise.
+- Reading the outputs: RSE > 50% on an `omega` signals an imprecisely estimated variance, not absence of IIV; shrinkage progressively reduces individual information; a $\Delta(-2LL)$ of 2 or 3 points may reflect importance-sampling noise.
 <!-- /step -->

@@ -47,7 +47,9 @@ export function GET() {
       loc: absolute(`/chapitres/${c.slug}/`),
       // `lastmod` n'est posé que si le frontmatter porte une date de révision valide :
       // une date inventée vaut moins qu'une date absente.
-      lastmod: /^\d{4}-\d{2}-\d{2}$/.test(c.reviewed_on ?? '') ? c.reviewed_on : undefined
+      lastmod: /^\d{4}-\d{2}-\d{2}$/.test(c.updated_on ?? '')
+        ? c.updated_on
+        : /^\d{4}-\d{2}-\d{2}$/.test(c.reviewed_on ?? '') ? c.reviewed_on : undefined
     });
   }
 

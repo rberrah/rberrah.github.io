@@ -47,6 +47,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amikacine",
         "Burdet",
@@ -115,6 +118,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amiodarone",
         "Pollak",
@@ -179,6 +185,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amoxicilline",
         "Carlier",
@@ -245,6 +254,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amoxicilline",
         "Fournier",
@@ -317,6 +329,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amoxicilline",
         "Mellon",
@@ -389,6 +404,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Amoxicilline",
         "Rambaud",
@@ -458,6 +476,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefazoline",
         "Cheng",
@@ -526,6 +547,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefazoline",
         "Lanoiselee",
@@ -594,6 +618,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefazoline",
         "Schmitz",
@@ -661,6 +688,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefepime",
         "An",
@@ -727,6 +757,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefepime",
         "Jonckheere",
@@ -797,6 +830,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cefepime",
         "Seo",
@@ -865,6 +901,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Ciclosporine",
         "Press",
@@ -933,6 +972,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Cobicistat",
         "Mathias",
@@ -1000,6 +1042,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Daptomycine",
         "Dvorchik IV Adults",
@@ -1069,6 +1114,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Daptomycine",
         "Garreau",
@@ -1138,6 +1186,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Diltiazem",
         "Hermann",
@@ -1205,6 +1256,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Érythromycine",
         "Mather",
@@ -1272,6 +1326,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Évérolimus",
         "Moes",
@@ -1341,6 +1398,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Évérolimus",
         "Terheine",
@@ -1410,6 +1470,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Fluconazole",
         "Debruyne",
@@ -1476,6 +1539,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Gentamicine",
         "Franck",
@@ -1544,6 +1610,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Gentamicine",
         "Gomes",
@@ -1612,6 +1681,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Gentamicine",
         "Hodiamont",
@@ -1678,6 +1750,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Gentamicine",
         "Rosario Clcr",
@@ -1745,6 +1820,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Gentamicine",
         "Rosario Clinical",
@@ -1813,6 +1891,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Isavuconazole",
         "Desai",
@@ -1880,6 +1961,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Isavuconazole",
         "Groll",
@@ -1946,6 +2030,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Levofloxacine",
         "Canoui",
@@ -2013,6 +2100,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Levofloxacine",
         "Gergs",
@@ -2084,6 +2174,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Linezolide",
         "Buerger",
@@ -2156,6 +2249,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Linezolide",
         "Sasaki",
@@ -2228,6 +2324,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Posaconazole",
         "Dolton",
@@ -2297,6 +2396,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Rifampicine",
         "Chang",
@@ -2369,6 +2471,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Rifampicine",
         "Jeremiah",
@@ -2438,6 +2543,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Rifampicine",
         "Jing",
@@ -2506,6 +2614,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Rifampicine",
         "Loos",
@@ -2573,6 +2684,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Rifampicine",
         "Marsot",
@@ -2641,6 +2755,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Ritonavir",
         "Kappelhoff",
@@ -2707,6 +2824,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Sirolimus",
         "Djebli",
@@ -2773,6 +2893,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Tacrolimus",
         "Kamp Envarsus",
@@ -2839,6 +2962,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Tacrolimus",
         "Woillard",
@@ -2905,6 +3031,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Vancomycine",
         "Goti",
@@ -2975,6 +3104,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Vancomycine",
         "Pkjust",
@@ -3044,6 +3176,9 @@
       "implementationStatus": "ARTICLE",
       "implementationStatusLabel": "Implémentation de l'article",
       "implementationStatusLabelEn": "Article implementation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Vancomycine",
         "Roberts",
@@ -3111,6 +3246,9 @@
       "implementationStatus": "ADAPTED",
       "implementationStatusLabel": "Adaptation documentée",
       "implementationStatusLabelEn": "Documented adaptation",
+      "verificationStatus": "SOFTWARE_TESTED",
+      "validationStatus": "NONE",
+      "contextOfUse": "TEACHING_RESEARCH",
       "tags": [
         "Voriconazole",
         "Vandenborn",

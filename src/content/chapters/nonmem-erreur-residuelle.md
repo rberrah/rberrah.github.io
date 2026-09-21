@@ -13,6 +13,7 @@ prerequisites: ["tools-nonmem"]
 glossary: []
 slides: []
 sources: ["nonmem", "beal-bql", "hooker-cwres", "berrah-residual"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Avec une erreur proportionnelle ou combinée, l'option INTER du bloc ESTIMATION est nécessaire parce que..."
@@ -150,7 +151,7 @@ Demander `METHOD=1` sans `INTER` avec une erreur proportionnelle ou combinée es
 
 Or l'erreur proportionnelle fait précisément dépendre l'écart-type de $F$, donc de l'ETA du sujet. Un patient dont la clairance vaut le double de la clairance typique a de vraies concentrations plus basses, donc une vraie erreur absolue plus petite : lui coller la barre d'erreur du patient moyen fausse son poids. Les sujets extrêmes sont les plus mal traités, la variance résiduelle sort biaisée, et les ETA se déforment pour compenser.
 
-La règle est sans exception : **erreur non additive → `INTER`**. Le surcoût est quelques minutes de calcul. Avec une erreur strictement additive, `INTER` ne change rien, puisque l'écart-type ne dépend alors plus de l'ETA.
+Avec FOCE, dès que le modèle d'erreur fait dépendre la variance résiduelle de la prédiction individuelle — cas usuel des erreurs proportionnelles ou combinées — utilisez `INTER`. Le surcoût est quelques minutes de calcul. Avec une erreur strictement additive homoscédastique, l'interaction η–ε disparaît généralement, puisque l'écart-type ne dépend alors plus de l'ETA.
 
 :::pitfall
 **Le `FIX` oublié.** Avec `Y = IPRED + W*EPS(1)`, si la variance résiduelle est estimée au lieu d'être fixée à 1, alors `W` et $\sigma$ se **multiplient** : seul leur produit est identifiable, jamais les deux séparément. NONMEM ne refuse pas de tourner — il dérive, l'étape de covariance échoue ou rend une matrice singulière, et THETA(4)/THETA(5) prennent des valeurs qui ne veulent plus rien dire. Dans cette paramétrisation, `1 FIX` n'est pas une option de style.
@@ -161,7 +162,7 @@ La règle est sans exception : **erreur non additive → `INTER`**. Le surcoût 
 - Le bloc d'erreur ne décrit pas du bruit : il distribue les **poids** de l'estimation. Chaque point entre dans la vraisemblance divisé par son écart-type.
 - Trois formes : additive (`Y = F + EPS(1)`), proportionnelle (`Y = F*(1+EPS(1))`), combinée (`Y = F*(1+EPS(1)) + EPS(2)`). La variance résiduelle se déclare en **variance**, pas en écart-type.
 - Préférer la paramétrisation par `W` avec une variance fixée à 1 : termes lisibles en unités physiques, positivité garantie, IWRES disponible.
-- Erreur non additive → `INTER` à l'estimation, sans exception.
+- Sous FOCE, utilisez `INTER` dès que la variance résiduelle dépend de la prédiction individuelle ; l'effet disparaît généralement avec une erreur strictement additive homoscédastique.
 - BQL : M1 tronque la queue par le bas et sous-estime la clairance ; M3 traite les points comme **censurés** (`F_FLAG` à 1, `PHI`, `LAPLACIAN`) et reste le choix par défaut au-delà de quelques pour cent de BQL.
 - Diagnostics : **IWRES** juge le modèle d'erreur, **CWRES** juge le reste, **WRES** est un vestige calculé sous FO.
 <!-- /step -->

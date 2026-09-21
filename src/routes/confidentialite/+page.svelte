@@ -48,8 +48,8 @@
     : 'La désactivation enregistre uniquement la préférence skipgc dans ce navigateur, commune au portail et au cours. Elle s’applique aux prochaines visites, sans effacer les statistiques déjà recueillies. Les aperçus locaux et les pages intégrées dans une iframe n’envoient aucune mesure d’audience.'}</p>
   <h2>{en ? 'Hosting and clinical tools' : 'Hébergement et outils cliniques'}</h2>
   <p>{en
-    ? 'GitHub Pages hosts the public site; Shiny is hosted separately. Their technical logs and policies are distinct from this audience measurement. GoatCounter is not loaded in Shiny and does not receive data exchanged with the R engine. Personal models and patient data are not added to the analytics or the repository.'
-    : 'GitHub Pages héberge le site public ; Shiny est hébergé séparément. Leurs journaux techniques et politiques sont distincts de cette mesure d’audience. GoatCounter n’est pas chargé dans Shiny et ne reçoit pas les données échangées avec le moteur R. Les modèles personnels et les données patient ne sont pas ajoutés aux statistiques ni au dépôt.'}</p>
+    ? 'GitHub Pages hosts the public site; Shiny is hosted separately. Their technical logs and policies are distinct from this audience measurement. GoatCounter is not loaded in Shiny and does not receive data exchanged with the R engine. The application is designed not to persist patient data or personal models beyond the calculation session; they are not added to the analytics or the repository. Shiny hosting logs and runtime mechanisms are governed separately.'
+    : 'GitHub Pages héberge le site public ; Shiny est hébergé séparément. Leurs journaux techniques et politiques sont distincts de cette mesure d’audience. GoatCounter n’est pas chargé dans Shiny et ne reçoit pas les données échangées avec le moteur R. L’application est conçue pour ne pas persister les données patient ni les modèles personnels au-delà de la session de calcul ; ils ne sont pas ajoutés aux statistiques ni au dépôt. Les journaux et mécanismes d’hébergement Shiny relèvent de politiques distinctes.'}</p>
   <p><a href={`${SITE_ORIGIN}/contact/`} data-sveltekit-reload>Contact</a></p>
 </section>
 

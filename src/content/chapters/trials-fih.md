@@ -11,6 +11,7 @@ level: "advanced"
 tags: ["clinical-trials", "first-in-human", "mabel", "starting-dose"]
 slides: []
 sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "holford-sheiner-dose-effect"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
@@ -48,7 +49,9 @@ La **pharmacologie** part du bas : la plus faible dose susceptible de produire u
 <!-- step:title="La formule décortiquée" viz="EmaxHill" -->
 Du **NOAEL** animal, on dérive la dose humaine maximale de départ (MRSD) par mise à l'échelle allométrique et facteurs de sécurité :
 
-$$ \text{HED} = \text{NOAEL}\times\left(\frac{W_{animal}}{W_{humain}}\right)^{0{,}33},\qquad \text{MRSD} = \frac{\text{HED}}{\text{facteur de sécurité}} $$
+$$ \text{HED}_{mg/kg} = \text{NOAEL}_{mg/kg}\times\left(\frac{W_{animal}}{W_{humain}}\right)^{0{,}33},\qquad \text{MRSD} = \frac{\text{HED}}{\text{facteur de sécurité}} $$
+
+Cette écriture est une représentation pédagogique de la conversion par surface corporelle ; ce n'est pas la seule méthode possible pour choisir une dose de départ.
 
 Le **MABEL** s'appuie sur un ensemble de données pharmacologiques : relation exposition–occupation de cible, activité in vitro, PK/PD, espèces pertinentes et incertitude. Une occupation faible (par exemple 10 %) peut être un scénario de calcul, mais ce n'est pas une règle générale.
 

@@ -11,6 +11,7 @@ level: "intermediate"
 tags: ["pharmacodynamics", "emax", "hill", "direct-effect"]
 slides: []
 sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
+updated_on: "2026-09-21"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un modèle à effet direct suppose que l'effet..."
