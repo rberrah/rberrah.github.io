@@ -354,6 +354,12 @@ sensitivity <- model_averaging_sensitivity(
   delta = 0.2
 )
 stopifnot(nrow(sensitivity) >= 2L, all(is.finite(sensitivity$target_value)))
+
+if (identical(Sys.getenv("TDM_SMOKE_CORE_ONLY"), "true")) {
+  cat("TDM engine core smoke test OK (ML artifact checks skipped).\n")
+  quit(save = "no", status = 0L)
+}
+
 ml_manifest <- read_ml_manifest()
 artifact_for <- function(model_id, mode) {
   matches <- Filter(function(artifact) {
