@@ -12,7 +12,7 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
-  reporter: 'list',
+  reporter: process.env.CI ? [['list'], ['github']] : 'list',
   use: {
     baseURL: process.env.LABS_E2E_URL || `http://localhost:${PORT}`,
     trace: 'on-first-retry'

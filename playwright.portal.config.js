@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   testMatch: 'portal.spec.js',
   timeout: 30_000,
-  reporter: 'list',
+  reporter: process.env.CI ? [['list'], ['github']] : 'list',
   use: { ...devices['Desktop Chrome'], trace: 'on-first-retry' },
   webServer: process.env.PORTAL_E2E_URL ? undefined : {
     command: 'node scripts/preview_portal.mjs 4181',
