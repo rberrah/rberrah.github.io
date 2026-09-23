@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { parseModelCode, parseMlxtran } from '../src/lib/lego/mlxtran.js';
-import { samtaniRaw, tjollynRaw, suppliedModels, externalModels } from './fixtures/lego-imports.mjs';
+import { hints, samtaniRaw, tjollynRaw, suppliedModels, externalModels } from './fixtures/lego-imports.mjs';
 
 const close=(a,b)=>assert(Math.abs(a-b)<1e-10*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 const getNode=(s,name)=>s.nodes.find(n=>n.name===name);
-const parameter=(s,target,base,covs)=>s.covariates.filter(c=>c.target===target).reduce((v,c)=>v*(c.type==='categorical'
-  ? covs[c.name]===c.comparison ? Math.exp(c.beta):1 : (covs[c.name]/c.reference)**c.beta),base);
+const parameter=(s,target,base,covs)=>{
+  const effects=s.covariates.filter(c=>c.target===target);
+  const multiplied=effects.filter(c=>c.form!=='linear-additive').reduce((v,c)=>v*(c.type==='categorical'
+    ? covs[c.name]===c.comparison ? Math.exp(c.beta):1 : (covs[c.name]/c.reference)**c.beta),base);
+  return multiplied+effects.filter(c=>c.form==='linear-additive').reduce((v,c)=>v+c.beta*(Math.min(covs[c.name],c.maximum??Infinity)-c.reference),0);
+};
 function rhs(s,amounts,covs) {
   const result=Object.fromEntries(s.nodes.map(n=>[n.name,0]));
   for (const edge of s.edges) {
@@ -127,8 +131,8 @@ assert.throws(()=>parseModelCode(base.replace('-CL*CENT/V','-(CL+2)*CENT/V'),'mr
 
 // New supplied examples remain local. Do not include publisher supplements in git.
 for (const [filename,expected] of [
-  ['magnusson PP3.txt','recognized'], ['Korell oral.txt','unsupportedEquation'],
-  ['separado ORAL+LAI.txt','unsupportedEquation'], ['2017. Korell code oral.txt','unsupportedStructure'],
+  ['magnusson PP3.txt','recognized'], ['Cirincione.txt','recognized'], ['Korell oral.txt','recognized'],
+  ['separado ORAL+LAI.txt','recognized'], ['2017. Korell code oral.txt','unsupportedStructure'],
   ['2017. Korell code oral ris.txt','unsupportedStructure'], ['2017. Korell code ris LAI.txt','unsupportedStructure'],
   ['2017. Korell code PP1.txt','unsupportedEquation'],
   ['Samtani PP1 - valeurs article.txt','recognized'], ['Tjollyn PP6 - valeurs article.txt','recognized']
@@ -141,7 +145,45 @@ for (const [filename,expected] of [
     assert.equal(r.mode,'recognized');
     if (filename.includes('valeurs article')) assert(!r.warnings.some(w=>w.code==='populationDefaults'));
     if (filename.includes('magnusson')) { assert.equal(r.spec.nodes.length,3); assert.equal(r.spec.edges.length,3); assert.equal(r.spec.covariates.length,8); }
+    if (filename==='Cirincione.txt' || filename==='Korell oral.txt') {
+      assert.equal(r.spec.nodes.find(node=>node.name==='Ap')?.kind,'periph');
+      assert.equal(r.spec.edges.filter(edge=>edge.transferParameterization==='clearance').length,2);
+      assert.equal(r.spec.covariates.find(covariate=>covariate.name==='CRCL')?.form,'linear-additive');
+      if (filename==='Korell oral.txt') assert.equal(r.spec.covariates.find(covariate=>covariate.name==='CRCL')?.maximum,150);
+    }
+    if (filename==='separado ORAL+LAI.txt') assert(r.warnings.some(warning=>warning.code==='multipleAdministrations'));
   } else assert.throws(()=>parseModelCode(code,format),e=>e.code===expected);
   console.log(`LOCAL ${filename}: ${expected}`);
+}
+
+const articleModel=(weight,reference,values,maximum)=>`${hints(values)}[LONGITUDINAL]
+input={Cl,Q,Vc,Vp,Tlag1,F,D1,Ka,${weight},CRCL,beta_${weight},beta_CRCL}
+${weight}={use=regressor}
+CRCL={use=regressor}
+EQUATION:
+Cl_cov=Cl*(${weight}/${reference})^beta_${weight}+${maximum ? `min(CRCL,${maximum})` : 'CRCL'}*beta_CRCL
+k12=Q/Vc
+k21=Q/Vp
+k=Cl_cov/Vc
+PK:
+depot(target=Ad,p=F,Tlag=Tlag1,Tk0=D1)
+EQUATION:
+ddt_Ad=-Ka*Ad
+ddt_Ac=Ka*Ad-k12*Ac+k21*Ap-k*Ac
+ddt_Ap=k12*Ac-k21*Ap
+Cc=Ac/Vc
+OUTPUT:
+output={Cc}
+`;
+for (const item of [
+  {id:'Cirincione', weight:'LBM', reference:58.4, values:{Cl:8.02,Q:34.5,Vc:260,Vp:227,Tlag1:.668,F:1,D1:23.9,Ka:.565,beta_LBM:.636,beta_CRCL:.0512}, cov:{LBM:58.4,CRCL:114}, expected:13.8568},
+  {id:'Korell', weight:'WT', reference:74.4, maximum:150, values:{Cl:10.9,Q:22,Vc:198,Vp:244,Tlag1:.761,F:1,D1:25.4,Ka:.630,beta_WT:.727,beta_CRCL:.024}, cov:{WT:74.4,CRCL:200}, expected:14.5}
+]) {
+  const parsed=parseMlxtran(articleModel(item.weight,item.reference,item.values,item.maximum));
+  const edge=parsed.spec.edges.find(candidate=>candidate.to==='OUT');
+  close(parameter(parsed.spec,'cl_Ac',edge.cl,item.cov),item.expected);
+  close(parsed.spec.nodes.find(node=>node.name==='Ap').vol,item.values.Vp);
+  close(parsed.spec.edges.find(candidate=>candidate.transferParameterization==='clearance').q,item.values.Q);
+  console.log(`ARTICLE ${item.id}: additive renal clearance preserved`);
 }
 console.log('External model import regressions passed.');

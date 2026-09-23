@@ -16,8 +16,9 @@ than identifying an article from variable names.
 
 Expressions are parsed with jsep, never evaluated as JavaScript or C++. Alias
 resolution, mass-balance matching and covariate decomposition are bounded.
-Conditional assignments used in PK, unknown identifiers in native code, and
-unsupported sums of covariate contributions are rejected. The prior diagram
+Conditional assignments used in PK and unknown identifiers in native code are
+rejected. Additive linear clearance contributions are supported, including an
+optional upper bound on the covariate; other unsupported sums remain rejected. The prior diagram
 remains unchanged when parsing fails. Comments and DESCRIPTION text are not
 model equations.
 
@@ -28,8 +29,9 @@ model equations.
 | Samtani PP1 | Recognized | 2 states, 2 transfers, 12 covariate effects; complementary fractions and Tk0=Tlag |
 | T'jollyn PP6 | Recognized | 3 states, 3 transfers, 8 effects; Hill slow absorption and Michaelis-Menten rapid absorption |
 | Magnusson PP3 | Recognized | Same structural equations as the supplied PP6 file; missing values remain placeholders |
-| Korell oral | Explicitly unsupported | Sum of covariate contributions to clearance cannot be encoded as independent multiplicative Lego effects |
-| separado ORAL+LAI | Explicitly unsupported | Includes that clearance sum, multiple administration IDs and a summed concentration output |
+| Cirincione oral ER | Recognized | 2-compartment disposition, zero-order then first-order absorption, LBM power effect and additive renal clearance |
+| Korell oral | Recognized | 2-compartment disposition, additive renal clearance and CrCL capped at 150 mL/min |
+| separado ORAL+LAI | Structure recognized with warnings | Multiple administration IDs are reduced to the selected route; the summed concentration output is not transferred |
 
 PP6 equivalence is checked independently over 32 covariate combinations and
 four depot amounts. In the original denominator,
@@ -62,6 +64,16 @@ supplements and article PDFs remain outside git.
   example explicitly follows Table 2. V=156 L is an alternative subgroup in
   the paper, not the default used here. This is not a validation of the complete
   published statistical model.
+- [Cirincione 2007](https://www.simulations-plus.com/assets/192_poster72_ASCPT_v2_2007mar15.pdf), Table 1:
+  `CL/F = 8.02*(LBM/58.4)^0.636 + 0.0512*CrCL`, Vc/F=260 L,
+  Q/F=34.5 L/h, Vp/F=227 L, ka=0.565/h, D1=23.9 h and Alag1=0.668 h.
+  The supplied equation originally multiplied the renal contribution by `Cl`;
+  the local reviewed example now uses the published additive expression.
+- [Korell 2017](https://doi.org/10.1002/psp4.12217) and its supplied control stream:
+  `CL/F = 10.9*(WT/74.4)^0.727 + 0.024*min(CrCL,150)`, Vc/F=198 L,
+  Q/F=22 L/h, Vp/F=244 L, ka=0.630/h, D1=25.4 h and Alag1=0.761 h.
+  The local reviewed MLXTRAN example now preserves both the additive term and
+  the published CrCL cap.
 
 ## Other Languages And Library
 

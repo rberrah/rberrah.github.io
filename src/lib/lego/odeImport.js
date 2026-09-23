@@ -221,9 +221,33 @@ export function equationReader(raw, builder, regressorNames = []) {
     if (typeof expression === 'string' && /^\w+$/.test(expression)) builder.register(expression,target);
     return result;
   };
+  const bindAdditive = (expression, target) => {
+    const ast = product([...factors(expanded(expression)).values()]);
+    const entries = [...factors(ast).values()].filter(f=>f.power);
+    const linear = entry => {
+      if (entry.power!==1) return null;
+      if (entry.ast.type==='Identifier' && regressors.has(entry.ast.name.toLowerCase())) return {name:entry.ast.name};
+      if (entry.ast.type==='CallExpression' && entry.ast.callee.name.toLowerCase()==='min' && entry.ast.arguments.length===2) {
+        const cov=entry.ast.arguments.find(arg=>arg.type==='Identifier' && regressors.has(arg.name.toLowerCase()));
+        const limit=entry.ast.arguments.find(arg=>arg!==cov && !containsCov(arg));
+        if (cov && limit) return {name:cov.name,maximum:numeric(limit)};
+      }
+      return null;
+    };
+    const regressor = entries.map(entry=>({entry,definition:linear(entry)})).filter(item=>item.definition);
+    if (regressor.length!==1 || entries.some(f=>f!==regressor[0].entry && containsCov(f.ast))) return unsupported(key(ast));
+    const coefficient = product(entries.filter(f=>f!==regressor[0].entry));
+    const beta = numeric(coefficient);
+    if (!Number.isFinite(beta)) return unsupported(key(ast));
+    const name = regressor[0].definition.name.toUpperCase();
+    if (covariates.some(c=>c.name===name && c.target===target)) return unsupported(key(ast));
+    const comparison = references.get(name.toLowerCase()) ?? builder.hints.get(name.toLowerCase()) ?? 1;
+    covariates.push({name,type:'continuous',form:'linear-additive',reference:0,comparison,beta,maximum:regressor[0].definition.maximum,scope:'patient',target});
+    return beta;
+  };
   const assertUnconditional = name => { if (invalid.has(name.toLowerCase())) unsupported(); };
   for (const name of builder.missing) if (assignments.has(name.toLowerCase())) builder.missing.delete(name);
-  return {assignments, expanded, numeric, value, bind, covariates, assertUnconditional};
+  return {assignments, expanded, numeric, value, bind, bindAdditive, covariates, assertUnconditional};
 }
 
 export function codeOdeGraph(raw, builder, regressors = []) {
@@ -259,9 +283,6 @@ export function reconstructOdes(raw, builder, reader, volumes = new Map()) {
     if (gains.length > 1) return unsupported();
     const gain = gains[0]; if (gain) gain.used = true;
     const to = gain?.node ?? 'OUT';
-    // Multiple scalar contributions to the same edge need a summed parameter
-    // expression, not duplicate Lego parameter names with silently merged betas.
-    if (builder.edges.some(e=>e.from===loss.node.id && e.to===(to==='OUT'?'OUT':to.id))) return unsupported(`${loss.node.name} -> ${to==='OUT'?'OUT':to.name}: ${key(loss.ast)}`);
     const state = loss.node.name.toLowerCase();
     const entries = [...factors(loss.ast).values()].filter(f=>f.power);
     const numerator = entries.find(f=>f.power===1 && (f.ast.type==='Identifier' && f.ast.name.toLowerCase()===state || f.ast.type==='BinaryExpression' && f.ast.operator==='^' && f.ast.left.type==='Identifier' && f.ast.left.name.toLowerCase()===state));
@@ -270,6 +291,16 @@ export function reconstructOdes(raw, builder, reader, volumes = new Map()) {
     const denominators = entries.filter(f=>f!==numerator && stateNames(f.ast).length);
     const coefficient = product(entries.filter(f=>f!==numerator && !denominators.includes(f)));
     const suffix = `${loss.node.name}_${to==='OUT'?'e':to.name}`;
+    const existing = builder.edges.find(e=>e.from===loss.node.id && e.to===(to==='OUT'?'OUT':to.id));
+    if (existing) {
+      if (denominators.length || numerator.ast.type!=='Identifier' || existing.kinetics!=='first_order') return unsupported(`${loss.node.name} -> ${to==='OUT'?'OUT':to.name}: ${key(loss.ast)}`);
+      if (to==='OUT' && volumes.has(loss.node.id) && existing.eliminationParameterization==='clearance') {
+        reader.bindAdditive(binary('*',coefficient,reader.expanded(volumes.get(loss.node.id))),`cl_${loss.node.name}`);
+      } else if (existing.eliminationParameterization!=='clearance' && existing.transferParameterization!=='clearance') {
+        reader.bindAdditive(coefficient,`k_${suffix}`);
+      } else return unsupported(`${loss.node.name} -> ${to==='OUT'?'OUT':to.name}: ${key(loss.ast)}`);
+      continue;
+    }
     if (!denominators.length && numerator.ast.type==='Identifier') {
       const edge = builder.addEdge(loss.node,to);
       if (to==='OUT' && volumes.has(loss.node.id)) {

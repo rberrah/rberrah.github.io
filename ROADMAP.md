@@ -219,8 +219,8 @@ Voir [hypotheses et verifications](docs/teaching-laboratories.md).
 ## 5. Lego : import fidele des modeles complexes
 
 - [ ] **K01 / P1** Etendre la representation des parametres avec des expressions structurees et bornees : alias, sommes, produits, puissances, fonctions autorisees et conditions. Reutiliser l'analyse AST existante ; aucune evaluation de code source arbitraire.
-- [ ] **K02 / P1** Premier cas cible : Korell oral. Representer les contributions additives a CL, puis les conditions/plafonds requis. Signaler les divergences entre les fichiers MLXTRAN, NONMEM et l'article ; ne pas corriger silencieusement une equation importee.
-- [ ] **K03 / P1** Propager ces expressions dans l'interface, le calcul navigateur, les exports mrgsolve/MLXTRAN/NONMEM et la regeneration R securisee. Afficher les parametres derives comme derives ; conserver les valeurs manquantes a 1 avec avertissement.
+- [x] **K02 / P1** Premier cas cible : Korell oral. Contributions additives a CL et plafond CrCL representes ; divergences des exemples Cirincione/Korell documentees et exemples locaux corriges d'apres les sources.
+- [x] **K03 / P1** Effet lineaire additif propage dans l'interface, le calcul navigateur, les exports mrgsolve/MLXTRAN/NONMEM et la regeneration R securisee. Les valeurs manquantes restent a 1 avec avertissement.
 - [ ] **K04 / P2** Ajouter les administrations identifiees et leur affectation aux depots, fractions, delais, entrees d'ordre zero, unites et evenements ; preserver les branches paralleles sans compartiment technique non relie.
 - [ ] **K05 / P2** Ajouter des sorties nommees, dont la somme des concentrations de plusieurs composantes. Cas cible : oral + PP1/PP3/PP6, puis parent/metabolite quand les flux correspondants sont representables.
 - [ ] **K06 / P2** Refaire les tests dans les deux sens, avec et sans metadonnees embarquees : equations, courbes et covariables sur une grille de cas. Ajouter les modeles de bibliotheque et exemples primaires en ligne dont la redistribution est autorisee.

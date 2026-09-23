@@ -37,8 +37,8 @@
       reference: 'référence', rescaled: 'rééch.', name: 'Nom', source: 'Source', addElimination: 'Ajouter une élimination', remove: 'Supprimer',
       editorTip: "Cliquez un compartiment pour l'éditer (nom, volume, dose…), puis glissez-le pour le déplacer.", transferRates: 'Flux de transfert', rateAria: 'Paramètre de transfert', to: 'vers',
       covariates: 'Covariables', addContinuousAria: 'Ajouter une covariable continue', addCategoricalAria: 'Ajouter une covariable catégorielle', continuous: 'Continue', categorical: 'Catégorielle',
-      covariateHelp: "Continue : P = TV × (COV/réf)^β. Catégorielle : P = TV × exp(β) pour la modalité comparée. Une même covariable peut cibler plusieurs paramètres, avec un β propre à chacun. Une covariable d'administration peut changer à chaque dose dans le TDM.", type: 'Type', targetParameter: 'Paramètre cible', addTargetParameter: 'Ajouter un effet', covariateDefinition: 'Définition de la covariable', covariateEffects: 'Effets sur les paramètres', duplicateCovariateName: 'Ce nom est déjà utilisé par une autre covariable.',
-      categoryReference: 'Modalité réf.', referenceValue: 'Référence', categoryComparison: 'Modalité comparée', comparisonValue: 'Valeur comparée', compareCurve: 'Comparer sur la courbe',
+      covariateHelp: "Continue : effet puissance P × (COV/réf)^β ou contribution linéaire P + β × (COV−réf). Catégorielle : P × exp(β) pour la modalité comparée. Une même covariable peut cibler plusieurs paramètres, avec un β propre à chacun.", type: 'Type', targetParameter: 'Paramètre cible', addTargetParameter: 'Ajouter un effet', covariateDefinition: 'Définition de la covariable', covariateEffects: 'Effets sur les paramètres', duplicateCovariateName: 'Ce nom est déjà utilisé par une autre covariable.', effectForm: "Forme de l'effet", powerEffect: 'Puissance multiplicative', additiveLinearEffect: 'Linéaire additive',
+      categoryReference: 'Modalité réf.', referenceValue: 'Référence', categoryComparison: 'Modalité comparée', comparisonValue: 'Valeur comparée', maximumValue: 'Plafond (facultatif)', compareCurve: 'Comparer sur la courbe',
       inputSettings: 'Administration dans ce compartiment', inputType: "Type d'entrée", bolusInput: 'Bolus / entrée instantanée', zeroOrderInput: "Entrée d'ordre zéro", inputDuration: "Durée d'entrée (h)", lagTime: 'Délai Tlag (h)', doseFraction: 'Fraction de dose (%)',
       inputHelp: "Plusieurs compartiments dosés créent des voies parallèles. Les fractions s'appliquent à une même dose et doivent totaliser 100 %. Reliez les compartiments en chaîne pour une absorption séquentielle.",
       complementaryFraction: 'Complément de la fraction', independentFraction: 'Fraction indépendante', durationLinked: 'Durée égale au Tlag de', independentDuration: 'Durée indépendante',
@@ -59,8 +59,8 @@
       reference: 'reference', rescaled: 'rescaled', name: 'Name', source: 'Source', addElimination: 'Add elimination', remove: 'Remove',
       editorTip: 'Select a compartment to edit its name, volume or dose, then drag it to reposition it.', transferRates: 'Transfer flows', rateAria: 'Transfer parameter', to: 'to',
       covariates: 'Covariates', addContinuousAria: 'Add a continuous covariate', addCategoricalAria: 'Add a categorical covariate', continuous: 'Continuous', categorical: 'Categorical',
-      covariateHelp: 'Continuous: P = TV × (COV/ref)^β. Categorical: P = TV × exp(β) for the compared category. One covariate can target several parameters, with a separate β for each. An administration covariate can change at each dose in TDM.', type: 'Type', targetParameter: 'Target parameter', addTargetParameter: 'Add effect', covariateDefinition: 'Covariate definition', covariateEffects: 'Parameter effects', duplicateCovariateName: 'This name is already used by another covariate.',
-      categoryReference: 'Reference category', referenceValue: 'Reference', categoryComparison: 'Compared category', comparisonValue: 'Compared value', compareCurve: 'Compare on chart',
+      covariateHelp: 'Continuous: multiplicative power P × (COV/ref)^β or additive linear contribution P + β × (COV−ref). Categorical: P × exp(β) for the compared category. One covariate can target several parameters, with a separate β for each.', type: 'Type', targetParameter: 'Target parameter', addTargetParameter: 'Add effect', covariateDefinition: 'Covariate definition', covariateEffects: 'Parameter effects', duplicateCovariateName: 'This name is already used by another covariate.', effectForm: 'Effect form', powerEffect: 'Multiplicative power', additiveLinearEffect: 'Additive linear',
+      categoryReference: 'Reference category', referenceValue: 'Reference', categoryComparison: 'Compared category', comparisonValue: 'Compared value', maximumValue: 'Maximum (optional)', compareCurve: 'Compare on chart',
       inputSettings: 'Administration into this compartment', inputType: 'Input type', bolusInput: 'Bolus / instantaneous input', zeroOrderInput: 'Zero-order input', inputDuration: 'Input duration (h)', lagTime: 'Tlag (h)', doseFraction: 'Dose fraction (%)',
       inputHelp: 'Multiple dosed compartments create parallel pathways. Fractions apply to one common dose and must total 100%. Connect compartments in a chain for sequential absorption.',
       complementaryFraction: 'Complement of fraction', independentFraction: 'Independent fraction', durationLinked: 'Duration equals Tlag of', independentDuration: 'Independent duration',
@@ -112,7 +112,7 @@
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, inputDurationTlagOf?:number, tlag?:number, doseFraction?:number, fractionComplementOf?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number, growth?:string, t0?:number, kg?:number, cap?:number, kill?:number, ec50?:number, res?:number, mechanism?:string, factor?:number, strength?:number, c50?:number, hill?:number, kdeg?:number, kinact?:number, targetFrom?:number, targetTo?:number|'OUT'}} Node */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten'|'hill', vmax?:number, km?:number, gamma?:number, eliminationParameterization?:'rate'|'clearance', cl?:number, transferParameterization?:'rate'|'clearance', q?:number}} Edge */
-  /** @typedef {{id:number, name:string, type:'continuous'|'categorical', scope?:'patient'|'administration', target:string, reference:number, comparison:number, beta:number, compare:boolean}} Covariate */
+  /** @typedef {{id:number, name:string, type:'continuous'|'categorical', form?:'power'|'linear-additive', scope?:'patient'|'administration', target:string, reference:number, comparison:number, maximum?:number, beta:number, compare:boolean}} Covariate */
 
   /** @type {Record<string, {color:string, vol:boolean, plot:boolean, special?:string}>} */
   const KINDS = {
@@ -350,8 +350,9 @@
     if (!Array.isArray(specification.covariates ?? []) || (specification.covariates?.length ?? 0) > 50) throw new Error('unsupportedStructure');
     const importedCovariates = (specification.covariates ?? []).map((/** @type {any} */ covariate) => ({
       ...covariate, id: next++, type: covariate.type === 'categorical' ? 'categorical' : 'continuous',
+      form: covariate.type !== 'categorical' && covariate.form === 'linear-additive' ? 'linear-additive' : 'power',
       scope: covariate.scope === 'administration' ? 'administration' : 'patient',
-      reference: Number(covariate.reference), comparison: Number(covariate.comparison), beta: Number(covariate.beta), compare: covariate.compare !== false
+      reference: Number(covariate.reference), comparison: Number(covariate.comparison), maximum: Number.isFinite(Number(covariate.maximum)) ? Number(covariate.maximum) : undefined, beta: Number(covariate.beta), compare: covariate.compare !== false
     }));
     if (!advancedGraphValid(importedNodes, importedEdges)) throw new Error('unsupportedStructure');
     nodes = importedNodes;
@@ -500,7 +501,19 @@
     return covariate.type === 'categorical' ? 'categorical' : 'continuous';
   }
 
+  function covariateForm(/** @type {Covariate} */ covariate) {
+    return covariateType(covariate) === 'continuous' && covariate.form === 'linear-additive' ? 'linear-additive' : 'power';
+  }
+
+  function covariateCode(/** @type {Covariate} */ covariate, /** @type {'r'|'cpp'|'mlx'|'nonmem'} */ format) {
+    const name = covariateName(covariate.name);
+    if (!Number.isFinite(Number(covariate.maximum))) return name;
+    const fn = format === 'r' ? 'pmin' : format === 'cpp' ? 'fmin' : format === 'nonmem' ? 'MIN' : 'min';
+    return `${fn}(${name},${fmt(Number(covariate.maximum))})`;
+  }
+
   function covariateFactor(/** @type {Covariate} */ covariate, /** @type {number} */ value) {
+    value = Number.isFinite(Number(covariate.maximum)) ? Math.min(value, Number(covariate.maximum)) : value;
     if (covariateType(covariate) === 'categorical') {
       return value === Number(covariate.comparison) ? Math.exp(Number(covariate.beta)) : 1;
     }
@@ -540,9 +553,17 @@
     const plotNodes = currentNodes.filter((node) => KINDS[node.kind].plot);
 
     const run = (/** @type {Map<string, number>} */ values, untreated = false) => {
-      const adjusted = (/** @type {string} */ name, /** @type {number} */ base) => usableCovariates
-        .filter((covariate) => covariate.target === name)
-        .reduce((value, covariate) => value * covariateFactor(covariate, values.get(covariateName(covariate.name)) ?? Number(covariate.reference)), base);
+      const adjusted = (/** @type {string} */ name, /** @type {number} */ base) => {
+        const effects = usableCovariates.filter((covariate) => covariate.target === name);
+        const multiplied = effects.filter((covariate) => covariateForm(covariate) !== 'linear-additive')
+          .reduce((value, covariate) => value * covariateFactor(covariate, values.get(covariateName(covariate.name)) ?? Number(covariate.reference)), base);
+        return multiplied + effects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
+          .reduce((value, covariate) => {
+            const raw = values.get(covariateName(covariate.name)) ?? Number(covariate.reference);
+            const observed = Number.isFinite(Number(covariate.maximum)) ? Math.min(raw, Number(covariate.maximum)) : raw;
+            return value + Number(covariate.beta) * (observed - Number(covariate.reference));
+          }, 0);
+      };
       let localNodes = currentNodes.map((node) => {
         const name = rid(node.name);
         return {
@@ -899,18 +920,23 @@
       String(covariate.name ?? '').trim().length > 0 &&
       /^[A-Z][A-Z0-9_]{0,23}$/.test(covariateName(covariate.name)) &&
       Number.isFinite(Number(covariate.reference)) &&
-      (covariateType(covariate) === 'categorical' || Number(covariate.reference) > 0) &&
+      (covariateType(covariate) === 'categorical' || covariateForm(covariate) === 'linear-additive' || Number(covariate.reference) > 0) &&
       Number.isFinite(Number(covariate.comparison)) &&
       (covariateType(covariate) === 'categorical'
         ? Number(covariate.comparison) !== Number(covariate.reference)
-        : Number(covariate.comparison) > 0) &&
+        : covariateForm(covariate) === 'linear-additive' || Number(covariate.comparison) > 0) &&
       Number.isFinite(Number(covariate.beta))
+      && (!Number.isFinite(Number(covariate.maximum)) || Number(covariate.maximum) > Number(covariate.reference))
     );
   }
 
   /** @param {ReturnType<typeof modelParams>} [parameters] */
   function covariatesAreValid(parameters = modelParams(), currentCovariates = covariates) {
     const valid = validCovariates(parameters, currentCovariates);
+    if (valid.some((covariate) => {
+      const target = parameters.find((parameter) => parameter.name === covariate.target);
+      return covariateForm(covariate) === 'linear-additive' && target && iivDistribution(target) === 'logit';
+    })) return false;
     const effects = valid.map((covariate) => `${covariateName(covariate.name)}::${covariate.target}`);
     const definitions = new Map();
     for (const covariate of valid) {
@@ -931,6 +957,7 @@
     covariates = covariates.map((covariate) => ({
       ...covariate,
       type: covariateType(covariate),
+      form: covariateForm(covariate),
       scope: covariate.scope === 'administration' ? 'administration' : 'patient',
       target: targets.includes(covariate.target) ? covariate.target : targets[0],
       comparison: Number.isFinite(Number(covariate.comparison))
@@ -951,7 +978,7 @@
     while (existing.has(name)) name = `${type === 'categorical' ? 'CAT' : 'COV'}${++index}`;
     const reference = type === 'continuous' && name === 'WT' ? 70 : type === 'continuous' ? 1 : 0;
     covariates = [...covariates, {
-      id: uid++, name, type, scope: 'patient', target, reference,
+      id: uid++, name, type, form: 'power', scope: 'patient', target, reference,
       comparison: type === 'continuous' ? reference * 1.25 : 1,
       beta: type === 'continuous' ? 0.75 : 0.2,
       compare: true
@@ -1001,6 +1028,7 @@
     const reference = type === 'categorical' ? 0 : covariateName(covariate.name) === 'WT' ? 70 : 1;
     updateCovariateDefinition(covariate, {
       type,
+      form: 'power',
       reference,
       comparison: type === 'categorical' ? 1 : reference * 1.25
     });
@@ -1167,10 +1195,12 @@
       covariates: validCovariates(modelParams(), covariates).map((covariate) => ({
         name: covariateName(covariate.name),
         type: covariateType(covariate),
+        form: covariateForm(covariate),
         scope: covariate.scope === 'administration' ? 'administration' : 'patient',
         target: covariate.target,
         reference: Number(covariate.reference),
         comparison: Number(covariate.comparison),
+        ...(Number.isFinite(Number(covariate.maximum)) ? { maximum: Number(covariate.maximum) } : {}),
         beta: Number(covariate.beta)
       })),
       population: {
@@ -1248,7 +1278,7 @@
     }
     if (C.length) {
       L.push('');
-      L.push('    # Covariables : effet puissance pour une continue, effet exponentiel pour une categorie.');
+      L.push('    # Covariables : effets puissance, categoriels ou contributions lineaires additives.');
       for (const covariate of C) {
         const name = covariateName(covariate.name);
         L.push(`    beta_${name}_${covariate.target} <- ${fmt(covariate.beta)}`);
@@ -1264,8 +1294,8 @@
     L.push('    # Retour a l\'echelle naturelle, eta compris.');
     for (const p of P) {
       const eta = iiv.some((parameter) => parameter.name === p.name) ? ` + eta_${p.name}` : '';
-      const effects = C
-        .filter((covariate) => covariate.target === p.name)
+      const parameterEffects = C.filter((covariate) => covariate.target === p.name);
+      const effects = parameterEffects.filter((covariate) => covariateForm(covariate) !== 'linear-additive')
         .map((covariate) => {
           const name = covariateName(covariate.name);
           return covariateType(covariate) === 'categorical'
@@ -1273,12 +1303,15 @@
             : ` + beta_${name}_${p.name}*log(${name}/${fmt(covariate.reference)})`;
         })
         .join('');
+      const additive = parameterEffects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
+        .map((covariate) => ` + beta_${covariateName(covariate.name)}_${p.name}*(${covariateCode(covariate, 'r')}-${fmt(covariate.reference)})`).join('');
       const distribution = iivDistribution(p);
+      const typical = `TV_${p.name}*exp(0${effects})${additive}`;
       const expression = distribution === 'normal'
-        ? `TV_${p.name}*exp(0${effects})${eta ? ` + eta_${p.name}` : ''}`
+        ? `${typical}${eta ? ` + eta_${p.name}` : ''}`
         : distribution === 'logit'
           ? `plogis(l${p.name}${effects}${eta})`
-          : `exp(l${p.name}${effects}${eta})`;
+          : `${typical}${eta ? `*exp(eta_${p.name})` : ''}`;
       L.push(`    ${p.name.padEnd(w)} <- ${expression}`);
     }
     if (dosed.length) {
@@ -1377,7 +1410,7 @@
     for (const p of P) L.push(`${`TV_${p.name}`.padEnd(w)} : ${fmt(p.value)} : valeur typique, ${p.note} (${p.unit})`);
     for (const covariate of C) {
       const name = covariateName(covariate.name);
-      const effect = covariateType(covariate) === 'categorical' ? 'effet categoriel' : 'effet puissance';
+      const effect = covariateType(covariate) === 'categorical' ? 'effet categoriel' : covariateForm(covariate) === 'linear-additive' ? 'contribution lineaire additive' : 'effet puissance';
       L.push(`BETA_${name}_${covariate.target} : ${fmt(covariate.beta)} : ${effect} de ${name} sur ${covariate.target}`);
     }
     for (const [index, p] of randomParams.entries()) {
@@ -1427,8 +1460,8 @@
     if (router) L.push('F_LEGO_INPUT = 0;');
     for (const p of P) {
       const eta = etaIndex.get(p.name);
-      const effects = C
-        .filter((covariate) => covariate.target === p.name)
+      const parameterEffects = C.filter((covariate) => covariate.target === p.name);
+      const effects = parameterEffects.filter((covariate) => covariateForm(covariate) !== 'linear-additive')
         .map((covariate) => {
           const name = covariateName(covariate.name);
           return covariateType(covariate) === 'categorical'
@@ -1436,9 +1469,11 @@
             : ` * pow(${name}/${fmt(covariate.reference)}, BETA_${name}_${p.name})`;
         })
         .join('');
-      const typical = `TV_${p.name}${effects}`;
+      const additive = parameterEffects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
+        .map((covariate) => ` + BETA_${covariateName(covariate.name)}_${p.name} * (${covariateCode(covariate, 'cpp')} - ${fmt(covariate.reference)})`).join('');
+      const typical = additive ? `(TV_${p.name}${effects}${additive})` : `TV_${p.name}${effects}`;
       const random = eta ? `ETA${eta} + ETA(${eta})` : '';
-      const linkEffects = C.filter((covariate) => covariate.target === p.name).map((covariate) => {
+      const linkEffects = parameterEffects.filter((covariate) => covariateForm(covariate) !== 'linear-additive').map((covariate) => {
         const name = covariateName(covariate.name);
         return covariateType(covariate) === 'categorical'
           ? ` + BETA_${name}_${p.name} * (${name} == ${fmt(covariate.comparison)})`
@@ -1514,8 +1549,10 @@
     const C = validCovariates(P, covariates);
     const U = uniqueCovariates(C);
     const dosed = dosedNodes();
-    const continuous = U.filter((covariate) => covariateType(covariate) === 'continuous');
     const categorical = U.filter((covariate) => covariateType(covariate) === 'categorical');
+    const additive = C.filter((covariate) => covariateForm(covariate) === 'linear-additive');
+    const powerContinuous = uniqueCovariates(C.filter((covariate) => covariateType(covariate) === 'continuous' && covariateForm(covariate) === 'power'));
+    const additiveTargets = new Set(additive.map((covariate) => covariate.target));
     const random = randomParameters(P);
     const correlations = [];
     for (let row = 1; row < random.length; row += 1) {
@@ -1527,12 +1564,14 @@
     }
     const betaName = (/** @type {Covariate} */ covariate) => `beta_${covariateName(covariate.name)}_${covariate.target}`;
     const transformedName = (/** @type {Covariate} */ covariate) => `logt_${covariateName(covariate.name)}`;
+    const individualName = (/** @type {{name:string}} */ parameter) => additiveTargets.has(parameter.name) ? `${parameter.name}_base` : parameter.name;
+    const iivName = (/** @type {{name:string}} */ parameter) => additiveTargets.has(parameter.name) ? `${parameter.name}_iiv` : individualName(parameter);
     const individualInputs = [
       ...P.map((parameter) => `${parameter.name}_pop`),
       ...random.map((parameter) => `omega_${parameter.name}`),
       ...correlations.map((correlation) => correlation.name),
-      ...C.map(betaName),
-      ...continuous.map(transformedName),
+      ...C.filter((covariate) => covariateForm(covariate) !== 'linear-additive').map(betaName),
+      ...powerContinuous.map(transformedName),
       ...categorical.map((covariate) => covariateName(covariate.name))
     ];
     const L = [];
@@ -1560,10 +1599,10 @@
         const name = covariateName(covariate.name);
         L.push(`${name} = {type=categorical, categories={${fmt(covariate.reference)}, ${fmt(covariate.comparison)}}}`);
       }
-      if (continuous.length) {
+      if (powerContinuous.length) {
         L.push('');
         L.push('EQUATION:');
-        for (const covariate of continuous) {
+        for (const covariate of powerContinuous) {
           const name = covariateName(covariate.name);
           L.push(`${transformedName(covariate)} = log(${name}/${fmt(covariate.reference)})`);
         }
@@ -1580,7 +1619,7 @@
     L.push('');
     L.push('DEFINITION:');
     for (const parameter of P) {
-      const effects = C.filter((covariate) => covariate.target === parameter.name);
+      const effects = C.filter((covariate) => covariate.target === parameter.name && covariateForm(covariate) !== 'linear-additive');
       const options = [
         `distribution=${iivDistribution(parameter) === 'lognormal' ? 'logNormal' : iivDistribution(parameter) === 'logit' ? 'logitNormal' : 'normal'}`,
         `typical=${parameter.name}_pop`
@@ -1596,15 +1635,21 @@
         options.push(`covariate=${effects.length === 1 ? covariateTerms[0] : `{${covariateTerms.join(', ')}}`}`);
         options.push(`coefficient=${effects.length === 1 ? coefficientTerms[0] : `{${coefficientTerms.join(', ')}}`}`);
       }
-      options.push(random.some((candidate) => candidate.name === parameter.name) ? `sd=omega_${parameter.name}` : 'no-variability');
-      L.push(`${parameter.name} = {${options.join(', ')}}`);
+      options.push(random.some((candidate) => candidate.name === parameter.name) && !additiveTargets.has(parameter.name) ? `sd=omega_${parameter.name}` : 'no-variability');
+      L.push(`${individualName(parameter)} = {${options.join(', ')}}`);
     }
-    for (const correlation of correlations) L.push(`correlation = {level=id, r(${correlation.left.name}, ${correlation.right.name})=${correlation.name}}`);
+    for (const parameter of random.filter((candidate) => additiveTargets.has(candidate.name))) {
+      const distribution = iivDistribution(parameter);
+      L.push(`${iivName(parameter)} = {distribution=${distribution === 'normal' ? 'normal' : 'logNormal'}, typical=${distribution === 'normal' ? 0 : 1}, sd=omega_${parameter.name}}`);
+    }
+    for (const correlation of correlations) L.push(`correlation = {level=id, r(${iivName(correlation.left)}, ${iivName(correlation.right)})=${correlation.name}}`);
 
     L.push('');
     L.push('[LONGITUDINAL]');
     const residualInputs = [residualUses('additive') ? 'a' : '', residualUses('proportional') ? 'b' : ''].filter(Boolean);
-    L.push(`input = {${[...P.map((parameter) => parameter.name), ...residualInputs].join(', ')}}`);
+    const additiveCovariates = uniqueCovariates(additive);
+    L.push(`input = {${[...P.map(individualName), ...random.filter((parameter) => additiveTargets.has(parameter.name)).map(iivName), ...additive.map(betaName), ...additiveCovariates.map((covariate) => covariateName(covariate.name)), ...residualInputs].join(', ')}}`);
+    for (const covariate of additiveCovariates) L.push(`${covariateName(covariate.name)} = {use=regressor}`);
     L.push('');
     L.push('PK:');
     if (dosed.length) {
@@ -1623,6 +1668,13 @@
     L.push('EQUATION:');
     L.push('odeType = stiff');
     L.push('t_0 = 0');
+    for (const parameter of P.filter((candidate) => additiveTargets.has(candidate.name))) {
+      const terms = additive.filter((covariate) => covariate.target === parameter.name)
+        .map((covariate) => `${betaName(covariate)}*(${covariateCode(covariate, 'mlx')}-${fmt(covariate.reference)})`).join(' + ');
+      const randomParameter = random.find((candidate) => candidate.name === parameter.name);
+      const total = `(${individualName(parameter)} + ${terms})`;
+      L.push(`${parameter.name} = ${randomParameter ? iivDistribution(parameter) === 'normal' ? `${total} + ${iivName(parameter)}` : `${total}*${iivName(parameter)}` : total}`);
+    }
     for (const node of nodes) {
       const name = rid(node.name);
       const initial = node.kind === 'tumor' || node.kind === 'interaction' ? special(node, 'mlx').initial : node.kind === 'response' ? `kin_${name}/kout_${name}` : '0';
@@ -1738,8 +1790,8 @@
     }
     for (const parameter of P) {
       const typical = `TV${parameterVariable.get(parameter.name)}`;
-      const effects = C
-        .filter((covariate) => covariate.target === parameter.name)
+      const parameterEffects = C.filter((covariate) => covariate.target === parameter.name);
+      const effects = parameterEffects.filter((covariate) => covariateForm(covariate) !== 'linear-additive')
         .map((covariate) => {
           const beta = `THETA(${betaIndex.get(covariate.id)})`;
           return covariateType(covariate) === 'categorical'
@@ -1747,10 +1799,14 @@
             : `*(${nonmemCovariate.get(covariate.id)}/${fmt(covariate.reference)})**${beta}`;
         })
         .join('');
-      L.push(`${typical}=THETA(${thetaIndex.get(parameter.name)})${effects}`);
+      const additive = parameterEffects.filter((covariate) => covariateForm(covariate) === 'linear-additive')
+        .map((covariate) => {
+          const source = Number.isFinite(Number(covariate.maximum)) ? `MIN(${nonmemCovariate.get(covariate.id)},${fmt(Number(covariate.maximum))})` : nonmemCovariate.get(covariate.id);
+          return `+THETA(${betaIndex.get(covariate.id)})*(${source}-${fmt(covariate.reference)})`;
+        }).join('');
+      L.push(`${typical}=THETA(${thetaIndex.get(parameter.name)})${effects}${additive}`);
       const eta = etaIndex.get(parameter.name);
-      const linkEffects = C
-        .filter((covariate) => covariate.target === parameter.name)
+      const linkEffects = parameterEffects.filter((covariate) => covariateForm(covariate) !== 'linear-additive')
         .map((covariate) => {
           const beta = `THETA(${betaIndex.get(covariate.id)})`;
           return covariateType(covariate) === 'categorical'
@@ -2287,8 +2343,9 @@
             <div class="cov-fields">
               <label><span>{lego.type}</span><select value={covariate.type} on:change={(event) => setCovariateType(covariate, /** @type {'continuous'|'categorical'} */ (event.currentTarget.value))}><option value="continuous">{lego.continuous}</option><option value="categorical">{lego.categorical}</option></select></label>
               <label><span>{lego.covariateScope}</span><select value={covariate.scope} on:change={(event) => updateCovariateDefinition(covariate, { scope: /** @type {'patient'|'administration'} */ (event.currentTarget.value) })}><option value="patient">{lego.patientCovariate}</option><option value="administration">{lego.administrationCovariate}</option></select></label>
-              <label><span>{covariate.type === 'categorical' ? lego.categoryReference : lego.referenceValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.reference} on:input={(event) => updateCovariateDefinition(covariate, { reference: Number(event.currentTarget.value) })} /></label>
-              <label><span>{covariate.type === 'categorical' ? lego.categoryComparison : lego.comparisonValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.comparison} on:input={(event) => updateCovariateDefinition(covariate, { comparison: Number(event.currentTarget.value) })} /></label>
+              <label><span>{covariate.type === 'categorical' ? lego.categoryReference : lego.referenceValue}</span><input class="num" type="number" min={covariate.type === 'continuous' && covariateEffects(covariate).every((effect) => covariateForm(effect) !== 'linear-additive') ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.reference} on:input={(event) => updateCovariateDefinition(covariate, { reference: Number(event.currentTarget.value) })} /></label>
+              <label><span>{covariate.type === 'categorical' ? lego.categoryComparison : lego.comparisonValue}</span><input class="num" type="number" min={covariate.type === 'continuous' && covariateEffects(covariate).every((effect) => covariateForm(effect) !== 'linear-additive') ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.comparison} on:input={(event) => updateCovariateDefinition(covariate, { comparison: Number(event.currentTarget.value) })} /></label>
+              {#if covariate.type === 'continuous' && covariateEffects(covariate).some((effect) => covariateForm(effect) === 'linear-additive')}<label><span>{lego.maximumValue}</span><input class="num" type="number" step="0.1" value={covariate.maximum ?? ''} on:input={(event) => updateCovariateDefinition(covariate, { maximum: event.currentTarget.value === '' ? undefined : Number(event.currentTarget.value) })} /></label>{/if}
               <label class="cov-toggle"><input type="checkbox" checked={covariate.compare} on:change={(event) => updateCovariateDefinition(covariate, { compare: event.currentTarget.checked })} /><span>{lego.compareCurve}</span></label>
             </div>
           </section>
@@ -2300,6 +2357,7 @@
             {#each covariateEffects(covariate) as effect (effect.id)}
               <div class="cov-effect">
                 <label class="cov-target"><span>{lego.targetParameter}</span><select bind:value={effect.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name} disabled={parameter.name !== effect.target && covariates.some((candidate) => candidate.id !== effect.id && covariateName(candidate.name) === covariateName(effect.name) && candidate.target === parameter.name)}>{parameter.name}</option>{/each}</select></label>
+                {#if covariateType(effect) === 'continuous'}<label><span>{lego.effectForm}</span><select value={covariateForm(effect)} on:change={(event) => { effect.form = /** @type {'power'|'linear-additive'} */ (event.currentTarget.value); covariates = [...covariates]; }}><option value="power">{lego.powerEffect}</option><option value="linear-additive">{lego.additiveLinearEffect}</option></select></label>{/if}
                 <label><span>β</span><input class="num" type="number" step="0.05" bind:value={effect.beta} on:input={() => (covariates = [...covariates])} /></label>
                 <button class="rx" on:click={() => deleteCovariate(effect.id)} aria-label={`${lego.remove} ${lego.targetParameter} ${effect.target}`}>×</button>
               </div>

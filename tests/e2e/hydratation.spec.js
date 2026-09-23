@@ -151,7 +151,7 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(customized).toMatch(/\$OMEGA @block\s+0\.09[^\n]*\n0\.02 0\.09/);
   expect(customized).toContain('ADD  : 0.01');
   expect(customized).toContain('PROP : 0');
-  expect(customized).toContain('double DV = IPRED + EPS(1);');
+  expect(customized).toContain('double DV = IPRED + EPS(2);');
 
   await page.locator('.toolbar button.add', { hasText: 'Effet' }).click();
   await page.locator('.toolbar button.add', { hasText: 'Réponse' }).click();
@@ -302,6 +302,56 @@ output = {Cc, E}
   expect(mrgsolve).toContain('BETA_POIDS_v_central : 1');
   expect(mrgsolve).toContain('BETA_POIDS_cl_central : 0.75');
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
+test("l'import Korell conserve la clairance rénale additive et son plafond", async ({ page }) => {
+  await page.goto('/translator/');
+  await page.locator('.mlxtran-import textarea').fill(`
+; Cl_pop=10.9
+; Q_pop=22
+; Vc_pop=198
+; Vp_pop=244
+; Tlag1_pop=0.761
+; F_pop=1
+; D1_pop=25.4
+; Ka_pop=0.630
+; beta_WT_pop=0.727
+; beta_crCL_pop=0.024
+[LONGITUDINAL]
+input={Cl,Q,Vc,Vp,Tlag1,F,D1,Ka,WT,crCL,beta_WT,beta_crCL}
+WT={use=regressor}
+crCL={use=regressor}
+EQUATION:
+Cl_cov=Cl*(WT/74.4)^beta_WT+min(crCL,150)*beta_crCL
+k12=Q/Vc
+k21=Q/Vp
+k=Cl_cov/Vc
+PK:
+depot(target=Ad,p=F,Tlag=Tlag1,Tk0=D1)
+EQUATION:
+ddt_Ad=-Ka*Ad
+ddt_Ac=Ka*Ad-k12*Ac+k21*Ap-k*Ac
+ddt_Ap=k12*Ac-k21*Ap
+Cc=Ac/Vc
+OUTPUT:
+output={Cc}
+  `);
+  await page.getByRole('button', { name: 'Construire le schéma' }).click();
+
+  await expect(page.locator('.import-status')).toContainText('Structure reconnue');
+  await expect(page.locator('.canvas .node')).toHaveCount(3);
+  await expect(page.locator('.rate').filter({ hasText: 'Q (L/h)' })).toHaveCount(2);
+  const renal = page.locator('.cov-row').nth(1);
+  await expect(renal.locator('input.txt')).toHaveValue('CRCL');
+  await expect(renal.locator('.cov-effect select').last()).toHaveValue('linear-additive');
+  await expect(renal.getByText('Plafond (facultatif)').locator('..').locator('input')).toHaveValue('150');
+
+  await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' }).click();
+  expect(await page.locator('pre.codeblk code').innerText()).toContain('BETA_CRCL_cl_Ac * (fmin(CRCL,150) - 0)');
+  await page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN' }).click();
+  expect(await page.locator('pre.codeblk code').innerText()).toContain('min(CRCL,150)');
+  await page.locator('.codehead').getByRole('tab', { name: 'NONMEM' }).click();
+  expect(await page.locator('pre.codeblk code').innerText()).toContain('MIN(CRCL,150)');
 });
 
 test("l'atelier Lego importe aussi mrgsolve et NONMEM", async ({ page }) => {

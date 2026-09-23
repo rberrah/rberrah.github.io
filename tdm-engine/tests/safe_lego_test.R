@@ -145,6 +145,18 @@ stopifnot(
   grepl("BETA_WT_2", q_code, fixed = TRUE)
 )
 
+renal_specification <- q_specification
+renal_specification$covariates <- list(
+  list(name = "WT", type = "continuous", form = "power", target = "cl_central", reference = 74.4, comparison = 90, beta = 0.727),
+  list(name = "CRCL", type = "continuous", form = "linear-additive", target = "cl_central", reference = 0, comparison = 100, maximum = 150, beta = 0.024)
+)
+renal_code <- lego_model_code(renal_specification)
+stopifnot(
+  grepl("TV_cl_L1_central * pow(WT/74.4, BETA_WT_1) + BETA_CRCL_2 * (fmin(CRCL, 150) - 0)", renal_code, fixed = TRUE),
+  identical(lego_spec_from_code(renal_code)$covariates[[2]]$form, "linear-additive"),
+  identical(lego_spec_from_code(renal_code)$covariates[[2]]$maximum, 150)
+)
+
 session_dir <- tempfile("safe-lego-test-")
 dir.create(session_dir, recursive = TRUE)
 on.exit(unlink(session_dir, recursive = TRUE, force = TRUE), add = TRUE)
@@ -170,6 +182,16 @@ q_model <- compile_model(
 q_contract <- validate_model_contract(q_model)
 if (!isTRUE(q_contract$ok)) stop(paste(q_contract$errors, collapse = " | "))
 stopifnot("WT" %in% model_param_names(q_model))
+
+renal_model <- compile_model(
+  custom_code = renal_code,
+  allow_custom = FALSE,
+  custom_soloc = session_dir,
+  custom_cache = new.env(parent = emptyenv())
+)
+renal_contract <- validate_model_contract(renal_model)
+if (!isTRUE(renal_contract$ok)) stop(paste(renal_contract$errors, collapse = " | "))
+stopifnot(all(c("WT", "CRCL") %in% model_param_names(renal_model)))
 
 advanced_absorption <- list(
   version = 2,

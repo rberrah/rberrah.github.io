@@ -422,10 +422,11 @@ normalize_lego_spec <- function(specification) {
     } else {
       lego_text(input$type, paste0("covariates[", index, "].type"), "^(continuous|categorical)$", 16L)
     }
+    form <- if (identical(type, "continuous") && identical(input$form, "linear-additive")) "linear-additive" else "power"
     reference <- lego_number(
       input$reference,
       paste0("covariates[", index, "].reference"),
-      if (identical(type, "continuous")) 1e-12 else -1e12,
+      if (identical(type, "continuous") && identical(form, "power")) 1e-12 else -1e12,
       1e12
     )
     comparison_default <- if (identical(type, "continuous")) reference * 1.25 else if (reference == 0) 1 else 0
@@ -442,10 +443,12 @@ normalize_lego_spec <- function(specification) {
     list(
       name = name,
       type = type,
+      form = form,
       scope = lego_text(input$scope %||% "patient", paste0("covariates[", index, "].scope"), "^(patient|administration)$", 16L),
       target = lego_text(input$target, paste0("covariates[", index, "].target"), "^[A-Za-z_][A-Za-z0-9_]*$", 96L),
       reference = reference,
       comparison = comparison,
+      maximum = if (is.null(input$maximum)) NULL else lego_number(input$maximum, paste0("covariates[", index, "].maximum"), reference + 1e-12, 1e12),
       beta = lego_number(input$beta, paste0("covariates[", index, "].beta"), -10, 10)
     )
   })
@@ -687,7 +690,7 @@ lego_model_code <- function(specification) {
     lines <- c(lines, paste0(pad(paste0("TV_", parameter$name)), " : ", lego_format_number(parameter$value), " : ", parameter$note))
   }
   for (covariate in covariate_effects) {
-    effect_label <- if (identical(covariate$type, "categorical")) "categorical effect of " else "power effect of "
+    effect_label <- if (identical(covariate$type, "categorical")) "categorical effect of " else if (identical(covariate$form, "linear-additive")) "additive linear contribution of " else "power effect of "
     lines <- c(lines, paste0(covariate$beta_name, " : ", lego_format_number(covariate$beta), " : ", effect_label, covariate$name, " on ", covariate$target))
   }
   for (index in seq_along(random_parameters)) {
@@ -741,8 +744,10 @@ lego_model_code <- function(specification) {
   for (parameter in parameters) {
     index <- unname(eta_index[parameter$name])
     effects <- Filter(function(covariate) identical(covariate$target_name, parameter$name), covariate_effects)
+    multiplicative_effects <- Filter(function(covariate) !identical(covariate$form, "linear-additive"), effects)
+    additive_effects <- Filter(function(covariate) identical(covariate$form, "linear-additive"), effects)
     effect_code <- paste0(vapply(
-      effects,
+      multiplicative_effects,
       function(covariate) {
         if (identical(covariate$type, "categorical")) {
           paste0(" * exp(", covariate$beta_name, " * (", covariate$name, " == ", lego_format_number(covariate$comparison), "))")
@@ -752,14 +757,18 @@ lego_model_code <- function(specification) {
       },
       character(1)
     ), collapse = "")
-    typical <- paste0("TV_", parameter$name, effect_code)
+    additive_code <- paste0(vapply(additive_effects, function(covariate) {
+      source <- if (is.null(covariate$maximum)) covariate$name else paste0("fmin(", covariate$name, ", ", lego_format_number(covariate$maximum), ")")
+      paste0(" + ", covariate$beta_name, " * (", source, " - ", lego_format_number(covariate$reference), ")")
+    }, character(1)), collapse = "")
+    typical <- if (length(additive_effects)) paste0("(TV_", parameter$name, effect_code, additive_code, ")") else paste0("TV_", parameter$name, effect_code)
     if (length(index) && is.finite(index)) {
       random <- paste0("ETA", index, " + ETA(", index, ")")
       distribution <- distribution_for(parameter)
       if (identical(distribution, "normal")) {
         individual <- paste0(typical, " + ", random)
       } else if (identical(distribution, "logit")) {
-        link_effects <- paste0(vapply(effects, function(covariate) {
+        link_effects <- paste0(vapply(multiplicative_effects, function(covariate) {
           if (identical(covariate$type, "categorical")) {
             paste0(" + ", covariate$beta_name, " * (", covariate$name, " == ", lego_format_number(covariate$comparison), ")")
           } else {

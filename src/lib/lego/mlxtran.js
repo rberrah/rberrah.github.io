@@ -341,6 +341,31 @@ function parsePiecewise(raw, builder, warnings) {
       }
       reconstructOdes(clean, builder, reader, volumes);
       builder.odeCovariates = reader.covariates;
+      const equations = new Map([...clean.matchAll(/^\s*ddt_([A-Za-z_]\w*)\s*=\s*([^\r\n]+)/gim)].map((match) => [match[1].toLowerCase(), match[2]]));
+      const ratios = [...clean.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*([A-Za-z_]\w*)\s*\/\s*([A-Za-z_]\w*)\s*$/gim)]
+        .map((match) => ({ rate: match[1], numerator: match[2], volume: match[3] }));
+      const usedBy = (ratio, node) => new RegExp(`\\b${ratio.rate}\\b`, 'i').test(equations.get(node.name.toLowerCase()) ?? '');
+      for (const forward of builder.edges.filter((edge) => edge.to !== 'OUT')) {
+        const reverse = builder.edges.find((edge) => edge.from === forward.to && edge.to === forward.from);
+        if (!reverse || forward.from > forward.to) continue;
+        const left = builder.nodes.find((node) => node.id === forward.from);
+        const right = builder.nodes.find((node) => node.id === forward.to);
+        const outward = ratios.find((ratio) => usedBy(ratio, left) && usedBy(ratio, right));
+        const inward = ratios.find((ratio) => ratio !== outward && usedBy(ratio, left) && usedBy(ratio, right) && ratio.numerator.toLowerCase() === outward?.numerator.toLowerCase());
+        if (!left || !right || !outward || !inward) continue;
+        const sourceRatio = volumes.get(left.id)?.toLowerCase() === outward.volume.toLowerCase() ? outward : inward;
+        const targetRatio = sourceRatio === outward ? inward : outward;
+        if (volumes.get(left.id)?.toLowerCase() !== sourceRatio.volume.toLowerCase()) continue;
+        if (!volumes.has(right.id)) {
+          right.kind = /^met(?:ab|_|$)/i.test(right.name) ? 'metab' : 'periph';
+          right.vol = reader.bind(targetRatio.volume, `v_${right.name}`);
+          volumes.set(right.id, targetRatio.volume);
+        }
+        const q = reader.value(sourceRatio.numerator);
+        forward.transferParameterization = reverse.transferParameterization = 'clearance';
+        forward.q = reverse.q = q;
+        builder.register(sourceRatio.numerator, builder.parameterName(forward));
+      }
     }
   }
   if (!byCmt.size) {
