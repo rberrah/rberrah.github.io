@@ -13,7 +13,7 @@ const idName = (spec, id) => spec.nodes.find((node) => node.id === id)?.name.toL
 for (const preset of ['KOKA (Samtani)', "PP6M (T'jollyn)"]) {
   for (const format of ['mrgsolve', 'MLXTRAN', 'NONMEM']) {
     test(`${preset}: ${format} sans marqueur conserve les voies et les equations`, async ({ page }) => {
-      await page.goto('/advanced/');
+      await page.goto('/advanced/?lang=en');
       await page.waitForLoadState('networkidle');
       await page.locator('.toolbar').getByRole('button', { name: preset, exact: true }).click();
       await page.locator('.codehead').getByRole('tab', { name: format, exact: true }).click();
@@ -25,8 +25,8 @@ for (const preset of ['KOKA (Samtani)', "PP6M (T'jollyn)"]) {
       const importer = page.locator('.mlxtran-import');
       await importer.getByRole('tab', { name: format, exact: true }).click();
       await importer.locator('textarea').fill(code.replace(marker, ''));
-      await importer.getByRole('button', { name: 'Construire le sch\u00e9ma', exact: true }).click();
-      await expect(importer.locator('.import-status')).toContainText('Structure reconnue');
+      await importer.getByRole('button', { name: 'Build the diagram', exact: true }).click();
+      await expect(importer.locator('.import-status')).toContainText('Structure recognized');
       await expect(page.locator('.canvas .node')).toHaveCount(original.nodes.length);
       await expect(page.locator('.rate')).toHaveCount(original.edges.length);
       await expect(page.locator('.canvas')).not.toContainText('LEGO_INPUT');
