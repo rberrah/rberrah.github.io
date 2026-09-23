@@ -8,9 +8,28 @@
   import Slider from '$lib/components/ui/Slider.svelte';
   import { language } from '$lib/stores/language';
   import { onMount } from 'svelte';
-  import { Download } from '@lucide/svelte';
+  import { Download, Upload } from '@lucide/svelte';
   import { takeDraft } from '$lib/workshops/session.js';
-  import { downloadText, populationCsv, simulationR, simulationRmd } from '$lib/sim/export.js';
+  import { downloadText, freeSimulationR, freeSimulationRmd, parseSimulationCsv, populationCsv, simulationR, simulationRmd } from '$lib/sim/export.js';
+
+  const DEFAULT_FREE_MODEL = `$PARAM TVCL=6, TVV=40, TVKA=1.2
+$OMEGA @block
+0.09
+0.01 0.09
+0 0 0.04
+$SIGMA 0.04 0.01
+$CMT GUT CENT
+$MAIN
+double CL = TVCL*exp(ETA(1));
+double V = TVV*exp(ETA(2));
+double KA = TVKA*exp(ETA(3));
+$ODE
+dxdt_GUT = -KA*GUT;
+dxdt_CENT = KA*GUT - CL/V*CENT;
+$TABLE
+double IPRED = CENT/V;
+double DV = fmax(0.0, IPRED*(1+EPS(1))+EPS(2));
+$CAPTURE IPRED DV CL V KA`;
 
   let route = 'oral_1st';
   let nCompartments = 1;
@@ -46,13 +65,34 @@
   let samplingPreset = 'rich';
   let tEnd = 24;
   let transferred = false;
+  let mode = 'guided';
+  let guidedAvailable = true;
+  let freeCode = DEFAULT_FREE_MODEL;
+  let freeDose = 100;
+  let freeInterval = 0;
+  let freeInfusionDuration = 0;
+  let freeAdmCmt = '1';
+  let freeOutput = 'DV';
+  let freeNInd = 80;
+  let freeSeed = 7;
+  let freeEnd = 24;
+  let freeDelta = 0.1;
+  let importedRows = [];
+  let importedCsv = '';
+  let importError = '';
 
   onMount(() => {
     const incoming = takeDraft('incoming:simulation');
     if (!incoming) return;
-    ({ route, nCompartments, dose, infusionDuration, ka, lag, absorptionMode, nTransit, mtt, cl, vc, q1, vp1, q2, vp2,
+    const guided = incoming.guided ?? (incoming.route ? incoming : null);
+    guidedAvailable = Boolean(guided);
+    if (guided) ({ route, nCompartments, dose, infusionDuration, ka, lag, absorptionMode, nTransit, mtt, cl, vc, q1, vp1, q2, vp2,
       iivEnabled, omegaCL, omegaVc, omegaKa, omegaQ, iovEnabled, kappaCL, resEnabled, sigmaProp, sigmaAdd,
-      nInd, seed, samplingPreset, tEnd } = incoming);
+      nInd, seed, samplingPreset, tEnd } = guided);
+    freeCode = incoming.modelCode || guided?.modelCode || DEFAULT_FREE_MODEL;
+    freeDose = Number(incoming.dose ?? guided?.dose ?? freeDose);
+    freeEnd = Number(incoming.tEnd ?? guided?.tEnd ?? freeEnd);
+    mode = incoming.mode === 'code' || !guided ? 'code' : 'guided';
     transferred = true;
   });
 
@@ -104,6 +144,12 @@
   $: exportConfig = { route, nCompartments, dose, infusionDuration, ka, lag, absorptionMode, nTransit, mtt, cl, vc, q1, vp1, q2, vp2,
     iivEnabled, omegaCL, omegaVc, omegaKa, omegaQ, iovEnabled, kappaCL, resEnabled, sigmaProp, sigmaAdd, nInd, seed, tEnd };
   $: rCode = simulationR(exportConfig, samplingTimes);
+  $: freeConfig = { modelCode: freeCode, dose: freeDose, interval: freeInterval, infusionDuration: freeInfusionDuration,
+    admCmt: freeAdmCmt, output: freeOutput, nInd: freeNInd, seed: freeSeed, tEnd: freeEnd, delta: freeDelta };
+  $: freeRCode = freeSimulationR(freeConfig);
+  $: importedProfiles = groupRows(importedRows);
+  $: importedX = scaleLinear().domain([0, Math.max(1, ...importedRows.map((row) => row.t))]).range([0, 420]);
+  $: importedY = scaleLinear().domain(paddedDomain(importedRows.map((row) => row.value), 0.25)).range([340, 0]);
 
   function buildTimes(preset, horizon) {
     const end = Math.max(1, Number(horizon) || 24);
@@ -113,14 +159,44 @@
     return [0, end];
   }
 
+  function groupRows(rows) {
+    const groups = new Map();
+    for (const row of rows) {
+      if (!groups.has(row.id)) groups.set(row.id, []);
+      groups.get(row.id).push(row);
+    }
+    return Array.from(groups, ([id, points]) => ({ id, points }));
+  }
+
   function downloadCsv() {
     downloadText('poppk_simulation.csv', populationCsv(population), 'text/csv;charset=utf-8');
   }
   const downloadR = () => downloadText('poppk_simulation.R', rCode, 'text/x-r-source;charset=utf-8');
   const downloadRmd = () => downloadText('poppk_simulation.Rmd', simulationRmd(exportConfig, samplingTimes, $language === 'en'), 'text/markdown;charset=utf-8');
+  const downloadFreeR = () => downloadText('mrgsolve_simulation.R', freeRCode, 'text/x-r-source;charset=utf-8');
+  const downloadFreeRmd = () => downloadText('mrgsolve_simulation.Rmd', freeSimulationRmd(freeConfig, $language === 'en'), 'text/markdown;charset=utf-8');
+  const downloadImportedCsv = () => downloadText('mrgsolve_simulation.csv', importedCsv, 'text/csv;charset=utf-8');
+
+  async function importCsv(event) {
+    importError = '';
+    try {
+      const file = event.currentTarget.files?.[0];
+      if (!file) return;
+      importedCsv = await file.text();
+      importedRows = parseSimulationCsv(importedCsv, freeOutput);
+    } catch (error) {
+      importedRows = []; importedCsv = '';
+      importError = error instanceof Error ? error.message : String(error);
+    }
+  }
 </script>
 
-{#if transferred}<p class="transfer-note" role="status">{$language === 'en' ? 'PK workshop model applied. Adjust the population design or export the reproducible files below.' : 'Modèle de l’atelier PK appliqué. Ajustez le plan de population ou exportez les fichiers reproductibles ci-dessous.'}</p>{/if}
+{#if transferred}<p class="transfer-note" role="status">{$language === 'en' ? 'The complete PK workshop mrgsolve code was transferred. Use the guided preview when compatible, or edit and run the unrestricted code locally.' : 'Le code mrgsolve complet de l’atelier PK a été transféré. Utilisez l’aperçu guidé s’il est compatible, ou modifiez et exécutez localement le code libre.'}</p>{/if}
+<nav class="mode-tabs" aria-label={$language === 'en' ? 'Simulation mode' : 'Mode de simulation'}>
+  <button disabled={!guidedAvailable} class:active={mode === 'guided'} on:click={() => mode = 'guided'} title={guidedAvailable ? '' : ($language === 'en' ? 'This structure requires unrestricted mrgsolve mode.' : 'Cette structure nécessite le mode mrgsolve libre.')}>{$language === 'en' ? 'Guided model' : 'Modèle guidé'}</button>
+  <button class:active={mode === 'code'} on:click={() => mode = 'code'}>mrgsolve libre</button>
+</nav>
+{#if mode === 'guided'}
 <div class="playground">
   <aside class="sidebar">
     <h2>{$language === 'en' ? 'Model' : 'Modèle'}</h2>
@@ -257,13 +333,68 @@
     <details class="r-code"><summary>{$language === 'en' ? 'R code used for reproduction' : 'Code R de reproduction'}</summary><pre><code>{rCode}</code></pre></details>
   </main>
 </div>
+{:else}
+<div class="free-workbench">
+  <aside class="sidebar">
+    <h2>{$language === 'en' ? 'Simulation design' : 'Plan de simulation'}</h2>
+    <div class="card">
+      <label>{$language === 'en' ? 'Dose amount' : 'Dose'}<input class="numeric" type="number" min="0.000001" step="any" bind:value={freeDose}/></label>
+      <label>{$language === 'en' ? 'Administration compartment' : 'Compartiment d’administration'}<input class="numeric" bind:value={freeAdmCmt} placeholder="1 ou CENT"/></label>
+      <label>{$language === 'en' ? 'Repeat interval (h; 0 = single dose)' : 'Intervalle (h ; 0 = dose unique)'}<input class="numeric" type="number" min="0" step="any" bind:value={freeInterval}/></label>
+      <label>{$language === 'en' ? 'Infusion duration (h; 0 = bolus/oral)' : 'Durée de perfusion (h ; 0 = bolus/oral)'}<input class="numeric" type="number" min="0" step="any" bind:value={freeInfusionDuration}/></label>
+      <label>{$language === 'en' ? 'Output to plot' : 'Sortie à représenter'}<input class="numeric" bind:value={freeOutput} pattern="[A-Za-z_][A-Za-z0-9_]*" on:input={() => { importedRows = []; importedCsv = ''; }}/></label>
+    </div>
+    <h2>Population</h2>
+    <div class="card">
+      <label>{$language === 'en' ? 'N subjects' : 'N individus'}<input class="numeric" type="number" min="1" max="100000" step="1" bind:value={freeNInd}/></label>
+      <label>{$language === 'en' ? 'Seed' : 'Graine'}<input class="numeric" type="number" min="1" max="2147483647" step="1" bind:value={freeSeed}/></label>
+      <label>{$language === 'en' ? 'Duration (h)' : 'Durée (h)'}<input class="numeric" type="number" min="0.000001" step="any" bind:value={freeEnd}/></label>
+      <label>{$language === 'en' ? 'Output step (h)' : 'Pas de sortie (h)'}<input class="numeric" type="number" min="0.000001" step="any" bind:value={freeDelta}/></label>
+    </div>
+    <div class="exports">
+      <button class="export" on:click={downloadFreeR}><Download size={16}/>Code R + CSV</button>
+      <button class="export secondary" on:click={downloadFreeRmd}><Download size={16}/>R Markdown + CSV</button>
+      {#if importedCsv}<button class="export secondary" on:click={downloadImportedCsv}><Download size={16}/>{$language === 'en' ? 'Imported CSV' : 'CSV importé'}</button>{/if}
+    </div>
+  </aside>
+  <main class="main">
+    <section class="code-editor">
+      <div><h2>mrgsolve / C++</h2><p>{$language === 'en' ? 'The structure, covariance matrix and residual model come directly from this code.' : 'La structure, la matrice de covariance et le modèle résiduel proviennent directement de ce code.'}</p></div>
+      <textarea aria-label="mrgsolve / C++" bind:value={freeCode} maxlength="500000" spellcheck="false" on:input={() => { importedRows = []; importedCsv = ''; }}></textarea>
+    </section>
+    <p class="local-note">{$language === 'en' ? 'Run the downloaded R or Rmd file locally: it compiles this exact model, simulates OMEGA/SIGMA and creates mrgsolve_simulation.csv. The code is not uploaded or stored by this site.' : 'Exécutez localement le fichier R ou Rmd téléchargé : il compile ce modèle exact, simule OMEGA/SIGMA et crée mrgsolve_simulation.csv. Le code n’est ni envoyé ni conservé par ce site.'}</p>
+    <label class="csv-import"><Upload size={17}/><span>{$language === 'en' ? 'Display an mrgsolve_simulation.csv result' : 'Afficher un résultat mrgsolve_simulation.csv'}</span><input type="file" accept=".csv,text/csv" on:change={importCsv}/></label>
+    {#if importError}<p class="import-error" role="alert">{importError}</p>{/if}
+    {#if importedRows.length}
+      <div class="chart-card">
+        <div class="chart-header"><div class="title">{freeOutput} · {importedProfiles.length} {$language === 'en' ? 'subjects' : 'individus'}</div></div>
+        <ChartFrame width={620} height={380} margin={{ top: 22, right: 24, bottom: 52, left: 78 }} xScale={importedX} yScale={importedY} grid={true}>
+          <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
+            {#each importedProfiles as profile (profile.id)}<polyline fill="none" stroke="rgba(23,107,102,0.3)" stroke-width="1" points={profile.points.map((point) => `${xScale(point.t)},${yScale(point.value)}`).join(' ')}/>{/each}
+            <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time' : 'Temps'} />
+            <g transform="translate(-10,0)"><Axis orient="left" scale={yScale} length={innerHeight} label={freeOutput} /></g>
+          </svelte:fragment>
+        </ChartFrame>
+      </div>
+    {/if}
+    <details class="r-code"><summary>{$language === 'en' ? 'Generated R wrapper' : 'Script R généré'}</summary><pre><code>{freeRCode}</code></pre></details>
+  </main>
+</div>
+{/if}
 
 <style>
+  .mode-tabs { display: flex; gap: 6px; margin: 16px 0; border-bottom: 1px solid var(--border-strong); }
+  .mode-tabs button { padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: var(--text-primary); cursor: pointer; font: inherit; }
+  .mode-tabs button.active { border-bottom-color: #176b66; font-weight: 700; }
+  .mode-tabs button:disabled { opacity: .5; cursor: not-allowed; }
   .playground {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 16px;
   }
+  .free-workbench { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 16px; }
+  .free-workbench > * { min-width: 0; }
+  .free-workbench .main { grid-template-columns: minmax(0,1fr); }
   /* On interroge le CONTENEUR, pas la fenêtre. Dans le panneau collant d'un chapitre
      (~610 px de large même sur un écran 1536 px), un média sur la fenêtre ne se déclenchait
      jamais : les 300 px de contrôles écrasaient le graphe à ~220 px. Sur la page /playground,
@@ -365,7 +496,15 @@
   .kpi strong {
     font-size: 1.2rem;
   }
-  .r-code { border-top: 1px solid var(--border-strong); padding-top: 12px; }
+  .r-code { min-width: 0; border-top: 1px solid var(--border-strong); padding-top: 12px; }
   .r-code summary { cursor: pointer; font-weight: 650; }
-  .r-code pre { max-height: 520px; overflow: auto; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: .78rem; }
+  .r-code pre { box-sizing: border-box; width: 100%; max-width: 100%; max-height: 520px; overflow: auto; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: .78rem; }
+  .code-editor { display: grid; gap: 8px; min-width: 0; }
+  .code-editor h2, .code-editor p { margin: 0 0 5px; }
+  .code-editor textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 430px; resize: vertical; padding: 12px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); font: .8rem/1.45 var(--font-mono); }
+  .local-note { margin: 0; padding: 12px; border-left: 3px solid #9a6b16; background: var(--bg-secondary); }
+  .csv-import { box-sizing: border-box; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; max-width: 100%; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 4px; cursor: pointer; background: var(--bg-tertiary); }
+  .csv-import input { min-width: 0; max-width: 100%; }
+  .import-error { color: #a3342f; }
+  @media (max-width: 900px) { .free-workbench { grid-template-columns: 1fr; } }
 </style>

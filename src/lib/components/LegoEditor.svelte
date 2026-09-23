@@ -1780,7 +1780,14 @@
   let codeTab = 'nlmixr2';
   let copiedTab = '';
   let transferredCode = '';
-  $: simulationConfig = tdmReady ? legoSimulationConfig(tdmModelSpec(), tMax, codeMrgsolve) : null;
+  $: guidedSimulationConfig = tdmReady ? legoSimulationConfig(tdmModelSpec(), tMax, codeMrgsolve) : null;
+  $: simulationConfig = tdmReady ? {
+    mode: guidedSimulationConfig ? 'guided' : 'code',
+    guided: guidedSimulationConfig,
+    modelCode: codeMrgsolve,
+    dose: Number(nodes.find((node) => Number(node.dose) > 0)?.dose ?? 100),
+    tEnd: Math.max(1, Number(tMax) || 24)
+  } : null;
   /** @type {ReturnType<typeof setTimeout> | undefined} */ let copyTimer;
   $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr
     : codeTab === 'mrgsolve' ? codeMrgsolve
@@ -1951,7 +1958,7 @@
 {/if}
 
 <div class="continuity" data-testid="model-continuity">
-  <button disabled={!simulationConfig} on:click={() => continueIn('simulation')} title={simulationConfig ? ($language === 'en' ? 'Simulate this population model' : 'Simuler ce modèle de population') : ($language === 'en' ? 'The Simulation page supports linear PK with one to three compartments, one input and no covariance.' : 'La page Simulation accepte une PK linéaire à un à trois compartiments, une seule entrée et sans covariance.')}><Play size={15}/> Simulation</button>
+  <button disabled={!simulationConfig} on:click={() => continueIn('simulation')} title={$language === 'en' ? 'Send the complete mrgsolve code to Simulation' : 'Envoyer le code mrgsolve complet vers Simulation'}><Play size={15}/> Simulation</button>
   {#if profile !== 'advanced'}<button disabled={!tdmReady} on:click={() => continueIn('advanced')}><ArrowRight size={15}/> Advanced</button>{/if}
   {#if profile !== 'pk'}<button disabled={!tdmReady || !purePk} on:click={() => continueIn('pk')}><ArrowRight size={15}/> PK</button>{/if}
   <label>{$language === 'en' ? 'Route for PD / DDI' : 'Voie pour PD / DDI'}<select bind:value={handoffRoute}><option value="">{$language === 'en' ? 'Select route' : 'Choisir la voie'}</option><option>Oral</option><option>IV</option></select></label>

@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 // @ts-expect-error Node built-ins run in Playwright, outside the browser type environment.
 import { readFile } from 'node:fs/promises';
+// @ts-expect-error Node built-ins run in Playwright, outside the browser type environment.
+import { Buffer } from 'node:buffer';
 
 /** @param {import('@playwright/test').Page} page @param {string} name */
 const nav = (page, name) => page.getByTestId('workshop-nav').getByRole('link', { name, exact: true }).click();
@@ -84,9 +86,10 @@ test('one covariate definition can contain several distinct parameter effects', 
 
 test('a compatible PK workshop opens Simulation and exports CSV, R and Rmd', async ({ page }) => {
   await page.goto('/pk/?lang=en');
+  const transferredCode = await code(page);
   await next(page, 'Simulation');
   await expect(page).toHaveURL(/\/playground\//);
-  await expect(page.getByRole('status')).toContainText('PK workshop model applied');
+  await expect(page.getByRole('status')).toContainText('complete PK workshop mrgsolve code was transferred');
   await expect(page.getByRole('spinbutton', { name: 'Dose', exact: true })).toHaveValue('100');
   await expect(page.getByRole('spinbutton', { name: 'CL (L/h)', exact: true })).toHaveValue('5.1');
   await page.getByText('R code used for reproduction').click();
@@ -104,6 +107,31 @@ test('a compatible PK workshop opens Simulation and exports CSV, R and Rmd', asy
     expect(download.suggestedFilename()).toBe(filename);
     expect(await readFile(await download.path(), 'utf8')).toContain(content);
   }
+
+  await page.getByRole('button', { name: 'mrgsolve libre', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'mrgsolve / C++' })).toHaveValue(transferredCode);
+  await page.getByRole('textbox', { name: 'mrgsolve / C++' }).fill(`${transferredCode}\n// manual simulation edit`);
+  const pending = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Code R + CSV', exact: true }).click();
+  const freeR = await pending;
+  expect(freeR.suggestedFilename()).toBe('mrgsolve_simulation.R');
+  expect(await readFile(await freeR.path(), 'utf8')).toContain('// manual simulation edit');
+  await page.getByLabel('Display an mrgsolve_simulation.csv result').setInputFiles({
+    name: 'mrgsolve_simulation.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('"ID","time","DV"\n1,0,0\n1,1,2.1\n2,0,0\n2,1,1.8\n')
+  });
+  await expect(page.locator('.chart-header .title')).toContainText('DV · 2 subjects');
+});
+
+test('PK models with covariance remain transferable through unrestricted mrgsolve mode', async ({ page }) => {
+  await page.goto('/pk/?lang=en');
+  const covariance = page.locator('.omega-table tbody input').first();
+  await covariance.fill('0.01');
+  const expected = await code(page);
+  await next(page, 'Simulation');
+  await expect(page.getByRole('button', { name: 'mrgsolve libre', exact: true })).toHaveClass(/active/);
+  await expect(page.getByRole('textbox', { name: 'mrgsolve / C++' })).toHaveValue(expected);
+  expect(expected).toContain('$OMEGA @block');
 });
 
 test('both DDI models can independently receive PK without changing the mechanism or doses', async ({ page }) => {
