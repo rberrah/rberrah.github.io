@@ -6,7 +6,7 @@
   import { onMount, onDestroy, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
-  import { ArrowRight, Plus } from '@lucide/svelte';
+  import { ArrowRight, Play, Plus } from '@lucide/svelte';
   import { readDraft, writeDraft, takeDraft, isPkDiagram, pkKinds } from '$lib/workshops/session.js';
   import { language } from '$lib/stores/language';
   import LabTransfer from '$lib/components/LabTransfer.svelte';
@@ -16,6 +16,7 @@
   import { advancedDefaults, advancedFields, advancedDerivative, interactionFactor, advancedExpressions, advancedGraphValid } from '$lib/lego/advanced.js';
   import { ddiMechanisms } from '$lib/tdm/workbenches.js';
   import { parseModelCode } from '$lib/lego/mlxtran.js';
+  import { legoSimulationConfig } from '$lib/sim/lego.js';
   $: copy = ui($language);
   /** @type {'pk' | 'advanced' | 'translator'} */
   export let profile = 'advanced';
@@ -177,9 +178,15 @@
     if (mounted) writeDraft(`diagram:${profile}`, snapshot());
   });
 
-  /** @param {'pk'|'advanced'|'pd'|'ddi'} destination */
+  /** @param {'pk'|'advanced'|'pd'|'ddi'|'simulation'} destination */
   function continueIn(destination) {
     if (!tdmReady || (destination === 'pk' && !purePk)) return;
+    if (destination === 'simulation') {
+      if (!simulationConfig) return;
+      writeDraft('incoming:simulation', simulationConfig);
+      goto(`${base}/playground/`);
+      return;
+    }
     if (['pd', 'ddi'].includes(destination) && !massOnly) return;
     if (['pd', 'ddi'].includes(destination) && !['IV', 'Oral'].includes(handoffRoute)) return;
     if (destination === 'pk' || destination === 'advanced') {
@@ -1773,6 +1780,7 @@
   let codeTab = 'nlmixr2';
   let copiedTab = '';
   let transferredCode = '';
+  $: simulationConfig = tdmReady ? legoSimulationConfig(tdmModelSpec(), tMax, codeMrgsolve) : null;
   /** @type {ReturnType<typeof setTimeout> | undefined} */ let copyTimer;
   $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr
     : codeTab === 'mrgsolve' ? codeMrgsolve
@@ -1943,6 +1951,7 @@
 {/if}
 
 <div class="continuity" data-testid="model-continuity">
+  <button disabled={!simulationConfig} on:click={() => continueIn('simulation')} title={simulationConfig ? ($language === 'en' ? 'Simulate this population model' : 'Simuler ce modèle de population') : ($language === 'en' ? 'The Simulation page supports linear PK with one to three compartments, one input and no covariance.' : 'La page Simulation accepte une PK linéaire à un à trois compartiments, une seule entrée et sans covariance.')}><Play size={15}/> Simulation</button>
   {#if profile !== 'advanced'}<button disabled={!tdmReady} on:click={() => continueIn('advanced')}><ArrowRight size={15}/> Advanced</button>{/if}
   {#if profile !== 'pk'}<button disabled={!tdmReady || !purePk} on:click={() => continueIn('pk')}><ArrowRight size={15}/> PK</button>{/if}
   <label>{$language === 'en' ? 'Route for PD / DDI' : 'Voie pour PD / DDI'}<select bind:value={handoffRoute}><option value="">{$language === 'en' ? 'Select route' : 'Choisir la voie'}</option><option>Oral</option><option>IV</option></select></label>

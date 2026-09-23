@@ -9,6 +9,7 @@
   export let value = 0;
   export let unit = '';
   export let disabled = false;
+  export let numeric = false;
   $: localizedLabel = vizText($language, label);
 </script>
 
@@ -17,7 +18,11 @@
     <span>{localizedLabel}</span>
     <strong>{value}{unit}</strong>
   </div>
-  <input type="range" bind:value min={min} max={max} step={step} {disabled} aria-label={localizedLabel} />
+  {#if numeric}
+    <input type="number" bind:value min={min} max={max} step={step} {disabled} aria-label={localizedLabel} />
+  {:else}
+    <input type="range" bind:value min={min} max={max} step={step} {disabled} aria-label={localizedLabel} />
+  {/if}
 </label>
 
 <style>
@@ -39,5 +44,15 @@
   input[type='range'] {
     width: 100%;
     accent-color: #2563eb;
+  }
+  input[type='number'] {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 7px;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    font: inherit;
   }
 </style>

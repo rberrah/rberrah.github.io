@@ -7,6 +7,10 @@
   import { simulatePopulation } from '$lib/sim/population';
   import Slider from '$lib/components/ui/Slider.svelte';
   import { language } from '$lib/stores/language';
+  import { onMount } from 'svelte';
+  import { Download } from '@lucide/svelte';
+  import { takeDraft } from '$lib/workshops/session.js';
+  import { downloadText, populationCsv, simulationR, simulationRmd } from '$lib/sim/export.js';
 
   let route = 'oral_1st';
   let nCompartments = 1;
@@ -40,8 +44,19 @@
   let nInd = 80;
   let seed = 7;
   let samplingPreset = 'rich';
+  let tEnd = 24;
+  let transferred = false;
 
-  $: samplingTimes = buildTimes(samplingPreset);
+  onMount(() => {
+    const incoming = takeDraft('incoming:simulation');
+    if (!incoming) return;
+    ({ route, nCompartments, dose, infusionDuration, ka, lag, absorptionMode, nTransit, mtt, cl, vc, q1, vp1, q2, vp2,
+      iivEnabled, omegaCL, omegaVc, omegaKa, omegaQ, iovEnabled, kappaCL, resEnabled, sigmaProp, sigmaAdd,
+      nInd, seed, samplingPreset, tEnd } = incoming);
+    transferred = true;
+  });
+
+  $: samplingTimes = buildTimes(samplingPreset, tEnd);
 
   $: modelConfig = {
     dose,
@@ -86,33 +101,26 @@
   $: yScale = scaleLinear().domain(paddedDomain(flat.map((p) => p.dv), 0.25)).range([340, 0]);
 
   $: kpi = population.kpis;
+  $: exportConfig = { route, nCompartments, dose, infusionDuration, ka, lag, absorptionMode, nTransit, mtt, cl, vc, q1, vp1, q2, vp2,
+    iivEnabled, omegaCL, omegaVc, omegaKa, omegaQ, iovEnabled, kappaCL, resEnabled, sigmaProp, sigmaAdd, nInd, seed, tEnd };
+  $: rCode = simulationR(exportConfig, samplingTimes);
 
-  function buildTimes(preset) {
-    if (preset === 'rich') return Array.from({ length: 49 }, (_, i) => i * 0.5);
-    if (preset === 'sparse') return [0, 1, 2, 4, 8, 12, 24];
-    if (preset === 'tdm') return [0, 12, 24];
-    return [0, 1, 2, 4, 8, 12, 24];
+  function buildTimes(preset, horizon) {
+    const end = Math.max(1, Number(horizon) || 24);
+    if (preset === 'rich') return Array.from({ length: 49 }, (_, i) => end * i / 48);
+    if (preset === 'sparse') return [0, .04, .08, .17, .33, .5, 1].map((fraction) => Number((end * fraction).toPrecision(6)));
+    if (preset === 'tdm') return [0, end / 2, end];
+    return [0, end];
   }
 
   function downloadCsv() {
-    const header = ['id', 't', 'ipred', 'dv', 'CL', 'Vc', 'Ka'].join(',');
-    const rows = population.profiles
-      .map((p) =>
-        p.points
-          .map((pt) => [p.id, pt.t, pt.ipred, pt.dv, p.params.cl, p.params.vc, p.params.ka].join(','))
-          .join('\n')
-      )
-      .join('\n');
-    const blob = new Blob([header + '\n' + rows], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'poppk_simulation.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadText('poppk_simulation.csv', populationCsv(population), 'text/csv;charset=utf-8');
   }
+  const downloadR = () => downloadText('poppk_simulation.R', rCode, 'text/x-r-source;charset=utf-8');
+  const downloadRmd = () => downloadText('poppk_simulation.Rmd', simulationRmd(exportConfig, samplingTimes, $language === 'en'), 'text/markdown;charset=utf-8');
 </script>
 
+{#if transferred}<p class="transfer-note" role="status">{$language === 'en' ? 'PK workshop model applied. Adjust the population design or export the reproducible files below.' : 'Modèle de l’atelier PK appliqué. Ajustez le plan de population ou exportez les fichiers reproductibles ci-dessous.'}</p>{/if}
 <div class="playground">
   <aside class="sidebar">
     <h2>{$language === 'en' ? 'Model' : 'Modèle'}</h2>
@@ -131,12 +139,12 @@
       </select>
     </label>
     <div class="card">
-      <Slider label="Dose" min={50} max={800} step={10} bind:value={dose} />
+      <Slider numeric label="Dose" min={0.000001} max={1000000} step="any" bind:value={dose} />
       {#if route === 'iv_infusion'}
-        <Slider label={$language === 'en' ? 'Infusion duration (h)' : 'Durée perf (h)'} min={0.5} max={8} step={0.1} bind:value={infusionDuration} />
+        <Slider numeric label={$language === 'en' ? 'Infusion duration (h)' : 'Durée perf (h)'} min={0.000001} max={10000} step="any" bind:value={infusionDuration} />
       {/if}
       {#if route === 'oral_1st'}
-        <Slider label="Ka (1/h)" min={0.1} max={3} step={0.05} bind:value={ka} />
+        <Slider numeric label="Ka (1/h)" min={0.000001} max={10000} step="any" bind:value={ka} />
         <label>{$language === 'en' ? 'Absorption delay' : "Délai d'absorption"}
           <select bind:value={absorptionMode}>
             <option value="none">{$language === 'en' ? 'None' : 'Aucun'}</option>
@@ -145,21 +153,21 @@
           </select>
         </label>
         {#if absorptionMode === 'lag'}
-          <Slider label="Lag (h)" min={0} max={3} step={0.1} bind:value={lag} />
+          <Slider numeric label="Lag (h)" min={0} max={10000} step="any" bind:value={lag} />
         {:else if absorptionMode === 'transit'}
-          <Slider label="n transit" min={1} max={10} step={1} bind:value={nTransit} />
-          <Slider label="MTT (h)" min={0.2} max={6} step={0.1} bind:value={mtt} />
+          <Slider numeric label="n transit" min={1} max={50} step={1} bind:value={nTransit} />
+          <Slider numeric label="MTT (h)" min={0.000001} max={10000} step="any" bind:value={mtt} />
         {/if}
       {/if}
-      <Slider label="CL (L/h)" min={0.5} max={25} step={0.5} bind:value={cl} />
-      <Slider label="Vc (L)" min={5} max={200} step={5} bind:value={vc} />
+      <Slider numeric label="CL (L/h)" min={0.000001} max={1000000} step="any" bind:value={cl} />
+      <Slider numeric label="Vc (L)" min={0.000001} max={1000000} step="any" bind:value={vc} />
       {#if nCompartments >= 2}
-        <Slider label="Q1 (L/h)" min={0.1} max={20} step={0.2} bind:value={q1} />
-        <Slider label="Vp1 (L)" min={5} max={200} step={5} bind:value={vp1} />
+        <Slider numeric label="Q1 (L/h)" min={0.000001} max={1000000} step="any" bind:value={q1} />
+        <Slider numeric label="Vp1 (L)" min={0.000001} max={1000000} step="any" bind:value={vp1} />
       {/if}
       {#if nCompartments >= 3}
-        <Slider label="Q2 (L/h)" min={0.1} max={15} step={0.2} bind:value={q2} />
-        <Slider label="Vp2 (L)" min={5} max={200} step={5} bind:value={vp2} />
+        <Slider numeric label="Q2 (L/h)" min={0.000001} max={1000000} step="any" bind:value={q2} />
+        <Slider numeric label="Vp2 (L)" min={0.000001} max={1000000} step="any" bind:value={vp2} />
       {/if}
     </div>
 
@@ -170,29 +178,36 @@
       <label><input type="checkbox" bind:checked={resEnabled} /> {$language === 'en' ? 'Residual' : 'Résiduel'}</label>
     </div>
     <div class="card">
-      <Slider label="ω CL" min={0} max={0.8} step={0.05} bind:value={omegaCL} />
-      <Slider label="ω Vc" min={0} max={0.8} step={0.05} bind:value={omegaVc} />
-      <Slider label="ω Ka" min={0} max={0.8} step={0.05} bind:value={omegaKa} />
-      <Slider label="ω Q/Vp" min={0} max={0.8} step={0.05} bind:value={omegaQ} />
-      <Slider label="κ CL (IOV)" min={0} max={0.8} step={0.05} bind:value={kappaCL} />
-      <Slider label="σ prop" min={0} max={0.5} step={0.02} bind:value={sigmaProp} />
-      <Slider label="σ add" min={0} max={1} step={0.05} bind:value={sigmaAdd} />
+      <Slider numeric label="ω CL" min={0} max={10} step="any" bind:value={omegaCL} />
+      <Slider numeric label="ω Vc" min={0} max={10} step="any" bind:value={omegaVc} />
+      <Slider numeric label="ω Ka" min={0} max={10} step="any" bind:value={omegaKa} />
+      <Slider numeric label="ω Q/Vp" min={0} max={10} step="any" bind:value={omegaQ} />
+      <Slider numeric label="κ CL (IOV)" min={0} max={10} step="any" bind:value={kappaCL} />
+      <Slider numeric label="σ prop" min={0} max={10} step="any" bind:value={sigmaProp} />
+      <Slider numeric label="σ add" min={0} max={1000000} step="any" bind:value={sigmaAdd} />
     </div>
 
     <h2>Population</h2>
     <div class="card">
-      <Slider label={$language === 'en' ? 'N subjects' : 'N individus'} min={10} max={300} step={10} bind:value={nInd} />
-      <Slider label={$language === 'en' ? 'Seed' : 'Graine'} min={1} max={999} step={1} bind:value={seed} />
+      <Slider numeric label={$language === 'en' ? 'N subjects' : 'N individus'} min={1} max={5000} step={1} bind:value={nInd} />
+      <Slider numeric label={$language === 'en' ? 'Seed' : 'Graine'} min={1} max={2147483647} step={1} bind:value={seed} />
+      <label>{$language === 'en' ? 'Simulation duration (h)' : 'Durée de simulation (h)'}
+        <input class="numeric" type="number" min="1" max="10000" step="any" bind:value={tEnd} />
+      </label>
       <label>{$language === 'en' ? 'Sampling' : 'Échantillonnage'}
         <select bind:value={samplingPreset}>
-          <option value="rich">{$language === 'en' ? 'Rich (q30 min)' : 'Riche (q30 min)'}</option>
-          <option value="sparse">{$language === 'en' ? 'Sparse' : 'Épars'}</option>
-          <option value="tdm">{$language === 'en' ? 'TDM trough' : 'Résiduelle TDM'}</option>
+          <option value="rich">{$language === 'en' ? 'Rich (49 points)' : 'Riche (49 points)'}</option>
+          <option value="sparse">{$language === 'en' ? 'Sparse (7 points)' : 'Épars (7 points)'}</option>
+          <option value="tdm">TDM (3 points)</option>
         </select>
       </label>
     </div>
 
-    <button class="export" on:click={downloadCsv}>{$language === 'en' ? 'Export CSV' : 'Exporter CSV'}</button>
+    <div class="exports" aria-label={$language === 'en' ? 'Simulation downloads' : 'Téléchargements de la simulation'}>
+      <button class="export" on:click={downloadCsv}><Download size={16}/>{$language === 'en' ? 'CSV results' : 'Résultats CSV'}</button>
+      <button class="export secondary" on:click={downloadR}><Download size={16}/>Code R</button>
+      <button class="export secondary" on:click={downloadRmd}><Download size={16}/>R Markdown</button>
+    </div>
   </aside>
 
   <main class="main">
@@ -239,6 +254,7 @@
       <div class="kpi"><span>{$language === 'en' ? 'Median Cmax' : 'Cmax médiane'}</span><strong>{kpi.cmaxMed.toFixed(2)}</strong></div>
       <div class="kpi"><span>{$language === 'en' ? 'Median Tmax' : 'Tmax médiane'}</span><strong>{kpi.tmaxMed.toFixed(2)} h</strong></div>
     </div>
+    <details class="r-code"><summary>{$language === 'en' ? 'R code used for reproduction' : 'Code R de reproduction'}</summary><pre><code>{rCode}</code></pre></details>
   </main>
 </div>
 
@@ -297,18 +313,26 @@
     border: 1px solid var(--border-subtle);
     background: var(--bg-tertiary);
   }
+  .numeric { box-sizing: border-box; width: 100%; padding: 7px; color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-strong); border-radius: 4px; font: inherit; }
   .toggles {
     grid-auto-flow: row;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
   .export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 8px 12px;
-    border: none;
-    background: #2563eb;
-    color: var(--bg-tertiary);
-    border-radius: 8px;
+    border: 1px solid #176b66;
+    background: #176b66;
+    color: white;
+    border-radius: 4px;
     cursor: pointer;
   }
+  .exports { display: grid; gap: 8px; }
+  .export.secondary { background: var(--bg-primary); color: var(--text-primary); border-color: var(--border-strong); }
+  .transfer-note { border-left: 3px solid #187c80; background: var(--bg-tertiary); padding: 12px; }
   .main {
     display: grid;
     gap: 12px;
@@ -341,4 +365,7 @@
   .kpi strong {
     font-size: 1.2rem;
   }
+  .r-code { border-top: 1px solid var(--border-strong); padding-top: 12px; }
+  .r-code summary { cursor: pointer; font-weight: 650; }
+  .r-code pre { max-height: 520px; overflow: auto; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; font-size: .78rem; }
 </style>

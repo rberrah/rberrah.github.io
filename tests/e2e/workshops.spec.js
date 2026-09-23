@@ -82,6 +82,30 @@ test('one covariate definition can contain several distinct parameter effects', 
   await expect(second).toHaveValue(originalName);
 });
 
+test('a compatible PK workshop opens Simulation and exports CSV, R and Rmd', async ({ page }) => {
+  await page.goto('/pk/?lang=en');
+  await next(page, 'Simulation');
+  await expect(page).toHaveURL(/\/playground\//);
+  await expect(page.getByRole('status')).toContainText('PK workshop model applied');
+  await expect(page.getByRole('spinbutton', { name: 'Dose', exact: true })).toHaveValue('100');
+  await expect(page.getByRole('spinbutton', { name: 'CL (L/h)', exact: true })).toHaveValue('5.1');
+  await page.getByText('R code used for reproduction').click();
+  await expect(page.locator('.r-code code')).toContainText('library(mrgsolve)');
+  await expect(page.locator('.r-code code')).toContainText('TVCL=5.1');
+
+  for (const [button, filename, content] of [
+    ['CSV results', 'poppk_simulation.csv', 'id,time,ipred,dv,CL,Vc,Q1,Vp1,Q2,Vp2,Ka'],
+    ['Code R', 'poppk_simulation.R', 'library(mrgsolve)'],
+    ['R Markdown', 'poppk_simulation.Rmd', '```{r simulation']
+  ]) {
+    const pending = page.waitForEvent('download');
+    await page.getByRole('button', { name: button, exact: true }).click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe(filename);
+    expect(await readFile(await download.path(), 'utf8')).toContain(content);
+  }
+});
+
 test('both DDI models can independently receive PK without changing the mechanism or doses', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   const first = await code(page);
