@@ -55,14 +55,15 @@ infection_panel <- function(lang = "fr") {
             p(t("Exemple numerique, pas une cible recommandee. fu = 1 si la sortie du modele est deja libre.", "Numerical example, not a recommended target. fu = 1 if the model output is already unbound."))),
           accordion_panel(t("Posologie actuelle", "Current regimen"), value = "regimens",
             numericInput(ns("dose"), t("Dose (unite PK)", "Dose (PK unit)"), 1000, min = 1e-6),
-            numericInput(ns("interval"), t("Intervalle (h)", "Interval (h)"), 12, min = .25, max = 168),
+            numericInput(ns("interval"), t("Intervalle (h)", "Interval (h)"), 12, min = .25, max = 8760),
             numericInput(ns("infusion"), t("Perfusion (h; 0 = bolus IV / oral)", "Infusion (h; 0 = IV bolus / oral)"), 1, min = 0)),
           accordion_panel(t("Cible et grille de doses", "Target and dose grid"), value = "grid",
             numericInput(ns("pta_target"), t("Probabilite d'atteinte souhaitee (%)", "Desired target attainment probability (%)"), 90, min = .001, max = 100),
             fluidRow(column(4, numericInput(ns("dose_min"), "Dose min", 500, min = .001)),
               column(4, numericInput(ns("dose_max"), "Dose max", 1500, min = .001)),
               column(4, numericInput(ns("dose_step"), t("Pas", "Step"), 500, min = .001))),
-            checkboxGroupInput(ns("intervals"), t("Intervalles proposes (h)", "Candidate intervals (h)"), c(4, 6, 8, 12, 24, 48), c(8, 12), inline = TRUE),
+            selectizeInput(ns("intervals"), t("Intervalles proposes (h)", "Candidate intervals (h)"), c(4, 6, 8, 12, 24, 48), c(8, 12), multiple = TRUE,
+              options = list(create = TRUE, placeholder = t("Choisir ou saisir une valeur", "Select or enter a value"))),
             checkboxInput(ns("continuous"), t("Perfusion continue", "Continuous infusion"), FALSE),
             conditionalPanel(sprintf("!input['%s']", ns("continuous")), numericInput(ns("grid_infusion"), t("Perfusion (h; 0 = bolus IV / oral)", "Infusion (h; 0 = IV bolus / oral)"), 1, min = 0)))),
         tags$details(tags$summary(t("Simulation avancee", "Advanced simulation")),
@@ -146,7 +147,8 @@ infection_server <- function(id, analysis_store, report_plot_uri, imported = rea
       }
       grid <- value$config$grid %||% list(min = value$config$dose2, max = value$config$dose2, step = 1, intervals = value$config$interval2, infusion = value$config$infusion2)
       for (key in c("min", "max", "step")) updateNumericInput(session, paste0("dose_", key), value = grid[[key]])
-      updateCheckboxGroupInput(session, "intervals", selected = as.character(unlist(grid$intervals)))
+      intervals <- as.numeric(unlist(grid$intervals))
+      updateSelectizeInput(session, "intervals", choices = sort(unique(c(4, 6, 8, 12, 24, 48, intervals))), selected = as.character(intervals))
       updateNumericInput(session, "grid_infusion", value = grid$infusion)
       updateCheckboxInput(session, "continuous", value = isTRUE(grid$continuous))
       updateCheckboxInput(session, "accept", value = FALSE)

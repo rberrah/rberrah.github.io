@@ -12,7 +12,8 @@ ddi_library_context <- function(model_id, route = NULL) {
   route <- as.character(route %||% routes[[1]])
   if (!route %in% routes) stop("The selected route is not supported by this model.")
 
-  model <- compile_model(model_id = model_id) |> mrgsolve::zero_re()
+  model <- compile_model(model_id = model_id)
+  model <- mrgsolve::zero_re(model)
   adm_cmt <- match(model_administration_cmt(record, route), model@cmtL)
   if (!is.finite(adm_cmt)) stop("The administration compartment is missing from the compiled model.")
 
@@ -158,15 +159,19 @@ ddi_simulate_profile <- function(context, regimen, start, stop, horizon, delta, 
   data <- rbind(doses, observations)
   data <- data[order(data$time, -data$evid), , drop = FALSE]
 
-  if (!is.null(parameter_name)) {
-    if (!parameter_name %in% model_param_names(context$model)) stop("Unknown interaction target parameter.")
-    data[[parameter_name]] <- stats::approx(
-      parameter_times,
-      parameter_values,
-      xout = data$time,
-      rule = 2,
-      ties = "ordered"
-    )$y
+  if (length(parameter_name)) {
+    if (any(!parameter_name %in% model_param_names(context$model))) stop("Unknown interaction target parameter.")
+    values <- if (is.list(parameter_values)) parameter_values else list(parameter_values)
+    if (length(values) != length(parameter_name)) stop("One parameter trajectory is required per interaction target.")
+    for (i in seq_along(parameter_name)) {
+      data[[parameter_name[[i]]]] <- stats::approx(
+        parameter_times,
+        values[[i]],
+        xout = data$time,
+        rule = 2,
+        ties = "ordered"
+      )$y
+    }
   }
 
   simulation <- mrgsolve::mrgsim_d(
@@ -190,6 +195,31 @@ ddi_simulate_profile <- function(context, regimen, start, stop, horizon, delta, 
   )
 }
 
+ddi_validate_targets <- function(config, available = NULL) {
+  targets <- config$targets
+  if (is.null(targets) || !length(targets)) {
+    targets <- list(list(parameter = config$target %||% "", fraction = config$target_fraction %||% 1))
+  } else if (is.data.frame(targets)) {
+    targets <- lapply(seq_len(nrow(targets)), function(i) as.list(targets[i, , drop = FALSE]))
+  } else if (!is.null(targets$parameter) || !is.null(targets$target) || !is.null(targets$name)) {
+    targets <- list(targets)
+  }
+  if (!is.list(targets) || !length(targets) || length(targets) > 6L) stop("Select between one and six interaction targets.")
+  targets <- lapply(seq_along(targets), function(i) {
+    target <- targets[[i]]
+    parameter <- as.character(target$parameter %||% target$target %||% target$name %||% "")
+    if (length(parameter) != 1L || !grepl("^[A-Za-z_][A-Za-z0-9_]*$", parameter)) stop("Invalid interaction target.")
+    list(parameter = parameter, fraction = ddi_numeric(target$fraction %||% 1, paste("Affected fraction", i), 0, 1))
+  })
+  parameters <- vapply(targets, `[[`, character(1), "parameter")
+  if (anyDuplicated(parameters)) stop("Each interaction target must be unique.")
+  if (!is.null(available) && any(!parameters %in% available)) stop("Select positive structural parameters from model 1.")
+  config$targets <- targets
+  config$target <- targets[[1]]$parameter
+  config$target_fraction <- targets[[1]]$fraction
+  config
+}
+
 ddi_validate_mechanism <- function(config) {
   if (!config$type %in% c("factor", "inhibition", "induction", "reversible", "hill_inhibition", "tdi", "turnover_induction")) stop("Unknown interaction type.")
   config$factor <- ddi_numeric(config$factor %||% 1, "Interaction factor", 0.01, 20)
@@ -198,7 +228,7 @@ ddi_validate_mechanism <- function(config) {
   config$hill <- ddi_numeric(config$hill %||% 1, "Hill", 0.1, 10)
   config$kdeg <- ddi_numeric(config$kdeg %||% 0.02, "kdeg (1/h)", 1e-6, 10)
   config$kinact <- ddi_numeric(config$kinact %||% 0.1, "kinact (1/h)", 0, 10)
-  config
+  ddi_validate_targets(config)
 }
 
 ddi_modifier <- function(type, concentration, time, start, stop, factor, strength, c50,
@@ -248,9 +278,11 @@ ddi_simulate <- function(config, affected_context, driver_context, delta = 0.1) 
   config <- ddi_validate_mechanism(config)
 
   parameters <- ddi_parameter_table(affected_context)
-  target_index <- match(config$target, parameters$name)
-  if (is.na(target_index)) stop("Select a positive structural parameter from model 1.")
-  baseline_parameter <- parameters$value[[target_index]]
+  config <- ddi_validate_targets(config, parameters$name)
+  target_names <- vapply(config$targets, `[[`, character(1), "parameter")
+  target_fractions <- vapply(config$targets, `[[`, numeric(1), "fraction")
+  target_indexes <- match(target_names, parameters$name)
+  baseline_parameters <- stats::setNames(parameters$value[target_indexes], target_names)
   start <- config$start_day * 24
   stop <- config$stop_day * 24
   horizon <- (config$stop_day + config$followup_days) * 24
@@ -273,7 +305,8 @@ ddi_simulate <- function(config, affected_context, driver_context, delta = 0.1) 
     config$strength,
     config$c50, config$hill, config$kdeg, config$kinact
   )
-  target_values <- pmax(1e-12, baseline_parameter * modifier)
+  target_modifiers <- stats::setNames(lapply(target_fractions, function(fraction) (1 - fraction) + fraction * modifier), target_names)
+  target_values <- stats::setNames(lapply(target_names, function(target) pmax(1e-12, baseline_parameters[[target]] * target_modifiers[[target]])), target_names)
 
   baseline <- ddi_simulate_profile(
     affected_context,
@@ -292,7 +325,7 @@ ddi_simulate <- function(config, affected_context, driver_context, delta = 0.1) 
     horizon = horizon,
     delta = delta,
     steady_state = TRUE,
-    parameter_name = config$target,
+    parameter_name = target_names,
     parameter_times = driver$time,
     parameter_values = target_values
   )
@@ -307,14 +340,16 @@ ddi_simulate <- function(config, affected_context, driver_context, delta = 0.1) 
     transform(baseline, scenario = "baseline"),
     transform(interaction, scenario = "interaction")
   )
-  effect <- data.frame(
+  effect <- do.call(rbind, lapply(seq_along(target_names), function(i) data.frame(
     time = driver$time,
     day = driver$day,
     driver_concentration = driver$concentration,
-    modifier = modifier,
-    parameter_value = target_values,
+    modifier = target_modifiers[[i]],
+    parameter_value = target_values[[i]],
+    target = target_names[[i]],
+    fraction = target_fractions[[i]],
     stringsAsFactors = FALSE
-  )
+  )))
   schedule <- data.frame(
     model = c(affected_context$label, driver_context$label),
     source = c(affected_context$source, driver_context$source),
@@ -341,9 +376,10 @@ ddi_simulate <- function(config, affected_context, driver_context, delta = 0.1) 
       auc_ratio = ratio("auc"),
       cmin_ratio = ratio("cmin"),
       cmax_ratio = ratio("cmax"),
-      minimum_modifier = min(modifier, na.rm = TRUE),
-      maximum_modifier = max(modifier, na.rm = TRUE),
-      baseline_parameter = baseline_parameter
+      minimum_modifier = min(effect$modifier, na.rm = TRUE),
+      maximum_modifier = max(effect$modifier, na.rm = TRUE),
+      baseline_parameter = baseline_parameters[[1]],
+      baseline_parameters = baseline_parameters
     )
   )
 }

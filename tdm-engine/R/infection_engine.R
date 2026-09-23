@@ -13,8 +13,8 @@ infection_config <- function(config = list()) {
     if (length(x[[name]]) != 1 || !x[[name]] %in% choices) stop("Invalid infectiology option: ", name)
   }
   limits <- list(fu = c(1e-6, 1), mic = c(1e-6, 1e5), multiple = c(0.01, 1000), target = c(0.001, if (x$metric == "time") 100 else 1e6),
-    replicates = c(50, 1000), delta = c(0.01, 0.25), dose = c(1e-6, 1e7), interval = c(0.25, 168), infusion = c(0, 168),
-    dose2 = c(1e-6, 1e7), interval2 = c(0.25, 168), infusion2 = c(0, 168), pta_target = c(.001, 100))
+    replicates = c(50, 1000), delta = c(0.01, 0.25), dose = c(1e-6, 1e7), interval = c(0.25, 8760), infusion = c(0, 168),
+    dose2 = c(1e-6, 1e7), interval2 = c(0.25, 8760), infusion2 = c(0, 168), pta_target = c(.001, 100))
   for (name in names(limits)) x[[name]] <- ddi_numeric(x[[name]], name, limits[[name]][1], limits[[name]][2])
   if (x$replicates != floor(x$replicates)) stop("Replicates must be an integer.")
   if (x$infusion > x$interval || x$infusion2 > x$interval2) stop("Infusion duration must not exceed the dosing interval.")
@@ -34,7 +34,7 @@ infection_regimens <- function(config) {
   step <- ddi_numeric(g$step, "Dose step", 1e-6, 1e7)
   intervals <- sort(unique(as.numeric(unlist(g$intervals))))
   infusion <- ddi_numeric(g$infusion, "Candidate infusion", 0, 168)
-  if (!length(intervals) || any(!is.finite(intervals) | intervals < .25 | intervals > 168)) stop("Select valid dosing intervals.")
+  if (!length(intervals) || any(!is.finite(intervals) | intervals < .25 | intervals > 8760)) stop("Select valid dosing intervals between 0.25 and 8760 hours.")
   count <- (floor((maximum - minimum)/step) + 1) * length(intervals)
   if (count > 24) stop("Maximum 24 candidate regimens. Narrow the dose grid.")
   if (infusion > min(intervals)) stop("Infusion duration must not exceed any candidate dosing interval.")

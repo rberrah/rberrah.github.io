@@ -19,10 +19,21 @@
   let names = $derived({ equilibrium: t('Equilibre', 'Equilibrium'), reference: t('Sans interaction', 'No interaction'), interaction: t('Avec interaction', 'With interaction'),
     untreated: t('Sans traitement', 'Untreated'), treated: t('Avec traitement', 'Treated'), ce: 'Ce', response: 'E(t)', concentration: 'C(t)', trajectory: 'E(C)',
     mic_threshold: config.metric === 'time' ? t('k x CMI', 'k x MIC') : t('CMI', 'MIC'), example_exposure: t('Exemple de concentration', 'Example concentration'),
-    exposure_current: t('Maintenir', 'Maintain'), exposure_compare: t('Comparer', 'Compare'), pta_current: t('Maintenir', 'Maintain'), pta_compare: t('Comparer', 'Compare') });
+    exposure_current: `${t('Actuelle', 'Current')} · ${config.dose ?? ''} / ${config.interval ?? ''} h`, exposure_compare: `${t('Comparee', 'Compared')} · ${config.preview_regimen?.dose ?? ''} / ${config.preview_regimen?.interval ?? ''} h`,
+    pta_current: `${t('Actuelle', 'Current')} · ${config.dose ?? ''} / ${config.interval ?? ''} h`, pta_compare: `${t('Comparee', 'Compared')} · ${config.preview_regimen?.dose ?? ''} / ${config.preview_regimen?.interval ?? ''} h` });
   const colors = ['var(--curve-primary)', 'var(--curve-secondary)'];
   /** @param {number} value */
   const number = (value) => Number(value.toPrecision(3)).toString();
+  /** Keep logarithmic MIC labels readable, especially on narrow screens. */
+  const ptaTicks = (/** @type {any} */ scale) => {
+    const [lo, hi] = scale.domain();
+    /** @type {number[]} */
+    const values = [];
+    for (let exponent = Math.ceil(Math.log2(lo)); exponent <= Math.floor(Math.log2(hi)); exponent += 1) values.push(2 ** exponent);
+    const limit = width < 550 ? 4 : 7;
+    if (values.length <= limit) return values;
+    return [...new Set(Array.from({ length: limit }, (_, index) => values[Math.round(index * (values.length - 1) / (limit - 1))]))];
+  };
   let charts = $derived.by(() => {
     try {
       const data = workshopCurves(view, config, concentration, computed);
@@ -39,7 +50,8 @@
           return scaleLinear().domain(chart.key === 'infection_pta' ? [0, 100] : [lo, hi + (hi - lo) * .08]).nice().range([230, 0]);
         };
         const y = axis('left'), yRight = axis('right');
-        return { ...chart, xLabel: chart.x, yLabel: chart.y, x, y, yRight, series: chart.series.map((series) => ({ ...series,
+        const xTicks = chart.key === 'infection_pta' ? ptaTicks(x) : x.ticks(width < 550 ? 3 : 5);
+        return { ...chart, xLabel: chart.x, yLabel: chart.y, x, xTicks, y, yRight, series: chart.series.map((series) => ({ ...series,
           path: line().x((/** @type {any} */ p) => x(p.x)).y((/** @type {any} */ p) => (series.axis === 'right' ? yRight : y)(p.y))(/** @type {any} */ (series.points)) })) };
       });
     } catch { return []; }
@@ -53,7 +65,7 @@
   <p class="scope">{view === 'infection' ? (computed ? t('Resultats R : medianes des profils simules et PTA, selon la configuration calculee dans le moteur.', 'R results: median simulated profiles and PTA, using the configuration calculated in the engine.') : config.exposure === 'iv1' && config.source === 'pk' ? t('Modele IV 1 compartiment, a l’etat stationnaire. CL et V log-normaux independants, variances ETA = 0,09 (CV 30,7 %), sans erreur residuelle. Memes tirages pour les deux posologies. Exposition mediane et PTA Monte Carlo; parametres d’exemple, non valides pour une molecule.', 'Steady-state one-compartment IV model. Independent log-normal CL and V, ETA variances = 0.09 (CV 30.7%), without residual error. Both regimens use the same draws. Median exposure and Monte Carlo PTA; example parameters, not validated for a drug.') : t('Le modele choisi sera simule dans R. Les courbes d’exposition et de PTA reviendront ici apres calcul, sans substitution par une PK simplifiee.', 'The selected model will be simulated in R. Exposure and PTA curves return here after calculation, without substituting a simplified PK model.')) : view === 'ddi'
     ? t('Illustration analytique : C2 est maintenue constante entre le debut et l’arret, puis devient nulle. Ce n’est pas le profil PK de la molecule 2. Le moteur R utilise ses concentrations reelles simulees.', 'Analytical illustration: C2 is constant between start and stop, then zero. This is not the PK profile of drug 2. The R engine uses its actual simulated concentrations.')
     : view === 'onco' ? (computed ? t('Comparaison calculee dans R et renvoyee par le moteur : sans traitement et cycles de reference maintenus. Les parametres et covariables PK sont ceux du moteur.', 'Comparison computed in R and returned by the engine: untreated and maintained reference cycles. PK parameters and covariates are those of the engine.') : config.free_pk ? t('La courbe traitee sera renvoyee ici apres comparaison des cycles dans le moteur R. Aucun profil IV simplifie ne remplace votre PK libre.', 'The treated curve returns here after comparing cycles in the R engine. No simplified IV profile substitutes for your free PK.') : t('Apercu de la PK IV d’exemple : historique et cycles de reference, avec perte de sensibilite RES. Le calcul R reste la reference pour la reponse et les neutrophiles.', 'Built-in IV PK preview: history and reference cycles, including loss of sensitivity RES. R remains the reference calculation for response and neutrophils.'))
-    : computed ? t('Simulation PK/PD renvoyee par R. E(C) suit la trajectoire temporelle, y compris l’hysteresis en presence de delai.', 'PK/PD simulation returned by R. E(C) follows the time trajectory, including hysteresis when a delay is present.') : config.exposure === 'iv1' ? t('PK IV selon CL, V et les doses saisies. La reponse depend de C(t), avec Ce(0)=0 et R(0)=E0 si ces etats sont actifs. E(C) suit la trajectoire temporelle, pas une relation d’equilibre imposee.', 'IV PK from CL, V and the entered doses. Response is driven by C(t), with Ce(0)=0 and R(0)=E0 when those states are active. E(C) follows the time trajectory, not an imposed equilibrium relationship.') : t('Le moteur R simule le modele PK choisi et renvoie les deux graphiques apres calcul.', 'The R engine simulates the selected PK model and returns both plots after calculation.')}</p>
+    : computed ? t('Simulation PK/PD renvoyee par R. E(C) suit la trajectoire temporelle, y compris l’hysteresis en presence de delai.', 'PK/PD simulation returned by R. E(C) follows the time trajectory, including hysteresis when a delay is present.') : config.exposure === 'iv1' ? t('PK IV selon CL, V et les doses saisies. La reponse depend de C(t), avec Ce(0)=0 et R(0)=E0 si ces etats sont actifs. E(C) suit la trajectoire temporelle, pas une relation d’equilibre imposee.', 'IV PK from CL, V and the entered doses. Response is driven by C(t), with Ce(0)=0 and R(0)=E0 when those states are active. E(C) follows the time trajectory, not an imposed equilibrium relationship.') : t('Ce modele mrgsolve ne peut pas etre execute dans le navigateur. Cliquez sur Ouvrir dans le moteur : R le compile, le simule automatiquement et renvoie les deux graphiques ici.', 'This mrgsolve model cannot run in the browser. Select Open in engine: R compiles and simulates it automatically, then returns both plots here.')}</p>
   {#if view === 'onco' && config.toxicity}
     <figure class="scheme"><figcaption>{t('Maturation hematologique et retrocontrole', 'Hematological maturation and feedback')}</figcaption>
       <svg class="desktop-scheme" viewBox="0 0 760 175" role="img" aria-label={t('Proliferation, trois transits, neutrophiles et retrocontrole', 'Proliferation, three transits, neutrophils and feedback')}>
@@ -90,17 +102,17 @@
           <g transform="translate(72,22)">
             {#each chart.y.ticks(4) as tick}<line class="grid" x1="0" x2={plotWidth} y1={chart.y(tick)} y2={chart.y(tick)} /><text x="-10" y={chart.y(tick) + 4} text-anchor="end">{number(tick)}</text>{/each}
             {#if chart.y2}<g class="right-axis" data-testid="right-axis">{#each chart.yRight.ticks(4) as tick}<text x={plotWidth + 10} y={chart.yRight(tick) + 4}>{number(tick)}</text>{/each}<text transform={`translate(${plotWidth + 62},115) rotate(90)`} text-anchor="middle">{chart.y2}</text></g>{/if}
-            {#each chart.x.ticks(chart.key === 'infection_pta' ? 5 : width < 550 ? 3 : 5) as tick}<text x={chart.x(tick)} y="252" text-anchor="middle">{number(tick)}</text>{/each}
+            {#each chart.xTicks as tick}<text class="x-tick" x={chart.x(tick)} y="252" text-anchor="middle">{number(tick)}</text>{/each}
             {#if chart.key === 'infection_pta'}<line class="target" x1="0" x2={plotWidth} y1={chart.y(config.pta_target)} y2={chart.y(config.pta_target)}/>{/if}
             {#each chart.series as series,index}<path class="curve" d={series.path} stroke={colors[index]} stroke-dasharray={series.key === 'untreated' || series.key === 'concentration' || view !== 'pd' && chart.series.length > 1 && index === 0 ? '7 5' : undefined} data-series={series.key} />{/each}
             <text x={plotWidth / 2} y="278" text-anchor="middle">{chart.xLabel === 'day' ? t('Jour', 'Day') : chart.xLabel === 'MIC (mg/L)' ? t('CMI (mg/L)', 'MIC (mg/L)') : chart.xLabel}</text>
             <text transform="translate(-52,115) rotate(-90)" text-anchor="middle">{chart.yLabel === '1/day' ? t('1/jour', '1/day') : chart.yLabel === 'C free (mg/L)' ? t('C libre (mg/L)', 'Unbound C (mg/L)') : chart.yLabel}</text>
           </g>
         </svg>
-        <div class="legend">{#each chart.series as series,index}<span><i style={`border-color:${colors[index]};border-top-style:${series.key === 'untreated' || series.key === 'concentration' || view !== 'pd' && chart.series.length > 1 && index === 0 ? 'dashed' : 'solid'}`}></i>{names[series.key]}</span>{/each}{#if chart.key === 'infection_pta'}<span>{t('Cible PTA', 'PTA target')}: {config.pta_target}%</span>{/if}</div>
+        <div class="legend" class:pta-legend={chart.key === 'infection_pta'}>{#each chart.series as series,index}<span><i style={`border-color:${colors[index]};border-top-style:${series.key === 'untreated' || series.key === 'concentration' || view !== 'pd' && chart.series.length > 1 && index === 0 ? 'dashed' : 'solid'}`}></i>{names[series.key]}</span>{/each}{#if chart.key === 'infection_pta'}<span><i class="target-key"></i>{t('Seuil PTA', 'PTA threshold')} · {config.pta_target}%</span>{/if}</div>
       </figure>
     {/each}</div>
-  {:else}<p role="status">{!computed && (view === 'pd' && config.exposure !== 'iv1' || view === 'infection' && (config.source !== 'pk' || config.exposure !== 'iv1')) ? t('En attente de la simulation du modele dans R.', 'Waiting for the model simulation in R.') : t('Valeurs hors du domaine de cet apercu; verifiez les parametres ou utilisez le moteur R.', 'Values outside this preview domain; check parameters or use the R engine.')}</p>{/if}
+  {:else}<p role="status">{!computed && view === 'pd' && config.exposure !== 'iv1' ? t('Ouvrez le moteur pour compiler et simuler automatiquement ce modele.', 'Open the engine to compile and simulate this model automatically.') : !computed && view === 'infection' && (config.source !== 'pk' || config.exposure !== 'iv1') ? t('En attente de la simulation du modele dans R.', 'Waiting for the model simulation in R.') : t('Valeurs hors du domaine de cet apercu; verifiez les parametres ou utilisez le moteur R.', 'Values outside this preview domain; check parameters or use the R engine.')}</p>{/if}
 </section>
 
 <style>
@@ -119,11 +131,12 @@
   .curve { fill: none; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
   .right-axis text { fill: var(--curve-secondary); } .target { stroke: var(--text-secondary); stroke-dasharray: 2 4; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 0.8rem; }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; } .legend i { display: inline-block; width: 24px; border-top: 3px solid; }
+  .legend span { display: inline-flex; align-items: flex-start; gap: 6px; min-width: 0; overflow-wrap: anywhere; } .legend i { display: inline-block; width: 24px; flex: 0 0 24px; margin-top: .45em; border-top: 3px solid; }
+  .legend.pta-legend { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; } .legend .target-key { border-color:var(--text-secondary); border-top-style:dotted; }
   .scheme { max-width: 850px; margin: 20px auto 26px; } .scheme rect { fill: var(--bg-tertiary); stroke: var(--curve-primary); stroke-width: 2; } .scheme rect.anc { stroke: var(--curve-secondary); }
   .arrow, .feedback { stroke: currentColor; stroke-width: 2; fill: none; marker-end: url(#onco-arrow); } .feedback { stroke: var(--curve-secondary); stroke-dasharray: 6 4; }
   .inhibit { stroke: var(--curve-primary); stroke-width: 2; fill: none; } .scheme text { font-size: 14px; }
   .mobile-scheme { display: none; }
   .mobile-scheme .arrow, .mobile-scheme .feedback { marker-end: url(#onco-mobile-arrow); }
-  @media (max-width: 760px) { .chart-grid { grid-template-columns: 1fr; gap: 24px; } .desktop-scheme { display: none; } .mobile-scheme { display: block; max-width: 370px; margin: 0 auto; } }
+  @media (max-width: 760px) { .chart-grid { grid-template-columns: 1fr; gap: 24px; } .legend.pta-legend { grid-template-columns:1fr; } .desktop-scheme { display: none; } .mobile-scheme { display: block; max-width: 370px; margin: 0 auto; } }
 </style>

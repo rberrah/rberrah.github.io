@@ -366,10 +366,17 @@ normalize_lego_spec <- function(specification) {
     if (!identical(to, "OUT") && identical(from, to)) stop("A Lego transfer cannot loop to itself.")
     kinetics <- lego_text(input$kinetics %||% "first_order", paste0("edges[", index, "].kinetics"), "^(first_order|michaelis_menten|hill)$", 24L)
     parameterization <- lego_text(input$eliminationParameterization %||% "rate", paste0("edges[", index, "].eliminationParameterization"), "^(rate|clearance)$", 16L)
+    transfer_parameterization <- lego_text(input$transferParameterization %||% "rate", paste0("edges[", index, "].transferParameterization"), "^(rate|clearance)$", 16L)
     source_node <- nodes[[match(from, node_ids)]]
     if (source_node$kind %in% LEGO_PD_KINDS || (!identical(to, "OUT") && nodes[[match(to, node_ids)]]$kind %in% LEGO_PD_KINDS)) stop("Mass transfers cannot enter or leave PD/interaction blocks.")
     if (identical(parameterization, "clearance") && (!identical(to, "OUT") || !source_node$kind %in% LEGO_VOLUME_KINDS)) {
       stop("Clearance parameterization requires elimination from a volume compartment.")
+    }
+    if (identical(transfer_parameterization, "clearance")) {
+      target_node <- if (identical(to, "OUT")) NULL else nodes[[match(to, node_ids)]]
+      if (is.null(target_node) || !source_node$kind %in% LEGO_VOLUME_KINDS || !target_node$kind %in% LEGO_VOLUME_KINDS) {
+        stop("Intercompartmental clearance requires a transfer between two volume compartments.")
+      }
     }
     list(
       from = from,
@@ -380,12 +387,22 @@ normalize_lego_spec <- function(specification) {
       km = lego_number(input$km, paste0("edges[", index, "].km"), 1e-12, 1e12, default = 10),
       gamma = lego_number(input$gamma, paste0("edges[", index, "].gamma"), 1e-6, 100, default = 1),
       eliminationParameterization = parameterization,
-      cl = lego_number(input$cl, paste0("edges[", index, "].cl"), 1e-12, 1e12, default = 5)
+      cl = lego_number(input$cl, paste0("edges[", index, "].cl"), 1e-12, 1e12, default = 5),
+      transferParameterization = transfer_parameterization,
+      q = lego_number(input$q, paste0("edges[", index, "].q"), 1e-12, 1e12, default = 5)
     )
   })
 
   edge_keys <- vapply(edges, function(edge) paste(edge$from, edge$to, sep = "->"), character(1))
   if (anyDuplicated(edge_keys)) stop("Duplicate Lego transfers are not supported.")
+  q_edges <- Filter(function(edge) identical(edge$transferParameterization, "clearance"), edges)
+  if (length(q_edges)) {
+    q_keys <- vapply(q_edges, function(edge) paste(sort(c(edge$from, edge$to)), collapse = "::"), character(1))
+    for (key in unique(q_keys)) {
+      values <- vapply(q_edges[q_keys == key], `[[`, numeric(1), "q")
+      if (length(values) > 1L && max(values) - min(values) > 1e-10) stop("Reciprocal Lego transfers must share the same intercompartmental clearance Q.")
+    }
+  }
   for (node in Filter(function(n) n$kind == "interaction", nodes)) {
     if (!paste(node$targetFrom, node$targetTo, sep = "->") %in% edge_keys) stop("The interaction target flux does not exist.")
   }
@@ -441,7 +458,28 @@ normalize_lego_spec <- function(specification) {
     if (length(unique(signatures)) > 1L) stop("Repeated Lego covariates must share type, scope, reference and comparison: ", name)
   }
 
-  list(version = version, nodes = nodes, edges = edges, covariates = covariates)
+  population_input <- specification$population %||% list()
+  if (!is.list(population_input)) stop("The Lego population model must be an object.")
+  named_numbers <- function(values, field, lower, upper, key_pattern) {
+    if (is.null(values)) return(NULL)
+    if (!is.list(values) || is.null(names(values)) || length(values) > 210L) stop(field, " must be a named object.")
+    if (any(!grepl(key_pattern, names(values), perl = TRUE)) || anyDuplicated(names(values))) stop("Invalid ", field, " parameter name.")
+    stats::setNames(vapply(seq_along(values), function(index) lego_number(values[[index]], paste0(field, ".", names(values)[index]), lower, upper), numeric(1)), names(values))
+  }
+  residual_input <- population_input$residualError %||% list(type = "combined", additive = 0.1, proportional = 0.2)
+  if (!is.list(residual_input)) stop("Residual error must be an object.")
+  residual <- list(
+    type = lego_text(residual_input$type %||% "combined", "residualError.type", "^(additive|proportional|combined)$", 16L),
+    additive = lego_number(residual_input$additive, "residualError.additive", 1e-9, 1e6, default = 0.1),
+    proportional = lego_number(residual_input$proportional, "residualError.proportional", 1e-9, 1e3, default = 0.2)
+  )
+  population <- list(
+    iivVariances = named_numbers(population_input$iivVariances, "iivVariances", 1e-9, 1e6, "^[A-Za-z_][A-Za-z0-9_]*$"),
+    iivCovariances = named_numbers(population_input$iivCovariances, "iivCovariances", -1e6, 1e6, "^[A-Za-z_][A-Za-z0-9_]*::[A-Za-z_][A-Za-z0-9_]*$"),
+    residualError = residual
+  )
+
+  list(version = version, nodes = nodes, edges = edges, covariates = covariates, population = population)
 }
 
 lego_spec_from_code <- function(code) {
@@ -479,6 +517,10 @@ lego_model_code <- function(specification) {
   )
   name_for <- function(id) unname(internal[[as.character(id)]])
   client_name_for <- function(id) nodes[[match(id, ids)]]$name
+  q_name_for <- function(edge, client = FALSE) {
+    resolver <- if (isTRUE(client)) client_name_for else name_for
+    paste0("q_", paste(sort(c(resolver(edge$from), resolver(edge$to))), collapse = "_"))
+  }
   volume_nodes <- Filter(function(node) node$kind %in% LEGO_VOLUME_KINDS, nodes)
   central_nodes <- Filter(function(node) identical(node$kind, "central"), nodes)
   observed <- if (length(central_nodes)) central_nodes[[1]] else volume_nodes[[1]]
@@ -520,6 +562,15 @@ lego_model_code <- function(specification) {
         name = paste0("cl_", from), client_name = paste0("cl_", client_name_for(edge$from)), value = edge$cl,
         note = paste0("clearance from ", from), iiv = TRUE
       )
+    } else if (identical(edge$transferParameterization, "clearance")) {
+      client_name <- q_name_for(edge, client = TRUE)
+      existing <- if (length(parameters)) vapply(parameters, `[[`, character(1), "client_name") else character()
+      if (!client_name %in% existing) {
+        parameters[[length(parameters) + 1L]] <- list(
+          name = q_name_for(edge), client_name = client_name, value = edge$q,
+          note = paste0("intercompartmental clearance between ", from, " and ", to), iiv = FALSE
+        )
+      }
     } else {
       parameters[[length(parameters) + 1L]] <- list(
         name = paste0("k_", from, "_", to),
@@ -574,8 +625,28 @@ lego_model_code <- function(specification) {
   })
   data_covariates <- covariate_effects[!duplicated(vapply(covariate_effects, `[[`, character(1), "name"))]
 
-  random_parameters <- Filter(function(parameter) isTRUE(parameter$iiv), parameters)
-  if (!length(random_parameters)) random_parameters <- parameters[1]
+  variance_input <- spec$population$iivVariances
+  random_parameters <- if (is.null(variance_input)) {
+    Filter(function(parameter) isTRUE(parameter$iiv), parameters)
+  } else {
+    unknown <- setdiff(names(variance_input), client_parameter_names)
+    if (length(unknown)) stop("Unknown Lego random-effect parameter: ", unknown[[1]])
+    parameters[client_parameter_names %in% names(variance_input)]
+  }
+  variance_for <- function(parameter) if (is.null(variance_input)) 0.09 else unname(variance_input[parameter$client_name])
+  covariance_input <- spec$population$iivCovariances %||% numeric()
+  covariance_for <- function(left, right) {
+    key <- paste(sort(c(left$client_name, right$client_name)), collapse = "::")
+    if (key %in% names(covariance_input)) unname(covariance_input[[key]]) else 0
+  }
+  if (length(random_parameters)) {
+    omega <- matrix(0, length(random_parameters), length(random_parameters))
+    diag(omega) <- vapply(random_parameters, variance_for, numeric(1))
+    for (row in seq_along(random_parameters)) for (column in seq_len(row - 1L)) {
+      omega[row, column] <- omega[column, row] <- covariance_for(random_parameters[[row]], random_parameters[[column]])
+    }
+    if (any(!is.finite(omega)) || any(eigen(omega, symmetric = TRUE, only.values = TRUE)$values <= 1e-12)) stop("The Lego Omega matrix must be positive definite.")
+  }
   eta_index <- stats::setNames(seq_along(random_parameters), vapply(random_parameters, `[[`, character(1), "name"))
   width <- max(8L, nchar(paste0("TV_", vapply(parameters, `[[`, character(1), "name"))))
   pad <- function(text) sprintf("%-*s", width, text)
@@ -607,19 +678,22 @@ lego_model_code <- function(specification) {
     }
   }
 
-  lines <- c(lines, "", "$OMEGA @annotated")
-  for (parameter in random_parameters) {
-    lines <- c(lines, paste0("IIV_", parameter$name, " : 0.09 : interindividual variance on ", parameter$name))
-  }
+  lines <- c(lines, "", "$OMEGA @block")
+  if (length(random_parameters)) {
+    for (row in seq_along(random_parameters)) {
+      values <- vapply(seq_len(row), function(column) if (row == column) variance_for(random_parameters[[row]]) else covariance_for(random_parameters[[row]], random_parameters[[column]]), numeric(1))
+      lines <- c(lines, paste(lego_format_number(values), collapse = " "))
+    }
+  } else lines <- c(lines, "0 FIX")
+  residual <- spec$population$residualError
   lines <- c(
     lines,
     "",
-    "$SIGMA @annotated",
-    "PROP : 0.04 : proportional residual variance",
-    "ADD  : 0.01 : additive residual variance",
-    "",
-    "$CMT @annotated"
+    "$SIGMA @annotated"
   )
+  if (residual$type %in% c("proportional", "combined")) lines <- c(lines, paste0("PROP : ", lego_format_number(residual$proportional^2), " : proportional residual variance"))
+  if (residual$type %in% c("additive", "combined")) lines <- c(lines, paste0("ADD : ", lego_format_number(residual$additive^2), " : additive residual variance"))
+  lines <- c(lines, "", "$CMT @annotated")
   if (route_doses) {
     lines <- c(lines, paste0(pad("LEGO_INPUT"), " : split dose input [ADM]"))
   }
@@ -681,6 +755,9 @@ lego_model_code <- function(specification) {
       if (identical(edge$eliminationParameterization, "clearance")) {
         return(paste0("cl_", from, "*", amount, "/v_", from))
       }
+      if (identical(edge$transferParameterization, "clearance")) {
+        return(paste0(q_name_for(edge), "*", amount, "/v_", from))
+      }
       paste0("k_", from, "_", to, "*", amount)
     }
     flux <- function(edge) {
@@ -741,7 +818,11 @@ lego_model_code <- function(specification) {
   lines <- c(
     lines,
     paste0("double IPRED = CONC_", observed_name, ";"),
-    "double DV = IPRED * (1 + EPS(1)) + EPS(2);",
+    switch(residual$type,
+      additive = "double DV = IPRED + EPS(1);",
+      proportional = "double DV = IPRED * (1 + EPS(1));",
+      "double DV = IPRED * (1 + EPS(1)) + EPS(2);"
+    ),
     "if (DV < 0) DV = 0;",
     "",
     "$CAPTURE @annotated",

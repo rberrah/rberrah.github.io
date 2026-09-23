@@ -108,11 +108,18 @@ pd_server <- function(id, analysis_store, report_plot_uri, imported = reactive(N
     }))
     observeEvent(input$example, handle(function() {
       config <- configuration()
-      data <- if (identical(input$data_mode, "concentration")) {
+      timed <- isTRUE(config$delay) || grepl("_(in|out)$", config$type)
+      if (identical(input$data_mode, "concentration") && timed) {
+        data <- pd_simulate(config, seq(0, config$horizon, length.out = 15))[, c("time", "effect")]
+        observations$replace_for(data, c("time", "effect"))
+        updateRadioButtons(session, "data_mode", selected = "time")
+        showNotification(t("Le delai exige des observations temps-effet : le tableau a ete adapte.", "The delay requires time-effect observations: the table was adapted."), type = "message", duration = 5)
+      } else if (identical(input$data_mode, "concentration")) {
         d <- data.frame(concentration = seq(0, config$c0, length.out = 15))
-        transform(d, effect = pd_predict(config, d, "concentration"))
-      } else pd_simulate(config, seq(0, config$horizon, length.out = 15))[, c("time", "effect")]
-      observations$replace(data)
+        observations$replace(transform(d, effect = pd_predict(config, d, "concentration")))
+      } else {
+        observations$replace(pd_simulate(config, seq(0, config$horizon, length.out = 15))[, c("time", "effect")])
+      }
     }))
     observeEvent(input$use_tdm, handle(function() {
       result <- analysis_store()

@@ -3,7 +3,7 @@
   // On ajoute des compartiments (dépôt, transit, central, périphérique, métabolite, PD)
   // et des flèches (constantes de transfert) entre N'IMPORTE quels compartiments.
   // Sortie : diagramme éditable + EDO générées + nlmixr2/mrgsolve/MLXTRAN/NONMEM + simulation (RK4).
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { ArrowRight, Plus } from '@lucide/svelte';
@@ -30,15 +30,16 @@
       parentMetabolite: 'Parent/métabolite', clear: 'Effacer', duration: 'Durée (h)', editorAria: 'Éditeur de modèle compartimental', eliminationShort: 'élim.',
       emptyCanvas: 'Ajoutez un compartiment, ou choisissez un modèle type ci-dessus.', chartAria: 'Simulation du modèle et comparaison des covariables', time: 'Temps (h)', legendAria: 'Légende des courbes',
       reference: 'référence', rescaled: 'rééch.', name: 'Nom', source: 'Source', addElimination: 'Ajouter une élimination', remove: 'Supprimer',
-      editorTip: "Cliquez un compartiment pour l'éditer (nom, volume, dose…), puis glissez-le pour le déplacer.", transferRates: 'Constantes de transfert', rateAria: 'Constante de vitesse', to: 'vers',
+      editorTip: "Cliquez un compartiment pour l'éditer (nom, volume, dose…), puis glissez-le pour le déplacer.", transferRates: 'Flux de transfert', rateAria: 'Paramètre de transfert', to: 'vers',
       covariates: 'Covariables', addContinuousAria: 'Ajouter une covariable continue', addCategoricalAria: 'Ajouter une covariable catégorielle', continuous: 'Continue', categorical: 'Catégorielle',
-      covariateHelp: "Continue : P = TV × (COV/réf)^β. Catégorielle : P = TV × exp(β) pour la modalité comparée. Une covariable d'administration peut changer à chaque dose dans le TDM.", type: 'Type', targetParameter: 'Paramètre cible',
+      covariateHelp: "Continue : P = TV × (COV/réf)^β. Catégorielle : P = TV × exp(β) pour la modalité comparée. Une même covariable peut cibler plusieurs paramètres, avec un β propre à chacun. Une covariable d'administration peut changer à chaque dose dans le TDM.", type: 'Type', targetParameter: 'Paramètre cible', addTargetParameter: 'Ajouter un effet', covariateDefinition: 'Définition de la covariable', covariateEffects: 'Effets sur les paramètres', duplicateCovariateName: 'Ce nom est déjà utilisé par une autre covariable.',
       categoryReference: 'Modalité réf.', referenceValue: 'Référence', categoryComparison: 'Modalité comparée', comparisonValue: 'Valeur comparée', compareCurve: 'Comparer sur la courbe',
       inputSettings: 'Administration dans ce compartiment', inputType: "Type d'entrée", bolusInput: 'Bolus / entrée instantanée', zeroOrderInput: "Entrée d'ordre zéro", inputDuration: "Durée d'entrée (h)", lagTime: 'Délai Tlag (h)', doseFraction: 'Fraction de dose (%)',
       inputHelp: "Plusieurs compartiments dosés créent des voies parallèles. Les fractions s'appliquent à une même dose et doivent totaliser 100 %. Reliez les compartiments en chaîne pour une absorption séquentielle.",
       complementaryFraction: 'Complément de la fraction', independentFraction: 'Fraction indépendante', durationLinked: 'Durée égale au Tlag de', independentDuration: 'Durée indépendante',
-      kinetics: 'Cinétique', firstOrder: 'Premier ordre', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable de Hill', eliminationParameter: "Paramètre d'élimination", rateConstant: 'Constante k', clearance: 'Clairance CL',
+      kinetics: 'Cinétique', firstOrder: 'Premier ordre', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable de Hill', eliminationParameter: "Paramètre d'élimination", transferParameter: 'Paramètre de transfert', rateConstant: 'Constante k', clearance: 'Clairance CL', intercompartmentalClearance: 'Clairance Q', clickArrow: 'Cliquer pour modifier ce flux',
       covariateScope: 'Moment de mesure', patientCovariate: 'Patient / prélèvement', administrationCovariate: 'Administration / occasion',
+      populationModel: 'Modèle populationnel', populationHelp: "Activez les effets aléatoires puis renseignez Ω. Les termes hors diagonale sont des covariances ; la matrice doit être positive.", randomEffects: 'Effets aléatoires', variance: 'Variance', covarianceMatrix: 'Matrice variance-covariance Ω', residualError: 'Erreur résiduelle', additive: 'Additive', proportional: 'Proportionnelle', combined: 'Combinée', standardDeviation: 'Écart-type', invalidOmega: "La matrice Ω n'est pas positive. Réduisez les covariances.",
       dualAbsorption: 'Double absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: "Le pont TDM accepte aussi les voies parallèles; une dose est répartie automatiquement selon les fractions.",
       kokaNote: "Structure d'absorption KOKA : f2 entre directement dans le central par un processus d'ordre zéro; 1−f2 entre dans le dépôt après Tlag1, avec D2 = Tlag1. L'IOV aléatoire publiée doit être codée dans le logiciel d'estimation selon la définition des occasions.",
       pp6mNote: "Structure PP6M : deux dépôts parallèles avec absorption saturable dépendante de la quantité. Les valeurs proposées sont exprimées en mg, mg/h et litres.",
@@ -51,15 +52,16 @@
       parentMetabolite: 'Parent/metabolite', clear: 'Clear', duration: 'Duration (h)', editorAria: 'Compartmental model editor', eliminationShort: 'elim.',
       emptyCanvas: 'Add a compartment or choose a template above.', chartAria: 'Model simulation and covariate comparison', time: 'Time (h)', legendAria: 'Curve legend',
       reference: 'reference', rescaled: 'rescaled', name: 'Name', source: 'Source', addElimination: 'Add elimination', remove: 'Remove',
-      editorTip: 'Select a compartment to edit its name, volume or dose, then drag it to reposition it.', transferRates: 'Transfer rate constants', rateAria: 'Rate constant', to: 'to',
+      editorTip: 'Select a compartment to edit its name, volume or dose, then drag it to reposition it.', transferRates: 'Transfer flows', rateAria: 'Transfer parameter', to: 'to',
       covariates: 'Covariates', addContinuousAria: 'Add a continuous covariate', addCategoricalAria: 'Add a categorical covariate', continuous: 'Continuous', categorical: 'Categorical',
-      covariateHelp: 'Continuous: P = TV × (COV/ref)^β. Categorical: P = TV × exp(β) for the compared category. An administration covariate can change at each dose in TDM.', type: 'Type', targetParameter: 'Target parameter',
+      covariateHelp: 'Continuous: P = TV × (COV/ref)^β. Categorical: P = TV × exp(β) for the compared category. One covariate can target several parameters, with a separate β for each. An administration covariate can change at each dose in TDM.', type: 'Type', targetParameter: 'Target parameter', addTargetParameter: 'Add effect', covariateDefinition: 'Covariate definition', covariateEffects: 'Parameter effects', duplicateCovariateName: 'This name is already used by another covariate.',
       categoryReference: 'Reference category', referenceValue: 'Reference', categoryComparison: 'Compared category', comparisonValue: 'Compared value', compareCurve: 'Compare on chart',
       inputSettings: 'Administration into this compartment', inputType: 'Input type', bolusInput: 'Bolus / instantaneous input', zeroOrderInput: 'Zero-order input', inputDuration: 'Input duration (h)', lagTime: 'Tlag (h)', doseFraction: 'Dose fraction (%)',
       inputHelp: 'Multiple dosed compartments create parallel pathways. Fractions apply to one common dose and must total 100%. Connect compartments in a chain for sequential absorption.',
       complementaryFraction: 'Complement of fraction', independentFraction: 'Independent fraction', durationLinked: 'Duration equals Tlag of', independentDuration: 'Independent duration',
-      kinetics: 'Kinetics', firstOrder: 'First order', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable Hill', eliminationParameter: 'Elimination parameter', rateConstant: 'Rate constant k', clearance: 'Clearance CL',
+      kinetics: 'Kinetics', firstOrder: 'First order', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable Hill', eliminationParameter: 'Elimination parameter', transferParameter: 'Transfer parameter', rateConstant: 'Rate constant k', clearance: 'Clearance CL', intercompartmentalClearance: 'Clearance Q', clickArrow: 'Click to edit this flow',
       covariateScope: 'Measurement time', patientCovariate: 'Patient / sample', administrationCovariate: 'Administration / occasion',
+      populationModel: 'Population model', populationHelp: 'Enable random effects, then enter Ω. Off-diagonal terms are covariances; the matrix must be positive.', randomEffects: 'Random effects', variance: 'Variance', covarianceMatrix: 'Variance-covariance matrix Ω', residualError: 'Residual error', additive: 'Additive', proportional: 'Proportional', combined: 'Combined', standardDeviation: 'Standard deviation', invalidOmega: 'The Ω matrix is not positive. Reduce the covariances.',
       dualAbsorption: 'Dual absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: 'The TDM bridge also accepts parallel pathways; one dose is automatically split according to the fractions.',
       kokaNote: 'KOKA absorption structure: f2 enters the central compartment directly by a zero-order process; 1−f2 enters the depot after Tlag1, with D2 = Tlag1. The published random IOV must be coded in the estimation software according to the occasion definition.',
       pp6mNote: 'PP6M structure: two parallel depots with amount-dependent saturable absorption. Suggested values use mg, mg/h and litres.',
@@ -104,7 +106,7 @@
   $: importUi = MODEL_IMPORT_UI[$language === 'en' ? 'en' : 'fr'];
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, inputDurationTlagOf?:number, tlag?:number, doseFraction?:number, fractionComplementOf?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number, growth?:string, t0?:number, kg?:number, cap?:number, kill?:number, ec50?:number, res?:number, mechanism?:string, factor?:number, strength?:number, c50?:number, hill?:number, kdeg?:number, kinact?:number, targetFrom?:number, targetTo?:number|'OUT'}} Node */
-  /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten'|'hill', vmax?:number, km?:number, gamma?:number, eliminationParameterization?:'rate'|'clearance', cl?:number}} Edge */
+  /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten'|'hill', vmax?:number, km?:number, gamma?:number, eliminationParameterization?:'rate'|'clearance', cl?:number, transferParameterization?:'rate'|'clearance', q?:number}} Edge */
   /** @typedef {{id:number, name:string, type:'continuous'|'categorical', scope?:'patient'|'administration', target:string, reference:number, comparison:number, beta:number, compare:boolean}} Covariate */
 
   /** @type {Record<string, {color:string, vol:boolean, plot:boolean, special?:string}>} */
@@ -130,6 +132,11 @@
   let edges = [];
   /** @type {Covariate[]} */
   let covariates = [];
+  /** @type {Record<string, number>} */
+  let iivVariances = {};
+  /** @type {Record<string, number>} */
+  let iivCovariances = {};
+  let residualError = { type: 'combined', additive: 0.1, proportional: 0.2 };
   let mode = 'select'; // 'select' | 'connect'
   /** @type {number|null} */ let selectedId = null;
   /** @type {number|null} */ let connectFrom = null;
@@ -147,13 +154,16 @@
   $: massOnly = nodes.length > 0 && nodes.every(isMassNode);
 
   function snapshot() {
-    return { nodes, edges, covariates, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute };
+    return { nodes, edges, covariates, iivVariances, iivCovariances, residualError, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute };
   }
 
   onMount(() => {
     const draft = takeDraft(`incoming:${profile}`) ?? readDraft(`diagram:${profile}`);
     if (draft) {
       ({ nodes, edges, covariates, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute } = draft);
+      iivVariances = draft.iivVariances ?? {};
+      iivCovariances = draft.iivCovariances ?? {};
+      residualError = draft.residualError ?? residualError;
     } else if (profile === 'pk') preset('oral1');
     if (profile === 'translator') {
       const source = takeDraft('source:translator');
@@ -274,6 +284,7 @@
       if (edgeKinetics(edge) === 'hill') edge.gamma = Number(edge.gamma ?? 1);
     }
     if (eliminationParameterization(edge) === 'clearance') edge.cl = Number(edge.cl ?? 5);
+    if (transferParameterization(edge) === 'clearance') setTransferClearance(edge, Number(edge.q ?? defaultTransferClearance(edge)));
     edges = [...edges];
     reconcileCovariates();
   }
@@ -318,7 +329,8 @@
         ...edge, id: next++, from, to,
         kinetics: ['michaelis_menten', 'hill'].includes(edge.kinetics) ? edge.kinetics : 'first_order',
         k: Number(edge.k ?? 0.2), vmax: Number(edge.vmax ?? 10), km: Number(edge.km ?? 10), gamma: Number(edge.gamma ?? 1),
-        eliminationParameterization: edge.eliminationParameterization === 'clearance' ? 'clearance' : 'rate', cl: Number(edge.cl ?? 5)
+        eliminationParameterization: edge.eliminationParameterization === 'clearance' ? 'clearance' : 'rate', cl: Number(edge.cl ?? 5),
+        transferParameterization: edge.transferParameterization === 'clearance' ? 'clearance' : 'rate', q: Number(edge.q ?? 5)
       };
     });
     if (!Array.isArray(specification.covariates ?? []) || (specification.covariates?.length ?? 0) > 50) throw new Error('unsupportedStructure');
@@ -331,6 +343,9 @@
     nodes = importedNodes;
     edges = importedEdges;
     covariates = importedCovariates;
+    iivVariances = specification.population?.iivVariances ?? {};
+    iivCovariances = specification.population?.iivCovariances ?? {};
+    residualError = specification.population?.residualError ?? { type: 'combined', additive: 0.1, proportional: 0.2 };
     uid = next;
     selectedId = nodes[0]?.id ?? null;
     activePreset = ['oral1', 'iv2', 'transit', 'metab', 'effect', 'dual', 'koka', 'pp6m', 'tgi', 'autoinhibition'].includes(specification.simulation?.preset) ? specification.simulation.preset : '';
@@ -545,8 +560,10 @@
           ...edge,
           kinetics: edge.kinetics ?? 'first_order',
           eliminationParameterization: edge.eliminationParameterization ?? 'rate',
+          transferParameterization: edge.transferParameterization ?? 'rate',
           k: adjusted(`k_${from}_${to}`, Number(edge.k)),
           cl: adjusted(`cl_${from}`, Number(edge.cl ?? edge.k)),
+          q: adjusted(transferParameterName(edge, currentNodes), Number(edge.q ?? defaultTransferClearance(edge, currentNodes))),
           vmax: adjusted(`vmax_${from}_${to}`, Number(edge.vmax ?? 10)),
           km: adjusted(`km_${from}_${to}`, Number(edge.km ?? 10)),
           gamma: adjusted(`gamma_${from}_${to}`, Number(edge.gamma ?? 1))
@@ -578,6 +595,8 @@
             ? e.vmax * amount / Math.max(e.km + amount, 1e-12)
           : e.to === 'OUT' && e.eliminationParameterization === 'clearance'
             ? e.cl * amount / Math.max(Number(localNodes[fi].vol ?? 1), 1e-12)
+            : e.to !== 'OUT' && e.transferParameterization === 'clearance'
+              ? e.q * amount / Math.max(Number(localNodes[fi].vol ?? 1), 1e-12)
             : e.k * amount;
         for (const modifier of localNodes.filter(n => n.kind === 'interaction' && n.targetFrom === e.from && n.targetTo === e.to)) {
           rate *= interactionFactor(modifier, driver(modifier, y), y[idx.get(modifier.id) ?? 0]);
@@ -685,6 +704,7 @@
         if (edgeKinetics(edge) === 'hill') return `Vmax·${amount}^γ/(A50^γ+${amount}^γ)`;
         if (edgeKinetics(edge) === 'michaelis_menten') return `Vmax·${amount}/(Km+${amount})`;
         if (eliminationParameterization(edge) === 'clearance') return `CL·${amount}/V_${n.name}`;
+        if (transferParameterization(edge) === 'clearance') return `Q·${amount}/V_${n.name}`;
         return `k·${amount}`;
       };
       const inflow = edges.filter((e) => e.to === n.id).map((e) => `+ ${displayFlux(e, nm(e.from))}${nodes.filter(n => n.kind === 'interaction' && n.targetFrom === e.from && n.targetTo === e.to).map(n => ` × M_${n.name}`).join('')}`);
@@ -715,6 +735,62 @@
 
   const edgeKinetics = (/** @type {Edge} */ edge) => edge.kinetics === 'hill' ? 'hill' : edge.kinetics === 'michaelis_menten' ? 'michaelis_menten' : 'first_order';
   const eliminationParameterization = (/** @type {Edge} */ edge) => edge.to === 'OUT' && edge.eliminationParameterization === 'clearance' ? 'clearance' : 'rate';
+  const transferParameterization = (/** @type {Edge} */ edge) => edge.to !== 'OUT' && edge.transferParameterization === 'clearance' ? 'clearance' : 'rate';
+  const transferParameterName = (/** @type {Edge} */ edge, currentNodes = nodes) => {
+    const names = [edge.from, edge.to].map((id) => rid(currentNodes.find((node) => node.id === id)?.name ?? 'x')).sort();
+    return `q_${names.join('_')}`;
+  };
+  const defaultTransferClearance = (/** @type {Edge} */ edge, currentNodes = nodes) => {
+    const source = currentNodes.find((node) => node.id === edge.from);
+    return Number(edge.k ?? 0.2) * Number(source?.vol ?? 1);
+  };
+  const reciprocalEdge = (/** @type {Edge} */ edge) => edge.to === 'OUT' ? undefined : edges.find((candidate) => candidate.from === edge.to && candidate.to === edge.from);
+  const canUseTransferClearance = (/** @type {Edge} */ edge) => {
+    if (edge.to === 'OUT') return false;
+    const source = nodes.find((node) => node.id === edge.from);
+    const target = nodes.find((node) => node.id === edge.to);
+    return Boolean(source && target && KINDS[source.kind].vol && KINDS[target.kind].vol);
+  };
+
+  function setTransferClearance(/** @type {Edge} */ edge, /** @type {number} */ value) {
+    edge.q = Number(value);
+    const reciprocal = reciprocalEdge(edge);
+    if (reciprocal) {
+      reciprocal.transferParameterization = 'clearance';
+      reciprocal.q = Number(value);
+    }
+  }
+
+  function setTransferParameterization(/** @type {Edge} */ edge, /** @type {string} */ value) {
+    const pair = [edge, reciprocalEdge(edge)].filter(Boolean);
+    if (value === 'clearance') {
+      const q = Number(edge.q ?? pair.find((candidate) => Number.isFinite(Number(candidate?.q)))?.q ?? defaultTransferClearance(edge));
+      pair.forEach((candidate) => {
+        if (!candidate) return;
+        candidate.transferParameterization = 'clearance';
+        candidate.q = q;
+      });
+    } else {
+      pair.forEach((candidate) => {
+        if (!candidate) return;
+        const source = nodes.find((node) => node.id === candidate.from);
+        candidate.transferParameterization = 'rate';
+        candidate.k = Number(candidate.q ?? qFallback(candidate)) / Math.max(Number(source?.vol ?? 1), 1e-12);
+      });
+    }
+    edges = [...edges];
+    reconcileCovariates();
+  }
+
+  const qFallback = (/** @type {Edge} */ edge) => defaultTransferClearance(edge);
+
+  async function editEdge(/** @type {Edge} */ edge) {
+    await tick();
+    const input = /** @type {HTMLInputElement|null} */ (document.getElementById(`edge-value-${edge.id}`));
+    input?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    input?.focus();
+    input?.select();
+  }
   const edgeSuffix = (/** @type {Edge} */ edge, currentNodes = nodes) => {
     const from = rid(currentNodes.find((node) => node.id === edge.from)?.name ?? 'x');
     const to = edge.to === 'OUT' ? 'e' : rid(currentNodes.find((node) => node.id === edge.to)?.name ?? 'x');
@@ -729,6 +805,7 @@
     }
     if (edgeKinetics(edge) === 'michaelis_menten') return `vmax_${from}_${to}*${amount}/(km_${from}_${to} + ${amount})`;
     if (eliminationParameterization(edge) === 'clearance') return `cl_${from}*${amount}/v_${from}`;
+    if (transferParameterization(edge) === 'clearance') return `${transferParameterName(edge, currentNodes)}*${amount}/v_${from}`;
     return `k_${from}_${to}*${amount}`;
   }
 
@@ -760,6 +837,11 @@
         if (edgeKinetics(e) === 'hill') out.push({ name: `gamma_${from}_${to}`, value: e.gamma ?? 1, unit: '-', note: `exposant de Hill ${from} -> ${to}`, iiv: false });
       } else if (eliminationParameterization(e) === 'clearance') {
         out.push({ name: `cl_${from}`, value: e.cl ?? 5, unit: 'L/h', note: `clairance depuis ${from}`, iiv: true });
+      } else if (transferParameterization(e) === 'clearance') {
+        const name = transferParameterName(e, currentNodes);
+        if (!out.some((parameter) => parameter.name === name)) {
+          out.push({ name, value: e.q ?? defaultTransferClearance(e, currentNodes), unit: 'L/h', note: `clairance intercompartimentale ${from} <-> ${to}`, iiv: false });
+        }
       } else {
         out.push({
           name: `k_${from}_${to}`, value: e.k, unit: '1/h',
@@ -861,17 +943,52 @@
     }];
   }
 
-  function resetCovariateType(/** @type {Covariate} */ covariate) {
-    if (covariateType(covariate) === 'categorical') {
-      covariate.reference = 0;
-      covariate.comparison = 1;
-      covariate.beta = 0.2;
-    } else {
-      covariate.reference = covariateName(covariate.name) === 'WT' ? 70 : 1;
-      covariate.comparison = covariate.reference * 1.25;
-      covariate.beta = 0.75;
+  function nextCovariateTarget(/** @type {Covariate} */ covariate) {
+    const name = covariateName(covariate.name);
+    const used = new Set(covariates.filter((candidate) => covariateName(candidate.name) === name).map((candidate) => candidate.target));
+    return parameterChoices.find((parameter) => !used.has(parameter.name))?.name;
+  }
+
+  function addCovariateTarget(/** @type {Covariate} */ covariate) {
+    const target = nextCovariateTarget(covariate);
+    if (!target || covariates.length >= 50) return;
+    covariates = [...covariates, { ...covariate, id: uid++, target }];
+  }
+
+  function covariateEffects(/** @type {Covariate} */ covariate) {
+    const name = covariateName(covariate.name);
+    return covariates.filter((candidate) => covariateName(candidate.name) === name);
+  }
+
+  function updateCovariateDefinition(/** @type {Covariate} */ covariate, /** @type {Partial<Covariate>} */ updates) {
+    const name = covariateName(covariate.name);
+    covariates = covariates.map((candidate) => covariateName(candidate.name) === name ? { ...candidate, ...updates } : candidate);
+  }
+
+  function renameCovariate(/** @type {Covariate} */ covariate, /** @type {Event} */ event) {
+    const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+    const currentName = covariateName(covariate.name);
+    const nextName = covariateName(input.value);
+    const duplicate = nextName && covariates.some((candidate) => {
+      const candidateName = covariateName(candidate.name);
+      return candidateName === nextName && candidateName !== currentName;
+    });
+    input.setCustomValidity(duplicate ? lego.duplicateCovariateName : '');
+    if (duplicate) {
+      input.value = covariate.name;
+      input.reportValidity();
+      return;
     }
-    covariates = [...covariates];
+    updateCovariateDefinition(covariate, { name: input.value });
+  }
+
+  function setCovariateType(/** @type {Covariate} */ covariate, /** @type {'continuous'|'categorical'} */ type) {
+    const reference = type === 'categorical' ? 0 : covariateName(covariate.name) === 'WT' ? 70 : 1;
+    updateCovariateDefinition(covariate, {
+      type,
+      reference,
+      comparison: type === 'categorical' ? 1 : reference * 1.25
+    });
   }
 
   /** @param {number} id */
@@ -879,7 +996,72 @@
     covariates = covariates.filter((covariate) => covariate.id !== id);
   }
 
+  function deleteCovariateGroup(/** @type {Covariate} */ covariate) {
+    const name = covariateName(covariate.name);
+    covariates = covariates.filter((candidate) => covariateName(candidate.name) !== name);
+  }
+
   $: parameterChoices = modelParams(nodes, edges);
+  $: randomParameterChoices = randomParameters(parameterChoices, iivVariances);
+
+  function iivVariance(/** @type {{name:string, iiv:boolean}} */ parameter, variances = iivVariances) {
+    return Object.hasOwn(variances, parameter.name)
+      ? Number(variances[parameter.name])
+      : parameter.iiv ? 0.09 : 0;
+  }
+
+  function setIiv(/** @type {{name:string, iiv:boolean}} */ parameter, /** @type {boolean} */ enabled) {
+    iivVariances = { ...iivVariances, [parameter.name]: enabled ? Math.max(iivVariance(parameter), 0.09) : 0 };
+    if (!enabled) {
+      iivCovariances = Object.fromEntries(Object.entries(iivCovariances).filter(([key]) => !key.split('::').includes(parameter.name)));
+    }
+  }
+
+  function setIivVariance(/** @type {{name:string, iiv:boolean}} */ parameter, /** @type {string|number} */ value) {
+    iivVariances = { ...iivVariances, [parameter.name]: Math.max(0.000001, Number(value) || 0.000001) };
+  }
+
+  const covarianceKey = (/** @type {string} */ left, /** @type {string} */ right) => [left, right].sort().join('::');
+  const covariance = (/** @type {string} */ left, /** @type {string} */ right, covariances = iivCovariances) => Number(covariances[covarianceKey(left, right)] ?? 0);
+  function setCovariance(/** @type {string} */ left, /** @type {string} */ right, /** @type {string|number} */ value) {
+    iivCovariances = { ...iivCovariances, [covarianceKey(left, right)]: Number(value) || 0 };
+  }
+
+  /** @param {ReturnType<typeof modelParams>} [parameters] */
+  function randomParameters(parameters = modelParams(), variances = iivVariances) {
+    return parameters.filter((parameter) => iivVariance(parameter, variances) > 0);
+  }
+
+  /** Positive-definite check used before exporting Ω to estimation software. */
+  function omegaIsValid(parameters = randomParameters(), variances = iivVariances, covariances = iivCovariances) {
+    if (!parameters.length) return true;
+    const lower = parameters.map(() => parameters.map(() => 0));
+    for (let row = 0; row < parameters.length; row += 1) {
+      for (let column = 0; column <= row; column += 1) {
+        let value = row === column
+          ? iivVariance(parameters[row], variances)
+          : covariance(parameters[row].name, parameters[column].name, covariances);
+        for (let index = 0; index < column; index += 1) value -= lower[row][index] * lower[column][index];
+        if (row === column) {
+          if (value <= 1e-12) return false;
+          lower[row][column] = Math.sqrt(value);
+        } else {
+          lower[row][column] = value / lower[column][column];
+        }
+      }
+    }
+    return true;
+  }
+
+  function residualUses(/** @type {'additive'|'proportional'} */ kind) {
+    return residualError.type === kind || residualError.type === 'combined';
+  }
+
+  function residualExpression(prediction = 'IPRED', proportionalIndex = 1, additiveIndex = 2) {
+    if (residualError.type === 'additive') return `${prediction} + EPS(${additiveIndex === 2 ? 1 : additiveIndex})`;
+    if (residualError.type === 'proportional') return `${prediction} * (1 + EPS(${proportionalIndex}))`;
+    return `${prediction} * (1 + EPS(${proportionalIndex})) + EPS(${additiveIndex})`;
+  }
 
   /** Termes de l'EDO d'un compartiment de masse, dans la syntaxe passée en argument. */
   function massTerms(/** @type {any} */ n, power = 'caret') {
@@ -951,7 +1133,9 @@
         km: Number(e.km ?? 10),
         gamma: Number(e.gamma ?? 1),
         eliminationParameterization: eliminationParameterization(e),
-        cl: Number(e.cl ?? 5)
+        cl: Number(e.cl ?? 5),
+        transferParameterization: transferParameterization(e),
+        q: Number(e.q ?? defaultTransferClearance(e))
       })),
       covariates: validCovariates(modelParams(), covariates).map((covariate) => ({
         name: covariateName(covariate.name),
@@ -961,7 +1145,12 @@
         reference: Number(covariate.reference),
         comparison: Number(covariate.comparison),
         beta: Number(covariate.beta)
-      }))
+      })),
+      population: {
+        iivVariances: Object.fromEntries(randomParameters().map((parameter) => [parameter.name, iivVariance(parameter)])),
+        iivCovariances: Object.fromEntries(Object.entries(iivCovariances).filter(([key]) => key.split('::').every((name) => randomParameters().some((parameter) => parameter.name === name)))),
+        residualError: { ...residualError }
+      }
     };
   }
 
@@ -979,6 +1168,7 @@
 
   // ── nlmixr2 (estimation) ──
   $: codeNlmixr = (() => {
+    void iivVariances; void iivCovariances; void residualError;
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     const P = modelParams();
     const C = validCovariates(P, covariates);
@@ -1007,11 +1197,21 @@
     for (const p of P) L.push(p.value > 0
       ? `    l${p.name.padEnd(w)} <- log(${fmt(p.value)}) # ${p.note} (${p.unit})`
       : `    TV_${p.name} <- fixed(${fmt(p.value)}) # zero/non-positive baseline, fixed on natural scale`);
-    const iiv = P.filter((p) => p.iiv);
+    const iiv = randomParameters(P);
     if (iiv.length) {
       L.push('');
-      L.push('    # Variabilite inter-individuelle : variances des eta (0.09 ~ 30 % de CV).');
-      for (const p of iiv) L.push(`    eta_${p.name.padEnd(w)} ~ 0.09`);
+      L.push('    # Variabilite inter-individuelle : matrice variance-covariance Omega.');
+      if (iiv.length === 1) {
+        L.push(`    eta_${iiv[0].name.padEnd(w)} ~ ${fmt(iivVariance(iiv[0]))}`);
+      } else {
+        const omega = [];
+        for (let row = 0; row < iiv.length; row += 1) {
+          for (let column = 0; column <= row; column += 1) {
+            omega.push(fmt(row === column ? iivVariance(iiv[row]) : covariance(iiv[row].name, iiv[column].name)));
+          }
+        }
+        L.push(`    ${iiv.map((parameter) => `eta_${parameter.name}`).join(' + ')} ~ c(${omega.join(', ')})`);
+      }
     }
     if (C.length) {
       L.push('');
@@ -1022,15 +1222,15 @@
       }
     }
     L.push('');
-    L.push('    # Erreur residuelle (combinee : additive + proportionnelle).');
-    L.push('    add_err <- 0.05      # mg/L');
-    L.push('    prop_err <- 0.2      # fraction');
+    L.push(`    # Erreur residuelle ${residualError.type}.`);
+    if (residualUses('additive')) L.push(`    add_err <- ${fmt(residualError.additive)}      # ecart-type, unite de DV`);
+    if (residualUses('proportional')) L.push(`    prop_err <- ${fmt(residualError.proportional)}      # ecart-type relatif`);
     L.push('  })');
     L.push('');
     L.push('  model({');
     L.push('    # Retour a l\'echelle naturelle, eta compris.');
     for (const p of P) {
-      const eta = p.iiv ? ` + eta_${p.name}` : '';
+      const eta = iiv.some((parameter) => parameter.name === p.name) ? ` + eta_${p.name}` : '';
       const effects = C
         .filter((covariate) => covariate.target === p.name)
         .map((covariate) => {
@@ -1070,7 +1270,10 @@
     for (const n of concSources()) L.push(`    C_${rid(n.name)} <- ${rid(n.name)}/v_${rid(n.name)}`);
     if (observed) {
       L.push('');
-      L.push(`    C_${rid(observed.name)} ~ add(add_err) + prop(prop_err)`);
+      const error = residualError.type === 'additive' ? 'add(add_err)'
+        : residualError.type === 'proportional' ? 'prop(prop_err)'
+          : 'add(add_err) + prop(prop_err)';
+      L.push(`    C_${rid(observed.name)} ~ ${error}`);
     }
     L.push('  })');
     L.push('}');
@@ -1106,12 +1309,16 @@
         const source = nodes.find((node) => node.id === edge.from);
         return Boolean(source && KINDS[source.kind].vol && Number(edge.cl ?? 0) > 0);
       }
+      if (transferParameterization(edge) === 'clearance') {
+        return canUseTransferClearance(edge) && Number(edge.q ?? 0) > 0;
+      }
       return Number(edge.k ?? -1) >= 0;
     });
   }
 
-  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates) && advancedInputsAreValid());
+  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates) && omegaIsValid(randomParameterChoices, iivVariances, iivCovariances) && advancedInputsAreValid());
   $: codeMrgsolve = (() => {
+    void iivVariances; void iivCovariances; void residualError;
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '# Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1120,8 +1327,7 @@
     const dosed = dosedNodes();
     const router = needsDoseRouter();
     const adm = dosed[0] ?? nodes.find((n) => n.kind !== 'effect' && n.kind !== 'response') ?? nodes[0];
-    const randomParams = P.filter((p) => p.iiv);
-    if (!randomParams.length && P.length) randomParams.push(P[0]);
+    const randomParams = randomParameters(P);
     const etaIndex = new Map(randomParams.map((p, index) => [p.name, index + 1]));
     const w = Math.max(...P.map((p) => `TV_${p.name}`.length), 8);
     const L = [];
@@ -1151,12 +1357,18 @@
       }
     }
     L.push('');
-    L.push('$OMEGA @annotated');
-    for (const p of randomParams) L.push(`IIV_${p.name} : 0.09 : variance interindividuelle sur ${p.name}`);
+    L.push('$OMEGA @block');
+    if (randomParams.length) {
+      for (let row = 0; row < randomParams.length; row += 1) {
+        const values = [];
+        for (let column = 0; column <= row; column += 1) values.push(fmt(row === column ? iivVariance(randomParams[row]) : covariance(randomParams[row].name, randomParams[column].name)));
+        L.push(`${values.join(' ')} // ETA(${row + 1}) -> IIV ${randomParams[row].name}`);
+      }
+    } else L.push('0 FIX // aucune variabilite interindividuelle selectionnee');
     L.push('');
     L.push('$SIGMA @annotated');
-    L.push('PROP : 0.04 : variance de l\'erreur proportionnelle');
-    L.push('ADD  : 0.01 : variance de l\'erreur additive');
+    if (residualUses('proportional')) L.push(`PROP : ${fmt(residualError.proportional ** 2)} : variance de l'erreur proportionnelle`);
+    if (residualUses('additive')) L.push(`ADD  : ${fmt(residualError.additive ** 2)} : variance de l'erreur additive`);
     L.push('');
     L.push('$CMT @annotated');
     if (router) L.push(`${'LEGO_INPUT'.padEnd(w)} : entree de dose repartie [ADM]`);
@@ -1230,7 +1442,7 @@
       for (const n of concSources()) L.push(`double CONC_${rid(n.name)} = ${rid(n.name)}/v_${rid(n.name)};`);
       for (const n of nodes.filter(n => n.kind === 'interaction')) L.push(`double MOD_${rid(n.name)} = ${special(n).factor};`);
       L.push(`double IPRED = CONC_${rid(observed.name)};`);
-      L.push('double DV = IPRED * (1 + EPS(1)) + EPS(2);');
+      L.push(`double DV = ${residualExpression()};`);
       L.push('if (DV < 0) DV = 0;');
     }
     L.push('');
@@ -1244,6 +1456,7 @@
 
   // ── MLXTRAN complet (Monolix / Simulx) ──
   $: codeMlxtran = (() => {
+    void iivVariances; void iivCovariances; void residualError;
     if (!nodes.length) return '; Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1252,11 +1465,21 @@
     const dosed = dosedNodes();
     const continuous = U.filter((covariate) => covariateType(covariate) === 'continuous');
     const categorical = U.filter((covariate) => covariateType(covariate) === 'categorical');
+    const random = randomParameters(P);
+    const correlations = [];
+    for (let row = 1; row < random.length; row += 1) {
+      for (let column = 0; column < row; column += 1) {
+        const left = random[column], right = random[row];
+        const value = covariance(left.name, right.name) / Math.sqrt(iivVariance(left) * iivVariance(right));
+        if (Math.abs(value) > 1e-12) correlations.push({ left, right, value, name: `corr_${left.name}_${right.name}` });
+      }
+    }
     const betaName = (/** @type {Covariate} */ covariate) => `beta_${covariateName(covariate.name)}_${covariate.target}`;
     const transformedName = (/** @type {Covariate} */ covariate) => `logt_${covariateName(covariate.name)}`;
     const individualInputs = [
       ...P.map((parameter) => `${parameter.name}_pop`),
-      ...P.filter((parameter) => parameter.iiv).map((parameter) => `omega_${parameter.name}`),
+      ...random.map((parameter) => `omega_${parameter.name}`),
+      ...correlations.map((correlation) => correlation.name),
       ...C.map(betaName),
       ...continuous.map(transformedName),
       ...categorical.map((covariate) => covariateName(covariate.name))
@@ -1271,10 +1494,12 @@
     L.push('; Valeurs initiales suggerees pour les parametres de population :');
     for (const parameter of P) {
       L.push(`;   ${parameter.name}_pop = ${fmt(parameter.value)} ; ${parameter.note} (${parameter.unit})`);
-      if (parameter.iiv) L.push(`;   omega_${parameter.name} = 0.3 ; ecart-type interindividuel`);
+      if (random.some((candidate) => candidate.name === parameter.name)) L.push(`;   omega_${parameter.name} = ${fmt(Math.sqrt(iivVariance(parameter)))} ; ecart-type interindividuel`);
     }
+    for (const correlation of correlations) L.push(`;   ${correlation.name} = ${fmt(correlation.value)} ; correlation des effets aleatoires`);
     for (const covariate of C) L.push(`;   ${betaName(covariate)} = ${fmt(covariate.beta)}`);
-    L.push(';   a = 0.1 ; erreur additive, b = 0.2 ; erreur proportionnelle');
+    if (residualUses('additive')) L.push(`;   a = ${fmt(residualError.additive)} ; ecart-type de l'erreur additive`);
+    if (residualUses('proportional')) L.push(`;   b = ${fmt(residualError.proportional)} ; ecart-type de l'erreur proportionnelle`);
 
     if (C.length) {
       L.push('');
@@ -1319,13 +1544,15 @@
         options.push(`covariate=${effects.length === 1 ? covariateTerms[0] : `{${covariateTerms.join(', ')}}`}`);
         options.push(`coefficient=${effects.length === 1 ? coefficientTerms[0] : `{${coefficientTerms.join(', ')}}`}`);
       }
-      options.push(parameter.iiv ? `sd=omega_${parameter.name}` : 'no-variability');
+      options.push(random.some((candidate) => candidate.name === parameter.name) ? `sd=omega_${parameter.name}` : 'no-variability');
       L.push(`${parameter.name} = {${options.join(', ')}}`);
     }
+    for (const correlation of correlations) L.push(`correlation = {level=id, r(${correlation.left.name}, ${correlation.right.name})=${correlation.name}}`);
 
     L.push('');
     L.push('[LONGITUDINAL]');
-    L.push(`input = {${[...P.map((parameter) => parameter.name), 'a', 'b'].join(', ')}}`);
+    const residualInputs = [residualUses('additive') ? 'a' : '', residualUses('proportional') ? 'b' : ''].filter(Boolean);
+    L.push(`input = {${[...P.map((parameter) => parameter.name), ...residualInputs].join(', ')}}`);
     L.push('');
     L.push('PK:');
     if (dosed.length) {
@@ -1364,7 +1591,10 @@
     for (const node of concSources()) L.push(`C_${rid(node.name)} = ${rid(node.name)}/v_${rid(node.name)}`);
     L.push('');
     L.push('DEFINITION:');
-    L.push(`DV = {distribution=normal, prediction=C_${rid(observed.name)}, errorModel=combined1(a, b)}`);
+    const mlxError = residualError.type === 'additive' ? 'constant(a)'
+      : residualError.type === 'proportional' ? 'proportional(b)'
+        : 'combined1(a, b)';
+    L.push(`DV = {distribution=normal, prediction=C_${rid(observed.name)}, errorModel=${mlxError}}`);
     L.push('');
     L.push('OUTPUT:');
     L.push('output = {DV}');
@@ -1378,6 +1608,7 @@
 
   // ── NONMEM / NM-TRAN : ODE générales avec ADVAN13 ──
   $: codeNonmem = (() => {
+    void iivVariances; void iivCovariances; void residualError;
     if (!nodes.length) return '; Ajoutez des compartiments : le control stream se génère au fur et à mesure.';
     if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1390,8 +1621,8 @@
     const parameterVariable = new Map(P.map((parameter, index) => [parameter.name, `P${index + 1}`]));
     const thetaIndex = new Map(P.map((parameter, index) => [parameter.name, index + 1]));
     const betaIndex = new Map(C.map((covariate, index) => [covariate.id, P.length + index + 1]));
-    const randomParameters = P.filter((parameter) => parameter.iiv);
-    const etaIndex = new Map(randomParameters.map((parameter, index) => [parameter.name, index + 1]));
+    const random = randomParameters(P);
+    const etaIndex = new Map(random.map((parameter, index) => [parameter.name, index + 1]));
     const categorical = C.filter((covariate) => covariateType(covariate) === 'categorical');
     const categoryIndicator = new Map(categorical.map((covariate, index) => [covariate.id, `CAT${index + 1}`]));
     const nonmemDataName = new Map(U.map((covariate, index) => {
@@ -1504,7 +1735,7 @@
     L.push('');
     L.push('$ERROR');
     L.push(`IPRED=A(${nodeIndex.get(observed.id)})/${pvar(`v_${rid(observed.name)}`)}`);
-    L.push('Y=IPRED*(1+EPS(1))+EPS(2)');
+    L.push(`Y=${residualExpression()}`);
     L.push('');
     L.push('$THETA');
     for (const parameter of P) {
@@ -1514,16 +1745,20 @@
       L.push(`(-10, ${fmt(covariate.beta)}, 10) ; THETA(${betaIndex.get(covariate.id)}) -> effet ${covariateName(covariate.name)} sur ${covariate.target}`);
     }
     L.push('');
-    L.push('$OMEGA');
-    if (randomParameters.length) {
-      for (const parameter of randomParameters) L.push(`0.09 ; ETA(${etaIndex.get(parameter.name)}) -> IIV ${parameter.name}`);
+    L.push(random.length > 1 ? `$OMEGA BLOCK(${random.length})` : '$OMEGA');
+    if (random.length) {
+      for (let row = 0; row < random.length; row += 1) {
+        const values = [];
+        for (let column = 0; column <= row; column += 1) values.push(fmt(row === column ? iivVariance(random[row]) : covariance(random[row].name, random[column].name)));
+        L.push(`${values.join(' ')} ; ETA(${row + 1}) -> IIV ${random[row].name}`);
+      }
     } else {
       L.push('0 FIX ; aucune variabilite interindividuelle selectionnee');
     }
     L.push('');
     L.push('$SIGMA');
-    L.push('0.04 ; EPS(1), variance proportionnelle');
-    L.push('0.01 ; EPS(2), variance additive');
+    if (residualUses('proportional')) L.push(`${fmt(residualError.proportional ** 2)} ; variance proportionnelle`);
+    if (residualUses('additive')) L.push(`${fmt(residualError.additive ** 2)} ; variance additive`);
     L.push('');
     L.push('$ESTIMATION METHOD=1 INTERACTION MAXEVAL=9999 PRINT=5 SIGDIGITS=3');
     L.push('$COVARIANCE PRINT=E MATRIX=S');
@@ -1734,14 +1969,24 @@
         {@const from = nodes.find((n) => n.id === e.from)}
         {#if from}
           {#if e.to === 'OUT'}
-            <line x1={cxn(from)} y1={from.y + NH} x2={cxn(from)} y2={from.y + NH + 30} class="edge" marker-end="url(#arw)" />
-            <text x={cxn(from) + 20} y={from.y + NH + 18} class="klbl">{edgeKinetics(e) === 'hill' ? 'Hill' : edgeKinetics(e) === 'michaelis_menten' ? 'MM' : eliminationParameterization(e) === 'clearance' ? `CL=${Number(e.cl ?? 0).toFixed(1)}` : `k=${Number(e.k).toFixed(2)}`}</text>
-            <text x={cxn(from) - 14} y={from.y + NH + 34} class="elim">{lego.eliminationShort}</text>
+            <g class="edge-action">
+              <title>{lego.clickArrow}</title>
+              <line x1={cxn(from)} y1={from.y + NH} x2={cxn(from)} y2={from.y + NH + 30} class="edge-hitline" />
+              <circle cx={cxn(from)} cy={from.y + NH + 15} r="12" class="edge-hitarea" role="button" tabindex="0" aria-label={lego.clickArrow} on:click={() => editEdge(e)} on:keydown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editEdge(e); } }} />
+              <line x1={cxn(from)} y1={from.y + NH} x2={cxn(from)} y2={from.y + NH + 30} class="edge" marker-end="url(#arw)" />
+              <text x={cxn(from) + 20} y={from.y + NH + 18} class="klbl">{edgeKinetics(e) === 'hill' ? 'Hill' : edgeKinetics(e) === 'michaelis_menten' ? 'MM' : eliminationParameterization(e) === 'clearance' ? `CL=${Number(e.cl ?? 0).toFixed(1)}` : `k=${Number(e.k).toFixed(2)}`}</text>
+              <text x={cxn(from) - 14} y={from.y + NH + 34} class="elim">{lego.eliminationShort}</text>
+            </g>
           {:else}
             {@const to = nodes.find((n) => n.id === e.to)}
             {#if to}
-              <line x1={cxn(from)} y1={cyn(from)} x2={cxn(to)} y2={cyn(to)} class="edge" marker-end="url(#arw)" />
-              <text x={(cxn(from) + cxn(to)) / 2} y={(cyn(from) + cyn(to)) / 2 - 4} class="klbl">{edgeKinetics(e) === 'hill' ? 'Hill' : edgeKinetics(e) === 'michaelis_menten' ? 'MM' : `k=${Number(e.k).toFixed(2)}`}</text>
+              <g class="edge-action">
+                <title>{lego.clickArrow}</title>
+                <line x1={cxn(from)} y1={cyn(from)} x2={cxn(to)} y2={cyn(to)} class="edge-hitline" />
+                <circle cx={(cxn(from) + cxn(to)) / 2} cy={(cyn(from) + cyn(to)) / 2} r="12" class="edge-hitarea" role="button" tabindex="0" aria-label={lego.clickArrow} on:click={() => editEdge(e)} on:keydown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); editEdge(e); } }} />
+                <line x1={cxn(from)} y1={cyn(from)} x2={cxn(to)} y2={cyn(to)} class="edge" marker-end="url(#arw)" />
+                <text x={(cxn(from) + cxn(to)) / 2} y={(cyn(from) + cyn(to)) / 2 - 4} class="klbl">{edgeKinetics(e) === 'hill' ? 'Hill' : edgeKinetics(e) === 'michaelis_menten' ? 'MM' : transferParameterization(e) === 'clearance' ? `Q=${Number(e.q ?? 0).toFixed(1)}` : `k=${Number(e.k).toFixed(2)}`}</text>
+              </g>
             {/if}
           {/if}
         {/if}
@@ -1865,17 +2110,22 @@
               <span class="rn">{from.name}→{to.name}</span>
               <label><span>{lego.kinetics}</span><select bind:value={e.kinetics} on:change={() => updateEdge(e)}><option value="first_order">{lego.firstOrder}</option><option value="michaelis_menten">{lego.michaelisMenten}</option><option value="hill">{lego.hill}</option></select></label>
               {#if ['michaelis_menten', 'hill'].includes(edgeKinetics(e))}
-                <label><span>Vmax (mg/h)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.vmax} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+                <label><span>Vmax (mg/h)</span><input id={`edge-value-${e.id}`} class="num" type="number" min="0.000001" step="0.1" bind:value={e.vmax} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
                 <label><span>{edgeKinetics(e) === 'hill' ? 'A50' : 'Km'} (mg)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.km} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
                 {#if edgeKinetics(e) === 'hill'}<label><span>γ</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.gamma} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>{/if}
               {:else}
                 {#if e.to === 'OUT' && KINDS[from.kind].vol}
                   <label><span>{lego.eliminationParameter}</span><select bind:value={e.eliminationParameterization} on:change={() => updateEdge(e)}><option value="rate">{lego.rateConstant}</option><option value="clearance">{lego.clearance}</option></select></label>
                 {/if}
+                {#if e.to !== 'OUT' && canUseTransferClearance(e)}
+                  <label><span>{lego.transferParameter}</span><select value={transferParameterization(e)} on:change={(event) => setTransferParameterization(e, event.currentTarget.value)}><option value="rate">{lego.rateConstant}</option><option value="clearance">{lego.intercompartmentalClearance}</option></select></label>
+                {/if}
                 {#if eliminationParameterization(e) === 'clearance'}
-                  <label><span>CL (L/h)</span><input class="num" type="number" min="0.000001" step="0.1" bind:value={e.cl} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+                  <label><span>CL (L/h)</span><input id={`edge-value-${e.id}`} class="num" type="number" min="0.000001" step="0.1" bind:value={e.cl} on:input={() => { edges = edges; reconcileCovariates(); }} /></label>
+                {:else if transferParameterization(e) === 'clearance'}
+                  <label><span>Q (L/h)</span><input id={`edge-value-${e.id}`} class="num" type="number" min="0.000001" step="0.1" value={e.q} on:input={(event) => { setTransferClearance(e, Number(event.currentTarget.value)); edges = [...edges]; reconcileCovariates(); }} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} /></label>
                 {:else}
-                  <label><span>k (1/h)</span><input class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => { edges = edges; reconcileCovariates(); }} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} /></label>
+                  <label><span>k (1/h)</span><input id={`edge-value-${e.id}`} class="num" type="number" min="0" step="0.01" bind:value={e.k} on:input={() => { edges = edges; reconcileCovariates(); }} aria-label={`${lego.rateAria} ${from.name} ${lego.to} ${to.name}`} /></label>
                 {/if}
               {/if}
               <button class="rx" on:click={() => deleteEdge(e.id)}>×</button>
@@ -1883,6 +2133,60 @@
           {/if}
         {/each}
       </div>
+    {/if}
+
+    {#if profile !== 'translator' && parameterChoices.length}
+      <details class="population-editor" open>
+        <summary>{lego.populationModel}</summary>
+        <div class="population-body">
+          <p>{lego.populationHelp}</p>
+          <fieldset>
+            <legend>{lego.randomEffects}</legend>
+            <div class="iiv-list">
+              {#each parameterChoices as parameter}
+                <label class="iiv-row">
+                  <input type="checkbox" checked={iivVariance(parameter, iivVariances) > 0} on:change={(event) => setIiv(parameter, event.currentTarget.checked)} />
+                  <span>{parameter.name}</span>
+                  <span>{lego.variance}</span>
+                  <input class="num" type="number" min="0.000001" step="0.01" value={iivVariance(parameter, iivVariances) || 0.09} disabled={iivVariance(parameter, iivVariances) <= 0} on:input={(event) => setIivVariance(parameter, event.currentTarget.value)} />
+                </label>
+              {/each}
+            </div>
+          </fieldset>
+          {#if randomParameterChoices.length > 1}
+            <fieldset>
+              <legend>{lego.covarianceMatrix}</legend>
+              <div class="omega-wrap">
+                <table class="omega-table">
+                  <thead><tr><th></th>{#each randomParameterChoices as parameter}<th>{parameter.name}</th>{/each}</tr></thead>
+                  <tbody>
+                    {#each randomParameterChoices as row, rowIndex}
+                      <tr><th>{row.name}</th>{#each randomParameterChoices as column, columnIndex}<td>
+                        {#if rowIndex === columnIndex}
+                          <output>{fmt(iivVariance(row, iivVariances))}</output>
+                        {:else if columnIndex < rowIndex}
+                          <input aria-label={`${row.name} ${column.name}`} type="number" step="0.001" value={covariance(row.name, column.name, iivCovariances)} on:input={(event) => setCovariance(row.name, column.name, event.currentTarget.value)} />
+                        {:else}
+                          <output>{fmt(covariance(row.name, column.name, iivCovariances))}</output>
+                        {/if}
+                      </td>{/each}</tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+              {#if !omegaIsValid(randomParameterChoices, iivVariances, iivCovariances)}<p class="population-error" role="alert">{lego.invalidOmega}</p>{/if}
+            </fieldset>
+          {/if}
+          <fieldset>
+            <legend>{lego.residualError}</legend>
+            <label class="residual-type"><span>{lego.type}</span><select value={residualError.type} on:change={(event) => (residualError = { ...residualError, type: event.currentTarget.value })}><option value="additive">{lego.additive}</option><option value="proportional">{lego.proportional}</option><option value="combined">{lego.combined}</option></select></label>
+            <div class="residual-values">
+              {#if residualError.type !== 'proportional'}<label><span>{lego.additive} · {lego.standardDeviation}</span><input class="num" type="number" min="0.000001" step="0.01" value={residualError.additive} on:input={(event) => (residualError = { ...residualError, additive: Math.max(0.000001, Number(event.currentTarget.value) || 0.000001) })} /></label>{/if}
+              {#if residualError.type !== 'additive'}<label><span>{lego.proportional} · {lego.standardDeviation}</span><input class="num" type="number" min="0.000001" step="0.01" value={residualError.proportional} on:input={(event) => (residualError = { ...residualError, proportional: Math.max(0.000001, Number(event.currentTarget.value) || 0.000001) })} /></label>{/if}
+            </div>
+          </fieldset>
+        </div>
+      </details>
     {/if}
 
     <div class="covariates-editor">
@@ -1894,21 +2198,35 @@
         </div>
       </div>
       <p class="cov-help">{lego.covariateHelp}</p>
-      {#each covariates as covariate}
+      {#each uniqueCovariates(covariates) as covariate (covariate.id)}
         <div class="cov-row">
           <div class="cov-row-head">
-            <label><span>{lego.name}</span><input class="txt" maxlength="24" bind:value={covariate.name} on:input={() => (covariates = [...covariates])} /></label>
-            <button class="rx" on:click={() => deleteCovariate(covariate.id)} aria-label={`${lego.remove} ${covariate.name}`}>×</button>
+            <label><span>{lego.name}</span><input class="txt" maxlength="24" value={covariate.name} on:input={(event) => renameCovariate(covariate, event)} /></label>
+            <button class="rx" on:click={() => deleteCovariateGroup(covariate)} aria-label={`${lego.remove} ${covariate.name}`}>×</button>
           </div>
-          <div class="cov-fields">
-            <label><span>{lego.type}</span><select bind:value={covariate.type} on:change={() => resetCovariateType(covariate)}><option value="continuous">{lego.continuous}</option><option value="categorical">{lego.categorical}</option></select></label>
-            <label><span>{lego.covariateScope}</span><select bind:value={covariate.scope} on:change={() => (covariates = [...covariates])}><option value="patient">{lego.patientCovariate}</option><option value="administration">{lego.administrationCovariate}</option></select></label>
-            <label class="cov-target"><span>{lego.targetParameter}</span><select bind:value={covariate.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name}>{parameter.name}</option>{/each}</select></label>
-            <label><span>{covariate.type === 'categorical' ? lego.categoryReference : lego.referenceValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.reference} on:input={() => (covariates = [...covariates])} /></label>
-            <label><span>β</span><input class="num" type="number" step="0.05" bind:value={covariate.beta} on:input={() => (covariates = [...covariates])} /></label>
-            <label class="cov-comparison"><span>{covariate.type === 'categorical' ? lego.categoryComparison : lego.comparisonValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} bind:value={covariate.comparison} on:input={() => (covariates = [...covariates])} /></label>
-            <label class="cov-toggle"><input type="checkbox" bind:checked={covariate.compare} on:change={() => (covariates = [...covariates])} /><span>{lego.compareCurve}</span></label>
-          </div>
+          <section class="cov-definition">
+            <h3>{lego.covariateDefinition}</h3>
+            <div class="cov-fields">
+              <label><span>{lego.type}</span><select value={covariate.type} on:change={(event) => setCovariateType(covariate, /** @type {'continuous'|'categorical'} */ (event.currentTarget.value))}><option value="continuous">{lego.continuous}</option><option value="categorical">{lego.categorical}</option></select></label>
+              <label><span>{lego.covariateScope}</span><select value={covariate.scope} on:change={(event) => updateCovariateDefinition(covariate, { scope: /** @type {'patient'|'administration'} */ (event.currentTarget.value) })}><option value="patient">{lego.patientCovariate}</option><option value="administration">{lego.administrationCovariate}</option></select></label>
+              <label><span>{covariate.type === 'categorical' ? lego.categoryReference : lego.referenceValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.reference} on:input={(event) => updateCovariateDefinition(covariate, { reference: Number(event.currentTarget.value) })} /></label>
+              <label><span>{covariate.type === 'categorical' ? lego.categoryComparison : lego.comparisonValue}</span><input class="num" type="number" min={covariate.type === 'continuous' ? 0.000001 : undefined} step={covariate.type === 'categorical' ? 1 : 0.1} value={covariate.comparison} on:input={(event) => updateCovariateDefinition(covariate, { comparison: Number(event.currentTarget.value) })} /></label>
+              <label class="cov-toggle"><input type="checkbox" checked={covariate.compare} on:change={(event) => updateCovariateDefinition(covariate, { compare: event.currentTarget.checked })} /><span>{lego.compareCurve}</span></label>
+            </div>
+          </section>
+          <section class="cov-effects">
+            <div class="cov-effects-head">
+              <h3>{lego.covariateEffects}</h3>
+              <button class="cov-target-add" on:click={() => addCovariateTarget(covariate)} disabled={!nextCovariateTarget(covariate) || covariates.length >= 50}>+ {lego.addTargetParameter}</button>
+            </div>
+            {#each covariateEffects(covariate) as effect (effect.id)}
+              <div class="cov-effect">
+                <label class="cov-target"><span>{lego.targetParameter}</span><select bind:value={effect.target} on:change={() => (covariates = [...covariates])}>{#each parameterChoices as parameter}<option value={parameter.name} disabled={parameter.name !== effect.target && covariates.some((candidate) => candidate.id !== effect.id && covariateName(candidate.name) === covariateName(effect.name) && candidate.target === parameter.name)}>{parameter.name}</option>{/each}</select></label>
+                <label><span>β</span><input class="num" type="number" step="0.05" bind:value={effect.beta} on:input={() => (covariates = [...covariates])} /></label>
+                <button class="rx" on:click={() => deleteCovariate(effect.id)} aria-label={`${lego.remove} ${lego.targetParameter} ${effect.target}`}>×</button>
+              </div>
+            {/each}
+          </section>
         </div>
       {/each}
     </div>
@@ -2002,6 +2320,12 @@
   .nname { text-anchor: middle; font-family: var(--font-mono); font-size: 12px; font-weight: 700; fill: var(--text-primary); }
   .nkind { text-anchor: middle; font-family: var(--font-mono); font-size: 8px; fill: var(--text-muted); }
   .edge { stroke: var(--text-secondary); stroke-width: 1.6; }
+  .edge-action { cursor: pointer; }
+  .edge-hitarea:focus { outline: none; }
+  .edge-action:has(.edge-hitarea:focus) .edge { stroke: var(--accent-pk); stroke-width: 3; }
+  .edge-action .edge, .edge-action text { pointer-events: none; }
+  .edge-hitline { stroke: var(--text-primary); stroke-opacity: 0.001; stroke-width: 16; pointer-events: stroke; }
+  .edge-hitarea { fill: var(--text-primary); fill-opacity: 0.001; cursor: pointer; }
   .klbl { font-family: var(--font-mono); font-size: 9px; fill: var(--text-secondary); text-anchor: middle; }
   .elim { font-family: var(--font-mono); font-size: 8px; fill: var(--accent-pk); text-anchor: middle; }
   .hintxt { text-anchor: middle; fill: var(--text-muted); font-size: 13px; }
@@ -2016,7 +2340,24 @@
   .legend-item i { width: 18px; flex: 0 0 18px; border-top: 3px solid var(--series-color); }
   .legend-item i.dash { border-top-style: dashed; }
   .side { display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
-  .editor, .rates, .covariates-editor { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
+  .editor, .rates, .covariates-editor, .population-editor { background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: var(--space-4); }
+  .population-editor > summary { cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .population-body { display: grid; gap: 12px; padding-top: 12px; }
+  .population-body > p { margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.45; }
+  .population-body fieldset { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; }
+  .population-body legend { padding: 0 5px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .iiv-list { display: grid; gap: 7px; }
+  .iiv-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto 82px; align-items: center; gap: 7px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .iiv-row .num { width: 100%; }
+  .omega-wrap { overflow-x: auto; }
+  .omega-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 9px; }
+  .omega-table th, .omega-table td { min-width: 62px; padding: 4px; text-align: center; border: 1px solid var(--border-subtle); }
+  .omega-table input { width: 58px; padding: 4px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); font: inherit; }
+  .population-error { margin: 8px 0 0; color: var(--error, #b42318); font-size: 11px; }
+  .residual-type, .residual-values label { display: grid; gap: 4px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .residual-type select { width: 100%; padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font: inherit; }
+  .residual-values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+  .residual-values .num { width: 100%; }
   .ehead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3); }
   .ehead strong { font-family: var(--font-mono); }
   .ehead span { font-size: var(--text-xs); color: var(--text-muted); }
@@ -2046,12 +2387,21 @@
   .cov-head button { min-width: 0; min-height: 28px; padding: 5px 7px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--accent-pk); border-radius: 6px; cursor: pointer; font-family: var(--font-mono); font-size: 10px; line-height: 1.2; }
   .cov-head button:disabled { opacity: 0.45; cursor: not-allowed; }
   .cov-help { margin: 0 0 var(--space-2); color: var(--text-muted); font-size: 11px; line-height: 1.45; }
-  .cov-row { padding: 10px 0; border-top: 1px solid var(--border-subtle); }
-  .cov-row-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px; margin-bottom: 8px; }
+  .cov-row { padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: var(--bg-primary); }
+  .cov-row + .cov-row { margin-top: 10px; }
+  .cov-row-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 7px; margin-bottom: 10px; }
+  .cov-target-add { min-height: 28px; padding: 5px 7px; border: 1px solid var(--border-strong); background: var(--bg-primary); color: var(--accent-pk); border-radius: 6px; cursor: pointer; font-family: var(--font-mono); font-size: 10px; }
+  .cov-target-add:disabled { opacity: 0.45; cursor: not-allowed; }
+  .cov-definition, .cov-effects { padding-top: 9px; border-top: 1px solid var(--border-subtle); }
+  .cov-effects { margin-top: 10px; }
+  .cov-definition h3, .cov-effects h3 { margin: 0 0 8px; color: var(--text-muted); font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
   .cov-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .cov-effects-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+  .cov-effects-head h3 { margin: 0; }
+  .cov-effect { display: grid; grid-template-columns: minmax(0, 1fr) minmax(80px, 0.55fr) auto; align-items: end; gap: 7px; padding: 7px 0; }
+  .cov-effect + .cov-effect { border-top: 1px dashed var(--border-subtle); }
   .cov-row label { display: grid; align-content: end; gap: 3px; min-width: 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); }
-  .cov-row .cov-target { grid-column: 1 / -1; }
-  .cov-row .cov-comparison, .cov-row .cov-toggle { grid-column: 1 / -1; }
+  .cov-fields .cov-toggle { grid-column: 1 / -1; }
   .cov-row .txt, .cov-row select { width: 100%; }
   .cov-row .num { width: 100%; }
   .cov-toggle { grid-template-columns: auto minmax(0, 1fr); align-items: center; justify-content: start; padding-top: 2px; }

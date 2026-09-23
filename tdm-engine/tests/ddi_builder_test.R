@@ -38,6 +38,16 @@ for (type in c("tdi", "turnover_induction")) {
   expected <- 100/30 * exp(-5/30 * c(0, cumsum(head(activity, -1) * 0.1)))
   stopifnot(max(abs(expected - simulation$CP)) < 2e-5)
 }
+multi <- config
+multi$type <- "factor"
+multi$factor <- 0.5
+multi$targets <- list(list(parameter = "CL", fraction = 0.5), list(parameter = "V", fraction = 0.25))
+multi_model <- mrgsolve::mcode("ddi_multi", ddi_model_code(affected, multi), soloc = tempdir(), quiet = TRUE)
+stopifnot(all(c("DDI_BASE_CL", "DDI_BASE_V", "DDI_FRACTION_1", "DDI_FRACTION_2") %in% model_param_names(multi_model)))
+multi_model <- mrgsolve::param(multi_model, DDI_ACTIVE = 1)
+multi_simulation <- as.data.frame(mrgsolve::mrgsim(mrgsolve::ev(multi_model, amt = 100), end = 24, delta = 0.1))
+expected <- 100/(30 * 0.875) * exp(-(5 * 0.75)/(30 * 0.875) * multi_simulation$time)
+stopifnot(max(abs(expected - multi_simulation$CP)[multi_simulation$time > 0]) < 1e-6)
 affected_library <- ddi_library_context("tacrolimus_woillard_ddi")
 config$target <- "TVCL_TAC"
 compiled <- mrgsolve::mcode("ddi_library", ddi_model_code(affected_library, config), soloc = tempdir(), quiet = TRUE)

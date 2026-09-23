@@ -24,6 +24,9 @@ expect_error <- function(expression, pattern) {
 `%||%` <- function(value, fallback) if (is.null(value) || !length(value)) fallback else value
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 
+stopifnot(identical(parse_dosing_intervals(c("8", "12"), "168, 336; 12"), c(8, 12, 168, 336)))
+expect_error(parse_dosing_intervals(character(), "0, 168"), "positive numbers")
+
 oral_one_compartment <- list(
   version = 1,
   nodes = list(
@@ -47,6 +50,23 @@ stopifnot(grepl("pow(WT/70", safe_code, fixed = TRUE))
 stopifnot(grepl("exp(BETA_SEX_2 * (SEX == 1))", safe_code, fixed = TRUE))
 stopifnot(!grepl("LEGO_INPUT", safe_code, fixed = TRUE), !grepl("$PLUGIN evtools", safe_code, fixed = TRUE))
 
+population_specification <- oral_one_compartment
+population_specification$population <- list(
+  iivVariances = list(k_centr_e = 0.16, v_centr = 0.25),
+  iivCovariances = list(`k_centr_e::v_centr` = 0.04),
+  residualError = list(type = "additive", additive = 0.3, proportional = 0.2)
+)
+population_code <- lego_model_code(population_specification)
+stopifnot(
+  grepl("$OMEGA @block\n0.16\n0.04 0.25", population_code, fixed = TRUE),
+  grepl("ADD : 0.09", population_code, fixed = TRUE),
+  !grepl("PROP :", population_code, fixed = TRUE),
+  grepl("double DV = IPRED + EPS(1);", population_code, fixed = TRUE)
+)
+invalid_population <- population_specification
+invalid_population$population$iivCovariances[[1]] <- 1
+expect_error(lego_model_code(invalid_population), "positive definite")
+
 legacy_specification <- oral_one_compartment
 legacy_specification$covariates <- list(
   list(name = "WT", target = "v_centr", reference = 70, beta = 0.75)
@@ -61,6 +81,31 @@ many_covariates$covariates <- lapply(seq_len(12), function(index) list(
 ))
 many_covariate_code <- lego_model_code(many_covariates)
 stopifnot(nrow(parse_covariates(many_covariate_code)) == 12L)
+
+q_specification <- list(
+  version = 3,
+  nodes = list(
+    list(id = 1, kind = "central", name = "central", dose = 100, vol = 20),
+    list(id = 2, kind = "periph", name = "periph", dose = 0, vol = 40)
+  ),
+  edges = list(
+    list(from = 1, to = 2, transferParameterization = "clearance", q = 3.2),
+    list(from = 2, to = 1, transferParameterization = "clearance", q = 3.2),
+    list(from = 1, to = "OUT", eliminationParameterization = "clearance", cl = 4)
+  ),
+  covariates = list(
+    list(name = "WT", type = "continuous", target = "q_central_periph", reference = 70, comparison = 90, beta = 0.5),
+    list(name = "WT", type = "continuous", target = "v_central", reference = 70, comparison = 90, beta = 1)
+  )
+)
+q_code <- lego_model_code(q_specification)
+stopifnot(
+  grepl("TV_q_L1_central_L2_periph : 3.2", q_code, fixed = TRUE),
+  grepl("q_L1_central_L2_periph*L1_central/v_L1_central", q_code, fixed = TRUE),
+  grepl("q_L1_central_L2_periph*L2_periph/v_L2_periph", q_code, fixed = TRUE),
+  grepl("BETA_WT_1", q_code, fixed = TRUE),
+  grepl("BETA_WT_2", q_code, fixed = TRUE)
+)
 
 session_dir <- tempfile("safe-lego-test-")
 dir.create(session_dir, recursive = TRUE)
@@ -77,6 +122,16 @@ if (!isTRUE(contract$ok)) stop(paste(contract$errors, collapse = " | "))
 stopifnot(all(c("WT", "SEX") %in% model_param_names(model)))
 covariate_definition <- parse_covariates(safe_code)
 stopifnot(nrow(covariate_definition) == 2L, all(c("WT", "SEX") %in% covariate_definition$name))
+
+q_model <- compile_model(
+  custom_code = q_code,
+  allow_custom = FALSE,
+  custom_soloc = session_dir,
+  custom_cache = new.env(parent = emptyenv())
+)
+q_contract <- validate_model_contract(q_model)
+if (!isTRUE(q_contract$ok)) stop(paste(q_contract$errors, collapse = " | "))
+stopifnot("WT" %in% model_param_names(q_model))
 
 advanced_absorption <- list(
   version = 2,

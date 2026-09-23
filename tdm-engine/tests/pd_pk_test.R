@@ -40,10 +40,11 @@ shiny::testServer(pd_pk_server, args = list(soloc = workdir, cache = new.env(), 
   session$setInputs(param_1_CL = 9)
   stopifnot(as.list(mrgsolve::param(context()$model))$CL == 9)
   imported(list(source = "code", code = code, route = "Oral", concentration_scale = .001)); session$flushReact()
+  stopifnot(generation() == 2L, as.list(mrgsolve::param(context()$model))$CL == 2)
   stopifnot(grepl('value="0.001" selected', output$units$html, fixed = TRUE))
   session$setInputs(scale = .001)
   session$setInputs(load = 2)
-  stopifnot(generation() == 2L, as.list(mrgsolve::param(context()$model))$CL == 2, context()$concentration_scale == .001, is.null(pending()))
+  stopifnot(generation() == 3L, as.list(mrgsolve::param(context()$model))$CL == 2, context()$concentration_scale == .001, is.null(pending()))
 })
 compile_model <- original_compile
 for (dll in list.files(workdir, pattern = "\\.dll$", recursive = TRUE, full.names = TRUE)) try(dyn.unload(dll), silent = TRUE)

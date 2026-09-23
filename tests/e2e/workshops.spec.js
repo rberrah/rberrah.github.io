@@ -66,12 +66,26 @@ test('graph, covariates, layout and draft survive transfers without browser pers
   await expect(page.locator('.cov-row')).toHaveCount(0);
 });
 
+test('one covariate definition can contain several distinct parameter effects', async ({ page }) => {
+  await page.goto('/pk/?lang=en');
+  await page.getByRole('button', { name: 'Add a continuous covariate', exact: true }).click();
+  const weight = page.locator('.cov-row').first();
+  await weight.locator('.txt').fill('WEIGHT');
+  await weight.getByRole('button', { name: 'Add effect' }).click();
+  await expect(page.locator('.cov-row')).toHaveCount(1);
+  await expect(weight.locator('.cov-effect')).toHaveCount(2);
+
+  await page.getByRole('button', { name: 'Add a continuous covariate', exact: true }).click();
+  const second = page.locator('.cov-row').nth(1).locator('.txt');
+  const originalName = await second.inputValue();
+  await second.fill('WEIGHT');
+  await expect(second).toHaveValue(originalName);
+});
+
 test('both DDI models can independently receive PK without changing the mechanism or doses', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   const first = await code(page);
   await next(page, 'DDI');
-  await expect(page.locator('#model-1')).toHaveValue('tacrolimus_woillard_ddi');
-  await page.getByTestId('apply-pk').click();
   await expect(page.locator('#cpp-1')).toHaveValue(first);
   await page.getByRole('button', { name: 'Interaction', exact: true }).click();
   await page.getByRole('combobox', { name: 'Mechanism', exact: true }).selectOption('reversible');
@@ -82,7 +96,6 @@ test('both DDI models can independently receive PK without changing the mechanis
   const second = await code(page);
   await page.getByRole('combobox', { name: 'DDI destination', exact: true }).selectOption('2');
   await next(page, 'DDI');
-  await page.getByTestId('apply-pk').click();
   const after = await downloadSpec(page);
   expect(after.models[0].code).toBe(first);
   expect(after.models[1].code).toBe(second);
@@ -98,7 +111,6 @@ test('PD assembly retains its workshop while Advanced remains a free graph', asy
   const pk = await code(page);
   await next(page, 'PD');
   await page.getByRole('button', { name: 'General PD', exact: true }).click();
-  await page.getByTestId('apply-pk').click();
   await expect(page.locator('#cpp-pd')).toHaveValue(pk);
   await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'PD', exact: true }).click();
   await page.getByRole('combobox', { name: 'Response model', exact: true }).selectOption('hill');
@@ -140,7 +152,6 @@ test('a DDI source opens in Translator without altering either model', async ({ 
   await page.goto('/pk/?lang=en');
   const original = await code(page);
   await next(page, 'DDI');
-  await page.getByTestId('apply-pk').click();
   await page.locator('.pk-model:visible .workshop-links').getByRole('link', { name: 'Translator', exact: true }).click();
   await expect(page.locator('.mlxtran-import textarea')).toHaveValue(original);
   await page.locator('.mlxtran-import').getByRole('button', { name: 'Build the diagram', exact: true }).click();
@@ -216,18 +227,17 @@ test('a generated PK model compiles and simulates in the local PD engine', async
   await page.goto('/pk/?lang=en');
   await next(page, 'PD');
   await page.getByRole('button', { name: 'General PD', exact: true }).click();
-  await page.getByTestId('apply-pk').click();
   const pending = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'Open in engine', exact: true }).click();
   const engine = await pending;
   await expect(page.locator('.actions').getByRole('status')).toContainText('Workshop transferred', { timeout: 45000 });
   await expect(engine.locator('#pd-pk-code')).toHaveValue(/PK_LEGO_SPEC/);
-  await engine.locator('#pd-pk-load').click();
   await expect(engine.locator('#pd-pk-status')).toContainText('mrgsolve / Lego', { timeout: 45000 });
-  await engine.locator('#pd-simulate').click();
   const plot = engine.locator('#pd-effect_plot img');
   await expect(plot).toBeVisible({ timeout: 20000 });
   await expect.poll(() => plot.evaluate(img => /** @type {HTMLImageElement} */ (img).naturalWidth)).toBeGreaterThan(100);
+  await expect(page.locator('[data-testid="curve-pd_time"]')).toBeVisible({ timeout: 20000 });
+  await expect(page.locator('[data-testid="curve-pd_relation"]')).toBeVisible();
   await expect(engine.locator('.shiny-notification-error')).toHaveCount(0);
   await engine.screenshot({ path: 'test-results/workshop-pk-local-pd.png', fullPage: true });
   await engine.close();

@@ -102,7 +102,7 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   const mrg = await bloc.innerText();
   expect(mrg).toContain('// PK_LEGO_SPEC_V1:');
   expect(mrg).toContain('$PARAM @annotated');
-  expect(mrg).toContain('$OMEGA @annotated');
+  expect(mrg).toContain('$OMEGA @block');
   expect(mrg).toContain('$SIGMA @annotated');
     expect(mrg).toContain('$PARAM @covariates @annotated');
     expect(mrg).toContain('[administration]');
@@ -139,8 +139,19 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(nonmem).toContain('$DES');
   expect(nonmem).toContain('DADT(1)=');
   expect(nonmem).toContain('$ERROR');
-  expect(nonmem).toContain('Y=IPRED*(1+EPS(1))+EPS(2)');
+  expect(nonmem).toMatch(/Y=IPRED\s*\*\s*\(1\s*\+\s*EPS\(1\)\)\s*\+\s*EPS\(2\)/);
   expect(nonmem).toContain('$ESTIMATION METHOD=1 INTERACTION');
+
+  const population = page.locator('.population-editor');
+  await expect(population).toBeVisible();
+  await population.locator('.omega-table input').fill('0.02');
+  await population.locator('.residual-type select').selectOption('additive');
+  await page.getByRole('tab', { name: 'mrgsolve' }).click();
+  const customized = await bloc.innerText();
+  expect(customized).toMatch(/\$OMEGA @block\s+0\.09[^\n]*\n0\.02 0\.09/);
+  expect(customized).toContain('ADD  : 0.01');
+  expect(customized).not.toContain('PROP :');
+  expect(customized).toContain('double DV = IPRED + EPS(1);');
 
   await page.locator('.toolbar button.add', { hasText: 'Effet' }).click();
   await page.locator('.toolbar button.add', { hasText: 'Réponse' }).click();
@@ -159,6 +170,33 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   expect(nonmemPd).toContain('ENDIF');
 
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
+});
+
+test("l'atelier PK met à jour les effets aléatoires et l'erreur résiduelle", async ({ page }) => {
+  await page.goto('/pk/');
+  await page.waitForLoadState('networkidle');
+
+  const population = page.locator('.population-editor');
+  const inactive = population.locator('.iiv-row').filter({ has: page.locator('input[type="checkbox"]:not(:checked)') }).first();
+  const parameterName = await inactive.locator('span').first().innerText();
+  const parameter = population.locator('.iiv-row').filter({ hasText: parameterName });
+  const columnsBefore = await population.locator('.omega-table thead th').count();
+  await parameter.locator('input[type="checkbox"]').check();
+  await expect(parameter.locator('input[type="number"]')).toBeEnabled();
+  await parameter.locator('input[type="number"]').fill('0.16');
+  await expect(parameter.locator('input[type="number"]')).toHaveValue('0.16');
+  await expect(population.locator('.omega-table thead th')).toHaveCount(columnsBefore + 1);
+  await expect(page.locator('pre.codeblk code')).toContainText(`eta_${parameterName}`);
+
+  const residualType = population.locator('.residual-type select');
+  await residualType.selectOption('additive');
+  await expect(population.locator('.residual-values input')).toHaveCount(1);
+  await expect(population.locator('.residual-values')).toContainText('Additive');
+  await expect(population.locator('.residual-values')).not.toContainText('Proportionnelle');
+  await residualType.selectOption('proportional');
+  await expect(population.locator('.residual-values input')).toHaveCount(1);
+  await expect(population.locator('.residual-values')).toContainText('Proportionnelle');
+  await expect(population.locator('.residual-values')).not.toContainText('Additive');
 });
 
 test("l'atelier Lego importe un modèle MLXTRAN et conserve les exports TDM", async ({ page }) => {
@@ -199,12 +237,27 @@ output = {DV}
   await expect(page.locator('.tdm-launch')).toBeEnabled();
   await expect(page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN' })).toHaveAttribute('aria-selected', 'true');
 
+  const qRates = page.locator('.rate').filter({ hasText: 'Q (L/h)' });
+  await expect(qRates).toHaveCount(2);
+  await qRates.first().locator('input').fill('4.2');
+  await expect(qRates.nth(1).locator('input')).toHaveValue('4.2');
+  await page.locator('.edge-action').filter({ hasText: 'Q=4.2' }).last().locator('.edge-hitarea').click();
+  await expect(page.locator('input:focus')).toHaveAttribute('id', /^edge-value-/);
+
+  await page.locator('.cov-row').first().locator('.cov-target-add').click();
+  await expect(page.locator('.cov-row')).toHaveCount(2);
+  await expect(page.locator('.cov-row').first().locator('.cov-effect')).toHaveCount(2);
+  await page.locator('.cov-row').first().locator('.cov-effect').nth(1).locator('.cov-target select').selectOption('q_central_periph1');
+
   await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' }).click();
   const mrgsolve = await page.locator('pre.codeblk code').innerText();
   expect(mrgsolve).toContain('// PK_LEGO_SPEC_V1:');
   expect(mrgsolve).toContain('$PARAM @covariates @annotated');
   expect(mrgsolve).toContain('BETA_WT_cl_central');
   expect(mrgsolve).toContain('BETA_SEX_cl_central');
+  expect(mrgsolve).toContain('TV_q_central_periph1 : 4.2');
+  expect(mrgsolve).toContain('BETA_WT_q_central_periph1');
+  expect(mrgsolve).toContain('q_central_periph1*central/v_central');
   expect(mrgsolve).toContain('(SEX == 1)');
 
   for (let index = 0; index < 10; index++) {
@@ -239,7 +292,8 @@ output = {Cc, E}
 
   await expect(page.locator('.import-status')).toContainText('Structure reconnue');
   await expect(page.locator('.canvas .node')).toHaveCount(1);
-  await expect(page.locator('.cov-row')).toHaveCount(2);
+  await expect(page.locator('.cov-row')).toHaveCount(1);
+  await expect(page.locator('.cov-effect')).toHaveCount(2);
 
   await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve' }).click();
   const mrgsolve = await page.locator('pre.codeblk code').innerText();

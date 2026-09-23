@@ -37,6 +37,23 @@ shiny::testServer(environment$server, {
     result$metrics$auc_ratio > 1
   )
 
+  session$setInputs(ddi_add_target = 1)
+  session$flushReact()
+  session$setInputs(
+    ddi_target_fraction = 0.5,
+    ddi_target_parameter_2 = "TVV1_TAC",
+    ddi_target_fraction_2 = 0.25,
+    run_ddi = 2
+  )
+  session$flushReact()
+  result <- ddi_store()
+  stopifnot(
+    length(result$config$targets) == 2,
+    identical(vapply(result$config$targets, `[[`, character(1), "parameter"), c("TVCL_TAC", "TVV1_TAC")),
+    identical(vapply(result$config$targets, `[[`, numeric(1), "fraction"), c(0.5, 0.25)),
+    length(ggplot2::ggplot_build(ddi_effect_figure(result))$data) >= 3
+  )
+
   fit_1 <- list(
     id = result$affected$id,
     label = result$affected$label,

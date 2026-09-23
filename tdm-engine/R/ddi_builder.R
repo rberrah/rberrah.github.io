@@ -34,7 +34,8 @@ ddi_paste_ui <- function(side, t) {
 
 ddi_custom_context <- function(code, side, soloc, cache, allow_custom = FALSE) {
   if (!is.character(code) || length(code) != 1 || !nzchar(trimws(code)) || nchar(code, type = "bytes") > 200000) stop("Supply a complete mrgsolve model (maximum 200 kB).")
-  model <- compile_model(custom_code = code, allow_custom = allow_custom, custom_soloc = soloc, custom_cache = cache) |> mrgsolve::zero_re()
+  model <- compile_model(custom_code = code, allow_custom = allow_custom, custom_soloc = soloc, custom_cache = cache)
+  model <- mrgsolve::zero_re(model)
   if (!length(model@cmtL)) stop("The PK model must have at least one compartment.")
   if (!any(model_capture_names(model) %in% c("DV", "CP", "CONC", "CONC_PLASMA", "CONCENTRATION"))) stop("Capture a concentration named DV, CP or CONC in the PK model.")
   adm <- tagged_compartment(model, "ADM")
@@ -45,8 +46,9 @@ ddi_custom_context <- function(code, side, soloc, cache, allow_custom = FALSE) {
 
 ddi_model_code <- function(context, config) {
   config <- ddi_validate_mechanism(config)
-  target <- config$target
-  if (!target %in% ddi_parameter_table(context)$name || !grepl("^[A-Za-z_][A-Za-z0-9_]*$", target)) stop("Invalid target parameter.")
+  config <- ddi_validate_targets(config, ddi_parameter_table(context)$name)
+  targets <- vapply(config$targets, `[[`, character(1), "parameter")
+  fractions <- vapply(config$targets, `[[`, numeric(1), "fraction")
   ddi_numeric(config$factor, "Factor", 0.01, 20)
   ddi_numeric(config$strength, "Imax / Emax", 0, if (config$type == "inhibition") 1 else 20)
   ddi_numeric(config$c50, "IC50 / EC50", 1e-9, 1e9)
@@ -57,18 +59,20 @@ ddi_model_code <- function(context, config) {
   lines <- strsplit(code, "\n", fixed = TRUE)[[1]]
   lines <- lines[!grepl("PK_LEGO_SPEC", lines, fixed = TRUE)]
   block <- ""
-  replaced <- 0L
+  replaced <- stats::setNames(integer(length(targets)), targets)
   for (i in seq_along(lines)) {
     header <- regmatches(lines[[i]], regexec("^\\s*(?:\\$([A-Za-z]+)|\\[([A-Za-z]+)\\])", lines[[i]], perl = TRUE))[[1]]
     if (length(header)) block <- toupper(paste0(header[[2]], header[[3]]))
     if (block != "PARAM") next
-    pattern <- paste0("(?<![A-Za-z0-9_])", target, "(?=\\s*[:=])")
-    if (grepl(pattern, sub("//.*", "", lines[[i]]), perl = TRUE)) {
-      lines[[i]] <- sub(pattern, paste0("DDI_BASE_", target), lines[[i]], perl = TRUE)
-      replaced <- replaced + 1L
+    for (target in targets) {
+      pattern <- paste0("(?<![A-Za-z0-9_])", target, "(?=\\s*[:=])")
+      if (grepl(pattern, sub("//.*", "", lines[[i]]), perl = TRUE)) {
+        lines[[i]] <- sub(pattern, paste0("DDI_BASE_", target), lines[[i]], perl = TRUE)
+        replaced[[target]] <- replaced[[target]] + 1L
+      }
     }
   }
-  if (replaced != 1L) stop("The target must have one explicit numeric $PARAM declaration.")
+  if (any(replaced != 1L)) stop("Each target must have one explicit numeric $PARAM declaration.")
   multiplier <- switch(config$type,
     factor = "(DDI_ACTIVE > 0.5 ? DDI_FACTOR : 1.0)",
     inhibition = "fmax(0.01, 1.0-DDI_STRENGTH*fmax(0.0,DDI_CP)/(DDI_C50+fmax(0.0,DDI_CP)))",
@@ -78,7 +82,11 @@ ddi_model_code <- function(context, config) {
     tdi = "fmax(0.01,DDI_ACTIVITY)",
     turnover_induction = "fmax(0.01,DDI_ACTIVITY)",
     stop("Unknown interaction type."))
-  declaration <- paste0("double ", target, " = DDI_BASE_", target, " * ", multiplier, ";")
+  declarations <- vapply(seq_along(targets), function(i) paste0(
+    "double ", targets[[i]], " = DDI_BASE_", targets[[i]],
+    " * ((1.0-DDI_FRACTION_", i, ")+DDI_FRACTION_", i, "*", multiplier, ");"
+  ), character(1))
+  declaration <- paste(declarations, collapse = "\n")
   main <- grep("^\\s*(\\$(MAIN|PK)\\b|\\[(MAIN|PK)\\])", lines, perl = TRUE, ignore.case = TRUE)
   if (length(main)) {
     i <- main[[1]]
@@ -86,15 +94,17 @@ ddi_model_code <- function(context, config) {
     rest <- substring(lines[[i]], nchar(header) + 1L)
     lines[[i]] <- paste(header, declaration, rest, sep = "\n")
   } else lines <- c(lines, "$MAIN", declaration)
+  fraction_parameters <- paste0("DDI_FRACTION_", seq_along(fractions), "=", fractions)
   paste(c("// Research only. Supply model 2 concentrations in DDI_CP at each time step.",
     "// For a constant factor use DDI_ACTIVE=1 only during interaction treatment.",
+    "// Each target uses P/P0 = (1-fraction) + fraction*DDI_modifier.",
     if (config$type %in% c("tdi", "turnover_induction")) c(
       "// Dynamic mechanism: DDI_ACTIVITY is an EXTERNAL input, initialized at 1.",
       "// Use the coupled R export to integrate activity; DDI_CP alone is insufficient.",
       if (config$type == "tdi") "// dA/dt = kdeg*(1-A) - kinact*C/(KI+C)*A" else "// dA/dt = kdeg*(1+Emax*C/(EC50+C)-A)",
       paste0("// kdeg=", config$kdeg, " /h; kinact=", config$kinact, " /h")),
-    lines, "$PARAM", paste0("DDI_CP=0, DDI_ACTIVE=0, DDI_ACTIVITY=1, DDI_HILL=", config$hill,
-      ", DDI_FACTOR=", config$factor, ", DDI_STRENGTH=", config$strength, ", DDI_C50=", config$c50)), collapse = "\n")
+    lines, "$PARAM", paste(c(paste0("DDI_CP=0, DDI_ACTIVE=0, DDI_ACTIVITY=1, DDI_HILL=", config$hill,
+      ", DDI_FACTOR=", config$factor, ", DDI_STRENGTH=", config$strength, ", DDI_C50=", config$c50), fraction_parameters), collapse = ", ")), collapse = "\n")
 }
 
 ddi_export_script <- function(config, affected, driver) {
@@ -105,10 +115,10 @@ ddi_export_script <- function(config, affected, driver) {
       ", soloc=workdir, quiet=TRUE) |> mrgsolve::zero_re()\n", name, "$model <- mrgsolve::param(", name, "$model, ", dump(as.list(mrgsolve::param(context$model))), ")")
   }
   helpers <- c("model_param_names", "pick_concentration_column", "trap_auc", "ddi_numeric", "ddi_filter_parameters", "ddi_parameter_table",
-    "ddi_validate_regimen", "ddi_validate_mechanism", "ddi_dose_data", "ddi_simulate_profile", "ddi_modifier", "ddi_profile_window", "ddi_simulate")
+    "ddi_validate_regimen", "ddi_validate_targets", "ddi_validate_mechanism", "ddi_dose_data", "ddi_simulate_profile", "ddi_modifier", "ddi_profile_window", "ddi_simulate")
   paste(c("# Coupled PK simulation, research only. Requires mrgsolve and a C++ compiler.",
     "# Contains the selected models and parameter snapshots, not raw TDM observations.",
-    "# Model 2 drives a parameter of model 1 on a 0.1 h grid; no reciprocal interaction.",
+    "# Model 2 drives one or more parameters of model 1 on a 0.1 h grid; no reciprocal interaction.",
     "library(mrgsolve)", "`%||%` <- function(x,y) if (is.null(x) || !length(x)) y else x",
     "LEGO_STEADY_STATE_WARMUP_DOSES <- 50L",
     vapply(helpers, function(name) paste0(name, " <- ", paste(deparse(get(name, mode = "function")), collapse = "\n")), character(1)),

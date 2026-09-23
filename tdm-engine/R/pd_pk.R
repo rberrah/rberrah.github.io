@@ -63,8 +63,10 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL), analysis_s
   moduleServer(id, function(input, output, session) {
     t <- function(fr, en) app_t(app_language_from_query(session$clientData$url_search %||% ""), fr, en)
     loaded <- reactiveVal(NULL)
+    load_error <- reactiveVal(NULL)
     generation <- reactiveVal(0L)
     pending <- reactiveVal(NULL)
+    auto_import_key <- ""
     output$tdm_models <- renderUI({
       fits <- successful_fits(analysis_store()$fits %||% list())
       if (!length(fits)) return(p(t("Aucune estimation. Lancez une analyse TDM dans Analyse.", "No estimate. Run a TDM analysis in Analysis.")))
@@ -83,9 +85,30 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL), analysis_s
       if (is.null(selected) || !selected %in% routes) selected <- routes[[1]]
       selectInput(session$ns("route"), t("Voie", "Route"), routes, selected)
     })
+    load_pk <- function(source, code = NULL, model_id = NULL, route = NULL) {
+      if (!identical(source, "code")) return(ddi_library_context(model_id, route))
+      if (!is.character(code) || !nzchar(trimws(code)) || nchar(code, type = "bytes") > 200000) stop("Supply a complete mrgsolve model (maximum 200 kB).")
+      model <- compile_model(custom_code = code, allow_custom = ALLOW_CUSTOM_MODELS, custom_soloc = soloc, custom_cache = cache)
+      model <- mrgsolve::zero_re(model)
+      if (!length(model@cmtL) || !length(model_capture_names(model))) stop("PK requires compartments and a captured concentration.")
+      adm <- tagged_compartment(model, "ADM")
+      list(id = "custom-pk", label = "mrgsolve / Lego", model = model, code = code,
+        adm_cmt = if (is.finite(adm)) adm else 1L, route = route %||% "IV", source = "code", covariate_names = parse_covariates(code)$name)
+    }
+    store_pk <- function(value, clear_pending = TRUE) {
+      next_generation <- isolate(generation()) + 1L
+      generation(next_generation)
+      value$generation <- next_generation
+      loaded(value)
+      if (clear_pending) pending(NULL)
+    }
     observeEvent(imported(), {
       spec <- imported(); if (is.null(spec)) return()
+      key <- paste(spec$source %||% "", spec$id %||% "", spec$route %||% "", spec$code %||% "", sep = "\n")
+      if (identical(auto_import_key, key)) return()
+      auto_import_key <<- key
       pending(spec); loaded(NULL)
+      load_error(NULL)
       updateRadioButtons(session, "source", selected = spec$source)
       if (spec$source == "code") {
         updateTextAreaInput(session, "code", value = spec$code)
@@ -93,35 +116,40 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL), analysis_s
       } else updateSelectInput(session, "model", selected = spec$id)
       updateSelectInput(session, "time_unit", selected = spec$time_unit %||% "h")
       updateSelectInput(session, "scale", selected = as.character(spec$concentration_scale %||% 1))
+      loading_message <- t("Chargement PK", "Loading PK")
+      session$onFlushed(function() tryCatch({
+        value <- withProgress(message = loading_message, value = 0.3,
+          load_pk(spec$source, spec$code, spec$id, spec$route))
+        store_pk(value, clear_pending = FALSE)
+        session$onFlushed(function() pending(NULL), once = TRUE)
+      }, error = function(e) {
+        auto_import_key <<- ""
+        load_error(conditionMessage(e))
+        showNotification(conditionMessage(e), type = "error", duration = 10)
+      }), once = TRUE)
     })
     observeEvent(input$load, tryCatch({
-      value <- withProgress(message = t("Chargement PK", "Loading PK"), value = 0.3, {
-        if (identical(input$source, "code")) {
-          code <- input$code
-          if (!is.character(code) || !nzchar(trimws(code)) || nchar(code, type = "bytes") > 200000) stop("Supply a complete mrgsolve model (maximum 200 kB).")
-          model <- compile_model(custom_code = code, allow_custom = ALLOW_CUSTOM_MODELS, custom_soloc = soloc, custom_cache = cache) |> mrgsolve::zero_re()
-          if (!length(model@cmtL) || !length(model_capture_names(model))) stop("PK requires compartments and a captured concentration.")
-          adm <- tagged_compartment(model, "ADM")
-          list(id = "custom-pk", label = "mrgsolve / Lego", model = model, code = code,
-            adm_cmt = if (is.finite(adm)) adm else 1L, route = input$custom_route, source = "code", covariate_names = parse_covariates(code)$name)
-        } else ddi_library_context(input$model, input$route)
-      })
-      generation(generation() + 1L)
-      value$generation <- generation()
-      loaded(value)
-      pending(NULL)
-    }, error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10)))
+      load_error(NULL)
+      value <- withProgress(message = t("Chargement PK", "Loading PK"), value = 0.3,
+        load_pk(input$source, input$code, input$model, if (identical(input$source, "code")) input$custom_route else input$route))
+      store_pk(value)
+    }, error = function(e) {
+      load_error(conditionMessage(e))
+      showNotification(conditionMessage(e), type = "error", duration = 10)
+    }))
     valid_loaded <- reactive({
       if (identical(input$source, "tdm")) return(NULL)
       value <- loaded()
       if (is.null(value)) return(NULL)
       if (identical(input$source, "code")) {
-        if (!identical(value$code, input$code) || value$id != "custom-pk") return(NULL)
+        normalize_lines <- function(code) gsub("\r\n?", "\n", code %||% "")
+        if (!identical(normalize_lines(value$code), normalize_lines(input$code)) || value$id != "custom-pk") return(NULL)
       } else if (!identical(value$id, input$model)) return(NULL)
       value
     })
     output$status <- renderUI({
       if (identical(input$source, "tdm")) return(p(t("PK issue de mapbayr; covariables de la derniere analyse. Modifiez les donnees dans Analyse puis relancez l'estimation.", "PK from mapbayr; covariates from the latest analysis. Edit data in Analysis and rerun estimation.")))
+      if (!is.null(load_error())) return(p(class = "text-danger", load_error()))
       p(if (is.null(valid_loaded())) t("PK non chargee ou code modifie.", "PK not loaded or code modified.") else valid_loaded()$label)
     })
     output$units <- renderUI({
@@ -178,7 +206,7 @@ pd_pk_server <- function(id, soloc, cache, imported = reactive(NULL), analysis_s
       if (!value$concentration %in% captures) stop("Select the PK concentration output.")
       utils::modifyList(value, pd_pk_units(value$id, input$scale %||% 1, input$time_unit %||% "h"))
     })
-    session$onSessionEnded(function() { loaded(NULL); pending(NULL) })
+    session$onSessionEnded(function() { loaded(NULL); load_error(NULL); pending(NULL) })
     context
   })
 }

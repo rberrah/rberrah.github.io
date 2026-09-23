@@ -19,6 +19,9 @@ function rhs(s,amounts,covs) {
       flux=vm*a**h/(a**h+km**h);
     } else if (edge.eliminationParameterization==='clearance') {
       flux=parameter(s,`cl_${from.name}`,edge.cl,covs)*a/parameter(s,`v_${from.name}`,from.vol,covs);
+    } else if (edge.transferParameterization==='clearance') {
+      const qTarget=`q_${[from.name,to.name].sort().join('_')}`;
+      flux=parameter(s,qTarget,edge.q,covs)*a/parameter(s,`v_${from.name}`,from.vol,covs);
     } else flux=parameter(s,`k_${suffix}`,edge.k,covs)*a;
     result[from.name]-=flux;
     if (to) result[to.name]+=flux;

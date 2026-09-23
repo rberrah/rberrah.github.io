@@ -474,5 +474,15 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await expect(page.locator('.ddi-shell .sidebar-heading')).toContainText('DDI builder');
     await expect(page.locator('#ddi_model_1')).toBeAttached();
     await expect(page.locator('#ddi_target_parameter')).toBeAttached();
+    await expect(page.locator('#ddi_target_fraction')).toHaveValue('1');
+
+    await page.locator('#ddi_add_target').click();
+    await expect(page.locator('#ddi_target_parameter_2')).toBeAttached();
+    await expect(page.locator('#ddi_target_fraction_2')).toHaveValue('1');
+    await page.locator('#ddi_target_fraction_2').fill('0.35');
+    await expect(page.locator('#ddi_target_fraction_2')).toHaveValue('0.35');
+
+    await page.locator('#ddi_remove_target').click();
+    await expect(page.locator('#ddi_target_parameter_2')).toHaveCount(0);
   });
 });

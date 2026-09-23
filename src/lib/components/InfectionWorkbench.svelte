@@ -17,6 +17,7 @@
     grid: { min: 500, max: 1500, step: 500, intervals: [8,12], infusion: 1, continuous: false } });
   let computed = $state(null);
   let computedKey = $state('');
+  let customInterval = $state(72);
   let spec = $derived(workshopSpec('infection', { ...cfg, exposure: model.source === 'builtin' ? 'iv1' : 'pk', v: model.v, cl: model.cl },
     cfg.source === 'pk' ? [model.source === 'builtin' ? basicIvModel(model.v, model.cl) : model] : undefined));
   let compared = $state(0);
@@ -39,6 +40,12 @@
   let feedback = $derived(({ sending: t('Transfert en cours...', 'Transfer in progress...'), done: t('Atelier transmis au moteur.', 'Workshop transferred to engine.'),
     blocked: t('Ouverture bloquee par le navigateur.', 'Browser blocked the new window.'), timeout: t('Moteur non joignable ou pas encore mis a jour.', 'Engine unreachable or not yet updated.'), error: transferError })[transfer] ?? '');
   function launch() { cleanup(); const key = JSON.stringify(spec); computed = null; cleanup = openWorkshop(tdmEngineUrl, $language ?? 'fr', JSON.parse(key), (state, detail) => { transfer = state; transferError = detail ?? ''; }, (result) => { if (key === JSON.stringify(spec)) { computedKey = key; computed = result; } }); }
+  function addInterval() {
+    const value = Number(customInterval);
+    if (!Number.isFinite(value) || value < .25 || value > 8760 || cfg.grid.intervals.includes(value)) return;
+    cfg.grid.intervals = [...cfg.grid.intervals, value].sort((a, b) => a - b);
+  }
+  function removeInterval(/** @type {number} */ value) { cfg.grid.intervals = cfg.grid.intervals.filter(interval => interval !== value); }
   function download() {
     const url = URL.createObjectURL(new Blob([JSON.stringify(spec, null, 2)], {type: 'application/json'}));
     const link = document.createElement('a'); link.href = url; link.download = 'infection-workshop.json'; link.click();
@@ -74,7 +81,7 @@
       <div class="regimens">
         <fieldset><legend>{t('Posologie actuelle', 'Current regimen')}</legend>
             <label>{t('Dose (unite PK)', 'Dose (PK unit)')}<input type="number" bind:value={cfg.dose} min="0.000001" step="any" required/></label>
-            <label>{t('Intervalle (h)', 'Interval (h)')}<input type="number" bind:value={cfg.interval} min="0.25" max="168" step="any" required/></label>
+            <label>{t('Intervalle (h)', 'Interval (h)')}<input type="number" bind:value={cfg.interval} min="0.25" max="8760" step="any" required/></label>
             <label>{t('Perfusion (h)', 'Infusion (h)')}<input type="number" bind:value={cfg.infusion} min="0" max={cfg.interval} step="any" required disabled={cfg.source === 'pk' && model.route === 'Oral'}/></label>
         </fieldset>
         <fieldset><legend>{t('Grille de doses', 'Dose grid')}</legend>
@@ -82,8 +89,10 @@
           <label>Dose max<input type="number" bind:value={cfg.grid.max} min={cfg.grid.min} step="any" required/></label>
           <label>{t('Pas', 'Step')}<input type="number" bind:value={cfg.grid.step} min="0.000001" step="any" required/></label>
           <fieldset class="source"><legend>{t('Intervalles proposes (h)', 'Candidate intervals (h)')}</legend>{#each [4,6,8,12,24,48] as hours}<label><input type="checkbox" bind:group={cfg.grid.intervals} value={hours}/>{hours}</label>{/each}</fieldset>
+          <div class="custom-interval"><label>{t('Autre intervalle (h)', 'Other interval (h)')}<input type="number" bind:value={customInterval} min="0.25" max="8760" step="any"/></label><button type="button" onclick={addInterval}>{t('Ajouter', 'Add')}</button></div>
+          {#if cfg.grid.intervals.some(interval => ![4,6,8,12,24,48].includes(interval))}<div class="interval-tags" aria-label={t('Intervalles personnalises', 'Custom intervals')}>{#each cfg.grid.intervals.filter(interval => ![4,6,8,12,24,48].includes(interval)) as interval}<span>{interval} h <button type="button" aria-label={`${t('Supprimer', 'Remove')} ${interval} h`} onclick={() => removeInterval(interval)}>&times;</button></span>{/each}</div>{/if}
           <label><input type="checkbox" bind:checked={cfg.grid.continuous} disabled={cfg.source === 'pk' && model.route === 'Oral'}/> {t('Perfusion continue', 'Continuous infusion')}</label>
-          {#if !cfg.grid.continuous}<label>{t('Perfusion (h)', 'Infusion (h)')}<input type="number" bind:value={cfg.grid.infusion} min="0" max={Math.min(...cfg.grid.intervals)} step="any" required disabled={cfg.source === 'pk' && model.route === 'Oral'}/></label>{/if}
+          {#if !cfg.grid.continuous}<label>{t('Perfusion (h)', 'Infusion (h)')}<input type="number" bind:value={cfg.grid.infusion} min="0" max={cfg.grid.intervals.length ? Math.min(...cfg.grid.intervals) : 8760} step="any" required disabled={cfg.source === 'pk' && model.route === 'Oral'}/></label>{/if}
         </fieldset>
       </div>
       <p>{t('Perfusion = 0 pour oral / bolus IV. Comparaison a l’etat stationnaire, sans transition apres la derniere dose. Maximum 24 posologies candidates.', 'Infusion = 0 for oral / IV bolus. Steady-state comparison, without transition after the latest dose. Maximum 24 candidate regimens.')}</p>
@@ -138,6 +147,8 @@
   .source { display:flex; gap:20px; flex-wrap:wrap; border:0; padding:0; margin-bottom:16px; } .source label { display:flex; gap:8px; align-items:center; }
   label { display:block; font-size:.85rem; } input[type=number], select { display:block; width:100%; min-width:0; box-sizing:border-box; padding:10px; margin:8px 0; font:inherit; color:var(--text-primary); background:var(--bg-tertiary); border:1px solid var(--border-strong); border-radius:4px; }
   .fields, .regimens { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; max-width:850px; } .regimens { margin-top:24px; } .regimens fieldset { border:0; border-top:1px solid var(--border-subtle); padding:16px 0 0; min-width:0; }
+  .custom-interval { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:end; } .custom-interval button { min-height:42px; margin-bottom:8px; padding:8px 12px; }
+  .interval-tags { display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 12px; } .interval-tags span { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border-strong); padding:4px 8px; font-size:.8rem; } .interval-tags button { border:0; padding:0 3px; font-size:1rem; }
   .comparison { max-width:420px; } li { font-size:.9rem; margin-block:8px; }
   .equation { border-block:1px solid var(--border-subtle); padding:12px 0; font-family:var(--font-mono); }
   .actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; padding:20px 0; } .actions button { display:inline-flex; gap:8px; align-items:center; padding:10px 14px; } .primary { background:#126e64; color:white; border-color:#126e64; }

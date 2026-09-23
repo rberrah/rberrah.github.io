@@ -27,6 +27,15 @@ for (const width of [390, 1440]) {
     const previous = await pta.getAttribute('d');
     await workshop.getByLabel('CL (L/h)', {exact:true}).fill('8');
     await expect(pta).not.toHaveAttribute('d', previous);
+    await workshop.getByLabel('Other interval (h)', {exact:true}).fill('72');
+    await workshop.getByRole('button', {name:'Add', exact:true}).click();
+    await expect(workshop.getByLabel('Custom intervals')).toContainText('72 h');
+    const ptaLegend = workshop.getByTestId('curve-infection_pta').locator('..').locator('.legend');
+    await expect(ptaLegend).toContainText('Current · 1000 / 12 h');
+    await expect(ptaLegend).toContainText('PTA threshold · 90%');
+    const ptaTicks = workshop.getByTestId('curve-infection_pta').locator('.x-tick');
+    await expect(ptaTicks).toHaveCount(width < 550 ? 4 : 7);
+    expect(await ptaTicks.evaluateAll((ticks) => ticks.every((tick, index) => index === 0 || ticks[index - 1].getBoundingClientRect().right <= tick.getBoundingClientRect().left))).toBe(true);
     await workshop.getByRole('button', { name: /Target attainment/ }).click();
     await workshop.getByLabel('Unbound fraction fu').fill('0.6');
     await workshop.getByRole('button', { name: /^MIC/ }).click();
@@ -40,7 +49,7 @@ for (const width of [390, 1440]) {
     expect(payload.config.fu).toBe(.6);
     expect(payload.models[0].code).toContain('TV_CL = 8');
     expect(payload.config.exposure).toBe('iv1');
-    expect(payload.config.grid.intervals).toEqual([8,12]);
+    expect(payload.config.grid.intervals).toEqual([8,12,72]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.evaluate(() => scrollTo(0,0));
     await page.screenshot({ path: `.playwright/infection-site-${width}.png`, fullPage: true });

@@ -29,6 +29,13 @@ result <- ddi_simulate(
   driver,
   delta = 0.25
 )
+multi_config <- result$config
+multi_config$targets <- list(
+  list(parameter = "TVCL_TAC", fraction = 0.5),
+  list(parameter = "TVV1_TAC", fraction = 0.25)
+)
+multi <- ddi_simulate(multi_config, affected, driver, delta = 0.25)
+active_effect <- subset(multi$effect, day >= multi$config$start_day & day < multi$config$stop_day)
 
 personalized <- ddi_fit_context(list(
   id = affected$id,
@@ -62,6 +69,12 @@ stopifnot(
   result$metrics$cmin_ratio > 1,
   abs(result$metrics$minimum_modifier - 0.5) < 1e-8,
   abs(result$metrics$maximum_modifier - 1) < 1e-8,
+  identical(unique(multi$effect$target), c("TVCL_TAC", "TVV1_TAC")),
+  abs(min(subset(active_effect, target == "TVCL_TAC")$modifier) - 0.75) < 1e-8,
+  abs(min(subset(active_effect, target == "TVV1_TAC")$modifier) - 0.875) < 1e-8,
+  length(multi$metrics$baseline_parameters) == 2,
+  inherits(try(ddi_validate_targets(list(targets = list(list(parameter = "CL", fraction = 1.1)))), silent = TRUE), "try-error"),
+  inherits(try(ddi_validate_targets(list(targets = list(list(parameter = "CL", fraction = 1), list(parameter = "CL", fraction = 0.5)))), silent = TRUE), "try-error"),
   personalized$source == "tdm",
   lego_context$drug == "Lego",
   lego_context$source == "tdm",

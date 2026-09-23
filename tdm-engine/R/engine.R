@@ -39,6 +39,23 @@ carry_covariates <- function(event_times, covariate_history, covariates) {
   as.data.frame(output, check.names = FALSE)
 }
 
+parse_dosing_intervals <- function(selected = numeric(), custom = "") {
+  selected_tokens <- as.character(unlist(selected, use.names = FALSE))
+  custom_text <- paste(as.character(custom %||% ""), collapse = " ")
+  custom_tokens <- if (nzchar(trimws(custom_text))) {
+    strsplit(trimws(custom_text), "[,;[:space:]]+", perl = TRUE)[[1]]
+  } else {
+    character()
+  }
+  tokens <- c(selected_tokens[nzchar(trimws(selected_tokens))], custom_tokens)
+  if (!length(tokens)) stop("Select or enter at least one dosing interval.")
+  values <- suppressWarnings(as.numeric(tokens))
+  if (any(!is.finite(values) | values <= 0)) {
+    stop("Dosing intervals must be positive numbers separated by spaces, commas, or semicolons.")
+  }
+  sort(unique(values))
+}
+
 normalize_steady_state_doses <- function(doses) {
   if (!nrow(doses)) return(doses)
   dose_ss <- if ("ss" %in% names(doses)) suppressWarnings(as.integer(doses$ss)) else rep(0L, nrow(doses))

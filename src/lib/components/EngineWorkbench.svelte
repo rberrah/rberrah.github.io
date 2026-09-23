@@ -1,6 +1,5 @@
 <script>
   import { onMount, onDestroy, flushSync } from 'svelte';
-  import { ArrowRight } from '@lucide/svelte';
   import { readDraft, writeDraft, takeDraft } from '$lib/workshops/session.js';
   import { language } from '$lib/stores/language';
   import { tdmEngineUrl } from '$lib/tdm/engine';
@@ -29,7 +28,6 @@
   let pdMode = $state('pd');
   let pdBlock = $state('exposure');
   let mounted = $state(false);
-  let incomingPk = $state(/** @type {any} */ (null));
   let model1 = $state({ source: 'library', id: 'tacrolimus_woillard_ddi', route: 'Oral', code: '' });
   let model2 = $state({ source: 'library', id: 'voriconazole_vandenborn_ddi', route: 'Oral', code: '' });
   let pkOnco = $state({ source: 'library', id: 'vanco_pkjust', route: 'IV', code: '', time_unit: 'h', concentration_scale: 1 });
@@ -69,14 +67,16 @@
     if (pd.exposure === 'exponential') {
       pd.v = 10; pd.cl = pd.kel * pd.v; pd.regimen.dose = pd.c0 * pd.v; pd.exposure = 'iv1';
     }
-    incomingPk = readDraft(`incoming:${view}:pk`);
+    const incomingPk = takeDraft(`incoming:${view}:pk`);
+    if (incomingPk) applyIncomingPk(incomingPk);
     mounted = true;
   });
   onDestroy(() => {
     cleanup();
     if (mounted) writeDraft(`workbench:${view}`, { tab, pdMode, pdBlock, model1, model2, pkOnco, pkPd, pkInfection, ddi, onco, pd });
   });
-  function applyIncomingPk() {
+  /** @param {any} incomingPk */
+  function applyIncomingPk(incomingPk) {
     if (!incomingPk) return;
     const model = incomingPk.model;
     if (view === 'ddi') {
@@ -87,8 +87,6 @@
       if (model.route === 'Oral') { onco.infusion = 0; onco.history.forEach(dose => dose.infusion = 0); }
     } else if (pdMode === 'infection') { pkInfection = model; }
     else { pkPd = model; pd.exposure = 'pk'; pdBlock = 'exposure'; }
-    takeDraft(`incoming:${view}:pk`);
-    incomingPk = null;
   }
   function launch() {
     cleanup();
@@ -111,14 +109,6 @@
 
 <section class="workbench" data-testid={`${view}-workbench`} inert={!mounted}>
   <header><div><p class="eyebrow">{t('Atelier de modelisation', 'Modeling workshop')}</p><h1>{title}</h1></div><span class="status">{t('Recherche / en cours', 'Research / in development')}</span></header>
-  {#if incomingPk}
-    <section class="incoming" aria-label={t('Modele PK transmis', 'Transferred PK model')}>
-      <strong>{t('Modele PK transmis', 'Transferred PK model')} / {incomingPk.model.route}</strong>
-      <p>{t('Les covariables et le code du modele sont repris. Verifiez les unites et les doses de cet atelier ; le calendrier de simulation PK ne les remplace pas.', 'Model code and covariates are transferred. Check this workshop\'s units and doses; the PK simulation schedule does not replace them.')}</p>
-      <button type="button" data-testid="apply-pk" onclick={applyIncomingPk}><ArrowRight size={16}/>{view === 'ddi' ? `PK ${incomingPk.side}` : pdMode === 'onco' ? t('Reprendre en oncologie', 'Use in oncology') : pdMode === 'infection' ? t('Reprendre en infectiologie', 'Use in infectiology') : t('Reprendre en PD generale', 'Use in general PD')}</button>
-      <button type="button" onclick={() => { takeDraft(`incoming:${view}:pk`); incomingPk = null; }}>{t('Ignorer', 'Dismiss')}</button>
-    </section>
-  {/if}
   <LabTransfer destination={view} apply={applyLaboratory} note={t('Le modele PK et la dose d\'entretien remplacent la PK 1 / PK generale actuelle. Ici les doses sont repetees : le nombre fini de doses et la dose de charge ne sont pas repris. Les parametres d\'interaction / PD restent illustratifs. Rien n\'est lance automatiquement.', 'The PK model and maintenance dose replace the current PK 1 / general PK. Doses repeat here: the finite dose count and loading dose are not retained. Interaction / PD parameters remain illustrative. Nothing runs automatically.')}/>
   <p class="intro">{view === 'ddi'
     ? t('Une interaction relie l’exposition d’une molecule a un parametre d’une autre. Assemblez les deux modeles PK et leur mecanisme, puis explorez les concentrations et la recuperation dans le moteur R.', 'An interaction links one drug’s exposure to another drug’s parameter. Assemble the two PK models and their mechanism, then explore concentrations and recovery in the R engine.')
@@ -252,9 +242,6 @@
 
 <style>
   [hidden] { display: none !important; }
-  .incoming { border-block: 1px solid var(--border-strong); padding: 16px 0; margin: 16px 0; }
-  .incoming p { max-width: 85ch; font-size: 0.85rem; }
-  .incoming button { display: inline-flex; align-items: center; gap: 6px; }
   .assembly.two-blocks { grid-template-columns: minmax(0,1fr) 28px minmax(0,1fr); }
   .workbench { min-width: 0; letter-spacing: 0; }
   header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }

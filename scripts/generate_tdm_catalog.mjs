@@ -120,6 +120,8 @@ const administrationModeLabels = {
 };
 
 const additionallyAdaptedModels = new Set([
+  'genta_franck',
+  'genta_gomes',
   'genta_hodiamont',
   'genta_rosario_clcr',
   'genta_rosario_clinical',

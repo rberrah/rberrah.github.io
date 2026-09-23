@@ -363,6 +363,24 @@ h6 {
   color: #294a4d;
 }
 
+.ddi-target-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.8fr);
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ddi-target-row .form-group { margin-bottom: 0; }
+
+.ddi-target-actions {
+  display: flex;
+  gap: 6px;
+  margin: 9px 0;
+}
+
+.ddi-target-actions .btn { flex: 1 1 0; }
+
 .ddi-actions { margin-top: 12px; }
 
 .ddi-workspace {
@@ -412,6 +430,7 @@ h6 {
   .ddi-builder { grid-template-columns: 1fr; }
   .ddi-arrow { min-height: 18px; transform: rotate(90deg); }
   .ddi-method-grid { grid-template-columns: 1fr; }
+  .ddi-target-row { grid-template-columns: 1fr; }
   .ddi-results .result-toolbar { display: grid; }
   .ddi-empty { margin: 20px 16px; }
 }

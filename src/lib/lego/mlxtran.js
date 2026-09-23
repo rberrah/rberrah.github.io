@@ -146,7 +146,7 @@ function modelBuilder(raw) {
     return node;
   };
   const addEdge = (from, to, extra = {}) => {
-    const edge = { from: from.id, to: to === 'OUT' ? 'OUT' : to.id, kinetics: 'first_order', k: 0.2, vmax: 10, km: 10, gamma: 1, eliminationParameterization: 'rate', cl: 5, ...extra };
+    const edge = { from: from.id, to: to === 'OUT' ? 'OUT' : to.id, kinetics: 'first_order', k: 0.2, vmax: 10, km: 10, gamma: 1, eliminationParameterization: 'rate', cl: 5, transferParameterization: 'rate', q: 5, ...extra };
     edges.push(edge);
     return edge;
   };
@@ -155,6 +155,7 @@ function modelBuilder(raw) {
     const to = edge.to === 'OUT' ? 'e' : cleanName(nodes.find((node) => node.id === edge.to)?.name);
     if (edge.kinetics === 'michaelis_menten' || edge.kinetics === 'hill') return `vmax_${from}_${to}`;
     if (edge.to === 'OUT' && edge.eliminationParameterization === 'clearance') return `cl_${from}`;
+    if (edge.to !== 'OUT' && edge.transferParameterization === 'clearance') return `q_${[from, to].sort().join('_')}`;
     return `k_${from}_${to}`;
   };
   const register = (source, target, sign = 1) => {
@@ -272,14 +273,12 @@ function parsePkmodel(raw, builder) {
     const peripheral = addNode('periph', `periph${number}`, { vol: value(peripheralVolume, 40) });
     peripheral.vol=reader.bind(peripheralVolume,`v_${peripheral.name}`);
     register(peripheralVolume, `v_${peripheral.name}`);
-    const forward = addEdge(central, peripheral, { k: value(q, 3) / central.vol });
-    const backward = addEdge(peripheral, central, { k: value(q, 3) / peripheral.vol });
-    forward.k=reader.bind(`${q}/${volume}`,parameterName(forward));
-    backward.k=reader.bind(`${q}/${peripheralVolume}`,parameterName(backward));
+    const forward = addEdge(central, peripheral, { transferParameterization: 'clearance', q: value(q, 3) });
+    const backward = addEdge(peripheral, central, { transferParameterization: 'clearance', q: value(q, 3) });
+    forward.q=reader.bind(q,parameterName(forward));
+    backward.q=forward.q;
     register(q, parameterName(forward));
     register(q, parameterName(backward));
-    register(volume, parameterName(forward), -1);
-    register(peripheralVolume, parameterName(backward), -1);
   }
 
   const ke0 = token('ke0');
@@ -1038,8 +1037,8 @@ function classicCodeGraph(raw, builder, values, regressors) {
     const v=knownEntry(values,[`v${index+2}`,index===0?'vp':`vp${index+1}`])?.[0];
     if (!q || !v) throw new MlxtranImportError('unsupportedStructure');
     node.vol=reader.bind(v,`v_${node.name}`);
-    builder.addEdge(central,node,{k:reader.bind(`${q}/${volume}`,`k_${central.name}_${node.name}`)});
-    builder.addEdge(node,central,{k:reader.bind(`${q}/${v}`,`k_${node.name}_${central.name}`)});
+    const forward=builder.addEdge(central,node,{transferParameterization:'clearance',q:reader.bind(q,`q_${[central.name,node.name].sort().join('_')}`)});
+    builder.addEdge(node,central,{transferParameterization:'clearance',q:forward.q});
   });
   builder.odeCovariates=reader.covariates;
   return reader;
@@ -1191,12 +1190,13 @@ function addClassicGraph(builder, values) {
     const volumeEntry = knownEntry(values, [`v${number}`, index === 0 ? 'vp' : `vp${index + 1}`]);
     const volume = volumeEntry?.[1] ?? peripheral.vol ?? 40;
     peripheral.vol = volume;
-    const forward = hasEdge(builder, central, peripheral) ? null : builder.addEdge(central, peripheral, { k: q[1] / centralVolume });
-    const backward = hasEdge(builder, peripheral, central) ? null : builder.addEdge(peripheral, central, { k: q[1] / volume });
-    builder.register(index === 0 ? 'q' : `q${number}`, forward ? builder.parameterName(forward) : `k_${central.name}_${peripheral.name}`);
-    builder.register(index === 0 ? 'q' : `q${number}`, backward ? builder.parameterName(backward) : `k_${peripheral.name}_${central.name}`);
-    builder.register(q[0], forward ? builder.parameterName(forward) : `k_${central.name}_${peripheral.name}`);
-    builder.register(q[0], backward ? builder.parameterName(backward) : `k_${peripheral.name}_${central.name}`);
+    const qName = `q_${[central.name, peripheral.name].sort().join('_')}`;
+    const forward = hasEdge(builder, central, peripheral) ? null : builder.addEdge(central, peripheral, { transferParameterization: 'clearance', q: q[1] });
+    const backward = hasEdge(builder, peripheral, central) ? null : builder.addEdge(peripheral, central, { transferParameterization: 'clearance', q: q[1] });
+    builder.register(index === 0 ? 'q' : `q${number}`, forward ? builder.parameterName(forward) : qName);
+    builder.register(index === 0 ? 'q' : `q${number}`, backward ? builder.parameterName(backward) : qName);
+    builder.register(q[0], forward ? builder.parameterName(forward) : qName);
+    builder.register(q[0], backward ? builder.parameterName(backward) : qName);
     builder.register(`v${number}`, `v_${peripheral.name}`);
     if (volumeEntry) builder.register(volumeEntry[0], `v_${peripheral.name}`);
   });

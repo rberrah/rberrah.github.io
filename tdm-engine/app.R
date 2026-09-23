@@ -339,6 +339,7 @@ DEFAULT_CODE <- read_library_code(DEFAULT_MODEL)
 DEFAULT_ROUTE <- model_routes(model_record(DEFAULT_MODEL))[[1]]
 DEFAULT_MODE <- model_administration_modes(model_record(DEFAULT_MODEL), DEFAULT_ROUTE)[[1]]
 DEFAULT_TARGET_PRESET <- clinical_target_preset(model_record(DEFAULT_MODEL), DEFAULT_MODE)
+STANDARD_CANDIDATE_INTERVALS <- c(6, 8, 12, 24, 48)
 
 APP_THEME <- bs_theme(
   version = 5,
@@ -553,8 +554,8 @@ ddi_panel <- function(lang = "fr") {
             nav_panel(t("Methode et sources", "Methods and sources"),
               tags$p(t("Le modele 1 commence a l'etat stationnaire et sa posologie est maintenue. Le modele 2 commence sans exposition prealable au jour choisi, puis ses doses sont arretees. Les AUC et extrema comparent les 24 dernieres heures avant cet arret (ou la fenetre disponible si elle est plus courte).",
                 "Model 1 starts at steady state and its regimen is maintained. Model 2 starts without prior exposure on the selected day, then its doses are stopped. AUC and extrema compare the final 24 hours before this stop (or the available window if shorter).")),
-              tags$p(t("Couplage unidirectionnel sur une grille de 0,1 h. Les mecanismes dynamiques integrent une activite A(0)=1 avec renouvellement kdeg : inhibition dependante du temps (kinact/KI) ou induction de la synthese (Emax/EC50). La recuperation continue apres l'arret. Les facteurs inhibiteurs sont bornes a 1 %; aucun calcul de fraction metabolisee ou d'extraction hepatique.",
-                "Unidirectional coupling on a 0.1 h grid. Dynamic mechanisms integrate activity A(0)=1 with kdeg turnover: time-dependent inhibition (kinact/KI) or synthesis induction (Emax/EC50). Recovery continues after stopping treatment. Inhibitory factors have a 1% floor; no fraction-metabolized or hepatic extraction calculation.")),
+              tags$p(t("Couplage unidirectionnel sur une grille de 0,1 h. Les mecanismes dynamiques integrent une activite A(0)=1 avec renouvellement kdeg : inhibition dependante du temps (kinact/KI) ou induction de la synthese (Emax/EC50). La recuperation continue apres l'arret. La fraction affectee melange une part non affectee et une part modulee; elle est renseignee par l'utilisateur et ne constitue pas une estimation mecanistique de fm.",
+                "Unidirectional coupling on a 0.1 h grid. Dynamic mechanisms integrate activity A(0)=1 with kdeg turnover: time-dependent inhibition (kinact/KI) or synthesis induction (Emax/EC50). Recovery continues after stopping treatment. The affected fraction mixes unaffected and modulated components; it is user supplied and is not a mechanistic fm estimate.")),
               tags$p(t("Pour les mecanismes dynamiques, le C++ attend DDI_ACTIVITY, calculee par le script R couple. Il ne contient pas lui-meme l'ODE enzymatique. Une inhibition enzymatique doit cibler un parametre compatible (p. ex. clairance), pas un volume sans justification mecanistique.",
                 "For dynamic mechanisms, C++ expects DDI_ACTIVITY calculated by the coupled R script. It does not itself contain the enzyme ODE. Enzyme inhibition must target a compatible parameter (e.g. clearance), not a volume without mechanistic justification.")),
               tags$a(href = "https://www.fda.gov/regulatory-information/search-fda-guidance-documents/m12-drug-interaction-studies", target = "_blank", rel = "noopener noreferrer", "ICH M12: enzyme inhibition and induction"),
@@ -792,9 +793,15 @@ app_ui <- function(request) {
               checkboxGroupInput(
                 "candidate_intervals",
                 "Intervalles testés",
-                choices = c("6 h" = 6, "8 h" = 8, "12 h" = 12, "24 h" = 24, "48 h" = 48),
+                choices = stats::setNames(STANDARD_CANDIDATE_INTERVALS, paste(STANDARD_CANDIDATE_INTERVALS, "h")),
                 selected = DEFAULT_TARGET_PRESET$intervals %||% c(8, 12, 24),
                 inline = TRUE
+              ),
+              textInput(
+                "candidate_intervals_custom",
+                if (lang == "en") "Other intervals (h)" else "Autres intervalles (h)",
+                value = "",
+                placeholder = if (lang == "en") "e.g. 72, 168, 336" else "p. ex. 72, 168, 336"
               ),
               conditionalPanel(
                 "input.administration_route == 'IV'",
@@ -1118,6 +1125,7 @@ server <- function(input, output, session) {
   ddi_custom_2 <- reactiveVal(NULL)
   ddi_subject_1 <- reactiveVal(NULL)
   ddi_subject_2 <- reactiveVal(NULL)
+  ddi_target_count <- reactiveVal(1L)
   validation_store <- reactiveVal(NULL)
   query_applied <- reactiveVal(FALSE)
   pending_import_target <- reactiveVal(NULL)
@@ -1135,6 +1143,22 @@ server <- function(input, output, session) {
   numeric_input_value <- function(id, fallback = NA_real_) {
     value <- suppressWarnings(as.numeric(input[[id]] %||% fallback))
     if (length(value) != 1L || !is.finite(value)) fallback else value
+  }
+
+  candidate_interval_values <- function() {
+    parse_dosing_intervals(
+      isolate(input$candidate_intervals %||% character()),
+      isolate(input$candidate_intervals_custom %||% "")
+    )
+  }
+
+  update_candidate_intervals <- function(values) {
+    values <- suppressWarnings(as.numeric(unlist(values %||% numeric())))
+    values <- sort(unique(values[is.finite(values) & values > 0]))
+    standard <- intersect(values, STANDARD_CANDIDATE_INTERVALS)
+    custom <- setdiff(values, STANDARD_CANDIDATE_INTERVALS)
+    updateCheckboxGroupInput(session, "candidate_intervals", selected = as.character(standard))
+    updateTextInput(session, "candidate_intervals_custom", value = paste(custom, collapse = ", "))
   }
 
   update_target_inputs <- function(target) {
@@ -1168,8 +1192,7 @@ server <- function(input, output, session) {
       value <- suppressWarnings(as.numeric(target[[name]] %||% NA_real_))
       if (is.finite(value) && value >= 0) updateNumericInput(session, numeric_targets[[name]], value = value)
     }
-    intervals <- intersect(as.character(as.numeric(target$intervals %||% numeric())), c("6", "8", "12", "24", "48"))
-    if (length(intervals)) updateCheckboxGroupInput(session, "candidate_intervals", selected = intervals)
+    if (length(target$intervals %||% numeric())) update_candidate_intervals(target$intervals)
   }
 
   row_time_messages <- function(prefix, index) {
@@ -2094,7 +2117,7 @@ server <- function(input, output, session) {
           doseMin = isolate(input$dose_min),
           doseMax = isolate(input$dose_max),
           doseStep = isolate(input$dose_step),
-          intervals = as.numeric(isolate(input$candidate_intervals)),
+          intervals = candidate_interval_values(),
           infusion = if (identical(isolate(input$administration_route), "IV")) isolate(input$future_infusion) else 0
         ),
         settings = list(
@@ -2360,7 +2383,7 @@ server <- function(input, output, session) {
       }
       specifications <- model_specifications()
       library_model_ids <- intersect(vapply(specifications, `[[`, character(1), "id"), MODEL_CATALOG$id)
-      intervals <- as.numeric(isolate(input$candidate_intervals))
+      intervals <- candidate_interval_values()
       route <- isolate(input$administration_route)
       infusion <- if (identical(route, "IV")) as.numeric(isolate(input$future_infusion)) else 0
       delta <- as.numeric(isolate(input$simulation_delta %||% 0.1))
@@ -2860,7 +2883,7 @@ server <- function(input, output, session) {
     updateNumericInput(session, "dose_min", value = preset$dose_min)
     updateNumericInput(session, "dose_max", value = preset$dose_max)
     updateNumericInput(session, "dose_step", value = preset$dose_step)
-    updateCheckboxGroupInput(session, "candidate_intervals", selected = as.character(preset$intervals))
+    update_candidate_intervals(preset$intervals)
     updateNumericInput(session, "future_infusion", value = preset$infusion)
   }, ignoreInit = FALSE)
 
@@ -3379,7 +3402,8 @@ server <- function(input, output, session) {
     payload <- workbench_payload(raw)
     if (payload$view == "ddi") {
       config <- payload$config
-      pending_ddi_target(config$target)
+      pending_ddi_target(config$targets)
+      ddi_target_count(length(config$targets))
       pending_ddi_routes(stats::setNames(lapply(payload$models, function(model) list(model = model$id, route = model$route)), c("1", "2")))
       ddi_subject_1(NULL); ddi_subject_2(NULL); ddi_custom_1(NULL); ddi_custom_2(NULL)
       for (side in 1:2) {
@@ -3394,7 +3418,6 @@ server <- function(input, output, session) {
         for (name in c("dose", "interval", "infusion")) updateNumericInput(session, paste0("ddi_", name, "_", side), value = regimen[[name]])
       }
       updateSelectInput(session, "ddi_interaction_type", selected = config$type)
-      updateSelectInput(session, "ddi_target_parameter", selected = config$target)
       for (name in c("factor", "strength", "c50", "hill", "kdeg", "kinact", "start_day", "stop_day")) updateNumericInput(session, paste0("ddi_", name), value = config[[name]])
       updateNumericInput(session, "ddi_followup", value = config$followup_days)
       ddi_store(NULL); ddi_assembly(NULL)
@@ -3420,9 +3443,6 @@ server <- function(input, output, session) {
       apply_workbench(payload)
       showNotification(tx("Atelier importe. Le code personnel doit etre compile explicitement.", "Workshop imported. Custom code must be compiled explicitly."), type = "message")
     }, error = function(e) showNotification(conditionMessage(e), type = "error", duration = 10)))
-  })
-  observeEvent(input$ddi_target_parameter, {
-    if (identical(input$ddi_target_parameter, pending_ddi_target())) pending_ddi_target(NULL)
   })
   session$onSessionEnded(function() { workbench_import(NULL); pending_ddi_target(NULL); pending_ddi_routes(list()) })
 
@@ -3479,10 +3499,10 @@ server <- function(input, output, session) {
     ddi_context_with_route(context, route)
   }
 
-  output$ddi_target_ui <- renderUI({
+  ddi_target_parameters <- reactive({
     model_id <- input$ddi_model_1 %||% ""
     snapshot <- ddi_subject_1()
-    parameters <- tryCatch({
+    tryCatch({
       if (identical(input$ddi_source_1, "code")) {
         context <- ddi_custom_1()
         if (!is.null(context) && identical(context$code, input$ddi_code_1)) ddi_parameter_table(context) else data.frame()
@@ -3490,17 +3510,56 @@ server <- function(input, output, session) {
       else if (model_id %in% MODEL_CATALOG$id) ddi_code_parameter_table(read_library_code(model_id))
       else data.frame()
     }, error = function(error) data.frame())
+  })
+
+  ddi_target_input_id <- function(index, field = "parameter") {
+    stem <- if (field == "fraction") "ddi_target_fraction" else "ddi_target_parameter"
+    if (index == 1L) stem else paste0(stem, "_", index)
+  }
+
+  ddi_targets_from_inputs <- function() lapply(seq_len(ddi_target_count()), function(index) list(
+    parameter = input[[ddi_target_input_id(index)]] %||% "",
+    fraction = numeric_input_value(ddi_target_input_id(index, "fraction"), 1)
+  ))
+
+  output$ddi_target_ui <- renderUI({
+    parameters <- ddi_target_parameters()
     if (!nrow(parameters)) return(div(class = "ddi-source-note", tx("Aucun paramètre structurel positif n'est disponible.", "No positive structural parameter is available.")))
     choices <- stats::setNames(parameters$name, paste0(parameters$name, " (", signif(parameters$value, 5), ")"))
-    selected <- pending_ddi_target() %||% isolate(input$ddi_target_parameter) %||% ""
-    if (!selected %in% parameters$name) {
-      clearance <- grep("(^CL$|CL_|_CL$|TVCL)", parameters$name, value = TRUE, ignore.case = TRUE)
-      selected <- if (length(clearance)) clearance[[1]] else parameters$name[[1]]
-    }
+    count <- min(ddi_target_count(), nrow(parameters), 6L)
+    pending <- pending_ddi_target()
+    used <- character()
+    rows <- lapply(seq_len(count), function(index) {
+      imported <- if (length(pending) >= index) pending[[index]] else NULL
+      selected <- imported$parameter %||% isolate(input[[ddi_target_input_id(index)]]) %||% ""
+      if (!selected %in% parameters$name || selected %in% used) {
+        clearance <- setdiff(grep("(^CL$|CL_|_CL$|TVCL)", parameters$name, value = TRUE, ignore.case = TRUE), used)
+        selected <- if (length(clearance)) clearance[[1]] else setdiff(parameters$name, used)[[1]]
+      }
+      used <<- c(used, selected)
+      fraction <- imported$fraction %||% isolate(input[[ddi_target_input_id(index, "fraction")]]) %||% 1
+      div(class = "ddi-target-row",
+        selectInput(ddi_target_input_id(index), paste0(tx("Paramètre cible ", "Target parameter "), index), choices = choices, selected = selected),
+        numericInput(ddi_target_input_id(index, "fraction"), tx("Fraction affectée (analogue fm)", "Affected fraction (fm analogue)"), fraction, min = 0, max = 1, step = 0.05))
+    })
+    if (!is.null(pending)) session$onFlushed(function() pending_ddi_target(NULL), once = TRUE)
     tagList(
-      selectInput("ddi_target_parameter", tx("Paramètre du modèle 1", "Model 1 parameter"), choices = choices, selected = selected),
-      tags$small(class = "form-text", tx("La relation multiplie ce paramètre; les covariables, ETA et erreurs résiduelles sont exclues.", "The relationship multiplies this parameter; covariates, ETAs, and residual errors are excluded."))
+      rows,
+      div(class = "ddi-target-actions",
+        actionButton("ddi_add_target", tx("Ajouter une cible", "Add target"), icon = icon("plus"), disabled = if (count >= min(6L, nrow(parameters))) "disabled" else NULL),
+        actionButton("ddi_remove_target", tx("Retirer la dernière", "Remove last"), icon = icon("minus"), disabled = if (count <= 1L) "disabled" else NULL)),
+      tags$small(class = "form-text", tx("Pour chaque cible : P/P0 = (1-f) + f×M(C). Les covariables, ETA et erreurs résiduelles sont exclues; les cibles doivent être distinctes.", "For each target: P/P0 = (1-f) + f×M(C). Covariates, ETAs, and residual errors are excluded; targets must be distinct."))
     )
+  })
+
+  observeEvent(input$ddi_add_target, {
+    maximum <- min(6L, nrow(ddi_target_parameters()))
+    ddi_target_count(min(ddi_target_count() + 1L, maximum))
+  })
+  observeEvent(input$ddi_remove_target, ddi_target_count(max(1L, ddi_target_count() - 1L)))
+  observe({
+    maximum <- max(1L, min(6L, nrow(ddi_target_parameters())))
+    if (ddi_target_count() > maximum) ddi_target_count(maximum)
   })
 
   observeEvent(input$ddi_model_1, {
@@ -3602,10 +3661,13 @@ server <- function(input, output, session) {
   })
 
   ddi_config_from_inputs <- function() {
+    targets <- ddi_targets_from_inputs()
     list(
       affected = list(dose = numeric_input_value("ddi_dose_1"), interval = numeric_input_value("ddi_interval_1"), infusion = numeric_input_value("ddi_infusion_1", 0)),
       driver = list(dose = numeric_input_value("ddi_dose_2"), interval = numeric_input_value("ddi_interval_2"), infusion = numeric_input_value("ddi_infusion_2", 0)),
-      target = input$ddi_target_parameter %||% "",
+      target = targets[[1]]$parameter,
+      target_fraction = targets[[1]]$fraction,
+      targets = targets,
       type = input$ddi_interaction_type %||% "factor",
       factor = numeric_input_value("ddi_factor", 0.5),
       strength = numeric_input_value("ddi_strength", 1),
@@ -3638,7 +3700,7 @@ server <- function(input, output, session) {
     div(class = "model-chain",
       div(class = "model-block exposure", icon("pills"), h3(label(1)), tags$small(tx("Molecule affectee", "Affected drug"))),
       span(class = "model-arrow", icon("arrow-right")),
-      div(class = "model-block delay", icon("link"), h3(input$ddi_target_parameter %||% "..."),
+      div(class = "model-block delay", icon("link"), h3(paste(vapply(ddi_targets_from_inputs(), function(target) paste0(target$parameter, " (f=", format_metric(target$fraction, 2), ")"), character(1)), collapse = " + ")),
         tags$code(ddi_mechanism_equation(input$ddi_interaction_type %||% "factor"))),
       span(class = "model-arrow", icon("arrow-left")),
       div(class = "model-block response", icon("pills"), h3(label(2)), tags$small(tx("Molecule interagissante", "Interacting drug"))))
@@ -3685,8 +3747,10 @@ server <- function(input, output, session) {
   shiny::outputOptions(output, "ddi_ready", suspendWhenHidden = FALSE)
   output$ddi_empty <- renderUI({
     if (!is.null(ddi_store())) return(NULL)
-    div(class = "empty-results ddi-empty", tags$strong(tx("Assemblez puis simulez l'interaction.", "Assemble and simulate the interaction.")), span(tx("Le modèle 2 pilote une modification choisie d'un paramètre structurel du modèle 1.", "Model 2 drives a selected modification of one structural parameter in model 1.")))
+    div(class = "empty-results ddi-empty", tags$strong(tx("Assemblez puis simulez l'interaction.", "Assemble and simulate the interaction.")), span(tx("Le modèle 2 pilote une ou plusieurs cibles structurelles du modèle 1, avec une fraction affectée propre à chaque cible.", "Model 2 drives one or more structural targets in model 1, each with its own affected fraction.")))
   })
+
+  ddi_targets_label <- function(result) paste(vapply(result$config$targets, function(target) paste0(target$parameter, " (f=", format_metric(target$fraction, 2), ")"), character(1)), collapse = " + ")
 
   ddi_concentration_figure <- function(result) {
     data <- result$affected_profile
@@ -3698,7 +3762,7 @@ server <- function(input, output, session) {
       geom_line(linewidth = 1) +
       scale_color_manual(values = stats::setNames(c("#59636c", "#176b70"), unname(labels))) +
       scale_linetype_manual(values = stats::setNames(c("dashed", "solid"), unname(labels))) +
-      labs(x = tx("Jour", "Day"), y = tx("Concentration (unité du modèle)", "Concentration (model unit)"), color = NULL, linetype = NULL, caption = paste0(result$affected$label, " · ", result$config$target)) +
+      labs(x = tx("Jour", "Day"), y = tx("Concentration (unité du modèle)", "Concentration (model unit)"), color = NULL, linetype = NULL, caption = paste0(result$affected$label, " · ", ddi_targets_label(result))) +
       theme_minimal(base_size = 13) +
       theme(panel.grid.minor = element_blank(), legend.position = "top", plot.caption = element_text(hjust = 0, color = "#66717c"))
   }
@@ -3706,17 +3770,21 @@ server <- function(input, output, session) {
   ddi_effect_figure <- function(result) {
     effect <- result$effect
     maximum <- max(effect$driver_concentration, na.rm = TRUE)
-    driver_relative <- if (is.finite(maximum) && maximum > 0) 100 * effect$driver_concentration / maximum else 0
+    driver <- unique(effect[, c("day", "driver_concentration"), drop = FALSE])
+    driver_relative <- if (is.finite(maximum) && maximum > 0) 100 * driver$driver_concentration / maximum else 0
+    target_metrics <- paste0(effect$target, " (f=", vapply(effect$fraction, format_metric, character(1), digits = 2), ")")
     data <- rbind(
-      data.frame(day = effect$day, value = 100 * effect$modifier, metric = paste0(result$config$target, tx(" relatif", " relative"))),
-      data.frame(day = effect$day, value = driver_relative, metric = tx("Exposition du modèle 2 (normalisée)", "Model 2 exposure (normalized)"))
+      data.frame(day = effect$day, value = 100 * effect$modifier, metric = target_metrics),
+      data.frame(day = driver$day, value = driver_relative, metric = tx("Exposition du modèle 2 (normalisée)", "Model 2 exposure (normalized)"))
     )
+    metrics <- unique(data$metric)
+    colors <- stats::setNames(c(grDevices::hcl.colors(length(metrics) - 1L, "Dark 3"), "#a4441f"), metrics)
     ggplot(data, aes(day, value, color = metric, linetype = metric)) +
       annotate("rect", xmin = result$config$start_day, xmax = result$config$stop_day, ymin = -Inf, ymax = Inf, fill = "#f4e4dc", alpha = 0.6) +
       geom_hline(yintercept = 100, color = "#8c969f", linewidth = 0.5) +
       geom_vline(xintercept = c(result$config$start_day, result$config$stop_day), color = "#8b756d", linetype = "dotted") +
       geom_line(linewidth = 1) +
-      scale_color_manual(values = c("#176b70", "#a4441f")) +
+      scale_color_manual(values = colors) +
       labs(x = tx("Jour", "Day"), y = tx("Valeur relative (%)", "Relative value (%)"), color = NULL, linetype = NULL) +
       theme_minimal(base_size = 13) +
       theme(panel.grid.minor = element_blank(), legend.position = "top")
@@ -3726,14 +3794,19 @@ server <- function(input, output, session) {
     result <- ddi_store()
     shiny::req(result)
     metrics <- result$metrics
+    target_cards <- lapply(result$config$targets, function(target) div(
+      span(tx("Paramètre initial", "Initial parameter")),
+      strong(format_metric(metrics$baseline_parameters[[target$parameter]], 3)),
+      tags$small(paste0(target$parameter, " · f=", format_metric(target$fraction, 2)))
+    ))
     div(
       class = "exposure-strip ddi-metrics",
       div(span(tx("AUC24 sans interaction", "AUC24 without interaction")), strong(format_metric(metrics$baseline$auc)), tags$small(tx("unité concentration·h", "concentration unit·h"))),
       div(span(tx("AUC24 avec interaction", "AUC24 with interaction")), strong(format_metric(metrics$interaction$auc)), tags$small(paste0("×", format_metric(metrics$auc_ratio, 2)))),
       div(span(tx("Cmin avec / sans", "Cmin with / without")), strong(paste0("×", format_metric(metrics$cmin_ratio, 2))), tags$small(paste(format_metric(metrics$baseline$cmin), "→", format_metric(metrics$interaction$cmin)))),
       div(span(tx("Cmax avec / sans", "Cmax with / without")), strong(paste0("×", format_metric(metrics$cmax_ratio, 2))), tags$small(paste(format_metric(metrics$baseline$cmax), "→", format_metric(metrics$interaction$cmax)))),
-      div(span(tx("Paramètre initial", "Initial parameter")), strong(format_metric(metrics$baseline_parameter, 3)), tags$small(result$config$target)),
-      div(span(tx("Facteur min · max", "Minimum · maximum factor")), strong(paste(format_metric(metrics$minimum_modifier, 2), "·", format_metric(metrics$maximum_modifier, 2))), tags$small(tx("sur l'horizon simulé", "over the simulated horizon")))
+      target_cards,
+      div(span(tx("Facteur min · max", "Minimum · maximum factor")), strong(paste(format_metric(metrics$minimum_modifier, 2), "·", format_metric(metrics$maximum_modifier, 2))), tags$small(tx("fractions affectées incluses", "including affected fractions")))
     )
   })
 
@@ -3764,14 +3837,15 @@ server <- function(input, output, session) {
   })
 
   ddi_interaction_description <- function(result) {
+    targets <- ddi_targets_label(result)
     if (result$config$type %in% c("reversible", "hill_inhibition", "tdi", "turnover_induction")) {
-      fields <- c("target", "c50", "hill", "kdeg", "kinact", "strength")
-      return(paste(ddi_mechanism_equation(result$config$type), "|", paste(fields, unlist(result$config[fields]), sep = "=", collapse = "; ")))
+      fields <- c("c50", "hill", "kdeg", "kinact", "strength")
+      return(paste(targets, "|", ddi_mechanism_equation(result$config$type), "|", paste(fields, unlist(result$config[fields]), sep = "=", collapse = "; ")))
     }
     switch(result$config$type,
-      factor = tx(paste0(result$config$target, " × ", format_metric(result$config$factor, 2), " pendant le traitement du modèle 2."), paste0(result$config$target, " × ", format_metric(result$config$factor, 2), " during model 2 treatment.")),
-      inhibition = paste0(result$config$target, " × [1 - ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)]"),
-      induction = paste0(result$config$target, " × [1 + ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)]")
+      factor = tx(paste0(targets, " · M=", format_metric(result$config$factor, 2), " pendant le traitement du modèle 2."), paste0(targets, " · M=", format_metric(result$config$factor, 2), " during model 2 treatment.")),
+      inhibition = paste0(targets, " · M(C2) = 1 - ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)"),
+      induction = paste0(targets, " · M(C2) = 1 + ", format_metric(result$config$strength, 2), "·C2/(", format_metric(result$config$c50, 3), "+C2)")
     )
   }
 
@@ -3788,7 +3862,7 @@ server <- function(input, output, session) {
     shiny::req(result)
     tagList(
       div(class = "ddi-method-grid", div(ddi_reference_tag(result$affected)), div(ddi_reference_tag(result$driver)), div(tags$strong(tx("Relation simulée", "Simulated relationship")), p(ddi_interaction_description(result)))),
-      div(class = "analysis-diagnostics", tags$strong(tx("Limites d'interprétation", "Interpretation limits")), p(tx("Le lien entre les deux modèles est une relation utilisateur appliquée au paramètre choisi. Il ne démontre ni un mécanisme biologique ni une interaction clinique validée. Pour les relations Emax, la valeur IC50/EC50 doit employer exactement l'unité de concentration capturée par le modèle 2.", "The link between models is a user-defined relationship applied to the selected parameter. It demonstrates neither a biological mechanism nor a validated clinical interaction. For Emax relationships, IC50/EC50 must use exactly the concentration unit captured by model 2.")), p(tx("Les valeurs populationnelles conservent les covariables par défaut du fichier de modèle. L'option TDM reprend un instantané des paramètres individuels de chaque molécule; elle ne fusionne pas les dossiers ni les données brutes.", "Population values retain the model file's default covariates. The TDM option uses a snapshot of each drug's individual parameters; it does not merge records or raw data."))),
+      div(class = "analysis-diagnostics", tags$strong(tx("Limites d'interprétation", "Interpretation limits")), p(tx("Le lien entre les deux modèles est une relation utilisateur appliquée aux cibles choisies. La fraction affectée est un analogue structurel de fm renseigné par l'utilisateur, pas une fraction métabolisée estimée par le modèle. Cette construction ne démontre ni un mécanisme biologique ni une interaction clinique validée. Pour les relations Emax, la valeur IC50/EC50 doit employer exactement l'unité de concentration capturée par le modèle 2.", "The link between models is a user-defined relationship applied to the selected targets. The affected fraction is a user-supplied structural analogue of fm, not a fraction metabolized estimated by the model. This construction demonstrates neither a biological mechanism nor a validated clinical interaction. For Emax relationships, IC50/EC50 must use exactly the concentration unit captured by model 2.")), p(tx("Les valeurs populationnelles conservent les covariables par défaut du fichier de modèle. L'option TDM reprend un instantané des paramètres individuels de chaque molécule; elle ne fusionne pas les dossiers ni les données brutes.", "Population values retain the model file's default covariates. The TDM option uses a snapshot of each drug's individual parameters; it does not merge records or raw data."))),
       div(class = "privacy-notice ddi-privacy", tags$strong(tx("Session uniquement", "Session only")), span(tx("Aucun modèle importé, paramètre individuel ou résultat de simulation n'est conservé par ce module.", "No imported model, individual parameter, or simulation result is retained by this module.")))
     )
   })

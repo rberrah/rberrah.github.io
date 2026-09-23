@@ -1514,6 +1514,7 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "note": "Adaptation documentée : le texte est ambigu entre poids maigre et poids total pour le centrage de V; l'interface fournit le poids total, utilisé ici.",
       "populationEn": "Adults, mostly older, receiving chronic hemodialysis.",
       "populationTagsEn": [
         "Adult",
@@ -1521,7 +1522,7 @@
         "Hemodialysis"
       ],
       "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "noteEn": "Documented adaptation: the source is ambiguous between lean and total body weight for V centering; the interface supplies total body weight, which is used here.",
       "routes": [
         "IV"
       ],
@@ -1536,9 +1537,9 @@
       "administrationCategoriesEn": [
         "Intermittent IV"
       ],
-      "implementationStatus": "ARTICLE",
-      "implementationStatusLabel": "Implémentation de l'article",
-      "implementationStatusLabelEn": "Article implementation",
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "verificationStatus": "SOFTWARE_TESTED",
       "validationStatus": "NONE",
       "contextOfUse": "TEACHING_RESEARCH",
@@ -1554,8 +1555,8 @@
         "IV_INTERMITTENT",
         "IV intermittente",
         "Intermittent IV",
-        "Implémentation de l'article",
-        "Article implementation",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Âgé",
         "Hémodialyse",
@@ -1585,6 +1586,7 @@
       ],
       "modelType": "PopPK publié",
       "sourceStatus": "verified",
+      "note": "Adaptation documentée : l'article ne reproduit ni l'équation de masse maigre corrigée ni la variante exacte de Cockcroft-Gault; les choix implémentés sont explicités dans le code.",
       "populationEn": "Adults treated for infective endocarditis, excluding dialysis.",
       "populationTagsEn": [
         "Adult",
@@ -1592,7 +1594,7 @@
         "Not on dialysis"
       ],
       "modelTypeEn": "Published PopPK",
-      "noteEn": "",
+      "noteEn": "Documented adaptation: the article does not reproduce the corrected lean-body-mass equation or the exact Cockcroft-Gault variant; the implemented choices are documented in code.",
       "routes": [
         "IV"
       ],
@@ -1607,9 +1609,9 @@
       "administrationCategoriesEn": [
         "Intermittent IV"
       ],
-      "implementationStatus": "ARTICLE",
-      "implementationStatusLabel": "Implémentation de l'article",
-      "implementationStatusLabelEn": "Article implementation",
+      "implementationStatus": "ADAPTED",
+      "implementationStatusLabel": "Adaptation documentée",
+      "implementationStatusLabelEn": "Documented adaptation",
       "verificationStatus": "SOFTWARE_TESTED",
       "validationStatus": "NONE",
       "contextOfUse": "TEACHING_RESEARCH",
@@ -1625,8 +1627,8 @@
         "IV_INTERMITTENT",
         "IV intermittente",
         "Intermittent IV",
-        "Implémentation de l'article",
-        "Article implementation",
+        "Adaptation documentée",
+        "Documented adaptation",
         "Adulte",
         "Endocardite",
         "Hors dialyse",

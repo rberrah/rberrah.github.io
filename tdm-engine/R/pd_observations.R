@@ -12,8 +12,8 @@ pd_observations_server <- function(id, columns, initial, oncology = FALSE, dose_
     revision <- reactiveVal(0L)
     key <- reactive(paste(columns(), collapse = ","))
     rows <- reactive(stores()[[key()]] %||% initial[FALSE, , drop = FALSE][, FALSE, drop = FALSE])
-    validate <- function(data) {
-      if (nrow(data) > (if (dose_history) 500 else 2000) || !identical(names(data), columns())) stop("Invalid table columns or row count.")
+    validate <- function(data, expected = columns()) {
+      if (nrow(data) > (if (dose_history) 500 else 2000) || !identical(names(data), expected)) stop("Invalid table columns or row count.")
       for (name in setdiff(names(data), "endpoint")) {
         supplied <- data[[name]]
         data[[name]] <- suppressWarnings(as.numeric(supplied))
@@ -28,6 +28,10 @@ pd_observations_server <- function(id, columns, initial, oncology = FALSE, dose_
     replace <- function(data) {
       data <- validate(data)
       value <- isolate(stores()); value[[isolate(key())]] <- data; stores(value)
+    }
+    replace_for <- function(data, target_columns) {
+      data <- validate(data, target_columns)
+      value <- isolate(stores()); value[[paste(target_columns, collapse = ",")]] <- data; stores(value)
     }
     output$table <- renderDT({
       revision()
@@ -85,6 +89,6 @@ pd_observations_server <- function(id, columns, initial, oncology = FALSE, dose_
       if (length(selected)) replace(rows()[-selected, , drop = FALSE])
     }))
     session$onSessionEnded(function() stores(list()))
-    list(data = rows, replace = replace)
+    list(data = rows, replace = replace, replace_for = replace_for)
   })
 }
