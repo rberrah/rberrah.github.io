@@ -81,8 +81,18 @@ model_administration_cmt <- function(record, route) {
   value
 }
 
-catalog_choices <- function(drug = NULL, route = NULL, mode = NULL) {
+model_analysis_eligible <- function(record) {
+  value <- record$analysisEligible
+  if (is.list(value)) value <- value[[1]]
+  isTRUE(as.logical(value[[1]] %||% FALSE))
+}
+
+catalog_choices <- function(drug = NULL, route = NULL, mode = NULL, analysis_only = FALSE) {
   rows <- MODEL_CATALOG
+  if (isTRUE(analysis_only)) {
+    keep <- vapply(seq_len(nrow(rows)), function(index) model_analysis_eligible(rows[index, , drop = FALSE]), logical(1))
+    rows <- rows[keep, , drop = FALSE]
+  }
   if (!is.null(drug)) rows <- rows[rows$drug == drug, , drop = FALSE]
   if (!is.null(route)) {
     keep <- vapply(seq_len(nrow(rows)), function(index) model_supports_route(rows[index, , drop = FALSE], route), logical(1))

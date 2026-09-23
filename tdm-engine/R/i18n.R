@@ -191,6 +191,7 @@ APP_TRANSLATIONS <- c(
   "Article source" = "Source article",
   "Population de l'article" = "Article population",
   "Type" = "Type",
+  "Usage TDM" = "TDM use",
   "Statut bibliographique" = "Reference status",
   "Détail" = "Details",
   "Dans cible" = "In target",
@@ -276,8 +277,12 @@ localize_ui <- function(value, lang) {
   value
 }
 
-catalog_choices_i18n <- function(drug = NULL, route = NULL, mode = NULL, lang = "fr") {
+catalog_choices_i18n <- function(drug = NULL, route = NULL, mode = NULL, lang = "fr", analysis_only = FALSE) {
   rows <- MODEL_CATALOG
+  if (isTRUE(analysis_only)) {
+    keep <- vapply(seq_len(nrow(rows)), function(index) model_analysis_eligible(rows[index, , drop = FALSE]), logical(1))
+    rows <- rows[keep, , drop = FALSE]
+  }
   if (!is.null(drug)) rows <- rows[rows$drug == drug, , drop = FALSE]
   if (!is.null(route)) {
     keep <- vapply(seq_len(nrow(rows)), function(index) model_supports_route(rows[index, , drop = FALSE], route), logical(1))

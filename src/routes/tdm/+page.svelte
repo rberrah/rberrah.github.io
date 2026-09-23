@@ -36,6 +36,7 @@
     modelType: $language === 'en' ? model.modelTypeEn : model.modelType,
     administrationCategories: $language === 'en' ? model.administrationCategoriesEn : model.administrationCategories,
     implementationStatusLabel: $language === 'en' ? model.implementationStatusLabelEn : model.implementationStatusLabel,
+    analysisEligibilityLabel: $language === 'en' ? model.analysisEligibilityLabelEn : model.analysisEligibilityLabel,
     note: $language === 'en' ? model.noteEn : model.note
   });
   /** @param {any} model */
@@ -50,6 +51,7 @@
     return [
       [labels.source, labels.sourceVerified],
       [labels.implementation, model.implementationStatusLabel],
+      [$language === 'en' ? 'TDM use' : 'Usage TDM', model.analysisEligibilityLabel],
       [labels.verification, verification],
       [labels.validation, validation],
       [labels.context, context]
@@ -242,7 +244,11 @@
               <span>{display.implementationStatusLabel}</span>
             </div>
             <div class="model-actions">
-              <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}&lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+              {#if model.analysisEligible}
+                <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}&lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.use}</a>
+              {:else}
+                <span class="simulation-only">{display.analysisEligibilityLabel}</span>
+              {/if}
               <a class="btn btn-outline sm" href={`${base}${model.href}`} download>{copy.download}</a>
             </div>
           </div>
@@ -300,6 +306,7 @@
   .evidence-status div { display: grid; grid-template-columns: minmax(105px, 0.35fr) 1fr; gap: var(--space-3); }
   .evidence-status dt { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
   .evidence-status dd { margin: 0; color: var(--text-secondary); font-size: var(--text-xs); }
+  .simulation-only { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
 
   .engine-band, .workflow, .models, .governance { margin-top: var(--space-12); }
   .engine-band {

@@ -7101,7 +7101,7 @@
         "description": "two concentrations across the same steady-state dosing interval"
       },
       "baseModelId": "rifampicine_jing",
-      "baseModelSha256": "4ce7f9abb2d20bc16236378913ac872896765781dc02cd33e9e64355abe53e7b",
+      "baseModelSha256": "73fed1f5b210551110f5026ced5496fa86ac9b29af0bec60917eabd2114c8ee8",
       "artifactPath": "artifacts/rifampicine_jing-oral-auc24-xgb-v3.rds",
       "artifactSha256": "b0b76b6e840654cbc037a10ef01267e306922d47aedd75dddc8702488d706b06",
       "explanation": {
@@ -7196,7 +7196,7 @@
         "doi": "10.1016/j.phrs.2021.105578",
         "developmentGenerators": "rifampicine_jing",
         "developmentModelSha256": {
-          "rifampicine_jing": "4ce7f9abb2d20bc16236378913ac872896765781dc02cd33e9e64355abe53e7b"
+          "rifampicine_jing": "73fed1f5b210551110f5026ced5496fa86ac9b29af0bec60917eabd2114c8ee8"
         },
         "unseenValidationGenerators": [
           "rifampicine_chang",

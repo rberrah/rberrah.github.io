@@ -203,6 +203,21 @@ function maturityStatus(details, stem) {
   return { verificationStatus, validationStatus, contextOfUse };
 }
 
+function analysisEligibility(details, implementationDetails) {
+  const analysisEligible = details.analysisEligible ?? implementationDetails.implementationStatus === 'ARTICLE';
+  return analysisEligible
+    ? {
+        analysisEligible: true,
+        analysisEligibilityLabel: "Prior MAP fondé sur l'article",
+        analysisEligibilityLabelEn: 'Article-based MAP prior'
+      }
+    : {
+        analysisEligible: false,
+        analysisEligibilityLabel: 'Simulation uniquement',
+        analysisEligibilityLabelEn: 'Simulation only'
+      };
+}
+
 function parseModelFile(file, metadata, englishMetadata, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
@@ -231,6 +246,7 @@ function parseModelFile(file, metadata, englishMetadata, code) {
   const modeDetails = administrationModes(routeDetails.routes, details, stem);
   const implementationDetails = implementationStatus(details, stem);
   const maturityDetails = maturityStatus(details, stem);
+  const analysisDetails = analysisEligibility(details, implementationDetails);
 
   return {
     id: stem,
@@ -252,6 +268,7 @@ function parseModelFile(file, metadata, englishMetadata, code) {
     ...modeDetails,
     ...implementationDetails,
     ...maturityDetails,
+    ...analysisDetails,
     tags: Array.from(new Set([
       drug,
       model,
@@ -266,6 +283,8 @@ function parseModelFile(file, metadata, englishMetadata, code) {
       ...modeDetails.administrationCategoriesEn,
       implementationDetails.implementationStatusLabel,
       implementationDetails.implementationStatusLabelEn,
+      analysisDetails.analysisEligibilityLabel,
+      analysisDetails.analysisEligibilityLabelEn,
       ...(details.populationTags ?? []),
       ...(details.populationTags ?? []).map((tag) => populationTagEn[tag] ?? tag)
     ].filter(Boolean)))

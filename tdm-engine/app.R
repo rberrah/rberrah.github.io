@@ -334,7 +334,10 @@ ml_status_message <- function(status, lang = "fr") {
 }
 
 ALLOW_CUSTOM_MODELS <- identical(tolower(Sys.getenv("ALLOW_CUSTOM_MODELS", "false")), "true")
-DEFAULT_MODEL <- if ("vanco_roberts" %in% MODEL_CATALOG$id) "vanco_roberts" else MODEL_CATALOG$id[[1]]
+ANALYSIS_MODEL_IDS <- MODEL_CATALOG$id[vapply(seq_len(nrow(MODEL_CATALOG)), function(index) {
+  model_analysis_eligible(MODEL_CATALOG[index, , drop = FALSE])
+}, logical(1))]
+DEFAULT_MODEL <- if ("vanco_roberts" %in% ANALYSIS_MODEL_IDS) "vanco_roberts" else ANALYSIS_MODEL_IDS[[1]]
 DEFAULT_CODE <- read_library_code(DEFAULT_MODEL)
 DEFAULT_ROUTE <- model_routes(model_record(DEFAULT_MODEL))[[1]]
 DEFAULT_MODE <- model_administration_modes(model_record(DEFAULT_MODEL), DEFAULT_ROUTE)[[1]]
@@ -568,7 +571,7 @@ app_ui <- function(request) {
   lang <- app_language_from_request(request)
   query <- parseQueryString(tryCatch(request$QUERY_STRING, error = function(error) "") %||% "")
   initial_view <- if ((query$view %||% "") %in% c("ddi", "pd")) query$view else "analysis"
-  model_choices <- catalog_choices_i18n(lang = lang)
+  model_choices <- catalog_choices_i18n(lang = lang, analysis_only = TRUE)
   localize_ui(page_navbar(
   title = div(
     class = "brand",
@@ -1101,7 +1104,7 @@ server <- function(input, output, session) {
   localized <- function(value) localize_ui(value, current_language())
   current_model_id <- reactive({
     value <- input$model_id %||% ""
-    if (length(value) && nzchar(value[[1]]) && value[[1]] %in% MODEL_CATALOG$id) value[[1]] else DEFAULT_MODEL
+    if (length(value) && nzchar(value[[1]]) && value[[1]] %in% ANALYSIS_MODEL_IDS) value[[1]] else DEFAULT_MODEL
   })
   current_administration_mode <- reactive({
     route <- input$administration_route %||% ""
@@ -1368,7 +1371,7 @@ server <- function(input, output, session) {
     if (query_applied()) return()
     query <- parseQueryString(session$clientData$url_search %||% "")
     requested <- query$model %||% ""
-    if (requested %in% MODEL_CATALOG$id) updateSelectInput(session, "model_id", selected = requested)
+    if (requested %in% ANALYSIS_MODEL_IDS) updateSelectInput(session, "model_id", selected = requested)
     if (identical(query$source %||% "", "custom")) updateRadioButtons(session, "model_source", selected = "custom")
     if (identical(query$view %||% "", "ddi")) {
       session$onFlushed(function() bslib::nav_select("main_navigation", "ddi"), once = TRUE)
@@ -1476,7 +1479,7 @@ server <- function(input, output, session) {
     primary_record <- model_record(primary_id)
     shiny::req(model_supports_route(primary_record, route))
     mode <- current_administration_mode()
-    choices <- catalog_choices_i18n(drug, route, mode, current_language())
+    choices <- catalog_choices_i18n(drug, route, mode, current_language(), analysis_only = TRUE)
     drug_label <- if (identical(current_language(), "en")) model_record(primary_id)$drugEn[[1]] else drug
     mode_label <- administration_mode_label(mode, current_language())
     localized(checkboxGroupInput(
@@ -3914,7 +3917,7 @@ server <- function(input, output, session) {
 
   output$catalog_table <- renderDT({
     english <- identical(current_language(), "en")
-    table <- MODEL_CATALOG[, c(if (english) "drugEn" else "drug", "model", if (english) "administrationCategoriesEn" else "administrationCategories", "citation", if (english) "populationEn" else "population", "doi", if (english) "modelTypeEn" else "modelType", if (english) "implementationStatusLabelEn" else "implementationStatusLabel")]
+    table <- MODEL_CATALOG[, c(if (english) "drugEn" else "drug", "model", if (english) "administrationCategoriesEn" else "administrationCategories", "citation", if (english) "populationEn" else "population", "doi", if (english) "modelTypeEn" else "modelType", if (english) "implementationStatusLabelEn" else "implementationStatusLabel", if (english) "analysisEligibilityLabelEn" else "analysisEligibilityLabel")]
     administration_column <- if (english) "administrationCategoriesEn" else "administrationCategories"
     table[[administration_column]] <- vapply(table[[administration_column]], function(values) paste(values, collapse = " + "), character(1))
     has_doi <- !is.na(table$doi) & nzchar(table$doi)
@@ -3929,7 +3932,7 @@ server <- function(input, output, session) {
       filter = "top",
       escape = FALSE,
       options = list(pageLength = 20, scrollX = TRUE),
-      colnames = app_t(current_language(), c("Molécule", "Modèle", "Administration", "Article source", "Population de l'article", "DOI", "Type", "Implémentation"))
+      colnames = app_t(current_language(), c("Molécule", "Modèle", "Administration", "Article source", "Population de l'article", "DOI", "Type", "Implémentation", "Usage TDM"))
     )
   })
 }

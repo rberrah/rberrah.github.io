@@ -388,11 +388,15 @@ artifact_for <- function(model_id, mode) {
   stopifnot(length(matches) == 1L)
   matches[[1]]
 }
-expected_ml_scopes <- unlist(lapply(seq_len(nrow(MODEL_CATALOG)), function(index) {
-  record <- MODEL_CATALOG[index, , drop = FALSE]
+analysis_model_rows <- MODEL_CATALOG[vapply(seq_len(nrow(MODEL_CATALOG)), function(index) {
+  model_analysis_eligible(MODEL_CATALOG[index, , drop = FALSE])
+}, logical(1)), , drop = FALSE]
+expected_ml_scopes <- unlist(lapply(seq_len(nrow(analysis_model_rows)), function(index) {
+  record <- analysis_model_rows[index, , drop = FALSE]
   paste(record$id[[1]], vapply(model_administration_modes(record), ml_administration_mode, character(1)), sep = "::")
 }), use.names = FALSE)
-actual_ml_scopes <- vapply(ml_manifest$artifacts, function(artifact) {
+analysis_artifacts <- Filter(function(artifact) artifact$baseModelId %in% analysis_model_rows$id, ml_manifest$artifacts)
+actual_ml_scopes <- vapply(analysis_artifacts, function(artifact) {
   paste(artifact$baseModelId, ml_administration_mode(artifact$administrationMode), sep = "::")
 }, character(1))
 published_artifact <- artifact_for("vanco_pkjust", "IV_INTERMITTENT")
@@ -400,7 +404,7 @@ stopifnot(
   identical(basename(ML_MANIFEST_PATH), "registry.json"),
   file.exists(ML_MANIFEST_PATH),
   identical(as.integer(ml_manifest$version), 2L),
-  length(ml_manifest$artifacts) == length(expected_ml_scopes),
+  length(analysis_artifacts) == length(expected_ml_scopes),
   setequal(actual_ml_scopes, expected_ml_scopes),
   !anyDuplicated(actual_ml_scopes),
   published_artifact$trainingDomain$features$PREV_TIME$min <= 8,
@@ -411,7 +415,7 @@ stopifnot(
     data.frame(POP_AUC24 = 50)
   ) - 100) < 1e-10
 )
-invisible(lapply(ml_manifest$artifacts, function(artifact) {
+invisible(lapply(analysis_artifacts, function(artifact) {
   eligibility <- ml_artifact_eligibility(
     artifact,
     artifact$baseModelId,
@@ -419,8 +423,14 @@ invisible(lapply(ml_manifest$artifacts, function(artifact) {
     artifact$route,
     artifact$administrationMode
   )
+  if (!isTRUE(eligibility$experimental)) {
+    stop(sprintf(
+      "ML artifact %s is incompatible with its analysis model: %s",
+      artifact$baseModelId,
+      paste(eligibility$reasons, collapse = "; ")
+    ))
+  }
   stopifnot(
-    isTRUE(eligibility$experimental),
     identical(artifact$releaseLevel, if (isTRUE(eligibility$research)) "research" else "experimental")
   )
   verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)

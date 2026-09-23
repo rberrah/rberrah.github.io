@@ -98,6 +98,7 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route, administrat
 }
 
 compatible_ml_artifacts <- function(model_id, drug, route, administration_mode = "") {
+  if (model_id %in% MODEL_CATALOG$id && !model_analysis_eligible(model_record(model_id))) return(list())
   artifacts <- read_ml_manifest()$artifacts
   if (!length(artifacts)) return(list())
   Filter(function(artifact) {
