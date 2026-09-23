@@ -53,19 +53,57 @@ stopifnot(!grepl("LEGO_INPUT", safe_code, fixed = TRUE), !grepl("$PLUGIN evtools
 population_specification <- oral_one_compartment
 population_specification$population <- list(
   iivVariances = list(k_centr_e = 0.16, v_centr = 0.25),
+  iivDistributions = list(k_centr_e = "lognormal", v_centr = "normal"),
   iivCovariances = list(`k_centr_e::v_centr` = 0.04),
   residualError = list(type = "additive", additive = 0.3, proportional = 0.2)
 )
 population_code <- lego_model_code(population_specification)
 stopifnot(
   grepl("$OMEGA @block\n0.16\n0.04 0.25", population_code, fixed = TRUE),
+  grepl("double v_L2_centr = TV_v_L2_centr", population_code, fixed = TRUE),
+  grepl("+ ETA2 + ETA(2);", population_code, fixed = TRUE),
+  grepl("PROP : 0 : proportional residual variance", population_code, fixed = TRUE),
   grepl("ADD : 0.09", population_code, fixed = TRUE),
-  !grepl("PROP :", population_code, fixed = TRUE),
-  grepl("double DV = IPRED + EPS(1);", population_code, fixed = TRUE)
+  grepl("double DV = IPRED + EPS(2);", population_code, fixed = TRUE)
+)
+population_dir <- tempfile("safe-lego-population-")
+dir.create(population_dir, recursive = TRUE)
+on.exit(unlink(population_dir, recursive = TRUE, force = TRUE), add = TRUE)
+population_model <- compile_model(
+  custom_code = population_code,
+  allow_custom = FALSE,
+  custom_soloc = population_dir,
+  custom_cache = new.env(parent = emptyenv())
+)
+population_contract <- validate_model_contract(population_model)
+stopifnot(isTRUE(population_contract$ok), population_contract$n_eta == 2L, population_contract$n_sigma == 2L)
+mapbayr::check_mapbayr_model(population_model)
+
+proportional_specification <- population_specification
+proportional_specification$population$residualError$type <- "proportional"
+proportional_code <- lego_model_code(proportional_specification)
+stopifnot(
+  grepl("PROP : 0.04", proportional_code, fixed = TRUE),
+  grepl("ADD : 0 : additive residual variance", proportional_code, fixed = TRUE),
+  grepl("double DV = IPRED * (1 + EPS(1));", proportional_code, fixed = TRUE)
+)
+population_roundtrip <- lego_spec_from_code(population_code)
+stopifnot(
+  identical(names(population_roundtrip$population$iivVariances), c("k_centr_e", "v_centr")),
+  identical(unname(population_roundtrip$population$iivDistributions), c("lognormal", "normal"))
 )
 invalid_population <- population_specification
 invalid_population$population$iivCovariances[[1]] <- 1
 expect_error(lego_model_code(invalid_population), "positive definite")
+
+logit_population <- population_specification
+logit_population$nodes[[2]]$vol <- 0.5
+logit_population$population$iivDistributions$v_centr <- "logit"
+logit_code <- lego_model_code(logit_population)
+stopifnot(grepl("1.0/(1.0 + exp(-(log(TV_v_L2_centr/(1.0-TV_v_L2_centr))", logit_code, fixed = TRUE))
+invalid_logit <- population_specification
+invalid_logit$population$iivDistributions$v_centr <- "logit"
+expect_error(lego_model_code(invalid_logit), "strictly between 0 and 1")
 
 legacy_specification <- oral_one_compartment
 legacy_specification$covariates <- list(

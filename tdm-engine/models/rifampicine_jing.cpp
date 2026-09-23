@@ -63,6 +63,7 @@ ETA_CL : 0.3479 : IIV on CL, from 64.5 %CV
 ETA_VD : 0.0428 : IIV on Vd, from 20.9 %CV
 
 $SIGMA @annotated @diagonal
+PROP : 0       : Proportional residual error variance fixed to zero
 ADD : 42.9025 : Additive residual error variance, from SD 6.55 mg/L
 
 $CMT @annotated
@@ -85,18 +86,17 @@ dxdt_CENT  =  Ka * DEPOT - (CL / V) * CENT;
 
 $TABLE
 double IPRED = CENT / V;
-double DV = IPRED + EPS(1);
+double DV = IPRED + EPS(2);
 
 int i = 0;
 while(DV < 0.0 && i < 1000) {
   simeps();
-  DV = IPRED + EPS(1);
+  DV = IPRED + EPS(2);
   ++i;
 }
 
 $CAPTURE @annotated
 DV    : Simulated concentration with residual error (mg/L)
-IPRED : Individual predicted concentration (mg/L)
 CL    : Individual clearance (L/h)
 V     : Individual volume of distribution (L)
 Ka    : Absorption rate constant (1/h)

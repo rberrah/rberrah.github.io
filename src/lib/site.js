@@ -11,7 +11,7 @@ export const SITE_BASE = '/pharmacometrie';
 export const SITE_URL = `${SITE_ORIGIN}${SITE_BASE}/`;
 
 /** Nom du cours, tel qu'il doit apparaître dans une citation. */
-export const COURSE_NAME = 'Pharmacométrie Pratique';
+export const COURSE_NAME = 'PMx Explain';
 
 /** Année portée par le site (citation d'une page sans date de révision). */
 export const SITE_YEAR = 2026;

@@ -20,7 +20,11 @@
   $: copy = ui($language);
   /** @type {'pk' | 'advanced' | 'translator'} */
   export let profile = 'advanced';
-  $: workshopTitle = profile === 'pk' ? 'PK' : profile === 'translator' ? 'Translator' : 'Advanced';
+  $: workshopTitle = profile === 'pk'
+    ? ($language === 'en' ? 'PK Builder' : 'Atelier PK')
+    : profile === 'translator'
+      ? ($language === 'en' ? 'Model Translator' : 'Traducteur de modèles')
+      : ($language === 'en' ? 'Advanced Builder' : 'Modélisation avancée');
   $: availableKinds = profile === 'pk' ? pkKinds : order;
 
   const LEGO_UI = {
@@ -40,7 +44,7 @@
       complementaryFraction: 'Complément de la fraction', independentFraction: 'Fraction indépendante', durationLinked: 'Durée égale au Tlag de', independentDuration: 'Durée indépendante',
       kinetics: 'Cinétique', firstOrder: 'Premier ordre', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable de Hill', eliminationParameter: "Paramètre d'élimination", transferParameter: 'Paramètre de transfert', rateConstant: 'Constante k', clearance: 'Clairance CL', intercompartmentalClearance: 'Clairance Q', clickArrow: 'Cliquer pour modifier ce flux',
       covariateScope: 'Moment de mesure', patientCovariate: 'Patient / prélèvement', administrationCovariate: 'Administration / occasion',
-      populationModel: 'Modèle populationnel', populationHelp: "Activez les effets aléatoires puis renseignez Ω. Les termes hors diagonale sont des covariances ; la matrice doit être positive.", randomEffects: 'Effets aléatoires', variance: 'Variance', covarianceMatrix: 'Matrice variance-covariance Ω', residualError: 'Erreur résiduelle', additive: 'Additive', proportional: 'Proportionnelle', combined: 'Combinée', standardDeviation: 'Écart-type', invalidOmega: "La matrice Ω n'est pas positive. Réduisez les covariances.",
+      populationModel: 'Modèle populationnel', populationHelp: "Activez les effets aléatoires puis renseignez Ω. La distribution s'applique au paramètre individuel : normale sur l'échelle naturelle, lognormale pour un paramètre positif, logit-normale pour un paramètre borné entre 0 et 1.", randomEffects: 'Effets aléatoires', distribution: 'Distribution', normal: 'Normale', lognormal: 'Lognormale', logit: 'Logit-normale (0–1)', variance: 'Variance', covarianceMatrix: 'Matrice variance-covariance Ω', residualError: 'Erreur résiduelle', additive: 'Additive', proportional: 'Proportionnelle', combined: 'Combinée', standardDeviation: 'Écart-type', invalidOmega: "La matrice Ω n'est pas positive. Réduisez les covariances.", invalidLogit: 'La distribution logit-normale exige une valeur typique strictement comprise entre 0 et 1.',
       dualAbsorption: 'Double absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: "Le pont TDM accepte aussi les voies parallèles; une dose est répartie automatiquement selon les fractions.",
       kokaNote: "Structure d'absorption KOKA : f2 entre directement dans le central par un processus d'ordre zéro; 1−f2 entre dans le dépôt après Tlag1, avec D2 = Tlag1. L'IOV aléatoire publiée doit être codée dans le logiciel d'estimation selon la définition des occasions.",
       pp6mNote: "Structure PP6M : deux dépôts parallèles avec absorption saturable dépendante de la quantité. Les valeurs proposées sont exprimées en mg, mg/h et litres.",
@@ -62,7 +66,7 @@
       complementaryFraction: 'Complement of fraction', independentFraction: 'Independent fraction', durationLinked: 'Duration equals Tlag of', independentDuration: 'Independent duration',
       kinetics: 'Kinetics', firstOrder: 'First order', michaelisMenten: 'Michaelis-Menten', hill: 'Saturable Hill', eliminationParameter: 'Elimination parameter', transferParameter: 'Transfer parameter', rateConstant: 'Rate constant k', clearance: 'Clearance CL', intercompartmentalClearance: 'Clearance Q', clickArrow: 'Click to edit this flow',
       covariateScope: 'Measurement time', patientCovariate: 'Patient / sample', administrationCovariate: 'Administration / occasion',
-      populationModel: 'Population model', populationHelp: 'Enable random effects, then enter Ω. Off-diagonal terms are covariances; the matrix must be positive.', randomEffects: 'Random effects', variance: 'Variance', covarianceMatrix: 'Variance-covariance matrix Ω', residualError: 'Residual error', additive: 'Additive', proportional: 'Proportional', combined: 'Combined', standardDeviation: 'Standard deviation', invalidOmega: 'The Ω matrix is not positive. Reduce the covariances.',
+      populationModel: 'Population model', populationHelp: 'Enable random effects, then enter Ω. The distribution applies to the individual parameter: normal on the natural scale, lognormal for a positive parameter, or logit-normal for a parameter bounded between 0 and 1.', randomEffects: 'Random effects', distribution: 'Distribution', normal: 'Normal', lognormal: 'Lognormal', logit: 'Logit-normal (0–1)', variance: 'Variance', covarianceMatrix: 'Variance-covariance matrix Ω', residualError: 'Residual error', additive: 'Additive', proportional: 'Proportional', combined: 'Combined', standardDeviation: 'Standard deviation', invalidOmega: 'The Ω matrix is not positive. Reduce the covariances.', invalidLogit: 'A logit-normal distribution requires a typical value strictly between 0 and 1.',
       dualAbsorption: 'Dual absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: 'The TDM bridge also accepts parallel pathways; one dose is automatically split according to the fractions.',
       kokaNote: 'KOKA absorption structure: f2 enters the central compartment directly by a zero-order process; 1−f2 enters the depot after Tlag1, with D2 = Tlag1. The published random IOV must be coded in the estimation software according to the occasion definition.',
       pp6mNote: 'PP6M structure: two parallel depots with amount-dependent saturable absorption. Suggested values use mg, mg/h and litres.',
@@ -135,6 +139,8 @@
   let covariates = [];
   /** @type {Record<string, number>} */
   let iivVariances = {};
+  /** @type {Record<string, 'normal'|'lognormal'|'logit'>} */
+  let iivDistributions = {};
   /** @type {Record<string, number>} */
   let iivCovariances = {};
   let residualError = { type: 'combined', additive: 0.1, proportional: 0.2 };
@@ -155,7 +161,7 @@
   $: massOnly = nodes.length > 0 && nodes.every(isMassNode);
 
   function snapshot() {
-    return { nodes, edges, covariates, iivVariances, iivCovariances, residualError, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute };
+    return { nodes, edges, covariates, iivVariances, iivDistributions, iivCovariances, residualError, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute };
   }
 
   onMount(() => {
@@ -163,6 +169,7 @@
     if (draft) {
       ({ nodes, edges, covariates, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute } = draft);
       iivVariances = draft.iivVariances ?? {};
+      iivDistributions = draft.iivDistributions ?? {};
       iivCovariances = draft.iivCovariances ?? {};
       residualError = draft.residualError ?? residualError;
     } else if (profile === 'pk') preset('oral1');
@@ -351,6 +358,7 @@
     edges = importedEdges;
     covariates = importedCovariates;
     iivVariances = specification.population?.iivVariances ?? {};
+    iivDistributions = specification.population?.iivDistributions ?? {};
     iivCovariances = specification.population?.iivCovariances ?? {};
     residualError = specification.population?.residualError ?? { type: 'combined', additive: 0.1, proportional: 0.2 };
     uid = next;
@@ -1028,6 +1036,18 @@
     iivVariances = { ...iivVariances, [parameter.name]: Math.max(0.000001, Number(value) || 0.000001) };
   }
 
+  function iivDistribution(/** @type {{name:string, value:number}} */ parameter) {
+    return iivDistributions[parameter.name] ?? (Number(parameter.value) > 0 ? 'lognormal' : 'normal');
+  }
+
+  function setIivDistribution(/** @type {{name:string}} */ parameter, /** @type {'normal'|'lognormal'|'logit'} */ distribution) {
+    iivDistributions = { ...iivDistributions, [parameter.name]: distribution };
+  }
+
+  function distributionsAreValid(parameters = randomParameters()) {
+    return parameters.every((parameter) => iivDistribution(parameter) !== 'logit' || (Number(parameter.value) > 0 && Number(parameter.value) < 1));
+  }
+
   const covarianceKey = (/** @type {string} */ left, /** @type {string} */ right) => [left, right].sort().join('::');
   const covariance = (/** @type {string} */ left, /** @type {string} */ right, covariances = iivCovariances) => Number(covariances[covarianceKey(left, right)] ?? 0);
   function setCovariance(/** @type {string} */ left, /** @type {string} */ right, /** @type {string|number} */ value) {
@@ -1065,7 +1085,7 @@
   }
 
   function residualExpression(prediction = 'IPRED', proportionalIndex = 1, additiveIndex = 2) {
-    if (residualError.type === 'additive') return `${prediction} + EPS(${additiveIndex === 2 ? 1 : additiveIndex})`;
+    if (residualError.type === 'additive') return `${prediction} + EPS(${additiveIndex})`;
     if (residualError.type === 'proportional') return `${prediction} * (1 + EPS(${proportionalIndex}))`;
     return `${prediction} * (1 + EPS(${proportionalIndex})) + EPS(${additiveIndex})`;
   }
@@ -1155,6 +1175,7 @@
       })),
       population: {
         iivVariances: Object.fromEntries(randomParameters().map((parameter) => [parameter.name, iivVariance(parameter)])),
+        iivDistributions: Object.fromEntries(randomParameters().map((parameter) => [parameter.name, iivDistribution(parameter)])),
         iivCovariances: Object.fromEntries(Object.entries(iivCovariances).filter(([key]) => key.split('::').every((name) => randomParameters().some((parameter) => parameter.name === name)))),
         residualError: { ...residualError }
       }
@@ -1175,7 +1196,7 @@
 
   // ── nlmixr2 (estimation) ──
   $: codeNlmixr = (() => {
-    void iivVariances; void iivCovariances; void residualError;
+    void iivVariances; void iivDistributions; void iivCovariances; void residualError;
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     const P = modelParams();
     const C = validCovariates(P, covariates);
@@ -1201,9 +1222,14 @@
     L.push('lego_model <- function() {');
     L.push('  ini({');
     L.push('    # Effets fixes estimes sur l\'echelle log : la valeur reste positive.');
-    for (const p of P) L.push(p.value > 0
-      ? `    l${p.name.padEnd(w)} <- log(${fmt(p.value)}) # ${p.note} (${p.unit})`
-      : `    TV_${p.name} <- fixed(${fmt(p.value)}) # zero/non-positive baseline, fixed on natural scale`);
+    for (const p of P) {
+      const distribution = iivDistribution(p);
+      L.push(distribution === 'normal'
+        ? `    TV_${p.name.padEnd(w)} <- ${fmt(p.value)} # ${p.note} (${p.unit})`
+        : distribution === 'logit'
+          ? `    l${p.name.padEnd(w)} <- qlogis(${fmt(p.value)}) # logit-normal, ${p.note} (${p.unit})`
+          : `    l${p.name.padEnd(w)} <- log(${fmt(p.value)}) # lognormal, ${p.note} (${p.unit})`);
+    }
     const iiv = randomParameters(P);
     if (iiv.length) {
       L.push('');
@@ -1247,7 +1273,13 @@
             : ` + beta_${name}_${p.name}*log(${name}/${fmt(covariate.reference)})`;
         })
         .join('');
-      L.push(`    ${p.name.padEnd(w)} <- ${p.value > 0 ? `exp(l${p.name}${effects}${eta})` : `TV_${p.name}*exp(0${effects}${eta})`}`);
+      const distribution = iivDistribution(p);
+      const expression = distribution === 'normal'
+        ? `TV_${p.name}*exp(0${effects})${eta ? ` + eta_${p.name}` : ''}`
+        : distribution === 'logit'
+          ? `plogis(l${p.name}${effects}${eta})`
+          : `exp(l${p.name}${effects}${eta})`;
+      L.push(`    ${p.name.padEnd(w)} <- ${expression}`);
     }
     if (dosed.length) {
       L.push('');
@@ -1323,9 +1355,9 @@
     });
   }
 
-  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates) && omegaIsValid(randomParameterChoices, iivVariances, iivCovariances) && advancedInputsAreValid());
+  $: tdmReady = Boolean(observed && modelParams().length && covariatesAreValid(modelParams(), covariates) && omegaIsValid(randomParameterChoices, iivVariances, iivCovariances) && distributionsAreValid(randomParameterChoices) && advancedInputsAreValid());
   $: codeMrgsolve = (() => {
-    void iivVariances; void iivCovariances; void residualError;
+    void iivVariances; void iivDistributions; void iivCovariances; void residualError;
     if (!nodes.length) return '# Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '# Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1374,8 +1406,8 @@
     } else L.push('0 FIX // aucune variabilite interindividuelle selectionnee');
     L.push('');
     L.push('$SIGMA @annotated');
-    if (residualUses('proportional')) L.push(`PROP : ${fmt(residualError.proportional ** 2)} : variance de l'erreur proportionnelle`);
-    if (residualUses('additive')) L.push(`ADD  : ${fmt(residualError.additive ** 2)} : variance de l'erreur additive`);
+    L.push(`PROP : ${fmt(residualUses('proportional') ? residualError.proportional ** 2 : 0)} : variance de l'erreur proportionnelle`);
+    L.push(`ADD  : ${fmt(residualUses('additive') ? residualError.additive ** 2 : 0)} : variance de l'erreur additive`);
     L.push('');
     L.push('$CMT @annotated');
     if (router) L.push(`${'LEGO_INPUT'.padEnd(w)} : entree de dose repartie [ADM]`);
@@ -1404,7 +1436,19 @@
             : ` * pow(${name}/${fmt(covariate.reference)}, BETA_${name}_${p.name})`;
         })
         .join('');
-      L.push(`double ${p.name} = TV_${p.name}${effects}${eta ? ` * exp(ETA${eta} + ETA(${eta}))` : ''};`);
+      const typical = `TV_${p.name}${effects}`;
+      const random = eta ? `ETA${eta} + ETA(${eta})` : '';
+      const linkEffects = C.filter((covariate) => covariate.target === p.name).map((covariate) => {
+        const name = covariateName(covariate.name);
+        return covariateType(covariate) === 'categorical'
+          ? ` + BETA_${name}_${p.name} * (${name} == ${fmt(covariate.comparison)})`
+          : ` + BETA_${name}_${p.name} * log(${name}/${fmt(covariate.reference)})`;
+      }).join('');
+      const individual = !random ? typical
+        : iivDistribution(p) === 'normal' ? `${typical} + ${random}`
+          : iivDistribution(p) === 'logit' ? `1.0/(1.0 + exp(-(log(TV_${p.name}/(1.0-TV_${p.name}))${linkEffects} + ${random})))`
+            : `${typical} * exp(${random})`;
+      L.push(`double ${p.name} = ${individual};`);
     }
     const resp = nodes.filter((n) => n.kind === 'response');
     if (resp.length) {
@@ -1463,7 +1507,7 @@
 
   // ── MLXTRAN complet (Monolix / Simulx) ──
   $: codeMlxtran = (() => {
-    void iivVariances; void iivCovariances; void residualError;
+    void iivVariances; void iivDistributions; void iivCovariances; void residualError;
     if (!nodes.length) return '; Ajoutez des compartiments : le code se génère au fur et à mesure.';
     if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1496,7 +1540,7 @@
     L.push(`; PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoExportSpec(tMax, activePreset)))}`);
     L.push('');
     L.push('DESCRIPTION:');
-    L.push('Modele genere par l\'Atelier Lego de Pharmacometrie Pratique.');
+    L.push('Modele genere par PMx Explain.');
     L.push('');
     L.push('; Valeurs initiales suggerees pour les parametres de population :');
     for (const parameter of P) {
@@ -1538,9 +1582,10 @@
     for (const parameter of P) {
       const effects = C.filter((covariate) => covariate.target === parameter.name);
       const options = [
-        parameter.value > 0 ? 'distribution=logNormal' : 'distribution=normal',
+        `distribution=${iivDistribution(parameter) === 'lognormal' ? 'logNormal' : iivDistribution(parameter) === 'logit' ? 'logitNormal' : 'normal'}`,
         `typical=${parameter.name}_pop`
       ];
+      if (iivDistribution(parameter) === 'logit') options.push('min=0', 'max=1');
       if (effects.length) {
         const covariateTerms = effects.map((covariate) => covariateType(covariate) === 'continuous'
           ? transformedName(covariate)
@@ -1615,7 +1660,7 @@
 
   // ── NONMEM / NM-TRAN : ODE générales avec ADVAN13 ──
   $: codeNonmem = (() => {
-    void iivVariances; void iivCovariances; void residualError;
+    void iivVariances; void iivDistributions; void iivCovariances; void residualError;
     if (!nodes.length) return '; Ajoutez des compartiments : le control stream se génère au fur et à mesure.';
     if (!observed) return '; Ajoutez un compartiment central, périphérique ou métabolite pour définir la concentration observée.';
     const P = modelParams();
@@ -1704,7 +1749,19 @@
         .join('');
       L.push(`${typical}=THETA(${thetaIndex.get(parameter.name)})${effects}`);
       const eta = etaIndex.get(parameter.name);
-      L.push(`${parameterVariable.get(parameter.name)}=${typical}${eta ? `*EXP(ETA(${eta}))` : ''}`);
+      const linkEffects = C
+        .filter((covariate) => covariate.target === parameter.name)
+        .map((covariate) => {
+          const beta = `THETA(${betaIndex.get(covariate.id)})`;
+          return covariateType(covariate) === 'categorical'
+            ? `+${beta}*${categoryIndicator.get(covariate.id)}`
+            : `+${beta}*LOG(${nonmemCovariate.get(covariate.id)}/${fmt(covariate.reference)})`;
+        }).join('');
+      const individual = !eta ? typical
+        : iivDistribution(parameter) === 'normal' ? `${typical}+ETA(${eta})`
+          : iivDistribution(parameter) === 'logit' ? `1/(1+EXP(-(LOG(THETA(${thetaIndex.get(parameter.name)})/(1-THETA(${thetaIndex.get(parameter.name)})))${linkEffects}+ETA(${eta}))))`
+            : `${typical}*EXP(ETA(${eta}))`;
+      L.push(`${parameterVariable.get(parameter.name)}=${individual}`);
     }
     for (const node of dosed) {
       const index = nodeIndex.get(node.id);
@@ -1746,7 +1803,8 @@
     L.push('');
     L.push('$THETA');
     for (const parameter of P) {
-      L.push(`(0, ${fmt(parameter.value)}) ; THETA(${thetaIndex.get(parameter.name)}) -> ${parameterVariable.get(parameter.name)} = ${parameter.name}, ${parameter.note} (${parameter.unit})`);
+      const bounds = iivDistribution(parameter) === 'logit' ? `(0.000001, ${fmt(parameter.value)}, 0.999999)` : `(0, ${fmt(parameter.value)})`;
+      L.push(`${bounds} ; THETA(${thetaIndex.get(parameter.name)}) -> ${parameterVariable.get(parameter.name)} = ${parameter.name}, ${parameter.note} (${parameter.unit})`);
     }
     for (const covariate of C) {
       L.push(`(-10, ${fmt(covariate.beta)}, 10) ; THETA(${betaIndex.get(covariate.id)}) -> effet ${covariateName(covariate.name)} sur ${covariate.target}`);
@@ -1764,8 +1822,8 @@
     }
     L.push('');
     L.push('$SIGMA');
-    if (residualUses('proportional')) L.push(`${fmt(residualError.proportional ** 2)} ; variance proportionnelle`);
-    if (residualUses('additive')) L.push(`${fmt(residualError.additive ** 2)} ; variance additive`);
+    L.push(`${fmt(residualUses('proportional') ? residualError.proportional ** 2 : 0)} ; variance proportionnelle`);
+    L.push(`${fmt(residualUses('additive') ? residualError.additive ** 2 : 0)} ; variance additive`);
     L.push('');
     L.push('$ESTIMATION METHOD=1 INTERACTION MAXEVAL=9999 PRINT=5 SIGDIGITS=3');
     L.push('$COVARIANCE PRINT=E MATRIX=S');
@@ -1862,7 +1920,7 @@
   const cyn = (n) => n.y + NH / 2;
 </script>
 
-<svelte:head><title>{workshopTitle} | Pharmacometrie Pratique</title></svelte:head>
+<svelte:head><title>{workshopTitle} | PMx Explain</title></svelte:head>
 
 <div inert={!mounted}>
 <header class="head">
@@ -1959,13 +2017,13 @@
 
 <div class="continuity" data-testid="model-continuity">
   <button disabled={!simulationConfig} on:click={() => continueIn('simulation')} title={$language === 'en' ? 'Send the complete mrgsolve code to Simulation' : 'Envoyer le code mrgsolve complet vers Simulation'}><Play size={15}/> Simulation</button>
-  {#if profile !== 'advanced'}<button disabled={!tdmReady} on:click={() => continueIn('advanced')}><ArrowRight size={15}/> Advanced</button>{/if}
-  {#if profile !== 'pk'}<button disabled={!tdmReady || !purePk} on:click={() => continueIn('pk')}><ArrowRight size={15}/> PK</button>{/if}
+  {#if profile !== 'advanced'}<button disabled={!tdmReady} on:click={() => continueIn('advanced')}><ArrowRight size={15}/> {$language === 'en' ? 'Advanced Builder' : 'Modélisation avancée'}</button>{/if}
+  {#if profile !== 'pk'}<button disabled={!tdmReady || !purePk} on:click={() => continueIn('pk')}><ArrowRight size={15}/> {$language === 'en' ? 'PK Builder' : 'Atelier PK'}</button>{/if}
   <label>{$language === 'en' ? 'Route for PD / DDI' : 'Voie pour PD / DDI'}<select bind:value={handoffRoute}><option value="">{$language === 'en' ? 'Select route' : 'Choisir la voie'}</option><option>Oral</option><option>IV</option></select></label>
-  <button disabled={!tdmReady || !massOnly || !handoffRoute} on:click={() => continueIn('pd')}><ArrowRight size={15}/> PD</button>
+  <button disabled={!tdmReady || !massOnly || !handoffRoute} on:click={() => continueIn('pd')}><ArrowRight size={15}/> {$language === 'en' ? 'PD Builder' : 'Atelier PD'}</button>
   <label>{$language === 'en' ? 'DDI destination' : 'Destination DDI'}<select bind:value={handoffSide}><option value="1">PK 1</option><option value="2">PK 2</option></select></label>
-  <button disabled={!tdmReady || !massOnly || !handoffRoute} on:click={() => continueIn('ddi')}><ArrowRight size={15}/> DDI</button>
-  {#if nodes.length && !purePk}<span>{$language === 'en' ? 'Metabolite / PD blocks remain editable in Advanced and exportable to the engine.' : 'Les blocs metabolite / PD restent editables dans Advanced et exportables vers le moteur.'}</span>{/if}
+  <button disabled={!tdmReady || !massOnly || !handoffRoute} on:click={() => continueIn('ddi')}><ArrowRight size={15}/> {$language === 'en' ? 'DDI Builder' : 'Atelier DDI'}</button>
+  {#if nodes.length && !purePk}<span>{$language === 'en' ? 'Metabolite / PD blocks remain editable in Advanced Builder and exportable to the engine.' : 'Les blocs métabolite / PD restent modifiables dans Modélisation avancée et exportables vers le moteur.'}</span>{/if}
 </div>
 
 {#if nodes.some(n => !isMassNode(n))}
@@ -2160,12 +2218,15 @@
             <legend>{lego.randomEffects}</legend>
             <div class="iiv-list">
               {#each parameterChoices as parameter}
-                <label class="iiv-row">
-                  <input type="checkbox" checked={iivVariance(parameter, iivVariances) > 0} on:change={(event) => setIiv(parameter, event.currentTarget.checked)} />
-                  <span>{parameter.name}</span>
-                  <span>{lego.variance}</span>
-                  <input class="num" type="number" min="0.000001" step="0.01" value={iivVariance(parameter, iivVariances) || 0.09} disabled={iivVariance(parameter, iivVariances) <= 0} on:input={(event) => setIivVariance(parameter, event.currentTarget.value)} />
-                </label>
+                <div class="iiv-row">
+                  <label class="iiv-enable"><input type="checkbox" checked={iivVariance(parameter, iivVariances) > 0} on:change={(event) => setIiv(parameter, event.currentTarget.checked)} /><span>{parameter.name}</span></label>
+                  <label><span>{lego.distribution}</span><select value={iivDistribution(parameter)} disabled={iivVariance(parameter, iivVariances) <= 0} on:change={(event) => setIivDistribution(parameter, /** @type {'normal'|'lognormal'|'logit'} */ (event.currentTarget.value))}>
+                    <option value="normal">{lego.normal}</option>
+                    <option value="lognormal">{lego.lognormal}</option>
+                    <option value="logit">{lego.logit}</option>
+                  </select></label>
+                  <label><span>{lego.variance}</span><input class="num" type="number" min="0.000001" step="0.01" value={iivVariance(parameter, iivVariances) || 0.09} disabled={iivVariance(parameter, iivVariances) <= 0} on:input={(event) => setIivVariance(parameter, event.currentTarget.value)} /></label>
+                </div>
               {/each}
             </div>
           </fieldset>
@@ -2193,6 +2254,7 @@
               {#if !omegaIsValid(randomParameterChoices, iivVariances, iivCovariances)}<p class="population-error" role="alert">{lego.invalidOmega}</p>{/if}
             </fieldset>
           {/if}
+          {#if !distributionsAreValid(randomParameterChoices)}<p class="population-error" role="alert">{lego.invalidLogit}</p>{/if}
           <fieldset>
             <legend>{lego.residualError}</legend>
             <label class="residual-type"><span>{lego.type}</span><select value={residualError.type} on:change={(event) => (residualError = { ...residualError, type: event.currentTarget.value })}><option value="additive">{lego.additive}</option><option value="proportional">{lego.proportional}</option><option value="combined">{lego.combined}</option></select></label>
@@ -2363,7 +2425,11 @@
   .population-body fieldset { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; }
   .population-body legend { padding: 0 5px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
   .iiv-list { display: grid; gap: 7px; }
-  .iiv-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto 82px; align-items: center; gap: 7px; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .iiv-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(82px, 0.6fr); gap: 7px; padding: 7px 0; color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+  .iiv-row + .iiv-row { border-top: 1px dashed var(--border-subtle); }
+  .iiv-row label { display: grid; gap: 3px; min-width: 0; }
+  .iiv-row .iiv-enable { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; color: var(--text-primary); }
+  .iiv-row select { min-width: 0; padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary); font: inherit; }
   .iiv-row .num { width: 100%; }
   .omega-wrap { overflow-x: auto; }
   .omega-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 9px; }

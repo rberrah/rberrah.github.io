@@ -1091,7 +1091,7 @@ app_ui <- function(request) {
       )
     )
   ),
-  footer = div(class = "app-footer", "Pharmacométrie Pratique · moteur R mrgsolve/mapbayr · aucun dossier patient n'est persisté")
+  footer = div(class = "app-footer", "PMx Explain · moteur R mrgsolve/mapbayr · aucun dossier patient n'est persisté")
 ), lang)
 }
 
@@ -1424,6 +1424,10 @@ server <- function(input, output, session) {
     if (nchar(code, type = "bytes") > 200000) {
       return(showNotification(tx("Le modèle Lego dépasse la taille autorisée.", "The Lego model exceeds the size limit."), type = "error"))
     }
+    imported_spec <- tryCatch(
+      if (!is.null(payload$spec)) normalize_lego_spec(payload$spec) else lego_spec_from_code(code),
+      error = function(error) NULL
+    )
     safe_code <- tryCatch(
       safe_lego_model_code(code = code, specification = payload$spec %||% NULL),
       error = function(error) {
@@ -1435,13 +1439,16 @@ server <- function(input, output, session) {
     pending_lego_covariates(list(code = safe_code, definition = parse_covariates(safe_code)))
     updateRadioButtons(session, "model_source", selected = "custom")
     updateTextAreaInput(session, "custom_code", value = safe_code)
+    updateSelectInput(session, "residual_error_mode", selected = "model")
     validation_store(NULL)
     analysis_store(NULL)
     bslib::nav_select("analysis_tabs", "model")
+    eta_count <- length(imported_spec$population$iivVariances %||% numeric())
+    sigma_count <- if (is.null(imported_spec)) 0L else 2L
     showNotification(tx(
-      "Modèle Lego validé et régénéré côté serveur. Vérifiez-le avant de lancer l'analyse.",
-      "The Lego model was validated and regenerated on the server. Review it before running the analysis."
-    ), type = "message", duration = 5)
+      paste0("Modèle Lego régénéré côté serveur · Ω : ", eta_count, " ETA · Σ : ", sigma_count, " composante(s). Le mode d'erreur résiduelle du modèle a été rétabli."),
+      paste0("Lego model regenerated on the server · Ω: ", eta_count, " ETA · Σ: ", sigma_count, " component(s). Model residual-error mode was restored.")
+    ), type = "message", duration = 8)
   }, ignoreNULL = TRUE)
 
   selected_model_ids <- reactive({

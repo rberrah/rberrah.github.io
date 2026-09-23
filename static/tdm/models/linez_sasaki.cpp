@@ -306,7 +306,7 @@ $OMEGA 0.123904 0.094864
 // PUBLISHED residual error: ADDITIVE ONLY, SD 1.43 ug/mL -> variance 2.0449.
 // This is NOT the house 0.01/0.0001 default -- the paper prints it. There is
 // no proportional component. Do not import the platelet-model error pair.
-$SIGMA 2.0449
+$SIGMA 0 2.0449
 
 
 $CMT @annotated
@@ -340,11 +340,11 @@ dxdt_CENT =   KA * GUT - (CL / V) * CENT;
 $TABLE
 // Additive residual error only, SD 1.43 ug/mL (variance in $SIGMA).
 double CP = CENT / V;
-double DV = CP + EPS(1);
+double DV = CP + EPS(2);
 int i = 0;
 while(DV<0 && i <100) {
 simeps();
-DV = CP + EPS(1);
+DV = CP + EPS(2);
 ++i;
 }
 

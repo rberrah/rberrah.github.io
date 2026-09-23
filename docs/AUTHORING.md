@@ -1,6 +1,6 @@
 # Authoring and Deployment Guide
 
-Pharmacometrie Explain is a static SvelteKit course. Keep the architecture
+PMx Explain is a static SvelteKit course. Keep the architecture
 simple: Markdown chapters, local Svelte visualizations, static assets, and
 GitHub Pages deployment. There is no backend, database, authentication, or
 runtime API.

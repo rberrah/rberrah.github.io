@@ -1,4 +1,4 @@
-# Course blueprint — Pharmacométrie Explain
+# Course blueprint — PMx Explain
 
 This document defines the target pedagogical structure. It should guide AI-assisted development and prevent the project from becoming a generic landing page.
 

@@ -45,6 +45,9 @@ const items = [
   { term: 'Erreur additive', cat: 'Variabilité', def: "Bruit d'amplitude constante (y = f + ε_add), pertinent près de la limite de quantification." },
   { term: 'Erreur proportionnelle', cat: 'Variabilité', def: "Bruit croissant avec la concentration (y = f·(1+ε_prop)), typique des dosages analytiques." },
   { term: 'Erreur combinée', cat: 'Variabilité', def: "Somme d'une composante additive et proportionnelle : y = f + (f·ε_prop + ε_add). Souvent le modèle d'erreur le plus réaliste." },
+  { term: 'Distribution normale', cat: 'Variabilité', def: "Modèle additif sur l'échelle naturelle : Pᵢ = Ppop + ηᵢ. Il autorise en principe toute valeur réelle et convient donc mal à un paramètre qui doit rester strictement positif." },
+  { term: 'Distribution lognormale', cat: 'Variabilité', def: "Modèle multiplicatif garantissant un paramètre positif : Pᵢ = Ppop·exp(ηᵢ). C'est un choix fréquent pour CL, V ou Ka." },
+  { term: 'Distribution logit-normale', cat: 'Variabilité', def: "Transformation logit d'un effet normal pour maintenir un paramètre entre 0 et 1, par exemple une fraction. Elle ne décrit pas la distribution de la covariable elle-même." },
 
   // ── Covariables ─────────────────────────────────────────────────────────────
   { term: 'Covariable', cat: 'Covariables', def: "Caractéristique mesurée (poids, âge, créatinine, génotype…) qui explique une partie de la variabilité d'un paramètre." },
@@ -81,6 +84,8 @@ const items = [
   { term: 'Shrinkage', cat: 'Bayésien & TDM', def: "Rétrécissement : quand les données individuelles sont pauvres, les EBE sont tirés vers la moyenne de population. Au-delà de ~30 %, les diagnostics basés sur les EBE deviennent trompeurs." },
   { term: 'TDM', full: 'Suivi thérapeutique pharmacologique', cat: 'Bayésien & TDM', def: "Mesurer → Estimer (Bayes) → Ajuster : on interprète une concentration mesurée dans son contexte (dose, horaire) pour individualiser la posologie. Aide à la décision, pas substitut au clinicien." },
   { term: 'Precision dosing', cat: 'Bayésien & TDM', def: "Individualisation de la dose à partir d'un modèle a priori et de quelques prélèvements (ex. package mapbayR), pour maximiser l'efficacité et limiter la toxicité." },
+  { term: 'MAP-BE', full: 'Maximum A Posteriori Bayesian Estimation', cat: 'Bayésien & TDM', def: "Estimation individuelle qui combine les concentrations du patient, l'erreur résiduelle Σ et la distribution a priori des effets aléatoires Ω. Modifier Ω ou Σ modifie donc l'ajustement." },
+  { term: 'Model averaging', full: 'Moyennage de modèles', cat: 'Bayésien & TDM', def: "Combinaison de prédictions issues de plusieurs modèles compatibles, pondérées par un critère défini. Elle représente une incertitude entre modèles mais ne corrige pas un modèle inadéquat." },
 
   // ── PK/PD ───────────────────────────────────────────────────────────────────
   { term: 'Emax', cat: 'PK/PD', def: "Effet maximal atteignable : E = E0 + Emax·C/(EC50+C). Au-delà de l'EC50, augmenter la concentration apporte peu d'effet mais peut accroître la toxicité (plateau/saturation)." },
@@ -89,6 +94,10 @@ const items = [
   { term: 'Réponse indirecte / turnover', cat: 'PK/PD', def: "Le médicament agit sur la production (kin) ou l'élimination (kout) d'une variable de réponse : dR/dt = kin − kout·R. Explique un effet retardé (délai PD, non PK)." },
   { term: 'Compartiment d’effet (ke0)', full: 'Modèle de Sheiner', cat: 'PK/PD', def: "Compartiment hypothétique reliant concentration et effet avec un retard d'équilibrage ke0, pour modéliser l'hystérèse entre concentration et effet." },
   { term: 'Hystérèse', cat: 'PK/PD', def: "Boucle observée quand on trace l'effet en fonction de la concentration : le décalage temporel entre PK et PD fait que l'effet « retarde » sur la concentration." },
+  { term: 'CMI', full: 'Concentration minimale inhibitrice', cat: 'Infectiologie', def: "Plus faible concentration testée qui inhibe visiblement la croissance d'un microorganisme dans des conditions standardisées. Elle dépend du couple antibiotique–microorganisme et de la méthode de mesure." },
+  { term: 'PTA', full: "Probabilité d'atteinte de cible", cat: 'Infectiologie', def: "Proportion de profils simulés qui atteignent une cible PK/PD donnée pour une posologie et une CMI. Elle est conditionnelle au modèle, à la population simulée et à la cible choisie." },
+  { term: 'fT > CMI', cat: 'Infectiologie', def: "Fraction de l'intervalle pendant laquelle la concentration libre dépasse la CMI. Indice PK/PD souvent étudié pour les bêta-lactamines." },
+  { term: 'fAUC / CMI', cat: 'Infectiologie', def: "Rapport entre l'aire sous la courbe des concentrations libres et la CMI. L'horizon de l'AUC et la cible doivent être explicités." },
 
   // ── IA en pharmacométrie ────────────────────────────────────────────────────
   { term: 'White / black / grey box', cat: 'IA', def: "Modèle mécaniste (white, tout en équations), purement appris (black, réseau de neurones) ou hybride (grey) combinant structure connue et composant flexible." },
@@ -98,15 +107,17 @@ const items = [
   { term: 'Jumeau numérique', cat: 'IA', def: "Réplique virtuelle du patient fusionnant physiologie et IA pour simuler et individualiser (ex. consortium DIGPHAT). Horizon de la pharmacométrie assistée par IA." },
 
   // ── Outils ──────────────────────────────────────────────────────────────────
-  { term: 'NONMEM', cat: 'Outils', def: "Logiciel historique d'estimation PopPK, référence réglementaire, piloté par du code (modèle en langage NM-TRAN)." },
+  { term: 'NONMEM', cat: 'Outils', def: "Logiciel historique d'estimation PopPK, très largement utilisé dans les soumissions réglementaires et piloté par des control streams en langage NM-TRAN." },
   { term: 'Monolix', cat: 'Outils', def: "Logiciel PopPK à interface graphique, fondé sur l'algorithme SAEM ; adapté à la visualisation et à l'apprentissage." },
   { term: 'nlmixr2 / rxode2', cat: 'Outils', def: "Écosystème open-source en R pour l'estimation (nlmixr2) et la simulation d'EDO (rxode2) de modèles PK/PD à effets mixtes." },
   { term: 'mrgsolve', cat: 'Outils', def: "Package R de simulation rapide de modèles PK/PD par EDO, très utilisé pour les simulations d'essais et le precision dosing." },
+  { term: 'mapbayr', cat: 'Outils', def: "Package R d'estimation MAP bayésienne fondé sur des modèles mrgsolve. Le modèle doit fournir une structure, Ω, Σ et les compartiments d'administration et d'observation attendus." },
+  { term: 'MLXTRAN', cat: 'Outils', def: "Langage de modèles de MonolixSuite pour décrire les paramètres individuels, covariables, administrations, équations longitudinales et modèles d'observation." },
   { term: 'Flip-flop', cat: 'Concepts', def: "Situation où l'absorption est plus lente que l'élimination (Ka < ke) : la pente terminale reflète alors l'absorption, faussant l'estimation de la demi-vie d'élimination." }
 ];
 
 export const glossary = readable(items);
 export const glossaryCategories = readable([
   'Fondamentaux', 'Paramètres PK', 'Modèles', 'Approches', 'Variabilité',
-  'Covariables', 'Estimation', 'Diagnostics', 'Bayésien & TDM', 'PK/PD', 'IA', 'Outils', 'Concepts'
+  'Covariables', 'Estimation', 'Diagnostics', 'Bayésien & TDM', 'PK/PD', 'Infectiologie', 'IA', 'Outils', 'Concepts'
 ]);

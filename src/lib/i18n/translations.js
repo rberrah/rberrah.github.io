@@ -5,7 +5,7 @@ export const dictionary = {
   en: {
     meta: {
       description:
-        'Pharmacométrie Explain — an interactive visual course on pharmacometrics: PK/PD, clearance, variability, TDM and applied AI. Educational content only.'
+        'PMx Explain — an interactive visual course on pharmacometrics: PK/PD, clearance, variability, TDM and applied AI. Educational content only.'
     },
     nav: {
       home: 'Home',
@@ -15,7 +15,7 @@ export const dictionary = {
       tdm: 'TDM',
       interactions: 'Interactions',
       pharmacodynamics: 'Pharmacodynamics',
-      lego: 'Advanced',
+      lego: 'Advanced Builder',
       playground: 'Simulation',
       glossary: 'Glossary',
       references: 'Further reading',
@@ -24,7 +24,7 @@ export const dictionary = {
     },
     footer: {
       // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
-      licenseIntro: 'Pharmacométrie Pratique · Text',
+      licenseIntro: 'PMx Explain · Text',
       licenseOutro: '· Code MIT · 2026',
       author: 'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics',
       report: 'Spotted an error? Report it',
@@ -104,7 +104,7 @@ export const dictionary = {
       score: 'Score'
     },
     tdm: {
-      metaTitle: 'TDM and PopPK model library | Practical Pharmacometrics',
+      metaTitle: 'TDM and PopPK model library | PMx Explain',
       metaDescription: 'Shared PopPK model library for therapeutic drug monitoring and precision dosing.',
       eyebrow: 'Therapeutic drug monitoring',
       title: 'Precision dosing with mrgsolve, mapbayr and model averaging.',
@@ -182,7 +182,7 @@ export const dictionary = {
       referencesTitle: 'Further reading',
       referencesIntro: 'Curated books, landmark papers, software and communities to go deeper. Article links point to PubMed; tools link to their official sites.',
       exercisesTitle: 'Interactive exercises',
-      exercisesIntro: 'Practice with numeric and multiple-choice problems drawn from the course and M2 corrections. Immediate feedback and explanations.',
+      exercisesIntro: 'Choose a learning track, then practise with its numerical and multiple-choice questions. Immediate feedback and explanations.',
       exercisesScore: 'Score',
       exercisesCheck: 'Check',
       exercisesRight: 'Correct',
@@ -190,7 +190,7 @@ export const dictionary = {
       exercisesAnswer: 'Answer',
       exercisesRetry: 'Try again',
       legoEyebrow: 'Build-a-model lab',
-      legoTitle: 'Advanced',
+      legoTitle: 'Advanced Builder',
       legoIntro: 'Click the blocks to build your model — absorption, compartments, elimination, PD. The ODE system, generated code and simulated curves update live.',
       legoEquations: 'Model (ODEs)',
       legoCode: 'Generated code',
@@ -226,7 +226,7 @@ export const dictionary = {
   fr: {
     meta: {
       description:
-        'Pharmacométrie Explain — un cours visuel et interactif sur la pharmacométrie : PK/PD, clairance, variabilité, TDM et IA appliquée. Contenu pédagogique uniquement.'
+        'PMx Explain — un cours visuel et interactif sur la pharmacométrie : PK/PD, clairance, variabilité, TDM et IA appliquée. Contenu pédagogique uniquement.'
     },
     nav: {
       home: 'Accueil',
@@ -236,7 +236,7 @@ export const dictionary = {
       tdm: 'TDM',
       interactions: 'Interactions',
       pharmacodynamics: 'Pharmacodynamie',
-      lego: 'Advanced',
+      lego: 'Modélisation avancée',
       playground: 'Simulation',
       glossary: 'Glossaire',
       references: 'Pour aller plus loin',
@@ -245,7 +245,7 @@ export const dictionary = {
     },
     footer: {
       // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
-      licenseIntro: 'Pharmacométrie Pratique · Texte',
+      licenseIntro: 'PMx Explain · Texte',
       licenseOutro: '· Code MIT · 2026',
       author: 'Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie',
       report: 'Une erreur ? Signalez-la',
@@ -325,7 +325,7 @@ export const dictionary = {
       score: 'Score'
     },
     tdm: {
-      metaTitle: 'TDM et bibliothèque de modèles PopPK | Pharmacométrie Pratique',
+      metaTitle: 'TDM et bibliothèque de modèles PopPK | PMx Explain',
       metaDescription: 'Bibliothèque partagée de modèles PopPK pour le suivi thérapeutique pharmacologique et la médecine de précision.',
       eyebrow: 'Suivi thérapeutique pharmacologique',
       title: 'Ajustement de dose avec mrgsolve, mapbayr et model averaging.',
@@ -403,7 +403,7 @@ export const dictionary = {
       referencesTitle: 'Pour aller plus loin',
       referencesIntro: 'Livres, articles fondateurs, logiciels et communautés pour approfondir. Les liens d\'articles pointent vers PubMed ; les outils vers leur site officiel.',
       exercisesTitle: 'Exercices interactifs',
-      exercisesIntro: 'Entraînez-vous avec des questions numériques et à choix multiples, inspirées du cours et des corrigés M2. Correction et explication immédiates.',
+      exercisesIntro: 'Choisissez un parcours, puis entraînez-vous avec ses questions numériques et à choix multiples. Correction et explication immédiates.',
       exercisesScore: 'Score',
       exercisesCheck: 'Vérifier',
       exercisesRight: 'Correct',
@@ -411,7 +411,7 @@ export const dictionary = {
       exercisesAnswer: 'Réponse',
       exercisesRetry: 'Réessayer',
       legoEyebrow: 'Atelier « construire un modèle »',
-      legoTitle: 'Advanced',
+      legoTitle: 'Modélisation avancée',
       legoIntro: 'Cliquez les blocs pour construire votre modèle — absorption, compartiments, élimination, PD. Le système d’EDO, les codes générés et les courbes simulées se mettent à jour en direct.',
       legoEquations: 'Modèle (EDO)',
       legoCode: 'Code généré',

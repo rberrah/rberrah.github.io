@@ -28,16 +28,19 @@ test('Explorer exposes five workshops; PK and Advanced have distinct palettes', 
   await expect(page.locator('.toolbar .add')).toHaveCount(4);
   if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
   await page.getByTestId('goal-explore').locator('summary').click();
-  await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Translator', 'PK', 'PD', 'DDI', 'Advanced']);
+  await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Model Translator', 'PK Builder', 'PD Builder', 'DDI Builder', 'Advanced Builder']);
+  await page.getByTestId('goal-resources').locator('summary').click();
+  await expect(page.getByTestId('goal-resources').locator('a')).toHaveText(['Glossary', 'References', 'About PMx Explain', 'Racym Berrah ↗']);
+  await expect(page.getByTestId('nav-main-site')).toHaveAttribute('href', 'https://rberrah.github.io/');
   await page.keyboard.press('Escape');
-  await next(page, 'Advanced');
+  await next(page, 'Advanced Builder');
   await expect(page.locator('.canvas .node')).toHaveCount(2);
   await expect(page.locator('.toolbar .add')).toHaveCount(9);
   await page.locator('.toolbar .add').filter({ hasText: 'Response' }).click();
-  await expect(page.getByTestId('model-continuity').getByRole('button', { name: 'PK', exact: true })).toBeDisabled();
-  await nav(page, 'PK');
+  await expect(page.getByTestId('model-continuity').getByRole('button', { name: 'PK Builder', exact: true })).toBeDisabled();
+  await nav(page, 'PK Builder');
   await expect(page.locator('.canvas .node')).toHaveCount(2);
-  await nav(page, 'Advanced');
+  await nav(page, 'Advanced Builder');
   await expect(page.locator('.canvas .node')).toHaveCount(3);
 });
 
@@ -46,9 +49,9 @@ test('graph, covariates, layout and draft survive transfers without browser pers
   await page.getByRole('button', { name: 'Add a continuous covariate', exact: true }).click();
   await page.locator('.cov-row .txt').fill('WEIGHT');
   const original = await code(page);
-  await next(page, 'Advanced');
+  await next(page, 'Advanced Builder');
   expect(await code(page)).toBe(original);
-  await nav(page, 'Translator');
+  await nav(page, 'Model Translator');
   const importer = page.locator('.mlxtran-import');
   await importer.getByRole('tab', { name: 'mrgsolve', exact: true }).click();
   await importer.locator('textarea').fill(original);
@@ -58,7 +61,7 @@ test('graph, covariates, layout and draft survive transfers without browser pers
   await importer.getByRole('button', { name: 'Build the diagram', exact: true }).click();
   await expect(importer.getByRole('alert')).toBeVisible();
   expect(await code(page)).toBe(original);
-  await nav(page, 'PK');
+  await nav(page, 'PK Builder');
   expect(await code(page)).toBe(original);
   const storage = await page.evaluate(() => JSON.stringify([Object.entries(localStorage), Object.entries(sessionStorage)]));
   expect(storage).not.toContain('WEIGHT');
@@ -137,17 +140,17 @@ test('PK models with covariance remain transferable through unrestricted mrgsolv
 test('both DDI models can independently receive PK without changing the mechanism or doses', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   const first = await code(page);
-  await next(page, 'DDI');
+  await next(page, 'DDI Builder');
   await expect(page.locator('#cpp-1')).toHaveValue(first);
   await page.getByRole('button', { name: 'Interaction', exact: true }).click();
   await page.getByRole('combobox', { name: 'Mechanism', exact: true }).selectOption('reversible');
   const before = await downloadSpec(page);
   expect(before.config.target).toMatch(/^TV_k_.+_e$/);
-  await nav(page, 'PK');
+  await nav(page, 'PK Builder');
   await page.locator('.toolbar').getByRole('button', { name: 'IV 2-cpt', exact: true }).click();
   const second = await code(page);
   await page.getByRole('combobox', { name: 'DDI destination', exact: true }).selectOption('2');
-  await next(page, 'DDI');
+  await next(page, 'DDI Builder');
   const after = await downloadSpec(page);
   expect(after.models[0].code).toBe(first);
   expect(after.models[1].code).toBe(second);
@@ -161,7 +164,7 @@ test('both DDI models can independently receive PK without changing the mechanis
 test('PD assembly retains its workshop while Advanced remains a free graph', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   const pk = await code(page);
-  await next(page, 'PD');
+  await next(page, 'PD Builder');
   await page.getByRole('button', { name: 'General PD', exact: true }).click();
   await expect(page.locator('#cpp-pd')).toHaveValue(pk);
   await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'PD', exact: true }).click();
@@ -177,10 +180,10 @@ test('PD assembly retains its workshop while Advanced remains a free graph', asy
   expect(pd.config.delay).toBe(true);
   expect(pd.config.parameters.KE0).toBe(0.7);
   expect(pd.models[0].code).toBe(pk);
-  await nav(page, 'Advanced');
+  await nav(page, 'Advanced Builder');
   await expect(page.locator('.composition')).toHaveCount(0);
   await expect(page.locator('.canvas')).toBeVisible();
-  await nav(page, 'PD');
+  await nav(page, 'PD Builder');
   expect(await downloadSpec(page)).toEqual(pd);
   await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'PD', exact: true }).click();
   await page.getByRole('checkbox', { name: 'Effect compartment', exact: true }).uncheck();
@@ -194,8 +197,8 @@ test('PD assembly retains its workshop while Advanced remains a free graph', asy
   await expect(page.locator('.assembly .block')).toHaveCount(3);
   await page.getByRole('navigation', { name: 'PD settings' }).getByRole('button', { name: 'ANC', exact: true }).click();
   await expect(page.getByLabel('MTT (day)', { exact: true })).toBeVisible();
-  await nav(page, 'PK');
-  await next(page, 'Advanced');
+  await nav(page, 'PK Builder');
+  await next(page, 'Advanced Builder');
   await expect(page.locator('.canvas .node')).toHaveCount(2);
   expect(await code(page)).toBe(pk);
 });
@@ -203,12 +206,12 @@ test('PD assembly retains its workshop while Advanced remains a free graph', asy
 test('a DDI source opens in Translator without altering either model', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   const original = await code(page);
-  await next(page, 'DDI');
-  await page.locator('.pk-model:visible .workshop-links').getByRole('link', { name: 'Translator', exact: true }).click();
+  await next(page, 'DDI Builder');
+  await page.locator('.pk-model:visible .workshop-links').getByRole('link', { name: 'Model Translator', exact: true }).click();
   await expect(page.locator('.mlxtran-import textarea')).toHaveValue(original);
   await page.locator('.mlxtran-import').getByRole('button', { name: 'Build the diagram', exact: true }).click();
   expect(await code(page)).toBe(original);
-  await nav(page, 'DDI');
+  await nav(page, 'DDI Builder');
   await expect(page.locator('#cpp-1')).toHaveValue(original);
 });
 
@@ -261,7 +264,7 @@ test('Translator and composed workshops still send their existing R engine contr
   const popup = await popupPromise;
   await expect.poll(() => popup.evaluate(() => /** @type {any} */ (window).received?.code)).toBe(original);
   await popup.close();
-  await nav(page, 'DDI');
+  await nav(page, 'DDI Builder');
   const ddiPromise = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'Open in engine', exact: true }).click();
   const ddiPopup = await ddiPromise;
@@ -277,7 +280,7 @@ test('a generated PK model compiles and simulates in the local PD engine', async
   test.setTimeout(120000);
   await context.route('https://tdmhub.shinyapps.io/**', route => route.abort());
   await page.goto('/pk/?lang=en');
-  await next(page, 'PD');
+  await next(page, 'PD Builder');
   await page.getByRole('button', { name: 'General PD', exact: true }).click();
   const pending = page.waitForEvent('popup');
   await page.getByRole('button', { name: 'Open in engine', exact: true }).click();

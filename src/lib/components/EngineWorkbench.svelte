@@ -53,7 +53,7 @@
   let activeOnco = $derived(['V', 'CL', 'T0', 'KG', ...(onco.growth === 'exponential' ? [] : ['CAP']), 'KILL', 'EC50', 'RES', ...(onco.toxicity ? ['ANC0', 'MTT', 'GAMMA', 'SLOPE'] : [])]);
   /** @type {Record<string,string>} */
   let oncoNames = $derived({ ...oncoLabels, T0: t('Taille tumorale initiale (mm)', 'Initial tumor size (mm)'), KG: t('Vitesse de croissance (1/jour)', 'Growth rate (1/day)'), KILL: t('Effet maximal du traitement (1/jour)', 'Maximum treatment effect (1/day)'), CAP: t('Taille limite (mm)', 'Limiting size (mm)'), ANC0: t('Neutrophiles initiaux (10^9/L)', 'Initial neutrophils (10^9/L)') });
-  let title = $derived(view === 'ddi' ? t('Interactions médicamenteuses', 'Drug interactions') : t('Pharmacodynamie', 'Pharmacodynamics'));
+  let title = $derived(view === 'ddi' ? t('Atelier DDI', 'DDI Builder') : t('Atelier PD', 'PD Builder'));
   let spec = $derived(view === 'ddi' ? workshopSpec('ddi', ddi, [model1, model2]) : workshopSpec(pdMode, pdMode === 'onco' ? onco : { ...pd, exposure: 'pk', c0: pd.exposure === 'iv1' ? pd.regimen.dose / pd.v : pd.c0 }, pdMode === 'onco' ? (onco.free_pk ? [pkOnco] : undefined) : [pd.exposure === 'pk' ? pkPd : basicIvModel(pd.v, pd.cl)]));
   let returned = $state(/** @type {{key: string, data: any} | null} */ (null));
   let computed = $derived(returned?.key === JSON.stringify(spec) ? returned?.data : null);
@@ -105,7 +105,7 @@
   }
 </script>
 
-<svelte:head><title>{title} | Pharmacometrie Pratique</title><meta name="description" content={title} /></svelte:head>
+<svelte:head><title>{title} | PMx Explain</title><meta name="description" content={title} /></svelte:head>
 
 <section class="workbench" data-testid={`${view}-workbench`} inert={!mounted}>
   <header><div><p class="eyebrow">{t('Atelier de modelisation', 'Modeling workshop')}</p><h1>{title}</h1></div><span class="status">{t('Recherche / en cours', 'Research / in development')}</span></header>

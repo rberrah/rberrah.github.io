@@ -57,6 +57,7 @@ IIV_CL : 0.09 : Engineering prior variance on clearance
 
 $SIGMA @annotated
 PROP : 0.04 : Engineering prior proportional residual variance
+ADD  : 0.0  : Additive residual variance fixed to zero
 
 $CMT @annotated
 GUT  : Oral depot [ADM]
@@ -94,6 +95,7 @@ IIV_CL : 0.09 : Engineering prior variance on clearance
 
 $SIGMA @annotated
 PROP : 0.04 : Engineering prior proportional residual variance
+ADD  : 0.0  : Additive residual variance fixed to zero
 
 $CMT @annotated
 GUT  : Oral depot [ADM]
@@ -144,6 +146,7 @@ IIV_VMAX : 0.683 : Approximate log-variance derived from published CV 99 percent
 
 $SIGMA @annotated
 PROP : 0.04 : Engineering prior proportional residual variance
+ADD  : 0.0  : Additive residual variance fixed to zero
 
 $CMT @annotated
 GUT  : Oral depot [ADM]
@@ -194,6 +197,7 @@ IIV_CL : 0.09 : Engineering prior variance on clearance
 
 $SIGMA @annotated
 PROP : 0.04 : Engineering prior proportional residual variance
+ADD  : 0.0  : Additive residual variance fixed to zero
 
 $CMT @annotated
 GUT : Oral depot [ADM]

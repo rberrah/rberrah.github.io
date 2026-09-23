@@ -462,9 +462,19 @@ normalize_lego_spec <- function(specification) {
   if (!is.list(population_input)) stop("The Lego population model must be an object.")
   named_numbers <- function(values, field, lower, upper, key_pattern) {
     if (is.null(values)) return(NULL)
+    if (is.atomic(values) && !is.null(names(values))) values <- as.list(values)
     if (!is.list(values) || is.null(names(values)) || length(values) > 210L) stop(field, " must be a named object.")
     if (any(!grepl(key_pattern, names(values), perl = TRUE)) || anyDuplicated(names(values))) stop("Invalid ", field, " parameter name.")
     stats::setNames(vapply(seq_along(values), function(index) lego_number(values[[index]], paste0(field, ".", names(values)[index]), lower, upper), numeric(1)), names(values))
+  }
+  named_distributions <- function(values) {
+    if (is.null(values)) return(NULL)
+    if (is.atomic(values) && !is.null(names(values))) values <- as.list(values)
+    if (!is.list(values) || is.null(names(values)) || length(values) > 210L) stop("iivDistributions must be a named object.")
+    if (any(!grepl("^[A-Za-z_][A-Za-z0-9_]*$", names(values))) || anyDuplicated(names(values))) stop("Invalid iivDistributions parameter name.")
+    stats::setNames(vapply(seq_along(values), function(index) {
+      lego_text(values[[index]], paste0("iivDistributions.", names(values)[index]), "^(normal|lognormal|logit)$", 16L)
+    }, character(1)), names(values))
   }
   residual_input <- population_input$residualError %||% list(type = "combined", additive = 0.1, proportional = 0.2)
   if (!is.list(residual_input)) stop("Residual error must be an object.")
@@ -475,6 +485,7 @@ normalize_lego_spec <- function(specification) {
   )
   population <- list(
     iivVariances = named_numbers(population_input$iivVariances, "iivVariances", 1e-9, 1e6, "^[A-Za-z_][A-Za-z0-9_]*$"),
+    iivDistributions = named_distributions(population_input$iivDistributions),
     iivCovariances = named_numbers(population_input$iivCovariances, "iivCovariances", -1e6, 1e6, "^[A-Za-z_][A-Za-z0-9_]*::[A-Za-z_][A-Za-z0-9_]*$"),
     residualError = residual
   )
@@ -634,6 +645,20 @@ lego_model_code <- function(specification) {
     parameters[client_parameter_names %in% names(variance_input)]
   }
   variance_for <- function(parameter) if (is.null(variance_input)) 0.09 else unname(variance_input[parameter$client_name])
+  distribution_input <- spec$population$iivDistributions
+  if (!is.null(distribution_input)) {
+    unknown <- setdiff(names(distribution_input), client_parameter_names)
+    if (length(unknown)) stop("Unknown Lego random-effect distribution parameter: ", unknown[[1]])
+  }
+  distribution_for <- function(parameter) {
+    distribution <- if (!is.null(distribution_input) && parameter$client_name %in% names(distribution_input)) {
+      unname(distribution_input[[parameter$client_name]])
+    } else if (parameter$value > 0) "lognormal" else "normal"
+    if (identical(distribution, "logit") && (parameter$value <= 0 || parameter$value >= 1)) {
+      stop("A logit-normal Lego parameter must have a typical value strictly between 0 and 1: ", parameter$client_name)
+    }
+    distribution
+  }
   covariance_input <- spec$population$iivCovariances %||% numeric()
   covariance_for <- function(left, right) {
     key <- paste(sort(c(left$client_name, right$client_name)), collapse = "::")
@@ -650,7 +675,11 @@ lego_model_code <- function(specification) {
   eta_index <- stats::setNames(seq_along(random_parameters), vapply(random_parameters, `[[`, character(1), "name"))
   width <- max(8L, nchar(paste0("TV_", vapply(parameters, `[[`, character(1), "name"))))
   pad <- function(text) sprintf("%-*s", width, text)
-  spec_json <- jsonlite::toJSON(spec, auto_unbox = TRUE, null = "null", digits = 10)
+  marker_spec <- spec
+  for (field in c("iivVariances", "iivDistributions", "iivCovariances")) {
+    if (!is.null(marker_spec$population[[field]])) marker_spec$population[[field]] <- as.list(marker_spec$population[[field]])
+  }
+  spec_json <- jsonlite::toJSON(marker_spec, auto_unbox = TRUE, null = "null", digits = 10)
   marker <- paste0(LEGO_SPEC_PREFIX, utils::URLencode(spec_json, reserved = TRUE))
   lines <- c(marker, if (route_doses) "$PLUGIN evtools", "$PARAM @annotated")
 
@@ -691,8 +720,11 @@ lego_model_code <- function(specification) {
     "",
     "$SIGMA @annotated"
   )
-  if (residual$type %in% c("proportional", "combined")) lines <- c(lines, paste0("PROP : ", lego_format_number(residual$proportional^2), " : proportional residual variance"))
-  if (residual$type %in% c("additive", "combined")) lines <- c(lines, paste0("ADD : ", lego_format_number(residual$additive^2), " : additive residual variance"))
+  lines <- c(
+    lines,
+    paste0("PROP : ", lego_format_number(if (residual$type %in% c("proportional", "combined")) residual$proportional^2 else 0), " : proportional residual variance"),
+    paste0("ADD : ", lego_format_number(if (residual$type %in% c("additive", "combined")) residual$additive^2 else 0), " : additive residual variance")
+  )
   lines <- c(lines, "", "$CMT @annotated")
   if (route_doses) {
     lines <- c(lines, paste0(pad("LEGO_INPUT"), " : split dose input [ADM]"))
@@ -708,7 +740,6 @@ lego_model_code <- function(specification) {
   if (route_doses) lines <- c(lines, "F_LEGO_INPUT = 0;")
   for (parameter in parameters) {
     index <- unname(eta_index[parameter$name])
-    eta <- if (length(index) && is.finite(index)) paste0(" * exp(ETA", index, " + ETA(", index, "))") else ""
     effects <- Filter(function(covariate) identical(covariate$target_name, parameter$name), covariate_effects)
     effect_code <- paste0(vapply(
       effects,
@@ -721,7 +752,28 @@ lego_model_code <- function(specification) {
       },
       character(1)
     ), collapse = "")
-    lines <- c(lines, paste0("double ", parameter$name, " = TV_", parameter$name, effect_code, eta, ";"))
+    typical <- paste0("TV_", parameter$name, effect_code)
+    if (length(index) && is.finite(index)) {
+      random <- paste0("ETA", index, " + ETA(", index, ")")
+      distribution <- distribution_for(parameter)
+      if (identical(distribution, "normal")) {
+        individual <- paste0(typical, " + ", random)
+      } else if (identical(distribution, "logit")) {
+        link_effects <- paste0(vapply(effects, function(covariate) {
+          if (identical(covariate$type, "categorical")) {
+            paste0(" + ", covariate$beta_name, " * (", covariate$name, " == ", lego_format_number(covariate$comparison), ")")
+          } else {
+            paste0(" + ", covariate$beta_name, " * log(", covariate$name, "/", lego_format_number(covariate$reference), ")")
+          }
+        }, character(1)), collapse = "")
+        individual <- paste0("1.0/(1.0 + exp(-(log(TV_", parameter$name, "/(1.0-TV_", parameter$name, "))", link_effects, " + ", random, ")))")
+      } else {
+        individual <- paste0(typical, " * exp(", random, ")")
+      }
+    } else {
+      individual <- typical
+    }
+    lines <- c(lines, paste0("double ", parameter$name, " = ", individual, ";"))
   }
   response_nodes <- Filter(function(node) identical(node$kind, "response"), nodes)
   for (node in response_nodes) {
@@ -819,7 +871,7 @@ lego_model_code <- function(specification) {
     lines,
     paste0("double IPRED = CONC_", observed_name, ";"),
     switch(residual$type,
-      additive = "double DV = IPRED + EPS(1);",
+      additive = "double DV = IPRED + EPS(2);",
       proportional = "double DV = IPRED * (1 + EPS(1));",
       "double DV = IPRED * (1 + EPS(1)) + EPS(2);"
     ),

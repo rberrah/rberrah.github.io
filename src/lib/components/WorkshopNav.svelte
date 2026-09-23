@@ -3,13 +3,13 @@
   import { language } from '$lib/stores/language';
   import { CodeXml, Pill, Activity, Network, Blocks } from '@lucide/svelte';
   let { active } = $props();
-  const items = [
-    { id: 'translator', label: 'Translator', icon: CodeXml },
-    { id: 'pk', label: 'PK', icon: Pill },
-    { id: 'pd', label: 'PD', icon: Activity },
-    { id: 'ddi', label: 'DDI', icon: Network },
-    { id: 'advanced', label: 'Advanced', icon: Blocks }
-  ];
+  let items = $derived([
+    { id: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles', icon: CodeXml },
+    { id: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK', icon: Pill },
+    { id: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD', icon: Activity },
+    { id: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI', icon: Network },
+    { id: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée', icon: Blocks }
+  ]);
 </script>
 
 <nav class="workshops" aria-label={$language === 'en' ? 'Model workshops' : 'Ateliers de modelisation'} data-testid="workshop-nav">

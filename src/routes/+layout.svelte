@@ -14,7 +14,7 @@
   import LanguageToggle from '$lib/components/LanguageToggle.svelte';
   import { ui } from '$lib/i18n/translations';
   import { language } from '$lib/stores/language';
-  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL } from '$lib/site';
+  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '$lib/site';
   let { children } = $props();
 
   afterNavigate(() => {
@@ -33,22 +33,24 @@
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
-    { href: '/translator', key: 'translator', label: 'Translator' },
-    { href: '/pk', key: 'pk', label: 'PK' },
-    { href: '/pd', key: 'pd', label: 'PD' },
-    { href: '/ddi', key: 'ddi', label: 'DDI' },
-    { href: '/advanced', key: 'advanced', label: 'Advanced' },
+    { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles' },
+    { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK' },
+    { href: '/pd', key: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD' },
+    { href: '/ddi', key: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI' },
+    { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
-    { href: '/references', key: 'references', label: copy.nav.references },
-    { href: '/a-propos', key: 'about', label: copy.nav.about }
+    { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
+    { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
+    { href: `${SITE_ORIGIN}/tools/`, key: 'other-tools', label: $language === 'en' ? 'Other tools' : 'Autres outils', external: true },
+    { href: `${SITE_ORIGIN}/`, key: 'main-site', label: 'Racym Berrah ↗', external: true }
   ]);
   let groups = $derived([
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
-    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm'] },
-    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about'] }
+    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'other-tools'] },
+    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
   /** @type {HTMLElement | undefined} */
@@ -60,6 +62,7 @@
 
   let menuOpen = $state(false);
   const isActive = (/** @type {string} */ href) => {
+    if (/^https?:/.test(href)) return false;
     const path = $page.url.pathname.replace(/\/lego\/?$/, '/advanced/').replace(/\/interactions\/?$/, '/ddi/').replace(/\/pharmacodynamie\/?$/, '/pd/');
     return href === '/' ? path === `${base}/` : path.startsWith(`${base}${href}/`) || path === `${base}${href}`;
   };
@@ -82,7 +85,7 @@
 <svelte:window onclick={(event) => { if (navigation && event.target instanceof Node && !navigation.contains(event.target) && !(event.target instanceof Element && event.target.closest('.burger'))) closeNavigation(); }} onkeydown={(event) => { if (event.key === 'Escape') { const summary = navigation?.querySelector('details[open] summary'); if (summary instanceof HTMLElement) summary.focus(); closeNavigation(); } }} />
 
 <svelte:head>
-  <title>Pharmacométrie Pratique</title>
+  <title>PMx Explain</title>
   <link rel="canonical" href={canonical} />
   {#if !isChapterRoute}
     <link rel="alternate" hreflang="fr" href={canonical} />
@@ -96,7 +99,7 @@
   <header data-testid="site-header">
     <a class="logo" href={`${base}/`} data-testid="logo-link">
       <span class="mark">Pk</span>
-      <span class="word">Pharmacométrie<em>Explain</em></span>
+      <span class="word">PMx <em>Explain</em></span>
     </a>
     <button class="burger" aria-label="Menu" aria-expanded={menuOpen} aria-controls="site-nav" onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
       <span></span><span></span><span></span>
@@ -105,7 +108,7 @@
       {#each groups as group}
         <details class="goal" name="site-objective" data-testid={`goal-${group.key}`}>
           <summary class:active={objectiveLinks.some(link => group.keys.includes(link.key) && isActive(link.href))}><group.icon size={16}/>{group.label}<ChevronDown size={13}/></summary>
-          <div class="goal-links">{#each group.keys as key}{@const link = objectiveLinks.find(item => item.key === key)}{#if link}<a class:active={isActive(link.href)} aria-current={isActive(link.href) ? 'page' : undefined} href={`${base}${link.href}`} onclick={closeNavigation} data-testid={`nav-${link.key}`}>{link.label}</a>{/if}{/each}</div>
+          <div class="goal-links">{#each group.keys as key}{@const link = objectiveLinks.find(item => item.key === key)}{#if link}<a class:active={isActive(link.href)} aria-current={isActive(link.href) ? 'page' : undefined} href={link.external ? link.href : `${base}${link.href}`} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined} onclick={closeNavigation} data-testid={`nav-${link.key}`}>{link.label}</a>{/if}{/each}</div>
         </details>
       {/each}
       <div class="tools">
@@ -129,7 +132,7 @@
       {copy.footer.author} ·
       <a href={copy.footer.reportUrl} target="_blank" rel="noopener noreferrer">{copy.footer.report}</a>
     </span>
-    <span class="muted">{copy.footer.built} · <a href={`${base}/confidentialite/`}>{$language === 'en' ? 'Privacy' : 'Confidentialité'}</a></span>
+    <span class="muted">{copy.footer.built} · <a href={`${base}/confidentialite/`}>{$language === 'en' ? 'Privacy' : 'Confidentialité'}</a> · <a href={`${SITE_ORIGIN}/`} target="_blank" rel="noopener noreferrer">Racym Berrah ↗</a></span>
   </footer>
 
   <div class="disclaimer" data-testid="educational-disclaimer" role="note">

@@ -189,6 +189,7 @@ $OMEGA @block
 
 $SIGMA
 0.1142   // proportional, 33.8% CV as published; sigma^2 = 0.338^2
+0        // additive residual variance fixed to zero
 
 
 $CMT @annotated

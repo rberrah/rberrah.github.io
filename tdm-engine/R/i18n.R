@@ -157,7 +157,7 @@ APP_TRANSLATIONS <- c(
   "Toute décision de dose reste sous la responsabilité du professionnel de santé et exige la vérification de la voie, des horaires, des unités, de la population source, des covariables, des concentrations, de la fonction d'organe et des recommandations locales. Une validation indépendante et une gouvernance documentée sont nécessaires avant toute utilisation clinique." = "Every dose decision remains the healthcare professional's responsibility and requires verification of route, times, units, source population, covariates, concentrations, organ function, and local guidance. Independent validation and documented governance are required before clinical use.",
   "Si vous recherchez un véritable dispositif médical avec expertise, consultez " = "For an actual medical device supported by clinical expertise, see ",
   "ABIS du CHU de Limoges." = "ABIS at Limoges University Hospital.",
-  "Pharmacométrie Pratique · moteur R mrgsolve/mapbayr · aucun dossier patient n'est persisté" = "Practical Pharmacometrics · R mrgsolve/mapbayr engine · no patient record is persisted",
+  "PMx Explain · moteur R mrgsolve/mapbayr · aucun dossier patient n'est persisté" = "PMx Explain · R mrgsolve/mapbayr engine · no patient record is persisted",
   "Temps relatif (h)" = "Relative time (h)",
   "Jours avant référence" = "Days before reference",
   "Heure (HH:MM)" = "Time (HH:MM)",

@@ -21,7 +21,7 @@ for (const preset of ['KOKA (Samtani)', "PP6M (T'jollyn)"]) {
       await expect(page.locator('pre.codeblk code')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       const marker = /^(?:;|\/\/) PK_LEGO_SPEC_V1:([^\r\n]+)/m;
       const original = snapshot(code);
-      await page.getByTestId('workshop-nav').getByRole('link', {name: 'Translator', exact: true}).click();
+      await page.getByTestId('workshop-nav').getByRole('link', {name: 'Model Translator', exact: true}).click();
       const importer = page.locator('.mlxtran-import');
       await importer.getByRole('tab', { name: format, exact: true }).click();
       await importer.locator('textarea').fill(code.replace(marker, ''));

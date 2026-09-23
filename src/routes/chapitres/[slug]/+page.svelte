@@ -217,7 +217,7 @@
 
 <svelte:head>
   {#if displayChapter}
-    <title>{displayChapter.title} — Pharmacométrie Pratique</title>
+    <title>{displayChapter.title} — PMx Explain</title>
     <link rel="alternate" hreflang="fr" href={canonical} />
     {#if hasEnglish}
       <link rel="alternate" hreflang="en" href={alternateUrl(canonical)} />

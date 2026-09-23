@@ -112,7 +112,7 @@ test('SPA counts public routes once, excludes query/hash/input/title/referrer an
   await page.goto(`${origin}/pharmacometrie/pk/?lang=en&patient=synthetic-secret#private-code`);
   await expect.poll(() => paths(counts)).toEqual(['/pharmacometrie/pk/']);
   await page.evaluate(() => { document.title = 'synthetic-secret'; window.marker = 'same-document'; });
-  await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced', exact: true }).click();
+  await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced Builder', exact: true }).click();
   await expect.poll(() => paths(counts)).toEqual(['/pharmacometrie/pk/', '/pharmacometrie/advanced/']);
   expect(await page.evaluate(() => window.marker)).toBe('same-document');
   await page.goBack();
@@ -193,7 +193,7 @@ test('a blocked counter does not break workshops', async ({ page }) => {
   page.on('pageerror', error => errors.push(error.message));
   const counts = await site(page, { blocked: true });
   await page.goto(`${origin}/pharmacometrie/pk/?lang=en`);
-  await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced', exact: true }).click();
+  await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced Builder', exact: true }).click();
   await expect(page.locator('.toolbar .add')).toHaveCount(9);
   await expect.poll(() => counts.length).toBe(2);
   expect(errors).toEqual([]);

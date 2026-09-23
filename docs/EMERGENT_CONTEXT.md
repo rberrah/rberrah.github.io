@@ -1,4 +1,4 @@
-# Emergent context — Pharmacométrie Explain
+# Emergent context — PMx Explain
 
 This repository is an existing SvelteKit static educational site for an interactive pharmacometrics course.
 

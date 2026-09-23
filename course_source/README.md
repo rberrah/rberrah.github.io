@@ -1,6 +1,6 @@
 # Course source material
 
-This directory is reserved for raw teaching material used to build Pharmacométrie Explain.
+This directory is reserved for raw teaching material used to build PMx Explain.
 
 Source files placed here are not meant to be served directly in production. They should be converted into:
 

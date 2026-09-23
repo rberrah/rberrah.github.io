@@ -52,9 +52,9 @@
     <label for={`route-${side}`}>{english ? 'Administration route' : "Voie d'administration"}</label><select id={`route-${side}`} bind:value={model.route}><option>IV</option><option>Oral</option></select>
   {/if}
   <div class="workshop-links">
-    <a href={`${base}/pk/`}>{english ? 'PK workshop' : 'Atelier PK'}</a>
-    <a href={`${base}/translator/`} onclick={() => { const source = model.source === 'code' ? model.code : code; if (source.trim()) writeDraft('source:translator', {code: source}); }}>Translator</a>
-    <a href={`${base}/advanced/`}>Advanced</a>
+    <a href={`${base}/pk/`}>{english ? 'PK Builder' : 'Atelier PK'}</a>
+    <a href={`${base}/translator/`} onclick={() => { const source = model.source === 'code' ? model.code : code; if (source.trim()) writeDraft('source:translator', {code: source}); }}>{english ? 'Model Translator' : 'Traducteur de modèles'}</a>
+    <a href={`${base}/advanced/`}>{english ? 'Advanced Builder' : 'Modélisation avancée'}</a>
   </div>
   {#if units && model.source === 'code'}<div class="numbers">
     <label>{english ? 'PK code time unit' : 'Unite de temps du code PK'}<select bind:value={model.time_unit}><option value="h">h</option><option value="day">{english ? 'Day' : 'Jour'}</option></select></label>

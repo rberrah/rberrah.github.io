@@ -37,6 +37,10 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
         .toHaveAttribute('href', 'https://tdmhub.shinyapps.io/TacDDI/');
       await expect(page.locator('#grad a')).toHaveCount(0);
     }
+    if (route === '/other-projects/') {
+      await expect(page.getByRole('link', { name: 'Open Internat Pharma' })).toHaveAttribute('href', '/internat/');
+      await expect(page.getByRole('link', { name: 'Open Stat & Biologie' })).toHaveAttribute('href', '/stats/');
+    }
     const refs = await page.locator('a[href],img[src],script[src],link[rel="stylesheet"]').evaluateAll(nodes =>
       nodes.map(n => n.getAttribute('href') || n.getAttribute('src')));
     for (const href of refs) {

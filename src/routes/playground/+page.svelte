@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-  <title>{$language === 'en' ? 'PopPK / PKPD simulation' : 'Simulation PopPK / PKPD'} · Pharmacométrie Pratique</title>
+  <title>{$language === 'en' ? 'PopPK / PKPD simulation' : 'Simulation PopPK / PKPD'} · PMx Explain</title>
 </svelte:head>
 
 <h1>{$language === 'en' ? 'PopPK / PKPD simulation' : 'Simulation PopPK / PKPD'}</h1>

@@ -150,7 +150,7 @@ test("l'atelier Lego génère les quatre langages de modélisation", async ({ pa
   const customized = await bloc.innerText();
   expect(customized).toMatch(/\$OMEGA @block\s+0\.09[^\n]*\n0\.02 0\.09/);
   expect(customized).toContain('ADD  : 0.01');
-  expect(customized).not.toContain('PROP :');
+  expect(customized).toContain('PROP : 0');
   expect(customized).toContain('double DV = IPRED + EPS(1);');
 
   await page.locator('.toolbar button.add', { hasText: 'Effet' }).click();

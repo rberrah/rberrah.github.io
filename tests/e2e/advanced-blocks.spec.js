@@ -34,14 +34,14 @@ test('Advanced exports real coupled PK, Ce, TGI and interaction equations in eve
       expect(source.split('$DES')[1].split('$ERROR')[0]).not.toMatch(/\b(?:cl|kg|kill|res)_/);
     }
     await writeFile(`test-results/advanced-native/composed.${language === 'mrgsolve' ? 'cpp' : language === 'MLXTRAN' ? 'txt' : 'ctl'}`, source);
-    await page.getByTestId('workshop-nav').getByRole('link', { name: 'Translator', exact: true }).click();
+    await page.getByTestId('workshop-nav').getByRole('link', { name: 'Model Translator', exact: true }).click();
     await page.locator('.mlxtran-import').getByRole('tab', { name: language, exact: true }).click();
     await page.locator('.mlxtran-import textarea').fill(source);
     await page.getByRole('button', { name: 'Build the diagram', exact: true }).click();
     await expect(page.locator('.import-status.ok')).toBeVisible();
     const restored = await exported(page, 'mrgsolve');
     expect(JSON.parse(decodeURIComponent(restored.match(/PK_LEGO_SPEC_V1:([^\r\n]+)/)?.[1] ?? ''))).toEqual(original);
-    await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced', exact: true }).click();
+    await page.getByTestId('workshop-nav').getByRole('link', { name: 'Advanced Builder', exact: true }).click();
   }
   await page.locator('.canvas .node').filter({ hasText: 'TGI' }).click();
   const before = await page.locator('.chart .serie').nth(2).getAttribute('d');
