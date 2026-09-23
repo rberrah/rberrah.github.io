@@ -42,7 +42,7 @@ test('la page exercices permet de répondre', async ({ page }) => {
 
 test('la page Pour aller plus loin liste des liens externes', async ({ page }) => {
   await page.goto('/references');
-  const links = page.locator('a[target="_blank"]');
+  const links = page.locator('.groups a[target="_blank"]');
   await expect(links.first()).toBeVisible();
   expect(await links.count()).toBeGreaterThan(10);
 });
@@ -57,8 +57,8 @@ test('le sélecteur de langue bascule en anglais', async ({ page }) => {
 });
 
 test('la page interactions présente le module DDI', async ({ page }) => {
-  await page.goto('/interactions');
-  await expect(page.getByRole('heading', { name: 'Interactions médicamenteuses' })).toBeVisible();
+  await page.goto('/ddi');
+  await expect(page.getByRole('heading', { name: 'Atelier DDI' })).toBeVisible();
   await expect(page.getByTestId('ddi-workbench')).toContainText('Recherche / en cours');
   await expect(page.locator('iframe')).toHaveCount(0);
   await expect(page.getByTestId('curve-ddi_time')).toBeVisible();
@@ -66,8 +66,8 @@ test('la page interactions présente le module DDI', async ({ page }) => {
 });
 
 test('la page pharmacodynamie ouvre son atelier', async ({ page }) => {
-  await page.goto('/pharmacodynamie');
-  await expect(page.getByRole('heading', { name: 'Pharmacodynamie' })).toBeVisible();
+  await page.goto('/pd');
+  await expect(page.getByRole('heading', { name: 'Atelier PD' })).toBeVisible();
   await expect(page.locator('iframe')).toHaveCount(0);
   await expect(page.getByTestId('curve-pd_time')).toBeVisible();
   await expect(page.getByTestId('curve-pd_relation')).toBeVisible();
