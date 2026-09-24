@@ -768,7 +768,7 @@
       (result.predictiveOutcome ? '<section><h2>Predictive validation</h2><pre>' + escapeHtml(JSON.stringify(result.predictiveOutcome, null, 2)) + '</pre></section>' : '') +
       '<section><h2>Reactome pathways</h2><table><thead><tr><th>Pathway</th><th>Assay-universe FDR</th><th>Supporting layers</th></tr></thead><tbody>' + pathways + '</tbody></table></section>' +
       '<section><h2>Interpretation limits</h2><p>This report separates observed data, statistical inference and external pathway knowledge. Associations are not causal claims. External validation is required for predictive use.</p></section>' +
-      '<script type="application/json" id="multiomics-analysis-json">' + embeddedJson + '</script>' +
+      '<script type="application/json" id="multiomics-analysis-json">' + embeddedJson + '</scr' + 'ipt>' +
       '</body></html>';
 
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
