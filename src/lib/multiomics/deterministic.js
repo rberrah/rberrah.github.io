@@ -270,6 +270,111 @@ function spearman(x, y) {
   return pearson(ranks(x), ranks(y));
 }
 
+function logGamma(z) {
+  const coefficients = [
+    676.5203681218851,-1259.1392167224028,771.32342877765313,
+    -176.61502916214059,12.507343278686905,-0.13857109526572012,
+    9.9843695780195716e-6,1.5056327351493116e-7
+  ];
+  if (z < 0.5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI*z)) - logGamma(1-z);
+  z -= 1;
+  let x = 0.99999999999980993;
+  for (let i=0;i<coefficients.length;i+=1) x += coefficients[i]/(z+i+1);
+  const t = z + coefficients.length - 0.5;
+  return 0.5*Math.log(2*Math.PI) + (z+0.5)*Math.log(t) - t + Math.log(x);
+}
+
+function betaContinuedFraction(a,b,x) {
+  const maxIter = 200;
+  const eps = 3e-12;
+  const fpmin = 1e-300;
+  const qab = a+b;
+  const qap = a+1;
+  const qam = a-1;
+  let c = 1;
+  let d = 1 - qab*x/qap;
+  if (Math.abs(d) < fpmin) d = fpmin;
+  d = 1/d;
+  let h = d;
+  for (let m=1;m<=maxIter;m+=1) {
+    const m2=2*m;
+    let aa = m*(b-m)*x/((qam+m2)*(a+m2));
+    d = 1 + aa*d; if (Math.abs(d)<fpmin) d=fpmin;
+    c = 1 + aa/c; if (Math.abs(c)<fpmin) c=fpmin;
+    d=1/d; h*=d*c;
+    aa = -(a+m)*(qab+m)*x/((a+m2)*(qap+m2));
+    d = 1 + aa*d; if (Math.abs(d)<fpmin) d=fpmin;
+    c = 1 + aa/c; if (Math.abs(c)<fpmin) c=fpmin;
+    d=1/d;
+    const del=d*c;
+    h*=del;
+    if (Math.abs(del-1)<eps) break;
+  }
+  return h;
+}
+
+function regularizedBeta(x,a,b) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const bt = Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));
+  return x < (a+1)/(a+b+2)
+    ? bt*betaContinuedFraction(a,b,x)/a
+    : 1-bt*betaContinuedFraction(b,a,1-x)/b;
+}
+
+function studentTCdf(t,df) {
+  if (!Number.isFinite(t) || !Number.isFinite(df) || df <= 0) {
+    if (t === Infinity) return 1;
+    if (t === -Infinity) return 0;
+    return NaN;
+  }
+  const x=df/(df+t*t);
+  const ib=regularizedBeta(x,df/2,0.5);
+  return t >= 0 ? 1-0.5*ib : 0.5*ib;
+}
+
+function fCdf(f,d1,d2) {
+  if (f <= 0) return 0;
+  if (f === Infinity) return 1;
+  if (![f,d1,d2].every(Number.isFinite) || d1<=0 || d2<=0) return NaN;
+  return regularizedBeta((d1*f)/(d1*f+d2), d1/2, d2/2);
+}
+
+function welchPValue(groupA,groupB) {
+  const a=groupA.filter(Number.isFinite);
+  const b=groupB.filter(Number.isFinite);
+  if (a.length<2 || b.length<2) return null;
+  const va=variance(a), vb=variance(b);
+  const se2=va/a.length + vb/b.length;
+  if (!(se2>0)) return mean(a)===mean(b) ? 1 : 0;
+  const t=(mean(b)-mean(a))/Math.sqrt(se2);
+  const aTerm=(va/a.length)**2/(a.length-1);
+  const bTerm=(vb/b.length)**2/(b.length-1);
+  const df=se2*se2/(aTerm+bTerm);
+  const cdf=studentTCdf(Math.abs(t),df);
+  return Number.isFinite(cdf) ? Math.max(0,Math.min(1,2*(1-cdf))) : null;
+}
+
+function pairedTPValue(differences) {
+  const d=differences.filter(Number.isFinite);
+  if (d.length<2) return null;
+  const v=variance(d);
+  if (!(v>0)) return mean(d)===0 ? 1 : 0;
+  const t=mean(d)/(Math.sqrt(v/d.length));
+  const cdf=studentTCdf(Math.abs(t),d.length-1);
+  return Number.isFinite(cdf) ? Math.max(0,Math.min(1,2*(1-cdf))) : null;
+}
+
+function oneWayAnovaPValue(groups) {
+  const clean=groups.map(g=>g.filter(Number.isFinite)).filter(g=>g.length);
+  const k=clean.length;
+  const n=clean.reduce((s,g)=>s+g.length,0);
+  const f=oneWayF(clean);
+  if (k<2 || n<=k || (!Number.isFinite(f) && f!==Infinity)) return null;
+  const cdf=fCdf(f,k-1,n-k);
+  return Number.isFinite(cdf) ? Math.max(0,Math.min(1,1-cdf)) : null;
+}
+
 function normalCdf(x) {
   const t = 1 / (1 + 0.2316419 * Math.abs(x));
   const d = 0.3989422804014327 * Math.exp(-x*x/2);
@@ -754,6 +859,10 @@ function analyseLayer(aggregated, layer, options) {
   let groupSizes = [0,0];
   const allConditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
   const multiGroup = allConditions.length > 2;
+  const usePermutation = aggregated.features.length <= 500;
+  const inferenceMethod = usePermutation
+    ? 'deterministic permutation'
+    : (multiGroup ? 'one-way ANOVA' : options.paired ? 'paired t-test' : 'Welch t-test');
 
   for (const feature of aggregated.features) {
     if (multiGroup) {
@@ -774,7 +883,9 @@ function analyseLayer(aggregated, layer, options) {
         effect,
         foldRatio: aggregated.scale === 'log2' ? Math.pow(2,effect) : null,
         effectScale: aggregated.scale,
-        pValue: multiGroupPermutationPValue(data.groups, `${layer}|${feature}|${contrast}`),
+        pValue: usePermutation
+          ? multiGroupPermutationPValue(data.groups, `${layer}|${feature}|${contrast}`)
+          : oneWayAnovaPValue(data.groups),
         qValue: null,
         groupMeans: Object.fromEntries(data.conditions.map((condition,index) => [condition, means[index]])),
         groupSizes: Object.fromEntries(data.conditions.map((condition,index) => [condition, data.groups[index].length])),
@@ -793,8 +904,12 @@ function analyseLayer(aggregated, layer, options) {
     if (!a.length || !b.length) continue;
     const effect = data.mode === 'paired-permutation' ? mean(data.differences) : mean(b) - mean(a);
     const pValue = data.mode === 'paired-permutation'
-      ? pairedPermutationPValue(data.differences, `${layer}|${feature}|${contrast}`)
-      : permutationPValue(a,b, `${layer}|${feature}|${contrast}`);
+      ? (usePermutation
+          ? pairedPermutationPValue(data.differences, `${layer}|${feature}|${contrast}`)
+          : pairedTPValue(data.differences))
+      : (usePermutation
+          ? permutationPValue(a,b, `${layer}|${feature}|${contrast}`)
+          : welchPValue(a,b));
     rows.push({
       feature,
       effect,
@@ -833,6 +948,8 @@ function analyseLayer(aggregated, layer, options) {
     effectScale: aggregated.scale,
     contrast,
     mode,
+    inferenceMethod,
+    inferencePolicy: '≤500 features: seeded/exact permutation tests; >500 features: analytic Welch/paired t-test or one-way ANOVA for browser-scale performance',
     groupSizes,
     steps: aggregated.steps
   };
