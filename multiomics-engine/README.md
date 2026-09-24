@@ -8,6 +8,10 @@ The public browser tool already performs deterministic QC, adjusted feature-wise
 
 `advanced_methods.R` is reserved for methods that should use their actual reference R implementations:
 
+- RNA-seq differential analysis through `DESeq2`;
+- normalized expression/proteomics-style linear modelling through `limma`;
+- repeated-measures mixed models through `lmerTest`;
+- ranked enrichment through `fgsea`;
 - MOFA2 through the `MOFA2` package;
 - DIABLO through `mixOmics::block.splsda`.
 
@@ -57,3 +61,49 @@ The random seed is explicit. The browser report records protocol, preprocessing,
 ## Important scope note
 
 These adapters do not make the public GitHub Pages application execute MOFA2 or DIABLO in-browser. They provide the reference implementations for local/server execution and prevent the browser-native PCA/PLS components from being mislabelled as those packages.
+
+## Platform-aware differential analysis
+
+For raw count matrices (samples × genes), use:
+
+    run_deseq2_counts(
+      counts = counts_matrix,
+      metadata = metadata,
+      output_dir = "results/deseq2",
+      design_formula = ~ batch + condition,
+      contrast = c("condition", "treated", "control")
+    )
+
+For already normalized/log-scale matrices, use:
+
+    run_limma_matrix(
+      matrix = expression_matrix,
+      metadata = metadata,
+      output_dir = "results/limma",
+      design_formula = ~ batch + condition
+    )
+
+## Reference repeated-measures model
+
+For publication-grade repeated-measures inference with Satterthwaite-style tests from lmerTest:
+
+    run_lmer_matrix(
+      matrix = expression_matrix,
+      metadata = metadata,
+      output_dir = "results/lmer",
+      fixed_formula = "condition * time + batch",
+      subject_column = "subject_id"
+    )
+
+## Ranked enrichment
+
+For a named signed statistic vector and a pathway list:
+
+    run_fgsea_ranked(
+      ranks = signed_statistics,
+      pathways = reactome_pathways,
+      output_dir = "results/fgsea",
+      seed = 20260924
+    )
+
+These functions are local/server adapters. The browser remains dependency-free and deterministic for its native methods.
