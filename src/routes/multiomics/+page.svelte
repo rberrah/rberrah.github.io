@@ -28,11 +28,18 @@
   let metadataDelimiter = '';
   let metadataError = '';
 
-  /** @type {Record<'transcriptomics' | 'proteomics' | 'metabolomics', {headers:string[], sampleIds:string[], featureColumn:string, error:string}>} */
+  /** @type {Record<'transcriptomics' | 'proteomics' | 'metabolomics', {headers:string[], sampleIds:string[], rowIds:string[], featureColumn:string, error:string}>} */
   let matrixInfo = {
-    transcriptomics: { headers: [], sampleIds: [], featureColumn: '', error: '' },
-    proteomics: { headers: [], sampleIds: [], featureColumn: '', error: '' },
-    metabolomics: { headers: [], sampleIds: [], featureColumn: '', error: '' }
+    transcriptomics: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' },
+    proteomics: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' },
+    metabolomics: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' }
+  };
+
+  const omicLayers = /** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']);
+  const omicLabels = {
+    transcriptomics: 'Transcriptomics',
+    proteomics: 'Proteomics',
+    metabolomics: 'Metabolomics'
   };
 
   const fieldDefinitions = [
@@ -40,55 +47,55 @@
       key: 'subject_id',
       label: 'Subject / experimental unit',
       required: true,
-      aliases: ['subject_id', 'subject', 'patient_id', 'patient', 'participant_id', 'participant', 'individual_id', 'individual', 'donor_id', 'animal_id', 'unit_id', 'biological_unit']
+      aliases: ['subject_id', 'subject', 'patient_id', 'patient', 'participant_id', 'participant', 'individual_id', 'individual', 'donor_id', 'animal_id', 'unit_id', 'biological_unit', 'id_patient', 'id_sujet', 'sujet', 'participant_id', 'individu', 'id_individu', 'id_animal']
     },
     {
       key: 'sample_id',
       label: 'Biological sample',
       required: true,
-      aliases: ['sample_id', 'sample', 'specimen_id', 'specimen', 'biospecimen_id', 'biosample_id', 'sample_name']
+      aliases: ['sample_id', 'sample', 'specimen_id', 'specimen', 'biospecimen_id', 'biosample_id', 'sample_name', 'id_echantillon', 'echantillon', 'id_prelevement', 'prelevement', 'nom_echantillon']
     },
     {
       key: 'assay_id',
       label: 'Assay / run identifier',
       required: true,
-      aliases: ['assay_id', 'assay', 'run_id', 'run', 'measurement_id', 'library_id', 'file_id', 'assay_name']
+      aliases: ['assay_id', 'assay', 'run_id', 'run', 'measurement_id', 'library_id', 'file_id', 'assay_name', 'id_assay', 'id_mesure', 'mesure_id', 'id_run', 'id_fichier']
     },
     {
       key: 'omic',
       label: 'Omics layer',
       required: true,
-      aliases: ['omic', 'omics', 'layer', 'modality', 'data_type', 'datatype', 'assay_type', 'omics_type']
+      aliases: ['omic', 'omics', 'layer', 'modality', 'data_type', 'datatype', 'assay_type', 'omics_type', 'omique', 'type_omique', 'couche', 'modalite']
     },
     {
       key: 'condition',
       label: 'Condition / group',
       required: false,
-      aliases: ['condition', 'group', 'treatment', 'arm', 'cohort', 'status', 'class', 'phenotype_group', 'condition_name']
+      aliases: ['condition', 'group', 'treatment', 'arm', 'cohort', 'status', 'class', 'phenotype_group', 'condition_name', 'groupe', 'traitement', 'bras', 'cohorte', 'statut', 'condition_experimentale']
     },
     {
       key: 'timepoint',
       label: 'Time point',
       required: false,
-      aliases: ['timepoint', 'time_point', 'time', 'visit', 'visit_id', 'visit_name', 'day', 'week']
+      aliases: ['timepoint', 'time_point', 'time', 'visit', 'visit_id', 'visit_name', 'day', 'week', 'temps', 'temps_j', 'jour', 'semaine', 'visite', 'id_visite']
     },
     {
       key: 'batch',
       label: 'Technical batch',
       required: false,
-      aliases: ['batch', 'batch_id', 'plate', 'run_batch', 'technical_batch', 'batch_name']
+      aliases: ['batch', 'batch_id', 'plate', 'run_batch', 'technical_batch', 'batch_name', 'lot', 'id_lot', 'plaque', 'batch_technique']
     },
     {
       key: 'technical_replicate',
       label: 'Technical replicate',
       required: false,
-      aliases: ['technical_replicate', 'technical_rep', 'tech_rep', 'replicate', 'replicate_id', 'rep']
+      aliases: ['technical_replicate', 'technical_rep', 'tech_rep', 'replicate', 'replicate_id', 'rep', 'replicat_technique', 'replicat', 'rep_technique', 'numero_replicat']
     },
     {
       key: 'outcome',
       label: 'Outcome / endpoint',
       required: false,
-      aliases: ['outcome', 'endpoint', 'response', 'label', 'target', 'phenotype', 'clinical_outcome']
+      aliases: ['outcome', 'endpoint', 'response', 'label', 'target', 'phenotype', 'clinical_outcome', 'reponse', 'critere', 'critere_jugement', 'phenotype_clinique', 'evenement']
     }
   ];
 
@@ -119,9 +126,9 @@
   };
 
   const omicAliases = {
-    transcriptomics: ['transcriptomics', 'transcriptome', 'rna', 'rnaseq', 'rna_seq', 'gene_expression', 'mrna'],
-    proteomics: ['proteomics', 'proteome', 'protein', 'proteins', 'lfq'],
-    metabolomics: ['metabolomics', 'metabolome', 'metabolite', 'metabolites', 'met']
+    transcriptomics: ['transcriptomics', 'transcriptome', 'transcriptomique', 'rna', 'rnaseq', 'rna_seq', 'gene_expression', 'expression_genique', 'mrna', 'arn'],
+    proteomics: ['proteomics', 'proteome', 'proteomique', 'protein', 'proteins', 'proteine', 'proteines', 'lfq'],
+    metabolomics: ['metabolomics', 'metabolome', 'metabolomique', 'metabolite', 'metabolites', 'met']
   };
 
   function normalise(value) {
@@ -209,18 +216,20 @@
 
   async function inspectMatrix(layer, file) {
     if (!file) {
-      matrixInfo = { ...matrixInfo, [layer]: { headers: [], sampleIds: [], featureColumn: '', error: '' } };
+      matrixInfo = { ...matrixInfo, [layer]: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' } };
       return;
     }
     try {
       const parsed = parseTable(await file.text());
       const featureColumn = parsed.headers[0] ?? '';
       const sampleIds = parsed.headers.slice(1);
+      const rowIds = parsed.rows.map((row) => row[featureColumn] ?? '').filter(Boolean);
       matrixInfo = {
         ...matrixInfo,
         [layer]: {
           headers: parsed.headers,
           sampleIds,
+          rowIds,
           featureColumn,
           error: sampleIds.length ? '' : 'No assay columns detected.'
         }
@@ -231,6 +240,7 @@
         [layer]: {
           headers: [],
           sampleIds: [],
+          rowIds: [],
           featureColumn: '',
           error: error instanceof Error ? error.message : 'Unable to read matrix.'
         }
@@ -325,17 +335,28 @@
     );
   }
 
+  /**
+   * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
+   */
   function matrixMatch(layer) {
     const expected = expectedAssays(layer);
-    const observed = new Set(matrixInfo[layer].sampleIds);
-    if (!expected.size || !observed.size) return { matched: 0, expected: expected.size, observed: observed.size, missing: [], extra: [] };
-    const matched = [...expected].filter((id) => observed.has(id));
+    const columns = new Set(matrixInfo[layer].sampleIds);
+    const rows = new Set(matrixInfo[layer].rowIds);
+    if (!expected.size || (!columns.size && !rows.size)) {
+      return { matched: 0, expected: expected.size, observed: columns.size, missing: [], extra: [], orientation: 'unknown' };
+    }
+    const columnMatched = [...expected].filter((id) => columns.has(id));
+    const rowMatched = [...expected].filter((id) => rows.has(id));
+    const transposed = rowMatched.length > columnMatched.length;
+    const observed = transposed ? rows : columns;
+    const matched = transposed ? rowMatched : columnMatched;
     return {
       matched: matched.length,
       expected: expected.size,
       observed: observed.size,
       missing: [...expected].filter((id) => !observed.has(id)),
-      extra: [...observed].filter((id) => !expected.has(id))
+      extra: [...observed].filter((id) => !expected.has(id)),
+      orientation: transposed ? 'transposed' : 'features-by-assays'
     };
   }
 
@@ -344,8 +365,7 @@
   }
 
   $: selectedObjective = objectives[objective];
-  $: omicsCount = (/** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']))
-    .filter((key) => Boolean(files[key])).length;
+  $: omicsCount = omicLayers.filter((key) => Boolean(files[key])).length;
   $: requiredMappingsComplete = fieldDefinitions.filter((field) => field.required).every((field) => Boolean(columnMapping[field.key]));
   $: mappedSubjects = uniqueMapped('subject_id').size;
   $: mappedSamples = uniqueMapped('sample_id').size;
@@ -654,20 +674,20 @@
     </div>
 
     <div class="matrix-checks">
-      {#each [
-        ['transcriptomics', 'Transcriptomics', transcriptomicsMatch],
-        ['proteomics', 'Proteomics', proteomicsMatch],
-        ['metabolomics', 'Metabolomics', metabolomicsMatch]
-      ] as item}
+      {#each omicLayers as layer}
+        {@const match = matrixMatch(layer)}
         <article>
           <div>
-            <strong>{item[1]}</strong>
-            <span>{matrixInfo[item[0]].sampleIds.length ? `${matrixInfo[item[0]].sampleIds.length} assay columns` : 'not loaded'}</span>
+            <strong>{omicLabels[layer]}</strong>
+            <span>{matrixInfo[layer].sampleIds.length ? `${matrixInfo[layer].sampleIds.length} data columns` : 'not loaded'}</span>
           </div>
-          {#if matrixInfo[item[0]].sampleIds.length}
-            <p><b>{item[2].matched}/{item[2].expected}</b> expected assay IDs matched.</p>
-            {#if item[2].missing.length}<small class="warning">Missing from matrix: {item[2].missing.slice(0, 5).join(', ')}</small>{/if}
-            {#if item[2].extra.length}<small class="warning">Not declared in metadata: {item[2].extra.slice(0, 5).join(', ')}</small>{/if}
+          {#if matrixInfo[layer].sampleIds.length}
+            <p><b>{match.matched}/{match.expected}</b> expected assay IDs matched.</p>
+            {#if match.orientation === 'transposed'}
+              <small class="warning">Assay IDs match rows better than columns: the matrix appears transposed.</small>
+            {/if}
+            {#if match.missing.length}<small class="warning">Missing from matrix: {match.missing.slice(0, 5).join(', ')}</small>{/if}
+            {#if match.extra.length && match.orientation !== 'transposed'}<small class="warning">Not declared in metadata: {match.extra.slice(0, 5).join(', ')}</small>{/if}
           {:else}
             <p class="muted">Load a matrix to validate assay IDs.</p>
           {/if}
