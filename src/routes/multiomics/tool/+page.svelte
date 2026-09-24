@@ -1590,9 +1590,20 @@
                   {#if row.foldRatio != null}
                     <span class:negative={row.foldRatio != null && row.foldRatio < 1}>{row.foldRatio == null ? row.effect.toFixed(3) : `${row.foldRatio.toFixed(2)}×`}</span>
                   {:else if row.exponentiatedEffect != null}
-                    <span class:negative={row.exponentiatedEffect < 1}>{row.exponentiatedEffect.toPrecision(3)}× <small>(β={row.effect.toPrecision(3)})</small></span>
+                    <span class:negative={row.exponentiatedEffect < 1}>
+                      {row.exponentiatedEffect.toPrecision(3)}×
+                      {#if row.exponentiatedCiLow != null && row.exponentiatedCiHigh != null}
+                        <small>[{row.exponentiatedCiLow.toPrecision(3)}–{row.exponentiatedCiHigh.toPrecision(3)}]</small>
+                      {/if}
+                      <small>(β={row.effect.toPrecision(3)})</small>
+                    </span>
                   {:else}
-                    <span class:negative={row.effect < 0}>{row.effect.toPrecision(3)}</span>
+                    <span class:negative={row.effect < 0}>
+                      {row.effect.toPrecision(3)}
+                      {#if row.ciLow != null && row.ciHigh != null}
+                        <small>[{row.ciLow.toPrecision(3)}–{row.ciHigh.toPrecision(3)}]</small>
+                      {/if}
+                    </span>
                   {/if}
                   <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
                   <span>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
