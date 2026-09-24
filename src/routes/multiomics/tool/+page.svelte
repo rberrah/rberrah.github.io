@@ -1,6 +1,9 @@
 <script>
   import { base } from '$app/paths';
+  import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
+
+  const t = (fr, en) => $language === 'en' ? en : fr;
 
   /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
   let objective = 'explore';
@@ -19,6 +22,8 @@
   let outcomeType = 'none';
   let covariatesAvailable = 'yes';
   let partialOmicsExpected = 'no';
+  /** @type {string[]} */
+  let selectedCovariates = [];
   let demoLoaded = false;
   let analysisStatus = 'idle';
   let analysisError = '';
@@ -65,22 +70,31 @@
   };
 
   const omicLayers = /** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']);
-  const omicLabels = {
-    transcriptomics: 'Transcriptomics',
-    proteomics: 'Proteomics',
-    metabolomics: 'Metabolomics'
-  };
-
   /** @param {string} layer */
   function omicLabel(layer) {
-    return layer === 'transcriptomics'
-      ? omicLabels.transcriptomics
-      : layer === 'proteomics'
-        ? omicLabels.proteomics
-        : layer === 'metabolomics'
-          ? omicLabels.metabolomics
-          : layer;
+    if (layer === 'transcriptomics') return t('Transcriptomique', 'Transcriptomics');
+    if (layer === 'proteomics') return t('Protéomique', 'Proteomics');
+    if (layer === 'metabolomics') return t('Métabolomique', 'Metabolomics');
+    return layer;
   }
+
+  const fieldLabels = {
+    subject_id: ['Sujet / unité expérimentale', 'Subject / experimental unit'],
+    sample_id: ['Échantillon biologique', 'Biological sample'],
+    assay_id: ['Identifiant du dosage / run', 'Assay / run identifier'],
+    omic: ['Couche omique', 'Omics layer'],
+    condition: ['Condition / groupe', 'Condition / group'],
+    timepoint: ['Temps / visite', 'Time point'],
+    batch: ['Batch technique', 'Technical batch'],
+    technical_replicate: ['Réplicat technique', 'Technical replicate'],
+    outcome: ['Outcome / critère', 'Outcome / endpoint'],
+    survival_time: ['Temps de survie / suivi', 'Survival / follow-up time'],
+    survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)']
+  };
+  const fieldLabel = (key) => {
+    const labels = fieldLabels[key] || [key, key];
+    return t(labels[0], labels[1]);
+  };
 
   const fieldDefinitions = [
     {
@@ -136,6 +150,18 @@
       label: 'Outcome / endpoint',
       required: false,
       aliases: ['outcome', 'endpoint', 'response', 'label', 'target', 'phenotype', 'clinical_outcome', 'reponse', 'critere', 'critere_jugement', 'phenotype_clinique', 'evenement']
+    },
+    {
+      key: 'survival_time',
+      label: 'Survival / follow-up time',
+      required: false,
+      aliases: ['survival_time', 'followup_time', 'follow_up_time', 'time_to_event', 'tte', 'duree_suivi', 'temps_survie', 'temps_evenement']
+    },
+    {
+      key: 'survival_event',
+      label: 'Survival event',
+      required: false,
+      aliases: ['survival_event', 'event', 'event_status', 'death', 'censor', 'status_event', 'evenement_survie', 'deces', 'censure']
     }
   ];
 
@@ -144,24 +170,36 @@
 
   const objectives = {
     explore: {
-      title: 'Explore the shared multi-omics structure',
-      method: 'Exploratory branch',
-      detail: 'Data validation and mapping are available, but an unsupervised inferential engine is not yet exposed as a final analysis branch.'
+      titleFr: 'Explorer la structure multi-omique partagée',
+      titleEn: 'Explore the shared multi-omics structure',
+      methodFr: 'ACP multi-blocs équilibrée',
+      methodEn: 'Balanced multi-block PCA',
+      detailFr: 'Les variables les plus informatives de chaque couche sont standardisées et pondérées par bloc afin d’extraire des axes latents communs sans variable cible.',
+      detailEn: 'Top-variable features from each layer are standardized and block-balanced to extract shared latent axes without a target variable.'
     },
     groups: {
-      title: 'Compare biological groups',
-      method: 'Deterministic two-condition integration',
-      detail: 'Permutation contrasts, BH-FDR, direct cross-omics correlation changes and Reactome pathway convergence.'
+      titleFr: 'Comparer des groupes biologiques',
+      titleEn: 'Compare biological groups',
+      methodFr: 'Inférence déterministe ajustée',
+      methodEn: 'Adjusted deterministic inference',
+      detailFr: 'Ajustement explicite des batches/covariables, contrastes adaptés au design, BH-FDR, relations inter-omiques et convergence Reactome.',
+      detailEn: 'Explicit batch/covariate adjustment, design-aware contrasts, BH-FDR, cross-omics relationships and Reactome convergence.'
     },
     outcome: {
-      title: 'Explain a clinical or experimental outcome',
-      method: 'Not yet operational',
-      detail: 'Outcome-targeted regression or survival modelling is intentionally blocked until the corresponding deterministic model-selection rules are implemented.'
+      titleFr: 'Expliquer un outcome clinique ou expérimental',
+      titleEn: 'Explain a clinical or experimental outcome',
+      methodFr: 'Régression déterministe selon le type d’outcome',
+      methodEn: 'Outcome-specific deterministic regression',
+      detailFr: 'Régression linéaire, logistique, Poisson, ANOVA multiclasse ou Cox selon le type d’outcome, avec covariables explicites et correction BH-FDR.',
+      detailEn: 'Linear, logistic, Poisson, multiclass ANOVA or Cox models are selected from the declared outcome type, with explicit covariates and BH-FDR.'
     },
     time: {
-      title: 'Describe change over time',
-      method: 'Design-aware longitudinal workflow',
-      detail: 'Two time points use within-subject change; three or more numeric-labelled time points use individual slopes before group comparison.'
+      titleFr: 'Étudier l’évolution au cours du temps',
+      titleEn: 'Describe change over time',
+      methodFr: 'Workflow longitudinal ajusté au design',
+      methodEn: 'Design-aware longitudinal workflow',
+      detailFr: 'Deux temps utilisent le changement intra-sujet ; trois temps ou plus utilisent une pente individuelle avant la comparaison entre conditions.',
+      detailEn: 'Two time points use within-subject change; three or more numeric-labelled time points use individual slopes before group comparison.'
     }
   };
 
