@@ -663,9 +663,9 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   });
 
   requireTruth(
-    result.layers.proteomics.mode === 'multi-group-permutation-anova',
-    'TCGA three-subtype benchmark uses multi-group permutation ANOVA',
-    result.layers.proteomics.mode
+    result.layers.proteomics.mode === 'adjusted-multi-group-model',
+    'TCGA three-subtype benchmark uses the explicit adjusted multi-group model',
+    result.layers.proteomics.mode + ' · ' + result.layers.proteomics.inferenceMethod
   );
 
   const ranked = result.layers.proteomics.rows.map((row,index)=>({...row,rank:index+1}));
