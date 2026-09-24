@@ -1,57 +1,88 @@
-Multi-omics prototype data contract
+Prototype multi-omique — contrat de données / Multi-omics prototype — data contract
 
-Canonical metadata format: long format, one row per assay.
+FRANÇAIS
+========
+
+Format canonique des métadonnées : format long, une ligne par mesure technique (assay).
+
+Colonnes requises :
+- subject_id : unité biologique indépendante / participant / animal / culture.
+- sample_id : prélèvement biologique. Le même sample_id relie les mesures provenant du même prélèvement.
+- assay_id : identifiant unique de mesure/run. Les colonnes des matrices doivent correspondre exactement à assay_id.
+- omic : transcriptomics, proteomics ou metabolomics.
+
+Colonnes optionnelles selon le design :
+- condition : groupe expérimental ou traitement.
+- timepoint : visite ou temps expérimental.
+- batch : batch technique.
+- technical_replicate : numéro de réplicat technique.
+- outcome : phénotype/critère pour un outcome binaire, multiclasse, continu ou de comptage.
+- survival_time : durée de suivi / temps jusqu'à événement pour une analyse de survie.
+- survival_event : événement de survie codé 0/1.
+- toute autre colonne peut être sélectionnée explicitement comme covariable.
+
+Branches analytiques actuellement opérationnelles :
+- explore : ACP multi-blocs équilibrée sur les sujets partagés entre les couches. Les variables sont standardisées dans chaque couche, les blocs sont pondérés par 1/sqrt(p), puis les axes et loadings communs sont calculés de façon déterministe.
+- groups : comparaison de deux groupes, design apparié ou analyse multi-groupe indépendante selon le protocole déclaré.
+- time : changement intra-sujet avec deux temps ou pente individuelle avec trois temps ou plus, puis comparaison entre conditions.
+- outcome :
+  - continu -> régression linéaire ;
+  - binaire -> régression logistique ;
+  - comptage -> régression de Poisson ;
+  - multiclasse -> ANOVA ajustée ;
+  - survie -> modèle de Cox.
+- crossover : volontairement bloqué tant que période et séquence ne sont pas modélisées.
+
+Batches et covariables :
+- les réplicats techniques partageant sample_id + omic sont agrégés après prétraitement ;
+- un batch totalement confondu avec la condition, le temps ou un outcome catégoriel bloque l'inférence ;
+- plusieurs batches non confondus sont ajustés variable par variable par résidualisation OLS avant les analyses groupes/temps/exploration ;
+- dans la branche outcome, le batch est retiré des variables omiques avant le modèle et les covariables sélectionnées entrent explicitement dans la régression ;
+- les covariables numériques sont standardisées ; les covariables catégorielles sont encodées explicitement ;
+- aucune covariable n'est sélectionnée automatiquement.
+
+Interprétation :
+L'interface fournit une section « Comment interpréter ces résultats ? » construite par des règles déterministes à partir du type de modèle, des tailles d'effet, q-values, ajustements, relations inter-omiques et résultats Reactome. Elle ne génère pas de causalité ni de mécanisme non observé.
+
+Services scientifiques externes actuellement appelés :
+- ChEBI : résolution conservatrice optionnelle des identifiants métabolites.
+- Reactome : sur-représentation de voies et consensus entre couches.
+
+Ensembl, UniProt, UniChem, KEGG et STRING restent des connecteurs prévus ; ils ne sont pas appelés silencieusement par le moteur actuel.
+
+Validation publique automatisée :
+- Nutrimouse : biologie PPARalpha, CYP3A11 et métabolites lipidiques.
+- TCGA breast : HER2/LumA et analyse Basal/Her2/LumA.
+- NCI-60 IntLIM et BRCA IntLIM : changements publiés de corrélations gène-métabolite.
+- AgingHFCD : concordance RNA/protéine/métabolite avec les résultats différentiels de référence.
+- STATegra : trajectoire Ikaros et structure à 36 échantillons / 3 réplicats biologiques.
+- LRRK2 G2019S : concordance RNA/protéine et biologie RAB/endocytose.
+- PaintOmics : signal multi-omique planté connu.
+- missRows NCI-60 : appariement partiel réel entre couches.
+
+ANALYSE DE L'ÉCHELLE STATegra :
+Les données au niveau réplicat et le résumé public à six temps sont très concordants en direction mais ne sont pas numériquement interchangeables. L'échelle des valeurs doit donc être déclarée explicitement.
+
+ENGLISH
+=======
+
+Canonical metadata format: long format, one row per technical assay.
 
 Required columns:
-- subject_id: independent biological unit / participant.
-- sample_id: biological specimen. The same sample_id links assays generated from the same specimen.
-- assay_id: unique measurement/run identifier. Matrix sample columns must match assay_id.
+- subject_id: independent biological unit.
+- sample_id: biological specimen.
+- assay_id: unique technical measurement/run ID; matrix columns must match it exactly.
 - omic: transcriptomics, proteomics or metabolomics.
 
-Optional but strongly recommended:
-- condition: experimental group or treatment.
-- timepoint: visit or experimental time.
-- batch: technical batch.
-- technical_replicate: replicate number for repeated measurements of the same sample and omic.
-- outcome: phenotype or endpoint.
+Optional design columns include condition, timepoint, batch, technical_replicate, outcome, survival_time, survival_event and any explicitly selected covariate columns.
 
-The application may recognise common aliases, but canonical templates are preferred. Automatic mappings must always be confirmed before analysis.
+Operational branches:
+- explore: deterministic balanced multi-block PCA across shared subjects.
+- groups: two-group, paired or independent multi-group inference according to the declared design.
+- time: within-subject change or individual slope followed by between-condition inference.
+- outcome: linear, logistic, Poisson, adjusted multiclass ANOVA or Cox regression according to endpoint type.
+- crossover remains blocked until period and sequence effects are modelled.
 
-Current deterministic analysis contract
+Multiple non-confounded batches are explicitly adjusted by feature-wise OLS residualisation. Selected covariates are encoded explicitly; the tool never chooses confounders automatically.
 
-Operational objectives:
-- groups: two-group, paired, or independent multi-group inference depending on the declared design.
-- time: two-timepoint within-subject change or >=3-timepoint individual slope, then between-condition inference.
-
-Validation-only / intentionally blocked objectives:
-- explore: mapping and structural validation only; no surrogate group inference is substituted.
-- outcome: no regression/survival surrogate is run until deterministic outcome models are implemented.
-- crossover: blocked until period and sequence effects are modelled.
-
-Technical safeguards:
-- technical replicates are detected from repeated sample_id + omic pairs and aggregated before inference.
-- technical batches are audited. If condition or longitudinal time is completely confounded with batch, inference is refused.
-- when several non-confounded batches are present, the current browser MVP reports them but does not silently estimate a batch coefficient.
-- covariate availability is recorded by the protocol, but covariate-adjusted models are not implemented yet.
-- partial omics are matched explicitly by subject/sample IDs; names are never fuzzy-matched.
-
-External scientific services currently called by the engine:
-- ChEBI: optional conservative metabolite identifier resolution.
-- Reactome: optional pathway over-representation and cross-layer pathway consensus.
-
-Ensembl, UniProt, UniChem, KEGG and STRING are registry targets for future deterministic connectors; the current engine does not call them automatically.
-
-Automated public validation suite
-
-The GitHub Actions public-truth benchmark currently exercises:
-- Nutrimouse: PPARalpha-dependent transcript/metabolite biology.
-- TCGA breast: HER2/LumA contrasts and a three-subtype omnibus analysis.
-- NCI-60 IntLIM and BRCA IntLIM: published condition-dependent gene-metabolite correlations.
-- AgingHFCD: three-omics effect-direction agreement against reference differential results.
-- STATegra: real Ikaros time-course biology plus the 36-sample/3-replicate metabolomics design.
-- LRRK2 G2019S neurons: RNA/protein direction agreement and RAB/endocytic biology.
-- PaintOmics planted multi-omics fixture: cross-layer convergence against a known planted module.
-- Bioconductor missRows NCI-60: partial-overlap matching.
-
-Important STATegra scale finding:
-The sample-level replicate file and the six-timepoint public summary agree strongly in direction but are not numerically interchangeable in scale. The benchmark therefore checks biological direction while the application requires the uploaded value scale to be declared explicitly.
+The result page includes a deterministic “How should these results be interpreted?” guide. ChEBI and Reactome are the currently active external scientific services.
