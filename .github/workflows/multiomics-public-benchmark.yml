@@ -74,6 +74,14 @@ jobs:
             PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/gene_expression_relevant.tab
             PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/proteomics_relevant.tab
             PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/metabolomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/gene_expression_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/proteomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/data/metabolomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/expected/signal_features.txt
+            PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration/expected/expected_pathways.txt
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/experimental_design.tab
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/metabolomics_replicates.tab
+            PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data/metabolomics_relevant.tab
 
       - name: Checkout Bioconductor missRows benchmark
         uses: actions/checkout@v5
