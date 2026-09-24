@@ -1012,7 +1012,7 @@
       <p class="eyebrow">Built-in demonstration</p>
       <h3>Treatment × time, three omics</h3>
       <p>4 subjects, two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
-      <button class="btn btn-primary" type="button" onclick={loadDemo}>Load the demo locally</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>Load the demo locally</button>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
         <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
@@ -1187,7 +1187,7 @@
         <span>Query Reactome with selected molecular identifiers only</span>
       </label>
     </div>
-    <button class="btn btn-primary" type="button" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
+    <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
       {analysisStatus === 'running' ? 'Running…' : 'Run deterministic analysis'}
     </button>
   </div>
@@ -1195,7 +1195,7 @@
 </section>
 
 {#if analysisResult}
-<section class="panel demo-results" id="analysis-results">
+<section class="panel demo-results" id="analysis-results" data-testid="multiomics-results">
   <div class="section-head">
     <div>
       <p class="eyebrow">{demoLoaded ? 'Demo results · computed now' : 'Analysis results · deterministic MVP'}</p>
@@ -1270,7 +1270,7 @@
         <span><strong>{analysisResult.reactome.combined.pathwaysFound}</strong> pathways found</span>
         <span><strong>{analysisResult.reactome.combined.identifiersNotFound}</strong> identifiers not found</span>
       </div>
-      <div class="pathway-table">
+      <div class="pathway-table" data-testid="multiomics-pathways">
         <div class="pathway-head"><b>Pathway</b><b>Combined FDR</b><b>RNA</b><b>Protein</b><b>Metabolite</b><b>Layers ≤0.10</b></div>
         {#each analysisResult.reactome.consensus.slice(0, 15) as pathway}
           <div>
