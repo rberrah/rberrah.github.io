@@ -190,3 +190,22 @@ if (file.exists(missrows_file)) {
   cat("union_subjects:", length(all_ids), "\n")
   cat("matched_subjects:", length(intersect(trans_ids, prote_ids)), "\n")
 }
+
+
+# --- Inspect public Aging HF/CD 3-omics demo objects for deterministic export ---
+xomics_root <- Sys.getenv("XOMICS_ROOT", "external/xOmicsShiny")
+for (fname in c("AgingHFCD_RNAseq.RData","AgingHFCD_Proteomics.RData","AgingHFCD_Metabolomics.RData")) {
+  path <- file.path(xomics_root, "data", fname)
+  if (file.exists(path)) {
+    env <- new.env(parent=emptyenv())
+    load(path, envir=env)
+    cat("\nXOMICS_OBJECT", fname, "\n")
+    cat("objects:", paste(ls(env), collapse=","), "\n")
+    for (nm in ls(env)) {
+      obj <- get(nm, envir=env)
+      cat("object:", nm, "class:", paste(class(obj), collapse="/"), "\n")
+      if (!is.null(dim(obj))) cat("dim:", paste(dim(obj), collapse="x"), "\n")
+      if (is.list(obj)) cat("names:", paste(names(obj), collapse=","), "\n")
+    }
+  }
+}
