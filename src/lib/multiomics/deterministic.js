@@ -1348,6 +1348,206 @@ function coxRegression(design, times, events, coefficientIndex) {
   return { beta, se, statistic: zStat, pValue };
 }
 
+function fitRandomInterceptGls(design, response, subjectIds, coefficientIndex) {
+  const n = response.length;
+  const p = design[0]?.length || 0;
+  const subjects = [...new Set(subjectIds)];
+  if (!n || n <= p || subjects.length < 3) return null;
+
+  let beta = solveLinearSystem(crossProductMatrix(design), crossProductVector(design, response));
+  if (!beta) return null;
+  let sigmaWithin = 1;
+  let sigmaBetween = 0;
+
+  for (let iter = 0; iter < 6; iter += 1) {
+    const fitted = multiplyMatrixVector(design, beta);
+    const residuals = response.map((value, i) => value - fitted[i]);
+    const groups = new Map();
+    for (let i = 0; i < n; i += 1) {
+      if (!groups.has(subjectIds[i])) groups.set(subjectIds[i], []);
+      groups.get(subjectIds[i]).push(residuals[i]);
+    }
+
+    let withinSs = 0;
+    let withinDf = 0;
+    const means = [];
+    const invSizes = [];
+    for (const values of groups.values()) {
+      const m = mean(values);
+      means.push(m);
+      invSizes.push(1 / values.length);
+      for (const value of values) withinSs += (value - m) * (value - m);
+      withinDf += Math.max(0, values.length - 1);
+    }
+    sigmaWithin = withinDf > 0 ? Math.max(withinSs / withinDf, 1e-8) : Math.max(variance(residuals), 1e-8);
+    const meanVariance = variance(means);
+    sigmaBetween = Number.isFinite(meanVariance)
+      ? Math.max(0, meanVariance - sigmaWithin * mean(invSizes))
+      : 0;
+
+    const xtvx = Array.from({ length: p }, () => Array(p).fill(0));
+    const xtvy = Array(p).fill(0);
+    for (const subject of subjects) {
+      const idx = subjectIds.map((id, i) => id === subject ? i : -1).filter((i) => i >= 0);
+      const m = idx.length;
+      const a = 1 / sigmaWithin;
+      const b = sigmaBetween > 0
+        ? sigmaBetween / (sigmaWithin * (sigmaWithin + m * sigmaBetween))
+        : 0;
+      for (const ii of idx) {
+        for (let col = 0; col < p; col += 1) {
+          let vy = a * response[ii];
+          let sumY = 0;
+          for (const jj of idx) sumY += response[jj];
+          vy -= b * sumY;
+          xtvy[col] += design[ii][col] * vy;
+          for (let col2 = 0; col2 < p; col2 += 1) {
+            let vx = a * design[ii][col2];
+            let sumX = 0;
+            for (const jj of idx) sumX += design[jj][col2];
+            vx -= b * sumX;
+            xtvx[col][col2] += design[ii][col] * vx;
+          }
+        }
+      }
+    }
+    const next = solveLinearSystem(xtvx, xtvy);
+    if (!next) return null;
+    const delta = Math.max(...next.map((value, i) => Math.abs(value - beta[i])));
+    beta = next;
+    if (delta < 1e-8) break;
+  }
+
+  const xtvx = Array.from({ length: p }, () => Array(p).fill(0));
+  for (const subject of subjects) {
+    const idx = subjectIds.map((id, i) => id === subject ? i : -1).filter((i) => i >= 0);
+    const m = idx.length;
+    const a = 1 / sigmaWithin;
+    const b = sigmaBetween > 0
+      ? sigmaBetween / (sigmaWithin * (sigmaWithin + m * sigmaBetween))
+      : 0;
+    for (const ii of idx) {
+      for (let col = 0; col < p; col += 1) {
+        for (let col2 = 0; col2 < p; col2 += 1) {
+          let vx = a * design[ii][col2];
+          let sumX = 0;
+          for (const jj of idx) sumX += design[jj][col2];
+          vx -= b * sumX;
+          xtvx[col][col2] += design[ii][col] * vx;
+        }
+      }
+    }
+  }
+  const covariance = invertMatrix(xtvx);
+  if (!covariance) return null;
+  const varianceBeta = covariance[coefficientIndex][coefficientIndex];
+  const se = varianceBeta > 0 ? Math.sqrt(varianceBeta) : NaN;
+  const statistic = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
+  const df = Math.max(1, subjects.length - 2);
+  const cdf = Number.isFinite(statistic) ? studentTCdf(Math.abs(statistic), df) : NaN;
+  const pValue = Number.isFinite(cdf) ? Math.max(0, Math.min(1, 2 * (1 - cdf))) : null;
+  return {
+    beta,
+    se,
+    statistic,
+    pValue,
+    df,
+    sigmaWithin,
+    sigmaBetween,
+    intraclassCorrelation: sigmaBetween / (sigmaBetween + sigmaWithin)
+  };
+}
+
+function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [] } = {}) {
+  const rows = [];
+  const sampleRows = [...aggregated.sampleMeta.entries()].map(([sampleId, row]) => ({ sampleId, ...row }));
+  const conditions = naturalOrder(sampleRows.map((row) => row.condition));
+  const times = naturalOrder(sampleRows.map((row) => row.timepoint));
+  const numericTimes = times.map(numericTime);
+  if (conditions.length !== 2) return { error: 'Longitudinal random-intercept model currently requires exactly two conditions.', rows: [], selected: [], groupSizes: [] };
+  if (numericTimes.some((value) => !Number.isFinite(value))) return { error: 'Longitudinal random-intercept model requires numeric or numeric-labelled time points.', rows: [], selected: [], groupSizes: [] };
+
+  const reference = conditions[0];
+  const comparison = conditions[1];
+  const minTime = Math.min(...numericTimes);
+  const maxTime = Math.max(...numericTimes);
+  const timeRange = Math.max(1e-12, maxTime - minTime);
+
+  for (const feature of aggregated.features) {
+    const source = aggregated.values.get(feature);
+    const entries = sampleRows
+      .map((row) => ({ row, value: source.get(row.sampleId), time: numericTime(row.timepoint) }))
+      .filter((entry) => Number.isFinite(entry.value) && Number.isFinite(entry.time));
+    const subjectCounts = new Map();
+    for (const entry of entries) subjectCounts.set(entry.row.subjectId, (subjectCounts.get(entry.row.subjectId) || 0) + 1);
+    const usable = entries.filter((entry) => subjectCounts.get(entry.row.subjectId) >= 2);
+    if (new Set(usable.map((entry) => entry.row.subjectId)).size < 4) continue;
+
+    const nuisance = buildCovariateEncoder(usable.map((entry) => entry.row), covariateColumns, { includeBatch: true });
+    const design = usable.map((entry) => {
+      const condition = entry.row.condition === comparison ? 1 : 0;
+      const time = entry.time - minTime;
+      return [1, condition, time, condition * time, ...nuisance.encode(entry.row).slice(1)];
+    });
+    const response = usable.map((entry) => entry.value);
+    const subjectIds = usable.map((entry) => entry.row.subjectId);
+    const fit = fitRandomInterceptGls(design, response, subjectIds, 3);
+    if (!fit) continue;
+    const interaction = fit.beta[3];
+    const effect = interaction * timeRange;
+    const effectSe = fit.se * timeRange;
+    rows.push({
+      feature,
+      effect,
+      foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
+      effectScale: aggregated.scale,
+      pValue: fit.pValue,
+      qValue: null,
+      statistic: fit.statistic,
+      standardError: effectSe,
+      ciLow: Number.isFinite(effectSe) ? effect - 1.96 * effectSe : null,
+      ciHigh: Number.isFinite(effectSe) ? effect + 1.96 * effectSe : null,
+      intraclassCorrelation: fit.intraclassCorrelation,
+      sigmaWithin: fit.sigmaWithin,
+      sigmaBetween: fit.sigmaBetween,
+      nSubjects: new Set(subjectIds).size,
+      nObservations: response.length,
+      nReference: new Set(usable.filter((entry) => entry.row.condition === reference).map((entry) => entry.row.subjectId)).size,
+      nComparison: new Set(usable.filter((entry) => entry.row.condition === comparison).map((entry) => entry.row.subjectId)).size,
+      model: 'random-intercept GLS: feature ~ condition * time + batch + selected covariates + (1|subject)'
+    });
+  }
+
+  bhAdjust(rows);
+  rows.sort((a,b) => {
+    const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
+    const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
+    if (aq !== bq) return aq - bq;
+    return Math.abs(b.effect) - Math.abs(a.effect);
+  });
+  const significant = rows.filter((row) =>
+    Number.isFinite(row.qValue) && row.qValue <= 0.10 &&
+    (aggregated.scale !== 'log2' || Math.abs(row.effect) >= Math.log2(1.2))
+  );
+  const selected = (significant.length >= 10 ? significant : rows).slice(0, significant.length >= 10 ? 50 : 25);
+  return {
+    rows,
+    selected,
+    selectionRule: significant.length >= 10
+      ? 'q ≤ 0.10 with longitudinal interaction effect, capped at 50 features'
+      : 'top ranked longitudinal interaction features retained for exploratory pathway mapping',
+    effectScale: aggregated.scale,
+    contrast: 'condition × time interaction: ' + comparison + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
+    mode: 'random-intercept-longitudinal-model',
+    inferenceMethod: 'iterative random-intercept GLS with approximate subject-level t inference',
+    groupSizes: [
+      new Set(sampleRows.filter((row) => row.condition === reference).map((row) => row.subjectId)).size,
+      new Set(sampleRows.filter((row) => row.condition === comparison).map((row) => row.subjectId)).size
+    ],
+    steps: aggregated.steps
+  };
+}
+
 function analyseIndependentAdjustedLayer(aggregated, layer, { covariateColumns = [] } = {}) {
   const rows = [];
   const allConditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
@@ -2327,8 +2527,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     const directIndependentGroup = protocol.objective === 'groups'
       && !protocol.longitudinal
       && protocol.designType === 'independent';
+    const longitudinalMixed = protocol.objective === 'time'
+      && protocol.longitudinal
+      && protocol.designType === 'repeated';
 
-    if (protocol.objective === 'outcome' || directIndependentGroup) {
+    if (protocol.objective === 'outcome' || directIndependentGroup || longitudinalMixed) {
       const nuisanceEncoder = buildCovariateEncoder(
         [...rawAggregated.sampleMeta.values()],
         covariateColumns,
@@ -2340,7 +2543,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
         applied: nuisanceEncoder.columnNames.length > 1,
         method: protocol.objective === 'outcome'
           ? 'direct nuisance adjustment inside each outcome model'
-          : 'direct nuisance adjustment inside each group feature model; residualized copy used only for cross-omics correlations',
+          : longitudinalMixed
+            ? 'direct nuisance adjustment inside each random-intercept longitudinal model; residualized copy used only for cross-omics correlations'
+            : 'direct nuisance adjustment inside each group feature model; residualized copy used only for cross-omics correlations',
         columns: nuisanceEncoder.columnNames.slice(1),
         covariates: covariateColumns,
         note: nuisanceEncoder.columnNames.length > 1
@@ -2367,6 +2572,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       });
     } else if (directIndependentGroup) {
       layers[layer] = analyseIndependentAdjustedLayer(analysisAggregated, layer, { covariateColumns });
+    } else if (longitudinalMixed) {
+      layers[layer] = analyseLongitudinalMixedLayer(analysisAggregated, layer, { covariateColumns });
     } else if (protocol.objective !== 'explore') {
       layers[layer] = analyseLayer(analysisAggregated, layer, {
         longitudinal: protocol.longitudinal,
