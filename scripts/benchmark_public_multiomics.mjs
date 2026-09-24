@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { File } from 'node:buffer';
-import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair } from '../src/lib/multiomics/deterministic.js';
+import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair, layerOverlapSummary, resolveMetaboliteIdentifier } from '../src/lib/multiomics/deterministic.js';
 
 const root = process.argv[2] || 'tmp/public-benchmarks';
 
@@ -89,7 +89,8 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
       proteomics: 'log_intensity',
       metabolomics: 'concentration'
     },
-    useReactome: true
+    useReactome: true,
+    resolveIdentifiers: false
   });
 
   const knownPatterns = [
@@ -170,7 +171,8 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
       proteomics: 'log_intensity',
       metabolomics: 'concentration'
     },
-    useReactome: true
+    useReactome: true,
+    resolveIdentifiers: false
   });
 
   const her2Patterns = ['ERBB2', 'HER2', 'GRB7', 'STARD3', 'PGAP3'];
@@ -301,3 +303,39 @@ report.benchmarks.brcaIntLIM.GPT2_2HG = await testPublishedPair(
 
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS TRUTH BENCHMARKS: PASS');
+
+
+{
+  const parsed = parseDelimited(await fs.readFile(`${root}/missrows_nci60_metadata.csv`, 'utf8'));
+  const canonical = parsed.rows.map((row) => ({
+    subjectId: row.subject_id,
+    sampleId: row.sample_id,
+    assayId: row.assay_id,
+    omic: row.omic,
+    condition: row.condition,
+    timepoint: '',
+    batch: '',
+    technicalReplicate: '',
+    outcome: ''
+  }));
+  const overlap = layerOverlapSummary(canonical, ['transcriptomics','proteomics']);
+  report.benchmarks.missRowsNCI60 = overlap;
+  requireTruth(overlap.layerSubjects.transcriptomics === 48, 'missRows preserves 48 transcriptomic individuals', String(overlap.layerSubjects.transcriptomics));
+  requireTruth(overlap.layerSubjects.proteomics === 52, 'missRows preserves 52 proteomic individuals', String(overlap.layerSubjects.proteomics));
+  requireTruth(overlap.allMatched === 40, 'missRows matches only the 40 genuinely shared individuals', `matched=${overlap.allMatched}`);
+}
+
+// External identifier-resolution probe: useful operational evidence but an EBI outage must not invalidate biological truth benchmarks.
+report.apiProbes = {};
+for (const term of ['malic acid', 'C18.2n.6', '2-hydroxyglutarate']) {
+  const mapping = await resolveMetaboliteIdentifier(term);
+  report.apiProbes[term] = mapping;
+  if (mapping.resolved) {
+    console.log(`API PASS: ChEBI resolved ${term} -> ${mapping.resolved} (${mapping.label || mapping.query})`);
+  } else {
+    console.warn(`API WARN: ChEBI did not resolve ${term}: ${mapping.status}`);
+  }
+}
+
+await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
+console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
