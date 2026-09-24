@@ -63,6 +63,13 @@ function mean(values) {
   return x.length ? x.reduce((a,b) => a+b, 0) / x.length : NaN;
 }
 
+function variance(values) {
+  const x = values.filter(Number.isFinite);
+  if (x.length < 2) return NaN;
+  const m = mean(x);
+  return x.reduce((sum, value) => sum + (value-m)*(value-m), 0) / (x.length-1);
+}
+
 function median(values) {
   const x = values.filter(Number.isFinite).slice().sort((a,b) => a-b);
   if (!x.length) return NaN;
@@ -541,6 +548,26 @@ function subjectFeatureSummary(aggregated, feature, options) {
   return out;
 }
 
+function topVariableFeatures(aggregated, n = 20) {
+  return aggregated.features
+    .map((feature) => ({
+      feature,
+      variance: variance([...aggregated.values.get(feature).values()])
+    }))
+    .filter((x) => Number.isFinite(x.variance) && x.variance > 0)
+    .sort((a,b) => b.variance-a.variance)
+    .slice(0,n)
+    .map((x) => x.feature);
+}
+
+function integrationCandidates(aggregated, layerResult, max = 30) {
+  const ordered = [
+    ...(layerResult?.selected || []).map((x) => x.feature),
+    ...topVariableFeatures(aggregated, 20)
+  ];
+  return [...new Set(ordered)].slice(0,max);
+}
+
 function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
   const pairs = [];
   const layerPairs = [];
@@ -549,8 +576,8 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
   }
 
   for (const [layerA, layerB] of layerPairs) {
-    const featuresA = (layers[layerA]?.selected || []).slice(0,25).map((x) => x.feature);
-    const featuresB = (layers[layerB]?.selected || []).slice(0,25).map((x) => x.feature);
+    const featuresA = integrationCandidates(aggregatedByLayer[layerA], layers[layerA], 30);
+    const featuresB = integrationCandidates(aggregatedByLayer[layerB], layers[layerB], 30);
     const conditions = naturalOrder([
       ...aggregatedByLayer[layerA].sampleMeta.values(),
       ...aggregatedByLayer[layerB].sampleMeta.values()
@@ -597,7 +624,7 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
     return Math.abs(b.deltaR)-Math.abs(a.deltaR);
   });
   return {
-    method: 'Spearman correlation by condition; Fisher z test for independent-group correlation difference; BH-FDR across tested cross-omic pairs',
+    method: 'Candidate pool = differential features ∪ top-variable features; Spearman correlation by condition; Fisher z test for independent-group correlation difference; BH-FDR across tested cross-omic pairs',
     testedPairs: pairs.length,
     significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
     pairs: pairs.slice(0,100)
