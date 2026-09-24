@@ -528,5 +528,156 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   };
 }
 
+// --- LRRK2 G2019S RNA + proteome at day 35 ---
+{
+  const ds = await loadDataset(`${root}/lrrk2-d35`, ['transcriptomics','proteomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'groups',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'cell_model',
+      groupCount: '2',
+      sampleOverlap: 'partial'
+    },
+    dataTypes: {
+      transcriptomics: 'normalized',
+      proteomics: 'normalized',
+      metabolomics: 'normalized'
+    },
+    useReactome: true,
+    resolveIdentifiers: false
+  });
+
+  const refParsed = parseDelimited(await fs.readFile(`${root}/lrrk2-d35/reference.csv`, 'utf8'));
+  const reference = refParsed.rows.map((row) => ({
+    layer: row.layer,
+    feature: row.feature,
+    officialLogFC: Number(row.official_logFC_G2019S_vs_Control),
+    officialQ: Number(row.official_q)
+  }));
+
+  const concordance = {};
+  for (const layer of ['transcriptomics','proteomics']) {
+    const byFeature = new Map(result.layers[layer].rows.map((row) => [row.feature,row]));
+    const pairs = reference
+      .filter((row) => row.layer === layer && Number.isFinite(row.officialLogFC) && Number.isFinite(row.officialQ) && row.officialQ <= 0.10)
+      .map((ref) => ({ref,row:byFeature.get(ref.feature)}))
+      .filter((x) => x.row && Number.isFinite(x.row.effect) && x.row.effect !== 0 && x.ref.officialLogFC !== 0);
+    const concordant = pairs.filter(({ref,row}) => Math.sign(row.effect) === Math.sign(ref.officialLogFC)).length;
+    concordance[layer] = {
+      n:pairs.length,
+      concordant,
+      fraction:pairs.length ? concordant/pairs.length : null
+    };
+    requireTruth(
+      concordance[layer].n >= 20 && concordance[layer].fraction >= 0.80,
+      `LRRK2 ${layer} agrees with published G2019S-vs-control effect directions`,
+      `n=${concordance[layer].n}, concordance=${(100*concordance[layer].fraction).toFixed(1)}%`
+    );
+  }
+
+  const rab29 = result.layers.transcriptomics.rows.find((row) => /^RAB29$/i.test(row.feature));
+  requireTruth(
+    rab29 && rab29.effect > 0 && rab29.qValue <= 0.10,
+    'LRRK2 transcriptome recovers RAB29 up-regulation at day 35',
+    rab29 ? `effect=${rab29.effect.toFixed(3)}, q=${rab29.qValue}` : 'RAB29 absent'
+  );
+
+  const rab25Protein = result.layers.proteomics.rows.find((row) => /^RAB25$/i.test(row.feature));
+  requireTruth(
+    rab25Protein && rab25Protein.effect > 0 && rab25Protein.qValue <= 0.10,
+    'LRRK2 proteome recovers RAB25 up-regulation at day 35',
+    rab25Protein ? `effect=${rab25Protein.effect.toFixed(3)}, q=${rab25Protein.qValue}` : 'RAB25 absent'
+  );
+
+  const endocyticPathway = (result.reactome?.consensus || []).find((p) =>
+    /endocyt|vesicle|RAB|clathrin|membrane trafficking/i.test(p.name)
+  );
+  requireTruth(
+    Boolean(endocyticPathway),
+    'LRRK2 Reactome integration recovers endocytic/vesicle trafficking biology',
+    endocyticPathway?.name || result.reactomeError || 'no endocytic pathway'
+  );
+
+  report.benchmarks.lrrk2 = {
+    truth: 'LRRK2-G2019S dopaminergic-neuron model; published integrated RNA/protein analysis reports endocytic and RAB dysregulation',
+    metadata: result.metadataSummary,
+    concordance,
+    rab29,
+    rab25Protein,
+    endocyticPathway: endocyticPathway ? {id:endocyticPathway.id,name:endocyticPathway.name,fdr:endocyticPathway.fdr} : null,
+    reactomeError: result.reactomeError
+  };
+}
+
+// --- TCGA breast 3-subtype multi-group inference ---
+{
+  const ds = await loadDataset(`${root}/tcga-three-subtypes`, ['transcriptomics','proteomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'groups',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_observational',
+      groupCount: '3',
+      sampleOverlap: 'same_specimen'
+    },
+    dataTypes: {
+      transcriptomics: 'log_expression',
+      proteomics: 'log_intensity',
+      metabolomics: 'normalized'
+    },
+    useReactome: true,
+    resolveIdentifiers: false
+  });
+
+  requireTruth(
+    result.layers.proteomics.mode === 'multi-group-permutation-anova',
+    'TCGA three-subtype benchmark uses multi-group permutation ANOVA',
+    result.layers.proteomics.mode
+  );
+
+  const ranked = result.layers.proteomics.rows.map((row,index)=>({...row,rank:index+1}));
+  const her2 = ranked.find((row)=>/^HER2$/i.test(row.feature));
+  const er = ranked.find((row)=>/^ER-alpha$/i.test(row.feature));
+  const pr = ranked.find((row)=>/^PR$/i.test(row.feature));
+
+  requireTruth(
+    her2 && her2.qValue <= 0.01 && her2.groupMeans?.Her2 > her2.groupMeans?.LumA && her2.groupMeans?.Her2 > her2.groupMeans?.Basal,
+    'TCGA multi-group analysis identifies HER2 subtype-specific protein signal',
+    her2 ? `rank=${her2.rank}, q=${her2.qValue}` : 'HER2 absent'
+  );
+  requireTruth(
+    er && er.qValue <= 0.01 && er.groupMeans?.LumA > er.groupMeans?.Her2 && er.groupMeans?.LumA > er.groupMeans?.Basal,
+    'TCGA multi-group analysis identifies LumA ER-alpha enrichment',
+    er ? `rank=${er.rank}, q=${er.qValue}` : 'ER-alpha absent'
+  );
+  requireTruth(
+    pr && pr.qValue <= 0.01 && pr.groupMeans?.LumA > pr.groupMeans?.Her2 && pr.groupMeans?.LumA > pr.groupMeans?.Basal,
+    'TCGA multi-group analysis identifies LumA PR enrichment',
+    pr ? `rank=${pr.rank}, q=${pr.qValue}` : 'PR absent'
+  );
+
+  report.benchmarks.tcgaThreeSubtypes = {
+    truth: 'Basal / Her2 / LumA breast-cancer subtypes with established HER2 and hormone-receptor protein differences',
+    metadata: result.metadataSummary,
+    proteomics: {
+      mode: result.layers.proteomics.mode,
+      top: result.layers.proteomics.rows.slice(0,20),
+      HER2: her2,
+      ERalpha: er,
+      PR: pr
+    },
+    reactomeError: result.reactomeError
+  };
+}
+
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS BENCHMARK SUITE: PASS');
