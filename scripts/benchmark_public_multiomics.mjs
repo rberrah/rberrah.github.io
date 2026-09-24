@@ -46,7 +46,9 @@ function findRanks(rows, patterns) {
 function top(rows, n = 15) {
   return rows.slice(0, n).map((row) => ({
     feature: row.feature,
-    foldRatio: Number(row.foldRatio.toFixed(4)),
+    foldRatio: row.foldRatio == null ? null : Number(row.foldRatio.toFixed(4)),
+    effect: Number(row.effect.toFixed(4)),
+    effectScale: row.effectScale,
     p: row.pValue,
     q: row.qValue
   }));
