@@ -1547,6 +1547,81 @@
     </div>
   {/if}
 
+  <div class="integration-result qc-result" data-testid="multiomics-qc">
+    <div class="integration-head">
+      <div>
+        <p class="eyebrow">{t('Contrôle qualité', 'Quality control')}</p>
+        <h3>{t('Qualité des données avant interprétation biologique', 'Data quality before biological interpretation')}</h3>
+      </div>
+      <span>{t('QC par couche', 'per-layer QC')}</span>
+    </div>
+
+    <div class="qc-grid">
+      {#each Object.entries(analysisResult.layers) as [layer, result]}
+        {#if result.qc}
+          <article class="qc-card">
+            <div class="qc-card-head">
+              <div>
+                <strong>{omicLabel(layer)}</strong>
+                <small>{result.qc.featuresAfter}/{result.qc.featuresBefore} {t('variables conservées', 'features retained')}</small>
+              </div>
+              <span class:qc-warning={result.qc.warnings?.length}>{result.qc.warnings?.length ? t('à vérifier', 'review') : 'OK'}</span>
+            </div>
+
+            <div class="qc-metrics">
+              <div><b>{Number.isFinite(result.qc.medianMissingFraction) ? (100 * result.qc.medianMissingFraction).toFixed(1) + '%' : '—'}</b><span>{t('missing médian', 'median missing')}</span></div>
+              <div><b>{result.qc.outlierSamples?.length || 0}</b><span>{t('assays suspects', 'flagged assays')}</span></div>
+              <div><b>{result.qc.replicateCorrelations?.filter((item) => item.warning).length || 0}</b><span>{t('réplicats r<0,80', 'replicates r<0.80')}</span></div>
+            </div>
+
+            <div class="qc-bars" aria-label={t('Missingness par assay', 'Missingness by assay')}>
+              {#each result.qc.sampleMetrics.slice(0, 16) as metric}
+                <div title={metric.assayId + ' · missing=' + (metric.missingFraction == null ? 'NA' : (100 * metric.missingFraction).toFixed(1) + '%') + ' · detected=' + metric.detectedFeatures}>
+                  <span>{metric.assayId}</span>
+                  <i><em style={'width:' + Math.max(1, Math.min(100, 100 * (metric.missingFraction || 0))) + '%'}></em></i>
+                </div>
+              {/each}
+            </div>
+
+            {#if result.qc.pca?.scores?.length}
+              <div class="qc-pca">
+                <div class="qc-pca-head">
+                  <b>PCA QC</b>
+                  <small>
+                    PC1 {Number.isFinite(result.qc.pca.explained?.[0]) ? (100 * result.qc.pca.explained[0]).toFixed(1) + '%' : '—'}
+                    · PC2 {Number.isFinite(result.qc.pca.explained?.[1]) ? (100 * result.qc.pca.explained[1]).toFixed(1) + '%' : '—'}
+                  </small>
+                </div>
+                <div class="qc-scatter" role="img" aria-label={t('PCA des échantillons après prétraitement', 'PCA of samples after preprocessing')}>
+                  <span class="axis-x"></span><span class="axis-y"></span>
+                  {#each result.qc.pca.scores as point}
+                    <button
+                      type="button"
+                      class="qc-dot"
+                      style={'left:' + qcAxisPercent(point.pc1, result.qc.pca.scores, 'pc1') + '%;bottom:' + qcAxisPercent(point.pc2, result.qc.pca.scores, 'pc2') + '%'}
+                      title={point.sampleId + ' · ' + (point.condition || '—') + ' · batch ' + (point.batch || '—')}
+                      aria-label={point.sampleId + ', ' + (point.condition || '') + ', ' + (point.batch || '')}
+                    ></button>
+                  {/each}
+                </div>
+                <p class="muted">{result.qc.pca.method}</p>
+              </div>
+            {/if}
+
+            <details>
+              <summary>{t('Règles QC et prétraitement', 'QC and preprocessing rules')}</summary>
+              <p>{result.qc.filterPolicy}</p>
+              <ul>
+                {#each result.qc.preprocessingSteps || [] as step}<li>{step}</li>{/each}
+                {#each result.qc.warnings || [] as warning}<li class="warning">{warning}</li>{/each}
+              </ul>
+            </details>
+          </article>
+        {/if}
+      {/each}
+    </div>
+  </div>
+
   <div class="interpretation-box" data-testid="multiomics-interpretation">
     <div class="integration-head">
       <div>
@@ -1987,6 +2062,30 @@
   .covariate-options { display: flex; flex-wrap: wrap; gap: 8px; margin: var(--space-3) 0; }
   .covariate-options label { display: flex; align-items: center; gap: 7px; border: 1px solid var(--border-subtle); border-radius: 999px; padding: 6px 10px; background: var(--bg-primary); }
   .covariate-options input { width: auto; margin: 0; }
+  .qc-result { margin-top: var(--space-5); }
+  .qc-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); margin-top:var(--space-4); }
+  .qc-card { border:1px solid var(--border-subtle); border-radius:var(--radius); padding:var(--space-4); background:var(--bg-secondary); min-width:0; }
+  .qc-card-head { display:flex; justify-content:space-between; gap:var(--space-3); align-items:start; }
+  .qc-card-head div { display:grid; gap:2px; }
+  .qc-card-head small { color:var(--text-secondary); }
+  .qc-card-head > span { font-size:var(--text-xs); border:1px solid var(--border-subtle); border-radius:999px; padding:3px 7px; }
+  .qc-card-head > span.qc-warning { border-color:var(--warning); color:var(--warning); }
+  .qc-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:var(--space-4) 0; }
+  .qc-metrics div { display:grid; gap:2px; }
+  .qc-metrics b { font-family:var(--font-mono); }
+  .qc-metrics span { color:var(--text-secondary); font-size:var(--text-xs); }
+  .qc-bars { display:grid; gap:5px; max-height:150px; overflow:auto; }
+  .qc-bars > div { display:grid; grid-template-columns:minmax(50px,.8fr) 2fr; gap:7px; align-items:center; font-size:var(--text-xs); }
+  .qc-bars span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .qc-bars i { display:block; height:6px; border-radius:99px; background:var(--border-subtle); overflow:hidden; }
+  .qc-bars em { display:block; height:100%; background:var(--accent-pk); min-width:1px; }
+  .qc-pca { margin-top:var(--space-4); }
+  .qc-pca-head { display:flex; justify-content:space-between; gap:var(--space-2); margin-bottom:6px; }
+  .qc-scatter { position:relative; height:180px; border:1px solid var(--border-subtle); background:var(--bg-primary); overflow:hidden; }
+  .qc-scatter .axis-x { position:absolute; left:0; right:0; top:50%; height:1px; background:var(--border-subtle); }
+  .qc-scatter .axis-y { position:absolute; top:0; bottom:0; left:50%; width:1px; background:var(--border-subtle); }
+  .qc-dot { position:absolute; width:9px; height:9px; transform:translate(-50%,50%); border:1px solid var(--bg-primary); border-radius:50%; background:var(--accent-pd); padding:0; }
+  .qc-dot:focus-visible { outline:2px solid var(--accent-pk); outline-offset:2px; }
   .interpretation-box { margin-top: var(--space-5); padding: var(--space-5); border-left: 3px solid var(--accent-pd); background: var(--bg-secondary); }
   .interpretation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); margin-top: var(--space-4); }
   .interpretation-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
@@ -2125,13 +2224,13 @@
   @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
     .contract, .plan { grid-template-columns: 1fr; }
-    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid { grid-template-columns: repeat(2, 1fr); }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid, .qc-grid { grid-template-columns: repeat(2, 1fr); }
     .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid { grid-template-columns: 1fr; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid, .qc-grid { grid-template-columns: 1fr; }
     .run-box, .overlap-box { align-items: stretch; flex-direction: column; }
     .overlap-pairs { justify-content: flex-start; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
