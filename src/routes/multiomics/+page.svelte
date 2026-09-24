@@ -18,6 +18,51 @@
   let outcomeType = 'none';
   let covariatesAvailable = 'yes';
   let partialOmicsExpected = 'no';
+  let demoLoaded = false;
+
+  const demoResults = {
+    comparison: 'Treatment vs control at T12 (descriptive synthetic example)',
+    replicateRule: 'R007A and R007B are recognised as technical replicates of sample P003_T12 and averaged before the descriptive comparison.',
+    rna: [
+      { feature: 'STAT1', ratio: 2.23, direction: 'up' },
+      { feature: 'IDO1', ratio: 4.63, direction: 'up' },
+      { feature: 'KYNU', ratio: 2.38, direction: 'up' },
+      { feature: 'GAPDH', ratio: 1.01, direction: 'stable' },
+      { feature: 'CYP3A5', ratio: 0.70, direction: 'down' }
+    ],
+    protein: [
+      { feature: 'STAT1', ratio: 1.37, direction: 'up' },
+      { feature: 'IDO1', ratio: 2.26, direction: 'up' },
+      { feature: 'KYNU', ratio: 1.46, direction: 'up' },
+      { feature: 'GAPDH', ratio: 1.01, direction: 'stable' }
+    ],
+    metabolite: [
+      { feature: 'Kynurenine', ratio: 2.92, direction: 'up' },
+      { feature: 'Tryptophan', ratio: 0.64, direction: 'down' },
+      { feature: 'Lactate', ratio: 1.53, direction: 'up' },
+      { feature: 'Succinate', ratio: 1.49, direction: 'up' }
+    ],
+    modules: [
+      {
+        title: 'Tryptophan → kynurenine axis',
+        strength: 'Strong cross-omics coherence',
+        evidence: ['IDO1 RNA 4.63×', 'IDO1 protein 2.26×', 'KYNU RNA 2.38×', 'KYNU protein 1.46×', 'Kynurenine 2.92×', 'Tryptophan 0.64×'],
+        interpretation: 'The synthetic treatment signal is coherent across transcript, protein and metabolite levels. The kynurenine/tryptophan ratio increases about 4.6-fold.'
+      },
+      {
+        title: 'STAT1-associated signal',
+        strength: 'Cross-omics candidate',
+        evidence: ['STAT1 RNA 2.23×', 'STAT1 protein 1.37×'],
+        interpretation: 'RNA and protein move in the same direction. A real analysis would next ask whether this expands to a statistically supported pathway/module after database mapping.'
+      },
+      {
+        title: 'Energy-metabolism signal',
+        strength: 'Metabolite-supported only',
+        evidence: ['Lactate 1.53×', 'Succinate 1.49×'],
+        interpretation: 'This is visible in the metabolome, but the bundled demo does not contain enough matched transcript/protein evidence to call it a cross-omics mechanism.'
+      }
+    ]
+  };
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -329,6 +374,7 @@
     const input = /** @type {HTMLInputElement} */ (event.currentTarget);
     const file = input.files?.[0] ?? null;
     files = { ...files, [layer]: file };
+    demoLoaded = false;
     if (layer === 'metadata') await inspectMetadata(file);
     else await inspectMatrix(layer, file);
   }
@@ -366,6 +412,16 @@
     paired = 'yes';
     longitudinal = 'yes';
     objective = 'time';
+    studySetting = 'clinical_interventional';
+    designType = 'repeated';
+    groupCount = '2';
+    timepointCount = '2';
+    sampleOverlap = 'same_specimen';
+    technicalReplicatesExpected = 'yes';
+    batchKnown = 'yes';
+    outcomeType = 'binary';
+    partialOmicsExpected = 'no';
+    demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
     await inspectMatrix('proteomics', files.proteomics);
@@ -1088,6 +1144,140 @@
   </div>
 </section>
 
+{#if demoLoaded}
+<section class="panel demo-results" id="demo-results">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Demo results · calculated from the bundled synthetic files</p>
+      <h2>What an integrated result looks like in practice</h2>
+    </div>
+    <p>This section is deliberately descriptive: no fake MOFA factors, enrichment p-values or database-derived pathways are shown before those engines are connected.</p>
+  </div>
+
+  <div class="demo-story">
+    <article>
+      <span class="num">A</span>
+      <h3>What the app understood</h3>
+      <ul>
+        <li><strong>4 biological subjects</strong></li>
+        <li><strong>2 groups:</strong> control and treatment</li>
+        <li><strong>2 time points:</strong> T0 and T12</li>
+        <li><strong>3 omics:</strong> transcriptomics, proteomics, metabolomics</li>
+        <li><strong>Same biological specimens</strong> linked across omics through <code>sample_id</code></li>
+        <li><strong>1 RNA technical replicate pair</strong> at P003_T12</li>
+      </ul>
+    </article>
+
+    <article>
+      <span class="num">B</span>
+      <h3>What happens to the replicate?</h3>
+      <p>{demoResults.replicateRule}</p>
+      <div class="replicate-flow">
+        <code>R007A</code><code>R007B</code><b>→ mean</b><code>P003_T12 RNA</code>
+      </div>
+      <small>A production engine should make the aggregation rule configurable by assay type rather than silently applying a universal mean.</small>
+    </article>
+
+    <article>
+      <span class="num">C</span>
+      <h3>Illustrative contrast</h3>
+      <p>{demoResults.comparison}</p>
+      <p class="muted">The fold ratios below are descriptive because the synthetic demo contains only 2 subjects per group at T12.</p>
+    </article>
+  </div>
+
+  <div class="demo-omics-grid">
+    <article>
+      <h3>Transcriptomics</h3>
+      {#each demoResults.rna as row}
+        <div class="effect-row">
+          <strong>{row.feature}</strong>
+          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
+          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
+        </div>
+      {/each}
+    </article>
+
+    <article>
+      <h3>Proteomics</h3>
+      {#each demoResults.protein as row}
+        <div class="effect-row">
+          <strong>{row.feature}</strong>
+          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
+          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
+        </div>
+      {/each}
+    </article>
+
+    <article>
+      <h3>Metabolomics</h3>
+      {#each demoResults.metabolite as row}
+        <div class="effect-row">
+          <strong>{row.feature}</strong>
+          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
+          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
+        </div>
+      {/each}
+    </article>
+  </div>
+
+  <div class="integration-result">
+    <div class="integration-head">
+      <div>
+        <p class="eyebrow">Integrated interpretation</p>
+        <h3>The layers are now combined by biological mechanism, not reported as three independent analyses</h3>
+      </div>
+      <span>synthetic demonstration</span>
+    </div>
+
+    <div class="module-grid">
+      {#each demoResults.modules as module, index}
+        <article class:primary={index === 0}>
+          <span class="module-strength">{module.strength}</span>
+          <h3>{module.title}</h3>
+          <div class="module-evidence">
+            {#each module.evidence as item}<span>{item}</span>{/each}
+          </div>
+          <p>{module.interpretation}</p>
+        </article>
+      {/each}
+    </div>
+  </div>
+
+  <div class="mechanism-demo">
+    <p class="eyebrow">Example of the final mechanism view</p>
+    <div class="mechanism-flow">
+      <div><small>RNA</small><strong>IDO1 ↑ 4.63×</strong></div>
+      <b>→</b>
+      <div><small>Protein</small><strong>IDO1 ↑ 2.26×</strong></div>
+      <b>→</b>
+      <div><small>Metabolic reaction</small><strong>Trp → Kyn</strong></div>
+      <b>→</b>
+      <div><small>Metabolites</small><strong>Kyn ↑ 2.92× / Trp ↓ 0.64×</strong></div>
+    </div>
+  </div>
+
+  <div class="evidence-layers">
+    <article>
+      <strong>Observed in the demo</strong>
+      <p>Measured changes in RNA, protein and metabolite values.</p>
+    </article>
+    <article>
+      <strong>Integrated inference</strong>
+      <p>Concordant cross-omics modules built from the measured directions.</p>
+    </article>
+    <article class="future">
+      <strong>External biological knowledge · not run yet</strong>
+      <p>Future Reactome / STRING / identifier-mapping calls will test and annotate the candidate mechanisms.</p>
+    </article>
+    <article class="future">
+      <strong>Latent factors · not run yet</strong>
+      <p>Future Shiny/R backend will add MOFA factors and, when justified, supervised multiblock models.</p>
+    </article>
+  </div>
+</section>
+{/if}
+
 <section class="panel">
   <div class="section-head">
     <div>
@@ -1294,6 +1484,46 @@
   .status { display: flex; gap: var(--space-3); align-items: baseline; margin-top: var(--space-5); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); }
   .status.ready strong { color: var(--accent-pd); }
 
+  .demo-results { scroll-margin-top: 90px; }
+  .demo-story { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+  .demo-story article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
+  .demo-story ul { margin: 0; padding-left: 1.1rem; color: var(--text-secondary); }
+  .demo-story li { margin-bottom: 6px; }
+  .replicate-flow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: var(--space-3) 0; }
+  .replicate-flow code { padding: 4px 7px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--bg-primary); }
+
+  .demo-omics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-5); }
+  .demo-omics-grid > article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+  .effect-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; margin: 12px 0; }
+  .effect-row > span { font-family: var(--font-mono); color: var(--accent-pd); }
+  .effect-row > span.down { color: var(--accent-ai); }
+  .effect-row > span.stable { color: var(--text-muted); }
+  .effect-row > i { grid-column: 1 / -1; display: block; height: 6px; border-radius: 99px; background: var(--accent-pd); min-width: 4px; }
+  .effect-row > i.down { background: var(--accent-ai); }
+  .effect-row > i.stable { background: var(--text-muted); }
+
+  .integration-result { margin-top: var(--space-6); padding: var(--space-5); border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-secondary); }
+  .integration-head { display: flex; justify-content: space-between; gap: var(--space-4); align-items: start; }
+  .integration-head > span { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
+  .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+  .module-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
+  .module-grid article.primary { border-color: var(--accent-pd); border-width: 2px; }
+  .module-strength { font-family: var(--font-mono); font-size: 10px; color: var(--accent-pk); text-transform: uppercase; }
+  .module-evidence { display: flex; flex-wrap: wrap; gap: 5px; margin: var(--space-3) 0; }
+  .module-evidence span { font-family: var(--font-mono); font-size: 10px; padding: 4px 6px; border: 1px solid var(--border-subtle); border-radius: 999px; }
+
+  .mechanism-demo { margin-top: var(--space-5); padding: var(--space-5); border-left: 3px solid var(--accent-pd); background: var(--bg-secondary); }
+  .mechanism-flow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .mechanism-flow > div { padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
+  .mechanism-flow small, .mechanism-flow strong { display: block; }
+  .mechanism-flow small { color: var(--text-muted); }
+  .mechanism-flow > b { color: var(--accent-pk); }
+
+  .evidence-layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin-top: var(--space-5); }
+  .evidence-layers article { padding: var(--space-3); border-top: 2px solid var(--accent-pd); background: var(--bg-secondary); }
+  .evidence-layers article.future { border-top-color: var(--text-muted); }
+  .evidence-layers p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: 0; }
+
   .plan { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--space-6); padding: var(--space-5); background: var(--bg-secondary); border-left: 3px solid var(--accent-pk); }
   .plan li { margin-bottom: var(--space-2); color: var(--text-secondary); }
   .database-bridge { margin-top: var(--space-6); }
@@ -1327,13 +1557,13 @@
   @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
     .contract, .plan { grid-template-columns: 1fr; }
-    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid { grid-template-columns: repeat(2, 1fr); }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers { grid-template-columns: repeat(2, 1fr); }
     .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid { grid-template-columns: 1fr; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers { grid-template-columns: 1fr; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
     .workflow div:last-child { border-bottom: 0; }
