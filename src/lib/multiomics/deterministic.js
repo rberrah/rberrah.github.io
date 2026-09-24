@@ -2108,6 +2108,325 @@ function analyseSupervisedMultiblock(aggregatedByLayer, layers, loadedLayers, me
   };
 }
 
+function ridgeLinearFit(design, response, lambda) {
+  const xtx = crossProductMatrix(design);
+  const xty = crossProductVector(design, response);
+  for (let j = 1; j < xtx.length; j += 1) xtx[j][j] += lambda;
+  const beta = solveLinearSystem(xtx, xty, 1e-10);
+  return beta ? { beta } : null;
+}
+
+function ridgeGlmFit(design, response, family, lambda) {
+  const n = response.length;
+  const p = design[0]?.length || 0;
+  if (!n || !p) return null;
+  let beta = Array(p).fill(0);
+  if (family === 'poisson') beta[0] = Math.log(Math.max(mean(response), 1e-6));
+  for (let iter = 0; iter < 50; iter += 1) {
+    const eta = multiplyMatrixVector(design, beta);
+    const weights = [];
+    const z = [];
+    for (let i = 0; i < n; i += 1) {
+      if (family === 'binomial') {
+        const e = Math.max(-30, Math.min(30, eta[i]));
+        const mu = 1 / (1 + Math.exp(-e));
+        const w = Math.max(mu * (1 - mu), 1e-6);
+        weights.push(w);
+        z.push(eta[i] + (response[i] - mu) / w);
+      } else {
+        const mu = Math.max(1e-8, Math.min(1e8, Math.exp(Math.max(-20, Math.min(20, eta[i])))));
+        weights.push(Math.max(mu, 1e-6));
+        z.push(eta[i] + (response[i] - mu) / Math.max(mu, 1e-6));
+      }
+    }
+    const xtwx = crossProductMatrix(design, weights);
+    const xtwz = crossProductVector(design, z, weights);
+    for (let j = 1; j < p; j += 1) xtwx[j][j] += lambda;
+    const next = solveLinearSystem(xtwx, xtwz, 1e-8);
+    if (!next) return null;
+    const delta = Math.max(...next.map((value, j) => Math.abs(value - beta[j])));
+    beta = next;
+    if (delta < 1e-7) break;
+  }
+  return { beta };
+}
+
+function aucScore(labels, scores) {
+  const pairs = labels.map((label, i) => ({ label, score: scores[i] }))
+    .filter((item) => Number.isFinite(item.score) && (item.label === 0 || item.label === 1))
+    .sort((a,b) => a.score - b.score);
+  const n1 = pairs.filter((item) => item.label === 1).length;
+  const n0 = pairs.length - n1;
+  if (!n1 || !n0) return NaN;
+  let rankSum = 0;
+  let i = 0;
+  while (i < pairs.length) {
+    let j = i + 1;
+    while (j < pairs.length && pairs[j].score === pairs[i].score) j += 1;
+    const avgRank = (i + 1 + j) / 2;
+    for (let k = i; k < j; k += 1) if (pairs[k].label === 1) rankSum += avgRank;
+    i = j;
+  }
+  return (rankSum - n1 * (n1 + 1) / 2) / (n1 * n0);
+}
+
+function deterministicFolds(subjects, targetBySubject, k, categorical = false) {
+  const folds = Array.from({ length: Math.max(2, Math.min(k, subjects.length)) }, () => []);
+  if (categorical) {
+    const groups = new Map();
+    for (const subject of subjects) {
+      const key = String(targetBySubject.get(subject));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(subject);
+    }
+    for (const group of groups.values()) {
+      group.sort();
+      group.forEach((subject, index) => folds[index % folds.length].push(subject));
+    }
+  } else {
+    subjects.slice().sort().forEach((subject, index) => folds[index % folds.length].push(subject));
+  }
+  return folds.filter((fold) => fold.length);
+}
+
+function predictionTarget(metadata, protocol) {
+  const targetBySubject = new Map();
+  if (protocol.outcomeType === 'binary' || protocol.outcomeType === 'multiclass') {
+    const levels = naturalOrder(metadata.map((row) => row.outcome));
+    for (const row of metadata) if (row.outcome) targetBySubject.set(row.subjectId, row.outcome);
+    return { targetBySubject, levels, categorical: true };
+  }
+  if (['continuous','count'].includes(protocol.outcomeType)) {
+    for (const row of metadata) {
+      const value = finiteNumber(row.outcome);
+      if (Number.isFinite(value)) targetBySubject.set(row.subjectId, value);
+    }
+    return { targetBySubject, levels: [], categorical: false };
+  }
+  return { targetBySubject, levels: [], categorical: false };
+}
+
+function selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects, target, protocol, maxPerLayer = 12) {
+  const trainSet = new Set(trainSubjects);
+  const selected = [];
+  for (const layer of loadedLayers) {
+    const scored = [];
+    for (const feature of aggregatedByLayer[layer].features) {
+      const entries = subjectEndpointRows(aggregatedByLayer[layer], feature, protocol.outcomeTimepoint || '');
+      const usable = entries.filter((entry) => trainSet.has(entry.subjectId) && target.targetBySubject.has(entry.subjectId));
+      if (usable.length < Math.max(5, Math.ceil(trainSubjects.length * 0.50))) continue;
+      const x = usable.map((entry) => entry.value);
+      let score = 0;
+      if (protocol.outcomeType === 'binary') {
+        const levels = target.levels;
+        const a = usable.filter((entry) => target.targetBySubject.get(entry.subjectId) === levels[0]).map((entry) => entry.value);
+        const b = usable.filter((entry) => target.targetBySubject.get(entry.subjectId) === levels[1]).map((entry) => entry.value);
+        if (a.length < 2 || b.length < 2) continue;
+        const pooled = Math.sqrt(Math.max(1e-12, ((a.length - 1) * variance(a) + (b.length - 1) * variance(b)) / Math.max(1, a.length + b.length - 2)));
+        score = Math.abs(mean(b) - mean(a)) / pooled;
+      } else if (protocol.outcomeType === 'multiclass') {
+        const groups = target.levels.map((level) =>
+          usable.filter((entry) => target.targetBySubject.get(entry.subjectId) === level).map((entry) => entry.value)
+        );
+        if (groups.some((group) => group.length < 2)) continue;
+        score = oneWayF(groups);
+      } else {
+        const y = usable.map((entry) => target.targetBySubject.get(entry.subjectId));
+        score = Math.abs(pearson(x,y));
+      }
+      if (Number.isFinite(score)) scored.push({ layer, feature, score });
+    }
+    scored.sort((a,b) => b.score - a.score);
+    selected.push(...scored.slice(0, maxPerLayer));
+  }
+  return selected;
+}
+
+function predictionMatrix(selected, aggregatedByLayer, subjects, trainSubjects, protocol) {
+  const trainSet = new Set(trainSubjects);
+  const columns = [];
+  for (const item of selected) {
+    const entries = subjectEndpointRows(aggregatedByLayer[item.layer], item.feature, protocol.outcomeTimepoint || '');
+    const map = new Map(entries.map((entry) => [entry.subjectId, entry.value]));
+    const trainValues = trainSubjects.map((subject) => map.get(subject)).filter(Number.isFinite);
+    if (trainValues.length < 2) continue;
+    const center = mean(trainValues);
+    const sd = Math.sqrt(variance(trainValues));
+    if (!(sd > 0)) continue;
+    columns.push({
+      ...item,
+      center,
+      sd,
+      values: subjects.map((subject) => {
+        const value = map.get(subject);
+        return Number.isFinite(value) ? (value - center) / sd : 0;
+      })
+    });
+  }
+  const design = subjects.map((_, i) => [1, ...columns.map((column) => column.values[i])]);
+  return { design, columns };
+}
+
+function predictFromBeta(design, beta, family) {
+  const eta = multiplyMatrixVector(design, beta);
+  if (family === 'binomial') return eta.map((value) => 1 / (1 + Math.exp(-Math.max(-30, Math.min(30, value)))));
+  if (family === 'poisson') return eta.map((value) => Math.exp(Math.max(-20, Math.min(20, value))));
+  return eta;
+}
+
+function validationLoss(protocol, truth, predictions, levels = []) {
+  if (protocol.outcomeType === 'binary') {
+    const y = truth.map((value) => value === levels[1] ? 1 : 0);
+    const eps = 1e-8;
+    return -mean(y.map((value, i) => value * Math.log(Math.max(eps, predictions[i])) + (1 - value) * Math.log(Math.max(eps, 1 - predictions[i]))));
+  }
+  if (protocol.outcomeType === 'multiclass') {
+    return 1 - mean(truth.map((value, i) => predictions[i] === value ? 1 : 0));
+  }
+  return Math.sqrt(mean(truth.map((value, i) => (Number(value) - predictions[i]) ** 2)));
+}
+
+function fitPredictiveModel(design, truth, protocol, levels, lambda) {
+  if (protocol.outcomeType === 'binary') {
+    const response = truth.map((value) => value === levels[1] ? 1 : 0);
+    return ridgeGlmFit(design, response, 'binomial', lambda);
+  }
+  if (protocol.outcomeType === 'count') return ridgeGlmFit(design, truth.map(Number), 'poisson', lambda);
+  if (protocol.outcomeType === 'continuous') return ridgeLinearFit(design, truth.map(Number), lambda);
+  if (protocol.outcomeType === 'multiclass') {
+    const models = [];
+    for (const level of levels) {
+      const response = truth.map((value) => value === level ? 1 : 0);
+      const fit = ridgeGlmFit(design, response, 'binomial', lambda);
+      if (!fit) return null;
+      models.push({ level, beta: fit.beta });
+    }
+    return { models };
+  }
+  return null;
+}
+
+function predictModel(model, design, protocol) {
+  if (!model) return [];
+  if (protocol.outcomeType === 'multiclass') {
+    const probabilities = model.models.map((entry) => ({
+      level: entry.level,
+      values: predictFromBeta(design, entry.beta, 'binomial')
+    }));
+    return design.map((_, i) => probabilities.slice().sort((a,b) => b.values[i] - a.values[i])[0].level);
+  }
+  const family = protocol.outcomeType === 'binary' ? 'binomial' : protocol.outcomeType === 'count' ? 'poisson' : 'gaussian';
+  return predictFromBeta(design, model.beta, family);
+}
+
+function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, protocol) {
+  if (protocol.objective !== 'outcome' || !['binary','continuous','count','multiclass'].includes(protocol.outcomeType)) {
+    return protocol.objective === 'outcome'
+      ? { status: 'not_available', reason: 'Cross-validated prediction is currently implemented for binary, continuous, count and multiclass outcomes; survival remains association-only.' }
+      : null;
+  }
+  const target = predictionTarget(metadata, protocol);
+  const subjects = [...target.targetBySubject.keys()].filter((subject) =>
+    loadedLayers.some((layer) => [...aggregatedByLayer[layer].sampleMeta.values()].some((row) => row.subjectId === subject))
+  ).sort();
+  if (subjects.length < 12) return { status: 'not_available', reason: 'At least 12 subjects with outcome data are required for nested cross-validation.' };
+
+  const categorical = ['binary','multiclass'].includes(protocol.outcomeType);
+  const outerFolds = deterministicFolds(subjects, target.targetBySubject, Math.min(5, subjects.length), categorical);
+  const lambdas = [0.01,0.1,1,10];
+  const predictions = [];
+  const foldSummaries = [];
+
+  for (let foldIndex = 0; foldIndex < outerFolds.length; foldIndex += 1) {
+    const testSubjects = outerFolds[foldIndex];
+    const testSet = new Set(testSubjects);
+    const trainSubjects = subjects.filter((subject) => !testSet.has(subject));
+    const selected = selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects, target, protocol, 12);
+    if (!selected.length) continue;
+
+    const innerFolds = deterministicFolds(trainSubjects, target.targetBySubject, Math.min(4, trainSubjects.length), categorical);
+    let bestLambda = lambdas[0];
+    let bestLoss = Infinity;
+    for (const lambda of lambdas) {
+      const losses = [];
+      for (const innerTest of innerFolds) {
+        const innerTestSet = new Set(innerTest);
+        const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
+        if (innerTrain.length < 5 || !innerTest.length) continue;
+        const trainMatrix = predictionMatrix(selected, aggregatedByLayer, innerTrain, innerTrain, protocol);
+        const testMatrix = predictionMatrix(selected, aggregatedByLayer, innerTest, innerTrain, protocol);
+        if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
+        const trainTruth = innerTrain.map((subject) => target.targetBySubject.get(subject));
+        const testTruth = innerTest.map((subject) => target.targetBySubject.get(subject));
+        const model = fitPredictiveModel(trainMatrix.design, trainTruth, protocol, target.levels, lambda);
+        if (!model) continue;
+        const pred = predictModel(model, testMatrix.design, protocol);
+        losses.push(validationLoss(protocol, testTruth, pred, target.levels));
+      }
+      const loss = mean(losses);
+      if (Number.isFinite(loss) && loss < bestLoss) {
+        bestLoss = loss;
+        bestLambda = lambda;
+      }
+    }
+
+    const trainMatrix = predictionMatrix(selected, aggregatedByLayer, trainSubjects, trainSubjects, protocol);
+    const testMatrix = predictionMatrix(selected, aggregatedByLayer, testSubjects, trainSubjects, protocol);
+    if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
+    const trainTruth = trainSubjects.map((subject) => target.targetBySubject.get(subject));
+    const testTruth = testSubjects.map((subject) => target.targetBySubject.get(subject));
+    const model = fitPredictiveModel(trainMatrix.design, trainTruth, protocol, target.levels, bestLambda);
+    if (!model) continue;
+    const pred = predictModel(model, testMatrix.design, protocol);
+    testSubjects.forEach((subject, i) => predictions.push({ subjectId: subject, truth: testTruth[i], prediction: pred[i], fold: foldIndex + 1 }));
+    foldSummaries.push({
+      fold: foldIndex + 1,
+      trainingSubjects: trainSubjects.length,
+      testSubjects: testSubjects.length,
+      selectedFeatures: selected.length,
+      lambda: bestLambda,
+      innerLoss: bestLoss
+    });
+  }
+
+  if (predictions.length < Math.max(8, subjects.length * 0.6)) return { status: 'not_available', reason: 'Too few outer-fold predictions were estimable.' };
+
+  let metrics;
+  if (protocol.outcomeType === 'binary') {
+    const labels = predictions.map((item) => item.truth === target.levels[1] ? 1 : 0);
+    const scores = predictions.map((item) => item.prediction);
+    metrics = {
+      auc: aucScore(labels, scores),
+      accuracy: mean(labels.map((value, i) => (scores[i] >= 0.5 ? 1 : 0) === value ? 1 : 0)),
+      logLoss: validationLoss(protocol, predictions.map((item) => item.truth), scores, target.levels)
+    };
+  } else if (protocol.outcomeType === 'multiclass') {
+    metrics = {
+      accuracy: mean(predictions.map((item) => item.truth === item.prediction ? 1 : 0))
+    };
+  } else {
+    const truth = predictions.map((item) => Number(item.truth));
+    const pred = predictions.map((item) => Number(item.prediction));
+    const rmse = Math.sqrt(mean(truth.map((value, i) => (value - pred[i]) ** 2)));
+    const baseline = mean(truth);
+    const ssRes = truth.reduce((sum, value, i) => sum + (value - pred[i]) ** 2, 0);
+    const ssTot = truth.reduce((sum, value) => sum + (value - baseline) ** 2, 0);
+    metrics = { rmse, r2: ssTot > 0 ? 1 - ssRes / ssTot : null };
+  }
+
+  return {
+    status: 'ok',
+    method: 'nested cross-validation with training-only feature selection and ridge regularisation',
+    outcomeType: protocol.outcomeType,
+    subjects: subjects.length,
+    outerFolds: foldSummaries.length,
+    metrics,
+    predictions,
+    foldSummaries,
+    caveat: 'This is predictive validation, separate from feature-wise association. External validation is still required before clinical use.'
+  };
+}
+
 function explorationLayerResult(aggregated, exploration, layer) {
   const loadings = exploration.components?.[0]?.layerTopLoadings?.[layer]
     || exploration.components?.[0]?.topLoadings?.filter((item) => item.layer === layer)
@@ -2824,6 +3143,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     metadata,
     protocol
   );
+  const predictiveOutcome = analysePredictiveOutcome(
+    aggregatedByLayer,
+    loadedLayers,
+    metadata,
+    protocol
+  );
 
   let crossOmics;
   if (protocol.objective === 'explore') {
@@ -2914,6 +3239,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     layers,
     exploration,
     supervisedIntegration,
+    predictiveOutcome,
     crossOmics,
     selectedIds,
     reactomeIds,
