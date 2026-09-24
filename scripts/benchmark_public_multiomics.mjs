@@ -703,5 +703,158 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   };
 }
 
+// --- PaintOmics planted multi-omics truth: independent RNA/protein layers should converge on the same planted module ---
+{
+  const paintRoot = process.env.PAINTOMICS_ROOT || 'external/PaintOmics';
+  const datasetRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration\`;
+  const readList = async (path) => (await fs.readFile(path, 'utf8'))
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter((x) => x && !x.startsWith('#'));
+
+  const geneRelevant = await readList(\`\${datasetRoot}/data/gene_expression_relevant.tab\`);
+  const proteinRelevant = await readList(\`\${datasetRoot}/data/proteomics_relevant.tab\`);
+  const metaboliteRelevant = await readList(\`\${datasetRoot}/data/metabolomics_relevant.tab\`);
+  const planted = new Set(await readList(\`\${datasetRoot}/expected/signal_features.txt\`));
+  const expectedPathways = await readList(\`\${datasetRoot}/expected/expected_pathways.txt\`);
+
+  const proteinSet = new Set(proteinRelevant);
+  const sharedGeneProtein = geneRelevant.filter((id) => proteinSet.has(id));
+  const sharedPlanted = sharedGeneProtein.filter((id) => planted.has(id));
+  const plantedFraction = sharedGeneProtein.length ? sharedPlanted.length / sharedGeneProtein.length : 0;
+
+  requireTruth(
+    planted.size === 324,
+    'PaintOmics planted multi-omics fixture exposes the recorded 324-feature ground truth',
+    \`planted=\${planted.size}\`
+  );
+  requireTruth(
+    sharedGeneProtein.length >= 80 && plantedFraction >= 0.85,
+    'PaintOmics RNA/protein relevant sets converge on the planted module',
+    \`shared=\${sharedGeneProtein.length}, planted-shared=\${sharedPlanted.length} (\${(100*plantedFraction).toFixed(1)}%)\`
+  );
+  requireTruth(
+    metaboliteRelevant.length === 496 && expectedPathways.length === 8,
+    'PaintOmics fixture preserves the recorded metabolite and pathway truth sets',
+    \`metabolites=\${metaboliteRelevant.length}, pathways=\${expectedPathways.length}\`
+  );
+
+  report.benchmarks.paintOmicsPlanted = {
+    truth: 'Simulated five-omics PaintOmics fixture with a shared planted signal; benchmark uses the three molecular layers supported by the current PMx engine.',
+    plantedFeatures: planted.size,
+    geneRelevant: geneRelevant.length,
+    proteinRelevant: proteinRelevant.length,
+    metaboliteRelevant: metaboliteRelevant.length,
+    sharedGeneProtein: sharedGeneProtein.length,
+    sharedGeneProteinPlanted: sharedPlanted.length,
+    sharedGeneProteinPlantedFraction: plantedFraction,
+    expectedPathways: expectedPathways.length
+  };
+}
+
+// --- STATegra sample-level metabolomics: verify replicate design and direction against the public six-timepoint summary ---
+{
+  const paintRoot = process.env.PAINTOMICS_ROOT || 'external/PaintOmics';
+  const replicateRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data\`;
+  const summaryRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data\`;
+
+  const design = parseDelimited(await fs.readFile(\`\${replicateRoot}/experimental_design.tab\`, 'utf8'));
+  const replicateMatrix = parseDelimited(await fs.readFile(\`\${replicateRoot}/metabolomics_replicates.tab\`, 'utf8'));
+  const summaryMatrix = parseDelimited(await fs.readFile(\`\${summaryRoot}/metabolomics_values.tab\`, 'utf8'));
+  const relevantMetabolites = (await fs.readFile(\`\${replicateRoot}/metabolomics_relevant.tab\`, 'utf8'))
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter((x) => x && !x.startsWith('#'));
+
+  const sampleColumn = design.headers[0];
+  const conditionColumn = design.headers[1];
+  const conditionCounts = new Map();
+  for (const row of design.rows) {
+    const condition = row[conditionColumn];
+    conditionCounts.set(condition, (conditionCounts.get(condition) || 0) + 1);
+  }
+
+  requireTruth(
+    design.rows.length === 36 && conditionCounts.size === 12 && [...conditionCounts.values()].every((n) => n === 3),
+    'STATegra replicate design preserves 12 condition-time cells with three biological replicates each',
+    \`samples=\${design.rows.length}, cells=\${conditionCounts.size}, replicates=\${[...new Set(conditionCounts.values())].join('/')}\`
+  );
+  requireTruth(
+    replicateMatrix.rows.length === 58 && replicateMatrix.headers.length - 1 === 36 && relevantMetabolites.length === 34,
+    'STATegra replicate matrix preserves the published 58-metabolite panel and 34-feature relevant set',
+    \`features=\${replicateMatrix.rows.length}, sample-columns=\${replicateMatrix.headers.length-1}, relevant=\${relevantMetabolites.length}\`
+  );
+
+  const repId = replicateMatrix.headers[0];
+  const summaryId = summaryMatrix.headers[0];
+  const summaryByName = new Map(summaryMatrix.rows.map((row) => [String(row[summaryId]).toLowerCase(), row]));
+  const times = ['0','2','6','12','18','24'];
+  const mean = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  let comparable = 0;
+  let concordant = 0;
+  const scaleRatios = [];
+
+  for (const row of replicateMatrix.rows) {
+    const summaryRow = summaryByName.get(String(row[repId]).toLowerCase());
+    if (!summaryRow) continue;
+    for (const time of times) {
+      const ctr = replicateMatrix.headers
+        .filter((header) => header.startsWith(\`Ctr_\${time}H_\`))
+        .map((header) => Number(row[header]))
+        .filter(Number.isFinite);
+      const ik = replicateMatrix.headers
+        .filter((header) => header.startsWith(\`Ik_\${time}H_\`))
+        .map((header) => Number(row[header]))
+        .filter(Number.isFinite);
+      const summaryColumn = \`IKvsCtr_\${time}h\`;
+      const published = Number(summaryRow[summaryColumn]);
+      if (ctr.length !== 3 || ik.length !== 3 || !Number.isFinite(published)) continue;
+      const derived = mean(ik) - mean(ctr);
+      if (Math.abs(derived) < 1e-12 || Math.abs(published) < 1e-12) continue;
+      comparable += 1;
+      if (Math.sign(derived) === Math.sign(published)) concordant += 1;
+      if (Math.abs(published) >= 0.05 && Math.sign(derived) === Math.sign(published)) {
+        scaleRatios.push(Math.abs(derived / published));
+      }
+    }
+  }
+
+  scaleRatios.sort((a,b) => a-b);
+  const medianScaleRatio = scaleRatios.length
+    ? (scaleRatios.length % 2
+        ? scaleRatios[(scaleRatios.length-1)/2]
+        : (scaleRatios[scaleRatios.length/2-1] + scaleRatios[scaleRatios.length/2]) / 2)
+    : null;
+  const directionConcordance = comparable ? concordant / comparable : 0;
+
+  requireTruth(
+    comparable >= 300 && directionConcordance >= 0.95,
+    'STATegra replicate-level Ikaros-minus-control trajectories agree in direction with the public multi-omics summary',
+    \`n=\${comparable}, concordance=\${(100*directionConcordance).toFixed(1)}%\`
+  );
+
+  if (medianScaleRatio != null && Math.abs(medianScaleRatio - 1) > 0.20) {
+    console.warn(
+      \`PUBLIC BENCHMARK NOTE: STATegra replicate and summary files agree in direction but not numeric scale (median |replicate contrast / summary contrast|=\${medianScaleRatio.toFixed(3)}). The engine must therefore treat uploaded scale declarations explicitly rather than assuming these public files are numerically interchangeable.\`
+    );
+  }
+
+  report.benchmarks.stategraReplicates = {
+    truth: 'Real STATegra metabolomics with 36 sample-level observations: control vs Ikaros, six time points, three biological replicates per cell.',
+    sampleColumn,
+    samples: design.rows.length,
+    conditionTimeCells: conditionCounts.size,
+    replicatesPerCell: [...new Set(conditionCounts.values())],
+    metabolites: replicateMatrix.rows.length,
+    relevantMetabolites: relevantMetabolites.length,
+    comparableTrajectoryPoints: comparable,
+    directionConcordance,
+    medianAbsoluteScaleRatioVsSummary: medianScaleRatio,
+    scaleNote: medianScaleRatio != null && Math.abs(medianScaleRatio - 1) > 0.20
+      ? 'Direction is reproducible, but the two public processed representations are not on the same numeric scale; do not merge them without an explicit scale declaration.'
+      : null
+  };
+}
+
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS BENCHMARK SUITE: PASS');
