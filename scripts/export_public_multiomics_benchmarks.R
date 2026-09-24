@@ -200,6 +200,13 @@ if (file.exists(missrows_file)) {
 
   trans <- t(as.matrix(NCI60$dataTables$trans))
   prote <- t(as.matrix(NCI60$dataTables$prote))
+  top_variable_columns <- function(x, n = 120L) {
+    vars <- apply(x, 2, stats::var, na.rm = TRUE)
+    keep <- head(order(vars, decreasing = TRUE, na.last = NA), min(n, ncol(x)))
+    x[, keep, drop = FALSE]
+  }
+  trans <- top_variable_columns(trans)
+  prote <- top_variable_columns(prote)
   write_matrix(
     trans,
     colnames(trans),
