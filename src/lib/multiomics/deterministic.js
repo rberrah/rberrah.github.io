@@ -1908,7 +1908,9 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
     const status = reasons.length ? 'confounded' : 'multiple_batches_adjusted';
     const note = reasons.length
       ? `Inference is blocked because ${reasons.join(' and ')}.`
-      : 'Multiple technical batches are present and are adjusted feature-wise by deterministic OLS residualisation before biological inference.';
+      : protocol.objective === 'outcome'
+        ? 'Multiple technical batches are present and enter each outcome model directly as nuisance covariates.'
+        : 'Multiple technical batches are present and are adjusted feature-wise by deterministic OLS residualisation before biological inference.';
 
     perLayer[layer] = {
       status,
