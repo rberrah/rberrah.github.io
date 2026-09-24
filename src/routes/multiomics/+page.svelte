@@ -176,42 +176,49 @@
       name: 'Ensembl',
       scope: 'genes',
       role: 'Resolve Ensembl IDs and gene symbols, confirm species and canonical gene annotations.',
+      status: 'registry target · not called automatically yet',
       url: 'https://rest.ensembl.org/documentation/'
     },
     {
       name: 'UniProt',
       scope: 'proteins',
       role: 'Resolve protein accessions and cross-reference proteins to genes, Ensembl, Reactome and other resources.',
+      status: 'registry target · not called automatically yet',
       url: 'https://www.uniprot.org/help/id_mapping'
     },
     {
       name: 'ChEBI',
       scope: 'metabolites',
       role: 'Resolve curated chemical entities, synonyms, structures and ontology relationships.',
+      status: 'live in the current engine',
       url: 'https://www.ebi.ac.uk/chebi/tools'
     },
     {
       name: 'UniChem',
       scope: 'metabolites',
       role: 'Cross-reference chemical identifiers between databases when the uploaded metabolite identifier is not ChEBI.',
+      status: 'registry target · not called automatically yet',
       url: 'https://www.ebi.ac.uk/unichem/'
     },
     {
       name: 'KEGG',
       scope: 'pathways · optional',
       role: 'Optional academic-use cross-reference and pathway/reaction annotation. KEGG REST access is rate-limited and is not used as the core engine of the public MVP.',
+      status: 'optional registry target · not called automatically yet',
       url: 'https://www.kegg.jp/kegg/rest/'
     },
     {
       name: 'Reactome',
       scope: 'pathways',
       role: 'Map genes, proteins and ChEBI entities onto common pathways and reactions for integrated pathway interpretation.',
+      status: 'live in the current engine',
       url: 'https://reactome.org/dev/analysis'
     },
     {
       name: 'STRING',
       scope: 'network',
       role: 'Build compact protein interaction modules after identifier resolution; not used as a substitute for the measured data.',
+      status: 'registry target · not called automatically yet',
       url: 'https://string-db.org/help/api/'
     }
   ];
@@ -1029,7 +1036,7 @@
     <div class="demo-card">
       <p class="eyebrow">Built-in demonstration</p>
       <h3>Treatment × time, three omics</h3>
-      <p>4 subjects, two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
+      <p>8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
       <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>Load the demo locally</button>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
@@ -1454,7 +1461,7 @@
     <div class="database-grid">
       {#each databaseRegistry as db}
         <article>
-          <span>{db.scope}</span>
+          <span>{db.scope} · {db.status}</span>
           <h3>{db.name}</h3>
           <p>{db.role}</p>
           <a href={db.url} target="_blank" rel="noreferrer">Official API / documentation ↗</a>
@@ -1467,7 +1474,7 @@
       <code>{proteomicsIdType}</code>
       <b>+</b>
       <code>{metabolomicsIdType}</code>
-      <span>→ resolve & cross-reference → Reactome pathways → compact STRING modules → integrated interpretation</span>
+      <span>→ current engine: conservative ChEBI resolution for metabolites (optional) → Reactome pathway integration. Ensembl, UniProt, UniChem, KEGG and STRING are explicit registry targets, not hidden automatic calls.</span>
     </div>
   </div>
 </section>
