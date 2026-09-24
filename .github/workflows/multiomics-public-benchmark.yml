@@ -57,6 +57,23 @@ jobs:
             data/AgingHFCD_RNAseq.RData
             data/AgingHFCD_Proteomics.RData
             data/AgingHFCD_Metabolomics.RData
+            data/LRRK2_Neuron_RNA.RData
+            data/LRRK2_Neuron_Protein.RData
+
+      - name: Checkout STATegra processed public benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: ConesaLab/PaintOmics
+          ref: master
+          path: external/PaintOmics
+          sparse-checkout: |
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/README.md
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/gene_expression_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/proteomics_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/metabolomics_values.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/gene_expression_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/proteomics_relevant.tab
+            PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data/metabolomics_relevant.tab
 
       - name: Checkout Bioconductor missRows benchmark
         uses: actions/checkout@v5
@@ -81,6 +98,8 @@ jobs:
           MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes MISSROWS_ROOT=external/missRows XOMICS_ROOT=external/xOmicsShiny Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
 
       - name: Run PMx deterministic engine
+        env:
+          PAINTOMICS_ROOT: external/PaintOmics
         run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
 
       - name: Upload benchmark report
