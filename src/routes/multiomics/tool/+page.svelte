@@ -693,6 +693,88 @@
     URL.revokeObjectURL(href);
   }
 
+  function buildInterpretation(result, lang) {
+    const pick = (fr, en) => lang === 'en' ? en : fr;
+    const items = [];
+    if (result.protocol?.objective === 'explore' && result.exploration?.components?.length) {
+      const pc1 = result.exploration.components[0];
+      const pct = Number.isFinite(pc1.explainedFraction) ? (100 * pc1.explainedFraction).toFixed(1) : '—';
+      items.push({
+        title: pick('Axe latent principal', 'Main latent axis'),
+        text: pick(
+          'PC1 résume ' + pct + ' % de la variance multi-blocs pondérée chez ' + result.exploration.subjects + ' sujets communs. Les variables avec les plus grands |loadings| sont celles qui structurent le plus cet axe.',
+          'PC1 summarizes ' + pct + '% of the balanced multi-block variance across ' + result.exploration.subjects + ' shared subjects. Features with the largest absolute loadings contribute most to this axis.'
+        )
+      });
+      items.push({
+        title: pick('Attention au signe', 'Sign is arbitrary'),
+        text: pick('Le signe d’un axe de PCA peut être inversé sans changer le résultat. Interprétez surtout la magnitude des loadings, la séparation des scores et la contribution des différentes omiques.', 'A PCA axis can be sign-flipped without changing the result. Focus on loading magnitude, score separation and contributions from the different omics layers.')
+      });
+    } else if (result.protocol?.objective === 'outcome') {
+      const mode = result.protocol?.outcomeType || 'continuous';
+      const effectText = {
+        binary: pick('exp(effect) est un odds ratio.', 'exp(effect) is an odds ratio.'),
+        count: pick('exp(effect) est un rate ratio.', 'exp(effect) is a rate ratio.'),
+        survival: pick('exp(effect) est un hazard ratio.', 'exp(effect) is a hazard ratio.'),
+        continuous: pick('effect est la variation attendue de l’outcome pour une unité de la variable omique.', 'effect is the expected outcome change per one feature unit.'),
+        multiclass: pick('effect est l’écart maximal entre moyennes ajustées des classes.', 'effect is the maximum difference between adjusted class means.')
+      }[mode] || '';
+      items.push({
+        title: pick('Association avec l’outcome', 'Outcome association'),
+        text: pick('Chaque variable est testée avec le modèle déterminé par le type d’outcome. ', 'Each feature is tested with the model selected from the outcome type. ') + effectText
+      });
+      items.push({
+        title: pick('Covariables', 'Covariates'),
+        text: result.protocol?.covariateColumns?.length
+          ? pick('Le modèle ajuste explicitement : ', 'The model explicitly adjusts for: ') + result.protocol.covariateColumns.join(', ') + '.'
+          : pick('Aucune covariable supplémentaire n’a été sélectionnée.', 'No additional covariates were selected.')
+      });
+    } else {
+      items.push({
+        title: pick('Effet biologique', 'Biological effect'),
+        text: pick('L’effet indique la direction et l’amplitude du contraste après prétraitement et ajustement des facteurs techniques/covariables déclarés. Pour une échelle log2, le fold ratio est 2^effect.', 'The effect gives the direction and magnitude of the contrast after preprocessing and declared technical/covariate adjustment. On a log2 scale, fold ratio equals 2^effect.')
+      });
+      items.push({
+        title: pick('Significativité', 'Statistical evidence'),
+        text: pick('La colonne q BH corrige les tests multiples. q ≤ 0,10 est utilisé ici comme seuil exploratoire ; il ne remplace ni la taille d’effet ni la plausibilité biologique.', 'BH q-values adjust for multiple testing. q ≤ 0.10 is used here as an exploratory threshold; it does not replace effect size or biological plausibility.')
+      });
+    }
+
+    const adjusted = Object.entries(result.metadataSummary?.adjustment || {})
+      .filter(([, value]) => value?.applied)
+      .map(([layer]) => omicLabel(layer));
+    if (adjusted.length) {
+      items.push({
+        title: pick('Ajustement technique', 'Technical adjustment'),
+        text: pick('Une résidualisation OLS a été appliquée avant l’inférence pour : ', 'OLS residualisation was applied before inference for: ') + adjusted.join(', ') + '.'
+      });
+    }
+
+    if (result.crossOmics?.significantPairs > 0) {
+      items.push({
+        title: pick('Relations inter-omiques', 'Cross-omics relationships'),
+        text: pick(
+          result.crossOmics.significantPairs + ' paire(s) présentent un changement de corrélation avec q ≤ 0,10. Cela signale une relation condition-dépendante, pas une causalité.',
+          result.crossOmics.significantPairs + ' pair(s) show a correlation change at q ≤ 0.10. This indicates condition-dependent coupling, not causality.'
+        )
+      });
+    }
+
+    const topPathway = result.reactome?.consensus?.[0];
+    if (topPathway) {
+      items.push({
+        title: pick('Voies biologiques', 'Biological pathways'),
+        text: pick('La voie la mieux classée est « ' + topPathway.name + ' », soutenue par ' + topPathway.supportingLayers + ' couche(s) à FDR ≤ 0,10. Le classement Reactome reste exploratoire et dépend de l’univers d’annotation.', 'The top-ranked pathway is “‘' + topPathway.name + '”', supported by ' + topPathway.supportingLayers + ' layer(s) at FDR ≤ 0.10. Reactome ranking remains exploratory and depends on the annotation universe.')
+      });
+    }
+
+    items.push({
+      title: pick('Ce que le résultat ne prouve pas', 'What the result does not prove'),
+      text: pick('Aucune causalité, mécanisme non mesuré ou vérité clinique n’est déduite automatiquement. Les résultats doivent être confrontés au design, à la qualité des données, à la taille d’échantillon et à la littérature.', 'No causality, unmeasured mechanism or clinical truth is inferred automatically. Results must be interpreted against study design, data quality, sample size and external evidence.')
+    });
+    return items;
+  }
+
   $: inferredTranscriptomicsId = inferFeatureIdType('transcriptomics');
   $: inferredProteomicsId = inferFeatureIdType('proteomics');
   $: inferredMetabolomicsId = inferFeatureIdType('metabolomics');
@@ -712,6 +794,7 @@
       : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
+  $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, $language) : [];
   $: analysisPlan = objective === 'explore'
     ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
         'preprocessing → replicate aggregation → batch/covariate adjustment → within-layer scaling → balanced multi-block PCA → loadings → Reactome')
