@@ -771,13 +771,16 @@
       });
     }
 
-    const adjusted = Object.entries(result.metadataSummary?.adjustment || {})
-      .filter(([, value]) => value?.applied)
-      .map(([layer]) => omicLabel(layer));
-    if (adjusted.length) {
+    const adjustedEntries = Object.entries(result.metadataSummary?.adjustment || {})
+      .filter(([, value]) => value?.applied);
+    if (adjustedEntries.length) {
+      const adjusted = adjustedEntries.map(([layer]) => omicLabel(layer));
+      const directOutcome = adjustedEntries.some(([, value]) => String(value?.method || '').includes('direct nuisance'));
       items.push({
         title: pick('Ajustement technique', 'Technical adjustment'),
-        text: pick('Une résidualisation OLS a été appliquée avant l’inférence pour : ', 'OLS residualisation was applied before inference for: ') + adjusted.join(', ') + '.'
+        text: directOutcome
+          ? pick('Batch et covariables sélectionnées entrent directement dans les modèles d’outcome pour : ', 'Batch and selected covariates enter the outcome models directly for: ') + adjusted.join(', ') + '.'
+          : pick('Une résidualisation OLS a été appliquée avant l’inférence pour : ', 'OLS residualisation was applied before inference for: ') + adjusted.join(', ') + '.'
       });
     }
 
