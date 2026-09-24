@@ -599,12 +599,17 @@ function naturalOrder(values) {
   });
 }
 
-function canonicalMetadata(metadataRows, columnMapping) {
+function canonicalMetadata(metadataRows, columnMapping, covariateColumns = []) {
   return metadataRows.map((row) => {
     const get = (key) => {
       const column = columnMapping[key];
       return column ? normaliseText(row[column]) : '';
     };
+    const covariates = Object.fromEntries(
+      covariateColumns
+        .filter((column) => column && Object.prototype.hasOwnProperty.call(row, column))
+        .map((column) => [column, normaliseText(row[column])])
+    );
     return {
       subjectId: get('subject_id'),
       sampleId: get('sample_id'),
@@ -614,7 +619,10 @@ function canonicalMetadata(metadataRows, columnMapping) {
       timepoint: get('timepoint'),
       batch: get('batch'),
       technicalReplicate: get('technical_replicate'),
-      outcome: get('outcome')
+      outcome: get('outcome'),
+      survivalTime: get('survival_time'),
+      survivalEvent: get('survival_event'),
+      covariates
     };
   }).filter((row) => row.subjectId && row.sampleId && row.assayId && LAYERS.includes(row.omic));
 }
