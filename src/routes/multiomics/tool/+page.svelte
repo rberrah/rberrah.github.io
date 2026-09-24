@@ -1853,9 +1853,11 @@
                 ? result.inferenceMethod
                 : result.mode?.startsWith('outcome-')
                   ? `${result.mode} · ${result.inferenceMethod || 'model'}`
-                  : result.mode === 'multi-group-permutation-anova'
-                    ? `group sizes: ${result.groupSizes.join(' / ')} · ${result.inferenceMethod || result.mode}`
-                    : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode} · ${result.inferenceMethod || 'inference'}`}
+                  : result.mode?.includes('multi-group')
+                    ? `${t('tailles des groupes', 'group sizes')}: ${result.groupSizes.join(' / ')} · ${result.inferenceMethod || result.mode}`
+                    : result.mode === 'random-intercept-longitudinal-model'
+                      ? `${result.mode} · ${result.inferenceMethod || 'mixed model'}`
+                      : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode} · ${result.inferenceMethod || 'inference'}`}
             </p>
             <div class="preprocess-list">
               {#each result.steps as step}<span>{step}</span>{/each}
