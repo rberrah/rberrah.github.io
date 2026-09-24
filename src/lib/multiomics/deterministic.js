@@ -1,5 +1,6 @@
 // @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
+const MULTIOMICS_ENGINE_VERSION = '1.1.0';
 const CHEBI_SEARCH_URL = 'https://www.ebi.ac.uk/chebi/backend/api/public/es_search/';
 const metaboliteResolutionCache = new Map();
 
@@ -3202,6 +3203,13 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
 }
 
 export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
+  const inputManifest = {
+    metadata: {
+      name: files.metadata?.name || 'metadata',
+      rows: metadataRows.length,
+      fingerprint: 'fnv1a32:' + hashString(JSON.stringify(metadataRows)).toString(16).padStart(8, '0')
+    }
+  };
   const covariateColumns = Array.isArray(protocol.covariateColumns) ? protocol.covariateColumns.filter(Boolean) : [];
   const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns);
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
@@ -3262,6 +3270,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   for (const layer of loadedLayers) {
     const expected = metadata.filter((row) => row.omic === layer).map((row) => row.assayId);
     const text = await files[layer].text();
+    inputManifest[layer] = {
+      name: files[layer]?.name || layer,
+      bytes: Number(files[layer]?.size || text.length),
+      fingerprint: 'fnv1a32:' + hashString(text).toString(16).padStart(8, '0')
+    };
     const matrix = matrixFromText(text, expected);
     const layerMetadata = metadata.filter((row) => row.omic === layer);
     const qcPrepared = prepareMatrixQc(matrix, layer, dataTypes[layer], layerMetadata);
@@ -3491,6 +3504,18 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
   return {
     generatedAt: new Date().toISOString(),
+    engine: {
+      name: 'PMx Explain deterministic multi-omics engine',
+      version: MULTIOMICS_ENGINE_VERSION,
+      execution: 'browser/local deterministic JavaScript',
+      externalServices: {
+        ChEBI: resolveIdentifiers,
+        Ensembl: resolveIdentifiers,
+        UniProt: resolveIdentifiers,
+        Reactome: useReactome
+      }
+    },
+    inputManifest,
     protocol: { ...protocol, covariateColumns },
     metadataSummary: {
       subjects: new Set(metadata.map((row) => row.subjectId)).size,
