@@ -1248,10 +1248,10 @@
       <p>{t('8 sujets (4 contrôle + 4 traitement), deux temps, trois couches omiques appariées, avec un réplicat technique RNA sur le même prélèvement.', '8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.')}</p>
       <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
       <div class="demo-links">
-        <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
+        <a href={`${base}/multiomics/demo_metadata.csv`} download>{t('métadonnées', 'metadata')}</a>
         <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
-        <a href={`${base}/multiomics/demo_proteomics.csv`} download>protein</a>
-        <a href={`${base}/multiomics/demo_metabolomics.csv`} download>metabolites</a>
+        <a href={`${base}/multiomics/demo_proteomics.csv`} download>{t('protéines', 'protein')}</a>
+        <a href={`${base}/multiomics/demo_metabolomics.csv`} download>{t('métabolites', 'metabolites')}</a>
       </div>
     </div>
   </div>
@@ -1714,7 +1714,7 @@
         <p class="eyebrow">{t('Résultat intégré par voies', 'Integrated pathway result')}</p>
         <h3>{t('Reactome reçoit ensemble les identifiants de gènes, protéines et métabolites sélectionnés', 'Reactome receives the selected gene/protein/metabolite identifiers together')}</h3>
       </div>
-      <span>deterministic ORA</span>
+      <span>{t('ORA déterministe', 'deterministic ORA')}</span>
     </div>
 
     {#if analysisResult.reactome}
@@ -1736,7 +1736,7 @@
         {/each}
       </div>
       <p class="note">{t('Le classement est déterministe : nombre de couches avec FDR de voie ≤ 0,10, puis FDR Reactome combinée, puis couverture de la voie. Il s’agit d’un classement exploratoire, pas d’une probabilité postérieure ni d’un score causal.', 'Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.')}</p>
-      <p class="note"><strong>Enrichment background:</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} For targeted or pre-filtered panels, pathway p-values/FDR should therefore be interpreted as exploratory until an assay-specific universe is supported.</p>
+      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')}</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Pour les panels ciblés ou fortement préfiltrés, les p-values/FDR de voies doivent donc rester exploratoires tant qu’un univers spécifique au panel n’est pas pris en charge.', 'For targeted or pre-filtered panels, pathway p-values/FDR should therefore be interpreted as exploratory until an assay-specific universe is supported.')}</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
         <strong>{t('Les statistiques locales sont terminées ; Reactome n’a pas pu être joint.', 'Local statistics completed; Reactome could not be reached.')}</strong>
@@ -1755,7 +1755,11 @@
     </article>
     <article>
       <strong>{t('Inférence statistique', 'Statistical inference')}</strong>
-      <p>Permutation contrasts plus cross-omics Spearman correlation differences, with Benjamini–Hochberg correction.</p>
+      <p>{analysisResult.protocol?.objective === 'outcome'
+  ? t('Régression adaptée au type d’outcome avec batch/covariables comme termes de nuisance et correction Benjamini–Hochberg.', 'Outcome-specific regression with batch/covariates as nuisance terms and Benjamini–Hochberg correction.')
+  : analysisResult.protocol?.objective === 'explore'
+    ? t('ACP multi-blocs équilibrée sur les sujets communs, sans variable cible.', 'Balanced multi-block PCA across shared subjects without a target variable.')
+    : t('Contrastes déterministes adaptés au design, différences de corrélations inter-omiques de Spearman et correction Benjamini–Hochberg.', 'Design-aware deterministic contrasts, cross-omics Spearman correlation differences and Benjamini–Hochberg correction.')}</p>
     </article>
     <article>
       <strong>{t('Connaissance externe', 'External knowledge')}</strong>
@@ -1786,12 +1790,12 @@
     </div>
     <ul>
       <li><strong>Same specimen:</strong> assays are linked by <code>sample_id</code>, never by fuzzy name matching.</li>
-      <li><strong>Repeated subject:</strong> two time points use within-subject change; ≥3 numeric-labelled times use an individual slope.</li>
-      <li><strong>Paired design:</strong> within-subject differences use a sign-flip permutation test. Crossover designs are refused until period/sequence effects are modelled.</li>
+      <li><strong>{t('Sujet répété :', 'Repeated subject:')}</strong> {t('deux temps utilisent un changement intra-sujet ; ≥3 temps numériques utilisent une pente individuelle.', 'two time points use within-subject change; ≥3 numeric-labelled times use an individual slope.')}</li>
+      <li><strong>{t('Design apparié :', 'Paired design:')}</strong> {t('les différences intra-sujet utilisent un test de permutation par inversion de signe. Les crossovers restent refusés tant que période et séquence ne sont pas modélisées.', 'within-subject differences use a sign-flip permutation test. Crossover designs are refused until period/sequence effects are modelled.')}</li>
       <li><strong>Technical replicate:</strong> multiple assays with the same <code>sample_id + omic</code> are flagged before analysis.</li>
       <li><strong>{t('Batch technique :', 'Technical batch:')}</strong> {t('une confusion complète batch–condition/temps/outcome bloque l’inférence. Les batches multiples non confondus sont ajustés explicitement par résidualisation OLS variable par variable.', 'complete batch–condition/time/outcome confounding blocks inference. Multiple non-confounded batches are explicitly adjusted by feature-wise OLS residualisation.')}</li>
       <li><strong>{t('Covariables :', 'Covariates:')}</strong> {t('les colonnes sélectionnées sont intégrées explicitement à l’ajustement ou au modèle d’outcome ; aucune covariable n’est choisie automatiquement.', 'selected columns enter adjustment or outcome models explicitly; no covariate is chosen automatically.')}</li>
-      <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
+      <li><strong>{t('Omiques partielles :', 'Partial omics:')}</strong> {t('une couche absente est distinguée d’une valeur manquante dans une matrice observée.', 'absent layers are distinguished from missing values inside an observed matrix.')}</li>
       <li><strong>{t('Outcome :', 'Outcome:')}</strong> {t('le type déclaré sélectionne régression linéaire, logistique, Poisson, ANOVA multiclasse ou Cox.', 'the declared type selects linear, logistic, Poisson, multiclass ANOVA or Cox regression.')}</li>
     </ul>
   </div>
@@ -1835,7 +1839,7 @@
         <article><strong>PaintOmics planted multi-omics</strong><span>known ground truth</span><p>RNA/protein convergence is checked against a planted molecular module and recorded pathway truth set.</p></article>
         <article><strong>Bioconductor missRows NCI-60</strong><span>partial-overlap test</span><p>Confirms that only genuinely shared biological units are matched across layers.</p></article>
       </div>
-      <p class="note">The automated suite is intentionally heterogeneous: it tests biological truth, sample matching, multi-group inference, replicate structure and cross-omics statistics rather than only checking that code executes.</p>
+      <p class="note">{t('La suite automatisée est volontairement hétérogène : elle teste la vérité biologique, l’appariement des échantillons, l’inférence multi-groupes, la structure des réplicats et les statistiques inter-omiques, et pas seulement l’exécution du code.', 'The automated suite is intentionally heterogeneous: it tests biological truth, sample matching, multi-group inference, replicate structure and cross-omics statistics rather than only checking that code executes.')}</p>
       <a href="https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-public-benchmark.yml" target="_blank" rel="noreferrer">{t('Ouvrir le benchmark public ↗', 'Open the public benchmark workflow ↗')}</a>
     </details>
   </div>
