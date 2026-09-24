@@ -1254,6 +1254,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
+  if (protocol.objective === 'explore') {
+    throw new Error('Unsupervised exploratory integration is not implemented in the current deterministic engine. Validation and mapping remain available, but no surrogate group analysis was run.');
+  }
   if (protocol.objective === 'outcome') {
     throw new Error('Outcome-targeted modelling is not implemented in the current deterministic engine. No surrogate group analysis was run.');
   }
