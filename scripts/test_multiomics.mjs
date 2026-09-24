@@ -25,7 +25,9 @@ const mapping = {
   timepoint: 'timepoint',
   batch: 'batch',
   technical_replicate: 'technical_replicate',
-  outcome: 'outcome'
+  outcome: 'outcome',
+  survival_time: 'survival_time',
+  survival_event: 'survival_event'
 };
 
 const result = await runDeterministicAnalysis({
@@ -313,6 +315,169 @@ function csvFile(name, text) {
     }),
     /Technical batch confounding prevents identifiable biological inference/
   );
+}
+
+
+// Balanced batch adjustment: batch effect must be removed while preserving the biological contrast.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,age'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaValues = ['BATCH_GENE'];
+  const protValues = ['BATCH_PROTEIN'];
+  let assay = 1;
+  for (const condition of ['control','treatment']) {
+    for (const batch of ['B1','B2']) {
+      for (let s = 1; s <= 4; s += 1) {
+        const subject = condition[0].toUpperCase() + batch + s;
+        const age = 30 + s;
+        for (const layer of ['transcriptomics','proteomics']) {
+          const id = (layer === 'transcriptomics' ? 'BR' : 'BP') + assay++;
+          rows.push([subject,subject,id,layer,condition,'',batch,'1','',age].join(','));
+          const biological = condition === 'treatment' ? 2 : 0;
+          const batchEffect = batch === 'B2' ? 8 : 0;
+          const value = 5 + biological + batchEffect + s * 0.01;
+          if (layer === 'transcriptomics') {
+            rnaHeader.push(id);
+            rnaValues.push(String(value));
+          } else {
+            protHeader.push(id);
+            protValues.push(String(value + 1));
+          }
+        }
+      }
+    }
+  }
+  const meta = csvFile('balanced_batch_metadata.csv', rows.join('\n'));
+  const rna = csvFile('balanced_batch_rna.csv', [rnaHeader.join(','),rnaValues.join(',')].join('\n'));
+  const protein = csvFile('balanced_batch_protein.csv', [protHeader.join(','),protValues.join(',')].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+  const adjusted = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:metaParsed.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'groups',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:['age']},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(adjusted.metadataSummary.batchAudit.transcriptomics.status, 'multiple_batches_adjusted');
+  assert.equal(adjusted.layers.transcriptomics.adjustment.applied, true);
+  assert.ok(Math.abs(adjusted.layers.transcriptomics.rows[0].effect - 2) < 0.1);
+}
+
+// True unsupervised multi-block branch: shared latent structure across two omics.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaSignal = ['RNA_SHARED'];
+  const rnaNoise = ['RNA_NOISE'];
+  const protSignal = ['PROT_SHARED'];
+  const protNoise = ['PROT_NOISE'];
+  let assay = 1;
+  for (let s = 1; s <= 8; s += 1) {
+    const subject = 'E' + s;
+    const latent = s - 4.5;
+    for (const layer of ['transcriptomics','proteomics']) {
+      const id = (layer === 'transcriptomics' ? 'ER' : 'EP') + assay++;
+      rows.push([subject,subject,id,layer,'','',''].join(','));
+      if (layer === 'transcriptomics') {
+        rnaHeader.push(id);
+        rnaSignal.push(String(latent * 2));
+        rnaNoise.push(String((s % 3) * 0.1));
+      } else {
+        protHeader.push(id);
+        protSignal.push(String(latent * 1.5));
+        protNoise.push(String(((s + 1) % 4) * 0.1));
+      }
+    }
+  }
+  const meta = csvFile('explore_metadata.csv', rows.join('\n'));
+  const rna = csvFile('explore_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaNoise.join(',')].join('\n'));
+  const protein = csvFile('explore_protein.csv', [protHeader.join(','),protSignal.join(','),protNoise.join(',')].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+  const explored = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:metaParsed.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'explore',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:[]},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(explored.exploration.subjects, 8);
+  assert.ok(explored.exploration.components.length >= 1);
+  const loadingNames = explored.exploration.components[0].topLoadings.map(x=>x.feature);
+  assert.ok(loadingNames.includes('RNA_SHARED'));
+  assert.ok(loadingNames.includes('PROT_SHARED'));
+  assert.equal(explored.layers.transcriptomics.mode, 'exploratory-multiblock-pca');
+}
+
+// Outcome branch: continuous, binary, count and survival models with explicit covariate adjustment.
+{
+  const makeOutcomeDataset = (type) => {
+    const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,age,survival_time,survival_event'];
+    const rnaHeader = ['feature_id'];
+    const protHeader = ['feature_id'];
+    const rnaSignal = ['OUTCOME_GENE'];
+    const rnaNoise = ['OUTCOME_NOISE'];
+    const protSignal = ['OUTCOME_PROTEIN'];
+    const protNoise = ['PROT_NOISE'];
+    let assay = 1;
+    for (let s = 1; s <= 24; s += 1) {
+      const subject = 'O' + s;
+      const age = 40 + (s % 8);
+      const latent = (s - 12.5) / 4;
+      let outcome = '';
+      let survivalTime = '';
+      let survivalEvent = '';
+      if (type === 'continuous') outcome = String(2 * latent + 0.05 * age);
+      if (type === 'binary') outcome = latent > 0 ? 'responder' : 'nonresponder';
+      if (type === 'count') outcome = String(Math.max(0, Math.round(4 + latent * 1.5)));
+      if (type === 'survival') {
+        survivalTime = String(Math.max(1, 30 - latent * 4 + (s % 3)));
+        survivalEvent = s % 5 === 0 ? '0' : '1';
+      }
+      for (const layer of ['transcriptomics','proteomics']) {
+        const id = (layer === 'transcriptomics' ? 'OR' : 'OP') + assay++;
+        rows.push([subject,subject,id,layer,'','','','1',outcome,age,survivalTime,survivalEvent].join(','));
+        const signalValue = latent + 0.02 * age;
+        if (layer === 'transcriptomics') {
+          rnaHeader.push(id);
+          rnaSignal.push(String(signalValue));
+          rnaNoise.push(String((s % 5) * 0.03));
+        } else {
+          protHeader.push(id);
+          protSignal.push(String(signalValue * 0.8));
+          protNoise.push(String(((s + 2) % 6) * 0.02));
+        }
+      }
+    }
+    return {
+      meta: csvFile('outcome_' + type + '_metadata.csv', rows.join('\n')),
+      rna: csvFile('outcome_' + type + '_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaNoise.join(',')].join('\n')),
+      protein: csvFile('outcome_' + type + '_protein.csv', [protHeader.join(','),protSignal.join(','),protNoise.join(',')].join('\n'))
+    };
+  };
+
+  for (const type of ['continuous','binary','count','survival']) {
+    const ds = makeOutcomeDataset(type);
+    const parsedMeta = parseDelimited(await ds.meta.text());
+    const outcomeResult = await runDeterministicAnalysis({
+      files:{metadata:ds.meta,transcriptomics:ds.rna,proteomics:ds.protein,metabolomics:null},
+      metadataRows:parsedMeta.rows,
+      columnMapping:mapping,
+      protocol:{organism:'human',objective:'outcome',outcomeType:type,longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:['age']},
+      dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+      useReactome:false,
+      resolveIdentifiers:false
+    });
+    assert.equal(outcomeResult.layers.transcriptomics.mode, 'outcome-' + type);
+    const signal = outcomeResult.layers.transcriptomics.rows.find(x=>x.feature === 'OUTCOME_GENE');
+    assert.ok(signal && Number.isFinite(signal.effect));
+    assert.ok(Number.isFinite(signal.pValue));
+  }
 }
 
 console.log('multiomics paired / longitudinal / identifier-resolution branches: PASS');
