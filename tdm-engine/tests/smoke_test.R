@@ -393,7 +393,9 @@ analysis_model_rows <- MODEL_CATALOG[vapply(seq_len(nrow(MODEL_CATALOG)), functi
 }, logical(1)), , drop = FALSE]
 expected_ml_scopes <- unlist(lapply(seq_len(nrow(analysis_model_rows)), function(index) {
   record <- analysis_model_rows[index, , drop = FALSE]
-  paste(record$id[[1]], vapply(model_administration_modes(record), ml_administration_mode, character(1)), sep = "::")
+  modes <- vapply(model_administration_modes(record), ml_administration_mode, character(1))
+  modes <- modes[modes != "IV_CONTINUOUS"]
+  if (!length(modes)) character() else paste(record$id[[1]], modes, sep = "::")
 }), use.names = FALSE)
 analysis_artifacts <- Filter(function(artifact) artifact$baseModelId %in% analysis_model_rows$id, ml_manifest$artifacts)
 actual_ml_scopes <- vapply(analysis_artifacts, function(artifact) {
@@ -403,7 +405,7 @@ published_artifact <- artifact_for("vanco_pkjust", "IV_INTERMITTENT")
 stopifnot(
   identical(basename(ML_MANIFEST_PATH), "registry.json"),
   file.exists(ML_MANIFEST_PATH),
-  identical(as.integer(ml_manifest$version), 2L),
+  identical(as.integer(ml_manifest$version), 3L),
   length(analysis_artifacts) == length(expected_ml_scopes),
   setequal(actual_ml_scopes, expected_ml_scopes),
   !anyDuplicated(actual_ml_scopes),
@@ -482,8 +484,8 @@ invisible(verified_ml_rds_path(
 ))
 
 revilla_observations <- data.frame(
-  time = c(38, 47.5),
-  concentration = c(30, 18)
+  time = c(36, 38),
+  concentration = c(18, 30)
 )
 revilla_doses <- doses
 revilla_doses$time <- 36
@@ -513,11 +515,11 @@ stopifnot(
 boundary_fits <- fit_model_set(
   specifications[match("vanco_pkjust", model_ids)],
   data.frame(time = 0, amount = 1000, interval = 12, count = 1, infusion = 1, ss = 1),
-  data.frame(time = c(8, 12), concentration = c(18, 15)),
+  data.frame(time = c(0, 2), concentration = c(15, 30)),
   list(WT = 73, AGE = 61.1, CREAT = 123.8, CRCL = 74.7),
   allow_custom = FALSE,
   covariate_history = data.frame(
-    time = c(8, 12), WT = c(74.8, 73), AGE = 61.1,
+    time = c(0, 2), WT = c(74.8, 73), AGE = 61.1,
     CREAT = 123.8, CRCL = c(90.7, 74.7)
   )
 )
@@ -537,7 +539,7 @@ stopifnot(
 )
 stopifnot(
   length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_INTERMITTENT")) == 1L,
-  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_CONTINUOUS")) == 1L
+  length(compatible_ml_artifacts("vanco_pkjust", "Vancomycine", "IV", "IV_CONTINUOUS")) == 0L
 )
 
 averaging_fits <- fit_model_set(
@@ -599,7 +601,7 @@ stopifnot(isTRUE(default_distribution$posterior_available))
 
 default_fits <- apply_hybrid_ml_to_fits(default_fits, "IV")
 stopifnot(!isTRUE(default_fits[[1]]$ml_correction$applied))
-stopifnot(identical(default_fits[[1]]$ml_correction$reason, "experimental_ml_disabled"))
+stopifnot(identical(default_fits[[1]]$ml_correction$reason, "no_compatible_artifact"))
 
 runtime_regimen <- ml_latest_regimen(default_fits[[1]])
 runtime_observations <- ml_observation_values(default_fits[[1]])
@@ -657,6 +659,24 @@ stopifnot(
   steady_boundary_values[["PREV_TIME"]] == 8,
   steady_boundary_values[["LAST_TIME"]] == 12,
   steady_boundary_values[["LAST_CONC"]] == 15
+)
+
+c0_post_fit <- steady_boundary_fit
+c0_post_fit$source_observations <- data.frame(time = c(0, 2), concentration = c(15, 31))
+c0_post_values <- ml_observation_values(c0_post_fit, list(strategy = "c0_plus_one_hour_post_infusion"))
+c0_only_fit <- steady_boundary_fit
+c0_only_fit$source_observations <- data.frame(time = 0, concentration = 15)
+c0_only_values <- ml_observation_values(c0_only_fit, list(strategy = "c0_only"))
+stopifnot(
+  c0_post_values[["N_OBS"]] == 2,
+  c0_post_values[["PREV_CONC"]] == 15,
+  c0_post_values[["PREV_TIME"]] == 12,
+  c0_post_values[["LAST_CONC"]] == 31,
+  c0_post_values[["LAST_TIME"]] == 2,
+  c0_post_values[["TIME_DIFF"]] == 2,
+  c0_only_values[["N_OBS"]] == 1,
+  c0_only_values[["LAST_CONC"]] == 15,
+  c0_only_values[["LAST_TIME"]] == 12
 )
 
 hash <- model_sha256("vanco_roberts")

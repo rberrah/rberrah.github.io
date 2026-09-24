@@ -29,6 +29,8 @@ drug_argument <- option_value("--drug", "all")
 mode_argument <- toupper(option_value("--mode", "all"))
 report_path <- option_value("--report", "")
 seed <- as.integer(option_value("--seed", "20260906"))
+full_library_publish <- publish_artifacts && identical(base_argument, "all") &&
+  identical(tolower(drug_argument), "all") && identical(mode_argument, "ALL")
 
 if (!is.finite(n_patients) || n_patients < 24L) stop("--n must be at least 24 simulated patients per model and mode.")
 if (publish_artifacts && (smoke || n_patients < 1000L)) {
@@ -81,6 +83,13 @@ if (!identical(mode_argument, "ALL")) {
 }
 if (!nrow(scopes)) stop("No model matches the requested training scope.")
 
+continuous_scopes <- scopes$mode == "IV_CONTINUOUS"
+if (any(continuous_scopes)) {
+  message("Skipping ", sum(continuous_scopes), " continuous-infusion scope(s): C0 plus one hour after infusion end is not defined for an ongoing infusion.")
+  scopes <- scopes[!continuous_scopes, , drop = FALSE]
+}
+if (!nrow(scopes)) stop("The requested scopes only contain continuous infusions, for which this sampling benchmark is not applicable.")
+
 regimen_config <- function(scope) {
   profile <- training_config$profiles[[scope$drug_key[[1]]]][[scope$mode[[1]]]]
   if (is.null(profile)) {
@@ -102,14 +111,18 @@ MAX_AUC_RATIO <- 20
 SAMPLING_PROTOCOL <- list(
   minimumObservations = 2L,
   steadyStateRequired = TRUE,
-  strategy = "generic_random_two_point",
-  description = paste(
-    "80%: t1 ~ U(0.2 h, max(0.25 h, 0.55*II)) and",
-    "t2 ~ U(max(t1 + min(0.5 h, II/4), 0.45*II), II - 0.15 h);",
-    "20%: two sorted U(0.2 h, II - 0.15 h) times separated by at least min(0.5 h, II/4)."
-  ),
+  strategy = "c0_plus_one_hour_post_infusion",
+  description = "Pre-dose C0 plus one concentration one hour after infusion end; infusion end is time zero for oral and bolus administrations.",
   target = "AUC24",
   residualError = "Model SIGMA retained for sparse concentrations; OMEGA supplied through idata."
+)
+C0_SAMPLING_PROTOCOL <- list(
+  minimumObservations = 1L,
+  steadyStateRequired = TRUE,
+  strategy = "c0_only",
+  description = "One pre-dose steady-state concentration.",
+  target = "AUC24",
+  residualError = "Model SIGMA retained for the sparse concentration; OMEGA supplied through idata."
 )
 XGB_PARAMETERS <- list(
   max_depth = 4L,
@@ -283,8 +296,9 @@ sample_eta_matrix <- function(model, n) {
 
 sample_regimens <- function(scope, n) {
   config <- regimen_config(scope)
-  amount <- sample(as.numeric(unlist(config$amounts)), n, replace = TRUE)
-  interval <- sample(as.numeric(unlist(config$intervals)), n, replace = TRUE)
+  draw <- function(values, size) values[sample.int(length(values), size, replace = TRUE)]
+  amount <- draw(as.numeric(unlist(config$amounts)), n)
+  interval <- draw(as.numeric(unlist(config$intervals)), n)
   mode <- scope$mode[[1]]
   infusion <- if (identical(mode, "ORAL")) {
     rep(0, n)
@@ -292,7 +306,7 @@ sample_regimens <- function(scope, n) {
     interval
   } else {
     candidates <- as.numeric(unlist(config$infusions))
-    vapply(interval, function(ii) sample(candidates[candidates < ii], 1), numeric(1))
+    vapply(interval, function(ii) draw(candidates[candidates < ii], 1), numeric(1))
   }
   data.frame(amount = amount, interval = interval, infusion = infusion)
 }
@@ -300,17 +314,19 @@ sample_regimens <- function(scope, n) {
 sample_times <- function(regimens, mode) {
   do.call(rbind, lapply(seq_len(nrow(regimens)), function(index) {
     interval <- regimens$interval[[index]]
-    if (stats::runif(1) < 0.8) {
-      first <- stats::runif(1, 0.2, max(0.25, 0.55 * interval))
-      second <- stats::runif(1, max(first + min(0.5, interval / 4), 0.45 * interval), interval - 0.15)
-      times <- c(first, second)
-    } else {
-      repeat {
-        times <- sort(stats::runif(2, 0.2, interval - 0.15))
-        if (diff(times) >= min(0.5, interval / 4)) break
-      }
-    }
-    data.frame(ID = index, sample = c("PREV", "LAST"), time = times, stringsAsFactors = FALSE)
+    infusion_end <- if (identical(mode, "ORAL") || regimens$infusion[[index]] <= 0) 0 else regimens$infusion[[index]]
+    post_time <- infusion_end + 1
+    if (post_time >= interval) stop(
+      "The post-infusion sample falls outside the dosing interval: mode=", mode,
+      ", interval=", interval, ", infusion=", regimens$infusion[[index]], "."
+    )
+    data.frame(
+      ID = index,
+      sample = c("C0", "POST"),
+      time = c(interval - 1e-6, post_time),
+      feature_time = c(interval, post_time),
+      stringsAsFactors = FALSE
+    )
   }))
 }
 
@@ -401,10 +417,14 @@ simulate_batch <- function(base_scope, generator_scope, n) {
     population_profile <- population_profile[!duplicated(population_profile$time, fromLast = TRUE), , drop = FALSE]
     population_auc_profile <- population_profile[population_profile$time <= 24 + 1e-8, , drop = FALSE]
     population_auc24 <- trap_auc_vector(population_auc_profile$time, pmax(0, population_auc_profile$DV))
-    times <- samples$time[samples$ID == index]
+    sample_rows <- samples[samples$ID == index, , drop = FALSE]
+    times <- sample_rows$time
+    feature_times <- sample_rows$feature_time
     sparse_rows <- stochastic_output[stochastic_output$ID == index, c("time", "DV"), drop = FALSE]
     sparse_rows <- sparse_rows[order(sparse_rows$time), , drop = FALSE]
-    sparse <- pmax(0.001, sparse_rows$DV)
+    sparse <- pmax(0.001, vapply(times, function(sample_time) {
+      sparse_rows$DV[[which.min(abs(sparse_rows$time - sample_time))]]
+    }, numeric(1)))
     population_sparse <- stats::approx(
       population_profile$time,
       pmax(0, population_profile$DV),
@@ -422,15 +442,15 @@ simulate_batch <- function(base_scope, generator_scope, n) {
       INTERVAL = regimens$interval[[index]],
       INFUSION = regimens$infusion[[index]],
       PREV_CONC = sparse[[1]],
-      PREV_TIME = times[[1]],
+      PREV_TIME = feature_times[[1]],
       LAST_CONC = sparse[[2]],
-      LAST_TIME = times[[2]],
+      LAST_TIME = feature_times[[2]],
       PREV_POP_CONC = population_sparse[[1]],
       LAST_POP_CONC = population_sparse[[2]],
       PREV_CONC_RATIO = max(1e-4, min(1e4, sparse[[1]] / max(population_sparse[[1]], 1e-8))),
       LAST_CONC_RATIO = max(1e-4, min(1e4, sparse[[2]] / max(population_sparse[[2]], 1e-8))),
       CONC_DIFF = sparse[[2]] - sparse[[1]],
-      TIME_DIFF = times[[2]] - times[[1]],
+      TIME_DIFF = feature_times[[2]],
       N_OBS = 2,
       HAS_PREV = 1,
       check.names = FALSE
@@ -494,6 +514,22 @@ NON_PREDICTORS <- c("patient_id", "TRUE_AUC24")
 predictor_names <- function(data) {
   candidates <- setdiff(names(data), NON_PREDICTORS)
   candidates[vapply(data[candidates], function(values) stats::sd(values) > sqrt(.Machine$double.eps), logical(1))]
+}
+
+c0_only_dataset <- function(data) {
+  data$LAST_CONC <- data$PREV_CONC
+  data$LAST_TIME <- data$PREV_TIME
+  data$LAST_POP_CONC <- data$PREV_POP_CONC
+  data$LAST_CONC_RATIO <- data$PREV_CONC_RATIO
+  data$PREV_CONC <- 0
+  data$PREV_TIME <- 0
+  data$PREV_POP_CONC <- 0
+  data$PREV_CONC_RATIO <- 0
+  data$CONC_DIFF <- 0
+  data$TIME_DIFF <- 0
+  data$N_OBS <- 1
+  data$HAS_PREV <- 0
+  data
 }
 
 fold_ids <- function(n, v, seed_value) {
@@ -603,6 +639,20 @@ evaluate_scope <- function(scope, index) {
     exp(stats::predict(booster, as.matrix(alternate[, predictors, drop = FALSE]))) * alternate$POP_AUC24
   )
   alternate_without_ml <- if (is.null(alternate)) NULL else auc_metrics(alternate$TRUE_AUC24, alternate$POP_AUC24)
+
+  c0_development <- c0_only_dataset(development)
+  c0_holdout <- c0_development[holdout_indices, , drop = FALSE]
+  c0_training <- c0_development[-holdout_indices, , drop = FALSE]
+  c0_predictors <- predictor_names(c0_training)
+  c0_repeated <- repeated_cross_validate(c0_training, c0_predictors, seed + index * 1000L)
+  c0_booster <- fit_booster(c0_training, c0_predictors)
+  c0_holdout_prediction <- exp(stats::predict(c0_booster, as.matrix(c0_holdout[, c0_predictors, drop = FALSE]))) * c0_holdout$POP_AUC24
+  c0_holdout_metrics <- auc_metrics(c0_holdout$TRUE_AUC24, c0_holdout_prediction)
+  c0_alternate <- if (is.null(alternate)) NULL else c0_only_dataset(alternate)
+  c0_alternate_metrics <- if (is.null(c0_alternate)) NULL else auc_metrics(
+    c0_alternate$TRUE_AUC24,
+    exp(stats::predict(c0_booster, as.matrix(c0_alternate[, c0_predictors, drop = FALSE]))) * c0_alternate$POP_AUC24
+  )
   improves_holdout <- holdout_metrics[["relative_rmse_pct"]] < holdout_without_ml[["relative_rmse_pct"]]
   gates <- isTRUE(validation_record(repeated)$passed) && isTRUE(validation_record(holdout_metrics)$passed) && improves_holdout
   print_metrics <- function(label, metrics) cat(sprintf(
@@ -613,6 +663,7 @@ evaluate_scope <- function(scope, index) {
   print_metrics("CV with ML", repeated)
   print_metrics("test without ML", holdout_without_ml)
   print_metrics("test with ML", holdout_metrics)
+  print_metrics("test C0 only", c0_holdout_metrics)
   cat(sprintf("  holdout rRMSE gain: %+6.2f%%\n", rmse_gain_pct(holdout_without_ml, holdout_metrics)))
   if (!is.null(alternate_metrics)) {
     print_metrics("other PopPK no ML", alternate_without_ml)
@@ -650,6 +701,13 @@ evaluate_scope <- function(scope, index) {
       holdout_relative_rmse_pct = holdout_metrics[["relative_rmse_pct"]],
       holdout_relative_bias_pct = holdout_metrics[["relative_bias_pct"]],
       holdout_within_20_pct = holdout_metrics[["within_20_pct"]],
+      c0_cv_relative_rmse_pct = c0_repeated[["relative_rmse_pct"]],
+      c0_cv_relative_bias_pct = c0_repeated[["relative_bias_pct"]],
+      c0_holdout_relative_rmse_pct = c0_holdout_metrics[["relative_rmse_pct"]],
+      c0_holdout_relative_bias_pct = c0_holdout_metrics[["relative_bias_pct"]],
+      c0_holdout_within_20_pct = c0_holdout_metrics[["within_20_pct"]],
+      c0_alternate_relative_rmse_pct = if (is.null(c0_alternate_metrics)) NA_real_ else c0_alternate_metrics[["relative_rmse_pct"]],
+      c0_alternate_relative_bias_pct = if (is.null(c0_alternate_metrics)) NA_real_ else c0_alternate_metrics[["relative_bias_pct"]],
       alternate_without_ml_relative_rmse_pct = if (is.null(alternate_without_ml)) NA_real_ else alternate_without_ml[["relative_rmse_pct"]],
       alternate_without_ml_relative_bias_pct = if (is.null(alternate_without_ml)) NA_real_ else alternate_without_ml[["relative_bias_pct"]],
       alternate_with_ml_relative_rmse_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["relative_rmse_pct"]],
@@ -674,6 +732,12 @@ evaluate_scope <- function(scope, index) {
     holdout_without_ml = holdout_without_ml,
     alternate = alternate_metrics,
     alternate_without_ml = alternate_without_ml,
+    c0 = list(
+      protocol = C0_SAMPLING_PROTOCOL,
+      repeated = c0_repeated,
+      holdout = c0_holdout_metrics,
+      alternate = c0_alternate_metrics
+    ),
     scope = scope,
     peers = peers,
     population = population
@@ -684,7 +748,7 @@ publish_candidate <- function(evaluation) {
   scope <- evaluation$scope
   base_id <- scope$model_id[[1]]
   mode_id <- unname(MODE_ID[[scope$mode[[1]]]])
-  artifact_id <- paste0(base_id, "-", mode_id, "-auc24-xgb-v3")
+  artifact_id <- paste0(base_id, "-", mode_id, "-c0-post-auc24-xgb-v4")
   artifact_directory <- file.path(APP_ROOT, "ml", "artifacts")
   dir.create(artifact_directory, recursive = TRUE, showWarnings = FALSE)
   artifact_file <- file.path(artifact_directory, paste0(artifact_id, ".rds"))
@@ -720,7 +784,7 @@ publish_candidate <- function(evaluation) {
     featureSchema = evaluation$schema,
     prediction = list(type = "auc24_direct", metric = "AUC24", unit = config$aucUnit, horizonHours = 24, transform = "exp_times_feature", scaleFeature = "POP_AUC24"),
     methodology = list(
-      label = "Simulation-trained hybrid AUC prediction",
+      label = "Simulation-trained hybrid AUC prediction from C0 plus one-hour post-infusion sampling",
       doi = "10.1016/j.phrs.2021.105578",
       developmentGenerators = base_id,
       developmentModelSha256 = stats::setNames(list(model_sha256(base_id)), base_id),
@@ -767,6 +831,20 @@ publish_candidate <- function(evaluation) {
         untouchedHoldoutRelativeRmseGainPct = rmse_gain_pct(evaluation$holdout_without_ml, evaluation$holdout),
         alternatePopPkRelativeRmseGainPct = if (is.null(evaluation$alternate)) NULL else rmse_gain_pct(evaluation$alternate_without_ml, evaluation$alternate)
       ),
+      samplingStrategies = list(
+        c0Only = list(
+          protocol = C0_SAMPLING_PROTOCOL,
+          repeatedCv = validation_record(evaluation$c0$repeated),
+          untouchedHoldout = validation_record(evaluation$c0$holdout),
+          alternatePopPk = if (is.null(evaluation$c0$alternate)) list(status = "not_applicable", passed = NULL) else validation_record(evaluation$c0$alternate)
+        ),
+        c0PlusOneHourPostInfusion = list(
+          protocol = SAMPLING_PROTOCOL,
+          repeatedCv = validation_record(evaluation$repeated),
+          untouchedHoldout = validation_record(evaluation$holdout),
+          alternatePopPk = alternate_validation
+        )
+      ),
       realPatient = list(status = "pending", gainPct = NULL)
     )
   )
@@ -781,13 +859,39 @@ publish_candidate <- function(evaluation) {
     (item$explanation %||% list())$backgroundPath %||% ""
   )), use.names = FALSE)
   manifest$artifacts <- c(manifest$artifacts[!same_scope], list(artifact))
+  manifest$version <- max(3L, as.integer(manifest$version %||% 0L))
   manifest$benchmarkDate <- format(Sys.Date(), "%Y-%m-%d")
+  manifest$samplingDesign <- list(
+    primary = SAMPLING_PROTOCOL,
+    comparator = C0_SAMPLING_PROTOCOL,
+    notApplicable = "Continuous infusion: no infusion end or pre-dose C0 within an ongoing infusion interval."
+  )
   jsonlite::write_json(manifest, ML_MANIFEST_PATH, auto_unbox = TRUE, pretty = TRUE, null = "null")
   for (relative_path in old_paths[nzchar(old_paths)]) {
     old_path <- file.path(APP_ROOT, "ml", relative_path)
     if (file.exists(old_path) && normalizePath(old_path, winslash = "/") != normalizePath(artifact_file, winslash = "/") && normalizePath(old_path, winslash = "/") != normalizePath(background_file, winslash = "/")) unlink(old_path)
   }
   TRUE
+}
+
+prune_non_applicable_continuous_artifacts <- function() {
+  manifest <- read_ml_manifest()
+  remove <- vapply(manifest$artifacts, function(item) {
+    identical(ml_administration_mode(item$administrationMode), "IV_CONTINUOUS") &&
+      identical(ml_prediction_type(item), "auc24_direct")
+  }, logical(1))
+  if (!any(remove)) return(invisible(0L))
+  old_paths <- unlist(lapply(manifest$artifacts[remove], function(item) c(
+    item$artifactPath %||% "",
+    (item$explanation %||% list())$backgroundPath %||% ""
+  )), use.names = FALSE)
+  manifest$artifacts <- manifest$artifacts[!remove]
+  jsonlite::write_json(manifest, ML_MANIFEST_PATH, auto_unbox = TRUE, pretty = TRUE, null = "null")
+  for (relative_path in old_paths[nzchar(old_paths)]) {
+    old_path <- file.path(APP_ROOT, "ml", relative_path)
+    if (file.exists(old_path)) unlink(old_path)
+  }
+  invisible(sum(remove))
 }
 
 cat("Generic simulation-trained direct AUC24 evaluation\n")
@@ -802,6 +906,10 @@ for (index in seq_len(nrow(scopes))) {
     evaluations[[index]]$row$artifact_saved <- saved
     cat("  artifact: ", if (saved) "published" else "not published", "\n", sep = "")
   }
+}
+if (full_library_publish) {
+  removed <- prune_non_applicable_continuous_artifacts()
+  if (removed) cat("Removed ", removed, " non-applicable continuous-infusion artifact(s).\n", sep = "")
 }
 
 results <- do.call(rbind, lapply(evaluations, `[[`, "row"))

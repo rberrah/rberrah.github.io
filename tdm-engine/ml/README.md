@@ -8,7 +8,7 @@ Pour chaque patient virtuel, le script :
 
 1. tire les covariables et effets aleatoires dans le domaine defini pour le modele;
 2. simule un schema a l'etat stationnaire avec mrgsolve et l'erreur residuelle du modele;
-3. selectionne deux concentrations dans un meme intervalle posologique;
+3. simule un C0 pre-dose et une concentration une heure apres la fin de perfusion; pour une administration orale ou un bolus, la fin de perfusion est fixee a 0;
 4. calcule l'AUC24 individuelle vraie et l'AUC24 populationnelle du meme schema;
 5. entraine XGBoost sur `log(AUC24 vraie / AUC24 populationnelle)`;
 6. reconstruit l'estimation par `AUC24 populationnelle * exp(prediction)`;
@@ -19,9 +19,11 @@ Chaque evaluation rapporte separement le biais et la RMSE relative de l'AUC popu
 
 Les variables comprennent les covariables du modele, la dose, l'intervalle, la duree de perfusion, les horaires et concentrations, les predictions populationnelles correspondantes et les rapports observe/predit. Les domaines de dose et d'intervalle sont explicites dans `training-regimens.json`.
 
-Les deux horaires suivent un plan generique precis. Pour 80 % des profils, `t1 ~ U(0.2 h, max(0.25 h, 0.55 * II))`, puis `t2 ~ U(max(t1 + min(0.5 h, II/4), 0.45 * II), II - 0.15 h)`. Pour les 20 % restants, deux horaires tries sont tires uniformement entre 0.2 h et `II - 0.15 h`, avec une separation d'au moins `min(0.5 h, II/4)`. `zero_re(omega)` annule uniquement l'OMEGA interne de mrgsolve; les ETA sont fournis par `idata` et la SIGMA du modele reste appliquee aux deux concentrations. Ce plan n'est pas optimise pour chaque molecule.
+Le benchmark compare, sur les memes patients virtuels et le meme jeu de test, deux plans : `C0 seul` et `C0 + C(fin de perfusion + 1 h)`. Pour l'oral et le bolus, le second temps vaut donc 1 h apres la dose. Pour une perfusion intermittente de duree `Tinf`, il vaut `Tinf + 1 h`. Le C0 est simule juste avant la dose suivante. `zero_re(omega)` annule uniquement l'OMEGA interne de mrgsolve; les ETA sont fournis par `idata` et la SIGMA du modele reste appliquee aux concentrations.
 
-Ce benchmark ne reproduit pas le protocole de Woillard et al. L'article tacrolimus simulait 9 000 profils riches a l'etat stationnaire, avec neuf doses administrees toutes les 12 h, une concentration toutes les 30 minutes et une AUC0-12 cible. Le modele a deux prelevements utilisait C0 et C3; le modele a trois prelevements utilisait C0, C1 et C3. Dans le jeu de test simule, les RMSE relatives publiees etaient respectivement de 4.60 % et 2.61 %. Le benchmark PMx utilise une AUC24, 1 000 profils par artefact et, pour le tacrolimus, des intervalles de 12 ou 24 h. Ses resultats ne sont donc pas une reproduction de l'article.
+La perfusion continue est exclue de cette comparaison : pendant une perfusion en cours, il n'existe ni fin de perfusion dans l'intervalle ni C0 pre-dose. Les artefacts continus restent documentes separement et ne doivent pas etre compares comme s'ils suivaient ce plan.
+
+Ce benchmark ne reproduit pas le protocole de Woillard et al. L'article tacrolimus simulait 9 000 profils riches a l'etat stationnaire, avec neuf doses administrees toutes les 12 h, une concentration toutes les 30 minutes et une AUC0-12 cible. Le modele a deux prelevements utilisait C0 et C3; le modele a trois prelevements utilisait C0, C1 et C3. Dans le jeu de test simule, les RMSE relatives publiees etaient respectivement de 4.60 % et 2.61 %. Le benchmark PMx utilise une AUC24, 1 000 profils par artefact et C0+C1 pour l'oral; ses resultats ne sont donc pas une reproduction de l'article.
 
 Les covariables ne sont jamais tirees dans une plage generique commune a toute la bibliotheque. `training-populations.json` contient les informations propres aux populations sources : bornes, moyenne/ecart-type ou proportions publiees. Une variable positive documentee uniquement par sa moyenne et son ecart-type peut utiliser une loi log-normale ajustee sur ces deux moments; cette hypothese est inscrite dans le fichier. Quand l'article ne documente pas suffisamment la population, la valeur de reference du modele est conservee; le pipeline n'invente pas une plage. Les covariables liees peuvent etre reconstruites conjointement (par exemple la creatinine a partir d'une clairance Cockcroft-Gault cible).
 
@@ -69,15 +71,15 @@ Chaque artefact est lie a l'identifiant du modele, la molecule, la voie, le mode
 - `research` : validation croisee repetee et jeu de test interne conformes aux seuils;
 - validation clinique : toujours absente tant qu'une validation favorable sur des patients reels independants de la molecule concernee n'est pas documentee.
 
-Une valeur hors du domaine empirique declenche un avertissement sans bloquer l'affichage. Une variable manquante, moins de deux concentrations dans un meme intervalle, l'absence d'etat stationnaire, un mode d'administration incompatible, une empreinte differente ou une AUC invalide restent bloquants. L'explication DALEX utilise exclusivement un echantillon synthetique stocke separement avec sa propre empreinte.
+Une valeur hors du domaine empirique declenche un avertissement sans bloquer l'affichage. Pour l'artefact principal, un C0 pre-dose et une concentration post-dose dans l'intervalle suivant sont requis. L'absence d'etat stationnaire, un mode d'administration incompatible, une empreinte differente ou une AUC invalide restent bloquants. L'explication DALEX utilise exclusivement un echantillon synthetique stocke separement avec sa propre empreinte.
 
 ## Fichiers publies
 
 Pour chaque couple modele/mode, `--publish` produit :
 
 ```text
-artifacts/<modele>-<mode>-auc24-xgb-v3.rds
-artifacts/<modele>-<mode>-auc24-xgb-v3-dalex-background.rds
+artifacts/<modele>-<mode>-c0-post-auc24-xgb-v4.rds
+artifacts/<modele>-<mode>-c0-post-auc24-xgb-v4-dalex-background.rds
 ```
 
 Le premier RDS contient le booster XGBoost. Le second contient au maximum 200 profils synthetiques servant de reference DALEX. `registry.json` est le seul index charge par l'application.

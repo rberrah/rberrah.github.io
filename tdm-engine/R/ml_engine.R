@@ -1,4 +1,4 @@
-ML_MANIFEST_VERSION <- 2L
+ML_MANIFEST_VERSION <- 3L
 if (!exists("APP_ROOT", inherits = TRUE)) {
   APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 }
@@ -162,7 +162,52 @@ ml_dose_occurrences <- function(doses, end_time) {
   sort(unique(occurrences[is.finite(occurrences) & occurrences <= end_time + 1e-8]))
 }
 
-ml_observation_values <- function(fit) {
+ml_c0_post_observation_values <- function(fit, observations, strategy) {
+  regimen <- ml_latest_regimen(fit)
+  interval <- regimen[["INTERVAL"]]
+  infusion_end <- if (regimen[["INFUSION"]] > 0) regimen[["INFUSION"]] else 0
+  occurrences <- ml_dose_occurrences(fit$source_doses, max(observations$time))
+
+  if (identical(strategy, "c0_only")) {
+    last <- observations[nrow(observations), , drop = FALSE]
+    exact_dose <- any(abs(occurrences - last$time[[1]]) <= 1e-8)
+    previous_doses <- occurrences[occurrences < last$time[[1]] - 1e-8]
+    relative_time <- if (exact_dose) interval else if (length(previous_doses)) last$time[[1]] - max(previous_doses) else last$time[[1]] - min(occurrences)
+    return(c(
+      PREV_CONC = 0, PREV_TIME = 0,
+      LAST_CONC = last$concentration[[1]], LAST_TIME = relative_time,
+      CONC_DIFF = 0, TIME_DIFF = 0, N_OBS = 1, HAS_PREV = 0
+    ))
+  }
+
+  for (anchor in rev(occurrences)) {
+    c0_candidates <- observations[
+      observations$time <= anchor + 1e-8 & observations$time > anchor - interval - 1e-8,
+      , drop = FALSE
+    ]
+    post_candidates <- observations[
+      observations$time > anchor + 1e-8 & observations$time < anchor + interval - 1e-8,
+      , drop = FALSE
+    ]
+    if (!nrow(c0_candidates) || !nrow(post_candidates)) next
+    c0 <- c0_candidates[nrow(c0_candidates), , drop = FALSE]
+    expected_post <- anchor + infusion_end + 1
+    post <- post_candidates[["time"]]
+    post <- post_candidates[which.min(abs(post - expected_post)), , drop = FALSE]
+    c0_time <- interval - max(0, anchor - c0$time[[1]])
+    post_time <- post$time[[1]] - anchor
+    return(c(
+      PREV_CONC = c0$concentration[[1]], PREV_TIME = c0_time,
+      LAST_CONC = post$concentration[[1]], LAST_TIME = post_time,
+      CONC_DIFF = post$concentration[[1]] - c0$concentration[[1]],
+      TIME_DIFF = post$time[[1]] - c0$time[[1]],
+      N_OBS = 2, HAS_PREV = 1
+    ))
+  }
+  stop("le prédicteur AUC24 ML exige un C0 pré-dose suivi d'une concentration post-dose dans l'intervalle suivant")
+}
+
+ml_observation_values <- function(fit, sampling_protocol = list()) {
   observations <- fit$source_observations %||% data.frame()
   keep <- if (nrow(observations)) {
     is.finite(suppressWarnings(as.numeric(observations$time))) &
@@ -173,6 +218,10 @@ ml_observation_values <- function(fit) {
   observations <- observations[keep, c("time", "concentration"), drop = FALSE]
   if (!nrow(observations)) stop("ML AUC24 requires at least one measured concentration.")
   observations <- observations[order(observations$time), , drop = FALSE]
+  strategy <- sampling_protocol$strategy %||% ""
+  if (strategy %in% c("c0_only", "c0_plus_one_hour_post_infusion")) {
+    return(ml_c0_post_observation_values(fit, observations, strategy))
+  }
   last_observation_time <- observations$time[[nrow(observations)]]
   occurrences <- ml_dose_occurrences(fit$source_doses, last_observation_time)
   if (!length(occurrences)) stop("No dose precedes the concentration used by ML AUC24.")
@@ -253,7 +302,7 @@ ml_feature_value <- function(feature, fit, context = list()) {
     population_auc24 = context$population_auc24 %||% NA_real_,
     population_observation = (context$population_observations %||% numeric())[[key]] %||% NA_real_,
     regimen = ml_latest_regimen(fit)[[key]] %||% NA_real_,
-    observation = ml_observation_values(fit)[[key]] %||% NA_real_,
+    observation = (context$observations %||% ml_observation_values(fit))[[key]] %||% NA_real_,
     stop("Unsupported ML feature source: ", source)
   )
   value <- suppressWarnings(as.numeric(value))
@@ -268,9 +317,12 @@ ml_feature_row <- function(fit, artifact) {
   if (any(!nzchar(feature_names)) || anyDuplicated(feature_names)) stop("ML feature names are invalid.")
   sources <- vapply(features, function(feature) as.character(feature$source %||% ""), character(1))
   context <- list()
+  if (any(sources %in% c("observation", "population_observation"))) {
+    context$observations <- ml_observation_values(fit, artifact$samplingProtocol %||% list())
+  }
   if (any(sources %in% c("population_auc24", "population_observation"))) {
-    observations <- if ("population_observation" %in% sources) ml_observation_values(fit) else NULL
-    horizon <- if (is.null(observations)) 24 else max(24, observations[["LAST_TIME"]])
+    observations <- if ("population_observation" %in% sources) context$observations else NULL
+    horizon <- if (is.null(observations)) 24 else max(24, observations[["PREV_TIME"]], observations[["LAST_TIME"]])
     profile <- ml_population_profile(fit, horizon)
     auc_profile <- profile[profile$time <= 24 + 1e-8, , drop = FALSE]
     context$population_auc24 <- trap_auc(auc_profile$time, auc_profile$concentration)
@@ -417,11 +469,15 @@ apply_ml_artifact <- function(fit, artifact) {
 
   if (identical(prediction_type, "auc24_direct")) {
     regimen <- ml_latest_regimen(fit)
-    observation_values <- ml_observation_values(fit)
+    observation_values <- ml_observation_values(fit, artifact$samplingProtocol %||% list())
     minimum_observations <- suppressWarnings(as.integer(
       (artifact$samplingProtocol %||% list())$minimumObservations %||% 1L
     ))
     if (observation_values[["N_OBS"]] < minimum_observations) {
+      strategy <- (artifact$samplingProtocol %||% list())$strategy %||% ""
+      if (identical(strategy, "c0_plus_one_hour_post_infusion")) {
+        stop("le prédicteur AUC24 ML exige un C0 pré-dose suivi d'une concentration post-dose dans l'intervalle suivant")
+      }
       stop("le prédicteur AUC24 ML exige au moins ", minimum_observations, " concentrations dans un même intervalle posologique")
     }
     if (isTRUE((artifact$samplingProtocol %||% list())$steadyStateRequired) &&
@@ -430,8 +486,8 @@ apply_ml_artifact <- function(fit, artifact) {
     }
     mode <- artifact$administrationMode %||% "intermittent"
     if (identical(mode, "intermittent") &&
-        (regimen[["INFUSION"]] <= 0 || regimen[["INFUSION"]] >= regimen[["INTERVAL"]])) {
-      stop("This ML AUC24 artifact only covers intermittent IV infusions.")
+        regimen[["INFUSION"]] >= regimen[["INTERVAL"]]) {
+      stop("This ML AUC24 artifact only covers bolus or intermittent IV administrations.")
     }
     if (identical(mode, "continuous") && regimen[["INFUSION"]] < regimen[["INTERVAL"]]) {
       stop("This ML AUC24 artifact only covers continuous IV infusions.")

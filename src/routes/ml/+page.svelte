@@ -28,26 +28,26 @@
       inputsText: 'Dose, intervalle, concentrations, horaires, prédictions populationnelles et covariables du modèle.',
       validationText: 'Validation croisée répétée, jeu de test non touché et test sur un autre modèle PopPK lorsque possible.',
       explanationText: 'DALEX décompose la prédiction par rapport à 200 profils synthétiques. Les contributions ne sont pas causales.',
-      samplingWarningTitle: 'Prudence : prélèvements non optimisés par molécule',
-      samplingWarningBody: "Le code PMx ne reproduit pas le plan C0+C3 de l’article. Pour 80 % des profils, t1 est tiré entre 0,2 h et 55 % de l’intervalle, puis t2 entre au moins 45 % de l’intervalle et 0,15 h avant la dose suivante. Pour les 20 % restants, deux horaires sont tirés entre 0,2 h et 0,15 h avant la dose suivante, avec une séparation minimale. L’erreur résiduelle SIGMA du modèle est appliquée aux deux concentrations. Ce plan générique n’est pas optimisé par molécule.",
+      samplingWarningTitle: 'Deux plans de prélèvement comparés',
+      samplingWarningBody: "Chaque modèle est évalué sur les mêmes patients virtuels avec C0 seul, puis avec C0 et une concentration une heure après la fin de perfusion. Pour l’oral et le bolus, la fin de perfusion vaut 0 : le second prélèvement est donc C1. Pour une perfusion intermittente de durée Tinf, il est réalisé à Tinf+1 h. L’erreur résiduelle SIGMA du modèle est appliquée aux concentrations.",
       protocolPublishedTitle: 'Article tacrolimus',
       protocolPublishedBody: 'Dose toutes les 12 h · AUC0–12 · C0+C3 ou C0+C1+C3 · 9 000 profils avant filtrage · distributions et filtres spécifiques à l’article.',
       protocolPmxTitle: 'Benchmark PMx actuel',
-      protocolPmxBody: 'Intervalle tiré parmi 12 ou 24 h pour le tacrolimus · AUC24 · deux horaires post-dose aléatoires · 1 000 profils · population issue du modèle Woillard 2011.',
-      tacroBenchmarkTitle: 'Pourquoi 35,1 % devient 12,3 % ici',
-      tacroBenchmarkBody: "La première valeur est la RMSE de l’AUC populationnelle sans effets aléatoires individuels ; ce n’est ni le résultat du modèle publié ni une estimation MAP-BE. La seconde est la RMSE interne de XGBoost sur 250 profils PMx non utilisés à l’entraînement. Ces valeurs ne sont pas directement comparables aux 4,60 % de l’article, car la cible, les horaires, les intervalles, les covariables, les filtres et l’effectif diffèrent.",
+      protocolPmxBody: 'Intervalle tiré parmi 12 ou 24 h pour le tacrolimus · AUC24 · C0 seul comparé à C0+C1 · 1 000 profils · population issue du modèle Woillard 2011.',
+      tacroBenchmarkTitle: 'Tacrolimus : C0 seul versus C0+C1',
+      tacroBenchmarkBody: "Sur le jeu de test PMx tacrolimus, la RMSE relative est de 37,1 % pour l’AUC populationnelle, 14,3 % avec C0 seul et 12,2 % avec C0+C1. Le deuxième prélèvement apporte donc un gain modeste par rapport à C0 seul. Ces valeurs ne sont pas directement comparables aux 4,60 % de l’article C0+C3, car la cible, les horaires, les intervalles, les covariables, les filtres et l’effectif diffèrent.",
       benchmark: 'Benchmark de la bibliothèque',
-      benchmarkLead: "Pour chaque couple modèle–mode, le jeu de test compare l’AUC populationnelle sans correction ML à l’AUC corrigée par XGBoost. Le statut « disponible dans le TDM » exige aussi un prior MAP éligible et une empreinte inchangée.",
+      benchmarkLead: "Pour chaque couple modèle–mode, le même jeu de test compare l’AUC populationnelle, XGBoost avec C0 seul et XGBoost avec C0 plus un prélèvement une heure après la fin de perfusion. Le statut « disponible dans le TDM » exige aussi un prior MAP éligible et une empreinte inchangée.",
       current: 'Disponibles dans le TDM', snapshot: 'Tous les modèles benchmarkés', search: 'Rechercher un modèle', allDrugs: 'Toutes les molécules',
       artifacts: 'artefacts évalués', available: 'actuellement compatibles', research: 'franchissent les seuils internes', clinical: 'validation clinique pour les extensions',
-      improved: 'améliorés par le ML', medianNoMl: 'RMSE médiane sans ML', medianWithMl: 'RMSE médiane avec ML', chart: 'RMSE relative de l’AUC sur le jeu de test non touché', logScale: 'Largeur en échelle logarithmique · seuil interne RMSE ML = 15 %',
+      improved: 'améliorés avec C0+1 h', medianNoMl: 'RMSE médiane sans ML', medianWithMl: 'RMSE médiane C0+1 h', chart: 'RMSE relative de l’AUC sur le jeu de test non touché', logScale: 'Largeur en échelle logarithmique · seuil interne RMSE ML = 15 %',
       noRows: 'Aucun résultat ne correspond aux filtres.',
-      modelCol: 'Modèle', modeCol: 'Mode', noMlBiasCol: 'Biais sans ML', noMlRmseCol: 'RMSE sans ML', mlBiasCol: 'Biais avec ML', mlRmseCol: 'RMSE avec ML', gainCol: 'Gain RMSE', statusCol: 'Statut',
+      modelCol: 'Modèle', modeCol: 'Mode', noMlBiasCol: 'Biais sans ML', noMlRmseCol: 'RMSE sans ML', c0BiasCol: 'Biais C0', c0RmseCol: 'RMSE C0', mlBiasCol: 'Biais C0+1 h', mlRmseCol: 'RMSE C0+1 h', gainCol: 'Gain RMSE', statusCol: 'Statut',
       internalResearch: 'Seuils internes atteints', experimental: 'Expérimental', unavailable: 'Hors analyse TDM', stale: 'À réentraîner', na: 'N/A',
       interpretation: 'Comment lire ces résultats',
       metricTitle: 'Ce que signifie « sans ML »',
       metricBody: "Il s’agit de l’AUC populationnelle du même modèle et du même schéma, avec effets aléatoires individuels inconnus. Ce n’est ni la qualité de publication du modèle ni une estimation MAP. La RMSE relative est RMSE(AUC estimée − AUC vraie) divisée par la moyenne des AUC vraies.",
-      baselineLegend: 'AUC populationnelle sans ML', mlLegend: 'AUC corrigée par XGBoost',
+      baselineLegend: 'AUC populationnelle sans ML', c0Legend: 'XGBoost avec C0 seul', mlLegend: 'XGBoost avec C0 + 1 h après fin de perfusion',
       limits: [
         "Le benchmark est entièrement synthétique : il mesure une reconstruction de l’AUC dans le monde défini par les modèles, pas un bénéfice clinique.",
         "Les covariables sont simulées à partir des plages, distributions ou statistiques descriptives de la population source. Toute hypothèse de distribution est déclarée ; une covariable insuffisamment documentée reste à la valeur de référence du modèle.",
@@ -56,7 +56,7 @@
         "Une RMSE élevée peut être dominée par quelques profils extrêmes lorsque la variabilité interindividuelle, les doses et les AUC couvrent une plage très large. Le biais moyen peut alors rester faible.",
         "Une bonne performance sur le modèle générateur ne garantit pas la transportabilité vers une autre population ou un autre modèle PopPK.",
         "L’AUC24 ML n’est pas utilisée pour la recommandation de dose. La trajectoire, les scénarios et la recommandation restent fondés sur le MAP-BE.",
-        "Deux concentrations dans un même intervalle et un schéma déclaré à l’état stationnaire sont nécessaires. Une sortie hors domaine déclenche un avertissement."
+        "Le prédicteur principal exige un C0 pré-dose et un prélèvement post-dose dans l’intervalle suivant. La perfusion continue est exclue de ce comparatif, faute de fin de perfusion et de C0 pré-dose définis. Une sortie hors domaine déclenche un avertissement."
       ],
       mapTitle: 'Pourquoi afficher MAP et ML ensemble ?',
       mapBody: "La concordance apporte un contrôle de cohérence utile ; une divergence attire l’attention sur le modèle, les horaires, les covariables ou le domaine d’apprentissage. Elle ne permet pas de choisir automatiquement la méthode correcte.",
@@ -79,26 +79,26 @@
       inputsText: 'Dose, interval, concentrations, times, population predictions and model covariates.',
       validationText: 'Repeated cross-validation, untouched holdout and testing on another PopPK model when possible.',
       explanationText: 'DALEX decomposes the prediction against 200 synthetic profiles. Contributions are not causal.',
-      samplingWarningTitle: 'Caution: sampling times are not optimized by drug',
-      samplingWarningBody: 'The PMx code does not reproduce the article’s C0+C3 design. For 80% of profiles, t1 is sampled between 0.2 hours and 55% of the interval, then t2 from at least 45% of the interval to 0.15 hours before the next dose. For the remaining 20%, two times are sampled between 0.2 hours and 0.15 hours before the next dose, with a minimum separation. Model SIGMA residual error is applied to both concentrations. This generic design is not optimized by drug.',
+      samplingWarningTitle: 'Two sampling designs compared',
+      samplingWarningBody: 'Each model is evaluated on the same virtual patients using C0 alone, then C0 plus one concentration one hour after infusion end. For oral and bolus dosing, infusion end is time zero, so the second sample is C1. For an intermittent infusion lasting Tinf, it is collected at Tinf+1 hour. Model SIGMA residual error is applied to the concentrations.',
       protocolPublishedTitle: 'Tacrolimus article',
       protocolPublishedBody: 'Dose every 12 h · AUC0–12 · C0+C3 or C0+C1+C3 · 9,000 profiles before filtering · article-specific distributions and filters.',
       protocolPmxTitle: 'Current PMx benchmark',
-      protocolPmxBody: 'Tacrolimus interval sampled from 12 or 24 h · AUC24 · two random post-dose times · 1,000 profiles · population based on the 2011 Woillard model.',
-      tacroBenchmarkTitle: 'Why 35.1% becomes 12.3% here',
-      tacroBenchmarkBody: 'The first value is the RMSE of population AUC without individual random effects; it is neither the performance of the published model nor a MAP-BE estimate. The second is the internal XGBoost RMSE on 250 PMx profiles withheld from training. These values are not directly comparable with the article’s 4.60%, because the target, sampling times, intervals, covariates, filters and sample size differ.',
+      protocolPmxBody: 'Tacrolimus interval sampled from 12 or 24 h · AUC24 · C0 alone compared with C0+C1 · 1,000 profiles · population based on the 2011 Woillard model.',
+      tacroBenchmarkTitle: 'Tacrolimus: C0 alone versus C0+C1',
+      tacroBenchmarkBody: 'On the PMx tacrolimus holdout, relative RMSE is 37.1% for population AUC, 14.3% with C0 alone and 12.2% with C0+C1. The second sample therefore provides a modest gain over C0 alone. These values are not directly comparable with the article’s 4.60% for C0+C3 because the target, sampling times, intervals, covariates, filters and sample size differ.',
       benchmark: 'Library benchmark',
-      benchmarkLead: 'For each model–mode pair, the holdout compares population AUC without ML correction against XGBoost-corrected AUC. “Available in TDM” also requires an eligible MAP prior and an unchanged fingerprint.',
+      benchmarkLead: 'For each model–mode pair, the same holdout compares population AUC, XGBoost with C0 alone, and XGBoost with C0 plus one sample one hour after infusion end. “Available in TDM” also requires an eligible MAP prior and an unchanged fingerprint.',
       current: 'Available in TDM', snapshot: 'All benchmarked models', search: 'Search models', allDrugs: 'All drugs',
       artifacts: 'evaluated artifacts', available: 'currently compatible', research: 'pass internal gates', clinical: 'clinical validation for extensions',
-      improved: 'improved by ML', medianNoMl: 'Median RMSE without ML', medianWithMl: 'Median RMSE with ML', chart: 'Relative AUC RMSE on the untouched holdout', logScale: 'Logarithmic width · internal ML RMSE threshold = 15%',
+      improved: 'improved with C0+1 h', medianNoMl: 'Median RMSE without ML', medianWithMl: 'Median C0+1 h RMSE', chart: 'Relative AUC RMSE on the untouched holdout', logScale: 'Logarithmic width · internal ML RMSE threshold = 15%',
       noRows: 'No result matches the filters.',
-      modelCol: 'Model', modeCol: 'Mode', noMlBiasCol: 'Bias without ML', noMlRmseCol: 'RMSE without ML', mlBiasCol: 'Bias with ML', mlRmseCol: 'RMSE with ML', gainCol: 'RMSE gain', statusCol: 'Status',
+      modelCol: 'Model', modeCol: 'Mode', noMlBiasCol: 'Bias without ML', noMlRmseCol: 'RMSE without ML', c0BiasCol: 'C0 bias', c0RmseCol: 'C0 RMSE', mlBiasCol: 'C0+1 h bias', mlRmseCol: 'C0+1 h RMSE', gainCol: 'RMSE gain', statusCol: 'Status',
       internalResearch: 'Internal gates passed', experimental: 'Experimental', unavailable: 'Outside TDM analysis', stale: 'Retraining required', na: 'N/A',
       interpretation: 'How to read these results',
       metricTitle: 'What “without ML” means',
       metricBody: 'It is the population AUC from the same model and regimen, with individual random effects unknown. It is neither the publication quality of the model nor a MAP estimate. Relative RMSE is RMSE(estimated AUC − true AUC) divided by mean true AUC.',
-      baselineLegend: 'Population AUC without ML', mlLegend: 'XGBoost-corrected AUC',
+      baselineLegend: 'Population AUC without ML', c0Legend: 'XGBoost with C0 alone', mlLegend: 'XGBoost with C0 + 1 h after infusion end',
       limits: [
         'The benchmark is entirely synthetic: it measures AUC reconstruction in the world defined by the models, not clinical benefit.',
         'Covariates are simulated from ranges, distributions or summary statistics reported for each source population. Any distributional assumption is declared; an insufficiently documented covariate remains at the model reference value.',
@@ -107,7 +107,7 @@
         'A high RMSE can be dominated by a few extreme profiles when interindividual variability, doses and AUCs span a wide range. Mean bias can nevertheless remain small.',
         'Good performance on the generating model does not guarantee transportability to another population or PopPK model.',
         'ML AUC24 is not used for dose recommendation. Trajectories, scenarios and recommendations remain MAP-BE based.',
-        'Two concentrations in one dosing interval and a declared steady-state regimen are required. Out-of-domain input triggers a warning.'
+        'The primary predictor requires a pre-dose C0 and a post-dose sample in the following interval. Continuous infusion is excluded because infusion end and pre-dose C0 are not defined. Out-of-domain input triggers a warning.'
       ],
       mapTitle: 'Why show MAP and ML together?',
       mapBody: 'Agreement provides a useful consistency check; disagreement draws attention to the model, times, covariates or training domain. It cannot automatically identify the correct method.',
@@ -122,14 +122,21 @@
   let rows = $derived.by(() => scopeArtifacts
     .filter((item) => drug === 'all' || item.drug === drug)
     .filter((item) => `${item.drug} ${item.model} ${item.modelId}`.toLowerCase().includes(query.trim().toLowerCase()))
-    .sort((a, b) => (a.validation.untouchedHoldout?.relativeRmsePct ?? Infinity) - (b.validation.untouchedHoldout?.relativeRmsePct ?? Infinity)));
+    .sort((a, b) => strategyValue(a, 'c0PlusOneHourPostInfusion', 'relativeRmsePct') - strategyValue(b, 'c0PlusOneHourPostInfusion', 'relativeRmsePct')));
   const baselineValue = (item, block, metric) => Number(item.validation?.populationBaseline?.[block]?.[metric]);
-  const gainValue = (item) => Number(item.validation?.comparison?.untouchedHoldoutRelativeRmseGainPct);
+  const strategyValue = (item, strategy, metric) => Number(item.validation?.samplingStrategies?.[strategy]?.untouchedHoldout?.[metric]);
+  const c0Value = (item, metric) => strategyValue(item, 'c0Only', metric);
+  const primaryValue = (item, metric) => strategyValue(item, 'c0PlusOneHourPostInfusion', metric);
+  const gainValue = (item) => {
+    const baseline = baselineValue(item, 'untouchedHoldout', 'relativeRmsePct');
+    const primary = primaryValue(item, 'relativeRmsePct');
+    return Number.isFinite(baseline) && baseline > 0 && Number.isFinite(primary) ? 100 * (baseline - primary) / baseline : NaN;
+  };
   let chartMax = $derived(Math.max(60, ...rows.flatMap((item) => [
-    item.validation.untouchedHoldout?.relativeRmsePct ?? 0,
+    primaryValue(item, 'relativeRmsePct') || 0,
+    c0Value(item, 'relativeRmsePct') || 0,
     item.validation.populationBaseline?.untouchedHoldout?.relativeRmsePct ?? 0
   ])));
-  const value = (item, block, metric) => Number(item.validation?.[block]?.[metric]);
   const format = (number) => Number.isFinite(number) ? `${number.toFixed(1)} %` : copy.na;
   const median = (values) => {
     const clean = values.filter(Number.isFinite).sort((a, b) => a - b);
@@ -138,12 +145,12 @@
     return clean.length % 2 ? clean[middle] : (clean[middle - 1] + clean[middle]) / 2;
   };
   let medianWithoutMl = $derived(median(scopeArtifacts.map((item) => baselineValue(item, 'untouchedHoldout', 'relativeRmsePct'))));
-  let medianWithMl = $derived(median(scopeArtifacts.map((item) => value(item, 'untouchedHoldout', 'relativeRmsePct'))));
+  let medianWithMl = $derived(median(scopeArtifacts.map((item) => primaryValue(item, 'relativeRmsePct'))));
   let improvedCount = $derived(scopeArtifacts.filter((item) => gainValue(item) > 0).length);
-  const barWidth = (number) => `${Math.min(100, Math.log1p(Math.max(0, number)) / Math.log1p(chartMax) * 100)}%`;
+  const barWidth = (number) => Number.isFinite(number) ? `${Math.min(100, Math.log1p(Math.max(0, number)) / Math.log1p(chartMax) * 100)}%` : '0%';
   const status = (item) => !item.analysisEligible ? copy.unavailable : !item.hashMatches ? copy.stale : item.releaseLevel === 'research' ? copy.internalResearch : copy.experimental;
   const statusClass = (item) => !item.availableInTdm ? 'muted' : item.releaseLevel === 'research' ? 'research' : 'experimental';
-  const gainClass = (item) => gainValue(item) >= 0 ? 'improved' : 'degraded';
+  const gainClass = (item) => !Number.isFinite(gainValue(item)) ? 'unavailable' : gainValue(item) >= 0 ? 'improved' : 'degraded';
   const modeLabel = (item) => item.administrationMode === 'continuous' ? 'IV continue' : item.administrationMode === 'intermittent' ? 'IV discontinue' : item.administrationMode;
 </script>
 
@@ -165,7 +172,7 @@
   <div class="pipeline" aria-label={$language === 'en' ? 'Machine-learning pipeline' : 'Pipeline de machine learning'}>
     {#each [
       [Database, copy.simulated, 'PopPK'],
-      [Activity, copy.sparse, 't1 · t2'],
+      [Activity, copy.sparse, 'C0 · post+1 h'],
       [GitBranch, copy.features, 'dose · t · cov'],
       [GitBranch, copy.model, 'boosted trees'],
       [ShieldCheck, copy.output, 'estimate']
@@ -238,29 +245,32 @@
   </div>
 
   <div class="metric-note"><h3>{copy.metricTitle}</h3><p>{copy.metricBody}</p></div>
-  <div class="chart-head"><div><h3>{copy.chart}</h3><div class="legend"><span class="baseline-key"></span>{copy.baselineLegend}<span class="ml-key"></span>{copy.mlLegend}</div></div><span>{copy.logScale}</span></div>
+  <div class="chart-head"><div><h3>{copy.chart}</h3><div class="legend"><span class="baseline-key"></span>{copy.baselineLegend}<span class="c0-key"></span>{copy.c0Legend}<span class="ml-key"></span>{copy.mlLegend}</div></div><span>{copy.logScale}</span></div>
   {#if rows.length}
     <div class="rmse-chart">
       {#each rows as item}
-        {@const rmse = value(item, 'untouchedHoldout', 'relativeRmsePct')}
+        {@const rmse = primaryValue(item, 'relativeRmsePct')}
+        {@const c0Rmse = c0Value(item, 'relativeRmsePct')}
         {@const baselineRmse = baselineValue(item, 'untouchedHoldout', 'relativeRmsePct')}
         <div class="chart-row">
           <div class="chart-label"><strong>{item.model}</strong><span>{item.drug} · {modeLabel(item)}</span></div>
           <div class="bar-pair">
             <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class="bar baseline" style={`width:${barWidth(baselineRmse)}`}></span></div>
+            <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class="bar c0" style={`width:${barWidth(c0Rmse)}`}></span></div>
             <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class={`bar ml ${gainClass(item)}`} style={`width:${barWidth(rmse)}`}></span></div>
           </div>
-          <strong class={`chart-value ${gainClass(item)}`}>{format(baselineRmse)}<br/>{format(rmse)}</strong>
+          <strong class={`chart-value ${gainClass(item)}`}>{format(baselineRmse)}<br/>{format(c0Rmse)}<br/>{format(rmse)}</strong>
         </div>
       {/each}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>{copy.modelCol}</th><th>{copy.modeCol}</th><th>{copy.noMlBiasCol}</th><th>{copy.noMlRmseCol}</th><th>{copy.mlBiasCol}</th><th>{copy.mlRmseCol}</th><th>{copy.gainCol}</th><th>{copy.statusCol}</th></tr></thead>
+        <thead><tr><th>{copy.modelCol}</th><th>{copy.modeCol}</th><th>{copy.noMlBiasCol}</th><th>{copy.noMlRmseCol}</th><th>{copy.c0BiasCol}</th><th>{copy.c0RmseCol}</th><th>{copy.mlBiasCol}</th><th>{copy.mlRmseCol}</th><th>{copy.gainCol}</th><th>{copy.statusCol}</th></tr></thead>
         <tbody>{#each rows as item}<tr>
           <td><strong>{item.model}</strong><span>{item.drug}</span></td><td>{modeLabel(item)}</td>
           <td>{format(baselineValue(item, 'untouchedHoldout', 'relativeBiasPct'))}</td><td>{format(baselineValue(item, 'untouchedHoldout', 'relativeRmsePct'))}</td>
-          <td>{format(value(item, 'untouchedHoldout', 'relativeBiasPct'))}</td><td>{format(value(item, 'untouchedHoldout', 'relativeRmsePct'))}</td>
+          <td>{format(c0Value(item, 'relativeBiasPct'))}</td><td>{format(c0Value(item, 'relativeRmsePct'))}</td>
+          <td>{format(primaryValue(item, 'relativeBiasPct'))}</td><td>{format(primaryValue(item, 'relativeRmsePct'))}</td>
           <td><strong class={gainClass(item)}>{format(gainValue(item))}</strong></td><td><span class={`status ${statusClass(item)}`}>{status(item)}</span></td>
         </tr>{/each}</tbody>
       </table>
@@ -324,7 +334,8 @@
   .chart-head h3 { margin: 0; }
   .chart-head span { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); }
   .legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); color: var(--text-muted); font-size: var(--text-xs); }
-  .legend .baseline-key, .legend .ml-key { width: 18px; height: 6px; background: var(--text-muted); }
+  .legend .baseline-key, .legend .c0-key, .legend .ml-key { width: 18px; height: 6px; background: var(--text-muted); }
+  .legend .c0-key { margin-left: var(--space-2); background: var(--accent-ai); }
   .legend .ml-key { margin-left: var(--space-2); background: var(--accent-pd); }
   .rmse-chart { display: grid; gap: var(--space-2); }
   .chart-row { display: grid; grid-template-columns: minmax(150px, 230px) minmax(160px, 1fr) 64px; align-items: center; gap: var(--space-3); min-height: 42px; }
@@ -337,11 +348,13 @@
   .threshold { position: absolute; z-index: 2; top: -4px; bottom: -4px; border-left: 1px dashed var(--text-primary); }
   .bar { position: absolute; inset: 0 auto 0 0; min-width: 2px; }
   .bar.baseline { background: var(--text-muted); opacity: .7; }
+  .bar.c0 { background: var(--accent-ai); }
   .bar.ml { background: var(--accent-pd); }
   .bar.ml.degraded { background: var(--accent-pk); }
   .chart-value { text-align: right; font-family: var(--font-mono); font-size: var(--text-xs); }
   .improved { color: var(--accent-pd); }
   .degraded { color: var(--accent-pk); }
+  .unavailable { color: var(--text-muted); }
   .table-wrap { overflow-x: auto; margin-top: var(--space-8); border-top: 1px solid var(--border-strong); }
   table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
   th, td { padding: var(--space-3); border-bottom: 1px solid var(--border-subtle); text-align: right; white-space: nowrap; }
