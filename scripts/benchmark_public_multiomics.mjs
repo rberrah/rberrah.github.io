@@ -57,6 +57,14 @@ function pathwayMatches(consensus, patterns) {
   return (consensus || []).filter((p) => regexes.some((r) => r.test(p.name))).slice(0, 25);
 }
 
+function requireTruth(condition, label, details = '') {
+  if (!condition) {
+    const suffix = details ? ` — ${details}` : '';
+    throw new Error(`PUBLIC BENCHMARK FAILED: ${label}${suffix}`);
+  }
+  console.log(`TRUTH PASS: ${label}${details ? ` — ${details}` : ''}`);
+}
+
 const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
 
 // --- Nutrimouse ---
@@ -113,6 +121,31 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
       id: p.id, name: p.name, fdr: p.fdr, supportingLayers: p.supportingLayers
     }))
   };
+
+  const cyp3a11 = result.layers.transcriptomics.rows
+    .map((row, index) => ({ ...row, rank: index + 1 }))
+    .find((row) => /^CYP3A11$/i.test(row.feature));
+  requireTruth(
+    cyp3a11 && cyp3a11.rank <= 10 && cyp3a11.qValue <= 0.05,
+    'Nutrimouse recovers CYP3A11 genotype signal',
+    cyp3a11 ? `rank=${cyp3a11.rank}, q=${cyp3a11.qValue}` : 'CYP3A11 absent'
+  );
+
+  const linoleic = result.layers.metabolomics.rows.find((row) => /^C18\.2n\.6$/i.test(row.feature));
+  requireTruth(
+    linoleic && linoleic.foldRatio < 1 && linoleic.qValue <= 0.10,
+    'Nutrimouse recovers elevated C18:2n-6 in PPARalpha-null mice',
+    linoleic ? `WT/PPAR=${linoleic.foldRatio.toFixed(3)}, q=${linoleic.qValue}` : 'C18.2n.6 absent'
+  );
+
+  const expectedPathway = (result.reactome?.consensus || []).find((pathway) =>
+    /(PPARalpha|PPARA|fatty acid metabolism|metabolism of lipids|triglyceride metabolism)/i.test(pathway.name)
+  );
+  requireTruth(
+    Boolean(expectedPathway),
+    'Nutrimouse Reactome mapping recovers PPAR/lipid biology',
+    expectedPathway?.name || 'no expected pathway'
+  );
 }
 
 // --- TCGA Her2 vs LumA ---
@@ -170,6 +203,31 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
       id: p.id, name: p.name, fdr: p.fdr, supportingLayers: p.supportingLayers
     }))
   };
+
+  const her2 = result.layers.proteomics.rows
+    .map((row, index) => ({ ...row, rank: index + 1 }))
+    .find((row) => /^HER2$/i.test(row.feature));
+  const her2Phospho = result.layers.proteomics.rows
+    .map((row, index) => ({ ...row, rank: index + 1 }))
+    .find((row) => /^HER2_pY1248$/i.test(row.feature));
+
+  requireTruth(
+    her2 && her2.rank <= 10 && her2.effect < 0 && her2.qValue <= 0.01,
+    'TCGA recovers HER2 protein enrichment in Her2 subtype',
+    her2 ? `rank=${her2.rank}, LumA/Her2=${her2.foldRatio.toFixed(3)}, q=${her2.qValue}` : 'HER2 absent'
+  );
+  requireTruth(
+    her2Phospho && her2Phospho.rank <= 10 && her2Phospho.effect < 0 && her2Phospho.qValue <= 0.01,
+    'TCGA recovers activated HER2-pY1248 enrichment in Her2 subtype',
+    her2Phospho ? `rank=${her2Phospho.rank}, LumA/Her2=${her2Phospho.foldRatio.toFixed(3)}, q=${her2Phospho.qValue}` : 'HER2_pY1248 absent'
+  );
+
+  const erbb2Pathway = (result.reactome?.consensus || []).find((pathway) => /ERBB2|HER2/i.test(pathway.name));
+  requireTruth(
+    Boolean(erbb2Pathway),
+    'TCGA Reactome result contains ERBB2/HER2 signalling',
+    erbb2Pathway?.name || 'no ERBB2/HER2 pathway'
+  );
 }
 
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
