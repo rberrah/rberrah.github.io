@@ -71,6 +71,17 @@
     metabolomics: 'Metabolomics'
   };
 
+  /** @param {string} layer */
+  function omicLabel(layer) {
+    return layer === 'transcriptomics'
+      ? omicLabels.transcriptomics
+      : layer === 'proteomics'
+        ? omicLabels.proteomics
+        : layer === 'metabolomics'
+          ? omicLabels.metabolomics
+          : layer;
+  }
+
   const fieldDefinitions = [
     {
       key: 'subject_id',
@@ -1236,7 +1247,7 @@
       </div>
       <div class="overlap-pairs">
         {#each analysisResult.metadataSummary.overlap.pairwise as pair}
-          <span>{omicLabels[pair.layerA]} ↔ {omicLabels[pair.layerB]}: <b>{pair.matchedSubjects}</b> matched</span>
+          <span>{omicLabel(pair.layerA)} ↔ {omicLabel(pair.layerB)}: <b>{pair.matchedSubjects}</b> matched</span>
         {/each}
       </div>
     </div>
