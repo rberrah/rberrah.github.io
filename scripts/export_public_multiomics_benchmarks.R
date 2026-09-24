@@ -459,3 +459,31 @@ write.csv(
 cat("\nLRRK2_D35_EXPORTED\n")
 cat("rna:", lrrk_rna$n_features, "features,", lrrk_rna$n_samples, "samples\n")
 cat("protein:", lrrk_pro$n_features, "features,", lrrk_pro$n_samples, "samples\n")
+
+
+# --- TCGA breast 3-subtype benchmark for multi-group inference ---
+load(file.path(mixomics_root, "data", "breast.TCGA.rda"))
+tcga3 <- breast.TCGA$data.train
+keep3 <- as.character(tcga3$subtype) %in% c("Basal","Her2","LumA")
+mrna3 <- tcga3$mrna[keep3,,drop=FALSE]
+protein3 <- tcga3$protein[keep3,,drop=FALSE]
+subtype3 <- droplevels(tcga3$subtype[keep3])
+
+tcga3_dir <- file.path(out_dir, "tcga-three-subtypes")
+dir.create(tcga3_dir, recursive=TRUE, showWarnings=FALSE)
+n3 <- nrow(mrna3)
+subjects3 <- sprintf("TCGA3_%03d", seq_len(n3))
+rna3 <- sprintf("RNA3_%03d", seq_len(n3))
+prot3 <- sprintf("PROT3_%03d", seq_len(n3))
+
+write_matrix(mrna3, colnames(mrna3), rna3, file.path(tcga3_dir, "transcriptomics.csv"))
+write_matrix(protein3, colnames(protein3), prot3, file.path(tcga3_dir, "proteomics.csv"))
+write_metadata(
+  subjects3,
+  list(transcriptomics=rna3, proteomics=prot3),
+  subtype3,
+  file.path(tcga3_dir, "metadata.csv")
+)
+cat("\nTCGA_THREE_SUBTYPES_EXPORTED\n")
+cat("subjects:", n3, "\n")
+cat("subtypes:", paste(names(table(subtype3)), as.integer(table(subtype3)), collapse="; "), "\n")
