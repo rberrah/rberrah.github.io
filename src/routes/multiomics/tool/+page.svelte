@@ -1652,7 +1652,20 @@
             <p class="selection-rule">{result.selectionRule}</p>
             {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
             <div class="feature-table">
-              <div class="feature-head"><b>{t('Variable', 'Feature')}</b><b>{result.effectScale === 'log2' ? 'Fold ratio' : t('Effet', 'Effect')}</b><b>p</b><b>q BH</b></div>
+              <div class="feature-head">
+  <b>{t('Variable', 'Feature')}</b>
+  <b>{result.effectScale === 'log2' ? 'Fold ratio' : t('Effet', 'Effect')}
+    <span class="help-tip" tabindex="0" data-tooltip={result.effectScale === 'log2'
+      ? t('Rapport comparaison/référence calculé comme 2^effect sur une échelle log2. 2 = deux fois plus, 0,5 = deux fois moins.', 'Comparison/reference ratio computed as 2^effect on a log2 scale. 2 = twice as high; 0.5 = half as high.')
+      : t('Direction et amplitude du contraste ou du coefficient estimé. Toujours lire le contraste affiché et son échelle.', 'Direction and magnitude of the estimated contrast or coefficient. Always read the displayed contrast and its scale.')}>?</span>
+  </b>
+  <b>p
+    <span class="help-tip" tabindex="0" data-tooltip={t('p-value brute du test pour cette variable, avant correction des tests multiples. Une petite p-value seule ne suffit pas lorsqu’on teste beaucoup de variables.', 'Raw p-value for this feature before multiple-testing correction. A small p-value alone is not sufficient when many features are tested.')}>?</span>
+  </b>
+  <b>q BH
+    <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par Benjamini–Hochberg pour contrôler le taux de faux positifs parmi les résultats retenus. Ici q ≤ 0,10 est un seuil exploratoire.', 'Benjamini–Hochberg adjusted p-value controlling the false discovery rate among selected results. Here q ≤ 0.10 is an exploratory threshold.')}>?</span>
+  </b>
+</div>
               {#each result.rows.slice(0, 10) as row}
                 <div>
                   <code>{row.feature}</code>
@@ -1700,7 +1713,14 @@
     </div>
     {#if analysisResult.crossOmics?.pairs?.length}
       <div class="cross-table">
-        <div class="cross-head"><b>Pair</b><b>Pattern</b><b>r reference</b><b>r comparison</b><b>Δr</b><b>q BH</b></div>
+        <div class="cross-head">
+  <b>{t('Paire', 'Pair')}</b>
+  <b>Pattern <span class="help-tip" tabindex="0" data-tooltip={t('Résumé déterministe du changement de corrélation : gain, perte, renforcement, affaiblissement ou inversion de signe.', 'Deterministic summary of the correlation change: gained, lost, strengthened, weakened or sign reversal.')}>?</span></b>
+  <b>r reference <span class="help-tip" tabindex="0" data-tooltip={t('Corrélation de Spearman entre les deux variables dans le groupe de référence.', 'Spearman correlation between the two features in the reference group.')}>?</span></b>
+  <b>r comparison <span class="help-tip" tabindex="0" data-tooltip={t('Même corrélation de Spearman dans le groupe comparé.', 'The same Spearman correlation in the comparison group.')}>?</span></b>
+  <b>Δr <span class="help-tip" tabindex="0" data-tooltip={t('Différence r_comparison − r_reference. Une grande valeur absolue indique un changement important de couplage entre les deux conditions.', 'Difference r_comparison − r_reference. A large absolute value indicates a strong change in coupling between conditions.')}>?</span></b>
+  <b>q BH <span class="help-tip" tabindex="0" data-tooltip={t('FDR Benjamini–Hochberg appliqué à toutes les paires inter-omiques testées. Il indique si le changement de corrélation reste crédible après correction multiple.', 'Benjamini–Hochberg FDR across all tested cross-omics pairs. It indicates whether the correlation change remains credible after multiple-testing correction.')}>?</span></b>
+</div>
         {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
           <div>
             <span><code>{pair.featureA}</code> <small>{pair.layerA}</small> ↔ <code>{pair.featureB}</code> <small>{pair.layerB}</small></span>
@@ -1734,7 +1754,18 @@
         <span><strong>{analysisResult.reactome.combined.identifiersNotFound}</strong> identifiers not found</span>
       </div>
       <div class="pathway-table" data-testid="multiomics-pathways">
-        <div class="pathway-head"><b>Pathway</b><b>Combined FDR</b><b>RNA</b><b>Protein</b><b>Metabolite</b><b>Layers ≤0.10</b></div>
+        <div class="pathway-head">
+  <b>{t('Voie', 'Pathway')}</b>
+  <b>{t('FDR multi-omique groupée', 'Pooled multi-omics FDR')}
+    <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome obtenue en envoyant ensemble les identifiants sélectionnés de toutes les couches. Ce n’est pas une combinaison mathématique des FDR RNA/protéine/métabolite.', 'Reactome FDR obtained by pooling selected identifiers from all layers. It is not a mathematical combination of the RNA/protein/metabolite FDR values.')}>?</span>
+  </b>
+  <b>RNA <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables transcriptomiques sélectionnées.', 'Reactome FDR using only selected transcriptomic features.')}>?</span></b>
+  <b>{t('Protéine', 'Protein')} <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables protéomiques sélectionnées.', 'Reactome FDR using only selected proteomic features.')}>?</span></b>
+  <b>{t('Métabolite', 'Metabolite')} <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les métabolites sélectionnés.', 'Reactome FDR using only selected metabolites.')}>?</span></b>
+  <b>{t('Couches ≤0,10', 'Layers ≤0.10')}
+    <span class="help-tip" tabindex="0" data-tooltip={t('Nombre de couches omiques qui soutiennent séparément cette voie avec une FDR Reactome ≤0,10. Une valeur élevée indique une convergence inter-omique.', 'Number of omics layers independently supporting this pathway at Reactome FDR ≤0.10. A higher value indicates cross-omics convergence.')}>?</span>
+  </b>
+</div>
         {#each analysisResult.reactome.consensus.slice(0, 15) as pathway}
           <div>
             <a href={`https://reactome.org/content/detail/${pathway.id}`} target="_blank" rel="noreferrer">{pathway.name}</a>
@@ -1859,6 +1890,10 @@
 <style>
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   .tool-back { display: inline-block; margin-bottom: var(--space-4); font-size: var(--text-sm); }
+  .help-tip { position: relative; display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-left: 3px; border: 1px solid var(--border-strong); border-radius: 50%; font: 700 0.72rem/1 var(--font-sans); color: var(--text-secondary); cursor: help; vertical-align: middle; }
+  .help-tip::after { content: attr(data-tooltip); position: absolute; z-index: 50; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px); width: min(320px, 75vw); padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-primary); box-shadow: 0 8px 24px rgba(0,0,0,.16); color: var(--text-primary); font: 400 var(--text-xs)/1.45 var(--font-sans); text-align: left; white-space: normal; opacity: 0; pointer-events: none; transition: opacity .12s ease, transform .12s ease; }
+  .help-tip:hover::after, .help-tip:focus::after, .help-tip:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .help-tip:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
   h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: .98; max-width: 14ch; margin: var(--space-3) 0 var(--space-6); letter-spacing: -.045em; }
   h2 { margin: 0; font-size: var(--text-2xl); }
   h3 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
