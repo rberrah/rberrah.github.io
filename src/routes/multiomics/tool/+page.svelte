@@ -910,7 +910,7 @@
         <option value="animal">{t('Expérience animale', 'Animal experiment')}</option>
         <option value="cell">{t('Culture cellulaire / in vitro', 'Cell culture / in vitro')}</option>
         <option value="organoid">{t('Organoïde / modèle ex vivo', 'Organoid / ex vivo model')}</option>
-        <option value="other">Other</option>
+        <option value="other">{t('Autre', 'Other')}</option>
       </select>
     </label>
 
@@ -968,7 +968,7 @@
         <option value="same_subject">{t('Même sujet, prélèvements différents', 'Same subject, different specimens')}</option>
         <option value="partial">{t('Partiellement apparié', 'Partially matched')}</option>
         <option value="unpaired">{t('Échantillons différents / non appariés', 'Different / unpaired samples')}</option>
-        <option value="unknown">Unknown</option>
+        <option value="unknown">{t('Inconnu', 'Unknown')}</option>
       </select>
     </label>
 
@@ -977,7 +977,7 @@
       <select bind:value={technicalReplicatesExpected}>
         <option value="no">{t('Non', 'No')}</option>
         <option value="yes">{t('Oui', 'Yes')}</option>
-        <option value="unknown">Unknown</option>
+        <option value="unknown">{t('Inconnu', 'Unknown')}</option>
       </select>
     </label>
 
@@ -986,7 +986,7 @@
       <select bind:value={batchKnown}>
         <option value="yes">{t('Oui', 'Yes')}</option>
         <option value="no">{t('Non', 'No')}</option>
-        <option value="unknown">Unknown</option>
+        <option value="unknown">{t('Inconnu', 'Unknown')}</option>
       </select>
     </label>
 
@@ -1015,7 +1015,7 @@
       <select bind:value={partialOmicsExpected}>
         <option value="no">{t('Non / non attendu', 'No / not expected')}</option>
         <option value="yes">{t('Oui', 'Yes')}</option>
-        <option value="unknown">Unknown</option>
+        <option value="unknown">{t('Inconnu', 'Unknown')}</option>
       </select>
     </label>
 
@@ -1071,27 +1071,27 @@
         <select bind:value={transcriptomicsPlatform}>
           <option value="bulk_rnaseq">Bulk RNA-seq</option>
           <option value="microarray">Microarray</option>
-          <option value="targeted">Targeted expression panel</option>
-          <option value="processed">Already processed matrix</option>
+          <option value="targeted">{t('Panel d’expression ciblé', 'Targeted expression panel')}</option>
+          <option value="processed">{t('Matrice déjà prétraitée', 'Already processed matrix')}</option>
         </select>
       </label>
       <label>
         <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={transcriptomicsValues}>
-          <option value="raw_counts">Raw integer counts</option>
-          <option value="tpm">TPM / FPKM-like abundance</option>
-          <option value="normalized">Normalised expression</option>
-          <option value="log_expression">Log-transformed expression</option>
-          <option value="unknown">Unknown</option>
+          <option value="raw_counts">{t('Counts entiers bruts', 'Raw integer counts')}</option>
+          <option value="tpm">{t('Abondance TPM / type FPKM', 'TPM / FPKM-like abundance')}</option>
+          <option value="normalized">{t('Expression normalisée', 'Normalised expression')}</option>
+          <option value="log_expression">{t('Expression log-transformée', 'Log-transformed expression')}</option>
+          <option value="unknown">{t('Inconnu', 'Unknown')}</option>
         </select>
       </label>
       <label>
         <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={transcriptomicsIdType}>
           <option value="ensembl_gene">Ensembl gene ID</option>
-          <option value="gene_symbol">Gene symbol</option>
+          <option value="gene_symbol">{t('Symbole de gène', 'Gene symbol')}</option>
           <option value="entrez">Entrez Gene ID</option>
-          <option value="unknown">Unknown / detect automatically</option>
+          <option value="unknown">{t('Inconnu / détection automatique', 'Unknown / detect automatically')}</option>
         </select>
       </label>
       {#if matrixInfo.transcriptomics.rowIds.length}
@@ -1107,27 +1107,27 @@
           <option value="label_free">Label-free LC-MS/MS</option>
           <option value="tmt">TMT / multiplexed</option>
           <option value="dia">DIA</option>
-          <option value="targeted">Targeted proteomics</option>
-          <option value="processed">Already processed matrix</option>
+          <option value="targeted">{t('Protéomique ciblée', 'Targeted proteomics')}</option>
+          <option value="processed">{t('Matrice déjà prétraitée', 'Already processed matrix')}</option>
         </select>
       </label>
       <label>
         <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={proteomicsValues}>
-          <option value="lfq_intensity">LFQ / intensity</option>
-          <option value="log_intensity">Log intensity</option>
-          <option value="spectral_count">Spectral counts</option>
-          <option value="normalized">Normalised abundance</option>
-          <option value="unknown">Unknown</option>
+          <option value="lfq_intensity">{t('LFQ / intensité', 'LFQ / intensity')}</option>
+          <option value="log_intensity">{t('Intensité logarithmique', 'Log intensity')}</option>
+          <option value="spectral_count">{t('Comptages spectraux', 'Spectral counts')}</option>
+          <option value="normalized">{t('Abondance normalisée', 'Normalised abundance')}</option>
+          <option value="unknown">{t('Inconnu', 'Unknown')}</option>
         </select>
       </label>
       <label>
         <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={proteomicsIdType}>
           <option value="uniprot">UniProt accession</option>
-          <option value="gene_symbol">Gene symbol</option>
+          <option value="gene_symbol">{t('Symbole de gène', 'Gene symbol')}</option>
           <option value="ensembl_protein">Ensembl protein ID</option>
-          <option value="unknown">Unknown / detect automatically</option>
+          <option value="unknown">{t('Inconnu / détection automatique', 'Unknown / detect automatically')}</option>
         </select>
       </label>
       {#if matrixInfo.proteomics.rowIds.length}
@@ -1140,21 +1140,21 @@
       <label>
         <span>{t('Acquisition', 'Acquisition')}</span>
         <select bind:value={metabolomicsPlatform}>
-          <option value="untargeted_lcms">Untargeted LC-MS</option>
-          <option value="targeted_lcms">Targeted LC-MS</option>
+          <option value="untargeted_lcms">{t('LC-MS non ciblée', 'Untargeted LC-MS')}</option>
+          <option value="targeted_lcms">{t('LC-MS ciblée', 'Targeted LC-MS')}</option>
           <option value="gcms">GC-MS</option>
           <option value="nmr">NMR</option>
-          <option value="processed">Already processed matrix</option>
+          <option value="processed">{t('Matrice déjà prétraitée', 'Already processed matrix')}</option>
         </select>
       </label>
       <label>
         <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={metabolomicsValues}>
-          <option value="peak_area">Peak area / intensity</option>
-          <option value="normalized">Normalised abundance</option>
-          <option value="concentration">Absolute concentration</option>
-          <option value="log_abundance">Log abundance</option>
-          <option value="unknown">Unknown</option>
+          <option value="peak_area">{t('Aire de pic / intensité', 'Peak area / intensity')}</option>
+          <option value="normalized">{t('Abondance normalisée', 'Normalised abundance')}</option>
+          <option value="concentration">{t('Concentration absolue', 'Absolute concentration')}</option>
+          <option value="log_abundance">{t('Abondance logarithmique', 'Log abundance')}</option>
+          <option value="unknown">{t('Inconnu', 'Unknown')}</option>
         </select>
       </label>
       <label>
@@ -1164,9 +1164,9 @@
           <option value="hmdb">HMDB</option>
           <option value="kegg_compound">KEGG compound</option>
           <option value="pubchem">PubChem CID</option>
-          <option value="name">Metabolite name</option>
-          <option value="mz_rt">m/z + retention time only</option>
-          <option value="unknown">Unknown / detect automatically</option>
+          <option value="name">{t('Nom du métabolite', 'Metabolite name')}</option>
+          <option value="mz_rt">{t('m/z + temps de rétention uniquement', 'm/z + retention time only')}</option>
+          <option value="unknown">{t('Inconnu / détection automatique', 'Unknown / detect automatically')}</option>
         </select>
       </label>
       {#if matrixInfo.metabolomics.rowIds.length}
@@ -1182,27 +1182,27 @@
       <p class="eyebrow">{t('Étape 4 · Contrat de données', 'Step 4 · Data contract')}</p>
       <h2>{t('Utilisez le template ou laissez l’outil mapper vos colonnes', 'Use the template, or let the app map your column names')}</h2>
     </div>
-    <p>The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.</p>
+    <p>{t('Le template est la voie la plus sûre, mais il n’est pas obligatoire. Les métadonnées libres sont rapprochées d’une liste explicite d’alias puis confirmées manuellement.', 'The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.')}</p>
   </div>
 
   <div class="contract">
     <div>
       <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
-      <p>One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.</p>
+      <p>{t('Une ligne = une mesure. Ce format gère les couches omiques absentes, les temps répétés et les réplicats techniques sans changer de schéma.', 'One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.')}</p>
       <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome</pre>
       <div class="actions">
         <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>{t('Générer un template depuis mon protocole', 'Generate template from my protocol')}</button>
-        <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>Generic metadata template</a>
-        <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>RNA matrix template</a>
-        <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>Protein matrix template</a>
-        <a class="btn btn-outline" href={`${base}/multiomics/metabolomics_template.csv`} download>Metabolite matrix template</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>{t('Template générique de métadonnées', 'Generic metadata template')}</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>{t('Template matrice RNA', 'RNA matrix template')}</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>{t('Template matrice protéines', 'Protein matrix template')}</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/metabolomics_template.csv`} download>{t('Template matrice métabolites', 'Metabolite matrix template')}</a>
       </div>
     </div>
 
     <div class="demo-card">
       <p class="eyebrow">{t('Démonstration intégrée', 'Built-in demonstration')}</p>
-      <h3>Treatment × time, three omics</h3>
-      <p>8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
+      <h3>{t('Traitement × temps, trois omiques', 'Treatment × time, three omics')}</h3>
+      <p>{t('8 sujets (4 contrôle + 4 traitement), deux temps, trois couches omiques appariées, avec un réplicat technique RNA sur le même prélèvement.', '8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.')}</p>
       <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
@@ -1214,7 +1214,7 @@
   </div>
 
   <details class="dictionary">
-    <summary>Detailed metadata dictionary</summary>
+    <summary>{t('Dictionnaire détaillé des métadonnées', 'Detailed metadata dictionary')}</summary>
     <div class="dictionary-table">
       <div><b>Column</b><b>Meaning</b><b>Example</b><b>Rule</b></div>
       <div><code>subject_id</code><span>{t('Unité biologique indépendante', 'Independent biological unit')}</span><span>P001</span><span>Same value across all visits/omics for one participant, animal or culture.</span></div>
@@ -1231,7 +1231,7 @@
 
   <details class="aliases">
     <summary>{t('Comment fonctionne la reconnaissance automatique des colonnes', 'How automatic column recognition works')}</summary>
-    <p>Column names are normalised (case, spaces, hyphens and accents ignored), then compared with a controlled alias list. Automatic recognition is only accepted when exactly one column matches a field.</p>
+    <p>{t('Les noms de colonnes sont normalisés (casse, espaces, tirets et accents ignorés), puis comparés à une liste contrôlée d’alias. La reconnaissance automatique n’est acceptée que si une seule colonne correspond au champ.', 'Column names are normalised (case, spaces, hyphens and accents ignored), then compared with a controlled alias list. Automatic recognition is only accepted when exactly one column matches a field.')}</p>
     <div class="alias-grid">
       {#each fieldDefinitions as field}
         <article>
@@ -1241,7 +1241,7 @@
         </article>
       {/each}
     </div>
-    <p class="note">The alias list proposes a mapping; it does not silently redefine the study. Ambiguous or missing fields must be mapped manually.</p>
+    <p class="note">{t('La liste d’alias propose un mapping ; elle ne redéfinit jamais silencieusement l’étude. Les champs ambigus ou absents doivent être mappés manuellement.', 'The alias list proposes a mapping; it does not silently redefine the study. Ambiguous or missing fields must be mapped manually.')}</p>
   </details>
 </section>
 
@@ -1251,34 +1251,34 @@
       <p class="eyebrow">{t('Étape 5 · Import & mapping', 'Step 5 · Upload & mapping')}</p>
       <h2>{t('Faites correspondre métadonnées et matrices avant l’analyse', 'Match metadata and matrices before analysis')}</h2>
     </div>
-    <p>Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.</p>
+    <p>{t('Les colonnes des matrices sont interprétées comme des assay_id et comparées aux métadonnées. Aucun lien n’est inféré à partir de noms de patients simplement ressemblants.', 'Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.')}</p>
   </div>
 
   <div class="uploads">
     <label class:loaded={files.metadata}>
       <strong>{t('Métadonnées échantillons', 'Sample metadata')}</strong>
-      <span>Long format preferred; arbitrary headers accepted if they can be mapped.</span>
+      <span>{t('Format long recommandé ; noms de colonnes libres acceptés s’ils peuvent être mappés.', 'Long format preferred; arbitrary headers accepted if they can be mapped.')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
       <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.transcriptomics}>
       <strong>{t('Transcriptomique', 'Transcriptomics')}</strong>
-      <span>First column = feature ID; following columns = assay IDs.</span>
+      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('transcriptomics', event)} />
       <small>{files.transcriptomics ? files.transcriptomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.proteomics}>
       <strong>{t('Protéomique', 'Proteomics')}</strong>
-      <span>First column = feature ID; following columns = assay IDs.</span>
+      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('proteomics', event)} />
       <small>{files.proteomics ? files.proteomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.metabolomics}>
       <strong>{t('Métabolomique', 'Metabolomics')}</strong>
-      <span>First column = feature ID; following columns = assay IDs.</span>
+      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
     </label>
@@ -1303,7 +1303,7 @@
           <label>
             <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
             <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
-              <option value="">— not mapped —</option>
+              <option value="">— {t('non mappé', 'not mapped')} —</option>
               {#each metadataHeaders as header}
                 <option value={header}>{header}</option>
               {/each}
@@ -1342,26 +1342,26 @@
 
     <div class="validation">
       <article>
-        <span>Biological units</span>
+        <span>{t('Unités biologiques', 'Biological units')}</span>
         <strong>{mappedSubjects || '—'}</strong>
         {#if subjectCount && mappedSubjects && subjectCount !== mappedSubjects}
           <small class="warning">Declared {subjectCount}; metadata contains {mappedSubjects}.</small>
         {:else}
-          <small>Unique mapped subject IDs.</small>
+          <small>{t('subject_id uniques mappés.', 'Unique mapped subject IDs.')}</small>
         {/if}
       </article>
       <article>
-        <span>Biological samples</span>
+        <span>{t('Prélèvements biologiques', 'Biological samples')}</span>
         <strong>{mappedSamples || '—'}</strong>
-        <small>Unique specimens across visits / conditions.</small>
+        <small>{t('Prélèvements uniques entre visites / conditions.', 'Unique specimens across visits / conditions.')}</small>
       </article>
       <article>
-        <span>Assays</span>
+        <span>{t('Mesures techniques', 'Assays')}</span>
         <strong>{mappedAssays || '—'}</strong>
-        <small>Unique technical measurement IDs.</small>
+        <small>{t('Identifiants uniques de mesures techniques.', 'Unique technical measurement IDs.')}</small>
       </article>
       <article>
-        <span>Technical replicate groups</span>
+        <span>{t('Groupes de réplicats techniques', 'Technical replicate groups')}</span>
         <strong>{replicateGroups.length}</strong>
         <small>{replicateGroups.length ? replicateGroups.map((item) => item.key.replace('::', ' / ')).slice(0, 3).join(', ') : 'None detected from repeated sample + omic pairs.'}</small>
       </article>
@@ -1378,12 +1378,12 @@
           {#if matrixInfo[layer].sampleIds.length}
             <p><b>{match.matched}/{match.expected}</b> expected assay IDs matched.</p>
             {#if match.orientation === 'transposed'}
-              <small class="warning">Assay IDs match rows better than columns: the matrix appears transposed.</small>
+              <small class="warning">{t('Les assay_id correspondent mieux aux lignes qu’aux colonnes : la matrice semble transposée.', 'Assay IDs match rows better than columns: the matrix appears transposed.')}</small>
             {/if}
             {#if match.missing.length}<small class="warning">Missing from matrix: {match.missing.slice(0, 5).join(', ')}</small>{/if}
             {#if match.extra.length && match.orientation !== 'transposed'}<small class="warning">Not declared in metadata: {match.extra.slice(0, 5).join(', ')}</small>{/if}
           {:else}
-            <p class="muted">Load a matrix to validate assay IDs.</p>
+            <p class="muted">{t('Chargez une matrice pour valider les assay_id.', 'Load a matrix to validate assay IDs.')}</p>
           {/if}
         </article>
       {/each}
@@ -1528,8 +1528,8 @@
     <div class="identifier-resolution">
       <div class="integration-head">
         <div>
-          <p class="eyebrow">Metabolite identifier resolution</p>
-          <h3>Original labels → canonical identifiers sent to pathway analysis</h3>
+          <p class="eyebrow">{t('Résolution des identifiants métabolites', 'Metabolite identifier resolution')}</p>
+          <h3>{t('Libellés originaux → identifiants canoniques envoyés à l’analyse de voies', 'Original labels → canonical identifiers sent to pathway analysis')}</h3>
         </div>
         <span>{analysisResult.identifierResolution.metabolomics.resolvedCount} resolved · {analysisResult.identifierResolution.metabolomics.unresolvedCount} unresolved</span>
       </div>
@@ -1544,7 +1544,7 @@
           </div>
         {/each}
       </div>
-      <p class="note">Only exact ChEBI label matches or explicit deterministic lipid aliases are accepted automatically. Uncertain matches remain unresolved rather than being guessed.</p>
+      <p class="note">{t('Seules les correspondances exactes ChEBI ou les alias lipidiques déterministes explicites sont acceptés automatiquement. Une correspondance incertaine reste non résolue au lieu d’être devinée.', 'Only exact ChEBI label matches or explicit deterministic lipid aliases are accepted automatically. Uncertain matches remain unresolved rather than being guessed.')}</p>
     </div>
   {/if}
 
@@ -1606,8 +1606,8 @@
   <div class="integration-result cross-result">
     <div class="integration-head">
       <div>
-        <p class="eyebrow">Direct cross-omics integration</p>
-        <h3>Which molecular relationships change between the biological conditions?</h3>
+        <p class="eyebrow">{t('Intégration inter-omique directe', 'Direct cross-omics integration')}</p>
+        <h3>{t('Quelles relations moléculaires changent entre les conditions biologiques ?', 'Which molecular relationships change between the biological conditions?')}</h3>
       </div>
       <span>Spearman + Fisher z + BH-FDR</span>
     </div>
@@ -1631,7 +1631,7 @@
       </div>
       <p class="note">{analysisResult.crossOmics.method}. Only subjects represented in both layers contribute to a pair; no imputation is used here.</p>
     {:else}
-      <p class="muted">No cross-omic correlation test was estimable with the current group sizes and matched subjects.</p>
+      <p class="muted">{t('Aucun test de changement de corrélation inter-omique n’était estimable avec les tailles de groupes et sujets appariés actuels.', 'No cross-omic correlation test was estimable with the current group sizes and matched subjects.')}</p>
     {/if}
   </div>
   {/if}
@@ -1640,7 +1640,7 @@
     <div class="integration-head">
       <div>
         <p class="eyebrow">{t('Résultat intégré par voies', 'Integrated pathway result')}</p>
-        <h3>Reactome receives the selected gene/protein/metabolite identifiers together</h3>
+        <h3>{t('Reactome reçoit ensemble les identifiants de gènes, protéines et métabolites sélectionnés', 'Reactome receives the selected gene/protein/metabolite identifiers together')}</h3>
       </div>
       <span>deterministic ORA</span>
     </div>
@@ -1663,35 +1663,35 @@
           </div>
         {/each}
       </div>
-      <p class="note">Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.</p>
+      <p class="note">{t('Le classement est déterministe : nombre de couches avec FDR de voie ≤ 0,10, puis FDR Reactome combinée, puis couverture de la voie. Il s’agit d’un classement exploratoire, pas d’une probabilité postérieure ni d’un score causal.', 'Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.')}</p>
       <p class="note"><strong>Enrichment background:</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} For targeted or pre-filtered panels, pathway p-values/FDR should therefore be interpreted as exploratory until an assay-specific universe is supported.</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
-        <strong>Local statistics completed; Reactome could not be reached.</strong>
+        <strong>{t('Les statistiques locales sont terminées ; Reactome n’a pas pu être joint.', 'Local statistics completed; Reactome could not be reached.')}</strong>
         <p>{analysisResult.reactomeError}</p>
-        <p>The matrices have still not left the browser. Re-run later or disable Reactome to use the local statistical output only.</p>
+        <p>{t('Les matrices ne quittent toujours pas le navigateur. Relancez plus tard ou désactivez Reactome pour utiliser uniquement les résultats statistiques locaux.', 'The matrices have still not left the browser. Re-run later or disable Reactome to use the local statistical output only.')}</p>
       </div>
     {:else}
-      <p class="muted">Reactome querying was disabled for this run.</p>
+      <p class="muted">{t('L’interrogation de Reactome était désactivée pour cette analyse.', 'Reactome querying was disabled for this run.')}</p>
     {/if}
   </div>
 
   <div class="evidence-layers">
     <article>
-      <strong>Observed</strong>
-      <p>Values parsed from the uploaded matrices.</p>
+      <strong>{t('Observé', 'Observed')}</strong>
+      <p>{t('Valeurs lues directement dans les matrices importées.', 'Values parsed from the uploaded matrices.')}</p>
     </article>
     <article>
-      <strong>Statistical inference</strong>
+      <strong>{t('Inférence statistique', 'Statistical inference')}</strong>
       <p>Permutation contrasts plus cross-omics Spearman correlation differences, with Benjamini–Hochberg correction.</p>
     </article>
     <article>
-      <strong>External knowledge</strong>
-      <p>Reactome pathway mapping and over-representation from the selected molecular identifiers.</p>
+      <strong>{t('Connaissance externe', 'External knowledge')}</strong>
+      <p>{t('Mapping et sur-représentation Reactome à partir des identifiants moléculaires sélectionnés.', 'Reactome pathway mapping and over-representation from the selected molecular identifiers.')}</p>
     </article>
     <article>
-      <strong>Not inferred</strong>
-      <p>No LLM narrative, causal claim or invented biological mechanism is generated.</p>
+      <strong>{t('Non inféré', 'Not inferred')}</strong>
+      <p>{t('Aucun récit LLM, aucune causalité ni aucun mécanisme biologique inventé n’est généré.', 'No LLM narrative, causal claim or invented biological mechanism is generated.')}</p>
     </article>
   </div>
 </section>
@@ -1727,10 +1727,10 @@
   <div class="database-bridge">
     <div class="section-head compact">
       <div>
-        <p class="eyebrow">Identifier → biology bridge</p>
-        <h3>Public databases provide meaning after the measurements are validated</h3>
+        <p class="eyebrow">{t('Identifiant → biologie', 'Identifier → biology bridge')}</p>
+        <h3>{t('Les bases publiques apportent le contexte biologique après validation des mesures', 'Public databases provide meaning after the measurements are validated')}</h3>
       </div>
-      <p>Only molecular identifiers needed for annotation/pathway/network queries should be sent to public APIs. Subject IDs, metadata and abundance matrices remain outside these calls.</p>
+      <p>{t('Seuls les identifiants moléculaires nécessaires aux requêtes d’annotation, de voies ou de réseaux sont envoyés aux API publiques. Les identifiants sujets, métadonnées et matrices d’abondance restent hors de ces appels.', 'Only molecular identifiers needed for annotation/pathway/network queries should be sent to public APIs. Subject IDs, metadata and abundance matrices remain outside these calls.')}</p>
     </div>
     <div class="database-grid">
       {#each databaseRegistry as db}
@@ -1738,7 +1738,7 @@
           <span>{db.scope} · {db.status}</span>
           <h3>{db.name}</h3>
           <p>{db.role}</p>
-          <a href={db.url} target="_blank" rel="noreferrer">Official API / documentation ↗</a>
+          <a href={db.url} target="_blank" rel="noreferrer">{t('API officielle / documentation ↗', 'Official API / documentation ↗')}</a>
         </article>
       {/each}
     </div>
@@ -1752,7 +1752,7 @@
     </div>
 
     <details class="aliases">
-      <summary>Public validation suite used to test the deterministic engine</summary>
+      <summary>{t('Suite de validation publique du moteur déterministe', 'Public validation suite used to test the deterministic engine')}</summary>
       <div class="alias-grid">
         <article><strong>Nutrimouse</strong><span>engine truth test</span><p>PPARα-dependent transcript/metabolite signal, CYP3A11 and lipid-pathway recovery.</p></article>
         <article><strong>TCGA breast</strong><span>engine truth test</span><p>HER2/LumA contrast plus Basal/Her2/LumA multi-group inference.</p></article>
@@ -1764,7 +1764,7 @@
         <article><strong>Bioconductor missRows NCI-60</strong><span>partial-overlap test</span><p>Confirms that only genuinely shared biological units are matched across layers.</p></article>
       </div>
       <p class="note">The automated suite is intentionally heterogeneous: it tests biological truth, sample matching, multi-group inference, replicate structure and cross-omics statistics rather than only checking that code executes.</p>
-      <a href="https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-public-benchmark.yml" target="_blank" rel="noreferrer">Open the public benchmark workflow ↗</a>
+      <a href="https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-public-benchmark.yml" target="_blank" rel="noreferrer">{t('Ouvrir le benchmark public ↗', 'Open the public benchmark workflow ↗')}</a>
     </details>
   </div>
 </section>
