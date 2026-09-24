@@ -64,7 +64,7 @@ assert.equal(result.metadataSummary.batchAudit.proteomics.status, 'single_batch'
 assert.equal(result.metadataSummary.batchAudit.metabolomics.status, 'single_batch');
 
 for (const layer of ['transcriptomics','proteomics','metabolomics']) {
-  assert.equal(result.layers[layer].mode, 'difference-in-differences');
+  assert.equal(result.layers[layer].mode, 'random-intercept-longitudinal-model');
   assert.deepEqual(result.layers[layer].groupSizes, [4,4]);
   assert.ok(result.layers[layer].selected.length > 0);
 }
