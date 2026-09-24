@@ -78,6 +78,63 @@ assert.ok(result.crossOmics.pairs.some((pair) => ['sign_reversal','gained_in_com
 
 
 
+// Outcome models with repeated omics must use an explicitly selected molecular time point.
+await assert.rejects(
+  () => runDeterministicAnalysis({
+    files: { metadata, transcriptomics, proteomics, metabolomics },
+    metadataRows: parsed.rows,
+    columnMapping: mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'outcome',
+      outcomeType: 'binary',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_interventional',
+      groupCount: '1',
+      sampleOverlap: 'same_specimen',
+      batchKnown: 'yes',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'raw_counts',
+      proteomics: 'log_intensity',
+      metabolomics: 'peak_area'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  }),
+  /explicit outcomeTimepoint/
+);
+
+const demoOutcome = await runDeterministicAnalysis({
+  files: { metadata, transcriptomics, proteomics, metabolomics },
+  metadataRows: parsed.rows,
+  columnMapping: mapping,
+  protocol: {
+    organism: 'human',
+    objective: 'outcome',
+    outcomeType: 'binary',
+    outcomeTimepoint: 'T0',
+    longitudinal: false,
+    designType: 'independent',
+    studySetting: 'clinical_interventional',
+    groupCount: '1',
+    sampleOverlap: 'same_specimen',
+    batchKnown: 'yes',
+    covariateColumns: []
+  },
+  dataTypes: {
+    transcriptomics: 'raw_counts',
+    proteomics: 'log_intensity',
+    metabolomics: 'peak_area'
+  },
+  useReactome: false,
+  resolveIdentifiers: false
+});
+assert.equal(demoOutcome.layers.transcriptomics.mode, 'outcome-binary');
+assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
+
 console.log('multiomics deterministic engine: PASS');
 console.log(JSON.stringify({
   subjects: result.metadataSummary.subjects,
