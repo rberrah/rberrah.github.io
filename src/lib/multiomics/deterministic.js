@@ -2802,6 +2802,74 @@ function normaliseReactomePathway(pathway) {
   };
 }
 
+function logChooseStable(n, k) {
+  if (!Number.isFinite(n) || !Number.isFinite(k) || k < 0 || n < 0 || k > n) return -Infinity;
+  return logGamma(n + 1) - logGamma(k + 1) - logGamma(n - k + 1);
+}
+
+function hypergeometricUpperTail(k, population, successes, draws) {
+  const M = Math.max(0, Math.round(population));
+  const K = Math.max(0, Math.min(M, Math.round(successes)));
+  const n = Math.max(0, Math.min(M, Math.round(draws)));
+  const observed = Math.max(0, Math.round(k));
+  const maxX = Math.min(K, n);
+  const minX = Math.max(observed, Math.max(0, n - (M - K)));
+  if (minX > maxX || M <= 0) return 1;
+  const logs = [];
+  for (let x = minX; x <= maxX; x += 1) {
+    logs.push(logChooseStable(K, x) + logChooseStable(M - K, n - x) - logChooseStable(M, n));
+  }
+  const maxLog = Math.max(...logs);
+  const sum = logs.reduce((acc, value) => acc + Math.exp(value - maxLog), 0);
+  return Math.max(0, Math.min(1, Math.exp(maxLog) * sum));
+}
+
+function applyAssayUniverseBackground(selectedResult, universeResult, selectedSubmitted, universeSubmitted) {
+  const universeMap = new Map((universeResult?.pathways || []).map((pathway) => [pathway.id, pathway]));
+  const M = Math.max(0, universeSubmitted - Number(universeResult?.identifiersNotFound || 0));
+  const n = Math.max(0, selectedSubmitted - Number(selectedResult?.identifiersNotFound || 0));
+  const rows = (selectedResult?.pathways || []).map((pathway) => {
+    const background = universeMap.get(pathway.id);
+    if (!background || !(M > 0) || !(n > 0)) {
+      return { ...pathway, assayUniversePValue: null, assayUniverseFdr: null, assayUniverseEntities: null };
+    }
+    const K = Math.min(M, Math.max(0, Number(background.entitiesFound || 0)));
+    const k = Math.min(n, Math.max(0, Number(pathway.entitiesFound || 0)));
+    const pValue = hypergeometricUpperTail(k, M, K, n);
+    return {
+      ...pathway,
+      assayUniversePValue: pValue,
+      assayUniverseFdr: null,
+      assayUniverseEntities: {
+        selectedHits: k,
+        selectedMapped: n,
+        universeHits: K,
+        universeMapped: M
+      }
+    };
+  });
+  const temp = rows.map((row) => ({ pValue: row.assayUniversePValue, qValue: null }));
+  bhAdjust(temp);
+  rows.forEach((row, index) => { row.assayUniverseFdr = temp[index].qValue; });
+  rows.sort((a,b) => {
+    const aq = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : Number.isFinite(a.fdr) ? a.fdr : 1;
+    const bq = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : Number.isFinite(b.fdr) ? b.fdr : 1;
+    if (aq !== bq) return aq - bq;
+    return b.entitiesFound - a.entitiesFound;
+  });
+  return {
+    ...selectedResult,
+    pathways: rows,
+    assayUniverse: {
+      submitted: universeSubmitted,
+      mapped: M,
+      selectedSubmitted,
+      selectedMapped: n,
+      method: 'local hypergeometric over-representation using the uploaded/retained assay feature universe; BH correction across returned selected-set pathways'
+    }
+  };
+}
+
 export async function reactomeOverRepresentation(ids, { projectToHuman = true, pageSize = 100 } = {}) {
   const unique = [...new Set(ids.map((id) => normaliseText(id)).filter(Boolean))];
   if (!unique.length) return { pathways: [], summary: null, identifiersNotFound: 0, pathwaysFound: 0, token: null };
@@ -2834,15 +2902,22 @@ export function mergeReactomeResults(combined, perLayer) {
     let supportingLayers = 0;
     for (const layer of LAYERS) {
       const hit = layerMaps[layer]?.get(pathway.id);
-      const fdr = hit && Number.isFinite(hit.fdr) ? hit.fdr : null;
-      layerEvidence[layer] = hit ? { fdr, entitiesFound: hit.entitiesFound } : null;
+      const fdr = hit && Number.isFinite(hit.assayUniverseFdr)
+        ? hit.assayUniverseFdr
+        : hit && Number.isFinite(hit.fdr) ? hit.fdr : null;
+      layerEvidence[layer] = hit ? {
+        fdr,
+        reactomeDefaultFdr: Number.isFinite(hit.fdr) ? hit.fdr : null,
+        assayUniverseFdr: Number.isFinite(hit.assayUniverseFdr) ? hit.assayUniverseFdr : null,
+        entitiesFound: hit.entitiesFound
+      } : null;
       if (fdr != null && fdr <= 0.10) supportingLayers += 1;
     }
     return { ...pathway, layerEvidence, supportingLayers };
   }).sort((a,b) => {
     if (b.supportingLayers !== a.supportingLayers) return b.supportingLayers - a.supportingLayers;
-    const af = Number.isFinite(a.fdr) ? a.fdr : 1;
-    const bf = Number.isFinite(b.fdr) ? b.fdr : 1;
+    const af = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : Number.isFinite(a.fdr) ? a.fdr : 1;
+    const bf = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : Number.isFinite(b.fdr) ? b.fdr : 1;
     if (af !== bf) return af-bf;
     return b.entitiesFound-a.entitiesFound;
   });
@@ -3205,18 +3280,41 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (useReactome && combinedIds.length) {
     try {
       const projectToHuman = true;
-      const entries = await Promise.all([
-        reactomeOverRepresentation(combinedIds, {projectToHuman}),
-        ...loadedLayers.map((layer) => reactomeOverRepresentation(reactomeIds[layer], {projectToHuman}))
+      const universeIds = Object.fromEntries(loadedLayers.map((layer) => [
+        layer,
+        [...new Set(aggregatedByLayer[layer].features.map((id) => normaliseText(id)).filter(Boolean))]
+      ]));
+      const combinedUniverseIds = [...new Set(loadedLayers.flatMap((layer) => universeIds[layer]))];
+      const selectedEntries = await Promise.all([
+        reactomeOverRepresentation(combinedIds, {projectToHuman, pageSize: 2000}),
+        ...loadedLayers.map((layer) => reactomeOverRepresentation(reactomeIds[layer], {projectToHuman, pageSize: 2000}))
       ]);
-      const combined = entries[0];
-      const perLayer = Object.fromEntries(loadedLayers.map((layer,i) => [layer, entries[i+1]]));
+      const universeEntries = await Promise.all([
+        reactomeOverRepresentation(combinedUniverseIds, {projectToHuman, pageSize: 2000}),
+        ...loadedLayers.map((layer) => reactomeOverRepresentation(universeIds[layer], {projectToHuman, pageSize: 2000}))
+      ]);
+
+      const combined = applyAssayUniverseBackground(
+        selectedEntries[0],
+        universeEntries[0],
+        [...new Set(combinedIds)].length,
+        combinedUniverseIds.length
+      );
+      const perLayer = Object.fromEntries(loadedLayers.map((layer,i) => [
+        layer,
+        applyAssayUniverseBackground(
+          selectedEntries[i+1],
+          universeEntries[i+1],
+          [...new Set(reactomeIds[layer] || [])].length,
+          universeIds[layer].length
+        )
+      ]));
       reactome = {
         combined,
         perLayer,
         consensus: mergeReactomeResults(combined, perLayer),
-        backgroundPolicy: 'Reactome database default background',
-        backgroundCaveat: 'Exploratory for targeted or strongly pre-filtered assays because the tested-feature universe is not supplied to Reactome AnalysisService.'
+        backgroundPolicy: 'Uploaded/retained assay feature universe with local hypergeometric test and BH correction',
+        backgroundCaveat: 'Custom assay-universe FDR is used when the pathway is present in the Reactome universe query; Reactome default FDR is retained as a fallback when universe mapping is unavailable.'
       };
     } catch (error) {
       reactomeError = error instanceof Error ? error.message : 'Reactome API request failed.';
