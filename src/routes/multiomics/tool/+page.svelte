@@ -1377,30 +1377,32 @@
   {/if}
 
   <div class="status" class:ready>
-    <strong>{omicsCount}/3 omics selected</strong>
+    <strong>{omicsCount}/3 {t('omiques sélectionnées', 'omics selected')}</strong>
     <span>{ready
-      ? 'The structural contract and scientific objective are sufficient to run the deterministic MVP.'
+      ? t('Le contrat de données et l’objectif scientifique permettent de lancer l’analyse.', 'The data contract and scientific objective are sufficient to run the analysis.')
       : !objectiveOperational
-        ? 'This objective is validation-only in the current MVP; no surrogate inferential analysis will be run.'
-        : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
+        ? t('Les designs crossover restent bloqués tant que les effets de période et de séquence ne sont pas modélisés.', 'Crossover designs remain blocked until period and sequence effects are modelled.')
+        : !outcomeMappingComplete
+          ? t('Complétez le type et le mapping de l’outcome requis.', 'Complete the required outcome type and mapping.')
+          : t('Chargez au moins deux couches omiques et mappez subject_id, sample_id, assay_id et omic.', 'Load at least two omics layers and map subject_id, sample_id, assay_id and omic.')}</span>
   </div>
 
   <div class="run-box">
     <div>
-      <p class="eyebrow">Deterministic engine</p>
-      <h3>Run the analysis from the uploaded matrices</h3>
-      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, technical-batch confounding checks, two-group or longitudinal inference, BH-FDR correction, cross-omics differential correlation and optional Reactome over-representation.</p>
+      <p class="eyebrow">{t('Moteur déterministe', 'Deterministic engine')}</p>
+      <h3>{t('Lancer l’analyse à partir des matrices importées', 'Run the analysis from the uploaded matrices')}</h3>
+      <p>{t('Aucun LLM n’est utilisé. Le moteur effectue le prétraitement déclaré, l’agrégation des réplicats, l’audit et l’ajustement des batches/covariables, puis sélectionne la branche exploratoire, groupes, temporelle ou outcome appropriée, avec BH-FDR et Reactome optionnel.', 'No LLM is used. The engine performs declared preprocessing, replicate aggregation, batch/covariate audit and adjustment, then selects the appropriate exploratory, group, longitudinal or outcome branch, with BH-FDR and optional Reactome.')}</p>
       <label class="inline-check">
         <input type="checkbox" bind:checked={resolveIdentifiers} />
-        <span>Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis</span>
+        <span>{t('Résoudre les métabolites non canoniques sélectionnés avec ChEBI avant l’analyse de voies', 'Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis')}</span>
       </label>
       <label class="inline-check">
         <input type="checkbox" bind:checked={useReactome} />
-        <span>Query Reactome with selected molecular identifiers only</span>
+        <span>{t('Interroger Reactome uniquement avec les identifiants moléculaires sélectionnés', 'Query Reactome with selected molecular identifiers only')}</span>
       </label>
     </div>
     <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
-      {analysisStatus === 'running' ? 'Running…' : 'Run deterministic analysis'}
+      {analysisStatus === 'running' ? t('Analyse…', 'Running…') : t('Lancer l’analyse déterministe', 'Run deterministic analysis')}
     </button>
   </div>
   {#if analysisError}<p class="error">{analysisError}</p>{/if}
@@ -1410,30 +1412,30 @@
 <section class="panel demo-results" id="analysis-results" data-testid="multiomics-results">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{demoLoaded ? 'Demo results · computed now' : 'Analysis results · deterministic MVP'}</p>
-      <h2>Computed multi-omics results</h2>
+      <p class="eyebrow">{demoLoaded ? t('Résultats de démo · calculés maintenant', 'Demo results · computed now') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
+      <h2>{t('Résultats multi-omiques calculés', 'Computed multi-omics results')}</h2>
     </div>
     <div class="result-actions">
-      <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>Download JSON</button>
+      <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Télécharger JSON', 'Download JSON')}</button>
       {#if analysisResult.reactome?.combined?.token}
-        <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">Open in Reactome ↗</a>
+        <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
       {/if}
     </div>
   </div>
 
   <div class="computed-summary">
-    <article><span>Subjects</span><strong>{analysisResult.metadataSummary.subjects}</strong></article>
-    <article><span>Biological samples</span><strong>{analysisResult.metadataSummary.samples}</strong></article>
-    <article><span>Assays</span><strong>{analysisResult.metadataSummary.assays}</strong></article>
-    <article><span>Conditions</span><strong>{analysisResult.metadataSummary.conditions.join(' / ') || '—'}</strong></article>
-    <article><span>Time points</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
+    <article><span>{t('Sujets', 'Subjects')}</span><strong>{analysisResult.metadataSummary.subjects}</strong></article>
+    <article><span>{t('Prélèvements biologiques', 'Biological samples')}</span><strong>{analysisResult.metadataSummary.samples}</strong></article>
+    <article><span>{t('Mesures', 'Assays')}</span><strong>{analysisResult.metadataSummary.assays}</strong></article>
+    <article><span>{t('Conditions', 'Conditions')}</span><strong>{analysisResult.metadataSummary.conditions.join(' / ') || '—'}</strong></article>
+    <article><span>{t('Temps', 'Time points')}</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
   </div>
 
   {#if analysisResult.metadataSummary.overlap?.pairwise?.length}
     <div class="overlap-box">
       <div>
-        <p class="eyebrow">Sample overlap actually used</p>
-        <strong>{analysisResult.metadataSummary.overlap.allMatched} subject(s) present in every loaded omics layer</strong>
+        <p class="eyebrow">{t('Chevauchement réellement utilisé', 'Sample overlap actually used')}</p>
+        <strong>{analysisResult.metadataSummary.overlap.allMatched} {t('sujet(s) présents dans toutes les couches chargées', 'subject(s) present in every loaded omics layer')}</strong>
       </div>
       <div class="overlap-pairs">
         {#each analysisResult.metadataSummary.overlap.pairwise as pair}
@@ -1446,8 +1448,8 @@
   {#if analysisResult.metadataSummary.batchAudit}
     <div class="overlap-box">
       <div>
-        <p class="eyebrow">Technical batch audit</p>
-        <strong>Batch structure checked before biological inference</strong>
+        <p class="eyebrow">{t('Audit des batches techniques', 'Technical batch audit')}</p>
+        <strong>{t('Structure des batches vérifiée avant l’inférence biologique', 'Batch structure checked before biological inference')}</strong>
       </div>
       <div class="overlap-pairs">
         {#each omicLayers as layer}
