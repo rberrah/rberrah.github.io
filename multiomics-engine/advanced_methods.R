@@ -263,8 +263,8 @@ run_fgsea_ranked <- function(
 ) {
   require_namespace("fgsea")
   if (is.null(names(ranks))) stop("ranks must be a named numeric vector.", call. = FALSE)
-  ranks <- sort(as.numeric(ranks), decreasing = TRUE)
-  names(ranks) <- names(sort(ranks, decreasing = TRUE))
+  ranks <- ranks[is.finite(ranks)]
+  ranks <- sort(ranks, decreasing = TRUE)
   set.seed(seed)
   result <- fgsea::fgsea(
     pathways = pathways,
