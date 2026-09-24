@@ -31,6 +31,22 @@ jobs:
             data/nutrimouse.rda
             data/breast.TCGA.rda
 
+      - name: Checkout NCI-60 gene-metabolite benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: Mathelab/NCI60_GeneMetabolite_Data
+          ref: master
+          path: external/NCI60_GeneMetabolite_Data
+
+      - name: Checkout IntLIM BRCA benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: ncats/IntLIMVignettes
+          ref: main
+          path: external/IntLIMVignettes
+          sparse-checkout: |
+            BRCA_data
+
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
 
@@ -42,7 +58,7 @@ jobs:
       - name: Export public datasets to PMx contract
         run: |
           mkdir -p tmp/public-benchmarks
-          MIXOMICS_ROOT=external/mixOmics Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
+          MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
 
       - name: Run PMx deterministic engine
         run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
