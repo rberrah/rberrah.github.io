@@ -1193,12 +1193,33 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
     const timepoints = naturalOrder(rows.map((row) => row.timepoint));
 
     if (!batches.length) {
+      const reasons = protocol.batchKnown === 'yes'
+        ? ['protocol declares known technical batches but no batch labels are present in metadata']
+        : [];
       perLayer[layer] = {
-        status: 'not_provided',
+        status: reasons.length ? 'incomplete' : 'not_provided',
         batches: [],
-        blockingReasons: [],
-        note: 'No technical batch labels were supplied for this layer.'
+        blockingReasons: reasons,
+        note: reasons.length
+          ? 'Batch-aware validation cannot be completed because the protocol declares known batches but metadata provide none.'
+          : 'No technical batch labels were supplied for this layer.'
       };
+      if (reasons.length) blocking.push({ layer, reasons });
+      continue;
+    }
+
+    const missingBatchRows = rows.filter((row) => !row.batch).length;
+    if (missingBatchRows > 0) {
+      const reasons = [`batch labels are missing for ${missingBatchRows} of ${rows.length} assay row(s)`];
+      perLayer[layer] = {
+        status: 'incomplete',
+        batches,
+        batchCount: batches.length,
+        missingBatchRows,
+        blockingReasons: reasons,
+        note: 'Partial batch annotation is not sufficient for an auditable deterministic analysis.'
+      };
+      blocking.push({ layer, reasons });
       continue;
     }
 
