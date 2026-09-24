@@ -57,6 +57,9 @@ assert.equal(result.layers.transcriptomics.replicateGroups.length, 1);
 assert.ok(result.layers.transcriptomics.rows.length >= 5);
 assert.ok(result.layers.proteomics.rows.length >= 4);
 assert.ok(result.layers.metabolomics.rows.length >= 4);
+assert.equal(result.metadataSummary.batchAudit.transcriptomics.status, 'single_batch');
+assert.equal(result.metadataSummary.batchAudit.proteomics.status, 'single_batch');
+assert.equal(result.metadataSummary.batchAudit.metabolomics.status, 'single_batch');
 
 for (const layer of ['transcriptomics','proteomics','metabolomics']) {
   assert.equal(result.layers[layer].mode, 'difference-in-differences');
@@ -247,6 +250,44 @@ function csvFile(name, text) {
   const unresolved = await resolveMetaboliteIdentifier('definitely-not-an-exact-metabolite', { fetchFn: wrongFetch });
   assert.equal(unresolved.resolved, null);
   assert.equal(unresolved.status, 'unresolved');
+}
+
+// Batch safety: a biological condition completely nested inside technical batch must be refused.
+{
+  const metadataText = [
+    'subject_id,sample_id,assay_id,omic,condition,timepoint,batch',
+    'C1,C1,RC1,transcriptomics,control,,BATCH_CONTROL',
+    'C1,C1,PC1,proteomics,control,,BATCH_CONTROL',
+    'C2,C2,RC2,transcriptomics,control,,BATCH_CONTROL',
+    'C2,C2,PC2,proteomics,control,,BATCH_CONTROL',
+    'T1,T1,RT1,transcriptomics,treatment,,BATCH_TREATMENT',
+    'T1,T1,PT1,proteomics,treatment,,BATCH_TREATMENT',
+    'T2,T2,RT2,transcriptomics,treatment,,BATCH_TREATMENT',
+    'T2,T2,PT2,proteomics,treatment,,BATCH_TREATMENT'
+  ].join('\n');
+  const meta = csvFile('batch_confounded_metadata.csv', metadataText);
+  const rna = csvFile('batch_confounded_rna.csv', [
+    'feature_id,RC1,RC2,RT1,RT2',
+    'GENE_A,1,1.1,5,5.1'
+  ].join('\n'));
+  const protein = csvFile('batch_confounded_protein.csv', [
+    'feature_id,PC1,PC2,PT1,PT2',
+    'PROT_A,2,2.1,6,6.1'
+  ].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+
+  await assert.rejects(
+    () => runDeterministicAnalysis({
+      files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+      metadataRows:metaParsed.rows,
+      columnMapping:mapping,
+      protocol:{organism:'human',objective:'groups',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen'},
+      dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+      useReactome:false,
+      resolveIdentifiers:false
+    }),
+    /Technical batch confounding prevents identifiable biological inference/
+  );
 }
 
 console.log('multiomics paired / longitudinal / identifier-resolution branches: PASS');
