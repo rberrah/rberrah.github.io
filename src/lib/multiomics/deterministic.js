@@ -1137,7 +1137,13 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       ]);
       const combined = entries[0];
       const perLayer = Object.fromEntries(loadedLayers.map((layer,i) => [layer, entries[i+1]]));
-      reactome = { combined, perLayer, consensus: mergeReactomeResults(combined, perLayer) };
+      reactome = {
+        combined,
+        perLayer,
+        consensus: mergeReactomeResults(combined, perLayer),
+        backgroundPolicy: 'Reactome database default background',
+        backgroundCaveat: 'Exploratory for targeted or strongly pre-filtered assays because the tested-feature universe is not supplied to Reactome AnalysisService.'
+      };
     } catch (error) {
       reactomeError = error instanceof Error ? error.message : 'Reactome API request failed.';
     }
