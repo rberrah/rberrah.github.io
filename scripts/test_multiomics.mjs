@@ -286,8 +286,8 @@ function csvFile(name, text) {
     useReactome:false,
     resolveIdentifiers:false
   });
-  assert.equal(highdim.layers.transcriptomics.inferenceMethod, 'Welch t-test');
-  assert.equal(highdim.layers.proteomics.inferenceMethod, 'deterministic permutation');
+  assert.equal(highdim.layers.transcriptomics.inferenceMethod, 'OLS with HC3 robust standard errors');
+  assert.equal(highdim.layers.proteomics.inferenceMethod, 'OLS with HC3 robust standard errors');
   const signal = highdim.layers.transcriptomics.rows.find(x=>x.feature === 'HIGH_DIM_SIGNAL');
   assert.ok(signal && signal.effect > 2 && signal.pValue < 1e-6);
 }
