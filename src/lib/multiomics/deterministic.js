@@ -3370,7 +3370,18 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     aggregated.qc = {
       ...qcPrepared.qc,
       preprocessingSteps: processed.steps,
-      pca: layerQcPca(rawAggregated)
+      pca: layerQcPca(rawAggregated),
+      inferenceTier: layer === 'transcriptomics' && dataTypes[layer] === 'raw_counts'
+        ? {
+            level: 'screening',
+            label: 'browser screening model',
+            note: 'Raw RNA-seq counts are filtered and library-size normalized in-browser for deterministic screening. For publication-grade differential inference, use the provided DESeq2/limma reference R adapter with the same design and covariates.'
+          }
+        : {
+            level: 'native',
+            label: 'browser native model',
+            note: 'Inference uses the declared processed scale and the explicit design matrix shown in the result.'
+          }
     };
     aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
     aggregated.replicateGroups = rawAggregated.replicateGroups;
