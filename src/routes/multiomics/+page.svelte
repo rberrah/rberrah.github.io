@@ -459,6 +459,7 @@
   function inferFeatureIdType(layer) {
     const ids = matrixInfo[layer].rowIds.slice(0, 50).map((id) => id.trim()).filter(Boolean);
     if (!ids.length) return { type: 'unknown', confidence: 0 };
+    /** @type {Record<string, (id:string) => boolean>} */
     const tests = {
       ensembl_gene: (id) => /^ENSG\d+(?:\.\d+)?$/i.test(id),
       ensembl_protein: (id) => /^ENSP\d+(?:\.\d+)?$/i.test(id),
@@ -491,6 +492,7 @@
       for (let time = 0; time < nTime; time += 1) {
         for (const omic of omics) {
           const prefix = omic === 'transcriptomics' ? 'RNA' : omic === 'proteomics' ? 'PROT' : 'MET';
+          /** @type {Record<string,string>} */
           const values = {
             subject_id: `SUBJ${String(subject).padStart(3, '0')}`,
             sample_id: `SUBJ${String(subject).padStart(3, '0')}_T${time}`,
