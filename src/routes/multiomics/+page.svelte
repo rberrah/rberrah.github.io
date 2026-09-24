@@ -1380,6 +1380,7 @@
         {/each}
       </div>
       <p class="note">Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.</p>
+      <p class="note"><strong>Enrichment background:</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} For targeted or pre-filtered panels, pathway p-values/FDR should therefore be interpreted as exploratory until an assay-specific universe is supported.</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
         <strong>Local statistics completed; Reactome could not be reached.</strong>
