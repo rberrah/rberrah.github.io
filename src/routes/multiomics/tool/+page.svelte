@@ -217,50 +217,71 @@
     {
       name: 'Ensembl',
       scope: 'genes',
+      scopeFr: 'gènes',
       role: 'Resolve Ensembl IDs and gene symbols, confirm species and canonical gene annotations.',
+      roleFr: 'Résoudre les identifiants Ensembl et symboles de gènes, confirmer l’espèce et les annotations canoniques.',
       status: 'registry target · not called automatically yet',
+      statusFr: 'connecteur prévu · non appelé automatiquement',
       url: 'https://rest.ensembl.org/documentation/'
     },
     {
       name: 'UniProt',
       scope: 'proteins',
+      scopeFr: 'protéines',
       role: 'Resolve protein accessions and cross-reference proteins to genes, Ensembl, Reactome and other resources.',
+      roleFr: 'Résoudre les accessions protéiques et les relier aux gènes, à Ensembl, Reactome et d’autres ressources.',
       status: 'registry target · not called automatically yet',
+      statusFr: 'connecteur prévu · non appelé automatiquement',
       url: 'https://www.uniprot.org/help/id_mapping'
     },
     {
       name: 'ChEBI',
       scope: 'metabolites',
+      scopeFr: 'métabolites',
       role: 'Resolve curated chemical entities, synonyms, structures and ontology relationships.',
+      roleFr: 'Résoudre les entités chimiques curées, synonymes, structures et relations ontologiques.',
       status: 'live in the current engine',
+      statusFr: 'actif dans le moteur actuel',
       url: 'https://www.ebi.ac.uk/chebi/tools'
     },
     {
       name: 'UniChem',
       scope: 'metabolites',
+      scopeFr: 'métabolites',
       role: 'Cross-reference chemical identifiers between databases when the uploaded metabolite identifier is not ChEBI.',
+      roleFr: 'Croiser les identifiants chimiques entre bases lorsque l’identifiant métabolite importé n’est pas ChEBI.',
       status: 'registry target · not called automatically yet',
+      statusFr: 'connecteur prévu · non appelé automatiquement',
       url: 'https://www.ebi.ac.uk/unichem/'
     },
     {
       name: 'KEGG',
       scope: 'pathways · optional',
+      scopeFr: 'voies · optionnel',
       role: 'Optional academic-use cross-reference and pathway/reaction annotation. KEGG REST access is rate-limited and is not used as the core engine of the public MVP.',
+      roleFr: 'Référence croisée et annotation de voies/réactions optionnelles pour usage académique. KEGG REST n’est pas le moteur central du prototype public.',
       status: 'optional registry target · not called automatically yet',
+      statusFr: 'connecteur optionnel prévu · non appelé automatiquement',
       url: 'https://www.kegg.jp/kegg/rest/'
     },
     {
       name: 'Reactome',
       scope: 'pathways',
+      scopeFr: 'voies',
       role: 'Map genes, proteins and ChEBI entities onto common pathways and reactions for integrated pathway interpretation.',
+      roleFr: 'Mapper gènes, protéines et entités ChEBI sur des voies et réactions communes pour l’interprétation intégrée.',
       status: 'live in the current engine',
+      statusFr: 'actif dans le moteur actuel',
       url: 'https://reactome.org/dev/analysis'
     },
     {
       name: 'STRING',
       scope: 'network',
+      scopeFr: 'réseau',
       role: 'Build compact protein interaction modules after identifier resolution; not used as a substitute for the measured data.',
+      roleFr: 'Construire des modules compacts d’interactions protéiques après résolution des identifiants, sans remplacer les données mesurées.',
       status: 'registry target · not called automatically yet',
+      statusFr: 'connecteur prévu · non appelé automatiquement',
       url: 'https://string-db.org/help/api/'
     }
   ];
@@ -1783,9 +1804,9 @@
     <div class="database-grid">
       {#each databaseRegistry as db}
         <article>
-          <span>{db.scope} · {db.status}</span>
+          <span>{$language === 'en' ? db.scope : db.scopeFr} · {$language === 'en' ? db.status : db.statusFr}</span>
           <h3>{db.name}</h3>
-          <p>{db.role}</p>
+          <p>{$language === 'en' ? db.role : db.roleFr}</p>
           <a href={db.url} target="_blank" rel="noreferrer">{t('API officielle / documentation ↗', 'Official API / documentation ↗')}</a>
         </article>
       {/each}
@@ -1796,7 +1817,7 @@
       <code>{proteomicsIdType}</code>
       <b>+</b>
       <code>{metabolomicsIdType}</code>
-      <span>→ current engine: conservative ChEBI resolution for metabolites (optional) → Reactome pathway integration. Ensembl, UniProt, UniChem, KEGG and STRING are explicit registry targets, not hidden automatic calls.</span>
+      <span>{t('→ moteur actuel : résolution ChEBI conservatrice des métabolites (optionnelle) → intégration de voies Reactome. Ensembl, UniProt, UniChem, KEGG et STRING sont des connecteurs explicitement prévus, pas des appels automatiques cachés.', '→ current engine: conservative ChEBI resolution for metabolites (optional) → Reactome pathway integration. Ensembl, UniProt, UniChem, KEGG and STRING are explicit registry targets, not hidden automatic calls.')}</span>
     </div>
 
     <details class="aliases">
