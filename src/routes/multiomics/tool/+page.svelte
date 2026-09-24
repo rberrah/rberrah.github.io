@@ -2100,12 +2100,13 @@
       <div class="alias-grid">
         <article><strong>Nutrimouse</strong><span>engine truth test</span><p>PPARα-dependent transcript/metabolite signal, CYP3A11 and lipid-pathway recovery.</p></article>
         <article><strong>TCGA breast</strong><span>engine truth test</span><p>HER2/LumA contrast plus Basal/Her2/LumA multi-group inference.</p></article>
+        <article><strong>TCGA breast · predictive outcome</strong><span>nested-CV test</span><p>Her2 vs LumA prediction: 5-fold outer nested CV, AUC 0.996; supervised multiblock score-target correlation r=0.915 across 105 tumours.</p></article>
         <article><strong>IntLIM NCI-60 + BRCA</strong><span>cross-omics truth test</span><p>Published condition-dependent gene–metabolite correlation changes.</p></article>
         <article><strong>AgingHFCD</strong><span>3-omics reference test</span><p>RNA, protein and metabolite effect directions checked against public reference results.</p></article>
         <article><strong>LRRK2 G2019S</strong><span>2-omics reference test</span><p>RNA/protein direction agreement plus RAB/endocytic biology.</p></article>
         <article><strong>STATegra</strong><span>time-course + replicates</span><p>Real Ikaros time course and 36-sample metabolomics replicate design; processed representations are checked for direction and scale consistency.</p></article>
         <article><strong>PaintOmics planted multi-omics</strong><span>known ground truth</span><p>RNA/protein convergence is checked against a planted molecular module and recorded pathway truth set.</p></article>
-        <article><strong>Bioconductor missRows NCI-60</strong><span>partial-overlap test</span><p>Confirms that only genuinely shared biological units are matched across layers.</p></article>
+        <article><strong>Bioconductor missRows NCI-60</strong><span>partial-block integration test</span><p>60 subjects across the union of layers, 40 complete across RNA + protein; latent-only filling is used without inventing values for differential tests.</p></article>
       </div>
       <p class="note">{t('La suite automatisée est volontairement hétérogène : elle teste la vérité biologique, l’appariement des échantillons, l’inférence multi-groupes, la structure des réplicats et les statistiques inter-omiques, et pas seulement l’exécution du code.', 'The automated suite is intentionally heterogeneous: it tests biological truth, sample matching, multi-group inference, replicate structure and cross-omics statistics rather than only checking that code executes.')}</p>
       <a href="https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-public-benchmark.yml" target="_blank" rel="noreferrer">{t('Ouvrir le benchmark public ↗', 'Open the public benchmark workflow ↗')}</a>
