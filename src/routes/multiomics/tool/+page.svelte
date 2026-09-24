@@ -726,74 +726,72 @@
 </script>
 
 <svelte:head>
-  <title>Multi-omics prototype — PMx Explain</title>
+  <title>{t('Outil multi-omique — PMx Explain', 'Multi-omics tool — PMx Explain')}</title>
   <meta name="robots" content="noindex,nofollow,noarchive" />
   <meta name="description" content="Unlisted prototype for guided integration of transcriptomics, proteomics and metabolomics." />
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted · v0.9</p>
-  <h1>From multi-omics data to one biological interpretation.</h1>
+  <p class="eyebrow">{t('Prototype expérimental · outil · v1.0', 'Experimental prototype · tool · v1.0')}</p>
+  <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
   <p class="lede">
-    Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
-    proteomics and metabolomics around shared factors, pathways and mechanisms.
+    {t('Décrivez le protocole, mappez les échantillons une seule fois, puis laissez le workflow intégrer transcriptomique, protéomique et métabolomique autour de structures partagées, d’associations et de voies biologiques.', 'Describe the protocol, map the samples once, then let the workflow integrate transcriptomics, proteomics and metabolomics around shared factors, associations, pathways and mechanisms.')}
   </p>
   <div class="privacy">
-    <strong>Prototype only.</strong>
-    Matrix parsing, preprocessing and statistical contrasts run locally in the browser.
-    When pathway analysis is enabled, only selected molecular identifiers are sent to Reactome; patient/sample metadata and abundance matrices are not sent.
+    <strong>{t('Prototype de recherche.', 'Research prototype.')}</strong>
+    {t('Le parsing, le prétraitement et les modèles statistiques sont exécutés localement dans le navigateur. Lorsque Reactome est activé, seuls les identifiants moléculaires sélectionnés sont envoyés ; les métadonnées sujet/échantillon et matrices d’abondance ne sont pas transmises.', 'Parsing, preprocessing and statistical models run locally in the browser. When Reactome is enabled, only selected molecular identifiers are sent; subject/sample metadata and abundance matrices are not transmitted.')}
   </div>
 </section>
 
 <section class="workflow" aria-label="Prototype workflow">
-  <div><span>1</span><strong>Question</strong><small>Scientific objective</small></div>
-  <div><span>2</span><strong>Protocol</strong><small>Closed design questions</small></div>
-  <div><span>3</span><strong>Data type</strong><small>Platforms & identifiers</small></div>
-  <div><span>4</span><strong>Map</strong><small>Template or recognised columns</small></div>
-  <div><span>5</span><strong>Validate</strong><small>Samples & replicates</small></div>
-  <div><span>6</span><strong>Integrate</strong><small>Databases & multi-omics</small></div>
+  <div><span>1</span><strong>{t('Question', 'Question')}</strong><small>{t('Objectif scientifique', 'Scientific objective')}</small></div>
+  <div><span>2</span><strong>{t('Protocole', 'Protocol')}</strong><small>{t('Questions fermées', 'Closed design questions')}</small></div>
+  <div><span>3</span><strong>{t('Type de données', 'Data type')}</strong><small>{t('Plateformes & identifiants', 'Platforms & identifiers')}</small></div>
+  <div><span>4</span><strong>{t('Mapper', 'Map')}</strong><small>{t('Template ou colonnes reconnues', 'Template or recognised columns')}</small></div>
+  <div><span>5</span><strong>{t('Valider', 'Validate')}</strong><small>{t('Échantillons & réplicats', 'Samples & replicates')}</small></div>
+  <div><span>6</span><strong>{t('Intégrer', 'Integrate')}</strong><small>{t('Bases & multi-omique', 'Databases & multi-omics')}</small></div>
 </section>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 1 · Scientific question</p>
-      <h2>What should the experiment answer?</h2>
+      <p class="eyebrow">{t('Étape 1 · Question scientifique', 'Step 1 · Scientific question')}</p>
+      <h2>{t('À quelle question l’expérience doit-elle répondre ?', 'What should the experiment answer?')}</h2>
     </div>
-    <p>The question selects the analysis family. The researcher does not need to choose MOFA, DIABLO or another method by name.</p>
+    <p>{t('La question sélectionne automatiquement la famille d’analyse. Il n’est pas nécessaire de choisir soi-même MOFA, DIABLO ou une autre méthode par son nom.', 'The question selects the analysis family. The researcher does not need to choose MOFA, DIABLO or another method by name.')}</p>
   </div>
 
   <div class="form-grid">
     <label class="wide">
-      <span>Main objective</span>
+      <span>{t('Objectif principal', 'Main objective')}</span>
       <select bind:value={objective}>
-        <option value="explore">Explore the shared structure of the dataset · validation only</option>
-        <option value="groups">Compare groups / conditions · operational</option>
-        <option value="outcome">Explain an outcome or phenotype · not yet operational</option>
-        <option value="time">Study change over time · operational</option>
+        <option value="explore">{t('Explorer la structure multi-omique partagée', 'Explore the shared multi-omics structure')}</option>
+        <option value="groups">{t('Comparer des groupes / conditions', 'Compare groups / conditions')}</option>
+        <option value="outcome">{t('Expliquer un outcome / phénotype', 'Explain an outcome or phenotype')}</option>
+        <option value="time">{t('Étudier l’évolution au cours du temps', 'Study change over time')}</option>
       </select>
     </label>
 
     <label>
-      <span>Study name <small>optional</small></span>
+      <span>{t('Nom de l’étude', 'Study name')} <small>{t('optionnel', 'optional')}</small></span>
       <input bind:value={studyName} type="text" placeholder="e.g. Treatment response cohort" />
     </label>
 
     <label>
-      <span>Organism</span>
+      <span>{t('Organisme', 'Organism')}</span>
       <select bind:value={organism}>
-        <option value="human">Human</option>
-        <option value="mouse">Mouse</option>
+        <option value="human">{t('Humain', 'Human')}</option>
+        <option value="mouse">{t('Souris', 'Mouse')}</option>
         <option value="rat">Rat</option>
-        <option value="other">Other / to define</option>
+        <option value="other">{t('Autre / à définir', 'Other / to define')}</option>
       </select>
     </label>
   </div>
 
   <aside class="method-card">
-    <span class="method-tag">{selectedObjective.method}</span>
-    <h3>{selectedObjective.title}</h3>
-    <p>{selectedObjective.detail}</p>
+    <span class="method-tag">{$language === 'en' ? selectedObjective.methodEn : selectedObjective.methodFr}</span>
+    <h3>{$language === 'en' ? selectedObjective.titleEn : selectedObjective.titleFr}</h3>
+    <p>{$language === 'en' ? selectedObjective.detailEn : selectedObjective.detailFr}</p>
   </aside>
 </section>
 
