@@ -26,7 +26,8 @@
 		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
 		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs",
 		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs",
-		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R"
+		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R",
+		"test:multiomics": "node scripts/test_multiomics.mjs"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
