@@ -1618,8 +1618,6 @@
       <p class="muted">No cross-omic correlation test was estimable with the current group sizes and matched subjects.</p>
     {/if}
   </div>
-
-  </div>
   {/if}
 
   <div class="integration-result">
@@ -1686,15 +1684,15 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 6 · Proposed analysis & biological databases</p>
-      <h2>The decision engine is deterministic and inspectable</h2>
+      <p class="eyebrow">{t('Étape 6 · Analyse & bases biologiques', 'Step 6 · Analysis & biological databases')}</p>
+      <h2>{t('Le moteur de décision est déterministe et inspectable', 'The decision engine is deterministic and inspectable')}</h2>
     </div>
-    <p>The statistical branch is selected from explicit study-design rules and remains inspectable.</p>
+    <p>{t('La branche statistique est sélectionnée à partir de règles explicites liées au design et reste inspectable.', 'The statistical branch is selected from explicit study-design rules and remains inspectable.')}</p>
   </div>
 
   <div class="plan">
     <div>
-      <span class="method-tag">Selected workflow</span>
+      <span class="method-tag">{t('Workflow sélectionné', 'Selected workflow')}</span>
       <h3>{analysisPlan}</h3>
       <p class="muted">Protocol: {studySetting.replaceAll('_', ' ')} · {designType} · {groupCount === '3plus' ? '≥3' : groupCount} group(s) · {sampleOverlap.replaceAll('_', ' ')}.</p>
     </div>
@@ -1703,10 +1701,10 @@
       <li><strong>Repeated subject:</strong> two time points use within-subject change; ≥3 numeric-labelled times use an individual slope.</li>
       <li><strong>Paired design:</strong> within-subject differences use a sign-flip permutation test. Crossover designs are refused until period/sequence effects are modelled.</li>
       <li><strong>Technical replicate:</strong> multiple assays with the same <code>sample_id + omic</code> are flagged before analysis.</li>
-      <li><strong>Technical batch:</strong> complete condition/time confounding with batch blocks inference. Multiple non-confounded batches are reported explicitly; the current browser MVP does not silently estimate a batch coefficient.</li>
-      <li><strong>Covariates:</strong> their availability is recorded in the protocol, but covariate-adjusted outcome/regression models are not yet part of this deterministic MVP.</li>
+      <li><strong>{t('Batch technique :', 'Technical batch:')}</strong> {t('une confusion complète batch–condition/temps/outcome bloque l’inférence. Les batches multiples non confondus sont ajustés explicitement par résidualisation OLS variable par variable.', 'complete batch–condition/time/outcome confounding blocks inference. Multiple non-confounded batches are explicitly adjusted by feature-wise OLS residualisation.')}</li>
+      <li><strong>{t('Covariables :', 'Covariates:')}</strong> {t('les colonnes sélectionnées sont intégrées explicitement à l’ajustement ou au modèle d’outcome ; aucune covariable n’est choisie automatiquement.', 'selected columns enter adjustment or outcome models explicitly; no covariate is chosen automatically.')}</li>
       <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
-      <li><strong>Supervised methods:</strong> only proposed when a target exists and the effective sample size is compatible with the method.</li>
+      <li><strong>{t('Outcome :', 'Outcome:')}</strong> {t('le type déclaré sélectionne régression linéaire, logistique, Poisson, ANOVA multiclasse ou Cox.', 'the declared type selects linear, logistic, Poisson, multiclass ANOVA or Cox regression.')}</li>
     </ul>
   </div>
 
