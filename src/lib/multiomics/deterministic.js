@@ -1182,6 +1182,73 @@ export function layerOverlapSummary(metadata, loadedLayers) {
   return { layerSubjects, pairwise, allMatched };
 }
 
+function auditBatchDesign(metadata, loadedLayers, protocol) {
+  const perLayer = {};
+  const blocking = [];
+
+  for (const layer of loadedLayers) {
+    const rows = metadata.filter((row) => row.omic === layer);
+    const batches = naturalOrder(rows.map((row) => row.batch));
+    const conditions = naturalOrder(rows.map((row) => row.condition));
+    const timepoints = naturalOrder(rows.map((row) => row.timepoint));
+
+    if (!batches.length) {
+      perLayer[layer] = {
+        status: 'not_provided',
+        batches: [],
+        blockingReasons: [],
+        note: 'No technical batch labels were supplied for this layer.'
+      };
+      continue;
+    }
+
+    if (batches.length === 1) {
+      perLayer[layer] = {
+        status: 'single_batch',
+        batches,
+        blockingReasons: [],
+        note: 'A single technical batch is represented in this layer; no between-batch adjustment is required.'
+      };
+      continue;
+    }
+
+    const batchConditions = new Map(batches.map((batch) => [batch, new Set()]));
+    const batchTimes = new Map(batches.map((batch) => [batch, new Set()]));
+    for (const row of rows) {
+      if (!row.batch) continue;
+      if (row.condition) batchConditions.get(row.batch)?.add(row.condition);
+      if (row.timepoint) batchTimes.get(row.batch)?.add(row.timepoint);
+    }
+
+    const reasons = [];
+    const anyBatchSpansConditions = [...batchConditions.values()].some((set) => set.size > 1);
+    const anyBatchSpansTimes = [...batchTimes.values()].some((set) => set.size > 1);
+
+    if (conditions.length > 1 && !anyBatchSpansConditions) {
+      reasons.push('condition is completely confounded with batch');
+    }
+    if (protocol.longitudinal && timepoints.length > 1 && !anyBatchSpansTimes) {
+      reasons.push('timepoint is completely confounded with batch');
+    }
+
+    const status = reasons.length ? 'confounded' : 'multiple_batches_unadjusted';
+    const note = reasons.length
+      ? `Inference is blocked because ${reasons.join(' and ')}.`
+      : 'Multiple technical batches are present. The current browser engine audits them but does not estimate a batch coefficient; results should be treated as unadjusted unless the design is demonstrably balanced.';
+
+    perLayer[layer] = {
+      status,
+      batches,
+      batchCount: batches.length,
+      blockingReasons: reasons,
+      note
+    };
+    if (reasons.length) blocking.push({ layer, reasons });
+  }
+
+  return { perLayer, blocking };
+}
+
 export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
   const metadata = canonicalMetadata(metadataRows, columnMapping);
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
@@ -1206,6 +1273,14 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     if (numericTimes.some((value) => !Number.isFinite(value))) {
       throw new Error('Longitudinal studies with >2 time points require numeric or numeric-labelled time points (for example 0, 6, 12 or T0, T6, T12).');
     }
+  }
+
+  const batchAudit = auditBatchDesign(metadata, loadedLayers, protocol);
+  if (batchAudit.blocking.length) {
+    const details = batchAudit.blocking
+      .map(({ layer, reasons }) => `${layer}: ${reasons.join('; ')}`)
+      .join(' | ');
+    throw new Error(`Technical batch confounding prevents identifiable biological inference. ${details}. Re-balance the design or provide data in which biological conditions/time points overlap technical batches.`);
   }
 
   const overlap = layerOverlapSummary(metadata, loadedLayers);
@@ -1275,7 +1350,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       assays: new Set(metadata.map((row) => row.assayId)).size,
       conditions,
       timepoints,
-      overlap
+      overlap,
+      batchAudit: batchAudit.perLayer
     },
     layers,
     crossOmics,
