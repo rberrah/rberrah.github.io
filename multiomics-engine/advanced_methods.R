@@ -118,3 +118,165 @@ run_diablo_blocks <- function(blocks, outcome, output_dir, ncomp = 2L, keepX = N
   saveRDS(summary, file.path(output_dir, "diablo_summary.rds"))
   invisible(list(model = fit, summary = summary))
 }
+
+
+run_deseq2_counts <- function(
+  counts,
+  metadata,
+  output_dir,
+  design_formula = ~ condition,
+  contrast = NULL,
+  alpha = 0.05
+) {
+  require_namespace("DESeq2")
+  counts <- as.matrix(counts)
+  storage.mode(counts) <- "numeric"
+  if (is.null(rownames(counts))) stop("counts must use sample IDs as row names.", call. = FALSE)
+  metadata <- as.data.frame(metadata)
+  if (is.null(rownames(metadata))) stop("metadata must use sample IDs as row names.", call. = FALSE)
+  common <- intersect(rownames(counts), rownames(metadata))
+  if (length(common) < 3L) stop("At least three matched samples are required.", call. = FALSE)
+  counts <- counts[common, , drop = FALSE]
+  metadata <- metadata[common, , drop = FALSE]
+
+  dds <- DESeq2::DESeqDataSetFromMatrix(
+    countData = round(t(counts)),
+    colData = metadata,
+    design = design_formula
+  )
+  keep <- rowSums(DESeq2::counts(dds) >= 10) >= max(2L, ceiling(ncol(dds) * 0.2))
+  dds <- dds[keep, ]
+  dds <- DESeq2::DESeq(dds, quiet = TRUE)
+
+  res <- if (is.null(contrast)) {
+    DESeq2::results(dds, alpha = alpha)
+  } else {
+    DESeq2::results(dds, contrast = contrast, alpha = alpha)
+  }
+  result <- data.frame(feature = rownames(res), as.data.frame(res), row.names = NULL, check.names = FALSE)
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "deseq2_results.csv"), row.names = FALSE)
+  saveRDS(dds, file.path(output_dir, "deseq2_model.rds"))
+  invisible(list(model = dds, results = result))
+}
+
+run_limma_matrix <- function(
+  matrix,
+  metadata,
+  output_dir,
+  design_formula = ~ condition,
+  coefficient = NULL,
+  trend = TRUE,
+  robust = TRUE
+) {
+  require_namespace("limma")
+  matrix <- as.matrix(matrix)
+  storage.mode(matrix) <- "double"
+  metadata <- as.data.frame(metadata)
+  if (is.null(rownames(matrix)) || is.null(rownames(metadata))) {
+    stop("matrix and metadata must use sample IDs as row names.", call. = FALSE)
+  }
+  common <- intersect(rownames(matrix), rownames(metadata))
+  if (length(common) < 3L) stop("At least three matched samples are required.", call. = FALSE)
+  x <- matrix[common, , drop = FALSE]
+  meta <- metadata[common, , drop = FALSE]
+  design <- stats::model.matrix(design_formula, data = meta)
+
+  fit <- limma::lmFit(t(x), design)
+  fit <- limma::eBayes(fit, trend = trend, robust = robust)
+  if (is.null(coefficient)) coefficient <- ncol(design)
+  result <- limma::topTable(fit, coef = coefficient, number = Inf, sort.by = "P")
+  result <- data.frame(feature = rownames(result), result, row.names = NULL, check.names = FALSE)
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "limma_results.csv"), row.names = FALSE)
+  saveRDS(fit, file.path(output_dir, "limma_model.rds"))
+  invisible(list(model = fit, results = result, design = design))
+}
+
+run_lmer_matrix <- function(
+  matrix,
+  metadata,
+  output_dir,
+  fixed_formula = "condition * time + batch",
+  subject_column = "subject_id",
+  interaction_term = NULL
+) {
+  require_namespace("lmerTest")
+  matrix <- as.matrix(matrix)
+  storage.mode(matrix) <- "double"
+  metadata <- as.data.frame(metadata)
+  if (is.null(rownames(matrix)) || is.null(rownames(metadata))) {
+    stop("matrix and metadata must use observation/sample IDs as row names.", call. = FALSE)
+  }
+  common <- intersect(rownames(matrix), rownames(metadata))
+  if (length(common) < 6L) stop("At least six matched observations are required.", call. = FALSE)
+  x <- matrix[common, , drop = FALSE]
+  meta <- metadata[common, , drop = FALSE]
+  if (!subject_column %in% colnames(meta)) stop("subject_column is absent from metadata.", call. = FALSE)
+
+  formula_text <- paste0("value ~ ", fixed_formula, " + (1|", subject_column, ")")
+  model_formula <- stats::as.formula(formula_text)
+  results <- vector("list", ncol(x))
+
+  for (j in seq_len(ncol(x))) {
+    dat <- meta
+    dat$value <- x[, j]
+    fit <- try(lmerTest::lmer(model_formula, data = dat, REML = FALSE), silent = TRUE)
+    if (inherits(fit, "try-error")) next
+    coefs <- summary(fit)$coefficients
+    term <- interaction_term
+    if (is.null(term)) {
+      interaction_hits <- grep(":", rownames(coefs), value = TRUE)
+      term <- if (length(interaction_hits)) interaction_hits[1] else rownames(coefs)[nrow(coefs)]
+    }
+    if (!term %in% rownames(coefs)) next
+    row <- coefs[term, , drop = FALSE]
+    results[[j]] <- data.frame(
+      feature = colnames(x)[j],
+      term = term,
+      estimate = row[1, "Estimate"],
+      std_error = row[1, "Std. Error"],
+      df = if ("df" %in% colnames(row)) row[1, "df"] else NA_real_,
+      statistic = row[1, "t value"],
+      p_value = row[1, "Pr(>|t|)"],
+      stringsAsFactors = FALSE
+    )
+  }
+  result <- do.call(rbind, results)
+  if (is.null(result)) result <- data.frame()
+  if (nrow(result)) result$q_bh <- stats::p.adjust(result$p_value, method = "BH")
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "lmer_results.csv"), row.names = FALSE)
+  invisible(result)
+}
+
+run_fgsea_ranked <- function(
+  ranks,
+  pathways,
+  output_dir,
+  min_size = 10L,
+  max_size = 500L,
+  seed = 20260924L
+) {
+  require_namespace("fgsea")
+  if (is.null(names(ranks))) stop("ranks must be a named numeric vector.", call. = FALSE)
+  ranks <- sort(as.numeric(ranks), decreasing = TRUE)
+  names(ranks) <- names(sort(ranks, decreasing = TRUE))
+  set.seed(seed)
+  result <- fgsea::fgsea(
+    pathways = pathways,
+    stats = ranks,
+    minSize = as.integer(min_size),
+    maxSize = as.integer(max_size)
+  )
+  result <- as.data.frame(result)
+  if ("leadingEdge" %in% names(result)) {
+    result$leadingEdge <- vapply(result$leadingEdge, paste, collapse = ";", FUN.VALUE = character(1))
+  }
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "fgsea_results.csv"), row.names = FALSE)
+  invisible(result)
+}
