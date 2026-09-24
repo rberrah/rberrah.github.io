@@ -707,9 +707,9 @@
   $: availableCovariateColumns = metadataHeaders.filter((header) => !canonicalMappedColumns.has(header));
   $: selectedCovariates = selectedCovariates.filter((header) => availableCovariateColumns.includes(header));
   $: outcomeMappingComplete = objective !== 'outcome'
-    || (outcomeType === 'survival'
+    || (outcomeType !== 'none' && (outcomeType === 'survival'
       ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
-      : Boolean(columnMapping.outcome));
+      : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
   $: analysisPlan = objective === 'explore'
@@ -1214,6 +1214,33 @@
           </label>
         {/each}
       </div>
+
+      {#if covariatesAvailable === 'yes'}
+        <div class="covariate-picker">
+          <div>
+            <h3>{t('Covariables à ajuster', 'Covariates to adjust')}</h3>
+            <p>{t('Sélectionnez uniquement les variables de confusion ou facteurs de design à ajuster. Elles entrent explicitement dans le modèle ; elles ne sont pas devinées par l’outil.', 'Select only confounders or design variables that should be adjusted. They enter the model explicitly; the tool does not guess them.')}</p>
+          </div>
+          {#if availableCovariateColumns.length}
+            <div class="covariate-options">
+              {#each availableCovariateColumns as header}
+                <label>
+                  <input type="checkbox" checked={selectedCovariates.includes(header)} onchange={() => toggleCovariate(header)} />
+                  <span>{header}</span>
+                </label>
+              {/each}
+            </div>
+          {:else}
+            <p class="muted">{t('Aucune colonne supplémentaire disponible après le mapping canonique.', 'No extra columns remain after canonical mapping.')}</p>
+          {/if}
+          <p class="note">
+            {t('Batches techniques :', 'Technical batches:')}
+            {columnMapping.batch
+              ? t(' la colonne batch mappée est ajustée automatiquement si plusieurs batches sont présents et non totalement confondus.', ' the mapped batch column is adjusted automatically when multiple non-confounded batches are present.')
+              : t(' aucune colonne batch n’est mappée.', ' no batch column is mapped.')}
+          </p>
+        </div>
+      {/if}
     </div>
 
     <div class="validation">
