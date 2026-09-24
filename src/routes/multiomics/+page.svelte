@@ -664,7 +664,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted · v0.8</p>
+  <p class="eyebrow">Experimental prototype · unlisted · v0.9</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
     Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
@@ -1502,6 +1502,22 @@
       <code>{metabolomicsIdType}</code>
       <span>→ current engine: conservative ChEBI resolution for metabolites (optional) → Reactome pathway integration. Ensembl, UniProt, UniChem, KEGG and STRING are explicit registry targets, not hidden automatic calls.</span>
     </div>
+
+    <details class="aliases">
+      <summary>Public validation suite used to test the deterministic engine</summary>
+      <div class="alias-grid">
+        <article><strong>Nutrimouse</strong><span>engine truth test</span><p>PPARα-dependent transcript/metabolite signal, CYP3A11 and lipid-pathway recovery.</p></article>
+        <article><strong>TCGA breast</strong><span>engine truth test</span><p>HER2/LumA contrast plus Basal/Her2/LumA multi-group inference.</p></article>
+        <article><strong>IntLIM NCI-60 + BRCA</strong><span>cross-omics truth test</span><p>Published condition-dependent gene–metabolite correlation changes.</p></article>
+        <article><strong>AgingHFCD</strong><span>3-omics reference test</span><p>RNA, protein and metabolite effect directions checked against public reference results.</p></article>
+        <article><strong>LRRK2 G2019S</strong><span>2-omics reference test</span><p>RNA/protein direction agreement plus RAB/endocytic biology.</p></article>
+        <article><strong>STATegra</strong><span>time-course + replicates</span><p>Real Ikaros time course and 36-sample metabolomics replicate design; processed representations are checked for direction and scale consistency.</p></article>
+        <article><strong>PaintOmics planted multi-omics</strong><span>known ground truth</span><p>RNA/protein convergence is checked against a planted molecular module and recorded pathway truth set.</p></article>
+        <article><strong>Bioconductor missRows NCI-60</strong><span>partial-overlap test</span><p>Confirms that only genuinely shared biological units are matched across layers.</p></article>
+      </div>
+      <p class="note">The automated suite is intentionally heterogeneous: it tests biological truth, sample matching, multi-group inference, replicate structure and cross-omics statistics rather than only checking that code executes.</p>
+      <a href="https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-public-benchmark.yml" target="_blank" rel="noreferrer">Open the public benchmark workflow ↗</a>
+    </details>
   </div>
 </section>
 
