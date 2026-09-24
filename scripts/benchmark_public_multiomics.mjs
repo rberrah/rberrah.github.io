@@ -337,5 +337,108 @@ for (const term of ['malic acid', 'C18.2n.6', '2-hydroxyglutarate']) {
   }
 }
 
+
+
+function signConcordance(engineRows, referenceRows) {
+  const byFeature = new Map(engineRows.map((row) => [row.feature, row]));
+  const pairs = referenceRows
+    .filter((ref) => Number.isFinite(ref.officialLogFC) && Number.isFinite(ref.officialQ) && ref.officialQ <= 0.10)
+    .map((ref) => ({ ref, row: byFeature.get(ref.feature) }))
+    .filter((x) => x.row && Number.isFinite(x.row.effect) && x.row.effect !== 0 && x.ref.officialLogFC !== 0);
+  const concordant = pairs.filter(({ref,row}) => Math.sign(row.effect) === -Math.sign(ref.officialLogFC)).length;
+  return {
+    n: pairs.length,
+    concordant,
+    fraction: pairs.length ? concordant/pairs.length : null
+  };
+}
+
+{
+  const ds = await loadDataset(`${root}/aging-hfcd-old-vs-young-cd`, ['transcriptomics','proteomics','metabolomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'mouse',
+      objective: 'groups',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'animal',
+      groupCount: '2',
+      sampleOverlap: 'partial'
+    },
+    dataTypes: {
+      transcriptomics: 'normalized',
+      proteomics: 'normalized',
+      metabolomics: 'normalized'
+    },
+    useReactome: true,
+    resolveIdentifiers: false
+  });
+
+  const refParsed = parseDelimited(await fs.readFile(`${root}/aging-hfcd-old-vs-young-cd/reference.csv`, 'utf8'));
+  const reference = refParsed.rows.map((row) => ({
+    layer: row.layer,
+    feature: row.feature,
+    officialLogFC: Number(row.official_old_vs_young_logFC),
+    officialQ: Number(row.official_q)
+  }));
+
+  const concordance = {};
+  for (const layer of ['transcriptomics','proteomics','metabolomics']) {
+    concordance[layer] = signConcordance(
+      result.layers[layer].rows,
+      reference.filter((row) => row.layer === layer)
+    );
+    requireTruth(
+      concordance[layer].n >= 10 && concordance[layer].fraction >= 0.80,
+      `AgingHFCD ${layer} agrees with reference Old-vs-Young effect directions`,
+      `n=${concordance[layer].n}, concordance=${(100*concordance[layer].fraction).toFixed(1)}%`
+    );
+  }
+
+  const ctsdRna = result.layers.transcriptomics.rows
+    .map((row,index) => ({...row,rank:index+1}))
+    .find((row) => /^Ctsd$/i.test(row.feature));
+  const ctsdProtein = result.layers.proteomics.rows
+    .map((row,index) => ({...row,rank:index+1}))
+    .find((row) => /^Ctsd$/i.test(row.feature));
+
+  // Engine contrast is Young_CD - Old_CD; published Ctsd aging association predicts a negative effect here.
+  requireTruth(
+    ctsdRna && ctsdRna.effect < 0 && ctsdRna.qValue <= 0.10,
+    'AgingHFCD recovers higher Ctsd RNA in old control-diet mice',
+    ctsdRna ? `rank=${ctsdRna.rank}, effect=${ctsdRna.effect.toFixed(3)}, q=${ctsdRna.qValue}` : 'Ctsd RNA absent'
+  );
+  requireTruth(
+    ctsdProtein && ctsdProtein.effect < 0 && ctsdProtein.qValue <= 0.10,
+    'AgingHFCD recovers higher CTSD protein in old control-diet mice',
+    ctsdProtein ? `rank=${ctsdProtein.rank}, effect=${ctsdProtein.effect.toFixed(3)}, q=${ctsdProtein.qValue}` : 'CTSD protein absent'
+  );
+
+  requireTruth(
+    result.metadataSummary.overlap.allMatched >= 20,
+    'AgingHFCD has a non-trivial three-layer matched cohort',
+    `all-three matched=${result.metadataSummary.overlap.allMatched}`
+  );
+
+  report.benchmarks.agingHFCD = {
+    truth: 'Old_CD vs Young_CD; Ctsd is an aging-associated RNA/protein signal in the source publication',
+    metadata: result.metadataSummary,
+    concordance,
+    ctsdRna,
+    ctsdProtein,
+    crossOmics: {
+      testedPairs: result.crossOmics.testedPairs,
+      significantPairs: result.crossOmics.significantPairs,
+      top: result.crossOmics.pairs.slice(0,20)
+    },
+    topPathways: (result.reactome?.consensus || []).slice(0,20).map((p) => ({
+      id:p.id,name:p.name,fdr:p.fdr,supportingLayers:p.supportingLayers
+    })),
+    reactomeError: result.reactomeError
+  };
+}
+
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
