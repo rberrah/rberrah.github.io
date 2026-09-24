@@ -600,6 +600,8 @@
       uniprot: (id) => /^(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9])(?:-\d+)?$/.test(id),
       hmdb: (id) => /^HMDB\d+$/i.test(id),
       chebi: (id) => /^CHEBI:\d+$/i.test(id),
+      inchikey: (id) => /^[A-Z]{14}-[A-Z]{10}-[A-Z]$/i.test(id),
+      pubchem: (id) => /^CID:?\d+$/i.test(id),
       kegg_compound: (id) => /^C\d{5}$/i.test(id),
       entrez: (id) => /^\d+$/.test(id)
     };
@@ -1292,6 +1294,7 @@
           <option value="hmdb">HMDB</option>
           <option value="kegg_compound">KEGG compound</option>
           <option value="pubchem">PubChem CID</option>
+          <option value="inchikey">InChIKey (UniChem → ChEBI)</option>
           <option value="name">{t('Nom du métabolite', 'Metabolite name')}</option>
           <option value="mz_rt">{t('m/z + temps de rétention uniquement', 'm/z + retention time only')}</option>
           <option value="unknown">{t('Inconnu / détection automatique', 'Unknown / detect automatically')}</option>
