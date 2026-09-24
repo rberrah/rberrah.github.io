@@ -135,7 +135,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Test laboratories and model imports
-        run: npm run test:labs && npm run test:mlxtran
+        run: npm run test:labs && npm run test:mlxtran && npm run test:multiomics
 
   scientific-r:
     runs-on: ubuntu-latest
