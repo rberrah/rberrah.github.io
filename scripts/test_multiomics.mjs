@@ -50,9 +50,9 @@ const result = await runDeterministicAnalysis({
   resolveIdentifiers: false
 });
 
-assert.equal(result.metadataSummary.subjects, 4);
-assert.equal(result.metadataSummary.samples, 8);
-assert.equal(result.metadataSummary.assays, 25);
+assert.equal(result.metadataSummary.subjects, 8);
+assert.equal(result.metadataSummary.samples, 16);
+assert.equal(result.metadataSummary.assays, 49);
 assert.equal(result.layers.transcriptomics.replicateGroups.length, 1);
 assert.ok(result.layers.transcriptomics.rows.length >= 5);
 assert.ok(result.layers.proteomics.rows.length >= 4);
@@ -60,7 +60,7 @@ assert.ok(result.layers.metabolomics.rows.length >= 4);
 
 for (const layer of ['transcriptomics','proteomics','metabolomics']) {
   assert.equal(result.layers[layer].mode, 'difference-in-differences');
-  assert.deepEqual(result.layers[layer].groupSizes, [2,2]);
+  assert.deepEqual(result.layers[layer].groupSizes, [4,4]);
   assert.ok(result.layers[layer].selected.length > 0);
 }
 
@@ -68,6 +68,8 @@ const ido = result.layers.transcriptomics.rows.find((row) => row.feature === 'ID
 assert.ok(ido);
 assert.ok(Number.isFinite(ido.effect));
 assert.ok(ido.foldRatio > 1);
+assert.ok(result.crossOmics.testedPairs > 0);
+assert.ok(result.crossOmics.pairs.some((pair) => ['sign_reversal','gained_in_comparison','strengthened_in_comparison'].includes(pair.pattern)));
 
 console.log('multiomics deterministic engine: PASS');
 console.log(JSON.stringify({
