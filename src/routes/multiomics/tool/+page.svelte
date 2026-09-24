@@ -1497,6 +1497,21 @@
     </div>
   </div>
 
+  <details class="dictionary interpretation-glossary">
+    <summary>{t('Glossaire pour lire les sorties statistiques', 'Glossary for reading statistical outputs')}</summary>
+    <div class="dictionary-table">
+      <div><b>{t('Terme', 'Term')}</b><b>{t('Lecture', 'Meaning')}</b><b>{t('À retenir', 'Key point')}</b><b>{t('Piège à éviter', 'Common pitfall')}</b></div>
+      <div><code>effect / β</code><span>{t('Direction et amplitude du contraste ou coefficient de régression.', 'Direction and magnitude of the contrast or regression coefficient.')}</span><span>{t('Toujours lire son échelle et le contraste exact.', 'Always read its scale and exact contrast.')}</span><span>{t('Un grand effet n’implique pas automatiquement une faible q-value.', 'A large effect does not automatically imply a low q-value.')}</span></div>
+      <div><code>fold ratio</code><span>{t('Pour une échelle log2 : 2^effect.', 'On a log2 scale: 2^effect.')}</span><span>{t('>1 : hausse ; <1 : baisse selon le contraste affiché.', '>1: increase; <1: decrease according to the displayed contrast.')}</span><span>{t('Ne pas l’interpréter si les valeurs ne sont pas sur une échelle log2 déclarée.', 'Do not interpret it if values are not on a declared log2 scale.')}</span></div>
+      <div><code>p</code><span>{t('Évidence du test pour une variable avant correction multiple.', 'Test evidence for one feature before multiple-testing correction.')}</span><span>{t('Utile pour le calcul de q, pas pour sélectionner seule des milliers de variables.', 'Useful for computing q, not for selecting among thousands of features by itself.')}</span><span>{t('p < 0,05 n’est pas une probabilité que l’hypothèse soit vraie.', 'p < 0.05 is not the probability that a hypothesis is true.')}</span></div>
+      <div><code>q BH</code><span>{t('p-value ajustée par Benjamini–Hochberg pour contrôler le FDR.', 'Benjamini–Hochberg adjusted p-value for FDR control.')}</span><span>{t('Le prototype utilise q ≤ 0,10 comme seuil exploratoire.', 'The prototype uses q ≤ 0.10 as an exploratory threshold.')}</span><span>{t('Ce seuil ne remplace pas la taille d’effet ni la validation externe.', 'This threshold does not replace effect size or external validation.')}</span></div>
+      <div><code>OR / RR / HR</code><span>{t('exp(β) en logistique, Poisson ou Cox.', 'exp(β) in logistic, Poisson or Cox models.')}</span><span>{t('1 = absence d’association ; >1 et <1 donnent les deux directions.', '1 = no association; >1 and <1 indicate opposite directions.')}</span><span>{t('Une association n’est pas une causalité.', 'Association is not causation.')}</span></div>
+      <div><code>95% CI</code><span>{t('Intervalle de confiance Wald autour de l’effet estimé.', 'Wald confidence interval around the estimated effect.')}</span><span>{t('La largeur renseigne sur la précision.', 'Width reflects estimation precision.')}</span><span>{t('Avec petits effectifs ou séparation logistique, l’approximation peut être fragile.', 'With small samples or logistic separation, the approximation can be fragile.')}</span></div>
+      <div><code>loading</code><span>{t('Contribution d’une variable à un axe latent de l’ACP multi-blocs.', 'Feature contribution to a latent balanced multi-block PCA axis.')}</span><span>{t('Interpréter surtout |loading| et les variables qui covarient sur un axe.', 'Focus on |loading| and features co-varying along an axis.')}</span><span>{t('Le signe global d’un axe PCA est arbitraire.', 'The global sign of a PCA axis is arbitrary.')}</span></div>
+      <div><code>Δr</code><span>{t('Différence de corrélation inter-omique entre deux conditions.', 'Difference in cross-omics correlation between two conditions.')}</span><span>{t('Peut révéler un couplage gagné, perdu ou inversé.', 'Can reveal gained, lost or reversed coupling.')}</span><span>{t('Une corrélation condition-dépendante ne prouve pas une interaction causale.', 'Condition-dependent correlation does not prove a causal interaction.')}</span></div>
+    </div>
+  </details>
+
   {#if analysisResult.exploration?.components?.length}
     <div class="integration-result">
       <div class="integration-head">
@@ -1869,6 +1884,7 @@
   .interpretation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); margin-top: var(--space-4); }
   .interpretation-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
   .interpretation-grid p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: 0; }
+  .interpretation-glossary { margin-top: var(--space-4); }
   .mapping-head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
   .mapping-head p { color: var(--text-secondary); margin: 0; }
   .mapping-head > span { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--border-strong); padding: 5px 8px; border-radius: 999px; }
