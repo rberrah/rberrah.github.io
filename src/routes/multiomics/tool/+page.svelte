@@ -1358,7 +1358,7 @@
         {@const match = matrixMatch(layer)}
         <article>
           <div>
-            <strong>{omicLabels[layer]}</strong>
+            <strong>{omicLabel(layer)}</strong>
             <span>{matrixInfo[layer].sampleIds.length ? `${matrixInfo[layer].sampleIds.length} data columns` : 'not loaded'}</span>
           </div>
           {#if matrixInfo[layer].sampleIds.length}
@@ -1460,6 +1460,54 @@
     </div>
   {/if}
 
+  <div class="interpretation-box" data-testid="multiomics-interpretation">
+    <div class="integration-head">
+      <div>
+        <p class="eyebrow">{t('Aide à l’interprétation', 'Interpretation guide')}</p>
+        <h3>{t('Comment interpréter ces résultats ?', 'How should these results be interpreted?')}</h3>
+      </div>
+      <span>{t('règles déterministes', 'deterministic rules')}</span>
+    </div>
+    <div class="interpretation-grid">
+      {#each interpretationItems as item}
+        <article>
+          <strong>{item.title}</strong>
+          <p>{item.text}</p>
+        </article>
+      {/each}
+    </div>
+  </div>
+
+  {#if analysisResult.exploration?.components?.length}
+    <div class="integration-result">
+      <div class="integration-head">
+        <div>
+          <p class="eyebrow">{t('Exploration multi-omique', 'Multi-omics exploration')}</p>
+          <h3>{t('Axes latents partagés entre les couches', 'Shared latent axes across omics layers')}</h3>
+        </div>
+        <span>{analysisResult.exploration.subjects} {t('sujets communs', 'shared subjects')}</span>
+      </div>
+      <div class="api-summary">
+        {#each analysisResult.exploration.components as component}
+          <span><strong>PC{component.component}</strong> {Number.isFinite(component.explainedFraction) ? (100 * component.explainedFraction).toFixed(1) + '%' : '—'} {t('de variance pondérée', 'balanced variance')}</span>
+        {/each}
+      </div>
+      <p class="note">{analysisResult.exploration.method}</p>
+      <div class="cross-table">
+        <div class="cross-head"><b>{t('Variable', 'Feature')}</b><b>{t('Omique', 'Omics')}</b><b>PC1 loading</b><b>{t('Contribution', 'Contribution')}</b><b></b><b></b></div>
+        {#each analysisResult.exploration.components[0].topLoadings.slice(0, 15) as loading}
+          <div>
+            <code>{loading.feature}</code>
+            <span>{omicLabel(loading.layer)}</span>
+            <strong>{loading.loading.toPrecision(3)}</strong>
+            <span>{Math.abs(loading.loading).toPrecision(3)}</span>
+            <span></span><span></span>
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
   {#if analysisResult.identifierResolution?.metabolomics}
     <div class="identifier-resolution">
       <div class="integration-head">
@@ -1491,7 +1539,7 @@
         <article>
           <div class="layer-title">
             <div>
-              <span class="method-tag">{omicLabels[layer]}</span>
+              <span class="method-tag">{omicLabel(layer)}</span>
               <h3>{result.contrast || 'No valid contrast'}</h3>
             </div>
             <button class="text-button" type="button" onclick={() => downloadLayerCsv(layer)}>CSV ↓</button>
@@ -1501,9 +1549,13 @@
             <p class="error">{result.error}</p>
           {:else}
             <p class="muted">
-              {result.mode === 'multi-group-permutation-anova'
-                ? `group sizes: ${result.groupSizes.join(' / ')} · ${result.inferenceMethod || result.mode}`
-                : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode} · ${result.inferenceMethod || 'inference'}`}
+              {result.mode === 'exploratory-multiblock-pca'
+                ? result.inferenceMethod
+                : result.mode?.startsWith('outcome-')
+                  ? `${result.mode} · ${result.inferenceMethod || 'model'}`
+                  : result.mode === 'multi-group-permutation-anova'
+                    ? `group sizes: ${result.groupSizes.join(' / ')} · ${result.inferenceMethod || result.mode}`
+                    : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode} · ${result.inferenceMethod || 'inference'}`}
             </p>
             <div class="preprocess-list">
               {#each result.steps as step}<span>{step}</span>{/each}
@@ -1512,12 +1564,14 @@
             <p class="selection-rule">{result.selectionRule}</p>
             {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
             <div class="feature-table">
-              <div class="feature-head"><b>Feature</b><b>{result.effectScale === 'log2' ? 'Fold ratio' : 'Effect'}</b><b>p perm.</b><b>q BH</b></div>
+              <div class="feature-head"><b>{t('Variable', 'Feature')}</b><b>{result.effectScale === 'log2' ? 'Fold ratio' : t('Effet', 'Effect')}</b><b>p</b><b>q BH</b></div>
               {#each result.rows.slice(0, 10) as row}
                 <div>
                   <code>{row.feature}</code>
                   {#if row.foldRatio != null}
                     <span class:negative={row.foldRatio != null && row.foldRatio < 1}>{row.foldRatio == null ? row.effect.toFixed(3) : `${row.foldRatio.toFixed(2)}×`}</span>
+                  {:else if row.exponentiatedEffect != null}
+                    <span class:negative={row.exponentiatedEffect < 1}>{row.exponentiatedEffect.toPrecision(3)}× <small>(β={row.effect.toPrecision(3)})</small></span>
                   {:else}
                     <span class:negative={row.effect < 0}>{row.effect.toPrecision(3)}</span>
                   {/if}
@@ -1532,6 +1586,7 @@
     {/each}
   </div>
 
+  {#if !['explore','outcome'].includes(analysisResult.protocol?.objective)}
   <div class="integration-result cross-result">
     <div class="integration-head">
       <div>
@@ -1564,10 +1619,13 @@
     {/if}
   </div>
 
+  </div>
+  {/if}
+
   <div class="integration-result">
     <div class="integration-head">
       <div>
-        <p class="eyebrow">Integrated pathway result</p>
+        <p class="eyebrow">{t('Résultat intégré par voies', 'Integrated pathway result')}</p>
         <h3>Reactome receives the selected gene/protein/metabolite identifiers together</h3>
       </div>
       <span>deterministic ORA</span>
