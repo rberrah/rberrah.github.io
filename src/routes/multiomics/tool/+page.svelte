@@ -480,6 +480,7 @@
     proteomicsIdType = 'uniprot';
     metabolomicsValues = 'peak_area';
     metabolomicsIdType = 'chebi';
+    resolveIdentifiers = false;
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
