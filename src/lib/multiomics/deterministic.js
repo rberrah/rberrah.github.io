@@ -663,6 +663,184 @@ function matrixFromText(text, expectedAssays) {
   return { features: [...values.keys()], assays: headerAssays, values, transposed: false };
 }
 
+function mad(values) {
+  const x = values.filter(Number.isFinite);
+  if (!x.length) return NaN;
+  const m = median(x);
+  return median(x.map((value) => Math.abs(value - m)));
+}
+
+function robustOutlierFlags(values, threshold = 4) {
+  const finite = values.filter(Number.isFinite);
+  const center = median(finite);
+  const spread = mad(finite);
+  if (!Number.isFinite(center) || !Number.isFinite(spread) || spread === 0) return values.map(() => false);
+  const scale = 1.4826 * spread;
+  return values.map((value) => Number.isFinite(value) && Math.abs(value - center) / scale > threshold);
+}
+
+function assayGroupsForQc(metadataRows, assays) {
+  const assaySet = new Set(assays);
+  const rows = metadataRows.filter((row) => assaySet.has(row.assayId));
+  const byCondition = new Map();
+  for (const row of rows) {
+    const key = row.condition || '__all__';
+    if (!byCondition.has(key)) byCondition.set(key, []);
+    byCondition.get(key).push(row.assayId);
+  }
+  if (!byCondition.size) byCondition.set('__all__', assays.slice());
+  return byCondition;
+}
+
+function prepareMatrixQc(matrix, layer, valueType, metadataRows = []) {
+  const assays = matrix.assays;
+  const featureCountBefore = matrix.features.length;
+  const sampleMetrics = assays.map((assay) => {
+    const raw = matrix.features.map((feature) => matrix.values.get(feature)?.get(assay));
+    const observed = raw.filter(Number.isFinite);
+    const positives = observed.filter((value) => value > 0);
+    return {
+      assayId: assay,
+      observedFeatures: observed.length,
+      detectedFeatures: positives.length,
+      missingFraction: featureCountBefore ? 1 - observed.length / featureCountBefore : null,
+      zeroFraction: observed.length ? observed.filter((value) => value === 0).length / observed.length : null,
+      totalSignal: observed.reduce((sum, value) => sum + Math.max(0, value), 0),
+      medianSignal: median(observed)
+    };
+  });
+
+  const logTotals = sampleMetrics.map((metric) => Math.log1p(metric.totalSignal));
+  const detected = sampleMetrics.map((metric) => metric.detectedFeatures);
+  const totalOutliers = robustOutlierFlags(logTotals, 4);
+  const detectionOutliers = robustOutlierFlags(detected, 4);
+  sampleMetrics.forEach((metric, index) => {
+    metric.outlier = totalOutliers[index] || detectionOutliers[index] || (metric.missingFraction != null && metric.missingFraction > 0.40);
+    metric.outlierReasons = [
+      totalOutliers[index] ? 'total signal' : '',
+      detectionOutliers[index] ? 'detected feature count' : '',
+      metric.missingFraction != null && metric.missingFraction > 0.40 ? 'missingness >40%' : ''
+    ].filter(Boolean);
+  });
+
+  const groups = assayGroupsForQc(metadataRows, assays);
+  const totals = new Map(sampleMetrics.map((metric) => [metric.assayId, metric.totalSignal || 1]));
+  const isCounts = layer === 'transcriptomics' && valueType === 'raw_counts';
+  const isSpectral = layer === 'proteomics' && valueType === 'spectral_count';
+
+  const keep = [];
+  const removalReasons = { lowAbundance: 0, excessiveMissingness: 0, constantOrEmpty: 0 };
+  for (const feature of matrix.features) {
+    const values = matrix.values.get(feature);
+    const all = assays.map((assay) => values.get(assay));
+    const finite = all.filter(Number.isFinite);
+    if (!finite.length || new Set(finite).size <= 1) {
+      removalReasons.constantOrEmpty += 1;
+      continue;
+    }
+
+    if (isCounts || isSpectral) {
+      let detectedInGroup = false;
+      for (const groupAssays of groups.values()) {
+        const required = Math.max(2, Math.ceil(groupAssays.length * 0.20));
+        const detectedCount = groupAssays.filter((assay) => {
+          const raw = values.get(assay);
+          if (!Number.isFinite(raw)) return false;
+          const cpm = raw / (totals.get(assay) || 1) * 1e6;
+          return cpm >= 1;
+        }).length;
+        if (detectedCount >= Math.min(required, groupAssays.length)) {
+          detectedInGroup = true;
+          break;
+        }
+      }
+      if (!detectedInGroup) {
+        removalReasons.lowAbundance += 1;
+        continue;
+      }
+    } else {
+      let adequatelyObserved = false;
+      for (const groupAssays of groups.values()) {
+        const required = Math.max(2, Math.ceil(groupAssays.length * 0.50));
+        const observed = groupAssays.filter((assay) => Number.isFinite(values.get(assay))).length;
+        if (observed >= Math.min(required, groupAssays.length)) {
+          adequatelyObserved = true;
+          break;
+        }
+      }
+      if (!adequatelyObserved) {
+        removalReasons.excessiveMissingness += 1;
+        continue;
+      }
+    }
+    keep.push(feature);
+  }
+
+  const filteredValues = new Map(keep.map((feature) => [feature, matrix.values.get(feature)]));
+  const replicateCorrelations = [];
+  const bySample = new Map();
+  for (const row of metadataRows) {
+    if (!assays.includes(row.assayId)) continue;
+    if (!bySample.has(row.sampleId)) bySample.set(row.sampleId, []);
+    bySample.get(row.sampleId).push(row.assayId);
+  }
+  for (const [sampleId, replicateAssays] of bySample.entries()) {
+    if (replicateAssays.length < 2) continue;
+    for (let i = 0; i < replicateAssays.length; i += 1) {
+      for (let j = i + 1; j < replicateAssays.length; j += 1) {
+        const a = [];
+        const b = [];
+        for (const feature of keep) {
+          const va = filteredValues.get(feature)?.get(replicateAssays[i]);
+          const vb = filteredValues.get(feature)?.get(replicateAssays[j]);
+          if (Number.isFinite(va) && Number.isFinite(vb)) {
+            a.push(va);
+            b.push(vb);
+          }
+        }
+        const correlation = a.length >= 5 ? spearman(a,b) : NaN;
+        replicateCorrelations.push({
+          sampleId,
+          assayA: replicateAssays[i],
+          assayB: replicateAssays[j],
+          nFeatures: a.length,
+          correlation,
+          warning: Number.isFinite(correlation) && correlation < 0.80
+        });
+      }
+    }
+  }
+
+  const missingFractions = sampleMetrics.map((metric) => metric.missingFraction).filter(Number.isFinite);
+  const warnings = [];
+  const outlierSamples = sampleMetrics.filter((metric) => metric.outlier);
+  if (outlierSamples.length) warnings.push(outlierSamples.length + ' assay(s) flagged by robust signal/detection/missingness QC.');
+  const lowReplicatePairs = replicateCorrelations.filter((item) => item.warning);
+  if (lowReplicatePairs.length) warnings.push(lowReplicatePairs.length + ' technical replicate pair(s) have Spearman r < 0.80.');
+  if (keep.length < Math.max(1, featureCountBefore * 0.20)) warnings.push('More than 80% of features were removed by the conservative detection filter.');
+
+  return {
+    matrix: { ...matrix, features: keep, values: filteredValues },
+    qc: {
+      layer,
+      valueType,
+      featuresBefore: featureCountBefore,
+      featuresAfter: keep.length,
+      removedFeatures: featureCountBefore - keep.length,
+      removalReasons,
+      assays: assays.length,
+      medianMissingFraction: median(missingFractions),
+      sampleMetrics,
+      outlierSamples,
+      replicateCorrelations,
+      warnings,
+      filterPolicy: isCounts || isSpectral
+        ? 'retain non-constant features with CPM ≥1 in at least max(2, 20% of assays) within at least one biological condition'
+        : 'retain non-constant features observed in at least max(2, 50% of assays) within at least one biological condition'
+    }
+  };
+}
+
 function minimumPositive(matrix) {
   let min = Infinity;
   for (const values of matrix.values.values()) {
@@ -1987,7 +2165,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     const expected = metadata.filter((row) => row.omic === layer).map((row) => row.assayId);
     const text = await files[layer].text();
     const matrix = matrixFromText(text, expected);
-    const processed = preprocessMatrix(matrix, layer, dataTypes[layer]);
+    const layerMetadata = metadata.filter((row) => row.omic === layer);
+    const qcPrepared = prepareMatrixQc(matrix, layer, dataTypes[layer], layerMetadata);
+    if (!qcPrepared.matrix.features.length) {
+      throw new Error(layer + ': no features remain after modality-specific QC filtering.');
+    }
+    const processed = preprocessMatrix(qcPrepared.matrix, layer, dataTypes[layer]);
     const rawAggregated = aggregateTechnicalReplicates(processed, metadata, layer);
 
     let aggregated;
@@ -2013,6 +2196,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       aggregated = adjusted.aggregated;
       adjustment = adjusted.adjustment;
     }
+    aggregated.qc = { ...qcPrepared.qc, preprocessingSteps: processed.steps };
+    aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+    aggregated.replicateGroups = rawAggregated.replicateGroups;
     aggregatedByLayer[layer] = aggregated;
     adjustments[layer] = adjustment;
 
@@ -2031,7 +2217,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
     if (layers[layer]) {
       layers[layer].replicateGroups = rawAggregated.replicateGroups;
-      layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+      layers[layer].matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+      layers[layer].qc = { ...qcPrepared.qc, preprocessingSteps: processed.steps };
       layers[layer].adjustment = adjustment;
     } else {
       aggregated.matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
@@ -2047,6 +2234,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       const result = explorationLayerResult(aggregatedByLayer[layer], exploration, layer);
       result.replicateGroups = aggregatedByLayer[layer].replicateGroups || [];
       result.matrixShape = aggregatedByLayer[layer].matrixShape || { features: aggregatedByLayer[layer].features.length, assays: aggregatedByLayer[layer].sampleMeta.size, transposed: false };
+      result.qc = aggregatedByLayer[layer].qc || null;
       result.adjustment = adjustments[layer];
       layers[layer] = result;
     }
