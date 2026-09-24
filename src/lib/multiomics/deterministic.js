@@ -211,6 +211,25 @@ function variance(values) {
   return x.reduce((sum, value) => sum + (value-m)*(value-m), 0) / (x.length-1);
 }
 
+function numericTime(value) {
+  const match = String(value ?? '').match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : NaN;
+}
+
+function linearSlope(points) {
+  const valid = points.filter((point) => Number.isFinite(point.time) && Number.isFinite(point.value));
+  if (valid.length < 2) return NaN;
+  const mt = mean(valid.map((point) => point.time));
+  const my = mean(valid.map((point) => point.value));
+  let numerator = 0;
+  let denominator = 0;
+  for (const point of valid) {
+    numerator += (point.time-mt)*(point.value-my);
+    denominator += (point.time-mt)*(point.time-mt);
+  }
+  return denominator > 0 ? numerator/denominator : NaN;
+}
+
 function median(values) {
   const x = values.filter(Number.isFinite).slice().sort((a,b) => a-b);
   if (!x.length) return NaN;
@@ -577,6 +596,32 @@ function subjectFeatureValues(aggregated, feature, options) {
     const first = timepoints[0];
     const last = timepoints[timepoints.length - 1];
     const groups = [[],[]];
+
+    if (timepoints.length > 2) {
+      for (const entries of perSubject.values()) {
+        const byTime = new Map();
+        for (const entry of entries) {
+          const time = numericTime(entry.row.timepoint);
+          if (!Number.isFinite(time)) continue;
+          if (!byTime.has(time)) byTime.set(time, []);
+          byTime.get(time).push(entry.value);
+        }
+        const points = [...byTime.entries()].map(([time, values]) => ({ time, value: mean(values) }));
+        const slope = linearSlope(points);
+        if (!Number.isFinite(slope)) continue;
+        const condition = entries[0].row.condition;
+        const index = conditions.indexOf(condition);
+        if (index >= 0) groups[index].push(slope);
+      }
+      return {
+        groups,
+        conditions,
+        timepoints,
+        contrast: `individual time slope: ${conditions[1]} vs ${conditions[0]}`,
+        mode: 'longitudinal-slope'
+      };
+    }
+
     for (const entries of perSubject.values()) {
       const baseline = entries.filter((x) => x.row.timepoint === first).map((x) => x.value);
       const endpoint = entries.filter((x) => x.row.timepoint === last).map((x) => x.value);
@@ -675,11 +720,24 @@ function subjectFeatureSummary(aggregated, feature, options) {
   const out = [];
   for (const [subjectId, entries] of perSubject.entries()) {
     if (options.longitudinal && timepoints.length >= 2) {
-      const baseline = entries.filter((x) => x.row.timepoint === first).map((x) => x.value);
-      const endpoint = entries.filter((x) => x.row.timepoint === last).map((x) => x.value);
-      if (!baseline.length || !endpoint.length) continue;
-      const endpointRow = entries.find((x) => x.row.timepoint === last)?.row || entries[0].row;
-      out.push({ subjectId, condition: endpointRow.condition, value: mean(endpoint)-mean(baseline) });
+      if (timepoints.length > 2) {
+        const byTime = new Map();
+        for (const entry of entries) {
+          const time = numericTime(entry.row.timepoint);
+          if (!Number.isFinite(time)) continue;
+          if (!byTime.has(time)) byTime.set(time, []);
+          byTime.get(time).push(entry.value);
+        }
+        const slope = linearSlope([...byTime.entries()].map(([time, values]) => ({ time, value: mean(values) })));
+        if (!Number.isFinite(slope)) continue;
+        out.push({ subjectId, condition: entries[0].row.condition, value: slope });
+      } else {
+        const baseline = entries.filter((x) => x.row.timepoint === first).map((x) => x.value);
+        const endpoint = entries.filter((x) => x.row.timepoint === last).map((x) => x.value);
+        if (!baseline.length || !endpoint.length) continue;
+        const endpointRow = entries.find((x) => x.row.timepoint === last)?.row || entries[0].row;
+        out.push({ subjectId, condition: endpointRow.condition, value: mean(endpoint)-mean(baseline) });
+      }
     } else {
       const eligible = last ? entries.filter((x) => x.row.timepoint === last) : entries;
       if (!eligible.length) continue;
