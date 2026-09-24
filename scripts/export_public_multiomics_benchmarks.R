@@ -26,12 +26,12 @@ write_metadata <- function(subject_ids, assay_ids_by_omic, condition, out_path, 
         timepoint = "",
         batch = "",
         technical_replicate = "1",
-        outcome = "",
+        outcome = if ("outcome" %in% names(extra)) as.character(extra$outcome[[i]]) else "",
         stringsAsFactors = FALSE,
         check.names = FALSE
       )
       if (length(extra)) {
-        for (nm in names(extra)) row[[nm]] <- as.character(extra[[nm]][[i]])
+        for (nm in setdiff(names(extra), "outcome")) row[[nm]] <- as.character(extra[[nm]][[i]])
       }
       rows[[idx]] <- row
       idx <- idx + 1L
@@ -93,7 +93,8 @@ write_metadata(
   subjects2,
   list(transcriptomics = rna2, proteomics = prot2),
   subtype,
-  file.path(tcga_dir, "metadata.csv")
+  file.path(tcga_dir, "metadata.csv"),
+  extra = list(outcome = subtype)
 )
 
 cat("\nTCGA_HER2_LUMA\n")
@@ -176,14 +177,42 @@ if (file.exists(missrows_file)) {
   rows <- list()
   k <- 1L
   for (id in trans_ids) {
-    rows[[k]] <- data.frame(subject_id=id, sample_id=id, assay_id=paste0("RNA_", id), omic="transcriptomics", condition="NCI60", stringsAsFactors=FALSE)
+    rows[[k]] <- data.frame(
+      subject_id=id, sample_id=id, assay_id=paste0("RNA_", id),
+      omic="transcriptomics", condition="NCI60", timepoint="", batch="",
+      technical_replicate="1", outcome="", stringsAsFactors=FALSE
+    )
     k <- k + 1L
   }
   for (id in prote_ids) {
-    rows[[k]] <- data.frame(subject_id=id, sample_id=id, assay_id=paste0("PROT_", id), omic="proteomics", condition="NCI60", stringsAsFactors=FALSE)
+    rows[[k]] <- data.frame(
+      subject_id=id, sample_id=id, assay_id=paste0("PROT_", id),
+      omic="proteomics", condition="NCI60", timepoint="", batch="",
+      technical_replicate="1", outcome="", stringsAsFactors=FALSE
+    )
     k <- k + 1L
   }
+
+  miss_dir <- file.path(out_dir, "missrows-nci60-partial")
+  dir.create(miss_dir, recursive=TRUE, showWarnings=FALSE)
+  write.csv(do.call(rbind, rows), file.path(miss_dir, "metadata.csv"), row.names=FALSE, quote=FALSE)
   write.csv(do.call(rbind, rows), file.path(out_dir, "missrows_nci60_metadata.csv"), row.names=FALSE, quote=FALSE)
+
+  trans <- t(as.matrix(NCI60$dataTables$trans))
+  prote <- t(as.matrix(NCI60$dataTables$prote))
+  write_matrix(
+    trans,
+    colnames(trans),
+    paste0("RNA_", rownames(trans)),
+    file.path(miss_dir, "transcriptomics.csv")
+  )
+  write_matrix(
+    prote,
+    colnames(prote),
+    paste0("PROT_", rownames(prote)),
+    file.path(miss_dir, "proteomics.csv")
+  )
+
   cat("\nMISSROWS_NCI60\n")
   cat("transcriptomic_subjects:", length(trans_ids), "\n")
   cat("proteomic_subjects:", length(prote_ids), "\n")
