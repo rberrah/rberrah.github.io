@@ -718,6 +718,66 @@
     URL.revokeObjectURL(href);
   }
 
+  /** @param {unknown} value */
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+  function downloadReproducibleReport() {
+    if (!analysisResult) return;
+    const result = analysisResult;
+    const layerSections = Object.entries(result.layers || {}).map(([layer, layerResult]) => {
+      const rows = (layerResult.rows || []).slice(0, 50).map((row) =>
+        '<tr><td>' + escapeHtml(row.feature) + '</td><td>' +
+        escapeHtml(Number.isFinite(row.effect) ? Number(row.effect).toPrecision(4) : '') + '</td><td>' +
+        escapeHtml(row.pValue == null ? '' : Number(row.pValue).toPrecision(4)) + '</td><td>' +
+        escapeHtml(row.qValue == null ? '' : Number(row.qValue).toPrecision(4)) + '</td></tr>'
+      ).join('');
+      const qc = layerResult.qc || {};
+      return '<section><h2>' + escapeHtml(omicLabel(layer)) + '</h2>' +
+        '<p><strong>Model:</strong> ' + escapeHtml(layerResult.inferenceMethod || layerResult.mode || '') + '</p>' +
+        '<p><strong>QC:</strong> ' + escapeHtml(qc.featuresAfter ?? '—') + '/' + escapeHtml(qc.featuresBefore ?? '—') +
+        ' features retained; median missing ' + escapeHtml(Number.isFinite(qc.medianMissingFraction) ? (100 * qc.medianMissingFraction).toFixed(1) + '%' : '—') + '.</p>' +
+        '<table><thead><tr><th>Feature</th><th>Effect</th><th>p</th><th>q BH</th></tr></thead><tbody>' + rows + '</tbody></table></section>';
+    }).join('');
+
+    const pathways = (result.reactome?.consensus || []).slice(0, 30).map((pathway) =>
+      '<tr><td>' + escapeHtml(pathway.name) + '</td><td>' +
+      escapeHtml(Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(4) : Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(4) : '') +
+      '</td><td>' + escapeHtml(pathway.supportingLayers) + '</td></tr>'
+    ).join('');
+
+    const embeddedJson = JSON.stringify(result).replaceAll('<', '\\u003c');
+    const html = '<!doctype html><html lang="' + ($language === 'en' ? 'en' : 'fr') + '"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Multi-omics reproducible report</title>' +
+      '<style>body{font:14px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#161616}h1,h2{line-height:1.15}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f4f4f4}code,pre{font-family:ui-monospace,monospace}pre{white-space:pre-wrap;background:#f6f6f6;padding:12px}section{margin:32px 0}.muted{color:#666}</style></head><body>' +
+      '<h1>PMx Explain — multi-omics reproducible report</h1>' +
+      '<p class="muted">Generated ' + escapeHtml(result.generatedAt) + ' · engine ' + escapeHtml(result.engine?.version || 'unknown') + '</p>' +
+      '<section><h2>Provenance</h2><pre>' + escapeHtml(JSON.stringify(result.inputManifest, null, 2)) + '</pre></section>' +
+      '<section><h2>Protocol</h2><pre>' + escapeHtml(JSON.stringify(result.protocol, null, 2)) + '</pre></section>' +
+      '<section><h2>Sample structure</h2><pre>' + escapeHtml(JSON.stringify(result.metadataSummary, null, 2)) + '</pre></section>' +
+      layerSections +
+      (result.supervisedIntegration ? '<section><h2>Supervised multiblock integration</h2><pre>' + escapeHtml(JSON.stringify(result.supervisedIntegration, null, 2)) + '</pre></section>' : '') +
+      (result.predictiveOutcome ? '<section><h2>Predictive validation</h2><pre>' + escapeHtml(JSON.stringify(result.predictiveOutcome, null, 2)) + '</pre></section>' : '') +
+      '<section><h2>Reactome pathways</h2><table><thead><tr><th>Pathway</th><th>Assay-universe FDR</th><th>Supporting layers</th></tr></thead><tbody>' + pathways + '</tbody></table></section>' +
+      '<section><h2>Interpretation limits</h2><p>This report separates observed data, statistical inference and external pathway knowledge. Associations are not causal claims. External validation is required for predictive use.</p></section>' +
+      '<script type="application/json" id="multiomics-analysis-json">' + embeddedJson + '</script>' +
+      '</body></html>';
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = 'multiomics_reproducible_report.html';
+    link.click();
+    URL.revokeObjectURL(href);
+  }
+
   /** @param {'transcriptomics'|'proteomics'|'metabolomics'} layer */
   function downloadLayerCsv(layer) {
     const rows = analysisResult?.layers?.[layer]?.rows;
@@ -1502,6 +1562,7 @@
     </div>
     <div class="result-actions">
       <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Télécharger JSON', 'Download JSON')}</button>
+        <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Rapport HTML reproductible', 'Reproducible HTML report')}</button>
       {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
       {/if}
