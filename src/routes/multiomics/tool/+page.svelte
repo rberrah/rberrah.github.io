@@ -720,6 +720,12 @@
     URL.revokeObjectURL(href);
   }
 
+  /** @param {any} qc */
+  function poorReplicateCount(qc) {
+    const correlations = /** @type {any[]} */ (qc?.replicateCorrelations || []);
+    return correlations.filter((item) => Boolean(item?.warning)).length;
+  }
+
   /** @param {unknown} value */
   function escapeHtml(value) {
     return String(value ?? '')
@@ -734,7 +740,8 @@
     if (!analysisResult) return;
     const result = analysisResult;
     const layerSections = Object.entries(result.layers || {}).map(([layer, layerResult]) => {
-      const rows = (layerResult.rows || []).slice(0, 50).map((row) =>
+      const layerRows = /** @type {any[]} */ (layerResult.rows || []);
+      const rows = layerRows.slice(0, 50).map((row) =>
         '<tr><td>' + escapeHtml(row.feature) + '</td><td>' +
         escapeHtml(Number.isFinite(row.effect) ? Number(row.effect).toPrecision(4) : '') + '</td><td>' +
         escapeHtml(row.pValue == null ? '' : Number(row.pValue).toPrecision(4)) + '</td><td>' +
@@ -748,7 +755,8 @@
         '<table><thead><tr><th>Feature</th><th>Effect</th><th>p</th><th>q BH</th></tr></thead><tbody>' + rows + '</tbody></table></section>';
     }).join('');
 
-    const pathways = (result.reactome?.consensus || []).slice(0, 30).map((pathway) =>
+    const pathwayRows = /** @type {any[]} */ (result.reactome?.consensus || []);
+    const pathways = pathwayRows.slice(0, 30).map((pathway) =>
       '<tr><td>' + escapeHtml(pathway.name) + '</td><td>' +
       escapeHtml(Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(4) : Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(4) : '') +
       '</td><td>' + escapeHtml(pathway.supportingLayers) + '</td></tr>'
@@ -1635,7 +1643,7 @@
             <div class="qc-metrics">
               <div><b>{Number.isFinite(result.qc.medianMissingFraction) ? (100 * result.qc.medianMissingFraction).toFixed(1) + '%' : '—'}</b><span>{t('missing médian', 'median missing')}</span></div>
               <div><b>{result.qc.outlierSamples?.length || 0}</b><span>{t('assays suspects', 'flagged assays')}</span></div>
-              <div><b>{result.qc.replicateCorrelations?.filter((item) => item.warning).length || 0}</b><span>{t('réplicats r<0,80', 'replicates r<0.80')}</span></div>
+              <div><b>{poorReplicateCount(result.qc)}</b><span>{t('réplicats r<0,80', 'replicates r<0.80')}</span></div>
             </div>
 
             <div class="qc-bars" aria-label={t('Missingness par assay', 'Missingness by assay')}>
