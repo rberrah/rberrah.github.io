@@ -1877,24 +1877,35 @@ function layerQcPca(aggregated, maxFeatures = 100) {
   };
 }
 
-function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeaturesPerLayer = 50) {
-  const subjectSets = loadedLayers.map((layer) =>
+function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeaturesPerLayer = 50, allowPartialBlocks = false) {
+  const subjectSets = Object.fromEntries(loadedLayers.map((layer) => [
+    layer,
     new Set([...aggregatedByLayer[layer].sampleMeta.values()].map((row) => row.subjectId))
-  );
-  const subjects = [...subjectSets[0]].filter((subject) => subjectSets.every((set) => set.has(subject))).sort();
+  ]));
+  const unionSubjects = [...new Set(loadedLayers.flatMap((layer) => [...subjectSets[layer]]))].sort();
+  const completeSubjects = unionSubjects.filter((subject) => loadedLayers.every((layer) => subjectSets[layer].has(subject)));
+  const subjects = allowPartialBlocks ? unionSubjects : completeSubjects;
   if (subjects.length < 3) {
     return {
-      error: 'Exploratory multi-omics integration requires at least three subjects shared across all loaded layers.',
+      error: allowPartialBlocks
+        ? 'Exploratory multi-omics integration requires at least three subjects represented in at least one loaded layer.'
+        : 'Exploratory multi-omics integration requires at least three subjects shared across all loaded layers.',
       subjects: subjects.length,
       components: [],
       layers: {}
     };
   }
 
+  const subjectCoverage = subjects.map((subject) => ({
+    subjectId: subject,
+    observedLayers: loadedLayers.filter((layer) => subjectSets[layer].has(subject)),
+    missingLayers: loadedLayers.filter((layer) => !subjectSets[layer].has(subject))
+  }));
   const blocks = {};
   const concatenated = subjects.map(() => []);
   const featureMap = [];
   let totalVariance = 0;
+  let imputedCells = 0;
 
   for (const layer of loadedLayers) {
     const features = topVariableFeatures(aggregatedByLayer[layer], maxFeaturesPerLayer);
@@ -1902,13 +1913,21 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
     const keptFeatures = [];
     for (const feature of features) {
       const map = endpointSubjectValueMap(aggregatedByLayer[layer], feature);
-      const values = subjects.map((subject) => map.get(subject));
-      if (values.some((value) => !Number.isFinite(value))) continue;
-      const center = mean(values);
-      const sd = Math.sqrt(variance(values));
+      const rawValues = subjects.map((subject) => map.get(subject));
+      const observed = rawValues.filter(Number.isFinite);
+      if (observed.length < 2) continue;
+      if (!allowPartialBlocks && rawValues.some((value) => !Number.isFinite(value))) continue;
+      const center = mean(observed);
+      const sd = Math.sqrt(variance(observed));
       if (!(sd > 0)) continue;
       keptFeatures.push(feature);
-      standardizedColumns.push(values.map((value) => (value - center) / sd));
+      standardizedColumns.push(rawValues.map((value) => {
+        if (!Number.isFinite(value)) {
+          imputedCells += 1;
+          return 0;
+        }
+        return (value - center) / sd;
+      }));
     }
     const blockScale = keptFeatures.length ? 1 / Math.sqrt(keptFeatures.length) : 1;
     for (let fIndex = 0; fIndex < keptFeatures.length; fIndex += 1) {
@@ -1917,11 +1936,15 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
       for (let i = 0; i < subjects.length; i += 1) concatenated[i].push(values[i]);
       totalVariance += values.reduce((sum, value) => sum + value * value, 0);
     }
-    blocks[layer] = { featureCount: keptFeatures.length, features: keptFeatures };
+    blocks[layer] = {
+      featureCount: keptFeatures.length,
+      features: keptFeatures,
+      subjectsObserved: subjects.filter((subject) => subjectSets[layer].has(subject)).length
+    };
   }
 
   if (!concatenated[0]?.length) {
-    return { error: 'No complete variable features were available across shared subjects.', subjects: subjects.length, components: [], layers: blocks };
+    return { error: 'No variable features were available for exploratory integration.', subjects: subjects.length, components: [], layers: blocks };
   }
 
   const gram = Array.from({ length: subjects.length }, () => Array(subjects.length).fill(0));
@@ -1964,9 +1987,17 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
   }
 
   return {
-    method: 'balanced multi-block PCA: top-variable features are standardized within layer, each layer is scaled by 1/sqrt(p), then deterministic PCA is computed on the shared-subject Gram matrix',
+    method: allowPartialBlocks
+      ? 'balanced multi-block PCA with partial-block support: features are standardized within observed values; missing feature/block entries are set to the standardized mean (0) only for latent exploration, never for differential tests'
+      : 'balanced multi-block PCA: top-variable features are standardized within layer, each layer is scaled by 1/sqrt(p), then deterministic PCA is computed on shared subjects',
+    missingDataPolicy: allowPartialBlocks
+      ? 'partial blocks allowed; standardized-mean fill only inside unsupervised latent integration'
+      : 'complete subjects across all loaded layers',
     subjects: subjects.length,
+    completeSubjects: completeSubjects.length,
     subjectIds: subjects,
+    subjectCoverage,
+    imputedCells,
     layers: blocks,
     components
   };
@@ -2408,10 +2439,16 @@ export function layerOverlapSummary(metadata, loadedLayers) {
       pairwise.push({ layerA: a, layerB: b, matchedSubjects: overlap, layerASubjects: subjectSets[a].size, layerBSubjects: subjectSets[b].size });
     }
   }
+  const allSubjects = [...new Set(loadedLayers.flatMap((layer) => [...subjectSets[layer]]))];
   const allMatched = loadedLayers.length
-    ? [...subjectSets[loadedLayers[0]]].filter((id) => loadedLayers.every((layer) => subjectSets[layer].has(id))).length
+    ? allSubjects.filter((id) => loadedLayers.every((layer) => subjectSets[layer].has(id))).length
     : 0;
-  return { layerSubjects, pairwise, allMatched };
+  const coveragePatterns = {};
+  for (const subject of allSubjects) {
+    const pattern = loadedLayers.filter((layer) => subjectSets[layer].has(subject)).join('+') || 'none';
+    coveragePatterns[pattern] = (coveragePatterns[pattern] || 0) + 1;
+  }
+  return { layerSubjects, pairwise, allMatched, totalSubjectsAnyLayer: allSubjects.length, coveragePatterns };
 }
 
 function auditBatchDesign(metadata, loadedLayers, protocol) {
@@ -2658,7 +2695,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
   let exploration = null;
   if (protocol.objective === 'explore') {
-    exploration = analyseExploratoryIntegration(aggregatedByLayer, loadedLayers);
+    exploration = analyseExploratoryIntegration(
+      aggregatedByLayer,
+      loadedLayers,
+      50,
+      protocol.partialOmicsExpected === 'yes'
+    );
     if (exploration.error) throw new Error(exploration.error);
     for (const layer of loadedLayers) {
       const result = explorationLayerResult(aggregatedByLayer[layer], exploration, layer);
