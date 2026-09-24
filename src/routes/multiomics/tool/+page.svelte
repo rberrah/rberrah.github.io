@@ -1189,7 +1189,7 @@
     <div>
       <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
       <p>{t('Une ligne = une mesure. Ce format gère les couches omiques absentes, les temps répétés et les réplicats techniques sans changer de schéma.', 'One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.')}</p>
-      <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome</pre>
+      <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,covariate_1</pre>
       <div class="actions">
         <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>{t('Générer un template depuis mon protocole', 'Generate template from my protocol')}</button>
         <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>{t('Template générique de métadonnées', 'Generic metadata template')}</a>
@@ -1225,7 +1225,10 @@
       <div><code>timepoint</code><span>Visit / experimental time</span><span>T12</span><span>Required for longitudinal designs.</span></div>
       <div><code>batch</code><span>Technical batch</span><span>RNA_B1</span><span>Keep assay-specific batches even when different omics use different batches.</span></div>
       <div><code>technical_replicate</code><span>Repeated technical assay</span><span>1</span><span>Distinct assay_id, same sample_id + omic.</span></div>
-      <div><code>outcome</code><span>Primary phenotype / endpoint</span><span>responder</span><span>Only if used by the scientific question.</span></div>
+      <div><code>outcome</code><span>{t('Phénotype / critère principal', 'Primary phenotype / endpoint')}</span><span>responder</span><span>{t('Utilisé pour les outcomes binaires, continus, multiclasse ou de comptage.', 'Used for binary, continuous, multiclass or count outcomes.')}</span></div>
+      <div><code>survival_time</code><span>{t('Temps de suivi / survie', 'Survival / follow-up time')}</span><span>365</span><span>{t('Requis uniquement pour la branche survie.', 'Required only for the survival branch.')}</span></div>
+      <div><code>survival_event</code><span>{t('Événement 0/1', 'Event indicator 0/1')}</span><span>1</span><span>{t('1 = événement observé, 0 = censuré.', '1 = observed event, 0 = censored.')}</span></div>
+      <div><code>covariate_*</code><span>{t('Covariable explicite', 'Explicit covariate')}</span><span>age</span><span>{t('Toute colonne supplémentaire peut être sélectionnée manuellement pour ajustement.', 'Any extra column can be selected manually for adjustment.')}</span></div>
     </div>
   </details>
 
