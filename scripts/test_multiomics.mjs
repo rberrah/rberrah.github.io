@@ -520,4 +520,132 @@ function csvFile(name, text) {
   }
 }
 
+// QC: low-information features are filtered and QC PCA is produced.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaSignal = ['RNA_SIGNAL'];
+  const rnaLow = ['RNA_LOW'];
+  const protSignal = ['PROT_SIGNAL'];
+  const protMissing = ['PROT_MISSING'];
+  let assay = 1;
+  for (const condition of ['control','treatment']) {
+    for (let s = 1; s <= 5; s += 1) {
+      const subject = condition[0].toUpperCase() + 'Q' + s;
+      for (const layer of ['transcriptomics','proteomics']) {
+        const id = (layer === 'transcriptomics' ? 'QR' : 'QP') + assay++;
+        rows.push([subject,subject,id,layer,condition,'','B1'].join(','));
+        if (layer === 'transcriptomics') {
+          rnaHeader.push(id);
+          rnaSignal.push(String(100 + (condition === 'treatment' ? 100 : 0) + s));
+          rnaLow.push(s === 1 && condition === 'control' ? '1' : '0');
+        } else {
+          protHeader.push(id);
+          protSignal.push(String(5 + (condition === 'treatment' ? 2 : 0) + s * 0.1));
+          protMissing.push(s <= 2 && condition === 'control' ? String(2+s) : '');
+        }
+      }
+    }
+  }
+  const meta = csvFile('qc_metadata.csv', rows.join('\n'));
+  const rna = csvFile('qc_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaLow.join(',')].join('\n'));
+  const protein = csvFile('qc_protein.csv', [protHeader.join(','),protSignal.join(','),protMissing.join(',')].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+  const qcResult = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:metaParsed.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'groups',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:[]},
+    dataTypes:{transcriptomics:'raw_counts',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.ok(qcResult.layers.transcriptomics.qc.featuresAfter < qcResult.layers.transcriptomics.qc.featuresBefore);
+  assert.ok(qcResult.layers.transcriptomics.qc.pca.scores.length >= 3);
+  assert.equal(qcResult.layers.transcriptomics.mode, 'adjusted-two-group-model');
+  assert.match(qcResult.layers.transcriptomics.inferenceMethod, /HC3/);
+}
+
+// Longitudinal repeated-measures branch: random intercept and condition × time interaction.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaSignal = ['TIME_GENE'];
+  const protSignal = ['TIME_PROTEIN'];
+  let assay = 1;
+  for (const condition of ['control','treatment']) {
+    for (let s = 1; s <= 6; s += 1) {
+      const subject = condition[0].toUpperCase() + 'L' + s;
+      const randomIntercept = s * 0.4;
+      for (const time of [0,6,12]) {
+        for (const layer of ['transcriptomics','proteomics']) {
+          const id = (layer === 'transcriptomics' ? 'LR' : 'LP') + assay++;
+          rows.push([subject,subject + '_T' + time,id,layer,condition,'T' + time,'B1'].join(','));
+          const slope = condition === 'treatment' ? 0.20 : 0.02;
+          const value = randomIntercept + slope * time + (layer === 'proteomics' ? 1 : 0);
+          if (layer === 'transcriptomics') { rnaHeader.push(id); rnaSignal.push(String(value)); }
+          else { protHeader.push(id); protSignal.push(String(value)); }
+        }
+      }
+    }
+  }
+  const meta = csvFile('lmm_metadata.csv', rows.join('\n'));
+  const rna = csvFile('lmm_rna.csv', [rnaHeader.join(','),rnaSignal.join(',')].join('\n'));
+  const protein = csvFile('lmm_protein.csv', [protHeader.join(','),protSignal.join(',')].join('\n'));
+  const parsedMeta = parseDelimited(await meta.text());
+  const longitudinal = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:parsedMeta.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'time',longitudinal:true,designType:'repeated',studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:[]},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(longitudinal.layers.transcriptomics.mode, 'random-intercept-longitudinal-model');
+  const timeGene = longitudinal.layers.transcriptomics.rows.find((row) => row.feature === 'TIME_GENE');
+  assert.ok(timeGene && timeGene.effect > 1);
+  assert.ok(Number.isFinite(timeGene.intraclassCorrelation));
+}
+
+// Partial-block exploratory integration retains subjects missing one entire layer.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rna = ['RNA_PARTIAL'];
+  const protein = ['PROT_PARTIAL'];
+  let assay = 1;
+  for (let s = 1; s <= 8; s += 1) {
+    const subject = 'M' + s;
+    const rnaId = 'MR' + assay++;
+    rows.push([subject,subject,rnaId,'transcriptomics','','',''].join(','));
+    rnaHeader.push(rnaId); rna.push(String(s));
+    if (s <= 6) {
+      const protId = 'MP' + assay++;
+      rows.push([subject,subject,protId,'proteomics','','',''].join(','));
+      protHeader.push(protId); protein.push(String(s * 2));
+    }
+  }
+  const meta = csvFile('partial_metadata.csv', rows.join('\n'));
+  const rnaFile = csvFile('partial_rna.csv', [rnaHeader.join(','),rna.join(',')].join('\n'));
+  const protFile = csvFile('partial_protein.csv', [protHeader.join(','),protein.join(',')].join('\n'));
+  const parsedMeta = parseDelimited(await meta.text());
+  const partial = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rnaFile,proteomics:protFile,metabolomics:null},
+    metadataRows:parsedMeta.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'explore',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'1',sampleOverlap:'partial',batchKnown:'no',covariateColumns:[],partialOmicsExpected:'yes'},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(partial.exploration.subjects, 8);
+  assert.equal(partial.exploration.completeSubjects, 6);
+  assert.ok(partial.exploration.imputedCells > 0);
+  assert.match(partial.exploration.missingDataPolicy, /partial blocks/);
+}
+
 console.log('multiomics paired / longitudinal / identifier-resolution branches: PASS');
