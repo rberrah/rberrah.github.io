@@ -43,6 +43,7 @@ function directIdentifierType(value) {
   if (/^CHEBI:\d+$/i.test(id)) return 'chebi';
   if (/^HMDB\d+$/i.test(id)) return 'hmdb';
   if (/^C\d{5}$/i.test(id)) return 'kegg';
+  if (/^[A-Z]{14}-[A-Z]{10}-[A-Z]$/i.test(id)) return 'inchikey';
   return null;
 }
 
@@ -57,6 +58,51 @@ export async function resolveMetaboliteIdentifier(identifier, { fetchFn = fetch 
   const direct = directIdentifierType(original);
   if (direct === 'chebi') {
     return { original, resolved: original.toUpperCase(), status: 'canonical', method: 'input', query: original };
+  }
+
+  if (direct === 'inchikey') {
+    try {
+      const response = await fetchFn(
+        'https://www.ebi.ac.uk/unichem/rest/verbose_inchikey/' + encodeURIComponent(original.toUpperCase()),
+        { headers: { Accept: 'application/json' } }
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      const rows = Array.isArray(json) ? json : [];
+      const chebiIds = [...new Set(rows
+        .filter((item) => String(item?.name || item?.name_label || '').toLowerCase() === 'chebi' || Number(item?.src_id) === 7)
+        .flatMap((item) => Array.isArray(item?.src_compound_id) ? item.src_compound_id : [item?.src_compound_id])
+        .map(normaliseText)
+        .filter((id) => /^CHEBI:\d+$/i.test(id))
+        .map((id) => id.toUpperCase()))];
+      if (chebiIds.length === 1) {
+        return {
+          original,
+          resolved: chebiIds[0],
+          status: 'resolved_external_id',
+          method: 'unichem_inchikey_to_chebi',
+          query: original,
+          crossReferences: rows.length
+        };
+      }
+      return {
+        original,
+        resolved: null,
+        status: chebiIds.length > 1 ? 'ambiguous' : 'unresolved',
+        method: 'unichem_inchikey_to_chebi',
+        query: original,
+        candidates: chebiIds
+      };
+    } catch (error) {
+      return {
+        original,
+        resolved: null,
+        status: 'api_error',
+        method: 'unichem_inchikey_to_chebi',
+        query: original,
+        error: error instanceof Error ? error.message : 'UniChem request failed'
+      };
+    }
   }
 
   const alias = METABOLITE_ALIASES.get(original.toLowerCase());
