@@ -856,5 +856,109 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   };
 }
 
+// --- Public validation of the new unsupervised branch: TCGA breast without using subtype labels ---
+{
+  const ds = await loadDataset(root + '/tcga-three-subtypes', ['transcriptomics','proteomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'explore',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_observational',
+      groupCount: '1',
+      sampleOverlap: 'same_specimen',
+      batchKnown: 'no',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'log_expression',
+      proteomics: 'log_intensity',
+      metabolomics: 'normalized'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+
+  const loadings = (result.exploration?.components || []).flatMap((component) =>
+    (component.topLoadings || []).map((item) => ({ ...item, component: component.component }))
+  );
+  const breastMarkers = loadings.filter((item) => /HER2|ERBB2|ER-alpha|PR|GRB7/i.test(item.feature));
+  requireTruth(
+    result.exploration?.subjects >= 100 && result.exploration?.components?.length >= 1,
+    'TCGA unsupervised multi-block branch computes shared latent structure without subtype labels',
+    'subjects=' + result.exploration?.subjects + ', components=' + (result.exploration?.components?.length || 0)
+  );
+  requireTruth(
+    breastMarkers.length >= 1,
+    'TCGA unsupervised loadings contain established breast-subtype biology',
+    breastMarkers.slice(0,5).map((item) => item.feature + '@PC' + item.component).join(', ') || 'no HER2/ER/PR/GRB7 marker among top loadings'
+  );
+
+  report.benchmarks.tcgaUnsupervised = {
+    truth: 'Basal / Her2 / LumA samples analysed without giving subtype labels to the exploratory model.',
+    subjects: result.exploration?.subjects,
+    components: result.exploration?.components?.map((component) => ({
+      component: component.component,
+      explainedFraction: component.explainedFraction,
+      topLoadings: component.topLoadings.slice(0,15)
+    })),
+    knownMarkerLoadings: breastMarkers
+  };
+}
+
+// --- Public validation of the outcome branch: TCGA Her2 vs LumA treated as a binary phenotype ---
+{
+  const ds = await loadDataset(root + '/tcga-her2-luma', ['transcriptomics','proteomics']);
+  const outcomeRows = ds.metadataRows.map((row) => ({ ...row, outcome: row.condition }));
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    metadataRows: outcomeRows,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'outcome',
+      outcomeType: 'binary',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_observational',
+      groupCount: '1',
+      sampleOverlap: 'same_specimen',
+      batchKnown: 'no',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'log_expression',
+      proteomics: 'log_intensity',
+      metabolomics: 'normalized'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+
+  const her2 = result.layers.proteomics.rows
+    .map((row,index) => ({...row,rank:index+1}))
+    .find((row) => /^HER2$/i.test(row.feature));
+  requireTruth(
+    result.layers.proteomics.mode === 'outcome-binary',
+    'TCGA binary phenotype uses the logistic outcome branch',
+    result.layers.proteomics.inferenceMethod
+  );
+  requireTruth(
+    her2 && her2.effect < 0 && her2.qValue <= 0.10 && her2.exponentiatedEffect < 1,
+    'TCGA logistic outcome model recovers HER2 as associated with Her2-vs-LumA phenotype',
+    her2 ? 'rank=' + her2.rank + ', beta=' + her2.effect.toFixed(3) + ', OR=' + her2.exponentiatedEffect.toPrecision(3) + ', q=' + her2.qValue : 'HER2 absent'
+  );
+
+  report.benchmarks.tcgaBinaryOutcome = {
+    truth: 'Her2-enriched vs Luminal A phenotype modelled as a binary outcome rather than as a group contrast.',
+    HER2: her2,
+    transcriptomicsTop: result.layers.transcriptomics.rows.slice(0,15),
+    proteomicsTop: result.layers.proteomics.rows.slice(0,15)
+  };
+}
+
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS BENCHMARK SUITE: PASS');
