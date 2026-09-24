@@ -798,142 +798,142 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 2 · Protocol</p>
-      <h2>Describe the design with closed questions</h2>
+      <p class="eyebrow">{t('Étape 2 · Protocole', 'Step 2 · Protocol')}</p>
+      <h2>{t('Décrivez le design avec des questions fermées', 'Describe the design with closed questions')}</h2>
     </div>
-    <p>The answers define the statistical structure before any omics method is selected.</p>
+    <p>{t('Les réponses définissent la structure statistique avant toute sélection de méthode omique.', 'The answers define the statistical structure before any omics method is selected.')}</p>
   </div>
 
   <div class="form-grid">
     <label>
-      <span>Study setting</span>
+      <span>{t('Cadre de l’étude', 'Study setting')}</span>
       <select bind:value={studySetting}>
-        <option value="clinical_observational">Human · observational cohort</option>
-        <option value="clinical_interventional">Human · intervention / trial</option>
-        <option value="animal">Animal experiment</option>
-        <option value="cell">Cell culture / in vitro</option>
-        <option value="organoid">Organoid / ex vivo model</option>
+        <option value="clinical_observational">{t('Humain · cohorte observationnelle', 'Human · observational cohort')}</option>
+        <option value="clinical_interventional">{t('Humain · intervention / essai', 'Human · intervention / trial')}</option>
+        <option value="animal">{t('Expérience animale', 'Animal experiment')}</option>
+        <option value="cell">{t('Culture cellulaire / in vitro', 'Cell culture / in vitro')}</option>
+        <option value="organoid">{t('Organoïde / modèle ex vivo', 'Organoid / ex vivo model')}</option>
         <option value="other">Other</option>
       </select>
     </label>
 
     <label>
-      <span>Independent biological unit</span>
+      <span>{t('Unité biologique indépendante', 'Independent biological unit')}</span>
       <select bind:value={unitType}>
-        <option value="participant">Human participant</option>
+        <option value="participant">{t('Participant humain', 'Human participant')}</option>
         <option value="animal">Animal</option>
-        <option value="culture">Independent culture / biological replicate</option>
-        <option value="other">Other experimental unit</option>
+        <option value="culture">{t('Culture indépendante / réplicat biologique', 'Independent culture / biological replicate')}</option>
+        <option value="other">{t('Autre unité expérimentale', 'Other experimental unit')}</option>
       </select>
     </label>
 
     <label>
-      <span>Design structure</span>
+      <span>{t('Structure du design', 'Design structure')}</span>
       <select bind:value={designType}>
-        <option value="independent">Independent groups / units</option>
-        <option value="paired">Paired samples</option>
-        <option value="crossover">Crossover / within-subject comparison</option>
-        <option value="repeated">Repeated measurements</option>
+        <option value="independent">{t('Groupes / unités indépendants', 'Independent groups / units')}</option>
+        <option value="paired">{t('Échantillons appariés', 'Paired samples')}</option>
+        <option value="crossover">{t('Crossover / comparaison intra-sujet', 'Crossover / within-subject comparison')}</option>
+        <option value="repeated">{t('Mesures répétées', 'Repeated measurements')}</option>
       </select>
     </label>
 
     <label>
-      <span>Number of comparison groups</span>
+      <span>{t('Nombre de groupes comparés', 'Number of comparison groups')}</span>
       <select bind:value={groupCount}>
-        <option value="1">One group / exploratory only</option>
-        <option value="2">Two groups</option>
-        <option value="3plus">Three or more groups</option>
+        <option value="1">{t('Un groupe / exploratoire', 'One group / exploratory')}</option>
+        <option value="2">{t('Deux groupes', 'Two groups')}</option>
+        <option value="3plus">{t('Trois groupes ou plus', 'Three or more groups')}</option>
       </select>
     </label>
 
     <label>
-      <span>Longitudinal design?</span>
+      <span>{t('Design longitudinal ?', 'Longitudinal design?')}</span>
       <select bind:value={longitudinal}>
-        <option value="no">No</option>
-        <option value="yes">Yes</option>
+        <option value="no">{t('Non', 'No')}</option>
+        <option value="yes">{t('Oui', 'Yes')}</option>
       </select>
     </label>
 
     <label>
-      <span>Number of time points</span>
+      <span>{t('Nombre de temps', 'Number of time points')}</span>
       <select bind:value={timepointCount}>
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
-        <option value="4">4 or more</option>
+        <option value="4">{t('4 ou plus', '4 or more')}</option>
       </select>
     </label>
 
     <label>
-      <span>Do the omics come from the same biological specimen?</span>
+      <span>{t('Les omiques proviennent-elles du même prélèvement biologique ?', 'Do the omics come from the same biological specimen?')}</span>
       <select bind:value={sampleOverlap}>
-        <option value="same_specimen">Yes, same specimen for all omics</option>
-        <option value="same_subject">Same subject, different specimens</option>
-        <option value="partial">Partially matched</option>
-        <option value="unpaired">Different / unpaired samples</option>
+        <option value="same_specimen">{t('Oui, même prélèvement pour toutes les omiques', 'Yes, same specimen for all omics')}</option>
+        <option value="same_subject">{t('Même sujet, prélèvements différents', 'Same subject, different specimens')}</option>
+        <option value="partial">{t('Partiellement apparié', 'Partially matched')}</option>
+        <option value="unpaired">{t('Échantillons différents / non appariés', 'Different / unpaired samples')}</option>
         <option value="unknown">Unknown</option>
       </select>
     </label>
 
     <label>
-      <span>Technical replicates expected?</span>
+      <span>{t('Réplicats techniques attendus ?', 'Technical replicates expected?')}</span>
       <select bind:value={technicalReplicatesExpected}>
-        <option value="no">No</option>
-        <option value="yes">Yes</option>
+        <option value="no">{t('Non', 'No')}</option>
+        <option value="yes">{t('Oui', 'Yes')}</option>
         <option value="unknown">Unknown</option>
       </select>
     </label>
 
     <label>
-      <span>Known technical batches?</span>
+      <span>{t('Batches techniques connus ?', 'Known technical batches?')}</span>
       <select bind:value={batchKnown}>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
+        <option value="yes">{t('Oui', 'Yes')}</option>
+        <option value="no">{t('Non', 'No')}</option>
         <option value="unknown">Unknown</option>
       </select>
     </label>
 
     <label>
-      <span>Primary outcome type</span>
+      <span>{t('Type d’outcome principal', 'Primary outcome type')}</span>
       <select bind:value={outcomeType}>
-        <option value="none">No outcome / exploratory</option>
-        <option value="binary">Binary</option>
-        <option value="multiclass">Multiclass</option>
-        <option value="continuous">Continuous</option>
-        <option value="survival">Time-to-event / survival</option>
-        <option value="count">Count</option>
+        <option value="none">{t('Pas d’outcome / exploratoire', 'No outcome / exploratory')}</option>
+        <option value="binary">{t('Binaire', 'Binary')}</option>
+        <option value="multiclass">{t('Multiclasse', 'Multiclass')}</option>
+        <option value="continuous">{t('Continu', 'Continuous')}</option>
+        <option value="survival">{t('Temps jusqu’à événement / survie', 'Time-to-event / survival')}</option>
+        <option value="count">{t('Comptage', 'Count')}</option>
       </select>
     </label>
 
     <label>
-      <span>Important covariates available?</span>
+      <span>{t('Covariables importantes disponibles ?', 'Important covariates available?')}</span>
       <select bind:value={covariatesAvailable}>
-        <option value="yes">Yes</option>
-        <option value="no">No</option>
+        <option value="yes">{t('Oui', 'Yes')}</option>
+        <option value="no">{t('Non', 'No')}</option>
       </select>
     </label>
 
     <label>
-      <span>Some subjects may miss an entire omics layer?</span>
+      <span>{t('Certains sujets peuvent-ils manquer une couche omique entière ?', 'Some subjects may miss an entire omics layer?')}</span>
       <select bind:value={partialOmicsExpected}>
-        <option value="no">No / not expected</option>
-        <option value="yes">Yes</option>
+        <option value="no">{t('Non / non attendu', 'No / not expected')}</option>
+        <option value="yes">{t('Oui', 'Yes')}</option>
         <option value="unknown">Unknown</option>
       </select>
     </label>
 
     <label>
-      <span>Number of biological units <small>optional consistency check</small></span>
+      <span>{t('Nombre d’unités biologiques', 'Number of biological units')} <small>{t('contrôle optionnel', 'optional consistency check')}</small></span>
       <input bind:value={subjectCount} type="number" min="1" placeholder="e.g. 48" />
     </label>
 
     <label>
-      <span>Name of the group variable <small>optional</small></span>
+      <span>{t('Nom de la variable de groupe', 'Name of the group variable')} <small>{t('optionnel', 'optional')}</small></span>
       <input bind:value={groupVariable} type="text" placeholder="e.g. treatment" />
     </label>
 
     <label>
-      <span>Name of the outcome <small>optional</small></span>
+      <span>{t('Nom de l’outcome', 'Name of the outcome')} <small>{t('optionnel', 'optional')}</small></span>
       <input bind:value={outcome} type="text" placeholder="e.g. response" />
     </label>
   </div>
@@ -941,18 +941,18 @@
   <div class="identity-grid">
     <article>
       <code>subject_id</code>
-      <strong>Biological unit</strong>
-      <p>Same participant / animal / independent culture across visits and samples.</p>
+      <strong>{t('Unité biologique', 'Biological unit')}</strong>
+      <p>{t('Même participant / animal / culture indépendante entre les visites et prélèvements.', 'Same participant / animal / independent culture across visits and samples.')}</p>
     </article>
     <article>
       <code>sample_id</code>
-      <strong>Biological specimen</strong>
-      <p>The physical specimen. RNA, protein and metabolite assays from the same specimen share this ID.</p>
+      <strong>{t('Prélèvement biologique', 'Biological specimen')}</strong>
+      <p>{t('Le prélèvement physique. Les dosages RNA, protéines et métabolites du même prélèvement partagent cet ID.', 'The physical specimen. RNA, protein and metabolite assays from the same specimen share this ID.')}</p>
     </article>
     <article>
       <code>assay_id</code>
-      <strong>Technical measurement</strong>
-      <p>The column name used in an omics matrix. Technical replicates have distinct assay IDs but the same sample ID.</p>
+      <strong>{t('Mesure technique', 'Technical measurement')}</strong>
+      <p>{t('Le nom de colonne utilisé dans une matrice omique. Les réplicats techniques ont des assay_id distincts mais le même sample_id.', 'The column name used in an omics matrix. Technical replicates have distinct assay IDs but the same sample ID.')}</p>
     </article>
   </div>
 </section>
@@ -960,17 +960,17 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 3 · Data type</p>
-      <h2>Tell the app what each matrix represents</h2>
+      <p class="eyebrow">{t('Étape 3 · Type de données', 'Step 3 · Data type')}</p>
+      <h2>{t('Indiquez ce que représente chaque matrice', 'Tell the app what each matrix represents')}</h2>
     </div>
-    <p>This prevents the same numbers from being interpreted incorrectly as raw counts, normalised intensities or absolute concentrations.</p>
+    <p>{t('Cela évite d’interpréter à tort les mêmes nombres comme counts bruts, intensités normalisées ou concentrations absolues.', 'This prevents the same numbers from being interpreted incorrectly as raw counts, normalised intensities or absolute concentrations.')}</p>
   </div>
 
   <div class="omics-question-grid">
     <article>
-      <h3>Transcriptomics</h3>
+      <h3>{t('Transcriptomique', 'Transcriptomics')}</h3>
       <label>
-        <span>Platform</span>
+        <span>{t('Plateforme', 'Platform')}</span>
         <select bind:value={transcriptomicsPlatform}>
           <option value="bulk_rnaseq">Bulk RNA-seq</option>
           <option value="microarray">Microarray</option>
@@ -979,7 +979,7 @@
         </select>
       </label>
       <label>
-        <span>Values</span>
+        <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={transcriptomicsValues}>
           <option value="raw_counts">Raw integer counts</option>
           <option value="tpm">TPM / FPKM-like abundance</option>
@@ -989,7 +989,7 @@
         </select>
       </label>
       <label>
-        <span>Feature identifier</span>
+        <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={transcriptomicsIdType}>
           <option value="ensembl_gene">Ensembl gene ID</option>
           <option value="gene_symbol">Gene symbol</option>
@@ -1003,9 +1003,9 @@
     </article>
 
     <article>
-      <h3>Proteomics</h3>
+      <h3>{t('Protéomique', 'Proteomics')}</h3>
       <label>
-        <span>Platform</span>
+        <span>{t('Plateforme', 'Platform')}</span>
         <select bind:value={proteomicsPlatform}>
           <option value="label_free">Label-free LC-MS/MS</option>
           <option value="tmt">TMT / multiplexed</option>
@@ -1015,7 +1015,7 @@
         </select>
       </label>
       <label>
-        <span>Values</span>
+        <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={proteomicsValues}>
           <option value="lfq_intensity">LFQ / intensity</option>
           <option value="log_intensity">Log intensity</option>
@@ -1025,7 +1025,7 @@
         </select>
       </label>
       <label>
-        <span>Feature identifier</span>
+        <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={proteomicsIdType}>
           <option value="uniprot">UniProt accession</option>
           <option value="gene_symbol">Gene symbol</option>
@@ -1039,9 +1039,9 @@
     </article>
 
     <article>
-      <h3>Metabolomics</h3>
+      <h3>{t('Métabolomique', 'Metabolomics')}</h3>
       <label>
-        <span>Acquisition</span>
+        <span>{t('Acquisition', 'Acquisition')}</span>
         <select bind:value={metabolomicsPlatform}>
           <option value="untargeted_lcms">Untargeted LC-MS</option>
           <option value="targeted_lcms">Targeted LC-MS</option>
@@ -1051,7 +1051,7 @@
         </select>
       </label>
       <label>
-        <span>Values</span>
+        <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={metabolomicsValues}>
           <option value="peak_area">Peak area / intensity</option>
           <option value="normalized">Normalised abundance</option>
@@ -1061,7 +1061,7 @@
         </select>
       </label>
       <label>
-        <span>Feature identifier</span>
+        <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={metabolomicsIdType}>
           <option value="chebi">ChEBI</option>
           <option value="hmdb">HMDB</option>
@@ -1082,19 +1082,19 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 4 · Data contract</p>
-      <h2>Use the template, or let the app map your column names</h2>
+      <p class="eyebrow">{t('Étape 4 · Contrat de données', 'Step 4 · Data contract')}</p>
+      <h2>{t('Utilisez le template ou laissez l’outil mapper vos colonnes', 'Use the template, or let the app map your column names')}</h2>
     </div>
     <p>The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.</p>
   </div>
 
   <div class="contract">
     <div>
-      <h3>Recommended long-format metadata</h3>
+      <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
       <p>One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.</p>
       <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome</pre>
       <div class="actions">
-        <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>Generate template from my protocol</button>
+        <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>{t('Générer un template depuis mon protocole', 'Generate template from my protocol')}</button>
         <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>Generic metadata template</a>
         <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>RNA matrix template</a>
         <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>Protein matrix template</a>
@@ -1103,10 +1103,10 @@
     </div>
 
     <div class="demo-card">
-      <p class="eyebrow">Built-in demonstration</p>
+      <p class="eyebrow">{t('Démonstration intégrée', 'Built-in demonstration')}</p>
       <h3>Treatment × time, three omics</h3>
       <p>8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
-      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>Load the demo locally</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
         <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
@@ -1120,7 +1120,7 @@
     <summary>Detailed metadata dictionary</summary>
     <div class="dictionary-table">
       <div><b>Column</b><b>Meaning</b><b>Example</b><b>Rule</b></div>
-      <div><code>subject_id</code><span>Independent biological unit</span><span>P001</span><span>Same value across all visits/omics for one participant, animal or culture.</span></div>
+      <div><code>subject_id</code><span>{t('Unité biologique indépendante', 'Independent biological unit')}</span><span>P001</span><span>Same value across all visits/omics for one participant, animal or culture.</span></div>
       <div><code>sample_id</code><span>Physical biological specimen</span><span>P001_T0</span><span>Same value only when assays come from the same specimen.</span></div>
       <div><code>assay_id</code><span>Technical measurement / run</span><span>RNA001</span><span>Must match the corresponding matrix row/column identifier exactly.</span></div>
       <div><code>omic</code><span>Measured layer</span><span>transcriptomics</span><span>Canonical values: transcriptomics, proteomics, metabolomics.</span></div>
@@ -1133,7 +1133,7 @@
   </details>
 
   <details class="aliases">
-    <summary>How automatic column recognition works</summary>
+    <summary>{t('Comment fonctionne la reconnaissance automatique des colonnes', 'How automatic column recognition works')}</summary>
     <p>Column names are normalised (case, spaces, hyphens and accents ignored), then compared with a controlled alias list. Automatic recognition is only accepted when exactly one column matches a field.</p>
     <div class="alias-grid">
       {#each fieldDefinitions as field}
@@ -1151,36 +1151,36 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 5 · Upload & mapping</p>
-      <h2>Match metadata and matrices before analysis</h2>
+      <p class="eyebrow">{t('Étape 5 · Import & mapping', 'Step 5 · Upload & mapping')}</p>
+      <h2>{t('Faites correspondre métadonnées et matrices avant l’analyse', 'Match metadata and matrices before analysis')}</h2>
     </div>
     <p>Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.</p>
   </div>
 
   <div class="uploads">
     <label class:loaded={files.metadata}>
-      <strong>Sample metadata</strong>
+      <strong>{t('Métadonnées échantillons', 'Sample metadata')}</strong>
       <span>Long format preferred; arbitrary headers accepted if they can be mapped.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
       <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.transcriptomics}>
-      <strong>Transcriptomics</strong>
+      <strong>{t('Transcriptomique', 'Transcriptomics')}</strong>
       <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('transcriptomics', event)} />
       <small>{files.transcriptomics ? files.transcriptomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.proteomics}>
-      <strong>Proteomics</strong>
+      <strong>{t('Protéomique', 'Proteomics')}</strong>
       <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('proteomics', event)} />
       <small>{files.proteomics ? files.proteomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.metabolomics}>
-      <strong>Metabolomics</strong>
+      <strong>{t('Métabolomique', 'Metabolomics')}</strong>
       <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
@@ -1195,7 +1195,7 @@
     <div class="mapping">
       <div class="mapping-head">
         <div>
-          <h3>Confirm column mapping</h3>
+          <h3>{t('Confirmez le mapping des colonnes', 'Confirm column mapping')}</h3>
           <p>{metadataHeaders.length} columns detected · delimiter: {metadataDelimiter} · {metadataRows.length} assay rows</p>
         </div>
         <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? 'Required fields mapped' : 'Mapping incomplete'}</span>
@@ -1204,7 +1204,7 @@
       <div class="mapping-grid">
         {#each fieldDefinitions as field}
           <label>
-            <span><strong>{field.label}</strong> <small>{field.required ? 'required' : 'optional'}</small></span>
+            <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
             <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
               <option value="">— not mapped —</option>
               {#each metadataHeaders as header}
