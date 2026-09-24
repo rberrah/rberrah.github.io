@@ -74,6 +74,31 @@ assert.ok(ido.foldRatio > 1);
 assert.ok(result.crossOmics.testedPairs > 0);
 assert.ok(result.crossOmics.pairs.some((pair) => ['sign_reversal','gained_in_comparison','strengthened_in_comparison'].includes(pair.pattern)));
 
+await assert.rejects(
+  () => runDeterministicAnalysis({
+    files: { metadata, transcriptomics, proteomics, metabolomics },
+    metadataRows: parsed.rows,
+    columnMapping: mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'explore',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_interventional',
+      groupCount: '2',
+      sampleOverlap: 'same_specimen'
+    },
+    dataTypes: {
+      transcriptomics: 'raw_counts',
+      proteomics: 'log_intensity',
+      metabolomics: 'peak_area'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  }),
+  /Unsupervised exploratory integration is not implemented/
+);
+
 console.log('multiomics deterministic engine: PASS');
 console.log(JSON.stringify({
   subjects: result.metadataSummary.subjects,
