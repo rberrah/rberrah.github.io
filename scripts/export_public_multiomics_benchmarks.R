@@ -368,13 +368,8 @@ export_lrrk_layer <- function(fname, layer, assay_prefix, control_group, disease
   meta <- env$MetaData[env$MetaData$group %in% c(control_group, disease_group), , drop = FALSE]
   res <- as.data.frame(env$data_results, stringsAsFactors = FALSE)
 
-  if (layer == "transcriptomics") {
-    symbol <- as.character(res$id)
-    symbol[is.na(symbol) | !nzchar(symbol)] <- as.character(res$UniqueID[is.na(symbol) | !nzchar(symbol)])
-  } else {
-    symbol <- as.character(res$Gene.Name)
-    symbol[is.na(symbol) | !nzchar(symbol)] <- as.character(res$UniqueID[is.na(symbol) | !nzchar(symbol)])
-  }
+  symbol <- as.character(res$Gene.Name)
+  symbol[is.na(symbol) | !nzchar(symbol)] <- as.character(res$UniqueID[is.na(symbol) | !nzchar(symbol)])
 
   ord <- order(res[[qcol]], -abs(res[[lfccol]]), na.last = NA)
   force_names <- c("RAB29","RAB25","RAB10","RAB3A","RAB3B","CLTC","SYNJ1","SYNJ2","DNM1L","SH3GLB1","SH3GLB2")
