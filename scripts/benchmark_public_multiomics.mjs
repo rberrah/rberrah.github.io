@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { File } from 'node:buffer';
-import { parseDelimited, runDeterministicAnalysis } from '../src/lib/multiomics/deterministic.js';
+import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair } from '../src/lib/multiomics/deterministic.js';
 
 const root = process.argv[2] || 'tmp/public-benchmarks';
 
@@ -232,3 +232,70 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
 
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
+
+
+async function testPublishedPair(filename, reference, comparison, truth) {
+  const parsed = parseDelimited(await fs.readFile(`${root}/${filename}`, 'utf8'));
+  const clean = parsed.rows
+    .map((row) => ({
+      condition: row.condition,
+      x: Number(row.gene),
+      y: Number(row.metabolite)
+    }))
+    .filter((row) => Number.isFinite(row.x) && Number.isFinite(row.y));
+  const ref = clean.filter((row) => row.condition === reference);
+  const cmp = clean.filter((row) => row.condition === comparison);
+  const stat = differentialCorrelationPair(
+    ref.map((row) => row.x), ref.map((row) => row.y),
+    cmp.map((row) => row.x), cmp.map((row) => row.y),
+    'spearman'
+  );
+  truth(stat, ref.length, cmp.length);
+  return { filename, reference, comparison, nReference: ref.length, nComparison: cmp.length, ...stat };
+}
+
+report.benchmarks.nci60IntLIM = {};
+report.benchmarks.nci60IntLIM.FAM174B_malic = await testPublishedPair(
+  'nci60_FAM174B_malic.csv',
+  'Leukemia',
+  'BPO',
+  (stat, nRef, nCmp) => {
+    requireTruth(nRef >= 5 && nCmp >= 10, 'NCI-60 IntLIM pair has expected group sizes', `Leukemia=${nRef}, BPO=${nCmp}`);
+    requireTruth(
+      stat.rReference < 0 && stat.rComparison > 0 && stat.deltaR > 0.5,
+      'NCI-60 reproduces FAM174B–malic-acid correlation reversal',
+      `rLeukemia=${stat.rReference.toFixed(3)}, rBPO=${stat.rComparison.toFixed(3)}, Δr=${stat.deltaR.toFixed(3)}`
+    );
+  }
+);
+
+report.benchmarks.nci60IntLIM.DNER_imidazole = await testPublishedPair(
+  'nci60_DNER_imidazole.csv',
+  'BPO',
+  'Leukemia',
+  (stat) => {
+    requireTruth(
+      stat.rReference < 0 && stat.rComparison > 0 && stat.deltaR > 0.5,
+      'NCI-60 reproduces DNER–imidazolelactate correlation reversal',
+      `rBPO=${stat.rReference.toFixed(3)}, rLeukemia=${stat.rComparison.toFixed(3)}, Δr=${stat.deltaR.toFixed(3)}`
+    );
+  }
+);
+
+report.benchmarks.brcaIntLIM = {};
+report.benchmarks.brcaIntLIM.GPT2_2HG = await testPublishedPair(
+  'brca_GPT2_2HG.csv',
+  'NORMAL',
+  'TUMOR',
+  (stat, nRef, nCmp) => {
+    requireTruth(nRef >= 40 && nCmp >= 50, 'BRCA IntLIM pair has substantial matched groups', `Normal=${nRef}, Tumor=${nCmp}`);
+    requireTruth(
+      stat.rComparison > stat.rReference && stat.deltaR > 0.25,
+      'BRCA reproduces stronger GPT2–2-hydroxyglutarate coupling in tumour',
+      `rNormal=${stat.rReference.toFixed(3)}, rTumor=${stat.rComparison.toFixed(3)}, Δr=${stat.deltaR.toFixed(3)}`
+    );
+  }
+);
+
+await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
+console.log('PUBLIC MULTI-OMICS TRUTH BENCHMARKS: PASS');
