@@ -228,7 +228,7 @@ function csvFile(name, text) {
     useReactome:false,
     resolveIdentifiers:false
   });
-  assert.equal(longitudinalResult.layers.transcriptomics.mode, 'longitudinal-slope');
+  assert.equal(longitudinalResult.layers.transcriptomics.mode, 'random-intercept-longitudinal-model');
   assert.deepEqual(longitudinalResult.layers.transcriptomics.groupSizes, [4,4]);
   assert.ok(longitudinalResult.layers.transcriptomics.rows[0].effect > 0.15);
 }
