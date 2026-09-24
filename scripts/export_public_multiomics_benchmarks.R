@@ -163,3 +163,30 @@ if (dir.exists(brca_root)) {
   cat("\nBRCA_INTLIM_PAIR\n")
   cat("paired_samples:", nrow(out), "\n")
 }
+
+
+# --- NCI-60 incomplete multi-omics from Bioconductor missRows ---
+missrows_root <- Sys.getenv("MISSROWS_ROOT", "external/missRows")
+missrows_file <- file.path(missrows_root, "data", "NCI60.rda")
+if (file.exists(missrows_file)) {
+  suppressWarnings(load(missrows_file))
+  trans_ids <- colnames(NCI60$dataTables$trans)
+  prote_ids <- colnames(NCI60$dataTables$prote)
+  all_ids <- union(trans_ids, prote_ids)
+  rows <- list()
+  k <- 1L
+  for (id in trans_ids) {
+    rows[[k]] <- data.frame(subject_id=id, sample_id=id, assay_id=paste0("RNA_", id), omic="transcriptomics", condition="NCI60", stringsAsFactors=FALSE)
+    k <- k + 1L
+  }
+  for (id in prote_ids) {
+    rows[[k]] <- data.frame(subject_id=id, sample_id=id, assay_id=paste0("PROT_", id), omic="proteomics", condition="NCI60", stringsAsFactors=FALSE)
+    k <- k + 1L
+  }
+  write.csv(do.call(rbind, rows), file.path(out_dir, "missrows_nci60_metadata.csv"), row.names=FALSE, quote=FALSE)
+  cat("\nMISSROWS_NCI60\n")
+  cat("transcriptomic_subjects:", length(trans_ids), "\n")
+  cat("proteomic_subjects:", length(prote_ids), "\n")
+  cat("union_subjects:", length(all_ids), "\n")
+  cat("matched_subjects:", length(intersect(trans_ids, prote_ids)), "\n")
+}
