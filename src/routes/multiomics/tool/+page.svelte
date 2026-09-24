@@ -753,6 +753,7 @@
         '<p><strong>Model:</strong> ' + escapeHtml(layerResult.inferenceMethod || layerResult.mode || '') + '</p>' +
         '<p><strong>QC:</strong> ' + escapeHtml(qc.featuresAfter ?? '—') + '/' + escapeHtml(qc.featuresBefore ?? '—') +
         ' features retained; median missing ' + escapeHtml(Number.isFinite(qc.medianMissingFraction) ? (100 * qc.medianMissingFraction).toFixed(1) + '%' : '—') + '.</p>' +
+        (qc.inferenceTier?.note ? '<p><strong>Inference tier:</strong> ' + escapeHtml(qc.inferenceTier.label || qc.inferenceTier.level) + ' — ' + escapeHtml(qc.inferenceTier.note) + '</p>' : '') +
         '<table><thead><tr><th>Feature</th><th>Effect</th><th>p</th><th>q BH</th></tr></thead><tbody>' + rows + '</tbody></table></section>';
     }).join('');
 
