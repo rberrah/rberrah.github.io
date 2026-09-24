@@ -1295,14 +1295,15 @@
           {:else}
             <p class="muted">
               {result.mode === 'multi-group-permutation-anova'
-                ? `group sizes: ${result.groupSizes.join(' / ')} · permutation ANOVA`
-                : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode}`}
+                ? `group sizes: ${result.groupSizes.join(' / ')} · ${result.inferenceMethod || result.mode}`
+                : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode} · ${result.inferenceMethod || 'inference'}`}
             </p>
             <div class="preprocess-list">
               {#each result.steps as step}<span>{step}</span>{/each}
               {#if result.replicateGroups?.length}<span>{result.replicateGroups.length} technical-replicate group(s) averaged on the transformed scale</span>{/if}
             </div>
             <p class="selection-rule">{result.selectionRule}</p>
+            {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
             <div class="feature-table">
               <div class="feature-head"><b>Feature</b><b>{result.effectScale === 'log2' ? 'Fold ratio' : 'Effect'}</b><b>p perm.</b><b>q BH</b></div>
               {#each result.rows.slice(0, 10) as row}
