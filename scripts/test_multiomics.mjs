@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { File } from 'node:buffer';
-import { parseDelimited, runDeterministicAnalysis, resolveMetaboliteIdentifier } from '../src/lib/multiomics/deterministic.js';
+import { parseDelimited, runDeterministicAnalysis, resolveMetaboliteIdentifier, resolveGeneIdentifier, resolveProteinIdentifier } from '../src/lib/multiomics/deterministic.js';
 
 const root = new URL('../static/multiomics/', import.meta.url);
 
@@ -313,6 +313,30 @@ function csvFile(name, text) {
   assert.equal(unresolved.status, 'unresolved');
 }
 
+// Gene and protein identifier mapping remains conservative and testable with mocked official APIs.
+{
+  const geneFetch = async (url) => {
+    assert.match(String(url), /rest\.ensembl\.org\/lookup\/symbol\/homo_sapiens\/TP53/);
+    return new Response(JSON.stringify({ id:'ENSG00000141510', display_name:'TP53', biotype:'protein_coding' }), {
+      status:200,
+      headers:{'Content-Type':'application/json'}
+    });
+  };
+  const gene = await resolveGeneIdentifier('TP53', { identifierType:'gene_symbol', organism:'human', fetchFn:geneFetch });
+  assert.equal(gene.resolved, 'ENSG00000141510');
+  assert.equal(gene.method, 'ensembl_lookup_symbol');
+
+  const proteinFetch = async (url) => {
+    assert.match(String(url), /rest\.uniprot\.org\/uniprotkb\/search/);
+    return new Response(JSON.stringify({
+      results:[{ primaryAccession:'P04637', entryType:'UniProtKB reviewed (Swiss-Prot)' }]
+    }), { status:200, headers:{'Content-Type':'application/json'} });
+  };
+  const protein = await resolveProteinIdentifier('TP53', { identifierType:'gene_symbol', organism:'human', fetchFn:proteinFetch });
+  assert.equal(protein.resolved, 'P04637');
+  assert.equal(protein.method, 'uniprot_gene_search');
+}
+
 // Batch safety: a biological condition completely nested inside technical batch must be refused.
 {
   const metadataText = [
@@ -514,6 +538,13 @@ function csvFile(name, text) {
     assert.match(outcomeResult.layers.transcriptomics.adjustment.method, /direct nuisance adjustment/);
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
+    if (type !== 'survival') {
+      assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+      assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
+      assert.ok(outcomeResult.predictiveOutcome.foldSummaries.every(x=>x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
+    } else {
+      assert.equal(outcomeResult.predictiveOutcome.status, 'not_available');
+    }
     const signal = outcomeResult.layers.transcriptomics.rows.find(x=>x.feature === 'OUTCOME_GENE');
     assert.ok(signal && Number.isFinite(signal.effect));
     assert.ok(Number.isFinite(signal.pValue));
