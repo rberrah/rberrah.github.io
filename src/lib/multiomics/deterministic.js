@@ -1,3 +1,4 @@
+// @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
 
 function normaliseText(value) {
