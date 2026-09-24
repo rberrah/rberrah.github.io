@@ -224,3 +224,101 @@ for (fname in c("AgingHFCD_RNAseq.RData","AgingHFCD_Proteomics.RData","AgingHFCD
     }
   }
 }
+
+
+# --- Export an actual 3-omics fixed-diet age contrast from AgingHFCD ---
+aging_dir <- file.path(out_dir, "aging-hfcd-old-vs-young-cd")
+dir.create(aging_dir, recursive = TRUE, showWarnings = FALSE)
+
+export_xomics_layer <- function(fname, layer, assay_prefix, n_features = 80L) {
+  env <- new.env(parent = emptyenv())
+  load(file.path(xomics_root, "data", fname), envir = env)
+  meta <- env$MetaData[env$MetaData$group %in% c("Young_CD", "Old_CD"), , drop = FALSE]
+  res <- env$data_results
+  qcol <- "Old_CDvsYoung_CD_Adj.P.Value"
+  lfccol <- "Old_CDvsYoung_CD_logFC"
+
+  labels <- if (layer == "metabolomics") {
+    as.character(res$UniqueID)
+  } else {
+    gene <- as.character(res$Gene.Name)
+    ifelse(!is.na(gene) & nzchar(gene), gene, as.character(res$UniqueID))
+  }
+
+  ord <- order(res[[qcol]], abs(res[[lfccol]]), na.last = NA)
+  forced <- if (layer == "metabolomics") integer(0) else which(tolower(labels) %in% c("ctsd", "st7"))
+  candidate_idx <- unique(c(forced, ord))
+  candidate_idx <- candidate_idx[!duplicated(labels[candidate_idx])]
+  selected_idx <- head(candidate_idx, n_features)
+  selected_ids <- as.character(res$UniqueID[selected_idx])
+  selected_labels <- labels[selected_idx]
+
+  long <- env$data_long[
+    env$data_long$UniqueID %in% selected_ids &
+      env$data_long$sampleid %in% meta$sampleid,
+    c("UniqueID","sampleid","expr"),
+    drop = FALSE
+  ]
+
+  assay_ids <- paste0(assay_prefix, "_", meta$sampleid)
+  mat <- matrix(
+    NA_real_,
+    nrow = length(selected_ids),
+    ncol = nrow(meta),
+    dimnames = list(selected_labels, assay_ids)
+  )
+  row_index <- match(as.character(long$UniqueID), selected_ids)
+  col_index <- match(as.character(long$sampleid), meta$sampleid)
+  valid <- !is.na(row_index) & !is.na(col_index)
+  mat[cbind(row_index[valid], col_index[valid])] <- as.numeric(long$expr[valid])
+
+  out <- data.frame(feature_id = rownames(mat), mat, check.names = FALSE)
+  write.csv(out, file.path(aging_dir, paste0(layer, ".csv")), row.names = FALSE, quote = FALSE, na = "")
+
+  metadata <- data.frame(
+    subject_id = as.character(meta$sampleid),
+    sample_id = as.character(meta$sampleid),
+    assay_id = assay_ids,
+    omic = layer,
+    condition = as.character(meta$group),
+    timepoint = "",
+    batch = "",
+    technical_replicate = "1",
+    outcome = "",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  reference <- data.frame(
+    layer = layer,
+    feature = selected_labels,
+    original_id = selected_ids,
+    official_old_vs_young_logFC = as.numeric(res[[lfccol]][selected_idx]),
+    official_q = as.numeric(res[[qcol]][selected_idx]),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  list(metadata = metadata, reference = reference, n_features = nrow(mat), n_samples = ncol(mat))
+}
+
+aging_rna <- export_xomics_layer("AgingHFCD_RNAseq.RData", "transcriptomics", "RNA")
+aging_pro <- export_xomics_layer("AgingHFCD_Proteomics.RData", "proteomics", "PROT")
+aging_met <- export_xomics_layer("AgingHFCD_Metabolomics.RData", "metabolomics", "MET")
+
+write.csv(
+  do.call(rbind, list(aging_rna$metadata, aging_pro$metadata, aging_met$metadata)),
+  file.path(aging_dir, "metadata.csv"),
+  row.names = FALSE,
+  quote = FALSE
+)
+write.csv(
+  do.call(rbind, list(aging_rna$reference, aging_pro$reference, aging_met$reference)),
+  file.path(aging_dir, "reference.csv"),
+  row.names = FALSE,
+  quote = FALSE
+)
+
+cat("\nAGING_HFCD_EXPORTED\n")
+cat("rna:", aging_rna$n_features, "features,", aging_rna$n_samples, "samples\n")
+cat("protein:", aging_pro$n_features, "features,", aging_pro$n_samples, "samples\n")
+cat("metabolite:", aging_met$n_features, "features,", aging_met$n_samples, "samples\n")
