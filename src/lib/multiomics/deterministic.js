@@ -1200,6 +1200,9 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
 
     if (!fit) continue;
     const coefficient = fit.beta?.[1] ?? fit.beta?.[0];
+    const ciLow = Number.isFinite(fit.se) ? coefficient - 1.96 * fit.se : null;
+    const ciHigh = Number.isFinite(fit.se) ? coefficient + 1.96 * fit.se : null;
+    const multiplicative = ['binary','count','survival'].includes(outcomeType);
     rows.push({
       feature,
       effect: coefficient,
@@ -1208,9 +1211,13 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
       qValue: null,
       statistic: fit.statistic,
       standardError: fit.se,
+      ciLow,
+      ciHigh,
       n: entries.length,
       model,
-      exponentiatedEffect: ['binary','count','survival'].includes(outcomeType) ? Math.exp(coefficient) : null
+      exponentiatedEffect: multiplicative ? Math.exp(coefficient) : null,
+      exponentiatedCiLow: multiplicative && Number.isFinite(ciLow) ? Math.exp(ciLow) : null,
+      exponentiatedCiHigh: multiplicative && Number.isFinite(ciHigh) ? Math.exp(ciHigh) : null
     });
   }
 
@@ -2099,12 +2106,16 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 }
 
 export function resultToCsv(rows) {
-  const header = ['feature','effect','effect_scale','exponentiated_effect','fold_ratio_if_log2','p_value','q_value','n','n_reference','n_comparison','model'];
+  const header = ['feature','effect','effect_scale','ci95_low','ci95_high','exponentiated_effect','exponentiated_ci95_low','exponentiated_ci95_high','fold_ratio_if_log2','p_value','q_value','n','n_reference','n_comparison','model'];
   const lines = rows.map((row) => [
     row.feature,
     row.effect,
     row.effectScale ?? '',
+    row.ciLow ?? '',
+    row.ciHigh ?? '',
     row.exponentiatedEffect ?? '',
+    row.exponentiatedCiLow ?? '',
+    row.exponentiatedCiHigh ?? '',
     row.foldRatio ?? '',
     row.pValue ?? '',
     row.qValue ?? '',
