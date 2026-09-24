@@ -131,6 +131,7 @@
     metabolomics: ['metabolomics', 'metabolome', 'metabolomique', 'metabolite', 'metabolites', 'met']
   };
 
+  /** @param {unknown} value */
   function normalise(value) {
     return String(value ?? '')
       .trim()
@@ -141,6 +142,10 @@
       .replace(/^_|_$/g, '');
   }
 
+  /**
+   * @param {string} line
+   * @param {string} delimiter
+   */
   function splitDelimitedLine(line, delimiter) {
     const out = [];
     let current = '';
@@ -165,6 +170,7 @@
     return out;
   }
 
+  /** @param {string} text */
   function detectDelimiter(text) {
     const line = text.split(/\r?\n/).find((row) => row.trim()) ?? '';
     const candidates = [',', '\t', ';'];
@@ -173,6 +179,7 @@
       .sort((a, b) => b.count - a.count)[0]?.delimiter ?? ',';
   }
 
+  /** @param {string} text */
   function parseTable(text) {
     const delimiter = detectDelimiter(text);
     const lines = text.split(/\r?\n/).filter((line) => line.trim());
@@ -185,6 +192,7 @@
     return { delimiter, headers, rows };
   }
 
+  /** @param {string[]} headers */
   function autoMapColumns(headers) {
     /** @type {Record<string,string>} */
     const next = {};
@@ -197,6 +205,7 @@
     columnMapping = next;
   }
 
+  /** @param {File | null} file */
   async function inspectMetadata(file) {
     metadataError = '';
     metadataHeaders = [];
@@ -214,6 +223,10 @@
     }
   }
 
+  /**
+   * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
+   * @param {File | null} file
+   */
   async function inspectMatrix(layer, file) {
     if (!file) {
       matrixInfo = { ...matrixInfo, [layer]: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' } };
@@ -268,8 +281,13 @@
       ['proteomics', 'demo_proteomics.csv'],
       ['metabolomics', 'demo_metabolomics.csv']
     ];
-    /** @type {Record<string,File>} */
-    const loaded = {};
+    /** @type {Record<'metadata'|'transcriptomics'|'proteomics'|'metabolomics', File | null>} */
+    const loaded = {
+      metadata: null,
+      transcriptomics: null,
+      proteomics: null,
+      metabolomics: null
+    };
     for (const [layer, filename] of demoFiles) {
       const response = await fetch(`${base}/multiomics/${filename}`);
       const text = await response.text();
@@ -294,11 +312,16 @@
     await inspectMatrix('metabolomics', files.metabolomics);
   }
 
+  /**
+   * @param {Record<string,string>} row
+   * @param {string} key
+   */
   function mappedValue(row, key) {
     const column = columnMapping[key];
     return column ? row[column] ?? '' : '';
   }
 
+  /** @param {unknown} value */
   function canonicalOmic(value) {
     const key = normalise(value);
     for (const [omic, aliases] of Object.entries(omicAliases)) {
@@ -307,6 +330,7 @@
     return '';
   }
 
+  /** @param {string} key */
   function uniqueMapped(key) {
     return new Set(metadataRows.map((row) => mappedValue(row, key)).filter(Boolean));
   }
@@ -325,6 +349,7 @@
     return Object.entries(counts).filter(([, count]) => count > 1).map(([key, count]) => ({ key, count }));
   }
 
+  /** @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer */
   function expectedAssays(layer) {
     if (!columnMapping.assay_id || !columnMapping.omic) return new Set();
     return new Set(
@@ -360,6 +385,10 @@
     };
   }
 
+  /**
+   * @param {string} key
+   * @param {string} value
+   */
   function setMapping(key, value) {
     columnMapping = { ...columnMapping, [key]: value };
   }
@@ -371,9 +400,6 @@
   $: mappedSamples = uniqueMapped('sample_id').size;
   $: mappedAssays = uniqueMapped('assay_id').size;
   $: replicateGroups = technicalReplicateGroups();
-  $: transcriptomicsMatch = matrixMatch('transcriptomics');
-  $: proteomicsMatch = matrixMatch('proteomics');
-  $: metabolomicsMatch = matrixMatch('metabolomics');
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete;
   $: analysisPlan = longitudinal === 'yes' || objective === 'time'
     ? 'Repeated-measures / time-aware modelling → integrated representation → MOFA → consensus pathways → cross-omics modules'
