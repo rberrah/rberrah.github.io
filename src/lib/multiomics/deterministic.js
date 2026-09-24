@@ -70,6 +70,74 @@ function median(values) {
   return x.length % 2 ? x[m] : (x[m-1] + x[m]) / 2;
 }
 
+function ranks(values) {
+  const indexed = values.map((value, index) => ({ value, index })).sort((a,b) => a.value-b.value);
+  const out = new Array(values.length);
+  let i = 0;
+  while (i < indexed.length) {
+    let j = i + 1;
+    while (j < indexed.length && indexed[j].value === indexed[i].value) j += 1;
+    const rank = (i + 1 + j) / 2;
+    for (let k = i; k < j; k += 1) out[indexed[k].index] = rank;
+    i = j;
+  }
+  return out;
+}
+
+function pearson(x, y) {
+  if (x.length !== y.length || x.length < 3) return NaN;
+  const mx = mean(x);
+  const my = mean(y);
+  let num = 0;
+  let dx = 0;
+  let dy = 0;
+  for (let i = 0; i < x.length; i += 1) {
+    const a = x[i] - mx;
+    const b = y[i] - my;
+    num += a*b;
+    dx += a*a;
+    dy += b*b;
+  }
+  return dx > 0 && dy > 0 ? num / Math.sqrt(dx*dy) : NaN;
+}
+
+function spearman(x, y) {
+  if (x.length !== y.length || x.length < 3) return NaN;
+  return pearson(ranks(x), ranks(y));
+}
+
+function normalCdf(x) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422804014327 * Math.exp(-x*x/2);
+  const p = 1 - d*t*(0.319381530 + t*(-0.356563782 + t*(1.781477937 + t*(-1.821255978 + t*1.330274429))));
+  return x >= 0 ? p : 1-p;
+}
+
+export function differentialCorrelationPair(referenceX, referenceY, comparisonX, comparisonY, method = 'spearman') {
+  const corr = method === 'pearson' ? pearson : spearman;
+  const rReference = corr(referenceX, referenceY);
+  const rComparison = corr(comparisonX, comparisonY);
+  if (!Number.isFinite(rReference) || !Number.isFinite(rComparison)) {
+    return { rReference, rComparison, deltaR: NaN, z: NaN, pValue: null, method };
+  }
+  const clamp = (r) => Math.max(-0.999999, Math.min(0.999999, r));
+  const zReference = Math.atanh(clamp(rReference));
+  const zComparison = Math.atanh(clamp(rComparison));
+  const se = referenceX.length > 3 && comparisonX.length > 3
+    ? Math.sqrt(1/(referenceX.length-3) + 1/(comparisonX.length-3))
+    : NaN;
+  const z = Number.isFinite(se) && se > 0 ? (zComparison-zReference)/se : NaN;
+  const pValue = Number.isFinite(z) ? Math.min(1, 2*(1-normalCdf(Math.abs(z)))) : null;
+  return {
+    rReference,
+    rComparison,
+    deltaR: rComparison-rReference,
+    z,
+    pValue,
+    method
+  };
+}
+
 function hashString(value) {
   let h = 2166136261;
   for (let i = 0; i < value.length; i += 1) {
@@ -252,11 +320,14 @@ function preprocessMatrix(matrix, layer, valueType) {
   const isCounts = layer === 'transcriptomics' && valueType === 'raw_counts';
   const isSpectral = layer === 'proteomics' && valueType === 'spectral_count';
   const explicitlyLog = ['log_expression','log_intensity','log_abundance'].includes(valueType);
-  const alreadyLog = explicitlyLog || (hasNegative && !isCounts && !isSpectral);
+  const asSupplied = ['normalized','unknown'].includes(valueType) || (hasNegative && !isCounts && !isSpectral && !explicitlyLog);
+  const logPositive = ['tpm','lfq_intensity','peak_area','concentration'].includes(valueType);
   const medianCenter = (layer === 'proteomics' && valueType === 'lfq_intensity') || (layer === 'metabolomics' && valueType === 'peak_area');
+  let scale = 'as_supplied';
 
   const totals = new Map();
   if (isCounts || isSpectral) {
+    scale = 'log2';
     for (const assay of assays) {
       let total = 0;
       for (const values of matrix.values.values()) {
@@ -266,12 +337,20 @@ function preprocessMatrix(matrix, layer, valueType) {
       totals.set(assay, total || 1);
     }
     steps.push(isCounts ? 'library-size normalisation to CPM + log2(CPM + 0.5)' : 'library-size normalisation + log2 transform');
-  } else if (alreadyLog) {
-    steps.push(explicitlyLog
-      ? 'values treated as already log-transformed'
-      : 'negative values detected: treated as already transformed/centred; no log transform applied');
-  } else {
+  } else if (explicitlyLog) {
+    scale = 'log2';
+    steps.push('values treated as already log-transformed');
+  } else if (asSupplied) {
+    scale = hasNegative ? 'transformed_unknown' : 'as_supplied';
+    steps.push(hasNegative
+      ? 'negative values detected: values kept as supplied; effect is a difference on the supplied scale'
+      : 'normalised/unknown values kept as supplied; effect is a difference on the supplied scale');
+  } else if (logPositive) {
+    scale = 'log2';
     steps.push(`log2(value + ${pseudo.toPrecision(3)})`);
+  } else {
+    scale = 'as_supplied';
+    steps.push('values kept as supplied');
   }
 
   for (const [feature, values] of matrix.values.entries()) {
@@ -282,7 +361,7 @@ function preprocessMatrix(matrix, layer, valueType) {
       if (isCounts || isSpectral) {
         const cpm = raw / totals.get(assay) * 1e6;
         next.set(assay, Math.log2(cpm + 0.5));
-      } else if (alreadyLog) next.set(assay, raw);
+      } else if (explicitlyLog || asSupplied || !logPositive) next.set(assay, raw);
       else next.set(assay, Math.log2(Math.max(0, raw) + pseudo));
     }
     processed.set(feature, next);
@@ -304,7 +383,7 @@ function preprocessMatrix(matrix, layer, valueType) {
     steps.push('sample-wise median centering on the log scale');
   }
 
-  return { ...matrix, values: processed, steps, scale: 'log2' };
+  return { ...matrix, values: processed, steps, scale };
 }
 
 function aggregateTechnicalReplicates(matrix, metadata, layer) {
@@ -329,7 +408,7 @@ function aggregateTechnicalReplicates(matrix, metadata, layer) {
     if (!sampleMeta.has(row.sampleId)) sampleMeta.set(row.sampleId, row);
   }
   const replicateGroups = [...bySample.entries()].filter(([,assays]) => assays.length > 1).map(([sampleId,assays]) => ({sampleId, assays}));
-  return { features: matrix.features, values, sampleMeta, replicateGroups, steps: matrix.steps };
+  return { features: matrix.features, values, sampleMeta, replicateGroups, steps: matrix.steps, scale: matrix.scale };
 }
 
 function subjectFeatureValues(aggregated, feature, options) {
@@ -391,7 +470,8 @@ function analyseLayer(aggregated, layer, options) {
     rows.push({
       feature,
       effect,
-      foldRatio: Math.pow(2,effect),
+      foldRatio: aggregated.scale === 'log2' ? Math.pow(2,effect) : null,
+      effectScale: aggregated.scale,
       pValue,
       qValue: null,
       nReference: a.length,
@@ -400,7 +480,11 @@ function analyseLayer(aggregated, layer, options) {
   }
   bhAdjust(rows);
   rows.sort((a,b) => Math.abs(b.effect) - Math.abs(a.effect));
-  const significant = rows.filter((row) => Number.isFinite(row.qValue) && row.qValue <= 0.10 && Math.abs(row.effect) >= Math.log2(1.2));
+  const significant = rows.filter((row) =>
+    Number.isFinite(row.qValue) &&
+    row.qValue <= 0.10 &&
+    (aggregated.scale !== 'log2' || Math.abs(row.effect) >= Math.log2(1.2))
+  );
   const useConfirmedSet = significant.length >= 10;
   const selected = useConfirmedSet
     ? significant.slice(0, 50)
@@ -414,12 +498,109 @@ function analyseLayer(aggregated, layer, options) {
     rows,
     selected,
     selectionRule: useConfirmedSet
-      ? 'q ≤ 0.10 and |fold change| ≥ 1.2, capped at 50 features'
+      ? (aggregated.scale === 'log2'
+          ? 'q ≤ 0.10 and |fold change| ≥ 1.2, capped at 50 features'
+          : 'q ≤ 0.10 on the supplied scale, capped at 50 features')
       : `only ${significant.length} FDR-qualified feature(s); top ${selected.length} ranked features used for exploratory pathway mapping`,
+    effectScale: aggregated.scale,
     contrast,
     mode,
     groupSizes,
     steps: aggregated.steps
+  };
+}
+
+function subjectFeatureSummary(aggregated, feature, options) {
+  const source = aggregated.values.get(feature);
+  if (!source) return [];
+  const perSubject = new Map();
+  for (const [sampleId, row] of aggregated.sampleMeta.entries()) {
+    const value = source.get(sampleId);
+    if (!Number.isFinite(value)) continue;
+    if (!perSubject.has(row.subjectId)) perSubject.set(row.subjectId, []);
+    perSubject.get(row.subjectId).push({ value, row });
+  }
+
+  const timepoints = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.timepoint));
+  const first = timepoints[0] || '';
+  const last = timepoints[timepoints.length-1] || '';
+  const out = [];
+  for (const [subjectId, entries] of perSubject.entries()) {
+    if (options.longitudinal && timepoints.length >= 2) {
+      const baseline = entries.filter((x) => x.row.timepoint === first).map((x) => x.value);
+      const endpoint = entries.filter((x) => x.row.timepoint === last).map((x) => x.value);
+      if (!baseline.length || !endpoint.length) continue;
+      const endpointRow = entries.find((x) => x.row.timepoint === last)?.row || entries[0].row;
+      out.push({ subjectId, condition: endpointRow.condition, value: mean(endpoint)-mean(baseline) });
+    } else {
+      const eligible = last ? entries.filter((x) => x.row.timepoint === last) : entries;
+      if (!eligible.length) continue;
+      out.push({ subjectId, condition: eligible[0].row.condition, value: mean(eligible.map((x) => x.value)) });
+    }
+  }
+  return out;
+}
+
+function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
+  const pairs = [];
+  const layerPairs = [];
+  for (let i = 0; i < loadedLayers.length; i += 1) {
+    for (let j = i+1; j < loadedLayers.length; j += 1) layerPairs.push([loadedLayers[i], loadedLayers[j]]);
+  }
+
+  for (const [layerA, layerB] of layerPairs) {
+    const featuresA = (layers[layerA]?.selected || []).slice(0,25).map((x) => x.feature);
+    const featuresB = (layers[layerB]?.selected || []).slice(0,25).map((x) => x.feature);
+    const conditions = naturalOrder([
+      ...aggregatedByLayer[layerA].sampleMeta.values(),
+      ...aggregatedByLayer[layerB].sampleMeta.values()
+    ].map((row) => row.condition));
+    if (conditions.length !== 2) continue;
+
+    for (const featureA of featuresA) {
+      const a = subjectFeatureSummary(aggregatedByLayer[layerA], featureA, options);
+      const aMap = new Map(a.map((x) => [x.subjectId, x]));
+      for (const featureB of featuresB) {
+        const b = subjectFeatureSummary(aggregatedByLayer[layerB], featureB, options);
+        const matched = b.filter((x) => aMap.has(x.subjectId)).map((x) => ({
+          subjectId: x.subjectId,
+          condition: x.condition,
+          x: aMap.get(x.subjectId).value,
+          y: x.value
+        }));
+        const ref = matched.filter((x) => x.condition === conditions[0]);
+        const cmp = matched.filter((x) => x.condition === conditions[1]);
+        if (ref.length < 4 || cmp.length < 4) continue;
+        const stat = differentialCorrelationPair(
+          ref.map((x) => x.x), ref.map((x) => x.y),
+          cmp.map((x) => x.x), cmp.map((x) => x.y),
+          'spearman'
+        );
+        pairs.push({
+          layerA, featureA, layerB, featureB,
+          reference: conditions[0],
+          comparison: conditions[1],
+          nReference: ref.length,
+          nComparison: cmp.length,
+          ...stat,
+          qValue: null
+        });
+      }
+    }
+  }
+
+  bhAdjust(pairs);
+  pairs.sort((a,b) => {
+    const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
+    const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
+    if (aq !== bq) return aq-bq;
+    return Math.abs(b.deltaR)-Math.abs(a.deltaR);
+  });
+  return {
+    method: 'Spearman correlation by condition; Fisher z test for independent-group correlation difference; BH-FDR across tested cross-omic pairs',
+    testedPairs: pairs.length,
+    significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
+    pairs: pairs.slice(0,100)
   };
 }
 
@@ -496,17 +677,20 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
 
   const layers = {};
+  const aggregatedByLayer = {};
   for (const layer of loadedLayers) {
     const expected = metadata.filter((row) => row.omic === layer).map((row) => row.assayId);
     const text = await files[layer].text();
     const matrix = matrixFromText(text, expected);
     const processed = preprocessMatrix(matrix, layer, dataTypes[layer]);
     const aggregated = aggregateTechnicalReplicates(processed, metadata, layer);
+    aggregatedByLayer[layer] = aggregated;
     layers[layer] = analyseLayer(aggregated, layer, { longitudinal: protocol.longitudinal });
     layers[layer].replicateGroups = aggregated.replicateGroups;
     layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
   }
 
+  const crossOmics = analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
   const selectedIds = Object.fromEntries(loadedLayers.map((layer) => [layer, layers[layer].selected.map((row) => row.feature)]));
   const combinedIds = loadedLayers.flatMap((layer) => selectedIds[layer]);
 
@@ -538,6 +722,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       timepoints: naturalOrder(metadata.map((row) => row.timepoint))
     },
     layers,
+    crossOmics,
     selectedIds,
     reactome,
     reactomeError
@@ -545,11 +730,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 }
 
 export function resultToCsv(rows) {
-  const header = ['feature','effect_log2','fold_ratio','p_value','q_value','n_reference','n_comparison'];
+  const header = ['feature','effect','effect_scale','fold_ratio_if_log2','p_value','q_value','n_reference','n_comparison'];
   const lines = rows.map((row) => [
     row.feature,
     row.effect,
-    row.foldRatio,
+    row.effectScale ?? '',
+    row.foldRatio ?? '',
     row.pValue ?? '',
     row.qValue ?? '',
     row.nReference,
