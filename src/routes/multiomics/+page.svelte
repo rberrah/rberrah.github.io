@@ -1,5 +1,6 @@
 <script>
   import { base } from '$app/paths';
+  import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
 
   /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
   let objective = 'explore';
@@ -19,50 +20,10 @@
   let covariatesAvailable = 'yes';
   let partialOmicsExpected = 'no';
   let demoLoaded = false;
-
-  const demoResults = {
-    comparison: 'Treatment vs control at T12 (descriptive synthetic example)',
-    replicateRule: 'R007A and R007B are recognised as technical replicates of sample P003_T12 and averaged before the descriptive comparison.',
-    rna: [
-      { feature: 'STAT1', ratio: 2.23, direction: 'up' },
-      { feature: 'IDO1', ratio: 4.63, direction: 'up' },
-      { feature: 'KYNU', ratio: 2.38, direction: 'up' },
-      { feature: 'GAPDH', ratio: 1.01, direction: 'stable' },
-      { feature: 'CYP3A5', ratio: 0.70, direction: 'down' }
-    ],
-    protein: [
-      { feature: 'STAT1', ratio: 1.37, direction: 'up' },
-      { feature: 'IDO1', ratio: 2.26, direction: 'up' },
-      { feature: 'KYNU', ratio: 1.46, direction: 'up' },
-      { feature: 'GAPDH', ratio: 1.01, direction: 'stable' }
-    ],
-    metabolite: [
-      { feature: 'Kynurenine', ratio: 2.92, direction: 'up' },
-      { feature: 'Tryptophan', ratio: 0.64, direction: 'down' },
-      { feature: 'Lactate', ratio: 1.53, direction: 'up' },
-      { feature: 'Succinate', ratio: 1.49, direction: 'up' }
-    ],
-    modules: [
-      {
-        title: 'Tryptophan → kynurenine axis',
-        strength: 'Strong cross-omics coherence',
-        evidence: ['IDO1 RNA 4.63×', 'IDO1 protein 2.26×', 'KYNU RNA 2.38×', 'KYNU protein 1.46×', 'Kynurenine 2.92×', 'Tryptophan 0.64×'],
-        interpretation: 'The synthetic treatment signal is coherent across transcript, protein and metabolite levels. The kynurenine/tryptophan ratio increases about 4.6-fold.'
-      },
-      {
-        title: 'STAT1-associated signal',
-        strength: 'Cross-omics candidate',
-        evidence: ['STAT1 RNA 2.23×', 'STAT1 protein 1.37×'],
-        interpretation: 'RNA and protein move in the same direction. A real analysis would next ask whether this expands to a statistically supported pathway/module after database mapping.'
-      },
-      {
-        title: 'Energy-metabolism signal',
-        strength: 'Metabolite-supported only',
-        evidence: ['Lactate 1.53×', 'Succinate 1.49×'],
-        interpretation: 'This is visible in the metabolome, but the bundled demo does not contain enough matched transcript/protein evidence to call it a cross-omics mechanism.'
-      }
-    ]
-  };
+  let analysisStatus = 'idle';
+  let analysisError = '';
+  let analysisResult = null;
+  let useReactome = true;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -223,6 +184,12 @@
       url: 'https://www.ebi.ac.uk/unichem/'
     },
     {
+      name: 'KEGG',
+      scope: 'pathways · optional',
+      role: 'Optional academic-use cross-reference and pathway/reaction annotation. KEGG REST access is rate-limited and is not used as the core engine of the public MVP.',
+      url: 'https://www.kegg.jp/kegg/rest/'
+    },
+    {
       name: 'Reactome',
       scope: 'pathways',
       role: 'Map genes, proteins and ChEBI entities onto common pathways and reactions for integrated pathway interpretation.',
@@ -375,6 +342,9 @@
     const file = input.files?.[0] ?? null;
     files = { ...files, [layer]: file };
     demoLoaded = false;
+    analysisResult = null;
+    analysisStatus = 'idle';
+    analysisError = '';
     if (layer === 'metadata') await inspectMetadata(file);
     else await inspectMatrix(layer, file);
   }
@@ -421,11 +391,18 @@
     batchKnown = 'yes';
     outcomeType = 'binary';
     partialOmicsExpected = 'no';
+    transcriptomicsValues = 'raw_counts';
+    transcriptomicsIdType = 'gene_symbol';
+    proteomicsValues = 'log_intensity';
+    proteomicsIdType = 'uniprot';
+    metabolomicsValues = 'peak_area';
+    metabolomicsIdType = 'chebi';
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
     await inspectMatrix('proteomics', files.proteomics);
     await inspectMatrix('metabolomics', files.metabolomics);
+    await runAnalysis();
   }
 
   /**
@@ -575,6 +552,66 @@
     URL.revokeObjectURL(href);
   }
 
+  async function runAnalysis() {
+    analysisError = '';
+    analysisResult = null;
+    if (!ready) {
+      analysisError = 'Complete the metadata mapping and load at least two omics matrices first.';
+      return;
+    }
+    analysisStatus = 'running';
+    try {
+      analysisResult = await runDeterministicAnalysis({
+        files,
+        metadataRows,
+        columnMapping,
+        protocol: {
+          organism,
+          objective,
+          longitudinal: longitudinal === 'yes',
+          designType,
+          studySetting,
+          groupCount,
+          sampleOverlap
+        },
+        dataTypes: {
+          transcriptomics: transcriptomicsValues,
+          proteomics: proteomicsValues,
+          metabolomics: metabolomicsValues
+        },
+        useReactome
+      });
+      analysisStatus = 'done';
+    } catch (error) {
+      analysisStatus = 'error';
+      analysisError = error instanceof Error ? error.message : 'Analysis failed.';
+    }
+  }
+
+  function downloadAnalysisJson() {
+    if (!analysisResult) return;
+    const blob = new Blob([JSON.stringify(analysisResult, null, 2)], { type: 'application/json' });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = 'multiomics_deterministic_results.json';
+    anchor.click();
+    URL.revokeObjectURL(href);
+  }
+
+  /** @param {'transcriptomics'|'proteomics'|'metabolomics'} layer */
+  function downloadLayerCsv(layer) {
+    const rows = analysisResult?.layers?.[layer]?.rows;
+    if (!rows?.length) return;
+    const blob = new Blob([resultToCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = `${layer}_deterministic_results.csv`;
+    anchor.click();
+    URL.revokeObjectURL(href);
+  }
+
   $: inferredTranscriptomicsId = inferFeatureIdType('transcriptomics');
   $: inferredProteomicsId = inferFeatureIdType('proteomics');
   $: inferredMetabolomicsId = inferFeatureIdType('metabolomics');
@@ -587,12 +624,8 @@
   $: replicateGroups = technicalReplicateGroups();
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete;
   $: analysisPlan = longitudinal === 'yes' || objective === 'time'
-    ? 'Repeated-measures / time-aware modelling → integrated representation → MOFA → consensus pathways → cross-omics modules'
-    : objective === 'groups'
-      ? 'Single-omics QC and design-aware contrasts → MOFA → supervised multiblock integration when sample size permits → consensus pathways'
-      : objective === 'outcome'
-        ? 'Single-omics QC → MOFA → association of latent factors and pathways with the declared outcome → targeted supervised integration when appropriate'
-        : 'Single-omics QC → MOFA → consensus pathways → cross-omics modules';
+    ? 'technical-replicate aggregation → declared-data preprocessing → within-subject change → permutation contrast → BH-FDR → mixed-ID Reactome over-representation'
+    : 'technical-replicate aggregation → declared-data preprocessing → two-group permutation contrast → BH-FDR → mixed-ID Reactome over-representation';
 </script>
 
 <svelte:head>
@@ -602,7 +635,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted · v0.4</p>
+  <p class="eyebrow">Experimental prototype · unlisted · v0.6</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
     Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
@@ -610,8 +643,8 @@
   </p>
   <div class="privacy">
     <strong>Prototype only.</strong>
-    File inspection on this page runs locally in the browser. Nothing is uploaded yet.
-    The future Shiny engine will be a separate ephemeral computation layer.
+    Matrix parsing, preprocessing and statistical contrasts run locally in the browser.
+    When pathway analysis is enabled, only selected molecular identifiers are sent to Reactome; patient/sample metadata and abundance matrices are not sent.
   </div>
 </section>
 
@@ -1140,139 +1173,143 @@
 
   <div class="status" class:ready>
     <strong>{omicsCount}/3 omics selected</strong>
-    <span>{ready ? 'The structural contract is sufficient to propose an analysis plan.' : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
+    <span>{ready ? 'The structural contract is sufficient to run the deterministic MVP.' : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
   </div>
+
+  <div class="run-box">
+    <div>
+      <p class="eyebrow">Deterministic engine</p>
+      <h3>Run the analysis from the uploaded matrices</h3>
+      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, two-group or longitudinal permutation inference, BH-FDR correction and optional Reactome over-representation.</p>
+      <label class="inline-check">
+        <input type="checkbox" bind:checked={useReactome} />
+        <span>Query Reactome with selected molecular identifiers only</span>
+      </label>
+    </div>
+    <button class="btn btn-primary" type="button" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
+      {analysisStatus === 'running' ? 'Running…' : 'Run deterministic analysis'}
+    </button>
+  </div>
+  {#if analysisError}<p class="error">{analysisError}</p>{/if}
 </section>
 
-{#if demoLoaded}
-<section class="panel demo-results" id="demo-results">
+{#if analysisResult}
+<section class="panel demo-results" id="analysis-results">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Demo results · calculated from the bundled synthetic files</p>
-      <h2>What an integrated result looks like in practice</h2>
+      <p class="eyebrow">{demoLoaded ? 'Demo results · computed now' : 'Analysis results · deterministic MVP'}</p>
+      <h2>Computed multi-omics results</h2>
     </div>
-    <p>This section is deliberately descriptive: no fake MOFA factors, enrichment p-values or database-derived pathways are shown before those engines are connected.</p>
+    <div class="result-actions">
+      <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>Download JSON</button>
+      {#if analysisResult.reactome?.combined?.token}
+        <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">Open in Reactome ↗</a>
+      {/if}
+    </div>
   </div>
 
-  <div class="demo-story">
-    <article>
-      <span class="num">A</span>
-      <h3>What the app understood</h3>
-      <ul>
-        <li><strong>4 biological subjects</strong></li>
-        <li><strong>2 groups:</strong> control and treatment</li>
-        <li><strong>2 time points:</strong> T0 and T12</li>
-        <li><strong>3 omics:</strong> transcriptomics, proteomics, metabolomics</li>
-        <li><strong>Same biological specimens</strong> linked across omics through <code>sample_id</code></li>
-        <li><strong>1 RNA technical replicate pair</strong> at P003_T12</li>
-      </ul>
-    </article>
-
-    <article>
-      <span class="num">B</span>
-      <h3>What happens to the replicate?</h3>
-      <p>{demoResults.replicateRule}</p>
-      <div class="replicate-flow">
-        <code>R007A</code><code>R007B</code><b>→ mean</b><code>P003_T12 RNA</code>
-      </div>
-      <small>A production engine should make the aggregation rule configurable by assay type rather than silently applying a universal mean.</small>
-    </article>
-
-    <article>
-      <span class="num">C</span>
-      <h3>Illustrative contrast</h3>
-      <p>{demoResults.comparison}</p>
-      <p class="muted">The fold ratios below are descriptive because the synthetic demo contains only 2 subjects per group at T12.</p>
-    </article>
+  <div class="computed-summary">
+    <article><span>Subjects</span><strong>{analysisResult.metadataSummary.subjects}</strong></article>
+    <article><span>Biological samples</span><strong>{analysisResult.metadataSummary.samples}</strong></article>
+    <article><span>Assays</span><strong>{analysisResult.metadataSummary.assays}</strong></article>
+    <article><span>Conditions</span><strong>{analysisResult.metadataSummary.conditions.join(' / ') || '—'}</strong></article>
+    <article><span>Time points</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
   </div>
 
-  <div class="demo-omics-grid">
-    <article>
-      <h3>Transcriptomics</h3>
-      {#each demoResults.rna as row}
-        <div class="effect-row">
-          <strong>{row.feature}</strong>
-          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
-          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
-        </div>
-      {/each}
-    </article>
+  <div class="actual-layer-grid">
+    {#each omicLayers as layer}
+      {#if analysisResult.layers[layer]}
+        {@const result = analysisResult.layers[layer]}
+        <article>
+          <div class="layer-title">
+            <div>
+              <span class="method-tag">{omicLabels[layer]}</span>
+              <h3>{result.contrast || 'No valid contrast'}</h3>
+            </div>
+            <button class="text-button" type="button" onclick={() => downloadLayerCsv(layer)}>CSV ↓</button>
+          </div>
 
-    <article>
-      <h3>Proteomics</h3>
-      {#each demoResults.protein as row}
-        <div class="effect-row">
-          <strong>{row.feature}</strong>
-          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
-          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
-        </div>
-      {/each}
-    </article>
-
-    <article>
-      <h3>Metabolomics</h3>
-      {#each demoResults.metabolite as row}
-        <div class="effect-row">
-          <strong>{row.feature}</strong>
-          <span class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}>{row.ratio.toFixed(2)}×</span>
-          <i style:width={`${Math.min(100, row.ratio / 5 * 100)}%`} class:down={row.direction === 'down'} class:stable={row.direction === 'stable'}></i>
-        </div>
-      {/each}
-    </article>
+          {#if result.error}
+            <p class="error">{result.error}</p>
+          {:else}
+            <p class="muted">n={result.groupSizes[0]} vs {result.groupSizes[1]} · {result.mode}</p>
+            <div class="preprocess-list">
+              {#each result.steps as step}<span>{step}</span>{/each}
+              {#if result.replicateGroups?.length}<span>{result.replicateGroups.length} technical-replicate group(s) averaged on the transformed scale</span>{/if}
+            </div>
+            <p class="selection-rule">{result.selectionRule}</p>
+            <div class="feature-table">
+              <div class="feature-head"><b>Feature</b><b>Fold ratio</b><b>p perm.</b><b>q BH</b></div>
+              {#each result.rows.slice(0, 10) as row}
+                <div>
+                  <code>{row.feature}</code>
+                  <span class:negative={row.foldRatio < 1}>{row.foldRatio.toFixed(2)}×</span>
+                  <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
+                  <span>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </article>
+      {/if}
+    {/each}
   </div>
 
   <div class="integration-result">
     <div class="integration-head">
       <div>
-        <p class="eyebrow">Integrated interpretation</p>
-        <h3>The layers are now combined by biological mechanism, not reported as three independent analyses</h3>
+        <p class="eyebrow">Integrated pathway result</p>
+        <h3>Reactome receives the selected gene/protein/metabolite identifiers together</h3>
       </div>
-      <span>synthetic demonstration</span>
+      <span>deterministic ORA</span>
     </div>
 
-    <div class="module-grid">
-      {#each demoResults.modules as module, index}
-        <article class:primary={index === 0}>
-          <span class="module-strength">{module.strength}</span>
-          <h3>{module.title}</h3>
-          <div class="module-evidence">
-            {#each module.evidence as item}<span>{item}</span>{/each}
+    {#if analysisResult.reactome}
+      <div class="api-summary">
+        <span><strong>{analysisResult.reactome.combined.pathwaysFound}</strong> pathways found</span>
+        <span><strong>{analysisResult.reactome.combined.identifiersNotFound}</strong> identifiers not found</span>
+      </div>
+      <div class="pathway-table">
+        <div class="pathway-head"><b>Pathway</b><b>Combined FDR</b><b>RNA</b><b>Protein</b><b>Metabolite</b><b>Layers ≤0.10</b></div>
+        {#each analysisResult.reactome.consensus.slice(0, 15) as pathway}
+          <div>
+            <a href={`https://reactome.org/content/detail/${pathway.id}`} target="_blank" rel="noreferrer">{pathway.name}</a>
+            <span>{Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(3) : '—'}</span>
+            <span>{pathway.layerEvidence.transcriptomics?.fdr != null ? pathway.layerEvidence.transcriptomics.fdr.toPrecision(2) : '—'}</span>
+            <span>{pathway.layerEvidence.proteomics?.fdr != null ? pathway.layerEvidence.proteomics.fdr.toPrecision(2) : '—'}</span>
+            <span>{pathway.layerEvidence.metabolomics?.fdr != null ? pathway.layerEvidence.metabolomics.fdr.toPrecision(2) : '—'}</span>
+            <strong>{pathway.supportingLayers}</strong>
           </div>
-          <p>{module.interpretation}</p>
-        </article>
-      {/each}
-    </div>
-  </div>
-
-  <div class="mechanism-demo">
-    <p class="eyebrow">Example of the final mechanism view</p>
-    <div class="mechanism-flow">
-      <div><small>RNA</small><strong>IDO1 ↑ 4.63×</strong></div>
-      <b>→</b>
-      <div><small>Protein</small><strong>IDO1 ↑ 2.26×</strong></div>
-      <b>→</b>
-      <div><small>Metabolic reaction</small><strong>Trp → Kyn</strong></div>
-      <b>→</b>
-      <div><small>Metabolites</small><strong>Kyn ↑ 2.92× / Trp ↓ 0.64×</strong></div>
-    </div>
+        {/each}
+      </div>
+      <p class="note">Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.</p>
+    {:else if analysisResult.reactomeError}
+      <div class="api-error">
+        <strong>Local statistics completed; Reactome could not be reached.</strong>
+        <p>{analysisResult.reactomeError}</p>
+        <p>The matrices have still not left the browser. Re-run later or disable Reactome to use the local statistical output only.</p>
+      </div>
+    {:else}
+      <p class="muted">Reactome querying was disabled for this run.</p>
+    {/if}
   </div>
 
   <div class="evidence-layers">
     <article>
-      <strong>Observed in the demo</strong>
-      <p>Measured changes in RNA, protein and metabolite values.</p>
+      <strong>Observed</strong>
+      <p>Values parsed from the uploaded matrices.</p>
     </article>
     <article>
-      <strong>Integrated inference</strong>
-      <p>Concordant cross-omics modules built from the measured directions.</p>
+      <strong>Statistical inference</strong>
+      <p>Permutation contrasts with deterministic seeds and Benjamini–Hochberg correction.</p>
     </article>
-    <article class="future">
-      <strong>External biological knowledge · not run yet</strong>
-      <p>Future Reactome / STRING / identifier-mapping calls will test and annotate the candidate mechanisms.</p>
+    <article>
+      <strong>External knowledge</strong>
+      <p>Reactome pathway mapping and over-representation from the selected molecular identifiers.</p>
     </article>
-    <article class="future">
-      <strong>Latent factors · not run yet</strong>
-      <p>Future Shiny/R backend will add MOFA factors and, when justified, supervised multiblock models.</p>
+    <article>
+      <strong>Not inferred</strong>
+      <p>No LLM narrative, causal claim or invented biological mechanism is generated.</p>
     </article>
   </div>
 </section>
@@ -1483,6 +1520,32 @@
 
   .status { display: flex; gap: var(--space-3); align-items: baseline; margin-top: var(--space-5); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); }
   .status.ready strong { color: var(--accent-pd); }
+  .run-box { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); margin-top: var(--space-4); padding: var(--space-5); border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-secondary); }
+  .run-box p { color: var(--text-secondary); max-width: 72ch; }
+  .inline-check { display: flex; gap: 8px; align-items: center; font-size: var(--text-sm); }
+  .inline-check input { width: auto; }
+  .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .computed-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .computed-summary article { padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
+  .computed-summary span, .computed-summary strong { display: block; }
+  .computed-summary span { color: var(--text-muted); font-size: var(--text-xs); }
+  .computed-summary strong { margin-top: 4px; }
+  .actual-layer-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--space-4); margin-top: var(--space-5); }
+  .actual-layer-grid > article { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); background: var(--bg-secondary); min-width: 0; }
+  .layer-title { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+  .text-button { background: transparent; border: 0; color: var(--link); cursor: pointer; padding: 0; font: inherit; font-size: var(--text-sm); }
+  .preprocess-list { display: flex; flex-wrap: wrap; gap: 5px; margin: var(--space-3) 0; }
+  .preprocess-list span { font-size: 10px; font-family: var(--font-mono); padding: 3px 5px; border: 1px solid var(--border-subtle); border-radius: 999px; }
+  .selection-rule { color: var(--text-secondary); font-size: var(--text-xs); }
+  .feature-table, .pathway-table { font-size: var(--text-xs); overflow-x: auto; }
+  .feature-table > div { display: grid; grid-template-columns: 1.4fr .7fr .7fr .7fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; }
+  .feature-head { color: var(--text-muted); }
+  .feature-table .negative { color: var(--accent-ai); }
+  .api-summary { display: flex; gap: var(--space-4); flex-wrap: wrap; margin: var(--space-3) 0; }
+  .pathway-table > div { display: grid; grid-template-columns: minmax(220px,2fr) repeat(5,.65fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
+  .pathway-head { color: var(--text-muted); }
+  .api-error { padding: var(--space-4); border-left: 3px solid var(--accent-ai); background: var(--bg-primary); }
+
 
   .demo-results { scroll-margin-top: 90px; }
   .demo-story { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
@@ -1557,13 +1620,14 @@
   @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
     .contract, .plan { grid-template-columns: 1fr; }
-    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers { grid-template-columns: repeat(2, 1fr); }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary { grid-template-columns: repeat(2, 1fr); }
     .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers { grid-template-columns: 1fr; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary { grid-template-columns: 1fr; }
+    .run-box { align-items: stretch; flex-direction: column; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
     .workflow div:last-child { border-bottom: 0; }
