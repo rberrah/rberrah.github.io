@@ -463,6 +463,8 @@ function csvFile(name, text) {
       const subject = 'O' + s;
       const age = 40 + (s % 8);
       const latent = (s - 12.5) / 4;
+      const batch = s % 2 === 0 ? 'B2' : 'B1';
+      const batchEffect = batch === 'B2' ? 1.5 : 0;
       let outcome = '';
       let survivalTime = '';
       let survivalEvent = '';
@@ -476,8 +478,8 @@ function csvFile(name, text) {
       }
       for (const layer of ['transcriptomics','proteomics']) {
         const id = (layer === 'transcriptomics' ? 'OR' : 'OP') + assay++;
-        rows.push([subject,subject,id,layer,'','','','1',outcome,age,survivalTime,survivalEvent].join(','));
-        const signalValue = latent + 0.02 * age;
+        rows.push([subject,subject,id,layer,'','',batch,'1',outcome,age,survivalTime,survivalEvent].join(','));
+        const signalValue = latent + 0.02 * age + batchEffect;
         if (layer === 'transcriptomics') {
           rnaHeader.push(id);
           rnaSignal.push(String(signalValue));
@@ -503,12 +505,15 @@ function csvFile(name, text) {
       files:{metadata:ds.meta,transcriptomics:ds.rna,proteomics:ds.protein,metabolomics:null},
       metadataRows:parsedMeta.rows,
       columnMapping:mapping,
-      protocol:{organism:'human',objective:'outcome',outcomeType:type,longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:['age']},
+      protocol:{organism:'human',objective:'outcome',outcomeType:type,longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:['age']},
       dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
       useReactome:false,
       resolveIdentifiers:false
     });
     assert.equal(outcomeResult.layers.transcriptomics.mode, 'outcome-' + type);
+    assert.match(outcomeResult.layers.transcriptomics.adjustment.method, /direct nuisance adjustment/);
+    assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
+    assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
     const signal = outcomeResult.layers.transcriptomics.rows.find(x=>x.feature === 'OUTCOME_GENE');
     assert.ok(signal && Number.isFinite(signal.effect));
     assert.ok(Number.isFinite(signal.pValue));
