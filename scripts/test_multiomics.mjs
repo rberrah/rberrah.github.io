@@ -311,6 +311,17 @@ function csvFile(name, text) {
   const unresolved = await resolveMetaboliteIdentifier('definitely-not-an-exact-metabolite', { fetchFn: wrongFetch });
   assert.equal(unresolved.resolved, null);
   assert.equal(unresolved.status, 'unresolved');
+
+  const unichemFetch = async (url) => {
+    assert.match(String(url), /unichem\/rest\/verbose_inchikey/);
+    return new Response(JSON.stringify([
+      { name:'chebi', src_id:7, src_compound_id:['CHEBI:34967'] },
+      { name:'hmdb', src_id:18, src_compound_id:['HMDB0015623'] }
+    ]), { status:200, headers:{'Content-Type':'application/json'} });
+  };
+  const unichem = await resolveMetaboliteIdentifier('JZCPYUJPEARBJL-UHFFFAOYSA-N', { fetchFn: unichemFetch });
+  assert.equal(unichem.resolved, 'CHEBI:34967');
+  assert.equal(unichem.method, 'unichem_inchikey_to_chebi');
 }
 
 // Gene and protein identifier mapping remains conservative and testable with mocked official APIs.
