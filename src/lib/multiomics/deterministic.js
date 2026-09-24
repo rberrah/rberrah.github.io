@@ -7,7 +7,6 @@ const METABOLITE_ALIASES = new Map(Object.entries({
   'c14.0': 'myristic acid',
   'c16.0': 'palmitic acid',
   'c16.1n.7': 'palmitoleic acid',
-  'c16.1n.9': 'cis-7-hexadecenoic acid',
   'c18.0': 'stearic acid',
   'c18.1n.9': 'oleic acid',
   'c18.1n.7': 'vaccenic acid',
@@ -20,8 +19,6 @@ const METABOLITE_ALIASES = new Map(Object.entries({
   'c20.4n.6': 'arachidonic acid',
   'c20.5n.3': 'eicosapentaenoic acid',
   'c22.4n.6': 'adrenic acid',
-  'c22.5n.6': 'docosapentaenoic acid',
-  'c22.5n.3': 'docosapentaenoic acid',
   'c22.6n.3': 'docosahexaenoic acid'
 }));
 
@@ -60,9 +57,6 @@ export async function resolveMetaboliteIdentifier(identifier, { fetchFn = fetch 
   if (direct === 'chebi') {
     return { original, resolved: original.toUpperCase(), status: 'canonical', method: 'input', query: original };
   }
-  if (direct === 'hmdb' || direct === 'kegg') {
-    return { original, resolved: original.toUpperCase(), status: 'external_id', method: 'input', query: original };
-  }
 
   const alias = METABOLITE_ALIASES.get(original.toLowerCase());
   const query = alias || original;
@@ -82,13 +76,13 @@ export async function resolveMetaboliteIdentifier(identifier, { fetchFn = fetch 
     const json = await response.json();
     const results = Array.isArray(json?.results) ? json.results : [];
     const queryKey = lexicalKey(query);
-    const exact = results
-      .map(candidateChebiSource)
-      .filter(Boolean)
-      .find((source) => {
-        const names = [source.name, source.ascii_name].filter(Boolean).map(lexicalKey);
-        return names.includes(queryKey);
-      });
+    const sources = results.map(candidateChebiSource).filter(Boolean);
+    const exact = direct === 'hmdb' || direct === 'kegg'
+      ? sources[0]
+      : sources.find((source) => {
+          const names = [source.name, source.ascii_name].filter(Boolean).map(lexicalKey);
+          return names.includes(queryKey);
+        });
 
     if (!exact?.chebi_accession) {
       const unresolved = {
@@ -104,8 +98,10 @@ export async function resolveMetaboliteIdentifier(identifier, { fetchFn = fetch 
 
     const resolved = {
       resolved: String(exact.chebi_accession).toUpperCase(),
-      status: 'resolved',
-      method: alias ? 'chebi_exact_after_alias' : 'chebi_exact',
+      status: direct === 'hmdb' || direct === 'kegg' ? 'resolved_external_id' : 'resolved',
+      method: direct === 'hmdb' || direct === 'kegg'
+        ? `chebi_xref_${direct}`
+        : (alias ? 'chebi_exact_after_alias' : 'chebi_exact'),
       query,
       label: exact.ascii_name || exact.name || query,
       stars: exact.stars ?? null
@@ -130,12 +126,13 @@ export async function resolveMetaboliteIdentifiers(identifiers, { fetchFn = fetc
   let networkQueries = 0;
   for (const identifier of unique) {
     const direct = directIdentifierType(identifier);
+    const needsNetwork = direct !== 'chebi';
     const cached = metaboliteResolutionCache.has(lexicalKey(METABOLITE_ALIASES.get(identifier.toLowerCase()) || identifier));
-    if (!direct && !cached && networkQueries >= maxQueries) {
+    if (needsNetwork && !cached && networkQueries >= maxQueries) {
       results.push({ original: identifier, resolved: null, status: 'query_limit', method: 'none', query: identifier });
       continue;
     }
-    if (!direct && !cached) networkQueries += 1;
+    if (needsNetwork && !cached) networkQueries += 1;
     results.push(await resolveMetaboliteIdentifier(identifier, { fetchFn }));
   }
   return {
@@ -810,6 +807,18 @@ function integrationCandidates(aggregated, layerResult, max = 30) {
   return [...new Set(ordered)].slice(0,max);
 }
 
+function classifyCorrelationChange(rReference, rComparison) {
+  if (!Number.isFinite(rReference) || !Number.isFinite(rComparison)) return 'not_estimable';
+  const absRef = Math.abs(rReference);
+  const absCmp = Math.abs(rComparison);
+  if (Math.sign(rReference) !== Math.sign(rComparison) && absRef >= 0.3 && absCmp >= 0.3) return 'sign_reversal';
+  if (absRef < 0.3 && absCmp >= 0.5) return 'gained_in_comparison';
+  if (absRef >= 0.5 && absCmp < 0.3) return 'lost_in_comparison';
+  if (Math.sign(rReference) === Math.sign(rComparison) && absCmp-absRef >= 0.3) return 'strengthened_in_comparison';
+  if (Math.sign(rReference) === Math.sign(rComparison) && absRef-absCmp >= 0.3) return 'weakened_in_comparison';
+  return 'modest_change';
+}
+
 function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
   const pairs = [];
   const layerPairs = [];
@@ -852,6 +861,7 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           nReference: ref.length,
           nComparison: cmp.length,
           ...stat,
+          pattern: classifyCorrelationChange(stat.rReference, stat.rComparison),
           qValue: null
         });
       }
