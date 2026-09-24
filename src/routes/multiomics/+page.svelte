@@ -591,8 +591,15 @@
           longitudinal: longitudinal === 'yes',
           designType,
           studySetting,
+          unitType,
           groupCount,
-          sampleOverlap
+          timepointCount,
+          sampleOverlap,
+          technicalReplicatesExpected,
+          batchKnown,
+          outcomeType,
+          covariatesAvailable,
+          partialOmicsExpected
         },
         dataTypes: {
           transcriptomics: transcriptomicsValues,
