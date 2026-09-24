@@ -568,6 +568,7 @@ function csvFile(name, text) {
   const rnaHeader = ['feature_id'];
   const protHeader = ['feature_id'];
   const rnaSignal = ['RNA_SIGNAL'];
+  const rnaSecond = ['RNA_SECOND'];
   const rnaLow = ['RNA_LOW'];
   const protSignal = ['PROT_SIGNAL'];
   const protMissing = ['PROT_MISSING'];
@@ -581,6 +582,7 @@ function csvFile(name, text) {
         if (layer === 'transcriptomics') {
           rnaHeader.push(id);
           rnaSignal.push(String(100 + (condition === 'treatment' ? 100 : 0) + s));
+          rnaSecond.push(String(70 + (condition === 'treatment' ? 15 : 0) + 4 * s));
           rnaLow.push(s === 1 && condition === 'control' ? '1' : '0');
         } else {
           protHeader.push(id);
@@ -591,7 +593,7 @@ function csvFile(name, text) {
     }
   }
   const meta = csvFile('qc_metadata.csv', rows.join('\n'));
-  const rna = csvFile('qc_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaLow.join(',')].join('\n'));
+  const rna = csvFile('qc_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaSecond.join(','),rnaLow.join(',')].join('\n'));
   const protein = csvFile('qc_protein.csv', [protHeader.join(','),protSignal.join(','),protMissing.join(',')].join('\n'));
   const metaParsed = parseDelimited(await meta.text());
   const qcResult = await runDeterministicAnalysis({
