@@ -234,6 +234,61 @@ const report = { generatedAt: new Date().toISOString(), benchmarks: {} };
   );
 }
 
+// --- TCGA outcome prediction: same public biology, now testing supervised/outcome branches ---
+{
+  const ds = await loadDataset(`${root}/tcga-her2-luma`, ['transcriptomics', 'proteomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'outcome',
+      outcomeType: 'binary',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_observational',
+      groupCount: '1',
+      sampleOverlap: 'same_specimen',
+      batchKnown: 'no',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'log_expression',
+      proteomics: 'log_intensity',
+      metabolomics: 'concentration'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+
+  report.benchmarks.tcgaHer2LumAOutcome = {
+    truth: {
+      target: 'Her2 vs LumA subtype',
+      rationale: 'HER2-enriched and Luminal A tumours should be separable from transcriptomic/proteomic profiles'
+    },
+    predictiveOutcome: result.predictiveOutcome,
+    supervisedIntegration: result.supervisedIntegration
+  };
+
+  requireTruth(
+    result.predictiveOutcome?.status === 'ok',
+    'TCGA binary outcome branch completes nested cross-validation',
+    result.predictiveOutcome?.reason || `folds=${result.predictiveOutcome?.outerFolds || 0}`
+  );
+  requireTruth(
+    Number.isFinite(result.predictiveOutcome?.metrics?.auc) && result.predictiveOutcome.metrics.auc >= 0.80,
+    'TCGA multi-omics prediction separates Her2 from LumA out of sample',
+    `AUC=${Number(result.predictiveOutcome?.metrics?.auc || NaN).toFixed(3)}`
+  );
+  requireTruth(
+    result.supervisedIntegration?.subjects >= 20 &&
+      Number.isFinite(result.supervisedIntegration?.scoreTargetCorrelation) &&
+      Math.abs(result.supervisedIntegration.scoreTargetCorrelation) >= 0.50,
+    'TCGA supervised multiblock component is linked to subtype',
+    `n=${result.supervisedIntegration?.subjects || 0}, r=${Number(result.supervisedIntegration?.scoreTargetCorrelation || NaN).toFixed(3)}`
+  );
+}
+
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log(JSON.stringify(report, null, 2));
 
@@ -323,6 +378,56 @@ console.log('PUBLIC MULTI-OMICS TRUTH BENCHMARKS: PASS');
   requireTruth(overlap.layerSubjects.transcriptomics === 48, 'missRows preserves 48 transcriptomic individuals', String(overlap.layerSubjects.transcriptomics));
   requireTruth(overlap.layerSubjects.proteomics === 52, 'missRows preserves 52 proteomic individuals', String(overlap.layerSubjects.proteomics));
   requireTruth(overlap.allMatched === 40, 'missRows matches only the 40 genuinely shared individuals', `matched=${overlap.allMatched}`);
+}
+
+{
+  const ds = await loadDataset(`${root}/missrows-nci60-partial`, ['transcriptomics','proteomics']);
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'explore',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'cell_line',
+      groupCount: '1',
+      sampleOverlap: 'partial',
+      batchKnown: 'no',
+      partialOmicsExpected: 'yes',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'normalized',
+      proteomics: 'normalized',
+      metabolomics: 'concentration'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+
+  report.benchmarks.missRowsNCI60PartialIntegration = {
+    metadata: result.metadataSummary,
+    exploration: result.exploration
+  };
+
+  requireTruth(
+    result.exploration?.subjects === 60 && result.exploration?.completeSubjects === 40,
+    'missRows partial-block exploration keeps all 60 subjects without pretending all blocks are complete',
+    `union=${result.exploration?.subjects}, complete=${result.exploration?.completeSubjects}`
+  );
+  requireTruth(
+    result.exploration?.imputedCells > 0 &&
+      /partial blocks/i.test(result.exploration?.missingDataPolicy || ''),
+    'missRows uses explicit latent-only partial-block filling',
+    `imputed latent cells=${result.exploration?.imputedCells || 0}`
+  );
+  requireTruth(
+    result.metadataSummary?.overlap?.allMatched === 40 &&
+      result.metadataSummary?.overlap?.totalSubjectsAnyLayer === 60,
+    'missRows overlap audit remains exact inside the engine',
+    `matched=${result.metadataSummary?.overlap?.allMatched}, any-layer=${result.metadataSummary?.overlap?.totalSubjectsAnyLayer}`
+  );
 }
 
 // External identifier-resolution probe: useful operational evidence but an EBI outage must not invalidate biological truth benchmarks.
