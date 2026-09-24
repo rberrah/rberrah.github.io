@@ -107,3 +107,59 @@ cat("protein_range:", paste(signif(range(as.matrix(protein), na.rm = TRUE), 5), 
 marker_pattern <- "(?i)(ERBB2|HER2|GRB7|STARD3|PGAP3)"
 cat("mrna_marker_features:", paste(grep(marker_pattern, colnames(mrna), value = TRUE, perl = TRUE), collapse = ","), "\n")
 cat("protein_marker_features:", paste(grep(marker_pattern, colnames(protein), value = TRUE, perl = TRUE), collapse = ","), "\n")
+
+
+# --- Published cross-omics truth pairs: NCI-60 IntLIM ---
+nci_gm_root <- Sys.getenv("NCI60_GM_ROOT", "external/NCI60_GeneMetabolite_Data")
+if (dir.exists(nci_gm_root)) {
+  gene <- read.csv(file.path(nci_gm_root, "geneData.csv"), row.names = 1, check.names = FALSE)
+  metab <- read.csv(file.path(nci_gm_root, "metabData.csv"), row.names = 1, check.names = FALSE)
+  pdata <- read.csv(file.path(nci_gm_root, "pData.csv"), check.names = FALSE, stringsAsFactors = FALSE)
+
+  export_pair <- function(gene_name, metab_name, filename) {
+    stopifnot(gene_name %in% rownames(gene), metab_name %in% rownames(metab))
+    p <- pdata[pdata$cancergroup %in% c("BPO", "Leukemia"), c("cell_line", "cancergroup")]
+    common <- Reduce(intersect, list(p$cell_line, colnames(gene), colnames(metab)))
+    p <- p[match(common, p$cell_line), , drop = FALSE]
+    out <- data.frame(
+      sample_id = common,
+      condition = p$cancergroup,
+      gene = as.numeric(gene[gene_name, common]),
+      metabolite = as.numeric(metab[metab_name, common]),
+      stringsAsFactors = FALSE,
+      check.names = FALSE
+    )
+    write.csv(out, file.path(out_dir, filename), row.names = FALSE, quote = FALSE)
+  }
+
+  export_pair("FAM174B", "malic acid", "nci60_FAM174B_malic.csv")
+  export_pair("DNER", "L-beta-imidazolelactic acid", "nci60_DNER_imidazole.csv")
+  cat("\nNCI60_INTLIM_PAIRS\n")
+  cat("gene_dim:", paste(dim(gene), collapse = "x"), "\n")
+  cat("metab_dim:", paste(dim(metab), collapse = "x"), "\n")
+}
+
+# --- Published cross-omics truth pair: breast tumour vs normal ---
+intlim_root <- Sys.getenv("INTLIM_ROOT", "external/IntLIMVignettes")
+brca_root <- file.path(intlim_root, "BRCA_data")
+if (dir.exists(brca_root)) {
+  gene <- read.csv(file.path(brca_root, "geneData.csv"), row.names = 1, check.names = FALSE)
+  metab <- read.csv(file.path(brca_root, "metabData.csv"), row.names = 1, check.names = FALSE)
+  pdata <- read.csv(file.path(brca_root, "pData.csv"), check.names = FALSE, stringsAsFactors = FALSE)
+  stopifnot("GPT2" %in% rownames(gene), "2-hydroxyglutarate" %in% rownames(metab))
+
+  p <- pdata[pdata$DIAG %in% c("NORMAL", "TUMOR"), c("id", "DIAG")]
+  common <- Reduce(intersect, list(p$id, colnames(gene), colnames(metab)))
+  p <- p[match(common, p$id), , drop = FALSE]
+  out <- data.frame(
+    sample_id = common,
+    condition = p$DIAG,
+    gene = as.numeric(gene["GPT2", common]),
+    metabolite = as.numeric(metab["2-hydroxyglutarate", common]),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+  write.csv(out, file.path(out_dir, "brca_GPT2_2HG.csv"), row.names = FALSE, quote = FALSE)
+  cat("\nBRCA_INTLIM_PAIR\n")
+  cat("paired_samples:", nrow(out), "\n")
+}
