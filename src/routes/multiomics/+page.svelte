@@ -625,8 +625,8 @@
   $: replicateGroups = technicalReplicateGroups();
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete;
   $: analysisPlan = longitudinal === 'yes' || objective === 'time'
-    ? 'technical-replicate aggregation → declared-data preprocessing → within-subject change → permutation contrast → BH-FDR → mixed-ID Reactome over-representation'
-    : 'technical-replicate aggregation → declared-data preprocessing → two-group permutation contrast → BH-FDR → mixed-ID Reactome over-representation';
+    ? 'technical-replicate aggregation → declared-data preprocessing → within-subject change → permutation contrast → BH-FDR → cross-omics correlation change → Reactome over-representation'
+    : 'technical-replicate aggregation → declared-data preprocessing → two-group permutation contrast → BH-FDR → cross-omics correlation change → Reactome over-representation';
 </script>
 
 <svelte:head>
@@ -636,7 +636,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted · v0.6</p>
+  <p class="eyebrow">Experimental prototype · unlisted · v0.7</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
     Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
@@ -1181,7 +1181,7 @@
     <div>
       <p class="eyebrow">Deterministic engine</p>
       <h3>Run the analysis from the uploaded matrices</h3>
-      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, two-group or longitudinal permutation inference, BH-FDR correction and optional Reactome over-representation.</p>
+      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, two-group or longitudinal permutation inference, BH-FDR correction, cross-omics differential correlation and optional Reactome over-representation.</p>
       <label class="inline-check">
         <input type="checkbox" bind:checked={useReactome} />
         <span>Query Reactome with selected molecular identifiers only</span>
@@ -1240,11 +1240,15 @@
             </div>
             <p class="selection-rule">{result.selectionRule}</p>
             <div class="feature-table">
-              <div class="feature-head"><b>Feature</b><b>Fold ratio</b><b>p perm.</b><b>q BH</b></div>
+              <div class="feature-head"><b>Feature</b><b>{result.effectScale === 'log2' ? 'Fold ratio' : 'Effect'}</b><b>p perm.</b><b>q BH</b></div>
               {#each result.rows.slice(0, 10) as row}
                 <div>
                   <code>{row.feature}</code>
-                  <span class:negative={row.foldRatio < 1}>{row.foldRatio.toFixed(2)}×</span>
+                  {#if row.foldRatio != null}
+                    <span class:negative={row.foldRatio < 1}>{row.foldRatio.toFixed(2)}×</span>
+                  {:else}
+                    <span class:negative={row.effect < 0}>{row.effect.toPrecision(3)}</span>
+                  {/if}
                   <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
                   <span>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
                 </div>
@@ -1254,6 +1258,37 @@
         </article>
       {/if}
     {/each}
+  </div>
+
+  <div class="integration-result cross-result">
+    <div class="integration-head">
+      <div>
+        <p class="eyebrow">Direct cross-omics integration</p>
+        <h3>Which molecular relationships change between the biological conditions?</h3>
+      </div>
+      <span>Spearman + Fisher z + BH-FDR</span>
+    </div>
+    <div class="api-summary">
+      <span><strong>{analysisResult.crossOmics?.testedPairs ?? 0}</strong> matched cross-omic pairs tested</span>
+      <span><strong>{analysisResult.crossOmics?.significantPairs ?? 0}</strong> pairs with q ≤ 0.10</span>
+    </div>
+    {#if analysisResult.crossOmics?.pairs?.length}
+      <div class="cross-table">
+        <div class="cross-head"><b>Pair</b><b>r reference</b><b>r comparison</b><b>Δr</b><b>q BH</b></div>
+        {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
+          <div>
+            <span><code>{pair.featureA}</code> <small>{pair.layerA}</small> ↔ <code>{pair.featureB}</code> <small>{pair.layerB}</small></span>
+            <span>{Number.isFinite(pair.rReference) ? pair.rReference.toFixed(2) : '—'}</span>
+            <span>{Number.isFinite(pair.rComparison) ? pair.rComparison.toFixed(2) : '—'}</span>
+            <strong>{Number.isFinite(pair.deltaR) ? pair.deltaR.toFixed(2) : '—'}</strong>
+            <span>{pair.qValue == null ? '—' : pair.qValue.toPrecision(3)}</span>
+          </div>
+        {/each}
+      </div>
+      <p class="note">{analysisResult.crossOmics.method}. Only subjects represented in both layers contribute to a pair; no imputation is used here.</p>
+    {:else}
+      <p class="muted">No cross-omic correlation test was estimable with the current group sizes and matched subjects.</p>
+    {/if}
   </div>
 
   <div class="integration-result">
@@ -1302,7 +1337,7 @@
     </article>
     <article>
       <strong>Statistical inference</strong>
-      <p>Permutation contrasts with deterministic seeds and Benjamini–Hochberg correction.</p>
+      <p>Permutation contrasts plus cross-omics Spearman correlation differences, with Benjamini–Hochberg correction.</p>
     </article>
     <article>
       <strong>External knowledge</strong>
@@ -1322,7 +1357,7 @@
       <p class="eyebrow">Step 6 · Proposed analysis & biological databases</p>
       <h2>The decision engine is deterministic and inspectable</h2>
     </div>
-    <p>A future language model may explain the choice, but it should not silently choose the statistical design.</p>
+    <p>The statistical branch is selected from explicit study-design rules and remains inspectable.</p>
   </div>
 
   <div class="plan">
@@ -1545,6 +1580,10 @@
   .api-summary { display: flex; gap: var(--space-4); flex-wrap: wrap; margin: var(--space-3) 0; }
   .pathway-table > div { display: grid; grid-template-columns: minmax(220px,2fr) repeat(5,.65fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
   .pathway-head { color: var(--text-muted); }
+  .cross-table { font-size: var(--text-xs); overflow-x: auto; }
+  .cross-table > div { display: grid; grid-template-columns: minmax(300px,2.4fr) repeat(4,.7fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
+  .cross-head { color: var(--text-muted); }
+  .cross-table small { color: var(--text-muted); font-family: var(--font-mono); }
   .api-error { padding: var(--space-4); border-left: 3px solid var(--accent-ai); background: var(--bg-primary); }
 
 
