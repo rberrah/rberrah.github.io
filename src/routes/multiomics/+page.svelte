@@ -25,6 +25,7 @@
   /** @type {any} */
   let analysisResult = null;
   let useReactome = true;
+  let resolveIdentifiers = true;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -133,23 +134,23 @@
   const objectives = {
     explore: {
       title: 'Explore the shared multi-omics structure',
-      method: 'MOFA-first',
-      detail: 'Identify latent factors shared across transcriptomics, proteomics and metabolomics, then connect the strongest factors to pathways and cross-omics modules.'
+      method: 'Exploratory branch',
+      detail: 'Data validation and mapping are available, but an unsupervised inferential engine is not yet exposed as a final analysis branch.'
     },
     groups: {
       title: 'Compare biological groups',
-      method: 'MOFA + supervised integration',
-      detail: 'Characterise the global multi-omics structure, then derive a compact integrated signature associated with the declared group variable.'
+      method: 'Deterministic two-condition integration',
+      detail: 'Permutation contrasts, BH-FDR, direct cross-omics correlation changes and Reactome pathway convergence.'
     },
     outcome: {
       title: 'Explain a clinical or experimental outcome',
-      method: 'MOFA + outcome association',
-      detail: 'Associate latent factors, consensus pathways and integrated modules with the declared continuous, categorical or time-to-event outcome.'
+      method: 'Not yet operational',
+      detail: 'Outcome-targeted regression or survival modelling is intentionally blocked until the corresponding deterministic model-selection rules are implemented.'
     },
     time: {
       title: 'Describe change over time',
       method: 'Design-aware longitudinal workflow',
-      detail: 'Respect repeated measurements first, then integrate coordinated transcript, protein and metabolite changes across time.'
+      detail: 'Two time points use within-subject change; three or more numeric-labelled time points use individual slopes before group comparison.'
     }
   };
 
@@ -580,6 +581,12 @@
           proteomics: proteomicsValues,
           metabolomics: metabolomicsValues
         },
+        identifierTypes: {
+          transcriptomics: transcriptomicsIdType,
+          proteomics: proteomicsIdType,
+          metabolomics: metabolomicsIdType
+        },
+        resolveIdentifiers,
         useReactome
       });
       analysisStatus = 'done';
@@ -671,10 +678,10 @@
     <label class="wide">
       <span>Main objective</span>
       <select bind:value={objective}>
-        <option value="explore">Explore the shared structure of the dataset</option>
-        <option value="groups">Compare groups / conditions</option>
-        <option value="outcome">Explain an outcome or phenotype</option>
-        <option value="time">Study change over time</option>
+        <option value="explore">Explore the shared structure of the dataset · validation only</option>
+        <option value="groups">Compare groups / conditions · operational</option>
+        <option value="outcome">Explain an outcome or phenotype · not yet operational</option>
+        <option value="time">Study change over time · operational</option>
       </select>
     </label>
 
@@ -1183,6 +1190,10 @@
       <h3>Run the analysis from the uploaded matrices</h3>
       <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, two-group or longitudinal permutation inference, BH-FDR correction, cross-omics differential correlation and optional Reactome over-representation.</p>
       <label class="inline-check">
+        <input type="checkbox" bind:checked={resolveIdentifiers} />
+        <span>Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis</span>
+      </label>
+      <label class="inline-check">
         <input type="checkbox" bind:checked={useReactome} />
         <span>Query Reactome with selected molecular identifiers only</span>
       </label>
@@ -1216,6 +1227,44 @@
     <article><span>Conditions</span><strong>{analysisResult.metadataSummary.conditions.join(' / ') || '—'}</strong></article>
     <article><span>Time points</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
   </div>
+
+  {#if analysisResult.metadataSummary.overlap?.pairwise?.length}
+    <div class="overlap-box">
+      <div>
+        <p class="eyebrow">Sample overlap actually used</p>
+        <strong>{analysisResult.metadataSummary.overlap.allMatched} subject(s) present in every loaded omics layer</strong>
+      </div>
+      <div class="overlap-pairs">
+        {#each analysisResult.metadataSummary.overlap.pairwise as pair}
+          <span>{omicLabels[pair.layerA]} ↔ {omicLabels[pair.layerB]}: <b>{pair.matchedSubjects}</b> matched</span>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  {#if analysisResult.identifierResolution?.metabolomics}
+    <div class="identifier-resolution">
+      <div class="integration-head">
+        <div>
+          <p class="eyebrow">Metabolite identifier resolution</p>
+          <h3>Original labels → canonical identifiers sent to pathway analysis</h3>
+        </div>
+        <span>{analysisResult.identifierResolution.metabolomics.resolvedCount} resolved · {analysisResult.identifierResolution.metabolomics.unresolvedCount} unresolved</span>
+      </div>
+      <div class="mapping-result-table">
+        <div class="mapping-result-head"><b>Original</b><b>Query</b><b>Resolved ID</b><b>Status</b></div>
+        {#each analysisResult.identifierResolution.metabolomics.mappings.slice(0, 20) as mapping}
+          <div>
+            <code>{mapping.original}</code>
+            <span>{mapping.query || '—'}</span>
+            <code>{mapping.resolved || '—'}</code>
+            <span>{mapping.status}</span>
+          </div>
+        {/each}
+      </div>
+      <p class="note">Only exact ChEBI label matches or explicit deterministic lipid aliases are accepted automatically. Uncertain matches remain unresolved rather than being guessed.</p>
+    </div>
+  {/if}
 
   <div class="actual-layer-grid">
     {#each omicLayers as layer}
@@ -1368,7 +1417,8 @@
     </div>
     <ul>
       <li><strong>Same specimen:</strong> assays are linked by <code>sample_id</code>, never by fuzzy name matching.</li>
-      <li><strong>Repeated subject:</strong> visits sharing <code>subject_id</code> are treated as non-independent when the design requires it.</li>
+      <li><strong>Repeated subject:</strong> two time points use within-subject change; ≥3 numeric-labelled times use an individual slope.</li>
+      <li><strong>Paired design:</strong> within-subject differences use a sign-flip permutation test. Crossover designs are refused until period/sequence effects are modelled.</li>
       <li><strong>Technical replicate:</strong> multiple assays with the same <code>sample_id + omic</code> are flagged before analysis.</li>
       <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
       <li><strong>Supervised methods:</strong> only proposed when a target exists and the effective sample size is compatible with the method.</li>
@@ -1407,7 +1457,7 @@
 <section class="results-preview">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Planned integrated output</p>
+      <p class="eyebrow">Integrated output</p>
       <h2>One multi-omics result, not three separate reports</h2>
     </div>
   </div>
@@ -1415,8 +1465,8 @@
   <div class="result-grid">
     <article>
       <span class="num">01</span>
-      <h3>Global multi-omics map</h3>
-      <p>Latent factors showing which biological axes are shared across samples and how much each omics layer contributes.</p>
+      <h3>Direct cross-omics relations</h3>
+      <p>Matched-subject correlations and condition-dependent correlation changes identify relationships that would be invisible in three separate reports.</p>
       <div class="mini-factor"><i></i><i></i><i></i></div>
     </article>
 
@@ -1562,6 +1612,13 @@
   .inline-check input { width: auto; }
   .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .computed-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .overlap-box { display: flex; justify-content: space-between; gap: var(--space-4); align-items: start; margin-top: var(--space-4); padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
+  .overlap-pairs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+  .overlap-pairs span { font-size: var(--text-xs); padding: 5px 7px; border: 1px solid var(--border-subtle); border-radius: 999px; }
+  .identifier-resolution { margin-top: var(--space-5); padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+  .mapping-result-table { font-size: var(--text-xs); overflow-x: auto; }
+  .mapping-result-table > div { display: grid; grid-template-columns: 1fr 1.2fr .8fr .7fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--border-subtle); min-width: 650px; }
+  .mapping-result-head { color: var(--text-muted); }
   .computed-summary article { padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
   .computed-summary span, .computed-summary strong { display: block; }
   .computed-summary span { color: var(--text-muted); font-size: var(--text-xs); }
@@ -1667,7 +1724,8 @@
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
     .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary { grid-template-columns: 1fr; }
-    .run-box { align-items: stretch; flex-direction: column; }
+    .run-box, .overlap-box { align-items: stretch; flex-direction: column; }
+    .overlap-pairs { justify-content: flex-start; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
     .workflow div:last-child { border-bottom: 0; }
