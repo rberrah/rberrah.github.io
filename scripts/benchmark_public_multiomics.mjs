@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { File } from 'node:buffer';
-import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair, layerOverlapSummary, resolveMetaboliteIdentifier } from '../src/lib/multiomics/deterministic.js';
+import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair, layerOverlapSummary, resolveMetaboliteIdentifier, resolveMetaboliteIdentifiers, reactomeOverRepresentation } from '../src/lib/multiomics/deterministic.js';
 
 const root = process.argv[2] || 'tmp/public-benchmarks';
 
@@ -442,3 +442,91 @@ function signConcordance(engineRows, referenceRows) {
 
 await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
 console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
+
+
+// --- STATegra public Ikaros time-course: precomputed Ikaros/control trajectories ---
+{
+  const paintRoot = process.env.PAINTOMICS_ROOT || 'external/PaintOmics';
+  const dataRoot = `${paintRoot}/PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data`;
+
+  const readTab = async (name) => parseDelimited(await fs.readFile(`${dataRoot}/${name}`, 'utf8'));
+  const protein = await readTab('proteomics_values.tab');
+  const metabolite = await readTab('metabolomics_values.tab');
+  const relevantProteins = (await fs.readFile(`${dataRoot}/proteomics_relevant.tab`, 'utf8')).split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  const relevantMetabolites = (await fs.readFile(`${dataRoot}/metabolomics_relevant.tab`, 'utf8')).split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+
+  const pName = protein.headers[0];
+  const mName = metabolite.headers[0];
+  const p24 = protein.headers[protein.headers.length-1];
+  const m24 = metabolite.headers[metabolite.headers.length-1];
+
+  const proteinRow = (name) => protein.rows.find((row) => String(row[pName]).toLowerCase() === name.toLowerCase());
+  const metaboliteRow = (name) => metabolite.rows.find((row) => String(row[mName]).toLowerCase() === name.toLowerCase());
+  const value24 = (row, col) => row ? Number(row[col]) : NaN;
+
+  const ldha = proteinRow('Ldha');
+  const hk2 = proteinRow('Hk2');
+  const slc7a5 = proteinRow('Slc7a5');
+  const ikzf1 = proteinRow('Ikzf1');
+  const igll1 = proteinRow('Igll1');
+  const lactate = metaboliteRow('Lactic acid');
+  const pyruvate = metaboliteRow('Pyruvic acid');
+  const malate = metaboliteRow('Malic acid');
+
+  requireTruth(ldha && value24(ldha,p24) < -1, 'STATegra recovers late LDHA suppression', `24h log2 ratio=${value24(ldha,p24).toFixed(3)}`);
+  requireTruth(hk2 && value24(hk2,p24) < -0.5, 'STATegra recovers late HK2 suppression', `24h log2 ratio=${value24(hk2,p24).toFixed(3)}`);
+  requireTruth(slc7a5 && value24(slc7a5,p24) < -1, 'STATegra recovers late SLC7A5 suppression', `24h log2 ratio=${value24(slc7a5,p24).toFixed(3)}`);
+  requireTruth(igll1 && value24(igll1,p24) < -2, 'STATegra recovers Igll1 suppression during differentiation', `24h log2 ratio=${value24(igll1,p24).toFixed(3)}`);
+  requireTruth(ikzf1 && value24(ikzf1,p24) > 2, 'STATegra preserves strong IKZF1 protein signal', `24h log2 ratio=${value24(ikzf1,p24).toFixed(3)}`);
+  requireTruth(lactate && value24(lactate,m24) < 0, 'STATegra recovers lower lactate at 24h', `24h log2 ratio=${value24(lactate,m24).toFixed(3)}`);
+  requireTruth(pyruvate && value24(pyruvate,m24) < 0, 'STATegra recovers lower pyruvate at 24h', `24h log2 ratio=${value24(pyruvate,m24).toFixed(3)}`);
+  requireTruth(malate && value24(malate,m24) < -0.5, 'STATegra recovers lower malate at 24h', `24h log2 ratio=${value24(malate,m24).toFixed(3)}`);
+
+  // Deterministic knowledge-layer test: resolve a bounded set of relevant metabolites,
+  // then combine canonical metabolite IDs with published relevant protein symbols.
+  const metaboliteResolution = await resolveMetaboliteIdentifiers(relevantMetabolites.slice(0, 24), { maxQueries: 24 });
+  const resolvedMetabolites = metaboliteResolution.mappings.map(x=>x.resolved).filter(Boolean);
+  const pathwayInput = [...relevantProteins.slice(0, 120), ...resolvedMetabolites];
+  let pathways = [];
+  let reactomeError = null;
+  try {
+    const reactome = await reactomeOverRepresentation(pathwayInput, { projectToHuman: true, pageSize: 100 });
+    pathways = reactome.pathways || [];
+  } catch (error) {
+    reactomeError = error instanceof Error ? error.message : String(error);
+  }
+
+  const glycolysisRelated = pathways.find((p) => /glycol|glucose|pyruvate|citric acid|tricarbox|TCA/i.test(p.name));
+  requireTruth(
+    Boolean(glycolysisRelated),
+    'STATegra knowledge integration recovers central-carbon metabolism',
+    glycolysisRelated?.name || reactomeError || 'no glycolysis/TCA-related pathway'
+  );
+
+  report.benchmarks.stategra = {
+    truth: 'Ikaros-induced pre-B differentiation over 0–24 h; known late repression of glycolysis/TCA-related genes and metabolites',
+    sourceFormat: 'published Ikaros-minus-control log2 ratios, not individual-level observations',
+    protein24h: {
+      Ldha: value24(ldha,p24),
+      Hk2: value24(hk2,p24),
+      Slc7a5: value24(slc7a5,p24),
+      Ikzf1: value24(ikzf1,p24),
+      Igll1: value24(igll1,p24)
+    },
+    metabolite24h: {
+      lactate: value24(lactate,m24),
+      pyruvate: value24(pyruvate,m24),
+      malate: value24(malate,m24)
+    },
+    metaboliteResolution: {
+      attempted: metaboliteResolution.mappings.length,
+      resolved: metaboliteResolution.resolvedCount,
+      unresolved: metaboliteResolution.unresolvedCount
+    },
+    centralCarbonPathway: glycolysisRelated ? {id:glycolysisRelated.id,name:glycolysisRelated.name,fdr:glycolysisRelated.fdr} : null,
+    reactomeError
+  };
+}
+
+await fs.writeFile(`${root}/benchmark-report.json`, JSON.stringify(report, null, 2));
+console.log('PUBLIC MULTI-OMICS BENCHMARK SUITE: PASS');
