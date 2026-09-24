@@ -1659,7 +1659,7 @@
             {#if result.qc.pca?.scores?.length}
               <div class="qc-pca">
                 <div class="qc-pca-head">
-                  <b>PCA QC</b>
+                  <b>PCA QC <span class="help-tip" tabindex="0" data-tooltip={t('Projection non supervisée utilisée uniquement pour contrôler la structure globale des échantillons après prétraitement : outliers, batch éventuel et séparation dominante. Elle ne constitue pas un test statistique.', 'Unsupervised projection used only to inspect the global sample structure after preprocessing: outliers, possible batch structure and dominant separation. It is not a statistical test.')}>?</span></b>
                   <small>
                     PC1 {Number.isFinite(result.qc.pca.explained?.[0]) ? (100 * result.qc.pca.explained[0]).toFixed(1) + '%' : '—'}
                     · PC2 {Number.isFinite(result.qc.pca.explained?.[1]) ? (100 * result.qc.pca.explained[1]).toFixed(1) + '%' : '—'}
@@ -1763,7 +1763,9 @@
       <div class="integration-head">
         <div>
           <p class="eyebrow">{t('Intégration supervisée', 'Supervised integration')}</p>
-          <h3>{t('Composante latente multiblocs liée à la cible', 'Target-linked multiblock latent component')}</h3>
+          <h3>{t('Composante latente multiblocs liée à la cible', 'Target-linked multiblock latent component')}
+  <span class="help-tip" tabindex="0" data-tooltip={t('Résumé supervisé descriptif : chaque couche est standardisée et équilibrée, puis une composante maximise la covariance avec la cible. Les poids indiquent les variables qui structurent cet axe. Ce n’est pas une validation prédictive.', 'Descriptive supervised summary: each block is standardized and balanced, then one component maximizes covariance with the target. Weights indicate features structuring this axis. This is not predictive validation.')}>?</span>
+</h3>
         </div>
         <span>{analysisResult.supervisedIntegration.subjects} {t('sujets', 'subjects')}</span>
       </div>
@@ -1793,7 +1795,9 @@
       <div class="integration-head">
         <div>
           <p class="eyebrow">{t('Validation prédictive', 'Predictive validation')}</p>
-          <h3>{t('Performance hors échantillon', 'Out-of-sample performance')}</h3>
+          <h3>{t('Performance hors échantillon', 'Out-of-sample performance')}
+  <span class="help-tip" tabindex="0" data-tooltip={t('La nested cross-validation sépare des folds externes pour mesurer la performance et des folds internes pour choisir la pénalisation. La sélection de variables n’utilise jamais les sujets du fold externe testé.', 'Nested cross-validation uses outer folds for performance assessment and inner folds for penalty tuning. Feature selection never uses subjects from the held-out outer test fold.')}>?</span>
+</h3>
         </div>
         <span>{analysisResult.predictiveOutcome.status === 'ok' ? t('nested CV', 'nested CV') : t('non estimable', 'not estimable')}</span>
       </div>
@@ -2004,7 +2008,7 @@
         {/each}
       </div>
       <p class="note">{t('Le classement est déterministe : nombre de couches avec FDR de voie ≤ 0,10, puis FDR Reactome combinée, puis couverture de la voie. Il s’agit d’un classement exploratoire, pas d’une probabilité postérieure ni d’un score causal.', 'Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.')}</p>
-      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')}</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Un astérisque après une FDR indique que la FDR Reactome par défaut a été utilisée comme repli.', 'An asterisk after an FDR indicates that Reactome default FDR was used as a fallback.')}</p>
+      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')} <span class="help-tip" tabindex="0" data-tooltip={t('L’univers est l’ensemble des variables qui auraient pu être sélectionnées après QC. Utiliser cet univers évite de comparer un panel ciblé à tous les gènes ou métabolites connus de la base.', 'The background universe is the set of features that could have been selected after QC. Using this universe avoids comparing a targeted panel against every gene or metabolite known to the database.')}>?</span></strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Un astérisque après une FDR indique que la FDR Reactome par défaut a été utilisée comme repli.', 'An asterisk after an FDR indicates that Reactome default FDR was used as a fallback.')}</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
         <strong>{t('Les statistiques locales sont terminées ; Reactome n’a pas pu être joint.', 'Local statistics completed; Reactome could not be reached.')}</strong>
