@@ -21,6 +21,7 @@
   let technicalReplicatesExpected = 'unknown';
   let batchKnown = 'unknown';
   let outcomeType = 'none';
+  let outcomeTimepoint = '';
   let covariatesAvailable = 'yes';
   let partialOmicsExpected = 'no';
   /** @type {string[]} */
@@ -649,6 +650,7 @@
           technicalReplicatesExpected,
           batchKnown,
           outcomeType,
+          outcomeTimepoint,
           covariatesAvailable,
           covariateColumns: selectedCovariates,
           partialOmicsExpected
@@ -795,6 +797,8 @@
   $: mappedSubjects = uniqueMapped('subject_id').size;
   $: mappedSamples = uniqueMapped('sample_id').size;
   $: mappedAssays = uniqueMapped('assay_id').size;
+  $: availableOutcomeTimepoints = [...uniqueMapped('timepoint')];
+  $: if (availableOutcomeTimepoints.length <= 1 && outcomeTimepoint) outcomeTimepoint = '';
   $: replicateGroups = technicalReplicateGroups();
   $: canonicalMappedColumns = new Set(Object.values(columnMapping).filter(Boolean));
   $: availableCovariateColumns = metadataHeaders.filter((header) => !canonicalMappedColumns.has(header));
@@ -802,9 +806,11 @@
     selectedCovariates = selectedCovariates.filter((header) => availableCovariateColumns.includes(header));
   }
   $: outcomeMappingComplete = objective !== 'outcome'
-    || (outcomeType !== 'none' && (outcomeType === 'survival'
-      ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
-      : Boolean(columnMapping.outcome)));
+    || (outcomeType !== 'none'
+      && (availableOutcomeTimepoints.length <= 1 || Boolean(outcomeTimepoint))
+      && (outcomeType === 'survival'
+        ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
+        : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
   $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, String($language || 'fr')) : [];
@@ -1001,6 +1007,19 @@
         <option value="count">{t('Comptage', 'Count')}</option>
       </select>
     </label>
+
+    {#if objective === 'outcome' && availableOutcomeTimepoints.length > 1}
+      <label>
+        <span>{t('Temps omique utilisé dans le modèle d’outcome', 'Omics time point used in the outcome model')}</span>
+        <select bind:value={outcomeTimepoint}>
+          <option value="">— {t('sélection requise', 'selection required')} —</option>
+          {#each availableOutcomeTimepoints as timepoint}
+            <option value={timepoint}>{timepoint}</option>
+          {/each}
+        </select>
+        <small>{t('Choisissez explicitement le prélèvement moléculaire qui entre dans le modèle. Pour une prédiction pronostique, il s’agit souvent du baseline.', 'Explicitly choose the molecular sampling time used by the model. For prognostic prediction, this is often baseline.')}</small>
+      </label>
+    {/if}
 
     <label>
       <span>{t('Covariables importantes disponibles ?', 'Important covariates available?')}</span>
