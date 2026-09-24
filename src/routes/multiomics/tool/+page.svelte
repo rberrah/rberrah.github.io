@@ -731,6 +731,20 @@
     URL.revokeObjectURL(href);
   }
 
+  /**
+   * @param {number} value
+   * @param {any[]} points
+   * @param {'pc1'|'pc2'} key
+   */
+  function qcAxisPercent(value, points, key) {
+    const values = points.map((point) => Number(point[key])).filter(Number.isFinite);
+    if (!values.length) return 50;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (max === min) return 50;
+    return 6 + 88 * (value - min) / (max - min);
+  }
+
   /** @param {any} result @param {string} lang */
   function buildInterpretation(result, lang) {
     /** @param {string} fr @param {string} en */
