@@ -775,6 +775,614 @@ function aggregateTechnicalReplicates(matrix, metadata, layer) {
   return { features: matrix.features, values, sampleMeta, replicateGroups, steps: matrix.steps, scale: matrix.scale };
 }
 
+
+function solveLinearSystem(matrix, vector, ridge = 1e-8) {
+  const n = matrix.length;
+  if (!n || vector.length !== n) return null;
+  const a = matrix.map((row, i) => row.map((value, j) => value + (i === j ? ridge : 0)).concat([vector[i]]));
+  for (let col = 0; col < n; col += 1) {
+    let pivot = col;
+    for (let row = col + 1; row < n; row += 1) {
+      if (Math.abs(a[row][col]) > Math.abs(a[pivot][col])) pivot = row;
+    }
+    if (Math.abs(a[pivot][col]) < 1e-12) return null;
+    [a[col], a[pivot]] = [a[pivot], a[col]];
+    const scale = a[col][col];
+    for (let j = col; j <= n; j += 1) a[col][j] /= scale;
+    for (let row = 0; row < n; row += 1) {
+      if (row === col) continue;
+      const factor = a[row][col];
+      if (factor === 0) continue;
+      for (let j = col; j <= n; j += 1) a[row][j] -= factor * a[col][j];
+    }
+  }
+  return a.map((row) => row[n]);
+}
+
+function invertMatrix(matrix, ridge = 1e-8) {
+  const n = matrix.length;
+  if (!n) return null;
+  const inverse = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let col = 0; col < n; col += 1) {
+    const unit = Array(n).fill(0);
+    unit[col] = 1;
+    const solution = solveLinearSystem(matrix, unit, ridge);
+    if (!solution) return null;
+    for (let row = 0; row < n; row += 1) inverse[row][col] = solution[row];
+  }
+  return inverse;
+}
+
+function crossProductMatrix(design, weights = null) {
+  const p = design[0]?.length || 0;
+  const out = Array.from({ length: p }, () => Array(p).fill(0));
+  for (let i = 0; i < design.length; i += 1) {
+    const w = weights ? weights[i] : 1;
+    for (let a = 0; a < p; a += 1) {
+      for (let b = 0; b < p; b += 1) out[a][b] += w * design[i][a] * design[i][b];
+    }
+  }
+  return out;
+}
+
+function crossProductVector(design, response, weights = null) {
+  const p = design[0]?.length || 0;
+  const out = Array(p).fill(0);
+  for (let i = 0; i < design.length; i += 1) {
+    const w = weights ? weights[i] : 1;
+    for (let a = 0; a < p; a += 1) out[a] += w * design[i][a] * response[i];
+  }
+  return out;
+}
+
+function multiplyMatrixVector(matrix, vector) {
+  return matrix.map((row) => row.reduce((sum, value, index) => sum + value * vector[index], 0));
+}
+
+function buildCovariateEncoder(rows, covariateColumns = [], { includeBatch = true } = {}) {
+  const specs = [];
+  if (includeBatch) {
+    const levels = naturalOrder(rows.map((row) => row.batch || '__MISSING__'));
+    if (levels.length > 1) specs.push({ name: 'batch', type: 'categorical', levels, reference: levels[0] });
+  }
+
+  for (const column of covariateColumns) {
+    const values = rows.map((row) => row.covariates?.[column] ?? '').filter((value) => value !== '');
+    if (!values.length) continue;
+    const numericValues = values.map(finiteNumber);
+    const numeric = numericValues.every(Number.isFinite) && new Set(numericValues).size > 1;
+    if (numeric) {
+      const center = mean(numericValues);
+      const sd = Math.sqrt(variance(numericValues));
+      specs.push({
+        name: column,
+        type: 'numeric',
+        center,
+        scale: Number.isFinite(sd) && sd > 0 ? sd : 1,
+        median: median(numericValues)
+      });
+    } else {
+      const levels = naturalOrder(rows.map((row) => row.covariates?.[column] || '__MISSING__'));
+      if (levels.length > 1) specs.push({ name: column, type: 'categorical', levels, reference: levels[0] });
+    }
+  }
+
+  const columnNames = ['intercept'];
+  for (const spec of specs) {
+    if (spec.type === 'numeric') {
+      columnNames.push(spec.name);
+      const missingName = spec.name + ':missing';
+      const hasMissing = rows.some((row) => !Number.isFinite(finiteNumber(row.covariates?.[spec.name] ?? '')));
+      if (hasMissing) columnNames.push(missingName);
+    } else {
+      for (const level of spec.levels.slice(1)) columnNames.push(spec.name + '=' + level);
+    }
+  }
+
+  const encode = (row) => {
+    const vector = [1];
+    for (const spec of specs) {
+      if (spec.type === 'numeric') {
+        const parsed = finiteNumber(row.covariates?.[spec.name] ?? '');
+        const missing = !Number.isFinite(parsed);
+        const value = missing ? spec.median : parsed;
+        vector.push((value - spec.center) / spec.scale);
+        if (columnNames.includes(spec.name + ':missing')) vector.push(missing ? 1 : 0);
+      } else {
+        const value = spec.name === 'batch'
+          ? (row.batch || '__MISSING__')
+          : (row.covariates?.[spec.name] || '__MISSING__');
+        for (const level of spec.levels.slice(1)) vector.push(value === level ? 1 : 0);
+      }
+    }
+    return vector;
+  };
+
+  return { specs, columnNames, encode };
+}
+
+function residualizeAggregated(aggregated, covariateColumns = []) {
+  const samples = [...aggregated.sampleMeta.entries()];
+  const rows = samples.map(([, row]) => row);
+  const encoder = buildCovariateEncoder(rows, covariateColumns, { includeBatch: true });
+  if (encoder.columnNames.length === 1) {
+    return {
+      aggregated,
+      adjustment: {
+        applied: false,
+        method: 'none',
+        columns: [],
+        covariates: covariateColumns,
+        note: 'No varying batch or selected covariate required adjustment.'
+      }
+    };
+  }
+
+  const designAll = rows.map(encoder.encode);
+  const values = new Map();
+  let failedFeatures = 0;
+  for (const feature of aggregated.features) {
+    const source = aggregated.values.get(feature);
+    const indexes = [];
+    const response = [];
+    for (let i = 0; i < samples.length; i += 1) {
+      const sampleId = samples[i][0];
+      const value = source.get(sampleId);
+      if (!Number.isFinite(value)) continue;
+      indexes.push(i);
+      response.push(value);
+    }
+    const design = indexes.map((index) => designAll[index]);
+    if (response.length <= encoder.columnNames.length + 1) {
+      values.set(feature, new Map(source));
+      failedFeatures += 1;
+      continue;
+    }
+    const xtx = crossProductMatrix(design);
+    const xty = crossProductVector(design, response);
+    const beta = solveLinearSystem(xtx, xty);
+    if (!beta) {
+      values.set(feature, new Map(source));
+      failedFeatures += 1;
+      continue;
+    }
+    const fitted = multiplyMatrixVector(design, beta);
+    const center = mean(response);
+    const next = new Map(source);
+    for (let k = 0; k < indexes.length; k += 1) {
+      const sampleId = samples[indexes[k]][0];
+      next.set(sampleId, response[k] - fitted[k] + center);
+    }
+    values.set(feature, next);
+  }
+
+  return {
+    aggregated: { ...aggregated, values },
+    adjustment: {
+      applied: true,
+      method: 'feature-wise OLS residualisation before biological contrast',
+      columns: encoder.columnNames.slice(1),
+      covariates: covariateColumns,
+      failedFeatures,
+      note: 'Batch and selected covariates are removed feature-wise before group, longitudinal or exploratory summaries. Complete confounding is blocked upstream.'
+    }
+  };
+}
+
+function subjectEndpointRows(aggregated, feature) {
+  const source = aggregated.values.get(feature);
+  if (!source) return [];
+  const timepoints = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.timepoint));
+  const targetTime = timepoints.length ? timepoints[timepoints.length - 1] : '';
+  const perSubject = new Map();
+  for (const [sampleId, row] of aggregated.sampleMeta.entries()) {
+    const value = source.get(sampleId);
+    if (!Number.isFinite(value)) continue;
+    if (targetTime && row.timepoint !== targetTime) continue;
+    if (!perSubject.has(row.subjectId)) perSubject.set(row.subjectId, []);
+    perSubject.get(row.subjectId).push({ value, row });
+  }
+  return [...perSubject.entries()].map(([subjectId, entries]) => ({
+    subjectId,
+    value: mean(entries.map((entry) => entry.value)),
+    row: entries[0].row
+  }));
+}
+
+function featureOutcomeRows(aggregated, feature, outcomeType) {
+  return subjectEndpointRows(aggregated, feature).map(({ subjectId, value, row }) => ({
+    subjectId,
+    feature: value,
+    outcome: row.outcome,
+    survivalTime: finiteNumber(row.survivalTime),
+    survivalEvent: row.survivalEvent,
+    row
+  })).filter((entry) => {
+    if (outcomeType === 'survival') {
+      const event = finiteNumber(entry.survivalEvent);
+      return Number.isFinite(entry.feature) && Number.isFinite(entry.survivalTime) && Number.isFinite(event);
+    }
+    return Number.isFinite(entry.feature) && entry.outcome !== '';
+  });
+}
+
+function subjectCovariateDesign(entries, covariateColumns = [], { includeIntercept = true } = {}) {
+  const rows = entries.map((entry) => entry.row);
+  const encoder = buildCovariateEncoder(rows, covariateColumns, { includeBatch: false });
+  const columnNames = encoder.columnNames.slice(includeIntercept ? 0 : 1);
+  const design = rows.map((row) => {
+    const vector = encoder.encode(row);
+    return includeIntercept ? vector : vector.slice(1);
+  });
+  return { design, columnNames, encoder };
+}
+
+function ordinaryLeastSquares(design, response, coefficientIndex) {
+  if (!design.length || design.length <= (design[0]?.length || 0)) return null;
+  const xtx = crossProductMatrix(design);
+  const xty = crossProductVector(design, response);
+  const beta = solveLinearSystem(xtx, xty);
+  const inverse = invertMatrix(xtx);
+  if (!beta || !inverse) return null;
+  const fitted = multiplyMatrixVector(design, beta);
+  const residuals = response.map((value, i) => value - fitted[i]);
+  const df = response.length - design[0].length;
+  const rss = residuals.reduce((sum, value) => sum + value * value, 0);
+  const sigma2 = df > 0 ? rss / df : NaN;
+  const varianceBeta = Number.isFinite(sigma2) ? sigma2 * inverse[coefficientIndex][coefficientIndex] : NaN;
+  const se = varianceBeta > 0 ? Math.sqrt(varianceBeta) : NaN;
+  const t = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
+  const cdf = Number.isFinite(t) ? studentTCdf(Math.abs(t), df) : NaN;
+  const pValue = Number.isFinite(cdf) ? Math.max(0, Math.min(1, 2 * (1 - cdf))) : null;
+  return { beta, se, statistic: t, pValue, df, fitted, residuals };
+}
+
+function fitGeneralizedLinear(design, response, family, coefficientIndex) {
+  const n = response.length;
+  const p = design[0]?.length || 0;
+  if (!n || n <= p) return null;
+  let beta = Array(p).fill(0);
+  if (family === 'poisson') {
+    const start = Math.log(Math.max(mean(response), 1e-6));
+    beta[0] = Number.isFinite(start) ? start : 0;
+  }
+  let information = null;
+  for (let iter = 0; iter < 40; iter += 1) {
+    const eta = multiplyMatrixVector(design, beta);
+    const weights = [];
+    const z = [];
+    for (let i = 0; i < n; i += 1) {
+      if (family === 'binomial') {
+        const e = Math.max(-30, Math.min(30, eta[i]));
+        const m = 1 / (1 + Math.exp(-e));
+        const w = Math.max(m * (1 - m), 1e-6);
+        weights.push(w);
+        z.push(eta[i] + (response[i] - m) / w);
+      } else {
+        const m = Math.max(1e-8, Math.min(1e8, Math.exp(Math.max(-20, Math.min(20, eta[i])))));
+        const w = Math.max(m, 1e-6);
+        weights.push(w);
+        z.push(eta[i] + (response[i] - m) / w);
+      }
+    }
+    const xtwx = crossProductMatrix(design, weights);
+    const xtwz = crossProductVector(design, z, weights);
+    const next = solveLinearSystem(xtwx, xtwz, 1e-6);
+    if (!next) return null;
+    const delta = Math.max(...next.map((value, index) => Math.abs(value - beta[index])));
+    beta = next;
+    information = xtwx;
+    if (delta < 1e-7) break;
+  }
+  const inverse = information ? invertMatrix(information, 1e-6) : null;
+  if (!inverse) return null;
+  const se2 = inverse[coefficientIndex][coefficientIndex];
+  const se = se2 > 0 ? Math.sqrt(se2) : NaN;
+  const zStat = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
+  const pValue = Number.isFinite(zStat) ? Math.min(1, 2 * (1 - normalCdf(Math.abs(zStat)))) : null;
+  return { beta, se, statistic: zStat, pValue };
+}
+
+function coxRegression(design, times, events, coefficientIndex) {
+  const n = times.length;
+  const p = design[0]?.length || 0;
+  if (!n || n <= p || events.reduce((sum, event) => sum + event, 0) < 3) return null;
+  let beta = Array(p).fill(0);
+  let information = null;
+  for (let iter = 0; iter < 30; iter += 1) {
+    const score = Array(p).fill(0);
+    const info = Array.from({ length: p }, () => Array(p).fill(0));
+    for (let i = 0; i < n; i += 1) {
+      if (!events[i]) continue;
+      const risk = [];
+      for (let j = 0; j < n; j += 1) if (times[j] >= times[i]) risk.push(j);
+      let denom = 0;
+      const weightedMean = Array(p).fill(0);
+      const weightedSecond = Array.from({ length: p }, () => Array(p).fill(0));
+      for (const j of risk) {
+        const eta = Math.max(-30, Math.min(30, design[j].reduce((sum, value, k) => sum + value * beta[k], 0)));
+        const w = Math.exp(eta);
+        denom += w;
+        for (let a = 0; a < p; a += 1) {
+          weightedMean[a] += w * design[j][a];
+          for (let b = 0; b < p; b += 1) weightedSecond[a][b] += w * design[j][a] * design[j][b];
+        }
+      }
+      if (!(denom > 0)) continue;
+      for (let a = 0; a < p; a += 1) {
+        const meanA = weightedMean[a] / denom;
+        score[a] += design[i][a] - meanA;
+        for (let b = 0; b < p; b += 1) {
+          info[a][b] += weightedSecond[a][b] / denom - meanA * (weightedMean[b] / denom);
+        }
+      }
+    }
+    const step = solveLinearSystem(info, score, 1e-6);
+    if (!step) return null;
+    beta = beta.map((value, index) => value + step[index]);
+    information = info;
+    if (Math.max(...step.map(Math.abs)) < 1e-7) break;
+  }
+  const inverse = information ? invertMatrix(information, 1e-6) : null;
+  if (!inverse) return null;
+  const se2 = inverse[coefficientIndex][coefficientIndex];
+  const se = se2 > 0 ? Math.sqrt(se2) : NaN;
+  const zStat = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
+  const pValue = Number.isFinite(zStat) ? Math.min(1, 2 * (1 - normalCdf(Math.abs(zStat)))) : null;
+  return { beta, se, statistic: zStat, pValue };
+}
+
+function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', covariateColumns = [] } = {}) {
+  const rows = [];
+  for (const feature of aggregated.features) {
+    const entries = featureOutcomeRows(aggregated, feature, outcomeType);
+    if (entries.length < 4) continue;
+    if (outcomeType === 'multiclass') {
+      const groups = naturalOrder(entries.map((entry) => entry.outcome));
+      if (groups.length < 2) continue;
+      const cov = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true });
+      const response = entries.map((entry) => entry.feature);
+      let adjusted = response;
+      if (cov.design[0]?.length > 1 && response.length > cov.design[0].length + 1) {
+        const fit = ordinaryLeastSquares(cov.design, response, 0);
+        if (fit) adjusted = fit.residuals.map((value) => value + mean(response));
+      }
+      const grouped = groups.map((group) => adjusted.filter((_, i) => entries[i].outcome === group));
+      if (grouped.some((group) => group.length < 2)) continue;
+      const means = grouped.map(mean);
+      rows.push({
+        feature,
+        effect: Math.max(...means) - Math.min(...means),
+        effectScale: 'adjusted between-class difference',
+        pValue: oneWayAnovaPValue(grouped),
+        qValue: null,
+        groupMeans: Object.fromEntries(groups.map((group, index) => [group, means[index]])),
+        n: entries.length,
+        model: 'covariate-adjusted one-way ANOVA'
+      });
+      continue;
+    }
+
+    const cov = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true });
+    const design = entries.map((entry, i) => [1, entry.feature, ...cov.design[i].slice(1)]);
+    let fit = null;
+    let effectScale = 'regression coefficient';
+    let model = '';
+
+    if (outcomeType === 'binary') {
+      const levels = naturalOrder(entries.map((entry) => entry.outcome));
+      if (levels.length !== 2) continue;
+      const response = entries.map((entry) => entry.outcome === levels[1] ? 1 : 0);
+      fit = fitGeneralizedLinear(design, response, 'binomial', 1);
+      effectScale = 'log odds ratio';
+      model = 'logistic regression (' + levels[1] + ' vs ' + levels[0] + ')';
+    } else if (outcomeType === 'count') {
+      const response = entries.map((entry) => finiteNumber(entry.outcome));
+      if (response.some((value) => !Number.isFinite(value) || value < 0)) continue;
+      fit = fitGeneralizedLinear(design, response, 'poisson', 1);
+      effectScale = 'log rate ratio';
+      model = 'Poisson regression';
+    } else if (outcomeType === 'survival') {
+      const responseDesign = entries.map((entry, i) => [entry.feature, ...cov.design[i].slice(1)]);
+      const times = entries.map((entry) => entry.survivalTime);
+      const events = entries.map((entry) => finiteNumber(entry.survivalEvent) > 0 ? 1 : 0);
+      fit = coxRegression(responseDesign, times, events, 0);
+      effectScale = 'log hazard ratio';
+      model = 'Cox proportional hazards';
+      if (fit) fit.beta = [fit.beta[0]];
+    } else {
+      const response = entries.map((entry) => finiteNumber(entry.outcome));
+      if (response.some((value) => !Number.isFinite(value))) continue;
+      fit = ordinaryLeastSquares(design, response, 1);
+      effectScale = 'outcome units per feature unit';
+      model = 'linear regression';
+    }
+
+    if (!fit) continue;
+    const coefficient = fit.beta?.[1] ?? fit.beta?.[0];
+    rows.push({
+      feature,
+      effect: coefficient,
+      effectScale,
+      pValue: fit.pValue,
+      qValue: null,
+      statistic: fit.statistic,
+      standardError: fit.se,
+      n: entries.length,
+      model,
+      exponentiatedEffect: ['binary','count','survival'].includes(outcomeType) ? Math.exp(coefficient) : null
+    });
+  }
+
+  bhAdjust(rows);
+  rows.sort((a,b) => {
+    const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
+    const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
+    if (aq !== bq) return aq - bq;
+    return Math.abs(b.effect) - Math.abs(a.effect);
+  });
+  const significant = rows.filter((row) => Number.isFinite(row.qValue) && row.qValue <= 0.10);
+  const selected = (significant.length >= 10 ? significant : rows).slice(0, significant.length >= 10 ? 50 : 25);
+  return {
+    rows,
+    selected,
+    selectionRule: significant.length >= 10
+      ? 'q ≤ 0.10, capped at 50 features'
+      : 'only ' + significant.length + ' FDR-qualified feature(s); top ' + selected.length + ' ranked features retained for exploratory biological mapping',
+    effectScale: rows[0]?.effectScale || 'outcome association',
+    contrast: 'association with ' + outcomeType + ' outcome',
+    mode: 'outcome-' + outcomeType,
+    inferenceMethod: rows[0]?.model || 'outcome regression',
+    groupSizes: [],
+    steps: aggregated.steps
+  };
+}
+
+function endpointSubjectValueMap(aggregated, feature) {
+  return new Map(subjectEndpointRows(aggregated, feature).map((entry) => [entry.subjectId, entry.value]));
+}
+
+function powerEigen(matrix, seed = 1, orthogonalTo = []) {
+  const n = matrix.length;
+  if (!n) return null;
+  let vector = Array.from({ length: n }, (_, i) => Math.sin((i + 1) * (seed + 0.37)));
+  const normalise = (v) => {
+    for (const basis of orthogonalTo) {
+      const dot = v.reduce((sum, value, i) => sum + value * basis[i], 0);
+      for (let i = 0; i < v.length; i += 1) v[i] -= dot * basis[i];
+    }
+    const norm = Math.sqrt(v.reduce((sum, value) => sum + value * value, 0));
+    return norm > 0 ? v.map((value) => value / norm) : null;
+  };
+  vector = normalise(vector);
+  if (!vector) return null;
+  for (let iter = 0; iter < 200; iter += 1) {
+    let next = multiplyMatrixVector(matrix, vector);
+    next = normalise(next);
+    if (!next) return null;
+    const delta = Math.sqrt(next.reduce((sum, value, i) => sum + (value - vector[i]) ** 2, 0));
+    vector = next;
+    if (delta < 1e-9) break;
+  }
+  const mv = multiplyMatrixVector(matrix, vector);
+  const eigenvalue = vector.reduce((sum, value, i) => sum + value * mv[i], 0);
+  return { vector, eigenvalue };
+}
+
+function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeaturesPerLayer = 50) {
+  const subjectSets = loadedLayers.map((layer) =>
+    new Set([...aggregatedByLayer[layer].sampleMeta.values()].map((row) => row.subjectId))
+  );
+  const subjects = [...subjectSets[0]].filter((subject) => subjectSets.every((set) => set.has(subject))).sort();
+  if (subjects.length < 3) {
+    return {
+      error: 'Exploratory multi-omics integration requires at least three subjects shared across all loaded layers.',
+      subjects: subjects.length,
+      components: [],
+      layers: {}
+    };
+  }
+
+  const blocks = {};
+  const concatenated = subjects.map(() => []);
+  const featureMap = [];
+  let totalVariance = 0;
+
+  for (const layer of loadedLayers) {
+    const features = topVariableFeatures(aggregatedByLayer[layer], maxFeaturesPerLayer);
+    const standardizedColumns = [];
+    const keptFeatures = [];
+    for (const feature of features) {
+      const map = endpointSubjectValueMap(aggregatedByLayer[layer], feature);
+      const values = subjects.map((subject) => map.get(subject));
+      if (values.some((value) => !Number.isFinite(value))) continue;
+      const center = mean(values);
+      const sd = Math.sqrt(variance(values));
+      if (!(sd > 0)) continue;
+      keptFeatures.push(feature);
+      standardizedColumns.push(values.map((value) => (value - center) / sd));
+    }
+    const blockScale = keptFeatures.length ? 1 / Math.sqrt(keptFeatures.length) : 1;
+    for (let fIndex = 0; fIndex < keptFeatures.length; fIndex += 1) {
+      const values = standardizedColumns[fIndex].map((value) => value * blockScale);
+      featureMap.push({ layer, feature: keptFeatures[fIndex], values });
+      for (let i = 0; i < subjects.length; i += 1) concatenated[i].push(values[i]);
+      totalVariance += values.reduce((sum, value) => sum + value * value, 0);
+    }
+    blocks[layer] = { featureCount: keptFeatures.length, features: keptFeatures };
+  }
+
+  if (!concatenated[0]?.length) {
+    return { error: 'No complete variable features were available across shared subjects.', subjects: subjects.length, components: [], layers: blocks };
+  }
+
+  const gram = Array.from({ length: subjects.length }, () => Array(subjects.length).fill(0));
+  for (let i = 0; i < subjects.length; i += 1) {
+    for (let j = i; j < subjects.length; j += 1) {
+      let sum = 0;
+      for (let k = 0; k < concatenated[i].length; k += 1) sum += concatenated[i][k] * concatenated[j][k];
+      gram[i][j] = sum;
+      gram[j][i] = sum;
+    }
+  }
+
+  const components = [];
+  const basis = [];
+  for (let component = 0; component < Math.min(2, subjects.length - 1); component += 1) {
+    const eig = powerEigen(gram, component + 1, basis);
+    if (!eig || !(eig.eigenvalue > 1e-10)) continue;
+    basis.push(eig.vector);
+    const scores = eig.vector.map((value) => value * Math.sqrt(eig.eigenvalue));
+    const loadings = featureMap.map(({ layer, feature, values }) => {
+      const loading = values.reduce((sum, value, i) => sum + value * eig.vector[i], 0) / Math.sqrt(eig.eigenvalue);
+      return { layer, feature, loading };
+    });
+    components.push({
+      component: component + 1,
+      explainedFraction: totalVariance > 0 ? eig.eigenvalue / totalVariance : null,
+      scores: subjects.map((subject, i) => ({ subjectId: subject, score: scores[i] })),
+      topLoadings: loadings.slice().sort((a,b) => Math.abs(b.loading) - Math.abs(a.loading)).slice(0,30),
+      layerContribution: Object.fromEntries(loadedLayers.map((layer) => {
+        const sumSquares = loadings.filter((item) => item.layer === layer).reduce((sum, item) => sum + item.loading * item.loading, 0);
+        return [layer, sumSquares];
+      }))
+    });
+  }
+
+  return {
+    method: 'balanced multi-block PCA: top-variable features are standardized within layer, each layer is scaled by 1/sqrt(p), then deterministic PCA is computed on the shared-subject Gram matrix',
+    subjects: subjects.length,
+    subjectIds: subjects,
+    layers: blocks,
+    components
+  };
+}
+
+function explorationLayerResult(aggregated, exploration, layer) {
+  const loadings = exploration.components?.[0]?.topLoadings?.filter((item) => item.layer === layer) || [];
+  const byFeature = new Map(loadings.map((item) => [item.feature, item.loading]));
+  const rows = topVariableFeatures(aggregated, 100).map((feature) => ({
+    feature,
+    effect: byFeature.get(feature) ?? 0,
+    effectScale: 'PC1 loading',
+    pValue: null,
+    qValue: null,
+    variance: variance([...aggregated.values.get(feature).values()])
+  })).sort((a,b) => Math.abs(b.effect) - Math.abs(a.effect) || b.variance - a.variance);
+  const selected = rows.filter((row) => row.effect !== 0).slice(0,25);
+  return {
+    rows,
+    selected,
+    selectionRule: 'top absolute loadings on balanced multi-block PC1, capped at 25 features',
+    effectScale: 'PC1 loading',
+    contrast: 'unsupervised shared structure',
+    mode: 'exploratory-multiblock-pca',
+    inferenceMethod: exploration.method,
+    groupSizes: [],
+    steps: aggregated.steps
+  };
+}
+
 function subjectFeatureValues(aggregated, feature, options) {
   const source = aggregated.values.get(feature);
   const perSubject = new Map();
