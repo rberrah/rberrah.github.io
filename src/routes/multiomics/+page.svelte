@@ -8,6 +8,27 @@
   let groupVariable = '';
   let outcome = '';
   let unitType = 'participant';
+  let studySetting = 'clinical_observational';
+  let designType = 'independent';
+  let groupCount = '2';
+  let timepointCount = '1';
+  let sampleOverlap = 'same_specimen';
+  let technicalReplicatesExpected = 'unknown';
+  let batchKnown = 'unknown';
+  let outcomeType = 'none';
+  let covariatesAvailable = 'yes';
+  let partialOmicsExpected = 'no';
+
+  let transcriptomicsPlatform = 'bulk_rnaseq';
+  let transcriptomicsValues = 'raw_counts';
+  let transcriptomicsIdType = 'ensembl_gene';
+  let proteomicsPlatform = 'label_free';
+  let proteomicsValues = 'lfq_intensity';
+  let proteomicsIdType = 'uniprot';
+  let metabolomicsPlatform = 'untargeted_lcms';
+  let metabolomicsValues = 'peak_area';
+  let metabolomicsIdType = 'chebi';
+
   /** @type {number | undefined} */
   let subjectCount;
   let paired = 'no';
@@ -130,6 +151,45 @@
     proteomics: ['proteomics', 'proteome', 'proteomique', 'protein', 'proteins', 'proteine', 'proteines', 'lfq'],
     metabolomics: ['metabolomics', 'metabolome', 'metabolomique', 'metabolite', 'metabolites', 'met']
   };
+
+  const databaseRegistry = [
+    {
+      name: 'Ensembl',
+      scope: 'genes',
+      role: 'Resolve Ensembl IDs and gene symbols, confirm species and canonical gene annotations.',
+      url: 'https://rest.ensembl.org/documentation/'
+    },
+    {
+      name: 'UniProt',
+      scope: 'proteins',
+      role: 'Resolve protein accessions and cross-reference proteins to genes, Ensembl, Reactome and other resources.',
+      url: 'https://www.uniprot.org/help/id_mapping'
+    },
+    {
+      name: 'ChEBI',
+      scope: 'metabolites',
+      role: 'Resolve curated chemical entities, synonyms, structures and ontology relationships.',
+      url: 'https://www.ebi.ac.uk/chebi/tools'
+    },
+    {
+      name: 'UniChem',
+      scope: 'metabolites',
+      role: 'Cross-reference chemical identifiers between databases when the uploaded metabolite identifier is not ChEBI.',
+      url: 'https://www.ebi.ac.uk/unichem/'
+    },
+    {
+      name: 'Reactome',
+      scope: 'pathways',
+      role: 'Map genes, proteins and ChEBI entities onto common pathways and reactions for integrated pathway interpretation.',
+      url: 'https://reactome.org/dev/analysis'
+    },
+    {
+      name: 'STRING',
+      scope: 'network',
+      role: 'Build compact protein interaction modules after identifier resolution; not used as a substitute for the measured data.',
+      url: 'https://string-db.org/help/api/'
+    }
+  ];
 
   /** @param {unknown} value */
   function normalise(value) {
@@ -393,6 +453,73 @@
     columnMapping = { ...columnMapping, [key]: value };
   }
 
+  /**
+   * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
+   */
+  function inferFeatureIdType(layer) {
+    const ids = matrixInfo[layer].rowIds.slice(0, 50).map((id) => id.trim()).filter(Boolean);
+    if (!ids.length) return { type: 'unknown', confidence: 0 };
+    const tests = {
+      ensembl_gene: (id) => /^ENSG\d+(?:\.\d+)?$/i.test(id),
+      ensembl_protein: (id) => /^ENSP\d+(?:\.\d+)?$/i.test(id),
+      uniprot: (id) => /^(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9])(?:-\d+)?$/.test(id),
+      hmdb: (id) => /^HMDB\d+$/i.test(id),
+      chebi: (id) => /^CHEBI:\d+$/i.test(id),
+      kegg_compound: (id) => /^C\d{5}$/i.test(id),
+      entrez: (id) => /^\d+$/.test(id)
+    };
+    let best = { type: 'unknown', confidence: 0 };
+    for (const [type, test] of Object.entries(tests)) {
+      const score = ids.filter(test).length / ids.length;
+      if (score > best.confidence) best = { type, confidence: score };
+    }
+    return best.confidence >= 0.6 ? best : { type: 'unknown', confidence: best.confidence };
+  }
+
+  function downloadGeneratedTemplate() {
+    const headers = ['subject_id', 'sample_id', 'assay_id', 'omic', 'condition'];
+    if (longitudinal === 'yes' || Number(timepointCount) > 1) headers.push('timepoint');
+    if (batchKnown !== 'no') headers.push('batch');
+    if (technicalReplicatesExpected !== 'no') headers.push('technical_replicate');
+    if (outcomeType !== 'none') headers.push('outcome');
+    if (covariatesAvailable === 'yes') headers.push('covariate_1');
+
+    const omics = ['transcriptomics', 'proteomics', 'metabolomics'];
+    const nTime = longitudinal === 'yes' ? Math.max(2, Number(timepointCount) || 2) : 1;
+    const exampleRows = [];
+    for (let subject = 1; subject <= 2; subject += 1) {
+      for (let time = 0; time < nTime; time += 1) {
+        for (const omic of omics) {
+          const prefix = omic === 'transcriptomics' ? 'RNA' : omic === 'proteomics' ? 'PROT' : 'MET';
+          const values = {
+            subject_id: `SUBJ${String(subject).padStart(3, '0')}`,
+            sample_id: `SUBJ${String(subject).padStart(3, '0')}_T${time}`,
+            assay_id: `${prefix}${String((subject - 1) * nTime + time + 1).padStart(3, '0')}`,
+            omic,
+            condition: subject === 1 ? 'control' : 'treatment',
+            timepoint: `T${time}`,
+            batch: `${prefix}_B1`,
+            technical_replicate: '1',
+            outcome: '',
+            covariate_1: ''
+          };
+          exampleRows.push(headers.map((header) => values[header] ?? '').join(','));
+        }
+      }
+    }
+    const csv = [headers.join(','), ...exampleRows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = href;
+    anchor.download = 'multiomics_metadata_from_protocol.csv';
+    anchor.click();
+    URL.revokeObjectURL(href);
+  }
+
+  $: inferredTranscriptomicsId = inferFeatureIdType('transcriptomics');
+  $: inferredProteomicsId = inferFeatureIdType('proteomics');
+  $: inferredMetabolomicsId = inferFeatureIdType('metabolomics');
   $: selectedObjective = objectives[objective];
   $: omicsCount = omicLayers.filter((key) => Boolean(files[key])).length;
   $: requiredMappingsComplete = fieldDefinitions.filter((field) => field.required).every((field) => Boolean(columnMapping[field.key]));
@@ -417,7 +544,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted</p>
+  <p class="eyebrow">Experimental prototype · unlisted · v0.4</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
     Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
@@ -431,11 +558,12 @@
 </section>
 
 <section class="workflow" aria-label="Prototype workflow">
-  <div><span>1</span><strong>Question</strong><small>What should the study answer?</small></div>
-  <div><span>2</span><strong>Design</strong><small>Subjects, samples, repeats</small></div>
-  <div><span>3</span><strong>Map</strong><small>Template or recognised columns</small></div>
-  <div><span>4</span><strong>Validate</strong><small>Assays, replicates, missing layers</small></div>
-  <div><span>5</span><strong>Integrate</strong><small>One multi-omics result</small></div>
+  <div><span>1</span><strong>Question</strong><small>Scientific objective</small></div>
+  <div><span>2</span><strong>Protocol</strong><small>Closed design questions</small></div>
+  <div><span>3</span><strong>Data type</strong><small>Platforms & identifiers</small></div>
+  <div><span>4</span><strong>Map</strong><small>Template or recognised columns</small></div>
+  <div><span>5</span><strong>Validate</strong><small>Samples & replicates</small></div>
+  <div><span>6</span><strong>Integrate</strong><small>Databases & multi-omics</small></div>
 </section>
 
 <section class="panel">
@@ -484,13 +612,25 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 2 · Study design</p>
-      <h2>Define the experimental units and repeated structure</h2>
+      <p class="eyebrow">Step 2 · Protocol</p>
+      <h2>Describe the design with closed questions</h2>
     </div>
-    <p>The workflow separates the biological unit, the biological specimen and the technical assay. They must never be treated as the same identifier.</p>
+    <p>The answers define the statistical structure before any omics method is selected.</p>
   </div>
 
   <div class="form-grid">
+    <label>
+      <span>Study setting</span>
+      <select bind:value={studySetting}>
+        <option value="clinical_observational">Human · observational cohort</option>
+        <option value="clinical_interventional">Human · intervention / trial</option>
+        <option value="animal">Animal experiment</option>
+        <option value="cell">Cell culture / in vitro</option>
+        <option value="organoid">Organoid / ex vivo model</option>
+        <option value="other">Other</option>
+      </select>
+    </label>
+
     <label>
       <span>Independent biological unit</span>
       <select bind:value={unitType}>
@@ -502,25 +642,21 @@
     </label>
 
     <label>
-      <span>Number of units <small>optional check</small></span>
-      <input bind:value={subjectCount} type="number" min="1" placeholder="e.g. 48" />
+      <span>Design structure</span>
+      <select bind:value={designType}>
+        <option value="independent">Independent groups / units</option>
+        <option value="paired">Paired samples</option>
+        <option value="crossover">Crossover / within-subject comparison</option>
+        <option value="repeated">Repeated measurements</option>
+      </select>
     </label>
 
     <label>
-      <span>Group / condition variable</span>
-      <input bind:value={groupVariable} type="text" placeholder="e.g. treatment, response group" />
-    </label>
-
-    <label>
-      <span>Outcome <small>optional</small></span>
-      <input bind:value={outcome} type="text" placeholder="e.g. response, fibrosis score, OS" />
-    </label>
-
-    <label>
-      <span>Repeated / paired samples from the same unit?</span>
-      <select bind:value={paired}>
-        <option value="no">No</option>
-        <option value="yes">Yes</option>
+      <span>Number of comparison groups</span>
+      <select bind:value={groupCount}>
+        <option value="1">One group / exploratory only</option>
+        <option value="2">Two groups</option>
+        <option value="3plus">Three or more groups</option>
       </select>
     </label>
 
@@ -530,6 +666,89 @@
         <option value="no">No</option>
         <option value="yes">Yes</option>
       </select>
+    </label>
+
+    <label>
+      <span>Number of time points</span>
+      <select bind:value={timepointCount}>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4 or more</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Do the omics come from the same biological specimen?</span>
+      <select bind:value={sampleOverlap}>
+        <option value="same_specimen">Yes, same specimen for all omics</option>
+        <option value="same_subject">Same subject, different specimens</option>
+        <option value="partial">Partially matched</option>
+        <option value="unpaired">Different / unpaired samples</option>
+        <option value="unknown">Unknown</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Technical replicates expected?</span>
+      <select bind:value={technicalReplicatesExpected}>
+        <option value="no">No</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unknown</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Known technical batches?</span>
+      <select bind:value={batchKnown}>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+        <option value="unknown">Unknown</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Primary outcome type</span>
+      <select bind:value={outcomeType}>
+        <option value="none">No outcome / exploratory</option>
+        <option value="binary">Binary</option>
+        <option value="multiclass">Multiclass</option>
+        <option value="continuous">Continuous</option>
+        <option value="survival">Time-to-event / survival</option>
+        <option value="count">Count</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Important covariates available?</span>
+      <select bind:value={covariatesAvailable}>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Some subjects may miss an entire omics layer?</span>
+      <select bind:value={partialOmicsExpected}>
+        <option value="no">No / not expected</option>
+        <option value="yes">Yes</option>
+        <option value="unknown">Unknown</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Number of biological units <small>optional consistency check</small></span>
+      <input bind:value={subjectCount} type="number" min="1" placeholder="e.g. 48" />
+    </label>
+
+    <label>
+      <span>Name of the group variable <small>optional</small></span>
+      <input bind:value={groupVariable} type="text" placeholder="e.g. treatment" />
+    </label>
+
+    <label>
+      <span>Name of the outcome <small>optional</small></span>
+      <input bind:value={outcome} type="text" placeholder="e.g. response" />
     </label>
   </div>
 
@@ -555,7 +774,129 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 3 · Data contract</p>
+      <p class="eyebrow">Step 3 · Data type</p>
+      <h2>Tell the app what each matrix represents</h2>
+    </div>
+    <p>This prevents the same numbers from being interpreted incorrectly as raw counts, normalised intensities or absolute concentrations.</p>
+  </div>
+
+  <div class="omics-question-grid">
+    <article>
+      <h3>Transcriptomics</h3>
+      <label>
+        <span>Platform</span>
+        <select bind:value={transcriptomicsPlatform}>
+          <option value="bulk_rnaseq">Bulk RNA-seq</option>
+          <option value="microarray">Microarray</option>
+          <option value="targeted">Targeted expression panel</option>
+          <option value="processed">Already processed matrix</option>
+        </select>
+      </label>
+      <label>
+        <span>Values</span>
+        <select bind:value={transcriptomicsValues}>
+          <option value="raw_counts">Raw integer counts</option>
+          <option value="tpm">TPM / FPKM-like abundance</option>
+          <option value="normalized">Normalised expression</option>
+          <option value="log_expression">Log-transformed expression</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </label>
+      <label>
+        <span>Feature identifier</span>
+        <select bind:value={transcriptomicsIdType}>
+          <option value="ensembl_gene">Ensembl gene ID</option>
+          <option value="gene_symbol">Gene symbol</option>
+          <option value="entrez">Entrez Gene ID</option>
+          <option value="unknown">Unknown / detect automatically</option>
+        </select>
+      </label>
+      {#if matrixInfo.transcriptomics.rowIds.length}
+        <small>Detected from uploaded features: <strong>{inferredTranscriptomicsId.type}</strong> ({Math.round(inferredTranscriptomicsId.confidence * 100)}%).</small>
+      {/if}
+    </article>
+
+    <article>
+      <h3>Proteomics</h3>
+      <label>
+        <span>Platform</span>
+        <select bind:value={proteomicsPlatform}>
+          <option value="label_free">Label-free LC-MS/MS</option>
+          <option value="tmt">TMT / multiplexed</option>
+          <option value="dia">DIA</option>
+          <option value="targeted">Targeted proteomics</option>
+          <option value="processed">Already processed matrix</option>
+        </select>
+      </label>
+      <label>
+        <span>Values</span>
+        <select bind:value={proteomicsValues}>
+          <option value="lfq_intensity">LFQ / intensity</option>
+          <option value="log_intensity">Log intensity</option>
+          <option value="spectral_count">Spectral counts</option>
+          <option value="normalized">Normalised abundance</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </label>
+      <label>
+        <span>Feature identifier</span>
+        <select bind:value={proteomicsIdType}>
+          <option value="uniprot">UniProt accession</option>
+          <option value="gene_symbol">Gene symbol</option>
+          <option value="ensembl_protein">Ensembl protein ID</option>
+          <option value="unknown">Unknown / detect automatically</option>
+        </select>
+      </label>
+      {#if matrixInfo.proteomics.rowIds.length}
+        <small>Detected from uploaded features: <strong>{inferredProteomicsId.type}</strong> ({Math.round(inferredProteomicsId.confidence * 100)}%).</small>
+      {/if}
+    </article>
+
+    <article>
+      <h3>Metabolomics</h3>
+      <label>
+        <span>Acquisition</span>
+        <select bind:value={metabolomicsPlatform}>
+          <option value="untargeted_lcms">Untargeted LC-MS</option>
+          <option value="targeted_lcms">Targeted LC-MS</option>
+          <option value="gcms">GC-MS</option>
+          <option value="nmr">NMR</option>
+          <option value="processed">Already processed matrix</option>
+        </select>
+      </label>
+      <label>
+        <span>Values</span>
+        <select bind:value={metabolomicsValues}>
+          <option value="peak_area">Peak area / intensity</option>
+          <option value="normalized">Normalised abundance</option>
+          <option value="concentration">Absolute concentration</option>
+          <option value="log_abundance">Log abundance</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </label>
+      <label>
+        <span>Feature identifier</span>
+        <select bind:value={metabolomicsIdType}>
+          <option value="chebi">ChEBI</option>
+          <option value="hmdb">HMDB</option>
+          <option value="kegg_compound">KEGG compound</option>
+          <option value="pubchem">PubChem CID</option>
+          <option value="name">Metabolite name</option>
+          <option value="mz_rt">m/z + retention time only</option>
+          <option value="unknown">Unknown / detect automatically</option>
+        </select>
+      </label>
+      {#if matrixInfo.metabolomics.rowIds.length}
+        <small>Detected from uploaded features: <strong>{inferredMetabolomicsId.type}</strong> ({Math.round(inferredMetabolomicsId.confidence * 100)}%).</small>
+      {/if}
+    </article>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Step 4 · Data contract</p>
       <h2>Use the template, or let the app map your column names</h2>
     </div>
     <p>The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.</p>
@@ -567,7 +908,8 @@
       <p>One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.</p>
       <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome</pre>
       <div class="actions">
-        <a class="btn btn-primary" href={`${base}/multiomics/metadata_template.csv`} download>Download metadata template</a>
+        <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>Generate template from my protocol</button>
+        <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>Generic metadata template</a>
         <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>RNA matrix template</a>
         <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>Protein matrix template</a>
         <a class="btn btn-outline" href={`${base}/multiomics/metabolomics_template.csv`} download>Metabolite matrix template</a>
@@ -588,6 +930,22 @@
     </div>
   </div>
 
+  <details class="dictionary">
+    <summary>Detailed metadata dictionary</summary>
+    <div class="dictionary-table">
+      <div><b>Column</b><b>Meaning</b><b>Example</b><b>Rule</b></div>
+      <div><code>subject_id</code><span>Independent biological unit</span><span>P001</span><span>Same value across all visits/omics for one participant, animal or culture.</span></div>
+      <div><code>sample_id</code><span>Physical biological specimen</span><span>P001_T0</span><span>Same value only when assays come from the same specimen.</span></div>
+      <div><code>assay_id</code><span>Technical measurement / run</span><span>RNA001</span><span>Must match the corresponding matrix row/column identifier exactly.</span></div>
+      <div><code>omic</code><span>Measured layer</span><span>transcriptomics</span><span>Canonical values: transcriptomics, proteomics, metabolomics.</span></div>
+      <div><code>condition</code><span>Experimental group</span><span>treatment</span><span>Use one consistent vocabulary across subjects.</span></div>
+      <div><code>timepoint</code><span>Visit / experimental time</span><span>T12</span><span>Required for longitudinal designs.</span></div>
+      <div><code>batch</code><span>Technical batch</span><span>RNA_B1</span><span>Keep assay-specific batches even when different omics use different batches.</span></div>
+      <div><code>technical_replicate</code><span>Repeated technical assay</span><span>1</span><span>Distinct assay_id, same sample_id + omic.</span></div>
+      <div><code>outcome</code><span>Primary phenotype / endpoint</span><span>responder</span><span>Only if used by the scientific question.</span></div>
+    </div>
+  </details>
+
   <details class="aliases">
     <summary>How automatic column recognition works</summary>
     <p>Column names are normalised (case, spaces, hyphens and accents ignored), then compared with a controlled alias list. Automatic recognition is only accepted when exactly one column matches a field.</p>
@@ -607,7 +965,7 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 4 · Upload & mapping</p>
+      <p class="eyebrow">Step 5 · Upload & mapping</p>
       <h2>Match metadata and matrices before analysis</h2>
     </div>
     <p>Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.</p>
@@ -731,7 +1089,7 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 5 · Proposed analysis</p>
+      <p class="eyebrow">Step 6 · Proposed analysis & biological databases</p>
       <h2>The decision engine is deterministic and inspectable</h2>
     </div>
     <p>A future language model may explain the choice, but it should not silently choose the statistical design.</p>
@@ -741,6 +1099,7 @@
     <div>
       <span class="method-tag">Selected workflow</span>
       <h3>{analysisPlan}</h3>
+      <p class="muted">Protocol: {studySetting.replaceAll('_', ' ')} · {designType} · {groupCount === '3plus' ? '≥3' : groupCount} group(s) · {sampleOverlap.replaceAll('_', ' ')}.</p>
     </div>
     <ul>
       <li><strong>Same specimen:</strong> assays are linked by <code>sample_id</code>, never by fuzzy name matching.</li>
@@ -749,6 +1108,34 @@
       <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
       <li><strong>Supervised methods:</strong> only proposed when a target exists and the effective sample size is compatible with the method.</li>
     </ul>
+  </div>
+
+  <div class="database-bridge">
+    <div class="section-head compact">
+      <div>
+        <p class="eyebrow">Identifier → biology bridge</p>
+        <h3>Public databases provide meaning after the measurements are validated</h3>
+      </div>
+      <p>Only molecular identifiers needed for annotation/pathway/network queries should be sent to public APIs. Subject IDs, metadata and abundance matrices remain outside these calls.</p>
+    </div>
+    <div class="database-grid">
+      {#each databaseRegistry as db}
+        <article>
+          <span>{db.scope}</span>
+          <h3>{db.name}</h3>
+          <p>{db.role}</p>
+          <a href={db.url} target="_blank" rel="noreferrer">Official API / documentation ↗</a>
+        </article>
+      {/each}
+    </div>
+    <div class="resolution-flow">
+      <code>{transcriptomicsIdType}</code>
+      <b>+</b>
+      <code>{proteomicsIdType}</code>
+      <b>+</b>
+      <code>{metabolomicsIdType}</code>
+      <span>→ resolve & cross-reference → Reactome pathways → compact STRING modules → integrated interpretation</span>
+    </div>
   </div>
 </section>
 
@@ -818,7 +1205,7 @@
   .privacy { margin-top: var(--space-6); border-left: 3px solid var(--accent-ai); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); max-width: 76ch; }
   .privacy strong { color: var(--text-primary); }
 
-  .workflow { display: grid; grid-template-columns: repeat(5, 1fr); border-block: 1px solid var(--border-strong); margin-bottom: var(--space-12); }
+  .workflow { display: grid; grid-template-columns: repeat(6, 1fr); border-block: 1px solid var(--border-strong); margin-bottom: var(--space-12); }
   .workflow div { padding: var(--space-4); border-right: 1px solid var(--border-subtle); }
   .workflow div:last-child { border-right: 0; }
   .workflow span { font-family: var(--font-mono); color: var(--accent-pk); display: block; margin-bottom: var(--space-2); }
@@ -851,6 +1238,11 @@
   .identity-grid strong, .identity-grid p { display: block; }
   .identity-grid p, .validation small { color: var(--text-secondary); margin-bottom: 0; }
 
+  .omics-question-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+  .omics-question-grid article { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); background: var(--bg-secondary); }
+  .omics-question-grid label { display: grid; gap: 6px; margin-top: var(--space-3); }
+  .omics-question-grid label > span { font-weight: 650; font-size: var(--text-sm); }
+
   .contract { display: grid; grid-template-columns: 1.35fr .65fr; gap: var(--space-5); }
   .contract > div { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-5); background: var(--bg-secondary); }
   pre { overflow-x: auto; padding: var(--space-3); background: var(--bg-primary); border: 1px solid var(--border-subtle); font-size: var(--text-xs); }
@@ -858,7 +1250,12 @@
   .demo-card { background: linear-gradient(135deg, color-mix(in srgb, var(--accent-ai) 10%, transparent), var(--bg-secondary)) !important; }
   .demo-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); font-size: var(--text-sm); }
 
-  .aliases { margin-top: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); }
+  .dictionary, .aliases { margin-top: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); }
+  .dictionary summary, .aliases summary { cursor: pointer; font-weight: 700; }
+  .dictionary-table { margin-top: var(--space-4); }
+  .dictionary-table > div { display: grid; grid-template-columns: .8fr 1.2fr .8fr 2fr; gap: var(--space-3); padding: 8px 0; border-bottom: 1px solid var(--border-subtle); font-size: var(--text-sm); }
+  .dictionary-table > div:first-child { color: var(--text-muted); }
+
   .aliases summary { cursor: pointer; font-weight: 700; }
   .alias-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
   .alias-grid article { background: var(--bg-secondary); padding: var(--space-3); border-radius: var(--radius); }
@@ -897,6 +1294,16 @@
 
   .plan { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--space-6); padding: var(--space-5); background: var(--bg-secondary); border-left: 3px solid var(--accent-pk); }
   .plan li { margin-bottom: var(--space-2); color: var(--text-secondary); }
+  .database-bridge { margin-top: var(--space-6); }
+  .section-head.compact { align-items: start; margin-bottom: var(--space-4); }
+  .database-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+  .database-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
+  .database-grid article > span { font-family: var(--font-mono); font-size: 10px; color: var(--accent-pk); text-transform: uppercase; }
+  .database-grid article p { color: var(--text-secondary); font-size: var(--text-sm); }
+  .database-grid article a { font-size: var(--text-xs); }
+  .resolution-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--space-4); padding: var(--space-4); background: var(--bg-secondary); border-left: 3px solid var(--accent-pd); }
+  .resolution-flow code { border: 1px solid var(--border-strong); border-radius: 5px; padding: 4px 7px; background: var(--bg-primary); }
+
 
   .result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
   .result-grid article { min-height: 240px; padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
@@ -918,13 +1325,14 @@
   @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
     .contract, .plan { grid-template-columns: 1fr; }
-    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid { grid-template-columns: repeat(2, 1fr); }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid { grid-template-columns: repeat(2, 1fr); }
     .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation { grid-template-columns: 1fr; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid { grid-template-columns: 1fr; }
+    .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
     .workflow div:last-child { border-bottom: 0; }
     .wide { grid-column: auto; }
