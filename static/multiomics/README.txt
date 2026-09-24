@@ -30,7 +30,8 @@ Branches analytiques actuellement opérationnelles :
   - binaire -> régression logistique ;
   - comptage -> régression de Poisson ;
   - multiclasse -> ANOVA ajustée ;
-  - survie -> modèle de Cox.
+  - survie -> modèle de Cox ;
+  - si plusieurs temps omiques sont présents, le temps utilisé comme prédicteur doit être choisi explicitement (par exemple baseline pour une analyse pronostique).
 - crossover : volontairement bloqué tant que période et séquence ne sont pas modélisées.
 
 Batches et covariables :
@@ -80,7 +81,7 @@ Operational branches:
 - explore: deterministic balanced multi-block PCA across shared subjects.
 - groups: two-group, paired or independent multi-group inference according to the declared design.
 - time: within-subject change or individual slope followed by between-condition inference.
-- outcome: linear, logistic, Poisson, adjusted multiclass ANOVA or Cox regression according to endpoint type.
+- outcome: linear, logistic, Poisson, adjusted multiclass ANOVA or Cox regression according to endpoint type. When several omics visits exist, the molecular time point entering the model must be selected explicitly (for example baseline in a prognostic analysis).
 - crossover remains blocked until period and sequence effects are modelled.
 
 Multiple non-confounded batches are explicitly adjusted by feature-wise OLS residualisation. Selected covariates are encoded explicitly; the tool never chooses confounders automatically.
