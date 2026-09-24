@@ -1817,6 +1817,66 @@ function powerEigen(matrix, seed = 1, orthogonalTo = []) {
   return { vector, eigenvalue };
 }
 
+function layerQcPca(aggregated, maxFeatures = 100) {
+  const samples = [...aggregated.sampleMeta.entries()];
+  if (samples.length < 3) return { scores: [], explained: [], method: 'not enough samples' };
+  const features = topVariableFeatures(aggregated, maxFeatures);
+  const matrix = samples.map(() => []);
+  for (const feature of features) {
+    const source = aggregated.values.get(feature);
+    const observed = samples.map(([sampleId]) => source.get(sampleId)).filter(Number.isFinite);
+    if (observed.length < 2) continue;
+    const center = mean(observed);
+    const sd = Math.sqrt(variance(observed));
+    if (!(sd > 0)) continue;
+    const fill = median(observed);
+    for (let i = 0; i < samples.length; i += 1) {
+      const raw = source.get(samples[i][0]);
+      matrix[i].push(((Number.isFinite(raw) ? raw : fill) - center) / sd);
+    }
+  }
+  if (!matrix[0]?.length) return { scores: [], explained: [], method: 'no variable features' };
+
+  const gram = Array.from({ length: samples.length }, () => Array(samples.length).fill(0));
+  let totalVariance = 0;
+  for (let i = 0; i < samples.length; i += 1) {
+    for (let j = i; j < samples.length; j += 1) {
+      let value = 0;
+      for (let k = 0; k < matrix[i].length; k += 1) value += matrix[i][k] * matrix[j][k];
+      gram[i][j] = value;
+      gram[j][i] = value;
+    }
+    totalVariance += gram[i][i];
+  }
+
+  const components = [];
+  const basis = [];
+  for (let component = 0; component < Math.min(2, samples.length - 1); component += 1) {
+    const eig = powerEigen(gram, 101 + component, basis);
+    if (!eig || !(eig.eigenvalue > 1e-10)) continue;
+    basis.push(eig.vector);
+    components.push({
+      eigenvalue: eig.eigenvalue,
+      explainedFraction: totalVariance > 0 ? eig.eigenvalue / totalVariance : null,
+      scores: eig.vector.map((value) => value * Math.sqrt(eig.eigenvalue))
+    });
+  }
+  const scores = samples.map(([sampleId, meta], i) => ({
+    sampleId,
+    subjectId: meta.subjectId,
+    condition: meta.condition,
+    batch: meta.batch,
+    pc1: components[0]?.scores[i] ?? 0,
+    pc2: components[1]?.scores[i] ?? 0
+  }));
+  return {
+    scores,
+    explained: components.map((component) => component.explainedFraction),
+    featuresUsed: matrix[0].length,
+    method: 'QC PCA on processed features; feature-wise median imputation is used only for this visualization'
+  };
+}
+
 function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeaturesPerLayer = 50) {
   const subjectSets = loadedLayers.map((layer) =>
     new Set([...aggregatedByLayer[layer].sampleMeta.values()].map((row) => row.subjectId))
@@ -2558,7 +2618,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       analysisAggregated = aggregated;
       adjustment = adjusted.adjustment;
     }
-    aggregated.qc = { ...qcPrepared.qc, preprocessingSteps: processed.steps };
+    aggregated.qc = {
+      ...qcPrepared.qc,
+      preprocessingSteps: processed.steps,
+      pca: layerQcPca(rawAggregated)
+    };
     aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
     aggregated.replicateGroups = rawAggregated.replicateGroups;
     aggregatedByLayer[layer] = aggregated;
@@ -2584,7 +2648,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     if (layers[layer]) {
       layers[layer].replicateGroups = rawAggregated.replicateGroups;
       layers[layer].matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
-      layers[layer].qc = { ...qcPrepared.qc, preprocessingSteps: processed.steps };
+      layers[layer].qc = aggregated.qc;
       layers[layer].adjustment = adjustment;
     } else {
       aggregated.matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
