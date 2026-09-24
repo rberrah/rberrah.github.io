@@ -1,13 +1,16 @@
 <script>
+  /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
   let objective = 'explore';
   let organism = 'human';
   let studyName = '';
   let groupVariable = '';
   let outcome = '';
-  let subjectCount = '';
+  /** @type {number | undefined} */
+  let subjectCount;
   let paired = 'no';
   let longitudinal = 'no';
 
+  /** @type {Record<'transcriptomics' | 'proteomics' | 'metabolomics' | 'metadata', File | null>} */
   let files = {
     transcriptomics: null,
     proteomics: null,
@@ -38,14 +41,20 @@
     }
   };
 
+  /**
+   * @param {'transcriptomics' | 'proteomics' | 'metabolomics' | 'metadata'} layer
+   * @param {Event} event
+   */
   function selectFile(layer, event) {
-    const file = event.currentTarget.files?.[0] ?? null;
+    const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+    const file = input.files?.[0] ?? null;
     files = { ...files, [layer]: file };
   }
 
   $: selectedObjective = objectives[objective];
-  $: omicsCount = ['transcriptomics', 'proteomics', 'metabolomics'].filter((key) => files[key]).length;
-  $: ready = omicsCount >= 2 && files.metadata;
+  $: omicsCount = (/** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']))
+    .filter((key) => Boolean(files[key])).length;
+  $: ready = omicsCount >= 2 && Boolean(files.metadata);
 </script>
 
 <svelte:head>
