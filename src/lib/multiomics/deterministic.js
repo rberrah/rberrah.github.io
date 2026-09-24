@@ -1006,9 +1006,9 @@ function featureOutcomeRows(aggregated, feature, outcomeType, targetTimepoint = 
   });
 }
 
-function subjectCovariateDesign(entries, covariateColumns = [], { includeIntercept = true } = {}) {
+function subjectCovariateDesign(entries, covariateColumns = [], { includeIntercept = true, includeBatch = false } = {}) {
   const rows = entries.map((entry) => entry.row);
-  const encoder = buildCovariateEncoder(rows, covariateColumns, { includeBatch: false });
+  const encoder = buildCovariateEncoder(rows, covariateColumns, { includeBatch });
   const columnNames = encoder.columnNames.slice(includeIntercept ? 0 : 1);
   const design = rows.map((row) => {
     const vector = encoder.encode(row);
@@ -1140,30 +1140,45 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
     if (outcomeType === 'multiclass') {
       const groups = naturalOrder(entries.map((entry) => entry.outcome));
       if (groups.length < 2) continue;
-      const cov = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true });
+      const nuisance = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true, includeBatch: true });
+      const classLevels = groups.slice(1);
+      const reducedDesign = nuisance.design;
+      const fullDesign = entries.map((entry, i) => [
+        1,
+        ...classLevels.map((group) => entry.outcome === group ? 1 : 0),
+        ...nuisance.design[i].slice(1)
+      ]);
       const response = entries.map((entry) => entry.feature);
-      let adjusted = response;
-      if (cov.design[0]?.length > 1 && response.length > cov.design[0].length + 1) {
-        const fit = ordinaryLeastSquares(cov.design, response, 0);
-        if (fit) adjusted = fit.residuals.map((value) => value + mean(response));
-      }
-      const grouped = groups.map((group) => adjusted.filter((_, i) => entries[i].outcome === group));
-      if (grouped.some((group) => group.length < 2)) continue;
-      const means = grouped.map(mean);
+      const reduced = ordinaryLeastSquares(reducedDesign, response, 0);
+      const full = ordinaryLeastSquares(fullDesign, response, 0);
+      if (!reduced || !full) continue;
+      const rssReduced = reduced.residuals.reduce((sum, value) => sum + value * value, 0);
+      const rssFull = full.residuals.reduce((sum, value) => sum + value * value, 0);
+      const df1 = classLevels.length;
+      const df2 = response.length - fullDesign[0].length;
+      if (!(df1 > 0) || !(df2 > 0)) continue;
+      const numerator = Math.max(0, (rssReduced - rssFull) / df1);
+      const denominator = rssFull / df2;
+      const fStatistic = denominator > 0 ? numerator / denominator : Infinity;
+      const pValue = Number.isFinite(fStatistic) || fStatistic === Infinity
+        ? Math.max(0, Math.min(1, 1 - fCdf(fStatistic, df1, df2)))
+        : null;
+      const adjustedMeans = [full.beta[0], ...classLevels.map((_, index) => full.beta[0] + full.beta[index + 1])];
       rows.push({
         feature,
-        effect: Math.max(...means) - Math.min(...means),
+        effect: Math.max(...adjustedMeans) - Math.min(...adjustedMeans),
         effectScale: 'adjusted between-class difference',
-        pValue: oneWayAnovaPValue(grouped),
+        pValue,
         qValue: null,
-        groupMeans: Object.fromEntries(groups.map((group, index) => [group, means[index]])),
+        statistic: fStatistic,
+        groupMeans: Object.fromEntries(groups.map((group, index) => [group, adjustedMeans[index]])),
         n: entries.length,
-        model: 'covariate-adjusted one-way ANOVA'
+        model: 'ANCOVA partial F-test (class + batch + covariates)'
       });
       continue;
     }
 
-    const cov = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true });
+    const cov = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true, includeBatch: true });
     const design = entries.map((entry, i) => [1, entry.feature, ...cov.design[i].slice(1)]);
     let fit = null;
     let effectScale = 'regression coefficient';
@@ -1973,11 +1988,31 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     const processed = preprocessMatrix(matrix, layer, dataTypes[layer]);
     const rawAggregated = aggregateTechnicalReplicates(processed, metadata, layer);
 
-    const adjustmentCovariates = protocol.objective === 'outcome' ? [] : covariateColumns;
-    const adjusted = residualizeAggregated(rawAggregated, adjustmentCovariates);
-    const aggregated = adjusted.aggregated;
+    let aggregated;
+    let adjustment;
+    if (protocol.objective === 'outcome') {
+      aggregated = rawAggregated;
+      const nuisanceEncoder = buildCovariateEncoder(
+        [...rawAggregated.sampleMeta.values()],
+        covariateColumns,
+        { includeBatch: true }
+      );
+      adjustment = {
+        applied: nuisanceEncoder.columnNames.length > 1,
+        method: 'direct nuisance adjustment inside each outcome model',
+        columns: nuisanceEncoder.columnNames.slice(1),
+        covariates: covariateColumns,
+        note: nuisanceEncoder.columnNames.length > 1
+          ? 'Batch and selected covariates enter the outcome regression directly; omics features are not pre-residualized.'
+          : 'No varying batch or selected covariate required adjustment.'
+      };
+    } else {
+      const adjusted = residualizeAggregated(rawAggregated, covariateColumns);
+      aggregated = adjusted.aggregated;
+      adjustment = adjusted.adjustment;
+    }
     aggregatedByLayer[layer] = aggregated;
-    adjustments[layer] = adjusted.adjustment;
+    adjustments[layer] = adjustment;
 
     if (protocol.objective === 'outcome') {
       layers[layer] = analyseOutcomeLayer(aggregated, layer, {
@@ -1995,7 +2030,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     if (layers[layer]) {
       layers[layer].replicateGroups = rawAggregated.replicateGroups;
       layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
-      layers[layer].adjustment = adjusted.adjustment;
+      layers[layer].adjustment = adjustment;
     } else {
       aggregated.matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
       aggregated.replicateGroups = rawAggregated.replicateGroups;
