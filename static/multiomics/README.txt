@@ -130,11 +130,9 @@ Reactome :
 Résolution conservative actuellement active :
 - transcriptomique : Ensembl ; les identifiants Ensembl canoniques sont conservés, les symboles peuvent être résolus via Ensembl.
 - protéomique : UniProt / Ensembl ; les accessions UniProt canoniques sont conservées.
-- métabolomique : ChEBI avec correspondances exactes et alias lipidiques déterministes.
+- métabolomique : ChEBI avec correspondances exactes et alias lipidiques déterministes ; les InChIKey peuvent être reliés à ChEBI via UniChem lorsqu'une correspondance unique existe.
 - les cas ambigus restent ambiguous/unresolved ; aucun mapping n'est forcé.
 - limites de requêtes appliquées pour éviter les appels excessifs.
-
-UniChem reste un connecteur prévu pour les identifiants chimiques non couverts ; il n'est pas encore utilisé automatiquement.
 
 10. RAPPORT REPRODUCTIBLE
 
@@ -194,7 +192,7 @@ Le navigateur constitue désormais une pipeline analytique déterministe utilisa
 - les workflows MS complets de correction de dérive QC, blank subtraction et modèles MNAR restent dépendants de la préparation amont ou d'un futur moteur R serveur.
 - lmerTest, MOFA2 et DIABLO disposent d'adaptateurs R, pas exécutés dans GitHub Pages.
 - fgsea dispose d'un adaptateur R rank-based ; la récupération automatique des gene sets Reactome vers cet adaptateur reste à connecter.
-- UniChem n'est pas encore appelé automatiquement.
+- les identifiants chimiques autres que ChEBI/noms exacts/alias déterministes/InChIKey ne disposent pas encore tous d'une conversion cross-database automatique.
 - prédiction de survie cross-validée non implémentée.
 - validation externe reste indispensable pour un modèle prédictif destiné à la clinique.
 
@@ -205,4 +203,4 @@ The browser pipeline now implements the same major stages described above: expli
 
 Reference MOFA2 and DIABLO adapters are provided under multiomics-engine/advanced_methods.R for local/server execution. They are intentionally kept distinct from the browser-native PCA/PLS components.
 
-Reference R adapters now cover DESeq2, limma, lmerTest, fgsea, MOFA2 and DIABLO. Remaining limitations include automatic execution of those packages from the public browser, advanced MS drift/blank/MNAR processing, automatic Reactome gene-set transfer into fgsea, automatic UniChem mapping, cross-validated survival prediction and external clinical validation.
+Reference R adapters now cover DESeq2, limma, lmerTest, fgsea, MOFA2 and DIABLO. Remaining limitations include automatic execution of those packages from the public browser, advanced MS drift/blank/MNAR processing, automatic Reactome gene-set transfer into fgsea, broader chemical-ID cross-mapping beyond deterministic InChIKey→ChEBI resolution, cross-validated survival prediction and external clinical validation.
