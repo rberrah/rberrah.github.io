@@ -169,6 +169,65 @@ function csvFile(name, text) {
   assert.ok(longitudinalResult.layers.transcriptomics.rows[0].effect > 0.15);
 }
 
+// High-dimensional branch: >500 features must switch from permutations to analytic inference.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaRows = [];
+  const protRows = [];
+  const rnaAssays = [];
+  const protAssays = [];
+  let assay = 1;
+  for (const condition of ['control','treatment']) {
+    for (let s = 1; s <= 8; s += 1) {
+      const subject = `${condition[0].toUpperCase()}${s}`;
+      for (const layer of ['transcriptomics','proteomics']) {
+        const id = `${layer === 'transcriptomics' ? 'HR' : 'HP'}${assay++}`;
+        rows.push([subject,subject,id,layer,condition,''].join(','));
+        if (layer === 'transcriptomics') rnaAssays.push({id,condition,s});
+        else protAssays.push({id,condition,s});
+      }
+    }
+  }
+  rnaHeader.push(...rnaAssays.map(x=>x.id));
+  protHeader.push(...protAssays.map(x=>x.id));
+  for (let feature = 0; feature < 501; feature += 1) {
+    const name = feature === 0 ? 'HIGH_DIM_SIGNAL' : `GENE_${feature}`;
+    const values = rnaAssays.map(({condition,s}) => {
+      const baseline = 5 + s*0.03 + (feature % 7)*0.01;
+      return String(baseline + (feature === 0 && condition === 'treatment' ? 2.5 : 0));
+    });
+    rnaRows.push([name,...values].join(','));
+  }
+  for (let feature = 0; feature < 10; feature += 1) {
+    const name = feature === 0 ? 'PROT_SIGNAL' : `PROT_${feature}`;
+    const values = protAssays.map(({condition,s}) => {
+      const baseline = 3 + s*0.02 + feature*0.01;
+      return String(baseline + (feature === 0 && condition === 'treatment' ? 1.2 : 0));
+    });
+    protRows.push([name,...values].join(','));
+  }
+
+  const meta = csvFile('highdim_metadata.csv', rows.join('\n'));
+  const rna = csvFile('highdim_rna.csv', [rnaHeader.join(','),...rnaRows].join('\n'));
+  const protein = csvFile('highdim_protein.csv', [protHeader.join(','),...protRows].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+  const highdim = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:metaParsed.rows,
+    columnMapping:mapping,
+    protocol:{organism:'human',objective:'groups',longitudinal:false,designType:'independent',studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen'},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(highdim.layers.transcriptomics.inferenceMethod, 'Welch t-test');
+  assert.equal(highdim.layers.proteomics.inferenceMethod, 'deterministic permutation');
+  const signal = highdim.layers.transcriptomics.rows.find(x=>x.feature === 'HIGH_DIM_SIGNAL');
+  assert.ok(signal && signal.effect > 2 && signal.pValue < 1e-6);
+}
+
 // ChEBI mapping is conservative: explicit lipid alias is queried, but only exact returned names are accepted.
 {
   const mockFetch = async () => new Response(JSON.stringify({
