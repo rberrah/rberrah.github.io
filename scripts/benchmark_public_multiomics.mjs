@@ -706,17 +706,17 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
 // --- PaintOmics planted multi-omics truth: independent RNA/protein layers should converge on the same planted module ---
 {
   const paintRoot = process.env.PAINTOMICS_ROOT || 'external/PaintOmics';
-  const datasetRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration\`;
+  const datasetRoot = `${paintRoot}/PaintomicsServer/src/examplefiles/datasets/04-multiomics-integration`;
   const readList = async (path) => (await fs.readFile(path, 'utf8'))
     .split(/\r?\n/)
     .map((x) => x.trim())
     .filter((x) => x && !x.startsWith('#'));
 
-  const geneRelevant = await readList(\`\${datasetRoot}/data/gene_expression_relevant.tab\`);
-  const proteinRelevant = await readList(\`\${datasetRoot}/data/proteomics_relevant.tab\`);
-  const metaboliteRelevant = await readList(\`\${datasetRoot}/data/metabolomics_relevant.tab\`);
-  const planted = new Set(await readList(\`\${datasetRoot}/expected/signal_features.txt\`));
-  const expectedPathways = await readList(\`\${datasetRoot}/expected/expected_pathways.txt\`);
+  const geneRelevant = await readList(`${datasetRoot}/data/gene_expression_relevant.tab`);
+  const proteinRelevant = await readList(`${datasetRoot}/data/proteomics_relevant.tab`);
+  const metaboliteRelevant = await readList(`${datasetRoot}/data/metabolomics_relevant.tab`);
+  const planted = new Set(await readList(`${datasetRoot}/expected/signal_features.txt`));
+  const expectedPathways = await readList(`${datasetRoot}/expected/expected_pathways.txt`);
 
   const proteinSet = new Set(proteinRelevant);
   const sharedGeneProtein = geneRelevant.filter((id) => proteinSet.has(id));
@@ -726,17 +726,17 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   requireTruth(
     planted.size === 324,
     'PaintOmics planted multi-omics fixture exposes the recorded 324-feature ground truth',
-    \`planted=\${planted.size}\`
+    `planted=${planted.size}`
   );
   requireTruth(
     sharedGeneProtein.length >= 80 && plantedFraction >= 0.85,
     'PaintOmics RNA/protein relevant sets converge on the planted module',
-    \`shared=\${sharedGeneProtein.length}, planted-shared=\${sharedPlanted.length} (\${(100*plantedFraction).toFixed(1)}%)\`
+    `shared=${sharedGeneProtein.length}, planted-shared=${sharedPlanted.length} (${(100*plantedFraction).toFixed(1)}%)`
   );
   requireTruth(
     metaboliteRelevant.length === 496 && expectedPathways.length === 8,
     'PaintOmics fixture preserves the recorded metabolite and pathway truth sets',
-    \`metabolites=\${metaboliteRelevant.length}, pathways=\${expectedPathways.length}\`
+    `metabolites=${metaboliteRelevant.length}, pathways=${expectedPathways.length}`
   );
 
   report.benchmarks.paintOmicsPlanted = {
@@ -755,13 +755,13 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
 // --- STATegra sample-level metabolomics: verify replicate design and direction against the public six-timepoint summary ---
 {
   const paintRoot = process.env.PAINTOMICS_ROOT || 'external/PaintOmics';
-  const replicateRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data\`;
-  const summaryRoot = \`\${paintRoot}/PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data\`;
+  const replicateRoot = `${paintRoot}/PaintomicsServer/src/examplefiles/datasets/12-stategra-metabolomics-replicates/data`;
+  const summaryRoot = `${paintRoot}/PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/data`;
 
-  const design = parseDelimited(await fs.readFile(\`\${replicateRoot}/experimental_design.tab\`, 'utf8'));
-  const replicateMatrix = parseDelimited(await fs.readFile(\`\${replicateRoot}/metabolomics_replicates.tab\`, 'utf8'));
-  const summaryMatrix = parseDelimited(await fs.readFile(\`\${summaryRoot}/metabolomics_values.tab\`, 'utf8'));
-  const relevantMetabolites = (await fs.readFile(\`\${replicateRoot}/metabolomics_relevant.tab\`, 'utf8'))
+  const design = parseDelimited(await fs.readFile(`${replicateRoot}/experimental_design.tab`, 'utf8'));
+  const replicateMatrix = parseDelimited(await fs.readFile(`${replicateRoot}/metabolomics_replicates.tab`, 'utf8'));
+  const summaryMatrix = parseDelimited(await fs.readFile(`${summaryRoot}/metabolomics_values.tab`, 'utf8'));
+  const relevantMetabolites = (await fs.readFile(`${replicateRoot}/metabolomics_relevant.tab`, 'utf8'))
     .split(/\r?\n/)
     .map((x) => x.trim())
     .filter((x) => x && !x.startsWith('#'));
@@ -777,12 +777,12 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   requireTruth(
     design.rows.length === 36 && conditionCounts.size === 12 && [...conditionCounts.values()].every((n) => n === 3),
     'STATegra replicate design preserves 12 condition-time cells with three biological replicates each',
-    \`samples=\${design.rows.length}, cells=\${conditionCounts.size}, replicates=\${[...new Set(conditionCounts.values())].join('/')}\`
+    `samples=${design.rows.length}, cells=${conditionCounts.size}, replicates=${[...new Set(conditionCounts.values())].join('/')}`
   );
   requireTruth(
     replicateMatrix.rows.length === 58 && replicateMatrix.headers.length - 1 === 36 && relevantMetabolites.length === 34,
     'STATegra replicate matrix preserves the published 58-metabolite panel and 34-feature relevant set',
-    \`features=\${replicateMatrix.rows.length}, sample-columns=\${replicateMatrix.headers.length-1}, relevant=\${relevantMetabolites.length}\`
+    `features=${replicateMatrix.rows.length}, sample-columns=${replicateMatrix.headers.length-1}, relevant=${relevantMetabolites.length}`
   );
 
   const repId = replicateMatrix.headers[0];
@@ -799,14 +799,14 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
     if (!summaryRow) continue;
     for (const time of times) {
       const ctr = replicateMatrix.headers
-        .filter((header) => header.startsWith(\`Ctr_\${time}H_\`))
+        .filter((header) => header.startsWith(`Ctr_${time}H_`))
         .map((header) => Number(row[header]))
         .filter(Number.isFinite);
       const ik = replicateMatrix.headers
-        .filter((header) => header.startsWith(\`Ik_\${time}H_\`))
+        .filter((header) => header.startsWith(`Ik_${time}H_`))
         .map((header) => Number(row[header]))
         .filter(Number.isFinite);
-      const summaryColumn = \`IKvsCtr_\${time}h\`;
+      const summaryColumn = `IKvsCtr_${time}h`;
       const published = Number(summaryRow[summaryColumn]);
       if (ctr.length !== 3 || ik.length !== 3 || !Number.isFinite(published)) continue;
       const derived = mean(ik) - mean(ctr);
@@ -830,12 +830,12 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   requireTruth(
     comparable >= 300 && directionConcordance >= 0.95,
     'STATegra replicate-level Ikaros-minus-control trajectories agree in direction with the public multi-omics summary',
-    \`n=\${comparable}, concordance=\${(100*directionConcordance).toFixed(1)}%\`
+    `n=${comparable}, concordance=${(100*directionConcordance).toFixed(1)}%`
   );
 
   if (medianScaleRatio != null && Math.abs(medianScaleRatio - 1) > 0.20) {
     console.warn(
-      \`PUBLIC BENCHMARK NOTE: STATegra replicate and summary files agree in direction but not numeric scale (median |replicate contrast / summary contrast|=\${medianScaleRatio.toFixed(3)}). The engine must therefore treat uploaded scale declarations explicitly rather than assuming these public files are numerically interchangeable.\`
+      `PUBLIC BENCHMARK NOTE: STATegra replicate and summary files agree in direction but not numeric scale (median |replicate contrast / summary contrast|=${medianScaleRatio.toFixed(3)}). The engine must therefore treat uploaded scale declarations explicitly rather than assuming these public files are numerically interchangeable.`
     );
   }
 
