@@ -1206,7 +1206,7 @@
     <div>
       <p class="eyebrow">Deterministic engine</p>
       <h3>Run the analysis from the uploaded matrices</h3>
-      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, two-group or longitudinal permutation inference, BH-FDR correction, cross-omics differential correlation and optional Reactome over-representation.</p>
+      <p>No LLM is used. The current MVP performs declared-data preprocessing, technical-replicate aggregation, technical-batch confounding checks, two-group or longitudinal inference, BH-FDR correction, cross-omics differential correlation and optional Reactome over-representation.</p>
       <label class="inline-check">
         <input type="checkbox" bind:checked={resolveIdentifiers} />
         <span>Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis</span>
@@ -1255,6 +1255,23 @@
       <div class="overlap-pairs">
         {#each analysisResult.metadataSummary.overlap.pairwise as pair}
           <span>{omicLabel(pair.layerA)} ↔ {omicLabel(pair.layerB)}: <b>{pair.matchedSubjects}</b> matched</span>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  {#if analysisResult.metadataSummary.batchAudit}
+    <div class="overlap-box">
+      <div>
+        <p class="eyebrow">Technical batch audit</p>
+        <strong>Batch structure checked before biological inference</strong>
+      </div>
+      <div class="overlap-pairs">
+        {#each omicLayers as layer}
+          {#if analysisResult.metadataSummary.batchAudit[layer]}
+            {@const audit = analysisResult.metadataSummary.batchAudit[layer]}
+            <span>{omicLabel(layer)}: <b>{audit.status.replaceAll('_', ' ')}</b>{audit.batches?.length ? ' · ' + audit.batches.length + ' batch(es)' : ''}</span>
+          {/if}
         {/each}
       </div>
     </div>
@@ -1445,6 +1462,8 @@
       <li><strong>Repeated subject:</strong> two time points use within-subject change; ≥3 numeric-labelled times use an individual slope.</li>
       <li><strong>Paired design:</strong> within-subject differences use a sign-flip permutation test. Crossover designs are refused until period/sequence effects are modelled.</li>
       <li><strong>Technical replicate:</strong> multiple assays with the same <code>sample_id + omic</code> are flagged before analysis.</li>
+      <li><strong>Technical batch:</strong> complete condition/time confounding with batch blocks inference. Multiple non-confounded batches are reported explicitly; the current browser MVP does not silently estimate a batch coefficient.</li>
+      <li><strong>Covariates:</strong> their availability is recorded in the protocol, but covariate-adjusted outcome/regression models are not yet part of this deterministic MVP.</li>
       <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
       <li><strong>Supervised methods:</strong> only proposed when a target exists and the effective sample size is compatible with the method.</li>
     </ul>
