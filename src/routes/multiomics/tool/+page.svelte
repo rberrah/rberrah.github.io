@@ -1685,6 +1685,68 @@
     </div>
   {/if}
 
+  {#if analysisResult.supervisedIntegration}
+    <div class="integration-result">
+      <div class="integration-head">
+        <div>
+          <p class="eyebrow">{t('Intégration supervisée', 'Supervised integration')}</p>
+          <h3>{t('Composante latente multiblocs liée à la cible', 'Target-linked multiblock latent component')}</h3>
+        </div>
+        <span>{analysisResult.supervisedIntegration.subjects} {t('sujets', 'subjects')}</span>
+      </div>
+      <div class="api-summary">
+        <span><strong>{Number.isFinite(analysisResult.supervisedIntegration.scoreTargetCorrelation) ? analysisResult.supervisedIntegration.scoreTargetCorrelation.toFixed(2) : '—'}</strong> r score-cible</span>
+        <span><strong>{Number.isFinite(analysisResult.supervisedIntegration.scoreTargetR2) ? (100 * analysisResult.supervisedIntegration.scoreTargetR2).toFixed(1) + '%' : '—'}</strong> R² descriptif</span>
+      </div>
+      <p class="note">{analysisResult.supervisedIntegration.method}</p>
+      <div class="cross-table">
+        <div class="cross-head"><b>{t('Variable', 'Feature')}</b><b>{t('Omique', 'Omics')}</b><b>{t('Poids', 'Weight')}</b><b>|weight|</b><b></b><b></b></div>
+        {#each analysisResult.supervisedIntegration.topWeights.slice(0, 15) as item}
+          <div>
+            <code>{item.feature}</code>
+            <span>{omicLabel(item.layer)}</span>
+            <strong>{item.weight.toPrecision(3)}</strong>
+            <span>{item.absoluteWeight.toPrecision(3)}</span>
+            <span></span><span></span>
+          </div>
+        {/each}
+      </div>
+      <p class="note">{analysisResult.supervisedIntegration.caveat}</p>
+    </div>
+  {/if}
+
+  {#if analysisResult.predictiveOutcome}
+    <div class="integration-result predictive-result">
+      <div class="integration-head">
+        <div>
+          <p class="eyebrow">{t('Validation prédictive', 'Predictive validation')}</p>
+          <h3>{t('Performance hors échantillon', 'Out-of-sample performance')}</h3>
+        </div>
+        <span>{analysisResult.predictiveOutcome.status === 'ok' ? t('nested CV', 'nested CV') : t('non estimable', 'not estimable')}</span>
+      </div>
+      {#if analysisResult.predictiveOutcome.status === 'ok'}
+        <div class="api-summary">
+          {#if analysisResult.predictiveOutcome.metrics.auc != null}<span><strong>{analysisResult.predictiveOutcome.metrics.auc.toFixed(3)}</strong> AUC</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.accuracy != null}<span><strong>{(100 * analysisResult.predictiveOutcome.metrics.accuracy).toFixed(1)}%</strong> accuracy</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.rmse != null}<span><strong>{analysisResult.predictiveOutcome.metrics.rmse.toPrecision(3)}</strong> RMSE</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.r2 != null}<span><strong>{analysisResult.predictiveOutcome.metrics.r2.toFixed(3)}</strong> R² CV</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.logLoss != null}<span><strong>{analysisResult.predictiveOutcome.metrics.logLoss.toFixed(3)}</strong> log-loss</span>{/if}
+        </div>
+        <p class="note">{analysisResult.predictiveOutcome.method}. {analysisResult.predictiveOutcome.caveat}</p>
+        <details>
+          <summary>{t('Détails des folds', 'Fold details')}</summary>
+          <div class="fold-grid">
+            {#each analysisResult.predictiveOutcome.foldSummaries as fold}
+              <span>Fold {fold.fold}: n train={fold.trainingSubjects}, n test={fold.testSubjects}, λ={fold.lambda}, p={fold.selectedFeatures}</span>
+            {/each}
+          </div>
+        </details>
+      {:else}
+        <p class="muted">{analysisResult.predictiveOutcome.reason}</p>
+      {/if}
+    </div>
+  {/if}
+
   {#if analysisResult.identifierResolution?.metabolomics}
     <div class="identifier-resolution">
       <div class="integration-head">
@@ -1845,8 +1907,8 @@
       <div class="pathway-table" data-testid="multiomics-pathways">
         <div class="pathway-head">
   <b>{t('Voie', 'Pathway')}</b>
-  <b>{t('FDR multi-omique groupée', 'Pooled multi-omics FDR')}
-    <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome obtenue en envoyant ensemble les identifiants sélectionnés de toutes les couches. Ce n’est pas une combinaison mathématique des FDR RNA/protéine/métabolite.', 'Reactome FDR obtained by pooling selected identifiers from all layers. It is not a mathematical combination of the RNA/protein/metabolite FDR values.')}>?</span>
+  <b>{t('FDR univers assay', 'Assay-universe FDR')}
+    <span class="help-tip" tabindex="0" data-tooltip={t('FDR recalculée localement par test hypergéométrique en utilisant comme univers les variables réellement conservées après QC. Si cet univers ne peut pas être mappé, la FDR Reactome par défaut sert de repli.', 'FDR recalculated locally by a hypergeometric test using the features actually retained after QC as the background universe. Reactome default FDR is used only as a fallback when that universe cannot be mapped.')}>?</span>
   </b>
   <b>RNA <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables transcriptomiques sélectionnées.', 'Reactome FDR using only selected transcriptomic features.')}>?</span></b>
   <b>{t('Protéine', 'Protein')} <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables protéomiques sélectionnées.', 'Reactome FDR using only selected proteomic features.')}>?</span></b>
@@ -1858,7 +1920,7 @@
         {#each analysisResult.reactome.consensus.slice(0, 15) as pathway}
           <div>
             <a href={`https://reactome.org/content/detail/${pathway.id}`} target="_blank" rel="noreferrer">{pathway.name}</a>
-            <span>{Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(3) : '—'}</span>
+            <span>{Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(3) : Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(3) + '*' : '—'}</span>
             <span>{pathway.layerEvidence.transcriptomics?.fdr != null ? pathway.layerEvidence.transcriptomics.fdr.toPrecision(2) : '—'}</span>
             <span>{pathway.layerEvidence.proteomics?.fdr != null ? pathway.layerEvidence.proteomics.fdr.toPrecision(2) : '—'}</span>
             <span>{pathway.layerEvidence.metabolomics?.fdr != null ? pathway.layerEvidence.metabolomics.fdr.toPrecision(2) : '—'}</span>
@@ -1867,7 +1929,7 @@
         {/each}
       </div>
       <p class="note">{t('Le classement est déterministe : nombre de couches avec FDR de voie ≤ 0,10, puis FDR Reactome combinée, puis couverture de la voie. Il s’agit d’un classement exploratoire, pas d’une probabilité postérieure ni d’un score causal.', 'Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.')}</p>
-      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')}</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Pour les panels ciblés ou fortement préfiltrés, les p-values/FDR de voies doivent donc rester exploratoires tant qu’un univers spécifique au panel n’est pas pris en charge.', 'For targeted or pre-filtered panels, pathway p-values/FDR should therefore be interpreted as exploratory until an assay-specific universe is supported.')}</p>
+      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')}</strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Un astérisque après une FDR indique que la FDR Reactome par défaut a été utilisée comme repli.', 'An asterisk after an FDR indicates that Reactome default FDR was used as a fallback.')}</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
         <strong>{t('Les statistiques locales sont terminées ; Reactome n’a pas pu être joint.', 'Local statistics completed; Reactome could not be reached.')}</strong>
@@ -2090,6 +2152,8 @@
   .interpretation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); margin-top: var(--space-4); }
   .interpretation-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
   .interpretation-grid p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: 0; }
+  .predictive-result .api-summary { margin-top:var(--space-4); }
+  .fold-grid { display:grid; gap:5px; font-family:var(--font-mono); font-size:var(--text-xs); margin-top:var(--space-3); }
   .interpretation-glossary { margin-top: var(--space-4); }
   .mapping-head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
   .mapping-head p { color: var(--text-secondary); margin: 0; }
