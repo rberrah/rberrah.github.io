@@ -1,8 +1,149 @@
 // @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
+const CHEBI_SEARCH_URL = 'https://www.ebi.ac.uk/chebi/backend/api/public/es_search/';
+const metaboliteResolutionCache = new Map();
+
+const METABOLITE_ALIASES = new Map(Object.entries({
+  'c14.0': 'myristic acid',
+  'c16.0': 'palmitic acid',
+  'c16.1n.7': 'palmitoleic acid',
+  'c16.1n.9': 'cis-7-hexadecenoic acid',
+  'c18.0': 'stearic acid',
+  'c18.1n.9': 'oleic acid',
+  'c18.1n.7': 'vaccenic acid',
+  'c18.2n.6': 'linoleic acid',
+  'c18.3n.6': 'gamma-linolenic acid',
+  'c18.3n.3': 'alpha-linolenic acid',
+  'c20.1n.9': 'gadoleic acid',
+  'c20.2n.6': 'eicosadienoic acid',
+  'c20.3n.6': 'dihomo-gamma-linolenic acid',
+  'c20.4n.6': 'arachidonic acid',
+  'c20.5n.3': 'eicosapentaenoic acid',
+  'c22.4n.6': 'adrenic acid',
+  'c22.5n.6': 'docosapentaenoic acid',
+  'c22.5n.3': 'docosapentaenoic acid',
+  'c22.6n.3': 'docosahexaenoic acid'
+}));
 
 function normaliseText(value) {
   return String(value ?? '').trim();
+}
+
+function lexicalKey(value) {
+  return normaliseText(value)
+    .toLowerCase()
+    .replace(/[α]/g, 'alpha')
+    .replace(/[β]/g, 'beta')
+    .replace(/[γ]/g, 'gamma')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function directIdentifierType(value) {
+  const id = normaliseText(value);
+  if (/^CHEBI:\d+$/i.test(id)) return 'chebi';
+  if (/^HMDB\d+$/i.test(id)) return 'hmdb';
+  if (/^C\d{5}$/i.test(id)) return 'kegg';
+  return null;
+}
+
+function candidateChebiSource(result) {
+  return result?._source || result?.source || result || null;
+}
+
+export async function resolveMetaboliteIdentifier(identifier, { fetchFn = fetch } = {}) {
+  const original = normaliseText(identifier);
+  if (!original) return { original, resolved: null, status: 'empty', method: 'none', query: '' };
+
+  const direct = directIdentifierType(original);
+  if (direct === 'chebi') {
+    return { original, resolved: original.toUpperCase(), status: 'canonical', method: 'input', query: original };
+  }
+  if (direct === 'hmdb' || direct === 'kegg') {
+    return { original, resolved: original.toUpperCase(), status: 'external_id', method: 'input', query: original };
+  }
+
+  const alias = METABOLITE_ALIASES.get(original.toLowerCase());
+  const query = alias || original;
+  const cacheKey = lexicalKey(query);
+  if (metaboliteResolutionCache.has(cacheKey)) {
+    const cached = metaboliteResolutionCache.get(cacheKey);
+    return { ...cached, original, query };
+  }
+
+  try {
+    const url = new URL(CHEBI_SEARCH_URL);
+    url.searchParams.set('term', query);
+    url.searchParams.set('page', '1');
+    url.searchParams.set('size', '8');
+    const response = await fetchFn(url.toString(), { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const json = await response.json();
+    const results = Array.isArray(json?.results) ? json.results : [];
+    const queryKey = lexicalKey(query);
+    const exact = results
+      .map(candidateChebiSource)
+      .filter(Boolean)
+      .find((source) => {
+        const names = [source.name, source.ascii_name].filter(Boolean).map(lexicalKey);
+        return names.includes(queryKey);
+      });
+
+    if (!exact?.chebi_accession) {
+      const unresolved = {
+        resolved: null,
+        status: 'unresolved',
+        method: alias ? 'chebi_exact_after_alias' : 'chebi_exact',
+        query,
+        label: null
+      };
+      metaboliteResolutionCache.set(cacheKey, unresolved);
+      return { original, ...unresolved };
+    }
+
+    const resolved = {
+      resolved: String(exact.chebi_accession).toUpperCase(),
+      status: 'resolved',
+      method: alias ? 'chebi_exact_after_alias' : 'chebi_exact',
+      query,
+      label: exact.ascii_name || exact.name || query,
+      stars: exact.stars ?? null
+    };
+    metaboliteResolutionCache.set(cacheKey, resolved);
+    return { original, ...resolved };
+  } catch (error) {
+    return {
+      original,
+      resolved: null,
+      status: 'api_error',
+      method: alias ? 'chebi_exact_after_alias' : 'chebi_exact',
+      query,
+      error: error instanceof Error ? error.message : 'ChEBI request failed'
+    };
+  }
+}
+
+export async function resolveMetaboliteIdentifiers(identifiers, { fetchFn = fetch, maxQueries = 30 } = {}) {
+  const unique = [...new Set(identifiers.map(normaliseText).filter(Boolean))];
+  const results = [];
+  let networkQueries = 0;
+  for (const identifier of unique) {
+    const direct = directIdentifierType(identifier);
+    const cached = metaboliteResolutionCache.has(lexicalKey(METABOLITE_ALIASES.get(identifier.toLowerCase()) || identifier));
+    if (!direct && !cached && networkQueries >= maxQueries) {
+      results.push({ original: identifier, resolved: null, status: 'query_limit', method: 'none', query: identifier });
+      continue;
+    }
+    if (!direct && !cached) networkQueries += 1;
+    results.push(await resolveMetaboliteIdentifier(identifier, { fetchFn }));
+  }
+  return {
+    mappings: results,
+    resolvedCount: results.filter((x) => x.resolved).length,
+    unresolvedCount: results.filter((x) => !x.resolved).length,
+    networkQueries
+  };
 }
 
 function canonicalOmic(value) {
@@ -697,12 +838,45 @@ export function mergeReactomeResults(combined, perLayer) {
   });
 }
 
-export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, useReactome = true }) {
+function layerOverlapSummary(metadata, loadedLayers) {
+  const subjectSets = Object.fromEntries(loadedLayers.map((layer) => [
+    layer,
+    new Set(metadata.filter((row) => row.omic === layer).map((row) => row.subjectId))
+  ]));
+  const layerSubjects = Object.fromEntries(loadedLayers.map((layer) => [layer, subjectSets[layer].size]));
+  const pairwise = [];
+  for (let i = 0; i < loadedLayers.length; i += 1) {
+    for (let j = i+1; j < loadedLayers.length; j += 1) {
+      const a = loadedLayers[i];
+      const b = loadedLayers[j];
+      const overlap = [...subjectSets[a]].filter((id) => subjectSets[b].has(id)).length;
+      pairwise.push({ layerA: a, layerB: b, matchedSubjects: overlap, layerASubjects: subjectSets[a].size, layerBSubjects: subjectSets[b].size });
+    }
+  }
+  const allMatched = loadedLayers.length
+    ? [...subjectSets[loadedLayers[0]]].filter((id) => loadedLayers.every((layer) => subjectSets[layer].has(id))).length
+    : 0;
+  return { layerSubjects, pairwise, allMatched };
+}
+
+export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
   const metadata = canonicalMetadata(metadataRows, columnMapping);
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
+  const conditions = naturalOrder(metadata.map((row) => row.condition));
+  if (conditions.length !== 2) {
+    throw new Error(`Current inferential engine requires exactly two biological conditions; found ${conditions.length}. No simplified analysis was run.`);
+  }
+  const timepoints = naturalOrder(metadata.map((row) => row.timepoint));
+  if (protocol.longitudinal && timepoints.length > 2) {
+    const numericTimes = timepoints.map((value) => Number(String(value).match(/-?\d+(?:\.\d+)?/)?.[0]));
+    if (numericTimes.some((value) => !Number.isFinite(value))) {
+      throw new Error('Longitudinal studies with >2 time points require numeric or numeric-labelled time points (for example 0, 6, 12 or T0, T6, T12).');
+    }
+  }
 
+  const overlap = layerOverlapSummary(metadata, loadedLayers);
   const layers = {};
   const aggregatedByLayer = {};
   for (const layer of loadedLayers) {
@@ -719,7 +893,19 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
   const crossOmics = analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
   const selectedIds = Object.fromEntries(loadedLayers.map((layer) => [layer, layers[layer].selected.map((row) => row.feature)]));
-  const combinedIds = loadedLayers.flatMap((layer) => selectedIds[layer]);
+  let identifierResolution = null;
+  if (resolveIdentifiers && selectedIds.metabolomics?.length) {
+    identifierResolution = {
+      metabolomics: await resolveMetaboliteIdentifiers(selectedIds.metabolomics)
+    };
+  }
+
+  const reactomeIds = { ...selectedIds };
+  if (identifierResolution?.metabolomics) {
+    const map = new Map(identifierResolution.metabolomics.mappings.map((x) => [x.original, x.resolved || x.original]));
+    reactomeIds.metabolomics = selectedIds.metabolomics.map((id) => map.get(id) || id);
+  }
+  const combinedIds = loadedLayers.flatMap((layer) => reactomeIds[layer] || []);
 
   let reactome = null;
   let reactomeError = null;
@@ -728,7 +914,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       const projectToHuman = true;
       const entries = await Promise.all([
         reactomeOverRepresentation(combinedIds, {projectToHuman}),
-        ...loadedLayers.map((layer) => reactomeOverRepresentation(selectedIds[layer], {projectToHuman}))
+        ...loadedLayers.map((layer) => reactomeOverRepresentation(reactomeIds[layer], {projectToHuman}))
       ]);
       const combined = entries[0];
       const perLayer = Object.fromEntries(loadedLayers.map((layer,i) => [layer, entries[i+1]]));
@@ -745,12 +931,15 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       subjects: new Set(metadata.map((row) => row.subjectId)).size,
       samples: new Set(metadata.map((row) => row.sampleId)).size,
       assays: new Set(metadata.map((row) => row.assayId)).size,
-      conditions: naturalOrder(metadata.map((row) => row.condition)),
-      timepoints: naturalOrder(metadata.map((row) => row.timepoint))
+      conditions,
+      timepoints,
+      overlap
     },
     layers,
     crossOmics,
     selectedIds,
+    reactomeIds,
+    identifierResolution,
     reactome,
     reactomeError
   };
