@@ -22,6 +22,7 @@
   let demoLoaded = false;
   let analysisStatus = 'idle';
   let analysisError = '';
+  /** @type {any} */
   let analysisResult = null;
   let useReactome = true;
 
