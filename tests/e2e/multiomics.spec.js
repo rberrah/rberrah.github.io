@@ -41,6 +41,7 @@ test('multi-omics demo runs end-to-end with deterministic Reactome integration',
   await expect(page.getByTestId('multiomics-results')).toContainText('Computed multi-omics results');
   await expect(page.getByTestId('multiomics-results')).toContainText('difference-in-differences');
   await expect(page.getByTestId('multiomics-results')).toContainText('IDO1');
+  await expect(page.getByTestId('multiomics-results')).toContainText('matched cross-omic pairs tested');
   await expect(page.getByTestId('multiomics-pathways')).toContainText('Metabolism of amino acids and derivatives');
   expect(reactomeCalls).toBeGreaterThanOrEqual(3);
 });
