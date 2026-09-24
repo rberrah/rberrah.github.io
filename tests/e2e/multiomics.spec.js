@@ -108,7 +108,7 @@ test('multi-omics demo runs end-to-end with deterministic Reactome integration',
 
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId('multiomics-results')).toContainText(/Résultats multi-omiques calculés|Computed multi-omics results/);
-  await expect(page.getByTestId('multiomics-results')).toContainText('difference-in-differences');
+  await expect(page.getByTestId('multiomics-results')).toContainText('random-intercept-longitudinal-model');
   await expect(page.getByTestId('multiomics-results')).toContainText('IDO1');
   await expect(page.getByTestId('multiomics-interpretation')).toBeVisible();
   await expect(page.getByTestId('multiomics-interpretation')).toContainText(/Comment interpréter ces résultats|How should these results be interpreted/);
