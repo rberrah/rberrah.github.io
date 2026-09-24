@@ -1,4 +1,5 @@
 import { promises as fs } from 'node:fs';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +12,8 @@ const engineModelsDirectory = path.join(root, 'tdm-engine', 'models');
 const engineCatalogFile = path.join(engineModelsDirectory, 'catalog.json');
 const metadataFile = path.join(root, 'static', 'tdm', 'model-metadata.json');
 const englishMetadataFile = path.join(root, 'static', 'tdm', 'model-i18n.en.json');
+const mlRegistryFile = path.join(root, 'tdm-engine', 'ml', 'registry.json');
+const mlBenchmarkFile = path.join(root, 'src', 'lib', 'content', 'mlBenchmark.generated.json');
 
 const drugLabels = {
   amik: 'Amikacine',
@@ -343,7 +346,44 @@ async function main() {
   const previousEngineCatalog = await fs.readFile(engineCatalogFile, 'utf8').catch(() => '');
   if (previousEngineCatalog !== output) await fs.writeFile(engineCatalogFile, output, 'utf8');
 
-  console.log(`TDM catalog OK: ${models.length} models indexed and synced to the R engine.`);
+  const mlRegistry = JSON.parse(await fs.readFile(mlRegistryFile, 'utf8'));
+  const modelById = new Map(models.map((model) => [model.id, model]));
+  const modelHashes = new Map([...modelCode].map(([file, code]) => [
+    file.replace(/\.cpp$/i, ''),
+    createHash('sha256').update(code.replace(/\r/g, '')).digest('hex')
+  ]));
+  const mlArtifacts = (mlRegistry.artifacts ?? []).map((artifact) => {
+    const model = modelById.get(artifact.baseModelId);
+    const currentHash = modelHashes.get(artifact.baseModelId);
+    const hashMatches = Boolean(currentHash && currentHash === artifact.baseModelSha256);
+    return {
+      id: artifact.id,
+      modelId: artifact.baseModelId,
+      model: model?.model ?? artifact.baseModelId,
+      drug: artifact.drug,
+      route: artifact.route,
+      administrationMode: artifact.administrationMode,
+      releaseLevel: artifact.releaseLevel,
+      analysisEligible: Boolean(model?.analysisEligible),
+      hashMatches,
+      availableInTdm: Boolean(model?.analysisEligible && hashMatches),
+      minimumObservations: artifact.samplingProtocol?.minimumObservations ?? null,
+      steadyStateRequired: Boolean(artifact.samplingProtocol?.steadyStateRequired),
+      nTraining: artifact.training?.nTraining ?? null,
+      nHoldout: artifact.training?.nUntouchedHoldout ?? null,
+      nAlternate: artifact.training?.nUnseenPopPk ?? null,
+      validation: artifact.validation ?? {}
+    };
+  });
+  const mlOutput = `${JSON.stringify({
+    version: mlRegistry.version,
+    benchmarkDate: mlRegistry.benchmarkDate ?? null,
+    artifacts: mlArtifacts
+  }, null, 2)}\n`;
+  const previousMlBenchmark = await fs.readFile(mlBenchmarkFile, 'utf8').catch(() => '');
+  if (previousMlBenchmark !== mlOutput) await fs.writeFile(mlBenchmarkFile, mlOutput, 'utf8');
+
+  console.log(`TDM catalog OK: ${models.length} models and ${mlArtifacts.length} ML artifacts indexed.`);
 }
 
 await main();

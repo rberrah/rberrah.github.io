@@ -1,0 +1,2228 @@
+{
+  "version": 2,
+  "benchmarkDate": "2026-09-06",
+  "artifacts": [
+    {
+      "id": "amik_burdet-intermittent-auc24-xgb-v3",
+      "modelId": "amik_burdet",
+      "model": "Burdet",
+      "drug": "Amikacine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 18.9267,
+          "relativeBiasPct": -0.9701,
+          "within20Pct": 93.5333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 22.4727,
+          "relativeBiasPct": 0.3146,
+          "within20Pct": 94.8
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amiodarone_pollak_ddi-oral-auc24-xgb-v3",
+      "modelId": "amiodarone_pollak_ddi",
+      "model": "Pollak",
+      "drug": "Amiodarone",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 26.576,
+          "relativeBiasPct": -0.7715,
+          "within20Pct": 86.7333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 19.4044,
+          "relativeBiasPct": -1.0681,
+          "within20Pct": 87.6
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amox_carlier-intermittent-auc24-xgb-v3",
+      "modelId": "amox_carlier",
+      "model": "Carlier",
+      "drug": "Amoxicilline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 27.5522,
+          "relativeBiasPct": -1.2361,
+          "within20Pct": 84.2667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 23.3468,
+          "relativeBiasPct": 0.0295,
+          "within20Pct": 81.6
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 77.3527,
+          "relativeBiasPct": 12.1762,
+          "within20Pct": 46.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amox_fournier-intermittent-auc24-xgb-v3",
+      "modelId": "amox_fournier",
+      "model": "Fournier",
+      "drug": "Amoxicilline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 25.4711,
+          "relativeBiasPct": -1.6421,
+          "within20Pct": 72.4
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 22.6073,
+          "relativeBiasPct": -1.3743,
+          "within20Pct": 78.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 80.9965,
+          "relativeBiasPct": -18.4018,
+          "within20Pct": 49.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amox_mellon-intermittent-auc24-xgb-v3",
+      "modelId": "amox_mellon",
+      "model": "Mellon",
+      "drug": "Amoxicilline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 18.2219,
+          "relativeBiasPct": -0.8804,
+          "within20Pct": 77.6
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 19.0659,
+          "relativeBiasPct": -1.182,
+          "within20Pct": 78.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 102.0564,
+          "relativeBiasPct": -30.9381,
+          "within20Pct": 39.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amox_mellon-oral-auc24-xgb-v3",
+      "modelId": "amox_mellon",
+      "model": "Mellon",
+      "drug": "Amoxicilline",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 24.0084,
+          "relativeBiasPct": -1.7986,
+          "within20Pct": 63.8667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 26.8037,
+          "relativeBiasPct": -3.9842,
+          "within20Pct": 64.8
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "amox_rambaud-continuous-auc24-xgb-v3",
+      "modelId": "amox_rambaud",
+      "model": "Rambaud",
+      "drug": "Amoxicilline",
+      "route": "IV",
+      "administrationMode": "continuous",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 27.4487,
+          "relativeBiasPct": -0.8097,
+          "within20Pct": 84
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 42.2412,
+          "relativeBiasPct": -1.5483,
+          "within20Pct": 85.2
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefazoline_cheng-intermittent-auc24-xgb-v3",
+      "modelId": "cefazoline_cheng",
+      "model": "Cheng",
+      "drug": "Cefazoline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 35.0467,
+          "relativeBiasPct": -1.1696,
+          "within20Pct": 86.6
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 37.5139,
+          "relativeBiasPct": 1.8518,
+          "within20Pct": 82.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 78.0395,
+          "relativeBiasPct": -46.9071,
+          "within20Pct": 13.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefazoline_lanoiselee-intermittent-auc24-xgb-v3",
+      "modelId": "cefazoline_lanoiselee",
+      "model": "Lanoiselée",
+      "drug": "Cefazoline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 16.0329,
+          "relativeBiasPct": -0.7292,
+          "within20Pct": 90.9333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 12.8293,
+          "relativeBiasPct": 0.229,
+          "within20Pct": 94.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 191.7605,
+          "relativeBiasPct": -74.6355,
+          "within20Pct": 39.8
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefazoline_schmitz-intermittent-auc24-xgb-v3",
+      "modelId": "cefazoline_schmitz",
+      "model": "Schmitz",
+      "drug": "Cefazoline",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 9.1032,
+          "relativeBiasPct": -0.1867,
+          "within20Pct": 99.1333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 7.9653,
+          "relativeBiasPct": -0.559,
+          "within20Pct": 98.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 119.8313,
+          "relativeBiasPct": -39.2245,
+          "within20Pct": 22.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefepime_an-intermittent-auc24-xgb-v3",
+      "modelId": "cefepime_an",
+      "model": "An",
+      "drug": "Cefepime",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 19.0871,
+          "relativeBiasPct": -1.2201,
+          "within20Pct": 71.4667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 18.512,
+          "relativeBiasPct": -1.8896,
+          "within20Pct": 68.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 107.0234,
+          "relativeBiasPct": 68.9869,
+          "within20Pct": 13.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefepime_jonckheere-intermittent-auc24-xgb-v3",
+      "modelId": "cefepime_jonckheere",
+      "model": "Jonckheere",
+      "drug": "Cefepime",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 23.9562,
+          "relativeBiasPct": -1.3906,
+          "within20Pct": 81.6667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 30.408,
+          "relativeBiasPct": -2.7595,
+          "within20Pct": 80.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 75.9321,
+          "relativeBiasPct": -36.3578,
+          "within20Pct": 32.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cefepime_seo-intermittent-auc24-xgb-v3",
+      "modelId": "cefepime_seo",
+      "model": "Seo",
+      "drug": "Cefepime",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 11.1682,
+          "relativeBiasPct": -0.5206,
+          "within20Pct": 93.6667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 12.1761,
+          "relativeBiasPct": -0.6021,
+          "within20Pct": 93.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 64.1646,
+          "relativeBiasPct": -30.1988,
+          "within20Pct": 31.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "ciclosporine_press_ddi-oral-auc24-xgb-v3",
+      "modelId": "ciclosporine_press_ddi",
+      "model": "Press",
+      "drug": "Ciclosporine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 16.9979,
+          "relativeBiasPct": -0.723,
+          "within20Pct": 89.9333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 15.096,
+          "relativeBiasPct": -0.681,
+          "within20Pct": 92.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "cobicistat_mathias_ddi-oral-auc24-xgb-v3",
+      "modelId": "cobicistat_mathias_ddi",
+      "model": "Mathias",
+      "drug": "Cobicistat",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 27.0333,
+          "relativeBiasPct": -1.0331,
+          "within20Pct": 93.6667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 24.7892,
+          "relativeBiasPct": -0.5906,
+          "within20Pct": 92.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "diltiazem_hermann_ddi-oral-auc24-xgb-v3",
+      "modelId": "diltiazem_hermann_ddi",
+      "model": "Hermann",
+      "drug": "Diltiazem",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 12.7949,
+          "relativeBiasPct": -0.4236,
+          "within20Pct": 95.6667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 11.8683,
+          "relativeBiasPct": -0.4278,
+          "within20Pct": 97.6
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "erythromycine_mather_ddi-oral-auc24-xgb-v3",
+      "modelId": "erythromycine_mather_ddi",
+      "model": "Mather",
+      "drug": "Érythromycine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 14.7576,
+          "relativeBiasPct": -0.4477,
+          "within20Pct": 88.6
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 13.7981,
+          "relativeBiasPct": -0.5373,
+          "within20Pct": 94
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "everolimus_moes_ddi-oral-auc24-xgb-v3",
+      "modelId": "everolimus_moes_ddi",
+      "model": "Moes",
+      "drug": "Évérolimus",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 17.4454,
+          "relativeBiasPct": -0.886,
+          "within20Pct": 79.7333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 19.9153,
+          "relativeBiasPct": -0.5759,
+          "within20Pct": 78
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 31.8917,
+          "relativeBiasPct": 8.4036,
+          "within20Pct": 55.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "everolimus_terheine_ddi-oral-auc24-xgb-v3",
+      "modelId": "everolimus_terheine_ddi",
+      "model": "ter Heine",
+      "drug": "Évérolimus",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 20.2888,
+          "relativeBiasPct": -1.155,
+          "within20Pct": 69.8667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 19.3114,
+          "relativeBiasPct": -1.1405,
+          "within20Pct": 70.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 22.6769,
+          "relativeBiasPct": -3.9033,
+          "within20Pct": 66
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "fluconazole_debruyne_ddi-oral-auc24-xgb-v3",
+      "modelId": "fluconazole_debruyne_ddi",
+      "model": "Debruyne",
+      "drug": "Fluconazole",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 26.8383,
+          "relativeBiasPct": -0.3144,
+          "within20Pct": 87.3333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 41.1024,
+          "relativeBiasPct": -2.6365,
+          "within20Pct": 86
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "isavuconazole_desai_ddi-oral-auc24-xgb-v3",
+      "modelId": "isavuconazole_desai_ddi",
+      "model": "Desai",
+      "drug": "Isavuconazole",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 17.6039,
+          "relativeBiasPct": -0.8419,
+          "within20Pct": 83
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 16.6031,
+          "relativeBiasPct": -0.6211,
+          "within20Pct": 87.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 17.2493,
+          "relativeBiasPct": 2.8155,
+          "within20Pct": 83.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "isavuconazole_groll_ddi-oral-auc24-xgb-v3",
+      "modelId": "isavuconazole_groll_ddi",
+      "model": "Groll",
+      "drug": "Isavuconazole",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 16.8203,
+          "relativeBiasPct": -0.6366,
+          "within20Pct": 86.0667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 14.5454,
+          "relativeBiasPct": -2.3478,
+          "within20Pct": 89.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 17.1185,
+          "relativeBiasPct": -3.8252,
+          "within20Pct": 86.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "linez_buerger-intermittent-auc24-xgb-v3",
+      "modelId": "linez_buerger",
+      "model": "Buerger",
+      "drug": "Linezolide",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 13.4828,
+          "relativeBiasPct": -0.5344,
+          "within20Pct": 93.7333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 11.8181,
+          "relativeBiasPct": -1.5111,
+          "within20Pct": 93.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 64.2708,
+          "relativeBiasPct": -32.8254,
+          "within20Pct": 45.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "linez_sasaki-intermittent-auc24-xgb-v3",
+      "modelId": "linez_sasaki",
+      "model": "Sasaki",
+      "drug": "Linezolide",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 6.4113,
+          "relativeBiasPct": -0.4194,
+          "within20Pct": 92.3333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 5.982,
+          "relativeBiasPct": -0.5133,
+          "within20Pct": 95.6
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 89.0118,
+          "relativeBiasPct": 49.2378,
+          "within20Pct": 34.8
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "linez_sasaki-oral-auc24-xgb-v3",
+      "modelId": "linez_sasaki",
+      "model": "Sasaki",
+      "drug": "Linezolide",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 5.0827,
+          "relativeBiasPct": -0.2853,
+          "within20Pct": 93.5333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 5.2858,
+          "relativeBiasPct": -0.1464,
+          "within20Pct": 91.6
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "posaconazole_dolton_ddi-oral-auc24-xgb-v3",
+      "modelId": "posaconazole_dolton_ddi",
+      "model": "Dolton",
+      "drug": "Posaconazole",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 14.787,
+          "relativeBiasPct": -0.7806,
+          "within20Pct": 86.8667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 15.4497,
+          "relativeBiasPct": -0.6776,
+          "within20Pct": 86.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "rifampicine_chang-oral-auc24-xgb-v3",
+      "modelId": "rifampicine_chang",
+      "model": "Chang",
+      "drug": "Rifampicine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 26.9292,
+          "relativeBiasPct": -2.1304,
+          "within20Pct": 54.8
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 23.4532,
+          "relativeBiasPct": -2.1973,
+          "within20Pct": 56.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 124.9616,
+          "relativeBiasPct": -36.5961,
+          "within20Pct": 27.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "rifampicine_jeremiah-oral-auc24-xgb-v3",
+      "modelId": "rifampicine_jeremiah",
+      "model": "Jeremiah",
+      "drug": "Rifampicine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 9.2577,
+          "relativeBiasPct": -0.428,
+          "within20Pct": 97.6667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 9.2753,
+          "relativeBiasPct": -0.6191,
+          "within20Pct": 97.6
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 130.9371,
+          "relativeBiasPct": -42.8082,
+          "within20Pct": 22.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "rifampicine_jing-oral-auc24-xgb-v3",
+      "modelId": "rifampicine_jing",
+      "model": "Jing",
+      "drug": "Rifampicine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 30.45,
+          "relativeBiasPct": -4.6063,
+          "within20Pct": 40.6
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 32.8317,
+          "relativeBiasPct": -3.2106,
+          "within20Pct": 39.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 94.2989,
+          "relativeBiasPct": 71.4781,
+          "within20Pct": 11.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "rifampicine_loos_ddi-oral-auc24-xgb-v3",
+      "modelId": "rifampicine_loos_ddi",
+      "model": "Loos",
+      "drug": "Rifampicine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 8.6925,
+          "relativeBiasPct": -0.553,
+          "within20Pct": 96.9333
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 7.9099,
+          "relativeBiasPct": 0.0404,
+          "within20Pct": 98
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 107.9847,
+          "relativeBiasPct": -61.849,
+          "within20Pct": 14.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "rifampicine_marsot-oral-auc24-xgb-v3",
+      "modelId": "rifampicine_marsot",
+      "model": "Marsot",
+      "drug": "Rifampicine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 29.2508,
+          "relativeBiasPct": -2.9483,
+          "within20Pct": 49.5333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 28.3846,
+          "relativeBiasPct": -3.4361,
+          "within20Pct": 48
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 77.8426,
+          "relativeBiasPct": -15.8058,
+          "within20Pct": 40
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "ritonavir_kappelhoff_ddi-oral-auc24-xgb-v3",
+      "modelId": "ritonavir_kappelhoff_ddi",
+      "model": "Kappelhoff",
+      "drug": "Ritonavir",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 15.5745,
+          "relativeBiasPct": -0.8458,
+          "within20Pct": 93.0667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 17.407,
+          "relativeBiasPct": -0.7976,
+          "within20Pct": 92
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "sirolimus_djebli_ddi-oral-auc24-xgb-v3",
+      "modelId": "sirolimus_djebli_ddi",
+      "model": "Djebli",
+      "drug": "Sirolimus",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 30.1745,
+          "relativeBiasPct": -1.6129,
+          "within20Pct": 73
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 44.7551,
+          "relativeBiasPct": -3.2122,
+          "within20Pct": 72.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "tacrolimus_kamp_envarsus_ddi-oral-auc24-xgb-v3",
+      "modelId": "tacrolimus_kamp_envarsus_ddi",
+      "model": "Kamp",
+      "drug": "Tacrolimus",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 30.3466,
+          "relativeBiasPct": -1.7261,
+          "within20Pct": 60.6
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 32.0362,
+          "relativeBiasPct": -3.3019,
+          "within20Pct": 64.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 39.3052,
+          "relativeBiasPct": 2.5977,
+          "within20Pct": 46.8
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "tacrolimus_woillard_ddi-oral-auc24-xgb-v3",
+      "modelId": "tacrolimus_woillard_ddi",
+      "model": "Woillard",
+      "drug": "Tacrolimus",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "research",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 13.0144,
+          "relativeBiasPct": -0.4207,
+          "within20Pct": 91.6667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 11.1663,
+          "relativeBiasPct": -1.794,
+          "within20Pct": 92
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 42.3429,
+          "relativeBiasPct": -0.2015,
+          "within20Pct": 45.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "vanco_goti-intermittent-auc24-xgb-v3",
+      "modelId": "vanco_goti",
+      "model": "Goti",
+      "drug": "Vancomycine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 20.9842,
+          "relativeBiasPct": -1.03,
+          "within20Pct": 73.9333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 20.5152,
+          "relativeBiasPct": -2.0812,
+          "within20Pct": 75.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 101.884,
+          "relativeBiasPct": 57.2022,
+          "within20Pct": 24.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "vanco_pkjust-intermittent-auc24-xgb-v3",
+      "modelId": "vanco_pkjust",
+      "model": "Revilla",
+      "drug": "Vancomycine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 13.8353,
+          "relativeBiasPct": -0.8046,
+          "within20Pct": 72.2667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 14.7332,
+          "relativeBiasPct": -0.4941,
+          "within20Pct": 69.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 92.4042,
+          "relativeBiasPct": -52.4577,
+          "within20Pct": 20.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "vanco_pkjust-continuous-auc24-xgb-v3",
+      "modelId": "vanco_pkjust",
+      "model": "Revilla",
+      "drug": "Vancomycine",
+      "route": "IV",
+      "administrationMode": "continuous",
+      "releaseLevel": "research",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 6.7658,
+          "relativeBiasPct": -0.3169,
+          "within20Pct": 88.4667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 5.4477,
+          "relativeBiasPct": -1.067,
+          "within20Pct": 87.2
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 102.9698,
+          "relativeBiasPct": -22.0419,
+          "within20Pct": 63.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "vanco_roberts-continuous-auc24-xgb-v3",
+      "modelId": "vanco_roberts",
+      "model": "Roberts",
+      "drug": "Vancomycine",
+      "route": "IV",
+      "administrationMode": "continuous",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 44.7693,
+          "relativeBiasPct": -1.7733,
+          "within20Pct": 78.2
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 17.3211,
+          "relativeBiasPct": -1.6158,
+          "within20Pct": 82.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 78.3014,
+          "relativeBiasPct": 16.7827,
+          "within20Pct": 71.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "voriconazole_vandenborn_ddi-oral-auc24-xgb-v3",
+      "modelId": "voriconazole_vandenborn_ddi",
+      "model": "van den Born",
+      "drug": "Voriconazole",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 93.5612,
+          "relativeBiasPct": -2.0232,
+          "within20Pct": 80.0667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 56.4723,
+          "relativeBiasPct": 6.8858,
+          "within20Pct": 76.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "dapto_dvorchik_IV_adults-intermittent-auc24-xgb-v3",
+      "modelId": "dapto_dvorchik_IV_adults",
+      "model": "Dvorchik",
+      "drug": "Daptomycine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 169.7898,
+          "relativeBiasPct": 5.4712,
+          "within20Pct": 88.4667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 14.4729,
+          "relativeBiasPct": -0.2186,
+          "within20Pct": 84.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 137.1927,
+          "relativeBiasPct": 32.9313,
+          "within20Pct": 52.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "dapto_garreau-intermittent-auc24-xgb-v3",
+      "modelId": "dapto_garreau",
+      "model": "Garreau",
+      "drug": "Daptomycine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 13.9373,
+          "relativeBiasPct": -0.6486,
+          "within20Pct": 89.8667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 12.6642,
+          "relativeBiasPct": 1.2224,
+          "within20Pct": 92.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 122.3728,
+          "relativeBiasPct": -36.7961,
+          "within20Pct": 42.6
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "genta_franck-intermittent-auc24-xgb-v3",
+      "modelId": "genta_franck",
+      "model": "Franck",
+      "drug": "Gentamicine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 23.7296,
+          "relativeBiasPct": -1.4495,
+          "within20Pct": 76.0667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 21.5847,
+          "relativeBiasPct": 1.2261,
+          "within20Pct": 75.6
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 79.9015,
+          "relativeBiasPct": 33.1309,
+          "within20Pct": 23.8
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "genta_gomes-intermittent-auc24-xgb-v3",
+      "modelId": "genta_gomes",
+      "model": "Gomes",
+      "drug": "Gentamicine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 21.7313,
+          "relativeBiasPct": -1.0968,
+          "within20Pct": 81.5333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 48.3677,
+          "relativeBiasPct": -0.9041,
+          "within20Pct": 83.6
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 148.7016,
+          "relativeBiasPct": -43.705,
+          "within20Pct": 51
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "genta_hodiamont-intermittent-auc24-xgb-v3",
+      "modelId": "genta_hodiamont",
+      "model": "Hodiamont",
+      "drug": "Gentamicine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": false,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 29.4763,
+          "relativeBiasPct": -1.9329,
+          "within20Pct": 73.1333
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 38.0616,
+          "relativeBiasPct": -7.4666,
+          "within20Pct": 74.4
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 230.6747,
+          "relativeBiasPct": -40.1322,
+          "within20Pct": 37.2
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "genta_rosario_clcr-intermittent-auc24-xgb-v3",
+      "modelId": "genta_rosario_clcr",
+      "model": "Rosario",
+      "drug": "Gentamicine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 13.9501,
+          "relativeBiasPct": -0.3972,
+          "within20Pct": 91.4667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 12.5105,
+          "relativeBiasPct": -0.4185,
+          "within20Pct": 88
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 180.8825,
+          "relativeBiasPct": -50.0653,
+          "within20Pct": 43.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "genta_rosario_clinical-intermittent-auc24-xgb-v3",
+      "modelId": "genta_rosario_clinical",
+      "model": "Rosario",
+      "drug": "Gentamicine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "research",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 500,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": true,
+          "relativeRmsePct": 13.6054,
+          "relativeBiasPct": -0.8279,
+          "within20Pct": 91.4667
+        },
+        "untouchedHoldout": {
+          "passed": true,
+          "relativeRmsePct": 13.9274,
+          "relativeBiasPct": -0.8377,
+          "within20Pct": 88.8
+        },
+        "alternatePopPk": {
+          "passed": false,
+          "relativeRmsePct": 260.8608,
+          "relativeBiasPct": -55.3392,
+          "within20Pct": 45.4
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "levo_canoui-oral-auc24-xgb-v3",
+      "modelId": "levo_canoui",
+      "model": "Canouï",
+      "drug": "Levofloxacine",
+      "route": "Oral",
+      "administrationMode": "oral",
+      "releaseLevel": "experimental",
+      "analysisEligible": true,
+      "hashMatches": true,
+      "availableInTdm": true,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 37.9329,
+          "relativeBiasPct": -2.7715,
+          "within20Pct": 59.4
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 45.9026,
+          "relativeBiasPct": -3.0983,
+          "within20Pct": 59.6
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    },
+    {
+      "id": "levo_gergs-intermittent-auc24-xgb-v3",
+      "modelId": "levo_gergs",
+      "model": "Gergs",
+      "drug": "Levofloxacine",
+      "route": "IV",
+      "administrationMode": "intermittent",
+      "releaseLevel": "experimental",
+      "analysisEligible": false,
+      "hashMatches": true,
+      "availableInTdm": false,
+      "minimumObservations": 2,
+      "steadyStateRequired": true,
+      "nTraining": 750,
+      "nHoldout": 250,
+      "nAlternate": 0,
+      "validation": {
+        "thresholds": {
+          "relativeRmsePct": 15,
+          "absoluteBiasPct": 10,
+          "within20Pct": 80
+        },
+        "repeatedCv": {
+          "passed": false,
+          "relativeRmsePct": 20.6737,
+          "relativeBiasPct": -1.4157,
+          "within20Pct": 73.0667
+        },
+        "untouchedHoldout": {
+          "passed": false,
+          "relativeRmsePct": 19.3635,
+          "relativeBiasPct": -0.5684,
+          "within20Pct": 72.4
+        },
+        "alternatePopPk": {
+          "status": "not_applicable",
+          "passed": null
+        },
+        "realPatient": {
+          "status": "pending",
+          "gainPct": null
+        }
+      }
+    }
+  ]
+}

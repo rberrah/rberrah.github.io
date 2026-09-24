@@ -22,6 +22,7 @@ const FIXED_PAGES = [
   '/advanced/',
   '/laboratoires/',
   '/tdm/',
+  '/ml/',
   '/interactions/',
   '/pharmacodynamie/',
   '/playground/',

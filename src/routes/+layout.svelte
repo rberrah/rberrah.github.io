@@ -33,6 +33,7 @@
     { href: '/exemple', key: 'example', label: copy.nav.example },
     { href: '/exercices', key: 'exercises', label: copy.nav.exercises },
     { href: '/tdm', key: 'tdm', label: copy.nav.tdm },
+    { href: '/ml', key: 'ml', label: $language === 'en' ? 'ML for TDM' : 'ML pour le TDM' },
     { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles' },
     { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK' },
     { href: '/pd', key: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD' },
@@ -49,7 +50,7 @@
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
-    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'other-tools'] },
+    { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);

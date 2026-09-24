@@ -186,7 +186,8 @@ export const referenceGroups = [
       { id: 'vaswani-transformer', kind: 'article', title: 'Attention Is All You Need (Transformer, attention softmax(QKᵀ/√d)V)', authors: 'Vaswani A. et al.', where: 'NeurIPS 2017', doi: '10.48550/arXiv.1706.03762', url: 'https://doi.org/10.48550/arXiv.1706.03762' },
       { id: 'brown-gpt3', kind: 'article', title: 'Language Models are Few-Shot Learners (le passage à l\'échelle, l\'apprentissage en contexte)', authors: 'Brown T.B. et al.', where: 'NeurIPS 2020', doi: '10.48550/arXiv.2005.14165', url: 'https://doi.org/10.48550/arXiv.2005.14165' },
       { id: 'chen-neural-ode', kind: 'article', title: 'Neural Ordinary Differential Equations', authors: 'Chen R.T.Q., Rubanova Y., Bettencourt J. & Duvenaud D.', where: 'NeurIPS 2018', doi: '10.48550/arXiv.1806.07366', url: 'https://doi.org/10.48550/arXiv.1806.07366' },
-      { id: 'woillard-ml-tacrolimus', kind: 'article', title: 'Machine learning to predict tacrolimus AUC for therapeutic monitoring', authors: 'Woillard J.-B. et al.', where: 'Clin. Pharmacol. Ther. 2021', doi: '10.1002/cpt.2123', pmid: '33253425', url: 'https://doi.org/10.1002/cpt.2123' }
+      { id: 'woillard-ml-tacrolimus', kind: 'article', title: 'Machine learning to predict tacrolimus AUC for therapeutic monitoring', authors: 'Woillard J.-B. et al.', where: 'Clin. Pharmacol. Ther. 2021', doi: '10.1002/cpt.2123', pmid: '33253425', url: 'https://doi.org/10.1002/cpt.2123' },
+      { id: 'woillard-ml-simulation', kind: 'article', title: 'Estimation of drug exposure by machine learning based on simulations from published pharmacokinetic models: the example of tacrolimus', authors: 'Woillard J.-B., Labriffe M., Prémaud A. & Marquet P.', where: 'Pharmacol. Res. 2021', doi: '10.1016/j.phrs.2021.105578', pmid: '33775863', url: 'https://doi.org/10.1016/j.phrs.2021.105578' }
     ]
   },
   {

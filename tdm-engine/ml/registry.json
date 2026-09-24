@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "benchmarkDate": "2026-09-06",
   "artifacts": [
     {
       "id": "amik_burdet-intermittent-auc24-xgb-v3",
