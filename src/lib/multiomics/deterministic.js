@@ -386,6 +386,70 @@ function permutationPValue(groupA, groupB, seedKey) {
   return (extreme + 1) / (total + 1);
 }
 
+function oneWayF(groups) {
+  const clean = groups.map((group) => group.filter(Number.isFinite)).filter((group) => group.length);
+  const k = clean.length;
+  const n = clean.reduce((sum, group) => sum + group.length, 0);
+  if (k < 2 || n <= k) return NaN;
+  const grand = mean(clean.flat());
+  let ssBetween = 0;
+  let ssWithin = 0;
+  for (const group of clean) {
+    const m = mean(group);
+    ssBetween += group.length * (m-grand) * (m-grand);
+    for (const value of group) ssWithin += (value-m) * (value-m);
+  }
+  if (ssWithin <= 0) return ssBetween > 0 ? Infinity : 0;
+  return (ssBetween/(k-1)) / (ssWithin/(n-k));
+}
+
+function multiGroupPermutationPValue(groups, seedKey) {
+  const clean = groups.map((group) => group.filter(Number.isFinite));
+  if (clean.length < 3 || clean.some((group) => group.length < 2)) return null;
+  const observed = oneWayF(clean);
+  if (!Number.isFinite(observed) && observed !== Infinity) return null;
+  const sizes = clean.map((group) => group.length);
+  const values = clean.flat();
+  const rng = rngFromSeed(hashString(seedKey));
+  const total = 4096;
+  let extreme = 0;
+  for (let iter = 0; iter < total; iter += 1) {
+    const perm = shuffled(values, rng);
+    const permGroups = [];
+    let cursor = 0;
+    for (const size of sizes) {
+      permGroups.push(perm.slice(cursor, cursor + size));
+      cursor += size;
+    }
+    const stat = oneWayF(permGroups);
+    if (stat >= observed - 1e-12) extreme += 1;
+  }
+  return (extreme + 1)/(total + 1);
+}
+
+function independentMultiGroupValues(aggregated, feature) {
+  const source = aggregated.values.get(feature);
+  const timepoints = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.timepoint));
+  const targetTime = timepoints.length ? timepoints[timepoints.length-1] : '';
+  const conditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
+  const perConditionSubjects = new Map(conditions.map((condition) => [condition, new Map()]));
+
+  for (const [sampleId, row] of aggregated.sampleMeta.entries()) {
+    const value = source.get(sampleId);
+    if (!Number.isFinite(value)) continue;
+    if (targetTime && row.timepoint !== targetTime) continue;
+    if (!perConditionSubjects.has(row.condition)) continue;
+    const subjects = perConditionSubjects.get(row.condition);
+    if (!subjects.has(row.subjectId)) subjects.set(row.subjectId, []);
+    subjects.get(row.subjectId).push(value);
+  }
+
+  const groups = conditions.map((condition) =>
+    [...perConditionSubjects.get(condition).values()].map((values) => mean(values))
+  );
+  return { conditions, groups, timepoints, targetTime };
+}
+
 function pairedPermutationPValue(differences, seedKey) {
   const d = differences.filter(Number.isFinite);
   if (d.length < 2) return null;
@@ -688,7 +752,38 @@ function analyseLayer(aggregated, layer, options) {
   let contrast = '';
   let mode = '';
   let groupSizes = [0,0];
+  const allConditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
+  const multiGroup = allConditions.length > 2;
+
   for (const feature of aggregated.features) {
+    if (multiGroup) {
+      if (options.longitudinal || options.paired) {
+        return { error: 'Multi-group longitudinal/paired inference is not implemented.', rows: [], contrast: '', mode: '', groupSizes: [], selected: [], steps: aggregated.steps };
+      }
+      const data = independentMultiGroupValues(aggregated, feature);
+      if (data.groups.some((group) => group.length < 2)) continue;
+      const means = data.groups.map((group) => mean(group));
+      const minMean = Math.min(...means);
+      const maxMean = Math.max(...means);
+      const effect = maxMean-minMean;
+      contrast = `one-way condition effect across ${data.conditions.length} groups${data.targetTime ? ` at ${data.targetTime}` : ''}`;
+      mode = 'multi-group-permutation-anova';
+      groupSizes = data.groups.map((group) => group.length);
+      rows.push({
+        feature,
+        effect,
+        foldRatio: aggregated.scale === 'log2' ? Math.pow(2,effect) : null,
+        effectScale: aggregated.scale,
+        pValue: multiGroupPermutationPValue(data.groups, `${layer}|${feature}|${contrast}`),
+        qValue: null,
+        groupMeans: Object.fromEntries(data.conditions.map((condition,index) => [condition, means[index]])),
+        groupSizes: Object.fromEntries(data.conditions.map((condition,index) => [condition, data.groups[index].length])),
+        nReference: null,
+        nComparison: null
+      });
+      continue;
+    }
+
     const data = subjectFeatureValues(aggregated, feature, options);
     if (data.error) return { error: data.error, rows: [], contrast: '', mode: '', groupSizes: [0,0], selected: [], steps: aggregated.steps };
     const [a,b] = data.groups;
@@ -982,8 +1077,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
   const conditions = naturalOrder(metadata.map((row) => row.condition));
-  if (conditions.length !== 2) {
-    throw new Error(`Current inferential engine requires exactly two biological conditions; found ${conditions.length}. No simplified analysis was run.`);
+  if (conditions.length < 2) {
+    throw new Error(`Inferential analysis requires at least two biological conditions; found ${conditions.length}.`);
+  }
+  if (conditions.length > 2 && (protocol.longitudinal || protocol.designType === 'paired')) {
+    throw new Error('More than two conditions are currently supported only for independent, non-longitudinal designs via one-way permutation ANOVA.');
   }
   const timepoints = naturalOrder(metadata.map((row) => row.timepoint));
   if (protocol.longitudinal && timepoints.length > 2) {
@@ -1008,9 +1106,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
   }
 
-  const crossOmics = protocol.designType === 'paired' && !protocol.longitudinal
-    ? { method: 'Direct cross-omics correlation comparison is not run for paired designs in the current engine.', testedPairs: 0, significantPairs: 0, pairs: [] }
-    : analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
+  const crossOmics = conditions.length > 2
+    ? { method: 'Differential cross-omics correlations currently require exactly two conditions; omitted for the multi-group omnibus analysis.', testedPairs: 0, significantPairs: 0, pairs: [] }
+    : protocol.designType === 'paired' && !protocol.longitudinal
+      ? { method: 'Direct cross-omics correlation comparison is not run for paired designs in the current engine.', testedPairs: 0, significantPairs: 0, pairs: [] }
+      : analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
   const selectedIds = Object.fromEntries(loadedLayers.map((layer) => [layer, layers[layer].selected.map((row) => row.feature)]));
   let identifierResolution = null;
   if (resolveIdentifiers && selectedIds.metabolomics?.length) {
