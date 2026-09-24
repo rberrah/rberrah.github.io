@@ -1293,7 +1293,11 @@
           {#if result.error}
             <p class="error">{result.error}</p>
           {:else}
-            <p class="muted">n={result.groupSizes[0]} vs {result.groupSizes[1]} · {result.mode}</p>
+            <p class="muted">
+              {result.mode === 'multi-group-permutation-anova'
+                ? `group sizes: ${result.groupSizes.join(' / ')} · permutation ANOVA`
+                : `n=${result.groupSizes[0]} vs ${result.groupSizes[1]} · ${result.mode}`}
+            </p>
             <div class="preprocess-list">
               {#each result.steps as step}<span>{step}</span>{/each}
               {#if result.replicateGroups?.length}<span>{result.replicateGroups.length} technical-replicate group(s) averaged on the transformed scale</span>{/if}
@@ -1305,7 +1309,7 @@
                 <div>
                   <code>{row.feature}</code>
                   {#if row.foldRatio != null}
-                    <span class:negative={row.foldRatio < 1}>{row.foldRatio.toFixed(2)}×</span>
+                    <span class:negative={row.foldRatio != null && row.foldRatio < 1}>{row.foldRatio == null ? row.effect.toFixed(3) : `${row.foldRatio.toFixed(2)}×`}</span>
                   {:else}
                     <span class:negative={row.effect < 0}>{row.effect.toPrecision(3)}</span>
                   {/if}
