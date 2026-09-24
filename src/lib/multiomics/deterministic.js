@@ -1887,27 +1887,24 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
 }
 
 export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
-  const metadata = canonicalMetadata(metadataRows, columnMapping);
+  const covariateColumns = Array.isArray(protocol.covariateColumns) ? protocol.covariateColumns.filter(Boolean) : [];
+  const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns);
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
-  if (protocol.objective === 'explore') {
-    throw new Error('Unsupervised exploratory integration is not implemented in the current deterministic engine. Validation and mapping remain available, but no surrogate group analysis was run.');
-  }
-  if (protocol.objective === 'outcome') {
-    throw new Error('Outcome-targeted modelling is not implemented in the current deterministic engine. No surrogate group analysis was run.');
-  }
   if (protocol.designType === 'crossover') {
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
+
   const conditions = naturalOrder(metadata.map((row) => row.condition));
-  if (conditions.length < 2) {
-    throw new Error(`Inferential analysis requires at least two biological conditions; found ${conditions.length}.`);
+  const timepoints = naturalOrder(metadata.map((row) => row.timepoint));
+  const requiresConditionContrast = protocol.objective === 'groups' || protocol.objective === 'time';
+  if (requiresConditionContrast && conditions.length < 2) {
+    throw new Error('This objective requires at least two biological conditions; found ' + conditions.length + '.');
   }
-  if (conditions.length > 2 && (protocol.longitudinal || protocol.designType === 'paired')) {
+  if (requiresConditionContrast && conditions.length > 2 && (protocol.longitudinal || protocol.designType === 'paired')) {
     throw new Error('More than two conditions are currently supported only for independent, non-longitudinal designs via one-way permutation ANOVA.');
   }
-  const timepoints = naturalOrder(metadata.map((row) => row.timepoint));
   if (protocol.longitudinal && timepoints.length > 2) {
     const numericTimes = timepoints.map((value) => Number(String(value).match(/-?\d+(?:\.\d+)?/)?.[0]));
     if (numericTimes.some((value) => !Number.isFinite(value))) {
@@ -1915,35 +1912,116 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
   }
 
+  if (protocol.objective === 'outcome') {
+    const outcomeType = protocol.outcomeType || 'continuous';
+    if (outcomeType === 'survival') {
+      const hasTime = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalTime)));
+      const hasEvent = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalEvent)));
+      if (!hasTime || !hasEvent) {
+        throw new Error('Survival outcome analysis requires mapped survival_time and survival_event metadata columns.');
+      }
+    } else if (!metadata.some((row) => row.outcome !== '')) {
+      throw new Error('Outcome analysis requires a mapped outcome column with non-empty values.');
+    }
+  }
+
   const batchAudit = auditBatchDesign(metadata, loadedLayers, protocol);
   if (batchAudit.blocking.length) {
     const details = batchAudit.blocking
-      .map(({ layer, reasons }) => `${layer}: ${reasons.join('; ')}`)
+      .map(({ layer, reasons }) => layer + ': ' + reasons.join('; '))
       .join(' | ');
-    throw new Error(`Technical batch confounding prevents identifiable biological inference. ${details}. Re-balance the design or provide data in which biological conditions/time points overlap technical batches.`);
+    throw new Error('Technical batch confounding prevents identifiable biological inference. ' + details + '. Re-balance the design or provide data in which biological conditions/time points overlap technical batches.');
   }
 
   const overlap = layerOverlapSummary(metadata, loadedLayers);
   const layers = {};
   const aggregatedByLayer = {};
+  const adjustments = {};
+
   for (const layer of loadedLayers) {
     const expected = metadata.filter((row) => row.omic === layer).map((row) => row.assayId);
     const text = await files[layer].text();
     const matrix = matrixFromText(text, expected);
     const processed = preprocessMatrix(matrix, layer, dataTypes[layer]);
-    const aggregated = aggregateTechnicalReplicates(processed, metadata, layer);
+    const rawAggregated = aggregateTechnicalReplicates(processed, metadata, layer);
+
+    const adjustmentCovariates = protocol.objective === 'outcome' ? [] : covariateColumns;
+    const adjusted = residualizeAggregated(rawAggregated, adjustmentCovariates);
+    const aggregated = adjusted.aggregated;
     aggregatedByLayer[layer] = aggregated;
-    layers[layer] = analyseLayer(aggregated, layer, { longitudinal: protocol.longitudinal, paired: protocol.designType === 'paired' });
-    layers[layer].replicateGroups = aggregated.replicateGroups;
-    layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+    adjustments[layer] = adjusted.adjustment;
+
+    if (protocol.objective === 'outcome') {
+      layers[layer] = analyseOutcomeLayer(aggregated, layer, {
+        outcomeType: protocol.outcomeType || 'continuous',
+        covariateColumns
+      });
+    } else if (protocol.objective !== 'explore') {
+      layers[layer] = analyseLayer(aggregated, layer, {
+        longitudinal: protocol.longitudinal,
+        paired: protocol.designType === 'paired'
+      });
+    }
+
+    if (layers[layer]) {
+      layers[layer].replicateGroups = rawAggregated.replicateGroups;
+      layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+      layers[layer].adjustment = adjusted.adjustment;
+    } else {
+      aggregated.matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
+      aggregated.replicateGroups = rawAggregated.replicateGroups;
+    }
   }
 
-  const crossOmics = conditions.length > 2
-    ? { method: 'Differential cross-omics correlations currently require exactly two conditions; omitted for the multi-group omnibus analysis.', testedPairs: 0, significantPairs: 0, pairs: [] }
-    : protocol.designType === 'paired' && !protocol.longitudinal
-      ? { method: 'Direct cross-omics correlation comparison is not run for paired designs in the current engine.', testedPairs: 0, significantPairs: 0, pairs: [] }
-      : analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
-  const selectedIds = Object.fromEntries(loadedLayers.map((layer) => [layer, layers[layer].selected.map((row) => row.feature)]));
+  let exploration = null;
+  if (protocol.objective === 'explore') {
+    exploration = analyseExploratoryIntegration(aggregatedByLayer, loadedLayers);
+    if (exploration.error) throw new Error(exploration.error);
+    for (const layer of loadedLayers) {
+      const result = explorationLayerResult(aggregatedByLayer[layer], exploration, layer);
+      result.replicateGroups = aggregatedByLayer[layer].replicateGroups || [];
+      result.matrixShape = aggregatedByLayer[layer].matrixShape || { features: aggregatedByLayer[layer].features.length, assays: aggregatedByLayer[layer].sampleMeta.size, transposed: false };
+      result.adjustment = adjustments[layer];
+      layers[layer] = result;
+    }
+  }
+
+  let crossOmics;
+  if (protocol.objective === 'explore') {
+    crossOmics = {
+      method: 'Differential cross-omics correlation is not applicable in the unsupervised branch; integration is performed by balanced multi-block PCA.',
+      testedPairs: 0,
+      significantPairs: 0,
+      pairs: []
+    };
+  } else if (protocol.objective === 'outcome') {
+    crossOmics = {
+      method: 'Outcome-targeted feature models are fitted per omics layer; differential correlation is not used as the primary outcome model.',
+      testedPairs: 0,
+      significantPairs: 0,
+      pairs: []
+    };
+  } else if (conditions.length > 2) {
+    crossOmics = {
+      method: 'Differential cross-omics correlations currently require exactly two conditions; omitted for the multi-group omnibus analysis.',
+      testedPairs: 0,
+      significantPairs: 0,
+      pairs: []
+    };
+  } else if (protocol.designType === 'paired' && !protocol.longitudinal) {
+    crossOmics = {
+      method: 'Direct cross-omics correlation comparison is not run for paired designs in the current engine.',
+      testedPairs: 0,
+      significantPairs: 0,
+      pairs: []
+    };
+  } else {
+    crossOmics = analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
+  }
+
+  const selectedIds = Object.fromEntries(
+    loadedLayers.map((layer) => [layer, (layers[layer].selected || []).map((row) => row.feature)])
+  );
   let identifierResolution = null;
   if (resolveIdentifiers && selectedIds.metabolomics?.length) {
     identifierResolution = {
@@ -1983,7 +2061,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
   return {
     generatedAt: new Date().toISOString(),
-    protocol,
+    protocol: { ...protocol, covariateColumns },
     metadataSummary: {
       subjects: new Set(metadata.map((row) => row.subjectId)).size,
       samples: new Set(metadata.map((row) => row.sampleId)).size,
@@ -1991,9 +2069,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       conditions,
       timepoints,
       overlap,
-      batchAudit: batchAudit.perLayer
+      batchAudit: batchAudit.perLayer,
+      adjustment: adjustments
     },
     layers,
+    exploration,
     crossOmics,
     selectedIds,
     reactomeIds,
