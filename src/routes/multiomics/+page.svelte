@@ -648,10 +648,13 @@
   $: mappedSamples = uniqueMapped('sample_id').size;
   $: mappedAssays = uniqueMapped('assay_id').size;
   $: replicateGroups = technicalReplicateGroups();
-  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete;
-  $: analysisPlan = longitudinal === 'yes' || objective === 'time'
-    ? 'technical-replicate aggregation → declared-data preprocessing → within-subject change → permutation contrast → BH-FDR → cross-omics correlation change → Reactome over-representation'
-    : 'technical-replicate aggregation → declared-data preprocessing → two-group permutation contrast → BH-FDR → cross-omics correlation change → Reactome over-representation';
+  $: objectiveOperational = objective === 'groups' || objective === 'time';
+  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && objectiveOperational;
+  $: analysisPlan = objective === 'time'
+    ? 'technical-replicate aggregation → declared-data preprocessing → batch-confounding audit → within-subject change/slope → deterministic inference → BH-FDR → cross-omics correlation change → Reactome over-representation'
+    : objective === 'groups'
+      ? 'technical-replicate aggregation → declared-data preprocessing → batch-confounding audit → group contrast → deterministic inference → BH-FDR → cross-omics correlation change → Reactome over-representation'
+      : 'data-contract validation and mapping only; no inferential branch is run for this objective in the current MVP';
 </script>
 
 <svelte:head>
@@ -1199,7 +1202,11 @@
 
   <div class="status" class:ready>
     <strong>{omicsCount}/3 omics selected</strong>
-    <span>{ready ? 'The structural contract is sufficient to run the deterministic MVP.' : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
+    <span>{ready
+      ? 'The structural contract and scientific objective are sufficient to run the deterministic MVP.'
+      : !objectiveOperational
+        ? 'This objective is validation-only in the current MVP; no surrogate inferential analysis will be run.'
+        : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
   </div>
 
   <div class="run-box">
