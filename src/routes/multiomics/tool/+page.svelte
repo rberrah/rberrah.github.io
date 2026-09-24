@@ -1638,7 +1638,12 @@
                 <strong>{omicLabel(layer)}</strong>
                 <small>{result.qc.featuresAfter}/{result.qc.featuresBefore} {t('variables conservées', 'features retained')}</small>
               </div>
-              <span class:qc-warning={result.qc.warnings?.length}>{result.qc.warnings?.length ? t('à vérifier', 'review') : 'OK'}</span>
+              <div class="qc-badges">
+                <span class:qc-warning={result.qc.warnings?.length}>{result.qc.warnings?.length ? t('à vérifier', 'review') : 'OK'}</span>
+                {#if result.qc.inferenceTier?.level === 'screening'}
+                  <span class="qc-screening">{t('screening', 'screening')} <span class="help-tip" tabindex="0" data-tooltip={t('Pour des counts RNA-seq bruts, la branche navigateur sert au screening reproductible. Pour une inférence différentielle publication-grade, utilisez l’adaptateur R DESeq2/limma avec le même design.', 'For raw RNA-seq counts, the browser branch is intended for reproducible screening. For publication-grade differential inference, use the DESeq2/limma R adapter with the same design.')}>?</span></span>
+                {/if}
+              </div>
             </div>
 
             <div class="qc-metrics">
@@ -1684,6 +1689,7 @@
             <details>
               <summary>{t('Règles QC et prétraitement', 'QC and preprocessing rules')}</summary>
               <p>{result.qc.filterPolicy}</p>
+              {#if result.qc.inferenceTier?.note}<p class="note">{result.qc.inferenceTier.note}</p>{/if}
               <ul>
                 {#each result.qc.preprocessingSteps || [] as step}<li>{step}</li>{/each}
                 {#each result.qc.warnings || [] as warning}<li class="warning">{warning}</li>{/each}
@@ -2212,6 +2218,10 @@
   .qc-card-head small { color:var(--text-secondary); }
   .qc-card-head > span { font-size:var(--text-xs); border:1px solid var(--border-subtle); border-radius:999px; padding:3px 7px; }
   .qc-card-head > span.qc-warning { border-color:var(--warning); color:var(--warning); }
+  .qc-badges { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:5px; }
+  .qc-badges > span { font-size:var(--text-xs); border:1px solid var(--border-subtle); border-radius:999px; padding:3px 7px; }
+  .qc-badges > span.qc-warning { border-color:var(--warning); color:var(--warning); }
+  .qc-badges > span.qc-screening { border-color:var(--accent-pk); color:var(--text-secondary); }
   .qc-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:var(--space-4) 0; }
   .qc-metrics div { display:grid; gap:2px; }
   .qc-metrics b { font-family:var(--font-mono); }
