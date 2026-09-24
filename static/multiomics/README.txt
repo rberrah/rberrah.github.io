@@ -38,7 +38,7 @@ Batches et covariables :
 - les réplicats techniques partageant sample_id + omic sont agrégés après prétraitement ;
 - un batch totalement confondu avec la condition, le temps ou un outcome catégoriel bloque l'inférence ;
 - plusieurs batches non confondus sont ajustés variable par variable par résidualisation OLS avant les analyses groupes/temps/exploration ;
-- dans la branche outcome, le batch est retiré des variables omiques avant le modèle et les covariables sélectionnées entrent explicitement dans la régression ;
+- dans la branche outcome, batch et covariables sélectionnées entrent directement dans chaque modèle comme variables de nuisance ; les variables omiques ne sont pas pré-résidualisées ;
 - les covariables numériques sont standardisées ; les covariables catégorielles sont encodées explicitement ;
 - aucune covariable n'est sélectionnée automatiquement.
 
@@ -81,9 +81,9 @@ Operational branches:
 - explore: deterministic balanced multi-block PCA across shared subjects.
 - groups: two-group, paired or independent multi-group inference according to the declared design.
 - time: within-subject change or individual slope followed by between-condition inference.
-- outcome: linear, logistic, Poisson, adjusted multiclass ANOVA or Cox regression according to endpoint type. When several omics visits exist, the molecular time point entering the model must be selected explicitly (for example baseline in a prognostic analysis).
+- outcome: linear, logistic, Poisson, covariate-adjusted multiclass ANCOVA (partial F-test) or Cox regression according to endpoint type. When several omics visits exist, the molecular time point entering the model must be selected explicitly (for example baseline in a prognostic analysis).
 - crossover remains blocked until period and sequence effects are modelled.
 
-Multiple non-confounded batches are explicitly adjusted by feature-wise OLS residualisation. Selected covariates are encoded explicitly; the tool never chooses confounders automatically.
+For group/time/exploratory analyses, multiple non-confounded batches and selected covariates are adjusted by feature-wise OLS residualisation. In outcome analyses, batch and selected covariates enter each regression directly as nuisance terms; omics features are not pre-residualized. The tool never chooses confounders automatically.
 
 The result page includes a deterministic “How should these results be interpreted?” guide. ChEBI and Reactome are the currently active external scientific services.
