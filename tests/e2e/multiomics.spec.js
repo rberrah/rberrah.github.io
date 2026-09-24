@@ -9,6 +9,32 @@ test('multi-omics presentation page links to the dedicated analysis tool', async
   await expect(toolLink).toHaveAttribute('href', /\/multiomics\/tool$/);
 });
 
+test('multi-omics presentation and tool switch to English', async ({ page }) => {
+  await page.goto('/multiomics?lang=en');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Integrate multiple omics');
+  await expect(page.getByRole('link', { name: 'Open the tool' })).toBeVisible();
+
+  await page.goto('/multiomics/tool?lang=en');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('From multi-omics data');
+  await expect(page.getByText('How should these results be interpreted?')).toHaveCount(0);
+  await expect(page.getByText('Run the analysis from the uploaded matrices')).toBeVisible();
+});
+
+test('outcome workflow requires an explicit omics time point when multiple visits exist', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+
+  await page.getByLabel(/Objectif principal|Main objective/).selectOption('outcome');
+  await page.getByLabel(/Type d.outcome principal|Primary outcome type/).selectOption('binary');
+
+  const timepoint = page.getByLabel(/Temps omique utilisé|Omics time point used/);
+  await expect(timepoint).toBeVisible();
+  await expect(timepoint).toHaveValue('');
+  await timepoint.selectOption('T0');
+  await expect(timepoint).toHaveValue('T0');
+});
+
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {
   let reactomeCalls = 0;
   await page.route('https://reactome.org/AnalysisService/**', async (route) => {
