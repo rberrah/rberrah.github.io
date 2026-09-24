@@ -3,6 +3,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
 
+  /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
 
   /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
@@ -78,6 +79,7 @@
     return layer;
   }
 
+  /** @type {Record<string, [string,string]>} */
   const fieldLabels = {
     subject_id: ['Sujet / unité expérimentale', 'Subject / experimental unit'],
     sample_id: ['Échantillon biologique', 'Biological sample'],
@@ -91,6 +93,7 @@
     survival_time: ['Temps de survie / suivi', 'Survival / follow-up time'],
     survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)']
   };
+  /** @param {string} key */
   const fieldLabel = (key) => {
     const labels = fieldLabels[key] || [key, key];
     return t(labels[0], labels[1]);
@@ -544,6 +547,7 @@
     columnMapping = { ...columnMapping, [key]: value };
   }
 
+  /** @param {string} column */
   function toggleCovariate(column) {
     selectedCovariates = selectedCovariates.includes(column)
       ? selectedCovariates.filter((item) => item !== column)
@@ -693,7 +697,9 @@
     URL.revokeObjectURL(href);
   }
 
+  /** @param {any} result @param {string} lang */
   function buildInterpretation(result, lang) {
+    /** @param {string} fr @param {string} en */
     const pick = (fr, en) => lang === 'en' ? en : fr;
     const items = [];
     if (result.protocol?.objective === 'explore' && result.exploration?.components?.length) {
@@ -712,13 +718,15 @@
       });
     } else if (result.protocol?.objective === 'outcome') {
       const mode = result.protocol?.outcomeType || 'continuous';
-      const effectText = {
+      /** @type {Record<string,string>} */
+      const effectTexts = {
         binary: pick('exp(effect) est un odds ratio.', 'exp(effect) is an odds ratio.'),
         count: pick('exp(effect) est un rate ratio.', 'exp(effect) is a rate ratio.'),
         survival: pick('exp(effect) est un hazard ratio.', 'exp(effect) is a hazard ratio.'),
         continuous: pick('effect est la variation attendue de l’outcome pour une unité de la variable omique.', 'effect is the expected outcome change per one feature unit.'),
         multiclass: pick('effect est l’écart maximal entre moyennes ajustées des classes.', 'effect is the maximum difference between adjusted class means.')
-      }[mode] || '';
+      };
+      const effectText = effectTexts[mode] || '';
       items.push({
         title: pick('Association avec l’outcome', 'Outcome association'),
         text: pick('Chaque variable est testée avec le modèle déterminé par le type d’outcome. ', 'Each feature is tested with the model selected from the outcome type. ') + effectText
@@ -764,7 +772,10 @@
     if (topPathway) {
       items.push({
         title: pick('Voies biologiques', 'Biological pathways'),
-        text: pick('La voie la mieux classée est « ' + topPathway.name + ' », soutenue par ' + topPathway.supportingLayers + ' couche(s) à FDR ≤ 0,10. Le classement Reactome reste exploratoire et dépend de l’univers d’annotation.', 'The top-ranked pathway is “‘' + topPathway.name + '”', supported by ' + topPathway.supportingLayers + ' layer(s) at FDR ≤ 0.10. Reactome ranking remains exploratory and depends on the annotation universe.')
+        text: pick(
+          'La voie la mieux classée est « ' + topPathway.name + ' », soutenue par ' + topPathway.supportingLayers + ' couche(s) à FDR ≤ 0,10. Le classement Reactome reste exploratoire et dépend de l’univers d’annotation.',
+          'The top-ranked pathway is “' + topPathway.name + '”, supported by ' + topPathway.supportingLayers + ' layer(s) at FDR ≤ 0.10. Reactome ranking remains exploratory and depends on the annotation universe.'
+        )
       });
     }
 
