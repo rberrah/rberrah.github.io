@@ -909,6 +909,58 @@ console.log('PUBLIC MULTI-OMICS EXTENDED BENCHMARKS: PASS');
   };
 }
 
+// --- Public validation of the multiclass outcome branch: TCGA Basal / Her2 / LumA phenotype ---
+{
+  const ds = await loadDataset(root + '/tcga-three-subtypes', ['transcriptomics','proteomics']);
+  const outcomeRows = ds.metadataRows.map((row) => ({ ...row, outcome: row.condition }));
+  const result = await runDeterministicAnalysis({
+    ...ds,
+    metadataRows: outcomeRows,
+    columnMapping: ds.mapping,
+    protocol: {
+      organism: 'human',
+      objective: 'outcome',
+      outcomeType: 'multiclass',
+      longitudinal: false,
+      designType: 'independent',
+      studySetting: 'clinical_observational',
+      groupCount: '1',
+      sampleOverlap: 'same_specimen',
+      batchKnown: 'no',
+      covariateColumns: []
+    },
+    dataTypes: {
+      transcriptomics: 'log_expression',
+      proteomics: 'log_intensity',
+      metabolomics: 'normalized'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+
+  const ranked = result.layers.proteomics.rows.map((row,index) => ({...row,rank:index+1}));
+  const her2 = ranked.find((row) => /^HER2$/i.test(row.feature));
+  const er = ranked.find((row) => /^ER-alpha$/i.test(row.feature));
+
+  requireTruth(
+    result.layers.proteomics.mode === 'outcome-multiclass',
+    'TCGA three-subtype phenotype uses the multiclass outcome branch',
+    result.layers.proteomics.inferenceMethod
+  );
+  requireTruth(
+    her2 && her2.qValue <= 0.01 && er && er.qValue <= 0.01,
+    'TCGA multiclass outcome model recovers HER2 and ER-alpha subtype biology',
+    'HER2 rank=' + (her2?.rank ?? 'NA') + ', q=' + (her2?.qValue ?? 'NA') + '; ER-alpha rank=' + (er?.rank ?? 'NA') + ', q=' + (er?.qValue ?? 'NA')
+  );
+
+  report.benchmarks.tcgaMulticlassOutcome = {
+    truth: 'Basal / Her2 / LumA subtype modelled as a multiclass phenotype.',
+    HER2: her2,
+    ERalpha: er,
+    top: result.layers.proteomics.rows.slice(0,15)
+  };
+}
+
 // --- Public validation of the outcome branch: TCGA Her2 vs LumA treated as a binary phenotype ---
 {
   const ds = await loadDataset(root + '/tcga-her2-luma', ['transcriptomics','proteomics']);
