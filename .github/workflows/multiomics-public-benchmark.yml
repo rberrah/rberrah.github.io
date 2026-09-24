@@ -47,6 +47,17 @@ jobs:
           sparse-checkout: |
             BRCA_data
 
+      - name: Checkout public 3-omics aging/diet benchmark
+        uses: actions/checkout@v5
+        with:
+          repository: GenomicsNX/xOmicsShiny_app
+          ref: main
+          path: external/xOmicsShiny
+          sparse-checkout: |
+            data/AgingHFCD_RNAseq.RData
+            data/AgingHFCD_Proteomics.RData
+            data/AgingHFCD_Metabolomics.RData
+
       - name: Checkout Bioconductor missRows benchmark
         uses: actions/checkout@v5
         with:
@@ -67,7 +78,7 @@ jobs:
       - name: Export public datasets to PMx contract
         run: |
           mkdir -p tmp/public-benchmarks
-          MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes MISSROWS_ROOT=external/missRows Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
+          MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes MISSROWS_ROOT=external/missRows XOMICS_ROOT=external/xOmicsShiny Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
 
       - name: Run PMx deterministic engine
         run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
