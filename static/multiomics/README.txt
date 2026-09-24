@@ -190,10 +190,10 @@ Les benchmarks vérifient des vérités biologiques ou statistiques attendues et
 13. LIMITES ENCORE IMPORTANTES
 
 Le navigateur constitue désormais une pipeline analytique déterministe utilisable sur des matrices déjà produites, mais il ne remplace pas encore tous les pipelines primaires de chaque plateforme :
-- DESeq2 / edgeR / limma-voom ne sont pas exécutés directement dans le navigateur pour les données RNA-seq brutes.
+- DESeq2 et limma disposent désormais d'adaptateurs R de référence, mais ne sont pas exécutés directement dans GitHub Pages ; edgeR/voom automatisé n'est pas encore branché.
 - les workflows MS complets de correction de dérive QC, blank subtraction et modèles MNAR restent dépendants de la préparation amont ou d'un futur moteur R serveur.
-- MOFA2 / DIABLO sont disponibles comme adaptateurs R, pas exécutés dans GitHub Pages.
-- GSEA Reactome rank-based complet n'est pas encore implémenté.
+- lmerTest, MOFA2 et DIABLO disposent d'adaptateurs R, pas exécutés dans GitHub Pages.
+- fgsea dispose d'un adaptateur R rank-based ; la récupération automatique des gene sets Reactome vers cet adaptateur reste à connecter.
 - UniChem n'est pas encore appelé automatiquement.
 - prédiction de survie cross-validée non implémentée.
 - validation externe reste indispensable pour un modèle prédictif destiné à la clinique.
@@ -205,4 +205,4 @@ The browser pipeline now implements the same major stages described above: expli
 
 Reference MOFA2 and DIABLO adapters are provided under multiomics-engine/advanced_methods.R for local/server execution. They are intentionally kept distinct from the browser-native PCA/PLS components.
 
-Remaining limitations include full primary-platform workflows such as DESeq2/edgeR/limma-voom, advanced MS drift/blank/MNAR processing, rank-based Reactome GSEA, automatic UniChem mapping, cross-validated survival prediction and external clinical validation.
+Reference R adapters now cover DESeq2, limma, lmerTest, fgsea, MOFA2 and DIABLO. Remaining limitations include automatic execution of those packages from the public browser, advanced MS drift/blank/MNAR processing, automatic Reactome gene-set transfer into fgsea, automatic UniChem mapping, cross-validated survival prediction and external clinical validation.
