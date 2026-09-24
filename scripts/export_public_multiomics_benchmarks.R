@@ -322,3 +322,35 @@ cat("\nAGING_HFCD_EXPORTED\n")
 cat("rna:", aging_rna$n_features, "features,", aging_rna$n_samples, "samples\n")
 cat("protein:", aging_pro$n_features, "features,", aging_pro$n_samples, "samples\n")
 cat("metabolite:", aging_met$n_features, "features,", aging_met$n_samples, "samples\n")
+
+
+# --- LRRK2 neuron RNA/proteome public benchmark inspection ---
+for (fname in c("LRRK2_Neuron_RNA.RData","LRRK2_Neuron_Protein.RData")) {
+  path <- file.path(xomics_root, "data", fname)
+  if (file.exists(path)) {
+    env <- new.env(parent=emptyenv())
+    load(path, envir=env)
+    cat("\nLRRK2_PUBLIC_INSPECTION", fname, "\n")
+    cat("objects:", paste(ls(env), collapse=","), "\n")
+    for (nm in ls(env)) {
+      obj <- get(nm, envir=env)
+      cat("object:", nm, "class:", paste(class(obj), collapse="/"), "\n")
+      if (!is.null(dim(obj))) cat("dim:", paste(dim(obj), collapse="x"), "\n")
+      if (is.list(obj)) cat("names:", paste(names(obj), collapse=","), "\n")
+      if (nm == "MetaData") {
+        cat("metadata_columns:", paste(colnames(obj), collapse=","), "\n")
+        for (col in intersect(c("group","condition","Genotype","genotype"), colnames(obj))) {
+          cat(col, ":", paste(names(table(obj[[col]])), as.integer(table(obj[[col]])), collapse="; "), "\n")
+        }
+      }
+      if (nm == "data_results") {
+        cat("result_columns:", paste(colnames(obj), collapse=","), "\n")
+        hits <- obj[grepl("LRRK2|RAB|CLTC|DNM|SH3GL|SYNJ", apply(obj, 1, paste, collapse=" "), ignore.case=TRUE), , drop=FALSE]
+        if (nrow(hits)) {
+          cat("LRRK2_TRUTH_ROWS\n")
+          print(head(hits, 20))
+        }
+      }
+    }
+  }
+}
