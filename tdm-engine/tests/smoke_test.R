@@ -431,7 +431,10 @@ invisible(lapply(analysis_artifacts, function(artifact) {
     ))
   }
   stopifnot(
-    identical(artifact$releaseLevel, if (isTRUE(eligibility$research)) "research" else "experimental")
+    identical(artifact$releaseLevel, if (isTRUE(eligibility$research)) "research" else "experimental"),
+    is.finite(as.numeric(artifact$validation$populationBaseline$untouchedHoldout$relativeRmsePct)),
+    is.finite(as.numeric(artifact$validation$populationBaseline$untouchedHoldout$relativeBiasPct)),
+    is.finite(as.numeric(artifact$validation$comparison$untouchedHoldoutRelativeRmseGainPct))
   )
   verified_ml_rds_path(artifact$artifactPath, artifact$artifactSha256)
   verified_ml_rds_path(

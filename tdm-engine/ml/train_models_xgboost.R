@@ -39,6 +39,10 @@ config_path <- file.path(APP_ROOT, "ml", "training-regimens.json")
 training_config <- jsonlite::fromJSON(config_path, simplifyVector = FALSE)
 if (!identical(as.integer(training_config$version %||% 0L), 1L)) stop("Unsupported ML training regimen version.")
 
+population_config_path <- file.path(APP_ROOT, "ml", "training-populations.json")
+population_config <- jsonlite::fromJSON(population_config_path, simplifyVector = FALSE)
+if (!identical(as.integer(population_config$version %||% 0L), 1L)) stop("Unsupported ML training population version.")
+
 MODE_ROUTE <- c(ORAL = "Oral", IV_INTERMITTENT = "IV", IV_CONTINUOUS = "IV")
 MODE_ID <- c(ORAL = "oral", IV_INTERMITTENT = "intermittent", IV_CONTINUOUS = "continuous")
 VALID_MODES <- names(MODE_ROUTE)
@@ -124,34 +128,107 @@ model_covariate_defaults <- function(model_id) {
   get(model_id, envir = .covariate_defaults, inherits = FALSE)
 }
 
-sample_covariate <- function(name, center, n) {
-  binary <- c("SEX", "BLACK", "CRRT", "IHD", "DIAL", "INFECT", "RIF", "FUS", "DM", "PREDNI", "CVVH", "FLAG", "CYP", "ST", "PERIOD")
-  if (name %in% binary) return(stats::rbinom(n, 1, 0.35))
-  if (name == "AGE") {
-    if (center < 18) return(stats::runif(n, max(0.1, 0.4 * center), min(18, max(2, 2 * center))))
-    return(stats::runif(n, 18, 90))
+population_profile <- function(model_id) {
+  population_config$models[[model_id]] %||% list(covariates = list())
+}
+
+population_sampling_record <- function(model_id) {
+  defaults <- model_covariate_defaults(model_id)
+  profile <- population_profile(model_id)
+  specs <- profile$covariates %||% list()
+  varied <- intersect(names(defaults), names(specs)[vapply(specs, function(spec) !identical(spec$type %||% "", "fixed"), logical(1))])
+  list(
+    source = profile$source %||% "Model reference values",
+    varied = varied,
+    fixed = setdiff(names(defaults), varied)
+  )
+}
+
+validate_population_config <- function() {
+  unknown_models <- setdiff(names(population_config$models), MODEL_CATALOG$id)
+  if (length(unknown_models)) stop("Unknown model(s) in training-populations.json: ", paste(unknown_models, collapse = ", "))
+  allowed_types <- c("fixed", "uniform", "normal", "lognormal", "bernoulli", "cockcroft_creatinine", "schwartz_height", "bmi_height")
+  for (model_id in names(population_config$models)) {
+    specs <- population_profile(model_id)$covariates %||% list()
+    unknown_covariates <- setdiff(names(specs), names(model_covariate_defaults(model_id)))
+    if (length(unknown_covariates)) stop("Unknown covariate(s) for ", model_id, ": ", paste(unknown_covariates, collapse = ", "))
+    invalid_types <- setdiff(vapply(specs, function(spec) spec$type %||% "", character(1)), allowed_types)
+    if (length(invalid_types)) stop("Unsupported population distribution(s) for ", model_id, ": ", paste(invalid_types, collapse = ", "))
   }
-  if (name == "WT") {
-    if (center < 20) return(stats::runif(n, max(1, 0.45 * center), max(3, 1.8 * center)))
-    return(stats::runif(n, max(30, 0.55 * center), min(180, 1.8 * center)))
+  invisible(TRUE)
+}
+
+validate_population_config()
+
+sample_truncated_normal <- function(n, mean, sd, min = -Inf, max = Inf) {
+  values <- stats::rnorm(n, mean, sd)
+  outside <- values < min | values > max
+  while (any(outside)) {
+    values[outside] <- stats::rnorm(sum(outside), mean, sd)
+    outside <- values < min | values > max
   }
-  if (name %in% c("BH")) return(stats::runif(n, 145, 200))
-  if (name == "HT") {
-    if (center <= 55) return(stats::runif(n, 20, 55))
-    if (center < 110) return(stats::runif(n, max(40, 0.65 * center), min(130, 1.4 * center)))
-    return(stats::runif(n, 140, 205))
+  values
+}
+
+sample_population_spec <- function(spec, n) {
+  type <- spec$type %||% stop("Population covariate specification has no type.")
+  if (identical(type, "fixed")) return(rep(as.numeric(spec$value), n))
+  if (identical(type, "uniform")) return(stats::runif(n, as.numeric(spec$min), as.numeric(spec$max)))
+  if (identical(type, "bernoulli")) return(stats::rbinom(n, 1, as.numeric(spec$probability)))
+  if (identical(type, "normal")) {
+    return(sample_truncated_normal(
+      n, as.numeric(spec$mean), as.numeric(spec$sd),
+      as.numeric(spec$min %||% -Inf), as.numeric(spec$max %||% Inf)
+    ))
   }
-  if (name %in% c("CREAT", "CREAT2")) return(stats::runif(n, 30, 280))
-  if (name %in% c("CRCL", "CLCR")) return(stats::runif(n, 10, 220))
-  if (name == "BSA") return(stats::runif(n, 0.35, 2.7))
-  if (name == "BMI") return(stats::runif(n, 15, 45))
-  if (name == "IBW") return(stats::runif(n, 40, 100))
-  if (name == "ALB") return(stats::runif(n, 15, 50))
-  if (name == "TEMP") return(stats::runif(n, 35, 41))
-  if (name == "CRP") return(stats::runif(n, 0, 250))
-  if (!is.finite(center)) stop("Invalid default for covariate ", name, ".")
-  if (center == 0) return(rep(0, n))
-  stats::runif(n, 0.6 * center, 1.5 * center)
+  if (identical(type, "lognormal")) {
+    mean <- as.numeric(spec$mean)
+    sd <- as.numeric(spec$sd)
+    sigma2 <- log1p((sd / mean)^2)
+    return(stats::rlnorm(n, log(mean) - sigma2 / 2, sqrt(sigma2)))
+  }
+  stop("Unsupported population covariate distribution: ", type)
+}
+
+derive_population_covariate <- function(name, spec, sampled, n) {
+  type <- spec$type
+  if (identical(type, "cockcroft_creatinine")) {
+    required <- c("WT", "AGE", "SEX")
+    if (identical(spec$weightMode %||% "total_body_weight", "lean_body_weight")) required <- c(required, "HT")
+    if (!all(required %in% names(sampled))) stop("Cockcroft creatinine requires WT, AGE, and SEX before CREAT.")
+    weight <- sampled$WT
+    if (identical(spec$weightMode %||% "total_body_weight", "lean_body_weight")) {
+      weight <- ifelse(
+        sampled$SEX < 0.5,
+        0.407 * sampled$WT + 0.267 * sampled$HT - 19.2,
+        0.252 * sampled$WT + 0.473 * sampled$HT - 48.3
+      )
+    }
+    factor <- ifelse(
+      sampled$SEX < 0.5,
+      as.numeric(spec$maleFactor %||% 1.25),
+      as.numeric(spec$femaleFactor %||% 1.04)
+    )
+    numerator <- factor * weight * (140 - sampled$AGE)
+    crcl_min <- rep(as.numeric(spec$crclMin), n)
+    crcl_max <- rep(as.numeric(spec$crclMax), n)
+    if (!is.null(spec$valueMax)) crcl_min <- pmax(crcl_min, numerator / as.numeric(spec$valueMax))
+    if (!is.null(spec$valueMin)) crcl_max <- pmin(crcl_max, numerator / as.numeric(spec$valueMin))
+    if (any(crcl_min > crcl_max)) stop("Cockcroft creatinine constraints are incompatible with the sampled population.")
+    target_crcl <- crcl_min + stats::runif(n) * (crcl_max - crcl_min)
+    return(numerator / target_crcl)
+  }
+  if (identical(type, "schwartz_height")) {
+    if (!"CREAT" %in% names(sampled)) stop("Schwartz height requires CREAT before HT.")
+    target_egfr <- stats::runif(n, as.numeric(spec$egfrMin), as.numeric(spec$egfrMax))
+    return(target_egfr * (sampled$CREAT / 88.4) / 0.413)
+  }
+  if (identical(type, "bmi_height")) {
+    if (!"WT" %in% names(sampled)) stop("BMI-derived height requires WT before HT.")
+    bmi <- sample_truncated_normal(n, as.numeric(spec$bmiMean), as.numeric(spec$bmiSd), as.numeric(spec$bmiMin %||% 10))
+    return(100 * sqrt(sampled$WT / bmi))
+  }
+  stop("Unsupported derived population covariate ", name, ": ", type)
 }
 
 sample_covariates <- function(base_id, generator_id, n) {
@@ -159,11 +236,25 @@ sample_covariates <- function(base_id, generator_id, n) {
   generator <- model_covariate_defaults(generator_id)
   names_all <- union(names(base), names(generator))
   if (!length(names_all)) return(data.frame(row.names = seq_len(n)))
-  values <- lapply(names_all, function(name) {
-    center <- if (name %in% names(generator)) generator[[name]] else base[[name]]
-    sample_covariate(name, center, n)
-  })
-  stats::setNames(as.data.frame(values, check.names = FALSE), names_all)
+  generator_specs <- population_profile(generator_id)$covariates %||% list()
+  base_specs <- population_profile(base_id)$covariates %||% list()
+  values <- list()
+  derived <- list()
+  for (name in names_all) {
+    from_generator <- name %in% names(generator)
+    center <- if (from_generator) generator[[name]] else base[[name]]
+    specs <- if (from_generator) generator_specs else base_specs
+    spec <- specs[[name]]
+    if (is.null(spec)) {
+      values[[name]] <- rep(center, n)
+    } else if ((spec$type %||% "") %in% c("cockcroft_creatinine", "schwartz_height", "bmi_height")) {
+      derived[[name]] <- spec
+    } else {
+      values[[name]] <- sample_population_spec(spec, n)
+    }
+  }
+  for (name in names(derived)) values[[name]] <- derive_population_covariate(name, derived[[name]], values, n)
+  as.data.frame(values[names_all], check.names = FALSE)
 }
 
 sample_eta_matrix <- function(model, n) {
@@ -224,24 +315,28 @@ simulate_batch <- function(base_scope, generator_scope, n) {
   etas <- sample_eta_matrix(model, n)
   regimens <- sample_regimens(base_scope, n)
   samples <- sample_times(regimens, base_scope$mode[[1]])
+  continuous <- identical(base_scope$mode[[1]], "IV_CONTINUOUS")
 
   parameter_names <- model_param_names(model)
   individual <- cbind(ID = seq_len(n), covariates, etas)
   individual <- individual[, c("ID", intersect(setdiff(names(individual), "ID"), parameter_names)), drop = FALSE]
   compartment <- match(model_administration_cmt(generator_record, base_scope$route[[1]]), model@cmtL)
   events <- data.frame(
-    ID = seq_len(n), time = 0, evid = 1, amt = regimens$amount,
-    ii = regimens$interval,
-    addl = pmax(0, floor((24 - 1e-8) / regimens$interval)),
+    ID = seq_len(n), time = 0, evid = 1, amt = if (continuous) 0 else regimens$amount,
+    ii = if (continuous) 0 else regimens$interval,
+    addl = if (continuous) 0 else pmax(0, floor((24 - 1e-8) / regimens$interval)),
     ss = 1, cmt = compartment,
-    rate = ifelse(regimens$infusion > 0, regimens$amount / regimens$infusion, 0)
+    rate = if (continuous) regimens$amount / regimens$interval else ifelse(regimens$infusion > 0, regimens$amount / regimens$infusion, 0)
   )
+  ss_n <- if (continuous) 5000 else 500
+  ss_tolerance <- if (continuous) 1e-6 else 1e-8
 
   output <- model |>
     mrgsolve::zero_re() |>
     mrgsolve::idata_set(individual) |>
     mrgsolve::data_set(events) |>
-    mrgsolve::mrgsim(start = 0, end = 24, delta = 0.1, recsort = 3) |>
+    mrgsolve::mrgsim(start = 0, end = 24, delta = 0.1, recsort = 3,
+                     ss_n = ss_n, ss_rtol = ss_tolerance, ss_atol = ss_tolerance) |>
     as.data.frame()
   if (!"DV" %in% names(output)) stop("Model ", generator_id, " does not capture DV.")
 
@@ -257,7 +352,8 @@ simulate_batch <- function(base_scope, generator_scope, n) {
     mrgsolve::zero_re() |>
     mrgsolve::idata_set(base_individual) |>
     mrgsolve::data_set(base_events) |>
-    mrgsolve::mrgsim(start = 0, end = population_horizon, delta = 0.1, recsort = 3) |>
+    mrgsolve::mrgsim(start = 0, end = population_horizon, delta = 0.1, recsort = 3,
+                     ss_n = ss_n, ss_rtol = ss_tolerance, ss_atol = ss_tolerance) |>
     as.data.frame()
   if (!"DV" %in% names(population_output)) stop("Model ", base_id, " does not capture DV.")
 
@@ -279,7 +375,8 @@ simulate_batch <- function(base_scope, generator_scope, n) {
     mrgsolve::zero_re(omega) |>
     mrgsolve::idata_set(individual) |>
     mrgsolve::data_set(stochastic_data) |>
-    mrgsolve::mrgsim(obsonly = TRUE, recsort = 3) |>
+    mrgsolve::mrgsim(obsonly = TRUE, recsort = 3,
+                     ss_n = ss_n, ss_rtol = ss_tolerance, ss_atol = ss_tolerance) |>
     as.data.frame()
   if (!"DV" %in% names(stochastic_output)) stop("Model ", generator_id, " does not capture stochastic DV.")
 
@@ -449,6 +546,12 @@ validation_record <- function(metrics) {
   )
 }
 
+rmse_gain_pct <- function(without_ml, with_ml) {
+  baseline <- without_ml[["relative_rmse_pct"]]
+  if (!is.finite(baseline) || baseline <= 0) return(NA_real_)
+  100 * (baseline - with_ml[["relative_rmse_pct"]]) / baseline
+}
+
 feature_schema <- function(base_id, predictors) {
   covariates <- names(model_covariate_defaults(base_id))
   regimen <- c("DOSE", "INTERVAL", "INFUSION")
@@ -462,6 +565,7 @@ feature_schema <- function(base_id, predictors) {
 
 evaluate_scope <- function(scope, index) {
   base_id <- scope$model_id[[1]]
+  population <- population_sampling_record(base_id)
   mode <- scope$mode[[1]]
   peers <- catalog_scopes()
   peers <- peers[peers$drug_key == scope$drug_key[[1]] & peers$mode == mode & peers$model_id != base_id, , drop = FALSE]
@@ -476,22 +580,32 @@ evaluate_scope <- function(scope, index) {
   training <- development[-holdout_indices, , drop = FALSE]
   predictors <- predictor_names(training)
   repeated <- repeated_cross_validate(training, predictors, seed + index * 1000L)
+  repeated_without_ml <- auc_metrics(training$TRUE_AUC24, training$POP_AUC24)
   booster <- fit_booster(training, predictors)
   holdout_prediction <- exp(stats::predict(booster, as.matrix(holdout[, predictors, drop = FALSE]))) * holdout$POP_AUC24
   holdout_metrics <- auc_metrics(holdout$TRUE_AUC24, holdout_prediction)
+  holdout_without_ml <- auc_metrics(holdout$TRUE_AUC24, holdout$POP_AUC24)
   alternate <- make_alternate_cohort(scope, peers, if (smoke) n_patients else min(n_patients, 500L))
   alternate_metrics <- if (is.null(alternate)) NULL else auc_metrics(
     alternate$TRUE_AUC24,
     exp(stats::predict(booster, as.matrix(alternate[, predictors, drop = FALSE]))) * alternate$POP_AUC24
   )
-  gates <- isTRUE(validation_record(repeated)$passed) && isTRUE(validation_record(holdout_metrics)$passed)
+  alternate_without_ml <- if (is.null(alternate)) NULL else auc_metrics(alternate$TRUE_AUC24, alternate$POP_AUC24)
+  improves_holdout <- holdout_metrics[["relative_rmse_pct"]] < holdout_without_ml[["relative_rmse_pct"]]
+  gates <- isTRUE(validation_record(repeated)$passed) && isTRUE(validation_record(holdout_metrics)$passed) && improves_holdout
   print_metrics <- function(label, metrics) cat(sprintf(
     "  %-18s rRMSE %6.2f%% | bias %+6.2f%% | within 20%% %5.1f%%\n",
     label, metrics[["relative_rmse_pct"]], metrics[["relative_bias_pct"]], metrics[["within_20_pct"]]
   ))
-  print_metrics("repeated CV", repeated)
-  print_metrics("untouched test", holdout_metrics)
-  if (!is.null(alternate_metrics)) print_metrics("alternate PopPK", alternate_metrics)
+  print_metrics("CV without ML", repeated_without_ml)
+  print_metrics("CV with ML", repeated)
+  print_metrics("test without ML", holdout_without_ml)
+  print_metrics("test with ML", holdout_metrics)
+  cat(sprintf("  holdout rRMSE gain: %+6.2f%%\n", rmse_gain_pct(holdout_without_ml, holdout_metrics)))
+  if (!is.null(alternate_metrics)) {
+    print_metrics("other PopPK no ML", alternate_without_ml)
+    print_metrics("other PopPK + ML", alternate_metrics)
+  }
   cat("  research gates: ", if (gates) "PASS" else "FAIL", "\n", sep = "")
 
   set.seed(seed + index * 10000L)
@@ -502,16 +616,32 @@ evaluate_scope <- function(scope, index) {
       drug = scope$drug[[1]],
       route = scope$route[[1]],
       administration_mode = mode,
+      population_source = population$source,
+      varied_covariates = paste(population$varied, collapse = "+"),
+      reference_covariates = paste(population$fixed, collapse = "+"),
       peers = paste(peers$model_id, collapse = "+"),
       n_training = nrow(training),
       n_holdout = nrow(holdout),
       n_alternate = if (is.null(alternate)) 0L else nrow(alternate),
+      cv_without_ml_relative_rmse_pct = repeated_without_ml[["relative_rmse_pct"]],
+      cv_without_ml_relative_bias_pct = repeated_without_ml[["relative_bias_pct"]],
+      cv_with_ml_relative_rmse_pct = repeated[["relative_rmse_pct"]],
+      cv_with_ml_relative_bias_pct = repeated[["relative_bias_pct"]],
       cv_relative_rmse_pct = repeated[["relative_rmse_pct"]],
       cv_relative_bias_pct = repeated[["relative_bias_pct"]],
       cv_within_20_pct = repeated[["within_20_pct"]],
+      holdout_without_ml_relative_rmse_pct = holdout_without_ml[["relative_rmse_pct"]],
+      holdout_without_ml_relative_bias_pct = holdout_without_ml[["relative_bias_pct"]],
+      holdout_with_ml_relative_rmse_pct = holdout_metrics[["relative_rmse_pct"]],
+      holdout_with_ml_relative_bias_pct = holdout_metrics[["relative_bias_pct"]],
+      holdout_relative_rmse_gain_pct = rmse_gain_pct(holdout_without_ml, holdout_metrics),
       holdout_relative_rmse_pct = holdout_metrics[["relative_rmse_pct"]],
       holdout_relative_bias_pct = holdout_metrics[["relative_bias_pct"]],
       holdout_within_20_pct = holdout_metrics[["within_20_pct"]],
+      alternate_without_ml_relative_rmse_pct = if (is.null(alternate_without_ml)) NA_real_ else alternate_without_ml[["relative_rmse_pct"]],
+      alternate_without_ml_relative_bias_pct = if (is.null(alternate_without_ml)) NA_real_ else alternate_without_ml[["relative_bias_pct"]],
+      alternate_with_ml_relative_rmse_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["relative_rmse_pct"]],
+      alternate_with_ml_relative_bias_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["relative_bias_pct"]],
       alternate_relative_rmse_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["relative_rmse_pct"]],
       alternate_relative_bias_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["relative_bias_pct"]],
       alternate_within_20_pct = if (is.null(alternate_metrics)) NA_real_ else alternate_metrics[["within_20_pct"]],
@@ -527,10 +657,14 @@ evaluate_scope <- function(scope, index) {
     auc_bounds = list(min = min(training$TRUE_AUC24), max = max(training$TRUE_AUC24)),
     concentration_max = max(training$PREV_CONC, training$LAST_CONC),
     repeated = repeated,
+    repeated_without_ml = repeated_without_ml,
     holdout = holdout_metrics,
+    holdout_without_ml = holdout_without_ml,
     alternate = alternate_metrics,
+    alternate_without_ml = alternate_without_ml,
     scope = scope,
-    peers = peers
+    peers = peers,
+    population = population
   )
 }
 
@@ -584,6 +718,10 @@ publish_candidate <- function(evaluation) {
       developmentModelSha256 = stats::setNames(list(model_sha256(base_id)), base_id),
       unseenValidationGenerators = evaluation$peers$model_id,
       regimenConfiguration = "ml/training-regimens.json",
+      populationConfiguration = "ml/training-populations.json",
+      sourcePopulation = evaluation$population$source,
+      variedCovariates = evaluation$population$varied,
+      referenceCovariates = evaluation$population$fixed,
       target = "log(individual AUC24 / population AUC24)",
       acceptedAucRatio = list(min = MIN_AUC_RATIO, max = MAX_AUC_RATIO),
       realPatientValidation = "Pending"
@@ -607,10 +745,20 @@ publish_candidate <- function(evaluation) {
       features = evaluation$feature_bounds
     ),
     validation = list(
-      thresholds = list(relativeRmsePct = MAX_RELATIVE_RMSE_PCT, absoluteBiasPct = MAX_ABSOLUTE_BIAS_PCT, within20Pct = MIN_WITHIN_20_PCT),
+      thresholds = list(relativeRmsePct = MAX_RELATIVE_RMSE_PCT, absoluteBiasPct = MAX_ABSOLUTE_BIAS_PCT, within20Pct = MIN_WITHIN_20_PCT, requiresImprovementOverPopulationBaseline = TRUE),
       repeatedCv = validation_record(evaluation$repeated),
       untouchedHoldout = validation_record(evaluation$holdout),
       alternatePopPk = alternate_validation,
+      populationBaseline = list(
+        repeatedCv = validation_record(evaluation$repeated_without_ml),
+        untouchedHoldout = validation_record(evaluation$holdout_without_ml),
+        alternatePopPk = if (is.null(evaluation$alternate_without_ml)) list(status = "not_applicable", passed = NULL) else validation_record(evaluation$alternate_without_ml)
+      ),
+      comparison = list(
+        repeatedCvRelativeRmseGainPct = rmse_gain_pct(evaluation$repeated_without_ml, evaluation$repeated),
+        untouchedHoldoutRelativeRmseGainPct = rmse_gain_pct(evaluation$holdout_without_ml, evaluation$holdout),
+        alternatePopPkRelativeRmseGainPct = if (is.null(evaluation$alternate)) NULL else rmse_gain_pct(evaluation$alternate_without_ml, evaluation$alternate)
+      ),
       realPatient = list(status = "pending", gainPct = NULL)
     )
   )
@@ -625,6 +773,7 @@ publish_candidate <- function(evaluation) {
     (item$explanation %||% list())$backgroundPath %||% ""
   )), use.names = FALSE)
   manifest$artifacts <- c(manifest$artifacts[!same_scope], list(artifact))
+  manifest$benchmarkDate <- format(Sys.Date(), "%Y-%m-%d")
   jsonlite::write_json(manifest, ML_MANIFEST_PATH, auto_unbox = TRUE, pretty = TRUE, null = "null")
   for (relative_path in old_paths[nzchar(old_paths)]) {
     old_path <- file.path(APP_ROOT, "ml", relative_path)

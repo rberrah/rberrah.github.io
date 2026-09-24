@@ -15,7 +15,15 @@ Pour chaque patient virtuel, le script :
 7. evalue le modele par validation croisee repetee, jeu de test interne non touche et, lorsqu'un autre modele compatible existe, transportabilite PopPK simulee;
 8. produit un fond synthetique pour l'explication locale DALEX.
 
+Chaque evaluation rapporte separement le biais et la RMSE relative de l'AUC populationnelle sans ML (`POP_AUC24`) et de l'AUC corrigee par XGBoost. Un artefact ne peut atteindre le niveau interne `research` que si le ML franchit les seuils prespecifies et reduit la RMSE du jeu de test par rapport a cette reference sans ML. Cette comparaison n'est pas une comparaison au MAP-BE, qui necessiterait un ajustement bayesien distinct pour chaque profil simule.
+
 Les variables comprennent les covariables du modele, la dose, l'intervalle, la duree de perfusion, les horaires et concentrations, les predictions populationnelles correspondantes et les rapports observe/predit. Les domaines de dose et d'intervalle sont explicites dans `training-regimens.json`.
+
+Les deux horaires sont tires dans le meme intervalle, avec une separation minimale, mais ne sont pas optimises pour chaque molecule. Le point de depart clinique sur le tacrolimus reposait sur des prelevements predose, vers 1 h et 3 h, puis sur des modeles utilisant deux ou trois concentrations. Ce design ne peut pas etre transpose automatiquement a d'autres profils PK. Les resultats du benchmark dependent donc du schema de prelevement et restent exploratoires jusqu'a une optimisation par molecule et une validation clinique externe.
+
+Les covariables ne sont jamais tirees dans une plage generique commune a toute la bibliotheque. `training-populations.json` contient les informations propres aux populations sources : bornes, moyenne/ecart-type ou proportions publiees. Une variable positive documentee uniquement par sa moyenne et son ecart-type peut utiliser une loi log-normale ajustee sur ces deux moments; cette hypothese est inscrite dans le fichier. Quand l'article ne documente pas suffisamment la population, la valeur de reference du modele est conservee; le pipeline n'invente pas une plage. Les covariables liees peuvent etre reconstruites conjointement (par exemple la creatinine a partir d'une clairance Cockcroft-Gault cible).
+
+Les covariables dependantes du temps sont maintenues constantes pendant chaque profil simule. Leur trajectoire longitudinale n'est donc pas encore validee par ce benchmark.
 
 Dans l'application, l'AUC24 ML reste separee de l'estimation MAP-BE. Elle ne modifie ni les trajectoires, ni les simulations de doses, ni la recommandation MAP-BE.
 
@@ -49,7 +57,7 @@ Options disponibles :
 - `--publish` pour ecrire les RDS et mettre a jour `registry.json`;
 - `--report=...csv` pour conserver les metriques synthetiques.
 
-La publication est refusee en mode `--smoke` ou avec moins de 1 000 profils par couple modele/mode. Pour ajouter un modele, il faut d'abord l'ajouter au catalogue et definir chaque schema d'administration pris en charge dans `training-regimens.json`, puis relancer le script sur son identifiant. Aucun fichier patient n'est lu ou ecrit.
+La publication est refusee en mode `--smoke` ou avec moins de 1 000 profils par couple modele/mode. Pour ajouter un modele, il faut d'abord l'ajouter au catalogue, definir chaque schema d'administration pris en charge dans `training-regimens.json` et documenter sa population dans `training-populations.json`, puis relancer le script sur son identifiant. Aucun fichier patient n'est lu ou ecrit.
 
 ## Contrat et niveaux de preuve
 

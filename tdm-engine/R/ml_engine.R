@@ -81,12 +81,16 @@ ml_artifact_eligibility <- function(artifact, model_id, drug, route, administrat
   alternate_ok <- validation_passed("alternatePopPk", "alternatePopPkGainPct")
   repeated_evaluated <- validation_evaluated("repeatedCv") || validation_evaluated("repeatedNestedCv")
   experimental_ok <- identity_ok && hash_ok && supported_type && repeated_evaluated && validation_evaluated("untouchedHoldout")
-  research_ok <- experimental_ok && nested_ok && holdout_ok
+  improvement_required <- isTRUE((validation$thresholds %||% list())$requiresImprovementOverPopulationBaseline)
+  holdout_gain <- suppressWarnings(as.numeric((validation$comparison %||% list())$untouchedHoldoutRelativeRmseGainPct %||% NA_real_))
+  improvement_ok <- !improvement_required || (is.finite(holdout_gain) && holdout_gain > 0)
+  research_ok <- experimental_ok && nested_ok && holdout_ok && improvement_ok
   real_patient <- validation$realPatient %||% list()
   clinical_ok <- research_ok && identical(real_patient$status %||% "", "validated") &&
     is.finite(suppressWarnings(as.numeric(real_patient$gainPct %||% NA_real_))) &&
     as.numeric(real_patient$gainPct) > 0
   reasons <- c(
+    if (!improvement_ok) "absence d'amelioration de la RMSE par rapport a l'AUC populationnelle sans ML",
     if (!identity_ok) "molécule, voie, mode d'administration ou modèle de base incompatible",
     if (!hash_ok) "empreinte SHA-256 du modèle incompatible ou indisponible",
     if (!supported_type) "type de prédiction ML non pris en charge",

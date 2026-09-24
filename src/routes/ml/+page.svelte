@@ -6,7 +6,7 @@
   import { language } from '$lib/stores/language';
   import { tdmEngineUrl } from '$lib/tdm/engine';
 
-  let scope = $state('current');
+  let scope = $state('snapshot');
   let query = $state('');
   let drug = $state('all');
 
@@ -28,17 +28,26 @@
       inputsText: 'Dose, intervalle, concentrations, horaires, prédictions populationnelles et covariables du modèle.',
       validationText: 'Validation croisée répétée, jeu de test non touché et test sur un autre modèle PopPK lorsque possible.',
       explanationText: 'DALEX décompose la prédiction par rapport à 200 profils synthétiques. Les contributions ne sont pas causales.',
+      samplingWarningTitle: 'Prudence : prélèvements non optimisés par molécule',
+      samplingWarningBody: "Ce benchmark utilise deux concentrations simulées à des horaires tirés dans le même intervalle posologique, avec une séparation minimale. Il ne recherche pas les meilleurs temps de prélèvement pour chaque molécule. Les travaux cliniques de référence sur le tacrolimus reposaient sur des prélèvements prédose, vers 1 h et 3 h, puis sur des modèles utilisant deux ou trois concentrations. Cette stratégie adaptée au tacrolimus ne se transpose pas automatiquement aux autres profils PK, notamment aux antibiotiques, aux perfusions continues ou aux médicaments à action prolongée. Les biais et RMSE présentés sont donc exploratoires et dépendants du design de prélèvement ; ils doivent être interprétés avec prudence jusqu’à optimisation par molécule et validation clinique externe.",
       benchmark: 'Benchmark de la bibliothèque',
-      benchmarkLead: "Résultats du dernier entraînement complet. Le statut « disponible dans le TDM » exige aussi que le modèle soit un prior MAP éligible et que son empreinte soit inchangée.",
-      current: 'Disponibles dans le TDM', snapshot: 'Tous les artefacts du benchmark', search: 'Rechercher un modèle', allDrugs: 'Toutes les molécules',
+      benchmarkLead: "Pour chaque couple modèle–mode, le jeu de test compare l’AUC populationnelle sans correction ML à l’AUC corrigée par XGBoost. Le statut « disponible dans le TDM » exige aussi un prior MAP éligible et une empreinte inchangée.",
+      current: 'Disponibles dans le TDM', snapshot: 'Tous les modèles benchmarkés', search: 'Rechercher un modèle', allDrugs: 'Toutes les molécules',
       artifacts: 'artefacts évalués', available: 'actuellement compatibles', research: 'franchissent les seuils internes', clinical: 'validation clinique pour les extensions',
-      median: 'RMSE médiane sur test', chart: 'RMSE relative sur le jeu de test non touché', logScale: 'Largeur en échelle logarithmique · seuil interne RMSE = 15 %',
+      improved: 'améliorés par le ML', medianNoMl: 'RMSE médiane sans ML', medianWithMl: 'RMSE médiane avec ML', chart: 'RMSE relative de l’AUC sur le jeu de test non touché', logScale: 'Largeur en échelle logarithmique · seuil interne RMSE ML = 15 %',
       noRows: 'Aucun résultat ne correspond aux filtres.',
-      modelCol: 'Modèle', modeCol: 'Mode', cvCol: 'RMSE CV', holdoutCol: 'RMSE test', biasCol: 'Biais test', withinCol: 'Dans ±20 %', alternateCol: 'RMSE autre PopPK', statusCol: 'Statut',
+      modelCol: 'Modèle', modeCol: 'Mode', noMlBiasCol: 'Biais sans ML', noMlRmseCol: 'RMSE sans ML', mlBiasCol: 'Biais avec ML', mlRmseCol: 'RMSE avec ML', gainCol: 'Gain RMSE', statusCol: 'Statut',
       internalResearch: 'Seuils internes atteints', experimental: 'Expérimental', unavailable: 'Hors analyse TDM', stale: 'À réentraîner', na: 'N/A',
       interpretation: 'Comment lire ces résultats',
+      metricTitle: 'Ce que signifie « sans ML »',
+      metricBody: "Il s’agit de l’AUC populationnelle du même modèle et du même schéma, avec effets aléatoires individuels inconnus. Ce n’est ni la qualité de publication du modèle ni une estimation MAP. La RMSE relative est RMSE(AUC estimée − AUC vraie) divisée par la moyenne des AUC vraies.",
+      baselineLegend: 'AUC populationnelle sans ML', mlLegend: 'AUC corrigée par XGBoost',
       limits: [
         "Le benchmark est entièrement synthétique : il mesure une reconstruction de l’AUC dans le monde défini par les modèles, pas un bénéfice clinique.",
+        "Les covariables sont simulées à partir des plages, distributions ou statistiques descriptives de la population source. Toute hypothèse de distribution est déclarée ; une covariable insuffisamment documentée reste à la valeur de référence du modèle.",
+        "Les covariables dépendantes du temps sont actuellement maintenues constantes pendant le profil simulé ; leur évolution longitudinale devra faire l’objet d’un benchmark séparé.",
+        "Un modèle PopPK publié décrit une distribution de patients ; il ne garantit pas que deux concentrations bruitées identifient les effets aléatoires du patient. Même avec le même modèle générateur, cette information peut rester partiellement non identifiable.",
+        "Une RMSE élevée peut être dominée par quelques profils extrêmes lorsque la variabilité interindividuelle, les doses et les AUC couvrent une plage très large. Le biais moyen peut alors rester faible.",
         "Une bonne performance sur le modèle générateur ne garantit pas la transportabilité vers une autre population ou un autre modèle PopPK.",
         "L’AUC24 ML n’est pas utilisée pour la recommandation de dose. La trajectoire, les scénarios et la recommandation restent fondés sur le MAP-BE.",
         "Deux concentrations dans un même intervalle et un schéma déclaré à l’état stationnaire sont nécessaires. Une sortie hors domaine déclenche un avertissement."
@@ -64,17 +73,26 @@
       inputsText: 'Dose, interval, concentrations, times, population predictions and model covariates.',
       validationText: 'Repeated cross-validation, untouched holdout and testing on another PopPK model when possible.',
       explanationText: 'DALEX decomposes the prediction against 200 synthetic profiles. Contributions are not causal.',
+      samplingWarningTitle: 'Caution: sampling times are not optimized by drug',
+      samplingWarningBody: 'This benchmark uses two simulated concentrations at times sampled within the same dosing interval, with a minimum separation. It does not identify the best sampling times for each drug. The reference clinical tacrolimus work used predose, approximately 1-hour and 3-hour samples, then models based on two or three concentrations. This tacrolimus-specific strategy cannot automatically be transferred to other PK profiles, especially antibiotics, continuous infusions or long-acting drugs. The reported bias and RMSE are therefore exploratory and sampling-design dependent; they require cautious interpretation until drug-specific optimization and external clinical validation are completed.',
       benchmark: 'Library benchmark',
-      benchmarkLead: 'Results from the latest full training run. “Available in TDM” also requires an eligible MAP prior and an unchanged model fingerprint.',
-      current: 'Available in TDM', snapshot: 'All benchmark artifacts', search: 'Search models', allDrugs: 'All drugs',
+      benchmarkLead: 'For each model–mode pair, the holdout compares population AUC without ML correction against XGBoost-corrected AUC. “Available in TDM” also requires an eligible MAP prior and an unchanged fingerprint.',
+      current: 'Available in TDM', snapshot: 'All benchmarked models', search: 'Search models', allDrugs: 'All drugs',
       artifacts: 'evaluated artifacts', available: 'currently compatible', research: 'pass internal gates', clinical: 'clinical validation for extensions',
-      median: 'Median holdout RMSE', chart: 'Relative RMSE on the untouched holdout', logScale: 'Logarithmic width · internal RMSE threshold = 15%',
+      improved: 'improved by ML', medianNoMl: 'Median RMSE without ML', medianWithMl: 'Median RMSE with ML', chart: 'Relative AUC RMSE on the untouched holdout', logScale: 'Logarithmic width · internal ML RMSE threshold = 15%',
       noRows: 'No result matches the filters.',
-      modelCol: 'Model', modeCol: 'Mode', cvCol: 'CV RMSE', holdoutCol: 'Holdout RMSE', biasCol: 'Holdout bias', withinCol: 'Within ±20%', alternateCol: 'Other-PopPK RMSE', statusCol: 'Status',
+      modelCol: 'Model', modeCol: 'Mode', noMlBiasCol: 'Bias without ML', noMlRmseCol: 'RMSE without ML', mlBiasCol: 'Bias with ML', mlRmseCol: 'RMSE with ML', gainCol: 'RMSE gain', statusCol: 'Status',
       internalResearch: 'Internal gates passed', experimental: 'Experimental', unavailable: 'Outside TDM analysis', stale: 'Retraining required', na: 'N/A',
       interpretation: 'How to read these results',
+      metricTitle: 'What “without ML” means',
+      metricBody: 'It is the population AUC from the same model and regimen, with individual random effects unknown. It is neither the publication quality of the model nor a MAP estimate. Relative RMSE is RMSE(estimated AUC − true AUC) divided by mean true AUC.',
+      baselineLegend: 'Population AUC without ML', mlLegend: 'XGBoost-corrected AUC',
       limits: [
         'The benchmark is entirely synthetic: it measures AUC reconstruction in the world defined by the models, not clinical benefit.',
+        'Covariates are simulated from ranges, distributions or summary statistics reported for each source population. Any distributional assumption is declared; an insufficiently documented covariate remains at the model reference value.',
+        'Time-varying covariates are currently held constant over each simulated profile; their longitudinal evolution requires a separate benchmark.',
+        'A published PopPK model describes a patient distribution; it does not guarantee that two noisy concentrations identify the patient random effects. Even under the same generating model, that information may remain partly non-identifiable.',
+        'A high RMSE can be dominated by a few extreme profiles when interindividual variability, doses and AUCs span a wide range. Mean bias can nevertheless remain small.',
         'Good performance on the generating model does not guarantee transportability to another population or PopPK model.',
         'ML AUC24 is not used for dose recommendation. Trajectories, scenarios and recommendations remain MAP-BE based.',
         'Two concentrations in one dosing interval and a declared steady-state regimen are required. Out-of-domain input triggers a warning.'
@@ -93,7 +111,12 @@
     .filter((item) => drug === 'all' || item.drug === drug)
     .filter((item) => `${item.drug} ${item.model} ${item.modelId}`.toLowerCase().includes(query.trim().toLowerCase()))
     .sort((a, b) => (a.validation.untouchedHoldout?.relativeRmsePct ?? Infinity) - (b.validation.untouchedHoldout?.relativeRmsePct ?? Infinity)));
-  let chartMax = $derived(Math.max(60, ...rows.map((item) => item.validation.untouchedHoldout?.relativeRmsePct ?? 0)));
+  const baselineValue = (item, block, metric) => Number(item.validation?.populationBaseline?.[block]?.[metric]);
+  const gainValue = (item) => Number(item.validation?.comparison?.untouchedHoldoutRelativeRmseGainPct);
+  let chartMax = $derived(Math.max(60, ...rows.flatMap((item) => [
+    item.validation.untouchedHoldout?.relativeRmsePct ?? 0,
+    item.validation.populationBaseline?.untouchedHoldout?.relativeRmsePct ?? 0
+  ])));
   const value = (item, block, metric) => Number(item.validation?.[block]?.[metric]);
   const format = (number) => Number.isFinite(number) ? `${number.toFixed(1)} %` : copy.na;
   const median = (values) => {
@@ -102,10 +125,13 @@
     const middle = Math.floor(clean.length / 2);
     return clean.length % 2 ? clean[middle] : (clean[middle - 1] + clean[middle]) / 2;
   };
-  let medianHoldout = $derived(median(scopeArtifacts.map((item) => value(item, 'untouchedHoldout', 'relativeRmsePct'))));
+  let medianWithoutMl = $derived(median(scopeArtifacts.map((item) => baselineValue(item, 'untouchedHoldout', 'relativeRmsePct'))));
+  let medianWithMl = $derived(median(scopeArtifacts.map((item) => value(item, 'untouchedHoldout', 'relativeRmsePct'))));
+  let improvedCount = $derived(scopeArtifacts.filter((item) => gainValue(item) > 0).length);
   const barWidth = (number) => `${Math.min(100, Math.log1p(Math.max(0, number)) / Math.log1p(chartMax) * 100)}%`;
   const status = (item) => !item.analysisEligible ? copy.unavailable : !item.hashMatches ? copy.stale : item.releaseLevel === 'research' ? copy.internalResearch : copy.experimental;
   const statusClass = (item) => !item.availableInTdm ? 'muted' : item.releaseLevel === 'research' ? 'research' : 'experimental';
+  const gainClass = (item) => gainValue(item) >= 0 ? 'improved' : 'degraded';
   const modeLabel = (item) => item.administrationMode === 'continuous' ? 'IV continue' : item.administrationMode === 'intermittent' ? 'IV discontinue' : item.administrationMode;
 </script>
 
@@ -127,7 +153,7 @@
   <div class="pipeline" aria-label={$language === 'en' ? 'Machine-learning pipeline' : 'Pipeline de machine learning'}>
     {#each [
       [Database, copy.simulated, 'PopPK'],
-      [Activity, copy.sparse, 'C1 · C2'],
+      [Activity, copy.sparse, 't1 · t2'],
       [GitBranch, copy.features, 'dose · t · cov'],
       [GitBranch, copy.model, 'boosted trees'],
       [ShieldCheck, copy.output, 'estimate']
@@ -162,6 +188,10 @@
     <article><span>03</span><h3>{copy.validation}</h3><p>{copy.validationText}</p></article>
     <article><span>04</span><h3>{copy.explanation}</h3><p>{copy.explanationText}</p></article>
   </div>
+  <aside class="metric-note sampling-note">
+    <h3>{copy.samplingWarningTitle}</h3>
+    <p>{copy.samplingWarningBody}</p>
+  </aside>
 </section>
 
 <section class="benchmark">
@@ -176,9 +206,10 @@
   <div class="stats">
     <div><strong>{benchmark.artifacts.length}</strong><span>{copy.artifacts}</span></div>
     <div><strong>{currentArtifacts.length}</strong><span>{copy.available}</span></div>
-    <div><strong>{currentArtifacts.filter((item) => item.releaseLevel === 'research').length}</strong><span>{copy.research}</span></div>
-    <div><strong>0</strong><span>{copy.clinical}</span></div>
-    <div><strong>{format(medianHoldout)}</strong><span>{copy.median}</span></div>
+    <div><strong>{improvedCount}/{scopeArtifacts.length}</strong><span>{copy.improved}</span></div>
+    <div><strong>{scopeArtifacts.filter((item) => item.releaseLevel === 'research').length}</strong><span>{copy.research}</span></div>
+    <div><strong>{format(medianWithoutMl)}</strong><span>{copy.medianNoMl}</span></div>
+    <div><strong>{format(medianWithMl)}</strong><span>{copy.medianWithMl}</span></div>
   </div>
 
   <div class="filters">
@@ -186,26 +217,31 @@
     <label><span>{$language === 'en' ? 'Drug' : 'Molécule'}</span><select bind:value={drug}><option value="all">{copy.allDrugs}</option>{#each drugs as item}<option value={item}>{item}</option>{/each}</select></label>
   </div>
 
-  <div class="chart-head"><h3>{copy.chart}</h3><span>{copy.logScale}</span></div>
+  <div class="metric-note"><h3>{copy.metricTitle}</h3><p>{copy.metricBody}</p></div>
+  <div class="chart-head"><div><h3>{copy.chart}</h3><div class="legend"><span class="baseline-key"></span>{copy.baselineLegend}<span class="ml-key"></span>{copy.mlLegend}</div></div><span>{copy.logScale}</span></div>
   {#if rows.length}
     <div class="rmse-chart">
       {#each rows as item}
         {@const rmse = value(item, 'untouchedHoldout', 'relativeRmsePct')}
+        {@const baselineRmse = baselineValue(item, 'untouchedHoldout', 'relativeRmsePct')}
         <div class="chart-row">
           <div class="chart-label"><strong>{item.model}</strong><span>{item.drug} · {modeLabel(item)}</span></div>
-          <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class={`bar ${statusClass(item)}`} style={`width:${barWidth(rmse)}`}></span></div>
-          <strong class="chart-value">{format(rmse)}</strong>
+          <div class="bar-pair">
+            <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class="bar baseline" style={`width:${barWidth(baselineRmse)}`}></span></div>
+            <div class="track"><span class="threshold" style={`left:${barWidth(15)}`}></span><span class={`bar ml ${gainClass(item)}`} style={`width:${barWidth(rmse)}`}></span></div>
+          </div>
+          <strong class={`chart-value ${gainClass(item)}`}>{format(baselineRmse)}<br/>{format(rmse)}</strong>
         </div>
       {/each}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>{copy.modelCol}</th><th>{copy.modeCol}</th><th>{copy.cvCol}</th><th>{copy.holdoutCol}</th><th>{copy.biasCol}</th><th>{copy.withinCol}</th><th>{copy.alternateCol}</th><th>{copy.statusCol}</th></tr></thead>
+        <thead><tr><th>{copy.modelCol}</th><th>{copy.modeCol}</th><th>{copy.noMlBiasCol}</th><th>{copy.noMlRmseCol}</th><th>{copy.mlBiasCol}</th><th>{copy.mlRmseCol}</th><th>{copy.gainCol}</th><th>{copy.statusCol}</th></tr></thead>
         <tbody>{#each rows as item}<tr>
           <td><strong>{item.model}</strong><span>{item.drug}</span></td><td>{modeLabel(item)}</td>
-          <td>{format(value(item, 'repeatedCv', 'relativeRmsePct'))}</td><td>{format(value(item, 'untouchedHoldout', 'relativeRmsePct'))}</td>
-          <td>{format(value(item, 'untouchedHoldout', 'relativeBiasPct'))}</td><td>{format(value(item, 'untouchedHoldout', 'within20Pct'))}</td>
-          <td>{format(value(item, 'alternatePopPk', 'relativeRmsePct'))}</td><td><span class={`status ${statusClass(item)}`}>{status(item)}</span></td>
+          <td>{format(baselineValue(item, 'untouchedHoldout', 'relativeBiasPct'))}</td><td>{format(baselineValue(item, 'untouchedHoldout', 'relativeRmsePct'))}</td>
+          <td>{format(value(item, 'untouchedHoldout', 'relativeBiasPct'))}</td><td>{format(value(item, 'untouchedHoldout', 'relativeRmsePct'))}</td>
+          <td><strong class={gainClass(item)}>{format(gainValue(item))}</strong></td><td><span class={`status ${statusClass(item)}`}>{status(item)}</span></td>
         </tr>{/each}</tbody>
       </table>
     </div>
@@ -247,7 +283,7 @@
   .scope { display: inline-flex; border: 1px solid var(--border-strong); padding: 3px; }
   .scope button { border: 0; background: transparent; color: var(--text-secondary); padding: var(--space-2) var(--space-3); font: inherit; font-size: var(--text-sm); cursor: pointer; }
   .scope button.active { background: var(--text-primary); color: var(--bg-primary); }
-  .stats { display: grid; grid-template-columns: repeat(5, 1fr); margin: var(--space-7) 0; border-block: 1px solid var(--border-subtle); }
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); margin: var(--space-7) 0; border-block: 1px solid var(--border-subtle); }
   .stats div { min-height: 110px; display: grid; align-content: center; gap: 3px; padding: var(--space-4); border-right: 1px solid var(--border-subtle); }
   .stats div:last-child { border-right: 0; }
   .stats strong { font-family: var(--font-heading); font-size: var(--text-2xl); }
@@ -256,21 +292,32 @@
   label { display: grid; gap: var(--space-2); color: var(--text-primary); font-weight: 650; }
   label span { font-size: var(--text-sm); }
   input, select { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-primary); padding: var(--space-3); font: inherit; }
+  .metric-note { max-width: 850px; margin: var(--space-7) 0; padding-left: var(--space-4); border-left: 3px solid var(--accent-ai); }
+  .sampling-note { border-left-color: var(--accent-pk); }
+  .metric-note h3 { margin: 0 0 var(--space-2); }
+  .metric-note p { margin: 0; color: var(--text-secondary); }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); margin: var(--space-8) 0 var(--space-4); }
   .chart-head h3 { margin: 0; }
   .chart-head span { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); color: var(--text-muted); font-size: var(--text-xs); }
+  .legend .baseline-key, .legend .ml-key { width: 18px; height: 6px; background: var(--text-muted); }
+  .legend .ml-key { margin-left: var(--space-2); background: var(--accent-pd); }
   .rmse-chart { display: grid; gap: var(--space-2); }
   .chart-row { display: grid; grid-template-columns: minmax(150px, 230px) minmax(160px, 1fr) 64px; align-items: center; gap: var(--space-3); min-height: 42px; }
   .chart-label { min-width: 0; display: grid; }
   .chart-label strong, .chart-label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .chart-label strong { font-size: var(--text-sm); }
   .chart-label span { color: var(--text-muted); font-size: 11px; }
-  .track { position: relative; height: 12px; background: var(--bg-secondary); }
+  .bar-pair { display: grid; gap: 3px; }
+  .track { position: relative; height: 8px; background: var(--bg-secondary); }
   .threshold { position: absolute; z-index: 2; top: -4px; bottom: -4px; border-left: 1px dashed var(--text-primary); }
-  .bar { position: absolute; inset: 0 auto 0 0; min-width: 2px; background: var(--accent-pk); }
-  .bar.research { background: var(--accent-pd); }
-  .bar.muted { background: var(--text-muted); opacity: .55; }
+  .bar { position: absolute; inset: 0 auto 0 0; min-width: 2px; }
+  .bar.baseline { background: var(--text-muted); opacity: .7; }
+  .bar.ml { background: var(--accent-pd); }
+  .bar.ml.degraded { background: var(--accent-pk); }
   .chart-value { text-align: right; font-family: var(--font-mono); font-size: var(--text-xs); }
+  .improved { color: var(--accent-pd); }
+  .degraded { color: var(--accent-pk); }
   .table-wrap { overflow-x: auto; margin-top: var(--space-8); border-top: 1px solid var(--border-strong); }
   table { width: 100%; border-collapse: collapse; font-size: var(--text-xs); }
   th, td { padding: var(--space-3); border-bottom: 1px solid var(--border-subtle); text-align: right; white-space: nowrap; }
