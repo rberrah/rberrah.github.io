@@ -544,6 +544,12 @@
     columnMapping = { ...columnMapping, [key]: value };
   }
 
+  function toggleCovariate(column) {
+    selectedCovariates = selectedCovariates.includes(column)
+      ? selectedCovariates.filter((item) => item !== column)
+      : [...selectedCovariates, column];
+  }
+
   /**
    * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
    */
@@ -573,7 +579,8 @@
     if (longitudinal === 'yes' || Number(timepointCount) > 1) headers.push('timepoint');
     if (batchKnown !== 'no') headers.push('batch');
     if (technicalReplicatesExpected !== 'no') headers.push('technical_replicate');
-    if (outcomeType !== 'none') headers.push('outcome');
+    if (outcomeType !== 'none' && outcomeType !== 'survival') headers.push('outcome');
+    if (outcomeType === 'survival') headers.push('survival_time', 'survival_event');
     if (covariatesAvailable === 'yes') headers.push('covariate_1');
 
     const omics = ['transcriptomics', 'proteomics', 'metabolomics'];
@@ -594,6 +601,8 @@
             batch: `${prefix}_B1`,
             technical_replicate: '1',
             outcome: '',
+            survival_time: '',
+            survival_event: '',
             covariate_1: ''
           };
           exampleRows.push(headers.map((header) => values[header] ?? '').join(','));
@@ -637,6 +646,7 @@
           batchKnown,
           outcomeType,
           covariatesAvailable,
+          covariateColumns: selectedCovariates,
           partialOmicsExpected
         },
         dataTypes: {
@@ -693,13 +703,26 @@
   $: mappedSamples = uniqueMapped('sample_id').size;
   $: mappedAssays = uniqueMapped('assay_id').size;
   $: replicateGroups = technicalReplicateGroups();
-  $: objectiveOperational = objective === 'groups' || objective === 'time';
-  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && objectiveOperational;
-  $: analysisPlan = objective === 'time'
-    ? 'technical-replicate aggregation → declared-data preprocessing → batch-confounding audit → within-subject change/slope → deterministic inference → BH-FDR → cross-omics correlation change → Reactome over-representation'
-    : objective === 'groups'
-      ? 'technical-replicate aggregation → declared-data preprocessing → batch-confounding audit → group contrast → deterministic inference → BH-FDR → cross-omics correlation change → Reactome over-representation'
-      : 'data-contract validation and mapping only; no inferential branch is run for this objective in the current MVP';
+  $: canonicalMappedColumns = new Set(Object.values(columnMapping).filter(Boolean));
+  $: availableCovariateColumns = metadataHeaders.filter((header) => !canonicalMappedColumns.has(header));
+  $: selectedCovariates = selectedCovariates.filter((header) => availableCovariateColumns.includes(header));
+  $: outcomeMappingComplete = objective !== 'outcome'
+    || (outcomeType === 'survival'
+      ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
+      : Boolean(columnMapping.outcome));
+  $: objectiveOperational = designType !== 'crossover';
+  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
+  $: analysisPlan = objective === 'explore'
+    ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
+        'preprocessing → replicate aggregation → batch/covariate adjustment → within-layer scaling → balanced multi-block PCA → loadings → Reactome')
+    : objective === 'outcome'
+      ? t('prétraitement → agrégation → ajustement batch → régression selon l’outcome + covariables → BH-FDR → Reactome',
+          'preprocessing → aggregation → batch adjustment → outcome-specific regression + covariates → BH-FDR → Reactome')
+      : objective === 'time'
+        ? t('agrégation des réplicats → prétraitement → ajustement batch/covariables → changement/pente intra-sujet → inférence → BH-FDR → intégration inter-omique → Reactome',
+            'replicate aggregation → preprocessing → batch/covariate adjustment → within-subject change/slope → inference → BH-FDR → cross-omics integration → Reactome')
+        : t('agrégation des réplicats → prétraitement → ajustement batch/covariables → contraste de groupes → inférence → BH-FDR → intégration inter-omique → Reactome',
+            'replicate aggregation → preprocessing → batch/covariate adjustment → group contrast → inference → BH-FDR → cross-omics integration → Reactome');
 </script>
 
 <svelte:head>
