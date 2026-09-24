@@ -468,6 +468,7 @@ function csvFile(name, text) {
       let survivalEvent = '';
       if (type === 'continuous') outcome = String(2 * latent + 0.05 * age);
       if (type === 'binary') outcome = latent > 0 ? 'responder' : 'nonresponder';
+      if (type === 'multiclass') outcome = s <= 8 ? 'class_A' : s <= 16 ? 'class_B' : 'class_C';
       if (type === 'count') outcome = String(Math.max(0, Math.round(4 + latent * 1.5)));
       if (type === 'survival') {
         survivalTime = String(Math.max(1, 30 - latent * 4 + (s % 3)));
@@ -495,7 +496,7 @@ function csvFile(name, text) {
     };
   };
 
-  for (const type of ['continuous','binary','count','survival']) {
+  for (const type of ['continuous','binary','multiclass','count','survival']) {
     const ds = makeOutcomeDataset(type);
     const parsedMeta = parseDelimited(await ds.meta.text());
     const outcomeResult = await runDeterministicAnalysis({
