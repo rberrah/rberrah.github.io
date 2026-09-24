@@ -1,7 +1,10 @@
-Prototype multi-omique — contrat de données / Multi-omics prototype — data contract
+Pipeline multi-omique PMx Explain — contrat et méthodes
+========================================================
 
 FRANÇAIS
 ========
+
+1. CONTRAT DE DONNÉES
 
 Format canonique des métadonnées : format long, une ligne par mesure technique (assay).
 
@@ -16,74 +19,190 @@ Colonnes optionnelles selon le design :
 - timepoint : visite ou temps expérimental.
 - batch : batch technique.
 - technical_replicate : numéro de réplicat technique.
-- outcome : phénotype/critère pour un outcome binaire, multiclasse, continu ou de comptage.
-- survival_time : durée de suivi / temps jusqu'à événement pour une analyse de survie.
+- outcome : phénotype/critère pour outcome binaire, multiclasse, continu ou comptage.
+- survival_time : durée de suivi / temps jusqu'à événement.
 - survival_event : événement de survie codé 0/1.
 - toute autre colonne peut être sélectionnée explicitement comme covariable.
 
-Branches analytiques actuellement opérationnelles :
-- explore : ACP multi-blocs équilibrée sur les sujets partagés entre les couches. Les variables sont standardisées dans chaque couche, les blocs sont pondérés par 1/sqrt(p), puis les axes et loadings communs sont calculés de façon déterministe.
-- groups : comparaison de deux groupes, design apparié ou analyse multi-groupe indépendante selon le protocole déclaré.
-- time : changement intra-sujet avec deux temps ou pente individuelle avec trois temps ou plus, puis comparaison entre conditions.
-- outcome :
-  - continu -> régression linéaire ;
-  - binaire -> régression logistique ;
-  - comptage -> régression de Poisson ;
-  - multiclasse -> ANOVA ajustée ;
-  - survie -> modèle de Cox ;
-  - si plusieurs temps omiques sont présents, le temps utilisé comme prédicteur doit être choisi explicitement (par exemple baseline pour une analyse pronostique).
-- crossover : volontairement bloqué tant que période et séquence ne sont pas modélisées.
+2. CONTRÔLE QUALITÉ ET PRÉTRAITEMENT
 
-Batches et covariables :
-- les réplicats techniques partageant sample_id + omic sont agrégés après prétraitement ;
-- un batch totalement confondu avec la condition, le temps ou un outcome catégoriel bloque l'inférence ;
-- plusieurs batches non confondus sont ajustés variable par variable par résidualisation OLS avant les analyses groupes/temps/exploration ;
-- dans la branche outcome, batch et covariables sélectionnées entrent directement dans chaque modèle comme variables de nuisance ; les variables omiques ne sont pas pré-résidualisées ;
-- les covariables numériques sont standardisées ; les covariables catégorielles sont encodées explicitement ;
-- aucune covariable n'est sélectionnée automatiquement.
+Avant l'inférence, chaque couche reçoit un QC spécifique au type déclaré :
+- RNA counts / spectral counts : contrôle de profondeur/détection, filtrage CPM conservateur, normalisation par taille de librairie et transformation log2.
+- intensités / concentrations : contrôle de missingness, détection, transformation déclarée et centrage médian lorsque pertinent.
+- variables constantes ou quasi non observées : retirées avant les modèles.
+- assays suspects : détectés par profondeur/signal, nombre de variables détectées et missingness avec règles robustes.
+- réplicats techniques : corrélation de Spearman calculée avant agrégation ; r < 0,80 génère un avertissement.
+- PCA QC : calculée par couche après prétraitement pour visualiser structure globale, batch et outliers. Une imputation médiane n'est utilisée que pour cette visualisation QC.
 
-Interprétation :
-L'interface fournit une section « Comment interpréter ces résultats ? » construite par des règles déterministes à partir du type de modèle, des tailles d'effet, q-values, ajustements, relations inter-omiques et résultats Reactome. Elle ne génère pas de causalité ni de mécanisme non observé.
+Les résultats affichent le nombre de variables avant/après filtre, le missing médian, les assays suspects, les réplicats faibles et la PCA QC.
 
-Services scientifiques externes actuellement appelés :
-- ChEBI : résolution conservatrice optionnelle des identifiants métabolites.
-- Reactome : sur-représentation de voies et consensus entre couches.
+3. BATCHES ET COVARIABLES
 
-Ensembl, UniProt, UniChem, KEGG et STRING restent des connecteurs prévus ; ils ne sont pas appelés silencieusement par le moteur actuel.
+- Un batch totalement confondu avec condition, temps ou outcome catégoriel bloque l'analyse.
+- Groupes indépendants : modèle explicite feature ~ condition + batch + covariables.
+  - 2 groupes : OLS avec erreurs standards robustes HC3.
+  - >=3 groupes : ANCOVA avec test F partiel.
+- Outcome : batch et covariables entrent directement dans chaque modèle comme termes de nuisance ; les variables omiques ne sont pas pré-résidualisées.
+- Temps répétés : batch et covariables entrent directement dans le modèle longitudinal.
+- Exploration / corrélations inter-omiques : une copie résidualisée est utilisée lorsque nécessaire pour retirer les facteurs de nuisance.
+- Aucune covariable n'est choisie automatiquement.
 
-Validation publique automatisée :
-- Nutrimouse : biologie PPARalpha, CYP3A11 et métabolites lipidiques.
-- TCGA breast : HER2/LumA et analyse Basal/Her2/LumA.
-- NCI-60 IntLIM et BRCA IntLIM : changements publiés de corrélations gène-métabolite.
-- AgingHFCD : concordance RNA/protéine/métabolite avec les résultats différentiels de référence.
-- STATegra : trajectoire Ikaros et structure à 36 échantillons / 3 réplicats biologiques.
-- LRRK2 G2019S : concordance RNA/protéine et biologie RAB/endocytose.
-- PaintOmics : signal multi-omique planté connu.
-- missRows NCI-60 : appariement partiel réel entre couches.
+4. BRANCHES ANALYTIQUES
 
-ANALYSE DE L'ÉCHELLE STATegra :
-Les données au niveau réplicat et le résumé public à six temps sont très concordants en direction mais ne sont pas numériquement interchangeables. L'échelle des valeurs doit donc être déclarée explicitement.
+Explore :
+- ACP multi-blocs équilibrée déterministe.
+- Standardisation dans chaque couche.
+- Pondération 1/sqrt(p) pour éviter qu'une couche avec davantage de variables domine.
+- PC1/PC2, scores, loadings et contribution par couche.
+- Si partialOmicsExpected=yes, les sujets avec une couche entière absente peuvent participer ; les valeurs absentes sont mises à la moyenne standardisée (0) uniquement pour cette intégration latente exploratoire, jamais pour les tests différentiels.
+
+Groups :
+- comparaison ajustée au design et aux covariables.
+- correction Benjamini-Hochberg.
+- taille d'effet / fold ratio lorsque l'échelle est log2.
+- corrélations inter-omiques différentielles sur les sujets réellement communs.
+
+Time :
+- design repeated : modèle longitudinal déterministe à intercept aléatoire sujet :
+  feature ~ condition * time + batch + covariables + (1|subject)
+- estimation GLS itérative du terme aléatoire, interaction condition x temps, IC95 %, FDR et ICC.
+- les designs appariés simples conservent une analyse intra-sujet dédiée.
+- crossover reste bloqué tant que période et séquence ne sont pas explicitement modélisées.
+
+Outcome :
+- continu : régression linéaire.
+- binaire : régression logistique.
+- comptage : Poisson.
+- multiclasse : ANCOVA / test F partiel.
+- survie : Cox.
+- si plusieurs temps omiques existent, le temps moléculaire utilisé par le modèle doit être choisi explicitement.
+
+5. INTÉGRATION MULTI-OMIQUE
+
+Non supervisée :
+- ACP multi-blocs équilibrée native du navigateur.
+
+Supervisée :
+- composante multiblocs PLS1-style transparente, construite à partir de la cible déclarée.
+- elle fournit poids par variable, contribution par couche et corrélation score-cible.
+- elle est descriptive et n'est PAS appelée DIABLO.
+
+Méthodes de référence R :
+- multiomics-engine/advanced_methods.R fournit des adaptateurs utilisant réellement :
+  - MOFA2 ;
+  - mixOmics::block.splsda (DIABLO).
+- Ces méthodes sont prévues pour exécution locale/serveur, pas directement dans GitHub Pages.
+
+6. ASSOCIATION VS PRÉDICTION OUTCOME
+
+L'analyse feature-wise et la prédiction sont séparées.
+
+La validation prédictive actuellement disponible pour outcome binaire, multiclasse, continu et comptage utilise :
+- folds externes déterministes ;
+- sélection de variables limitée aux sujets d'entraînement du fold externe ;
+- réglage interne de la pénalisation ridge ;
+- prédictions hors échantillon.
+Métriques :
+- binaire : AUC, accuracy, log-loss.
+- multiclasse : accuracy.
+- continu / comptage : RMSE et R² hors échantillon.
+
+La survie reste association-only pour le moment. Une validation externe indépendante reste nécessaire avant usage clinique.
+
+7. DONNÉES MANQUANTES
+
+- aucune imputation cachée dans les tests différentiels, régressions outcome ou tests de corrélation.
+- les corrélations inter-omiques utilisent uniquement les sujets présents dans les deux couches de la paire.
+- l'exploration latente peut accepter des blocs omiques absents uniquement si cela est déclaré ; le remplissage par moyenne standardisée est alors limité à cette étape exploratoire.
+- la couverture sujet x omique est enregistrée explicitement.
+
+8. ENRICHISSEMENT BIOLOGIQUE
+
+Reactome :
+- l'outil interroge Reactome sur les variables sélectionnées.
+- il interroge aussi Reactome avec l'univers des variables réellement conservées après QC.
+- il recalcule localement un test hypergéométrique puis Benjamini-Hochberg avec cet univers assay-specific.
+- la FDR Reactome par défaut n'est utilisée qu'en repli lorsque l'univers spécifique ne peut pas être mappé.
+- le nombre de couches soutenant séparément une voie à FDR <=0,10 est affiché pour quantifier la convergence inter-omique.
+
+9. IDENTIFIANTS
+
+Résolution conservative actuellement active :
+- transcriptomique : Ensembl ; les identifiants Ensembl canoniques sont conservés, les symboles peuvent être résolus via Ensembl.
+- protéomique : UniProt / Ensembl ; les accessions UniProt canoniques sont conservées.
+- métabolomique : ChEBI avec correspondances exactes et alias lipidiques déterministes.
+- les cas ambigus restent ambiguous/unresolved ; aucun mapping n'est forcé.
+- limites de requêtes appliquées pour éviter les appels excessifs.
+
+UniChem reste un connecteur prévu pour les identifiants chimiques non couverts ; il n'est pas encore utilisé automatiquement.
+
+10. RAPPORT REPRODUCTIBLE
+
+Chaque analyse enregistre :
+- version du moteur ;
+- protocole complet ;
+- mapping des colonnes ;
+- QC et prétraitements ;
+- covariables ;
+- structure des batches ;
+- empreintes FNV1a32 des inputs et tailles de fichiers ;
+- résultats statistiques ;
+- intégration supervisée/exploratoire ;
+- validation prédictive ;
+- résultats Reactome.
+
+L'interface permet de télécharger :
+- JSON complet ;
+- CSV par couche ;
+- rapport HTML autonome contenant provenance, méthodes, QC, résultats et JSON complet embarqué.
+
+11. AIDE À L'INTERPRÉTATION
+
+Les colonnes statistiques comportent des infobulles « ? » accessibles à la souris et au clavier :
+- Fold ratio / effect ;
+- p ;
+- q BH ;
+- Pattern ;
+- r reference ;
+- r comparison ;
+- Delta r ;
+- q BH des corrélations ;
+- FDR univers assay ;
+- FDR par couche ;
+- nombre de couches concordantes.
+
+L'interface contient également une section « Comment interpréter ces résultats ? » et un glossaire.
+
+12. VALIDATION PUBLIQUE
+
+La suite automatisée comprend notamment :
+- Nutrimouse ;
+- TCGA breast ;
+- IntLIM NCI-60 et BRCA ;
+- AgingHFCD ;
+- STATegra ;
+- LRRK2 G2019S ;
+- PaintOmics à signal multi-omique planté ;
+- missRows NCI-60.
+
+Les benchmarks vérifient des vérités biologiques ou statistiques attendues et pas seulement l'exécution du code.
+
+13. LIMITES ENCORE IMPORTANTES
+
+Le navigateur constitue désormais une pipeline analytique déterministe utilisable sur des matrices déjà produites, mais il ne remplace pas encore tous les pipelines primaires de chaque plateforme :
+- DESeq2 / edgeR / limma-voom ne sont pas exécutés directement dans le navigateur pour les données RNA-seq brutes.
+- les workflows MS complets de correction de dérive QC, blank subtraction et modèles MNAR restent dépendants de la préparation amont ou d'un futur moteur R serveur.
+- MOFA2 / DIABLO sont disponibles comme adaptateurs R, pas exécutés dans GitHub Pages.
+- GSEA Reactome rank-based complet n'est pas encore implémenté.
+- UniChem n'est pas encore appelé automatiquement.
+- prédiction de survie cross-validée non implémentée.
+- validation externe reste indispensable pour un modèle prédictif destiné à la clinique.
 
 ENGLISH
 =======
 
-Canonical metadata format: long format, one row per technical assay.
+The browser pipeline now implements the same major stages described above: explicit data contract, modality-aware QC, adjusted design-matrix models, repeated-measures random-intercept GLS, partial-block handling, balanced unsupervised and supervised multiblock integration, nested cross-validated prediction, assay-universe Reactome enrichment, conservative identifier resolution and a reproducible HTML report.
 
-Required columns:
-- subject_id: independent biological unit.
-- sample_id: biological specimen.
-- assay_id: unique technical measurement/run ID; matrix columns must match it exactly.
-- omic: transcriptomics, proteomics or metabolomics.
+Reference MOFA2 and DIABLO adapters are provided under multiomics-engine/advanced_methods.R for local/server execution. They are intentionally kept distinct from the browser-native PCA/PLS components.
 
-Optional design columns include condition, timepoint, batch, technical_replicate, outcome, survival_time, survival_event and any explicitly selected covariate columns.
-
-Operational branches:
-- explore: deterministic balanced multi-block PCA across shared subjects.
-- groups: two-group, paired or independent multi-group inference according to the declared design.
-- time: within-subject change or individual slope followed by between-condition inference.
-- outcome: linear, logistic, Poisson, covariate-adjusted multiclass ANCOVA (partial F-test) or Cox regression according to endpoint type. When several omics visits exist, the molecular time point entering the model must be selected explicitly (for example baseline in a prognostic analysis).
-- crossover remains blocked until period and sequence effects are modelled.
-
-For group/time/exploratory analyses, multiple non-confounded batches and selected covariates are adjusted by feature-wise OLS residualisation. In outcome analyses, batch and selected covariates enter each regression directly as nuisance terms; omics features are not pre-residualized. The tool never chooses confounders automatically.
-
-The result page includes a deterministic “How should these results be interpreted?” guide. ChEBI and Reactome are the currently active external scientific services.
+Remaining limitations include full primary-platform workflows such as DESeq2/edgeR/limma-voom, advanced MS drift/blank/MNAR processing, rank-based Reactome GSEA, automatic UniChem mapping, cross-validated survival prediction and external clinical validation.
