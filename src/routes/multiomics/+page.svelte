@@ -1,10 +1,13 @@
 <script>
+  import { base } from '$app/paths';
+
   /** @type {'explore' | 'groups' | 'outcome' | 'time'} */
   let objective = 'explore';
   let organism = 'human';
   let studyName = '';
   let groupVariable = '';
   let outcome = '';
+  let unitType = 'participant';
   /** @type {number | undefined} */
   let subjectCount;
   let paired = 'no';
@@ -17,6 +20,80 @@
     metabolomics: null,
     metadata: null
   };
+
+  /** @type {string[]} */
+  let metadataHeaders = [];
+  /** @type {Record<string, string>[]} */
+  let metadataRows = [];
+  let metadataDelimiter = '';
+  let metadataError = '';
+
+  /** @type {Record<'transcriptomics' | 'proteomics' | 'metabolomics', {headers:string[], sampleIds:string[], featureColumn:string, error:string}>} */
+  let matrixInfo = {
+    transcriptomics: { headers: [], sampleIds: [], featureColumn: '', error: '' },
+    proteomics: { headers: [], sampleIds: [], featureColumn: '', error: '' },
+    metabolomics: { headers: [], sampleIds: [], featureColumn: '', error: '' }
+  };
+
+  const fieldDefinitions = [
+    {
+      key: 'subject_id',
+      label: 'Subject / experimental unit',
+      required: true,
+      aliases: ['subject_id', 'subject', 'patient_id', 'patient', 'participant_id', 'participant', 'individual_id', 'individual', 'donor_id', 'animal_id', 'unit_id', 'biological_unit']
+    },
+    {
+      key: 'sample_id',
+      label: 'Biological sample',
+      required: true,
+      aliases: ['sample_id', 'sample', 'specimen_id', 'specimen', 'biospecimen_id', 'biosample_id', 'sample_name']
+    },
+    {
+      key: 'assay_id',
+      label: 'Assay / run identifier',
+      required: true,
+      aliases: ['assay_id', 'assay', 'run_id', 'run', 'measurement_id', 'library_id', 'file_id', 'assay_name']
+    },
+    {
+      key: 'omic',
+      label: 'Omics layer',
+      required: true,
+      aliases: ['omic', 'omics', 'layer', 'modality', 'data_type', 'datatype', 'assay_type', 'omics_type']
+    },
+    {
+      key: 'condition',
+      label: 'Condition / group',
+      required: false,
+      aliases: ['condition', 'group', 'treatment', 'arm', 'cohort', 'status', 'class', 'phenotype_group', 'condition_name']
+    },
+    {
+      key: 'timepoint',
+      label: 'Time point',
+      required: false,
+      aliases: ['timepoint', 'time_point', 'time', 'visit', 'visit_id', 'visit_name', 'day', 'week']
+    },
+    {
+      key: 'batch',
+      label: 'Technical batch',
+      required: false,
+      aliases: ['batch', 'batch_id', 'plate', 'run_batch', 'technical_batch', 'batch_name']
+    },
+    {
+      key: 'technical_replicate',
+      label: 'Technical replicate',
+      required: false,
+      aliases: ['technical_replicate', 'technical_rep', 'tech_rep', 'replicate', 'replicate_id', 'rep']
+    },
+    {
+      key: 'outcome',
+      label: 'Outcome / endpoint',
+      required: false,
+      aliases: ['outcome', 'endpoint', 'response', 'label', 'target', 'phenotype', 'clinical_outcome']
+    }
+  ];
+
+  /** @type {Record<string,string>} */
+  let columnMapping = Object.fromEntries(fieldDefinitions.map((field) => [field.key, '']));
 
   const objectives = {
     explore: {
@@ -41,65 +118,292 @@
     }
   };
 
+  const omicAliases = {
+    transcriptomics: ['transcriptomics', 'transcriptome', 'rna', 'rnaseq', 'rna_seq', 'gene_expression', 'mrna'],
+    proteomics: ['proteomics', 'proteome', 'protein', 'proteins', 'lfq'],
+    metabolomics: ['metabolomics', 'metabolome', 'metabolite', 'metabolites', 'met']
+  };
+
+  function normalise(value) {
+    return String(value ?? '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+  }
+
+  function splitDelimitedLine(line, delimiter) {
+    const out = [];
+    let current = '';
+    let quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      if (char === '"') {
+        if (quoted && line[i + 1] === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          quoted = !quoted;
+        }
+      } else if (char === delimiter && !quoted) {
+        out.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    out.push(current.trim());
+    return out;
+  }
+
+  function detectDelimiter(text) {
+    const line = text.split(/\r?\n/).find((row) => row.trim()) ?? '';
+    const candidates = [',', '\t', ';'];
+    return candidates
+      .map((delimiter) => ({ delimiter, count: splitDelimitedLine(line, delimiter).length }))
+      .sort((a, b) => b.count - a.count)[0]?.delimiter ?? ',';
+  }
+
+  function parseTable(text) {
+    const delimiter = detectDelimiter(text);
+    const lines = text.split(/\r?\n/).filter((line) => line.trim());
+    if (!lines.length) return { delimiter, headers: [], rows: [] };
+    const headers = splitDelimitedLine(lines[0], delimiter);
+    const rows = lines.slice(1).map((line) => {
+      const values = splitDelimitedLine(line, delimiter);
+      return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? '']));
+    });
+    return { delimiter, headers, rows };
+  }
+
+  function autoMapColumns(headers) {
+    /** @type {Record<string,string>} */
+    const next = {};
+    const normalisedHeaders = headers.map((header) => ({ raw: header, normalised: normalise(header) }));
+    for (const field of fieldDefinitions) {
+      const aliases = new Set(field.aliases.map(normalise));
+      const matches = normalisedHeaders.filter((header) => aliases.has(header.normalised));
+      next[field.key] = matches.length === 1 ? matches[0].raw : '';
+    }
+    columnMapping = next;
+  }
+
+  async function inspectMetadata(file) {
+    metadataError = '';
+    metadataHeaders = [];
+    metadataRows = [];
+    if (!file) return;
+    try {
+      const parsed = parseTable(await file.text());
+      metadataDelimiter = parsed.delimiter === '\t' ? 'tab' : parsed.delimiter === ';' ? 'semicolon' : 'comma';
+      metadataHeaders = parsed.headers;
+      metadataRows = parsed.rows;
+      autoMapColumns(parsed.headers);
+      if (!parsed.headers.length || !parsed.rows.length) metadataError = 'The metadata file appears empty.';
+    } catch (error) {
+      metadataError = error instanceof Error ? error.message : 'Unable to read metadata.';
+    }
+  }
+
+  async function inspectMatrix(layer, file) {
+    if (!file) {
+      matrixInfo = { ...matrixInfo, [layer]: { headers: [], sampleIds: [], featureColumn: '', error: '' } };
+      return;
+    }
+    try {
+      const parsed = parseTable(await file.text());
+      const featureColumn = parsed.headers[0] ?? '';
+      const sampleIds = parsed.headers.slice(1);
+      matrixInfo = {
+        ...matrixInfo,
+        [layer]: {
+          headers: parsed.headers,
+          sampleIds,
+          featureColumn,
+          error: sampleIds.length ? '' : 'No assay columns detected.'
+        }
+      };
+    } catch (error) {
+      matrixInfo = {
+        ...matrixInfo,
+        [layer]: {
+          headers: [],
+          sampleIds: [],
+          featureColumn: '',
+          error: error instanceof Error ? error.message : 'Unable to read matrix.'
+        }
+      };
+    }
+  }
+
   /**
    * @param {'transcriptomics' | 'proteomics' | 'metabolomics' | 'metadata'} layer
    * @param {Event} event
    */
-  function selectFile(layer, event) {
+  async function selectFile(layer, event) {
     const input = /** @type {HTMLInputElement} */ (event.currentTarget);
     const file = input.files?.[0] ?? null;
     files = { ...files, [layer]: file };
+    if (layer === 'metadata') await inspectMetadata(file);
+    else await inspectMatrix(layer, file);
+  }
+
+  async function loadDemo() {
+    /** @type {Array<['metadata'|'transcriptomics'|'proteomics'|'metabolomics', string]>} */
+    const demoFiles = [
+      ['metadata', 'demo_metadata.csv'],
+      ['transcriptomics', 'demo_transcriptomics.csv'],
+      ['proteomics', 'demo_proteomics.csv'],
+      ['metabolomics', 'demo_metabolomics.csv']
+    ];
+    /** @type {Record<string,File>} */
+    const loaded = {};
+    for (const [layer, filename] of demoFiles) {
+      const response = await fetch(`${base}/multiomics/${filename}`);
+      const text = await response.text();
+      loaded[layer] = new File([text], filename, { type: 'text/csv' });
+    }
+    files = {
+      metadata: loaded.metadata,
+      transcriptomics: loaded.transcriptomics,
+      proteomics: loaded.proteomics,
+      metabolomics: loaded.metabolomics
+    };
+    studyName = 'Demo — treatment × time';
+    subjectCount = 4;
+    groupVariable = 'condition';
+    outcome = 'outcome';
+    paired = 'yes';
+    longitudinal = 'yes';
+    objective = 'time';
+    await inspectMetadata(files.metadata);
+    await inspectMatrix('transcriptomics', files.transcriptomics);
+    await inspectMatrix('proteomics', files.proteomics);
+    await inspectMatrix('metabolomics', files.metabolomics);
+  }
+
+  function mappedValue(row, key) {
+    const column = columnMapping[key];
+    return column ? row[column] ?? '' : '';
+  }
+
+  function canonicalOmic(value) {
+    const key = normalise(value);
+    for (const [omic, aliases] of Object.entries(omicAliases)) {
+      if (aliases.map(normalise).includes(key)) return omic;
+    }
+    return '';
+  }
+
+  function uniqueMapped(key) {
+    return new Set(metadataRows.map((row) => mappedValue(row, key)).filter(Boolean));
+  }
+
+  function technicalReplicateGroups() {
+    if (!columnMapping.sample_id || !columnMapping.omic) return [];
+    /** @type {Record<string,number>} */
+    const counts = {};
+    for (const row of metadataRows) {
+      const sample = mappedValue(row, 'sample_id');
+      const omic = canonicalOmic(mappedValue(row, 'omic')) || normalise(mappedValue(row, 'omic'));
+      if (!sample || !omic) continue;
+      const key = `${sample}::${omic}`;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return Object.entries(counts).filter(([, count]) => count > 1).map(([key, count]) => ({ key, count }));
+  }
+
+  function expectedAssays(layer) {
+    if (!columnMapping.assay_id || !columnMapping.omic) return new Set();
+    return new Set(
+      metadataRows
+        .filter((row) => canonicalOmic(mappedValue(row, 'omic')) === layer)
+        .map((row) => mappedValue(row, 'assay_id'))
+        .filter(Boolean)
+    );
+  }
+
+  function matrixMatch(layer) {
+    const expected = expectedAssays(layer);
+    const observed = new Set(matrixInfo[layer].sampleIds);
+    if (!expected.size || !observed.size) return { matched: 0, expected: expected.size, observed: observed.size, missing: [], extra: [] };
+    const matched = [...expected].filter((id) => observed.has(id));
+    return {
+      matched: matched.length,
+      expected: expected.size,
+      observed: observed.size,
+      missing: [...expected].filter((id) => !observed.has(id)),
+      extra: [...observed].filter((id) => !expected.has(id))
+    };
+  }
+
+  function setMapping(key, value) {
+    columnMapping = { ...columnMapping, [key]: value };
   }
 
   $: selectedObjective = objectives[objective];
   $: omicsCount = (/** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']))
     .filter((key) => Boolean(files[key])).length;
-  $: ready = omicsCount >= 2 && Boolean(files.metadata);
+  $: requiredMappingsComplete = fieldDefinitions.filter((field) => field.required).every((field) => Boolean(columnMapping[field.key]));
+  $: mappedSubjects = uniqueMapped('subject_id').size;
+  $: mappedSamples = uniqueMapped('sample_id').size;
+  $: mappedAssays = uniqueMapped('assay_id').size;
+  $: replicateGroups = technicalReplicateGroups();
+  $: transcriptomicsMatch = matrixMatch('transcriptomics');
+  $: proteomicsMatch = matrixMatch('proteomics');
+  $: metabolomicsMatch = matrixMatch('metabolomics');
+  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete;
+  $: analysisPlan = longitudinal === 'yes' || objective === 'time'
+    ? 'Repeated-measures / time-aware modelling → integrated representation → MOFA → consensus pathways → cross-omics modules'
+    : objective === 'groups'
+      ? 'Single-omics QC and design-aware contrasts → MOFA → supervised multiblock integration when sample size permits → consensus pathways'
+      : objective === 'outcome'
+        ? 'Single-omics QC → MOFA → association of latent factors and pathways with the declared outcome → targeted supervised integration when appropriate'
+        : 'Single-omics QC → MOFA → consensus pathways → cross-omics modules';
 </script>
 
 <svelte:head>
   <title>Multi-omics prototype — PMx Explain</title>
   <meta name="robots" content="noindex,nofollow,noarchive" />
-  <meta
-    name="description"
-    content="Private prototype for guided integration of transcriptomics, proteomics and metabolomics."
-  />
+  <meta name="description" content="Unlisted prototype for guided integration of transcriptomics, proteomics and metabolomics." />
 </svelte:head>
 
 <section class="hero">
   <p class="eyebrow">Experimental prototype · unlisted</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
-    Describe the study first. The final workflow is intended to choose an appropriate analysis,
-    integrate transcriptomics, proteomics and metabolomics, and return common factors, pathways
-    and cross-omics mechanisms rather than three disconnected result tables.
+    Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
+    proteomics and metabolomics around shared factors, pathways and mechanisms.
   </p>
   <div class="privacy">
     <strong>Prototype only.</strong>
-    The current page runs entirely in the browser. Selected files are not uploaded or analysed.
-    A separate ephemeral Shiny backend will be connected later.
+    File inspection on this page runs locally in the browser. Nothing is uploaded yet.
+    The future Shiny engine will be a separate ephemeral computation layer.
   </div>
 </section>
 
-<section class="workflow" aria-label="Planned workflow">
-  <div><span>1</span><strong>Describe</strong><small>Study design & question</small></div>
-  <div><span>2</span><strong>Upload</strong><small>Matched omics & metadata</small></div>
-  <div><span>3</span><strong>Integrate</strong><small>Latent factors & pathways</small></div>
-  <div><span>4</span><strong>Interpret</strong><small>One evidence-linked story</small></div>
+<section class="workflow" aria-label="Prototype workflow">
+  <div><span>1</span><strong>Question</strong><small>What should the study answer?</small></div>
+  <div><span>2</span><strong>Design</strong><small>Subjects, samples, repeats</small></div>
+  <div><span>3</span><strong>Map</strong><small>Template or recognised columns</small></div>
+  <div><span>4</span><strong>Validate</strong><small>Assays, replicates, missing layers</small></div>
+  <div><span>5</span><strong>Integrate</strong><small>One multi-omics result</small></div>
 </section>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 1</p>
-      <h2>Describe your study</h2>
+      <p class="eyebrow">Step 1 · Scientific question</p>
+      <h2>What should the experiment answer?</h2>
     </div>
-    <p>Method names stay in the background; the scientific question drives the workflow.</p>
+    <p>The question selects the analysis family. The researcher does not need to choose MOFA, DIABLO or another method by name.</p>
   </div>
 
   <div class="form-grid">
     <label class="wide">
-      <span>Main question</span>
+      <span>Main objective</span>
       <select bind:value={objective}>
         <option value="explore">Explore the shared structure of the dataset</option>
         <option value="groups">Compare groups / conditions</option>
@@ -122,15 +426,43 @@
         <option value="other">Other / to define</option>
       </select>
     </label>
+  </div>
+
+  <aside class="method-card">
+    <span class="method-tag">{selectedObjective.method}</span>
+    <h3>{selectedObjective.title}</h3>
+    <p>{selectedObjective.detail}</p>
+  </aside>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Step 2 · Study design</p>
+      <h2>Define the experimental units and repeated structure</h2>
+    </div>
+    <p>The workflow separates the biological unit, the biological specimen and the technical assay. They must never be treated as the same identifier.</p>
+  </div>
+
+  <div class="form-grid">
+    <label>
+      <span>Independent biological unit</span>
+      <select bind:value={unitType}>
+        <option value="participant">Human participant</option>
+        <option value="animal">Animal</option>
+        <option value="culture">Independent culture / biological replicate</option>
+        <option value="other">Other experimental unit</option>
+      </select>
+    </label>
 
     <label>
-      <span>Number of subjects / samples</span>
+      <span>Number of units <small>optional check</small></span>
       <input bind:value={subjectCount} type="number" min="1" placeholder="e.g. 48" />
     </label>
 
     <label>
       <span>Group / condition variable</span>
-      <input bind:value={groupVariable} type="text" placeholder="e.g. Treatment, response" />
+      <input bind:value={groupVariable} type="text" placeholder="e.g. treatment, response group" />
     </label>
 
     <label>
@@ -139,7 +471,7 @@
     </label>
 
     <label>
-      <span>Paired / repeated samples?</span>
+      <span>Repeated / paired samples from the same unit?</span>
       <select bind:value={paired}>
         <option value="no">No</option>
         <option value="yes">Yes</option>
@@ -155,55 +487,222 @@
     </label>
   </div>
 
-  <aside class="method-card">
-    <span class="method-tag">{selectedObjective.method}</span>
-    <h3>{selectedObjective.title}</h3>
-    <p>{selectedObjective.detail}</p>
-  </aside>
+  <div class="identity-grid">
+    <article>
+      <code>subject_id</code>
+      <strong>Biological unit</strong>
+      <p>Same participant / animal / independent culture across visits and samples.</p>
+    </article>
+    <article>
+      <code>sample_id</code>
+      <strong>Biological specimen</strong>
+      <p>The physical specimen. RNA, protein and metabolite assays from the same specimen share this ID.</p>
+    </article>
+    <article>
+      <code>assay_id</code>
+      <strong>Technical measurement</strong>
+      <p>The column name used in an omics matrix. Technical replicates have distinct assay IDs but the same sample ID.</p>
+    </article>
+  </div>
 </section>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">Step 2</p>
-      <h2>Add the matched datasets</h2>
+      <p class="eyebrow">Step 3 · Data contract</p>
+      <h2>Use the template, or let the app map your column names</h2>
     </div>
-    <p>At least two omics layers plus sample metadata will be required.</p>
+    <p>The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.</p>
+  </div>
+
+  <div class="contract">
+    <div>
+      <h3>Recommended long-format metadata</h3>
+      <p>One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.</p>
+      <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome</pre>
+      <div class="actions">
+        <a class="btn btn-primary" href={`${base}/multiomics/metadata_template.csv`} download>Download metadata template</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>RNA matrix template</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>Protein matrix template</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/metabolomics_template.csv`} download>Metabolite matrix template</a>
+      </div>
+    </div>
+
+    <div class="demo-card">
+      <p class="eyebrow">Built-in demonstration</p>
+      <h3>Treatment × time, three omics</h3>
+      <p>4 subjects, two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.</p>
+      <button class="btn btn-primary" type="button" onclick={loadDemo}>Load the demo locally</button>
+      <div class="demo-links">
+        <a href={`${base}/multiomics/demo_metadata.csv`} download>metadata</a>
+        <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
+        <a href={`${base}/multiomics/demo_proteomics.csv`} download>protein</a>
+        <a href={`${base}/multiomics/demo_metabolomics.csv`} download>metabolites</a>
+      </div>
+    </div>
+  </div>
+
+  <details class="aliases">
+    <summary>How automatic column recognition works</summary>
+    <p>Column names are normalised (case, spaces, hyphens and accents ignored), then compared with a controlled alias list. Automatic recognition is only accepted when exactly one column matches a field.</p>
+    <div class="alias-grid">
+      {#each fieldDefinitions as field}
+        <article>
+          <strong>{field.key}</strong>
+          <span>{field.required ? 'required' : 'optional'}</span>
+          <p>{field.aliases.join(', ')}</p>
+        </article>
+      {/each}
+    </div>
+    <p class="note">The alias list proposes a mapping; it does not silently redefine the study. Ambiguous or missing fields must be mapped manually.</p>
+  </details>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Step 4 · Upload & mapping</p>
+      <h2>Match metadata and matrices before analysis</h2>
+    </div>
+    <p>Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.</p>
   </div>
 
   <div class="uploads">
+    <label class:loaded={files.metadata}>
+      <strong>Sample metadata</strong>
+      <span>Long format preferred; arbitrary headers accepted if they can be mapped.</span>
+      <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
+      <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
+    </label>
+
     <label class:loaded={files.transcriptomics}>
       <strong>Transcriptomics</strong>
-      <span>Counts or processed expression matrix</span>
+      <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('transcriptomics', event)} />
       <small>{files.transcriptomics ? files.transcriptomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.proteomics}>
       <strong>Proteomics</strong>
-      <span>Protein abundance / intensity matrix</span>
+      <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('proteomics', event)} />
       <small>{files.proteomics ? files.proteomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.metabolomics}>
       <strong>Metabolomics</strong>
-      <span>Metabolite abundance / peak table</span>
+      <span>First column = feature ID; following columns = assay IDs.</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
     </label>
-
-    <label class:loaded={files.metadata}>
-      <strong>Sample metadata</strong>
-      <span>Sample IDs, groups, outcomes and covariates</span>
-      <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
-      <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
-    </label>
   </div>
+
+  {#if metadataError}
+    <p class="error">{metadataError}</p>
+  {/if}
+
+  {#if metadataHeaders.length}
+    <div class="mapping">
+      <div class="mapping-head">
+        <div>
+          <h3>Confirm column mapping</h3>
+          <p>{metadataHeaders.length} columns detected · delimiter: {metadataDelimiter} · {metadataRows.length} assay rows</p>
+        </div>
+        <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? 'Required fields mapped' : 'Mapping incomplete'}</span>
+      </div>
+
+      <div class="mapping-grid">
+        {#each fieldDefinitions as field}
+          <label>
+            <span><strong>{field.label}</strong> <small>{field.required ? 'required' : 'optional'}</small></span>
+            <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
+              <option value="">— not mapped —</option>
+              {#each metadataHeaders as header}
+                <option value={header}>{header}</option>
+              {/each}
+            </select>
+          </label>
+        {/each}
+      </div>
+    </div>
+
+    <div class="validation">
+      <article>
+        <span>Biological units</span>
+        <strong>{mappedSubjects || '—'}</strong>
+        {#if subjectCount && mappedSubjects && subjectCount !== mappedSubjects}
+          <small class="warning">Declared {subjectCount}; metadata contains {mappedSubjects}.</small>
+        {:else}
+          <small>Unique mapped subject IDs.</small>
+        {/if}
+      </article>
+      <article>
+        <span>Biological samples</span>
+        <strong>{mappedSamples || '—'}</strong>
+        <small>Unique specimens across visits / conditions.</small>
+      </article>
+      <article>
+        <span>Assays</span>
+        <strong>{mappedAssays || '—'}</strong>
+        <small>Unique technical measurement IDs.</small>
+      </article>
+      <article>
+        <span>Technical replicate groups</span>
+        <strong>{replicateGroups.length}</strong>
+        <small>{replicateGroups.length ? replicateGroups.map((item) => item.key.replace('::', ' / ')).slice(0, 3).join(', ') : 'None detected from repeated sample + omic pairs.'}</small>
+      </article>
+    </div>
+
+    <div class="matrix-checks">
+      {#each [
+        ['transcriptomics', 'Transcriptomics', transcriptomicsMatch],
+        ['proteomics', 'Proteomics', proteomicsMatch],
+        ['metabolomics', 'Metabolomics', metabolomicsMatch]
+      ] as item}
+        <article>
+          <div>
+            <strong>{item[1]}</strong>
+            <span>{matrixInfo[item[0]].sampleIds.length ? `${matrixInfo[item[0]].sampleIds.length} assay columns` : 'not loaded'}</span>
+          </div>
+          {#if matrixInfo[item[0]].sampleIds.length}
+            <p><b>{item[2].matched}/{item[2].expected}</b> expected assay IDs matched.</p>
+            {#if item[2].missing.length}<small class="warning">Missing from matrix: {item[2].missing.slice(0, 5).join(', ')}</small>{/if}
+            {#if item[2].extra.length}<small class="warning">Not declared in metadata: {item[2].extra.slice(0, 5).join(', ')}</small>{/if}
+          {:else}
+            <p class="muted">Load a matrix to validate assay IDs.</p>
+          {/if}
+        </article>
+      {/each}
+    </div>
+  {/if}
 
   <div class="status" class:ready>
     <strong>{omicsCount}/3 omics selected</strong>
-    <span>{ready ? 'Input structure ready for the future analysis engine.' : 'Select at least two omics layers and a metadata file.'}</span>
+    <span>{ready ? 'The structural contract is sufficient to propose an analysis plan.' : 'Select at least two omics layers and map subject_id, sample_id, assay_id and omic.'}</span>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">Step 5 · Proposed analysis</p>
+      <h2>The decision engine is deterministic and inspectable</h2>
+    </div>
+    <p>A future language model may explain the choice, but it should not silently choose the statistical design.</p>
+  </div>
+
+  <div class="plan">
+    <div>
+      <span class="method-tag">Selected workflow</span>
+      <h3>{analysisPlan}</h3>
+    </div>
+    <ul>
+      <li><strong>Same specimen:</strong> assays are linked by <code>sample_id</code>, never by fuzzy name matching.</li>
+      <li><strong>Repeated subject:</strong> visits sharing <code>subject_id</code> are treated as non-independent when the design requires it.</li>
+      <li><strong>Technical replicate:</strong> multiple assays with the same <code>sample_id + omic</code> are flagged before analysis.</li>
+      <li><strong>Partial omics:</strong> absent layers are distinguished from missing values inside an observed matrix.</li>
+      <li><strong>Supervised methods:</strong> only proposed when a target exists and the effective sample size is compatible with the method.</li>
+    </ul>
   </div>
 </section>
 
@@ -227,9 +726,7 @@
       <span class="num">02</span>
       <h3>Consensus pathways</h3>
       <p>Pathways ranked by convergent evidence from transcripts, proteins and metabolites, with concordance and mapping confidence visible.</p>
-      <div class="layers">
-        <span>RNA ↑↑</span><span>Protein ↑</span><span>Metabolite ↑↑↑</span>
-      </div>
+      <div class="layers"><span>RNA ↑↑</span><span>Protein ↑</span><span>Metabolite ↑↑↑</span></div>
     </article>
 
     <article>
@@ -250,78 +747,110 @@
       <span class="num">05</span>
       <h3>Concordance & discordance</h3>
       <p>Highlight RNA–protein agreement, post-transcriptional discordance and metabolite changes consistent with known reactions.</p>
-      <table>
-        <tbody>
-          <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↑</td><th>Metabolite</th><td>↑</td></tr>
-          <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↓</td><th colspan="2">discordant</th></tr>
-        </tbody>
-      </table>
+      <table><tbody>
+        <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↑</td><th>Metabolite</th><td>↑</td></tr>
+        <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↓</td><th colspan="2">discordant</th></tr>
+      </tbody></table>
     </article>
 
     <article>
       <span class="num">06</span>
       <h3>Research-ready report</h3>
-      <p>A concise biological interpretation separated into observed data, integrated inference, external knowledge and limitations, with a reproducible methods appendix.</p>
+      <p>Observed data, integrated inference, external biological knowledge and hypotheses remain explicitly separated, with a reproducible methods appendix.</p>
       <div class="evidence"><span>Observed</span><span>Integrated</span><span>Knowledge</span><span>Hypothesis</span></div>
     </article>
   </div>
 </section>
 
-<section class="principles">
-  <h2>Design principles</h2>
-  <div>
-    <p><strong>Question-first.</strong> The user describes the protocol; the application chooses a defensible workflow.</p>
-    <p><strong>Integrated by default.</strong> Single-omics results support quality control, but the main report is organised around shared factors, pathways and mechanisms.</p>
-    <p><strong>Traceable.</strong> Every conclusion should be traceable to observed features, a statistical result and, where used, an external biological relationship.</p>
-    <p><strong>Ephemeral.</strong> The intended Shiny deployment will process uploaded files within the session without a project database or persistent user workspace.</p>
-  </div>
-</section>
-
 <style>
-  .hero { max-width: 900px; padding: var(--space-12) 0 var(--space-8); }
+  .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: .98; max-width: 14ch; margin: var(--space-3) 0 var(--space-6); letter-spacing: -.045em; }
   h2 { margin: 0; font-size: var(--text-2xl); }
   h3 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
-  .lede { color: var(--text-secondary); font-size: var(--text-lg); max-width: 70ch; }
-  .privacy { margin-top: var(--space-6); border-left: 3px solid var(--accent-ai); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); max-width: 72ch; }
+  p { line-height: 1.65; }
+  .lede { color: var(--text-secondary); font-size: var(--text-lg); max-width: 72ch; }
+  .privacy { margin-top: var(--space-6); border-left: 3px solid var(--accent-ai); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); max-width: 76ch; }
   .privacy strong { color: var(--text-primary); }
 
-  .workflow { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--border-strong); margin-bottom: var(--space-12); }
-  .workflow div { padding: var(--space-5); border-right: 1px solid var(--border-subtle); }
+  .workflow { display: grid; grid-template-columns: repeat(5, 1fr); border-block: 1px solid var(--border-strong); margin-bottom: var(--space-12); }
+  .workflow div { padding: var(--space-4); border-right: 1px solid var(--border-subtle); }
   .workflow div:last-child { border-right: 0; }
   .workflow span { font-family: var(--font-mono); color: var(--accent-pk); display: block; margin-bottom: var(--space-2); }
   .workflow strong, .workflow small { display: block; }
   .workflow small { color: var(--text-muted); margin-top: 2px; }
 
-  .panel, .results-preview, .principles { margin-top: var(--space-12); }
-  .panel { border-top: 1px solid var(--border-strong); padding-top: var(--space-6); }
+  .panel, .results-preview { margin-top: var(--space-12); border-top: 1px solid var(--border-strong); padding-top: var(--space-6); }
   .section-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-6); margin-bottom: var(--space-6); }
-  .section-head > p { max-width: 46ch; color: var(--text-secondary); margin: 0; font-size: var(--text-sm); }
+  .section-head > p { max-width: 48ch; color: var(--text-secondary); margin: 0; font-size: var(--text-sm); }
 
-  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); max-width: 900px; }
-  .form-grid label { display: grid; gap: var(--space-2); }
-  .form-grid label > span { font-weight: 650; }
-  .form-grid small { color: var(--text-muted); font-weight: 400; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); max-width: 940px; }
+  .form-grid label, .mapping-grid label { display: grid; gap: var(--space-2); }
+  .form-grid label > span, .mapping-grid label > span { font-weight: 650; }
+  small { color: var(--text-muted); font-weight: 400; }
   .wide { grid-column: 1 / -1; }
   input, select {
     width: 100%; box-sizing: border-box; padding: 11px 12px;
     color: var(--text-primary); background: var(--bg-primary);
-    border: 1px solid var(--border-strong); border-radius: var(--radius);
-    font: inherit;
+    border: 1px solid var(--border-strong); border-radius: var(--radius); font: inherit;
   }
   input:focus, select:focus { outline: 2px solid var(--focus-ring); border-color: var(--accent-pk); }
 
-  .method-card { max-width: 860px; margin-top: var(--space-6); padding: var(--space-5); background: var(--bg-secondary); border-left: 3px solid var(--accent-pd); }
+  .method-card { max-width: 900px; margin-top: var(--space-6); padding: var(--space-5); background: var(--bg-secondary); border-left: 3px solid var(--accent-pd); }
   .method-card p { margin-bottom: 0; color: var(--text-secondary); }
   .method-tag { display: inline-block; margin-bottom: var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-pd); }
+
+  .identity-grid, .validation { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-6); }
+  .identity-grid article, .validation article { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); }
+  .identity-grid code { display: block; color: var(--accent-pk); margin-bottom: var(--space-2); }
+  .identity-grid strong, .identity-grid p { display: block; }
+  .identity-grid p, .validation small { color: var(--text-secondary); margin-bottom: 0; }
+
+  .contract { display: grid; grid-template-columns: 1.35fr .65fr; gap: var(--space-5); }
+  .contract > div { border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-5); background: var(--bg-secondary); }
+  pre { overflow-x: auto; padding: var(--space-3); background: var(--bg-primary); border: 1px solid var(--border-subtle); font-size: var(--text-xs); }
+  .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
+  .demo-card { background: linear-gradient(135deg, color-mix(in srgb, var(--accent-ai) 10%, transparent), var(--bg-secondary)) !important; }
+  .demo-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: var(--space-4); font-size: var(--text-sm); }
+
+  .aliases { margin-top: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-4); }
+  .aliases summary { cursor: pointer; font-weight: 700; }
+  .alias-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin-top: var(--space-4); }
+  .alias-grid article { background: var(--bg-secondary); padding: var(--space-3); border-radius: var(--radius); }
+  .alias-grid article > span { margin-left: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+  .alias-grid p { font-size: var(--text-xs); color: var(--text-secondary); word-break: break-word; margin-bottom: 0; }
+  .note { color: var(--text-secondary); font-size: var(--text-sm); }
 
   .uploads { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
   .uploads label { display: grid; gap: var(--space-2); padding: var(--space-5); border: 1px dashed var(--border-strong); border-radius: var(--radius); background: var(--bg-secondary); }
   .uploads label.loaded { border-style: solid; border-color: var(--accent-pd); }
   .uploads label > span, .uploads label > small { color: var(--text-secondary); }
   .uploads input { background: var(--bg-primary); }
-  .status { display: flex; gap: var(--space-3); align-items: baseline; margin-top: var(--space-4); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); }
+
+  .mapping { margin-top: var(--space-6); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-5); }
+  .mapping-head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .mapping-head p { color: var(--text-secondary); margin: 0; }
+  .mapping-head > span { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--border-strong); padding: 5px 8px; border-radius: 999px; }
+  .mapping-head > span.ok { border-color: var(--accent-pd); color: var(--accent-pd); }
+  .mapping-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+
+  .validation { grid-template-columns: repeat(4, 1fr); }
+  .validation article > span, .validation article > strong, .validation article > small { display: block; }
+  .validation article > span { color: var(--text-secondary); font-size: var(--text-sm); }
+  .validation article > strong { font-size: var(--text-2xl); margin: 4px 0; }
+
+  .matrix-checks { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+  .matrix-checks article { border-top: 2px solid var(--accent-pk); padding-top: var(--space-3); }
+  .matrix-checks article > div { display: flex; justify-content: space-between; gap: 8px; }
+  .matrix-checks article > div span { color: var(--text-muted); font-size: var(--text-xs); }
+  .matrix-checks p { color: var(--text-secondary); margin-bottom: 4px; }
+  .warning { color: var(--accent-ai) !important; }
+  .error { color: var(--accent-ai); font-weight: 650; }
+
+  .status { display: flex; gap: var(--space-3); align-items: baseline; margin-top: var(--space-5); padding: var(--space-3) var(--space-4); background: var(--bg-secondary); color: var(--text-secondary); }
   .status.ready strong { color: var(--accent-pd); }
+
+  .plan { display: grid; grid-template-columns: .9fr 1.1fr; gap: var(--space-6); padding: var(--space-5); background: var(--bg-secondary); border-left: 3px solid var(--accent-pk); }
+  .plan li { margin-bottom: var(--space-2); color: var(--text-secondary); }
 
   .result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); }
   .result-grid article { min-height: 240px; padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
@@ -338,21 +867,18 @@
   .network-demo em { font-style: normal; color: var(--accent-pk); }
   table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: var(--text-xs); }
   th, td { padding: 5px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
+  .muted { color: var(--text-muted); }
 
-  .principles { border-block: 1px solid var(--border-strong); padding: var(--space-7) 0; }
-  .principles > div { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3) var(--space-8); }
-  .principles p { color: var(--text-secondary); }
-  .principles strong { color: var(--text-primary); }
-
-  @media (max-width: 900px) {
+  @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
-    .workflow div:nth-child(2) { border-right: 0; }
-    .workflow div:nth-child(-n+2) { border-bottom: 1px solid var(--border-subtle); }
+    .contract, .plan { grid-template-columns: 1fr; }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid { grid-template-columns: repeat(2, 1fr); }
+    .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
-    .section-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .principles > div, .workflow { grid-template-columns: 1fr; }
+    .section-head, .mapping-head { align-items: start; flex-direction: column; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation { grid-template-columns: 1fr; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
     .workflow div:last-child { border-bottom: 0; }
     .wide { grid-column: auto; }
