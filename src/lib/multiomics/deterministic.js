@@ -2091,16 +2091,19 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 }
 
 export function resultToCsv(rows) {
-  const header = ['feature','effect','effect_scale','fold_ratio_if_log2','p_value','q_value','n_reference','n_comparison'];
+  const header = ['feature','effect','effect_scale','exponentiated_effect','fold_ratio_if_log2','p_value','q_value','n','n_reference','n_comparison','model'];
   const lines = rows.map((row) => [
     row.feature,
     row.effect,
     row.effectScale ?? '',
+    row.exponentiatedEffect ?? '',
     row.foldRatio ?? '',
     row.pValue ?? '',
     row.qValue ?? '',
-    row.nReference,
-    row.nComparison
+    row.n ?? '',
+    row.nReference ?? '',
+    row.nComparison ?? '',
+    row.model ?? ''
   ].join(','));
   return [header.join(','), ...lines].join('\n');
 }
