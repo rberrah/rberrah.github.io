@@ -1766,62 +1766,6 @@
   </div>
 </section>
 
-<section class="results-preview">
-  <div class="section-head">
-    <div>
-      <p class="eyebrow">Integrated output</p>
-      <h2>One multi-omics result, not three separate reports</h2>
-    </div>
-  </div>
-
-  <div class="result-grid">
-    <article>
-      <span class="num">01</span>
-      <h3>Direct cross-omics relations</h3>
-      <p>Matched-subject correlations and condition-dependent correlation changes identify relationships that would be invisible in three separate reports.</p>
-      <div class="mini-factor"><i></i><i></i><i></i></div>
-    </article>
-
-    <article>
-      <span class="num">02</span>
-      <h3>Consensus pathways</h3>
-      <p>Pathways ranked by convergent evidence from transcripts, proteins and metabolites, with concordance and mapping confidence visible.</p>
-      <div class="layers"><span>RNA ↑↑</span><span>Protein ↑</span><span>Metabolite ↑↑↑</span></div>
-    </article>
-
-    <article>
-      <span class="num">03</span>
-      <h3>Cross-omics mechanisms</h3>
-      <p>Small interpretable modules linking genes, proteins, reactions and metabolites instead of unreadable whole-network hairballs.</p>
-      <div class="network-demo"><b>Gene</b><em>→</em><b>Protein</b><em>→</em><b>Metabolite</b></div>
-    </article>
-
-    <article>
-      <span class="num">04</span>
-      <h3>Phenotype association</h3>
-      <p>Factors and pathways linked to the declared group, treatment, clinical phenotype or outcome when the design supports it.</p>
-      <div class="association"><span>Factor 2</span><strong>↔</strong><span>{outcome || groupVariable || 'Outcome'}</span></div>
-    </article>
-
-    <article>
-      <span class="num">05</span>
-      <h3>Concordance & discordance</h3>
-      <p>Highlight RNA–protein agreement, post-transcriptional discordance and metabolite changes consistent with known reactions.</p>
-      <table><tbody>
-        <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↑</td><th>Metabolite</th><td>↑</td></tr>
-        <tr><th>RNA</th><td>↑</td><th>Protein</th><td>↓</td><th colspan="2">discordant</th></tr>
-      </tbody></table>
-    </article>
-
-    <article>
-      <span class="num">06</span>
-      <h3>Research-ready report</h3>
-      <p>Observed data, integrated inference, external biological knowledge and hypotheses remain explicitly separated, with a reproducible methods appendix.</p>
-      <div class="evidence"><span>Observed</span><span>Integrated</span><span>Knowledge</span><span>Hypothesis</span></div>
-    </article>
-  </div>
-</section>
-
 <style>
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: .98; max-width: 14ch; margin: var(--space-3) 0 var(--space-6); letter-spacing: -.045em; }
@@ -1897,6 +1841,16 @@
   .uploads input { background: var(--bg-primary); }
 
   .mapping { margin-top: var(--space-6); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: var(--space-5); }
+  .covariate-picker { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+  .covariate-picker h3 { margin-bottom: 4px; }
+  .covariate-picker > div > p { margin-top: 0; color: var(--text-secondary); }
+  .covariate-options { display: flex; flex-wrap: wrap; gap: 8px; margin: var(--space-3) 0; }
+  .covariate-options label { display: flex; align-items: center; gap: 7px; border: 1px solid var(--border-subtle); border-radius: 999px; padding: 6px 10px; background: var(--bg-primary); }
+  .covariate-options input { width: auto; margin: 0; }
+  .interpretation-box { margin-top: var(--space-5); padding: var(--space-5); border-left: 3px solid var(--accent-pd); background: var(--bg-secondary); }
+  .interpretation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+  .interpretation-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
+  .interpretation-grid p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: 0; }
   .mapping-head { display: flex; align-items: start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
   .mapping-head p { color: var(--text-secondary); margin: 0; }
   .mapping-head > span { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--border-strong); padding: 5px 8px; border-radius: 999px; }
@@ -2030,13 +1984,13 @@
   @media (max-width: 1000px) {
     .workflow, .result-grid { grid-template-columns: repeat(2, 1fr); }
     .contract, .plan { grid-template-columns: 1fr; }
-    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary { grid-template-columns: repeat(2, 1fr); }
+    .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid { grid-template-columns: repeat(2, 1fr); }
     .validation { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (max-width: 640px) {
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
-    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary { grid-template-columns: 1fr; }
+    .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid { grid-template-columns: 1fr; }
     .run-box, .overlap-box { align-items: stretch; flex-direction: column; }
     .overlap-pairs { justify-content: flex-start; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
