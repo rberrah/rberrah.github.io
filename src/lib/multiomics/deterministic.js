@@ -245,10 +245,14 @@ function preprocessMatrix(matrix, layer, valueType) {
   const steps = [];
   const minPositive = minimumPositive(matrix);
   const pseudo = Math.max(minPositive / 2, 1e-12);
+  const hasNegative = [...matrix.values.values()].some((values) =>
+    [...values.values()].some((value) => Number.isFinite(value) && value < 0)
+  );
 
   const isCounts = layer === 'transcriptomics' && valueType === 'raw_counts';
   const isSpectral = layer === 'proteomics' && valueType === 'spectral_count';
-  const alreadyLog = ['log_expression','log_intensity','log_abundance'].includes(valueType);
+  const explicitlyLog = ['log_expression','log_intensity','log_abundance'].includes(valueType);
+  const alreadyLog = explicitlyLog || (hasNegative && !isCounts && !isSpectral);
   const medianCenter = (layer === 'proteomics' && valueType === 'lfq_intensity') || (layer === 'metabolomics' && valueType === 'peak_area');
 
   const totals = new Map();
@@ -263,7 +267,9 @@ function preprocessMatrix(matrix, layer, valueType) {
     }
     steps.push(isCounts ? 'library-size normalisation to CPM + log2(CPM + 0.5)' : 'library-size normalisation + log2 transform');
   } else if (alreadyLog) {
-    steps.push('values treated as already log-transformed');
+    steps.push(explicitlyLog
+      ? 'values treated as already log-transformed'
+      : 'negative values detected: treated as already transformed/centred; no log transform applied');
   } else {
     steps.push(`log2(value + ${pseudo.toPrecision(3)})`);
   }
@@ -395,11 +401,21 @@ function analyseLayer(aggregated, layer, options) {
   bhAdjust(rows);
   rows.sort((a,b) => Math.abs(b.effect) - Math.abs(a.effect));
   const significant = rows.filter((row) => Number.isFinite(row.qValue) && row.qValue <= 0.10 && Math.abs(row.effect) >= Math.log2(1.2));
-  const selected = (significant.length ? significant : rows).slice(0, Math.min(50, significant.length || 25));
+  const useConfirmedSet = significant.length >= 10;
+  const selected = useConfirmedSet
+    ? significant.slice(0, 50)
+    : rows.slice().sort((a,b) => {
+        const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
+        const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
+        if (aq !== bq) return aq - bq;
+        return Math.abs(b.effect) - Math.abs(a.effect);
+      }).slice(0, Math.min(25, rows.length));
   return {
     rows,
     selected,
-    selectionRule: significant.length ? 'q ≤ 0.10 and |fold change| ≥ 1.2, capped at 50 features' : 'no FDR-qualified feature set; top 25 absolute effects used for exploratory pathway mapping',
+    selectionRule: useConfirmedSet
+      ? 'q ≤ 0.10 and |fold change| ≥ 1.2, capped at 50 features'
+      : `only ${significant.length} FDR-qualified feature(s); top ${selected.length} ranked features used for exploratory pathway mapping`,
     contrast,
     mode,
     groupSizes,
@@ -498,7 +514,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   let reactomeError = null;
   if (useReactome && combinedIds.length) {
     try {
-      const projectToHuman = protocol.organism === 'human';
+      const projectToHuman = true;
       const entries = await Promise.all([
         reactomeOverRepresentation(combinedIds, {projectToHuman}),
         ...loadedLayers.map((layer) => reactomeOverRepresentation(selectedIds[layer], {projectToHuman}))
