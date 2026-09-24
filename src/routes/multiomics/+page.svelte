@@ -378,7 +378,7 @@
       metabolomics: loaded.metabolomics
     };
     studyName = 'Demo — treatment × time';
-    subjectCount = 4;
+    subjectCount = 8;
     groupVariable = 'condition';
     outcome = 'outcome';
     paired = 'yes';
@@ -643,7 +643,7 @@
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">Experimental prototype · unlisted · v0.7</p>
+  <p class="eyebrow">Experimental prototype · unlisted · v0.8</p>
   <h1>From multi-omics data to one biological interpretation.</h1>
   <p class="lede">
     Describe the protocol, map the samples once, then let the workflow integrate transcriptomics,
@@ -1323,10 +1323,11 @@
     </div>
     {#if analysisResult.crossOmics?.pairs?.length}
       <div class="cross-table">
-        <div class="cross-head"><b>Pair</b><b>r reference</b><b>r comparison</b><b>Δr</b><b>q BH</b></div>
+        <div class="cross-head"><b>Pair</b><b>Pattern</b><b>r reference</b><b>r comparison</b><b>Δr</b><b>q BH</b></div>
         {#each analysisResult.crossOmics.pairs.slice(0, 15) as pair}
           <div>
             <span><code>{pair.featureA}</code> <small>{pair.layerA}</small> ↔ <code>{pair.featureB}</code> <small>{pair.layerB}</small></span>
+            <span class="pattern-tag">{pair.pattern.replaceAll('_', ' ')}</span>
             <span>{Number.isFinite(pair.rReference) ? pair.rReference.toFixed(2) : '—'}</span>
             <span>{Number.isFinite(pair.rComparison) ? pair.rComparison.toFixed(2) : '—'}</span>
             <strong>{Number.isFinite(pair.deltaR) ? pair.deltaR.toFixed(2) : '—'}</strong>
@@ -1638,9 +1639,10 @@
   .pathway-table > div { display: grid; grid-template-columns: minmax(220px,2fr) repeat(5,.65fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
   .pathway-head { color: var(--text-muted); }
   .cross-table { font-size: var(--text-xs); overflow-x: auto; }
-  .cross-table > div { display: grid; grid-template-columns: minmax(300px,2.4fr) repeat(4,.7fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
+  .cross-table > div { display: grid; grid-template-columns: minmax(280px,2.2fr) 1fr repeat(4,.65fr); gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-subtle); align-items: center; min-width: 760px; }
   .cross-head { color: var(--text-muted); }
   .cross-table small { color: var(--text-muted); font-family: var(--font-mono); }
+  .pattern-tag { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; }
   .api-error { padding: var(--space-4); border-left: 3px solid var(--accent-ai); background: var(--bg-primary); }
 
 
