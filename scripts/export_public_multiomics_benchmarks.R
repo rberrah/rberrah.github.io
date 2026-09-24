@@ -206,6 +206,21 @@ for (fname in c("AgingHFCD_RNAseq.RData","AgingHFCD_Proteomics.RData","AgingHFCD
       cat("object:", nm, "class:", paste(class(obj), collapse="/"), "\n")
       if (!is.null(dim(obj))) cat("dim:", paste(dim(obj), collapse="x"), "\n")
       if (is.list(obj)) cat("names:", paste(names(obj), collapse=","), "\n")
+      if (nm == "MetaData") {
+        cat("groups:", paste(names(table(obj$group)), as.integer(table(obj$group)), collapse="; "), "\n")
+      }
+      if (nm == "data_wide") {
+        cat("rownames_head:", paste(head(rownames(obj), 8), collapse=","), "\n")
+      }
+      if (nm == "data_results") {
+        cat("uniqueid_head:", paste(head(obj$UniqueID, 8), collapse=","), "\n")
+        hits <- obj[grepl("^(Ctsd|CTSD|St7|ST7)$", obj$Gene.Name, ignore.case=TRUE), , drop=FALSE]
+        if (nrow(hits)) {
+          cols <- intersect(c("UniqueID","Gene.Name","Old_CDvsYoung_CD_logFC","Old_CDvsYoung_CD_P.Value","Old_CDvsYoung_CD_Adj.P.Value"), colnames(hits))
+          cat("AGING_TRUTH_ROWS\n")
+          print(hits[, cols, drop=FALSE])
+        }
+      }
     }
   }
 }
