@@ -35,6 +35,41 @@ test('outcome workflow requires an explicit omics time point when multiple visit
   await expect(timepoint).toHaveValue('T0');
 });
 
+test('multi-omics results expose contextual help, QC and reproducible report', async ({ page }) => {
+  await page.route('https://reactome.org/AnalysisService/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        summary: { token: 'QC_TEST', type: 'OVERREPRESENTATION' },
+        pathwaysFound: 1,
+        identifiersNotFound: 0,
+        pathways: [{
+          stId: 'R-HSA-71291',
+          name: 'Metabolism of amino acids and derivatives',
+          species: 'Homo sapiens',
+          entities: { found: 3, total: 100, pValue: 0.01, fdr: 0.05 },
+          reactions: { found: 2, total: 30 }
+        }]
+      })
+    });
+  });
+
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId('multiomics-qc')).toBeVisible();
+  await expect(page.getByTestId('multiomics-qc')).toContainText(/variables conservées|features retained/i);
+
+  const help = page.locator('.feature-head .help-tip').first();
+  await expect(help).toHaveAttribute('data-tooltip', /rapport|ratio|direction|magnitude/i);
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: /Rapport HTML reproductible|Reproducible HTML report/i }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('multiomics_reproducible_report.html');
+});
+
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {
   let reactomeCalls = 0;
   await page.route('https://reactome.org/AnalysisService/**', async (route) => {
