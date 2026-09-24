@@ -389,6 +389,29 @@ function permutationPValue(groupA, groupB, seedKey) {
   return (extreme + 1) / (total + 1);
 }
 
+function pairedPermutationPValue(differences, seedKey) {
+  const d = differences.filter(Number.isFinite);
+  if (d.length < 2) return null;
+  const observed = Math.abs(mean(d));
+  if (d.length <= 12) {
+    const total = 2 ** d.length;
+    let extreme = 0;
+    for (let mask = 0; mask < total; mask += 1) {
+      const signed = d.map((value, i) => (mask & (1 << i)) ? value : -value);
+      if (Math.abs(mean(signed)) >= observed - 1e-12) extreme += 1;
+    }
+    return extreme / total;
+  }
+  const rng = rngFromSeed(hashString(seedKey));
+  const total = 4096;
+  let extreme = 0;
+  for (let iter = 0; iter < total; iter += 1) {
+    const signed = d.map((value) => rng() < 0.5 ? value : -value);
+    if (Math.abs(mean(signed)) >= observed - 1e-12) extreme += 1;
+  }
+  return (extreme + 1)/(total + 1);
+}
+
 function bhAdjust(rows) {
   const valid = rows.map((row,index) => ({ index, p: row.pValue })).filter((x) => Number.isFinite(x.p)).sort((a,b) => a.p-b.p);
   const m = valid.length;
@@ -592,6 +615,24 @@ function subjectFeatureValues(aggregated, feature, options) {
   const timepoints = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.timepoint));
   if (conditions.length !== 2) return { error: 'Current deterministic inference requires exactly two conditions.', conditions, timepoints };
 
+  if (options.paired && !options.longitudinal) {
+    const differences = [];
+    for (const entries of perSubject.values()) {
+      const a = entries.filter((x) => x.row.condition === conditions[0]).map((x) => x.value);
+      const b = entries.filter((x) => x.row.condition === conditions[1]).map((x) => x.value);
+      if (!a.length || !b.length) continue;
+      differences.push(mean(b)-mean(a));
+    }
+    return {
+      groups: [differences.map(() => 0), differences],
+      differences,
+      conditions,
+      timepoints,
+      contrast: `paired ${conditions[1]} − ${conditions[0]}`,
+      mode: 'paired-permutation'
+    };
+  }
+
   if (options.longitudinal && timepoints.length >= 2) {
     const first = timepoints[0];
     const last = timepoints[timepoints.length - 1];
@@ -658,8 +699,10 @@ function analyseLayer(aggregated, layer, options) {
     mode = data.mode;
     groupSizes = [a.length,b.length];
     if (!a.length || !b.length) continue;
-    const effect = mean(b) - mean(a);
-    const pValue = permutationPValue(a,b, `${layer}|${feature}|${contrast}`);
+    const effect = data.mode === 'paired-permutation' ? mean(data.differences) : mean(b) - mean(a);
+    const pValue = data.mode === 'paired-permutation'
+      ? pairedPermutationPValue(data.differences, `${layer}|${feature}|${contrast}`)
+      : permutationPValue(a,b, `${layer}|${feature}|${contrast}`);
     rows.push({
       feature,
       effect,
@@ -922,6 +965,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
+  if (protocol.objective === 'outcome') {
+    throw new Error('Outcome-targeted modelling is not implemented in the current deterministic engine. No surrogate group analysis was run.');
+  }
+  if (protocol.designType === 'crossover') {
+    throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
+  }
   const conditions = naturalOrder(metadata.map((row) => row.condition));
   if (conditions.length !== 2) {
     throw new Error(`Current inferential engine requires exactly two biological conditions; found ${conditions.length}. No simplified analysis was run.`);
@@ -944,12 +993,14 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     const processed = preprocessMatrix(matrix, layer, dataTypes[layer]);
     const aggregated = aggregateTechnicalReplicates(processed, metadata, layer);
     aggregatedByLayer[layer] = aggregated;
-    layers[layer] = analyseLayer(aggregated, layer, { longitudinal: protocol.longitudinal });
+    layers[layer] = analyseLayer(aggregated, layer, { longitudinal: protocol.longitudinal, paired: protocol.designType === 'paired' });
     layers[layer].replicateGroups = aggregated.replicateGroups;
     layers[layer].matrixShape = { features: matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
   }
 
-  const crossOmics = analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
+  const crossOmics = protocol.designType === 'paired' && !protocol.longitudinal
+    ? { method: 'Direct cross-omics correlation comparison is not run for paired designs in the current engine.', testedPairs: 0, significantPairs: 0, pairs: [] }
+    : analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, { longitudinal: protocol.longitudinal });
   const selectedIds = Object.fromEntries(loadedLayers.map((layer) => [layer, layers[layer].selected.map((row) => row.feature)]));
   let identifierResolution = null;
   if (resolveIdentifiers && selectedIds.metabolomics?.length) {
