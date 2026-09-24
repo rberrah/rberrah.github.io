@@ -969,11 +969,11 @@ function residualizeAggregated(aggregated, covariateColumns = []) {
   };
 }
 
-function subjectEndpointRows(aggregated, feature) {
+function subjectEndpointRows(aggregated, feature, requestedTimepoint = '') {
   const source = aggregated.values.get(feature);
   if (!source) return [];
   const timepoints = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.timepoint));
-  const targetTime = timepoints.length ? timepoints[timepoints.length - 1] : '';
+  const targetTime = requestedTimepoint || (timepoints.length ? timepoints[timepoints.length - 1] : '');
   const perSubject = new Map();
   for (const [sampleId, row] of aggregated.sampleMeta.entries()) {
     const value = source.get(sampleId);
@@ -989,8 +989,8 @@ function subjectEndpointRows(aggregated, feature) {
   }));
 }
 
-function featureOutcomeRows(aggregated, feature, outcomeType) {
-  return subjectEndpointRows(aggregated, feature).map(({ subjectId, value, row }) => ({
+function featureOutcomeRows(aggregated, feature, outcomeType, targetTimepoint = '') {
+  return subjectEndpointRows(aggregated, feature, targetTimepoint).map(({ subjectId, value, row }) => ({
     subjectId,
     feature: value,
     outcome: row.outcome,
@@ -1132,10 +1132,10 @@ function coxRegression(design, times, events, coefficientIndex) {
   return { beta, se, statistic: zStat, pValue };
 }
 
-function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', covariateColumns = [] } = {}) {
+function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', covariateColumns = [], targetTimepoint = '' } = {}) {
   const rows = [];
   for (const feature of aggregated.features) {
-    const entries = featureOutcomeRows(aggregated, feature, outcomeType);
+    const entries = featureOutcomeRows(aggregated, feature, outcomeType, targetTimepoint);
     if (entries.length < 4) continue;
     if (outcomeType === 'multiclass') {
       const groups = naturalOrder(entries.map((entry) => entry.outcome));
@@ -1936,6 +1936,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
   if (protocol.objective === 'outcome') {
     const outcomeType = protocol.outcomeType || 'continuous';
+    if (timepoints.length > 1 && !protocol.outcomeTimepoint) {
+      throw new Error('Outcome analysis with multiple omics time points requires an explicit outcomeTimepoint. Choose the visit/time whose molecular measurements enter the outcome model.');
+    }
+    if (protocol.outcomeTimepoint && timepoints.length && !timepoints.includes(protocol.outcomeTimepoint)) {
+      throw new Error('Selected outcomeTimepoint is not present in the mapped metadata: ' + protocol.outcomeTimepoint);
+    }
     if (outcomeType === 'survival') {
       const hasTime = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalTime)));
       const hasEvent = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalEvent)));
@@ -1976,7 +1982,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     if (protocol.objective === 'outcome') {
       layers[layer] = analyseOutcomeLayer(aggregated, layer, {
         outcomeType: protocol.outcomeType || 'continuous',
-        covariateColumns
+        covariateColumns,
+        targetTimepoint: protocol.outcomeTimepoint || ''
       });
     } else if (protocol.objective !== 'explore') {
       layers[layer] = analyseLayer(aggregated, layer, {
