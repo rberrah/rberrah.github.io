@@ -354,3 +354,108 @@ for (fname in c("LRRK2_Neuron_RNA.RData","LRRK2_Neuron_Protein.RData")) {
     }
   }
 }
+
+
+# --- Export LRRK2 G2019S vs control at day 35 (RNA + proteome) ---
+lrrk_dir <- file.path(out_dir, "lrrk2-d35")
+dir.create(lrrk_dir, recursive = TRUE, showWarnings = FALSE)
+
+export_lrrk_layer <- function(fname, layer, assay_prefix, control_group, disease_group,
+                              qcol, lfccol, n_features = 100L) {
+  env <- new.env(parent = emptyenv())
+  load(file.path(xomics_root, "data", fname), envir = env)
+
+  meta <- env$MetaData[env$MetaData$group %in% c(control_group, disease_group), , drop = FALSE]
+  res <- as.data.frame(env$data_results, stringsAsFactors = FALSE)
+
+  if (layer == "transcriptomics") {
+    symbol <- as.character(res$id)
+    symbol[is.na(symbol) | !nzchar(symbol)] <- as.character(res$UniqueID[is.na(symbol) | !nzchar(symbol)])
+  } else {
+    symbol <- as.character(res$Gene.Name)
+    symbol[is.na(symbol) | !nzchar(symbol)] <- as.character(res$UniqueID[is.na(symbol) | !nzchar(symbol)])
+  }
+
+  ord <- order(res[[qcol]], -abs(res[[lfccol]]), na.last = NA)
+  force_names <- c("RAB29","RAB25","RAB10","RAB3A","RAB3B","CLTC","SYNJ1","SYNJ2","DNM1L","SH3GLB1","SH3GLB2")
+  forced <- which(toupper(symbol) %in% force_names)
+  idx <- unique(c(forced, ord))
+  idx <- idx[!duplicated(symbol[idx])]
+  idx <- head(idx, n_features)
+
+  ids <- as.character(res$UniqueID[idx])
+  labels <- symbol[idx]
+
+  long <- env$data_long[
+    env$data_long$UniqueID %in% ids &
+      env$data_long$sampleid %in% meta$sampleid,
+    c("UniqueID","sampleid","expr","group"),
+    drop = FALSE
+  ]
+
+  assay_ids <- paste0(assay_prefix, "_", meta$sampleid)
+  mat <- matrix(
+    NA_real_,
+    nrow = length(ids),
+    ncol = nrow(meta),
+    dimnames = list(labels, assay_ids)
+  )
+  row_index <- match(as.character(long$UniqueID), ids)
+  col_index <- match(as.character(long$sampleid), meta$sampleid)
+  valid <- !is.na(row_index) & !is.na(col_index)
+  mat[cbind(row_index[valid], col_index[valid])] <- as.numeric(long$expr[valid])
+
+  out <- data.frame(feature_id = rownames(mat), mat, check.names = FALSE)
+  write.csv(out, file.path(lrrk_dir, paste0(layer, ".csv")), row.names = FALSE, quote = FALSE, na = "")
+
+  condition <- ifelse(meta$group == control_group, "Control", "G2019S")
+  metadata <- data.frame(
+    subject_id = paste0(layer, "_", meta$sampleid),
+    sample_id = paste0(layer, "_", meta$sampleid),
+    assay_id = assay_ids,
+    omic = layer,
+    condition = condition,
+    timepoint = "D35",
+    batch = "",
+    technical_replicate = "1",
+    outcome = "",
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  reference <- data.frame(
+    layer = layer,
+    feature = labels,
+    original_id = ids,
+    official_logFC_G2019S_vs_Control = as.numeric(res[[lfccol]][idx]),
+    official_q = as.numeric(res[[qcol]][idx]),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  list(metadata=metadata, reference=reference, n_features=nrow(mat), n_samples=ncol(mat))
+}
+
+lrrk_rna <- export_lrrk_layer(
+  "LRRK2_Neuron_RNA.RData", "transcriptomics", "RNA",
+  "Control_D35", "G2019S_D35",
+  "DiseaseD35vsCtlD35_Adj.P.value", "DiseaseD35vsCtlD35_logFC", 100L
+)
+lrrk_pro <- export_lrrk_layer(
+  "LRRK2_Neuron_Protein.RData", "proteomics", "PROT",
+  "CtlD35", "DiseaseD35",
+  "DiseaseD35vsCtlD35_LIMMA.Adj.P.value", "DiseaseD35vsCtlD35_logFC", 100L
+)
+
+write.csv(
+  do.call(rbind, list(lrrk_rna$metadata, lrrk_pro$metadata)),
+  file.path(lrrk_dir, "metadata.csv"), row.names=FALSE, quote=FALSE
+)
+write.csv(
+  do.call(rbind, list(lrrk_rna$reference, lrrk_pro$reference)),
+  file.path(lrrk_dir, "reference.csv"), row.names=FALSE, quote=FALSE
+)
+
+cat("\nLRRK2_D35_EXPORTED\n")
+cat("rna:", lrrk_rna$n_features, "features,", lrrk_rna$n_samples, "samples\n")
+cat("protein:", lrrk_pro$n_features, "features,", lrrk_pro$n_samples, "samples\n")
