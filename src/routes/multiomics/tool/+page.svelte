@@ -805,7 +805,7 @@
       : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
   $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
-  $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, $language) : [];
+  $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, String($language || 'fr')) : [];
   $: analysisPlan = objective === 'explore'
     ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
         'preprocessing → replicate aggregation → batch/covariate adjustment → within-layer scaling → balanced multi-block PCA → loadings → Reactome')
