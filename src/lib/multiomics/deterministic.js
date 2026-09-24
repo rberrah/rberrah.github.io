@@ -1342,6 +1342,12 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
       explainedFraction: totalVariance > 0 ? eig.eigenvalue / totalVariance : null,
       scores: subjects.map((subject, i) => ({ subjectId: subject, score: scores[i] })),
       topLoadings: loadings.slice().sort((a,b) => Math.abs(b.loading) - Math.abs(a.loading)).slice(0,30),
+      layerTopLoadings: Object.fromEntries(loadedLayers.map((layer) => [
+        layer,
+        loadings.filter((item) => item.layer === layer)
+          .sort((a,b) => Math.abs(b.loading) - Math.abs(a.loading))
+          .slice(0,25)
+      ])),
       layerContribution: Object.fromEntries(loadedLayers.map((layer) => {
         const sumSquares = loadings.filter((item) => item.layer === layer).reduce((sum, item) => sum + item.loading * item.loading, 0);
         return [layer, sumSquares];
@@ -1359,7 +1365,9 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
 }
 
 function explorationLayerResult(aggregated, exploration, layer) {
-  const loadings = exploration.components?.[0]?.topLoadings?.filter((item) => item.layer === layer) || [];
+  const loadings = exploration.components?.[0]?.layerTopLoadings?.[layer]
+    || exploration.components?.[0]?.topLoadings?.filter((item) => item.layer === layer)
+    || [];
   const byFeature = new Map(loadings.map((item) => [item.feature, item.loading]));
   const rows = topVariableFeatures(aggregated, 100).map((feature) => ({
     feature,
