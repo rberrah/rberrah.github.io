@@ -798,7 +798,9 @@
   $: replicateGroups = technicalReplicateGroups();
   $: canonicalMappedColumns = new Set(Object.values(columnMapping).filter(Boolean));
   $: availableCovariateColumns = metadataHeaders.filter((header) => !canonicalMappedColumns.has(header));
-  $: selectedCovariates = selectedCovariates.filter((header) => availableCovariateColumns.includes(header));
+  $: if (selectedCovariates.some((header) => !availableCovariateColumns.includes(header))) {
+    selectedCovariates = selectedCovariates.filter((header) => availableCovariateColumns.includes(header));
+  }
   $: outcomeMappingComplete = objective !== 'outcome'
     || (outcomeType !== 'none' && (outcomeType === 'survival'
       ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
@@ -826,6 +828,7 @@
 </svelte:head>
 
 <section class="hero">
+  <a class="tool-back" href={`${base}/multiomics`}>← {t('Présentation de l’outil', 'Tool overview')}</a>
   <p class="eyebrow">{t('Prototype expérimental · outil · v1.0', 'Experimental prototype · tool · v1.0')}</p>
   <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
   <p class="lede">
@@ -1768,6 +1771,7 @@
 
 <style>
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
+  .tool-back { display: inline-block; margin-bottom: var(--space-4); font-size: var(--text-sm); }
   h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: .98; max-width: 14ch; margin: var(--space-3) 0 var(--space-6); letter-spacing: -.045em; }
   h2 { margin: 0; font-size: var(--text-2xl); }
   h3 { margin: 0 0 var(--space-2); font-size: var(--text-lg); }
