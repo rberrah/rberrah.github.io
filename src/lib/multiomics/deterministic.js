@@ -1851,27 +1851,34 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
 
     const batchConditions = new Map(batches.map((batch) => [batch, new Set()]));
     const batchTimes = new Map(batches.map((batch) => [batch, new Set()]));
+    const batchOutcomes = new Map(batches.map((batch) => [batch, new Set()]));
     for (const row of rows) {
       if (!row.batch) continue;
       if (row.condition) batchConditions.get(row.batch)?.add(row.condition);
       if (row.timepoint) batchTimes.get(row.batch)?.add(row.timepoint);
+      if (row.outcome) batchOutcomes.get(row.batch)?.add(row.outcome);
     }
 
     const reasons = [];
     const anyBatchSpansConditions = [...batchConditions.values()].some((set) => set.size > 1);
     const anyBatchSpansTimes = [...batchTimes.values()].some((set) => set.size > 1);
+    const anyBatchSpansOutcomes = [...batchOutcomes.values()].some((set) => set.size > 1);
+    const categoricalOutcomes = naturalOrder(rows.map((row) => row.outcome));
 
-    if (conditions.length > 1 && !anyBatchSpansConditions) {
+    if (['groups','time','explore'].includes(protocol.objective) && conditions.length > 1 && !anyBatchSpansConditions) {
       reasons.push('condition is completely confounded with batch');
     }
     if (protocol.longitudinal && timepoints.length > 1 && !anyBatchSpansTimes) {
       reasons.push('timepoint is completely confounded with batch');
     }
+    if (protocol.objective === 'outcome' && ['binary','multiclass'].includes(protocol.outcomeType) && categoricalOutcomes.length > 1 && !anyBatchSpansOutcomes) {
+      reasons.push('categorical outcome is completely confounded with batch');
+    }
 
-    const status = reasons.length ? 'confounded' : 'multiple_batches_unadjusted';
+    const status = reasons.length ? 'confounded' : 'multiple_batches_adjusted';
     const note = reasons.length
       ? `Inference is blocked because ${reasons.join(' and ')}.`
-      : 'Multiple technical batches are present. The current browser engine audits them but does not estimate a batch coefficient; results should be treated as unadjusted unless the design is demonstrably balanced.';
+      : 'Multiple technical batches are present and are adjusted feature-wise by deterministic OLS residualisation before biological inference.';
 
     perLayer[layer] = {
       status,
