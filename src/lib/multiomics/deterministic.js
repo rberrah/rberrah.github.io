@@ -2003,6 +2003,111 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
   };
 }
 
+function analyseSupervisedMultiblock(aggregatedByLayer, layers, loadedLayers, metadata, protocol) {
+  const supported = protocol.objective === 'groups'
+    ? true
+    : protocol.objective === 'outcome' && ['binary','continuous','count'].includes(protocol.outcomeType);
+  if (!supported) return null;
+
+  const targetBySubject = new Map();
+  if (protocol.objective === 'groups') {
+    const conditions = naturalOrder(metadata.map((row) => row.condition));
+    if (conditions.length !== 2) return null;
+    for (const row of metadata) targetBySubject.set(row.subjectId, row.condition === conditions[1] ? 1 : 0);
+  } else if (protocol.outcomeType === 'binary') {
+    const levels = naturalOrder(metadata.map((row) => row.outcome));
+    if (levels.length !== 2) return null;
+    for (const row of metadata) if (row.outcome) targetBySubject.set(row.subjectId, row.outcome === levels[1] ? 1 : 0);
+  } else {
+    for (const row of metadata) {
+      const value = finiteNumber(row.outcome);
+      if (Number.isFinite(value)) targetBySubject.set(row.subjectId, value);
+    }
+  }
+
+  const subjectSets = Object.fromEntries(loadedLayers.map((layer) => [
+    layer,
+    new Set([...aggregatedByLayer[layer].sampleMeta.values()].map((row) => row.subjectId))
+  ]));
+  const allSubjects = [...targetBySubject.keys()]
+    .filter((subject) => loadedLayers.some((layer) => subjectSets[layer].has(subject)))
+    .sort();
+  if (allSubjects.length < 6) return null;
+
+  const yRaw = allSubjects.map((subject) => targetBySubject.get(subject));
+  const yMean = mean(yRaw);
+  const ySd = Math.sqrt(variance(yRaw));
+  if (!(ySd > 0)) return null;
+  const y = yRaw.map((value) => (value - yMean) / ySd);
+
+  const columns = [];
+  const matrix = allSubjects.map(() => []);
+  for (const layer of loadedLayers) {
+    const candidates = integrationCandidates(aggregatedByLayer[layer], layers[layer], 30);
+    const blockColumns = [];
+    for (const feature of candidates) {
+      const targetTimepoint = protocol.objective === 'outcome' ? (protocol.outcomeTimepoint || '') : '';
+      const entries = subjectEndpointRows(aggregatedByLayer[layer], feature, targetTimepoint);
+      const map = new Map(entries.map((entry) => [entry.subjectId, entry.value]));
+      const observed = allSubjects.map((subject) => map.get(subject)).filter(Number.isFinite);
+      if (observed.length < 4) continue;
+      const center = mean(observed);
+      const sd = Math.sqrt(variance(observed));
+      if (!(sd > 0)) continue;
+      blockColumns.push({
+        layer,
+        feature,
+        values: allSubjects.map((subject) => {
+          const value = map.get(subject);
+          return Number.isFinite(value) ? (value - center) / sd : 0;
+        })
+      });
+    }
+    const scale = blockColumns.length ? 1 / Math.sqrt(blockColumns.length) : 1;
+    for (const column of blockColumns) {
+      const values = column.values.map((value) => value * scale);
+      columns.push({ layer: column.layer, feature: column.feature, values });
+      for (let i = 0; i < allSubjects.length; i += 1) matrix[i].push(values[i]);
+    }
+  }
+  if (!columns.length) return null;
+
+  let weights = columns.map((column) =>
+    column.values.reduce((sum, value, i) => sum + value * y[i], 0) / Math.max(1, allSubjects.length - 1)
+  );
+  const norm = Math.sqrt(weights.reduce((sum, value) => sum + value * value, 0));
+  if (!(norm > 0)) return null;
+  weights = weights.map((value) => value / norm);
+  const scores = matrix.map((row) => row.reduce((sum, value, j) => sum + value * weights[j], 0));
+  const scoreTargetCorrelation = pearson(scores, yRaw);
+
+  const weighted = columns.map((column, index) => ({
+    layer: column.layer,
+    feature: column.feature,
+    weight: weights[index],
+    absoluteWeight: Math.abs(weights[index])
+  })).sort((a,b) => b.absoluteWeight - a.absoluteWeight);
+
+  return {
+    method: 'balanced multiblock PLS1-style supervised component: standardized candidate features, 1/sqrt(p) block balancing, covariance weights with the declared target',
+    target: protocol.objective === 'groups' ? 'condition' : protocol.outcomeType + ' outcome',
+    subjects: allSubjects.length,
+    scoreTargetCorrelation,
+    scoreTargetR2: Number.isFinite(scoreTargetCorrelation) ? scoreTargetCorrelation * scoreTargetCorrelation : null,
+    scores: allSubjects.map((subject, i) => ({
+      subjectId: subject,
+      score: scores[i],
+      target: yRaw[i]
+    })),
+    topWeights: weighted.slice(0,40),
+    layerContribution: Object.fromEntries(loadedLayers.map((layer) => [
+      layer,
+      weighted.filter((item) => item.layer === layer).reduce((sum, item) => sum + item.weight * item.weight, 0)
+    ])),
+    caveat: 'This is a descriptive supervised latent component, not a cross-validated predictive model and not the mixOmics DIABLO implementation.'
+  };
+}
+
 function explorationLayerResult(aggregated, exploration, layer) {
   const loadings = exploration.components?.[0]?.layerTopLoadings?.[layer]
     || exploration.components?.[0]?.topLoadings?.filter((item) => item.layer === layer)
@@ -2712,6 +2817,14 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
   }
 
+  const supervisedIntegration = analyseSupervisedMultiblock(
+    aggregatedByLayer,
+    layers,
+    loadedLayers,
+    metadata,
+    protocol
+  );
+
   let crossOmics;
   if (protocol.objective === 'explore') {
     crossOmics = {
@@ -2800,6 +2913,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     },
     layers,
     exploration,
+    supervisedIntegration,
     crossOmics,
     selectedIds,
     reactomeIds,
