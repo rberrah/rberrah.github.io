@@ -143,6 +143,160 @@ export async function resolveMetaboliteIdentifiers(identifiers, { fetchFn = fetc
   };
 }
 
+const geneResolutionCache = new Map();
+const proteinResolutionCache = new Map();
+
+function organismLookup(organism) {
+  const key = normaliseText(organism).toLowerCase();
+  if (['human','homo_sapiens','homo sapiens'].includes(key)) return { ensembl: 'homo_sapiens', taxon: 9606 };
+  if (['mouse','mus_musculus','mus musculus'].includes(key)) return { ensembl: 'mus_musculus', taxon: 10090 };
+  if (['rat','rattus_norvegicus','rattus norvegicus'].includes(key)) return { ensembl: 'rattus_norvegicus', taxon: 10116 };
+  return null;
+}
+
+export async function resolveGeneIdentifier(identifier, { identifierType = 'unknown', organism = 'human', fetchFn = fetch } = {}) {
+  const original = normaliseText(identifier);
+  if (!original) return { original, resolved: null, status: 'empty', method: 'none' };
+  const stable = original.replace(/\.\d+$/, '');
+  if (/^ENSG\d+$/i.test(stable) || /^ENSMUSG\d+$/i.test(stable) || /^ENSRNOG\d+$/i.test(stable)) {
+    return { original, resolved: stable.toUpperCase(), status: 'canonical', method: 'input_ensembl' };
+  }
+  const org = organismLookup(organism);
+  if (!org) return { original, resolved: null, status: 'unsupported_organism', method: 'none' };
+  const cacheKey = org.ensembl + '|' + identifierType + '|' + original.toUpperCase();
+  if (geneResolutionCache.has(cacheKey)) return { original, ...geneResolutionCache.get(cacheKey) };
+
+  try {
+    let url;
+    if (identifierType === 'entrez' || /^\d+$/.test(original)) {
+      url = 'https://rest.ensembl.org/xrefs/name/' + org.ensembl + '/' + encodeURIComponent(original) + '?content-type=application/json';
+      const response = await fetchFn(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const json = await response.json();
+      const genes = (Array.isArray(json) ? json : []).filter((item) => String(item.type || '').toLowerCase() === 'gene' || /^ENS.*G\d+/i.test(String(item.id || '')));
+      if (genes.length !== 1) {
+        const result = { resolved: null, status: genes.length > 1 ? 'ambiguous' : 'unresolved', method: 'ensembl_xrefs_name', candidates: genes.slice(0,5).map((x) => x.id) };
+        geneResolutionCache.set(cacheKey, result);
+        return { original, ...result };
+      }
+      const result = { resolved: String(genes[0].id).replace(/\.\d+$/, ''), status: 'resolved', method: 'ensembl_xrefs_name', label: genes[0].display_id || original };
+      geneResolutionCache.set(cacheKey, result);
+      return { original, ...result };
+    }
+
+    url = 'https://rest.ensembl.org/lookup/symbol/' + org.ensembl + '/' + encodeURIComponent(original) + '?content-type=application/json';
+    const response = await fetchFn(url, { headers: { Accept: 'application/json' } });
+    if (response.status === 400 || response.status === 404) {
+      const result = { resolved: null, status: 'unresolved', method: 'ensembl_lookup_symbol' };
+      geneResolutionCache.set(cacheKey, result);
+      return { original, ...result };
+    }
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const json = await response.json();
+    const id = normaliseText(json?.id).replace(/\.\d+$/, '');
+    const result = id
+      ? { resolved: id, status: 'resolved', method: 'ensembl_lookup_symbol', label: json?.display_name || original, biotype: json?.biotype || null }
+      : { resolved: null, status: 'unresolved', method: 'ensembl_lookup_symbol' };
+    geneResolutionCache.set(cacheKey, result);
+    return { original, ...result };
+  } catch (error) {
+    return { original, resolved: null, status: 'api_error', method: 'ensembl', error: error instanceof Error ? error.message : 'Ensembl request failed' };
+  }
+}
+
+export async function resolveGeneIdentifiers(identifiers, options = {}) {
+  const unique = [...new Set(identifiers.map(normaliseText).filter(Boolean))];
+  const maxQueries = options.maxQueries ?? 30;
+  const mappings = [];
+  let networkQueries = 0;
+  for (const identifier of unique) {
+    const direct = /^ENS(?:G|MUSG|RNOG)\d+/i.test(identifier);
+    if (!direct && networkQueries >= maxQueries) {
+      mappings.push({ original: identifier, resolved: null, status: 'query_limit', method: 'none' });
+      continue;
+    }
+    if (!direct) networkQueries += 1;
+    mappings.push(await resolveGeneIdentifier(identifier, options));
+  }
+  return {
+    mappings,
+    resolvedCount: mappings.filter((item) => item.resolved).length,
+    unresolvedCount: mappings.filter((item) => !item.resolved).length,
+    networkQueries
+  };
+}
+
+export async function resolveProteinIdentifier(identifier, { identifierType = 'unknown', organism = 'human', fetchFn = fetch } = {}) {
+  const original = normaliseText(identifier);
+  if (!original) return { original, resolved: null, status: 'empty', method: 'none' };
+  const accession = original.replace(/-\d+$/, '');
+  if (/^(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9])$/i.test(accession)) {
+    return { original, resolved: accession.toUpperCase(), status: 'canonical', method: 'input_uniprot' };
+  }
+  const org = organismLookup(organism);
+  if (!org) return { original, resolved: null, status: 'unsupported_organism', method: 'none' };
+  const cacheKey = org.taxon + '|' + identifierType + '|' + original.toUpperCase();
+  if (proteinResolutionCache.has(cacheKey)) return { original, ...proteinResolutionCache.get(cacheKey) };
+
+  try {
+    if (/^ENS.*P\d+/i.test(original) || identifierType === 'ensembl_protein') {
+      const url = 'https://rest.ensembl.org/xrefs/id/' + encodeURIComponent(original.replace(/\.\d+$/, '')) + '?content-type=application/json';
+      const response = await fetchFn(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const json = await response.json();
+      const candidates = (Array.isArray(json) ? json : [])
+        .filter((item) => /uniprot|swiss/i.test(String(item.dbname || item.db_display_name || '')))
+        .map((item) => normaliseText(item.primary_id || item.display_id))
+        .filter((id) => /^(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9])$/i.test(id));
+      const unique = [...new Set(candidates)];
+      const result = unique.length === 1
+        ? { resolved: unique[0], status: 'resolved', method: 'ensembl_xrefs_uniprot' }
+        : { resolved: null, status: unique.length > 1 ? 'ambiguous' : 'unresolved', method: 'ensembl_xrefs_uniprot', candidates: unique.slice(0,5) };
+      proteinResolutionCache.set(cacheKey, result);
+      return { original, ...result };
+    }
+
+    const query = '(gene_exact:' + original.replace(/[^A-Za-z0-9_.-]/g, '') + ')+AND+(organism_id:' + org.taxon + ')';
+    const url = 'https://rest.uniprot.org/uniprotkb/search?query=' + encodeURIComponent(query) + '&fields=accession,gene_names,reviewed&format=json&size=5';
+    const response = await fetchFn(url, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const json = await response.json();
+    const results = Array.isArray(json?.results) ? json.results : [];
+    const reviewed = results.filter((item) => String(item.entryType || '').toLowerCase().includes('reviewed'));
+    const pool = reviewed.length ? reviewed : results;
+    const accessions = [...new Set(pool.map((item) => normaliseText(item.primaryAccession)).filter(Boolean))];
+    const result = accessions.length === 1
+      ? { resolved: accessions[0], status: 'resolved', method: 'uniprot_gene_search' }
+      : { resolved: null, status: accessions.length > 1 ? 'ambiguous' : 'unresolved', method: 'uniprot_gene_search', candidates: accessions.slice(0,5) };
+    proteinResolutionCache.set(cacheKey, result);
+    return { original, ...result };
+  } catch (error) {
+    return { original, resolved: null, status: 'api_error', method: 'uniprot_or_ensembl', error: error instanceof Error ? error.message : 'Protein identifier request failed' };
+  }
+}
+
+export async function resolveProteinIdentifiers(identifiers, options = {}) {
+  const unique = [...new Set(identifiers.map(normaliseText).filter(Boolean))];
+  const maxQueries = options.maxQueries ?? 30;
+  const mappings = [];
+  let networkQueries = 0;
+  for (const identifier of unique) {
+    const direct = /^(?:[OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9][A-Z][A-Z0-9]{2}[0-9])(?:-\d+)?$/i.test(identifier);
+    if (!direct && networkQueries >= maxQueries) {
+      mappings.push({ original: identifier, resolved: null, status: 'query_limit', method: 'none' });
+      continue;
+    }
+    if (!direct) networkQueries += 1;
+    mappings.push(await resolveProteinIdentifier(identifier, options));
+  }
+  return {
+    mappings,
+    resolvedCount: mappings.filter((item) => item.resolved).length,
+    unresolvedCount: mappings.filter((item) => !item.resolved).length,
+    networkQueries
+  };
+}
+
 function canonicalOmic(value) {
   const key = normaliseText(value).toLowerCase().replace(/[^a-z0-9]+/g, '_');
   if (['transcriptomics','transcriptome','transcriptomique','rna','rnaseq','rna_seq','mrna','arn','gene_expression'].includes(key)) return 'transcriptomics';
@@ -3262,16 +3416,30 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     loadedLayers.map((layer) => [layer, (layers[layer].selected || []).map((row) => row.feature)])
   );
   let identifierResolution = null;
-  if (resolveIdentifiers && selectedIds.metabolomics?.length) {
-    identifierResolution = {
-      metabolomics: await resolveMetaboliteIdentifiers(selectedIds.metabolomics)
-    };
+  if (resolveIdentifiers) {
+    identifierResolution = {};
+    if (selectedIds.transcriptomics?.length) {
+      identifierResolution.transcriptomics = await resolveGeneIdentifiers(selectedIds.transcriptomics, {
+        identifierType: identifierTypes.transcriptomics || 'unknown',
+        organism: protocol.organism || 'human'
+      });
+    }
+    if (selectedIds.proteomics?.length) {
+      identifierResolution.proteomics = await resolveProteinIdentifiers(selectedIds.proteomics, {
+        identifierType: identifierTypes.proteomics || 'unknown',
+        organism: protocol.organism || 'human'
+      });
+    }
+    if (selectedIds.metabolomics?.length) {
+      identifierResolution.metabolomics = await resolveMetaboliteIdentifiers(selectedIds.metabolomics);
+    }
   }
 
   const reactomeIds = { ...selectedIds };
-  if (identifierResolution?.metabolomics) {
-    const map = new Map(identifierResolution.metabolomics.mappings.map((x) => [x.original, x.resolved || x.original]));
-    reactomeIds.metabolomics = selectedIds.metabolomics.map((id) => map.get(id) || id);
+  for (const layer of loadedLayers) {
+    if (!identifierResolution?.[layer]) continue;
+    const map = new Map(identifierResolution[layer].mappings.map((item) => [item.original, item.resolved || item.original]));
+    reactomeIds[layer] = selectedIds[layer].map((id) => map.get(id) || id);
   }
   const combinedIds = loadedLayers.flatMap((layer) => reactomeIds[layer] || []);
 
