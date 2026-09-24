@@ -506,18 +506,28 @@
     return '';
   }
 
-  /** @param {string} key */
-  function uniqueMapped(key) {
-    return new Set(metadataRows.map((row) => mappedValue(row, key)).filter(Boolean));
+  /**
+   * @param {Record<string,string>[]} rows
+   * @param {Record<string,string>} mapping
+   * @param {string} key
+   */
+  function uniqueMappedFrom(rows, mapping, key) {
+    const column = mapping[key];
+    return new Set(rows.map((row) => column ? row[column] ?? '' : '').filter(Boolean));
   }
 
-  function technicalReplicateGroups() {
-    if (!columnMapping.sample_id || !columnMapping.omic) return [];
+  /**
+   * @param {Record<string,string>[]} rows
+   * @param {Record<string,string>} mapping
+   */
+  function technicalReplicateGroups(rows, mapping) {
+    if (!mapping.sample_id || !mapping.omic) return [];
     /** @type {Record<string,number>} */
     const counts = {};
-    for (const row of metadataRows) {
-      const sample = mappedValue(row, 'sample_id');
-      const omic = canonicalOmic(mappedValue(row, 'omic')) || normalise(mappedValue(row, 'omic'));
+    for (const row of rows) {
+      const sample = row[mapping.sample_id] ?? '';
+      const rawOmic = row[mapping.omic] ?? '';
+      const omic = canonicalOmic(rawOmic) || normalise(rawOmic);
       if (!sample || !omic) continue;
       const key = `${sample}::${omic}`;
       counts[key] = (counts[key] ?? 0) + 1;
@@ -578,9 +588,10 @@
 
   /**
    * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
+   * @param {{rowIds:string[]}} info
    */
-  function inferFeatureIdType(layer) {
-    const ids = matrixInfo[layer].rowIds.slice(0, 50).map((id) => id.trim()).filter(Boolean);
+  function inferFeatureIdType(layer, info) {
+    const ids = info.rowIds.slice(0, 50).map((id) => id.trim()).filter(Boolean);
     if (!ids.length) return { type: 'unknown', confidence: 0 };
     /** @type {Record<string, (id:string) => boolean>} */
     const tests = {
@@ -812,18 +823,18 @@
     return items;
   }
 
-  $: inferredTranscriptomicsId = inferFeatureIdType('transcriptomics');
-  $: inferredProteomicsId = inferFeatureIdType('proteomics');
-  $: inferredMetabolomicsId = inferFeatureIdType('metabolomics');
+  $: inferredTranscriptomicsId = inferFeatureIdType('transcriptomics', matrixInfo.transcriptomics);
+  $: inferredProteomicsId = inferFeatureIdType('proteomics', matrixInfo.proteomics);
+  $: inferredMetabolomicsId = inferFeatureIdType('metabolomics', matrixInfo.metabolomics);
   $: selectedObjective = objectives[objective];
   $: omicsCount = omicLayers.filter((key) => Boolean(files[key])).length;
   $: requiredMappingsComplete = fieldDefinitions.filter((field) => field.required).every((field) => Boolean(columnMapping[field.key]));
-  $: mappedSubjects = uniqueMapped('subject_id').size;
-  $: mappedSamples = uniqueMapped('sample_id').size;
-  $: mappedAssays = uniqueMapped('assay_id').size;
-  $: availableOutcomeTimepoints = [...uniqueMapped('timepoint')];
+  $: mappedSubjects = uniqueMappedFrom(metadataRows, columnMapping, 'subject_id').size;
+  $: mappedSamples = uniqueMappedFrom(metadataRows, columnMapping, 'sample_id').size;
+  $: mappedAssays = uniqueMappedFrom(metadataRows, columnMapping, 'assay_id').size;
+  $: availableOutcomeTimepoints = [...uniqueMappedFrom(metadataRows, columnMapping, 'timepoint')];
   $: if (availableOutcomeTimepoints.length <= 1 && outcomeTimepoint) outcomeTimepoint = '';
-  $: replicateGroups = technicalReplicateGroups();
+  $: replicateGroups = technicalReplicateGroups(metadataRows, columnMapping);
   $: canonicalMappedColumns = new Set(Object.values(columnMapping).filter(Boolean));
   $: availableCovariateColumns = metadataHeaders.filter((header) => !canonicalMappedColumns.has(header));
   $: if (selectedCovariates.some((header) => !availableCovariateColumns.includes(header))) {
