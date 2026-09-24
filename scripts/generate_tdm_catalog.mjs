@@ -378,6 +378,7 @@ async function main() {
   const mlOutput = `${JSON.stringify({
     version: mlRegistry.version,
     benchmarkDate: mlRegistry.benchmarkDate ?? null,
+    samplingDesign: mlRegistry.samplingDesign ?? null,
     artifacts: mlArtifacts
   }, null, 2)}\n`;
   const previousMlBenchmark = await fs.readFile(mlBenchmarkFile, 'utf8').catch(() => '');

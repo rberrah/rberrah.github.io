@@ -1,6 +1,13 @@
 {
   "version": 2,
   "benchmarkDate": "2026-09-24",
+  "samplingDesign": {
+    "strategy": "generic_random_two_point",
+    "target": "AUC24",
+    "steadyStateRequired": true,
+    "residualError": "Model SIGMA retained for sparse concentrations; OMEGA supplied through idata.",
+    "selection": "80%: t1 ~ U(0.2 h, max(0.25 h, 0.55*II)) and t2 ~ U(max(t1 + min(0.5 h, II/4), 0.45*II), II - 0.15 h); 20%: two sorted U(0.2 h, II - 0.15 h) times separated by at least min(0.5 h, II/4)."
+  },
   "artifacts": [
     {
       "id": "amik_burdet-intermittent-auc24-xgb-v3",

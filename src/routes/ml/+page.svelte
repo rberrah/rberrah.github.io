@@ -17,8 +17,8 @@
       open: 'Ouvrir dans le moteur TDM', course: 'Voir le chapitre pédagogique',
       simulated: 'Profils simulés', sparse: 'Prélèvements limités', features: 'Variables structurées', model: 'XGBoost', output: 'AUC24 ML',
       evidence: 'Point de départ publié', articleTitle: "L’article de simulation du tacrolimus",
-      articleBody: "Woillard et al. ont simulé 9 000 profils riches de tacrolimus à l’état stationnaire à partir d’un modèle PopPK publié. Des modèles XGBoost utilisant deux ou trois concentrations ont été entraînés sur 75 % des profils, testés sur les 25 % restants, puis évalués dans quatre jeux externes de patients.",
-      articleResult: 'Dans ces validations externes : biais relatif < 5 % et RMSE relative < 10 %, avec des performances comparables au MAP-BE.',
+      articleBody: "Woillard et al. ont simulé 9 000 profils riches de tacrolimus biquotidien à l’état stationnaire : neuf doses, un intervalle de 12 h et une concentration toutes les 30 minutes. L’AUC cible était l’AUC0–12. Le modèle à deux prélèvements utilisait C0 et C3 ; le modèle à trois prélèvements utilisait C0, C1 et C3, avec une faible incertitude simulée sur les horaires.",
+      articleResult: 'Jeu de test simulé de l’article : RMSE relative de 4,60 % avec C0+C3 et de 2,61 % avec C0+C1+C3. En validation clinique externe, la RMSE relative du modèle à deux prélèvements variait de 8,55 % à 12,9 % selon la cohorte.',
       relatedTitle: 'Données cliniques antérieures',
       relatedBody: "Une étude complémentaire avait entraîné des modèles sur 4 997 AUC de tacrolimus biquotidien et 1 452 AUC de tacrolimus quotidien, puis les avait évalués dans six jeux de PK riches indépendants.",
       adaptation: 'Adaptation dans PMx Explain',
@@ -29,7 +29,13 @@
       validationText: 'Validation croisée répétée, jeu de test non touché et test sur un autre modèle PopPK lorsque possible.',
       explanationText: 'DALEX décompose la prédiction par rapport à 200 profils synthétiques. Les contributions ne sont pas causales.',
       samplingWarningTitle: 'Prudence : prélèvements non optimisés par molécule',
-      samplingWarningBody: "Ce benchmark utilise deux concentrations simulées à des horaires tirés dans le même intervalle posologique, avec une séparation minimale. Il ne recherche pas les meilleurs temps de prélèvement pour chaque molécule. Les travaux cliniques de référence sur le tacrolimus reposaient sur des prélèvements prédose, vers 1 h et 3 h, puis sur des modèles utilisant deux ou trois concentrations. Cette stratégie adaptée au tacrolimus ne se transpose pas automatiquement aux autres profils PK, notamment aux antibiotiques, aux perfusions continues ou aux médicaments à action prolongée. Les biais et RMSE présentés sont donc exploratoires et dépendants du design de prélèvement ; ils doivent être interprétés avec prudence jusqu’à optimisation par molécule et validation clinique externe.",
+      samplingWarningBody: "Le code PMx ne reproduit pas le plan C0+C3 de l’article. Pour 80 % des profils, t1 est tiré entre 0,2 h et 55 % de l’intervalle, puis t2 entre au moins 45 % de l’intervalle et 0,15 h avant la dose suivante. Pour les 20 % restants, deux horaires sont tirés entre 0,2 h et 0,15 h avant la dose suivante, avec une séparation minimale. L’erreur résiduelle SIGMA du modèle est appliquée aux deux concentrations. Ce plan générique n’est pas optimisé par molécule.",
+      protocolPublishedTitle: 'Article tacrolimus',
+      protocolPublishedBody: 'Dose toutes les 12 h · AUC0–12 · C0+C3 ou C0+C1+C3 · 9 000 profils avant filtrage · distributions et filtres spécifiques à l’article.',
+      protocolPmxTitle: 'Benchmark PMx actuel',
+      protocolPmxBody: 'Intervalle tiré parmi 12 ou 24 h pour le tacrolimus · AUC24 · deux horaires post-dose aléatoires · 1 000 profils · population issue du modèle Woillard 2011.',
+      tacroBenchmarkTitle: 'Pourquoi 35,1 % devient 12,3 % ici',
+      tacroBenchmarkBody: "La première valeur est la RMSE de l’AUC populationnelle sans effets aléatoires individuels ; ce n’est ni le résultat du modèle publié ni une estimation MAP-BE. La seconde est la RMSE interne de XGBoost sur 250 profils PMx non utilisés à l’entraînement. Ces valeurs ne sont pas directement comparables aux 4,60 % de l’article, car la cible, les horaires, les intervalles, les covariables, les filtres et l’effectif diffèrent.",
       benchmark: 'Benchmark de la bibliothèque',
       benchmarkLead: "Pour chaque couple modèle–mode, le jeu de test compare l’AUC populationnelle sans correction ML à l’AUC corrigée par XGBoost. Le statut « disponible dans le TDM » exige aussi un prior MAP éligible et une empreinte inchangée.",
       current: 'Disponibles dans le TDM', snapshot: 'Tous les modèles benchmarkés', search: 'Rechercher un modèle', allDrugs: 'Toutes les molécules',
@@ -62,8 +68,8 @@
       open: 'Open in the TDM engine', course: 'Read the learning chapter',
       simulated: 'Simulated profiles', sparse: 'Sparse samples', features: 'Structured features', model: 'XGBoost', output: 'ML AUC24',
       evidence: 'Published starting point', articleTitle: 'The tacrolimus simulation article',
-      articleBody: 'Woillard et al. simulated 9,000 rich steady-state tacrolimus profiles from a published PopPK model. XGBoost models using two or three concentrations were trained on 75% of profiles, tested on the remaining 25%, then evaluated in four external patient datasets.',
-      articleResult: 'In these external validations: relative bias < 5% and relative RMSE < 10%, with performance comparable to MAP-BE.',
+      articleBody: 'Woillard et al. simulated 9,000 rich steady-state twice-daily tacrolimus profiles: nine doses, a 12-hour interval and one concentration every 30 minutes. The target was AUC0–12. The two-sample model used C0 and C3; the three-sample model used C0, C1 and C3, with small simulated timing uncertainty.',
+      articleResult: 'Article simulated test set: relative RMSE was 4.60% with C0+C3 and 2.61% with C0+C1+C3. In external clinical validation, relative RMSE for the two-sample model ranged from 8.55% to 12.9% across cohorts.',
       relatedTitle: 'Earlier clinical data',
       relatedBody: 'A related study had trained models on 4,997 twice-daily and 1,452 once-daily tacrolimus AUCs, then evaluated them in six independent rich-PK datasets.',
       adaptation: 'Adaptation in PMx Explain',
@@ -74,7 +80,13 @@
       validationText: 'Repeated cross-validation, untouched holdout and testing on another PopPK model when possible.',
       explanationText: 'DALEX decomposes the prediction against 200 synthetic profiles. Contributions are not causal.',
       samplingWarningTitle: 'Caution: sampling times are not optimized by drug',
-      samplingWarningBody: 'This benchmark uses two simulated concentrations at times sampled within the same dosing interval, with a minimum separation. It does not identify the best sampling times for each drug. The reference clinical tacrolimus work used predose, approximately 1-hour and 3-hour samples, then models based on two or three concentrations. This tacrolimus-specific strategy cannot automatically be transferred to other PK profiles, especially antibiotics, continuous infusions or long-acting drugs. The reported bias and RMSE are therefore exploratory and sampling-design dependent; they require cautious interpretation until drug-specific optimization and external clinical validation are completed.',
+      samplingWarningBody: 'The PMx code does not reproduce the article’s C0+C3 design. For 80% of profiles, t1 is sampled between 0.2 hours and 55% of the interval, then t2 from at least 45% of the interval to 0.15 hours before the next dose. For the remaining 20%, two times are sampled between 0.2 hours and 0.15 hours before the next dose, with a minimum separation. Model SIGMA residual error is applied to both concentrations. This generic design is not optimized by drug.',
+      protocolPublishedTitle: 'Tacrolimus article',
+      protocolPublishedBody: 'Dose every 12 h · AUC0–12 · C0+C3 or C0+C1+C3 · 9,000 profiles before filtering · article-specific distributions and filters.',
+      protocolPmxTitle: 'Current PMx benchmark',
+      protocolPmxBody: 'Tacrolimus interval sampled from 12 or 24 h · AUC24 · two random post-dose times · 1,000 profiles · population based on the 2011 Woillard model.',
+      tacroBenchmarkTitle: 'Why 35.1% becomes 12.3% here',
+      tacroBenchmarkBody: 'The first value is the RMSE of population AUC without individual random effects; it is neither the performance of the published model nor a MAP-BE estimate. The second is the internal XGBoost RMSE on 250 PMx profiles withheld from training. These values are not directly comparable with the article’s 4.60%, because the target, sampling times, intervals, covariates, filters and sample size differ.',
       benchmark: 'Library benchmark',
       benchmarkLead: 'For each model–mode pair, the holdout compares population AUC without ML correction against XGBoost-corrected AUC. “Available in TDM” also requires an eligible MAP prior and an unchanged fingerprint.',
       current: 'Available in TDM', snapshot: 'All benchmarked models', search: 'Search models', allDrugs: 'All drugs',
@@ -192,6 +204,14 @@
     <h3>{copy.samplingWarningTitle}</h3>
     <p>{copy.samplingWarningBody}</p>
   </aside>
+  <div class="protocol-comparison">
+    <div><strong>{copy.protocolPublishedTitle}</strong><p>{copy.protocolPublishedBody}</p></div>
+    <div><strong>{copy.protocolPmxTitle}</strong><p>{copy.protocolPmxBody}</p></div>
+  </div>
+  <aside class="metric-note comparison-note">
+    <h3>{copy.tacroBenchmarkTitle}</h3>
+    <p>{copy.tacroBenchmarkBody}</p>
+  </aside>
 </section>
 
 <section class="benchmark">
@@ -294,8 +314,12 @@
   input, select { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-primary); padding: var(--space-3); font: inherit; }
   .metric-note { max-width: 850px; margin: var(--space-7) 0; padding-left: var(--space-4); border-left: 3px solid var(--accent-ai); }
   .sampling-note { border-left-color: var(--accent-pk); }
+  .comparison-note { border-left-color: var(--accent-pd); }
   .metric-note h3 { margin: 0 0 var(--space-2); }
   .metric-note p { margin: 0; color: var(--text-secondary); }
+  .protocol-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6); max-width: 1000px; }
+  .protocol-comparison > div { padding-top: var(--space-4); border-top: 2px solid var(--border-strong); }
+  .protocol-comparison p { margin-bottom: 0; color: var(--text-secondary); }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); margin: var(--space-8) 0 var(--space-4); }
   .chart-head h3 { margin: 0; }
   .chart-head span { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); }
@@ -336,7 +360,7 @@
   @media (max-width: 900px) {
     .pipeline { grid-template-columns: 1fr; gap: 0; }
     .pipeline-arrow { margin: var(--space-2) auto; transform: rotate(90deg); }
-    .evidence-grid, .interpretation { grid-template-columns: 1fr; }
+    .evidence-grid, .interpretation, .protocol-comparison { grid-template-columns: 1fr; }
     .method-grid { grid-template-columns: repeat(2, 1fr); }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .section-head { align-items: start; flex-direction: column; }

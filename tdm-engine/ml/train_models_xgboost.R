@@ -99,6 +99,18 @@ MIN_WITHIN_20_PCT <- 80
 DALEX_BACKGROUND_SIZE <- 200L
 MIN_AUC_RATIO <- 0.05
 MAX_AUC_RATIO <- 20
+SAMPLING_PROTOCOL <- list(
+  minimumObservations = 2L,
+  steadyStateRequired = TRUE,
+  strategy = "generic_random_two_point",
+  description = paste(
+    "80%: t1 ~ U(0.2 h, max(0.25 h, 0.55*II)) and",
+    "t2 ~ U(max(t1 + min(0.5 h, II/4), 0.45*II), II - 0.15 h);",
+    "20%: two sorted U(0.2 h, II - 0.15 h) times separated by at least min(0.5 h, II/4)."
+  ),
+  target = "AUC24",
+  residualError = "Model SIGMA retained for sparse concentrations; OMEGA supplied through idata."
+)
 XGB_PARAMETERS <- list(
   max_depth = 4L,
   eta = 0.03,
@@ -693,11 +705,7 @@ publish_candidate <- function(evaluation) {
     drug = scope$drug[[1]],
     route = scope$route[[1]],
     administrationMode = mode_id,
-    samplingProtocol = list(
-      minimumObservations = 2L,
-      steadyStateRequired = TRUE,
-      description = "two concentrations across the same steady-state dosing interval"
-    ),
+    samplingProtocol = SAMPLING_PROTOCOL,
     baseModelId = base_id,
     baseModelSha256 = model_sha256(base_id),
     artifactPath = paste0("artifacts/", basename(artifact_file)),
