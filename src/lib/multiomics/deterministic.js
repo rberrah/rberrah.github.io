@@ -1215,6 +1215,44 @@ function ordinaryLeastSquares(design, response, coefficientIndex) {
   return { beta, se, statistic: t, pValue, df, fitted, residuals };
 }
 
+function ordinaryLeastSquaresRobust(design, response, coefficientIndex) {
+  const base = ordinaryLeastSquares(design, response, coefficientIndex);
+  if (!base) return null;
+  const xtx = crossProductMatrix(design);
+  const bread = invertMatrix(xtx);
+  if (!bread) return base;
+  const p = design[0].length;
+  const meat = Array.from({ length: p }, () => Array(p).fill(0));
+  for (let i = 0; i < design.length; i += 1) {
+    const x = design[i];
+    const bx = multiplyMatrixVector(bread, x);
+    const leverage = Math.max(0, Math.min(0.999999, x.reduce((sum, value, j) => sum + value * bx[j], 0)));
+    const adjustedResidual = base.residuals[i] / Math.max(1e-6, 1 - leverage);
+    const weight = adjustedResidual * adjustedResidual;
+    for (let a = 0; a < p; a += 1) {
+      for (let b = 0; b < p; b += 1) meat[a][b] += weight * x[a] * x[b];
+    }
+  }
+  const temp = Array.from({ length: p }, () => Array(p).fill(0));
+  const sandwich = Array.from({ length: p }, () => Array(p).fill(0));
+  for (let i = 0; i < p; i += 1) {
+    for (let j = 0; j < p; j += 1) {
+      for (let k = 0; k < p; k += 1) temp[i][j] += bread[i][k] * meat[k][j];
+    }
+  }
+  for (let i = 0; i < p; i += 1) {
+    for (let j = 0; j < p; j += 1) {
+      for (let k = 0; k < p; k += 1) sandwich[i][j] += temp[i][k] * bread[k][j];
+    }
+  }
+  const varianceBeta = sandwich[coefficientIndex][coefficientIndex];
+  const se = varianceBeta > 0 ? Math.sqrt(varianceBeta) : NaN;
+  const t = Number.isFinite(se) && se > 0 ? base.beta[coefficientIndex] / se : NaN;
+  const cdf = Number.isFinite(t) ? studentTCdf(Math.abs(t), base.df) : NaN;
+  const pValue = Number.isFinite(cdf) ? Math.max(0, Math.min(1, 2 * (1 - cdf))) : null;
+  return { ...base, se, statistic: t, pValue, robust: 'HC3' };
+}
+
 function fitGeneralizedLinear(design, response, family, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
@@ -1308,6 +1346,116 @@ function coxRegression(design, times, events, coefficientIndex) {
   const zStat = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
   const pValue = Number.isFinite(zStat) ? Math.min(1, 2 * (1 - normalCdf(Math.abs(zStat)))) : null;
   return { beta, se, statistic: zStat, pValue };
+}
+
+function analyseIndependentAdjustedLayer(aggregated, layer, { covariateColumns = [] } = {}) {
+  const rows = [];
+  const allConditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
+  if (allConditions.length < 2) {
+    return { error: 'At least two conditions are required.', rows: [], selected: [], groupSizes: [] };
+  }
+
+  for (const feature of aggregated.features) {
+    const entries = subjectEndpointRows(aggregated, feature);
+    const conditions = naturalOrder(entries.map((entry) => entry.row.condition));
+    if (conditions.length !== allConditions.length) continue;
+    const nuisance = subjectCovariateDesign(entries, covariateColumns, { includeIntercept: true, includeBatch: true });
+    const response = entries.map((entry) => entry.value);
+
+    if (conditions.length === 2) {
+      const reference = conditions[0];
+      const comparison = conditions[1];
+      const design = entries.map((entry, i) => [
+        1,
+        entry.row.condition === comparison ? 1 : 0,
+        ...nuisance.design[i].slice(1)
+      ]);
+      const fit = ordinaryLeastSquaresRobust(design, response, 1);
+      if (!fit) continue;
+      const effect = fit.beta[1];
+      rows.push({
+        feature,
+        effect,
+        foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
+        effectScale: aggregated.scale,
+        pValue: fit.pValue,
+        qValue: null,
+        statistic: fit.statistic,
+        standardError: fit.se,
+        ciLow: Number.isFinite(fit.se) ? effect - 1.96 * fit.se : null,
+        ciHigh: Number.isFinite(fit.se) ? effect + 1.96 * fit.se : null,
+        nReference: entries.filter((entry) => entry.row.condition === reference).length,
+        nComparison: entries.filter((entry) => entry.row.condition === comparison).length,
+        model: 'feature ~ condition + batch + selected covariates (OLS HC3)'
+      });
+    } else {
+      const classLevels = conditions.slice(1);
+      const reducedDesign = nuisance.design;
+      const fullDesign = entries.map((entry, i) => [
+        1,
+        ...classLevels.map((group) => entry.row.condition === group ? 1 : 0),
+        ...nuisance.design[i].slice(1)
+      ]);
+      const reduced = ordinaryLeastSquares(reducedDesign, response, 0);
+      const full = ordinaryLeastSquares(fullDesign, response, 0);
+      if (!reduced || !full) continue;
+      const rssReduced = reduced.residuals.reduce((sum, value) => sum + value * value, 0);
+      const rssFull = full.residuals.reduce((sum, value) => sum + value * value, 0);
+      const df1 = classLevels.length;
+      const df2 = response.length - fullDesign[0].length;
+      if (!(df1 > 0) || !(df2 > 0)) continue;
+      const fStatistic = (rssFull / df2) > 0 ? Math.max(0, (rssReduced - rssFull) / df1) / (rssFull / df2) : Infinity;
+      const pValue = Number.isFinite(fStatistic) || fStatistic === Infinity
+        ? Math.max(0, Math.min(1, 1 - fCdf(fStatistic, df1, df2)))
+        : null;
+      const adjustedMeans = [full.beta[0], ...classLevels.map((_, index) => full.beta[0] + full.beta[index + 1])];
+      rows.push({
+        feature,
+        effect: Math.max(...adjustedMeans) - Math.min(...adjustedMeans),
+        foldRatio: aggregated.scale === 'log2' ? Math.pow(2, Math.max(...adjustedMeans) - Math.min(...adjustedMeans)) : null,
+        effectScale: aggregated.scale,
+        pValue,
+        qValue: null,
+        statistic: fStatistic,
+        groupMeans: Object.fromEntries(conditions.map((condition, index) => [condition, adjustedMeans[index]])),
+        groupSizes: Object.fromEntries(conditions.map((condition) => [condition, entries.filter((entry) => entry.row.condition === condition).length])),
+        nReference: null,
+        nComparison: null,
+        model: 'feature ~ condition + batch + selected covariates (ANCOVA partial F-test)'
+      });
+    }
+  }
+
+  bhAdjust(rows);
+  rows.sort((a,b) => {
+    const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
+    const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
+    if (aq !== bq) return aq - bq;
+    return Math.abs(b.effect) - Math.abs(a.effect);
+  });
+  const significant = rows.filter((row) =>
+    Number.isFinite(row.qValue) &&
+    row.qValue <= 0.10 &&
+    (aggregated.scale !== 'log2' || Math.abs(row.effect) >= Math.log2(1.2))
+  );
+  const selected = (significant.length >= 10 ? significant : rows).slice(0, significant.length >= 10 ? 50 : 25);
+  return {
+    rows,
+    selected,
+    selectionRule: significant.length >= 10
+      ? (aggregated.scale === 'log2' ? 'q ≤ 0.10 and |fold change| ≥ 1.2, capped at 50 features' : 'q ≤ 0.10, capped at 50 features')
+      : 'top ranked adjusted features retained for exploratory biological mapping because fewer than 10 features passed the FDR/effect threshold',
+    effectScale: aggregated.scale,
+    contrast: allConditions.length === 2
+      ? allConditions[1] + ' vs ' + allConditions[0] + ' adjusted for batch/covariates'
+      : 'omnibus adjusted condition effect across ' + allConditions.length + ' groups',
+    mode: allConditions.length === 2 ? 'adjusted-two-group-model' : 'adjusted-multi-group-model',
+    inferenceMethod: allConditions.length === 2 ? 'OLS with HC3 robust standard errors' : 'ANCOVA partial F-test',
+    groupSizes: allConditions.map((condition) =>
+      new Set([...aggregated.sampleMeta.values()].filter((row) => row.condition === condition).map((row) => row.subjectId)).size
+    ),
+    steps: aggregated.steps
+  };
 }
 
 function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', covariateColumns = [], targetTimepoint = '' } = {}) {
@@ -2175,25 +2323,34 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
 
     let aggregated;
     let adjustment;
-    if (protocol.objective === 'outcome') {
-      aggregated = rawAggregated;
+    let analysisAggregated = rawAggregated;
+    const directIndependentGroup = protocol.objective === 'groups'
+      && !protocol.longitudinal
+      && protocol.designType === 'independent';
+
+    if (protocol.objective === 'outcome' || directIndependentGroup) {
       const nuisanceEncoder = buildCovariateEncoder(
         [...rawAggregated.sampleMeta.values()],
         covariateColumns,
         { includeBatch: true }
       );
+      const residualizedForIntegration = residualizeAggregated(rawAggregated, covariateColumns);
+      aggregated = residualizedForIntegration.aggregated;
       adjustment = {
         applied: nuisanceEncoder.columnNames.length > 1,
-        method: 'direct nuisance adjustment inside each outcome model',
+        method: protocol.objective === 'outcome'
+          ? 'direct nuisance adjustment inside each outcome model'
+          : 'direct nuisance adjustment inside each group feature model; residualized copy used only for cross-omics correlations',
         columns: nuisanceEncoder.columnNames.slice(1),
         covariates: covariateColumns,
         note: nuisanceEncoder.columnNames.length > 1
-          ? 'Batch and selected covariates enter the outcome regression directly; omics features are not pre-residualized.'
+          ? 'Batch and selected covariates enter each feature model directly.'
           : 'No varying batch or selected covariate required adjustment.'
       };
     } else {
       const adjusted = residualizeAggregated(rawAggregated, covariateColumns);
       aggregated = adjusted.aggregated;
+      analysisAggregated = aggregated;
       adjustment = adjusted.adjustment;
     }
     aggregated.qc = { ...qcPrepared.qc, preprocessingSteps: processed.steps };
@@ -2203,13 +2360,15 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     adjustments[layer] = adjustment;
 
     if (protocol.objective === 'outcome') {
-      layers[layer] = analyseOutcomeLayer(aggregated, layer, {
+      layers[layer] = analyseOutcomeLayer(analysisAggregated, layer, {
         outcomeType: protocol.outcomeType || 'continuous',
         covariateColumns,
         targetTimepoint: protocol.outcomeTimepoint || ''
       });
+    } else if (directIndependentGroup) {
+      layers[layer] = analyseIndependentAdjustedLayer(analysisAggregated, layer, { covariateColumns });
     } else if (protocol.objective !== 'explore') {
-      layers[layer] = analyseLayer(aggregated, layer, {
+      layers[layer] = analyseLayer(analysisAggregated, layer, {
         longitudinal: protocol.longitudinal,
         paired: protocol.designType === 'paired'
       });
