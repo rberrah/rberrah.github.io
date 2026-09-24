@@ -939,7 +939,7 @@ export function mergeReactomeResults(combined, perLayer) {
   });
 }
 
-function layerOverlapSummary(metadata, loadedLayers) {
+export function layerOverlapSummary(metadata, loadedLayers) {
   const subjectSets = Object.fromEntries(loadedLayers.map((layer) => [
     layer,
     new Set(metadata.filter((row) => row.omic === layer).map((row) => row.subjectId))
