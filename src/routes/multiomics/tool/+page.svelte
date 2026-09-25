@@ -1612,7 +1612,7 @@
     <div>
       <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
       <p>{t('Une ligne = une mesure. Ce format gère les couches omiques absentes, les temps répétés et les réplicats techniques sans changer de schéma.', 'One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.')}</p>
-      <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,covariate_1</pre>
+      <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,sample_type,injection_order,covariate_1</pre>
       <div class="actions">
         <button class="btn btn-primary" type="button" onclick={downloadGeneratedTemplate}>{t('Générer un template depuis mon protocole', 'Generate template from my protocol')}</button>
         <a class="btn btn-outline" href={`${base}/multiomics/metadata_template.csv`} download>{t('Template générique de métadonnées', 'Generic metadata template')}</a>
