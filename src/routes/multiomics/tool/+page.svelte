@@ -1948,6 +1948,17 @@
               <strong>{method.method || key}</strong>
               <span class:installed={method.status === 'ok'}>{method.status}</span>
               {#if method.message}<small>{method.message}</small>{/if}
+              {#if key === 'metabolomics_ms_qc' && method.summary}
+                <small class="backend-ms-detail">
+                  {method.summary.blank_injections ?? 0} blanks ·
+                  {method.summary.qc_injections ?? 0} pooled-QC ·
+                  {method.summary.blank_flagged_features ?? method.summary.blank_filtered_features ?? 0} {t('signalées', 'flagged')} ·
+                  {method.summary.blank_removed_features ?? method.summary.blank_filtered_features ?? 0} {t('exclues', 'removed')} ·
+                  {method.summary.drift_corrected_features ?? 0} {t('corrigées dérive', 'drift-corrected')} ·
+                  {method.summary.qc_rsd_filtered_features ?? 0} {t('exclues RSD', 'RSD-removed')} ·
+                  {method.summary.mnar_imputed_values ?? 0} {t('imputées MNAR', 'MNAR-imputed')}
+                </small>
+              {/if}
             </article>
           {/each}
         </div>
@@ -2625,6 +2636,7 @@
   .backend-method-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:var(--space-4); }
   .backend-method-grid article { display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:10px; border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-primary); }
   .backend-method-grid small { grid-column:1/-1; }
+  .backend-ms-detail { line-height:1.55; }
   .predictive-result .api-summary { margin-top:var(--space-4); }
   .fold-grid { display:grid; gap:5px; font-family:var(--font-mono); font-size:var(--text-xs); margin-top:var(--space-3); }
   .interpretation-glossary { margin-top: var(--space-4); }
