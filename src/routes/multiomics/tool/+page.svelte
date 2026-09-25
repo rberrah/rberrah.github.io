@@ -678,6 +678,7 @@
     if (technicalReplicatesExpected !== 'no') headers.push('technical_replicate');
     if (outcomeType !== 'none' && outcomeType !== 'survival') headers.push('outcome');
     if (outcomeType === 'survival') headers.push('survival_time', 'survival_event');
+    if (['untargeted_lcms','targeted_lcms','gcms'].includes(metabolomicsPlatform)) headers.push('sample_type', 'injection_order');
     if (covariatesAvailable === 'yes') headers.push('covariate_1');
 
     const omics = ['transcriptomics', 'proteomics', 'metabolomics'];
@@ -700,6 +701,8 @@
             outcome: '',
             survival_time: '',
             survival_event: '',
+            sample_type: 'biological',
+            injection_order: String((subject - 1) * nTime * 3 + time * 3 + omics.indexOf(omic) + 1),
             covariate_1: ''
           };
           exampleRows.push(headers.map((header) => values[header] ?? '').join(','));
@@ -790,7 +793,13 @@
         outcomeTimepoint,
         covariatesAvailable,
         covariateColumns: selectedCovariates,
-        partialOmicsExpected
+        partialOmicsExpected,
+        msBlankFilter,
+        msBlankFold: Number(msBlankFold),
+        msQcRsdFilter,
+        msQcRsdThreshold: Number(msQcRsdThreshold),
+        msDriftCorrection,
+        msMnarStrategy
       },
       dataTypes: {
         transcriptomics: transcriptomicsValues,
@@ -873,7 +882,13 @@
           outcomeTimepoint,
           covariatesAvailable,
           covariateColumns: selectedCovariates,
-          partialOmicsExpected
+          partialOmicsExpected,
+          msBlankFilter,
+          msBlankFold: Number(msBlankFold),
+          msQcRsdFilter,
+          msQcRsdThreshold: Number(msQcRsdThreshold),
+          msDriftCorrection,
+          msMnarStrategy
         },
         dataTypes: {
           transcriptomics: transcriptomicsValues,
