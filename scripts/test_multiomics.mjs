@@ -319,6 +319,62 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.ok(Number.isFinite(survival.predictiveOutcome.metrics.cIndex));
   assert.ok(survival.predictiveOutcome.metrics.cIndex > 0.75);
   assert.ok(survival.predictiveOutcome.foldSummaries.every(x => x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
+  assert.equal(survival.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+}
+
+// Predictive nuisance handling must be estimated inside each training fold.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch,outcome,age'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaSignal = ['PRED_SIGNAL'];
+  const rnaBatch = ['PRED_BATCH'];
+  const protSignal = ['PRED_PROT'];
+  const protAge = ['PRED_AGE'];
+  let assay = 1;
+
+  for (let s = 1; s <= 24; s += 1) {
+    const subject = 'PV' + String(s).padStart(2,'0');
+    const outcome = s <= 12 ? 'A' : 'B';
+    const batch = s % 2 ? 'B1' : 'B2';
+    const age = 40 + s;
+    for (const layer of ['transcriptomics','proteomics']) {
+      const id = (layer === 'transcriptomics' ? 'PVR' : 'PVP') + assay++;
+      rows.push([subject,subject,id,layer,'cohort','T0',batch,outcome,age].join(','));
+      if (layer === 'transcriptomics') {
+        rnaHeader.push(id);
+        rnaSignal.push(String(3 + (outcome === 'B' ? 1.8 : 0) + (s % 3) * 0.03));
+        rnaBatch.push(String(batch === 'B2' ? 8 : 2));
+      } else {
+        protHeader.push(id);
+        protSignal.push(String(4 + (outcome === 'B' ? 1.1 : 0) + (s % 4) * 0.02));
+        protAge.push(String(age / 10));
+      }
+    }
+  }
+
+  const meta = csvFile('predictive_nuisance_metadata.csv', rows.join('\n'));
+  const rna = csvFile('predictive_nuisance_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaBatch.join(',')].join('\n'));
+  const protein = csvFile('predictive_nuisance_protein.csv', [protHeader.join(','),protSignal.join(','),protAge.join(',')].join('\n'));
+  const parsedMeta = parseDelimited(await meta.text());
+  const pred = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:parsedMeta.rows,
+    columnMapping:{...mapping,outcome:'outcome'},
+    protocol:{
+      organism:'human',objective:'outcome',outcomeType:'binary',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:['age']
+    },
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  assert.equal(pred.predictiveOutcome.status, 'ok');
+  assert.equal(pred.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+  assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
+  assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
+  assert.ok(pred.predictiveOutcome.metrics.auc > 0.80);
 }
 
 console.log('multiomics deterministic engine: PASS');
