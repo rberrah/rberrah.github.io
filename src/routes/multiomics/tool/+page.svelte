@@ -723,6 +723,11 @@
     return referenceBackendUrl.trim().replace(/\/$/, '');
   }
 
+  /**
+   * @param {string} url
+   * @param {RequestInit} options
+   * @param {number} timeoutMs
+   */
   async function fetchWithTimeout(url, options = {}, timeoutMs = 1800) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
