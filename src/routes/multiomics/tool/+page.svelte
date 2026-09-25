@@ -797,18 +797,7 @@
     const embeddedJson = JSON.stringify(result).replaceAll('<', '\\u003c');
     const html = '<!doctype html><html lang="' + ($language === 'en' ? 'en' : 'fr') + '"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Multi-omics reproducible report</title>' +
-      '{#if helpTooltip.visible}
-  <div
-    class="global-help-tooltip {helpTooltip.placement}"
-    data-testid="global-help-tooltip"
-    role="tooltip"
-    style={'left:' + helpTooltip.left + 'px;top:' + helpTooltip.top + 'px'}
-  >
-    {helpTooltip.text}
-  </div>
-{/if}
-
-<style>body{font:14px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#161616}h1,h2{line-height:1.15}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f4f4f4}code,pre{font-family:ui-monospace,monospace}pre{white-space:pre-wrap;background:#f6f6f6;padding:12px}section{margin:32px 0}.muted{color:#666}</style></head><body>' +
+      '<style>body{font:14px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#161616}h1,h2{line-height:1.15}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f4f4f4}code,pre{font-family:ui-monospace,monospace}pre{white-space:pre-wrap;background:#f6f6f6;padding:12px}section{margin:32px 0}.muted{color:#666}</style></head><body>' +
       '<h1>PMx Explain — multi-omics reproducible report</h1>' +
       '<p class="muted">Generated ' + escapeHtml(result.generatedAt) + ' · engine ' + escapeHtml(result.engine?.version || 'unknown') + '</p>' +
       '<section><h2>Provenance</h2><pre>' + escapeHtml(JSON.stringify(result.inputManifest, null, 2)) + '</pre></section>' +
@@ -2174,6 +2163,17 @@
     </details>
   </div>
 </section>
+
+{#if helpTooltip.visible}
+  <div
+    class="global-help-tooltip {helpTooltip.placement}"
+    data-testid="global-help-tooltip"
+    role="tooltip"
+    style={'left:' + helpTooltip.left + 'px;top:' + helpTooltip.top + 'px'}
+  >
+    {helpTooltip.text}
+  </div>
+{/if}
 
 <style>
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
