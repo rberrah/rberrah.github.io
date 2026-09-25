@@ -823,6 +823,8 @@ function canonicalMetadata(metadataRows, columnMapping, covariateColumns = []) {
       outcome: get('outcome'),
       survivalTime: get('survival_time'),
       survivalEvent: get('survival_event'),
+      sampleType: get('sample_type'),
+      injectionOrder: get('injection_order'),
       covariates
     };
   }).filter((row) => row.subjectId && row.sampleId && row.assayId && LAYERS.includes(row.omic));
@@ -891,6 +893,243 @@ function assayGroupsForQc(metadataRows, assays) {
   }
   if (!byCondition.size) byCondition.set('__all__', assays.slice());
   return byCondition;
+}
+
+function canonicalSampleType(value) {
+  const key = lexicalKey(value).replace(/ /g, '_');
+  if (!key) return 'biological';
+  if (['blank','solvent_blank','process_blank','extraction_blank','method_blank'].includes(key)) return 'blank';
+  if (['qc','pooled_qc','quality_control','quality_control_pool','pooled','pool_qc'].includes(key)) return 'qc';
+  return 'biological';
+}
+
+function simpleQuantile(values, probability) {
+  const x = values.filter(Number.isFinite).slice().sort((a,b) => a-b);
+  if (!x.length) return NaN;
+  if (x.length === 1) return x[0];
+  const pos = Math.max(0, Math.min(1, probability)) * (x.length - 1);
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  if (lo === hi) return x[lo];
+  return x[lo] + (pos - lo) * (x[hi] - x[lo]);
+}
+
+function localLinearQcTrend(xs, ys, target, span = 0.6) {
+  const pairs = xs.map((x,i) => ({x,y:ys[i],d:Math.abs(x-target)}))
+    .filter((item) => Number.isFinite(item.x) && Number.isFinite(item.y))
+    .sort((a,b) => a.d-b.d);
+  if (pairs.length < 3) return NaN;
+  const k = Math.min(pairs.length, Math.max(4, Math.ceil(pairs.length * span)));
+  const near = pairs.slice(0,k);
+  const maxDistance = Math.max(...near.map((item) => item.d), 1e-12);
+  const weights = near.map((item) => {
+    const u = Math.min(1, item.d / maxDistance);
+    return Math.pow(1 - Math.pow(u,3),3);
+  });
+  const sw = weights.reduce((a,b)=>a+b,0);
+  if (!(sw > 0)) return mean(near.map((item)=>item.y));
+  const xbar = near.reduce((sum,item,i)=>sum+weights[i]*item.x,0)/sw;
+  const ybar = near.reduce((sum,item,i)=>sum+weights[i]*item.y,0)/sw;
+  let num = 0;
+  let den = 0;
+  for (let i=0;i<near.length;i+=1) {
+    num += weights[i]*(near[i].x-xbar)*(near[i].y-ybar);
+    den += weights[i]*(near[i].x-xbar)*(near[i].x-xbar);
+  }
+  const slope = den > 1e-12 ? num/den : 0;
+  return ybar + slope*(target-xbar);
+}
+
+function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
+  const metaByAssay = new Map(metadataRows.map((row) => [
+    row.assayId,
+    {
+      ...row,
+      canonicalSampleType: canonicalSampleType(row.sampleType),
+      numericInjectionOrder: finiteNumber(row.injectionOrder)
+    }
+  ]));
+  const blankAssays = matrix.assays.filter((assay) => metaByAssay.get(assay)?.canonicalSampleType === 'blank');
+  const qcAssays = matrix.assays.filter((assay) => metaByAssay.get(assay)?.canonicalSampleType === 'qc');
+  const biologicalAssays = matrix.assays.filter((assay) => {
+    const type = metaByAssay.get(assay)?.canonicalSampleType || 'biological';
+    return type === 'biological';
+  });
+  if (!biologicalAssays.length) {
+    throw new Error('Metabolomics QC metadata contain no biological assays after excluding blank/QC injections.');
+  }
+
+  const blankFold = Number.isFinite(Number(config.blankFold)) ? Math.max(1, Number(config.blankFold)) : 5;
+  const rsdThreshold = Number.isFinite(Number(config.qcRsdThreshold)) ? Math.max(0.01, Number(config.qcRsdThreshold)) : 0.30;
+  const blankFilterEnabled = config.blankFilter !== false;
+  const driftEnabled = config.driftCorrection !== false;
+  const qcRsdEnabled = config.qcRsdFilter !== false;
+  const mnarStrategy = config.mnarStrategy || 'none';
+
+  let features = matrix.features.slice();
+  const values = new Map(matrix.features.map((feature) => [
+    feature,
+    new Map(matrix.assays.map((assay) => [assay, matrix.values.get(feature)?.get(assay)]))
+  ]));
+
+  const blankStats = [];
+  if (blankFilterEnabled && blankAssays.length >= 2) {
+    const keep = [];
+    for (const feature of features) {
+      const map = values.get(feature);
+      const blanks = blankAssays.map((assay)=>map.get(assay)).filter(Number.isFinite);
+      const biological = biologicalAssays.map((assay)=>map.get(assay)).filter(Number.isFinite);
+      const blankMedian = median(blanks);
+      const bioMedian = median(biological);
+      const contaminated = Number.isFinite(blankMedian) && blankMedian > 0 &&
+        Number.isFinite(bioMedian) && bioMedian < blankFold * blankMedian;
+      blankStats.push({ feature, blankMedian, biologicalMedian: bioMedian, contaminated });
+      if (!contaminated) keep.push(feature);
+    }
+    features = keep;
+  }
+
+  let driftCorrected = 0;
+  let medianAbsoluteDriftLog = null;
+  const driftMagnitudes = [];
+  const qcOrders = qcAssays.map((assay)=>metaByAssay.get(assay)?.numericInjectionOrder);
+  const orderedQcCount = qcOrders.filter(Number.isFinite).length;
+  const allOrdered = matrix.assays.filter((assay)=>Number.isFinite(metaByAssay.get(assay)?.numericInjectionOrder));
+
+  if (driftEnabled && qcAssays.length >= 5 && orderedQcCount >= 5 && allOrdered.length >= 5) {
+    for (const feature of features) {
+      const map = values.get(feature);
+      const positives = matrix.assays.map((assay)=>map.get(assay)).filter((value)=>Number.isFinite(value) && value > 0);
+      if (positives.length < 5) continue;
+      const pseudocount = Math.max(Math.min(...positives) * 0.5, 1e-12);
+      const qx = [];
+      const qy = [];
+      for (const assay of qcAssays) {
+        const order = metaByAssay.get(assay)?.numericInjectionOrder;
+        const value = map.get(assay);
+        if (Number.isFinite(order) && Number.isFinite(value) && value >= 0) {
+          qx.push(order);
+          qy.push(Math.log(value + pseudocount));
+        }
+      }
+      if (qx.length < 5) continue;
+      const qcPredictions = qx.map((order)=>localLinearQcTrend(qx,qy,order));
+      const reference = median(qcPredictions);
+      if (!Number.isFinite(reference)) continue;
+
+      let featureCorrected = false;
+      for (const assay of allOrdered) {
+        const raw = map.get(assay);
+        const order = metaByAssay.get(assay)?.numericInjectionOrder;
+        if (!Number.isFinite(raw) || raw < 0 || !Number.isFinite(order)) continue;
+        const pred = localLinearQcTrend(qx,qy,order);
+        if (!Number.isFinite(pred)) continue;
+        const corrected = Math.max(0, Math.exp(Math.log(raw+pseudocount) - pred + reference) - pseudocount);
+        map.set(assay, corrected);
+        driftMagnitudes.push(Math.abs(pred-reference));
+        featureCorrected = true;
+      }
+      if (featureCorrected) driftCorrected += 1;
+    }
+    medianAbsoluteDriftLog = median(driftMagnitudes);
+  }
+
+  const qcRsdStats = [];
+  if (qcRsdEnabled && qcAssays.length >= 3) {
+    const keep = [];
+    for (const feature of features) {
+      const map = values.get(feature);
+      const qcValues = qcAssays.map((assay)=>map.get(assay)).filter((value)=>Number.isFinite(value) && value >= 0);
+      let rsd = NaN;
+      if (qcValues.length >= 3) {
+        const m = mean(qcValues);
+        rsd = m > 0 ? Math.sqrt(Math.max(0,variance(qcValues)))/m : NaN;
+      }
+      const unstable = Number.isFinite(rsd) && rsd > rsdThreshold;
+      qcRsdStats.push({ feature, rsd, unstable });
+      if (!unstable) keep.push(feature);
+    }
+    features = keep;
+  }
+
+  let mnarImputed = 0;
+  const mnarByFeature = [];
+  if (mnarStrategy === 'left_censored') {
+    for (const feature of features) {
+      const map = values.get(feature);
+      const observed = biologicalAssays.map((assay)=>map.get(assay)).filter((value)=>Number.isFinite(value) && value > 0);
+      if (observed.length < 3) continue;
+      const logs = observed.map(Math.log);
+      const robustSpread = 1.4826 * mad(logs);
+      const fallbackSpread = Math.sqrt(Math.max(0,variance(logs)));
+      const spread = Math.max(1e-6, Number.isFinite(robustSpread) && robustSpread > 0 ? robustSpread : (fallbackSpread || 1));
+      const minPositive = Math.min(...observed);
+      const q10 = simpleQuantile(logs,0.10);
+      const low = Math.max(
+        minPositive * 0.01,
+        Math.min(minPositive * 0.8, Math.exp(Math.min(Math.log(minPositive)-0.2*spread, q10-1.28*spread)))
+      );
+      let count = 0;
+      for (const assay of biologicalAssays) {
+        const value = map.get(assay);
+        if (!Number.isFinite(value)) {
+          map.set(assay, low);
+          count += 1;
+          mnarImputed += 1;
+        }
+      }
+      if (count) mnarByFeature.push({ feature, count, imputedValue: low });
+    }
+  }
+
+  const warnings = [];
+  if (blankFilterEnabled && blankAssays.length < 2) warnings.push('Blank filtering requested but fewer than 2 blank injections were annotated.');
+  if (driftEnabled && orderedQcCount < 5) warnings.push('QC drift correction requested but fewer than 5 pooled-QC injections with numeric injection order were available.');
+  if (qcRsdEnabled && qcAssays.length < 3) warnings.push('QC RSD filtering requested but fewer than 3 pooled-QC injections were annotated.');
+  if (mnarStrategy === 'left_censored') warnings.push('Left-censored MNAR imputation was applied only to missing biological metabolomics values; perform a no-imputation sensitivity analysis for confirmatory work.');
+
+  return {
+    matrix: {
+      ...matrix,
+      features,
+      assays: biologicalAssays,
+      values: new Map(features.map((feature)=>[
+        feature,
+        new Map(biologicalAssays.map((assay)=>[assay,values.get(feature).get(assay)]))
+      ]))
+    },
+    qc: {
+      applied: blankAssays.length > 0 || qcAssays.length > 0 || mnarStrategy !== 'none',
+      blankAssays: blankAssays.length,
+      qcAssays: qcAssays.length,
+      biologicalAssays: biologicalAssays.length,
+      blankFold,
+      blankFilteredFeatures: blankStats.filter((item)=>item.contaminated).length,
+      qcRsdThreshold: rsdThreshold,
+      qcRsdFilteredFeatures: qcRsdStats.filter((item)=>item.unstable).length,
+      driftCorrection: {
+        requested: driftEnabled,
+        applied: driftCorrected > 0,
+        correctedFeatures: driftCorrected,
+        orderedQcCount,
+        medianAbsoluteLogCorrection: medianAbsoluteDriftLog,
+        method: 'pooled-QC local linear log-intensity correction using injection order'
+      },
+      mnar: {
+        strategy: mnarStrategy,
+        imputedValues: mnarImputed,
+        affectedFeatures: mnarByFeature.length,
+        method: mnarStrategy === 'left_censored'
+          ? 'deterministic low-tail left-censored imputation bounded below each feature minimum'
+          : 'no imputation'
+      },
+      warnings,
+      topBlankContaminants: blankStats.filter((item)=>item.contaminated)
+        .sort((a,b)=>(b.blankMedian||0)-(a.blankMedian||0)).slice(0,20),
+      topUnstableQcFeatures: qcRsdStats.filter((item)=>item.unstable)
+        .sort((a,b)=>(b.rsd||0)-(a.rsd||0)).slice(0,20)
+    }
+  };
 }
 
 function prepareMatrixQc(matrix, layer, valueType, metadataRows = []) {
