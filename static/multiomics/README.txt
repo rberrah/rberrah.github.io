@@ -113,7 +113,9 @@ L'analyse feature-wise et la prédiction sont séparées.
 
 La validation prédictive actuellement disponible pour outcome binaire, multiclasse, continu, comptage et survie utilise :
 - folds externes déterministes ;
+- ajustement batch/covariables estimé uniquement dans les sujets d'entraînement ;
 - sélection de variables limitée aux sujets d'entraînement du fold externe ;
+- centrage, scaling et imputation par moyenne d'entraînement calculés dans le train uniquement ;
 - réglage interne de la pénalisation ridge ;
 - prédictions hors échantillon.
 Métriques :
