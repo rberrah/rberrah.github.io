@@ -206,16 +206,32 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
         order=orders[use_qc],
         response=log(values[use_qc] + pseudo)
       )
+      # With very small QC series a nominal span of 0.6 may leave too few
+      # local points for stable prediction. Guarantee roughly >=4 neighbours.
+      adaptive_span <- min(1, max(0.6, 4 / nrow(qdat)))
       fit <- try(stats::loess(
         response ~ order,
         data=qdat,
-        span=0.6, degree=1, family="symmetric",
+        span=adaptive_span, degree=1, family="symmetric",
         control=stats::loess.control(surface="direct")
       ), silent=TRUE)
-      if (inherits(fit,"try-error")) next
-      pred_all <- try(stats::predict(fit, newdata=data.frame(order=orders[ordered_all])), silent=TRUE)
-      pred_qc <- try(stats::predict(fit, newdata=data.frame(order=orders[use_qc])), silent=TRUE)
-      if (inherits(pred_all,"try-error") || inherits(pred_qc,"try-error")) next
+      pred_all <- pred_qc <- NULL
+      if (!inherits(fit,"try-error")) {
+        pred_all <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[ordered_all])), silent=TRUE))
+        pred_qc <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[use_qc])), silent=TRUE))
+      }
+      loess_ok <- !inherits(pred_all,"try-error") && !inherits(pred_qc,"try-error") &&
+        sum(is.finite(pred_all)) >= max(3L, ceiling(length(ordered_all) * 0.5)) &&
+        sum(is.finite(pred_qc)) >= 3L
+      if (!loess_ok) {
+        # Deterministic fallback: preserve a drift correction rather than
+        # silently skipping the feature when a tiny QC series makes LOESS singular.
+        fit_lm <- try(stats::lm(response ~ order, data=qdat), silent=TRUE)
+        if (inherits(fit_lm,"try-error")) next
+        pred_all <- try(stats::predict(fit_lm, newdata=data.frame(order=orders[ordered_all])), silent=TRUE)
+        pred_qc <- try(stats::predict(fit_lm, newdata=data.frame(order=orders[use_qc])), silent=TRUE)
+        if (inherits(pred_all,"try-error") || inherits(pred_qc,"try-error")) next
+      }
       reference <- stats::median(pred_qc[is.finite(pred_qc)], na.rm=TRUE)
       if (!is.finite(reference)) next
       valid <- is.finite(pred_all) & is.finite(values[ordered_all]) & values[ordered_all] >= 0
@@ -275,7 +291,7 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
     matrix=x[bio_idx,,drop=FALSE],
     metadata=meta[bio_idx,,drop=FALSE],
     summary=list(
-      method="R reference MS QC: blank filter + pooled-QC LOESS drift + pooled-QC RSD",
+      method="R reference MS QC: blank filter + pooled-QC local drift correction (LOESS with linear fallback) + pooled-QC RSD",
       biological_injections=length(bio_idx),
       blank_injections=length(blank_idx),
       qc_injections=length(qc_idx),
