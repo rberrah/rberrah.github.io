@@ -1863,6 +1863,8 @@
           {#if analysisResult.predictiveOutcome.metrics.rmse != null}<span><strong>{analysisResult.predictiveOutcome.metrics.rmse.toPrecision(3)}</strong> RMSE</span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.r2 != null}<span><strong>{analysisResult.predictiveOutcome.metrics.r2.toFixed(3)}</strong> R² CV</span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.logLoss != null}<span><strong>{analysisResult.predictiveOutcome.metrics.logLoss.toFixed(3)}</strong> log-loss</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.cIndex != null}<span><strong>{analysisResult.predictiveOutcome.metrics.cIndex.toFixed(3)}</strong> C-index <span class="help-tip" tabindex="0" data-tooltip={t('Indice de concordance de Harrell calculé uniquement sur les prédictions des folds externes. 0,5 correspond approximativement au hasard ; plus il est proche de 1, mieux le score de risque ordonne les temps d’événement observables.', 'Harrell concordance index computed only from outer-fold predictions. About 0.5 corresponds to chance; values closer to 1 mean the risk score better orders observable event times.')}>?</span></span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.events != null}<span><strong>{analysisResult.predictiveOutcome.metrics.events}</strong> {t('événements', 'events')}</span>{/if}
         </div>
         <p class="note">{analysisResult.predictiveOutcome.method}. {analysisResult.predictiveOutcome.caveat}</p>
         <details>
