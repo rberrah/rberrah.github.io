@@ -1067,6 +1067,27 @@
           ? pick('Le modèle ajuste explicitement : ', 'The model explicitly adjusts for: ') + result.protocol.covariateColumns.join(', ') + '.'
           : pick('Aucune covariable supplémentaire n’a été sélectionnée.', 'No additional covariates were selected.')
       });
+      if (result.predictiveOutcome?.status === 'ok') {
+        const metrics = result.predictiveOutcome.metrics || {};
+        const predictionText = mode === 'survival' && Number.isFinite(metrics.cIndex)
+          ? pick(
+              'La performance pronostique est mesurée hors échantillon par un C-index de Harrell de ' + metrics.cIndex.toFixed(3) + '. Cette valeur provient uniquement des folds externes de la nested cross-validation.',
+              'Prognostic performance is assessed out of sample with a Harrell C-index of ' + metrics.cIndex.toFixed(3) + '. This value uses only outer-fold predictions from nested cross-validation.'
+            )
+          : mode === 'binary' && Number.isFinite(metrics.auc)
+            ? pick(
+                'La discrimination hors échantillon est résumée par une AUC de ' + metrics.auc.toFixed(3) + ', calculée sur les folds externes.',
+                'Out-of-sample discrimination is summarized by an AUC of ' + metrics.auc.toFixed(3) + ', computed on outer-fold predictions.'
+              )
+            : pick(
+                'La performance prédictive affichée provient des folds externes de la nested cross-validation et doit rester distincte des p-values d’association.',
+                'Displayed predictive performance comes from outer nested-CV folds and should be kept distinct from association p-values.'
+              );
+        items.push({
+          title: pick('Prédiction hors échantillon', 'Out-of-sample prediction'),
+          text: predictionText
+        });
+      }
     } else {
       items.push({
         title: pick('Effet biologique', 'Biological effect'),
