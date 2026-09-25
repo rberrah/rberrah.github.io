@@ -107,3 +107,42 @@ For a named signed statistic vector and a pathway list:
     )
 
 These functions are local/server adapters. The browser remains dependency-free and deterministic for its native methods.
+
+
+## Automatic browser bridge
+
+The public Svelte tool can now probe a reference backend automatically.
+
+Install the backend dependencies once:
+
+    Rscript multiomics-engine/install_backend_dependencies.R
+
+Start the local backend:
+
+    Rscript multiomics-engine/run_backend.R
+
+The default address is:
+
+    http://127.0.0.1:8787
+
+In **Auto** mode the browser calls `/health`. If the backend is available, it sends the current metadata contract and loaded matrices to `/run` and executes the applicable reference methods automatically. If the local backend is absent, the browser-native deterministic analysis remains available. In **Require R** mode, the analysis fails instead of silently falling back.
+
+Current automatic routing includes:
+
+- raw RNA-seq counts + independent groups -> DESeq2;
+- normalized/log-scale independent group comparisons -> limma;
+- repeated/longitudinal designs -> lmerTest;
+- unsupervised integration -> MOFA2;
+- categorical supervised integration -> mixOmics DIABLO;
+- signed reference statistics with directly compatible Ensembl/UniProt IDs -> fgsea using current Reactome mappings.
+
+GitHub Pages does not run R itself. The bridge must run locally or on a controlled server. The default listener is localhost only. A remote deployment should add TLS, authentication, request-size limits and an origin allow-list before accepting research data.
+
+## Advanced MS metadata
+
+For LC-MS/GC-MS workflows the shared metadata contract additionally supports:
+
+- `sample_type`: `biological`, `pooled_qc`/ `qc`, or `blank`;
+- `injection_order`: numeric sequence position.
+
+The browser QC can then exclude technical injections from biological inference, filter blank contaminants, estimate pooled-QC drift along injection order, apply a pooled-QC RSD threshold, and optionally perform explicitly requested deterministic low-tail imputation for left-censored MNAR values.
