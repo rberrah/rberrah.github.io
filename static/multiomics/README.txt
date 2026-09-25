@@ -22,6 +22,8 @@ Colonnes optionnelles selon le design :
 - outcome : phénotype/critère pour outcome binaire, multiclasse, continu ou comptage.
 - survival_time : durée de suivi / temps jusqu'à événement.
 - survival_event : événement de survie codé 0/1.
+- sample_type : pour les workflows MS, biological / pooled_qc (ou qc) / blank.
+- injection_order : ordre numérique d’injection pour la correction de dérive MS.
 - toute autre colonne peut être sélectionnée explicitement comme covariable.
 
 2. CONTRÔLE QUALITÉ ET PRÉTRAITEMENT
@@ -35,6 +37,15 @@ Avant l'inférence, chaque couche reçoit un QC spécifique au type déclaré :
 - PCA QC : calculée par couche après prétraitement pour visualiser structure globale, batch et outliers. Une imputation médiane n'est utilisée que pour cette visualisation QC.
 
 Les résultats affichent le nombre de variables avant/après filtre, le missing médian, les assays suspects, les réplicats faibles et la PCA QC.
+
+Pour LC-MS/GC-MS lorsque sample_type et injection_order sont fournis :
+- les injections blank et pooled-QC sont exclues de l’inférence biologique ;
+- filtre des contaminants de blank par ratio médiane biologique / médiane blank (5 par défaut) ;
+- correction de dérive sur l’échelle log par régression locale déterministe des pooled-QC selon l’ordre d’injection lorsque ≥5 QC ordonnés sont disponibles ;
+- filtre de stabilité pooled-QC par RSD (30 % par défaut) ;
+- aucune imputation MNAR par défaut ;
+- si l’utilisateur sélectionne explicitement « left-censored », les valeurs manquantes biologiques sont imputées dans le bas de la distribution et cette opération est tracée ;
+- une analyse confirmatoire doit conserver une analyse de sensibilité sans imputation.
 
 3. BATCHES ET COVARIABLES
 
@@ -88,16 +99,19 @@ Supervisée :
 - elle est descriptive et n'est PAS appelée DIABLO.
 
 Méthodes de référence R :
-- multiomics-engine/advanced_methods.R fournit des adaptateurs utilisant réellement :
-  - MOFA2 ;
-  - mixOmics::block.splsda (DIABLO).
-- Ces méthodes sont prévues pour exécution locale/serveur, pas directement dans GitHub Pages.
+- multiomics-engine/advanced_methods.R utilise réellement DESeq2, limma, lmerTest, fgsea, MOFA2 et mixOmics::block.splsda (DIABLO).
+- multiomics-engine/server.R expose ces méthodes via un bridge local/serveur.
+- l’interface propose trois modes : Auto, navigateur uniquement, ou R requis.
+- en mode Auto, elle interroge /health puis appelle /run si le backend répond.
+- adresse locale par défaut : http://127.0.0.1:8787.
+- GitHub Pages ne démarre pas R lui-même : lancer d’abord Rscript multiomics-engine/run_backend.R, ou utiliser un serveur contrôlé.
+- un serveur distant doit ajouter TLS, authentification, limites de taille et restriction CORS avant réception de données de recherche.
 
 6. ASSOCIATION VS PRÉDICTION OUTCOME
 
 L'analyse feature-wise et la prédiction sont séparées.
 
-La validation prédictive actuellement disponible pour outcome binaire, multiclasse, continu et comptage utilise :
+La validation prédictive actuellement disponible pour outcome binaire, multiclasse, continu, comptage et survie utilise :
 - folds externes déterministes ;
 - sélection de variables limitée aux sujets d'entraînement du fold externe ;
 - réglage interne de la pénalisation ridge ;
@@ -106,8 +120,9 @@ Métriques :
 - binaire : AUC, accuracy, log-loss.
 - multiclasse : accuracy.
 - continu / comptage : RMSE et R² hors échantillon.
+- survie : sélection univariée Cox limitée au fold d’entraînement, Cox ridge pénalisée, réglage interne de λ et C-index de Harrell sur les folds externes.
 
-La survie reste association-only pour le moment. Une validation externe indépendante reste nécessaire avant usage clinique.
+Une validation externe indépendante reste nécessaire avant usage clinique.
 
 7. DONNÉES MANQUANTES
 
@@ -187,13 +202,12 @@ Les benchmarks vérifient des vérités biologiques ou statistiques attendues et
 
 13. LIMITES ENCORE IMPORTANTES
 
-Le navigateur constitue désormais une pipeline analytique déterministe utilisable sur des matrices déjà produites, mais il ne remplace pas encore tous les pipelines primaires de chaque plateforme :
-- DESeq2 et limma disposent désormais d'adaptateurs R de référence, mais ne sont pas exécutés directement dans GitHub Pages ; edgeR/voom automatisé n'est pas encore branché.
-- les workflows MS complets de correction de dérive QC, blank subtraction et modèles MNAR restent dépendants de la préparation amont ou d'un futur moteur R serveur.
-- lmerTest, MOFA2 et DIABLO disposent d'adaptateurs R, pas exécutés dans GitHub Pages.
-- fgsea dispose d'un adaptateur R rank-based ; la récupération automatique des gene sets Reactome vers cet adaptateur reste à connecter.
-- les identifiants chimiques autres que ChEBI/noms exacts/alias déterministes/InChIKey ne disposent pas encore tous d'une conversion cross-database automatique.
-- prédiction de survie cross-validée non implémentée.
+Le navigateur constitue désormais une pipeline analytique déterministe utilisable sur des matrices déjà produites, avec bridge optionnel vers les implémentations R de référence. Limites restantes :
+- edgeR/voom automatisé n’est pas encore routé ; DESeq2 et limma le sont via le backend R.
+- le QC MS implémente blanks, dérive pooled-QC, RSD et une option MNAR déterministe, mais ne remplace pas un workflow vendor/raw complet (peak picking, alignment, adducts/isotopes, internal standards, carry-over ou batch correction instrument-spécifique).
+- fgsea peut récupérer des mappings Reactome lorsque les identifiants sont directement compatibles Ensembl/UniProt ; les identifiants nécessitant une résolution préalable plus complexe restent limités.
+- le backend local est automatique lorsqu’il est lancé, mais le site statique ne peut pas créer lui-même le processus R.
+- les identifiants chimiques autres que ChEBI/noms exacts/alias déterministes/InChIKey ne disposent pas encore tous d’une conversion cross-database automatique.
 - validation externe reste indispensable pour un modèle prédictif destiné à la clinique.
 
 ENGLISH
@@ -203,4 +217,4 @@ The browser pipeline now implements the same major stages described above: expli
 
 Reference MOFA2 and DIABLO adapters are provided under multiomics-engine/advanced_methods.R for local/server execution. They are intentionally kept distinct from the browser-native PCA/PLS components.
 
-Reference R adapters now cover DESeq2, limma, lmerTest, fgsea, MOFA2 and DIABLO. Remaining limitations include automatic execution of those packages from the public browser, advanced MS drift/blank/MNAR processing, automatic Reactome gene-set transfer into fgsea, broader chemical-ID cross-mapping beyond deterministic InChIKey→ChEBI resolution, cross-validated survival prediction and external clinical validation.
+Reference R adapters cover DESeq2, limma, lmerTest, fgsea, MOFA2 and DIABLO. The browser can automatically use them when the local/server bridge is running. Cross-validated survival prediction and advanced MS blank/QC-drift/RSD/MNAR handling are implemented. Remaining limits include full vendor/raw MS processing, edgeR/voom routing, broader chemical-ID cross-mapping, secure deployment of a remote R backend, and external clinical validation.
