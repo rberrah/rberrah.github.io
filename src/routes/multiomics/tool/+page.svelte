@@ -50,7 +50,7 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let metabolomicsIdType = 'chebi';
-  let msBlankFilter = 'yes';
+  let msBlankFilter = 'flag';
   let msBlankFold = 5;
   let msQcRsdFilter = 'yes';
   let msQcRsdThreshold = 0.30;
@@ -1541,11 +1541,13 @@
             <span class="help-tip" tabindex="0" data-tooltip={t('Utilise sample_type pour distinguer biological / qc / blank et injection_order pour corriger la dérive. Les blanks et pooled-QC sont exclus de l’inférence biologique.', 'Uses sample_type to distinguish biological / qc / blank and injection_order for drift correction. Blank and pooled-QC injections are excluded from biological inference.')}>?</span>
           </strong>
           <label>
-            <span>{t('Filtre des blancs', 'Blank filter')}</span>
+            <span>{t('Gestion des signaux présents dans les blanks', 'Blank-associated signal handling')}</span>
             <select bind:value={msBlankFilter}>
-              <option value="yes">{t('Oui', 'Yes')}</option>
-              <option value="no">{t('Non', 'No')}</option>
+              <option value="flag">{t('Signaler seulement · recommandé par défaut', 'Flag only · recommended default')}</option>
+              <option value="remove">{t('Exclure selon le ratio déclaré', 'Exclude using the declared ratio')}</option>
+              <option value="no">{t('Désactiver', 'Disable')}</option>
             </select>
+            <small>{t('Le ratio sert à repérer les variables potentiellement contaminées. Leur exclusion automatique est une décision plus forte : utilisez-la seulement si elle correspond à votre SOP et conservez une analyse de sensibilité.', 'The ratio flags potentially contaminated features. Automatic exclusion is a stronger decision: use it only when consistent with your SOP and retain a sensitivity analysis.')}</small>
           </label>
           <label>
             <span>{t('Ratio biologique / blank minimal', 'Minimum biological / blank ratio')}</span>
@@ -2026,7 +2028,8 @@
                 <strong>{t('QC MS', 'MS QC')}</strong>
                 <span>{result.qc.msQc.blankAssays} blanks</span>
                 <span>{result.qc.msQc.qcAssays} pooled-QC</span>
-                <span>{result.qc.msQc.blankFilteredFeatures} {t('retirées par blank', 'blank-filtered')}</span>
+                <span>{result.qc.msQc.blankFlaggedFeatures ?? result.qc.msQc.blankFilteredFeatures ?? 0} {t('signalées par blank', 'blank-flagged')}</span>
+                <span>{result.qc.msQc.blankRemovedFeatures ?? result.qc.msQc.blankFilteredFeatures ?? 0} {t('exclues par blank', 'blank-removed')}</span>
                 <span>{result.qc.msQc.qcRsdFilteredFeatures} {t('retirées par RSD', 'RSD-filtered')}</span>
                 <span>{result.qc.msQc.driftCorrection?.correctedFeatures || 0} {t('corrigées pour dérive', 'drift-corrected')}</span>
                 <span>{result.qc.msQc.mnar?.imputedValues || 0} {t('MNAR imputées', 'MNAR-imputed')}</span>
