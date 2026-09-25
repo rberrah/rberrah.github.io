@@ -135,6 +135,109 @@ const demoOutcome = await runDeterministicAnalysis({
 assert.equal(demoOutcome.layers.transcriptomics.mode, 'outcome-binary');
 assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
 
+// Advanced metabolomics MS QC: blanks, pooled-QC drift, RSD and explicit MNAR handling.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,batch,sample_type,injection_order'];
+  const rnaHeader = ['feature_id'];
+  const metHeader = ['feature_id'];
+  const rnaSignal = ['RNA_MS_SIGNAL'];
+  const rnaAnchor = ['RNA_MS_ANCHOR'];
+  const metSignal = ['MS_TRUE_SIGNAL'];
+  const metBlank = ['MS_BLANK_CONTAM'];
+  const metUnstable = ['MS_UNSTABLE_QC'];
+  const metMnar = ['MS_MNAR'];
+  let injection = 1;
+
+  // Biological samples: two groups, same biological subjects across RNA and metabolomics.
+  for (const condition of ['control','treatment']) {
+    for (let s = 1; s <= 6; s += 1) {
+      const subject = (condition === 'control' ? 'MC' : 'MT') + s;
+      const rnaId = 'MSR_' + subject;
+      rows.push([subject,subject,rnaId,'transcriptomics',condition,'T0','B1','biological',''].join(','));
+      rnaHeader.push(rnaId);
+      rnaSignal.push(String(5 + (condition === 'treatment' ? 1.5 : 0) + s*0.03));
+      rnaAnchor.push(String(3 + s*0.08));
+
+      const metId = 'MSM_' + subject;
+      const drift = 1 + injection * 0.025;
+      rows.push([subject,subject,metId,'metabolomics',condition,'T0','B1','biological',injection].join(','));
+      metHeader.push(metId);
+      metSignal.push(String((condition === 'treatment' ? 180 : 100) * drift));
+      metBlank.push(String(10 * drift));
+      metUnstable.push(String(90 * drift));
+      metMnar.push((s <= 2 && condition === 'treatment') ? '' : String(40 * drift));
+      injection += 1;
+    }
+  }
+
+  // Pooled QCs interspersed across the sequence.
+  for (let q = 1; q <= 6; q += 1) {
+    const id = 'MS_QC_' + q;
+    const order = injection++;
+    const drift = 1 + order * 0.025;
+    rows.push(['QC' + q,'QC' + q,id,'metabolomics','','','B1','pooled_qc',order].join(','));
+    metHeader.push(id);
+    metSignal.push(String(100 * drift));
+    metBlank.push(String(10 * drift));
+    metUnstable.push(String((q % 2 ? 45 : 170) * drift));
+    metMnar.push(String(40 * drift));
+  }
+
+  // Blanks: one feature is deliberately contaminated.
+  for (let b = 1; b <= 3; b += 1) {
+    const id = 'MS_BLANK_' + b;
+    const order = injection++;
+    rows.push(['BL' + b,'BL' + b,id,'metabolomics','','','B1','blank',order].join(','));
+    metHeader.push(id);
+    metSignal.push('1');
+    metBlank.push('4');
+    metUnstable.push('1');
+    metMnar.push('0.5');
+  }
+
+  const meta = csvFile('ms_qc_metadata.csv', rows.join('\n'));
+  const rna = csvFile('ms_qc_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaAnchor.join(',')].join('\n'));
+  const metabolomics = csvFile('ms_qc_metabolomics.csv', [
+    metHeader.join(','),metSignal.join(','),metBlank.join(','),metUnstable.join(','),metMnar.join(',')
+  ].join('\n'));
+  const parsedMeta = parseDelimited(await meta.text());
+
+  const ms = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:null,metabolomics},
+    metadataRows:parsedMeta.rows,
+    columnMapping:{
+      ...mapping,
+      sample_type:'sample_type',
+      injection_order:'injection_order'
+    },
+    protocol:{
+      organism:'human',objective:'groups',longitudinal:false,designType:'independent',
+      studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen',
+      batchKnown:'yes',covariateColumns:[],
+      msBlankFilter:'yes',msBlankFold:5,
+      msQcRsdFilter:'yes',msQcRsdThreshold:0.30,
+      msDriftCorrection:'yes',msMnarStrategy:'left_censored'
+    },
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'peak_area'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+
+  assert.equal(ms.metadataSummary.subjects, 12);
+  assert.equal(ms.metadataSummary.technicalQcAssays, 9);
+  const msQc = ms.layers.metabolomics.qc.msQc;
+  assert.equal(msQc.blankAssays, 3);
+  assert.equal(msQc.qcAssays, 6);
+  assert.ok(msQc.blankFilteredFeatures >= 1);
+  assert.ok(msQc.qcRsdFilteredFeatures >= 1);
+  assert.ok(msQc.driftCorrection.applied);
+  assert.ok(msQc.driftCorrection.correctedFeatures >= 2);
+  assert.ok(msQc.mnar.imputedValues >= 2);
+  assert.ok(ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_TRUE_SIGNAL'));
+  assert.ok(!ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_BLANK_CONTAM'));
+  assert.ok(!ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_UNSTABLE_QC'));
+}
+
 // Survival prediction: nested CV must produce out-of-sample Harrell C-index.
 {
   const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,survival_time,survival_event'];
