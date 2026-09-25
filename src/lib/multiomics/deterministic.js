@@ -1,6 +1,6 @@
 // @ts-nocheck
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
-const MULTIOMICS_ENGINE_VERSION = '1.1.0';
+const MULTIOMICS_ENGINE_VERSION = '1.2.0';
 const CHEBI_SEARCH_URL = 'https://www.ebi.ac.uk/chebi/backend/api/public/es_search/';
 const metaboliteResolutionCache = new Map();
 
