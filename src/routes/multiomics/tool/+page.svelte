@@ -34,6 +34,12 @@
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   let useReactome = true;
   let resolveIdentifiers = true;
+  let referenceBackendMode = 'auto';
+  let referenceBackendUrl = 'http://127.0.0.1:8787';
+  let referenceBackendStatus = 'unchecked';
+  let referenceBackendMessage = '';
+  /** @type {any} */
+  let referenceBackendHealth = null;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -511,6 +517,7 @@
     metabolomicsValues = 'peak_area';
     metabolomicsIdType = 'chebi';
     resolveIdentifiers = false;
+    referenceBackendMode = 'browser';
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
@@ -689,6 +696,134 @@
     URL.revokeObjectURL(href);
   }
 
+  function backendBaseUrl() {
+    return referenceBackendUrl.trim().replace(/\/$/, '');
+  }
+
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 1800) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function checkReferenceBackend(showMessage = true) {
+    if (referenceBackendMode === 'browser') {
+      referenceBackendStatus = 'disabled';
+      referenceBackendHealth = null;
+      if (showMessage) referenceBackendMessage = t('Backend R désactivé.', 'R backend disabled.');
+      return null;
+    }
+    const url = backendBaseUrl();
+    if (!url) {
+      referenceBackendStatus = 'unavailable';
+      referenceBackendHealth = null;
+      if (showMessage) referenceBackendMessage = t('URL du backend R manquante.', 'R backend URL is missing.');
+      return null;
+    }
+    referenceBackendStatus = 'checking';
+    try {
+      const response = await fetchWithTimeout(url + '/health', { headers: { Accept: 'application/json' } }, 1800);
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const health = await response.json();
+      referenceBackendStatus = 'available';
+      referenceBackendHealth = health;
+      referenceBackendMessage = t('Backend R disponible.', 'R backend available.');
+      return health;
+    } catch (error) {
+      referenceBackendStatus = 'unavailable';
+      referenceBackendHealth = null;
+      if (showMessage) {
+        referenceBackendMessage = t(
+          'Backend R indisponible ; le moteur navigateur reste utilisable.',
+          'R backend unavailable; the browser engine remains usable.'
+        );
+      }
+      return null;
+    }
+  }
+
+  async function referenceBackendPayload() {
+    if (!files.metadata) throw new Error('Metadata file is required.');
+    /** @type {Record<string,string>} */
+    const matrices = {};
+    for (const layer of omicLayers) {
+      if (files[layer]) matrices[layer] = await files[layer].text();
+    }
+    return {
+      protocol: {
+        organism,
+        objective,
+        longitudinal: longitudinal === 'yes',
+        designType,
+        studySetting,
+        unitType,
+        groupCount,
+        timepointCount,
+        sampleOverlap,
+        technicalReplicatesExpected,
+        batchKnown,
+        outcomeType,
+        outcomeTimepoint,
+        covariatesAvailable,
+        covariateColumns: selectedCovariates,
+        partialOmicsExpected
+      },
+      dataTypes: {
+        transcriptomics: transcriptomicsValues,
+        proteomics: proteomicsValues,
+        metabolomics: metabolomicsValues
+      },
+      identifierTypes: {
+        transcriptomics: transcriptomicsIdType,
+        proteomics: proteomicsIdType,
+        metabolomics: metabolomicsIdType
+      },
+      columnMapping,
+      metadataCsv: await files.metadata.text(),
+      matrices
+    };
+  }
+
+  async function runReferenceBackend() {
+    const health = await checkReferenceBackend(false);
+    if (!health) {
+      if (referenceBackendMode === 'required') {
+        throw new Error('Reference R backend is required but unavailable at ' + backendBaseUrl() + '.');
+      }
+      return {
+        status: 'unavailable',
+        url: backendBaseUrl(),
+        message: 'Reference R backend was not reachable; browser results were retained.'
+      };
+    }
+    referenceBackendStatus = 'running';
+    referenceBackendMessage = t('Méthodes R de référence en cours…', 'Reference R methods running…');
+    const payload = await referenceBackendPayload();
+    const response = await fetch(backendBaseUrl() + '/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok || body.status === 'error') {
+      referenceBackendStatus = 'error';
+      referenceBackendMessage = body.message || ('HTTP ' + response.status);
+      if (referenceBackendMode === 'required') throw new Error(referenceBackendMessage);
+      return {
+        status: 'error',
+        url: backendBaseUrl(),
+        message: referenceBackendMessage
+      };
+    }
+    referenceBackendStatus = 'done';
+    referenceBackendMessage = t('Méthodes R de référence terminées.', 'Reference R methods completed.');
+    return { ...body, url: backendBaseUrl() };
+  }
+
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
@@ -733,6 +868,10 @@
         resolveIdentifiers,
         useReactome
       });
+      if (referenceBackendMode !== 'browser') {
+        const referenceBackend = await runReferenceBackend();
+        analysisResult = { ...analysisResult, referenceBackend };
+      }
       analysisStatus = 'done';
     } catch (error) {
       analysisStatus = 'error';
@@ -806,6 +945,7 @@
       layerSections +
       (result.supervisedIntegration ? '<section><h2>Supervised multiblock integration</h2><pre>' + escapeHtml(JSON.stringify(result.supervisedIntegration, null, 2)) + '</pre></section>' : '') +
       (result.predictiveOutcome ? '<section><h2>Predictive validation</h2><pre>' + escapeHtml(JSON.stringify(result.predictiveOutcome, null, 2)) + '</pre></section>' : '') +
+      (result.referenceBackend ? '<section><h2>Reference R backend</h2><pre>' + escapeHtml(JSON.stringify(result.referenceBackend, null, 2)) + '</pre></section>' : '') +
       '<section><h2>Reactome pathways</h2><table><thead><tr><th>Pathway</th><th>Assay-universe FDR</th><th>Supporting layers</th></tr></thead><tbody>' + pathways + '</tbody></table></section>' +
       '<section><h2>Interpretation limits</h2><p>This report separates observed data, statistical inference and external pathway knowledge. Associations are not causal claims. External validation is required for predictive use.</p></section>' +
       '<script type="application/json" id="multiomics-analysis-json">' + embeddedJson + '</scr' + 'ipt>' +
@@ -1000,7 +1140,7 @@
   </p>
   <div class="privacy">
     <strong>{t('Prototype de recherche.', 'Research prototype.')}</strong>
-    {t('Le parsing, le prétraitement et les modèles statistiques sont exécutés localement dans le navigateur. Lorsque Reactome est activé, seuls les identifiants moléculaires sélectionnés sont envoyés ; les métadonnées sujet/échantillon et matrices d’abondance ne sont pas transmises.', 'Parsing, preprocessing and statistical models run locally in the browser. When Reactome is enabled, only selected molecular identifiers are sent; subject/sample metadata and abundance matrices are not transmitted.')}
+    {t('Le moteur navigateur reste local. Lorsque Reactome est activé, seuls les identifiants moléculaires sélectionnés sont envoyés. Si le backend R de référence est activé et disponible, les métadonnées et matrices sont envoyées uniquement à l’URL de backend affichée ci-dessous — par défaut 127.0.0.1 sur votre propre machine.', 'The browser engine remains local. When Reactome is enabled, only selected molecular identifiers are sent. If the reference R backend is enabled and available, metadata and matrices are sent only to the backend URL shown below — by default 127.0.0.1 on your own machine.')}
   </div>
 </section>
 
@@ -1595,6 +1735,32 @@
         <input type="checkbox" bind:checked={useReactome} />
         <span>{t('Interroger Reactome uniquement avec les identifiants moléculaires sélectionnés', 'Query Reactome with selected molecular identifiers only')}</span>
       </label>
+
+      <div class="reference-backend-box">
+        <div>
+          <strong>{t('Backend R de référence', 'Reference R backend')}</strong>
+          <span class="help-tip" tabindex="0" data-tooltip={t('En mode Auto, l’outil teste le backend local. S’il répond, il exécute les implémentations de référence applicables : DESeq2, limma, lmerTest, fgsea, MOFA2 et/ou DIABLO. GitHub Pages ne peut pas démarrer R lui-même.', 'In Auto mode, the tool probes the local backend. If available, it runs applicable reference implementations: DESeq2, limma, lmerTest, fgsea, MOFA2 and/or DIABLO. GitHub Pages cannot start R itself.')}>?</span>
+        </div>
+        <div class="backend-controls">
+          <select bind:value={referenceBackendMode} aria-label={t('Mode backend R', 'R backend mode')}>
+            <option value="auto">{t('Auto · utiliser si disponible', 'Auto · use when available')}</option>
+            <option value="browser">{t('Navigateur uniquement', 'Browser only')}</option>
+            <option value="required">{t('R requis · bloquer si absent', 'Require R · fail if unavailable')}</option>
+          </select>
+          <input bind:value={referenceBackendUrl} aria-label={t('URL backend R', 'R backend URL')} />
+          <button class="btn btn-outline btn-small" type="button" onclick={() => checkReferenceBackend(true)}>{t('Tester', 'Check')}</button>
+        </div>
+        <small class:backend-ok={referenceBackendStatus === 'available' || referenceBackendStatus === 'done'} class:backend-bad={referenceBackendStatus === 'error'}>
+          {referenceBackendMessage || t('Par défaut : bridge local http://127.0.0.1:8787.', 'Default: local bridge http://127.0.0.1:8787.')}
+        </small>
+        {#if referenceBackendHealth?.packages}
+          <div class="backend-packages">
+            {#each Object.entries(referenceBackendHealth.packages) as [pkg, installed]}
+              <span class:installed={installed}>{pkg}: {installed ? 'OK' : '—'}</span>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
     <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
       {analysisStatus === 'running' ? t('Analyse…', 'Running…') : t('Lancer l’analyse déterministe', 'Run deterministic analysis')}
@@ -1655,6 +1821,32 @@
           {/if}
         {/each}
       </div>
+    </div>
+  {/if}
+
+  {#if analysisResult.referenceBackend}
+    <div class="integration-result reference-backend-result" data-testid="reference-backend-results">
+      <div class="integration-head">
+        <div>
+          <p class="eyebrow">{t('Moteur R de référence', 'Reference R engine')}</p>
+          <h3>{analysisResult.referenceBackend.status === 'ok' ? t('Méthodes de référence exécutées automatiquement', 'Reference methods executed automatically') : t('Backend R non utilisé', 'R backend not used')}</h3>
+        </div>
+        <span>{analysisResult.referenceBackend.status}</span>
+      </div>
+      {#if analysisResult.referenceBackend.status === 'ok'}
+        <p class="note">{analysisResult.referenceBackend.engine?.name} · v{analysisResult.referenceBackend.engine?.version}</p>
+        <div class="backend-method-grid">
+          {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, method]}
+            <article>
+              <strong>{method.method || key}</strong>
+              <span class:installed={method.status === 'ok'}>{method.status}</span>
+              {#if method.message}<small>{method.message}</small>{/if}
+            </article>
+          {/each}
+        </div>
+      {:else}
+        <p class="muted">{analysisResult.referenceBackend.message}</p>
+      {/if}
     </div>
   {/if}
 
@@ -2295,6 +2487,18 @@
   .interpretation-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-3); margin-top: var(--space-4); }
   .interpretation-grid article { padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-primary); }
   .interpretation-grid p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: 0; }
+  .reference-backend-box { margin-top:var(--space-4); padding:var(--space-4); border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-primary); }
+  .reference-backend-box > div:first-child { display:flex; align-items:center; gap:5px; }
+  .backend-controls { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(220px,1.4fr) auto; gap:8px; margin:10px 0 6px; }
+  .btn-small { padding:8px 11px; }
+  .backend-packages { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .backend-packages span, .backend-method-grid article > span { font:600 10px/1.2 var(--font-mono); border:1px solid var(--border-subtle); border-radius:999px; padding:4px 6px; }
+  .backend-packages span.installed, .backend-method-grid article > span.installed { border-color:var(--accent-pd); }
+  .backend-ok { color:var(--accent-pd); }
+  .backend-bad { color:var(--accent-ai); }
+  .backend-method-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:var(--space-4); }
+  .backend-method-grid article { display:grid; grid-template-columns:1fr auto; gap:4px 8px; padding:10px; border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-primary); }
+  .backend-method-grid small { grid-column:1/-1; }
   .predictive-result .api-summary { margin-top:var(--space-4); }
   .fold-grid { display:grid; gap:5px; font-family:var(--font-mono); font-size:var(--text-xs); margin-top:var(--space-3); }
   .interpretation-glossary { margin-top: var(--space-4); }
@@ -2439,6 +2643,7 @@
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
     .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid, .qc-grid { grid-template-columns: 1fr; }
     .run-box, .overlap-box { align-items: stretch; flex-direction: column; }
+    .backend-controls, .backend-method-grid { grid-template-columns: 1fr; }
     .overlap-pairs { justify-content: flex-start; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
