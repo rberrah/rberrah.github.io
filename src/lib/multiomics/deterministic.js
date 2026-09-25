@@ -1549,6 +1549,73 @@ function coxRegression(design, times, events, coefficientIndex) {
   return { beta, se, statistic: zStat, pValue };
 }
 
+function coxRidgeRegression(design, times, events, lambda = 1) {
+  const n = times.length;
+  const p = design[0]?.length || 0;
+  if (!n || !p || n <= p || events.reduce((sum, event) => sum + event, 0) < 3) return null;
+  let beta = Array(p).fill(0);
+  for (let iter = 0; iter < 40; iter += 1) {
+    const score = Array(p).fill(0);
+    const info = Array.from({ length: p }, () => Array(p).fill(0));
+    for (let i = 0; i < n; i += 1) {
+      if (!events[i]) continue;
+      const risk = [];
+      for (let j = 0; j < n; j += 1) if (times[j] >= times[i]) risk.push(j);
+      let denom = 0;
+      const weightedMean = Array(p).fill(0);
+      const weightedSecond = Array.from({ length: p }, () => Array(p).fill(0));
+      for (const j of risk) {
+        const eta = Math.max(-30, Math.min(30, design[j].reduce((sum, value, k) => sum + value * beta[k], 0)));
+        const w = Math.exp(eta);
+        denom += w;
+        for (let a = 0; a < p; a += 1) {
+          weightedMean[a] += w * design[j][a];
+          for (let b = 0; b < p; b += 1) weightedSecond[a][b] += w * design[j][a] * design[j][b];
+        }
+      }
+      if (!(denom > 0)) continue;
+      for (let a = 0; a < p; a += 1) {
+        const meanA = weightedMean[a] / denom;
+        score[a] += design[i][a] - meanA;
+        for (let b = 0; b < p; b += 1) {
+          info[a][b] += weightedSecond[a][b] / denom - meanA * (weightedMean[b] / denom);
+        }
+      }
+    }
+    for (let j = 0; j < p; j += 1) {
+      score[j] -= lambda * beta[j];
+      info[j][j] += lambda;
+    }
+    const step = solveLinearSystem(info, score, 1e-8);
+    if (!step) return null;
+    beta = beta.map((value, index) => value + step[index]);
+    if (Math.max(...step.map(Math.abs)) < 1e-7) break;
+  }
+  return { beta, lambda };
+}
+
+function harrellCIndex(times, events, risks) {
+  let comparable = 0;
+  let concordant = 0;
+  for (let i = 0; i < times.length; i += 1) {
+    for (let j = i + 1; j < times.length; j += 1) {
+      let early = -1;
+      let late = -1;
+      if (times[i] < times[j] && events[i] === 1) {
+        early = i; late = j;
+      } else if (times[j] < times[i] && events[j] === 1) {
+        early = j; late = i;
+      } else {
+        continue;
+      }
+      comparable += 1;
+      if (risks[early] > risks[late]) concordant += 1;
+      else if (risks[early] === risks[late]) concordant += 0.5;
+    }
+  }
+  return comparable ? concordant / comparable : NaN;
+}
+
 function fitRandomInterceptGls(design, response, subjectIds, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
@@ -2404,6 +2471,16 @@ function predictionTarget(metadata, protocol) {
     }
     return { targetBySubject, levels: [], categorical: false };
   }
+  if (protocol.outcomeType === 'survival') {
+    for (const row of metadata) {
+      const time = finiteNumber(row.survivalTime);
+      const event = finiteNumber(row.survivalEvent);
+      if (Number.isFinite(time) && time > 0 && Number.isFinite(event)) {
+        targetBySubject.set(row.subjectId, { time, event: event > 0 ? 1 : 0 });
+      }
+    }
+    return { targetBySubject, levels: [], categorical: true, survival: true };
+  }
   return { targetBySubject, levels: [], categorical: false };
 }
 
@@ -2431,6 +2508,17 @@ function selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects
         );
         if (groups.some((group) => group.length < 2)) continue;
         score = oneWayF(groups);
+      } else if (protocol.outcomeType === 'survival') {
+        const truth = usable.map((entry) => target.targetBySubject.get(entry.subjectId));
+        const times = truth.map((value) => value.time);
+        const events = truth.map((value) => value.event);
+        if (events.reduce((sum, value) => sum + value, 0) < 3) continue;
+        const center = mean(x);
+        const sd = Math.sqrt(variance(x));
+        if (!(sd > 0)) continue;
+        const design = x.map((value) => [(value - center) / sd]);
+        const fit = coxRegression(design, times, events, 0);
+        score = fit && Number.isFinite(fit.statistic) ? Math.abs(fit.statistic) : NaN;
       } else {
         const y = usable.map((entry) => target.targetBySubject.get(entry.subjectId));
         score = Math.abs(pearson(x,y));
@@ -2484,6 +2572,12 @@ function validationLoss(protocol, truth, predictions, levels = []) {
   if (protocol.outcomeType === 'multiclass') {
     return 1 - mean(truth.map((value, i) => predictions[i] === value ? 1 : 0));
   }
+  if (protocol.outcomeType === 'survival') {
+    const times = truth.map((value) => value.time);
+    const events = truth.map((value) => value.event);
+    const cIndex = harrellCIndex(times, events, predictions);
+    return Number.isFinite(cIndex) ? 1 - cIndex : NaN;
+  }
   return Math.sqrt(mean(truth.map((value, i) => (Number(value) - predictions[i]) ** 2)));
 }
 
@@ -2494,6 +2588,13 @@ function fitPredictiveModel(design, truth, protocol, levels, lambda) {
   }
   if (protocol.outcomeType === 'count') return ridgeGlmFit(design, truth.map(Number), 'poisson', lambda);
   if (protocol.outcomeType === 'continuous') return ridgeLinearFit(design, truth.map(Number), lambda);
+  if (protocol.outcomeType === 'survival') {
+    const noIntercept = design.map((row) => row.slice(1));
+    const times = truth.map((value) => value.time);
+    const events = truth.map((value) => value.event);
+    const fit = coxRidgeRegression(noIntercept, times, events, lambda);
+    return fit ? { ...fit, survival: true } : null;
+  }
   if (protocol.outcomeType === 'multiclass') {
     const models = [];
     for (const level of levels) {
@@ -2516,14 +2617,17 @@ function predictModel(model, design, protocol) {
     }));
     return design.map((_, i) => probabilities.slice().sort((a,b) => b.values[i] - a.values[i])[0].level);
   }
+  if (protocol.outcomeType === 'survival') {
+    return multiplyMatrixVector(design.map((row) => row.slice(1)), model.beta);
+  }
   const family = protocol.outcomeType === 'binary' ? 'binomial' : protocol.outcomeType === 'count' ? 'poisson' : 'gaussian';
   return predictFromBeta(design, model.beta, family);
 }
 
 function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, protocol) {
-  if (protocol.objective !== 'outcome' || !['binary','continuous','count','multiclass'].includes(protocol.outcomeType)) {
+  if (protocol.objective !== 'outcome' || !['binary','continuous','count','multiclass','survival'].includes(protocol.outcomeType)) {
     return protocol.objective === 'outcome'
-      ? { status: 'not_available', reason: 'Cross-validated prediction is currently implemented for binary, continuous, count and multiclass outcomes; survival remains association-only.' }
+      ? { status: 'not_available', reason: 'Cross-validated prediction is unavailable for this outcome type.' }
       : null;
   }
   const target = predictionTarget(metadata, protocol);
@@ -2532,8 +2636,15 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
   ).sort();
   if (subjects.length < 12) return { status: 'not_available', reason: 'At least 12 subjects with outcome data are required for nested cross-validation.' };
 
-  const categorical = ['binary','multiclass'].includes(protocol.outcomeType);
-  const outerFolds = deterministicFolds(subjects, target.targetBySubject, Math.min(5, subjects.length), categorical);
+  const categorical = ['binary','multiclass','survival'].includes(protocol.outcomeType);
+  const foldTarget = protocol.outcomeType === 'survival'
+    ? new Map(subjects.map((subject) => [subject, target.targetBySubject.get(subject)?.event ?? 0]))
+    : target.targetBySubject;
+  if (protocol.outcomeType === 'survival') {
+    const events = subjects.reduce((sum, subject) => sum + (target.targetBySubject.get(subject)?.event || 0), 0);
+    if (events < 6) return { status: 'not_available', reason: 'At least 6 observed events are required for cross-validated survival prediction.' };
+  }
+  const outerFolds = deterministicFolds(subjects, foldTarget, Math.min(5, subjects.length), categorical);
   const lambdas = [0.01,0.1,1,10];
   const predictions = [];
   const foldSummaries = [];
@@ -2545,7 +2656,10 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     const selected = selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects, target, protocol, 12);
     if (!selected.length) continue;
 
-    const innerFolds = deterministicFolds(trainSubjects, target.targetBySubject, Math.min(4, trainSubjects.length), categorical);
+    const innerFoldTarget = protocol.outcomeType === 'survival'
+      ? new Map(trainSubjects.map((subject) => [subject, target.targetBySubject.get(subject)?.event ?? 0]))
+      : target.targetBySubject;
+    const innerFolds = deterministicFolds(trainSubjects, innerFoldTarget, Math.min(4, trainSubjects.length), categorical);
     let bestLambda = lambdas[0];
     let bestLoss = Infinity;
     for (const lambda of lambdas) {
@@ -2605,6 +2719,13 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics = {
       accuracy: mean(predictions.map((item) => item.truth === item.prediction ? 1 : 0))
     };
+  } else if (protocol.outcomeType === 'survival') {
+    const truth = predictions.map((item) => item.truth);
+    const risks = predictions.map((item) => Number(item.prediction));
+    metrics = {
+      cIndex: harrellCIndex(truth.map((item) => item.time), truth.map((item) => item.event), risks),
+      events: truth.reduce((sum, item) => sum + item.event, 0)
+    };
   } else {
     const truth = predictions.map((item) => Number(item.truth));
     const pred = predictions.map((item) => Number(item.prediction));
@@ -2617,7 +2738,9 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
 
   return {
     status: 'ok',
-    method: 'nested cross-validation with training-only feature selection and ridge regularisation',
+    method: protocol.outcomeType === 'survival'
+      ? 'nested cross-validation with training-only univariate Cox feature screening and ridge-penalized Cox prediction'
+      : 'nested cross-validation with training-only feature selection and ridge regularisation',
     outcomeType: protocol.outcomeType,
     subjects: subjects.length,
     outerFolds: foldSummaries.length,
