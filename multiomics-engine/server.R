@@ -167,8 +167,15 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
   bio_idx <- which(sample_types == "biological")
   if (!length(bio_idx)) stop("Metabolomics reference QC found no biological injections.")
 
-  blank_filter <- !identical(or_else(protocol$msBlankFilter, "yes"), "no") &&
-    !identical(or_else(protocol$msBlankFilter, TRUE), FALSE)
+  blank_mode_raw <- tolower(as.character(or_else(protocol$msBlankFilter, "flag")))
+  blank_mode <- if (blank_mode_raw %in% c("off","no","false")) {
+    "off"
+  } else if (blank_mode_raw %in% c("remove","yes","true")) {
+    "remove"
+  } else {
+    "flag"
+  }
+  blank_filter <- blank_mode != "off"
   blank_fold <- suppressWarnings(as.numeric(or_else(protocol$msBlankFold, 5)))
   if (!is.finite(blank_fold) || blank_fold < 1) blank_fold <- 5
 
@@ -187,7 +194,7 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
     bio_med <- apply(x[bio_idx,,drop=FALSE], 2, stats::median, na.rm=TRUE)
     contaminated <- is.finite(blank_med) & blank_med > 0 & is.finite(bio_med) & bio_med < blank_fold * blank_med
     blank_filtered <- colnames(x)[contaminated]
-    x <- x[,!contaminated,drop=FALSE]
+    if (identical(blank_mode, "remove")) x <- x[,!contaminated,drop=FALSE]
   }
 
   drift_corrected <- 0L
@@ -282,7 +289,8 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
   }
 
   warnings <- character()
-  if (blank_filter && length(blank_idx) < 2L) warnings <- c(warnings, "Blank filter requested but fewer than two blank injections were annotated.")
+  if (blank_filter && length(blank_idx) < 2L) warnings <- c(warnings, "Blank assessment requested but fewer than two blank injections were annotated.")
+  if (identical(blank_mode, "remove") && length(blank_idx) >= 2L) warnings <- c(warnings, "Blank-associated features were excluded using the declared ratio; retain a flag-only sensitivity analysis for confirmatory work.")
   if (drift_requested && length(ordered_qc) < 5L) warnings <- c(warnings, "Drift correction requested but fewer than five ordered pooled-QC injections were available.")
   if (rsd_filter && length(qc_idx) < 3L) warnings <- c(warnings, "QC RSD filter requested but fewer than three pooled-QC injections were annotated.")
   if (identical(mnar_strategy, "left_censored")) warnings <- c(warnings, "Left-censored imputation is a declared sensitivity assumption; retain a no-imputation analysis for confirmatory work.")
@@ -295,8 +303,11 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
       biological_injections=length(bio_idx),
       blank_injections=length(blank_idx),
       qc_injections=length(qc_idx),
+      blank_mode=blank_mode,
       blank_fold=blank_fold,
-      blank_filtered_features=length(blank_filtered),
+      blank_flagged_features=length(blank_filtered),
+      blank_removed_features=if (identical(blank_mode, "remove")) length(blank_filtered) else 0L,
+      blank_filtered_features=if (identical(blank_mode, "remove")) length(blank_filtered) else 0L,
       drift_requested=drift_requested,
       drift_corrected_features=drift_corrected,
       qc_rsd_threshold=rsd_threshold,
