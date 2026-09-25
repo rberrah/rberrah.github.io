@@ -962,8 +962,10 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   const blankFold = Number.isFinite(Number(config.blankFold)) ? Math.max(1, Number(config.blankFold)) : 5;
   const rsdThreshold = Number.isFinite(Number(config.qcRsdThreshold)) ? Math.max(0.01, Number(config.qcRsdThreshold)) : 0.30;
   const requestedBlankMode = String(config.blankMode ?? '').toLowerCase();
-  const blankMode = ['flag','remove','off','no'].includes(requestedBlankMode)
-    ? (requestedBlankMode === 'no' ? 'off' : requestedBlankMode)
+  const blankMode = ['flag','remove','off','no','yes'].includes(requestedBlankMode)
+    ? (requestedBlankMode === 'no' || requestedBlankMode === 'off'
+        ? 'off'
+        : requestedBlankMode === 'yes' ? 'remove' : requestedBlankMode)
     : (config.blankFilter === false ? 'off' : config.blankFilter === true ? 'remove' : 'flag');
   const blankFilterEnabled = blankMode !== 'off';
   const driftEnabled = config.driftCorrection !== false;
