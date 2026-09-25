@@ -1995,6 +1995,18 @@
               </div>
             {/if}
 
+            {#if result.qc.msQc?.applied}
+              <div class="ms-qc-summary" data-testid="ms-qc-summary">
+                <strong>{t('QC MS', 'MS QC')}</strong>
+                <span>{result.qc.msQc.blankAssays} blanks</span>
+                <span>{result.qc.msQc.qcAssays} pooled-QC</span>
+                <span>{result.qc.msQc.blankFilteredFeatures} {t('retirées par blank', 'blank-filtered')}</span>
+                <span>{result.qc.msQc.qcRsdFilteredFeatures} {t('retirées par RSD', 'RSD-filtered')}</span>
+                <span>{result.qc.msQc.driftCorrection?.correctedFeatures || 0} {t('corrigées pour dérive', 'drift-corrected')}</span>
+                <span>{result.qc.msQc.mnar?.imputedValues || 0} {t('MNAR imputées', 'MNAR-imputed')}</span>
+              </div>
+            {/if}
+
             <details>
               <summary>{t('Règles QC et prétraitement', 'QC and preprocessing rules')}</summary>
               <p>{result.qc.filterPolicy}</p>
@@ -2002,6 +2014,7 @@
               <ul>
                 {#each result.qc.preprocessingSteps || [] as step}<li>{step}</li>{/each}
                 {#each result.qc.warnings || [] as warning}<li class="warning">{warning}</li>{/each}
+                {#each result.qc.msQc?.warnings || [] as warning}<li class="warning">{warning}</li>{/each}
               </ul>
             </details>
           </article>
@@ -2546,6 +2559,11 @@
   .qc-badges > span { font-size:var(--text-xs); border:1px solid var(--border-subtle); border-radius:999px; padding:3px 7px; }
   .qc-badges > span.qc-warning { border-color:var(--warning); color:var(--warning); }
   .qc-badges > span.qc-screening { border-color:var(--accent-pk); color:var(--text-secondary); }
+  .ms-qc-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:10px; border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-primary); }
+  .ms-qc-controls > strong { grid-column:1/-1; }
+  .ms-qc-controls label { display:grid; gap:4px; }
+  .ms-qc-summary { display:flex; flex-wrap:wrap; gap:5px; margin:10px 0; }
+  .ms-qc-summary > strong, .ms-qc-summary > span { font-size:10px; font-family:var(--font-mono); padding:4px 6px; border:1px solid var(--border-subtle); border-radius:999px; }
   .qc-metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:var(--space-4) 0; }
   .qc-metrics div { display:grid; gap:2px; }
   .qc-metrics b { font-family:var(--font-mono); }
@@ -2722,7 +2740,7 @@
     .section-head, .mapping-head { align-items: start; flex-direction: column; }
     .form-grid, .uploads, .result-grid, .workflow, .alias-grid, .mapping-grid, .matrix-checks, .identity-grid, .validation, .omics-question-grid, .database-grid, .demo-story, .demo-omics-grid, .module-grid, .evidence-layers, .actual-layer-grid, .computed-summary, .interpretation-grid, .qc-grid { grid-template-columns: 1fr; }
     .run-box, .overlap-box { align-items: stretch; flex-direction: column; }
-    .backend-controls, .backend-method-grid { grid-template-columns: 1fr; }
+    .backend-controls, .backend-method-grid, .ms-qc-controls { grid-template-columns: 1fr; }
     .overlap-pairs { justify-content: flex-start; }
     .dictionary-table > div { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
     .workflow div { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
