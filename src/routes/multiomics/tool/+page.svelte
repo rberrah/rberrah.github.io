@@ -50,6 +50,12 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let metabolomicsIdType = 'chebi';
+  let msBlankFilter = 'yes';
+  let msBlankFold = 5;
+  let msQcRsdFilter = 'yes';
+  let msQcRsdThreshold = 0.30;
+  let msDriftCorrection = 'yes';
+  let msMnarStrategy = 'none';
 
   /** @type {number | undefined} */
   let subjectCount;
@@ -128,7 +134,9 @@
     technical_replicate: ['Réplicat technique', 'Technical replicate'],
     outcome: ['Outcome / critère', 'Outcome / endpoint'],
     survival_time: ['Temps de survie / suivi', 'Survival / follow-up time'],
-    survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)']
+    survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)'],
+    sample_type: ['Type d’injection / échantillon', 'Injection / sample type'],
+    injection_order: ['Ordre d’injection MS', 'MS injection order']
   };
   /** @param {string} key */
   const fieldLabel = (key) => {
@@ -202,6 +210,18 @@
       label: 'Survival event',
       required: false,
       aliases: ['survival_event', 'event', 'event_status', 'death', 'censor', 'status_event', 'evenement_survie', 'deces', 'censure']
+    },
+    {
+      key: 'sample_type',
+      label: 'Injection / sample type',
+      required: false,
+      aliases: ['sample_type','sample_class','sample_role','injection_type','qc_type','type_echantillon','type_injection','nature_echantillon']
+    },
+    {
+      key: 'injection_order',
+      label: 'MS injection order',
+      required: false,
+      aliases: ['injection_order','run_order','sequence_order','injection_number','order','ordre_injection','ordre_passage','numero_injection']
     }
   ];
 
