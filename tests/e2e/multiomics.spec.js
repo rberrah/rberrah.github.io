@@ -63,11 +63,82 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
 
   const help = page.locator('.feature-head .help-tip').first();
   await expect(help).toHaveAttribute('data-tooltip', /rapport|ratio|direction|magnitude/i);
+  await help.hover();
+  const globalHelp = page.getByTestId('global-help-tooltip');
+  await expect(globalHelp).toBeVisible();
+  await expect(globalHelp).toContainText(/rapport|ratio|direction|magnitude/i);
+  const box = await globalHelp.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  if (box && viewport) {
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
+  }
 
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: /Rapport HTML reproductible|Reproducible HTML report/i }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('multiomics_reproducible_report.html');
+});
+
+test('multi-omics tool auto-runs the reference R backend when available', async ({ page }) => {
+  await page.route('https://reactome.org/AnalysisService/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        summary: { token: 'BACKEND_TEST', type: 'OVERREPRESENTATION' },
+        pathwaysFound: 0,
+        identifiersNotFound: 0,
+        pathways: []
+      })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/health', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        engine: 'PMx Explain reference R backend',
+        version: '1.0.0',
+        packages: { DESeq2:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true }
+      })
+    });
+  });
+  await page.route('http://127.0.0.1:8787/run', async (route) => {
+    const payload = JSON.parse(route.request().postData() || '{}');
+    expect(payload.metadataCsv).toContain('subject_id');
+    expect(payload.matrices.transcriptomics).toContain('feature_id');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        engine: { name:'PMx Explain reference R backend', version:'1.0.0' },
+        applicableMethods: ['transcriptomics_longitudinal','proteomics_longitudinal'],
+        packages: { DESeq2:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true },
+        methods: {
+          transcriptomics_longitudinal: { method:'lmerTest', status:'ok' },
+          proteomics_longitudinal: { method:'lmerTest', status:'ok' }
+        }
+      })
+    });
+  });
+
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+
+  await page.getByLabel(/Mode backend R|R backend mode/i).selectOption('auto');
+  await page.getByTestId('multiomics-run').click();
+
+  const backend = page.getByTestId('reference-backend-results');
+  await expect(backend).toBeVisible({ timeout: 20_000 });
+  await expect(backend).toContainText('lmerTest');
+  await expect(backend).toContainText(/Méthodes de référence exécutées automatiquement|Reference methods executed automatically/i);
 });
 
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {
