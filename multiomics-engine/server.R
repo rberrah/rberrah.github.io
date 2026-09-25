@@ -104,6 +104,190 @@ aggregate_technical_replicates <- function(x, layer_meta, value_type) {
   list(matrix=agg, metadata=meta)
 }
 
+
+canonical_sample_type <- function(x) {
+  key <- tolower(gsub("[^a-z0-9]+", "_", normalise_text(x)))
+  if (key %in% c("blank","solvent_blank","process_blank","extraction_blank","method_blank")) return("blank")
+  if (key %in% c("qc","pooled_qc","quality_control","quality_control_pool","pooled","pool_qc")) return("qc")
+  "biological"
+}
+
+reference_preprocess_matrix <- function(x, layer, value_type) {
+  x <- as.matrix(x)
+  storage.mode(x) <- "double"
+  finite <- x[is.finite(x)]
+  has_negative <- length(finite) && any(finite < 0)
+  positive <- finite[finite > 0]
+  pseudo <- if (length(positive)) max(min(positive) / 2, 1e-12) else 1e-12
+  is_counts <- identical(layer, "transcriptomics") && identical(value_type, "raw_counts")
+  is_spectral <- identical(layer, "proteomics") && identical(value_type, "spectral_count")
+  explicitly_log <- value_type %in% c("log_expression","log_intensity","log_abundance")
+  as_supplied <- value_type %in% c("normalized","unknown") || (has_negative && !is_counts && !is_spectral && !explicitly_log)
+  log_positive <- value_type %in% c("tpm","lfq_intensity","peak_area","concentration")
+  median_center <- (layer == "proteomics" && value_type == "lfq_intensity") ||
+    (layer == "metabolomics" && value_type == "peak_area")
+  steps <- character()
+
+  out <- x
+  if (is_counts || is_spectral) {
+    totals <- rowSums(ifelse(is.finite(x) & x > 0, x, 0), na.rm=TRUE)
+    totals[!is.finite(totals) | totals <= 0] <- 1
+    out <- sweep(x, 1, totals, "/") * 1e6
+    out <- log2(out + 0.5)
+    steps <- c(steps, if (is_counts) "CPM + log2(CPM + 0.5)" else "library-size normalisation + log2")
+  } else if (explicitly_log || as_supplied) {
+    steps <- c(steps, if (explicitly_log) "already log-transformed" else "kept as supplied")
+  } else if (log_positive) {
+    out <- log2(pmax(x, 0) + pseudo)
+    out[!is.finite(x)] <- NA_real_
+    steps <- c(steps, sprintf("log2(value + %.4g)", pseudo))
+  }
+
+  if (median_center) {
+    med <- apply(out, 1, stats::median, na.rm=TRUE)
+    med[!is.finite(med)] <- NA_real_
+    target <- stats::median(med, na.rm=TRUE)
+    for (i in seq_len(nrow(out))) {
+      if (is.finite(med[i]) && is.finite(target)) out[i,] <- out[i,] - med[i] + target
+    }
+    steps <- c(steps, "sample-wise median centering")
+  }
+
+  list(matrix=out, steps=steps)
+}
+
+apply_ms_qc_reference <- function(x, meta, protocol) {
+  x <- as.matrix(x)
+  storage.mode(x) <- "double"
+  meta <- meta[match(rownames(x), meta$assay_id), , drop=FALSE]
+  sample_types <- vapply(meta$sample_type, canonical_sample_type, character(1))
+  orders <- suppressWarnings(as.numeric(meta$injection_order))
+  blank_idx <- which(sample_types == "blank")
+  qc_idx <- which(sample_types == "qc")
+  bio_idx <- which(sample_types == "biological")
+  if (!length(bio_idx)) stop("Metabolomics reference QC found no biological injections.")
+
+  blank_filter <- !identical(or_else(protocol$msBlankFilter, "yes"), "no") &&
+    !identical(or_else(protocol$msBlankFilter, TRUE), FALSE)
+  blank_fold <- suppressWarnings(as.numeric(or_else(protocol$msBlankFold, 5)))
+  if (!is.finite(blank_fold) || blank_fold < 1) blank_fold <- 5
+
+  rsd_filter <- !identical(or_else(protocol$msQcRsdFilter, "yes"), "no") &&
+    !identical(or_else(protocol$msQcRsdFilter, TRUE), FALSE)
+  rsd_threshold <- suppressWarnings(as.numeric(or_else(protocol$msQcRsdThreshold, 0.30)))
+  if (!is.finite(rsd_threshold) || rsd_threshold <= 0) rsd_threshold <- 0.30
+
+  drift_requested <- !identical(or_else(protocol$msDriftCorrection, "yes"), "no") &&
+    !identical(or_else(protocol$msDriftCorrection, TRUE), FALSE)
+  mnar_strategy <- as.character(or_else(protocol$msMnarStrategy, "none"))
+
+  blank_filtered <- character()
+  if (blank_filter && length(blank_idx) >= 2L) {
+    blank_med <- apply(x[blank_idx,,drop=FALSE], 2, stats::median, na.rm=TRUE)
+    bio_med <- apply(x[bio_idx,,drop=FALSE], 2, stats::median, na.rm=TRUE)
+    contaminated <- is.finite(blank_med) & blank_med > 0 & is.finite(bio_med) & bio_med < blank_fold * blank_med
+    blank_filtered <- colnames(x)[contaminated]
+    x <- x[,!contaminated,drop=FALSE]
+  }
+
+  drift_corrected <- 0L
+  ordered_qc <- qc_idx[is.finite(orders[qc_idx])]
+  if (drift_requested && length(ordered_qc) >= 5L && length(unique(orders[ordered_qc])) >= 4L) {
+    ordered_all <- which(is.finite(orders))
+    for (j in seq_len(ncol(x))) {
+      values <- x[,j]
+      positive <- values[is.finite(values) & values > 0]
+      if (length(positive) < 5L) next
+      pseudo <- max(min(positive) / 2, 1e-12)
+      use_qc <- ordered_qc[is.finite(values[ordered_qc]) & values[ordered_qc] >= 0]
+      if (length(use_qc) < 5L || length(unique(orders[use_qc])) < 4L) next
+
+      fit <- try(stats::loess(
+        log(values[use_qc] + pseudo) ~ orders[use_qc],
+        span=0.6, degree=1, family="symmetric",
+        control=stats::loess.control(surface="direct")
+      ), silent=TRUE)
+      if (inherits(fit,"try-error")) next
+      pred_all <- try(stats::predict(fit, newdata=orders[ordered_all]), silent=TRUE)
+      pred_qc <- try(stats::predict(fit, newdata=orders[use_qc]), silent=TRUE)
+      if (inherits(pred_all,"try-error") || inherits(pred_qc,"try-error")) next
+      reference <- stats::median(pred_qc[is.finite(pred_qc)], na.rm=TRUE)
+      if (!is.finite(reference)) next
+      valid <- is.finite(pred_all) & is.finite(values[ordered_all]) & values[ordered_all] >= 0
+      if (!any(valid)) next
+      ids <- ordered_all[valid]
+      corrected <- exp(log(values[ids] + pseudo) - pred_all[valid] + reference) - pseudo
+      x[ids,j] <- pmax(0, corrected)
+      drift_corrected <- drift_corrected + 1L
+    }
+  }
+
+  rsd_filtered <- character()
+  if (rsd_filter && length(qc_idx) >= 3L && ncol(x)) {
+    rsd <- vapply(seq_len(ncol(x)), function(j) {
+      values <- x[qc_idx,j]
+      values <- values[is.finite(values) & values >= 0]
+      if (length(values) < 3L) return(NA_real_)
+      m <- mean(values)
+      if (!is.finite(m) || m <= 0) return(NA_real_)
+      stats::sd(values) / m
+    }, numeric(1))
+    unstable <- is.finite(rsd) & rsd > rsd_threshold
+    rsd_filtered <- colnames(x)[unstable]
+    x <- x[,!unstable,drop=FALSE]
+  }
+
+  imputed <- 0L
+  affected_features <- 0L
+  if (identical(mnar_strategy, "left_censored") && ncol(x)) {
+    for (j in seq_len(ncol(x))) {
+      observed <- x[bio_idx,j]
+      observed <- observed[is.finite(observed) & observed > 0]
+      if (length(observed) < 3L) next
+      logs <- log(observed)
+      spread <- stats::mad(logs, center=stats::median(logs), constant=1.4826, na.rm=TRUE)
+      if (!is.finite(spread) || spread <= 0) spread <- stats::sd(logs, na.rm=TRUE)
+      if (!is.finite(spread) || spread <= 0) spread <- 1
+      min_positive <- min(observed)
+      q10 <- as.numeric(stats::quantile(logs, 0.10, na.rm=TRUE, names=FALSE, type=7))
+      low <- max(min_positive * 0.01, min(min_positive * 0.8, exp(min(log(min_positive)-0.2*spread, q10-1.28*spread))))
+      missing <- bio_idx[!is.finite(x[bio_idx,j])]
+      if (length(missing)) {
+        x[missing,j] <- low
+        imputed <- imputed + length(missing)
+        affected_features <- affected_features + 1L
+      }
+    }
+  }
+
+  warnings <- character()
+  if (blank_filter && length(blank_idx) < 2L) warnings <- c(warnings, "Blank filter requested but fewer than two blank injections were annotated.")
+  if (drift_requested && length(ordered_qc) < 5L) warnings <- c(warnings, "Drift correction requested but fewer than five ordered pooled-QC injections were available.")
+  if (rsd_filter && length(qc_idx) < 3L) warnings <- c(warnings, "QC RSD filter requested but fewer than three pooled-QC injections were annotated.")
+  if (identical(mnar_strategy, "left_censored")) warnings <- c(warnings, "Left-censored imputation is a declared sensitivity assumption; retain a no-imputation analysis for confirmatory work.")
+
+  list(
+    matrix=x[bio_idx,,drop=FALSE],
+    metadata=meta[bio_idx,,drop=FALSE],
+    summary=list(
+      method="R reference MS QC: blank filter + pooled-QC LOESS drift + pooled-QC RSD",
+      biological_injections=length(bio_idx),
+      blank_injections=length(blank_idx),
+      qc_injections=length(qc_idx),
+      blank_fold=blank_fold,
+      blank_filtered_features=length(blank_filtered),
+      drift_requested=drift_requested,
+      drift_corrected_features=drift_corrected,
+      qc_rsd_threshold=rsd_threshold,
+      qc_rsd_filtered_features=length(rsd_filtered),
+      mnar_strategy=mnar_strategy,
+      mnar_imputed_values=imputed,
+      mnar_affected_features=affected_features,
+      warnings=warnings
+    )
+  )
+}
+
 varying_terms <- function(meta, covariates, include_batch=TRUE) {
   terms <- character()
   if (include_batch && "batch" %in% names(meta)) {
@@ -163,14 +347,38 @@ run_backend_analysis <- function(payload) {
   if (length(layers) < 2L) stop("Reference backend requires at least two omics matrices.")
 
   blocks <- list()
+  raw_blocks <- list()
   metas <- list()
+  preprocessing <- list()
+  ms_qc_summaries <- list()
   for (layer in layers) {
     layer_meta <- meta[meta$omic == layer, , drop=FALSE]
     expected <- unique(layer_meta$assay_id)
     x <- matrix_samples_by_features(payload$matrices[[layer]], expected)
-    agg <- aggregate_technical_replicates(x, layer_meta, or_else(data_types[[layer]], "normalized"))
-    blocks[[layer]] <- agg$matrix
-    metas[[layer]] <- agg$metadata
+
+    if (layer == "metabolomics") {
+      ms <- apply_ms_qc_reference(x, layer_meta, protocol)
+      x <- ms$matrix
+      layer_meta <- ms$metadata
+      ms_qc_summaries[[layer]] <- ms$summary
+    } else {
+      biological <- vapply(layer_meta$sample_type, canonical_sample_type, character(1)) == "biological"
+      if (any(!biological)) {
+        keep_assays <- layer_meta$assay_id[biological]
+        x <- x[rownames(x) %in% keep_assays,,drop=FALSE]
+        layer_meta <- layer_meta[biological,,drop=FALSE]
+      }
+    }
+
+    value_type <- or_else(data_types[[layer]], "normalized")
+    raw_agg <- aggregate_technical_replicates(x, layer_meta, value_type)
+    raw_blocks[[layer]] <- raw_agg$matrix
+
+    prepared <- reference_preprocess_matrix(x, layer, value_type)
+    processed_agg <- aggregate_technical_replicates(prepared$matrix, layer_meta, "normalized")
+    blocks[[layer]] <- processed_agg$matrix
+    metas[[layer]] <- processed_agg$metadata
+    preprocessing[[layer]] <- prepared$steps
   }
 
   temp <- tempfile("pmx_multiomics_")
@@ -178,6 +386,13 @@ run_backend_analysis <- function(payload) {
   on.exit(unlink(temp, recursive=TRUE, force=TRUE), add=TRUE)
   methods <- list()
   ranked <- list()
+  if (length(ms_qc_summaries)) {
+    methods$metabolomics_ms_qc <- method_status(
+      "R reference metabolomics MS QC",
+      "ok",
+      list(summary=ms_qc_summaries$metabolomics)
+    )
+  }
 
   objective <- or_else(protocol$objective, "explore")
   design_type <- or_else(protocol$designType, "independent")
@@ -197,7 +412,7 @@ run_backend_analysis <- function(payload) {
         form <- safe_formula(terms)
         groups <- sort(unique(m$condition[nzchar(m$condition)]))
         contrast <- if (length(groups) == 2L) c("condition", groups[2], groups[1]) else NULL
-        fit <- try(run_deseq2_counts(x, m, layer_dir, form, contrast), silent=TRUE)
+        fit <- try(run_deseq2_counts(raw_blocks[[layer]], m, layer_dir, form, contrast), silent=TRUE)
         if (!inherits(fit,"try-error")) {
           methods[[paste0(layer,"_differential")]] <- method_status("DESeq2","ok",list(top=top_frame(fit$results)))
           if ("stat" %in% names(fit$results)) {
@@ -310,6 +525,7 @@ run_backend_analysis <- function(payload) {
     engine=list(name="PMx Explain reference R backend", version="1.0.0"),
     applicableMethods=names(methods),
     methods=methods,
+    preprocessing=preprocessing,
     packages=as.list(packages)
   )
 }
