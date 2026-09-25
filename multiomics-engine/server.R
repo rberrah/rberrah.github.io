@@ -202,14 +202,19 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
       use_qc <- ordered_qc[is.finite(values[ordered_qc]) & values[ordered_qc] >= 0]
       if (length(use_qc) < 5L || length(unique(orders[use_qc])) < 4L) next
 
+      qdat <- data.frame(
+        order=orders[use_qc],
+        response=log(values[use_qc] + pseudo)
+      )
       fit <- try(stats::loess(
-        log(values[use_qc] + pseudo) ~ orders[use_qc],
+        response ~ order,
+        data=qdat,
         span=0.6, degree=1, family="symmetric",
         control=stats::loess.control(surface="direct")
       ), silent=TRUE)
       if (inherits(fit,"try-error")) next
-      pred_all <- try(stats::predict(fit, newdata=orders[ordered_all]), silent=TRUE)
-      pred_qc <- try(stats::predict(fit, newdata=orders[use_qc]), silent=TRUE)
+      pred_all <- try(stats::predict(fit, newdata=data.frame(order=orders[ordered_all])), silent=TRUE)
+      pred_qc <- try(stats::predict(fit, newdata=data.frame(order=orders[use_qc])), silent=TRUE)
       if (inherits(pred_all,"try-error") || inherits(pred_qc,"try-error")) next
       reference <- stats::median(pred_qc[is.finite(pred_qc)], na.rm=TRUE)
       if (!is.finite(reference)) next
