@@ -40,7 +40,7 @@ Les résultats affichent le nombre de variables avant/après filtre, le missing 
 
 Pour LC-MS/GC-MS lorsque sample_type et injection_order sont fournis :
 - les injections blank et pooled-QC sont exclues de l’inférence biologique ;
-- filtre des contaminants de blank par ratio médiane biologique / médiane blank (5 par défaut) ;
+- évaluation des signaux associés aux blanks par ratio médiane biologique / médiane blank (5 par défaut) ; le mode par défaut signale les variables sans les supprimer, et un mode d’exclusion explicite est disponible si la SOP du laboratoire le justifie ;
 - correction de dérive sur l’échelle log par régression locale déterministe des pooled-QC selon l’ordre d’injection lorsque ≥5 QC ordonnés sont disponibles ;
 - filtre de stabilité pooled-QC par RSD (30 % par défaut) ;
 - aucune imputation MNAR par défaut ;
