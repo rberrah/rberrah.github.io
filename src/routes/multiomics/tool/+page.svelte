@@ -1194,7 +1194,7 @@
 
 <section class="hero">
   <a class="tool-back" href={`${base}/multiomics`}>← {t('Présentation de l’outil', 'Tool overview')}</a>
-  <p class="eyebrow">{t('Prototype expérimental · outil · v1.2', 'Experimental prototype · tool · v1.2')}</p>
+  <p class="eyebrow">{t('Prototype expérimental · outil · v1.3', 'Experimental prototype · tool · v1.3')}</p>
   <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
   <p class="lede">
     {t('Décrivez le protocole, mappez les échantillons une seule fois, puis laissez le workflow intégrer transcriptomique, protéomique et métabolomique autour de structures partagées, d’associations et de voies biologiques.', 'Describe the protocol, map the samples once, then let the workflow integrate transcriptomics, proteomics and metabolomics around shared factors, associations, pathways and mechanisms.')}
@@ -2164,7 +2164,7 @@
         <div>
           <p class="eyebrow">{t('Validation prédictive', 'Predictive validation')}</p>
           <h3>{t('Performance hors échantillon', 'Out-of-sample performance')}
-  <span class="help-tip" tabindex="0" data-tooltip={t('La nested cross-validation sépare des folds externes pour mesurer la performance et des folds internes pour choisir la pénalisation. La sélection de variables n’utilise jamais les sujets du fold externe testé.', 'Nested cross-validation uses outer folds for performance assessment and inner folds for penalty tuning. Feature selection never uses subjects from the held-out outer test fold.')}>?</span>
+  <span class="help-tip" tabindex="0" data-tooltip={t('La nested cross-validation sépare des folds externes pour mesurer la performance et des folds internes pour choisir la pénalisation. Ajustement batch/covariables, sélection de variables, centrage et scaling sont estimés uniquement sur les sujets d’entraînement puis appliqués au fold testé.', 'Nested cross-validation uses outer folds for performance assessment and inner folds for penalty tuning. Batch/covariate adjustment, feature selection, centering and scaling are estimated from training subjects only and then applied to the held-out fold.')}>?</span>
 </h3>
         </div>
         <span>{analysisResult.predictiveOutcome.status === 'ok' ? t('nested CV', 'nested CV') : t('non estimable', 'not estimable')}</span>
