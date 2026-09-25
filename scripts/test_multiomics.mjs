@@ -710,12 +710,12 @@ function csvFile(name, text) {
     assert.match(outcomeResult.layers.transcriptomics.adjustment.method, /direct nuisance adjustment/);
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
-    if (type !== 'survival') {
-      assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
-      assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
-      assert.ok(outcomeResult.predictiveOutcome.foldSummaries.every(x=>x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
-    } else {
-      assert.equal(outcomeResult.predictiveOutcome.status, 'not_available');
+    assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+    assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
+    assert.ok(outcomeResult.predictiveOutcome.foldSummaries.every(x=>x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
+    if (type === 'survival') {
+      assert.ok(Number.isFinite(outcomeResult.predictiveOutcome.metrics.cIndex));
+      assert.ok(outcomeResult.predictiveOutcome.metrics.events >= 6);
     }
     const signal = outcomeResult.layers.transcriptomics.rows.find(x=>x.feature === 'OUTCOME_GENE');
     assert.ok(signal && Number.isFinite(signal.effect));
