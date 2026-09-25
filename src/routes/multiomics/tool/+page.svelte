@@ -31,6 +31,7 @@
   let analysisError = '';
   /** @type {any} */
   let analysisResult = null;
+  let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   let useReactome = true;
   let resolveIdentifiers = true;
 
@@ -70,6 +71,35 @@
     proteomics: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' },
     metabolomics: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' }
   };
+
+  /** @param {Event} event */
+  function showGlobalHelp(event) {
+    const raw = event.target;
+    if (!(raw instanceof Element)) return;
+    const target = raw.closest('.help-tip');
+    if (!target) return;
+    const text = target.getAttribute('data-tooltip') || '';
+    if (!text) return;
+    const rect = target.getBoundingClientRect();
+    const halfWidth = Math.min(170, Math.max(120, window.innerWidth * 0.38));
+    const center = rect.left + rect.width / 2;
+    const left = Math.min(window.innerWidth - halfWidth - 8, Math.max(halfWidth + 8, center));
+    const above = rect.top > 150;
+    helpTooltip = {
+      visible: true,
+      text,
+      left,
+      top: above ? rect.top - 9 : rect.bottom + 9,
+      placement: above ? 'above' : 'below'
+    };
+  }
+
+  /** @param {Event} event */
+  function hideGlobalHelp(event) {
+    const raw = event.target;
+    if (!(raw instanceof Element) || !raw.closest('.help-tip')) return;
+    helpTooltip = { ...helpTooltip, visible: false };
+  }
 
   const omicLayers = /** @type {const} */ (['transcriptomics', 'proteomics', 'metabolomics']);
   /** @param {string} layer */
@@ -767,7 +797,18 @@
     const embeddedJson = JSON.stringify(result).replaceAll('<', '\\u003c');
     const html = '<!doctype html><html lang="' + ($language === 'en' ? 'en' : 'fr') + '"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width,initial-scale=1"><title>Multi-omics reproducible report</title>' +
-      '<style>body{font:14px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#161616}h1,h2{line-height:1.15}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f4f4f4}code,pre{font-family:ui-monospace,monospace}pre{white-space:pre-wrap;background:#f6f6f6;padding:12px}section{margin:32px 0}.muted{color:#666}</style></head><body>' +
+      '{#if helpTooltip.visible}
+  <div
+    class="global-help-tooltip {helpTooltip.placement}"
+    data-testid="global-help-tooltip"
+    role="tooltip"
+    style={'left:' + helpTooltip.left + 'px;top:' + helpTooltip.top + 'px'}
+  >
+    {helpTooltip.text}
+  </div>
+{/if}
+
+<style>body{font:14px/1.55 system-ui,sans-serif;max-width:1100px;margin:40px auto;padding:0 24px;color:#161616}h1,h2{line-height:1.15}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #ddd;padding:6px 8px;text-align:left}th{background:#f4f4f4}code,pre{font-family:ui-monospace,monospace}pre{white-space:pre-wrap;background:#f6f6f6;padding:12px}section{margin:32px 0}.muted{color:#666}</style></head><body>' +
       '<h1>PMx Explain — multi-omics reproducible report</h1>' +
       '<p class="muted">Generated ' + escapeHtml(result.generatedAt) + ' · engine ' + escapeHtml(result.engine?.version || 'unknown') + '</p>' +
       '<section><h2>Provenance</h2><pre>' + escapeHtml(JSON.stringify(result.inputManifest, null, 2)) + '</pre></section>' +
@@ -947,6 +988,13 @@
         : t('agrégation des réplicats → prétraitement → ajustement batch/covariables → contraste de groupes → inférence → BH-FDR → intégration inter-omique → Reactome',
             'replicate aggregation → preprocessing → batch/covariate adjustment → group contrast → inference → BH-FDR → cross-omics integration → Reactome');
 </script>
+
+<svelte:window
+  onmouseover={showGlobalHelp}
+  onfocusin={showGlobalHelp}
+  onmouseout={hideGlobalHelp}
+  onfocusout={hideGlobalHelp}
+/>
 
 <svelte:head>
   <title>{t('Outil multi-omique — PMx Explain', 'Multi-omics tool — PMx Explain')}</title>
@@ -2129,8 +2177,10 @@
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   .tool-back { display: inline-block; margin-bottom: var(--space-4); font-size: var(--text-sm); }
   .help-tip { position: relative; display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-left: 3px; border: 1px solid var(--border-strong); border-radius: 50%; font: 700 0.72rem/1 var(--font-sans); color: var(--text-secondary); cursor: help; vertical-align: middle; }
-  .help-tip::after { content: attr(data-tooltip); position: absolute; z-index: 50; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px); width: min(320px, 75vw); padding: 9px 11px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-primary); box-shadow: 0 8px 24px rgba(0,0,0,.16); color: var(--text-primary); font: 400 var(--text-xs)/1.45 var(--font-sans); text-align: left; white-space: normal; opacity: 0; pointer-events: none; transition: opacity .12s ease, transform .12s ease; }
-  .help-tip:hover::after, .help-tip:focus::after, .help-tip:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .help-tip::after { display:none; }
+  .global-help-tooltip { position:fixed; z-index:10000; width:min(320px,76vw); padding:9px 11px; border:1px solid var(--border-strong); border-radius:8px; background:var(--bg-primary); box-shadow:0 10px 30px rgba(0,0,0,.22); color:var(--text-primary); font:400 var(--text-xs)/1.45 var(--font-sans); text-align:left; white-space:normal; pointer-events:none; }
+  .global-help-tooltip.above { transform:translate(-50%,-100%); }
+  .global-help-tooltip.below { transform:translate(-50%,0); }
   .help-tip:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
   h1 { font-size: clamp(2.4rem, 6vw, 4.8rem); line-height: .98; max-width: 14ch; margin: var(--space-3) 0 var(--space-6); letter-spacing: -.045em; }
   h2 { margin: 0; font-size: var(--text-2xl); }
