@@ -1509,6 +1509,50 @@
           <option value="unknown">{t('Inconnu', 'Unknown')}</option>
         </select>
       </label>
+      {#if ['untargeted_lcms','targeted_lcms','gcms'].includes(metabolomicsPlatform)}
+        <div class="ms-qc-controls">
+          <strong>{t('QC MS avancé', 'Advanced MS QC')}
+            <span class="help-tip" tabindex="0" data-tooltip={t('Utilise sample_type pour distinguer biological / qc / blank et injection_order pour corriger la dérive. Les blanks et pooled-QC sont exclus de l’inférence biologique.', 'Uses sample_type to distinguish biological / qc / blank and injection_order for drift correction. Blank and pooled-QC injections are excluded from biological inference.')}>?</span>
+          </strong>
+          <label>
+            <span>{t('Filtre des blancs', 'Blank filter')}</span>
+            <select bind:value={msBlankFilter}>
+              <option value="yes">{t('Oui', 'Yes')}</option>
+              <option value="no">{t('Non', 'No')}</option>
+            </select>
+          </label>
+          <label>
+            <span>{t('Ratio biologique / blank minimal', 'Minimum biological / blank ratio')}</span>
+            <input type="number" min="1" step="0.5" bind:value={msBlankFold} />
+          </label>
+          <label>
+            <span>{t('Filtre RSD pooled-QC', 'Pooled-QC RSD filter')}</span>
+            <select bind:value={msQcRsdFilter}>
+              <option value="yes">{t('Oui', 'Yes')}</option>
+              <option value="no">{t('Non', 'No')}</option>
+            </select>
+          </label>
+          <label>
+            <span>{t('RSD QC maximal', 'Maximum QC RSD')}</span>
+            <input type="number" min="0.05" max="1" step="0.05" bind:value={msQcRsdThreshold} />
+          </label>
+          <label>
+            <span>{t('Correction de dérive', 'Drift correction')}</span>
+            <select bind:value={msDriftCorrection}>
+              <option value="yes">{t('Oui · si ≥5 pooled-QC ordonnés', 'Yes · when ≥5 ordered pooled-QCs')}</option>
+              <option value="no">{t('Non', 'No')}</option>
+            </select>
+          </label>
+          <label>
+            <span>{t('Missing MNAR', 'MNAR missingness')}</span>
+            <select bind:value={msMnarStrategy}>
+              <option value="none">{t('Aucune imputation', 'No imputation')}</option>
+              <option value="left_censored">{t('Bas de distribution déterministe', 'Deterministic low-tail imputation')}</option>
+            </select>
+          </label>
+        </div>
+      {/if}
+
       <label>
         <span>{t('Identifiant des variables', 'Feature identifier')}</span>
         <select bind:value={metabolomicsIdType}>
