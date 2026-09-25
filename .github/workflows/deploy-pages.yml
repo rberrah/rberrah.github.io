@@ -156,7 +156,7 @@ jobs:
         run: Rscript tdm-engine/tests/validate_library.R
       - name: Parse advanced multi-omics R adapters
         run: |
-          Rscript -e "parse(file='multiomics-engine/advanced_methods.R'); cat('advanced multiomics adapters parse PASS\\n')"
+          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
 
   deploy:
     needs: [build, scientific-js, scientific-r]
