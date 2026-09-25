@@ -236,6 +236,31 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.ok(ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_TRUE_SIGNAL'));
   assert.ok(!ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_BLANK_CONTAM'));
   assert.ok(!ms.layers.metabolomics.rows.some((row) => row.feature === 'MS_UNSTABLE_QC'));
+
+  const msFlagOnly = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:null,metabolomics},
+    metadataRows:parsedMeta.rows,
+    columnMapping:{
+      ...mapping,
+      sample_type:'sample_type',
+      injection_order:'injection_order'
+    },
+    protocol:{
+      organism:'human',objective:'groups',longitudinal:false,designType:'independent',
+      studySetting:'synthetic_test',groupCount:'2',sampleOverlap:'same_specimen',
+      batchKnown:'yes',covariateColumns:[],
+      msBlankFilter:'flag',msBlankFold:5,
+      msQcRsdFilter:'no',msDriftCorrection:'no',msMnarStrategy:'none'
+    },
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'peak_area'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+  const flagQc = msFlagOnly.layers.metabolomics.qc.msQc;
+  assert.equal(flagQc.blankMode, 'flag');
+  assert.ok(flagQc.blankFlaggedFeatures >= 1);
+  assert.equal(flagQc.blankRemovedFeatures, 0);
+  assert.ok(msFlagOnly.layers.metabolomics.rows.some((row) => row.feature === 'MS_BLANK_CONTAM'));
 }
 
 // Survival prediction: nested CV must produce out-of-sample Harrell C-index.
