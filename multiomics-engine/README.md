@@ -145,4 +145,11 @@ For LC-MS/GC-MS workflows the shared metadata contract additionally supports:
 - `sample_type`: `biological`, `pooled_qc`/ `qc`, or `blank`;
 - `injection_order`: numeric sequence position.
 
-The browser QC can then exclude technical injections from biological inference, filter blank contaminants, estimate pooled-QC drift along injection order, apply a pooled-QC RSD threshold, and optionally perform explicitly requested deterministic low-tail imputation for left-censored MNAR values.
+The browser QC can then exclude technical injections from biological inference, flag blank-associated features by default (with an explicit exclusion mode), estimate pooled-QC drift along injection order, apply a pooled-QC RSD threshold, and optionally perform explicitly requested deterministic low-tail imputation for left-censored MNAR values.
+
+
+### Blank handling policy
+
+Blank/sample ratios are treated as a QC flag, not as biological truth. The default mode therefore **flags** features whose biological median is below the declared biological/blank ratio without deleting them. An explicit **remove** mode is available for laboratories whose validated SOP requires exclusion. The selected mode and threshold are recorded in the analysis output and reproducible report.
+
+The reference R backend applies the same MS contract before downstream reference methods: blank assessment, pooled-QC drift correction, pooled-QC RSD filtering, optional declared MNAR handling, exclusion of technical injections from biological models, and then platform-appropriate preprocessing.
