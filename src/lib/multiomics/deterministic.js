@@ -2518,7 +2518,7 @@ function analyseSupervisedMultiblock(aggregatedByLayer, layers, loadedLayers, me
 
   const targetBySubject = new Map();
   if (protocol.objective === 'groups') {
-    const conditions = naturalOrder(metadata.map((row) => row.condition));
+    const conditions = naturalOrder(biologicalMetadata.map((row) => row.condition));
     if (conditions.length !== 2) return null;
     for (const row of metadata) targetBySubject.set(row.subjectId, row.condition === conditions[1] ? 1 : 0);
   } else if (protocol.outcomeType === 'binary') {
@@ -3621,6 +3621,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const covariateColumns = Array.isArray(protocol.covariateColumns) ? protocol.covariateColumns.filter(Boolean) : [];
   const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns);
   if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
+  const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
+  if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
   if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
   if (protocol.designType === 'crossover') {
@@ -3628,7 +3630,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   }
 
   const conditions = naturalOrder(metadata.map((row) => row.condition));
-  const timepoints = naturalOrder(metadata.map((row) => row.timepoint));
+  const timepoints = naturalOrder(biologicalMetadata.map((row) => row.timepoint));
   const requiresConditionContrast = protocol.objective === 'groups' || protocol.objective === 'time';
   if (requiresConditionContrast && conditions.length < 2) {
     throw new Error('This objective requires at least two biological conditions; found ' + conditions.length + '.');
@@ -3652,17 +3654,17 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       throw new Error('Selected outcomeTimepoint is not present in the mapped metadata: ' + protocol.outcomeTimepoint);
     }
     if (outcomeType === 'survival') {
-      const hasTime = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalTime)));
-      const hasEvent = metadata.some((row) => Number.isFinite(finiteNumber(row.survivalEvent)));
+      const hasTime = biologicalMetadata.some((row) => Number.isFinite(finiteNumber(row.survivalTime)));
+      const hasEvent = biologicalMetadata.some((row) => Number.isFinite(finiteNumber(row.survivalEvent)));
       if (!hasTime || !hasEvent) {
         throw new Error('Survival outcome analysis requires mapped survival_time and survival_event metadata columns.');
       }
-    } else if (!metadata.some((row) => row.outcome !== '')) {
+    } else if (!biologicalMetadata.some((row) => row.outcome !== '')) {
       throw new Error('Outcome analysis requires a mapped outcome column with non-empty values.');
     }
   }
 
-  const batchAudit = auditBatchDesign(metadata, loadedLayers, protocol);
+  const batchAudit = auditBatchDesign(biologicalMetadata, loadedLayers, protocol);
   if (batchAudit.blocking.length) {
     const details = batchAudit.blocking
       .map(({ layer, reasons }) => layer + ': ' + reasons.join('; '))
@@ -3670,7 +3672,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     throw new Error('Technical batch confounding prevents identifiable biological inference. ' + details + '. Re-balance the design or provide data in which biological conditions/time points overlap technical batches.');
   }
 
-  const overlap = layerOverlapSummary(metadata, loadedLayers);
+  const overlap = layerOverlapSummary(biologicalMetadata, loadedLayers);
   const layers = {};
   const aggregatedByLayer = {};
   const adjustments = {};
@@ -3684,13 +3686,24 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       fingerprint: 'fnv1a32:' + hashString(text).toString(16).padStart(8, '0')
     };
     const matrix = matrixFromText(text, expected);
-    const layerMetadata = metadata.filter((row) => row.omic === layer);
-    const qcPrepared = prepareMatrixQc(matrix, layer, dataTypes[layer], layerMetadata);
+    const allLayerMetadata = metadata.filter((row) => row.omic === layer);
+    const layerMetadata = biologicalMetadata.filter((row) => row.omic === layer);
+    const msPrepared = layer === 'metabolomics'
+      ? applyMetabolomicsMsQc(matrix, allLayerMetadata, {
+          blankFilter: protocol.msBlankFilter !== false && protocol.msBlankFilter !== 'no',
+          blankFold: protocol.msBlankFold,
+          qcRsdFilter: protocol.msQcRsdFilter !== false && protocol.msQcRsdFilter !== 'no',
+          qcRsdThreshold: protocol.msQcRsdThreshold,
+          driftCorrection: protocol.msDriftCorrection !== false && protocol.msDriftCorrection !== 'no',
+          mnarStrategy: protocol.msMnarStrategy || 'none'
+        })
+      : { matrix, qc: null };
+    const qcPrepared = prepareMatrixQc(msPrepared.matrix, layer, dataTypes[layer], layerMetadata);
     if (!qcPrepared.matrix.features.length) {
       throw new Error(layer + ': no features remain after modality-specific QC filtering.');
     }
     const processed = preprocessMatrix(qcPrepared.matrix, layer, dataTypes[layer]);
-    const rawAggregated = aggregateTechnicalReplicates(processed, metadata, layer);
+    const rawAggregated = aggregateTechnicalReplicates(processed, biologicalMetadata, layer);
 
     let aggregated;
     let adjustment;
@@ -3731,6 +3744,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
     aggregated.qc = {
       ...qcPrepared.qc,
+      msQc: msPrepared.qc,
       preprocessingSteps: processed.steps,
       pca: layerQcPca(rawAggregated),
       inferenceTier: layer === 'transcriptomics' && dataTypes[layer] === 'raw_counts'
@@ -3801,13 +3815,13 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     aggregatedByLayer,
     layers,
     loadedLayers,
-    metadata,
+    biologicalMetadata,
     protocol
   );
   const predictiveOutcome = analysePredictiveOutcome(
     aggregatedByLayer,
     loadedLayers,
-    metadata,
+    biologicalMetadata,
     protocol
   );
 
@@ -3937,9 +3951,10 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     inputManifest,
     protocol: { ...protocol, covariateColumns },
     metadataSummary: {
-      subjects: new Set(metadata.map((row) => row.subjectId)).size,
-      samples: new Set(metadata.map((row) => row.sampleId)).size,
-      assays: new Set(metadata.map((row) => row.assayId)).size,
+      subjects: new Set(biologicalMetadata.map((row) => row.subjectId)).size,
+      samples: new Set(biologicalMetadata.map((row) => row.sampleId)).size,
+      assays: new Set(biologicalMetadata.map((row) => row.assayId)).size,
+      technicalQcAssays: new Set(metadata.filter((row) => !biologicalMetadata.includes(row)).map((row) => row.assayId)).size,
       conditions,
       timepoints,
       overlap,
