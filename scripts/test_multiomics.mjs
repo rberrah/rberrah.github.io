@@ -135,6 +135,64 @@ const demoOutcome = await runDeterministicAnalysis({
 assert.equal(demoOutcome.layers.transcriptomics.mode, 'outcome-binary');
 assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
 
+// Survival prediction: nested CV must produce out-of-sample Harrell C-index.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint,survival_time,survival_event'];
+  const rnaHeader = ['feature_id'];
+  const protHeader = ['feature_id'];
+  const rnaSignal = ['SURV_GENE'];
+  const rnaNoise = ['SURV_RNA_NOISE'];
+  const protSignal = ['SURV_PROTEIN'];
+  const protNoise = ['SURV_PROT_NOISE'];
+  let assay = 1;
+
+  for (let s = 1; s <= 30; s += 1) {
+    const subject = 'SV' + String(s).padStart(2,'0');
+    const risk = (s - 15.5) / 8;
+    const event = s % 5 === 0 ? 0 : 1;
+    const survivalTime = Math.max(1, 40 - 8 * risk + (s % 3));
+    for (const layer of ['transcriptomics','proteomics']) {
+      const id = (layer === 'transcriptomics' ? 'SR' : 'SP') + assay++;
+      rows.push([subject,subject,id,layer,'cohort','T0',survivalTime.toFixed(2),event].join(','));
+      if (layer === 'transcriptomics') {
+        rnaHeader.push(id);
+        rnaSignal.push(String(5 + risk));
+        rnaNoise.push(String(3 + ((s * 7) % 11) / 10));
+      } else {
+        protHeader.push(id);
+        protSignal.push(String(2 + 0.8 * risk));
+        protNoise.push(String(4 + ((s * 13) % 17) / 20));
+      }
+    }
+  }
+
+  const meta = csvFile('survival_metadata.csv', rows.join('\n'));
+  const rna = csvFile('survival_rna.csv', [rnaHeader.join(','),rnaSignal.join(','),rnaNoise.join(',')].join('\n'));
+  const protein = csvFile('survival_protein.csv', [protHeader.join(','),protSignal.join(','),protNoise.join(',')].join('\n'));
+  const parsedMeta = parseDelimited(await meta.text());
+
+  const survival = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:parsedMeta.rows,
+    columnMapping:{...mapping,survival_time:'survival_time',survival_event:'survival_event'},
+    protocol:{
+      organism:'human',objective:'outcome',outcomeType:'survival',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:[]
+    },
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+
+  assert.equal(survival.predictiveOutcome.status, 'ok');
+  assert.equal(survival.predictiveOutcome.outcomeType, 'survival');
+  assert.ok(survival.predictiveOutcome.predictions.length >= 24);
+  assert.ok(Number.isFinite(survival.predictiveOutcome.metrics.cIndex));
+  assert.ok(survival.predictiveOutcome.metrics.cIndex > 0.75);
+  assert.ok(survival.predictiveOutcome.foldSummaries.every(x => x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
+}
+
 console.log('multiomics deterministic engine: PASS');
 console.log(JSON.stringify({
   subjects: result.metadataSummary.subjects,
