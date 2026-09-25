@@ -2733,13 +2733,53 @@ function predictionTarget(metadata, protocol) {
   return { targetBySubject, levels: [], categorical: false };
 }
 
+function foldAdjustedFeatureEntries(aggregated, feature, trainSubjects, subjects, protocol) {
+  const entries = subjectEndpointRows(aggregated, feature, protocol.outcomeTimepoint || '');
+  const bySubject = new Map(entries.map((entry) => [entry.subjectId, entry]));
+  const trainEntries = trainSubjects.map((subject) => bySubject.get(subject)).filter(Boolean);
+  const requestedEntries = subjects.map((subject) => bySubject.get(subject)).filter(Boolean);
+  if (!trainEntries.length) return [];
+
+  const encoder = buildCovariateEncoder(
+    trainEntries.map((entry) => entry.row),
+    protocol.covariateColumns || [],
+    { includeBatch: true }
+  );
+
+  let beta = null;
+  if (encoder.columnNames.length > 1 && trainEntries.length > encoder.columnNames.length + 1) {
+    const trainDesign = trainEntries.map((entry) => encoder.encode(entry.row));
+    const response = trainEntries.map((entry) => entry.value);
+    beta = solveLinearSystem(crossProductMatrix(trainDesign), crossProductVector(trainDesign, response));
+  }
+
+  const trainResiduals = trainEntries.map((entry) => {
+    if (!beta) return entry.value;
+    const fitted = encoder.encode(entry.row).reduce((sum, value, j) => sum + value * beta[j], 0);
+    return entry.value - fitted;
+  });
+  const residualCenter = mean(trainResiduals);
+
+  return requestedEntries.map((entry) => {
+    if (!beta) return entry;
+    const fitted = encoder.encode(entry.row).reduce((sum, value, j) => sum + value * beta[j], 0);
+    return { ...entry, value: entry.value - fitted + residualCenter };
+  });
+}
+
 function selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects, target, protocol, maxPerLayer = 12) {
   const trainSet = new Set(trainSubjects);
   const selected = [];
   for (const layer of loadedLayers) {
     const scored = [];
     for (const feature of aggregatedByLayer[layer].features) {
-      const entries = subjectEndpointRows(aggregatedByLayer[layer], feature, protocol.outcomeTimepoint || '');
+      const entries = foldAdjustedFeatureEntries(
+        aggregatedByLayer[layer],
+        feature,
+        trainSubjects,
+        trainSubjects,
+        protocol
+      );
       const usable = entries.filter((entry) => trainSet.has(entry.subjectId) && target.targetBySubject.has(entry.subjectId));
       if (usable.length < Math.max(5, Math.ceil(trainSubjects.length * 0.50))) continue;
       const x = usable.map((entry) => entry.value);
@@ -2781,12 +2821,25 @@ function selectPredictionFeatures(aggregatedByLayer, loadedLayers, trainSubjects
 }
 
 function predictionMatrix(selected, aggregatedByLayer, subjects, trainSubjects, protocol) {
-  const trainSet = new Set(trainSubjects);
   const columns = [];
   for (const item of selected) {
-    const entries = subjectEndpointRows(aggregatedByLayer[item.layer], item.feature, protocol.outcomeTimepoint || '');
-    const map = new Map(entries.map((entry) => [entry.subjectId, entry.value]));
-    const trainValues = trainSubjects.map((subject) => map.get(subject)).filter(Number.isFinite);
+    const requestedEntries = foldAdjustedFeatureEntries(
+      aggregatedByLayer[item.layer],
+      item.feature,
+      trainSubjects,
+      subjects,
+      protocol
+    );
+    const trainEntries = foldAdjustedFeatureEntries(
+      aggregatedByLayer[item.layer],
+      item.feature,
+      trainSubjects,
+      trainSubjects,
+      protocol
+    );
+    const map = new Map(requestedEntries.map((entry) => [entry.subjectId, entry.value]));
+    const trainMap = new Map(trainEntries.map((entry) => [entry.subjectId, entry.value]));
+    const trainValues = trainSubjects.map((subject) => trainMap.get(subject)).filter(Number.isFinite);
     if (trainValues.length < 2) continue;
     const center = mean(trainValues);
     const sd = Math.sqrt(variance(trainValues));
@@ -2988,8 +3041,14 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
   return {
     status: 'ok',
     method: protocol.outcomeType === 'survival'
-      ? 'nested cross-validation with training-only univariate Cox feature screening and ridge-penalized Cox prediction'
-      : 'nested cross-validation with training-only feature selection and ridge regularisation',
+      ? 'nested cross-validation with training-only nuisance adjustment, univariate Cox feature screening and ridge-penalized Cox prediction'
+      : 'nested cross-validation with training-only nuisance adjustment, feature selection and ridge regularisation',
+    nuisanceAdjustment: {
+      policy: 'fold-local',
+      batch: true,
+      covariates: protocol.covariateColumns || [],
+      note: 'Batch/covariate adjustment, feature selection, centering and scaling are estimated from training subjects only and then applied to held-out subjects.'
+    },
     outcomeType: protocol.outcomeType,
     subjects: subjects.length,
     outerFolds: foldSummaries.length,
@@ -3685,6 +3744,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const overlap = layerOverlapSummary(biologicalMetadata, loadedLayers);
   const layers = {};
   const aggregatedByLayer = {};
+  const predictionAggregatedByLayer = {};
   const adjustments = {};
 
   for (const layer of loadedLayers) {
@@ -3772,6 +3832,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
     aggregated.replicateGroups = rawAggregated.replicateGroups;
     aggregatedByLayer[layer] = aggregated;
+    predictionAggregatedByLayer[layer] = rawAggregated;
     adjustments[layer] = adjustment;
 
     if (protocol.objective === 'outcome') {
@@ -3829,7 +3890,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     protocol
   );
   const predictiveOutcome = analysePredictiveOutcome(
-    aggregatedByLayer,
+    predictionAggregatedByLayer,
     loadedLayers,
     biologicalMetadata,
     protocol
