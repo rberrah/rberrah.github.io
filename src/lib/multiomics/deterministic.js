@@ -2518,7 +2518,7 @@ function analyseSupervisedMultiblock(aggregatedByLayer, layers, loadedLayers, me
 
   const targetBySubject = new Map();
   if (protocol.objective === 'groups') {
-    const conditions = naturalOrder(biologicalMetadata.map((row) => row.condition));
+    const conditions = naturalOrder(metadata.map((row) => row.condition));
     if (conditions.length !== 2) return null;
     for (const row of metadata) targetBySubject.set(row.subjectId, row.condition === conditions[1] ? 1 : 0);
   } else if (protocol.outcomeType === 'binary') {
@@ -3629,14 +3629,14 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
 
-  const conditions = naturalOrder(metadata.map((row) => row.condition));
+  const conditions = naturalOrder(biologicalMetadata.map((row) => row.condition));
   const timepoints = naturalOrder(biologicalMetadata.map((row) => row.timepoint));
   const requiresConditionContrast = protocol.objective === 'groups' || protocol.objective === 'time';
   if (requiresConditionContrast && conditions.length < 2) {
     throw new Error('This objective requires at least two biological conditions; found ' + conditions.length + '.');
   }
   if (requiresConditionContrast && conditions.length > 2 && (protocol.longitudinal || protocol.designType === 'paired')) {
-    throw new Error('More than two conditions are currently supported only for independent, non-longitudinal designs via one-way permutation ANOVA.');
+    throw new Error('More than two conditions are currently supported only for independent, non-longitudinal designs via the adjusted multi-group model.');
   }
   if (protocol.longitudinal && timepoints.length > 2) {
     const numericTimes = timepoints.map((value) => Number(String(value).match(/-?\d+(?:\.\d+)?/)?.[0]));
