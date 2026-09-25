@@ -250,16 +250,16 @@
       titleEn: 'Explain a clinical or experimental outcome',
       methodFr: 'Régression déterministe selon le type d’outcome',
       methodEn: 'Outcome-specific deterministic regression',
-      detailFr: 'Régression linéaire, logistique, Poisson, ANOVA multiclasse ou Cox selon le type d’outcome, avec covariables explicites et correction BH-FDR.',
-      detailEn: 'Linear, logistic, Poisson, multiclass ANOVA or Cox models are selected from the declared outcome type, with explicit covariates and BH-FDR.'
+      detailFr: 'Régression linéaire, logistique, Poisson, ANCOVA multiclasse ou Cox selon l’outcome, plus validation prédictive nested-CV lorsque possible, avec covariables explicites et BH-FDR.',
+      detailEn: 'Linear, logistic, Poisson, multiclass ANCOVA or Cox models are selected from the declared outcome, with nested-CV prediction when applicable, explicit covariates and BH-FDR.'
     },
     time: {
       titleFr: 'Étudier l’évolution au cours du temps',
       titleEn: 'Describe change over time',
       methodFr: 'Workflow longitudinal ajusté au design',
       methodEn: 'Design-aware longitudinal workflow',
-      detailFr: 'Deux temps utilisent le changement intra-sujet ; trois temps ou plus utilisent une pente individuelle avant la comparaison entre conditions.',
-      detailEn: 'Two time points use within-subject change; three or more numeric-labelled time points use individual slopes before group comparison.'
+      detailFr: 'Les mesures répétées utilisent un modèle à intercept aléatoire sujet avec interaction condition × temps, batch et covariables explicites.',
+      detailEn: 'Repeated measurements use a subject random-intercept model with condition × time interaction and explicit batch/covariates.'
     }
   };
 
@@ -276,8 +276,8 @@
       scopeFr: 'gènes',
       role: 'Resolve Ensembl IDs and gene symbols, confirm species and canonical gene annotations.',
       roleFr: 'Résoudre les identifiants Ensembl et symboles de gènes, confirmer l’espèce et les annotations canoniques.',
-      status: 'registry target · not called automatically yet',
-      statusFr: 'connecteur prévu · non appelé automatiquement',
+      status: 'live when identifier resolution is enabled',
+      statusFr: 'actif quand la résolution d’identifiants est activée',
       url: 'https://rest.ensembl.org/documentation/'
     },
     {
@@ -286,8 +286,8 @@
       scopeFr: 'protéines',
       role: 'Resolve protein accessions and cross-reference proteins to genes, Ensembl, Reactome and other resources.',
       roleFr: 'Résoudre les accessions protéiques et les relier aux gènes, à Ensembl, Reactome et d’autres ressources.',
-      status: 'registry target · not called automatically yet',
-      statusFr: 'connecteur prévu · non appelé automatiquement',
+      status: 'live when identifier resolution is enabled',
+      statusFr: 'actif quand la résolution d’identifiants est activée',
       url: 'https://www.uniprot.org/help/id_mapping'
     },
     {
@@ -306,8 +306,8 @@
       scopeFr: 'métabolites',
       role: 'Cross-reference chemical identifiers between databases when the uploaded metabolite identifier is not ChEBI.',
       roleFr: 'Croiser les identifiants chimiques entre bases lorsque l’identifiant métabolite importé n’est pas ChEBI.',
-      status: 'registry target · not called automatically yet',
-      statusFr: 'connecteur prévu · non appelé automatiquement',
+      status: 'live for deterministic InChIKey → ChEBI resolution',
+      statusFr: 'actif pour la résolution déterministe InChIKey → ChEBI',
       url: 'https://www.ebi.ac.uk/unichem/'
     },
     {
@@ -1144,11 +1144,11 @@
     ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
         'preprocessing → replicate aggregation → batch/covariate adjustment → within-layer scaling → balanced multi-block PCA → loadings → Reactome')
     : objective === 'outcome'
-      ? t('prétraitement → agrégation → ajustement batch → régression selon l’outcome + covariables → BH-FDR → Reactome',
-          'preprocessing → aggregation → batch adjustment → outcome-specific regression + covariates → BH-FDR → Reactome')
+      ? t('prétraitement → agrégation → régression selon l’outcome + batch/covariables → BH-FDR → nested CV prédictive → Reactome',
+          'preprocessing → aggregation → outcome-specific regression + batch/covariates → BH-FDR → nested predictive CV → Reactome')
       : objective === 'time'
-        ? t('agrégation des réplicats → prétraitement → ajustement batch/covariables → changement/pente intra-sujet → inférence → BH-FDR → intégration inter-omique → Reactome',
-            'replicate aggregation → preprocessing → batch/covariate adjustment → within-subject change/slope → inference → BH-FDR → cross-omics integration → Reactome')
+        ? t('agrégation des réplicats → prétraitement → modèle condition × temps à intercept aléatoire sujet + batch/covariables → BH-FDR → intégration inter-omique → Reactome',
+            'replicate aggregation → preprocessing → condition × time random-intercept model + batch/covariates → BH-FDR → cross-omics integration → Reactome')
         : t('agrégation des réplicats → prétraitement → ajustement batch/covariables → contraste de groupes → inférence → BH-FDR → intégration inter-omique → Reactome',
             'replicate aggregation → preprocessing → batch/covariate adjustment → group contrast → inference → BH-FDR → cross-omics integration → Reactome');
 </script>
@@ -1168,7 +1168,7 @@
 
 <section class="hero">
   <a class="tool-back" href={`${base}/multiomics`}>← {t('Présentation de l’outil', 'Tool overview')}</a>
-  <p class="eyebrow">{t('Prototype expérimental · outil · v1.0', 'Experimental prototype · tool · v1.0')}</p>
+  <p class="eyebrow">{t('Prototype expérimental · outil · v1.2', 'Experimental prototype · tool · v1.2')}</p>
   <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
   <p class="lede">
     {t('Décrivez le protocole, mappez les échantillons une seule fois, puis laissez le workflow intégrer transcriptomique, protéomique et métabolomique autour de structures partagées, d’associations et de voies biologiques.', 'Describe the protocol, map the samples once, then let the workflow integrate transcriptomics, proteomics and metabolomics around shared factors, associations, pathways and mechanisms.')}
