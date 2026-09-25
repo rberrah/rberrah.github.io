@@ -961,7 +961,11 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
 
   const blankFold = Number.isFinite(Number(config.blankFold)) ? Math.max(1, Number(config.blankFold)) : 5;
   const rsdThreshold = Number.isFinite(Number(config.qcRsdThreshold)) ? Math.max(0.01, Number(config.qcRsdThreshold)) : 0.30;
-  const blankFilterEnabled = config.blankFilter !== false;
+  const requestedBlankMode = String(config.blankMode ?? '').toLowerCase();
+  const blankMode = ['flag','remove','off','no'].includes(requestedBlankMode)
+    ? (requestedBlankMode === 'no' ? 'off' : requestedBlankMode)
+    : (config.blankFilter === false ? 'off' : config.blankFilter === true ? 'remove' : 'flag');
+  const blankFilterEnabled = blankMode !== 'off';
   const driftEnabled = config.driftCorrection !== false;
   const qcRsdEnabled = config.qcRsdFilter !== false;
   const mnarStrategy = config.mnarStrategy || 'none';
@@ -984,7 +988,7 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
       const contaminated = Number.isFinite(blankMedian) && blankMedian > 0 &&
         Number.isFinite(bioMedian) && bioMedian < blankFold * blankMedian;
       blankStats.push({ feature, blankMedian, biologicalMedian: bioMedian, contaminated });
-      if (!contaminated) keep.push(feature);
+      if (!contaminated || blankMode === 'flag') keep.push(feature);
     }
     features = keep;
   }
@@ -1083,7 +1087,8 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   }
 
   const warnings = [];
-  if (blankFilterEnabled && blankAssays.length < 2) warnings.push('Blank filtering requested but fewer than 2 blank injections were annotated.');
+  if (blankFilterEnabled && blankAssays.length < 2) warnings.push('Blank assessment requested but fewer than 2 blank injections were annotated.');
+  if (blankMode === 'remove' && blankAssays.length >= 2) warnings.push('Blank-associated features were excluded using the declared biological/blank ratio. Review flagged features and retain a flag-only sensitivity analysis for confirmatory work.');
   if (driftEnabled && orderedQcCount < 5) warnings.push('QC drift correction requested but fewer than 5 pooled-QC injections with numeric injection order were available.');
   if (qcRsdEnabled && qcAssays.length < 3) warnings.push('QC RSD filtering requested but fewer than 3 pooled-QC injections were annotated.');
   if (mnarStrategy === 'left_censored') warnings.push('Left-censored MNAR imputation was applied only to missing biological metabolomics values; perform a no-imputation sensitivity analysis for confirmatory work.');
@@ -1103,8 +1108,11 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
       blankAssays: blankAssays.length,
       qcAssays: qcAssays.length,
       biologicalAssays: biologicalAssays.length,
+      blankMode,
       blankFold,
-      blankFilteredFeatures: blankStats.filter((item)=>item.contaminated).length,
+      blankFlaggedFeatures: blankStats.filter((item)=>item.contaminated).length,
+      blankRemovedFeatures: blankMode === 'remove' ? blankStats.filter((item)=>item.contaminated).length : 0,
+      blankFilteredFeatures: blankMode === 'remove' ? blankStats.filter((item)=>item.contaminated).length : 0,
       qcRsdThreshold: rsdThreshold,
       qcRsdFilteredFeatures: qcRsdStats.filter((item)=>item.unstable).length,
       driftCorrection: {
@@ -3690,7 +3698,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     const layerMetadata = biologicalMetadata.filter((row) => row.omic === layer);
     const msPrepared = layer === 'metabolomics'
       ? applyMetabolomicsMsQc(matrix, allLayerMetadata, {
-          blankFilter: protocol.msBlankFilter !== false && protocol.msBlankFilter !== 'no',
+          blankMode: protocol.msBlankFilter || 'flag',
           blankFold: protocol.msBlankFold,
           qcRsdFilter: protocol.msQcRsdFilter !== false && protocol.msQcRsdFilter !== 'no',
           qcRsdThreshold: protocol.msQcRsdThreshold,
