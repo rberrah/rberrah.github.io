@@ -10,12 +10,12 @@ suppressPackageStartupMessages({
 
 arguments <- commandArgs(trailingOnly = FALSE)
 file_argument <- sub("^--file=", "", grep("^--file=", arguments, value = TRUE)[1])
-APP_ROOT <- normalizePath(file.path(dirname(file_argument), ".."), winslash = "/", mustWork = TRUE)
+APP_ROOT <- normalizePath(Sys.getenv("PMX_TRAIN_ROOT", file.path(dirname(file_argument), "..")), winslash = "/", mustWork = TRUE)
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 
-args <- commandArgs(trailingOnly = TRUE)
+args <- if (exists(".training_args")) .training_args else commandArgs(trailingOnly = TRUE)
 option_value <- function(prefix, default = NULL) {
   hit <- grep(paste0("^", prefix, "="), args, value = TRUE)
   if (length(hit)) sub(paste0("^", prefix, "="), "", hit[[1]]) else default
@@ -84,7 +84,7 @@ if (!identical(mode_argument, "ALL")) {
 if (!nrow(scopes)) stop("No model matches the requested training scope.")
 
 continuous_scopes <- scopes$mode == "IV_CONTINUOUS"
-if (any(continuous_scopes)) {
+if (any(continuous_scopes) && !"--paired-benchmark" %in% args) {
   message("Skipping ", sum(continuous_scopes), " continuous-infusion scope(s): C0 plus one hour after infusion end is not defined for an ongoing infusion.")
   scopes <- scopes[!continuous_scopes, , drop = FALSE]
 }
@@ -314,7 +314,7 @@ sample_regimens <- function(scope, n) {
 sample_times <- function(regimens, mode) {
   do.call(rbind, lapply(seq_len(nrow(regimens)), function(index) {
     interval <- regimens$interval[[index]]
-    infusion_end <- if (identical(mode, "ORAL") || regimens$infusion[[index]] <= 0) 0 else regimens$infusion[[index]]
+    infusion_end <- if (mode %in% c("ORAL", "IV_CONTINUOUS") || regimens$infusion[[index]] <= 0) 0 else regimens$infusion[[index]]
     post_time <- infusion_end + 1
     if (post_time >= interval) stop(
       "The post-infusion sample falls outside the dosing interval: mode=", mode,
@@ -323,8 +323,8 @@ sample_times <- function(regimens, mode) {
     data.frame(
       ID = index,
       sample = c("C0", "POST"),
-      time = c(interval - 1e-6, post_time),
-      feature_time = c(interval, post_time),
+      time = c(if (mode == "IV_CONTINUOUS") 0 else interval - 1e-6, post_time),
+      feature_time = c(if (mode == "IV_CONTINUOUS") 0 else interval, post_time),
       stringsAsFactors = FALSE
     )
   }))
@@ -894,6 +894,11 @@ prune_non_applicable_continuous_artifacts <- function() {
   invisible(sum(remove))
 }
 
+if (!identical(Sys.getenv("PMX_TRAIN_FUNCTIONS_ONLY"), "1")) {
+if ("--paired-benchmark" %in% args) {
+  source(file.path(APP_ROOT, "ml", "paired_auc_benchmark.R"), local = TRUE)
+  run_paired_benchmark()
+} else {
 cat("Generic simulation-trained direct AUC24 evaluation\n")
 cat("Scopes: ", nrow(scopes), " | patients per scope: ", n_patients, "\n", sep = "")
 cat("No patient data are read or written. Only synthetic profiles are used.\n")
@@ -924,3 +929,5 @@ cat(
   sep = ""
 )
 if (!publish_artifacts) cat("\nNo artifact saved. Add --publish after a full evaluation run.\n")
+}
+}

@@ -375,11 +375,24 @@ async function main() {
       validation: artifact.validation ?? {}
     };
   });
+  const pairedFile = path.join(root, 'tdm-engine', 'ml', 'validation', 'paired-auc-benchmark.json');
+  const paired = JSON.parse(await fs.readFile(pairedFile, 'utf8').catch((error) => {
+    if (error.code !== 'ENOENT') throw error;
+    return '{"results":[]}';
+  }));
+  if (paired.smoke) throw new Error('A smoke benchmark must not be published.');
+  const pairedResults = (paired.results ?? []).map((result) => ({
+    ...result,
+    model: modelById.get(result.modelId)?.model ?? result.modelId,
+    analysisEligible: Boolean(modelById.get(result.modelId)?.analysisEligible),
+    hashMatches: result.baseModelSha256 === modelHashes.get(result.modelId)
+  }));
   const mlOutput = `${JSON.stringify({
     version: mlRegistry.version,
     benchmarkDate: mlRegistry.benchmarkDate ?? null,
     samplingDesign: mlRegistry.samplingDesign ?? null,
-    artifacts: mlArtifacts
+    artifacts: mlArtifacts,
+    pairedBenchmark: { ...paired, results: pairedResults }
   }, null, 2)}\n`;
   const previousMlBenchmark = await fs.readFile(mlBenchmarkFile, 'utf8').catch(() => '');
   if (previousMlBenchmark !== mlOutput) await fs.writeFile(mlBenchmarkFile, mlOutput, 'utf8');

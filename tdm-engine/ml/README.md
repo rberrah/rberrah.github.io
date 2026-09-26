@@ -2,7 +2,59 @@
 
 Ce dossier ne contient aucune donnee patient. Le pipeline entraine un predicteur XGBoost distinct pour chaque couple modele mrgsolve / mode d'administration a partir de profils entierement simules. Il adapte a l'ensemble de la bibliotheque le principe valide pour le tacrolimus par Woillard et al. (doi:10.1016/j.phrs.2021.105578), sans extrapoler cette validation clinique aux autres molecules.
 
-## Principe
+## Benchmark apparie MAP-BE / XGBoost
+
+Le comparatif public utilise `--paired-benchmark`, implemente dans
+`paired_auc_benchmark.R`. Pour chaque patient du test, `mapbayr` ajuste les ETA sur les **memes
+concentrations observees** que celles donnees a XGBoost : C0 seul, puis C0+C1.
+
+- C1 = Tinf + 1 h pour une perfusion intermittente.
+- Pour l'oral et le bolus, Tinf de reference = 0 : C1 = 1 h apres la dose.
+- Pour la perfusion continue, la pompe reste active a l'etat stationnaire et les
+  prelevements sont effectues a t=0 et t=1 h. Aucun bolus fictif n'est ajoute.
+- Hors perfusion continue, C0 est simule a tau moins 1 microseconde : il s'agit
+  du creux pre-dose du cycle equivalent a l'etat stationnaire, pas du pic IV a t=0.
+- L'AUC24 vraie est integree par trapezes sur le profil individuel sans bruit
+  (pas de 0.1 h). La SIGMA originale est conservee pour les dosages limites.
+- Les ETA suivent la matrice OMEGA sans troncature a deux ecarts-types. Les
+  covariables suivent `training-populations.json`; elles restent constantes dans
+  chaque profil. Aucun filtre sur le rapport AUC individuelle/populationnelle
+  n'est utilise dans ce benchmark.
+- XGBoost apprend directement l'AUC24, sans cible logarithmique ni AUC
+  populationnelle parmi ses entrees. Dose, intervalle, concentrations, horaires
+  et covariables sont disponibles. C1 et ses differences sont absents du modele C0.
+- Le partage 75/25 des patients est commun aux deux plans. La validation croisee
+  a dix groupes est limitee aux 75 % d'apprentissage. La grille profondeur
+  {2,4,6} x eta {0.03,0.1}, l'arret anticipe a 30 tours et le maximum de 1000 tours
+  sont fixes avant le test. La selection minimise la RMSE absolue de l'AUC.
+
+Avec `e = (AUC estimee - AUC vraie) / AUC vraie` : biais = `100*mean(e)`,
+RMSE relative = `100*sqrt(mean(e^2))`, AUC bien predites = proportion avec
+`abs(e) <= 0.20`. La page utilise les memes patients estimables par les deux
+methodes pour les biais/RMSE; le taux a +/-20 % porte sur tout le jeu de test,
+les echecs comptant comme mal predits. Les effectifs et echecs sont affiches.
+
+Depuis `tdm-engine` :
+
+```powershell
+Rscript tests/paired_benchmark_test.R
+Rscript ml/train_models_xgboost.R --paired-benchmark --smoke --workers=4 --report=../.svelte-kit/paired-smoke.json
+Rscript ml/train_models_xgboost.R --paired-benchmark --n=9000 --workers=4 --report=ml/validation/paired-auc-benchmark.json
+```
+
+`--base`, `--drug`, `--mode` et `--seed` restent disponibles. Les checkpoints
+synthetiques sont locaux et ignores par Git; leurs empreintes dependent des
+scripts, modeles et configurations. Seul le JSON agrege est publie sur le site,
+jamais les observations simulees individuelles.
+
+Cette extension reprend l'apprentissage direct, le partage et le principe de
+selection des hyperparametres de Woillard 2021, pas son protocole integral :
+l'article utilisait C0+C3 ou C0+C1+C3, l'AUC0-12, une erreur residuelle reduite et
+des filtres specifiques au tacrolimus. Les scores ne sont donc pas censes etre
+identiques. Les predicteurs du benchmark sont distincts des artefacts Shiny
+historiques ci-dessous; leurs scores ne sont pas une validation de ces artefacts.
+
+## Artefacts Shiny historiques : principe
 
 Pour chaque patient virtuel, le script :
 
@@ -15,15 +67,15 @@ Pour chaque patient virtuel, le script :
 7. evalue le modele par validation croisee repetee, jeu de test interne non touche et, lorsqu'un autre modele compatible existe, transportabilite PopPK simulee;
 8. produit un fond synthetique pour l'explication locale DALEX.
 
-Chaque evaluation rapporte separement le biais et la RMSE relative de l'AUC populationnelle sans ML (`POP_AUC24`) et de l'AUC corrigee par XGBoost. Un artefact ne peut atteindre le niveau interne `research` que si le ML franchit les seuils prespecifies et reduit la RMSE du jeu de test par rapport a cette reference sans ML. Cette comparaison n'est pas une comparaison au MAP-BE, qui necessiterait un ajustement bayesien distinct pour chaque profil simule.
+Cet ancien controle interne rapportait l'ecart entre l'AUC individuelle vraie et l'AUC obtenue avec les effets aleatoires fixes a zero (`POP_AUC24`), avant et apres correction par XGBoost. Il est conserve uniquement pour qualifier les artefacts historiques de l'application. Ce n'est ni le comparateur du benchmark public ni une estimation intitulee "AUC sans ML" : la comparaison scientifique publiee sur cette page est MAP-BE versus XGBoost, avec les memes patients et les memes dosages.
 
 Les variables comprennent les covariables du modele, la dose, l'intervalle, la duree de perfusion, les horaires et concentrations, les predictions populationnelles correspondantes et les rapports observe/predit. Les domaines de dose et d'intervalle sont explicites dans `training-regimens.json`.
 
-Le benchmark compare, sur les memes patients virtuels et le meme jeu de test, deux plans : `C0 seul` et `C0 + C(fin de perfusion + 1 h)`. Pour l'oral et le bolus, le second temps vaut donc 1 h apres la dose. Pour une perfusion intermittente de duree `Tinf`, il vaut `Tinf + 1 h`. Le C0 est simule juste avant la dose suivante. `zero_re(omega)` annule uniquement l'OMEGA interne de mrgsolve; les ETA sont fournis par `idata` et la SIGMA du modele reste appliquee aux concentrations.
+La validation historique des artefacts compare, sur les memes patients virtuels et le meme jeu de test, deux plans : `C0 seul` et `C0 + C(fin de perfusion + 1 h)`. Pour l'oral et le bolus, le second temps vaut donc 1 h apres la dose. Pour une perfusion intermittente de duree `Tinf`, il vaut `Tinf + 1 h`. Le C0 est simule juste avant la dose suivante. `zero_re(omega)` annule uniquement l'OMEGA interne de mrgsolve; les ETA sont fournis par `idata` et la SIGMA du modele reste appliquee aux concentrations.
 
-La perfusion continue est exclue de cette comparaison : pendant une perfusion en cours, il n'existe ni fin de perfusion dans l'intervalle ni C0 pre-dose. Les artefacts continus restent documentes separement et ne doivent pas etre compares comme s'ils suivaient ce plan.
+La perfusion continue est exclue de cette ancienne comparaison d'artefacts. Elle est incluse dans le benchmark apparie ci-dessus selon la convention demandee : perfusion maintenue, prelevements a t=0 et t=1 h.
 
-Ce benchmark ne reproduit pas le protocole de Woillard et al. L'article tacrolimus simulait 9 000 profils riches a l'etat stationnaire, avec neuf doses administrees toutes les 12 h, une concentration toutes les 30 minutes et une AUC0-12 cible. Le modele a deux prelevements utilisait C0 et C3; le modele a trois prelevements utilisait C0, C1 et C3. Dans le jeu de test simule, les RMSE relatives publiees etaient respectivement de 4.60 % et 2.61 %. Le benchmark PMx utilise une AUC24, 1 000 profils par artefact et C0+C1 pour l'oral; ses resultats ne sont donc pas une reproduction de l'article.
+Cette ancienne validation ne reproduit pas le protocole de Woillard et al. L'article tacrolimus simulait 9 000 profils riches a l'etat stationnaire, avec neuf doses administrees toutes les 12 h, une concentration toutes les 30 minutes et une AUC0-12 cible. Le modele a deux prelevements utilisait C0 et C3; le modele a trois prelevements utilisait C0, C1 et C3. Dans le jeu de test simule, les RMSE relatives publiees etaient respectivement de 4.60 % et 2.61 %. Les artefacts historiques utilisent une AUC24, 1 000 profils par artefact et C0+C1 pour l'oral; leurs resultats ne sont donc pas une reproduction de l'article.
 
 Les covariables ne sont jamais tirees dans une plage generique commune a toute la bibliotheque. `training-populations.json` contient les informations propres aux populations sources : bornes, moyenne/ecart-type ou proportions publiees. Une variable positive documentee uniquement par sa moyenne et son ecart-type peut utiliser une loi log-normale ajustee sur ces deux moments; cette hypothese est inscrite dans le fichier. Quand l'article ne documente pas suffisamment la population, la valeur de reference du modele est conservee; le pipeline n'invente pas une plage. Les covariables liees peuvent etre reconstruites conjointement (par exemple la creatinine a partir d'une clairance Cockcroft-Gault cible).
 

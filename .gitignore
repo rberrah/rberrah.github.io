@@ -38,3 +38,6 @@ course_source/**/cache/
 test-results/
 playwright-report/
 .playwright/
+
+# Reproducible synthetic benchmark checkpoints; only aggregate results are published.
+tdm-engine/ml/.benchmark-cache/
