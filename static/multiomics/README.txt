@@ -193,7 +193,7 @@ Résolution conservative :
 - métabolomique : ChEBI, noms exacts et alias déterministes ;
 - InChIKey : correspondances UniChem vers ChEBI ;
 - HMDB : conversion explicite HMDB → ChEBI via UniChem ;
-- KEGG Compound : conversion explicite KEGG → ChEBI via UniChem ;
+- KEGG Compound : recherche exacte dans ChEBI à partir de l’identifiant KEGG ; une conversion n’est acceptée que si un seul identifiant ChEBI unique est retourné ;
 - PubChem CID : conversion explicite PubChem → ChEBI via UniChem lorsque l’utilisateur a déclaré ce type d’identifiant ;
 - une conversion externe n’est acceptée que si elle conduit à une correspondance ChEBI unique ;
 - plusieurs correspondances sont signalées « ambiguous » et aucune n’est choisie automatiquement ;
@@ -264,6 +264,6 @@ Pre-analysis diagnostics now summarize group balance, cross-omics subject overla
 
 The optional reference R backend routes DESeq2, edgeR/limma-voom, limma, lmerTest, fgsea, MOFA2 and DIABLO. Raw RNA-seq counts can be analysed with both DESeq2 and edgeR/limma-voom, with an explicit concordance summary rather than hidden method substitution.
 
-Metabolite mapping supports explicit HMDB, KEGG Compound and PubChem CID to ChEBI conversion through UniChem, in addition to InChIKey and conservative ChEBI/name handling. Ambiguous cross-database mappings are never forced.
+Metabolite mapping uses UniChem for explicit HMDB, PubChem CID and InChIKey links to ChEBI. KEGG Compound identifiers are resolved by an exact ChEBI cross-reference search and accepted only when one unique ChEBI accession is returned. Ambiguous cross-database mappings are never forced.
 
 Remaining limits include full vendor/raw MS processing, secure remote R deployment, dedicated power simulations for complex designs and independent external clinical validation.
