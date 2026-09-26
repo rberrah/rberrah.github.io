@@ -6,16 +6,15 @@
 import * as core from './deterministic-core.js';
 export * from './deterministic-core.js';
 
-const WRAPPER_ENGINE_VERSION = '1.5.0';
+const WRAPPER_ENGINE_VERSION = '1.5.1';
 const CHEBI_SEARCH_HOST = 'www.ebi.ac.uk';
 const CHEBI_SEARCH_PATH = '/chebi/backend/api/public/es_search/';
 const UNICHEM_BASE = 'https://www.ebi.ac.uk/unichem/rest/src_compound_id/';
 
-// UniChem source identifiers from the public UniChem source registry.
-// KEGG Ligand = 6, ChEBI = 7, HMDB = 18, PubChem Compounds = 22.
+// Current UniChem source identifiers used here: ChEBI = 7, HMDB = 18,
+// PubChem Compounds = 22. KEGG is intentionally not routed through UniChem:
+// it is no longer listed in the current UniChem source registry.
 const UNICHEM_SOURCE = Object.freeze({
-  kegg: 6,
-  kegg_compound: 6,
   chebi: 7,
   hmdb: 18,
   pubchem: 22
@@ -29,11 +28,16 @@ function traceKey(value) {
   return cleanText(value).toUpperCase();
 }
 
+function isKeggCompound(term, identifierType = 'unknown') {
+  const value = cleanText(term);
+  const type = cleanText(identifierType).toLowerCase();
+  return /^C\d{5}$/i.test(value) && ['unknown','kegg','kegg_compound'].includes(type);
+}
+
 function declaredSource(term, identifierType = 'unknown') {
   const value = cleanText(term);
   const type = cleanText(identifierType).toLowerCase();
   if (/^HMDB\d+$/i.test(value)) return { name: 'hmdb', srcId: UNICHEM_SOURCE.hmdb };
-  if (/^C\d{5}$/i.test(value)) return { name: 'kegg', srcId: UNICHEM_SOURCE.kegg };
   if ((type === 'pubchem' || type === 'pubchem_cid') && /^\d+$/.test(value)) {
     return { name: 'pubchem', srcId: UNICHEM_SOURCE.pubchem };
   }
@@ -55,6 +59,14 @@ function uniqueChebiIds(json) {
     return Array.isArray(value) ? value : [value];
   });
   return [...new Set(values.map(canonicalChebi).filter(Boolean))];
+}
+
+function uniqueChebiSearchIds(json) {
+  const rows = Array.isArray(json?.results) ? json.results : [];
+  return [...new Set(rows
+    .map((row) => row?._source || row?.source || row || null)
+    .map((source) => canonicalChebi(source?.chebi_accession))
+    .filter(Boolean))];
 }
 
 function syntheticChebiResponse(term, chebiIds) {
@@ -100,10 +112,51 @@ function createStrictChemicalFetch(baseFetch, identifierType = 'unknown') {
     }
 
     const term = cleanText(url.searchParams.get('term'));
+    const key = traceKey(term);
+
+    // ChEBI 2.0 can search manually curated external cross-references. Because
+    // KEGG is no longer listed as an active UniChem source, exact KEGG IDs are
+    // resolved from the ChEBI search itself and accepted only when one unique
+    // ChEBI accession is returned. Multiple hits remain explicitly ambiguous.
+    if (isKeggCompound(term, identifierType)) {
+      const method = 'chebi_exact_kegg_xref_search';
+      try {
+        const response = await safeFetch(input, init);
+        if (!response.ok) {
+          trace.set(key, {
+            status: response.status === 404 ? 'unresolved' : 'api_error',
+            method,
+            candidates: [],
+            error: response.status === 404 ? null : `HTTP ${response.status}`
+          });
+          return syntheticChebiResponse(term, []);
+        }
+        const ids = uniqueChebiSearchIds(await response.json());
+        if (ids.length === 1) {
+          trace.set(key, { status: 'resolved_external_id', method, candidates: ids, resolved: ids[0] });
+          return syntheticChebiResponse(term, ids);
+        }
+        if (ids.length > 1) {
+          trace.set(key, { status: 'ambiguous', method, candidates: ids, resolved: null });
+          return syntheticChebiResponse(term, []);
+        }
+        trace.set(key, { status: 'unresolved', method, candidates: [], resolved: null });
+        return syntheticChebiResponse(term, []);
+      } catch (error) {
+        trace.set(key, {
+          status: 'api_error',
+          method,
+          candidates: [],
+          resolved: null,
+          error: error instanceof Error ? error.message : 'ChEBI KEGG cross-reference search failed'
+        });
+        return syntheticChebiResponse(term, []);
+      }
+    }
+
     const source = declaredSource(term, identifierType);
     if (!source) return safeFetch(input, init);
 
-    const key = traceKey(term);
     const method = resolutionMethod(source.name);
     try {
       const mappingUrl = UNICHEM_BASE
@@ -403,7 +456,7 @@ async function runWithStrictChemicalResolution(args) {
       result.engine = {
         ...result.engine,
         version: WRAPPER_ENGINE_VERSION,
-        chemicalIdentifierResolution: 'strict UniChem external-ID mapping to ChEBI; ambiguous mappings are never forced',
+        chemicalIdentifierResolution: 'strict HMDB/PubChem UniChem mapping plus unique ChEBI KEGG cross-reference search; ambiguous mappings are never forced',
         feasibilityDiagnostics: 'deterministic group-balance, cross-omics overlap, missingness, repeated-measure completeness and batch checks; power is not inferred from sample count alone'
       };
     }
