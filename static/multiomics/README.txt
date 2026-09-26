@@ -48,17 +48,28 @@ P001 / P001_T0 / MET001  / metabolomics
 
 Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes de ce prélèvement.
 
-2. CONTRÔLE QUALITÉ
-===================
+2. CONTRÔLE QUALITÉ ET FAISABILITÉ
+===================================
 
-Avant l’analyse, l’outil vérifie notamment :
-- nombre de variables détectées ;
+Avant l’interprétation, l’outil vérifie notamment :
+- nombre de sujets dans chaque groupe ;
+- déséquilibre éventuel entre groupes ;
+- nombre de sujets présents dans chaque couche omique ;
+- chevauchement réel des sujets entre les omiques ;
+- complétude des temps de suivi pour les études longitudinales ;
 - valeurs manquantes ;
 - variables constantes ou presque jamais observées ;
 - mesures atypiques ;
 - accord entre répétitions techniques ;
 - structure globale des données par ACP de contrôle qualité ;
 - série technique et risque de confusion avec le groupe ou le temps.
+
+Ces diagnostics sont enregistrés dans `preAnalysisDiagnostics` avec trois niveaux simples :
+- ready : aucun problème déterministe détecté ;
+- usable_with_cautions : analyse possible mais certaines limites doivent être prises en compte ;
+- review_required : au moins un problème de design ou de qualité doit être revu avant de mettre en avant les conclusions biologiques.
+
+La puissance statistique n’est volontairement PAS déduite du seul nombre de sujets. Une estimation défendable de puissance nécessite au minimum un effet attendu, une variabilité et le modèle prévu ; pour les designs multi-omiques complexes, une approche par simulation est préférable.
 
 Pour LC-MS/GC-MS, lorsque sample_type et injection_order sont fournis :
 - blanks et pooled-QC ne sont pas traités comme des échantillons biologiques ;
@@ -179,10 +190,16 @@ L’outil indique également combien de couches omiques soutiennent indépendamm
 Résolution conservative :
 - transcriptomique : Ensembl et symboles de gènes ;
 - protéomique : UniProt / Ensembl ;
-- métabolomique : ChEBI, noms exacts, alias lipidiques déterministes et InChIKey via UniChem lorsqu’une correspondance ChEBI unique existe ;
-- les cas ambigus restent « ambiguous » ou « unresolved » ; aucun mapping n’est forcé.
+- métabolomique : ChEBI, noms exacts et alias déterministes ;
+- InChIKey : correspondances UniChem vers ChEBI ;
+- HMDB : conversion explicite HMDB → ChEBI via UniChem ;
+- KEGG Compound : conversion explicite KEGG → ChEBI via UniChem ;
+- PubChem CID : conversion explicite PubChem → ChEBI via UniChem lorsque l’utilisateur a déclaré ce type d’identifiant ;
+- une conversion externe n’est acceptée que si elle conduit à une correspondance ChEBI unique ;
+- plusieurs correspondances sont signalées « ambiguous » et aucune n’est choisie automatiquement ;
+- l’absence de correspondance reste « unresolved ».
 
-L’élargissement explicite et vérifié du cross-mapping HMDB ↔ KEGG ↔ PubChem ↔ ChEBI constitue encore une étape de développement.
+Cette politique privilégie l’absence de mapping à un mapping biologiquement incertain.
 
 10. RAPPORT REPRODUCTIBLE
 =========================
@@ -192,6 +209,7 @@ Chaque analyse peut enregistrer :
 - description de l’étude ;
 - correspondance des colonnes ;
 - contrôle qualité et prétraitements ;
+- diagnostic de faisabilité avant interprétation ;
 - facteurs d’ajustement ;
 - séries techniques ;
 - empreintes des fichiers d’entrée ;
@@ -227,11 +245,11 @@ Les benchmarks cherchent des résultats attendus et ne vérifient pas uniquement
 ==============================
 
 La pipeline est utilisable sur des matrices déjà produites. Les limites principales restantes sont :
-- cross-mapping chimique HMDB/KEGG/PubChem/ChEBI encore incomplet ;
-- traitement MS brut/vendor non pris en charge : peak picking, alignment, adducts/isotopes, standards internes, carry-over et corrections instrument-spécifiques restent en amont ;
-- déploiement distant du backend R à sécuriser avant données de recherche ;
-- validation externe indépendante nécessaire pour tout modèle prédictif clinique ;
-- diagnostics de faisabilité et de puissance à encore enrichir pour guider plus explicitement l’utilisateur avant le lancement d’une analyse complexe.
+- le traitement MS brut/vendor n’est pas pris en charge : peak picking, alignment, adducts/isotopes, standards internes, carry-over et corrections instrument-spécifiques restent en amont ;
+- le mapping chimique repose sur des correspondances explicites vers ChEBI et ne tente volontairement pas de résoudre automatiquement les annotations m/z/temps de rétention ambiguës ;
+- le déploiement distant du backend R doit être sécurisé avant réception de données de recherche ;
+- une validation externe indépendante reste nécessaire pour tout modèle prédictif clinique ;
+- la puissance statistique complète n’est pas automatiquement calculée : elle nécessite des hypothèses d’effet/variance et, pour les designs complexes, une simulation dédiée.
 
 ENGLISH
 =======
@@ -242,6 +260,10 @@ Examples: metadata = sample sheet; outcome = endpoint; batch = technical series;
 
 The browser pipeline implements an explicit sample-sheet contract, modality-aware QC, adjusted models, repeated-measures models, partial-block handling, balanced multiblock integration, leakage-safe cross-validated prediction, Reactome interpretation and conservative identifier resolution.
 
-The optional reference R backend currently routes DESeq2, edgeR/limma-voom, limma, lmerTest, fgsea, MOFA2 and DIABLO. Raw RNA-seq counts can be analysed with both DESeq2 and edgeR/limma-voom, with an explicit concordance summary rather than hidden method substitution.
+Pre-analysis diagnostics now summarize group balance, cross-omics subject overlap, missingness, repeated-measure completeness and batch structure. Statistical power is deliberately not inferred from sample size alone.
 
-Remaining limits include complete chemical cross-database mapping, full vendor/raw MS processing, secure remote R deployment, richer pre-analysis feasibility diagnostics and independent external clinical validation.
+The optional reference R backend routes DESeq2, edgeR/limma-voom, limma, lmerTest, fgsea, MOFA2 and DIABLO. Raw RNA-seq counts can be analysed with both DESeq2 and edgeR/limma-voom, with an explicit concordance summary rather than hidden method substitution.
+
+Metabolite mapping supports explicit HMDB, KEGG Compound and PubChem CID to ChEBI conversion through UniChem, in addition to InChIKey and conservative ChEBI/name handling. Ambiguous cross-database mappings are never forced.
+
+Remaining limits include full vendor/raw MS processing, secure remote R deployment, dedicated power simulations for complex designs and independent external clinical validation.
