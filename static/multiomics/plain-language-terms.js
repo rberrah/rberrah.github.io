@@ -8,6 +8,7 @@
       ['Relations inter-omiques', 'Relations entre les omiques'],
       ['Axe latent principal', 'Tendance principale commune'],
       ['Covariables', 'Facteurs d’ajustement'],
+      ['Covariables à ajuster', 'Facteurs à prendre en compte'],
       ['Association avec l’outcome', 'Lien avec le critère étudié'],
       ['Prédiction hors échantillon', 'Prédiction chez de nouveaux sujets'],
       ['Moteur R de référence', 'Analyse R de référence'],
@@ -30,7 +31,25 @@
       ['Temps omique utilisé pour l’outcome', 'Temps des mesures moléculaires utilisé pour étudier le critère'],
       ['Covariables / facteurs d’ajustement', 'Facteurs d’ajustement'],
       ['Batch connu ?', 'Plusieurs séries techniques sont-elles présentes ?'],
-      ['Batch', 'Série technique']
+      ['Batch', 'Série technique'],
+      ['Detected from uploaded features:', 'Type d’identifiant détecté dans le fichier :'],
+      ['Column', 'Colonne'],
+      ['Meaning', 'Signification'],
+      ['Example', 'Exemple'],
+      ['Rule', 'Règle'],
+      ['Physical biological specimen', 'Prélèvement biologique'],
+      ['Technical measurement / run', 'Mesure technique / analyse'],
+      ['Measured layer', 'Type de données mesuré'],
+      ['Experimental group', 'Groupe expérimental'],
+      ['Visit / experimental time', 'Visite / temps expérimental'],
+      ['Technical batch', 'Série technique'],
+      ['Repeated technical assay', 'Répétition technique'],
+      ['No file selected', 'Aucun fichier sélectionné'],
+      ['Required fields mapped', 'Colonnes indispensables reconnues'],
+      ['Mapping incomplete', 'Correspondance des colonnes incomplète'],
+      ['None detected from repeated sample + omic pairs.', 'Aucune répétition technique détectée pour un même prélèvement et une même omique.'],
+      ['not loaded', 'non chargée'],
+      ['matched', 'appariés']
     ]),
     en: new Map([
       ['Biological effect', 'Observed difference'],
@@ -55,13 +74,34 @@
     ])
   };
 
+  const frenchFragments = new Map([
+    ['Same value across all visits/omics for one participant, animal or culture.', 'Même valeur pour toutes les visites et toutes les omiques d’un même participant, animal ou modèle biologique.'],
+    ['Same value only when assays come from the same specimen.', 'Même valeur uniquement lorsque les analyses proviennent du même prélèvement.'],
+    ['Must match the corresponding matrix row/column identifier exactly.', 'Doit correspondre exactement à l’identifiant utilisé dans la matrice concernée.'],
+    ['Canonical values: transcriptomics, proteomics, metabolomics.', 'Valeurs attendues : transcriptomics, proteomics ou metabolomics.'],
+    ['Use one consistent vocabulary across subjects.', 'Utiliser les mêmes noms de groupes pour tous les sujets.'],
+    ['Required for longitudinal designs.', 'Nécessaire pour les études longitudinales.'],
+    ['Keep assay-specific batches even when different omics use different batches.', 'Conserver la série technique propre à chaque omique, même si elles diffèrent entre omiques.'],
+    ['Distinct assay_id, same sample_id + omic.', 'assay_id différent, mais même sample_id et même omique.'],
+    [' columns detected · delimiter: ', ' colonnes détectées · séparateur : '],
+    [' assay rows', ' lignes de mesures'],
+    ['Declared ', 'Déclaré : '],
+    ['; metadata contains ', ' ; le tableau des échantillons contient '],
+    [' data columns', ' colonnes de données'],
+    [' expected assay IDs matched.', ' identifiants de mesure attendus retrouvés.'],
+    ['Missing from matrix: ', 'Absents de la matrice : '],
+    ['Not declared in metadata: ', 'Non déclarés dans le tableau des échantillons : '],
+    ['Protocol: ', 'Plan d’étude : ']
+  ]);
+
   function language() {
     return document.documentElement.lang === 'en' ? 'en' : 'fr';
   }
 
   function replaceText(root = document.body) {
     if (!root) return;
-    const map = terms[language()];
+    const currentLanguage = language();
+    const map = terms[currentLanguage];
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -69,10 +109,16 @@
       const raw = node.nodeValue || '';
       const trimmed = raw.trim();
       const replacement = map.get(trimmed);
-      if (!replacement) continue;
-      const leading = raw.match(/^\s*/)?.[0] || '';
-      const trailing = raw.match(/\s*$/)?.[0] || '';
-      node.nodeValue = leading + replacement + trailing;
+      if (replacement) {
+        const leading = raw.match(/^\s*/)?.[0] || '';
+        const trailing = raw.match(/\s*$/)?.[0] || '';
+        node.nodeValue = leading + replacement + trailing;
+        continue;
+      }
+      if (currentLanguage !== 'fr') continue;
+      let updated = raw;
+      for (const [source, target] of frenchFragments) updated = updated.replaceAll(source, target);
+      if (updated !== raw) node.nodeValue = updated;
     }
   }
 
