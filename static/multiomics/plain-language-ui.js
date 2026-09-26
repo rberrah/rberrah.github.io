@@ -59,14 +59,8 @@
     }
   }
 
-  function renderQuickGlossary() {
-    const guide = document.querySelector('[data-testid="multiomics-sample-sheet-guide"]');
-    if (!guide || document.querySelector('[data-testid="multiomics-quick-glossary"]')) return;
-    const language = lang();
-    const glossary = document.createElement('details');
-    glossary.className = 'plain-glossary';
-    glossary.dataset.testid = 'multiomics-quick-glossary';
-    glossary.innerHTML = language === 'en'
+  function glossaryHtml(language) {
+    return language === 'en'
       ? `<summary>Quick glossary · six terms used throughout the tool</summary>
          <div class="plain-glossary-grid">
            <article><strong>Sample sheet</strong><span>Describes who, which specimen, group, time point and technical measurement. Also called metadata.</span></article>
@@ -85,7 +79,25 @@
            <article><strong>Résultat corrigé (q/FDR)</strong><span>Résultat statistique corrigé parce que beaucoup de gènes, protéines ou métabolites sont testés en même temps.</span></article>
            <article><strong>Validation croisée</strong><span>Évalue une prédiction sur des sujets qui n’ont pas servi à construire le modèle.</span></article>
          </div>`;
-    guide.insertAdjacentElement('afterend', glossary);
+  }
+
+  function renderQuickGlossary() {
+    const guide = document.querySelector('[data-testid="multiomics-sample-sheet-guide"]');
+    if (!guide) return;
+    const language = lang();
+    let glossary = document.querySelector('[data-testid="multiomics-quick-glossary"]');
+    if (!glossary) {
+      glossary = document.createElement('details');
+      glossary.className = 'plain-glossary';
+      glossary.dataset.testid = 'multiomics-quick-glossary';
+      guide.insertAdjacentElement('afterend', glossary);
+    }
+    if (glossary.dataset.language !== language) {
+      const wasOpen = glossary.hasAttribute('open');
+      glossary.innerHTML = glossaryHtml(language);
+      glossary.dataset.language = language;
+      if (wasOpen) glossary.setAttribute('open', '');
+    }
   }
 
   function statusLabel(raw, language) {
@@ -232,7 +244,13 @@
   }
 
   const observer = new MutationObserver(refresh);
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['lang']
+  });
   window.addEventListener('popstate', refresh);
   document.addEventListener('DOMContentLoaded', refresh, { once: true });
   refresh();
