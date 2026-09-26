@@ -14,6 +14,13 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(glossary).toContainText('Résultat corrigé (q/FDR)');
   await expect(glossary).toContainText('Validation croisée');
 
+  await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(glossary).toContainText('Quick glossary · six terms used throughout the tool');
+  await expect(glossary).toContainText('Technical series');
+  await expect(glossary).toContainText('Adjustment factor');
+  await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
+  await expect(glossary).toContainText('Lexique express · six mots utilisés dans tout l’outil');
+
   await expect(page.getByText('Aucun fichier sélectionné').first()).toBeVisible();
   await expect(page.getByText('Détail des colonnes du tableau des échantillons')).toBeVisible();
   await expect(page.getByText('Tableau des échantillons').first()).toBeVisible();
