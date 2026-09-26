@@ -119,7 +119,6 @@ run_diablo_blocks <- function(blocks, outcome, output_dir, ncomp = 2L, keepX = N
   invisible(list(model = fit, summary = summary))
 }
 
-
 run_deseq2_counts <- function(
   counts,
   metadata,
@@ -159,6 +158,84 @@ run_deseq2_counts <- function(
   utils::write.csv(result, file.path(output_dir, "deseq2_results.csv"), row.names = FALSE)
   saveRDS(dds, file.path(output_dir, "deseq2_model.rds"))
   invisible(list(model = dds, results = result))
+}
+
+run_voom_counts <- function(
+  counts,
+  metadata,
+  output_dir,
+  design_formula = ~ condition,
+  coefficient = NULL,
+  robust = TRUE,
+  trend = FALSE
+) {
+  require_namespace("edgeR")
+  require_namespace("limma")
+  counts <- as.matrix(counts)
+  storage.mode(counts) <- "numeric"
+  metadata <- as.data.frame(metadata)
+  if (is.null(rownames(counts)) || is.null(rownames(metadata))) {
+    stop("counts and metadata must use sample IDs as row names.", call. = FALSE)
+  }
+  common <- intersect(rownames(counts), rownames(metadata))
+  if (length(common) < 3L) stop("At least three matched samples are required.", call. = FALSE)
+  x <- counts[common, , drop = FALSE]
+  meta <- metadata[common, , drop = FALSE]
+  design <- stats::model.matrix(design_formula, data = meta)
+
+  y <- edgeR::DGEList(counts = round(t(x)))
+  keep <- edgeR::filterByExpr(y, design = design)
+  if (!any(keep)) stop("edgeR::filterByExpr removed all genes.", call. = FALSE)
+  y <- y[keep, , keep.lib.sizes = FALSE]
+  y <- edgeR::calcNormFactors(y, method = "TMM")
+  voom <- limma::voom(y, design = design, plot = FALSE)
+  fit <- limma::lmFit(voom, design)
+  fit <- limma::eBayes(fit, robust = robust, trend = trend)
+  if (is.null(coefficient)) coefficient <- ncol(design)
+  result <- limma::topTable(fit, coef = coefficient, number = Inf, sort.by = "P")
+  result <- data.frame(feature = rownames(result), result, row.names = NULL, check.names = FALSE)
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "voom_results.csv"), row.names = FALSE)
+  utils::write.csv(data.frame(feature = rownames(voom$E), voom$E, check.names = FALSE), file.path(output_dir, "voom_logcpm.csv"), row.names = FALSE)
+  saveRDS(list(dge = y, voom = voom, fit = fit, design = design), file.path(output_dir, "voom_model.rds"))
+  invisible(list(model = fit, results = result, design = design, voom = voom, dge = y))
+}
+
+compare_rnaseq_methods <- function(deseq_results, voom_results, alpha = 0.05) {
+  a <- as.data.frame(deseq_results, stringsAsFactors = FALSE)
+  b <- as.data.frame(voom_results, stringsAsFactors = FALSE)
+  if (!all(c("feature", "stat", "padj") %in% names(a)) ||
+      !all(c("feature", "t", "adj.P.Val") %in% names(b))) {
+    return(list(status = "unavailable", message = "Required DESeq2/voom result columns were not available."))
+  }
+  merged <- merge(
+    a[, c("feature", "stat", "padj")],
+    b[, c("feature", "t", "adj.P.Val")],
+    by = "feature",
+    all = FALSE
+  )
+  names(merged) <- c("feature", "deseq2_stat", "deseq2_q", "voom_t", "voom_q")
+  valid <- is.finite(merged$deseq2_stat) & is.finite(merged$voom_t)
+  rho <- if (sum(valid) >= 3L) suppressWarnings(stats::cor(merged$deseq2_stat[valid], merged$voom_t[valid], method = "spearman")) else NA_real_
+  sig_a <- is.finite(merged$deseq2_q) & merged$deseq2_q <= alpha
+  sig_b <- is.finite(merged$voom_q) & merged$voom_q <= alpha
+  union_sig <- sig_a | sig_b
+  sign_agreement <- if (any(union_sig)) mean(sign(merged$deseq2_stat[union_sig]) == sign(merged$voom_t[union_sig]), na.rm = TRUE) else NA_real_
+  overlap <- sum(sig_a & sig_b)
+  union_n <- sum(union_sig)
+  jaccard <- if (union_n > 0L) overlap / union_n else NA_real_
+  list(
+    status = "ok",
+    common_features = nrow(merged),
+    spearman_statistics = unname(rho),
+    deseq2_significant = sum(sig_a),
+    voom_significant = sum(sig_b),
+    significant_overlap = overlap,
+    significant_jaccard = jaccard,
+    sign_agreement_among_any_significant = sign_agreement,
+    alpha = alpha
+  )
 }
 
 run_limma_matrix <- function(
