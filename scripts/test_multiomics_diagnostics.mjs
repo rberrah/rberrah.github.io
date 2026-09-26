@@ -64,7 +64,7 @@ const result = await runDeterministicAnalysis({
 });
 
 assert.ok(result.preAnalysisDiagnostics);
-assert.equal(result.engine.version, '1.5.0');
+assert.equal(result.engine.version, '1.5.1');
 assert.equal(result.preAnalysisDiagnostics.groupBalance.subjectsPerGroup.A, 3);
 assert.equal(result.preAnalysisDiagnostics.groupBalance.subjectsPerGroup.B, 3);
 assert.equal(result.preAnalysisDiagnostics.groupBalance.smallestToLargestRatio, 1);
