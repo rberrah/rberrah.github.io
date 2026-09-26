@@ -32,10 +32,10 @@
     {
       fr: 'Étudier le temps',
       en: 'Study time',
-      methodFr: 'Changement ou pente intra-sujet',
-      methodEn: 'Within-subject change or slope',
-      detailFr: 'Deux temps utilisent un changement individuel ; trois temps ou plus une pente individuelle avant comparaison entre conditions.',
-      detailEn: 'Two time points use individual change; three or more use individual slopes before comparing conditions.'
+      methodFr: 'Modèle longitudinal intra-sujet',
+      methodEn: 'Within-subject longitudinal model',
+      detailFr: 'Les mesures répétées sont reliées au même sujet et le moteur tient compte explicitement de la structure temporelle.',
+      detailEn: 'Repeated measurements are linked to the same subject and the engine explicitly accounts for longitudinal structure.'
     }
   ];
 </script>
@@ -49,12 +49,51 @@
   <p class="eyebrow">{t('Multi-omique · prototype de recherche', 'Multi-omics · research prototype')}</p>
   <h1>{t('Intégrer plusieurs omiques sans boîte noire narrative.', 'Integrate multiple omics without a narrative black box.')}</h1>
   <p class="lede">{t(
-    'PMx Explain relie le design expérimental, les métadonnées, les matrices omiques et des bases scientifiques publiques dans un workflow déterministe. Aucun LLM ne décide de la méthode ou de l’interprétation statistique.',
-    'PMx Explain connects study design, metadata, omics matrices and public scientific databases in a deterministic workflow. No LLM chooses the statistical method or interpretation.'
+    'PMx Explain relie le design expérimental, un tableau des échantillons, les matrices omiques et des bases scientifiques publiques dans un workflow déterministe. Aucun LLM ne décide de la méthode ou de l’interprétation statistique.',
+    'PMx Explain connects study design, a sample sheet, omics matrices and public scientific databases in a deterministic workflow. No LLM chooses the statistical method or interpretation.'
   )}</p>
   <div class="actions">
     <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Ouvrir l’outil', 'Open the tool')}</a>
     <a class="btn btn-outline" href={`${base}/multiomics/README.txt`} target="_blank">{t('Voir le contrat de données', 'Read the data contract')}</a>
+  </div>
+</section>
+
+<section class="panel sample-sheet-intro">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
+      <h2>{t('“Metadata” = le tableau qui décrit vos échantillons', '“Metadata” = the table that describes your samples')}</h2>
+    </div>
+    <p>{t('Dans cet outil, le terme metadata ne désigne pas les valeurs RNA, protéines ou métabolites. Il désigne le tableau de correspondance qui permet de savoir à quoi correspond chaque colonne des matrices.', 'In this tool, metadata does not mean the RNA, protein or metabolite values. It means the sample-mapping table that tells the application what each matrix column represents.')}</p>
+  </div>
+
+  <div class="data-kind-grid">
+    <article class="sample-sheet-card">
+      <span class="kind-tag">{t('Tableau des échantillons · sample sheet', 'Sample sheet · metadata')}</span>
+      <h3>{t('Il décrit le contexte', 'It describes the context')}</h3>
+      <p>{t('Qui ? Quel prélèvement ? Quelle mesure ? Quel groupe ? Quel temps ? Quel batch ? Il ne contient pas les milliers de valeurs moléculaires.', 'Who? Which specimen? Which assay? Which group? Which time point? Which batch? It does not contain the thousands of molecular values.')}</p>
+      <code>subject_id · sample_id · assay_id · omic · condition · timepoint</code>
+    </article>
+    <article>
+      <span class="kind-tag">{t('Matrices omiques', 'Omics matrices')}</span>
+      <h3>{t('Elles contiennent les mesures', 'They contain the measurements')}</h3>
+      <p>{t('Une matrice RNA, une matrice protéomique, une matrice métabolomique. Les lignes sont les variables biologiques et les colonnes sont les mesures techniques.', 'An RNA matrix, a proteomics matrix and a metabolomics matrix. Rows are biological features and columns are technical assays.')}</p>
+      <code>feature_id · RNA001 · RNA002 · …</code>
+    </article>
+  </div>
+
+  <div class="link-example">
+    <div class="example-title">
+      <strong>{t('Exemple : un même prélèvement mesuré dans trois omiques', 'Example: one specimen measured in three omics layers')}</strong>
+      <span>{t('Le lien avec les matrices se fait par assay_id.', 'The matrices are linked through assay_id.')}</span>
+    </div>
+    <div class="example-table" role="table" aria-label={t('Exemple de tableau des échantillons', 'Example sample sheet')}>
+      <div class="example-head"><b>subject_id</b><b>sample_id</b><b>assay_id</b><b>omic</b><b>condition</b><b>timepoint</b></div>
+      <div><code>P001</code><code>P001_T0</code><code>RNA001</code><span>transcriptomics</span><span>control</span><span>T0</span></div>
+      <div><code>P001</code><code>P001_T0</code><code>PROT001</code><span>proteomics</span><span>control</span><span>T0</span></div>
+      <div><code>P001</code><code>P001_T0</code><code>MET001</code><span>metabolomics</span><span>control</span><span>T0</span></div>
+    </div>
+    <p class="note">{t('Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures techniques différentes de ce prélèvement. Chacun de ces assay_id doit retrouver exactement une colonne dans la matrice correspondante.', 'Read it as follows: P001 is the same person; P001_T0 is the same specimen; RNA001, PROT001 and MET001 are three different technical assays of that specimen. Each assay_id must match exactly one column in the corresponding matrix.')}</p>
   </div>
 </section>
 
@@ -81,17 +120,18 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('De la donnée au résultat', 'From data to result')}</p>
-      <h2>{t('Un contrat explicite pour éviter les rapprochements implicites', 'An explicit contract to avoid implicit matching')}</h2>
+      <p class="eyebrow">{t('Comment lire le tableau des échantillons', 'How to read the sample sheet')}</p>
+      <h2>{t('Trois identifiants suffisent à comprendre la structure', 'Three identifiers explain the structure')}</h2>
     </div>
+    <p>{t('Pensez à trois niveaux : la personne ou l’unité biologique, le prélèvement physique, puis la mesure technique qui devient une colonne de matrice.', 'Think in three levels: the person or biological unit, the physical specimen, then the technical assay that becomes a matrix column.')}</p>
   </div>
   <div class="flow">
-    <article><b>subject_id</b><p>{t('Unité biologique indépendante.', 'Independent biological unit.')}</p></article>
-    <article><b>sample_id</b><p>{t('Prélèvement biologique physique.', 'Physical biological specimen.')}</p></article>
-    <article><b>assay_id</b><p>{t('Mesure technique correspondant à une colonne de matrice.', 'Technical assay corresponding to a matrix column.')}</p></article>
-    <article><b>omic</b><p>{t('Transcriptomique, protéomique ou métabolomique.', 'Transcriptomics, proteomics or metabolomics.')}</p></article>
+    <article><b>subject_id</b><p>{t('Qui ? Même personne, animal ou culture entre plusieurs visites.', 'Who? The same person, animal or culture across visits.')}</p></article>
+    <article><b>sample_id</b><p>{t('Quel prélèvement ? Le tube, tissu ou aliquot biologique effectivement prélevé.', 'Which specimen? The actual biological tube, tissue or aliquot collected.')}</p></article>
+    <article><b>assay_id</b><p>{t('Quelle mesure ? Le run ou dosage qui correspond exactement à une colonne de matrice.', 'Which assay? The run or measurement that exactly matches a matrix column.')}</p></article>
+    <article><b>omic</b><p>{t('Quelle couche ? Transcriptomique, protéomique ou métabolomique.', 'Which layer? Transcriptomics, proteomics or metabolomics.')}</p></article>
   </div>
-  <p class="note">{t('Les réplicats techniques partagent sample_id + omic mais gardent des assay_id distincts. Les sujets partiellement couverts entre omiques ne sont jamais appariés par similarité de nom.', 'Technical replicates share sample_id + omic but keep distinct assay_id values. Partially covered subjects are never matched by fuzzy name similarity.')}</p>
+  <p class="note">{t('Le mot “metadata” est donc seulement un raccourci technique pour ce tableau des échantillons. L’outil n’essaie jamais de deviner qu’un nom ressemblant correspond au même sujet ou au même prélèvement.', 'The word “metadata” is therefore only a technical shorthand for this sample sheet. The tool never guesses that similar-looking names correspond to the same subject or specimen.')}</p>
 </section>
 
 <section class="panel">
@@ -149,6 +189,19 @@
   .panel { border-top:1px solid var(--border-strong); padding-top:var(--space-6); margin-top:var(--space-10); }
   .section-head { display:flex; justify-content:space-between; gap:var(--space-6); align-items:end; margin-bottom:var(--space-5); }
   .section-head > p { color:var(--text-secondary); max-width:48ch; margin:0; }
+  .sample-sheet-intro { border-top:3px solid var(--accent-pk); }
+  .data-kind-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-4); }
+  .data-kind-grid article { padding:var(--space-5); border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-secondary); }
+  .sample-sheet-card { border-color:var(--accent-pk) !important; }
+  .kind-tag { display:inline-block; margin-bottom:var(--space-3); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--accent-pk); }
+  .data-kind-grid code { display:block; margin-top:var(--space-3); color:var(--text-secondary); white-space:normal; }
+  .link-example { margin-top:var(--space-5); padding:var(--space-5); border:1px solid var(--border-strong); border-radius:var(--radius); overflow-x:auto; }
+  .example-title { display:flex; justify-content:space-between; gap:var(--space-4); align-items:baseline; margin-bottom:var(--space-3); }
+  .example-title span { color:var(--text-secondary); font-size:var(--text-sm); }
+  .example-table { min-width:720px; border:1px solid var(--border-subtle); }
+  .example-table > div { display:grid; grid-template-columns:.8fr 1fr .9fr 1.2fr .9fr .7fr; }
+  .example-table > div > * { padding:8px 10px; border-right:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); overflow:hidden; text-overflow:ellipsis; }
+  .example-head { background:var(--bg-secondary); }
   .branch-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-4); }
   .branch-grid article, .two-col article { padding:var(--space-5); border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-secondary); }
   .branch-grid article > span { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--accent-pk); }
@@ -163,7 +216,7 @@
   .validation { margin-bottom:var(--space-12); }
   .validation > p { max-width:70ch; color:var(--text-secondary); }
   @media (max-width:700px) {
-    .section-head { align-items:start; flex-direction:column; }
-    .branch-grid, .flow, .two-col, .interpret { grid-template-columns:1fr; }
+    .section-head, .example-title { align-items:start; flex-direction:column; }
+    .branch-grid, .flow, .two-col, .interpret, .data-kind-grid { grid-template-columns:1fr; }
   }
 </style>
