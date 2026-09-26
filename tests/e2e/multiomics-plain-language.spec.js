@@ -29,4 +29,10 @@ test('multi-omics result summary uses plain-language study checks', async ({ pag
 
   await expect(page.getByText('Vérification des séries techniques')).toBeVisible();
   await expect(page.getByText('Audit des batches techniques')).toHaveCount(0);
+
+  const interpretation = page.getByTestId('multiomics-interpretation');
+  await expect(interpretation).toContainText('Différence observée');
+  await expect(interpretation).toContainText('Résultat après correction statistique');
+  await expect(interpretation).not.toContainText('Effet biologique');
+  await expect(interpretation).not.toContainText('Significativité');
 });
