@@ -26,9 +26,9 @@ test('outcome workflow requires an explicit omics time point when multiple visit
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
 
   await page.getByLabel(/Objectif principal|Main objective/).selectOption('outcome');
-  await page.getByLabel(/Type d.outcome principal|Primary outcome type/).selectOption('binary');
+  await page.getByLabel(/Type de critère étudié|Type d.outcome principal|Primary outcome type/).selectOption('binary');
 
-  const timepoint = page.getByLabel(/Temps omique utilisé|Omics time point used/);
+  const timepoint = page.getByLabel(/Temps des mesures moléculaires|Temps omique utilisé|Omics time point used/);
   await expect(timepoint).toBeVisible();
   await expect(timepoint).toHaveValue('');
   await timepoint.selectOption('T0');
