@@ -59,6 +59,35 @@
     }
   }
 
+  function renderQuickGlossary() {
+    const guide = document.querySelector('[data-testid="multiomics-sample-sheet-guide"]');
+    if (!guide || document.querySelector('[data-testid="multiomics-quick-glossary"]')) return;
+    const language = lang();
+    const glossary = document.createElement('details');
+    glossary.className = 'plain-glossary';
+    glossary.dataset.testid = 'multiomics-quick-glossary';
+    glossary.innerHTML = language === 'en'
+      ? `<summary>Quick glossary · six terms used throughout the tool</summary>
+         <div class="plain-glossary-grid">
+           <article><strong>Sample sheet</strong><span>Describes who, which specimen, group, time point and technical measurement. Also called metadata.</span></article>
+           <article><strong>Matrix</strong><span>The table of measured RNA, protein or metabolite values.</span></article>
+           <article><strong>Technical series</strong><span>Plate, run, day or analytical batch that may create non-biological differences.</span></article>
+           <article><strong>Adjustment factor</strong><span>A variable such as age, sex or centre that you explicitly ask the model to account for.</span></article>
+           <article><strong>Adjusted result (q/FDR)</strong><span>A statistical result corrected because many genes, proteins or metabolites were tested at once.</span></article>
+           <article><strong>Cross-validation</strong><span>Tests prediction on subjects that were not used to build the model.</span></article>
+         </div>`
+      : `<summary>Lexique express · six mots utilisés dans tout l’outil</summary>
+         <div class="plain-glossary-grid">
+           <article><strong>Tableau des échantillons</strong><span>Décrit qui a été étudié, quel prélèvement, quel groupe, quel temps et quelle mesure. C’est ce que certains logiciels appellent « metadata ».</span></article>
+           <article><strong>Matrice</strong><span>Tableau contenant les valeurs RNA, protéines ou métabolites réellement mesurées.</span></article>
+           <article><strong>Série technique</strong><span>Plaque, run, jour ou lot d’analyse pouvant créer des différences qui ne sont pas biologiques.</span></article>
+           <article><strong>Facteur d’ajustement</strong><span>Variable comme l’âge, le sexe ou le centre que vous demandez explicitement au modèle de prendre en compte.</span></article>
+           <article><strong>Résultat corrigé (q/FDR)</strong><span>Résultat statistique corrigé parce que beaucoup de gènes, protéines ou métabolites sont testés en même temps.</span></article>
+           <article><strong>Validation croisée</strong><span>Évalue une prédiction sur des sujets qui n’ont pas servi à construire le modèle.</span></article>
+         </div>`;
+    guide.insertAdjacentElement('afterend', glossary);
+  }
+
   function statusLabel(raw, language) {
     const value = String(raw || '').trim().toLowerCase().replaceAll('_', ' ');
     const labels = language === 'en'
@@ -171,6 +200,8 @@
     const style = document.createElement('style');
     style.id = 'multiomics-plain-language-style';
     style.textContent = `
+      .plain-glossary{max-width:1180px;margin:10px auto 20px;padding:0 18px}.plain-glossary>summary{cursor:pointer;font-weight:700;padding:11px 13px;border:1px solid var(--border-subtle,#ddd);border-radius:9px;background:var(--bg-secondary,#f7f7f7)}
+      .plain-glossary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:9px}.plain-glossary-grid article{padding:11px;border:1px solid var(--border-subtle,#ddd);border-radius:9px;background:var(--bg-primary,#fff)}.plain-glossary-grid strong,.plain-glossary-grid span{display:block}.plain-glossary-grid span{margin-top:5px;font-size:.88rem;line-height:1.4;color:var(--text-secondary,#555)}
       .plain-readiness{margin:18px 0;padding:18px;border:1px solid var(--border-strong,#c9c9c9);background:var(--bg-secondary,#f7f7f7);border-radius:12px}
       .plain-readiness-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:8px}
       .plain-readiness-head span{font-size:.76rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}
@@ -181,7 +212,7 @@
       .plain-readiness-grid article{padding:12px;border:1px solid var(--border-subtle,#ddd);background:var(--bg-primary,#fff);border-radius:9px}
       .plain-readiness-grid strong,.plain-readiness-grid span{display:block}.plain-readiness-grid span{margin-top:6px;font-size:.9rem;line-height:1.45;color:var(--text-secondary,#555)}
       .plain-readiness details{margin-top:12px}.plain-readiness summary{cursor:pointer;font-weight:650}.plain-readiness details p{margin:8px 0 0;color:var(--text-secondary,#555)}
-      @media(max-width:760px){.plain-readiness-grid{grid-template-columns:1fr}.plain-readiness-head{flex-direction:column}.plain-readiness-head b{white-space:normal}}
+      @media(max-width:760px){.plain-glossary-grid,.plain-readiness-grid{grid-template-columns:1fr}.plain-readiness-head{flex-direction:column}.plain-readiness-head b{white-space:normal}}
     `;
     document.head.appendChild(style);
   }
@@ -195,6 +226,7 @@
       if (!isTool()) return;
       installStyle();
       replaceExactText(document.body);
+      renderQuickGlossary();
       renderReadiness();
     });
   }
