@@ -27,16 +27,45 @@ function jsonResponse(value, status = 200) {
   assert.equal(seen.length, 1);
 }
 
-// KEGG Compound -> ChEBI uses KEGG Ligand source 6 and ChEBI source 7.
+// KEGG Compound is no longer routed through the retired UniChem KEGG source.
+// A ChEBI search is accepted only when it returns one unique ChEBI accession.
 {
   const fetchFn = async (input) => {
-    const url = String(input);
-    assert.match(url, /unichem\/rest\/src_compound_id\/C07430\/6\/7$/);
-    return jsonResponse([{ src_compound_id: 'CHEBI:8060' }]);
+    const url = new URL(String(input));
+    assert.equal(url.hostname, 'www.ebi.ac.uk');
+    assert.match(url.pathname, /chebi\/backend\/api\/public\/es_search/);
+    assert.equal(url.searchParams.get('term'), 'C07430');
+    return jsonResponse({
+      results: [{
+        _source: {
+          chebi_accession: 'CHEBI:8060',
+          name: 'example',
+          ascii_name: 'example',
+          stars: 3
+        }
+      }]
+    });
   };
   const result = await resolveMetaboliteIdentifier('C07430', { fetchFn, identifierType: 'kegg_compound' });
   assert.equal(result.resolved, 'CHEBI:8060');
-  assert.equal(result.method, 'unichem_kegg_to_chebi');
+  assert.equal(result.status, 'resolved_external_id');
+  assert.equal(result.method, 'chebi_exact_kegg_xref_search');
+}
+
+// Multiple ChEBI hits for one KEGG identifier remain ambiguous instead of
+// silently choosing the first search result.
+{
+  const fetchFn = async () => jsonResponse({
+    results: [
+      { _source: { chebi_accession: 'CHEBI:111', name: 'a', ascii_name: 'a' } },
+      { _source: { chebi_accession: 'CHEBI:222', name: 'b', ascii_name: 'b' } }
+    ]
+  });
+  const result = await resolveMetaboliteIdentifier('C99999', { fetchFn, identifierType: 'kegg_compound' });
+  assert.equal(result.resolved, null);
+  assert.equal(result.status, 'ambiguous');
+  assert.equal(result.method, 'chebi_exact_kegg_xref_search');
+  assert.deepEqual(result.candidates, ['CHEBI:111', 'CHEBI:222']);
 }
 
 // Numeric PubChem CIDs are mapped only when the identifier type explicitly says PubChem.
