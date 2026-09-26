@@ -6,37 +6,46 @@
 
   const branches = [
     {
-      fr: 'Explorer sans outcome',
-      en: 'Explore without an outcome',
-      methodFr: 'ACP multi-blocs équilibrée',
-      methodEn: 'Balanced multi-block PCA',
-      detailFr: 'Recherche des axes latents partagés entre transcriptomique, protéomique et métabolomique après standardisation et équilibrage des blocs.',
-      detailEn: 'Find shared latent axes across transcriptomics, proteomics and metabolomics after within-layer standardization and block balancing.'
+      fr: 'Explorer les données',
+      en: 'Explore the data',
+      methodFr: 'Résumé des tendances communes',
+      methodEn: 'Summary of shared trends',
+      detailFr: 'L’outil résume les grandes variations communes entre transcriptomique, protéomique et métabolomique. La méthode statistique utilisée est une ACP multi-blocs équilibrée.',
+      detailEn: 'The tool summarizes the main shared patterns across transcriptomics, proteomics and metabolomics. The statistical method is a balanced multi-block PCA.'
     },
     {
       fr: 'Comparer des groupes',
       en: 'Compare groups',
-      methodFr: 'Contrastes ajustés au design',
-      methodEn: 'Design-aware adjusted contrasts',
-      detailFr: 'Réplicats techniques, batches, covariables, groupes indépendants/appariés et longitudinalité sont traités selon des règles explicites.',
-      detailEn: 'Technical replicates, batches, covariates, independent/paired groups and longitudinal structure are handled by explicit rules.'
+      methodFr: 'Comparaison adaptée au plan d’étude',
+      methodEn: 'Study-design-aware comparison',
+      detailFr: 'L’outil tient compte des répétitions techniques, des séries expérimentales, des facteurs d’ajustement et du caractère indépendant, apparié ou longitudinal des données.',
+      detailEn: 'The tool accounts for technical replicates, experimental batches, adjustment factors and whether data are independent, paired or longitudinal.'
     },
     {
-      fr: 'Expliquer un outcome',
-      en: 'Explain an outcome',
-      methodFr: 'Régression selon le type de critère',
-      methodEn: 'Outcome-specific regression',
-      detailFr: 'Régression linéaire, logistique, Poisson, ANOVA multiclasse ou Cox selon le critère déclaré, avec correction BH-FDR.',
-      detailEn: 'Linear, logistic, Poisson, multiclass ANOVA or Cox regression is selected from the declared endpoint, with BH-FDR correction.'
+      fr: 'Relier les données à un critère clinique',
+      en: 'Link data to an endpoint',
+      methodFr: 'Association avec un critère',
+      methodEn: 'Association with an endpoint',
+      detailFr: 'Selon le type de critère, l’outil choisit automatiquement le modèle statistique adapté : continu, oui/non, comptage, plusieurs catégories ou survie.',
+      detailEn: 'Depending on the endpoint type, the tool automatically selects the appropriate statistical model: continuous, yes/no, count, multiclass or survival.'
     },
     {
-      fr: 'Étudier le temps',
-      en: 'Study time',
-      methodFr: 'Modèle longitudinal intra-sujet',
-      methodEn: 'Within-subject longitudinal model',
-      detailFr: 'Les mesures répétées sont reliées au même sujet et le moteur tient compte explicitement de la structure temporelle.',
-      detailEn: 'Repeated measurements are linked to the same subject and the engine explicitly accounts for longitudinal structure.'
+      fr: 'Étudier l’évolution dans le temps',
+      en: 'Study changes over time',
+      methodFr: 'Suivi des mesures chez un même sujet',
+      methodEn: 'Repeated-measure follow-up',
+      detailFr: 'Les mesures répétées d’une même personne, d’un même animal ou d’une même culture sont reliées afin d’étudier leur évolution dans le temps.',
+      detailEn: 'Repeated measurements from the same person, animal or culture are linked to study their evolution over time.'
     }
+  ];
+
+  const glossary = [
+    ['Metadata', 'Tableau des échantillons', 'Sample sheet'],
+    ['Outcome', 'Critère étudié / résultat clinique', 'Endpoint / outcome'],
+    ['Batch', 'Série technique ou expérimentale', 'Technical or experimental batch'],
+    ['Covariable', 'Facteur à prendre en compte dans l’analyse', 'Adjustment variable'],
+    ['Feature', 'Variable biologique mesurée : gène, protéine ou métabolite', 'Measured biological feature'],
+    ['q BH / FDR', 'Résultat statistique corrigé pour les nombreux tests réalisés', 'Multiple-testing corrected statistical result']
   ];
 </script>
 
@@ -47,14 +56,14 @@
 
 <section class="hero">
   <p class="eyebrow">{t('Multi-omique · prototype de recherche', 'Multi-omics · research prototype')}</p>
-  <h1>{t('Intégrer plusieurs omiques sans boîte noire narrative.', 'Integrate multiple omics without a narrative black box.')}</h1>
+  <h1>{t('Analyser plusieurs omiques avec des règles explicites.', 'Analyze multiple omics with explicit rules.')}</h1>
   <p class="lede">{t(
-    'PMx Explain relie le design expérimental, un tableau des échantillons, les matrices omiques et des bases scientifiques publiques dans un workflow déterministe. Aucun LLM ne décide de la méthode ou de l’interprétation statistique.',
-    'PMx Explain connects study design, a sample sheet, omics matrices and public scientific databases in a deterministic workflow. No LLM chooses the statistical method or interpretation.'
+    'PMx Explain relie votre plan d’étude, le tableau qui décrit vos échantillons, vos matrices RNA/protéines/métabolites et des bases scientifiques publiques. Les choix d’analyse suivent des règles prédéfinies et auditables ; aucun LLM ne choisit la méthode statistique.',
+    'PMx Explain connects your study plan, the table describing your samples, your RNA/protein/metabolite matrices and public scientific databases. Analysis choices follow predefined auditable rules; no LLM chooses the statistical method.'
   )}</p>
   <div class="actions">
     <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Ouvrir l’outil', 'Open the tool')}</a>
-    <a class="btn btn-outline" href={`${base}/multiomics/README.txt`} target="_blank">{t('Voir le contrat de données', 'Read the data contract')}</a>
+    <a class="btn btn-outline" href={`${base}/multiomics/README.txt`} target="_blank">{t('Voir le format des fichiers', 'See file formats')}</a>
   </div>
 </section>
 
@@ -62,22 +71,22 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
-      <h2>{t('“Metadata” = le tableau qui décrit vos échantillons', '“Metadata” = the table that describes your samples')}</h2>
+      <h2>{t('Le tableau des échantillons relie vos fichiers entre eux', 'The sample sheet links your files together')}</h2>
     </div>
-    <p>{t('Dans cet outil, le terme metadata ne désigne pas les valeurs RNA, protéines ou métabolites. Il désigne le tableau de correspondance qui permet de savoir à quoi correspond chaque colonne des matrices.', 'In this tool, metadata does not mean the RNA, protein or metabolite values. It means the sample-mapping table that tells the application what each matrix column represents.')}</p>
+    <p>{t('Ce tableau est parfois appelé “metadata”. Il ne contient pas les valeurs RNA, protéines ou métabolites : il indique simplement à quoi correspond chaque colonne des matrices.', 'This table is sometimes called “metadata”. It does not contain RNA, protein or metabolite values: it simply tells the application what each matrix column represents.')}</p>
   </div>
 
   <div class="data-kind-grid">
     <article class="sample-sheet-card">
-      <span class="kind-tag">{t('Tableau des échantillons · sample sheet', 'Sample sheet · metadata')}</span>
+      <span class="kind-tag">{t('Tableau des échantillons', 'Sample sheet')}</span>
       <h3>{t('Il décrit le contexte', 'It describes the context')}</h3>
-      <p>{t('Qui ? Quel prélèvement ? Quelle mesure ? Quel groupe ? Quel temps ? Quel batch ? Il ne contient pas les milliers de valeurs moléculaires.', 'Who? Which specimen? Which assay? Which group? Which time point? Which batch? It does not contain the thousands of molecular values.')}</p>
+      <p>{t('Qui ? Quel prélèvement ? Quelle mesure ? Quel groupe ? Quel moment ? Quelle série technique ? Il ne contient pas les milliers de valeurs moléculaires.', 'Who? Which specimen? Which assay? Which group? Which time point? Which technical batch? It does not contain the thousands of molecular values.')}</p>
       <code>subject_id · sample_id · assay_id · omic · condition · timepoint</code>
     </article>
     <article>
-      <span class="kind-tag">{t('Matrices omiques', 'Omics matrices')}</span>
-      <h3>{t('Elles contiennent les mesures', 'They contain the measurements')}</h3>
-      <p>{t('Une matrice RNA, une matrice protéomique, une matrice métabolomique. Les lignes sont les variables biologiques et les colonnes sont les mesures techniques.', 'An RNA matrix, a proteomics matrix and a metabolomics matrix. Rows are biological features and columns are technical assays.')}</p>
+      <span class="kind-tag">{t('Matrices de mesures', 'Measurement matrices')}</span>
+      <h3>{t('Elles contiennent les valeurs biologiques', 'They contain biological measurements')}</h3>
+      <p>{t('Une matrice RNA, une matrice protéomique et/ou une matrice métabolomique. Les lignes correspondent aux gènes, protéines ou métabolites ; les colonnes correspondent aux mesures de vos échantillons.', 'An RNA, proteomics and/or metabolomics matrix. Rows correspond to genes, proteins or metabolites; columns correspond to measurements from your samples.')}</p>
       <code>feature_id · RNA001 · RNA002 · …</code>
     </article>
   </div>
@@ -85,7 +94,7 @@
   <div class="link-example">
     <div class="example-title">
       <strong>{t('Exemple : un même prélèvement mesuré dans trois omiques', 'Example: one specimen measured in three omics layers')}</strong>
-      <span>{t('Le lien avec les matrices se fait par assay_id.', 'The matrices are linked through assay_id.')}</span>
+      <span>{t('assay_id indique quelle colonne de matrice correspond à chaque mesure.', 'assay_id indicates which matrix column corresponds to each assay.')}</span>
     </div>
     <div class="example-table" role="table" aria-label={t('Exemple de tableau des échantillons', 'Example sample sheet')}>
       <div class="example-head"><b>subject_id</b><b>sample_id</b><b>assay_id</b><b>omic</b><b>condition</b><b>timepoint</b></div>
@@ -93,7 +102,25 @@
       <div><code>P001</code><code>P001_T0</code><code>PROT001</code><span>proteomics</span><span>control</span><span>T0</span></div>
       <div><code>P001</code><code>P001_T0</code><code>MET001</code><span>metabolomics</span><span>control</span><span>T0</span></div>
     </div>
-    <p class="note">{t('Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures techniques différentes de ce prélèvement. Chacun de ces assay_id doit retrouver exactement une colonne dans la matrice correspondante.', 'Read it as follows: P001 is the same person; P001_T0 is the same specimen; RNA001, PROT001 and MET001 are three different technical assays of that specimen. Each assay_id must match exactly one column in the corresponding matrix.')}</p>
+    <p class="note">{t('Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes de ce prélèvement. Chaque assay_id doit correspondre exactement à une colonne de la matrice concernée.', 'Read it as follows: P001 is the same person; P001_T0 is the same specimen; RNA001, PROT001 and MET001 are three different assays of that specimen. Each assay_id must match exactly one column in the relevant matrix.')}</p>
+  </div>
+</section>
+
+<section class="panel glossary-panel">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{t('Vocabulaire', 'Vocabulary')}</p>
+      <h2>{t('Les termes techniques sont traduits en langage courant', 'Technical terms are translated into plain language')}</h2>
+    </div>
+    <p>{t('Dans l’outil, le terme simple doit être affiché en premier. Le terme statistique reste disponible dans l’aide “?” ou entre parenthèses lorsqu’il est nécessaire pour la reproductibilité.', 'In the tool, the plain-language term should be shown first. The statistical term remains available in “?” help or in parentheses when needed for reproducibility.')}</p>
+  </div>
+  <div class="glossary-grid">
+    {#each glossary as item}
+      <div>
+        <code>{item[0]}</code>
+        <strong>{$language === 'en' ? item[2] : item[1]}</strong>
+      </div>
+    {/each}
   </div>
 </section>
 
@@ -101,9 +128,9 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{t('Principe', 'Principle')}</p>
-      <h2>{t('La question scientifique choisit la branche analytique', 'The scientific question selects the analytical branch')}</h2>
+      <h2>{t('Votre question scientifique choisit l’analyse', 'Your scientific question selects the analysis')}</h2>
     </div>
-    <p>{t('L’utilisateur décrit le protocole et les données. Le moteur applique ensuite des règles statistiques prédéfinies et auditables.', 'The user describes the study and data. The engine then applies predefined, auditable statistical rules.')}</p>
+    <p>{t('Vous décrivez l’étude et les données. Le moteur choisit ensuite une branche d’analyse selon des règles fixes et explicables.', 'You describe the study and data. The engine then selects an analysis branch using fixed, explainable rules.')}</p>
   </div>
 
   <div class="branch-grid">
@@ -121,34 +148,33 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{t('Comment lire le tableau des échantillons', 'How to read the sample sheet')}</p>
-      <h2>{t('Trois identifiants suffisent à comprendre la structure', 'Three identifiers explain the structure')}</h2>
+      <h2>{t('Quatre colonnes expliquent l’essentiel', 'Four columns explain the essentials')}</h2>
     </div>
-    <p>{t('Pensez à trois niveaux : la personne ou l’unité biologique, le prélèvement physique, puis la mesure technique qui devient une colonne de matrice.', 'Think in three levels: the person or biological unit, the physical specimen, then the technical assay that becomes a matrix column.')}</p>
+    <p>{t('Pensez simplement : qui a été étudié, quel prélèvement a été réalisé, quelle mesure correspond à la colonne de matrice, et de quel type d’omique il s’agit.', 'Think simply: who was studied, which specimen was collected, which assay matches the matrix column, and which omics layer it belongs to.')}</p>
   </div>
   <div class="flow">
-    <article><b>subject_id</b><p>{t('Qui ? Même personne, animal ou culture entre plusieurs visites.', 'Who? The same person, animal or culture across visits.')}</p></article>
-    <article><b>sample_id</b><p>{t('Quel prélèvement ? Le tube, tissu ou aliquot biologique effectivement prélevé.', 'Which specimen? The actual biological tube, tissue or aliquot collected.')}</p></article>
-    <article><b>assay_id</b><p>{t('Quelle mesure ? Le run ou dosage qui correspond exactement à une colonne de matrice.', 'Which assay? The run or measurement that exactly matches a matrix column.')}</p></article>
-    <article><b>omic</b><p>{t('Quelle couche ? Transcriptomique, protéomique ou métabolomique.', 'Which layer? Transcriptomics, proteomics or metabolomics.')}</p></article>
+    <article><b>subject_id</b><p>{t('Qui ? La personne, l’animal ou l’unité biologique.', 'Who? The person, animal or biological unit.')}</p></article>
+    <article><b>sample_id</b><p>{t('Quel prélèvement ? Par exemple un tube ou un fragment de tissu à une visite donnée.', 'Which specimen? For example a tube or tissue sample at a given visit.')}</p></article>
+    <article><b>assay_id</b><p>{t('Quelle mesure ? L’identifiant exact de la colonne correspondante dans la matrice.', 'Which assay? The exact identifier of the corresponding matrix column.')}</p></article>
+    <article><b>omic</b><p>{t('Quel type de mesure ? RNA, protéomique ou métabolomique.', 'Which measurement type? RNA, proteomics or metabolomics.')}</p></article>
   </div>
-  <p class="note">{t('Le mot “metadata” est donc seulement un raccourci technique pour ce tableau des échantillons. L’outil n’essaie jamais de deviner qu’un nom ressemblant correspond au même sujet ou au même prélèvement.', 'The word “metadata” is therefore only a technical shorthand for this sample sheet. The tool never guesses that similar-looking names correspond to the same subject or specimen.')}</p>
 </section>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Ajustements', 'Adjustment')}</p>
-      <h2>{t('Batches et covariables sont traités explicitement', 'Batches and covariates are handled explicitly')}</h2>
+      <p class="eyebrow">{t('Facteurs à prendre en compte', 'Factors to account for')}</p>
+      <h2>{t('Les différences techniques et cliniques peuvent être intégrées à l’analyse', 'Technical and clinical differences can be included in the analysis')}</h2>
     </div>
   </div>
   <div class="two-col">
     <article>
-      <h3>{t('Batch technique', 'Technical batch')}</h3>
-      <p>{t('Un batch totalement confondu avec la condition, le temps ou un outcome catégoriel bloque l’analyse. Sinon, les batches multiples sont ajustés variable par variable avant l’inférence biologique.', 'A batch fully confounded with condition, time or a categorical outcome blocks analysis. Otherwise, multiple batches are adjusted feature by feature before biological inference.')}</p>
+      <h3>{t('Série technique (batch)', 'Technical batch')}</h3>
+      <p>{t('Exemple : des échantillons analysés sur des plaques, jours ou séries différentes. Si une série technique correspond exactement à un seul groupe, l’outil signale que leurs effets ne peuvent pas être séparés. Sinon, cet effet technique est pris en compte dans le modèle.', 'Example: samples analyzed on different plates, days or runs. If a technical batch exactly matches one biological group, the tool reports that their effects cannot be separated. Otherwise, the technical effect is included in the model.')}</p>
     </article>
     <article>
-      <h3>{t('Covariables', 'Covariates')}</h3>
-      <p>{t('L’utilisateur sélectionne les colonnes à ajuster. Les variables numériques sont standardisées ; les variables catégorielles sont encodées explicitement. L’outil ne choisit pas les confondeurs à votre place.', 'The user selects columns to adjust. Numeric variables are standardized and categorical variables are explicitly encoded. The tool does not choose confounders on your behalf.')}</p>
+      <h3>{t('Facteurs d’ajustement (covariables)', 'Adjustment factors (covariates)')}</h3>
+      <p>{t('Exemples : âge, sexe, centre, traitement concomitant. Vous choisissez les colonnes qui doivent être prises en compte ; l’outil ne décide pas seul de ce qui constitue un facteur de confusion.', 'Examples: age, sex, centre, concomitant treatment. You choose which columns should be accounted for; the tool does not decide on its own what constitutes a confounder.')}</p>
     </article>
   </div>
 </section>
@@ -157,22 +183,22 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{t('Interprétation', 'Interpretation')}</p>
-      <h2>{t('Le résultat inclut maintenant « Comment interpréter ces résultats ? »', 'Results now include “How should these results be interpreted?”')}</h2>
+      <h2>{t('Chaque résultat doit répondre à une question simple', 'Each result should answer a simple question')}</h2>
     </div>
-    <p>{t('L’aide est générée par des règles déterministes à partir du type de modèle, des effets, des q-values, des ajustements, des relations inter-omiques et de Reactome.', 'Guidance is generated by deterministic rules from model type, effects, q-values, adjustments, cross-omics relations and Reactome.')}</p>
+    <p>{t('Les détails statistiques restent disponibles, mais l’interface doit d’abord expliquer ce que le nombre signifie biologiquement.', 'Statistical details remain available, but the interface should first explain what the number means biologically.')}</p>
   </div>
   <div class="interpret">
-    <div><b>{t('Effet', 'Effect')}</b><span>{t('direction + amplitude, pas seulement p-value', 'direction + magnitude, not only p-value')}</span></div>
-    <div><b>q BH</b><span>{t('contrôle exploratoire des tests multiples', 'exploratory multiple-testing control')}</span></div>
-    <div><b>{t('Multi-omique', 'Multi-omics')}</b><span>{t('convergence ou changement de couplage entre couches', 'convergence or changed coupling across layers')}</span></div>
-    <div><b>Reactome</b><span>{t('connaissance externe, séparée des données observées', 'external knowledge, kept separate from observed data')}</span></div>
+    <div><b>{t('Amplitude de l’effet', 'Effect size')}</b><span>{t('de combien la variable change et dans quel sens', 'how much the feature changes and in which direction')}</span></div>
+    <div><b>{t('Résultat corrigé (q BH)', 'Adjusted result (BH q)')}</b><span>{t('tient compte du grand nombre de gènes, protéines ou métabolites testés', 'accounts for the large number of genes, proteins or metabolites tested')}</span></div>
+    <div><b>{t('Lien entre omiques', 'Cross-omics link')}</b><span>{t('indique si plusieurs couches racontent une histoire biologique cohérente', 'shows whether several layers support a coherent biological pattern')}</span></div>
+    <div><b>Reactome</b><span>{t('replace les résultats dans des voies biologiques connues ; cette information vient d’une base externe', 'places results in known biological pathways; this information comes from an external database')}</span></div>
   </div>
 </section>
 
 <section class="panel validation">
   <div>
     <p class="eyebrow">{t('Validation publique', 'Public validation')}</p>
-    <h2>{t('Testé sur plusieurs vérités biologiques et structures de données', 'Tested against multiple biological truths and data structures')}</h2>
+    <h2>{t('Le pipeline est testé sur plusieurs jeux de données publics', 'The pipeline is tested on several public datasets')}</h2>
   </div>
   <p>{t('La suite automatisée couvre notamment Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, PaintOmics à signal planté et missRows.', 'The automated suite covers Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2, a planted-signal PaintOmics dataset and missRows.')}</p>
   <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Lancer une analyse', 'Run an analysis')}</a>
@@ -202,6 +228,10 @@
   .example-table > div { display:grid; grid-template-columns:.8fr 1fr .9fr 1.2fr .9fr .7fr; }
   .example-table > div > * { padding:8px 10px; border-right:1px solid var(--border-subtle); border-bottom:1px solid var(--border-subtle); overflow:hidden; text-overflow:ellipsis; }
   .example-head { background:var(--bg-secondary); }
+  .glossary-panel { border-top:3px solid var(--accent-pd); }
+  .glossary-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-3); }
+  .glossary-grid > div { display:grid; gap:5px; padding:var(--space-4); border:1px solid var(--border-subtle); background:var(--bg-secondary); }
+  .glossary-grid code { color:var(--accent-pk); font-weight:700; }
   .branch-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-4); }
   .branch-grid article, .two-col article { padding:var(--space-5); border:1px solid var(--border-subtle); border-radius:var(--radius); background:var(--bg-secondary); }
   .branch-grid article > span { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--accent-pk); }
@@ -211,12 +241,15 @@
   .flow b { font-family:var(--font-mono); color:var(--accent-pk); }
   .two-col { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--space-4); }
   .interpret { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--space-3); }
-  .interpret div { display:grid; grid-template-columns:.8fr 2fr; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--border-subtle); }
+  .interpret div { display:grid; grid-template-columns:.9fr 2fr; gap:var(--space-3); padding:var(--space-4); border:1px solid var(--border-subtle); }
   .interpret span { color:var(--text-secondary); }
   .validation { margin-bottom:var(--space-12); }
   .validation > p { max-width:70ch; color:var(--text-secondary); }
+  @media (max-width:900px) {
+    .glossary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
   @media (max-width:700px) {
     .section-head, .example-title { align-items:start; flex-direction:column; }
-    .branch-grid, .flow, .two-col, .interpret, .data-kind-grid { grid-template-columns:1fr; }
+    .branch-grid, .flow, .two-col, .interpret, .data-kind-grid, .glossary-grid { grid-template-columns:1fr; }
   }
 </style>
