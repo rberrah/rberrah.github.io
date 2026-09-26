@@ -4,6 +4,9 @@ source(file.path("multiomics-engine", "server.R"))
 stopifnot(exists("apply_ms_qc_reference"))
 stopifnot(exists("reference_preprocess_matrix"))
 stopifnot(exists("run_backend_analysis"))
+stopifnot(exists("run_deseq2_counts"))
+stopifnot(exists("run_voom_counts"))
+stopifnot(exists("compare_rnaseq_methods"))
 
 # -------------------------------------------------------------------------
 # 1) Reference MS QC: blank filter + pooled-QC LOESS + RSD + explicit MNAR
@@ -74,7 +77,29 @@ stopifnot(qc$summary$drift_corrected_features >= 1L)
 stopifnot(qc$summary$mnar_imputed_values >= 1L)
 
 # -------------------------------------------------------------------------
-# 2) Browser-to-R payload routing, without requiring heavy packages in CI
+# 2) DESeq2/voom concordance summary is deterministic and package-free
+# -------------------------------------------------------------------------
+deseq_mock <- data.frame(
+  feature=c("G1","G2","G3","G4"),
+  stat=c(5,-4,0.5,2),
+  padj=c(0.001,0.01,0.8,0.04),
+  stringsAsFactors=FALSE
+)
+voom_mock <- data.frame(
+  feature=c("G1","G2","G3","G4"),
+  t=c(4.5,-3.5,0.2,1.8),
+  adj.P.Val=c(0.002,0.02,0.9,0.08),
+  stringsAsFactors=FALSE
+)
+concordance <- compare_rnaseq_methods(deseq_mock, voom_mock, alpha=0.05)
+stopifnot(identical(concordance$status, "ok"))
+stopifnot(concordance$common_features == 4L)
+stopifnot(concordance$significant_overlap == 2L)
+stopifnot(is.finite(concordance$spearman_statistics))
+stopifnot(concordance$sign_agreement_among_any_significant == 1)
+
+# -------------------------------------------------------------------------
+# 3) Browser-to-R payload routing, without requiring heavy packages in CI
 # -------------------------------------------------------------------------
 metadata_csv <- paste(
   "subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate",
@@ -144,5 +169,6 @@ stopifnot("proteomics_differential" %in% names(result$methods))
 stopifnot(result$methods$transcriptomics_differential$status %in% c("ok","unavailable"))
 stopifnot(result$methods$proteomics_differential$status %in% c("ok","unavailable"))
 stopifnot(is.list(result$packages))
+stopifnot("edgeR" %in% names(result$packages))
 
 cat("multiomics reference R backend smoke: PASS\n")
