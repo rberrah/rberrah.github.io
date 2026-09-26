@@ -1,6 +1,16 @@
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
 
+test('multi-omics French import screen avoids unexplained metadata jargon', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+
+  await expect(page.getByTestId('multiomics-sample-sheet-guide')).toContainText('tableau des échantillons');
+  await expect(page.getByText('Aucun fichier sélectionné').first()).toBeVisible();
+  await expect(page.getByText('Détail des colonnes du tableau des échantillons')).toBeVisible();
+  await expect(page.getByText('Tableau des échantillons').first()).toBeVisible();
+  await expect(page.getByText('Métadonnées échantillons')).toHaveCount(0);
+});
+
 test('multi-omics result summary uses plain-language study checks', async ({ page }) => {
   await page.route('https://reactome.org/AnalysisService/**', async (route) => {
     await route.fulfill({
