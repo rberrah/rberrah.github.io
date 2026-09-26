@@ -130,7 +130,7 @@
     const qc = extractQc();
 
     const subjects = summaryValues[language === 'en' ? 'Subjects' : 'Sujets'] || '—';
-    const conditions = summaryValues[language === 'en' ? 'Conditions' : 'Conditions'] || '—';
+    const conditions = summaryValues.Conditions || '—';
     const timepoints = summaryValues[language === 'en' ? 'Time points' : 'Temps'] || '—';
 
     const qcText = qc.length
@@ -149,7 +149,7 @@
       ? 'Statistical power is not estimated from sample size alone. A defensible calculation requires an expected effect, variability and the intended statistical model; simulation is preferable for complex multi-omics designs.'
       : 'La puissance statistique n’est pas déduite du seul nombre de sujets. Un calcul défendable nécessite un effet attendu, une variabilité et le modèle statistique prévu ; pour un plan multi-omique complexe, une simulation est préférable.';
 
-    panel.innerHTML = `
+    const html = `
       <div class="plain-readiness-head">
         <div><span>${language === 'en' ? 'Study structure' : 'Structure de l’étude'}</span><h3>${title}</h3></div>
         <b>${subjects} ${language === 'en' ? 'subjects' : 'sujets'}</b>
@@ -163,6 +163,7 @@
       </div>
       <details><summary>${language === 'en' ? 'About statistical power' : 'À propos de la puissance statistique'}</summary><p>${power}</p></details>
     `;
+    if (panel.innerHTML !== html) panel.innerHTML = html;
   }
 
   function installStyle() {
