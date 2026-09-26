@@ -5,6 +5,15 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await page.goto('/multiomics/tool');
 
   await expect(page.getByTestId('multiomics-sample-sheet-guide')).toContainText('tableau des échantillons');
+  const glossary = page.getByTestId('multiomics-quick-glossary');
+  await expect(glossary).toBeVisible();
+  await expect(glossary.getByText('Lexique express · six mots utilisés dans tout l’outil')).toBeVisible();
+  await glossary.locator('summary').click();
+  await expect(glossary).toContainText('Série technique');
+  await expect(glossary).toContainText('Facteur d’ajustement');
+  await expect(glossary).toContainText('Résultat corrigé (q/FDR)');
+  await expect(glossary).toContainText('Validation croisée');
+
   await expect(page.getByText('Aucun fichier sélectionné').first()).toBeVisible();
   await expect(page.getByText('Détail des colonnes du tableau des échantillons')).toBeVisible();
   await expect(page.getByText('Tableau des échantillons').first()).toBeVisible();
