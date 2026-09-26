@@ -104,7 +104,6 @@ aggregate_technical_replicates <- function(x, layer_meta, value_type) {
   list(matrix=agg, metadata=meta)
 }
 
-
 canonical_sample_type <- function(x) {
   key <- tolower(gsub("[^a-z0-9]+", "_", normalise_text(x)))
   if (key %in% c("blank","solvent_blank","process_blank","extraction_blank","method_blank")) return("blank")
@@ -213,8 +212,6 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
         order=orders[use_qc],
         response=log(values[use_qc] + pseudo)
       )
-      # With very small QC series a nominal span of 0.6 may leave too few
-      # local points for stable prediction. Guarantee roughly >=4 neighbours.
       adaptive_span <- min(1, max(0.6, 4 / nrow(qdat)))
       fit <- try(stats::loess(
         response ~ order,
@@ -231,8 +228,6 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
         sum(is.finite(pred_all)) >= max(3L, ceiling(length(ordered_all) * 0.5)) &&
         sum(is.finite(pred_qc)) >= 3L
       if (!loess_ok) {
-        # Deterministic fallback: preserve a drift correction rather than
-        # silently skipping the feature when a tiny QC series makes LOESS singular.
         fit_lm <- try(stats::lm(response ~ order, data=qdat), silent=TRUE)
         if (inherits(fit_lm,"try-error")) next
         pred_all <- try(stats::predict(fit_lm, newdata=data.frame(order=orders[ordered_all])), silent=TRUE)
@@ -430,6 +425,8 @@ run_backend_analysis <- function(payload) {
   design_type <- or_else(protocol$designType, "independent")
   longitudinal <- isTRUE(protocol$longitudinal)
   outcome_type <- or_else(protocol$outcomeType, "none")
+  rna_count_method <- tolower(as.character(or_else(protocol$rnaCountMethod, "both")))
+  if (!rna_count_method %in% c("auto","both","deseq2","voom")) rna_count_method <- "both"
 
   for (layer in layers) {
     x <- blocks[[layer]]
@@ -439,24 +436,77 @@ run_backend_analysis <- function(payload) {
 
     if (objective == "groups" && design_type == "independent" && !longitudinal &&
         layer == "transcriptomics" && identical(data_types[[layer]], "raw_counts")) {
-      if (requireNamespace("DESeq2", quietly=TRUE)) {
-        terms <- c(varying_terms(m, covariates), "condition")
-        form <- safe_formula(terms)
-        groups <- sort(unique(m$condition[nzchar(m$condition)]))
-        contrast <- if (length(groups) == 2L) c("condition", groups[2], groups[1]) else NULL
-        fit <- try(run_deseq2_counts(raw_blocks[[layer]], m, layer_dir, form, contrast), silent=TRUE)
-        if (!inherits(fit,"try-error")) {
-          methods[[paste0(layer,"_differential")]] <- method_status("DESeq2","ok",list(top=top_frame(fit$results)))
-          if ("stat" %in% names(fit$results)) {
-            stat <- fit$results$stat
-            names(stat) <- fit$results$feature
-            ranked[[layer]] <- stat
+      terms <- c(varying_terms(m, covariates), "condition")
+      groups <- sort(unique(m$condition[nzchar(m$condition)]))
+      if (length(groups) >= 2L) m$condition <- factor(m$condition, levels=groups)
+      form <- safe_formula(terms)
+      contrast <- if (length(groups) == 2L) c("condition", groups[2], groups[1]) else NULL
+      run_deseq <- rna_count_method %in% c("auto","both","deseq2")
+      run_voom <- rna_count_method %in% c("auto","both","voom")
+      fit_deseq <- NULL
+      fit_voom <- NULL
+
+      if (run_deseq) {
+        if (requireNamespace("DESeq2", quietly=TRUE)) {
+          fit_deseq <- try(run_deseq2_counts(raw_blocks[[layer]], m, layer_dir, form, contrast), silent=TRUE)
+          if (!inherits(fit_deseq,"try-error")) {
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results)))
+          } else {
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }
         } else {
-          methods[[paste0(layer,"_differential")]] <- method_status("DESeq2","error",list(message=as.character(fit)))
+          methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","unavailable",list(message="DESeq2 is not installed."))
+        }
+      }
+
+      if (run_voom) {
+        if (requireNamespace("edgeR", quietly=TRUE) && requireNamespace("limma", quietly=TRUE)) {
+          fit_voom <- try(run_voom_counts(raw_blocks[[layer]], m, layer_dir, form), silent=TRUE)
+          if (!inherits(fit_voom,"try-error")) {
+            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","ok",list(top=top_frame(fit_voom$results)))
+          } else {
+            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","error",list(message=as.character(fit_voom)))
+          }
+        } else {
+          methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","unavailable",list(message="edgeR and limma are required for voom."))
+        }
+      }
+
+      deseq_ok <- !is.null(fit_deseq) && !inherits(fit_deseq,"try-error")
+      voom_ok <- !is.null(fit_voom) && !inherits(fit_voom,"try-error")
+      if (deseq_ok && voom_ok) {
+        concordance <- compare_rnaseq_methods(fit_deseq$results, fit_voom$results)
+        methods[[paste0(layer,"_differential_concordance")]] <- method_status(
+          "DESeq2 vs edgeR/limma-voom concordance",
+          concordance$status,
+          list(summary=concordance)
+        )
+      }
+
+      if (deseq_ok) {
+        methods[[paste0(layer,"_differential")]] <- method_status(
+          if (voom_ok) "DESeq2 primary + edgeR/limma-voom sensitivity" else "DESeq2",
+          "ok",
+          list(top=top_frame(fit_deseq$results))
+        )
+        if ("stat" %in% names(fit_deseq$results)) {
+          stat <- fit_deseq$results$stat
+          names(stat) <- fit_deseq$results$feature
+          ranked[[layer]] <- stat
+        }
+      } else if (voom_ok) {
+        methods[[paste0(layer,"_differential")]] <- method_status("edgeR + limma-voom","ok",list(top=top_frame(fit_voom$results)))
+        if ("t" %in% names(fit_voom$results)) {
+          stat <- fit_voom$results$t
+          names(stat) <- fit_voom$results$feature
+          ranked[[layer]] <- stat
         }
       } else {
-        methods[[paste0(layer,"_differential")]] <- method_status("DESeq2","unavailable",list(message="DESeq2 is not installed."))
+        methods[[paste0(layer,"_differential")]] <- method_status(
+          "RNA-seq count differential analysis",
+          "unavailable",
+          list(message="No requested reference RNA-seq count method completed successfully.")
+        )
       }
     } else if (objective == "groups" && design_type == "independent" && !longitudinal) {
       if (requireNamespace("limma", quietly=TRUE)) {
@@ -551,10 +601,10 @@ run_backend_analysis <- function(payload) {
     }
   }
 
-  packages <- vapply(c("DESeq2","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
+  packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
   list(
     status="ok",
-    engine=list(name="PMx Explain reference R backend", version="1.0.0"),
+    engine=list(name="PMx Explain reference R backend", version="1.1.0"),
     applicableMethods=names(methods),
     methods=methods,
     preprocessing=preprocessing,
@@ -575,11 +625,11 @@ function(req, res) {
 #* @get /health
 #* @serializer json list(auto_unbox=TRUE)
 function() {
-  packages <- vapply(c("DESeq2","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
+  packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
   list(
     status="ok",
     engine="PMx Explain reference R backend",
-    version="1.0.0",
+    version="1.1.0",
     packages=as.list(packages)
   )
 }
