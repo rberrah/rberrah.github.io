@@ -11,7 +11,7 @@ test('multi-omics presentation page links to the dedicated analysis tool', async
 
 test('multi-omics presentation and tool switch to English', async ({ page }) => {
   await page.goto('/multiomics?lang=en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Integrate multiple omics');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze multiple omics');
   await expect(page.getByRole('link', { name: 'Open the tool' })).toBeVisible();
 
   await page.goto('/multiomics/tool?lang=en');
@@ -103,8 +103,8 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
       body: JSON.stringify({
         status: 'ok',
         engine: 'PMx Explain reference R backend',
-        version: '1.0.0',
-        packages: { DESeq2:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true }
+        version: '1.1.0',
+        packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true }
       })
     });
   });
@@ -117,9 +117,9 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
       contentType: 'application/json',
       body: JSON.stringify({
         status: 'ok',
-        engine: { name:'PMx Explain reference R backend', version:'1.0.0' },
+        engine: { name:'PMx Explain reference R backend', version:'1.1.0' },
         applicableMethods: ['transcriptomics_longitudinal','proteomics_longitudinal'],
-        packages: { DESeq2:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true },
+        packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true },
         methods: {
           transcriptomics_longitudinal: { method:'lmerTest', status:'ok' },
           proteomics_longitudinal: { method:'lmerTest', status:'ok' }
