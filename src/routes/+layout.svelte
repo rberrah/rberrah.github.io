@@ -81,6 +81,7 @@
   // seule sait si la traduction anglaise existe. Ici : toutes les autres pages, dont
   // l'interface est traduite intégralement.
   let isChapterRoute = $derived($page.route.id === '/chapitres/[slug]');
+  let isMultiomicsTool = $derived($page.route.id === '/multiomics/tool');
 </script>
 
 <svelte:window onclick={(event) => { if (navigation && event.target instanceof Node && !navigation.contains(event.target) && !(event.target instanceof Element && event.target.closest('.burger'))) closeNavigation(); }} onkeydown={(event) => { if (event.key === 'Escape') { const summary = navigation?.querySelector('details[open] summary'); if (summary instanceof HTMLElement) summary.focus(); closeNavigation(); } }} />
@@ -120,6 +121,24 @@
   </header>
 
   <main id="main-content">
+    {#if isMultiomicsTool}
+      <aside class="multiomics-sample-sheet-guide" data-testid="multiomics-sample-sheet-guide">
+        <div class="guide-copy">
+          <span class="guide-kicker">{$language === 'en' ? 'One term before you start' : 'Un terme à clarifier avant de commencer'}</span>
+          <strong>{$language === 'en' ? '“Metadata” here simply means the sample sheet.' : 'Ici, “metadata” veut simplement dire tableau des échantillons.'}</strong>
+          <p>{$language === 'en'
+            ? 'This file does not contain RNA, protein or metabolite measurements. It tells the app what each matrix column represents: who was sampled, which specimen it is, which assay was run, and which omics layer it belongs to.'
+            : 'Ce fichier ne contient pas les mesures RNA, protéines ou métabolites. Il indique à l’outil à quoi correspond chaque colonne des matrices : qui a été prélevé, quel prélèvement, quelle mesure technique et quelle couche omique.'}</p>
+        </div>
+        <div class="guide-ids">
+          <div><code>subject_id</code><span>{$language === 'en' ? 'who?' : 'qui ?'}</span><small>P001</small></div>
+          <div><code>sample_id</code><span>{$language === 'en' ? 'which specimen?' : 'quel prélèvement ?'}</span><small>P001_T0</small></div>
+          <div><code>assay_id</code><span>{$language === 'en' ? 'which matrix column?' : 'quelle colonne de matrice ?'}</span><small>RNA001</small></div>
+          <div><code>omic</code><span>{$language === 'en' ? 'which layer?' : 'quelle couche ?'}</span><small>transcriptomics</small></div>
+        </div>
+        <a href={`${base}/multiomics`}>{$language === 'en' ? 'See a concrete three-omics example →' : 'Voir un exemple concret avec trois omiques →'}</a>
+      </aside>
+    {/if}
     {@render children()}
   </main>
 
@@ -184,6 +203,17 @@
   .burger { display: none; flex-direction: column; gap: 4px; background: none; border: none; cursor: pointer; padding: 8px; }
   .burger span { width: 22px; height: 2px; background: var(--text-primary); display: block; }
   main { flex: 1; width: 100%; max-width: var(--maxw); margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-24); }
+  .multiomics-sample-sheet-guide { margin:0 0 var(--space-7); padding:var(--space-5); border:1px solid var(--accent-pk); border-left-width:4px; border-radius:var(--radius); background:var(--bg-secondary); }
+  .guide-copy { max-width:82ch; }
+  .guide-kicker { display:block; margin-bottom:5px; font:600 var(--text-xs)/1.3 var(--font-mono); color:var(--accent-pk); text-transform:uppercase; letter-spacing:.04em; }
+  .guide-copy > strong { display:block; font-size:var(--text-lg); }
+  .guide-copy p { margin:7px 0 0; color:var(--text-secondary); line-height:1.6; }
+  .guide-ids { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin:var(--space-4) 0; }
+  .guide-ids > div { display:grid; gap:3px; padding:10px; border:1px solid var(--border-subtle); background:var(--bg-primary); }
+  .guide-ids code { color:var(--accent-pk); font-weight:700; }
+  .guide-ids span { font-weight:600; }
+  .guide-ids small { color:var(--text-secondary); }
+  .multiomics-sample-sheet-guide > a { font-weight:700; }
   footer {
     display: flex; flex-direction: column; gap: 2px; text-align: center;
     padding: var(--space-8) var(--space-6);
@@ -206,8 +236,10 @@
     .goal-links, .goal:last-of-type .goal-links { position: static; min-width: 0; box-shadow: none; border: 0; border-left: 2px solid var(--border-strong); margin-left: 18px; }
     .tools { margin: var(--space-2) 0 0; }
     nav :global(.language-toggle) { width: max-content; }
+    .guide-ids { grid-template-columns:repeat(2,minmax(0,1fr)); }
   }
   @media (max-width: 760px) {
     main { padding: var(--space-6) var(--space-4) var(--space-24); }
+    .guide-ids { grid-template-columns:1fr; }
   }
 </style>
