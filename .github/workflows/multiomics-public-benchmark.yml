@@ -7,6 +7,7 @@ on:
       - '.github/workflows/multiomics-public-benchmark.yml'
       - 'scripts/export_public_multiomics_benchmarks.R'
       - 'scripts/benchmark_public_multiomics.mjs'
+      - 'scripts/attach_public_benchmark_provenance.mjs'
       - 'src/lib/multiomics/**'
   workflow_dispatch:
 
@@ -25,7 +26,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: mixOmics-org/mixOmics
-          ref: master
+          ref: ef3e760526623d9e91e945e4b50be48d764efc40
           path: external/mixOmics
           sparse-checkout: |
             data/nutrimouse.rda
@@ -35,14 +36,14 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: Mathelab/NCI60_GeneMetabolite_Data
-          ref: master
+          ref: 4c140708c18c41910458414a626b1a51d3dd2a85
           path: external/NCI60_GeneMetabolite_Data
 
       - name: Checkout IntLIM BRCA benchmark
         uses: actions/checkout@v5
         with:
           repository: ncats/IntLIMVignettes
-          ref: main
+          ref: e1a03362dd113db9655ad3e4dabd62e1c47cd731
           path: external/IntLIMVignettes
           sparse-checkout: |
             BRCA_data
@@ -51,7 +52,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: GenomicsNX/xOmicsShiny_app
-          ref: main
+          ref: db2065b87c6e7a3d76e24e272573dd74428ff191
           path: external/xOmicsShiny
           sparse-checkout: |
             data/AgingHFCD_RNAseq.RData
@@ -64,7 +65,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: ConesaLab/PaintOmics
-          ref: master
+          ref: a166da377450977a6a95ec44f4ae703a31c99742
           path: external/PaintOmics
           sparse-checkout: |
             PaintomicsServer/src/examplefiles/datasets/08-stategra-multiomics/README.md
@@ -87,7 +88,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: bioc/missRows
-          ref: devel
+          ref: 5c5fd6c8940523bcf1511fafe9e7896a5b8a0a1e
           path: external/missRows
           sparse-checkout: |
             data/NCI60.rda
@@ -110,8 +111,13 @@ jobs:
           PAINTOMICS_ROOT: external/PaintOmics
         run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
 
+      - name: Attach immutable source and input provenance
+        run: node scripts/attach_public_benchmark_provenance.mjs tmp/public-benchmarks
+
       - name: Upload benchmark report
         uses: actions/upload-artifact@v4
         with:
           name: multiomics-public-benchmark
-          path: tmp/public-benchmarks/benchmark-report.json
+          path: |
+            tmp/public-benchmarks/benchmark-report.json
+            tmp/public-benchmarks/benchmark-provenance.json
