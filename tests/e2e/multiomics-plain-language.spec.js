@@ -49,7 +49,7 @@ test('guided mode lets a licence-level user choose a biological question instead
   await expect(page.getByTestId('multiomics-guided-plan')).toContainText('choisit le modèle adapté au type de critère');
 });
 
-test('multi-omics result summary uses plain-language study checks', async ({ page }) => {
+test('multi-omics result summary uses plain-language study checks and reproducible scientific synthesis', async ({ page }) => {
   await page.route('https://reactome.org/AnalysisService/**', async (route) => {
     await route.fulfill({
       status: 200,
@@ -84,6 +84,24 @@ test('multi-omics result summary uses plain-language study checks', async ({ pag
   await expect(readingGuide).toContainText('Interprétation biologique');
   await expect(readingGuide).toContainText('Ce que vous pouvez conclure');
   await expect(readingGuide).toContainText('Ce que vous ne devez pas conclure');
+
+  const synthesis = page.getByTestId('multiomics-scientific-summary');
+  await expect(synthesis).toBeVisible({ timeout: 10_000 });
+  await expect(synthesis).toContainText('Synthèse scientifique');
+  await expect(synthesis).toContainText('Que permettent réellement de conclure ces résultats ?');
+  await expect(synthesis).toContainText('Association ≠ prédiction ≠ causalité');
+  await expect(synthesis).toContainText(/q\/FDR/i);
+
+  const manifest = page.getByTestId('multiomics-methods-manifest');
+  await expect(manifest).toBeVisible();
+  await expect(manifest).toContainText('Reproduire et rapporter l’analyse');
+  await expect(manifest.getByRole('button', { name: 'Rapport méthodes (.md)' })).toBeVisible();
+  await expect(manifest.getByRole('button', { name: 'Manifeste (.json)' })).toBeVisible();
+
+  const jsonDownload = page.waitForEvent('download');
+  await manifest.getByRole('button', { name: 'Manifeste (.json)' }).click();
+  const downloadedManifest = await jsonDownload;
+  expect(downloadedManifest.suggestedFilename()).toBe('multiomics-reproducibility-manifest.json');
 
   await expect(page.getByText('Vérification des séries techniques')).toBeVisible();
   await expect(page.getByText('Audit des batches techniques')).toHaveCount(0);
