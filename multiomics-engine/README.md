@@ -174,7 +174,27 @@ Current automatic routing includes:
 - categorical supervised integration -> tuned/validated mixOmics DIABLO when the class structure supports it;
 - signed reference statistics with compatible Ensembl/UniProt IDs -> fgsea using current Reactome mappings.
 
-GitHub Pages does not run R itself. The bridge must run locally or on a controlled server. The default listener is localhost only. A remote deployment must add TLS, authentication, request-size limits, rate limits and an origin allow-list before accepting research data.
+### Local security policy
+
+`run_backend.R` now applies a second origin guard on top of the annotated Plumber routes. Browser requests are accepted only from the default PMx origin and common local Vite/preview origins, plus any explicitly declared origins in `PMX_MULTIOMICS_ALLOWED_ORIGINS` (comma-separated). Rejected origins receive HTTP 403 before an analysis endpoint executes. Responses are marked `Cache-Control: no-store`.
+
+The launcher also refuses a non-loopback bind by default. A deliberate remote bind requires:
+
+    PMX_MULTIOMICS_ALLOW_REMOTE=yes
+
+This flag is **not** a security mechanism. It is only an acknowledgement that a remote deployment must still be placed behind TLS, authentication, request-size limits, rate limits and network/origin controls. The recommended default remains `127.0.0.1`.
+
+GitHub Pages does not run R itself. The bridge must run locally or on a controlled server.
+
+### Environment provenance
+
+The launcher exposes a read-only `/environment` endpoint containing:
+
+- exact R runtime/version and platform;
+- installed versions of `plumber`, `jsonlite`, `DESeq2`, `edgeR`, `limma`, `lmerTest`, `fgsea`, `MOFA2` and `mixOmics`;
+- R library search paths.
+
+No submitted study data are returned by this endpoint. For a manuscript or regulated workflow, archive this environment manifest together with the analysis result, original inputs and their cryptographic checksums.
 
 ## Advanced MS sample annotations
 
@@ -193,12 +213,25 @@ Left-censored imputation is likewise an explicit sensitivity assumption. Confirm
 
 ## Reproducibility and reporting
 
-Random seeds are explicit where stochastic algorithms are used. The browser now exposes two additional portable exports:
+Random seeds are explicit where stochastic algorithms are used. The browser exposes two portable exports:
 
 - `multiomics-methods-report.md`: human-readable methods/interpretation record;
 - `multiomics-reproducibility-manifest.json`: machine-readable snapshot of the scientific question, design/endpoint settings, non-file interface parameters, local input-file metadata, visible corrected evidence, warnings and interpretation limits.
 
-The manifest deliberately does **not** embed research data. Original immutable input files and checksums should be archived separately. Reference-package outputs should retain package versions/session information in a study archive when used for a manuscript or regulated workflow.
+The browser engine also keeps a deterministic FNV-1a fingerprint in `inputManifest` for each uploaded matrix and the canonical sample table. This is useful for accidental-change detection inside the application, but it is **not** presented as a cryptographic integrity checksum. For archival or regulated workflows, retain SHA-256 (or another approved cryptographic hash) of the immutable source files separately.
+
+The public truth benchmark goes further: its external data repositories are pinned to immutable Git commit SHAs, each exported benchmark input is hashed with SHA-256, and the resulting source/file provenance is attached to `benchmark-report.json` and `benchmark-provenance.json`.
+
+Reference-package outputs should retain the `/environment` package/runtime manifest when used for a manuscript or regulated workflow.
+
+## Multiple-testing interpretation policy
+
+The user interface distinguishes two evidence levels rather than using an ambiguous single notion of “significant”:
+
+- **primary evidence:** `q ≤ 0.05`;
+- **exploratory/suggestive evidence:** `0.05 < q ≤ 0.10`.
+
+Raw p-values are not used alone to select features from a high-dimensional family of tests. Neither threshold replaces effect size, direction, uncertainty, study design or external validation. A q-value is not interpreted as the probability that one individual biological hypothesis is false.
 
 ## What automation cannot certify
 
