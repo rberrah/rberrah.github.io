@@ -1,5 +1,5 @@
 const tr = (fr,en) => document.documentElement.lang === 'en' ? en : fr;
-const esc = value => String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+const esc = value => String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 function parseLine(line,delimiter) {
   const out=[];
