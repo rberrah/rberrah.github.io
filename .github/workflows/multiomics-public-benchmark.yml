@@ -7,6 +7,7 @@ on:
       - '.github/workflows/multiomics-public-benchmark.yml'
       - 'scripts/export_public_multiomics_benchmarks.R'
       - 'scripts/benchmark_public_multiomics.mjs'
+      - 'scripts/benchmark_multiomics_negative_controls.mjs'
       - 'scripts/attach_public_benchmark_provenance.mjs'
       - 'src/lib/multiomics/**'
   workflow_dispatch:
@@ -106,10 +107,13 @@ jobs:
           mkdir -p tmp/public-benchmarks
           MIXOMICS_ROOT=external/mixOmics NCI60_GM_ROOT=external/NCI60_GeneMetabolite_Data INTLIM_ROOT=external/IntLIMVignettes MISSROWS_ROOT=external/missRows XOMICS_ROOT=external/xOmicsShiny Rscript scripts/export_public_multiomics_benchmarks.R tmp/public-benchmarks
 
-      - name: Run PMx deterministic engine
+      - name: Run PMx deterministic engine against known public truths
         env:
           PAINTOMICS_ROOT: external/PaintOmics
         run: node scripts/benchmark_public_multiomics.mjs tmp/public-benchmarks
+
+      - name: Run public-label negative controls
+        run: node scripts/benchmark_multiomics_negative_controls.mjs tmp/public-benchmarks
 
       - name: Attach immutable source and input provenance
         run: node scripts/attach_public_benchmark_provenance.mjs tmp/public-benchmarks
