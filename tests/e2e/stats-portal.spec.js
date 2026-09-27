@@ -6,7 +6,6 @@ const origin = process.env.PORTAL_E2E_URL || 'http://127.0.0.1:4181';
 const publicOrigin = getSiteOrigin();
 
 test.beforeEach(async ({ page }) => {
-  // Browser tests must never send synthetic visits or data to external services.
   await page.route('**/*', route => new URL(route.request().url()).origin === origin
     ? route.continue() : route.abort());
 });
@@ -14,7 +13,6 @@ test.beforeEach(async ({ page }) => {
 test('Stats landing page is public, local-first and links to the analyser', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-
   const response = await page.goto(origin + '/stats/');
   expect(response.status()).toBe(200);
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
@@ -29,17 +27,14 @@ test('Stats landing page is public, local-first and links to the analyser', asyn
 test('Stats built-in demo runs exact rank sensitivity, visualization and local report export', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-
   const response = await page.goto(origin + '/stats/tool/');
   expect(response.status()).toBe(200);
   await expect(page.locator('#analysis-mode')).toHaveValue('compare2');
-
   await page.locator('#load-demo').click();
   await expect(page.locator('#mapping')).toBeVisible();
   await expect(page.locator('#parse-status')).toContainText('Données lues');
   await expect(page.locator('#col-group')).toHaveValue('group');
   await expect(page.locator('#col-value')).toHaveValue('value');
-
   await page.locator('#run-analysis').click();
   await expect(page.locator('#results .result-card')).toHaveCount(2);
   await expect(page.locator('#results')).toContainText('Welch t');
@@ -52,12 +47,10 @@ test('Stats built-in demo runs exact rank sensitivity, visualization and local r
   await expect(page.locator('#results .stats-visual-section')).toBeVisible();
   await expect(page.locator('#results .stats-svg')).toBeVisible();
   await expect(page.locator('#results .stats-report-actions')).toBeVisible();
-
   const downloadPromise = page.waitForEvent('download');
   await page.locator('[data-report-download]').click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('stats-report.html');
-
   await page.locator('#data-input').fill('group,value\nA,1\nA,2\nA,2\nB,3\nB,4\nB,5');
   await page.locator('#parse-data').click();
   await page.locator('#run-analysis').click();
@@ -65,11 +58,27 @@ test('Stats built-in demo runs exact rank sensitivity, visualization and local r
   expect(errors).toEqual([]);
 });
 
+test('Stats study planning computes sample size and dropout inflation', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(origin + '/stats/tool/');
+  await expect(page.locator('#study-planning')).toBeVisible();
+  await expect(page.locator('#plan-design')).toHaveValue('two_means');
+  await page.locator('#plan-run').click();
+  await expect(page.locator('#plan-result strong')).toContainText('70 par groupe');
+  await expect(page.locator('#plan-result strong')).toContainText('140 au total');
+  await expect(page.locator('#plan-result small')).toContainText('63 par groupe');
+  await page.locator('#plan-design').selectOption('paired_means');
+  await page.locator('#plan-run').click();
+  await expect(page.locator('#plan-result strong')).toContainText('36 participants au total');
+  await expect(page.locator('#plan-result small')).toContainText('32');
+  expect(errors).toEqual([]);
+});
+
 test('Stats remains usable on mobile and the bilingual switch updates the interface', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(origin + '/stats/tool/');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-
   await page.locator('[data-lang-toggle]').click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('h1')).toContainText('Which test for your data?');
