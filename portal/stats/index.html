@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stats | Racym Berrah</title>
+  <meta name="description" content="Outil statistique guidé, déterministe et pédagogique pour choisir, calculer et interpréter les tests statistiques courants.">
+  <meta name="author" content="Racym Berrah">
+  <link rel="canonical" href="__SITE_ORIGIN__/stats/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/stats/stats.css">
+  <script src="/assets/site.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-header">
+  <nav class="wrap navigation" aria-label="Navigation principale">
+    <a class="nav-name" href="/">Racym Berrah</a>
+    <div class="nav-links">
+      <a href="/#pharmacometrics">Pharmacométrie</a>
+      <a href="/tools/">Outils &amp; projets</a>
+      <a href="/publications/">Publications &amp; présentations</a>
+      <a href="/a-propos/">À propos</a>
+    </div>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+  <section class="wrap stats-hero">
+    <p class="eyebrow">Analyse statistique · sans LLM</p>
+    <h1>Choisir le bon test, comprendre le résultat.</h1>
+    <p class="lede">Un outil statistique guidé, dans l’esprit de BiostaTGV mais conçu autour de la question scientifique plutôt que du nom du test. Vous décrivez vos données ; l’outil propose une méthode explicite, calcule le résultat dans le navigateur et explique ce qu’il signifie.</p>
+    <div class="links hero-actions">
+      <a class="btn primary" href="/stats/tool/">Ouvrir l’outil <span aria-hidden="true">→</span></a>
+      <a class="btn" href="#methods">Voir les analyses disponibles</a>
+    </div>
+    <div class="stats-pill-row" aria-label="Principes de l'outil">
+      <span>Calcul local</span><span>FR / EN</span><span>Règles déterministes</span><span>Effets + IC95 %</span><span>Aide contextuelle</span>
+    </div>
+  </section>
+
+  <section class="stats-band feature">
+    <div class="wrap">
+      <div class="section-head">
+        <div><p class="eyebrow">Principe</p><h2>On part de la question, pas du jargon statistique.</h2></div>
+        <p class="lede">L’interface vous pose quelques questions fermées sur le type de variable, le nombre de groupes et le caractère indépendant ou apparié des observations.</p>
+      </div>
+      <div class="stats-steps">
+        <article><span>1</span><h3>Que voulez-vous savoir ?</h3><p>Comparer, rechercher une association, étudier une corrélation ou ajuster une régression.</p></article>
+        <article><span>2</span><h3>Comment vos données sont-elles organisées ?</h3><p>Variable quantitative ou catégorielle, groupes indépendants, mêmes sujets, plusieurs groupes.</p></article>
+        <article><span>3</span><h3>Le test est proposé avec sa logique.</h3><p>Pourquoi cette méthode, quelles hypothèses elle suppose, et quelles alternatives sont possibles.</p></article>
+        <article><span>4</span><h3>Le résultat est interprété.</h3><p>Estimation, taille d’effet, intervalle de confiance, p-value, limites et phrase de synthèse.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap stats-band" id="methods">
+    <div class="section-head"><div><p class="eyebrow">Analyses disponibles</p><h2>Une première base centrée sur les situations les plus fréquentes.</h2></div></div>
+    <div class="method-grid">
+      <article><h3>Deux groupes indépendants</h3><p>Test t de Welch, test de Mann–Whitney, différence moyenne, IC95 %, Cohen d / Hedges g.</p></article>
+      <article><h3>Deux mesures appariées</h3><p>Test t apparié, Wilcoxon signé-rang, différence moyenne ou médiane des différences.</p></article>
+      <article><h3>Trois groupes ou plus</h3><p>ANOVA à un facteur, Kruskal–Wallis, mesure globale d’effet.</p></article>
+      <article><h3>Deux variables catégorielles</h3><p>Chi-deux d’indépendance, Fisher exact pour tableaux 2×2, odds ratio et risque relatif.</p></article>
+      <article><h3>Corrélation</h3><p>Pearson ou Spearman, coefficient, IC95 % lorsqu’il est défini et test de nullité.</p></article>
+      <article><h3>Régression linéaire simple</h3><p>Pente, intercept, R², IC95 % de la pente et test associé.</p></article>
+    </div>
+    <p class="note">Les analyses avancées (survie, régression logistique multivariée, modèles mixtes, mesures répétées complexes, puissance / taille d’échantillon) sont prévues pour les itérations suivantes.</p>
+  </section>
+
+  <section class="stats-band feature">
+    <div class="wrap stats-split">
+      <div><p class="eyebrow">Pédagogie</p><h2>Chaque terme technique reste disponible, sans prendre toute la place.</h2><p>Dans l’outil, les libellés sont formulés en langage courant. Les notions comme <em>p-value</em>, IC95 %, test paramétrique, variance, taille d’effet ou hypothèse nulle sont expliquées dans des bulles <strong>?</strong> accessibles au survol, au clic et au clavier.</p></div>
+      <div class="mini-result" aria-hidden="true"><small>Exemple de résultat</small><strong>Différence moyenne : +4,8</strong><span>IC95 % : +1,2 à +8,4</span><span>p = 0,009</span><p>Les données sont compatibles avec une différence positive entre les deux groupes. L’amplitude estimée est de 4,8 unités.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap stats-band">
+    <div class="section-head"><div><p class="eyebrow">Confidentialité et reproductibilité</p><h2>Les données restent dans votre navigateur.</h2></div></div>
+    <div class="method-grid compact">
+      <article><h3>Aucun envoi de données</h3><p>Les calculs de cette version sont effectués côté navigateur. Les valeurs saisies ou importées ne sont pas envoyées à un serveur statistique.</p></article>
+      <article><h3>Pas de choix par IA</h3><p>La recommandation suit des règles statistiques prédéfinies et affichables. Un LLM ne sélectionne pas le test.</p></article>
+      <article><h3>Résultat traçable</h3><p>La méthode, les effectifs et les statistiques principales sont affichés pour permettre une vérification dans R, Python, SAS ou autre logiciel.</p></article>
+    </div>
+    <div class="links closing-actions"><a class="btn primary" href="/stats/tool/">Commencer une analyse <span aria-hidden="true">→</span></a><a href="/tools/">Retour aux outils</a></div>
+  </section>
+</main>
+<footer class="site">
+  <div class="wrap footer-top"><div><a class="nav-name" href="/">Racym Berrah</a><p>Pharmacologie quantitative, pharmacométrie &amp; IA.</p></div><nav class="footer-links" aria-label="Navigation de pied de page"><a href="https://github.com/rberrah">GitHub</a><a href="/contact/">Contact</a><a href="/citer/">Citation &amp; réutilisation</a><a href="/pharmacometrie/confidentialite/">Confidentialité</a></nav></div>
+  <div class="wrap footer-bottom"><p>Texte : <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>. Code : <a href="https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE">MIT</a>.</p><p>Recherche et enseignement. Ne remplace pas une expertise statistique pour les analyses à fort enjeu.</p></div>
+</footer>
+</body>
+</html>
