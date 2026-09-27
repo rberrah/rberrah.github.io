@@ -3,72 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stats — analyse guidée | Racym Berrah</title>
-  <meta name="description" content="Analyse statistique guidée : sélection déterministe du test, calcul local, taille d'effet, intervalle de confiance et interprétation.">
+  <title>Stats — Outil | Racym Berrah</title>
+  <meta name="description" content="Analyse statistique guidée : Welch, Mann–Whitney, tests appariés, ANOVA, Kruskal–Wallis, χ²/Fisher, McNemar, corrélations, régression et log-rank.">
   <meta name="author" content="Racym Berrah">
   <link rel="canonical" href="__SITE_ORIGIN__/stats/tool/">
   <link rel="stylesheet" href="/assets/site.css">
   <link rel="stylesheet" href="/stats/stats.css">
   <script src="/assets/site.js"></script>
-  <script defer src="/stats/tool/stats.js"></script>
+  <script type="module" src="/stats/ui.js"></script>
 </head>
-<body>
-<a class="skip" href="#main">Aller au contenu</a>
-<header class="site-header">
-  <nav class="wrap navigation" aria-label="Navigation principale">
-    <a class="nav-name" href="/">Racym Berrah</a>
-    <div class="nav-links"><a href="/stats/" aria-current="page">Stats</a><a href="/tools/">Outils &amp; projets</a><a href="/pharmacometrie/">PMx Explain</a></div>
-  </nav>
-</header>
-<main id="main" tabindex="-1" class="stats-tool-shell">
-  <div class="tool-topbar">
-    <a class="back" href="/stats/" data-fr="← Présentation de Stats" data-en="← About Stats">← Présentation de Stats</a>
-    <div class="lang-switch" aria-label="Langue / Language"><button id="langFr" class="active" type="button" aria-pressed="true">FR</button><button id="langEn" type="button" aria-pressed="false">EN</button></div>
+<body class="stats-shell" data-stats-page="tool">
+<a class="skip" href="#main" data-fr="Aller au contenu" data-en="Skip to content">Aller au contenu</a>
+<header class="stats-topbar">
+  <div class="wrap">
+    <a class="stats-brand" href="/stats/"><span class="stats-mark">Σ</span><span>Stats</span></a>
+    <nav class="stats-nav" aria-label="Navigation">
+      <a href="/stats/" data-fr="Présentation" data-en="Overview">Présentation</a>
+      <a href="/" data-fr="Accueil" data-en="Home">Accueil</a>
+      <button class="lang-button" type="button" data-lang-toggle>English</button>
+    </nav>
   </div>
+</header>
+<main id="main" class="tool-main" tabindex="-1">
+  <div class="wrap">
+    <div class="tool-heading">
+      <div><p class="eyebrow" data-fr="Analyse guidée" data-en="Guided analysis">Analyse guidée</p><h1 data-fr="Quel test pour vos données ?" data-en="Which test for your data?">Quel test pour vos données ?</h1><p class="lede" data-fr="Choisissez votre question, collez un tableau puis associez les colonnes. Le moteur applique des règles déterministes et explique ce qu’il calcule." data-en="Choose your question, paste a table and map the columns. The engine applies deterministic rules and explains what it computes.">Choisissez votre question, collez un tableau puis associez les colonnes. Le moteur applique des règles déterministes et explique ce qu’il calcule.</p></div>
+      <div class="local-pill" data-fr="Calcul local : le contenu collé reste dans ce navigateur et n’est pas transmis à un serveur." data-en="Local computation: pasted content stays in this browser and is not transmitted to a server.">Calcul local : le contenu collé reste dans ce navigateur et n’est pas transmis à un serveur.</div>
+    </div>
 
-  <section class="tool-intro">
-    <p class="eyebrow" data-fr="Analyse statistique guidée" data-en="Guided statistical analysis">Analyse statistique guidée</p>
-    <h1 data-fr="Décrivez la question. L’outil propose le test." data-en="Describe the question. The tool proposes the test.">Décrivez la question. L’outil propose le test.</h1>
-    <p class="lede" data-fr="Les règles de sélection sont explicites et déterministes. Vous pouvez toujours voir la méthode retenue, la remplacer par une alternative compatible, et comprendre les hypothèses utilisées." data-en="Selection rules are explicit and deterministic. You can always see the selected method, replace it with a compatible alternative, and understand the assumptions being used.">Les règles de sélection sont explicites et déterministes. Vous pouvez toujours voir la méthode retenue, la remplacer par une alternative compatible, et comprendre les hypothèses utilisées.</p>
-    <span class="local-badge" data-fr="Données calculées localement dans ce navigateur" data-en="Data processed locally in this browser">Données calculées localement dans ce navigateur</span>
-  </section>
+    <div class="tool-grid">
+      <aside class="tool-sidebar">
+        <section class="tool-panel">
+          <h2 data-fr="1. Votre question" data-en="1. Your question">1. Votre question</h2>
+          <label><span data-fr="Que voulez-vous analyser ?" data-en="What do you want to analyze?">Que voulez-vous analyser ?</span>
+            <select id="analysis-mode">
+              <option value="compare2" data-fr="Comparer 2 groupes indépendants" data-en="Compare 2 independent groups">Comparer 2 groupes indépendants</option>
+              <option value="paired" data-fr="Comparer un avant / après" data-en="Compare before / after">Comparer un avant / après</option>
+              <option value="comparek" data-fr="Comparer plus de 2 groupes" data-en="Compare more than 2 groups">Comparer plus de 2 groupes</option>
+              <option value="categorical" data-fr="Comparer des proportions / catégories" data-en="Compare proportions / categories">Comparer des proportions / catégories</option>
+              <option value="mcnemar" data-fr="Comparer une réponse binaire appariée" data-en="Compare paired binary responses">Comparer une réponse binaire appariée</option>
+              <option value="association" data-fr="Étudier l’association entre 2 variables" data-en="Study association between 2 variables">Étudier l’association entre 2 variables</option>
+              <option value="survival" data-fr="Comparer 2 courbes de survie" data-en="Compare 2 survival curves">Comparer 2 courbes de survie</option>
+              <option value="descriptive" data-fr="Décrire une variable quantitative" data-en="Describe a numeric variable">Décrire une variable quantitative</option>
+              <option value="oneSample" data-fr="Comparer une moyenne à une valeur" data-en="Compare a mean with a value">Comparer une moyenne à une valeur</option>
+            </select>
+          </label>
+          <div id="method-guide" class="method-guide"></div>
+        </section>
+      </aside>
 
-  <div class="tool-layout">
-    <aside class="tool-panel" aria-label="Choix de l'analyse">
-      <div class="tool-panel-header"><h2 data-fr="1. Votre question" data-en="1. Your question">1. Votre question</h2><p data-fr="Choisissez la situation qui ressemble le plus à votre étude." data-en="Choose the situation that best matches your study.">Choisissez la situation qui ressemble le plus à votre étude.</p></div>
-      <div class="tool-panel-body question-list">
-        <div class="mode-grid" id="modeGrid">
-          <button class="mode-card active" type="button" data-mode="independent2"><strong data-fr="Comparer 2 groupes" data-en="Compare 2 groups">Comparer 2 groupes</strong><span data-fr="Deux groupes différents, variable quantitative" data-en="Two distinct groups, quantitative outcome">Deux groupes différents, variable quantitative</span></button>
-          <button class="mode-card" type="button" data-mode="paired2"><strong data-fr="Comparer 2 mesures appariées" data-en="Compare paired measurements">Comparer 2 mesures appariées</strong><span data-fr="Avant/après ou sujets appariés" data-en="Before/after or matched subjects">Avant/après ou sujets appariés</span></button>
-          <button class="mode-card" type="button" data-mode="groups3"><strong data-fr="Comparer ≥ 3 groupes" data-en="Compare ≥ 3 groups">Comparer ≥ 3 groupes</strong><span data-fr="Plusieurs groupes indépendants" data-en="Several independent groups">Plusieurs groupes indépendants</span></button>
-          <button class="mode-card" type="button" data-mode="categorical"><strong data-fr="Comparer des proportions" data-en="Compare proportions">Comparer des proportions</strong><span data-fr="Deux variables catégorielles" data-en="Two categorical variables">Deux variables catégorielles</span></button>
-          <button class="mode-card" type="button" data-mode="correlation"><strong data-fr="Mesurer une corrélation" data-en="Measure correlation">Mesurer une corrélation</strong><span data-fr="Deux variables quantitatives" data-en="Two quantitative variables">Deux variables quantitatives</span></button>
-          <button class="mode-card" type="button" data-mode="regression"><strong data-fr="Régression linéaire" data-en="Linear regression">Régression linéaire</strong><span data-fr="Une variable explique/prédit une autre" data-en="One variable explains/predicts another">Une variable explique/prédit une autre</span></button>
+      <section>
+        <div class="data-panel">
+          <div class="data-panel-head">
+            <div><h2 data-fr="2. Collez vos données" data-en="2. Paste your data">2. Collez vos données</h2><p data-fr="CSV, tabulations ou point-virgules. Première ligne = noms des colonnes." data-en="CSV, tabs or semicolons. First row = column names.">CSV, tabulations ou point-virgules. Première ligne = noms des colonnes.</p></div>
+            <div class="data-actions"><button id="load-demo" class="small-button" type="button" data-fr="Charger une démo" data-en="Load demo">Charger une démo</button><button id="parse-data" class="small-button" type="button" data-fr="Lire les données" data-en="Parse data">Lire les données</button></div>
+          </div>
+          <div class="input-area">
+            <textarea id="data-input" spellcheck="false" aria-label="Data" placeholder="group,value&#10;Control,11.2&#10;Control,10.8&#10;Treatment,8.2&#10;Treatment,9.1"></textarea>
+            <div class="input-hint"><span data-fr="Astuce : utilisez « Charger une démo » pour voir le format attendu." data-en="Tip: use “Load demo” to see the expected format.">Astuce : utilisez « Charger une démo » pour voir le format attendu.</span><span data-fr="Les valeurs manquantes numériques sont ignorées." data-en="Missing numeric values are ignored.">Les valeurs manquantes numériques sont ignorées.</span></div>
+            <div id="parse-status" class="parse-status"></div>
+          </div>
+
+          <div id="mapping" class="mapping" hidden>
+            <h3 data-fr="3. Associez les colonnes" data-en="3. Map columns">3. Associez les colonnes</h3>
+            <div id="column-selectors" class="mapping-grid"></div>
+            <div class="mapping-options">
+              <label id="method-wrap"><span data-fr="Méthode" data-en="Method">Méthode</span><select id="method-choice"><option value="auto" data-fr="Automatique + sensibilité" data-en="Automatic + sensitivity">Automatique + sensibilité</option><option value="parametric" data-fr="Méthode sur les moyennes" data-en="Mean-based method">Méthode sur les moyennes</option><option value="rank" data-fr="Méthode sur les rangs" data-en="Rank-based method">Méthode sur les rangs</option></select></label>
+              <label id="reference-wrap" hidden><span data-fr="Valeur de référence" data-en="Reference value">Valeur de référence</span><input id="reference-value" type="number" step="any" value="100"></label>
+            </div>
+            <button id="run-analysis" class="run-button" type="button" data-fr="Analyser" data-en="Analyze">Analyser</button>
+            <p class="tool-methods-note" data-fr="Le résultat statistique n’est pas une décision clinique. Vérifiez toujours le plan d’étude, l’indépendance des observations et la définition du critère avant d’interpréter." data-en="A statistical result is not a clinical decision. Always verify the study design, independence of observations and endpoint definition before interpreting.">Le résultat statistique n’est pas une décision clinique. Vérifiez toujours le plan d’étude, l’indépendance des observations et la définition du critère avant d’interpréter.</p>
+          </div>
         </div>
-        <div id="configArea"></div>
-        <div class="recommendation" id="recommendation" aria-live="polite"></div>
-        <div class="override-row field"><label for="methodOverride"><span data-fr="Méthode" data-en="Method">Méthode</span><span class="help-wrap"><button class="help-button" type="button" aria-label="Aide">?</button><span class="help-tip" data-fr="La méthode recommandée est sélectionnée automatiquement. Vous pouvez choisir une autre méthode compatible si vous avez une justification scientifique." data-en="The recommended method is selected automatically. You may choose another compatible method when scientifically justified.">La méthode recommandée est sélectionnée automatiquement. Vous pouvez choisir une autre méthode compatible si vous avez une justification scientifique.</span></span></label><select id="methodOverride"></select></div>
-      </div>
-    </aside>
-
-    <section>
-      <div class="tool-panel">
-        <div class="tool-panel-header"><h2 data-fr="2. Vos données" data-en="2. Your data">2. Vos données</h2><p id="dataHint" data-fr="Collez vos valeurs ou chargez un exemple." data-en="Paste your values or load an example.">Collez vos valeurs ou chargez un exemple.</p></div>
-        <div class="tool-panel-body">
-          <div class="data-toolbar"><button type="button" id="demoBtn" data-fr="Charger une démo" data-en="Load demo">Charger une démo</button><button type="button" id="clearBtn" data-fr="Effacer" data-en="Clear">Effacer</button><button type="button" id="csvBtn" data-fr="Importer CSV" data-en="Import CSV">Importer CSV</button><input id="csvInput" type="file" accept=".csv,.txt,text/csv,text/plain" hidden><span class="copy-note" id="privacyNote" data-fr="Aucune valeur n’est envoyée au serveur." data-en="No value is sent to the server.">Aucune valeur n’est envoyée au serveur.</span></div>
-          <div id="dataArea"></div>
-          <div class="run-row"><small id="readyText" data-fr="Les décimales avec point ou virgule sont acceptées." data-en="Dot or comma decimals are accepted.">Les décimales avec point ou virgule sont acceptées.</small><button class="primary-button" id="runBtn" type="button" data-fr="Analyser" data-en="Analyze">Analyser</button></div>
-        </div>
-      </div>
-
-      <div class="tool-panel" style="margin-top:1.2rem">
-        <div id="resultArea" class="result-placeholder" aria-live="polite">
-          <div><strong data-fr="Le résultat apparaîtra ici." data-en="Your result will appear here.">Le résultat apparaîtra ici.</strong><span data-fr="Vous verrez l’estimation principale, l’intervalle de confiance, la p-value, la taille d’effet, les hypothèses et une interprétation en langage courant." data-en="You will see the main estimate, confidence interval, p-value, effect size, assumptions and a plain-language interpretation.">Vous verrez l’estimation principale, l’intervalle de confiance, la p-value, la taille d’effet, les hypothèses et une interprétation en langage courant.</span></div>
-        </div>
-      </div>
-    </section>
+        <div id="results" class="results" aria-live="polite"></div>
+      </section>
+    </div>
   </div>
 </main>
-<footer class="site"><div class="wrap footer-bottom"><p data-fr="Calculateur pédagogique et de recherche. Vérifiez les analyses à fort enjeu avec un statisticien ou un logiciel de référence." data-en="Educational and research calculator. Verify high-stakes analyses with a statistician or reference software.">Calculateur pédagogique et de recherche. Vérifiez les analyses à fort enjeu avec un statisticien ou un logiciel de référence.</p><p><a href="https://github.com/rberrah/rberrah.github.io">Code source</a></p></div></footer>
+<footer class="site">
+  <div class="wrap footer-top"><div><a class="nav-name" href="/">Racym Berrah</a><p>Quantitative pharmacology, pharmacometrics &amp; AI.</p></div><nav class="footer-links"><a href="/stats/">Stats</a><a href="/tools/">Tools &amp; Projects</a><a href="https://github.com/rberrah">GitHub</a><a href="/contact/">Contact</a></nav></div>
+  <div class="wrap footer-bottom"><p>Code: <a href="https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE">MIT</a>.</p><p data-fr="Outil de recherche et d’enseignement. Les analyses confirmatoires doivent être planifiées et validées de façon appropriée." data-en="Research and teaching tool. Confirmatory analyses require appropriate planning and validation.">Outil de recherche et d’enseignement. Les analyses confirmatoires doivent être planifiées et validées de façon appropriée.</p><label class="theme-control" hidden>Appearance <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
+</footer>
 </body>
 </html>
