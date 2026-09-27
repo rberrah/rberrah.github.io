@@ -46,6 +46,8 @@ test('Stats built-in demo runs exact rank sensitivity, visualization and local r
   await expect(page.locator('#results .privacy-note')).toContainText('Aucune donnée n’est envoyée à un serveur');
   await expect(page.locator('#results .stats-visual-section')).toBeVisible();
   await expect(page.locator('#results .stats-svg')).toBeVisible();
+  await expect(page.locator('#results .diagnostic-section')).toBeVisible();
+  await expect(page.locator('#results .qq-chart')).toBeVisible();
   await expect(page.locator('#results .stats-report-actions')).toBeVisible();
   const downloadPromise = page.waitForEvent('download');
   await page.locator('[data-report-download]').click();
@@ -110,6 +112,20 @@ test('Stats exposes explicit 2x2 orientation and RD, RR, OR with confidence inte
   await expect(page.locator('#results .categorical-effects')).toContainText('Risque relatif (RR)');
   await expect(page.locator('#results .categorical-effects')).toContainText('Odds ratio (OR)');
   await expect(page.locator('#results .categorical-effects')).toContainText('A vs B');
+  expect(errors).toEqual([]);
+});
+
+test('Stats linear association adds Q-Q and residual-vs-fitted diagnostics', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(origin + '/stats/tool/');
+  await page.locator('#analysis-mode').selectOption('association');
+  await page.locator('#load-demo').click();
+  await page.locator('#run-analysis').click();
+  await expect(page.locator('#results .diagnostic-section')).toBeVisible();
+  await expect(page.locator('#results .qq-chart')).toBeVisible();
+  await expect(page.locator('#results .residual-chart')).toBeVisible();
+  await expect(page.locator('#results .diagnostic-section')).toContainText('pas un test de décision');
   expect(errors).toEqual([]);
 });
 
