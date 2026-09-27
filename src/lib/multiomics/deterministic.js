@@ -258,6 +258,17 @@ function subjectsPerValue(rows, valueKey) {
   return output;
 }
 
+function publishDiagnostics(diagnostics) {
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') return;
+  window.__PMX_MULTIOMICS_DIAGNOSTICS__ = diagnostics;
+  try {
+    window.dispatchEvent(new CustomEvent('pmx-multiomics-diagnostics', { detail: diagnostics }));
+  } catch {
+    // The analysis result still contains the diagnostics even if a legacy
+    // browser does not expose CustomEvent as expected.
+  }
+}
+
 function buildMethodEligibility({ protocol, canonicalRows, perLayer, overlap, conditions, groupCounts, blockers, warnings }) {
   const objective = protocol.objective || 'explore';
   const outcomeType = protocol.outcomeType || 'none';
@@ -569,6 +580,7 @@ async function runWithStrictChemicalResolution(args) {
     const diagnostics = buildPreAnalysisDiagnostics(args, result);
     result.preAnalysisDiagnostics = diagnostics;
     result.metadataSummary = { ...result.metadataSummary, preAnalysisDiagnostics: diagnostics };
+    publishDiagnostics(diagnostics);
     if (result?.engine) {
       result.engine = {
         ...result.engine,
@@ -593,6 +605,7 @@ async function runWithStrictChemicalResolution(args) {
     const diagnostics = buildPreAnalysisDiagnostics(args, result);
     result.preAnalysisDiagnostics = diagnostics;
     result.metadataSummary = { ...result.metadataSummary, preAnalysisDiagnostics: diagnostics };
+    publishDiagnostics(diagnostics);
     if (result?.engine) {
       result.engine = {
         ...result.engine,
