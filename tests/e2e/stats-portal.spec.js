@@ -58,6 +58,27 @@ test('Stats built-in demo runs exact rank sensitivity, visualization and local r
   expect(errors).toEqual([]);
 });
 
+test('Stats deterministic assistant routes from study design rather than test names', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(origin + '/stats/tool/');
+  await expect(page.locator('#decision-launch')).toBeVisible();
+  await expect(page.locator('#decision-launch')).toContainText('Je ne sais pas quel test choisir');
+  await page.locator('#decision-launch').click();
+  await expect(page.locator('#decision-assistant')).toBeVisible();
+  await expect(page.locator('#decision-recommendation')).toContainText('Welch t');
+  await page.locator('#decision-paired').selectOption('yes');
+  await expect(page.locator('#decision-recommendation')).toContainText('t apparié');
+  await page.locator('#decision-apply').click();
+  await expect(page.locator('#analysis-mode')).toHaveValue('paired');
+  await page.locator('#decision-launch').click();
+  await page.locator('#decision-groups').selectOption('k');
+  await page.locator('#decision-paired').selectOption('yes');
+  await expect(page.locator('#decision-recommendation')).toContainText('Mesures répétées > 2');
+  await expect(page.locator('#decision-recommendation')).toContainText('Ne forcez pas une ANOVA de groupes indépendants');
+  expect(errors).toEqual([]);
+});
+
 test('Stats reports corrected pairwise post-hoc comparisons after a multi-group analysis', async ({ page }) => {
   const errors=[];
   page.on('pageerror', error => errors.push(error.message));
@@ -117,6 +138,7 @@ test('Stats remains usable on mobile and the bilingual switch updates the interf
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('h1')).toContainText('Which test for your data?');
   await expect(page.locator('#load-demo')).toHaveText('Load demo');
+  await expect(page.locator('#decision-launch')).toContainText('I do not know which test to choose');
   await expect(page.locator('#study-planning h2')).toHaveText('Plan a study');
   await expect(page.locator('#plan-run')).toHaveText('Calculate sample size');
 });
