@@ -101,6 +101,8 @@ function enhanceResults(){
 injectStyles();
 ['#parse-data','#load-demo'].forEach(sel=>document.querySelector(sel)?.addEventListener('click',()=>queueMicrotask(syncCategoricalOrientation)));
 document.querySelector('#analysis-mode')?.addEventListener('change',()=>queueMicrotask(syncCategoricalOrientation));
-document.querySelector('#col-x')?.addEventListener?.('change',syncCategoricalOrientation);
+document.addEventListener('change',event=>{
+  if(event.target?.id==='col-x'||event.target?.id==='col-y') queueMicrotask(syncCategoricalOrientation);
+});
 document.querySelector('#run-analysis')?.addEventListener('click',()=>queueMicrotask(enhanceResults));
 document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{syncCategoricalOrientation();enhanceResults();},0));
