@@ -10,6 +10,7 @@
 - Browser E2E tests for the Stats workflow.
 - Descriptive visualizations and Kaplan–Meier display.
 - Downloadable local HTML report, copyable summary and print/PDF workflow.
+- Study-planning calculators for two independent means, paired means, two proportions and correlation, with alpha, target power and dropout inflation.
 
 ## P0 — strengthen reference-grade behaviour
 
@@ -18,13 +19,13 @@
 3. Add corrected post-hoc comparisons after significant multi-group tests, starting with Games–Howell after Welch ANOVA.
 4. Improve categorical effect estimates with confidence intervals where appropriate.
 
-## P1 — study planning and common biomedical statistics
+## P1 — broaden common biomedical statistics
 
-1. Power and sample-size calculators for two independent means, paired means, two proportions and correlation, with dropout inflation and explicit assumptions.
-2. Repeated-measures / Friedman workflows with corrected post-hoc comparisons.
-3. Logistic regression and multivariable linear regression.
-4. Survival: full Kaplan–Meier summaries and Cox proportional-hazards regression.
-5. Multiple-testing correction: BH, Holm and Bonferroni.
+1. Repeated-measures / Friedman workflows with corrected post-hoc comparisons.
+2. Logistic regression and multivariable linear regression.
+3. Survival: full Kaplan–Meier summaries and Cox proportional-hazards regression.
+4. Multiple-testing correction: BH, Holm and Bonferroni.
+5. Extend study planning to unequal allocation, one-sided hypotheses, non-inferiority and cluster/repeated-measures designs.
 
 ## P2 — study-design assistant
 
