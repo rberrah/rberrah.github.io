@@ -2,12 +2,13 @@ import { sampleSizeTwoMeans, sampleSizePairedMeans, sampleSizeTwoProportions, sa
 
 const tr=(fr,en)=>document.documentElement.lang==='en'?en:fr;
 const val=id=>Number(document.querySelector(id)?.value);
+const txt=(fr,en)=>`<span data-fr="${fr}" data-en="${en}">${tr(fr,en)}</span>`;
 
 function fields(design){
-  if(design==='two_means')return `<label>${tr('Différence minimale','Minimum difference')}<input id="plan-diff" type="number" step="any" value="5"></label><label>${tr('Écart-type commun','Common SD')}<input id="plan-sd" type="number" step="any" value="10"></label>`;
-  if(design==='paired_means')return `<label>${tr('Différence moyenne','Mean difference')}<input id="plan-diff" type="number" step="any" value="5"></label><label>${tr('Écart-type des différences','SD of differences')}<input id="plan-sd-diff" type="number" step="any" value="10"></label>`;
-  if(design==='two_proportions')return `<label>${tr('Proportion groupe 1','Group 1 proportion')}<input id="plan-p1" type="number" min="0.001" max="0.999" step="0.01" value="0.40"></label><label>${tr('Proportion groupe 2','Group 2 proportion')}<input id="plan-p2" type="number" min="0.001" max="0.999" step="0.01" value="0.60"></label>`;
-  return `<label>${tr('Corrélation attendue |r|','Expected correlation |r|')}<input id="plan-r" type="number" min="0.01" max="0.99" step="0.01" value="0.30"></label>`;
+  if(design==='two_means')return `<label>${txt('Différence minimale','Minimum difference')}<input id="plan-diff" type="number" step="any" value="5"></label><label>${txt('Écart-type commun','Common SD')}<input id="plan-sd" type="number" step="any" value="10"></label>`;
+  if(design==='paired_means')return `<label>${txt('Différence moyenne','Mean difference')}<input id="plan-diff" type="number" step="any" value="5"></label><label>${txt('Écart-type des différences','SD of differences')}<input id="plan-sd-diff" type="number" step="any" value="10"></label>`;
+  if(design==='two_proportions')return `<label>${txt('Proportion groupe 1','Group 1 proportion')}<input id="plan-p1" type="number" min="0.001" max="0.999" step="0.01" value="0.40"></label><label>${txt('Proportion groupe 2','Group 2 proportion')}<input id="plan-p2" type="number" min="0.001" max="0.999" step="0.01" value="0.60"></label>`;
+  return `<label>${txt('Corrélation attendue |r|','Expected correlation |r|')}<input id="plan-r" type="number" min="0.01" max="0.99" step="0.01" value="0.30"></label>`;
 }
 
 function renderFields(){
@@ -43,11 +44,15 @@ function inject(){
   document.head.appendChild(style);
   const section=document.createElement('section');
   section.className='tool-panel study-planning';section.id='study-planning';
-  section.innerHTML=`<h2>${tr('Planifier une étude','Plan a study')}</h2><p>${tr('Estimer l’effectif avant l’analyse.','Estimate sample size before analysis.')}</p><label>${tr('Plan','Design')}<select id="plan-design"><option value="two_means">${tr('2 moyennes indépendantes','2 independent means')}</option><option value="paired_means">${tr('Avant / après apparié','Paired before / after')}</option><option value="two_proportions">2 proportions</option><option value="correlation">${tr('Corrélation','Correlation')}</option></select></label><div id="plan-fields" class="plan-grid"></div><div class="plan-common"><label>α<input id="plan-alpha" type="number" step="0.01" value="0.05"></label><label>${tr('Puissance','Power')}<input id="plan-power" type="number" step="0.05" value="0.80"></label><label>${tr('Attrition %','Dropout %')}<input id="plan-dropout" type="number" step="1" value="10"></label></div><button id="plan-run" class="small-button plan-run" type="button">${tr('Calculer l’effectif','Calculate sample size')}</button><div id="plan-result" class="plan-result" aria-live="polite"></div><p class="plan-note">${tr('Approximation bilatérale pour la planification. Pour un essai confirmatoire, documenter les hypothèses et vérifier le calcul dans un logiciel de référence.','Two-sided planning approximation. For confirmatory trials, document assumptions and verify the calculation in reference software.')}</p>`;
+  section.innerHTML=`<h2 data-fr="Planifier une étude" data-en="Plan a study">${tr('Planifier une étude','Plan a study')}</h2><p data-fr="Estimer l’effectif avant l’analyse." data-en="Estimate sample size before analysis.">${tr('Estimer l’effectif avant l’analyse.','Estimate sample size before analysis.')}</p><label>${txt('Plan','Design')}<select id="plan-design"><option value="two_means" data-fr="2 moyennes indépendantes" data-en="2 independent means">${tr('2 moyennes indépendantes','2 independent means')}</option><option value="paired_means" data-fr="Avant / après apparié" data-en="Paired before / after">${tr('Avant / après apparié','Paired before / after')}</option><option value="two_proportions">2 proportions</option><option value="correlation" data-fr="Corrélation" data-en="Correlation">${tr('Corrélation','Correlation')}</option></select></label><div id="plan-fields" class="plan-grid"></div><div class="plan-common"><label>α<input id="plan-alpha" type="number" step="0.01" value="0.05"></label><label>${txt('Puissance','Power')}<input id="plan-power" type="number" step="0.05" value="0.80"></label><label>${txt('Attrition %','Dropout %')}<input id="plan-dropout" type="number" step="1" value="10"></label></div><button id="plan-run" class="small-button plan-run" type="button" data-fr="Calculer l’effectif" data-en="Calculate sample size">${tr('Calculer l’effectif','Calculate sample size')}</button><div id="plan-result" class="plan-result" aria-live="polite"></div><p class="plan-note" data-fr="Approximation bilatérale pour la planification. Pour un essai confirmatoire, documenter les hypothèses et vérifier le calcul dans un logiciel de référence." data-en="Two-sided planning approximation. For confirmatory trials, document assumptions and verify the calculation in reference software.">${tr('Approximation bilatérale pour la planification. Pour un essai confirmatoire, documenter les hypothèses et vérifier le calcul dans un logiciel de référence.','Two-sided planning approximation. For confirmatory trials, document assumptions and verify the calculation in reference software.')}</p>`;
   sidebar.appendChild(section);
   section.querySelector('#plan-design').addEventListener('change',renderFields);
   section.querySelector('#plan-run').addEventListener('click',calculate);
   renderFields();
+  document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{
+    const result=document.querySelector('#plan-result');
+    if(result?.textContent?.trim())calculate();
+  },0));
 }
 
 inject();
