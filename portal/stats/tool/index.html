@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stats — analyse guidée | Racym Berrah</title>
+  <meta name="description" content="Analyse statistique guidée : sélection déterministe du test, calcul local, taille d'effet, intervalle de confiance et interprétation.">
+  <meta name="author" content="Racym Berrah">
+  <link rel="canonical" href="__SITE_ORIGIN__/stats/tool/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/stats/stats.css">
+  <script src="/assets/site.js"></script>
+  <script defer src="/stats/tool/stats.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+<header class="site-header">
+  <nav class="wrap navigation" aria-label="Navigation principale">
+    <a class="nav-name" href="/">Racym Berrah</a>
+    <div class="nav-links"><a href="/stats/" aria-current="page">Stats</a><a href="/tools/">Outils &amp; projets</a><a href="/pharmacometrie/">PMx Explain</a></div>
+  </nav>
+</header>
+<main id="main" tabindex="-1" class="stats-tool-shell">
+  <div class="tool-topbar">
+    <a class="back" href="/stats/" data-fr="← Présentation de Stats" data-en="← About Stats">← Présentation de Stats</a>
+    <div class="lang-switch" aria-label="Langue / Language"><button id="langFr" class="active" type="button" aria-pressed="true">FR</button><button id="langEn" type="button" aria-pressed="false">EN</button></div>
+  </div>
+
+  <section class="tool-intro">
+    <p class="eyebrow" data-fr="Analyse statistique guidée" data-en="Guided statistical analysis">Analyse statistique guidée</p>
+    <h1 data-fr="Décrivez la question. L’outil propose le test." data-en="Describe the question. The tool proposes the test.">Décrivez la question. L’outil propose le test.</h1>
+    <p class="lede" data-fr="Les règles de sélection sont explicites et déterministes. Vous pouvez toujours voir la méthode retenue, la remplacer par une alternative compatible, et comprendre les hypothèses utilisées." data-en="Selection rules are explicit and deterministic. You can always see the selected method, replace it with a compatible alternative, and understand the assumptions being used.">Les règles de sélection sont explicites et déterministes. Vous pouvez toujours voir la méthode retenue, la remplacer par une alternative compatible, et comprendre les hypothèses utilisées.</p>
+    <span class="local-badge" data-fr="Données calculées localement dans ce navigateur" data-en="Data processed locally in this browser">Données calculées localement dans ce navigateur</span>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-panel" aria-label="Choix de l'analyse">
+      <div class="tool-panel-header"><h2 data-fr="1. Votre question" data-en="1. Your question">1. Votre question</h2><p data-fr="Choisissez la situation qui ressemble le plus à votre étude." data-en="Choose the situation that best matches your study.">Choisissez la situation qui ressemble le plus à votre étude.</p></div>
+      <div class="tool-panel-body question-list">
+        <div class="mode-grid" id="modeGrid">
+          <button class="mode-card active" type="button" data-mode="independent2"><strong data-fr="Comparer 2 groupes" data-en="Compare 2 groups">Comparer 2 groupes</strong><span data-fr="Deux groupes différents, variable quantitative" data-en="Two distinct groups, quantitative outcome">Deux groupes différents, variable quantitative</span></button>
+          <button class="mode-card" type="button" data-mode="paired2"><strong data-fr="Comparer 2 mesures appariées" data-en="Compare paired measurements">Comparer 2 mesures appariées</strong><span data-fr="Avant/après ou sujets appariés" data-en="Before/after or matched subjects">Avant/après ou sujets appariés</span></button>
+          <button class="mode-card" type="button" data-mode="groups3"><strong data-fr="Comparer ≥ 3 groupes" data-en="Compare ≥ 3 groups">Comparer ≥ 3 groupes</strong><span data-fr="Plusieurs groupes indépendants" data-en="Several independent groups">Plusieurs groupes indépendants</span></button>
+          <button class="mode-card" type="button" data-mode="categorical"><strong data-fr="Comparer des proportions" data-en="Compare proportions">Comparer des proportions</strong><span data-fr="Deux variables catégorielles" data-en="Two categorical variables">Deux variables catégorielles</span></button>
+          <button class="mode-card" type="button" data-mode="correlation"><strong data-fr="Mesurer une corrélation" data-en="Measure correlation">Mesurer une corrélation</strong><span data-fr="Deux variables quantitatives" data-en="Two quantitative variables">Deux variables quantitatives</span></button>
+          <button class="mode-card" type="button" data-mode="regression"><strong data-fr="Régression linéaire" data-en="Linear regression">Régression linéaire</strong><span data-fr="Une variable explique/prédit une autre" data-en="One variable explains/predicts another">Une variable explique/prédit une autre</span></button>
+        </div>
+        <div id="configArea"></div>
+        <div class="recommendation" id="recommendation" aria-live="polite"></div>
+        <div class="override-row field"><label for="methodOverride"><span data-fr="Méthode" data-en="Method">Méthode</span><span class="help-wrap"><button class="help-button" type="button" aria-label="Aide">?</button><span class="help-tip" data-fr="La méthode recommandée est sélectionnée automatiquement. Vous pouvez choisir une autre méthode compatible si vous avez une justification scientifique." data-en="The recommended method is selected automatically. You may choose another compatible method when scientifically justified.">La méthode recommandée est sélectionnée automatiquement. Vous pouvez choisir une autre méthode compatible si vous avez une justification scientifique.</span></span></label><select id="methodOverride"></select></div>
+      </div>
+    </aside>
+
+    <section>
+      <div class="tool-panel">
+        <div class="tool-panel-header"><h2 data-fr="2. Vos données" data-en="2. Your data">2. Vos données</h2><p id="dataHint" data-fr="Collez vos valeurs ou chargez un exemple." data-en="Paste your values or load an example.">Collez vos valeurs ou chargez un exemple.</p></div>
+        <div class="tool-panel-body">
+          <div class="data-toolbar"><button type="button" id="demoBtn" data-fr="Charger une démo" data-en="Load demo">Charger une démo</button><button type="button" id="clearBtn" data-fr="Effacer" data-en="Clear">Effacer</button><button type="button" id="csvBtn" data-fr="Importer CSV" data-en="Import CSV">Importer CSV</button><input id="csvInput" type="file" accept=".csv,.txt,text/csv,text/plain" hidden><span class="copy-note" id="privacyNote" data-fr="Aucune valeur n’est envoyée au serveur." data-en="No value is sent to the server.">Aucune valeur n’est envoyée au serveur.</span></div>
+          <div id="dataArea"></div>
+          <div class="run-row"><small id="readyText" data-fr="Les décimales avec point ou virgule sont acceptées." data-en="Dot or comma decimals are accepted.">Les décimales avec point ou virgule sont acceptées.</small><button class="primary-button" id="runBtn" type="button" data-fr="Analyser" data-en="Analyze">Analyser</button></div>
+        </div>
+      </div>
+
+      <div class="tool-panel" style="margin-top:1.2rem">
+        <div id="resultArea" class="result-placeholder" aria-live="polite">
+          <div><strong data-fr="Le résultat apparaîtra ici." data-en="Your result will appear here.">Le résultat apparaîtra ici.</strong><span data-fr="Vous verrez l’estimation principale, l’intervalle de confiance, la p-value, la taille d’effet, les hypothèses et une interprétation en langage courant." data-en="You will see the main estimate, confidence interval, p-value, effect size, assumptions and a plain-language interpretation.">Vous verrez l’estimation principale, l’intervalle de confiance, la p-value, la taille d’effet, les hypothèses et une interprétation en langage courant.</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="site"><div class="wrap footer-bottom"><p data-fr="Calculateur pédagogique et de recherche. Vérifiez les analyses à fort enjeu avec un statisticien ou un logiciel de référence." data-en="Educational and research calculator. Verify high-stakes analyses with a statistician or reference software.">Calculateur pédagogique et de recherche. Vérifiez les analyses à fort enjeu avec un statisticien ou un logiciel de référence.</p><p><a href="https://github.com/rberrah/rberrah.github.io">Code source</a></p></div></footer>
+</body>
+</html>
