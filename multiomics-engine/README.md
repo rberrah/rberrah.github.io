@@ -55,21 +55,26 @@ The outcome must be categorical. Prefer a named vector keyed by sample ID.
       ncomp = 2,
       seed = 20260924,
       tune = TRUE,
-      nrepeat = 3
+      nrepeat = 5
     )
 
 Methodological safeguards:
 
 - at least three subjects in every class are required for the automated tuning route;
 - folds are bounded by the smallest class;
+- the adapter enforces at least **five repeated M-fold CV runs**, including when the browser bridge requests fewer repeats;
 - `tune.block.splsda()` is used with repeated M-fold cross-validation;
 - BER is the tuning criterion so a larger class does not dominate the error metric;
-- the final `keepX` sparsity settings and component count are recorded;
-- `mixOmics::perf()` is run for internal cross-validated performance;
+- the candidate `keepX` grid, final `keepX` sparsity settings and component count are recorded;
+- tuning failures and `perf()` failures are retained explicitly rather than silently discarded;
+- `mixOmics::perf()` is run with a deterministic seed distinct from the tuning seed;
+- the compact performance summary reports median, mean, minimum and maximum extracted BER rather than highlighting only the best observed value;
 - selected variables are reported as a supervised multivariate signature, not as independently validated biomarkers;
 - **external validation remains required** for claims of generalisable prediction or biomarker performance.
 
 The fitted model, tuning object, performance object, sample variates, selected variables and compact summary are saved when available.
+
+Important interpretation boundary: tuning and the `perf()` diagnostic are performed on the same cohort. Repeated CV reduces sensitivity to one arbitrary split but does **not** create an independent validation cohort and should not be presented as unbiased external performance.
 
 ## Raw RNA-seq counts
 
@@ -148,6 +153,18 @@ With `random_slope="auto"`, a subject-specific time slope is attempted only when
     )
 
 Pathway enrichment organises molecular evidence; it is not by itself proof that a pathway is activated, causal or clinically relevant. The measured/mappable feature universe and identifier coverage should be retained in the study report.
+
+### Reactome release provenance
+
+Whenever Reactome analysis is used in the browser, the tool also queries the Reactome database-version endpoint and attaches the returned release identifier to the final analysis object. The provenance is stored in three places so downstream exporters cannot easily drop it:
+
+- `externalDatabaseProvenance.reactome`;
+- `reactome.provenance`;
+- `reproducibility.externalDatabases.reactome`.
+
+The stored record includes the Reactome release, version endpoint, AnalysisService base URL, captured analysis token(s) and timestamp. If the version endpoint is unavailable, the pathway analysis remains usable but the provenance record is marked `unavailable` with the retrieval error. The failure does not silently invent a database version.
+
+The downloadable analysis JSON therefore carries the external knowledge-base release used at analysis time. Reactome content may change independently of PMx Explain, so this information should be retained with manuscript or regulated-workflow archives.
 
 ## Automatic browser bridge
 
