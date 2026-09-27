@@ -163,7 +163,12 @@ normalise_keepx <- function(keepX, blocks, ncomp) {
 safe_perf_summary <- function(perf) {
   if (is.null(perf) || inherits(perf, "try-error")) return(NULL)
   error_rate <- perf$error.rate
-  if (is.null(error_rate)) return(list(status = "available", note = "Performance object saved; compact BER extraction unavailable for this mixOmics version."))
+  if (is.null(error_rate)) {
+    return(list(
+      status = "available",
+      note = "Performance object saved; compact BER extraction unavailable for this mixOmics version. Internal cross-validation is not external validation."
+    ))
+  }
   ber <- NULL
   if (is.list(error_rate) && !is.null(error_rate$BER)) ber <- error_rate$BER
   if (is.null(ber) && is.list(error_rate) && !is.null(error_rate$WeightedVote) && !is.null(error_rate$WeightedVote$BER)) ber <- error_rate$WeightedVote$BER
@@ -171,8 +176,12 @@ safe_perf_summary <- function(perf) {
   numeric_ber <- numeric_ber[is.finite(numeric_ber)]
   list(
     status = "available",
-    best_observed_ber = if (length(numeric_ber)) min(numeric_ber) else NA_real_,
-    note = "Repeated internal cross-validation; external validation remains required for claims of generalisable prediction."
+    ber_values_extracted = length(numeric_ber),
+    ber_median = if (length(numeric_ber)) stats::median(numeric_ber) else NA_real_,
+    ber_mean = if (length(numeric_ber)) mean(numeric_ber) else NA_real_,
+    ber_min = if (length(numeric_ber)) min(numeric_ber) else NA_real_,
+    ber_max = if (length(numeric_ber)) max(numeric_ber) else NA_real_,
+    note = "These BER values summarise repeated internal cross-validation on the same cohort used for model tuning. They are descriptive internal-validation diagnostics, not an unbiased external performance estimate."
   )
 }
 
@@ -184,7 +193,7 @@ run_diablo_blocks <- function(
   keepX = NULL,
   seed = 20260924L,
   tune = TRUE,
-  nrepeat = 3L,
+  nrepeat = 5L,
   folds = NULL
 ) {
   require_namespace("mixOmics")
@@ -214,7 +223,10 @@ run_diablo_blocks <- function(
 
   if (is.null(folds)) folds <- min(5L, as.integer(min_class))
   folds <- as.integer(max(3L, min(folds, min_class)))
-  nrepeat <- as.integer(max(3L, nrepeat))
+  # The automatic backend previously requested three repeats. Enforce at least
+  # five here so both direct calls and browser-triggered runs receive a more
+  # stable repeated-CV diagnostic without relying on the caller.
+  nrepeat <- as.integer(max(5L, nrepeat))
   max_components <- max(1L, min(3L, nlevels(y), length(y) - 2L))
   requested_components <- as.integer(max(1L, min(ncomp, max_components)))
 
@@ -228,9 +240,11 @@ run_diablo_blocks <- function(
 
   set.seed(seed)
   tuning <- NULL
+  tuning_error <- NULL
   tuned <- FALSE
   final_ncomp <- requested_components
   final_keepX <- normalise_keepx(keepX, blocks, final_ncomp)
+  test_keepX <- NULL
 
   if (isTRUE(tune) && is.null(keepX)) {
     test_keepX <- lapply(blocks, function(x) make_keepx_grid(ncol(x)))
@@ -261,7 +275,11 @@ run_diablo_blocks <- function(
           final_keepX <- normalise_keepx(tuning$choice.keepX, blocks, final_ncomp)
           tuned <- TRUE
         }
+      } else {
+        tuning_error <- as.character(tuning)
       }
+    } else {
+      tuning_error <- "Automatic sparsity tuning was not attempted because at least one block had fewer than two admissible keepX candidates."
     }
   }
 
@@ -273,6 +291,7 @@ run_diablo_blocks <- function(
     design = design
   )
 
+  performance_seed <- as.integer(seed) + 1L
   performance <- try(
     mixOmics::perf(
       fit,
@@ -280,10 +299,11 @@ run_diablo_blocks <- function(
       folds = folds,
       nrepeat = nrepeat,
       progressBar = FALSE,
-      seed = as.integer(seed)
+      seed = performance_seed
     ),
     silent = TRUE
   )
+  performance_error <- if (inherits(performance, "try-error")) as.character(performance) else NULL
 
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   saveRDS(fit, file.path(output_dir, "diablo_model.rds"))
@@ -306,21 +326,26 @@ run_diablo_blocks <- function(
   summary <- list(
     method = "mixOmics DIABLO / block.splsda",
     seed = as.integer(seed),
+    performance_seed = performance_seed,
     samples = length(y),
     classes = as.list(class_counts),
     blocks = vapply(blocks, ncol, integer(1)),
     tuning = list(
       requested = isTRUE(tune),
       completed = tuned,
-      validation = "repeated stratified M-fold CV",
+      validation = "repeated M-fold CV; folds bounded by the smallest class",
       folds = folds,
       repeats = nrepeat,
       measure = "BER",
+      candidate_keepX = test_keepX,
       ncomp = final_ncomp,
       keepX = final_keepX,
-      note = if (tuned) "Final model uses cross-validated sparsity choices." else "Automatic tuning was unavailable; conservative keepX values were used and this model should be treated as exploratory."
+      error = tuning_error,
+      note = if (tuned) "Final model uses repeated cross-validated sparsity choices." else "Automatic tuning was unavailable; conservative keepX values were used and this model should be treated as exploratory."
     ),
     internal_performance = safe_perf_summary(performance),
+    internal_performance_error = performance_error,
+    validation_boundary = "Hyperparameter tuning and the reported perf() diagnostic use the same cohort. Repeated CV reduces split sensitivity but does not create an independent validation cohort; external validation remains required for generalisable biomarker or prediction claims.",
     interpretation = "Selected variables are a supervised multivariate signature. Their stability and external validity must be assessed before biomarker claims."
   )
   saveRDS(summary, file.path(output_dir, "diablo_summary.rds"))
