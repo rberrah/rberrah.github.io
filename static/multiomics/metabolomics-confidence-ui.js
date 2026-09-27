@@ -32,7 +32,12 @@
     return select instanceof HTMLSelectElement && definitions[select.value] ? select.value : 'mixed_unknown';
   }
 
+  function publishLevel(value) {
+    window.__PMX_METABOLOMICS_IDENTIFICATION_CONFIDENCE__ = value;
+  }
+
   function persist(value) {
+    publishLevel(value);
     try { localStorage.setItem(LEVEL_KEY, value); } catch {}
   }
 
@@ -52,7 +57,7 @@
       ? (language === 'en' ? 'Named-metabolite pathway interpretation is permitted, but still depends on statistical evidence and pathway coverage.' : 'L’interprétation des voies à partir de métabolites nommés est permise, mais dépend toujours de la preuve statistique et de la couverture des voies.')
       : level === 'msi2'
         ? (language === 'en' ? 'Pathway interpretation is hypothesis-generating because the metabolite identity is putative.' : 'L’interprétation de voie reste génératrice d’hypothèses car l’identité du métabolite est putative.')
-        : (language === 'en' ? 'Do not treat exact named-metabolite pathway mapping as confirmed at this confidence level.' : 'Ne pas considérer comme confirmée une attribution de voie reposant sur un métabolite nommé exact à ce niveau de confiance.');
+        : (language === 'en' ? 'Exact named-metabolite contribution to integrated pathway claims is suppressed at this confidence level.' : 'La contribution d’un métabolite nommé exact aux conclusions de voies intégrées est supprimée à ce niveau de confiance.');
     return { label, text, pathway };
   }
 
@@ -71,7 +76,9 @@
     }
 
     const language = lang();
-    const value = currentLevel() === 'mixed_unknown' && !document.getElementById('pmx-metabolomics-msi-level') ? restore() : currentLevel();
+    const existingSelect = document.getElementById('pmx-metabolomics-msi-level');
+    const value = existingSelect ? currentLevel() : restore();
+    publishLevel(value);
     const policy = interpretationPolicy(value, language);
     const state = `${language}|${value}`;
     if (panel.dataset.state === state && panel.querySelector('select')) return;
@@ -126,6 +133,8 @@
     if (!result || typeof result !== 'object') return;
     const level = currentLevel();
     const policyEn = interpretationPolicy(level, 'en');
+    const suppressExactMetabolitePathways = level === 'msi3' || level === 'msi4';
+
     result.protocol = {
       ...(result.protocol || {}),
       metabolomicsIdentificationConfidence: level
@@ -135,8 +144,30 @@
       declaredLevel: level,
       label: policyEn.label,
       pathwayInterpretation: policyEn.pathway,
+      exactPathwayMappingSuppressed: suppressExactMetabolitePathways,
       note: 'Database identifier resolution is not evidence of analytical compound identification. Apply per-feature confidence when mixed levels are present.'
     };
+
+    // MSI 3 describes a putative class and MSI 4 an unknown feature. In either
+    // case an exact ChEBI/HMDB/KEGG label must not contribute as if a unique
+    // metabolite structure had been identified. Statistical feature results are
+    // retained, but integrated exact-metabolite Reactome claims are suppressed.
+    if (suppressExactMetabolitePathways && result.reactome) {
+      const perLayer = { ...(result.reactome.perLayer || {}) };
+      if ('metabolomics' in perLayer) perLayer.metabolomics = null;
+      result.reactome = {
+        ...result.reactome,
+        combined: null,
+        consensus: [],
+        perLayer,
+        metabolomicsConfidenceSuppressed: true,
+        metabolomicsConfidenceReason: `Exact metabolite pathway integration suppressed because declared confidence is ${level}.`,
+        backgroundCaveat: [
+          result.reactome.backgroundCaveat,
+          'Integrated Reactome consensus was suppressed because metabolite confidence did not support exact compound-level mapping.'
+        ].filter(Boolean).join(' ')
+      };
+    }
   });
 
   function installStyle() {
