@@ -24,6 +24,11 @@ function jsonResponse(value, status = 200) {
   assert.equal(result.resolved, 'CHEBI:34967');
   assert.equal(result.status, 'resolved_external_id');
   assert.equal(result.method, 'unichem_hmdb_to_chebi');
+  assert.equal(result.sourceDatabase, 'HMDB');
+  assert.equal(result.canonicalDatabase, 'ChEBI');
+  assert.equal(result.resolutionConfidence, 'unique_external_mapping');
+  assert.equal(result.mappingUsedForIntegration, true);
+  assert.equal(result.ambiguityForced, false);
   assert.equal(seen.length, 1);
 }
 
@@ -50,6 +55,8 @@ function jsonResponse(value, status = 200) {
   assert.equal(result.resolved, 'CHEBI:8060');
   assert.equal(result.status, 'resolved_external_id');
   assert.equal(result.method, 'chebi_exact_kegg_xref_search');
+  assert.equal(result.sourceDatabase, 'KEGG Compound');
+  assert.equal(result.resolutionConfidence, 'unique_external_mapping');
 }
 
 // Multiple ChEBI hits for one KEGG identifier remain ambiguous instead of
@@ -66,6 +73,9 @@ function jsonResponse(value, status = 200) {
   assert.equal(result.status, 'ambiguous');
   assert.equal(result.method, 'chebi_exact_kegg_xref_search');
   assert.deepEqual(result.candidates, ['CHEBI:111', 'CHEBI:222']);
+  assert.equal(result.resolutionConfidence, 'ambiguous_not_used');
+  assert.equal(result.mappingUsedForIntegration, false);
+  assert.equal(result.ambiguityForced, false);
 }
 
 // Numeric PubChem CIDs are mapped only when the identifier type explicitly says PubChem.
@@ -78,6 +88,29 @@ function jsonResponse(value, status = 200) {
   const result = await resolveMetaboliteIdentifier('3675', { fetchFn, identifierType: 'pubchem' });
   assert.equal(result.resolved, 'CHEBI:8060');
   assert.equal(result.method, 'unichem_pubchem_to_chebi');
+  assert.equal(result.sourceDatabase, 'PubChem Compound');
+  assert.equal(result.canonicalDatabase, 'ChEBI');
+}
+
+// InChIKey uses the structure-linked UniChem response and accepts ChEBI only
+// when a single ChEBI accession is present.
+{
+  const inchikey = 'JZCPYUJPEARBJL-UHFFFAOYSA-N';
+  const fetchFn = async (input) => {
+    const url = String(input);
+    assert.match(url, new RegExp(`unichem/rest/verbose_inchikey/${inchikey}$`));
+    return jsonResponse([
+      { name: 'chebi', name_label: 'chebi', src_id: 7, src_compound_id: ['CHEBI:34967'] },
+      { name: 'hmdb', name_label: 'hmdb', src_id: 18, src_compound_id: ['HMDB0015623'] },
+      { name: 'pubchem', name_label: 'pubchem', src_id: 22, src_compound_id: ['3675'] }
+    ]);
+  };
+  const result = await resolveMetaboliteIdentifier(inchikey, { fetchFn, identifierType: 'inchikey' });
+  assert.equal(result.resolved, 'CHEBI:34967');
+  assert.equal(result.status, 'resolved_external_id');
+  assert.equal(result.method, 'unichem_inchikey_to_chebi');
+  assert.equal(result.sourceDatabase, 'InChIKey');
+  assert.equal(result.resolutionConfidence, 'unique_external_mapping');
 }
 
 // Multiple structure-equivalent ChEBI identifiers are never silently collapsed to the first hit.
@@ -117,22 +150,40 @@ function jsonResponse(value, status = 200) {
   const result = await resolveMetaboliteIdentifier('linoleic acid', { fetchFn, identifierType: 'name' });
   assert.equal(result.resolved, 'CHEBI:17351');
   assert.equal(result.status, 'resolved');
+  assert.equal(result.sourceDatabase, 'metabolite name');
+  assert.equal(result.resolutionConfidence, 'exact_unique_match');
 }
 
-// Batch mapping reports ambiguous and unresolved counts without forcing mappings.
+// Batch mapping reports a full deterministic coverage audit without forcing mappings.
 {
   const fetchFn = async (input) => {
     const url = String(input);
     if (url.includes('/HMDB0000001/18/7')) return jsonResponse([{ src_compound_id: 'CHEBI:1' }]);
     if (url.includes('/HMDB0000002/18/7')) return jsonResponse([]);
+    if (url.includes('/HMDB0000003/18/7')) return jsonResponse([
+      { src_compound_id: 'CHEBI:3' },
+      { src_compound_id: 'CHEBI:33' }
+    ]);
     return jsonResponse([], 404);
   };
   const result = await resolveMetaboliteIdentifiers(
-    ['HMDB0000001', 'HMDB0000002'],
+    ['HMDB0000001', 'HMDB0000002', 'HMDB0000003'],
     { fetchFn, identifierType: 'hmdb', maxQueries: 5 }
   );
   assert.equal(result.resolvedCount, 1);
-  assert.equal(result.unresolvedCount, 1);
+  assert.equal(result.unresolvedCount, 2);
+  assert.equal(result.strictlyUnresolvedCount, 1);
+  assert.equal(result.ambiguousCount, 1);
+  assert.equal(result.apiErrorCount, 0);
+  assert.equal(result.queryLimitCount, 0);
+  assert.equal(result.coverageFraction, 1 / 3);
+  assert.equal(result.canonicalDatabase, 'ChEBI');
+  assert.equal(result.sourceDatabaseCounts.HMDB, 3);
+  assert.equal(result.statusCounts.resolved_external_id, 1);
+  assert.equal(result.statusCounts.unresolved, 1);
+  assert.equal(result.statusCounts.ambiguous, 1);
+  assert.equal(result.methodCounts.unichem_hmdb_to_chebi, 3);
+  assert.match(result.mappingPolicy, /Ambiguous mappings are never forced/i);
 }
 
 console.log('multiomics strict chemical identifier mapping: PASS');
