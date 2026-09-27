@@ -3,150 +3,80 @@ import {
   welchAnova, kruskalWallis, pearson, spearman, linearRegression,
   autoCategorical, mcnemar, logRank
 } from './engine.js';
+import { friedmanLong } from './advanced-engine.js';
 
-const page = document.body.dataset.statsPage || 'landing';
-const dict = {
-  fr: {
-    open:'Ouvrir l’outil', home:'Accueil', tools:'Outils & projets', methods:'Méthodes', language:'English',
-    ready:'Données lues', rows:'lignes', columns:'colonnes', run:'Analyser', parse:'Lire les données', demo:'Charger une démo',
-    chooseColumns:'Associez les colonnes', result:'Résultat', primary:'Analyse principale', sensitivity:'Analyse de sensibilité',
-    assumptions:'À vérifier avant d’interpréter', interpretation:'Interprétation', details:'Détails statistiques',
-    pExplain:'La p-value mesure la compatibilité des données avec l’hypothèse nulle. Elle ne mesure ni la taille ni l’importance clinique de l’effet.',
-    ciExplain:'L’intervalle de confiance à 95 % indique la plage de valeurs compatibles avec les données et le modèle, avec l’incertitude d’échantillonnage.',
-    effectExplain:'La taille d’effet quantifie l’amplitude de la différence ou de l’association. Elle doit être lue avec son intervalle de confiance et le contexte clinique.',
-    error:'Impossible de lancer l’analyse', noData:'Collez des données ou chargez une démo puis cliquez sur « Lire les données ».',
-    h0Compatible:'Les données restent compatibles avec l’hypothèse nulle au seuil de 5 %. Cela ne prouve pas l’absence d’effet.',
-    h0Low:'Les données sont peu compatibles avec l’hypothèse nulle au seuil de 5 %. La taille d’effet et son incertitude restent nécessaires pour juger l’importance du résultat.',
-    browser:'Calcul effectué localement dans votre navigateur. Aucune donnée n’est envoyée à un serveur.',
-    autoNote:'Le mode automatique n’utilise pas un test de normalité comme interrupteur. Pour une variable continue, il privilégie Welch et affiche le test de rang comme analyse de sensibilité.',
-    selectTwo:'Cette analyse nécessite exactement deux groupes.', selectTwoSurv:'Le log-rank actuel compare exactement deux groupes.',
-    nSmall:'Effectif insuffisant pour ce test.', binary:'McNemar nécessite deux modalités.', generic:'Vérifiez le format et les colonnes sélectionnées.'
+const page=document.body.dataset.statsPage||'landing';
+const dict={
+  fr:{
+    open:'Ouvrir l’outil',home:'Accueil',tools:'Outils & projets',methods:'Méthodes',language:'English',ready:'Données lues',rows:'lignes',columns:'colonnes',run:'Analyser',parse:'Lire les données',demo:'Charger une démo',chooseColumns:'Associez les colonnes',result:'Résultat',primary:'Analyse principale',sensitivity:'Analyse de sensibilité',assumptions:'À vérifier avant d’interpréter',
+    pExplain:'La p-value mesure la compatibilité des données avec l’hypothèse nulle. Elle ne mesure ni la taille ni l’importance clinique de l’effet.',ciExplain:'L’intervalle de confiance à 95 % indique la plage de valeurs compatibles avec les données et le modèle, avec l’incertitude d’échantillonnage.',effectExplain:'La taille d’effet quantifie l’amplitude de la différence ou de l’association. Elle doit être lue avec son intervalle de confiance et le contexte clinique.',
+    error:'Impossible de lancer l’analyse',noData:'Collez des données ou chargez une démo puis cliquez sur « Lire les données ».',h0Compatible:'Les données restent compatibles avec l’hypothèse nulle au seuil de 5 %. Cela ne prouve pas l’absence d’effet.',h0Low:'Les données sont peu compatibles avec l’hypothèse nulle au seuil de 5 %. La taille d’effet et son incertitude restent nécessaires pour juger l’importance du résultat.',browser:'Calcul effectué localement dans votre navigateur. Aucune donnée n’est envoyée à un serveur.',autoNote:'Le mode automatique n’utilise pas un test de normalité comme interrupteur. Pour une variable continue, il privilégie Welch et affiche le test de rang comme analyse de sensibilité.',
+    selectTwo:'Cette analyse nécessite exactement deux groupes.',selectTwoSurv:'Le log-rank actuel compare exactement deux groupes.',nSmall:'Effectif insuffisant pour ce test.',binary:'McNemar nécessite deux modalités.',repeatedFew:'Friedman nécessite au moins trois conditions et au moins deux sujets complets.',duplicateRepeated:'Chaque couple sujet × condition doit apparaître une seule fois.',generic:'Vérifiez le format et les colonnes sélectionnées.'
   },
-  en: {
-    open:'Open the tool', home:'Home', tools:'Tools & projects', methods:'Methods', language:'Français',
-    ready:'Data parsed', rows:'rows', columns:'columns', run:'Analyze', parse:'Parse data', demo:'Load demo',
-    chooseColumns:'Map columns', result:'Result', primary:'Primary analysis', sensitivity:'Sensitivity analysis',
-    assumptions:'Check before interpreting', interpretation:'Interpretation', details:'Statistical details',
-    pExplain:'The p-value measures compatibility of the data with the null hypothesis. It does not measure effect size or clinical importance.',
-    ciExplain:'A 95% confidence interval gives a range of values compatible with the data and model, reflecting sampling uncertainty.',
-    effectExplain:'Effect size quantifies the magnitude of a difference or association. Read it with its confidence interval and clinical context.',
-    error:'Analysis could not be run', noData:'Paste data or load a demo, then click “Parse data”.',
-    h0Compatible:'The data remain compatible with the null hypothesis at the 5% threshold. This does not prove absence of an effect.',
-    h0Low:'The data are relatively incompatible with the null hypothesis at the 5% threshold. Effect size and uncertainty are still needed to judge importance.',
-    browser:'Computation is performed locally in your browser. No data are sent to a server.',
-    autoNote:'Automatic mode does not use a normality test as an on/off switch. For continuous outcomes it defaults to Welch and displays a rank-based sensitivity analysis.',
-    selectTwo:'This analysis requires exactly two groups.', selectTwoSurv:'The current log-rank module compares exactly two groups.',
-    nSmall:'Sample size is too small for this test.', binary:'McNemar requires two categories.', generic:'Check the data format and selected columns.'
+  en:{
+    open:'Open the tool',home:'Home',tools:'Tools & projects',methods:'Methods',language:'Français',ready:'Data parsed',rows:'rows',columns:'columns',run:'Analyze',parse:'Parse data',demo:'Load demo',chooseColumns:'Map columns',result:'Result',primary:'Primary analysis',sensitivity:'Sensitivity analysis',assumptions:'Check before interpreting',
+    pExplain:'The p-value measures compatibility of the data with the null hypothesis. It does not measure effect size or clinical importance.',ciExplain:'A 95% confidence interval gives a range of values compatible with the data and model, reflecting sampling uncertainty.',effectExplain:'Effect size quantifies the magnitude of a difference or association. Read it with its confidence interval and clinical context.',
+    error:'Analysis could not be run',noData:'Paste data or load a demo, then click “Parse data”.',h0Compatible:'The data remain compatible with the null hypothesis at the 5% threshold. This does not prove absence of an effect.',h0Low:'The data are relatively incompatible with the null hypothesis at the 5% threshold. Effect size and uncertainty are still needed to judge importance.',browser:'Computation is performed locally in your browser. No data are sent to a server.',autoNote:'Automatic mode does not use a normality test as an on/off switch. For continuous outcomes it defaults to Welch and displays a rank-based sensitivity analysis.',
+    selectTwo:'This analysis requires exactly two groups.',selectTwoSurv:'The current log-rank module compares exactly two groups.',nSmall:'Sample size is too small for this test.',binary:'McNemar requires two categories.',repeatedFew:'Friedman requires at least three conditions and at least two complete subjects.',duplicateRepeated:'Each subject × condition combination must appear only once.',generic:'Check the data format and selected columns.'
   }
 };
-let lang = localStorage.getItem('stats-language') || 'fr';
-function t(key){ return dict[lang][key] || key; }
-function applyLanguage(){
-  document.documentElement.lang=lang;
-  document.querySelectorAll('[data-fr][data-en]').forEach(el=>{ el.textContent=el.dataset[lang]; });
-  document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.textContent=t('language'));
-  localStorage.setItem('stats-language',lang);
-  if(page==='tool') updateMethodGuide();
-}
+let lang=localStorage.getItem('stats-language')||'fr';
+const t=key=>dict[lang][key]||key;
+function applyLanguage(){document.documentElement.lang=lang;document.querySelectorAll('[data-fr][data-en]').forEach(el=>{el.textContent=el.dataset[lang];});document.querySelectorAll('[data-lang-toggle]').forEach(b=>b.textContent=t('language'));localStorage.setItem('stats-language',lang);if(page==='tool')updateMethodGuide();}
+document.addEventListener('click',e=>{const toggle=e.target.closest('[data-lang-toggle]');if(toggle){lang=lang==='fr'?'en':'fr';applyLanguage();}});
 
-document.addEventListener('click',e=>{
-  const toggle=e.target.closest('[data-lang-toggle]'); if(toggle){lang=lang==='fr'?'en':'fr';applyLanguage();}
-});
+const tooltip=document.createElement('div');tooltip.className='stats-tooltip';tooltip.setAttribute('role','tooltip');tooltip.hidden=true;document.body.appendChild(tooltip);
+function showTooltip(el){tooltip.textContent=el.dataset.help||'';tooltip.hidden=false;const r=el.getBoundingClientRect(),w=Math.min(330,window.innerWidth-24);tooltip.style.width=`${w}px`;const left=Math.min(window.innerWidth-w-12,Math.max(12,r.left+r.width/2-w/2));let top=r.bottom+8;if(top+140>window.innerHeight)top=Math.max(12,r.top-148);tooltip.style.left=`${left}px`;tooltip.style.top=`${top}px`;}
+document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-help]');if(el)showTooltip(el);});document.addEventListener('focusin',e=>{const el=e.target.closest('[data-help]');if(el)showTooltip(el);});document.addEventListener('mouseout',e=>{if(e.target.closest?.('[data-help]'))tooltip.hidden=true;});document.addEventListener('focusout',e=>{if(e.target.closest?.('[data-help]'))tooltip.hidden=true;});
 
-const tooltip=document.createElement('div'); tooltip.className='stats-tooltip'; tooltip.setAttribute('role','tooltip'); tooltip.hidden=true; document.body.appendChild(tooltip);
-function showTooltip(el){ tooltip.textContent=el.dataset.help || ''; tooltip.hidden=false; const r=el.getBoundingClientRect(); const w=Math.min(330,window.innerWidth-24); tooltip.style.width=`${w}px`; let left=Math.min(window.innerWidth-w-12,Math.max(12,r.left+r.width/2-w/2)); let top=r.bottom+8; if(top+140>window.innerHeight)top=Math.max(12,r.top-148); tooltip.style.left=`${left}px`;tooltip.style.top=`${top}px`; }
-document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-help]');if(el)showTooltip(el);});
-document.addEventListener('focusin',e=>{const el=e.target.closest('[data-help]');if(el)showTooltip(el);});
-document.addEventListener('mouseout',e=>{if(e.target.closest?.('[data-help]'))tooltip.hidden=true;});
-document.addEventListener('focusout',e=>{if(e.target.closest?.('[data-help]'))tooltip.hidden=true;});
+if(page==='tool')initTool();applyLanguage();
 
-if(page==='tool') initTool();
-applyLanguage();
-
-function parseLine(line,delimiter){
-  const out=[];let cur='',quote=false;
-  for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quote&&line[i+1]==='"'){cur+='"';i++;}else quote=!quote;}else if(ch===delimiter&&!quote){out.push(cur.trim());cur='';}else cur+=ch;} out.push(cur.trim());return out;
-}
-function parseTable(text){
-  const lines=text.trim().split(/\r?\n/).filter(Boolean); if(lines.length<2)throw new Error('NO_DATA');
-  const first=lines[0],delimiter=first.includes('\t')?'\t':first.includes(';')?';':','; const headers=parseLine(first,delimiter).map((h,i)=>h||`col_${i+1}`);
-  const rows=lines.slice(1).map(line=>{const vals=parseLine(line,delimiter),r={};headers.forEach((h,i)=>r[h]=vals[i]??'');return r;});
-  return {headers,rows};
-}
-function fmt(x,d=3){ if(!Number.isFinite(x))return '—'; const a=Math.abs(x); if(a!==0&&(a>=10000||a<0.001))return x.toExponential(2); return x.toFixed(d).replace(/\.000$/,''); }
-function fmtP(p){ if(!Number.isFinite(p))return '—'; if(p<0.0001)return '< 0.0001'; return '= '+p.toFixed(4); }
-function ci(ci){ return ci&&ci.length===2?`[${fmt(ci[0])} ; ${fmt(ci[1])}]`:'—'; }
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function parseLine(line,delimiter){const out=[];let cur='',quote=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(quote&&line[i+1]==='"'){cur+='"';i++;}else quote=!quote;}else if(ch===delimiter&&!quote){out.push(cur.trim());cur='';}else cur+=ch;}out.push(cur.trim());return out;}
+function parseTable(text){const lines=text.trim().split(/\r?\n/).filter(Boolean);if(lines.length<2)throw new Error('NO_DATA');const first=lines[0],delimiter=first.includes('\t')?'\t':first.includes(';')?';':',';const headers=parseLine(first,delimiter).map((h,i)=>h||`col_${i+1}`);const rows=lines.slice(1).map(line=>{const vals=parseLine(line,delimiter),r={};headers.forEach((h,i)=>r[h]=vals[i]??'');return r;});return {headers,rows};}
+function fmt(x,d=3){if(!Number.isFinite(x))return '—';const a=Math.abs(x);if(a!==0&&(a>=10000||a<0.001))return x.toExponential(2);return x.toFixed(d).replace(/\.000$/,'');}
+function fmtP(p){if(!Number.isFinite(p))return '—';if(p<0.0001)return '< 0.0001';return '= '+p.toFixed(4);}
+const ci=value=>value&&value.length===2?`[${fmt(value[0])} ; ${fmt(value[1])}]`:'—';
+const escapeHtml=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
 let parsed=null;
 const demos={
   compare2:`group,value\nControl,11.2\nControl,10.8\nControl,12.1\nControl,9.9\nControl,11.5\nControl,10.4\nTreatment,8.2\nTreatment,9.1\nTreatment,7.8\nTreatment,8.7\nTreatment,9.4\nTreatment,8.5`,
   paired:`before,after\n18.2,15.1\n16.9,15.7\n20.1,17.4\n17.5,16.2\n19.3,16.8\n15.8,14.9\n21.0,18.3\n18.7,16.5`,
+  repeatedk:`subject,condition,value\nS1,A,0\nS1,B,1\nS1,C,20\nS2,A,0\nS2,B,2\nS2,C,22\nS3,A,0\nS3,B,3\nS3,C,24\nS4,A,0\nS4,B,4\nS4,C,26\nS5,A,0\nS5,B,5\nS5,C,28\nS6,A,0\nS6,B,6\nS6,C,30\nS7,A,0\nS7,B,7\nS7,C,32\nS8,A,0\nS8,B,8\nS8,C,34`,
   comparek:`group,value\nA,10.1\nA,11.2\nA,9.8\nA,10.7\nB,12.9\nB,13.5\nB,11.8\nB,14.1\nC,16.0\nC,15.2\nC,17.1\nC,16.4`,
   categorical:`treatment,response\nA,yes\nA,yes\nA,no\nA,yes\nA,no\nA,yes\nB,no\nB,no\nB,yes\nB,no\nB,no\nB,yes`,
   mcnemar:`before,after\nno,yes\nno,yes\nyes,yes\nyes,no\nno,no\nyes,yes\nno,yes\nyes,yes\nno,no\nyes,no`,
   association:`x,y\n1,2.2\n2,2.8\n3,4.1\n4,4.8\n5,6.2\n6,6.5\n7,8.1\n8,8.6\n9,10.1\n10,10.7`,
   survival:`group,time,event\nA,3,1\nA,5,1\nA,7,0\nA,8,1\nA,11,0\nA,12,1\nB,4,1\nB,7,1\nB,9,1\nB,10,0\nB,13,0\nB,14,1`,
-  descriptive:`value\n12.1\n10.8\n11.4\n13.2\n9.9\n12.5\n11.7\n10.6`,
-  oneSample:`value\n102\n98\n101\n105\n99\n103\n100\n104`
+  descriptive:`value\n12.1\n10.8\n11.4\n13.2\n9.9\n12.5\n11.7\n10.6`,oneSample:`value\n102\n98\n101\n105\n99\n103\n100\n104`
 };
 
-function initTool(){
-  const mode=document.querySelector('#analysis-mode'),textarea=document.querySelector('#data-input'),parseBtn=document.querySelector('#parse-data'),demoBtn=document.querySelector('#load-demo'),runBtn=document.querySelector('#run-analysis');
-  mode.addEventListener('change',()=>{parsed=null;document.querySelector('#mapping').hidden=true;document.querySelector('#results').innerHTML='';updateMethodGuide();});
-  demoBtn.addEventListener('click',()=>{textarea.value=demos[mode.value]||demos.compare2; parseCurrent();});
-  parseBtn.addEventListener('click',parseCurrent); runBtn.addEventListener('click',runAnalysis);
-  updateMethodGuide();
-}
-function parseCurrent(){
-  try{ parsed=parseTable(document.querySelector('#data-input').value); const status=document.querySelector('#parse-status');status.className='parse-status ok';status.textContent=`${t('ready')} · ${parsed.rows.length} ${t('rows')} · ${parsed.headers.length} ${t('columns')}`; populateMapping(); }
-  catch(e){parsed=null;showError(t('noData'));}
-}
-function modeConfig(){
-  const m=document.querySelector('#analysis-mode').value;
-  const cfg={
-    compare2:[['group','Groupe','Group'],['value','Variable quantitative','Numeric outcome']],
-    paired:[['x','Avant / mesure 1','Before / measure 1'],['y','Après / mesure 2','After / measure 2']],
-    comparek:[['group','Groupe','Group'],['value','Variable quantitative','Numeric outcome']],
-    categorical:[['x','Facteur / exposition','Factor / exposure'],['y','Réponse catégorielle','Categorical outcome']],
-    mcnemar:[['x','Avant','Before'],['y','Après','After']],
-    association:[['x','Variable X','Variable X'],['y','Variable Y','Variable Y']],
-    survival:[['group','Groupe','Group'],['time','Temps','Time'],['event','Événement (1=oui, 0=censuré)','Event (1=yes, 0=censored)']],
-    descriptive:[['value','Variable quantitative','Numeric variable']],
-    oneSample:[['value','Variable quantitative','Numeric variable']]
-  }; return cfg[m]||cfg.compare2;
-}
-function populateMapping(){
-  const wrap=document.querySelector('#column-selectors');wrap.innerHTML='';
-  for(const [id,fr,en] of modeConfig()){
-    const label=document.createElement('label');label.innerHTML=`<span>${lang==='fr'?fr:en}</span><select id="col-${id}">${parsed.headers.map(h=>`<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('')}</select>`;wrap.appendChild(label);
-  }
-  const cfg=modeConfig(); cfg.forEach(([id],i)=>{const sel=document.querySelector(`#col-${id}`); if(parsed.headers[i])sel.value=parsed.headers[i];});
-  const mode=document.querySelector('#analysis-mode').value; document.querySelector('#reference-wrap').hidden=mode!=='oneSample'; document.querySelector('#method-wrap').hidden=!['compare2','paired','comparek'].includes(mode);
-  document.querySelector('#mapping').hidden=false;
-}
-function selected(id){return document.querySelector(`#col-${id}`)?.value;}
-function col(name){return parsed.rows.map(r=>r[name]);}
-function splitGroups(gKey,vKey){
-  const names=[...new Set(parsed.rows.map(r=>String(r[gKey])).filter(Boolean))]; return names.map(name=>({name,values:parsed.rows.filter(r=>String(r[gKey])===name).map(r=>r[vKey])}));
-}
+function initTool(){const mode=document.querySelector('#analysis-mode'),textarea=document.querySelector('#data-input'),parseBtn=document.querySelector('#parse-data'),demoBtn=document.querySelector('#load-demo'),runBtn=document.querySelector('#run-analysis');mode.addEventListener('change',()=>{parsed=null;document.querySelector('#mapping').hidden=true;document.querySelector('#results').innerHTML='';updateMethodGuide();});demoBtn.addEventListener('click',()=>{textarea.value=demos[mode.value]||demos.compare2;parseCurrent();});parseBtn.addEventListener('click',parseCurrent);runBtn.addEventListener('click',runAnalysis);updateMethodGuide();}
+function parseCurrent(){try{parsed=parseTable(document.querySelector('#data-input').value);const status=document.querySelector('#parse-status');status.className='parse-status ok';status.textContent=`${t('ready')} · ${parsed.rows.length} ${t('rows')} · ${parsed.headers.length} ${t('columns')}`;populateMapping();}catch(e){parsed=null;showError(t('noData'));}}
+function modeConfig(){const m=document.querySelector('#analysis-mode').value;const cfg={compare2:[['group','Groupe','Group'],['value','Variable quantitative','Numeric outcome']],paired:[['x','Avant / mesure 1','Before / measure 1'],['y','Après / mesure 2','After / measure 2']],repeatedk:[['subject','Sujet / unité','Subject / unit'],['condition','Condition / temps','Condition / time'],['value','Variable quantitative','Numeric outcome']],comparek:[['group','Groupe','Group'],['value','Variable quantitative','Numeric outcome']],categorical:[['x','Facteur / exposition','Factor / exposure'],['y','Réponse catégorielle','Categorical outcome']],mcnemar:[['x','Avant','Before'],['y','Après','After']],association:[['x','Variable X','Variable X'],['y','Variable Y','Variable Y']],survival:[['group','Groupe','Group'],['time','Temps','Time'],['event','Événement (1=oui, 0=censuré)','Event (1=yes, 0=censored)']],descriptive:[['value','Variable quantitative','Numeric variable']],oneSample:[['value','Variable quantitative','Numeric variable']]};return cfg[m]||cfg.compare2;}
+function populateMapping(){const wrap=document.querySelector('#column-selectors');wrap.innerHTML='';for(const [id,fr,en] of modeConfig()){const label=document.createElement('label');label.innerHTML=`<span>${lang==='fr'?fr:en}</span><select id="col-${id}">${parsed.headers.map(h=>`<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('')}</select>`;wrap.appendChild(label);}modeConfig().forEach(([id],i)=>{const sel=document.querySelector(`#col-${id}`);if(parsed.headers[i])sel.value=parsed.headers[i];});const mode=document.querySelector('#analysis-mode').value;document.querySelector('#reference-wrap').hidden=mode!=='oneSample';document.querySelector('#method-wrap').hidden=!['compare2','paired','comparek'].includes(mode);document.querySelector('#mapping').hidden=false;}
+const selected=id=>document.querySelector(`#col-${id}`)?.value;
+const col=name=>parsed.rows.map(r=>r[name]);
+function splitGroups(gKey,vKey){const names=[...new Set(parsed.rows.map(r=>String(r[gKey])).filter(Boolean))];return names.map(name=>({name,values:parsed.rows.filter(r=>String(r[gKey])===name).map(r=>r[vKey])}));}
+
 function updateMethodGuide(){
-  if(page!=='tool')return; const mode=document.querySelector('#analysis-mode')?.value||'compare2'; const guide=document.querySelector('#method-guide'); if(!guide)return;
-  const fr={compare2:['Deux groupes indépendants','Welch t par défaut + Mann–Whitney en sensibilité','Welch compare les moyennes sans supposer des variances égales. Le test de rang répond à une question différente et est affiché comme sensibilité.'],paired:['Deux mesures appariées','t apparié + Wilcoxon signé','Les deux colonnes doivent correspondre aux mêmes sujets ou unités, dans le même ordre.'],comparek:['Plus de deux groupes','ANOVA de Welch + Kruskal–Wallis','Welch évite l’hypothèse de variances égales. Kruskal–Wallis fournit une analyse de rang complémentaire.'],categorical:['Deux variables catégorielles','χ² ou Fisher exact automatiquement','Fisher est choisi pour un tableau 2×2 lorsque les effectifs attendus sont faibles.'],mcnemar:['Réponse binaire appariée','McNemar','Conçu pour un avant/après binaire ou deux mesures appariées.'],association:['Deux variables quantitatives','Pearson + Spearman + régression linéaire','Pearson/régression quantifient l’association linéaire ; Spearman teste une association monotone par les rangs.'],survival:['Temps jusqu’à événement','Log-rank, deux groupes','Compare les courbes de survie en utilisant les événements observés et les sujets encore à risque.'],descriptive:['Décrire une variable','Moyenne, écart-type, médiane, IQR, IC95 %','Aucun test d’hypothèse : uniquement une description de l’échantillon.'],oneSample:['Comparer une moyenne à une valeur','t à un échantillon','Teste si la moyenne est compatible avec une valeur de référence fixée à l’avance.']};
-  const en={compare2:['Two independent groups','Welch t by default + Mann–Whitney sensitivity','Welch compares means without assuming equal variances. The rank test answers a different question and is shown as a sensitivity analysis.'],paired:['Two paired measurements','Paired t + signed-rank Wilcoxon','The two columns must refer to the same subjects or units in the same order.'],comparek:['More than two groups','Welch ANOVA + Kruskal–Wallis','Welch avoids the equal-variance assumption. Kruskal–Wallis provides a complementary rank-based analysis.'],categorical:['Two categorical variables','χ² or Fisher exact automatically','Fisher is selected for a 2×2 table when expected counts are small.'],mcnemar:['Paired binary outcome','McNemar','Designed for binary before/after data or two paired binary measurements.'],association:['Two numeric variables','Pearson + Spearman + linear regression','Pearson/regression quantify linear association; Spearman tests monotonic association using ranks.'],survival:['Time-to-event outcome','Log-rank, two groups','Compares survival curves using observed events and participants still at risk.'],descriptive:['Describe one variable','Mean, SD, median, IQR, 95% CI','No hypothesis test: descriptive summary only.'],oneSample:['Compare a mean with a value','One-sample t','Tests whether the mean is compatible with a pre-specified reference value.']};
-  const a=(lang==='fr'?fr:en)[mode]; guide.innerHTML=`<span class="method-kicker">${a[0]}</span><strong>${a[1]}</strong><p>${a[2]}</p>${['compare2','paired','comparek'].includes(mode)?`<small>${t('autoNote')}</small>`:''}`;
+  if(page!=='tool')return;const mode=document.querySelector('#analysis-mode')?.value||'compare2',guide=document.querySelector('#method-guide');if(!guide)return;
+  const fr={compare2:['Deux groupes indépendants','Welch t par défaut + Mann–Whitney en sensibilité','Welch compare les moyennes sans supposer des variances égales. Le test de rang répond à une question différente et est affiché comme sensibilité.'],paired:['Deux mesures appariées','t apparié + Wilcoxon signé','Les deux colonnes doivent correspondre aux mêmes sujets ou unités, dans le même ordre.'],repeatedk:['Au moins trois mesures répétées','Friedman + Wilcoxon appariés avec Holm','Le format long sujet / condition / valeur conserve l’appariement. Friedman classe les conditions au sein de chaque sujet ; les sujets incomplets sont signalés et exclus du bloc commun.'],comparek:['Plus de deux groupes indépendants','ANOVA de Welch + Kruskal–Wallis','Welch évite l’hypothèse de variances égales. Kruskal–Wallis fournit une analyse de rang complémentaire.'],categorical:['Deux variables catégorielles','χ² ou Fisher exact automatiquement','Fisher est choisi pour un tableau 2×2 lorsque les effectifs attendus sont faibles.'],mcnemar:['Réponse binaire appariée','McNemar','Conçu pour un avant/après binaire ou deux mesures appariées.'],association:['Deux variables quantitatives','Pearson + Spearman + régression linéaire','Pearson/régression quantifient l’association linéaire ; Spearman teste une association monotone par les rangs.'],survival:['Temps jusqu’à événement','Log-rank, deux groupes','Compare les courbes de survie en utilisant les événements observés et les sujets encore à risque.'],descriptive:['Décrire une variable','Moyenne, écart-type, médiane, IQR, IC95 %','Aucun test d’hypothèse : uniquement une description de l’échantillon.'],oneSample:['Comparer une moyenne à une valeur','t à un échantillon','Teste si la moyenne est compatible avec une valeur de référence fixée à l’avance.']};
+  const en={compare2:['Two independent groups','Welch t by default + Mann–Whitney sensitivity','Welch compares means without assuming equal variances. The rank test answers a different question and is shown as a sensitivity analysis.'],paired:['Two paired measurements','Paired t + signed-rank Wilcoxon','The two columns must refer to the same subjects or units in the same order.'],repeatedk:['At least three repeated measurements','Friedman + paired Wilcoxon with Holm','Long-format subject / condition / value data preserve pairing. Friedman ranks conditions within subjects; incomplete subjects are reported and excluded from the common block.'],comparek:['More than two independent groups','Welch ANOVA + Kruskal–Wallis','Welch avoids the equal-variance assumption. Kruskal–Wallis provides a complementary rank-based analysis.'],categorical:['Two categorical variables','χ² or Fisher exact automatically','Fisher is selected for a 2×2 table when expected counts are small.'],mcnemar:['Paired binary outcome','McNemar','Designed for binary before/after data or two paired binary measurements.'],association:['Two numeric variables','Pearson + Spearman + linear regression','Pearson/regression quantify linear association; Spearman tests monotonic association using ranks.'],survival:['Time-to-event outcome','Log-rank, two groups','Compares survival curves using observed events and participants still at risk.'],descriptive:['Describe one variable','Mean, SD, median, IQR, 95% CI','No hypothesis test: descriptive summary only.'],oneSample:['Compare a mean with a value','One-sample t','Tests whether the mean is compatible with a pre-specified reference value.']};
+  const a=(lang==='fr'?fr:en)[mode];guide.innerHTML=`<span class="method-kicker">${a[0]}</span><strong>${a[1]}</strong><p>${a[2]}</p>${['compare2','paired','comparek'].includes(mode)?`<small>${t('autoNote')}</small>`:''}`;
 }
 function showError(message){document.querySelector('#results').innerHTML=`<div class="result-error"><strong>${t('error')}</strong><p>${escapeHtml(message)}</p></div>`;}
-function errorMessage(e){const m=String(e.message||e);if(m.includes('GROUPS_TOO_FEW')||m.includes('NOT_2X2'))return t('selectTwo');if(m.includes('SURVIVAL_TWO_GROUPS'))return t('selectTwoSurv');if(m.includes('N_TOO_SMALL'))return t('nSmall');if(m.includes('NOT_BINARY'))return t('binary');return t('generic');}
-function pInterpret(p){return p<0.05?t('h0Low'):t('h0Compatible');}
+function errorMessage(e){const m=String(e.message||e);if(m.includes('CONDITIONS_TOO_FEW'))return t('repeatedFew');if(m.includes('DUPLICATE_REPEATED_CELL'))return t('duplicateRepeated');if(m.includes('GROUPS_TOO_FEW')||m.includes('NOT_2X2'))return t('selectTwo');if(m.includes('SURVIVAL_TWO_GROUPS'))return t('selectTwoSurv');if(m.includes('N_TOO_SMALL'))return t('nSmall');if(m.includes('NOT_BINARY'))return t('binary');return t('generic');}
+const pInterpret=p=>p<0.05?t('h0Low'):t('h0Compatible');
 function statBlock(label,value,help=''){return `<div class="metric"><span>${label}${help?` <button class="help" type="button" data-help="${escapeHtml(help)}" aria-label="Help">?</button>`:''}</span><strong>${value}</strong></div>`;}
-function testTitle(test){const names={welch_t:'Welch t',mann_whitney:'Mann–Whitney',paired_t:lang==='fr'?'t apparié':'Paired t',wilcoxon_signed_rank:'Wilcoxon signed-rank',welch_anova:'Welch ANOVA',anova:'ANOVA',kruskal_wallis:'Kruskal–Wallis',chi_square:'χ²',fisher_exact:'Fisher exact',mcnemar:'McNemar',pearson:'Pearson',spearman:'Spearman',linear_regression:lang==='fr'?'Régression linéaire':'Linear regression',log_rank:'Log-rank',one_sample_t:lang==='fr'?'t à un échantillon':'One-sample t'};return names[test]||test;}
+function testTitle(test){const names={welch_t:'Welch t',mann_whitney:'Mann–Whitney',paired_t:lang==='fr'?'t apparié':'Paired t',wilcoxon_signed_rank:'Wilcoxon signed-rank',friedman:'Friedman',welch_anova:'Welch ANOVA',anova:'ANOVA',kruskal_wallis:'Kruskal–Wallis',chi_square:'χ²',fisher_exact:'Fisher exact',mcnemar:'McNemar',pearson:'Pearson',spearman:'Spearman',linear_regression:lang==='fr'?'Régression linéaire':'Linear regression',log_rank:'Log-rank',one_sample_t:lang==='fr'?'t à un échantillon':'One-sample t'};return names[test]||test;}
 function renderCard(r,label=t('primary')){
   let metrics='',detail='';
   if(r.test==='welch_t')metrics=statBlock(lang==='fr'?'Différence de moyennes':'Mean difference',fmt(r.estimate))+statBlock('IC95 %',ci(r.ci),t('ciExplain'))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('Hedges g',fmt(r.hedges_g),t('effectExplain'));
   else if(r.test==='paired_t')metrics=statBlock(lang==='fr'?'Différence moyenne':'Mean difference',fmt(r.estimate))+statBlock('IC95 %',ci(r.ci),t('ciExplain'))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('dz',fmt(r.dz),t('effectExplain'));
   else if(r.test==='mann_whitney')metrics=statBlock('U',fmt(r.U))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('Cliff δ',fmt(r.cliffs_delta),t('effectExplain'))+statBlock(lang==='fr'?'Médianes':'Medians',`${fmt(r.median1)} / ${fmt(r.median2)}`);
   else if(r.test==='wilcoxon_signed_rank')metrics=statBlock('W+',fmt(r.Wplus))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock(lang==='fr'?'Différence médiane':'Median difference',fmt(r.median_difference))+statBlock(lang==='fr'?'Corrélation bisérielle de rang':'Rank-biserial correlation',fmt(r.rank_biserial),t('effectExplain'));
+  else if(r.test==='friedman'){metrics=statBlock('Q',fmt(r.Q))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('Kendall W',fmt(r.kendallW),t('effectExplain'))+statBlock(lang==='fr'?'Sujets complets':'Complete subjects',String(r.n))+statBlock(lang==='fr'?'Conditions':'Conditions',String(r.k));if(r.excludedSubjects>0)detail+=`<p class="plain-interpretation">${escapeHtml(lang==='fr'?`${r.excludedSubjects} sujet(s) incomplet(s) exclu(s) du bloc commun.`:`${r.excludedSubjects} incomplete subject(s) excluded from the common block.`)}</p>`;}
   else if(r.test==='welch_anova'||r.test==='anova')metrics=statBlock('F',fmt(r.F))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('η²',fmt(r.eta2),t('effectExplain'))+statBlock(lang==='fr'?'Groupes':'Groups',String(r.k));
   else if(r.test==='kruskal_wallis')metrics=statBlock('H',fmt(r.H))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('df',fmt(r.df,0));
   else if(r.test==='chi_square')metrics=statBlock('χ²',fmt(r.x2))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('Cramér V',fmt(r.cramers_v),t('effectExplain'))+statBlock(lang==='fr'?'Effectif attendu min.':'Min expected count',fmt(r.minExpected));
@@ -157,33 +87,29 @@ function renderCard(r,label=t('primary')){
   else if(r.test==='linear_regression')metrics=statBlock(lang==='fr'?'Pente β':'Slope β',fmt(r.slope),t('effectExplain'))+statBlock('IC95 %',ci(r.ci),t('ciExplain'))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('R²',fmt(r.r2));
   else if(r.test==='log_rank')metrics=statBlock('χ²',fmt(r.x2))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock(lang==='fr'?'Événements':'Events',String(r.events))+statBlock('n',String(r.n));
   else if(r.test==='one_sample_t')metrics=statBlock(lang==='fr'?'Différence à la référence':'Difference from reference',fmt(r.estimate))+statBlock('IC95 %',ci(r.ci),t('ciExplain'))+statBlock('p',fmtP(r.p),t('pExplain'))+statBlock('n',String(r.n));
-  if(Number.isFinite(r.p))detail=`<p class="plain-interpretation">${pInterpret(r.p)}</p>`;
+  if(Number.isFinite(r.p))detail+=`<p class="plain-interpretation">${pInterpret(r.p)}</p>`;
   return `<article class="result-card"><div class="result-card-head"><span>${label}</span><h3>${testTitle(r.test)}</h3></div><div class="metrics">${metrics}</div>${detail}</article>`;
 }
 function assumptionList(mode){
-  const fr={compare2:['Observations indépendantes entre groupes.','La variable est réellement quantitative si vous interprétez une différence de moyennes.','Les valeurs extrêmes doivent être examinées et justifiées, pas supprimées automatiquement.'],paired:['Chaque ligne relie correctement les deux mesures du même sujet ou de la même unité.','Pour le t apparié, c’est la distribution des différences qui importe.'],comparek:['Observations indépendantes entre groupes.','Le test global indique qu’au moins un groupe diffère ; des comparaisons post-hoc corrigées sont nécessaires pour localiser les différences.'],categorical:['Utiliser des effectifs, pas des pourcentages déjà agrégés.','Les observations doivent être indépendantes. Fisher est utilisé en 2×2 si les effectifs attendus sont faibles.'],mcnemar:['Mesures réellement appariées et réponse binaire aux deux temps.'],association:['Relation linéaire pour Pearson/régression ; relation monotone pour Spearman.','Une corrélation ne démontre pas une causalité.','Inspecter les valeurs influentes et la forme de la relation.'],survival:['Censure indépendante du risque étudié.','Le log-rank est surtout sensible à une différence globale des courbes ; les risques proportionnels facilitent son interprétation.'],descriptive:['Vérifier les unités et les valeurs aberrantes ou impossibles.'],oneSample:['La valeur de référence doit être définie indépendamment des données.','Observations indépendantes.']};
-  const en={compare2:['Observations are independent between groups.','The outcome is genuinely quantitative if you interpret a difference in means.','Extreme values should be examined and justified, not automatically deleted.'],paired:['Each row correctly links two measurements from the same subject or unit.','For a paired t test, the distribution of within-pair differences matters.'],comparek:['Observations are independent between groups.','A global test only says at least one group differs; corrected post-hoc comparisons are needed to localize differences.'],categorical:['Use counts, not already aggregated percentages.','Observations should be independent. Fisher is used in 2×2 tables when expected counts are small.'],mcnemar:['Measurements are truly paired and binary at both time points.'],association:['Linear relationship for Pearson/regression; monotonic relationship for Spearman.','Correlation does not establish causality.','Inspect influential values and the shape of the relationship.'],survival:['Censoring is independent of the risk under study.','Log-rank is most sensitive to an overall curve difference; proportional hazards ease interpretation.'],descriptive:['Check units and impossible or extreme values.'],oneSample:['The reference value must be defined independently of the observed data.','Observations are independent.']}; return (lang==='fr'?fr:en)[mode];
+  const fr={compare2:['Observations indépendantes entre groupes.','La variable est réellement quantitative si vous interprétez une différence de moyennes.','Les valeurs extrêmes doivent être examinées et justifiées, pas supprimées automatiquement.'],paired:['Chaque ligne relie correctement les deux mesures du même sujet ou de la même unité.','Pour le t apparié, c’est la distribution des différences qui importe.'],repeatedk:['Chaque identifiant correspond à la même unité suivie dans toutes les conditions.','Friedman utilise des blocs complets : un sujet sans l’une des conditions est exclu du test global et des post-hoc affichés.','Une différence globale doit être localisée avec des post-hoc appariés corrigés ; Kendall W quantifie la concordance/ampleur globale des rangs.'],comparek:['Observations indépendantes entre groupes.','Le test global indique qu’au moins un groupe diffère ; des comparaisons post-hoc corrigées sont nécessaires pour localiser les différences.'],categorical:['Utiliser des effectifs, pas des pourcentages déjà agrégés.','Les observations doivent être indépendantes. Fisher est utilisé en 2×2 si les effectifs attendus sont faibles.'],mcnemar:['Mesures réellement appariées et réponse binaire aux deux temps.'],association:['Relation linéaire pour Pearson/régression ; relation monotone pour Spearman.','Une corrélation ne démontre pas une causalité.','Inspecter les valeurs influentes et la forme de la relation.'],survival:['Censure indépendante du risque étudié.','Le log-rank est surtout sensible à une différence globale des courbes ; les risques proportionnels facilitent son interprétation.'],descriptive:['Vérifier les unités et les valeurs aberrantes ou impossibles.'],oneSample:['La valeur de référence doit être définie indépendamment des données.','Observations indépendantes.']};
+  const en={compare2:['Observations are independent between groups.','The outcome is genuinely quantitative if you interpret a difference in means.','Extreme values should be examined and justified, not automatically deleted.'],paired:['Each row correctly links two measurements from the same subject or unit.','For a paired t test, the distribution of within-pair differences matters.'],repeatedk:['Each identifier refers to the same unit observed under every condition.','Friedman uses complete blocks: a subject missing any condition is excluded from the global test and displayed post-hoc comparisons.','A global difference should be localized with corrected paired post-hoc tests; Kendall W quantifies the overall rank effect.'],comparek:['Observations are independent between groups.','A global test only says at least one group differs; corrected post-hoc comparisons are needed to localize differences.'],categorical:['Use counts, not already aggregated percentages.','Observations should be independent. Fisher is used in 2×2 tables when expected counts are small.'],mcnemar:['Measurements are truly paired and binary at both time points.'],association:['Linear relationship for Pearson/regression; monotonic relationship for Spearman.','Correlation does not establish causality.','Inspect influential values and the shape of the relationship.'],survival:['Censoring is independent of the risk under study.','Log-rank is most sensitive to an overall curve difference; proportional hazards ease interpretation.'],descriptive:['Check units and impossible or extreme values.'],oneSample:['The reference value must be defined independently of the observed data.','Observations are independent.']};return (lang==='fr'?fr:en)[mode];
 }
-function renderAssumptions(mode){return `<section class="assumptions"><h3>${t('assumptions')}</h3><ul>${assumptionList(mode).map(x=>`<li>${x}</li>`).join('')}</ul></section>`;}
+const renderAssumptions=mode=>`<section class="assumptions"><h3>${t('assumptions')}</h3><ul>${assumptionList(mode).map(x=>`<li>${x}</li>`).join('')}</ul></section>`;
 function renderDescriptive(d){return `<article class="result-card"><div class="result-card-head"><span>${t('result')}</span><h3>${lang==='fr'?'Résumé descriptif':'Descriptive summary'}</h3></div><div class="metrics">${statBlock('n',d.n)}${statBlock(lang==='fr'?'Moyenne':'Mean',fmt(d.mean))}${statBlock('SD',fmt(d.sd))}${statBlock(lang==='fr'?'Médiane':'Median',fmt(d.median))}${statBlock('IQR',`[${fmt(d.q1)} ; ${fmt(d.q3)}]`)}${statBlock(lang==='fr'?'IC95 % moyenne':'95% CI mean',ci(d.ci),t('ciExplain'))}</div></article>`;}
 function runAnalysis(){
-  if(!parsed){showError(t('noData'));return;} const mode=document.querySelector('#analysis-mode').value,method=document.querySelector('#method-choice')?.value||'auto';
+  if(!parsed){showError(t('noData'));return;}const mode=document.querySelector('#analysis-mode').value,method=document.querySelector('#method-choice')?.value||'auto';
   try{
     let html='';
-    if(mode==='descriptive'){html=renderDescriptive(describe(col(selected('value'))));}
+    if(mode==='descriptive')html=renderDescriptive(describe(col(selected('value'))));
     else if(mode==='oneSample'){const ref=Number(document.querySelector('#reference-value').value);html=renderCard(oneSampleT(col(selected('value')),ref));}
-    else if(mode==='compare2'){
-      const gs=splitGroups(selected('group'),selected('value'));if(gs.length!==2)throw new Error('GROUPS_TOO_FEW'); const p=welchT(gs[0].values,gs[1].values),s=mannWhitney(gs[0].values,gs[1].values); html=method==='rank'?renderCard(s):method==='parametric'?renderCard(p):renderCard(p)+renderCard(s,t('sensitivity'));
-      html+=`<p class="group-order">${escapeHtml(gs[0].name)} − ${escapeHtml(gs[1].name)}</p>`;
-    }
+    else if(mode==='compare2'){const gs=splitGroups(selected('group'),selected('value'));if(gs.length!==2)throw new Error('GROUPS_TOO_FEW');const p=welchT(gs[0].values,gs[1].values),s=mannWhitney(gs[0].values,gs[1].values);html=method==='rank'?renderCard(s):method==='parametric'?renderCard(p):renderCard(p)+renderCard(s,t('sensitivity'));html+=`<p class="group-order">${escapeHtml(gs[0].name)} − ${escapeHtml(gs[1].name)}</p>`;}
     else if(mode==='paired'){const a=col(selected('x')),b=col(selected('y')),p=pairedT(a,b),s=wilcoxonSignedRank(a,b);html=method==='rank'?renderCard(s):method==='parametric'?renderCard(p):renderCard(p)+renderCard(s,t('sensitivity'));}
+    else if(mode==='repeatedk')html=renderCard(friedmanLong(parsed.rows,selected('subject'),selected('condition'),selected('value')));
     else if(mode==='comparek'){const gs=splitGroups(selected('group'),selected('value'));if(gs.length<3)throw new Error('GROUPS_TOO_FEW');const p=welchAnova(gs),s=kruskalWallis(gs);html=method==='rank'?renderCard(s):method==='parametric'?renderCard(p):renderCard(p)+renderCard(s,t('sensitivity'));}
-    else if(mode==='categorical'){html=renderCard(autoCategorical(parsed.rows,selected('x'),selected('y')));}
-    else if(mode==='mcnemar'){html=renderCard(mcnemar(parsed.rows,selected('x'),selected('y')));}
+    else if(mode==='categorical')html=renderCard(autoCategorical(parsed.rows,selected('x'),selected('y')));
+    else if(mode==='mcnemar')html=renderCard(mcnemar(parsed.rows,selected('x'),selected('y')));
     else if(mode==='association'){const a=col(selected('x')),b=col(selected('y'));html=renderCard(pearson(a,b))+renderCard(spearman(a,b),t('sensitivity'))+renderCard(linearRegression(a,b),lang==='fr'?'Modèle complémentaire':'Additional model');}
-    else if(mode==='survival'){html=renderCard(logRank(parsed.rows,selected('group'),selected('time'),selected('event')));}
-    html+=renderAssumptions(mode)+`<p class="privacy-note">${t('browser')}</p>`;
-    document.querySelector('#results').innerHTML=html;
-    document.querySelector('#results').scrollIntoView({behavior:'smooth',block:'start'});
+    else if(mode==='survival')html=renderCard(logRank(parsed.rows,selected('group'),selected('time'),selected('event')));
+    html+=renderAssumptions(mode)+`<p class="privacy-note">${t('browser')}</p>`;document.querySelector('#results').innerHTML=html;document.querySelector('#results').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){console.error(e);showError(errorMessage(e));}
 }
