@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
+import fs from 'node:fs/promises';
 
 test('multi-omics French import screen avoids unexplained metadata jargon', async ({ page }) => {
   await page.goto('/multiomics/tool');
@@ -14,10 +15,27 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(glossary).toContainText('Résultat corrigé (q/FDR)');
   await expect(glossary).toContainText('Validation croisée');
 
+  const validation = page.getByTestId('multiomics-validation-evidence');
+  await expect(validation).toBeVisible();
+  await expect(validation).toContainText('Validation du logiciel');
+  await expect(validation).toContainText('Signaux publics connus');
+  await expect(validation).toContainText('Contrôles négatifs');
+  await expect(validation).toContainText('Provenance reproductible');
+  await expect(validation).toContainText('Ce que cela ne prouve pas');
+
+  const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
+  await expect(metaboliteConfidence).toBeVisible();
+  await expect(metaboliteConfidence).toContainText('Confiance d’identification des métabolites');
+  await expect(metaboliteConfidence).toContainText('MSI 1');
+  await expect(metaboliteConfidence).toContainText('MSI 4');
+  await expect(metaboliteConfidence).toContainText('séparé du mapping ChEBI/HMDB/KEGG');
+
   await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
   await expect(glossary).toContainText('Quick glossary · six terms used throughout the tool');
   await expect(glossary).toContainText('Technical series');
   await expect(glossary).toContainText('Adjustment factor');
+  await expect(validation).toContainText('Software validation');
+  await expect(metaboliteConfidence).toContainText('Metabolite identification confidence');
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(glossary).toContainText('Lexique express · six mots utilisés dans tout l’outil');
 
@@ -64,6 +82,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   });
 
   await page.goto('/multiomics/tool');
+  await page.locator('#pmx-metabolomics-msi-level').selectOption('msi2');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
 
@@ -99,6 +118,16 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   await expect(fdrPolicy).toContainText('Signal exploratoire · 0,05 < q ≤ 0,10');
   await expect(fdrPolicy).toContainText('p-values brutes');
   await expect(fdrPolicy).toContainText('q-value n’est pas la probabilité');
+
+  const analysisDownloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Télécharger JSON' }).click();
+  const analysisDownload = await analysisDownloadPromise;
+  const analysisPath = await analysisDownload.path();
+  expect(analysisPath).toBeTruthy();
+  const analysisJson = JSON.parse(await fs.readFile(analysisPath, 'utf8'));
+  expect(analysisJson.protocol.metabolomicsIdentificationConfidence).toBe('msi2');
+  expect(analysisJson.metabolomicsAnnotationConfidence.scheme).toContain('Metabolomics Standards Initiative');
+  expect(analysisJson.metabolomicsAnnotationConfidence.pathwayInterpretation).toContain('hypothesis-generating');
 
   const manifest = page.getByTestId('multiomics-methods-manifest');
   await expect(manifest).toBeVisible();
