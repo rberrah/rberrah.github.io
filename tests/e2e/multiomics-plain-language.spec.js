@@ -129,7 +129,12 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   expect(analysisJson.metabolomicsAnnotationConfidence.scheme).toContain('Metabolomics Standards Initiative');
   expect(analysisJson.metabolomicsAnnotationConfidence.exactPathwayMappingSuppressed).toBe(true);
   expect(analysisJson.reactome.metabolomicsConfidenceSuppressed).toBe(true);
-  expect(analysisJson.reactome.combined).toBeNull();
+  expect(analysisJson.reactome.combined).toMatchObject({
+    token: null,
+    pathwaysFound: 0,
+    pathways: [],
+    suppressed: true
+  });
   expect(analysisJson.reactome.consensus).toEqual([]);
 
   const manifest = page.getByTestId('multiomics-methods-manifest');

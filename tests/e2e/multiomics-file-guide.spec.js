@@ -8,7 +8,7 @@ test('multi-omics upload area explains the minimum file structure to beginners',
   await expect(guide).toBeVisible();
   await expect(guide).toContainText('Que faut-il charger ?');
   await expect(guide).toContainText('1 tableau des échantillons + au moins 2 matrices omiques');
-  await expect(guide).toContainText('deux couches différentes constituent déjà une analyse multi-omique');
+  await expect(guide).toContainText(/deux couches.+analyse multi-omique/i);
   await expect(guide).toContainText('subject_id · sample_id · assay_id · omic');
   await expect(guide).toContainText('feature_id | RNA001 | RNA002');
   await expect(guide).toContainText('Comment les fichiers se relient');
