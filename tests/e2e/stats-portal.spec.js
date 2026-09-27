@@ -26,7 +26,7 @@ test('Stats landing page is public, local-first and links to the analyser', asyn
   expect(errors).toEqual([]);
 });
 
-test('Stats built-in demo runs Welch plus rank sensitivity analysis in the browser', async ({ page }) => {
+test('Stats built-in demo runs primary, sensitivity, visualization and local report export', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
 
@@ -47,6 +47,14 @@ test('Stats built-in demo runs Welch plus rank sensitivity analysis in the brows
   expect(await page.locator('#results .metric').count()).toBeGreaterThan(0);
   await expect(page.locator('#results .assumptions')).toBeVisible();
   await expect(page.locator('#results .privacy-note')).toContainText('Aucune donnée n’est envoyée à un serveur');
+  await expect(page.locator('#results .stats-visual-section')).toBeVisible();
+  await expect(page.locator('#results .stats-svg')).toBeVisible();
+  await expect(page.locator('#results .stats-report-actions')).toBeVisible();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('[data-report-download]').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('stats-report.html');
   expect(errors).toEqual([]);
 });
 
