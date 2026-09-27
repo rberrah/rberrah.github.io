@@ -16,7 +16,7 @@ createServer(async (request, response) => {
   let pathname;
   try { pathname = decodeURIComponent(url.pathname); }
   catch { response.writeHead(400).end(); return; }
-  if (/^\/(internat|stats)(\/|$)/.test(pathname)) {
+  if (/^\/internat(\/|$)/.test(pathname)) {
     response.writeHead(302, { Location: publicOrigin + url.pathname + url.search }).end();
     return;
   }

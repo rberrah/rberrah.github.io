@@ -98,6 +98,8 @@ jobs:
             dist/index.html \
             dist/assets/site.css \
             dist/a-propos/index.html \
+            dist/stats/index.html \
+            dist/stats/tool/index.html \
             dist/pharmacometrie/index.html
           do
             if [ -f "$f" ]; then
