@@ -1,7 +1,6 @@
 const lang=()=>document.documentElement.lang==='en'?'en':'fr';
 const tr=(fr,en)=>lang()==='en'?en:fr;
 const esc=value=>String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
 const recommendations={
   descriptive:{label:['Description quantitative','Quantitative description'],method:['Statistiques descriptives','Descriptive statistics'],why:['Vous souhaitez décrire une variable sans comparaison ni test d’hypothèse.','You want to describe one variable without a comparison or hypothesis test.']},
   oneSample:{label:['Moyenne vs valeur de référence','Mean vs reference value'],method:['Test t à un échantillon','One-sample t-test'],why:['La question porte sur la différence entre une moyenne observée et une valeur fixée à l’avance.','The question compares an observed mean with a value fixed in advance.']},
@@ -14,77 +13,13 @@ const recommendations={
   mcnemar:{label:['Réponse binaire appariée','Paired binary response'],method:['McNemar','McNemar'],why:['La même unité est classée deux fois sur une réponse binaire, par exemple avant/après.','The same unit is classified twice on a binary response, for example before/after.']},
   survival:{label:['Temps jusqu’à événement','Time to event'],method:['Kaplan–Meier + log-rank','Kaplan–Meier + log-rank'],why:['Le critère combine un temps de suivi et l’information événement/censure.','The endpoint combines follow-up time with event/censoring information.']}
 };
-
-function injectStyles(){
-  if(document.querySelector('#decision-assistant-styles'))return;
-  const style=document.createElement('style');style.id='decision-assistant-styles';style.textContent=`
-    .decision-launch{width:100%;margin-top:12px;border:1px solid color-mix(in srgb,var(--accent,#16756b) 45%,var(--line,#d5e0e1));background:color-mix(in srgb,var(--surface,#fff) 90%,var(--accent,#16756b) 10%);border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;text-align:left}
-    .decision-launch small{display:block;margin-top:3px;font-weight:400;color:var(--muted,#5a6c70)}
-    .decision-card{margin-top:12px;padding:14px;border:1px solid var(--line,#d5e0e1);border-radius:12px;background:var(--surface,#fff)}
-    .decision-card[hidden]{display:none}.decision-card h3{margin:0 0 4px;font-size:1rem}.decision-card>p{margin:0 0 12px;color:var(--muted,#5a6c70);font-size:.84rem}
-    .decision-field{display:grid;gap:5px;margin-top:10px}.decision-field>span{font-size:.78rem;font-weight:700}.decision-field select{width:100%}
-    .decision-result{margin-top:12px;padding:12px;border-radius:10px;background:color-mix(in srgb,var(--surface,#fff) 86%,var(--accent,#16756b) 14%)}
-    .decision-result strong{display:block;margin-bottom:3px}.decision-result p{margin:4px 0;font-size:.82rem}.decision-result .decision-method{font-weight:700}
-    .decision-actions{display:flex;gap:8px;margin-top:10px}.decision-actions button{flex:1}
-  `;document.head.appendChild(style);
-}
-
-function option(value,fr,en){return `<option value="${value}">${esc(tr(fr,en))}</option>`;}
-function currentState(){
-  const outcome=document.querySelector('#decision-outcome')?.value||'quantitative';
-  const goal=document.querySelector('#decision-quant-goal')?.value||'compare';
-  const groups=document.querySelector('#decision-groups')?.value||'2';
-  const paired=document.querySelector('#decision-paired')?.value||'no';
-  const catPaired=document.querySelector('#decision-cat-paired')?.value||'no';
-  return {outcome,goal,groups,paired,catPaired};
-}
-function recommend(s){
-  if(s.outcome==='survival')return {mode:'survival'};
-  if(s.outcome==='categorical')return {mode:s.catPaired==='yes'?'mcnemar':'categorical'};
-  if(s.goal==='describe')return {mode:'descriptive'};
-  if(s.goal==='reference')return {mode:'oneSample'};
-  if(s.goal==='association')return {mode:'association'};
-  if(s.groups==='2')return {mode:s.paired==='yes'?'paired':'compare2'};
-  return {mode:s.paired==='yes'?'repeatedk':'comparek'};
-}
-
-function renderAssistant(){
-  const card=document.querySelector('#decision-assistant');if(!card)return;
-  const s=currentState();
-  card.innerHTML=`<h3>${esc(tr('Assistant de choix','Test-choice assistant'))}</h3><p>${esc(tr('Répondez sur le plan d’étude, pas sur la forme des données observées. Aucun LLM et aucun test de normalité automatique.','Answer from the study design, not from the observed shape of the data. No LLM and no automatic normality-test switch.'))}</p><label class="decision-field"><span>${esc(tr('Quel est le type du critère principal ?','What is the primary outcome type?'))}</span><select id="decision-outcome">${option('quantitative','Quantitatif (mesure numérique)','Quantitative (numeric measurement)')}${option('categorical','Catégoriel / binaire','Categorical / binary')}${option('survival','Temps jusqu’à un événement','Time to an event')}</select></label><div id="decision-conditional"></div><div id="decision-recommendation"></div>`;
-  document.querySelector('#decision-outcome').value=s.outcome;
-  renderConditional(s);
-}
-function renderConditional(previous=currentState()){
-  const host=document.querySelector('#decision-conditional');if(!host)return;
-  const outcome=document.querySelector('#decision-outcome').value;
-  if(outcome==='quantitative'){
-    host.innerHTML=`<label class="decision-field"><span>${esc(tr('Quel est votre objectif ?','What is your objective?'))}</span><select id="decision-quant-goal">${option('compare','Comparer des groupes ou des mesures','Compare groups or measurements')}${option('association','Étudier l’association entre deux variables quantitatives','Study association between two quantitative variables')}${option('reference','Comparer une moyenne à une valeur de référence','Compare a mean with a reference value')}${option('describe','Décrire une seule variable','Describe a single variable')}</select></label><div id="decision-compare-fields"></div>`;
-    document.querySelector('#decision-quant-goal').value=previous.goal||'compare';renderCompareFields(previous);
-  }else if(outcome==='categorical'){
-    host.innerHTML=`<label class="decision-field"><span>${esc(tr('S’agit-il d’une réponse binaire mesurée deux fois chez les mêmes sujets ?','Is this a binary response measured twice in the same subjects?'))}</span><select id="decision-cat-paired">${option('no','Non','No')}${option('yes','Oui','Yes')}</select></label>`;
-    document.querySelector('#decision-cat-paired').value=previous.catPaired||'no';renderRecommendation();
-  }else{host.innerHTML='';renderRecommendation();}
-}
-function renderCompareFields(previous=currentState()){
-  const host=document.querySelector('#decision-compare-fields');if(!host)return;
-  if(document.querySelector('#decision-quant-goal')?.value!=='compare'){host.innerHTML='';renderRecommendation();return;}
-  host.innerHTML=`<label class="decision-field"><span>${esc(tr('Combien de groupes / temps ?','How many groups / time points?'))}</span><select id="decision-groups">${option('2','Deux','Two')}${option('k','Trois ou plus','Three or more')}</select></label><label class="decision-field"><span>${esc(tr('Les observations sont-elles appariées / répétées chez les mêmes unités ?','Are observations paired / repeated in the same units?'))}</span><select id="decision-paired">${option('no','Non, groupes indépendants','No, independent groups')}${option('yes','Oui, mêmes sujets / unités appariées','Yes, same subjects / matched units')}</select></label>`;
-  document.querySelector('#decision-groups').value=previous.groups||'2';document.querySelector('#decision-paired').value=previous.paired||'no';renderRecommendation();
-}
-function renderRecommendation(){
-  const host=document.querySelector('#decision-recommendation');if(!host)return;
-  const r=recommend(currentState()),rec=recommendations[r.mode];
-  host.innerHTML=`<div class="decision-result"><strong>${esc(tr(...rec.label))}</strong><p class="decision-method">${esc(tr(...rec.method))}</p><p>${esc(tr(...rec.why))}</p><div class="decision-actions"><button type="button" class="run-button" id="decision-apply">${esc(tr('Utiliser ce parcours','Use this workflow'))}</button></div></div>`;
-}
-function install(){
-  injectStyles();const guide=document.querySelector('#method-guide');if(!guide||document.querySelector('#decision-launch'))return;
-  const button=document.createElement('button');button.type='button';button.id='decision-launch';button.className='decision-launch';
-  const setButton=()=>{button.innerHTML=`${esc(tr('Je ne sais pas quel test choisir','I do not know which test to choose'))}<small>${esc(tr('Répondre à quelques questions sur le plan d’étude','Answer a few questions about the study design'))}</small>`;};setButton();guide.after(button);
-  const card=document.createElement('div');card.id='decision-assistant';card.className='decision-card';card.hidden=true;button.after(card);
-  button.addEventListener('click',()=>{card.hidden=!card.hidden;if(!card.hidden)renderAssistant();});
-  document.addEventListener('change',event=>{if(event.target?.id==='decision-outcome')renderConditional(currentState());else if(event.target?.id==='decision-quant-goal')renderCompareFields(currentState());else if(['decision-groups','decision-paired','decision-cat-paired'].includes(event.target?.id))renderRecommendation();});
-  document.addEventListener('click',event=>{if(event.target?.id!=='decision-apply')return;const r=recommend(currentState());const select=document.querySelector('#analysis-mode');select.value=r.mode;select.dispatchEvent(new Event('change',{bubbles:true}));card.hidden=true;select.focus();});
-  document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{setButton();if(!card.hidden)renderAssistant();},0));
-}
+function injectStyles(){if(document.querySelector('#decision-assistant-styles'))return;const style=document.createElement('style');style.id='decision-assistant-styles';style.textContent=`.decision-launch{width:100%;margin-top:12px;border:1px solid color-mix(in srgb,var(--accent,#16756b) 45%,var(--line,#d5e0e1));background:color-mix(in srgb,var(--surface,#fff) 90%,var(--accent,#16756b) 10%);border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;text-align:left}.decision-launch small{display:block;margin-top:3px;font-weight:400;color:var(--muted,#5a6c70)}.decision-card{margin-top:12px;padding:14px;border:1px solid var(--line,#d5e0e1);border-radius:12px;background:var(--surface,#fff)}.decision-card[hidden]{display:none}.decision-card h3{margin:0 0 4px;font-size:1rem}.decision-card>p{margin:0 0 12px;color:var(--muted,#5a6c70);font-size:.84rem}.decision-field{display:grid;gap:5px;margin-top:10px}.decision-field>span{font-size:.78rem;font-weight:700}.decision-field select{width:100%}.decision-result{margin-top:12px;padding:12px;border-radius:10px;background:color-mix(in srgb,var(--surface,#fff) 86%,var(--accent,#16756b) 14%)}.decision-result strong{display:block;margin-bottom:3px}.decision-result p{margin:4px 0;font-size:.82rem}.decision-result .decision-method{font-weight:700}.decision-actions{display:flex;gap:8px;margin-top:10px}.decision-actions button{flex:1}`;document.head.appendChild(style);}
+const option=(value,fr,en)=>`<option value="${value}">${esc(tr(fr,en))}</option>`;
+function currentState(){return {outcome:document.querySelector('#decision-outcome')?.value||'quantitative',goal:document.querySelector('#decision-quant-goal')?.value||'compare',groups:document.querySelector('#decision-groups')?.value||'2',paired:document.querySelector('#decision-paired')?.value||'no',catPaired:document.querySelector('#decision-cat-paired')?.value||'no'};}
+function recommend(s){if(s.outcome==='survival')return {mode:'survival'};if(s.outcome==='categorical')return {mode:s.catPaired==='yes'?'mcnemar':'categorical'};if(s.goal==='describe')return {mode:'descriptive'};if(s.goal==='reference')return {mode:'oneSample'};if(s.goal==='association')return {mode:'association'};if(s.groups==='2')return {mode:s.paired==='yes'?'paired':'compare2'};return {mode:s.paired==='yes'?'repeatedk':'comparek'};}
+function renderAssistant(){const card=document.querySelector('#decision-assistant');if(!card)return;const s=currentState();card.innerHTML=`<h3>${esc(tr('Assistant de choix','Test-choice assistant'))}</h3><p>${esc(tr('Répondez sur le plan d’étude, pas sur la forme des données observées. Aucun LLM et aucun test de normalité automatique.','Answer from the study design, not from the observed shape of the data. No LLM and no automatic normality-test switch.'))}</p><label class="decision-field"><span>${esc(tr('Quel est le type du critère principal ?','What is the primary outcome type?'))}</span><select id="decision-outcome">${option('quantitative','Quantitatif (mesure numérique)','Quantitative (numeric measurement)')}${option('categorical','Catégoriel / binaire','Categorical / binary')}${option('survival','Temps jusqu’à un événement','Time to an event')}</select></label><div id="decision-conditional"></div><div id="decision-recommendation"></div>`;document.querySelector('#decision-outcome').value=s.outcome;renderConditional(s);}
+function renderConditional(previous=currentState()){const host=document.querySelector('#decision-conditional');if(!host)return;const outcome=document.querySelector('#decision-outcome').value;if(outcome==='quantitative'){host.innerHTML=`<label class="decision-field"><span>${esc(tr('Quel est votre objectif ?','What is your objective?'))}</span><select id="decision-quant-goal">${option('compare','Comparer des groupes ou des mesures','Compare groups or measurements')}${option('association','Étudier l’association entre deux variables quantitatives','Study association between two quantitative variables')}${option('reference','Comparer une moyenne à une valeur de référence','Compare a mean with a reference value')}${option('describe','Décrire une seule variable','Describe a single variable')}</select></label><div id="decision-compare-fields"></div>`;document.querySelector('#decision-quant-goal').value=previous.goal||'compare';renderCompareFields(previous);}else if(outcome==='categorical'){host.innerHTML=`<label class="decision-field"><span>${esc(tr('S’agit-il d’une réponse binaire mesurée deux fois chez les mêmes sujets ?','Is this a binary response measured twice in the same subjects?'))}</span><select id="decision-cat-paired">${option('no','Non','No')}${option('yes','Oui','Yes')}</select></label>`;document.querySelector('#decision-cat-paired').value=previous.catPaired||'no';renderRecommendation();}else{host.innerHTML='';renderRecommendation();}}
+function renderCompareFields(previous=currentState()){const host=document.querySelector('#decision-compare-fields');if(!host)return;if(document.querySelector('#decision-quant-goal')?.value!=='compare'){host.innerHTML='';renderRecommendation();return;}host.innerHTML=`<label class="decision-field"><span>${esc(tr('Combien de groupes / temps ?','How many groups / time points?'))}</span><select id="decision-groups">${option('2','Deux','Two')}${option('k','Trois ou plus','Three or more')}</select></label><label class="decision-field"><span>${esc(tr('Les observations sont-elles appariées / répétées chez les mêmes unités ?','Are observations paired / repeated in the same units?'))}</span><select id="decision-paired">${option('no','Non, groupes indépendants','No, independent groups')}${option('yes','Oui, mêmes sujets / unités appariées','Yes, same subjects / matched units')}</select></label>`;document.querySelector('#decision-groups').value=previous.groups||'2';document.querySelector('#decision-paired').value=previous.paired||'no';renderRecommendation();}
+function renderRecommendation(){const host=document.querySelector('#decision-recommendation');if(!host)return;const r=recommend(currentState()),rec=recommendations[r.mode];host.innerHTML=`<div class="decision-result"><strong>${esc(tr(...rec.label))}</strong><p class="decision-method">${esc(tr(...rec.method))}</p><p>${esc(tr(...rec.why))}</p><div class="decision-actions"><button type="button" class="run-button" id="decision-apply">${esc(tr('Utiliser ce parcours','Use this workflow'))}</button></div></div>`;}
+function install(){injectStyles();const guide=document.querySelector('#method-guide');if(!guide||document.querySelector('#decision-launch'))return;const button=document.createElement('button');button.type='button';button.id='decision-launch';button.className='decision-launch';const setButton=()=>{button.innerHTML=`${esc(tr('Je ne sais pas quel test choisir','I do not know which test to choose'))}<small>${esc(tr('Répondre à quelques questions sur le plan d’étude','Answer a few questions about the study design'))}</small>`;};setButton();guide.after(button);const card=document.createElement('div');card.id='decision-assistant';card.className='decision-card';card.hidden=true;button.after(card);button.addEventListener('click',()=>{card.hidden=!card.hidden;if(!card.hidden)renderAssistant();});document.addEventListener('change',event=>{if(event.target?.id==='decision-outcome')renderConditional(currentState());else if(event.target?.id==='decision-quant-goal')renderCompareFields(currentState());else if(['decision-groups','decision-paired','decision-cat-paired'].includes(event.target?.id))renderRecommendation();});document.addEventListener('click',event=>{if(event.target?.id!=='decision-apply')return;const r=recommend(currentState()),select=document.querySelector('#analysis-mode');select.value=r.mode;select.dispatchEvent(new Event('change',{bubbles:true}));card.hidden=true;select.focus();});document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{setButton();if(!card.hidden)renderAssistant();},0));}
 install();
