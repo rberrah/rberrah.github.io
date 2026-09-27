@@ -11,6 +11,8 @@ stopifnot(exists("compare_rnaseq_methods"))
 stopifnot(exists("filter_informative_features"))
 stopifnot(exists("make_keepx_grid"))
 stopifnot(exists("normalise_keepx"))
+stopifnot(exists("safe_perf_summary"))
+stopifnot(exists("run_diablo_blocks"))
 stopifnot(exists("prepare_multiblock_integration"))
 stopifnot(exists("batch_completely_confounded"))
 
@@ -32,6 +34,24 @@ normalised_keepx <- normalise_keepx(NULL, list(a=matrix(1, 4, 7), b=matrix(1, 4,
 stopifnot(length(normalised_keepx$a) == 2L)
 stopifnot(length(normalised_keepx$b) == 2L)
 stopifnot(all(normalised_keepx$a <= 7L), all(normalised_keepx$b <= 3L))
+
+# DIABLO must keep repeated validation conservative and transparent even when
+# mixOmics itself is not installed in the lightweight CI job.
+stopifnot(as.integer(formals(run_diablo_blocks)$nrepeat) == 5L)
+diablo_perf_mock <- list(error.rate=list(BER=c(0.40, 0.20, 0.30, NA_real_)))
+diablo_perf_summary <- safe_perf_summary(diablo_perf_mock)
+stopifnot(identical(diablo_perf_summary$status, "available"))
+stopifnot(diablo_perf_summary$ber_values_extracted == 3L)
+stopifnot(abs(diablo_perf_summary$ber_median - 0.30) < 1e-12)
+stopifnot(abs(diablo_perf_summary$ber_mean - 0.30) < 1e-12)
+stopifnot(abs(diablo_perf_summary$ber_min - 0.20) < 1e-12)
+stopifnot(abs(diablo_perf_summary$ber_max - 0.40) < 1e-12)
+stopifnot(grepl("same cohort", diablo_perf_summary$note, fixed=TRUE))
+diablo_body <- paste(deparse(body(run_diablo_blocks)), collapse="\n")
+stopifnot(grepl("max(5L, nrepeat)", diablo_body, fixed=TRUE))
+stopifnot(grepl("performance_seed", diablo_body, fixed=TRUE))
+stopifnot(grepl("candidate_keepX", diablo_body, fixed=TRUE))
+stopifnot(grepl("external validation remains required", diablo_body, fixed=TRUE))
 
 # A completely confounded technical series must block multiblock integration
 # rather than being residualised together with the biological contrast.
