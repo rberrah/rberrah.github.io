@@ -1,0 +1,167 @@
+const lang=()=>document.documentElement.lang==='en'?'en':'fr';
+const tr=(fr,en)=>lang()==='en'?en:fr;
+const esc=value=>String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+const recommendations={
+  descriptive:{
+    label:['Description quantitative','Quantitative description'],
+    method:['Statistiques descriptives','Descriptive statistics'],
+    why:['Vous souhaitez décrire une variable sans comparaison ni test d’hypothèse.','You want to describe one variable without a comparison or hypothesis test.']
+  },
+  oneSample:{
+    label:['Moyenne vs valeur de référence','Mean vs reference value'],
+    method:['Test t à un échantillon','One-sample t-test'],
+    why:['La question porte sur la différence entre une moyenne observée et une valeur fixée à l’avance.','The question compares an observed mean with a value fixed in advance.']
+  },
+  association:{
+    label:['Association entre deux variables quantitatives','Association between two quantitative variables'],
+    method:['Pearson + Spearman + régression linéaire','Pearson + Spearman + linear regression'],
+    why:['Vous étudiez deux variables quantitatives sans définir l’une comme groupe de traitement.','You are studying two quantitative variables without defining one as a treatment group.']
+  },
+  compare2:{
+    label:['Deux groupes indépendants','Two independent groups'],
+    method:['Welch t + Mann–Whitney en sensibilité','Welch t + Mann–Whitney sensitivity'],
+    why:['Le critère est quantitatif, avec deux groupes constitués d’unités différentes. Welch ne suppose pas l’égalité des variances.','The outcome is quantitative, with two groups made of different units. Welch does not assume equal variances.']
+  },
+  paired:{
+    label:['Deux mesures appariées','Two paired measurements'],
+    method:['t apparié + Wilcoxon signé en sensibilité','Paired t + signed-rank Wilcoxon sensitivity'],
+    why:['Les deux mesures proviennent des mêmes sujets ou d’unités explicitement appariées.','Both measurements come from the same subjects or explicitly matched units.']
+  },
+  comparek:{
+    label:['Au moins trois groupes indépendants','At least three independent groups'],
+    method:['ANOVA de Welch + Kruskal–Wallis, puis post-hoc corrigés','Welch ANOVA + Kruskal–Wallis, then corrected post-hoc comparisons'],
+    why:['Le critère est quantitatif et les groupes sont indépendants. Les comparaisons deux à deux sont corrigées pour la multiplicité.','The outcome is quantitative and groups are independent. Pairwise comparisons are adjusted for multiplicity.']
+  },
+  categorical:{
+    label:['Association entre variables catégorielles','Association between categorical variables'],
+    method:['χ² ou Fisher exact selon le tableau','Chi-square or Fisher exact depending on the table'],
+    why:['L’exposition et la réponse sont catégorielles. Pour un tableau 2×2, l’outil ajoute RD, RR et OR avec IC95 %.','Exposure and outcome are categorical. For a 2×2 table, the tool also reports RD, RR and OR with 95% CIs.']
+  },
+  mcnemar:{
+    label:['Réponse binaire appariée','Paired binary response'],
+    method:['McNemar','McNemar'],
+    why:['La même unité est classée deux fois sur une réponse binaire, par exemple avant/après.','The same unit is classified twice on a binary response, for example before/after.']
+  },
+  survival:{
+    label:['Temps jusqu’à événement','Time to event'],
+    method:['Kaplan–Meier + log-rank','Kaplan–Meier + log-rank'],
+    why:['Le critère combine un temps de suivi et l’information événement/censure.','The endpoint combines follow-up time with event/censoring information.']
+  }
+};
+
+function injectStyles(){
+  if(document.querySelector('#decision-assistant-styles'))return;
+  const style=document.createElement('style');style.id='decision-assistant-styles';style.textContent=`
+    .decision-launch{width:100%;margin-top:12px;border:1px solid color-mix(in srgb,var(--accent,#16756b) 45%,var(--line,#d5e0e1));background:color-mix(in srgb,var(--surface,#fff) 90%,var(--accent,#16756b) 10%);border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;text-align:left}
+    .decision-launch small{display:block;margin-top:3px;font-weight:400;color:var(--muted,#5a6c70)}
+    .decision-card{margin-top:12px;padding:14px;border:1px solid var(--line,#d5e0e1);border-radius:12px;background:var(--surface,#fff)}
+    .decision-card[hidden]{display:none}.decision-card h3{margin:0 0 4px;font-size:1rem}.decision-card>p{margin:0 0 12px;color:var(--muted,#5a6c70);font-size:.84rem}
+    .decision-field{display:grid;gap:5px;margin-top:10px}.decision-field>span{font-size:.78rem;font-weight:700}.decision-field select{width:100%}
+    .decision-result{margin-top:12px;padding:12px;border-radius:10px;background:color-mix(in srgb,var(--surface,#fff) 86%,var(--accent,#16756b) 14%)}
+    .decision-result strong{display:block;margin-bottom:3px}.decision-result p{margin:4px 0;font-size:.82rem}.decision-result .decision-method{font-weight:700}
+    .decision-actions{display:flex;gap:8px;margin-top:10px}.decision-actions button{flex:1}
+    .decision-unsupported{border-left:3px solid #a36b20;background:rgba(163,107,32,.08);padding:10px;margin-top:12px;border-radius:6px;font-size:.82rem}
+  `;document.head.appendChild(style);
+}
+
+function option(value,fr,en){return `<option value="${value}">${esc(tr(fr,en))}</option>`;}
+function currentState(){
+  const outcome=document.querySelector('#decision-outcome')?.value||'quantitative';
+  const goal=document.querySelector('#decision-quant-goal')?.value||'compare';
+  const groups=document.querySelector('#decision-groups')?.value||'2';
+  const paired=document.querySelector('#decision-paired')?.value||'no';
+  const catPaired=document.querySelector('#decision-cat-paired')?.value||'no';
+  return {outcome,goal,groups,paired,catPaired};
+}
+function recommend(s){
+  if(s.outcome==='survival')return {mode:'survival'};
+  if(s.outcome==='categorical')return {mode:s.catPaired==='yes'?'mcnemar':'categorical'};
+  if(s.goal==='describe')return {mode:'descriptive'};
+  if(s.goal==='reference')return {mode:'oneSample'};
+  if(s.goal==='association')return {mode:'association'};
+  if(s.groups==='2')return {mode:s.paired==='yes'?'paired':'compare2'};
+  if(s.paired==='yes')return {unsupported:'repeated'};
+  return {mode:'comparek'};
+}
+
+function renderAssistant(){
+  const card=document.querySelector('#decision-assistant');if(!card)return;
+  const s=currentState();
+  card.innerHTML=`
+    <h3>${esc(tr('Assistant de choix','Test-choice assistant'))}</h3>
+    <p>${esc(tr('Répondez sur le plan d’étude, pas sur la forme des données observées. Aucun LLM et aucun test de normalité automatique.','Answer from the study design, not from the observed shape of the data. No LLM and no automatic normality-test switch.'))}</p>
+    <label class="decision-field"><span>${esc(tr('Quel est le type du critère principal ?','What is the primary outcome type?'))}</span><select id="decision-outcome">
+      ${option('quantitative','Quantitatif (mesure numérique)','Quantitative (numeric measurement)')}
+      ${option('categorical','Catégoriel / binaire','Categorical / binary')}
+      ${option('survival','Temps jusqu’à un événement','Time to an event')}
+    </select></label>
+    <div id="decision-conditional"></div>
+    <div id="decision-recommendation"></div>`;
+  document.querySelector('#decision-outcome').value=s.outcome;
+  renderConditional(s);
+}
+
+function renderConditional(previous=currentState()){
+  const host=document.querySelector('#decision-conditional');if(!host)return;
+  const outcome=document.querySelector('#decision-outcome').value;
+  if(outcome==='quantitative'){
+    host.innerHTML=`<label class="decision-field"><span>${esc(tr('Quel est votre objectif ?','What is your objective?'))}</span><select id="decision-quant-goal">
+      ${option('compare','Comparer des groupes ou des mesures','Compare groups or measurements')}
+      ${option('association','Étudier l’association entre deux variables quantitatives','Study association between two quantitative variables')}
+      ${option('reference','Comparer une moyenne à une valeur de référence','Compare a mean with a reference value')}
+      ${option('describe','Décrire une seule variable','Describe a single variable')}
+    </select></label><div id="decision-compare-fields"></div>`;
+    document.querySelector('#decision-quant-goal').value=previous.goal||'compare';
+    renderCompareFields(previous);
+  } else if(outcome==='categorical'){
+    host.innerHTML=`<label class="decision-field"><span>${esc(tr('S’agit-il d’une réponse binaire mesurée deux fois chez les mêmes sujets ?','Is this a binary response measured twice in the same subjects?'))}</span><select id="decision-cat-paired">${option('no','Non','No')}${option('yes','Oui','Yes')}</select></label>`;
+    document.querySelector('#decision-cat-paired').value=previous.catPaired||'no';
+  } else host.innerHTML='';
+  renderRecommendation();
+}
+
+function renderCompareFields(previous=currentState()){
+  const host=document.querySelector('#decision-compare-fields');if(!host)return;
+  const goal=document.querySelector('#decision-quant-goal')?.value;
+  if(goal!=='compare'){host.innerHTML='';renderRecommendation();return;}
+  host.innerHTML=`<label class="decision-field"><span>${esc(tr('Combien de groupes / temps ?','How many groups / time points?'))}</span><select id="decision-groups">${option('2','Deux','Two')}${option('k','Trois ou plus','Three or more')}</select></label><label class="decision-field"><span>${esc(tr('Les observations sont-elles appariées / répétées chez les mêmes unités ?','Are observations paired / repeated in the same units?'))}</span><select id="decision-paired">${option('no','Non, groupes indépendants','No, independent groups')}${option('yes','Oui, mêmes sujets / unités appariées','Yes, same subjects / matched units')}</select></label>`;
+  document.querySelector('#decision-groups').value=previous.groups||'2';
+  document.querySelector('#decision-paired').value=previous.paired||'no';
+  renderRecommendation();
+}
+
+function renderRecommendation(){
+  const host=document.querySelector('#decision-recommendation');if(!host)return;
+  const r=recommend(currentState());
+  if(r.unsupported==='repeated'){
+    host.innerHTML=`<div class="decision-unsupported"><strong>${esc(tr('Mesures répétées > 2 : pas encore automatisées','Repeated measures > 2: not automated yet'))}</strong><br>${esc(tr('Ne forcez pas une ANOVA de groupes indépendants. Le futur module utilisera un workflow dédié (p. ex. Friedman ou modèle à effets mixtes selon la question et le plan).','Do not force an independent-groups ANOVA. A dedicated workflow will be added (e.g. Friedman or a mixed-effects model depending on the question and design).'))}</div>`;
+    return;
+  }
+  const rec=recommendations[r.mode],label=tr(...rec.label),method=tr(...rec.method),why=tr(...rec.why);
+  host.innerHTML=`<div class="decision-result"><strong>${esc(label)}</strong><p class="decision-method">${esc(method)}</p><p>${esc(why)}</p><div class="decision-actions"><button type="button" class="run-button" id="decision-apply">${esc(tr('Utiliser ce parcours','Use this workflow'))}</button></div></div>`;
+}
+
+function install(){
+  injectStyles();
+  const guide=document.querySelector('#method-guide');if(!guide||document.querySelector('#decision-launch'))return;
+  const button=document.createElement('button');button.type='button';button.id='decision-launch';button.className='decision-launch';
+  const setButton=()=>{button.innerHTML=`${esc(tr('Je ne sais pas quel test choisir','I do not know which test to choose'))}<small>${esc(tr('Répondre à quelques questions sur le plan d’étude','Answer a few questions about the study design'))}</small>`;};setButton();
+  guide.after(button);
+  const card=document.createElement('div');card.id='decision-assistant';card.className='decision-card';card.hidden=true;button.after(card);
+  button.addEventListener('click',()=>{card.hidden=!card.hidden;if(!card.hidden)renderAssistant();});
+  document.addEventListener('change',event=>{
+    if(event.target?.id==='decision-outcome')renderConditional(currentState());
+    else if(event.target?.id==='decision-quant-goal')renderCompareFields(currentState());
+    else if(['decision-groups','decision-paired','decision-cat-paired'].includes(event.target?.id))renderRecommendation();
+  });
+  document.addEventListener('click',event=>{
+    if(event.target?.id!=='decision-apply')return;
+    const r=recommend(currentState());if(!r.mode)return;
+    const select=document.querySelector('#analysis-mode');select.value=r.mode;select.dispatchEvent(new Event('change',{bubbles:true}));card.hidden=true;
+    select.focus();
+  });
+  document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{setButton();if(!card.hidden)renderAssistant();},0));
+}
+
+install();
