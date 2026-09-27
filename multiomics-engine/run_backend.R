@@ -86,6 +86,21 @@ api <- plumber::pr_get(
   serializer = plumber::serializer_unboxed_json()
 )
 
+# Attach the exact R/package environment directly to every /run response.
+# This ensures the browser JSON/HTML export remains self-describing even if the
+# standalone /environment endpoint was never called. Plumber postroute hooks
+# may replace the handler value; all non-/run routes are returned unchanged.
+api <- plumber::pr_hook(
+  api,
+  "postroute",
+  function(req, value) {
+    if (identical(req$PATH_INFO, "/run") && is.list(value)) {
+      value$environment <- package_manifest()
+    }
+    value
+  }
+)
+
 manifest <- package_manifest()
 cat(sprintf("PMx multi-omics reference R backend: http://%s:%d\n", host, port))
 cat(sprintf("R runtime: %s\n", manifest$r))
