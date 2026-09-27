@@ -208,15 +208,14 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
       use_qc <- ordered_qc[is.finite(values[ordered_qc]) & values[ordered_qc] >= 0]
       if (length(use_qc) < 5L || length(unique(orders[use_qc])) < 4L) next
 
-      qdat <- data.frame(
-        order=orders[use_qc],
-        response=log(values[use_qc] + pseudo)
-      )
+      qdat <- data.frame(order=orders[use_qc], response=log(values[use_qc] + pseudo))
       adaptive_span <- min(1, max(0.6, 4 / nrow(qdat)))
       fit <- try(stats::loess(
         response ~ order,
         data=qdat,
-        span=adaptive_span, degree=1, family="symmetric",
+        span=adaptive_span,
+        degree=1,
+        family="symmetric",
         control=stats::loess.control(surface="direct")
       ), silent=TRUE)
       pred_all <- pred_qc <- NULL
@@ -326,7 +325,7 @@ varying_terms <- function(meta, covariates, include_batch=TRUE) {
     values <- unique(meta[[col]][!is.na(meta[[col]]) & nzchar(as.character(meta[[col]]))])
     if (length(values) > 1L) terms <- c(terms, col)
   }
-  terms
+  unique(terms)
 }
 
 safe_formula <- function(terms) {
@@ -340,6 +339,109 @@ top_frame <- function(x, n=100L) {
   if (!nrow(x)) return(list())
   x <- utils::head(x, n)
   lapply(seq_len(nrow(x)), function(i) as.list(x[i, , drop=FALSE]))
+}
+
+nonempty_unique <- function(x) unique(as.character(x[!is.na(x) & nzchar(as.character(x))]))
+
+batch_completely_confounded <- function(meta, target_columns=c("condition","timepoint")) {
+  if (!"batch" %in% names(meta)) return(NULL)
+  batches <- nonempty_unique(meta$batch)
+  if (length(batches) <= 1L) return(NULL)
+
+  for (target in target_columns) {
+    if (!target %in% names(meta)) next
+    target_values <- nonempty_unique(meta[[target]])
+    if (length(target_values) <= 1L) next
+    complete <- !is.na(meta$batch) & nzchar(as.character(meta$batch)) &
+      !is.na(meta[[target]]) & nzchar(as.character(meta[[target]]))
+    if (!any(complete)) next
+    tab <- table(meta$batch[complete], meta[[target]][complete])
+    # If no technical series spans two target states, the two effects cannot be
+    # separated. Do not 'correct the batch' and then call the residual biological.
+    if (nrow(tab) > 1L && ncol(tab) > 1L && all(rowSums(tab > 0) <= 1L)) return(target)
+  }
+  NULL
+}
+
+residualize_nuisance_matrix <- function(x, meta, terms) {
+  x <- as.matrix(x)
+  storage.mode(x) <- "double"
+  if (!length(terms)) return(list(matrix=x, status="not_needed", terms=character(), adjusted_features=0L))
+
+  design <- stats::model.matrix(safe_formula(terms), data=meta)
+  if (qr(design)$rank < ncol(design)) {
+    return(list(
+      matrix=x,
+      status="blocked",
+      terms=terms,
+      adjusted_features=0L,
+      message="Nuisance-adjustment design matrix is rank-deficient."
+    ))
+  }
+
+  out <- x
+  adjusted <- 0L
+  for (j in seq_len(ncol(x))) {
+    y <- x[,j]
+    keep <- is.finite(y) & stats::complete.cases(design)
+    if (sum(keep) <= ncol(design) + 1L) next
+    fit <- try(stats::lm.fit(design[keep,,drop=FALSE], y[keep]), silent=TRUE)
+    if (inherits(fit,"try-error")) next
+    residuals <- fit$residuals
+    if (length(residuals) != sum(keep) || !any(is.finite(residuals))) next
+    out[keep,j] <- residuals + mean(y[keep], na.rm=TRUE)
+    adjusted <- adjusted + 1L
+  }
+
+  list(
+    matrix=out,
+    status=if (adjusted > 0L) "adjusted" else "not_estimable",
+    terms=terms,
+    adjusted_features=adjusted,
+    message=if (adjusted > 0L) "Known nuisance effects were regressed out feature-wise before multiblock integration." else "No feature had enough complete observations for nuisance adjustment."
+  )
+}
+
+prepare_multiblock_integration <- function(blocks, metas, covariates, target_columns=c("condition","timepoint")) {
+  out <- blocks
+  details <- list()
+  for (layer in names(blocks)) {
+    x <- blocks[[layer]]
+    m <- metas[[layer]]
+    common <- intersect(rownames(x), rownames(m))
+    x <- x[common,,drop=FALSE]
+    m <- m[common,,drop=FALSE]
+
+    confounded_target <- batch_completely_confounded(m, target_columns)
+    if (!is.null(confounded_target)) {
+      return(list(
+        status="blocked",
+        blocks=blocks,
+        details=details,
+        message=sprintf("%s: technical batch is completely confounded with %s; multiblock integration was not run.", layer, confounded_target)
+      ))
+    }
+
+    terms <- varying_terms(m, covariates, include_batch=TRUE)
+    adjusted <- residualize_nuisance_matrix(x, m, terms)
+    details[[layer]] <- list(
+      status=adjusted$status,
+      terms=adjusted$terms,
+      adjusted_features=adjusted$adjusted_features,
+      message=adjusted$message
+    )
+    if (identical(adjusted$status, "blocked")) {
+      return(list(status="blocked", blocks=blocks, details=details, message=paste(layer, adjusted$message)))
+    }
+    out[[layer]] <- adjusted$matrix
+  }
+
+  list(
+    status="ok",
+    blocks=out,
+    details=details,
+    message="Known non-confounded technical series and explicitly selected covariates were adjusted before multiblock integration when estimable."
+  )
 }
 
 reactome_current_pathways <- function(identifier_type, species="Homo sapiens") {
@@ -544,7 +646,8 @@ run_backend_analysis <- function(payload) {
           fit <- try(run_lmer_matrix(
             x, m, layer_dir,
             fixed_formula=paste(fixed, collapse=" + "),
-            subject_column="subject_id"
+            subject_column="subject_id",
+            random_slope="auto"
           ), silent=TRUE)
           if (!inherits(fit,"try-error")) {
             methods[[paste0(layer,"_longitudinal")]] <- method_status("lmerTest","ok",list(top=top_frame(fit)))
@@ -563,30 +666,75 @@ run_backend_analysis <- function(payload) {
     }
   }
 
+  # Multiblock methods receive nuisance-adjusted matrices only when the
+  # adjustment is identifiable. Complete batch/biology confounding blocks the
+  # method instead of silently removing biology together with batch.
+  explore_blocks <- NULL
+  explore_adjustment <- NULL
   if (objective == "explore") {
-    if (requireNamespace("MOFA2", quietly=TRUE)) {
-      fit <- try(run_mofa2_blocks(blocks, file.path(temp,"mofa2"), factors=5L), silent=TRUE)
-      methods$mofa2 <- if (!inherits(fit,"try-error")) method_status("MOFA2","ok",list(summary=fit$summary)) else method_status("MOFA2","error",list(message=as.character(fit)))
+    prepared_integration <- prepare_multiblock_integration(
+      blocks,
+      metas,
+      covariates,
+      target_columns=c("condition","timepoint")
+    )
+    explore_adjustment <- prepared_integration
+    if (!identical(prepared_integration$status, "ok")) {
+      methods$mofa2 <- method_status(
+        "MOFA2",
+        "blocked",
+        list(message=prepared_integration$message, nuisance_adjustment=prepared_integration$details)
+      )
+    } else if (requireNamespace("MOFA2", quietly=TRUE)) {
+      explore_blocks <- prepared_integration$blocks
+      fit <- try(run_mofa2_blocks(explore_blocks, file.path(temp,"mofa2"), factors=5L), silent=TRUE)
+      methods$mofa2 <- if (!inherits(fit,"try-error")) {
+        method_status("MOFA2","ok",list(summary=fit$summary, nuisance_adjustment=prepared_integration$details))
+      } else {
+        method_status("MOFA2","error",list(message=as.character(fit), nuisance_adjustment=prepared_integration$details))
+      }
     } else {
-      methods$mofa2 <- method_status("MOFA2","unavailable",list(message="MOFA2 is not installed."))
+      methods$mofa2 <- method_status("MOFA2","unavailable",list(message="MOFA2 is not installed.", nuisance_adjustment=prepared_integration$details))
     }
   }
 
   supervised_target <- NULL
+  supervised_target_column <- NULL
   common_samples <- Reduce(intersect, lapply(metas, rownames))
   if (length(common_samples)) {
     if (objective == "groups") {
       supervised_target <- setNames(metas[[1]][common_samples,"condition"], common_samples)
+      supervised_target_column <- "condition"
     } else if (objective == "outcome" && outcome_type %in% c("binary","multiclass")) {
       supervised_target <- setNames(metas[[1]][common_samples,"outcome"], common_samples)
+      supervised_target_column <- "outcome"
     }
   }
-  if (!is.null(supervised_target) && length(unique(supervised_target)) >= 2L) {
-    if (requireNamespace("mixOmics", quietly=TRUE)) {
-      fit <- try(run_diablo_blocks(blocks, supervised_target, file.path(temp,"diablo"), ncomp=2L), silent=TRUE)
-      methods$diablo <- if (!inherits(fit,"try-error")) method_status("mixOmics DIABLO","ok",list(summary=fit$summary)) else method_status("mixOmics DIABLO","error",list(message=as.character(fit)))
+  if (!is.null(supervised_target) && length(unique(supervised_target[nzchar(supervised_target)])) >= 2L) {
+    target_columns <- unique(c(supervised_target_column, if (supervised_target_column != "condition") "condition" else character()))
+    prepared_supervised <- prepare_multiblock_integration(blocks, metas, covariates, target_columns=target_columns)
+    if (!identical(prepared_supervised$status, "ok")) {
+      methods$diablo <- method_status(
+        "mixOmics DIABLO",
+        "blocked",
+        list(message=prepared_supervised$message, nuisance_adjustment=prepared_supervised$details)
+      )
+    } else if (requireNamespace("mixOmics", quietly=TRUE)) {
+      fit <- try(run_diablo_blocks(
+        prepared_supervised$blocks,
+        supervised_target,
+        file.path(temp,"diablo"),
+        ncomp=2L,
+        tune=TRUE,
+        nrepeat=3L
+      ), silent=TRUE)
+      methods$diablo <- if (!inherits(fit,"try-error")) {
+        method_status("mixOmics DIABLO","ok",list(summary=fit$summary, nuisance_adjustment=prepared_supervised$details))
+      } else {
+        method_status("mixOmics DIABLO","error",list(message=as.character(fit), nuisance_adjustment=prepared_supervised$details))
+      }
     } else {
-      methods$diablo <- method_status("mixOmics DIABLO","unavailable",list(message="mixOmics is not installed."))
+      methods$diablo <- method_status("mixOmics DIABLO","unavailable",list(message="mixOmics is not installed.", nuisance_adjustment=prepared_supervised$details))
     }
   }
 
@@ -604,7 +752,11 @@ run_backend_analysis <- function(payload) {
   packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
   list(
     status="ok",
-    engine=list(name="PMx Explain reference R backend", version="1.1.0"),
+    engine=list(
+      name="PMx Explain reference R backend",
+      version="1.2.0",
+      policy="Reference methods are eligibility-gated; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
+    ),
     applicableMethods=names(methods),
     methods=methods,
     preprocessing=preprocessing,
@@ -629,7 +781,7 @@ function() {
   list(
     status="ok",
     engine="PMx Explain reference R backend",
-    version="1.1.0",
+    version="1.2.0",
     packages=as.list(packages)
   )
 }
