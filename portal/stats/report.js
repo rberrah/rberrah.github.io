@@ -1,5 +1,94 @@
 const tr = (fr,en) => document.documentElement.lang === 'en' ? en : fr;
-const esc = value => String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const esc = value => String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));
+
+function parseLine(line,delimiter) {
+  const out=[];
+  let cur='',quote=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(quote&&line[i+1]==='"'){cur+='"';i++;}
+      else quote=!quote;
+    } else if(ch===delimiter&&!quote){out.push(cur.trim());cur='';}
+    else cur+=ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function parsedRows() {
+  const text=document.querySelector('#data-input')?.value?.trim() || '';
+  const lines=text.split(/\r?\n/).filter(Boolean);
+  if(lines.length<2)return null;
+  const first=lines[0],delimiter=first.includes('\t')?'\t':first.includes(';')?';':',';
+  const headers=parseLine(first,delimiter).map((h,i)=>h||`col_${i+1}`);
+  const rows=lines.slice(1).map(line=>{
+    const vals=parseLine(line,delimiter),row={};
+    headers.forEach((h,i)=>row[h]=vals[i]??'');
+    return row;
+  });
+  return {headers,rows};
+}
+
+function numeric(values) {
+  return values.map(Number).filter(Number.isFinite);
+}
+
+function allUnique(values) {
+  return new Set(values).size===values.length;
+}
+
+function rankInferenceState() {
+  const mode=document.querySelector('#analysis-mode')?.value;
+  const method=document.querySelector('#method-choice')?.value || 'auto';
+  if(method==='parametric' || !['compare2','paired'].includes(mode))return null;
+  const parsed=parsedRows();
+  if(!parsed)return null;
+
+  if(mode==='compare2'){
+    const groupKey=document.querySelector('#col-group')?.value;
+    const valueKey=document.querySelector('#col-value')?.value;
+    if(!groupKey||!valueKey)return null;
+    const groups=[...new Set(parsed.rows.map(r=>String(r[groupKey])).filter(Boolean))];
+    if(groups.length!==2)return null;
+    const values=groups.flatMap(g=>numeric(parsed.rows.filter(r=>String(r[groupKey])===g).map(r=>r[valueKey])));
+    if(values.length<2)return null;
+    return {title:'Mann–Whitney',exact:values.length<=24&&allUnique(values)};
+  }
+
+  const xKey=document.querySelector('#col-x')?.value;
+  const yKey=document.querySelector('#col-y')?.value;
+  if(!xKey||!yKey)return null;
+  const abs=[];
+  for(const row of parsed.rows){
+    const x=Number(row[xKey]),y=Number(row[yKey]);
+    if(Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x-y)>1e-12)abs.push(Math.abs(x-y));
+  }
+  if(abs.length<2)return null;
+  return {title:'Wilcoxon signed-rank',exact:abs.length<=25&&allUnique(abs)};
+}
+
+function injectRankInference() {
+  const state=rankInferenceState();
+  if(!state)return;
+  const cards=[...document.querySelectorAll('#results .result-card')];
+  const card=cards.find(c=>c.querySelector('h3')?.textContent?.includes(state.title));
+  if(!card)return;
+  const metrics=card.querySelector('.metrics');
+  if(!metrics)return;
+  let block=metrics.querySelector('.rank-inference');
+  if(!block){
+    block=document.createElement('div');
+    block.className='metric rank-inference';
+    block.innerHTML='<span></span><strong></strong>';
+    metrics.appendChild(block);
+  }
+  block.querySelector('span').textContent=tr('Inférence','Inference');
+  block.querySelector('strong').textContent=state.exact?tr('Exacte','Exact'):tr('Asymptotique','Asymptotic');
+  block.title=state.exact
+    ? tr('p-value calculée à partir de la distribution exacte des rangs.','p-value computed from the exact rank distribution.')
+    : tr('Approximation asymptotique utilisée, notamment en présence d’ex æquo ou pour un effectif plus grand.','Asymptotic approximation used, including when ties are present or the sample is larger.');
+}
 
 function resultText() {
   const results = document.querySelector('#results');
@@ -38,6 +127,7 @@ function downloadReport() {
 
 function injectActions() {
   const results=document.querySelector('#results'); if(!results?.querySelector('.result-card'))return;
+  injectRankInference();
   results.querySelector('.stats-report-actions')?.remove();
   const actions=document.createElement('div'); actions.className='stats-report-actions';
   actions.innerHTML=`<button type="button" class="primary-report" data-report-download>${esc(tr('Télécharger le rapport','Download report'))}</button><button type="button" data-report-copy>${esc(tr('Copier le résumé','Copy summary'))}</button><button type="button" data-report-print>${esc(tr('Imprimer / PDF','Print / PDF'))}</button><small data-report-status>${esc(tr('Rapport sans données brutes','Report excludes raw data'))}</small>`;
