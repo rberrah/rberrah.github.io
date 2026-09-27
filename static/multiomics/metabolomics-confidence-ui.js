@@ -155,9 +155,17 @@
     if (suppressExactMetabolitePathways && result.reactome) {
       const perLayer = { ...(result.reactome.perLayer || {}) };
       if ('metabolomics' in perLayer) perLayer.metabolomics = null;
+      const previousCombined = result.reactome.combined || {};
       result.reactome = {
         ...result.reactome,
-        combined: null,
+        combined: {
+          ...previousCombined,
+          token: null,
+          pathwaysFound: 0,
+          pathways: [],
+          suppressed: true,
+          suppressionReason: `Exact metabolite pathway integration suppressed because declared confidence is ${level}.`
+        },
         consensus: [],
         perLayer,
         metabolomicsConfidenceSuppressed: true,
