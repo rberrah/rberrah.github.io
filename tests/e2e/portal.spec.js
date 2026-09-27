@@ -6,6 +6,7 @@ import { getSiteOrigin } from '../../site.config.js';
 
 const origin = process.env.PORTAL_E2E_URL || 'http://127.0.0.1:4181';
 const pages = ['/', '/tools/', '/publications/', '/a-propos/', '/contact/', '/citer/', '/other-projects/'];
+const statsPages = ['/stats/', '/stats/tool/'];
 const publicOrigin = getSiteOrigin();
 
 test.beforeEach(async ({ page }) => {
@@ -33,6 +34,8 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
     if (route === '/tools/') {
+      await expect(page.locator('#stats').getByRole('link', { name: 'Open Stats' }))
+        .toHaveAttribute('href', '/stats/');
       await expect(page.locator('#tacddi').getByRole('link', { name: 'Open TacDDI' }))
         .toHaveAttribute('href', 'https://tdmhub.shinyapps.io/TacDDI/');
       await expect(page.locator('#grad a')).toHaveCount(0);
@@ -45,7 +48,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
       nodes.map(n => n.getAttribute('href') || n.getAttribute('src')));
     for (const href of refs) {
       const url = new URL(href, publicOrigin + route);
-      if (url.origin !== publicOrigin || /^\/(internat|stats)(\/|$)/.test(url.pathname)) continue;
+      if (url.origin !== publicOrigin || /^\/internat(\/|$)/.test(url.pathname)) continue;
       const app = url.pathname.startsWith('/pharmacometrie/');
       const file = path.resolve(app ? 'build' : 'portal',
         '.' + (app ? url.pathname.slice('/pharmacometrie'.length) : url.pathname),
@@ -128,14 +131,12 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();
   const urls = await page.evaluate(xml => [...new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('loc')].map(n => n.textContent), xml);
-  expect(urls.sort()).toEqual(pages.map(p => publicOrigin + p).sort());
-  for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/'])
+  expect(urls.sort()).toEqual([...pages, ...statsPages].map(p => publicOrigin + p).sort());
+  for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/', ...statsPages])
     expect((await request.get(origin + route)).status()).toBe(200);
-  for (const route of ['/internat/', '/stats/']) {
-    const response = await request.get(origin + route, { maxRedirects: 0 });
-    expect(response.status()).toBe(302);
-    expect(response.headers().location).toBe(publicOrigin + route);
-  }
+  const response = await request.get(origin + '/internat/', { maxRedirects: 0 });
+  expect(response.status()).toBe(302);
+  expect(response.headers().location).toBe(publicOrigin + '/internat/');
 });
 
 test('research details open with keyboard, retain sources and support direct links', async ({ page }) => {
