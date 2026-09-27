@@ -51,11 +51,6 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Test application in browser
-        env:
-          LABS_E2E_PREBUILT: "true"
-        run: npm run test:e2e
-
       - name: Assemble portail + pharmacométrie
         run: |
           set -euo pipefail
@@ -119,8 +114,16 @@ jobs:
       - name: Integrate privacy-preserving portal analytics
         run: node scripts/add_portal_analytics.mjs
 
+      # Tester d'abord le portail assemblé évite qu'une régression indépendante
+      # de l'application pharmacométrique masque systématiquement les résultats
+      # des tests Stats. Le test pharmacométrique reste bloquant pour le déploiement.
       - name: Test assembled portal in browser
         run: npx playwright test --config playwright.portal.config.js
+
+      - name: Test application in browser
+        env:
+          LABS_E2E_PREBUILT: "true"
+        run: npm run test:e2e
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
