@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {
   welchT, mannWhitney, pairedT, welchAnova, kruskalWallis,
-  pearson, fisherExact2x2, describe
+  pearson, spearman, linearRegression, fisherExact2x2, describe,
+  oneSampleT, mcnemar, logRank
 } from '../portal/stats/engine.js';
 
 const near = (actual, expected, tolerance, label) => {
@@ -43,6 +44,12 @@ const y = [2.2,2.8,4.1,4.8,6.2,6.5,8.1,8.6,10.1,10.7];
 const pr = pearson(x,y);
 near(pr.r, 0.9965373827758134, 1e-12, 'Pearson r');
 near(pr.p, 6.263113706458101e-10, 2e-9, 'Pearson p-value');
+const sr = spearman(x,y);
+near(sr.rho, 1, 1e-12, 'Spearman rho');
+const lr = linearRegression(x,y);
+near(lr.slope, 0.9715151515151516, 1e-12, 'Linear regression slope');
+near(lr.intercept, 1.0666666666666655, 1e-12, 'Linear regression intercept');
+near(lr.p, 6.263113706455703e-10, 2e-9, 'Linear regression slope p-value');
 
 const fisher = fisherExact2x2([[1,9],[11,3]]);
 near(fisher.odds_ratio, 0.030303030303030304, 1e-12, 'Fisher odds ratio');
@@ -52,4 +59,32 @@ const d = describe([12.1,10.8,11.4,13.2,9.9,12.5,11.7,10.6]);
 assert.equal(d.n, 8);
 near(d.mean, 11.525, 1e-12, 'Descriptive mean');
 
-console.log('Stats engine: reference vectors PASS');
+const one = oneSampleT([102,98,101,105,99,103,100,104], 100);
+near(one.t, 1.7320508075688774, 1e-12, 'One-sample t statistic');
+near(one.p, 0.12687036692367099, 2e-8, 'One-sample p-value');
+near(one.estimate, 1.5, 1e-12, 'One-sample estimate');
+
+const mcRows = [
+  ...Array.from({length:8},()=>({before:'no',after:'yes'})),
+  {before:'yes',after:'no'},
+  ...Array.from({length:4},()=>({before:'no',after:'no'})),
+  ...Array.from({length:3},()=>({before:'yes',after:'yes'}))
+];
+const mc = mcnemar(mcRows, 'before', 'after');
+assert.equal(mc.exact, true);
+assert.equal(mc.b, 8);
+assert.equal(mc.c, 1);
+near(mc.p, 0.0390625, 1e-12, 'Exact McNemar p-value');
+
+const survivalRows = [
+  {group:'A',time:3,event:1},{group:'A',time:5,event:1},{group:'A',time:7,event:0},
+  {group:'A',time:8,event:1},{group:'A',time:11,event:0},{group:'A',time:12,event:1},
+  {group:'B',time:4,event:1},{group:'B',time:7,event:1},{group:'B',time:9,event:1},
+  {group:'B',time:10,event:0},{group:'B',time:13,event:0},{group:'B',time:14,event:1}
+];
+const logrank = logRank(survivalRows, 'group', 'time', 'event');
+near(logrank.x2, 0.6006314054675235, 1e-12, 'Log-rank chi-square');
+near(logrank.p, 0.43833721765635236, 2e-8, 'Log-rank p-value');
+assert.equal(logrank.events, 8);
+
+console.log('Stats engine: extended reference vectors PASS');
