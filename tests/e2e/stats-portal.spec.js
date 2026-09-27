@@ -58,6 +58,40 @@ test('Stats built-in demo runs exact rank sensitivity, visualization and local r
   expect(errors).toEqual([]);
 });
 
+test('Stats reports corrected pairwise post-hoc comparisons after a multi-group analysis', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(origin + '/stats/tool/');
+  await page.locator('#analysis-mode').selectOption('comparek');
+  await page.locator('#load-demo').click();
+  await page.locator('#run-analysis').click();
+  await expect(page.locator('#results .posthoc-section')).toBeVisible();
+  await expect(page.locator('#results .posthoc-section h3')).toHaveText('Comparaisons post-hoc corrigées');
+  await expect(page.locator('#results .posthoc-table tbody tr')).toHaveCount(3);
+  await expect(page.locator('#results .posthoc-section')).toContainText('p Holm');
+  await expect(page.locator('#results .posthoc-section')).toContainText('A − B');
+  expect(errors).toEqual([]);
+});
+
+test('Stats exposes explicit 2x2 orientation and RD, RR, OR with confidence intervals', async ({ page }) => {
+  const errors=[];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(origin + '/stats/tool/');
+  await page.locator('#analysis-mode').selectOption('categorical');
+  await page.locator('#load-demo').click();
+  await expect(page.locator('#effect-orientation')).toBeVisible();
+  await expect(page.locator('#effect-group1')).toHaveValue('A');
+  await expect(page.locator('#effect-event')).toHaveValue('yes');
+  await page.locator('#run-analysis').click();
+  await expect(page.locator('#results .categorical-effects')).toBeVisible();
+  await expect(page.locator('#results .effect-card')).toHaveCount(3);
+  await expect(page.locator('#results .categorical-effects')).toContainText('Différence de risque (RD)');
+  await expect(page.locator('#results .categorical-effects')).toContainText('Risque relatif (RR)');
+  await expect(page.locator('#results .categorical-effects')).toContainText('Odds ratio (OR)');
+  await expect(page.locator('#results .categorical-effects')).toContainText('A vs B');
+  expect(errors).toEqual([]);
+});
+
 test('Stats study planning computes sample size and dropout inflation', async ({ page }) => {
   const errors=[];
   page.on('pageerror', error => errors.push(error.message));
