@@ -83,4 +83,6 @@ test('Stats remains usable on mobile and the bilingual switch updates the interf
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.locator('h1')).toContainText('Which test for your data?');
   await expect(page.locator('#load-demo')).toHaveText('Load demo');
+  await expect(page.locator('#study-planning h2')).toHaveText('Plan a study');
+  await expect(page.locator('#plan-run')).toHaveText('Calculate sample size');
 });
