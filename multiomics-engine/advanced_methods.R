@@ -1,6 +1,13 @@
 # Advanced multi-omics adapters for local/server execution.
 # These functions intentionally use reference R implementations rather than
 # relabelling browser-native PCA/PLS code as MOFA2 or DIABLO.
+#
+# Methodological policy:
+# - deterministic seeds are recorded;
+# - supervised multiblock models are tuned inside repeated CV before final fit;
+# - unsupervised factor analysis refuses clearly underpowered sample counts;
+# - longitudinal models attempt a random slope only when the design can support it;
+# - sensitivity methods are compared, never merged by averaging p-values/q-values.
 
 require_namespace <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
@@ -8,16 +15,23 @@ require_namespace <- function(pkg) {
   }
 }
 
-validate_blocks <- function(blocks) {
-  if (!is.list(blocks) || length(blocks) < 2L) stop("blocks must contain at least two omics matrices.", call. = FALSE)
-  if (is.null(names(blocks)) || any(names(blocks) == "")) stop("Every block must have a name.", call. = FALSE)
+validate_blocks <- function(blocks, min_samples = 3L) {
+  if (!is.list(blocks) || length(blocks) < 2L) {
+    stop("blocks must contain at least two omics matrices.", call. = FALSE)
+  }
+  if (is.null(names(blocks)) || any(names(blocks) == "")) {
+    stop("Every block must have a name.", call. = FALSE)
+  }
   blocks <- lapply(blocks, function(x) {
     x <- as.matrix(x)
     storage.mode(x) <- "double"
+    if (is.null(rownames(x))) stop("Every block must use sample IDs as row names.", call. = FALSE)
     x
   })
   common <- Reduce(intersect, lapply(blocks, rownames))
-  if (length(common) < 3L) stop("At least three samples must be shared across blocks.", call. = FALSE)
+  if (length(common) < as.integer(min_samples)) {
+    stop(sprintf("At least %d samples must be shared across blocks.", as.integer(min_samples)), call. = FALSE)
+  }
   lapply(blocks, function(x) x[common, , drop = FALSE])
 }
 
@@ -26,17 +40,57 @@ write_matrix_csv <- function(x, path) {
   utils::write.csv(data.frame(sample_id = rownames(x), x, check.names = FALSE), path, row.names = FALSE)
 }
 
-run_mofa2_blocks <- function(blocks, output_dir, factors = 5L, seed = 20260924L, convergence_mode = "medium") {
+filter_informative_features <- function(x, min_observed = 3L, max_features = NULL) {
+  x <- as.matrix(x)
+  observed <- colSums(is.finite(x))
+  variances <- vapply(seq_len(ncol(x)), function(j) {
+    values <- x[, j]
+    values <- values[is.finite(values)]
+    if (length(values) < min_observed) return(NA_real_)
+    stats::var(values)
+  }, numeric(1))
+  keep <- observed >= min_observed & is.finite(variances) & variances > 0
+  x <- x[, keep, drop = FALSE]
+  variances <- variances[keep]
+  if (!is.null(max_features) && is.finite(max_features) && ncol(x) > max_features) {
+    order_idx <- order(variances, decreasing = TRUE, na.last = NA)
+    x <- x[, order_idx[seq_len(as.integer(max_features))], drop = FALSE]
+  }
+  x
+}
+
+run_mofa2_blocks <- function(
+  blocks,
+  output_dir,
+  factors = 5L,
+  seed = 20260924L,
+  convergence_mode = "medium",
+  min_samples = 16L,
+  max_features_per_block = NULL
+) {
   require_namespace("MOFA2")
-  blocks <- validate_blocks(blocks)
+  blocks <- validate_blocks(blocks, min_samples = min_samples)
+  raw_feature_counts <- vapply(blocks, ncol, integer(1))
+  blocks <- lapply(blocks, filter_informative_features, max_features = max_features_per_block)
+  if (any(vapply(blocks, ncol, integer(1)) < 2L)) {
+    stop("MOFA2 requires at least two informative non-constant features in every retained block.", call. = FALSE)
+  }
+
+  # MOFA2's own guidance stresses adequate normalisation, removal of known
+  # technical effects and enough samples. The backend handles known technical
+  # series upstream; here we additionally scale views so a high-variance assay
+  # does not dominate merely because of measurement scale.
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   set.seed(seed)
+  n_samples <- nrow(blocks[[1]])
+  factors <- max(1L, min(as.integer(factors), 10L, max(1L, n_samples - 2L)))
 
   model <- MOFA2::create_mofa(blocks)
   data_options <- MOFA2::get_default_data_options(model)
   model_options <- MOFA2::get_default_model_options(model)
   train_options <- MOFA2::get_default_training_options(model)
-  model_options$num_factors <- as.integer(factors)
+  if ("scale_views" %in% names(data_options)) data_options$scale_views <- TRUE
+  model_options$num_factors <- factors
   train_options$seed <- as.integer(seed)
   train_options$convergence_mode <- convergence_mode
   train_options$verbose <- FALSE
@@ -58,20 +112,88 @@ run_mofa2_blocks <- function(blocks, output_dir, factors = 5L, seed = 20260924L,
   utils::write.csv(factors_df, file.path(output_dir, "mofa_factors.csv"), row.names = FALSE)
   utils::write.csv(weights_df, file.path(output_dir, "mofa_weights.csv"), row.names = FALSE)
 
+  variance_explained <- try(MOFA2::calculate_variance_explained(trained), silent = TRUE)
+  if (!inherits(variance_explained, "try-error")) {
+    saveRDS(variance_explained, file.path(output_dir, "mofa_variance_explained.rds"))
+  }
+
   summary <- list(
     method = "MOFA2",
-    seed = seed,
-    factors_requested = factors,
-    samples = nrow(blocks[[1]]),
-    blocks = vapply(blocks, ncol, integer(1))
+    seed = as.integer(seed),
+    samples = n_samples,
+    factors_requested = as.integer(factors),
+    blocks_before_filtering = raw_feature_counts,
+    blocks_after_filtering = vapply(blocks, ncol, integer(1)),
+    view_scaling = isTRUE(data_options$scale_views),
+    guardrails = list(
+      minimum_shared_samples = as.integer(min_samples),
+      removed_constant_or_unobserved_features = TRUE,
+      known_technical_effects_expected_to_be_handled_upstream = TRUE,
+      interpretation = "Unsupervised latent factors describe covariance; they are not causal mechanisms or validated biomarkers."
+    )
   )
   saveRDS(summary, file.path(output_dir, "mofa_summary.rds"))
-  invisible(list(model = trained, summary = summary))
+  invisible(list(model = trained, summary = summary, variance_explained = variance_explained))
 }
 
-run_diablo_blocks <- function(blocks, outcome, output_dir, ncomp = 2L, keepX = NULL, seed = 20260924L) {
+make_keepx_grid <- function(n_features) {
+  n_features <- as.integer(n_features)
+  if (n_features <= 1L) return(1L)
+  candidates <- unique(pmin(n_features, c(2L, 5L, 10L, 20L, 50L, max(2L, round(n_features * 0.10)))))
+  candidates <- sort(unique(as.integer(candidates[candidates >= 1L & candidates <= n_features])))
+  if (length(candidates) < 2L) candidates <- sort(unique(c(1L, n_features)))
+  candidates
+}
+
+normalise_keepx <- function(keepX, blocks, ncomp) {
+  if (is.null(keepX)) {
+    return(lapply(blocks, function(x) rep(min(20L, max(1L, ncol(x))), ncomp)))
+  }
+  out <- keepX
+  for (view in names(blocks)) {
+    values <- as.integer(out[[view]])
+    if (!length(values)) values <- min(20L, max(1L, ncol(blocks[[view]])))
+    values <- pmax(1L, pmin(values, ncol(blocks[[view]])))
+    if (length(values) < ncomp) values <- c(values, rep(tail(values, 1), ncomp - length(values)))
+    out[[view]] <- values[seq_len(ncomp)]
+  }
+  out[names(blocks)]
+}
+
+safe_perf_summary <- function(perf) {
+  if (is.null(perf) || inherits(perf, "try-error")) return(NULL)
+  error_rate <- perf$error.rate
+  if (is.null(error_rate)) return(list(status = "available", note = "Performance object saved; compact BER extraction unavailable for this mixOmics version."))
+  ber <- NULL
+  if (is.list(error_rate) && !is.null(error_rate$BER)) ber <- error_rate$BER
+  if (is.null(ber) && is.list(error_rate) && !is.null(error_rate$WeightedVote) && !is.null(error_rate$WeightedVote$BER)) ber <- error_rate$WeightedVote$BER
+  numeric_ber <- suppressWarnings(as.numeric(unlist(ber)))
+  numeric_ber <- numeric_ber[is.finite(numeric_ber)]
+  list(
+    status = "available",
+    best_observed_ber = if (length(numeric_ber)) min(numeric_ber) else NA_real_,
+    note = "Repeated internal cross-validation; external validation remains required for claims of generalisable prediction."
+  )
+}
+
+run_diablo_blocks <- function(
+  blocks,
+  outcome,
+  output_dir,
+  ncomp = 2L,
+  keepX = NULL,
+  seed = 20260924L,
+  tune = TRUE,
+  nrepeat = 3L,
+  folds = NULL
+) {
   require_namespace("mixOmics")
-  blocks <- validate_blocks(blocks)
+  blocks <- validate_blocks(blocks, min_samples = 6L)
+  blocks <- lapply(blocks, filter_informative_features)
+  if (any(vapply(blocks, ncol, integer(1)) < 2L)) {
+    stop("DIABLO requires at least two informative features in every block.", call. = FALSE)
+  }
+
   common <- rownames(blocks[[1]])
   if (is.null(names(outcome))) {
     if (length(outcome) != length(common)) stop("Unnamed outcome must have one value per shared sample.", call. = FALSE)
@@ -79,20 +201,94 @@ run_diablo_blocks <- function(blocks, outcome, output_dir, ncomp = 2L, keepX = N
   } else {
     y <- outcome[common]
   }
-  if (any(is.na(y))) stop("Outcome contains missing values for shared samples.", call. = FALSE)
-  y <- factor(y)
+  if (any(is.na(y)) || any(!nzchar(as.character(y)))) {
+    stop("Outcome contains missing values for shared samples.", call. = FALSE)
+  }
+  y <- droplevels(factor(y))
   if (nlevels(y) < 2L) stop("DIABLO requires at least two outcome classes.", call. = FALSE)
+  class_counts <- table(y)
+  min_class <- min(class_counts)
+  if (min_class < 3L) {
+    stop("DIABLO tuning requires at least three samples in every class; use an exploratory non-supervised route instead.", call. = FALSE)
+  }
 
-  set.seed(seed)
-  ncomp <- as.integer(max(1L, ncomp))
-  if (is.null(keepX)) keepX <- lapply(blocks, function(x) rep(min(20L, max(1L, ncol(x))), ncomp))
+  if (is.null(folds)) folds <- min(5L, as.integer(min_class))
+  folds <- as.integer(max(3L, min(folds, min_class)))
+  nrepeat <- as.integer(max(3L, nrepeat))
+  max_components <- max(1L, min(3L, nlevels(y), length(y) - 2L))
+  requested_components <- as.integer(max(1L, min(ncomp, max_components)))
 
-  design <- matrix(0.1, nrow = length(blocks), ncol = length(blocks), dimnames = list(names(blocks), names(blocks)))
+  design <- matrix(
+    0.1,
+    nrow = length(blocks),
+    ncol = length(blocks),
+    dimnames = list(names(blocks), names(blocks))
+  )
   diag(design) <- 0
 
-  fit <- mixOmics::block.splsda(X = blocks, Y = y, ncomp = ncomp, keepX = keepX, design = design)
+  set.seed(seed)
+  tuning <- NULL
+  tuned <- FALSE
+  final_ncomp <- requested_components
+  final_keepX <- normalise_keepx(keepX, blocks, final_ncomp)
+
+  if (isTRUE(tune) && is.null(keepX)) {
+    test_keepX <- lapply(blocks, function(x) make_keepx_grid(ncol(x)))
+    if (all(vapply(test_keepX, length, integer(1)) >= 2L)) {
+      tuning <- try(
+        mixOmics::tune.block.splsda(
+          X = blocks,
+          Y = y,
+          ncomp = max_components,
+          test.keepX = test_keepX,
+          validation = "Mfold",
+          folds = folds,
+          dist = "max.dist",
+          measure = "BER",
+          nrepeat = nrepeat,
+          design = design,
+          progressBar = FALSE,
+          seed = as.integer(seed)
+        ),
+        silent = TRUE
+      )
+      if (!inherits(tuning, "try-error")) {
+        tuned_ncomp <- suppressWarnings(as.integer(tuning$choice.ncomp$ncomp))
+        if (length(tuned_ncomp) && is.finite(tuned_ncomp) && tuned_ncomp >= 1L) {
+          final_ncomp <- min(tuned_ncomp, max_components)
+        }
+        if (!is.null(tuning$choice.keepX)) {
+          final_keepX <- normalise_keepx(tuning$choice.keepX, blocks, final_ncomp)
+          tuned <- TRUE
+        }
+      }
+    }
+  }
+
+  fit <- mixOmics::block.splsda(
+    X = blocks,
+    Y = y,
+    ncomp = final_ncomp,
+    keepX = final_keepX,
+    design = design
+  )
+
+  performance <- try(
+    mixOmics::perf(
+      fit,
+      validation = "Mfold",
+      folds = folds,
+      nrepeat = nrepeat,
+      progressBar = FALSE,
+      seed = as.integer(seed)
+    ),
+    silent = TRUE
+  )
+
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   saveRDS(fit, file.path(output_dir, "diablo_model.rds"))
+  if (!is.null(tuning) && !inherits(tuning, "try-error")) saveRDS(tuning, file.path(output_dir, "diablo_tuning.rds"))
+  if (!inherits(performance, "try-error")) saveRDS(performance, file.path(output_dir, "diablo_performance.rds"))
 
   variates <- do.call(cbind, lapply(names(fit$variates), function(view) {
     x <- fit$variates[[view]]
@@ -102,21 +298,33 @@ run_diablo_blocks <- function(blocks, outcome, output_dir, ncomp = 2L, keepX = N
   write_matrix_csv(variates, file.path(output_dir, "diablo_variates.csv"))
 
   selected <- lapply(names(blocks), function(view) {
-    lapply(seq_len(ncomp), function(comp) mixOmics::selectVar(fit, block = view, comp = comp)$value)
+    lapply(seq_len(final_ncomp), function(comp) mixOmics::selectVar(fit, block = view, comp = comp)$value)
   })
   names(selected) <- names(blocks)
   saveRDS(selected, file.path(output_dir, "diablo_selected_variables.rds"))
 
   summary <- list(
     method = "mixOmics DIABLO / block.splsda",
-    seed = seed,
-    ncomp = ncomp,
+    seed = as.integer(seed),
     samples = length(y),
-    classes = table(y),
-    blocks = vapply(blocks, ncol, integer(1))
+    classes = as.list(class_counts),
+    blocks = vapply(blocks, ncol, integer(1)),
+    tuning = list(
+      requested = isTRUE(tune),
+      completed = tuned,
+      validation = "repeated stratified M-fold CV",
+      folds = folds,
+      repeats = nrepeat,
+      measure = "BER",
+      ncomp = final_ncomp,
+      keepX = final_keepX,
+      note = if (tuned) "Final model uses cross-validated sparsity choices." else "Automatic tuning was unavailable; conservative keepX values were used and this model should be treated as exploratory."
+    ),
+    internal_performance = safe_perf_summary(performance),
+    interpretation = "Selected variables are a supervised multivariate signature. Their stability and external validity must be assessed before biomarker claims."
   )
   saveRDS(summary, file.path(output_dir, "diablo_summary.rds"))
-  invisible(list(model = fit, summary = summary))
+  invisible(list(model = fit, summary = summary, tuning = tuning, performance = performance))
 }
 
 run_deseq2_counts <- function(
@@ -144,6 +352,7 @@ run_deseq2_counts <- function(
     design = design_formula
   )
   keep <- rowSums(DESeq2::counts(dds) >= 10) >= max(2L, ceiling(ncol(dds) * 0.2))
+  if (!any(keep)) stop("Expression filtering removed all genes.", call. = FALSE)
   dds <- dds[keep, ]
   dds <- DESeq2::DESeq(dds, quiet = TRUE)
 
@@ -158,6 +367,46 @@ run_deseq2_counts <- function(
   utils::write.csv(result, file.path(output_dir, "deseq2_results.csv"), row.names = FALSE)
   saveRDS(dds, file.path(output_dir, "deseq2_model.rds"))
   invisible(list(model = dds, results = result))
+}
+
+run_edger_ql_counts <- function(
+  counts,
+  metadata,
+  output_dir,
+  design_formula = ~ condition,
+  coefficient = NULL,
+  robust = TRUE
+) {
+  require_namespace("edgeR")
+  counts <- as.matrix(counts)
+  storage.mode(counts) <- "numeric"
+  metadata <- as.data.frame(metadata)
+  if (is.null(rownames(counts)) || is.null(rownames(metadata))) {
+    stop("counts and metadata must use sample IDs as row names.", call. = FALSE)
+  }
+  common <- intersect(rownames(counts), rownames(metadata))
+  if (length(common) < 3L) stop("At least three matched samples are required.", call. = FALSE)
+  x <- counts[common, , drop = FALSE]
+  meta <- metadata[common, , drop = FALSE]
+  design <- stats::model.matrix(design_formula, data = meta)
+  if (qr(design)$rank < ncol(design)) stop("The edgeR design matrix is rank-deficient.", call. = FALSE)
+
+  y <- edgeR::DGEList(counts = round(t(x)))
+  keep <- edgeR::filterByExpr(y, design = design)
+  if (!any(keep)) stop("edgeR::filterByExpr removed all genes.", call. = FALSE)
+  y <- y[keep, , keep.lib.sizes = FALSE]
+  y <- edgeR::calcNormFactors(y, method = "TMM")
+  y <- edgeR::estimateDisp(y, design = design, robust = robust)
+  fit <- edgeR::glmQLFit(y, design = design, robust = robust)
+  if (is.null(coefficient)) coefficient <- ncol(design)
+  test <- edgeR::glmQLFTest(fit, coef = coefficient)
+  table <- edgeR::topTags(test, n = Inf, sort.by = "PValue")$table
+  result <- data.frame(feature = rownames(table), table, row.names = NULL, check.names = FALSE)
+
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+  utils::write.csv(result, file.path(output_dir, "edger_ql_results.csv"), row.names = FALSE)
+  saveRDS(list(dge = y, fit = fit, test = test, design = design), file.path(output_dir, "edger_ql_model.rds"))
+  invisible(list(model = fit, test = test, results = result, design = design, dge = y))
 }
 
 run_voom_counts <- function(
@@ -182,6 +431,7 @@ run_voom_counts <- function(
   x <- counts[common, , drop = FALSE]
   meta <- metadata[common, , drop = FALSE]
   design <- stats::model.matrix(design_formula, data = meta)
+  if (qr(design)$rank < ncol(design)) stop("The voom design matrix is rank-deficient.", call. = FALSE)
 
   y <- edgeR::DGEList(counts = round(t(x)))
   keep <- edgeR::filterByExpr(y, design = design)
@@ -234,7 +484,8 @@ compare_rnaseq_methods <- function(deseq_results, voom_results, alpha = 0.05) {
     significant_overlap = overlap,
     significant_jaccard = jaccard,
     sign_agreement_among_any_significant = sign_agreement,
-    alpha = alpha
+    alpha = alpha,
+    interpretation = "Concordance is a sensitivity analysis. q-values from distinct methods are not averaged or combined."
   )
 }
 
@@ -259,6 +510,7 @@ run_limma_matrix <- function(
   x <- matrix[common, , drop = FALSE]
   meta <- metadata[common, , drop = FALSE]
   design <- stats::model.matrix(design_formula, data = meta)
+  if (qr(design)$rank < ncol(design)) stop("The limma design matrix is rank-deficient.", call. = FALSE)
 
   fit <- limma::lmFit(t(x), design)
   fit <- limma::eBayes(fit, trend = trend, robust = robust)
@@ -272,13 +524,21 @@ run_limma_matrix <- function(
   invisible(list(model = fit, results = result, design = design))
 }
 
+subject_has_repeated_time <- function(meta, subject_column = "subject_id", time_column = "time") {
+  if (!all(c(subject_column, time_column) %in% names(meta))) return(FALSE)
+  counts <- tapply(meta[[time_column]], meta[[subject_column]], function(x) length(unique(x[is.finite(x)])))
+  counts <- counts[is.finite(counts)]
+  length(counts) >= 5L && sum(counts >= 3L) >= 5L
+}
+
 run_lmer_matrix <- function(
   matrix,
   metadata,
   output_dir,
   fixed_formula = "condition * time + batch",
   subject_column = "subject_id",
-  interaction_term = NULL
+  interaction_term = NULL,
+  random_slope = "auto"
 ) {
   require_namespace("lmerTest")
   matrix <- as.matrix(matrix)
@@ -293,15 +553,32 @@ run_lmer_matrix <- function(
   meta <- metadata[common, , drop = FALSE]
   if (!subject_column %in% colnames(meta)) stop("subject_column is absent from metadata.", call. = FALSE)
 
-  formula_text <- paste0("value ~ ", fixed_formula, " + (1|", subject_column, ")")
-  model_formula <- stats::as.formula(formula_text)
+  try_slope <- identical(random_slope, TRUE) || identical(random_slope, "yes") ||
+    (identical(random_slope, "auto") && subject_has_repeated_time(meta, subject_column, "time"))
+  intercept_formula <- stats::as.formula(paste0("value ~ ", fixed_formula, " + (1|", subject_column, ")"))
+  slope_formula <- stats::as.formula(paste0("value ~ ", fixed_formula, " + (1 + time|", subject_column, ")"))
   results <- vector("list", ncol(x))
 
   for (j in seq_len(ncol(x))) {
     dat <- meta
     dat$value <- x[, j]
-    fit <- try(lmerTest::lmer(model_formula, data = dat, REML = FALSE), silent = TRUE)
+    structure_used <- "random intercept"
+    fit <- NULL
+
+    if (try_slope && "time" %in% names(dat)) {
+      candidate <- try(lmerTest::lmer(slope_formula, data = dat, REML = FALSE), silent = TRUE)
+      singular <- FALSE
+      if (!inherits(candidate, "try-error") && requireNamespace("lme4", quietly = TRUE)) {
+        singular <- isTRUE(lme4::isSingular(candidate, tol = 1e-4))
+      }
+      if (!inherits(candidate, "try-error") && !singular) {
+        fit <- candidate
+        structure_used <- "random intercept + random time slope"
+      }
+    }
+    if (is.null(fit)) fit <- try(lmerTest::lmer(intercept_formula, data = dat, REML = FALSE), silent = TRUE)
     if (inherits(fit, "try-error")) next
+
     coefs <- summary(fit)$coefficients
     term <- interaction_term
     if (is.null(term)) {
@@ -318,6 +595,7 @@ run_lmer_matrix <- function(
       df = if ("df" %in% colnames(row)) row[1, "df"] else NA_real_,
       statistic = row[1, "t value"],
       p_value = row[1, "Pr(>|t|)"],
+      random_effect_structure = structure_used,
       stringsAsFactors = FALSE
     )
   }
