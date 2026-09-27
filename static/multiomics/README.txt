@@ -18,16 +18,31 @@ L’interface affiche d’abord le sens pratique. Le terme technique reste dispo
 - Résultat corrigé = q BH / FDR. Il tient compte du grand nombre de variables testées simultanément.
 - Validation croisée = évaluation d’une prédiction sur des sujets qui n’ont pas servi à construire le modèle.
 
+PRINCIPE GÉNÉRAL
+================
+
+Le logiciel automatise ce qui peut l’être sans masquer les hypothèses. Il ne transforme pas un plan expérimental non identifiable en analyse valide, ne déduit pas la puissance du seul nombre de sujets, ne fusionne pas artificiellement les q-values de plusieurs méthodes et ne présente pas une validation croisée interne comme une validation externe.
+
+Le parcours conseillé est :
+1. poser la question biologique ;
+2. décrire correctement sujets, prélèvements et mesures ;
+3. vérifier le plan et la qualité ;
+4. exécuter la méthode compatible ;
+5. lire amplitude + incertitude + q/FDR ;
+6. chercher la convergence entre omiques ;
+7. replacer le signal dans son contexte biologique ;
+8. conserver les limites d’interprétation et le manifeste reproductible.
+
 1. TABLEAU DES ÉCHANTILLONS
 ===========================
 
 Le tableau des échantillons ne contient pas les milliers de valeurs moléculaires. Il explique simplement à l’outil à quoi correspondent les colonnes des matrices.
 
 Colonnes essentielles :
-- subject_id : qui ? participant, animal, culture ou unité biologique indépendante ;
-- sample_id : quel prélèvement ? Le même identifiant relie les mesures provenant du même prélèvement ;
-- assay_id : quelle mesure ? Il doit correspondre exactement à une colonne de la matrice concernée ;
-- omic : quel type de mesure ? transcriptomics, proteomics ou metabolomics.
+- subject_id : participant, animal, culture ou unité biologique indépendante ;
+- sample_id : prélèvement biologique ;
+- assay_id : mesure technique correspondant exactement à une colonne de matrice ;
+- omic : transcriptomics, proteomics ou metabolomics.
 
 Colonnes utilisées selon l’étude :
 - condition : groupe ou traitement ;
@@ -36,7 +51,7 @@ Colonnes utilisées selon l’étude :
 - technical_replicate : répétition technique ;
 - outcome : critère étudié ;
 - survival_time : durée de suivi ;
-- survival_event : événement observé, 0/1 ;
+- survival_event : événement observé/censuré ;
 - sample_type : biological / pooled_qc / qc / blank pour les workflows MS ;
 - injection_order : ordre d’injection MS ;
 - toute autre colonne peut être sélectionnée explicitement comme facteur d’ajustement.
@@ -46,224 +61,236 @@ P001 / P001_T0 / RNA001  / transcriptomics
 P001 / P001_T0 / PROT001 / proteomics
 P001 / P001_T0 / MET001  / metabolomics
 
-Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes de ce prélèvement.
+P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes. Un réplicat technique n’est jamais compté comme un nouveau sujet biologique.
 
 2. CONTRÔLE QUALITÉ ET FAISABILITÉ
 ===================================
 
-Avant l’interprétation, l’outil vérifie notamment :
-- nombre de sujets dans chaque groupe ;
-- déséquilibre éventuel entre groupes ;
-- nombre de sujets présents dans chaque couche omique ;
-- chevauchement réel des sujets entre les omiques ;
-- complétude des temps de suivi pour les études longitudinales ;
-- valeurs manquantes ;
-- variables constantes ou presque jamais observées ;
+Avant une interprétation forte, l’outil vérifie notamment :
+- nombre de sujets biologiquement indépendants dans chaque groupe ;
+- déséquilibre entre groupes ;
+- chevauchement réel des sujets entre omiques ;
+- complétude des mesures répétées ;
+- nombre de sujets disposant réellement de plusieurs temps ;
+- données manquantes ;
 - mesures atypiques ;
 - accord entre répétitions techniques ;
-- structure globale des données par ACP de contrôle qualité ;
-- série technique et risque de confusion avec le groupe ou le temps.
+- série technique et risque de confusion avec groupe/temps ;
+- pour la survie, nombre de sujets exploitables et nombre d’événements observés ;
+- éligibilité des méthodes avancées MOFA2 et DIABLO.
 
-Ces diagnostics sont enregistrés dans `preAnalysisDiagnostics` avec trois niveaux simples :
+`preAnalysisDiagnostics` possède quatre niveaux :
 - ready : aucun problème déterministe détecté ;
-- usable_with_cautions : analyse possible mais certaines limites doivent être prises en compte ;
-- review_required : au moins un problème de design ou de qualité doit être revu avant de mettre en avant les conclusions biologiques.
+- usable_with_cautions : analyse possible avec précautions documentées ;
+- review_required : une limite de qualité/effectif/design doit être explicitement revue ;
+- blocked_or_redesign_required : au moins un problème déterministe empêche une interprétation forte défendable ; il faut corriger le plan/l’annotation ou limiter l’analyse à une description appropriée.
 
-La puissance statistique n’est volontairement PAS déduite du seul nombre de sujets. Une estimation défendable de puissance nécessite au minimum un effet attendu, une variabilité et le modèle prévu ; pour les designs multi-omiques complexes, une approche par simulation est préférable.
+Exemples de situations considérées comme bloquantes ou non défendables pour une inférence forte :
+- comparaison de groupes avec moins de deux sujets indépendants dans un groupe ;
+- série technique complètement confondue avec la condition biologique ;
+- route longitudinale sans véritables mesures répétées chez plusieurs sujets ;
+- survie sans suffisamment de sujets exploitables/événements pour estimer le modèle demandé ;
+- crossover sans période et séquence explicitement modélisées.
 
-Pour LC-MS/GC-MS, lorsque sample_type et injection_order sont fournis :
-- blanks et pooled-QC ne sont pas traités comme des échantillons biologiques ;
-- les signaux associés aux blanks sont signalés par défaut plutôt que supprimés automatiquement ;
-- la dérive instrumentale peut être corrigée à partir des pooled-QC ordonnés ;
-- la stabilité des pooled-QC peut être contrôlée par RSD ;
+Un groupe contenant moins de cinq sujets indépendants est signalé comme hautement exploratoire, même si un logiciel peut techniquement produire une p-value.
+
+La puissance statistique n’est volontairement PAS déduite du seul nombre de sujets. Une estimation défendable de puissance nécessite un effet attendu, une variabilité et le modèle prévu ; une simulation est souvent préférable pour les designs multi-omiques complexes.
+
+3. LC-MS / GC-MS
+=================
+
+Lorsque sample_type et injection_order sont fournis :
+- blanks et pooled-QC sont exclus des échantillons biologiques ;
+- un ratio blank/biologique est par défaut un SIGNAL DE QC et ne supprime pas automatiquement une feature ;
+- un mode de suppression explicite reste disponible pour un SOP de laboratoire validé ;
+- une dérive instrumentale peut être corrigée à partir des pooled-QC ordonnés ;
+- la stabilité des pooled-QC peut être évaluée par RSD ;
 - aucune imputation MNAR n’est effectuée par défaut ;
-- l’option « left-censored » est une hypothèse explicite et doit être accompagnée d’une analyse de sensibilité sans imputation.
+- une hypothèse left-censored doit être déclarée et accompagnée d’une analyse de sensibilité sans imputation.
 
-3. DIFFÉRENCES TECHNIQUES ET FACTEURS D’AJUSTEMENT
+4. DIFFÉRENCES TECHNIQUES ET FACTEURS D’AJUSTEMENT
 ===================================================
 
-Une série technique totalement confondue avec le groupe, le temps ou un critère catégoriel bloque l’inférence : l’outil ne prétend pas séparer deux effets impossibles à distinguer.
+Une série technique totalement confondue avec le groupe ou le temps ne peut pas être « corrigée » statistiquement : les deux effets sont non séparables. L’outil bloque alors l’interprétation forte.
 
-Lorsque cela est possible, les séries techniques et facteurs d’ajustement choisis par l’utilisateur sont inclus directement dans le modèle statistique.
+Quand le design le permet, les séries techniques et facteurs d’ajustement choisis sont inclus dans le modèle. Aucun facteur d’ajustement n’est inventé automatiquement.
 
-Aucun facteur d’ajustement n’est choisi automatiquement.
+5. QUESTIONS ET ROUTES STATISTIQUES
+====================================
 
-4. QUESTIONS AUXQUELLES L’OUTIL PEUT RÉPONDRE
-==============================================
+Explorer :
+- structure générale et covariation entre couches ;
+- moteur navigateur : ACP multi-blocs équilibrée ;
+- backend de référence : MOFA2 seulement quand les garde-fous d’éligibilité sont compatibles.
 
-Explorer les données
-- résumer les grandes tendances communes entre couches ;
-- méthode navigateur : ACP multi-blocs équilibrée ;
-- chaque couche est standardisée et pondérée pour éviter qu’une couche contenant beaucoup plus de variables domine artificiellement.
+Comparer des groupes :
+- estimation de l’amplitude et du sens ;
+- tests adaptés à la nature de la couche ;
+- correction Benjamini-Hochberg ;
+- comparaisons inter-omiques sur le chevauchement réel des sujets.
 
-Comparer des groupes
-- comparer les groupes en tenant compte du plan d’étude ;
-- estimer l’amplitude et le sens des différences ;
-- corriger les résultats pour les nombreux tests par Benjamini-Hochberg ;
-- comparer les relations entre couches omiques sur les sujets réellement présents dans les deux couches.
+Temps / mesures répétées :
+- le sujet reste l’unité de corrélation ;
+- lmerTest dans le backend de référence ;
+- pente aléatoire du temps essayée automatiquement seulement si le plan la supporte, sinon repli sur intercept aléatoire ;
+- interaction condition × temps lorsque le plan l’autorise.
 
-Étudier l’évolution dans le temps
-- relier les mesures répétées d’un même sujet ;
-- modèle longitudinal à intercept aléatoire ;
-- interaction groupe × temps lorsque le plan le permet ;
-- les études crossover restent bloquées tant que période et séquence ne sont pas explicitement modélisées.
-
-Relier les données à un critère
+Critère clinique ou expérimental :
 - continu : régression linéaire ;
-- oui/non : régression logistique ;
+- oui/non : logistique ;
 - comptage : Poisson ;
-- plusieurs catégories : comparaison multiclasse ajustée ;
+- multicatégoriel : modèle adapté ;
 - survie : Cox ;
-- lorsque plusieurs temps omiques existent, le temps moléculaire utilisé doit être choisi explicitement.
+- la performance prédictive est évaluée séparément de l’association statistique.
 
-5. MÉTHODES R DE RÉFÉRENCE
-===========================
+6. RNA-SEQ ET MATRICES NORMALISÉES
+===================================
 
-Le navigateur possède son moteur déterministe. Un backend R optionnel permet d’exécuter les implémentations de référence lorsque R est disponible.
-
-Méthodes actuellement routées :
-- RNA-seq en comptes bruts : DESeq2 ET edgeR + limma-voom lorsque les deux sont installés ;
+Backend R de référence :
+- comptes RNA-seq : DESeq2 comme analyse principale et edgeR + limma-voom comme analyse de sensibilité automatisée lorsque disponibles ;
+- edgeR quasi-likelihood est également implémenté comme adaptateur de référence ;
 - matrices normalisées/log : limma ;
-- mesures répétées : lmerTest ;
-- enrichissement sur statistique classée : fgsea ;
-- intégration non supervisée : MOFA2 ;
-- intégration supervisée catégorielle : mixOmics DIABLO.
+- matrices de design non pleines-rang : rejetées plutôt que fitted avec des coefficients non identifiables.
 
-Pour les comptes RNA-seq, l’outil ne force pas un consensus artificiel. DESeq2 reste une analyse complète, edgeR/limma-voom constitue une analyse de sensibilité indépendante, et un résumé de concordance indique :
-- corrélation entre statistiques ;
-- nombre de gènes significatifs par méthode ;
-- chevauchement des gènes significatifs ;
-- accord sur le sens de l’effet.
+La concordance DESeq2/voom peut rapporter :
+- corrélation des statistiques signées ;
+- nombre de résultats significatifs par méthode ;
+- chevauchement/Jaccard ;
+- accord du sens de l’effet.
 
-Un désaccord entre méthodes est donc visible plutôt que masqué.
+Les q-values des différentes méthodes ne sont jamais moyennées ou transformées en « q consensus ». Le désaccord reste visible comme analyse de sensibilité.
 
-Installation du backend :
-Rscript multiomics-engine/install_backend_dependencies.R
+7. MOFA2
+========
 
-Démarrage :
-Rscript multiomics-engine/run_backend.R
+La route de référence :
+- nécessite au moins 16 sujets réellement communs aux blocs analysés ;
+- élimine les features constantes ou insuffisamment observées ;
+- conserve une seed déterministe ;
+- enregistre facteurs, poids et variance expliquée lorsqu’elle est disponible ;
+- considère explicitement la présence d’effets techniques connus avant l’interprétation.
 
-Adresse locale par défaut :
-http://127.0.0.1:8787
+Un facteur MOFA2 est une structure de covariance latente. Ce n’est ni une preuve causale, ni automatiquement un biomarqueur, ni une validation externe.
 
-GitHub Pages ne démarre pas R lui-même. Un serveur distant doit ajouter TLS, authentification, limites de taille et restriction d’origine avant de recevoir des données de recherche.
+8. DIABLO
+=========
 
-6. ASSOCIATION ET PRÉDICTION SONT DEUX QUESTIONS DIFFÉRENTES
-============================================================
+La route DIABLO est réservée à un critère catégoriel supervisé et nécessite une classe suffisamment représentée pour permettre une validation interne.
 
-L’analyse variable par variable demande : quelles molécules sont associées au critère ?
-La prédiction demande : peut-on prévoir le critère chez un nouveau sujet ?
+Lorsque le plan le permet :
+- tuning de la sparsité keepX par `tune.block.splsda()` ;
+- validation M-fold répétée ;
+- BER comme critère de tuning ;
+- nombre de composantes et keepX retenus enregistrés ;
+- `mixOmics::perf()` pour l’évaluation interne ;
+- seed enregistrée.
 
-La validation prédictive disponible utilise des séparations apprentissage/validation sans fuite d’information :
-- sélection de variables uniquement dans l’apprentissage ;
-- ajustements estimés uniquement dans l’apprentissage ;
-- centrage, mise à l’échelle et imputation calculés uniquement dans l’apprentissage ;
-- réglage interne de la pénalisation ;
-- prédiction finale sur des sujets non utilisés pour construire le modèle.
+Une signature DIABLO est un signal multivarié supervisé. Une validation externe indépendante reste nécessaire avant toute revendication de biomarqueur généralisable.
+
+9. ASSOCIATION, PRÉDICTION ET CAUSALITÉ
+========================================
+
+Ces trois affirmations sont séparées dans l’interface :
+
+Association : « cette variable est associée au groupe/critère après les ajustements déclarés ».
+Prédiction : « ce modèle prédit un sujet non utilisé pour sa construction avec telle performance ».
+Causalité : nécessite un design et des hypothèses causales supplémentaires ; elle n’est jamais déduite d’une simple association ou d’une bonne prédiction.
+
+La validation prédictive disponible évite les fuites : sélection, ajustements, imputation/centrage/échelle et tuning sont appris dans l’entraînement. La performance finale est calculée sur les sujets laissés de côté.
 
 Métriques :
 - binaire : AUC, accuracy, log-loss ;
 - multiclasse : accuracy ;
-- continu / comptage : RMSE et R² hors échantillon ;
-- survie : Cox ridge avec réglage interne et C-index de Harrell sur les folds externes.
+- continu/comptage : RMSE et R² hors-échantillon ;
+- survie : Cox ridge avec tuning interne et C-index de Harrell dans les folds externes.
 
-Une validation externe indépendante reste nécessaire avant tout usage clinique.
+Une validation croisée interne ne remplace jamais une validation externe.
 
-7. DONNÉES MANQUANTES
-=====================
+10. INTERPRÉTATION BIOLOGIQUE
+=============================
 
-- aucune imputation cachée dans les tests différentiels ou corrélations ;
-- les relations entre deux omiques utilisent les sujets présents dans les deux couches ;
-- une couche entière absente peut être tolérée pour certaines analyses exploratoires si cela a été déclaré ;
-- cette tolérance exploratoire n’invente jamais de valeurs pour les tests différentiels.
+Reactome replace les résultats dans des voies biologiques connues. L’univers de référence doit correspondre aux variables effectivement mesurées et mappables. L’outil peut également montrer combien de couches soutiennent une même voie.
 
-8. INTERPRÉTATION BIOLOGIQUE
-============================
+Un enrichissement de voie ne prouve pas que la voie est activée, causale ou cliniquement pertinente. La couverture des identifiants et les molécules effectivement contributrices doivent rester visibles.
 
-Reactome est utilisé pour replacer les résultats dans des voies biologiques connues.
-L’ensemble des variables réellement conservées après contrôle qualité sert de référence lorsque le mapping le permet.
-L’outil indique également combien de couches omiques soutiennent indépendamment une même voie.
+11. IDENTIFIANTS
+================
 
-9. IDENTIFIANTS
-===============
-
-Résolution conservative :
+Résolution conservatrice :
 - transcriptomique : Ensembl et symboles de gènes ;
 - protéomique : UniProt / Ensembl ;
-- métabolomique : ChEBI, noms exacts et alias déterministes ;
-- InChIKey : correspondances UniChem vers ChEBI ;
-- HMDB : conversion explicite HMDB → ChEBI via UniChem ;
-- KEGG Compound : recherche exacte dans ChEBI à partir de l’identifiant KEGG ; une conversion n’est acceptée que si un seul identifiant ChEBI unique est retourné ;
-- PubChem CID : conversion explicite PubChem → ChEBI via UniChem lorsque l’utilisateur a déclaré ce type d’identifiant ;
-- une conversion externe n’est acceptée que si elle conduit à une correspondance ChEBI unique ;
-- plusieurs correspondances sont signalées « ambiguous » et aucune n’est choisie automatiquement ;
-- l’absence de correspondance reste « unresolved ».
+- métabolomique : ChEBI et noms/alias déterministes ;
+- InChIKey : UniChem vers ChEBI lorsque possible ;
+- HMDB : HMDB → ChEBI via UniChem ;
+- KEGG Compound : recherche exacte des cross-références ChEBI ;
+- PubChem CID : PubChem → ChEBI via UniChem quand le type a été déclaré ;
+- une correspondance externe n’est acceptée que si elle conduit à un ChEBI unique ;
+- plusieurs correspondances = ambiguous ;
+- aucune correspondance = unresolved.
 
-Cette politique privilégie l’absence de mapping à un mapping biologiquement incertain.
+Le pipeline préfère l’absence de mapping à un mapping biologiquement incertain.
 
-10. RAPPORT REPRODUCTIBLE
+12. RAPPORT REPRODUCTIBLE
 =========================
 
-Chaque analyse peut enregistrer :
-- version du moteur ;
-- description de l’étude ;
-- correspondance des colonnes ;
-- contrôle qualité et prétraitements ;
-- diagnostic de faisabilité avant interprétation ;
-- facteurs d’ajustement ;
-- séries techniques ;
-- empreintes des fichiers d’entrée ;
-- résultats statistiques ;
-- intégration multi-omique ;
-- validation prédictive ;
-- résultats Reactome.
+La page de résultats comporte désormais une synthèse scientifique expliquant :
+- ce que les résultats permettent de conclure ;
+- ce qu’ils ne permettent pas de conclure ;
+- les preuves q/FDR visibles ;
+- les avertissements qui doivent rester dans le rapport ;
+- la frontière entre association, prédiction et causalité.
 
-Téléchargements disponibles : JSON complet, CSV par couche et rapport HTML autonome.
+Deux exports supplémentaires sont disponibles :
+- `multiomics-methods-report.md` : rapport humainement lisible des choix et limites ;
+- `multiomics-reproducibility-manifest.json` : manifeste machine-readable contenant question scientifique, design, critère, paramètres de l’interface, métadonnées locales des fichiers, preuves corrigées visibles, avertissements et limites d’interprétation.
 
-11. COMMENT LIRE LES PRINCIPAUX RÉSULTATS
+Le manifeste n’embarque pas les données de recherche elles-mêmes. Pour une analyse destinée à un manuscrit, conserver séparément :
+- fichiers d’entrée immuables ;
+- checksums ;
+- manifeste ;
+- sorties complètes ;
+- versions des packages/session R ;
+- code/commit utilisé.
+
+13. COMMENT LIRE LES PRINCIPAUX RÉSULTATS
 ==========================================
 
 - Amplitude / fold ratio : taille et sens du changement.
-- p : résultat du test avant correction pour les nombreux tests.
-- q BH / FDR : résultat corrigé pour les nombreux gènes, protéines ou métabolites testés.
+- p : test avant correction multiple.
+- q BH / FDR : résultat corrigé pour le grand nombre de variables testées.
 - Pattern : forme générale du changement observé.
-- r groupe de référence / r groupe comparé : force de la corrélation dans chacun des groupes.
+- r référence / r comparaison : corrélation dans chaque groupe.
 - Δr : différence de corrélation entre groupes.
-- FDR avec l’univers mesuré : enrichissement corrigé en utilisant comme référence les variables réellement mesurées.
-- Nombre de couches concordantes : combien d’omics soutiennent indépendamment la même voie.
+- FDR de voie : enrichissement corrigé dans l’univers mesuré/mappable.
+- Nombre de couches concordantes : nombre d’omics soutenant indépendamment la même voie.
 
-Les détails statistiques restent accessibles via les aides « ? », mais le libellé principal privilégie le sens biologique.
+Une petite p-value seule n’est jamais présentée comme une conclusion biologique suffisante.
 
-12. VALIDATION PUBLIQUE
-=======================
+14. VALIDATION PUBLIQUE ET LIMITES
+===================================
 
-La suite automatisée comprend notamment Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2 G2019S, PaintOmics à signal multi-omique planté et missRows NCI-60.
+La suite automatisée comprend notamment des jeux publics tels que Nutrimouse, TCGA breast, IntLIM NCI-60/BRCA, AgingHFCD, STATegra, LRRK2 G2019S, PaintOmics avec signal multi-omique planté et missRows NCI-60.
 
-Les benchmarks cherchent des résultats attendus et ne vérifient pas uniquement que le code s’exécute.
+L’automatisation peut détecter de nombreuses incompatibilités et réduire les erreurs statistiques courantes. Elle ne peut pas certifier automatiquement :
+- absence de biais de sélection ;
+- absence de confondeurs non mesurés ;
+- pertinence clinique d’une taille d’effet ;
+- puissance suffisante sans effet/variance attendus ;
+- causalité sans design causal ;
+- validité externe sans nouvelle population indépendante.
 
-13. LIMITES ENCORE IMPORTANTES
-==============================
+Ces limites doivent rester visibles même lorsqu’une analyse s’exécute sans erreur.
 
-La pipeline est utilisable sur des matrices déjà produites. Les limites principales restantes sont :
-- le traitement MS brut/vendor n’est pas pris en charge : peak picking, alignment, adducts/isotopes, standards internes, carry-over et corrections instrument-spécifiques restent en amont ;
-- le mapping chimique repose sur des correspondances explicites vers ChEBI et ne tente volontairement pas de résoudre automatiquement les annotations m/z/temps de rétention ambiguës ;
-- le déploiement distant du backend R doit être sécurisé avant réception de données de recherche ;
-- une validation externe indépendante reste nécessaire pour tout modèle prédictif clinique ;
-- la puissance statistique complète n’est pas automatiquement calculée : elle nécessite des hypothèses d’effet/variance et, pour les designs complexes, une simulation dédiée.
+BACKEND R
+=========
 
-ENGLISH
-=======
+Installation :
+Rscript multiomics-engine/install_backend_dependencies.R
 
-Plain-language rule: the interface shows the practical meaning first and keeps the technical term in help text or parentheses when needed for reproducibility.
+Démarrage local :
+Rscript multiomics-engine/run_backend.R
 
-Examples: metadata = sample sheet; outcome = endpoint; batch = technical series; covariate = adjustment factor; feature = measured gene/protein/metabolite; BH q/FDR = multiple-testing corrected result.
+Adresse par défaut :
+http://127.0.0.1:8787
 
-The browser pipeline implements an explicit sample-sheet contract, modality-aware QC, adjusted models, repeated-measures models, partial-block handling, balanced multiblock integration, leakage-safe cross-validated prediction, Reactome interpretation and conservative identifier resolution.
-
-Pre-analysis diagnostics now summarize group balance, cross-omics subject overlap, missingness, repeated-measure completeness and batch structure. Statistical power is deliberately not inferred from sample size alone.
-
-The optional reference R backend routes DESeq2, edgeR/limma-voom, limma, lmerTest, fgsea, MOFA2 and DIABLO. Raw RNA-seq counts can be analysed with both DESeq2 and edgeR/limma-voom, with an explicit concordance summary rather than hidden method substitution.
-
-Metabolite mapping uses UniChem for explicit HMDB, PubChem CID and InChIKey links to ChEBI. KEGG Compound identifiers are resolved by an exact ChEBI cross-reference search and accepted only when one unique ChEBI accession is returned. Ambiguous cross-database mappings are never forced.
-
-Remaining limits include full vendor/raw MS processing, secure remote R deployment, dedicated power simulations for complex designs and independent external clinical validation.
+Un serveur distant recevant des données de recherche doit ajouter au minimum TLS, authentification, limites de taille/requêtes et allow-list d’origine.
