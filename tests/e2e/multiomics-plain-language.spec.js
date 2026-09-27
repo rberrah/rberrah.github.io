@@ -92,6 +92,14 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   await expect(synthesis).toContainText('Association ≠ prédiction ≠ causalité');
   await expect(synthesis).toContainText(/q\/FDR/i);
 
+  const fdrPolicy = page.getByTestId('multiomics-fdr-policy');
+  await expect(fdrPolicy).toBeVisible({ timeout: 10_000 });
+  await expect(fdrPolicy).toContainText('Deux niveaux de FDR');
+  await expect(fdrPolicy).toContainText('Preuve principale · q ≤ 0,05');
+  await expect(fdrPolicy).toContainText('Signal exploratoire · 0,05 < q ≤ 0,10');
+  await expect(fdrPolicy).toContainText('p-values brutes');
+  await expect(fdrPolicy).toContainText('q-value n’est pas la probabilité');
+
   const manifest = page.getByTestId('multiomics-methods-manifest');
   await expect(manifest).toBeVisible();
   await expect(manifest).toContainText('Reproduire et rapporter l’analyse');
