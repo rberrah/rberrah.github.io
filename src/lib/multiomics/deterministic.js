@@ -9,6 +9,7 @@ import * as impl from './deterministic-impl.js';
 export * from './deterministic-impl.js';
 
 const REACTOME_VERSION_URL = 'https://reactome.org/ContentService/data/database/version';
+const REACTOME_ANALYSIS_SERVICE = 'https://reactome.org/AnalysisService/';
 
 function withBrowserMethodology(args) {
   if (typeof window === 'undefined') return args;
@@ -21,6 +22,17 @@ function withBrowserMethodology(args) {
       metabolomicsIdentificationConfidence: level
     }
   };
+}
+
+function reactomeAnalysisTokens(result) {
+  const tokens = [];
+  const visit = (value) => {
+    if (!value || typeof value !== 'object') return;
+    if (typeof value.token === 'string' && value.token.trim()) tokens.push(value.token.trim());
+    for (const child of Object.values(value)) visit(child);
+  };
+  visit(result?.reactome);
+  return [...new Set(tokens)];
 }
 
 async function attachExternalDatabaseProvenance(result) {
@@ -36,24 +48,43 @@ async function attachExternalDatabaseProvenance(result) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const release = (await response.text()).trim();
     reactome = {
+      database: 'Reactome',
       status: release ? 'recorded' : 'unavailable',
       release: release || null,
-      endpoint: REACTOME_VERSION_URL,
+      versionEndpoint: REACTOME_VERSION_URL,
+      analysisService: REACTOME_ANALYSIS_SERVICE,
+      analysisTokens: reactomeAnalysisTokens(result),
       capturedAt
     };
   } catch (error) {
     reactome = {
+      database: 'Reactome',
       status: 'unavailable',
       release: null,
-      endpoint: REACTOME_VERSION_URL,
+      versionEndpoint: REACTOME_VERSION_URL,
+      analysisService: REACTOME_ANALYSIS_SERVICE,
+      analysisTokens: reactomeAnalysisTokens(result),
       capturedAt,
       error: error instanceof Error ? error.message : 'Reactome version request failed'
     };
   }
+
   result.externalDatabaseProvenance = {
     ...(result.externalDatabaseProvenance || {}),
     reactome,
     note: 'External database content can change independently of PMx Explain. Preserve database release identifiers alongside the analysis result whenever the service exposes them.'
+  };
+
+  // Keep the database release next to the pathway result as well as in the
+  // generic reproducibility block. This ensures JSON/report exporters that
+  // serialise either branch retain the exact external knowledge-base version.
+  result.reactome.provenance = reactome;
+  result.reproducibility = {
+    ...(result.reproducibility || {}),
+    externalDatabases: {
+      ...(result.reproducibility?.externalDatabases || {}),
+      reactome
+    }
   };
   return result;
 }
