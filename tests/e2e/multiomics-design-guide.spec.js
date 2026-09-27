@@ -14,6 +14,7 @@ test('multi-omics design choices are translated into licence-level explanations'
   await expect(guide).toContainText('Mesures répétées');
   await expect(guide).toContainText('Le même sujet est mesuré plusieurs fois');
 
+  await page.getByLabel(/Objectif principal|Main objective/).selectOption('outcome');
   await page.getByLabel(/Type de critère étudié|Type d.outcome principal|Primary outcome type/).selectOption('survival');
   await expect(guide).toContainText('il faut une durée de suivi ET');
 
