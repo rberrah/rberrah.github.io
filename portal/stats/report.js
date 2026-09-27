@@ -1,3 +1,5 @@
+import './study-planning.js';
+
 const tr = (fr,en) => document.documentElement.lang === 'en' ? en : fr;
 const esc = value => String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
@@ -30,13 +32,8 @@ function parsedRows() {
   return {headers,rows};
 }
 
-function numeric(values) {
-  return values.map(Number).filter(Number.isFinite);
-}
-
-function allUnique(values) {
-  return new Set(values).size===values.length;
-}
+function numeric(values) { return values.map(Number).filter(Number.isFinite); }
+function allUnique(values) { return new Set(values).size===values.length; }
 
 function rankInferenceState() {
   const mode=document.querySelector('#analysis-mode')?.value;
@@ -44,10 +41,8 @@ function rankInferenceState() {
   if(method==='parametric' || !['compare2','paired'].includes(mode))return null;
   const parsed=parsedRows();
   if(!parsed)return null;
-
   if(mode==='compare2'){
-    const groupKey=document.querySelector('#col-group')?.value;
-    const valueKey=document.querySelector('#col-value')?.value;
+    const groupKey=document.querySelector('#col-group')?.value,valueKey=document.querySelector('#col-value')?.value;
     if(!groupKey||!valueKey)return null;
     const groups=[...new Set(parsed.rows.map(r=>String(r[groupKey])).filter(Boolean))];
     if(groups.length!==2)return null;
@@ -55,9 +50,7 @@ function rankInferenceState() {
     if(values.length<2)return null;
     return {title:'Mann–Whitney',exact:values.length<=24&&allUnique(values)};
   }
-
-  const xKey=document.querySelector('#col-x')?.value;
-  const yKey=document.querySelector('#col-y')?.value;
+  const xKey=document.querySelector('#col-x')?.value,yKey=document.querySelector('#col-y')?.value;
   if(!xKey||!yKey)return null;
   const abs=[];
   for(const row of parsed.rows){
@@ -77,17 +70,10 @@ function injectRankInference() {
   const metrics=card.querySelector('.metrics');
   if(!metrics)return;
   let block=metrics.querySelector('.rank-inference');
-  if(!block){
-    block=document.createElement('div');
-    block.className='metric rank-inference';
-    block.innerHTML='<span></span><strong></strong>';
-    metrics.appendChild(block);
-  }
+  if(!block){block=document.createElement('div');block.className='metric rank-inference';block.innerHTML='<span></span><strong></strong>';metrics.appendChild(block);}
   block.querySelector('span').textContent=tr('Inférence','Inference');
   block.querySelector('strong').textContent=state.exact?tr('Exacte','Exact'):tr('Asymptotique','Asymptotic');
-  block.title=state.exact
-    ? tr('p-value calculée à partir de la distribution exacte des rangs.','p-value computed from the exact rank distribution.')
-    : tr('Approximation asymptotique utilisée, notamment en présence d’ex æquo ou pour un effectif plus grand.','Asymptotic approximation used, including when ties are present or the sample is larger.');
+  block.title=state.exact?tr('p-value calculée à partir de la distribution exacte des rangs.','p-value computed from the exact rank distribution.'):tr('Approximation asymptotique utilisée, notamment en présence d’ex æquo ou pour un effectif plus grand.','Asymptotic approximation used, including when ties are present or the sample is larger.');
 }
 
 function resultText() {
