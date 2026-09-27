@@ -1,0 +1,106 @@
+import { effectSizes2x2, pairwiseWelchHolm, pairwiseMannWhitneyHolm } from './advanced-engine.js';
+
+const tr=(fr,en)=>document.documentElement.lang==='en'?en:fr;
+const esc=value=>String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const fmt=(x,d=3)=>{if(!Number.isFinite(x))return '—';const a=Math.abs(x);if(a!==0&&(a>=10000||a<0.001))return x.toExponential(2);return x.toFixed(d).replace(/\.000$/,'');};
+const fmtP=p=>!Number.isFinite(p)?'—':p<0.0001?'< 0.0001':p.toFixed(4);
+const fmtCI=v=>Array.isArray(v)?`[${fmt(v[0])} ; ${fmt(v[1])}]`:'—';
+
+function parseLine(line,delimiter){
+  const out=[];let cur='',quote=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){if(quote&&line[i+1]==='"'){cur+='"';i++;}else quote=!quote;}
+    else if(ch===delimiter&&!quote){out.push(cur.trim());cur='';}
+    else cur+=ch;
+  }
+  out.push(cur.trim());return out;
+}
+function data(){
+  const text=document.querySelector('#data-input')?.value?.trim()||'';
+  const lines=text.split(/\r?\n/).filter(Boolean);if(lines.length<2)return null;
+  const first=lines[0],delimiter=first.includes('\t')?'\t':first.includes(';')?';':',';
+  const headers=parseLine(first,delimiter).map((h,i)=>h||`col_${i+1}`);
+  const rows=lines.slice(1).map(line=>{const vals=parseLine(line,delimiter),row={};headers.forEach((h,i)=>row[h]=vals[i]??'');return row;});
+  return {rows};
+}
+const unique=(rows,key)=>[...new Set(rows.map(r=>String(r[key])).filter(v=>v!==''&&v!=='undefined'))];
+
+function injectStyles(){
+  if(document.querySelector('#stats-advanced-styles'))return;
+  const style=document.createElement('style');style.id='stats-advanced-styles';style.textContent=`
+    .advanced-section{margin:20px 0;padding:20px;border:1px solid color-mix(in srgb,var(--line,#d5e0e1) 82%,transparent);border-radius:14px;background:color-mix(in srgb,var(--surface,#fff) 96%,#16756b 4%);box-shadow:0 10px 30px rgba(20,45,50,.05)}
+    .advanced-head{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;margin-bottom:14px}.advanced-head h3{margin:0 0 5px}.advanced-head p{margin:0;color:var(--muted,#5a6c70);max-width:760px;font-size:.92rem}
+    .effect-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.effect-card{padding:14px;border:1px solid var(--line,#d5e0e1);border-radius:10px;background:var(--surface,#fff)}.effect-card span{display:block;font-size:.78rem;color:var(--muted,#5a6c70)}.effect-card strong{display:block;font-size:1.25rem;margin:3px 0}.effect-card small{color:var(--muted,#5a6c70)}
+    .orientation-note,.correction-note,.posthoc-note{font-size:.82rem;color:var(--muted,#5a6c70);margin:12px 0 0}.correction-note{padding:9px 11px;border-left:3px solid #a36b20;background:rgba(163,107,32,.08)}
+    .posthoc-wrap{overflow-x:auto}.posthoc-table{width:100%;border-collapse:collapse;min-width:650px;font-size:.88rem}.posthoc-table th,.posthoc-table td{padding:9px 10px;border-bottom:1px solid var(--line,#d5e0e1);text-align:left}.posthoc-table th{font-size:.75rem;color:var(--muted,#5a6c70);text-transform:uppercase;letter-spacing:.03em}.posthoc-table tr:last-child td{border-bottom:0}.posthoc-sig{font-weight:700}.posthoc-muted{color:var(--muted,#5a6c70)}
+    .effect-orientation{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line,#d5e0e1)}.effect-orientation label{display:grid;gap:5px;font-size:.82rem}.effect-orientation select{width:100%}
+    @media(max-width:760px){.effect-grid{grid-template-columns:1fr}.effect-orientation{grid-template-columns:1fr}.advanced-section{padding:15px}.advanced-head{display:block}}
+  `;document.head.appendChild(style);
+}
+
+function syncCategoricalOrientation(){
+  document.querySelector('#effect-orientation')?.remove();
+  if(document.querySelector('#analysis-mode')?.value!=='categorical'||document.querySelector('#mapping')?.hidden)return;
+  const parsed=data(),xKey=document.querySelector('#col-x')?.value,yKey=document.querySelector('#col-y')?.value;
+  if(!parsed||!xKey||!yKey)return;
+  const groups=unique(parsed.rows,xKey),outcomes=unique(parsed.rows,yKey);
+  if(groups.length!==2||outcomes.length!==2)return;
+  const host=document.querySelector('.mapping-options');if(!host)return;
+  const box=document.createElement('div');box.id='effect-orientation';box.className='effect-orientation';
+  box.innerHTML=`<label><span>${esc(tr('Groupe au numérateur (groupe 1)','Numerator group (group 1)'))}</span><select id="effect-group1">${groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('')}</select></label><label><span>${esc(tr('Modalité considérée comme événement','Category treated as event'))}</span><select id="effect-event">${outcomes.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select></label>`;
+  host.appendChild(box);
+}
+
+function orientedTable(rows,xKey,yKey){
+  const groups=unique(rows,xKey),outcomes=unique(rows,yKey);if(groups.length!==2||outcomes.length!==2)return null;
+  const g1=document.querySelector('#effect-group1')?.value||groups[0],event=document.querySelector('#effect-event')?.value||outcomes[0];
+  const g2=groups.find(g=>g!==g1),other=outcomes.find(v=>v!==event);
+  const count=(g,o)=>rows.filter(r=>String(r[xKey])===g&&String(r[yKey])===o).length;
+  return {table:[[count(g1,event),count(g1,other)],[count(g2,event),count(g2,other)]],g1,g2,event,other};
+}
+
+function renderEffectSection(){
+  const parsed=data(),results=document.querySelector('#results'),xKey=document.querySelector('#col-x')?.value,yKey=document.querySelector('#col-y')?.value;
+  if(!parsed||!results||!xKey||!yKey)return;
+  const oriented=orientedTable(parsed.rows,xKey,yKey);if(!oriented)return;
+  const e=effectSizes2x2(oriented.table);
+  const section=document.createElement('section');section.className='advanced-section categorical-effects';
+  section.innerHTML=`<div class="advanced-head"><div><h3>${esc(tr('Taille d’effet — tableau 2×2','Effect size — 2×2 table'))}</h3><p>${esc(tr('La p-value répond à « les données sont-elles compatibles avec l’absence d’association ? ». Les mesures ci-dessous répondent plutôt à « quelle est l’amplitude de l’association ? ».','The p-value asks whether the data are compatible with no association. The measures below instead quantify how large the association is.'))}</p></div></div><div class="effect-grid">
+    <div class="effect-card"><span>${esc(tr('Différence de risque (RD)','Risk difference (RD)'))}</span><strong>${fmt(e.riskDifference)}</strong><small>IC95 % ${fmtCI(e.riskDifferenceCI)}</small></div>
+    <div class="effect-card"><span>${esc(tr('Risque relatif (RR)','Risk ratio (RR)'))}</span><strong>${fmt(e.riskRatio)}</strong><small>IC95 % ${fmtCI(e.riskRatioCI)}</small></div>
+    <div class="effect-card"><span>${esc(tr('Odds ratio (OR)','Odds ratio (OR)'))}</span><strong>${fmt(e.oddsRatio)}</strong><small>IC95 % ${fmtCI(e.oddsRatioCI)}</small></div>
+  </div><p class="orientation-note"><strong>${esc(tr('Orientation :','Orientation:'))}</strong> ${esc(oriented.event)} · ${esc(oriented.g1)} ${tr('vs','vs')} ${esc(oriented.g2)}. ${esc(tr('RD > 0, RR > 1 ou OR > 1 indiquent davantage d’événements dans le groupe 1 avec cette orientation.','RD > 0, RR > 1 or OR > 1 indicate more events in group 1 under this orientation.'))}</p>${e.corrected?`<p class="correction-note">${esc(tr('Une cellule vaut 0 : une correction de Haldane–Anscombe (+0,5 dans les quatre cellules) est appliquée uniquement au RR et à l’OR et à leurs IC. La RD reste calculée sur les risques observés.','A cell is zero: Haldane–Anscombe correction (+0.5 to all four cells) is applied only to RR/OR and their CIs. RD remains based on the observed risks.'))}</p>`:''}`;
+  const before=results.querySelector('.assumptions');results.insertBefore(section,before||null);
+}
+
+function renderPostHoc(){
+  const parsed=data(),results=document.querySelector('#results'),gKey=document.querySelector('#col-group')?.value,vKey=document.querySelector('#col-value')?.value;
+  if(!parsed||!results||!gKey||!vKey)return;
+  const names=unique(parsed.rows,gKey);if(names.length<3)return;
+  const groups=names.map(name=>({name,values:parsed.rows.filter(r=>String(r[gKey])===name).map(r=>r[vKey])}));
+  const rank=document.querySelector('#method-choice')?.value==='rank';
+  const rows=rank?pairwiseMannWhitneyHolm(groups):pairwiseWelchHolm(groups);
+  const section=document.createElement('section');section.className='advanced-section posthoc-section';
+  const header=rank
+    ? `<th>${esc(tr('Comparaison','Comparison'))}</th><th>U</th><th>Cliff δ</th><th>p ${esc(tr('brute','raw'))}</th><th>p Holm</th><th>${esc(tr('Conclusion','Conclusion'))}</th>`
+    : `<th>${esc(tr('Comparaison','Comparison'))}</th><th>${esc(tr('Diff. moyennes','Mean diff.'))}</th><th>IC95 %</th><th>Hedges g</th><th>p ${esc(tr('brute','raw'))}</th><th>p Holm</th><th>${esc(tr('Conclusion','Conclusion'))}</th>`;
+  const body=rows.map(r=>`<tr><td>${esc(r.group1)} − ${esc(r.group2)}</td>${rank?`<td>${fmt(r.U)}</td><td>${fmt(r.cliffsDelta)}</td>`:`<td>${fmt(r.estimate)}</td><td>${fmtCI(r.ci)}</td><td>${fmt(r.hedgesG)}</td>`}<td class="posthoc-muted">${fmtP(r.pRaw)}</td><td>${fmtP(r.pAdjusted)}</td><td class="${r.significant?'posthoc-sig':'posthoc-muted'}">${esc(r.significant?tr('Différence détectée','Difference detected'):tr('Non détectée','Not detected'))}</td></tr>`).join('');
+  section.innerHTML=`<div class="advanced-head"><div><h3>${esc(tr('Comparaisons post-hoc corrigées','Corrected post-hoc comparisons'))}</h3><p>${esc(rank?tr('Comparaisons deux à deux de Mann–Whitney avec correction de Holm.','Pairwise Mann–Whitney comparisons with Holm correction.'):tr('Comparaisons deux à deux de Welch avec correction de Holm, cohérentes avec l’ANOVA de Welch utilisée comme analyse principale.','Pairwise Welch comparisons with Holm correction, consistent with the Welch ANOVA used as the primary analysis.'))}</p></div></div><div class="posthoc-wrap"><table class="posthoc-table"><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div><p class="posthoc-note">${esc(tr('Pourquoi corriger ? Tester chaque paire séparément augmente le risque d’au moins un faux positif. Holm contrôle ce risque familial sans supposer des variances égales pour les comparaisons de Welch.','Why adjust? Testing every pair separately increases the chance of at least one false positive. Holm controls this family-wise error; the Welch comparisons do not require equal variances.'))}</p>`;
+  const before=results.querySelector('.assumptions');results.insertBefore(section,before||null);
+}
+
+function enhanceResults(){
+  const results=document.querySelector('#results');if(!results?.querySelector('.result-card'))return;
+  results.querySelectorAll('.advanced-section').forEach(el=>el.remove());
+  const mode=document.querySelector('#analysis-mode')?.value;
+  if(mode==='categorical')renderEffectSection();
+  if(mode==='comparek')renderPostHoc();
+}
+
+injectStyles();
+['#parse-data','#load-demo'].forEach(sel=>document.querySelector(sel)?.addEventListener('click',()=>queueMicrotask(syncCategoricalOrientation)));
+document.querySelector('#analysis-mode')?.addEventListener('change',()=>queueMicrotask(syncCategoricalOrientation));
+document.querySelector('#col-x')?.addEventListener?.('change',syncCategoricalOrientation);
+document.querySelector('#run-analysis')?.addEventListener('click',()=>queueMicrotask(enhanceResults));
+document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{syncCategoricalOrientation();enhanceResults();},0));
