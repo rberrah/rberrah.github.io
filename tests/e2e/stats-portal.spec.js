@@ -2,159 +2,43 @@
 import { test, expect } from '@playwright/test';
 import { getSiteOrigin } from '../../site.config.js';
 
-const origin = process.env.PORTAL_E2E_URL || 'http://127.0.0.1:4181';
-const publicOrigin = getSiteOrigin();
+const origin=process.env.PORTAL_E2E_URL||'http://127.0.0.1:4181';
+const publicOrigin=getSiteOrigin();
 
-test.beforeEach(async ({ page }) => {
-  await page.route('**/*', route => new URL(route.request().url()).origin === origin
-    ? route.continue() : route.abort());
+test.beforeEach(async({page})=>{await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());});
+
+test('Stats landing page is public, local-first and links to the analyser',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(origin+'/stats/');expect(response.status()).toBe(200);await expect(page.locator('html')).toHaveAttribute('lang','fr');await expect(page.locator('h1')).toContainText('Les statistiques sans boîte noire');await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href',publicOrigin+'/stats/');await expect(page.getByRole('link',{name:/Ouvrir l’outil/})).toHaveAttribute('href','/stats/tool/');await expect(page.locator('body')).toContainText('Aucun LLM ne choisit la méthode');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);expect(errors).toEqual([]);
 });
 
-test('Stats landing page is public, local-first and links to the analyser', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  const response = await page.goto(origin + '/stats/');
-  expect(response.status()).toBe(200);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-  await expect(page.locator('h1')).toContainText('Les statistiques sans boîte noire');
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', publicOrigin + '/stats/');
-  await expect(page.getByRole('link', { name: /Ouvrir l’outil/ })).toHaveAttribute('href', '/stats/tool/');
-  await expect(page.locator('body')).toContainText('Aucun LLM ne choisit la méthode');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  expect(errors).toEqual([]);
+test('Stats built-in demo runs exact rank sensitivity, visualization and local report export',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));const response=await page.goto(origin+'/stats/tool/');expect(response.status()).toBe(200);await expect(page.locator('#analysis-mode')).toHaveValue('compare2');await page.locator('#load-demo').click();await expect(page.locator('#mapping')).toBeVisible();await expect(page.locator('#parse-status')).toContainText('Données lues');await expect(page.locator('#col-group')).toHaveValue('group');await expect(page.locator('#col-value')).toHaveValue('value');await page.locator('#run-analysis').click();await expect(page.locator('#results .result-card')).toHaveCount(2);await expect(page.locator('#results')).toContainText('Welch t');await expect(page.locator('#results')).toContainText('Mann–Whitney');await expect(page.locator('#results .rank-inference span')).toHaveText('Inférence');await expect(page.locator('#results .rank-inference strong')).toHaveText('Exacte');expect(await page.locator('#results .metric').count()).toBeGreaterThan(0);await expect(page.locator('#results .assumptions')).toBeVisible();await expect(page.locator('#results .privacy-note')).toContainText('Aucune donnée n’est envoyée à un serveur');await expect(page.locator('#results .stats-visual-section')).toBeVisible();await expect(page.locator('#results .stats-svg')).toBeVisible();await expect(page.locator('#results .diagnostic-section')).toBeVisible();await expect(page.locator('#results .qq-chart')).toBeVisible();await expect(page.locator('#results .stats-report-actions')).toBeVisible();const downloadPromise=page.waitForEvent('download');await page.locator('[data-report-download]').click();const download=await downloadPromise;expect(download.suggestedFilename()).toBe('stats-report.html');await page.locator('#data-input').fill('group,value\nA,1\nA,2\nA,2\nB,3\nB,4\nB,5');await page.locator('#parse-data').click();await page.locator('#run-analysis').click();await expect(page.locator('#results .rank-inference strong')).toHaveText('Asymptotique');expect(errors).toEqual([]);
 });
 
-test('Stats built-in demo runs exact rank sensitivity, visualization and local report export', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  const response = await page.goto(origin + '/stats/tool/');
-  expect(response.status()).toBe(200);
-  await expect(page.locator('#analysis-mode')).toHaveValue('compare2');
-  await page.locator('#load-demo').click();
-  await expect(page.locator('#mapping')).toBeVisible();
-  await expect(page.locator('#parse-status')).toContainText('Données lues');
-  await expect(page.locator('#col-group')).toHaveValue('group');
-  await expect(page.locator('#col-value')).toHaveValue('value');
-  await page.locator('#run-analysis').click();
-  await expect(page.locator('#results .result-card')).toHaveCount(2);
-  await expect(page.locator('#results')).toContainText('Welch t');
-  await expect(page.locator('#results')).toContainText('Mann–Whitney');
-  await expect(page.locator('#results .rank-inference span')).toHaveText('Inférence');
-  await expect(page.locator('#results .rank-inference strong')).toHaveText('Exacte');
-  expect(await page.locator('#results .metric').count()).toBeGreaterThan(0);
-  await expect(page.locator('#results .assumptions')).toBeVisible();
-  await expect(page.locator('#results .privacy-note')).toContainText('Aucune donnée n’est envoyée à un serveur');
-  await expect(page.locator('#results .stats-visual-section')).toBeVisible();
-  await expect(page.locator('#results .stats-svg')).toBeVisible();
-  await expect(page.locator('#results .diagnostic-section')).toBeVisible();
-  await expect(page.locator('#results .qq-chart')).toBeVisible();
-  await expect(page.locator('#results .stats-report-actions')).toBeVisible();
-  const downloadPromise = page.waitForEvent('download');
-  await page.locator('[data-report-download]').click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe('stats-report.html');
-  await page.locator('#data-input').fill('group,value\nA,1\nA,2\nA,2\nB,3\nB,4\nB,5');
-  await page.locator('#parse-data').click();
-  await page.locator('#run-analysis').click();
-  await expect(page.locator('#results .rank-inference strong')).toHaveText('Asymptotique');
-  expect(errors).toEqual([]);
+test('Stats deterministic assistant routes repeated designs to Friedman rather than independent ANOVA',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await expect(page.locator('#decision-launch')).toBeVisible();await page.locator('#decision-launch').click();await expect(page.locator('#decision-recommendation')).toContainText('Welch t');await page.locator('#decision-paired').selectOption('yes');await expect(page.locator('#decision-recommendation')).toContainText('t apparié');await page.locator('#decision-groups').selectOption('k');await expect(page.locator('#decision-recommendation')).toContainText('Friedman');await expect(page.locator('#decision-recommendation')).toContainText('Wilcoxon appariés');await page.locator('#decision-apply').click();await expect(page.locator('#analysis-mode')).toHaveValue('repeatedk');expect(errors).toEqual([]);
 });
 
-test('Stats deterministic assistant routes from study design rather than test names', async ({ page }) => {
-  const errors=[];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(origin + '/stats/tool/');
-  await expect(page.locator('#decision-launch')).toBeVisible();
-  await expect(page.locator('#decision-launch')).toContainText('Je ne sais pas quel test choisir');
-  await page.locator('#decision-launch').click();
-  await expect(page.locator('#decision-assistant')).toBeVisible();
-  await expect(page.locator('#decision-recommendation')).toContainText('Welch t');
-  await page.locator('#decision-paired').selectOption('yes');
-  await expect(page.locator('#decision-recommendation')).toContainText('t apparié');
-  await page.locator('#decision-apply').click();
-  await expect(page.locator('#analysis-mode')).toHaveValue('paired');
-  await page.locator('#decision-launch').click();
-  await page.locator('#decision-groups').selectOption('k');
-  await page.locator('#decision-paired').selectOption('yes');
-  await expect(page.locator('#decision-recommendation')).toContainText('Mesures répétées > 2');
-  await expect(page.locator('#decision-recommendation')).toContainText('Ne forcez pas une ANOVA de groupes indépendants');
-  expect(errors).toEqual([]);
+test('Stats runs Friedman with Kendall W and corrected paired post-hoc comparisons',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('repeatedk');await page.locator('#load-demo').click();await expect(page.locator('#col-subject')).toHaveValue('subject');await expect(page.locator('#col-condition')).toHaveValue('condition');await expect(page.locator('#col-value')).toHaveValue('value');await page.locator('#run-analysis').click();await expect(page.locator('#results .result-card')).toHaveCount(1);await expect(page.locator('#results .result-card')).toContainText('Friedman');await expect(page.locator('#results .result-card')).toContainText('Kendall W');await expect(page.locator('#results .result-card')).toContainText('8');await expect(page.locator('#results .repeated-posthoc')).toBeVisible();await expect(page.locator('#results .repeated-posthoc h3')).toHaveText('Post-hoc appariés corrigés');await expect(page.locator('#results .repeated-posthoc tbody tr')).toHaveCount(3);await expect(page.locator('#results .repeated-posthoc')).toContainText('p Holm');await expect(page.locator('#results .repeated-posthoc')).toContainText('Exacte');expect(errors).toEqual([]);
 });
 
-test('Stats reports corrected pairwise post-hoc comparisons after a multi-group analysis', async ({ page }) => {
-  const errors=[];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(origin + '/stats/tool/');
-  await page.locator('#analysis-mode').selectOption('comparek');
-  await page.locator('#load-demo').click();
-  await page.locator('#run-analysis').click();
-  await expect(page.locator('#results .posthoc-section')).toBeVisible();
-  await expect(page.locator('#results .posthoc-section h3')).toHaveText('Comparaisons post-hoc corrigées');
-  await expect(page.locator('#results .posthoc-table tbody tr')).toHaveCount(3);
-  await expect(page.locator('#results .posthoc-section')).toContainText('p Holm');
-  await expect(page.locator('#results .posthoc-section')).toContainText('A − B');
-  expect(errors).toEqual([]);
+test('Stats reports corrected pairwise post-hoc comparisons after a multi-group analysis',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('comparek');await page.locator('#load-demo').click();await page.locator('#run-analysis').click();await expect(page.locator('#results .posthoc-section')).toBeVisible();await expect(page.locator('#results .posthoc-section h3')).toHaveText('Comparaisons post-hoc corrigées');await expect(page.locator('#results .posthoc-table tbody tr')).toHaveCount(3);await expect(page.locator('#results .posthoc-section')).toContainText('p Holm');await expect(page.locator('#results .posthoc-section')).toContainText('A − B');expect(errors).toEqual([]);
 });
 
-test('Stats exposes explicit 2x2 orientation and RD, RR, OR with confidence intervals', async ({ page }) => {
-  const errors=[];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(origin + '/stats/tool/');
-  await page.locator('#analysis-mode').selectOption('categorical');
-  await page.locator('#load-demo').click();
-  await expect(page.locator('#effect-orientation')).toBeVisible();
-  await expect(page.locator('#effect-group1')).toHaveValue('A');
-  await expect(page.locator('#effect-event')).toHaveValue('yes');
-  await page.locator('#run-analysis').click();
-  await expect(page.locator('#results .categorical-effects')).toBeVisible();
-  await expect(page.locator('#results .effect-card')).toHaveCount(3);
-  await expect(page.locator('#results .categorical-effects')).toContainText('Différence de risque (RD)');
-  await expect(page.locator('#results .categorical-effects')).toContainText('Risque relatif (RR)');
-  await expect(page.locator('#results .categorical-effects')).toContainText('Odds ratio (OR)');
-  await expect(page.locator('#results .categorical-effects')).toContainText('A vs B');
-  expect(errors).toEqual([]);
+test('Stats exposes explicit 2x2 orientation and RD, RR, OR with confidence intervals',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('categorical');await page.locator('#load-demo').click();await expect(page.locator('#effect-orientation')).toBeVisible();await expect(page.locator('#effect-group1')).toHaveValue('A');await expect(page.locator('#effect-event')).toHaveValue('yes');await page.locator('#run-analysis').click();await expect(page.locator('#results .categorical-effects')).toBeVisible();await expect(page.locator('#results .effect-card')).toHaveCount(3);await expect(page.locator('#results .categorical-effects')).toContainText('Différence de risque (RD)');await expect(page.locator('#results .categorical-effects')).toContainText('Risque relatif (RR)');await expect(page.locator('#results .categorical-effects')).toContainText('Odds ratio (OR)');await expect(page.locator('#results .categorical-effects')).toContainText('A vs B');expect(errors).toEqual([]);
 });
 
-test('Stats linear association adds Q-Q and residual-vs-fitted diagnostics', async ({ page }) => {
-  const errors=[];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(origin + '/stats/tool/');
-  await page.locator('#analysis-mode').selectOption('association');
-  await page.locator('#load-demo').click();
-  await page.locator('#run-analysis').click();
-  await expect(page.locator('#results .diagnostic-section')).toBeVisible();
-  await expect(page.locator('#results .qq-chart')).toBeVisible();
-  await expect(page.locator('#results .residual-chart')).toBeVisible();
-  await expect(page.locator('#results .diagnostic-section')).toContainText('pas un test de décision');
-  expect(errors).toEqual([]);
+test('Stats linear association adds Q-Q and residual-vs-fitted diagnostics',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('association');await page.locator('#load-demo').click();await page.locator('#run-analysis').click();await expect(page.locator('#results .diagnostic-section')).toBeVisible();await expect(page.locator('#results .qq-chart')).toBeVisible();await expect(page.locator('#results .residual-chart')).toBeVisible();await expect(page.locator('#results .diagnostic-section')).toContainText('pas un test de décision');expect(errors).toEqual([]);
 });
 
-test('Stats study planning computes sample size and dropout inflation', async ({ page }) => {
-  const errors=[];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto(origin + '/stats/tool/');
-  await expect(page.locator('#study-planning')).toBeVisible();
-  await expect(page.locator('#plan-design')).toHaveValue('two_means');
-  await page.locator('#plan-run').click();
-  await expect(page.locator('#plan-result strong')).toContainText('70 par groupe');
-  await expect(page.locator('#plan-result strong')).toContainText('140 au total');
-  await expect(page.locator('#plan-result small')).toContainText('63 par groupe');
-  await page.locator('#plan-design').selectOption('paired_means');
-  await page.locator('#plan-run').click();
-  await expect(page.locator('#plan-result strong')).toContainText('36 participants au total');
-  await expect(page.locator('#plan-result small')).toContainText('32');
-  expect(errors).toEqual([]);
+test('Stats study planning computes sample size and dropout inflation',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await expect(page.locator('#study-planning')).toBeVisible();await expect(page.locator('#plan-design')).toHaveValue('two_means');await page.locator('#plan-run').click();await expect(page.locator('#plan-result strong')).toContainText('70 par groupe');await expect(page.locator('#plan-result strong')).toContainText('140 au total');await expect(page.locator('#plan-result small')).toContainText('63 par groupe');await page.locator('#plan-design').selectOption('paired_means');await page.locator('#plan-run').click();await expect(page.locator('#plan-result strong')).toContainText('36 participants au total');await expect(page.locator('#plan-result small')).toContainText('32');expect(errors).toEqual([]);
 });
 
-test('Stats remains usable on mobile and the bilingual switch updates the interface', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(origin + '/stats/tool/');
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  await page.locator('[data-lang-toggle]').click();
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('h1')).toContainText('Which test for your data?');
-  await expect(page.locator('#load-demo')).toHaveText('Load demo');
-  await expect(page.locator('#decision-launch')).toContainText('I do not know which test to choose');
-  await expect(page.locator('#study-planning h2')).toHaveText('Plan a study');
-  await expect(page.locator('#plan-run')).toHaveText('Calculate sample size');
+test('Stats remains usable on mobile and the bilingual switch updates the interface',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await page.goto(origin+'/stats/tool/');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.locator('[data-lang-toggle]').click();await expect(page.locator('html')).toHaveAttribute('lang','en');await expect(page.locator('h1')).toContainText('Which test for your data?');await expect(page.locator('#load-demo')).toHaveText('Load demo');await expect(page.locator('#decision-launch')).toContainText('I do not know which test to choose');await expect(page.locator('#study-planning h2')).toHaveText('Plan a study');await expect(page.locator('#plan-run')).toHaveText('Calculate sample size');
 });
