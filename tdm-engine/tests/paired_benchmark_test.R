@@ -12,6 +12,15 @@ stopifnot(abs(metrics$relativeBiasPct) < 1e-10,
           abs(metrics$within20Pct - 200 / 3) < 1e-10, metrics$nFailed == 1)
 stopifnot(is.null(paired_metrics(100, NA_real_)$relativeRmsePct))
 
+filtered <- central_auc_filter(data.frame(TRUE_AUC24 = 1:100))
+stopifnot(nrow(filtered$data) == 90L, filtered$excluded == 10L,
+          min(filtered$data$TRUE_AUC24) == 6, max(filtered$data$TRUE_AUC24) == 95)
+
+woillard_scope <- data.frame(model_id = "tacrolimus_woillard_ddi")
+aligned <- align_regimen_covariates(woillard_scope, woillard_scope,
+  data.frame(ST = c(0, 1)), data.frame(interval = c(12, 24)))
+stopifnot(identical(aligned$ST, c(1, 0)))
+
 regimens <- data.frame(amount = 100, interval = 24, infusion = 2)
 stopifnot(sample_times(regimens, "IV_INTERMITTENT")$time[[2]] == 3)
 regimens$infusion <- 0

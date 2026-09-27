@@ -311,6 +311,11 @@ sample_regimens <- function(scope, n) {
   data.frame(amount = amount, interval = interval, infusion = infusion)
 }
 
+# Paired research benchmarks can override these hooks without changing the
+# published model files or the historical artifact-training pipeline.
+align_regimen_covariates <- function(base_scope, generator_scope, covariates, regimens) covariates
+observation_model <- function(model) model
+
 sample_times <- function(regimens, mode) {
   do.call(rbind, lapply(seq_len(nrow(regimens)), function(index) {
     interval <- regimens$interval[[index]]
@@ -342,6 +347,7 @@ simulate_batch <- function(base_scope, generator_scope, n) {
   covariates <- sample_covariates(base_id, generator_id, n)
   etas <- sample_eta_matrix(model, n)
   regimens <- sample_regimens(base_scope, n)
+  covariates <- align_regimen_covariates(base_scope, generator_scope, covariates, regimens)
   samples <- sample_times(regimens, base_scope$mode[[1]])
   continuous <- identical(base_scope$mode[[1]], "IV_CONTINUOUS")
 
@@ -386,6 +392,7 @@ simulate_batch <- function(base_scope, generator_scope, n) {
   if (!"DV" %in% names(population_output)) stop("Model ", base_id, " does not capture DV.")
 
   omega <- as.matrix(mrgsolve::omat(model))
+  stochastic_model <- observation_model(model)
   observation_records <- data.frame(
     ID = samples$ID,
     time = samples$time,
@@ -394,12 +401,12 @@ simulate_batch <- function(base_scope, generator_scope, n) {
     ii = 0,
     addl = 0,
     ss = 0,
-    cmt = tagged_compartment(model, "OBS"),
+    cmt = tagged_compartment(stochastic_model, "OBS"),
     rate = 0
   )
   stochastic_data <- rbind(events, observation_records)
   stochastic_data <- stochastic_data[order(stochastic_data$ID, stochastic_data$time, -stochastic_data$evid), , drop = FALSE]
-  stochastic_output <- model |>
+  stochastic_output <- stochastic_model |>
     mrgsolve::zero_re(omega) |>
     mrgsolve::idata_set(individual) |>
     mrgsolve::data_set(stochastic_data) |>

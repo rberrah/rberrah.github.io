@@ -1,4 +1,30 @@
 # Sourced by train_models_xgboost.R --paired-benchmark. No clinical data are used.
+PAIRED_RESIDUAL_SD_SCALE <- 0.10
+PAIRED_AUC_TAIL_PROBABILITY <- 0.05
+
+# Preserve each article's residual-error structure while reducing every
+# residual standard deviation ten-fold for this sparse-sampling experiment.
+observation_model <- function(model) {
+  sigma <- as.matrix(mrgsolve::smat(model))
+  if (!nrow(sigma)) return(model)
+  mrgsolve::smat(model, sigma * PAIRED_RESIDUAL_SD_SCALE^2)
+}
+
+# In the Woillard model ST=1 is immediate-release Prograf and ST=0 is
+# once-daily prolonged-release Advagraf. Keep formulation and interval paired.
+align_regimen_covariates <- function(base_scope, generator_scope, covariates, regimens) {
+  if (identical(base_scope$model_id[[1]], "tacrolimus_woillard_ddi") && "ST" %in% names(covariates)) {
+    covariates$ST <- ifelse(regimens$interval == 12, 1, 0)
+  }
+  covariates
+}
+
+central_auc_filter <- function(data, tail_probability = PAIRED_AUC_TAIL_PROBABILITY) {
+  bounds <- unname(stats::quantile(data$TRUE_AUC24, c(tail_probability, 1 - tail_probability), type = 7))
+  keep <- data$TRUE_AUC24 >= bounds[[1]] & data$TRUE_AUC24 <= bounds[[2]]
+  list(data = data[keep, , drop = FALSE], bounds = bounds, excluded = sum(!keep))
+}
+
 paired_metrics <- function(truth, prediction) {
   stopifnot(length(truth) == length(prediction), all(is.finite(truth) & truth > 0))
   valid <- is.finite(prediction) & prediction > 0
@@ -21,7 +47,7 @@ paired_events <- function(data, model, scope) {
 }
 
 paired_map_model <- function(scope) {
-  model <- compiled_model(scope$model_id[[1]])
+  model <- observation_model(compiled_model(scope$model_id[[1]]))
   reserved <- c("IPRED", "PRED", grep("^ETA[0-9]+$", model@capL, value = TRUE))
   model <- mrgsolve::update(model, outvars = c(model@cmtL, setdiff(model@capL, reserved)))
   sigma <- diag(as.matrix(mrgsolve::smat(model)))
@@ -109,12 +135,18 @@ paired_xgboost <- function(training, testing, two_points, seed_value) {
   set.seed(seed_value)
   fold <- fold_ids(nrow(training), if (smoke) 3 else 10, seed_value)
   folds <- lapply(sort(unique(fold)), function(id) which(fold == id))
-  grid <- expand.grid(max_depth = if (smoke) 3L else c(2L, 4L, 6L), eta = if (smoke) 0.1 else c(0.03, 0.1))
+  grid <- if (smoke) {
+    data.frame(max_depth = 1L, eta = 0.0261, min_child_weight = 1)
+  } else {
+    expand.grid(max_depth = c(1L, 2L, 4L), eta = c(0.0261, 0.05), min_child_weight = 40)
+  }
+  mtry <- min(7L, length(features))
+  colsample <- mtry / length(features)
   best <- NULL
   for (i in seq_len(nrow(grid))) {
     parameters <- list(objective = "reg:squarederror", eval_metric = "rmse", nthread = 1,
-      max_depth = grid$max_depth[[i]], eta = grid$eta[[i]], min_child_weight = 5,
-      subsample = 0.85, colsample_bytree = 0.9, base_score = mean(training$TRUE_AUC24), seed = seed_value)
+      max_depth = grid$max_depth[[i]], eta = grid$eta[[i]], min_child_weight = grid$min_child_weight[[i]],
+      subsample = 1, colsample_bynode = colsample, base_score = mean(training$TRUE_AUC24), seed = seed_value)
     cv <- xgboost::xgb.cv(params = parameters, data = dtrain, folds = folds,
                          nrounds = if (smoke) 50 else 1000, early_stopping_rounds = 30, verbose = 0)
     iteration <- which.min(cv$evaluation_log$test_rmse_mean)
@@ -149,11 +181,17 @@ paired_scope <- function(index) {
   assign("sample_eta_matrix", sample_eta_matrix, envir = environment(simulate_batch))
   assign("MIN_AUC_RATIO", 0, envir = environment(simulate_batch))
   assign("MAX_AUC_RATIO", Inf, envir = environment(simulate_batch))
-  data <- make_cohort(scope, scope, n_patients, "paired MAP/ML")
+  scope_n <- if (!smoke && !identical(scope$model_id[[1]], "tacrolimus_woillard_ddi")) min(n_patients, 3000L) else n_patients
+  simulated <- make_cohort(scope, scope, scope_n, "paired MAP/ML")
+  filtered <- central_auc_filter(simulated)
+  data <- filtered$data
   set.seed(local_seed + 1L)
   train_ids <- sample.int(nrow(data), floor(0.75 * nrow(data)))
   training <- data[train_ids, ]
-  testing <- data[-train_ids, ]
+  holdout_pool <- data[-train_ids, ]
+  evaluation_n <- if (identical(scope$model_id[[1]], "tacrolimus_woillard_ddi")) 1098L else 300L
+  set.seed(local_seed + 2L)
+  testing <- holdout_pool[sample.int(nrow(holdout_pool), min(evaluation_n, nrow(holdout_pool))), , drop = FALSE]
   results <- list()
   for (two_points in c(FALSE, TRUE)) {
     design <- if (two_points) "c0PlusOneHourPostInfusion" else "c0Only"
@@ -161,7 +199,7 @@ paired_scope <- function(index) {
     chunks <- split(seq_len(nrow(testing)), ceiling(seq_len(nrow(testing)) / 50))
     map <- if (!is.null(unavailable)) rep(NA_real_, nrow(testing)) else
       unlist(lapply(chunks, function(ids) safe_paired_map(testing[ids, , drop = FALSE], scope, two_points)), use.names = FALSE)
-    ml <- paired_xgboost(training, testing, two_points, local_seed + 2L)
+    ml <- paired_xgboost(training, testing, two_points, local_seed + 3L)
     paired <- is.finite(map) & map > 0 & is.finite(ml$prediction) & ml$prediction > 0
     results[[design]] <- list(map = paired_metrics(testing$TRUE_AUC24, map),
       ml = paired_metrics(testing$TRUE_AUC24, ml$prediction),
@@ -172,7 +210,9 @@ paired_scope <- function(index) {
   result <- list(modelId = scope$model_id[[1]], drug = scope$drug[[1]],
     administrationMode = unname(MODE_ID[[scope$mode[[1]]]]),
     baseModelSha256 = model_sha256(scope$model_id[[1]]),
-    nTraining = nrow(training), nHoldout = nrow(testing), seed = local_seed,
+    nSimulated = nrow(simulated), nIncluded = nrow(data), nExcluded = filtered$excluded,
+    aucInclusionBounds = list(lower = filtered$bounds[[1]], upper = filtered$bounds[[2]]),
+    nTraining = nrow(training), nHoldoutPool = nrow(holdout_pool), nHoldout = nrow(testing), seed = local_seed,
     mapUnavailableReason = unavailable,
     strategies = results)
   saveRDS(result, checkpoint)
@@ -210,15 +250,19 @@ run_paired_benchmark <- function() {
     software = c(list(R = R.version.string), versions),
     methodology = list(target = "AUC24", comparator = "MAP-BE fitted to the same observed concentrations",
       trainingFraction = 0.75, tuningFolds = if (smoke) 3L else 10L,
+      cohortSize = "9000 simulated profiles for Woillard when --n=9000 and 3000 per other model/mode; central 90% retained; paired evaluation uses 1098 Woillard or 300 other untouched holdout patients",
       learningTarget = "Direct AUC24, squared-error loss; no population AUC predictor or ratio target",
       c0 = "Pre-dose trough at steady state; sampled at tau-epsilon in the equivalent preceding cycle",
       c1 = "Tinf+1 h for intermittent infusion; 1 h for oral, bolus and continuous infusion",
       continuous = "Ongoing constant-rate infusion at steady state, sampled at t=0 and t=1 h",
       truth = "Trapezoidal integration of the noise-free individual curve, 0-24 h, step 0.1 h",
-      residual = "Original model SIGMA retained in sparse observations; same observations for MAP and ML",
+      inclusion = "Central 90% of simulated true AUC24 retained per model and administration mode (5th to 95th percentiles), before the 75/25 split",
+      residual = "Published SIGMA structure retained, with each residual standard deviation multiplied by 0.10 for both sparse-observation simulation and MAP-BE",
+      woillardRegimen = "Woillard ST is aligned with regimen: ST=1 for Prograf q12h and ST=0 for Advagraf q24h",
+      tuning = "Ten-fold CV on training patients; two-sample grid max_depth={1,2,4}, eta={0.0261,0.05}, min_child_weight=40, mtry=min(7,p), up to 1000 rounds with 30-round early stopping",
       metric = "e=(estimate-truth)/truth; bias=100*mean(e); rRMSE=100*sqrt(mean(e^2)); within20=100*count(abs(e)<=0.2)/N",
       failures = "Bias/RMSE use finite positive estimates; failures count as outside +/-20%. Paired metrics restrict both methods to the same successful patients.",
-      limitations = "Not a replication of Woillard 2021: C0 or C0+C1 instead of C0+C3, different AUC target, residual errors, regimens, filters and cohort size. Benchmark predictors are not the currently deployed Shiny predictors."),
+      limitations = "Not a replication of Woillard 2021: C0 or C0+C1 instead of C0+C3, AUC24 instead of AUC0-12, generic central-AUC filtering instead of tacrolimus-specific rules, ten-fold residual-SD reduction instead of the article's exact residual values, broader regimens and different covariate sampling. The complete article search grid is not published; this grid includes its reported two-sample optimum. Benchmark predictors are not the currently deployed Shiny predictors."),
     results = results)
   destination <- if (nzchar(report_path)) report_path else file.path(APP_ROOT, "ml", "validation", "paired-auc-benchmark.json")
   dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)

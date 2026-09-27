@@ -15,18 +15,28 @@ concentrations observees** que celles donnees a XGBoost : C0 seul, puis C0+C1.
 - Hors perfusion continue, C0 est simule a tau moins 1 microseconde : il s'agit
   du creux pre-dose du cycle equivalent a l'etat stationnaire, pas du pic IV a t=0.
 - L'AUC24 vraie est integree par trapezes sur le profil individuel sans bruit
-  (pas de 0.1 h). La SIGMA originale est conservee pour les dosages limites.
+  (pas de 0.1 h). Pour les dosages limites, la structure SIGMA publiee est
+  conservee mais chaque ecart-type residuel est divise par 10. Ce scenario
+  rapproche une erreur proportionnelle publiee de 10 % du scenario a 1 % etudie
+  par Berrah et al., sans imposer la meme erreur additive a des unites differentes.
 - Les ETA suivent la matrice OMEGA sans troncature a deux ecarts-types. Les
   covariables suivent `training-populations.json`; elles restent constantes dans
-  chaque profil. Aucun filtre sur le rapport AUC individuelle/populationnelle
-  n'est utilise dans ce benchmark.
+  chaque profil. Les 5 % d'AUC24 vraies les plus basses et les 5 % les plus
+  hautes sont retirees separement pour chaque modele et mode d'administration.
+- Pour Woillard, la formulation est liee a l'intervalle : `ST=1` pour Prograf
+  q12h et `ST=0` pour Advagraf q24h.
 - XGBoost apprend directement l'AUC24, sans cible logarithmique ni AUC
   populationnelle parmi ses entrees. Dose, intervalle, concentrations, horaires
   et covariables sont disponibles. C1 et ses differences sont absents du modele C0.
-- Le partage 75/25 des patients est commun aux deux plans. La validation croisee
-  a dix groupes est limitee aux 75 % d'apprentissage. La grille profondeur
-  {2,4,6} x eta {0.03,0.1}, l'arret anticipe a 30 tours et le maximum de 1000 tours
-  sont fixes avant le test. La selection minimise la RMSE absolue de l'AUC.
+- Le partage 75/25 des patients est commun aux deux plans et intervient apres le
+  filtre. La validation croisee a dix groupes est limitee aux 75 % d'apprentissage.
+  ESM4 de Woillard publie le meilleur reglage a deux dosages (`tree_depth=1`,
+  `min_n=40`, `mtry=7`, `learning rate=0.0261`), mais pas la grille complete.
+  La grille predefinie pour un ou deux dosages inclut ce point et teste
+  `max_depth={1,2,4}` avec `eta={0.0261,0.05}`, `min_child_weight=40`,
+  `mtry=min(7,p)`, jusqu'a 1000 tours avec arret anticipe apres 30 tours. La
+  profondeur 9 publiee pour le modele a trois dosages n'est pas transposee a ces
+  plans plus parcimonieux. La selection minimise la RMSE absolue.
 
 Avec `e = (AUC estimee - AUC vraie) / AUC vraie` : biais = `100*mean(e)`,
 RMSE relative = `100*sqrt(mean(e^2))`, AUC bien predites = proportion avec
@@ -42,15 +52,28 @@ Rscript ml/train_models_xgboost.R --paired-benchmark --smoke --workers=4 --repor
 Rscript ml/train_models_xgboost.R --paired-benchmark --n=9000 --workers=4 --report=ml/validation/paired-auc-benchmark.json
 ```
 
+Avec `--n=9000`, Woillard conserve 9 000 profils simules avant filtrage pour
+rester comparable au protocole source. Les autres couples modele/mode utilisent
+3 000 profils avant filtrage. Apres le filtre et le partage, le pool de test
+contient environ 2 025 profils Woillard et 675 profils par autre couple. Un
+sous-echantillon fixe et non utilise pour le reglage fournit le comparatif
+apparie : 1 098 profils pour Woillard, comme le test simule de l'article, et 300
+pour chaque autre couple. Cette precision est affichee dans le rapport et limite
+le cout des deux ajustements MAP individuels par profil.
+
 `--base`, `--drug`, `--mode` et `--seed` restent disponibles. Les checkpoints
 synthetiques sont locaux et ignores par Git; leurs empreintes dependent des
 scripts, modeles et configurations. Seul le JSON agrege est publie sur le site,
 jamais les observations simulees individuelles.
 
 Cette extension reprend l'apprentissage direct, le partage et le principe de
-selection des hyperparametres de Woillard 2021, pas son protocole integral :
-l'article utilisait C0+C3 ou C0+C1+C3, l'AUC0-12, une erreur residuelle reduite et
-des filtres specifiques au tacrolimus. Les scores ne sont donc pas censes etre
+selection des hyperparametres de Woillard 2021, pas son protocole integral.
+L'article utilisait uniquement Prograf q12h, neuf doses precises, C0+C3 ou
+C0+C1+C3, l'AUC0-12, des horaires legerement perturbes, une erreur additive de
+0.1 microgramme/L avec une erreur proportionnelle de 0.01 %, ainsi que des
+filtres propres au tacrolimus. Le benchmark utilise C0 ou C0+C1, l'AUC24, un
+filtre central generique, Prograf q12h et Advagraf q24h, et des distributions de
+covariables propres a chaque modele. Les scores ne sont donc pas censes etre
 identiques. Les predicteurs du benchmark sont distincts des artefacts Shiny
 historiques ci-dessous; leurs scores ne sont pas une validation de ces artefacts.
 
