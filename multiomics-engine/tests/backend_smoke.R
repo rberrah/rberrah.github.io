@@ -5,8 +5,31 @@ stopifnot(exists("apply_ms_qc_reference"))
 stopifnot(exists("reference_preprocess_matrix"))
 stopifnot(exists("run_backend_analysis"))
 stopifnot(exists("run_deseq2_counts"))
+stopifnot(exists("run_edger_ql_counts"))
 stopifnot(exists("run_voom_counts"))
 stopifnot(exists("compare_rnaseq_methods"))
+stopifnot(exists("filter_informative_features"))
+stopifnot(exists("make_keepx_grid"))
+stopifnot(exists("normalise_keepx"))
+
+# -------------------------------------------------------------------------
+# 0) Package-free guardrail helpers are deterministic
+# -------------------------------------------------------------------------
+helper_x <- cbind(
+  constant = rep(1, 6),
+  varying = 1:6,
+  sparse = c(NA, NA, NA, NA, 1, 2)
+)
+rownames(helper_x) <- paste0("H", 1:6)
+filtered <- filter_informative_features(helper_x, min_observed=3L)
+stopifnot(identical(colnames(filtered), "varying"))
+stopifnot(identical(make_keepx_grid(1L), 1L))
+stopifnot(all(make_keepx_grid(12L) >= 1L))
+stopifnot(all(make_keepx_grid(12L) <= 12L))
+normalised_keepx <- normalise_keepx(NULL, list(a=matrix(1, 4, 7), b=matrix(1, 4, 3)), 2L)
+stopifnot(length(normalised_keepx$a) == 2L)
+stopifnot(length(normalised_keepx$b) == 2L)
+stopifnot(all(normalised_keepx$a <= 7L), all(normalised_keepx$b <= 3L))
 
 # -------------------------------------------------------------------------
 # 1) Reference MS QC: blank filter + pooled-QC LOESS + RSD + explicit MNAR
@@ -97,6 +120,7 @@ stopifnot(concordance$common_features == 4L)
 stopifnot(concordance$significant_overlap == 2L)
 stopifnot(is.finite(concordance$spearman_statistics))
 stopifnot(concordance$sign_agreement_among_any_significant == 1)
+stopifnot(grepl("not averaged", concordance$interpretation, fixed=TRUE))
 
 # -------------------------------------------------------------------------
 # 3) Browser-to-R payload routing, without requiring heavy packages in CI
