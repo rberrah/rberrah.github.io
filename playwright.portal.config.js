@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
 // have different mounts from the standalone application's browser tests.
 export default defineConfig({
   testDir: './tests/e2e',
-  testMatch: 'portal.spec.js',
+  testMatch: ['portal.spec.js', 'stats-portal.spec.js'],
   timeout: 30_000,
   reporter: process.env.CI ? [['list'], ['github']] : 'list',
   use: { ...devices['Desktop Chrome'], trace: 'on-first-retry' },
