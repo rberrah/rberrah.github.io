@@ -2,14 +2,15 @@
 // Public multi-omics entry point.
 // The validated deterministic implementation lives in deterministic-impl.js.
 // This thin browser-aware wrapper adds declared UI methodology context,
-// external database provenance and publishes the final result synchronously
-// before it is returned to Svelte.
+// external database provenance, chemical-mapping audit metadata and publishes
+// the final result synchronously before it is returned to Svelte.
 
 import * as impl from './deterministic-impl.js';
 export * from './deterministic-impl.js';
 
 const REACTOME_VERSION_URL = 'https://reactome.org/ContentService/data/database/version';
 const REACTOME_ANALYSIS_SERVICE = 'https://reactome.org/AnalysisService/';
+const CHEMICAL_MAPPING_POLICY = 'Canonicalise to ChEBI only after a canonical ChEBI input, one unique curated external-ID mapping, one unique KEGG cross-reference hit, or one exact ChEBI name match. Ambiguous mappings are never forced.';
 
 function withBrowserMethodology(args) {
   if (typeof window === 'undefined') return args;
@@ -22,6 +23,128 @@ function withBrowserMethodology(args) {
       metabolomicsIdentificationConfidence: level
     }
   };
+}
+
+function cleanText(value) {
+  return String(value ?? '').trim();
+}
+
+function inferMetaboliteSource(identifier, identifierType = 'unknown') {
+  const value = cleanText(identifier);
+  const declared = cleanText(identifierType).toLowerCase();
+  if (/^CHEBI:\d+$/i.test(value) || declared === 'chebi') return 'ChEBI';
+  if (/^HMDB\d+$/i.test(value) || declared === 'hmdb') return 'HMDB';
+  if (/^C\d{5}$/i.test(value) || ['kegg','kegg_compound'].includes(declared)) return 'KEGG Compound';
+  if ((['pubchem','pubchem_cid'].includes(declared) && /^\d+$/.test(value))) return 'PubChem Compound';
+  if (/^[A-Z]{14}-[A-Z]{10}-[A-Z]$/i.test(value) || ['inchikey','inchi_key'].includes(declared)) return 'InChIKey';
+  if (['name','metabolite_name'].includes(declared)) return 'metabolite name';
+  return 'unknown / name search';
+}
+
+function chemicalResolutionConfidence(mapping) {
+  const status = mapping?.status;
+  if (status === 'canonical') return 'canonical_input';
+  if (status === 'resolved_external_id') return 'unique_external_mapping';
+  if (status === 'resolved') return 'exact_unique_match';
+  if (status === 'ambiguous') return 'ambiguous_not_used';
+  if (status === 'api_error') return 'not_resolved_api_error';
+  if (status === 'query_limit') return 'not_resolved_query_limit';
+  if (status === 'empty') return 'not_applicable';
+  return 'not_resolved';
+}
+
+function enrichChemicalMapping(mapping, identifierType = 'unknown') {
+  if (!mapping || typeof mapping !== 'object') return mapping;
+  return {
+    ...mapping,
+    sourceDatabase: inferMetaboliteSource(mapping.original, identifierType),
+    canonicalDatabase: 'ChEBI',
+    resolutionConfidence: chemicalResolutionConfidence(mapping),
+    mappingUsedForIntegration: Boolean(mapping.resolved),
+    ambiguityForced: false
+  };
+}
+
+function countBy(items, keyFn) {
+  const counts = {};
+  for (const item of items) {
+    const key = cleanText(keyFn(item)) || 'unknown';
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  return counts;
+}
+
+function summariseChemicalResolution(resolution, identifierType = 'unknown') {
+  if (!resolution || typeof resolution !== 'object') return resolution;
+  const mappings = Array.isArray(resolution.mappings)
+    ? resolution.mappings.map((mapping) => enrichChemicalMapping(mapping, identifierType))
+    : [];
+  const total = mappings.length;
+  const resolvedCount = mappings.filter((item) => item?.resolved).length;
+  const ambiguousCount = mappings.filter((item) => item?.status === 'ambiguous').length;
+  const apiErrorCount = mappings.filter((item) => item?.status === 'api_error').length;
+  const queryLimitCount = mappings.filter((item) => item?.status === 'query_limit').length;
+  const unresolvedCount = total - resolvedCount;
+  const strictlyUnresolvedCount = mappings.filter((item) => item?.status === 'unresolved').length;
+  return {
+    ...resolution,
+    mappings,
+    resolvedCount,
+    unresolvedCount,
+    ambiguousCount,
+    apiErrorCount,
+    queryLimitCount,
+    strictlyUnresolvedCount,
+    coverageFraction: total ? resolvedCount / total : null,
+    sourceTypeDeclared: identifierType,
+    sourceDatabaseCounts: countBy(mappings, (item) => item?.sourceDatabase),
+    statusCounts: countBy(mappings, (item) => item?.status),
+    methodCounts: countBy(mappings, (item) => item?.method),
+    canonicalDatabase: 'ChEBI',
+    mappingPolicy: CHEMICAL_MAPPING_POLICY
+  };
+}
+
+function attachChemicalResolutionAudit(result, args) {
+  const raw = result?.identifierResolution?.metabolomics;
+  if (!raw) return result;
+  const identifierType = args?.identifierTypes?.metabolomics || 'unknown';
+  const audited = summariseChemicalResolution(raw, identifierType);
+  result.identifierResolution.metabolomics = audited;
+  result.reproducibility = {
+    ...(result.reproducibility || {}),
+    chemicalIdentifierResolution: {
+      metabolomics: {
+        canonicalDatabase: audited.canonicalDatabase,
+        sourceTypeDeclared: audited.sourceTypeDeclared,
+        totalIdentifiers: audited.mappings?.length || 0,
+        resolvedCount: audited.resolvedCount,
+        unresolvedCount: audited.unresolvedCount,
+        ambiguousCount: audited.ambiguousCount,
+        apiErrorCount: audited.apiErrorCount,
+        queryLimitCount: audited.queryLimitCount,
+        coverageFraction: audited.coverageFraction,
+        sourceDatabaseCounts: audited.sourceDatabaseCounts,
+        statusCounts: audited.statusCounts,
+        methodCounts: audited.methodCounts,
+        mappingPolicy: audited.mappingPolicy
+      }
+    }
+  };
+  return result;
+}
+
+// Explicit wrappers intentionally override the star re-export above so callers
+// receive the same mapping audit fields whether they resolve one identifier,
+// a batch, or run the complete multi-omics pipeline.
+export async function resolveMetaboliteIdentifier(identifier, options = {}) {
+  const result = await impl.resolveMetaboliteIdentifier(identifier, options);
+  return enrichChemicalMapping(result, options.identifierType || 'unknown');
+}
+
+export async function resolveMetaboliteIdentifiers(identifiers, options = {}) {
+  const result = await impl.resolveMetaboliteIdentifiers(identifiers, options);
+  return summariseChemicalResolution(result, options.identifierType || 'unknown');
 }
 
 function reactomeAnalysisTokens(result) {
@@ -102,7 +225,9 @@ function publishFinalAnalysis(result) {
 }
 
 export async function runDeterministicAnalysis(args) {
-  const result = await impl.runDeterministicAnalysis(withBrowserMethodology(args));
+  const preparedArgs = withBrowserMethodology(args);
+  const result = await impl.runDeterministicAnalysis(preparedArgs);
+  attachChemicalResolutionAudit(result, preparedArgs);
   await attachExternalDatabaseProvenance(result);
   publishFinalAnalysis(result);
   return result;
