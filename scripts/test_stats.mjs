@@ -4,6 +4,10 @@ import {
   pearson, spearman, linearRegression, fisherExact2x2, describe,
   oneSampleT, mcnemar, logRank
 } from '../portal/stats/engine.js';
+import {
+  normalQuantile, sampleSizeTwoMeans, sampleSizePairedMeans,
+  sampleSizeTwoProportions, sampleSizeCorrelation
+} from '../portal/stats/power-engine.js';
 
 const near = (actual, expected, tolerance, label) => {
   assert.ok(Number.isFinite(actual), `${label}: expected a finite number, got ${actual}`);
@@ -110,4 +114,15 @@ near(logrank.x2, 0.6006314054675235, 1e-12, 'Log-rank chi-square');
 near(logrank.p, 0.43833721765635236, 2e-8, 'Log-rank p-value');
 assert.equal(logrank.events, 8);
 
-console.log('Stats engine: exact/asymptotic reference vectors PASS');
+near(normalQuantile(0.975), 1.9599639845400536, 1e-8, 'Normal 0.975 quantile');
+near(normalQuantile(0.8), 0.8416212335729144, 1e-8, 'Normal 0.8 quantile');
+const planMeans=sampleSizeTwoMeans({difference:5,sd:10,alpha:0.05,power:0.8,dropout:0.1});
+assert.equal(planMeans.basePerGroup,63);assert.equal(planMeans.perGroup,70);assert.equal(planMeans.total,140);
+const planPaired=sampleSizePairedMeans({difference:5,sdDifference:10,alpha:0.05,power:0.8,dropout:0.1});
+assert.equal(planPaired.baseTotal,32);assert.equal(planPaired.total,36);
+const planProps=sampleSizeTwoProportions({p1:0.4,p2:0.6,alpha:0.05,power:0.8,dropout:0.1});
+assert.equal(planProps.basePerGroup,97);assert.equal(planProps.perGroup,108);assert.equal(planProps.total,216);
+const planCorr=sampleSizeCorrelation({r:0.3,alpha:0.05,power:0.8,dropout:0.1});
+assert.equal(planCorr.baseTotal,85);assert.equal(planCorr.total,95);
+
+console.log('Stats engine: exact inference and study-planning reference vectors PASS');
