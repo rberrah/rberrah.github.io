@@ -11,6 +11,8 @@ stopifnot(exists("compare_rnaseq_methods"))
 stopifnot(exists("filter_informative_features"))
 stopifnot(exists("make_keepx_grid"))
 stopifnot(exists("normalise_keepx"))
+stopifnot(exists("prepare_multiblock_integration"))
+stopifnot(exists("batch_completely_confounded"))
 
 # -------------------------------------------------------------------------
 # 0) Package-free guardrail helpers are deterministic
@@ -30,6 +32,38 @@ normalised_keepx <- normalise_keepx(NULL, list(a=matrix(1, 4, 7), b=matrix(1, 4,
 stopifnot(length(normalised_keepx$a) == 2L)
 stopifnot(length(normalised_keepx$b) == 2L)
 stopifnot(all(normalised_keepx$a <= 7L), all(normalised_keepx$b <= 3L))
+
+# A completely confounded technical series must block multiblock integration
+# rather than being residualised together with the biological contrast.
+conf_meta <- data.frame(
+  sample_id=paste0("S",1:6),
+  condition=c("A","A","A","B","B","B"),
+  timepoint="T0",
+  batch=c("BA","BA","BA","BB","BB","BB"),
+  stringsAsFactors=FALSE
+)
+rownames(conf_meta) <- conf_meta$sample_id
+conf_block <- matrix(seq_len(24), nrow=6, dimnames=list(conf_meta$sample_id, paste0("F",1:4)))
+conf_guard <- prepare_multiblock_integration(
+  blocks=list(transcriptomics=conf_block, proteomics=conf_block + 1),
+  metas=list(transcriptomics=conf_meta, proteomics=conf_meta),
+  covariates=character(),
+  target_columns="condition"
+)
+stopifnot(identical(conf_guard$status, "blocked"))
+stopifnot(grepl("completely confounded", conf_guard$message, fixed=TRUE))
+
+# A non-confounded technical series may be adjusted deterministically.
+bal_meta <- conf_meta
+bal_meta$batch <- c("B1","B2","B1","B2","B1","B2")
+bal_guard <- prepare_multiblock_integration(
+  blocks=list(transcriptomics=conf_block, proteomics=conf_block + 1),
+  metas=list(transcriptomics=bal_meta, proteomics=bal_meta),
+  covariates=character(),
+  target_columns="condition"
+)
+stopifnot(identical(bal_guard$status, "ok"))
+stopifnot(all(vapply(bal_guard$details, function(x) x$status %in% c("adjusted","not_needed","not_estimable"), logical(1))))
 
 # -------------------------------------------------------------------------
 # 1) Reference MS QC: blank filter + pooled-QC LOESS + RSD + explicit MNAR
@@ -187,6 +221,7 @@ payload <- list(
 
 result <- run_backend_analysis(payload)
 stopifnot(identical(result$status, "ok"))
+stopifnot(identical(result$engine$version, "1.2.0"))
 stopifnot(all(c("transcriptomics","proteomics") %in% names(result$preprocessing)))
 stopifnot("transcriptomics_differential" %in% names(result$methods))
 stopifnot("proteomics_differential" %in% names(result$methods))
