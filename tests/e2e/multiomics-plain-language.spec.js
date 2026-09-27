@@ -82,7 +82,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   });
 
   await page.goto('/multiomics/tool');
-  await page.locator('#pmx-metabolomics-msi-level').selectOption('msi2');
+  await page.locator('#pmx-metabolomics-msi-level').selectOption('msi3');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
 
@@ -125,9 +125,12 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   const analysisPath = await analysisDownload.path();
   expect(analysisPath).toBeTruthy();
   const analysisJson = JSON.parse(await fs.readFile(analysisPath, 'utf8'));
-  expect(analysisJson.protocol.metabolomicsIdentificationConfidence).toBe('msi2');
+  expect(analysisJson.protocol.metabolomicsIdentificationConfidence).toBe('msi3');
   expect(analysisJson.metabolomicsAnnotationConfidence.scheme).toContain('Metabolomics Standards Initiative');
-  expect(analysisJson.metabolomicsAnnotationConfidence.pathwayInterpretation).toContain('hypothesis-generating');
+  expect(analysisJson.metabolomicsAnnotationConfidence.exactPathwayMappingSuppressed).toBe(true);
+  expect(analysisJson.reactome.metabolomicsConfidenceSuppressed).toBe(true);
+  expect(analysisJson.reactome.combined).toBeNull();
+  expect(analysisJson.reactome.consensus).toEqual([]);
 
   const manifest = page.getByTestId('multiomics-methods-manifest');
   await expect(manifest).toBeVisible();
