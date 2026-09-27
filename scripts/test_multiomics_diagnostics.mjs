@@ -64,7 +64,7 @@ const result = await runDeterministicAnalysis({
 });
 
 assert.ok(result.preAnalysisDiagnostics);
-assert.equal(result.engine.version, '1.5.1');
+assert.equal(result.engine.version, '1.6.0');
 assert.equal(result.preAnalysisDiagnostics.groupBalance.subjectsPerGroup.A, 3);
 assert.equal(result.preAnalysisDiagnostics.groupBalance.subjectsPerGroup.B, 3);
 assert.equal(result.preAnalysisDiagnostics.groupBalance.smallestToLargestRatio, 1);
@@ -73,7 +73,20 @@ assert.equal(result.preAnalysisDiagnostics.omicsOverlap.subjectsInEveryLoadedLay
 assert.equal(result.preAnalysisDiagnostics.omicsOverlap.fractionInEveryLoadedLayer, 1);
 assert.equal(result.preAnalysisDiagnostics.power.status, 'not_calculated');
 assert.match(result.preAnalysisDiagnostics.power.note, /effect size/i);
-assert.deepEqual(result.preAnalysisDiagnostics.warnings, []);
+
+// Small independent groups remain analysable but cannot be presented as a
+// high-confidence confirmatory experiment simply because a p/q value exists.
+assert.equal(result.preAnalysisDiagnostics.blockers.length, 0);
+assert.ok(result.preAnalysisDiagnostics.warnings.some((item) => /fewer than five independent subjects/i.test(item)));
+assert.equal(result.preAnalysisDiagnostics.status, 'review_required');
+
+// Advanced methods are eligibility-gated independently of whether their R
+// package happens to be installed on the machine.
+assert.equal(result.preAnalysisDiagnostics.methodEligibility.mofa2.status, 'not_recommended');
+assert.match(result.preAnalysisDiagnostics.methodEligibility.mofa2.reasons.join(' '), /more than 15 shared samples/i);
+assert.equal(result.preAnalysisDiagnostics.methodEligibility.diablo.status, 'eligible_with_internal_cv');
+assert.equal(result.preAnalysisDiagnostics.methodEligibility.diablo.smallestClass, 3);
+assert.match(result.preAnalysisDiagnostics.methodEligibility.diablo.interpretation, /external validation/i);
 assert.equal(result.metadataSummary.preAnalysisDiagnostics.status, result.preAnalysisDiagnostics.status);
 
 console.log('multiomics pre-analysis diagnostics: PASS');
