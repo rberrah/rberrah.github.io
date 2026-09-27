@@ -10,7 +10,7 @@ test('multi-omics design choices are translated into licence-level explanations'
   await expect(guide).toContainText('Unités indépendantes');
   await expect(guide).toContainText('un réplicat technique n’est pas un nouveau sujet biologique');
 
-  await page.getByLabel(/Structure du design|Design structure/).selectOption('repeated');
+  await page.locator('#study-design').selectOption('repeated');
   await expect(guide).toContainText('Mesures répétées');
   await expect(guide).toContainText('Le même sujet est mesuré plusieurs fois');
 
