@@ -8,6 +8,9 @@ import {
   normalQuantile, sampleSizeTwoMeans, sampleSizePairedMeans,
   sampleSizeTwoProportions, sampleSizeCorrelation
 } from '../portal/stats/power-engine.js';
+import {
+  holmAdjust, effectSizes2x2, pairwiseWelchHolm, pairwiseMannWhitneyHolm
+} from '../portal/stats/advanced-engine.js';
 
 const near = (actual, expected, tolerance, label) => {
   assert.ok(Number.isFinite(actual), `${label}: expected a finite number, got ${actual}`);
@@ -65,6 +68,35 @@ near(wa.p, 0.00014546223071036424, 2e-8, 'Welch ANOVA p-value');
 const kw = kruskalWallis(groups);
 near(kw.H, 9.846153846153847, 1e-10, 'Kruskal-Wallis H');
 near(kw.p, 0.007276706499332492, 2e-8, 'Kruskal-Wallis p-value');
+
+const holm = holmAdjust([0.01,0.04,0.03]);
+near(holm[0],0.03,1e-15,'Holm p1');
+near(holm[1],0.06,1e-15,'Holm p2');
+near(holm[2],0.06,1e-15,'Holm p3');
+const posthoc = pairwiseWelchHolm(groups);
+assert.equal(posthoc.length,3);
+posthoc.forEach(r=>{assert.ok(r.pAdjusted>=r.pRaw-1e-15);assert.ok(Number.isFinite(r.estimate));assert.equal(r.method,'welch_holm');});
+const rankPosthoc = pairwiseMannWhitneyHolm(groups);
+assert.equal(rankPosthoc.length,3);
+rankPosthoc.forEach(r=>{assert.ok(r.pAdjusted>=r.pRaw-1e-15);assert.ok(Number.isFinite(r.cliffsDelta));assert.equal(r.method,'mann_whitney_holm');});
+
+const effects = effectSizes2x2([[4,2],[2,4]]);
+near(effects.riskDifference,1/3,1e-14,'Risk difference');
+near(effects.riskDifferenceCI[0],-0.1852210933587502,1e-8,'Risk difference CI lower');
+near(effects.riskDifferenceCI[1],0.667882412088588,1e-8,'Risk difference CI upper');
+near(effects.riskRatio,2,1e-14,'Risk ratio');
+near(effects.riskRatioCI[0],0.564393186424715,1e-8,'Risk ratio CI lower');
+near(effects.riskRatioCI[1],7.087257777399769,1e-8,'Risk ratio CI upper');
+near(effects.oddsRatio,4,1e-14,'Odds ratio');
+near(effects.oddsRatioCI[0],0.3627064400261749,1e-8,'Odds ratio CI lower');
+near(effects.oddsRatioCI[1],44.11280924277315,1e-7,'Odds ratio CI upper');
+assert.equal(effects.corrected,false);
+const zeroEffects = effectSizes2x2([[0,10],[5,5]]);
+assert.equal(zeroEffects.corrected,true);
+assert.equal(zeroEffects.correction,'haldane_anscombe_0.5');
+assert.ok(Number.isFinite(zeroEffects.riskRatio));
+assert.ok(Number.isFinite(zeroEffects.oddsRatio));
+assert.ok(zeroEffects.riskDifferenceCI.every(Number.isFinite));
 
 const x = [1,2,3,4,5,6,7,8,9,10];
 const y = [2.2,2.8,4.1,4.8,6.2,6.5,8.1,8.6,10.1,10.7];
@@ -125,4 +157,4 @@ assert.equal(planProps.basePerGroup,97);assert.equal(planProps.perGroup,108);ass
 const planCorr=sampleSizeCorrelation({r:0.3,alpha:0.05,power:0.8,dropout:0.1});
 assert.equal(planCorr.baseTotal,85);assert.equal(planCorr.total,95);
 
-console.log('Stats engine: exact inference and study-planning reference vectors PASS');
+console.log('Stats engine: exact inference, effect sizes, Holm post-hoc and study-planning reference vectors PASS');
