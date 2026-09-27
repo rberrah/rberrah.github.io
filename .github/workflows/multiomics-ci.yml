@@ -1,0 +1,76 @@
+name: Multi-omics scientific CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/lib/multiomics/**'
+      - 'src/routes/multiomics/**'
+      - 'multiomics-engine/**'
+      - 'static/multiomics/**'
+      - 'scripts/test_multiomics*.mjs'
+      - 'scripts/benchmark_public_multiomics.mjs'
+      - 'tests/e2e/multiomics*.spec.js'
+      - 'playwright.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/multiomics-ci.yml'
+  workflow_dispatch:
+
+# This workflow is intentionally isolated from the GitHub Pages deployment.
+# Unrelated portal/stats pushes must not cancel a scientific multi-omics check.
+concurrency:
+  group: multiomics-scientific-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  javascript-core:
+    name: Deterministic JS engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test deterministic multi-omics engine, identifiers and diagnostics
+        run: npm run test:multiomics
+
+  r-reference-backend:
+    name: Reference R backend contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Parse reference R adapters
+        run: |
+          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
+      - name: Test package-independent backend routing and guardrails
+        run: Rscript multiomics-engine/tests/backend_smoke.R
+
+  browser-contract:
+    name: Multi-omics browser contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check Svelte contracts
+        run: npm run check
+      - name: Build static application
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test only multi-omics browser specifications
+        env:
+          LABS_E2E_PREBUILT: 'true'
+        run: npx playwright test tests/e2e/multiomics*.spec.js
