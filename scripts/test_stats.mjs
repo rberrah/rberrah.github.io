@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {
-  welchT, mannWhitney, pairedT, welchAnova, kruskalWallis,
+  welchT, mannWhitney, pairedT, wilcoxonSignedRank, welchAnova, kruskalWallis,
   pearson, spearman, linearRegression, fisherExact2x2, describe,
   oneSampleT, mcnemar, logRank
 } from '../portal/stats/engine.js';
@@ -19,13 +19,36 @@ near(welch.df, 9.220994292149227, 1e-9, 'Welch df');
 
 const mw = mannWhitney(control, treatment);
 near(mw.U, 0, 1e-12, 'Mann-Whitney U');
-near(mw.p, 0.005074868097940253, 5e-5, 'Mann-Whitney asymptotic p-value');
+near(mw.p, 0.0021645021645021645, 1e-14, 'Mann-Whitney exact p-value');
+assert.equal(mw.exact, true);
+assert.equal(mw.inference, 'exact');
+
+const mwSmall = mannWhitney([1,2,3],[4,5,6]);
+near(mwSmall.U, 0, 1e-12, 'Small-sample Mann-Whitney U');
+near(mwSmall.p, 0.1, 1e-14, 'Small-sample Mann-Whitney exact p-value');
+assert.equal(mwSmall.exact, true);
+
+const mwTied = mannWhitney([1,2,2],[3,4,5]);
+assert.equal(mwTied.exact, false);
+assert.equal(mwTied.inference, 'asymptotic');
+assert.ok(Number.isFinite(mwTied.p));
 
 const before = [18.2, 16.9, 20.1, 17.5, 19.3, 15.8, 21.0, 18.7];
 const after = [15.1, 15.7, 17.4, 16.2, 16.8, 14.9, 18.3, 16.5];
 const paired = pairedT(before, after);
 near(paired.t, 7.106003655931736, 1e-9, 'Paired t statistic');
 near(paired.p, 0.0001926439879564317, 2e-8, 'Paired p-value');
+
+const wilcoxonExact = wilcoxonSignedRank([1,2,3,4],[0,0,0,0]);
+near(wilcoxonExact.Wplus, 10, 1e-12, 'Wilcoxon W+');
+near(wilcoxonExact.p, 0.125, 1e-14, 'Wilcoxon exact p-value');
+assert.equal(wilcoxonExact.exact, true);
+assert.equal(wilcoxonExact.inference, 'exact');
+
+const wilcoxonTied = wilcoxonSignedRank([1,2,2,4],[0,0,0,0]);
+assert.equal(wilcoxonTied.exact, false);
+assert.equal(wilcoxonTied.inference, 'asymptotic');
+assert.ok(Number.isFinite(wilcoxonTied.p));
 
 const groups = [
   { name: 'A', values: [10.1, 11.2, 9.8, 10.7] },
@@ -87,4 +110,4 @@ near(logrank.x2, 0.6006314054675235, 1e-12, 'Log-rank chi-square');
 near(logrank.p, 0.43833721765635236, 2e-8, 'Log-rank p-value');
 assert.equal(logrank.events, 8);
 
-console.log('Stats engine: extended reference vectors PASS');
+console.log('Stats engine: exact/asymptotic reference vectors PASS');
