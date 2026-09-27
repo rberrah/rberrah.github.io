@@ -4,88 +4,116 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stats | Racym Berrah</title>
-  <meta name="description" content="Outil statistique guidé, déterministe et pédagogique pour choisir, calculer et interpréter les tests statistiques courants.">
+  <meta name="description" content="Outil statistique guidé, bilingue et local : choisir un test, analyser des données et interpréter effets, intervalles de confiance et p-values.">
   <meta name="author" content="Racym Berrah">
   <link rel="canonical" href="__SITE_ORIGIN__/stats/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Stats | Racym Berrah">
+  <meta property="og:description" content="Guided statistical testing with modern UI, explicit rules and local browser computation.">
+  <meta property="og:url" content="__SITE_ORIGIN__/stats/">
   <link rel="stylesheet" href="/assets/site.css">
   <link rel="stylesheet" href="/stats/stats.css">
   <script src="/assets/site.js"></script>
+  <script type="module" src="/stats/ui.js"></script>
 </head>
-<body>
-<a class="skip" href="#main">Aller au contenu</a>
-<header class="site-header">
-  <nav class="wrap navigation" aria-label="Navigation principale">
-    <a class="nav-name" href="/">Racym Berrah</a>
-    <div class="nav-links">
-      <a href="/#pharmacometrics">Pharmacométrie</a>
-      <a href="/tools/">Outils &amp; projets</a>
-      <a href="/publications/">Publications &amp; présentations</a>
-      <a href="/a-propos/">À propos</a>
-    </div>
-  </nav>
+<body class="stats-shell" data-stats-page="landing">
+<a class="skip" href="#main" data-fr="Aller au contenu" data-en="Skip to content">Aller au contenu</a>
+<header class="stats-topbar">
+  <div class="wrap">
+    <a class="stats-brand" href="/stats/"><span class="stats-mark">Σ</span><span>Stats</span></a>
+    <nav class="stats-nav" aria-label="Navigation">
+      <a href="/" data-fr="Accueil" data-en="Home">Accueil</a>
+      <a href="/tools/" data-fr="Outils & projets" data-en="Tools & projects">Outils & projets</a>
+      <a href="#methods" data-fr="Méthodes" data-en="Methods">Méthodes</a>
+      <button class="lang-button" type="button" data-lang-toggle>English</button>
+    </nav>
+  </div>
 </header>
 <main id="main" tabindex="-1">
-  <section class="wrap stats-hero">
-    <p class="eyebrow">Analyse statistique · sans LLM</p>
-    <h1>Choisir le bon test, comprendre le résultat.</h1>
-    <p class="lede">Un outil statistique guidé, dans l’esprit de BiostaTGV mais conçu autour de la question scientifique plutôt que du nom du test. Vous décrivez vos données ; l’outil propose une méthode explicite, calcule le résultat dans le navigateur et explique ce qu’il signifie.</p>
-    <div class="links hero-actions">
-      <a class="btn primary" href="/stats/tool/">Ouvrir l’outil <span aria-hidden="true">→</span></a>
-      <a class="btn" href="#methods">Voir les analyses disponibles</a>
-    </div>
-    <div class="stats-pill-row" aria-label="Principes de l'outil">
-      <span>Calcul local</span><span>FR / EN</span><span>Règles déterministes</span><span>Effets + IC95 %</span><span>Aide contextuelle</span>
+  <section class="stats-hero">
+    <div class="wrap stats-hero-grid">
+      <div>
+        <span class="stats-badge" data-fr="Tests statistiques · calcul local · FR/EN" data-en="Statistical tests · local computation · FR/EN">Tests statistiques · calcul local · FR/EN</span>
+        <h1 data-fr="Les statistiques sans boîte noire." data-en="Statistics without the black box.">Les statistiques sans boîte noire.</h1>
+        <p class="lede" data-fr="Décrivez votre question, associez vos colonnes et obtenez le test adapté avec taille d’effet, intervalle de confiance, p-value, hypothèses et interprétation en langage clair. Aucun LLM ne choisit la méthode." data-en="Describe your question, map your columns and obtain an appropriate test with effect size, confidence interval, p-value, assumptions and plain-language interpretation. No LLM chooses the method.">Décrivez votre question, associez vos colonnes et obtenez le test adapté avec taille d’effet, intervalle de confiance, p-value, hypothèses et interprétation en langage clair. Aucun LLM ne choisit la méthode.</p>
+        <div class="stats-actions">
+          <a class="btn primary" href="/stats/tool/" data-fr="Ouvrir l’outil →" data-en="Open the tool →">Ouvrir l’outil →</a>
+          <a class="btn" href="#workflow" data-fr="Comprendre la démarche" data-en="See the workflow">Comprendre la démarche</a>
+        </div>
+      </div>
+      <aside class="stats-summary-card">
+        <strong data-fr="Ce que l’outil ajoute à un calculateur classique" data-en="What this adds beyond a classic calculator">Ce que l’outil ajoute à un calculateur classique</strong>
+        <ul>
+          <li data-fr="Choix guidé par le plan d’étude, pas seulement par le nom du test." data-en="Guidance from the study design, not only the test name.">Choix guidé par le plan d’étude, pas seulement par le nom du test.</li>
+          <li data-fr="Welch utilisé par défaut pour deux groupes continus : pas d’hypothèse artificielle de variances égales." data-en="Welch by default for two continuous groups: no unnecessary equal-variance assumption.">Welch utilisé par défaut pour deux groupes continus : pas d’hypothèse artificielle de variances égales.</li>
+          <li data-fr="Effets et IC95 % affichés avant l’interprétation de la p-value." data-en="Effects and 95% CIs shown before p-value interpretation.">Effets et IC95 % affichés avant l’interprétation de la p-value.</li>
+          <li data-fr="Données analysées dans le navigateur, sans envoi au serveur." data-en="Data analyzed in the browser, without server upload.">Données analysées dans le navigateur, sans envoi au serveur.</li>
+        </ul>
+      </aside>
     </div>
   </section>
 
-  <section class="stats-band feature">
+  <section class="stats-band" id="workflow">
     <div class="wrap">
-      <div class="section-head">
-        <div><p class="eyebrow">Principe</p><h2>On part de la question, pas du jargon statistique.</h2></div>
-        <p class="lede">L’interface vous pose quelques questions fermées sur le type de variable, le nombre de groupes et le caractère indépendant ou apparié des observations.</p>
+      <div class="stats-section-head">
+        <div><p class="eyebrow" data-fr="Démarche" data-en="Workflow">Démarche</p><h2 data-fr="Partir de la question, pas du menu des tests" data-en="Start from the question, not the test menu">Partir de la question, pas du menu des tests</h2></div>
+        <p data-fr="L’interface traduit les questions statistiques en choix simples. Le nom exact de la méthode reste visible pour la reproductibilité." data-en="The interface translates statistical decisions into simple questions. The exact method name remains visible for reproducibility.">L’interface traduit les questions statistiques en choix simples. Le nom exact de la méthode reste visible pour la reproductibilité.</p>
       </div>
-      <div class="stats-steps">
-        <article><span>1</span><h3>Que voulez-vous savoir ?</h3><p>Comparer, rechercher une association, étudier une corrélation ou ajuster une régression.</p></article>
-        <article><span>2</span><h3>Comment vos données sont-elles organisées ?</h3><p>Variable quantitative ou catégorielle, groupes indépendants, mêmes sujets, plusieurs groupes.</p></article>
-        <article><span>3</span><h3>Le test est proposé avec sa logique.</h3><p>Pourquoi cette méthode, quelles hypothèses elle suppose, et quelles alternatives sont possibles.</p></article>
-        <article><span>4</span><h3>Le résultat est interprété.</h3><p>Estimation, taille d’effet, intervalle de confiance, p-value, limites et phrase de synthèse.</p></article>
+      <div class="stats-grid">
+        <article class="stats-card"><span class="num">01</span><h3 data-fr="Quelle question ?" data-en="What question?">Quelle question ?</h3><p data-fr="Comparer deux groupes, un avant/après, plusieurs groupes, deux proportions, une association ou une survie." data-en="Compare two groups, before/after, several groups, two proportions, an association or survival.">Comparer deux groupes, un avant/après, plusieurs groupes, deux proportions, une association ou une survie.</p></article>
+        <article class="stats-card"><span class="num">02</span><h3 data-fr="Comment sont organisées les données ?" data-en="How are the data organized?">Comment sont organisées les données ?</h3><p data-fr="Collez un tableau CSV, TSV ou séparé par point-virgule, puis indiquez quelles colonnes représentent le groupe, la réponse ou le temps." data-en="Paste CSV, TSV or semicolon-separated data, then identify the group, outcome or time columns.">Collez un tableau CSV, TSV ou séparé par point-virgule, puis indiquez quelles colonnes représentent le groupe, la réponse ou le temps.</p></article>
+        <article class="stats-card"><span class="num">03</span><h3 data-fr="Quelle méthode ?" data-en="Which method?">Quelle méthode ?</h3><p data-fr="Des règles déterministes sélectionnent la méthode. Pour les données continues, les tests de rang sont présentés comme sensibilité plutôt que choisis après un test de normalité." data-en="Deterministic rules select the method. For continuous data, rank-based tests are shown as sensitivity analyses rather than selected after a normality test.">Des règles déterministes sélectionnent la méthode. Pour les données continues, les tests de rang sont présentés comme sensibilité plutôt que choisis après un test de normalité.</p></article>
+        <article class="stats-card"><span class="num">04</span><h3 data-fr="Comment lire le résultat ?" data-en="How should the result be read?">Comment lire le résultat ?</h3><p data-fr="Taille d’effet, incertitude, p-value, conditions et limites sont séparées pour éviter le raccourci « p&lt;0,05 = important »." data-en="Effect size, uncertainty, p-value, assumptions and limitations are separated to avoid equating “p&lt;0.05” with importance.">Taille d’effet, incertitude, p-value, conditions et limites sont séparées pour éviter le raccourci « p&lt;0,05 = important ».</p></article>
       </div>
     </div>
   </section>
 
-  <section class="wrap stats-band" id="methods">
-    <div class="section-head"><div><p class="eyebrow">Analyses disponibles</p><h2>Une première base centrée sur les situations les plus fréquentes.</h2></div></div>
-    <div class="method-grid">
-      <article><h3>Deux groupes indépendants</h3><p>Test t de Welch, test de Mann–Whitney, différence moyenne, IC95 %, Cohen d / Hedges g.</p></article>
-      <article><h3>Deux mesures appariées</h3><p>Test t apparié, Wilcoxon signé-rang, différence moyenne ou médiane des différences.</p></article>
-      <article><h3>Trois groupes ou plus</h3><p>ANOVA à un facteur, Kruskal–Wallis, mesure globale d’effet.</p></article>
-      <article><h3>Deux variables catégorielles</h3><p>Chi-deux d’indépendance, Fisher exact pour tableaux 2×2, odds ratio et risque relatif.</p></article>
-      <article><h3>Corrélation</h3><p>Pearson ou Spearman, coefficient, IC95 % lorsqu’il est défini et test de nullité.</p></article>
-      <article><h3>Régression linéaire simple</h3><p>Pente, intercept, R², IC95 % de la pente et test associé.</p></article>
+  <section class="stats-band" id="methods">
+    <div class="wrap">
+      <div class="stats-section-head">
+        <div><p class="eyebrow" data-fr="Version 1" data-en="Version 1">Version 1</p><h2 data-fr="Méthodes disponibles" data-en="Available methods">Méthodes disponibles</h2></div>
+        <p data-fr="Le premier objectif est de couvrir proprement les analyses courantes de BiostaTGV, avec une présentation moderne et une interprétation plus complète." data-en="The first goal is to cover common BiostaTGV-style analyses cleanly, with a modern interface and more complete interpretation.">Le premier objectif est de couvrir proprement les analyses courantes de BiostaTGV, avec une présentation moderne et une interprétation plus complète.</p>
+      </div>
+      <div class="method-table-wrap">
+        <table class="method-table">
+          <thead><tr><th data-fr="Question" data-en="Question">Question</th><th data-fr="Méthode principale" data-en="Primary method">Méthode principale</th><th data-fr="Complément" data-en="Complement">Complément</th><th data-fr="Sorties" data-en="Outputs">Sorties</th></tr></thead>
+          <tbody>
+            <tr><td data-fr="Décrire une variable quantitative" data-en="Describe a numeric variable">Décrire une variable quantitative</td><td><strong data-fr="Statistiques descriptives" data-en="Descriptive statistics">Statistiques descriptives</strong></td><td data-fr="Médiane + IQR" data-en="Median + IQR">Médiane + IQR</td><td data-fr="n, moyenne, SD, médiane, IQR, IC95 %" data-en="n, mean, SD, median, IQR, 95% CI">n, moyenne, SD, médiane, IQR, IC95 %</td></tr>
+            <tr><td data-fr="Moyenne vs valeur de référence" data-en="Mean vs reference value">Moyenne vs valeur de référence</td><td><strong data-fr="t à un échantillon" data-en="One-sample t">t à un échantillon</strong></td><td>—</td><td data-fr="Différence, IC95 %, p" data-en="Difference, 95% CI, p">Différence, IC95 %, p</td></tr>
+            <tr><td data-fr="Deux groupes indépendants" data-en="Two independent groups">Deux groupes indépendants</td><td><strong>Welch t</strong></td><td>Mann–Whitney</td><td data-fr="Différence de moyennes, IC95 %, Hedges g, p" data-en="Mean difference, 95% CI, Hedges g, p">Différence de moyennes, IC95 %, Hedges g, p</td></tr>
+            <tr><td data-fr="Deux mesures appariées" data-en="Two paired measurements">Deux mesures appariées</td><td><strong data-fr="t apparié" data-en="Paired t">t apparié</strong></td><td>Wilcoxon signed-rank</td><td data-fr="Différence, IC95 %, dz, p" data-en="Difference, 95% CI, dz, p">Différence, IC95 %, dz, p</td></tr>
+            <tr><td data-fr="Plus de deux groupes" data-en="More than two groups">Plus de deux groupes</td><td><strong>Welch ANOVA</strong></td><td>Kruskal–Wallis</td><td data-fr="F/H, η², p" data-en="F/H, η², p">F/H, η², p</td></tr>
+            <tr><td data-fr="Deux variables catégorielles" data-en="Two categorical variables">Deux variables catégorielles</td><td><strong data-fr="χ² ou Fisher exact" data-en="χ² or Fisher exact">χ² ou Fisher exact</strong></td><td data-fr="Choix automatique selon effectifs" data-en="Automatic based on expected counts">Choix automatique selon effectifs</td><td data-fr="V de Cramér / odds ratio, p" data-en="Cramér's V / odds ratio, p">V de Cramér / odds ratio, p</td></tr>
+            <tr><td data-fr="Binaire apparié" data-en="Paired binary">Binaire apparié</td><td><strong>McNemar</strong></td><td data-fr="Version exacte si peu de discordants" data-en="Exact version with few discordant pairs">Version exacte si peu de discordants</td><td>p, b/c</td></tr>
+            <tr><td data-fr="Association quantitative" data-en="Numeric association">Association quantitative</td><td><strong>Pearson + linear regression</strong></td><td>Spearman</td><td data-fr="r/ρ, pente, IC95 %, R², p" data-en="r/ρ, slope, 95% CI, R², p">r/ρ, pente, IC95 %, R², p</td></tr>
+            <tr><td data-fr="Temps jusqu’à événement" data-en="Time to event">Temps jusqu’à événement</td><td><strong>Log-rank</strong></td><td data-fr="2 groupes dans cette version" data-en="2 groups in this version">2 groupes dans cette version</td><td>χ², p</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <p class="note">Les analyses avancées (survie, régression logistique multivariée, modèles mixtes, mesures répétées complexes, puissance / taille d’échantillon) sont prévues pour les itérations suivantes.</p>
   </section>
 
-  <section class="stats-band feature">
-    <div class="wrap stats-split">
-      <div><p class="eyebrow">Pédagogie</p><h2>Chaque terme technique reste disponible, sans prendre toute la place.</h2><p>Dans l’outil, les libellés sont formulés en langage courant. Les notions comme <em>p-value</em>, IC95 %, test paramétrique, variance, taille d’effet ou hypothèse nulle sont expliquées dans des bulles <strong>?</strong> accessibles au survol, au clic et au clavier.</p></div>
-      <div class="mini-result" aria-hidden="true"><small>Exemple de résultat</small><strong>Différence moyenne : +4,8</strong><span>IC95 % : +1,2 à +8,4</span><span>p = 0,009</span><p>Les données sont compatibles avec une différence positive entre les deux groupes. L’amplitude estimée est de 4,8 unités.</p></div>
+  <section class="stats-band">
+    <div class="wrap">
+      <div class="stats-section-head">
+        <div><p class="eyebrow" data-fr="Principes" data-en="Principles">Principes</p><h2 data-fr="Une aide pédagogique, pas une décision automatique opaque" data-en="A teaching aid, not opaque automatic decision-making">Une aide pédagogique, pas une décision automatique opaque</h2></div>
+      </div>
+      <div class="principles">
+        <article><h3 data-fr="Pas de LLM" data-en="No LLM">Pas de LLM</h3><p data-fr="Les calculs et le routage suivent des règles codées explicitement." data-en="Calculations and routing follow explicitly coded rules.">Les calculs et le routage suivent des règles codées explicitement.</p></article>
+        <article><h3 data-fr="Pas de “test de normalité = interrupteur”" data-en="No “normality-test switch”">Pas de “test de normalité = interrupteur”</h3><p data-fr="Un Shapiro-Wilk automatique ne décide pas si vos données deviennent paramétriques ou non. Le plan d’étude et la question restent prioritaires." data-en="An automatic Shapiro–Wilk test does not decide whether your data become parametric or non-parametric. Study design and estimand come first.">Un Shapiro-Wilk automatique ne décide pas si vos données deviennent paramétriques ou non. Le plan d’étude et la question restent prioritaires.</p></article>
+        <article><h3 data-fr="Effet avant seuil" data-en="Effect before threshold">Effet avant seuil</h3><p data-fr="La p-value est accompagnée d’une mesure d’effet et, lorsque calculable, d’un IC95 %." data-en="The p-value is accompanied by an effect estimate and, when available, a 95% CI.">La p-value est accompagnée d’une mesure d’effet et, lorsque calculable, d’un IC95 %.</p></article>
+        <article><h3 data-fr="Local par défaut" data-en="Local by default">Local par défaut</h3><p data-fr="Les tableaux sont parsés et analysés dans le navigateur. Aucun fichier n’est envoyé à une API." data-en="Tables are parsed and analyzed in the browser. No file is sent to an API.">Les tableaux sont parsés et analysés dans le navigateur. Aucun fichier n’est envoyé à une API.</p></article>
+      </div>
+      <div class="callout" style="margin-top:2rem">
+        <strong data-fr="Important" data-en="Important">Important</strong>
+        <p data-fr="L’outil aide à réaliser et comprendre des analyses statistiques courantes. Il ne remplace pas une analyse statistique planifiée pour une étude confirmatoire, un protocole réglementaire ou un modèle complexe avec covariables, données longitudinales avancées ou multiplicité." data-en="The tool helps perform and understand common statistical analyses. It does not replace a pre-specified statistical analysis for confirmatory studies, regulatory protocols or complex models with covariates, advanced longitudinal data or multiplicity.">L’outil aide à réaliser et comprendre des analyses statistiques courantes. Il ne remplace pas une analyse statistique planifiée pour une étude confirmatoire, un protocole réglementaire ou un modèle complexe avec covariables, données longitudinales avancées ou multiplicité.</p>
+      </div>
     </div>
-  </section>
-
-  <section class="wrap stats-band">
-    <div class="section-head"><div><p class="eyebrow">Confidentialité et reproductibilité</p><h2>Les données restent dans votre navigateur.</h2></div></div>
-    <div class="method-grid compact">
-      <article><h3>Aucun envoi de données</h3><p>Les calculs de cette version sont effectués côté navigateur. Les valeurs saisies ou importées ne sont pas envoyées à un serveur statistique.</p></article>
-      <article><h3>Pas de choix par IA</h3><p>La recommandation suit des règles statistiques prédéfinies et affichables. Un LLM ne sélectionne pas le test.</p></article>
-      <article><h3>Résultat traçable</h3><p>La méthode, les effectifs et les statistiques principales sont affichés pour permettre une vérification dans R, Python, SAS ou autre logiciel.</p></article>
-    </div>
-    <div class="links closing-actions"><a class="btn primary" href="/stats/tool/">Commencer une analyse <span aria-hidden="true">→</span></a><a href="/tools/">Retour aux outils</a></div>
   </section>
 </main>
 <footer class="site">
-  <div class="wrap footer-top"><div><a class="nav-name" href="/">Racym Berrah</a><p>Pharmacologie quantitative, pharmacométrie &amp; IA.</p></div><nav class="footer-links" aria-label="Navigation de pied de page"><a href="https://github.com/rberrah">GitHub</a><a href="/contact/">Contact</a><a href="/citer/">Citation &amp; réutilisation</a><a href="/pharmacometrie/confidentialite/">Confidentialité</a></nav></div>
-  <div class="wrap footer-bottom"><p>Texte : <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>. Code : <a href="https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE">MIT</a>.</p><p>Recherche et enseignement. Ne remplace pas une expertise statistique pour les analyses à fort enjeu.</p></div>
+  <div class="wrap footer-top"><div><a class="nav-name" href="/">Racym Berrah</a><p>Quantitative pharmacology, pharmacometrics &amp; AI.</p></div><nav class="footer-links"><a href="/tools/">Tools &amp; Projects</a><a href="https://github.com/rberrah">GitHub</a><a href="/contact/">Contact</a><a href="/citer/">Citation &amp; reuse</a></nav></div>
+  <div class="wrap footer-bottom"><p>Text: <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>. Code: <a href="https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE">MIT</a>.</p><p data-fr="Recherche et enseignement. Pas un dispositif médical." data-en="Research and education. Not a medical device.">Recherche et enseignement. Pas un dispositif médical.</p><label class="theme-control" hidden>Appearance <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div>
 </footer>
 </body>
 </html>
