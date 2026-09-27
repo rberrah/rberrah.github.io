@@ -8,7 +8,7 @@ const BASE_URL = process.env.LABS_E2E_URL || `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
-  testIgnore: '**/portal.spec.js', // Separate root/app mounts: playwright.portal.config.js.
+  testIgnore: ['**/portal.spec.js', '**/stats-portal.spec.js'], // Separate root/app mounts: playwright.portal.config.js.
   timeout: 30_000,
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
