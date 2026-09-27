@@ -1,4 +1,4 @@
-import { mannWhitney, welchT } from './engine.js';
+import { mannWhitney, welchT, wilcoxonSignedRank, chiSquareSF } from './engine.js';
 import { normalQuantile } from './power-engine.js';
 
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
@@ -101,4 +101,110 @@ export function pairwiseMannWhitneyHolm(groups, alpha=0.05) {
   }
   const adjusted=holmAdjust(rows.map(r=>r.pRaw));
   return rows.map((r,i)=>({...r,pAdjusted:adjusted[i],significant:adjusted[i]<alpha,method:'mann_whitney_holm'}));
+}
+
+function averageRanksWithTies(values) {
+  const indexed=values.map((value,index)=>({value,index})).sort((a,b)=>a.value-b.value);
+  const ranks=Array(values.length).fill(NaN);
+  const ties=[];
+  let i=0;
+  while(i<indexed.length){
+    let j=i+1;
+    while(j<indexed.length && indexed[j].value===indexed[i].value) j++;
+    const avg=(i+1+j)/2;
+    for(let m=i;m<j;m++) ranks[indexed[m].index]=avg;
+    if(j-i>1) ties.push(j-i);
+    i=j;
+  }
+  return {ranks,ties};
+}
+
+function prepareRepeated(rows, subjectKey, conditionKey, valueKey) {
+  const conditions=[];
+  const conditionSeen=new Set();
+  const subjects=[];
+  const subjectSeen=new Set();
+  const matrix=new Map();
+  for(const row of rows||[]){
+    const subject=String(row?.[subjectKey]??'').trim();
+    const condition=String(row?.[conditionKey]??'').trim();
+    if(!subject||!condition) continue;
+    if(!conditionSeen.has(condition)){conditionSeen.add(condition);conditions.push(condition);}
+    if(!subjectSeen.has(subject)){subjectSeen.add(subject);subjects.push(subject);matrix.set(subject,new Map());}
+    const value=Number(row?.[valueKey]);
+    if(!Number.isFinite(value)) continue;
+    const subjectMap=matrix.get(subject);
+    if(subjectMap.has(condition)) throw new Error('DUPLICATE_REPEATED_CELL');
+    subjectMap.set(condition,value);
+  }
+  if(conditions.length<3) throw new Error('CONDITIONS_TOO_FEW');
+  const completeSubjects=subjects.filter(subject=>conditions.every(condition=>matrix.get(subject)?.has(condition)));
+  if(completeSubjects.length<2) throw new Error('N_TOO_SMALL');
+  return {
+    conditions,subjects,completeSubjects,matrix,
+    excludedSubjects:subjects.length-completeSubjects.length
+  };
+}
+
+/**
+ * Friedman rank test for a complete repeated-measures/block design stored in
+ * long format (subject, condition, value). Incomplete subjects are excluded
+ * from the global test so every condition is evaluated on the same blocks.
+ * Ties are assigned average within-subject ranks and the chi-square statistic
+ * is corrected for within-block ties. Kendall's W is Q / [n(k-1)].
+ */
+export function friedmanLong(rows, subjectKey, conditionKey, valueKey) {
+  const prepared=prepareRepeated(rows,subjectKey,conditionKey,valueKey);
+  const {conditions,subjects,completeSubjects,matrix,excludedSubjects}=prepared;
+  const n=completeSubjects.length,k=conditions.length;
+  const rankSums=Array(k).fill(0);
+  let tieTerm=0;
+  for(const subject of completeSubjects){
+    const vals=conditions.map(condition=>matrix.get(subject).get(condition));
+    const rr=averageRanksWithTies(vals);
+    rr.ranks.forEach((rank,j)=>rankSums[j]+=rank);
+    tieTerm+=rr.ties.reduce((sum,t)=>sum+t**3-t,0);
+  }
+  const qRaw=12/(n*k*(k+1))*rankSums.reduce((sum,r)=>sum+r*r,0)-3*n*(k+1);
+  const denominator=n*k*(k*k-1);
+  const tieCorrection=denominator>0 ? 1-tieTerm/denominator : 1;
+  const Q=tieCorrection>1e-12 ? Math.max(0,qRaw/tieCorrection) : 0;
+  const df=k-1;
+  const p=tieCorrection>1e-12 ? chiSquareSF(Q,df) : 1;
+  const kendallW=clamp(n>0&&df>0?Q/(n*df):0,0,1);
+  return {
+    test:'friedman',n,k,Q,qRaw,df,p,kendallW,tieCorrection,
+    rankSums,conditions,totalSubjects:subjects.length,excludedSubjects,
+    completeSubjects
+  };
+}
+
+export function pairwisePairedWilcoxonHolm(rows, subjectKey, conditionKey, valueKey, alpha=0.05) {
+  const prepared=prepareRepeated(rows,subjectKey,conditionKey,valueKey);
+  const {conditions,completeSubjects,matrix,excludedSubjects}=prepared;
+  const comparisons=[];
+  for(let i=0;i<conditions.length-1;i++){
+    for(let j=i+1;j<conditions.length;j++){
+      const a=completeSubjects.map(subject=>matrix.get(subject).get(conditions[i]));
+      const b=completeSubjects.map(subject=>matrix.get(subject).get(conditions[j]));
+      let r;
+      try{
+        r=wilcoxonSignedRank(a,b);
+      }catch(error){
+        if(String(error?.message||error).includes('N_TOO_SMALL')){
+          const allEqual=a.every((v,idx)=>Math.abs(v-b[idx])<=1e-12);
+          if(!allEqual) throw error;
+          r={Wplus:0,p:1,median_difference:0,rank_biserial:0,inference:'degenerate',exact:true,n:0};
+        }else throw error;
+      }
+      comparisons.push({
+        condition1:conditions[i],condition2:conditions[j],n:completeSubjects.length,
+        Wplus:r.Wplus,pRaw:r.p,medianDifference:r.median_difference,
+        rankBiserial:r.rank_biserial,inference:r.inference,
+        excludedSubjects
+      });
+    }
+  }
+  const adjusted=holmAdjust(comparisons.map(r=>r.pRaw));
+  return comparisons.map((r,i)=>({...r,pAdjusted:adjusted[i],significant:adjusted[i]<alpha,method:'wilcoxon_paired_holm'}));
 }
