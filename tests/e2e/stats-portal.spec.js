@@ -26,7 +26,7 @@ test('Stats landing page is public, local-first and links to the analyser', asyn
   expect(errors).toEqual([]);
 });
 
-test('Stats built-in demo runs primary, sensitivity, visualization and local report export', async ({ page }) => {
+test('Stats built-in demo runs exact rank sensitivity, visualization and local report export', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
 
@@ -44,6 +44,8 @@ test('Stats built-in demo runs primary, sensitivity, visualization and local rep
   await expect(page.locator('#results .result-card')).toHaveCount(2);
   await expect(page.locator('#results')).toContainText('Welch t');
   await expect(page.locator('#results')).toContainText('Mann–Whitney');
+  await expect(page.locator('#results .rank-inference span')).toHaveText('Inférence');
+  await expect(page.locator('#results .rank-inference strong')).toHaveText('Exacte');
   expect(await page.locator('#results .metric').count()).toBeGreaterThan(0);
   await expect(page.locator('#results .assumptions')).toBeVisible();
   await expect(page.locator('#results .privacy-note')).toContainText('Aucune donnée n’est envoyée à un serveur');
@@ -55,6 +57,11 @@ test('Stats built-in demo runs primary, sensitivity, visualization and local rep
   await page.locator('[data-report-download]').click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('stats-report.html');
+
+  await page.locator('#data-input').fill('group,value\nA,1\nA,2\nA,2\nB,3\nB,4\nB,5');
+  await page.locator('#parse-data').click();
+  await page.locator('#run-analysis').click();
+  await expect(page.locator('#results .rank-inference strong')).toHaveText('Asymptotique');
   expect(errors).toEqual([]);
 });
 
