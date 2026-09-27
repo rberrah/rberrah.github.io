@@ -23,6 +23,12 @@ The design follows the same principles as the multi-omics tool: a separate prese
 
 The interface reports effect estimates, confidence intervals where defined, p-values, effect sizes, assumptions and a plain-language interpretation. Data are parsed and analysed locally in the browser rather than uploaded to a statistical backend. Results can be visualized and exported as a local HTML report without embedding the raw dataset.
 
+## Study planning
+
+The analyser sidebar also provides approximate deterministic sample-size calculations for two independent means, paired means, two independent proportions and correlation. The user specifies alpha, target power and expected dropout. Results distinguish the statistical sample size from the inflated recruitment target and state the main approximation used.
+
+These calculators are intentionally limited to simple two-sided designs. Confirmatory trials with non-inferiority, clustering, unequal allocation, repeated measurements, multiplicity or interim analyses require a design-specific calculation.
+
 ## Method-selection philosophy
 
 The tool starts from the scientific question and study design rather than asking the user to know a test name. It does not use an automatic normality test as a switch between parametric and non-parametric analysis. For common continuous comparisons, a mean-based method is the primary analysis and the corresponding rank-based method is available as a sensitivity analysis.
@@ -31,6 +37,6 @@ For Mann–Whitney and Wilcoxon signed-rank, small samples without ties use exac
 
 ## Validation
 
-`npm run test:stats` executes fixed numerical reference vectors for the statistical engine, and these checks are also part of the repository's default `npm test` command. The vectors cover primary tests plus exact/asymptotic rank-test routing, McNemar and log-rank. The portal Playwright suite exercises the complete Stats demo workflow in a browser, including visualization, exact-inference labelling, bilingual display and local report export.
+`npm run test:stats` executes fixed numerical reference vectors for the statistical engine and study-planning engine, and these checks are also part of the repository's default `npm test` command. The vectors cover primary tests plus exact/asymptotic rank-test routing, McNemar, log-rank and sample-size calculations. The portal Playwright suite exercises the complete Stats workflow in a browser, including visualization, exact-inference labelling, study planning, bilingual display and local report export.
 
 High-stakes or confirmatory analyses should still be checked in validated reference software and interpreted in the context of the study design and a pre-specified statistical analysis plan.
