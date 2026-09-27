@@ -2,9 +2,7 @@
 <!-- Portal pages only. The applications retain their own sitemaps. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>__SITE_ORIGIN__/</loc><lastmod>2026-09-21</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/tools/</loc><lastmod>2026-09-27</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/stats/</loc><lastmod>2026-09-27</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/stats/tool/</loc><lastmod>2026-09-27</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/tools/</loc><lastmod>2026-09-21</lastmod></url>
   <url><loc>__SITE_ORIGIN__/publications/</loc><lastmod>2026-09-21</lastmod></url>
   <url><loc>__SITE_ORIGIN__/a-propos/</loc><lastmod>2026-09-21</lastmod></url>
   <url><loc>__SITE_ORIGIN__/contact/</loc><lastmod>2026-09-21</lastmod></url>
