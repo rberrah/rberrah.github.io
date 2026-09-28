@@ -33,7 +33,10 @@ default_origins <- c(
 configured_origins <- split_origins(Sys.getenv("PMX_MULTIOMICS_ALLOWED_ORIGINS", ""))
 allowed_origins <- unique(c(default_origins, configured_origins))
 
-reference_packages <- c("plumber","jsonlite","DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics")
+reference_packages <- c(
+  "plumber","jsonlite","DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics",
+  "xcms","MsExperiment","Spectra","mzR","BiocParallel"
+)
 package_manifest <- function() {
   versions <- lapply(reference_packages, function(pkg) {
     if (!requireNamespace(pkg, quietly=TRUE)) return(NULL)
@@ -106,6 +109,6 @@ cat(sprintf("PMx multi-omics reference R backend: http://%s:%d\n", host, port))
 cat(sprintf("R runtime: %s\n", manifest$r))
 cat(sprintf("Allowed browser origins: %s\n", paste(allowed_origins, collapse=", ")))
 for (pkg in names(manifest$packages)) {
-  if (!is.null(manifest$packages[[pkg]])) cat(sprintf("  %-12s %s\n", pkg, manifest$packages[[pkg]]))
+  if (!is.null(manifest$packages[[pkg]])) cat(sprintf("  %-14s %s\n", pkg, manifest$packages[[pkg]]))
 }
 api$run(host=host, port=port, swagger=TRUE)
