@@ -1,0 +1,66 @@
+name: Stats scientific CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal/stats/**'
+      - 'portal/assets/**'
+      - 'tests/e2e/stats-portal.spec.js'
+      - 'tests/e2e/stats-kendall-portal.spec.js'
+      - 'scripts/test_stats*.mjs'
+      - 'scripts/configure_site_origin.mjs'
+      - 'scripts/preview_portal.mjs'
+      - 'playwright.portal.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'site.config.js'
+      - '.github/workflows/stats-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Unrelated pushes (multi-omics, pharmacometrics, etc.) do not enter this
+# concurrency group because the workflow is path-filtered. A Stats change only
+# supersedes an older Stats validation, never the other way around.
+concurrency:
+  group: stats-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Stats numerical reference vectors
+        run: npm run test:stats
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Assemble root portal for Stats browser tests
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          cp -r portal/. dist/
+          node scripts/configure_site_origin.mjs dist
+
+      - name: Run Stats browser workflows
+        run: >-
+          npx playwright test
+          tests/e2e/stats-portal.spec.js
+          tests/e2e/stats-kendall-portal.spec.js
+          --config playwright.portal.config.js
