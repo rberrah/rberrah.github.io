@@ -15,7 +15,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"validate": "node scripts/validate_content.mjs",
 		"smoke": "node scripts/smoke_test.mjs",
-		"test": "node scripts/validate_content.mjs && node scripts/smoke_test.mjs && node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs",
+		"test": "node scripts/validate_content.mjs && node scripts/smoke_test.mjs && node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs && node scripts/test_stats_repeated_edges.mjs",
 		"test:e2e": "playwright test",
 		"slides:index": "node scripts/generate_slide_index.mjs",
 		"slides:catalog": "node scripts/sync_slide_catalog.mjs",
@@ -30,7 +30,7 @@
 		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R",
 		"test:multiomics": "node scripts/test_multiomics.mjs && node scripts/test_multiomics_identifiers.mjs && node scripts/test_multiomics_diagnostics.mjs",
-		"test:stats": "node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs"
+		"test:stats": "node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs && node scripts/test_stats_repeated_edges.mjs"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
