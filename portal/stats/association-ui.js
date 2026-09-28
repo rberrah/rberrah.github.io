@@ -26,5 +26,14 @@ function renderKendall(){
   if(spearman)spearman.after(card);else results.insertBefore(card,results.querySelector('.assumptions')||null);
 }
 
+function enhanceGuide(){
+  const guide=document.querySelector('#method-guide');
+  guide?.querySelector('.kendall-guide')?.remove();
+  if(document.querySelector('#analysis-mode')?.value!=='association'||!guide)return;
+  const note=document.createElement('small');note.className='kendall-guide';note.textContent=tr('Kendall τ-b est aussi calculé : il est particulièrement adapté aux variables ordinales et aux données avec beaucoup d’ex æquo.','Kendall τ-b is also computed; it is especially suited to ordinal variables and data with many ties.');guide.appendChild(note);
+}
+
 document.querySelector('#run-analysis')?.addEventListener('click',()=>queueMicrotask(renderKendall));
-document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(renderKendall,0));
+document.querySelector('#analysis-mode')?.addEventListener('change',()=>queueMicrotask(enhanceGuide));
+document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{renderKendall();enhanceGuide();},0));
+queueMicrotask(enhanceGuide);
