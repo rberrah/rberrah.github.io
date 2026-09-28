@@ -6,10 +6,11 @@ The browser never asks an LLM to select a statistical method.
 |---|---|---|
 | Two independent quantitative groups | Welch t-test | Mann–Whitney as rank-based sensitivity analysis |
 | Two paired quantitative measurements | Paired t-test | Wilcoxon signed-rank as rank-based sensitivity analysis |
+| Three or more repeated quantitative measurements | Friedman | Kendall's W effect size + paired Wilcoxon post-hoc comparisons with Holm correction |
 | Three or more independent quantitative groups | Welch ANOVA | Kruskal–Wallis as rank-based sensitivity analysis; corrected pairwise comparisons are reported |
 | Two categorical variables | Chi-square | Fisher exact for 2×2 tables when the smallest expected count is < 5; 2×2 effect estimates are reported |
 | Paired binary outcome | McNemar | Exact binomial inference when discordant pairs are few |
-| Two quantitative variables, association | Pearson | Spearman sensitivity + simple linear regression |
+| Two quantitative / ordinal variables, association | Pearson | Spearman + Kendall tau-b rank measures and simple linear regression |
 | Time to event in two groups | Log-rank | Kaplan–Meier visualization |
 | One quantitative sample vs fixed reference | One-sample t-test | No automated rank alternative yet |
 
@@ -17,14 +18,25 @@ The browser never asks an LLM to select a statistical method.
 
 Mann–Whitney and Wilcoxon signed-rank are not always forced through a normal approximation. The engine uses an exact two-sided rank distribution for small samples when ties are absent. It falls back to the asymptotic calculation when ties are present or the exact-state threshold is exceeded. The result card states which inference mode was used.
 
+Kendall tau-b uses an exact two-sided permutation distribution when `n < 50` and neither variable contains ties. With ties, or at larger sample sizes, the tool uses the asymptotic variance of Kendall's score corrected for tie groups and labels the inference as asymptotic. Tau-b itself corrects its denominator for ties in both variables.
+
+## Repeated measures
+
+For at least three repeated quantitative or ordinal measurements, the repeated-measures workflow expects long-format data with one subject identifier, one condition/time variable and one value variable.
+
+The Friedman statistic is calculated from average within-subject ranks. Within-subject ties are incorporated through the standard tie correction. The global effect size is Kendall's W. A subject missing at least one condition is excluded from the complete block used for the global test.
+
+Post-hoc localization uses pairwise signed-rank Wilcoxon tests with Holm family-wise error correction. The same complete-subject set is retained for every pair rather than reintroducing incomplete subjects selectively, so the displayed comparisons refer to one coherent repeated-measures population.
+
 ## Multi-group post-hoc comparisons
 
 A global multi-group p-value does not identify which groups differ. The tool therefore reports all pairwise comparisons with Holm family-wise error correction:
 
 - after the mean-based Welch ANOVA workflow: pairwise Welch t-tests + Holm adjustment, with mean difference, 95% CI and Hedges' g;
-- in the rank-based workflow: pairwise Mann–Whitney tests + Holm adjustment, with Cliff's delta.
+- in the rank-based independent-groups workflow: pairwise Mann–Whitney tests + Holm adjustment, with Cliff's delta;
+- after Friedman: paired Wilcoxon signed-rank tests + Holm adjustment, with median paired difference and rank-biserial effect size.
 
-These comparisons are deliberately labelled **pairwise Welch + Holm**, not Games–Howell. Games–Howell requires a validated studentized-range implementation and should only be added under that name once such an implementation is benchmarked against reference software.
+The independent mean-based comparisons are deliberately labelled **pairwise Welch + Holm**, not Games–Howell. Games–Howell requires a validated studentized-range implementation and should only be added under that name once such an implementation is benchmarked against reference software.
 
 ## 2×2 categorical effect estimates
 
