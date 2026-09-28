@@ -191,6 +191,7 @@ validation_multiclass_metrics <- function(observed, probabilities) {
   one_vs_rest_auc <- vapply(colnames(probs), function(cls) {
     validation_binary_auc(as.integer(y == cls), probs[, cls])
   }, numeric(1))
+  finite_auc <- one_vs_rest_auc[is.finite(one_vs_rest_auc)]
   list(
     status = "ok",
     n = length(y),
@@ -198,7 +199,7 @@ validation_multiclass_metrics <- function(observed, probabilities) {
     accuracy = mean(predicted == y),
     balanced_accuracy = mean(class_recall, na.rm = TRUE),
     log_loss = -mean(log(p_true)),
-    macro_auc_ovr = mean(one_vs_rest_auc[is.finite(one_vs_rest_auc)], na.rm = TRUE),
+    macro_auc_ovr = if (length(finite_auc)) mean(finite_auc) else NA_real_,
     per_class_auc_ovr = as.list(one_vs_rest_auc)
   )
 }
@@ -208,20 +209,38 @@ validation_percentile_ci <- function(values, level = 0.95) {
   values <- values[is.finite(values)]
   if (length(values) < 20L) return(c(lower = NA_real_, upper = NA_real_))
   alpha <- (1 - level) / 2
-  unname(stats::quantile(values, probs = c(alpha, 1 - alpha), names = FALSE, type = 7)) |>
-    stats::setNames(c("lower", "upper"))
+  out <- unname(stats::quantile(values, probs = c(alpha, 1 - alpha), names = FALSE, type = 7))
+  names(out) <- c("lower", "upper")
+  out
 }
 
 validation_bootstrap_scalar <- function(data, metric_fn, repetitions = 1000L, seed = 20260928L, level = 0.95) {
   repetitions <- as.integer(max(0L, repetitions))
-  if (!repetitions || nrow(data) < 5L) return(list(repetitions = repetitions, estimate_distribution = numeric(), ci = c(lower = NA_real_, upper = NA_real_)))
+  if (!repetitions || nrow(data) < 5L) {
+    return(list(
+      repetitions = repetitions,
+      valid_repetitions = 0L,
+      estimate_distribution = numeric(),
+      ci = c(lower = NA_real_, upper = NA_real_)
+    ))
+  }
   set.seed(as.integer(seed))
   values <- rep(NA_real_, repetitions)
   for (b in seq_len(repetitions)) {
     idx <- sample.int(nrow(data), nrow(data), replace = TRUE)
-    values[[b]] <- suppressWarnings(as.numeric(metric_fn(data[idx, , drop = FALSE])))
+    candidate <- suppressWarnings(as.numeric(metric_fn(data[idx, , drop = FALSE])))
+    values[[b]] <- if (length(candidate) && is.finite(candidate[[1]])) candidate[[1]] else NA_real_
   }
-  list(repetitions = repetitions, seed = as.integer(seed), ci_level = level, ci = validation_percentile_ci(values, level), estimate_distribution = values)
+  valid <- sum(is.finite(values))
+  list(
+    repetitions = repetitions,
+    valid_repetitions = valid,
+    invalid_repetitions = repetitions - valid,
+    seed = as.integer(seed),
+    ci_level = level,
+    ci = validation_percentile_ci(values, level),
+    estimate_distribution = values
+  )
 }
 
 validate_external_predictions <- function(
@@ -275,11 +294,13 @@ validate_external_predictions <- function(
     bootstrap <- list(
       metric = primary_name,
       repetitions = boot$repetitions,
+      valid_repetitions = boot$valid_repetitions %||% 0L,
+      invalid_repetitions = boot$invalid_repetitions %||% 0L,
       seed = boot$seed %||% as.integer(seed),
       ci_level = boot$ci_level %||% 0.95,
       lower = unname(boot$ci[["lower"]]),
       upper = unname(boot$ci[["upper"]]),
-      note = "Percentile bootstrap uncertainty on the frozen external predictions; no model refitting is performed."
+      note = "Percentile bootstrap uncertainty on the frozen external predictions; non-estimable resamples are retained as missing and never replaceable by refitting."
     )
   }
 
