@@ -50,9 +50,13 @@ jobs:
           use-public-rspm: true
       - name: Parse reference R adapters
         run: |
-          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
+          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R','multiomics-engine/raw_ms_processing.R','multiomics-engine/external_validation.R','multiomics-engine/run_external_validation.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
       - name: Test package-independent backend routing and guardrails
         run: Rscript multiomics-engine/tests/backend_smoke.R
+      - name: Test raw-MS input and conversion contract
+        run: Rscript multiomics-engine/tests/raw_ms_contract.R
+      - name: Test frozen external-validation metrics
+        run: Rscript multiomics-engine/tests/external_validation_smoke.R
 
   browser-contract:
     name: Multi-omics browser contract
