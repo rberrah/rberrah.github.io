@@ -43,6 +43,29 @@ assert.equal(exported.issue, '');
 const rCode = `${exported.code}
 model <- PM_model$new(pmetrics_definition)
 
+# Execute the exported model, not only its constructor. For a 100-unit IV bolus,
+# Ke = 0.2 /h and V = 30 L, C(t) = 100 * exp(-0.2*t) / 30.
+template <- PM_data$new(data.frame(
+  id = 1,
+  time = c(0, 1, 2, 4, 8, 12),
+  dose = c(100, rep(NA_real_, 5)),
+  input = c(1, rep(NA_integer_, 5)),
+  out = c(NA_real_, rep(0, 5))
+), quiet = TRUE)
+theta <- matrix(
+  c(0.2, 30),
+  nrow = 1,
+  dimnames = list(NULL, c("TV_k_Central_e", "TV_v_Central"))
+)
+simulation <- model$sim(data = template, theta = theta, quiet = TRUE)
+expected <- 100 * exp(-0.2 * simulation$time) / 30
+cat("PMETRICS_NATIVE_MAX_DELTA=", max(abs(simulation$out - expected)), "\\n")
+stopifnot(
+  is.data.frame(simulation),
+  nrow(simulation) == 5,
+  max(abs(simulation$out - expected)) < 1e-5
+)
+
 # Complete examples from the official NPAG and NPAG_cov tutorial chapters.
 tutorial_two <- PM_model$new(
   pri = list(
@@ -82,6 +105,7 @@ stopifnot(
   inherits(tutorial_three, "PM_model")
 )
 cat("PMETRICS_NATIVE_COMPILE_OK\\n")
+cat("PMETRICS_NATIVE_SIMULATION_OK\\n")
 `;
 const oldLibrary = resolve(process.env.LOCALAPPDATA || '', 'R', 'win-library', '4.4');
 const newLibrary = resolve(process.cwd(), '..', '..', '.tools', 'R-4.6.1', 'library');
@@ -105,4 +129,5 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 assert.match(result.stdout, /PMETRICS_NATIVE_COMPILE_OK/);
-console.log('Pmetrics compiled the exported model and the complete tutorial library models successfully.');
+assert.match(result.stdout, /PMETRICS_NATIVE_SIMULATION_OK/);
+console.log('Pmetrics compiled and simulated the exported model, and compiled the complete tutorial library models successfully.');

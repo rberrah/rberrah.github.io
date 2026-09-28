@@ -39,6 +39,27 @@ An external Pmetrics import therefore transfers structure, not fitted population
 distributions, interpolation policy, error likelihood or estimated posteriors.
 The UI explicitly requests review of builder variability and residual settings.
 
+## MIPD Artifact And MAP Backend
+
+The Shiny engine uses a separate, versioned JSON artifact for patient-level
+Pmetrics calculations. It binds together a supported structural template,
+parameter search bounds, the Pmetrics polynomial error model, administration
+metadata, and weighted nonparametric support points. Runtime validation rejects
+unknown templates, parameters outside their bounds, invalid probabilities, and
+paths outside the bundled artifact directory.
+
+For an observed patient, the backend creates `PM_data`, writes the weighted
+support points to an ephemeral prior CSV, and calls `PM_model$map()`. It extracts
+`final$postPoints`, uses the posterior parameter mean for the central profile,
+and samples the discrete posterior support distribution for uncertainty. It does
+not convert support points into a Gaussian OMEGA. Pmetrics run files are removed
+when the call returns; the trusted mrgsolve simulation bridge is scoped to the
+Shiny session.
+
+`tdm-engine/pmetrics/artifacts/demo_one_comp_iv.json` is a synthetic integration
+fixture, not a published population model. Published artifacts require their
+actual estimated support points and error model.
+
 ## Export
 
 The Pmetrics tab exports a Pmetrics 3 R structural template for PK models with
@@ -62,7 +83,11 @@ from the actual equations instead of restoring stale metadata.
 `npm run test:pmetrics` checks text/R imports, covariates, input numbering,
 rejected constructs, and native round trips without metadata.
 `npm run test:pmetrics-native` sends an exported model to an installed Pmetrics
-3 runtime and requires `PM_model$new()` to compile it successfully.
+3 runtime, requires `PM_model$new()` to compile it, and simulates a one-compartment
+IV bolus. The resulting concentrations are checked against the analytical curve.
+`npm run tdm:test-pmetrics` validates the artifact, runs `PM_model$map()` against
+synthetic patient observations, and checks the posterior bridge and predictive
+distribution.
 `tests/e2e/pmetrics.spec.js` imports the complete `two_comp_bolus` model from the
 official NPAG covariate tutorial and checks the UI, `.R` upload, TDM availability,
 nonblank curves, guarded failure, and desktop/mobile layouts. These checks and

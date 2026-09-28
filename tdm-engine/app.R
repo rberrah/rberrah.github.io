@@ -70,6 +70,7 @@ APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "pmetrics_engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ddi_engine.R"), local = TRUE)
@@ -343,6 +344,8 @@ DEFAULT_CODE <- read_library_code(DEFAULT_MODEL)
 DEFAULT_ROUTE <- model_routes(model_record(DEFAULT_MODEL))[[1]]
 DEFAULT_MODE <- model_administration_modes(model_record(DEFAULT_MODEL), DEFAULT_ROUTE)[[1]]
 DEFAULT_TARGET_PRESET <- clinical_target_preset(model_record(DEFAULT_MODEL), DEFAULT_MODE)
+PMETRICS_CATALOG <- pmetrics_artifact_catalog()
+DEFAULT_PMETRICS_ARTIFACT <- if (nrow(PMETRICS_CATALOG)) PMETRICS_CATALOG$id[[1]] else ""
 STANDARD_CANDIDATE_INTERVALS <- c(6, 8, 12, 24, 48)
 
 APP_THEME <- bs_theme(
@@ -573,6 +576,9 @@ app_ui <- function(request) {
   query <- parseQueryString(tryCatch(request$QUERY_STRING, error = function(error) "") %||% "")
   initial_view <- if ((query$view %||% "") %in% c("ddi", "pd")) query$view else "analysis"
   model_choices <- catalog_choices_i18n(lang = lang, analysis_only = TRUE)
+  pmetrics_choices <- if (nrow(PMETRICS_CATALOG)) {
+    stats::setNames(PMETRICS_CATALOG$id, if (identical(lang, "en")) PMETRICS_CATALOG$labelEn else PMETRICS_CATALOG$label)
+  } else character()
   localize_ui(page_navbar(
   title = div(
     class = "brand",
@@ -655,7 +661,7 @@ app_ui <- function(request) {
           tags$strong("Outil de recherche et d'enseignement"),
           span("Les résultats ne remplacent ni la validation locale du modèle ni le jugement clinique.")
         ),
-        span(class = "engine-badge", "mrgsolve + mapbayr")
+        span(class = "engine-badge", "mrgsolve + mapbayr / Pmetrics")
       ),
       uiOutput("pd_tdm_return"),
       tags$button(
@@ -678,13 +684,18 @@ app_ui <- function(request) {
               radioButtons(
                 "model_source",
                 NULL,
-                choices = stats::setNames(c("library", "custom"), c("Biblioth\u00e8que", "Atelier Lego / C++")),
+                choices = stats::setNames(c("library", "pmetrics", "custom"), c("Biblioth\u00e8que", "Pmetrics", "Atelier Lego / C++")),
                 selected = "library",
                 inline = TRUE
               ),
               conditionalPanel(
                 "input.model_source == 'library'",
                 selectInput("model_id", "Modèle principal", choices = model_choices, selected = DEFAULT_MODEL)
+              ),
+              conditionalPanel(
+                "input.model_source == 'pmetrics'",
+                selectInput("pmetrics_artifact_id", app_t(lang, "Artefact Pmetrics", "Pmetrics artifact"), choices = pmetrics_choices, selected = DEFAULT_PMETRICS_ARTIFACT),
+                uiOutput("pmetrics_context_ui")
               ),
               conditionalPanel(
                 "input.model_source == 'custom'",
@@ -922,7 +933,13 @@ app_ui <- function(request) {
                 uiOutput("averaging_sensitivity_summary"),
                 DTOutput("averaging_sensitivity_table"),
                 h3("Modèles et pondérations"),
-                DTOutput("model_table")
+                DTOutput("model_table"),
+                conditionalPanel(
+                  "input.model_source == 'pmetrics'",
+                  h3(app_t(lang, "Distribution Pmetrics : points de support", "Pmetrics distribution: support points")),
+                  p(app_t(lang, "La courbe centrale utilise les paramètres moyens. Les probabilités ci-dessous conservent la distribution jointe discrète, sans approximation normale.", "The central curve uses mean parameters. The probabilities below preserve the discrete joint distribution, without a normal approximation.")),
+                  DTOutput("pmetrics_support_table")
+                )
               )
             ),
             nav_panel(
@@ -952,6 +969,10 @@ app_ui <- function(request) {
                 conditionalPanel(
                   "input.model_source == 'custom'",
                   textAreaInput("custom_code", "Modèle mrgsolve complet", value = DEFAULT_CODE, rows = 34, width = "100%")
+                ),
+                conditionalPanel(
+                  "input.model_source == 'pmetrics'",
+                  pre(class = "model-code", textOutput("pmetrics_artifact_code", container = span))
                 )
               )
             )
@@ -1045,6 +1066,10 @@ app_ui <- function(request) {
       h1("Méthode et limites"),
       h2("Estimation individuelle"),
       p("Les effets aléatoires individuels sont estimés par maximum a posteriori avec mapbayr. Les administrations, covariables datées et concentrations sont converties en événements NM-TRAN puis simulées avec mrgsolve."),
+      p(app_t(lang,
+        "Pour un artefact Pmetrics, PM_model$map() calcule les probabilités postérieures des points de support pondérés. La prédiction centrale utilise la moyenne postérieure des paramètres; la distribution prédictive échantillonne directement les points de support selon leurs probabilités postérieures. Les fichiers de calcul Pmetrics sont créés dans un dossier temporaire propre à l'appel puis supprimés.",
+        "For a Pmetrics artifact, PM_model$map() computes posterior probabilities over the weighted support points. The central prediction uses the posterior parameter mean; the predictive distribution samples support points directly from their posterior probabilities. Pmetrics run files are created in a call-scoped temporary directory and then removed."
+      )),
       h2("Erreur résiduelle"),
       p("Par défaut, l'ajustement conserve les variances résiduelles du modèle publié. Le réglage CV proportionnel fixé remplace chaque paire SIGMA par une variance proportionnelle commune, ou sa variance logarithmique équivalente si le modèle utilise une erreur exponentielle. Ce choix change le poids des observations dans l'estimation MAP et doit être documenté."),
       h2("Model averaging"),
@@ -1095,7 +1120,10 @@ app_ui <- function(request) {
       )
     )
   ),
-  footer = div(class = "app-footer", "PMx Explain · moteur R mrgsolve/mapbayr · aucun dossier patient n'est persisté")
+  footer = div(class = "app-footer", app_t(lang,
+    "PMx Explain · moteurs R mrgsolve/mapbayr et Pmetrics · aucun dossier patient n'est persisté",
+    "PMx Explain · R engines mrgsolve/mapbayr and Pmetrics · no patient record is persisted"
+  ))
 ), lang)
 }
 
@@ -1107,11 +1135,21 @@ server <- function(input, output, session) {
     value <- input$model_id %||% ""
     if (length(value) && nzchar(value[[1]]) && value[[1]] %in% ANALYSIS_MODEL_IDS) value[[1]] else DEFAULT_MODEL
   })
+  current_pmetrics_artifact <- reactive({
+    id <- input$pmetrics_artifact_id %||% DEFAULT_PMETRICS_ARTIFACT
+    shiny::req(nzchar(id))
+    read_pmetrics_artifact(id)
+  })
   current_administration_mode <- reactive({
     route <- input$administration_route %||% ""
     shiny::req(nzchar(route))
     if (identical(input$model_source %||% "library", "custom")) {
       return(if (identical(route, "Oral")) "ORAL" else if (identical(route, "IM")) "IM" else "IV_INTERMITTENT")
+    }
+    if (identical(input$model_source %||% "library", "pmetrics")) {
+      artifact <- current_pmetrics_artifact()
+      shiny::req(identical(route, artifact$route))
+      return(artifact$mode)
     }
     record <- model_record(current_model_id())
     shiny::req(model_supports_route(record, route))
@@ -1383,6 +1421,8 @@ server <- function(input, output, session) {
   observe({
     if (identical(input$model_source %||% "library", "custom")) {
       routes <- c("IV", "Oral", "IM")
+    } else if (identical(input$model_source %||% "library", "pmetrics")) {
+      routes <- current_pmetrics_artifact()$route
     } else {
       model_id <- current_model_id()
       routes <- model_routes(model_record(model_id))
@@ -1516,8 +1556,27 @@ server <- function(input, output, session) {
   })
   shiny::outputOptions(output, "model_context_ui", suspendWhenHidden = FALSE)
 
+  output$pmetrics_context_ui <- renderUI({
+    artifact <- current_pmetrics_artifact()
+    english <- identical(current_language(), "en")
+    div(
+      class = "model-context",
+      div(class = "model-context-head", tags$strong(if (english) artifact$labelEn else artifact$label), span("Pmetrics · POSTPROB")),
+      p(if (english) artifact$descriptionEn else artifact$description),
+      div(class = "population-tags",
+        span(tx("Points de support pondérés", "Weighted support points")),
+        span(tx("Artefact de démonstration", "Demonstration artifact"))
+      ),
+      div(class = "domain-reminder", tx(
+        "Distribution synthétique : ne pas utiliser pour une décision clinique.",
+        "Synthetic distribution: do not use for a clinical decision."
+      ))
+    )
+  })
+  shiny::outputOptions(output, "pmetrics_context_ui", suspendWhenHidden = FALSE)
+
   output$ml_status_ui <- renderUI({
-    if (identical(input$model_source %||% "library", "custom")) {
+    if (!identical(input$model_source %||% "library", "library")) {
       return(div(class = "ml-status", tx("ML : indisponible pour un modèle de session.", "ML: unavailable for a session model.")))
     }
     status <- ml_status_summary(selected_model_ids(), input$administration_route %||% "", current_administration_mode())
@@ -1536,6 +1595,9 @@ server <- function(input, output, session) {
 
   covariate_definition <- reactive({
     if (identical(input$model_source, "custom")) return(parse_covariates(input$custom_code %||% DEFAULT_CODE))
+    if (identical(input$model_source, "pmetrics")) {
+      return(data.frame(name = character(), value = numeric(), description = character(), scope = character()))
+    }
     primary_id <- current_model_id()
     ids <- if (isTRUE(input$enable_averaging)) {
       unique(c(primary_id, input$average_model_ids %||% character()))
@@ -1952,7 +2014,11 @@ server <- function(input, output, session) {
       tryCatch(as.character(utils::packageVersion(name)), error = function(error) "non disponible")
     }
     models <- lapply(specifications, function(specification) {
-      if (specification$id %in% MODEL_CATALOG$id) {
+      if (identical(specification$engine %||% "mapbayr", "pmetrics")) {
+        path <- pmetrics_artifact_path(specification$artifact_id %||% specification$id)
+        hash <- if (requireNamespace("digest", quietly = TRUE)) digest::digest(file = path, algo = "sha256") else short_hash(paste(readLines(path, warn = FALSE), collapse = "\n"))
+        list(id = specification$id, engine = "pmetrics", sha256 = hash)
+      } else if (specification$id %in% MODEL_CATALOG$id) {
         list(id = specification$id, sha256 = model_sha256(specification$id))
       } else {
         code <- specification$code %||% ""
@@ -1963,7 +2029,8 @@ server <- function(input, output, session) {
     list(
       generated_at = format(Sys.time(), tz = "UTC", usetz = TRUE),
       r = R.version.string,
-      packages = list(mrgsolve = package_version("mrgsolve"), mapbayr = package_version("mapbayr"), shiny = package_version("shiny")),
+      packages = list(mrgsolve = package_version("mrgsolve"), mapbayr = package_version("mapbayr"),
+        Pmetrics = package_version("Pmetrics"), shiny = package_version("shiny")),
       models = models,
       assumptions = if (identical(current_language(), "en")) c(
         "Concentration units match the model; no automatic conversion.",
@@ -2101,7 +2168,7 @@ server <- function(input, output, session) {
         timeline = list(mode = "relative_hours", origin = "first_administration"),
         model = list(
           source = model_source,
-          id = if (identical(model_source, "library")) isolate(input$model_id) else NULL,
+          id = if (identical(model_source, "library")) isolate(input$model_id) else if (identical(model_source, "pmetrics")) isolate(input$pmetrics_artifact_id) else NULL,
           route = isolate(input$administration_route),
           mode = isolate(current_administration_mode()),
           averaging = list(
@@ -2231,6 +2298,14 @@ server <- function(input, output, session) {
             updateCheckboxGroupInput(session, "average_model_ids", selected = selected_ids)
           }, once = TRUE)
         }, once = TRUE)
+      } else if (identical(model$source %||% "", "pmetrics") && (model$id %||% "") %in% PMETRICS_CATALOG$id) {
+        artifact <- read_pmetrics_artifact(model$id)
+        updateRadioButtons(session, "model_source", selected = "pmetrics")
+        updateSelectInput(session, "pmetrics_artifact_id", selected = artifact$id)
+        pending_import_target(NULL)
+        session$onFlushed(function() {
+          updateSelectInput(session, "administration_route", selected = artifact$route)
+        }, once = TRUE)
       } else if (identical(model$source %||% "", "custom")) {
         showNotification(tx(
           "Le code C++ personnalisé n'est jamais inclus dans l'export; recollez-le avant l'analyse.",
@@ -2286,6 +2361,19 @@ server <- function(input, output, session) {
       mode <- if (identical(route, "Oral")) "ORAL" else if (identical(route, "IM")) "IM" else "IV_INTERMITTENT"
       return(list(list(id = "custom", label = "Modèle personnalisé", code = isolate(input$custom_code), route = route, mode = mode, adm_cmt_name = NULL)))
     }
+    if (identical(isolate(input$model_source), "pmetrics")) {
+      artifact <- read_pmetrics_artifact(isolate(input$pmetrics_artifact_id %||% DEFAULT_PMETRICS_ARTIFACT))
+      return(list(list(
+        id = artifact$id,
+        artifact_id = artifact$id,
+        engine = "pmetrics",
+        label = if (identical(current_language(), "en")) artifact$labelEn else artifact$label,
+        code = NULL,
+        route = artifact$route,
+        mode = artifact$mode,
+        adm_cmt_name = NULL
+      )))
+    }
     primary_id <- isolate(input$model_id)
     primary_record <- model_record(primary_id)
     if (!nzchar(route)) route <- model_routes(primary_record)[[1]]
@@ -2311,6 +2399,21 @@ server <- function(input, output, session) {
   }
 
   validate_primary_model <- function() {
+    if (identical(isolate(input$model_source), "pmetrics")) {
+      artifact <- read_pmetrics_artifact(isolate(input$pmetrics_artifact_id %||% DEFAULT_PMETRICS_ARTIFACT))
+      build_pmetrics_model(artifact, pmetrics_error_spec(
+        artifact,
+        isolate(input$residual_error_mode %||% "model"),
+        isolate(input$fixed_residual_cv %||% 1)
+      ))
+      compile_pmetrics_bridge(artifact, session_model_dir, session_model_cache)
+      return(list(
+        ok = TRUE, errors = character(), warnings = character(),
+        engine = "pmetrics", route = artifact$route, mode = artifact$mode,
+        adm_cmt = 1L, obs_cmt = 1L, n_eta = 0L,
+        n_sigma = length(artifact$error$coefficients), n_support = nrow(artifact$support)
+      ))
+    }
     if (identical(isolate(input$model_source), "custom")) {
       model <- compile_model(
         custom_code = isolate(input$custom_code),
@@ -2351,6 +2454,11 @@ server <- function(input, output, session) {
     read_library_code(current_model_id())
   })
 
+  output$pmetrics_artifact_code <- renderText({
+    path <- pmetrics_artifact_path(current_pmetrics_artifact()$id)
+    paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+  })
+
   output$model_contract <- renderUI({
     result <- validation_store()
     if (is.null(result)) return(div(class = "contract-note", tx(
@@ -2359,6 +2467,16 @@ server <- function(input, output, session) {
     )))
     if (!isTRUE(result$ok)) {
       return(div(class = "contract-error", tags$strong(tx("Modèle incompatible", "Incompatible model")), tags$ul(lapply(result$errors, tags$li))))
+    }
+    if (identical(result$engine %||% "mapbayr", "pmetrics")) {
+      return(div(
+        class = "contract-ok",
+        tags$strong(tx("Contrat Pmetrics valide", "Valid Pmetrics contract")),
+        span(tx(
+          paste0("Voie ", result$route, " · ", result$n_support, " points de support · erreur polynomiale à ", result$n_sigma, " coefficient(s)"),
+          paste0("Route ", result$route, " · ", result$n_support, " support points · polynomial error with ", result$n_sigma, " coefficient(s)")
+        ))
+      ))
     }
     div(
       class = "contract-ok",
@@ -2673,7 +2791,12 @@ server <- function(input, output, session) {
     } else {
       tx(paste0("À ", format_metric(exposure$interval), " h, avant la dose suivante"), paste0("At ", format_metric(exposure$interval), " h, before the next dose"))
     }
-    method <- if (any(vapply(successful_fits(result$fits), function(fit) !is.null(fit$estimate), logical(1)))) {
+    pmetrics_mapped <- any(vapply(successful_fits(result$fits), function(fit) {
+      identical(fit$engine %||% "mapbayr", "pmetrics") && isTRUE(fit$pmetrics$mapped)
+    }, logical(1)))
+    method <- if (pmetrics_mapped) {
+      tx("MAP non paramétrique · Pmetrics", "Nonparametric MAP · Pmetrics")
+    } else if (any(vapply(successful_fits(result$fits), function(fit) !is.null(fit$estimate), logical(1)))) {
       tx("MAP bayésienne · mapbayr", "Bayesian MAP · mapbayr")
     } else {
       tx("Prédiction populationnelle", "Population prediction")
@@ -2830,6 +2953,12 @@ server <- function(input, output, session) {
 
   output$administration_mode_ui <- renderUI({
     if (identical(input$model_source %||% "library", "custom")) return(NULL)
+    if (identical(input$model_source %||% "library", "pmetrics")) {
+      return(div(class = "custom-note", paste(
+        tx("Mode", "Mode"),
+        administration_mode_label(current_pmetrics_artifact()$mode, current_language())
+      )))
+    }
     record <- model_record(current_model_id())
     route <- input$administration_route %||% ""
     shiny::req(model_supports_route(record, route))
@@ -2845,7 +2974,7 @@ server <- function(input, output, session) {
   })
 
   active_target_preset <- reactive({
-    if (identical(input$model_source %||% "library", "custom")) return(NULL)
+    if (!identical(input$model_source %||% "library", "library")) return(NULL)
     record <- model_record(current_model_id())
     clinical_target_preset(record, current_administration_mode())
   })
@@ -2863,7 +2992,7 @@ server <- function(input, output, session) {
   target_preset_key <- reactive({
     paste(
       input$model_source %||% "library",
-      current_model_id(),
+      if (identical(input$model_source %||% "library", "pmetrics")) current_pmetrics_artifact()$id else current_model_id(),
       input$administration_route %||% "",
       current_administration_mode(),
       sep = "::"
@@ -2998,6 +3127,18 @@ server <- function(input, output, session) {
       options = list(dom = "t", pageLength = nrow(table), scrollX = TRUE),
       colnames = unname(labels[names(table)])
     )
+  })
+
+  output$pmetrics_support_table <- renderDT({
+    result <- analysis_store()
+    shiny::req(result)
+    fits <- Filter(function(fit) identical(fit$engine %||% "mapbayr", "pmetrics"), successful_fits(result$fits))
+    shiny::req(length(fits) == 1L)
+    fit <- fits[[1]]
+    table <- fit$posterior_points[, c("ke", "v", "prob"), drop = FALSE]
+    datatable(table, rownames = FALSE,
+      colnames = c("ke (1/h)", "V (L)", if (isTRUE(fit$pmetrics$mapped)) tx("Probabilité postérieure", "Posterior probability") else tx("Probabilité a priori", "Prior probability")),
+      options = list(dom = "t", scrollX = TRUE, pageLength = nrow(table)))
   })
 
   output$model_table <- renderDT({
@@ -3248,6 +3389,10 @@ server <- function(input, output, session) {
       names(observation_table)[names(observation_table) == "concentration"] <- "Concentration"
       if (identical(current_language(), "en")) names(observation_table)[names(observation_table) == "Temps (h)"] <- "Time (h)"
       references <- lapply(names(successful_fits(result$fits)), function(id) {
+        fit <- successful_fits(result$fits)[[id]]
+        if (identical(fit$engine %||% "mapbayr", "pmetrics")) {
+          return(tags$li(tx("Artefact Pmetrics de démonstration · distribution synthétique", "Pmetrics demonstration artifact · synthetic distribution")))
+        }
         if (!id %in% MODEL_CATALOG$id) return(tags$li(tx("Modèle personnalisé de session", "Custom session model")))
         record <- model_record(id)
         tags$li(record$citation[[1]], " · ", tags$a(paste0("DOI ", record$doi[[1]]), href = paste0("https://doi.org/", record$doi[[1]])))
@@ -3366,7 +3511,8 @@ server <- function(input, output, session) {
           tags$ul(references),
           h2("Traçabilité"),
           p(class = "provenance", provenance$r),
-          p(class = "provenance", paste0("mrgsolve ", provenance$packages$mrgsolve, " · mapbayr ", provenance$packages$mapbayr, " · shiny ", provenance$packages$shiny)),
+          p(class = "provenance", paste0("mrgsolve ", provenance$packages$mrgsolve, " · mapbayr ", provenance$packages$mapbayr,
+            " · Pmetrics ", provenance$packages$Pmetrics, " · shiny ", provenance$packages$shiny)),
           tags$strong("Empreintes SHA-256 des modèles"),
           tags$ul(class = "provenance", model_fingerprints),
           tags$strong("Hypothèses"),

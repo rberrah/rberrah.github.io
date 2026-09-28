@@ -10,6 +10,12 @@ fr <- htmltools::renderTags(environment$app_ui(list(QUERY_STRING = "lang=fr")))$
 en <- htmltools::renderTags(environment$app_ui(list(QUERY_STRING = "lang=en")))$html
 
 stopifnot(
+  grepl("pmetrics_artifact_id", fr, fixed = TRUE),
+  grepl("Pmetrics", fr, fixed = TRUE),
+  grepl("Pmetrics", en, fixed = TRUE)
+)
+
+stopifnot(
   grepl("Atelier DDI", fr, fixed = TRUE),
   grepl("DDI builder", en, fixed = TRUE),
   grepl("Molécule affectée", fr, fixed = TRUE),

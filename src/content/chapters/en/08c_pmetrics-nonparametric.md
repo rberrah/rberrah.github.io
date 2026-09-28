@@ -13,7 +13,7 @@ prerequisites: ["parametric-vs-nonparametric", "outils-estimation"]
 glossary: ["NPAG", "Support point", "Likelihood"]
 slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
-reviewed_on: "2026-09-28"
+reviewed_on: "2026-09-29"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
     options:
@@ -81,7 +81,7 @@ mod <- PM_model$new(
     V  = ab(10, 100)
   ),
   eqn = function() {
-    one_comp_iv
+    dX[1] = B[1] + R[1] - Ke * X[1]
   },
   out = function() {
     Y[1] = X[1] / V
@@ -96,6 +96,10 @@ fit <- mod$fit(dat, algorithm = "NPAG", cycles = 100)
 ```
 
 After fitting, `fit$final$popPoints` contains parameter values for each support point and the `prob` column contains its weight. Convergence, predictions, residuals, support-point plausibility, uncertainty and validation still need to be examined.
+
+`B[1]` accepts boluses (zero duration), whereas `R[1]` accepts infusions. With doses in mg, time in hours, `Ke` in h⁻¹ and `V` in L, the output is mg/L. Do not substitute the library shortcut `one_comp_iv` without checking that it handles both inputs.
+
+`msd(m, s)` is another way to specify bounds: for NPAG it gives the range `m ± 3s`, not a required normal distribution. `proportional(1, c(0.05, 0.10, 0, 0))` specifies an assay-error polynomial and an initial gamma factor, not an mrgsolve SIGMA matrix. By default this factor can be estimated during population fitting.
 
 **Note:** the final number of points is a numerical estimation result. It should not be interpreted directly as the number of clinical phenotypes.
 <!-- /step -->
@@ -114,6 +118,14 @@ A converged fit is not necessarily reliable.
 Check units, the assignment of `B[]` and `R[]` inputs, observed `Y[]` compartments, `ab()` bounds, error coefficients, covariates and event times. An error at any of these levels may yield a numerically tidy but scientifically wrong distribution.
 
 Do not compare a parametric fit and NPAG by appearance alone. Use comparable diagnostics and validation suited to the intended purpose.
+<!-- /step -->
+
+<!-- step:title="Reusing a distribution for TDM" -->
+Individualization requires a **structural model, its error model and weighted population support points**. The `ab()` bounds alone are not this distribution.
+
+The TDM Pmetrics backend calls `PM_model$map()` with a weighted prior. Point locations stay fixed; patient concentrations update their probabilities. This is not a new population NPAG fit. The central curve uses posterior mean parameters; uncertainty simulations sample joint parameter vectors with their weights, without replacing them with a normal distribution. Mean parameters, the most probable point and the mean prediction are generally different summaries.
+
+The first PMx Explain artifact is a **synthetic one-compartment IV demonstration**, not a distribution estimated in a publication. Other structures and covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -13,7 +13,7 @@ prerequisites: ["parametric-vs-nonparametric", "outils-estimation"]
 glossary: ["NPAG", "Point de support", "Vraisemblance"]
 slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
-reviewed_on: "2026-09-28"
+reviewed_on: "2026-09-29"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
     options:
@@ -83,7 +83,7 @@ mod <- PM_model$new(
     V  = ab(10, 100)
   ),
   eqn = function() {
-    one_comp_iv
+    dX[1] = B[1] + R[1] - Ke * X[1]
   },
   out = function() {
     Y[1] = X[1] / V
@@ -98,6 +98,10 @@ fit <- mod$fit(dat, algorithm = "NPAG", cycles = 100)
 ```
 
 Après l'ajustement, `fit$final$popPoints` contient les valeurs des paramètres de chaque point de support et la colonne `prob` contient son poids. Il faut ensuite examiner convergence, prédictions, résidus, plausibilité des points, incertitude et validation.
+
+L'entrée `B[1]` accepte les bolus (durée nulle), `R[1]` les perfusions. Les doses sont en mg, les temps en heures, `Ke` en h⁻¹ et `V` en L : la sortie est donc en mg/L. Le raccourci `one_comp_iv` de la bibliothèque ne doit pas remplacer sans vérification cette équation qui accepte les deux entrées.
+
+`msd(m, s)` est une autre manière de définir les bornes : pour NPAG, il fournit l'intervalle `m ± 3s`, pas une obligation de distribution normale. `proportional(1, c(0.05, 0.10, 0, 0))` définit un polynôme d'erreur analytique et un facteur gamma initial ; ce n'est pas une matrice SIGMA de mrgsolve. Par défaut, ce facteur est estimable pendant l'ajustement de population.
 
 :::note
 Le nombre de points finaux est un résultat numérique de l'estimation. Il ne doit pas être lu directement comme un nombre de phénotypes cliniques.
@@ -120,6 +124,14 @@ Vérifiez les unités, l'affectation des entrées `B[]` et `R[]`, les compartime
 :::
 
 Ne comparez pas une estimation paramétrique et NPAG uniquement par leur apparence. Utilisez des diagnostics comparables et une validation adaptée à l'objectif.
+<!-- /step -->
+
+<!-- step:title="Réutiliser une distribution pour le TDM" -->
+Une individualisation exige un **modèle structurel, son modèle d'erreur et les points de support pondérés estimés en population**. Les seules bornes `ab()` ne constituent pas cette distribution.
+
+Dans le moteur TDM, le backend Pmetrics appelle `PM_model$map()` avec un prior pondéré. Les positions des points restent fixées ; leurs probabilités sont actualisées par les concentrations du patient. Ce n'est pas un nouvel ajustement NPAG de population. La courbe centrale utilise les paramètres moyens postérieurs ; les simulations d'incertitude tirent des couples de paramètres parmi les points, avec leurs poids, sans les remplacer par une loi normale. La moyenne des paramètres, le point le plus probable et la moyenne des courbes ne sont généralement pas identiques.
+
+Le premier artefact disponible dans PMx Explain est une **démonstration synthétique IV à un compartiment**, pas une distribution estimée dans un article. Les autres structures et les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

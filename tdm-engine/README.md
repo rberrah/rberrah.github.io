@@ -1,6 +1,14 @@
 # MIPD Engine
 
-Application Shiny séparée du site statique. Elle exécute les modèles avec `mrgsolve`, individualise les paramètres avec `mapbayr` et compare des scénarios de dose.
+Application Shiny séparée du site statique. Elle exécute les modèles avec `mrgsolve`, individualise les paramètres avec `mapbayr` ou `Pmetrics::PM_model$map()` et compare des scénarios de dose.
+
+### Artefacts Pmetrics
+
+Un artefact JSON versionné associe la structure Pmetrics, son erreur polynomiale et les points de support pondérés. Le schéma est dans `pmetrics/schema/` et les artefacts livrés avec l'application dans `pmetrics/artifacts/`. Le serveur n'exécute pas de code R provenant d'un téléversement : seuls les gabarits structurels explicitement pris en charge et les artefacts du dépôt sont acceptés.
+
+Le backend convertit les administrations et observations en `PM_data`, transmet les points de support à `PM_model$map()` par un fichier temporaire, puis extrait `postPoints`. La prédiction centrale utilise la moyenne postérieure des paramètres et les simulations d'incertitude échantillonnent les points de support avec leurs probabilités postérieures. Le dossier temporaire Pmetrics est supprimé à la fin de chaque appel; le pont mrgsolve compilé reste limité à la session et est supprimé à sa fermeture.
+
+L'artefact `demo_one_comp_iv` est synthétique et sert uniquement au test technique. Il ne représente pas un modèle publié ou validé cliniquement.
 
 ## Démarrage local
 

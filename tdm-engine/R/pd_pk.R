@@ -24,7 +24,9 @@ pd_pk_units <- function(id, scale = 1, time_unit = "h") {
 }
 
 pd_pk_tdm_context <- function(fit, scale = 1) {
-  if (is.null(fit$estimate)) stop("A Bayesian PK fit is required. Run the TDM analysis first.")
+  has_individual_fit <- !is.null(fit$estimate) ||
+    (identical(fit$engine %||% "mapbayr", "pmetrics") && isTRUE(fit$pmetrics$mapped))
+  if (!has_individual_fit) stop("A Bayesian PK fit is required. Run the TDM analysis first.")
   # PD uses the MAP estimate, never the experimental ML override.
   fit$ml_eta_override <- NULL
   value <- ddi_fit_context(fit)

@@ -218,6 +218,19 @@ fit_one_model <- function(
   residual_error_mode = "model",
   fixed_residual_cv = 1
 ) {
+  if (identical(tolower(as.character(specification$engine %||% "mapbayr")), "pmetrics")) {
+    return(fit_one_pmetrics_model(
+      specification = specification,
+      doses = doses,
+      observations = observations,
+      covariates = covariates,
+      covariate_history = covariate_history,
+      custom_soloc = custom_soloc,
+      custom_cache = custom_cache,
+      residual_error_mode = residual_error_mode,
+      fixed_residual_cv = fixed_residual_cv
+    ))
+  }
   model <- compile_model(
     model_id = specification$id,
     custom_code = specification$code,
@@ -356,7 +369,11 @@ compute_model_weights <- function(fits, scheme = "AIC") {
 }
 
 individual_model <- function(fit) {
-  model <- if (is.null(fit$estimate)) fit$model else mapbayr::use_posterior(fit$estimate)
+  if (identical(fit$engine %||% "mapbayr", "pmetrics")) {
+    model <- safe_param(fit$model, as.list(fit$posterior_parameters %||% numeric()))
+  } else {
+    model <- if (is.null(fit$estimate)) fit$model else mapbayr::use_posterior(fit$estimate)
+  }
   if (length(fit$ml_eta_override %||% numeric())) {
     model <- safe_param(model, as.list(fit$ml_eta_override))
   }
@@ -933,6 +950,32 @@ timing_eta_offsets <- function(fit, count, seed = 419) {
 }
 
 posterior_eta_draws <- function(fit, count, include_posterior = TRUE, include_timing = FALSE, timing_refits = 20L, seed = 381) {
+  if (identical(fit$engine %||% "mapbayr", "pmetrics")) {
+    points <- fit$posterior_points
+    parameter_names <- names(fit$posterior_parameters %||% numeric())
+    if (!is.data.frame(points) || !nrow(points) || !length(parameter_names)) {
+      return(list(draws = NULL, available = FALSE, mode = "pmetrics_unavailable", timing_available = FALSE))
+    }
+    set.seed(seed)
+    selected <- if (isTRUE(include_posterior)) {
+      sample(seq_len(nrow(points)), count, replace = TRUE, prob = points$prob)
+    } else {
+      rep(NA_integer_, count)
+    }
+    draws <- if (isTRUE(include_posterior)) {
+      as.matrix(points[selected, parameter_names, drop = FALSE])
+    } else {
+      matrix(rep(as.numeric(fit$posterior_parameters), each = count), nrow = count,
+        dimnames = list(NULL, parameter_names))
+    }
+    colnames(draws) <- parameter_names
+    return(list(
+      draws = draws,
+      available = isTRUE(fit$pmetrics$mapped) && nrow(points) > 1L,
+      mode = if (include_posterior) "pmetrics_posterior_support" else "pmetrics_posterior_mean",
+      timing_available = FALSE
+    ))
+  }
   if (is.null(fit$estimate)) {
     return(list(draws = NULL, available = FALSE, mode = if (include_posterior) "population_iiv" else "population_fixed", timing_available = FALSE))
   }
@@ -991,7 +1034,11 @@ simulate_model_distribution <- function(
   )
   model <- fit$model
   model <- safe_param(model, fit$current_covariates %||% list())
-  if (!is.null(fit$estimate)) {
+  pmetrics_fit <- identical(fit$engine %||% "mapbayr", "pmetrics")
+  if (pmetrics_fit && !is.null(eta_draws$draws)) {
+    idata <- data.frame(ID = seq_len(replicates), eta_draws$draws, check.names = FALSE)
+    model <- mrgsolve::idata_set(model, idata)
+  } else if (!is.null(fit$estimate)) {
     model <- mrgsolve::zero_re(model, omega)
     idata <- data.frame(ID = seq_len(replicates), eta_draws$draws, check.names = FALSE)
     model <- mrgsolve::idata_set(model, idata)
@@ -1000,7 +1047,7 @@ simulate_model_distribution <- function(
   }
   fixed_residual_cv <- suppressWarnings(as.numeric(fit$residual_error$fixed_cv %||% NA_real_))
   use_fixed_residual <- include_residual && identical(fit$residual_error$mode %||% "model", "fixed_cv") && is.finite(fixed_residual_cv)
-  if (!include_residual || use_fixed_residual) model <- mrgsolve::zero_re(model, sigma)
+  if (!pmetrics_fit && (!include_residual || use_fixed_residual)) model <- mrgsolve::zero_re(model, sigma)
   horizon <- max(24, interval)
   warmup_doses <- if (isTRUE(fit$split_lego)) LEGO_STEADY_STATE_WARMUP_DOSES else 0L
   warmup_time <- warmup_doses * interval
@@ -1027,10 +1074,13 @@ simulate_model_distribution <- function(
     return(list(profiles = data.frame(ID = simulation$ID, time = simulation$time, concentration = pmax(0, values)),
       posterior_available = eta_draws$available, uncertainty_mode = eta_draws$mode))
   }
-  if (use_fixed_residual) set.seed(seed + 41L)
+  use_pmetrics_residual <- pmetrics_fit && isTRUE(include_residual)
+  if (use_fixed_residual || use_pmetrics_residual) set.seed(seed + 41L)
   rows <- lapply(split(simulation, simulation$ID), function(profile) {
     values <- pmax(0, profile[[column]])
-    if (use_fixed_residual) {
+    if (use_pmetrics_residual) {
+      values <- pmetrics_residual_values(values, fit$residual_error$pmetrics)
+    } else if (use_fixed_residual) {
       values <- pmax(0, values * (1 + stats::rnorm(length(values), 0, fixed_residual_cv / 100)))
     }
     profile_metrics(
@@ -1249,7 +1299,9 @@ fit_profiles <- function(fits, weights, end_time, delta = 0.25) {
   profiles <- list()
   for (name in names(valid)) {
     fit <- valid[[name]]
-    if (is.null(fit$estimate)) next
+    has_individual_fit <- !is.null(fit$estimate) ||
+      (identical(fit$engine %||% "mapbayr", "pmetrics") && isTRUE(fit$pmetrics$mapped))
+    if (!has_individual_fit) next
     profile <- simulate_known_history(fit, end_time = end_time, delta = delta)[, c("time", "concentration"), drop = FALSE]
     profile$model <- name
     profiles[[name]] <- profile
@@ -1276,14 +1328,18 @@ model_summary <- function(fits, weights) {
         stringsAsFactors = FALSE
       ))
     }
-    clearance <- tryCatch(
-      if (is.null(fit$estimate)) NA_real_ else as.numeric(mapbayr::get_param(fit$estimate, "CL"))[[1]],
-      error = function(error) NA_real_
-    )
-    eta <- tryCatch(
-      if (is.null(fit$estimate)) "Population" else paste(round(mapbayr::get_eta(fit$estimate), 4), collapse = ", "),
-      error = function(error) ""
-    )
+    pmetrics_fit <- identical(fit$engine %||% "mapbayr", "pmetrics")
+    clearance <- tryCatch({
+      if (pmetrics_fit) {
+        values <- fit$posterior_parameters
+        if ("cl" %in% names(values)) values[["cl"]] else if (all(c("ke", "v") %in% names(values))) values[["ke"]] * values[["v"]] else NA_real_
+      } else if (is.null(fit$estimate)) NA_real_ else as.numeric(mapbayr::get_param(fit$estimate, "CL"))[[1]]
+    }, error = function(error) NA_real_)
+    eta <- tryCatch({
+      if (pmetrics_fit) {
+        paste(paste(names(fit$posterior_parameters), round(fit$posterior_parameters, 4), sep = "="), collapse = ", ")
+      } else if (is.null(fit$estimate)) "Population" else paste(round(mapbayr::get_eta(fit$estimate), 4), collapse = ", ")
+    }, error = function(error) "")
     ml <- fit$ml_correction %||% list(applied = FALSE, reason = "not_evaluated")
     ml_label <- if (isTRUE(ml$applied)) {
       if (identical(ml$type %||% "", "auc24_direct")) {
@@ -1296,7 +1352,9 @@ model_summary <- function(fits, weights) {
     }
     data.frame(
       model = fit$label,
-      status = if (is.null(fit$estimate)) "Population" else "MAP",
+      status = if (pmetrics_fit) {
+        if (isTRUE(fit$pmetrics$mapped)) "MAP Pmetrics" else "Population Pmetrics"
+      } else if (is.null(fit$estimate)) "Population" else "MAP",
       weight = weights[[name]] %||% 0,
       clearance = clearance,
       eta = eta,

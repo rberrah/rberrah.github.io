@@ -23,6 +23,7 @@
 		"tdm:index": "node scripts/generate_tdm_catalog.mjs",
 		"tdm:run": "Rscript tdm-engine/run_local.R",
 		"tdm:test": "Rscript tdm-engine/tests/smoke_test.R",
+		"tdm:test-pmetrics": "Rscript tdm-engine/tests/pmetrics_backend_test.R",
 		"tdm:test-lego": "Rscript tdm-engine/tests/safe_lego_test.R",
 		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs && node scripts/test_pmetrics_import.mjs",
 		"test:pmetrics": "node scripts/test_pmetrics_import.mjs",
