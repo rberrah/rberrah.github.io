@@ -2,8 +2,9 @@
 // Public multi-omics entry point.
 // The validated deterministic implementation lives in deterministic-impl.js.
 // This thin browser-aware wrapper adds declared UI methodology context,
-// external database provenance, chemical-mapping audit metadata and publishes
-// the final result synchronously before it is returned to Svelte.
+// external database provenance, cryptographic input provenance,
+// chemical-mapping audit metadata and publishes the final result synchronously
+// before it is returned to Svelte.
 
 import * as impl from './deterministic-impl.js';
 export * from './deterministic-impl.js';
@@ -158,6 +159,89 @@ function reactomeAnalysisTokens(result) {
   return [...new Set(tokens)];
 }
 
+function stableCanonical(value) {
+  if (Array.isArray(value)) return value.map(stableCanonical);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, stableCanonical(value[key])])
+    );
+  }
+  if (typeof value === 'number' && !Number.isFinite(value)) return null;
+  return value;
+}
+
+function bytesToHex(buffer) {
+  return [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256Bytes(bytes) {
+  if (!globalThis.crypto?.subtle) return null;
+  const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  return bytesToHex(digest);
+}
+
+async function sha256Text(text) {
+  return sha256Bytes(new TextEncoder().encode(String(text ?? '')));
+}
+
+async function sha256File(file) {
+  if (!file || typeof file.arrayBuffer !== 'function') return null;
+  return sha256Bytes(await file.arrayBuffer());
+}
+
+async function attachCryptographicInputProvenance(result, args) {
+  const files = args?.files || {};
+  const inputEntries = {};
+  const keys = ['metadata', 'transcriptomics', 'proteomics', 'metabolomics'];
+  let available = Boolean(globalThis.crypto?.subtle);
+
+  for (const key of keys) {
+    const file = files[key];
+    if (!file) continue;
+    let sha256 = null;
+    try {
+      sha256 = await sha256File(file);
+    } catch {
+      available = false;
+    }
+    inputEntries[key] = {
+      name: file.name || key,
+      size: Number.isFinite(file.size) ? file.size : null,
+      type: file.type || null,
+      lastModified: Number.isFinite(file.lastModified) ? file.lastModified : null,
+      sha256
+    };
+  }
+
+  let canonicalMetadataSha256 = null;
+  try {
+    const canonicalMetadata = JSON.stringify(stableCanonical(args?.metadataRows || []));
+    canonicalMetadataSha256 = await sha256Text(canonicalMetadata);
+  } catch {
+    available = false;
+  }
+
+  const record = {
+    status: available ? 'recorded' : 'unavailable',
+    algorithm: 'SHA-256',
+    files: inputEntries,
+    canonicalMetadata: {
+      rows: Array.isArray(args?.metadataRows) ? args.metadataRows.length : 0,
+      sha256: canonicalMetadataSha256
+    },
+    note: available
+      ? 'Cryptographic hashes are calculated locally in the browser from the exact uploaded bytes. Preserve them with immutable source files for manuscript or regulated-workflow archives.'
+      : 'Web Crypto SHA-256 was unavailable; the older deterministic application fingerprint may still be present but is not a cryptographic integrity checksum.'
+  };
+
+  result.reproducibility = {
+    ...(result.reproducibility || {}),
+    cryptographicInputs: record
+  };
+  result.inputIntegrity = record;
+  return result;
+}
+
 async function attachExternalDatabaseProvenance(result) {
   if (typeof window === 'undefined' || !result?.reactome || typeof globalThis.fetch !== 'function') return result;
   const capturedAt = new Date().toISOString();
@@ -228,6 +312,7 @@ export async function runDeterministicAnalysis(args) {
   const preparedArgs = withBrowserMethodology(args);
   const result = await impl.runDeterministicAnalysis(preparedArgs);
   attachChemicalResolutionAudit(result, preparedArgs);
+  await attachCryptographicInputProvenance(result, preparedArgs);
   await attachExternalDatabaseProvenance(result);
   publishFinalAnalysis(result);
   return result;
