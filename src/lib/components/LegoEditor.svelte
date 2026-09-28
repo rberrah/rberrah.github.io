@@ -16,6 +16,7 @@
   import { advancedDefaults, advancedFields, advancedDerivative, interactionFactor, advancedExpressions, advancedGraphValid } from '$lib/lego/advanced.js';
   import { ddiMechanisms } from '$lib/tdm/workbenches.js';
   import { parseModelCode } from '$lib/lego/mlxtran.js';
+  import { exportPmetrics } from '$lib/lego/pmetrics.js';
   import { legoSimulationConfig } from '$lib/sim/lego.js';
   $: copy = ui($language);
   /** @type {'pk' | 'advanced' | 'translator'} */
@@ -75,14 +76,14 @@
   };
   const MODEL_IMPORT_UI = {
     fr: {
-      importModel: 'Importer un modèle', modelCode: 'Code du modèle', placeholder: 'Collez le code MLXTRAN, mrgsolve ou NONMEM…',
+      importModel: 'Importer un modèle', modelCode: 'Code du modèle', placeholder: 'Collez le code MLXTRAN, mrgsolve, NONMEM ou Pmetrics…',
       modelFile: 'Choisir un fichier modèle', format: 'Format source', applyImport: 'Construire le schéma', importExact: 'Modèle Lego restauré exactement.',
       importRecognized: 'Structure reconnue et convertie en schéma Lego.', importWarnings: 'Points à vérifier',
       errors: { emptyOrTooLarge: 'Le code est vide ou dépasse 200 ko.', invalidEmbeddedSpec: 'La spécification Lego embarquée est invalide.', unsupportedStructure: "Aucune structure PK compatible n'a été reconnue dans ce format." },
       warnings: { populationDefaults: 'Valeurs populationnelles absentes ou incomplètes : valeurs initiales proposées pour', multipleAdministrations: "Plusieurs identifiants d'administration détectés; seule la voie adm retenue est", bioavailabilityNotTransferred: "La biodisponibilité d'une voie unique ne peut pas encore être représentée et doit être vérifiée.", covariateTargetNotMapped: 'Effet de covariable non rattaché au schéma', categoricalCollapsed: 'Covariable à plus de deux modalités réduite à la première comparaison', categoricalLabelsMapped: 'Modalités textuelles remplacées par 0 et 1 pour', covariateFormApproximated: 'Forme de covariable approchée localement par une relation puissance pour', templatePlaceholdersIgnored: 'Les blocs de gabarit {{…}} ne sont pas exécutables et ont été ignorés.', customOdeReview: 'Des EDO personnalisées sont présentes : vérifiez le schéma reconstruit avant export.' }
     },
     en: {
-      importModel: 'Import a model', modelCode: 'Model code', placeholder: 'Paste MLXTRAN, mrgsolve, or NONMEM code…',
+      importModel: 'Import a model', modelCode: 'Model code', placeholder: 'Paste MLXTRAN, mrgsolve, NONMEM or Pmetrics code…',
       modelFile: 'Choose a model file', format: 'Source format', applyImport: 'Build the diagram', importExact: 'Lego model restored exactly.',
       importRecognized: 'Structure recognized and converted into a Lego diagram.', importWarnings: 'Items to review',
       errors: { emptyOrTooLarge: 'The code is empty or larger than 200 kB.', invalidEmbeddedSpec: 'The embedded Lego specification is invalid.', unsupportedStructure: 'No compatible PK structure was recognized in this format.' },
@@ -99,11 +100,21 @@
     unsupportedAdministration: 'This bioavailability or administration logic cannot yet be represented in Lego. The previous diagram is retained. Use the software for the source format for this model.'
   });
   Object.assign(MODEL_IMPORT_UI.fr.warnings, {
+    pmetricsPopulation: "Import structurel uniquement : la distribution non paramétrique, les bornes de recherche et le modèle d'erreur Pmetrics ne sont pas une matrice OMEGA/SIGMA. Les réglages de variabilité et d'erreur de l'atelier sont à vérifier avant tout ajustement.",
+    pmetricsRanges: 'Valeurs de départ : milieu des bornes ab ou moyenne msd, et non estimations ajustées, pour',
+    pmetricsDosing: 'Dose illustrative de 100 unités ; le calendrier et les durées de perfusion sont dans les données Pmetrics, pas dans le modèle. Entrée retenue :',
+    pmetricsCovariates: "Les effets de covariables sont importés ; leur interpolation temporelle n'est pas transférée. Vérifiez les valeurs de référence avant simulation.",
+    pmetricsVolumes: "Volume non défini par le code : échelle illustrative V = 1 pour ces compartiments non observés (courbe de quantité, pas une concentration validée) :",
     populationDefaults: 'Paramètres absents initialisés à 1, à remplacer par vos estimations avant simulation :',
     populationGraph: "Structure populationnelle : les effets aléatoires, l'erreur résiduelle, les changements de covariables dans le temps et les unités de sortie ne sont pas importés. Vérifiez-les dans le logiciel d'estimation.",
     derivedParameters: 'Paramètres dérivés : les coefficients de covariables sur Km dépendent du Hill importé. Si Hill change, ces coefficients doivent être recalculés ou le code original réimporté.'
   });
   Object.assign(MODEL_IMPORT_UI.en.warnings, {
+    pmetricsPopulation: 'Structural import only: the nonparametric distribution, search bounds and Pmetrics error model are not an OMEGA/SIGMA matrix. Review the builder variability and error settings before any fit.',
+    pmetricsRanges: 'Starting values: midpoint of ab bounds or msd mean, not fitted estimates, for',
+    pmetricsDosing: 'Illustrative dose of 100 units; schedules and infusion durations belong to the Pmetrics data, not the model. Selected input:',
+    pmetricsCovariates: 'Covariate effects are imported; time interpolation is not transferred. Review reference values before simulation.',
+    pmetricsVolumes: 'Volume not defined by the code: illustrative V = 1 for these unobserved compartments (amount curve, not a validated concentration):',
     populationDefaults: 'Missing parameters initialized to 1; replace with your estimates before simulation:',
     populationGraph: 'Population structure: random effects, residual error, time-varying covariates and output units are not imported. Review these in the estimation software.',
     derivedParameters: 'Derived parameters: covariate coefficients on Km depend on the imported Hill value. If Hill changes, recalculate these coefficients or reimport the original code.'
@@ -1888,6 +1899,26 @@
   })();
 
   // ── onglets + copie ──
+  $: pmetricsExport = (() => {
+    void nodes; void edges; void covariates; void iivVariances; void iivDistributions; void iivCovariances; void residualError;
+    const P = modelParams();
+    const C = validCovariates(P, covariates);
+    const secondary = P.map(p => {
+      const effects = C.filter(c => c.target === p.name);
+      const multiplicative = effects.filter(c => covariateForm(c) !== 'linear-additive').map(c =>
+        covariateType(c) === 'categorical'
+          ? ` * exp(${fmt(c.beta)} * (${covariateName(c.name)} == ${fmt(c.comparison)}))`
+          : ` * (${covariateName(c.name)}/${fmt(c.reference)})^(${fmt(c.beta)})`).join('');
+      const additive = effects.filter(c => covariateForm(c) === 'linear-additive').map(c =>
+        ` + ${fmt(c.beta)} * (${covariateCode(c, 'r')} - ${fmt(c.reference)})`).join('');
+      return `${p.name} = TV_${p.name}${multiplicative}${additive}`;
+    });
+    return exportPmetrics({
+      spec: legoExportSpec(tMax, activePreset), parameters: P, secondary,
+      equations: Object.fromEntries(nodes.map(n => [rid(n.name), massTerms(n)])),
+      observed: observed ? rid(observed.name) : ''
+    });
+  })();
   // ATTENTION : ne PAS nommer cette fonction `copy` — ce nom est déjà celui de la
   // variable réactive d'internationalisation ci-dessus, et la collision casse
   // l'hydratation de toute la page.
@@ -1906,11 +1937,20 @@
   $: activeCode = codeTab === 'nlmixr2' ? codeNlmixr
     : codeTab === 'mrgsolve' ? codeMrgsolve
       : codeTab === 'mlxtran' ? codeMlxtran
+        : codeTab === 'pmetrics' ? pmetricsExport.code
         : codeNonmem;
   $: activeCodeNote = codeTab === 'nlmixr2' ? copy.pages.legoNoteNlmixr
     : codeTab === 'mrgsolve' ? copy.pages.legoNoteMrgsolve
       : codeTab === 'mlxtran' ? copy.pages.legoNoteMlxtran
+        : codeTab === 'pmetrics' ? ($language === 'en'
+          ? 'Pmetrics 3 structural R template. Search ranges, nonparametric distributions and assay error require a separate statistical specification; OMEGA is not converted into a prior.'
+          : "Gabarit R structurel Pmetrics 3. Les bornes de recherche, distributions non paramétriques et erreurs analytiques nécessitent une spécification statistique distincte ; OMEGA n'est pas convertie en distribution a priori.")
         : copy.pages.legoNoteNonmem;
+  $: pmetricsIssue = pmetricsExport.issue === 'pmetricsCombinedError'
+    ? ($language === 'en' ? 'Combined error is not equivalent to a Pmetrics polynomial SD. The template leaves err = NULL: specify the assay error in R before constructing the model.' : "L'erreur combinée n'est pas équivalente à un écart-type polynomial Pmetrics. Le gabarit laisse err = NULL : renseignez l'erreur analytique dans R avant de construire le modèle.")
+    : pmetricsExport.issue === 'pmetricsExportUnsupported'
+      ? ($language === 'en' ? 'Pmetrics export currently supports PK models with a single dose entry. Multiple input fractions and PD/DDI blocks are not exported.' : "L'export Pmetrics prend actuellement en charge les modèles PK avec une seule entrée de dose. Les fractions à entrées multiples et les blocs PD/DDI ne sont pas exportés.")
+      : ($language === 'en' ? 'Add a PK model before exporting.' : "Ajoutez un modèle PK avant d'exporter.");
   async function copierCode() {
     try {
       await navigator.clipboard.writeText(activeCode);
@@ -1986,7 +2026,7 @@
   <p class="lede">{profile === 'pk'
     ? ($language === 'en' ? 'Absorption, distribution and elimination. A compartmental PK model, with continuous or categorical covariates.' : 'Absorption, distribution et elimination. Un modele PK compartimental, avec covariables continues ou categorielles.')
     : profile === 'translator'
-      ? ($language === 'en' ? 'MLXTRAN, mrgsolve or NONMEM: from source code to a compartmental diagram. Unsupported equations are reported without replacing the previous model.' : 'MLXTRAN, mrgsolve ou NONMEM : du code source au schema compartimental. Les equations non prises en charge sont signalees sans remplacer le modele precedent.')
+      ? ($language === 'en' ? 'MLXTRAN, mrgsolve, NONMEM or Pmetrics: from source code to a compartmental diagram. Unsupported equations are reported without replacing the previous model.' : 'MLXTRAN, mrgsolve, NONMEM ou Pmetrics : du code source au schema compartimental. Les equations non prises en charge sont signalees sans remplacer le modele precedent.')
       : lego.lede}</p>
 </header>
 
@@ -1995,7 +2035,7 @@
   <summary>{importUi.importModel}</summary>
   <div class="mlxtran-import-body">
     <div class="import-formats" role="tablist" aria-label={importUi.format}>
-      {#each [['mlxtran', 'MLXTRAN'], ['mrgsolve', 'mrgsolve'], ['nonmem', 'NONMEM']] as format}
+      {#each [['mlxtran', 'MLXTRAN'], ['mrgsolve', 'mrgsolve'], ['nonmem', 'NONMEM'], ['pmetrics', 'Pmetrics']] as format}
         <button
           type="button"
           role="tab"
@@ -2006,12 +2046,12 @@
       {/each}
     </div>
     <label>
-      <span>{importUi.modelCode} · {importFormat === 'mlxtran' ? 'MLXTRAN' : importFormat === 'mrgsolve' ? 'mrgsolve' : 'NONMEM'}</span>
+      <span>{importUi.modelCode} · {importFormat === 'mlxtran' ? 'MLXTRAN' : importFormat === 'mrgsolve' ? 'mrgsolve' : importFormat === 'pmetrics' ? 'Pmetrics' : 'NONMEM'}</span>
       <textarea rows="9" bind:value={importText} placeholder={importUi.placeholder}></textarea>
     </label>
     <div class="mlxtran-import-actions">
       <label class="file-button">
-        <input type="file" accept=".txt,.mlxtran,.cpp,.cc,.cxx,.mod,.ctl,text/plain" on:change={lireFichierModele} />
+        <input type="file" accept=".txt,.mlxtran,.cpp,.cc,.cxx,.mod,.ctl,.r,.R,text/plain" on:change={lireFichierModele} />
         <span>{importUi.modelFile}</span>
       </label>
       <button class="import-button" disabled={!importText.trim()} on:click={importerModel}>{importUi.applyImport}</button>
@@ -2382,8 +2422,9 @@
         <button role="tab" aria-selected={codeTab === 'mrgsolve'} class:on={codeTab === 'mrgsolve'} on:click={() => (codeTab = 'mrgsolve')}>mrgsolve</button>
         <button role="tab" aria-selected={codeTab === 'mlxtran'} class:on={codeTab === 'mlxtran'} on:click={() => (codeTab = 'mlxtran')}>MLXTRAN</button>
         <button role="tab" aria-selected={codeTab === 'nonmem'} class:on={codeTab === 'nonmem'} on:click={() => (codeTab = 'nonmem')}>NONMEM</button>
+        <button role="tab" aria-selected={codeTab === 'pmetrics'} class:on={codeTab === 'pmetrics'} on:click={() => (codeTab = 'pmetrics')}>Pmetrics</button>
       </div>
-      <button class="cp" on:click={copierCode}>{copiedTab === codeTab ? copy.pages.legoCopied : copy.pages.legoCopy}</button>
+      <button class="cp" disabled={!activeCode} on:click={copierCode}>{copiedTab === codeTab ? copy.pages.legoCopied : copy.pages.legoCopy}</button>
       <button
         class="tdm-launch"
         disabled={!tdmReady}
@@ -2392,6 +2433,7 @@
       >{transferredCode === codeMrgsolve ? copy.pages.legoTdmSent : copy.pages.legoOpenTdm}</button>
     </div>
     <p class="codenote">{activeCodeNote}</p>
+    {#if codeTab === 'pmetrics' && pmetricsExport.issue}<p class="import-status" role="status">{pmetricsIssue}</p>{/if}
     <pre class="codeblk"><code>{activeCode}</code></pre>
   </section>
 </div>
@@ -2430,7 +2472,7 @@
   .mlxtran-import { margin: 0 0 var(--space-4); border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-tertiary); }
   .mlxtran-import summary { padding: 10px 13px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; }
   .mlxtran-import-body { display: grid; gap: var(--space-3); padding: 0 13px 13px; }
-  .import-formats { display: inline-grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 360px); border: 1px solid var(--border-strong); border-radius: 4px; overflow: hidden; }
+  .import-formats { display: inline-grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: min(100%, 440px); border: 1px solid var(--border-strong); border-radius: 4px; overflow: hidden; }
   .import-formats button { min-height: 34px; border: 0; border-right: 1px solid var(--border-strong); border-radius: 0; background: var(--bg-primary); color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); }
   .import-formats button:last-child { border-right: 0; }
   .import-formats button.on { background: var(--text-primary); color: var(--bg-primary); }

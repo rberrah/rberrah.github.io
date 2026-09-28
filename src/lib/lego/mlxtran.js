@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { equationReader, reconstructOdes, codeOdeGraph } from './odeImport.js';
+import { pmetricsToMrgsolve, pmetricsBodyHash } from './pmetrics.js';
 const SPEC_MARKER = /^[ \t]*(?:;|\/\/)\s*PK_LEGO_SPEC_V1:(.+)$/m;
 const NUMBER = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
 
@@ -1365,5 +1366,31 @@ export function parseNonmem(raw) {
 export function parseModelCode(raw, format) {
   if (format === 'mrgsolve') return parseMrgsolve(raw);
   if (format === 'nonmem') return parseNonmem(raw);
+  if (format === 'pmetrics') return parsePmetrics(raw);
   return parseMlxtran(raw);
+}
+
+export function parsePmetrics(raw) {
+  validateSource(raw);
+  const hash = raw.match(/^\s*#\s*PK_LEGO_BODY_V1:([a-f\d]+)\s*$/m)?.[1];
+  const exact = hash === pmetricsBodyHash(raw) ? embeddedSpec(raw.replace(/^\s*#\s*PK_LEGO_SPEC_V1:/gm, '// PK_LEGO_SPEC_V1:')) : null;
+  if (exact) return exact;
+  const normalized = pmetricsToMrgsolve(raw);
+  const source = normalized.code;
+  const values = parseNamedValues(sourceBlocks(source, 'PARAM'));
+  const builder = modelBuilder(source);
+  builder.strictParameters = true;
+  for (const [name, value] of values) builder.hints.set(name, value);
+  addCompartments(builder, compartmentDefinitions(source, 'mrgsolve'), values);
+  const code = ['MAIN', 'ODE', 'TABLE'].flatMap(block => sourceBlocks(source, block)).join('\n');
+  const unscaled = builder.nodes.filter(n => n.kind === 'periph' && !new RegExp(`\\b${n.name}\\s*/\\s*[A-Za-z_]`, 'i').test(code));
+  for (const node of unscaled) node.vol = 1;
+  const reader = codeOdeGraph(code, builder, [...inputNames(source, 'mrgsolve')]);
+  singleCodeAdministration(builder, source, reader, 'mrgsolve');
+  if (!builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
+  positionImportedGraph(builder);
+  return {
+    spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates: builder.odeCovariates },
+    mode: 'recognized', warnings: [...normalized.warnings, ...(unscaled.length ? [{ code: 'pmetricsVolumes', detail: unscaled.map(n => n.name).join(', ') }] : [])]
+  };
 }
