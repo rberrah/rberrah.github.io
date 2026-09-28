@@ -35,7 +35,7 @@ async function streamText(stream) {
   return text;
 }
 
-test('Reactome release and analysis token are retained in the final analysis object and JSON export', async ({ page }) => {
+test('Reactome release, analysis token and SHA-256 inputs are retained in the final analysis object and JSON export', async ({ page }) => {
   await mockReactome(page);
   await page.goto('/multiomics/tool');
   await page.getByTestId('multiomics-load-demo').click();
@@ -46,7 +46,8 @@ test('Reactome release and analysis token are retained in the final analysis obj
     return {
       external: result?.externalDatabaseProvenance?.reactome,
       pathway: result?.reactome?.provenance,
-      reproducibility: result?.reproducibility?.externalDatabases?.reactome
+      reproducibility: result?.reproducibility?.externalDatabases?.reactome,
+      integrity: result?.reproducibility?.cryptographicInputs
     };
   });
 
@@ -58,6 +59,13 @@ test('Reactome release and analysis token are retained in the final analysis obj
     expect(copy?.versionEndpoint).toBe('https://reactome.org/ContentService/data/database/version');
   }
 
+  expect(provenance.integrity?.status).toBe('recorded');
+  expect(provenance.integrity?.algorithm).toBe('SHA-256');
+  expect(provenance.integrity?.canonicalMetadata?.sha256).toMatch(/^[a-f0-9]{64}$/);
+  const hashedFiles = Object.values(provenance.integrity?.files || {});
+  expect(hashedFiles.length).toBeGreaterThanOrEqual(2);
+  for (const file of hashedFiles) expect(file.sha256).toMatch(/^[a-f0-9]{64}$/);
+
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: /Télécharger JSON|Download JSON/i }).click();
   const download = await downloadPromise;
@@ -67,6 +75,8 @@ test('Reactome release and analysis token are retained in the final analysis obj
   expect(exported.externalDatabaseProvenance.reactome.release).toBe(MOCK_REACTOME_RELEASE);
   expect(exported.reactome.provenance.release).toBe(MOCK_REACTOME_RELEASE);
   expect(exported.reproducibility.externalDatabases.reactome.release).toBe(MOCK_REACTOME_RELEASE);
+  expect(exported.reproducibility.cryptographicInputs.algorithm).toBe('SHA-256');
+  expect(exported.reproducibility.cryptographicInputs.canonicalMetadata.sha256).toMatch(/^[a-f0-9]{64}$/);
 });
 
 test('Reactome version lookup failure never blocks the scientific analysis', async ({ page }) => {
