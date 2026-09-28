@@ -1,0 +1,35 @@
+name: Multi-omics raw MS integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'multiomics-engine/raw_ms_processing.R'
+      - 'multiomics-engine/run_raw_ms.R'
+      - 'multiomics-engine/tests/raw_ms_xcms_integration.R'
+      - '.github/workflows/multiomics-raw-ms-integration.yml'
+  workflow_dispatch:
+
+# This is deliberately separate from the fast scientific contract suite because
+# it installs the full Bioconductor LC-MS stack and executes real raw files.
+concurrency:
+  group: multiomics-raw-ms-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  xcms-faahko:
+    name: xcms on public faahKO raw CDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install Bioconductor raw-MS stack and public data
+        run: |
+          Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.org'); BiocManager::install(c('xcms','MsExperiment','Spectra','mzR','BiocParallel','faahKO','jsonlite'), ask=FALSE, update=FALSE)"
+      - name: Execute raw MS pipeline on public faahKO files
+        run: Rscript multiomics-engine/tests/raw_ms_xcms_integration.R
