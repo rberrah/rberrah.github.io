@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { test, expect } from '@playwright/test';
 
 const prefix = process.env.COVARIATES_E2E_PREFIX || '';
