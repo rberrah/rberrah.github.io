@@ -49,6 +49,15 @@ export const tracks = [
     accent: '#5b8c3a', status: 'available', visual: 'pd-visual'
   },
   {
+    id: 'covariates',
+    layer: 'approfondissement',
+    i18n: {
+      en: { label: 'Track 16', title: 'Covariates', tagline: 'Fixed effects and ETA, groups, physiology and symbolic learning: from relationship to implementation.' },
+      fr: { label: 'Parcours 16', title: 'Covariables', tagline: 'Effets fixes et ETA, groupes, physiologie et apprentissage symbolique : de la relation au code.' }
+    },
+    accent: '#a14b64', status: 'available', visual: 'math-visual'
+  },
+  {
     id: 'onco',
     layer: 'domaine',
     i18n: {

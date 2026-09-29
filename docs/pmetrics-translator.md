@@ -41,6 +41,13 @@ The UI explicitly requests review of builder variability and residual settings.
 
 ## MIPD Artifact And MAP Backend
 
+Deployment check, 2026-09-29: this backend passes native local R/Pmetrics tests,
+but is NOT yet installed in the public Shiny engine. Shinyapps.io's build image
+provides Cargo 1.75; Pmetrics 3.2.6 dependencies require newer Rust features
+(edition 2024). Bundle 12619306 failed during Pmetrics compilation. An earlier
+R 4.6 attempt (12619291) failed on lazyeval. The previous public app is retained.
+The website translator does not depend on that server-side installation.
+
 The Shiny engine uses a separate, versioned JSON artifact for patient-level
 Pmetrics calculations. It binds together a supported structural template,
 parameter search bounds, the Pmetrics polynomial error model, administration
@@ -59,6 +66,14 @@ Shiny session.
 `tdm-engine/pmetrics/artifacts/demo_one_comp_iv.json` is a synthetic integration
 fixture, not a published population model. Published artifacts require their
 actual estimated support points and error model.
+
+The initial backend supports only the one-compartment IV template without
+covariates. Error factors must be fixed at their previously estimated values.
+Steady-state warmup covers at least -log(1e-8)/min(ke) hours and scheduled doses
+continue through the observation horizon. Predictive additive error uses
+sqrt(assaySD^2 + lambda^2), matching pharmsol's implementation; proportional
+error uses gamma * assaySD. These conventions are tested rather than inferred
+from a translation of SIGMA.
 
 ## Export
 

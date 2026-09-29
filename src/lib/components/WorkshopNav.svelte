@@ -1,12 +1,13 @@
 <script>
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
-  import { CodeXml, Pill, Activity, Network, Blocks } from '@lucide/svelte';
+  import { CodeXml, Pill, Activity, Network, Blocks, SlidersHorizontal } from '@lucide/svelte';
   let { active } = $props();
   let items = $derived([
     { id: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles', icon: CodeXml },
     { id: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK', icon: Pill },
     { id: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD', icon: Activity },
+    { id: 'covariates', label: $language === 'en' ? 'Covariates' : 'Covariables', icon: SlidersHorizontal },
     { id: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI', icon: Network },
     { id: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée', icon: Blocks }
   ]);

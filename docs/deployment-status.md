@@ -1,4 +1,21 @@
-# Publication - 2026-09-21
+# Publication - 2026-09-29
+
+## Lot Covariables Et Pmetrics
+
+- Backend Pmetrics et artefact pondere : commit `eb37339`, pousse.
+- Nouvelle page `/pharmacometrie/covariates/`, navigation Explorer et parcours
+  Covariables distinct, cinq chapitres FR/EN et exemples mrgsolve/MLXTRAN.
+- Tests locaux : contenu, calculs, compilation mrgsolve des variantes et du
+  cours ; compilation et simulation natives du cours Pmetrics ; controles
+  navigateur Covariables FR/EN sur ordinateur et mobile ; ajustement Pmetrics
+  natif dans Shiny local avec verification des poids posterieurs et du graphe.
+- Shiny : les bundles 12619291 (R 4.6 / lazyeval) et 12619306 (R 4.4 / Cargo
+  1.75 trop ancien pour Pmetrics 3.2.6) ont echoue. Le backend Pmetrics n'est
+  donc pas encore disponible dans l'application publique. Ne pas confondre
+  le traducteur Pmetrics du site avec le moteur statistique R.
+- Aucun document institutionnel ni aucune donnee patient n'est publie.
+
+## Archive - 2026-09-21
 
 ## Etat Actuel
 

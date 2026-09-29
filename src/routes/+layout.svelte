@@ -37,6 +37,7 @@
     { href: '/translator', key: 'translator', label: $language === 'en' ? 'Model Translator' : 'Traducteur de modèles' },
     { href: '/pk', key: 'pk', label: $language === 'en' ? 'PK Builder' : 'Atelier PK' },
     { href: '/pd', key: 'pd', label: $language === 'en' ? 'PD Builder' : 'Atelier PD' },
+    { href: '/covariates', key: 'covariates', label: $language === 'en' ? 'Covariates' : 'Covariables' },
     { href: '/ddi', key: 'ddi', label: $language === 'en' ? 'DDI Builder' : 'Atelier DDI' },
     { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
@@ -48,7 +49,7 @@
   ]);
   let groups = $derived([
     { key: 'learn', label: $language === 'en' ? 'Learn' : 'Apprendre', icon: BookOpen, keys: ['course', 'example', 'exercises'] },
-    { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'ddi', 'advanced'] },
+    { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about', 'main-site'] }

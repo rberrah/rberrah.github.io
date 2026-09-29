@@ -132,6 +132,8 @@ Une individualisation exige un **modèle structurel, son modèle d'erreur et les
 Dans le moteur TDM, le backend Pmetrics appelle `PM_model$map()` avec un prior pondéré. Les positions des points restent fixées ; leurs probabilités sont actualisées par les concentrations du patient. Ce n'est pas un nouvel ajustement NPAG de population. La courbe centrale utilise les paramètres moyens postérieurs ; les simulations d'incertitude tirent des couples de paramètres parmi les points, avec leurs poids, sans les remplacer par une loi normale. La moyenne des paramètres, le point le plus probable et la moyenne des courbes ne sont généralement pas identiques.
 
 Le premier artefact disponible dans PMx Explain est une **démonstration synthétique IV à un compartiment**, pas une distribution estimée dans un article. Les autres structures et les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
+
+**Disponibilité au 29 septembre 2026 :** backend natif testé localement et présent dans le dépôt. Son déploiement Shinyapps.io est bloqué par la version de Rust/Cargo du serveur ; il n'est pas encore disponible dans le moteur public. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

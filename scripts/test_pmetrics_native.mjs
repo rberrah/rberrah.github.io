@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { delimiter, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { exportPmetrics } from '../src/lib/lego/pmetrics.js';
@@ -40,6 +40,8 @@ const exported = exportPmetrics({
 });
 
 assert.equal(exported.issue, '');
+const lesson = readFileSync('src/content/chapters/08c_pmetrics-nonparametric.md', 'utf8');
+const lessonModel = [...lesson.matchAll(/```r\s*([\s\S]*?)```/g)].find(match => match[1].includes('PM_model$new'))[1].split('dat <-')[0];
 const rCode = `${exported.code}
 model <- PM_model$new(pmetrics_definition)
 
@@ -106,6 +108,12 @@ stopifnot(
 )
 cat("PMETRICS_NATIVE_COMPILE_OK\\n")
 cat("PMETRICS_NATIVE_SIMULATION_OK\\n")
+
+${lessonModel}
+lesson_sim <- mod$sim(data = template,
+  theta = matrix(c(0.2, 30), nrow = 1, dimnames = list(NULL, c("ke", "v"))), quiet = TRUE)
+stopifnot(max(abs(lesson_sim$out - 100 * exp(-0.2 * lesson_sim$time) / 30)) < 1e-5)
+cat("PMETRICS_COURSE_EXAMPLE_OK\\n")
 `;
 const oldLibrary = resolve(process.env.LOCALAPPDATA || '', 'R', 'win-library', '4.4');
 const newLibrary = resolve(process.cwd(), '..', '..', '.tools', 'R-4.6.1', 'library');
@@ -130,4 +138,5 @@ if (result.status !== 0) {
 }
 assert.match(result.stdout, /PMETRICS_NATIVE_COMPILE_OK/);
 assert.match(result.stdout, /PMETRICS_NATIVE_SIMULATION_OK/);
-console.log('Pmetrics compiled and simulated the exported model, and compiled the complete tutorial library models successfully.');
+assert.match(result.stdout, /PMETRICS_COURSE_EXAMPLE_OK/);
+console.log('Pmetrics compiled and simulated the exported model and course example, and compiled the complete tutorial library models successfully.');

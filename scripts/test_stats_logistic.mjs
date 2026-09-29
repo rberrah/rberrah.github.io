@@ -29,7 +29,7 @@ const separated=logisticRegression([0,0,0,0,0,1,1,1,1,1],[1,2,3,4,5,6,7,8,9,10])
 assert.equal(separated.separationLikely,true,'Perfect separation must be surfaced, not silently treated as a stable MLE');
 
 assert.throws(()=>logisticRegression([0,0,0,0,1,1,1],[1,2,3,4,5,6,7]),/N_TOO_SMALL/);
-assert.throws(()=>logisticRegression([0,0,0,0,0,0,1,1],[1,2,3,4,5,6,7,8]),/LOGISTIC_CLASS_TOO_SMALL/);
+assert.throws(()=>logisticRegression([0,0,0,0,0,0,0,1],[1,2,3,4,5,6,7,8]),/LOGISTIC_CLASS_TOO_SMALL/);
 assert.throws(()=>logisticRegression([0,0,0,0,1,1,1,1],[2,2,2,2,2,2,2,2]),/PREDICTOR_CONSTANT/);
 
 console.log('Stats logistic regression: MLE, OR/CI, LR test and separation guard PASS');

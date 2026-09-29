@@ -126,6 +126,8 @@ Individualization requires a **structural model, its error model and weighted po
 The TDM Pmetrics backend calls `PM_model$map()` with a weighted prior. Point locations stay fixed; patient concentrations update their probabilities. This is not a new population NPAG fit. The central curve uses posterior mean parameters; uncertainty simulations sample joint parameter vectors with their weights, without replacing them with a normal distribution. Mean parameters, the most probable point and the mean prediction are generally different summaries.
 
 The first PMx Explain artifact is a **synthetic one-compartment IV demonstration**, not a distribution estimated in a publication. Other structures and covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
+
+**Availability on 29 September 2026:** the native backend is tested locally and included in the repository. Deployment to Shinyapps.io is blocked by the server's Rust/Cargo version; it is not yet available in the public engine. The Pmetrics translator and this course remain accessible on the website.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
