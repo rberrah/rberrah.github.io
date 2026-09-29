@@ -1,6 +1,7 @@
 <script lang="ts">
   import { base } from '$app/paths';
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import { Download, ArrowRight, BookOpen } from '@lucide/svelte';
   import { language } from '$lib/stores/language';
   import { writeDraft } from '$lib/workshops/session';
@@ -9,6 +10,8 @@
   import { methods, defaults, domain, validParameters, clearance, covariateCurves, covariateCode } from '$lib/covariates/models';
 
   let method = $state('transformed');
+  let mounted = $state(false);
+  onMount(() => { mounted = true; });
   let p = $state(defaults('transformed'));
   let format = $state('mrgsolve');
   let en = $derived($language === 'en');
@@ -59,9 +62,9 @@
   <a href="#courses"><BookOpen size={17}/>{tr('Parcours Covariables', 'Covariates learning track')}</a>
 </header>
 
-<section class="experiment" aria-label={tr('Atelier des covariables', 'Covariates workshop')}>
+<section class="experiment" inert={!mounted} aria-label={tr('Atelier des covariables', 'Covariates workshop')}>
   <div class="intro">
-    <label>{tr('Méthode', 'Method')}<select bind:value={method} onchange={selectMethod} data-testid="covariate-method">{#each methods as item}<option value={item}>{names[item]}</option>{/each}</select></label>
+    <label>{tr('Méthode', 'Method')}<select bind:value={method} onchange={selectMethod} disabled={!mounted} data-testid="covariate-method">{#each methods as item}<option value={item}>{names[item]}</option>{/each}</select></label>
     <p>{descriptions[method]}</p>
     <p class="formula">{formula}</p>
   </div>
@@ -108,7 +111,7 @@
   <p class="notice">{tr('Exemples pédagogiques, sans données patients ni estimation. Les plages et coefficients ne sont pas des recommandations cliniques. Les profils n’incluent pas de bruit résiduel.', 'Educational examples, with no patient data or estimation. Ranges and coefficients are not clinical recommendations. Profiles do not include residual noise.')}</p>
 </section>
 
-<section class="implementation">
+<section class="implementation" inert={!mounted}>
   <h2>{tr('Implémentation', 'Implementation')}</h2>
   <div class="actions">
     <label>{tr('Langage', 'Language')}<select bind:value={format}><option value="mrgsolve">mrgsolve</option><option value="mlxtran">MLXTRAN (Monolix)</option></select></label>

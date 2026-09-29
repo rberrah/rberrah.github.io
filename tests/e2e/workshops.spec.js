@@ -21,14 +21,14 @@ async function downloadSpec(page) {
   return JSON.parse(await readFile(await file.path(), 'utf8'));
 }
 
-test('Explorer exposes five workshops; PK and Advanced have distinct palettes', async ({ page }) => {
+test('Explorer exposes six workshops; PK and Advanced have distinct palettes', async ({ page }) => {
   await page.goto('/pk/?lang=en');
   await expect(page.locator('.canvas .node')).toHaveCount(2);
   await expect(page.locator('.mlxtran-import')).toHaveCount(0);
   await expect(page.locator('.toolbar .add')).toHaveCount(4);
   if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
   await page.getByTestId('goal-explore').locator('summary').click();
-  await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Model Translator', 'PK Builder', 'PD Builder', 'DDI Builder', 'Advanced Builder']);
+  await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Model Translator', 'PK Builder', 'PD Builder', 'Covariates', 'DDI Builder', 'Advanced Builder']);
   await page.getByTestId('goal-resources').locator('summary').click();
   await expect(page.getByTestId('goal-resources').locator('a')).toHaveText(['Glossary', 'References', 'About PMx Explain', 'Racym Berrah ↗']);
   await expect(page.getByTestId('nav-main-site')).toHaveAttribute('href', 'https://rberrah.github.io/');

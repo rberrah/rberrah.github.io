@@ -11,8 +11,11 @@ for (const width of [1280, 390]) {
       await page.goto(`${prefix}/covariates/?lang=${lang}`);
       await expect(page.getByRole('heading', { name: lang === 'fr' ? 'Covariables' : 'Covariates', exact: true })).toBeVisible();
       await expect(page.getByTestId('covariate-plot')).toHaveCount(2);
+      await expect(page.getByTestId('covariate-method')).toBeEnabled();
+      const formulas = { transformed: 'WT / WTref', groups: 'ratio(groupe)', physiology: 'PMA50', symbolic: 'REN / RENref' };
       for (const method of ['transformed', 'groups', 'physiology', 'symbolic']) {
         await page.getByTestId('covariate-method').selectOption(method);
+        await expect(page.locator('.formula')).toContainText(formulas[method]);
         await expect(page.getByTestId('covariate-clearance')).not.toHaveText(/NaN|Infinity/);
         if (method === 'groups') await expect(page.getByTestId('covariate-plot').first().locator('circle')).toHaveCount(3);
         else await expect(page.getByTestId('covariate-plot').first().locator('path')).not.toHaveAttribute('d', '');
