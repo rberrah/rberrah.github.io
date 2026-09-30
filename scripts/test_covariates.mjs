@@ -4,6 +4,41 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { methods, defaults, validParameters, clearance, covariateCurves, covariateCode } from '../src/lib/covariates/models.js';
+import { lessonDefaults, lessonTypical, lessonData, symbolicApproximation, validLesson, symbolicStudyRange } from '../src/lib/covariates/lessons.js';
+
+const lessonSettings = lessonDefaults();
+assert.ok(!validLesson({ ...lessonSettings, omega: undefined }));
+assert.equal(lessonTypical('basics', 70, lessonSettings), 4);
+assert.equal(lessonTypical('physiology', 50, lessonSettings), 2);
+assert.equal(lessonTypical('groups', 0, lessonSettings), 2.8);
+assert.equal(lessonTypical('implementation', 35, { ...lessonSettings, parameter: 'V' }), 15);
+assert.equal(lessonTypical('implementation', 70, lessonSettings, 1), 5.2);
+assert.equal(lessonTypical('implementation', 70, { ...lessonSettings, parameter: 'V' }, 1), 30);
+assert.ok(lessonData('symbolic', lessonSettings).error > 0);
+assert.equal(lessonData('symbolic', { ...lessonSettings, approximation: 'full' }).error, 0);
+assert.equal(symbolicApproximation(70, lessonSettings), 4);
+const symbolic = lessonData('symbolic', lessonSettings);
+assert.equal(symbolic.cloud.length, 42);
+assert.ok(symbolic.cloud.every(p => p.x >= symbolicStudyRange[0] && p.x <= symbolicStudyRange[1]));
+assert.ok(symbolic.cloud.some(p => Math.abs(p.y - lessonTypical('symbolic', p.x, lessonSettings)) > 0.01));
+const symbolicZeroEta = lessonData('symbolic', { ...lessonSettings, omega: 0 });
+assert.ok(symbolicZeroEta.cloud.every(p => p.y === lessonTypical('symbolic', p.x, lessonSettings)));
+assert.equal(symbolic.error, symbolicZeroEta.error);
+assert.deepEqual(symbolic.typical, symbolicZeroEta.typical);
+for (const lesson of ['basics', 'groups', 'physiology', 'symbolic', 'implementation']) {
+  const data = lessonData(lesson, lessonSettings);
+  assert.ok([...data.typical, ...data.comparison, ...data.cloud].every(p => Number.isFinite(p.y) && p.y > 0 && p.y < data.yMax));
+  assert.deepEqual(data, lessonData(lesson, lessonSettings));
+  for (const lang of ['', 'en/']) {
+    const chapter = fs.readFileSync(`src/content/chapters/${lang}covariates-${lesson}.md`, 'utf8');
+    assert.equal((chapter.match(/viz="Covariate\w+"/g) || []).length, 2);
+  }
+}
+const noVariation = lessonData('basics', { ...lessonSettings, beta: 0, omega: 0 });
+assert.ok(noVariation.cloud.every(p => p.y === 4));
+const steps = lessonData('groups', { ...lessonSettings, grouping: 'threshold' });
+assert.equal(steps.typical.find(p => p.x === 60).y, 4);
+assert.equal(steps.typical.find(p => p.x === 90).y, 5.2);
 
 for (const method of methods) {
   const p = defaults(method);

@@ -5,6 +5,26 @@
 
 /** @type {Record<string, {fr:string, en:string}>} */
 const D = {
+  'CovariateEffects': {
+    fr: 'Poids versus clairance : distinguer la relation typique décrite par bêta, la dispersion des ETA et le déplacement d’un individu.',
+    en: 'Weight versus clearance: distinguish the typical beta relationship, ETA dispersion and the shift of one individual.'
+  },
+  'CovariateGroups': {
+    fr: 'Catégorie ou poids versus clairance : comparer des catégories sans interpolation et des paliers de poids fictifs.',
+    en: 'Category or weight versus clearance: compare categories without interpolation and illustrative weight thresholds.'
+  },
+  'CovariatePhysiology': {
+    fr: 'Âge post-menstruel versus clairance : une maturation de Hill à taille fixée, avec PMA50 et pente réglables.',
+    en: 'Postmenstrual age versus clearance: Hill maturation at fixed body size, with adjustable PMA50 and slope.'
+  },
+  'CovariateSymbolic': {
+    fr: 'Poids versus clairance : 42 patients simulés entre 40 et 90 kg, des approximations symboliques et des zones d’extrapolation non validée. Aucun réseau n’est entraîné dans cette illustration.',
+    en: 'Weight versus clearance: 42 simulated patients between 40 and 90 kg, symbolic approximations and unvalidated extrapolation regions. No network is trained in this illustration.'
+  },
+  'CovariateImplementation': {
+    fr: 'Poids versus CL ou V : retrouver les équations du cours, l’effet spécifique du génotype sur CL et la variabilité définie par OMEGA.',
+    en: 'Weight versus CL or V: reproduce the course equations, the genotype effect specific to CL and OMEGA-defined variability.'
+  },
   'MipdResidualLever': {
     fr: "Le levier σ en estimation MAP : la courbe postérieure se déplace entre le prior de population et les prélèvements du patient selon l'erreur résiduelle. Baissez σ pour donner du poids aux données ; montez le bruit pour voir le surajustement guetter.",
     en: "The σ lever in MAP estimation: the posterior curve moves between the population prior and the patient's samples depending on residual error. Lower σ to weight the data; raise the noise to watch overfitting loom."

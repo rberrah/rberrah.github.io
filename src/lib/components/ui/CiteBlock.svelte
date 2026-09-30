@@ -100,9 +100,9 @@
   .cite { margin-top: var(--space-8); padding-top: var(--space-6); border-top: 1px solid var(--border-subtle); max-width: 760px; }
   h3 { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 var(--space-3); }
   .row { display: flex; align-items: flex-start; gap: var(--space-3); margin-bottom: var(--space-3); }
-  .citation { margin: 0; flex: 1; font-size: var(--text-sm); line-height: 1.6; color: var(--text-secondary); }
+  .citation { margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: var(--text-sm); line-height: 1.6; color: var(--text-secondary); }
   .bibtex {
-    margin: 0; flex: 1; min-width: 0;
+    margin: 0; flex: 1; min-width: 0; max-width: 100%;
     padding: var(--space-3) var(--space-4);
     background: var(--bg-tertiary); border: 1px solid var(--border-subtle); border-radius: var(--radius);
     font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.7;

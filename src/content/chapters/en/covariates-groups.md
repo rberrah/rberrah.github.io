@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"For an exponential A/B ratio of 0.7, beta is…","options":["log(0.7)","0.7","exp(0.7)"],"correct":0},{"prompt":"A cluster is…","options":["a learned group whose relevance needs assessment","necessarily a genotype","proof of a biological mechanism"],"correct":0},{"prompt":"Selecting and validating a cutoff on the same data…","options":["can overstate performance","eliminates overfitting","makes external validation unnecessary"],"correct":0}]
 ---
 
-<!-- step:title="Why this chapter" -->
+<!-- step:title="Why this chapter" viz="CovariateGroups" -->
 A genotype is an observed category; a threshold-defined stage is a transformation; a cluster is learned by an algorithm. A mixture model treats membership as latent. These are not interchangeable concepts.
 <!-- /step -->
 
@@ -37,7 +37,7 @@ $$ p(y_i\mid x_i)=\sum_k \pi_k(x_i)\,p(y_i\mid Z_i=k,x_i). $$
 Assigning the most probable group does not remove classification uncertainty.
 <!-- /step -->
 
-<!-- step:title="Worked example" -->
+<!-- step:title="Worked example" viz="CovariateGroups" -->
 Reference CL = 4 L/h and ratios 0.7 / 1 / 1.3 give typical clearances of 2.8 / 4 / 5.2 L/h.
 
 The workshop compares these categories or fictional weight thresholds. It **does not fit a clustering algorithm**. For actual clustering, standardize variables within training data, learn groups there, freeze the assignment rule and apply it to new individuals.

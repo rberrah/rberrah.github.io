@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"With variances 0.09 and 0.04 and covariance 0.03, correlation is…","options":["0.5","0.03","1.5"],"correct":0},{"prompt":"In the structural Monolix example, IIV is configured on…","options":["Cl0 and V0","WT only","necessarily betaWT and ratioGENO"],"correct":0},{"prompt":"Prospective interpolation using a future measurement…","options":["can leak information","is always clinically more accurate","equals carrying the last value forward"],"correct":0}]
 ---
 
-<!-- step:title="Why this chapter" -->
+<!-- step:title="Why this chapter" viz="CovariateImplementation" -->
 A correct equation can be duplicated, inverted or applied at the wrong time in software. This chapter connects data definitions, parameters and numerical checks. All values are **educational**, with no clinical target.
 <!-- /step -->
 
@@ -38,7 +38,7 @@ has standard deviations 0.3 and 0.2 and correlation 0.5. Covariance is not corre
 These relationships modify parameters before PK simulation. Typical profiles set ETA and EPS to zero; population simulations add the draws specified by OMEGA and SIGMA.
 <!-- /step -->
 
-<!-- step:title="Worked example" -->
+<!-- step:title="Worked example" viz="CovariateImplementation" -->
 This complete mrgsolve model uses hours, mg and L. In an R project its filename is `covariates_example.cpp`:
 
 ```cpp

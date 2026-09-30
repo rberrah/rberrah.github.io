@@ -12,12 +12,13 @@ tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
 glossary: []
 slides: []
-sources: ["wahlquist-symbolic-covariates","cranmer-symbolic","hastie-esl"]
+sources: ["wahlquist-symbolic-covariates","cranmer-symbolic","hastie-esl","sanghavi-covariates"]
 reviewed_on: "2026-09-29"
+updated_on: "2026-09-30"
 quiz: [{"prompt":"An equation that mimics a network well…","options":["still needs validation against observations","must be causal","automatically inherits clinical validation"],"correct":0},{"prompt":"Training/test splitting should generally be…","options":["by patient","random across samples from the same patient","after final equation selection"],"correct":0},{"prompt":"Does a deterministic symbolic equation supply OMEGA?","options":["no, variability must be modeled and estimated","yes, always","only if the formula is short"],"correct":0}]
 ---
 
-<!-- step:title="Why this chapter" -->
+<!-- step:title="Why this chapter" viz="CovariateSymbolic" -->
 A network may learn relationships too complex for a few powers. The pharmacometric goal remains understanding which function modifies a parameter and predicting new individuals, not merely minimizing training error.
 <!-- /step -->
 
@@ -31,11 +32,13 @@ Wahlquist and colleagues studied the latter with propofol data. Their structure 
 One architecture preserves mechanistic PK:
 $$ \theta_i=g_\phi(x_i),\qquad \dot A_i=f(A_i,\theta_i,D_i). $$
 Symbolic regression then seeks an expression $s(x)$ balancing fidelity to $g_\phi$ and simplicity. For example:
-$$ CL_i=\theta\exp\{\beta\log(z_i)+b(z_i-1)^2+\eta_i\},\qquad z_i=REN_i/REN_{ref}. $$
+$$ CL_i=\theta\exp\{\beta\log(z_i)+b(z_i-1)^2+\eta_i\},\qquad z_i=WT_i/70. $$
 This is **illustrative**, not a published propofol equation or a model learned in the workshop. Adding ETA requires an explicitly specified statistical modeling step.
 <!-- /step -->
 
-<!-- step:title="Worked example" -->
+<!-- step:title="Worked example" viz="CovariateSymbolic" -->
+The graph represents **42 simulated patients weighing 40 to 90 kg**. Individual clearance follows the generating relationship multiplied by $\exp(\eta_i)$, with $\eta_i\sim\mathcal N(0,\omega^2)$. The cursor can move beyond this range to illustrate extrapolation, but no patients are simulated in the shaded regions. Candidate curves are not fitted to these points; their RMS deviation measures only their distance from the typical curve between 40 and 90 kg, not clinical performance.
+
 A reproducible protocol:
 1. Split training, validation and test patients before transformations.
 2. Train with positivity, unit and domain constraints.
@@ -50,6 +53,8 @@ Measure equation–network disagreement separately from observation-prediction e
 <!-- step:title="Common pitfall" -->
 A short formula can extrapolate badly: near-zero denominators, powers of negative inputs or explosive out-of-domain behavior. Readability establishes neither causality nor biology.
 
+**Evidence for a covariate–parameter relationship applies to a population and a range of values, not everywhere its formula can be evaluated.** If developed in patients weighing **40 to 90 kg**, applying it to someone weighing **20 or 200 kg** is unvalidated extrapolation. Specific justification and validation are required; good agreement within the studied range is insufficient. This also applies to conventional parametric models, not only networks or symbolic regression.
+
 Choosing the final equation after inspecting test performance contaminates the test. Splitting samples from the same patient between training and test also leaks information.
 <!-- /step -->
 
@@ -58,4 +63,5 @@ Choosing the final equation after inspecting test performance contaminates the t
 - Keeping a PK/PD structure does not validate learned relationships.
 - Freeze and test the final equation, not only the network.
 - Document domain, transformations, version, uncertainty and limitations.
+- Outside the studied range, a computable value is not a validated prediction.
 <!-- /step -->

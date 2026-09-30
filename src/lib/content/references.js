@@ -28,6 +28,7 @@ export const referenceGroups = [
       { id: 'simulx-individual', kind: 'software', title: '[INDIVIDUAL]: Defining parameter distributions', authors: 'Simulations Plus', where: 'Simulx documentation', url: 'https://monolixsuite.slp-software.com/simulx/2024R1/individual' },
       { id: 'wahlquist-symbolic-covariates', kind: 'article', title: 'Learning pharmacometric covariate model structures with symbolic regression networks', authors: 'Wahlquist Y., Sundell J. & Soltesz K.', where: 'J. Pharmacokinet. Pharmacodyn. 2024;51:155–167', doi: '10.1007/s10928-023-09887-3', url: 'https://doi.org/10.1007/s10928-023-09887-3' },
       { id: 'jonsson-covariates', kind: 'article', title: 'Automated covariate model building within NONMEM', authors: 'Jonsson E.N. & Karlsson M.O.', where: 'Pharm. Res. 1998;15:1463–1468', doi: '10.1023/A:1011970125687', url: 'https://doi.org/10.1023/A:1011970125687' },
+      { id: 'sanghavi-covariates', kind: 'article', title: 'Covariate modeling in pharmacometrics: General points for consideration', authors: 'Sanghavi K., Ribbing J., Rogers J.A. et al.', where: 'CPT Pharmacometrics Syst. Pharmacol. 2024;13:710–728', doi: '10.1002/psp4.13115', url: 'https://doi.org/10.1002/psp4.13115' },
       { id: 'cranmer-symbolic', kind: 'article', title: 'Discovering Symbolic Models from Deep Learning with Inductive Biases', authors: 'Cranmer M. et al.', where: 'NeurIPS 2020', url: 'https://arxiv.org/abs/2006.11287' }
     ]
   },

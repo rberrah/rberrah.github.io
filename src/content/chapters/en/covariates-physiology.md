@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"At PMA = PMA50, maturation is…","options":["0.5","1","h"],"correct":0},{"prompt":"Adding Hill to CL…","options":["does not by itself create a PBPK model","automatically makes the model PBPK","removes individual variability"],"correct":0},{"prompt":"A renal-function factor should…","options":["respect units and the elimination component involved","always multiply total clearance","always be exponential"],"correct":0}]
 ---
 
-<!-- step:title="Why this chapter" -->
+<!-- step:title="Why this chapter" viz="CovariatePhysiology" -->
 An exponential is not mandatory. A covariate may modify flow, enzyme activity, volume or saturable capacity. A Hill relationship can describe maturation without drug concentration as its input.
 <!-- /step -->
 
@@ -36,7 +36,7 @@ PMA is postmenstrual age, using the same unit as $PMA_{50}$. Maturation is 0.5 a
 An Emax form $1+E_{\max}x/(EC_{50}+x)$ is another candidate, constrained to keep the factor positive. Its mathematical form does not establish a receptor mechanism.
 <!-- /step -->
 
-<!-- step:title="Worked example" -->
+<!-- step:title="Worked example" viz="CovariatePhysiology" -->
 The workshop holds size fixed to isolate maturation. With CLmax = 4 L/h, PMA50 = 50 weeks and h = 3, PMA = 50 weeks gives CL = 2 L/h at zero ETA. These are teaching values, not estimates from a pediatric population.
 
 In a full physiological model, renal function may modify a renal CL component rather than total clearance. Keeping renal and nonrenal contributions separate avoids imposing zero total CL arbitrarily.

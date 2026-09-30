@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"À PMA = PMA50, le facteur de maturation vaut…","options":["0,5","1","h"],"correct":0},{"prompt":"Ajouter Hill à CL…","options":["ne suffit pas à construire un PBPK","rend automatiquement le modèle PBPK","supprime la variabilité individuelle"],"correct":0},{"prompt":"Un facteur de fonction rénale doit…","options":["respecter unités et composante d’élimination concernée","toujours multiplier toute la clairance","toujours être exponentiel"],"correct":0}]
 ---
 
-<!-- step:title="Pourquoi ce chapitre" -->
+<!-- step:title="Pourquoi ce chapitre" viz="CovariatePhysiology" -->
 Une exponentielle n'est pas obligatoire. Une covariable peut modifier un débit, une activité enzymatique, un volume ou une capacité saturable. Une relation de Hill peut décrire la maturation sans que la variable d'entrée soit une concentration médicamenteuse.
 <!-- /step -->
 
@@ -36,7 +36,7 @@ PMA désigne l'âge post-menstruel, dans la même unité que $PMA_{50}$. Au poin
 Une forme Emax $1+E_{\max}x/(EC_{50}+x)$ peut également être envisagée, avec des contraintes garantissant un facteur positif. Sa forme mathématique ne prouve pas un mécanisme récepteur.
 <!-- /step -->
 
-<!-- step:title="Exemple concret" -->
+<!-- step:title="Exemple concret" viz="CovariatePhysiology" -->
 Dans l'atelier, la taille est maintenue fixe pour isoler la maturation. Avec CLmax = 4 L/h, PMA50 = 50 semaines et h = 3, une PMA de 50 semaines donne CL = 2 L/h à ETA nul. Ces valeurs sont inventées pour l'enseignement, pas empruntées à une population pédiatrique.
 
 Dans un modèle physiologique complet, la fonction rénale peut agir sur une composante rénale de CL et non sur toute la clairance. Conserver séparément les contributions rénale et non rénale évite d'imposer arbitrairement une disparition totale de CL.

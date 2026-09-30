@@ -384,13 +384,14 @@
     .scrolly { grid-template-columns: minmax(0, 1fr) minmax(420px, 1.1fr); gap: var(--space-12); align-items: start; }
   }
 
-  .narrative { display: flex; flex-direction: column; }
+  .narrative { display: flex; flex-direction: column; min-width: 0; }
   .step { padding: var(--space-6) 0; transition: opacity 0.3s ease; }
   @media (min-width: 920px) { .step { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; opacity: 0.4; } .step.active { opacity: 1; } }
   .step-kicker { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-pk); margin: 0 0 var(--space-3); }
   .prose { font-size: var(--text-base); line-height: var(--line-height-body); color: var(--text-primary); }
   .prose :global(p) { margin: 0 0 var(--space-4); color: var(--text-secondary); }
   .prose :global(strong) { color: var(--text-primary); }
+  .prose :global(pre) { max-width: 100%; overflow-x: auto; }
   .prose :global(ul) { color: var(--text-secondary); padding-left: 1.2em; }
   .prose :global(li) { margin-bottom: var(--space-2); }
   .prose :global(.math-rendered) { overflow-x: auto; }

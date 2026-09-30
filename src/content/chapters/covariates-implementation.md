@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"Avec variances 0,09 et 0,04 et covariance 0,03, la corrélation vaut…","options":["0,5","0,03","1,5"],"correct":0},{"prompt":"Dans l’exemple structurel Monolix, l’IIV est configurée sur…","options":["Cl0 et V0","WT uniquement","betaWT et ratioGENO obligatoirement"],"correct":0},{"prompt":"Une interpolation utilisant une mesure future en prévision prospective…","options":["peut provoquer une fuite d’information","est toujours plus exacte cliniquement","équivaut au report de la dernière valeur"],"correct":0}]
 ---
 
-<!-- step:title="Pourquoi ce chapitre" -->
+<!-- step:title="Pourquoi ce chapitre" viz="CovariateImplementation" -->
 Une formule correcte sur le papier peut être doublée, inversée ou appliquée au mauvais moment dans le logiciel. Ce chapitre relie la définition des données, les paramètres et les contrôles numériques. Les valeurs sont **pédagogiques**, sans objectif clinique.
 <!-- /step -->
 
@@ -38,7 +38,7 @@ correspond aux écarts-types 0,3 et 0,2 et à une corrélation de 0,5. Une covar
 Ces relations multiplient les paramètres avant la simulation PK. Une courbe typique est obtenue à ETA et EPS nuls ; une simulation de population ajoute les tirages définis par OMEGA et SIGMA.
 <!-- /step -->
 
-<!-- step:title="Exemple concret" -->
+<!-- step:title="Exemple concret" viz="CovariateImplementation" -->
 Le modèle mrgsolve complet ci-dessous utilise les heures, mg et L. Dans un projet R, son fichier est nommé `covariates_example.cpp` :
 
 ```cpp

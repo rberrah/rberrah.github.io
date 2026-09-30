@@ -17,7 +17,7 @@ reviewed_on: "2026-09-29"
 quiz: [{"prompt":"Pour un ratio A/B = 0,7 dans une exponentielle, bêta vaut…","options":["log(0,7)","0,7","exp(0,7)"],"correct":0},{"prompt":"Un cluster est…","options":["un groupe appris dont la pertinence doit être vérifiée","nécessairement un génotype","une preuve de mécanisme biologique"],"correct":0},{"prompt":"Choisir un seuil puis le valider sur les mêmes données…","options":["peut surestimer sa performance","élimine le surapprentissage","rend inutile la validation externe"],"correct":0}]
 ---
 
-<!-- step:title="Pourquoi ce chapitre" -->
+<!-- step:title="Pourquoi ce chapitre" viz="CovariateGroups" -->
 Un génotype est une catégorie observée ; un stade défini par un seuil est une transformation ; un cluster est construit par un algorithme. Un modèle de mélange traite une appartenance latente. Ces notions ne sont pas interchangeables.
 <!-- /step -->
 
@@ -37,7 +37,7 @@ $$ p(y_i\mid x_i)=\sum_k \pi_k(x_i)\,p(y_i\mid Z_i=k,x_i). $$
 L'incertitude de classe n'est pas supprimée en affectant chaque patient au groupe le plus probable.
 <!-- /step -->
 
-<!-- step:title="Exemple concret" -->
+<!-- step:title="Exemple concret" viz="CovariateGroups" -->
 Avec CL de référence de 4 L/h et des ratios 0,7 / 1 / 1,3, les CL typiques sont 2,8 / 4 / 5,2 L/h.
 
 L'atelier compare soit ces catégories, soit des paliers de poids fictifs. Il **n'ajuste pas de clustering**. Pour un véritable clustering, standardiser les variables sur l'échantillon d'entraînement, apprendre les groupes sur celui-ci, figer la règle d'affectation puis l'appliquer aux nouveaux patients.
