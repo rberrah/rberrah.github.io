@@ -1,6 +1,6 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-09-20. Les cinq ateliers et les quatre laboratoires sont publies.
+Mise a jour : 2026-10-07. Les cinq ateliers et les six laboratoires sont publies.
 Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -201,8 +201,8 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [ ] **L08d / P1** Verifier les transferts directs TDM/DDI/PD avant activation. Transfert Lego disponible et compare numeriquement.
 - [ ] **L07 / P2** Etendre a l'accumulation : doses repetees, etat stationnaire, fluctuations, dose de charge et interruption. Conserver une reference pour comparer les intervalles.
 - [ ] **L08 / P2** Etendre a PK 1 compartiment / absorption : dose, CL, V, ka, F, voie ; AUC avec fenetre explicite, Cmax/Tmax et demi-vie sous leurs hypotheses de validite.
-- [ ] **L09 / P2** Etendre a la variabilite : meme population virtuelle et meme graine pour separer effets de covariables, IIV/IOV et bruit residuel ; mediane et intervalles avec definition explicite.
-- [ ] **L10 / P2** Laboratoire prelevements/Bayes : verite synthetique cachee, heures choisies, resultat bruite, estimation et incertitude. Ne pas presenter une moyenne ponderee illustrative comme une estimation MAP a partir de concentrations ; montrer aussi les prelevements peu informatifs.
+- [x] **L09 / P2** Variabilite : meme population virtuelle et meme graine, IIV sur CL/V séparée de l'erreur résiduelle, médiane et intervalle 10e-90e percentiles, distribution animée au temps courant et référence figée. Les covariables et l'IOV restent un prolongement distinct.
+- [x] **L10 / P2** Prelevements/Bayes : vérité synthétique, un ou deux horaires choisis, résultat bruité, mise à jour au moment du prélèvement, courbe MAP et intervalle postérieur de CL. Le moteur est explicitement un exemple pédagogique à un paramètre avec dose, V et erreur connus, pas un estimateur clinique.
 
 Dependances : L01-L06 n'attendent pas une separation des depots. L10 reutilise
 les fonctions statistiques verifiees et les concepts du design de prelevement ;

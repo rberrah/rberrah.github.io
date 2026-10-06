@@ -28,7 +28,7 @@
 		"test:mlxtran": "node scripts/test_mlxtran_import.mjs && node scripts/test_lego_external_imports.mjs && node scripts/test_pmetrics_import.mjs",
 		"test:pmetrics": "node scripts/test_pmetrics_import.mjs",
 		"test:pmetrics-native": "node scripts/test_pmetrics_native.mjs",
-		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs",
+		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs && node scripts/test_population_labs.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R",
 		"test:multiomics": "node scripts/test_multiomics.mjs && node scripts/test_multiomics_identifiers.mjs && node scripts/test_multiomics_diagnostics.mjs",
 		"test:stats": "node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs && node scripts/test_stats_repeated_edges.mjs && node scripts/test_stats_logistic.mjs"

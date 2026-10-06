@@ -1,7 +1,8 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-09-13. This Pages release adds absorption/infusion after the
-distribution/accumulation and semi-log release (`d638246`). The separate
+Updated 2026-10-07. The page now contains six experiments: four deterministic
+PK input/distribution laboratories plus population variability and Bayesian
+sampling. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
 by pointer and keyboard. Shiny deployment remains independent.
 This is an educational simulation, not a
@@ -23,6 +24,15 @@ drug-specific population model or a clinically validated dosing tool.
   then zero input. The bag is undelivered mass, separate from administered mass.
   The end-of-infusion control seeks to the exact stopping time without changing
   the prescribed duration. There is no instantaneous initial bolus.
+- **Population variability:** a seeded virtual population follows a one-compartment
+  IV bolus model. Log-normal IIV on CL and V generates latent individual curves;
+  a separate log-normal residual term generates possible assay outcomes. The
+  shaded band is the 10th-90th percentile interval, not a confidence interval.
+- **Sampling and Bayes:** one or two noisy synthetic concentrations update a
+  log-normal prior on CL only when their sampling time is reached. The displayed
+  MAP curve and 90% posterior interval come from a numerical CL grid. Dose, V and
+  the residual model are treated as known, so this is an information-design
+  demonstration rather than a clinical MAP implementation.
 
 Amounts and concentrations come from closed-form solutions, superposed over the
 actual dose schedule. Particles are symbolic; their positions are not a transport
@@ -123,12 +133,15 @@ Existing language/theme preferences are independent of scientific data.
 | Interactions | Model 1 as a validated Lego-marked PK, maintenance dose/interval, zero infusion | Finite dose count/loading dose; existing model 2 and interaction settings remain |
 | General PD | Validated Lego-marked PK, h and mg/L, maintenance dose/interval, horizon | Finite dose count/loading dose; existing PD settings remain |
 
-This table applies to distribution/accumulation. The two new labs currently
-transfer only to Lego. Oral absorption exports two depot exits, `ka*F` and
+This table applies to distribution/accumulation. The oral absorption and infusion
+laboratories currently transfer only to Lego. Oral absorption exports two depot exits, `ka*F` and
 `ka*(1-F)`, whose sum is ka; changing these independently in Lego no longer fixes
 ka/F. Infusion exports a single zero-order input with the specified duration.
 Direct TDM/DDI/PD transfer is disabled and rejected by the shared handoff helper
 until the regimen/route contract is verified. No silent IV-bolus substitution.
+The population and Bayesian sampling laboratories do not create a tool handoff:
+their IIV, residual outcomes and posterior are teaching scenarios rather than
+published population priors or patient data.
 
 DDI/PD apply their own repeated-dose workflows, not the laboratory's complete
 history. The destination warning makes this difference explicit. The model's
@@ -169,8 +182,8 @@ doses. The shared Lego number formatter now preserves 15 significant digits:
 its previous six-decimal rounding could erase small rates.
 
 These are numerical/software checks, not an assessment of learning outcomes.
-Observation with students/teachers and expansion to oral absorption, variability
-and sampling design remain in the roadmap. No institutional PDFs are used here.
+Observation with students/teachers remains in the roadmap. Oral absorption,
+variability and sampling design are implemented. No institutional PDFs are used here.
 
 Local verification on 2026-09-12: Svelte check (0 errors, 0 warnings), static
 build, content checks, 25 browser tests, 20 mrgsolve curve comparisons, secure
@@ -213,3 +226,10 @@ passed. Screenshots at 320/390/768/1440 px and French/dark mobile were inspected
 Pixel tests verify input-pipe movement, reproducible seeking, pause, and no input
 after the infusion stops. Publication of the two new labs was requested after
 this local review; it does not include a Shiny deployment.
+
+Population/Bayes revision on 2026-10-07: deterministic unit checks cover fixed
+seeds, zero and extreme variability, separation of latent and residual values,
+posterior ordering and information gain from one then two samples. All twelve
+laboratory browser tests pass, including play/pause, posterior updates only after
+collection, nonblank canvas pixels and 320/1440 px layouts. These two experiments
+run entirely in the browser and do not change or deploy the Shiny application.
