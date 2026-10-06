@@ -12,6 +12,8 @@
   export let heading = '';
   /** @type {import('$lib/learning/types').Activity[]} */
   export let activities = [];
+  /** Affiche les séparateurs de catégories sur les pages de chapitre/parcours. */
+  export let showGroupHeading = true;
 
   $: copy = ui($language);
 
@@ -19,22 +21,16 @@
   // L'ordre des options et l'index `correct` sont conservés entre les langues.
   $: shown = items.map((ex) =>
     $language === 'en' && ex.en
-      ? { ...ex, q: ex.en.q, explain: ex.en.explain, options: ex.en.options ?? ex.options }
+      ? { ...ex, q: ex.en.q, explain: ex.en.explain }
       : ex
   );
 
-  /** @type {{done:boolean,correct:boolean,input:string,picked:number}[]} */
+  /** @type {{done:boolean,correct:boolean,input:string}[]} */
   let state = [];
   // (ré)initialise l'état si la liste change
   /** @type {import('$lib/content/exercises').Exercise[] | undefined} */
   let previousItems;
-  $: if (previousItems !== items) { previousItems = items; state = items.map(() => ({ done: false, correct: false, input: '', picked: -1 })); }
-
-  function pick(/** @type {number} */ i, /** @type {number} */ idx) {
-    if (state[i].done) return;
-    state[i] = { ...state[i], picked: idx, done: true, correct: idx === items[i].correct };
-    state = state;
-  }
+  $: if (previousItems !== items) { previousItems = items; state = items.map(() => ({ done: false, correct: false, input: '' })); }
   function checkNum(/** @type {number} */ i) {
     const ex = items[i];
     const v = parseFloat((state[i].input || '').replace(',', '.'));
@@ -44,7 +40,7 @@
     state = state;
   }
   function reset(/** @type {number} */ i) {
-    state[i] = { done: false, correct: false, input: '', picked: -1 };
+    state[i] = { done: false, correct: false, input: '' };
     state = state;
   }
 
@@ -54,44 +50,42 @@
 
 <div class="block">
   {#if heading}<h3 class="heading">{heading}</h3>{/if}
+  {#if activities.length && showGroupHeading}
+    <header class="group-heading">
+      <span>{$language === 'en' ? 'Guided activities' : 'Activités guidées'}</span>
+      <p>{$language === 'en' ? 'Multi-step cases combining calculation, interpretation and reasoning.' : 'Cas en plusieurs étapes combinant calcul, interprétation et raisonnement.'}</p>
+    </header>
+  {/if}
   {#each activities as activity (activity.id)}<CaseExercise {activity}/>{/each}
+  {#if shown.length && showGroupHeading}
+    <header class="group-heading calculations">
+      <span>{$language === 'en' ? 'Calculations' : 'Calculs'}</span>
+      <p>{$language === 'en' ? 'Short numerical problems with units and immediate worked solutions.' : 'Problèmes numériques courts avec unités et correction immédiate.'}</p>
+    </header>
+  {/if}
   {#each shown as ex, i}
     <article class="ex" class:ok={state[i]?.done && state[i]?.correct} class:ko={state[i]?.done && !state[i]?.correct}>
+      <span class="exercise-type">{$language === 'en' ? 'Calculation' : 'Calcul'}</span>
       <p class="q"><ScientificText text={ex.q}/></p>
 
-      {#if ex.type === 'mcq'}
-        <div class="opts">
-          {#each ex.options ?? [] as opt, oi}
-            <button
-              class="opt"
-              class:picked={state[i]?.picked === oi}
-              class:correct={state[i]?.done && oi === ex.correct}
-              class:wrong={state[i]?.done && state[i]?.picked === oi && oi !== ex.correct}
-              disabled={state[i]?.done}
-              on:click={() => pick(i, oi)}
-            ><ScientificText text={opt}/></button>
-          {/each}
-        </div>
-      {:else}
-        <div class="num">
-          <input
-            type="text"
-            inputmode="decimal"
-            bind:value={state[i].input}
-            aria-label={$language === 'en' ? 'Your value' : 'Votre valeur'}
-            placeholder={$language === 'en' ? 'value' : 'valeur'}
-            disabled={state[i]?.done}
-            on:keydown={(e) => e.key === 'Enter' && checkNum(i)}
-          />
-          {#if ex.unit}<span class="unit">{ex.unit}</span>{/if}
-          {#if !state[i]?.done}<button class="check" on:click={() => checkNum(i)}>{copy.pages.exercisesCheck}</button>{/if}
-        </div>
-      {/if}
+      <div class="num">
+        <input
+          type="text"
+          inputmode="decimal"
+          bind:value={state[i].input}
+          aria-label={$language === 'en' ? 'Your value' : 'Votre valeur'}
+          placeholder={$language === 'en' ? 'value' : 'valeur'}
+          disabled={state[i]?.done}
+          on:keydown={(e) => e.key === 'Enter' && checkNum(i)}
+        />
+        {#if ex.unit}<span class="unit">{ex.unit}</span>{/if}
+        {#if !state[i]?.done}<button class="check" on:click={() => checkNum(i)}>{copy.pages.exercisesCheck}</button>{/if}
+      </div>
 
       {#if state[i]?.done}
         <div class="feedback">
           <span class="badge">{state[i].correct ? '✓ ' + copy.pages.exercisesRight : '✗ ' + copy.pages.exercisesWrong}</span>
-          {#if ex.type === 'num'}<span class="answer">{copy.pages.exercisesAnswer}: {ex.answer} {ex.unit ?? ''}</span>{/if}
+          <span class="answer">{copy.pages.exercisesAnswer}: {ex.answer} {ex.unit ?? ''}</span>
           <p class="explain"><ScientificText text={ex.explain}/></p>
           <button class="retry" on:click={() => reset(i)}>{copy.pages.exercisesRetry}</button>
         </div>
@@ -104,16 +98,15 @@
 <style>
   .block { display: grid; gap: var(--space-4); }
   .heading { font-size: var(--text-sm); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-pk); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); margin: 0; }
+  .group-heading { margin-top: var(--space-3); padding-bottom: var(--space-2); border-bottom: 2px solid var(--accent-ai); }
+  .group-heading.calculations { margin-top: var(--space-6); border-color: var(--accent-pk); }
+  .group-heading span, .exercise-type { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .group-heading p { margin: 4px 0 0; color: var(--text-secondary); font-size: var(--text-sm); }
+  .exercise-type { display: block; margin-bottom: var(--space-2); color: var(--accent-pk); }
   .ex { border: 1px solid var(--border-subtle); border-left: 3px solid var(--border-strong); border-radius: var(--radius); padding: var(--space-4); background: var(--bg-tertiary); }
   .ex.ok { border-left-color: var(--accent-pd); }
   .ex.ko { border-left-color: var(--accent-pk); }
   .q { margin: 0 0 var(--space-3); color: var(--text-primary); font-weight: 600; }
-  .opts { display: grid; gap: var(--space-2); }
-  .opt { text-align: left; padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong); background: var(--bg-primary); border-radius: var(--radius); cursor: pointer; font-size: var(--text-sm); color: var(--text-primary); }
-  .opt:hover:not(:disabled) { border-color: var(--accent-pk); }
-  .opt.correct { border-color: var(--accent-pd); background: color-mix(in srgb, var(--accent-pd) 12%, var(--bg-primary)); }
-  .opt.wrong { border-color: var(--accent-pk); background: color-mix(in srgb, var(--accent-pk) 12%, var(--bg-primary)); }
-  .opt:disabled { cursor: default; }
   .num { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
   .num input { width: 130px; padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-mono); }
   .num .unit { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-secondary); }

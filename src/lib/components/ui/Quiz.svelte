@@ -1,6 +1,7 @@
 <script>
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
+  import ScientificText from './ScientificText.svelte';
 
   export let title = 'Quiz';
   /** @type {{prompt:string, options:string[], correct:number}[]} */
@@ -35,7 +36,7 @@
   <h4>{title}</h4>
   {#each questions as q, i}
     <div class="q">
-      <p class="prompt"><span class="qn">Q{i + 1}.</span> {q.prompt}</p>
+      <p class="prompt"><span class="qn">Q{i + 1}.</span> <ScientificText text={q.prompt}/></p>
       <div class="options">
         {#each orders[i] as j (j)}
           {@const opt = q.options[j]}
@@ -50,7 +51,7 @@
             onclick={() => choose(i, j)}
             data-testid="quiz-option-button"
           >
-            <span class="dot"></span>{opt}
+            <span class="dot"></span><ScientificText text={opt}/>
             {#if answers[i] !== undefined && isCorrect}<span class="tag ok">{copy.correct}</span>{/if}
             {#if picked && !isCorrect}<span class="tag no">{copy.wrong}</span>{/if}
           </button>

@@ -34,10 +34,16 @@ test('un chapitre affiche titre, visualisation et exercices', async ({ page }) =
 test('la page exercices permet de répondre', async ({ page }) => {
   await page.goto('/exercices');
   await page.waitForLoadState('networkidle');
-  const firstOption = page.locator('.opt').first();
-  await expect(firstOption).toBeVisible();
-  await firstOption.click();
+  await expect(page.getByTestId('training-kind-guided')).toBeVisible();
+  await expect(page.getByTestId('training-kind-calculations')).toBeVisible();
+  await expect(page.getByTestId('training-kind-quiz')).toBeVisible();
+  await page.getByTestId('training-kind-calculations').click();
+  await page.getByLabel('Votre valeur').first().fill('0');
+  await page.getByRole('button', { name: 'Vérifier', exact: true }).first().click();
   await expect(page.locator('.feedback').first()).toBeVisible();
+  await page.getByTestId('training-kind-quiz').click();
+  await page.locator('.quiz-card summary').first().click();
+  await expect(page.getByTestId('quiz-option-button').first()).toBeVisible();
 });
 
 test('la page Pour aller plus loin liste des liens externes', async ({ page }) => {

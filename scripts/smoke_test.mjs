@@ -84,6 +84,10 @@ ok(`${slugs.size} slugs uniques, ${trackIds.size} parcours`);
 // ── 5. Exercices : intégrité, bilinguisme, chapitre résolu ──
 const { exercises } = await import(new URL('../src/lib/content/exercises.js', import.meta.url));
 let exBad = 0;
+if (exercises.some((exercise) => exercise.type !== 'num')) {
+  fail('La banque d’exercices courts doit contenir uniquement des calculs ; les QCM appartiennent aux chapitres.');
+  exBad++;
+}
 for (const [i, e] of exercises.entries()) {
   const tag = `exercice #${i} (${e.chapter})`;
   if (!slugs.has(e.chapter)) { fail(`${tag} : chapitre inconnu`); exBad++; }
@@ -97,6 +101,23 @@ for (const [i, e] of exercises.entries()) {
   else if (e.type === 'mcq' && e.en.options && e.en.options.length !== e.options.length) { fail(`${tag} : options EN de longueur différente`); exBad++; }
 }
 if (!exBad) ok(`${exercises.length} exercices : structure + bilinguisme OK`);
+
+// Les trois modes d'entraînement ont une source canonique distincte.
+const { guidedActivities } = await import(new URL('../src/lib/content/guidedActivities.js', import.meta.url));
+const normalizePrompt = (/** @type {string} */ value) => value.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const quizPrompts = frFiles.flatMap((file) => matter(fs.readFileSync(path.join(chaptersDir, file), 'utf8')).data.quiz?.map((question) => question.prompt) ?? []);
+const guidedPrompts = guidedActivities.flatMap((activity) => activity.steps.map((step) => step.prompt.fr));
+const overlaps = [
+  ['QCM/calculs', quizPrompts, exercises.map((exercise) => exercise.q)],
+  ['QCM/activités guidées', quizPrompts, guidedPrompts],
+  ['calculs/activités guidées', exercises.map((exercise) => exercise.q), guidedPrompts]
+];
+let overlapBad = 0;
+for (const [label, left, right] of overlaps) {
+  const rightSet = new Set(right.map(normalizePrompt));
+  if (left.some((prompt) => rightSet.has(normalizePrompt(prompt)))) { fail(`entraînements redondants : ${label}`); overlapBad++; }
+}
+if (!overlapBad) ok('QCM, calculs et activités guidées : aucune question identique entre les trois modes');
 
 // ── 5b. RECALCUL indépendant des réponses numériques (accuracy) ──
 const LN2 = Math.log(2);

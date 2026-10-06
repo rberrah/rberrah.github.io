@@ -26,6 +26,13 @@
   $: done = step.type === 'reflection' ? state.reviewed : state.correct || state.revealed;
   $: sourceList = resolveSources(activity.sources);
   $: savedStatus = $learning.activities[activity.id];
+  $: skills = [
+    activity.steps.some(item => item.type === 'numeric') && ['Calcul', 'Calculation'],
+    activity.steps.some(item => item.type === 'select') && ['Décision', 'Decision'],
+    activity.steps.some(item => item.type === 'reflection') && ['Interprétation', 'Interpretation'],
+    activity.steps.some(item => item.type === 'tune' || item.experiment || item.visual) && ['Manipulation', 'Parameter exploration'],
+    activity.steps.some(item => item.code) && ['Lecture de code', 'Code reading']
+  ].filter(Boolean).map(item => item[$language === 'en' ? 1 : 0]);
   const labels = { attempted: ['Tenté', 'Attempted'], reviewed: ['Corrigé consulté', 'Solution reviewed'], passed: ['Réussi (étapes objectives)', 'Passed (objective steps)'] };
   $: resultLabel = labels[savedStatus] ? t(...labels[savedStatus]) : t('À commencer', 'Not started');
   const profiles = [50, 80].map(value => covariateCurves('transformed', { ...defaults('transformed'), value }).selected);
@@ -70,7 +77,7 @@
 </script>
 
 <details class="activity" id={`activity-${activity.id}`} bind:this={root} bind:open data-testid={`activity-${activity.id}`}>
-  <summary><div><span class="meta">{t('Activité guidée', 'Guided activity')} · {activity.minutes} min · {t('Niveau', 'Level')} {activity.difficulty}</span><h3>{text(activity.title)}</h3><span class="status">{resultLabel}</span></div></summary>
+  <summary><div><span class="meta">{t('Activité guidée', 'Guided activity')} · {activity.minutes} min · {t('Niveau', 'Level')} {activity.difficulty}</span><h3>{text(activity.title)}</h3><span class="skills">{skills.join(' · ')}</span><span class="status">{resultLabel}</span></div></summary>
   {#if open}
     <div class="activity-body" inert={!mounted}>
       <p class="objective"><ScientificText text={text(activity.objective)}/></p>
@@ -172,6 +179,7 @@
   .activity { border: 1px solid var(--border-strong); border-radius: 6px; background: var(--bg-primary); min-width: 0; scroll-margin-top: 100px; }
   summary { cursor: pointer; padding: 16px; color: var(--text-primary); }
   summary > div { display: inline; } h3 { margin: 5px 0; font-size: 1.05rem; } .meta, .status, .synthetic, .tolerance { font-size: .78rem; color: var(--text-secondary); }
+  .skills { display: block; margin-bottom: 5px; color: var(--accent-ai); font-family: var(--font-mono); font-size: .72rem; }
   .activity-body { padding: 0 16px 16px; min-width: 0; } p { line-height: 1.6; } .objective { font-weight: 600; } .context { white-space: pre-line; }
   .step-head { display: flex; gap: 16px; align-items: center; margin-top: 24px; font-size: .85rem; } progress { width: 100px; height: 7px; accent-color: #18998d; }
   h4 { font-size: 1rem; line-height: 1.6; margin: 12px 0; scroll-margin-top: 100px; } h5 { font-size: .9rem; margin: 0; }
