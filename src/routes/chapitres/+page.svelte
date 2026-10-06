@@ -68,10 +68,11 @@
     <section class="track" style={`--track:${track.accent}`} data-testid={`track-section-${track.id}`}>
       <div class="track-head">
         <span class="badge">{localizedTrack.label}</span>
-        <h2>{localizedTrack.title}</h2>
+        <h2><a href={`${base}/parcours/${track.id}/?lang=${$language}`}>{localizedTrack.title}</a></h2>
         {#if track.status !== 'available'}<span class="soon">{copy.chapters.soon}</span>{/if}
       </div>
       <p class="tagline">{localizedTrack.tagline}</p>
+      <p><a href={`${base}/parcours/${track.id}/?lang=${$language}`}>{$language === 'en' ? 'Track, progress and practice' : 'Parcours, progression et exercices'}</a></p>
 
       {#if list.length}
         <ol class="grid">

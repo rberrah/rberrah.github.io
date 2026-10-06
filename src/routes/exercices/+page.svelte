@@ -1,10 +1,15 @@
 <script>
   import { exercises } from '$lib/content/exercises';
+  import { guidedActivities } from '$lib/content/guidedActivities';
+  import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+  import { base } from '$app/paths';
   import chapters from '$lib/content/loadChapters';
   import { tracks } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
   import { ui, localizeTrack } from '$lib/i18n/translations';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
+  import LearningProgress from '$lib/components/ui/LearningProgress.svelte';
 
   $: copy = ui($language);
   // slug de chapitre -> parcours + ordre (pour trier les exercices par parcours)
@@ -16,10 +21,16 @@
       const items = exercises
         .filter((e) => (chapMeta.get(e.chapter)?.track ?? 'core') === t.id)
         .sort((a, b) => (chapMeta.get(a.chapter)?.order ?? 999) - (chapMeta.get(b.chapter)?.order ?? 999));
-      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, items };
+      const activities = guidedActivities.filter(e => chapMeta.get(e.chapter)?.track === t.id).sort((a, b) => (chapMeta.get(a.chapter)?.order ?? 999) - (chapMeta.get(b.chapter)?.order ?? 999));
+      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, items, activities };
     })
-    .filter((g) => g.items.length);
+    .filter((g) => g.items.length || g.activities.length);
   let selectedTrack = '';
+  let mounted = false;
+  onMount(() => { mounted = true; });
+  /** @type {string | null | undefined} */
+  let lastQuery;
+  $: if (mounted && lastQuery !== $page.url.searchParams.get('track')) { lastQuery = $page.url.searchParams.get('track'); if (lastQuery) selectedTrack = lastQuery; }
   $: if (!groups.some((group) => group.id === selectedTrack)) selectedTrack = groups[0]?.id ?? '';
   $: activeGroup = groups.find((group) => group.id === selectedTrack);
 </script>
@@ -27,13 +38,13 @@
 <header class="head">
   <h1>{copy.pages.exercisesTitle}</h1>
   <p class="lede">{copy.pages.exercisesIntro}</p>
-  <div class="score"><span class="muted">{exercises.length} exercices · {groups.length} parcours</span></div>
+  <div class="score"><span class="muted">{exercises.length} {$language === 'en' ? 'short exercises' : 'exercices courts'} · {guidedActivities.length} {$language === 'en' ? 'guided activities' : 'activités guidées'}</span></div>
 </header>
 
 <nav class="track-picker" aria-label={$language === 'en' ? 'Choose an exercise track' : "Choisir un parcours d'exercices"}>
   {#each groups as group}
     <button type="button" class:active={selectedTrack === group.id} aria-pressed={selectedTrack === group.id} style={`--track:${group.accent}`} on:click={() => (selectedTrack = group.id)}>
-      <span>{group.label}</span><strong>{group.title}</strong><small>{group.items.length} {$language === 'en' ? 'exercises' : 'exercices'}</small>
+      <span>{group.label}</span><strong>{group.title}</strong><small>{group.items.length + group.activities.length} {$language === 'en' ? 'activities' : 'activités'}</small>
     </button>
   {/each}
 </nav>
@@ -41,7 +52,9 @@
 {#if activeGroup}
   <section class="track" style={`--track:${activeGroup.accent}`} data-testid={`exercise-track-${activeGroup.id}`}>
     <h2><span class="badge">{activeGroup.label}</span> {activeGroup.title}</h2>
-    <ExerciseBlock items={activeGroup.items} />
+    <p><a href={`${base}/parcours/${activeGroup.id}/?lang=${$language}`}>{$language === 'en' ? 'Open the track' : 'Ouvrir le parcours'}</a></p>
+    {#if activeGroup.activities.length}<LearningProgress/>{/if}
+    <ExerciseBlock items={activeGroup.items} activities={activeGroup.activities} />
   </section>
 {/if}
 

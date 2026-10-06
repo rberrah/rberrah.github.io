@@ -15,7 +15,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"validate": "node scripts/validate_content.mjs",
 		"smoke": "node scripts/smoke_test.mjs",
-		"test": "node scripts/validate_content.mjs && node scripts/smoke_test.mjs && node scripts/test_covariates.mjs && node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs && node scripts/test_stats_repeated_edges.mjs && node scripts/test_stats_logistic.mjs",
+		"test": "node scripts/validate_content.mjs && node scripts/smoke_test.mjs && node scripts/test_covariates.mjs && node scripts/test_learning.mjs && node scripts/test_learning_content.mjs && node scripts/test_stats.mjs && node scripts/test_stats_kendall.mjs && node scripts/test_stats_repeated_edges.mjs && node scripts/test_stats_logistic.mjs",
 		"test:e2e": "playwright test",
 		"slides:index": "node scripts/generate_slide_index.mjs",
 		"slides:catalog": "node scripts/sync_slide_catalog.mjs",

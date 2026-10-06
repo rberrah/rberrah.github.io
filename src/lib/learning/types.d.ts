@@ -1,0 +1,14 @@
+export type Localized = { fr: string; en: string };
+export type Tolerance = { kind: 'absolute' | 'relative'; value: number };
+export type Visual = { lesson: string; value: number; settings?: Partial<ReturnType<typeof import('../covariates/lessons.js').lessonDefaults>> };
+export type Experiment = { kind: string; controls: string[]; settings?: Record<string, number> };
+type StepBase = { id: string; prompt: Localized; correction: Localized; hints?: Localized[]; visual?: Visual; experiment?: Experiment; code?: string; table?: { columns: Localized[]; rows: (number | string)[][] } };
+export type NumericStep = StepBase & { type: 'numeric'; answer: number; unit: string; units?: string[]; tolerance: Tolerance; commonErrors?: { value: number; feedback: Localized }[] };
+export type SelectStep = StepBase & { type: 'select'; options: Localized[]; correct: number[] };
+export type ReflectionStep = StepBase & { type: 'reflection'; rubric: Localized[] };
+export type TuneStep = StepBase & { type: 'tune'; targets: Record<string, number> };
+export type Step = NumericStep | SelectStep | ReflectionStep | TuneStep;
+export type Activity = { id: string; chapter: string; minutes: number; difficulty: number; title: Localized; objective: Localized; context: Localized; sources: string[]; steps: Step[] };
+export type Assessment = { valid: boolean; correct: boolean; reason: string; feedback?: Localized };
+export type StepState = { input: string; unit: string; selected: number[]; attempts: number; correct: boolean; revealed: boolean; reviewed: boolean; hints: number; result: Assessment | null };
+export type Progress = { version: number; chapters: Record<string, string>; activities: Record<string, string> };

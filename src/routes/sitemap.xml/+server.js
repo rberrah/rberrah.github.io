@@ -2,6 +2,7 @@
 // La liste des chapitres est DÉRIVÉE du chargeur existant — ajouter un fichier
 // Markdown suffit, il n'y a rien à tenir à jour ici.
 import chapters from '$lib/content/loadChapters';
+import { tracks } from '$lib/content/tracks';
 import { SITE_BASE, SITE_ORIGIN } from '$lib/site';
 
 export const prerender = true;
@@ -42,6 +43,7 @@ const xml = (/** @type {string} */ s) =>
 export function GET() {
   /** @type {{loc: string, lastmod?: string}[]} */
   const entries = FIXED_PAGES.map((route) => ({ loc: absolute(route) }));
+  for (const track of tracks) entries.push({ loc: absolute(`/parcours/${track.id}/`) });
 
   for (const c of chapters) {
     entries.push({

@@ -11,6 +11,8 @@
   import CiteBlock from '$lib/components/ui/CiteBlock.svelte';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import { exercisesForChapter } from '$lib/content/exercises';
+  import { activitiesForChapter } from '$lib/content/guidedActivities';
+  import { markLearning } from '$lib/stores/learning';
   import { describeViz } from '$lib/content/vizDescriptions';
   import { language } from '$lib/stores/language';
   import { localizeChapter, ui } from '$lib/i18n/translations';
@@ -39,6 +41,7 @@
   afterNavigate(() => {
     if ($page.route.id !== '/chapitres/[slug]') return;
     const known = $page.status === 200 && chapters.find(c => c.slug === $page.params.slug);
+    if (known) markLearning('chapters', known.slug, 'seen');
     countPage(known ? `/pharmacometrie/chapitres/${known.slug}/` : null);
   });
   $: localizedResult = localizeChapter(chapter, $language);
@@ -57,6 +60,7 @@
   $: prevDisplay = localizeChapter(prev, $language).chapter;
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
+  $: chapterActivities = chapter ? activitiesForChapter(chapter.slug) : [];
   // Rappels : prérequis (liens vers d'autres chapitres) + termes du glossaire.
   $: prereqs = (chapter?.prerequisites ?? [])
     .map((/** @type {string} */ s) => chapters.find((c) => c.slug === s))
@@ -237,10 +241,12 @@
 
   <header class="chap-head">
     <a class="back" href={`${base}/chapitres`} data-testid="back-link">{copy.chapter.back}</a>
+    {#if chapter}<a class="back track-return" href={`${base}/parcours/${chapter.track}/?lang=${$language}&chapter=${chapter.slug}`}>{$language === 'en' ? 'Track and practice' : 'Parcours et exercices'}</a>{/if}
     <p class="eyebrow">{copy.chapter.label(String(idx + 1).padStart(2, '0'))}</p>
     <h1 data-testid="chapter-title">{displayChapter.title}</h1>
     <AuthorSignature updatedOn={chapter?.updated_on ?? ''} reviewedOn={chapter?.reviewed_on ?? ''} />
     <p class="desc">{displayChapter.description}</p>
+    {#if chapter && chapterActivities.length}<a href={`${base}/parcours/${chapter.track}/?lang=${$language}&chapter=${chapter.slug}#practice`}>{chapterActivities.length} {$language === 'en' ? 'guided activities' : 'activités guidées'}</a>{/if}
     {#if isFallback}
       <p class="fallback-notice" data-testid="chapter-language-fallback">{copy.chapter.fallbackNotice}</p>
     {/if}
@@ -304,10 +310,10 @@
         </section>
       {/if}
 
-      {#if chapterExercises.length}
+      {#if chapterExercises.length || chapterActivities.length}
         <section class="step ex-step" data-testid="chapter-exercises">
           <p class="step-kicker">{copy.chapter.exercisesTitle}</p>
-          <ExerciseBlock items={chapterExercises} />
+          <ExerciseBlock items={chapterExercises} activities={chapterActivities} />
         </section>
       {/if}
 
@@ -368,6 +374,7 @@
 {/if}
 
 <style>
+  .track-return { margin-left: 16px; }
   /* Colle JUSTE SOUS le header (var(--header-h)) : un top: 56px codé en dur la plaçait
      derrière un header de 59 px, invisible pendant toute la lecture. */
   .progress { position: sticky; top: var(--header-h); z-index: 39; height: 3px; background: var(--border-subtle); margin: 0 0 var(--space-6); }

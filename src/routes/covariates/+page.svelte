@@ -59,7 +59,7 @@
 <header>
   <h1>{tr('Covariables', 'Covariates')}</h1>
   <p>{tr('De la caractéristique du patient aux paramètres PK/PD.', 'From patient characteristics to PK/PD parameters.')}</p>
-  <a href="#courses"><BookOpen size={17}/>{tr('Parcours Covariables', 'Covariates learning track')}</a>
+  <a href={`${base}/parcours/covariates/?lang=${$language}`}><BookOpen size={17}/>{tr('Parcours et exercices Covariables', 'Covariates track and practice')}</a>
 </header>
 
 <section class="experiment" inert={!mounted} aria-label={tr('Atelier des covariables', 'Covariates workshop')}>

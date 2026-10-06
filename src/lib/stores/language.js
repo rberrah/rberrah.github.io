@@ -21,8 +21,10 @@ function readInitialLanguage() {
   } catch (e) {
     // URL exotique : on retombe sur la préférence enregistrée.
   }
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return supported.has(stored) ? stored : DEFAULT_LANGUAGE;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return supported.has(stored) ? stored : DEFAULT_LANGUAGE;
+  } catch { return DEFAULT_LANGUAGE; }
 }
 
 // Garde l'URL cohérente avec le choix affiché, sinon un rechargement rétablirait la
@@ -47,7 +49,8 @@ function createLanguageStore() {
   if (browser) {
     store.subscribe((lang) => {
       const normalized = supported.has(lang) ? lang : DEFAULT_LANGUAGE;
-      localStorage.setItem(STORAGE_KEY, normalized);
+      try { localStorage.setItem(STORAGE_KEY, normalized); }
+      catch { /* Language still applies when browser storage is unavailable. */ }
       document.documentElement.lang = normalized;
       const description = document.querySelector('meta[name="description"]');
       if (description) description.setAttribute('content', ui(normalized).meta.description);

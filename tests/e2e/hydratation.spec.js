@@ -54,11 +54,13 @@ test('« Commencer le cours » ouvre réellement le chapitre', async ({ page }) 
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 
-test("« Ouvrir le parcours » ouvre réellement le premier chapitre", async ({ page }) => {
+test("« Ouvrir le parcours » affiche le parcours puis son premier chapitre", async ({ page }) => {
   const erreurs = collecteErreurs(page);
 
   await page.goto('/');
   await page.getByTestId('track-open-core').click();
+  await expect(page).toHaveURL(/\/parcours\/core\//);
+  await page.getByTestId('resume-track').click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 

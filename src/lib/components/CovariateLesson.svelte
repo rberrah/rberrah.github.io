@@ -4,11 +4,12 @@
   import { language } from '$lib/stores/language';
   import { reducedMotion } from '$lib/motion/reducedMotion';
   import CovariatePlot from './CovariatePlot.svelte';
+  import ScientificText from './ui/ScientificText.svelte';
   import { lessonDefaults, lessonDomain, lessonTypical, lessonData, validLesson, symbolicStudyRange } from '$lib/covariates/lessons';
 
-  let { lesson }: { lesson: string } = $props();
-  let p = $state(lessonDefaults());
-  const initial = () => lesson === 'groups' ? 1 : lesson === 'physiology' ? 40 : lesson === 'symbolic' ? 60 : 70;
+  let { lesson, initialSettings = {}, initialValue, onchange }: { lesson: string; initialSettings?: Partial<ReturnType<typeof lessonDefaults>>; initialValue?: number; onchange?: (state: { settings: ReturnType<typeof lessonDefaults>; value: number; valid: boolean }) => void } = $props();
+  let p = $state(untrack(() => ({ ...lessonDefaults(), ...initialSettings })));
+  const initial = () => initialValue ?? (lesson === 'groups' ? 1 : lesson === 'physiology' ? 40 : lesson === 'symbolic' ? 60 : 70);
   let value = $state(initial());
   let playing = $state(false);
   let mounted = $state(false);
@@ -31,7 +32,7 @@
     ...(data.comparison.length ? [{ points: data.comparison, color: '#c45f88', dashed: true, label: lesson === 'symbolic' ? t('Approximation symbolique', 'Symbolic approximation') : 'GENO = 1' }] : [])
   ]);
 
-  function reset() { playing = false; p = lessonDefaults(); value = initial(); showCloud = true; }
+  function reset() { playing = false; p = { ...lessonDefaults(), ...initialSettings }; value = initial(); showCloud = true; }
   function changeGrouping() { playing = false; value = categories ? 1 : 70; }
   onMount(() => {
     mounted = true;
@@ -44,6 +45,7 @@
   $effect(() => {
     if (!valid || $reducedMotion) playing = false;
   });
+  $effect(() => { onchange?.({ settings: { ...p }, value, valid }); });
   $effect(() => {
     if (!playing) return;
     const [min, max] = limits;
@@ -100,7 +102,7 @@
       <label>C / B<input type="number" min="0.1" max="3" step="0.1" bind:value={p.high}/></label>
     {:else if lesson === 'physiology'}
       <label>{t('PMA50 (semaines)', 'PMA50 (weeks)')}<input data-testid="lesson-half" type="number" min="20" max="100" step="1" bind:value={p.half}/></label>
-      <label>Hill h<input type="number" min="0.5" max="6" step="0.1" bind:value={p.hill}/></label>
+      <label>Hill h<input data-testid="lesson-hill" type="number" min="0.5" max="6" step="0.1" bind:value={p.hill}/></label>
     {:else if lesson === 'symbolic'}
       <label>{t('Formule candidate', 'Candidate formula')}<select data-testid="lesson-approximation" bind:value={p.approximation}><option value="linear">{t('Linéaire', 'Linear')} : 4 (1 + 0.75 (z−1))</option><option value="power">{t('Puissance', 'Power')} : 4 z^0.75</option><option value="full">{t('Expression complète', 'Full expression')}</option></select></label>
       <label>{t('Écart-type des ETA (ω)', 'ETA standard deviation (ω)')}<input data-testid="lesson-omega" type="number" min="0" max="0.6" step="0.05" bind:value={p.omega}/></label>
@@ -111,7 +113,7 @@
   </div>
   <label class="check"><input data-testid="lesson-show-patients" type="checkbox" bind:checked={showCloud}/>{lesson === 'symbolic' ? t('Patients simulés', 'Simulated patients') : t('Individus synthétiques', 'Synthetic individuals')}</label>
   {#if !valid}<p role="alert">{t('Renseignez les valeurs dans les limites proposées.', 'Enter values within the specified bounds.')}</p>{/if}
-  <p class="formula">{formula}</p>
+  <p class="formula"><ScientificText text={formula}/></p>
   {#if lesson === 'basics'}
     <p>{t('Bêta change la relation typique ; ω change la dispersion des paramètres autour de cette relation. L’ETA sélectionné déplace un seul individu, pas la courbe typique.', 'Beta changes the typical relationship; ω changes parameter dispersion around it. The selected ETA shifts one individual, not the typical curve.')}</p>
   {:else if lesson === 'groups'}
@@ -120,7 +122,7 @@
     <p>{t('À PMA50, la CL typique atteint 50 % de CLmax (4 L/h). La taille est fixée ; cette fonction de maturation seule n’est pas un modèle PBPK complet.', 'At PMA50, typical CL reaches 50% of CLmax (4 L/h). Body size is fixed; this maturation function alone is not a complete PBPK model.')}</p>
   {:else if lesson === 'symbolic'}
     <p data-testid="symbolic-error">{t('Écart relatif RMS entre courbes sur 40–90 kg', 'Relative RMS deviation between curves over 40–90 kg')} : <strong>{data.error.toFixed(2)} %</strong></p>
-    <p>{t('Les patients simulés suivent CLi = CLtyp × exp(ηi), avec ηi ~ N(0, ω²). Les formules sont construites : aucun réseau ni modèle n’est ajusté ici. L’écart RMS compare les courbes typiques, pas les patients ; zéro avec l’expression complète est une identité mathématique, pas une validation.', 'Simulated patients follow CLi = CLtyp × exp(ηi), with ηi ~ N(0, ω²). These are constructed formulas: no network or model is fitted here. RMS deviation compares typical curves, not patients; zero with the full expression is a mathematical identity, not validation.')}</p>
+    <p><ScientificText text={t('Les patients simulés suivent CLi = CLtyp × exp(ηi), avec ηi ~ N(0, ω²). Les formules sont construites : aucun réseau ni modèle n’est ajusté ici. L’écart RMS compare les courbes typiques, pas les patients ; zéro avec l’expression complète est une identité mathématique, pas une validation.', 'Simulated patients follow CLi = CLtyp × exp(ηi), with ηi ~ N(0, ω²). These are constructed formulas: no network or model is fitted here. RMS deviation compares typical curves, not patients; zero with the full expression is a mathematical identity, not validation.')}/></p>
     <p>{t('Les zones grisées sont hors de 40–90 kg. Une relation étudiée dans cette plage ne peut pas être appliquée à 20 ou 200 kg sans justification et validation spécifiques, même si la formule renvoie un nombre.', 'Shaded regions are outside 40–90 kg. A relationship studied within that range cannot be applied at 20 or 200 kg without specific justification and validation, even if the formula returns a number.')}</p>
   {:else}
     <p>{t('Le poids agit sur CL et V ; GENO agit seulement sur CL. Les ETA simulés suivent OMEGA du cours : variances 0,09 / 0,04, covariance 0,03 (corrélation 0,5).', 'Weight affects CL and V; GENO affects CL only. Simulated ETAs follow the course OMEGA: variances 0.09 / 0.04, covariance 0.03 (correlation 0.5).')}</p>

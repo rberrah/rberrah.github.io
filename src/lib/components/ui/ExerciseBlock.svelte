@@ -3,11 +3,15 @@
   // Gère son propre état ; accepte une liste d'exercices et un titre optionnel.
   import { language } from '$lib/stores/language';
   import { ui } from '$lib/i18n/translations';
+  import CaseExercise from './CaseExercise.svelte';
+  import ScientificText from './ScientificText.svelte';
 
   /** @type {import('$lib/content/exercises').Exercise[]} */
   export let items = [];
   /** @type {string} */
   export let heading = '';
+  /** @type {import('$lib/learning/types').Activity[]} */
+  export let activities = [];
 
   $: copy = ui($language);
 
@@ -22,7 +26,9 @@
   /** @type {{done:boolean,correct:boolean,input:string,picked:number}[]} */
   let state = [];
   // (ré)initialise l'état si la liste change
-  $: if (state.length !== items.length) state = items.map(() => ({ done: false, correct: false, input: '', picked: -1 }));
+  /** @type {import('$lib/content/exercises').Exercise[] | undefined} */
+  let previousItems;
+  $: if (previousItems !== items) { previousItems = items; state = items.map(() => ({ done: false, correct: false, input: '', picked: -1 })); }
 
   function pick(/** @type {number} */ i, /** @type {number} */ idx) {
     if (state[i].done) return;
@@ -48,9 +54,10 @@
 
 <div class="block">
   {#if heading}<h3 class="heading">{heading}</h3>{/if}
+  {#each activities as activity (activity.id)}<CaseExercise {activity}/>{/each}
   {#each shown as ex, i}
     <article class="ex" class:ok={state[i]?.done && state[i]?.correct} class:ko={state[i]?.done && !state[i]?.correct}>
-      <p class="q">{ex.q}</p>
+      <p class="q"><ScientificText text={ex.q}/></p>
 
       {#if ex.type === 'mcq'}
         <div class="opts">
@@ -62,7 +69,7 @@
               class:wrong={state[i]?.done && state[i]?.picked === oi && oi !== ex.correct}
               disabled={state[i]?.done}
               on:click={() => pick(i, oi)}
-            >{opt}</button>
+            ><ScientificText text={opt}/></button>
           {/each}
         </div>
       {:else}
@@ -71,7 +78,8 @@
             type="text"
             inputmode="decimal"
             bind:value={state[i].input}
-            placeholder="valeur"
+            aria-label={$language === 'en' ? 'Your value' : 'Votre valeur'}
+            placeholder={$language === 'en' ? 'value' : 'valeur'}
             disabled={state[i]?.done}
             on:keydown={(e) => e.key === 'Enter' && checkNum(i)}
           />
@@ -84,7 +92,7 @@
         <div class="feedback">
           <span class="badge">{state[i].correct ? '✓ ' + copy.pages.exercisesRight : '✗ ' + copy.pages.exercisesWrong}</span>
           {#if ex.type === 'num'}<span class="answer">{copy.pages.exercisesAnswer}: {ex.answer} {ex.unit ?? ''}</span>{/if}
-          <p class="explain">{ex.explain}</p>
+          <p class="explain"><ScientificText text={ex.explain}/></p>
           <button class="retry" on:click={() => reset(i)}>{copy.pages.exercisesRetry}</button>
         </div>
       {/if}

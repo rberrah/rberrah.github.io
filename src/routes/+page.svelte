@@ -102,7 +102,7 @@
                 <p>{localizedTrack.tagline}</p>
                 <p class="count">{copy.home.chapterCount(list.length)}</p>
                 {#if track.status === 'available' && list[0]}
-                  <a class="btn btn-outline sm" href={`${base}/chapitres/${list[0].slug}`} data-testid={`track-open-${track.id}`}>{copy.home.openTrack}</a>
+                  <a class="btn btn-outline sm" href={`${base}/parcours/${track.id}/?lang=${$language}`} data-testid={`track-open-${track.id}`}>{copy.home.openTrack}</a>
                 {:else}
                   <span class="btn btn-outline sm disabled" aria-disabled="true">{copy.home.inPreparation}</span>
                 {/if}
