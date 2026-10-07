@@ -5,13 +5,17 @@
   import LaboratoryHome from '$lib/components/LaboratoryHome.svelte';
   import { language } from '$lib/stores/language';
   const allowed = ['distribution', 'accumulation', 'absorption', 'infusion'];
-  let hashLab = '';
-  $: queryLab = $page.url.searchParams.get('lab') ?? '';
-  $: selectedLab = allowed.includes(queryLab) ? queryLab : hashLab;
+  let selectedLab = '';
   onMount(() => {
-    const readHash = () => { const value = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('lab') ?? ''; hashLab = allowed.includes(value) ? value : ''; };
-    readHash(); window.addEventListener('hashchange', readHash);
-    return () => window.removeEventListener('hashchange', readHash);
+    const readLocation = (url = new URL(window.location.href)) => {
+      const queryLab = url.searchParams.get('lab') ?? '';
+      const hashLab = new URLSearchParams(url.hash.replace(/^#/, '')).get('lab') ?? '';
+      selectedLab = allowed.includes(queryLab) ? queryLab : allowed.includes(hashLab) ? hashLab : '';
+    };
+    const unsubscribe = page.subscribe(({ url }) => readLocation(url));
+    const readHash = () => readLocation();
+    window.addEventListener('hashchange', readHash);
+    return () => { unsubscribe(); window.removeEventListener('hashchange', readHash); };
   });
 </script>
 <svelte:head><title>{$language === 'en' ? 'PK laboratories' : 'Laboratoires PK'} | PMx Explain</title></svelte:head>
