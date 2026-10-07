@@ -1,6 +1,6 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-10-07. The catalogue page exposes four experiments built around
+Updated 2026-10-07. The catalogue page exposes ten experiments built around
 molecular journeys. Population variability and Bayesian updating remain course
 animations rather than separate laboratories. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
@@ -24,10 +24,28 @@ drug-specific population model or a clinically validated dosing tool.
   then zero input. The bag is undelivered mass, separate from administered mass.
   The end-of-infusion control seeks to the exact stopping time without changing
   the prescribed duration. There is no instantaneous initial bolus.
+- **Parent and metabolite:** IV parent drug is either eliminated or converted
+  into a circulating metabolite with its own volume and clearance. Formation
+  conserves a 1:1 amount-equivalent; molecular-weight conversion is omitted.
+- **Long-acting depot:** repeated injections enter a first-order depot before a
+  linear central compartment. Bioavailability is complete and no burst release
+  is represented.
+- **Saturable elimination:** one central compartment uses pure Michaelis-Menten
+  elimination. There is no parallel linear elimination pathway.
+- **Enterohepatic cycling:** linear lumped plasma, bile and gut compartments
+  represent secretion, emptying, reabsorption and loss. Meals and discrete
+  gallbladder events are outside scope.
+- **Target-mediated disposition:** full reversible binding, target turnover,
+  complex internalisation and parallel linear clearance are expressed in
+  amount-equivalents. This reduced experiment is not a drug-specific QSS/QE model.
+- **Effect-site equilibration:** linear plasma PK drives a conceptual biophase
+  and Emax response. The effect compartment carries no drug mass.
 
-Amounts and concentrations come from closed-form solutions, superposed over the
-actual dose schedule. Particles are symbolic; their positions are not a transport
-solver or an anatomical representation. The eliminated amount is
+In the four fundamental laboratories, amounts and concentrations come from
+closed-form solutions superposed over the actual dose schedule. The six advanced
+laboratories use a fixed-grid RK4 integration of the displayed ODEs. Particles are
+symbolic; their positions are not a transport solver or an anatomical
+representation. For the fundamental models, the eliminated amount is
 `administered - central - peripheral - oral depot - presystemic loss`;
 `AUC(0,t) = eliminated / CL` for these models.
 The displayed AUC is not automatically an AUC24. At a bolus time the numeric state
@@ -216,8 +234,16 @@ after the infusion stops. Publication of the two new labs was requested after
 this local review; it does not include a Shiny deployment.
 
 Catalogue revision on 2026-10-07: `/laboratoires/` is a dedicated home page with
-four immediately visible molecular journeys and explicit links to the existing
+six advanced journeys first, followed by four fundamental journeys and explicit links to the existing
 variability and Bayesian course animations. Opening a laboratory adds the selected
 lab to the query string; legacy hash scenarios remain accepted. The statistical
 prototype introduced earlier that day was removed after scope review, so the
 course visualisations remain the only implementation of those concepts.
+
+Advanced-laboratory revision on 2026-10-07: six ODE-driven experiments add
+parent-metabolite, long-acting depot, saturable elimination, enterohepatic
+cycling, TMDD and effect-site equilibration. Each provides animated pathways,
+current/reference curves, numerical controls, a prediction prompt, equations,
+mass-balance output, validated share links and CSV export. The RK4 regression
+suite checks finite non-negative states, administered mass, mechanism-specific
+behaviour and scenario validation for all six models.

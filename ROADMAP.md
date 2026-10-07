@@ -1,6 +1,6 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-10-07. Les cinq ateliers et les quatre laboratoires moléculaires sont publies.
+Mise a jour : 2026-10-07. Les cinq ateliers et les dix laboratoires moléculaires sont publiés.
 Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -203,6 +203,12 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [ ] **L08 / P2** Etendre a PK 1 compartiment / absorption : dose, CL, V, ka, F, voie ; AUC avec fenetre explicite, Cmax/Tmax et demi-vie sous leurs hypotheses de validite.
 - [x] **L09 / décision de périmètre** La variabilité reste une animation de cours (`12_VariabilitySandbox`) : comparaison de courbes et distributions, sans faux parcours moléculaire ni laboratoire séparé.
 - [x] **L10 / décision de périmètre** La mise à jour bayésienne reste une animation de cours (`BayesUpdate`) : prior, observations et posterior, sans scène vidéo artificielle. Un futur laboratoire doit représenter un trajet ou une transformation de molécules.
+- [x] **L11 / P1** Parent-métabolite : transformation, éliminations parallèles, exposition retardée et bilan de masse en équivalents de quantité.
+- [x] **L12 / P1** Dépôt longue action : libération lente, injections répétées, accumulation et cinétique flip-flop.
+- [x] **L13 / P1** Élimination saturable : capacité limitée par `Vmax`, relation non proportionnelle dose-exposition et comparaison à une référence.
+- [x] **L14 / P1** Cycle entérohépatique : plasma, bile, intestin, réabsorption et pertes sur des voies animées distinctes.
+- [x] **L15 / P1** TMDD : liaison réversible, turnover de la cible, saturation, internalisation du complexe et clairance linéaire parallèle.
+- [x] **L16 / P1** Site d’effet : biophase conceptuelle, retard `ke0`, relation Emax et réponse superposée à la concentration plasmatique.
 
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.
