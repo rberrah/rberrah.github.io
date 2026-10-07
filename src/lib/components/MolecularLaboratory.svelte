@@ -31,7 +31,8 @@
     compare = molecularLabs[next]?.referenceMode !== 'intrinsic'; prediction = ''; message = ''; shared = ''; loadError = '';
   }
   function change(key, event) {
-    pause(); p = { ...p, [key]: event.currentTarget.valueAsNumber }; time = 0; prediction = ''; shared = '';
+    pause(); const rule = config.parameters[key], value = rule.options ? Number(event.currentTarget.value) : event.currentTarget.valueAsNumber;
+    p = { ...p, [key]: value }; time = 0; prediction = ''; shared = '';
   }
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
   function play() {
@@ -96,7 +97,7 @@
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
-      <div class="numbers">{#each Object.entries(config.parameters) as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{/if}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/></label>{/each}</div>
+      <div class="numbers">{#each Object.entries(config.parameters) as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{:else}<small></small>{/if}{#if rule.options}<select id={`molecular-${key}`} value={p[key]} on:change={event => change(key, event)}>{#each rule.options as option}<option value={option.value}>{en ? option.label.en : option.label.fr}</option>{/each}</select>{:else}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/>{/if}</label>{/each}</div>
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
       {#if config.referenceMode !== 'intrinsic'}
         <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer a la reference'}</label>
@@ -150,7 +151,7 @@
   .experiment { min-width:0; padding:0 0 0 24px; }
   .parameter-head { display:flex; justify-content:space-between; gap:8px; margin-bottom:16px; font-size:14px; }.parameter-head span { color:var(--text-secondary); font-size:11px; }
   .numbers { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.numbers label { min-width:0; color:var(--text-secondary); font-size:11px; }.numbers small { display:block; min-height:15px; color:var(--text-muted); }
-  .numbers input { width:100%; box-sizing:border-box; margin-top:4px; padding:7px; }
+  .numbers input, .numbers select { width:100%; box-sizing:border-box; margin-top:4px; padding:7px; }
   button, input, select { font:inherit; letter-spacing:0; color:var(--text-primary); } input, select { border:1px solid var(--border-strong); border-radius:4px; background:var(--bg-primary); }
   select { padding:8px; } button { cursor:pointer; } button:disabled { cursor:default; opacity:.5; }
   button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline:3px solid var(--teal); outline-offset:3px; }

@@ -29,7 +29,7 @@ test('laboratory home exposes every molecular journey and course animations sepa
   await page.goto(url('/laboratoires/?lang=en'));
   const home = page.getByTestId('laboratory-home'); await expect(home).toBeVisible();
   await expect(page.getByTestId('laboratory')).toHaveCount(0);
-  for (const lab of ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'distribution', 'accumulation', 'absorption', 'infusion']) {
+  for (const lab of ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume', 'distribution', 'accumulation', 'absorption', 'infusion']) {
     await expect(page.getByTestId(`laboratory-link-${lab}`)).toBeVisible();
   }
   await expect(home.getByRole('link', { name: /Population variability/ })).toHaveAttribute('href', /variabilite-iiv-iov/);

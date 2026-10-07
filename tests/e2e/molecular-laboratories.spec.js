@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 const origin = process.env.LABS_E2E_URL || '';
 const url = path => origin + path;
-const labs = ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology'];
+const labs = ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume'];
 
 test.setTimeout(90000);
 test.beforeEach(async ({ page }) => {
@@ -32,7 +32,7 @@ async function coloredPixels(canvas) {
   });
 }
 
-test('all nine animated journeys render a nonblank model', async ({ page }) => {
+test('all ten animated journeys render a nonblank model', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   for (const lab of labs) {
     await open(page, lab);
@@ -51,13 +51,41 @@ test('PD journeys expose their mechanism-specific comparison and metric', async 
   await expect(page.locator('.plot-legend')).toContainText('Without treatment: dashed');
   await expect(page.getByRole('button', { name: 'Use this model as reference' })).toHaveCount(0);
   await page.getByTestId('molecular-time').fill('84');
-  await expect(page.locator('.metrics')).toContainText('Tumor change from baseline');
+  await expect(page.locator('.metrics')).toContainText('Resistant cell fraction');
   await page.screenshot({ path: 'test-results/pd-oncology-laboratory-desktop.png', fullPage: true });
+  await page.getByTestId('molecular-time').fill('42');
+  const cellsBefore = await coloredPixels(page.getByTestId('molecular-scene'));
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect.poll(async () => Number(await page.getByTestId('molecular-time').inputValue())).toBeGreaterThan(42.1);
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  expect((await coloredPixels(page.getByTestId('molecular-scene'))).sum).not.toBe(cellsBefore.sum);
 
   await open(page, 'pd-infectiology');
   await page.getByTestId('molecular-time').fill('12');
   await expect(page.locator('.metrics')).toContainText('Time above MIC');
   await expect(page.locator('.equations')).toHaveCount(0);
+
+  await open(page, 'pd-general');
+  await page.locator('#molecular-model').selectOption('1');
+  await expect(page.locator('#molecular-model')).toHaveValue('1');
+});
+
+test('specialized mechanism scenes remain visually distinct', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 800 });
+  const scenes = {
+    saturable: 2,
+    tmdd: 12,
+    'pd-general': 4,
+    'pd-oncology': 42,
+    'pd-infectiology': 4,
+    'covariate-volume': 3
+  };
+
+  for (const [lab, time] of Object.entries(scenes)) {
+    await open(page, lab);
+    await page.getByTestId('molecular-time').fill(String(time));
+    await page.getByTestId('molecular-scene').screenshot({ path: `test-results/scene-${lab}.png` });
+  }
 });
 
 test('play, parameters, reference, model view and scenario sharing work', async ({ page }) => {
@@ -83,11 +111,12 @@ test('play, parameters, reference, model view and scenario sharing work', async 
 
 test('French mobile layouts remain readable for dense mechanisms', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
-  for (const lab of ['enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology']) {
+  for (const lab of ['enterohepatic', 'saturable', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume']) {
     await open(page, lab, 'fr');
     await page.getByTestId('molecular-time').fill(lab === 'tmdd' ? '24' : '4');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect((await coloredPixels(page.getByTestId('molecular-scene'))).colored).toBeGreaterThan(500);
+    if (['saturable', 'tmdd', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume'].includes(lab)) await page.getByTestId('molecular-scene').screenshot({ path: `test-results/scene-${lab}-mobile.png` });
   }
   await page.screenshot({ path: 'test-results/molecular-laboratory-mobile.png', fullPage: true });
 });

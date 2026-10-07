@@ -212,6 +212,8 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L17 / P1** PD générale : exposition plasmatique, engagement saturable de la cible et réponse biologique retardée par turnover.
 - [x] **L18 / P1** Oncologie : comparaison sur un graphique unique entre croissance sans traitement et inhibition tumorale conditionnelle sous cycles répétés, avec émergence de résistance.
 - [x] **L19 / P1** Infectiologie : exposition répétée, seuil de CMI, charge bactérienne prédite et temps individuel au-dessus de la CMI, distinct d’une PTA de population.
+- [x] **L20 / P1** Covariable poids-volume : reservoir liquidien redimensionne par `V = Vref (WT/WTref)^beta`, plage d’illustration explicite de 40 a 120 kg et comparaison de concentration a dose identique.
+- [x] **L21 / P1** Scenes specialisees : jauge d’engagement de cible et trois modeles PD, cellules sensibles/resistantes en oncologie, tube CMI et culture bacterienne, filtre saturable et liaison/internalisation TMDD. Toutes les scenes restent pilotees par les etats ODE.
 
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.

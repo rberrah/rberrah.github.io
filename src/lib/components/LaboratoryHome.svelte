@@ -6,8 +6,11 @@
 
   const pharmacodynamics = [
     { id: 'pd-general', number: '11', group: 'pd', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'From concentration to response', text: 'Plasma exposure, target engagement and delayed biological response.' }, fr: { title: 'De la concentration a la reponse', text: "Exposition plasmatique, engagement de la cible et reponse biologique retardee." } },
-    { id: 'pd-oncology', number: '12', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Tumor growth inhibition', text: 'Tumor growth without treatment compared with the model-predicted response under exposure.' }, fr: { title: 'Inhibition de la croissance tumorale', text: 'Croissance sans traitement comparee a la reponse predite par le modele sous exposition.' } },
+    { id: 'pd-oncology', number: '12', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Tumor growth inhibition', text: 'Sensitive and resistant cell populations compared with untreated tumor growth.' }, fr: { title: 'Inhibition de la croissance tumorale', text: 'Populations cellulaires sensibles et resistantes comparees a la croissance sans traitement.' } },
     { id: 'pd-infectiology', number: '13', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Antibiotic, MIC and bacterial response', text: 'Repeated exposure, MIC threshold, time above MIC and predicted bacterial burden.' }, fr: { title: 'Antibiotique, CMI et reponse bacterienne', text: 'Exposition repetee, seuil de CMI, temps au-dessus de la CMI et charge bacterienne predite.' } }
+  ];
+  const covariates = [
+    { id: 'covariate-volume', number: '14', group: 'pd', route: { en: 'Oral input', fr: 'Entree orale' }, en: { title: 'Body weight and distribution volume', text: 'A fluid reservoir changes size with weight and alters concentration after the same dose.' }, fr: { title: 'Poids et volume de distribution', text: 'Un reservoir liquidien change de taille avec le poids et modifie la concentration a dose identique.' } }
   ];
   const advanced = [
     { id: 'parent-metabolite', number: '05', group: 'advanced', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'Parent and metabolite', text: 'Transformation, parallel elimination and delayed metabolite exposure.' }, fr: { title: 'Parent et métabolite', text: 'Transformation, éliminations parallèles et exposition retardée du métabolite.' } },
@@ -38,6 +41,11 @@
     <div class="laboratory-grid advanced-grid">{#each pharmacodynamics as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
   </section>
 
+  <section class="catalogue-section">
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Covariate journey' : 'Parcours covariable'}</p><h2>{en ? 'From patient characteristic to model parameter' : 'De la caracteristique patient au parametre du modele'}</h2></div><span>14</span></div>
+    <div class="laboratory-grid single-grid">{#each covariates as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
+  </section>
+
   <section class="catalogue-section featured">
     <div class="section-heading"><div><p class="eyebrow">{en ? 'New advanced journeys' : 'Nouveaux parcours avancés'}</p><h2>{en ? 'Transformation, saturation and delayed response' : 'Transformation, saturation et réponse retardée'}</h2></div><span>05—10</span></div>
     <div class="laboratory-grid advanced-grid">{#each advanced as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
@@ -62,9 +70,9 @@
   .eyebrow { display:flex; align-items:center; gap:7px; margin:0; color:var(--text-secondary); font-size:11px; text-transform:uppercase; }
   .catalogue-section { margin-top:38px; }.catalogue-section.featured { margin-top:24px; }
   .section-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:12px; }.section-heading h2 { margin:5px 0 0; font-size:21px; }.section-heading > span { color:var(--text-muted); font:12px var(--font-mono); }
-  .laboratory-grid { display:grid; gap:1px; border:1px solid var(--border-strong); background:var(--border-strong); }.advanced-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.fundamental-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .laboratory-grid { display:grid; gap:1px; border:1px solid var(--border-strong); background:var(--border-strong); }.advanced-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.single-grid { grid-template-columns:minmax(0,1fr); max-width:calc((100% - 2px)/3); }.fundamental-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .course-animations { display:grid; grid-template-columns:minmax(220px,.8fr) minmax(280px,1.2fr); gap:20px 38px; align-items:start; margin-top:38px; padding:26px 0; border-top:1px solid var(--border-strong); }
   .course-animations h2 { margin:7px 0 0; font-size:20px; }.course-animations > p { margin:0; color:var(--text-secondary); font-size:13px; line-height:1.6; }.course-animations nav { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:10px; }.course-animations nav a { display:inline-flex; align-items:center; padding:9px 11px; border:1px solid var(--border-strong); border-radius:4px; color:var(--text-primary); text-decoration:none; font-size:12px; }
   @media(max-width:960px) { .advanced-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-  @media(max-width:720px) { .heading { grid-template-columns:1fr; gap:14px; }.heading h1 { font-size:28px; }.advanced-grid, .fundamental-grid { grid-template-columns:1fr; }.course-animations { grid-template-columns:1fr; }.course-animations nav { grid-column:1; } }
+  @media(max-width:720px) { .heading { grid-template-columns:1fr; gap:14px; }.heading h1 { font-size:28px; }.advanced-grid, .fundamental-grid, .single-grid { grid-template-columns:1fr; max-width:none; }.course-animations { grid-template-columns:1fr; }.course-animations nav { grid-column:1; } }
 </style>

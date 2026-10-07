@@ -81,11 +81,14 @@ assert.ok(peak(effectSite.map(row => ({ ...row, c: row.secondary }))).t > peak(e
 const generalPd = molecularSeries('pd-general', molecularLabs['pd-general'].defaults);
 assert.ok(peak(generalPd.map(row => ({ ...row, c: row.secondary }))).t > peak(generalPd).t, 'Biological response must lag behind plasma concentration');
 assert.ok(generalPd.every(row => row.occupancyPct >= 0 && row.occupancyPct <= 100 + 1e-8));
+const directPd = molecularSeries('pd-general', { ...molecularLabs['pd-general'].defaults, model: 1 });
+assert.ok(peak(directPd.map(row => ({ ...row, c: row.secondary }))).t <= peak(generalPd.map(row => ({ ...row, c: row.secondary }))).t);
 
 const oncologyDefaults = molecularLabs['pd-oncology'].defaults;
 const oncology = molecularSeries('pd-oncology', oncologyDefaults);
 assert.ok(oncology.at(-1).untreated > oncology.at(-1).secondary, 'Treatment curve must differ from untreated growth');
 assert.equal(oncology.filter(row => row.t === oncologyDefaults.tau).length, 2);
+assert.ok(oncology.at(-1).resistantPct > oncology[0].resistantPct, 'Resistant fraction must emerge progressively');
 const resistantOncology = molecularSeries('pd-oncology', { ...oncologyDefaults, resistance: 0.06 });
 assert.ok(resistantOncology.at(-1).secondary > oncology.at(-1).secondary, 'Faster resistance must impair late tumor control');
 
@@ -96,6 +99,12 @@ assert.ok(infection.at(-1).secondary < infection[0].secondary, 'Default antibiot
 const sparseInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 8, count: 3 });
 const frequentInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 4, count: 6 });
 assert.ok(frequentInfection.at(-1).above / frequentInfection.at(-1).t > sparseInfection.at(-1).above / sparseInfection.at(-1).t, 'More frequent dosing over the horizon must increase time above MIC');
+
+const covariateDefaults = molecularLabs['covariate-volume'].defaults;
+const referenceWeight = molecularSeries('covariate-volume', covariateDefaults);
+const heavier = molecularSeries('covariate-volume', { ...covariateDefaults, weight: 110 });
+assert.ok(heavier[0].volume > referenceWeight[0].volume);
+assert.ok(peak(heavier).c < peak(referenceWeight).c, 'A larger weight-scaled volume must lower peak concentration at the same dose');
 
 for (const invalid of [
   'lab=unknown&mv=1',

@@ -57,7 +57,7 @@ sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
   pharmacodynamie, exercices, glossaire, références, QA, slides et à-propos.
 
 ## Scripts utilitaires
-- `npm run test:labs` : bilans de masse, administrations et mécanismes des treize laboratoires moléculaires.
+- `npm run test:labs` : bilans de masse, administrations et mécanismes des quatorze laboratoires moléculaires.
 - [Laboratoires pedagogiques](docs/teaching-laboratories.md) : hypotheses, mode
   enseignant, contrats de transfert et tests R/navigateur. Route `/laboratoires/`.
 - `npm run validate` : valide catalogue + chapitres (slides existantes, IDs uniques)

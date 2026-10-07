@@ -1,6 +1,6 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-10-07. The catalogue page exposes thirteen experiments built around
+Updated 2026-10-07. The catalogue page exposes fourteen experiments built around
 molecular journeys. Population variability and Bayesian updating remain course
 animations rather than separate laboratories. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
@@ -41,17 +41,21 @@ drug-specific population model or a clinically validated dosing tool.
 - **Effect-site equilibration:** linear plasma PK drives a conceptual biophase
   and Emax response. The effect compartment carries no drug mass.
 - **General pharmacodynamics:** linear plasma PK drives saturable target
-  engagement and a turnover response. These two states are conceptual signals
-  and do not remove drug mass.
+  engagement. Direct Emax, effect-compartment and turnover-response modes can be
+  compared. These states are conceptual signals and do not remove drug mass.
 - **Oncology:** repeated exposure drives a reduced tumor-growth inhibition
-  model. The unique plot compares the conditional prediction under treatment
-  with untreated exponential growth; it is not a causal survival prediction.
+  model with sensitive-to-resistant phenotype conversion and reduced drug effect
+  on resistant cells. The unique plot compares the conditional prediction under
+  treatment with untreated exponential growth; it is not a causal survival prediction.
 - **Infectiology:** repeated exposure is compared with an MIC threshold and a
   reduced bacterial growth/kill response. The displayed `%T > MIC` is an
   individual deterministic index, not a population PTA result.
+- **Weight and volume covariate:** first-order input feeds a fluid reservoir whose
+  apparent size follows `V = Vref (WT/WTref)^betaV`. The illustrated relation is
+  restricted to 40-120 kg and is not an extrapolation rule.
 
 In the four fundamental laboratories, amounts and concentrations come from
-closed-form solutions superposed over the actual dose schedule. The nine ODE-driven
+closed-form solutions superposed over the actual dose schedule. The ten ODE-driven
 laboratories use a fixed-grid RK4 integration of the displayed ODEs. Particles are
 symbolic; their positions are not a transport solver or an anatomical
 representation. For the fundamental models, the eliminated amount is
@@ -244,7 +248,7 @@ after the infusion stops. Publication of the two new labs was requested after
 this local review; it does not include a Shiny deployment.
 
 Catalogue revision on 2026-10-07: `/laboratoires/` is a dedicated home page with
-three pharmacodynamic journeys, six advanced journeys, four fundamental journeys and explicit links to the existing
+three pharmacodynamic journeys, one covariate journey, six advanced journeys, four fundamental journeys and explicit links to the existing
 variability and Bayesian course animations. Opening a laboratory adds the selected
 lab to the query string; legacy hash scenarios remain accepted. The statistical
 prototype introduced earlier that day was removed after scope review, so the
@@ -263,3 +267,9 @@ experiments cover general concentration-to-response dynamics, conditional tumor
 growth inhibition and an antibiotic/MIC/bacterial-response mechanism. Regression
 tests cover delayed response, treated versus untreated tumor growth, resistance,
 repeated-dose discontinuities and `%T > MIC`.
+
+Mechanism-scene revision on 2026-10-07: the general PD, oncology, infectiology,
+saturable-elimination and TMDD laboratories use dedicated visual grammars rather
+than generic compartment boxes. A fourteenth experiment introduces covariate
+scaling through a weight-dependent fluid volume. Visual elements remain driven by
+the same numerical ODE state and are not additional quantitative models.
