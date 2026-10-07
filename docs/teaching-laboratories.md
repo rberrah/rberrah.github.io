@@ -1,6 +1,6 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-10-07. The catalogue page exposes ten experiments built around
+Updated 2026-10-07. The catalogue page exposes thirteen experiments built around
 molecular journeys. Population variability and Bayesian updating remain course
 animations rather than separate laboratories. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
@@ -40,9 +40,18 @@ drug-specific population model or a clinically validated dosing tool.
   amount-equivalents. This reduced experiment is not a drug-specific QSS/QE model.
 - **Effect-site equilibration:** linear plasma PK drives a conceptual biophase
   and Emax response. The effect compartment carries no drug mass.
+- **General pharmacodynamics:** linear plasma PK drives saturable target
+  engagement and a turnover response. These two states are conceptual signals
+  and do not remove drug mass.
+- **Oncology:** repeated exposure drives a reduced tumor-growth inhibition
+  model. The unique plot compares the conditional prediction under treatment
+  with untreated exponential growth; it is not a causal survival prediction.
+- **Infectiology:** repeated exposure is compared with an MIC threshold and a
+  reduced bacterial growth/kill response. The displayed `%T > MIC` is an
+  individual deterministic index, not a population PTA result.
 
 In the four fundamental laboratories, amounts and concentrations come from
-closed-form solutions superposed over the actual dose schedule. The six advanced
+closed-form solutions superposed over the actual dose schedule. The nine ODE-driven
 laboratories use a fixed-grid RK4 integration of the displayed ODEs. Particles are
 symbolic; their positions are not a transport solver or an anatomical
 representation. For the fundamental models, the eliminated amount is
@@ -51,10 +60,11 @@ representation. For the fundamental models, the eliminated amount is
 The displayed AUC is not automatically an AUC24. At a bolus time the numeric state
 is post-dose; plotted curves include both pre-dose and post-dose states.
 
-The reference is frozen until "Use this model as the new reference" is selected.
+Except in oncology, the reference is frozen until "Use this model as the new reference" is selected.
 Both curves use the current model's display horizon and the same axes. The
 current model is solid and the reference is dashed; tables and exports use these
-names rather than A/B. Existing shared links retain their compatible schema.
+names rather than A/B. Oncology instead keeps its intrinsic treated/untreated
+comparison on one plot. Existing shared links retain their compatible schema.
 Units throughout: mg, L, h, mg/L, mg.h/L.
 
 The new labs also show analytical single-dose Cmax/Tmax, AUC(0,infinity), and
@@ -234,7 +244,7 @@ after the infusion stops. Publication of the two new labs was requested after
 this local review; it does not include a Shiny deployment.
 
 Catalogue revision on 2026-10-07: `/laboratoires/` is a dedicated home page with
-six advanced journeys first, followed by four fundamental journeys and explicit links to the existing
+three pharmacodynamic journeys, six advanced journeys, four fundamental journeys and explicit links to the existing
 variability and Bayesian course animations. Opening a laboratory adds the selected
 lab to the query string; legacy hash scenarios remain accepted. The statistical
 prototype introduced earlier that day was removed after scope review, so the
@@ -247,3 +257,9 @@ current/reference curves, numerical controls, a prediction prompt, equations,
 mass-balance output, validated share links and CSV export. The RK4 regression
 suite checks finite non-negative states, administered mass, mechanism-specific
 behaviour and scenario validation for all six models.
+
+Pharmacodynamic-laboratory revision on 2026-10-07: three additional ODE-driven
+experiments cover general concentration-to-response dynamics, conditional tumor
+growth inhibition and an antibiotic/MIC/bacterial-response mechanism. Regression
+tests cover delayed response, treated versus untreated tumor growth, resistance,
+repeated-dose discontinuities and `%T > MIC`.

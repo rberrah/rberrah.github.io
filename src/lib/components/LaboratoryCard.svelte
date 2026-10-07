@@ -7,7 +7,7 @@
   $: id = laboratory.id;
 </script>
 
-<a class="laboratory-card" class:compact={laboratory.group === 'advanced'} data-testid={`laboratory-link-${id}`} href={`${base}/laboratoires/?lang=${lang}&lab=${id}`}>
+<a class="laboratory-card" class:compact={laboratory.group !== 'fundamental'} data-testid={`laboratory-link-${id}`} href={`${base}/laboratoires/?lang=${lang}&lab=${id}`}>
   <div class={`journey ${id}`} aria-hidden="true">
     {#if id === 'distribution'}
       <span class="node source">Central</span><i class="track forward"></i><i class="track return"></i><span class="node target">{en ? 'Tissue' : 'Tissu'}</span><i class="track exit"></i><span class="collector">OUT</span>
@@ -27,6 +27,12 @@
       <span class="cycle-node plasma">Plasma</span><span class="cycle-node bile">Bile</span><span class="cycle-node gut">{en ? 'Gut' : 'Intestin'}</span><i class="cycle-line top"></i><i class="cycle-line down"></i><i class="cycle-line back"></i>
     {:else if id === 'tmdd'}
       <span class="mini-node free">{en ? 'Free drug' : 'Libre'}</span><span class="mini-node target-mini">{en ? 'Target' : 'Cible'}</span><span class="mini-node complex">Complex</span><i class="bind left"></i><i class="bind right"></i><i class="bind internal"></i><span class="collector internal-label">IN</span>
+    {:else if id === 'pd-general'}
+      <span class="node source">Plasma</span><i class="track signal input"></i><span class="node target">{en ? 'Target' : 'Cible'}</span><i class="track exit"></i><span class="collector">{en ? 'Response' : 'Reponse'}</span>
+    {:else if id === 'pd-oncology'}
+      <span class="node source">{en ? 'Drug' : 'Medicament'}</span><i class="track signal input"></i><span class="node target">{en ? 'Tumor' : 'Tumeur'}</span><i class="tumor-reference"></i><span class="collector">{en ? 'Without treatment' : 'Sans traitement'}</span>
+    {:else if id === 'pd-infectiology'}
+      <span class="node source">{en ? 'Antibiotic' : 'Antibiotique'}</span><i class="track signal input"></i><span class="gate">{en ? 'MIC' : 'CMI'}</span><span class="node target">{en ? 'Bacteria' : 'Bacteries'}</span>
     {:else}
       <span class="node source">Plasma</span><i class="track signal input"></i><span class="node target">{en ? 'Effect site' : "Site d'effet"}</span><i class="track exit"></i><span class="collector">OUT</span>
     {/if}
@@ -59,5 +65,6 @@
   .cycle-node { position:absolute; display:grid; place-items:center; width:66px; height:32px; border:2px solid #60848f; background:#fff; font-size:9px; font-weight:700; }.plasma { left:8%; top:20px; }.bile { right:8%; top:20px; border-color:#d29a31; }.gut { right:8%; bottom:15px; border-color:#c97532; }.cycle-line { position:absolute; display:block; height:3px; background:#9ec7cf; }.cycle-line.top { left:32%; right:32%; top:37px; }.cycle-line.down { width:3px; height:31px; right:20%; top:55px; }.cycle-line.down:after { top:auto; right:-4px; bottom:-2px; border-left:6px solid transparent; border-right:6px solid transparent; border-top:8px solid #4b8490; border-bottom:0; }.cycle-line.back { left:27%; right:31%; bottom:30px; transform:rotate(180deg); transform-origin:center; }.enterohepatic .p1 { left:45%; top:33px; }.enterohepatic .p2 { right:18%; top:75px; background:#d29a31; }.enterohepatic .p3 { left:45%; top:91px; background:#c97532; }
   .mini-node { position:absolute; display:grid; place-items:center; width:64px; height:30px; border:2px solid #60848f; background:#fff; font-size:8px; font-weight:700; }.free { left:6%; top:15px; }.target-mini { right:6%; top:15px; border-color:#36a36e; }.complex { left:50%; top:66px; transform:translateX(-50%); border-color:#8c4c89; }.bind { position:absolute; display:block; height:3px; background:#9ec7cf; transform-origin:left center; }.bind.left { left:28%; width:25%; top:49px; transform:rotate(24deg); }.bind.right { right:28%; width:25%; top:49px; transform:rotate(156deg); }.bind.internal { left:50%; width:32px; top:97px; transform:rotate(90deg); }.internal-label { right:auto; left:48%; bottom:2px; }.tmdd .p1 { left:26%; top:42px; }.tmdd .p2 { right:26%; top:43px; background:#36a36e; }.tmdd .p3 { left:49%; top:83px; background:#8c4c89; }
   .signal { background:repeating-linear-gradient(90deg,#d26b3a 0 6px,transparent 6px 11px); }.effect-site .target { border-style:dashed; border-color:#d26b3a; }.effect-site .p2 { background:#fff; border-color:#d26b3a; box-shadow:0 0 0 1px #d26b3a; }
+  .pd-general .target, .pd-oncology .target, .pd-infectiology .target { border-style:dashed; border-color:#d26b3a; }.pd-general .collector { color:#b2572e; }.pd-oncology .target { border-style:solid; }.pd-oncology .tumor-reference { position:absolute; right:7%; bottom:25px; width:90px; border-top:3px dashed #65767b; }.pd-oncology .collector { right:7%; color:#65767b; }.pd-infectiology .gate { z-index:1; }.pd-infectiology .p3 { right:11%; top:55px; background:#b2572e; }
   @media(max-width:720px) { .laboratory-card, .laboratory-card.compact { grid-template-rows:120px auto auto 1fr auto; padding:14px; } .journey, .laboratory-card:not(.compact) .journey { min-height:120px; } }
 </style>

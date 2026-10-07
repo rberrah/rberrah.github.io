@@ -209,6 +209,9 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L14 / P1** Cycle entérohépatique : plasma, bile, intestin, réabsorption et pertes sur des voies animées distinctes.
 - [x] **L15 / P1** TMDD : liaison réversible, turnover de la cible, saturation, internalisation du complexe et clairance linéaire parallèle.
 - [x] **L16 / P1** Site d’effet : biophase conceptuelle, retard `ke0`, relation Emax et réponse superposée à la concentration plasmatique.
+- [x] **L17 / P1** PD générale : exposition plasmatique, engagement saturable de la cible et réponse biologique retardée par turnover.
+- [x] **L18 / P1** Oncologie : comparaison sur un graphique unique entre croissance sans traitement et inhibition tumorale conditionnelle sous cycles répétés, avec émergence de résistance.
+- [x] **L19 / P1** Infectiologie : exposition répétée, seuil de CMI, charge bactérienne prédite et temps individuel au-dessus de la CMI, distinct d’une PTA de population.
 
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.

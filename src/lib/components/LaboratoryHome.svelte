@@ -4,6 +4,11 @@
   import { BookOpen, FlaskConical } from '@lucide/svelte';
   import LaboratoryCard from './LaboratoryCard.svelte';
 
+  const pharmacodynamics = [
+    { id: 'pd-general', number: '11', group: 'pd', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'From concentration to response', text: 'Plasma exposure, target engagement and delayed biological response.' }, fr: { title: 'De la concentration a la reponse', text: "Exposition plasmatique, engagement de la cible et reponse biologique retardee." } },
+    { id: 'pd-oncology', number: '12', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Tumor growth inhibition', text: 'Tumor growth without treatment compared with the model-predicted response under exposure.' }, fr: { title: 'Inhibition de la croissance tumorale', text: 'Croissance sans traitement comparee a la reponse predite par le modele sous exposition.' } },
+    { id: 'pd-infectiology', number: '13', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Antibiotic, MIC and bacterial response', text: 'Repeated exposure, MIC threshold, time above MIC and predicted bacterial burden.' }, fr: { title: 'Antibiotique, CMI et reponse bacterienne', text: 'Exposition repetee, seuil de CMI, temps au-dessus de la CMI et charge bacterienne predite.' } }
+  ];
   const advanced = [
     { id: 'parent-metabolite', number: '05', group: 'advanced', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'Parent and metabolite', text: 'Transformation, parallel elimination and delayed metabolite exposure.' }, fr: { title: 'Parent et métabolite', text: 'Transformation, éliminations parallèles et exposition retardée du métabolite.' } },
     { id: 'long-acting', number: '06', group: 'advanced', route: { en: 'Long-acting depot', fr: 'Dépôt longue action' }, en: { title: 'Long-acting depot', text: 'Slow release, delayed peaks, repeated injections and flip-flop kinetics.' }, fr: { title: 'Dépôt longue action', text: 'Libération lente, pics retardés, injections répétées et cinétique flip-flop.' } },
@@ -27,6 +32,11 @@
     <div><p class="eyebrow"><FlaskConical size={15}/>{en ? 'Virtual laboratories' : 'Laboratoires virtuels'}</p><h1>{en ? 'Choose a molecular journey' : 'Choisir un parcours moléculaire'}</h1></div>
     <p>{en ? 'These experiments are reserved for mechanisms whose sequence and movement are easier to understand by watching them unfold.' : 'Ces expériences sont réservées aux mécanismes dont la séquence et les déplacements se comprennent mieux en les observant.'}</p>
   </header>
+
+  <section class="catalogue-section featured">
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Pharmacodynamic journeys' : 'Parcours pharmacodynamiques'}</p><h2>{en ? 'From exposure to biological response' : "De l'exposition a la reponse biologique"}</h2></div><span>11-13</span></div>
+    <div class="laboratory-grid advanced-grid">{#each pharmacodynamics as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
+  </section>
 
   <section class="catalogue-section featured">
     <div class="section-heading"><div><p class="eyebrow">{en ? 'New advanced journeys' : 'Nouveaux parcours avancés'}</p><h2>{en ? 'Transformation, saturation and delayed response' : 'Transformation, saturation et réponse retardée'}</h2></div><span>05—10</span></div>

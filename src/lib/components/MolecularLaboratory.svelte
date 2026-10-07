@@ -23,11 +23,12 @@
   $: end = valid?.end ?? 24;
   $: unit = config?.unit === 'day' ? (en ? 'days' : 'jours') : 'h';
   $: massError = state ? Object.values(state.mass).reduce((sum, value) => sum + value, 0) - state.administered : 0;
+  $: metric = state && valid ? config.metric?.(state, valid, time) ?? { label: { en: `AUC 0-${time.toFixed(1)} ${unit}`, fr: `AUC 0-${time.toFixed(1)} ${unit}` }, value: state.auc, unit: `mg·${config.unit}/L` } : null;
 
   function reset(next = lab) {
     pause(); activeLab = next; const defaults = molecularLabs[next]?.defaults ?? {};
     p = { ...defaults }; reference = { ...defaults }; time = 0; speed = molecularLabs[next]?.unit === 'day' ? 1 : 1;
-    prediction = ''; message = ''; shared = ''; loadError = '';
+    compare = molecularLabs[next]?.referenceMode !== 'intrinsic'; prediction = ''; message = ''; shared = ''; loadError = '';
   }
   function change(key, event) {
     pause(); p = { ...p, [key]: event.currentTarget.valueAsNumber }; time = 0; prediction = ''; shared = '';
@@ -66,9 +67,10 @@
   }
   function csv() {
     if (!valid) return;
-    const stateKeys = config.states.filter(key => key !== 'auc'), flowKeys = [...new Set(config.edges.map(edge => edge.flow))];
-    const header = ['scenario', `time_${config.unit}`, 'primary_concentration_mg_L', 'secondary', `auc_mg_${config.unit}_L`, 'administered_amount', ...stateKeys, ...flowKeys.map(key => `flow_${key}`)];
-    const rows = [['reference', referenceRows], ['current', current]].flatMap(([scenario, values]) => values.map(row => [scenario, row.t, row.c, row.secondary, row.auc, row.administered, ...stateKeys.map(key => row[key]), ...flowKeys.map(key => row.flows[key] ?? 0)]));
+    const stateKeys = config.states.filter(key => key !== 'auc'), flowKeys = [...new Set(config.edges.map(edge => edge.flow))], extraKeys = config.exportKeys ?? [];
+    const header = ['scenario', `time_${config.unit}`, 'primary_concentration_mg_L', 'secondary', `auc_mg_${config.unit}_L`, 'administered_amount', ...stateKeys, ...extraKeys, ...flowKeys.map(key => `flow_${key}`)];
+    const scenarios = config.referenceMode === 'intrinsic' ? [['current', current]] : [['reference', referenceRows], ['current', current]];
+    const rows = scenarios.flatMap(([scenario, values]) => values.map(row => [scenario, row.t, row.c, row.secondary, row.auc, row.administered, ...stateKeys.map(key => row[key]), ...extraKeys.map(key => row[key]), ...flowKeys.map(key => row.flows[key] ?? 0)]));
     const blob = new Blob([[header, ...rows].map(row => row.join(',')).join('\n')], { type: 'text/csv' }), url = URL.createObjectURL(blob), link = document.createElement('a');
     link.href = url; link.download = `${lab}-laboratory.csv`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
@@ -87,8 +89,8 @@
 <section class="molecular-lab" data-testid="molecular-laboratory">
   <a class="back-home" href={`${base}/laboratoires/?lang=${en ? 'en' : 'fr'}`}><ArrowLeft size={16}/>{en ? 'All laboratories' : 'Tous les laboratoires'}</a>
   <header class="heading">
-    <div><p class="eyebrow">{en ? 'Advanced molecular journey' : 'Parcours moleculaire avance'} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
-    <label class="lab-selector">{en ? 'Advanced laboratory' : 'Laboratoire avance'}<select value={lab} on:change={switchLab}>{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
+    <div><p class="eyebrow">{config.category ? (en ? config.category.en : config.category.fr) : (en ? 'Advanced molecular journey' : 'Parcours moleculaire avance')} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
+    <label class="lab-selector">{en ? 'Animated laboratory' : 'Laboratoire anime'}<select value={lab} on:change={switchLab}>{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
   </header>
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
@@ -96,9 +98,11 @@
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
       <div class="numbers">{#each Object.entries(config.parameters) as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{/if}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/></label>{/each}</div>
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
-      <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer a la reference'}</label>
-      <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modele comme reference'}</button>
-      {#if compare}<details><summary>{en ? 'Reference parameters' : 'Parametres de reference'}</summary><dl>{#each Object.keys(config.defaults) as key}<div><dt>{en ? config.parameters[key].label.en : config.parameters[key].label.fr}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
+      {#if config.referenceMode !== 'intrinsic'}
+        <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer a la reference'}</label>
+        <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modele comme reference'}</button>
+        {#if compare}<details><summary>{en ? 'Reference parameters' : 'Parametres de reference'}</summary><dl>{#each Object.keys(config.defaults) as key}<div><dt>{en ? config.parameters[key].label.en : config.parameters[key].label.fr}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
+      {/if}
       <section class="question"><strong>{en ? 'Predict before changing a parameter' : 'Predire avant de modifier un parametre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== ''}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
     </aside>
     <div class="experiment">
@@ -119,9 +123,9 @@
         {/if}
       </div>
       {#if valid && state}
-        <div class="plot-legend"><span>{en ? 'Current model: solid' : 'Modele actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Reference : pointilles'}</span>{/if}</div>
+        <div class="plot-legend">{#if config.referenceMode === 'intrinsic'}<span class="treated">{en ? 'With treatment: solid' : 'Avec traitement : continu'}</span><span class="untreated">{en ? 'Without treatment: dashed' : 'Sans traitement : pointilles'}</span>{:else}<span>{en ? 'Current model: solid' : 'Modele actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Reference : pointilles'}</span>{/if}{/if}</div>
         <MolecularPlot a={referenceRows} b={current} {state} {time} {config} {en} {compare}/>
-        <div class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div><div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} {unit} · mg·{config.unit}/L</span><strong>{state.auc.toFixed(2)}</strong></div></div>
+        <div class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div><div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div><div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>
       {/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
@@ -157,7 +161,7 @@
   .display-modes { display:flex; border-bottom:1px solid var(--border-strong); }.display-modes button { padding:13px 17px; border:0; border-bottom:3px solid transparent; background:none; color:var(--text-secondary); }.display-modes button.active { border-bottom-color:var(--teal); color:var(--text-primary); font-weight:700; }
   .equations { margin:16px 0; padding:15px; border-left:3px solid var(--teal); background:var(--bg-secondary); }.equations code { white-space:pre-wrap; font-size:12px; }.equations p, .scene-note { color:var(--text-secondary); font-size:11px; line-height:1.5; }
   .timebar { display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:13px 0 8px; }.icon-button { display:grid; place-items:center; width:38px; height:38px; padding:0; border:1px solid var(--border-strong); border-radius:4px; background:var(--bg-tertiary); }.time-input, .speed { display:flex; align-items:center; gap:6px; color:var(--text-secondary); font-size:11px; }.time-input input { width:78px; padding:7px; }.speed select { padding:7px; }
-  .timeline { width:100%; accent-color:var(--teal); }.plot-legend { display:flex; gap:20px; margin:22px 0 4px; font-size:11px; }.plot-legend span:before { content:''; display:inline-block; width:20px; height:3px; margin-right:6px; background:var(--teal); vertical-align:middle; }.plot-legend .reference:before { background:repeating-linear-gradient(90deg,#8c4c89 0 6px,transparent 6px 10px); }
+  .timeline { width:100%; accent-color:var(--teal); }.plot-legend { display:flex; flex-wrap:wrap; gap:20px; margin:22px 0 4px; font-size:11px; }.plot-legend span:before { content:''; display:inline-block; width:20px; height:3px; margin-right:6px; background:var(--teal); vertical-align:middle; }.plot-legend .reference:before { background:repeating-linear-gradient(90deg,#8c4c89 0 6px,transparent 6px 10px); }.plot-legend .treated:before { background:#b2572e; }.plot-legend .untreated:before { background:repeating-linear-gradient(90deg,#65767b 0 6px,transparent 6px 10px); }
   .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:10px; border-top:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong); }.metrics div { padding:14px; border-right:1px solid var(--border-subtle); }.metrics div:last-child { border:0; }.metrics span { display:block; min-height:30px; color:var(--text-secondary); font-size:10px; }.metrics strong { font-size:21px; font-variant-numeric:tabular-nums; }
   .data { margin-top:18px; }.table-scroll { overflow:auto; } table { width:100%; margin-top:10px; border-collapse:collapse; font-size:11px; } th, td { padding:7px; border-bottom:1px solid var(--border-subtle); text-align:right; } th:first-child { text-align:left; } td { font-family:var(--font-mono); }
   .exports { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }.shared-link { display:grid; gap:5px; margin-top:12px; font-size:11px; }.shared-link input { width:100%; box-sizing:border-box; padding:8px; }

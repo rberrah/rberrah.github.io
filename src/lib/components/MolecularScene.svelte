@@ -68,19 +68,20 @@
     }
     const total = Math.max(1e-9, state.administered);
     for (const node of config.nodes) {
-      const box = nodes[node.id], value = node.id === 'ce' ? state.ce : state[node.id] ?? state.mass[node.id] ?? 0;
-      const fraction = node.target ? Math.min(1, value / p.target0) : node.signal ? Math.min(1, (state.ce ?? 0) / Math.max(.01, state.c, state.ce ?? 0)) : Math.min(1, value / total);
+      const box = nodes[node.id], value = state[node.value ?? node.id] ?? state.mass[node.id] ?? 0;
+      const bounds = node.range?.map(limit => typeof limit === 'function' ? limit(p) : limit);
+      const fraction = bounds ? Math.max(0, Math.min(1, (value - bounds[0]) / Math.max(1e-9, bounds[1] - bounds[0]))) : node.target ? Math.min(1, value / p.target0) : node.signal ? Math.min(1, (state.ce ?? 0) / Math.max(.01, state.c, state.ce ?? 0)) : Math.min(1, value / total);
       ctx.fillStyle = '#fff'; ctx.fillRect(box.cx - box.w / 2, box.cy - box.h / 2, box.w, box.h);
       ctx.fillStyle = `${node.color}${Math.round((.1 + .23 * fraction) * 255).toString(16).padStart(2, '0')}`; ctx.fillRect(box.cx - box.w / 2 + 3, box.cy - box.h / 2 + 3, box.w - 6, box.h - 6);
       ctx.strokeStyle = node.color; ctx.lineWidth = node.signal ? 2 : 3; ctx.setLineDash(node.signal ? [5, 4] : []); ctx.strokeRect(box.cx - box.w / 2, box.cy - box.h / 2, box.w, box.h); ctx.setLineDash([]);
       const text = en ? node.label.en : node.label.fr, words = text.split(' '), split = words.length > 2 ? Math.ceil(words.length / 2) : words.length;
       label(words.slice(0, split).join(' '), box.cx, box.cy - 8, width < 520 ? 9 : 12, '#244a55', box.w - 8);
       if (words.length > split) label(words.slice(split).join(' '), box.cx, box.cy + 7, width < 520 ? 9 : 12, '#244a55', box.w - 8);
-      const unit = node.id === 'ce' ? 'mg/L' : lab === 'tmdd' ? 'mg-eq' : 'mg';
+      const unit = node.unit ?? (node.id === 'ce' ? 'mg/L' : lab === 'tmdd' ? 'mg-eq' : 'mg');
       label(`${Number(value.toFixed(value < 10 ? 2 : 1))} ${unit}`, box.cx, box.cy + box.h / 2 - 8, 9, '#48656c', box.w - 8);
       const dots = node.signal ? Math.min(10, Math.round(10 * fraction)) : node.target ? Math.min(14, Math.round(14 * fraction)) : Math.min(16, Math.round(16 * value / total));
       for (let i = 0; i < dots; i++) {
-        const x = box.cx - box.w * .35 + box.w * .7 * ((i * .618033) % 1), y = box.cy - box.h * .29 + box.h * .37 * ((i * .414214) % 1);
+        const x = box.cx - box.w * .35 + box.w * .7 * ((i * .618033) % 1), y = box.cy - box.h * .34 + box.h * .16 * ((i * .414214) % 1);
         ball(x, y, node.color, width < 520 ? 2.3 : 3.1, node.signal);
       }
     }

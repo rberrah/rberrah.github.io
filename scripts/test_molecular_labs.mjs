@@ -78,6 +78,25 @@ assert.ok(tmdd.some(row => row.complex > 0 && row.secondary > 0));
 const effectSite = molecularSeries('effect-site', molecularLabs['effect-site'].defaults);
 assert.ok(peak(effectSite.map(row => ({ ...row, c: row.secondary }))).t > peak(effectSite).t, 'Effect peak must lag behind plasma after an IV bolus');
 
+const generalPd = molecularSeries('pd-general', molecularLabs['pd-general'].defaults);
+assert.ok(peak(generalPd.map(row => ({ ...row, c: row.secondary }))).t > peak(generalPd).t, 'Biological response must lag behind plasma concentration');
+assert.ok(generalPd.every(row => row.occupancyPct >= 0 && row.occupancyPct <= 100 + 1e-8));
+
+const oncologyDefaults = molecularLabs['pd-oncology'].defaults;
+const oncology = molecularSeries('pd-oncology', oncologyDefaults);
+assert.ok(oncology.at(-1).untreated > oncology.at(-1).secondary, 'Treatment curve must differ from untreated growth');
+assert.equal(oncology.filter(row => row.t === oncologyDefaults.tau).length, 2);
+const resistantOncology = molecularSeries('pd-oncology', { ...oncologyDefaults, resistance: 0.06 });
+assert.ok(resistantOncology.at(-1).secondary > oncology.at(-1).secondary, 'Faster resistance must impair late tumor control');
+
+const infectionDefaults = molecularLabs['pd-infectiology'].defaults;
+const infection = molecularSeries('pd-infectiology', infectionDefaults);
+assert.ok(infection.some(row => row.c >= row.mic) && infection.some(row => row.c < row.mic));
+assert.ok(infection.at(-1).secondary < infection[0].secondary, 'Default antibiotic exposure must reduce bacterial burden');
+const sparseInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 8, count: 3 });
+const frequentInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 4, count: 6 });
+assert.ok(frequentInfection.at(-1).above / frequentInfection.at(-1).t > sparseInfection.at(-1).above / sparseInfection.at(-1).t, 'More frequent dosing over the horizon must increase time above MIC');
+
 for (const invalid of [
   'lab=unknown&mv=1',
   'lab=tmdd&mv=1&dose=NaN',
@@ -90,4 +109,4 @@ for (const invalid of [
 assert.throws(() => validateMolecularParameters('long-acting', { count: 1.5 }));
 assert.throws(() => validateMolecularParameters('tmdd', { patient: 1 }));
 
-console.log(`Advanced molecular laboratories: ${molecularLabIds.length} models, ODE outputs, mass balance, mechanisms and share validation OK.`);
+console.log(`Animated molecular laboratories: ${molecularLabIds.length} models, ODE outputs, mass balance, mechanisms and share validation OK.`);
