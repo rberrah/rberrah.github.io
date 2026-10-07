@@ -1,6 +1,6 @@
 # Roadmap - Pharmacometrie Pratique
 
-Mise a jour : 2026-10-07. Les cinq ateliers et les six laboratoires sont publies.
+Mise a jour : 2026-10-07. Les cinq ateliers et les quatre laboratoires moléculaires sont publies.
 Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -201,12 +201,11 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [ ] **L08d / P1** Verifier les transferts directs TDM/DDI/PD avant activation. Transfert Lego disponible et compare numeriquement.
 - [ ] **L07 / P2** Etendre a l'accumulation : doses repetees, etat stationnaire, fluctuations, dose de charge et interruption. Conserver une reference pour comparer les intervalles.
 - [ ] **L08 / P2** Etendre a PK 1 compartiment / absorption : dose, CL, V, ka, F, voie ; AUC avec fenetre explicite, Cmax/Tmax et demi-vie sous leurs hypotheses de validite.
-- [x] **L09 / P2** Variabilite : meme population virtuelle et meme graine, IIV sur CL/V séparée de l'erreur résiduelle, médiane et intervalle 10e-90e percentiles, distribution animée au temps courant et référence figée. Les covariables et l'IOV restent un prolongement distinct.
-- [x] **L10 / P2** Prelevements/Bayes : vérité synthétique, un ou deux horaires choisis, résultat bruité, mise à jour au moment du prélèvement, courbe MAP et intervalle postérieur de CL. Le moteur est explicitement un exemple pédagogique à un paramètre avec dose, V et erreur connus, pas un estimateur clinique.
+- [x] **L09 / décision de périmètre** La variabilité reste une animation de cours (`12_VariabilitySandbox`) : comparaison de courbes et distributions, sans faux parcours moléculaire ni laboratoire séparé.
+- [x] **L10 / décision de périmètre** La mise à jour bayésienne reste une animation de cours (`BayesUpdate`) : prior, observations et posterior, sans scène vidéo artificielle. Un futur laboratoire doit représenter un trajet ou une transformation de molécules.
 
-Dependances : L01-L06 n'attendent pas une separation des depots. L10 reutilise
-les fonctions statistiques verifiees et les concepts du design de prelevement ;
-les controles scientifiques font partie du lot, pas d'une phase ulterieure.
+Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
+statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.
 
 **Lot local du 12 septembre :** `/laboratoires/` contient les deux exemples
 Distribution et Accumulation, lies aux chapitres concernes et a Simulation.
@@ -278,7 +277,7 @@ et la reprise entre sessions independantes ne sont pas annoncees comme acquises.
 | 0 | A02-A04, G01-G05, S01-S04 | Contrats identifies, tests courts en CI, perimetres scientifiques et confidentialite documentes |
 | 1A | L01-L06 | Un laboratoire deux compartiments exact, accessible, relie au cours et observe avec des utilisateurs |
 | 1B | K01-K03, puis K06 pour Korell | Korell importe sans approximation cachee, calcul/export navigateur et R coherents |
-| 2 | L07-L10, U01-U06, K04-K07 | Accumulation/Bayes, continuite pedagogique et combine oral/LAI selon tests de chaque sous-lot |
+| 2 | L07-L08, U01-U06, K04-K07 | Accumulation, continuite pedagogique et combine oral/LAI selon tests de chaque sous-lot |
 | 3 | S05-S10, M01-M04 et M07 | Qualite des outils et contenus renforcee, premier pilote multimedia relu |
 | Decision | A07-A10 | Extraction/public-prive seulement apres arbitrage et preuve de deploiement autonome |
 | Plus tard | K08, S11, M05-M06 | Perimetre et benefice confirmes avant implementation |

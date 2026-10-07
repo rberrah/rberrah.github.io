@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
-  import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
+  import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, ArrowLeft, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
   import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule, singleDoseSummary } from '$lib/labs/model.js';
   import { prepareHandoff } from '$lib/labs/handoff.js';
   import LabScene from './LabScene.svelte';
@@ -70,7 +70,7 @@
   async function share() {
     if (!valid) return;
     const url = new URL(`${base}/laboratoires/`, window.location.origin);
-    url.searchParams.set('lang', en ? 'en' : 'fr'); url.hash = encodeScenario(laboratorySpec(lab, valid, reference, teacher, hidden)); shared = url.href;
+    url.searchParams.set('lang', en ? 'en' : 'fr'); url.searchParams.set('lab', lab); url.hash = encodeScenario(laboratorySpec(lab, valid, reference, teacher, hidden)); shared = url.href;
     try { await navigator.clipboard.writeText(shared); message = en ? 'Scenario link copied.' : 'Lien du scenario copie.'; }
     catch { message = en ? 'Scenario link ready below.' : 'Lien du scenario disponible ci-dessous.'; }
   }
@@ -96,6 +96,7 @@
 </script>
 
 <section class="laboratory" bind:this={root} data-testid="laboratory" data-ready={ready}>
+  <a class="back-home" href={`${base}/laboratoires/?lang=${en ? 'en' : 'fr'}`}><ArrowLeft size={16}/>{en ? 'All laboratories' : 'Tous les laboratoires'}</a>
   <header class="lab-heading"><div><p class="eyebrow">{en ? 'Virtual pharmacokinetics laboratories' : 'Laboratoires virtuels de pharmacocinétique'}</p><h1>{en ? 'Explore pharmacokinetics' : 'Explorer la pharmacocinétique'}</h1></div><span class="research">{en ? 'Synthetic experiments' : 'Expériences synthétiques'}</span></header>
   <div class="lab-tabs" role="group" aria-label={en ? 'Laboratory' : 'Laboratoire'}>
     <button class:active={lab === 'distribution'} aria-pressed={lab === 'distribution'} on:click={() => select('distribution')}>{en ? '01 / Distribution' : '01 / Distribution'}</button>
@@ -168,6 +169,7 @@
 
 <style>
   .laboratory { --teal: #087b83; --plum: #8c4c89; letter-spacing: 0; }
+  .back-home { display:inline-flex; align-items:center; gap:6px; margin-bottom:12px; color:var(--text-secondary); font-size:12px; text-decoration:none; }
   .lab-heading, .title-row { display: flex; justify-content: space-between; gap: 20px; align-items: center; flex-wrap: wrap; }
   h1 { font-size: 32px; margin: 4px 0 20px; } h2 { font-size: 23px; margin: 22px 0; } h3 { font-size: 17px; }
   .eyebrow { font-size: 12px; color: var(--text-secondary); margin: 0; }

@@ -7,7 +7,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   page.setDefaultTimeout(90000);
-  await page.goto(`${site}/laboratoires/?lang=en`);
+  await page.goto(`${site}/laboratoires/?lang=en&lab=distribution`);
   await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready', 'true');
   const popup = page.waitForEvent('popup');
   await page.evaluate(async ({ engine }) => {

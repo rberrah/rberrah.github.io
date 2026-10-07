@@ -1,8 +1,8 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-10-07. The page now contains six experiments: four deterministic
-PK input/distribution laboratories plus population variability and Bayesian
-sampling. The separate
+Updated 2026-10-07. The catalogue page exposes four experiments built around
+molecular journeys. Population variability and Bayesian updating remain course
+animations rather than separate laboratories. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
 by pointer and keyboard. Shiny deployment remains independent.
 This is an educational simulation, not a
@@ -24,15 +24,6 @@ drug-specific population model or a clinically validated dosing tool.
   then zero input. The bag is undelivered mass, separate from administered mass.
   The end-of-infusion control seeks to the exact stopping time without changing
   the prescribed duration. There is no instantaneous initial bolus.
-- **Population variability:** a seeded virtual population follows a one-compartment
-  IV bolus model. Log-normal IIV on CL and V generates latent individual curves;
-  a separate log-normal residual term generates possible assay outcomes. The
-  shaded band is the 10th-90th percentile interval, not a confidence interval.
-- **Sampling and Bayes:** one or two noisy synthetic concentrations update a
-  log-normal prior on CL only when their sampling time is reached. The displayed
-  MAP curve and 90% posterior interval come from a numerical CL grid. Dose, V and
-  the residual model are treated as known, so this is an information-design
-  demonstration rather than a clinical MAP implementation.
 
 Amounts and concentrations come from closed-form solutions, superposed over the
 actual dose schedule. Particles are symbolic; their positions are not a transport
@@ -139,9 +130,6 @@ laboratories currently transfer only to Lego. Oral absorption exports two depot 
 ka/F. Infusion exports a single zero-order input with the specified duration.
 Direct TDM/DDI/PD transfer is disabled and rejected by the shared handoff helper
 until the regimen/route contract is verified. No silent IV-bolus substitution.
-The population and Bayesian sampling laboratories do not create a tool handoff:
-their IIV, residual outcomes and posterior are teaching scenarios rather than
-published population priors or patient data.
 
 DDI/PD apply their own repeated-dose workflows, not the laboratory's complete
 history. The destination warning makes this difference explicit. The model's
@@ -227,9 +215,9 @@ Pixel tests verify input-pipe movement, reproducible seeking, pause, and no inpu
 after the infusion stops. Publication of the two new labs was requested after
 this local review; it does not include a Shiny deployment.
 
-Population/Bayes revision on 2026-10-07: deterministic unit checks cover fixed
-seeds, zero and extreme variability, separation of latent and residual values,
-posterior ordering and information gain from one then two samples. All twelve
-laboratory browser tests pass, including play/pause, posterior updates only after
-collection, nonblank canvas pixels and 320/1440 px layouts. These two experiments
-run entirely in the browser and do not change or deploy the Shiny application.
+Catalogue revision on 2026-10-07: `/laboratoires/` is a dedicated home page with
+four immediately visible molecular journeys and explicit links to the existing
+variability and Bayesian course animations. Opening a laboratory adds the selected
+lab to the query string; legacy hash scenarios remain accepted. The statistical
+prototype introduced earlier that day was removed after scope review, so the
+course visualisations remain the only implementation of those concepts.

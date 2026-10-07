@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 import { sceneLayout } from '../../src/lib/labs/particles.js';
 const origin = process.env.LABS_E2E_URL || '';
-const url = (path = '/laboratoires/?lang=en') => origin + path;
+const url = (path = '/laboratoires/?lang=en&lab=distribution') => origin + path;
 test.setTimeout(90000);
 test.beforeEach(async ({ page }) => {
   page.errors = [];
@@ -24,6 +24,25 @@ async function pixels(canvas) {
     return { colored, sum };
   });
 }
+test('laboratory home exposes every molecular journey and course animations separately', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 950 });
+  await page.goto(url('/laboratoires/?lang=en'));
+  const home = page.getByTestId('laboratory-home'); await expect(home).toBeVisible();
+  await expect(page.getByTestId('laboratory')).toHaveCount(0);
+  for (const lab of ['distribution', 'accumulation', 'absorption', 'infusion']) await expect(page.getByTestId(`laboratory-link-${lab}`)).toBeVisible();
+  await expect(home.getByRole('link', { name: /Population variability/ })).toHaveAttribute('href', /variabilite-iiv-iov/);
+  await expect(home.getByRole('link', { name: /Bayesian updating/ })).toHaveAttribute('href', /math-bayes/);
+  await page.getByTestId('laboratory-link-distribution').click();
+  await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready', 'true');
+  await page.getByRole('link', { name: 'All laboratories' }).click();
+  await expect(home).toBeVisible();
+  await page.screenshot({ path: 'test-results/laboratory-home-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto(url('/laboratoires/?lang=fr'));
+  await expect(page.getByRole('heading', { name: 'Choisir un parcours moléculaire' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({ path: 'test-results/laboratory-home-mobile.png', fullPage: true });
+});
 test('distribution, reference, time animation and dose schedule', async ({ page }) => {
   await open(page);
   await expect(page.getByTestId('lab-concentration')).toHaveText('10.00');
@@ -62,7 +81,7 @@ test('distribution, reference, time animation and dose schedule', async ({ page 
 
 test('French dark mode, keyboard menu and motion pause outside the scene', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
-  await open(page, '/laboratoires/?lang=fr');
+  await open(page, '/laboratoires/?lang=fr&lab=distribution');
   await expect(page.getByRole('heading', { name: 'Distribution à deux compartiments' })).toBeVisible();
   await page.getByRole('button', { name: 'Lecture', exact: true }).click();
   await expect.poll(async () => Number(await page.getByTestId('lab-time').inputValue())).toBeGreaterThan(0.1);
@@ -100,7 +119,7 @@ test('teacher scenario reload, reveal and explicit exports', async ({ page }) =>
     const download = page.waitForEvent('download'); await page.getByRole('button', { name: label, exact: true }).click();
     expect(await (await download).failure()).toBeNull();
   }
-  await page.goto(url('/laboratoires/?lang=en#lab=distribution&cl=-1'));
+  await page.goto(url('/laboratoires/?lang=en&lab=distribution#lab=distribution&cl=-1'));
   await expect(page.getByRole('alert')).toContainText('Invalid shared scenario');
 });
 
@@ -283,64 +302,4 @@ test('linear and semi-log curves remain finite, synchronized and responsive', as
     await page.screenshot({ path: `test-results/lab-semilog-${width}.png` });
   }
   expect(await page.evaluate(() => window.invalidLabCoordinates)).toEqual([]);
-});
-
-test('population variability laboratory keeps subjects fixed and animates both representations', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1050 });
-  await open(page);
-  const section = page.getByTestId('advanced-laboratories');
-  await section.scrollIntoViewIfNeeded();
-  const canvas = page.getByTestId('population-lab-canvas');
-  await expect(canvas).toBeVisible();
-  const start = await pixels(canvas); expect(start.colored).toBeGreaterThan(500);
-  await expect(page.locator('#population-count')).toHaveValue('48');
-  await expect(page.getByTestId('population-median')).toContainText('mg/L');
-  await page.locator('#population-omegaCl').fill('0.6');
-  const changed = await pixels(canvas); expect(changed.sum).not.toBe(start.sum);
-  await page.getByRole('button', { name: 'Use as population reference' }).click();
-  await page.locator('#population-omegaCl').fill('0.1');
-  expect((await pixels(canvas)).sum).not.toBe(changed.sum);
-  await page.getByRole('button', { name: 'Start advanced laboratory', exact: true }).click();
-  await expect.poll(async () => Number(await page.getByTestId('advanced-lab-time').inputValue())).toBeGreaterThan(.2);
-  await page.getByRole('button', { name: 'Pause advanced laboratory', exact: true }).click();
-  const stopped = await page.getByTestId('advanced-lab-time').inputValue();
-  await page.waitForTimeout(150); await expect(page.getByTestId('advanced-lab-time')).toHaveValue(stopped);
-});
-
-test('sampling laboratory updates the posterior only when samples are collected', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1050 });
-  await open(page);
-  await page.getByRole('button', { name: '06 / Sampling & Bayes' }).click();
-  const canvas = page.getByTestId('sampling-lab-canvas'); await canvas.scrollIntoViewIfNeeded();
-  await expect(page.getByTestId('collected-samples')).toHaveText('0 / 2');
-  const priorMap = await page.getByTestId('posterior-map').innerText(), initial = await pixels(canvas);
-  await page.getByRole('button', { name: 'Next sample', exact: true }).click();
-  await expect(page.getByTestId('advanced-lab-time')).toHaveValue('1.0');
-  await expect(page.getByTestId('collected-samples')).toHaveText('1 / 2');
-  expect(await page.getByTestId('posterior-map').innerText()).not.toBe(priorMap);
-  expect((await pixels(canvas)).sum).not.toBe(initial.sum);
-  await page.getByRole('button', { name: 'Next sample', exact: true }).click();
-  await expect(page.getByTestId('advanced-lab-time')).toHaveValue('8.0');
-  await expect(page.getByTestId('collected-samples')).toHaveText('2 / 2');
-  await page.getByLabel('Reveal synthetic truth').uncheck();
-  await page.locator('#sampling-t2').fill('10');
-  await expect(page.getByTestId('collected-samples')).toHaveText('0 / 2');
-  await page.screenshot({ path: 'test-results/lab-sampling-desktop.png' });
-});
-
-test('new laboratories remain legible and nonblank on mobile', async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 900 });
-  await open(page);
-  const section = page.getByTestId('advanced-laboratories'); await section.scrollIntoViewIfNeeded();
-  for (const [button, testId, name] of [['05 / Variability','population-lab-canvas','population'], ['06 / Sampling & Bayes','sampling-lab-canvas','sampling']]) {
-    await page.getByRole('button', { name: button }).click();
-    const canvas = page.getByTestId(testId); await canvas.scrollIntoViewIfNeeded();
-    expect((await pixels(canvas)).colored).toBeGreaterThan(300);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: `test-results/lab-${name}-mobile.png` });
-  }
-  await open(page, '/laboratoires/?lang=fr');
-  await expect(page.getByRole('button', { name: '05 / Variabilité' })).toBeVisible();
-  await page.getByRole('button', { name: '06 / Prélèvements & Bayes' }).click();
-  await expect(page.getByLabel('Révéler la vérité synthétique')).toBeChecked();
 });

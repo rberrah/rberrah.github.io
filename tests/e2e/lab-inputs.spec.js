@@ -5,7 +5,7 @@ const origin = process.env.LABS_E2E_URL || '';
 test.setTimeout(90000);
 
 async function open(page,lab) {
-  await page.goto(`${origin}/laboratoires/?lang=en#lab=${lab}`);
+  await page.goto(`${origin}/laboratoires/?lang=en&lab=${lab}#lab=${lab}`);
   await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready','true',{timeout:45000});
   await expect(page.getByTestId('lab-scene')).toBeVisible();
 }
@@ -97,7 +97,7 @@ test('new labs in French dark mode on mobile',async({page})=>{
   await page.emulateMedia({colorScheme:'dark'});
   await page.setViewportSize({width:390,height:1050});
   for(const [lab,title] of [['absorption','Absorption orale et biodisponibilité'],['infusion','Perfusion IV et décroissance après arrêt']]) {
-    await page.goto(`${origin}/laboratoires/?lang=fr#lab=${lab}`);
+    await page.goto(`${origin}/laboratoires/?lang=fr&lab=${lab}#lab=${lab}`);
     await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready','true',{timeout:45000});
     await expect(page.getByRole('heading',{name:title,exact:true})).toBeVisible();
     await expect(page.getByRole('button',{name:'Particule suivante',exact:true})).toHaveCount(0);
