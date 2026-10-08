@@ -128,6 +128,12 @@ const extraLinks = [
   'akg>succinylcoa','succinylcoa>succinate'
 ];
 const geneAnchor = {
+  hk:'glucose',gpi:'g6p',pfk:'f6p',aldo:'fbp',gapdh:'g3p',
+  eno:'3pg',pkm:'pep',ldha:'pyruvate',ldhb:'lactate',
+  pdh:'pyruvate',cs:'acetylcoa',idh:'citrate',ogdh:'akg',
+  suclg:'succinylcoa',sdh:'succinate',fh:'fumarate',mdh:'malate',
+  got:'aspartate',gls:'glutamine',glud:'glutamate',glul:'glutamate',
+  g6pd:'g6p',pgd:'6pg',phgdh:'3pg',shmt:'serine',
   ido1:'tryptophan',ido2:'tryptophan',tdo2:'tryptophan',afmid:'formylkyn',
   kmo:'kynurenine',kynu:'kynurenine',aadat:'kynurenine',haao:'hydroxyanthranilate',qprt:'quinolinate',
   tph1:'tryptophan',tph2:'tryptophan',ddc:'hydroxytrp',aanat:'serotonin',asmt:'serotonin',
