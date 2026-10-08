@@ -150,19 +150,19 @@
 
   /** @type {Record<string, [string,string]>} */
   const fieldLabels = {
-    subject_id: ['Sujet / unité expérimentale', 'Subject / experimental unit'],
-    sample_id: ['Échantillon biologique', 'Biological sample'],
-    assay_id: ['Identifiant du dosage / run', 'Assay / run identifier'],
-    omic: ['Couche omique', 'Omics layer'],
-    condition: ['Condition / groupe', 'Condition / group'],
-    timepoint: ['Temps / visite', 'Time point'],
-    batch: ['Batch technique', 'Technical batch'],
-    technical_replicate: ['Réplicat technique', 'Technical replicate'],
-    outcome: ['Outcome / critère', 'Outcome / endpoint'],
-    survival_time: ['Temps de survie / suivi', 'Survival / follow-up time'],
-    survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)'],
-    sample_type: ['Type d’injection / échantillon', 'Injection / sample type'],
-    injection_order: ['Ordre d’injection MS', 'MS injection order']
+    subject_id: ['Sujet, animal ou culture', 'Subject, animal or culture'],
+    sample_id: ['Prélèvement', 'Sample'],
+    assay_id: ['Nom de la mesure dans le fichier', 'Measurement name in the file'],
+    omic: ['Type de mesure', 'Measurement type'],
+    condition: ['Groupe (ex. traité / témoin)', 'Group (e.g. treated / control)'],
+    timepoint: ['Moment du prélèvement', 'Sampling time'],
+    batch: ['Lot de mesures', 'Measurement batch'],
+    technical_replicate: ['Mesure répétée au laboratoire', 'Repeated laboratory measurement'],
+    outcome: ['Résultat étudié', 'Outcome of interest'],
+    survival_time: ['Durée du suivi', 'Follow-up duration'],
+    survival_event: ['Événement observé (0/1)', 'Observed event (0/1)'],
+    sample_type: ['Type d’échantillon analysé', 'Sample type'],
+    injection_order: ['Ordre de passage dans l’appareil', 'Instrument run order']
   };
   /** @param {string} key */
   const fieldLabel = (key) => {
@@ -1263,9 +1263,10 @@
 </section>
 
 <section class="simple-steps" aria-label={t('Étapes principales', 'Main steps')}>
-  <span><b>1</b> {t('Votre question', 'Your question')}</span>
-  <span><b>2</b> {t('Vos fichiers', 'Your files')}</span>
-  <span><b>3</b> {t('Vos résultats', 'Your results')}</span>
+  <span><b>1</b> {t('Question', 'Question')}</span>
+  <span><b>2</b> {t('Étude', 'Study')}</span>
+  <span><b>3</b> {t('Fichiers', 'Files')}</span>
+  <span><b>4</b> {t('Résultats', 'Results')}</span>
 </section>
 
 <section class="panel">
@@ -1762,10 +1763,10 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Préparer les fichiers', 'Prepare your files')}</p>
-      <h2>{t('Utilisez le template ou laissez l’outil mapper vos colonnes', 'Use the template, or let the app map your column names')}</h2>
+      <p class="eyebrow">{t('Pour démarrer', 'Getting started')}</p>
+      <h2>{t('Un exemple pour comprendre, un modèle si nécessaire', 'Try an example or use a template')}</h2>
     </div>
-    <p>{t('Le template est la voie la plus sûre, mais il n’est pas obligatoire. Les métadonnées libres sont rapprochées d’une liste explicite d’alias puis confirmées manuellement.', 'The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.')}</p>
+    <p>{t('Vous pouvez charger vos propres tableaux, sans les renommer si les colonnes sont reconnues.', 'You can upload your own tables without renaming columns if they are recognized.')}</p>
   </div>
 
   <div class="contract">
@@ -2028,6 +2029,8 @@
       </details>
     </div>
 
+    <details class="advanced-results" data-testid="multiomics-sample-checks">
+      <summary>{t('Détail des échantillons et correspondances', 'Sample counts and matching details')}</summary>
     <div class="validation">
       <article>
         <span>{t('Unités biologiques', 'Biological units')}</span>
@@ -2076,10 +2079,11 @@
         </article>
       {/each}
     </div>
+    </details>
   {/if}
 
   <div class="status" class:ready>
-    <strong>{omicsCount}/3 {t('omiques sélectionnées', 'omics selected')}</strong>
+    <strong>{omicsCount}/3 {t('types de mesures chargés', 'measurement types loaded')}</strong>
     <span>{ready
       ? t('Le contrat de données et l’objectif scientifique permettent de lancer l’analyse.', 'The data contract and scientific objective are sufficient to run the analysis.')
       : !objectiveOperational
