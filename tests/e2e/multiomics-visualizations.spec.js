@@ -30,6 +30,19 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   await expect(page.getByTestId('multiomics-pathway-coverage')).toContainText(/Glycolyse|Glycolysis/);
 
   await page.locator('.figure-switcher button').nth(2).click();
+  const focused = page.getByTestId('multiomics-focused-network');
+  await expect(focused).toBeVisible();
+  await expect(focused).toContainText(/Tryptophane et kynurénine|Tryptophan and kynurenine/);
+  await expect(focused).toContainText(/Glycolyse|Glycolysis/);
+  await expect(focused).toContainText(/Cycle de Krebs|TCA cycle/);
+  await expect(focused.getByTestId('multiomics-region-serotonin')).toHaveCount(0);
+  await focused.getByTestId('multiomics-network-hops').selectOption('2');
+  await expect(focused.getByTestId('multiomics-region-kynurenine')).toBeVisible();
+  await focused.getByTestId('multiomics-network-region').selectOption('kynurenine');
+  await expect(focused.getByTestId('multiomics-region-tca')).toHaveCount(0);
+  await focused.getByTestId('multiomics-network-dictionary').locator('summary').click();
+  await expect(focused.getByTestId('multiomics-network-dictionary')).toContainText('CHEBI:16828');
+  await page.getByTestId('multiomics-central-carbon-details').locator('summary').first().click();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toBeVisible();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toContainText(/13C/);
   await expect(page.getByTestId('multiomics-off-map')).toContainText('L-tryptophane');
