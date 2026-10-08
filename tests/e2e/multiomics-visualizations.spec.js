@@ -137,7 +137,7 @@ test('MS peak-AUC long CSV can be uploaded directly with group metadata', async 
   await page.getByTestId('multiomics-ms-auc-upload').setInputFiles({
     name:'ms_auc_export.csv',mimeType:'text/csv',buffer:Buffer.from(rows.join('\n'))
   });
-  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 molécules|2 features/);
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/);
   await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/8 injections|8 injections/);
   await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
 });
