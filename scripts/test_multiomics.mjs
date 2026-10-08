@@ -326,6 +326,9 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.ok(flagQc.blankFlaggedFeatures >= 1);
   assert.equal(flagQc.blankRemovedFeatures, 0);
   assert.ok(msFlagOnly.layers.metabolomics.rows.some((row) => row.feature === 'MS_BLANK_CONTAM'));
+  assert.ok(msFlagOnly.layers.metabolomics.qc.differentialMissingness.flaggedFeatures >= 1);
+  assert.ok(msFlagOnly.layers.metabolomics.qc.differentialMissingness.topFeatures.some((item) => item.feature === 'MS_MNAR'));
+  assert.ok(msFlagOnly.layers.metabolomics.qc.warnings.some((warning) => /missingness imbalance/i.test(warning)));
 }
 
 // Survival prediction: nested CV must produce out-of-sample Harrell C-index.
