@@ -1303,11 +1303,16 @@ function preprocessMatrix(matrix, layer, valueType) {
   const assays = matrix.assays;
   const processed = new Map();
   const steps = [];
+  const finiteValues = [];
+  for (const values of matrix.values.values()) {
+    for (const value of values.values()) if (Number.isFinite(value)) finiteValues.push(value);
+  }
   const minPositive = minimumPositive(matrix);
   const pseudo = Math.max(minPositive / 2, 1e-12);
-  const hasNegative = [...matrix.values.values()].some((values) =>
-    [...values.values()].some((value) => Number.isFinite(value) && value < 0)
-  );
+  const negativeValues = finiteValues.filter((value) => value < 0).length;
+  const zeroValues = finiteValues.filter((value) => value === 0).length;
+  const nonIntegerValues = finiteValues.filter((value) => Math.abs(value - Math.round(value)) > 1e-8).length;
+  const hasNegative = negativeValues > 0;
 
   const isCounts = layer === 'transcriptomics' && valueType === 'raw_counts';
   const isSpectral = layer === 'proteomics' && valueType === 'spectral_count';
@@ -1316,6 +1321,20 @@ function preprocessMatrix(matrix, layer, valueType) {
   const logPositive = ['tpm','lfq_intensity','peak_area','concentration'].includes(valueType);
   const medianCenter = (layer === 'proteomics' && valueType === 'lfq_intensity') || (layer === 'metabolomics' && valueType === 'peak_area');
   let scale = 'as_supplied';
+  const auditWarnings = [];
+
+  if ((isCounts || isSpectral) && negativeValues > 0) {
+    auditWarnings.push(`${valueType} was declared but ${negativeValues} negative value(s) were observed. Count-like inputs must be non-negative; verify the uploaded scale before interpreting this layer.`);
+  }
+  if ((isCounts || isSpectral) && nonIntegerValues > 0) {
+    auditWarnings.push(`${valueType} was declared but ${nonIntegerValues} non-integer value(s) were observed. The browser can screen these values, but reference count-model assumptions and upstream quantification should be reviewed.`);
+  }
+  if (logPositive && negativeValues > 0) {
+    auditWarnings.push(`${valueType} was declared as a positive abundance scale but ${negativeValues} negative value(s) were observed. The browser keeps the supplied values instead of forcing a log transform; verify whether the matrix was already transformed or centred.`);
+  }
+  if (valueType === 'unknown') {
+    auditWarnings.push('The measurement scale is declared unknown. Values are kept as supplied; log2 fold-ratio interpretation is disabled unless the scale is clarified.');
+  }
 
   const totals = new Map();
   if (isCounts || isSpectral) {
@@ -1351,7 +1370,7 @@ function preprocessMatrix(matrix, layer, valueType) {
       const raw = values.get(assay);
       if (!Number.isFinite(raw)) { next.set(assay, null); continue; }
       if (isCounts || isSpectral) {
-        const cpm = raw / totals.get(assay) * 1e6;
+        const cpm = Math.max(0, raw) / totals.get(assay) * 1e6;
         next.set(assay, Math.log2(cpm + 0.5));
       } else if (explicitlyLog || asSupplied || !logPositive) next.set(assay, raw);
       else next.set(assay, Math.log2(Math.max(0, raw) + pseudo));
@@ -1375,7 +1394,26 @@ function preprocessMatrix(matrix, layer, valueType) {
     steps.push('sample-wise median centering on the log scale');
   }
 
-  return { ...matrix, values: processed, steps, scale };
+  const inputMin = finiteValues.length ? Math.min(...finiteValues) : null;
+  const inputMax = finiteValues.length ? Math.max(...finiteValues) : null;
+  const audit = {
+    layer,
+    declaredValueType: valueType,
+    observedFiniteValues: finiteValues.length,
+    negativeValues,
+    zeroValues,
+    nonIntegerValues,
+    inputRange: { min: inputMin, max: inputMax },
+    minimumPositive: Number.isFinite(minPositive) ? minPositive : null,
+    pseudoCount: (logPositive && !asSupplied) ? pseudo : null,
+    outputScale: scale,
+    medianCentered: medianCenter,
+    status: auditWarnings.length ? 'review_required' : 'compatible',
+    warnings: auditWarnings,
+    policy: 'Transformations follow the explicitly declared measurement type. The browser does not infer or silently apply ComBat, quantile normalisation, VST or other study-specific preprocessing.'
+  };
+
+  return { ...matrix, values: processed, steps, scale, audit };
 }
 
 function aggregateTechnicalReplicates(matrix, metadata, layer) {
@@ -3814,8 +3852,10 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
     aggregated.qc = {
       ...qcPrepared.qc,
+      warnings: [...(qcPrepared.qc.warnings || []), ...(processed.audit?.warnings || [])],
       msQc: msPrepared.qc,
       preprocessingSteps: processed.steps,
+      preprocessingAudit: processed.audit,
       pca: layerQcPca(rawAggregated),
       inferenceTier: layer === 'transcriptomics' && dataTypes[layer] === 'raw_counts'
         ? {
