@@ -1,6 +1,6 @@
 # Teaching laboratories (pilot)
 
-Updated 2026-10-07. The catalogue page exposes fourteen experiments built around
+Updated 2026-10-08. The catalogue page exposes fifteen experiments built around
 molecular journeys. Population variability and Bayesian updating remain course
 animations rather than separate laboratories. The separate
 "Next particle" toolbar button is removed; canvas selection remains accessible
@@ -55,7 +55,7 @@ drug-specific population model or a clinically validated dosing tool.
   restricted to 40-120 kg and is not an extrapolation rule.
 
 In the four fundamental laboratories, amounts and concentrations come from
-closed-form solutions superposed over the actual dose schedule. The ten ODE-driven
+closed-form solutions superposed over the actual dose schedule. The eleven ODE-driven
 laboratories use a fixed-grid RK4 integration of the displayed ODEs. Particles are
 symbolic; their positions are not a transport solver or an anatomical
 representation. For the fundamental models, the eliminated amount is
@@ -84,6 +84,12 @@ spaced illustrative times. Both reuse the seeded central residence times and
 continuous passageway geometry. Counts never replace the analytical results.
 
 ## Playback and particles
+
+Each laboratory opens in **Discovery** mode: predict first, change one highlighted
+mechanism, observe the scene and curve, write an explanation, then answer an
+application question. **Free mode** exposes every parameter for exploration. The
+scientific debrief stays hidden until the learner writes an explanation. Answers
+are held only in component memory and are not persisted.
 
 Intuition and Equations share the same simulation; the separate simulated-case
 view has been removed. Each illustrative particle now retains its identity from

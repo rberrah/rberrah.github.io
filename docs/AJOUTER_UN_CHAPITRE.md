@@ -14,7 +14,8 @@
    n'apparaît jamais en ligne, et vous pouvez garder des brouillons
    (`_wip-xxx.md`) à côté des chapitres publiés.
 
-2. **Remplir le frontmatter** (obligatoire : `id`, `slug`, `title`, `order`) :
+2. **Remplir le frontmatter**. Les contrôles techniques valident la structure ;
+   la [checklist pédagogique](chapter-quality.md) couvre le fond :
    ```yaml
    ---
    id: "mon-sujet"
@@ -23,6 +24,10 @@
    description: "L'angle en une phrase."
    order: 22                  # ordre d'affichage croissant
    tags: ["pk"]
+   prerequisites: []         # slugs réellement nécessaires
+   glossary: ["CL", "V"]    # termes liés au glossaire
+   sources: ["source-id"]    # identifiants de references.js
+   reviewed_on: "2026-10-08" # date de relecture scientifique
    slides: []                 # IDs du slide_catalog (optionnel)
    quiz:                      # checkpoint de fin (optionnel)
      - prompt: "Une question ?"
@@ -86,7 +91,7 @@ KaTeX fonctionnent à l'intérieur.
 
 ## Équations
 
-D�limiteurs : `$ … $` (inline), `$$ … $$` (bloc), `\( … \)`, `\[ … \]`.
+Délimiteurs : `$ … $` (inline), `$$ … $$` (bloc), `\( … \)`, `\[ … \]`.
 Dans `\text{}`, préférer `\cdot` au caractère `·`.
 
 ## Pistes (tracks)
@@ -104,8 +109,11 @@ npm run build
 
 L'ordre d'affichage suit `order` croissant ; le `slug` devient l'URL.
 
-## Barème de qualité (viser le chapitre 01)
+## Barème de qualité
 
 Pour chaque idée : **intuition en clair → équation commentée terme à terme →
 piège → enjeu clinique**. Une figure interactive par idée quand c'est possible.
 Éviter les équations en texte brut : toujours les passer en KaTeX.
+Avant publication, vérifier aussi objectifs, prérequis, unités, hypothèses,
+domaine d'application, exemple, piège, exercice/laboratoire et sources avec
+[la checklist commune](chapter-quality.md).

@@ -21,6 +21,10 @@ order: 13                       # position dans la liste (ordre croissant)
 duration: "12 min"
 level: "beginner"               # beginner | intermediate | advanced
 tags: ["pk"]                    # étiquettes libres (liste non vide)
+prerequisites: []               # slugs des prérequis réels
+glossary: ["CL", "V"]          # termes utiles pour ce chapitre
+sources: ["source-id"]          # identifiants de references.js
+reviewed_on: "2026-10-08"       # dernière relecture scientifique
 slides: []                      # IDs de slides du catalogue (optionnel)
 quiz:                           # checkpoint de fin (obligatoire, >= 1 question)
   - prompt: "Une question de compréhension ?"

@@ -1,4 +1,4 @@
-# Pharmacométrie Pratique – portail, cours et outils
+# PMx Explain - portail, cours et outils
 
 Ce dépôt réunit le portail académique, le cours interactif SvelteKit et les outils
 de recherche TDM/MIPD, interactions et pharmacodynamie. Le portail et le site
@@ -19,6 +19,9 @@ actée par cette documentation.
   du catalogue, avec synchronisation vers le moteur ; voir les
   [règles de contribution](CONTRIBUTING_TDM_MODELS.md).
 - `docs/`, `scripts/` et `tests/` : documentation, contrôles de contenu et tests navigateur.
+
+Les comptes actuels sont générés depuis les sources dans
+[l'inventaire de contenu](docs/content-inventory.md) par `npm run inventory`.
 
 Les PDF institutionnels et les données patients ne doivent jamais être publiés.
 
@@ -57,7 +60,7 @@ sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
   pharmacodynamie, exercices, glossaire, références, QA, slides et à-propos.
 
 ## Scripts utilitaires
-- `npm run test:labs` : bilans de masse, administrations et mécanismes des quatorze laboratoires moléculaires.
+- `npm run test:labs` : bilans de masse, administrations et mécanismes des quinze laboratoires animés.
 - [Laboratoires pedagogiques](docs/teaching-laboratories.md) : hypotheses, mode
   enseignant, contrats de transfert et tests R/navigateur. Route `/laboratoires/`.
 - `npm run validate` : valide catalogue + chapitres (slides existantes, IDs uniques)

@@ -1,4 +1,4 @@
-# Roadmap - Pharmacometrie Pratique
+# Roadmap - PMx Explain
 
 Mise a jour : 2026-10-07. Les cinq ateliers et les dix laboratoires moléculaires sont publiés.
 Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
@@ -103,7 +103,7 @@ au rechargement ; les exports volontaires restent a la main de l'utilisateur.
 
 - [x] Portail statique a `/` et application SvelteKit a `/pharmacometrie/`, assembles par le workflow Pages.
 - [x] Moteur R/Shiny deploye independamment : TDM, interactions, PD generale et oncologie exploratoire.
-- [x] Cours : 88 chapitres FR/EN, 99 exercices, 56 visualisations utilisees ; controles de contenu et recalcul de 23 reponses numeriques. Ces comptes ne constituent pas une validation scientifique globale.
+- [x] Cours bilingue, parcours, exercices, activités guidées, cas de synthèse, visualisations et laboratoires. Les comptes ne sont plus maintenus ici : voir [l'inventaire généré](docs/content-inventory.md). Ils ne constituent pas une validation scientifique globale.
 - [x] Bibliotheque indexee de 46 modeles ; import/export des dossiers TDM, rapports, reglages d'erreur residuelle, plusieurs types de cibles et comparaison des doses futures.
 - [x] Entrainement ML reutilisable et artefacts multi-modeles presents ; comparaison MAP/ML et explications disponibles. Leur disponibilite ne prouve pas une validation externe pour chaque molecule.
 - [x] Ateliers DDI et PD : schemas/courbes sur le site, transfert vers Shiny et import JSON ; PK libre selon les restrictions du moteur public.

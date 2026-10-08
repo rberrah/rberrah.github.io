@@ -4,9 +4,10 @@
 
 - Track pages derived from the existing chapter catalogue, with prerequisites,
   chapter navigation and links to practice.
-- 95 chapters across all 16 tracks: 101 bilingual guided activities, 303 steps.
-- Covariates retains ten guided activities and one integrated PK case; each of
-  the other 90 chapters now has a subject-specific multi-step activity.
+- A twelve-step “PK/PD from scratch” path plus the domain tracks. Current counts
+  are generated in [content-inventory.md](content-inventory.md).
+- Every chapter has subject-specific practice; each major track has a cumulative
+  synthesis case distinct from chapter QCMs and short calculations.
 - Numeric responses with explicit absolute/relative tolerance and units;
   graphical exploration, parameter manipulation and code diagnosis.
 - Progressive hints, expected reasoning and specific common-error feedback.
@@ -34,13 +35,14 @@
 2. Expand constrained manipulation and graphical diagnostic activities where they
    teach a specific objective, without substituting generic plots for reasoning.
 3. Extend the lightweight teacher workflow to select and order activities.
-4. Continue human scientific review; numerical/browser tests do not certify
-   learning efficacy or clinical validity.
+4. Run the documented formative sessions in
+   [usability-accessibility-protocol.md](usability-accessibility-protocol.md);
+   numerical/browser tests do not certify learning efficacy or clinical validity.
 
 ## In every delivery
 
 Scientific review, independent numerical checks, source links, FR/EN parity,
 keyboard access, mobile layout and browser regression tests. Extend the existing
 teacher scenario tools when the activities need them; do not introduce student
-accounts or store patient data. Broader glossary enrichment and global search
-remain separate work, not a prerequisite architectural rewrite.
+accounts or store patient data. The bilingual structured glossary is maintained
+with the learning content and checked for complete English coverage.

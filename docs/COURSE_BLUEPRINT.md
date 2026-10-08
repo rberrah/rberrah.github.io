@@ -1,6 +1,10 @@
 # Course blueprint — PMx Explain
 
-This document defines the target pedagogical structure. It should guide AI-assisted development and prevent the project from becoming a generic landing page.
+This is the original pedagogical design brief. It remains useful for intent but
+is not the source of current counts or implementation status. Use the generated
+[content inventory](content-inventory.md), the
+[chapter quality checklist](chapter-quality.md) and the live content catalogue
+for the current state.
 
 ## Pedagogical principle
 
