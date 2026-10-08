@@ -198,8 +198,9 @@ function resolveIdentity(raw,dictionary,mappings) {
   if (isIdentifier(original)) {
     const mapped = mappings?.get(original);
     const status = mapped?.status;
-    if (mapped?.resolved && status !== 'ambiguous' && status !== 'api_error'
-      && status !== 'unresolved' && status !== 'query_limit' && dictionary.exact.has(String(mapped.resolved).toUpperCase())) {
+    if (mapped?.resolved && ['canonical','resolved_external_id','resolved'].includes(status)
+      && /^CHEBI:\d+$/i.test(String(mapped.resolved))
+      && dictionary.exact.has(String(mapped.resolved).toUpperCase())) {
       return {status:'verified_crossref',id:dictionary.exact.get(String(mapped.resolved).toUpperCase()),provenance:status || 'external'};
     }
     return { status:'unmapped_identifier',id:null,provenance:'unresolved' };
