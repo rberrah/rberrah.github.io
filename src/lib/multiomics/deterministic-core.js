@@ -534,6 +534,23 @@ function studentTCdf(t,df) {
   return t >= 0 ? 1-0.5*ib : 0.5*ib;
 }
 
+// Inference using a Student-t p-value must use the same distribution for its
+// confidence interval, particularly with small cohorts.
+const t95Cache = new Map();
+function tCritical95(df) {
+  if (!(Number.isFinite(df) && df > 0)) return NaN;
+  if (t95Cache.has(df)) return t95Cache.get(df);
+  let lo = 0, hi = 20;
+  for (let iter = 0; iter < 42; iter += 1) {
+    const mid = (lo + hi) / 2;
+    if (studentTCdf(mid, df) >= 0.975) hi = mid;
+    else lo = mid;
+  }
+  const critical = (lo + hi) / 2;
+  t95Cache.set(df, critical);
+  return critical;
+}
+
 function fCdf(f,d1,d2) {
   if (f <= 0) return 0;
   if (f === Infinity) return 1;
@@ -2141,8 +2158,8 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         qValue: null,
         statistic: fit.statistic,
         standardError: effectSe,
-        ciLow: Number.isFinite(effectSe) ? effect - 1.96 * effectSe : null,
-        ciHigh: Number.isFinite(effectSe) ? effect + 1.96 * effectSe : null,
+        ciLow: Number.isFinite(effectSe) ? effect - tCritical95(fit.df) * effectSe : null,
+        ciHigh: Number.isFinite(effectSe) ? effect + tCritical95(fit.df) * effectSe : null,
         intraclassCorrelation: fit.intraclassCorrelation,
         sigmaWithin: fit.sigmaWithin,
         sigmaBetween: fit.sigmaBetween,
@@ -2271,8 +2288,8 @@ function analyseIndependentAdjustedLayer(aggregated, layer, { covariateColumns =
         qValue: null,
         statistic: fit.statistic,
         standardError: fit.se,
-        ciLow: Number.isFinite(fit.se) ? effect - 1.96 * fit.se : null,
-        ciHigh: Number.isFinite(fit.se) ? effect + 1.96 * fit.se : null,
+        ciLow: Number.isFinite(fit.se) ? effect - tCritical95(fit.df) * fit.se : null,
+        ciHigh: Number.isFinite(fit.se) ? effect + tCritical95(fit.df) * fit.se : null,
         nReference: entries.filter((entry) => entry.row.condition === reference).length,
         nComparison: entries.filter((entry) => entry.row.condition === comparison).length,
         model: 'feature ~ condition + batch + selected covariates (OLS HC3)'
@@ -2430,8 +2447,10 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
 
     if (!fit) continue;
     const coefficient = fit.beta?.[1] ?? fit.beta?.[0];
-    const ciLow = Number.isFinite(fit.se) ? coefficient - 1.96 * fit.se : null;
-    const ciHigh = Number.isFinite(fit.se) ? coefficient + 1.96 * fit.se : null;
+    // OLS uses t(df), while GLM/Cox use asymptotic normal Wald intervals.
+    const critical = outcomeType === 'continuous' ? tCritical95(fit.df) : 1.96;
+    const ciLow = Number.isFinite(fit.se) ? coefficient - critical * fit.se : null;
+    const ciHigh = Number.isFinite(fit.se) ? coefficient + critical * fit.se : null;
     const multiplicative = ['binary','count','survival'].includes(outcomeType);
     rows.push({
       feature,
