@@ -58,7 +58,29 @@ export function convertMsAucExport(text) {
   const heads=parsed.headers;
   const cols=Object.fromEntries(Object.entries(aliases).map(([k,options])=>[k,find(heads,options)]));
   if (!cols.feature || !cols.assay || !cols.value || new Set([cols.feature,cols.assay,cols.value]).size!==3) {
-    return {format:'matrix',matrixCsv:text,metadataCsv:null,features:null,assays:null};
+    // Most MS exports are already feature × injection matrices. Drop only
+    // standard peak-annotation columns (m/z, retention time, adduct...) so
+    // they cannot accidentally masquerade as biological sample intensities.
+    // Generic matrices without a recognized feature header are passed through.
+    if (!cols.feature) return {format:'matrix',matrixCsv:text,metadataCsv:null,features:null,assays:null};
+    const annotationColumns=new Set([
+      'mz','m_z','m_over_z','mass_to_charge','retention_time','rt','rt_min',
+      'retention_time_min','formula','molecular_formula','adduct',
+      'ion_mode','polarity','annotation','confidence','score','compound_name'
+    ]);
+    const sampleHeaders=heads.filter((header)=>header!==cols.feature&&!annotationColumns.has(norm(header)));
+    if (!sampleHeaders.length)throw new Error('MS AUC: no injection intensity columns were found in the wide peak table');
+    const seen=new Set();
+    const records=parsed.rows.map((row)=>{
+      const feature=String(row[cols.feature]||'').trim();
+      if(!feature)throw new Error('MS AUC: a wide peak has no feature identifier');
+      if(seen.has(feature))throw new Error('MS AUC: duplicate feature identifier in wide export: '+feature);
+      seen.add(feature);
+      return [feature,...sampleHeaders.map((header)=>parseArea(row[header])??'')];
+    });
+    return {format:'wide_ms_auc',matrixCsv:csv(['feature_id',...sampleHeaders],records),
+      metadataCsv:null,features:records.length,assays:sampleHeaders.length,
+      observed:records.flat().slice(1).filter((v)=>v!=='').length,metadataGenerated:false};
   }
   if(!parsed.rows.length)throw new Error('MS AUC: export contains no observations');
   const features=[], assays=[], vals=new Map();
