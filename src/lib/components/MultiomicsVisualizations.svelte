@@ -503,7 +503,24 @@
 {/if}
 
 <style>
-  .visual-panel { margin-top: 24px; display: grid; gap: 18px; padding:14px; border-radius:12px; background:#fff; color:#182a34; color-scheme:light; }
+  /* Plots are intentionally presented on a light background even when PMx
+     Explain is in dark mode. Reset the full palette in this subtree, not only
+     inherited color: global h2/h3/code styles use theme CSS variables. */
+  .visual-panel {
+    --text-primary:#182a34;
+    --text-secondary:#3b5060;
+    --text-muted:#526473;
+    --bg-primary:#ffffff;
+    --bg-secondary:#eff3f5;
+    --bg-tertiary:#ffffff;
+    --border-subtle:#dbe3e8;
+    --border-strong:#bdcbd3;
+    --accent-pk:#954021;
+    --accent-ai:#15536a;
+    --focus-ring:#954021;
+    margin-top:24px; display:grid; gap:18px; padding:14px; border-radius:12px;
+    background:#fff; color:#182a34; color-scheme:light;
+  }
   .legacy-map { border:1px solid #bdcbd3; background:#fff; color:#182a34; padding:12px 14px; border-radius:12px; }
   .legacy-map > summary { cursor:pointer; font-weight:700; }
   .legacy-map > article { margin-top:12px; }
