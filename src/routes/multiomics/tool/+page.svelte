@@ -1956,7 +1956,7 @@
   </div>
 
   {#if analysisResult.visualizations}
-    <MultiomicsVisualizations result={analysisResult} language={$language} />
+    <MultiomicsVisualizations result={analysisResult} language={$language ?? 'fr'} />
   {:else if analysisResult.visualizationError}
     <p class="note">{t('Les résultats statistiques sont disponibles, mais la préparation des visualisations a échoué : ', 'Statistical results are available, but visualization preparation failed: ')}{analysisResult.visualizationError}</p>
   {/if}
