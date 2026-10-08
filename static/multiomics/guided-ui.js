@@ -95,7 +95,7 @@
   }
 
   function renderGuide() {
-    const workflow = document.querySelector('section.workflow');
+    const workflow = document.querySelector('section.simple-steps, section.workflow');
     if (!workflow) return;
     let panel = document.querySelector('[data-testid="multiomics-beginner-guide"]');
     if (!panel) {
@@ -127,7 +127,10 @@
       ? (lang === 'en' ? `Current endpoint: <b>${endpointLabel(lang, outcome)}</b>.` : `Critère actuellement déclaré : <b>${endpointLabel(lang, outcome)}</b>.`)
       : (lang === 'en' ? `Current design: <b>${designLabel(lang, design)}</b>.` : `Plan actuellement déclaré : <b>${designLabel(lang, design)}</b>.`);
 
+    const wasOpen = panel.querySelector('details.licence-guide-body')?.open === true;
     panel.innerHTML = `
+      <details class="licence-guide-body">
+        <summary>${lang === 'en' ? 'Help me choose a question' : 'M’aider à choisir ma question'}</summary>
       <div class="licence-guide-head">
         <div><span>${lang === 'en' ? 'Guided mode · undergraduate level' : 'Mode guidé · niveau licence'}</span><h2>${lang === 'en' ? 'Start with the biological question, not the method name' : 'Commencez par la question biologique, pas par le nom d’une méthode'}</h2></div>
         <button type="button" class="licence-demo" data-licence-demo>${lang === 'en' ? 'Try a complete example' : 'Voir un exemple complet'}</button>
@@ -144,7 +147,9 @@
         </ol>
       </div>
       <details><summary>${lang === 'en' ? 'Scientific details of the selected route' : 'Détails scientifiques de la route choisie'}</summary><p>${item.science}</p><p>${lang === 'en' ? 'The interface does not replace experimental-design judgement: biological independence, confounding, missing layers and sample size still determine what can be interpreted.' : 'L’interface ne remplace pas le jugement sur le plan expérimental : indépendance biologique, confusion, couches manquantes et effectif déterminent toujours ce qui peut être interprété.'}</p></details>
+      </details>
     `;
+    if (wasOpen) panel.querySelector('details.licence-guide-body').open = true;
     panel.dataset.state = state;
   }
 
@@ -182,6 +187,8 @@
     if (panel.dataset.state === state) return;
     const [canSay, cannotSay] = conclusionCopy(lang, objective);
     panel.innerHTML = `
+      <details class="licence-result-body">
+        <summary>${lang === 'en' ? 'How to read this analysis' : 'Comment lire cette analyse'}</summary>
       <span class="licence-kicker">${lang === 'en' ? 'Recommended reading order' : 'Ordre de lecture conseillé'}</span>
       <h3>${lang === 'en' ? 'Understand the result in four passes' : 'Comprendre le résultat en quatre passages'}</h3>
       <div class="licence-result-grid">
@@ -191,6 +198,7 @@
         <article><b>4</b><strong>${lang === 'en' ? 'Biological interpretation' : 'Interprétation biologique'}</strong><span>${lang === 'en' ? 'Pathways organize signals; enrichment is not proof that a pathway is activated or causal.' : 'Les voies biologiques organisent les signaux ; un enrichissement ne prouve pas qu’une voie est activée ni causale.'}</span></article>
       </div>
       <div class="licence-conclusion-grid"><article><strong>${lang === 'en' ? 'What you may conclude' : 'Ce que vous pouvez conclure'}</strong><span>${canSay}</span></article><article><strong>${lang === 'en' ? 'What you should not conclude' : 'Ce que vous ne devez pas conclure'}</strong><span>${cannotSay}</span></article></div>
+      </details>
     `;
     panel.dataset.state = state;
   }
@@ -200,6 +208,7 @@
     const style = document.createElement('style');
     style.id = 'multiomics-licence-guide-style';
     style.textContent = `
+      .licence-guide>details>summary,.licence-result-guide>details>summary{cursor:pointer;font-weight:700}
       .licence-guide{max-width:1180px;margin:18px auto 24px;padding:20px;border:1px solid var(--border-strong,#c9c9c9);border-radius:14px;background:var(--bg-secondary,#f7f7f7)}
       .licence-guide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.licence-guide-head span,.licence-plan>div>span,.licence-kicker{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}.licence-guide-head h2{margin:4px 0 0;font-size:1.28rem}.licence-guide>p{max-width:88ch;color:var(--text-secondary,#555);line-height:1.5}.licence-demo{border:1px solid var(--border-strong,#bbb);background:var(--bg-primary,#fff);color:inherit;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer}
       .licence-question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.licence-question{text-align:left;border:1px solid var(--border-subtle,#d4d4d4);background:var(--bg-primary,#fff);color:inherit;padding:13px;border-radius:10px;cursor:pointer}.licence-question:hover,.licence-question:focus-visible{border-color:currentColor}.licence-question.active{outline:2px solid currentColor;outline-offset:1px}.licence-question span{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;opacity:.7}.licence-question strong,.licence-question small{display:block}.licence-question strong{margin-top:5px}.licence-question small{margin-top:5px;line-height:1.4;color:var(--text-secondary,#555)}
