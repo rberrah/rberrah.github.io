@@ -16,6 +16,8 @@
 - Downloadable local HTML report, copyable summary and print/PDF workflow.
 - Study-planning calculators for two independent means, paired means, two proportions and correlation, with alpha, target power and dropout inflation.
 - Closed-question deterministic study-design assistant routing repeated designs to Friedman rather than an independent-group analysis.
+- Binary logistic regression with explicit event coding, OR/IC95 %, Wald + likelihood-ratio inference, convergence/separation diagnostics and browser coverage.
+- Multivariable linear regression for numeric predictors with adjusted coefficients/IC95 %, global fit, VIFs, complete-case accounting, Cook/leverage/standardized-residual diagnostics and collinearity rejection.
 
 ## P0 — strengthen reference-grade behaviour
 
@@ -26,12 +28,11 @@
 
 ## P1 — broaden common biomedical statistics
 
-1. Logistic regression for binary outcomes, with explicit event coding, OR/IC95 %, convergence diagnostics and no silent handling of separation.
-2. Multivariable linear regression with coefficient CIs and residual/influence diagnostics.
-3. Survival: full Kaplan–Meier summaries and Cox proportional-hazards regression.
-4. Multiple-testing correction: user-selectable BH, Holm and Bonferroni when the scientific workflow requires it.
-5. Extend study planning to unequal allocation, one-sided hypotheses, non-inferiority and cluster/repeated-measures designs.
-6. Consider Cochran's Q for >2 paired binary measurements and other common repeated categorical designs once reference vectors are in place.
+1. Survival: full Kaplan–Meier summaries and Cox proportional-hazards regression.
+2. Multiple-testing correction: user-selectable BH, Holm and Bonferroni when the scientific workflow requires it.
+3. Extend study planning to unequal allocation, one-sided hypotheses, non-inferiority and cluster/repeated-measures designs.
+4. Consider Cochran's Q for >2 paired binary measurements and other common repeated categorical designs once reference vectors are in place.
+5. Extend regression workflows to categorical predictors/interactions and, for linear models, validated heteroscedasticity-robust standard errors.
 
 ## P2 — study-design assistant
 
