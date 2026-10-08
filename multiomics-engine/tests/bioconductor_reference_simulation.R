@@ -68,4 +68,50 @@ err <- try(run_deseq2_counts(bad,meta,file.path(out_dir,"reject"),
   design_formula=~batch+condition),silent=TRUE)
 stopifnot(inherits(err,"try-error"))
 cat("DESeq2 non-integer input rejection: PASS\n")
+
+# Replicated negative-control screen: all genes have zero true treatment effect.
+# This guards against gross false-positive inflation, not formal FDR validation.
+null_replicates <- 4L
+null_summary <- setNames(vector("list",3L),c("DESeq2","limma_voom","edgeR_QL"))
+for (name in names(null_summary))
+  null_summary[[name]] <- c(discoveries=0,raw_below_005=0,tests=0)
+for (rep in seq_len(null_replicates)) {
+  set.seed(20261009 + rep)
+  null_x <- t(vapply(seq_along(ids),function(i)
+    stats::rnbinom(length(genes),mu=base*library_factor[i],size=1/dispersion),
+    numeric(length(genes))))
+  rownames(null_x) <- ids
+  colnames(null_x) <- genes
+  null_dir <- file.path(out_dir,paste0("null_",rep))
+  dn <- run_deseq2_counts(null_x,meta,file.path(null_dir,"deseq2"),
+    design_formula=~batch+condition,contrast=c("condition","treated","control"))
+  vn <- run_voom_counts(null_x,meta,file.path(null_dir,"voom"),
+    design_formula=~batch+condition,coefficient="conditiontreated")
+  en <- run_edger_ql_counts(null_x,meta,file.path(null_dir,"edger"),
+    design_formula=~batch+condition,coefficient="conditiontreated")
+  methods <- list(DESeq2=list(tab=dn$results,q="padj",p="pvalue"),
+    limma_voom=list(tab=vn$results,q="adj.P.Val",p="P.Value"),
+    edgeR_QL=list(tab=en$results,q="FDR",p="PValue"))
+  for (name in names(methods)) {
+    info <- methods[[name]]
+    p <- as.numeric(info$tab[[info$p]])
+    q <- as.numeric(info$tab[[info$q]])
+    stopifnot(length(p)==length(genes),length(q)==length(genes),
+      all(is.na(p)|(p>=0 & p<=1)),all(is.na(q)|(q>=0 & q<=1)))
+    null_summary[[name]]["discoveries"] <- null_summary[[name]]["discoveries"] +
+      sum(q<=0.05,na.rm=TRUE)
+    null_summary[[name]]["raw_below_005"] <- null_summary[[name]]["raw_below_005"] +
+      sum(p<0.05,na.rm=TRUE)
+    null_summary[[name]]["tests"] <- null_summary[[name]]["tests"] + sum(is.finite(p))
+  }
+}
+for (name in names(null_summary)) {
+  s <- null_summary[[name]]
+  rate <- s["raw_below_005"]/s["tests"]
+  stopifnot(s["tests"]>=0.9*length(genes)*null_replicates,
+    rate<=0.10,s["discoveries"]<=12L)
+  cat(sprintf("%s NULL | raw p<0.05 %.3f | q<=0.05 %d / %d | PASS (gross-regression bounds)\n",
+    name,rate,as.integer(s["discoveries"]),as.integer(s["tests"])))
+}
+
 unlink(out_dir,recursive=TRUE)
