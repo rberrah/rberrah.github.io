@@ -1324,7 +1324,7 @@ function preprocessMatrix(matrix, layer, valueType) {
   const auditWarnings = [];
 
   if ((isCounts || isSpectral) && negativeValues > 0) {
-    auditWarnings.push(`${valueType} was declared but ${negativeValues} negative value(s) were observed. Count-like inputs must be non-negative; verify the uploaded scale before interpreting this layer.`);
+    throw new Error(`${layer}: ${valueType} was declared but ${negativeValues} negative value(s) were observed. Count-like inputs must be non-negative; correct the declared data type or the input matrix before analysis.`);
   }
   if ((isCounts || isSpectral) && nonIntegerValues > 0) {
     auditWarnings.push(`${valueType} was declared but ${nonIntegerValues} non-integer value(s) were observed. The browser can screen these values, but reference count-model assumptions and upstream quantification should be reviewed.`);
@@ -1370,7 +1370,7 @@ function preprocessMatrix(matrix, layer, valueType) {
       const raw = values.get(assay);
       if (!Number.isFinite(raw)) { next.set(assay, null); continue; }
       if (isCounts || isSpectral) {
-        const cpm = Math.max(0, raw) / totals.get(assay) * 1e6;
+        const cpm = raw / totals.get(assay) * 1e6;
         next.set(assay, Math.log2(cpm + 0.5));
       } else if (explicitlyLog || asSupplied || !logPositive) next.set(assay, raw);
       else next.set(assay, Math.log2(Math.max(0, raw) + pseudo));
