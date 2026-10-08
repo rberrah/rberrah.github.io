@@ -529,7 +529,7 @@
     } else if (layer === 'metabolomics' && file) {
       try {
         const converted = convertMsAucExport(await file.text());
-        const matrix = converted.format === 'long_ms_auc'
+        const matrix = ['long_ms_auc','wide_ms_auc'].includes(converted.format)
           ? new File([converted.matrixCsv], file.name.replace(/\.[^.]+$/, '') + '_matrix.csv', { type:'text/csv' })
           : file;
         const shouldUpdateMetadata = converted.metadataCsv && (!files.metadata || msAutoMetadata);
@@ -556,14 +556,16 @@
               .map((row)=>row.condition).filter(Boolean)).size || 2);
           }
         }
-        if (converted.format === 'long_ms_auc') metabolomicsValues = 'peak_area';
+        if (converted.format !== 'matrix') metabolomicsValues = 'peak_area';
         msImportMessage = converted.format === 'long_ms_auc'
           ? t('Aires de pics MS importées : ', 'MS peak areas imported: ')
             + converted.features + t(' molécules × ', ' features × ') + converted.assays
             + t(' injections. ', ' injections. ')
             + (autoMeta ? t('Groupes lus dans le fichier.', 'Groups read from the file.')
               : t('Conservez ou fournissez votre tableau des échantillons.', 'Keep or upload sample metadata.'))
-          : t('Matrice chargée directement : valeurs considérées comme des aires de pics non négatives.', 'Matrix loaded directly: values treated as non-negative peak areas.');
+          : converted.format === 'wide_ms_auc'
+            ? t('Matrice AUC MS importée : colonnes m/z, temps de rétention et annotations techniques exclues. Ajoutez les métadonnées des échantillons pour lancer les calculs.', 'MS AUC matrix imported: m/z, retention time and other technical annotation columns excluded. Upload sample metadata to run the analysis.')
+            : t('Matrice chargée directement. Vérifiez si ses valeurs représentent réellement des aires de pics ou des intensités déjà transformées.', 'Matrix loaded directly. Verify whether values represent raw peak areas or already transformed intensities.');
         await inspectMatrix(layer, matrix);
       } catch (error) {
         files = { ...files, metabolomics: null };
