@@ -3821,7 +3821,11 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
   if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
-  if (loadedLayers.length < 2) throw new Error('At least two omics layers are required.');
+  const msOnly = loadedLayers.length === 1 && loadedLayers[0] === 'metabolomics'
+    && ['groups','time','outcome'].includes(protocol.objective);
+  if (loadedLayers.length < 2 && !msOnly) {
+    throw new Error('At least two omics layers are required except for single-layer MS differential group/time/outcome analysis.');
+  }
   if (protocol.designType === 'crossover') {
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
@@ -4020,7 +4024,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
   }
 
-  const supervisedIntegration = analyseSupervisedMultiblock(
+  const supervisedIntegration = msOnly ? null : analyseSupervisedMultiblock(
     aggregatedByLayer,
     layers,
     loadedLayers,
@@ -4035,7 +4039,12 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   );
 
   let crossOmics;
-  if (protocol.objective === 'explore') {
+  if (msOnly) {
+    crossOmics = {
+      method: 'Single-layer MS differential analysis: no cross-omics correlations or multiblock integration are calculated.',
+      testedPairs: 0, significantPairs: 0, pairs: []
+    };
+  } else if (protocol.objective === 'explore') {
     crossOmics = {
       method: 'Differential cross-omics correlation is not applicable in the unsupervised branch; integration is performed by balanced multi-block PCA.',
       testedPairs: 0,
@@ -4150,6 +4159,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       name: 'PMx Explain deterministic multi-omics engine',
       version: MULTIOMICS_ENGINE_VERSION,
       execution: 'browser/local deterministic JavaScript',
+      analysisMode: msOnly ? 'single_layer_ms' : 'multiomics',
       externalServices: {
         ChEBI: resolveIdentifiers,
         Ensembl: resolveIdentifiers,
