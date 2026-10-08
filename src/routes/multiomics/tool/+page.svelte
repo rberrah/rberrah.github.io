@@ -2442,6 +2442,11 @@
 
   {#if analysisResult.scientificAssurance}
     <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
+      {#if analysisResult.protocol?.objective === 'time' && analysisResult.protocol?.longitudinal}
+        <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité calculée dans le navigateur.', 'Longitudinal: no browser-side statistical significance is reported.')}</strong>
+          {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance exigent l’analyse de référence R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. P-values, q-values and confidence intervals require the lmerTest R reference analysis and a verified longitudinal design.')}
+        </p>
+      {/if}
       <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {analysisResult.scientificAssurance.status === 'descriptive'
         ? t('Exploration descriptive', 'Descriptive exploration')
         : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
