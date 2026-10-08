@@ -9,7 +9,9 @@ const chapterTracks = new Map(readdirSync(chapterDir).filter(f => f.endsWith('.m
   return [data.slug, data.track];
 }));
 const prefix = process.env.COVARIATES_E2E_PREFIX || '';
-const path = (activity, lang = 'fr') => `${prefix}/parcours/${chapterTracks.get(activity.chapter)}/?lang=${lang}&chapter=${activity.chapter}#activity-${activity.id}`;
+// Synthesis activities belong to an explicit learning track. Chapter frontmatter
+// identifies the canonical course but does not override the activity's track.
+const path = (activity, lang = 'fr') => `${prefix}/parcours/${activity.track || chapterTracks.get(activity.chapter)}/?lang=${lang}&chapter=${activity.chapter}#activity-${activity.id}`;
 const next = panel => panel.getByRole('button', { name: /^(Suivant|Next)$/ });
 const check = panel => panel.getByRole('button', { name: /^(Vérifier|Check)$/ });
 
