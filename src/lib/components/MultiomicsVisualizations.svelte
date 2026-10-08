@@ -239,4 +239,109 @@
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <ti
+              <title>{segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+            </path>
+          {/each}
+
+          <path d="M250 196 A54 54 0 0 0 250 304 L250 250 Z" fill={diverging(metabologram?.meanMetabolomicLog2Fc)} stroke="#263238"/>
+          <path d="M250 196 A54 54 0 0 1 250 304 L250 250 Z" fill={diverging(metabologram?.meanTranscriptomicLog2Fc)} stroke="#263238"/>
+          <text x="196" y="244" text-anchor="middle" class="center-label">MET</text>
+          <text x="304" y="244" text-anchor="middle" class="center-label">RNA</text>
+          <text x="196" y="263" text-anchor="middle" class="center-value">{fmt(metabologram?.meanMetabolomicLog2Fc)}</text>
+          <text x="304" y="263" text-anchor="middle" class="center-value">{fmt(metabologram?.meanTranscriptomicLog2Fc)}</text>
+          <text x="132" y="32" text-anchor="middle" class="half-label">{tr('Métabolites', 'Metabolites')}</text>
+          <text x="368" y="32" text-anchor="middle" class="half-label">{tr('Transcrits', 'Transcripts')}</text>
+        </svg>
+
+        <div class="metabologram-keys">
+          <div>
+            <strong>{tr('Métabolites affichés', 'Displayed metabolites')}</strong>
+            {#each (metabologram?.metabolomics || []).slice(0, 10) as item}
+              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
+            {/each}
+          </div>
+          <div>
+            <strong>{tr('Transcrits affichés', 'Displayed transcripts')}</strong>
+            {#each (metabologram?.transcriptomics || []).slice(0, 10) as item}
+              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
+            {/each}
+          </div>
+        </div>
+      </div>
+      <p class="method-note">{metabologram.method}</p>
+    {:else}
+      <p class="empty-note">{tr(
+        'Le metabologramme nécessite des effets différentiels sur une échelle log2. Il n’est pas construit pour un outcome logistique/Cox ou une échelle non déclarée log2.',
+        'The metabologram requires differential effects on a log2 scale. It is not built for logistic/Cox outcomes or an undeclared non-log2 scale.'
+      )}</p>
+    {/if}
+  </article>
+
+  <article class="figure-card" data-testid="multiomics-central-carbon-map">
+    <div class="figure-title">
+      <div>
+        <span class="figure-number">03</span>
+        <div>
+          <h3>{tr('Carte du métabolisme central', 'Central carbon metabolism map')}</h3>
+          <p>{tr(
+            'Ovales = métabolites ; carrés = transcrits enzymatiques. Gris = non mesuré, non reconnu ou effet non exprimé en log2.',
+            'Ovals = metabolites; squares = enzyme transcripts. Gray = not measured, not matched, or effect not expressed on a log2 scale.'
+          )}</p>
+        </div>
+      </div>
+      <button type="button" on:click={() => downloadSvg('pmx-central-carbon-svg', 'central_carbon_multiomics.svg')}>SVG</button>
+    </div>
+
+    {#if central}
+      <div class="map-summary">
+        <span><b>{central.measuredMetabolites}</b> {tr('métabolites reconnus', 'matched metabolites')}</span>
+        <span><b>{central.measuredTranscripts}</b> {tr('modules enzymatiques reconnus', 'matched enzyme modules')}</span>
+      </div>
+
+      <div class="svg-scroll">
+        <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par log2FC', 'Central metabolism map annotated by log2FC')}>
+          <defs>
+            <marker id="arrow-central" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#98a3aa"/>
+            </marker>
+          </defs>
+          <rect width="920" height="610" fill="white"/>
+          <text x="30" y="30" class="svg-heading">{tr('Métabolisme central — effets différentiels', 'Central metabolism — differential effects')}</text>
+
+          {#each central.edges as edge}
+            {@const from = findCentralNode(edge[0])}
+            {@const to = findCentralNode(edge[1])}
+            {#if from && to}
+              <line x1={from.x} y1={from.y} x2={to.x} y2={to.y} stroke="#aab3b8" stroke-width="1.4" marker-end="url(#arrow-central)"/>
+            {/if}
+          {/each}
+
+          <ellipse cx="620" cy="375" rx="180" ry="150" fill="none" stroke="#d3dadd" stroke-dasharray="7 5"/>
+          <text x="605" y="232" class="pathway-label">TCA</text>
+          <text x="90" y="125" class="pathway-label">PPP</text>
+          <text x="360" y="105" class="pathway-label">{tr('Glycolyse', 'Glycolysis')}</text>
+
+          {#each central.metabolites as node}
+            {@const stroke = qStroke(node.measurement?.qValue)}
+            <g>
+              <ellipse
+                cx={node.x}
+                cy={node.y}
+                rx="36"
+                ry="20"
+                fill={measurementColor(node.measurement)}
+                stroke="#253238"
+                stroke-width={stroke.width}
+                stroke-dasharray={stroke.dash}
+              >
+                <title>{measurementTitle(node.label, node.measurement)}</title>
+              </ellipse>
+              <text x={node.x} y={node.y + 4} text-anchor="middle" class="metabolite-label">{node.label}</text>
+            </g>
+          {/each}
+
+          {#each central.enzymes as enzyme}
+            {@const stroke = qStroke(enzyme.measurement?.qValue)}
+            <g>
+              <rect
+                
