@@ -1250,13 +1250,17 @@
       items.push({
         title: pick('Axe latent principal', 'Main latent axis'),
         text: pick(
-          'PC1 résume ' + pct + ' % de la variance multi-blocs pondérée chez ' + result.exploration.subjects + ' sujets communs. Les variables avec les plus grands |loadings| sont celles qui structurent le plus cet axe.',
-          'PC1 summarizes ' + pct + '% of the balanced multi-block variance across ' + result.exploration.subjects + ' shared subjects. Features with the largest absolute loadings contribute most to this axis.'
+          result.engine?.analysisMode === 'single_omic'
+            ? 'PC1 résume ' + pct + ' % de la variance de cette omique chez ' + result.exploration.subjects + ' sujets. Les loadings décrivent les variables dominantes, sans prouver un effet de groupe.'
+            : 'PC1 résume ' + pct + ' % de la variance multi-blocs pondérée chez ' + result.exploration.subjects + ' sujets communs.',
+          result.engine?.analysisMode === 'single_omic'
+            ? 'PC1 summarizes ' + pct + '% of this omics layer variance across ' + result.exploration.subjects + ' subjects. Loadings are descriptive and do not prove a group effect.'
+            : 'PC1 summarizes ' + pct + '% of the balanced multi-block variance across ' + result.exploration.subjects + ' shared subjects.'
         )
       });
       items.push({
         title: pick('Attention au signe', 'Sign is arbitrary'),
-        text: pick('Le signe d’un axe de PCA peut être inversé sans changer le résultat. Interprétez surtout la magnitude des loadings, la séparation des scores et la contribution des différentes omiques.', 'A PCA axis can be sign-flipped without changing the result. Focus on loading magnitude, score separation and contributions from the different omics layers.')
+        text: pick('Le signe d’un axe de PCA peut être inversé sans changer le résultat. Interprétez les loadings et les scores comme une structure descriptive, et non comme une preuve causale ou statistique de groupe.', 'A PCA axis can be sign-flipped without changing the result. Treat loadings and scores as descriptive structure, not causal evidence or a group-comparison test.')
       });
     } else if (result.protocol?.objective === 'outcome') {
       const mode = result.protocol?.outcomeType || 'continuous';
@@ -2606,10 +2610,10 @@
     <div class="integration-result">
       <div class="integration-head">
         <div>
-          <p class="eyebrow">{t('Exploration multi-omique', 'Multi-omics exploration')}</p>
-          <h3>{t('Axes latents partagés entre les couches', 'Shared latent axes across omics layers')}</h3>
+          <p class="eyebrow">{analysisResult.engine?.analysisMode === 'single_omic' ? t('Exploration d’une omique', 'Single-omics exploration') : t('Exploration multi-omique', 'Multi-omics exploration')}</p>
+          <h3>{analysisResult.engine?.analysisMode === 'single_omic' ? t('ACP : variation au sein de cette omique', 'PCA: variation within this omics layer') : t('Axes latents partagés entre les couches', 'Shared latent axes across omics layers')}</h3>
         </div>
-        <span>{analysisResult.exploration.subjects} {t('sujets communs', 'shared subjects')}</span>
+        <span>{analysisResult.exploration.subjects} {analysisResult.engine?.analysisMode === 'single_omic' ? t('sujets', 'subjects') : t('sujets communs', 'shared subjects')}</span>
       </div>
       <div class="api-summary">
         {#each analysisResult.exploration.components as component}
@@ -2741,7 +2745,7 @@
             <p class="error">{result.error}</p>
           {:else}
             <p class="muted">
-              {result.mode === 'exploratory-multiblock-pca'
+              {result.mode === 'exploratory-multiblock-pca' || result.mode === 'exploratory-single-omic-pca'
                 ? result.inferenceMethod
                 : result.mode?.startsWith('outcome-')
                   ? `${result.mode} · ${result.inferenceMethod || 'model'}`
