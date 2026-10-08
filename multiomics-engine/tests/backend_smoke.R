@@ -252,6 +252,25 @@ stopifnot(is.list(result$packages))
 stopifnot("edgeR" %in% names(result$packages))
 
 # -------------------------------------------------------------------------
+# 3b) One layer is valid for reference differential inference and browser PCA
+# -------------------------------------------------------------------------
+single_payload <- payload
+single_payload$matrices <- list(transcriptomics=rna_csv)
+single_payload$dataTypes <- list(transcriptomics="log_expression")
+single_result <- run_backend_analysis(single_payload)
+stopifnot(identical(single_result$status, "ok"))
+stopifnot(identical(single_result$analysisMode, "single_omic"))
+stopifnot(identical(single_result$analysedLayers, "transcriptomics"))
+stopifnot(!"diablo" %in% names(single_result$methods))
+stopifnot(!"mofa2" %in% names(single_result$methods))
+stopifnot(single_result$methods$transcriptomics_differential$status %in% c("ok","unavailable"))
+single_payload$protocol$objective <- "explore"
+single_explore <- run_backend_analysis(single_payload)
+stopifnot(identical(single_explore$status, "ok"))
+stopifnot(identical(single_explore$methods$single_omic_exploration$status, "not_applicable"))
+stopifnot(!"mofa2" %in% names(single_explore$methods))
+
+# -------------------------------------------------------------------------
 # 4) Frozen external validation is evaluated without model fitting
 # -------------------------------------------------------------------------
 external_demo <- data.frame(
