@@ -994,7 +994,6 @@
     };
   }
 
-  /** @param {File | null} file */
   async function generateSingleOmicExploratorySheet() {
     if (!confirmIndependentAssays || objective !== 'explore' || omicsCount !== 1 || files.metadata)
       return;
@@ -1022,6 +1021,7 @@
     await inspectMetadata(file);
   }
 
+  /** @param {File | null} file */
   async function sha256OfFile(file) {
     if (!file || !globalThis.crypto?.subtle) return null;
     try {
