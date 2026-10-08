@@ -6,7 +6,7 @@ The design goal is conservative automation: the backend may automate a method on
 
 ## Browser engine versus reference implementations
 
-The public browser tool performs deterministic QC, adjusted feature-wise models, repeated-measures modelling, balanced multi-block exploration, nested cross-validated prediction, differential cross-omics correlation and Reactome interpretation. A separate browser-side feasibility audit records blockers, cautions and advanced-method eligibility before strong interpretation.
+The public browser tool accepts **one, two or three omics layers**, and performs deterministic QC, adjusted feature-wise models, repeated-measures modelling, exploratory PCA, nested cross-validated prediction and Reactome interpretation. Balanced multi-block PCA and cross-omics correlations run only when at least two layers are loaded; with one layer the PCA is explicitly single-omic. The R backend accepts one matrix for supported per-layer reference methods. MOFA2 and DIABLO require multiple layers and are never silently used for one-layer work. A separate browser-side feasibility audit records blockers, cautions and advanced-method eligibility before strong interpretation.
 
 `advanced_methods.R` contains reference implementations for:
 
@@ -182,7 +182,7 @@ The default address is:
 
 In **Auto** mode the browser calls `/health`. If the backend is available, it sends the current sample-sheet contract and loaded matrices to `/run` and executes applicable reference methods. If the local backend is absent, browser-native deterministic analysis remains available. In **Require R** mode, analysis fails instead of silently falling back.
 
-Current automatic routing includes:
+Current automatic routing includes (for one or more loaded layers, when applicable):
 
 - raw RNA-seq counts + independent groups -> DESeq2 and edgeR/limma-voom when available, with explicit concordance summary;
 - normalized/log-scale independent group comparisons -> limma;
@@ -261,6 +261,12 @@ Current browser rules are explicit:
 Negative values declared as raw/spectral counts are rejected. Fractional count-like values are explicitly flagged for review. Positive abundance types containing negative values are retained as supplied and flagged as likely already transformed/centred.
 
 The browser does **not** silently infer or apply ComBat, quantile normalisation, VST or another study-specific preprocessing choice. Batch is instead handled as an explicit design/nuisance variable when identifiable.
+
+## Single-omics and advanced MS sample annotations
+
+One-layer RNA, proteomics and metabolomics analyses share the same sample-sheet contract and scientific design checks as multi-omics. If the sheet includes more modalities than the uploaded data, summary denominators and statistical contrasts are scoped to the loaded modalities. For the exploratory-only beginner shortcut, a one-to-one independent biological subject/assay relationship must be explicitly confirmed by the user; a group assignment is never invented. Browser fallback is always identified in the result report, including when local R is unavailable.
+
+For CSV/TSV peak-area input, native m/z, retention time, adduct and identification metadata are exported as a separate technical annotation CSV, never interpreted as measured sample intensities. SHA-256 hashes of the original vendor file and converted quantitative matrix can be retained with the report; a user-provided feature-to-ChEBI mapping is reported as unverified rather than a validated MS identification.
 
 ## Advanced MS sample annotations
 
