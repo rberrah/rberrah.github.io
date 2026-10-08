@@ -90,12 +90,15 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   for (const scheme of ['light','dark']) {
     await page.emulateMedia({colorScheme:scheme});
     for (const figure of ['multiomics-heatmap','multiomics-metabologram','multiomics-central-carbon-map']) {
+      if (figure === 'multiomics-heatmap') await page.locator('.figure-switcher button').first().click();
       if (figure === 'multiomics-metabologram') await page.locator('.figure-switcher button').nth(1).click();
       if (figure === 'multiomics-central-carbon-map') {
         await page.locator('.figure-switcher button').nth(2).click();
-        await page.getByTestId('multiomics-central-carbon-details').locator('summary').first().click();
+        const disclosure=page.getByTestId('multiomics-central-carbon-details');
+        if (await disclosure.getAttribute('open')===null) await disclosure.locator('summary').first().click();
       }
       const target=page.getByTestId(figure);
+      await expect(target).toBeVisible();
       const measured=await target.evaluate((root)=>{
         const luminance=(rgb)=>{
           const c=(rgb.match(/\d+/g)||[]).slice(0,3).map(Number).map(v=>v/255)
