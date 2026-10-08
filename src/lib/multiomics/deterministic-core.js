@@ -847,11 +847,36 @@ function canonicalMetadata(metadataRows, columnMapping, covariateColumns = []) {
   }).filter((row) => row.subjectId && row.sampleId && row.assayId && LAYERS.includes(row.omic));
 }
 
+function assertSampleSheetIdentifiers(metadata) {
+  const assayKeys = new Set();
+  const samples = new Map();
+  for (const row of metadata) {
+    // Assay IDs are unique within each omic. Different omics may legitimately
+    // use the same machine identifier, but never for two rows of one matrix.
+    const assayKey = row.omic + '\\u0000' + row.assayId;
+    if (assayKeys.has(assayKey)) {
+      throw new Error('Duplicate assay_id ' + row.assayId + ' within ' + row.omic
+        + '. Every measurement column must map to exactly one sample-sheet row.');
+    }
+    assayKeys.add(assayKey);
+    const old = samples.get(row.sampleId);
+    if (old && (old.subjectId !== row.subjectId || old.timepoint !== row.timepoint)) {
+      throw new Error('Conflicting sample_id ' + row.sampleId
+        + ': the same biological sample cannot belong to different subject_id or timepoint values.');
+    }
+    samples.set(row.sampleId, { subjectId: row.subjectId, timepoint: row.timepoint });
+  }
+}
+
 function matrixFromText(text, expectedAssays) {
   const parsed = parseDelimited(text);
   if (parsed.headers.length < 2) throw new Error('Matrix requires a feature column and at least one assay.');
   const first = parsed.headers[0];
   const headerAssays = parsed.headers.slice(1);
+  if (headerAssays.some((id) => !normaliseText(id)) ||
+      new Set(headerAssays.map(normaliseText)).size !== headerAssays.length) {
+    throw new Error('Matrix contains missing or duplicate column identifiers. Sample or feature IDs must be unique.');
+  }
   const rowIds = parsed.rows.map((row) => normaliseText(row[first])).filter(Boolean);
   const expected = new Set(expectedAssays);
   const columnMatches = headerAssays.filter((id) => expected.has(id)).length;
@@ -860,6 +885,10 @@ function matrixFromText(text, expectedAssays) {
   if (rowMatches > columnMatches) {
     const featureHeaders = parsed.headers.slice(1);
     const assayRows = parsed.rows.filter((row) => expected.has(normaliseText(row[first])));
+    const assayRowIds = assayRows.map((row) => normaliseText(row[first]));
+    if (new Set(assayRowIds).size !== assayRowIds.length) {
+      throw new Error('Transposed matrix contains duplicate assay_id rows. Each assay must appear exactly once.');
+    }
     const values = new Map();
     for (const feature of featureHeaders) {
       const featureValues = new Map();
@@ -876,6 +905,10 @@ function matrixFromText(text, expectedAssays) {
   for (const row of parsed.rows) {
     const feature = normaliseText(row[first]);
     if (!feature) continue;
+    if (values.has(feature)) {
+      throw new Error('Matrix contains duplicate feature_id ' + feature
+        + '. Duplicate biological identifiers must be resolved explicitly before import.');
+    }
     const featureValues = new Map();
     for (const assay of headerAssays) featureValues.set(assay, finiteNumber(row[assay]));
     values.set(feature, featureValues);
@@ -4055,6 +4088,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns)
     .filter((row) => loadedLayers.includes(row.omic));
   if (!metadata.length) throw new Error('No matching metadata rows for the uploaded omics matrices.');
+  assertSampleSheetIdentifiers(metadata);
   const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
   if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
   const singleOmic = loadedLayers.length === 1;
