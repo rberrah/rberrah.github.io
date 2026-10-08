@@ -1,4 +1,4 @@
-Pipeline multi-omique PMx Explain — guide simple des fichiers et méthodes
+Pipeline omique ou multi-omique PMx Explain — guide simple des fichiers et méthodes
 =======================================================================
 
 FRANÇAIS
@@ -21,6 +21,10 @@ L’interface affiche d’abord le sens pratique. Le terme technique reste dispo
 PRINCIPE GÉNÉRAL
 ================
 
+Une seule matrice RNA, protéomique ou métabolomique suffit pour une exploration, une comparaison de groupes, une analyse longitudinale ou une association à un critère lorsque les données et le plan le permettent. Deux couches ou davantage sont nécessaires aux méthodes d'intégration inter-omique (MOFA2, DIABLO, corrélations croisées). Le tableau des échantillons peut contenir d'autres omiques non importées : seules les omiques effectivement chargées comptent dans les statistiques.
+
+Pour explorer une seule matrice sans tableau d'échantillons, il est possible de générer un tableau minimal APRÈS confirmation explicite que chaque colonne représente un sujet biologiquement indépendant avec une seule mesure. L'outil ne devine ni les groupes, ni les temps, ni les réplicats. Cette facilité est descriptive seulement et ne permet pas de prétendre à une inférence sur un design inconnu.
+
 Le logiciel automatise ce qui peut l’être sans masquer les hypothèses. Il ne transforme pas un plan expérimental non identifiable en analyse valide, ne déduit pas la puissance du seul nombre de sujets, ne fusionne pas artificiellement les q-values de plusieurs méthodes et ne présente pas une validation croisée interne comme une validation externe.
 
 Le parcours conseillé est :
@@ -29,7 +33,7 @@ Le parcours conseillé est :
 3. vérifier le plan et la qualité ;
 4. exécuter la méthode compatible ;
 5. lire amplitude + incertitude + q/FDR ;
-6. chercher la convergence entre omiques ;
+6. si plusieurs omiques sont chargées : examiner leur convergence sans inventer de corrélations en cas d'omique unique ;
 7. replacer le signal dans son contexte biologique ;
 8. conserver les limites d’interprétation et le manifeste reproductible.
 
@@ -120,6 +124,15 @@ Templates :
 - /multiomics/templates/raw_ms_manifest.csv
 - /multiomics/templates/raw_ms_parameters.json
 
+Les fichiers CSV/TSV MS de type long ou large séparent les aires des pics des
+colonnes techniques m/z, temps de rétention, adduits, scores et annotations
+présentes dans l'export. Le fichier d'origine reste inchangé, son SHA-256 et
+le SHA-256 de la matrice dérivée sont inscrits au rapport quand Web Crypto est
+disponible. La table technique séparée est téléchargeable. Un identifiant
+ChEBI donné par l'utilisateur reste une déclaration et non une identification
+validée chimiquement. Plusieurs pics d'un même ChEBI ne sont jamais additionnés
+ni choisis arbitrairement.
+
 Important : cette étape crée des features analytiques m/z–RT. Elle ne transforme pas automatiquement ces features en identités métabolites. L’annotation ChEBI/HMDB/KEGG/PubChem/InChIKey reste une étape distincte, conservatrice et traçable.
 
 Lorsque sample_type et injection_order sont fournis :
@@ -142,9 +155,10 @@ Quand le design le permet, les séries techniques et facteurs d’ajustement cho
 ====================================
 
 Explorer :
-- structure générale et covariation entre couches ;
-- moteur navigateur : ACP multi-blocs équilibrée ;
-- backend de référence : MOFA2 seulement quand les garde-fous d’éligibilité sont compatibles.
+- une seule omique : ACP descriptive sur les variables de cette omique, avec au moins trois sujets indépendants et sans prétendre mesurer un couplage inter-omique ;
+- plusieurs omiques : ACP multi-blocs équilibrée et prise en compte documentée des blocs partiellement manquants ;
+- backend de référence : MOFA2 seulement pour au moins deux couches et si les garde-fous d’éligibilité sont compatibles.
+- une analyse exploratoire ne prouve pas une différence entre groupes et les loadings ne sont pas des tailles d'effet de groupe.
 
 Comparer des groupes :
 - estimation de l’amplitude et du sens ;
@@ -169,7 +183,7 @@ Critère clinique ou expérimental :
 6. RNA-SEQ ET MATRICES NORMALISÉES
 ===================================
 
-Backend R de référence :
+Backend R de référence : une seule omique est acceptée ; les moteurs de comparaison sont choisis selon le design et le type de données, sans exiger une couche artificielle. Le site GitHub Pages n'héberge pas R et indique explicitement si le calcul R a été exécuté, indisponible ou non demandé.
 - comptes RNA-seq : DESeq2 comme analyse principale et edgeR + limma-voom comme analyse de sensibilité automatisée lorsque disponibles ;
 - edgeR quasi-likelihood est également implémenté comme adaptateur de référence ;
 - matrices normalisées/log : limma ;
@@ -351,7 +365,8 @@ Un serveur distant recevant des données de recherche doit ajouter au minimum TL
 
 Le bouton « Voir une analyse complète » charge les matrices de démonstration
 (3 omiques) et exécute la même analyse que pour les données personnelles.
-Dans les résultats, trois vues sont accessibles :
+Dans les résultats, les vues proposées dépendent des données : la heatmap fonctionne avec une seule omique ; les vues de voies et de métabolites sont informatives seulement si des effets et des identités exploitables existent. La démo peut charger RNA seul, protéines seules, métabolites seuls ou les trois couches. Les données d'exemple sont synthétiques, non une preuve biologique.
+Trois familles de vues sont accessibles :
 
 1. Heatmap : chaque ligne montre une variable centrée-réduite (z-score).
    Un bleu ou rouge ne signifie pas un log2 fold change ni une différence
@@ -365,15 +380,18 @@ Dans les résultats, trois vues sont accessibles :
    pentoses phosphates. La sélection est une liste explicite de membres,
    PAS un test d'enrichissement ni un score d'activité. Une variable
    non reconnue ou absente ne doit pas être interprétée comme inchangée.
-   Le centre indique uniquement une moyenne descriptive des log2FC
-   disponibles, susceptible d'être biaisée par la sélection des variables.
+   Le centre indique une moyenne descriptive d'effets sélectionnés sur leur
+   échelle déclarée (log2 ou unité native). Il ne s'agit pas d'un score
+   d'activité et les couleurs ne sont pas comparables entre omiques.
 
 3. Carte métabolique : représentation pédagogique, inspirée de la figure 4D
    de la même publication. Les ovales sont des métabolites ; les rectangles,
-   des transcrits d'enzymes. Les effets log2 mesurés sont colorés ; les
-   données absentes, non log2 et les familles à transcrits discordants
-   restent grises. Les flèches sont schématiques, sans quantification de
-   flux, sans représentation des compartiments et sans inférence causale.
+   des transcrits d'enzymes. Les effets mesurés sur une échelle exploitable
+   (log2 ou échelle native déclarée) sont colorés avec une étiquette d'échelle.
+   Les données absentes, les identités inconnues, les signaux MS multiples
+   non agrégés et les familles discordantes restent séparés ou grisés.
+   Le réseau cible les régions documentées et leurs voisins, mais les liens
+   sont schématiques, sans flux, sans stœchiométrie Rhea vérifiée ni causalité.
 
 IMPORTANT : l'article utilise des traceurs isotopiques au carbone 13.
    Le logiciel ne calcule PAS de flux 13C à partir de simples

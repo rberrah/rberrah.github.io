@@ -2,8 +2,12 @@
 
 Le panneau **Réseau ciblé** exploite la sortie de l'analyse multi-omics sans modifier
 les calculs, la correction des tests multiples ou les estimations d'effets.
-Il affiche uniquement des voies contenant au moins une variable mesurée avec
-un effet de type `log2`, puis un voisinage schématique de 0, 1 ou 2 pas.
+Il affiche les régions comportant au moins une variable mesurée avec un effet
+quantitatif exploitable sur une échelle explicitement déclarée : `log2`,
+`as_supplied` ou `transformed_unknown`. L'étiquette d'échelle est conservée ;
+un effet natif n'est jamais transformé fictivement en log2 fold change.
+Le voisinage schématique comprend 0, 1 ou 2 pas. Une ACP descriptive sans
+effets différentiels n'est pas une mesure d'activation de voie.
 
 ## Dictionnaire et confiance
 

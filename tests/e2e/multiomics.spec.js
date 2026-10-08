@@ -21,11 +21,11 @@ test('multi-omics tool states the raw-input support boundary', async ({ page }) 
 
 test('multi-omics presentation and tool switch to English', async ({ page }) => {
   await page.goto('/multiomics?lang=en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze multiple omics');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze one or multiple omics');
   await expect(page.getByRole('link', { name: 'Open the tool' })).toBeVisible();
 
   await page.goto('/multiomics/tool?lang=en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('From multi-omics data');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze one or several omics layers');
   await expect(page.getByText('How should these results be interpreted?')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Add your data files' })).toBeVisible();
 });
@@ -157,7 +157,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(backend).toBeVisible({ timeout: 20_000 });
   await expect(backend).toContainText('lmerTest');
-  await expect(backend).toContainText(/Méthodes de référence exécutées automatiquement|Reference methods executed automatically/i);
+  await expect(backend).toContainText(/Méthodes R exécutées|R methods executed/i);
 });
 
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {

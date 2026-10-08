@@ -474,7 +474,7 @@ run_backend_analysis <- function(payload) {
   raw_meta <- read_csv_text(payload$metadataCsv)
   meta <- canonical_metadata(raw_meta, mapping, covariates)
   layers <- intersect(c("transcriptomics","proteomics","metabolomics"), names(payload$matrices))
-  if (length(layers) < 2L) stop("Reference backend requires at least two omics matrices.")
+  if (length(layers) < 1L) stop("Reference backend requires at least one omics matrix.")
 
   blocks <- list()
   raw_blocks <- list()
@@ -672,7 +672,14 @@ run_backend_analysis <- function(payload) {
   # method instead of silently removing biology together with batch.
   explore_blocks <- NULL
   explore_adjustment <- NULL
-  if (objective == "explore") {
+  if (objective == "explore" && length(layers) == 1L) {
+    methods$single_omic_exploration <- method_status(
+      "Single-omics browser PCA",
+      "not_applicable",
+      list(message="Single-omics exploratory PCA is computed in the browser. MOFA2 needs at least two omics layers.")
+    )
+  }
+  if (objective == "explore" && length(layers) >= 2L) {
     prepared_integration <- prepare_multiblock_integration(
       blocks,
       metas,
@@ -711,7 +718,7 @@ run_backend_analysis <- function(payload) {
       supervised_target_column <- "outcome"
     }
   }
-  if (!is.null(supervised_target) && length(unique(supervised_target[nzchar(supervised_target)])) >= 2L) {
+  if (length(layers) >= 2L && !is.null(supervised_target) && length(unique(supervised_target[nzchar(supervised_target)])) >= 2L) {
     target_columns <- unique(c(supervised_target_column, if (supervised_target_column != "condition") "condition" else character()))
     prepared_supervised <- prepare_multiblock_integration(blocks, metas, covariates, target_columns=target_columns)
     if (!identical(prepared_supervised$status, "ok")) {
@@ -758,6 +765,8 @@ run_backend_analysis <- function(payload) {
       version="1.3.0",
       policy="Reference methods are eligibility-gated; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
     ),
+    analysisMode=if (length(layers) == 1L) "single_omic" else "multiomics",
+    analysedLayers=layers,
     applicableMethods=names(methods),
     methods=methods,
     preprocessing=preprocessing,

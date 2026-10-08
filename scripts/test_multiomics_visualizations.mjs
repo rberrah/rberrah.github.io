@@ -197,7 +197,7 @@ const msResult=await runDeterministicAnalysis({
   dataTypes:{metabolomics:'peak_area'},
   resolveIdentifiers:false,useReactome:false
 });
-assert.equal(msResult.engine.analysisMode,'single_layer_ms');
+assert.equal(msResult.engine.analysisMode,'single_omic');
 assert.equal(msResult.crossOmics.testedPairs,0);
 assert.ok(msResult.layers.metabolomics.rows.length===2);
 assert.ok(msResult.layers.metabolomics.rows.every((r)=>r.effectScale==='log2'),

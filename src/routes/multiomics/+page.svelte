@@ -8,10 +8,10 @@
     {
       fr: 'Explorer les données',
       en: 'Explore the data',
-      methodFr: 'Résumé des tendances communes',
-      methodEn: 'Summary of shared trends',
-      detailFr: 'L’outil résume les grandes variations communes entre transcriptomique, protéomique et métabolomique. La méthode statistique utilisée est une ACP multi-blocs équilibrée.',
-      detailEn: 'The tool summarizes the main shared patterns across transcriptomics, proteomics and metabolomics. The statistical method is a balanced multi-block PCA.'
+      methodFr: 'ACP d’une omique ou ACP multi-blocs',
+      methodEn: 'Single-layer PCA or multi-block PCA',
+      detailFr: 'Une seule omique : l’ACP explore les variations de cette couche. Plusieurs omiques : l’ACP multi-blocs équilibrée explore les structures communes. Dans les deux cas, il ne s’agit pas d’un test de différences entre groupes.',
+      detailEn: 'One omic: PCA explores variation within that layer. Multiple omics: balanced multi-block PCA explores shared structure. Neither is a statistical test of group differences.'
     },
     {
       fr: 'Comparer des groupes',
@@ -50,16 +50,16 @@
 </script>
 
 <svelte:head>
-  <title>{t('Multi-omique — PMx Explain', 'Multi-omics — PMx Explain')}</title>
-  <meta name="description" content={t('Présentation de l’outil déterministe d’intégration multi-omique de PMx Explain.', 'Presentation of PMx Explain deterministic multi-omics integration tool.')} />
+  <title>{t('Analyse omique et multi-omique — PMx Explain', 'Single-omics and multi-omics — PMx Explain')}</title>
+  <meta name="description" content={t('Outil déterministe pour analyser une ou plusieurs omiques : RNA, protéines, métabolites.', 'Deterministic analysis for one or several omics: RNA, proteins and metabolites.')} />
 </svelte:head>
 
 <section class="hero">
-  <p class="eyebrow">{t('Multi-omique · prototype de recherche', 'Multi-omics · research prototype')}</p>
-  <h1>{t('Analyser plusieurs omiques avec des règles explicites.', 'Analyze multiple omics with explicit rules.')}</h1>
+  <p class="eyebrow">{t('Une ou plusieurs omiques · prototype de recherche', 'Single-omics or multi-omics · research prototype')}</p>
+  <h1>{t('Analyser une ou plusieurs omiques avec des règles explicites.', 'Analyze one or multiple omics with explicit rules.')}</h1>
   <p class="lede">{t(
-    'PMx Explain relie votre plan d’étude, le tableau qui décrit vos échantillons, vos matrices RNA/protéines/métabolites et des bases scientifiques publiques. Les choix d’analyse suivent des règles prédéfinies et auditables ; aucun LLM ne choisit la méthode statistique.',
-    'PMx Explain connects your study plan, the table describing your samples, your RNA/protein/metabolite matrices and public scientific databases. Analysis choices follow predefined auditable rules; no LLM chooses the statistical method.'
+    'Choisissez RNA, protéines, métabolites ou leur combinaison. Le moteur confronte vos données à votre plan d’étude et à des bases scientifiques publiques, selon des règles auditables, sans LLM. Une seule omique suffit pour explorer, comparer ou prédire lorsque le plan le permet.',
+    'Choose RNA, proteins, metabolites, or a combination. The engine follows auditable rules informed by your study design and public scientific databases, without an LLM. One omics layer is enough to explore, compare or predict when the design supports it.'
   )}</p>
   <div class="actions">
     <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Ouvrir l’outil', 'Open the tool')}</a>
@@ -73,7 +73,7 @@
       <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
       <h2>{t('Le tableau des échantillons relie vos fichiers entre eux', 'The sample sheet links your files together')}</h2>
     </div>
-    <p>{t('Ce tableau est parfois appelé “metadata”. Il ne contient pas les valeurs RNA, protéines ou métabolites : il indique simplement à quoi correspond chaque colonne des matrices.', 'This table is sometimes called “metadata”. It does not contain RNA, protein or metabolite values: it simply tells the application what each matrix column represents.')}</p>
+    <p>{t('Ce tableau est parfois appelé “metadata”. Il ne contient pas les valeurs RNA, protéines ou métabolites : il indique à quoi correspond chaque colonne des matrices. Pour explorer une seule omique, un assistant peut créer un tableau minimal, uniquement après confirmation que chaque colonne représente un sujet indépendant.', 'This is sometimes called “metadata”. It describes what matrix columns represent. For one-omic exploratory PCA, an assistant can create a minimal sheet only after you confirm that every column is one independent subject.')}</p>
   </div>
 
   <div class="data-kind-grid">
@@ -190,7 +190,7 @@
   <div class="interpret">
     <div><b>{t('Amplitude de l’effet', 'Effect size')}</b><span>{t('de combien la variable change et dans quel sens', 'how much the feature changes and in which direction')}</span></div>
     <div><b>{t('Résultat corrigé (q BH)', 'Adjusted result (BH q)')}</b><span>{t('tient compte du grand nombre de gènes, protéines ou métabolites testés', 'accounts for the large number of genes, proteins or metabolites tested')}</span></div>
-    <div><b>{t('Lien entre omiques', 'Cross-omics link')}</b><span>{t('indique si plusieurs couches racontent une histoire biologique cohérente', 'shows whether several layers support a coherent biological pattern')}</span></div>
+    <div><b>{t('Lien entre omiques', 'Cross-omics link')}</b><span>{t('uniquement si au moins deux omiques sont mesurées et compatibles', 'only when at least two compatible omics layers are measured')}</span></div>
     <div><b>Reactome</b><span>{t('replace les résultats dans des voies biologiques connues ; cette information vient d’une base externe', 'places results in known biological pathways; this information comes from an external database')}</span></div>
   </div>
 </section>
