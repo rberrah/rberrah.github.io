@@ -76,6 +76,7 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   await expect(preprocessing).toBeVisible();
   await expect(preprocessing).toContainText(/raw_counts|log2|compatible/i);
 
+  await page.getByTestId('multiomics-detailed-results').locator('summary').first().click();
   const help = page.locator('.feature-head .help-tip').first();
   await expect(help).toHaveAttribute('data-tooltip', /rapport|ratio|direction|magnitude/i);
   await help.hover();
