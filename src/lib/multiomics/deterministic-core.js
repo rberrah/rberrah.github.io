@@ -853,7 +853,7 @@ function assertSampleSheetIdentifiers(metadata) {
   for (const row of metadata) {
     // Assay IDs are unique within each omic. Different omics may legitimately
     // use the same machine identifier, but never for two rows of one matrix.
-    const assayKey = row.omic + '\\u0000' + row.assayId;
+    const assayKey = JSON.stringify([row.omic, row.assayId]);
     if (assayKeys.has(assayKey)) {
       throw new Error('Duplicate assay_id ' + row.assayId + ' within ' + row.omic
         + '. Every measurement column must map to exactly one sample-sheet row.');
