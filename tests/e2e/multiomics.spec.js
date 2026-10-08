@@ -70,6 +70,8 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   await expect(page.getByTestId('multiomics-qc')).toBeVisible();
   await expect(page.getByTestId('multiomics-qc')).toContainText(/variables conservées|features retained/i);
   const preprocessing = page.getByTestId('preprocessing-audit').first();
+  // QC audit is under deliberate progressive disclosure; open it before checking.
+  await preprocessing.locator('xpath=ancestor::details[1]').locator('summary').click();
   await expect(preprocessing).toBeVisible();
   await expect(preprocessing).toContainText(/raw_counts|log2|compatible/i);
 

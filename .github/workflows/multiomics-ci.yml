@@ -17,6 +17,17 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/multiomics-ci.yml'
+  pull_request:
+    paths:
+      - 'src/lib/multiomics/**'
+      - 'src/lib/components/Multiomics*.svelte'
+      - 'src/lib/components/ExternalValidationPanel.svelte'
+      - 'src/routes/multiomics/**'
+      - 'multiomics-engine/**'
+      - 'static/multiomics/**'
+      - 'scripts/test_multiomics*.mjs'
+      - 'tests/e2e/multiomics*.spec.js'
+      - '.github/workflows/multiomics-ci.yml'
   workflow_dispatch:
 
 # This workflow is intentionally isolated from the GitHub Pages deployment.
@@ -39,6 +50,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Test Figure 4 pathway and metabolic-map contracts
+        run: node scripts/test_multiomics_visualizations.mjs
       - name: Test deterministic multi-omics engine, identifiers and diagnostics
         run: npm run test:multiomics
 

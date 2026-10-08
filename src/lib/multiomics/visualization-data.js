@@ -298,7 +298,7 @@ function buildHeatmap(aggregated, layerResult, maxFeatures = 30, maxSamples = 48
     rows,
     samplesCapped: aggregated.sampleIds.length > samples.length,
     featuresCapped: features.length >= maxFeatures,
-    method: 'Descriptive heatmap of processed biological-sample values; technical replicates are averaged, each displayed feature is z-scored across samples. Statistical significance comes from the fitted feature models, not from the heatmap.',
+    method: 'Descriptive heatmap of display-transformed biological-sample values; technical replicates are averaged and rows z-scored. Display preprocessing is independent of the fitted model and may differ from its QC/batch adjustments. Statistical significance comes only from the feature models, not from the heatmap.',
     preprocessing: aggregated.steps
   };
 }
@@ -327,6 +327,8 @@ const CENTRAL_METABOLITES = [
   { id: 'f6p', label: 'F6P', x: 350, y: 70, pathway: 'Glycolysis', aliases: ['f6p', 'fructose6phosphate', 'fructose6p'] },
   { id: 'fbp', label: 'FBP', x: 480, y: 70, pathway: 'Glycolysis', aliases: ['fbp', 'fructosebisphosphate', 'fructose16bisphosphate'] },
   { id: 'g3p', label: 'G3P', x: 610, y: 70, pathway: 'Glycolysis', aliases: ['g3p', 'glyceraldehyde3phosphate'] },
+  { id: '3pg', label: '3-PG', x: 650, y: 125, pathway: 'Glycolysis', aliases: ['3pg', '3phosphoglycerate', '3phosphoglycericacid'] },
+  { id: 'acetylcoa', label: 'AcCoA', x: 650, y: 250, pathway: 'TCA', aliases: ['acetylcoa', 'acetylcoenzymea'] },
   { id: 'pep', label: 'PEP', x: 740, y: 70, pathway: 'Glycolysis', aliases: ['pep', 'phosphoenolpyruvate'] },
   { id: 'pyruvate', label: 'PYR', x: 740, y: 180, pathway: 'Glycolysis', aliases: ['pyr', 'pyruvate', 'pyruvicacid'] },
   { id: 'lactate', label: 'LAC', x: 850, y: 180, pathway: 'Glycolysis', aliases: ['lac', 'lactate', 'llactate', 'lacticacid'] },
@@ -356,10 +358,12 @@ const CENTRAL_ENZYMES = [
   { id: 'pfk', label: 'PFK', x: 415, y: 48, aliases: ['pfkm', 'pfkl', 'pfkp'] },
   { id: 'aldo', label: 'ALDO', x: 545, y: 48, aliases: ['aldoa', 'aldob', 'aldoc'] },
   { id: 'gapdh', label: 'GAPDH', x: 675, y: 48, aliases: ['gapdh'] },
+  { id: 'eno', label: 'ENO', x: 713, y: 102, aliases: ['eno1', 'eno2', 'eno3'] },
   { id: 'pkm', label: 'PKM', x: 760, y: 125, aliases: ['pkm', 'pklr'] },
-  { id: 'ldh', label: 'LDH', x: 805, y: 155, aliases: ['ldha', 'ldhb', 'ldhc', 'ldhd'] },
-  { id: 'pdh', label: 'PDH', x: 650, y: 215, aliases: ['pdha1', 'pdha2', 'pdhb'] },
-  { id: 'cs', label: 'CS', x: 625, y: 265, aliases: ['cs'] },
+  { id: 'ldha', label: 'LDHA', x: 815, y: 137, aliases: ['ldha'] },
+  { id: 'ldhb', label: 'LDHB', x: 857, y: 210, aliases: ['ldhb'] },
+  { id: 'pdh', label: 'PDH', x: 740, y: 235, aliases: ['pdha1', 'pdha2', 'pdhb'] },
+  { id: 'cs', label: 'CS', x: 555, y: 295, aliases: ['cs'] },
   { id: 'idh', label: 'IDH', x: 490, y: 295, aliases: ['idh1', 'idh2', 'idh3a', 'idh3b', 'idh3g'] },
   { id: 'ogdh', label: 'OGDH', x: 455, y: 405, aliases: ['ogdh', 'ogdhl'] },
   { id: 'sdh', label: 'SDH', x: 575, y: 490, aliases: ['sdha', 'sdhb', 'sdhc', 'sdhd'] },
@@ -370,17 +374,18 @@ const CENTRAL_ENZYMES = [
   { id: 'glud', label: 'GLUD', x: 355, y: 315, aliases: ['glud1', 'glud2'] },
   { id: 'glul', label: 'GLUL', x: 225, y: 365, aliases: ['glul'] },
   { id: 'g6pd', label: 'G6PD', x: 190, y: 130, aliases: ['g6pd'] },
+  { id: 'suclg', label: 'SUCLG', x: 475, y: 430, aliases: ['suclg1', 'suclg2', 'sucla2'] },
   { id: 'pgd', label: 'PGD', x: 190, y: 235, aliases: ['pgd'] },
   { id: 'phgdh', label: 'PHGDH', x: 585, y: 130, aliases: ['phgdh'] },
   { id: 'shmt', label: 'SHMT', x: 555, y: 160, aliases: ['shmt1', 'shmt2'] }
 ];
 
 const CENTRAL_EDGES = [
-  ['glucose','g6p'],['g6p','f6p'],['f6p','fbp'],['fbp','g3p'],['g3p','pep'],['pep','pyruvate'],
-  ['pyruvate','lactate'],['pyruvate','alanine'],['pyruvate','citrate'],['citrate','akg'],['akg','succinate'],
-  ['succinate','fumarate'],['fumarate','malate'],['malate','oaa'],['oaa','citrate'],['gln','glutamate'],
+  ['glucose','g6p'],['g6p','f6p'],['f6p','fbp'],['fbp','g3p'],['g3p','3pg'],['3pg','pep'],['pep','pyruvate'],
+  ['pyruvate','lactate'],['pyruvate','alanine'],['pyruvate','acetylcoa'],['acetylcoa','citrate'],['citrate','akg'],['akg','succinate'],
+  ['succinate','fumarate'],['fumarate','malate'],['malate','oaa'],['oaa','citrate'],['glutamine','glutamate'],
   ['glutamate','akg'],['oaa','aspartate'],['aspartate','asparagine'],['g6p','6pg'],['6pg','r5p'],['r5p','prpp'],
-  ['g3p','serine'],['serine','glycine'],['g3p','gly3p'],['akg','2hg']
+  ['3pg','serine'],['serine','glycine'],['akg','2hg']
 ];
 
 function mappingAliases(result, layer) {
@@ -399,22 +404,40 @@ function featureKeys(feature, resolutionAliases) {
 
 function chooseEffect(rows, aliases, resolutionAliases) {
   const wanted = new Set(aliases.map(key));
-  const candidates = rows.filter((row) => featureKeys(row.feature, resolutionAliases).some((candidate) => wanted.has(candidate)));
-  candidates.sort((a, b) => {
+  const candidates = rows
+    .filter((row) => featureKeys(row.feature, resolutionAliases).some((candidate) => wanted.has(candidate)))
+    .filter((row) => Number.isFinite(row.effect));
+  const byQ = (a, b) => {
     const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
     const bq = Number.isFinite(b.qValue) ? b.qValue : 1;
     if (aq !== bq) return aq - bq;
     return Math.abs(Number(b.effect) || 0) - Math.abs(Number(a.effect) || 0);
-  });
-  const best = candidates[0];
-  if (!best || !Number.isFinite(best.effect)) return null;
-  const scale = best.effectScale || null;
-  if (scale !== 'log2') return { feature: best.feature, effect: null, qValue: best.qValue ?? null, effectScale: scale, status: 'non_log2_scale' };
+  };
+  candidates.sort(byQ);
+  if (!candidates.length) return null;
+  const valid = candidates.filter((row) => row.effectScale === 'log2');
+  if (!valid.length) {
+    const best = candidates[0];
+    return { feature: best.feature, effect: null, qValue: best.qValue ?? null,
+      effectScale: best.effectScale || null, status: 'non_log2_scale' };
+  }
+
+  // Gene families (e.g. HK1/HK2 or SDHA/SDHB) must not hide opposite
+  // transcriptional directions behind the minimum q-value.
+  const positives = valid.some((row) => row.effect > 0);
+  const negatives = valid.some((row) => row.effect < 0);
+  const features = [...new Set(valid.map((row) => row.feature))];
+  if (features.length > 1 && positives && negatives) {
+    return { feature: features.join(', '), effect: null, qValue: null,
+      effectScale: 'log2', status: 'discordant_isoforms', matchedFeatures: features };
+  }
+  const best = valid.slice().sort(byQ)[0];
   return {
     feature: best.feature,
     effect: best.effect,
     qValue: Number.isFinite(best.qValue) ? best.qValue : null,
-    effectScale: scale,
+    effectScale: 'log2',
+    matchedFeatures: features,
     status: 'measured'
   };
 }
@@ -440,9 +463,60 @@ function buildCentralCarbon(result) {
     edges: CENTRAL_EDGES,
     measuredMetabolites: metabolites.filter((node) => node.measurement?.status === 'measured').length,
     measuredTranscripts: enzymes.filter((node) => node.measurement?.status === 'measured').length,
-    method: 'Fixed central-carbon pathway layout; node colors use only differential effects explicitly expressed on a log2 scale. Unmatched, unmeasured or non-log2 effects remain gray.',
+    method: 'Fixed schematic carbon-pathway map; colors use only model differential effects on a declared log2 scale. When multiple mapped features have opposite effects, the node is gray. Otherwise the lowest-q feature is a representative, not a pooled enzyme activity. Unmeasured or non-log2 effects also remain gray.',
     scope: 'Visualization aid only. The pathway layout is not used to compute enrichment, statistics or causality.'
   };
+}
+
+
+/**
+ * Figure 4C-inspired, CURATED pathway selections. No over-representation or
+ * pathway activity score is inferred by membership. Data are model log2 effects,
+ * never 13C isotopologues or metabolic flux. Unresolved IDs are not guessed.
+ */
+const METABOLOGRAM_PATHWAYS = [
+  { id: 'glycolysis', labelFr: 'Glycolyse', labelEn: 'Glycolysis',
+    metabolites: ['glucose','g6p','f6p','fbp','g3p','3pg','pep','pyruvate','lactate'],
+    enzymes: ['hk','gpi','pfk','aldo','gapdh','eno','pkm','ldha','ldhb'] },
+  { id: 'tca', labelFr: 'Cycle de Krebs', labelEn: 'TCA cycle',
+    metabolites: ['acetylcoa','citrate','akg','succinate','fumarate','malate','oaa'],
+    enzymes: ['pdh','cs','idh','ogdh','suclg','sdh','fh','mdh'] },
+  { id: 'aminoacids', labelFr: 'Acides aminés', labelEn: 'Amino acids',
+    metabolites: ['alanine','serine','glycine','glutamate','glutamine','aspartate','asparagine'],
+    enzymes: ['phgdh','shmt','gls','glud','glul','got'] },
+  { id: 'ppp', labelFr: 'Voie des pentoses phosphates', labelEn: 'Pentose phosphate pathway',
+    metabolites: ['g6p','6pg','r5p','prpp'],
+    enzymes: ['g6pd','pgd'] }
+];
+
+function buildMetabologramPathways(central) {
+  function entries(nodes, ids) {
+    const used = new Set();
+    return ids.map((id) => nodes.find((node) => node.id === id))
+      .filter(Boolean)
+      .map((node) => node.measurement)
+      .filter((item) => item?.status === 'measured' && Number.isFinite(item.effect))
+      // Multiple complexes may map to the same transcript: count each observed
+      // feature at most once per pathway and omics layer.
+      .filter((item) => !used.has(item.feature) && used.add(item.feature))
+      .map((item) => ({ feature: item.feature, effect: item.effect, qValue: item.qValue, effectScale: 'log2' }));
+  }
+  return METABOLOGRAM_PATHWAYS.map((pathway) => {
+    const metabolomics = entries(central.metabolites, pathway.metabolites);
+    const transcriptomics = entries(central.enzymes, pathway.enzymes);
+    return {
+      id: pathway.id,
+      labelFr: pathway.labelFr,
+      labelEn: pathway.labelEn,
+      metabolomics,
+      transcriptomics,
+      meanMetabolomicLog2Fc: meanEffect(metabolomics),
+      meanTranscriptomicLog2Fc: meanEffect(transcriptomics),
+      coverageMetabolites: metabolomics.length,
+      coverageTranscripts: transcriptomics.length,
+      method: 'Descriptive pathway selection from a fixed, reviewed list of central metabolites and enzyme genes. No pathway significance, isotope tracing, metabolic flux or causal interpretation is inferred.'
+    };
+  });
 }
 
 export async function buildMultiomicsVisualizationData({
@@ -476,6 +550,7 @@ export async function buildMultiomicsVisualizationData({
 
   const transcriptEntries = log2EffectEntries(analysisResult?.layers?.transcriptomics);
   const metaboliteEntries = log2EffectEntries(analysisResult?.layers?.metabolomics);
+  const centralCarbon = buildCentralCarbon(analysisResult);
 
   return {
     heatmaps,
@@ -487,12 +562,14 @@ export async function buildMultiomicsVisualizationData({
       method: 'Circular effect map ranked by the existing feature-model results. Outer sectors are individual log2 fold changes; central semicircles are simple descriptive means of the displayed effects and are not inferential statistics.',
       requiresLog2Effect: true
     },
-    centralCarbon: buildCentralCarbon(analysisResult),
+    metabologramPathways: buildMetabologramPathways(centralCarbon),
+    centralCarbon,
     methodologicalBoundary: [
       'Figures reuse the statistical results; they do not run additional hypothesis tests.',
       'Heatmap clustering is intentionally not used by default: deterministic sample order follows study annotations and feature order follows the analysis ranking.',
       'Heatmap row z-scores are descriptive and must not be interpreted as fold changes.',
-      'Metabologram and central-carbon colors are shown only when the fitted effect is on a declared log2 scale.'
+      'Metabologram and central-carbon colors are shown only when the fitted effect is on a declared log2 scale.',
+      'The curated pathway panels are descriptive annotations, not enrichment or pathway activity tests. No metabolic flux is estimated from abundances or gene expression.'
     ]
   };
 }

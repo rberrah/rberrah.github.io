@@ -5,6 +5,8 @@
 
   const tr = (fr, en) => language === 'en' ? en : fr;
   let heatmapLayer = 'transcriptomics';
+  let activeFigure = 'heatmap';
+  let selectedPathway = 'all';
 
   $: visuals = result?.visualizations || null;
   $: heatmapLayers = visuals ? Object.keys(visuals.heatmaps || {}).filter((layer) => visuals.heatmaps[layer]?.rows?.length) : [];
@@ -12,6 +14,12 @@
   $: heatmap = visuals?.heatmaps?.[heatmapLayer] || null;
   $: metabologram = visuals?.metabologram || null;
   $: central = visuals?.centralCarbon || null;
+  $: pathwayChoices = visuals?.metabologramPathways || [];
+  $: activeMetabologram = selectedPathway === 'all'
+    ? metabologram
+    : (pathwayChoices.find((pathway) => pathway.id === selectedPathway) || metabologram);
+  $: pathwayCoverage = selectedPathway === 'all' ? null
+    : pathwayChoices.find((pathway) => pathway.id === selectedPathway);
 
   function layerLabel(layer) {
     if (layer === 'transcriptomics') return tr('Transcriptomique', 'Transcriptomics');
@@ -84,8 +92,8 @@
     });
   }
 
-  $: metaboliteSegments = ringSegments(metabologram?.metabolomics || [], 'left');
-  $: transcriptSegments = ringSegments(metabologram?.transcriptomics || [], 'right');
+  $: metaboliteSegments = ringSegments(activeMetabologram?.metabolomics || [], 'left');
+  $: transcriptSegments = ringSegments(activeMetabologram?.transcriptomics || [], 'right');
 
   function findCentralNode(id) {
     return central?.metabolites?.find((node) => node.id === id);
@@ -132,7 +140,19 @@
     </div>
   </div>
 
-  {#if heatmapLayers.length}
+  <nav class="figure-switcher" aria-label={tr('Choisir une visualisation', 'Choose a visualization')}>
+    <button type="button" class:active={activeFigure === 'heatmap'} aria-current={activeFigure === 'heatmap' ? 'true' : undefined} on:click={() => activeFigure = 'heatmap'}>
+      {tr('1. Heatmap', '1. Heatmap')}
+    </button>
+    <button type="button" class:active={activeFigure === 'pathways'} aria-current={activeFigure === 'pathways' ? 'true' : undefined} on:click={() => activeFigure = 'pathways'}>
+      {tr('2. Voies biologiques', '2. Biological pathways')}
+    </button>
+    <button type="button" class:active={activeFigure === 'map'} aria-current={activeFigure === 'map' ? 'true' : undefined} on:click={() => activeFigure = 'map'}>
+      {tr('3. Carte métabolique', '3. Metabolic map')}
+    </button>
+  </nav>
+
+  {#if activeFigure === 'heatmap' && heatmapLayers.length}
     <article class="figure-card" data-testid="multiomics-heatmap">
       <div class="figure-title">
         <div>
@@ -208,6 +228,11 @@
     </article>
   {/if}
 
+  {#if activeFigure === 'heatmap' && !heatmapLayers.length}
+    <p class="empty-note">{tr('Aucune matrice utilisable pour la heatmap. Les résultats numériques restent accessibles ci-dessous.', 'No matrix available for a heatmap. Numeric results remain available below.')}</p>
+  {/if}
+
+  {#if activeFigure === 'pathways'}
   <article class="figure-card" data-testid="multiomics-metabologram">
     <div class="figure-title">
       <div>
@@ -215,12 +240,23 @@
         <div>
           <h3>{tr('Metabologramme transcriptome ↔ métabolome', 'Transcriptome ↔ metabolome metabologram')}</h3>
           <p>{tr(
-            'À gauche : métabolites. À droite : transcrits. Le centre résume seulement la moyenne descriptive des log2FC affichés.',
-            'Left: metabolites. Right: transcripts. The center is only the descriptive mean of the displayed log2FC values.'
+            'À gauche : métabolites ; à droite : transcrits. Choisissez une voie pour une lecture comparable à la figure 4C de Guyon et al. Les moyennes centrales sont descriptives.',
+            'Left: metabolites; right: transcripts. Select a pathway for a Figure 4C-inspired view (Guyon et al.). Center means are descriptive only.'
           )}</p>
         </div>
       </div>
-      <button type="button" on:click={() => downloadSvg('pmx-metabologram-svg', 'multiomics_metabologram.svg')}>SVG</button>
+      <div class="figure-actions">
+        <label class="pathway-select">
+          <span>{tr('Voie affichée', 'Displayed pathway')}</span>
+          <select bind:value={selectedPathway} data-testid="multiomics-pathway-select" aria-label={tr('Choisir la voie biologique', 'Choose biological pathway')}>
+            <option value="all">{tr('Toutes les variables principales', 'All leading features')}</option>
+            {#each pathwayChoices as pathway}
+              <option value={pathway.id}>{language === 'en' ? pathway.labelEn : pathway.labelFr}</option>
+            {/each}
+          </select>
+        </label>
+        <button type="button" on:click={() => downloadSvg('pmx-metabologram-svg', 'multiomics_metabologram.svg')}>SVG</button>
+      </div>
     </div>
 
     {#if metaboliteSegments.length || transcriptSegments.length}
@@ -243,12 +279,12 @@
             </path>
           {/each}
 
-          <path d="M250 196 A54 54 0 0 0 250 304 L250 250 Z" fill={diverging(metabologram?.meanMetabolomicLog2Fc)} stroke="#263238"/>
-          <path d="M250 196 A54 54 0 0 1 250 304 L250 250 Z" fill={diverging(metabologram?.meanTranscriptomicLog2Fc)} stroke="#263238"/>
+          <path d="M250 196 A54 54 0 0 0 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanMetabolomicLog2Fc)} stroke="#263238"/>
+          <path d="M250 196 A54 54 0 0 1 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanTranscriptomicLog2Fc)} stroke="#263238"/>
           <text x="196" y="244" text-anchor="middle" class="center-label">MET</text>
           <text x="304" y="244" text-anchor="middle" class="center-label">RNA</text>
-          <text x="196" y="263" text-anchor="middle" class="center-value">{fmt(metabologram?.meanMetabolomicLog2Fc)}</text>
-          <text x="304" y="263" text-anchor="middle" class="center-value">{fmt(metabologram?.meanTranscriptomicLog2Fc)}</text>
+          <text x="196" y="263" text-anchor="middle" class="center-value">{fmt(activeMetabologram?.meanMetabolomicLog2Fc)}</text>
+          <text x="304" y="263" text-anchor="middle" class="center-value">{fmt(activeMetabologram?.meanTranscriptomicLog2Fc)}</text>
           <text x="132" y="32" text-anchor="middle" class="half-label">{tr('Métabolites', 'Metabolites')}</text>
           <text x="368" y="32" text-anchor="middle" class="half-label">{tr('Transcrits', 'Transcripts')}</text>
         </svg>
@@ -256,27 +292,37 @@
         <div class="metabologram-keys">
           <div>
             <strong>{tr('Métabolites affichés', 'Displayed metabolites')}</strong>
-            {#each (metabologram?.metabolomics || []).slice(0, 10) as item}
+            {#each (activeMetabologram?.metabolomics || []).slice(0, 10) as item}
               <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
             {/each}
           </div>
           <div>
             <strong>{tr('Transcrits affichés', 'Displayed transcripts')}</strong>
-            {#each (metabologram?.transcriptomics || []).slice(0, 10) as item}
+            {#each (activeMetabologram?.transcriptomics || []).slice(0, 10) as item}
               <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
             {/each}
           </div>
         </div>
       </div>
-      <p class="method-note">{metabologram.method}</p>
+      {#if pathwayCoverage}
+        <p class="coverage-note" data-testid="multiomics-pathway-coverage">
+          {language === 'en' ? pathwayCoverage.labelEn : pathwayCoverage.labelFr} ·
+          {pathwayCoverage.coverageMetabolites} {tr('métabolite(s)', 'metabolite(s)')} ·
+          {pathwayCoverage.coverageTranscripts} {tr('transcrit(s) enzymatique(s)', 'enzyme transcript(s)')}
+        </p>
+      {/if}
+      <p class="method-note">{activeMetabologram.method} {tr('La présence sur cette carte ne signifie pas un enrichissement significatif de la voie.', 'Being on this map does not imply significant pathway enrichment.')}</p>
     {:else}
       <p class="empty-note">{tr(
-        'Le metabologramme nécessite des effets différentiels sur une échelle log2. Il n’est pas construit pour un outcome logistique/Cox ou une échelle non déclarée log2.',
-        'The metabologram requires differential effects on a log2 scale. It is not built for logistic/Cox outcomes or an undeclared non-log2 scale.'
+        'Aucun effet log2 exploitable pour cette sélection. Cela ne signifie pas que la voie est inactive : les variables peuvent être absentes, non résolues ou sur une échelle incompatible.',
+        'No usable log2 effects for this selection. This does not imply an inactive pathway: features may be absent, unresolved or on an incompatible scale.'
       )}</p>
     {/if}
   </article>
 
+  {/if}
+
+  {#if activeFigure === 'map'}
   <article class="figure-card" data-testid="multiomics-central-carbon-map">
     <div class="figure-title">
       <div>
@@ -284,8 +330,8 @@
         <div>
           <h3>{tr('Carte du métabolisme central', 'Central carbon metabolism map')}</h3>
           <p>{tr(
-            'Ovales = métabolites ; carrés = transcrits enzymatiques. Gris = non mesuré, non reconnu ou effet non exprimé en log2.',
-            'Ovals = metabolites; squares = enzyme transcripts. Gray = not measured, not matched, or effect not expressed on a log2 scale.'
+            'Ovales = métabolites ; carrés = transcrits enzymatiques. Gris = absence de mesure log2 exploitable. Les flèches sont schématiques, pas des flux mesurés.',
+            'Ovals = metabolites; squares = enzyme transcripts. Gray = no usable log2 measurement. Arrows are schematic, not measured fluxes.'
           )}</p>
         </div>
       </div>
@@ -368,21 +414,36 @@
           </g>
         </svg>
       </div>
-      <p class="method-note">{central.method} {central.scope}</p>
+      <p class="method-note">{central.method} {central.scope} {tr(
+        'Contrairement à la figure 4D de Guyon et al., cette carte ne montre aucun marquage isotopique 13C. Les niveaux de métabolites et les transcrits ne suffisent pas pour déduire un flux.',
+        'Unlike Figure 4D by Guyon et al., this map contains no 13C isotope tracing. Metabolite abundance and transcripts alone do not establish metabolic flux.'
+      )}</p>
     {/if}
   </article>
 
-  <div class="interpretation-boundary">
-    <strong>{tr('Règles d’interprétation', 'Interpretation rules')}</strong>
+  {/if}
+
+  <details class="interpretation-boundary">
+    <summary>{tr('Limites et méthode des figures', 'Figure methods and limitations')}</summary>
+
     {#each visuals.methodologicalBoundary || [] as note}
       <span>• {note}</span>
     {/each}
-  </div>
+  </details>
 </section>
 {/if}
 
 <style>
   .visual-panel { margin-top: 24px; display: grid; gap: 18px; }
+  .figure-switcher { display:flex; flex-wrap:wrap; gap:8px; padding:5px; border:1px solid var(--border,#d9e0e3); border-radius:13px; width:max-content; max-width:100%; }
+  .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary,#58666d); font-size:.88rem; font-weight:650; }
+  .figure-switcher button.active { background:var(--accent,#176c83); color:#fff; }
+  .figure-switcher button:focus-visible { outline:3px solid #e5b75b; outline-offset:2px; }
+  .pathway-select { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:.82rem; }
+  .pathway-select span { color:var(--text-secondary,#58666d); }
+  .coverage-note { font-size:.83rem; margin:8px 0; font-weight:700; }
+  .interpretation-boundary summary { cursor:pointer; font-weight:700; }
+  .interpretation-boundary[open] { gap:6px; }
   .visual-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-end; }
   .visual-head h2 { margin:.2rem 0 .35rem; font-size:clamp(1.3rem,2vw,1.8rem); }
   .visual-head p { margin:0; max-width:850px; color:var(--text-secondary,#58666d); }
@@ -421,10 +482,12 @@
   .enzyme-label { font-size:8px; font-weight:800; fill:#172126; pointer-events:none; }
   .legend-label { font-size:9px; fill:#48555b; }
   .interpretation-boundary { border-left:4px solid var(--accent,#176c83); padding:12px 14px; background:#f3f8f9; display:grid; gap:4px; font-size:.82rem; }
-  .interpretation-boundary strong { margin-bottom:3px; }
+  .interpretation-boundary summary { margin-bottom:4px; }
   @media (max-width: 820px) {
     .figure-title, .visual-head { flex-direction:column; align-items:stretch; }
-    .figure-actions { justify-content:space-between; }
+    .figure-actions { justify-content:space-between; flex-wrap:wrap; }
+    .figure-switcher { width:100%; }
+    .figure-switcher button { flex:1 1 auto; }
     .metabologram-layout { grid-template-columns:1fr; }
     .metabologram-keys { grid-template-columns:1fr; }
     svg { min-width:620px; }
