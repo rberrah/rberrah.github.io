@@ -10,7 +10,7 @@
   export let en = false;
   export let playing = false;
   export let animateParticles = true;
-  let canvas, width = 700, mounted = false, dragging = '', hovered = false, lastDirectValue, directControl, directPoint;
+  let canvas, width = 700, mounted = false, dragging = '', dragOrigin = null, hovered = false, lastDirectValue, directControl, directPoint;
   const dispatch = createEventDispatcher();
   $: config = molecularLabs[lab];
   $: height = width < 520 ? 470 : 430;
@@ -57,7 +57,16 @@
   function setDirectValue(event, control = controlGeometry()) {
     if (!control) return;
     const point = eventPoint(event), dx = control.x2 - control.x1, dy = control.y2 - control.y1, length2 = dx * dx + dy * dy;
-    const fraction = length2 ? clamp(((point.x - control.x1) * dx + (point.y - control.y1) * dy) / length2) : 0;
+    // During a drag, use the pointer displacement relative to where the user
+    // grabbed the handle. DOM reflow / viewport scroll must not change the
+    // interpreted value while the pointer is held down.
+    const delta = dragOrigin
+      ? { x: (event.clientX - dragOrigin.x) * width / dragOrigin.width,
+          y: (event.clientY - dragOrigin.y) * height / dragOrigin.height }
+      : { x: point.x - control.x1, y: point.y - control.y1 };
+    const fraction = length2
+      ? clamp((dragOrigin ? dragOrigin.fraction : 0) + (delta.x * dx + delta.y * dy) / length2)
+      : 0;
     const raw = control.scale === 'log' ? control.min * Math.pow(control.max / control.min, fraction) : control.min + (control.max - control.min) * fraction;
     const value = Number((Math.round(raw / control.step) * control.step).toFixed(8));
     if (value === lastDirectValue) return;
@@ -66,7 +75,23 @@
   function pointerDown(event) {
     const control = controlGeometry(), point = eventPoint(event);
     if (!nearControl(point, control)) return;
-    dragging = control.key; hovered = true; canvas.setPointerCapture?.(event.pointerId); setDirectValue(event, control); event.preventDefault();
+    // A focused numeric input can cause browser scroll anchoring while the
+    // simulation rerenders. This would move the canvas under the pointer and
+    // turn a vertical MIC drag into a spurious change to the minimum value.
+    if (document.activeElement instanceof HTMLElement && document.activeElement !== canvas) {
+      document.activeElement.blur();
+    }
+    dragging = control.key;
+    hovered = true;
+    lastDirectValue = p[control.key];
+    const rect = canvas.getBoundingClientRect();
+    dragOrigin = { x: event.clientX, y: event.clientY,
+      width: Math.max(1, rect.width), height: Math.max(1, rect.height),
+      fraction: fractionFor(control) };
+    canvas.setPointerCapture?.(event.pointerId);
+    // A press on the existing handle is not an instruction to change value.
+    // Only actual motion along the control track should update the model.
+    event.preventDefault();
   }
   function pointerMove(event) {
     const control = controlGeometry();
@@ -75,7 +100,7 @@
   }
   function pointerUp(event) {
     if (!dragging) return;
-    canvas.releasePointerCapture?.(event.pointerId); dragging = ''; lastDirectValue = undefined; hovered = nearControl(eventPoint(event), controlGeometry());
+    canvas.releasePointerCapture?.(event.pointerId); dragging = ''; dragOrigin = null; lastDirectValue = undefined; hovered = nearControl(eventPoint(event), controlGeometry());
   }
 
   const pointOn = (edge, fraction, nodes) => {

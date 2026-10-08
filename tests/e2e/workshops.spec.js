@@ -30,7 +30,7 @@ test('Explorer exposes six workshops; PK and Advanced have distinct palettes', a
   await page.getByTestId('goal-explore').locator('summary').click();
   await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Model Translator', 'PK Builder', 'PD Builder', 'Covariates', 'DDI Builder', 'Advanced Builder']);
   await page.getByTestId('goal-resources').locator('summary').click();
-  await expect(page.getByTestId('goal-resources').locator('a')).toHaveText(['Glossary', 'References', 'About PMx Explain', 'Racym Berrah ↗']);
+  await expect(page.getByTestId('goal-resources').locator('a')).toHaveText(['Search', 'Glossary', 'References', 'About PMx Explain', 'Racym Berrah ↗']);
   await expect(page.getByTestId('nav-main-site')).toHaveAttribute('href', 'https://rberrah.github.io/');
   await page.keyboard.press('Escape');
   await next(page, 'Advanced Builder');
