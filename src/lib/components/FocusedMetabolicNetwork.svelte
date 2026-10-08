@@ -164,12 +164,12 @@
 
 <style>
   .network { display:grid; gap:14px; margin:0 0 18px; color:#182b35; background:#fff; color-scheme:light; padding:14px; border:1px solid #c3d0d8; border-radius:12px; }
-  .network header h3 { font-size:1.12rem; margin:0 0 5px; }
+  .network header h3 { font-size:1.12rem; margin:0 0 5px; color:#182b35 !important; }
   .network header p { margin:0; color:#3e5260; font-size:.88rem; line-height:1.45; }
   .network-summary { display:flex; flex-wrap:wrap; gap:9px; }
-  .network-summary span { padding:7px 10px; border:1px solid var(--border,#dde3e7); border-radius:8px; font-size:.79rem; }
+  .network-summary span { padding:7px 10px; border:1px solid #cbd5dc; border-radius:8px; font-size:.79rem; color:#182b35; background:#fff; }
   .network-controls { display:flex; flex-wrap:wrap; gap:12px; }
-  .network-controls label { display:flex; flex:1 1 230px; flex-direction:column; gap:5px; font-size:.85rem; font-weight:600; }
+  .network-controls label { display:flex; flex:1 1 230px; flex-direction:column; gap:5px; font-size:.85rem; font-weight:600; color:#182b35; }
   .network-controls select { width:100%; min-width:0; border:1px solid #aebcc5; border-radius:8px; padding:9px; background:#fff; color:#182b35; }
   .network-key { display:flex; flex-wrap:wrap; gap:8px 14px; color:#3e5260; font-size:.8rem; }
   .network-key span { display:inline-flex; align-items:center; gap:5px; }
