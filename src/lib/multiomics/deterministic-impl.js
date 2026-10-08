@@ -341,7 +341,13 @@ function buildPreAnalysisDiagnostics(args, result) {
     outcome: mappedValue(row, mapping, 'outcome'),
     survivalTime: mappedValue(row, mapping, 'survival_time'),
     survivalEvent: mappedValue(row, mapping, 'survival_event')
-  })).filter((row) => row.subject || row.sample || row.assay);
+  })).filter((row) => row.subject || row.sample || row.assay)
+    .filter((row) => {
+      // The sample sheet may describe other, non-uploaded modalities. Diagnostics
+      // must use the same cohort and layers as the actual statistical analysis.
+      const analysedLayers = result?.engine?.analysedLayers || Object.keys(result?.layers || {});
+      return analysedLayers.includes(row.omic);
+    });
 
   const conditions = uniqueNonEmpty(canonicalRows.map((row) => row.condition));
   const timepoints = uniqueNonEmpty(canonicalRows.map((row) => row.timepoint));
