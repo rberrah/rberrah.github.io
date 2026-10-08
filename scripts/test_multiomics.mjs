@@ -1056,3 +1056,6 @@ function csvFile(name, text) {
 }
 
 console.log('multiomics paired / longitudinal / identifier-resolution branches: PASS');
+
+// Standalone display contract: does not change any inference engine result.
+await import('./test_multiomics_visualizations.mjs');

@@ -549,6 +549,12 @@
     await runAnalysis();
   }
 
+  async function loadDemoAndShowResults() {
+    await loadDemo();
+    // The demonstration is an actual analysis, not a mockup.
+    document.getElementById('analysis-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   /**
    * @param {Record<string,string>} row
    * @param {string} key
@@ -1220,6 +1226,15 @@
   <p class="lede">
     {t('Décrivez le protocole, mappez les échantillons une seule fois, puis laissez le workflow intégrer transcriptomique, protéomique et métabolomique autour de structures partagées, d’associations et de voies biologiques.', 'Describe the protocol, map the samples once, then let the workflow integrate transcriptomics, proteomics and metabolomics around shared factors, associations, pathways and mechanisms.')}
   </p>
+  <div class="quick-start" data-testid="multiomics-quick-start">
+    <div>
+      <strong>{t('Découvrir en 1 clic', 'Explore in one click')}</strong>
+      <span>{t('Une vraie démo calcule les résultats de 3 omiques. Puis remplacez les fichiers par les vôtres.', 'A real demo computes 3 omics layers. Then replace the files with your own.')}</span>
+    </div>
+    <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" onclick={loadDemoAndShowResults}>
+      {t('Voir une analyse complète', 'See a complete analysis')}
+    </button>
+  </div>
   <div class="privacy">
     <strong>{t('Prototype de recherche.', 'Research prototype.')}</strong>
     {t('Le moteur navigateur reste local. Lorsque Reactome est activé, seuls les identifiants moléculaires sélectionnés sont envoyés. Si le backend R de référence est activé et disponible, les métadonnées et matrices sont envoyées uniquement à l’URL de backend affichée ci-dessous — par défaut 127.0.0.1 sur votre propre machine.', 'The browser engine remains local. When Reactome is enabled, only selected molecular identifiers are sent. If the reference R backend is enabled and available, metadata and matrices are sent only to the backend URL shown below — by default 127.0.0.1 on your own machine.')}
@@ -1668,7 +1683,9 @@
     </div>
   </div>
 
-  <div class="contract" data-testid="advanced-workflows">
+  <details class="optional-workflows" data-testid="advanced-workflows">
+    <summary>{t('Options expertes : données MS brutes et validation externe', 'Expert options: raw MS data and external validation')}</summary>
+    <div class="contract">
     <div class="demo-card">
       <p class="eyebrow">{t('Workflow avancé · données MS brutes', 'Advanced workflow · raw MS data')}</p>
       <h3>{t('mzML / mzXML → matrice de features via xcms', 'mzML / mzXML → feature matrix with xcms')}</h3>
@@ -1693,7 +1710,8 @@
       <p class="note">{t('Le logiciel n’emploie le terme « validation externe » que si l’indépendance de la cohorte est explicitement déclarée ; cette indépendance doit rester documentée par la provenance de l’étude.', 'The software uses the term “external validation” only when cohort independence is explicitly asserted; that independence must still be documented by study provenance.')}</p>
       <ExternalValidationPanel backendUrl={referenceBackendUrl} language={$language ?? 'fr'} />
     </div>
-  </div>
+    </div>
+  </details>
 
   <details class="dictionary">
     <summary>{t('Dictionnaire détaillé des métadonnées', 'Detailed metadata dictionary')}</summary>
@@ -2863,4 +2881,11 @@
     .wide { grid-column: auto; }
     .status { align-items: start; flex-direction: column; }
   }
+  .quick-start { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:20px 0; padding:15px 18px; border:1px solid var(--border,#d9e0e3); border-radius:14px; background:var(--surface,#fff); }
+  .quick-start > div { display:grid; gap:4px; flex:1 1 250px; }
+  .quick-start strong { font-size:.95rem; }
+  .quick-start span { font-size:.86rem; color:var(--text-secondary,#5d6a70); }
+  .optional-workflows { margin-top:16px; border:1px solid var(--border,#d9e0e3); border-radius:12px; padding:12px 16px; }
+  .optional-workflows > summary { cursor:pointer; font-weight:700; }
+  .optional-workflows > .contract { margin-top:16px; }
 </style>

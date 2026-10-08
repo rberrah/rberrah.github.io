@@ -345,3 +345,42 @@ Adresse par défaut :
 http://127.0.0.1:8787
 
 Un serveur distant recevant des données de recherche doit ajouter au minimum TLS, authentification, limites de taille/requêtes et allow-list d’origine.
+
+15. INTERFACE GUIDÉE ET LECTURE DES FIGURES
+===========================================
+
+Le bouton « Voir une analyse complète » charge les matrices de démonstration
+(3 omiques) et exécute la même analyse que pour les données personnelles.
+Dans les résultats, trois vues sont accessibles :
+
+1. Heatmap : chaque ligne montre une variable centrée-réduite (z-score).
+   Un bleu ou rouge ne signifie pas un log2 fold change ni une différence
+   statistiquement significative. Les échantillons sont ordonnés selon
+   les annotations de l'étude ; absence de clustering automatique.
+
+2. Voies biologiques : métabologramme circulaire inspiré de la figure 4C
+   de Guyon et al. (EMBO Molecular Medicine 2022 ; 14:e15343).
+   À gauche figurent les métabolites, à droite les transcrits enzymatiques.
+   L'utilisateur peut sélectionner glycolyse, cycle TCA, acides aminés ou
+   pentoses phosphates. La sélection est une liste explicite de membres,
+   PAS un test d'enrichissement ni un score d'activité. Une variable
+   non reconnue ou absente ne doit pas être interprétée comme inchangée.
+   Le centre indique uniquement une moyenne descriptive des log2FC
+   disponibles, susceptible d'être biaisée par la sélection des variables.
+
+3. Carte métabolique : représentation pédagogique, inspirée de la figure 4D
+   de la même publication. Les ovales sont des métabolites ; les rectangles,
+   des transcrits d'enzymes. Les effets log2 mesurés sont colorés ; les
+   données absentes, non log2 et les familles à transcrits discordants
+   restent grises. Les flèches sont schématiques, sans quantification de
+   flux, sans représentation des compartiments et sans inférence causale.
+
+IMPORTANT : l'article utilise des traceurs isotopiques au carbone 13.
+   Le logiciel ne calcule PAS de flux 13C à partir de simples
+   abondances métabolomiques et mesures d'ARN. Une interprétation
+   de flux exige les isotopologues, leur correction et un modèle de
+   traçage spécifique.
+
+La mise en page n'altère aucun calcul, seuil q-BH ni modèle R/JS.
+Les paramètres détaillés et workflows experts restent accessibles
+à la demande ; la démo sert à comprendre, non à valider une méthode.
