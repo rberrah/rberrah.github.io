@@ -99,6 +99,27 @@ La puissance statistique n’est volontairement PAS déduite du seul nombre de s
 3. LC-MS / GC-MS
 =================
 
+ENTRÉE BRUTE STANDARDISÉE
+-------------------------
+Pour les données non ciblées, la voie brute de référence accepte mzML / mzXML et autres formats ouverts lisibles par xcms. Les formats propriétaires Thermo / Waters / Agilent / Bruker doivent être convertis en mzML en amont, typiquement avec ProteoWizard/msconvert lorsque le lecteur vendor correspondant est disponible.
+
+Pipeline local de référence :
+1. manifeste explicite raw_file ↔ sample_id / assay_id / condition / sample_type / injection_order ;
+2. détection des pics chromatographiques par centWave ;
+3. alignement des temps de rétention par obiwarp lorsque plusieurs injections sont présentes ;
+4. groupement/correspondance des pics par peak density ;
+5. gap filling par ChromPeakAreaParam ;
+6. export d’une matrice `metabolomics_peak_area.csv`, des définitions de features et d’un manifeste de traitement.
+
+Commande :
+Rscript multiomics-engine/run_raw_ms.R raw_ms_manifest.csv raw_ms_output raw_ms_parameters.json
+
+Templates :
+- /multiomics/templates/raw_ms_manifest.csv
+- /multiomics/templates/raw_ms_parameters.json
+
+Important : cette étape crée des features analytiques m/z–RT. Elle ne transforme pas automatiquement ces features en identités métabolites. L’annotation ChEBI/HMDB/KEGG/PubChem/InChIKey reste une étape distincte, conservatrice et traçable.
+
 Lorsque sample_type et injection_order sont fournis :
 - blanks et pooled-QC sont exclus des échantillons biologiques ;
 - un ratio blank/biologique est par défaut un SIGNAL DE QC et ne supprime pas automatiquement une feature ;
@@ -206,6 +227,28 @@ Métriques :
 
 Une validation croisée interne ne remplace jamais une validation externe.
 
+VALIDATION EXTERNE FIGÉE
+------------------------
+Le dépôt contient un validateur séparé qui consomme uniquement des prédictions déjà générées par un modèle figé. Il ne sélectionne aucune variable, ne retune aucun hyperparamètre et ne réentraîne aucun modèle sur la cohorte de validation.
+
+Types pris en charge :
+- binaire : AUC, Brier, log-loss, calibration ;
+- continu : RMSE, MAE, R², calibration ;
+- comptage : RMSE/MAE/R² + déviance de Poisson ;
+- survie : C-index de Harrell ;
+- multiclasse : accuracy, balanced accuracy, log-loss et macro-AUC one-vs-rest.
+
+Une incertitude bootstrap déterministe est calculée lorsqu’elle est estimable. Les ré-échantillonnages non estimables restent manquants ; ils ne déclenchent jamais un ré-entraînement.
+
+Commande :
+Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output
+
+Templates :
+- /multiomics/templates/external_validation_predictions_binary.csv
+- /multiomics/templates/external_validation_binary.json
+
+Le statut `external_validation` n’est utilisé que si l’analyste affirme explicitement que la cohorte est indépendante du développement. Le logiciel peut empêcher un mauvais étiquetage, mais il ne peut pas prouver l’indépendance historique de la cohorte : celle-ci doit être documentée par la provenance de l’étude.
+
 10. INTERPRÉTATION BIOLOGIQUE
 =============================
 
@@ -243,6 +286,8 @@ La page de résultats comporte désormais une synthèse scientifique expliquant 
 Deux exports supplémentaires sont disponibles :
 - `multiomics-methods-report.md` : rapport humainement lisible des choix et limites ;
 - `multiomics-reproducibility-manifest.json` : manifeste machine-readable contenant question scientifique, design, critère, paramètres de l’interface, métadonnées locales des fichiers, preuves corrigées visibles, avertissements et limites d’interprétation.
+
+Le manifeste enregistre également des empreintes SHA-256 calculées localement sur les fichiers d’entrée et sur une représentation canonique de la table d’échantillons. Elles permettent de vérifier qu’un rapport correspond exactement aux données importées. Un fingerprint rapide éventuellement conservé dans l’interface n’est pas considéré comme un substitut cryptographique au SHA-256.
 
 Le manifeste n’embarque pas les données de recherche elles-mêmes. Pour une analyse destinée à un manuscrit, conserver séparément :
 - fichiers d’entrée immuables ;
