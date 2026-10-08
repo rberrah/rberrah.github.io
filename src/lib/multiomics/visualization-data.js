@@ -325,7 +325,7 @@ function labelFor(feature, layer) {
   return known ? { labelFr: known.fr, labelEn: known.en } : { labelFr: String(feature || ''), labelEn: String(feature || '') };
 }
 
-function log2EffectEntries(layerResult, max = 28, layer = '') {
+function effectEntries(layerResult, max = 28, layer = '') {
   return rankRows(layerResult, Math.max(max * 3, max))
     .filter((row) => Number.isFinite(row.effect))
     .map((row) => ({
@@ -335,7 +335,7 @@ function log2EffectEntries(layerResult, max = 28, layer = '') {
       qValue: Number.isFinite(row.qValue) ? row.qValue : null,
       effectScale: row.effectScale || layerResult?.effectScale || null
     }))
-    .filter((row) => row.effectScale === 'log2')
+    .filter((row) => ['log2','as_supplied','transformed_unknown'].includes(row.effectScale))
     .slice(0, max);
 }
 
@@ -438,28 +438,30 @@ function chooseEffect(rows, aliases, resolutionAliases) {
   };
   candidates.sort(byQ);
   if (!candidates.length) return null;
-  const valid = candidates.filter((row) => row.effectScale === 'log2');
+  const valid = candidates.filter((row) =>
+    ['log2','as_supplied','transformed_unknown'].includes(row.effectScale));
   if (!valid.length) {
     const best = candidates[0];
     return { feature: best.feature, effect: null, qValue: best.qValue ?? null,
-      effectScale: best.effectScale || null, status: 'non_log2_scale' };
+      effectScale: best.effectScale || null, status: 'unavailable_effect_scale' };
   }
 
   // Gene families (e.g. HK1/HK2 or SDHA/SDHB) must not hide opposite
   // transcriptional directions behind the minimum q-value.
   const positives = valid.some((row) => row.effect > 0);
   const negatives = valid.some((row) => row.effect < 0);
+  const scales = new Set(valid.map((row) => row.effectScale));
   const features = [...new Set(valid.map((row) => row.feature))];
-  if (features.length > 1 && positives && negatives) {
+  if (features.length > 1 && (positives && negatives || scales.size > 1)) {
     return { feature: features.join(', '), effect: null, qValue: null,
-      effectScale: 'log2', status: 'discordant_isoforms', matchedFeatures: features };
+      effectScale: scales.size === 1 ? valid[0].effectScale : 'mixed', status: 'discordant_isoforms', matchedFeatures: features };
   }
   const best = valid.slice().sort(byQ)[0];
   return {
     feature: best.feature,
     effect: best.effect,
     qValue: Number.isFinite(best.qValue) ? best.qValue : null,
-    effectScale: 'log2',
+    effectScale: best.effectScale,
     matchedFeatures: features,
     status: 'measured'
   };
@@ -531,7 +533,7 @@ function buildMetabologramPathways(central) {
       // feature at most once per pathway and omics layer.
       .filter((item) => !used.has(item.feature) && used.add(item.feature))
       .map((item) => ({ feature: item.feature, ...labelFor(item.feature, nodes === central.metabolites ? 'metabolomics' : 'transcriptomics'),
-        effect: item.effect, qValue: item.qValue, effectScale: 'log2' }));
+        effect: item.effect, qValue: item.qValue, effectScale: item.effectScale }));
   }
   return METABOLOGRAM_PATHWAYS.map((pathway) => {
     const metabolomics = entries(central.metabolites, pathway.metabolites);
@@ -580,8 +582,8 @@ export async function buildMultiomicsVisualizationData({
     );
   }
 
-  const transcriptEntries = log2EffectEntries(analysisResult?.layers?.transcriptomics, 28, 'transcriptomics');
-  const metaboliteEntries = log2EffectEntries(analysisResult?.layers?.metabolomics, 28, 'metabolomics');
+  const transcriptEntries = effectEntries(analysisResult?.layers?.transcriptomics, 28, 'transcriptomics');
+  const metaboliteEntries = effectEntries(analysisResult?.layers?.metabolomics, 28, 'metabolomics');
   const centralCarbon = buildCentralCarbon(analysisResult);
 
   return {
@@ -591,8 +593,8 @@ export async function buildMultiomicsVisualizationData({
       metabolomics: metaboliteEntries,
       meanTranscriptomicLog2Fc: meanEffect(transcriptEntries),
       meanMetabolomicLog2Fc: meanEffect(metaboliteEntries),
-      method: 'Circular effect map ranked by the existing feature-model results. Outer sectors are individual log2 fold changes; central semicircles are simple descriptive means of the displayed effects and are not inferential statistics.',
-      requiresLog2Effect: true
+      method: 'Circular effect map ranked by fitted feature-model results. Effects retain their declared scales: log2 or native supplied units. Each layer uses its own color range; across-layer magnitude comparisons are invalid. Central semicircles are descriptive means, not inferential statistics.',
+      requiresLog2Effect: false
     },
     metabologramPathways: buildMetabologramPathways(centralCarbon),
     centralCarbon,
@@ -601,7 +603,7 @@ export async function buildMultiomicsVisualizationData({
       'Figures reuse the statistical results; they do not run additional hypothesis tests.',
       'Heatmap clustering is intentionally not used by default: deterministic sample order follows study annotations and feature order follows the analysis ranking.',
       'Heatmap row z-scores are descriptive and must not be interpreted as fold changes.',
-      'Metabologram and central-carbon colors are shown only when the fitted effect is on a declared log2 scale.',
+      'Metabologram and pathway map retain effects on their declared scales; native supplied units are not converted to fold ratios. Color ranges are layer-specific and visual magnitudes must not be compared across different scales.',
       'The curated pathway panels are descriptive annotations, not enrichment or pathway activity tests. No metabolic flux is estimated from abundances or gene expression.',
       'The expanded network is an auditable schematic neighborhood, not a stoichiometrically validated reaction graph. Only explicitly curated ChEBI IDs are exact; name-only and unresolved matches are reported separately.'
     ]
