@@ -78,6 +78,8 @@ Avant une interprétation forte, l’outil vérifie notamment :
 - série technique et risque de confusion avec groupe/temps ;
 - pour la survie, nombre de sujets exploitables et nombre d’événements observés ;
 - éligibilité des méthodes avancées MOFA2 et DIABLO.
+- pour les plans longitudinaux à deux groupes : interaction groupe × temps avec modèle à intercept aléatoire ;
+- pour les plans longitudinaux à trois groupes ou plus : test omnibus multi-ddl de l’interaction groupe × temps, puis classement corrigé BH ; les comparaisons post-hoc spécifiques ne sont pas inventées automatiquement.
 
 `preAnalysisDiagnostics` possède quatre niveaux :
 - ready : aucun problème déterministe détecté ;
