@@ -540,6 +540,59 @@ function csvFile(name, text) {
   assert.ok(longitudinalResult.layers.transcriptomics.rows[0].effect > 0.15);
 }
 
+// Multi-group longitudinal designs use an omnibus condition × time interaction.
+{
+  const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint'];
+  const headers = { transcriptomics:['feature_id'], proteomics:['feature_id'] };
+  const values = { transcriptomics:['MULTI_SLOPE_GENE'], proteomics:['MULTI_SLOPE_PROTEIN'] };
+  let assay = 1;
+  const slopeByCondition = { control: 0.02, treatmentA: 0.18, treatmentB: -0.10 };
+
+  for (const condition of Object.keys(slopeByCondition)) {
+    for (let s = 1; s <= 5; s += 1) {
+      const subject = condition.slice(0,2).toUpperCase() + s;
+      for (const time of [0,6,12]) {
+        for (const layer of ['transcriptomics','proteomics']) {
+          const sample = `${subject}_T${time}`;
+          const id = `${layer === 'transcriptomics' ? 'MR' : 'MP'}${assay++}`;
+          rows.push([subject,sample,id,layer,condition,`T${time}`].join(','));
+          headers[layer].push(id);
+          const base = 5 + s * 0.05 + (layer === 'proteomics' ? 2 : 0);
+          values[layer].push(String(base + slopeByCondition[condition] * time));
+        }
+      }
+    }
+  }
+
+  const meta = csvFile('multigroup_longitudinal_metadata.csv', rows.join('\n'));
+  const rna = csvFile('multigroup_longitudinal_rna.csv', [headers.transcriptomics.join(','), values.transcriptomics.join(',')].join('\n'));
+  const protein = csvFile('multigroup_longitudinal_protein.csv', [headers.proteomics.join(','), values.proteomics.join(',')].join('\n'));
+  const metaParsed = parseDelimited(await meta.text());
+
+  const multiLong = await runDeterministicAnalysis({
+    files: { metadata: meta, transcriptomics: rna, proteomics: protein, metabolomics: null },
+    metadataRows: metaParsed.rows,
+    columnMapping: mapping,
+    protocol: {
+      organism:'human', objective:'time', longitudinal:true, designType:'repeated',
+      studySetting:'synthetic_test', groupCount:'3', sampleOverlap:'same_specimen'
+    },
+    dataTypes: { transcriptomics:'log_expression', proteomics:'log_intensity', metabolomics:'concentration' },
+    useReactome:false,
+    resolveIdentifiers:false
+  });
+
+  assert.equal(multiLong.layers.transcriptomics.mode, 'random-intercept-longitudinal-omnibus');
+  assert.deepEqual(multiLong.layers.transcriptomics.groupSizes, [5,5,5]);
+  assert.match(multiLong.layers.transcriptomics.contrast, /omnibus condition × time interaction across 3 groups/);
+  const row = multiLong.layers.transcriptomics.rows.find((item) => item.feature === 'MULTI_SLOPE_GENE');
+  assert.ok(row);
+  assert.ok(Number.isFinite(row.statistic));
+  assert.ok(Number.isFinite(row.pValue));
+  assert.deepEqual(Object.keys(row.groupSlopes), ['control','treatmentA','treatmentB']);
+  assert.ok(row.effect > 2);
+}
+
 // High-dimensional branch: >500 features must switch from permutations to analytic inference.
 {
   const rows = ['subject_id,sample_id,assay_id,omic,condition,timepoint'];
