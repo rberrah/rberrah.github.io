@@ -17,6 +17,13 @@ const aliases = {
   order: ['injection_order','run_order','injection_number','order'],
   replicate: ['technical_replicate','replicate','technical_rep']
 };
+const annotationKeys = new Set([
+  'mz','m_z','m_over_z','mass_to_charge','retention_time','rt','rt_min',
+  'retention_time_min','formula','molecular_formula','adduct','ion_mode',
+  'polarity','annotation','confidence','score','compound_name','ion_formula',
+  'charge','isotope','msms_score','library_match','identification_level',
+  'hmdb_id','chebi_id','kegg_id','pubchem_id','inchikey'
+]);
 const norm = (x)=>String(x??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 const find = (headers, keys) => headers.find((h)=>keys.includes(norm(h))) || null;
 const escapeCsv=(s)=>'"'+String(s??'').replace(/"/g,'""')+'"';
@@ -62,13 +69,10 @@ export function convertMsAucExport(text) {
     // standard peak-annotation columns (m/z, retention time, adduct...) so
     // they cannot accidentally masquerade as biological sample intensities.
     // Generic matrices without a recognized feature header are passed through.
-    if (!cols.feature) return {format:'matrix',matrixCsv:text,metadataCsv:null,features:null,assays:null};
-    const annotationColumns=new Set([
-      'mz','m_z','m_over_z','mass_to_charge','retention_time','rt','rt_min',
-      'retention_time_min','formula','molecular_formula','adduct',
-      'ion_mode','polarity','annotation','confidence','score','compound_name'
-    ]);
-    const sampleHeaders=heads.filter((header)=>header!==cols.feature&&!annotationColumns.has(norm(header)));
+    if (!cols.feature) return {format:'matrix',matrixCsv:text,metadataCsv:null,
+      annotationsCsv:null,annotationColumns:[],sourceColumns:heads,features:null,assays:null};
+    const annotationHeaders=heads.filter((header)=>header!==cols.feature&&annotationKeys.has(norm(header)));
+    const sampleHeaders=heads.filter((header)=>header!==cols.feature&&!annotationKeys.has(norm(header)));
     if (!sampleHeaders.length)throw new Error('MS AUC: no injection intensity columns were found in the wide peak table');
     const seen=new Set();
     const records=parsed.rows.map((row)=>{
@@ -78,8 +82,14 @@ export function convertMsAucExport(text) {
       seen.add(feature);
       return [feature,...sampleHeaders.map((header)=>parseArea(row[header])??'')];
     });
+    const annotationsCsv=annotationHeaders.length
+      ? csv(['feature_id',...annotationHeaders],
+          parsed.rows.map((row)=>[String(row[cols.feature]||'').trim(),
+            ...annotationHeaders.map((header)=>row[header]??'')]))
+      : null;
     return {format:'wide_ms_auc',matrixCsv:csv(['feature_id',...sampleHeaders],records),
-      metadataCsv:null,features:records.length,assays:sampleHeaders.length,
+      metadataCsv:null,annotationsCsv,annotationColumns:annotationHeaders,sourceColumns:heads,
+      features:records.length,assays:sampleHeaders.length,
       observed:records.reduce((n,row)=>n+row.slice(1).filter((v)=>v!=='').length,0),metadataGenerated:false};
   }
   if(!parsed.rows.length)throw new Error('MS AUC: export contains no observations');
@@ -102,10 +112,19 @@ export function convertMsAucExport(text) {
     feature,...assays.map((assay)=>vals.get(JSON.stringify([feature,assay]))??'')
   ]));
   const metadata=metadataRowsFromRecords(parsed.rows,cols);
+  // Keep analytical annotations independently of quantitative peak areas. For
+  // long-form data they remain injection-specific, not falsely merged by feature.
+  const annotationHeaders=heads.filter((header)=>annotationKeys.has(norm(header)));
+  const annotationsCsv=annotationHeaders.length
+    ? csv(['feature_id','assay_id',...annotationHeaders],
+        parsed.rows.map((row)=>[String(row[cols.feature]||'').trim(),
+          String(row[cols.assay]||'').trim(),...annotationHeaders.map((header)=>row[header]??'')]))
+    : null;
   const metadataCsv=metadata?csv(
     ['subject_id','sample_id','assay_id','omic','condition','timepoint','batch','technical_replicate','sample_type','injection_order'],
     metadata.map((m)=>Object.values(m))
   ):null;
-  return {format:'long_ms_auc',matrixCsv,metadataCsv,features:features.length,assays:assays.length,
+  return {format:'long_ms_auc',matrixCsv,metadataCsv,annotationsCsv,
+    annotationColumns:annotationHeaders,sourceColumns:heads,features:features.length,assays:assays.length,
     observed,missing,metadataGenerated:Boolean(metadata)};
 }
