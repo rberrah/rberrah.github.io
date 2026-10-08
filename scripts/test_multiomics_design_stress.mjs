@@ -10,9 +10,10 @@ const commonMapping={subject_id:'subject_id',sample_id:'sample_id',assay_id:'ass
 const valueTypes={transcriptomics:'raw_counts',proteomics:'log_intensity',metabolomics:'peak_area'};
 const seeded=(seed)=>{let state=seed>>>0;return ()=>((state=(Math.imul(1664525,state)+1013904223)>>>0)+0.5)/4294967296};
 const normal=(rng)=>Math.sqrt(-2*Math.log(Math.max(1e-15,rng()))) * Math.cos(2*Math.PI*rng());
-const matrixFile=(ids,values)=>new File([['feature_id',...ids].join(','),
+const matrixFile=(ids,values)=>new File([[
+  ['feature_id',...ids].join(','),
   ...values.map((valuesForFeature,j)=>['PROT_'+j,...valuesForFeature.map(v=>v.toFixed(8))].join(','))
-].join('\n'),'proteomics.csv',{type:'text/csv'});
+].join('\n')],'proteomics.csv',{type:'text/csv'});
 
 function independentFixture(seed,{planted=false,confounded=false}={}) {
   const rand=seeded(seed),subjects=40,features=16;
