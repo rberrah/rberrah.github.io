@@ -9,6 +9,15 @@ test('multi-omics presentation page links to the dedicated analysis tool', async
   await expect(toolLink).toHaveAttribute('href', /\/multiomics\/tool$/);
 });
 
+test('multi-omics tool states the raw-input support boundary', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  const boundary = page.getByTestId('input-support-boundary');
+  await expect(boundary).toBeVisible();
+  await expect(boundary).toContainText(/FASTQ\/BAM/i);
+  await expect(boundary).toContainText(/vendor/i);
+  await expect(boundary).toContainText(/mzML\/mzXML/i);
+});
+
 test('multi-omics presentation and tool switch to English', async ({ page }) => {
   await page.goto('/multiomics?lang=en');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze multiple omics');
