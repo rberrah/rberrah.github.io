@@ -7,6 +7,7 @@
   import { ArrowLeft, BookOpen, Copy, Download, Pause, Play, RotateCcw, StepForward } from '@lucide/svelte';
   import MolecularScene from './MolecularScene.svelte';
   import MolecularPlot from './MolecularPlot.svelte';
+  import LabDebrief from './LabDebrief.svelte';
   import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '$lib/labs/molecular.js';
   export let lab;
   const fundamentalLabs = [
@@ -15,7 +16,7 @@
     { id: 'absorption', number: '03', en: 'Oral absorption and bioavailability', fr: 'Absorption orale et biodisponibilite' },
     { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et decroissance' }
   ];
-  let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '';
+  let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '', learningMode = 'guided';
   let message = '', shared = '', loadError = '', animateParticles = true, raf = 0, last = 0, visible = true, animationArea;
   $: en = $language === 'en';
   $: config = molecularLabs[lab];
@@ -30,6 +31,25 @@
   $: unit = config?.unit === 'day' ? (en ? 'days' : 'jours') : 'h';
   $: massError = state ? Object.values(state.mass).reduce((sum, value) => sum + value, 0) - state.administered : 0;
   $: metric = state && valid ? config.metric?.(state, valid, time) ?? { label: { en: `AUC 0-${time.toFixed(1)} ${unit}`, fr: `AUC 0-${time.toFixed(1)} ${unit}` }, value: state.auc, unit: `mg·${config.unit}/L` } : null;
+  const focusParameters = { 'parent-metabolite': 'kmet', 'long-acting': 'krel', saturable: 'dose', enterohepatic: 'kempty', tmdd: 'dose', 'effect-compartment': 'ke0', 'pd-general': 'model', 'pd-oncology': 'resistance', 'pd-infectiology': 'tau', 'covariate-volume': 'weight', 'covariate-clearance': 'gfr' };
+  const applications = {
+    'parent-metabolite': app('If metabolite clearance falls, what happens to its exposure?', 'Si la clairance du métabolite diminue, que devient son exposition ?', ['It increases', 'It decreases'], ['Elle augmente', 'Elle diminue'], 0, 'Slower metabolite removal increases its exposure.', 'Une élimination plus lente du métabolite augmente son exposition.'),
+    'long-acting': app('A slower release mainly changes which feature?', 'Une libération plus lente modifie surtout quelle grandeur ?', ['The first peak', 'The administered dose'], ['Le premier pic', 'La dose administrée'], 0, 'Release controls the input profile, not the nominal dose.', "La libération contrôle le profil d'entrée, pas la dose nominale."),
+    saturable: app('Above Km, can dose proportionality be assumed?', 'Au-dessus de Km, peut-on supposer la proportionnalité à la dose ?', ['No', 'Yes'], ['Non', 'Oui'], 0, 'Saturation makes exposure increase more than proportionally.', "La saturation peut faire augmenter l'exposition plus que proportionnellement."),
+    enterohepatic: app('What can recirculation create on a concentration curve?', 'Que peut créer une recirculation sur la courbe de concentration ?', ['A secondary peak', 'An immediate zero concentration'], ['Un pic secondaire', 'Une concentration immédiatement nulle'], 0, 'Biliary release and reabsorption can generate secondary peaks.', 'La vidange biliaire et la réabsorption peuvent produire des pics secondaires.'),
+    tmdd: app('At target saturation, which pathway becomes relatively less important?', 'Quand la cible est saturée, quelle voie devient relativement moins importante ?', ['Target-mediated elimination', 'Linear elimination'], ['Élimination médiée par la cible', 'Élimination linéaire'], 0, 'The saturable target-mediated pathway contributes less to total clearance.', 'La voie saturable médiée par la cible contribue relativement moins à la clairance totale.'),
+    'effect-compartment': app('A smaller ke0 produces what pattern?', 'Un ke0 plus faible produit quel profil ?', ['A longer effect delay', 'No delay'], ["Un retard d'effet plus long", 'Aucun retard'], 0, 'Slower equilibration increases hysteresis and delays the effect peak.', "Un équilibrage plus lent augmente l'hystérèse et retarde le pic d'effet."),
+    'pd-general': app('Which plot reveals hysteresis most directly?', "Quel graphique révèle le plus directement l'hystérèse ?", ['Effect versus concentration', 'Dose versus time'], ['Effet en fonction de la concentration', 'Dose en fonction du temps'], 0, 'A loop in the effect-concentration plane shows temporal dissociation.', 'Une boucle effet-concentration montre la dissociation temporelle.'),
+    'pd-oncology': app('Does tumour shrinkage in this simulation prove a survival benefit?', 'La réduction tumorale simulée prouve-t-elle un bénéfice de survie ?', ['No', 'Yes'], ['Non', 'Oui'], 0, 'It is a model-conditional prediction, not causal proof.', "Il s'agit d'une prédiction conditionnelle au modèle, pas d'une preuve causale."),
+    'pd-infectiology': app('Is time above MIC for one profile a PTA?', "Le temps au-dessus de la CMI d'un profil est-il une PTA ?", ['No', 'Yes'], ['Non', 'Oui'], 0, 'PTA is the proportion of a population attaining a defined target.', 'La PTA est la proportion d’une population atteignant une cible définie.'),
+    'covariate-volume': app('At fixed amount, a larger volume gives what concentration?', 'À quantité fixe, un volume plus grand donne quelle concentration ?', ['Lower', 'Higher'], ['Plus faible', 'Plus élevée'], 0, 'C=A/V, so dilution lowers concentration.', 'C=A/V : la dilution diminue la concentration.'),
+    'covariate-clearance': app('At fixed dose, a higher renal clearance gives what AUC?', 'À dose fixe, une clairance rénale plus élevée donne quelle AUC ?', ['Lower', 'Higher'], ['Plus faible', 'Plus élevée'], 0, 'Under linear PK, AUC=Dose/CL.', 'Sous PK linéaire, AUC=Dose/CL.')
+  };
+  function app(enQuestion, frQuestion, enOptions, frOptions, answer, enFeedback, frFeedback) { return { question: { en: enQuestion, fr: frQuestion }, options: enOptions.map((value, index) => ({ en: value, fr: frOptions[index] })), answer, feedback: { en: enFeedback, fr: frFeedback } }; }
+  $: parameterEntries = Object.entries(config?.parameters ?? {});
+  $: focusParameter = focusParameters[lab] ?? parameterEntries[0]?.[0];
+  $: visibleParameters = learningMode === 'guided' ? parameterEntries.filter(([key]) => key === focusParameter) : parameterEntries;
+  $: lockedParameters = parameterEntries.filter(([key]) => key !== focusParameter);
 
   function reset(next = lab) {
     pause(); activeLab = next; const defaults = molecularLabs[next]?.defaults ?? {};
@@ -108,16 +128,20 @@
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
-      <div class="numbers">{#each Object.entries(config.parameters) as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{:else}<small></small>{/if}{#if rule.options}<select id={`molecular-${key}`} value={p[key]} on:change={event => change(key, event)}>{#each rule.options as option}<option value={option.value}>{en ? option.label.en : option.label.fr}</option>{/each}</select>{:else}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/>{/if}</label>{/each}</div>
+      <section class="question first"><strong>01 · {en ? 'Predict before changing a parameter' : 'Prédire avant de modifier un paramètre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== ''}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
+      <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="molecular-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="molecular-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
+      {#if learningMode === 'guided'}<p class="guided-note"><b>02 · {en ? 'Manipulate' : 'Manipuler'}</b> {en ? 'Change one mechanism, then observe both representations.' : 'Modifiez un seul mécanisme, puis observez les deux représentations.'}</p>{/if}
+      <div class="numbers" class:guided={learningMode === 'guided'}>{#each visibleParameters as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{:else}<small></small>{/if}{#if rule.options}<select id={`molecular-${key}`} value={p[key]} on:change={event => change(key, event)}>{#each rule.options as option}<option value={option.value}>{en ? option.label.en : option.label.fr}</option>{/each}</select>{:else}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/>{/if}</label>{/each}</div>
+      {#if learningMode === 'guided'}<details class="locked"><summary>{en ? 'Fixed parameters in discovery mode' : 'Paramètres fixés en mode découverte'}</summary><dl>{#each lockedParameters as [key, rule]}<div><dt>{en ? rule.label.en : rule.label.fr}</dt><dd>{p[key]} {rule.unit ?? ''}</dd></div>{/each}</dl></details>{/if}
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
       {#if config.referenceMode !== 'intrinsic'}
         <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer a la reference'}</label>
         <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modele comme reference'}</button>
         {#if compare}<details><summary>{en ? 'Reference parameters' : 'Parametres de reference'}</summary><dl>{#each Object.keys(config.defaults) as key}<div><dt>{en ? config.parameters[key].label.en : config.parameters[key].label.fr}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
       {/if}
-      <section class="question"><strong>{en ? 'Predict before changing a parameter' : 'Predire avant de modifier un parametre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== ''}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
     </aside>
     <div class="experiment">
+      {#if learningMode === 'guided'}<p class="stage"><b>03 · {en ? 'Observe' : 'Observer'}</b> {en ? 'Follow the mechanism and the curve, then compare the quantitative metrics.' : 'Suivez le mécanisme et la courbe, puis comparez les mesures quantitatives.'}</p>{/if}
       <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}><button class:active={mode === 'intuition'} aria-pressed={mode === 'intuition'} on:click={() => mode = 'intuition'}>Intuition</button><button class:active={mode === 'model'} aria-pressed={mode === 'model'} on:click={() => mode = 'model'}>{en ? 'Equations' : 'Equations'}</button></div>
       <div bind:this={animationArea}>
         {#if valid && state}
@@ -144,6 +168,8 @@
       </div>
       {#if valid && state}
         <div class:two={config.plotMode === 'primary'} class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div>{#if config.plotMode !== 'primary'}<div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div>{/if}<div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
+        <p id="molecular-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} ${unit}, primary concentration is ${state.c.toFixed(2)} mg/L and ${config.secondary.en.toLowerCase()} is ${state.secondary.toFixed(2)} ${config.secondaryUnit}.` : `À ${time.toFixed(1)} ${unit}, la concentration primaire vaut ${state.c.toFixed(2)} mg/L et ${config.secondary.fr.toLowerCase()} vaut ${state.secondary.toFixed(2)} ${config.secondaryUnit}.`}</p>
+        {#key lab}<LabDebrief {en} explanation={config.explanation} application={applications[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>
       {/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
@@ -168,14 +194,22 @@
   .experiment { min-width:0; padding:0 0 0 24px; }
   .parameter-head { display:flex; justify-content:space-between; gap:8px; margin-bottom:16px; font-size:14px; }.parameter-head span { color:var(--text-secondary); font-size:11px; }
   .numbers { display:grid; grid-template-columns:1fr 1fr; gap:10px; }.numbers label { min-width:0; color:var(--text-secondary); font-size:11px; }.numbers small { display:block; min-height:15px; color:var(--text-muted); }
+  .numbers.guided { grid-template-columns:1fr; }
   .numbers input, .numbers select { width:100%; box-sizing:border-box; margin-top:4px; padding:7px; }
   button, input, select { font:inherit; letter-spacing:0; color:var(--text-primary); } input, select { border:1px solid var(--border-strong); border-radius:4px; background:var(--bg-primary); }
   select { padding:8px; } button { cursor:pointer; } button:disabled { cursor:default; opacity:.5; }
   button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline:3px solid var(--teal); outline-offset:3px; }
   .check { display:flex; align-items:center; gap:7px; margin:17px 0 10px; font-size:12px; }
+  .learning-mode { display:grid; grid-template-columns:1fr 1fr; margin:12px 0; border:1px solid var(--border-strong); border-radius:4px; }
+  .learning-mode button { padding:8px; border:0; background:transparent; color:var(--text-secondary); }
+  .learning-mode button.active { background:var(--text-primary); color:var(--bg-primary); font-weight:700; }
+  .guided-note, .stage { color:var(--text-secondary); font-size:12px; line-height:1.5; }
+  .guided-note b, .stage b { color:var(--teal); font-family:var(--font-mono); }
+  .locked { margin-bottom:14px; }
   .command { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:8px 11px; border:1px solid var(--border-strong); border-radius:4px; background:var(--bg-tertiary); }
   details { margin-top:14px; } summary { cursor:pointer; font-size:12px; } dl { margin:8px 0; } dl div { display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px solid var(--border-subtle); font-size:11px; } dt { color:var(--text-secondary); } dd { margin:0; font-family:var(--font-mono); }
   .question { margin-top:20px; padding-top:17px; border-top:1px solid var(--border-subtle); }.question strong { font-size:13px; }.question p { color:var(--text-secondary); font-size:12px; line-height:1.5; }.question select { width:100%; }.feedback { padding-left:9px; border-left:3px solid var(--warning); }.feedback.correct { border-left-color:var(--success); }
+  .question.first { margin-top:0; }
   .display-modes { display:flex; border-bottom:1px solid var(--border-strong); }.display-modes button { padding:13px 17px; border:0; border-bottom:3px solid transparent; background:none; color:var(--text-secondary); }.display-modes button.active { border-bottom-color:var(--teal); color:var(--text-primary); font-weight:700; }
   .visual-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; padding-top:14px; }
   .scene-panel, .curve-panel { min-width:0; }
@@ -189,6 +223,7 @@
   .exports { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }.shared-link { display:grid; gap:5px; margin-top:12px; font-size:11px; }.shared-link input { width:100%; box-sizing:border-box; padding:8px; }
   .error { color:var(--danger); font-size:12px; }
   .continuity { display:flex; gap:12px; margin-top:34px; padding:22px 0; border-top:1px solid var(--border-strong); }.continuity div { display:grid; gap:5px; }.continuity a { width:max-content; color:var(--accent-pk); }.continuity p { margin:3px 0 0; color:var(--text-secondary); font-size:11px; }
+  .sr-summary { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   @media(max-width:840px) { .heading { align-items:start; flex-direction:column; }.lab-selector { width:100%; min-width:0; }.lab-grid { grid-template-columns:1fr; }.parameters { padding:20px 0; border-right:0; border-bottom:1px solid var(--border-subtle); }.experiment { padding:0; }.numbers { grid-template-columns:repeat(3,minmax(0,1fr)); }.visual-grid { grid-template-columns:1fr; }.curve-panel { padding:16px 0 0; border-top:1px solid var(--border-subtle); border-left:0; }.plot-legend { min-height:0; margin:10px 0 4px; } }
   @media(max-width:560px) { .heading h1 { font-size:27px; }.numbers { grid-template-columns:1fr 1fr; }.metrics { grid-template-columns:1fr; }.metrics div { border-right:0; border-bottom:1px solid var(--border-subtle); }.timebar { gap:6px; }.time-input input { width:64px; } }
 </style>

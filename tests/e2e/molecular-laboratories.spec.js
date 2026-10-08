@@ -18,6 +18,7 @@ async function open(page, lab, language = 'en') {
   await expect(page.getByTestId('molecular-scene')).toBeVisible();
   await expect(page.getByTestId('molecular-plot')).toBeVisible();
   await page.waitForFunction(() => document.querySelector('[data-testid="molecular-scene"]')?.width > 100);
+  await page.getByTestId('molecular-learning-free').click();
 }
 
 async function coloredPixels(canvas) {
@@ -42,6 +43,18 @@ async function dragDirectControl(page, xFraction, yFraction) {
   await page.mouse.move(box.x + (axis === 'vertical' ? startX : box.width * xFraction), box.y + (axis === 'horizontal' ? startY : box.height * yFraction), { steps: 8 });
   await page.mouse.up();
 }
+
+test('molecular discovery mode exposes one mechanism before free exploration', async ({ page }) => {
+  await page.goto(url('/laboratoires/?lang=en&lab=pd-general'));
+  await expect(page.getByTestId('molecular-laboratory')).toBeVisible({ timeout: 45000 });
+  await expect(page.getByTestId('molecular-learning-guided')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.numbers input:visible, .numbers select:visible')).toHaveCount(1);
+  await expect(page.locator('#molecular-model')).toBeVisible();
+  await page.getByTestId('molecular-learning-free').click();
+  expect(await page.locator('.numbers input:visible, .numbers select:visible').count()).toBeGreaterThan(1);
+  await page.getByRole('button', { name: 'Show the scientific debrief' }).click();
+  await expect(page.locator('.debrief')).toBeVisible();
+});
 
 test('all eleven animated journeys render a nonblank model', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });

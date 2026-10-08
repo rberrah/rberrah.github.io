@@ -8,6 +8,7 @@ async function open(page,lab) {
   await page.goto(`${origin}/laboratoires/?lang=en&lab=${lab}#lab=${lab}`);
   await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready','true',{timeout:45000});
   await expect(page.getByTestId('lab-scene')).toBeVisible();
+  await page.getByTestId('lab-learning-free').click();
 }
 async function checksum(canvas,region) {
   return canvas.evaluate((node,box)=>{

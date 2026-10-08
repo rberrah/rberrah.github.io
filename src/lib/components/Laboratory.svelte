@@ -9,8 +9,9 @@
   import { prepareHandoff } from '$lib/labs/handoff.js';
   import LabScene from './LabScene.svelte';
   import LabPlot from './LabPlot.svelte';
+  import LabDebrief from './LabDebrief.svelte';
   let lab = 'distribution', p = { ...defaults.distribution }, reference = { ...p };
-  let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition';
+  let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition', learningMode = 'guided';
   let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '';
   let root, animationArea, raf = 0, last = 0, visible = true, ready = false;
   let animateParticles = true;
@@ -27,10 +28,24 @@
   $: a = valid ? series(lab, reference, end) : [];
   $: names = { dose: 'Dose (mg)', cl: 'CL (L/h)', vc: lab === 'distribution' ? 'Vc (L)' : 'V (L)', q: 'Q (L/h)', vp: 'Vp (L)', tau: en ? 'Interval (h)' : 'Intervalle (h)', count: en ? 'Number of doses' : 'Nombre de doses', loading: en ? 'First dose multiplier' : 'Multiplicateur premiere dose', end: 'Horizon (h)', ka: 'ka (1/h)', f: 'F (0-1)', duration: en ? 'Infusion duration (h)' : 'Durée de perfusion (h)' };
   $: fields = lab === 'distribution' ? ['dose', 'cl', 'vc', 'q', 'vp', 'end'] : lab === 'absorption' ? ['dose', 'cl', 'vc', 'ka', 'f', 'end'] : lab === 'infusion' ? ['dose', 'cl', 'vc', 'duration', 'end'] : ['dose', 'cl', 'vc', 'tau', 'count', 'loading', 'end'];
+  $: focus = ({ distribution: 'q', accumulation: 'tau', absorption: 'f', infusion: 'duration' })[lab];
+  $: visibleFields = learningMode === 'guided' ? fields.filter(key => key === focus) : fields;
+  $: lockedFields = fields.filter(key => key !== focus);
   $: landmarks = valid && newLab ? singleDoseSummary(lab, valid) : null;
   $: quantities = [['central', 'Central (mg)'], ...(lab === 'absorption' ? [['depot', en ? 'Oral depot (mg)' : 'Dépôt oral (mg)'], ['lost', en ? 'Presystemic loss (mg)' : 'Perte présystémique (mg)']] : lab === 'infusion' ? [['reservoir', en ? 'Infusion bag (mg)' : 'Poche de perfusion (mg)']] : [['peripheral', en ? 'Peripheral (mg)' : 'Périphérique (mg)']]), ['eliminated', en ? 'Eliminated (mg)' : 'Éliminé (mg)'], ...(newLab ? [['inputRate', en ? 'Systemic input (mg/h)' : 'Entrée systémique (mg/h)']] : [['forward', 'Q Cc (mg/h)'], ['backward', 'Q Cp (mg/h)']]), ['eliminationRate', 'CL Cc (mg/h)']];
   $: question = lab === 'absorption' ? (en ? 'If F increases with ka, CL and V fixed, what happens to total exposure (AUC)?' : 'Si F augmente à ka, CL et V fixes, que devient l’exposition totale (AUC) ?') : (en ? 'For the same total dose, what happens to Cmax if the infusion takes longer?' : 'Pour une même dose totale, que devient Cmax si la perfusion dure plus longtemps ?');
   $: explanation = lab === 'absorption' ? (en ? 'AUC(0,infinity) = F * dose / CL. Increasing ka changes the timing and peak, not total exposure at fixed F.' : 'AUC(0,infini) = F * dose / CL. Augmenter ka change le pic et son horaire, pas l’exposition totale à F fixe.') : (en ? 'A longer infusion lowers the input rate and Cmax. Total AUC stays dose / CL; after stopping, concentration declines with half-life ln(2) * V / CL.' : 'Une perfusion plus longue diminue le débit et Cmax. L’AUC totale reste dose / CL ; après arrêt, la demi-vie est ln(2) * V / CL.');
+  $: debriefExplanation = {
+    en: lab === 'distribution' ? 'A higher Q accelerates early exchange with the peripheral compartment without becoming an elimination pathway.' : lab === 'accumulation' ? 'A shorter interval at the same dose increases dose rate and mean steady-state concentration; it also changes fluctuations.' : lab === 'absorption' ? 'AUC(0,infinity)=F×Dose/CL. At fixed F, changing ka shifts Cmax and Tmax but not complete exposure.' : 'A longer infusion lowers input rate and Cmax. Complete AUC remains Dose/CL under linear PK.',
+    fr: lab === 'distribution' ? "Un Q plus élevé accélère l'échange initial vers le compartiment périphérique sans devenir une voie d'élimination." : lab === 'accumulation' ? "Un intervalle plus court à dose identique augmente le débit de dose et la concentration moyenne à l'équilibre ; les fluctuations changent aussi." : lab === 'absorption' ? "AUC(0,infini)=F×Dose/CL. À F fixe, modifier ka déplace Cmax et Tmax sans changer l'exposition complète." : "Une perfusion plus longue diminue le débit d'entrée et Cmax. L'AUC complète reste Dose/CL sous PK linéaire."
+  };
+  const applicationByLab = {
+    distribution: application('If Vp increases at fixed Q, what happens to k21=Q/Vp?', 'Si Vp augmente à Q fixe, que devient k21=Q/Vp ?', ['It decreases', 'It increases'], ['Il diminue', 'Il augmente'], 0, 'The same Q divided by a larger peripheral volume gives a smaller return rate constant.', 'Le même Q divisé par un volume périphérique plus grand donne une constante de retour plus faible.'),
+    accumulation: application('Keeping the same daily dose but splitting it more often mainly changes what?', 'Garder la même dose quotidienne en la fractionnant davantage modifie surtout quoi ?', ['Fluctuations', 'Complete daily AUC'], ['Les fluctuations', "L'AUC quotidienne complète"], 0, 'Under linear PK, mean exposure is preserved while peaks and troughs change.', "Sous PK linéaire, l'exposition moyenne est conservée tandis que pics et résiduelles changent."),
+    absorption: application('At fixed F and CL, slower ka changes complete AUC how?', 'À F et CL fixes, comment un ka plus lent modifie-t-il l’AUC complète ?', ['It does not', 'It halves it'], ['Elle ne change pas', 'Elle est divisée par deux'], 0, 'Absorption rate changes timing, not complete exposure, under these assumptions.', "La vitesse d'absorption change la chronologie, pas l'exposition complète, sous ces hypothèses."),
+    infusion: application('At the same dose, a longer infusion changes complete AUC how?', 'À dose identique, comment une perfusion plus longue modifie-t-elle l’AUC complète ?', ['It does not', 'It doubles it'], ['Elle ne change pas', 'Elle double'], 0, 'Duration changes rate and peak; linear complete AUC remains Dose/CL.', "La durée modifie le débit et le pic ; l'AUC complète linéaire reste Dose/CL.")
+  };
+  function application(enQuestion, frQuestion, enOptions, frOptions, answer, enFeedback, frFeedback) { return { question: { en: enQuestion, fr: frQuestion }, options: enOptions.map((value, index) => ({ en: value, fr: frOptions[index] })), answer, feedback: { en: enFeedback, fr: frFeedback } }; }
   $: if (!teacher) hidden = false;
   $: if (hidden || !valid) pause();
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
@@ -109,22 +124,26 @@
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modèle actuel'}</strong><span>{route}</span></div>
-      <div class="numbers">{#each fields as key}<label for={`lab-${key}`}>{names[key]}<input id={`lab-${key}`} type="number" min={limits[key][0]} max={limits[key][1]} step={key === 'count' ? '1' : 'any'} value={p[key]} on:input={event => change(key, event)}/></label>{/each}</div>
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
       <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer à la référence'}</label>
       <button class="command" disabled={!valid} on:click={() => { reference = { ...valid }; }}><Copy size={17}/>{en ? 'Use this model as the new reference' : 'Prendre ce modèle comme nouvelle référence'}</button>
       {#if compare}<details><summary>{en ? 'Reference parameters' : 'Paramètres de la référence'}</summary><dl>{#each fields.filter(key => key !== 'end') as key}<div><dt>{names[key]}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
-      {#if newLab}<div class="question"><strong>{en ? 'Predict' : 'Prédire'}</strong><p>{question}</p>
+      {#if newLab}<div class="question"><strong>01 · {en ? 'Predict' : 'Prédire'}</strong><p>{question}</p>
         <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prédiction'}</option><option value="up">{en ? 'Higher' : 'Plus élevée'}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{en ? 'Lower' : 'Plus faible'}</option></select>
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
         {#if answer && !hidden}<p class="feedback" role="status">{prediction === (lab === 'absorption' ? 'up' : 'down') ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{explanation}</p>{/if}
-      </div>{:else}<div class="question"><strong>{en ? 'Predict' : 'Predire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "A dose d'entretien et clairance constantes, raccourcir l'intervalle change comment la concentration moyenne a l'equilibre ?")}</p>
+      </div>{:else}<div class="question"><strong>01 · {en ? 'Predict' : 'Prédire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "A dose d'entretien et clairance constantes, raccourcir l'intervalle change comment la concentration moyenne a l'equilibre ?")}</p>
         <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prediction'}</option><option value="up">{lab === 'distribution' ? (en ? 'Faster' : 'Plus rapide') : (en ? 'Higher' : 'Plus elevee')}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{lab === 'distribution' ? (en ? 'Slower' : 'Plus lente') : (en ? 'Lower' : 'Plus faible')}</option></select>
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Verifier la prediction'}</button>
         {#if answer && !hidden}<p class="feedback" role="status">{prediction === 'up' ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{lab === 'distribution' ? (en ? 'The initial outward transfer rises. Distribution is not elimination: drug can return from the peripheral compartment.' : "Le transfert sortant initial augmente. La distribution n'est pas une elimination : le medicament peut revenir du compartiment peripherique.") : (en ? 'The dose rate increases. For this linear model, Css,mean = dose / (CL * interval).' : 'Le debit de dose augmente. Pour ce modele lineaire, Cmoy,ss = dose / (CL * intervalle).')}</p>{/if}
       </div>{/if}
+      <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="lab-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="lab-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
+      {#if learningMode === 'guided'}<p class="guided-note"><b>02 · {en ? 'Manipulate' : 'Manipuler'}</b> {en ? 'Change the single highlighted mechanism.' : 'Modifiez uniquement le mécanisme mis en avant.'}</p>{/if}
+      <div class="numbers" class:guided={learningMode === 'guided'}>{#each visibleFields as key}<label for={`lab-${key}`}>{names[key]}<input id={`lab-${key}`} type="number" min={limits[key][0]} max={limits[key][1]} step={key === 'count' ? '1' : 'any'} value={p[key]} on:input={event => change(key, event)}/></label>{/each}</div>
+      {#if learningMode === 'guided'}<details class="locked"><summary>{en ? 'Fixed parameters in discovery mode' : 'Paramètres fixés en mode découverte'}</summary><dl>{#each lockedFields as key}<div><dt>{names[key]}</dt><dd>{p[key]}</dd></div>{/each}</dl></details>{/if}
     </aside>
     <div class="experiment">
+      {#if learningMode === 'guided'}<p class="stage"><b>03 · {en ? 'Observe' : 'Observer'}</b> {en ? 'Follow the animated mechanism and both concentration plots.' : 'Suivez le mécanisme animé et les deux courbes de concentration.'}</p>{/if}
       <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}>{#each [['intuition','Intuition'], ['model','Equations']] as [key,label]}<button class:active={mode === key} aria-pressed={mode === key} on:click={() => mode = key}>{label}</button>{/each}</div>
       <div bind:this={animationArea}>
       {#if valid && !hidden}
@@ -151,6 +170,8 @@
           <span>{en ? 'Terminal half-life' : 'Demi-vie terminale'} <b>{landmarks.terminalHalfLife.toFixed(2)} h</b></span>
         </div>{/if}
         <div class="metrics"><div><span>C(t) · mg/L</span><strong data-testid="lab-concentration">{state.c.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} h · mg.h/L</span><strong>{state.auc.toFixed(2)}</strong></div><div><span>{en ? 'Eliminated / given (mg)' : 'Elimine / administre (mg)'}</span><strong>{state.eliminated.toFixed(1)} / {state.administered.toFixed(0)}</strong></div></div>
+        <p id="lab-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} h, concentration is ${state.c.toFixed(2)} mg/L, AUC is ${state.auc.toFixed(2)} mg.h/L and ${state.eliminated.toFixed(1)} mg have been eliminated.` : `À ${time.toFixed(1)} h, la concentration vaut ${state.c.toFixed(2)} mg/L, l'AUC vaut ${state.auc.toFixed(2)} mg.h/L et ${state.eliminated.toFixed(1)} mg ont été éliminés.`}</p>
+        {#key lab}<LabDebrief {en} explanation={debriefExplanation} application={applicationByLab[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each quantities as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned administrations' : 'Administrations prévues'} · {route}</caption><thead><tr><th>h</th><th>mg</th>{#if lab === 'infusion'}<th>{en ? 'Duration (h)' : 'Durée (h)'}</th>{/if}</tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td>{#if lab === 'infusion'}<td>{dose.infusion}</td>{/if}</tr>{/each}</tbody></table></div></details>
       {/if}
       {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scenario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les resultats a l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Parametres synthetiques uniquement. L'apprenant peut reveler les resultats ; ce n'est pas un examen verrouille."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Reveler les resultats') : (en ? 'Hide results' : 'Masquer les resultats')}</button></section>{/if}
@@ -184,8 +205,15 @@
   .parameter-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 18px; }
   .parameter-head span { color: var(--text-secondary); font-size: 12px; }
   .numbers { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+  .numbers.guided { grid-template-columns: 1fr; }
   label { font-size: 12px; min-width: 0; } input[type=number], select, .shared-link input { width: 100%; min-width: 0; display: block; border: 1px solid var(--border-strong); border-radius: 4px; padding: 9px 8px; margin-top: 4px; color: var(--text-primary); background: var(--bg-tertiary); box-sizing: border-box; }
   .check { display: flex; align-items: center; gap: 7px; margin: 18px 0; font-size: 13px; }
+  .learning-mode { display:grid; grid-template-columns:1fr 1fr; margin:16px 0 10px; border:1px solid var(--border-strong); border-radius:4px; }
+  .learning-mode button { padding:8px; border:0; background:transparent; color:var(--text-secondary); }
+  .learning-mode button.active { background:var(--text-primary); color:var(--bg-primary); font-weight:700; }
+  .guided-note, .stage { color:var(--text-secondary); font-size:12px; line-height:1.5; }
+  .guided-note b, .stage b { color:var(--teal); font-family:var(--font-mono); }
+  .locked { margin-bottom:14px; }
   input[type=checkbox] { accent-color: var(--teal); }
   .command { display: inline-flex; gap: 8px; align-items: center; justify-content: center; min-height: 38px; padding: 8px 12px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); color: var(--text-primary); border-radius: 4px; font-size: 13px; white-space: normal; }
   .command :global(svg) { flex-shrink: 0; } .command:hover:not(:disabled) { border-color: var(--teal); }
@@ -213,6 +241,7 @@
   .hidden-scene { min-height: 285px; display: flex; gap: 12px; justify-content: center; align-items: center; background: var(--bg-secondary); }
   .error { color: var(--quiz-error-text); background: var(--quiz-error-bg); padding: 10px; font-size: 13px; }
   .continuity { border-top: 1px solid var(--border-strong); margin-top: 32px; padding-top: 10px; } .continuity a { font-size: 14px; }
+  .sr-summary { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   @media (max-width: 780px) { .lab-grid { grid-template-columns: 1fr; } .parameters { border-right: 0; padding: 16px 0; } .numbers { grid-template-columns: repeat(3,minmax(0,1fr)); } .experiment { padding: 0; } .question { margin-top: 16px; padding: 14px 0; } h1 { font-size: 26px; } .title-row { gap: 0; } .lab-tabs button { padding: 12px; } .metrics strong { font-size: 17px; } }
   @media (max-width: 400px) { .numbers { grid-template-columns: repeat(2,minmax(0,1fr)); } .metrics { grid-template-columns: 1fr; } .metrics div { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; } .timebar { gap: 5px; } .time-input { width: 80px; } }
 </style>

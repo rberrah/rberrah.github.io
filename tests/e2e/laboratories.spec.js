@@ -15,6 +15,7 @@ async function open(page, path) {
   await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready', 'true', { timeout: 45000 });
   await expect(page.getByTestId('lab-scene')).toBeVisible();
   await page.waitForFunction(() => document.querySelector('[data-testid="lab-scene"]')?.width > 100);
+  await page.getByTestId('lab-learning-free').click();
 }
 async function pixels(canvas) {
   return canvas.evaluate(node => {
@@ -24,6 +25,19 @@ async function pixels(canvas) {
     return { colored, sum };
   });
 }
+test('discovery mode guides prediction, one manipulation and debrief', async ({ page }) => {
+  await page.goto(url('/laboratoires/?lang=en&lab=distribution'));
+  await expect(page.getByTestId('laboratory')).toHaveAttribute('data-ready', 'true', { timeout: 45000 });
+  await expect(page.getByTestId('lab-learning-guided')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.numbers input:visible')).toHaveCount(1);
+  await expect(page.locator('#lab-q')).toBeVisible();
+  await expect(page.locator('#lab-cl')).toHaveCount(0);
+  await page.getByLabel('Your prediction').selectOption('0');
+  await page.getByRole('button', { name: 'Show the scientific debrief' }).click();
+  await expect(page.locator('.debrief')).toBeVisible();
+  await page.getByTestId('lab-learning-free').click();
+  await expect(page.locator('#lab-cl')).toBeVisible();
+});
 test('laboratory home exposes every molecular journey and course animations separately', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.goto(url('/laboratoires/?lang=en'));
@@ -116,6 +130,7 @@ test('teacher scenario reload, reveal and explicit exports', async ({ page }) =>
   const shared = await page.getByLabel('Synthetic scenario link').inputValue();
   expect(shared).toContain('hide=1'); expect(shared).not.toContain('code=');
   await page.goto(shared);
+  await page.getByTestId('lab-learning-free').click();
   await expect(page.locator('#lab-cl')).toHaveValue('9');
   await expect(page.getByTestId('lab-plot')).toHaveCount(0);
   await page.getByRole('button', { name: 'Reveal results', exact: true }).click();
