@@ -534,7 +534,7 @@
           : file;
         const shouldUpdateMetadata = converted.metadataCsv && (!files.metadata || msAutoMetadata);
         const autoMeta = shouldUpdateMetadata
-          ? new File([converted.metadataCsv], 'metadata_from_ms_auc.csv', { type:'text/csv' }) : null;
+          ? new File([converted.metadataCsv || ''], 'metadata_from_ms_auc.csv', { type:'text/csv' }) : null;
         files = { ...files, metabolomics: matrix, ...(autoMeta ? { metadata: autoMeta } : {}) };
         if (autoMeta) {
           msAutoMetadata = true;
