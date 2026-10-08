@@ -27,6 +27,7 @@ test('RNA, proteomics and metabolomics can each be analysed without fake second 
 
 test('MS import preserves vendor annotation fields and distinguishes features from identified compounds', async ({page})=>{
   await page.goto('/multiomics/tool');
+  await page.waitForLoadState('networkidle');
   const rows=['feature_id,assay_id,auc,mz,rt,adduct,condition,subject_id,sample_id'];
   for(let i=0;i<8;i++){
     for(const [feature,mz,rt,adduct,ctrl,treated] of [
