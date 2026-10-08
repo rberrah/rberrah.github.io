@@ -62,6 +62,6 @@ function enhanceResults(){
 injectStyles();
 ['#parse-data','#load-demo'].forEach(sel=>document.querySelector(sel)?.addEventListener('click',()=>queueMicrotask(syncOrientation)));
 document.querySelector('#analysis-mode')?.addEventListener('change',()=>queueMicrotask(syncOrientation));
-document.querySelector('#col-group')?.addEventListener?.('change',()=>queueMicrotask(syncOrientation));
+document.addEventListener('change',event=>{if(event.target?.id==='col-group')queueMicrotask(syncOrientation);if(event.target?.id==='cox-group1'&&document.querySelector('#results .result-card'))queueMicrotask(enhanceResults);});
 document.querySelector('#run-analysis')?.addEventListener('click',()=>queueMicrotask(enhanceResults));
 document.querySelector('[data-lang-toggle]')?.addEventListener('click',()=>setTimeout(()=>{syncOrientation();if(document.querySelector('#results .result-card'))enhanceResults();},0));
