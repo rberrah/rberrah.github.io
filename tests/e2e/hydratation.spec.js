@@ -43,6 +43,10 @@ test('« Commencer le cours » ouvre réellement le chapitre', async ({ page }) 
 
   await page.goto('/');
   await page.getByTestId('cta-start').click();
+  // The homepage CTA now opens the guided beginner pathway first, by design.
+  await expect(page).toHaveURL(/\/parcours\/start\//);
+  await expect(page.getByTestId('resume-track')).toBeVisible();
+  await page.getByTestId('resume-track').click();
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 
