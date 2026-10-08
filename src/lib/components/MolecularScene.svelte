@@ -66,7 +66,19 @@
   function pointerDown(event) {
     const control = controlGeometry(), point = eventPoint(event);
     if (!nearControl(point, control)) return;
-    dragging = control.key; hovered = true; canvas.setPointerCapture?.(event.pointerId); setDirectValue(event, control); event.preventDefault();
+    // A focused numeric input can cause browser scroll anchoring while the
+    // simulation rerenders. This would move the canvas under the pointer and
+    // turn a vertical MIC drag into a spurious change to the minimum value.
+    if (document.activeElement instanceof HTMLElement && document.activeElement !== canvas) {
+      document.activeElement.blur();
+    }
+    dragging = control.key;
+    hovered = true;
+    lastDirectValue = p[control.key];
+    canvas.setPointerCapture?.(event.pointerId);
+    // A press on the existing handle is not an instruction to change value.
+    // Only actual motion along the control track should update the model.
+    event.preventDefault();
   }
   function pointerMove(event) {
     const control = controlGeometry();
