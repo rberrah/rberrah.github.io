@@ -1461,6 +1461,13 @@
     <p>{t('Cela évite d’interpréter à tort les mêmes nombres comme counts bruts, intensités normalisées ou concentrations absolues.', 'This prevents the same numbers from being interpreted incorrectly as raw counts, normalised intensities or absolute concentrations.')}</p>
   </div>
 
+  <div class="api-summary" data-testid="input-support-boundary">
+    <span><strong>RNA</strong> {t('matrice de counts/TPM/expression : oui · FASTQ/BAM : prétraitement amont requis', 'counts/TPM/expression matrix: yes · FASTQ/BAM: upstream preprocessing required')}</span>
+    <span><strong>{t('Protéines', 'Proteins')}</strong> {t('matrice LFQ/TMT/DIA/spectral counts : oui · fichiers MS vendor : quantification amont requise', 'LFQ/TMT/DIA/spectral-count matrix: yes · vendor MS files: upstream quantification required')}</span>
+    <span><strong>{t('Métabolites', 'Metabolites')}</strong> {t('matrice : oui · mzML/mzXML : pipeline xcms local disponible · fichiers vendor : conversion mzML requise', 'matrix: yes · mzML/mzXML: local xcms pipeline available · vendor files: mzML conversion required')}</span>
+  </div>
+  <p class="note">{t('L’outil n’étiquette jamais FASTQ/BAM ou fichiers protéomiques bruts comme « analysés » : il attend les sorties quantitatives des pipelines spécialisés. La seule branche brute intégrée actuellement est la LC/GC-MS ouverte via xcms.', 'The tool never labels FASTQ/BAM or raw proteomics files as “analysed”: it expects quantitative outputs from specialised upstream pipelines. The only integrated raw-data branch currently is open-format LC/GC-MS through xcms.')}</p>
+
   <div class="omics-question-grid">
     <article>
       <h3>{t('Transcriptomique', 'Transcriptomics')}</h3>
