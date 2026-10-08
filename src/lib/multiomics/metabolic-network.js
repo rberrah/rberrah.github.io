@@ -77,7 +77,7 @@ const metaboliteRecords = [
   ['succinylcoa','Succinyl-CoA','Succinyl-CoA','','succinyl-coa'],
   ['deltaala','Acide δ-aminolévulinique','5-aminolevulinic acid','','5-aminolevulinic acid|delta-ala'],
   ['glutamine','L-glutamine','L-glutamine','CHEBI:18050','l-glutamine|glutamine'],
-  ['glutamate','L-glutamate','L-glutamate','CHEBI:29985','l-glutamate|glutamate'],
+  ['glutamate','L-glutamate (1−)','L-glutamate (1−)','CHEBI:29985','l-glutamate|glutamate'],
   ['aspartate','L-aspartate','L-aspartate','CHEBI:29993','l-aspartate|aspartate'],
   ['asparagine','L-asparagine','L-asparagine','CHEBI:17196','l-asparagine|asparagine'],
   ['lactate','Lactate (anion)','Lactate (anion)','CHEBI:24996','lactate'],
