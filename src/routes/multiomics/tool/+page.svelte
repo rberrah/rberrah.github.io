@@ -2,6 +2,8 @@
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
+  import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
+  import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -911,6 +913,24 @@
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
         analysisResult = { ...analysisResult, referenceBackend };
+      }
+
+      try {
+        analysisResult.visualizations = await buildMultiomicsVisualizationData({
+          files,
+          metadataRows,
+          columnMapping,
+          dataTypes: {
+            transcriptomics: transcriptomicsValues,
+            proteomics: proteomicsValues,
+            metabolomics: metabolomicsValues
+          },
+          analysisResult
+        });
+      } catch (visualizationError) {
+        analysisResult.visualizationError = visualizationError instanceof Error
+          ? visualizationError.message
+          : 'Visualization preparation failed.';
       }
       analysisStatus = 'done';
     } catch (error) {
@@ -1899,6 +1919,12 @@
     <article><span>{t('Conditions', 'Conditions')}</span><strong>{analysisResult.metadataSummary.conditions.join(' / ') || '—'}</strong></article>
     <article><span>{t('Temps', 'Time points')}</span><strong>{analysisResult.metadataSummary.timepoints.join(' / ') || '—'}</strong></article>
   </div>
+
+  {#if analysisResult.visualizations}
+    <MultiomicsVisualizations result={analysisResult} language={$language} />
+  {:else if analysisResult.visualizationError}
+    <p class="note">{t('Les résultats statistiques sont disponibles, mais la préparation des visualisations a échoué : ', 'Statistical results are available, but visualization preparation failed: ')}{analysisResult.visualizationError}</p>
+  {/if}
 
   {#if analysisResult.metadataSummary.overlap?.pairwise?.length}
     <div class="overlap-box">
