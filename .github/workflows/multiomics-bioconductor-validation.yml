@@ -4,6 +4,11 @@ name: Multi-omics full Bioconductor reference benchmark
 # deliberately separate from the fast syntax/contract smoke tests.
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/tests/bioconductor_reference_simulation.R'
+      - '.github/workflows/multiomics-bioconductor-validation.yml'
   schedule:
     - cron: '0 4 * * 1'
 
