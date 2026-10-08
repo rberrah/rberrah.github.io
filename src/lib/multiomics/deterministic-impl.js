@@ -6,7 +6,7 @@
 import * as core from './deterministic-core.js';
 export * from './deterministic-core.js';
 
-const WRAPPER_ENGINE_VERSION = '1.7.0';
+const WRAPPER_ENGINE_VERSION = '1.8.0';
 const CHEBI_SEARCH_HOST = 'www.ebi.ac.uk';
 const CHEBI_SEARCH_PATH = '/chebi/backend/api/public/es_search/';
 const UNICHEM_BASE = 'https://www.ebi.ac.uk/unichem/rest/src_compound_id/';
