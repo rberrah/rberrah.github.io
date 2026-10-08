@@ -6,6 +6,7 @@ on:
     paths:
       - 'src/lib/multiomics/**'
       - 'src/lib/components/Multiomics*.svelte'
+      - 'src/lib/components/FocusedMetabolicNetwork.svelte'
       - 'src/lib/components/ExternalValidationPanel.svelte'
       - 'src/routes/multiomics/**'
       - 'multiomics-engine/**'
@@ -21,6 +22,7 @@ on:
     paths:
       - 'src/lib/multiomics/**'
       - 'src/lib/components/Multiomics*.svelte'
+      - 'src/lib/components/FocusedMetabolicNetwork.svelte'
       - 'src/lib/components/ExternalValidationPanel.svelte'
       - 'src/routes/multiomics/**'
       - 'multiomics-engine/**'
