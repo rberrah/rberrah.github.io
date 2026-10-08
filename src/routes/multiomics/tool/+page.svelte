@@ -1641,6 +1641,8 @@
         <a class="btn btn-outline" href={`${base}/multiomics/transcriptomics_template.csv`} download>{t('Template matrice RNA', 'RNA matrix template')}</a>
         <a class="btn btn-outline" href={`${base}/multiomics/proteomics_template.csv`} download>{t('Template matrice protéines', 'Protein matrix template')}</a>
         <a class="btn btn-outline" href={`${base}/multiomics/metabolomics_template.csv`} download>{t('Template matrice métabolites', 'Metabolite matrix template')}</a>
+        <a class="btn btn-outline" data-testid="raw-ms-manifest-template" href={`${base}/multiomics/templates/raw_ms_manifest.csv`} download>{t('Template MS brute', 'Raw MS manifest')}</a>
+        <a class="btn btn-outline" data-testid="external-validation-template" href={`${base}/multiomics/templates/external_validation_predictions_binary.csv`} download>{t('Template validation externe', 'External validation template')}</a>
       </div>
     </div>
 
@@ -1655,6 +1657,32 @@
         <a href={`${base}/multiomics/demo_proteomics.csv`} download>{t('protéines', 'protein')}</a>
         <a href={`${base}/multiomics/demo_metabolomics.csv`} download>{t('métabolites', 'metabolites')}</a>
       </div>
+    </div>
+  </div>
+
+  <div class="contract" data-testid="advanced-workflows">
+    <div class="demo-card">
+      <p class="eyebrow">{t('Workflow avancé · données MS brutes', 'Advanced workflow · raw MS data')}</p>
+      <h3>{t('mzML / mzXML → matrice de features via xcms', 'mzML / mzXML → feature matrix with xcms')}</h3>
+      <p>{t('Le navigateur n’essaie pas de traiter directement les fichiers vendor. Convertissez Thermo/Waters/Agilent/Bruker en mzML avec ProteoWizard, puis exécutez le pipeline local R : détection centWave, alignement obiwarp, groupement, gap filling et matrice d’aires de pics. Cette étape crée des features m/z–RT ; elle n’identifie pas les métabolites.', 'The browser does not pretend to process vendor files directly. Convert Thermo/Waters/Agilent/Bruker files to mzML with ProteoWizard, then run the local R pipeline: centWave peak picking, obiwarp retention-time alignment, grouping, gap filling and peak-area matrix. This creates m/z–RT features; it does not identify metabolites.')}</p>
+      <div class="actions">
+        <a class="btn btn-outline" href={`${base}/multiomics/templates/raw_ms_manifest.csv`} download>{t('Manifeste exemple', 'Example manifest')}</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/templates/raw_ms_parameters.json`} download>{t('Paramètres xcms', 'xcms parameters')}</a>
+      </div>
+      <p class="note"><code>Rscript multiomics-engine/run_raw_ms.R --manifest raw_ms_manifest.csv --parameters raw_ms_parameters.json --output raw_ms_output</code></p>
+      <p class="note">{t('La matrice metabolomics_peak_area.csv obtenue revient ensuite dans l’étape d’import ci-dessous, avec sample_type et injection_order pour le QC blank / pooled-QC / dérive.', 'The resulting metabolomics_peak_area.csv then enters the upload step below, together with sample_type and injection_order for blank / pooled-QC / drift QC.')}</p>
+    </div>
+
+    <div class="demo-card">
+      <p class="eyebrow">{t('Workflow avancé · validation externe', 'Advanced workflow · external validation')}</p>
+      <h3>{t('Évaluer un modèle figé sur une cohorte indépendante', 'Evaluate a frozen model on an independent cohort')}</h3>
+      <p>{t('La validation externe est volontairement séparée de l’entraînement : aucune sélection de variable, aucun tuning et aucun ré-entraînement ne sont autorisés sur la cohorte de validation. L’outil calcule les métriques adaptées au type de critère et un bootstrap déterministe lorsque c’est estimable.', 'External validation is deliberately separated from training: no feature selection, tuning or refitting is allowed on the validation cohort. The validator computes outcome-specific metrics and a deterministic bootstrap when estimable.')}</p>
+      <div class="actions">
+        <a class="btn btn-outline" href={`${base}/multiomics/templates/external_validation_predictions_binary.csv`} download>{t('Prédictions exemple', 'Example predictions')}</a>
+        <a class="btn btn-outline" href={`${base}/multiomics/templates/external_validation_binary.json`} download>{t('Configuration', 'Configuration')}</a>
+      </div>
+      <p class="note"><code>Rscript multiomics-engine/run_external_validation.R --predictions external_validation_predictions_binary.csv --config external_validation_binary.json --output external_validation_result.json</code></p>
+      <p class="note">{t('Le logiciel n’emploie le terme « validation externe » que si l’indépendance de la cohorte est explicitement déclarée ; cette indépendance doit rester documentée par la provenance de l’étude.', 'The software uses the term “external validation” only when cohort independence is explicitly asserted; that independence must still be documented by study provenance.')}</p>
     </div>
   </div>
 
