@@ -553,7 +553,7 @@ function csvFile(name, text) {
 
   for (const condition of Object.keys(slopeByCondition)) {
     for (let s = 1; s <= 5; s += 1) {
-      const subject = condition.slice(0,2).toUpperCase() + s;
+      const subject = (condition === 'control' ? 'C' : condition === 'treatmentA' ? 'A' : 'B') + s;
       for (const time of [0,6,12]) {
         for (const layer of ['transcriptomics','proteomics']) {
           const sample = `${subject}_T${time}`;
