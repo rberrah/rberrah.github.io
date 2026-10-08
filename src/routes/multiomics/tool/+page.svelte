@@ -97,6 +97,8 @@
   let msImportFormat = '';
   /** @type {File|null} */
   let msUserAnnotationFile = null;
+  let confirmIndependentAssays = false;
+  let exploratorySheetGenerated = false;
   /** @type {{feature:string,chebi:string,status:string,provenance:string}[]} */
   let metaboliteAnnotations = [];
   let annotationFileName = '';
@@ -536,6 +538,10 @@
     analysisResult = null;
     analysisStatus = 'idle';
     analysisError = '';
+    if (layer !== 'metadata') {
+      confirmIndependentAssays = false;
+      exploratorySheetGenerated = false;
+    }
     if (layer === 'metabolomics') {
       msOriginalFile = file;
       msAnnotationCsv = '';
@@ -545,6 +551,7 @@
     }
     if (layer === 'metadata') {
       msAutoMetadata = false;
+      exploratorySheetGenerated = false;
       files = { ...files, metadata: file };
       await inspectMetadata(file);
     } else if (layer === 'metabolomics' && file) {
@@ -664,6 +671,8 @@
       metabolomics: loaded.metabolomics
     };
     studyName = onlyLayer ? 'Demo — single ' + onlyLayer : 'Demo — treatment × time';
+    confirmIndependentAssays = false;
+    exploratorySheetGenerated = false;
     msOriginalFile = null;
     msAnnotationCsv = '';
     msAnnotationFields = [];
@@ -986,6 +995,33 @@
   }
 
   /** @param {File | null} file */
+  async function generateSingleOmicExploratorySheet() {
+    if (!confirmIndependentAssays || objective !== 'explore' || omicsCount !== 1 || files.metadata)
+      return;
+    const layer = omicLayers.find((key) => Boolean(files[key]));
+    if (!layer) return;
+    const assays = matrixInfo[layer].sampleIds;
+    if (!assays.length || assays.some((id) => !id) || new Set(assays).size !== assays.length) {
+      analysisError = t('Colonnes de mesures absentes ou dupliquées. Corrigez le fichier avant la création du tableau.', 'Missing or duplicate assay IDs. Correct the matrix before creating a sample sheet.');
+      return;
+    }
+    const header = ['subject_id','sample_id','assay_id','omic','condition','timepoint','batch','technical_replicate'];
+    const quote = (/** @type {unknown} */ value) => '"' + String(value ?? '').replaceAll('"','""') + '"';
+    const text = [header.map(quote).join(','), ...assays.map((assay) =>
+      [assay,assay,assay,layer,'','T0','', '1'].map(quote).join(','))].join('\n') + '\n';
+    const file = new File([text], 'exploratory_sample_sheet_generated.csv', {type:'text/csv'});
+    files = {...files,metadata:file};
+    msAutoMetadata = false;
+    exploratorySheetGenerated = true;
+    designType = 'independent';
+    longitudinal = 'no';
+    paired = 'no';
+    timepointCount = '1';
+    groupCount = '1';
+    outcomeType = 'none';
+    await inspectMetadata(file);
+  }
+
   async function sha256OfFile(file) {
     if (!file || !globalThis.crypto?.subtle) return null;
     try {
@@ -2093,11 +2129,11 @@
 
     <label class:loaded={files.metabolomics}>
       <strong>{t('Métabolomique', 'Metabolomics')}</strong>
-      <span>{t('Aires de pics (AUC) LC-MS / GC-MS : matrice ou export long avec molécule, échantillon et AUC', 'LC-MS / GC-MS peak areas (AUC): matrix or long export with feature, sample and AUC')}</span>
+      <span>{t('Aires de pics (AUC) LC-MS / GC-MS : matrice ou export long avec signal, injection et aire', 'LC-MS / GC-MS peak areas (AUC): matrix or long export with feature, injection and area')}</span>
       <input type="file" data-testid="multiomics-ms-auc-upload" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
       <a href={`${base}/multiomics/ms_peak_areas_example.csv`} download>{t('Exemple CSV AUC (données fictives)', 'Example AUC CSV (illustrative synthetic data)')}</a>
-      <small>{t('AUC = aire intégrée du pic chromatographique, non AUC pharmacocinétique. Exportez le CSV/TSV du logiciel MS. Une ligne par molécule et injection, avec colonnes feature_id, assay_id, auc, condition, ou une matrice molécules × injections.', 'AUC = integrated chromatographic peak area, not pharmacokinetic AUC. Export CSV/TSV from your MS software. Use feature_id, assay_id, auc, condition columns or a features × injections matrix.')}</small>
+      <small>{t('AUC = aire intégrée du pic chromatographique, non AUC pharmacocinétique. Exportez un CSV/TSV avec une ligne par signal et injection (feature_id, assay_id, auc), ou une matrice signaux × injections. Une aire de pic n’identifie pas à elle seule une molécule.', 'AUC = chromatographic peak area, not pharmacokinetic exposure AUC. Export a CSV/TSV with one feature and injection per row (feature_id, assay_id, auc), or a feature × injection matrix. A peak area alone does not identify a molecule.')}</small>
     </label>
     <label class:loaded={annotationFileName}>
       <strong>{t('Annotations des pics MS (facultatif)', 'MS peak annotations (optional)')}</strong>
@@ -2111,6 +2147,22 @@
     </label>
   </div>
 
+  {#if singleOmic && !files.metadata && objective === 'explore'}
+    <div class="ms-import-message" data-testid="multiomics-single-sheet-helper">
+      <strong>{t('Exploration sans tableau d’échantillons ?', 'Exploring without a sample sheet?')}</strong>
+      <p>{t('Possible seulement si chaque colonne correspond à un sujet biologique différent, mesuré une seule fois. Aucun groupe ni réplicat ne sera deviné. Ce raccourci ne permet pas une comparaison de groupes ou une analyse temporelle.', 'Only if every matrix column is a different biological subject measured once. No group or replicate information is guessed. This shortcut cannot run group or longitudinal inference.')}</p>
+      <label>
+        <input type="checkbox" bind:checked={confirmIndependentAssays} />
+        {t('Je confirme : une colonne = un sujet biologique indépendant.', 'I confirm: one column = one independent biological subject.')}
+      </label>
+      <button type="button" class="btn btn-outline btn-small" disabled={!confirmIndependentAssays} data-testid="multiomics-generate-explore-metadata" onclick={generateSingleOmicExploratorySheet}>
+        {t('Créer le tableau minimal pour explorer', 'Create minimal exploratory sample sheet')}
+      </button>
+    </div>
+  {/if}
+  {#if exploratorySheetGenerated}
+    <p class="ms-import-message" data-testid="multiomics-generated-sheet-notice">{t('Tableau créé à partir de votre déclaration : identifiants conservés, aucun groupe inféré. Les résultats restent descriptifs.', 'Sample sheet created from your declaration: IDs preserved, no groups inferred. Results remain descriptive.')}</p>
+  {/if}
   {#if msImportMessage}<p class="ms-import-message" data-testid="multiomics-ms-auc-import-status">{msImportMessage}</p>{/if}
   {#if singleOmic}<p class="ms-import-message" data-testid="multiomics-single-omic-notice">{t('Mode omique unique : exploration, groupes, temps ou outcome selon votre plan. Aucune intégration inter-omique ne sera calculée.', 'Single-omics mode: exploration, groups, time or outcome, depending on the study. No cross-omics integration will be computed.')}</p>{/if}
   {#if msOriginalFile && msAnnotationCsv}
