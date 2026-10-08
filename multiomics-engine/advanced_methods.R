@@ -370,9 +370,15 @@ run_deseq2_counts <- function(
   if (length(common) < 3L) stop("At least three matched samples are required.", call. = FALSE)
   counts <- counts[common, , drop = FALSE]
   metadata <- metadata[common, , drop = FALSE]
+  if (any(!is.finite(counts)) || any(counts < 0) ||
+      any(abs(counts - round(counts)) > 1e-8)) {
+    stop("DESeq2 requires non-negative, finite, unnormalised integer counts. Do not silently round normalised or fractional abundances.", call. = FALSE)
+  }
+  design <- stats::model.matrix(design_formula, data=metadata)
+  if (qr(design)$rank < ncol(design)) stop("DESeq2 design is rank-deficient.", call. = FALSE)
 
   dds <- DESeq2::DESeqDataSetFromMatrix(
-    countData = round(t(counts)),
+    countData = t(counts),
     colData = metadata,
     design = design_formula
   )
@@ -416,7 +422,12 @@ run_edger_ql_counts <- function(
   design <- stats::model.matrix(design_formula, data = meta)
   if (qr(design)$rank < ncol(design)) stop("The edgeR design matrix is rank-deficient.", call. = FALSE)
 
-  y <- edgeR::DGEList(counts = round(t(x)))
+  if (any(!is.finite(x)) || any(x < 0)) {
+    stop("RNA-seq counts must be finite and non-negative.", call. = FALSE)
+  }
+  # edgeR and voom can process estimated fractional counts directly; never
+  # silently round them as that modifies the input and its mean/variance.
+  y <- edgeR::DGEList(counts = t(x))
   keep <- edgeR::filterByExpr(y, design = design)
   if (!any(keep)) stop("edgeR::filterByExpr removed all genes.", call. = FALSE)
   y <- y[keep, , keep.lib.sizes = FALSE]
@@ -458,7 +469,12 @@ run_voom_counts <- function(
   design <- stats::model.matrix(design_formula, data = meta)
   if (qr(design)$rank < ncol(design)) stop("The voom design matrix is rank-deficient.", call. = FALSE)
 
-  y <- edgeR::DGEList(counts = round(t(x)))
+  if (any(!is.finite(x)) || any(x < 0)) {
+    stop("RNA-seq counts must be finite and non-negative.", call. = FALSE)
+  }
+  # edgeR and voom can process estimated fractional counts directly; never
+  # silently round them as that modifies the input and its mean/variance.
+  y <- edgeR::DGEList(counts = t(x))
   keep <- edgeR::filterByExpr(y, design = design)
   if (!any(keep)) stop("edgeR::filterByExpr removed all genes.", call. = FALSE)
   y <- y[keep, , keep.lib.sizes = FALSE]
