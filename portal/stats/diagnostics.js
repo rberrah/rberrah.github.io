@@ -92,9 +92,11 @@ function injectStyles(){
 }
 
 function buildDiagnostics(){
-  const results=document.querySelector('#results');results?.querySelector('.diagnostic-section')?.remove();
+  const results=document.querySelector('#results'),mode=document.querySelector('#analysis-mode')?.value;
+  results?.querySelector('.diagnostic-section:not(.multivariable-diagnostics)')?.remove();
+  if(mode==='multivariable')return;
   if(!results?.querySelector('.result-card'))return;
-  const mode=document.querySelector('#analysis-mode')?.value,parsed=parseTable();if(!parsed)return;
+  const parsed=parseTable();if(!parsed)return;
   const diag=continuousResiduals(mode,parsed.rows);if(!diag)return;
   const qq=qqChart(diag.values);if(!qq)return;
   const residual=mode==='association'?residualChart(diag.points):'';
