@@ -77,6 +77,15 @@
 .mapping-grid label { display:grid; gap:.4rem; color:var(--ink-2); font-size:.78rem; font-weight:600; }
 .mapping-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; margin-top:.9rem; }
 .mapping-options label { display:grid; gap:.4rem; color:var(--ink-2); font-size:.78rem; font-weight:600; }
+.predictor-picker { grid-column:1/-1; margin:0; padding:.8rem .9rem; border:1px solid var(--line); border-radius:12px; background:color-mix(in srgb,var(--surface) 96%,var(--accent) 4%); }
+.predictor-picker legend { padding:0 .35rem; color:var(--ink); font-size:.78rem; font-weight:700; }
+.predictor-options { display:flex; flex-wrap:wrap; gap:.45rem .9rem; margin:.15rem 0 .45rem; }
+.predictor-picker .predictor-options label { display:flex; align-items:center; gap:.38rem; font-weight:600; }
+.predictor-picker input[type="checkbox"] { width:auto; accent-color:var(--accent); }
+.predictor-picker small { display:block; color:var(--muted); font-weight:400; line-height:1.45; }
+.multivariable-diagnostics { margin-top:1rem; }
+.multivariable-diagnostics > p { color:var(--muted); font-size:.84rem; line-height:1.5; }
+
 .results { margin-top:2rem; display:grid; gap:1rem; scroll-margin-top:90px; }
 .result-card { border:1px solid var(--border); background:var(--paper); }
 .result-card-head { display:flex; justify-content:space-between; gap:1rem; align-items:baseline; padding:1rem 1.2rem; border-bottom:1px solid var(--border); background:var(--surface); }
