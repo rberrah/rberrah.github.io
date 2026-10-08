@@ -64,21 +64,33 @@ const analyze=(fixture)=>runDeterministicAnalysis({
 
 const threshold=0.05,qThreshold=0.10;
 async function evaluateScenario(label,fixture,nullRuns,signalRuns,signals,pLimit,familyLimit) {
-  let pTotal=0,pSmall=0,families=0,hits=0,truthTotal=0;
+  const descriptive=label.includes('longitudinal');
+  let pTotal=0,pSmall=0,families=0,hits=0,truthTotal=0,modelsEvaluated=0;
   for(let k=0;k<nullRuns;k++) {
     const result=await analyze(fixture(10001+101*k));
     const rows=result.layers.proteomics.rows;
-    assert(rows.length>=(label.includes('longitudinal')?7:14),
+    assert(rows.length>=(descriptive?7:14),
       label+': too few null models ('+rows.length+') error='+JSON.stringify(result.layers.proteomics.error)
       +' modes='+JSON.stringify({mode:result.layers.proteomics.mode,
         nSubjects:result.metadataSummary?.subjects,groupSizes:result.layers.proteomics.groupSizes,
         selectedFeatures:result.layers.proteomics.selected?.length}));
-    pTotal+=rows.length;
+    modelsEvaluated+=rows.length;
     let any=false;
     for(const row of rows) {
-      if (!Number.isFinite(row.pValue)||!Number.isFinite(row.qValue)) throw Error(label+': invalid p/q');
-      if(row.pValue<threshold)pSmall++;
-      if(row.qValue<=qThreshold)any=true;
+      if(descriptive) {
+        // Uncalibrated GLS previously had 10% p<.05 under null (12/120).
+        // Refuse all inferential outputs, not just nominally significant ones.
+        assert.equal(row.pValue,null,label+': unsafe longitudinal p-value');
+        assert.equal(row.qValue,null,label+': unsafe longitudinal BH q');
+        assert.equal(row.ciLow,null,label+': unsafe longitudinal confidence interval');
+        assert.equal(row.ciHigh,null,label+': unsafe longitudinal confidence interval');
+        assert.equal(row.inferentialStatus,'uncalibrated_reference_R_required');
+      } else {
+        if (!Number.isFinite(row.pValue)||!Number.isFinite(row.qValue)) throw Error(label+': invalid p/q');
+        pTotal++;
+        if(row.pValue<threshold)pSmall++;
+        if(row.qValue<=qThreshold)any=true;
+      }
     }
     if(any)families++;
   }
@@ -88,14 +100,23 @@ async function evaluateScenario(label,fixture,nullRuns,signalRuns,signals,pLimit
     for(const row of rows){
       if(!signals.includes(row.feature))continue;
       truthTotal++;
-      if(row.qValue<=qThreshold && row.effect>0)hits++;
+      if(descriptive ? (row.effect>0.8 && row.pValue===null && row.qValue===null)
+        : (row.qValue<=qThreshold && row.effect>0)) hits++;
     }
   }
-  const nullRate=pSmall/pTotal, familyRate=families/nullRuns,power=hits/truthTotal;
-  assert(nullRate<=pLimit,`${label}: gross type-I inflation ${nullRate}`);
-  assert(familyRate<=familyLimit,`${label}: gross BH family inflation ${familyRate}`);
+  const nullRate=descriptive?null:pSmall/pTotal;
+  const familyRate=descriptive?null:families/nullRuns;
+  const power=hits/truthTotal;
+  if(!descriptive) {
+    assert(nullRate<=pLimit,`${label}: gross type-I inflation ${nullRate}`);
+    assert(familyRate<=familyLimit,`${label}: gross BH family inflation ${familyRate}`);
+  }
   assert(power>=0.55,`${label}: failed planted positive controls ${power}`);
-  return {label,nullRuns,pTotal,pSmall,nullRate,families,familyRate,signalRuns,truthTotal,hits,power};
+  return {label,
+    inferentialStatus:descriptive?'browser_p_q_ci_suppressed_pending_R_validation':'limited_null_calibration',
+    nullRuns,modelsEvaluated,pTotal:descriptive?null:pTotal,
+    pSmall:descriptive?null:pSmall,nullRate,families:descriptive?null:families,familyRate,
+    signalRuns,truthTotal,hits,power};
 }
 
 const adjusted=await evaluateScenario('heteroscedastic_balanced_batch',
