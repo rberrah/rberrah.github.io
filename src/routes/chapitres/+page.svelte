@@ -1,7 +1,7 @@
 <script>
   import { base } from '$app/paths';
   import chapters from '$lib/content/loadChapters';
-  import { tracks, chaptersByTrack, trackById } from '$lib/content/tracks';
+  import { beginnerTrack, tracks, chaptersByTrack, trackById } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
   import { localizeChapter, localizeTrack, ui } from '$lib/i18n/translations';
 
@@ -43,6 +43,18 @@
     {#if q}<span class="count" data-testid="search-count">{copy.chapters.searchResults(results.length)}</span>{/if}
   </div>
 </header>
+
+{#if !q}
+  {@const beginner = localizeTrack(beginnerTrack, $language)}
+  <section class="starter" style={`--track:${beginnerTrack.accent}`} data-testid="starter-track">
+    <div>
+      <span class="badge">{beginner.label}</span>
+      <h2>{beginner.title}</h2>
+      <p>{beginner.tagline}</p>
+    </div>
+    <a href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`}>{$language === 'en' ? 'Start the guided path' : 'Commencer le parcours guidé'}</a>
+  </section>
+{/if}
 
 {#if q}
   <!-- Résultats de recherche (à plat, tous parcours confondus) -->
@@ -104,6 +116,10 @@
   .search input:focus { outline: none; border-color: var(--accent-pk); box-shadow: 0 0 0 3px var(--focus-ring); }
   .count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap; }
   .track { margin-top: var(--space-12); border-top: 1px solid var(--border-subtle); padding-top: var(--space-6); }
+  .starter { display: flex; justify-content: space-between; align-items: center; gap: var(--space-6); margin: var(--space-8) 0 var(--space-12); padding: var(--space-6) 0; border-top: 3px solid var(--track); border-bottom: 1px solid var(--border-subtle); }
+  .starter h2 { margin: var(--space-2) 0; font-size: var(--text-2xl); }
+  .starter p { max-width: 68ch; margin: 0; color: var(--text-secondary); }
+  .starter > a { flex: 0 0 auto; padding: 10px 14px; border: 1px solid var(--track); border-radius: 4px; text-decoration: none; font-weight: 700; }
   .track-head { display: flex; align-items: center; gap: var(--space-3); }
   .badge { font-family: var(--font-mono); font-size: var(--text-xs); background: var(--track); color: #fff; padding: 2px 8px; border-radius: 4px; }
   .track-head h2 { margin: 0; font-size: var(--text-2xl); }
@@ -118,4 +134,5 @@
   .desc { color: var(--text-secondary); font-size: var(--text-sm); margin: 0 0 var(--space-3); }
   .meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-muted); }
   .empty { color: var(--text-muted); font-style: italic; margin-top: var(--space-6); }
+  @media (max-width: 680px) { .starter { align-items: flex-start; flex-direction: column; } }
 </style>

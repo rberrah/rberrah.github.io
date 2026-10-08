@@ -24,6 +24,8 @@
       ? { ...ex, q: ex.en.q, explain: ex.en.explain }
       : ex
   );
+  $: guided = activities.filter(activity => activity.kind !== 'synthesis');
+  $: syntheses = activities.filter(activity => activity.kind === 'synthesis');
 
   /** @type {{done:boolean,correct:boolean,input:string}[]} */
   let state = [];
@@ -50,13 +52,20 @@
 
 <div class="block">
   {#if heading}<h3 class="heading">{heading}</h3>{/if}
-  {#if activities.length && showGroupHeading}
+  {#if guided.length && showGroupHeading}
     <header class="group-heading">
       <span>{$language === 'en' ? 'Guided activities' : 'Activités guidées'}</span>
       <p>{$language === 'en' ? 'Multi-step cases combining calculation, interpretation and reasoning.' : 'Cas en plusieurs étapes combinant calcul, interprétation et raisonnement.'}</p>
     </header>
   {/if}
-  {#each activities as activity (activity.id)}<CaseExercise {activity}/>{/each}
+  {#each guided as activity (activity.id)}<CaseExercise {activity}/>{/each}
+  {#if syntheses.length && showGroupHeading}
+    <header class="group-heading synthesis">
+      <span>{$language === 'en' ? 'Synthesis case' : 'Cas de synthèse'}</span>
+      <p>{$language === 'en' ? 'A cumulative problem combining several lessons in one justified decision.' : 'Un problème cumulatif mobilisant plusieurs cours dans une décision argumentée.'}</p>
+    </header>
+  {/if}
+  {#each syntheses as activity (activity.id)}<CaseExercise {activity}/>{/each}
   {#if shown.length && showGroupHeading}
     <header class="group-heading calculations">
       <span>{$language === 'en' ? 'Calculations' : 'Calculs'}</span>
@@ -100,6 +109,7 @@
   .heading { font-size: var(--text-sm); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-pk); border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-2); margin: 0; }
   .group-heading { margin-top: var(--space-3); padding-bottom: var(--space-2); border-bottom: 2px solid var(--accent-ai); }
   .group-heading.calculations { margin-top: var(--space-6); border-color: var(--accent-pk); }
+  .group-heading.synthesis { margin-top: var(--space-6); border-color: #087b83; }
   .group-heading span, .exercise-type { font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
   .group-heading p { margin: 4px 0 0; color: var(--text-secondary); font-size: var(--text-sm); }
   .exercise-type { display: block; margin-bottom: var(--space-2); color: var(--accent-pk); }

@@ -2,13 +2,12 @@
   import { base } from '$app/paths';
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, GraduationCap, ArrowRight } from '@lucide/svelte';
   import chapters from '$lib/content/loadChapters';
-  import { tracks, chaptersByTrack } from '$lib/content/tracks';
+  import { beginnerTrack, tracks, chaptersByTrack } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
   import { localizeChapter, localizeTrack, ui } from '$lib/i18n/translations';
   import { AUTHOR, COURSE_NAME, jsonLdScript, LICENSE_URL, SITE_URL } from '$lib/site';
 
   const grouped = chaptersByTrack(chapters);
-  const firstCore = grouped.core[0];
   const coreCount = grouped.core.length;
   $: copy = ui($language);
   $: goals = [
@@ -54,9 +53,7 @@
   <h1>{copy.home.titlePrefix} <span class="hl">{copy.home.titleHighlight}</span> {copy.home.titleSuffix}</h1>
   <p class="lede">{copy.home.lede}</p>
   <div class="cta">
-    {#if firstCore}
-      <a class="btn btn-primary" href={`${base}/chapitres/${firstCore.slug}`} data-testid="cta-start">{copy.home.start}</a>
-    {/if}
+    <a class="btn btn-primary" href={`${base}/parcours/${beginnerTrack.id}/?lang=${$language}`} data-testid="cta-start">{$language === 'en' ? 'I am starting: guided path' : 'Je débute : parcours guidé'}</a>
     <a class="btn btn-outline" href={`${base}/chapitres`} data-testid="cta-browse">{copy.home.browse}</a>
   </div>
   <p class="disclaim-inline" data-testid="hero-disclaimer">{copy.home.disclaimer}</p>

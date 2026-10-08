@@ -1,11 +1,12 @@
 <script>
+  // @ts-nocheck
   import { exercises } from '$lib/content/exercises';
   import { guidedActivities } from '$lib/content/guidedActivities';
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
   import { base } from '$app/paths';
   import chapters from '$lib/content/loadChapters';
-  import { tracks } from '$lib/content/tracks';
+  import { learningTracks, chaptersForTrack } from '$lib/content/tracks';
   import { language } from '$lib/stores/language';
   import { ui, localizeTrack } from '$lib/i18n/translations';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
@@ -16,24 +17,25 @@
   // slug de chapitre -> parcours + ordre (pour trier les exercices par parcours)
   const chapMeta = new Map(chapters.map((c) => [c.slug, { track: c.track, order: c.order }]));
 
-  $: groups = tracks
+  $: groups = learningTracks
     .map((t) => {
       const loc = localizeTrack(t, $language);
+      const trackChapters = chaptersForTrack(t, chapters);
+      const chapterSlugs = new Set(trackChapters.map(chapter => chapter.slug));
       const items = exercises
-        .filter((e) => (chapMeta.get(e.chapter)?.track ?? 'core') === t.id)
+        .filter((e) => chapterSlugs.has(e.chapter))
         .sort((a, b) => (chapMeta.get(a.chapter)?.order ?? 999) - (chapMeta.get(b.chapter)?.order ?? 999));
-      const activities = guidedActivities.filter(e => chapMeta.get(e.chapter)?.track === t.id).sort((a, b) => (chapMeta.get(a.chapter)?.order ?? 999) - (chapMeta.get(b.chapter)?.order ?? 999));
-      const quizzes = chapters
-        .filter((chapter) => chapter.track === t.id)
-        .sort((a, b) => a.order - b.order)
+      const activities = guidedActivities.filter(e => !e.kind && chapterSlugs.has(e.chapter)).sort((a, b) => (chapMeta.get(a.chapter)?.order ?? 999) - (chapMeta.get(b.chapter)?.order ?? 999));
+      const syntheses = guidedActivities.filter(e => e.kind === 'synthesis' && e.track === t.id);
+      const quizzes = trackChapters
         .map((chapter) => {
           const localized = chapter.translations?.[$language === 'en' ? 'en' : 'fr'] ?? chapter;
           return { slug: chapter.slug, title: localized.title, questions: localized.quiz ?? [] };
         })
         .filter((chapter) => chapter.questions.length);
-      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, items, activities, quizzes, quizCount: quizzes.reduce((sum, chapter) => sum + chapter.questions.length, 0) };
+      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, items, activities, syntheses, quizzes, quizCount: quizzes.reduce((sum, chapter) => sum + chapter.questions.length, 0) };
     })
-    .filter((g) => g.items.length || g.activities.length || g.quizCount);
+    .filter((g) => g.items.length || g.activities.length || g.syntheses.length || g.quizCount);
   let selectedTrack = '';
   let selectedKind = 'guided';
   let mounted = false;
@@ -44,9 +46,11 @@
   $: if (!groups.some((group) => group.id === selectedTrack)) selectedTrack = groups[0]?.id ?? '';
   $: activeGroup = groups.find((group) => group.id === selectedTrack);
   $: if (activeGroup && selectedKind === 'calculations' && !activeGroup.items.length) selectedKind = 'guided';
+  $: if (activeGroup && selectedKind === 'synthesis' && !activeGroup.syntheses.length) selectedKind = 'guided';
   $: quizCount = groups.reduce((sum, group) => sum + group.quizCount, 0);
   $: kinds = activeGroup ? [
     { id: 'guided', label: $language === 'en' ? 'Guided activities' : 'Activités guidées', count: activeGroup.activities.length, description: $language === 'en' ? 'Multi-step cases: calculate, interpret, manipulate parameters and justify decisions.' : 'Cas en plusieurs étapes : calculer, interpréter, manipuler des paramètres et justifier des décisions.' },
+    { id: 'synthesis', label: $language === 'en' ? 'Synthesis cases' : 'Cas de synthèse', count: activeGroup.syntheses.length, description: $language === 'en' ? 'Cumulative problems requiring prediction, calculation, interpretation and a justified decision.' : 'Problèmes cumulatifs demandant de prédire, calculer, interpréter puis justifier une décision.' },
     { id: 'calculations', label: $language === 'en' ? 'Calculations' : 'Calculs', count: activeGroup.items.length, description: $language === 'en' ? 'Short numerical problems with units and immediate worked solutions.' : 'Problèmes numériques courts avec unités et correction immédiate.' },
     { id: 'quiz', label: 'QCM', count: activeGroup.quizCount, description: $language === 'en' ? 'Course knowledge checks, drawn from the single canonical quiz for each chapter.' : 'Questions de rappel issues du quiz canonique de chaque cours.' }
   ] : [];
@@ -55,13 +59,13 @@
 <header class="head">
   <h1>{copy.pages.exercisesTitle}</h1>
   <p class="lede">{copy.pages.exercisesIntro}</p>
-  <div class="score"><span class="muted">{guidedActivities.length} {$language === 'en' ? 'guided activities' : 'activités guidées'} · {exercises.length} {$language === 'en' ? 'calculations' : 'calculs'} · {quizCount} QCM</span></div>
+  <div class="score"><span class="muted">{guidedActivities.filter(activity => !activity.kind).length} {$language === 'en' ? 'guided activities' : 'activités guidées'} · {guidedActivities.filter(activity => activity.kind === 'synthesis').length} {$language === 'en' ? 'synthesis cases' : 'cas de synthèse'} · {exercises.length} {$language === 'en' ? 'calculations' : 'calculs'} · {quizCount} QCM</span></div>
 </header>
 
 <nav class="track-picker" aria-label={$language === 'en' ? 'Choose an exercise track' : "Choisir un parcours d'exercices"}>
   {#each groups as group}
     <button type="button" class:active={selectedTrack === group.id} aria-pressed={selectedTrack === group.id} style={`--track:${group.accent}`} on:click={() => (selectedTrack = group.id)}>
-      <span>{group.label}</span><strong>{group.title}</strong><small>{group.activities.length} {$language === 'en' ? 'guided' : 'guidées'} · {group.items.length} {$language === 'en' ? 'calculations' : 'calculs'} · {group.quizCount} QCM</small>
+      <span>{group.label}</span><strong>{group.title}</strong><small>{group.activities.length} {$language === 'en' ? 'guided' : 'guidées'} · {group.syntheses.length} {$language === 'en' ? 'synthesis' : 'synthèse'} · {group.items.length} {$language === 'en' ? 'calculations' : 'calculs'} · {group.quizCount} QCM</small>
     </button>
   {/each}
 </nav>
@@ -81,6 +85,9 @@
     {#if selectedKind === 'guided'}
       {#if activeGroup.activities.length}<LearningProgress/>{/if}
       <ExerciseBlock activities={activeGroup.activities} showGroupHeading={false}/>
+    {:else if selectedKind === 'synthesis'}
+      {#if activeGroup.syntheses.length}<LearningProgress/>{/if}
+      <ExerciseBlock activities={activeGroup.syntheses} showGroupHeading={false}/>
     {:else if selectedKind === 'calculations'}
       <ExerciseBlock items={activeGroup.items} showGroupHeading={false}/>
     {:else}
@@ -113,7 +120,7 @@
   .track { max-width: 760px; }
   .track h2 { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-xl); margin: 0 0 var(--space-4); padding-bottom: var(--space-2); border-bottom: 2px solid var(--track); }
   .badge { font-family: var(--font-mono); font-size: var(--text-xs); background: var(--track); color: #fff; padding: 2px 8px; border-radius: 4px; }
-  .kind-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: var(--space-6) 0 var(--space-3); }
+  .kind-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: var(--space-6) 0 var(--space-3); }
   .kind-picker button { display: flex; justify-content: space-between; gap: 8px; min-width: 0; padding: 10px 12px; color: var(--text-secondary); background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 4px; cursor: pointer; }
   .kind-picker button.active { color: var(--text-primary); border-color: var(--track); box-shadow: inset 0 -3px 0 var(--track); }
   .kind-picker button:disabled { opacity: .45; cursor: not-allowed; }

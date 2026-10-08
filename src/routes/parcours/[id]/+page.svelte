@@ -12,9 +12,11 @@
   import { language } from '$lib/stores/language';
   import { learning, loadLearning } from '$lib/stores/learning';
   import { localizeChapter, localizeTrack } from '$lib/i18n/translations';
+  import { chaptersForTrack } from '$lib/content/tracks';
   import { countPage } from '$lib/analytics';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import LearningProgress from '$lib/components/ui/LearningProgress.svelte';
+  import Quiz from '$lib/components/ui/Quiz.svelte';
   export let data;
   let mounted = false;
   onMount(() => { mounted = true; });
@@ -22,14 +24,15 @@
   const localized = value => localizeChapter(value, $language).chapter;
   $: track = data.track;
   $: title = localizeTrack(track, $language);
-  $: list = chapters.filter(chapter => chapter.track === track.id).sort((a, b) => a.order - b.order);
+  $: list = chaptersForTrack(track, chapters);
+  $: beginner = track.id === 'start';
   $: pilot = track.id === 'covariates';
-  $: trackActivities = list.flatMap(chapter => activitiesForChapter(chapter.slug));
+  $: trackActivities = list.flatMap(chapter => activitiesForChapter(chapter.slug, track.id));
   $: chapterQuery = mounted ? $page.url.searchParams.get('chapter') : null;
   $: selected = list.find(chapter => chapter.slug === chapterQuery) ?? list[0];
-  $: activities = selected ? activitiesForChapter(selected.slug) : [];
+  $: activities = selected ? activitiesForChapter(selected.slug, track.id) : [];
   $: exercises = selected ? exercisesForChapter(selected.slug) : [];
-  $: practiceCount = list.reduce((sum, chapter) => sum + activitiesForChapter(chapter.slug).length + exercisesForChapter(chapter.slug).length, 0);
+  $: practiceCount = list.reduce((sum, chapter) => sum + activitiesForChapter(chapter.slug, track.id).length + exercisesForChapter(chapter.slug).length, 0);
   $: seenCount = list.filter(chapter => $learning.chapters[chapter.slug] === 'seen').length;
   $: passedCount = trackActivities.filter(activity => $learning.activities[activity.id] === 'passed').length;
   $: externalPrereqs = [...new Set(list.flatMap(chapter => chapter.prerequisites ?? []))].filter(slug => !list.some(chapter => chapter.slug === slug)).map(slug => chapters.find(chapter => chapter.slug === slug)).filter(Boolean);
@@ -39,6 +42,18 @@
   const statusText = id => ({ attempted: t('Tenté', 'Attempted'), reviewed: t('Corrigé consulté', 'Solution reviewed'), passed: t('Réussi (étapes objectives)', 'Passed (objective steps)') }[$learning.activities[id]] ?? t('À commencer', 'Not started'));
   afterNavigate(() => { loadLearning(); if ($page.route.id === '/parcours/[id]' && $page.status === 200) countPage(`/pharmacometrie/parcours/${data.track.id}/`); });
   function choose(slug) { goto(`${base}/parcours/${track.id}/?lang=${$language}&chapter=${slug}#practice`, { keepFocus: true }); }
+  const diagnostic = {
+    fr: [
+      { q: "Si la clairance double a dose identique, que devient en general l'AUC sous PK lineaire ?", options: ['Elle double', 'Elle est divisee par deux', 'Elle ne change pas'], correct: 1, explain: "AUC = Dose/CL : doubler CL divise l'exposition totale par deux." },
+      { q: 'Une demi-vie longue signifie-t-elle toujours une faible clairance ?', options: ['Oui', 'Non, le volume intervient aussi'], correct: 1, explain: 't1/2 = ln(2) x V/CL : un grand volume peut aussi allonger la demi-vie.' },
+      { q: 'Deux patients ayant la meme concentration ont-ils necessairement le meme effet ?', options: ['Oui', 'Non'], correct: 1, explain: "La reponse depend du modele PD, de sa variabilite et d'un eventuel retard." }
+    ],
+    en: [
+      { q: 'If clearance doubles at the same dose, what generally happens to AUC under linear PK?', options: ['It doubles', 'It is halved', 'It is unchanged'], correct: 1, explain: 'AUC = Dose/CL: doubling CL halves total exposure.' },
+      { q: 'Does a long half-life always imply low clearance?', options: ['Yes', 'No, volume also matters'], correct: 1, explain: 't1/2 = ln(2) x V/CL: a large volume can also lengthen half-life.' },
+      { q: 'Do two patients with the same concentration necessarily have the same effect?', options: ['Yes', 'No'], correct: 1, explain: 'Response depends on the PD model, its variability and any delay.' }
+    ]
+  };
 </script>
 
 <svelte:head><title>{title.title} | PMx Explain</title><meta name="description" content={title.tagline}/></svelte:head>
@@ -51,15 +66,24 @@
   {#if pilot}<a class="command" href={`${base}/covariates/?lang=${$language}`}><FlaskConical size={17}/>{t('Atelier Covariables', 'Covariates workshop')}</a>{/if}
 </header>
 
+{#if beginner}
+  <section class="diagnostic" data-testid="starter-diagnostic">
+    <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
+    <h2>{t('Trois predictions, sans note', 'Three predictions, no grade')}</h2>
+    <p>{t("Repondez avec votre intuition. Le cas final posera des questions differentes pour rendre votre progression visible.", 'Answer from intuition. The final case asks different questions so you can see your progress.')}</p>
+    <Quiz title={t('Point de depart', 'Starting point')} questions={diagnostic[$language]}/>
+  </section>
+{/if}
+
 {#if pilot}<section class="goals"><h2>{t('Objectifs du parcours', 'Track objectives')}</h2><ul>{#each covariateObjectives as objective}<li>{objective[$language]}</li>{/each}</ul><p>{t('Parcours intermédiaire. Les durées sont indicatives ; les activités peuvent être reprises sans limite.', 'Intermediate track. Times are approximate; activities can be repeated without limit.')}</p></section>{/if}
 {#if externalPrereqs.length}<section class="prerequisites"><h2>{t('Prérequis', 'Prerequisites')}</h2>{#each externalPrereqs as chapter}<a href={`${base}/chapitres/${chapter.slug}/?lang=${$language}`}>{localized(chapter).title}</a>{/each}</section>{/if}
 <LearningProgress/>
 
 <section class="curriculum" aria-labelledby="curriculum-title">
-  <h2 id="curriculum-title">{t('Cours et activités', 'Lessons and activities')}</h2>
+  <h2 id="curriculum-title">{beginner ? t('Votre chemin en douze étapes', 'Your twelve-step path') : t('Cours et activités', 'Lessons and activities')}</h2>
   <ol>
     {#each list as chapter, i}
-      {@const cases = activitiesForChapter(chapter.slug)}
+      {@const cases = activitiesForChapter(chapter.slug, track.id)}
       <li>
         <div class="lesson-line"><span class="number">{String(i + 1).padStart(2, '0')}</span><div><h3><a href={`${base}/chapitres/${chapter.slug}/?lang=${$language}`}>{localized(chapter).title}</a></h3><p>{localized(chapter).description}</p><span class="meta">{chapter.duration} · {$learning.chapters[chapter.slug] ? t('Consulté', 'Viewed') : t('À consulter', 'Not viewed')}</span></div></div>
         <div class="lesson-actions"><a href={`${base}/chapitres/${chapter.slug}/?lang=${$language}`}><BookOpen size={16}/>{t('Cours', 'Lesson')}</a><a href={`${base}/parcours/${track.id}/?lang=${$language}&chapter=${chapter.slug}#practice`}><ListChecks size={16}/>{t('Exercices', 'Exercises')}</a></div>
@@ -73,7 +97,7 @@
   <h2>{t('Mise en pratique', 'Practice')}</h2>
   <label>{t('Chapitre', 'Chapter')}<select value={selected?.slug} on:change={e => choose(e.currentTarget.value)} data-testid="practice-chapter">{#each list as chapter}<option value={chapter.slug}>{localized(chapter).title}</option>{/each}</select></label>
   {#each list as chapter (chapter.slug)}
-    <div hidden={selected?.slug !== chapter.slug}><ExerciseBlock items={exercisesForChapter(chapter.slug)} activities={activitiesForChapter(chapter.slug)}/></div>
+    <div hidden={selected?.slug !== chapter.slug}><ExerciseBlock items={exercisesForChapter(chapter.slug)} activities={activitiesForChapter(chapter.slug, track.id)}/></div>
   {/each}
   {#if !activities.length && !exercises.length}<p>{t('Les questions de vérification se trouvent dans le chapitre.', 'Review questions are available in the chapter.')}</p><a href={`${base}/chapitres/${selected?.slug}/?lang=${$language}`}>{t('Ouvrir le chapitre', 'Open the chapter')}</a>{/if}
 </section>

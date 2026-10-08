@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import matter from 'gray-matter';
 import { guidedActivities as activities, activitiesForChapter } from '../src/lib/content/guidedActivities.js';
-import { tracks } from '../src/lib/content/tracks.js';
+import { learningTracks, tracks } from '../src/lib/content/tracks.js';
 import { resolveSources } from '../src/lib/content/references.js';
 import { assess, activityStatus, emptyStep, numericValue } from '../src/lib/learning/assessment.js';
 import { displayUnit } from '../src/lib/learning/activityContent.js';
@@ -11,10 +11,15 @@ import { experimentDefinitions, experimentCurve, experimentValue, validExperimen
 
 const dir = new URL('../src/content/chapters/', import.meta.url);
 const chapters = readdirSync(dir).filter(f => f.endsWith('.md') && !f.startsWith('_')).map(f => matter(readFileSync(new URL(f, dir), 'utf8')).data);
-assert.equal(activities.length, 101);
+const syntheses = activities.filter(activity => activity.kind === 'synthesis');
+assert.equal(syntheses.length, 13);
+assert.equal(new Set(syntheses.map(activity => activity.track)).size, syntheses.length);
 assert.equal(new Set(activities.map(a => a.id)).size, activities.length);
 for (const chapter of chapters) assert(activitiesForChapter(chapter.slug).length > 0, `Missing guided activity: ${chapter.slug}`);
 for (const track of tracks) assert(activities.some(a => chapters.some(c => c.slug === a.chapter && c.track === track.id)), track.id);
+for (const track of learningTracks.filter(track => !['core', 'nonmem', 'monolix', 'nlmixr2'].includes(track.id))) {
+  assert(syntheses.some(activity => activity.track === track.id), `Missing synthesis: ${track.id}`);
+}
 for (const activity of activities) {
   assert(chapters.some(c => c.slug === activity.chapter), activity.chapter);
   assert.equal(resolveSources(activity.sources).length, activity.sources.length, activity.id);
@@ -105,7 +110,7 @@ for (const tool of ['nonmem', 'monolix', 'nlmixr2']) {
   expected[`${tool}-moteur`] = [4];
   expected[`${tool}-avance`] = [120, 85];
 }
-for (const activity of activities.filter(a => !a.id.startsWith('cov-'))) {
+for (const activity of activities.filter(a => !a.id.startsWith('cov-') && a.kind !== 'synthesis')) {
   const answers = activity.steps.filter(s => s.type === 'numeric');
   assert.equal(answers.length, expected[activity.chapter]?.length, `Reference coverage: ${activity.id}`);
   answers.forEach((s, i) => assert(Math.abs(s.answer - expected[activity.chapter][i]) < .00002, `${activity.chapter}: ${s.answer} vs ${expected[activity.chapter][i]}`));

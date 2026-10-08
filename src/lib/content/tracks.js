@@ -2,6 +2,40 @@
 // Définition des parcours (tracks). Chaque chapitre porte un champ `track`
 // dans son frontmatter ; le regroupement se fait sur ce champ.
 
+export const beginnerTrack = {
+  id: 'start',
+  layer: 'onboarding',
+  chapterSlugs: [
+    'pourquoi-pharmacometrie',
+    'clairance-volume-demi-vie',
+    'absorption-orale',
+    'doses-repetees',
+    'micro-macro',
+    'variabilite-iiv-iov',
+    'allometrie',
+    'pkpd',
+    'pd-effect-compartment',
+    'outils-estimation',
+    'bayes-ebes',
+    'tdm'
+  ],
+  i18n: {
+    en: {
+      label: 'Start here',
+      title: 'Discover PK/PD from scratch',
+      tagline: 'A guided twelve-step path from dose and concentration to variability, effect and Bayesian individualisation.'
+    },
+    fr: {
+      label: 'Je debute',
+      title: 'Decouvrir la PK/PD en partant de zero',
+      tagline: "Un parcours guide en douze etapes, de la dose et la concentration jusqu'a la variabilite, l'effet et l'individualisation bayesienne."
+    }
+  },
+  accent: '#087b83',
+  status: 'available',
+  visual: 'core-visual'
+};
+
 export const tracks = [
   {
     id: 'core',
@@ -153,8 +187,18 @@ export const tracks = [
   }
 ];
 
+export const learningTracks = [beginnerTrack, ...tracks];
+
 export function trackById(id) {
-  return tracks.find((t) => t.id === id);
+  return learningTracks.find((t) => t.id === id);
+}
+
+export function chaptersForTrack(track, chapters) {
+  if (track.chapterSlugs) {
+    const bySlug = new Map(chapters.map(chapter => [chapter.slug, chapter]));
+    return track.chapterSlugs.map(slug => bySlug.get(slug)).filter(Boolean);
+  }
+  return chapters.filter(chapter => chapter.track === track.id).sort((a, b) => a.order - b.order);
 }
 
 /**
