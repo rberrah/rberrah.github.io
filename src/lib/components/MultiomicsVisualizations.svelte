@@ -344,4 +344,90 @@
             {@const stroke = qStroke(enzyme.measurement?.qValue)}
             <g>
               <rect
-                
+                x={enzyme.x - 17}
+                y={enzyme.y - 11}
+                width="34"
+                height="22"
+                rx="3"
+                fill={measurementColor(enzyme.measurement)}
+                stroke="#253238"
+                stroke-width={stroke.width}
+                stroke-dasharray={stroke.dash}
+              >
+                <title>{measurementTitle(enzyme.label, enzyme.measurement)}</title>
+              </rect>
+              <text x={enzyme.x} y={enzyme.y + 4} text-anchor="middle" class="enzyme-label">{enzyme.label}</text>
+            </g>
+          {/each}
+
+          <g transform="translate(38 565)">
+            <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">− log2FC</text>
+            <rect x="135" y="0" width="42" height="15" fill={diverging(0)}/><text x="183" y="12" class="legend-label">0</text>
+            <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">+ log2FC</text>
+            <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('non mesuré', 'not measured')}</text>
+          </g>
+        </svg>
+      </div>
+      <p class="method-note">{central.method} {central.scope}</p>
+    {/if}
+  </article>
+
+  <div class="interpretation-boundary">
+    <strong>{tr('Règles d’interprétation', 'Interpretation rules')}</strong>
+    {#each visuals.methodologicalBoundary || [] as note}
+      <span>• {note}</span>
+    {/each}
+  </div>
+</section>
+{/if}
+
+<style>
+  .visual-panel { margin-top: 24px; display: grid; gap: 18px; }
+  .visual-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-end; }
+  .visual-head h2 { margin:.2rem 0 .35rem; font-size:clamp(1.3rem,2vw,1.8rem); }
+  .visual-head p { margin:0; max-width:850px; color:var(--text-secondary,#58666d); }
+  .eyebrow { margin:0; font-size:.72rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--accent,#176c83); }
+  .figure-card { border:1px solid var(--border,#d9e0e3); border-radius:18px; background:var(--surface,#fff); padding:18px; overflow:hidden; }
+  .figure-title { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:14px; }
+  .figure-title > div:first-child { display:flex; gap:12px; align-items:flex-start; }
+  .figure-title h3 { margin:0 0 5px; font-size:1.05rem; }
+  .figure-title p { margin:0; max-width:780px; color:var(--text-secondary,#5d6a70); font-size:.9rem; line-height:1.45; }
+  .figure-number { display:grid; place-items:center; min-width:34px; height:34px; border-radius:50%; border:1px solid var(--border,#cbd5d9); font:700 .72rem var(--font-mono,monospace); }
+  .figure-actions { display:flex; gap:8px; align-items:center; }
+  button, select { border:1px solid var(--border,#cbd5d9); border-radius:9px; background:var(--surface,#fff); padding:7px 10px; font:inherit; color:inherit; }
+  button { cursor:pointer; font-weight:700; }
+  .svg-scroll { overflow:auto; border:1px solid #e4e8ea; border-radius:12px; background:white; }
+  svg { display:block; width:100%; min-width:680px; height:auto; }
+  .svg-heading { font-size:14px; font-weight:800; fill:#263238; }
+  .svg-note { font-size:9px; fill:#6c777c; }
+  .sample-label { font-size:8px; fill:#48555b; }
+  .condition-mark { font-size:8px; font-weight:800; fill:#263238; }
+  .feature-label { font-size:9px; fill:#263238; }
+  .method-note, .empty-note { margin:10px 0 0; color:var(--text-secondary,#5d6a70); font-size:.82rem; line-height:1.45; }
+  .metabologram-layout { display:grid; grid-template-columns:minmax(420px,1.1fr) minmax(250px,.9fr); gap:20px; align-items:center; }
+  .metabologram-layout svg { min-width:0; max-width:560px; margin:auto; }
+  .center-label { font-size:11px; font-weight:800; fill:#263238; }
+  .center-value { font-size:10px; fill:#263238; }
+  .half-label { font-size:12px; font-weight:800; fill:#263238; }
+  .metabologram-keys { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .metabologram-keys > div { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .metabologram-keys strong { font-size:.82rem; margin-bottom:4px; }
+  .metabologram-keys span { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:7px; align-items:center; font-size:.76rem; }
+  .metabologram-keys i { width:11px; height:11px; border-radius:2px; border:1px solid #849097; }
+  .metabologram-keys b { font-family:var(--font-mono,monospace); font-size:.7rem; }
+  .map-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:.82rem; }
+  .pathway-label { font-size:15px; font-weight:800; letter-spacing:.08em; fill:#9aa4a9; }
+  .metabolite-label { font-size:10px; font-weight:800; fill:#172126; pointer-events:none; }
+  .enzyme-label { font-size:8px; font-weight:800; fill:#172126; pointer-events:none; }
+  .legend-label { font-size:9px; fill:#48555b; }
+  .interpretation-boundary { border-left:4px solid var(--accent,#176c83); padding:12px 14px; background:#f3f8f9; display:grid; gap:4px; font-size:.82rem; }
+  .interpretation-boundary strong { margin-bottom:3px; }
+  @media (max-width: 820px) {
+    .figure-title, .visual-head { flex-direction:column; align-items:stretch; }
+    .figure-actions { justify-content:space-between; }
+    .metabologram-layout { grid-template-columns:1fr; }
+    .metabologram-keys { grid-template-columns:1fr; }
+    svg { min-width:620px; }
+    .metabologram-layout svg { min-width:0; width:100%; }
+  }
+</style>
