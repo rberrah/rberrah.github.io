@@ -22,6 +22,8 @@ The design follows the same principles as the multi-omics tool: a separate prese
 - McNemar test for paired binary outcomes
 - Pearson, Spearman and Kendall tau-b association measures
 - Simple linear regression
+- Binary logistic regression with explicit event coding, odds ratio + 95% CI, Wald and likelihood-ratio inference, convergence/separation warning
+- Multivariable linear regression for multiple numeric predictors with adjusted coefficients, 95% CIs, adjusted R², VIF and influence diagnostics
 - Two-group log-rank test with Kaplan–Meier visualization
 
 The interface reports effect estimates, confidence intervals where defined, p-values, effect sizes, assumptions and a plain-language interpretation. Data are parsed and analysed locally in the browser rather than uploaded to a statistical backend. Results can be visualized and exported as a local HTML report without embedding the raw dataset.
@@ -31,6 +33,10 @@ For 2×2 tables, the numerator group and event category are explicit controls. W
 For repeated quantitative measurements, data use long format (`subject`, `condition`, `value`). Friedman and all displayed post-hoc comparisons use the same complete set of subjects, so incomplete subjects are not silently reintroduced pair by pair. Within-subject ties are assigned average ranks and the Friedman statistic is tie-corrected.
 
 For association analyses, Kendall tau-b complements Pearson and Spearman. It uses an exact two-sided permutation distribution when `n < 50` and there are no ties; otherwise it reports a tie-corrected asymptotic inference mode explicitly.
+
+For binary logistic regression, the event category (`Y=1`) is selected explicitly. The browser reports the odds ratio per +1 predictor unit, its 95% CI, Wald and likelihood-ratio p-values, McFadden R² and a stability warning when convergence, the information matrix or fitted probabilities suggest separation. Standard maximum-likelihood odds ratios are not presented as reliable when that warning is triggered.
+
+For multivariable linear regression, the first implementation deliberately accepts numeric predictors only. Predictors are centered and scaled internally for numerical stability, then coefficients are transformed back to their original units. The browser reports adjusted coefficients and 95% CIs, global model fit, VIFs, complete-case exclusions and Cook/leverage/standardized-residual diagnostics. Diagnostic thresholds are review guides and never trigger automatic row deletion.
 
 ## Study planning
 
@@ -48,8 +54,8 @@ A significant omnibus test is not presented as if it identified the differing gr
 
 ## Validation
 
-`npm run test:stats` executes fixed numerical reference vectors for the statistical engine, advanced effect-size/post-hoc engine, repeated-measures edge cases, Kendall tau-b and study-planning engine, and these checks are also part of the repository's default `npm test` command. The vectors cover primary tests, exact/asymptotic rank-test routing, Friedman tie correction and complete-block handling, Kendall exact/tied inference, Holm adjustment, 2×2 effect estimates including zero-cell handling, McNemar, log-rank and sample-size calculations.
+`npm run test:stats` executes fixed numerical reference vectors for the statistical engine, advanced effect-size/post-hoc engine, repeated-measures edge cases, Kendall tau-b, logistic regression, multivariable regression and study-planning engine, and these checks are also part of the repository's default `npm test` command. The vectors cover primary tests, exact/asymptotic rank-test routing, Friedman tie correction and complete-block handling, Kendall exact/tied inference, Holm adjustment, 2×2 effect estimates including zero-cell handling, McNemar, log-rank and sample-size calculations.
 
-The portal Playwright suite exercises the complete Stats workflow in a browser, including visualization, exact-inference labelling, repeated measures, Kendall tau-b, corrected multi-group post-hoc output, categorical effect-size orientation, study planning, bilingual display and local report export.
+The portal Playwright suite exercises the complete Stats workflow in a browser, including visualization, exact-inference labelling, repeated measures, Kendall tau-b, corrected multi-group post-hoc output, categorical effect-size orientation, logistic event coding/separation warnings, multivariable coefficients/VIF/influence diagnostics, study planning, bilingual display and local report export.
 
 High-stakes or confirmatory analyses should still be checked in validated reference software and interpreted in the context of the study design and a pre-specified statistical analysis plan.
