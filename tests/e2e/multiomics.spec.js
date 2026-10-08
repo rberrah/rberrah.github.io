@@ -186,3 +186,18 @@ test('multi-omics demo runs end-to-end with deterministic Reactome integration',
   await expect(page.getByTestId('multiomics-pathways')).toContainText('Metabolism of amino acids and derivatives');
   expect(reactomeCalls).toBeGreaterThanOrEqual(3);
 });
+
+test('multi-omics tool exposes raw-MS and external-validation advanced workflows', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+
+  const advanced = page.getByTestId('advanced-workflows');
+  await expect(advanced).toBeVisible();
+  await expect(advanced).toContainText(/mzML|mzXML/);
+  await expect(advanced).toContainText(/validation externe|external validation/i);
+
+  await expect(page.getByTestId('raw-ms-manifest-template')).toHaveAttribute('href', /\/multiomics\/templates\/raw_ms_manifest\.csv$/);
+  await expect(page.getByTestId('external-validation-template')).toHaveAttribute('href', /\/multiomics\/templates\/external_validation_predictions_binary\.csv$/);
+
+  await expect(advanced).toContainText('run_raw_ms.R raw_ms_manifest.csv raw_ms_output raw_ms_parameters.json');
+  await expect(advanced).toContainText('run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output');
+});
