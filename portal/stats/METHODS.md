@@ -11,6 +11,8 @@ The browser never asks an LLM to select a statistical method.
 | Two categorical variables | Chi-square | Fisher exact for 2×2 tables when the smallest expected count is < 5; 2×2 effect estimates are reported |
 | Paired binary outcome | McNemar | Exact binomial inference when discordant pairs are few |
 | Two quantitative / ordinal variables, association | Pearson | Spearman + Kendall tau-b rank measures and simple linear regression |
+| Binary outcome + one numeric predictor | Binary logistic regression | Explicit event coding; OR + 95% CI; Wald and likelihood-ratio inference; convergence/separation diagnostics |
+| Quantitative outcome + at least two numeric predictors | Multivariable linear regression | Adjusted coefficients + 95% CIs, adjusted R², VIF and influence diagnostics |
 | Time to event in two groups | Log-rank | Kaplan–Meier visualization |
 | One quantitative sample vs fixed reference | One-sample t-test | No automated rank alternative yet |
 
@@ -49,6 +51,22 @@ The tool reports:
 - odds ratio (OR), with a log-scale Wald 95% CI.
 
 When at least one cell is zero, a Haldane–Anscombe correction (+0.5 to all four cells) is used for RR and OR and their confidence intervals. RD remains calculated from the observed risks. The interface states when this correction has been applied.
+
+## Regression models
+
+### Binary logistic regression
+
+The event category is selected explicitly and encoded as \(Y=1\). The current model contains an intercept and one numeric predictor. It reports the slope on the log-odds scale, the odds ratio for a +1-unit increase in the predictor, a Wald 95% confidence interval, Wald p-value, likelihood-ratio statistic/p-value, McFadden R² and AIC.
+
+The maximum-likelihood fit uses Newton updates with step halving. If the fit fails to converge, the information matrix is nearly singular, the standardized coefficient becomes extreme, or fitted probabilities approach 0 and 1 in a pattern compatible with separation, the interface displays a stability warning. In that situation standard MLE odds ratios and p-values should not be interpreted as routine results; a penalized or exact logistic method should be considered.
+
+### Multivariable linear regression
+
+The current multivariable workflow is intentionally restricted to numeric predictors. Rows are retained only when the outcome and every selected predictor are finite (complete-case analysis). Predictors are centered and scaled internally, the normal equations are solved on that stabilized scale, and coefficients/covariance are transformed back to the original units.
+
+The model reports each adjusted coefficient, standard error, 95% CI, t statistic and p-value, plus global F inference, R², adjusted R² and residual standard error. Variance inflation factors are calculated from the inverse predictor correlation matrix.
+
+Influence diagnostics include leverage, standardized residuals and Cook's distance. The interface displays common heuristic review guides (Cook > 4/n, leverage > 2(p+1)/n, |standardized residual| > 3) but never deletes observations automatically. Exact or near-exact collinearity is rejected rather than returning unstable coefficients.
 
 ## Study planning
 
