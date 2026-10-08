@@ -78,22 +78,7 @@ test('objects in the scene directly update synchronized model parameters', async
   await expect(page.getByTestId('molecular-scene')).toHaveAttribute('data-direct-key', 'mic');
   await page.getByTestId('molecular-time').fill('4');
   const trajectoryBefore = await coloredPixels(page.getByTestId('molecular-plot'));
-  await page.evaluate(() => {
-    const canvas = document.querySelector('[data-testid="molecular-scene"]');
-    window.__micDragTrace = [];
-    for (const eventName of ['pointerdown', 'pointermove', 'pointerup', 'lostpointercapture']) {
-      canvas.addEventListener(eventName, event => {
-        const box = canvas.getBoundingClientRect();
-        window.__micDragTrace.push({ event: eventName, clientX: event.clientX, clientY: event.clientY,
-          x: event.clientX - box.left, y: event.clientY - box.top,
-          box: { x: box.x, y: box.y, width: box.width, height: box.height },
-          cx: canvas.dataset.controlX, cy: canvas.dataset.controlY,
-          value: document.querySelector('#molecular-mic')?.value });
-      });
-    }
-  });
   await dragDirectControl(page, .24, .24);
-  console.log('MIC_DRAG_TRACE', JSON.stringify(await page.evaluate(() => window.__micDragTrace)));
   expect(Number(await page.locator('#molecular-mic').inputValue())).toBeGreaterThan(2);
   await expect(page.getByTestId('molecular-time')).toHaveValue('4.0');
   expect((await coloredPixels(page.getByTestId('molecular-plot'))).sum).not.toBe(trajectoryBefore.sum);
