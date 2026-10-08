@@ -140,6 +140,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   });
   expect(analysisJson.reactome.consensus).toEqual([]);
 
+  await page.getByTestId('multiomics-scientific-summary').locator('details.scientific-extra > summary').click();
   const manifest = page.getByTestId('multiomics-methods-manifest');
   await expect(manifest).toBeVisible();
   await expect(manifest).toContainText('Reproduire et rapporter l’analyse');
