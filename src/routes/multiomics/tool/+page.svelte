@@ -530,7 +530,7 @@
       try {
         const converted = convertMsAucExport(await file.text());
         const matrix = converted.format === 'long_ms_auc'
-          ? new File([converted.matrixCsv], file.name.replace(/\\.[^.]+$/, '') + '_matrix.csv', { type:'text/csv' })
+          ? new File([converted.matrixCsv], file.name.replace(/\.[^.]+$/, '') + '_matrix.csv', { type:'text/csv' })
           : file;
         const shouldUpdateMetadata = converted.metadataCsv && (!files.metadata || msAutoMetadata);
         const autoMeta = shouldUpdateMetadata
