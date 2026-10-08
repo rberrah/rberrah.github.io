@@ -3792,9 +3792,11 @@ export function mergeReactomeResults(combined, perLayer) {
     let supportingLayers = 0;
     for (const layer of LAYERS) {
       const hit = layerMaps[layer]?.get(pathway.id);
+      // Only the assay-universe-adjusted FDR can be counted as local
+      // supporting evidence. Reactome's default FDR uses a different
+      // reference universe and must never silently substitute for it.
       const fdr = hit && Number.isFinite(hit.assayUniverseFdr)
-        ? hit.assayUniverseFdr
-        : hit && Number.isFinite(hit.fdr) ? hit.fdr : null;
+        ? hit.assayUniverseFdr : null;
       layerEvidence[layer] = hit ? {
         fdr,
         reactomeDefaultFdr: Number.isFinite(hit.fdr) ? hit.fdr : null,
@@ -4277,8 +4279,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
         combined,
         perLayer,
         consensus: mergeReactomeResults(combined, perLayer),
-        backgroundPolicy: 'Uploaded/retained assay feature universe with local hypergeometric test and BH correction',
-        backgroundCaveat: 'Custom assay-universe FDR is used when the pathway is present in the Reactome universe query; Reactome default FDR is retained as a fallback when universe mapping is unavailable.'
+        backgroundPolicy: 'All Reactome pathways observable within the QC-retained assay universe; local hypergeometric tests and BH across the full pathway family.',
+        backgroundCaveat: 'If either Reactome response is truncated or the background is inconsistent, assay-universe FDR is not estimable. Reactome default FDR is shown separately as an external-database statistic and is never substituted for assay-universe FDR.'
       };
     } catch (error) {
       reactomeError = error instanceof Error ? error.message : 'Reactome API request failed.';
