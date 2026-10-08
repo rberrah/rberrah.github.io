@@ -2104,6 +2104,15 @@
             <details>
               <summary>{t('Règles QC et prétraitement', 'QC and preprocessing rules')}</summary>
               <p>{result.qc.filterPolicy}</p>
+              {#if result.qc.preprocessingAudit}
+                <div class="api-summary" data-testid="preprocessing-audit">
+                  <span><strong>{t('Type déclaré', 'Declared type')}</strong> {result.qc.preprocessingAudit.declaredValueType}</span>
+                  <span><strong>{t('Échelle analysée', 'Analysis scale')}</strong> {result.qc.preprocessingAudit.outputScale}</span>
+                  <span><strong>{t('Compatibilité', 'Compatibility')}</strong> {result.qc.preprocessingAudit.status}</span>
+                  <span><strong>{t('Plage entrée', 'Input range')}</strong> {result.qc.preprocessingAudit.inputRange?.min ?? '—'} → {result.qc.preprocessingAudit.inputRange?.max ?? '—'}</span>
+                </div>
+                <p class="note">{result.qc.preprocessingAudit.policy}</p>
+              {/if}
               {#if result.qc.inferenceTier?.note}<p class="note">{result.qc.inferenceTier.note}</p>{/if}
               <ul>
                 {#each result.qc.preprocessingSteps || [] as step}<li>{step}</li>{/each}
