@@ -80,7 +80,7 @@ export function convertMsAucExport(text) {
     });
     return {format:'wide_ms_auc',matrixCsv:csv(['feature_id',...sampleHeaders],records),
       metadataCsv:null,features:records.length,assays:sampleHeaders.length,
-      observed:records.flat().slice(1).filter((v)=>v!=='').length,metadataGenerated:false};
+      observed:records.reduce((n,row)=>n+row.slice(1).filter((v)=>v!=='').length,0),metadataGenerated:false};
   }
   if(!parsed.rows.length)throw new Error('MS AUC: export contains no observations');
   const features=[], assays=[], vals=new Map();
