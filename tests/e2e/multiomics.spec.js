@@ -25,7 +25,7 @@ test('multi-omics presentation and tool switch to English', async ({ page }) => 
   await expect(page.getByRole('link', { name: 'Open the tool' })).toBeVisible();
 
   await page.goto('/multiomics/tool?lang=en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('From multi-omics data');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze one or several omics layers');
   await expect(page.getByText('How should these results be interpreted?')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Add your data files' })).toBeVisible();
 });
