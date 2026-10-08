@@ -157,7 +157,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(backend).toBeVisible({ timeout: 20_000 });
   await expect(backend).toContainText('lmerTest');
-  await expect(backend).toContainText(/Méthodes de référence exécutées automatiquement|Reference methods executed automatically/i);
+  await expect(backend).toContainText(/Méthodes R exécutées|R methods executed/i);
 });
 
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {
