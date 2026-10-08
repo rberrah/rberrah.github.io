@@ -3070,6 +3070,14 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     loadedLayers.some((layer) => [...aggregatedByLayer[layer].sampleMeta.values()].some((row) => row.subjectId === subject))
   ).sort();
   if (subjects.length < 12) return { status: 'not_available', reason: 'At least 12 subjects with outcome data are required for nested cross-validation.' };
+  // Stratified five-fold validation needs each outcome class represented in
+  // each fold. Otherwise AUC and inner-loop model selection are unstable.
+  if (['binary','multiclass'].includes(protocol.outcomeType)) {
+    const counts = target.levels.map((level) => subjects.filter((id) => target.targetBySubject.get(id) === level).length);
+    if (counts.length < 2 || counts.some((n) => n < 5)) {
+      return { status: 'not_available', reason: 'At least 5 independent subjects per outcome class are required for stratified five-fold nested cross-validation.' };
+    }
+  }
 
   const categorical = ['binary','multiclass','survival'].includes(protocol.outcomeType);
   const foldTarget = protocol.outcomeType === 'survival'
@@ -3103,8 +3111,14 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
         const innerTestSet = new Set(innerTest);
         const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
         if (innerTrain.length < 5 || !innerTest.length) continue;
-        const trainMatrix = predictionMatrix(selected, aggregatedByLayer, innerTrain, innerTrain, protocol);
-        const testMatrix = predictionMatrix(selected, aggregatedByLayer, innerTest, innerTrain, protocol);
+        // An inner validation fold must not influence feature selection.
+        // The previous outer-only selection made inner tuning optimistic.
+        const innerSelected = selectPredictionFeatures(
+          aggregatedByLayer, loadedLayers, innerTrain, target, protocol, 12
+        );
+        if (!innerSelected.length) continue;
+        const trainMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTrain, innerTrain, protocol);
+        const testMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTest, innerTrain, protocol);
         if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
         const trainTruth = innerTrain.map((subject) => target.targetBySubject.get(subject));
         const testTruth = innerTest.map((subject) => target.targetBySubject.get(subject));
@@ -3134,6 +3148,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       trainingSubjects: trainSubjects.length,
       testSubjects: testSubjects.length,
       selectedFeatures: selected.length,
+      innerFeatureSelection: 'refitted on each inner-training fold',
       lambda: bestLambda,
       innerLoss: bestLoss
     });
@@ -3180,7 +3195,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       policy: 'fold-local',
       batch: true,
       covariates: protocol.covariateColumns || [],
-      note: 'Batch/covariate adjustment, feature selection, centering and scaling are estimated from training subjects only and then applied to held-out subjects.'
+      note: 'Predictive nuisance adjustment, feature selection, centering and scaling are refitted in each inner and outer training fold. Upstream modality preprocessing (global QC, pseudocounts, MS correction) occurs before splitting and needs an independent-cohort sensitivity check.'
     },
     outcomeType: protocol.outcomeType,
     subjects: subjects.length,
@@ -3188,7 +3203,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics,
     predictions,
     foldSummaries,
-    caveat: 'This is predictive validation, separate from feature-wise association. External validation is still required before clinical use.'
+    caveat: 'Nested subject-level CV is internal screening, not external validation. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
   };
 }
 
