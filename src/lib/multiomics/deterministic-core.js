@@ -2154,12 +2154,16 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         effect,
         foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
         effectScale: aggregated.scale,
-        pValue: fit.pValue,
+        // Browser GLS random-intercept Wald inference exceeded the nominal
+        // null rejection rate in predeclared simulations. Retain only the
+        // descriptive estimated effect until lmerTest confirms uncertainty.
+        pValue: null,
         qValue: null,
-        statistic: fit.statistic,
-        standardError: effectSe,
-        ciLow: Number.isFinite(effectSe) ? effect - tCritical95(fit.df) * effectSe : null,
-        ciHigh: Number.isFinite(effectSe) ? effect + tCritical95(fit.df) * effectSe : null,
+        statistic: null,
+        standardError: null,
+        ciLow: null,
+        ciHigh: null,
+        inferentialStatus: 'uncalibrated_reference_R_required',
         intraclassCorrelation: fit.intraclassCorrelation,
         sigmaWithin: fit.sigmaWithin,
         sigmaBetween: fit.sigmaBetween,
@@ -2167,7 +2171,7 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         nObservations: response.length,
         nReference: new Set(usable.filter((entry) => entry.row.condition === reference).map((entry) => entry.row.subjectId)).size,
         nComparison: new Set(usable.filter((entry) => entry.row.condition === comparisons[0]).map((entry) => entry.row.subjectId)).size,
-        model: 'random-intercept GLS: feature ~ condition * time + batch + selected covariates + (1|subject)'
+        model: 'EXPLORATORY random-intercept GLS effect (browser p/q suppressed): feature ~ condition * time + batch + selected covariates + (1|subject)'
       });
       continue;
     }
@@ -2199,10 +2203,11 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       effect,
       foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
       effectScale: aggregated.scale,
-      pValue,
+      pValue: null,
       qValue: null,
-      statistic: fStatistic,
+      statistic: null,
       testDf: { numerator: df1, denominator: df2 },
+      inferentialStatus: 'uncalibrated_reference_R_required',
       groupSlopes: Object.fromEntries(conditions.map((condition, index) => [condition, slopes[index]])),
       groupEndToEndChanges: Object.fromEntries(conditions.map((condition, index) => [condition, endToEndChanges[index]])),
       intraclassCorrelation: fit.intraclassCorrelation,
@@ -2216,10 +2221,12 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       ])),
       nReference: null,
       nComparison: null,
-      model: 'random-intercept GLS omnibus Wald test: feature ~ condition * time + batch + selected covariates + (1|subject)'
+      model: 'EXPLORATORY random-intercept GLS omnibus effect (browser p/q suppressed): feature ~ condition * time + batch + selected covariates + (1|subject)'
     });
   }
 
+  // Deliberately no BH correction for unsupported browser Wald p-values.
+  // The reference R backend must supply inferential statistics separately.
   bhAdjust(rows);
   rows.sort((a,b) => {
     const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
