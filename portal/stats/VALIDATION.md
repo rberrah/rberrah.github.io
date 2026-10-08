@@ -23,6 +23,8 @@ Stats is a browser implementation. Methods should be benchmarked against fixed r
 - Binary logistic regression: `stats::glm(..., family = binomial())`, `confint.default`/Wald CI and likelihood-ratio comparison against the intercept-only model; explicit separation/non-convergence vectors
 - Multivariable linear regression: `stats::lm` coefficient table/`confint`, global F/R²/adjusted R², VIFs from the inverse predictor correlation matrix, hat values and Cook's distance
 - Log-rank: reference survival-package implementation
+- Kaplan–Meier summaries: reference product-limit survival steps, medians and numbers at risk
+- Binary Cox PH: `survival::coxph(..., ties = "breslow")` for log-HR, SE, HR/CI and partial likelihood; orientation reversal must return the reciprocal HR
 
 ## Rank-test routing
 
@@ -45,6 +47,12 @@ Holm adjustment has fixed regression vectors for raw and adjusted p-values. Brow
 
 For 2×2 categorical analyses, numerical vectors verify RD, RR and OR and their confidence intervals. A separate zero-cell vector checks that RR and OR remain finite only because the Haldane–Anscombe correction is invoked, while the risk difference remains based on observed risks. Browser tests verify that the user can see the selected numerator group and event category.
 
+## Survival reference vectors
+
+The built-in two-group survival demonstration is fixed as a reference dataset with 12 observations and 8 events. Kaplan–Meier vectors check group medians (A = 8, B = 9), selected step probabilities and numbers at risk. The Cox PH vector is benchmarked with Breslow ties: A vs B log-HR ≈ 0.589143744, HR ≈ 1.8024444, Wald p ≈ 0.44458 and likelihood-ratio p ≈ 0.44145. Reversing the group orientation must return the reciprocal HR and inverted CI endpoints.
+
+A separate dataset with events confined to one group must be flagged as an unstable Cox estimate rather than silently presenting a finite standard HR as reliable.
+
 ## Regression reference vectors
 
 Binary logistic regression has fixed MLE vectors for an intercept + one numeric predictor, including the slope, standard error, odds ratio and 95% CI, log-likelihood, likelihood-ratio statistic/p-value and McFadden R². A perfectly separated dataset is a separate guardrail vector and must produce a stability warning rather than a routine interpretable MLE.
@@ -53,6 +61,6 @@ Multivariable linear regression is benchmarked on a two-predictor OLS dataset ag
 
 ## Edge cases still required
 
-Expand parity testing across highly unbalanced groups, near-zero variance, very small p-values and degenerate inputs. Add explicit reference-R scripts for the advanced methods (including logistic/multivariable regression) rather than relying only on hard-coded JS regression targets. Add heteroscedasticity-robust linear-model standard errors before presenting them as an alternative inferential mode.
+Expand parity testing across highly unbalanced groups, near-zero variance, very small p-values and degenerate inputs. Add explicit reference-R scripts for the advanced methods (including logistic/multivariable regression) rather than relying only on hard-coded JS regression targets. Add heteroscedasticity-robust linear-model standard errors before presenting them as an alternative inferential mode. Add validated proportional-hazards diagnostics (for example a scaled Schoenfeld residual test) before presenting any automated PH diagnostic.
 
 Confirmatory or high-stakes analyses should continue to be checked in validated reference software and against a pre-specified statistical analysis plan.
