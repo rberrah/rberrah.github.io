@@ -20,13 +20,12 @@ library_factor <- stats::runif(length(ids),0.90,1.10)
 counts <- vapply(seq_along(ids),function(i) {
   fold <- if(group[i]=="treated") ifelse(is_signal,4.0,1) else rep(1,length(genes))
   stats::rnbinom(length(genes),mu=base*fold*library_factor[i],size=1/dispersion)
-},integer(length(genes)))
+},numeric(length(genes)))
 rownames(counts) <- genes
 colnames(counts) <- ids
 x <- t(counts)
 out_dir <- tempfile("bioconductor_reference_")
 dir.create(out_dir)
-on.exit(unlink(out_dir,recursive=TRUE),add=TRUE)
 d <- run_deseq2_counts(x,meta,file.path(out_dir,"deseq2"),
     design_formula=~ batch+condition,contrast=c("condition","treated","control"))
 v <- run_voom_counts(x,meta,file.path(out_dir,"voom"),
@@ -69,3 +68,4 @@ err <- try(run_deseq2_counts(bad,meta,file.path(out_dir,"reject"),
   design_formula=~batch+condition),silent=TRUE)
 stopifnot(inherits(err,"try-error"))
 cat("DESeq2 non-integer input rejection: PASS\n")
+unlink(out_dir,recursive=TRUE)
