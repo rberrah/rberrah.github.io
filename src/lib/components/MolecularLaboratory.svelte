@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
-  import { ArrowLeft, BookOpen, Copy, Download, Pause, Play, RotateCcw, StepForward } from '@lucide/svelte';
+  import { ArrowLeft, BookOpen, Copy, Download, Eye, EyeOff, GraduationCap, Pause, Play, RotateCcw, StepForward } from '@lucide/svelte';
   import MolecularScene from './MolecularScene.svelte';
   import MolecularPlot from './MolecularPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';
@@ -17,6 +17,7 @@
     { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et decroissance' }
   ];
   let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '', learningMode = 'guided';
+  let teacher = false, hidden = false;
   let message = '', shared = '', loadError = '', animateParticles = true, raf = 0, last = 0, visible = true, animationArea;
   $: en = $language === 'en';
   $: config = molecularLabs[lab];
@@ -50,11 +51,13 @@
   $: focusParameter = focusParameters[lab] ?? parameterEntries[0]?.[0];
   $: visibleParameters = learningMode === 'guided' ? parameterEntries.filter(([key]) => key === focusParameter) : parameterEntries;
   $: lockedParameters = parameterEntries.filter(([key]) => key !== focusParameter);
+  $: if (!teacher) hidden = false;
+  $: if (hidden || !valid) pause();
 
   function reset(next = lab) {
     pause(); activeLab = next; const defaults = molecularLabs[next]?.defaults ?? {};
     p = { ...defaults }; reference = { ...defaults }; time = 0; speed = molecularLabs[next]?.unit === 'day' ? 1 : 1;
-    compare = molecularLabs[next]?.referenceMode !== 'intrinsic'; prediction = ''; message = ''; shared = ''; loadError = '';
+    compare = molecularLabs[next]?.referenceMode !== 'intrinsic'; prediction = ''; message = ''; shared = ''; loadError = ''; teacher = false; hidden = false;
   }
   function change(key, event) {
     const rule = config.parameters[key], value = rule.options ? Number(event.currentTarget.value) : event.currentTarget.valueAsNumber;
@@ -67,7 +70,7 @@
   }
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
   function play() {
-    if (!valid || playing) return;
+    if (!valid || hidden || playing) return;
     if (time >= end) time = 0;
     playing = true; visible = true; last = performance.now();
     const step = now => {
@@ -87,13 +90,13 @@
     try {
       const scenario = decodeMolecularScenario(window.location.hash);
       if (scenario.lab !== lab) return;
-      p = scenario.parameters; reference = scenario.reference; time = 0; loadError = '';
+      p = scenario.parameters; reference = scenario.reference; teacher = scenario.teacher; hidden = scenario.hidden; time = 0; loadError = '';
     } catch { loadError = en ? 'Invalid shared scenario. No values were applied.' : "Scenario partage invalide. Aucune valeur n'a ete appliquee."; }
   }
   async function share() {
     if (!valid) return;
     const url = new URL(`${base}/laboratoires/`, window.location.origin);
-    url.searchParams.set('lang', en ? 'en' : 'fr'); url.searchParams.set('lab', lab); url.hash = encodeMolecularScenario(lab, valid, reference); shared = url.href;
+    url.searchParams.set('lang', en ? 'en' : 'fr'); url.searchParams.set('lab', lab); url.hash = encodeMolecularScenario(lab, valid, reference, teacher, hidden); shared = url.href;
     try { await navigator.clipboard.writeText(shared); message = en ? 'Scenario link copied.' : 'Lien du scenario copie.'; }
     catch { message = en ? 'Scenario link ready below.' : 'Lien du scenario disponible ci-dessous.'; }
   }
@@ -124,11 +127,12 @@
     <div><p class="eyebrow">{config.category ? (en ? config.category.en : config.category.fr) : (en ? 'Advanced molecular journey' : 'Parcours moleculaire avance')} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
     <label class="lab-selector">{en ? 'Interactive laboratory' : 'Laboratoire interactif'}<select value={lab} on:change={switchLab}>{#each fundamentalLabs as item}<option value={item.id}>{item.number} · {en ? item.en : item.fr}</option>{/each}{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
   </header>
+  <div class="teacher-toggle"><label class="check"><GraduationCap size={19}/><input type="checkbox" bind:checked={teacher}/>{en ? 'Teacher mode' : 'Mode enseignant'}</label></div>
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
-      <section class="question first"><strong>01 · {en ? 'Predict before changing a parameter' : 'Prédire avant de modifier un paramètre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== ''}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
+      <section class="question first"><strong>01 · {en ? 'Predict before changing a parameter' : 'Prédire avant de modifier un paramètre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== '' && !hidden}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
       <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="molecular-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="molecular-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
       {#if learningMode === 'guided'}<p class="guided-note"><b>02 · {en ? 'Manipulate' : 'Manipuler'}</b> {en ? 'Change one mechanism, then observe both representations.' : 'Modifiez un seul mécanisme, puis observez les deux représentations.'}</p>{/if}
       <div class="numbers" class:guided={learningMode === 'guided'}>{#each visibleParameters as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{:else}<small></small>{/if}{#if rule.options}<select id={`molecular-${key}`} value={p[key]} on:change={event => change(key, event)}>{#each rule.options as option}<option value={option.value}>{en ? option.label.en : option.label.fr}</option>{/each}</select>{:else}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/>{/if}</label>{/each}</div>
@@ -144,7 +148,7 @@
       {#if learningMode === 'guided'}<p class="stage"><b>03 · {en ? 'Observe' : 'Observer'}</b> {en ? 'Follow the mechanism and the curve, then compare the quantitative metrics.' : 'Suivez le mécanisme et la courbe, puis comparez les mesures quantitatives.'}</p>{/if}
       <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}><button class:active={mode === 'intuition'} aria-pressed={mode === 'intuition'} on:click={() => mode = 'intuition'}>Intuition</button><button class:active={mode === 'model'} aria-pressed={mode === 'model'} on:click={() => mode = 'model'}>{en ? 'Equations' : 'Equations'}</button></div>
       <div bind:this={animationArea}>
-        {#if valid && state}
+        {#if valid && state && !hidden}
           {#if mode === 'model'}<div class="equations"><code>{config.equations}</code><p>{en ? 'Deterministic educational model with fixed parameters and no residual error.' : 'Modele pedagogique deterministe, a parametres fixes et sans erreur residuelle.'}</p></div>{/if}
           <div class="visual-grid">
             <div class="scene-panel">
@@ -164,15 +168,16 @@
             <label class="speed">{en ? 'Speed' : 'Vitesse'}<select bind:value={speed} aria-label={en ? 'Speed' : 'Vitesse'}>{#each (config.unit === 'day' ? [.1,.5,1,4,7] : [.1,.5,1,4,12]) as value}<option value={value}>{value} {config.unit === 'day' ? (en ? 'day/s' : 'jour/s') : 'h/s'}</option>{/each}</select></label>
           </div>
           <input class="timeline" aria-label={en ? 'Simulation time' : 'Temps de simulation'} type="range" min="0" max={end} step="0.1" value={time} on:input={event => { pause(); time = event.currentTarget.valueAsNumber; }}/>
-        {/if}
+        {:else if hidden}<div class="hidden-scene"><EyeOff size={28}/><strong>{en ? 'Results hidden' : 'Resultats masques'}</strong></div>{/if}
       </div>
-      {#if valid && state}
+      {#if valid && state && !hidden}
         <div class:two={config.plotMode === 'primary'} class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div>{#if config.plotMode !== 'primary'}<div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div>{/if}<div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
         <p id="molecular-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} ${unit}, primary concentration is ${state.c.toFixed(2)} mg/L and ${config.secondary.en.toLowerCase()} is ${state.secondary.toFixed(2)} ${config.secondaryUnit}.` : `À ${time.toFixed(1)} ${unit}, la concentration primaire vaut ${state.c.toFixed(2)} mg/L et ${config.secondary.fr.toLowerCase()} vaut ${state.secondary.toFixed(2)} ${config.secondaryUnit}.`}</p>
         {#key lab}<LabDebrief {en} explanation={config.explanation} application={applications[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>
       {/if}
-      <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
+      {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scenario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les resultats a l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Parametres synthetiques uniquement. L'apprenant peut reveler les resultats ; ce n'est pas un examen verrouille."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Reveler les resultats') : (en ? 'Hide results' : 'Masquer les resultats')}</button></section>{/if}
+      <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
       {#if message}<p role="status">{message}</p>{/if}
       {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
@@ -189,6 +194,7 @@
   .eyebrow { font-size:11px; text-transform:uppercase; }
   .lab-selector { display:grid; gap:6px; min-width:250px; color:var(--text-secondary); font-size:11px; }
   .lab-selector select { width:100%; }
+  .teacher-toggle { display:flex; justify-content:flex-end; padding:10px 0 0; }
   .lab-grid { display:grid; grid-template-columns:280px minmax(0,1fr); }
   .parameters { min-width:0; padding:22px 20px 0 0; border-right:1px solid var(--border-subtle); }
   .experiment { min-width:0; padding:0 0 0 24px; }
@@ -222,7 +228,9 @@
   .data { margin-top:18px; }.table-scroll { overflow:auto; } table { width:100%; margin-top:10px; border-collapse:collapse; font-size:11px; } th, td { padding:7px; border-bottom:1px solid var(--border-subtle); text-align:right; } th:first-child { text-align:left; } td { font-family:var(--font-mono); }
   .exports { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }.shared-link { display:grid; gap:5px; margin-top:12px; font-size:11px; }.shared-link input { width:100%; box-sizing:border-box; padding:8px; }
   .error { color:var(--danger); font-size:12px; }
-  .continuity { display:flex; gap:12px; margin-top:34px; padding:22px 0; border-top:1px solid var(--border-strong); }.continuity div { display:grid; gap:5px; }.continuity a { width:max-content; color:var(--accent-pk); }.continuity p { margin:3px 0 0; color:var(--text-secondary); font-size:11px; }
+  .teacher { margin-top:20px; padding-top:10px; border-top:1px solid var(--border-subtle); }.teacher h3 { display:flex; align-items:center; gap:8px; }.teacher p { font-size:12px; }
+  .hidden-scene { display:flex; align-items:center; justify-content:center; gap:12px; min-height:420px; background:var(--bg-secondary); }
+  .continuity { display:flex; gap:12px; margin-top:34px; padding:22px 0; border-top:1px solid var(--border-strong); }.continuity div { display:grid; gap:5px; min-width:0; }.continuity a { width:auto; max-width:100%; color:var(--accent-pk); overflow-wrap:anywhere; }.continuity p { margin:3px 0 0; color:var(--text-secondary); font-size:11px; overflow-wrap:anywhere; }
   .sr-summary { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   @media(max-width:840px) { .heading { align-items:start; flex-direction:column; }.lab-selector { width:100%; min-width:0; }.lab-grid { grid-template-columns:1fr; }.parameters { padding:20px 0; border-right:0; border-bottom:1px solid var(--border-subtle); }.experiment { padding:0; }.numbers { grid-template-columns:repeat(3,minmax(0,1fr)); }.visual-grid { grid-template-columns:1fr; }.curve-panel { padding:16px 0 0; border-top:1px solid var(--border-subtle); border-left:0; }.plot-legend { min-height:0; margin:10px 0 4px; } }
   @media(max-width:560px) { .heading h1 { font-size:27px; }.numbers { grid-template-columns:1fr 1fr; }.metrics { grid-template-columns:1fr; }.metrics div { border-right:0; border-bottom:1px solid var(--border-subtle); }.timebar { gap:6px; }.time-input input { width:64px; } }

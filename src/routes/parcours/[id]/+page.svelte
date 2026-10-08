@@ -28,6 +28,7 @@
   $: beginner = track.id === 'start';
   $: pilot = track.id === 'covariates';
   $: trackActivities = list.flatMap(chapter => activitiesForChapter(chapter.slug, track.id));
+  $: finalCase = beginner ? trackActivities.find(activity => activity.id === 'synthesis-start') : null;
   $: chapterQuery = mounted ? $page.url.searchParams.get('chapter') : null;
   $: selected = list.find(chapter => chapter.slug === chapterQuery) ?? list[0];
   $: activities = selected ? activitiesForChapter(selected.slug, track.id) : [];
@@ -44,14 +45,14 @@
   function choose(slug) { goto(`${base}/parcours/${track.id}/?lang=${$language}&chapter=${slug}#practice`, { keepFocus: true }); }
   const diagnostic = {
     fr: [
-      { q: "Si la clairance double a dose identique, que devient en general l'AUC sous PK lineaire ?", options: ['Elle double', 'Elle est divisee par deux', 'Elle ne change pas'], correct: 1, explain: "AUC = Dose/CL : doubler CL divise l'exposition totale par deux." },
-      { q: 'Une demi-vie longue signifie-t-elle toujours une faible clairance ?', options: ['Oui', 'Non, le volume intervient aussi'], correct: 1, explain: 't1/2 = ln(2) x V/CL : un grand volume peut aussi allonger la demi-vie.' },
-      { q: 'Deux patients ayant la meme concentration ont-ils necessairement le meme effet ?', options: ['Oui', 'Non'], correct: 1, explain: "La reponse depend du modele PD, de sa variabilite et d'un eventuel retard." }
+      { prompt: "Si la clairance double a dose identique, que devient en general l'AUC sous PK lineaire ?", options: ['Elle double', 'Elle est divisee par deux', 'Elle ne change pas'], correct: 1 },
+      { prompt: 'Une demi-vie longue signifie-t-elle toujours une faible clairance ?', options: ['Oui', 'Non, le volume intervient aussi'], correct: 1 },
+      { prompt: 'Deux patients ayant la meme concentration ont-ils necessairement le meme effet ?', options: ['Oui', 'Non'], correct: 1 }
     ],
     en: [
-      { q: 'If clearance doubles at the same dose, what generally happens to AUC under linear PK?', options: ['It doubles', 'It is halved', 'It is unchanged'], correct: 1, explain: 'AUC = Dose/CL: doubling CL halves total exposure.' },
-      { q: 'Does a long half-life always imply low clearance?', options: ['Yes', 'No, volume also matters'], correct: 1, explain: 't1/2 = ln(2) x V/CL: a large volume can also lengthen half-life.' },
-      { q: 'Do two patients with the same concentration necessarily have the same effect?', options: ['Yes', 'No'], correct: 1, explain: 'Response depends on the PD model, its variability and any delay.' }
+      { prompt: 'If clearance doubles at the same dose, what generally happens to AUC under linear PK?', options: ['It doubles', 'It is halved', 'It is unchanged'], correct: 1 },
+      { prompt: 'Does a long half-life always imply low clearance?', options: ['Yes', 'No, volume also matters'], correct: 1 },
+      { prompt: 'Do two patients with the same concentration necessarily have the same effect?', options: ['Yes', 'No'], correct: 1 }
     ]
   };
 </script>
@@ -92,6 +93,15 @@
     {/each}
   </ol>
 </section>
+
+{#if finalCase}
+  <section class="final-case" data-testid="starter-final-case">
+    <p class="eyebrow">{t('Evaluation finale', 'Final assessment')}</p>
+    <h2>{finalCase.title[$language]}</h2>
+    <p>{finalCase.objective[$language]}</p>
+    <a class="command" href={`${base}/parcours/${track.id}/?lang=${$language}&chapter=${finalCase.chapter}#activity-${finalCase.id}`}><ListChecks size={17}/>{t('Resoudre le cas de synthese', 'Solve the synthesis case')}</a>
+  </section>
+{/if}
 
 <section id="practice" class="practice">
   <h2>{t('Mise en pratique', 'Practice')}</h2>

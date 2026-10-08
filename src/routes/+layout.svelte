@@ -42,6 +42,7 @@
     { href: '/advanced', key: 'advanced', label: $language === 'en' ? 'Advanced Builder' : 'Modélisation avancée' },
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
+    { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
     { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
     { href: `${SITE_ORIGIN}/tools/`, key: 'other-tools', label: $language === 'en' ? 'Other tools' : 'Autres outils', external: true },
@@ -52,7 +53,7 @@
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
-    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['glossary', 'references', 'about', 'main-site'] }
+    { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['search', 'glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
   /** @type {HTMLElement | undefined} */

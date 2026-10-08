@@ -52,7 +52,8 @@ test('molecular discovery mode exposes one mechanism before free exploration', a
   await expect(page.locator('#molecular-model')).toBeVisible();
   await page.getByTestId('molecular-learning-free').click();
   expect(await page.locator('.numbers input:visible, .numbers select:visible').count()).toBeGreaterThan(1);
-  await page.getByRole('button', { name: 'Show the scientific debrief' }).click();
+  await page.getByLabel('Your explanation').fill('The response follows the selected concentration-effect model.');
+  await page.getByRole('button', { name: 'Compare my explanation' }).click();
   await expect(page.locator('.debrief')).toBeVisible();
 });
 
@@ -195,6 +196,22 @@ test('play, parameters, reference, model view and scenario sharing work', async 
   expect(shared).toContain('dose=900');
   await page.goto(shared);
   await expect(page.locator('#molecular-dose')).toHaveValue('900');
+});
+
+test('molecular teacher scenarios keep results hidden until reveal', async ({ page }) => {
+  await open(page, 'tmdd');
+  await page.getByLabel('Teacher mode', { exact: true }).check();
+  await page.getByLabel('Hide results at opening').check();
+  await expect(page.getByTestId('molecular-scene')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'CSV', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Share scenario', exact: true }).click();
+  const shared = await page.getByLabel('Synthetic scenario link').inputValue();
+  expect(shared).toContain('teacher=1');
+  expect(shared).toContain('hide=1');
+  await page.goto(shared);
+  await expect(page.getByTestId('molecular-scene')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Reveal results', exact: true }).click();
+  await expect(page.getByTestId('molecular-scene')).toBeVisible();
 });
 
 test('French mobile layouts remain readable for dense mechanisms', async ({ page }) => {

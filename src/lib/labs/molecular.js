@@ -418,8 +418,8 @@ export function molecularStateAt(rows, time) {
   return row;
 }
 
-export function encodeMolecularScenario(lab, supplied, reference = supplied) {
-  const p = validateMolecularParameters(lab, supplied), ref = validateMolecularParameters(lab, reference), values = new URLSearchParams({ lab, mv: '1' });
+export function encodeMolecularScenario(lab, supplied, reference = supplied, teacher = false, hidden = false) {
+  const p = validateMolecularParameters(lab, supplied), ref = validateMolecularParameters(lab, reference), values = new URLSearchParams({ lab, mv: '1', teacher: teacher ? '1' : '0', hide: teacher && hidden ? '1' : '0' });
   for (const key of Object.keys(p)) { values.set(key, String(p[key])); values.set(`r_${key}`, String(ref[key])); }
   return values.toString();
 }
@@ -427,13 +427,15 @@ export function encodeMolecularScenario(lab, supplied, reference = supplied) {
 export function decodeMolecularScenario(hash) {
   const values = new URLSearchParams(hash.replace(/^#/, '')), lab = values.get('lab') ?? '', config = molecularLabs[lab];
   if (!config || values.get('mv') !== '1' || hash.length > 3000) throw new Error('Invalid molecular scenario');
-  const allowed = new Set(['lab', 'mv', ...Object.keys(config.defaults), ...Object.keys(config.defaults).map(key => `r_${key}`)]);
+  const allowed = new Set(['lab', 'mv', 'teacher', 'hide', ...Object.keys(config.defaults), ...Object.keys(config.defaults).map(key => `r_${key}`)]);
   if ([...values.keys()].some(key => !allowed.has(key) || values.getAll(key).length !== 1)) throw new Error('Invalid molecular scenario');
+  for (const flag of ['teacher', 'hide']) if (values.has(flag) && !['0', '1'].includes(values.get(flag) ?? '')) throw new Error('Invalid molecular scenario');
   const p = {}, reference = {};
   for (const key of Object.keys(config.defaults)) {
     for (const [prefix, target] of [['', p], ['r_', reference]]) if (values.has(prefix + key)) {
       const text = values.get(prefix + key); if (!text?.trim()) throw new Error('Invalid molecular scenario'); target[key] = Number(text);
     }
   }
-  return { lab, parameters: validateMolecularParameters(lab, p), reference: validateMolecularParameters(lab, Object.keys(reference).length ? reference : p) };
+  const teacher = values.get('teacher') === '1';
+  return { lab, parameters: validateMolecularParameters(lab, p), reference: validateMolecularParameters(lab, Object.keys(reference).length ? reference : p), teacher, hidden: teacher && values.get('hide') === '1' };
 }

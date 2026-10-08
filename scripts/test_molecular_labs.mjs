@@ -41,7 +41,8 @@ for (const lab of molecularLabIds) {
   assert.ok(middle && Number.isFinite(middle.c) && Number.isFinite(middle.secondary));
 
   const encoded = encodeMolecularScenario(lab, parameters, parameters);
-  assert.deepEqual(decodeMolecularScenario(encoded), { lab, parameters, reference: parameters });
+  assert.deepEqual(decodeMolecularScenario(encoded), { lab, parameters, reference: parameters, teacher: false, hidden: false });
+  assert.deepEqual(decodeMolecularScenario(encodeMolecularScenario(lab, parameters, parameters, true, true)), { lab, parameters, reference: parameters, teacher: true, hidden: true });
 }
 
 const parent = molecularSeries('parent-metabolite', molecularLabs['parent-metabolite'].defaults);

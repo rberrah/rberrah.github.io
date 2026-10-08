@@ -24,6 +24,18 @@ test('la liste des chapitres et la recherche fonctionnent', async ({ page }) => 
   expect(found).toBeLessThan(total);
 });
 
+test('la recherche globale relie cours, glossaire, laboratoires et exercices', async ({ page }) => {
+  await page.goto('/recherche?lang=en');
+  await page.getByTestId('global-search').fill('clearance');
+  for (const type of ['Course', 'Glossary', 'Laboratory', 'Guided activity']) await expect(page.getByRole('heading', { name: new RegExp(`^${type}`) })).toBeVisible();
+});
+
+test('le parcours debutant separe diagnostic et cas final', async ({ page }) => {
+  await page.goto('/parcours/start?lang=en');
+  await expect(page.getByTestId('starter-diagnostic')).toBeVisible();
+  await expect(page.getByTestId('starter-final-case')).toContainText('Final case');
+});
+
 test('un chapitre affiche titre, visualisation et exercices', async ({ page }) => {
   await page.goto('/chapitres/clairance-volume-demi-vie');
   await expect(page.getByTestId('chapter-title')).toBeVisible();

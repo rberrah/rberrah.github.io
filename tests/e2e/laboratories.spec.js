@@ -32,8 +32,9 @@ test('discovery mode guides prediction, one manipulation and debrief', async ({ 
   await expect(page.locator('.numbers input:visible')).toHaveCount(1);
   await expect(page.locator('#lab-q')).toBeVisible();
   await expect(page.locator('#lab-cl')).toHaveCount(0);
-  await page.getByLabel('Your prediction').selectOption('0');
-  await page.getByRole('button', { name: 'Show the scientific debrief' }).click();
+  await page.getByLabel('Your prediction').selectOption('up');
+  await page.getByLabel('Your explanation').fill('Distribution becomes faster when Q increases.');
+  await page.getByRole('button', { name: 'Compare my explanation' }).click();
   await expect(page.locator('.debrief')).toBeVisible();
   await page.getByTestId('lab-learning-free').click();
   await expect(page.locator('#lab-cl')).toBeVisible();
