@@ -102,7 +102,7 @@
         <article><strong>${language === 'en' ? 'How omics overlap' : 'Comment les omiques se recouvrent'}</strong><p>${overlapText}</p></article>
         <article><strong>${language === 'en' ? 'Endpoint type' : 'Type de critère étudié'}</strong><p>${outcomeText}</p></article>
       </div>
-      <div class="licence-replicate-warning"><b>${language === 'en' ? 'Important: a technical replicate is not a new biological subject.' : 'Important : un réplicat technique n’est pas un nouveau sujet biologique.'}</b><span>${language === 'en' ? 'Repeating the measurement of the same specimen improves measurement precision but does not increase the biological sample size. The tool links technical replicates through the same sample_id.' : 'Répéter la mesure du même prélèvement améli la précision technique mais n’augmente pas l’effectif biologique. L’outil relie les répétitions techniques par le même sample_id.'}</span></div>
+      <div class="licence-replicate-warning"><b>${language === 'en' ? 'Important: a technical replicate is not a new biological subject.' : 'Important : un réplicat technique n’est pas un nouveau sujet biologique.'}</b><span>${language === 'en' ? 'Repeating the measurement of the same specimen improves measurement precision but does not increase the biological sample size. The tool links technical replicates through the same sample_id.' : 'Répéter la mesure du même prélèvement améliore la précision technique mais n’augmente pas l’effectif biologique. L’outil relie les répétitions techniques par le même sample_id.'}</span></div>
       </details>
     `;
     if (wasOpen) guide.querySelector('details.licence-design-body').open = true;
