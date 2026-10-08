@@ -428,7 +428,7 @@ function featureKeys(feature, resolutionAliases) {
   return [...new Set([feature, ...(resolutionAliases.get(feature) || [])].map(key).filter(Boolean))];
 }
 
-function chooseEffect(rows, aliases, resolutionAliases) {
+function chooseEffect(rows, aliases, resolutionAliases, allowGeneFamily = false) {
   const wanted = new Set(aliases.map(key));
   const candidates = rows
     .filter((row) => featureKeys(row.feature, resolutionAliases).some((candidate) => wanted.has(candidate)))
@@ -455,6 +455,13 @@ function chooseEffect(rows, aliases, resolutionAliases) {
   const negatives = valid.some((row) => row.effect < 0);
   const scales = new Set(valid.map((row) => row.effectScale));
   const features = [...new Set(valid.map((row) => row.feature))];
+  // Several MS peaks/adducts pointing to one ChEBI must never become one
+  // arbitrarily selected biological measurement. Keep unresolved until explicit
+  // quantification rules or replicate aggregation are specified.
+  if (!allowGeneFamily && features.length > 1)
+    return { feature: features.join(', '), effect:null, qValue:null,
+      effectScale:scales.size===1 ? valid[0].effectScale : 'mixed',
+      status:'multiple_features', matchedFeatures:features };
   if (features.length > 1 && (positives && negatives || scales.size > 1)) {
     return { feature: features.join(', '), effect: null, qValue: null,
       effectScale: scales.size === 1 ? valid[0].effectScale : 'mixed', status: 'discordant_isoforms', matchedFeatures: features };
@@ -482,7 +489,7 @@ function buildCentralCarbon(result) {
   }));
   const enzymes = CENTRAL_ENZYMES.map((node) => ({
     ...node,
-    measurement: chooseEffect(transcriptRows, node.aliases, transcriptAliases)
+    measurement: chooseEffect(transcriptRows, node.aliases, transcriptAliases, true)
   }));
   const shownMetaboliteIds = new Set(metabolites.flatMap((node) =>
     node.measurement?.status === 'measured' ? node.measurement.matchedFeatures || [node.measurement.feature] : []));
