@@ -52,6 +52,44 @@ assert.ok(!visuals.centralCarbon.edges.some(([a,b]) => a === 'pyruvate' && b ===
 assert.ok(!visuals.centralCarbon.edges.some(([a,b]) => a === 'g3p' && b === 'serine'));
 assert.match(visuals.methodologicalBoundary.join(' '), /No metabolic flux/i);
 
+// ChEBI identities are curated from EMBL-EBI rather than inferred from the ID
+// text. Demo-like data must show lactate/succinate on the fixed map; tryptophan
+// and kynurenine remain measured but outside this intentionally limited map.
+const example = await buildMultiomicsVisualizationData({
+  files: {}, metadataRows: [], columnMapping: {}, dataTypes: {},
+  analysisResult: {
+    layers: {
+      transcriptomics: { rows: [
+        row('GAPDH', -0.06, 0.4), row('STAT1', 1.01, 0.02),
+        row('IDO1', 1.92, 0.01), row('KYNU', 1.09, 0.03),
+        row('CYP3A5', -0.8, 0.01)
+      ] },
+      metabolomics: { rows: [
+        row('CHEBI:16828', -1.2, 0.04), row('CHEBI:16946', 0.37, 0.04),
+        row('CHEBI:24996', -0.37, 0.08), row('CHEBI:30031', -0.49, 0.03)
+      ] }
+    }
+  }
+});
+assert.equal(example.centralCarbon.measuredMetabolites, 2,
+  'ChEBI lactate and succinate must appear in central-carbon map');
+assert.equal(example.centralCarbon.measuredTranscripts, 1,
+  'Only GAPDH among these demo genes is part of fixed central-carbon schematic');
+assert.equal(example.centralCarbon.metabolites.find((n) => n.id === 'lactate').measurement.feature, 'CHEBI:24996');
+assert.equal(example.centralCarbon.metabolites.find((n) => n.id === 'succinate').measurement.feature, 'CHEBI:30031');
+assert.deepEqual(new Set(example.centralCarbon.offMapMetabolites.map((n) => n.feature)),
+  new Set(['CHEBI:16828', 'CHEBI:16946']));
+assert.deepEqual(new Set(example.centralCarbon.offMapTranscripts.map((n) => n.feature)),
+  new Set(['STAT1', 'IDO1', 'KYNU', 'CYP3A5']));
+assert.equal(example.metabologram.metabolomics.find((n) => n.feature === 'CHEBI:16828').labelFr,
+  'L-tryptophane');
+assert.equal(example.metabologram.metabolomics.find((n) => n.feature === 'CHEBI:16946').labelFr,
+  'L-kynurénine');
+assert.deepEqual(example.metabologramPathways.find((n) => n.id === 'glycolysis').metabolomics.map((n) => n.feature),
+  ['CHEBI:24996']);
+assert.deepEqual(example.metabologramPathways.find((n) => n.id === 'tca').metabolomics.map((n) => n.feature),
+  ['CHEBI:30031']);
+
 const untouched = JSON.stringify(result);
 const again = await buildMultiomicsVisualizationData({
   files: {}, metadataRows: [], columnMapping: {}, dataTypes: {}, analysisResult: result
