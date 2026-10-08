@@ -95,7 +95,11 @@ jobs:
             dist/a-propos/index.html \
             dist/stats/index.html \
             dist/stats/tool/index.html \
-            dist/pharmacometrie/index.html
+            dist/multiomics/index.html \
+            dist/multiomics/tool/index.html \
+            dist/pharmacometrie/index.html \
+            dist/pharmacometrie/multiomics/index.html \
+            dist/pharmacometrie/multiomics/tool/index.html
           do
             if [ -f "$f" ]; then
               echo "ok        $f"

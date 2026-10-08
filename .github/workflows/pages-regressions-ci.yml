@@ -8,6 +8,8 @@ on:
       - 'src/routes/**'
       - 'src/lib/components/MolecularScene.svelte'
       - 'tests/e2e/**'
+      - 'portal/**'
+      - '.github/workflows/deploy-pages.yml'
       - '.github/workflows/pages-regressions-ci.yml'
 
 permissions:
@@ -38,3 +40,5 @@ jobs:
           tests/e2e/workshops.spec.js
           tests/e2e/covariate-lessons.spec.js
           --grep "Commencer le cours|synthesis-start|objects in the scene|Explorer exposes six workshops|Covariate lesson physiology en 390"
+      - name: Verify root Multiomics redirects and deployed paths
+        run: npx playwright test --config playwright.portal.config.js --grep "legacy routes, aliases, 404 and sitemap"
