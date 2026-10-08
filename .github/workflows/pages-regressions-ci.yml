@@ -42,3 +42,7 @@ jobs:
           --grep "Commencer le cours|synthesis-start|objects in the scene|Explorer exposes six workshops|Covariate lesson physiology en 390"
       - name: Verify root Multiomics redirects and deployed paths
         run: npx playwright test --config playwright.portal.config.js --grep "legacy routes, aliases, 404 and sitemap"
+      - name: Verify Multiomics readable themes and single-omic shortcut
+        env:
+          LABS_E2E_PREBUILT: "true"
+        run: npx playwright test tests/e2e/multiomics-contrast.spec.js
