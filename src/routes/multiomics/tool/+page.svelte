@@ -1957,6 +1957,8 @@
       <span>{t('Aires de pics (AUC) LC-MS / GC-MS : matrice ou export long avec molécule, échantillon et AUC', 'LC-MS / GC-MS peak areas (AUC): matrix or long export with feature, sample and AUC')}</span>
       <input type="file" data-testid="multiomics-ms-auc-upload" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
+      <a href={`${base}/multiomics/ms_peak_areas_example.csv`} download>{t('Exemple CSV AUC (données fictives)', 'Example AUC CSV (illustrative synthetic data)')}</a>
+      <small>{t('AUC = aire intégrée du pic chromatographique, non AUC pharmacocinétique. Exportez le CSV/TSV du logiciel MS. Une ligne par molécule et injection, avec colonnes feature_id, assay_id, auc, condition, ou une matrice molécules × injections.', 'AUC = integrated chromatographic peak area, not pharmacokinetic AUC. Export CSV/TSV from your MS software. Use feature_id, assay_id, auc, condition columns or a features × injections matrix.')}</small>
     </label>
   </div>
 
