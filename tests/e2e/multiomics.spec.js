@@ -60,6 +60,9 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId('multiomics-qc')).toBeVisible();
   await expect(page.getByTestId('multiomics-qc')).toContainText(/variables conservées|features retained/i);
+  const preprocessing = page.getByTestId('preprocessing-audit').first();
+  await expect(preprocessing).toBeVisible();
+  await expect(preprocessing).toContainText(/raw_counts|log2|compatible/i);
 
   const help = page.locator('.feature-head .help-tip').first();
   await expect(help).toHaveAttribute('data-tooltip', /rapport|ratio|direction|magnitude/i);
