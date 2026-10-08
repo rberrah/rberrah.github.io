@@ -510,17 +510,35 @@
   .condition-mark { font-size:8px; font-weight:800; fill:#263238; }
   .feature-label { font-size:9px; fill:#263238; }
   .method-note, .empty-note { margin:10px 0 0; color:var(--text-secondary,#5d6a70); font-size:.82rem; line-height:1.45; }
-  .metabologram-layout { display:grid; grid-template-columns:minmax(420px,1.1fr) minmax(250px,.9fr); gap:20px; align-items:center; }
-  .metabologram-layout svg { min-width:0; max-width:560px; margin:auto; }
+  .metabologram-layout { display:grid; grid-template-columns:minmax(300px,1fr) minmax(300px,.95fr); gap:20px; align-items:start; }
+  .metabologram-layout > svg { min-width:0; max-width:520px; margin:auto; }
   .center-label { font-size:11px; font-weight:800; fill:#263238; }
   .center-value { font-size:10px; fill:#263238; }
   .half-label { font-size:12px; font-weight:800; fill:#263238; }
-  .metabologram-keys { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .metabologram-keys > div { display:flex; flex-direction:column; gap:5px; min-width:0; }
-  .metabologram-keys strong { font-size:.82rem; margin-bottom:4px; }
-  .metabologram-keys span { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:7px; align-items:center; font-size:.76rem; }
-  .metabologram-keys i { width:11px; height:11px; border-radius:2px; border:1px solid #849097; }
-  .metabologram-keys b { font-family:var(--font-mono,monospace); font-size:.7rem; }
+  .metabologram-keys { display:flex; flex-direction:column; gap:13px; min-width:0; font-size:.85rem; }
+  .color-key { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; font-size:.8rem; }
+  .color-key i { display:inline-block; width:13px; height:13px; border:1px solid #829099; border-radius:3px; margin-left:8px; }
+  .color-key .key-blue { background:#3567b2; margin-left:0; }
+  .color-key .key-white { background:#f7f7f7; }
+  .color-key .key-red { background:#cc3e3e; }
+  .color-key small { display:block; width:100%; color:var(--text-secondary,#58666d); margin-top:4px; }
+  .legend-section { border:1px solid var(--border,#d9e0e3); border-radius:12px; min-width:0; overflow:hidden; }
+  .legend-section h4 { margin:0; font-size:.88rem; padding:10px 12px; background:#f5f8f9; border-bottom:1px solid var(--border,#d9e0e3); }
+  .legend-section h4 small { font-weight:400; color:#58666d; }
+  .legend-items { list-style:none; padding:4px 10px; margin:0; display:grid; }
+  .legend-entry { display:grid; grid-template-columns:14px minmax(0,1fr) 64px; align-items:center; gap:10px; padding:7px 2px; border-bottom:1px solid #edf0f1; min-width:0; }
+  .legend-entry:last-child { border-bottom:0; }
+  .legend-swatch { width:13px; height:13px; border-radius:3px; border:1px solid #839098; }
+  .legend-name { display:flex; flex-direction:column; gap:1px; min-width:0; overflow-wrap:anywhere; line-height:1.3; }
+  .legend-name strong { font-size:.84rem; font-weight:650; }
+  .legend-name small { font-size:.7rem; color:#58666d; font-family:var(--font-mono,monospace); }
+  .legend-effect { text-align:right; font-family:var(--font-mono,monospace); font-variant-numeric:tabular-nums; font-size:.82rem; }
+  .legend-empty, .legend-more { display:block; padding:6px 12px; color:#58666d; font-size:.8rem; }
+  .off-map { margin:12px 0; padding:12px 14px; border:1px solid var(--border,#d9e0e3); border-radius:10px; font-size:.85rem; line-height:1.5; }
+  .off-map strong { font-size:.9rem; }
+  .off-map p { margin:4px 0 8px; color:var(--text-secondary,#58666d); }
+  .off-map details { margin-top:6px; }
+  .off-map summary { cursor:pointer; }
   .map-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:.82rem; }
   .pathway-label { font-size:15px; font-weight:800; letter-spacing:.08em; fill:#9aa4a9; }
   .metabolite-label { font-size:10px; font-weight:800; fill:#172126; pointer-events:none; }
@@ -534,8 +552,7 @@
     .figure-switcher { width:100%; }
     .figure-switcher button { flex:1 1 auto; }
     .metabologram-layout { grid-template-columns:1fr; }
-    .metabologram-keys { grid-template-columns:1fr; }
     svg { min-width:620px; }
-    .metabologram-layout svg { min-width:0; width:100%; }
+    .metabologram-layout > svg { min-width:0; width:100%; }
   }
 </style>
