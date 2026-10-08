@@ -273,14 +273,16 @@ function buildMethodEligibility({ protocol, canonicalRows, perLayer, overlap, co
   const objective = protocol.objective || 'explore';
   const outcomeType = protocol.outcomeType || 'none';
   const commonSubjects = Number(overlap?.allMatched ?? 0);
+  const singleOmic = Object.keys(perLayer).length === 1;
   const batchBlocked = Object.values(perLayer).some((item) => item.batchStatus === 'confounded');
   const batchIncomplete = Object.values(perLayer).some((item) => item.batchStatus === 'incomplete');
 
   const mofaReasons = [];
+  if (singleOmic) mofaReasons.push('MOFA2 multi-omics factor integration requires at least two measured layers.');
   if (commonSubjects < 16) mofaReasons.push('MOFA2 factor analysis requires more than 15 shared samples for a defensible primary analysis.');
   if (batchBlocked) mofaReasons.push('Known technical series are confounded with the biological design.');
   if (batchIncomplete) mofaReasons.push('Technical-series annotation is incomplete.');
-  const mofaStatus = mofaReasons.length ? 'not_recommended' : 'eligible';
+  const mofaStatus = singleOmic ? 'not_applicable' : mofaReasons.length ? 'not_recommended' : 'eligible';
 
   const categoricalTarget = objective === 'groups' || (objective === 'outcome' && ['binary','multiclass'].includes(outcomeType));
   let classCounts = groupCounts;
@@ -290,11 +292,12 @@ function buildMethodEligibility({ protocol, canonicalRows, perLayer, overlap, co
   const classSizes = Object.values(classCounts).filter((value) => value > 0);
   const smallestClass = classSizes.length ? Math.min(...classSizes) : null;
   const diabloReasons = [];
+  if (singleOmic) diabloReasons.push('DIABLO multi-omics integration requires at least two measured layers.');
   if (!categoricalTarget) diabloReasons.push('DIABLO is only applicable to a supervised categorical target in this tool.');
   if (commonSubjects < 6) diabloReasons.push('Too few subjects are shared across all loaded omics blocks.');
   if (smallestClass != null && smallestClass < 3) diabloReasons.push('At least three subjects per class are required for stratified cross-validation.');
   if (batchBlocked) diabloReasons.push('Technical confounding must be resolved before supervised multi-omics discrimination.');
-  const diabloStatus = !categoricalTarget ? 'not_applicable' : diabloReasons.length ? 'not_recommended' : 'eligible_with_internal_cv';
+  const diabloStatus = !categoricalTarget || singleOmic ? 'not_applicable' : diabloReasons.length ? 'not_recommended' : 'eligible_with_internal_cv';
 
   return {
     mofa2: {
