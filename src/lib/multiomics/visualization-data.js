@@ -4,6 +4,7 @@
 // the feature ranking already produced by the analysis engine.
 
 import { parseDelimited } from './deterministic.js';
+import { buildFocusedMetabolicNetwork } from './metabolic-network.js';
 
 const LAYERS = ['transcriptomics', 'proteomics', 'metabolomics'];
 
@@ -595,12 +596,14 @@ export async function buildMultiomicsVisualizationData({
     },
     metabologramPathways: buildMetabologramPathways(centralCarbon),
     centralCarbon,
+    focusedMetabolicNetwork: buildFocusedMetabolicNetwork(analysisResult, centralCarbon),
     methodologicalBoundary: [
       'Figures reuse the statistical results; they do not run additional hypothesis tests.',
       'Heatmap clustering is intentionally not used by default: deterministic sample order follows study annotations and feature order follows the analysis ranking.',
       'Heatmap row z-scores are descriptive and must not be interpreted as fold changes.',
       'Metabologram and central-carbon colors are shown only when the fitted effect is on a declared log2 scale.',
-      'The curated pathway panels are descriptive annotations, not enrichment or pathway activity tests. No metabolic flux is estimated from abundances or gene expression.'
+      'The curated pathway panels are descriptive annotations, not enrichment or pathway activity tests. No metabolic flux is estimated from abundances or gene expression.',
+      'The expanded network is an auditable schematic neighborhood, not a stoichiometrically validated reaction graph. Only explicitly curated ChEBI IDs are exact; name-only and unresolved matches are reported separately.'
     ]
   };
 }
