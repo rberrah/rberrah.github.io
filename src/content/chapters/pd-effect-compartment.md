@@ -9,7 +9,7 @@ order: 62
 duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "effect-compartment", "sheiner", "hysteresis"]
-prerequisites: ["pkpd", "pd-direct"]
+prerequisites: ["pkpd"]
 glossary: ["Compartiment d’effet (ke0)", "Hystérèse", "Emax"]
 slides: []
 sources: ["sheiner-effect-compartment", "holford-sheiner-dose-effect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
