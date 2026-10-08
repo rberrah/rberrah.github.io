@@ -21,7 +21,7 @@ test('multi-omics tool states the raw-input support boundary', async ({ page }) 
 
 test('multi-omics presentation and tool switch to English', async ({ page }) => {
   await page.goto('/multiomics?lang=en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze multiple omics');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Analyze one or multiple omics');
   await expect(page.getByRole('link', { name: 'Open the tool' })).toBeVisible();
 
   await page.goto('/multiomics/tool?lang=en');
