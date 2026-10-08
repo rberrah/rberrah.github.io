@@ -24,7 +24,7 @@ The design follows the same principles as the multi-omics tool: a separate prese
 - Simple linear regression
 - Binary logistic regression with explicit event coding, odds ratio + 95% CI, Wald and likelihood-ratio inference, convergence/separation warning
 - Multivariable linear regression for multiple numeric predictors with adjusted coefficients, 95% CIs, adjusted R², VIF and influence diagnostics
-- Two-group log-rank test with Kaplan–Meier visualization
+- Two-group survival workflow with log-rank, Kaplan–Meier summaries/risk table and an explicitly oriented binary Cox proportional-hazards model (Breslow ties)
 
 The interface reports effect estimates, confidence intervals where defined, p-values, effect sizes, assumptions and a plain-language interpretation. Data are parsed and analysed locally in the browser rather than uploaded to a statistical backend. Results can be visualized and exported as a local HTML report without embedding the raw dataset.
 
@@ -37,6 +37,8 @@ For association analyses, Kendall tau-b complements Pearson and Spearman. It use
 For binary logistic regression, the event category (`Y=1`) is selected explicitly. The browser reports the odds ratio per +1 predictor unit, its 95% CI, Wald and likelihood-ratio p-values, McFadden R² and a stability warning when convergence, the information matrix or fitted probabilities suggest separation. Standard maximum-likelihood odds ratios are not presented as reliable when that warning is triggered.
 
 For multivariable linear regression, the first implementation deliberately accepts numeric predictors only. Predictors are centered and scaled internally for numerical stability, then coefficients are transformed back to their original units. The browser reports adjusted coefficients and 95% CIs, global model fit, VIFs, complete-case exclusions and Cook/leverage/standardized-residual diagnostics. Diagnostic thresholds are review guides and never trigger automatic row deletion.
+
+For two-group survival data, Kaplan–Meier summaries report events/censoring, observed median survival and automatic at-risk landmarks. The Cox model uses the same two-group contrast as log-rank, with an explicit group-of-interest orientation and Breslow handling of tied event times. HR interpretation is accompanied by a proportional-hazards warning; this version does not pretend that a single automatic diagnostic can validate the PH assumption.
 
 ## Study planning
 
@@ -56,6 +58,6 @@ A significant omnibus test is not presented as if it identified the differing gr
 
 `npm run test:stats` executes fixed numerical reference vectors for the statistical engine, advanced effect-size/post-hoc engine, repeated-measures edge cases, Kendall tau-b, logistic regression, multivariable regression and study-planning engine, and these checks are also part of the repository's default `npm test` command. The vectors cover primary tests, exact/asymptotic rank-test routing, Friedman tie correction and complete-block handling, Kendall exact/tied inference, Holm adjustment, 2×2 effect estimates including zero-cell handling, McNemar, log-rank and sample-size calculations.
 
-The portal Playwright suite exercises the complete Stats workflow in a browser, including visualization, exact-inference labelling, repeated measures, Kendall tau-b, corrected multi-group post-hoc output, categorical effect-size orientation, logistic event coding/separation warnings, multivariable coefficients/VIF/influence diagnostics, study planning, bilingual display and local report export.
+The portal Playwright suite exercises the complete Stats workflow in a browser, including visualization, exact-inference labelling, repeated measures, Kendall tau-b, corrected multi-group post-hoc output, categorical effect-size orientation, logistic event coding/separation warnings, multivariable coefficients/VIF/influence diagnostics, Kaplan–Meier/Cox orientation and instability warnings, study planning, bilingual display and local report export.
 
 High-stakes or confirmatory analyses should still be checked in validated reference software and interpreted in the context of the study design and a pre-specified statistical analysis plan.
