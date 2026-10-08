@@ -2091,9 +2091,11 @@
 
   <div class="run-box">
     <div>
-      <p class="eyebrow">{t('Moteur déterministe', 'Deterministic engine')}</p>
-      <h3>{t('Lancer l’analyse à partir des matrices importées', 'Run the analysis from the uploaded matrices')}</h3>
-      <p>{t('Aucun LLM n’est utilisé. Le moteur effectue le prétraitement déclaré, l’agrégation des réplicats, l’audit et l’ajustement des batches/covariables, puis sélectionne la branche exploratoire, groupes, temporelle ou outcome appropriée, avec BH-FDR et Reactome optionnel.', 'No LLM is used. The engine performs declared preprocessing, replicate aggregation, batch/covariate audit and adjustment, then selects the appropriate exploratory, group, longitudinal or outcome branch, with BH-FDR and optional Reactome.')}</p>
+      <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
+      <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
+      <p>{t('Le calcul suit votre plan d’étude. Les fichiers restent dans votre navigateur, sauf si un moteur R est connecté. Par défaut, les identifiants moléculaires sélectionnés peuvent être envoyés à Reactome.', 'The analysis follows your study design. Files remain in your browser unless an R engine is connected. Selected molecular identifiers may be sent to Reactome by default.')}</p>
+      <details class="simple-disclosure" data-testid="multiomics-run-options">
+        <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
         <input type="checkbox" bind:checked={resolveIdentifiers} />
         <span>{t('Résoudre les métabolites non canoniques sélectionnés avec ChEBI avant l’analyse de voies', 'Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis')}</span>
@@ -2128,9 +2130,10 @@
           </div>
         {/if}
       </div>
+      </details>
     </div>
     <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
-      {analysisStatus === 'running' ? t('Analyse…', 'Running…') : t('Lancer l’analyse déterministe', 'Run deterministic analysis')}
+      {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Analyser mes données', 'Analyze my data')}
     </button>
   </div>
   {#if analysisError}<p class="error">{analysisError}</p>{/if}
@@ -2141,11 +2144,14 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{demoLoaded ? t('Résultats de démo · calculés maintenant', 'Demo results · computed now') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
-      <h2>{t('Résultats multi-omiques calculés', 'Computed multi-omics results')}</h2>
+      <h2>{t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
-      <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Télécharger JSON', 'Download JSON')}</button>
-        <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Rapport HTML reproductible', 'Reproducible HTML report')}</button>
+      <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
+      <details class="simple-disclosure export-detail">
+        <summary>{t('Autres exports', 'Other downloads')}</summary>
+        <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Données détaillées (JSON)', 'Detailed data (JSON)')}</button>
+      </details>
       {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
       {/if}
@@ -2165,6 +2171,15 @@
   {:else if analysisResult.visualizationError}
     <p class="note">{t('Les résultats statistiques sont disponibles, mais la préparation des visualisations a échoué : ', 'Statistical results are available, but visualization preparation failed: ')}{analysisResult.visualizationError}</p>
   {/if}
+
+  <div class="simple-qc-status" data-testid="multiomics-quality-summary">
+    <strong>{t('Contrôle des données', 'Data quality check')}</strong>
+    {#each Object.entries(analysisResult.layers || {}) as [layer, layerResult]}
+      <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : t('aucune alerte détectée', 'no warning detected')}</span>
+    {/each}
+  </div>
+  <details class="advanced-results" data-testid="multiomics-quality-details">
+    <summary>{t('Voir les vérifications détaillées', 'View detailed quality checks')}</summary>
 
   {#if analysisResult.metadataSummary.overlap?.pairwise?.length}
     <div class="overlap-box">
@@ -2339,6 +2354,7 @@
       {/each}
     </div>
   </div>
+  </details>
 
   <div class="interpretation-box" data-testid="multiomics-interpretation">
     <div class="integration-head">
@@ -2373,6 +2389,8 @@
     </div>
   </details>
 
+  <details class="advanced-results" data-testid="multiomics-detailed-results">
+    <summary>{t('Tableaux et statistiques détaillés', 'Detailed tables and statistics')}</summary>
   {#if analysisResult.exploration?.components?.length}
     <div class="integration-result">
       <div class="integration-head">
@@ -2667,6 +2685,7 @@
     {/if}
   </div>
 
+  </details>
   <div class="evidence-layers">
     <article>
       <strong>{t('Observé', 'Observed')}</strong>
