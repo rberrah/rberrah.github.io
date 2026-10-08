@@ -47,3 +47,28 @@ test('MS import preserves vendor annotation fields and distinguishes features fr
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
   await expect(page.getByTestId('multiomics-analysis-mode')).toContainText('Omique unique');
 });
+
+test('A single omics matrix can be explored after explicit independent-sample confirmation', async ({page}) => {
+  await page.goto('/multiomics/tool');
+  await page.getByRole('heading', {name:/Analyser une ou plusieurs omiques|Analyze one or several omics/}).waitFor();
+  await page.locator('.uploads input[type="file"]').nth(1).setInputFiles({
+    name:'rna_feature_matrix.csv',mimeType:'text/csv',
+    buffer:Buffer.from([
+      'feature_id,S01,S02,S03,S04,S05',
+      'G1,10,12,16,14,11',
+      'G2,90,55,70,40,65',
+      'G3,5,8,12,10,9'
+    ].join('\\n'))
+  });
+  const helper=page.getByTestId('multiomics-single-sheet-helper');
+  await expect(helper).toBeVisible();
+  const create=page.getByTestId('multiomics-generate-explore-metadata');
+  await expect(create).toBeDisabled();
+  await helper.getByRole('checkbox').check();
+  await create.click();
+  await expect(page.getByTestId('multiomics-generated-sheet-notice')).toContainText(/aucun groupe inféré|no groups inferred/);
+  await expect(page.getByTestId('multiomics-run')).toBeEnabled();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30_000});
+  await expect(page.getByTestId('multiomics-analysis-mode')).toContainText(/Omique unique|Single omic/);
+});
