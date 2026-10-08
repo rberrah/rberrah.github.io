@@ -282,8 +282,19 @@ export function focusMetabolicRegion(network, regionId='auto', hops=1) {
   if (!network) return [];
   const byId=new Map(network.nodes.map((n)=>[n.id,n]));
   const depth=Math.max(0,Math.min(2,Number(hops)||0));
-  const selected=regionId==='auto' ? network.regions.filter((r)=>r.measuredCount>0)
-    : network.regions.filter((r)=>r.id===regionId);
+  const selected=regionId==='auto' ? (()=>{
+    // Prefer specific measured regions over broad shared precursors (e.g. Trp
+    // participates in both kynurenine and serotonin routes). Show a second
+    // region only when it adds at least one previously unseen measured anchor.
+    const covered=new Set();
+    return network.regions.filter((r)=>r.measuredCount>0)
+      .sort((a,b)=>b.measuredCount-a.measuredCount || a.id.localeCompare(b.id))
+      .filter((region)=>{
+        const adds=region.measuredIds.some((id)=>!covered.has(id));
+        if (adds) for (const id of region.measuredIds) covered.add(id);
+        return adds;
+      });
+  })() : network.regions.filter((r)=>r.id===regionId);
   return selected.map((region)=>{
     const allowed=new Set(region.ids);
     const base=new Set(region.measuredIds);
