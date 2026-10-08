@@ -80,8 +80,8 @@ const metaboliteRecords = [
   ['glutamate','L-glutamate','L-glutamate','CHEBI:29985','l-glutamate|glutamate'],
   ['aspartate','L-aspartate','L-aspartate','CHEBI:29993','l-aspartate|aspartate'],
   ['asparagine','L-asparagine','L-asparagine','CHEBI:17196','l-asparagine|asparagine'],
-  ['lactate','Lactate','Lactate','CHEBI:24996','lactate|lactic acid'],
-  ['succinate','Succinate','Succinate','CHEBI:30031','succinate|succinic acid'],
+  ['lactate','Lactate (anion)','Lactate (anion)','CHEBI:24996','lactate'],
+  ['succinate','Succinate (2−)','Succinate (2−)','CHEBI:30031','succinate|succinate(2-)'],
   ['gaba','GABA','GABA','CHEBI:30566','4-aminobutyrate|gamma-aminobutyric acid|gaba']
 ];
 const regionSpecs = [
@@ -161,7 +161,7 @@ function toRegistry(central) {
   for (const [id,fr,en,chebi,aliases] of metaboliteRecords) {
     const old = chemicals.get(id);
     chemicals.set(id, { ...old, id, labelFr:fr, labelEn:en, chebi:chebi || old?.chebi || null,
-      aliases:[...new Set([...(old?.aliases || []),...aliases.split('|').filter(Boolean),fr,en])],
+      aliases:[...new Set([...aliases.split('|').filter(Boolean),fr,en])],
       kind:'metabolite' });
   }
   const genes = new Map((central.enzymes || []).map((e) => [e.id,
