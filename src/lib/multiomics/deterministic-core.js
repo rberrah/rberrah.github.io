@@ -3103,36 +3103,48 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       ? new Map(trainSubjects.map((subject) => [subject, target.targetBySubject.get(subject)?.event ?? 0]))
       : target.targetBySubject;
     const innerFolds = deterministicFolds(trainSubjects, innerFoldTarget, Math.min(4, trainSubjects.length), categorical);
+    // Preparing one inner-training dataset for each split (instead of once
+    // for each penalty) is essential when thousands of features are uploaded.
+    // All four tuning candidates use the *same*, properly isolated folds.
+    const innerPrepared = [];
+    for (const innerTest of innerFolds) {
+      const innerTestSet = new Set(innerTest);
+      const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
+      if (innerTrain.length < 5 || !innerTest.length) continue;
+      const innerSelected = selectPredictionFeatures(
+        aggregatedByLayer, loadedLayers, innerTrain, target, protocol, 12
+      );
+      if (!innerSelected.length) continue;
+      const trainMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTrain, innerTrain, protocol);
+      const testMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTest, innerTrain, protocol);
+      if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
+      innerPrepared.push({
+        training: trainMatrix.design,
+        testing: testMatrix.design,
+        trainTruth: innerTrain.map((subject) => target.targetBySubject.get(subject)),
+        testTruth: innerTest.map((subject) => target.targetBySubject.get(subject))
+      });
+    }
+    if (innerPrepared.length < 2) continue;
     let bestLambda = lambdas[0];
     let bestLoss = Infinity;
     for (const lambda of lambdas) {
       const losses = [];
-      for (const innerTest of innerFolds) {
-        const innerTestSet = new Set(innerTest);
-        const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
-        if (innerTrain.length < 5 || !innerTest.length) continue;
-        // An inner validation fold must not influence feature selection.
-        // The previous outer-only selection made inner tuning optimistic.
-        const innerSelected = selectPredictionFeatures(
-          aggregatedByLayer, loadedLayers, innerTrain, target, protocol, 12
-        );
-        if (!innerSelected.length) continue;
-        const trainMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTrain, innerTrain, protocol);
-        const testMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTest, innerTrain, protocol);
-        if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
-        const trainTruth = innerTrain.map((subject) => target.targetBySubject.get(subject));
-        const testTruth = innerTest.map((subject) => target.targetBySubject.get(subject));
-        const model = fitPredictiveModel(trainMatrix.design, trainTruth, protocol, target.levels, lambda);
+      for (const split of innerPrepared) {
+        const model = fitPredictiveModel(split.training, split.trainTruth, protocol, target.levels, lambda);
         if (!model) continue;
-        const pred = predictModel(model, testMatrix.design, protocol);
-        losses.push(validationLoss(protocol, testTruth, pred, target.levels));
+        const pred = predictModel(model, split.testing, protocol);
+        losses.push(validationLoss(protocol, split.testTruth, pred, target.levels));
       }
+      // Do not pick a penalty based on just one successful inner fold.
+      if (losses.length !== innerPrepared.length) continue;
       const loss = mean(losses);
       if (Number.isFinite(loss) && loss < bestLoss) {
         bestLoss = loss;
         bestLambda = lambda;
       }
     }
+    if (!Number.isFinite(bestLoss)) continue;
 
     const trainMatrix = predictionMatrix(selected, aggregatedByLayer, trainSubjects, trainSubjects, protocol);
     const testMatrix = predictionMatrix(selected, aggregatedByLayer, testSubjects, trainSubjects, protocol);
