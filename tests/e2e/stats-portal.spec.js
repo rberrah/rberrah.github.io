@@ -52,7 +52,7 @@ test('Stats multivariable linear regression reports adjusted coefficients, VIF a
 });
 
 test('Stats multivariable regression rejects exact collinearity instead of returning unstable coefficients',async({page})=>{
-  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('multivariable');await page.locator('#data-input').fill('x1,x2,outcome\\n1,2,4\\n2,4,5\\n3,6,7\\n4,8,8\\n5,10,10\\n6,12,11\\n7,14,13\\n8,16,14');await page.locator('#parse-data').click();await expect(page.locator('input[name="multivariable-predictor"]:checked')).toHaveCount(2);await page.locator('#run-analysis').click();await expect(page.locator('#results .result-error')).toContainText('colinéaires');expect(errors).toEqual([]);
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('multivariable');await page.locator('#data-input').fill('x1,x2,outcome\n1,2,4\n2,4,5\n3,6,7\n4,8,8\n5,10,10\n6,12,11\n7,14,13\n8,16,14');await page.locator('#parse-data').click();await expect(page.locator('input[name="multivariable-predictor"]:checked')).toHaveCount(2);await page.locator('#run-analysis').click();await expect(page.locator('#results .result-error')).toContainText('colinéaires');expect(errors).toEqual([]);
 });
 
 test('Stats assistant routes adjusted quantitative questions to multivariable regression',async({page})=>{
