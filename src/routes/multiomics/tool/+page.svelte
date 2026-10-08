@@ -1093,8 +1093,11 @@
       };
     }
     referenceBackendStatus = 'done';
-    referenceBackendMessage = t('Méthodes R de référence terminées.', 'Reference R methods completed.');
-    return { ...body, url: backendBaseUrl() };
+    const completed = Object.values(body.methods || {}).some((method) => method?.status === 'ok');
+    referenceBackendMessage = completed
+      ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
+      : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
+    return { ...body, url: backendBaseUrl(), referenceMethodExecuted: completed };
   }
 
   async function runAnalysis() {
@@ -2442,6 +2445,7 @@
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
     <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
     <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
+    <small>{t('Les graphiques et tableaux principaux proviennent du moteur navigateur ; les sorties R sont présentées séparément, sans remplacer silencieusement ces estimations.', 'Main charts and tables use the browser engine; R results are displayed separately and never silently replace those estimates.')}</small>
     {#if analysisResult.referenceBackend?.status === 'ok'}
       {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, value]}
         <span>{key} : {value.method || key} — {value.status}</span>
@@ -2495,7 +2499,11 @@
       <div class="integration-head">
         <div>
           <p class="eyebrow">{t('Moteur R de référence', 'Reference R engine')}</p>
-          <h3>{analysisResult.referenceBackend.status === 'ok' ? t('Méthodes de référence exécutées automatiquement', 'Reference methods executed automatically') : t('Backend R non utilisé', 'R backend not used')}</h3>
+          <h3>{analysisResult.referenceBackend.status === 'ok'
+            ? analysisResult.referenceBackend.referenceMethodExecuted
+              ? t('Méthodes R exécutées (résultats distincts des figures du navigateur)', 'R methods executed (results separate from browser figures)')
+              : t('Moteur R connecté — aucune méthode statistique de référence exécutée', 'R backend connected — no reference statistical method executed')
+            : t('Backend R non utilisé', 'R backend not used')}</h3>
         </div>
         <span>{analysisResult.referenceBackend.status}</span>
       </div>
