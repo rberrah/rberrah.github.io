@@ -1769,8 +1769,10 @@
   </div>
 
   <div class="contract">
+    <details class="templates-details">
+      <summary>{t('Besoin d’un modèle de fichier ?', 'Need a file template?')}</summary>
     <div>
-      <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
+      <h3>{t('Modèles à télécharger', 'Downloadable templates')}</h3>
       <p>{t('Une ligne = une mesure. Ce format gère les couches omiques absentes, les temps répétés et les réplicats techniques sans changer de schéma.', 'One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.')}</p>
       <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,sample_type,injection_order,covariate_1</pre>
       <div class="actions">
@@ -1783,18 +1785,22 @@
         <a class="btn btn-outline" data-testid="external-validation-template" href={`${base}/multiomics/templates/external_validation_predictions_binary.csv`} download>{t('Template validation externe', 'External validation template')}</a>
       </div>
     </div>
+    </details>
 
     <div class="demo-card">
-      <p class="eyebrow">{t('Démonstration intégrée', 'Built-in demonstration')}</p>
+      <p class="eyebrow">{t('Exemple prêt à explorer', 'Ready-to-run example')}</p>
       <h3>{t('Traitement × temps, trois omiques', 'Treatment × time, three omics')}</h3>
-      <p>{t('8 sujets (4 contrôle + 4 traitement), deux temps, trois couches omiques appariées, avec un réplicat technique RNA sur le même prélèvement.', '8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.')}</p>
+      <p>{t('8 sujets, 2 visites, 3 types de mesures. La démo exécute les mêmes calculs que vos fichiers.', '8 subjects, 2 visits, 3 measurement types. The demo runs the same calculations as your own files.')}</p>
       <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
+      <details class="simple-disclosure">
+        <summary>{t('Télécharger les données de démonstration', 'Download demo data')}</summary>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>{t('métadonnées', 'metadata')}</a>
         <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
         <a href={`${base}/multiomics/demo_proteomics.csv`} download>{t('protéines', 'protein')}</a>
         <a href={`${base}/multiomics/demo_metabolomics.csv`} download>{t('métabolites', 'metabolites')}</a>
       </div>
+      </details>
     </div>
   </div>
 
@@ -1866,37 +1872,37 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 5 · Import & mapping', 'Step 5 · Upload & mapping')}</p>
-      <h2>{t('Faites correspondre métadonnées et matrices avant l’analyse', 'Match metadata and matrices before analysis')}</h2>
+      <p class="eyebrow">{t('3 · Vos fichiers', '3 · Your files')}</p>
+      <h2>{t('Ajoutez vos tableaux de données', 'Add your data files')}</h2>
     </div>
-    <p>{t('Les colonnes des matrices sont interprétées comme des assay_id et comparées aux métadonnées. Aucun lien n’est inféré à partir de noms de patients simplement ressemblants.', 'Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.')}</p>
+
   </div>
 
   <div class="uploads">
     <label class:loaded={files.metadata}>
-      <strong>{t('Métadonnées échantillons', 'Sample metadata')}</strong>
-      <span>{t('Format long recommandé ; noms de colonnes libres acceptés s’ils peuvent être mappés.', 'Long format preferred; arbitrary headers accepted if they can be mapped.')}</span>
+      <strong>{t('Tableau des échantillons', 'Sample information table')}</strong>
+      <span>{t('Qui a été prélevé, quand et dans quel groupe ?', 'Who was sampled, when, and in which group?')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
       <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.transcriptomics}>
       <strong>{t('Transcriptomique', 'Transcriptomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les gènes', 'Measured amounts of gene expression')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('transcriptomics', event)} />
       <small>{files.transcriptomics ? files.transcriptomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.proteomics}>
       <strong>{t('Protéomique', 'Proteomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les protéines', 'Measured amounts of proteins')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('proteomics', event)} />
       <small>{files.proteomics ? files.proteomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.metabolomics}>
       <strong>{t('Métabolomique', 'Metabolomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les petites molécules', 'Measured amounts of small molecules')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
     </label>
