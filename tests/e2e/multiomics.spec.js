@@ -213,3 +213,77 @@ test('multi-omics tool exposes raw-MS and external-validation advanced workflows
   await expect(advanced).toContainText('run_raw_ms.R raw_ms_manifest.csv raw_ms_output raw_ms_parameters.json');
   await expect(advanced).toContainText('run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output');
 });
+
+
+test('browser external validation sends only frozen predictions to the R evaluator', async ({ page }) => {
+  await page.route('http://127.0.0.1:8787/external-validation', async (route) => {
+    const payload = JSON.parse(route.request().postData() || '{}');
+    expect(payload.predictionsCsv).toContain('subject_id,outcome,prediction');
+    expect(payload.config.independent_cohort).toBe(true);
+    expect(payload.config.outcome_type).toBe('binary');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        status: 'ok',
+        validation_status: 'external_validation',
+        cohort_label: 'Independent cohort',
+        metrics: { auc: 0.91, brier: 0.12, log_loss: 0.31 }
+      })
+    });
+  });
+
+  await page.goto('/multiomics/tool');
+  const panel = page.getByTestId('external-validation-panel');
+  await expect(panel).toBeVisible();
+
+  await page.getByTestId('external-validation-predictions').setInputFiles({
+    name: 'predictions.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('subject_id,outcome,prediction\nV001,0,0.12\nV002,1,0.81\n')
+  });
+  await page.getByTestId('external-validation-config').setInputFiles({
+    name: 'config.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      outcome_type: 'binary',
+      prediction_column: 'prediction',
+      outcome_column: 'outcome',
+      prediction_kind: 'probability',
+      independent_cohort: true,
+      cohort_label: 'Independent cohort',
+      bootstrap_repetitions: 1000,
+      seed: 20260928
+    }))
+  });
+
+  await expect(page.getByTestId('external-validation-config-summary')).toContainText(/Independent cohort/);
+  await page.getByTestId('external-validation-run').click();
+  const result = page.getByTestId('external-validation-result');
+  await expect(result).toBeVisible();
+  await expect(result).toContainText('external_validation');
+  await expect(result).toContainText('0.91');
+});
+
+test('browser refuses to label a non-independent cohort as external validation', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('external-validation-predictions').setInputFiles({
+    name: 'predictions.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('subject_id,outcome,prediction\nV001,0,0.12\nV002,1,0.81\n')
+  });
+  await page.getByTestId('external-validation-config').setInputFiles({
+    name: 'config.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      outcome_type: 'binary',
+      prediction_column: 'prediction',
+      outcome_column: 'outcome',
+      independent_cohort: false,
+      cohort_label: 'Development cohort'
+    }))
+  });
+  await page.getByTestId('external-validation-run').click();
+  await expect(page.getByTestId('external-validation-error')).toContainText(/indépendante|independent/i);
+  await expect(page.getByTestId('external-validation-result')).toHaveCount(0);
+});
