@@ -988,8 +988,12 @@
   /** @param {File | null} file */
   async function sha256OfFile(file) {
     if (!file || !globalThis.crypto?.subtle) return null;
-    const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    try {
+      const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+      return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    } catch {
+      return null; // Integrity checks must not turn an otherwise valid analysis into a failed run.
+    }
   }
 
   /** @param {any} result */
@@ -3216,7 +3220,7 @@
   .inline-check { display: flex; gap: 8px; align-items: center; font-size: var(--text-sm); }
   .inline-check input { width: auto; }
   .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-  .computed-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); }
+  .computed-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
   .overlap-box { display: flex; justify-content: space-between; gap: var(--space-4); align-items: start; margin-top: var(--space-4); padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-secondary); }
   .overlap-pairs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
   .overlap-pairs span { font-size: var(--text-xs); padding: 5px 7px; border: 1px solid var(--border-subtle); border-radius: 999px; }
