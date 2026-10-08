@@ -133,7 +133,7 @@ assert.equal(strict.audit.find((r)=>r.input==='unrecognizable metabolite').statu
 assert.equal(strict.audit.find((r)=>r.input==='L-kynurenine').status,'name_only');
 assert.equal(strict.audit.find((r)=>r.input==='CHEBI:16828').usable,false,
   'Identity evidence must never replace a missing log2 effect scale');
-assert.equal(strict.nodes.filter((n)=>n.id==='tryptophan')[0].measurement,undefined);
+assert.equal(strict.nodes.filter((n)=>n.id==='tryptophan')[0].measurement,null);
 assert.deepEqual(focusMetabolicRegion(graph,'auto',1),focusMetabolicRegion(graph,'auto',1),
   'Same input must produce same focused subgraph');
 
