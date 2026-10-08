@@ -1669,7 +1669,7 @@
         <a class="btn btn-outline" href={`${base}/multiomics/templates/raw_ms_manifest.csv`} download>{t('Manifeste exemple', 'Example manifest')}</a>
         <a class="btn btn-outline" href={`${base}/multiomics/templates/raw_ms_parameters.json`} download>{t('Paramètres xcms', 'xcms parameters')}</a>
       </div>
-      <p class="note"><code>Rscript multiomics-engine/run_raw_ms.R --manifest raw_ms_manifest.csv --parameters raw_ms_parameters.json --output raw_ms_output</code></p>
+      <p class="note"><code>Rscript multiomics-engine/run_raw_ms.R raw_ms_manifest.csv raw_ms_output raw_ms_parameters.json</code></p>
       <p class="note">{t('La matrice metabolomics_peak_area.csv obtenue revient ensuite dans l’étape d’import ci-dessous, avec sample_type et injection_order pour le QC blank / pooled-QC / dérive.', 'The resulting metabolomics_peak_area.csv then enters the upload step below, together with sample_type and injection_order for blank / pooled-QC / drift QC.')}</p>
     </div>
 
@@ -1681,7 +1681,7 @@
         <a class="btn btn-outline" href={`${base}/multiomics/templates/external_validation_predictions_binary.csv`} download>{t('Prédictions exemple', 'Example predictions')}</a>
         <a class="btn btn-outline" href={`${base}/multiomics/templates/external_validation_binary.json`} download>{t('Configuration', 'Configuration')}</a>
       </div>
-      <p class="note"><code>Rscript multiomics-engine/run_external_validation.R --predictions external_validation_predictions_binary.csv --config external_validation_binary.json --output external_validation_result.json</code></p>
+      <p class="note"><code>Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output</code></p>
       <p class="note">{t('Le logiciel n’emploie le terme « validation externe » que si l’indépendance de la cohorte est explicitement déclarée ; cette indépendance doit rester documentée par la provenance de l’étude.', 'The software uses the term “external validation” only when cohort independence is explicitly asserted; that independence must still be documented by study provenance.')}</p>
     </div>
   </div>
