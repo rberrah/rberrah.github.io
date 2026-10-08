@@ -33,6 +33,16 @@
 
   /** The simple controls and the expert form share the exact same analysis state. */
   /** @param {Event} event */
+  function chooseSimpleStudySetting(event) {
+    const selected = event.currentTarget;
+    if (!(selected instanceof HTMLSelectElement)) return;
+    studySetting = selected.value;
+    unitType = studySetting === 'animal' ? 'animal'
+      : ['cell', 'organoid'].includes(studySetting) ? 'culture'
+      : studySetting === 'other' ? 'other' : 'participant';
+  }
+
+  /** @param {Event} event */
   function chooseSimpleDesign(event) {
     const value = event.currentTarget;
     if (!(value instanceof HTMLSelectElement)) return;
@@ -1325,7 +1335,7 @@
   <div class="form-grid">
     <label>
       <span>{t('Quel type d’étude ?', 'Type of study?')}</span>
-      <select bind:value={studySetting} aria-label={t('Type d’étude', 'Study type')}>
+      <select value={studySetting} onchange={chooseSimpleStudySetting} aria-label={t('Type d’étude', 'Study type')}>
         <option value="clinical_observational">{t('Participants humains', 'Human participants')}</option>
         <option value="clinical_interventional">{t('Essai ou intervention chez l’humain', 'Human trial or intervention')}</option>
         <option value="animal">{t('Étude chez l’animal', 'Animal study')}</option>
@@ -1396,6 +1406,9 @@
       </select>
     </label>
   </div>
+  {#if studySetting === 'animal' && organism === 'human'}
+    <p class="simple-warning" role="alert">{t('Vous avez choisi une étude animale mais l’organisme est encore « Humain ». Modifiez l’organisme dans la première étape avant d’analyser.', 'You selected an animal study but the organism is still set to Human. Change the organism in the first step before analysis.')}</p>
+  {/if}
   {#if designType === 'crossover'}
     <p class="simple-warning" role="alert">{t('Cette étude nécessite une analyse particulière qui n’est pas encore disponible. Le lancement sera bloqué.', 'This study needs a model that is not yet available; running is blocked.')}</p>
   {/if}
@@ -2179,7 +2192,7 @@
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
     <strong>{t('Contrôle des données', 'Data quality check')}</strong>
     {#each Object.entries(analysisResult.layers || {}) as [layer, layerResult]}
-      <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : t('aucune alerte détectée', 'no warning detected')}</span>
+      <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : layerResult.qc?.inferenceTier?.level === 'screening' ? t('exploration uniquement', 'exploratory only') : t('aucune alerte détectée', 'no warning detected')}</span>
     {/each}
   </div>
   <details class="advanced-results" data-testid="multiomics-quality-details">
