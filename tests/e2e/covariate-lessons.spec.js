@@ -11,7 +11,8 @@ for (const width of [1280, 390]) for (const lang of ['fr', 'en']) for (const les
     await page.goto(`${prefix}/chapitres/covariates-${lesson}/?lang=${lang}`);
     const panel = page.getByTestId('covariate-lesson').first();
     await expect(panel).toHaveAttribute('data-lesson', lesson);
-    await panel.scrollIntoViewIfNeeded();
+    // During client hydration this panel can be replaced. Interact through the
+    // locator below; Playwright scrolls and retries against the current element.
     const play = panel.getByTestId('covariate-play');
     await expect(play).toBeEnabled();
     await expect(panel.getByTestId('covariate-plot')).toHaveAccessibleName(lang === 'en' ? 'Covariate → parameter' : 'Covariable → paramètre');
