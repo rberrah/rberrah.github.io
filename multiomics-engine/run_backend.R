@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly=TRUE)
+`%||%` <- function(x, y) if (is.null(x) || !length(x) || all(is.na(x))) y else x
 host <- if (length(args) >= 1L) args[[1]] else Sys.getenv("PMX_MULTIOMICS_HOST", "127.0.0.1")
 port <- if (length(args) >= 2L) as.integer(args[[2]]) else as.integer(Sys.getenv("PMX_MULTIOMICS_PORT", "8787"))
 
@@ -75,6 +76,9 @@ api <- plumber::pr_filter(
     }
     res$setHeader("Access-Control-Allow-Origin", origin)
     res$setHeader("Vary", "Origin")
+    if (identical(tolower(req$HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK %||% ""), "true")) {
+      res$setHeader("Access-Control-Allow-Private-Network", "true")
+    }
     plumber::forward()
   },
   serializer = plumber::serializer_unboxed_json()
@@ -97,7 +101,7 @@ api <- plumber::pr_hook(
   api,
   "postroute",
   function(req, value) {
-    if (identical(req$PATH_INFO, "/run") && is.list(value)) {
+    if (req$PATH_INFO %in% c("/run", "/external-validation") && is.list(value)) {
       value$environment <- package_manifest()
     }
     value
