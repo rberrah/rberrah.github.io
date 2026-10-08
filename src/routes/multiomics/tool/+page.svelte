@@ -2059,6 +2059,7 @@
               <div><b>{Number.isFinite(result.qc.medianMissingFraction) ? (100 * result.qc.medianMissingFraction).toFixed(1) + '%' : '—'}</b><span>{t('missing médian', 'median missing')}</span></div>
               <div><b>{result.qc.outlierSamples?.length || 0}</b><span>{t('assays suspects', 'flagged assays')}</span></div>
               <div><b>{poorReplicateCount(result.qc)}</b><span>{t('réplicats r<0,80', 'replicates r<0.80')}</span></div>
+              <div><b>{result.qc.differentialMissingness?.flaggedFeatures || 0}</b><span>{t('variables à missing différentiel', 'features with differential missingness')}</span></div>
             </div>
 
             <div class="qc-bars" aria-label={t('Missingness par assay', 'Missingness by assay')}>
