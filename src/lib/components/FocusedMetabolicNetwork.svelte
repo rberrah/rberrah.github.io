@@ -46,6 +46,7 @@
   $: unknown = graph?.audit?.filter((a)=>!a.id) || [];
   $: exactMatches = graph?.audit?.filter((a)=>['verified_id','verified_crossref'].includes(a.status))?.length || 0;
   $: nameMatches = graph?.audit?.filter((a)=>a.status==='name_only')?.length || 0;
+  $: declaredMatches = graph?.audit?.filter((a)=>a.status==='user_declared')?.length || 0;
 </script>
 
 <section class="network" data-testid="multiomics-focused-network">
@@ -132,7 +133,7 @@
     </article>
   {/each}
   <details class="identity-audit" data-testid="multiomics-network-dictionary">
-    <summary>{tr('Vérifier les correspondances des identifiants','Inspect identifier matching')} — {exactMatches} {tr('ID vérifiés','verified IDs')}, {nameMatches} {tr('noms seuls','name-only')}, {unknown.length} {tr('non reconnus','unmatched')}</summary>
+    <summary>{tr('Vérifier les correspondances des identifiants','Inspect identifier matching')} — {exactMatches} {tr('ID vérifiés','verified IDs')}, {nameMatches} {tr('noms seuls','name-only')}, {declaredMatches} {tr('annotations déclarées','declared annotations')}, {unknown.length} {tr('non reconnus','unmatched')}</summary>
     <p>{tr('Le dictionnaire privilégie les identifiants ChEBI exacts. Un nom seul est une correspondance provisoire, signalée par une bordure pointillée. Les identifiants inconnus ne sont jamais rattachés à une molécule par simple ressemblance.',
       'The registry prioritizes exact ChEBI IDs. Name-only matches are provisional and have dashed borders. Unknown identifiers are never assigned by fuzzy matching.')}</p>
     {#if graph?.audit?.length}
@@ -146,6 +147,8 @@
                 </td>
                 <td>{item.status==='verified_id'?tr('Identifiant ChEBI exact','Exact ChEBI ID')
                   :item.status==='verified_crossref'?tr('Identifiant croisé vérifié','Verified cross-reference')
+                  :item.status==='user_declared'?tr('Annotation importée · identité non vérifiée','Imported annotation · identity unverified')
+                  :item.status==='declared_not_in_network'?tr('Annotation hors catalogue','Annotation outside catalog')
                   :item.status==='name_only'?tr('Nom seul · à confirmer','Name only · confirm')
                   :item.status==='ambiguous_name'?tr('Nom ambigu','Ambiguous name')
                   :item.status==='unmapped_identifier'?tr('Identifiant hors dictionnaire','Identifier outside dictionary')

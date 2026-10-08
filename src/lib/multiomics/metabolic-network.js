@@ -191,10 +191,17 @@ function identityDictionary(chemicals) {
   }
   return { exact,names };
 }
-function resolveIdentity(raw,dictionary,mappings) {
+function resolveIdentity(raw,dictionary,mappings,userAnnotations) {
   const original = String(raw || '').trim();
   const uppercase = original.toUpperCase();
   if (dictionary.exact.has(uppercase)) return { status:'verified_id', id:dictionary.exact.get(uppercase), provenance:'ChEBI' };
+  const declared = userAnnotations?.get(original);
+  if (declared) {
+    if (dictionary.exact.has(declared)) return {
+      status:'user_declared', id:dictionary.exact.get(declared), provenance:'unverified_user_crosswalk'
+    };
+    return { status:'declared_not_in_network', id:null, provenance:'unverified_user_crosswalk' };
+  }
   if (isIdentifier(original)) {
     const mapped = mappings?.get(original);
     const status = mapped?.status;
@@ -223,10 +230,11 @@ export function buildFocusedMetabolicNetwork(result, central) {
   const { chemicals,genes } = toRegistry(central || {metabolites:[],enzymes:[]});
   const dictionary = identityDictionary(chemicals);
   const mappings = new Map((result?.identifierResolution?.metabolomics?.mappings || []).map((m)=>[m.original,m]));
+  const userAnnotations = new Map((result?.userMetaboliteAnnotations || []).map((m)=>[m.feature,m.chebi]));
   const audit = [];
   const matched = new Map();
   for (const row of result?.layers?.metabolomics?.rows || []) {
-    const identity = resolveIdentity(row.feature,dictionary,mappings);
+    const identity = resolveIdentity(row.feature,dictionary,mappings,userAnnotations);
     const m = measurement(row);
     audit.push({input:row.feature,...identity,usable:m.status === 'usable',
       label:identity.id ? chemicals.get(identity.id)?.labelFr : null,

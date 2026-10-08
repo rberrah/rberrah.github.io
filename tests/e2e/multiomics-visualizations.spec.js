@@ -189,3 +189,21 @@ test('demo measurement scales are visible while technical tables start collapsed
   await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(page.getByTestId('multiomics-qc')).toBeVisible();
 });
+
+test('MS peak annotations upload is explicit and rejects unknown chemical IDs', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  const upload=page.getByTestId('multiomics-ms-annotation-upload');
+  await upload.setInputFiles({
+    name:'peak_annotations.csv',
+    mimeType:'text/csv',
+    buffer:Buffer.from('feature_id,chebi_id\nInternalPeak43,CHEBI:24996\n')
+  });
+  await expect(page.getByTestId('multiomics-ms-annotation-count')).toContainText('1');
+  await expect(page.getByTestId('multiomics-ms-annotation-error')).toHaveCount(0);
+  await upload.setInputFiles({
+    name:'bad_annotations.csv',mimeType:'text/csv',
+    buffer:Buffer.from('feature_id,chebi_id\nInternalPeak43,NotKnown\n')
+  });
+  await expect(page.getByTestId('multiomics-ms-annotation-error')).toContainText('CHEBI');
+  await expect(page.getByTestId('multiomics-ms-annotation-count')).toHaveCount(0);
+});
