@@ -3236,7 +3236,21 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     });
   }
 
-  if (predictions.length < Math.max(8, subjects.length * 0.6)) return { status: 'not_available', reason: 'Too few outer-fold predictions were estimable.' };
+  // Fail closed: evaluating only the folds that converged can bias CV metrics.
+  // Each eligible independent subject must have exactly one held-out prediction.
+  const uniquePredictedSubjects = new Set(predictions.map((item) => item.subjectId));
+  if (foldSummaries.length !== outerFolds.length ||
+      predictions.length !== subjects.length ||
+      uniquePredictedSubjects.size !== subjects.length) {
+    return {
+      status: 'not_available',
+      reason: 'Incomplete outer cross-validation: every independent subject must have exactly one held-out prediction. Metrics are withheld when a fold fails.',
+      attemptedFolds: outerFolds.length,
+      completedFolds: foldSummaries.length,
+      evaluatedSubjects: predictions.length,
+      totalSubjects: subjects.length
+    };
+  }
 
   let metrics;
   if (protocol.outcomeType === 'binary') {
@@ -3268,6 +3282,22 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics = { rmse, r2: ssTot > 0 ? 1 - ssRes / ssTot : null };
   }
 
+  // Degenerate test sets (e.g. no comparable survival pairs) do not
+  // establish predictive performance, even if the fold fits completed.
+  const primaryMetric = protocol.outcomeType === 'binary' ? metrics.auc
+    : protocol.outcomeType === 'multiclass' ? metrics.accuracy
+      : protocol.outcomeType === 'survival' ? metrics.cIndex : metrics.rmse;
+  if (!Number.isFinite(primaryMetric)) {
+    return {
+      status: 'not_available',
+      reason: 'Cross-validated performance is undefined for these held-out outcomes; no metric is reported.',
+      attemptedFolds: outerFolds.length,
+      completedFolds: foldSummaries.length,
+      evaluatedSubjects: predictions.length,
+      totalSubjects: subjects.length
+    };
+  }
+
   return {
     status: 'ok',
     method: protocol.outcomeType === 'survival'
@@ -3285,7 +3315,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics,
     predictions,
     foldSummaries,
-    caveat: 'Nested subject-level CV is internal screening, not external validation. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
+    caveat: 'Nested subject-level CV is internal screening, not external validation; performance is reported only for complete, one-prediction-per-subject out-of-fold coverage. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
   };
 }
 
