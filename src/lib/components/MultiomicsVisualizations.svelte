@@ -525,8 +525,9 @@
   .figure-card { border:1px solid #c3d0d8; border-radius:18px; background:#fff; color:#182a34; color-scheme:light; padding:18px; overflow:hidden; }
   .figure-card :global(p), .figure-card :global(summary), .figure-card :global(span) { color:inherit; }
   .figure-title { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:14px; }
+  .figure-title strong { color:#182a34 !important; }
   .figure-title > div:first-child { display:flex; gap:12px; align-items:flex-start; }
-  .figure-title h3 { margin:0 0 5px; font-size:1.05rem; }
+  .figure-title h3 { margin:0 0 5px; font-size:1.05rem; color:#182a34 !important; }
   .figure-title p { margin:0; max-width:780px; color:#42535f; font-size:.9rem; line-height:1.45; }
   .figure-number { display:grid; place-items:center; min-width:34px; height:34px; border-radius:50%; border:1px solid var(--border,#cbd5d9); font:700 .72rem var(--font-mono,monospace); }
   .figure-actions { display:flex; gap:8px; align-items:center; }
