@@ -1001,6 +1001,13 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   const qcOrders = qcAssays.map((assay)=>metaByAssay.get(assay)?.numericInjectionOrder);
   const orderedQcCount = qcOrders.filter(Number.isFinite).length;
   const allOrdered = matrix.assays.filter((assay)=>Number.isFinite(metaByAssay.get(assay)?.numericInjectionOrder));
+  const qcOrderSupport = qcOrders.filter(Number.isFinite);
+  const qcMinOrder = qcOrderSupport.length ? Math.min(...qcOrderSupport) : Infinity;
+  const qcMaxOrder = qcOrderSupport.length ? Math.max(...qcOrderSupport) : -Infinity;
+  const outsideQcSupport = biologicalAssays.filter((assay) => {
+    const order = metaByAssay.get(assay)?.numericInjectionOrder;
+    return Number.isFinite(order) && (order < qcMinOrder || order > qcMaxOrder);
+  }).length;
 
   if (driftEnabled && qcAssays.length >= 5 && orderedQcCount >= 5 && allOrdered.length >= 5) {
     for (const feature of features) {
@@ -1028,6 +1035,9 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
         const raw = map.get(assay);
         const order = metaByAssay.get(assay)?.numericInjectionOrder;
         if (!Number.isFinite(raw) || raw < 0 || !Number.isFinite(order)) continue;
+        // A correction must interpolate between observed QC positions; do
+        // not extrapolate outside the supporting pooled-QC injection sequence.
+        if (order < Math.min(...qx) || order > Math.max(...qx)) continue;
         const pred = localLinearQcTrend(qx,qy,order);
         if (!Number.isFinite(pred)) continue;
         const corrected = Math.max(0, Math.exp(Math.log(raw+pseudocount) - pred + reference) - pseudocount);
@@ -1092,6 +1102,7 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   if (blankFilterEnabled && blankAssays.length < 2) warnings.push('Blank assessment requested but fewer than 2 blank injections were annotated.');
   if (blankMode === 'remove' && blankAssays.length >= 2) warnings.push('Blank-associated features were excluded using the declared biological/blank ratio. Review flagged features and retain a flag-only sensitivity analysis for confirmatory work.');
   if (driftEnabled && orderedQcCount < 5) warnings.push('QC drift correction requested but fewer than 5 pooled-QC injections with numeric injection order were available.');
+  if (driftEnabled && outsideQcSupport > 0 && orderedQcCount >= 5) warnings.push(outsideQcSupport + ' biological injections fall outside pooled-QC injection-order support; no drift extrapolation was applied to them.');
   if (qcRsdEnabled && qcAssays.length < 3) warnings.push('QC RSD filtering requested but fewer than 3 pooled-QC injections were annotated.');
   if (mnarStrategy === 'left_censored') warnings.push('Left-censored MNAR imputation was applied only to missing biological metabolomics values; perform a no-imputation sensitivity analysis for confirmatory work.');
 
@@ -1122,6 +1133,8 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
         applied: driftCorrected > 0,
         correctedFeatures: driftCorrected,
         orderedQcCount,
+        outsideQcSupport,
+        interpolationOnly: true,
         medianAbsoluteLogCorrection: medianAbsoluteDriftLog,
         method: 'pooled-QC local linear log-intensity correction using injection order'
       },
