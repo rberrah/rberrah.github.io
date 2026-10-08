@@ -623,7 +623,7 @@
     }
   }
 
-  async function loadDemo() {
+  async function loadDemo(onlyLayer = null) {
     /** @type {Array<['metadata'|'transcriptomics'|'proteomics'|'metabolomics', string]>} */
     const demoFiles = [
       ['metadata', 'demo_metadata.csv'],
@@ -639,8 +639,17 @@
       metabolomics: null
     };
     for (const [layer, filename] of demoFiles) {
+      if (onlyLayer && layer !== 'metadata' && layer !== onlyLayer) continue;
       const response = await fetch(`${base}/multiomics/${filename}`);
-      const text = await response.text();
+      if (!response.ok) throw new Error('Demo file unavailable: ' + filename);
+      let text = await response.text();
+      if (layer === 'metadata' && onlyLayer) {
+        const parsed = parseTable(text);
+        const rows = parsed.rows.filter((row) => row.omic === onlyLayer);
+        const quote = (value) => '"' + String(value ?? '').replaceAll('"','""') + '"';
+        text = [parsed.headers.map(quote).join(','), ...rows.map((row) =>
+          parsed.headers.map((key) => quote(row[key])).join(','))].join('\n') + '\n';
+      }
       loaded[layer] = new File([text], filename, { type: 'text/csv' });
     }
     files = {
@@ -649,7 +658,15 @@
       proteomics: loaded.proteomics,
       metabolomics: loaded.metabolomics
     };
-    studyName = 'Demo — treatment × time';
+    studyName = onlyLayer ? 'Demo — single ' + onlyLayer : 'Demo — treatment × time';
+    msOriginalFile = null;
+    msAnnotationCsv = '';
+    msAnnotationFields = [];
+    msImportFormat = '';
+    msUserAnnotationFile = null;
+    metaboliteAnnotations = [];
+    annotationFileName = '';
+    annotationError = '';
     subjectCount = 8;
     groupVariable = 'condition';
     outcome = 'outcome';
@@ -1944,7 +1961,13 @@
       <p class="eyebrow">{t('Exemple prêt à explorer', 'Ready-to-run example')}</p>
       <h3>{t('Traitement × temps, trois omiques', 'Treatment × time, three omics')}</h3>
       <p>{t('8 sujets, 2 visites, 3 types de mesures. La démo exécute les mêmes calculs que vos fichiers.', '8 subjects, 2 visits, 3 measurement types. The demo runs the same calculations as your own files.')}</p>
-      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={() => loadDemo()}>{t('Charger les trois omiques', 'Load all three omics')}</button>
+      <div class="actions" data-testid="multiomics-single-demo-buttons">
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-rna" onclick={() => loadDemo('transcriptomics')}>{t('Démo RNA seul', 'RNA-only demo')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-protein" onclick={() => loadDemo('proteomics')}>{t('Démo protéines seules', 'Proteomics-only demo')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-metabolite" onclick={() => loadDemo('metabolomics')}>{t('Démo métabolites seuls', 'Metabolomics-only demo')}</button>
+      </div>
+      <p class="simple-hint">{t('Démo synthétique : 8 sujets, groupes traité/témoin et deux temps. Les résultats montrent le fonctionnement, pas une découverte biologique validée. Choisissez RNA, protéines, métabolites ou les trois.', 'Synthetic demo: 8 subjects, treated/control groups and two visits. The outputs demonstrate the workflow, not a validated biological finding. Choose RNA, proteins, metabolites or all three.')}</p>
       <details class="simple-disclosure">
         <summary>{t('Télécharger les données de démonstration', 'Download demo data')}</summary>
       <div class="demo-links">
@@ -2319,7 +2342,7 @@
 <section class="panel demo-results" id="analysis-results" data-testid="multiomics-results">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{demoLoaded ? t('Résultats de démo · calculés maintenant', 'Demo results · computed now') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
+      <p class="eyebrow">{demoLoaded ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
       <h2>{t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
