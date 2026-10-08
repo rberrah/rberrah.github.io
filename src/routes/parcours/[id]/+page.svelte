@@ -43,16 +43,42 @@
   const statusText = id => ({ attempted: t('Tenté', 'Attempted'), reviewed: t('Corrigé consulté', 'Solution reviewed'), passed: t('Réussi (étapes objectives)', 'Passed (objective steps)') }[$learning.activities[id]] ?? t('À commencer', 'Not started'));
   afterNavigate(() => { loadLearning(); if ($page.route.id === '/parcours/[id]' && $page.status === 200) countPage(`/pharmacometrie/parcours/${data.track.id}/`); });
   function choose(slug) { goto(`${base}/parcours/${track.id}/?lang=${$language}&chapter=${slug}#practice`, { keepFocus: true }); }
-  const diagnostic = {
+  let baselineResult = null;
+  let finalResult = null;
+  const diagnosticBefore = {
     fr: [
-      { prompt: "Si la clairance double a dose identique, que devient en general l'AUC sous PK lineaire ?", options: ['Elle double', 'Elle est divisee par deux', 'Elle ne change pas'], correct: 1 },
+      { prompt: "Si la clairance double à dose identique, que devient en général l'AUC sous PK linéaire ?", options: ['Elle double', 'Elle est divisée par deux', 'Elle ne change pas'], correct: 1 },
       { prompt: 'Une demi-vie longue signifie-t-elle toujours une faible clairance ?', options: ['Oui', 'Non, le volume intervient aussi'], correct: 1 },
-      { prompt: 'Deux patients ayant la meme concentration ont-ils necessairement le meme effet ?', options: ['Oui', 'Non'], correct: 1 }
+      { prompt: "Une absorption plus lente modifie-t-elle nécessairement l'AUC si la biodisponibilité et la clairance restent identiques ?", options: ['Oui, toujours', "Non, elle modifie surtout la forme et le temps du pic"], correct: 1 },
+      { prompt: 'Un écart entre une concentration observée et prédite prouve-t-il une variabilité interindividuelle ?', options: ['Oui', "Non, l'erreur résiduelle est aussi possible"], correct: 1 },
+      { prompt: 'Deux patients ayant la même concentration ont-ils nécessairement le même effet ?', options: ['Oui', 'Non'], correct: 1 },
+      { prompt: "Une estimation MAP utilise-t-elle uniquement la mesure du patient ?", options: ['Oui', "Non, elle la combine à l'information de population"], correct: 1 }
     ],
     en: [
       { prompt: 'If clearance doubles at the same dose, what generally happens to AUC under linear PK?', options: ['It doubles', 'It is halved', 'It is unchanged'], correct: 1 },
       { prompt: 'Does a long half-life always imply low clearance?', options: ['Yes', 'No, volume also matters'], correct: 1 },
-      { prompt: 'Do two patients with the same concentration necessarily have the same effect?', options: ['Yes', 'No'], correct: 1 }
+      { prompt: 'Does slower absorption necessarily change AUC when bioavailability and clearance are unchanged?', options: ['Yes, always', 'No, it mainly changes curve shape and peak timing'], correct: 1 },
+      { prompt: 'Does a difference between observed and predicted concentration prove between-patient variability?', options: ['Yes', 'No, residual error is also possible'], correct: 1 },
+      { prompt: 'Do two patients with the same concentration necessarily have the same effect?', options: ['Yes', 'No'], correct: 1 },
+      { prompt: 'Does a MAP estimate use only the patient measurement?', options: ['Yes', 'No, it combines it with population information'], correct: 1 }
+    ]
+  };
+  const diagnosticAfter = {
+    fr: [
+      { prompt: "À dose identique, la clairance passe de 4 à 8 L/h. Quel patient aura l'AUC la plus élevée ?", options: ['Celui à 4 L/h', 'Celui à 8 L/h', 'Les deux'], correct: 0 },
+      { prompt: 'Deux patients ont la même clairance mais des volumes différents. Leur demi-vie est-elle nécessairement identique ?', options: ['Oui', 'Non'], correct: 1 },
+      { prompt: 'Ka diminue, tandis que F et CL ne changent pas. Quel résultat est le plus attendu ?', options: ['Un pic plus tardif', 'Une AUC nécessairement doublée'], correct: 0 },
+      { prompt: 'Une concentration isolée est au-dessus de la prédiction. Quelle conclusion est défendable ?', options: ["Elle peut refléter variabilité, erreur de mesure ou horaire", 'Elle démontre une clairance individuelle plus faible'], correct: 0 },
+      { prompt: 'Un même profil de concentration peut-il produire des réponses différentes selon le modèle PD ou le patient ?', options: ['Oui', 'Non'], correct: 0 },
+      { prompt: 'Avec peu de données individuelles, vers quoi une estimation MAP est-elle davantage ramenée ?', options: ['Le modèle de population', 'La dernière mesure uniquement'], correct: 0 }
+    ],
+    en: [
+      { prompt: 'At the same dose, clearance changes from 4 to 8 L/h. Which patient has the higher AUC?', options: ['The one at 4 L/h', 'The one at 8 L/h', 'Both'], correct: 0 },
+      { prompt: 'Two patients have the same clearance but different volumes. Is their half-life necessarily identical?', options: ['Yes', 'No'], correct: 1 },
+      { prompt: 'Ka decreases while F and CL remain unchanged. Which result is most expected?', options: ['A later peak', 'A necessarily doubled AUC'], correct: 0 },
+      { prompt: 'One concentration is above its prediction. Which conclusion is defensible?', options: ['It may reflect variability, measurement error or timing', 'It proves lower individual clearance'], correct: 0 },
+      { prompt: 'Can the same concentration profile produce different responses depending on the PD model or patient?', options: ['Yes', 'No'], correct: 0 },
+      { prompt: 'With sparse individual data, what pulls a MAP estimate more strongly?', options: ['The population model', 'Only the latest measurement'], correct: 0 }
     ]
   };
 </script>
@@ -70,9 +96,9 @@
 {#if beginner}
   <section class="diagnostic" data-testid="starter-diagnostic">
     <p class="eyebrow">{t('Avant de commencer', 'Before you start')}</p>
-    <h2>{t('Trois predictions, sans note', 'Three predictions, no grade')}</h2>
-    <p>{t("Repondez avec votre intuition. Le cas final posera des questions differentes pour rendre votre progression visible.", 'Answer from intuition. The final case asks different questions so you can see your progress.')}</p>
-    <Quiz title={t('Point de depart', 'Starting point')} questions={diagnostic[$language]}/>
+    <h2>{t('Six prédictions, sans note', 'Six predictions, no grade')}</h2>
+    <p>{t("Répondez avec votre intuition. Le diagnostic final testera les mêmes concepts avec d'autres situations.", 'Answer from intuition. The final diagnostic tests the same concepts with different situations.')}</p>
+    <Quiz title={t('Point de départ', 'Starting point')} questions={diagnosticBefore[$language]} onComplete={result => baselineResult = result}/>
   </section>
 {/if}
 
@@ -96,10 +122,16 @@
 
 {#if finalCase}
   <section class="final-case" data-testid="starter-final-case">
-    <p class="eyebrow">{t('Evaluation finale', 'Final assessment')}</p>
+    <p class="eyebrow">{t('Évaluation finale', 'Final assessment')}</p>
+    <h2>{t('Les mêmes concepts, dans de nouvelles situations', 'The same concepts in new situations')}</h2>
+    <Quiz title={t('Point d’arrivée', 'End point')} questions={diagnosticAfter[$language]} onComplete={result => finalResult = result}/>
+    {#if baselineResult && finalResult}
+      <p class="comparison" role="status" aria-live="polite">{t(`Au départ : ${baselineResult.score}/6 concepts correctement anticipés. Après le parcours : ${finalResult.score}/6.`, `At the start: ${baselineResult.score}/6 concepts anticipated correctly. After the track: ${finalResult.score}/6.`)}</p>
+    {/if}
+    <p class="eyebrow synthesis-label">{t('Cas intégratif', 'Integrative case')}</p>
     <h2>{finalCase.title[$language]}</h2>
     <p>{finalCase.objective[$language]}</p>
-    <a class="command" href={`${base}/parcours/${track.id}/?lang=${$language}&chapter=${finalCase.chapter}#activity-${finalCase.id}`}><ListChecks size={17}/>{t('Resoudre le cas de synthese', 'Solve the synthesis case')}</a>
+    <a class="command" href={`${base}/parcours/${track.id}/?lang=${$language}&chapter=${finalCase.chapter}#activity-${finalCase.id}`}><ListChecks size={17}/>{t('Résoudre le cas de synthèse', 'Solve the synthesis case')}</a>
   </section>
 {/if}
 
@@ -125,5 +157,7 @@
   .lesson-actions { display: flex; flex-wrap: wrap; gap: 20px; margin: 12px 0 0 44px; } .lesson-actions a { display: flex; gap: 6px; align-items: center; font-size: .85rem; }
   .activity-list { margin: 12px 0 0 44px; padding: 0; list-style: none; } .activity-list li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; padding: 6px 0; font-size: .82rem; } .activity-list span { color: var(--text-secondary); }
   .practice { scroll-margin-top: 100px; } label { display: grid; gap: 8px; margin-bottom: 20px; font-size: .85rem; } select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; padding: 10px; font: inherit; color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-strong); border-radius: 4px; }
+  .comparison { padding: 12px 14px; border-left: 4px solid var(--accent-pk); background: var(--bg-secondary); font-weight: 600; }
+  .synthesis-label { margin-top: 28px; }
   @media (max-width: 520px) { h1 { font-size: 1.65rem; } .activity-list { margin-left: 0; } select { font-size: .78rem; } }
 </style>

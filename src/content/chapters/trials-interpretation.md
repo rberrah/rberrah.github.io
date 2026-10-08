@@ -9,6 +9,8 @@ order: 102
 duration: "12 min"
 level: "intermediate"
 tags: ["clinical-trials", "interpretation", "covariates", "forest-plot"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["fda-poppk", "ema-poppk", "ribbing-selection-bias", "ema-bioequivalence"]
 updated_on: "2026-09-21"

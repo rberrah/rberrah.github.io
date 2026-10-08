@@ -9,6 +9,8 @@ order: 40
 duration: "13 min"
 level: "intermediate"
 tags: ["infectious-diseases", "pkpd-index", "mic", "antibiotics"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["craig-pkpd", "rybak-vanco", "eucast", "goutelle-hill"]
 reviewed_on: "2026-07-09"

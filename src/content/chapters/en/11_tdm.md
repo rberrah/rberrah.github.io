@@ -9,6 +9,7 @@ order: 11
 duration: "12 min"
 level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
+updated_on: "2026-10-08"
 slides: ["s59", "s62", "s72"]
 quiz:
   - prompt: "Therapeutic drug monitoring (TDM) uses drug measurements to..."
@@ -54,7 +55,7 @@ $$ \text{population model} + \text{dosing history} + \text{sampling time} + \tex
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s62" -->
-For tacrolimus, vancomycin, aminoglycosides or warfarin-related models, a single measured value is useful only if the context is correct.
+For tacrolimus, vancomycin or aminoglycosides, a measured concentration is useful only when its context is correct. Routine warfarin monitoring instead relies mainly on INR: relevant models are PK/PD models rather than routine plasma-warfarin TDM.
 
 Dose, administration times, sampling time, assay details, renal or hepatic function, adherence and interacting drugs can all matter.
 <!-- /step -->

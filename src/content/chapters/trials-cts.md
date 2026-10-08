@@ -9,6 +9,8 @@ order: 101
 duration: "13 min"
 level: "advanced"
 tags: ["clinical-trials", "simulation", "cts", "power"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["mould-upton", "ette-williams", "bonate", "nelsen-copulas", "ich-m15"]
 updated_on: "2026-09-21"

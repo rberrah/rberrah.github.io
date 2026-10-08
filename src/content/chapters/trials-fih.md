@@ -9,6 +9,8 @@ order: 100
 duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "first-in-human", "mabel", "starting-dose"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "holford-sheiner-dose-effect"]
 updated_on: "2026-09-21"

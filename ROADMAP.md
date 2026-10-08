@@ -1,7 +1,7 @@
 # Roadmap - PMx Explain
 
-Mise a jour : 2026-10-07. Les cinq ateliers et les dix laboratoires moléculaires sont publiés.
-Lot actuel : courbes PK/PD, infectiologie/PTA, grille oncologique et mesures controlees.
+Mise à jour : 2026-10-08. Les cinq ateliers et les quinze laboratoires animés sont publiés : quatre fondamentaux et onze moléculaires.
+Lot actuel : maturation pédagogique, cohérence scientifique et validation auprès d'utilisateurs.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
 
@@ -13,6 +13,19 @@ Statuts : `[x]` livre et verifie pour le perimetre indique ; `[ ]` a faire.
 Les pistes marquees **A arbitrer** ou **Exploratoire** ne sont pas des engagements.
 Priorites : P0 = fondations ; P1 = prochain lot ; P2 = suite ; P3 = conditionnel.
 Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
+
+## 0. Maturation pédagogique (2026-10-08)
+
+- [x] Corriger les raccourcis du tronc commun : conversion micro/macro, créatinine/DFG, allométrie, objectif MAP simplifié et suivi de la warfarine.
+- [x] Recentrer le parcours débutant sur les concepts avant les algorithmes d'estimation et ajouter un diagnostic avant/après de six concepts isomorphes.
+- [x] Afficher une relecture scientifique en attente lorsque `updated_on` est postérieur à `reviewed_on`.
+- [x] Rendre `prerequisites` et `glossary` explicites et obligatoires dans les 95 chapitres ; enrichir d'abord le tronc commun.
+- [x] Étendre la recherche au texte des cours et aux liens directs ; remplacer le cas logiciel générique par une synthèse NONMEM/Monolix/nlmixr2.
+- [x] Aligner citation, licence, portail, inventaire, nom PMx Explain et suites de tests statistiques.
+- [ ] Exécuter le protocole `docs/usability-accessibility-protocol.md` avec des débutants, étudiants, enseignants et experts, puis consigner les observations sans les guider.
+- [ ] Relire scientifiquement les versions signalées comme modifiées depuis leur dernière relecture.
+
+**Décision de périmètre :** aucun nouveau laboratoire majeur avant les observations utilisateurs. Les améliorations correctives, d'accessibilité et de continuité restent autorisées.
 
 ## Portail Academique (2026-09-14 / 15)
 
@@ -199,8 +212,8 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L08b / P1** Absorption orale/biodisponibilite et perfusion IV/arret : trajets depot/poche -> central -> elimination, perte presystemique distincte, reference, courbes lineaire/semi-log, bilans et reperes PK. Onze scenarios compares a une EDO mrgsolve independante et au code Lego regenere ; cinq nouveaux tests navigateur, dont pixels en mouvement, pause, mobile et FR/sombre. Les neuf tests precedents passent aussi.
 - [x] **L08c / P1** Publication demandee par l'utilisateur apres la revue locale ; retrait du bouton Particule suivante dans les quatre laboratoires. Selection directe et clavier conservees. Aucun deploiement Shiny dans ce lot.
 - [ ] **L08d / P1** Verifier les transferts directs TDM/DDI/PD avant activation. Transfert Lego disponible et compare numeriquement.
-- [ ] **L07 / P2** Etendre a l'accumulation : doses repetees, etat stationnaire, fluctuations, dose de charge et interruption. Conserver une reference pour comparer les intervalles.
-- [ ] **L08 / P2** Etendre a PK 1 compartiment / absorption : dose, CL, V, ka, F, voie ; AUC avec fenetre explicite, Cmax/Tmax et demi-vie sous leurs hypotheses de validite.
+- [x] **L07 / P2** Accumulation : doses répétées, état stationnaire, fluctuations, dose de charge, interruption et référence comparative.
+- [x] **L08 / P2** PK à un compartiment / absorption : dose, CL, V, ka, F, voie, exposition, Cmax/Tmax et demi-vie sous leurs hypothèses de validité.
 - [x] **L09 / décision de périmètre** La variabilité reste une animation de cours (`12_VariabilitySandbox`) : comparaison de courbes et distributions, sans faux parcours moléculaire ni laboratoire séparé.
 - [x] **L10 / décision de périmètre** La mise à jour bayésienne reste une animation de cours (`BayesUpdate`) : prior, observations et posterior, sans scène vidéo artificielle. Un futur laboratoire doit représenter un trajet ou une transformation de molécules.
 - [x] **L11 / P1** Parent-métabolite : transformation, éliminations parallèles, exposition retardée et bilan de masse en équivalents de quantité.
@@ -220,13 +233,7 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.
 
-**Lot local du 12 septembre :** `/laboratoires/` contient les deux exemples
-Distribution et Accumulation, lies aux chapitres concernes et a Simulation.
-Le pilote accumulation couvre un nombre fini de bolus, le multiplicateur de la
-premiere dose, la comparaison d'intervalles et la decroissance apres la derniere
-dose. L'initialisation exacte a SS et les interruptions au milieu du calendrier
-restent a ajouter (L07). L'observation avec des utilisateurs reste a faire (L06).
-Voir [hypotheses et verifications](docs/teaching-laboratories.md).
+`/laboratoires/` publie désormais les quinze laboratoires et les relie aux cours concernés. Le chantier restant est l'observation avec des utilisateurs (L06) et la vérification des transferts spécialisés encore désactivés (L08d), pas la reconstruction d'Accumulation ou d'Absorption. Voir [hypothèses et vérifications](docs/teaching-laboratories.md).
 
 ## 5. Lego : import fidele des modeles complexes
 
@@ -247,8 +254,8 @@ communes mais K01-K03 ne doivent pas attendre l'eventuelle extraction A08.
 ## 6. Navigation et continuite pedagogique
 
 - [x] **U01 / P2 - Local** Menu Apprendre / Explorer / Construire / Analyser / Ressources, entrees par objectif dans l'accueil et le portail ; URL existantes conservees.
-- [ ] **U02 / P2** Enrichir le glossaire en pages/liens de concepts : definition, equation, erreurs frequentes, chapitre, laboratoire et exercice associes ; harmoniser FR/EN jusqu'aux legendes et donnees du glossaire.
-- [ ] **U03 / P2** Relier les exercices existants aux experiences : prediction initiale, manipulation libre, comparaison, explication. Ajouter des missions synthetiques avec objectifs explicites, sans badges ni gamification obligatoires.
+- [ ] **U02 / P2 - Partiellement livré** Les métadonnées de glossaire sont explicites et le tronc commun est relié. Poursuivre le graphe conceptuel : définition, équation, erreurs fréquentes, chapitre, laboratoire et exercice ; harmoniser FR/EN jusqu'aux légendes et données du glossaire.
+- [ ] **U03 / P2 - Partiellement livré** La recherche ouvre directement les activités et treize cas de synthèse sont disponibles. Achever les liens exercice-expérience : prédiction initiale, manipulation, comparaison et explication, sans badges ni gamification obligatoire.
 - [ ] **U04 / P2** Rendre coherent le passage Simulation -> Lego -> TDM/DDI/PD. Afficher ce qui est transfere, ses unites et ce qui ne l'est pas ; ne pas promettre une reprise de dossier entre deux sessions Shiny independantes.
 - [x] **U05 / P2 - Pilote local** Mode enseignant des deux laboratoires : scenarios numeriques reproductibles, resultats masquables/revelables, CSV/PNG et partage valide par liste blanche. Sans compte, suivi d'eleve ni stockage automatique de scenario.
 - [ ] **U06 / P2** Generaliser la comparaison A/B pertinente : une reference stable, les parametres modifies et les ecarts numeriques. Preserver la graine de simulation et rendre le changement d'echelle visible.

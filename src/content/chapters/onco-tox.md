@@ -9,6 +9,8 @@ order: 31
 duration: "13 min"
 level: "advanced"
 tags: ["oncology", "toxicity", "neutropenia", "friberg"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
 reviewed_on: "2026-07-09"

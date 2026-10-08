@@ -9,6 +9,8 @@ order: 70
 duration: "13 min"
 level: "advanced"
 tags: ["pbpk", "physiology", "blood-flow", "mechanistic"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["jones-rowland-yeo", "kuepfer-pbpk", "rowland-peck-tucker"]
 reviewed_on: "2026-07-09"

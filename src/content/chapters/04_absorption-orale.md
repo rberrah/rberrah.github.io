@@ -9,6 +9,8 @@ order: 4
 duration: "12 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["Ka", "F", "Tlag", "Cmax / Tmax", "Flip-flop"]
 slides: ["s07"]
 sources: ["savic-transit", "gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"

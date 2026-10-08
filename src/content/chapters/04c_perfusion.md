@@ -9,6 +9,8 @@ order: 4.7
 duration: "11 min"
 level: "beginner"
 tags: ["infusion", "zero-order", "steady-state"]
+prerequisites: ["clairance-volume-demi-vie", "doses-repetees"]
+glossary: ["CL", "t½"]
 slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"

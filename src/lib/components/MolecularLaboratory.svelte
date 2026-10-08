@@ -91,14 +91,14 @@
       const scenario = decodeMolecularScenario(window.location.hash);
       if (scenario.lab !== lab) return;
       p = scenario.parameters; reference = scenario.reference; teacher = scenario.teacher; hidden = scenario.hidden; time = 0; loadError = '';
-    } catch { loadError = en ? 'Invalid shared scenario. No values were applied.' : "Scenario partage invalide. Aucune valeur n'a ete appliquee."; }
+    } catch { loadError = en ? 'Invalid shared scenario. No values were applied.' : "Scénario partagé invalide. Aucune valeur n'a été appliquée."; }
   }
   async function share() {
     if (!valid) return;
     const url = new URL(`${base}/laboratoires/`, window.location.origin);
     url.searchParams.set('lang', en ? 'en' : 'fr'); url.searchParams.set('lab', lab); url.hash = encodeMolecularScenario(lab, valid, reference, teacher, hidden); shared = url.href;
-    try { await navigator.clipboard.writeText(shared); message = en ? 'Scenario link copied.' : 'Lien du scenario copie.'; }
-    catch { message = en ? 'Scenario link ready below.' : 'Lien du scenario disponible ci-dessous.'; }
+    try { await navigator.clipboard.writeText(shared); message = en ? 'Scenario link copied.' : 'Lien du scénario copié.'; }
+    catch { message = en ? 'Scenario link ready below.' : 'Lien du scénario disponible ci-dessous.'; }
   }
   function csv() {
     if (!valid) return;
@@ -130,7 +130,7 @@
   <div class="teacher-toggle"><label class="check"><GraduationCap size={19}/><input type="checkbox" bind:checked={teacher}/>{en ? 'Teacher mode' : 'Mode enseignant'}</label></div>
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
-    <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Parametres de l'experience"}>
+    <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Paramètres de l'expérience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
       <section class="question first"><strong>01 · {en ? 'Predict before changing a parameter' : 'Prédire avant de modifier un paramètre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== '' && !hidden}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
       <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="molecular-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="molecular-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
@@ -139,9 +139,9 @@
       {#if learningMode === 'guided'}<details class="locked"><summary>{en ? 'Fixed parameters in discovery mode' : 'Paramètres fixés en mode découverte'}</summary><dl>{#each lockedParameters as [key, rule]}<div><dt>{en ? rule.label.en : rule.label.fr}</dt><dd>{p[key]} {rule.unit ?? ''}</dd></div>{/each}</dl></details>{/if}
       {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
       {#if config.referenceMode !== 'intrinsic'}
-        <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer a la reference'}</label>
-        <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modele comme reference'}</button>
-        {#if compare}<details><summary>{en ? 'Reference parameters' : 'Parametres de reference'}</summary><dl>{#each Object.keys(config.defaults) as key}<div><dt>{en ? config.parameters[key].label.en : config.parameters[key].label.fr}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
+        <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer à la référence'}</label>
+        <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modèle comme référence'}</button>
+        {#if compare}<details><summary>{en ? 'Reference parameters' : 'Paramètres de référence'}</summary><dl>{#each Object.keys(config.defaults) as key}<div><dt>{en ? config.parameters[key].label.en : config.parameters[key].label.fr}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
       {/if}
     </aside>
     <div class="experiment">
@@ -149,14 +149,14 @@
       <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}><button class:active={mode === 'intuition'} aria-pressed={mode === 'intuition'} on:click={() => mode = 'intuition'}>Intuition</button><button class:active={mode === 'model'} aria-pressed={mode === 'model'} on:click={() => mode = 'model'}>{en ? 'Equations' : 'Equations'}</button></div>
       <div bind:this={animationArea}>
         {#if valid && state && !hidden}
-          {#if mode === 'model'}<div class="equations"><code>{config.equations}</code><p>{en ? 'Deterministic educational model with fixed parameters and no residual error.' : 'Modele pedagogique deterministe, a parametres fixes et sans erreur residuelle.'}</p></div>{/if}
+          {#if mode === 'model'}<div class="equations"><code>{config.equations}</code><p>{en ? 'Deterministic educational model with fixed parameters and no residual error.' : 'Modèle pédagogique déterministe, à paramètres fixes et sans erreur résiduelle.'}</p></div>{/if}
           <div class="visual-grid">
             <div class="scene-panel">
               <MolecularScene {lab} p={valid} {state} {time} {en} {playing} bind:animateParticles on:play={() => playing ? pause() : play()} on:parameter={directChange}/>
               <p class="scene-note">{en ? 'Particles illustrate active pathways; amounts, concentrations, exposure and mass balance come from the continuous ODE model.' : 'Les particules illustrent les voies actives ; quantités, concentrations, exposition et bilan de masse proviennent du modèle ODE continu.'} {en ? config.caveat.en : config.caveat.fr}</p>
             </div>
             <div class="curve-panel">
-              <div class="plot-legend">{#if config.referenceMode === 'intrinsic'}<span class="treated">{en ? 'With treatment: solid' : 'Avec traitement : continu'}</span><span class="untreated">{en ? 'Without treatment: dashed' : 'Sans traitement : pointilles'}</span>{:else}<span>{en ? 'Current model: solid' : 'Modele actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Reference : pointilles'}</span>{/if}{/if}</div>
+              <div class="plot-legend">{#if config.referenceMode === 'intrinsic'}<span class="treated">{en ? 'With treatment: solid' : 'Avec traitement : continu'}</span><span class="untreated">{en ? 'Without treatment: dashed' : 'Sans traitement : pointillés'}</span>{:else}<span>{en ? 'Current model: solid' : 'Modèle actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Référence : pointillés'}</span>{/if}{/if}</div>
               <MolecularPlot a={referenceRows} b={current} {state} {time} {config} {en} {compare}/>
             </div>
           </div>
@@ -168,7 +168,7 @@
             <label class="speed">{en ? 'Speed' : 'Vitesse'}<select bind:value={speed} aria-label={en ? 'Speed' : 'Vitesse'}>{#each (config.unit === 'day' ? [.1,.5,1,4,7] : [.1,.5,1,4,12]) as value}<option value={value}>{value} {config.unit === 'day' ? (en ? 'day/s' : 'jour/s') : 'h/s'}</option>{/each}</select></label>
           </div>
           <input class="timeline" aria-label={en ? 'Simulation time' : 'Temps de simulation'} type="range" min="0" max={end} step="0.1" value={time} on:input={event => { pause(); time = event.currentTarget.valueAsNumber; }}/>
-        {:else if hidden}<div class="hidden-scene"><EyeOff size={28}/><strong>{en ? 'Results hidden' : 'Resultats masques'}</strong></div>{/if}
+        {:else if hidden}<div class="hidden-scene"><EyeOff size={28}/><strong>{en ? 'Results hidden' : 'Résultats masqués'}</strong></div>{/if}
       </div>
       {#if valid && state && !hidden}
         <div class:two={config.plotMode === 'primary'} class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div>{#if config.plotMode !== 'primary'}<div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div>{/if}<div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
@@ -176,13 +176,13 @@
         {#key lab}<LabDebrief {en} explanation={config.explanation} application={applications[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>
       {/if}
-      {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scenario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les resultats a l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Parametres synthetiques uniquement. L'apprenant peut reveler les resultats ; ce n'est pas un examen verrouille."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Reveler les resultats') : (en ? 'Hide results' : 'Masquer les resultats')}</button></section>{/if}
-      <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
+      {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scénario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les résultats à l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Paramètres synthétiques uniquement. L'apprenant peut révéler les résultats ; ce n'est pas un examen verrouillé."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Révéler les résultats') : (en ? 'Hide results' : 'Masquer les résultats')}</button></section>{/if}
+      <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scénario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Réinitialiser l'expérience"}</button></div>
       {#if message}<p role="status">{message}</p>{/if}
       {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
   </div>
-  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${config.related}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associe'}</a><a href={`${base}/chapitres/${config.related}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pedagogique et ne constitue ni un modele medicamenteux valide ni une recommandation de dose."}</p></div></section>
+  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${config.related}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associé'}</a><a href={`${base}/chapitres/${config.related}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pédagogique et ne constitue ni un modèle médicamenteux validé ni une recommandation de dose."}</p></div></section>
 </section>
 {/if}
 

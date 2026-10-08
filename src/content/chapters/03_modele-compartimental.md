@@ -10,8 +10,10 @@ duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
 glossary: ["CL", "V", "t½", "ke", "EDO", "Phases α et β", "Vss"]
+prerequisites: []
 slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
+updated_on: "2026-10-08"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
@@ -82,7 +84,7 @@ Le volume dilue (fixe $C_0$) ; la clairance est une **capacité d'épuration** (
 :::clinical
 Physiologiquement, la clairance est une **capacité d'extraction** : $CL = Q_{organe}\cdot E$ (débit sanguin de l'organe × coefficient d'extraction $E$). Elle s'additionne par voie : $CL_{tot} = CL_r$ (rénale) $+\ CL_{nr}$ (hépatique et autres).
 
-La clairance de la créatinine n'approche que la **filtration glomérulaire** (DFG ≈ 120 mL/min), **pas** la clairance rénale totale. Celle-ci résulte aussi de la **sécrétion** et de la **réabsorption** tubulaires : en cas de réabsorption, la clairance rénale d'un médicament peut être très inférieure au DFG ; en cas de sécrétion active, elle peut au contraire le dépasser. La clairance de la créatinine n'est donc un bon estimateur de la clairance rénale que pour les molécules purement filtrées.
+La clairance de la créatinine **approxime le DFG**, qu'elle surestime généralement un peu car la créatinine est aussi sécrétée par le tubule. Elle n'est pas la clairance rénale totale d'un médicament : celle-ci dépend de la filtration, de la sécrétion et de la réabsorption. Pour une molécule éliminée uniquement par filtration glomérulaire, $CL_R \approx f_u \times DFG$ ; elle n'est proche du DFG que si la molécule est presque entièrement libre.
 :::
 <!-- /step -->
 

@@ -10,12 +10,12 @@ export const beginnerTrack = {
     'clairance-volume-demi-vie',
     'absorption-orale',
     'doses-repetees',
-    'micro-macro',
+    'trois-approches',
     'variabilite-iiv-iov',
+    'erreur-residuelle',
     'allometrie',
     'pkpd',
     'pd-effect-compartment',
-    'outils-estimation',
     'bayes-ebes',
     'tdm'
   ],
@@ -26,9 +26,9 @@ export const beginnerTrack = {
       tagline: 'A guided twelve-step path from dose and concentration to variability, effect and Bayesian individualisation.'
     },
     fr: {
-      label: 'Je debute',
-      title: 'Decouvrir la PK/PD en partant de zero',
-      tagline: "Un parcours guide en douze etapes, de la dose et la concentration jusqu'a la variabilite, l'effet et l'individualisation bayesienne."
+      label: 'Je débute',
+      title: 'Découvrir la PK/PD en partant de zéro',
+      tagline: "Un parcours guidé en douze étapes, de la dose et de la concentration jusqu'à la variabilité, l'effet et l'individualisation bayésienne."
     }
   },
   accent: '#087b83',

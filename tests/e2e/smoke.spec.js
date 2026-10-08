@@ -28,11 +28,15 @@ test('la recherche globale relie cours, glossaire, laboratoires et exercices', a
   await page.goto('/recherche?lang=en');
   await page.getByTestId('global-search').fill('clearance');
   for (const type of ['Course', 'Glossary', 'Laboratory', 'Guided activity']) await expect(page.getByRole('heading', { name: new RegExp(`^${type}`) })).toBeVisible();
+  const guided = page.locator('section.group').filter({ has: page.getByRole('heading', { name: /^Guided activity/ }) }).locator('a').first();
+  await expect(guided).toHaveAttribute('href', /\/parcours\/[^/]+\/.+#activity-/);
 });
 
 test('le parcours debutant separe diagnostic et cas final', async ({ page }) => {
   await page.goto('/parcours/start?lang=en');
   await expect(page.getByTestId('starter-diagnostic')).toBeVisible();
+  await expect(page.getByTestId('starter-diagnostic').locator('.q')).toHaveCount(6);
+  await expect(page.getByTestId('starter-final-case').locator('.q')).toHaveCount(6);
   await expect(page.getByTestId('starter-final-case')).toContainText('Final case');
 });
 

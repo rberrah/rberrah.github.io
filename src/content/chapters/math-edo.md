@@ -9,6 +9,8 @@ order: 20
 duration: "12 min"
 level: "beginner"
 tags: ["maths", "ode", "exponential"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"

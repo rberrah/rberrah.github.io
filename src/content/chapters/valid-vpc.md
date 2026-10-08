@@ -9,6 +9,8 @@ order: 93
 duration: "13 min"
 level: "advanced"
 tags: ["validation", "vpc", "pcvpc", "simulation"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "ema-poppk"]
 reviewed_on: "2026-07-09"

@@ -9,6 +9,8 @@ order: 103
 duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "adaptive-design", "dose-finding", "mcp-mod"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["bretz-mcp-mod", "holford-sheiner-dose-effect", "ich-e4", "ich-m15", "mould-upton"]
 updated_on: "2026-09-21"

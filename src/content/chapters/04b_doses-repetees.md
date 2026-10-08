@@ -10,6 +10,7 @@ duration: "14 min"
 level: "beginner"
 tags: ["steady-state", "css", "accumulation", "loading-dose", "dosing"]
 glossary: ["CL", "t½", "ke"]
+prerequisites: ["clairance-volume-demi-vie"]
 slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"

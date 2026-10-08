@@ -9,6 +9,8 @@ order: 42
 duration: "13 min"
 level: "advanced"
 tags: ["infectious-diseases", "viral-dynamics", "target-cell", "resistance"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["neumann-hcv", "perelson-hiv"]
 reviewed_on: "2026-07-09"

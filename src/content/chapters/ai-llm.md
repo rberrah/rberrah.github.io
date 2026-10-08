@@ -9,6 +9,8 @@ order: 18
 duration: "13 min"
 level: "intermediate"
 tags: ["ai", "llm", "transformer", "nlp"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["vaswani-transformer", "brown-gpt3"]
 reviewed_on: "2026-07-09"

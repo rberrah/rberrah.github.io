@@ -9,8 +9,11 @@ order: 2.5
 duration: "6 min"
 level: "beginner"
 tags: ["parametrisation", "micro", "macro", "clairance"]
+prerequisites: []
+glossary: ["CL", "V", "Q", "ke"]
 slides: []
 sources: ["gibaldi-perrier", "rowland-tozer", "holford-clearance"]
+updated_on: "2026-10-08"
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Dans un modèle à un compartiment, quelle égalité relie l'écriture micro à l'écriture macro ?"
@@ -61,7 +64,7 @@ Pour un modèle à **deux compartiments** (central 1, périphérique 2), les con
 $$ k_e = \frac{CL}{V_1}, \qquad k_{12} = \frac{Q}{V_1}, \qquad k_{21} = \frac{Q}{V_2} $$
 
 :::math
-Chaque constante de vitesse est un **rapport d'un débit sur un volume**. C'est la même information, réécrite : connaître $CL, Q, V_1, V_2$ suffit à retrouver toutes les constantes micro, et réciproquement.
+Chaque constante de vitesse est un **rapport d'un débit sur un volume**. Connaître $CL, Q, V_1, V_2$ suffit donc à retrouver toutes les constantes micro. L'inverse exige au moins une information d'échelle, par exemple $V_1$ : les constantes micro seules ne permettent pas de reconstruire simultanément toutes les clairances et tous les volumes.
 :::
 <!-- /step -->
 

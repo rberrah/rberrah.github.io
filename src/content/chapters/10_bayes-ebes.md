@@ -9,8 +9,11 @@ order: 10
 duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
+prerequisites: ["variabilite-iiv-iov", "erreur-residuelle"]
+glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "MAP", "EBE", "Shrinkage"]
 slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
 sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation", "berrah-residual", "hughes-keizer"]
+updated_on: "2026-10-08"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Un EBE est..."
@@ -56,7 +59,7 @@ $$ \underbrace{p(\eta_i \mid y_i)}_{\text{a posteriori}} \;\propto\; \underbrace
 
 L'**a priori** $p(\eta_i)$ est le modèle de population (une gaussienne de variance $\Omega$, la variabilité inter-individuelle). La **vraisemblance** $p(y_i \mid \eta_i)$ mesure l'accord aux observations, pondéré par l'**erreur résiduelle** $\sigma$.
 
-L'estimation **MAP** (*maximum a posteriori*) maximise cet a posteriori, ce qui revient à minimiser l'objectif individuel :
+Dans le cas simplifié d'erreurs gaussiennes indépendantes, de variance constante $\sigma^2$, l'estimation **MAP** (*maximum a posteriori*) maximise cet a posteriori, ce qui revient à minimiser l'objectif individuel :
 
 $$ \hat{\eta}_i = \arg\min_{\eta}\;\sum_j \frac{\bigl(y_{ij} - f(\eta)\bigr)^2}{\sigma^2} \;+\; \eta^{\mathsf T}\,\Omega^{-1}\,\eta $$
 

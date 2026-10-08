@@ -9,6 +9,7 @@ order: 3
 duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
+updated_on: "2026-10-08"
 slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 quiz:
   - prompt: "After an IV bolus, the initial concentration is..."
@@ -66,7 +67,7 @@ The ratio $CL/V$ is the elimination rate constant $k$.
 
 **Math —** volume dilutes (sets $C_0$); clearance is an **epuration capacity** (a flow, in L/h). Their ratio, and only that, sets the decay speed.
 
-**In the clinic —** physiologically, clearance is an **extraction capacity**: $CL = Q_{organ}\cdot E$ (organ blood flow × extraction ratio $E$). It adds up across routes: $CL_{tot} = CL_r$ (renal) $+\ CL_{nr}$ (hepatic and other). Creatinine clearance approximates **glomerular filtration** (GFR ≈ 120 mL/min), **not** total renal clearance: the latter also involves tubular **secretion** and **reabsorption**. When reabsorption occurs, a drug's renal clearance can be far below GFR; with active secretion it can exceed it. Creatinine clearance is therefore a good proxy for renal clearance only for purely filtered molecules.
+**In the clinic —** physiologically, clearance is an **extraction capacity**: $CL = Q_{organ}\cdot E$ (organ blood flow × extraction ratio $E$). It adds up across routes: $CL_{tot} = CL_r$ (renal) $+\ CL_{nr}$ (hepatic and other). Creatinine clearance **approximates GFR** and usually slightly overestimates it because creatinine also undergoes tubular secretion. It is not a drug's total renal clearance, which depends on filtration, secretion and reabsorption. For a drug eliminated only by glomerular filtration, $CL_R \approx f_u \times GFR$; it approaches GFR only when the drug is almost entirely unbound.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="IVBolus" -->

@@ -11,6 +11,9 @@ const chapterDir = new URL('src/content/chapters/', root);
 const englishDir = new URL('src/content/chapters/en/', root);
 const visualizationDir = new URL('src/lib/components/visualizations/', root);
 const output = new URL('docs/content-inventory.md', root);
+const citation = readFileSync(new URL('CITATION.cff', root), 'utf8');
+const contentLicense = readFileSync(new URL('LICENSE-CONTENT.md', root), 'utf8');
+const portalHome = readFileSync(new URL('portal/index.html', root), 'utf8');
 const chapterFiles = readdirSync(chapterDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
 const chapters = chapterFiles.map(file => ({ file, ...matter(readFileSync(new URL(file, chapterDir), 'utf8')).data }));
 const englishFiles = readdirSync(englishDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
@@ -31,15 +34,24 @@ const rows = [
   ['Animated laboratories', 4 + molecularLabIds.length],
   ['Visualization components', visualizations.length],
   ['Visualization keys used by chapters', vizKeys.size],
+  ['Chapters with explicit prerequisites metadata', chapters.filter(chapter => Array.isArray(chapter.prerequisites)).length],
   ['Chapters with prerequisites', chapters.filter(chapter => chapter.prerequisites?.length).length],
+  ['Chapters with explicit glossary metadata', chapters.filter(chapter => Array.isArray(chapter.glossary)).length],
   ['Chapters with glossary links', chapters.filter(chapter => chapter.glossary?.length).length],
   ['Chapters with source identifiers', chapters.filter(chapter => chapter.sources?.length).length],
-  ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length]
+  ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length],
+  ['Chapters pending scientific review', chapters.filter(chapter => chapter.updated_on && chapter.reviewed_on && chapter.updated_on > chapter.reviewed_on).length]
 ];
 
 assert.equal(new Set(chapters.map(chapter => chapter.slug)).size, chapters.length, 'Duplicate chapter slug');
 assert.equal(beginnerTrack.chapterSlugs.length, 12, 'Starter path must keep twelve steps');
 assert.equal(syntheses.length, 13, 'One synthesis case is required for each major learning path');
+assert.equal(chapters.filter(chapter => Array.isArray(chapter.prerequisites)).length, chapters.length, 'Every chapter must declare prerequisites metadata');
+assert.equal(chapters.filter(chapter => Array.isArray(chapter.glossary)).length, chapters.length, 'Every chapter must declare glossary metadata');
+assert.match(citation, new RegExp(`${chapters.length} chapitres\\s+en français, ${englishFiles.length} chapitres traduits en anglais et ${visualizations.length} visualisations`), 'CITATION.cff public counts are stale');
+assert.match(contentLicense, new RegExp(`${chapters.length} chapitres en français, ${englishFiles.length} chapitres en anglais, ${visualizations.length} visualisations`), 'LICENSE-CONTENT.md public counts are stale');
+assert.ok(citation.includes('title: "PMx Explain"') && contentLicense.includes('**PMx Explain**'), 'Public citation and licence branding must use PMx Explain');
+assert.ok(portalHome.includes(`${learningTracks.length - 1} specialised tracks plus a guided starter path`), 'Portal learning-track count is stale');
 
 const markdown = `# PMx Explain content inventory
 

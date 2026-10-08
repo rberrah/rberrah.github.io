@@ -9,6 +9,8 @@ order: 9
 duration: "13 min"
 level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
+prerequisites: []
+glossary: []
 slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
 sources: ["karlsson-holford-vpc", "bergstrand-pcvpc", "hooker-cwres", "efron-bootstrap"]
 reviewed_on: "2026-07-09"

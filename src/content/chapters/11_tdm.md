@@ -9,8 +9,11 @@ order: 11
 duration: "12 min"
 level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
+prerequisites: ["bayes-ebes"]
+glossary: ["TDM", "MAP", "Precision dosing"]
 slides: ["s59", "s62", "s72"]
 sources: ["sheiner-forecasting", "minichmayr-mipd", "woillard-tacrolimus", "rybak-vanco"]
+updated_on: "2026-10-08"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
@@ -60,7 +63,7 @@ La sortie est une estimation individuelle **mise à jour, avec son incertitude**
 <!-- /step -->
 
 <!-- step:title="Exemple concret" slides="s62" -->
-Pour le tacrolimus, la vancomycine, les aminosides ou des modèles liés à la warfarine, une seule valeur mesurée n'est utile que si le contexte est correct.
+Pour le tacrolimus, la vancomycine ou les aminosides, une concentration mesurée n'est utile que si le contexte est correct. Pour la warfarine, le suivi clinique usuel repose surtout sur l'INR : les modèles concernés sont alors PK/PD et n'utilisent pas un dosage plasmatique de warfarine en routine.
 
 Dose, heures d'administration, heure du prélèvement, détails du dosage, fonction rénale ou hépatique, observance et médicaments en interaction peuvent tous compter.
 <!-- /step -->

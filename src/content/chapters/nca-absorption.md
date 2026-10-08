@@ -9,6 +9,8 @@ order: 83
 duration: "11 min"
 level: "intermediate"
 tags: ["nca", "bioavailability", "cmax", "oral"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["ema-bioequivalence", "fda-bioequivalence", "rowland-tozer"]
 reviewed_on: "2026-07-09"

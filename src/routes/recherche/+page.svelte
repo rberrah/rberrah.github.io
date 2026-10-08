@@ -18,6 +18,7 @@
     { id: 'infusion', fr: 'Perfusion IV et decroissance', en: 'IV infusion and washout' }
   ];
   const norm = (value) => (value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const plain = (value) => (value ?? '').replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
   const localized = (value) => value?.[$language] ?? '';
   const chapterTrack = new Map(chapters.map(chapter => [chapter.slug, chapter.track]));
   let query = '';
@@ -25,17 +26,18 @@
   $: index = [
     ...chapters.map(chapter => {
       const item = localizeChapter(chapter, $language).chapter;
-      return { type: $language === 'en' ? 'Course' : 'Cours', title: item.title, description: item.description, href: `${base}/chapitres/${chapter.slug}/?lang=${$language}` };
+      const content = [item.summary, ...(chapter.tags ?? []), ...(chapter.glossary ?? []), ...(item.steps ?? []).flatMap(step => [step.title, plain(step.html)])].join(' ');
+      return { type: $language === 'en' ? 'Course' : 'Cours', title: item.title, description: item.description, content, href: `${base}/chapitres/${chapter.slug}/?lang=${$language}` };
     }),
     ...glossaryItems.map(item => {
       const view = $language === 'en' ? item.en : item;
       return { type: $language === 'en' ? 'Glossary' : 'Glossaire', title: view?.term ?? item.term, description: `${view?.full ?? ''} ${view?.def ?? ''}`.trim(), href: `${base}/glossaire/?lang=${$language}&q=${encodeURIComponent(view?.term ?? item.term)}` };
     }),
-    ...fundamentalLabs.map(item => ({ type: $language === 'en' ? 'Laboratory' : 'Laboratoire', title: item[$language], description: $language === 'en' ? 'Interactive mechanism and concentration curves.' : 'Mecanisme interactif et courbes de concentration.', href: `${base}/laboratoires/?lang=${$language}&lab=${item.id}` })),
+    ...fundamentalLabs.map(item => ({ type: $language === 'en' ? 'Laboratory' : 'Laboratoire', title: item[$language], description: $language === 'en' ? 'Interactive mechanism and concentration curves.' : 'Mécanisme interactif et courbes de concentration.', href: `${base}/laboratoires/?lang=${$language}&lab=${item.id}` })),
     ...molecularLabIds.map(id => ({ type: $language === 'en' ? 'Laboratory' : 'Laboratoire', title: localized(molecularLabs[id].title), description: localized(molecularLabs[id].summary), href: `${base}/laboratoires/?lang=${$language}&lab=${id}` })),
-    ...guidedActivities.map(activity => ({ type: activity.kind === 'synthesis' ? ($language === 'en' ? 'Synthesis case' : 'Cas de synthese') : ($language === 'en' ? 'Guided activity' : 'Activite guidee'), title: localized(activity.title), description: localized(activity.objective), href: `${base}/exercices/?lang=${$language}&track=${activity.track ?? chapterTrack.get(activity.chapter) ?? ''}` })),
-    ...exercises.map(exercise => ({ type: $language === 'en' ? 'Calculation' : 'Calcul', title: $language === 'en' ? exercise.en.q : exercise.q, description: exercise.unit ?? '', href: `${base}/exercices/?lang=${$language}&track=${chapterTrack.get(exercise.chapter) ?? ''}` }))
-  ].map(item => ({ ...item, haystack: norm(`${item.type} ${item.title} ${item.description}`) }));
+    ...guidedActivities.map(activity => ({ type: activity.kind === 'synthesis' ? ($language === 'en' ? 'Synthesis case' : 'Cas de synthèse') : ($language === 'en' ? 'Guided activity' : 'Activité guidée'), title: localized(activity.title), description: localized(activity.objective), href: `${base}/parcours/${activity.track ?? chapterTrack.get(activity.chapter) ?? ''}/?lang=${$language}&chapter=${activity.chapter}#activity-${activity.id}` })),
+    ...exercises.map(exercise => ({ type: $language === 'en' ? 'Calculation' : 'Calcul', title: $language === 'en' ? exercise.en.q : exercise.q, description: exercise.unit ?? '', href: `${base}/parcours/${chapterTrack.get(exercise.chapter) ?? ''}/?lang=${$language}&chapter=${exercise.chapter}#practice` }))
+  ].map(item => ({ ...item, haystack: norm(`${item.type} ${item.title} ${item.description} ${item.content ?? ''}`) }));
   $: words = norm(query).trim().split(/\s+/).filter(Boolean);
   $: results = words.length ? index.filter(item => words.every(word => item.haystack.includes(word))).slice(0, 60) : [];
   $: grouped = [...new Set(results.map(item => item.type))].map(type => ({ type, items: results.filter(item => item.type === type) }));
@@ -46,12 +48,12 @@
 <header class="head">
   <p class="eyebrow">PMx Explain</p>
   <h1>{$language === 'en' ? 'Search all learning resources' : 'Rechercher dans toutes les ressources'}</h1>
-  <p>{$language === 'en' ? 'Courses, glossary definitions, laboratories and exercises are searched together.' : 'Les cours, definitions du glossaire, laboratoires et exercices sont recherches ensemble.'}</p>
+  <p>{$language === 'en' ? 'Courses, glossary definitions, laboratories and exercises are searched together.' : 'Les cours, définitions du glossaire, laboratoires et exercices sont recherchés ensemble.'}</p>
   <input type="search" bind:value={query} placeholder={$language === 'en' ? 'Clearance, Emax, Bayesian...' : 'Clairance, Emax, Bayes...'} aria-label={$language === 'en' ? 'Search all resources' : 'Rechercher dans toutes les ressources'} data-testid="global-search"/>
 </header>
 
 {#if words.length}
-  <p class="count" role="status">{results.length}{results.length === 60 ? '+' : ''} {$language === 'en' ? 'results' : 'resultats'}</p>
+  <p class="count" role="status">{results.length}{results.length === 60 ? '+' : ''} {$language === 'en' ? 'results' : 'résultats'}</p>
   {#if grouped.length}
     {#each grouped as group}
       <section class="group">
@@ -59,7 +61,7 @@
         <ul>{#each group.items as item}<li><a href={item.href}><strong>{item.title}</strong>{#if item.description}<span>{item.description}</span>{/if}</a></li>{/each}</ul>
       </section>
     {/each}
-  {:else}<p class="empty">{$language === 'en' ? 'No resource matches these terms.' : 'Aucune ressource ne correspond a ces termes.'}</p>{/if}
+  {:else}<p class="empty">{$language === 'en' ? 'No resource matches these terms.' : 'Aucune ressource ne correspond à ces termes.'}</p>{/if}
 {:else}
   <p class="empty">{$language === 'en' ? 'Enter one or more terms.' : 'Saisissez un ou plusieurs termes.'}</p>
 {/if}

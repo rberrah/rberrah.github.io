@@ -9,6 +9,8 @@ order: 71
 duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "partition", "protein-binding", "distribution"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["poulin-theil", "rodgers-rowland", "jones-rowland-yeo"]
 reviewed_on: "2026-07-09"

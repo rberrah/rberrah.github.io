@@ -9,6 +9,8 @@ order: 5
 duration: "14 min"
 level: "intermediate"
 tags: ["variability", "iiv", "iov", "residual-error"]
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["IIV", "IOV", "η", "ω / Ω", "ε / σ"]
 slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
 sources: ["karlsson-sheiner-iov", "sheiner-beal-estimation", "berrah-residual", "davidian-giltinan"]
 reviewed_on: "2026-07-09"

@@ -9,8 +9,11 @@ order: 6
 duration: "14 min"
 level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
+prerequisites: ["variabilite-iiv-iov"]
+glossary: ["Covariable", "Allométrie", "Centrage"]
 slides: ["s18", "s19", "s20", "s21", "s22"]
 sources: ["anderson-holford-allometry", "jonsson-karlsson-scm", "ribbing-selection-bias", "owen-fiedler-kelly"]
+updated_on: "2026-10-08"
 reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Une covariable est utile quand elle..."
@@ -58,7 +61,7 @@ Un modèle allométrique courant :
 $$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0{,}75} \qquad V_i = V_{70} \left(\frac{WT_i}{70}\right)^{1} $$
 
 :::math
-Le dénominateur 70 **centre** le modèle : $CL_{70}$ désigne la clairance typique d'un patient de 70 kg. L'exposant 0,75 pour la clairance et 1 pour le volume vient de la théorie allométrique.
+Le dénominateur 70 **centre** le modèle : $CL_{70}$ désigne la clairance typique d'un patient de 70 kg. Les exposants 0,75 pour la clairance et 1 pour le volume sont des **valeurs de référence très utilisées** en allométrie, pas des constantes universelles valables pour tous les médicaments et toutes les populations.
 :::
 <!-- /step -->
 

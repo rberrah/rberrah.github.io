@@ -9,6 +9,8 @@ order: 21
 duration: "13 min"
 level: "intermediate"
 tags: ["maths", "regression", "likelihood", "estimation"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["wang-nonmem-methods", "akaike-aic", "davidian-giltinan", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"

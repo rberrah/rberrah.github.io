@@ -9,6 +9,8 @@ order: 61
 duration: "13 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "indirect-response", "turnover"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["dayneka-jusko-indirect", "jusko-ko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"

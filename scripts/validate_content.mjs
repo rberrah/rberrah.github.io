@@ -26,6 +26,8 @@ const requiredFrontmatter = [
   'duration',
   'level',
   'tags',
+  'prerequisites',
+  'glossary',
   'slides'
 ];
 // Squelette pédagogique canonique (langue principale = français).
@@ -119,6 +121,12 @@ function validateChapters(catalogIds) {
     }
     if (!Array.isArray(data.tags) || data.tags.length === 0) {
       fail(`Frontmatter tags must be a non-empty list in ${file}`);
+    }
+    if (!Array.isArray(data.prerequisites)) {
+      fail(`Frontmatter prerequisites must be a list in ${file}`);
+    }
+    if (!Array.isArray(data.glossary)) {
+      fail(`Frontmatter glossary must be a list in ${file}`);
     }
     if (!Array.isArray(data.slides)) {
       fail(`Frontmatter slides must be a list in ${file}`);

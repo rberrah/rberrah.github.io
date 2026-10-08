@@ -9,6 +9,8 @@ order: 52
 duration: "12 min"
 level: "advanced"
 tags: ["mab", "ada", "immunogenicity", "neutralizing"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "fda-immunogenicity"]
 reviewed_on: "2026-07-09"

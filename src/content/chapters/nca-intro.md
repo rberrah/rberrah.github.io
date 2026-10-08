@@ -9,6 +9,8 @@ order: 80
 duration: "11 min"
 level: "beginner"
 tags: ["nca", "auc", "exposure", "regulatory"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "fda-be-statistical-2026", "mager-jusko-tmdd", "gibaldi-perrier"]
 updated_on: "2026-09-21"

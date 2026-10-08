@@ -9,6 +9,7 @@ order: 6
 duration: "14 min"
 level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
+updated_on: "2026-10-08"
 slides: ["s18", "s19", "s20", "s21", "s22"]
 quiz:
   - prompt: "A covariate is useful when it..."
@@ -53,7 +54,7 @@ A common allometric model:
 
 $$ CL_i = CL_{70} \left(\frac{WT_i}{70}\right)^{0.75} \qquad V_i = V_{70} \left(\frac{WT_i}{70}\right)^{1} $$
 
-**Math —** the denominator 70 **centers** the model: $CL_{70}$ is the typical clearance for a 70 kg patient. The exponents 0.75 (clearance) and 1 (volume) come from allometric theory.
+**Math —** the denominator 70 **centers** the model: $CL_{70}$ is the typical clearance for a 70 kg patient. Exponents of 0.75 for clearance and 1 for volume are **widely used allometric reference values**, not universal constants for every drug and population.
 <!-- /step -->
 
 <!-- step:title="Worked example" slides="s20" viz="14_AllometryCentering" -->

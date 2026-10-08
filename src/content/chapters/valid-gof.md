@@ -9,6 +9,8 @@ order: 90
 duration: "12 min"
 level: "intermediate"
 tags: ["validation", "diagnostic-plots", "gof", "residuals"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["hooker-cwres", "savic-karlsson-shrinkage", "mould-upton"]
 reviewed_on: "2026-07-09"

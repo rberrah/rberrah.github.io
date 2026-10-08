@@ -14,6 +14,7 @@
   export let updatedOn = '';
 
   $: copy = ui($language);
+  $: reviewPending = Boolean(updatedOn && reviewedOn && updatedOn > reviewedOn);
 </script>
 
 <p class="signature" data-testid="author-signature">
@@ -24,7 +25,10 @@
     <span class="sep" aria-hidden="true">·</span>
     <span class="rev">{copy.chapter.updatedOn} : <time datetime={updatedOn}>{updatedOn}</time></span>
   {/if}
-  {#if reviewedOn}
+  {#if reviewPending}
+    <span class="sep" aria-hidden="true">·</span>
+    <span class="pending">{copy.chapter.scientificReviewPending}</span>
+  {:else if reviewedOn}
     <span class="sep" aria-hidden="true">·</span>
     <span class="rev">{copy.chapter.scientificallyReviewedOn} : <time datetime={reviewedOn}>{reviewedOn}</time></span>
   {/if}
@@ -43,5 +47,6 @@
   .signature a { color: var(--text-secondary); text-decoration: none; border-bottom: 1px solid var(--border-subtle); }
   .signature a:hover { color: var(--accent-pk); border-color: var(--accent-pk); }
   .sep { margin: 0 4px; color: var(--border-strong); }
+  .pending { color: #9a5c12; }
   .orcid { letter-spacing: 0.06em; }
 </style>

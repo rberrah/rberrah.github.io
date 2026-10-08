@@ -9,6 +9,8 @@ order: 63
 duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "tolerance", "rebound", "precursor"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["sharma-jusko-indirect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"

@@ -9,6 +9,8 @@ order: 26
 duration: "14 min"
 level: "advanced"
 tags: ["maths", "covariates", "scm", "model-building"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["jonsson-karlsson-scm", "ribbing-selection-bias", "anderson-holford-allometry", "fda-poppk"]
 reviewed_on: "2026-07-09"

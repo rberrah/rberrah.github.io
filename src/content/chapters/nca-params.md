@@ -9,6 +9,8 @@ order: 82
 duration: "12 min"
 level: "intermediate"
 tags: ["nca", "clearance", "volume", "mrt"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["yamaoka-moments", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"

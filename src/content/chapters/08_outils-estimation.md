@@ -9,6 +9,8 @@ order: 8
 duration: "12 min"
 level: "intermediate"
 tags: ["tools", "estimation", "nonmem", "monolix", "nlmixr2"]
+prerequisites: []
+glossary: []
 slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
 sources: ["wang-nonmem-methods", "kuhn-lavielle-saem", "akaike-aic", "nonmem", "monolix"]
 reviewed_on: "2026-07-09"

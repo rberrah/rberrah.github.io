@@ -9,6 +9,8 @@ order: 73
 duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "ivive", "drug-interactions", "pediatrics"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["rostami-hodjegan-ivive", "fda-pbpk", "anderson-holford-allometry", "jones-pbpk-industry"]
 reviewed_on: "2026-07-09"

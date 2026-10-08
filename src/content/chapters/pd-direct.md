@@ -9,6 +9,8 @@ order: 60
 duration: "12 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "emax", "hill", "direct-effect"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
 updated_on: "2026-09-21"

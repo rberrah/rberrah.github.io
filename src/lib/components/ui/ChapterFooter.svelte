@@ -10,10 +10,10 @@
   export let chapter = null;
 
   const T = {
-    fr: { sources: 'Sources', updated: 'Mise à jour', reviewed: 'Relecture scientifique', report: 'Signaler une erreur',
+    fr: { sources: 'Sources', updated: 'Mise à jour', reviewed: 'Relecture scientifique', reviewPending: 'Relecture scientifique de cette version en attente', report: 'Signaler une erreur',
           brouillon: 'Brouillon', relu: 'Relu', valide: 'Validé',
           body: (t, s) => `Chapitre : ${t} (\`${s}\`)\n\nDécrivez l'erreur ou l'imprécision :\n\n` },
-    en: { sources: 'Sources', updated: 'Updated', reviewed: 'Scientific review', report: 'Report an error',
+    en: { sources: 'Sources', updated: 'Updated', reviewed: 'Scientific review', reviewPending: 'Scientific review of this version pending', report: 'Report an error',
           brouillon: 'Draft', relu: 'Reviewed', valide: 'Validated',
           body: (t, s) => `Chapter: ${t} (\`${s}\`)\n\nDescribe the error or inaccuracy:\n\n` }
   };
@@ -28,6 +28,7 @@
   $: st = chapter?.status && t[chapter.status]
     ? { label: t[chapter.status], cls: chapter.status === 'valide' ? 'ok' : chapter.status === 'relu' ? 'read' : 'draft' }
     : null;
+  $: reviewPending = Boolean(chapter?.updated_on && chapter?.reviewed_on && chapter.updated_on > chapter.reviewed_on);
 </script>
 
 <footer class="chfoot">
@@ -50,7 +51,7 @@
   <div class="meta">
     {#if st}<span class="badge {st.cls}">{st.label}</span>{/if}
     {#if chapter?.updated_on}<span class="rev">{t.updated} : {chapter.updated_on}</span>{/if}
-    {#if chapter?.reviewed_on}<span class="rev">{t.reviewed} : {chapter.reviewed_on}</span>{/if}
+    {#if reviewPending}<span class="pending">{t.reviewPending}</span>{:else if chapter?.reviewed_on}<span class="rev">{t.reviewed} : {chapter.reviewed_on}</span>{/if}
     <a class="report" href={issueUrl} target="_blank" rel="noopener noreferrer">{t.report}</a>
   </div>
 </footer>
@@ -71,6 +72,7 @@
   .badge.read { background: var(--bg-secondary); color: var(--text-secondary); }
   .badge.draft { background: color-mix(in srgb, #c0392b 12%, var(--bg-primary)); color: #c0392b; }
   .rev { color: var(--text-muted); }
+  .pending { color: #9a5c12; }
   .report { margin-left: auto; color: var(--accent-pk); text-decoration: none; }
   .report:hover { text-decoration: underline; }
 </style>

@@ -9,6 +9,7 @@ order: 10
 duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
+updated_on: "2026-10-08"
 slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
 quiz:
   - prompt: "An EBE is..."
@@ -52,7 +53,7 @@ $$ \underbrace{p(\eta_i \mid y_i)}_{\text{posterior}} \;\propto\; \underbrace{p(
 
 The **prior** $p(\eta_i)$ is the population model (a Gaussian of variance $\Omega$, the between-patient variability). The **likelihood** $p(y_i \mid \eta_i)$ measures agreement with the observations, weighted by the **residual error** $\sigma$.
 
-**MAP** estimation (*maximum a posteriori*) maximises this posterior, which amounts to minimising the individual objective:
+In the simplified case of independent Gaussian errors with constant variance $\sigma^2$, **MAP** estimation (*maximum a posteriori*) maximises this posterior, which amounts to minimising the individual objective:
 
 $$ \hat{\eta}_i = \arg\min_{\eta}\;\sum_j \frac{\bigl(y_{ij} - f(\eta)\bigr)^2}{\sigma^2} \;+\; \eta^{\mathsf T}\,\Omega^{-1}\,\eta $$
 

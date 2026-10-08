@@ -9,6 +9,8 @@ order: 41
 duration: "12 min"
 level: "intermediate"
 tags: ["infectious-diseases", "tdm", "vancomycin", "icu"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
 reviewed_on: "2026-07-09"

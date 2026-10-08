@@ -9,6 +9,8 @@ order: 64
 duration: "15 min"
 level: "advanced"
 tags: ["pharmacodynamics", "survival", "time-to-event", "os-pfs"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["holford-tte-tutorial", "kaplan-meier-1958", "cox-1972", "claret-tgi-os"]
 updated_on: "2026-09-21"

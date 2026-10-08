@@ -11,6 +11,7 @@ level: "beginner"
 tags: ["parametrisation", "micro", "macro", "clairance"]
 slides: []
 reviewed_on: "2026-07-14"
+updated_on: "2026-10-08"
 quiz:
   - prompt: "In a one-compartment model, which identity links the micro and macro forms?"
     options:
@@ -59,7 +60,7 @@ For a **two-compartment** model (central 1, peripheral 2), the micro constants f
 
 $$ k_e = \frac{CL}{V_1}, \qquad k_{12} = \frac{Q}{V_1}, \qquad k_{21} = \frac{Q}{V_2} $$
 
-**Math —** each rate constant is a **flow over a volume**. It is the same information, rewritten: knowing $CL, Q, V_1, V_2$ is enough to recover all the micro constants, and vice versa.
+**Math —** each rate constant is a **flow over a volume**. Knowing $CL, Q, V_1, V_2$ is therefore enough to recover all the micro constants. The reverse conversion needs at least one scale quantity, such as $V_1$: the micro constants alone cannot reconstruct every clearance and volume simultaneously.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="10_PK2C" -->

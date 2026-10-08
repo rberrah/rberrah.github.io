@@ -6,6 +6,8 @@
   export let title = 'Quiz';
   /** @type {{prompt:string, options:string[], correct:number}[]} */
   export let questions = [];
+  /** @type {null | ((result: {score:number, total:number}) => void)} */
+  export let onComplete = null;
   /** @type {Record<number, number>} */
   let answers = {};
 
@@ -25,7 +27,12 @@
   $: orders = questions.map((q) => shuffleOrder(q.prompt, q.options.length));
 
   function choose(/** @type {number} */ qi, /** @type {number} */ oi) {
-    answers = { ...answers, [qi]: oi };
+    const next = { ...answers, [qi]: oi };
+    answers = next;
+    if (Object.keys(next).length === questions.length) {
+      const nextScore = questions.reduce((sum, q, i) => sum + (next[i] === q.correct ? 1 : 0), 0);
+      onComplete?.({ score: nextScore, total: questions.length });
+    }
   }
   $: answeredCount = Object.keys(answers).length;
   $: score = questions.reduce((s, q, i) => s + (answers[i] === q.correct ? 1 : 0), 0);

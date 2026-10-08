@@ -15,8 +15,8 @@ UMR 1248 « Pharmacologie et Transplantation » (INSERM, Université de Limoges,
 CHU de Limoges).
 ORCID : [0009-0001-6432-2880](https://orcid.org/0009-0001-6432-2880)
 
-Œuvre concernée : **Pharmacométrie Pratique** — cours ouvert de pharmacométrie,
-88 chapitres en français, 88 chapitres en anglais, 63 visualisations interactives.
+Œuvre concernée : **PMx Explain** — cours ouvert de pharmacométrie,
+95 chapitres en français, 95 chapitres en anglais, 68 visualisations interactives.
 Publié à l'adresse <https://rberrah.github.io/pharmacometrie/>.
 Ce dépôt héberge également les pages du portail <https://rberrah.github.io/>, soumises
 à la même licence.
@@ -98,7 +98,7 @@ patient.
 ### Texte brut (support imprimé, diaporama, polycopié)
 
 ```
-« Pharmacométrie Pratique », chapitre « Analyse non compartimentale », par Racym Berrah,
+« PMx Explain », chapitre « Analyse non compartimentale », par Racym Berrah,
 https://rberrah.github.io/pharmacometrie/ — sous licence CC BY-SA 4.0
 (https://creativecommons.org/licenses/by-sa/4.0/). Consulté le 4 août 2026.
 ```
@@ -106,7 +106,7 @@ https://rberrah.github.io/pharmacometrie/ — sous licence CC BY-SA 4.0
 ### Texte brut, contenu modifié
 
 ```
-D'après « Pharmacométrie Pratique », chapitre « Analyse non compartimentale », par
+D'après « PMx Explain », chapitre « Analyse non compartimentale », par
 Racym Berrah, https://rberrah.github.io/pharmacometrie/ — sous licence CC BY-SA 4.0
 (https://creativecommons.org/licenses/by-sa/4.0/). Modifications : figure redessinée,
 exemple numérique remplacé, section « limites » abrégée. La présente adaptation est
@@ -117,7 +117,7 @@ diffusée sous la même licence CC BY-SA 4.0.
 
 ```html
 <p>
-  « <a href="https://rberrah.github.io/pharmacometrie/">Pharmacométrie Pratique</a> »
+  « <a href="https://rberrah.github.io/pharmacometrie/">PMx Explain</a> »
   par <a href="https://orcid.org/0009-0001-6432-2880">Racym Berrah</a>,
   sous licence
   <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>.
@@ -127,7 +127,7 @@ diffusée sous la même licence CC BY-SA 4.0.
 ### Citation bibliographique (APA)
 
 ```
-Berrah, R. (2026). Pharmacométrie Pratique [ressource pédagogique en ligne].
+Berrah, R. (2026). PMx Explain [ressource pédagogique en ligne].
 https://rberrah.github.io/pharmacometrie/
 ```
 

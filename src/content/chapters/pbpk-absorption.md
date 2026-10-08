@@ -9,6 +9,8 @@ order: 72
 duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "absorption", "first-pass", "bcs"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["yu-amidon-acat", "amidon-bcs", "holford-clearance", "jones-rowland-yeo"]
 reviewed_on: "2026-07-09"

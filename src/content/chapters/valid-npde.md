@@ -9,6 +9,8 @@ order: 92
 duration: "12 min"
 level: "advanced"
 tags: ["validation", "npde", "simulation", "residuals"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["brendel-npde", "hooker-cwres"]
 reviewed_on: "2026-07-09"

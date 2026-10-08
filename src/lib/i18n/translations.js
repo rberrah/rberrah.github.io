@@ -93,6 +93,7 @@ export const dictionary = {
       // Signature d'auteur (en tête) et bloc de citation (en pied).
       updatedOn: 'Updated',
       scientificallyReviewedOn: 'Scientific review',
+      scientificReviewPending: 'Scientific review of this version pending',
       citeTitle: 'Cite this page',
       citeCopy: 'Copy',
       citeCopied: 'Copied',
@@ -314,6 +315,7 @@ export const dictionary = {
       // Signature d'auteur (en tête) et bloc de citation (en pied).
       updatedOn: 'Mise à jour',
       scientificallyReviewedOn: 'Relecture scientifique',
+      scientificReviewPending: 'Relecture scientifique de cette version en attente',
       citeTitle: 'Citer cette page',
       citeCopy: 'Copier',
       citeCopied: 'Copié',

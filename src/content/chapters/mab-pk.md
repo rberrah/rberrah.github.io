@@ -9,6 +9,8 @@ order: 50
 duration: "12 min"
 level: "advanced"
 tags: ["mab", "biologics", "fcrn", "pk"]
+prerequisites: []
+glossary: []
 slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"

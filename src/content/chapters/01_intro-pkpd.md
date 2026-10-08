@@ -9,6 +9,8 @@ order: 1
 duration: "12 min"
 level: "beginner"
 tags: ["intro", "pk", "pd", "variability"]
+prerequisites: []
+glossary: ["PK", "PD", "ADME"]
 slides: ["s01", "s02"]
 sources: ["rowland-tozer", "holford-clearance", "mould-upton"]
 reviewed_on: "2026-07-09"

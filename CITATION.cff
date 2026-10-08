@@ -10,10 +10,10 @@
 cff-version: 1.2.0
 message: "Merci de citer cette ressource si vous l'utilisez, la réutilisez ou l'adaptez."
 type: dataset
-title: "Pharmacométrie Pratique"
+title: "PMx Explain"
 abstract: >-
-  Cours ouvert de pharmacométrie en français et en anglais, comptant 88 chapitres
-  en français, 88 chapitres traduits en anglais et 63 visualisations interactives.
+  Cours ouvert de pharmacométrie en français et en anglais, comptant 95 chapitres
+  en français, 95 chapitres traduits en anglais et 68 visualisations interactives.
   Couverture : pharmacocinétique et pharmacodynamie, analyse non compartimentale,
   modélisation compartimentale, pharmacocinétique de population et modèles non
   linéaires à effets mixtes, PBPK, variabilité inter- et intra-individuelle,
