@@ -6,6 +6,7 @@
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
+  import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -87,6 +88,9 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
+  let metaboliteAnnotations = [];
+  let annotationFileName = '';
+  let annotationError = '';
   let msAutoMetadata = false;
   let metabolomicsIdType = 'chebi';
   let msBlankFilter = 'flag';
@@ -579,6 +583,22 @@
     }
   }
 
+  async function selectMetaboliteAnnotations(event) {
+    const file = event.currentTarget?.files?.[0] || null;
+    analysisResult = null;
+    analysisStatus = 'idle';
+    annotationFileName = '';
+    annotationError = '';
+    metaboliteAnnotations = [];
+    if (!file) return;
+    try {
+      metaboliteAnnotations = parseMetaboliteAnnotations(await file.text());
+      annotationFileName = file.name;
+    } catch (error) {
+      annotationError = error instanceof Error ? error.message : String(error);
+    }
+  }
+
   async function loadDemo() {
     /** @type {Array<['metadata'|'transcriptomics'|'proteomics'|'metabolomics', string]>} */
     const demoFiles = [
@@ -1020,7 +1040,8 @@
             proteomics: proteomicsValues,
             metabolomics: metabolomicsValues
           },
-          analysisResult
+          analysisResult,
+          metaboliteAnnotations
         });
       } catch (visualizationError) {
         analysisResult.visualizationError = visualizationError instanceof Error
@@ -1977,6 +1998,16 @@
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
       <a href={`${base}/multiomics/ms_peak_areas_example.csv`} download>{t('Exemple CSV AUC (données fictives)', 'Example AUC CSV (illustrative synthetic data)')}</a>
       <small>{t('AUC = aire intégrée du pic chromatographique, non AUC pharmacocinétique. Exportez le CSV/TSV du logiciel MS. Une ligne par molécule et injection, avec colonnes feature_id, assay_id, auc, condition, ou une matrice molécules × injections.', 'AUC = integrated chromatographic peak area, not pharmacokinetic AUC. Export CSV/TSV from your MS software. Use feature_id, assay_id, auc, condition columns or a features × injections matrix.')}</small>
+    </label>
+    <label class:loaded={annotationFileName}>
+      <strong>{t('Annotations des pics MS (facultatif)', 'MS peak annotations (optional)')}</strong>
+      <span>{t('Si vos pics ont des identifiants internes, associez-les explicitement à ChEBI.', 'If peaks have internal IDs, map them explicitly to ChEBI.')}</span>
+      <input type="file" data-testid="multiomics-ms-annotation-upload" accept=".csv,.tsv,.txt" onchange={selectMetaboliteAnnotations} />
+      <small>{annotationFileName || t('CSV : feature_id,chebi_id', 'CSV: feature_id,chebi_id')}</small>
+      <a href={`${base}/multiomics/ms_peak_annotations_example.csv`} download>{t('Exemple d’annotations', 'Annotation template')}</a>
+      <small>{t('Correspondances déclarées par l’utilisateur, non validées chimiquement. Aucun pic inconnu n’est identifié automatiquement ; les statistiques restent inchangées.', 'User-declared mappings, not independently verified chemical identities. Unknown peaks are never identified automatically; statistical fits remain unchanged.')}</small>
+      {#if annotationError}<small class="annotation-error" data-testid="multiomics-ms-annotation-error">{annotationError}</small>{/if}
+      {#if metaboliteAnnotations.length}<small data-testid="multiomics-ms-annotation-count">{metaboliteAnnotations.length} {t('correspondances importées', 'annotations imported')}</small>{/if}
     </label>
   </div>
 
@@ -3201,5 +3232,6 @@
   .optional-workflows { margin-top:16px; border:1px solid var(--border,#d9e0e3); border-radius:12px; padding:12px 16px; }
   .optional-workflows > summary { cursor:pointer; font-weight:700; }
   .optional-workflows > .contract { margin-top:16px; }
+  .annotation-error { color:#8d2020; font-weight:700; }
   .ms-import-message { padding:10px 13px; border:1px solid #b1cbd5; border-radius:9px; color:#1d3440; background:#eff7fa; font-size:.88rem; line-height:1.55; }
 </style>
