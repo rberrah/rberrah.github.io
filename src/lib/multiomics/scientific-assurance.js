@@ -69,6 +69,10 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'La CV est interne ; sélection des variables recalculée dans chaque pli, mais certains prétraitements omiques sont effectués avant la séparation. Une validation externe indépendante reste nécessaire.',
     'Internal CV refits feature selection per fold, but some omics preprocessing occurs before splitting. Independent external validation is still needed.',
     'requires_confirmation');
+  if (layers.length > 1 && !exploratory) add('separate_fdr_families',
+    'Les q-values sont corrigées par couche omique, pas globalement sur toutes les couches et analyses de voies : préspécifier les familles de tests.',
+    'BH q-values are adjusted within each omics layer, not globally across omics and pathway tests: prespecify the tested families.',
+    'requires_confirmation');
   if (result?.reactome) add('pathway_hypotheses',
     'Les annotations de voies et réseaux servent à générer des hypothèses, pas à établir une causalité.',
     'Pathway and network annotations generate hypotheses; they do not establish causality.');
