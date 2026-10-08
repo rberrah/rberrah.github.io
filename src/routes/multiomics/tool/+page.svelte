@@ -2711,10 +2711,12 @@
 </section>
 {/if}
 
+<details class="advanced-parameters methodology-details" data-testid="multiomics-methodology">
+  <summary><strong>{t('Méthodes, hypothèses et bases utilisées', 'Methods, assumptions and databases')}</strong> <span>{t('Consulter les calculs en détail', 'Inspect how results were calculated')}</span></summary>
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 6 · Analyse & bases biologiques', 'Step 6 · Analysis & biological databases')}</p>
+      <p class="eyebrow">{t('Méthode de calcul', 'Analysis method')}</p>
       <h2>{t('Le moteur de décision est déterministe et inspectable', 'The decision engine is deterministic and inspectable')}</h2>
     </div>
     <p>{t('La branche statistique est sélectionnée à partir de règles explicites liées au design et reste inspectable.', 'The statistical branch is selected from explicit study-design rules and remains inspectable.')}</p>
@@ -2783,6 +2785,7 @@
     </details>
   </div>
 </section>
+</details>
 
 {#if helpTooltip.visible}
   <div
@@ -2796,6 +2799,35 @@
 {/if}
 
 <style>
+  .simple-steps { display:flex; align-items:center; flex-wrap:wrap; gap:1.2rem; margin:0 0 var(--space-6); padding:0 0 var(--space-6); border-bottom:1px solid var(--border); }
+  .simple-steps span { display:flex; align-items:center; gap:.5rem; color:var(--text-secondary); font-weight:600; font-size:.86rem; }
+  .simple-steps b { display:inline-grid; place-items:center; width:1.7rem; height:1.7rem; border-radius:50%; border:1px solid var(--border-strong); color:var(--text-primary); }
+  .simple-hint { margin:.35rem 0 .9rem; color:var(--text-secondary); font-size:.9rem; }
+  .simple-warning { padding:.7rem 1rem; border-inline-start:3px solid var(--warning); background:var(--bg-secondary); }
+  .simple-disclosure, .advanced-parameters, .advanced-results, .templates-details { margin:1rem 0; border:1px solid var(--border); border-radius:12px; background:var(--bg-primary); padding:.75rem 1rem; }
+  .simple-disclosure summary, .advanced-parameters summary, .advanced-results summary, .templates-details summary { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; cursor:pointer; font-size:.92rem; font-weight:650; }
+  .simple-disclosure > :not(summary), .advanced-results > :not(summary), .advanced-parameters > :not(summary), .templates-details > :not(summary) { margin-top:1rem; }
+  .advanced-parameters > summary span, .methodology-details > summary span { color:var(--text-muted); font-size:.8rem; font-weight:400; }
+  .advanced-parameters > .panel { margin:1rem 0; }
+  .advanced-parameters .section-head p, .simple-study .section-head p { max-width:70ch; }
+  .templates-details { margin:0; align-self:start; min-width:0; }
+  .inline-optional { min-width:0; }
+  .inline-optional label { display:grid; margin-top:.7rem; }
+  .simple-file-values { padding:1rem 0; }
+  .simple-file-values > p { margin:.3rem 0 1rem; font-size:.87rem; color:var(--text-secondary); }
+  .simple-file-values small { display:block; margin-top:.8rem; color:var(--text-muted); }
+  .simple-qc-status { display:flex; align-items:center; flex-wrap:wrap; gap:.7rem; padding:.85rem 0; border-top:1px solid var(--border); font-size:.85rem; }
+  .simple-qc-status span { border:1px solid var(--border); padding:.25rem .6rem; border-radius:999px; }
+  .simple-qc-status .qc-alert { border-color:var(--warning); }
+  .export-detail { margin:0; }
+  .export-detail button { margin-top:.55rem; }
+  .methodology-details { margin-top:1.2rem; }
+  @media(max-width:680px) {
+    .simple-steps { gap:.6rem; }
+    .simple-steps span { font-size:.76rem; }
+    .simple-disclosure summary, .advanced-parameters summary, .advanced-results summary, .templates-details summary { display:block; }
+    .simple-qc-status { align-items:flex-start; }
+  }
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   .tool-back { display: inline-block; margin-bottom: var(--space-4); font-size: var(--text-sm); }
   .help-tip { position: relative; display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-left: 3px; border: 1px solid var(--border-strong); border-radius: 50%; font: 700 0.72rem/1 var(--font-sans); color: var(--text-secondary); cursor: help; vertical-align: middle; }
