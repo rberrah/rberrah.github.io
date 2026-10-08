@@ -3832,8 +3832,16 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (requiresConditionContrast && conditions.length < 2) {
     throw new Error('This objective requires at least two biological conditions; found ' + conditions.length + '.');
   }
-  if (requiresConditionContrast && conditions.length > 2 && (protocol.longitudinal || protocol.designType === 'paired')) {
-    throw new Error('More than two conditions are currently supported only for independent, non-longitudinal designs via the adjusted multi-group model.');
+  if (requiresConditionContrast && conditions.length > 2) {
+    const supportedIndependentMultiGroup = protocol.objective === 'groups'
+      && !protocol.longitudinal
+      && protocol.designType === 'independent';
+    const supportedLongitudinalMultiGroup = protocol.objective === 'time'
+      && protocol.longitudinal
+      && protocol.designType === 'repeated';
+    if (!supportedIndependentMultiGroup && !supportedLongitudinalMultiGroup) {
+      throw new Error('More than two conditions require either an independent multi-group comparison or a repeated-measures longitudinal condition × time model.');
+    }
   }
   if (protocol.longitudinal && timepoints.length > 2) {
     const numericTimes = timepoints.map((value) => Number(String(value).match(/-?\d+(?:\.\d+)?/)?.[0]));
