@@ -23,6 +23,8 @@
     if (guide.dataset.language === lang) return;
 
     guide.innerHTML = lang === 'en' ? `
+      <details class="licence-file-extra">
+        <summary>How should I prepare my files?</summary>
       <div class="licence-file-head"><span>Before choosing files</span><h3>What do I need to upload?</h3><b>1 sample sheet + at least 2 omics matrices</b></div>
       <p>You do not need three omics layers. Two different layers are already a multi-omics analysis; a third layer can be added when available.</p>
       <div class="licence-file-grid">
@@ -33,7 +35,10 @@
       <details><summary>Example with the same specimen measured by three omics</summary><pre>P001  P001_T0  RNA001   transcriptomics
 P001  P001_T0  PROT001  proteomics
 P001  P001_T0  MET001   metabolomics</pre><p>The subject and specimen IDs stay the same. The assay ID changes because these are three different measurements.</p></details>
+      </details>
     ` : `
+      <details class="licence-file-extra">
+        <summary>Comment préparer mes fichiers ?</summary>
       <div class="licence-file-head"><span>Avant de choisir les fichiers</span><h3>Que faut-il charger ?</h3><b>1 tableau des échantillons + au moins 2 matrices omiques</b></div>
       <p>Il n’est pas nécessaire d’avoir trois omiques. Deux couches différentes constituent déjà une analyse multi-omique ; une troisième peut être ajoutée si elle est disponible.</p>
       <div class="licence-file-grid">
@@ -44,6 +49,7 @@ P001  P001_T0  MET001   metabolomics</pre><p>The subject and specimen IDs stay t
       <details><summary>Exemple : un même prélèvement mesuré par trois omiques</summary><pre>P001  P001_T0  RNA001   transcriptomics
 P001  P001_T0  PROT001  proteomics
 P001  P001_T0  MET001   metabolomics</pre><p>Le sujet et le prélèvement restent identiques. L’identifiant de mesure change car il s’agit de trois dosages différents.</p></details>
+      </details>
     `;
     guide.dataset.language = lang;
   }
@@ -53,6 +59,7 @@ P001  P001_T0  MET001   metabolomics</pre><p>Le sujet et le prélèvement resten
     const style = document.createElement('style');
     style.id = 'multiomics-file-guide-style';
     style.textContent = `
+      .licence-file-extra > summary{cursor:pointer;font-weight:700}
       .licence-file-guide{margin:14px 0 20px;padding:16px;border:1px solid var(--border-strong,#c9c9c9);border-radius:12px;background:var(--bg-secondary,#f7f7f7)}
       .licence-file-head{display:grid;grid-template-columns:1fr auto;gap:3px 14px;align-items:start}.licence-file-head>span{grid-column:1/-1;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}.licence-file-head h3{margin:2px 0;font-size:1.08rem}.licence-file-head>b{border:1px solid var(--border-subtle,#ccc);border-radius:999px;padding:5px 9px;font-size:.8rem}.licence-file-guide>p{max-width:88ch;margin:8px 0 13px;color:var(--text-secondary,#555);line-height:1.45}
       .licence-file-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.licence-file-grid article{padding:12px;border:1px solid var(--border-subtle,#ddd);border-radius:9px;background:var(--bg-primary,#fff)}.licence-file-grid article>span{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-secondary,#666)}.licence-file-grid strong,.licence-file-grid p,.licence-file-grid code{display:block}.licence-file-grid strong{margin-top:4px}.licence-file-grid p{margin:5px 0;font-size:.89rem;line-height:1.42;color:var(--text-secondary,#555)}.licence-file-grid code{margin-top:8px;font-size:.8rem;overflow-wrap:anywhere}
