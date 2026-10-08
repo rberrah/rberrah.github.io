@@ -89,10 +89,13 @@
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
   /** Original vendor CSV/TSV remains unchanged for provenance and re-export. */
+  /** @type {File|null} */
   let msOriginalFile = null;
   let msAnnotationCsv = '';
+  /** @type {string[]} */
   let msAnnotationFields = [];
   let msImportFormat = '';
+  /** @type {File|null} */
   let msUserAnnotationFile = null;
   /** @type {{feature:string,chebi:string,status:string,provenance:string}[]} */
   let metaboliteAnnotations = [];
@@ -623,6 +626,7 @@
     }
   }
 
+  /** @param {'transcriptomics' | 'proteomics' | 'metabolomics' | null} onlyLayer */
   async function loadDemo(onlyLayer = null) {
     /** @type {Array<['metadata'|'transcriptomics'|'proteomics'|'metabolomics', string]>} */
     const demoFiles = [
@@ -646,6 +650,7 @@
       if (layer === 'metadata' && onlyLayer) {
         const parsed = parseTable(text);
         const rows = parsed.rows.filter((row) => row.omic === onlyLayer);
+        /** @param {unknown} value */
         const quote = (value) => '"' + String(value ?? '').replaceAll('"','""') + '"';
         text = [parsed.headers.map(quote).join(','), ...rows.map((row) =>
           parsed.headers.map((key) => quote(row[key])).join(','))].join('\n') + '\n';
@@ -980,12 +985,14 @@
     };
   }
 
+  /** @param {File | null} file */
   async function sha256OfFile(file) {
     if (!file || !globalThis.crypto?.subtle) return null;
     const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
     return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   }
 
+  /** @param {any} result */
   async function attachMsProvenance(result) {
     if (!msOriginalFile && !msUserAnnotationFile) return;
     const source = msOriginalFile ? {
