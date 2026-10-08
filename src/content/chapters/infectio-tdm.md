@@ -15,7 +15,7 @@ reviewed_on: "2026-07-09"
 quiz:
   - prompt: "Pour la vancomycine dans les infections graves à MRSA, la cible actuelle privilégiée est..."
     options:
-      - "l'AUC₂₄/CMI 400–600 (estimée par Bayes)"
+      - "l'AUC₂₄/CMI 400–600 si la CMI vaut 1 mg/L par microdilution en bouillon"
       - "une résiduelle cible de 15–20 mg/L"
       - "un pic Cmax/CMI ≥ 8 au premier dosage"
     correct: 0
@@ -40,7 +40,7 @@ La particularité infectieuse : la cible est un **indice PK/PD** (AUC/CMI, Cmax/
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="MultiDose" -->
-Exemple de la **vancomycine** : pour les infections graves à MRSA, les recommandations récentes ciblent en général une **AUC₂₄/CMI de 400–600**, estimée par approche **bayésienne** à partir de 1–2 prélèvements (plutôt que la seule résiduelle).
+Exemple de la **vancomycine** : pour les infections graves à MRSA, le consensus 2020 recommande une **AUC₂₄ de 400–600 mg·h/L lorsque la CMI est supposée égale à 1 mg/L par microdilution en bouillon**. L'AUC peut être estimée par approche **bayésienne** à partir de 1–2 prélèvements plutôt que par la seule résiduelle. Cette plage ne doit pas être transposée automatiquement à une autre méthode de CMI, un autre germe ou une autre situation clinique.
 
 $$ \text{AUC}_{24} = \frac{\text{Dose}_{24}}{CL} $$
 
@@ -65,7 +65,7 @@ Le **moment du prélèvement** et la **fonction rénale** (souvent instable en r
 
 <!-- step:title="À retenir" -->
 - Le TDM concerne les antibiotiques à index étroit ou très variables (réanimation).
-- La cible est un indice PK/PD (vancomycine MRSA grave : AUC₂₄/CMI 400–600) estimé par Bayes.
+- Pour la vancomycine dans une infection grave à MRSA, la plage AUC₂₄ 400–600 mg·h/L est conditionnelle à une CMI de 1 mg/L par microdilution en bouillon.
 - La clairance rénale augmentée sous-dose les antibiotiques hydrophiles.
 - Moment de prélèvement, fonction rénale et CMI conditionnent l'ajustement.
 <!-- /step -->

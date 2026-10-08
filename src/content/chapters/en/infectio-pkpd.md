@@ -42,7 +42,7 @@ The three indices (Craig, 1998):
 
 - **T > MIC** (time-dependent): beta-lactams. Optimised by **prolonged/continuous infusions**.
 - **Cmax / MIC** (concentration-dependent): aminoglycosides, fluoroquinolones. Optimised by **large spaced doses**.
-- **AUC / MIC**: fluoroquinolones, glycopeptides. For vancomycin in serious MRSA infections, recent consensus generally targets **AUC₂₄/MIC 400–600** when the MIC is interpretable.
+- **AUC / MIC**: fluoroquinolones, glycopeptides. For vancomycin in serious MRSA infections, the 2020 consensus recommends an **AUC₂₄ of 400–600 mg·h/L when MIC is 1 mg/L by broth microdilution**. That condition and the MIC method must remain explicit in interpretation.
 
 $$ \%T_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{AUC_{24}}{MIC} $$
 
@@ -58,7 +58,7 @@ For a beta-lactam, prolonging the infusion increases **T>MIC** without increasin
 <!-- step:title="Common pitfall" -->
 The MIC is not an exact constant.
 
-**Pitfall —** the MIC varies between germs and by two-fold dilutions. One must also reason on the **free fraction** (the only active one) and beware the **inoculum effect**. An index computed on total concentration can overestimate efficacy.
+**Pitfall —** the MIC varies between organisms and by two-fold dilutions. Indices are often defined from **free concentration**, but the relationship between binding, free exposure and effect depends on the drug and context. Beware the **inoculum effect**, and state whether an index uses free or total concentration.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

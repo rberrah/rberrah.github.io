@@ -8,9 +8,15 @@ import { resolveSources } from '../src/lib/content/references.js';
 import { assess, activityStatus, emptyStep, numericValue } from '../src/lib/learning/assessment.js';
 import { displayUnit } from '../src/lib/learning/activityContent.js';
 import { experimentDefinitions, experimentCurve, experimentValue, validExperiment, parameterBounds } from '../src/lib/learning/experiments.js';
+import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
 
 const dir = new URL('../src/content/chapters/', import.meta.url);
 const chapters = readdirSync(dir).filter(f => f.endsWith('.md') && !f.startsWith('_')).map(f => matter(readFileSync(new URL(f, dir), 'utf8')).data);
+const glossarySource = readFileSync(new URL('../src/lib/stores/glossary.js', import.meta.url), 'utf8');
+const glossaryTerms = [...glossarySource.matchAll(/term: '([^']+)'/g)].map(match => match[1]);
+assert(glossaryTerms.length > 80);
+assert.deepEqual(glossaryTerms.filter(term => !glossaryEnglish[term]), []);
+for (const term of ['CL', 'V', 'Ka', 'Cmax / Tmax', 'AUC', 'RSE', 'VPC', 'Shrinkage', 'CMI', 'PTA']) assert(glossaryDetails[term], `Missing glossary details: ${term}`);
 const syntheses = activities.filter(activity => activity.kind === 'synthesis');
 assert.equal(syntheses.length, 13);
 assert.equal(new Set(syntheses.map(activity => activity.track)).size, syntheses.length);

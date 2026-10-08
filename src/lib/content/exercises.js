@@ -294,10 +294,10 @@ export const exercises = [
     "answer": 200,
     "tol": 0.02,
     "q": "AUC₂₄ = 400 mg·h/L, CMI = 2 mg/L. Quel est l'indice AUC₂₄/CMI ?",
-    "explain": "AUC₂₄/CMI = 400/2 = 200. Pour la vancomycine, la cible est ≥ 400.",
+    "explain": "AUC₂₄/CMI = 400/2 = 200. Ce calcul est inférieur à 400, mais la cible vancomycine 400–600 ne s'applique directement qu'au cadre des infections graves à MRSA lorsque la CMI vaut 1 mg/L par microdilution en bouillon ; une CMI de 2 mg/L appelle une interprétation clinique et microbiologique, pas une simple escalade de dose.",
     "en": {
       "q": "AUC₂₄ = 400 mg·h/L, MIC = 2 mg/L. What is the AUC₂₄/MIC index?",
-      "explain": "AUC₂₄/MIC = 400/2 = 200. For vancomycin, the target is ≥ 400."
+      "explain": "AUC₂₄/MIC = 400/2 = 200. This is below 400, but the vancomycin 400–600 target applies directly to serious MRSA infections when MIC is 1 mg/L by broth microdilution; an MIC of 2 mg/L requires clinical and microbiological interpretation, not automatic dose escalation."
     }
   },
   {
@@ -308,10 +308,10 @@ export const exercises = [
     "answer": 500,
     "tol": 0.02,
     "q": "Vancomycine 2000 mg/j, clairance CL = 4 L/h. Quelle est l'AUC₂₄ (= dose/j ÷ CL) ?",
-    "explain": "AUC₂₄ = 2000 / 4 = 500 mg·h/L. Avec CMI = 1, AUC/CMI = 500 ≥ 400 : cible atteinte.",
+    "explain": "AUC₂₄ = 2000 / 4 = 500 mg·h/L. Dans le cadre d'une infection grave à MRSA avec CMI = 1 mg/L par microdilution en bouillon, cela correspond à AUC₂₄/CMI = 500, dans la cible recommandée de 400–600.",
     "en": {
       "q": "Vancomycin 2000 mg/day, clearance CL = 4 L/h. What is the AUC₂₄ (= daily dose ÷ CL)?",
-      "explain": "AUC₂₄ = 2000 / 4 = 500 mg·h/L. With MIC = 1, AUC/MIC = 500 ≥ 400: target met."
+      "explain": "AUC₂₄ = 2000 / 4 = 500 mg·h/L. For a serious MRSA infection with MIC = 1 mg/L by broth microdilution, this gives AUC₂₄/MIC = 500, within the recommended 400–600 target."
     }
   },
   {
@@ -322,10 +322,10 @@ export const exercises = [
     "answer": 10,
     "tol": 0.02,
     "q": "Un paramètre est estimé à 5 L/h avec SE = 0,5. Quel est son RSE en % (SE/estimation ×100) ?",
-    "explain": "RSE = 0,5/5 × 100 = 10 %. Un RSE faible = paramètre bien identifié.",
+    "explain": "RSE = 0,5/5 × 100 = 10 %. Cela indique une bonne précision relative selon l'approximation d'erreur standard utilisée ; cela ne démontre pas à lui seul l'identifiabilité du paramètre.",
     "en": {
       "q": "A parameter is estimated at 5 L/h with SE = 0.5. What is its RSE in % (SE/estimate ×100)?",
-      "explain": "RSE = 0.5/5 × 100 = 10%. A low RSE = a well-identified parameter."
+      "explain": "RSE = 0.5/5 × 100 = 10%. This indicates good relative precision under the standard-error approximation used; it does not by itself establish parameter identifiability."
     }
   },
   {
@@ -336,10 +336,10 @@ export const exercises = [
     "answer": 30,
     "tol": 0.05,
     "q": "eta-shrinkage : SD(η̂) = 0,21 et ω = 0,30. Quel est le shrinkage en % (1 − SD/ω) ?",
-    "explain": "1 − 0,21/0,30 = 1 − 0,70 = 0,30 = 30 %. Au-delà de ~20–30 %, les diagnostics par EBE trompent.",
+    "explain": "1 − 0,21/0,30 = 1 − 0,70 = 0,30 = 30 %. Le repère 20–30 % est heuristique : à mesure que le shrinkage augmente, les diagnostics fondés sur les EBE deviennent moins informatifs, sans seuil universel d'invalidité.",
     "en": {
       "q": "eta-shrinkage: SD(η̂) = 0.21 and ω = 0.30. What is the shrinkage in % (1 − SD/ω)?",
-      "explain": "1 − 0.21/0.30 = 1 − 0.70 = 0.30 = 30%. Beyond ~20–30%, EBE-based diagnostics mislead."
+      "explain": "1 − 0.21/0.30 = 1 − 0.70 = 0.30 = 30%. The 20–30% reference is heuristic: as shrinkage increases, EBE-based diagnostics become less informative, without a universal invalidity threshold."
     }
   },
   {

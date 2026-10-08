@@ -61,6 +61,24 @@
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
   $: chapterActivities = chapter ? activitiesForChapter(chapter.slug) : [];
+  /** @type {Record<string, string>} */
+  const conceptLabs = {
+    'clairance-volume-demi-vie': 'distribution',
+    'micro-macro': 'distribution',
+    'doses-repetees': 'accumulation',
+    'absorption-orale': 'absorption',
+    'perfusion': 'infusion',
+    'parent-metabolite': 'parent-metabolite',
+    'voies-absorption': 'long-acting',
+    'pkpd': 'pd-general',
+    'pd-effect-compartment': 'effect-site',
+    'infectio-pkpd': 'pd-infectiology',
+    'onco-tgi': 'pd-oncology',
+    'mab-tmdd': 'tmdd',
+    'allometrie': 'covariate-volume',
+    'covariates-physiology': 'covariate-clearance'
+  };
+  $: conceptLab = conceptLabs[slug ?? ''] ?? null;
   // Rappels : prérequis (liens vers d'autres chapitres) + termes du glossaire.
   $: prereqs = (chapter?.prerequisites ?? [])
     .map((/** @type {string} */ s) => chapters.find((c) => c.slug === s))
@@ -273,8 +291,13 @@
       </aside>
     {/if}
   </header>
-  {#if ['clairance-volume-demi-vie', 'micro-macro', 'doses-repetees'].includes(slug ?? '')}
-    <p><a class="btn btn-outline" href={`${base}/laboratoires/?lab=${slug === 'doses-repetees' ? 'accumulation' : 'distribution'}`}>{$language === 'en' ? 'Explore this concept in the animated laboratory' : 'Explorer ce concept dans le laboratoire anime'}</a></p>
+  {#if conceptLab}
+    <aside class="concept-journey" data-testid="concept-journey">
+      <div><span>01</span><strong>{$language === 'en' ? 'Predict' : 'Prédire'}</strong><small>{$language === 'en' ? 'State what should change.' : 'Anticiper ce qui doit changer.'}</small></div>
+      <div><span>02</span><strong>{$language === 'en' ? 'Manipulate' : 'Manipuler'}</strong><small>{$language === 'en' ? 'Test one mechanism in the laboratory.' : 'Tester un mécanisme dans le laboratoire.'}</small></div>
+      <div><span>03</span><strong>{$language === 'en' ? 'Explain' : 'Expliquer'}</strong><small>{$language === 'en' ? 'Return to the model and assumptions.' : 'Revenir au modèle et à ses hypothèses.'}</small></div>
+      <a class="btn btn-outline" href={`${base}/laboratoires/?lang=${$language}&lab=${conceptLab}`}>{$language === 'en' ? 'Open the related laboratory' : 'Ouvrir le laboratoire associé'}</a>
+    </aside>
   {/if}
 
   <div class="scrolly">
@@ -311,7 +334,7 @@
       {/if}
 
       {#if chapterExercises.length || chapterActivities.length}
-        <section class="step ex-step" data-testid="chapter-exercises">
+        <section id="chapter-exercises" class="step ex-step" data-testid="chapter-exercises">
           <p class="step-kicker">{copy.chapter.exercisesTitle}</p>
           <ExerciseBlock items={chapterExercises} activities={chapterActivities} />
         </section>
@@ -384,12 +407,18 @@
   .back { font-family: var(--font-mono); font-size: var(--text-sm); text-decoration: none; color: var(--text-secondary); }
   .chap-head h1 { font-size: var(--text-3xl); margin: var(--space-2) 0; }
   .chap-head .desc { color: var(--text-secondary); font-size: var(--text-lg); }
+  .concept-journey { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:12px; align-items:center; margin:0 0 var(--space-7); padding:14px; border-top:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong); }
+  .concept-journey div { display:grid; grid-template-columns:auto 1fr; gap:0 8px; }
+  .concept-journey span { grid-row:1 / 3; color:var(--accent-pk); font:700 var(--text-xs)/1.4 var(--font-mono); }
+  .concept-journey strong { font-size:var(--text-sm); }
+  .concept-journey small { color:var(--text-secondary); line-height:1.4; }
   .fallback-notice { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--text-xs); margin: var(--space-4) 0 0; }
 
   .scrolly { display: grid; grid-template-columns: 1fr; gap: var(--space-8); }
   @media (min-width: 920px) {
     .scrolly { grid-template-columns: minmax(0, 1fr) minmax(420px, 1.1fr); gap: var(--space-12); align-items: start; }
   }
+  @media (max-width: 760px) { .concept-journey { grid-template-columns:1fr; }.concept-journey .btn { width:100%; text-align:center; } }
 
   .narrative { display: flex; flex-direction: column; min-width: 0; }
   .step { padding: var(--space-6) 0; transition: opacity 0.3s ease; }

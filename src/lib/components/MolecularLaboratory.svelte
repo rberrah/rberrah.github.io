@@ -177,7 +177,7 @@
       {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
   </div>
-  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${config.related}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associe'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pedagogique et ne constitue ni un modele medicamenteux valide ni une recommandation de dose."}</p></div></section>
+  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${config.related}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associe'}</a><a href={`${base}/chapitres/${config.related}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pedagogique et ne constitue ni un modele medicamenteux valide ni une recommandation de dose."}</p></div></section>
 </section>
 {/if}
 

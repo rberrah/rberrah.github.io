@@ -1,4 +1,5 @@
 import { readable } from 'svelte/store';
+import { glossaryDetails, glossaryEnglish } from '$lib/content/glossaryMeta';
 
 // Dictionnaire de pharmacométrie (français). Chaque entrée : terme, nom complet
 // éventuel (full), catégorie (cat) et une définition explicative (def).
@@ -17,7 +18,7 @@ const items = [
   { term: 'Ka', full: 'Constante d’absorption', cat: 'Paramètres PK', def: "Constante de vitesse d'absorption d'ordre 1 (1/h) : plus Ka est grand, plus le pic (Cmax) arrive tôt et haut." },
   { term: 'ke', full: 'Constante d’élimination', cat: 'Paramètres PK', def: "Constante de vitesse d'élimination d'ordre 1 (1/h), égale à CL/V. Fixe la pente de décroissance sur une courbe semi-logarithmique." },
   { term: 'C0', full: 'Concentration initiale', cat: 'Paramètres PK', def: "Concentration juste après un bolus IV, égale à Dose/V. Point de départ de la courbe concentration-temps." },
-  { term: 'Cmax / Tmax', cat: 'Paramètres PK', def: "Concentration maximale observée et l'instant où elle survient. Ce sont des résumés de la courbe, pas des paramètres du modèle : un Cmax bas peut venir d'un long Tlag, pas forcément d'une faible biodisponibilité." },
+  { term: 'Cmax / Tmax', cat: 'Paramètres PK', def: "Concentration maximale observée et instant où elle survient. Ce sont des résumés de la courbe, pas des paramètres du modèle. Dans un modèle où Tlag ne fait que décaler l'absorption, il retarde Tmax sans modifier à lui seul la hauteur de Cmax ; Cmax dépend notamment de la vitesse et de l'étendue de l'absorption, de CL, de V, de la formulation et du modèle retenu." },
   { term: 't½', full: 'Demi-vie', cat: 'Paramètres PK', def: "Temps nécessaire pour que la concentration diminue de moitié : t½ = ln(2)·V/CL. Se déduit de V et CL — une demi-vie longue peut venir d'un grand V ou d'une faible CL." },
   { term: 'AUC', full: 'Aire sous la courbe', cat: 'Paramètres PK', def: "Aire sous la courbe concentration-temps, mesure de l'exposition totale. Calculée par la règle des trapèzes en NCA ; AUC = Dose/CL pour une cinétique linéaire." },
   { term: 'F', full: 'Biodisponibilité', cat: 'Paramètres PK', def: "Fraction de la dose administrée qui atteint la circulation systémique sous forme inchangée (0–1). Vaut 1 pour une voie IV." },
@@ -62,17 +63,17 @@ const items = [
   { term: 'SAEM', full: 'Stochastic Approximation Expectation-Maximization', cat: 'Estimation', def: "Algorithme stochastique (Monolix, nlmixr2) : cycle Exploration → Approximation → Maximisation. Robuste pour les modèles complexes, explore l'espace pour éviter les minima locaux." },
   { term: 'MCMC', full: 'Markov Chain Monte Carlo', cat: 'Estimation', def: "Échantillonnage utilisé en estimation bayésienne complète (Stan, WinBUGS) pour approcher la distribution a posteriori des paramètres." },
   { term: 'AIC / BIC', full: 'Critères d’information', cat: 'Estimation', def: "AIC = −2logL + 2p ; BIC pénalise davantage le nombre de paramètres p. Plus bas = meilleur compromis ajustement/parcimonie — utile mais insuffisant seul." },
-  { term: 'DoF', full: 'Degrés de liberté', cat: 'Estimation', def: "Nombre d'informations indépendantes disponibles pour estimer les paramètres (DoF = N points − P paramètres). Sans DoF suffisants, les paramètres ne sont pas identifiables." },
+  { term: 'DoF', full: 'Degrés de liberté', cat: 'Estimation', def: "Dans un modèle linéaire simple, N − P résume les degrés de liberté résiduels. Cette formule ne mesure pas à elle seule l'information effective ni l'identifiabilité d'un modèle non linéaire à effets mixtes, qui dépendent aussi du plan, de la structure et de la variabilité." },
   { term: 'Identifiabilité', cat: 'Estimation', def: "Possibilité d'estimer de façon unique les paramètres à partir des données. Une FIM mal conditionnée signale une sur-paramétrisation." },
   { term: 'FIM', full: 'Matrice d’information de Fisher', cat: 'Estimation', def: "Mesure l'information apportée par les données sur les paramètres ; son inverse donne les erreurs standard (RSE). Un conditionnement élevé indique des paramètres corrélés." },
-  { term: 'RSE', full: 'Erreur standard relative', cat: 'Estimation', def: "Incertitude d'un paramètre en % de sa valeur. On vise typiquement RSE < 30 % (effets fixes) à 50 % (variances)." },
+  { term: 'RSE', full: 'Erreur standard relative', cat: 'Estimation', def: "Erreur standard rapportée à la valeur estimée, exprimée en pourcentage. Un RSE élevé indique une faible précision dans le cadre de l'approximation utilisée ; il ne démontre pas, à lui seul, une non-identifiabilité. Les seuils usuels sont des heuristiques, pas des règles de validation." },
   { term: 'Bootstrap', cat: 'Estimation', def: "Rééchantillonnage de l'étude (avec remise) pour créer de nombreuses études virtuelles et estimer l'intervalle de confiance des paramètres. Un IC étroit = modèle robuste." },
 
   // ── Diagnostics & validation ────────────────────────────────────────────────
   { term: 'GOF', full: 'Goodness-of-fit', cat: 'Diagnostics', def: "Graphes d'adéquation : observé vs prédit, résidus vs temps/prédiction, etc. Un premier contrôle visuel de la qualité du modèle." },
-  { term: 'PRED / IPRED', cat: 'Diagnostics', def: "Prédiction de population (patient typique, dispersion normale car l'IIV existe) vs prédiction individuelle après adaptation bayésienne (doit tomber sur la diagonale)." },
-  { term: 'Résidus (WRES/CWRES/IWRES/NPDE)', cat: 'Diagnostics', def: "Écarts pondérés entre observation et prédiction. On attend un « bruit blanc » centré sur 0 (entre −2 et +2) ; une forme en banane ou en éventail trahit un défaut de modèle." },
-  { term: 'VPC', full: 'Visual Predictive Check', cat: 'Diagnostics', def: "Simulation de nombreuses études virtuelles à partir du modèle ajusté ; on vérifie que les percentiles observés tombent dans les intervalles simulés. Le juge visuel du modèle." },
+  { term: 'PRED / IPRED', cat: 'Diagnostics', def: "PRED est la prédiction de population ; IPRED incorpore l'estimation individuelle des effets aléatoires. Leur comparaison aux observations renseigne sur des aspects différents de l'ajustement. Une proximité de la diagonale est souhaitable, mais ne suffit pas à valider le modèle et peut être favorisée par un ajustement individuel très flexible." },
+  { term: 'Résidus (WRES/CWRES/IWRES/NPDE)', cat: 'Diagnostics', def: "Écarts standardisés entre observation et prédiction. Sous les hypothèses du modèle, on recherche une distribution approximativement centrée et sans tendance ; beaucoup de valeurs se situent souvent entre −2 et +2, sans que cet intervalle soit une règle d'acceptation individuelle." },
+  { term: 'VPC', full: 'Visual Predictive Check', cat: 'Diagnostics', def: "Comparaison des statistiques observées à leur distribution dans des études simulées selon le modèle et le même plan. Une VPC évalue une cohérence prédictive conditionnelle ; elle ne constitue ni un verdict unique ni une preuve que la structure est vraie." },
   { term: 'Binning', cat: 'Diagnostics', def: "Regroupement des temps en intervalles pour calculer des percentiles stables sur une VPC. Trop large lisse les problèmes ; trop fin ajoute du bruit." },
 
   // ── Bayésien & TDM ──────────────────────────────────────────────────────────
@@ -81,7 +82,7 @@ const items = [
   { term: 'A posteriori / posterior', cat: 'Bayésien & TDM', def: "Distribution mise à jour d'un paramètre après avoir observé les données du patient ; fournit l'estimation individuelle avec son incertitude." },
   { term: 'MAP', full: 'Maximum A Posteriori', cat: 'Bayésien & TDM', def: "Valeur la plus probable de la distribution a posteriori ; méthode d'estimation individuelle utilisée en TDM." },
   { term: 'EBE', full: 'Empirical Bayes Estimate', cat: 'Bayésien & TDM', def: "Estimation bayésienne empirique du paramètre individuel (η̂), obtenue en combinant a priori de population et données du patient." },
-  { term: 'Shrinkage', cat: 'Bayésien & TDM', def: "Rétrécissement : quand les données individuelles sont pauvres, les EBE sont tirés vers la moyenne de population. Au-delà de ~30 %, les diagnostics basés sur les EBE deviennent trompeurs." },
+  { term: 'Shrinkage', cat: 'Bayésien & TDM', def: "Rétrécissement : quand les données individuelles sont peu informatives, les EBE sont tirés vers la moyenne de population. Des valeurs autour de 20–30 % sont parfois utilisées comme repères heuristiques ; plus le shrinkage augmente, moins les diagnostics fondés sur les ETA individuels sont informatifs, sans seuil universel d'invalidité." },
   { term: 'TDM', full: 'Suivi thérapeutique pharmacologique', cat: 'Bayésien & TDM', def: "Mesurer → Estimer (Bayes) → Ajuster : on interprète une concentration mesurée dans son contexte (dose, horaire) pour individualiser la posologie. Aide à la décision, pas substitut au clinicien." },
   { term: 'Precision dosing', cat: 'Bayésien & TDM', def: "Individualisation de la dose à partir d'un modèle a priori et de quelques prélèvements (ex. package mapbayR), pour maximiser l'efficacité et limiter la toxicité." },
   { term: 'MAP-BE', full: 'Maximum A Posteriori Bayesian Estimation', cat: 'Bayésien & TDM', def: "Estimation individuelle qui combine les concentrations du patient, l'erreur résiduelle Σ et la distribution a priori des effets aléatoires Ω. Modifier Ω ou Σ modifie donc l'ajustement." },
@@ -116,7 +117,11 @@ const items = [
   { term: 'Flip-flop', cat: 'Concepts', def: "Situation où l'absorption est plus lente que l'élimination (Ka < ke) : la pente terminale reflète alors l'absorption, faussant l'estimation de la demi-vie d'élimination." }
 ];
 
-export const glossary = readable(items);
+export const glossary = readable(items.map((item) => ({
+  ...item,
+  en: { full: glossaryEnglish[item.term]?.[0] ?? item.full ?? '', def: glossaryEnglish[item.term]?.[1] ?? item.def },
+  details: glossaryDetails[item.term] ?? null
+})));
 export const glossaryCategories = readable([
   'Fondamentaux', 'Paramètres PK', 'Modèles', 'Approches', 'Variabilité',
   'Covariables', 'Estimation', 'Diagnostics', 'Bayésien & TDM', 'PK/PD', 'Infectiologie', 'IA', 'Outils', 'Concepts'

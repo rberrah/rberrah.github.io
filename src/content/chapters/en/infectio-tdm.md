@@ -13,7 +13,7 @@ slides: []
 quiz:
   - prompt: "For vancomycin in serious MRSA infections, the currently preferred target is..."
     options:
-      - "AUC₂₄/MIC 400–600 (Bayesian-estimated)"
+      - "AUC₂₄/MIC 400–600 when MIC is 1 mg/L by broth microdilution"
       - "a steady-state trough of 15–20 mg/L"
       - "a Cmax/MIC ≥ 8 peak on the first sample"
     correct: 0
@@ -38,7 +38,7 @@ The infectious specificity: the target is a **PK/PD index** (AUC/MIC, Cmax/MIC),
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="MultiDose" -->
-Vancomycin example: for serious MRSA infections, recent guidelines generally target **AUC₂₄/MIC 400–600**, estimated by a **Bayesian** approach from 1–2 samples (rather than the trough alone).
+Vancomycin example: for serious MRSA infections, the 2020 consensus recommends an **AUC₂₄ of 400–600 mg·h/L when MIC is assumed to be 1 mg/L by broth microdilution**. AUC can be estimated with a **Bayesian** approach from 1–2 samples rather than from the trough alone. This range should not be transferred automatically to another MIC method, organism or clinical setting.
 
 $$ \text{AUC}_{24} = \frac{\text{Dose}_{24}}{CL} $$
 
@@ -59,7 +59,7 @@ Do not set a dose on a concentration without its context.
 
 <!-- step:title="Key takeaways" -->
 - TDM concerns narrow-index or highly variable antibiotics (ICU).
-- The target is a PK/PD index (serious MRSA vancomycin: AUC₂₄/MIC 400–600) estimated by Bayes.
+- For vancomycin in serious MRSA infection, the AUC₂₄ range of 400–600 mg·h/L is conditional on an MIC of 1 mg/L by broth microdilution.
 - Augmented renal clearance under-doses hydrophilic antibiotics.
 - Sampling time, renal function and MIC drive the adjustment.
 <!-- /step -->
