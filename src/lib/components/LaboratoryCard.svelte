@@ -35,6 +35,8 @@
       <span class="node source">{en ? 'Antibiotic' : 'Antibiotique'}</span><i class="track signal input"></i><span class="gate">{en ? 'MIC' : 'CMI'}</span><span class="node target">{en ? 'Bacteria' : 'Bacteries'}</span>
     {:else if id === 'covariate-volume'}
       <span class="weight-icon">70 kg</span><i class="track signal input"></i><span class="volume-tank"><i></i></span><span class="collector">V(WT)</span>
+    {:else if id === 'covariate-clearance'}
+      <span class="gfr-icon">90<small>{en ? 'GFR' : 'DFG'}</small></span><i class="track signal input"></i><span class="kidney-icon"></span><i class="track exit"></i><span class="collector">CL({en ? 'GFR' : 'DFG'})</span>
     {:else}
       <span class="node source">Plasma</span><i class="track signal input"></i><span class="node target">{en ? 'Effect site' : "Site d'effet"}</span><i class="track exit"></i><span class="collector">OUT</span>
     {/if}
@@ -69,5 +71,6 @@
   .signal { background:repeating-linear-gradient(90deg,#d26b3a 0 6px,transparent 6px 11px); }.effect-site .target { border-style:dashed; border-color:#d26b3a; }.effect-site .p2 { background:#fff; border-color:#d26b3a; box-shadow:0 0 0 1px #d26b3a; }
   .pd-general .target, .pd-oncology .target, .pd-infectiology .target { border-style:dashed; border-color:#d26b3a; }.pd-general .collector { color:#b2572e; }.pd-oncology .target { border-style:solid; }.pd-oncology .tumor-reference { position:absolute; right:7%; bottom:25px; width:90px; border-top:3px dashed #65767b; }.pd-oncology .collector { right:7%; color:#65767b; }.pd-infectiology .gate { z-index:1; }.pd-infectiology .p3 { right:11%; top:55px; background:#b2572e; }
   .weight-icon { position:absolute; left:7%; top:34px; display:grid; place-items:center; width:72px; height:44px; border-bottom:5px solid #c97532; color:#7c3f29; font:700 10px var(--font-mono); }.volume-tank { position:absolute; right:12%; top:20px; width:82px; height:78px; border:2px solid #147ea5; }.volume-tank i { position:absolute; inset:auto 5px 5px; height:38%; background:#8ccbd5; }.covariate-volume .collector { right:15%; color:#147ea5; }
+  .gfr-icon { position:absolute; left:8%; top:29px; display:grid; place-items:center; width:58px; height:58px; border:3px solid #c97532; border-radius:50%; color:#7c3f29; font:700 14px var(--font-mono); }.gfr-icon small { font-size:7px; }.kidney-icon { position:absolute; right:15%; top:25px; width:58px; height:70px; border:3px solid #b2572e; border-radius:55% 45% 55% 45%; background:#d9857355; transform:rotate(12deg); }.covariate-clearance .collector { right:11%; color:#7c3f29; }.covariate-clearance .exit { right:24%; }
   @media(max-width:720px) { .laboratory-card, .laboratory-card.compact { grid-template-rows:120px auto auto 1fr auto; padding:14px; } .journey, .laboratory-card:not(.compact) .journey { min-height:120px; } }
 </style>

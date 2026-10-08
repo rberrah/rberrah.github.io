@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 const origin = process.env.LABS_E2E_URL || '';
 const url = path => origin + path;
-const labs = ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume'];
+const labs = ['covariate-volume', 'covariate-clearance', 'parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'effect-site', 'pd-general', 'pd-infectiology', 'pd-oncology', 'tmdd'];
 
 test.setTimeout(90000);
 test.beforeEach(async ({ page }) => {
@@ -32,16 +32,83 @@ async function coloredPixels(canvas) {
   });
 }
 
-test('all ten animated journeys render a nonblank model', async ({ page }) => {
+async function dragDirectControl(page, xFraction, yFraction) {
+  const canvas = page.getByTestId('molecular-scene'), box = await canvas.boundingBox();
+  const logicalWidth = Number(await canvas.getAttribute('data-scene-width')), logicalHeight = Number(await canvas.getAttribute('data-scene-height'));
+  const startX = Number(await canvas.getAttribute('data-control-x')) * box.width / logicalWidth, startY = Number(await canvas.getAttribute('data-control-y')) * box.height / logicalHeight, axis = await canvas.getAttribute('data-control-axis');
+  expect(box).not.toBeNull(); expect(startX).toBeGreaterThan(0); expect(startY).toBeGreaterThan(0);
+  await page.mouse.move(box.x + startX, box.y + startY);
+  await page.mouse.down();
+  await page.mouse.move(box.x + (axis === 'vertical' ? startX : box.width * xFraction), box.y + (axis === 'horizontal' ? startY : box.height * yFraction), { steps: 8 });
+  await page.mouse.up();
+}
+
+test('all eleven animated journeys render a nonblank model', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   for (const lab of labs) {
     await open(page, lab);
     await expect(page.getByRole('heading', { level: 1 })).not.toBeEmpty();
     expect((await coloredPixels(page.getByTestId('molecular-scene'))).colored).toBeGreaterThan(1000);
     expect((await coloredPixels(page.getByTestId('molecular-plot'))).colored).toBeGreaterThan(500);
+    await expect(page.getByTestId('molecular-scene')).toHaveAttribute('data-direct-key', /.+/);
     await expect(page.getByLabel('Animate particles')).toBeChecked();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     if (lab === 'tmdd') await page.screenshot({ path: 'test-results/molecular-laboratory-desktop.png', fullPage: true });
+  }
+});
+
+test('objects in the scene directly update synchronized model parameters', async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 850 });
+
+  await open(page, 'pd-infectiology');
+  await expect(page.getByTestId('molecular-scene')).toHaveAttribute('data-direct-key', 'mic');
+  await page.getByTestId('molecular-time').fill('4');
+  const trajectoryBefore = await coloredPixels(page.getByTestId('molecular-plot'));
+  await dragDirectControl(page, .24, .24);
+  expect(Number(await page.locator('#molecular-mic').inputValue())).toBeGreaterThan(2);
+  await expect(page.getByTestId('molecular-time')).toHaveValue('4.0');
+  expect((await coloredPixels(page.getByTestId('molecular-plot'))).sum).not.toBe(trajectoryBefore.sum);
+
+  await open(page, 'covariate-volume');
+  await dragDirectControl(page, .26, .4);
+  expect(Number(await page.locator('#molecular-weight').inputValue())).toBeGreaterThan(100);
+
+  await open(page, 'covariate-clearance');
+  await dragDirectControl(page, .88, .4);
+  expect(Number(await page.locator('#molecular-gfr').inputValue())).toBeGreaterThan(100);
+
+  await open(page, 'pd-oncology');
+  await dragDirectControl(page, .7, .68);
+  expect(Number(await page.locator('#molecular-resistance').inputValue())).toBeGreaterThan(.06);
+
+  await open(page, 'pd-general');
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  await expect.poll(async () => Number(await page.getByTestId('molecular-time').inputValue())).toBeGreaterThan(.1);
+  await page.locator('#molecular-dose').fill('700');
+  expect(Number(await page.locator('#molecular-dose').inputValue())).toBeGreaterThan(500);
+  await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+});
+
+test('desktop keeps the trajectory beside the interactive scene', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 950 });
+  await open(page, 'tmdd');
+  const scene = await page.getByTestId('molecular-scene').boundingBox(), plot = await page.getByTestId('molecular-plot').boundingBox();
+  expect(scene).not.toBeNull(); expect(plot).not.toBeNull();
+  expect(plot.x).toBeGreaterThan(scene.x + scene.width * .8);
+  expect(Math.abs(plot.y - scene.y)).toBeLessThan(12);
+  const options = page.getByLabel('Interactive laboratory').locator('option');
+  await expect(options).toHaveCount(15);
+  expect(await options.evaluateAll(nodes => nodes.map(node => `${node.value}:${node.textContent.trim().slice(0, 2)}`))).toEqual([
+    'distribution:01', 'accumulation:02', 'absorption:03', 'infusion:04', 'covariate-volume:05', 'covariate-clearance:06', 'parent-metabolite:07', 'long-acting:08', 'saturable:09', 'enterohepatic:10', 'effect-site:11', 'pd-general:12', 'pd-infectiology:13', 'pd-oncology:14', 'tmdd:15'
+  ]);
+});
+
+test('covariate journeys use one concentration curve', async ({ page }) => {
+  for (const lab of ['covariate-volume', 'covariate-clearance']) {
+    await open(page, lab);
+    await expect(page.getByTestId('molecular-plot')).toHaveAttribute('data-plot-mode', 'primary');
+    await expect(page.locator('.metrics > div')).toHaveCount(2);
   }
 });
 
@@ -63,6 +130,9 @@ test('PD journeys expose their mechanism-specific comparison and metric', async 
   await open(page, 'pd-infectiology');
   await page.getByTestId('molecular-time').fill('12');
   await expect(page.locator('.metrics')).toContainText('Time above MIC');
+  const burden = Number(await page.locator('.metrics strong').nth(1).innerText());
+  await page.locator('#molecular-growth').fill('0.4');
+  await expect.poll(async () => Number(await page.locator('.metrics strong').nth(1).innerText())).toBeGreaterThan(burden);
   await expect(page.locator('.equations')).toHaveCount(0);
 
   await open(page, 'pd-general');
@@ -73,12 +143,17 @@ test('PD journeys expose their mechanism-specific comparison and metric', async 
 test('specialized mechanism scenes remain visually distinct', async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 800 });
   const scenes = {
+    'parent-metabolite': 4,
+    'long-acting': 21,
     saturable: 2,
+    enterohepatic: 16,
     tmdd: 12,
+    'effect-site': 4,
     'pd-general': 4,
     'pd-oncology': 42,
     'pd-infectiology': 4,
-    'covariate-volume': 3
+    'covariate-volume': 3,
+    'covariate-clearance': 4
   };
 
   for (const [lab, time] of Object.entries(scenes)) {
@@ -111,12 +186,12 @@ test('play, parameters, reference, model view and scenario sharing work', async 
 
 test('French mobile layouts remain readable for dense mechanisms', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 900 });
-  for (const lab of ['enterohepatic', 'saturable', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume']) {
+  for (const lab of ['enterohepatic', 'saturable', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume', 'covariate-clearance']) {
     await open(page, lab, 'fr');
     await page.getByTestId('molecular-time').fill(lab === 'tmdd' ? '24' : '4');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect((await coloredPixels(page.getByTestId('molecular-scene'))).colored).toBeGreaterThan(500);
-    if (['saturable', 'tmdd', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume'].includes(lab)) await page.getByTestId('molecular-scene').screenshot({ path: `test-results/scene-${lab}-mobile.png` });
+    if (['saturable', 'tmdd', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume', 'covariate-clearance'].includes(lab)) await page.getByTestId('molecular-scene').screenshot({ path: `test-results/scene-${lab}-mobile.png` });
   }
   await page.screenshot({ path: 'test-results/molecular-laboratory-mobile.png', fullPage: true });
 });

@@ -9,6 +9,12 @@
   import MolecularPlot from './MolecularPlot.svelte';
   import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '$lib/labs/molecular.js';
   export let lab;
+  const fundamentalLabs = [
+    { id: 'distribution', number: '01', en: 'Two-compartment distribution', fr: 'Distribution a deux compartiments' },
+    { id: 'accumulation', number: '02', en: 'Repeated doses and accumulation', fr: 'Doses repetees et accumulation' },
+    { id: 'absorption', number: '03', en: 'Oral absorption and bioavailability', fr: 'Absorption orale et biodisponibilite' },
+    { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et decroissance' }
+  ];
   let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '';
   let message = '', shared = '', loadError = '', animateParticles = true, raf = 0, last = 0, visible = true, animationArea;
   $: en = $language === 'en';
@@ -31,8 +37,13 @@
     compare = molecularLabs[next]?.referenceMode !== 'intrinsic'; prediction = ''; message = ''; shared = ''; loadError = '';
   }
   function change(key, event) {
-    pause(); const rule = config.parameters[key], value = rule.options ? Number(event.currentTarget.value) : event.currentTarget.valueAsNumber;
-    p = { ...p, [key]: value }; time = 0; prediction = ''; shared = '';
+    const rule = config.parameters[key], value = rule.options ? Number(event.currentTarget.value) : event.currentTarget.valueAsNumber;
+    p = { ...p, [key]: value }; if (key === 'end' && Number.isFinite(value)) time = Math.min(time, value); prediction = ''; shared = '';
+  }
+  function directChange(event) {
+    const { key, value } = event.detail;
+    if (!config.parameters[key] || !Number.isFinite(value)) return;
+    p = { ...p, [key]: value }; prediction = ''; shared = '';
   }
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
   function play() {
@@ -91,7 +102,7 @@
   <a class="back-home" href={`${base}/laboratoires/?lang=${en ? 'en' : 'fr'}`}><ArrowLeft size={16}/>{en ? 'All laboratories' : 'Tous les laboratoires'}</a>
   <header class="heading">
     <div><p class="eyebrow">{config.category ? (en ? config.category.en : config.category.fr) : (en ? 'Advanced molecular journey' : 'Parcours moleculaire avance')} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
-    <label class="lab-selector">{en ? 'Animated laboratory' : 'Laboratoire anime'}<select value={lab} on:change={switchLab}>{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
+    <label class="lab-selector">{en ? 'Interactive laboratory' : 'Laboratoire interactif'}<select value={lab} on:change={switchLab}>{#each fundamentalLabs as item}<option value={item.id}>{item.number} · {en ? item.en : item.fr}</option>{/each}{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
   </header>
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
@@ -111,8 +122,16 @@
       <div bind:this={animationArea}>
         {#if valid && state}
           {#if mode === 'model'}<div class="equations"><code>{config.equations}</code><p>{en ? 'Deterministic educational model with fixed parameters and no residual error.' : 'Modele pedagogique deterministe, a parametres fixes et sans erreur residuelle.'}</p></div>{/if}
-          <MolecularScene {lab} p={valid} {state} {time} {en} {playing} bind:animateParticles on:play={() => playing ? pause() : play()}/>
-          <p class="scene-note">{en ? 'Particles illustrate active pathways; amounts, concentrations, exposure and mass balance come from the continuous ODE model.' : 'Les particules illustrent les voies actives ; quantités, concentrations, exposition et bilan de masse proviennent du modèle ODE continu.'} {en ? config.caveat.en : config.caveat.fr}</p>
+          <div class="visual-grid">
+            <div class="scene-panel">
+              <MolecularScene {lab} p={valid} {state} {time} {en} {playing} bind:animateParticles on:play={() => playing ? pause() : play()} on:parameter={directChange}/>
+              <p class="scene-note">{en ? 'Particles illustrate active pathways; amounts, concentrations, exposure and mass balance come from the continuous ODE model.' : 'Les particules illustrent les voies actives ; quantités, concentrations, exposition et bilan de masse proviennent du modèle ODE continu.'} {en ? config.caveat.en : config.caveat.fr}</p>
+            </div>
+            <div class="curve-panel">
+              <div class="plot-legend">{#if config.referenceMode === 'intrinsic'}<span class="treated">{en ? 'With treatment: solid' : 'Avec traitement : continu'}</span><span class="untreated">{en ? 'Without treatment: dashed' : 'Sans traitement : pointilles'}</span>{:else}<span>{en ? 'Current model: solid' : 'Modele actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Reference : pointilles'}</span>{/if}{/if}</div>
+              <MolecularPlot a={referenceRows} b={current} {state} {time} {config} {en} {compare}/>
+            </div>
+          </div>
           <div class="timebar">
             <button class="icon-button" aria-label={playing ? 'Pause' : (en ? 'Play' : 'Lecture')} title={playing ? 'Pause' : (en ? 'Play' : 'Lecture')} on:click={() => playing ? pause() : play()}>{#if playing}<Pause size={19}/>{:else}<Play size={19}/>{/if}</button>
             <button class="icon-button" aria-label={en ? 'Step forward' : 'Avancer'} title={en ? 'Step forward' : 'Avancer'} on:click={() => { pause(); time = Math.min(end, time + (config.unit === 'day' ? 1 : 1)); }}><StepForward size={19}/></button>
@@ -124,9 +143,7 @@
         {/if}
       </div>
       {#if valid && state}
-        <div class="plot-legend">{#if config.referenceMode === 'intrinsic'}<span class="treated">{en ? 'With treatment: solid' : 'Avec traitement : continu'}</span><span class="untreated">{en ? 'Without treatment: dashed' : 'Sans traitement : pointilles'}</span>{:else}<span>{en ? 'Current model: solid' : 'Modele actuel : continu'}</span>{#if compare}<span class="reference">{en ? 'Reference: dashed' : 'Reference : pointilles'}</span>{/if}{/if}</div>
-        <MolecularPlot a={referenceRows} b={current} {state} {time} {config} {en} {compare}/>
-        <div class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div><div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div><div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
+        <div class:two={config.plotMode === 'primary'} class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div>{#if config.plotMode !== 'primary'}<div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div>{/if}<div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>
       {/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scenario'}</button><button class="command" disabled={!valid} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Reinitialiser l'experience"}</button></div>
@@ -160,14 +177,18 @@
   details { margin-top:14px; } summary { cursor:pointer; font-size:12px; } dl { margin:8px 0; } dl div { display:flex; justify-content:space-between; gap:8px; padding:4px 0; border-bottom:1px solid var(--border-subtle); font-size:11px; } dt { color:var(--text-secondary); } dd { margin:0; font-family:var(--font-mono); }
   .question { margin-top:20px; padding-top:17px; border-top:1px solid var(--border-subtle); }.question strong { font-size:13px; }.question p { color:var(--text-secondary); font-size:12px; line-height:1.5; }.question select { width:100%; }.feedback { padding-left:9px; border-left:3px solid var(--warning); }.feedback.correct { border-left-color:var(--success); }
   .display-modes { display:flex; border-bottom:1px solid var(--border-strong); }.display-modes button { padding:13px 17px; border:0; border-bottom:3px solid transparent; background:none; color:var(--text-secondary); }.display-modes button.active { border-bottom-color:var(--teal); color:var(--text-primary); font-weight:700; }
+  .visual-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; padding-top:14px; }
+  .scene-panel, .curve-panel { min-width:0; }
+  .curve-panel { padding-left:18px; border-left:1px solid var(--border-subtle); }
   .equations { margin:16px 0; padding:15px; border-left:3px solid var(--teal); background:var(--bg-secondary); }.equations code { white-space:pre-wrap; font-size:12px; }.equations p, .scene-note { color:var(--text-secondary); font-size:11px; line-height:1.5; }
   .timebar { display:flex; align-items:center; gap:9px; flex-wrap:wrap; padding:13px 0 8px; }.icon-button { display:grid; place-items:center; width:38px; height:38px; padding:0; border:1px solid var(--border-strong); border-radius:4px; background:var(--bg-tertiary); }.time-input, .speed { display:flex; align-items:center; gap:6px; color:var(--text-secondary); font-size:11px; }.time-input input { width:78px; padding:7px; }.speed select { padding:7px; }
-  .timeline { width:100%; accent-color:var(--teal); }.plot-legend { display:flex; flex-wrap:wrap; gap:20px; margin:22px 0 4px; font-size:11px; }.plot-legend span:before { content:''; display:inline-block; width:20px; height:3px; margin-right:6px; background:var(--teal); vertical-align:middle; }.plot-legend .reference:before { background:repeating-linear-gradient(90deg,#8c4c89 0 6px,transparent 6px 10px); }.plot-legend .treated:before { background:#b2572e; }.plot-legend .untreated:before { background:repeating-linear-gradient(90deg,#65767b 0 6px,transparent 6px 10px); }
+  .timeline { width:100%; accent-color:var(--teal); }.plot-legend { display:flex; flex-wrap:wrap; gap:8px 16px; min-height:38px; margin:0 0 4px; font-size:10px; }.plot-legend span:before { content:''; display:inline-block; width:20px; height:3px; margin-right:6px; background:var(--teal); vertical-align:middle; }.plot-legend .reference:before { background:repeating-linear-gradient(90deg,#8c4c89 0 6px,transparent 6px 10px); }.plot-legend .treated:before { background:#b2572e; }.plot-legend .untreated:before { background:repeating-linear-gradient(90deg,#65767b 0 6px,transparent 6px 10px); }
   .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:10px; border-top:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong); }.metrics div { padding:14px; border-right:1px solid var(--border-subtle); }.metrics div:last-child { border:0; }.metrics span { display:block; min-height:30px; color:var(--text-secondary); font-size:10px; }.metrics strong { font-size:21px; font-variant-numeric:tabular-nums; }
+  .metrics.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .data { margin-top:18px; }.table-scroll { overflow:auto; } table { width:100%; margin-top:10px; border-collapse:collapse; font-size:11px; } th, td { padding:7px; border-bottom:1px solid var(--border-subtle); text-align:right; } th:first-child { text-align:left; } td { font-family:var(--font-mono); }
   .exports { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }.shared-link { display:grid; gap:5px; margin-top:12px; font-size:11px; }.shared-link input { width:100%; box-sizing:border-box; padding:8px; }
   .error { color:var(--danger); font-size:12px; }
   .continuity { display:flex; gap:12px; margin-top:34px; padding:22px 0; border-top:1px solid var(--border-strong); }.continuity div { display:grid; gap:5px; }.continuity a { width:max-content; color:var(--accent-pk); }.continuity p { margin:3px 0 0; color:var(--text-secondary); font-size:11px; }
-  @media(max-width:840px) { .heading { align-items:start; flex-direction:column; }.lab-selector { width:100%; min-width:0; }.lab-grid { grid-template-columns:1fr; }.parameters { padding:20px 0; border-right:0; border-bottom:1px solid var(--border-subtle); }.experiment { padding:0; }.numbers { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  @media(max-width:840px) { .heading { align-items:start; flex-direction:column; }.lab-selector { width:100%; min-width:0; }.lab-grid { grid-template-columns:1fr; }.parameters { padding:20px 0; border-right:0; border-bottom:1px solid var(--border-subtle); }.experiment { padding:0; }.numbers { grid-template-columns:repeat(3,minmax(0,1fr)); }.visual-grid { grid-template-columns:1fr; }.curve-panel { padding:16px 0 0; border-top:1px solid var(--border-subtle); border-left:0; }.plot-legend { min-height:0; margin:10px 0 4px; } }
   @media(max-width:560px) { .heading h1 { font-size:27px; }.numbers { grid-template-columns:1fr 1fr; }.metrics { grid-template-columns:1fr; }.metrics div { border-right:0; border-bottom:1px solid var(--border-subtle); }.timebar { gap:6px; }.time-input input { width:64px; } }
 </style>

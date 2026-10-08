@@ -10,7 +10,7 @@
   export let en = false;
   export let compare = true;
   let canvas, width = 700;
-  const height = 300;
+  $: height = width < 520 ? 470 : 430;
 
   function draw() {
     if (!canvas || !b.length || !state) return;
@@ -39,6 +39,7 @@
       for (const [value, color] of [[state.untreated, '#65767b'], [state.secondary, '#b2572e']]) { ctx.beginPath(); ctx.arc(x(time), y(value), 4.5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke(); }
       return;
     }
+    const primaryOnly = config.plotMode === 'primary';
     const rows = [...b, ...(compare ? a : [])], primaryMax = Math.max(.001, ...rows.map(row => row.c), ...(config.thresholdKey ? rows.map(row => row[config.thresholdKey]) : [])), secondaryMax = Math.max(.001, ...rows.map(row => row.secondary));
     const y1 = scaleLinear().domain([0, primaryMax * 1.12]).nice().range([bottom, top]);
     const y2 = scaleLinear().domain([0, secondaryMax * 1.12]).nice().range([bottom, top]);
@@ -46,17 +47,17 @@
       ctx.strokeStyle = '#e3e8e9'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(left, y1(tick)); ctx.lineTo(right, y1(tick)); ctx.stroke();
       ctx.fillStyle = '#455b60'; ctx.textAlign = 'right'; ctx.fillText(String(Number(tick.toPrecision(3))), left - 7, y1(tick) + 4);
     }
-    for (const tick of y2.ticks(4)) { ctx.fillStyle = '#8a4d2d'; ctx.textAlign = 'left'; ctx.fillText(String(Number(tick.toPrecision(3))), right + 7, y2(tick) + 4); }
-    ctx.textAlign = 'left'; ctx.fillStyle = '#087b83'; ctx.fillText(en ? 'Primary concentration (mg/L)' : 'Concentration primaire (mg/L)', left, 16);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#b2572e'; ctx.fillText(`${en ? config.secondary.en : config.secondary.fr} (${config.secondaryUnit})`, right, compact ? 33 : 16);
+    if (!primaryOnly) for (const tick of y2.ticks(4)) { ctx.fillStyle = '#8a4d2d'; ctx.textAlign = 'left'; ctx.fillText(String(Number(tick.toPrecision(3))), right + 7, y2(tick) + 4); }
+    ctx.textAlign = 'left'; ctx.fillStyle = '#087b83'; ctx.fillText(primaryOnly ? (en ? 'Concentration (mg/L)' : 'Concentration (mg/L)') : (en ? 'Primary concentration (mg/L)' : 'Concentration primaire (mg/L)'), left, 16);
+    if (!primaryOnly) { ctx.textAlign = 'right'; ctx.fillStyle = '#b2572e'; ctx.fillText(`${en ? config.secondary.en : config.secondary.fr} (${config.secondaryUnit})`, right, compact ? 33 : 16); }
     if (config.thresholdKey) {
       const threshold = state[config.thresholdKey]; ctx.strokeStyle = '#a26c2a'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(left, y1(threshold)); ctx.lineTo(right, y1(threshold)); ctx.stroke(); ctx.setLineDash([]);
       ctx.fillStyle = '#7b5b32'; ctx.textAlign = 'left'; ctx.fillText(en ? 'MIC' : 'CMI', left + 5, y1(threshold) - 5);
     }
-    if (compare) { trace(a, 'c', y1, '#087b8380', true); trace(a, 'secondary', y2, '#b2572e80', true); }
-    trace(b, 'c', y1, '#087b83', false); trace(b, 'secondary', y2, '#b2572e', false);
+    if (compare) { trace(a, 'c', y1, '#087b8380', true); if (!primaryOnly) trace(a, 'secondary', y2, '#b2572e80', true); }
+    trace(b, 'c', y1, '#087b83', false); if (!primaryOnly) trace(b, 'secondary', y2, '#b2572e', false);
     ctx.strokeStyle = '#263f45'; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x(time), top); ctx.lineTo(x(time), bottom); ctx.stroke(); ctx.setLineDash([]);
-    for (const [value, scale, color] of [[state.c, y1, '#087b83'], [state.secondary, y2, '#b2572e']]) {
+    for (const [value, scale, color] of primaryOnly ? [[state.c, y1, '#087b83']] : [[state.c, y1, '#087b83'], [state.secondary, y2, '#b2572e']]) {
       ctx.beginPath(); ctx.arc(x(time), scale(value), 4.5, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
     }
   }
@@ -65,10 +66,10 @@
 </script>
 
 <div class="plot" bind:clientWidth={width}>
-  <canvas bind:this={canvas} data-testid="molecular-plot" aria-label={en ? 'Primary concentration and mechanism-specific response over time' : 'Concentration primaire et reponse specifique du mecanisme au cours du temps'}></canvas>
+  <canvas bind:this={canvas} style:height={`${height}px`} data-testid="molecular-plot" data-plot-mode={config.plotMode ?? 'dual'} aria-label={config.plotMode === 'primary' ? (en ? 'Concentration over time' : 'Concentration au cours du temps') : (en ? 'Primary concentration and mechanism-specific response over time' : 'Concentration primaire et reponse specifique du mecanisme au cours du temps')}></canvas>
 </div>
 
 <style>
   .plot { width:100%; min-width:0; }
-  canvas { display:block; width:100%; height:300px; }
+  canvas { display:block; width:100%; }
 </style>

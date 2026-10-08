@@ -214,6 +214,8 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L19 / P1** Infectiologie : exposition répétée, seuil de CMI, charge bactérienne prédite et temps individuel au-dessus de la CMI, distinct d’une PTA de population.
 - [x] **L20 / P1** Covariable poids-volume : reservoir liquidien redimensionne par `V = Vref (WT/WTref)^beta`, plage d’illustration explicite de 40 a 120 kg et comparaison de concentration a dose identique.
 - [x] **L21 / P1** Scenes specialisees : jauge d’engagement de cible et trois modeles PD, cellules sensibles/resistantes en oncologie, tube CMI et culture bacterienne, filtre saturable et liaison/internalisation TMDD. Toutes les scenes restent pilotees par les etats ODE.
+- [x] **L22 / P1** Manipulation directe : les onze laboratoires ODE permettent de cliquer ou deplacer un controle integre au mecanisme, avec synchronisation immediate du parametre, de la simulation et des courbes.
+- [x] **L23 / P1** Lecture conjointe : schema interactif et trajectoires sont affiches cote a cote sur grand ecran et recalcules pendant la lecture, sans remise a zero du temps.
 
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.

@@ -96,6 +96,8 @@ const infectionDefaults = molecularLabs['pd-infectiology'].defaults;
 const infection = molecularSeries('pd-infectiology', infectionDefaults);
 assert.ok(infection.some(row => row.c >= row.mic) && infection.some(row => row.c < row.mic));
 assert.ok(infection.at(-1).secondary < infection[0].secondary, 'Default antibiotic exposure must reduce bacterial burden');
+const fasterGrowth = molecularSeries('pd-infectiology', { ...infectionDefaults, growth: 0.4 });
+assert.ok(fasterGrowth.at(-1).secondary > infection.at(-1).secondary, 'Faster bacterial growth must increase burden at unchanged exposure and killing');
 const sparseInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 8, count: 3 });
 const frequentInfection = molecularSeries('pd-infectiology', { ...infectionDefaults, dose: 100, tau: 4, count: 6 });
 assert.ok(frequentInfection.at(-1).above / frequentInfection.at(-1).t > sparseInfection.at(-1).above / sparseInfection.at(-1).t, 'More frequent dosing over the horizon must increase time above MIC');
@@ -105,6 +107,14 @@ const referenceWeight = molecularSeries('covariate-volume', covariateDefaults);
 const heavier = molecularSeries('covariate-volume', { ...covariateDefaults, weight: 110 });
 assert.ok(heavier[0].volume > referenceWeight[0].volume);
 assert.ok(peak(heavier).c < peak(referenceWeight).c, 'A larger weight-scaled volume must lower peak concentration at the same dose');
+
+const clearanceDefaults = molecularLabs['covariate-clearance'].defaults;
+const referenceGfr = molecularSeries('covariate-clearance', clearanceDefaults);
+const lowerGfr = molecularSeries('covariate-clearance', { ...clearanceDefaults, gfr: 30 });
+const higherGfr = molecularSeries('covariate-clearance', { ...clearanceDefaults, gfr: 120 });
+assert.ok(higherGfr[0].clearance > lowerGfr[0].clearance);
+assert.ok(molecularStateAt(higherGfr, 6).c < molecularStateAt(lowerGfr, 6).c, 'Higher GFR-dependent clearance must lower concentration after the same IV dose');
+assert.ok(higherGfr.at(-1).auc < lowerGfr.at(-1).auc, 'Higher GFR-dependent clearance must lower exposure');
 
 for (const invalid of [
   'lab=unknown&mv=1',

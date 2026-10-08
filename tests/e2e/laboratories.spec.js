@@ -29,9 +29,12 @@ test('laboratory home exposes every molecular journey and course animations sepa
   await page.goto(url('/laboratoires/?lang=en'));
   const home = page.getByTestId('laboratory-home'); await expect(home).toBeVisible();
   await expect(page.getByTestId('laboratory')).toHaveCount(0);
-  for (const lab of ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume', 'distribution', 'accumulation', 'absorption', 'infusion']) {
+  for (const lab of ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume', 'covariate-clearance', 'distribution', 'accumulation', 'absorption', 'infusion']) {
     await expect(page.getByTestId(`laboratory-link-${lab}`)).toBeVisible();
   }
+  expect(await home.locator('[data-testid^="laboratory-link-"]').evaluateAll(nodes => nodes.map(node => node.dataset.testid.replace('laboratory-link-', '')))).toEqual([
+    'distribution', 'accumulation', 'absorption', 'infusion', 'covariate-volume', 'covariate-clearance', 'parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'effect-site', 'pd-general', 'pd-infectiology', 'pd-oncology', 'tmdd'
+  ]);
   await expect(home.getByRole('link', { name: /Population variability/ })).toHaveAttribute('href', /variabilite-iiv-iov/);
   await expect(home.getByRole('link', { name: /Bayesian updating/ })).toHaveAttribute('href', /math-bayes/);
   await page.getByTestId('laboratory-link-distribution').click();

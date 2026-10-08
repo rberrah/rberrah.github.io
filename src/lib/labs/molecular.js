@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-const ids = ['parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'tmdd', 'effect-site', 'pd-general', 'pd-oncology', 'pd-infectiology', 'covariate-volume'];
+const ids = ['covariate-volume', 'covariate-clearance', 'parent-metabolite', 'long-acting', 'saturable', 'enterohepatic', 'effect-site', 'pd-general', 'pd-infectiology', 'pd-oncology', 'tmdd'];
 export const molecularLabIds = ids;
 
 const l = (en, fr) => ({ en, fr });
@@ -9,7 +9,7 @@ const choice = (label, options) => ({ label, options, min: 1, max: options.lengt
 
 export const molecularLabs = {
   'parent-metabolite': {
-    number: '05', unit: 'h', route: l('IV bolus', 'Bolus IV'),
+    number: '07', unit: 'h', route: l('IV bolus', 'Bolus IV'),
     title: l('Parent and metabolite', 'Parent et métabolite'),
     summary: l('Follow parent drug as it is eliminated or transformed into a circulating metabolite.', 'Suivre le médicament parent éliminé ou transformé en métabolite circulant.'),
     defaults: { dose: 120, vp: 20, clp: 4, kmet: 0.18, vm: 35, clm: 2.5, end: 48 },
@@ -40,7 +40,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'parent', amount: p.dose }]
   },
   'long-acting': {
-    number: '06', unit: 'day', route: l('Long-acting depot', 'Dépôt longue action'),
+    number: '08', unit: 'day', route: l('Long-acting depot', 'Dépôt longue action'),
     title: l('Long-acting depot', 'Dépôt longue action'),
     summary: l('Watch slow release create delayed peaks, accumulation and flip-flop kinetics.', "Observer la libération lente, les pics retardés, l’accumulation et la cinétique flip-flop."),
     defaults: { dose: 300, v: 40, cl: 4, krel: 0.08, tau: 28, count: 3, end: 112 },
@@ -67,7 +67,7 @@ export const molecularLabs = {
     events: p => Array.from({ length: p.count }, (_, i) => ({ time: i * p.tau, state: 'depot', amount: p.dose })).filter(event => event.time <= p.end)
   },
   saturable: {
-    number: '07', unit: 'h', route: l('IV bolus', 'Bolus IV'), scene: 'saturable',
+    number: '09', unit: 'h', route: l('IV bolus', 'Bolus IV'), scene: 'saturable',
     title: l('Saturable elimination', 'Élimination saturable'),
     summary: l('See a finite elimination capacity become saturated as concentration rises.', "Voir une capacité d’élimination finie se saturer lorsque la concentration augmente."),
     defaults: { dose: 500, v: 35, vmax: 28, km: 4, end: 72 },
@@ -90,7 +90,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'central', amount: p.dose }]
   },
   enterohepatic: {
-    number: '08', unit: 'h', route: l('IV bolus', 'Bolus IV'),
+    number: '10', unit: 'h', route: l('IV bolus', 'Bolus IV'),
     title: l('Enterohepatic cycling', 'Cycle entérohépatique'),
     summary: l('Follow drug from plasma to bile, gut and back to plasma before final loss.', "Suivre le médicament du plasma vers la bile, l’intestin puis le plasma avant la perte finale."),
     defaults: { dose: 150, v: 25, cl: 2.5, kbile: 0.12, kempty: 0.18, kreabs: 0.7, kloss: 0.08, end: 72 },
@@ -120,7 +120,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'central', amount: p.dose }]
   },
   tmdd: {
-    number: '09', unit: 'h', route: l('IV bolus', 'Bolus IV'), scene: 'tmdd',
+    number: '15', unit: 'h', route: l('IV bolus', 'Bolus IV'), scene: 'tmdd',
     title: l('Target-mediated disposition', 'Disposition médiée par la cible'),
     summary: l('See reversible binding, target saturation, complex internalization and parallel linear clearance.', "Voir la liaison réversible, la saturation de la cible, l’internalisation du complexe et la clairance linéaire."),
     defaults: { dose: 80, v: 4, cl: 0.08, target0: 12, kon: 0.025, koff: 0.12, kint: 0.08, kdeg: 0.03, end: 168 },
@@ -154,7 +154,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'free', amount: p.dose }], initial: p => ({ target: p.target0 })
   },
   'effect-site': {
-    number: '10', unit: 'h', route: l('IV bolus', 'Bolus IV'),
+    number: '11', unit: 'h', route: l('IV bolus', 'Bolus IV'),
     title: l('Effect-site equilibration', "Équilibration au site d’effet"),
     summary: l('Watch plasma exposure drive a delayed biophase concentration and pharmacodynamic response.', "Observer l’exposition plasmatique entraîner une concentration dans la biophase et une réponse retardées."),
     defaults: { dose: 100, v: 20, cl: 4, ke0: 0.35, emax: 100, ec50: 2.5, end: 24 },
@@ -180,7 +180,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'central', amount: p.dose }]
   },
   'pd-general': {
-    number: '11', unit: 'h', route: l('IV bolus', 'Bolus IV'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), scene: 'pd-general',
+    number: '12', unit: 'h', route: l('IV bolus', 'Bolus IV'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), scene: 'pd-general',
     title: l('From concentration to response', 'De la concentration a la reponse'),
     summary: l('Follow plasma concentration, target engagement and a delayed biological response.', "Suivre la concentration plasmatique, l'engagement de la cible et une reponse biologique retardee."),
     defaults: { model: 3, dose: 100, v: 20, cl: 4, keq: 0.5, ec50: 2, hill: 1.5, e0: 10, emax: 90, kout: 0.2, end: 36 },
@@ -218,7 +218,7 @@ export const molecularLabs = {
     events: p => [{ time: 0, state: 'central', amount: p.dose }], initial: p => ({ response: p.e0 })
   },
   'pd-oncology': {
-    number: '12', unit: 'day', route: l('Repeated IV boluses', 'Bolus IV repetes'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), referenceMode: 'intrinsic', plotMode: 'comparison', exportKeys: ['untreated', 'resistantPct'], scene: 'oncology',
+    number: '14', unit: 'day', route: l('Repeated IV boluses', 'Bolus IV repetes'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), referenceMode: 'intrinsic', plotMode: 'comparison', exportKeys: ['untreated', 'resistantPct'], scene: 'oncology',
     title: l('Tumor growth inhibition', 'Inhibition de la croissance tumorale'),
     summary: l('Compare model-predicted tumor growth without treatment with the response under repeated exposure.', 'Comparer la croissance tumorale predite sans traitement a la reponse sous exposition repetee.'),
     defaults: { dose: 100, v: 20, cl: 4, tumor0: 60, resistant0: 1, kgrowth: 0.035, kkill: 0.08, ec50: 2, resistance: 0.02, resistantKill: 0.1, tau: 21, count: 4, end: 84 },
@@ -259,10 +259,10 @@ export const molecularLabs = {
     number: '13', unit: 'h', route: l('Repeated IV boluses', 'Bolus IV repetes'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), thresholdKey: 'mic', scene: 'infectiology',
     title: l('Antibiotic, MIC and bacterial response', 'Antibiotique, CMI et reponse bacterienne'),
     summary: l('Watch repeated exposure cross the MIC threshold and alter the predicted bacterial burden.', "Observer l'exposition repetee franchir la CMI et modifier la charge bacterienne predite."),
-    defaults: { dose: 100, v: 20, cl: 4, mic: 2, growth: 0.2, hill: 2, tau: 8, count: 3, end: 24 },
+    defaults: { dose: 100, v: 20, cl: 4, mic: 2, growth: 0.2, kill: 0.4, hill: 2, tau: 8, count: 3, end: 24 },
     parameters: {
       dose: parameter(l('Dose', 'Dose'), 'mg', 10, 3000, 10), v: parameter(l('Volume', 'Volume'), 'L', 5, 100, 1), cl: parameter(l('Clearance', 'Clairance'), 'L/h', 0.1, 30, 0.1),
-      mic: parameter(l('MIC', 'CMI'), 'mg/L', 0.01, 64, 0.01), growth: parameter(l('Bacterial growth rate', 'Vitesse de croissance bacterienne'), '1/h', 0.01, 1, 0.01),
+      mic: parameter(l('MIC', 'CMI'), 'mg/L', 0.01, 64, 0.01), growth: parameter(l('Bacterial growth rate', 'Vitesse de croissance bacterienne'), '1/h', 0.01, 1, 0.01), kill: parameter(l('Maximum bacterial kill rate', 'Vitesse maximale de destruction bacterienne'), '1/h', 0.01, 4, 0.01),
       hill: parameter(l('Exposure-response Hill', 'Hill exposition-reponse'), '', 0.2, 8, 0.1), tau: parameter(l('Dosing interval', 'Intervalle entre les doses'), 'h', 1, 48, 1),
       count: parameter(l('Number of doses', 'Nombre de doses'), '', 1, 12, 1), end: parameter(l('Horizon', 'Horizon'), 'h', 8, 168, 1)
     },
@@ -273,7 +273,7 @@ export const molecularLabs = {
       { id: 'bacteria', label: l('Bacterial burden', 'Charge bacterienne'), x: .86, y: .25, color: '#b2572e', signal: true, range: [0, 10], unit: 'log10' },
       { id: 'eliminated', label: l('Eliminated', 'Elimine'), x: .12, y: .78, color: '#81758a' }
     ],
-    equations: 'dAc/dt = -(CL/V) Ac\nR = (C/MIC)^Hill\nnet growth = kgrowth [1 - 2R/(1+R)]\ndlog10(B)/dt = net growth/ln(10)',
+    equations: 'dAc/dt = -(CL/V) Ac\nR = (C/MIC)^Hill\nnet growth = kgrowth - kmax R/(1+R)\ndlog10(B)/dt = net growth/ln(10)',
     question: l('If the interval becomes shorter at the same dose and dosing continues over the same horizon, what usually happens to time above MIC?', "Si l'intervalle diminue a dose identique et que les doses couvrent le meme horizon, que devient en general le temps au-dessus de la CMI ?"),
     choices: [l('It increases', 'Il augmente'), l('It is unchanged', 'Il ne change pas'), l('It decreases', 'Il diminue')], answer: 0,
     explanation: l('More frequent dosing reduces the time spent below the concentration threshold.', 'Des doses plus frequentes reduisent le temps passe sous le seuil de concentration.'),
@@ -281,18 +281,18 @@ export const molecularLabs = {
     caveat: l('MIC is an in-vitro threshold and this individual deterministic response is not a population PTA analysis or a clinical dosing recommendation.', "La CMI est un seuil in vitro et cette reponse individuelle deterministe n'est ni une analyse de PTA en population ni une recommandation clinique."),
     metric: (state, p, time) => ({ label: l('Time above MIC', 'Temps au-dessus de la CMI'), value: time > 0 ? 100 * state.above / time : (state.c >= p.mic ? 100 : 0), unit: '%' }),
     derivative: (y, p) => {
-      const c = y[0] / p.v, elimination = p.cl / p.v * y[0], ratio = Math.pow(Math.max(0, c / p.mic), p.hill), net = p.growth * (1 - 2 * ratio / (1 + ratio));
+      const c = y[0] / p.v, elimination = p.cl / p.v * y[0], ratio = Math.pow(Math.max(0, c / p.mic), p.hill), net = p.growth - p.kill * ratio / (1 + ratio);
       return [-elimination, net / Math.LN10, c >= p.mic ? 1 : 0, elimination, c];
     },
     output: (y, p) => {
-      const c = y[0] / p.v, ratio = Math.pow(Math.max(0, c / p.mic), p.hill), inhibition = p.growth * 2 * ratio / (1 + ratio);
-      return { c, secondary: y[1], mic: p.mic, flows: { exposure: c, inhibition, elimination: p.cl / p.v * y[0] } };
+      const c = y[0] / p.v, ratio = Math.pow(Math.max(0, c / p.mic), p.hill), inhibition = p.kill * ratio / (1 + ratio);
+      return { c, secondary: y[1], mic: p.mic, netGrowth: p.growth - inhibition, flows: { exposure: c, inhibition, elimination: p.cl / p.v * y[0] } };
     },
     edges: [{ from: 'central', to: 'mic', flow: 'exposure', label: 'C/MIC', signal: true, dashed: true, gate: true }, { from: 'mic', to: 'bacteria', flow: 'inhibition', label: 'E(C/MIC)', signal: true, dashed: true }, { from: 'central', to: 'eliminated', flow: 'elimination', label: 'CL C' }],
     events: p => Array.from({ length: p.count }, (_, i) => ({ time: i * p.tau, state: 'central', amount: p.dose })).filter(event => event.time <= p.end), initial: () => ({ bacteria: 6 })
   },
   'covariate-volume': {
-    number: '14', unit: 'h', route: l('Oral first-order input', 'Entree orale d’ordre 1'), category: l('Covariate journey', 'Parcours covariable'), scene: 'covariate-volume',
+    number: '05', unit: 'h', route: l('Oral first-order input', 'Entree orale d’ordre 1'), category: l('Covariate journey', 'Parcours covariable'), scene: 'covariate-volume', plotMode: 'primary',
     title: l('Body weight and distribution volume', 'Poids et volume de distribution'),
     summary: l('See body weight resize the apparent fluid space and change concentration after the same dose.', 'Voir le poids redimensionner l’espace liquidien apparent et modifier la concentration apres une meme dose.'),
     defaults: { dose: 100, weight: 70, referenceWeight: 70, vRef: 20, exponent: 1, cl: 4, ka: 1, end: 24 },
@@ -324,6 +324,39 @@ export const molecularLabs = {
     },
     edges: [{ from: 'depot', to: 'central', flow: 'absorption', label: 'ka Adep' }, { from: 'central', to: 'eliminated', flow: 'elimination', label: 'CL C' }],
     events: p => [{ time: 0, state: 'depot', amount: p.dose }]
+  },
+  'covariate-clearance': {
+    number: '06', unit: 'h', route: l('IV bolus', 'Bolus IV'), category: l('Covariate journey', 'Parcours covariable'), scene: 'covariate-clearance', plotMode: 'primary',
+    title: l('GFR and renal clearance', 'DFG et clairance renale'),
+    summary: l('Change glomerular filtration rate and observe its defined contribution to total clearance and exposure.', 'Modifier le debit de filtration glomerulaire et observer sa contribution definie a la clairance totale et a l’exposition.'),
+    defaults: { dose: 100, gfr: 90, referenceGfr: 90, v: 20, clNonrenal: 1, clRenalRef: 5, exponent: 1, end: 24 },
+    parameters: {
+      dose: parameter(l('Dose', 'Dose'), 'mg', 10, 1000, 10), gfr: parameter(l('GFR', 'DFG'), 'mL/min/1.73 m²', 15, 150, 1), referenceGfr: parameter(l('Reference GFR', 'DFG de reference'), 'mL/min/1.73 m²', 60, 120, 1),
+      v: parameter(l('Volume', 'Volume'), 'L', 5, 100, 1), clNonrenal: parameter(l('Non-renal clearance', 'Clairance non renale'), 'L/h', 0, 20, 0.1), clRenalRef: parameter(l('Renal clearance at reference GFR', 'Clairance renale au DFG de reference'), 'L/h', 0.1, 30, 0.1),
+      exponent: parameter(l('GFR exponent on renal clearance', 'Exposant du DFG sur la clairance renale'), '', 0.1, 2, 0.05), end: parameter(l('Horizon', 'Horizon'), 'h', 8, 72, 1)
+    },
+    states: ['central', 'eliminated', 'auc'], mass: ['central', 'eliminated'],
+    nodes: [
+      { id: 'central', label: l('Central compartment', 'Compartiment central'), x: .24, y: .3, color: '#147ea5' },
+      { id: 'eliminated', label: l('Renal and non-renal elimination', 'Elimination renale et non renale'), x: .78, y: .3, color: '#81758a' }
+    ],
+    equations: 'CLrenal = CLrenal,ref (GFR/GFRref)^betaGFR\nCLtotal = CLnonrenal + CLrenal\ndAc/dt = -(CLtotal/V) Ac\nC = Ac/V',
+    question: l('At the same dose and volume, what happens to exposure when GFR increases and renal clearance depends on GFR?', 'A dose et volume identiques, que devient l’exposition lorsque le DFG augmente et que la clairance renale depend du DFG ?'),
+    choices: [l('It decreases', 'Elle diminue'), l('It is unchanged', 'Elle ne change pas'), l('It increases', 'Elle augmente')], answer: 0,
+    explanation: l('The GFR-dependent renal component increases total clearance, so concentration declines faster.', 'La composante renale dependante du DFG augmente la clairance totale, donc la concentration diminue plus vite.'),
+    secondary: l('Central amount', 'Quantite centrale'), secondaryUnit: 'mg', related: 'covariates-continuous',
+    caveat: l('This illustrative relation is defined only over GFR 15-150 mL/min/1.73 m². Its form, exponent and renal fraction must be estimated or justified for each drug and population.', 'Cette relation illustrative est definie uniquement entre 15 et 150 mL/min/1,73 m². Sa forme, son exposant et sa fraction renale doivent etre estimes ou justifies pour chaque medicament et chaque population.'),
+    metric: (state, p) => ({ label: l('Total clearance', 'Clairance totale'), value: state.clearance, unit: 'L/h' }),
+    derivative: (y, p) => {
+      const clearance = p.clNonrenal + p.clRenalRef * Math.pow(p.gfr / p.referenceGfr, p.exponent), elimination = clearance / p.v * y[0];
+      return [-elimination, elimination, y[0] / p.v];
+    },
+    output: (y, p) => {
+      const renalClearance = p.clRenalRef * Math.pow(p.gfr / p.referenceGfr, p.exponent), clearance = p.clNonrenal + renalClearance, c = y[0] / p.v;
+      return { c, secondary: y[0], clearance, renalClearance, flows: { renal: renalClearance / p.v * y[0], nonrenal: p.clNonrenal / p.v * y[0], elimination: clearance / p.v * y[0] } };
+    },
+    edges: [{ from: 'central', to: 'eliminated', flow: 'elimination', label: 'CLtotal C' }],
+    events: p => [{ time: 0, state: 'central', amount: p.dose }]
   }
 };
 

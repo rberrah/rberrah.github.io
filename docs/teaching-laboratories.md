@@ -270,6 +270,15 @@ repeated-dose discontinuities and `%T > MIC`.
 
 Mechanism-scene revision on 2026-10-07: the general PD, oncology, infectiology,
 saturable-elimination and TMDD laboratories use dedicated visual grammars rather
-than generic compartment boxes. A fourteenth experiment introduces covariate
-scaling through a weight-dependent fluid volume. Visual elements remain driven by
+than generic compartment boxes. Experiments 05 and 06 introduce covariate
+scaling through weight-dependent volume and GFR-dependent renal clearance,
+while TMDD closes the sequence as laboratory 15. Visual elements remain driven by
 the same numerical ODE state and are not additional quantitative models.
+
+Direct-manipulation revision on 2026-10-08: every ODE-driven laboratory exposes
+one model parameter on the mechanism itself. The user can click the path or drag
+its handle; the ODE trajectory, plot, metrics and matching numeric input update
+together without resetting simulation time. Examples include the MIC line, body
+weight, resistance-emergence rate, Vmax and baseline target density.
+On wide screens, the mechanism and its trajectory are presented side by side so
+the visual and quantitative consequences remain visible during manipulation.
