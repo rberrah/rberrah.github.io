@@ -3982,6 +3982,64 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
   return { perLayer, blocking };
 }
 
+// The endpoint is a property of the independent subject, not of the uploaded
+// assay. Duplicated sample-sheet entries must never silently overwrite labels.
+function assertConsistentSubjectEndpoints(metadata, protocol) {
+  const targets = new Map();
+  const groupLabels = new Map();
+  for (const row of metadata) {
+    if (protocol.objective === 'outcome') {
+      let value = null;
+      if (protocol.outcomeType === 'survival') {
+        const hasTime = row.survivalTime !== '';
+        const hasEvent = row.survivalEvent !== '';
+        if (hasTime !== hasEvent) {
+          throw new Error('Incomplete survival endpoint for subject ' + row.subjectId
+            + ': survival_time and survival_event must be provided together.');
+        }
+        if (!hasTime) continue;
+        const time = finiteNumber(row.survivalTime);
+        const event = finiteNumber(row.survivalEvent);
+        if (!(time > 0) || (event !== 0 && event !== 1)) {
+          throw new Error('Invalid survival endpoint for subject ' + row.subjectId
+            + ': require survival_time > 0 and survival_event coded 0 or 1.');
+        }
+        value = time + '|' + event;
+      } else if (row.outcome !== '') {
+        if (['continuous','count'].includes(protocol.outcomeType)) {
+          const numeric = finiteNumber(row.outcome);
+          if (!Number.isFinite(numeric) || (protocol.outcomeType === 'count' &&
+            (numeric < 0 || !Number.isInteger(numeric)))) {
+            throw new Error('Invalid numeric outcome for subject ' + row.subjectId
+              + ': counts must be non-negative integers and all numeric outcomes finite.');
+          }
+          value = String(numeric);
+        } else value = row.outcome;
+      }
+      if (value != null) {
+        if (targets.has(row.subjectId) && targets.get(row.subjectId) !== value) {
+          throw new Error('Conflicting outcome for subject ' + row.subjectId
+            + ' across omics or visits. Each independent subject must have one consistent endpoint.');
+        }
+        targets.set(row.subjectId, value);
+      }
+    }
+
+    // Independent-group assignments and longitudinal study arms are subject
+    // properties. Paired designs are excluded: a subject may provide two conditions.
+    const mustBeSingleArm = (protocol.objective === 'groups' &&
+      protocol.designType === 'independent') ||
+      (protocol.objective === 'time' && protocol.designType === 'repeated');
+    if (mustBeSingleArm && row.condition) {
+      if (groupLabels.has(row.subjectId) && groupLabels.get(row.subjectId) !== row.condition) {
+        throw new Error('Conflicting condition for subject ' + row.subjectId
+          + ': this design declares independent arms rather than crossover or paired observations.');
+      }
+      groupLabels.set(row.subjectId, row.condition);
+    }
+  }
+}
+
 export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
   const inputManifest = {
     metadata: {
@@ -4006,6 +4064,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (protocol.designType === 'crossover') {
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
+  assertConsistentSubjectEndpoints(biologicalMetadata, protocol);
 
   const conditions = naturalOrder(biologicalMetadata.map((row) => row.condition));
   const timepoints = naturalOrder(biologicalMetadata.map((row) => row.timepoint));
