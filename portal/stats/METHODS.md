@@ -13,7 +13,7 @@ The browser never asks an LLM to select a statistical method.
 | Two quantitative / ordinal variables, association | Pearson | Spearman + Kendall tau-b rank measures and simple linear regression |
 | Binary outcome + one numeric predictor | Binary logistic regression | Explicit event coding; OR + 95% CI; Wald and likelihood-ratio inference; convergence/separation diagnostics |
 | Quantitative outcome + at least two numeric predictors | Multivariable linear regression | Adjusted coefficients + 95% CIs, adjusted R², VIF and influence diagnostics |
-| Time to event in two groups | Log-rank | Kaplan–Meier visualization |
+| Time to event in two groups | Log-rank | Kaplan–Meier summary/risk table + binary Cox PH with explicit HR orientation and Breslow ties |
 | One quantitative sample vs fixed reference | One-sample t-test | No automated rank alternative yet |
 
 ## Rank-test inference
@@ -67,6 +67,14 @@ The current multivariable workflow is intentionally restricted to numeric predic
 The model reports each adjusted coefficient, standard error, 95% CI, t statistic and p-value, plus global F inference, R², adjusted R² and residual standard error. Variance inflation factors are calculated from the inverse predictor correlation matrix.
 
 Influence diagnostics include leverage, standardized residuals and Cook's distance. The interface displays common heuristic review guides (Cook > 4/n, leverage > 2(p+1)/n, |standardized residual| > 3) but never deletes observations automatically. Exact or near-exact collinearity is rejected rather than returning unstable coefficients.
+
+## Survival analysis
+
+For a two-group time-to-event endpoint, the log-rank test remains the primary non-parametric comparison. The extended survival panel also reports Kaplan–Meier event/censor counts, observed median survival when reached, and an at-risk table at automatic descriptive landmarks spanning the observed follow-up.
+
+A one-predictor Cox proportional-hazards model is fitted to the same binary group contrast. The user explicitly chooses which group is coded as the group of interest; the other group is the reference. The model reports HR, Wald 95% CI/p-value and a likelihood-ratio p-value. Tied event times use the Breslow approximation.
+
+A single HR is only meaningful when hazards are reasonably proportional over time. This version therefore states the proportional-hazards assumption explicitly and does **not** use a simplistic automated pass/fail rule to certify it. Confirmatory analyses should inspect dedicated PH diagnostics (for example scaled Schoenfeld residual methods) and consider time-varying effects when appropriate.
 
 ## Study planning
 
