@@ -192,6 +192,7 @@ test('demo measurement scales are visible while technical tables start collapsed
 
 test('MS peak annotations upload is explicit and rejects unknown chemical IDs', async ({ page }) => {
   await page.goto('/multiomics/tool');
+  await page.waitForLoadState('networkidle');
   const upload=page.getByTestId('multiomics-ms-annotation-upload');
   await upload.setInputFiles({
     name:'peak_annotations.csv',

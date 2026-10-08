@@ -712,8 +712,9 @@
     await runAnalysis();
   }
 
-  async function loadDemoAndShowResults() {
-    await loadDemo();
+  /** @param {'transcriptomics' | 'proteomics' | 'metabolomics' | null} onlyLayer */
+  async function loadDemoAndShowResults(onlyLayer = null) {
+    await loadDemo(onlyLayer);
     // The demonstration is an actual analysis, not a mockup.
     document.getElementById('analysis-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -1468,13 +1469,19 @@
   <h1>{t('Analyser une ou plusieurs omiques et comprendre les résultats.', 'Analyze one or several omics layers and understand the results.')}</h1>
   <p class="lede">{t('Choisissez ce que vous voulez comprendre, ajoutez vos données et consultez les graphiques. Les vérifications scientifiques restent accessibles.', 'Choose your question, add your data and explore the figures. All scientific checks remain available.')}</p>
   <div class="quick-start" data-testid="multiomics-quick-start">
-    <div>
+    <div class="quick-start-copy">
       <strong>{t('Découvrir en 1 clic', 'Explore in one click')}</strong>
-      <span>{t('Une vraie démo calcule les résultats de 3 omiques. Puis remplacez les fichiers par les vôtres.', 'A real demo computes 3 omics layers. Then replace the files with your own.')}</span>
+      <span>{t('Choisissez une omique ou les trois. Chaque bouton charge des données synthétiques et calcule leurs résultats. Aucun fichier à préparer.', 'Choose one omics layer or all three. Each button loads synthetic example data and runs a real analysis. No files to prepare.')}</span>
+      <small>{t('Exemple pédagogique (8 sujets) : il illustre la méthode, sans valider une découverte biologique.', 'Educational example (8 subjects): it illustrates the workflow, not a validated biological discovery.')}</small>
     </div>
-    <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" onclick={loadDemoAndShowResults}>
-      {t('Voir une analyse complète', 'See a complete analysis')}
-    </button>
+    <div class="quick-demo-actions" aria-label={t('Choix de démonstration', 'Demonstration choices')}>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" onclick={() => loadDemoAndShowResults()}>
+        {t('Trois omiques', 'Three omics')}
+      </button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-rna" onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('RNA seul', 'RNA only')}</button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-protein" onclick={() => loadDemoAndShowResults('proteomics')}>{t('Protéines seules', 'Proteins only')}</button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-metabolite" onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Métabolites seuls', 'Metabolites only')}</button>
+    </div>
   </div>
   <details class="simple-disclosure">
     <summary>{t('Confidentialité des données', 'Data privacy')}</summary>
@@ -2413,7 +2420,7 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{demoLoaded ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
-      <h2>{t('Vos résultats', 'Your results')}</h2>
+      <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
       <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
@@ -3403,13 +3410,22 @@
     .wide { grid-column: auto; }
     .status { align-items: start; flex-direction: column; }
   }
-  .quick-start { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:20px 0; padding:15px 18px; border:1px solid var(--border,#d9e0e3); border-radius:14px; background:var(--surface,#fff); }
-  .quick-start > div { display:grid; gap:4px; flex:1 1 250px; }
-  .quick-start strong { font-size:.95rem; }
-  .quick-start span { font-size:.86rem; color:var(--text-secondary,#5d6a70); }
-  .optional-workflows { margin-top:16px; border:1px solid var(--border,#d9e0e3); border-radius:12px; padding:12px 16px; }
+  /* Use the actual light/dark palette. --surface was never defined: in dark
+     mode its #fff fallback inherited a near-white font (WCAG failure). */
+  .quick-start { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:20px 0; padding:18px 20px; border:1px solid var(--border-strong); border-radius:14px; background:var(--bg-secondary); color:var(--text-primary); }
+  .quick-start-copy { display:grid; gap:6px; flex:1 1 275px; min-width:0; }
+  .quick-start strong { color:var(--text-primary); font-size:1rem; line-height:1.4; }
+  .quick-start span { font-size:.91rem; line-height:1.55; color:var(--text-secondary); }
+  .quick-start small { font-size:.8rem; line-height:1.5; color:var(--text-muted); }
+  .quick-demo-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; max-width:485px; }
+  .quick-demo-actions .btn { flex:1 1 auto; min-width:120px; text-align:center; }
+  .optional-workflows { margin-top:16px; border:1px solid var(--border-strong); border-radius:12px; padding:12px 16px; }
   .optional-workflows > summary { cursor:pointer; font-weight:700; }
   .optional-workflows > .contract { margin-top:16px; }
-  .annotation-error { color:#8d2020; font-weight:700; }
-  .ms-import-message { padding:10px 13px; border:1px solid #b1cbd5; border-radius:9px; color:#1d3440; background:#eff7fa; font-size:.88rem; line-height:1.55; }
+  .annotation-error { color:var(--quiz-error-text); font-weight:700; }
+  .ms-import-message { padding:10px 13px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text-primary); background:var(--bg-secondary); font-size:.88rem; line-height:1.55; }
+  @media (max-width:640px) {
+    .quick-start { align-items:stretch; }
+    .quick-demo-actions { justify-content:stretch; max-width:none; width:100%; }
+  }
 </style>
