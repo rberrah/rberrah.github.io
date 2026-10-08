@@ -590,8 +590,10 @@ function csvFile(name, text) {
   assert.match(multiLong.layers.transcriptomics.contrast, /omnibus condition × time interaction across 3 groups/);
   const row = multiLong.layers.transcriptomics.rows.find((item) => item.feature === 'MULTI_SLOPE_GENE');
   assert.ok(row);
-  assert.ok(Number.isFinite(row.statistic));
-  assert.ok(Number.isFinite(row.pValue));
+  assert.equal(row.statistic, null);
+  assert.equal(row.pValue, null);
+  assert.equal(row.qValue, null);
+  assert.equal(row.inferentialStatus, 'uncalibrated_reference_R_required');
   assert.deepEqual(Object.keys(row.groupSlopes), ['control','treatmentA','treatmentB']);
   assert.ok(row.effect > 2);
 }
