@@ -73,6 +73,37 @@ Le résultat machine-lisible contient `scientificAssurance` et
 9. **Traçabilité** : archiver données d'entrée, hachages, mappages des
    échantillons, versions et réglages de prétraitement.
 
+## Enrichissement Reactome : contrôle du nombre de tests (révision v2)
+
+La famille de correction BH est maintenant constituée de **toutes les voies Reactome
+associées à l'univers réellement mesuré**, et pas seulement des voies renvoyées
+pour les signaux sélectionnés. Les voies sans signal sélectionné comptent dans
+le nombre d'hypothèses avec p = 1. Les réponses d'API tronquées, l'absence de
+correspondance entre l'univers et les voies sélectionnées ou un dénominateur
+incohérent entraînent une **FDR non estimable**, jamais un repli silencieux sur
+la FDR calculée par Reactome avec un autre univers.
+
+Ce calcul reste **exploratoire** : les caractéristiques ont été sélectionnées
+à partir des mêmes données, certaines voies ont une structure hiérarchique et
+leurs tests ne sont pas indépendants. La FDR locale n'est pas une preuve de
+causalité ou de confirmation biologique. Vérification automatisée :
+`node scripts/test_multiomics_pathway_fdr.mjs`.
+
+## Benchmark Bioconductor réel
+
+Le workflow `.github/workflows/multiomics-bioconductor-validation.yml` exécute
+réellement **DESeq2, edgeR quasi-vraisemblance et limma-voom** sur un jeu de
+comptages négatif-binomial simulés, avec groupes et lots équilibrés. Les résultats
+doivent présenter une direction d'effet correcte, un rappel des vérités positives
+minimum déclaré, une limitation des faux positifs et une concordance de
+classement entre DESeq2 et voom. Il refuse aussi les comptages fractionnaires
+en entrée DESeq2 au lieu de les arrondir silencieusement.
+
+La réussite de ce workflow doit être constatée dans **GitHub Actions** pour le
+commit étudié : son existence ne prouve pas sa réussite. Ce test de simulation
+reste insuffisant pour généraliser à toutes les tailles de cohortes, dispersions,
+variations des bibliothèques ou plans longitudinaux.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
