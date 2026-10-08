@@ -18,12 +18,23 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
 
   await page.locator('.figure-switcher button').nth(1).click();
   await expect(page.getByTestId('multiomics-metabologram')).toBeVisible();
+  const legend = page.getByTestId('multiomics-readable-legend');
+  await expect(legend).toBeVisible();
+  await expect(legend).toContainText('L-tryptophane');
+  await expect(legend).toContainText('L-kynurénine');
+  await expect(legend).toContainText('Lactate');
+  await expect(legend).toContainText('Succinate');
+  await expect(legend).toContainText('CHEBI:24996');
+  await expect(legend.locator('.legend-entry')).toHaveCount(9);
   await page.getByTestId('multiomics-pathway-select').selectOption('glycolysis');
   await expect(page.getByTestId('multiomics-pathway-coverage')).toContainText(/Glycolyse|Glycolysis/);
 
   await page.locator('.figure-switcher button').nth(2).click();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toBeVisible();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toContainText(/13C/);
+  await expect(page.getByTestId('multiomics-off-map')).toContainText('L-tryptophane');
+  await expect(page.getByTestId('multiomics-off-map')).toContainText('L-kynurénine');
+  await expect(page.getByTestId('multiomics-central-carbon-map').locator('.map-summary')).toContainText('2');
   await expect(page.getByTestId('multiomics-central-carbon-map')).toContainText('LDHA');
   await expect(page.getByTestId('multiomics-central-carbon-map')).toContainText('LDHB');
 
