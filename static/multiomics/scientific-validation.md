@@ -40,8 +40,12 @@ Le résultat machine-lisible contient `scientificAssurance` et
   ce n'est pas une validation externe, ni un accord chiffré garanti sur des données
   réelles. Les packages Bioconductor requis doivent être installés localement.
 - **Prédiction interne** : nested-CV sur les sujets avec sélection refaite par
-  pli. Le prétraitement omique global peut précéder les plis et introduire une
-  dépendance ; les résultats restent exploratoires.
+  pli. Le moteur ne publie une métrique que si **100 % des sujets éligibles**
+  possèdent exactement une prédiction hors entraînement et si tous les plis
+  externes ont été estimés. En cas de pli échoué ou de métrique indéfinie,
+  les performances sont indisponibles (et non calculées sur les seuls succès).
+  Le prétraitement omique global peut cependant précéder les plis et introduire
+  une dépendance ; les résultats restent exploratoires.
 - **Validation externe** : cohorte réellement indépendante, protocole figé,
   aucune sélection/tuning sur celle-ci, provenance documentée ; doit être
   organisée par les chercheurs et ne peut être certifiée par déclaration seule.
