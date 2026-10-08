@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { buildMultiomicsVisualizationData } from '../src/lib/multiomics/visualization-data.js';
+import { focusMetabolicRegion } from '../src/lib/multiomics/metabolic-network.js';
 
 const row = (feature, effect, qValue, effectScale = 'log2') => ({ feature, effect, qValue, effectScale });
 const result = {
@@ -96,5 +97,44 @@ const again = await buildMultiomicsVisualizationData({
 });
 assert.deepEqual(again, visuals, 'Visualization data must be deterministic');
 assert.equal(JSON.stringify(result), untouched, 'Visualizations must not mutate analysis results');
+
+// Expanded network: strict ID matching, region selection, informative non-links.
+assert.ok(example.focusedMetabolicNetwork.coverage.metabolites >= 80);
+assert.ok(example.focusedMetabolicNetwork.coverage.genes >= 90);
+assert.ok(example.focusedMetabolicNetwork.coverage.regions >= 12);
+assert.ok(example.focusedMetabolicNetwork.coverage.links >= 90);
+const graph=example.focusedMetabolicNetwork;
+const id=(i)=>graph.audit.find((r)=>r.input===i);
+assert.equal(id('CHEBI:16828').status, 'verified_id');
+assert.equal(id('CHEBI:16946').status, 'verified_id');
+assert.equal(id('CHEBI:24996').status, 'verified_id');
+assert.equal(id('CHEBI:30031').status, 'verified_id');
+const auto=focusMetabolicRegion(graph,'auto',1);
+assert.ok(auto.some((r)=>r.id==='kynurenine'));
+assert.ok(auto.some((r)=>r.id==='glycolysis'));
+assert.ok(auto.some((r)=>r.id==='tca'));
+assert.ok(!auto.some((r)=>r.id==='serotonin'),
+  'Do not show a second unrelated branch for the same measured precursor');
+assert.ok(auto.find((r)=>r.id==='kynurenine').nodes.some((n)=>n.id==='formylkyn'));
+assert.ok(!focusMetabolicRegion(graph,'kynurenine',0)[0].nodes.some((n)=>n.id==='formylkyn'));
+assert.ok(focusMetabolicRegion(graph,'kynurenine',2)[0].nodes.length >
+  focusMetabolicRegion(graph,'kynurenine',0)[0].nodes.length);
+
+const strictResult=await buildMultiomicsVisualizationData({
+  files:{},metadataRows:[],columnMapping:{},dataTypes:{},
+  analysisResult:{layers:{metabolomics:{rows:[
+    row('CHEBI:99999999',1,0.01), row('unrecognizable metabolite',2,0.01),
+    row('CHEBI:16828',1,0.01,'logit'),row('L-kynurenine',1,0.01)
+  ]},transcriptomics:{rows:[]}}}
+});
+const strict=strictResult.focusedMetabolicNetwork;
+assert.equal(strict.audit.find((r)=>r.input==='CHEBI:99999999').status,'unmapped_identifier');
+assert.equal(strict.audit.find((r)=>r.input==='unrecognizable metabolite').status,'unrecognized');
+assert.equal(strict.audit.find((r)=>r.input==='L-kynurenine').status,'name_only');
+assert.equal(strict.audit.find((r)=>r.input==='CHEBI:16828').usable,false,
+  'Identity evidence must never replace a missing log2 effect scale');
+assert.equal(strict.nodes.filter((n)=>n.id==='tryptophan')[0].measurement,undefined);
+assert.deepEqual(focusMetabolicRegion(graph,'auto',1),focusMetabolicRegion(graph,'auto',1),
+  'Same input must produce same focused subgraph');
 
 console.log('multiomics Figure 4-inspired visualizations PASS');
