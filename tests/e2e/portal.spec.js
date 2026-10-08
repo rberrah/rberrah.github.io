@@ -123,9 +123,19 @@ test('semantic publication metadata agrees with visible DOI citations', async ({
 test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   for (const [from, to] of [['/research/', '/publications/'], ['/recherche/', '/publications/'], ['/demos/', '/tools/'],
     ['/pk/?lang=en#example', '/pharmacometrie/pk/?lang=en#example'],
-    ['/playground/?lang=en', '/pharmacometrie/playground/?lang=en']]) {
+    ['/playground/?lang=en', '/pharmacometrie/playground/?lang=en'],
+    ['/multiomics/', '/pharmacometrie/multiomics/'],
+    ['/multiomics/tool/?lang=en#demo', '/pharmacometrie/multiomics/tool/?lang=en#demo']]) {
     await page.goto(origin + from);
     await expect(page).toHaveURL(origin + to);
+  }
+  // A successful SvelteKit build alone is insufficient: assert the public
+  // root aliases and their actual prerendered destination pages exist.
+  for (const route of ['/multiomics/', '/multiomics/tool/']) {
+    expect((await request.get(origin + route, { maxRedirects: 0 })).status()).toBe(200);
+  }
+  for (const route of ['/pharmacometrie/multiomics/', '/pharmacometrie/multiomics/tool/']) {
+    expect((await request.get(origin + route)).status()).toBe(200);
   }
   expect((await page.goto(origin + '/does-not-exist/')).status()).toBe(404);
   await expect(page.locator('h1')).toHaveText('Page not found');
