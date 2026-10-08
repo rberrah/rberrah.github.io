@@ -293,18 +293,45 @@
           <text x="368" y="32" text-anchor="middle" class="half-label">{tr('Transcrits', 'Transcripts')}</text>
         </svg>
 
-        <div class="metabologram-keys">
-          <div>
-            <strong>{tr('Métabolites affichés', 'Displayed metabolites')}</strong>
-            {#each (activeMetabologram?.metabolomics || []).slice(0, 10) as item}
-              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
-            {/each}
+        <div class="metabologram-keys" data-testid="multiomics-readable-legend">
+          <p class="color-key"><i class="key-blue"></i>{tr('Baisse', 'Decrease')}
+            <i class="key-white"></i>{tr('Proche de zéro', 'Near zero')}
+            <i class="key-red"></i>{tr('Hausse', 'Increase')}
+            <small>{tr('Nombre à droite : variation estimée (log2FC)', 'Number on the right: estimated change (log2FC)')}</small>
+          </p>
+          <div class="legend-section">
+            <h4>{tr('Métabolites', 'Metabolites')} <small>({activeMetabologram?.metabolomics?.length || 0})</small></h4>
+            {#if activeMetabologram?.metabolomics?.length}
+              <ul class="legend-items">
+                {#each activeMetabologram.metabolomics.slice(0, 15) as item}
+                  <li class="legend-entry">
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
+                    <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
+                  </li>
+                {/each}
+              </ul>
+              {#if activeMetabologram.metabolomics.length > 15}<p class="legend-more">{tr('Liste limitée aux 15 premiers éléments.', 'List limited to the first 15 features.')}</p>{/if}
+            {:else}
+              <p class="legend-empty">{tr('Aucune mesure reconnue dans cette sélection.', 'No matched measurements in this selection.')}</p>
+            {/if}
           </div>
-          <div>
-            <strong>{tr('Transcrits affichés', 'Displayed transcripts')}</strong>
-            {#each (activeMetabologram?.transcriptomics || []).slice(0, 10) as item}
-              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
-            {/each}
+          <div class="legend-section">
+            <h4>{tr('Gènes exprimés', 'Gene transcripts')} <small>({activeMetabologram?.transcriptomics?.length || 0})</small></h4>
+            {#if activeMetabologram?.transcriptomics?.length}
+              <ul class="legend-items">
+                {#each activeMetabologram.transcriptomics.slice(0, 15) as item}
+                  <li class="legend-entry">
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
+                    <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
+                  </li>
+                {/each}
+              </ul>
+              {#if activeMetabologram.transcriptomics.length > 15}<p class="legend-more">{tr('Liste limitée aux 15 premiers éléments.', 'List limited to the first 15 features.')}</p>{/if}
+            {:else}
+              <p class="legend-empty">{tr('Aucune mesure reconnue dans cette sélection.', 'No matched measurements in this selection.')}</p>
+            {/if}
           </div>
         </div>
       </div>
