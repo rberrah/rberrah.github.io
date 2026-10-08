@@ -63,6 +63,37 @@ assert.equal(result.metadataSummary.batchAudit.transcriptomics.status, 'single_b
 assert.equal(result.metadataSummary.batchAudit.proteomics.status, 'single_batch');
 assert.equal(result.metadataSummary.batchAudit.metabolomics.status, 'single_batch');
 
+ 
+// Identifier integrity: contradictory mappings and duplicate matrix variables
+// must fail before statistics can silently overwrite rows.
+const basicDemoOptions = {
+  files:{metadata,transcriptomics,proteomics,metabolomics},
+  metadataRows:parsed.rows,columnMapping:mapping,
+  protocol:{organism:'human',objective:'time',longitudinal:true,designType:'repeated',
+    studySetting:'clinical_interventional',groupCount:'2',sampleOverlap:'same_specimen'},
+  dataTypes:{transcriptomics:'raw_counts',proteomics:'log_intensity',metabolomics:'peak_area'},
+  useReactome:false,resolveIdentifiers:false
+};
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,
+  metadataRows:[...parsed.rows, {...parsed.rows[0]}]
+}), /duplicate assay_id/i);
+const subjectAtFirstSample = parsed.rows[0].subject_id;
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,
+  metadataRows:parsed.rows.map((row,i)=>i===0
+    ? {...row,subject_id:'INVALID_' + subjectAtFirstSample} : row)
+}), /conflicting sample_id/i);
+const originalRnaText = await transcriptomics.text();
+const originalRnaLines = originalRnaText.trimEnd().split(/\\r?\\n/);
+const duplicateRnaFeature = new File(
+  [originalRnaText.trimEnd() + '\\n' + originalRnaLines[1] + '\\n'],
+  'duplicate_feature.csv',{type:'text/csv'});
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,files:{...basicDemoOptions.files,transcriptomics:duplicateRnaFeature}
+}), /duplicate feature_id/i);
+
+
 // Every layer must expose the declared input scale and the exact preprocessing decision.
 assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.declaredValueType, 'raw_counts');
 assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.outputScale, 'log2');
