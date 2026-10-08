@@ -113,9 +113,10 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
           title:contrast(luminance(getComputedStyle(title).color),bg),
           svg:sample?contrast(luminance(getComputedStyle(sample).fill),1):null};
       });
-      expect(measured.background).toBe('rgb(255, 255, 255)');
-      expect(measured.title).toBeGreaterThanOrEqual(7);
-      if(measured.svg!==null)expect(measured.svg).toBeGreaterThanOrEqual(7);
+      console.log('FIGURE_CONTRAST', scheme, figure, JSON.stringify(measured));
+      expect(measured.background, figure + ' plot background (' + scheme + ')').toBe('rgb(255, 255, 255)');
+      expect(measured.title, figure + ' heading contrast (' + scheme + ')').toBeGreaterThanOrEqual(7);
+      if(measured.svg!==null)expect(measured.svg, figure + ' SVG annotation contrast (' + scheme + ')').toBeGreaterThanOrEqual(7);
     }
     await page.locator('.figure-switcher button').nth(2).click();
     const graph=page.getByTestId('multiomics-focused-network');
