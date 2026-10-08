@@ -1,3 +1,4 @@
+// @ts-nocheck — Playwright's browser-side DOM evaluation is runtime-validated.
 import { test, expect } from '@playwright/test';
 
 test('multi-omics one-click demo exposes guided heatmap, pathway and map views', async ({ page }) => {
