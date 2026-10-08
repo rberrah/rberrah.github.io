@@ -42,7 +42,7 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   await expect(focused.getByTestId('multiomics-region-tca')).toHaveCount(0);
   await focused.getByTestId('multiomics-network-dictionary').locator('summary').click();
   await expect(focused.getByTestId('multiomics-network-dictionary')).toContainText('CHEBI:16828');
-  await page.getByTestId('multiomics-central-carbon-details').locator('summary').click();
+  await page.getByTestId('multiomics-central-carbon-details').locator('summary').first().click();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toBeVisible();
   await expect(page.getByTestId('multiomics-central-carbon-map')).toContainText(/13C/);
   await expect(page.getByTestId('multiomics-off-map')).toContainText('L-tryptophane');
