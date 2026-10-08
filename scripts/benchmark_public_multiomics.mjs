@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import { File } from 'node:buffer';
 import { parseDelimited, runDeterministicAnalysis, differentialCorrelationPair, layerOverlapSummary, resolveMetaboliteIdentifier, resolveMetaboliteIdentifiers, reactomeOverRepresentation } from '../src/lib/multiomics/deterministic.js';
+import { buildMultiomicsVisualizationData } from '../src/lib/multiomics/visualization-data.js';
 
 const root = process.argv[2] || 'tmp/public-benchmarks';
 
@@ -527,8 +528,64 @@ function signConcordance(engineRows, referenceRows) {
     `all-three matched=${result.metadataSummary.overlap.allMatched}`
   );
 
+  // Second, independent validation: run the actual Figure-4-inspired
+  // visualization adapter on this PUBLIC 3-omics dataset rather than injecting
+  // a synthetic result. A node must never be colored by a missing feature or
+  // by a result on a non-log2 effect scale.
+  const visuals = await buildMultiomicsVisualizationData({
+    files: ds.files,
+    metadataRows: ds.metadataRows,
+    columnMapping: ds.mapping,
+    dataTypes: { transcriptomics: 'normalized', proteomics: 'normalized', metabolomics: 'normalized' },
+    analysisResult: result
+  });
+  const vizCoverage = {
+    heatmaps: Object.fromEntries(Object.entries(visuals.heatmaps).map(([layer, view]) => [
+      layer, { features: view.rows.length, biologicalSamples: view.samples.length }
+    ])),
+    metabologram: {
+      geneSegments: visuals.metabologram.transcriptomics.length,
+      metaboliteSegments: visuals.metabologram.metabolomics.length
+    },
+    focusedNetwork: {
+      curatedMetabolites: visuals.focusedMetabolicNetwork.coverage.metabolites,
+      curatedGenes: visuals.focusedMetabolicNetwork.coverage.genes,
+      exactIds: visuals.focusedMetabolicNetwork.audit.filter((a) => a.status === 'verified_id').length,
+      nameOnly: visuals.focusedMetabolicNetwork.audit.filter((a) => a.status === 'name_only').length,
+      unknown: visuals.focusedMetabolicNetwork.audit.filter((a) => !a.id).length,
+      displayedRegions: visuals.focusedMetabolicNetwork.regions.filter((r) => r.measuredCount > 0)
+        .map((r) => ({ region: r.id, measuredCount: r.measuredCount }))
+    }
+  };
+  const evidence = new Map(result.layers.transcriptomics.rows.map((row) => [row.feature, row]));
+  requireTruth(
+    visuals.metabologram.transcriptomics.every((item) =>
+      evidence.has(item.feature) && evidence.get(item.feature).effect === item.effect),
+    'AgingHFCD visualization exactly preserves the fitted transcript effects'
+  );
+  const metaboliteEvidence = new Map(result.layers.metabolomics.rows.map((row) => [row.feature, row]));
+  requireTruth(
+    visuals.metabologram.metabolomics.every((item) =>
+      metaboliteEvidence.has(item.feature) && metaboliteEvidence.get(item.feature).effect === item.effect),
+    'AgingHFCD visualization exactly preserves fitted metabolite effects'
+  );
+  requireTruth(
+    Object.keys(visuals.heatmaps).length === 3
+      && Object.values(visuals.heatmaps).every((view) => view.samples.length >= 10 && view.rows.length > 0),
+    'AgingHFCD builds all three real sample-level heatmaps',
+    JSON.stringify(vizCoverage.heatmaps)
+  );
+  requireTruth(
+    visuals.focusedMetabolicNetwork.audit.every((item) => item.id ||
+      !visuals.focusedMetabolicNetwork.nodes.some((node) =>
+        node.measurement?.features?.includes(item.input))),
+    'AgingHFCD does not color unmapped metabolite identifiers'
+  );
+  console.log('PUBLIC VISUALIZATION EVIDENCE AgingHFCD', JSON.stringify(vizCoverage));
+
   report.benchmarks.agingHFCD = {
     truth: 'Old_CD vs Young_CD; Ctsd is an aging-associated RNA/protein signal in the source publication',
+    visualization: vizCoverage,
     metadata: result.metadataSummary,
     concordance,
     ctsdRna,
