@@ -15,6 +15,7 @@
   /** @type {any} */
   let parsedConfig = null;
 
+  /** @param {string} fr @param {string} en */
   const t = (fr, en) => language === 'en' ? en : fr;
 
   /** @param {Event} event */
