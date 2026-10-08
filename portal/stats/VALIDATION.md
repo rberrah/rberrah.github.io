@@ -20,6 +20,8 @@ Stats is a browser implementation. Methods should be benchmarked against fixed r
 - McNemar: exact binomial inference for few discordant pairs, asymptotic chi-square otherwise
 - Pearson / Spearman / Kendall: `stats::cor.test`; Kendall exact small-sample vectors are compared with the permutation distribution when there are no ties and asymptotic tie-corrected vectors when ties are present
 - Linear regression: `stats::lm`, `confint`
+- Binary logistic regression: `stats::glm(..., family = binomial())`, `confint.default`/Wald CI and likelihood-ratio comparison against the intercept-only model; explicit separation/non-convergence vectors
+- Multivariable linear regression: `stats::lm` coefficient table/`confint`, global F/R²/adjusted R², VIFs from the inverse predictor correlation matrix, hat values and Cook's distance
 - Log-rank: reference survival-package implementation
 
 ## Rank-test routing
@@ -43,8 +45,14 @@ Holm adjustment has fixed regression vectors for raw and adjusted p-values. Brow
 
 For 2×2 categorical analyses, numerical vectors verify RD, RR and OR and their confidence intervals. A separate zero-cell vector checks that RR and OR remain finite only because the Haldane–Anscombe correction is invoked, while the risk difference remains based on observed risks. Browser tests verify that the user can see the selected numerator group and event category.
 
+## Regression reference vectors
+
+Binary logistic regression has fixed MLE vectors for an intercept + one numeric predictor, including the slope, standard error, odds ratio and 95% CI, log-likelihood, likelihood-ratio statistic/p-value and McFadden R². A perfectly separated dataset is a separate guardrail vector and must produce a stability warning rather than a routine interpretable MLE.
+
+Multivariable linear regression is benchmarked on a two-predictor OLS dataset against reference matrix calculations / `stats::lm`. Fixed vectors cover the intercept, both adjusted slopes and confidence intervals, standard errors, global F test, R², adjusted R², residual standard error, VIFs, maximum leverage and Cook's distance. Additional vectors verify complete-case exclusion, exact collinearity rejection and constant-predictor rejection.
+
 ## Edge cases still required
 
-Expand parity testing across highly unbalanced groups, near-zero variance, very small p-values and degenerate inputs. Add explicit parity vectors for the advanced methods in a reference R script rather than relying only on hard-coded JS regression targets.
+Expand parity testing across highly unbalanced groups, near-zero variance, very small p-values and degenerate inputs. Add explicit reference-R scripts for the advanced methods (including logistic/multivariable regression) rather than relying only on hard-coded JS regression targets. Add heteroscedasticity-robust linear-model standard errors before presenting them as an alternative inferential mode.
 
 Confirmatory or high-stakes analyses should continue to be checked in validated reference software and against a pre-specified statistical analysis plan.
