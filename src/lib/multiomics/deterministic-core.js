@@ -3823,11 +3823,14 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
   };
   const covariateColumns = Array.isArray(protocol.covariateColumns) ? protocol.covariateColumns.filter(Boolean) : [];
-  const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns);
-  if (!metadata.length) throw new Error('No valid metadata rows after mapping.');
+  const loadedLayers = LAYERS.filter((layer) => files[layer]);
+  // A sample sheet may describe more measurements than the uploaded matrices.
+  // Scope all cohort counts, contrasts, batches and reports to the analysed omics.
+  const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns)
+    .filter((row) => loadedLayers.includes(row.omic));
+  if (!metadata.length) throw new Error('No matching metadata rows for the uploaded omics matrices.');
   const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
   if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
-  const loadedLayers = LAYERS.filter((layer) => files[layer]);
   const singleOmic = loadedLayers.length === 1;
   if (!loadedLayers.length) {
     throw new Error('At least one transcriptomics, proteomics or metabolomics matrix is required.');
