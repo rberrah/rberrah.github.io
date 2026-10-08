@@ -15,6 +15,7 @@ stopifnot(exists("safe_perf_summary"))
 stopifnot(exists("run_diablo_blocks"))
 stopifnot(exists("prepare_multiblock_integration"))
 stopifnot(exists("batch_completely_confounded"))
+stopifnot(exists("validate_external_predictions"))
 
 # -------------------------------------------------------------------------
 # 0) Package-free guardrail helpers are deterministic
@@ -241,7 +242,7 @@ payload <- list(
 
 result <- run_backend_analysis(payload)
 stopifnot(identical(result$status, "ok"))
-stopifnot(identical(result$engine$version, "1.2.0"))
+stopifnot(identical(result$engine$version, "1.3.0"))
 stopifnot(all(c("transcriptomics","proteomics") %in% names(result$preprocessing)))
 stopifnot("transcriptomics_differential" %in% names(result$methods))
 stopifnot("proteomics_differential" %in% names(result$methods))
@@ -249,5 +250,27 @@ stopifnot(result$methods$transcriptomics_differential$status %in% c("ok","unavai
 stopifnot(result$methods$proteomics_differential$status %in% c("ok","unavailable"))
 stopifnot(is.list(result$packages))
 stopifnot("edgeR" %in% names(result$packages))
+
+# -------------------------------------------------------------------------
+# 4) Frozen external validation is evaluated without model fitting
+# -------------------------------------------------------------------------
+external_demo <- data.frame(
+  outcome=c(0,0,0,1,1,1,0,1),
+  prediction=c(0.05,0.20,0.25,0.72,0.85,0.93,0.30,0.78)
+)
+external_result <- validate_external_predictions(
+  external_demo,
+  outcome_type="binary",
+  prediction_kind="probability",
+  independent_cohort=TRUE,
+  cohort_label="CI independent cohort",
+  bootstrap_repetitions=50L,
+  seed=20260928L
+)
+stopifnot(identical(external_result$status, "external_validation"))
+stopifnot(identical(external_result$evaluation_status, "ok"))
+stopifnot(is.finite(external_result$metrics$auc))
+stopifnot(external_result$metrics$auc > 0.9)
+stopifnot(external_result$bootstrap$valid_repetitions > 0L)
 
 cat("multiomics reference R backend smoke: PASS\n")
