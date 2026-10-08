@@ -33,7 +33,7 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
     const contrast = await legend.evaluate((container) => {
       const color = (el, attribute) => {
         const raw = getComputedStyle(el)[attribute];
-        const channels = raw.match(/[\\d.]+/g)?.slice(0, 3).map(Number) || [];
+        const channels = raw.match(/\d+/g)?.slice(0, 3).map(Number) || [];
         return channels.map((x) => x / 255).map((x) => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4);
       };
       const luminance = (values) => values[0] * .2126 + values[1] * .7152 + values[2] * .0722;
