@@ -2254,9 +2254,9 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       ? 'omnibus condition × time interaction across ' + conditions.length + ' groups over ' + minTime + '→' + maxTime
       : 'condition × time interaction: ' + comparisons[0] + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
     mode: multiGroup ? 'random-intercept-longitudinal-omnibus' : 'random-intercept-longitudinal-model',
-    inferenceMethod: multiGroup
-      ? 'iterative random-intercept GLS with multi-df Wald/F approximation for the condition × time interaction'
-      : 'iterative random-intercept GLS with approximate subject-level t inference',
+    inferenceMethod: 'Exploratory iterative random-intercept GLS effect ONLY; browser Wald/t p-values and q-values suppressed after null-calibration concern. Use lmerTest in reference R backend for confirmatory longitudinal inference.',
+    inferenceStatus: 'reference_required_for_p_q_and_ci',
+    referenceMethodRequired: 'lmerTest',
     groupSizes,
     steps: aggregated.steps
   };
@@ -3624,6 +3624,10 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           nReference: ref.length,
           nComparison: cmp.length,
           ...stat,
+          // A Fisher-z approximation to Spearman's rho is not calibrated
+          // for paired longitudinal slopes/repeated observations. Only
+          // descriptive delta-r is published for such experiments.
+          ...(options.longitudinal ? { pValue: null, z: null } : {}),
           pattern: classifyCorrelationChange(stat.rReference, stat.rComparison),
           qValue: null
         });
@@ -3639,7 +3643,9 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
     return Math.abs(b.deltaR)-Math.abs(a.deltaR);
   });
   return {
-    method: 'Candidate pool = differential features ∪ top-variable features; Spearman correlation by condition; Fisher z test for independent-group correlation difference; BH-FDR across tested cross-omic pairs',
+    method: options.longitudinal
+      ? 'Descriptive cross-omics Spearman differences for subject trajectories; no browser p/q because longitudinal Fisher-z calibration is unverified.'
+      : 'Exploratory candidate-selected Spearman correlation by condition; approximate Fisher z for independent groups and BH across the tested selected pairs (not an unbiased discovery test).',
     testedPairs: pairs.length,
     significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
     pairs: pairs.slice(0,100)
