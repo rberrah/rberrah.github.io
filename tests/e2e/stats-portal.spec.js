@@ -59,6 +59,22 @@ test('Stats assistant routes adjusted quantitative questions to multivariable re
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#decision-launch').click();await page.locator('#decision-goal').selectOption('model');await expect(page.locator('#decision-recommendation')).toContainText('Régression linéaire multivariable');await page.locator('#decision-apply').click();await expect(page.locator('#analysis-mode')).toHaveValue('multivariable');expect(errors).toEqual([]);
 });
 
+test('Stats survival workflow adds Kaplan-Meier summaries, risk table and oriented Cox HR',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('survival');await page.locator('#load-demo').click();await expect(page.locator('#survival-cox-orientation')).toBeVisible();await expect(page.locator('#cox-group1')).toHaveValue('A');await page.locator('#run-analysis').click();await expect(page.locator('#results .survival-summary')).toBeVisible();await expect(page.locator('#results .survival-summary-card')).toHaveCount(2);await expect(page.locator('#results .survival-summary')).toContainText('Médiane de survie');await expect(page.locator('#results .survival-risk-table tbody tr')).toHaveCount(4);const cox=page.locator('#results .cox-section');await expect(cox).toBeVisible();await expect(cox).toContainText('Cox PH · A vs B');await expect(cox).toContainText('1.802');await expect(cox).toContainText('0.398');await expect(cox).toContainText('8.163');await expect(cox).toContainText('0.4446');await expect(cox).toContainText('0.4414');await page.locator('#cox-group1').selectOption('B');await expect(page.locator('#results .cox-section')).toContainText('Cox PH · B vs A');await expect(page.locator('#results .cox-section')).toContainText('0.555');expect(errors).toEqual([]);
+});
+
+test('Stats Cox panel warns when one survival group has no events',async({page})=>{
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await page.locator('#analysis-mode').selectOption('survival');await page.locator('#data-input').fill(`group,time,event
+A,1,1
+A,2,1
+A,3,1
+A,4,1
+B,5,0
+B,6,0
+B,7,0
+B,8,0`);await page.locator('#parse-data').click();await page.locator('#run-analysis').click();await expect(page.locator('#results .cox-warning')).toContainText('Estimation instable');await expect(page.locator('#results .cox-warning')).toContainText('HR de Cox standard');expect(errors).toEqual([]);
+});
+
 test('Stats study planning computes sample size and dropout inflation',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/stats/tool/');await expect(page.locator('#study-planning')).toBeVisible();await expect(page.locator('#plan-design')).toHaveValue('two_means');await page.locator('#plan-run').click();await expect(page.locator('#plan-result strong')).toContainText('70 par groupe');await expect(page.locator('#plan-result strong')).toContainText('140 au total');await expect(page.locator('#plan-result small')).toContainText('63 par groupe');await page.locator('#plan-design').selectOption('paired_means');await page.locator('#plan-run').click();await expect(page.locator('#plan-result strong')).toContainText('36 participants au total');await expect(page.locator('#plan-result small')).toContainText('32');expect(errors).toEqual([]);
 });
