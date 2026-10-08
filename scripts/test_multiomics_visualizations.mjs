@@ -229,12 +229,12 @@ assert.equal(native.focusedMetabolicNetwork.nodes.find((n)=>n.id==='lactate').me
 // Optional feature-to-ChEBI table is an explicit user claim, never an inferred
 // identification. Statistical results remain exactly as originally fitted.
 const sampleAnnotations=parseMetaboliteAnnotations(
-  'feature_id,chebi_id\\nMS_peak_A,CHEBI:24996\\nMS_peak_B,CHEBI:30031\\n');
+  'feature_id,chebi_id\nMS_peak_A,CHEBI:24996\nMS_peak_B,CHEBI:30031\n');
 assert.equal(sampleAnnotations.length,2);
 assert.equal(sampleAnnotations[0].status,'user_declared');
-assert.throws(()=>parseMetaboliteAnnotations('feature_id,chebi_id\\nA,CHEBI:unknown'),/CHEBI:number/);
-assert.throws(()=>parseMetaboliteAnnotations('feature_id,chebi_id\\nA,CHEBI:24996\\nA,CHEBI:30031'),/duplicate feature_id/);
-assert.throws(()=>parseMetaboliteAnnotations('feature_id,unknown\\nA,CHEBI:24996'),/feature_id and chebi_id/);
+assert.throws(()=>parseMetaboliteAnnotations('feature_id,chebi_id\nA,CHEBI:unknown'),/CHEBI:number/);
+assert.throws(()=>parseMetaboliteAnnotations('feature_id,chebi_id\nA,CHEBI:24996\nA,CHEBI:30031'),/duplicate feature_id/);
+assert.throws(()=>parseMetaboliteAnnotations('feature_id,unknown\nA,CHEBI:24996'),/feature_id and chebi_id/);
 const anonymousInput={layers:{metabolomics:{rows:[
   row('MS_peak_A',420,0.03,'as_supplied'),row('MS_peak_B',-90,0.03,'as_supplied'),
   row('MS_unidentified',70,0.02,'as_supplied')
@@ -263,7 +263,7 @@ const duplicatedPeaks=await buildMultiomicsVisualizationData({
     row('MS_peak_A',12,0.01,'log2'),row('MS_peak_B',-15,0.02,'log2')
   ]}}},
   metaboliteAnnotations:parseMetaboliteAnnotations(
-    'feature_id,chebi_id\\nMS_peak_A,CHEBI:24996\\nMS_peak_B,CHEBI:24996\\n')
+    'feature_id,chebi_id\nMS_peak_A,CHEBI:24996\nMS_peak_B,CHEBI:24996\n')
 });
 assert.equal(duplicatedPeaks.centralCarbon.metabolites.find((n)=>n.id==='lactate').measurement.status,
   'multiple_features','Do not pick an arbitrary MS adduct among two features for one chemical identity');
@@ -271,7 +271,7 @@ assert.equal(duplicatedPeaks.focusedMetabolicNetwork.nodes.find((n)=>n.id==='lac
 const unsupportedChemical=await buildMultiomicsVisualizationData({
   files:{},metadataRows:[],columnMapping:{},dataTypes:{},
   analysisResult:{layers:{metabolomics:{rows:[row('MYFEATURE',2,0.01)]}}},
-  metaboliteAnnotations:parseMetaboliteAnnotations('feature_id,chebi_id\\nMYFEATURE,CHEBI:99999999\\n')
+  metaboliteAnnotations:parseMetaboliteAnnotations('feature_id,chebi_id\nMYFEATURE,CHEBI:99999999\n')
 });
 assert.equal(unsupportedChemical.focusedMetabolicNetwork.audit[0].status,'declared_not_in_network');
 assert.equal(unsupportedChemical.focusedMetabolicNetwork.audit[0].id,null);
