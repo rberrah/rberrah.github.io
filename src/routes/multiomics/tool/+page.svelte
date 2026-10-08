@@ -88,6 +88,12 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
+  /** Original vendor CSV/TSV remains unchanged for provenance and re-export. */
+  let msOriginalFile = null;
+  let msAnnotationCsv = '';
+  let msAnnotationFields = [];
+  let msImportFormat = '';
+  let msUserAnnotationFile = null;
   /** @type {{feature:string,chebi:string,status:string,provenance:string}[]} */
   let metaboliteAnnotations = [];
   let annotationFileName = '';
@@ -527,6 +533,13 @@
     analysisResult = null;
     analysisStatus = 'idle';
     analysisError = '';
+    if (layer === 'metabolomics') {
+      msOriginalFile = file;
+      msAnnotationCsv = '';
+      msAnnotationFields = [];
+      msImportFormat = '';
+      msImportMessage = '';
+    }
     if (layer === 'metadata') {
       msAutoMetadata = false;
       files = { ...files, metadata: file };
@@ -534,6 +547,9 @@
     } else if (layer === 'metabolomics' && file) {
       try {
         const converted = convertMsAucExport(await file.text());
+        msAnnotationCsv = converted.annotationsCsv || '';
+        msAnnotationFields = converted.annotationColumns || [];
+        msImportFormat = converted.format;
         const matrix = ['long_ms_auc','wide_ms_auc'].includes(converted.format)
           ? new File([converted.matrixCsv], file.name.replace(/\.[^.]+$/, '') + '_matrix.csv', { type:'text/csv' })
           : file;
@@ -564,16 +580,20 @@
         if (converted.format !== 'matrix') metabolomicsValues = 'peak_area';
         msImportMessage = converted.format === 'long_ms_auc'
           ? t('Aires de pics MS importées : ', 'MS peak areas imported: ')
-            + converted.features + t(' molécules × ', ' features × ') + converted.assays
+            + converted.features + t(' signaux MS × ', ' MS features × ') + converted.assays
             + t(' injections. ', ' injections. ')
             + (autoMeta ? t('Groupes lus dans le fichier.', 'Groups read from the file.')
               : t('Conservez ou fournissez votre tableau des échantillons.', 'Keep or upload sample metadata.'))
           : converted.format === 'wide_ms_auc'
-            ? t('Matrice AUC MS importée : colonnes m/z, temps de rétention et annotations techniques exclues. Ajoutez les métadonnées des échantillons pour lancer les calculs.', 'MS AUC matrix imported: m/z, retention time and other technical annotation columns excluded. Upload sample metadata to run the analysis.')
+            ? t('Aires de pics MS importées : les colonnes m/z, RT et annotations sont conservées séparément et non utilisées comme intensités. Fournissez les métadonnées des échantillons.', 'MS peak areas imported: m/z, RT and annotations are retained separately and not treated as intensities. Upload sample metadata.')
             : t('Matrice chargée directement. Vérifiez si ses valeurs représentent réellement des aires de pics ou des intensités déjà transformées.', 'Matrix loaded directly. Verify whether values represent raw peak areas or already transformed intensities.');
         await inspectMatrix(layer, matrix);
       } catch (error) {
         files = { ...files, metabolomics: null };
+        msOriginalFile = null;
+        msAnnotationCsv = '';
+        msAnnotationFields = [];
+        msImportFormat = '';
         msImportMessage = '';
         analysisError = error instanceof Error ? error.message : 'Invalid MS AUC export';
         await inspectMatrix(layer, null);
@@ -593,6 +613,7 @@
     annotationFileName = '';
     annotationError = '';
     metaboliteAnnotations = [];
+    msUserAnnotationFile = file;
     if (!file) return;
     try {
       metaboliteAnnotations = parseMetaboliteAnnotations(await file.text());
@@ -942,6 +963,40 @@
     };
   }
 
+  async function sha256OfFile(file) {
+    if (!file || !globalThis.crypto?.subtle) return null;
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function attachMsProvenance(result) {
+    if (!msOriginalFile && !msUserAnnotationFile) return;
+    const source = msOriginalFile ? {
+      name: msOriginalFile.name, bytes: msOriginalFile.size, sha256: await sha256OfFile(msOriginalFile),
+      importFormat: msImportFormat || 'matrix', annotationColumns: msAnnotationFields,
+      extractedAnnotationRows: msAnnotationCsv ? Math.max(0, msAnnotationCsv.trim().split(/\r?\n/).length - 1) : 0,
+      quantitativeMatrixSha256: result?.inputIntegrity?.files?.metabolomics?.sha256 || null,
+      note: 'Original vendor file must be archived alongside the derived matrix. A peak is not a verified chemical identity.'
+    } : null;
+    const crosswalk = msUserAnnotationFile ? {
+      name: msUserAnnotationFile.name, bytes: msUserAnnotationFile.size,
+      sha256: await sha256OfFile(msUserAnnotationFile),
+      status: 'user_declared_unverified', affects: 'visualizations_only'
+    } : null;
+    result.msImportProvenance = { originalSource: source, userIdentifierCrosswalk: crosswalk };
+    result.reproducibility = { ...(result.reproducibility || {}), msSource: result.msImportProvenance };
+  }
+
+  function downloadMsAnnotationTable() {
+    if (!msAnnotationCsv) return;
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(new Blob([msAnnotationCsv], { type:'text/csv;charset=utf-8' }));
+    link.href = url;
+    link.download = 'ms_technical_annotations_preserved.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function runReferenceBackend() {
     const health = await checkReferenceBackend(false);
     if (!health) {
@@ -982,7 +1037,7 @@
     analysisError = '';
     analysisResult = null;
     if (!ready) {
-      analysisError = 'Provide metadata and at least two omics layers, or one MS metabolomics layer with a group/time/outcome objective.';
+      analysisError = t('Fournissez un tableau des échantillons et au moins une matrice RNA, protéines ou métabolites, puis vérifiez les colonnes et l’objectif.', 'Upload a sample sheet and at least one RNA, protein or metabolite matrix, then verify the columns and objective.');
       return;
     }
     analysisStatus = 'running';
@@ -1028,7 +1083,7 @@
         resolveIdentifiers,
         useReactome
       });
-      if (referenceBackendMode !== 'browser' && !msOnly) {
+      if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
         analysisResult = { ...analysisResult, referenceBackend };
       }
@@ -1051,6 +1106,7 @@
           ? visualizationError.message
           : 'Visualization preparation failed.';
       }
+      await attachMsProvenance(analysisResult);
       analysisStatus = 'done';
     } catch (error) {
       analysisStatus = 'error';
@@ -1303,10 +1359,13 @@
         ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
         : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
-  $: msOnly = omicsCount === 1 && Boolean(files.metabolomics) && objective !== 'explore';
-  $: ready = (omicsCount >= 2 || msOnly) && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
+  $: singleOmic = omicsCount === 1;
+  $: ready = omicsCount >= 1 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
   $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, String($language || 'fr')) : [];
-  $: analysisPlan = objective === 'explore'
+  $: analysisPlan = singleOmic && objective === 'explore'
+    ? t('contrôle qualité → prétraitement documenté → ACP et variables principales de cette omique (exploratoire, sans intégration multi-omique)',
+      'quality control → documented preprocessing → PCA and leading features of this omic (exploratory, no multi-omics integration)')
+    : objective === 'explore'
     ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
         'preprocessing → replicate aggregation → batch/covariate adjustment → within-layer scaling → balanced multi-block PCA → loadings → Reactome')
     : objective === 'outcome'
@@ -1329,13 +1388,13 @@
 <svelte:head>
   <title>{t('Outil multi-omique — PMx Explain', 'Multi-omics tool — PMx Explain')}</title>
   <meta name="robots" content="noindex,nofollow,noarchive" />
-  <meta name="description" content="Unlisted prototype for guided integration of transcriptomics, proteomics and metabolomics." />
+  <meta name="description" content="Guided analysis of one or more transcriptomics, proteomics and metabolomics layers." />
 </svelte:head>
 
 <section class="hero">
   <a class="tool-back" href={`${base}/multiomics`}>← {t('Présentation de l’outil', 'Tool overview')}</a>
-  <p class="eyebrow">{t('Prototype expérimental · outil · v1.3', 'Experimental prototype · tool · v1.3')}</p>
-  <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
+  <p class="eyebrow">{t('Prototype expérimental · omique unique ou multi-omique', 'Experimental prototype · single-omics or multi-omics')}</p>
+  <h1>{t('Analyser une ou plusieurs omiques et comprendre les résultats.', 'Analyze one or several omics layers and understand the results.')}</h1>
   <p class="lede">{t('Choisissez ce que vous voulez comprendre, ajoutez vos données et consultez les graphiques. Les vérifications scientifiques restent accessibles.', 'Choose your question, add your data and explore the figures. All scientific checks remain available.')}</p>
   <div class="quick-start" data-testid="multiomics-quick-start">
     <div>
@@ -1355,7 +1414,7 @@
 <section class="simple-steps" aria-label={t('Étapes principales', 'Main steps')}>
   <span><b>1</b> {t('Question', 'Question')}</span>
   <span><b>2</b> {t('Étude', 'Study')}</span>
-  <span><b>3</b> {t('Fichiers', 'Files')}</span>
+  <span><b>3</b> {t('Fichiers (1 à 3 omiques)', 'Files (1 to 3 omics)')}</span>
   <span><b>4</b> {t('Résultats', 'Results')}</span>
 </section>
 
@@ -2015,7 +2074,13 @@
   </div>
 
   {#if msImportMessage}<p class="ms-import-message" data-testid="multiomics-ms-auc-import-status">{msImportMessage}</p>{/if}
-  {#if msOnly}<p class="ms-import-message">{t('Mode MS seul : comparaison de groupes / temps / outcome, sans prétendre calculer une intégration multi-omique. Les analyses exploratoires multiblocs exigent au moins deux couches.', 'MS-only mode: group / time / outcome analysis without claiming cross-omics integration. Multi-block exploratory analysis still requires at least two layers.')}</p>{/if}
+  {#if singleOmic}<p class="ms-import-message" data-testid="multiomics-single-omic-notice">{t('Mode omique unique : exploration, groupes, temps ou outcome selon votre plan. Aucune intégration inter-omique ne sera calculée.', 'Single-omics mode: exploration, groups, time or outcome, depending on the study. No cross-omics integration will be computed.')}</p>{/if}
+  {#if msOriginalFile && msAnnotationCsv}
+    <div class="ms-import-message" data-testid="multiomics-ms-annotations-preserved">
+      <span>{t('Annotations MS conservées séparément : ', 'MS annotations preserved separately: ')}{msAnnotationFields.join(', ')}</span>
+      <button class="btn btn-outline btn-small" type="button" onclick={downloadMsAnnotationTable}>{t('Exporter les annotations techniques', 'Export technical annotations')}</button>
+    </div>
+  {/if}
   {#if files.transcriptomics || files.proteomics || files.metabolomics}
     <div class="simple-file-values" data-testid="multiomics-simple-values">
       <strong>{t('Que représentent les nombres de vos fichiers ?', 'What do the numbers in your files mean?')}</strong>
@@ -2270,6 +2335,7 @@
   </div>
 
   <div class="computed-summary">
+    <article data-testid="multiomics-analysis-mode"><span>{t('Type d’analyse', 'Analysis type')}</span><strong>{analysisResult.engine?.analysisMode === 'single_omic' ? t('Omique unique', 'Single omic') : t('Multi-omique', 'Multi-omics')}</strong></article>
     <article><span>{t('Sujets', 'Subjects')}</span><strong>{analysisResult.metadataSummary.subjects}</strong></article>
     <article><span>{t('Prélèvements biologiques', 'Biological samples')}</span><strong>{analysisResult.metadataSummary.samples}</strong></article>
     <article><span>{t('Mesures', 'Assays')}</span><strong>{analysisResult.metadataSummary.assays}</strong></article>
@@ -2284,6 +2350,17 @@
   {/if}
 
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
+    <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
+    <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
+    {#if analysisResult.referenceBackend?.status === 'ok'}
+      {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, value]}
+        <span>{key} : {value.method || key} — {value.status}</span>
+      {/each}
+    {:else if analysisResult.referenceBackend}
+      <span>{t('R non exécuté : ', 'R not executed: ')}{analysisResult.referenceBackend.message || analysisResult.referenceBackend.status}</span>
+    {:else}
+      <span>{t('R non demandé pour cette analyse (ex. démonstration navigateur).', 'R not requested for this analysis (e.g. browser demo).')}</span>
+    {/if}
     <strong>{t('Contrôle des données', 'Data quality check')}</strong>
     {#each Object.entries(analysisResult.layers || {}) as [layer, layerResult]}
       <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : layerResult.qc?.inferenceTier?.level === 'screening' ? t('exploration uniquement', 'exploratory only') : t('aucune alerte détectée', 'no warning detected')}</span>
