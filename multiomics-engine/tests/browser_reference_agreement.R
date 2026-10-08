@@ -29,10 +29,10 @@ fit_reference <- function(df) {
 reference <- t(vapply(split(dat, dat$feature), fit_reference, numeric(3)))
 reference <- reference[match(got$feature,rownames(reference)),,drop=FALSE]
 stopifnot(all(!is.na(reference)))
-reference_q <- stats::p.adjust(reference[,"p_value"],method="BH")
-stopifnot(max(abs(got$effect-reference[,"effect"]))<1e-6)
-stopifnot(max(abs(got$se-reference[,"se"]))<1e-5)
-stopifnot(max(abs(got$p_value-reference[,"p_value"]))<1e-5)
+reference_q <- stats::p.adjust(reference[,3],method="BH")
+stopifnot(max(abs(got$effect-reference[,1]))<1e-6)
+stopifnot(max(abs(got$se-reference[,2]))<1e-5)
+stopifnot(max(abs(got$p_value-reference[,3]))<1e-5)
 stopifnot(max(abs(got$q_value-reference_q))<1e-5)
 cat("Browser adjusted 2-group OLS-HC3 vs independent base-R lm / sandwich / BH: PASS,",
     nrow(got),"features\n")
