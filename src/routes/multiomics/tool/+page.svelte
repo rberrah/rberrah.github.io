@@ -5,6 +5,7 @@
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
+  import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -85,6 +86,8 @@
   let proteomicsIdType = 'uniprot';
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
+  let msImportMessage = '';
+  let msAutoMetadata = false;
   let metabolomicsIdType = 'chebi';
   let msBlankFilter = 'flag';
   let msBlankFold = 5;
@@ -515,13 +518,47 @@
   async function selectFile(layer, event) {
     const input = /** @type {HTMLInputElement} */ (event.currentTarget);
     const file = input.files?.[0] ?? null;
-    files = { ...files, [layer]: file };
     demoLoaded = false;
     analysisResult = null;
     analysisStatus = 'idle';
     analysisError = '';
-    if (layer === 'metadata') await inspectMetadata(file);
-    else await inspectMatrix(layer, file);
+    if (layer === 'metadata') {
+      msAutoMetadata = false;
+      files = { ...files, metadata: file };
+      await inspectMetadata(file);
+    } else if (layer === 'metabolomics' && file) {
+      try {
+        const converted = convertMsAucExport(await file.text());
+        const matrix = converted.format === 'long_ms_auc'
+          ? new File([converted.matrixCsv], file.name.replace(/\\.[^.]+$/, '') + '_matrix.csv', { type:'text/csv' })
+          : file;
+        const shouldUpdateMetadata = converted.metadataCsv && (!files.metadata || msAutoMetadata);
+        const autoMeta = shouldUpdateMetadata
+          ? new File([converted.metadataCsv], 'metadata_from_ms_auc.csv', { type:'text/csv' }) : null;
+        files = { ...files, metabolomics: matrix, ...(autoMeta ? { metadata: autoMeta } : {}) };
+        if (autoMeta) {
+          msAutoMetadata = true;
+          await inspectMetadata(autoMeta);
+        }
+        metabolomicsValues = 'peak_area';
+        msImportMessage = converted.format === 'long_ms_auc'
+          ? t('Aires de pics MS importées : ', 'MS peak areas imported: ')
+            + converted.features + t(' molécules × ', ' features × ') + converted.assays
+            + t(' injections. ', ' injections. ')
+            + (autoMeta ? t('Groupes lus dans le fichier.', 'Groups read from the file.')
+              : t('Conservez ou fournissez votre tableau des échantillons.', 'Keep or upload sample metadata.'))
+          : t('Matrice chargée directement : valeurs considérées comme des aires de pics non négatives.', 'Matrix loaded directly: values treated as non-negative peak areas.');
+        await inspectMatrix(layer, matrix);
+      } catch (error) {
+        files = { ...files, metabolomics: null };
+        msImportMessage = '';
+        analysisError = error instanceof Error ? error.message : 'Invalid MS AUC export';
+        await inspectMatrix(layer, null);
+      }
+    } else {
+      files = { ...files, [layer]: file };
+      await inspectMatrix(layer, file);
+    }
   }
 
   async function loadDemo() {
@@ -904,7 +941,7 @@
     analysisError = '';
     analysisResult = null;
     if (!ready) {
-      analysisError = 'Complete the metadata mapping and load at least two omics matrices first.';
+      analysisError = 'Provide metadata and at least two omics layers, or one MS metabolomics layer with a group/time/outcome objective.';
       return;
     }
     analysisStatus = 'running';
@@ -950,7 +987,7 @@
         resolveIdentifiers,
         useReactome
       });
-      if (referenceBackendMode !== 'browser') {
+      if (referenceBackendMode !== 'browser' && !msOnly) {
         const referenceBackend = await runReferenceBackend();
         analysisResult = { ...analysisResult, referenceBackend };
       }
@@ -1224,7 +1261,8 @@
         ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
         : Boolean(columnMapping.outcome)));
   $: objectiveOperational = designType !== 'crossover';
-  $: ready = omicsCount >= 2 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
+  $: msOnly = omicsCount === 1 && Boolean(files.metabolomics) && objective !== 'explore';
+  $: ready = (omicsCount >= 2 || msOnly) && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
   $: interpretationItems = analysisResult ? buildInterpretation(analysisResult, String($language || 'fr')) : [];
   $: analysisPlan = objective === 'explore'
     ? t('prétraitement → agrégation des réplicats → ajustement batch/covariables → standardisation par couche → ACP multi-blocs équilibrée → loadings → Reactome',
@@ -1699,7 +1737,7 @@
       <label>
         <span>{t('Valeurs', 'Values')}</span>
         <select bind:value={metabolomicsValues}>
-          <option value="peak_area">{t('Aire de pic / intensité', 'Peak area / intensity')}</option>
+          <option value="peak_area">{t('AUC MS (aire sous le pic chromatographique)', 'MS AUC (chromatographic peak area)')}</option>
           <option value="normalized">{t('Abondance normalisée', 'Normalised abundance')}</option>
           <option value="concentration">{t('Concentration absolue', 'Absolute concentration')}</option>
           <option value="log_abundance">{t('Abondance logarithmique', 'Log abundance')}</option>
@@ -1916,12 +1954,14 @@
 
     <label class:loaded={files.metabolomics}>
       <strong>{t('Métabolomique', 'Metabolomics')}</strong>
-      <span>{t('Quantités mesurées pour les petites molécules', 'Measured amounts of small molecules')}</span>
-      <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
+      <span>{t('Aires de pics (AUC) LC-MS / GC-MS : matrice ou export long avec molécule, échantillon et AUC', 'LC-MS / GC-MS peak areas (AUC): matrix or long export with feature, sample and AUC')}</span>
+      <input type="file" data-testid="multiomics-ms-auc-upload" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
     </label>
   </div>
 
+  {#if msImportMessage}<p class="ms-import-message" data-testid="multiomics-ms-auc-import-status">{msImportMessage}</p>{/if}
+  {#if msOnly}<p class="ms-import-message">{t('Mode MS seul : comparaison de groupes / temps / outcome, sans prétendre calculer une intégration multi-omique. Les analyses exploratoires multiblocs exigent au moins deux couches.', 'MS-only mode: group / time / outcome analysis without claiming cross-omics integration. Multi-block exploratory analysis still requires at least two layers.')}</p>{/if}
   {#if files.transcriptomics || files.proteomics || files.metabolomics}
     <div class="simple-file-values" data-testid="multiomics-simple-values">
       <strong>{t('Que représentent les nombres de vos fichiers ?', 'What do the numbers in your files mean?')}</strong>
@@ -1952,7 +1992,7 @@
         {#if files.metabolomics}
           <label><span>{t('Métabolites : type de valeurs', 'Metabolites: value type')}</span>
             <select bind:value={metabolomicsValues} aria-label={t('Type de valeurs des métabolites', 'Metabolite value type')}>
-              <option value="peak_area">{t('Intensité / aire de pic', 'Intensity / peak area')}</option>
+              <option value="peak_area">{t('AUC MS : aire de pic / intensité relative', 'MS AUC: peak area / relative intensity')}</option>
               <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
               <option value="concentration">{t('Concentrations', 'Concentrations')}</option>
               <option value="log_abundance">{t('Valeurs logarithmiques', 'Log-transformed values')}</option>
@@ -3141,4 +3181,5 @@
   .optional-workflows { margin-top:16px; border:1px solid var(--border,#d9e0e3); border-radius:12px; padding:12px 16px; }
   .optional-workflows > summary { cursor:pointer; font-weight:700; }
   .optional-workflows > .contract { margin-top:16px; }
+  .ms-import-message { padding:10px 13px; border:1px solid #b1cbd5; border-radius:9px; color:#1d3440; background:#eff7fa; font-size:.88rem; line-height:1.55; }
 </style>
