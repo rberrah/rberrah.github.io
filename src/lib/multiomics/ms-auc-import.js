@@ -5,9 +5,9 @@ import { parseDelimited } from './deterministic.js';
 // sample-group guessing, MS peak annotation, concentration conversion or
 // biological interpretation occurs in this importer.
 const aliases = {
-  assay: ['assay_id','injection_id','file_name','filename','sample_name','sample_id','sample','injection','sampleid'],
-  feature: ['feature_id','metabolite_id','compound_id','metabolite','compound','feature','analyte','peak_id','peak','name','identifier'],
-  value: ['peak_area','auc','area','integrated_area','peakarea','area_under_curve','ms_auc','abundance','intensity'],
+  assay: ['assay_id','injection_id','injection_name','file_name','filename','raw_file','raw_file_name','sample_name','sample_id','sample','injection','sampleid'],
+  feature: ['feature_id','feature_name','metabolite_id','metabolite_name','compound_id','compound_name','analyte_name','metabolite','compound','feature','analyte','peak_id','peak_name','peak','name','identifier'],
+  value: ['peak_area','peak_area_auc','peak_intensity','integrated_peak_area','auc','area','integrated_area','peakarea','area_under_curve','ms_auc','abundance','intensity'],
   subject: ['subject_id','subject','individual_id','patient_id','animal_id'],
   sample: ['sample_id','sample','specimen_id','biological_sample'],
   condition: ['condition','group','treatment','class','status'],
