@@ -3,6 +3,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
+  import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
 
   /** @param {string} fr @param {string} en */
@@ -1690,6 +1691,7 @@
       </div>
       <p class="note"><code>Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output</code></p>
       <p class="note">{t('Le logiciel n’emploie le terme « validation externe » que si l’indépendance de la cohorte est explicitement déclarée ; cette indépendance doit rester documentée par la provenance de l’étude.', 'The software uses the term “external validation” only when cohort independence is explicitly asserted; that independence must still be documented by study provenance.')}</p>
+      <ExternalValidationPanel backendUrl={referenceBackendUrl} language={$language ?? 'fr'} />
     </div>
   </div>
 
