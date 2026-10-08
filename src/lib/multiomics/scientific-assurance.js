@@ -65,6 +65,10 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
         'requires_confirmation');
     }
   }
+  if (protocol.objective === 'time' && protocol.longitudinal) add('longitudinal_browser_uncalibrated',
+    'Le modèle longitudinal navigateur ne fournit plus de p-value, q-value ou intervalle de confiance : une simulation nulle a révélé une inflation possible des faux positifs. Les effets affichés restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
+    'The browser longitudinal model no longer reports p-values, q-values or confidence intervals: null simulation suggested possible type-I inflation. Effects are descriptive only. Use lmerTest with the full study design for inference.',
+    'requires_confirmation');
   if (result?.predictiveOutcome?.status === 'ok') add('cv_preprocessing_limit',
     'La CV est interne ; sélection des variables recalculée dans chaque pli, mais certains prétraitements omiques sont effectués avant la séparation. Une validation externe indépendante reste nécessaire.',
     'Internal CV refits feature selection per fold, but some omics preprocessing occurs before splitting. Independent external validation is still needed.',
@@ -73,9 +77,20 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'Les q-values sont corrigées par couche omique, pas globalement sur toutes les couches et analyses de voies : préspécifier les familles de tests.',
     'BH q-values are adjusted within each omics layer, not globally across omics and pathway tests: prespecify the tested families.',
     'requires_confirmation');
-  if (result?.reactome) add('pathway_hypotheses',
-    'Les annotations de voies et réseaux servent à générer des hypothèses, pas à établir une causalité.',
-    'Pathway and network annotations generate hypotheses; they do not establish causality.');
+  if (result?.reactome) {
+    add('pathway_hypotheses',
+      'Les enrichissements Reactome génèrent des hypothèses, sans preuve causale. Une sélection préalable des variables sur les mêmes données empêche de les interpréter comme validation indépendante.',
+      'Reactome enrichments generate hypotheses, not causal evidence. Feature selection on the same data prevents independent confirmatory interpretation.');
+    const responses = [result.reactome.combined, ...Object.values(result.reactome.perLayer || {})];
+    const incomplete = responses.filter((response) => response?.assayUniverse?.multiplicityStatus !== 'full_assay_universe_family');
+    if (incomplete.length) add('pathway_fdr_not_estimable',
+      'Au moins un enrichissement Reactome n’a pas d’univers de voies complet ou cohérent : sa FDR spécifique à l’étude n’est pas calculable, et la FDR Reactome d’origine ne peut pas la remplacer.',
+      'At least one Reactome enrichment has an incomplete/inconsistent pathway universe: study-specific FDR is unavailable and cannot be replaced by Reactome default FDR.',
+      'requires_confirmation');
+    else add('pathway_family_validated',
+      'FDR Reactome calculée sur toutes les voies associées à l’univers mesuré ; les dépendances entre voies et le biais de sélection des variables restent des limites.',
+      'Reactome FDR is calculated over all pathways in the measured assay universe; pathway dependence and prior feature selection remain limitations.');
+  }
   if (!layers.length) add('no_results', 'Aucun résultat statistique exploitable.', 'No usable statistical result.', 'requires_confirmation');
   const status = exploratory ? 'descriptive' : notes.some((item) => item.level === 'requires_confirmation')
     ? 'needs_reference_confirmation' : 'exploratory_inference';

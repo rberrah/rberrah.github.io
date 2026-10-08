@@ -1237,7 +1237,7 @@
     const pathwayRows = /** @type {any[]} */ (result.reactome?.consensus || []);
     const pathways = pathwayRows.slice(0, 30).map((pathway) =>
       '<tr><td>' + escapeHtml(pathway.name) + '</td><td>' +
-      escapeHtml(Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(4) : Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(4) : '') +
+      escapeHtml(Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(4) : 'not estimable') +
       '</td><td>' + escapeHtml(pathway.supportingLayers) + '</td></tr>'
     ).join('');
 
@@ -2442,6 +2442,11 @@
 
   {#if analysisResult.scientificAssurance}
     <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
+      {#if analysisResult.protocol?.objective === 'time' && analysisResult.protocol?.longitudinal}
+        <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité calculée dans le navigateur.', 'Longitudinal: no browser-side statistical significance is reported.')}</strong>
+          {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance exigent l’analyse de référence R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. P-values, q-values and confidence intervals require the lmerTest R reference analysis and a verified longitudinal design.')}
+        </p>
+      {/if}
       <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {analysisResult.scientificAssurance.status === 'descriptive'
         ? t('Exploration descriptive', 'Descriptive exploration')
         : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
@@ -2961,6 +2966,18 @@
     </div>
 
     {#if analysisResult.reactome}
+      {#if analysisResult.reactome.combined?.assayUniverse?.multiplicityStatus !== 'full_assay_universe_family'}
+        <p class="api-error" data-testid="multiomics-reactome-fdr-warning">
+          {t('FDR sur l’univers mesuré non estimable : couverture de l’API ou univers incohérent. Aucun résultat de voie ne peut être déclaré significatif sur cette base.', 'Measured-universe FDR not estimable: incomplete API coverage or inconsistent background. No pathway may be called significant on this basis.')}
+          {analysisResult.reactome.combined?.assayUniverse?.warning || ''}
+        </p>
+      {:else}
+        <p class="note" data-testid="multiomics-reactome-fdr-family">
+          {t('Correction BH sur', 'BH correction across')}
+          <strong>{analysisResult.reactome.combined.assayUniverse.hypothesesTested}</strong>
+          {t('voies testables dans l’univers mesuré (et non uniquement les voies déjà enrichies).', 'testable pathways within the measured universe, not only previously enriched pathways.')}
+        </p>
+      {/if}
       <div class="api-summary">
         <span><strong>{analysisResult.reactome.combined.pathwaysFound}</strong> pathways found</span>
         <span><strong>{analysisResult.reactome.combined.identifiersNotFound}</strong> identifiers not found</span>
@@ -2969,7 +2986,7 @@
         <div class="pathway-head">
   <b>{t('Voie', 'Pathway')}</b>
   <b>{t('FDR univers assay', 'Assay-universe FDR')}
-    <span class="help-tip" tabindex="0" data-tooltip={t('FDR recalculée localement par test hypergéométrique en utilisant comme univers les variables réellement conservées après QC. Si cet univers ne peut pas être mappé, la FDR Reactome par défaut sert de repli.', 'FDR recalculated locally by a hypergeometric test using the features actually retained after QC as the background universe. Reactome default FDR is used only as a fallback when that universe cannot be mapped.')}>?</span>
+    <span class="help-tip" tabindex="0" data-tooltip={t('FDR calculée par test hypergéométrique puis corrigée sur toutes les voies présentes dans l’univers réellement mesuré. Aucune FDR locale n’est affichée si la réponse Reactome est incomplète ; la FDR Reactome d’origine ne sert pas de remplacement.', 'FDR from a local hypergeometric test adjusted over all pathways supported by the actual measured assay universe. No local FDR is displayed if the Reactome response is incomplete; default Reactome FDR is never substituted.')}>?</span>
   </b>
   <b>RNA <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables transcriptomiques sélectionnées.', 'Reactome FDR using only selected transcriptomic features.')}>?</span></b>
   <b>{t('Protéine', 'Protein')} <span class="help-tip" tabindex="0" data-tooltip={t('FDR Reactome calculée uniquement avec les variables protéomiques sélectionnées.', 'Reactome FDR using only selected proteomic features.')}>?</span></b>
@@ -2981,7 +2998,7 @@
         {#each analysisResult.reactome.consensus.slice(0, 15) as pathway}
           <div>
             <a href={`https://reactome.org/content/detail/${pathway.id}`} target="_blank" rel="noreferrer">{pathway.name}</a>
-            <span>{Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(3) : Number.isFinite(pathway.fdr) ? pathway.fdr.toPrecision(3) + '*' : '—'}</span>
+            <span>{Number.isFinite(pathway.assayUniverseFdr) ? pathway.assayUniverseFdr.toPrecision(3) : '—'}</span>
             <span>{pathway.layerEvidence.transcriptomics?.fdr != null ? pathway.layerEvidence.transcriptomics.fdr.toPrecision(2) : '—'}</span>
             <span>{pathway.layerEvidence.proteomics?.fdr != null ? pathway.layerEvidence.proteomics.fdr.toPrecision(2) : '—'}</span>
             <span>{pathway.layerEvidence.metabolomics?.fdr != null ? pathway.layerEvidence.metabolomics.fdr.toPrecision(2) : '—'}</span>
@@ -2990,7 +3007,7 @@
         {/each}
       </div>
       <p class="note">{t('Le classement est déterministe : nombre de couches avec FDR de voie ≤ 0,10, puis FDR Reactome combinée, puis couverture de la voie. Il s’agit d’un classement exploratoire, pas d’une probabilité postérieure ni d’un score causal.', 'Ranking is deterministic: number of omics layers with pathway FDR ≤0.10, then combined Reactome FDR, then pathway coverage. This is an exploratory ranking, not a posterior probability or causal score.')}</p>
-      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')} <span class="help-tip" tabindex="0" data-tooltip={t('L’univers est l’ensemble des variables qui auraient pu être sélectionnées après QC. Utiliser cet univers évite de comparer un panel ciblé à tous les gènes ou métabolites connus de la base.', 'The background universe is the set of features that could have been selected after QC. Using this universe avoids comparing a targeted panel against every gene or metabolite known to the database.')}>?</span></strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Un astérisque après une FDR indique que la FDR Reactome par défaut a été utilisée comme repli.', 'An asterisk after an FDR indicates that Reactome default FDR was used as a fallback.')}</p>
+      <p class="note"><strong>{t('Univers d’enrichissement :', 'Enrichment background:')} <span class="help-tip" tabindex="0" data-tooltip={t('L’univers est l’ensemble des variables qui auraient pu être sélectionnées après QC. Utiliser cet univers évite de comparer un panel ciblé à tous les gènes ou métabolites connus de la base.', 'The background universe is the set of features that could have been selected after QC. Using this universe avoids comparing a targeted panel against every gene or metabolite known to the database.')}>?</span></strong> {analysisResult.reactome.backgroundPolicy}. {analysisResult.reactome.backgroundCaveat} {t('Une case vide signifie que cette FDR ne peut pas être estimée. La FDR Reactome d’origine reste disponible séparément dans le JSON, mais ne remplace jamais cette estimation.', 'A dash means this FDR cannot be estimated. The original Reactome FDR remains available separately in the JSON, but never replaces this estimate.')}</p>
     {:else if analysisResult.reactomeError}
       <div class="api-error">
         <strong>{t('Les statistiques locales sont terminées ; Reactome n’a pas pu être joint.', 'Local statistics completed; Reactome could not be reached.')}</strong>

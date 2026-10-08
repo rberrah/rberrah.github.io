@@ -2154,12 +2154,16 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         effect,
         foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
         effectScale: aggregated.scale,
-        pValue: fit.pValue,
+        // Browser GLS random-intercept Wald inference exceeded the nominal
+        // null rejection rate in predeclared simulations. Retain only the
+        // descriptive estimated effect until lmerTest confirms uncertainty.
+        pValue: null,
         qValue: null,
-        statistic: fit.statistic,
-        standardError: effectSe,
-        ciLow: Number.isFinite(effectSe) ? effect - tCritical95(fit.df) * effectSe : null,
-        ciHigh: Number.isFinite(effectSe) ? effect + tCritical95(fit.df) * effectSe : null,
+        statistic: null,
+        standardError: null,
+        ciLow: null,
+        ciHigh: null,
+        inferentialStatus: 'uncalibrated_reference_R_required',
         intraclassCorrelation: fit.intraclassCorrelation,
         sigmaWithin: fit.sigmaWithin,
         sigmaBetween: fit.sigmaBetween,
@@ -2167,7 +2171,7 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         nObservations: response.length,
         nReference: new Set(usable.filter((entry) => entry.row.condition === reference).map((entry) => entry.row.subjectId)).size,
         nComparison: new Set(usable.filter((entry) => entry.row.condition === comparisons[0]).map((entry) => entry.row.subjectId)).size,
-        model: 'random-intercept GLS: feature ~ condition * time + batch + selected covariates + (1|subject)'
+        model: 'EXPLORATORY random-intercept GLS effect (browser p/q suppressed): feature ~ condition * time + batch + selected covariates + (1|subject)'
       });
       continue;
     }
@@ -2199,10 +2203,11 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       effect,
       foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
       effectScale: aggregated.scale,
-      pValue,
+      pValue: null,
       qValue: null,
-      statistic: fStatistic,
+      statistic: null,
       testDf: { numerator: df1, denominator: df2 },
+      inferentialStatus: 'uncalibrated_reference_R_required',
       groupSlopes: Object.fromEntries(conditions.map((condition, index) => [condition, slopes[index]])),
       groupEndToEndChanges: Object.fromEntries(conditions.map((condition, index) => [condition, endToEndChanges[index]])),
       intraclassCorrelation: fit.intraclassCorrelation,
@@ -2216,10 +2221,12 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       ])),
       nReference: null,
       nComparison: null,
-      model: 'random-intercept GLS omnibus Wald test: feature ~ condition * time + batch + selected covariates + (1|subject)'
+      model: 'EXPLORATORY random-intercept GLS omnibus effect (browser p/q suppressed): feature ~ condition * time + batch + selected covariates + (1|subject)'
     });
   }
 
+  // Deliberately no BH correction for unsupported browser Wald p-values.
+  // The reference R backend must supply inferential statistics separately.
   bhAdjust(rows);
   rows.sort((a,b) => {
     const aq = Number.isFinite(a.qValue) ? a.qValue : 1;
@@ -2247,9 +2254,9 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
       ? 'omnibus condition × time interaction across ' + conditions.length + ' groups over ' + minTime + '→' + maxTime
       : 'condition × time interaction: ' + comparisons[0] + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
     mode: multiGroup ? 'random-intercept-longitudinal-omnibus' : 'random-intercept-longitudinal-model',
-    inferenceMethod: multiGroup
-      ? 'iterative random-intercept GLS with multi-df Wald/F approximation for the condition × time interaction'
-      : 'iterative random-intercept GLS with approximate subject-level t inference',
+    inferenceMethod: 'Exploratory iterative random-intercept GLS effect ONLY; browser Wald/t p-values and q-values suppressed after null-calibration concern. Use lmerTest in reference R backend for confirmatory longitudinal inference.',
+    inferenceStatus: 'reference_required_for_p_q_and_ci',
+    referenceMethodRequired: 'lmerTest',
     groupSizes,
     steps: aggregated.steps
   };
@@ -3617,6 +3624,10 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
           nReference: ref.length,
           nComparison: cmp.length,
           ...stat,
+          // A Fisher-z approximation to Spearman's rho is not calibrated
+          // for paired longitudinal slopes/repeated observations. Only
+          // descriptive delta-r is published for such experiments.
+          ...(options.longitudinal ? { pValue: null, z: null } : {}),
           pattern: classifyCorrelationChange(stat.rReference, stat.rComparison),
           qValue: null
         });
@@ -3632,7 +3643,9 @@ function analyseCrossOmics(aggregatedByLayer, layers, loadedLayers, options) {
     return Math.abs(b.deltaR)-Math.abs(a.deltaR);
   });
   return {
-    method: 'Candidate pool = differential features ∪ top-variable features; Spearman correlation by condition; Fisher z test for independent-group correlation difference; BH-FDR across tested cross-omic pairs',
+    method: options.longitudinal
+      ? 'Descriptive cross-omics Spearman differences for subject trajectories; no browser p/q because longitudinal Fisher-z calibration is unverified.'
+      : 'Exploratory candidate-selected Spearman correlation by condition; approximate Fisher z for independent groups and BH across the tested selected pairs (not an unbiased discovery test).',
     testedPairs: pairs.length,
     significantPairs: pairs.filter((x) => Number.isFinite(x.qValue) && x.qValue <= 0.10).length,
     pairs: pairs.slice(0,100)
@@ -3681,23 +3694,52 @@ function hypergeometricUpperTail(k, population, successes, draws) {
   return Math.max(0, Math.min(1, Math.exp(maxLog) * sum));
 }
 
-function applyAssayUniverseBackground(selectedResult, universeResult, selectedSubmitted, universeSubmitted) {
-  const universeMap = new Map((universeResult?.pathways || []).map((pathway) => [pathway.id, pathway]));
+export function applyAssayUniverseBackground(selectedResult, universeResult, selectedSubmitted, universeSubmitted) {
+  // Reactome's selected-list response is itself filtered by the selected
+  // identifiers. Correcting BH only over that list understates multiplicity.
+  // Define the statistical family from *all* pathways hit by the measured
+  // assay universe, including pathways with k=0 in the selected feature set.
+  const background = universeResult?.pathways || [];
+  const selected = selectedResult?.pathways || [];
+  const backgroundMap = new Map(background.map((row) => [row.id, row]));
+  const selectedMap = new Map(selected.map((row) => [row.id, row]));
   const M = Math.max(0, universeSubmitted - Number(universeResult?.identifiersNotFound || 0));
   const n = Math.max(0, selectedSubmitted - Number(selectedResult?.identifiersNotFound || 0));
-  const rows = (selectedResult?.pathways || []).map((pathway) => {
-    const background = universeMap.get(pathway.id);
-    if (!background || !(M > 0) || !(n > 0)) {
-      return { ...pathway, assayUniversePValue: null, assayUniverseFdr: null, assayUniverseEntities: null };
+  const expectedBackground = Number(universeResult?.pathwaysFound ?? background.length);
+  const expectedSelected = Number(selectedResult?.pathwaysFound ?? selected.length);
+  const complete = Number.isFinite(expectedBackground) && Number.isFinite(expectedSelected)
+    && background.length >= expectedBackground && selected.length >= expectedSelected;
+  const validUniverse = M > 0 && n > 0 && n <= M && complete &&
+    background.length > 0 && background.every((item) => item.id);
+  const inconsistent = selected.some((pathway) => {
+    const b = backgroundMap.get(pathway.id);
+    return !b || Number(pathway.entitiesFound || 0) > Number(b.entitiesFound || 0);
+  });
+  const allPValues = [];
+  if (validUniverse && !inconsistent) {
+    for (const pathway of background) {
+      const K = Math.min(M, Math.max(0, Number(pathway.entitiesFound || 0)));
+      const k = Math.max(0, Number(selectedMap.get(pathway.id)?.entitiesFound || 0));
+      allPValues.push({
+        id: pathway.id,
+        pValue: hypergeometricUpperTail(k, M, K, n),
+        qValue: null
+      });
     }
-    const K = Math.min(M, Math.max(0, Number(background.entitiesFound || 0)));
-    const k = Math.min(n, Math.max(0, Number(pathway.entitiesFound || 0)));
-    const pValue = hypergeometricUpperTail(k, M, K, n);
+    bhAdjust(allPValues);
+  }
+  const adjusted = new Map(allPValues.map((row) => [row.id, row]));
+  const rows = selected.map((pathway) => {
+    const backgroundPathway = backgroundMap.get(pathway.id);
+    const result = adjusted.get(pathway.id);
+    const K = backgroundPathway && M > 0
+      ? Math.min(M, Math.max(0, Number(backgroundPathway.entitiesFound || 0))) : null;
+    const k = Number(pathway.entitiesFound || 0);
     return {
       ...pathway,
-      assayUniversePValue: pValue,
-      assayUniverseFdr: null,
-      assayUniverseEntities: {
+      assayUniversePValue: result?.pValue ?? null,
+      assayUniverseFdr: result?.qValue ?? null,
+      assayUniverseEntities: K === null ? null : {
         selectedHits: k,
         selectedMapped: n,
         universeHits: K,
@@ -3705,15 +3747,16 @@ function applyAssayUniverseBackground(selectedResult, universeResult, selectedSu
       }
     };
   });
-  const temp = rows.map((row) => ({ pValue: row.assayUniversePValue, qValue: null }));
-  bhAdjust(temp);
-  rows.forEach((row, index) => { row.assayUniverseFdr = temp[index].qValue; });
   rows.sort((a,b) => {
-    const aq = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : Number.isFinite(a.fdr) ? a.fdr : 1;
-    const bq = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : Number.isFinite(b.fdr) ? b.fdr : 1;
+    const aq = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : 1;
+    const bq = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : 1;
     if (aq !== bq) return aq - bq;
     return b.entitiesFound - a.entitiesFound;
   });
+  const reason = !complete ? 'Reactome response is paginated/truncated: entire tested pathway family was not retrieved.'
+    : inconsistent ? 'Selected features are not a valid subset of the declared background pathway hits.'
+    : !validUniverse ? 'Insufficient or incoherent measurable assay universe.'
+    : null;
   return {
     ...selectedResult,
     pathways: rows,
@@ -3722,7 +3765,10 @@ function applyAssayUniverseBackground(selectedResult, universeResult, selectedSu
       mapped: M,
       selectedSubmitted,
       selectedMapped: n,
-      method: 'local hypergeometric over-representation using the uploaded/retained assay feature universe; BH correction across returned selected-set pathways'
+      hypothesesTested: allPValues.length,
+      multiplicityStatus: reason ? 'not_estimable' : 'full_assay_universe_family',
+      warning: reason,
+      method: 'Hypergeometric assay-universe over-representation; BH applied over every Reactome pathway hit by the measured universe (including pathways with zero selected hits), not just the enriched/returned selected pathways. Pathway selection is exploratory and biologically dependent.'
     }
   };
 }
@@ -3759,9 +3805,11 @@ export function mergeReactomeResults(combined, perLayer) {
     let supportingLayers = 0;
     for (const layer of LAYERS) {
       const hit = layerMaps[layer]?.get(pathway.id);
+      // Only the assay-universe-adjusted FDR can be counted as local
+      // supporting evidence. Reactome's default FDR uses a different
+      // reference universe and must never silently substitute for it.
       const fdr = hit && Number.isFinite(hit.assayUniverseFdr)
-        ? hit.assayUniverseFdr
-        : hit && Number.isFinite(hit.fdr) ? hit.fdr : null;
+        ? hit.assayUniverseFdr : null;
       layerEvidence[layer] = hit ? {
         fdr,
         reactomeDefaultFdr: Number.isFinite(hit.fdr) ? hit.fdr : null,
@@ -4244,8 +4292,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
         combined,
         perLayer,
         consensus: mergeReactomeResults(combined, perLayer),
-        backgroundPolicy: 'Uploaded/retained assay feature universe with local hypergeometric test and BH correction',
-        backgroundCaveat: 'Custom assay-universe FDR is used when the pathway is present in the Reactome universe query; Reactome default FDR is retained as a fallback when universe mapping is unavailable.'
+        backgroundPolicy: 'All Reactome pathways observable within the QC-retained assay universe; local hypergeometric tests and BH across the full pathway family.',
+        backgroundCaveat: 'If either Reactome response is truncated or the background is inconsistent, assay-universe FDR is not estimable. Reactome default FDR is shown separately as an external-database statistic and is never substituted for assay-universe FDR.'
       };
     } catch (error) {
       reactomeError = error instanceof Error ? error.message : 'Reactome API request failed.';
