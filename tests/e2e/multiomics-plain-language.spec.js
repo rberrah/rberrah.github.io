@@ -152,6 +152,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   const downloadedManifest = await jsonDownload;
   expect(downloadedManifest.suggestedFilename()).toBe('multiomics-reproducibility-manifest.json');
 
+  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(page.getByText('Vérification des séries techniques')).toBeVisible();
   await expect(page.getByText('Audit des batches techniques')).toHaveCount(0);
 
