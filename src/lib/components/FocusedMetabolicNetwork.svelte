@@ -8,10 +8,16 @@
   let neighborhood = '1';
   const tr = (fr,en) => language === 'en' ? en : fr;
   const fmt = (n) => Number.isFinite(n) ? n.toFixed(2) : '—';
-  function color(measure) {
+  function colorLimit(card, kind) {
+    const vals = card.nodes.filter((node)=>node.kind===kind && Number.isFinite(node.measurement?.effect))
+      .map((node)=>node.measurement);
+    if (!vals.length || vals.every((row)=>row.effectScale==='log2')) return 3;
+    return Math.max(1e-9,...vals.map((row)=>Math.abs(row.effect)));
+  }
+  function color(measure, limit=3) {
     if (measure?.status === 'duplicate_features') return '#f5dba8';
     if (!Number.isFinite(measure?.effect)) return '#e5e9eb';
-    const value = Math.max(-1,Math.min(1,measure.effect / 3));
+    const value = Math.max(-1,Math.min(1,measure.effect / limit));
     const white=[248,248,248],target=value<0?[51,104,178]:[204,61,65];
     return 'rgb(' + white.map((c,i)=>Math.round(c + Math.abs(value)*(target[i]-c))).join(',') + ')';
   }
@@ -31,7 +37,8 @@
     for(const [index,node] of metab.entries())positions[node.id]={x:x0+(index%columns)*dx,y:y0+Math.floor(index/columns)*dy};
     const geney=y0+Math.ceil(metab.length/columns)*dy+10;
     for(const [index,node] of genes.entries())positions[node.id]={x:x0+(index%columns)*dx,y:geney+Math.floor(index/columns)*92};
-    return {...card,positions,height:Math.max(160,geney+Math.ceil(genes.length/columns)*92+40)};
+    return {...card,positions,height:Math.max(160,geney+Math.ceil(genes.length/columns)*92+40),
+      metLimit:colorLimit(card,'metabolite'),geneLimit:colorLimit(card,'gene')};
   }
   $: views = focusMetabolicRegion(graph,selectedRegion,neighborhood)
     .map(positionCard).filter((v)=>v.nodes.length);
@@ -107,17 +114,17 @@
                   stroke={m?.matchStatus==='name_only'?'#ab802f':'#4c6876'}
                   stroke-width={Number.isFinite(m?.effect)?2.5:1}
                   stroke-dasharray={m?.matchStatus==='name_only'?'4 2':undefined}
-                  fill={color(m)}/>
+                  fill={color(m,card.geneLimit)}/>
                 <text x={p.x} y={p.y+5} text-anchor="middle" class="gene-name">{shortName(node)}</text>
               {:else}
                 <ellipse cx={p.x} cy={p.y} rx="79" ry="27"
                   stroke={m?.matchStatus==='name_only'?'#ab802f':'#4c6876'}
                   stroke-width={Number.isFinite(m?.effect)?2.5:1}
                   stroke-dasharray={m?.matchStatus==='name_only'?'4 2':undefined}
-                  fill={color(m)}/>
+                  fill={color(m,card.metLimit)}/>
                 <text x={p.x} y={p.y+5} text-anchor="middle" class="metabolite-name">{shortName(node)}</text>
               {/if}
-              <title>{displayName(node)}{node.chebi ? ' · '+node.chebi : ''}{m?.features ? ' · '+m.features.join(', ') : ''}{m?.feature ? ' · '+m.feature : ''}{m?.matchStatus ? ' · '+m.matchStatus : ''} · log2FC={fmt(m?.effect)} · q={fmt(m?.qValue)}</title>
+              <title>{displayName(node)}{node.chebi ? ' · '+node.chebi : ''}{m?.features ? ' · '+m.features.join(', ') : ''}{m?.feature ? ' · '+m.feature : ''}{m?.matchStatus ? ' · '+m.matchStatus : ''} · {m?.effectScale==='log2'?'log2FC':tr('différence (échelle fournie)','difference (supplied scale)')}={fmt(m?.effect)} · q={fmt(m?.qValue)}</title>
             </g>
           {/each}
         </svg>
@@ -156,15 +163,15 @@
 </section>
 
 <style>
-  .network { display:grid; gap:14px; margin:0 0 18px; }
+  .network { display:grid; gap:14px; margin:0 0 18px; color:#182b35; background:#fff; color-scheme:light; padding:14px; border:1px solid #c3d0d8; border-radius:12px; }
   .network header h3 { font-size:1.12rem; margin:0 0 5px; }
-  .network header p { margin:0; color:var(--text-secondary,#56666f); font-size:.88rem; line-height:1.45; }
+  .network header p { margin:0; color:#3e5260; font-size:.88rem; line-height:1.45; }
   .network-summary { display:flex; flex-wrap:wrap; gap:9px; }
   .network-summary span { padding:7px 10px; border:1px solid var(--border,#dde3e7); border-radius:8px; font-size:.79rem; }
   .network-controls { display:flex; flex-wrap:wrap; gap:12px; }
   .network-controls label { display:flex; flex:1 1 230px; flex-direction:column; gap:5px; font-size:.85rem; font-weight:600; }
-  .network-controls select { width:100%; min-width:0; border:1px solid var(--border,#cdd7dc); border-radius:8px; padding:9px; background:var(--surface,#fff); color:var(--text-primary,#243038); }
-  .network-key { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--text-secondary,#56666f); font-size:.8rem; }
+  .network-controls select { width:100%; min-width:0; border:1px solid #aebcc5; border-radius:8px; padding:9px; background:#fff; color:#182b35; }
+  .network-key { display:flex; flex-wrap:wrap; gap:8px 14px; color:#3e5260; font-size:.8rem; }
   .network-key span { display:inline-flex; align-items:center; gap:5px; }
   .network-key i { width:12px; height:12px; border-radius:3px; border:1px solid #8a9ca6; }
   .network-card { border:1px solid var(--border,#dce4e8); border-radius:12px; overflow:hidden; }
@@ -177,7 +184,7 @@
   .metabolite-name { font-size:12px; }
   .gene-name { font-size:13px; }
   .network-empty { padding:18px; border:1px dashed #c7d5db; border-radius:10px; }
-  .identity-audit { border:1px solid var(--border,#dce4e8); border-radius:10px; padding:12px 14px; }
+  .identity-audit { border:1px solid #c8d4dc; border-radius:10px; padding:12px 14px; color:#182b35; background:#fff; }
   .identity-audit summary { cursor:pointer; font-weight:700; font-size:.87rem; }
   .identity-audit p { font-size:.83rem; line-height:1.5; }
   .audit-table-wrap { max-height:320px; overflow:auto; }
@@ -185,5 +192,5 @@
   th,td { text-align:left; padding:8px; border-bottom:1px solid #dde5e9; }
   td a { margin-left:8px; white-space:nowrap; font-size:.76rem; }
   code { font-family:var(--font-mono,monospace); font-size:.76rem; }
-  .network-limit { font-size:.8rem; line-height:1.55; color:var(--text-secondary,#56666f); margin:0; }
+  .network-limit { font-size:.8rem; line-height:1.55; color:#3e5260; margin:0; }
 </style>
