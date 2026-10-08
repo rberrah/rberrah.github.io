@@ -85,9 +85,9 @@ await assert.rejects(() => runDeterministicAnalysis({
     ? {...row,subject_id:'INVALID_' + subjectAtFirstSample} : row)
 }), /conflicting sample_id/i);
 const originalRnaText = await transcriptomics.text();
-const originalRnaLines = originalRnaText.trimEnd().split(/\\r?\\n/);
+const originalRnaLines = originalRnaText.trimEnd().split(/\r?\n/);
 const duplicateRnaFeature = new File(
-  [originalRnaText.trimEnd() + '\\n' + originalRnaLines[1] + '\\n'],
+  [originalRnaText.trimEnd() + '\n' + originalRnaLines[1] + '\n'],
   'duplicate_feature.csv',{type:'text/csv'});
 await assert.rejects(() => runDeterministicAnalysis({
   ...basicDemoOptions,files:{...basicDemoOptions.files,transcriptomics:duplicateRnaFeature}
