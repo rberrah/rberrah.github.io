@@ -24,7 +24,7 @@
   $: metLimit = effectLimit(activeMetabologram?.metabolomics);
   $: rnaLimit = effectLimit(activeMetabologram?.transcriptomics);
   $: mapMetLimit = effectLimit(central?.metabolites?.map((node) => node.measurement).filter(Boolean));
-  $: mapRnaLimit = effectLimit(central?.enzymes?.map((node) => node.measurement).filter(Boolean);
+  $: mapRnaLimit = effectLimit(central?.enzymes?.map((node) => node.measurement).filter(Boolean));
 
   function layerLabel(layer) {
     if (layer === 'transcriptomics') return tr('Transcriptomique', 'Transcriptomics');
