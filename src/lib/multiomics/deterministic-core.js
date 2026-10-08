@@ -2532,9 +2532,11 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
   const subjects = allowPartialBlocks ? unionSubjects : completeSubjects;
   if (subjects.length < 3) {
     return {
-      error: allowPartialBlocks
-        ? 'Exploratory multi-omics integration requires at least three subjects represented in at least one loaded layer.'
-        : 'Exploratory multi-omics integration requires at least three subjects shared across all loaded layers.',
+      error: loadedLayers.length === 1
+        ? 'Single-omics exploratory PCA requires at least three independent subjects.'
+        : allowPartialBlocks
+          ? 'Exploratory multi-omics integration requires at least three subjects represented in at least one loaded layer.'
+          : 'Exploratory multi-omics integration requires at least three subjects shared across all loaded layers.',
       subjects: subjects.length,
       components: [],
       layers: {}
@@ -2632,9 +2634,11 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
   }
 
   return {
-    method: allowPartialBlocks
-      ? 'balanced multi-block PCA with partial-block support: features are standardized within observed values; missing feature/block entries are set to the standardized mean (0) only for latent exploration, never for differential tests'
-      : 'balanced multi-block PCA: top-variable features are standardized within layer, each layer is scaled by 1/sqrt(p), then deterministic PCA is computed on shared subjects',
+    method: loadedLayers.length === 1
+      ? 'single-omics exploratory PCA: top-variable features standardized within their layer (1/sqrt(p) scaling is common and does not affect within-layer PCA); descriptive only, no multi-omics integration'
+      : allowPartialBlocks
+        ? 'balanced multi-block PCA with partial-block support: features are standardized within observed values; missing feature/block entries are set to the standardized mean (0) only for latent exploration, never for differential tests'
+        : 'balanced multi-block PCA: top-variable features are standardized within layer, each layer is scaled by 1/sqrt(p), then deterministic PCA is computed on shared subjects',
     missingDataPolicy: allowPartialBlocks
       ? 'partial blocks allowed; standardized-mean fill only inside unsupervised latent integration'
       : 'complete subjects across all loaded layers',
@@ -2643,6 +2647,7 @@ function analyseExploratoryIntegration(aggregatedByLayer, loadedLayers, maxFeatu
     subjectIds: subjects,
     subjectCoverage,
     imputedCells,
+    analysisMode: loadedLayers.length === 1 ? 'single_omic' : 'multiomics',
     layers: blocks,
     components
   };
@@ -3204,10 +3209,12 @@ function explorationLayerResult(aggregated, exploration, layer) {
   return {
     rows,
     selected,
-    selectionRule: 'top absolute loadings on balanced multi-block PC1, capped at 25 features',
+    selectionRule: exploration.analysisMode === 'single_omic'
+      ? 'top absolute loadings on single-omics PC1, capped at 25 features'
+      : 'top absolute loadings on balanced multi-block PC1, capped at 25 features',
     effectScale: 'PC1 loading',
-    contrast: 'unsupervised shared structure',
-    mode: 'exploratory-multiblock-pca',
+    contrast: exploration.analysisMode === 'single_omic' ? 'unsupervised within-layer variation' : 'unsupervised shared structure',
+    mode: exploration.analysisMode === 'single_omic' ? 'exploratory-single-omic-pca' : 'exploratory-multiblock-pca',
     inferenceMethod: exploration.method,
     groupSizes: [],
     steps: aggregated.steps
@@ -3821,10 +3828,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
   if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
   const loadedLayers = LAYERS.filter((layer) => files[layer]);
-  const msOnly = loadedLayers.length === 1 && loadedLayers[0] === 'metabolomics'
-    && ['groups','time','outcome'].includes(protocol.objective);
-  if (loadedLayers.length < 2 && !msOnly) {
-    throw new Error('At least two omics layers are required except for single-layer MS differential group/time/outcome analysis.');
+  const singleOmic = loadedLayers.length === 1;
+  if (!loadedLayers.length) {
+    throw new Error('At least one transcriptomics, proteomics or metabolomics matrix is required.');
   }
   if (protocol.designType === 'crossover') {
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
@@ -4024,7 +4030,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     }
   }
 
-  const supervisedIntegration = msOnly ? null : analyseSupervisedMultiblock(
+  const supervisedIntegration = singleOmic ? null : analyseSupervisedMultiblock(
     aggregatedByLayer,
     layers,
     loadedLayers,
@@ -4039,9 +4045,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   );
 
   let crossOmics;
-  if (msOnly) {
+  if (singleOmic) {
     crossOmics = {
-      method: 'Single-layer MS differential analysis: no cross-omics correlations or multiblock integration are calculated.',
+      method: 'Single-omics analysis: no cross-omics correlations or multiblock integration are calculated.',
       testedPairs: 0, significantPairs: 0, pairs: []
     };
   } else if (protocol.objective === 'explore') {
@@ -4159,7 +4165,8 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       name: 'PMx Explain deterministic multi-omics engine',
       version: MULTIOMICS_ENGINE_VERSION,
       execution: 'browser/local deterministic JavaScript',
-      analysisMode: msOnly ? 'single_layer_ms' : 'multiomics',
+      analysisMode: singleOmic ? 'single_omic' : 'multiomics',
+      analysedLayers: loadedLayers,
       externalServices: {
         ChEBI: resolveIdentifiers,
         Ensembl: resolveIdentifiers,
