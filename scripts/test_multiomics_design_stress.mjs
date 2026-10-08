@@ -68,7 +68,7 @@ async function evaluateScenario(label,fixture,nullRuns,signalRuns,signals,pLimit
   for(let k=0;k<nullRuns;k++) {
     const result=await analyze(fixture(10001+101*k));
     const rows=result.layers.proteomics.rows;
-    assert(rows.length>=(label==='longitudinal'?7:14),
+    assert(rows.length>=(label.includes('longitudinal')?7:14),
       label+': too few null models ('+rows.length+') error='+JSON.stringify(result.layers.proteomics.error)
       +' modes='+JSON.stringify({mode:result.layers.proteomics.mode,
         nSubjects:result.metadataSummary?.subjects,groupSizes:result.layers.proteomics.groupSizes,
