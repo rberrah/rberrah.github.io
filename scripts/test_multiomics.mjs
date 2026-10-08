@@ -390,6 +390,21 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.ok(survival.predictiveOutcome.metrics.cIndex > 0.75);
   assert.ok(survival.predictiveOutcome.foldSummaries.every(x => x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
   assert.equal(survival.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+
+  // Two assays for the same subject must never overwrite conflicting endpoints.
+  await assert.rejects(() => runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:parsedMeta.rows.map((row)=>
+      row.subject_id === 'SV01' && row.omic === 'proteomics'
+        ? {...row,survival_time:'999'} : row),
+    columnMapping:{...mapping,survival_time:'survival_time',survival_event:'survival_event'},
+    protocol:{organism:'human',objective:'outcome',outcomeType:'survival',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:[]},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,resolveIdentifiers:false
+  }), /conflicting outcome for subject/i);
+
 }
 
 // Predictive nuisance handling must be estimated inside each training fold.
@@ -447,6 +462,20 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
   assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
   assert.ok(pred.predictiveOutcome.metrics.auc > 0.80);
+
+  const inconsistentRows = parsedMeta.rows.map((row)=>
+    row.subject_id === 'PV01' && row.omic === 'proteomics'
+      ? {...row,outcome:'B'} : row);
+  await assert.rejects(() => runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:inconsistentRows,columnMapping:{...mapping,outcome:'outcome'},
+    protocol:{organism:'human',objective:'outcome',outcomeType:'binary',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:['age']},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,resolveIdentifiers:false
+  }), /conflicting outcome for subject/i);
+
 }
 
 console.log('multiomics deterministic engine: PASS');
