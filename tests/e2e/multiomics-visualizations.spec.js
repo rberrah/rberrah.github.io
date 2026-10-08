@@ -35,7 +35,7 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   await expect(focused).toContainText(/Tryptophane et kynurénine|Tryptophan and kynurenine/);
   await expect(focused).toContainText(/Glycolyse|Glycolysis/);
   await expect(focused).toContainText(/Cycle de Krebs|TCA cycle/);
-  await expect(focused).not.toContainText('Sérotonine et mélatonine');
+  await expect(focused.getByTestId('multiomics-region-serotonin')).toHaveCount(0);
   await focused.getByTestId('multiomics-network-hops').selectOption('2');
   await expect(focused.getByTestId('multiomics-region-kynurenine')).toBeVisible();
   await focused.getByTestId('multiomics-network-region').selectOption('kynurenine');
