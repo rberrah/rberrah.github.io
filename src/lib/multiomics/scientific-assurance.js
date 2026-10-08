@@ -4,11 +4,14 @@
  * or an installed R package cannot prove a study design is publishable.
  * Never grant a "publication-ready" status automatically.
  */
+/** @param {any} result @param {{demo?: boolean}} [options] */
 export function assessScientificAssurance(result, { demo = false } = {}) {
   const layers = Object.entries(result?.layers || {});
   const protocol = result?.protocol || {};
   const exploratory = protocol.objective === 'explore';
+  /** @type {Array<{code:string,fr:string,en:string,level:string}>} */
   const notes = [];
+  /** @param {string} code @param {string} fr @param {string} en @param {string} [level] */
   const add = (code, fr, en, level = 'caution') => notes.push({ code, fr, en, level });
   const n = Number(result?.metadataSummary?.subjects || 0);
   if (demo) add('synthetic_demo',
