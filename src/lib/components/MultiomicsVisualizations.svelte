@@ -53,6 +53,10 @@
     return Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
   }
 
+  function itemLabel(item) {
+    return language === 'en' ? (item.labelEn || item.feature) : (item.labelFr || item.feature);
+  }
+
   function shortFeature(value, max = 16) {
     const x = String(value || '');
     return x.length > max ? x.slice(0, max - 1) + '…' : x;
@@ -240,8 +244,8 @@
         <div>
           <h3>{tr('Metabologramme transcriptome ↔ métabolome', 'Transcriptome ↔ metabolome metabologram')}</h3>
           <p>{tr(
-            'À gauche : métabolites ; à droite : transcrits. Choisissez une voie pour une lecture comparable à la figure 4C de Guyon et al. Les moyennes centrales sont descriptives.',
-            'Left: metabolites; right: transcripts. Select a pathway for a Figure 4C-inspired view (Guyon et al.). Center means are descriptive only.'
+            'À gauche : métabolites ; à droite : gènes exprimés. Bleu = baisse ; rouge = hausse. Sélectionnez une voie biologique si besoin.',
+            'Metabolites on the left; gene transcripts on the right. Blue = decrease; red = increase. Select a biological pathway if needed.'
           )}</p>
         </div>
       </div>
@@ -249,7 +253,7 @@
         <label class="pathway-select">
           <span>{tr('Voie affichée', 'Displayed pathway')}</span>
           <select bind:value={selectedPathway} data-testid="multiomics-pathway-select" aria-label={tr('Choisir la voie biologique', 'Choose biological pathway')}>
-            <option value="all">{tr('Toutes les variables principales', 'All leading features')}</option>
+            <option value="all">{tr('Toutes les variables (sans filtre de voie)', 'All features (no pathway filter)')}</option>
             {#each pathwayChoices as pathway}
               <option value={pathway.id}>{language === 'en' ? pathway.labelEn : pathway.labelFr}</option>
             {/each}
@@ -269,13 +273,13 @@
           {#each metaboliteSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
 
