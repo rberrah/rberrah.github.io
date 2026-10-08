@@ -65,14 +65,15 @@
     const platformOption = [...document.querySelectorAll('select option')].find((option) => option.value === 'untargeted_lcms');
     const platformSelect = platformOption?.parentElement;
     const card = platformSelect?.closest('article');
-    if (!card) return;
+    const host = document.querySelector('[data-testid="multiomics-simple-study"]') || card;
+    if (!host) return;
 
-    let panel = card.querySelector('[data-testid="metabolomics-identification-confidence"]');
+    let panel = host.querySelector('[data-testid="metabolomics-identification-confidence"]');
     if (!panel) {
       panel = document.createElement('div');
       panel.dataset.testid = 'metabolomics-identification-confidence';
       panel.className = 'metabolomics-identification-confidence';
-      card.appendChild(panel);
+      host.appendChild(panel);
     }
 
     const language = lang();
@@ -83,8 +84,11 @@
     const state = `${language}|${value}`;
     if (panel.dataset.state === state && panel.querySelector('select')) return;
 
+    const wasOpen = panel.querySelector('details.msi-expert')?.open === true;
     panel.innerHTML = language === 'en'
       ? `
+        <details class="msi-expert">
+          <summary>Metabolite identification confidence</summary>
         <strong>Metabolite identification confidence <span class="msi-badge">MSI</span></strong>
         <label for="pmx-metabolomics-msi-level">Confidence supporting the metabolite names in this matrix</label>
         <select id="pmx-metabolomics-msi-level" name="metabolomics_identification_confidence">
@@ -97,8 +101,11 @@
         <small><b>${policy.label}.</b> ${policy.text}</small>
         <small class="msi-pathway"><b>Pathway rule:</b> ${policy.pathway}</small>
         <details><summary>Why this is separate from ChEBI/HMDB/KEGG mapping</summary><p>A database identifier says which database concept a label points to; it does not prove that the measured LC-MS/GC-MS feature was experimentally identified as that molecule. Identifier resolution and analytical identification confidence are therefore recorded separately.</p></details>
+        </details>
       `
       : `
+        <details class="msi-expert">
+          <summary>Confiance d’identification des métabolites</summary>
         <strong>Confiance d’identification des métabolites <span class="msi-badge">MSI</span></strong>
         <label for="pmx-metabolomics-msi-level">Niveau de preuve qui soutient les noms de métabolites de cette matrice</label>
         <select id="pmx-metabolomics-msi-level" name="metabolomics_identification_confidence">
@@ -111,7 +118,9 @@
         <small><b>${policy.label}.</b> ${policy.text}</small>
         <small class="msi-pathway"><b>Règle pour les voies :</b> ${policy.pathway}</small>
         <details><summary>Pourquoi ceci est séparé du mapping ChEBI/HMDB/KEGG</summary><p>Un identifiant de base indique vers quel concept pointe un libellé ; il ne prouve pas que le signal LC-MS/GC-MS mesuré a été expérimentalement identifié comme cette molécule. La résolution d’identifiant et la confiance d’identification analytique sont donc enregistrées séparément.</p></details>
+        </details>
       `;
+    if (wasOpen) panel.querySelector('details.msi-expert').open = true;
 
     const select = panel.querySelector('select');
     if (select instanceof HTMLSelectElement) {
