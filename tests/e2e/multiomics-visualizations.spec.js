@@ -84,6 +84,58 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
 
   await page.locator('.figure-switcher button').first().click();
   await expect(page.getByTestId('multiomics-heatmap')).toBeVisible();
+
+  // Inspect foreground/background of every figure—not just the metabologram
+  // key—under both display color schemes. SVG annotations have explicit ink.
+  for (const scheme of ['light','dark']) {
+    await page.emulateMedia({colorScheme:scheme});
+    for (const figure of ['multiomics-heatmap','multiomics-metabologram','multiomics-central-carbon-map']) {
+      if (figure === 'multiomics-metabologram') await page.locator('.figure-switcher button').nth(1).click();
+      if (figure === 'multiomics-central-carbon-map') {
+        await page.locator('.figure-switcher button').nth(2).click();
+        await page.getByTestId('multiomics-central-carbon-details').locator('summary').first().click();
+      }
+      const target=page.getByTestId(figure);
+      const measured=await target.evaluate((root)=>{
+        const luminance=(rgb)=>{
+          const c=(rgb.match(/\d+/g)||[]).slice(0,3).map(Number).map(v=>v/255)
+            .map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);
+          return .2126*c[0]+.7152*c[1]+.0722*c[2];
+        };
+        const contrast=(a,b)=>(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+        const bg=luminance(getComputedStyle(root).backgroundColor);
+        const title=root.querySelector('.figure-title h3');
+        const sample=root.querySelector('svg text.svg-note, svg text.pathway-label, svg text.half-label');
+        return {background:getComputedStyle(root).backgroundColor,
+          title:contrast(luminance(getComputedStyle(title).color),bg),
+          svg:sample?contrast(luminance(getComputedStyle(sample).fill),1):null};
+      });
+      expect(measured.background).toBe('rgb(255, 255, 255)');
+      expect(measured.title).toBeGreaterThanOrEqual(7);
+      if(measured.svg!==null)expect(measured.svg).toBeGreaterThanOrEqual(7);
+    }
+    await page.locator('.figure-switcher button').nth(2).click();
+    const graph=page.getByTestId('multiomics-focused-network');
+    const ink=await graph.evaluate(node=>({
+      color:getComputedStyle(node).color,background:getComputedStyle(node).backgroundColor
+    }));
+    expect(ink.color).toBe('rgb(24, 43, 53)');
+    expect(ink.background).toBe('rgb(255, 255, 255)');
+  }
+});
+
+test('MS peak-AUC long CSV can be uploaded directly with group metadata', async ({page})=>{
+  await page.goto('/multiomics/tool');
+  const header='feature_id,assay_id,auc,subject_id,sample_id,condition';
+  const rows=[header];
+  for (let i=0;i<8;i++)for(const f of ['CHEBI:24996','CHEBI:30031'])
+    rows.push([f,'INJ'+i,100+i*20+(f==='CHEBI:30031'?100:0),'SUBJ'+i,'S'+i,i<4?'control':'treated'].join(','));
+  await page.getByTestId('multiomics-ms-auc-upload').setInputFiles({
+    name:'ms_auc_export.csv',mimeType:'text/csv',buffer:Buffer.from(rows.join('\n'))
+  });
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 molécules|2 features/);
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/8 injections|8 injections/);
+  await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
 });
 
 test('expert raw-MS and external validation workflows are disclosed on request', async ({ page }) => {
