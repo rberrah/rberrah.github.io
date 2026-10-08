@@ -213,6 +213,55 @@ The launcher exposes a read-only `/environment` endpoint containing:
 
 No submitted study data are returned by this endpoint. For a manuscript or regulated workflow, archive this environment manifest together with the analysis result, original inputs and their cryptographic checksums.
 
+## Raw LC-MS / GC-MS preprocessing
+
+The reference raw-MS entry point is deliberately restricted to open, standardised spectra readable by the Bioconductor stack. Vendor formats should be converted upstream to mzML, for example with ProteoWizard/msconvert when the appropriate vendor reader is available.
+
+Use:
+
+    Rscript multiomics-engine/run_raw_ms.R raw_ms_manifest.csv raw_ms_output raw_ms_parameters.json
+
+Templates are shipped in:
+
+- `static/multiomics/templates/raw_ms_manifest.csv`;
+- `static/multiomics/templates/raw_ms_parameters.json`.
+
+The reference pipeline performs centWave chromatographic peak detection, optional obiwarp retention-time alignment, peak-density correspondence/grouping and chromatographic gap filling, then exports a peak-area feature matrix plus feature definitions, sample sheet and processing manifest.
+
+This is **feature detection, not compound identification**. An m/z-retention-time feature must not be presented as a named metabolite until a separate identification/annotation workflow supports that claim.
+
+## Frozen independent prediction validation
+
+External predictive validation is implemented as a separate evaluator rather than as another resampling mode of the development model:
+
+    Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output
+
+Templates are shipped in:
+
+- `static/multiomics/templates/external_validation_predictions_binary.csv`;
+- `static/multiomics/templates/external_validation_binary.json`.
+
+The evaluator accepts already-frozen predictions and never performs feature selection, hyperparameter tuning or refitting on the validation cohort. It supports binary, continuous, count, survival and multiclass outcomes. When estimable, deterministic percentile bootstrap intervals are added without replacing failed resamples by model refitting.
+
+The status `external_validation` is emitted only when cohort independence is explicitly asserted. The software cannot infer historical independence from the numbers themselves; provenance must establish that the validation cohort was not used for model development.
+
+## Auditable browser preprocessing
+
+Browser preprocessing is intentionally conservative and is recorded per omics layer in `qc.preprocessingAudit`. The audit reports the declared measurement type, observed value characteristics, input range, chosen output scale, pseudocount when applicable, median-centering status and any compatibility warnings.
+
+Current browser rules are explicit:
+
+- transcriptomic raw counts: library-size CPM followed by log2(CPM + 0.5) for deterministic **screening** only; publication-grade count inference is delegated to DESeq2/edgeR/voom;
+- proteomic spectral counts: library-size normalisation followed by log2 transformation;
+- TPM, LFQ intensity, peak area and absolute concentration: positive-scale log2 transformation with a recorded data-derived pseudocount;
+- LFQ intensity and metabolomic peak area: sample-wise median centering on the log scale;
+- declared log-scale matrices: kept on their supplied log scale;
+- declared normalized or unknown matrices: kept as supplied rather than silently imposing another normalization.
+
+Negative values declared as raw/spectral counts are rejected. Fractional count-like values are explicitly flagged for review. Positive abundance types containing negative values are retained as supplied and flagged as likely already transformed/centred.
+
+The browser does **not** silently infer or apply ComBat, quantile normalisation, VST or another study-specific preprocessing choice. Batch is instead handled as an explicit design/nuisance variable when identifiable.
+
 ## Advanced MS sample annotations
 
 For LC-MS/GC-MS workflows the shared sample sheet additionally supports:
@@ -235,7 +284,7 @@ Random seeds are explicit where stochastic algorithms are used. The browser expo
 - `multiomics-methods-report.md`: human-readable methods/interpretation record;
 - `multiomics-reproducibility-manifest.json`: machine-readable snapshot of the scientific question, design/endpoint settings, non-file interface parameters, local input-file metadata, visible corrected evidence, warnings and interpretation limits.
 
-The browser engine also keeps a deterministic FNV-1a fingerprint in `inputManifest` for each uploaded matrix and the canonical sample table. This is useful for accidental-change detection inside the application, but it is **not** presented as a cryptographic integrity checksum. For archival or regulated workflows, retain SHA-256 (or another approved cryptographic hash) of the immutable source files separately.
+The browser now computes **SHA-256 locally** over the exact uploaded file bytes and over a canonical representation of the sample table. These hashes are stored in `reproducibility.cryptographicInputs` and exported with the analysis. A deterministic FNV-1a fingerprint may still be retained in `inputManifest` for fast accidental-change detection, but it is not treated as a cryptographic substitute for SHA-256.
 
 The public truth benchmark goes further: its external data repositories are pinned to immutable Git commit SHAs, each exported benchmark input is hashed with SHA-256, and the resulting source/file provenance is attached to `benchmark-report.json` and `benchmark-provenance.json`.
 
