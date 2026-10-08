@@ -1227,6 +1227,26 @@ function prepareMatrixQc(matrix, layer, valueType, metadataRows = []) {
   }
 
   const filteredValues = new Map(keep.map((feature) => [feature, matrix.values.get(feature)]));
+  const differentialMissingness = [];
+  if (groups.size >= 2) {
+    for (const feature of keep) {
+      const values = filteredValues.get(feature);
+      const byGroup = {};
+      for (const [group, groupAssays] of groups.entries()) {
+        const n = groupAssays.length;
+        const missing = groupAssays.filter((assay) => !Number.isFinite(values?.get(assay))).length;
+        byGroup[group] = { n, missing, fraction: n ? missing / n : null };
+      }
+      const fractions = Object.values(byGroup).map((item) => item.fraction).filter(Number.isFinite);
+      if (fractions.length < 2) continue;
+      const imbalance = Math.max(...fractions) - Math.min(...fractions);
+      if (imbalance >= 0.30) {
+        differentialMissingness.push({ feature, imbalance, byGroup });
+      }
+    }
+    differentialMissingness.sort((a,b) => b.imbalance - a.imbalance);
+  }
+
   const replicateCorrelations = [];
   const bySample = new Map();
   for (const row of metadataRows) {
@@ -1267,6 +1287,7 @@ function prepareMatrixQc(matrix, layer, valueType, metadataRows = []) {
   if (outlierSamples.length) warnings.push(outlierSamples.length + ' assay(s) flagged by robust signal/detection/missingness QC.');
   const lowReplicatePairs = replicateCorrelations.filter((item) => item.warning);
   if (lowReplicatePairs.length) warnings.push(lowReplicatePairs.length + ' technical replicate pair(s) have Spearman r < 0.80.');
+  if (differentialMissingness.length) warnings.push(differentialMissingness.length + ' retained feature(s) have ≥30 percentage-point missingness imbalance between biological conditions; inspect missingness before interpreting group effects.');
   if (keep.length < Math.max(1, featureCountBefore * 0.20)) warnings.push('More than 80% of features were removed by the conservative detection filter.');
 
   return {
@@ -1283,6 +1304,12 @@ function prepareMatrixQc(matrix, layer, valueType, metadataRows = []) {
       sampleMetrics,
       outlierSamples,
       replicateCorrelations,
+      differentialMissingness: {
+        threshold: 0.30,
+        flaggedFeatures: differentialMissingness.length,
+        topFeatures: differentialMissingness.slice(0, 25),
+        interpretation: 'QC flag only: differential observation/missingness can create or mask apparent biological differences and should be investigated before confirmatory interpretation.'
+      },
       warnings,
       filterPolicy: isCounts || isSpectral
         ? 'retain non-constant features with CPM ≥1 in at least max(2, 20% of assays) within at least one biological condition'
