@@ -65,6 +65,10 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
         'requires_confirmation');
     }
   }
+  if (protocol.objective === 'time' && protocol.longitudinal) add('longitudinal_browser_uncalibrated',
+    'Le modèle longitudinal navigateur ne fournit plus de p-value, q-value ou intervalle de confiance : une simulation nulle a révélé une inflation possible des faux positifs. Les effets affichés restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
+    'The browser longitudinal model no longer reports p-values, q-values or confidence intervals: null simulation suggested possible type-I inflation. Effects are descriptive only. Use lmerTest with the full study design for inference.',
+    'requires_confirmation');
   if (result?.predictiveOutcome?.status === 'ok') add('cv_preprocessing_limit',
     'La CV est interne ; sélection des variables recalculée dans chaque pli, mais certains prétraitements omiques sont effectués avant la séparation. Une validation externe indépendante reste nécessaire.',
     'Internal CV refits feature selection per fold, but some omics preprocessing occurs before splitting. Independent external validation is still needed.',
