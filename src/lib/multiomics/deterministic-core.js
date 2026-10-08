@@ -2009,6 +2009,7 @@ function fitRandomInterceptGls(design, response, subjectIds, coefficientIndex) {
     df,
     sigmaWithin,
     sigmaBetween,
+    covariance,
     intraclassCorrelation: sigmaBetween / (sigmaBetween + sigmaWithin)
   };
 }
@@ -2019,14 +2020,15 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
   const conditions = naturalOrder(sampleRows.map((row) => row.condition));
   const times = naturalOrder(sampleRows.map((row) => row.timepoint));
   const numericTimes = times.map(numericTime);
-  if (conditions.length !== 2) return { error: 'Longitudinal random-intercept model currently requires exactly two conditions.', rows: [], selected: [], groupSizes: [] };
+  if (conditions.length < 2) return { error: 'Longitudinal random-intercept model requires at least two conditions.', rows: [], selected: [], groupSizes: [] };
   if (numericTimes.some((value) => !Number.isFinite(value))) return { error: 'Longitudinal random-intercept model requires numeric or numeric-labelled time points.', rows: [], selected: [], groupSizes: [] };
 
   const reference = conditions[0];
-  const comparison = conditions[1];
+  const comparisons = conditions.slice(1);
   const minTime = Math.min(...numericTimes);
   const maxTime = Math.max(...numericTimes);
   const timeRange = Math.max(1e-12, maxTime - minTime);
+  const multiGroup = conditions.length > 2;
 
   for (const feature of aggregated.features) {
     const source = aggregated.values.get(feature);
@@ -2036,40 +2038,97 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
     const subjectCounts = new Map();
     for (const entry of entries) subjectCounts.set(entry.row.subjectId, (subjectCounts.get(entry.row.subjectId) || 0) + 1);
     const usable = entries.filter((entry) => subjectCounts.get(entry.row.subjectId) >= 2);
-    if (new Set(usable.map((entry) => entry.row.subjectId)).size < 4) continue;
+    const subjectIds = usable.map((entry) => entry.row.subjectId);
+    const subjectN = new Set(subjectIds).size;
+    if (subjectN < Math.max(4, conditions.length + 1)) continue;
+    if (conditions.some((condition) => !usable.some((entry) => entry.row.condition === condition))) continue;
 
     const nuisance = buildCovariateEncoder(usable.map((entry) => entry.row), covariateColumns, { includeBatch: true });
+    const conditionColumns = comparisons.length;
+    const timeIndex = 1 + conditionColumns;
+    const interactionStart = timeIndex + 1;
     const design = usable.map((entry) => {
-      const condition = entry.row.condition === comparison ? 1 : 0;
       const time = entry.time - minTime;
-      return [1, condition, time, condition * time, ...nuisance.encode(entry.row).slice(1)];
+      const conditionDummies = comparisons.map((condition) => entry.row.condition === condition ? 1 : 0);
+      const interactions = conditionDummies.map((dummy) => dummy * time);
+      return [1, ...conditionDummies, time, ...interactions, ...nuisance.encode(entry.row).slice(1)];
     });
     const response = usable.map((entry) => entry.value);
-    const subjectIds = usable.map((entry) => entry.row.subjectId);
-    const fit = fitRandomInterceptGls(design, response, subjectIds, 3);
+    const fit = fitRandomInterceptGls(design, response, subjectIds, interactionStart);
     if (!fit) continue;
-    const interaction = fit.beta[3];
-    const effect = interaction * timeRange;
-    const effectSe = fit.se * timeRange;
+
+    if (!multiGroup) {
+      const interaction = fit.beta[interactionStart];
+      const effect = interaction * timeRange;
+      const effectSe = fit.se * timeRange;
+      rows.push({
+        feature,
+        effect,
+        foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
+        effectScale: aggregated.scale,
+        pValue: fit.pValue,
+        qValue: null,
+        statistic: fit.statistic,
+        standardError: effectSe,
+        ciLow: Number.isFinite(effectSe) ? effect - 1.96 * effectSe : null,
+        ciHigh: Number.isFinite(effectSe) ? effect + 1.96 * effectSe : null,
+        intraclassCorrelation: fit.intraclassCorrelation,
+        sigmaWithin: fit.sigmaWithin,
+        sigmaBetween: fit.sigmaBetween,
+        nSubjects: subjectN,
+        nObservations: response.length,
+        nReference: new Set(usable.filter((entry) => entry.row.condition === reference).map((entry) => entry.row.subjectId)).size,
+        nComparison: new Set(usable.filter((entry) => entry.row.condition === comparisons[0]).map((entry) => entry.row.subjectId)).size,
+        model: 'random-intercept GLS: feature ~ condition * time + batch + selected covariates + (1|subject)'
+      });
+      continue;
+    }
+
+    const interactionIndices = comparisons.map((_, index) => interactionStart + index);
+    const interactionBeta = interactionIndices.map((index) => fit.beta[index]);
+    const interactionCovariance = interactionIndices.map((rowIndex) =>
+      interactionIndices.map((columnIndex) => fit.covariance[rowIndex][columnIndex])
+    );
+    const inverseInteractionCovariance = invertMatrix(interactionCovariance, 1e-10);
+    if (!inverseInteractionCovariance) continue;
+    const weighted = multiplyMatrixVector(inverseInteractionCovariance, interactionBeta);
+    const wald = Math.max(0, interactionBeta.reduce((sum, value, index) => sum + value * weighted[index], 0));
+    const df1 = interactionIndices.length;
+    const df2 = Math.max(1, subjectN - conditions.length);
+    const fStatistic = wald / Math.max(1, df1);
+    const pValue = Math.max(0, Math.min(1, 1 - fCdf(fStatistic, df1, df2)));
+
+    const referenceSlope = fit.beta[timeIndex];
+    const slopes = [
+      referenceSlope,
+      ...interactionBeta.map((interaction) => referenceSlope + interaction)
+    ];
+    const endToEndChanges = slopes.map((slope) => slope * timeRange);
+    const effect = Math.max(...endToEndChanges) - Math.min(...endToEndChanges);
+
     rows.push({
       feature,
       effect,
       foldRatio: aggregated.scale === 'log2' ? Math.pow(2, effect) : null,
       effectScale: aggregated.scale,
-      pValue: fit.pValue,
+      pValue,
       qValue: null,
-      statistic: fit.statistic,
-      standardError: effectSe,
-      ciLow: Number.isFinite(effectSe) ? effect - 1.96 * effectSe : null,
-      ciHigh: Number.isFinite(effectSe) ? effect + 1.96 * effectSe : null,
+      statistic: fStatistic,
+      testDf: { numerator: df1, denominator: df2 },
+      groupSlopes: Object.fromEntries(conditions.map((condition, index) => [condition, slopes[index]])),
+      groupEndToEndChanges: Object.fromEntries(conditions.map((condition, index) => [condition, endToEndChanges[index]])),
       intraclassCorrelation: fit.intraclassCorrelation,
       sigmaWithin: fit.sigmaWithin,
       sigmaBetween: fit.sigmaBetween,
-      nSubjects: new Set(subjectIds).size,
+      nSubjects: subjectN,
       nObservations: response.length,
-      nReference: new Set(usable.filter((entry) => entry.row.condition === reference).map((entry) => entry.row.subjectId)).size,
-      nComparison: new Set(usable.filter((entry) => entry.row.condition === comparison).map((entry) => entry.row.subjectId)).size,
-      model: 'random-intercept GLS: feature ~ condition * time + batch + selected covariates + (1|subject)'
+      groupSizes: Object.fromEntries(conditions.map((condition) => [
+        condition,
+        new Set(usable.filter((entry) => entry.row.condition === condition).map((entry) => entry.row.subjectId)).size
+      ])),
+      nReference: null,
+      nComparison: null,
+      model: 'random-intercept GLS omnibus Wald test: feature ~ condition * time + batch + selected covariates + (1|subject)'
     });
   }
 
@@ -2085,24 +2144,28 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
     (aggregated.scale !== 'log2' || Math.abs(row.effect) >= Math.log2(1.2))
   );
   const selected = (significant.length >= 10 ? significant : rows).slice(0, significant.length >= 10 ? 50 : 25);
+  const groupSizes = conditions.map((condition) =>
+    new Set(sampleRows.filter((row) => row.condition === condition).map((row) => row.subjectId)).size
+  );
+
   return {
     rows,
     selected,
     selectionRule: significant.length >= 10
-      ? 'q ≤ 0.10 with longitudinal interaction effect, capped at 50 features'
+      ? 'q ≤ 0.10 with longitudinal condition × time effect, capped at 50 features'
       : 'top ranked longitudinal interaction features retained for exploratory pathway mapping',
     effectScale: aggregated.scale,
-    contrast: 'condition × time interaction: ' + comparison + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
-    mode: 'random-intercept-longitudinal-model',
-    inferenceMethod: 'iterative random-intercept GLS with approximate subject-level t inference',
-    groupSizes: [
-      new Set(sampleRows.filter((row) => row.condition === reference).map((row) => row.subjectId)).size,
-      new Set(sampleRows.filter((row) => row.condition === comparison).map((row) => row.subjectId)).size
-    ],
+    contrast: multiGroup
+      ? 'omnibus condition × time interaction across ' + conditions.length + ' groups over ' + minTime + '→' + maxTime
+      : 'condition × time interaction: ' + comparisons[0] + ' vs ' + reference + ' over ' + minTime + '→' + maxTime,
+    mode: multiGroup ? 'random-intercept-longitudinal-omnibus' : 'random-intercept-longitudinal-model',
+    inferenceMethod: multiGroup
+      ? 'iterative random-intercept GLS with multi-df Wald/F approximation for the condition × time interaction'
+      : 'iterative random-intercept GLS with approximate subject-level t inference',
+    groupSizes,
     steps: aggregated.steps
   };
 }
-
 function analyseIndependentAdjustedLayer(aggregated, layer, { covariateColumns = [] } = {}) {
   const rows = [];
   const allConditions = naturalOrder([...aggregated.sampleMeta.values()].map((row) => row.condition));
