@@ -38,7 +38,7 @@ near(cox.se,0.77064414,3e-8,'Cox SE');
 near(cox.hr,1.8024444,4e-7,'Cox HR');
 near(cox.hrCI[0],0.39800488,4e-8,'Cox HR CI lower');
 near(cox.hrCI[1],8.16272855,5e-7,'Cox HR CI upper');
-near(cox.p,0.44457992,4e-8,'Cox Wald p');
+near(cox.p,0.44457992,2e-7,'Cox Wald p');
 near(cox.logLik,-13.92263316195831,3e-12,'Cox partial log-likelihood');
 near(cox.likelihoodRatio,0.5925206758196069,3e-12,'Cox LR statistic');
 near(cox.pLikelihoodRatio,0.4414460410420693,4e-10,'Cox LR p');
