@@ -88,6 +88,7 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
+  /** @type {{feature:string,chebi:string,status:string,provenance:string}[]} */
   let metaboliteAnnotations = [];
   let annotationFileName = '';
   let annotationError = '';
@@ -583,8 +584,10 @@
     }
   }
 
+  /** @param {Event} event */
   async function selectMetaboliteAnnotations(event) {
-    const file = event.currentTarget?.files?.[0] || null;
+    const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+    const file = input.files?.[0] || null;
     analysisResult = null;
     analysisStatus = 'idle';
     annotationFileName = '';
