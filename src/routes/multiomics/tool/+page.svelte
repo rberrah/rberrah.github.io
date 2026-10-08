@@ -7,6 +7,7 @@
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
+  import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -70,9 +71,10 @@
   /** @type {any} */
   let analysisResult = null;
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
-  let useReactome = true;
-  let resolveIdentifiers = true;
-  let referenceBackendMode = 'auto';
+  // External API requests and reference R data forwarding are opt-in.
+  let useReactome = false;
+  let resolveIdentifiers = false;
+  let referenceBackendMode = 'browser';
   let referenceBackendUrl = 'http://127.0.0.1:8787';
   let referenceBackendStatus = 'unchecked';
   let referenceBackendMessage = '';
@@ -703,6 +705,8 @@
     metabolomicsValues = 'peak_area';
     metabolomicsIdType = 'chebi';
     resolveIdentifiers = false;
+    // Only public synthetic demo identifiers are sent to Reactome.
+    useReactome = true;
     referenceBackendMode = 'browser';
     demoLoaded = true;
     await inspectMetadata(files.metadata);
@@ -1175,6 +1179,7 @@
           : 'Visualization preparation failed.';
       }
       await attachMsProvenance(analysisResult);
+      analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
       analysisStatus = 'done';
     } catch (error) {
       analysisStatus = 'error';
@@ -1244,6 +1249,7 @@
       '<p class="muted">Generated ' + escapeHtml(result.generatedAt) + ' · engine ' + escapeHtml(result.engine?.version || 'unknown') + '</p>' +
       '<section><h2>Provenance</h2><pre>' + escapeHtml(JSON.stringify(result.inputManifest, null, 2)) + '</pre></section>' +
       '<section><h2>Protocol</h2><pre>' + escapeHtml(JSON.stringify(result.protocol, null, 2)) + '</pre></section>' +
+      '<section><h2>Scientific evidence status (not an approval)</h2><pre>' + escapeHtml(JSON.stringify(result.scientificAssurance || {}, null, 2)) + '</pre></section>' +
       '<section><h2>Sample structure</h2><pre>' + escapeHtml(JSON.stringify(result.metadataSummary, null, 2)) + '</pre></section>' +
       layerSections +
       (result.supervisedIntegration ? '<section><h2>Supervised multiblock integration</h2><pre>' + escapeHtml(JSON.stringify(result.supervisedIntegration, null, 2)) + '</pre></section>' : '') +
@@ -1955,7 +1961,7 @@
           <label>
             <span>{t('Correction de dérive', 'Drift correction')}</span>
             <select bind:value={msDriftCorrection}>
-              <option value="yes">{t('Oui · si ≥5 pooled-QC ordonnés', 'Yes · when ≥5 ordered pooled-QCs')}</option>
+              <option value="yes">{t('Oui · ≥5 QC (linéaire JS), ≥8 QC (LOESS R)', 'Yes · ≥5 QC (linear JS), ≥8 QC (R LOESS)')}</option>
               <option value="no">{t('Non', 'No')}</option>
             </select>
           </label>
@@ -2362,14 +2368,14 @@
         ? t('Les designs crossover restent bloqués tant que les effets de période et de séquence ne sont pas modélisés.', 'Crossover designs remain blocked until period and sequence effects are modelled.')
         : !outcomeMappingComplete
           ? t('Complétez le type et le mapping de l’outcome requis.', 'Complete the required outcome type and mapping.')
-          : t('Chargez au moins deux couches omiques et mappez subject_id, sample_id, assay_id et omic.', 'Load at least two omics layers and map subject_id, sample_id, assay_id and omic.')}</span>
+          : t('Chargez au moins une couche omique et mappez subject_id, sample_id, assay_id et omic.', 'Load at least one omics layer and map subject_id, sample_id, assay_id and omic.')}</span>
   </div>
 
   <div class="run-box">
     <div>
       <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
       <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
-      <p>{t('Le calcul suit votre plan d’étude. Les fichiers restent dans votre navigateur, sauf si un moteur R est connecté. Par défaut, les identifiants moléculaires sélectionnés peuvent être envoyés à Reactome.', 'The analysis follows your study design. Files remain in your browser unless an R engine is connected. Selected molecular identifiers may be sent to Reactome by default.')}</p>
+      <p>{t('Par défaut, tout reste dans votre navigateur. Activer explicitement ChEBI/Reactome transmet certains identifiants moléculaires ; activer le moteur R transmet vos matrices et métadonnées à son adresse configurée.', 'By default, computation stays in your browser. Opting in to ChEBI/Reactome transmits some molecular identifiers; connecting the R engine sends matrices and metadata to its configured address.')}</p>
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
@@ -2433,6 +2439,24 @@
       {/if}
     </div>
   </div>
+
+  {#if analysisResult.scientificAssurance}
+    <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
+      <strong>{t('Statut de validité scientifique', 'Scientific evidence status')} · {analysisResult.scientificAssurance.status === 'descriptive'
+        ? t('Exploration descriptive', 'Descriptive exploration')
+        : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
+      <p>{t('Exécution réussie ≠ validation scientifique. Une q-value faible ou un contrôle QC sans alerte ne certifient pas une découverte. Une conclusion publiable exige un design vérifié, une méthode de référence et, selon l’objectif, une validation indépendante.',
+          'Successful execution is not scientific validation. Low q-values or apparently clean QC do not certify a finding. Publication claims require a checked design, appropriate reference methods and sometimes external validation.')}</p>
+      <details>
+        <summary>{t('Voir les limites spécifiques à cette analyse', 'See limits specific to this analysis')}</summary>
+        <ul>
+          {#each analysisResult.scientificAssurance.notes as note}
+            <li>{$language === 'en' ? note.en : note.fr}</li>
+          {/each}
+        </ul>
+      </details>
+    </div>
+  {/if}
 
   <div class="computed-summary">
     <article data-testid="multiomics-analysis-mode"><span>{t('Type d’analyse', 'Analysis type')}</span><strong>{analysisResult.engine?.analysisMode === 'single_omic' ? t('Omique unique', 'Single omic') : t('Multi-omique', 'Multi-omics')}</strong></article>
@@ -3412,6 +3436,11 @@
   }
   /* Use the actual light/dark palette. --surface was never defined: in dark
      mode its #fff fallback inherited a near-white font (WCAG failure). */
+  .scientific-assurance { margin:16px 0 24px; padding:16px 18px; background:var(--bg-secondary); border:1px solid var(--border-strong); border-inline-start:4px solid var(--accent-pk); color:var(--text-primary); border-radius:8px; }
+  .scientific-assurance strong { display:block; margin-bottom:6px; color:var(--text-primary); }
+  .scientific-assurance p { margin:4px 0 12px; color:var(--text-secondary); font-size:.92rem; }
+  .scientific-assurance summary { color:var(--text-primary); font-weight:650; cursor:pointer; }
+  .scientific-assurance li { padding:3px 0; color:var(--text-secondary); font-size:.89rem; }
   .quick-start { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin:20px 0; padding:18px 20px; border:1px solid var(--border-strong); border-radius:14px; background:var(--bg-secondary); color:var(--text-primary); }
   .quick-start-copy { display:grid; gap:6px; flex:1 1 275px; min-width:0; }
   .quick-start strong { color:var(--text-primary); font-size:1rem; line-height:1.4; }

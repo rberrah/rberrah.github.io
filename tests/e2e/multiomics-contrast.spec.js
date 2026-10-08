@@ -57,3 +57,21 @@ test('The beginner RNA shortcut runs a genuine one-omic analysis and labels it',
   await expect(page.getByTestId('multiomics-results')).toContainText('Résultats de la démonstration');
   await expect(page.getByTestId('multiomics-single-omic-notice')).toBeVisible();
 });
+
+
+test('Scientific evidence status is explicit and external data transfer is opt-in', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await expect(page.getByLabel(/Interroger Reactome|Query Reactome/)).not.toBeChecked();
+  await expect(page.getByLabel(/Résoudre les métabolites non canoniques|Resolve selected non-canonical/)).not.toBeChecked();
+  await expect(page.getByLabel(/Mode backend R|R backend mode/i)).toHaveValue('browser');
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-scientific-assurance')).toBeVisible({ timeout: 25000 });
+  await expect(page.getByTestId('multiomics-scientific-assurance')).toContainText(/validation scientifique|scientific validation/i);
+  const evidence = await page.getByTestId('multiomics-scientific-assurance').innerText();
+  expect(evidence).toMatch(/Exécution réussie|Successful execution/);
+  const reportPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: /Télécharger le rapport complet|Download full report/ }).click();
+  const report = await reportPromise;
+  expect(report.suggestedFilename()).toBe('multiomics_reproducible_report.html');
+});

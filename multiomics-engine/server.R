@@ -199,7 +199,10 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
 
   drift_corrected <- 0L
   ordered_qc <- qc_idx[is.finite(orders[qc_idx])]
-  if (drift_requested && length(ordered_qc) >= 5L && length(unique(orders[ordered_qc])) >= 4L) {
+  # Five QC injections suffice for a *linear* drift check, not a
+  # nonlinear LOESS curve. Nonlinear fitting needs >= 8 QC injections
+  # spanning the sequence (clinical untargeted MS QC guidelines).
+  if (drift_requested && length(ordered_qc) >= 5L && length(unique(orders[ordered_qc])) >= 5L) {
     ordered_all <- which(is.finite(orders))
     for (j in seq_len(ncol(x))) {
       values <- x[,j]
@@ -207,22 +210,24 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
       if (length(positive) < 5L) next
       pseudo <- max(min(positive) / 2, 1e-12)
       use_qc <- ordered_qc[is.finite(values[ordered_qc]) & values[ordered_qc] >= 0]
-      if (length(use_qc) < 5L || length(unique(orders[use_qc])) < 4L) next
+      if (length(use_qc) < 5L || length(unique(orders[use_qc])) < 5L) next
 
       qdat <- data.frame(order=orders[use_qc], response=log(values[use_qc] + pseudo))
-      adaptive_span <- min(1, max(0.6, 4 / nrow(qdat)))
-      fit <- try(stats::loess(
-        response ~ order,
-        data=qdat,
-        span=adaptive_span,
-        degree=1,
-        family="symmetric",
-        control=stats::loess.control(surface="direct")
-      ), silent=TRUE)
       pred_all <- pred_qc <- NULL
-      if (!inherits(fit,"try-error")) {
-        pred_all <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[ordered_all])), silent=TRUE))
-        pred_qc <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[use_qc])), silent=TRUE))
+      # Never extrapolate correction beyond pooled-QC support; require QC
+      # injections to bracket every biological injection being adjusted.
+      in_support <- orders[ordered_all] >= min(qdat$order) &
+        orders[ordered_all] <= max(qdat$order)
+      if (nrow(qdat) >= 8L && length(unique(qdat$order)) >= 8L) {
+        adaptive_span <- min(1, max(0.6, 5 / nrow(qdat)))
+        fit <- try(stats::loess(
+          response ~ order, data=qdat, span=adaptive_span, degree=1,
+          family="symmetric", control=stats::loess.control(surface="direct")
+        ), silent=TRUE)
+        if (!inherits(fit,"try-error")) {
+          pred_all <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[ordered_all])), silent=TRUE))
+          pred_qc <- suppressWarnings(try(stats::predict(fit, newdata=data.frame(order=orders[use_qc])), silent=TRUE))
+        }
       }
       loess_ok <- !inherits(pred_all,"try-error") && !inherits(pred_qc,"try-error") &&
         sum(is.finite(pred_all)) >= max(3L, ceiling(length(ordered_all) * 0.5)) &&
@@ -236,7 +241,7 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
       }
       reference <- stats::median(pred_qc[is.finite(pred_qc)], na.rm=TRUE)
       if (!is.finite(reference)) next
-      valid <- is.finite(pred_all) & is.finite(values[ordered_all]) & values[ordered_all] >= 0
+      valid <- in_support & is.finite(pred_all) & is.finite(values[ordered_all]) & values[ordered_all] >= 0
       if (!any(valid)) next
       ids <- ordered_all[valid]
       corrected <- exp(log(values[ids] + pseudo) - pred_all[valid] + reference) - pseudo
@@ -287,6 +292,8 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
   if (blank_filter && length(blank_idx) < 2L) warnings <- c(warnings, "Blank assessment requested but fewer than two blank injections were annotated.")
   if (identical(blank_mode, "remove") && length(blank_idx) >= 2L) warnings <- c(warnings, "Blank-associated features were excluded using the declared ratio; retain a flag-only sensitivity analysis for confirmatory work.")
   if (drift_requested && length(ordered_qc) < 5L) warnings <- c(warnings, "Drift correction requested but fewer than five ordered pooled-QC injections were available.")
+  if (drift_requested && length(ordered_qc) >= 5L && length(ordered_qc) < 8L) warnings <- c(warnings, "Fewer than eight ordered pooled-QCs: no nonlinear LOESS was fitted; only a linear drift model was allowed. Confirm with a no-drift-correction sensitivity analysis.")
+  if (drift_requested && length(ordered_qc) >= 5L && any(is.finite(orders[bio_idx]) & (orders[bio_idx] < min(orders[ordered_qc]) | orders[bio_idx] > max(orders[ordered_qc])))) warnings <- c(warnings, "Some biological injections fall outside the QC bracketing range and were not drift-corrected (no extrapolation).")
   if (rsd_filter && length(qc_idx) < 3L) warnings <- c(warnings, "QC RSD filter requested but fewer than three pooled-QC injections were annotated.")
   if (identical(mnar_strategy, "left_censored")) warnings <- c(warnings, "Left-censored imputation is a declared sensitivity assumption; retain a no-imputation analysis for confirmatory work.")
 
@@ -294,7 +301,7 @@ apply_ms_qc_reference <- function(x, meta, protocol) {
     matrix=x[bio_idx,,drop=FALSE],
     metadata=meta[bio_idx,,drop=FALSE],
     summary=list(
-      method="R reference MS QC: blank filter + pooled-QC local drift correction (LOESS with linear fallback) + pooled-QC RSD",
+      method="R MS QC: blank filter + LOESS only when >=8 ordered QC (linear fallback >=5) within QC order support + pooled-QC RSD",
       biological_injections=length(bio_idx),
       blank_injections=length(blank_idx),
       qc_injections=length(qc_idx),

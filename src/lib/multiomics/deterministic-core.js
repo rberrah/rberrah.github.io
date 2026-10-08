@@ -534,6 +534,23 @@ function studentTCdf(t,df) {
   return t >= 0 ? 1-0.5*ib : 0.5*ib;
 }
 
+// Inference using a Student-t p-value must use the same distribution for its
+// confidence interval, particularly with small cohorts.
+const t95Cache = new Map();
+function tCritical95(df) {
+  if (!(Number.isFinite(df) && df > 0)) return NaN;
+  if (t95Cache.has(df)) return t95Cache.get(df);
+  let lo = 0, hi = 20;
+  for (let iter = 0; iter < 42; iter += 1) {
+    const mid = (lo + hi) / 2;
+    if (studentTCdf(mid, df) >= 0.975) hi = mid;
+    else lo = mid;
+  }
+  const critical = (lo + hi) / 2;
+  t95Cache.set(df, critical);
+  return critical;
+}
+
 function fCdf(f,d1,d2) {
   if (f <= 0) return 0;
   if (f === Infinity) return 1;
@@ -1001,6 +1018,13 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   const qcOrders = qcAssays.map((assay)=>metaByAssay.get(assay)?.numericInjectionOrder);
   const orderedQcCount = qcOrders.filter(Number.isFinite).length;
   const allOrdered = matrix.assays.filter((assay)=>Number.isFinite(metaByAssay.get(assay)?.numericInjectionOrder));
+  const qcOrderSupport = qcOrders.filter(Number.isFinite);
+  const qcMinOrder = qcOrderSupport.length ? Math.min(...qcOrderSupport) : Infinity;
+  const qcMaxOrder = qcOrderSupport.length ? Math.max(...qcOrderSupport) : -Infinity;
+  const outsideQcSupport = biologicalAssays.filter((assay) => {
+    const order = metaByAssay.get(assay)?.numericInjectionOrder;
+    return Number.isFinite(order) && (order < qcMinOrder || order > qcMaxOrder);
+  }).length;
 
   if (driftEnabled && qcAssays.length >= 5 && orderedQcCount >= 5 && allOrdered.length >= 5) {
     for (const feature of features) {
@@ -1028,6 +1052,9 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
         const raw = map.get(assay);
         const order = metaByAssay.get(assay)?.numericInjectionOrder;
         if (!Number.isFinite(raw) || raw < 0 || !Number.isFinite(order)) continue;
+        // A correction must interpolate between observed QC positions; do
+        // not extrapolate outside the supporting pooled-QC injection sequence.
+        if (order < Math.min(...qx) || order > Math.max(...qx)) continue;
         const pred = localLinearQcTrend(qx,qy,order);
         if (!Number.isFinite(pred)) continue;
         const corrected = Math.max(0, Math.exp(Math.log(raw+pseudocount) - pred + reference) - pseudocount);
@@ -1092,6 +1119,7 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
   if (blankFilterEnabled && blankAssays.length < 2) warnings.push('Blank assessment requested but fewer than 2 blank injections were annotated.');
   if (blankMode === 'remove' && blankAssays.length >= 2) warnings.push('Blank-associated features were excluded using the declared biological/blank ratio. Review flagged features and retain a flag-only sensitivity analysis for confirmatory work.');
   if (driftEnabled && orderedQcCount < 5) warnings.push('QC drift correction requested but fewer than 5 pooled-QC injections with numeric injection order were available.');
+  if (driftEnabled && outsideQcSupport > 0 && orderedQcCount >= 5) warnings.push(outsideQcSupport + ' biological injections fall outside pooled-QC injection-order support; no drift extrapolation was applied to them.');
   if (qcRsdEnabled && qcAssays.length < 3) warnings.push('QC RSD filtering requested but fewer than 3 pooled-QC injections were annotated.');
   if (mnarStrategy === 'left_censored') warnings.push('Left-censored MNAR imputation was applied only to missing biological metabolomics values; perform a no-imputation sensitivity analysis for confirmatory work.');
 
@@ -1122,6 +1150,8 @@ function applyMetabolomicsMsQc(matrix, metadataRows, config = {}) {
         applied: driftCorrected > 0,
         correctedFeatures: driftCorrected,
         orderedQcCount,
+        outsideQcSupport,
+        interpolationOnly: true,
         medianAbsoluteLogCorrection: medianAbsoluteDriftLog,
         method: 'pooled-QC local linear log-intensity correction using injection order'
       },
@@ -1710,8 +1740,39 @@ function subjectCovariateDesign(entries, covariateColumns = [], { includeInterce
   return { design, columnNames, encoder };
 }
 
+// Inference must not use the tiny numerical ridge added by solveLinearSystem
+// to disguise exact aliases (e.g. a technical batch perfectly coding group).
+// This rank check uses scale-aware Gaussian elimination on the *raw* design.
+function hasFullColumnRank(design) {
+  const n = design.length;
+  const p = design[0]?.length || 0;
+  if (!n || !p || n < p || design.some((row) => row.length !== p || row.some((x) => !Number.isFinite(x)))) return false;
+  const a = design.map((row) => row.slice());
+  let rank = 0;
+  for (let col = 0; col < p; col += 1) {
+    let pivot = -1;
+    let best = 0;
+    for (let i = rank; i < n; i += 1) {
+      const magnitude = Math.abs(a[i][col]);
+      if (magnitude > best) { best = magnitude; pivot = i; }
+    }
+    const columnMax = Math.max(...design.map((row) => Math.abs(row[col])));
+    if (pivot < 0 || best <= 1e-10 * Math.max(columnMax, 1e-12)) continue;
+    [a[rank], a[pivot]] = [a[pivot], a[rank]];
+    const scale = a[rank][col];
+    for (let j = col; j < p; j += 1) a[rank][j] /= scale;
+    for (let i = rank + 1; i < n; i += 1) {
+      const factor = a[i][col];
+      for (let j = col; j < p; j += 1) a[i][j] -= factor * a[rank][j];
+    }
+    rank += 1;
+  }
+  return rank === p;
+}
+
 function ordinaryLeastSquares(design, response, coefficientIndex) {
   if (!design.length || design.length <= (design[0]?.length || 0)) return null;
+  if (!hasFullColumnRank(design)) return null;
   const xtx = crossProductMatrix(design);
   const xty = crossProductVector(design, response);
   const beta = solveLinearSystem(xtx, xty);
@@ -1771,7 +1832,7 @@ function ordinaryLeastSquaresRobust(design, response, coefficientIndex) {
 function fitGeneralizedLinear(design, response, family, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
-  if (!n || n <= p) return null;
+  if (!n || n <= p || !hasFullColumnRank(design)) return null;
   let beta = Array(p).fill(0);
   if (family === 'poisson') {
     const start = Math.log(Math.max(mean(response), 1e-6));
@@ -1934,7 +1995,7 @@ function fitRandomInterceptGls(design, response, subjectIds, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
   const subjects = [...new Set(subjectIds)];
-  if (!n || n <= p || subjects.length < 3) return null;
+  if (!n || n <= p || subjects.length < 3 || !hasFullColumnRank(design)) return null;
 
   let beta = solveLinearSystem(crossProductMatrix(design), crossProductVector(design, response));
   if (!beta) return null;
@@ -2097,8 +2158,8 @@ function analyseLongitudinalMixedLayer(aggregated, layer, { covariateColumns = [
         qValue: null,
         statistic: fit.statistic,
         standardError: effectSe,
-        ciLow: Number.isFinite(effectSe) ? effect - 1.96 * effectSe : null,
-        ciHigh: Number.isFinite(effectSe) ? effect + 1.96 * effectSe : null,
+        ciLow: Number.isFinite(effectSe) ? effect - tCritical95(fit.df) * effectSe : null,
+        ciHigh: Number.isFinite(effectSe) ? effect + tCritical95(fit.df) * effectSe : null,
         intraclassCorrelation: fit.intraclassCorrelation,
         sigmaWithin: fit.sigmaWithin,
         sigmaBetween: fit.sigmaBetween,
@@ -2227,8 +2288,8 @@ function analyseIndependentAdjustedLayer(aggregated, layer, { covariateColumns =
         qValue: null,
         statistic: fit.statistic,
         standardError: fit.se,
-        ciLow: Number.isFinite(fit.se) ? effect - 1.96 * fit.se : null,
-        ciHigh: Number.isFinite(fit.se) ? effect + 1.96 * fit.se : null,
+        ciLow: Number.isFinite(fit.se) ? effect - tCritical95(fit.df) * fit.se : null,
+        ciHigh: Number.isFinite(fit.se) ? effect + tCritical95(fit.df) * fit.se : null,
         nReference: entries.filter((entry) => entry.row.condition === reference).length,
         nComparison: entries.filter((entry) => entry.row.condition === comparison).length,
         model: 'feature ~ condition + batch + selected covariates (OLS HC3)'
@@ -2386,8 +2447,10 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
 
     if (!fit) continue;
     const coefficient = fit.beta?.[1] ?? fit.beta?.[0];
-    const ciLow = Number.isFinite(fit.se) ? coefficient - 1.96 * fit.se : null;
-    const ciHigh = Number.isFinite(fit.se) ? coefficient + 1.96 * fit.se : null;
+    // OLS uses t(df), while GLM/Cox use asymptotic normal Wald intervals.
+    const critical = outcomeType === 'continuous' ? tCritical95(fit.df) : 1.96;
+    const ciLow = Number.isFinite(fit.se) ? coefficient - critical * fit.se : null;
+    const ciHigh = Number.isFinite(fit.se) ? coefficient + critical * fit.se : null;
     const multiplicative = ['binary','count','survival'].includes(outcomeType);
     rows.push({
       feature,
@@ -3070,6 +3133,14 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     loadedLayers.some((layer) => [...aggregatedByLayer[layer].sampleMeta.values()].some((row) => row.subjectId === subject))
   ).sort();
   if (subjects.length < 12) return { status: 'not_available', reason: 'At least 12 subjects with outcome data are required for nested cross-validation.' };
+  // Stratified five-fold validation needs each outcome class represented in
+  // each fold. Otherwise AUC and inner-loop model selection are unstable.
+  if (['binary','multiclass'].includes(protocol.outcomeType)) {
+    const counts = target.levels.map((level) => subjects.filter((id) => target.targetBySubject.get(id) === level).length);
+    if (counts.length < 2 || counts.some((n) => n < 5)) {
+      return { status: 'not_available', reason: 'At least 5 independent subjects per outcome class are required for stratified five-fold nested cross-validation.' };
+    }
+  }
 
   const categorical = ['binary','multiclass','survival'].includes(protocol.outcomeType);
   const foldTarget = protocol.outcomeType === 'survival'
@@ -3095,30 +3166,48 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       ? new Map(trainSubjects.map((subject) => [subject, target.targetBySubject.get(subject)?.event ?? 0]))
       : target.targetBySubject;
     const innerFolds = deterministicFolds(trainSubjects, innerFoldTarget, Math.min(4, trainSubjects.length), categorical);
+    // Preparing one inner-training dataset for each split (instead of once
+    // for each penalty) is essential when thousands of features are uploaded.
+    // All four tuning candidates use the *same*, properly isolated folds.
+    const innerPrepared = [];
+    for (const innerTest of innerFolds) {
+      const innerTestSet = new Set(innerTest);
+      const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
+      if (innerTrain.length < 5 || !innerTest.length) continue;
+      const innerSelected = selectPredictionFeatures(
+        aggregatedByLayer, loadedLayers, innerTrain, target, protocol, 12
+      );
+      if (!innerSelected.length) continue;
+      const trainMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTrain, innerTrain, protocol);
+      const testMatrix = predictionMatrix(innerSelected, aggregatedByLayer, innerTest, innerTrain, protocol);
+      if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
+      innerPrepared.push({
+        training: trainMatrix.design,
+        testing: testMatrix.design,
+        trainTruth: innerTrain.map((subject) => target.targetBySubject.get(subject)),
+        testTruth: innerTest.map((subject) => target.targetBySubject.get(subject))
+      });
+    }
+    if (innerPrepared.length < 2) continue;
     let bestLambda = lambdas[0];
     let bestLoss = Infinity;
     for (const lambda of lambdas) {
       const losses = [];
-      for (const innerTest of innerFolds) {
-        const innerTestSet = new Set(innerTest);
-        const innerTrain = trainSubjects.filter((subject) => !innerTestSet.has(subject));
-        if (innerTrain.length < 5 || !innerTest.length) continue;
-        const trainMatrix = predictionMatrix(selected, aggregatedByLayer, innerTrain, innerTrain, protocol);
-        const testMatrix = predictionMatrix(selected, aggregatedByLayer, innerTest, innerTrain, protocol);
-        if (!trainMatrix.columns.length || trainMatrix.columns.length !== testMatrix.columns.length) continue;
-        const trainTruth = innerTrain.map((subject) => target.targetBySubject.get(subject));
-        const testTruth = innerTest.map((subject) => target.targetBySubject.get(subject));
-        const model = fitPredictiveModel(trainMatrix.design, trainTruth, protocol, target.levels, lambda);
+      for (const split of innerPrepared) {
+        const model = fitPredictiveModel(split.training, split.trainTruth, protocol, target.levels, lambda);
         if (!model) continue;
-        const pred = predictModel(model, testMatrix.design, protocol);
-        losses.push(validationLoss(protocol, testTruth, pred, target.levels));
+        const pred = predictModel(model, split.testing, protocol);
+        losses.push(validationLoss(protocol, split.testTruth, pred, target.levels));
       }
+      // Do not pick a penalty based on just one successful inner fold.
+      if (losses.length !== innerPrepared.length) continue;
       const loss = mean(losses);
       if (Number.isFinite(loss) && loss < bestLoss) {
         bestLoss = loss;
         bestLambda = lambda;
       }
     }
+    if (!Number.isFinite(bestLoss)) continue;
 
     const trainMatrix = predictionMatrix(selected, aggregatedByLayer, trainSubjects, trainSubjects, protocol);
     const testMatrix = predictionMatrix(selected, aggregatedByLayer, testSubjects, trainSubjects, protocol);
@@ -3134,6 +3223,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       trainingSubjects: trainSubjects.length,
       testSubjects: testSubjects.length,
       selectedFeatures: selected.length,
+      innerFeatureSelection: 'refitted on each inner-training fold',
       lambda: bestLambda,
       innerLoss: bestLoss
     });
@@ -3180,7 +3270,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       policy: 'fold-local',
       batch: true,
       covariates: protocol.covariateColumns || [],
-      note: 'Batch/covariate adjustment, feature selection, centering and scaling are estimated from training subjects only and then applied to held-out subjects.'
+      note: 'Predictive nuisance adjustment, feature selection, centering and scaling are refitted in each inner and outer training fold. Upstream modality preprocessing (global QC, pseudocounts, MS correction) occurs before splitting and needs an independent-cohort sensitivity check.'
     },
     outcomeType: protocol.outcomeType,
     subjects: subjects.length,
@@ -3188,7 +3278,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics,
     predictions,
     foldSummaries,
-    caveat: 'This is predictive validation, separate from feature-wise association. External validation is still required before clinical use.'
+    caveat: 'Nested subject-level CV is internal screening, not external validation. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
   };
 }
 
