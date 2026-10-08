@@ -17,7 +17,7 @@ const aliases = {
   order: ['injection_order','run_order','injection_number','order'],
   replicate: ['technical_replicate','replicate','technical_rep']
 };
-const norm = (x)=>String(x??'').trim().toLowerCase().replace(/[\s-]+/g,'_');
+const norm = (x)=>String(x??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 const find = (headers, keys) => headers.find((h)=>keys.includes(norm(h))) || null;
 const escapeCsv=(s)=>'"'+String(s??'').replace(/"/g,'""')+'"';
 const csv=(header,rows)=>[header.map(escapeCsv).join(','),...rows.map((row)=>row.map(escapeCsv).join(','))].join('\n')+'\n';
