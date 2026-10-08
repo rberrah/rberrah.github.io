@@ -242,8 +242,12 @@ Types pris en charge :
 
 Une incertitude bootstrap déterministe est calculée lorsqu’elle est estimable. Les ré-échantillonnages non estimables restent manquants ; ils ne déclenchent jamais un ré-entraînement.
 
-Commande :
-Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output
+Utilisation :
+- depuis le site : charger le CSV de prédictions figées et le JSON de configuration dans le panneau « Validation externe depuis le navigateur » ; le calcul est envoyé au endpoint local R `/external-validation` ;
+- en ligne de commande :
+  Rscript multiomics-engine/run_external_validation.R external_validation_predictions_binary.csv external_validation_binary.json external_validation_output
+
+Dans les deux voies, `independent_cohort=true` est requis pour utiliser l’étiquette « validation externe ». Aucune variable n’est sélectionnée et aucun modèle n’est réentraîné pendant cette étape.
 
 Templates :
 - /multiomics/templates/external_validation_predictions_binary.csv
