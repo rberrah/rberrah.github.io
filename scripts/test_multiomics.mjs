@@ -382,6 +382,8 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   });
 
   assert.equal(survival.predictiveOutcome.status, 'ok');
+  assert.equal(survival.predictiveOutcome.predictions.length, survival.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+  assert.equal(new Set(survival.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, survival.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(survival.predictiveOutcome.outcomeType, 'survival');
   assert.ok(survival.predictiveOutcome.predictions.length >= 24);
   assert.ok(Number.isFinite(survival.predictiveOutcome.metrics.cIndex));
@@ -439,6 +441,8 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
     resolveIdentifiers:false
   });
   assert.equal(pred.predictiveOutcome.status, 'ok');
+  assert.equal(pred.predictiveOutcome.predictions.length, pred.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+  assert.equal(new Set(pred.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, pred.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(pred.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
   assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
   assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
@@ -915,6 +919,8 @@ function csvFile(name, text) {
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
     assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+    assert.equal(outcomeResult.predictiveOutcome.predictions.length, outcomeResult.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+    assert.equal(new Set(outcomeResult.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, outcomeResult.predictiveOutcome.subjects, 'every subject has one held-out prediction');
     assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
     assert.ok(outcomeResult.predictiveOutcome.foldSummaries.every(x=>x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
     if (type === 'survival') {
