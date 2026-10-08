@@ -1,3 +1,4 @@
+// @ts-nocheck — Playwright's browser-side DOM evaluation is runtime-validated.
 import { test, expect } from '@playwright/test';
 
 test('multi-omics one-click demo exposes guided heatmap, pathway and map views', async ({ page }) => {
@@ -26,6 +27,36 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
   await expect(legend).toContainText('Succinate');
   await expect(legend).toContainText('CHEBI:24996');
   await expect(legend.locator('.legend-entry')).toHaveCount(9);
+  // The portal supports light/dark schemes; the plot is always on white.
+  // Never inherit white theme text onto the white annotation panel.
+  for (const scheme of ['light', 'dark']) {
+    await page.emulateMedia({ colorScheme: scheme });
+    const contrast = await legend.evaluate((container) => {
+      const color = (el, attribute) => {
+        const raw = getComputedStyle(el)[attribute];
+        const channels = raw.match(/\d+/g)?.slice(0, 3).map(Number) || [];
+        return channels.map((x) => x / 255).map((x) => x <= .04045 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4);
+      };
+      const luminance = (values) => values[0] * .2126 + values[1] * .7152 + values[2] * .0722;
+      const ratio = (fg, bg) => {
+        const a = luminance(color(fg, 'color')), b = luminance(color(bg, 'backgroundColor'));
+        return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+      };
+      const targets = [
+        ...container.querySelectorAll('.legend-name strong, .legend-name small, .legend-effect')
+      ];
+      return {
+        headingRatio: ratio(container.querySelector('.legend-section h4'), container.querySelector('.legend-section h4')),
+        minTextRatio: Math.min(...targets.map((node) => ratio(node, node.closest('.legend-entry')))),
+        surface: getComputedStyle(container).backgroundColor,
+        count: targets.length
+      };
+    });
+    expect(contrast.surface).toBe('rgb(255, 255, 255)');
+    expect(contrast.headingRatio).toBeGreaterThanOrEqual(7);
+    expect(contrast.minTextRatio).toBeGreaterThanOrEqual(7);
+    expect(contrast.count).toBeGreaterThan(0);
+  }
   await page.getByTestId('multiomics-pathway-select').selectOption('glycolysis');
   await expect(page.getByTestId('multiomics-pathway-coverage')).toContainText(/Glycolyse|Glycolysis/);
 

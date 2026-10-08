@@ -523,25 +523,30 @@
   .center-label { font-size:11px; font-weight:800; fill:#263238; }
   .center-value { font-size:10px; fill:#263238; }
   .half-label { font-size:12px; font-weight:800; fill:#263238; }
-  .metabologram-keys { display:flex; flex-direction:column; gap:13px; min-width:0; font-size:.85rem; }
-  .color-key { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; font-size:.8rem; }
+  /* The plot has a white SVG background, whereas the rest of the portal can
+     use a dark theme. Explicit ink + surface are required on every legend row:
+     inheriting light text on a white legend caused unreadable labels. */
+  .metabologram-keys { display:flex; flex-direction:column; gap:13px; min-width:0; font-size:.85rem;
+    padding:12px; border:1px solid #cbd5dc; border-radius:12px;
+    color:#1b2b34; background:#fff; color-scheme:light; }
+  .color-key { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0; font-size:.83rem; color:#1b2b34; }
   .color-key i { display:inline-block; width:13px; height:13px; border:1px solid #829099; border-radius:3px; margin-left:8px; }
   .color-key .key-blue { background:#3567b2; margin-left:0; }
-  .color-key .key-white { background:#f7f7f7; }
+  .color-key .key-white { background:#f7f7f7; border:2px solid #566673; }
   .color-key .key-red { background:#cc3e3e; }
-  .color-key small { display:block; width:100%; color:var(--text-secondary,#58666d); margin-top:4px; }
-  .legend-section { border:1px solid var(--border,#d9e0e3); border-radius:12px; min-width:0; overflow:hidden; }
-  .legend-section h4 { margin:0; font-size:.88rem; padding:10px 12px; background:#f5f8f9; border-bottom:1px solid var(--border,#d9e0e3); }
+  .color-key small { display:block; width:100%; color:#415360; margin-top:5px; }
+  .legend-section { border:1px solid #cbd5dc; border-radius:12px; min-width:0; overflow:hidden; color:#1b2b34; background:#fff; }
+  .legend-section h4 { margin:0; color:#182731; font-size:.9rem; padding:11px 12px; background:#eaf0f3; border-bottom:1px solid #cbd5dc; }
   .legend-section h4 small { font-weight:400; color:#58666d; }
-  .legend-items { list-style:none; padding:4px 10px; margin:0; display:grid; }
-  .legend-entry { display:grid; grid-template-columns:14px minmax(0,1fr) 64px; align-items:center; gap:10px; padding:7px 2px; border-bottom:1px solid #edf0f1; min-width:0; }
+  .legend-items { list-style:none; padding:4px 10px; margin:0; display:grid; color:#1b2b34; background:#fff; }
+  .legend-entry { display:grid; grid-template-columns:14px minmax(0,1fr) 70px; align-items:center; gap:10px; padding:9px 3px; border-bottom:1px solid #dbe3e8; min-width:0; color:#1b2b34; background:#fff; }
   .legend-entry:last-child { border-bottom:0; }
   .legend-swatch { width:13px; height:13px; border-radius:3px; border:1px solid #839098; }
   .legend-name { display:flex; flex-direction:column; gap:1px; min-width:0; overflow-wrap:anywhere; line-height:1.3; }
-  .legend-name strong { font-size:.84rem; font-weight:650; }
-  .legend-name small { font-size:.7rem; color:#58666d; font-family:var(--font-mono,monospace); }
-  .legend-effect { text-align:right; font-family:var(--font-mono,monospace); font-variant-numeric:tabular-nums; font-size:.82rem; }
-  .legend-empty, .legend-more { display:block; padding:6px 12px; color:#58666d; font-size:.8rem; }
+  .legend-name strong { color:#182731; font-size:.88rem; font-weight:700; }
+  .legend-name small { font-size:.73rem; color:#405463; font-family:var(--font-mono,monospace); }
+  .legend-effect { color:#182731; text-align:right; font-family:var(--font-mono,monospace); font-variant-numeric:tabular-nums; font-size:.87rem; font-weight:750; }
+  .legend-empty, .legend-more { display:block; padding:6px 12px; color:#405463; font-size:.82rem; }
   .off-map { margin:12px 0; padding:12px 14px; border:1px solid var(--border,#d9e0e3); border-radius:10px; font-size:.85rem; line-height:1.5; }
   .off-map strong { font-size:.9rem; }
   .off-map p { margin:4px 0 8px; color:var(--text-secondary,#58666d); }

@@ -10,6 +10,12 @@ on:
       - 'scripts/benchmark_multiomics_negative_controls.mjs'
       - 'scripts/attach_public_benchmark_provenance.mjs'
       - 'src/lib/multiomics/**'
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-public-benchmark.yml'
+      - 'scripts/benchmark_public_multiomics.mjs'
+      - 'scripts/export_public_multiomics_benchmarks.R'
+      - 'src/lib/multiomics/**'
   workflow_dispatch:
 
 permissions:
