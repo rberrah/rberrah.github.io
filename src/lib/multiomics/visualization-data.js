@@ -569,7 +569,7 @@ export async function buildMultiomicsVisualizationData({
   columnMapping,
   dataTypes,
   analysisResult,
-  metaboliteAnnotations = [],
+  metaboliteAnnotations = /** @type {{feature:string,chebi:string,status:string,provenance:string}[]} */ ([]),
   maxFeatures = 30,
   maxSamples = 48
 }) {
