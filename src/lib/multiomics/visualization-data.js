@@ -418,6 +418,9 @@ function mappingAliases(result, layer) {
     const aliases = [item?.original, item?.resolved, item?.label, item?.query].filter(Boolean);
     if (item?.original) map.set(item.original, aliases);
   }
+  if (layer === 'metabolomics') for (const entry of result?.userMetaboliteAnnotations || []) {
+    map.set(entry.feature, [...new Set([...(map.get(entry.feature)||[]),entry.feature,entry.chebi])]);
+  }
   return map;
 }
 
@@ -559,6 +562,7 @@ export async function buildMultiomicsVisualizationData({
   columnMapping,
   dataTypes,
   analysisResult,
+  metaboliteAnnotations = [],
   maxFeatures = 30,
   maxSamples = 48
 }) {
@@ -582,9 +586,12 @@ export async function buildMultiomicsVisualizationData({
     );
   }
 
+  // Pure visualization overlay. Statistical model objects remain untouched.
+  const annotatedResult = metaboliteAnnotations.length
+    ? { ...analysisResult, userMetaboliteAnnotations: metaboliteAnnotations } : analysisResult;
   const transcriptEntries = effectEntries(analysisResult?.layers?.transcriptomics, 28, 'transcriptomics');
   const metaboliteEntries = effectEntries(analysisResult?.layers?.metabolomics, 28, 'metabolomics');
-  const centralCarbon = buildCentralCarbon(analysisResult);
+  const centralCarbon = buildCentralCarbon(annotatedResult);
 
   return {
     heatmaps,
@@ -598,14 +605,15 @@ export async function buildMultiomicsVisualizationData({
     },
     metabologramPathways: buildMetabologramPathways(centralCarbon),
     centralCarbon,
-    focusedMetabolicNetwork: buildFocusedMetabolicNetwork(analysisResult, centralCarbon),
+    focusedMetabolicNetwork: buildFocusedMetabolicNetwork(annotatedResult, centralCarbon),
     methodologicalBoundary: [
       'Figures reuse the statistical results; they do not run additional hypothesis tests.',
       'Heatmap clustering is intentionally not used by default: deterministic sample order follows study annotations and feature order follows the analysis ranking.',
       'Heatmap row z-scores are descriptive and must not be interpreted as fold changes.',
       'Metabologram and pathway map retain effects on their declared scales; native supplied units are not converted to fold ratios. Color ranges are layer-specific and visual magnitudes must not be compared across different scales.',
       'The curated pathway panels are descriptive annotations, not enrichment or pathway activity tests. No metabolic flux is estimated from abundances or gene expression.',
-      'The expanded network is an auditable schematic neighborhood, not a stoichiometrically validated reaction graph. Only explicitly curated ChEBI IDs are exact; name-only and unresolved matches are reported separately.'
+      'The expanded network is an auditable schematic neighborhood, not a stoichiometrically validated reaction graph. Only explicitly curated ChEBI IDs are exact; name-only and unresolved matches are reported separately.',
+      'An optional uploaded feature-to-ChEBI crosswalk is user-declared, not independently chemically verified; it affects figures only and must not be interpreted as MS/MS identification evidence.'
     ]
   };
 }
