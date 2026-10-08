@@ -1908,6 +1908,49 @@
     </label>
   </div>
 
+  {#if files.transcriptomics || files.proteomics || files.metabolomics}
+    <div class="simple-file-values" data-testid="multiomics-simple-values">
+      <strong>{t('Que représentent les nombres de vos fichiers ?', 'What do the numbers in your files mean?')}</strong>
+      <p>{t('Indiquez le format donné par votre laboratoire : il influence les calculs et ne peut pas être deviné.', 'Choose the format supplied by your laboratory: it affects calculations and cannot be guessed.')}</p>
+      <div class="form-grid">
+        {#if files.transcriptomics}
+          <label><span>{t('Gènes : type de valeurs', 'Genes: value type')}</span>
+            <select bind:value={transcriptomicsValues} aria-label={t('Type de valeurs des gènes', 'Gene value type')}>
+              <option value="raw_counts">{t('Comptages bruts', 'Raw read counts')}</option>
+              <option value="tpm">TPM / FPKM</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="log_expression">{t('Valeurs logarithmiques', 'Log-transformed values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+        {#if files.proteomics}
+          <label><span>{t('Protéines : type de valeurs', 'Proteins: value type')}</span>
+            <select bind:value={proteomicsValues} aria-label={t('Type de valeurs des protéines', 'Protein value type')}>
+              <option value="lfq_intensity">{t('Intensités (LFQ)', 'Intensities (LFQ)')}</option>
+              <option value="log_intensity">{t('Intensités logarithmiques', 'Log-transformed intensities')}</option>
+              <option value="spectral_count">{t('Comptages de spectres', 'Spectral counts')}</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+        {#if files.metabolomics}
+          <label><span>{t('Métabolites : type de valeurs', 'Metabolites: value type')}</span>
+            <select bind:value={metabolomicsValues} aria-label={t('Type de valeurs des métabolites', 'Metabolite value type')}>
+              <option value="peak_area">{t('Intensité / aire de pic', 'Intensity / peak area')}</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="concentration">{t('Concentrations', 'Concentrations')}</option>
+              <option value="log_abundance">{t('Valeurs logarithmiques', 'Log-transformed values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+      </div>
+      <small>{t('Pour les identifiants et filtres spécifiques, ouvrez les paramètres avancés au-dessus.', 'For identifier types and specific filters, open Advanced settings above.')}</small>
+    </div>
+  {/if}
+
   {#if metadataError}
     <p class="error">{metadataError}</p>
   {/if}
@@ -1916,14 +1959,15 @@
     <div class="mapping">
       <div class="mapping-head">
         <div>
-          <h3>{t('Confirmez le mapping des colonnes', 'Confirm column mapping')}</h3>
-          <p>{metadataHeaders.length} columns detected · delimiter: {metadataDelimiter} · {metadataRows.length} assay rows</p>
+          <h3>{t('Vérifiez les colonnes reconnues', 'Check recognized columns')}</h3>
+          <p>{t('Si une correspondance est incorrecte, sélectionnez la bonne colonne.', 'If a match is wrong, select the correct column.')}</p>
         </div>
-        <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? 'Required fields mapped' : 'Mapping incomplete'}</span>
+        <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? t('Colonnes principales reconnues', 'Main columns recognized') : t('Colonnes à compléter', 'Columns need attention')}</span>
       </div>
 
       <div class="mapping-grid">
         {#each fieldDefinitions as field}
+          {#if field.required || (field.key === 'condition' && ['groups', 'time'].includes(objective)) || (field.key === 'timepoint' && (longitudinal === 'yes' || objective === 'time')) || (field.key === 'outcome' && objective === 'outcome') || (objective === 'outcome' && outcomeType === 'survival' && ['survival_time', 'survival_event'].includes(field.key))}
           <label>
             <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
             <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
@@ -1933,8 +1977,27 @@
               {/each}
             </select>
           </label>
+          {/if}
         {/each}
       </div>
+      <details class="simple-disclosure" data-testid="multiomics-more-columns">
+        <summary>{t('Autres colonnes et corrections (facultatif)', 'Other columns and adjustments (optional)')}</summary>
+        <p>{t('Si votre étude dépend de l’âge, du sexe ou d’une autre variable, sélectionnez-la explicitement ci-dessous.', 'If your study depends on age, sex or another variable, explicitly select it below.')}</p>
+        <div class="mapping-grid">
+          {#each fieldDefinitions as field}
+            {#if !(field.required || (field.key === 'condition' && ['groups', 'time'].includes(objective)) || (field.key === 'timepoint' && (longitudinal === 'yes' || objective === 'time')) || (field.key === 'outcome' && objective === 'outcome') || (objective === 'outcome' && outcomeType === 'survival' && ['survival_time', 'survival_event'].includes(field.key)))}
+          <label>
+            <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
+            <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
+              <option value="">— {t('non mappé', 'not mapped')} —</option>
+              {#each metadataHeaders as header}
+                <option value={header}>{header}</option>
+              {/each}
+            </select>
+          </label>
+            {/if}
+          {/each}
+        </div>
 
       {#if covariatesAvailable === 'yes'}
         <div class="covariate-picker">
@@ -1962,6 +2025,7 @@
           </p>
         </div>
       {/if}
+      </details>
     </div>
 
     <div class="validation">
