@@ -125,16 +125,14 @@
     return central?.metabolites?.find((node) => node.id === id);
   }
 
-  function measurementColor(measurement) {
-    return measurement?.status === 'measured' ? diverging(measurement.effect, 3) : 'rgb(220,220,220)';
+  function measurementColor(measurement, limit = 3) {
+    return measurement?.status === 'measured' ? diverging(measurement.effect, limit) : 'rgb(220,220,220)';
   }
 
   function measurementTitle(label, measurement) {
     if (!measurement) return label + ' · ' + tr('non mesuré / non reconnu', 'not measured / not matched');
-    if (measurement.status === 'non_log2_scale') {
-      return label + ' · ' + measurement.feature + ' · ' + tr('effet non affiché : échelle non log2', 'effect not shown: non-log2 scale');
-    }
-    return label + ' · ' + measurement.feature + ' · log2FC=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
+    if (measurement.status !== 'measured') return label + ' · ' + measurement.feature + ' · ' + measurement.status;
+    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
   }
 
   function downloadSvg(id, filename) {
@@ -415,7 +413,7 @@
         </div>
       {/if}
       <div class="svg-scroll">
-        <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par log2FC', 'Central metabolism map annotated by log2FC')}>
+        <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par les effets sur leur échelle d’origine', 'Central metabolism map annotated with effects on their original scale')}>
           <defs>
             <marker id="arrow-central" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
               <path d="M0,0 L0,6 L8,3 z" fill="#98a3aa"/>
@@ -445,7 +443,7 @@
                 cy={node.y}
                 rx="36"
                 ry="20"
-                fill={measurementColor(node.measurement)}
+                fill={measurementColor(node.measurement, mapMetLimit)}
                 stroke="#253238"
                 stroke-width={stroke.width}
                 stroke-dasharray={stroke.dash}
@@ -465,7 +463,7 @@
                 width="34"
                 height="22"
                 rx="3"
-                fill={measurementColor(enzyme.measurement)}
+                fill={measurementColor(enzyme.measurement, mapRnaLimit)}
                 stroke="#253238"
                 stroke-width={stroke.width}
                 stroke-dasharray={stroke.dash}
@@ -477,9 +475,9 @@
           {/each}
 
           <g transform="translate(38 565)">
-            <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">− log2FC</text>
+            <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">{tr('baisse', 'decrease')}</text>
             <rect x="135" y="0" width="42" height="15" fill={diverging(0)}/><text x="183" y="12" class="legend-label">0</text>
-            <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">+ log2FC</text>
+            <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">{tr('hausse', 'increase')}</text>
             <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('aucune valeur exploitable', 'no usable value')}</text>
           </g>
         </svg>
@@ -505,23 +503,23 @@
 {/if}
 
 <style>
-  .visual-panel { margin-top: 24px; display: grid; gap: 18px; }
-  .legacy-map { border:1px solid var(--border,#d9e0e3); padding:12px 14px; border-radius:12px; }
+  .visual-panel { margin-top: 24px; display: grid; gap: 18px; padding:14px; border-radius:12px; background:#fff; color:#182a34; color-scheme:light; }
+  .legacy-map { border:1px solid #bdcbd3; background:#fff; color:#182a34; padding:12px 14px; border-radius:12px; }
   .legacy-map > summary { cursor:pointer; font-weight:700; }
   .legacy-map > article { margin-top:12px; }
   .figure-switcher { display:flex; flex-wrap:wrap; gap:8px; padding:5px; border:1px solid var(--border,#d9e0e3); border-radius:13px; width:max-content; max-width:100%; }
-  .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary,#58666d); font-size:.88rem; font-weight:650; }
-  .figure-switcher button.active { background:var(--accent,#176c83); color:#fff; }
+  .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:#fff; color:#304755; font-size:.88rem; font-weight:650; }
+  .figure-switcher button.active { background:#12627b; color:#fff; }
   .figure-switcher button:focus-visible { outline:3px solid #e5b75b; outline-offset:2px; }
   .pathway-select { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:.82rem; }
-  .pathway-select span { color:var(--text-secondary,#58666d); }
+  .pathway-select span { color:#304755; }
   .coverage-note { color:#243947; font-size:.83rem; margin:8px 0; font-weight:700; }
   .interpretation-boundary summary { cursor:pointer; font-weight:700; }
   .interpretation-boundary[open] { gap:6px; }
   .visual-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-end; }
   .visual-head h2 { margin:.2rem 0 .35rem; font-size:clamp(1.3rem,2vw,1.8rem); }
-  .visual-head p { margin:0; max-width:850px; color:var(--text-secondary,#58666d); }
-  .eyebrow { margin:0; font-size:.72rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--accent,#176c83); }
+  .visual-head p { margin:0; max-width:850px; color:#3b5060; }
+  .eyebrow { margin:0; font-size:.76rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#15536a; }
   /* Static figures use white plotting surfaces. Make ink independent of dark
      parent themes, including cards, controls, footnotes and legends. */
   .figure-card { border:1px solid #c3d0d8; border-radius:18px; background:#fff; color:#182a34; color-scheme:light; padding:18px; overflow:hidden; }
@@ -537,10 +535,10 @@
   .svg-scroll { overflow:auto; border:1px solid #e4e8ea; border-radius:12px; background:white; }
   svg { display:block; width:100%; min-width:680px; height:auto; }
   .svg-heading { font-size:14px; font-weight:800; fill:#263238; }
-  .svg-note { font-size:9px; fill:#6c777c; }
-  .sample-label { font-size:8px; fill:#48555b; }
+  .svg-note { font-size:11px; fill:#344b59; }
+  .sample-label { font-size:10px; fill:#253c4a; }
   .condition-mark { font-size:8px; font-weight:800; fill:#263238; }
-  .feature-label { font-size:9px; fill:#263238; }
+  .feature-label { font-size:10px; fill:#203441; }
   .method-note, .empty-note { margin:10px 0 0; color:#3b5060; font-size:.82rem; line-height:1.45; }
   .metabologram-layout { display:grid; grid-template-columns:minmax(300px,1fr) minmax(300px,.95fr); gap:20px; align-items:start; }
   .metabologram-layout > svg { min-width:0; max-width:520px; margin:auto; }
@@ -577,11 +575,11 @@
   .off-map details { margin-top:6px; }
   .off-map summary { cursor:pointer; }
   .map-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:.82rem; }
-  .pathway-label { font-size:15px; font-weight:800; letter-spacing:.08em; fill:#9aa4a9; }
+  .pathway-label { font-size:16px; font-weight:800; letter-spacing:.08em; fill:#364c59; }
   .metabolite-label { font-size:10px; font-weight:800; fill:#172126; pointer-events:none; }
   .enzyme-label { font-size:8px; font-weight:800; fill:#172126; pointer-events:none; }
   .legend-label { font-size:9px; fill:#48555b; }
-  .interpretation-boundary { border-left:4px solid var(--accent,#176c83); padding:12px 14px; background:#f3f8f9; display:grid; gap:4px; font-size:.82rem; }
+  .interpretation-boundary { border-left:4px solid #176c83; padding:12px 14px; background:#f3f8f9; color:#203845; display:grid; gap:4px; font-size:.85rem; }
   .interpretation-boundary summary { margin-bottom:4px; }
   @media (max-width: 820px) {
     .figure-title, .visual-head { flex-direction:column; align-items:stretch; }
