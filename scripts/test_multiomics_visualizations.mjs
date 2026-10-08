@@ -176,6 +176,11 @@ assert.deepEqual(parseDelimited(wide.matrixCsv).headers,['feature_id','MS1','MS2
   'm/z and retention time must never become sample measurement columns');
 assert.throws(()=>convertMsAucExport('feature_id,MS1\nA,-10'),/non-negative/);
 assert.throws(()=>convertMsAucExport('feature_id,MS1\nA,10\nA,11'),/duplicate feature/);
+const vendor=convertMsAucExport('Metabolite Name,Sample Name,Peak Area AUC,Group\nLactate,S1,15320,control\nLactate,S2,23500,treated');
+assert.equal(vendor.format,'long_ms_auc');
+assert.equal(vendor.features,1);
+assert.equal(vendor.assays,2);
+assert.ok(vendor.metadataCsv?.includes('treated'));
 const msMetadata=new File([converted.metadataCsv],'metadata.csv',{type:'text/csv'});
 const msMatrix=new File([converted.matrixCsv],'ms_auc.csv',{type:'text/csv'});
 const msMapping={subject_id:'subject_id',sample_id:'sample_id',assay_id:'assay_id',omic:'omic',
