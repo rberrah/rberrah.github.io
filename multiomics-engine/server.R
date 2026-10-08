@@ -755,7 +755,7 @@ run_backend_analysis <- function(payload) {
     status="ok",
     engine=list(
       name="PMx Explain reference R backend",
-      version="1.2.0",
+      version="1.3.0",
       policy="Reference methods are eligibility-gated; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
     ),
     applicableMethods=names(methods),
