@@ -53,6 +53,10 @@
     return Number.isFinite(value) ? Number(value).toFixed(digits) : '—';
   }
 
+  function itemLabel(item) {
+    return language === 'en' ? (item.labelEn || item.feature) : (item.labelFr || item.feature);
+  }
+
   function shortFeature(value, max = 16) {
     const x = String(value || '');
     return x.length > max ? x.slice(0, max - 1) + '…' : x;
@@ -240,8 +244,8 @@
         <div>
           <h3>{tr('Metabologramme transcriptome ↔ métabolome', 'Transcriptome ↔ metabolome metabologram')}</h3>
           <p>{tr(
-            'À gauche : métabolites ; à droite : transcrits. Choisissez une voie pour une lecture comparable à la figure 4C de Guyon et al. Les moyennes centrales sont descriptives.',
-            'Left: metabolites; right: transcripts. Select a pathway for a Figure 4C-inspired view (Guyon et al.). Center means are descriptive only.'
+            'À gauche : métabolites ; à droite : gènes exprimés. Bleu = baisse ; rouge = hausse. Sélectionnez une voie biologique si besoin.',
+            'Metabolites on the left; gene transcripts on the right. Blue = decrease; red = increase. Select a biological pathway if needed.'
           )}</p>
         </div>
       </div>
@@ -249,7 +253,7 @@
         <label class="pathway-select">
           <span>{tr('Voie affichée', 'Displayed pathway')}</span>
           <select bind:value={selectedPathway} data-testid="multiomics-pathway-select" aria-label={tr('Choisir la voie biologique', 'Choose biological pathway')}>
-            <option value="all">{tr('Toutes les variables principales', 'All leading features')}</option>
+            <option value="all">{tr('Toutes les variables (sans filtre de voie)', 'All features (no pathway filter)')}</option>
             {#each pathwayChoices as pathway}
               <option value={pathway.id}>{language === 'en' ? pathway.labelEn : pathway.labelFr}</option>
             {/each}
@@ -269,13 +273,13 @@
           {#each metaboliteSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
             <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
 
@@ -289,18 +293,45 @@
           <text x="368" y="32" text-anchor="middle" class="half-label">{tr('Transcrits', 'Transcripts')}</text>
         </svg>
 
-        <div class="metabologram-keys">
-          <div>
-            <strong>{tr('Métabolites affichés', 'Displayed metabolites')}</strong>
-            {#each (activeMetabologram?.metabolomics || []).slice(0, 10) as item}
-              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
-            {/each}
+        <div class="metabologram-keys" data-testid="multiomics-readable-legend">
+          <p class="color-key"><i class="key-blue"></i>{tr('Baisse', 'Decrease')}
+            <i class="key-white"></i>{tr('Proche de zéro', 'Near zero')}
+            <i class="key-red"></i>{tr('Hausse', 'Increase')}
+            <small>{tr('Nombre à droite : variation estimée (log2FC)', 'Number on the right: estimated change (log2FC)')}</small>
+          </p>
+          <div class="legend-section">
+            <h4>{tr('Métabolites', 'Metabolites')} <small>({activeMetabologram?.metabolomics?.length || 0})</small></h4>
+            {#if activeMetabologram?.metabolomics?.length}
+              <ul class="legend-items">
+                {#each activeMetabologram.metabolomics.slice(0, 15) as item}
+                  <li class="legend-entry">
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
+                    <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
+                  </li>
+                {/each}
+              </ul>
+              {#if activeMetabologram.metabolomics.length > 15}<p class="legend-more">{tr('Liste limitée aux 15 premiers éléments.', 'List limited to the first 15 features.')}</p>{/if}
+            {:else}
+              <p class="legend-empty">{tr('Aucune mesure reconnue dans cette sélection.', 'No matched measurements in this selection.')}</p>
+            {/if}
           </div>
-          <div>
-            <strong>{tr('Transcrits affichés', 'Displayed transcripts')}</strong>
-            {#each (activeMetabologram?.transcriptomics || []).slice(0, 10) as item}
-              <span><i style={'background:' + diverging(item.effect)}></i>{shortFeature(item.feature, 22)} <b>{fmt(item.effect)}</b></span>
-            {/each}
+          <div class="legend-section">
+            <h4>{tr('Gènes exprimés', 'Gene transcripts')} <small>({activeMetabologram?.transcriptomics?.length || 0})</small></h4>
+            {#if activeMetabologram?.transcriptomics?.length}
+              <ul class="legend-items">
+                {#each activeMetabologram.transcriptomics.slice(0, 15) as item}
+                  <li class="legend-entry">
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
+                    <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
+                  </li>
+                {/each}
+              </ul>
+              {#if activeMetabologram.transcriptomics.length > 15}<p class="legend-more">{tr('Liste limitée aux 15 premiers éléments.', 'List limited to the first 15 features.')}</p>{/if}
+            {:else}
+              <p class="legend-empty">{tr('Aucune mesure reconnue dans cette sélection.', 'No matched measurements in this selection.')}</p>
+            {/if}
           </div>
         </div>
       </div>
@@ -330,8 +361,8 @@
         <div>
           <h3>{tr('Carte du métabolisme central', 'Central carbon metabolism map')}</h3>
           <p>{tr(
-            'Ovales = métabolites ; carrés = transcrits enzymatiques. Gris = absence de mesure log2 exploitable. Les flèches sont schématiques, pas des flux mesurés.',
-            'Ovals = metabolites; squares = enzyme transcripts. Gray = no usable log2 measurement. Arrows are schematic, not measured fluxes.'
+            'Ovales = métabolites ; carrés = gènes enzymatiques. Gris = donnée absente, non reconnue ou inexploitable. Les flèches ne sont pas des flux mesurés.',
+            'Ovals = metabolites; squares = enzyme transcripts. Gray = missing, unmatched or unusable data. Arrows are not measured fluxes.'
           )}</p>
         </div>
       </div>
@@ -340,10 +371,24 @@
 
     {#if central}
       <div class="map-summary">
-        <span><b>{central.measuredMetabolites}</b> {tr('métabolites reconnus', 'matched metabolites')}</span>
-        <span><b>{central.measuredTranscripts}</b> {tr('modules enzymatiques reconnus', 'matched enzyme modules')}</span>
+        <span><b>{central.measuredMetabolites}</b> {tr('métabolites reconnus sur la carte', 'metabolites matched on the map')}</span>
+        <span><b>{central.measuredTranscripts}</b> {tr('gènes reconnus sur la carte', 'genes matched on the map')}</span>
       </div>
 
+      {#if central.offMapMetabolites?.length || central.offMapTranscripts?.length}
+        <div class="off-map" data-testid="multiomics-off-map">
+          <strong>{tr('D’autres molécules sont mesurées, mais hors de cette carte.', 'Other molecules are measured, but outside this map.')}</strong>
+          <p>{tr('Cette figure montre uniquement le métabolisme central. Une molécule absente de la carte reste disponible dans les autres graphiques.', 'This figure shows only central metabolism. Features outside the map remain in the other charts.')}</p>
+          {#if central.offMapMetabolites?.length}
+            <div><b>{tr('Métabolites hors carte : ', 'Metabolites outside map: ')}</b>{central.offMapMetabolites.map((item) => itemLabel(item)).join(', ')}</div>
+          {/if}
+          {#if central.offMapTranscripts?.length}
+            <details><summary>{tr('Autres gènes mesurés', 'Other measured genes')}</summary>
+              <p>{central.offMapTranscripts.map((item) => itemLabel(item)).join(', ')}</p>
+            </details>
+          {/if}
+        </div>
+      {/if}
       <div class="svg-scroll">
         <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par log2FC', 'Central metabolism map annotated by log2FC')}>
           <defs>
@@ -410,7 +455,7 @@
             <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">− log2FC</text>
             <rect x="135" y="0" width="42" height="15" fill={diverging(0)}/><text x="183" y="12" class="legend-label">0</text>
             <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">+ log2FC</text>
-            <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('non mesuré', 'not measured')}</text>
+            <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('aucune valeur exploitable', 'no usable value')}</text>
           </g>
         </svg>
       </div>
@@ -465,17 +510,35 @@
   .condition-mark { font-size:8px; font-weight:800; fill:#263238; }
   .feature-label { font-size:9px; fill:#263238; }
   .method-note, .empty-note { margin:10px 0 0; color:var(--text-secondary,#5d6a70); font-size:.82rem; line-height:1.45; }
-  .metabologram-layout { display:grid; grid-template-columns:minmax(420px,1.1fr) minmax(250px,.9fr); gap:20px; align-items:center; }
-  .metabologram-layout svg { min-width:0; max-width:560px; margin:auto; }
+  .metabologram-layout { display:grid; grid-template-columns:minmax(300px,1fr) minmax(300px,.95fr); gap:20px; align-items:start; }
+  .metabologram-layout > svg { min-width:0; max-width:520px; margin:auto; }
   .center-label { font-size:11px; font-weight:800; fill:#263238; }
   .center-value { font-size:10px; fill:#263238; }
   .half-label { font-size:12px; font-weight:800; fill:#263238; }
-  .metabologram-keys { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  .metabologram-keys > div { display:flex; flex-direction:column; gap:5px; min-width:0; }
-  .metabologram-keys strong { font-size:.82rem; margin-bottom:4px; }
-  .metabologram-keys span { display:grid; grid-template-columns:12px minmax(0,1fr) auto; gap:7px; align-items:center; font-size:.76rem; }
-  .metabologram-keys i { width:11px; height:11px; border-radius:2px; border:1px solid #849097; }
-  .metabologram-keys b { font-family:var(--font-mono,monospace); font-size:.7rem; }
+  .metabologram-keys { display:flex; flex-direction:column; gap:13px; min-width:0; font-size:.85rem; }
+  .color-key { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; font-size:.8rem; }
+  .color-key i { display:inline-block; width:13px; height:13px; border:1px solid #829099; border-radius:3px; margin-left:8px; }
+  .color-key .key-blue { background:#3567b2; margin-left:0; }
+  .color-key .key-white { background:#f7f7f7; }
+  .color-key .key-red { background:#cc3e3e; }
+  .color-key small { display:block; width:100%; color:var(--text-secondary,#58666d); margin-top:4px; }
+  .legend-section { border:1px solid var(--border,#d9e0e3); border-radius:12px; min-width:0; overflow:hidden; }
+  .legend-section h4 { margin:0; font-size:.88rem; padding:10px 12px; background:#f5f8f9; border-bottom:1px solid var(--border,#d9e0e3); }
+  .legend-section h4 small { font-weight:400; color:#58666d; }
+  .legend-items { list-style:none; padding:4px 10px; margin:0; display:grid; }
+  .legend-entry { display:grid; grid-template-columns:14px minmax(0,1fr) 64px; align-items:center; gap:10px; padding:7px 2px; border-bottom:1px solid #edf0f1; min-width:0; }
+  .legend-entry:last-child { border-bottom:0; }
+  .legend-swatch { width:13px; height:13px; border-radius:3px; border:1px solid #839098; }
+  .legend-name { display:flex; flex-direction:column; gap:1px; min-width:0; overflow-wrap:anywhere; line-height:1.3; }
+  .legend-name strong { font-size:.84rem; font-weight:650; }
+  .legend-name small { font-size:.7rem; color:#58666d; font-family:var(--font-mono,monospace); }
+  .legend-effect { text-align:right; font-family:var(--font-mono,monospace); font-variant-numeric:tabular-nums; font-size:.82rem; }
+  .legend-empty, .legend-more { display:block; padding:6px 12px; color:#58666d; font-size:.8rem; }
+  .off-map { margin:12px 0; padding:12px 14px; border:1px solid var(--border,#d9e0e3); border-radius:10px; font-size:.85rem; line-height:1.5; }
+  .off-map strong { font-size:.9rem; }
+  .off-map p { margin:4px 0 8px; color:var(--text-secondary,#58666d); }
+  .off-map details { margin-top:6px; }
+  .off-map summary { cursor:pointer; }
   .map-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:.82rem; }
   .pathway-label { font-size:15px; font-weight:800; letter-spacing:.08em; fill:#9aa4a9; }
   .metabolite-label { font-size:10px; font-weight:800; fill:#172126; pointer-events:none; }
@@ -489,8 +552,7 @@
     .figure-switcher { width:100%; }
     .figure-switcher button { flex:1 1 auto; }
     .metabologram-layout { grid-template-columns:1fr; }
-    .metabologram-keys { grid-template-columns:1fr; }
     svg { min-width:620px; }
-    .metabologram-layout svg { min-width:0; width:100%; }
+    .metabologram-layout > svg { min-width:0; width:100%; }
   }
 </style>

@@ -303,11 +303,33 @@ function buildHeatmap(aggregated, layerResult, maxFeatures = 30, maxSamples = 48
   };
 }
 
-function log2EffectEntries(layerResult, max = 28) {
+// ChEBI names checked against EMBL-EBI ChEBI (stable identifiers). The mapping
+// serves presentation only, except for the two explicitly curated carbon-map
+// identities below; never guess an identity from an unknown numeric ID.
+const KNOWN_METABOLITE_NAMES = Object.freeze({
+  'chebi:16828': { fr: 'L-tryptophane', en: 'L-tryptophan' },
+  'chebi:16946': { fr: 'L-kynurénine', en: 'L-kynurenine' },
+  'chebi:24996': { fr: 'Lactate', en: 'Lactate' },
+  'chebi:30031': { fr: 'Succinate', en: 'Succinate' }
+});
+
+/** Give known database IDs a readable name, preserving the original identifier. */
+export function displayMetaboliteName(feature, language = 'fr') {
+  const known = KNOWN_METABOLITE_NAMES[String(feature || '').trim().toLowerCase()];
+  return known?.[language === 'en' ? 'en' : 'fr'] || String(feature || '');
+}
+
+function labelFor(feature, layer) {
+  const known = layer === 'metabolomics' ? KNOWN_METABOLITE_NAMES[String(feature || '').trim().toLowerCase()] : null;
+  return known ? { labelFr: known.fr, labelEn: known.en } : { labelFr: String(feature || ''), labelEn: String(feature || '') };
+}
+
+function log2EffectEntries(layerResult, max = 28, layer = '') {
   return rankRows(layerResult, Math.max(max * 3, max))
     .filter((row) => Number.isFinite(row.effect))
     .map((row) => ({
       feature: row.feature,
+      ...labelFor(row.feature, layer),
       effect: row.effect,
       qValue: Number.isFinite(row.qValue) ? row.qValue : null,
       effectScale: row.effectScale || layerResult?.effectScale || null
@@ -331,11 +353,11 @@ const CENTRAL_METABOLITES = [
   { id: 'acetylcoa', label: 'AcCoA', x: 650, y: 250, pathway: 'TCA', aliases: ['acetylcoa', 'acetylcoenzymea'] },
   { id: 'pep', label: 'PEP', x: 740, y: 70, pathway: 'Glycolysis', aliases: ['pep', 'phosphoenolpyruvate'] },
   { id: 'pyruvate', label: 'PYR', x: 740, y: 180, pathway: 'Glycolysis', aliases: ['pyr', 'pyruvate', 'pyruvicacid'] },
-  { id: 'lactate', label: 'LAC', x: 850, y: 180, pathway: 'Glycolysis', aliases: ['lac', 'lactate', 'llactate', 'lacticacid'] },
+  { id: 'lactate', label: 'LAC', x: 850, y: 180, pathway: 'Glycolysis', aliases: ['lac', 'lactate', 'llactate', 'lacticacid', 'CHEBI:24996'] },
   { id: 'alanine', label: 'ALA', x: 740, y: 290, pathway: 'Amino acids', aliases: ['ala', 'alanine', 'lalanine'] },
   { id: 'citrate', label: 'CIT', x: 560, y: 250, pathway: 'TCA', aliases: ['cit', 'citrate', 'citricacid'] },
   { id: 'akg', label: 'AKG', x: 430, y: 340, pathway: 'TCA', aliases: ['akg', 'alphaketoglutarate', '2oxoglutarate', 'ketoglutarate'] },
-  { id: 'succinate', label: 'SUC', x: 500, y: 470, pathway: 'TCA', aliases: ['suc', 'succinate', 'succinicacid'] },
+  { id: 'succinate', label: 'SUC', x: 500, y: 470, pathway: 'TCA', aliases: ['suc', 'succinate', 'succinicacid', 'CHEBI:30031'] },
   { id: 'fumarate', label: 'FUM', x: 650, y: 500, pathway: 'TCA', aliases: ['fum', 'fumarate', 'fumaricacid'] },
   { id: 'malate', label: 'MAL', x: 760, y: 430, pathway: 'TCA', aliases: ['mal', 'malate', 'lmalate', 'malicacid'] },
   { id: 'oaa', label: 'OAA', x: 710, y: 310, pathway: 'TCA', aliases: ['oaa', 'oxaloacetate', 'oxaloaceticacid'] },
@@ -456,13 +478,21 @@ function buildCentralCarbon(result) {
     ...node,
     measurement: chooseEffect(transcriptRows, node.aliases, transcriptAliases)
   }));
-
+  const shownMetaboliteIds = new Set(metabolites.flatMap((node) =>
+    node.measurement?.status === 'measured' ? node.measurement.matchedFeatures || [node.measurement.feature] : []));
+  const shownTranscriptIds = new Set(enzymes.flatMap((node) =>
+    node.measurement?.status === 'measured' ? node.measurement.matchedFeatures || [node.measurement.feature] : []));
+  const offMap = (rows, shown, layer) => rows
+    .filter((row) => Number.isFinite(row.effect) && row.effectScale === 'log2' && !shown.has(row.feature))
+    .map((row) => ({ feature: row.feature, ...labelFor(row.feature, layer) }));
   return {
     metabolites,
     enzymes,
     edges: CENTRAL_EDGES,
     measuredMetabolites: metabolites.filter((node) => node.measurement?.status === 'measured').length,
     measuredTranscripts: enzymes.filter((node) => node.measurement?.status === 'measured').length,
+    offMapMetabolites: offMap(metaboliteRows, shownMetaboliteIds, 'metabolomics'),
+    offMapTranscripts: offMap(transcriptRows, shownTranscriptIds, 'transcriptomics'),
     method: 'Fixed schematic carbon-pathway map; colors use only model differential effects on a declared log2 scale. When multiple mapped features have opposite effects, the node is gray. Otherwise the lowest-q feature is a representative, not a pooled enzyme activity. Unmeasured or non-log2 effects also remain gray.',
     scope: 'Visualization aid only. The pathway layout is not used to compute enrichment, statistics or causality.'
   };
@@ -499,7 +529,8 @@ function buildMetabologramPathways(central) {
       // Multiple complexes may map to the same transcript: count each observed
       // feature at most once per pathway and omics layer.
       .filter((item) => !used.has(item.feature) && used.add(item.feature))
-      .map((item) => ({ feature: item.feature, effect: item.effect, qValue: item.qValue, effectScale: 'log2' }));
+      .map((item) => ({ feature: item.feature, ...labelFor(item.feature, nodes === central.metabolites ? 'metabolomics' : 'transcriptomics'),
+        effect: item.effect, qValue: item.qValue, effectScale: 'log2' }));
   }
   return METABOLOGRAM_PATHWAYS.map((pathway) => {
     const metabolomics = entries(central.metabolites, pathway.metabolites);
@@ -548,8 +579,8 @@ export async function buildMultiomicsVisualizationData({
     );
   }
 
-  const transcriptEntries = log2EffectEntries(analysisResult?.layers?.transcriptomics);
-  const metaboliteEntries = log2EffectEntries(analysisResult?.layers?.metabolomics);
+  const transcriptEntries = log2EffectEntries(analysisResult?.layers?.transcriptomics, 28, 'transcriptomics');
+  const metaboliteEntries = log2EffectEntries(analysisResult?.layers?.metabolomics, 28, 'metabolomics');
   const centralCarbon = buildCentralCarbon(analysisResult);
 
   return {
