@@ -41,3 +41,40 @@ test('expert raw-MS and external validation workflows are disclosed on request',
   await expect(expert).toContainText('mzML');
   await expect(page.getByTestId('raw-ms-manifest-template')).toHaveAttribute('href', /raw_ms_manifest[.]csv$/);
 });
+
+test('simple mode keeps expert settings hidden until requested, without losing settings', async ({ page }) => {
+  await page.goto('/multiomics/tool');
+  const advanced = page.getByTestId('multiomics-advanced-settings');
+  await expect(advanced).toBeVisible();
+  await expect(advanced).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('multiomics-simple-study')).toBeVisible();
+  await expect(page.getByTestId('multiomics-simple-design')).toBeVisible();
+
+  // Choosing repeated subjects is explicit; the expert form reflects the same design.
+  await page.getByTestId('multiomics-simple-design').selectOption('repeated');
+  await advanced.locator('summary').first().click();
+  await expect(advanced).toHaveAttribute('open', '');
+  await expect(page.getByLabel(/Structure du design|Design structure/)).toHaveValue('repeated');
+  await expect(page.getByLabel(/Design longitudinal|Longitudinal design/)).toHaveValue('yes');
+});
+
+test('demo measurement scales are visible while technical tables start collapsed', async ({ page }) => {
+  await page.route('https://reactome.org/AnalysisService/**', async route => route.fulfill({
+    status: 200, contentType: 'application/json',
+    body: JSON.stringify({ summary:{token:'SIMPLE_DEMO'},pathwaysFound:0,pathways:[] })
+  }));
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 25000 });
+  const types = page.getByTestId('multiomics-simple-values');
+  await expect(types).toBeVisible();
+  await expect(types.getByLabel(/Type de valeurs des gènes|Gene value type/)).toHaveValue('raw_counts');
+  await expect(types.getByLabel(/Type de valeurs des protéines|Protein value type/)).toHaveValue('log_intensity');
+  await expect(types.getByLabel(/Type de valeurs des métabolites|Metabolite value type/)).toHaveValue('peak_area');
+  await expect(page.getByTestId('multiomics-visualizations')).toBeVisible();
+  await expect(page.getByTestId('multiomics-interpretation')).toBeVisible();
+  await expect(page.getByTestId('multiomics-quality-details')).not.toHaveAttribute('open', '');
+  await expect(page.getByTestId('multiomics-detailed-results')).not.toHaveAttribute('open', '');
+  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
+  await expect(page.getByTestId('multiomics-qc')).toBeVisible();
+});

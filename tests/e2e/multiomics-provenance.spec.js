@@ -67,7 +67,8 @@ test('Reactome release, analysis token and SHA-256 inputs are retained in the fi
   for (const file of hashedFiles) expect(file.sha256).toMatch(/^[a-f0-9]{64}$/);
 
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: /Télécharger JSON|Download JSON/i }).click();
+  await page.locator('.export-detail > summary').click();
+  await page.getByRole('button', { name: /Données détaillées|Detailed data/i }).click();
   const download = await downloadPromise;
   const stream = await download.createReadStream();
   expect(stream).not.toBeNull();

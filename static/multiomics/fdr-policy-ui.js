@@ -59,9 +59,11 @@
     const counts = displayedFdrCounts();
     const state = `${language}|${counts.tested}|${counts.primary}|${counts.exploratoryOnly}`;
     if (panel.dataset.state === state) return;
+    const wasOpen = panel.querySelector('details.fdr-extra')?.open === true;
 
     if (language === 'en') {
       panel.innerHTML = `
+        <details class="fdr-extra"><summary>How were statistical results corrected?</summary>
         <div class="fdr-policy-head"><span>Multiple-testing policy</span><h3>Two FDR levels, with different meanings</h3></div>
         <div class="fdr-policy-grid">
           <article><strong>Primary evidence · q ≤ 0.05</strong><p>Used for the conservative result summary. A low q-value must still be interpreted with effect size, direction, confidence interval/precision and study design.</p></article>
@@ -70,9 +72,11 @@
         </div>
         <p class="fdr-policy-count">${counts.tested ? `${counts.primary} displayed row(s) meet q ≤ 0.05; ${counts.exploratoryOnly} additional row(s) fall in 0.05 < q ≤ 0.10.` : 'No displayed feature-wise q/FDR table is applicable to this route.'}</p>
         <small>FDR control is a property of a family of tests under its assumptions; a q-value is not the probability that one individual biological hypothesis is false.</small>
+        </details>
       `;
     } else {
       panel.innerHTML = `
+        <details class="fdr-extra"><summary>Comprendre les résultats corrigés</summary>
         <div class="fdr-policy-head"><span>Politique de tests multiples</span><h3>Deux niveaux de FDR, avec deux sens différents</h3></div>
         <div class="fdr-policy-grid">
           <article><strong>Preuve principale · q ≤ 0,05</strong><p>Utilisée pour le résumé conservateur. Une faible q-value doit toujours être lue avec la taille et le sens de l’effet, son incertitude et le plan d’étude.</p></article>
@@ -81,8 +85,10 @@
         </div>
         <p class="fdr-policy-count">${counts.tested ? `${counts.primary} ligne(s) affichée(s) satisfont q ≤ 0,05 ; ${counts.exploratoryOnly} ligne(s) supplémentaire(s) se situent entre 0,05 et 0,10.` : 'Aucun tableau feature-by-feature avec q/FDR affiché n’est applicable à cette route.'}</p>
         <small>Le contrôle du FDR concerne une famille de tests sous ses hypothèses ; une q-value n’est pas la probabilité qu’une hypothèse biologique individuelle soit fausse.</small>
+        </details>
       `;
     }
+    if (wasOpen) panel.querySelector('details.fdr-extra').open = true;
     panel.dataset.state = state;
   }
 
@@ -91,6 +97,7 @@
     const node = document.createElement('style');
     node.id = 'multiomics-fdr-policy-style';
     node.textContent = `
+      .fdr-extra>summary{cursor:pointer;font-weight:700}
       .multiomics-fdr-policy{margin:14px 0 18px;padding:15px;border:1px solid var(--border-subtle,#d4d4d4);border-radius:11px;background:var(--bg-primary,#fff)}
       .fdr-policy-head span{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}
       .fdr-policy-head h3{margin:4px 0 11px;font-size:1.02rem}

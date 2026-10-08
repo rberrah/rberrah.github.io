@@ -27,12 +27,14 @@
     const state = `${lang}|${ready}|${statusTitle}|${statusMessage}`;
     if (panel.dataset.state === state) return;
 
+    const wasOpen = panel.querySelector('details.readiness-extra')?.open === true;
     panel.innerHTML = `
       <div class="licence-run-head">
         <div><span>${lang === 'en' ? 'Before running' : 'Avant de lancer'}</span><h3>${lang === 'en' ? 'Is the analysis ready?' : 'L’analyse est-elle prête ?'}</h3></div>
         <b class="${ready ? 'ready' : 'todo'}">${ready ? (lang === 'en' ? 'Ready to analyse' : 'Prêt à analyser') : (lang === 'en' ? 'To complete' : 'À compléter')}</b>
       </div>
       <p><strong>${statusTitle}</strong> — ${statusMessage}</p>
+      <details class="readiness-extra"><summary>${lang === 'en' ? 'See all checks' : 'Voir les conditions à vérifier'}</summary>
       <div class="licence-run-rules">
         <span>${lang === 'en' ? 'The tool unlocks the analysis only when:' : 'L’outil débloque l’analyse seulement lorsque :'}</span>
         <ul>
@@ -42,10 +44,12 @@
           <li>${lang === 'en' ? 'the declared study design is supported and has no deterministic blocking confounding.' : 'le plan d’étude déclaré est pris en charge et ne présente pas de confusion déterministe bloquante.'}</li>
         </ul>
       </div>
+      </details>
       <small>${ready
         ? (lang === 'en' ? 'All mandatory structural checks have passed. Quality warnings may still appear after computation and must be interpreted.' : 'Tous les contrôles structurels obligatoires sont passés. Des avertissements de qualité peuvent encore apparaître après calcul et devront être interprétés.')
         : (lang === 'en' ? 'The sentence above tells you the next blocking item to fix.' : 'La phrase ci-dessus indique le prochain élément bloquant à corriger.')}</small>
     `;
+    if (wasOpen) panel.querySelector('details.readiness-extra').open = true;
     panel.dataset.state = state;
   }
 
@@ -54,6 +58,7 @@
     const style = document.createElement('style');
     style.id = 'multiomics-run-readiness-style';
     style.textContent = `
+      .readiness-extra>summary{cursor:pointer;font-weight:700}.readiness-extra{margin-top:10px}
       .licence-run-readiness{margin:14px 0 18px;padding:15px;border:1px solid var(--border-subtle,#d4d4d4);border-radius:11px;background:var(--bg-secondary,#f7f7f7)}
       .licence-run-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.licence-run-head span{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}.licence-run-head h3{margin:4px 0 0;font-size:1.02rem}.licence-run-head>b{border:1px solid var(--border-subtle,#ccc);border-radius:999px;padding:5px 9px;font-size:.8rem;white-space:nowrap}.licence-run-head>b.ready{font-weight:800}.licence-run-readiness>p{margin:10px 0;line-height:1.45}
       .licence-run-rules{display:grid;grid-template-columns:minmax(160px,.5fr) 1.5fr;gap:12px;align-items:start}.licence-run-rules>span{font-weight:700;font-size:.9rem}.licence-run-rules ul{margin:0;padding-left:18px}.licence-run-rules li{margin:0 0 5px;font-size:.88rem;line-height:1.4}.licence-run-readiness>small{display:block;margin-top:8px;color:var(--text-secondary,#555);line-height:1.4}

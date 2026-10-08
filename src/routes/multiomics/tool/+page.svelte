@@ -30,6 +30,39 @@
   /** @type {string[]} */
   let selectedCovariates = [];
   let demoLoaded = false;
+
+  /** The simple controls and the expert form share the exact same analysis state. */
+  /** @param {Event} event */
+  function chooseSimpleStudySetting(event) {
+    const selected = event.currentTarget;
+    if (!(selected instanceof HTMLSelectElement)) return;
+    studySetting = selected.value;
+    unitType = studySetting === 'animal' ? 'animal'
+      : ['cell', 'organoid'].includes(studySetting) ? 'culture'
+      : studySetting === 'other' ? 'other' : 'participant';
+  }
+
+  /** @param {Event} event */
+  function chooseSimpleDesign(event) {
+    const value = event.currentTarget;
+    if (!(value instanceof HTMLSelectElement)) return;
+    designType = value.value;
+    longitudinal = designType === 'repeated' ? 'yes' : 'no';
+    paired = designType === 'paired' ? 'yes' : 'no';
+    if (designType === 'repeated' && timepointCount === '1') timepointCount = '2';
+  }
+
+  /** @param {Event} event */
+  function chooseSimpleObjective(event) {
+    const value = event.currentTarget;
+    if (!(value instanceof HTMLSelectElement)) return;
+    objective = /** @type {'explore' | 'groups' | 'outcome' | 'time'} */ (value.value);
+    if (objective === 'time' && designType === 'independent') {
+      designType = 'repeated';
+      longitudinal = 'yes';
+      if (timepointCount === '1') timepointCount = '2';
+    }
+  }
   let analysisStatus = 'idle';
   let analysisError = '';
   /** @type {any} */
@@ -127,19 +160,19 @@
 
   /** @type {Record<string, [string,string]>} */
   const fieldLabels = {
-    subject_id: ['Sujet / unité expérimentale', 'Subject / experimental unit'],
-    sample_id: ['Échantillon biologique', 'Biological sample'],
-    assay_id: ['Identifiant du dosage / run', 'Assay / run identifier'],
-    omic: ['Couche omique', 'Omics layer'],
-    condition: ['Condition / groupe', 'Condition / group'],
-    timepoint: ['Temps / visite', 'Time point'],
-    batch: ['Batch technique', 'Technical batch'],
-    technical_replicate: ['Réplicat technique', 'Technical replicate'],
-    outcome: ['Outcome / critère', 'Outcome / endpoint'],
-    survival_time: ['Temps de survie / suivi', 'Survival / follow-up time'],
-    survival_event: ['Événement de survie (0/1)', 'Survival event (0/1)'],
-    sample_type: ['Type d’injection / échantillon', 'Injection / sample type'],
-    injection_order: ['Ordre d’injection MS', 'MS injection order']
+    subject_id: ['Sujet, animal ou culture', 'Subject, animal or culture'],
+    sample_id: ['Prélèvement', 'Sample'],
+    assay_id: ['Nom de la mesure dans le fichier', 'Measurement name in the file'],
+    omic: ['Type de mesure', 'Measurement type'],
+    condition: ['Groupe (ex. traité / témoin)', 'Group (e.g. treated / control)'],
+    timepoint: ['Moment du prélèvement', 'Sampling time'],
+    batch: ['Lot de mesures', 'Measurement batch'],
+    technical_replicate: ['Mesure répétée au laboratoire', 'Repeated laboratory measurement'],
+    outcome: ['Résultat étudié', 'Outcome of interest'],
+    survival_time: ['Durée du suivi', 'Follow-up duration'],
+    survival_event: ['Événement observé (0/1)', 'Observed event (0/1)'],
+    sample_type: ['Type d’échantillon analysé', 'Sample type'],
+    injection_order: ['Ordre de passage dans l’appareil', 'Instrument run order']
   };
   /** @param {string} key */
   const fieldLabel = (key) => {
@@ -1223,9 +1256,7 @@
   <a class="tool-back" href={`${base}/multiomics`}>← {t('Présentation de l’outil', 'Tool overview')}</a>
   <p class="eyebrow">{t('Prototype expérimental · outil · v1.3', 'Experimental prototype · tool · v1.3')}</p>
   <h1>{t('Des données multi-omiques à une interprétation biologique.', 'From multi-omics data to one biological interpretation.')}</h1>
-  <p class="lede">
-    {t('Décrivez le protocole, mappez les échantillons une seule fois, puis laissez le workflow intégrer transcriptomique, protéomique et métabolomique autour de structures partagées, d’associations et de voies biologiques.', 'Describe the protocol, map the samples once, then let the workflow integrate transcriptomics, proteomics and metabolomics around shared factors, associations, pathways and mechanisms.')}
-  </p>
+  <p class="lede">{t('Choisissez ce que vous voulez comprendre, ajoutez vos données et consultez les graphiques. Les vérifications scientifiques restent accessibles.', 'Choose your question, add your data and explore the figures. All scientific checks remain available.')}</p>
   <div class="quick-start" data-testid="multiomics-quick-start">
     <div>
       <strong>{t('Découvrir en 1 clic', 'Explore in one click')}</strong>
@@ -1235,45 +1266,46 @@
       {t('Voir une analyse complète', 'See a complete analysis')}
     </button>
   </div>
-  <div class="privacy">
-    <strong>{t('Prototype de recherche.', 'Research prototype.')}</strong>
-    {t('Le moteur navigateur reste local. Lorsque Reactome est activé, seuls les identifiants moléculaires sélectionnés sont envoyés. Si le backend R de référence est activé et disponible, les métadonnées et matrices sont envoyées uniquement à l’URL de backend affichée ci-dessous — par défaut 127.0.0.1 sur votre propre machine.', 'The browser engine remains local. When Reactome is enabled, only selected molecular identifiers are sent. If the reference R backend is enabled and available, metadata and matrices are sent only to the backend URL shown below — by default 127.0.0.1 on your own machine.')}
-  </div>
+  <details class="simple-disclosure">
+    <summary>{t('Confidentialité des données', 'Data privacy')}</summary>
+    <p>{t('Les calculs du navigateur restent sur votre appareil. Si les bases publiques sont activées, des identifiants moléculaires sont transmis à leurs services. Un moteur R connecté reçoit les fichiers à son adresse affichée dans les paramètres avancés (par défaut : votre propre ordinateur).', 'Browser calculations stay on your device. If public databases are enabled, molecular identifiers are sent to their services. A connected R engine receives the files at its configured address (by default your own computer).')}</p>
+  </details>
 </section>
 
-<section class="workflow" aria-label="Prototype workflow">
-  <div><span>1</span><strong>{t('Question', 'Question')}</strong><small>{t('Objectif scientifique', 'Scientific objective')}</small></div>
-  <div><span>2</span><strong>{t('Protocole', 'Protocol')}</strong><small>{t('Questions fermées', 'Closed design questions')}</small></div>
-  <div><span>3</span><strong>{t('Type de données', 'Data type')}</strong><small>{t('Plateformes & identifiants', 'Platforms & identifiers')}</small></div>
-  <div><span>4</span><strong>{t('Mapper', 'Map')}</strong><small>{t('Template ou colonnes reconnues', 'Template or recognised columns')}</small></div>
-  <div><span>5</span><strong>{t('Valider', 'Validate')}</strong><small>{t('Échantillons & réplicats', 'Samples & replicates')}</small></div>
-  <div><span>6</span><strong>{t('Intégrer', 'Integrate')}</strong><small>{t('Bases & multi-omique', 'Databases & multi-omics')}</small></div>
+<section class="simple-steps" aria-label={t('Étapes principales', 'Main steps')}>
+  <span><b>1</b> {t('Question', 'Question')}</span>
+  <span><b>2</b> {t('Étude', 'Study')}</span>
+  <span><b>3</b> {t('Fichiers', 'Files')}</span>
+  <span><b>4</b> {t('Résultats', 'Results')}</span>
 </section>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 1 · Question scientifique', 'Step 1 · Scientific question')}</p>
+      <p class="eyebrow">{t('1 · Votre question', '1 · Your question')}</p>
       <h2>{t('À quelle question l’expérience doit-elle répondre ?', 'What should the experiment answer?')}</h2>
     </div>
-    <p>{t('La question sélectionne automatiquement la famille d’analyse. Il n’est pas nécessaire de choisir soi-même MOFA, DIABLO ou une autre méthode par son nom.', 'The question selects the analysis family. The researcher does not need to choose MOFA, DIABLO or another method by name.')}</p>
+
   </div>
 
   <div class="form-grid">
     <label class="wide">
       <span>{t('Objectif principal', 'Main objective')}</span>
-      <select bind:value={objective}>
-        <option value="explore">{t('Explorer la structure multi-omique partagée', 'Explore the shared multi-omics structure')}</option>
-        <option value="groups">{t('Comparer des groupes / conditions', 'Compare groups / conditions')}</option>
-        <option value="outcome">{t('Expliquer un outcome / phénotype', 'Explain an outcome or phenotype')}</option>
-        <option value="time">{t('Étudier l’évolution au cours du temps', 'Study change over time')}</option>
+      <select value={objective} onchange={chooseSimpleObjective}>
+        <option value="explore">{t('Découvrir ce qui varie dans mes données', 'Explore what varies in my data')}</option>
+        <option value="groups">{t('Comparer des groupes (ex. traité / témoin)', 'Compare groups (e.g. treatment / control)')}</option>
+        <option value="outcome">{t('Relier les mesures à un résultat (ex. réponse)', 'Relate measurements to an outcome (e.g. response)')}</option>
+        <option value="time">{t('Observer les changements dans le temps', 'Track changes over time')}</option>
       </select>
     </label>
 
-    <label>
-      <span>{t('Nom de l’étude', 'Study name')} <small>{t('optionnel', 'optional')}</small></span>
-      <input bind:value={studyName} type="text" placeholder="e.g. Treatment response cohort" />
-    </label>
+    <details class="inline-optional">
+      <summary>{t('Nommer cette analyse (facultatif)', 'Name this analysis (optional)')}</summary>
+      <label>
+        <span>{t('Nom de l’étude', 'Study name')}</span>
+        <input bind:value={studyName} type="text" placeholder={t('Ex. Réponse au traitement', 'e.g. Treatment response')} />
+      </label>
+    </details>
 
     <label>
       <span>{t('Organisme', 'Organism')}</span>
@@ -1286,12 +1318,108 @@
     </label>
   </div>
 
-  <aside class="method-card">
-    <span class="method-tag">{$language === 'en' ? selectedObjective.methodEn : selectedObjective.methodFr}</span>
-    <h3>{$language === 'en' ? selectedObjective.titleEn : selectedObjective.titleFr}</h3>
+  <details class="simple-disclosure">
+    <summary>{t('Quelle méthode sera utilisée ?', 'Which method will be used?')}</summary>
+    <strong>{$language === 'en' ? selectedObjective.methodEn : selectedObjective.methodFr}</strong>
     <p>{$language === 'en' ? selectedObjective.detailEn : selectedObjective.detailFr}</p>
-  </aside>
+  </details>
 </section>
+
+
+<section class="panel simple-study" data-testid="multiomics-simple-study">
+  <div class="section-head"><div>
+    <p class="eyebrow">{t('2 · Votre expérience', '2 · Your experiment')}</p>
+    <h2>{t('Comment les données ont-elles été recueillies ?', 'How were the data collected?')}</h2>
+  </div></div>
+  <p class="simple-hint">{t('Ces réponses permettent de choisir une analyse adaptée. Les réglages techniques sont juste en dessous.', 'These answers help select a suitable analysis. Technical settings are just below.')}</p>
+  <div class="form-grid">
+    <label>
+      <span>{t('Quel type d’étude ?', 'Type of study?')}</span>
+      <select value={studySetting} onchange={chooseSimpleStudySetting} aria-label={t('Type d’étude', 'Study type')}>
+        <option value="clinical_observational">{t('Participants humains', 'Human participants')}</option>
+        <option value="clinical_interventional">{t('Essai ou intervention chez l’humain', 'Human trial or intervention')}</option>
+        <option value="animal">{t('Étude chez l’animal', 'Animal study')}</option>
+        <option value="cell">{t('Cellules en laboratoire', 'Cell cultures')}</option>
+        <option value="organoid">{t('Organoïdes / tissus', 'Organoids / tissues')}</option>
+        <option value="other">{t('Autre', 'Other')}</option>
+      </select>
+    </label>
+    <label>
+      <span>{t('Comment comparer les échantillons ?', 'How are samples compared?')}</span>
+      <select value={designType} onchange={chooseSimpleDesign} data-testid="multiomics-simple-design" aria-label={t('Organisation des échantillons', 'Sample organization')}>
+        <option value="independent">{t('Groupes de sujets différents', 'Different subjects in each group')}</option>
+        <option value="paired">{t('Deux mesures liées chez les mêmes sujets', 'Paired measurements from the same subjects')}</option>
+        <option value="repeated">{t('Mêmes sujets suivis à plusieurs moments', 'Same subjects measured over time')}</option>
+        <option value="crossover">{t('Traitements successifs chez les mêmes sujets', 'Crossover treatment study')}</option>
+      </select>
+    </label>
+    {#if objective === 'groups' || objective === 'time'}
+      <label>
+        <span>{t('Combien de groupes ?', 'How many groups?')}</span>
+        <select bind:value={groupCount}>
+          <option value="1">{t('Un seul', 'One')}</option>
+          <option value="2">{t('Deux', 'Two')}</option>
+          <option value="3plus">{t('Trois ou plus', 'Three or more')}</option>
+        </select>
+      </label>
+    {/if}
+    {#if designType === 'repeated' || objective === 'time'}
+      <label>
+        <span>{t('Combien de moments de mesure ?', 'How many measurement times?')}</span>
+        <select bind:value={timepointCount}>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">{t('4 ou plus', '4 or more')}</option>
+        </select>
+      </label>
+    {/if}
+    {#if objective === 'outcome'}
+      <label>
+        <span>{t('Quel résultat voulez-vous étudier ?', 'What outcome are you studying?')}</span>
+        <select bind:value={outcomeType} data-testid="multiomics-simple-outcome">
+          <option value="none">{t('Choisir…', 'Select…')}</option>
+          <option value="binary">{t('Oui / non (ex. réponse)', 'Yes / no (e.g. response)')}</option>
+          <option value="continuous">{t('Un nombre (ex. concentration)', 'A number (e.g. concentration)')}</option>
+          <option value="multiclass">{t('Plusieurs catégories', 'Several categories')}</option>
+          <option value="count">{t('Nombre d’événements', 'Number of events')}</option>
+          <option value="survival">{t('Temps avant un événement', 'Time until an event')}</option>
+        </select>
+      </label>
+      {#if availableOutcomeTimepoints.length > 1}
+        <label>
+          <span>{t('À quel moment les échantillons ont-ils été prélevés ?', 'At which time were samples collected?')}</span>
+          <select bind:value={outcomeTimepoint} aria-label={t('Temps des mesures moléculaires', 'Omics time point used')}>
+            <option value="">— {t('choix nécessaire', 'selection required')} —</option>
+            {#each availableOutcomeTimepoints as timepoint}<option value={timepoint}>{timepoint}</option>{/each}
+          </select>
+        </label>
+      {/if}
+    {/if}
+    <label>
+      <span>{t('Les analyses portent-elles sur les mêmes prélèvements ?', 'Were the same samples used for each omics measurement?')}</span>
+      <select bind:value={sampleOverlap}>
+        <option value="same_specimen">{t('Oui, même prélèvement', 'Yes, same sample')}</option>
+        <option value="same_subject">{t('Mêmes sujets, prélèvements différents', 'Same subjects, different samples')}</option>
+        <option value="partial">{t('Seulement certains prélèvements', 'Only some matched samples')}</option>
+        <option value="unpaired">{t('Non, prélèvements différents', 'No, different samples')}</option>
+        <option value="unknown">{t('Je ne sais pas', 'I am not sure')}</option>
+      </select>
+    </label>
+  </div>
+  {#if studySetting === 'animal' && organism === 'human'}
+    <p class="simple-warning" role="alert">{t('Vous avez choisi une étude animale mais l’organisme est encore « Humain ». Modifiez l’organisme dans la première étape avant d’analyser.', 'You selected an animal study but the organism is still set to Human. Change the organism in the first step before analysis.')}</p>
+  {/if}
+  {#if designType === 'crossover'}
+    <p class="simple-warning" role="alert">{t('Cette étude nécessite une analyse particulière qui n’est pas encore disponible. Le lancement sera bloqué.', 'This study needs a model that is not yet available; running is blocked.')}</p>
+  {/if}
+  {#if objective === 'time' && designType !== 'repeated'}
+    <p class="simple-warning" role="status">{t('Pour un suivi dans le temps, vérifiez le type de comparaison et les mesures répétées dans les paramètres avancés.', 'For a time-course study, check the design and repeated measurements in advanced settings.')}</p>
+  {/if}
+  <p class="simple-hint">{t('Le modèle, les corrections statistiques et les hypothèses seront détaillés dans le rapport.', 'The model, statistical corrections and assumptions will be documented in the report.')}</p>
+</section>
+
+<details class="advanced-parameters" data-testid="multiomics-advanced-settings">
+  <summary><strong>{t('Paramètres avancés', 'Advanced settings')}</strong> <span>{t('Plan expérimental détaillé, types de fichiers et contrôles techniques', 'Detailed study design, file types and technical checks')}</span></summary>
 
 <section class="panel">
   <div class="section-head">
@@ -1643,19 +1771,22 @@
     </article>
   </div>
 </section>
+</details>
 
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 4 · Contrat de données', 'Step 4 · Data contract')}</p>
-      <h2>{t('Utilisez le template ou laissez l’outil mapper vos colonnes', 'Use the template, or let the app map your column names')}</h2>
+      <p class="eyebrow">{t('Pour démarrer', 'Getting started')}</p>
+      <h2>{t('Un exemple pour comprendre, un modèle si nécessaire', 'Try an example or use a template')}</h2>
     </div>
-    <p>{t('Le template est la voie la plus sûre, mais il n’est pas obligatoire. Les métadonnées libres sont rapprochées d’une liste explicite d’alias puis confirmées manuellement.', 'The template is the safest route, but it is not mandatory. Free-form metadata are matched against explicit aliases and then confirmed manually.')}</p>
+    <p>{t('Vous pouvez charger vos propres tableaux, sans les renommer si les colonnes sont reconnues.', 'You can upload your own tables without renaming columns if they are recognized.')}</p>
   </div>
 
   <div class="contract">
+    <details class="templates-details">
+      <summary>{t('Besoin d’un modèle de fichier ?', 'Need a file template?')}</summary>
     <div>
-      <h3>{t('Métadonnées recommandées au format long', 'Recommended long-format metadata')}</h3>
+      <h3>{t('Modèles à télécharger', 'Downloadable templates')}</h3>
       <p>{t('Une ligne = une mesure. Ce format gère les couches omiques absentes, les temps répétés et les réplicats techniques sans changer de schéma.', 'One row = one assay. This handles missing omics layers, repeated time points and technical replicates without changing the schema.')}</p>
       <pre>subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,outcome,survival_time,survival_event,sample_type,injection_order,covariate_1</pre>
       <div class="actions">
@@ -1668,18 +1799,22 @@
         <a class="btn btn-outline" data-testid="external-validation-template" href={`${base}/multiomics/templates/external_validation_predictions_binary.csv`} download>{t('Template validation externe', 'External validation template')}</a>
       </div>
     </div>
+    </details>
 
     <div class="demo-card">
-      <p class="eyebrow">{t('Démonstration intégrée', 'Built-in demonstration')}</p>
+      <p class="eyebrow">{t('Exemple prêt à explorer', 'Ready-to-run example')}</p>
       <h3>{t('Traitement × temps, trois omiques', 'Treatment × time, three omics')}</h3>
-      <p>{t('8 sujets (4 contrôle + 4 traitement), deux temps, trois couches omiques appariées, avec un réplicat technique RNA sur le même prélèvement.', '8 subjects (4 control + 4 treatment), two time points, three matched omics layers, plus one RNA technical replicate for the same biological sample.')}</p>
+      <p>{t('8 sujets, 2 visites, 3 types de mesures. La démo exécute les mêmes calculs que vos fichiers.', '8 subjects, 2 visits, 3 measurement types. The demo runs the same calculations as your own files.')}</p>
       <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={loadDemo}>{t('Charger la démo localement', 'Load the demo locally')}</button>
+      <details class="simple-disclosure">
+        <summary>{t('Télécharger les données de démonstration', 'Download demo data')}</summary>
       <div class="demo-links">
         <a href={`${base}/multiomics/demo_metadata.csv`} download>{t('métadonnées', 'metadata')}</a>
         <a href={`${base}/multiomics/demo_transcriptomics.csv`} download>RNA</a>
         <a href={`${base}/multiomics/demo_proteomics.csv`} download>{t('protéines', 'protein')}</a>
         <a href={`${base}/multiomics/demo_metabolomics.csv`} download>{t('métabolites', 'metabolites')}</a>
       </div>
+      </details>
     </div>
   </div>
 
@@ -1751,41 +1886,84 @@
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 5 · Import & mapping', 'Step 5 · Upload & mapping')}</p>
-      <h2>{t('Faites correspondre métadonnées et matrices avant l’analyse', 'Match metadata and matrices before analysis')}</h2>
+      <p class="eyebrow">{t('3 · Vos fichiers', '3 · Your files')}</p>
+      <h2>{t('Ajoutez vos tableaux de données', 'Add your data files')}</h2>
     </div>
-    <p>{t('Les colonnes des matrices sont interprétées comme des assay_id et comparées aux métadonnées. Aucun lien n’est inféré à partir de noms de patients simplement ressemblants.', 'Matrix columns are interpreted as assay IDs and checked against the metadata. No relationship is inferred from similar-looking patient names.')}</p>
+
   </div>
 
   <div class="uploads">
     <label class:loaded={files.metadata}>
-      <strong>{t('Métadonnées échantillons', 'Sample metadata')}</strong>
-      <span>{t('Format long recommandé ; noms de colonnes libres acceptés s’ils peuvent être mappés.', 'Long format preferred; arbitrary headers accepted if they can be mapped.')}</span>
+      <strong>{t('Tableau des échantillons', 'Sample information table')}</strong>
+      <span>{t('Qui a été prélevé, quand et dans quel groupe ?', 'Who was sampled, when, and in which group?')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metadata', event)} />
       <small>{files.metadata ? files.metadata.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.transcriptomics}>
       <strong>{t('Transcriptomique', 'Transcriptomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les gènes', 'Measured amounts of gene expression')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('transcriptomics', event)} />
       <small>{files.transcriptomics ? files.transcriptomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.proteomics}>
       <strong>{t('Protéomique', 'Proteomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les protéines', 'Measured amounts of proteins')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('proteomics', event)} />
       <small>{files.proteomics ? files.proteomics.name : 'No file selected'}</small>
     </label>
 
     <label class:loaded={files.metabolomics}>
       <strong>{t('Métabolomique', 'Metabolomics')}</strong>
-      <span>{t('Première colonne = identifiant de variable ; colonnes suivantes = assay_id.', 'First column = feature ID; following columns = assay IDs.')}</span>
+      <span>{t('Quantités mesurées pour les petites molécules', 'Measured amounts of small molecules')}</span>
       <input type="file" accept=".csv,.tsv,.txt" onchange={(event) => selectFile('metabolomics', event)} />
       <small>{files.metabolomics ? files.metabolomics.name : 'No file selected'}</small>
     </label>
   </div>
+
+  {#if files.transcriptomics || files.proteomics || files.metabolomics}
+    <div class="simple-file-values" data-testid="multiomics-simple-values">
+      <strong>{t('Que représentent les nombres de vos fichiers ?', 'What do the numbers in your files mean?')}</strong>
+      <p>{t('Indiquez le format donné par votre laboratoire : il influence les calculs et ne peut pas être deviné.', 'Choose the format supplied by your laboratory: it affects calculations and cannot be guessed.')}</p>
+      <div class="form-grid">
+        {#if files.transcriptomics}
+          <label><span>{t('Gènes : type de valeurs', 'Genes: value type')}</span>
+            <select bind:value={transcriptomicsValues} aria-label={t('Type de valeurs des gènes', 'Gene value type')}>
+              <option value="raw_counts">{t('Comptages bruts', 'Raw read counts')}</option>
+              <option value="tpm">TPM / FPKM</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="log_expression">{t('Valeurs logarithmiques', 'Log-transformed values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+        {#if files.proteomics}
+          <label><span>{t('Protéines : type de valeurs', 'Proteins: value type')}</span>
+            <select bind:value={proteomicsValues} aria-label={t('Type de valeurs des protéines', 'Protein value type')}>
+              <option value="lfq_intensity">{t('Intensités (LFQ)', 'Intensities (LFQ)')}</option>
+              <option value="log_intensity">{t('Intensités logarithmiques', 'Log-transformed intensities')}</option>
+              <option value="spectral_count">{t('Comptages de spectres', 'Spectral counts')}</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+        {#if files.metabolomics}
+          <label><span>{t('Métabolites : type de valeurs', 'Metabolites: value type')}</span>
+            <select bind:value={metabolomicsValues} aria-label={t('Type de valeurs des métabolites', 'Metabolite value type')}>
+              <option value="peak_area">{t('Intensité / aire de pic', 'Intensity / peak area')}</option>
+              <option value="normalized">{t('Valeurs normalisées', 'Normalized values')}</option>
+              <option value="concentration">{t('Concentrations', 'Concentrations')}</option>
+              <option value="log_abundance">{t('Valeurs logarithmiques', 'Log-transformed values')}</option>
+              <option value="unknown">{t('Je ne sais pas (à vérifier)', 'Unsure (review required)')}</option>
+            </select>
+          </label>
+        {/if}
+      </div>
+      <small>{t('Pour les identifiants et filtres spécifiques, ouvrez les paramètres avancés au-dessus.', 'For identifier types and specific filters, open Advanced settings above.')}</small>
+    </div>
+  {/if}
 
   {#if metadataError}
     <p class="error">{metadataError}</p>
@@ -1795,14 +1973,15 @@
     <div class="mapping">
       <div class="mapping-head">
         <div>
-          <h3>{t('Confirmez le mapping des colonnes', 'Confirm column mapping')}</h3>
-          <p>{metadataHeaders.length} columns detected · delimiter: {metadataDelimiter} · {metadataRows.length} assay rows</p>
+          <h3>{t('Vérifiez les colonnes reconnues', 'Check recognized columns')}</h3>
+          <p>{t('Si une correspondance est incorrecte, sélectionnez la bonne colonne.', 'If a match is wrong, select the correct column.')}</p>
         </div>
-        <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? 'Required fields mapped' : 'Mapping incomplete'}</span>
+        <span class:ok={requiredMappingsComplete}>{requiredMappingsComplete ? t('Colonnes principales reconnues', 'Main columns recognized') : t('Colonnes à compléter', 'Columns need attention')}</span>
       </div>
 
       <div class="mapping-grid">
         {#each fieldDefinitions as field}
+          {#if field.required || (field.key === 'condition' && ['groups', 'time'].includes(objective)) || (field.key === 'timepoint' && (longitudinal === 'yes' || objective === 'time')) || (field.key === 'outcome' && objective === 'outcome') || (objective === 'outcome' && outcomeType === 'survival' && ['survival_time', 'survival_event'].includes(field.key))}
           <label>
             <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
             <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
@@ -1812,8 +1991,27 @@
               {/each}
             </select>
           </label>
+          {/if}
         {/each}
       </div>
+      <details class="simple-disclosure" data-testid="multiomics-more-columns">
+        <summary>{t('Autres colonnes et corrections (facultatif)', 'Other columns and adjustments (optional)')}</summary>
+        <p>{t('Si votre étude dépend de l’âge, du sexe ou d’une autre variable, sélectionnez-la explicitement ci-dessous.', 'If your study depends on age, sex or another variable, explicitly select it below.')}</p>
+        <div class="mapping-grid">
+          {#each fieldDefinitions as field}
+            {#if !(field.required || (field.key === 'condition' && ['groups', 'time'].includes(objective)) || (field.key === 'timepoint' && (longitudinal === 'yes' || objective === 'time')) || (field.key === 'outcome' && objective === 'outcome') || (objective === 'outcome' && outcomeType === 'survival' && ['survival_time', 'survival_event'].includes(field.key)))}
+          <label>
+            <span><strong>{fieldLabel(field.key)}</strong> <small>{field.required ? t('requis', 'required') : t('optionnel', 'optional')}</small></span>
+            <select value={columnMapping[field.key]} onchange={(event) => setMapping(field.key, event.currentTarget.value)}>
+              <option value="">— {t('non mappé', 'not mapped')} —</option>
+              {#each metadataHeaders as header}
+                <option value={header}>{header}</option>
+              {/each}
+            </select>
+          </label>
+            {/if}
+          {/each}
+        </div>
 
       {#if covariatesAvailable === 'yes'}
         <div class="covariate-picker">
@@ -1841,8 +2039,11 @@
           </p>
         </div>
       {/if}
+      </details>
     </div>
 
+    <details class="advanced-results" data-testid="multiomics-sample-checks">
+      <summary>{t('Détail des échantillons et correspondances', 'Sample counts and matching details')}</summary>
     <div class="validation">
       <article>
         <span>{t('Unités biologiques', 'Biological units')}</span>
@@ -1891,10 +2092,11 @@
         </article>
       {/each}
     </div>
+    </details>
   {/if}
 
   <div class="status" class:ready>
-    <strong>{omicsCount}/3 {t('omiques sélectionnées', 'omics selected')}</strong>
+    <strong>{omicsCount}/3 {t('types de mesures chargés', 'measurement types loaded')}</strong>
     <span>{ready
       ? t('Le contrat de données et l’objectif scientifique permettent de lancer l’analyse.', 'The data contract and scientific objective are sufficient to run the analysis.')
       : !objectiveOperational
@@ -1906,9 +2108,11 @@
 
   <div class="run-box">
     <div>
-      <p class="eyebrow">{t('Moteur déterministe', 'Deterministic engine')}</p>
-      <h3>{t('Lancer l’analyse à partir des matrices importées', 'Run the analysis from the uploaded matrices')}</h3>
-      <p>{t('Aucun LLM n’est utilisé. Le moteur effectue le prétraitement déclaré, l’agrégation des réplicats, l’audit et l’ajustement des batches/covariables, puis sélectionne la branche exploratoire, groupes, temporelle ou outcome appropriée, avec BH-FDR et Reactome optionnel.', 'No LLM is used. The engine performs declared preprocessing, replicate aggregation, batch/covariate audit and adjustment, then selects the appropriate exploratory, group, longitudinal or outcome branch, with BH-FDR and optional Reactome.')}</p>
+      <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
+      <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
+      <p>{t('Le calcul suit votre plan d’étude. Les fichiers restent dans votre navigateur, sauf si un moteur R est connecté. Par défaut, les identifiants moléculaires sélectionnés peuvent être envoyés à Reactome.', 'The analysis follows your study design. Files remain in your browser unless an R engine is connected. Selected molecular identifiers may be sent to Reactome by default.')}</p>
+      <details class="simple-disclosure" data-testid="multiomics-run-options">
+        <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
         <input type="checkbox" bind:checked={resolveIdentifiers} />
         <span>{t('Résoudre les métabolites non canoniques sélectionnés avec ChEBI avant l’analyse de voies', 'Resolve selected non-canonical metabolite labels with ChEBI before pathway analysis')}</span>
@@ -1943,9 +2147,10 @@
           </div>
         {/if}
       </div>
+      </details>
     </div>
     <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
-      {analysisStatus === 'running' ? t('Analyse…', 'Running…') : t('Lancer l’analyse déterministe', 'Run deterministic analysis')}
+      {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Analyser mes données', 'Analyze my data')}
     </button>
   </div>
   {#if analysisError}<p class="error">{analysisError}</p>{/if}
@@ -1956,11 +2161,14 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{demoLoaded ? t('Résultats de démo · calculés maintenant', 'Demo results · computed now') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
-      <h2>{t('Résultats multi-omiques calculés', 'Computed multi-omics results')}</h2>
+      <h2>{t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
-      <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Télécharger JSON', 'Download JSON')}</button>
-        <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Rapport HTML reproductible', 'Reproducible HTML report')}</button>
+      <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
+      <details class="simple-disclosure export-detail">
+        <summary>{t('Autres exports', 'Other downloads')}</summary>
+        <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Données détaillées (JSON)', 'Detailed data (JSON)')}</button>
+      </details>
       {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>
       {/if}
@@ -1980,6 +2188,15 @@
   {:else if analysisResult.visualizationError}
     <p class="note">{t('Les résultats statistiques sont disponibles, mais la préparation des visualisations a échoué : ', 'Statistical results are available, but visualization preparation failed: ')}{analysisResult.visualizationError}</p>
   {/if}
+
+  <div class="simple-qc-status" data-testid="multiomics-quality-summary">
+    <strong>{t('Contrôle des données', 'Data quality check')}</strong>
+    {#each Object.entries(analysisResult.layers || {}) as [layer, layerResult]}
+      <span class:qc-alert={layerResult.qc?.warnings?.length}>{omicLabel(layer)} : {layerResult.qc?.warnings?.length ? t('points à vérifier', 'needs review') : layerResult.qc?.inferenceTier?.level === 'screening' ? t('exploration uniquement', 'exploratory only') : t('aucune alerte détectée', 'no warning detected')}</span>
+    {/each}
+  </div>
+  <details class="advanced-results" data-testid="multiomics-quality-details">
+    <summary>{t('Voir les vérifications détaillées', 'View detailed quality checks')}</summary>
 
   {#if analysisResult.metadataSummary.overlap?.pairwise?.length}
     <div class="overlap-box">
@@ -2154,6 +2371,7 @@
       {/each}
     </div>
   </div>
+  </details>
 
   <div class="interpretation-box" data-testid="multiomics-interpretation">
     <div class="integration-head">
@@ -2188,6 +2406,8 @@
     </div>
   </details>
 
+  <details class="advanced-results" data-testid="multiomics-detailed-results">
+    <summary>{t('Tableaux et statistiques détaillés', 'Detailed tables and statistics')}</summary>
   {#if analysisResult.exploration?.components?.length}
     <div class="integration-result">
       <div class="integration-head">
@@ -2482,6 +2702,7 @@
     {/if}
   </div>
 
+  </details>
   <div class="evidence-layers">
     <article>
       <strong>{t('Observé', 'Observed')}</strong>
@@ -2507,10 +2728,12 @@
 </section>
 {/if}
 
+<details class="advanced-parameters methodology-details" data-testid="multiomics-methodology">
+  <summary><strong>{t('Méthodes, hypothèses et bases utilisées', 'Methods, assumptions and databases')}</strong> <span>{t('Consulter les calculs en détail', 'Inspect how results were calculated')}</span></summary>
 <section class="panel">
   <div class="section-head">
     <div>
-      <p class="eyebrow">{t('Étape 6 · Analyse & bases biologiques', 'Step 6 · Analysis & biological databases')}</p>
+      <p class="eyebrow">{t('Méthode de calcul', 'Analysis method')}</p>
       <h2>{t('Le moteur de décision est déterministe et inspectable', 'The decision engine is deterministic and inspectable')}</h2>
     </div>
     <p>{t('La branche statistique est sélectionnée à partir de règles explicites liées au design et reste inspectable.', 'The statistical branch is selected from explicit study-design rules and remains inspectable.')}</p>
@@ -2579,6 +2802,7 @@
     </details>
   </div>
 </section>
+</details>
 
 {#if helpTooltip.visible}
   <div
@@ -2592,6 +2816,35 @@
 {/if}
 
 <style>
+  .simple-steps { display:flex; align-items:center; flex-wrap:wrap; gap:1.2rem; margin:0 0 var(--space-6); padding:0 0 var(--space-6); border-bottom:1px solid var(--border); }
+  .simple-steps span { display:flex; align-items:center; gap:.5rem; color:var(--text-secondary); font-weight:600; font-size:.86rem; }
+  .simple-steps b { display:inline-grid; place-items:center; width:1.7rem; height:1.7rem; border-radius:50%; border:1px solid var(--border-strong); color:var(--text-primary); }
+  .simple-hint { margin:.35rem 0 .9rem; color:var(--text-secondary); font-size:.9rem; }
+  .simple-warning { padding:.7rem 1rem; border-inline-start:3px solid var(--warning); background:var(--bg-secondary); }
+  .simple-disclosure, .advanced-parameters, .advanced-results, .templates-details { margin:1rem 0; border:1px solid var(--border); border-radius:12px; background:var(--bg-primary); padding:.75rem 1rem; }
+  .simple-disclosure summary, .advanced-parameters summary, .advanced-results summary, .templates-details summary { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; cursor:pointer; font-size:.92rem; font-weight:650; }
+  .simple-disclosure > :not(summary), .advanced-results > :not(summary), .advanced-parameters > :not(summary), .templates-details > :not(summary) { margin-top:1rem; }
+  .advanced-parameters > summary span, .methodology-details > summary span { color:var(--text-muted); font-size:.8rem; font-weight:400; }
+  .advanced-parameters > .panel { margin:1rem 0; }
+  .advanced-parameters .section-head p, .simple-study .section-head p { max-width:70ch; }
+  .templates-details { margin:0; align-self:start; min-width:0; }
+  .inline-optional { min-width:0; }
+  .inline-optional label { display:grid; margin-top:.7rem; }
+  .simple-file-values { padding:1rem 0; }
+  .simple-file-values > p { margin:.3rem 0 1rem; font-size:.87rem; color:var(--text-secondary); }
+  .simple-file-values small { display:block; margin-top:.8rem; color:var(--text-muted); }
+  .simple-qc-status { display:flex; align-items:center; flex-wrap:wrap; gap:.7rem; padding:.85rem 0; border-top:1px solid var(--border); font-size:.85rem; }
+  .simple-qc-status span { border:1px solid var(--border); padding:.25rem .6rem; border-radius:999px; }
+  .simple-qc-status .qc-alert { border-color:var(--warning); }
+  .export-detail { margin:0; }
+  .export-detail button { margin-top:.55rem; }
+  .methodology-details { margin-top:1.2rem; }
+  @media(max-width:680px) {
+    .simple-steps { gap:.6rem; }
+    .simple-steps span { font-size:.76rem; }
+    .simple-disclosure summary, .advanced-parameters summary, .advanced-results summary, .templates-details summary { display:block; }
+    .simple-qc-status { align-items:flex-start; }
+  }
   .hero { max-width: 920px; padding: var(--space-12) 0 var(--space-8); }
   .tool-back { display: inline-block; margin-bottom: var(--space-4); font-size: var(--text-sm); }
   .help-tip { position: relative; display: inline-grid; place-items: center; width: 1.05rem; height: 1.05rem; margin-left: 3px; border: 1px solid var(--border-strong); border-radius: 50%; font: 700 0.72rem/1 var(--font-sans); color: var(--text-secondary); cursor: help; vertical-align: middle; }

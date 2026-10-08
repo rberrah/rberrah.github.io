@@ -57,6 +57,7 @@ test('guided mode lets a licence-level user choose a biological question instead
   await expect(guide).toContainText('Qu’est-ce qui est associé à mon critère clinique ou expérimental ?');
   await expect(guide).toContainText('Qu’est-ce qui change au cours du temps ?');
 
+  await guide.locator('summary').first().click();
   await guide.getByRole('button', { name: /Qu’est-ce qui diffère entre mes groupes/ }).click();
   await expect(page.getByLabel(/Objectif principal|Main objective/)).toHaveValue('groups');
   await expect(page.getByTestId('multiomics-guided-plan')).toContainText('analyse d’abord chaque omique');
@@ -82,6 +83,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   });
 
   await page.goto('/multiomics/tool');
+  await page.getByTestId('metabolomics-identification-confidence').locator('summary').first().click();
   await page.locator('#pmx-metabolomics-msi-level').selectOption('msi3');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
@@ -120,7 +122,8 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   await expect(fdrPolicy).toContainText('q-value n’est pas la probabilité');
 
   const analysisDownloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Télécharger JSON' }).click();
+  await page.locator('.export-detail > summary').click();
+  await page.getByRole('button', { name: /Données détaillées \(JSON\)/ }).click();
   const analysisDownload = await analysisDownloadPromise;
   const analysisPath = await analysisDownload.path();
   expect(analysisPath).toBeTruthy();
@@ -137,6 +140,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   });
   expect(analysisJson.reactome.consensus).toEqual([]);
 
+  await page.getByTestId('multiomics-scientific-summary').locator('details.scientific-extra > summary').click();
   const manifest = page.getByTestId('multiomics-methods-manifest');
   await expect(manifest).toBeVisible();
   await expect(manifest).toContainText('Reproduire et rapporter l’analyse');
@@ -148,6 +152,7 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   const downloadedManifest = await jsonDownload;
   expect(downloadedManifest.suggestedFilename()).toBe('multiomics-reproducibility-manifest.json');
 
+  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(page.getByText('Vérification des séries techniques')).toBeVisible();
   await expect(page.getByText('Audit des batches techniques')).toHaveCount(0);
 

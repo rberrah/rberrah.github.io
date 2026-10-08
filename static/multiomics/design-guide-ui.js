@@ -92,7 +92,10 @@
     const overlapText = overlapExplanation(language, overlapValue);
     const outcomeText = outcomeExplanation(language, outcomeValue);
 
+    const wasOpen = guide.querySelector('details.licence-design-body')?.open === true;
     guide.innerHTML = `
+      <details class="licence-design-body">
+        <summary>${language === 'en' ? 'Why these study choices matter' : 'Comprendre les choix du plan d’étude'}</summary>
       <div class="licence-design-head"><span>${language === 'en' ? 'Meaning of your choices' : 'Ce que signifient vos choix'}</span><h3>${language === 'en' ? 'Translate the study design into plain language' : 'Traduire le plan d’étude en langage simple'}</h3></div>
       <div class="licence-design-grid">
         <article><strong>${designTitle}</strong><p>${designText}</p></article>
@@ -100,7 +103,9 @@
         <article><strong>${language === 'en' ? 'Endpoint type' : 'Type de critère étudié'}</strong><p>${outcomeText}</p></article>
       </div>
       <div class="licence-replicate-warning"><b>${language === 'en' ? 'Important: a technical replicate is not a new biological subject.' : 'Important : un réplicat technique n’est pas un nouveau sujet biologique.'}</b><span>${language === 'en' ? 'Repeating the measurement of the same specimen improves measurement precision but does not increase the biological sample size. The tool links technical replicates through the same sample_id.' : 'Répéter la mesure du même prélèvement améliore la précision technique mais n’augmente pas l’effectif biologique. L’outil relie les répétitions techniques par le même sample_id.'}</span></div>
+      </details>
     `;
+    if (wasOpen) guide.querySelector('details.licence-design-body').open = true;
     guide.dataset.state = state;
   }
 
@@ -109,6 +114,7 @@
     const style = document.createElement('style');
     style.id = 'multiomics-design-guide-style';
     style.textContent = `
+      .licence-design-body>summary{cursor:pointer;font-weight:700}
       .licence-design-guide{margin:16px 0;padding:15px;border:1px solid var(--border-subtle,#d4d4d4);border-radius:11px;background:var(--bg-secondary,#f7f7f7)}.licence-design-head>span{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary,#666)}.licence-design-head h3{margin:3px 0 11px;font-size:1.03rem}.licence-design-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.licence-design-grid article{padding:11px;border:1px solid var(--border-subtle,#ddd);border-radius:9px;background:var(--bg-primary,#fff)}.licence-design-grid strong,.licence-design-grid p{display:block}.licence-design-grid p{margin:5px 0 0;font-size:.87rem;line-height:1.42;color:var(--text-secondary,#555)}.licence-replicate-warning{display:grid;grid-template-columns:minmax(220px,.7fr) 1.3fr;gap:12px;margin-top:10px;padding:11px;border:1px solid var(--border-subtle,#ddd);border-radius:9px}.licence-replicate-warning span{font-size:.87rem;line-height:1.42;color:var(--text-secondary,#555)}
       @media(max-width:850px){.licence-design-grid{grid-template-columns:1fr}.licence-replicate-warning{grid-template-columns:1fr}}
     `;
