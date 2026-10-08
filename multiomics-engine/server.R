@@ -7,6 +7,7 @@ or_else <- function(x, y) {
 }
 
 source(file.path("multiomics-engine", "advanced_methods.R"), local = TRUE)
+source(file.path("multiomics-engine", "external_validation.R"), local = TRUE)
 
 normalise_text <- function(x) trimws(as.character(or_else(x, "")))
 
@@ -766,10 +767,11 @@ run_backend_analysis <- function(payload) {
 
 #* @filter cors
 function(req, res) {
-  res$setHeader("Access-Control-Allow-Origin", "*")
+  # Origin acceptance is enforced by run_backend.R. Do not emit a wildcard
+  # here: a wildcard would make a localhost research-data service callable
+  # from unrelated web pages.
   res$setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
   res$setHeader("Access-Control-Allow-Headers", "Content-Type")
-  res$setHeader("Access-Control-Allow-Private-Network", "true")
   if (identical(req$REQUEST_METHOD, "OPTIONS")) return(list(status="ok"))
   plumber::forward()
 }
@@ -777,13 +779,77 @@ function(req, res) {
 #* @get /health
 #* @serializer json list(auto_unbox=TRUE)
 function() {
-  packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
+  packages <- vapply(
+    c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics","xcms","MsExperiment","Spectra","mzR","BiocParallel"),
+    requireNamespace,
+    logical(1),
+    quietly=TRUE
+  )
+  raw_required <- c("xcms","MsExperiment","Spectra","mzR")
   list(
     status="ok",
     engine="PMx Explain reference R backend",
-    version="1.2.0",
-    packages=as.list(packages)
+    version="1.3.0",
+    packages=as.list(packages),
+    capabilities=list(
+      reference_analysis=TRUE,
+      frozen_external_validation=TRUE,
+      raw_ms_cli=all(packages[raw_required])
+    )
   )
+}
+
+#* @post /external-validation
+#* @serializer json list(auto_unbox=TRUE, dataframe="rows", na="null")
+function(req, res) {
+  if (!requireNamespace("jsonlite", quietly=TRUE)) {
+    res$status <- 500
+    return(list(status="error", message="jsonlite is required by the reference backend."))
+  }
+  payload <- try(jsonlite::fromJSON(req$postBody, simplifyVector=TRUE), silent=TRUE)
+  if (inherits(payload, "try-error") || !is.list(payload)) {
+    res$status <- 400
+    return(list(status="error", message="Invalid JSON payload."))
+  }
+  predictions_csv <- payload$predictionsCsv
+  config <- payload$config
+  if (is.null(predictions_csv) || !is.character(predictions_csv) || length(predictions_csv) != 1L || !nzchar(predictions_csv)) {
+    res$status <- 400
+    return(list(status="error", message="predictionsCsv must contain the frozen prediction CSV as text."))
+  }
+  if (is.null(config) || !is.list(config)) {
+    res$status <- 400
+    return(list(status="error", message="config must be a JSON object."))
+  }
+
+  allowed <- c(
+    "outcome_type", "prediction_column", "outcome_column", "prediction_kind",
+    "time_column", "event_column", "probability_columns", "independent_cohort",
+    "cohort_label", "bootstrap_repetitions", "seed"
+  )
+  unknown <- setdiff(names(config), allowed)
+  if (length(unknown)) {
+    res$status <- 400
+    return(list(status="error", message=paste("Unknown config field(s):", paste(unknown, collapse=", "))))
+  }
+  if (is.null(config$outcome_type) || !nzchar(as.character(config$outcome_type))) {
+    res$status <- 400
+    return(list(status="error", message="config.outcome_type is required."))
+  }
+
+  data <- try(read_csv_text(predictions_csv), silent=TRUE)
+  if (inherits(data, "try-error") || !nrow(data)) {
+    res$status <- 400
+    return(list(status="error", message="The frozen prediction CSV could not be parsed or is empty."))
+  }
+
+  result <- try(do.call(validate_external_predictions, c(list(data=data), config)), silent=TRUE)
+  if (inherits(result, "try-error")) {
+    res$status <- 422
+    return(list(status="error", message=as.character(result)))
+  }
+  result$input <- list(rows=nrow(data), columns=as.list(names(data)))
+  result
 }
 
 #* @post /run
