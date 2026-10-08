@@ -361,8 +361,8 @@
         <div>
           <h3>{tr('Carte du métabolisme central', 'Central carbon metabolism map')}</h3>
           <p>{tr(
-            'Ovales = métabolites ; carrés = transcrits enzymatiques. Gris = absence de mesure log2 exploitable. Les flèches sont schématiques, pas des flux mesurés.',
-            'Ovals = metabolites; squares = enzyme transcripts. Gray = no usable log2 measurement. Arrows are schematic, not measured fluxes.'
+            'Ovales = métabolites ; carrés = gènes enzymatiques. Gris = donnée absente, non reconnue ou inexploitable. Les flèches ne sont pas des flux mesurés.',
+            'Ovals = metabolites; squares = enzyme transcripts. Gray = missing, unmatched or unusable data. Arrows are not measured fluxes.'
           )}</p>
         </div>
       </div>
@@ -371,10 +371,24 @@
 
     {#if central}
       <div class="map-summary">
-        <span><b>{central.measuredMetabolites}</b> {tr('métabolites reconnus', 'matched metabolites')}</span>
-        <span><b>{central.measuredTranscripts}</b> {tr('modules enzymatiques reconnus', 'matched enzyme modules')}</span>
+        <span><b>{central.measuredMetabolites}</b> {tr('métabolites reconnus sur la carte', 'metabolites matched on the map')}</span>
+        <span><b>{central.measuredTranscripts}</b> {tr('gènes reconnus sur la carte', 'genes matched on the map')}</span>
       </div>
 
+      {#if central.offMapMetabolites?.length || central.offMapTranscripts?.length}
+        <div class="off-map" data-testid="multiomics-off-map">
+          <strong>{tr('D’autres molécules sont mesurées, mais hors de cette carte.', 'Other molecules are measured, but outside this map.')}</strong>
+          <p>{tr('Cette figure montre uniquement le métabolisme central. Une molécule absente de la carte reste disponible dans les autres graphiques.', 'This figure shows only central metabolism. Features outside the map remain in the other charts.')}</p>
+          {#if central.offMapMetabolites?.length}
+            <div><b>{tr('Métabolites hors carte : ', 'Metabolites outside map: ')}</b>{central.offMapMetabolites.map((item) => itemLabel(item)).join(', ')}</div>
+          {/if}
+          {#if central.offMapTranscripts?.length}
+            <details><summary>{tr('Autres gènes mesurés', 'Other measured genes')}</summary>
+              <p>{central.offMapTranscripts.map((item) => itemLabel(item)).join(', ')}</p>
+            </details>
+          {/if}
+        </div>
+      {/if}
       <div class="svg-scroll">
         <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par log2FC', 'Central metabolism map annotated by log2FC')}>
           <defs>
@@ -441,7 +455,7 @@
             <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">− log2FC</text>
             <rect x="135" y="0" width="42" height="15" fill={diverging(0)}/><text x="183" y="12" class="legend-label">0</text>
             <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">+ log2FC</text>
-            <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('non mesuré', 'not measured')}</text>
+            <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('aucune valeur exploitable', 'no usable value')}</text>
           </g>
         </svg>
       </div>
