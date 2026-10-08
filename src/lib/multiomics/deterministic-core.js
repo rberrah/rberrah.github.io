@@ -3681,23 +3681,52 @@ function hypergeometricUpperTail(k, population, successes, draws) {
   return Math.max(0, Math.min(1, Math.exp(maxLog) * sum));
 }
 
-function applyAssayUniverseBackground(selectedResult, universeResult, selectedSubmitted, universeSubmitted) {
-  const universeMap = new Map((universeResult?.pathways || []).map((pathway) => [pathway.id, pathway]));
+export function applyAssayUniverseBackground(selectedResult, universeResult, selectedSubmitted, universeSubmitted) {
+  // Reactome's selected-list response is itself filtered by the selected
+  // identifiers. Correcting BH only over that list understates multiplicity.
+  // Define the statistical family from *all* pathways hit by the measured
+  // assay universe, including pathways with k=0 in the selected feature set.
+  const background = universeResult?.pathways || [];
+  const selected = selectedResult?.pathways || [];
+  const backgroundMap = new Map(background.map((row) => [row.id, row]));
+  const selectedMap = new Map(selected.map((row) => [row.id, row]));
   const M = Math.max(0, universeSubmitted - Number(universeResult?.identifiersNotFound || 0));
   const n = Math.max(0, selectedSubmitted - Number(selectedResult?.identifiersNotFound || 0));
-  const rows = (selectedResult?.pathways || []).map((pathway) => {
-    const background = universeMap.get(pathway.id);
-    if (!background || !(M > 0) || !(n > 0)) {
-      return { ...pathway, assayUniversePValue: null, assayUniverseFdr: null, assayUniverseEntities: null };
+  const expectedBackground = Number(universeResult?.pathwaysFound ?? background.length);
+  const expectedSelected = Number(selectedResult?.pathwaysFound ?? selected.length);
+  const complete = Number.isFinite(expectedBackground) && Number.isFinite(expectedSelected)
+    && background.length >= expectedBackground && selected.length >= expectedSelected;
+  const validUniverse = M > 0 && n > 0 && n <= M && complete &&
+    background.length > 0 && background.every((item) => item.id);
+  const inconsistent = selected.some((pathway) => {
+    const b = backgroundMap.get(pathway.id);
+    return !b || Number(pathway.entitiesFound || 0) > Number(b.entitiesFound || 0);
+  });
+  const allPValues = [];
+  if (validUniverse && !inconsistent) {
+    for (const pathway of background) {
+      const K = Math.min(M, Math.max(0, Number(pathway.entitiesFound || 0)));
+      const k = Math.max(0, Number(selectedMap.get(pathway.id)?.entitiesFound || 0));
+      allPValues.push({
+        id: pathway.id,
+        pValue: hypergeometricUpperTail(k, M, K, n),
+        qValue: null
+      });
     }
-    const K = Math.min(M, Math.max(0, Number(background.entitiesFound || 0)));
-    const k = Math.min(n, Math.max(0, Number(pathway.entitiesFound || 0)));
-    const pValue = hypergeometricUpperTail(k, M, K, n);
+    bhAdjust(allPValues);
+  }
+  const adjusted = new Map(allPValues.map((row) => [row.id, row]));
+  const rows = selected.map((pathway) => {
+    const backgroundPathway = backgroundMap.get(pathway.id);
+    const result = adjusted.get(pathway.id);
+    const K = backgroundPathway && M > 0
+      ? Math.min(M, Math.max(0, Number(backgroundPathway.entitiesFound || 0))) : null;
+    const k = Number(pathway.entitiesFound || 0);
     return {
       ...pathway,
-      assayUniversePValue: pValue,
-      assayUniverseFdr: null,
-      assayUniverseEntities: {
+      assayUniversePValue: result?.pValue ?? null,
+      assayUniverseFdr: result?.qValue ?? null,
+      assayUniverseEntities: K === null ? null : {
         selectedHits: k,
         selectedMapped: n,
         universeHits: K,
@@ -3705,15 +3734,16 @@ function applyAssayUniverseBackground(selectedResult, universeResult, selectedSu
       }
     };
   });
-  const temp = rows.map((row) => ({ pValue: row.assayUniversePValue, qValue: null }));
-  bhAdjust(temp);
-  rows.forEach((row, index) => { row.assayUniverseFdr = temp[index].qValue; });
   rows.sort((a,b) => {
-    const aq = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : Number.isFinite(a.fdr) ? a.fdr : 1;
-    const bq = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : Number.isFinite(b.fdr) ? b.fdr : 1;
+    const aq = Number.isFinite(a.assayUniverseFdr) ? a.assayUniverseFdr : 1;
+    const bq = Number.isFinite(b.assayUniverseFdr) ? b.assayUniverseFdr : 1;
     if (aq !== bq) return aq - bq;
     return b.entitiesFound - a.entitiesFound;
   });
+  const reason = !complete ? 'Reactome response is paginated/truncated: entire tested pathway family was not retrieved.'
+    : inconsistent ? 'Selected features are not a valid subset of the declared background pathway hits.'
+    : !validUniverse ? 'Insufficient or incoherent measurable assay universe.'
+    : null;
   return {
     ...selectedResult,
     pathways: rows,
@@ -3722,7 +3752,10 @@ function applyAssayUniverseBackground(selectedResult, universeResult, selectedSu
       mapped: M,
       selectedSubmitted,
       selectedMapped: n,
-      method: 'local hypergeometric over-representation using the uploaded/retained assay feature universe; BH correction across returned selected-set pathways'
+      hypothesesTested: allPValues.length,
+      multiplicityStatus: reason ? 'not_estimable' : 'full_assay_universe_family',
+      warning: reason,
+      method: 'Hypergeometric assay-universe over-representation; BH applied over every Reactome pathway hit by the measured universe (including pathways with zero selected hits), not just the enriched/returned selected pathways. Pathway selection is exploratory and biologically dependent.'
     }
   };
 }
