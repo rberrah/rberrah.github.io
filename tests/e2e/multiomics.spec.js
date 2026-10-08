@@ -11,6 +11,7 @@ test('multi-omics presentation page links to the dedicated analysis tool', async
 
 test('multi-omics tool states the raw-input support boundary', async ({ page }) => {
   await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-advanced-settings').locator('summary').first().click();
   const boundary = page.getByTestId('input-support-boundary');
   await expect(boundary).toBeVisible();
   await expect(boundary).toContainText(/FASTQ\/BAM/i);
@@ -26,7 +27,7 @@ test('multi-omics presentation and tool switch to English', async ({ page }) => 
   await page.goto('/multiomics/tool?lang=en');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('From multi-omics data');
   await expect(page.getByText('How should these results be interpreted?')).toHaveCount(0);
-  await expect(page.getByText('Run the analysis from the uploaded matrices')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Add your data files' })).toBeVisible();
 });
 
 test('outcome workflow requires an explicit omics time point when multiple visits exist', async ({ page }) => {
@@ -35,7 +36,7 @@ test('outcome workflow requires an explicit omics time point when multiple visit
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
 
   await page.getByLabel(/Objectif principal|Main objective/).selectOption('outcome');
-  await page.getByLabel(/Type de critère étudié|Type d.outcome principal|Primary outcome type/).selectOption('binary');
+  await page.getByTestId('multiomics-simple-outcome').selectOption('binary');
 
   const timepoint = page.getByLabel(/Temps des mesures moléculaires|Temps omique utilisé|Omics time point used/);
   await expect(timepoint).toBeVisible();
@@ -67,6 +68,7 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   await page.goto('/multiomics/tool');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(page.getByTestId('multiomics-qc')).toBeVisible();
   await expect(page.getByTestId('multiomics-qc')).toContainText(/variables conservées|features retained/i);
   const preprocessing = page.getByTestId('preprocessing-audit').first();
@@ -91,7 +93,7 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   }
 
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: /Rapport HTML reproductible|Reproducible HTML report/i }).click();
+  await page.getByRole('button', { name: /Télécharger le rapport complet|Download full report/i }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe('multiomics_reproducible_report.html');
 });
@@ -145,10 +147,13 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
 
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
   await page.getByLabel(/Mode backend R|R backend mode/i).selectOption('auto');
   await page.getByTestId('multiomics-run').click();
 
   const backend = page.getByTestId('reference-backend-results');
+  await expect(backend).toContainText('lmerTest', { timeout: 20_000 });
+  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(backend).toBeVisible({ timeout: 20_000 });
   await expect(backend).toContainText('lmerTest');
   await expect(backend).toContainText(/Méthodes de référence exécutées automatiquement|Reference methods executed automatically/i);
@@ -191,7 +196,7 @@ test('multi-omics demo runs end-to-end with deterministic Reactome integration',
   await page.getByTestId('multiomics-load-demo').click();
 
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId('multiomics-results')).toContainText(/Résultats multi-omiques calculés|Computed multi-omics results/);
+  await expect(page.getByTestId('multiomics-results')).toContainText(/Vos résultats|Your results/);
   await expect(page.getByTestId('multiomics-results')).toContainText('random-intercept-longitudinal-model');
   await expect(page.getByTestId('multiomics-results')).toContainText('IDO1');
   await expect(page.getByTestId('multiomics-interpretation')).toBeVisible();
