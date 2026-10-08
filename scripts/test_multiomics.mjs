@@ -63,6 +63,16 @@ assert.equal(result.metadataSummary.batchAudit.transcriptomics.status, 'single_b
 assert.equal(result.metadataSummary.batchAudit.proteomics.status, 'single_batch');
 assert.equal(result.metadataSummary.batchAudit.metabolomics.status, 'single_batch');
 
+// Every layer must expose the declared input scale and the exact preprocessing decision.
+assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.declaredValueType, 'raw_counts');
+assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.outputScale, 'log2');
+assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.status, 'compatible');
+assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.nonIntegerValues, 0);
+assert.equal(result.layers.metabolomics.qc.preprocessingAudit.declaredValueType, 'peak_area');
+assert.equal(result.layers.metabolomics.qc.preprocessingAudit.medianCentered, true);
+assert.ok(result.layers.metabolomics.qc.preprocessingAudit.pseudoCount > 0);
+assert.match(result.layers.metabolomics.qc.preprocessingAudit.policy, /does not infer or silently apply/i);
+
 for (const layer of ['transcriptomics','proteomics','metabolomics']) {
   assert.equal(result.layers[layer].mode, 'random-intercept-longitudinal-model');
   assert.deepEqual(result.layers[layer].groupSizes, [4,4]);
@@ -134,6 +144,61 @@ const demoOutcome = await runDeterministicAnalysis({
 });
 assert.equal(demoOutcome.layers.transcriptomics.mode, 'outcome-binary');
 assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
+
+// Declared measurement types are audited instead of silently guessed.
+{
+  const originalRna = await transcriptomics.text();
+  const fractionalRna = new File(
+    [originalRna.replace('STAT1,110,', 'STAT1,110.5,')],
+    'fractional_counts.csv',
+    { type: 'text/csv' }
+  );
+  const fractional = await runDeterministicAnalysis({
+    files: { metadata, transcriptomics: fractionalRna, proteomics, metabolomics },
+    metadataRows: parsed.rows,
+    columnMapping: mapping,
+    protocol: {
+      organism: 'human', objective: 'time', longitudinal: true, designType: 'repeated',
+      studySetting: 'clinical_interventional', groupCount: '2', sampleOverlap: 'same_specimen'
+    },
+    dataTypes: {
+      transcriptomics: 'raw_counts',
+      proteomics: 'log_intensity',
+      metabolomics: 'peak_area'
+    },
+    useReactome: false,
+    resolveIdentifiers: false
+  });
+  const fractionalAudit = fractional.layers.transcriptomics.qc.preprocessingAudit;
+  assert.equal(fractionalAudit.status, 'review_required');
+  assert.equal(fractionalAudit.nonIntegerValues, 1);
+  assert.ok(fractional.layers.transcriptomics.qc.warnings.some((warning) => /non-integer/i.test(warning)));
+
+  const negativeRna = new File(
+    [originalRna.replace('STAT1,110,', 'STAT1,-1,')],
+    'negative_counts.csv',
+    { type: 'text/csv' }
+  );
+  await assert.rejects(
+    () => runDeterministicAnalysis({
+      files: { metadata, transcriptomics: negativeRna, proteomics, metabolomics },
+      metadataRows: parsed.rows,
+      columnMapping: mapping,
+      protocol: {
+        organism: 'human', objective: 'time', longitudinal: true, designType: 'repeated',
+        studySetting: 'clinical_interventional', groupCount: '2', sampleOverlap: 'same_specimen'
+      },
+      dataTypes: {
+        transcriptomics: 'raw_counts',
+        proteomics: 'log_intensity',
+        metabolomics: 'peak_area'
+      },
+      useReactome: false,
+      resolveIdentifiers: false
+    }),
+    /raw_counts.*negative value/i
+  );
+}
 
 // Advanced metabolomics MS QC: blanks, pooled-QC drift, RSD and explicit MNAR handling.
 {
