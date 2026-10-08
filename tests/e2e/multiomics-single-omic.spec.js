@@ -58,7 +58,7 @@ test('A single omics matrix can be explored after explicit independent-sample co
       'G1,10,12,16,14,11',
       'G2,90,55,70,40,65',
       'G3,5,8,12,10,9'
-    ].join('\\n'))
+    ].join('\n'))
   });
   const helper=page.getByTestId('multiomics-single-sheet-helper');
   await expect(helper).toBeVisible();
