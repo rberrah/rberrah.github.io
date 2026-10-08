@@ -89,6 +89,27 @@ leurs tests ne sont pas indépendants. La FDR locale n'est pas une preuve de
 causalité ou de confirmation biologique. Vérification automatisée :
 `node scripts/test_multiomics_pathway_fdr.mjs`.
 
+## Calibration longitudinale et arrêt de la significativité navigateur
+
+Les simulations de 15 scénarios nuls à 24 sujets, deux visites et huit variables,
+avec effets aléatoires individuels, ont produit 12 p-values < 0,05 parmi
+120 tests (10 %) et au moins une q-value ≤ 0,10 dans quatre jeux sur 15
+(26,7 %). Ces estimations sont imprécises mais signalent une possible
+anti-conservativité du test de Wald / approximation t de la branche GLS.
+
+**Conséquence volontaire :** la branche navigateur conserve les tailles
+d'effet, tendances et distributions comme exploration descriptive, mais
+ne produit plus de p-values, q-values ni intervalles de confiance
+longitudinaux. Même la corrélation différentielle inter-omique temporelle
+n'attribue pas de q-value. L'inférence exige le backend R `lmerTest`
+avec contrôle des hypothèses, de la structure aléatoire et des degrés
+de liberté. Le test de régression impose cette politique fail-closed.
+
+Ce n'est **pas** une validation du modèle GLS interne ; c'est une limitation
+scientifique identifiée et neutralisée. Réintroduire des p-values navigateur
+supposerait un benchmark préspécifié indépendant avec calibration de
+l'erreur de type I et des IC sur plusieurs valeurs d'ICC, tailles et plans.
+
 ## Benchmark Bioconductor réel
 
 Le workflow `.github/workflows/multiomics-bioconductor-validation.yml` exécute
