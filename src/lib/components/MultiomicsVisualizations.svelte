@@ -1,5 +1,6 @@
 <script>
   // @ts-nocheck
+  import FocusedMetabolicNetwork from './FocusedMetabolicNetwork.svelte';
   export let result = null;
   export let language = 'fr';
 
@@ -152,7 +153,7 @@
       {tr('2. Voies biologiques', '2. Biological pathways')}
     </button>
     <button type="button" class:active={activeFigure === 'map'} aria-current={activeFigure === 'map' ? 'true' : undefined} on:click={() => activeFigure = 'map'}>
-      {tr('3. Carte métabolique', '3. Metabolic map')}
+      {tr('3. Réseau ciblé', '3. Focused network')}
     </button>
   </nav>
 
@@ -354,6 +355,9 @@
   {/if}
 
   {#if activeFigure === 'map'}
+  <FocusedMetabolicNetwork graph={visuals?.focusedMetabolicNetwork} {language} />
+  <details class="legacy-map" data-testid="multiomics-central-carbon-details">
+    <summary>{tr('Voir aussi le schéma simplifié du métabolisme central', 'Also view the original central metabolism schematic')}</summary>
   <article class="figure-card" data-testid="multiomics-central-carbon-map">
     <div class="figure-title">
       <div>
@@ -465,6 +469,7 @@
       )}</p>
     {/if}
   </article>
+  </details>
 
   {/if}
 
@@ -480,6 +485,9 @@
 
 <style>
   .visual-panel { margin-top: 24px; display: grid; gap: 18px; }
+  .legacy-map { border:1px solid var(--border,#d9e0e3); padding:12px 14px; border-radius:12px; }
+  .legacy-map > summary { cursor:pointer; font-weight:700; }
+  .legacy-map > article { margin-top:12px; }
   .figure-switcher { display:flex; flex-wrap:wrap; gap:8px; padding:5px; border:1px solid var(--border,#d9e0e3); border-radius:13px; width:max-content; max-width:100%; }
   .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary,#58666d); font-size:.88rem; font-weight:650; }
   .figure-switcher button.active { background:var(--accent,#176c83); color:#fff; }
