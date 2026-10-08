@@ -70,8 +70,7 @@ test('multi-omics results expose contextual help, QC and reproducible report', a
   await expect(page.getByTestId('multiomics-qc')).toBeVisible();
   await expect(page.getByTestId('multiomics-qc')).toContainText(/variables conservées|features retained/i);
   const preprocessing = page.getByTestId('preprocessing-audit').first();
-  // QC audit is under deliberate progressive disclosure; open it before checking.
-  await preprocessing.locator('xpath=ancestor::details[1]').locator('summary').click();
+  // The short preprocessing audit is visible; its detailed steps stay collapsible.
   await expect(preprocessing).toBeVisible();
   await expect(preprocessing).toContainText(/raw_counts|log2|compatible/i);
 
@@ -236,6 +235,8 @@ test('browser external validation sends only frozen predictions to the R evaluat
   });
 
   await page.goto('/multiomics/tool');
+  // Expert workflows remain accessible after opening their dedicated section.
+  await page.getByTestId('advanced-workflows').locator('summary').first().click();
   const panel = page.getByTestId('external-validation-panel');
   await expect(panel).toBeVisible();
 
@@ -269,6 +270,8 @@ test('browser external validation sends only frozen predictions to the R evaluat
 
 test('browser refuses to label a non-independent cohort as external validation', async ({ page }) => {
   await page.goto('/multiomics/tool');
+  // Expert workflows remain accessible after opening their dedicated section.
+  await page.getByTestId('advanced-workflows').locator('summary').first().click();
   await page.getByTestId('external-validation-predictions').setInputFiles({
     name: 'predictions.csv',
     mimeType: 'text/csv',
