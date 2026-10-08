@@ -1723,8 +1723,39 @@ function subjectCovariateDesign(entries, covariateColumns = [], { includeInterce
   return { design, columnNames, encoder };
 }
 
+// Inference must not use the tiny numerical ridge added by solveLinearSystem
+// to disguise exact aliases (e.g. a technical batch perfectly coding group).
+// This rank check uses scale-aware Gaussian elimination on the *raw* design.
+function hasFullColumnRank(design) {
+  const n = design.length;
+  const p = design[0]?.length || 0;
+  if (!n || !p || n < p || design.some((row) => row.length !== p || row.some((x) => !Number.isFinite(x)))) return false;
+  const a = design.map((row) => row.slice());
+  let rank = 0;
+  for (let col = 0; col < p; col += 1) {
+    let pivot = -1;
+    let best = 0;
+    for (let i = rank; i < n; i += 1) {
+      const magnitude = Math.abs(a[i][col]);
+      if (magnitude > best) { best = magnitude; pivot = i; }
+    }
+    const columnMax = Math.max(...design.map((row) => Math.abs(row[col])));
+    if (pivot < 0 || best <= 1e-10 * Math.max(columnMax, 1e-12)) continue;
+    [a[rank], a[pivot]] = [a[pivot], a[rank]];
+    const scale = a[rank][col];
+    for (let j = col; j < p; j += 1) a[rank][j] /= scale;
+    for (let i = rank + 1; i < n; i += 1) {
+      const factor = a[i][col];
+      for (let j = col; j < p; j += 1) a[i][j] -= factor * a[rank][j];
+    }
+    rank += 1;
+  }
+  return rank === p;
+}
+
 function ordinaryLeastSquares(design, response, coefficientIndex) {
   if (!design.length || design.length <= (design[0]?.length || 0)) return null;
+  if (!hasFullColumnRank(design)) return null;
   const xtx = crossProductMatrix(design);
   const xty = crossProductVector(design, response);
   const beta = solveLinearSystem(xtx, xty);
@@ -1784,7 +1815,7 @@ function ordinaryLeastSquaresRobust(design, response, coefficientIndex) {
 function fitGeneralizedLinear(design, response, family, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
-  if (!n || n <= p) return null;
+  if (!n || n <= p || !hasFullColumnRank(design)) return null;
   let beta = Array(p).fill(0);
   if (family === 'poisson') {
     const start = Math.log(Math.max(mean(response), 1e-6));
@@ -1947,7 +1978,7 @@ function fitRandomInterceptGls(design, response, subjectIds, coefficientIndex) {
   const n = response.length;
   const p = design[0]?.length || 0;
   const subjects = [...new Set(subjectIds)];
-  if (!n || n <= p || subjects.length < 3) return null;
+  if (!n || n <= p || subjects.length < 3 || !hasFullColumnRank(design)) return null;
 
   let beta = solveLinearSystem(crossProductMatrix(design), crossProductVector(design, response));
   if (!beta) return null;
