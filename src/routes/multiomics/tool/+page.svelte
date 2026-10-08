@@ -535,12 +535,28 @@
         const shouldUpdateMetadata = converted.metadataCsv && (!files.metadata || msAutoMetadata);
         const autoMeta = shouldUpdateMetadata
           ? new File([converted.metadataCsv || ''], 'metadata_from_ms_auc.csv', { type:'text/csv' }) : null;
-        files = { ...files, metabolomics: matrix, ...(autoMeta ? { metadata: autoMeta } : {}) };
+        const clearStaleAutoMetadata = msAutoMetadata && !converted.metadataCsv;
+        files = { ...files, metabolomics: matrix,
+          ...(autoMeta ? { metadata: autoMeta } : clearStaleAutoMetadata ? { metadata: null } : {}) };
+        if (clearStaleAutoMetadata) {
+          msAutoMetadata = false;
+          await inspectMetadata(null);
+        }
         if (autoMeta) {
           msAutoMetadata = true;
           await inspectMetadata(autoMeta);
+          if (!files.transcriptomics && !files.proteomics && objective === 'explore') {
+            // Only one measured modality: select an identifiable group contrast
+            // rather than presenting single-layer MS as multi-block exploration.
+            objective = 'groups';
+            designType = 'independent';
+            longitudinal = 'no';
+            groupCount = String(new Set(metadataRows
+              .filter((row)=>!['qc','blank'].includes(String(row.sample_type||'').toLowerCase()))
+              .map((row)=>row.condition).filter(Boolean)).size || 2);
+          }
         }
-        metabolomicsValues = 'peak_area';
+        if (converted.format === 'long_ms_auc') metabolomicsValues = 'peak_area';
         msImportMessage = converted.format === 'long_ms_auc'
           ? t('Aires de pics MS importées : ', 'MS peak areas imported: ')
             + converted.features + t(' molécules × ', ' features × ') + converted.assays
