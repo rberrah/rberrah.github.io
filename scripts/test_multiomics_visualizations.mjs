@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { File } from 'node:buffer';
+import { convertMsAucExport } from '../src/lib/multiomics/ms-auc-import.js';
+import { parseDelimited, runDeterministicAnalysis } from '../src/lib/multiomics/deterministic.js';
 import { buildMultiomicsVisualizationData } from '../src/lib/multiomics/visualization-data.js';
 import { focusMetabolicRegion } from '../src/lib/multiomics/metabolic-network.js';
 
@@ -136,5 +139,89 @@ assert.equal(strict.audit.find((r)=>r.input==='CHEBI:16828').usable,false,
 assert.equal(strict.nodes.filter((n)=>n.id==='tryptophan')[0].measurement,null);
 assert.deepEqual(focusMetabolicRegion(graph,'auto',1),focusMetabolicRegion(graph,'auto',1),
   'Same input must produce same focused subgraph');
+
+
+// MS peak AUC is an integrated chromatographic area, not a PK exposure AUC.
+// A single file with group annotations must import without inventing other
+// omics layers or averaging duplicate observations.
+const aucRows = ['feature_id,assay_id,auc,subject_id,sample_id,condition'];
+for (let i=0; i<8; i++) {
+  for (const [id,control,treatment] of [
+    ['CHEBI:24996',[102,107,98,110],[350,375,390,370]],
+    ['CHEBI:30031',[430,410,448,425],[220,233,215,228]]
+  ]) aucRows.push([
+    id,'INJ'+(i+1),i<4?control[i]:treatment[i-4],'SUBJ'+(i+1),'S'+(i+1),i<4?'control':'treatment'
+  ].join(','));
+}
+const msInput = aucRows.join('\n');
+const converted=convertMsAucExport(msInput);
+assert.equal(converted.format,'long_ms_auc');
+assert.equal(converted.features,2);
+assert.equal(converted.assays,8);
+assert.equal(converted.observed,16);
+assert.ok(converted.metadataGenerated);
+const matrixParsed=parseDelimited(converted.matrixCsv);
+assert.equal(matrixParsed.rows[0].INJ1,'102');
+assert.equal(matrixParsed.rows[0].INJ8,'370');
+assert.throws(()=>convertMsAucExport(msInput+'\n'+aucRows[1]),/duplicate feature/);
+assert.throws(()=>convertMsAucExport('feature_id,assay_id,auc\nX,A,-2'),/non-negative/);
+assert.equal(convertMsAucExport('feature_id,assay_id,auc\nX,A,1').metadataCsv,null,
+  'Without explicit group metadata, do not guess conditions.');
+const wide=convertMsAucExport('feature_id,m/z,Retention Time,MS1,MS2\nCHEBI:24996,90.0,2.3,1000,2000\nCHEBI:30031,118.0,3.4,800,600');
+assert.equal(wide.format,'wide_ms_auc');
+assert.equal(wide.assays,2);
+assert.equal(wide.features,2);
+assert.equal(wide.observed,4);
+assert.deepEqual(parseDelimited(wide.matrixCsv).headers,['feature_id','MS1','MS2'],
+  'm/z and retention time must never become sample measurement columns');
+assert.throws(()=>convertMsAucExport('feature_id,MS1\nA,-10'),/non-negative/);
+assert.throws(()=>convertMsAucExport('feature_id,MS1\nA,10\nA,11'),/duplicate feature/);
+const vendor=convertMsAucExport('Metabolite Name,Sample Name,Peak Area AUC,Group\nLactate,S1,15320,control\nLactate,S2,23500,treated');
+assert.equal(vendor.format,'long_ms_auc');
+assert.equal(vendor.features,1);
+assert.equal(vendor.assays,2);
+assert.ok(vendor.metadataCsv?.includes('treated'));
+const msMetadata=new File([converted.metadataCsv],'metadata.csv',{type:'text/csv'});
+const msMatrix=new File([converted.matrixCsv],'ms_auc.csv',{type:'text/csv'});
+const msMapping={subject_id:'subject_id',sample_id:'sample_id',assay_id:'assay_id',omic:'omic',
+  condition:'condition',timepoint:'timepoint',batch:'batch',technical_replicate:'technical_replicate',
+  sample_type:'sample_type',injection_order:'injection_order'};
+const msResult=await runDeterministicAnalysis({
+  files:{metadata:msMetadata,metabolomics:msMatrix},
+  metadataRows:parseDelimited(converted.metadataCsv).rows,
+  columnMapping:msMapping,
+  protocol:{organism:'human',objective:'groups',longitudinal:false,designType:'independent',
+    studySetting:'animal',groupCount:'2',sampleOverlap:'same_specimen',
+    msBlankFilter:'no',msQcRsdFilter:'no',msDriftCorrection:'no'},
+  dataTypes:{metabolomics:'peak_area'},
+  resolveIdentifiers:false,useReactome:false
+});
+assert.equal(msResult.engine.analysisMode,'single_layer_ms');
+assert.equal(msResult.crossOmics.testedPairs,0);
+assert.ok(msResult.layers.metabolomics.rows.length===2);
+assert.ok(msResult.layers.metabolomics.rows.every((r)=>r.effectScale==='log2'),
+  'Raw MS peak area must be log transformed by the declared type, never interpreted as absolute concentration.');
+const msVisuals=await buildMultiomicsVisualizationData({
+  files:{metabolomics:msMatrix},metadataRows:parseDelimited(converted.metadataCsv).rows,
+  columnMapping:msMapping,dataTypes:{metabolomics:'peak_area'},analysisResult:msResult
+});
+assert.equal(msVisuals.metabologram.metabolomics.length,2);
+assert.equal(msVisuals.metabologram.transcriptomics.length,0);
+assert.equal(msVisuals.centralCarbon.measuredMetabolites,2);
+
+const native=await buildMultiomicsVisualizationData({
+  files:{}, metadataRows:[], columnMapping:{}, dataTypes:{},
+  analysisResult:{layers:{
+    metabolomics:{rows:[row('CHEBI:24996',410,0.01,'as_supplied'),row('CHEBI:30031',-70,0.02,'as_supplied')]},
+    transcriptomics:{rows:[row('GAPDH',0.15,0.04,'as_supplied')]}
+  }}
+});
+assert.equal(native.metabologram.metabolomics.length,2,
+  'Native-scale effects must not silently disappear from the metabologram.');
+assert.equal(native.metabologram.metabolomics[0].effectScale,'as_supplied');
+assert.equal(native.metabologram.metabolomics[0].effect,410,
+  'A native 410-unit effect must never be relabelled or rescaled into log2FC.');
+assert.equal(native.centralCarbon.metabolites.find((n)=>n.id==='lactate').measurement.effect,410);
+assert.equal(native.focusedMetabolicNetwork.nodes.find((n)=>n.id==='lactate').measurement.effectScale,'as_supplied');
 
 console.log('multiomics Figure 4-inspired visualizations PASS');

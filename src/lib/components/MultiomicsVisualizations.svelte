@@ -21,6 +21,10 @@
     : (pathwayChoices.find((pathway) => pathway.id === selectedPathway) || metabologram);
   $: pathwayCoverage = selectedPathway === 'all' ? null
     : pathwayChoices.find((pathway) => pathway.id === selectedPathway);
+  $: metLimit = effectLimit(activeMetabologram?.metabolomics);
+  $: rnaLimit = effectLimit(activeMetabologram?.transcriptomics);
+  $: mapMetLimit = effectLimit(central?.metabolites?.map((node) => node.measurement).filter(Boolean));
+  $: mapRnaLimit = effectLimit(central?.enzymes?.map((node) => node.measurement).filter(Boolean));
 
   function layerLabel(layer) {
     if (layer === 'transcriptomics') return tr('Transcriptomique', 'Transcriptomics');
@@ -31,6 +35,23 @@
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
+  }
+
+  function effectLimit(rows) {
+    const source = (rows || []).filter((item) => Number.isFinite(item?.effect));
+    if (!source.length) return 3;
+    if (source.every((item) => item.effectScale === 'log2')) return 3;
+    return Math.max(1e-9, ...source.map((item) => Math.abs(item.effect)));
+  }
+
+  function scaleLabel(rows) {
+    const scales = [...new Set((rows || []).map((item) => item.effectScale).filter(Boolean))];
+    if (!scales.length) return '—';
+    if (scales.length > 1) return tr('échelles mixtes', 'mixed scales');
+    return scales[0] === 'log2' ? 'log2FC'
+      : scales[0] === 'transformed_unknown'
+        ? tr('différence sur échelle transformée inconnue', 'difference on unknown transformed scale')
+        : tr('différence sur échelle fournie', 'difference on supplied scale');
   }
 
   function diverging(value, limit = 3) {
@@ -104,16 +125,14 @@
     return central?.metabolites?.find((node) => node.id === id);
   }
 
-  function measurementColor(measurement) {
-    return measurement?.status === 'measured' ? diverging(measurement.effect, 3) : 'rgb(220,220,220)';
+  function measurementColor(measurement, limit = 3) {
+    return measurement?.status === 'measured' ? diverging(measurement.effect, limit) : 'rgb(220,220,220)';
   }
 
   function measurementTitle(label, measurement) {
     if (!measurement) return label + ' · ' + tr('non mesuré / non reconnu', 'not measured / not matched');
-    if (measurement.status === 'non_log2_scale') {
-      return label + ' · ' + measurement.feature + ' · ' + tr('effet non affiché : échelle non log2', 'effect not shown: non-log2 scale');
-    }
-    return label + ' · ' + measurement.feature + ' · log2FC=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
+    if (measurement.status !== 'measured') return label + ' · ' + measurement.feature + ' · ' + measurement.status;
+    return label + ' · ' + measurement.feature + ' · ' + scaleLabel([measurement]) + '=' + fmt(measurement.effect) + ' · q=' + fmt(measurement.qValue, 3);
   }
 
   function downloadSvg(id, filename) {
@@ -273,19 +292,19 @@
 
           {#each metaboliteSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
-            <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+            <path d={segment.path} fill={diverging(segment.effect, metLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
           {#each transcriptSegments as segment}
             {@const stroke = qStroke(segment.qValue)}
-            <path d={segment.path} fill={diverging(segment.effect)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
-              <title>{itemLabel(segment)} · {segment.feature} · log2FC={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
+            <path d={segment.path} fill={diverging(segment.effect, rnaLimit)} stroke="#263238" stroke-width={stroke.width} stroke-dasharray={stroke.dash}>
+              <title>{itemLabel(segment)} · {segment.feature} · {scaleLabel([segment])}={fmt(segment.effect)} · q={fmt(segment.qValue, 3)}</title>
             </path>
           {/each}
 
-          <path d="M250 196 A54 54 0 0 0 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanMetabolomicLog2Fc)} stroke="#263238"/>
-          <path d="M250 196 A54 54 0 0 1 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanTranscriptomicLog2Fc)} stroke="#263238"/>
+          <path d="M250 196 A54 54 0 0 0 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanMetabolomicLog2Fc, metLimit)} stroke="#263238"/>
+          <path d="M250 196 A54 54 0 0 1 250 304 L250 250 Z" fill={diverging(activeMetabologram?.meanTranscriptomicLog2Fc, rnaLimit)} stroke="#263238"/>
           <text x="196" y="244" text-anchor="middle" class="center-label">MET</text>
           <text x="304" y="244" text-anchor="middle" class="center-label">RNA</text>
           <text x="196" y="263" text-anchor="middle" class="center-value">{fmt(activeMetabologram?.meanMetabolomicLog2Fc)}</text>
@@ -298,15 +317,15 @@
           <p class="color-key"><i class="key-blue"></i>{tr('Baisse', 'Decrease')}
             <i class="key-white"></i>{tr('Proche de zéro', 'Near zero')}
             <i class="key-red"></i>{tr('Hausse', 'Increase')}
-            <small>{tr('Nombre à droite : variation estimée (log2FC)', 'Number on the right: estimated change (log2FC)')}</small>
+            <small>{tr('Couleur normalisée séparément par couche ; ne pas comparer directement les intensités RNA et MET.', 'Color scaled within each layer; do not compare RNA and MET color intensity.')}</small>
           </p>
           <div class="legend-section">
-            <h4>{tr('Métabolites', 'Metabolites')} <small>({activeMetabologram?.metabolomics?.length || 0})</small></h4>
+            <h4>{tr('Métabolites', 'Metabolites')} <small>({activeMetabologram?.metabolomics?.length || 0}) · {scaleLabel(activeMetabologram?.metabolomics)}</small></h4>
             {#if activeMetabologram?.metabolomics?.length}
               <ul class="legend-items">
                 {#each activeMetabologram.metabolomics.slice(0, 15) as item}
                   <li class="legend-entry">
-                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect, metLimit)}></i>
                     <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
                     <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
                   </li>
@@ -318,12 +337,12 @@
             {/if}
           </div>
           <div class="legend-section">
-            <h4>{tr('Gènes exprimés', 'Gene transcripts')} <small>({activeMetabologram?.transcriptomics?.length || 0})</small></h4>
+            <h4>{tr('Gènes exprimés', 'Gene transcripts')} <small>({activeMetabologram?.transcriptomics?.length || 0}) · {scaleLabel(activeMetabologram?.transcriptomics)}</small></h4>
             {#if activeMetabologram?.transcriptomics?.length}
               <ul class="legend-items">
                 {#each activeMetabologram.transcriptomics.slice(0, 15) as item}
                   <li class="legend-entry">
-                    <i class="legend-swatch" style={'background:' + diverging(item.effect)}></i>
+                    <i class="legend-swatch" style={'background:' + diverging(item.effect, rnaLimit)}></i>
                     <span class="legend-name"><strong>{itemLabel(item)}</strong>{#if itemLabel(item) !== item.feature}<small>{item.feature}</small>{/if}</span>
                     <b class="legend-effect">{item.effect > 0 ? '+' : ''}{fmt(item.effect)}</b>
                   </li>
@@ -346,8 +365,8 @@
       <p class="method-note">{activeMetabologram.method} {tr('La présence sur cette carte ne signifie pas un enrichissement significatif de la voie.', 'Being on this map does not imply significant pathway enrichment.')}</p>
     {:else}
       <p class="empty-note">{tr(
-        'Aucun effet log2 exploitable pour cette sélection. Cela ne signifie pas que la voie est inactive : les variables peuvent être absentes, non résolues ou sur une échelle incompatible.',
-        'No usable log2 effects for this selection. This does not imply an inactive pathway: features may be absent, unresolved or on an incompatible scale.'
+        'Aucun effet exploitable pour cette sélection. La voie peut comporter des molécules non mesurées, non identifiées ou sans estimation valide.',
+        'No usable fitted effects for this selection. Features can be missing, unidentified or have no valid effect estimate.'
       )}</p>
     {/if}
   </article>
@@ -394,7 +413,7 @@
         </div>
       {/if}
       <div class="svg-scroll">
-        <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par log2FC', 'Central metabolism map annotated by log2FC')}>
+        <svg id="pmx-central-carbon-svg" viewBox="0 0 920 610" role="img" aria-label={tr('Carte du métabolisme central annotée par les effets sur leur échelle d’origine', 'Central metabolism map annotated with effects on their original scale')}>
           <defs>
             <marker id="arrow-central" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
               <path d="M0,0 L0,6 L8,3 z" fill="#98a3aa"/>
@@ -424,7 +443,7 @@
                 cy={node.y}
                 rx="36"
                 ry="20"
-                fill={measurementColor(node.measurement)}
+                fill={measurementColor(node.measurement, mapMetLimit)}
                 stroke="#253238"
                 stroke-width={stroke.width}
                 stroke-dasharray={stroke.dash}
@@ -444,7 +463,7 @@
                 width="34"
                 height="22"
                 rx="3"
-                fill={measurementColor(enzyme.measurement)}
+                fill={measurementColor(enzyme.measurement, mapRnaLimit)}
                 stroke="#253238"
                 stroke-width={stroke.width}
                 stroke-dasharray={stroke.dash}
@@ -456,9 +475,9 @@
           {/each}
 
           <g transform="translate(38 565)">
-            <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">− log2FC</text>
+            <rect x="0" y="0" width="42" height="15" fill={diverging(-2)}/><text x="48" y="12" class="legend-label">{tr('baisse', 'decrease')}</text>
             <rect x="135" y="0" width="42" height="15" fill={diverging(0)}/><text x="183" y="12" class="legend-label">0</text>
-            <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">+ log2FC</text>
+            <rect x="220" y="0" width="42" height="15" fill={diverging(2)}/><text x="268" y="12" class="legend-label">{tr('hausse', 'increase')}</text>
             <rect x="375" y="0" width="42" height="15" fill="rgb(220,220,220)"/><text x="423" y="12" class="legend-label">{tr('aucune valeur exploitable', 'no usable value')}</text>
           </g>
         </svg>
@@ -484,40 +503,44 @@
 {/if}
 
 <style>
-  .visual-panel { margin-top: 24px; display: grid; gap: 18px; }
-  .legacy-map { border:1px solid var(--border,#d9e0e3); padding:12px 14px; border-radius:12px; }
+  .visual-panel { margin-top: 24px; display: grid; gap: 18px; padding:14px; border-radius:12px; background:#fff; color:#182a34; color-scheme:light; }
+  .legacy-map { border:1px solid #bdcbd3; background:#fff; color:#182a34; padding:12px 14px; border-radius:12px; }
   .legacy-map > summary { cursor:pointer; font-weight:700; }
   .legacy-map > article { margin-top:12px; }
   .figure-switcher { display:flex; flex-wrap:wrap; gap:8px; padding:5px; border:1px solid var(--border,#d9e0e3); border-radius:13px; width:max-content; max-width:100%; }
-  .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:transparent; color:var(--text-secondary,#58666d); font-size:.88rem; font-weight:650; }
-  .figure-switcher button.active { background:var(--accent,#176c83); color:#fff; }
+  .figure-switcher button { padding:10px 16px; border:0; border-radius:9px; background:#fff; color:#304755; font-size:.88rem; font-weight:650; }
+  .figure-switcher button.active { background:#12627b; color:#fff; }
   .figure-switcher button:focus-visible { outline:3px solid #e5b75b; outline-offset:2px; }
   .pathway-select { display:flex; align-items:center; flex-wrap:wrap; gap:7px; font-size:.82rem; }
-  .pathway-select span { color:var(--text-secondary,#58666d); }
-  .coverage-note { font-size:.83rem; margin:8px 0; font-weight:700; }
+  .pathway-select span { color:#304755; }
+  .coverage-note { color:#243947; font-size:.83rem; margin:8px 0; font-weight:700; }
   .interpretation-boundary summary { cursor:pointer; font-weight:700; }
   .interpretation-boundary[open] { gap:6px; }
   .visual-head { display:flex; justify-content:space-between; gap:20px; align-items:flex-end; }
   .visual-head h2 { margin:.2rem 0 .35rem; font-size:clamp(1.3rem,2vw,1.8rem); }
-  .visual-head p { margin:0; max-width:850px; color:var(--text-secondary,#58666d); }
-  .eyebrow { margin:0; font-size:.72rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--accent,#176c83); }
-  .figure-card { border:1px solid var(--border,#d9e0e3); border-radius:18px; background:var(--surface,#fff); padding:18px; overflow:hidden; }
+  .visual-head p { margin:0; max-width:850px; color:#3b5060; }
+  .eyebrow { margin:0; font-size:.76rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#15536a; }
+  /* Static figures use white plotting surfaces. Make ink independent of dark
+     parent themes, including cards, controls, footnotes and legends. */
+  .figure-card { border:1px solid #c3d0d8; border-radius:18px; background:#fff; color:#182a34; color-scheme:light; padding:18px; overflow:hidden; }
+  .figure-card :global(p), .figure-card :global(summary), .figure-card :global(span) { color:inherit; }
   .figure-title { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:14px; }
+  .figure-title strong { color:#182a34 !important; }
   .figure-title > div:first-child { display:flex; gap:12px; align-items:flex-start; }
-  .figure-title h3 { margin:0 0 5px; font-size:1.05rem; }
-  .figure-title p { margin:0; max-width:780px; color:var(--text-secondary,#5d6a70); font-size:.9rem; line-height:1.45; }
+  .figure-title h3 { margin:0 0 5px; font-size:1.05rem; color:#182a34 !important; }
+  .figure-title p { margin:0; max-width:780px; color:#42535f; font-size:.9rem; line-height:1.45; }
   .figure-number { display:grid; place-items:center; min-width:34px; height:34px; border-radius:50%; border:1px solid var(--border,#cbd5d9); font:700 .72rem var(--font-mono,monospace); }
   .figure-actions { display:flex; gap:8px; align-items:center; }
-  button, select { border:1px solid var(--border,#cbd5d9); border-radius:9px; background:var(--surface,#fff); padding:7px 10px; font:inherit; color:inherit; }
+  .figure-card button, .figure-card select { border:1px solid #a8b9c4; border-radius:9px; background:#fff; padding:7px 10px; font:inherit; color:#172b36; }
   button { cursor:pointer; font-weight:700; }
   .svg-scroll { overflow:auto; border:1px solid #e4e8ea; border-radius:12px; background:white; }
   svg { display:block; width:100%; min-width:680px; height:auto; }
   .svg-heading { font-size:14px; font-weight:800; fill:#263238; }
-  .svg-note { font-size:9px; fill:#6c777c; }
-  .sample-label { font-size:8px; fill:#48555b; }
+  .svg-note { font-size:11px; fill:#344b59; }
+  .sample-label { font-size:10px; fill:#253c4a; }
   .condition-mark { font-size:8px; font-weight:800; fill:#263238; }
-  .feature-label { font-size:9px; fill:#263238; }
-  .method-note, .empty-note { margin:10px 0 0; color:var(--text-secondary,#5d6a70); font-size:.82rem; line-height:1.45; }
+  .feature-label { font-size:10px; fill:#203441; }
+  .method-note, .empty-note { margin:10px 0 0; color:#3b5060; font-size:.82rem; line-height:1.45; }
   .metabologram-layout { display:grid; grid-template-columns:minmax(300px,1fr) minmax(300px,.95fr); gap:20px; align-items:start; }
   .metabologram-layout > svg { min-width:0; max-width:520px; margin:auto; }
   .center-label { font-size:11px; font-weight:800; fill:#263238; }
@@ -537,7 +560,7 @@
   .color-key small { display:block; width:100%; color:#415360; margin-top:5px; }
   .legend-section { border:1px solid #cbd5dc; border-radius:12px; min-width:0; overflow:hidden; color:#1b2b34; background:#fff; }
   .legend-section h4 { margin:0; color:#182731; font-size:.9rem; padding:11px 12px; background:#eaf0f3; border-bottom:1px solid #cbd5dc; }
-  .legend-section h4 small { font-weight:400; color:#58666d; }
+  .legend-section h4 small { font-weight:400; color:#394e5b; }
   .legend-items { list-style:none; padding:4px 10px; margin:0; display:grid; color:#1b2b34; background:#fff; }
   .legend-entry { display:grid; grid-template-columns:14px minmax(0,1fr) 70px; align-items:center; gap:10px; padding:9px 3px; border-bottom:1px solid #dbe3e8; min-width:0; color:#1b2b34; background:#fff; }
   .legend-entry:last-child { border-bottom:0; }
@@ -547,17 +570,17 @@
   .legend-name small { font-size:.73rem; color:#405463; font-family:var(--font-mono,monospace); }
   .legend-effect { color:#182731; text-align:right; font-family:var(--font-mono,monospace); font-variant-numeric:tabular-nums; font-size:.87rem; font-weight:750; }
   .legend-empty, .legend-more { display:block; padding:6px 12px; color:#405463; font-size:.82rem; }
-  .off-map { margin:12px 0; padding:12px 14px; border:1px solid var(--border,#d9e0e3); border-radius:10px; font-size:.85rem; line-height:1.5; }
+  .off-map { margin:12px 0; padding:12px 14px; border:1px solid #c3d0d8; border-radius:10px; font-size:.85rem; line-height:1.5; color:#182a34; background:#fff; }
   .off-map strong { font-size:.9rem; }
-  .off-map p { margin:4px 0 8px; color:var(--text-secondary,#58666d); }
+  .off-map p { margin:4px 0 8px; color:#3f5260; }
   .off-map details { margin-top:6px; }
   .off-map summary { cursor:pointer; }
   .map-summary { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:10px; font-size:.82rem; }
-  .pathway-label { font-size:15px; font-weight:800; letter-spacing:.08em; fill:#9aa4a9; }
+  .pathway-label { font-size:16px; font-weight:800; letter-spacing:.08em; fill:#364c59; }
   .metabolite-label { font-size:10px; font-weight:800; fill:#172126; pointer-events:none; }
   .enzyme-label { font-size:8px; font-weight:800; fill:#172126; pointer-events:none; }
   .legend-label { font-size:9px; fill:#48555b; }
-  .interpretation-boundary { border-left:4px solid var(--accent,#176c83); padding:12px 14px; background:#f3f8f9; display:grid; gap:4px; font-size:.82rem; }
+  .interpretation-boundary { border-left:4px solid #176c83; padding:12px 14px; background:#f3f8f9; color:#203845; display:grid; gap:4px; font-size:.85rem; }
   .interpretation-boundary summary { margin-bottom:4px; }
   @media (max-width: 820px) {
     .figure-title, .visual-head { flex-direction:column; align-items:stretch; }

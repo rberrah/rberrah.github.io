@@ -211,9 +211,12 @@ function resolveIdentity(raw,dictionary,mappings) {
   return { status:'unrecognized',id:null,provenance:'unresolved' };
 }
 function measurement(row) {
-  return { feature:row.feature, effect:Number.isFinite(row.effect) && (row.effectScale === 'log2') ? row.effect : null,
+  const usable = Number.isFinite(row.effect)
+    && ['log2','as_supplied','transformed_unknown'].includes(row.effectScale);
+  return { feature:row.feature, effect:usable ? row.effect : null,
+    effectScale:row.effectScale || null,
     qValue:Number.isFinite(row.qValue) ? row.qValue : null,
-    status:row.effectScale === 'log2' && Number.isFinite(row.effect) ? 'usable' : 'no_log2_effect' };
+    status:usable ? 'usable' : 'unavailable_effect_scale' };
 }
 /** Build an auditable network from explicit exact ChEBI IDs or unambiguous names only. */
 export function buildFocusedMetabolicNetwork(result, central) {
