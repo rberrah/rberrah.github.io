@@ -258,6 +258,18 @@ validate_external_predictions <- function(
   seed = 20260928L
 ) {
   data <- as.data.frame(data, stringsAsFactors = FALSE)
+  if(!nrow(data))stop("External predictions table is empty.",call.=FALSE)
+  # Identical people must not be silently counted as independent evidence.
+  # IDs are optional for old clients, but lack of an identifier is reported.
+  subject_identity <- if("subject_id" %in% names(data)) {
+    id <- trimws(as.character(data[["subject_id"]]))
+    if(anyNA(data[["subject_id"]]) || any(!nzchar(id)))
+      stop("subject_id contains missing/empty identifiers; one frozen prediction per subject is required.",call.=FALSE)
+    if(anyDuplicated(id))
+      stop("Duplicated subject_id in frozen external predictions: repeated persons are not independent observations.",call.=FALSE)
+    list(status="unique",unique_subjects=length(id),identifier_column="subject_id")
+  } else list(status="not_verifiable_without_subject_id",unique_subjects=NULL,
+    identifier_column=NULL)
   outcome_type <- tolower(trimws(as.character(outcome_type)))
   allowed <- c("binary", "continuous", "count", "survival", "multiclass")
   if (!outcome_type %in% allowed) stop("Unsupported outcome_type.", call. = FALSE)
@@ -270,6 +282,13 @@ validate_external_predictions <- function(
   )
   missing_columns <- setdiff(required, names(data))
   if (length(missing_columns)) stop(paste("Missing validation column(s):", paste(missing_columns, collapse = ", ")), call. = FALSE)
+  # A probability is defined only on [0,1]. Do not convert impossible
+  # submitted scores into apparently well-calibrated probabilities via clip.
+  if(identical(outcome_type,"binary") && identical(prediction_kind,"probability")){
+    p <- suppressWarnings(as.numeric(data[[prediction_column]]))
+    if(any(is.finite(p) & (p<0 | p>1)))
+      stop("Binary probability predictions must be within [0,1].",call.=FALSE)
+  }
 
   metrics <- switch(
     outcome_type,
@@ -304,9 +323,24 @@ validate_external_predictions <- function(
     )
   }
 
-  status <- if (isTRUE(independent_cohort)) "external_validation" else "independent_status_not_asserted"
+  # Earlier versions evaluated complete-case rows but still labelled
+  # the result 'external_validation' when some patients were omitted.
+  # Retain partial metrics transparently without assigning that complete label.
+  eligible <- as.integer(metrics$n %||% 0L)
+  fully_evaluated <- identical(metrics$status,"ok") &&
+    length(eligible)==1L && is.finite(eligible) && eligible==nrow(data)
+  status <- if(!isTRUE(independent_cohort)) "independent_status_not_asserted"
+    else if(fully_evaluated) "external_validation"
+    else "external_validation_incomplete"
   list(
     status = status,
+    subject_identity_audit = subject_identity,
+    cohort_coverage = list(submitted_rows=nrow(data),evaluated_rows=eligible,
+      excluded_rows=nrow(data)-eligible,
+      complete=fully_evaluated,
+      note=if(fully_evaluated) "All submitted rows were evaluated."
+        else "Some rows were not evaluable; the results are partial and must not be presented as a complete external validation."),
+
     evaluation_status = metrics$status,
     cohort = cohort_label,
     independent_cohort_asserted = isTRUE(independent_cohort),
@@ -315,10 +349,10 @@ validate_external_predictions <- function(
     metrics = metrics,
     bootstrap = bootstrap,
     seed = as.integer(seed),
-    methodological_boundary = if (isTRUE(independent_cohort)) {
+    methodological_boundary = if (isTRUE(independent_cohort) && fully_evaluated) {
       "Predictions are evaluated as supplied and are not refit or tuned on this cohort. Independence is asserted by the analyst and must be supported by study provenance."
     } else {
-      "Predictions are evaluated without refitting, but the software cannot verify that this cohort is genuinely independent from model development. Do not label this external validation until provenance establishes independence."
+      "Predictions are evaluated without refitting, but cohort independence cannot be verified from a CSV alone, and incomplete/invalid predictions cannot support a full external-validation label. Audit IDs, missing rows and model-development provenance."
     }
   )
 }
