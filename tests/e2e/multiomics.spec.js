@@ -1,3 +1,49 @@
+test('DIABLO selection stability and MOFA2 provenance are explanatory, not biomarker certifications', async ({ page }) => {
+  await page.route('https://reactome.org/AnalysisService/**', async route => {
+    await route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({summary:{token:'TEST'},pathwaysFound:0,identifiersNotFound:0,pathways:[]})});
+  });
+  await page.route('http://127.0.0.1:8787/health', async route => {
+    await route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({status:'ok',engine:'PMx reference',packages:{mixOmics:true,MOFA2:true}})});
+  });
+  await page.route('http://127.0.0.1:8787/run', async route => {
+    await route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({
+        status:'ok',engine:{name:'PMx reference',version:'1.3.0'},
+        methods:{
+          diablo_heldout:{
+            status:'ok',method:'mixOmics DIABLO heldout',
+            summary:{meanBER:0.23,folds:[{},{},{}],
+              signatureStability:{
+                transcriptomics:{meanPairwiseJaccard:0.42,repeatedlySelected:['G1','G2']},
+                proteomics:{meanPairwiseJaccard:0.32,repeatedlySelected:['P1']}
+              }}
+          },
+          mofa2:{status:'ok',method:'MOFA2',
+            summary:{inputAudit:{nSharedSubjects:24}}}
+        }
+      })});
+  });
+  await page.goto('/multiomics/tool?lang=en');
+  await page.getByTestId('multiomics-load-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await page.getByLabel(/R backend mode/).selectOption('auto');
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
+  const quality=page.getByTestId('multiomics-quality-details');
+  await quality.locator('summary').first().click();
+  const stability=page.getByTestId('diablo-signature-stability');
+  await expect(stability).toBeVisible();
+  await stability.locator('summary').click();
+  await expect(stability).toContainText('Jaccard 0.42');
+  await expect(stability).toContainText('features selected at least twice');
+  await expect(stability).toContainText('not proof of biological validity');
+  await expect(page.getByTestId('mofa2-input-audit')).toContainText('24');
+  await expect(page.getByTestId('mofa2-input-audit')).toContainText('not proof');
+});
+
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
 
