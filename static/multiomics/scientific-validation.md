@@ -164,6 +164,68 @@ ce modèle, sans optimiser quoi que ce soit sur les patients de test.
 Il ne constitue ni une validation clinique multicentrique ni un
 certificat d'utilisation confirmatoire.
 
+## Validation sur partition publiée avec un modèle PMx réellement figé (9 octobre 2026)
+
+Après le benchmark de modèle de référence R (`scripts/benchmark_tcga_heldout_reference.R`),
+la chaîne scientifique teste maintenant **le véritable moteur de prédiction PMx**.
+Il s'agit de sa régression logistique ridge `ridgeGlmFit`, également utilisée
+dans le modèle prédictif du navigateur, réemployée au sein d'un contrat
+de gel/rejeu `fitFrozenBinaryPredictor` / `scoreFrozenBinaryPredictor`.
+Ce contrat peut être sérialisé en JSON sans réentraînement sur de nouveaux sujets.
+
+Protocole du benchmark source-native mixOmics `breast.TCGA` :
+
+- **105 sujets d'apprentissage**, 70 autres sujets intégralement prédits,
+  dont 49 Her2/LumA évalués selon une règle de sous-type fixée à l'avance ;
+- panel public de **200 transcrits déjà normalisés et présélectionnés en amont** ;
+- 12 variables choisies uniquement sur les sujets d'apprentissage ;
+  centrage, imputation, mise à l'échelle et choix de la pénalisation
+  déterminés exclusivement sur l'apprentissage ;
+- export d'un modèle complet (coefficients, variables, transformations,
+  pénalisation, hachage SHA-256 des données d'apprentissage), puis prédictions
+  sur tous les 70 sujets du test sans accès aux étiquettes ;
+- ouverture séparée des étiquettes de test pour l'évaluation par le
+  backend R de PMx, avec AUC, Brier, log-loss, bootstrap et permutations.
+
+Résultat de CI sur l'instantané documenté : **AUC = 0,9939** et
+**score de Brier = 0,0208**, avec **AUC moyenne = 0,4992** sur
+200 permutations des étiquettes de test. Sur **30 permutations des
+étiquettes d'apprentissage avec réentraînement complet PMx** (nouvelle
+sélection de variables, validation croisée de pénalisation, ajustement
+ridge, prédictions figées), l'AUC moyenne sur le même test est
+**0,4754**. Ce contrôle négatif vérifie la chaîne d'apprentissage,
+mais n'exclut pas une présélection antérieure de variables par les
+auteurs du jeu de données. La pénalisation retenue sur
+l'apprentissage est `lambda = 1`. Le benchmark contrôle aussi que
+les sujets d'apprentissage ne sont pas acceptés à nouveau dans le test,
+que les variables requises ne manquent pas, et que le même modèle
+rechargé depuis JSON restitue les prédictions à l'identique.
+
+**Interprétation : validité logicielle partielle d'une prédiction PMx réellement
+figée sur des sujets non utilisés pour l'entraînement, pas validité clinique.**
+Ces données proviennent d'un même TCGA ; les 200 transcrits avaient
+été normalisés/sélectionnés par la ressource publique avant notre benchmark.
+Cette sélection préalable peut faciliter artificiellement la distinction
+Her2/LumA et introduire une dépendance avec le test. **Une AUC proche de 1
+ne doit pas servir d'argument clinique ni de comparaison de supériorité.**
+Le test n'a pas de protéomique ; il ne valide pas MOFA2, DIABLO, les
+signatures multi-omiques, une autre plateforme ou un autre centre hospitalier.
+La protection contre les doublons repose sur des identifiants stables,
+et ne peut exclure des recodages du même patient.
+Le modèle sérialisé conserve les identifiants d'apprentissage afin de
+refuser leur réutilisation dans le test : **avant d'exporter un modèle
+issu d'une cohorte clinique, employer des identifiants pseudonymisés,
+jamais des noms ni des identifiants directs de patients**.
+
+La source est fixée au commit Git `ef3e760526623d9e91e945e4b50be48d764efc40`.
+Fichiers : `scripts/export_tcga_native_pmx.R`,
+`scripts/benchmark_tcga_native_pmx.mjs`,
+`scripts/evaluate_tcga_native_pmx.R` et workflow
+`.github/workflows/multiomics-native-heldout.yml`.
+Les coefficients, prédictions, contrôles et métriques peuvent être audités
+dans les artefacts GitHub Actions, sans accès à un LLM ni transfert de
+données patients vers un service distant.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
