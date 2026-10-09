@@ -30,13 +30,16 @@ const ALLOWED_SETTINGS = [
 ];
 const textEncoder = new TextEncoder();
 
+/** @param {string} text */
 export async function sha256Content(text) {
   const cryptoApi = globalThis.crypto;
   if (!cryptoApi?.subtle) throw new Error('Secure SHA-256 is unavailable. Use HTTPS or a secure local browser.');
   const hash = await cryptoApi.subtle.digest('SHA-256',textEncoder.encode(text));
   return Array.from(new Uint8Array(hash)).map(byte=>byte.toString(16).padStart(2,'0')).join('');
 }
+/** @param {Record<string,any>} settings */
 function onlyPublicSettings(settings) {
+  /** @type {Record<string,any>} */
   const safe = {};
   for (const name of ALLOWED_SETTINGS) {
     if (settings && Object.prototype.hasOwnProperty.call(settings,name))
@@ -44,11 +47,13 @@ function onlyPublicSettings(settings) {
   }
   return JSON.parse(JSON.stringify(safe));
 }
+/** @param {string} name */
 function safeName(name) {
   const cleaned=String(name||'input.csv').replace(/[\x00-\x1F\x7F]/g,'')
-    .split(/[\\/]/).pop().slice(0,180);
+    .split(/[\\/]/).pop()?.slice(0,180) || '';
   return cleaned || 'input.csv';
 }
+/** @param {number} size */
 function assertAllowedSize(size) {
   if(!Number.isFinite(size)||size>PORTABLE_PROJECT_MAX_BYTES)
     throw new Error('Project exceeds the 80 MiB portable text limit. Export the original large files separately and use the normal JSON results export.');
@@ -56,7 +61,9 @@ function assertAllowedSize(size) {
 /** @param {{files:Record<string,File|null>, settings:Record<string,any>, result?:any, extraFiles?:Record<string,File|null>}} args */
 export async function createPortableProject({files,settings,result=null,extraFiles={}}) {
   if(!files?.metadata)throw new Error('A sample sheet is required to export a reproducible project.');
-  const full={...files,...extraFiles},out={};
+  const full={...files,...extraFiles};
+  /** @type {Record<string, {filename:string,mime:string,sizeBytes:number,sha256:string,content:string}>} */
+  const out={};
   const size=ALL_INPUT_KEYS.reduce((n,key)=>n+(full[key]?.size||0),0);
   assertAllowedSize(size);
   for(const key of ALL_INPUT_KEYS) {
@@ -82,7 +89,10 @@ export async function createPortableProject({files,settings,result=null,extraFil
     rerunPolicy:'Import validates SHA-256 and restores only input files and protocol settings; it never runs the project or sends data to R / APIs without user action.'
   };
 }
-/** @param {string | any} payload */
+/**
+ * @param {string | any} payload
+ * @returns {Promise<{files:Record<string,File>,settings:Record<string,any>,archivedResultPresent:boolean,archiveDate:string,originalDigests:Record<string,string>}>}
+ */
 export async function parsePortableProject(payload) {
   if(typeof payload==='string')assertAllowedSize(textEncoder.encode(payload).byteLength);
   const value=typeof payload==='string'?JSON.parse(payload):payload;
@@ -96,6 +106,7 @@ export async function parsePortableProject(payload) {
     throw new Error('Portable project contains an unknown input category.');
   const total=inputKeys.reduce((n,key)=>n+Number(value.inputs[key]?.sizeBytes||0),0);
   assertAllowedSize(total);
+  /** @type {Record<string,File>} */
   const restored={};
   for(const key of inputKeys) {
     const input=value.inputs[key];
