@@ -1090,7 +1090,7 @@
     const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:omicsCount});
     if(!compatibility.compatible) {
       referenceBackendStatus = 'error';
-      referenceBackendMessage = t(compatibility.message,compatibility.messageEn);
+      referenceBackendMessage = t(compatibility.message || 'Moteur R MOFA2 incompatible.',compatibility.messageEn || 'Incompatible MOFA2 R backend.');
       if(referenceBackendMode === 'required')throw new Error(referenceBackendMessage);
       return {
         status:'blocked',message:referenceBackendMessage,url:backendBaseUrl(),
