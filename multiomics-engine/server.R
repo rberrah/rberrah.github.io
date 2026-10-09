@@ -793,6 +793,21 @@ run_backend_analysis <- function(payload) {
     }
   }
   if (length(layers) >= 2L && !is.null(supervised_target) && length(unique(supervised_target[nzchar(supervised_target)])) >= 2L) {
+    # A shared sample may be represented in several omics. Conflicting
+    # group/outcome labels must block supervised integration entirely.
+    label_consistent <- all(vapply(layers,function(layer) {
+      values <- metas[[layer]][common_samples,supervised_target_column]
+      length(values)==length(common_samples) &&
+        !anyNA(values) &&
+        identical(as.character(values),as.character(supervised_target[common_samples]))
+    },logical(1)))
+    if (!label_consistent) {
+      reason <- "Same biological sample has inconsistent or missing group/outcome labels across omics. Reconcile the sample sheet before supervised integration."
+      methods$diablo <- method_status("mixOmics DIABLO","blocked",list(message=reason))
+      if (isTRUE(protocol$validateDiabloHoldout))
+        methods$diablo_heldout <- method_status("DIABLO subject-heldout validation","blocked",
+          list(message=reason))
+    } else {
     target_columns <- unique(c(supervised_target_column, if (supervised_target_column != "condition") "condition" else character()))
     prepared_supervised <- prepare_multiblock_integration(blocks, metas, covariates, target_columns=target_columns)
     if (!identical(prepared_supervised$status, "ok")) {
@@ -825,6 +840,8 @@ run_backend_analysis <- function(payload) {
         reason <- NULL
         if (!identical(design_type,"independent") || longitudinal)
           reason <- "Repeated measures or non-independent plans are unsupported."
+        if(is.null(reason) && "metabolomics" %in% layers)
+          reason <- "Metabolomics reference preprocessing (MS blanks, pooled QC and drift) is fitted on the cohort before these blocks are created; strict fold-isolated evaluation is not yet available for metabolomics."
         if(is.null(reason) && length(covariates))
           reason <- "Selected covariates require training-only nuisance fitting."
         if(is.null(reason) && any(vapply(layers,function(layer)
@@ -871,6 +888,7 @@ run_backend_analysis <- function(payload) {
       if(isTRUE(protocol$validateDiabloHoldout))
         methods$diablo_heldout <- method_status("DIABLO subject-heldout validation","unavailable",
           list(message="R mixOmics must be installed for strict subject-heldout validation."))
+    }
     }
   }
 
