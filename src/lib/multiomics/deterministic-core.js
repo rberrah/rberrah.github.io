@@ -3282,6 +3282,165 @@ function predictModel(model, design, protocol) {
   return predictFromBeta(design, model.beta, family);
 }
 
+/**
+ * Frozen binary prediction contract for a source-defined train/test partition.
+ * Uses the SAME fold-feature ranking idea and ridgeGlmFit binomial solver as
+ * analysePredictiveOutcome. It is intentionally *not* a fitted cross-omics
+ * model: caller provides a single log-scale numerical feature matrix.
+ *
+ * Data: {features: string[], rows: {id: string, outcome?: string,
+ * values: (number|null)[]}[]}. New/test subjects must never influence
+ * feature selection, centering, scaling, lambda tuning or fitted coefficients.
+ * No result here is automatically certified for clinical decisions.
+ */
+export function fitFrozenBinaryPredictor({
+  features, rows, positiveLabel, negativeLabel, maxFeatures = 12
+}) {
+  if(!Array.isArray(features)||features.length<2||
+     features.some(f=>typeof f!=='string'||!f.trim())||
+     new Set(features).size!==features.length)
+    throw new Error('Frozen predictor requires unique, nonempty feature identifiers.');
+  if(!Array.isArray(rows)||rows.length<20)
+    throw new Error('Frozen predictor requires at least 20 training subjects.');
+  const ids=rows.map(r=>r.id);
+  if(ids.some(x=>typeof x!=='string'||!x.trim())||new Set(ids).size!==ids.length)
+    throw new Error('Frozen predictor training subject IDs must be unique and nonempty.');
+  if(!positiveLabel||!negativeLabel||positiveLabel===negativeLabel)
+    throw new Error('A fixed positive and negative outcome label is required.');
+  if(rows.some(r=>r.outcome!==positiveLabel&&r.outcome!==negativeLabel))
+    throw new Error('Training rows contain unexpected outcome classes.');
+  if(rows.some(r=>!Array.isArray(r.values)||r.values.length!==features.length||
+       r.values.some(v=>v!==null&&!Number.isFinite(v))))
+    throw new Error('Training matrix must contain numeric values or explicit null, with exact feature order.');
+  const classes=[negativeLabel,positiveLabel];
+  const counts=classes.map(x=>rows.filter(r=>r.outcome===x).length);
+  if(counts.some(n=>n<8))throw new Error('At least eight training subjects per class are required.');
+  if(!Number.isInteger(maxFeatures)||maxFeatures<1||maxFeatures>48)
+    throw new Error('Invalid frozen-predictor maximum feature count.');
+  const byId=new Map(rows.map(r=>[r.id,r]));
+  const targetBySubject=new Map(rows.map(r=>[r.id,r.outcome]));
+  const orderedIds=ids.slice().sort();
+  const folds=deterministicFolds(orderedIds,targetBySubject,Math.min(4,rows.length),true);
+  const lambdas=[0.01,0.1,1,10];
+  const label=(id)=>byId.get(id).outcome===positiveLabel?1:0;
+
+  // Recompute selection and every preprocessing statistic on each
+  // inner-training subset; never on the full cohort before tuning.
+  const prepare=(trainIds)=>{
+    const jScore=[];
+    for(let j=0;j<features.length;j++){
+      const observed=trainIds.map(id=>({value:byId.get(id).values[j],y:label(id)}))
+        .filter(x=>Number.isFinite(x.value));
+      if(observed.length<Math.max(5,Math.ceil(trainIds.length*.5)))continue;
+      const a=observed.filter(x=>x.y===0).map(x=>x.value);
+      const b=observed.filter(x=>x.y===1).map(x=>x.value);
+      if(a.length<2||b.length<2)continue;
+      const sd=Math.sqrt(Math.max(1e-12,
+        ((a.length-1)*variance(a)+(b.length-1)*variance(b))/
+        Math.max(1,a.length+b.length-2)));
+      const score=Math.abs(mean(b)-mean(a))/sd;
+      if(Number.isFinite(score))jScore.push({j,score,feature:features[j]});
+    }
+    jScore.sort((a,b)=>b.score-a.score||a.feature.localeCompare(b.feature));
+    const chosen=[];
+    for(const item of jScore.slice(0,maxFeatures)){
+      const values=trainIds.map(id=>byId.get(id).values[item.j])
+        .filter(Number.isFinite);
+      const center=mean(values),scale=Math.sqrt(variance(values));
+      if(!Number.isFinite(center)||!Number.isFinite(scale)||scale<1e-10)continue;
+      chosen.push({index:item.j,feature:item.feature,center,scale});
+    }
+    if(!chosen.length)return null;
+    const design=(sampleIds)=>sampleIds.map(id=>[
+      1,...chosen.map(f=>{
+        const value=byId.get(id).values[f.index];
+        return Number.isFinite(value)?(value-f.center)/f.scale:0;
+      })
+    ]);
+    return {chosen,design};
+  };
+  let bestLambda=null,bestLoss=Infinity;
+  for(const lambda of lambdas){
+    const losses=[];
+    for(const validationIds of folds){
+      const testSet=new Set(validationIds);
+      const trainingIds=orderedIds.filter(id=>!testSet.has(id));
+      if(!trainingIds.some(id=>label(id)===0)||!trainingIds.some(id=>label(id)===1))
+        throw new Error('Internal tuning fold has only one biological outcome class.');
+      const state=prepare(trainingIds);
+      if(!state)throw new Error('No stable predictors remain within training-only tuning fold.');
+      const truth=trainingIds.map(label);
+      const fit=ridgeGlmFit(state.design(trainingIds),truth,'binomial',lambda);
+      if(!fit||fit.beta.some(x=>!Number.isFinite(x)))
+        throw new Error('Training-only ridge fit is nonestimable.');
+      const predictions=predictFromBeta(state.design(validationIds),fit.beta,'binomial');
+      if(predictions.some(x=>!Number.isFinite(x)))throw new Error('Invalid validation-fold probabilities.');
+      losses.push(-mean(validationIds.map((id,i)=>{
+        const y=label(id),p=Math.max(1e-8,Math.min(1-1e-8,predictions[i]));
+        return y*Math.log(p)+(1-y)*Math.log(1-p);
+      })));
+    }
+    const loss=mean(losses);
+    if(!Number.isFinite(loss))throw new Error('Internal validation loss is nonfinite.');
+    if(loss<bestLoss){bestLoss=loss;bestLambda=lambda;}
+  }
+  const state=prepare(orderedIds);
+  if(!state||bestLambda===null)throw new Error('Cannot freeze selected features.');
+  const fit=ridgeGlmFit(state.design(orderedIds),orderedIds.map(label),'binomial',bestLambda);
+  if(!fit||fit.beta.length!==state.chosen.length+1||
+     fit.beta.some(x=>!Number.isFinite(x)))
+    throw new Error('Final PMx binomial ridge fit is nonestimable.');
+  return {
+    schema:'pmx_frozen_binary_ridge_v1',
+    engine:'PMx deterministic-core ridgeGlmFit',
+    featureRanking:'training-only absolute pooled-standardized mean difference',
+    penaltyTuning:'4-fold stratified training-only cross-validation, log loss',
+    positiveLabel,negativeLabel,
+    fullTrainingSampleCount:rows.length,
+    trainingClassCounts:{positive:counts[1],negative:counts[0]},
+    trainingSubjectIds:orderedIds,
+    requiredFeatures:state.chosen.map(({feature,center,scale})=>({feature,center,scale})),
+    coefficients:fit.beta.slice(),
+    lambda:bestLambda,innerLogLoss:bestLoss,
+    inferentialScope:'Exploratory research only; training and test preprocessing provenance must be audited.'
+  };
+}
+
+export function scoreFrozenBinaryPredictor(model,{features,rows}) {
+  if(model?.schema!=='pmx_frozen_binary_ridge_v1'||!Array.isArray(model.requiredFeatures)||
+     !Array.isArray(model.coefficients)||model.coefficients.length!==model.requiredFeatures.length+1)
+    throw new Error('Incompatible frozen PMx binary model format.');
+  if(!Array.isArray(features)||new Set(features).size!==features.length)
+    throw new Error('Invalid evaluation feature schema.');
+  if(!Array.isArray(rows)||!rows.length)
+    throw new Error('No independent subjects to score.');
+  const byFeature=new Map(features.map((f,i)=>[f,i]));
+  const indices=model.requiredFeatures.map(f=>{
+    if(!byFeature.has(f.feature))throw new Error('Missing frozen predictor feature: '+f.feature);
+    return byFeature.get(f.feature);
+  });
+  const trainIds=new Set(model.trainingSubjectIds||[]);
+  const scoredIds=new Set();
+  const matrix=rows.map(row=>{
+    if(typeof row.id!=='string'||!row.id.trim()||scoredIds.has(row.id))
+      throw new Error('External subject identifiers must be nonempty and unique.');
+    if(trainIds.has(row.id))throw new Error('Training subject leaked into the heldout evaluation.');
+    scoredIds.add(row.id);
+    if(!Array.isArray(row.values)||row.values.length!==features.length)
+      throw new Error('External patient feature panel does not match its declared schema.');
+    return [1,...model.requiredFeatures.map((f,k)=>{
+      const v=row.values[indices[k]];
+      if(v!==null&&!Number.isFinite(v))
+        throw new Error('Invalid external measurement for '+f.feature);
+      return v===null?0:(v-f.center)/f.scale;
+    })];
+  });
+  const p=predictFromBeta(matrix,model.coefficients,'binomial');
+  if(p.some(v=>!Number.isFinite(v)||v<0||v>1))
+    throw new Error('Frozen PMx predictor produced an invalid probability.');
+  return rows.map((r,i)=>({subject_id:r.id,prediction:p[i]}));
+}
+
 function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, protocol) {
   if (protocol.objective !== 'outcome' || !['binary','continuous','count','multiclass','survival'].includes(protocol.outcomeType)) {
     return protocol.objective === 'outcome'
