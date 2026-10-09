@@ -30,7 +30,8 @@ function fixture(n,model,seed,planted=false) {
       let eps=normal(rand);
       if(model==='heteroscedastic_mcar') eps*=treated?1.9:0.75;
       const shift=planted && j<3 && treated?2.7:0;
-      const batch=metadataRows[i].batch==='B2'?0.5:0;
+      // A large technical-only shift must not masquerade as a group effect.
+      const batch=metadataRows[i].batch==='B2'?(model==='batch_dominant_null'?4:0.5):0;
       const age=(Number(metadataRows[i].age)-47)*0.015;
       const missing=model==='heteroscedastic_mcar' && rand()<0.12;
       return missing?'':(8+j*0.25+batch+age+shift+eps).toFixed(8);
@@ -66,7 +67,8 @@ async function analyse(input) {
 const configs=[
   ...[16,40,80].flatMap(n=>[
     {n,model:'gaussian_balanced'},
-    {n,model:'heteroscedastic_mcar'}
+    {n,model:'heteroscedastic_mcar'},
+    {n,model:'batch_dominant_null'}
   ])
 ];
 const nullTrials=20,signalTrials=6,results=[];
@@ -106,6 +108,8 @@ for(const {n,model} of configs) {
     'large false-positive inflation in '+model+' N='+n+': '+typeIRate);
   assert.ok(bhFamilyRate<=0.40,
     'large false-discovery family rate in '+model+' N='+n+': '+bhFamilyRate);
+  if(model==='batch_dominant_null')assert.ok(bhFamilyRate<=0.20,
+    'batch-only negative control generated too many BH biological discoveries N='+n+': '+bhFamilyRate);
   if(n>=40)assert.ok(sensitivity>=0.40,
     'loss of planted effect detection in '+model+' N='+n+': '+sensitivity);
   results.push({
@@ -125,11 +129,11 @@ const report={
   prespecifiedSeed:90001,
   outcomes:'two-group adjusted HC3 model with batch and age',
   nValues:[16,40,80],
-  distributions:['gaussian_balanced','heteroscedastic_mcar'],
+  distributions:['gaussian_balanced','heteroscedastic_mcar','batch_dominant_null'],
   nominalAlpha:0.05,
   correction:'within-omic Benjamini-Hochberg',
   guardrails:'gross regression: observed raw p<0.05 <=16%, null BH-family discovery <=40%, planted signal detection >=40% for N>=40',
-  limitations:'120 all-null datasets and 36 planted datasets; 12 genes/proteins per dataset. No confidence-interval equivalence test, formal FDR validation, other designs, covariate MNAR, publication approval or clinical external validation.',
+  limitations:'180 all-null datasets and 54 planted datasets; 12 genes/proteins per dataset. Technical-only null uses group-balanced batches with a fixed +4-unit batch effect. No confidence-interval equivalence test, formal FDR validation, other designs, covariate MNAR, publication approval or clinical external validation.',
   results
 };
 if (process.env.MULTIOMICS_CALIBRATION_REPORT_PATH) {
