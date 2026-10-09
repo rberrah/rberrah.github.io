@@ -1513,10 +1513,38 @@ function preprocessMatrix(matrix, layer, valueType) {
  * All feature scoring, nuisance fitting, missingness and scaling take place
  * on each training fold in selectPredictionFeatures / predictionMatrix.
  */
-function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
+export function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
   const asSupplied = ['log_expression','log_intensity','log_abundance'].includes(valueType);
   const rawRna = layer === 'transcriptomics' && valueType === 'raw_counts';
-  if (!asSupplied && !rawRna) return null;
+  // Unlike the exploratory QC path, these intensity-scale predictive recipes
+  // do not estimate a cohort-wide pseudocount, abundance filter or median.
+  // log2(x + 1) fixes the offset before outcome data are seen. For LFQ and
+  // MS peak areas, sample median centering uses ONLY the current assay.
+  // This deliberately does not pretend to reproduce pooled-QC drift correction.
+  const sampleLocalIntensity =
+    (layer === 'proteomics' && valueType === 'lfq_intensity') ||
+    (layer === 'metabolomics' && valueType === 'peak_area');
+  if (!asSupplied && !rawRna && !sampleLocalIntensity) return null;
+  if (sampleLocalIntensity) {
+    for (const feature of matrix.features) {
+      for (const assay of matrix.assays) {
+        const value = matrix.values.get(feature)?.get(assay);
+        if (Number.isFinite(value) && value < 0) {
+          // Already transformed or background-subtracted data were mislabeled.
+          // Do not silently treat them as positive raw intensity.
+          return null;
+        }
+      }
+    }
+  }
+  const assayMedians = new Map();
+  if (sampleLocalIntensity) {
+    for (const assay of matrix.assays) {
+      const logged = matrix.features.map((feature) => matrix.values.get(feature)?.get(assay))
+        .filter(Number.isFinite).map((value) => Math.log2(value + 1));
+      assayMedians.set(assay, logged.length ? median(logged) : 0);
+    }
+  }
   const totals = new Map();
   if (rawRna) {
     for (const assay of matrix.assays) {
@@ -1541,7 +1569,9 @@ function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
       row.set(assay, !Number.isFinite(value) ? null
         : rawRna
           ? Math.log2((value / Math.max(1, totals.get(assay))) * 1e6 + 0.5)
-          : value);
+          : sampleLocalIntensity
+            ? Math.log2(value + 1) - assayMedians.get(assay)
+            : value);
     }
     values.set(feature, row);
   }
@@ -1551,7 +1581,9 @@ function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
     // No feature removal/selection and no learned cohort-level parameters.
     predictionPreparation: rawRna
       ? 'per-assay library-size CPM and fixed log2(CPM + 0.5), no global feature filtering'
-      : 'as-supplied values, no global feature filtering'
+      : sampleLocalIntensity
+        ? 'fixed log2(raw intensity + 1), current-assay-only median centering, no cohort-wide feature filtering or QC drift fit'
+        : 'as-supplied values, no global feature filtering'
   };
 }
 
@@ -4368,9 +4400,17 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   );
   if (predictiveOutcome?.status === 'ok') {
     predictiveOutcome.preprocessingLeakageRisk = predictionUsesGlobalPreprocessing;
+    predictiveOutcome.rawIntensityScreening = loadedLayers.some((layer) =>
+      (layer === 'proteomics' && dataTypes[layer] === 'lfq_intensity') ||
+      (layer === 'metabolomics' && dataTypes[layer] === 'peak_area')
+    );
+    if (predictiveOutcome.rawIntensityScreening) {
+      predictiveOutcome.intensityPanelAssumption = 'Per-sample median centering requires a consistent predefined assay feature panel, including on future external samples. Missing panels or drifting instrument responses invalidate direct portability.';
+      predictiveOutcome.technicalQcCaveat = 'Prediction uses the prespecified assay-local intensity transform, not the global MS/pooled-QC drift, blank, RSD and MNAR processing used for exploratory differential analysis. Review technical QC and run an independent external sensitivity analysis before interpreting biomarker performance.';
+    }
     predictiveOutcome.preprocessingPolicy = predictionUsesGlobalPreprocessing
       ? 'Some modalities retain whole-cohort QC, intensity transformation or drift correction upstream of folds: exploratory screening only.'
-      : 'No cohort-level feature filtering, feature selection or fitted transformation before folds; per-assay CPM (if counts) and as-supplied scales only. External validation remains necessary.';
+      : 'No cohort-level feature filtering, feature selection or fitted transformation before folds: only fixed transforms and per-assay normalization are applied (including LFQ/MS raw intensity where supported). The raw-intensity predictive branch intentionally excludes fitted pooled-QC and drift corrections; scientific sensitivity and external validation remain necessary.';
   }
 
   let crossOmics;
