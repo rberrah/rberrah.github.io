@@ -238,6 +238,32 @@ analyse prédictive à deux omiques avec validation croisée imbriquée.
 Cela vérifie un **contrat logiciel de non-fuite inter-sujets**, pas la
 validité clinique ni la transférabilité analytique.
 
+## Grille de calibration étendue : groupes indépendants
+
+La suite `scripts/test_multiomics_calibration_grid.mjs` et son workflow
+GitHub Actions hebdomadaire testent le modèle navigateur ajusté sur une
+grille **préspécifiée** de **120 jeux nuls** (20 répétitions × 3 effectifs
+× 2 scénarios) et **36 jeux avec signal** (6 répétitions × 3 effectifs
+× 2 scénarios), avec 12 variables par jeu. Les effectifs sont **16,
+40 et 80 sujets** répartis en deux groupes indépendants. Scénarios :
+bruit gaussien équilibré ; hétéroscédasticité et valeurs manquantes
+MCAR (~12 %), avec batch équilibré et covariable continue d'âge.
+
+Le rapport machine lisible `calibration-grid.json` conserve par
+configuration : nombre réel d'hypothèses estimées, fréquence empirique
+des p-values < 0,05 sous le nul, fréquence des familles ayant au moins
+une découverte BH q ≤ 0,05 et sensibilité à trois effets positifs connus.
+
+Les bornes CI (taux nul ≤16 %, familles BH ≤40 %, sensibilité ≥40 %
+si N ≥40) sont volontairement **très tolérantes** : elles détectent
+une régression majeure du logiciel mais **ne démontrent pas** un taux
+d'erreur nominal de 5 %, le contrôle de la FDR ou une sensibilité
+scientifiquement acceptable. Une véritable validation confirmatoire
+demanderait des scénarios plus variés, des intervalles d'incertitude
+préspécifiés, des tests de non-infériorité/équivalence, des méthodes
+de référence R indépendantes et la prise en compte du plan d'étude
+réel. Aucun utilisateur ne reçoit un certificat automatique.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
