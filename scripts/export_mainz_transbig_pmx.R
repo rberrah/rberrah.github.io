@@ -94,7 +94,7 @@ build<-function(mat,indices,labels,tag,reveal_outcome){
     k<-indices[[j]]
     vals<-as.numeric(mat[,k])
     vals[!is.finite(vals)]<-NA_real_
-    row<-list(id=sprintf("%s_%03d",tag,k),values=as.list(vals))
+    row<-list(id=sprintf("%s_%03d",tag,k),values=vals)
     if(reveal_outcome)row$outcome<-labels[[k]]
     row
   })
