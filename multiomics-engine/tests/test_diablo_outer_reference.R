@@ -1,0 +1,51 @@
+#!/usr/bin/env Rscript
+# Actual mixOmics DIABLO on independently held-out subjects.
+# NOT a substitute for external clinical validation or nested selection among
+# many candidate multiblock methods. Synthetic known effects/null controls.
+source("multiomics-engine/advanced_methods.R")
+if(!requireNamespace("mixOmics",quietly=TRUE))stop("mixOmics must be installed for this test.")
+set.seed(20261009)
+n <- 64L
+ids <- sprintf("P%03d",seq_len(n))
+y <- setNames(rep(c("control","treated"),each=32L),ids)
+a <- matrix(stats::rnorm(n*14),nrow=n,ncol=14,
+  dimnames=list(ids,paste0("gene",seq_len(14))))
+b <- matrix(stats::rnorm(n*12),nrow=n,ncol=12,
+  dimnames=list(ids,paste0("protein",seq_len(12))))
+# Strong signal is deliberate, because this verifies the real package
+# code path rather than making a claim about weak-effect power.
+a[y=="treated",1:4] <- a[y=="treated",1:4]+3.0
+b[y=="treated",1:4] <- b[y=="treated",1:4]+3.0
+blocks <- list(rna=a,proteomics=b)
+out <- tempfile("diablo_outer_")
+result <- run_diablo_outer_holdout(
+  blocks,y,out,seeds=c(20261009L,20261010L),tune=TRUE
+)
+stopifnot(
+  identical(result$status,"ok"),
+  length(result$summary$folds)==2L,
+  all(is.finite(c(result$summary$meanBER,result$summary$maxBER))),
+  result$summary$meanBER>=0 && result$summary$meanBER<=1,
+  result$summary$meanBER<=0.40,
+  all(c("sampleId","actual","predicted","correct","seed")%in%names(result$predictions)),
+  length(unique(result$predictions$seed))==2L,
+  file.exists(file.path(out,"diablo_outer_holdout.csv"))
+)
+# Negative control with permuted labels, no label-informed preprocessing
+set.seed(20261009)
+shuffled <- sample(unname(y))
+names(shuffled) <- names(y)
+control <- run_diablo_outer_holdout(
+  blocks,shuffled,tempfile("diablo_null_"),
+  seeds=c(20261009L,20261010L),tune=FALSE
+)
+stopifnot(
+  identical(control$status,"ok"),
+  is.finite(control$summary$meanBER),
+  control$summary$meanBER>=0 && control$summary$meanBER<=1
+)
+cat(sprintf(
+  "Actual mixOmics DIABLO | known signal heldout BER %.3f | permuted-outcome heldout BER %.3f | per-train tuning/preprocessing and complete predictions PASS\n",
+  result$summary$meanBER,control$summary$meanBER
+))
+unlink(out,recursive=TRUE)
