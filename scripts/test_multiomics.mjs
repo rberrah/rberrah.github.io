@@ -413,6 +413,7 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   });
 
   assert.equal(survival.predictiveOutcome.status, 'ok');
+  assert.equal(survival.predictiveOutcome.preprocessingLeakageRisk, false);
   assert.equal(survival.predictiveOutcome.predictions.length, survival.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
   assert.equal(new Set(survival.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, survival.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(survival.predictiveOutcome.outcomeType, 'survival');
@@ -490,6 +491,7 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.equal(pred.predictiveOutcome.predictions.length, pred.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
   assert.equal(new Set(pred.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, pred.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(pred.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+  assert.equal(pred.predictiveOutcome.preprocessingLeakageRisk, false, 'log-scale predictors should bypass whole-cohort feature filtering');
   assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
   assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
   assert.ok(pred.predictiveOutcome.metrics.auc > 0.80);
@@ -979,6 +981,7 @@ function csvFile(name, text) {
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
     assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+    assert.equal(outcomeResult.predictiveOutcome.preprocessingLeakageRisk, false, 'as-supplied log-scale predictive route should be fold-isolated');
     assert.equal(outcomeResult.predictiveOutcome.predictions.length, outcomeResult.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
     assert.equal(new Set(outcomeResult.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, outcomeResult.predictiveOutcome.subjects, 'every subject has one held-out prediction');
     assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
