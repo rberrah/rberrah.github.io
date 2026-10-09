@@ -412,6 +412,10 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
     resolveIdentifiers:false
   });
 
+  assert.equal(survival.layers.transcriptomics.inferenceStatus,
+    'reference_R_survival_and_ph_diagnostics_required');
+  assert.ok(survival.layers.transcriptomics.rows.every(x=>
+    x.pValue===null && x.qValue===null && x.ciLow===null && x.ciHigh===null));
   assert.equal(survival.predictiveOutcome.status, 'ok');
   assert.equal(survival.predictiveOutcome.preprocessingLeakageRisk, false);
   assert.equal(survival.predictiveOutcome.predictions.length, survival.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
@@ -1030,7 +1034,17 @@ function csvFile(name, text) {
     }
     const signal = outcomeResult.layers.transcriptomics.rows.find(x=>x.feature === 'OUTCOME_GENE');
     assert.ok(signal && Number.isFinite(signal.effect));
-    assert.ok(Number.isFinite(signal.pValue));
+    if (type === 'survival') {
+      assert.equal(signal.pValue,null,'exploratory Cox must not report unchecked p-values');
+      assert.equal(signal.qValue,null);
+      assert.equal(signal.ciLow,null);
+      assert.equal(signal.ciHigh,null);
+      assert.equal(signal.inferentialStatus,'exploratory_cox_reference_R_and_PH_diagnostics_required');
+      assert.equal(signal.tieMethod,'breslow');
+      assert.equal(outcomeResult.layers.transcriptomics.inferenceStatus,'reference_R_survival_and_ph_diagnostics_required');
+    } else {
+      assert.ok(Number.isFinite(signal.pValue));
+    }
   }
 }
 

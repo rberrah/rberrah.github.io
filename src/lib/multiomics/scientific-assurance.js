@@ -177,7 +177,11 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
         'requires_confirmation');
     }
   }
-  if (protocol.objective === 'time' && protocol.longitudinal) add('longitudinal_browser_uncalibrated',
+  if (protocol.objective === 'outcome' && protocol.outcomeType === 'survival') add('survival_browser_inference_blocked',
+    'Survie : le moteur navigateur affiche uniquement les coefficients Cox (gestion Breslow des ex æquo), sans p-value, q-value ni intervalle de confiance. La validation confirmatoire exige un modèle R indépendant, la vérification de l’hypothèse de risques proportionnels et l’examen du mécanisme de censure.',
+    'Survival: browser Cox reports exploratory coefficients only (Breslow ties), with no p/q-values or confidence intervals. Confirmatory inference requires independent R survival fitting, proportional-hazards diagnostics and review of censoring assumptions.',
+    'requires_confirmation');
+    if (protocol.objective === 'time' && protocol.longitudinal) add('longitudinal_browser_uncalibrated',
     'Le modèle longitudinal navigateur ne fournit plus de p-value, q-value ou intervalle de confiance : une simulation nulle a révélé une inflation possible des faux positifs. Les effets affichés restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
     'The browser longitudinal model no longer reports p-values, q-values or confidence intervals: null simulation suggested possible type-I inflation. Effects are descriptive only. Use lmerTest with the full study design for inference.',
     'requires_confirmation');

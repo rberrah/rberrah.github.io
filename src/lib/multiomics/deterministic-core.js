@@ -1989,98 +1989,123 @@ function fitGeneralizedLinear(design, response, family, coefficientIndex) {
   return { beta, se, statistic: zStat, pValue };
 }
 
-function coxRegression(design, times, events, coefficientIndex) {
-  const n = times.length;
-  const p = design[0]?.length || 0;
-  if (!n || n <= p || events.reduce((sum, event) => sum + event, 0) < 3) return null;
-  let beta = Array(p).fill(0);
-  let information = null;
-  for (let iter = 0; iter < 30; iter += 1) {
-    const score = Array(p).fill(0);
-    const info = Array.from({ length: p }, () => Array(p).fill(0));
-    for (let i = 0; i < n; i += 1) {
-      if (!events[i]) continue;
-      const risk = [];
-      for (let j = 0; j < n; j += 1) if (times[j] >= times[i]) risk.push(j);
-      let denom = 0;
-      const weightedMean = Array(p).fill(0);
-      const weightedSecond = Array.from({ length: p }, () => Array(p).fill(0));
-      for (const j of risk) {
-        const eta = Math.max(-30, Math.min(30, design[j].reduce((sum, value, k) => sum + value * beta[k], 0)));
-        const w = Math.exp(eta);
-        denom += w;
-        for (let a = 0; a < p; a += 1) {
-          weightedMean[a] += w * design[j][a];
-          for (let b = 0; b < p; b += 1) weightedSecond[a][b] += w * design[j][a] * design[j][b];
-        }
-      }
-      if (!(denom > 0)) continue;
-      for (let a = 0; a < p; a += 1) {
-        const meanA = weightedMean[a] / denom;
-        score[a] += design[i][a] - meanA;
-        for (let b = 0; b < p; b += 1) {
-          info[a][b] += weightedSecond[a][b] / denom - meanA * (weightedMean[b] / denom);
-        }
+
+/**
+ * Breslow Cox partial-likelihood score and observed information.
+ * All events at the SAME time share one risk-set denominator:
+ * U(t) = sum_event(x) - d(t)*E_risk[x].
+ * The former browser implementation iterated each event with its own
+ * denominator, accidentally applying the d(t)-fold term while revisiting
+ * identical risk sets. It was algebraically Breslow-like but lacked an
+ * explicit, auditable grouped-ties contract.
+ *
+ * Risk weights are shifted by max linear predictor to avoid exp overflow.
+ */
+function coxBreslowScoreInformation(design, times, events, beta) {
+  const n=times.length,p=beta.length;
+  const deathTimes=[...new Set(times.filter((t,i)=>events[i]===1))].sort((a,b)=>a-b);
+  const score=Array(p).fill(0);
+  const information=Array.from({length:p},()=>Array(p).fill(0));
+  for(const time of deathTimes) {
+    const deaths=[];
+    const risk=[];
+    for(let i=0;i<n;i+=1) {
+      if(times[i]>=time)risk.push(i);
+      if(events[i]===1&&times[i]===time)deaths.push(i);
+    }
+    if(!deaths.length||!risk.length)return null;
+    const eta=risk.map(i=>design[i].reduce((v,x,j)=>v+x*beta[j],0));
+    const pivot=Math.max(...eta);
+    const weights=eta.map(v=>Math.exp(v-pivot));
+    const denom=weights.reduce((x,y)=>x+y,0);
+    if(!(denom>0)||!Number.isFinite(denom))return null;
+    const mu=Array(p).fill(0);
+    const second=Array.from({length:p},()=>Array(p).fill(0));
+    for(let k=0;k<risk.length;k+=1) {
+      const x=design[risk[k]],w=weights[k]/denom;
+      for(let j=0;j<p;j+=1) {
+        mu[j]+=w*x[j];
+        for(let h=0;h<p;h+=1)second[j][h]+=w*x[j]*x[h];
       }
     }
-    const step = solveLinearSystem(info, score, 1e-6);
-    if (!step) return null;
-    beta = beta.map((value, index) => value + step[index]);
-    information = info;
-    if (Math.max(...step.map(Math.abs)) < 1e-7) break;
+    for(const idx of deaths) {
+      for(let j=0;j<p;j+=1)score[j]+=design[idx][j];
+    }
+    for(let j=0;j<p;j+=1) {
+      score[j]-=deaths.length*mu[j];
+      for(let h=0;h<p;h+=1) {
+        information[j][h]+=deaths.length*(second[j][h]-mu[j]*mu[h]);
+      }
+    }
   }
-  const inverse = information ? invertMatrix(information, 1e-6) : null;
-  if (!inverse) return null;
-  const se2 = inverse[coefficientIndex][coefficientIndex];
-  const se = se2 > 0 ? Math.sqrt(se2) : NaN;
-  const zStat = Number.isFinite(se) && se > 0 ? beta[coefficientIndex] / se : NaN;
-  const pValue = Number.isFinite(zStat) ? Math.min(1, 2 * (1 - normalCdf(Math.abs(zStat)))) : null;
-  return { beta, se, statistic: zStat, pValue };
+  if(score.some(x=>!Number.isFinite(x))||
+      information.some(row=>row.some(x=>!Number.isFinite(x))))return null;
+  return {score,information,deathTimeGroups:deathTimes.length};
 }
 
-function coxRidgeRegression(design, times, events, lambda = 1) {
-  const n = times.length;
-  const p = design[0]?.length || 0;
-  if (!n || !p || n <= p || events.reduce((sum, event) => sum + event, 0) < 3) return null;
-  let beta = Array(p).fill(0);
-  for (let iter = 0; iter < 40; iter += 1) {
-    const score = Array(p).fill(0);
-    const info = Array.from({ length: p }, () => Array(p).fill(0));
-    for (let i = 0; i < n; i += 1) {
-      if (!events[i]) continue;
-      const risk = [];
-      for (let j = 0; j < n; j += 1) if (times[j] >= times[i]) risk.push(j);
-      let denom = 0;
-      const weightedMean = Array(p).fill(0);
-      const weightedSecond = Array.from({ length: p }, () => Array(p).fill(0));
-      for (const j of risk) {
-        const eta = Math.max(-30, Math.min(30, design[j].reduce((sum, value, k) => sum + value * beta[k], 0)));
-        const w = Math.exp(eta);
-        denom += w;
-        for (let a = 0; a < p; a += 1) {
-          weightedMean[a] += w * design[j][a];
-          for (let b = 0; b < p; b += 1) weightedSecond[a][b] += w * design[j][a] * design[j][b];
-        }
-      }
-      if (!(denom > 0)) continue;
-      for (let a = 0; a < p; a += 1) {
-        const meanA = weightedMean[a] / denom;
-        score[a] += design[i][a] - meanA;
-        for (let b = 0; b < p; b += 1) {
-          info[a][b] += weightedSecond[a][b] / denom - meanA * (weightedMean[b] / denom);
-        }
-      }
-    }
-    for (let j = 0; j < p; j += 1) {
-      score[j] -= lambda * beta[j];
-      info[j][j] += lambda;
-    }
-    const step = solveLinearSystem(info, score, 1e-8);
-    if (!step) return null;
-    beta = beta.map((value, index) => value + step[index]);
-    if (Math.max(...step.map(Math.abs)) < 1e-7) break;
+function validCoxInput(design,times,events) {
+  const n=times.length,p=design[0]?.length||0;
+  return n>p&&p>0&&events.length===n&&
+    events.reduce((sum,x)=>sum+x,0)>=3&&
+    times.every(x=>Number.isFinite(x)&&x>0)&&
+    events.every(x=>x===0||x===1)&&
+    design.length===n&&design.every(row=>row.length===p&&row.every(Number.isFinite));
+}
+
+export function coxRegression(design,times,events,coefficientIndex=0) {
+  if(!validCoxInput(design,times,events)||
+    !hasFullColumnRank(design)||
+    !Number.isInteger(coefficientIndex)||coefficientIndex<0||
+    coefficientIndex>=design[0].length)return null;
+  const p=design[0].length;
+  let beta=Array(p).fill(0);
+  let converged=false;
+  for(let iter=0;iter<70;iter+=1) {
+    const parts=coxBreslowScoreInformation(design,times,events,beta);
+    if(!parts)return null;
+    const step=solveLinearSystem(parts.information,parts.score,1e-8);
+    if(!step||step.some(x=>!Number.isFinite(x)))return null;
+    const maxStep=Math.max(...step.map(Math.abs));
+    const fraction=Math.min(1,3/Math.max(1e-12,maxStep));
+    beta=beta.map((v,j)=>v+fraction*step[j]);
+    if(maxStep*fraction<1e-8){converged=true;break;}
+    if(beta.some(x=>!Number.isFinite(x)||Math.abs(x)>100))return null;
   }
-  return { beta, lambda };
+  if(!converged)return null; // no inferential Wald statistics from a failed fit
+  const parts=coxBreslowScoreInformation(design,times,events,beta);
+  if(!parts)return null;
+  const inv=invertMatrix(parts.information,1e-10);
+  if(!inv)return null;
+  const v=inv[coefficientIndex][coefficientIndex];
+  const se=v>0?Math.sqrt(v):NaN;
+  const statistic=Number.isFinite(se)&&se>0?beta[coefficientIndex]/se:NaN;
+  const pValue=Number.isFinite(statistic)
+    ?Math.max(0,Math.min(1,2*(1-normalCdf(Math.abs(statistic))))):null;
+  return Number.isFinite(statistic)
+    ?{beta,se,statistic,pValue,ties:'breslow',converged:true,
+       deathTimeGroups:parts.deathTimeGroups}
+    :null;
+}
+
+function coxRidgeRegression(design,times,events,lambda=1) {
+  if(!validCoxInput(design,times,events)||!(Number.isFinite(lambda)&&lambda>=0))return null;
+  const p=design[0].length;
+  let beta=Array(p).fill(0);
+  for(let iter=0;iter<70;iter+=1) {
+    const parts=coxBreslowScoreInformation(design,times,events,beta);
+    if(!parts)return null;
+    const information=parts.information.map((row,i)=>row.map((value,j)=>
+      value+(i===j?lambda:0)));
+    const score=parts.score.map((value,j)=>value-lambda*beta[j]);
+    const step=solveLinearSystem(information,score,1e-8);
+    if(!step||step.some(x=>!Number.isFinite(x)))return null;
+    const maxStep=Math.max(...step.map(Math.abs));
+    const fraction=Math.min(1,3/Math.max(1e-12,maxStep));
+    beta=beta.map((v,j)=>v+fraction*step[j]);
+    if(maxStep*fraction<1e-8)return {beta,lambda,ties:'breslow',converged:true};
+    if(beta.some(x=>!Number.isFinite(x)||Math.abs(x)>100))return null;
+  }
+  return null; // no model if ridge fit did not converge
 }
 
 function harrellCIndex(times, events, risks) {
@@ -2556,7 +2581,7 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
       const events = entries.map((entry) => finiteNumber(entry.survivalEvent) > 0 ? 1 : 0);
       fit = coxRegression(responseDesign, times, events, 0);
       effectScale = 'log hazard ratio';
-      model = 'Cox proportional hazards';
+      model = 'Cox proportional hazards (Breslow ties; exploratory coefficient)';
       if (fit) fit.beta = [fit.beta[0]];
     } else {
       const response = entries.map((entry) => finiteNumber(entry.outcome));
@@ -2577,17 +2602,24 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
       feature,
       effect: coefficient,
       effectScale,
-      pValue: fit.pValue,
+      // Browser Cox cannot assess proportional hazards, censoring mechanism,
+      // time-dependent exposure or informative censoring. Even after
+      // verifying Breslow coefficients against R, its Wald p/q and CI are
+      // intentionally unavailable until a method-specific R diagnostic.
+      pValue: outcomeType === 'survival' ? null : fit.pValue,
       qValue: null,
-      statistic: fit.statistic,
-      standardError: fit.se,
-      ciLow,
-      ciHigh,
+      statistic: outcomeType === 'survival' ? null : fit.statistic,
+      standardError: outcomeType === 'survival' ? null : fit.se,
+      ciLow: outcomeType === 'survival' ? null : ciLow,
+      ciHigh: outcomeType === 'survival' ? null : ciHigh,
+      inferentialStatus: outcomeType === 'survival'
+        ? 'exploratory_cox_reference_R_and_PH_diagnostics_required' : 'browser_screening',
+      tieMethod: outcomeType === 'survival' ? 'breslow' : null,
       n: entries.length,
       model,
       exponentiatedEffect: multiplicative ? Math.exp(coefficient) : null,
-      exponentiatedCiLow: multiplicative && Number.isFinite(ciLow) ? Math.exp(ciLow) : null,
-      exponentiatedCiHigh: multiplicative && Number.isFinite(ciHigh) ? Math.exp(ciHigh) : null
+      exponentiatedCiLow: multiplicative && outcomeType !== 'survival' && Number.isFinite(ciLow) ? Math.exp(ciLow) : null,
+      exponentiatedCiHigh: multiplicative && outcomeType !== 'survival' && Number.isFinite(ciHigh) ? Math.exp(ciHigh) : null
     });
   }
 
@@ -2603,13 +2635,20 @@ function analyseOutcomeLayer(aggregated, layer, { outcomeType = 'continuous', co
   return {
     rows,
     selected,
-    selectionRule: significant.length >= 10
-      ? 'q ≤ 0.10, capped at 50 features'
-      : 'only ' + significant.length + ' FDR-qualified feature(s); top ' + selected.length + ' ranked features retained for exploratory biological mapping',
+    selectionRule: outcomeType === 'survival'
+      ? 'Exploratory Cox effect ranking only: browser p/q-values and confidence intervals are withheld until R survival and proportional-hazards checks.'
+      : significant.length >= 10
+        ? 'q ≤ 0.10, capped at 50 features'
+        : 'only ' + significant.length + ' FDR-qualified feature(s); top ' + selected.length + ' ranked features retained for exploratory biological mapping',
     effectScale: rows[0]?.effectScale || 'outcome association',
     contrast: 'association with ' + outcomeType + ' outcome',
     mode: 'outcome-' + outcomeType,
-    inferenceMethod: rows[0]?.model || 'outcome regression',
+    inferenceMethod: outcomeType === 'survival'
+      ? 'Exploratory Cox Breslow coefficient; inferential p/q/CI suppressed, independent R survival PH diagnostics required'
+      : rows[0]?.model || 'outcome regression',
+    inferenceStatus: outcomeType === 'survival'
+      ? 'reference_R_survival_and_ph_diagnostics_required'
+      : 'browser_screening',
     groupSizes: [],
     steps: aggregated.steps
   };
