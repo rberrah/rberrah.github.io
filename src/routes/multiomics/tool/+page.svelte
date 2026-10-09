@@ -8,6 +8,7 @@
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
+  import { mofa2BackendCompatibility,validateMofa2MethodResult } from '$lib/multiomics/reference-backend-integrity.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '$lib/multiomics/portable-project.js';
 
   /** @param {string} fr @param {string} en */
@@ -1086,6 +1087,18 @@
         message: 'Reference R backend was not reachable; browser results were retained.'
       };
     }
+    const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:omicsCount});
+    if(!compatibility.compatible) {
+      referenceBackendStatus = 'error';
+      referenceBackendMessage = t(compatibility.message,compatibility.messageEn);
+      if(referenceBackendMode === 'required')throw new Error(referenceBackendMessage);
+      return {
+        status:'blocked',message:referenceBackendMessage,url:backendBaseUrl(),
+        methods:{mofa2:{status:'blocked',message:referenceBackendMessage}},
+        referenceMethodExecuted:false,
+        compatibilityStatus:compatibility.reason
+      };
+    }
     referenceBackendStatus = 'running';
     referenceBackendMessage = t('Méthodes R de référence en cours…', 'Reference R methods running…');
     const payload = await referenceBackendPayload();
@@ -1105,12 +1118,15 @@
         message: referenceBackendMessage
       };
     }
-    referenceBackendStatus = 'done';
-    const completed = Object.values(body.methods || {}).some((method) => method?.status === 'ok');
-    referenceBackendMessage = completed
-      ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
-      : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
-    return { ...body, url: backendBaseUrl(), referenceMethodExecuted: completed };
+    const checkedBody = validateMofa2MethodResult(body);
+    referenceBackendStatus = checkedBody.mofa2OrientationBlocked ? 'error' : 'done';
+    const completed = Object.values(checkedBody.methods || {}).some((method) => method?.status === 'ok');
+    referenceBackendMessage = checkedBody.mofa2OrientationBlocked
+      ? t('Résultat MOFA2 masqué : ce backend n’a pas prouvé l’orientation correcte des variables et des sujets. Mettez à jour R.', 'MOFA2 result hidden: this backend did not prove the correct feature and subject orientation. Update R.')
+      : completed
+        ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
+        : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
+    return { ...checkedBody,url:backendBaseUrl(),referenceMethodExecuted:completed };
   }
 
   async function runAnalysis() {
