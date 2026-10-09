@@ -185,6 +185,190 @@ safe_perf_summary <- function(perf) {
   )
 }
 
+
+# Strict subject-level outer evaluation, separate from tuning/perf() on the
+# development cohort. Only accepts log-valued as-supplied matrices; all filters,
+# imputation, centering and standardisation are fit on TRAINING samples only.
+# This is a repeated internal held-out validation, NOT external replication.
+prepare_diablo_holdout_split <- function(blocks, outcome, seed=20261009L,
+                                         test_fraction=0.25,
+                                         max_features_per_block=500L) {
+  if(!is.list(blocks) || length(blocks)<2L || is.null(names(blocks)) ||
+     any(!nzchar(names(blocks))) || anyDuplicated(names(blocks)))
+    stop("Holdout DIABLO needs >=2 uniquely named omic blocks.")
+  blocks <- lapply(blocks,function(z) {
+    z <- as.matrix(z)
+    storage.mode(z) <- "double"
+    if(is.null(rownames(z))||anyNA(rownames(z))||anyDuplicated(rownames(z)) ||
+       any(!nzchar(rownames(z))) || is.null(colnames(z))||
+       anyDuplicated(colnames(z)) || any(!nzchar(colnames(z))))
+      stop("Holdout DIABLO requires unique subject/sample and feature identifiers.")
+    z
+  })
+  common <- Reduce(intersect,lapply(blocks,rownames))
+  if(length(common)<32L)
+    stop("Holdout DIABLO requires >=32 shared independent subjects.")
+  blocks <- lapply(blocks,function(z)z[common,,drop=FALSE])
+  if(is.null(names(outcome))||anyDuplicated(names(outcome)) ||
+     anyNA(outcome[common])||any(!nzchar(as.character(outcome[common]))))
+    stop("Holdout labels must be uniquely named, complete and match every shared subject.")
+  y <- droplevels(factor(outcome[common]))
+  if(nlevels(y)!=2L || min(table(y))<12L)
+    stop("Holdout DIABLO currently supports 2 classes with >=12 independent subjects per class.")
+  if(!is.finite(test_fraction)||test_fraction<0.15||test_fraction>0.40)
+    stop("Holdout test fraction outside supported range.")
+  set.seed(as.integer(seed))
+  test <- unlist(lapply(split(seq_along(common),y),function(ix) {
+    size <- max(3L,as.integer(round(length(ix)*test_fraction)))
+    sample(ix,size=size,replace=FALSE)
+  }),use.names=FALSE)
+  train <- setdiff(seq_along(common),test)
+  if(length(intersect(train,test))||length(unique(c(train,test)))!=length(common))
+    stop("Train and holdout subjects are not disjoint and exhaustive.")
+  if(min(table(y[train]))<8L || min(table(y[test]))<3L)
+    stop("Insufficient class support after subject-level partition.")
+  recipes <- list()
+  train_blocks <- list()
+  test_blocks <- list()
+  for(layer in names(blocks)) {
+    z <- blocks[[layer]]
+    tr <- z[train,,drop=FALSE]
+    te <- z[test,,drop=FALSE]
+    # Fold-specific feature selection: no full-cohort variance or missingness.
+    observed <- colSums(is.finite(tr))
+    missing_fraction <- 1-observed/nrow(tr)
+    variance <- vapply(seq_len(ncol(tr)),function(j) {
+      v <- tr[,j];v <- v[is.finite(v)]
+      if(length(v)<3L)return(NA_real_)
+      stats::var(v)
+    },numeric(1))
+    available <- which(observed>=8L & missing_fraction<=0.25 &
+                         is.finite(variance)&variance>1e-12)
+    if(length(available)<2L)
+      stop(paste("Insufficient train-only informative features:",layer))
+    if(length(available)>max_features_per_block)
+      available<-available[order(variance[available],decreasing=TRUE,
+                               na.last=NA)[seq_len(max_features_per_block)]]
+    tr <- tr[,available,drop=FALSE]
+    te <- te[,available,drop=FALSE]
+    medians <- apply(tr,2,stats::median,na.rm=TRUE)
+    for(j in seq_len(ncol(tr))) {
+      tr[!is.finite(tr[,j]),j] <- medians[j]
+      te[!is.finite(te[,j]),j] <- medians[j]
+    }
+    means <- colMeans(tr)
+    sd_train <- apply(tr,2,stats::sd)
+    if(any(!is.finite(sd_train))||any(sd_train<=1e-12))
+      stop("Non-identifiable training-only scaling.")
+    tr <- sweep(sweep(tr,2,means,"-"),2,sd_train,"/")
+    te <- sweep(sweep(te,2,means,"-"),2,sd_train,"/")
+    if(any(!is.finite(tr))||any(!is.finite(te)))
+      stop("Non-finite fold-local omics values.")
+    train_blocks[[layer]] <- tr
+    test_blocks[[layer]] <- te
+    recipes[[layer]] <- list(
+      featureNames=colnames(tr),
+      medians=medians,
+      means=means,
+      standardDeviations=sd_train,
+      fittedOn="training_subjects_only"
+    )
+  }
+  names_y <- as.character(y)
+  list(
+    train=train_blocks,test=test_blocks,
+    y_train=factor(names_y[train],levels=levels(y)),
+    y_test=factor(names_y[test],levels=levels(y)),
+    trainIds=common[train],testIds=common[test],
+    trainIndices=train,testIndices=test,
+    recipes=recipes,
+    seed=as.integer(seed),
+    boundary="Repeated cohort holdout with fold-local preprocessing, not independent external validation."
+  )
+}
+
+# The model is refit inside each outer split; any tuning is restricted to
+# training subjects. Invalid folds fail the WHOLE benchmark, never silently
+# reduce the denominator and make performance look better.
+run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
+                                     seeds=c(20261009L,20261010L,20261011L),
+                                     tune=TRUE) {
+  require_namespace("mixOmics")
+  if(length(seeds)<2L||anyDuplicated(seeds))stop("Need >=2 distinct predeclared outer seeds.")
+  all_rows <- list()
+  summaries <- list()
+  for(index in seq_along(seeds)) {
+    split <- prepare_diablo_holdout_split(blocks,outcome,seed=seeds[index])
+    ncomp <- 1L
+    design <- matrix(0.1,length(split$train),length(split$train),
+      dimnames=list(names(split$train),names(split$train)))
+    diag(design) <- 0
+    keep <- lapply(split$train,function(z)min(10L,ncol(z)))
+    names(keep) <- names(split$train)
+    if(isTRUE(tune)) {
+      grid <- lapply(split$train,function(z)sort(unique(pmin(ncol(z),c(2L,5L,10L)))))
+      if(all(lengths(grid)>=2L)) {
+        set.seed(as.integer(seeds[index]))
+        trained <- mixOmics::tune.block.splsda(
+          X=split$train,Y=split$y_train,ncomp=ncomp,
+          test.keepX=grid,design=design,
+          validation="Mfold",folds=3L,nrepeat=2L,measure="BER",
+          dist="max.dist",progressBar=FALSE,seed=as.integer(seeds[index])
+        )
+        if(!is.null(trained$choice.keepX)) {
+          keep <- lapply(names(split$train),function(name)
+            as.integer(trained$choice.keepX[[name]][1]))
+          names(keep) <- names(split$train)
+        } else stop("Training-only DIABLO tuning did not return a keepX choice.")
+      }
+    }
+    keep <- lapply(keep,function(k)rep(as.integer(k[1]),ncomp))
+    set.seed(as.integer(seeds[index]))
+    model <- mixOmics::block.splsda(
+      X=split$train,Y=split$y_train,ncomp=ncomp,
+      keepX=keep,design=design,scale=FALSE
+    )
+    predicted <- predict(model,newdata=split$test,dist="max.dist")
+    vote <- predicted$WeightedVote[["max.dist"]]
+    if(is.null(vote) || nrow(as.matrix(vote))!=length(split$testIds))
+      stop("DIABLO weighted vote missing or wrong holdout subject count.")
+    classes <- as.character(as.matrix(vote)[,ncomp])
+    if(length(classes)!=length(split$testIds) ||
+       anyNA(classes)||any(!classes%in%levels(split$y_test)))
+      stop("Invalid/ambiguous DIABLO holdout predictions, no silent omissions.")
+    actual <- as.character(split$y_test)
+    counts <- table(split$y_test)
+    recall <- vapply(levels(split$y_test),function(label)
+      mean(classes[actual==label]==label),numeric(1))
+    ber <- mean(1-recall)
+    all_rows[[index]] <- data.frame(
+      seed=seeds[index],sampleId=split$testIds,
+      actual=actual,predicted=classes,correct=as.integer(actual==classes),
+      stringsAsFactors=FALSE
+    )
+    summaries[[index]] <- list(seed=seeds[index],
+      trainingSubjects=length(split$trainIds),
+      heldOutSubjects=length(split$testIds),
+      balancedErrorRate=ber,
+      accuracy=mean(actual==classes),
+      classRecall=as.list(recall),
+      trainingOnlyTuning=isTRUE(tune))
+  }
+  predictions <- do.call(rbind,all_rows)
+  if(nrow(predictions)!=sum(vapply(summaries,function(x)x$heldOutSubjects,integer(1))))
+    stop("DIABLO holdout missing predictions.")
+  dir.create(output_dir,recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(predictions,file.path(output_dir,"diablo_outer_holdout.csv"),row.names=FALSE)
+  list(status="ok",summary=list(
+    evaluation="Repeated subject-level heldout, with training-only filtering/imputation/scaling and training-only keepX tuning",
+    seeds=as.integer(seeds),folds=summaries,
+    meanBER=mean(vapply(summaries,function(x)x$balancedErrorRate,numeric(1))),
+    maxBER=max(vapply(summaries,function(x)x$balancedErrorRate,numeric(1))),
+    trainingPipeline="as-supplied log-scale omics, no varying batch or nuisance covariates; observed samples must be truly independent",
+    caveat="Held-out subsets reuse the same source cohort across splits: not external replication. Outcome-related pre-import processing, MS global QC and study selection remain outside this validation."
+  ),predictions=predictions)
+}
+
 run_diablo_blocks <- function(
   blocks,
   outcome,
