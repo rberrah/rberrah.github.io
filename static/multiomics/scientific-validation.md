@@ -203,6 +203,41 @@ et les simulations avec vérité connue restent requis pour cette validation.
 Ne jamais transformer « 100 % de directions concordantes sur les variables
 sélectionnées » en « 100 % d'exactitude scientifique ».
 
+## Validation croisée sur intensités LFQ et aires MS
+
+La voie prédictive distingue désormais explicitement le traitement
+**exploratoire de la matrice** et la **recette reproductible de prédiction** :
+
+- Pour `lfq_intensity` (protéomique) et `peak_area` (métabolomique)
+  **non négatifs** : transformation fixée `log2(x + 1)`, suivie d'un
+  centrage médian **dans chaque assay uniquement**. Ni pseudocount
+  estimé sur la cohorte, ni filtrage de variables utilisant tous les
+  sujets, ni référence médiane issue du jeu test avant CV. La sélection
+  prédictive, la gestion des valeurs manquantes et la standardisation
+  sont refaites sur les plis d'entraînement.
+- Les intensités négatives présentées comme brutes sont incompatibles
+  avec cette recette ; la voie exploratoire conserve alors un
+  avertissement de risque de fuite. Le nom de la mesure ne prouve
+  pas son échelle réelle.
+- La normalisation médiane **suppose une majorité de variables stables**
+  et un **panel identique de variables mesurées** pour les nouvelles
+  observations. Ce choix peut effacer des modifications biologiques
+  globales et n'est pas universel.
+- Le modèle prédictif n'exécute **pas** les corrections de dérive
+  pooled-QC, la suppression des variables associées aux blancs, les
+  filtres de RSD ou l'imputation MNAR du chemin exploratoire :
+  `rawIntensityScreening`, `technicalQcCaveat` et
+  `intensityPanelAssumption` signalent cette différence.
+  Les contrôles instrumentaux doivent être revus et des analyses de
+  sensibilité validées avant toute revendication de biomarqueur.
+
+Le test logiciel `scripts/test_multiomics_prediction_foldsafe.mjs`
+perturbe massivement une observation tout en vérifiant que les
+transformations des autres sujets restent inchangées. Il complète une
+analyse prédictive à deux omiques avec validation croisée imbriquée.
+Cela vérifie un **contrat logiciel de non-fuite inter-sujets**, pas la
+validité clinique ni la transférabilité analytique.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
