@@ -35,6 +35,8 @@
   /** @type {string[]} */
   let selectedCovariates = [];
   let demoLoaded = false;
+  let demoLoading = false;
+  let demoError = '';
 
   /** The simple controls and the expert form share the exact same analysis state. */
   /** @param {Event} event */
@@ -727,9 +729,32 @@
 
   /** @param {'transcriptomics' | 'proteomics' | 'metabolomics' | null} onlyLayer */
   async function loadDemoAndShowResults(onlyLayer = null) {
-    await loadDemo(onlyLayer);
-    // The demonstration is an actual analysis, not a mockup.
-    document.getElementById('analysis-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (demoLoading) return;
+    demoLoading = true;
+    demoError = '';
+    analysisError = '';
+    analysisResult = null;
+    try {
+      await loadDemo(onlyLayer);
+      // runAnalysis reports some failures in analysisError without throwing.
+      if (!analysisResult || analysisStatus !== 'done') {
+        throw new Error(analysisError || 'No complete analysis results were produced.');
+      }
+      // The demonstration is an actual analysis, not a mockup.
+      document.getElementById('analysis-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (error) {
+      demoLoaded = false;
+      analysisResult = null;
+      analysisStatus = 'error';
+      const detail = error instanceof Error ? error.message : String(error);
+      demoError = t(
+        'La démonstration n’a pas pu se terminer. Réessayez ; si le problème persiste, vérifiez la connexion et les fichiers de démonstration. Détail : ',
+        'The demo could not finish. Try again; if the problem continues, check your connection and demo files. Detail: '
+      ) + detail;
+      analysisError = demoError;
+    } finally {
+      demoLoading = false;
+    }
   }
 
   /**
@@ -1214,6 +1239,8 @@
       analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
       analysisStatus = 'done';
     } catch (error) {
+      // Never display an incomplete result when a later essential step fails.
+      analysisResult = null;
       analysisStatus = 'error';
       analysisError = error instanceof Error ? error.message : 'Analysis failed.';
     }
@@ -1661,13 +1688,15 @@
       <small>{t('Exemple pédagogique (8 sujets) : il illustre la méthode, sans valider une découverte biologique.', 'Educational example (8 subjects): it illustrates the workflow, not a validated biological discovery.')}</small>
     </div>
     <div class="quick-demo-actions" aria-label={t('Choix de démonstration', 'Demonstration choices')}>
-      <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" onclick={() => loadDemoAndShowResults()}>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" disabled={demoLoading} onclick={() => loadDemoAndShowResults()}>
         {t('Trois omiques', 'Three omics')}
       </button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-rna" onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('RNA seul', 'RNA only')}</button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-protein" onclick={() => loadDemoAndShowResults('proteomics')}>{t('Protéines seules', 'Proteins only')}</button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-metabolite" onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Métabolites seuls', 'Metabolites only')}</button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-rna" disabled={demoLoading} onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('RNA seul', 'RNA only')}</button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-protein" disabled={demoLoading} onclick={() => loadDemoAndShowResults('proteomics')}>{t('Protéines seules', 'Proteins only')}</button>
+      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-metabolite" disabled={demoLoading} onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Métabolites seuls', 'Metabolites only')}</button>
     </div>
+    {#if demoLoading}<p role="status">{t('Analyse de la démonstration en cours…', 'Analyzing the demo…')}</p>{/if}
+    {#if demoError}<p role="alert" data-testid="multiomics-demo-error" class="error">{demoError}</p>{/if}
   </div>
   <details class="simple-disclosure">
     <summary>{t('Confidentialité des données', 'Data privacy')}</summary>
@@ -2208,12 +2237,13 @@
       <p class="eyebrow">{t('Exemple prêt à explorer', 'Ready-to-run example')}</p>
       <h3>{t('Traitement × temps, trois omiques', 'Treatment × time, three omics')}</h3>
       <p>{t('8 sujets, 2 visites, 3 types de mesures. La démo exécute les mêmes calculs que vos fichiers.', '8 subjects, 2 visits, 3 measurement types. The demo runs the same calculations as your own files.')}</p>
-      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" onclick={() => loadDemo()}>{t('Charger les trois omiques', 'Load all three omics')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-load-demo" disabled={demoLoading} onclick={() => loadDemoAndShowResults()}>{t('Charger les trois omiques', 'Load all three omics')}</button>
       <div class="actions" data-testid="multiomics-single-demo-buttons">
-        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-rna" onclick={() => loadDemo('transcriptomics')}>{t('Démo RNA seul', 'RNA-only demo')}</button>
-        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-protein" onclick={() => loadDemo('proteomics')}>{t('Démo protéines seules', 'Proteomics-only demo')}</button>
-        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-metabolite" onclick={() => loadDemo('metabolomics')}>{t('Démo métabolites seuls', 'Metabolomics-only demo')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-rna" disabled={demoLoading} onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('Démo RNA seul', 'RNA-only demo')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-protein" disabled={demoLoading} onclick={() => loadDemoAndShowResults('proteomics')}>{t('Démo protéines seules', 'Proteomics-only demo')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-demo-metabolite" disabled={demoLoading} onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Démo métabolites seuls', 'Metabolomics-only demo')}</button>
       </div>
+      {#if demoError}<p class="error">{demoError}</p>{/if}
       <p class="simple-hint">{t('Démo synthétique : 8 sujets, groupes traité/témoin et deux temps. Les résultats montrent le fonctionnement, pas une découverte biologique validée. Choisissez RNA, protéines, métabolites ou les trois.', 'Synthetic demo: 8 subjects, treated/control groups and two visits. The outputs demonstrate the workflow, not a validated biological finding. Choose RNA, proteins, metabolites or all three.')}</p>
       <details class="simple-disclosure">
         <summary>{t('Télécharger les données de démonstration', 'Download demo data')}</summary>

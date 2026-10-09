@@ -104,3 +104,25 @@ test('Beginner-facing DIABLO/MOFA explanations define terms and avoid biomarker 
   await expect(mofa).toContainText('facteur latent');
   await expect(mofa).toContainText('effet de lot');
 });
+
+
+test('A failed demo file download shows a clear message and a retry actually works',async({page})=>{
+  const jsErrors=[];
+  page.on('pageerror',error=>jsErrors.push(error.message));
+  await page.route('**/multiomics/demo_transcriptomics.csv',route=>
+    route.fulfill({status:503,contentType:'text/plain',body:'Temporary unavailable'}));
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  const warning=page.getByTestId('multiomics-demo-error');
+  await expect(warning).toBeVisible({timeout:15000});
+  await expect(warning).toContainText('Réessayez');
+  await expect(page.getByTestId('multiomics-results')).toHaveCount(0);
+  await expect(page.getByTestId('multiomics-quick-demo-rna')).toBeEnabled();
+  expect(jsErrors).toEqual([]);
+  await page.unroute('**/multiomics/demo_transcriptomics.csv');
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await expect(warning).toHaveCount(0);
+  await expect(page.getByTestId('multiomics-analysis-mode')).toContainText('Omique unique');
+  expect(jsErrors).toEqual([]);
+});

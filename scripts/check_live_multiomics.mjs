@@ -21,8 +21,22 @@ try {
     .waitFor({state:'visible',timeout:30000});
   console.log('PASS: real public page loads and hydrates beginner demo');
   await page.getByTestId('multiomics-quick-demo-rna').click();
-  await page.getByTestId('multiomics-results')
-    .waitFor({state:'visible',timeout:30000});
+  try {
+    await page.getByTestId('multiomics-results')
+      .waitFor({state:'visible',timeout:30000});
+  } catch (error) {
+    const evidence=await page.evaluate(() => ({
+      url:location.href,
+      resultsPresent:!!document.querySelector('[data-testid="multiomics-results"]'),
+      demoPresent:!!document.querySelector('[data-testid="multiomics-quick-demo-rna"]'),
+      visibleAlerts:[...document.querySelectorAll('[role="alert"], .alert, .error')]
+        .filter(el=>el.getClientRects().length)
+        .map(el=>el.textContent?.trim().slice(0,350)).filter(Boolean).slice(0,8),
+      mainText:document.querySelector('main')?.innerText?.slice(-1400) || ''
+    }));
+    console.error('PUBLIC DEMO DIAGNOSTICS',JSON.stringify({evidence,pageErrors:errors},null,2));
+    throw error;
+  }
   const mode=await page.getByTestId('multiomics-analysis-mode').innerText();
   if(!/Omique unique|Single.omics/i.test(mode))
     throw new Error('Public one-omic demo returned an incomprehensible analysis mode');
