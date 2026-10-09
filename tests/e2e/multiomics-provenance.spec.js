@@ -40,6 +40,10 @@ test('Reactome release, analysis token and SHA-256 inputs are retained in the fi
   await page.goto('/multiomics/tool');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await page.getByLabel(/Interroger Reactome|Query Reactome/i).check();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
 
   const provenance = await page.evaluate(() => {
     const result = window.__PMX_MULTIOMICS_ANALYSIS__;
@@ -100,6 +104,10 @@ test('Reactome version lookup failure never blocks the scientific analysis', asy
   await page.goto('/multiomics/tool');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await page.getByLabel(/Interroger Reactome|Query Reactome/i).check();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
 
   const provenance = await page.evaluate(() => window.__PMX_MULTIOMICS_ANALYSIS__?.externalDatabaseProvenance?.reactome);
   expect(provenance?.status).toBe('unavailable');
