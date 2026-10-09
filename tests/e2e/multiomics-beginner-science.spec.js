@@ -24,6 +24,18 @@ test('A new researcher can finish a one-omic demo on a phone without R or jargon
 });
 
 
+test('Three-omics beginner demo never requires R or Reactome service',async({page})=>{
+  let external=0;
+  page.on('request',request=>{
+    if(/127\\.0\\.0\\.1:8787\\/run|reactome\\.org\\/AnalysisService/.test(request.url()))external++;
+  });
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('multiomics-quick-demo').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await expect(page.getByTestId('multiomics-analysis-mode')).toContainText(/multi|omiques/i);
+  expect(external).toBe(0);
+});
+
 test('Beginner one-click demo instructions meet WCAG AA 4.5:1 text contrast',async({page})=>{
   await page.goto('/multiomics/tool?lang=fr');
   const ratios=await page.evaluate(()=>{
