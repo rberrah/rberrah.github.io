@@ -25,6 +25,9 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('93 %');
   await expect(validation).toContainText('58,6 %');
   await expect(validation).toContainText('MNAR');
+  await expect(validation).toContainText('200 patientes MAINZ');
+  await expect(validation).toContainText('198 patientes TRANSBIG');
+  await expect(validation).toContainText('0,8954');
 
   const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
   await expect(metaboliteConfidence).toBeVisible();
@@ -39,6 +42,9 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(glossary).toContainText('Adjustment factor');
   await expect(validation).toContainText('Software validation');
   await expect(validation).toContainText('58.6%');
+  await expect(validation).toContainText('200 MAINZ participants');
+  await expect(validation).toContainText('198 different-study TRANSBIG participants');
+  await expect(validation).toContainText('0.8954');
   await expect(metaboliteConfidence).toContainText('Metabolite identification confidence');
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(glossary).toContainText('Lexique express · six mots utilisés dans tout l’outil');

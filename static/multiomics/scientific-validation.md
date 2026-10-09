@@ -284,6 +284,72 @@ du dépôt `bioconductor-source/ALL`. Implémentation
 Le workflow `.github/workflows/multiomics-all-native-heldout.yml`
 archive coefficients, prédictions, métriques et contrôles négatifs.
 
+## Validation sur une seconde étude indépendante : MAINZ → TRANSBIG (9 octobre 2026)
+
+Cette étape franchit la limite commune des tests TCGA et ALL, qui reposaient
+sur des partitions de la *même étude*. Deux ExpressionSets de publications
+distinctes, fournies par Bioconductor et épinglées à un commit Git immuable :
+
+- **Entraînement** : MAINZ (Schmidt et al., 2008, GSE11121), **200 patientes**.
+- **Évaluation externe** : TRANSBIG (Desmedt et al., 2007, GSE7390),
+  **198 patientes**, sans que leur statut ER soit transmis au moteur JS.
+- **Mesures communes** : les **22 283 sondes Affymetrix HG-U133A**
+  disponibles dans les deux études ; aucune présélection globale des sondes.
+  Elles correspondent à la **même technologie**, et non à une démonstration
+  de transfert entre technologies.
+
+La question binaire pré-définie est le statut clinique ER positif ou
+négatif. PMx, et non un modèle de référence, sélectionne 12 sondes sur
+**MAINZ uniquement**, choisit sa régularisation par validation croisée
+de MAINZ, apprend les centres et écarts-types sur MAINZ, puis sérialise
+son propre modèle binomial ridge. Le modèle JSON est rechargé pour
+rejouer les prédictions de **toutes les 198 patientes de TRANSBIG**,
+sans réajustement. **Ce n'est qu'après ce scoring figé** que R charge
+les 198 étiquettes ER et calcule les métriques.
+
+| Observation dans la CI | Résultat |
+| --- | ---: |
+| MAINZ : patientes d'apprentissage | 200 |
+| TRANSBIG : patientes évaluées | 198 |
+| Sondes candidates communes, sans sélection en amont | 22 283 |
+| Variables finales sélectionnées sur MAINZ | 12 |
+| Régularisation retenue dans MAINZ | 10 |
+| **AUC externe** | **0,8954** |
+| **Score de Brier externe** | **0,1009** |
+| AUC moyenne, dix réentraînements complets avec étiquettes MAINZ permutées | 0,5416 |
+| AUC moyenne, 300 permutations des étiquettes TRANSBIG | 0,5023 |
+
+L'audit des échantillons n'a trouvé **aucun identifiant d'échantillon
+identique** entre les études, et **aucune corrélation supérieure ou égale
+à 0,995** parmi les paires de profils étudiées ; la corrélation maximale
+observée est **0,915648**. Cet audit ne prouve pas l'absence absolue
+de toute patiente partagée sous des identifiants différents, ni
+l'indépendance des préparations de données.
+
+**Portée** : première évaluation réellement *inter-études* du modèle
+PMx figé, dans le contexte expérimental précis du statut ER sur
+microarrays Affymetrix historiques. Ce résultat ne démontre
+pas une validation clinique prospective, une utilité pour la prise
+de décision, une absence de biais, la transférabilité entre
+plateformes, l'analyse de comptages RNA-seq, ni l'intégration MOFA2/DIABLO.
+Les jeux de données ont été prétraités par leurs auteurs. L'AUC dépend
+des compositions différentes des cohortes, et la calibration doit être
+examinée au-delà du seul Brier. Les dix permutations de MAINZ sont un
+contrôle logiciel, **pas** une estimation précise de l'erreur ni une
+garantie statistique d'absence de fuite d'information. Les sources
+sont publiquement accessibles, mais les identifiants synthétiques
+ne garantissent pas de détecter toutes les patientes réutilisées.
+
+Scripts : `scripts/export_mainz_transbig_pmx.R`,
+`scripts/benchmark_mainz_transbig_pmx.mjs`,
+`scripts/evaluate_mainz_transbig_pmx.R`. Workflow reproductible :
+`.github/workflows/multiomics-mainz-transbig-external.yml`.
+Sources Git épinglées : MAINZ
+`63e11105cb8a7c854264e9a13f8c926b39f20ab0` et TRANSBIG
+`44c052727769c051f965035725953b6883865743`.
+Les artefacts de la CI exposent les coefficients figés,
+les prédictions, les métriques et les contrôles négatifs.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
