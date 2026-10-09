@@ -33,6 +33,6 @@ jobs:
           r-version: 'release'
           use-public-rspm: true
       - name: Install established R longitudinal reference
-        run: Rscript -e 'install.packages(c("lme4","lmerTest"), repos="https://cloud.r-project.org")'
+        run: Rscript -e 'install.packages(c("lme4","lmerTest"))'
       - name: Check explicit contrast, full BH family and null controls
         run: Rscript multiomics-engine/tests/test_longitudinal_backend.R
