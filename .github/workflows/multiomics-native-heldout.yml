@@ -68,5 +68,6 @@ jobs:
             tmp/multiomics/tcga-native/source-contract.json
             tmp/multiomics/tcga-native/frozen-pmx-model.json
             tmp/multiomics/tcga-native/frozen-pmx-predictions.csv
+            tmp/multiomics/tcga-native/pmx-train-label-null-predictions.csv
             tmp/multiomics/tcga-native/pmx-native-heldout-report.json
           if-no-files-found: warn
