@@ -62,7 +62,7 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
       'Métabolomique : vérifier blancs, pooled-QC, identification et analyses de sensibilité MS.',
       'Metabolomics: review blanks, pooled QC, compound identification and MS sensitivity analyses.');
     if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
-      'RNA-seq : vérifier indépendamment la dispersion, les facteurs d'ajustement et les contrastes DESeq2.',
+      'RNA-seq : vérifier indépendamment la dispersion, les facteurs d’ajustement et les contrastes DESeq2.',
       'RNA-seq: independently check dispersion, adjustment variables and DESeq2 contrasts.');
   }
   if ((result?.preAnalysisDiagnostics?.blockers || []).length) add('study_design', 'blocked',
