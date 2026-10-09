@@ -166,6 +166,10 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
       'Pour les échelles prises en charge, le moteur ne filtre plus les variables sur la cohorte entière avant la CV. Les prétraitements réalisés avant import, la conception de l’étude et la validation externe restent à vérifier.',
       'For supported scales, the engine no longer filters features on the full cohort before CV. Pre-import processing, study design and external validation still need review.',
       'requires_confirmation');
+    if (result.predictiveOutcome.rawIntensityScreening) add('raw_intensity_cv_qc_limit',
+      'Prédiction LFQ/MS : transformation fixée et normalisation individuelle sans fuite inter-sujets, mais correction de dérive pooled-QC, blancs et filtres RSD non transférés à ce modèle. Le même panel d’analytes doit être mesuré chez les futurs sujets. Validation technique et externe indispensable.',
+      'LFQ/MS prediction: fixed transformation and assay-local normalization without cross-subject leakage, but pooled-QC drift, blank and RSD corrections were not transferred to this model. Future samples require the same analyte panel. Technical and external validation are essential.',
+      'requires_confirmation');
   }
   if (layers.length > 1 && !exploratory) add('separate_fdr_families',
     'Les q-values sont corrigées par couche omique, pas globalement sur toutes les couches et analyses de voies : préspécifier les familles de tests.',
