@@ -8,6 +8,7 @@
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
+  import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '$lib/multiomics/portable-project.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -68,6 +69,9 @@
   }
   let analysisStatus = 'idle';
   let analysisError = '';
+  let portableProjectBusy = false;
+  let portableProjectMessage = '';
+  let portableProjectError = '';
   /** @type {any} */
   let analysisResult = null;
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
@@ -1191,6 +1195,153 @@
     } catch (error) {
       analysisStatus = 'error';
       analysisError = error instanceof Error ? error.message : 'Analysis failed.';
+    }
+  }
+
+
+  // Export original study text and protocol alongside the current results.
+  // This is a sensitive local file, never uploaded to a third-party service.
+  async function exportPortableProject() {
+    if (!analysisResult || portableProjectBusy) return;
+    portableProjectBusy = true;
+    portableProjectError = '';
+    portableProjectMessage = '';
+    try {
+      const settings = {
+        studyName, objective, organism, unitType, studySetting, designType,
+        groupCount, timepointCount, sampleOverlap, technicalReplicatesExpected,
+        batchKnown, outcomeType, outcomeTimepoint, covariatesAvailable,
+        partialOmicsExpected, selectedCovariates, groupVariable, outcome,
+        subjectCount, paired, longitudinal, transcriptomicsPlatform,
+        transcriptomicsValues, transcriptomicsIdType, proteomicsPlatform,
+        proteomicsValues, proteomicsIdType, metabolomicsPlatform,
+        metabolomicsValues, metabolomicsIdType, msBlankFilter, msBlankFold,
+        msQcRsdFilter, msQcRsdThreshold, msDriftCorrection, msMnarStrategy,
+        analysisIntent, confirmIndependentAssays, msAutoMetadata,
+        columnMapping, metaboliteAnnotations, msAnnotationCsv,
+        msAnnotationFields, msImportFormat, annotationFileName,
+        demoLoaded
+      };
+      const packageData = await createPortableProject({
+        files,
+        extraFiles:{ msOriginal:msOriginalFile, msUserAnnotations:msUserAnnotationFile },
+        settings,
+        result:analysisResult
+      });
+      const blob = new Blob([JSON.stringify(packageData)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href=url;
+      a.download='multiomics_project_reproducible_v1.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      portableProjectMessage = t(
+        'Projet téléchargé avec les fichiers source, empreintes SHA-256, protocole et résultats. Contient potentiellement des données confidentielles.',
+        'Project downloaded with original inputs, SHA-256 digests, protocol and results. May contain confidential research data.'
+      );
+    } catch (error) {
+      portableProjectError = error instanceof Error ? error.message : 'Unable to export project.';
+    } finally {
+      portableProjectBusy = false;
+    }
+  }
+
+  /** @param {Event} event */
+  async function importPortableProject(event) {
+    const input = /** @type {HTMLInputElement} */ (event.currentTarget);
+    const source = input.files?.[0];
+    if (!source || portableProjectBusy) return;
+    portableProjectBusy = true;
+    portableProjectMessage = '';
+    portableProjectError = '';
+    try {
+      if (source.size > PORTABLE_PROJECT_MAX_BYTES * 2)
+        throw new Error('Portable project is too large for the browser importer.');
+      const imported = await parsePortableProject(await source.text());
+      const next = imported.settings;
+      // This explicitly restores only data and settings, never historical
+      // results as fresh evidence. No external services run during import.
+      files = {
+        metadata:imported.files.metadata,
+        transcriptomics:imported.files.transcriptomics||null,
+        proteomics:imported.files.proteomics||null,
+        metabolomics:imported.files.metabolomics||null
+      };
+      await inspectMetadata(files.metadata);
+      for (const layer of omicLayers) await inspectMatrix(layer,files[layer]);
+      const savedMapping = next.columnMapping || {};
+      if (typeof savedMapping === 'object' && !Array.isArray(savedMapping)) {
+        columnMapping = Object.fromEntries(Object.entries(savedMapping)
+          .filter(([key,value])=>typeof value==='string' &&
+            (!value || metadataHeaders.includes(value))));
+      }
+      studyName = next.studyName ?? '';
+      objective = next.objective ?? 'explore';
+      organism = next.organism ?? 'human';
+      unitType = next.unitType ?? 'participant';
+      studySetting = next.studySetting ?? 'clinical_observational';
+      designType = next.designType ?? 'independent';
+      groupCount = next.groupCount ?? '2';
+      timepointCount = next.timepointCount ?? '1';
+      sampleOverlap = next.sampleOverlap ?? 'same_specimen';
+      technicalReplicatesExpected = next.technicalReplicatesExpected ?? 'unknown';
+      batchKnown = next.batchKnown ?? 'unknown';
+      outcomeType = next.outcomeType ?? 'none';
+      outcomeTimepoint = next.outcomeTimepoint ?? '';
+      covariatesAvailable = next.covariatesAvailable ?? 'yes';
+      partialOmicsExpected = next.partialOmicsExpected ?? 'no';
+      selectedCovariates = Array.isArray(next.selectedCovariates)
+        ? /** @type {string[]} */ (next.selectedCovariates).filter(c=>typeof c==='string'&&metadataHeaders.includes(c)) : [];
+      groupVariable = next.groupVariable ?? '';
+      outcome = next.outcome ?? '';
+      subjectCount = next.subjectCount;
+      paired = next.paired ?? 'no';
+      longitudinal = next.longitudinal ?? 'no';
+      transcriptomicsPlatform = next.transcriptomicsPlatform ?? 'bulk_rnaseq';
+      transcriptomicsValues = next.transcriptomicsValues ?? 'raw_counts';
+      transcriptomicsIdType = next.transcriptomicsIdType ?? 'ensembl_gene';
+      proteomicsPlatform = next.proteomicsPlatform ?? 'label_free';
+      proteomicsValues = next.proteomicsValues ?? 'lfq_intensity';
+      proteomicsIdType = next.proteomicsIdType ?? 'uniprot';
+      metabolomicsPlatform = next.metabolomicsPlatform ?? 'untargeted_lcms';
+      metabolomicsValues = next.metabolomicsValues ?? 'peak_area';
+      metabolomicsIdType = next.metabolomicsIdType ?? 'chebi';
+      msBlankFilter = next.msBlankFilter ?? 'flag';
+      msBlankFold = next.msBlankFold ?? 5;
+      msQcRsdFilter = next.msQcRsdFilter ?? 'yes';
+      msQcRsdThreshold = next.msQcRsdThreshold ?? 0.30;
+      msDriftCorrection = next.msDriftCorrection ?? 'yes';
+      msMnarStrategy = next.msMnarStrategy ?? 'none';
+      analysisIntent = next.analysisIntent ?? 'exploratory';
+      confirmIndependentAssays = Boolean(next.confirmIndependentAssays);
+      msAutoMetadata = Boolean(next.msAutoMetadata);
+      metaboliteAnnotations = Array.isArray(next.metaboliteAnnotations)?next.metaboliteAnnotations:[];
+      msAnnotationCsv = next.msAnnotationCsv ?? '';
+      msAnnotationFields = Array.isArray(next.msAnnotationFields)?next.msAnnotationFields:[];
+      msImportFormat = next.msImportFormat ?? '';
+      annotationFileName = next.annotationFileName ?? '';
+      msOriginalFile = imported.files.msOriginal||null;
+      msUserAnnotationFile = imported.files.msUserAnnotations||null;
+      demoLoaded = Boolean(next.demoLoaded);
+      // Import NEVER silently submits cohort data to R, Reactome or ChEBI.
+      referenceBackendMode = 'browser';
+      referenceBackendStatus = 'unchecked';
+      referenceBackendMessage = '';
+      referenceBackendHealth = null;
+      useReactome = false;
+      resolveIdentifiers = false;
+      analysisStatus = 'idle';
+      analysisError = '';
+      analysisResult = null;
+      portableProjectMessage = t(
+        'Projet importé et intégrité SHA-256 vérifiée. Vérifiez le protocole puis relancez l’analyse ; aucune donnée n’a été envoyée à un serveur. Les résultats archivés ne sont pas présentés comme une nouvelle analyse.',
+        'Project imported; SHA-256 verified. Review the protocol and rerun; no data was sent to a server. Archived results are not shown as freshly computed.'
+      );
+    } catch (error) {
+      portableProjectError = error instanceof Error ? error.message : 'Invalid portable project.';
+    } finally {
+      portableProjectBusy = false;
+      input.value = '';
     }
   }
 
@@ -2378,7 +2529,15 @@
           : t('Chargez au moins une couche omique et mappez subject_id, sample_id, assay_id et omic.', 'Load at least one omics layer and map subject_id, sample_id, assay_id and omic.')}</span>
   </div>
 
-  <div class="run-box">
+  <details class="simple-disclosure portable-project-panel" data-testid="multiomics-project-import-panel">
+    <summary>{t('Reprendre un projet enregistré', 'Reopen a saved project')}</summary>
+    <p>{t('Réimportez votre projet PMx au format JSON. Les empreintes SHA-256 protègent les fichiers contre les modifications. Rien n’est envoyé à un serveur et vous choisissez quand relancer l’analyse.', 'Reimport your PMx JSON project. SHA-256 verifies the original files. Nothing is sent to a server; you choose when to rerun.')}</p>
+    <label for="multiomics-project-import-file">{t('Fichier de projet (.json)', 'Project file (.json)')}</label>
+    <input id="multiomics-project-import-file" data-testid="multiomics-project-import-file" type="file" accept=".json,application/json" disabled={portableProjectBusy} onchange={importPortableProject} />
+    {#if portableProjectMessage}<p role="status" class="ms-import-message">{portableProjectMessage}</p>{/if}
+    {#if portableProjectError}<p role="alert" class="annotation-error">{portableProjectError}</p>{/if}
+  </details>
+    <div class="run-box">
     <div>
       <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
       <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
@@ -2451,6 +2610,10 @@
       <details class="simple-disclosure export-detail">
         <summary>{t('Autres exports', 'Other downloads')}</summary>
         <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Données détaillées (JSON)', 'Detailed data (JSON)')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-project-export" disabled={portableProjectBusy} onclick={exportPortableProject}>{portableProjectBusy ? t('Préparation…', 'Preparing…') : t('Enregistrer le projet complet', 'Save complete project')}</button>
+        <small>{t('Contient les fichiers source, les réglages et les résultats. Peut inclure des données personnelles ou de recherche sensibles. Limite : 80 Mio de données source textuelles.', 'Includes original files, settings and results. May contain sensitive research or personal data. Limit: 80 MiB of source text.')}</small>
+        {#if portableProjectMessage}<p role="status" class="ms-import-message">{portableProjectMessage}</p>{/if}
+        {#if portableProjectError}<p role="alert" class="annotation-error">{portableProjectError}</p>{/if}
       </details>
       {#if analysisResult.reactome?.combined?.token}
         <a class="btn btn-outline" href={`https://reactome.org/PathwayBrowser/#DTAB=AN&ANALYSIS=${analysisResult.reactome.combined.token}`} target="_blank" rel="noreferrer">{t('Ouvrir dans Reactome ↗', 'Open in Reactome ↗')}</a>

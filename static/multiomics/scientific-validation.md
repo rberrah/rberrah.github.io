@@ -361,6 +361,42 @@ accessible**, mais le parcours confirmatoire reste bloqué sans une
 revue indépendante du protocole, de la censure et des risques concurrents.
 
 
+## Projets portables, réouverture et confidentialité
+
+Le site permet d'exporter, depuis une analyse terminée, un fichier
+`multiomics_project_reproducible_v1.json` contenant les **textes
+originaux** des matrices et de la feuille d'échantillons, les
+paramètres de la session, une copie des résultats et une empreinte
+cryptographique SHA-256 de chaque fichier. Les exports MS
+originaux au format **texte** et leurs annotations éventuelles
+sont inclus lorsqu'ils sont présents.
+
+Au réimport : vérification **SHA-256** avant de restaurer les
+fichiers, restauration des réglages, **aucune réutilisation des
+résultats archivés comme s'ils venaient d'être recalculés**.
+L'utilisateur décide explicitement de relancer l'analyse.
+Le backend R et les API ChEBI/Reactome reviennent au mode
+désactivé : aucune donnée n'est envoyée automatiquement.
+
+**Sécurité et limites** : ce projet contient les données originales
+et peut identifier des patients ou collaborateurs. Il reste local
+au navigateur au cours de l'import/export mais doit être stocké
+et partagé conformément aux règles du laboratoire et au RGPD.
+Il n'est pas chiffré par l'application. Le format n'accepte que
+des fichiers texte, avec une limite de **80 Mio** de source.
+Les spectres mzML/mzXML bruts, l'environnement R complet, les
+versions figées de toutes les dépendances et les réponses des
+bases externes ne sont **pas** inclus. Une réanalyse avec une
+autre version logicielle peut donner des résultats différents.
+Pour une publication, archiver séparément les fichiers bruts
+instrumentaux et les versions exactes R/Bioconductor/Reactome.
+
+Les tests `scripts/test_multiomics_portable_project.mjs` et
+`tests/e2e/multiomics-portable-project.spec.js` vérifient la
+restauration exacte, la confidentialité des URL de backend,
+l'absence de transmission externe automatique, et le refus
+des fichiers falsifiés.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
