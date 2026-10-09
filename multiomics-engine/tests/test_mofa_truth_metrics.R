@@ -35,6 +35,8 @@ stopifnot(
   audit$maxTechnical>0.9999,
   audit$biologicalRecovered,
   audit$batchSignalDetected,
+  audit$distinctTwoFactorRecovery,
+  length(unique(audit$matchedIndependentFactorNames))==2L,
   !audit$batchDominated,
   identical(audit$strongestBiologicalFactor,"Factor2"),
   identical(audit$strongestTechnicalFactor,"Factor1")
@@ -47,6 +49,15 @@ stopifnot(
   isTRUE(all.equal(audit$maxBiological,again$maxBiological)),
   isTRUE(all.equal(audit$maxTechnical,again$maxTechnical))
 )
+
+# One mixed factor can correlate with BOTH truths but must not count as
+# recovery of two distinct biological/technical axes.
+mixed_factor <- data.frame(sample=data$truth$sample,factor="OneMixed",
+  value=data$truth$biological+data$truth$technical)
+mix_check <- mofa_factor_truth_diagnostics(mixed_factor,data$truth,
+  biological_threshold=0.55,batch_threshold=0.55)
+stopifnot(mix_check$biologicalRecovered,mix_check$batchSignalDetected,
+  !mix_check$distinctTwoFactorRecovery)
 
 # A factor that only reflects batch must be WARNED, not sold as biology.
 batch_only <- simulate_mofa_known_truth(seed=20261011L,scenario="batch_only")
