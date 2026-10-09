@@ -113,7 +113,8 @@ stopifnot(
   length(method$top)==5L
 )
 broken <- payload
-broken$metadataCsv <- sub(",T0,",",Baseline,",m_csv,fixed=TRUE)
+broken$metadataCsv <- sub('"T0"','"Baseline"',m_csv,fixed=TRUE)
+stopifnot(!identical(broken$metadataCsv,m_csv))
 blocked <- run_backend_analysis(broken)$methods$proteomics_longitudinal
 stopifnot(identical(blocked$status,"blocked"))
 
