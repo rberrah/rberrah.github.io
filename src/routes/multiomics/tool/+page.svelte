@@ -77,6 +77,10 @@
   let portableProjectError = '';
   /** @type {any} */
   let analysisResult = null;
+  /** @param {any} note */
+  function isMissingnessRiskNote(note) {
+    return String(note?.code ?? '').endsWith('_missingness_not_ignorable');
+  }
   let helpTooltip = { visible: false, text: '', left: 0, top: 0, placement: 'above' };
   // External API requests and reference R data forwarding are opt-in.
   let useReactome = false;
@@ -2709,7 +2713,7 @@
         : t('Inférence exploratoire : confirmation requise', 'Exploratory inference: confirmation required')}</strong>
       <p>{t('Exécution réussie ≠ validation scientifique. Une q-value faible ou un contrôle QC sans alerte ne certifient pas une découverte. Une conclusion publiable exige un design vérifié, une méthode de référence et, selon l’objectif, une validation indépendante.',
           'Successful execution is not scientific validation. Low q-values or apparently clean QC do not certify a finding. Publication claims require a checked design, appropriate reference methods and sometimes external validation.')}</p>
-      {#if analysisResult.scientificAssurance.notes?.some(note => note.code?.endsWith('_missingness_not_ignorable'))}
+      {#if analysisResult.scientificAssurance.notes?.some(isMissingnessRiskNote)}
         <p role="status" class="annotation-error" data-testid="multiomics-missingness-caution">
           {t('Données manquantes détectées : elles peuvent créer de fausses différences, même si leur proportion est identique entre groupes. Les p-values et q-values ne suffisent pas : consultez les limites et prévoyez une analyse de sensibilité.',
              'Missing measurements detected: they can create false differences even with identical missing-data rates between groups. P-values and q-values alone are insufficient: review the limitations and plan a sensitivity analysis.')}
