@@ -59,6 +59,65 @@ graine fixe et rapport JSON archivé par GitHub Actions ; résultats du
 validé** : le traitement des données manquantes exige un modèle d'observation,
 des analyses de sensibilité préspécifiées et une revue scientifique indépendante.
 
+## FDR sur mélanges de vrais signaux et de variables nulles (9 octobre 2026)
+
+La campagne antérieure de 2 000 jeux *entièrement nuls* mesurait la proportion
+de familles ayant au moins une découverte BH (FWER sous la nullité globale).
+Elle **ne mesurait pas directement la FDR dans un mélange d'hypothèses**.
+
+Le benchmark `scripts/test_multiomics_mixed_truth_fdr.mjs` est une deuxième
+simulation indépendante, avec une autre famille de générateurs pseudo-aléatoires
+(XORShift32, gaussiennes corrélées et loi t à 3 degrés de liberté).
+Il teste **2 400 jeux indépendants** : 200 répétitions pour chaque combinaison
+de 24 ou 80 sujets et de six mécanismes de variabilité/observation.
+Chaque jeu comporte **3 protéines avec effets connus (+2,0 ; +1,4 ; +0,9
+unités log) et 9 protéines à effet nul**, des protéines corrélées,
+un effet de lot et l'âge comme covariable.
+
+Les valeurs suivantes sont les **moyennes du faux taux de découvertes par jeu**
+`V / max(R, 1)`, où `V` est le nombre de découvertes sur des protéines
+nulles et `R` le nombre total de découvertes à `q BH ≤ 0,05`.
+La correction est **intra-omique**, et non à l'échelle de toute une étude.
+
+| Scénario généré | FDR observée (24 sujets) | FDR observée (80 sujets) |
+| --- | ---: | ---: |
+| Gaussien, corrélations entre protéines | 3,28 % | 1,73 % |
+| Hétéroscédasticité + corrélation | 3,37 % | 2,62 % |
+| MCAR + corrélation | 1,83 % | 2,85 % |
+| MAR dépendant de l'âge observé + corrélation | 2,70 % | 2,79 % |
+| Bruit à queues lourdes (t3) | 1,67 % | 3,02 % |
+| **MNAR : censure de queues opposées par groupe** | **19,08 %** | **58,55 %** |
+
+L'incertitude Monte-Carlo est calculée par bootstrap de **jeux complets**
+(800 rééchantillonnages), jamais par bootstrap de p-values corrélées.
+Dans le scénario MNAR, les IC bootstrap à 95 % de la FDR sont
+**14,12–24,00 %** à 24 sujets et **55,22–61,64 %** à 80 sujets.
+Les effets biologiques connus ne sont pas généralisables à des cohortes réelles.
+
+La capacité de détection est mesurée séparément : par exemple, pour
+les données gaussiennes corrélées, le rappel des trois vrais signaux est de
+**56,8 % à 24 sujets** contre **96,8 % à 80 sujets**. Un faible taux de
+fausses découvertes peut coexister avec une faible puissance statistique.
+
+Les cinq scénarios non MNAR n'ont pas révélé d'inflation manifeste au-dessus
+de 5 % dans ce générateur. Cela **ne prouve pas** le contrôle universel à 5 %,
+ni l'adéquation de HC3/BH à un autre plan, à une distribution inconnue,
+aux données RNA-seq en comptages, à la métabolomique ou aux modèles
+multi-omiques. La censure MNAR déforme les données malgré une proportion
+de valeurs manquantes similaire entre groupes : une bonne concordance numérique
+JS/R ne répare pas cette absence d'identifiabilité.
+
+Le workflow `.github/workflows/multiomics-mixed-truth-fdr.yml`
+archive le rapport JSON complet (FDR, bootstrap, sensibilité, couverture
+des IC, filtration des variables). Un contrôle de régression très large
+(25 % de FDR pour les scénarios non MNAR) n'est **pas un critère
+d'équivalence** à 5 % ; un dépassement statistiquement convaincant du seuil
+nominal exige une investigation et une validation indépendante.
+
+**Statut : validation logicielle partielle du modèle HC3 à deux groupes
+indépendants, uniquement dans ces scénarios simulés ; aucune certification
+confirmatoire universelle.**
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
