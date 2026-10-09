@@ -712,8 +712,9 @@
     metabolomicsValues = 'peak_area';
     metabolomicsIdType = 'chebi';
     resolveIdentifiers = false;
-    // Only public synthetic demo identifiers are sent to Reactome.
-    useReactome = true;
+    // One-click demos must remain usable without network access or third-party
+    // API availability. Reactome enrichment remains a separate explicit opt-in.
+    useReactome = false;
     referenceBackendMode = 'browser';
     analysisIntent = 'exploratory';
     demoLoaded = true;
