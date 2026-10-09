@@ -1,6 +1,10 @@
 name: Multi-omics public-site accessibility smoke
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-public-route-smoke.yml'
+      - 'src/routes/multiomics/**'
   push:
     branches: [main]
     paths:
