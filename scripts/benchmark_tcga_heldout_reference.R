@@ -136,6 +136,36 @@ permutation_mean <- mean(permutation_aucs)
 if(abs(permutation_mean-0.5)>0.08)
   stop("Shuffled holdout labels generated systematic discrimination: check leak.")
 
+# Stronger null: permute DEVELOPMENT outcomes; rerun selection, calibration
+# and heldout scoring. The 49 heldout outcomes are unchanged and unseen by fit.
+set.seed(20261010L)
+x_test_scaled <- sweep(sweep(impute_training(te,means),2,means,"-"),2,sds,"/")
+training_null_aucs <- vapply(seq_len(80L),function(i){
+  y0 <- sample(train_y,length(train_y),replace=FALSE)
+  effect0 <- colMeans(xscale[y0==1L,,drop=FALSE])-
+    colMeans(xscale[y0==0L,,drop=FALSE])
+  ix <- order(-abs(effect0),names(effect0))
+  ix <- ix[is.finite(effect0[ix]) & apply(xscale,2,stats::sd)[ix]>1e-8]
+  ix <- ix[seq_len(min(k,length(ix)))]
+  w <- effect0[ix]
+  denom <- sqrt(sum(w^2))
+  if(!is.finite(denom)||denom<=0)return(NA_real_)
+  s0 <- as.numeric(xscale[,ix,drop=FALSE]%*%w/denom)
+  fit0 <- suppressWarnings(try(stats::glm(y0~s0,family=stats::binomial()),silent=TRUE))
+  if(inherits(fit0,"try-error")||any(!is.finite(stats::coef(fit0))))
+    return(NA_real_)
+  st <- as.numeric(x_test_scaled[,ix,drop=FALSE]%*%w/denom)
+  b <- stats::coef(fit0)
+  validation_binary_auc(holdout_y,stats::plogis(b[[1L]]+b[[2L]]*st[keep_te]))
+},numeric(1))
+training_null_valid <- sum(is.finite(training_null_aucs))
+if(training_null_valid<76L)
+  stop("Training-label permutation produced too many invalid controls.")
+training_null_mean <- mean(training_null_aucs[is.finite(training_null_aucs)])
+if(abs(training_null_mean-0.5)>0.15)
+  stop("Training-label permutation retained unusual discrimination: audit source feature selection.")
+
+
 # Guard against a genuine error: reusing exact training subjects as the
 # validation set must not be silently reported as the official holdout.
 if(nrow(tr)!=150L || nrow(te)!=70L)
@@ -168,10 +198,17 @@ report <- list(
   permutation_null=list(repetitions=length(permutation_aucs),
     mean_auc=permutation_mean,
     min_auc=min(permutation_aucs),max_auc=max(permutation_aucs)),
+  training_label_permutation_control=list(
+    attempted=length(training_null_aucs),valid=training_null_valid,
+    average_holdout_auc=training_null_mean,
+    procedure="refit selected features and probabilities on permuted training labels, holdout labels untouched"),
+  perfect_auc_caution=if(evaluation$metrics$auc>=.999)
+    "Perfect AUC in a heavily preselected dataset must not be presented as clinical transportability" else NULL,
   pass=TRUE,scientificCertification=FALSE,
   constraints=c(
     "Evaluates PMx frozen-prediction METRICS, not PMx internal predictor training; it is a reference baseline, not proof of better external performance.",
     "Source train/test partitions are publisher-defined, but represent one TCGA source, not a genuinely new hospital or technical platform.",
+    "These globally prefiltered source variables may make subtype classification deceptively easy; near-perfect AUC is not clinical transportability.",
     "Input data were normalized/preselected by mixOmics upstream before these partitions; cannot exclude all upstream information leakage.",
     "Test cohort lacks proteomics, so this cannot validate multiomics DIABLO or multimodal patient-level deployment.",
     "Source test outcome labels were used only to determine predeclared evaluable Her2/LumA subjects and metrics after predictions were frozen.",
@@ -184,4 +221,5 @@ jsonlite::write_json(report,file.path(dest,"tcga-heldout-report.json"),
 cat("TCGA HELDOUT REFERENCE PASS: train=",sum(keep_tr),
     " test=",sum(keep_te),
     " AUC=",round(evaluation$metrics$auc,4),
-    " permuted mean AUC=",round(permutation_mean,4),"\n",sep="")
+    " permuted mean AUC=",round(permutation_mean,4),
+    " training-null mean AUC=",round(training_null_mean,4),"\n",sep="")
