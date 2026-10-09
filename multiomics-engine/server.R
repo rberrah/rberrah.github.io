@@ -815,6 +815,54 @@ run_backend_analysis <- function(payload) {
       } else {
         method_status("mixOmics DIABLO","error",list(message=as.character(fit), nuisance_adjustment=prepared_supervised$details))
       }
+      if (isTRUE(protocol$validateDiabloHoldout)) {
+        # Full-cohort tuning/perf() is not a legitimate independent BER.
+        # For holdouts use only as-supplied log data without pre-CV fitted
+        # cohort normalisation, covariate correction or varying batch.
+        reason <- NULL
+        if (!identical(design_type,"independent") || longitudinal)
+          reason <- "Repeated measures or non-independent plans are unsupported."
+        if(is.null(reason) && length(covariates))
+          reason <- "Selected covariates require training-only nuisance fitting."
+        if(is.null(reason) && any(vapply(layers,function(layer)
+             !(as.character(or_else(data_types[[layer]],"unknown")) %in%
+               c("log_expression","log_intensity","log_abundance")),logical(1))))
+          reason <- "Only as-supplied log-intensity/expression/abundance data; no global raw-count or MS preprocessing."
+        if(is.null(reason) && any(vapply(layers,function(layer)
+             length(nonempty_unique(metas[[layer]]$batch))>1L,logical(1))))
+          reason <- "Varying batch must be adjusted using training samples only; unsupported here."
+        if(is.null(reason) && any(vapply(layers,function(layer) {
+          m<-metas[[layer]]
+          ids<-intersect(rownames(raw_blocks[[layer]]),rownames(m))
+          length(ids)<32L || anyNA(m[ids,"subject_id"]) ||
+            any(!nzchar(as.character(m[ids,"subject_id"]))) ||
+            anyDuplicated(as.character(m[ids,"subject_id"]))>0L
+        },logical(1))))
+          reason <- "At least 32 shared independent subjects and one observation per subject in each omic."
+        if(is.null(reason)) {
+          shared<-Reduce(intersect,lapply(raw_blocks[layers],rownames))
+          if(!length(shared) || any(vapply(layers,function(layer)
+              !identical(as.character(metas[[layer]][shared,"subject_id"]),
+                         as.character(metas[[layers[1]]][shared,"subject_id"])),logical(1))))
+            reason <- "Omic layers do not agree on sample-to-subject identities."
+        }
+        if(!is.null(reason)) {
+          methods$diablo_heldout<-method_status("DIABLO subject-heldout validation",
+            "blocked",list(message=reason))
+        } else {
+          ev<-try(run_diablo_outer_holdout(raw_blocks[layers],supervised_target,
+              file.path(temp,"diablo_heldout"),
+              seeds=c(20261009L,20261010L,20261011L),tune=TRUE),silent=TRUE)
+          methods$diablo_heldout <- if(inherits(ev,"try-error")) {
+            method_status("DIABLO subject-heldout validation","blocked",
+              list(message=as.character(ev)))
+          } else {
+            method_status("DIABLO subject-heldout validation","ok",
+              list(summary=ev$summary,
+                note="Repeated internal heldouts, training-only filtering/imputation/scaling/tuning, NOT an external cohort."))
+          }
+        }
+      }
     } else {
       methods$diablo <- method_status("mixOmics DIABLO","unavailable",list(message="mixOmics is not installed.", nuisance_adjustment=prepared_supervised$details))
     }
