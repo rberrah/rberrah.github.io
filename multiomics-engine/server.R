@@ -641,6 +641,34 @@ run_backend_analysis <- function(payload) {
       }
     }
 
+    if (objective == "outcome" && identical(outcome_type, "survival")) {
+      if (requireNamespace("survival",quietly=TRUE)) {
+        survival_terms <- varying_terms(m,covariates,include_batch=FALSE)
+        fit <- try(run_cox_survival_reference(
+          x, m, file.path(layer_dir,"cox"),
+          covariates=survival_terms,
+          ties="efron"
+        ),silent=TRUE)
+        methods[[paste0(layer,"_survival")]] <- if (!inherits(fit,"try-error")) {
+          method_status("R survival::coxph Efron + cox.zph", "ok", list(
+            top=top_frame(fit$results),
+            summary=fit$summary,
+            note="R reference fitted; cox.zph and censoring assumptions still require independent review. No automatic confirmatory certificate."
+          ))
+        } else {
+          method_status("R survival::coxph Efron + cox.zph", "blocked", list(
+            message=as.character(fit),
+            note="Survival reference requires one independent sample per subject, valid times/events and adequate events per covariate."
+          ))
+        }
+      } else {
+        methods[[paste0(layer,"_survival")]] <- method_status(
+          "R survival::coxph Efron + cox.zph","unavailable",
+          list(message="R survival package not installed.")
+        )
+      }
+    }
+
     if ((objective == "time" || longitudinal || design_type == "repeated")) {
       if (requireNamespace("lmerTest", quietly=TRUE)) {
         fixed <- character()
@@ -764,7 +792,7 @@ run_backend_analysis <- function(payload) {
     }
   }
 
-  packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
+  packages <- vapply(c("DESeq2","edgeR","limma","lmerTest","survival","fgsea","MOFA2","mixOmics"), requireNamespace, logical(1), quietly=TRUE)
   list(
     status="ok",
     engine=list(
@@ -796,7 +824,7 @@ function(req, res) {
 #* @serializer json list(auto_unbox=TRUE)
 function() {
   packages <- vapply(
-    c("DESeq2","edgeR","limma","lmerTest","fgsea","MOFA2","mixOmics","xcms","MsExperiment","Spectra","mzR","BiocParallel"),
+    c("DESeq2","edgeR","limma","lmerTest","survival","fgsea","MOFA2","mixOmics","xcms","MsExperiment","Spectra","mzR","BiocParallel"),
     requireNamespace,
     logical(1),
     quietly=TRUE
