@@ -51,7 +51,6 @@ test('Beginner-facing DIABLO/MOFA explanations define terms and avoid biomarker 
   await page.getByTestId('multiomics-run').click();
   await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(page.getByTestId('reference-backend-results')).toBeVisible({timeout:20000});
-  await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   const stability=page.getByTestId('diablo-signature-stability');
   await expect(stability).toBeVisible();
   await stability.locator('summary').click();
