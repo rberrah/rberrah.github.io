@@ -242,7 +242,7 @@ payload <- list(
 
 result <- run_backend_analysis(payload)
 stopifnot(identical(result$status, "ok"))
-stopifnot(identical(result$engine$version, "1.3.0"))
+stopifnot(identical(result$engine$version, "1.4.0"))
 stopifnot(all(c("transcriptomics","proteomics") %in% names(result$preprocessing)))
 stopifnot("transcriptomics_differential" %in% names(result$methods))
 stopifnot("proteomics_differential" %in% names(result$methods))
