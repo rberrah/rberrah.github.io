@@ -3,11 +3,12 @@
 // Reject those results instead of displaying biologically incorrect factors.
 export const MOFA2_ORIENTATION_CONTRACT = 'mofa2-feature-rows-sample-columns-v2';
 
+/** @param {{objective:string,omicCount:number}} context */
 export function needsMofa2OrientationContract({objective,omicCount}) {
   return objective === 'explore' && Number(omicCount) >= 2;
 }
 
-/** @param {any} health */
+/** @param {any} health @param {{objective:string,omicCount:number}} context */
 export function mofa2BackendCompatibility(health,context) {
   if(!needsMofa2OrientationContract(context))
     return {compatible:true,reason:'not_applicable'};
