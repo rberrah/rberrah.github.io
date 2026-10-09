@@ -189,7 +189,13 @@ Protocole du benchmark source-native mixOmics `breast.TCGA` :
 
 Résultat de CI sur l'instantané documenté : **AUC = 0,9939** et
 **score de Brier = 0,0208**, avec **AUC moyenne = 0,4992** sur
-200 permutations des étiquettes de test. La pénalisation retenue sur
+200 permutations des étiquettes de test. Sur **30 permutations des
+étiquettes d'apprentissage avec réentraînement complet PMx** (nouvelle
+sélection de variables, validation croisée de pénalisation, ajustement
+ridge, prédictions figées), l'AUC moyenne sur le même test est
+**0,4754**. Ce contrôle négatif vérifie la chaîne d'apprentissage,
+mais n'exclut pas une présélection antérieure de variables par les
+auteurs du jeu de données. La pénalisation retenue sur
 l'apprentissage est `lambda = 1`. Le benchmark contrôle aussi que
 les sujets d'apprentissage ne sont pas acceptés à nouveau dans le test,
 que les variables requises ne manquent pas, et que le même modèle
@@ -206,6 +212,10 @@ Le test n'a pas de protéomique ; il ne valide pas MOFA2, DIABLO, les
 signatures multi-omiques, une autre plateforme ou un autre centre hospitalier.
 La protection contre les doublons repose sur des identifiants stables,
 et ne peut exclure des recodages du même patient.
+Le modèle sérialisé conserve les identifiants d'apprentissage afin de
+refuser leur réutilisation dans le test : **avant d'exporter un modèle
+issu d'une cohorte clinique, employer des identifiants pseudonymisés,
+jamais des noms ni des identifiants directs de patients**.
 
 La source est fixée au commit Git `ef3e760526623d9e91e945e4b50be48d764efc40`.
 Fichiers : `scripts/export_tcga_native_pmx.R`,
