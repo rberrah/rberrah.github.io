@@ -226,6 +226,64 @@ Les coefficients, prédictions, contrôles et métriques peuvent être audités
 dans les artefacts GitHub Actions, sans accès à un LLM ni transfert de
 données patients vers un service distant.
 
+## Benchmark complémentaire : toutes les sondes publiques ALL (9 octobre 2026)
+
+Le benchmark TCGA précédent utilise seulement 200 transcrits déjà
+présélectionnés par la source. Pour tester le même **modèle natif PMx
+(`ridgeGlmFit`, sélection et hyperparamètres à l'entraînement uniquement)**
+dans un cadre beaucoup plus exigeant, une nouvelle CI emploie le jeu
+public de leucémie lymphoblastique aiguë **ALL** (Bioconductor ;
+https://bioconductor.org/packages/ALL/). Les **12 625 sondes originales**
+sont fournies au modèle sans filtre global de variance, de q-value ou de
+significativité ; PMx en choisit 12 à partir du seul apprentissage.
+
+Population préspécifiée : 79 patients de lignée B, phénotypes
+moléculaires BCR/ABL ou NEG. Tirage déterministe stratifié par classe :
+**58 sujets d'apprentissage et 21 sujets entièrement tenus à l'écart**
+de l'estimation, de la sélection des variables, de l'imputation et du
+choix de pénalisation. Les données du test sont exportées sans étiquettes
+de classe ; celles-ci ne sont chargées qu'ensuite par la procédure
+d'évaluation R. Le modèle enregistré en JSON est rechargé et doit
+reproduire exactement toutes les prédictions.
+
+Première exécution du benchmark source-native dans GitHub Actions :
+
+| Indicateur | Valeur observée |
+| --- | ---: |
+| Sondes mesurées, initialement candidates | 12 625 |
+| Sondes sélectionnées par PMx sur l'apprentissage | 12 |
+| Sujets apprentissage / test | 58 / 21 |
+| Pénalisation ridge retenue (apprentissage uniquement) | 10 |
+| **AUC sur le test** | **0,9273** |
+| Score de Brier sur le test | 0,1232 |
+| AUC moyenne des 10 modèles réentraînés sur étiquettes d'apprentissage mélangées | 0,4664 |
+| AUC moyenne avec 300 permutations d'étiquettes du test | 0,5006 |
+
+Le workflow conserve les métriques même lorsqu'elles sont défavorables,
+et ne conditionne **pas** sa réussite à une AUC élevée. Le témoin négatif
+par réentraînement complet met notamment en jeu la sélection et la
+pénalisation, et non seulement le calcul de la métrique sur des étiquettes
+mélangées.
+
+**Précaution capitale : il s'agit d'une séparation interne de patients
+dans un seul jeu public historique prétraité, et non d'une validation
+externe entre centres ou technologies.** Les traitements initiaux de la
+puce et les phénotypes cliniques peuvent introduire un biais ; le nombre
+de sujets test est faible et dix permutations de l'apprentissage sont
+insuffisantes pour une estimation précise de l'erreur. La capacité à
+séparer BCR/ABL de NEG ne prouve ni l'utilité clinique d'un biomarqueur,
+ni sa causalité. Les sondes Affymetrix ne sont pas des comptes RNA-seq
+et ne valident pas DESeq2 ; une couche unique ne valide ni MOFA2 ni
+DIABLO. La réussite de la CI n'autorise pas l'emploi confirmatoire.
+
+Source de données fixée au commit `c705298153f878e49cd2b60f80c615d569ebd3c2`
+du dépôt `bioconductor-source/ALL`. Implémentation
+`scripts/export_all_unselected_pmx.R`,
+`scripts/benchmark_all_unselected_pmx.mjs`,
+`scripts/evaluate_all_unselected_pmx.R`.
+Le workflow `.github/workflows/multiomics-all-native-heldout.yml`
+archive coefficients, prédictions, métriques et contrôles négatifs.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
