@@ -165,7 +165,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   const versions = page.getByTestId('multiomics-r-runtime-provenance');
   await expect(versions).toBeVisible();
   await versions.locator('summary').click();
-  await expect(versions).toContainText('R version');
+  await expect(versions).toContainText(/Version R|R version/i);
   await expect(versions).toContainText('4.5.1');
   await expect(versions).toContainText('lmerTest 3.1-3');
   await expect(versions).toContainText('renv');
