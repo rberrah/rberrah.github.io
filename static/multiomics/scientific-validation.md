@@ -501,6 +501,53 @@ sélection de biomarqueurs stables**. Les corrections instrumentales,
 l'équilibrage des lots, les autres plans et la stabilité des
 signatures devront recevoir des méthodologies adaptées.
 
+## Intégration multiblocs : stabilité interne DIABLO et audit MOFA2
+
+### DIABLO : fréquence de sélection et indice de Jaccard
+
+Le chemin DIABLO à sujets tenus à l'écart archive maintenant pour
+chaque partition d'entraînement les **identifiants effectivement
+sélectionnés par `mixOmics::selectVar`**. Il calcule séparément
+pour chaque omique la fréquence de sélection de chaque variable et
+l'indice de Jaccard moyen/minimal/maximal entre les signatures des
+partitions. Le rapport conserve les sélections dans
+`diablo_signature_stability.rds` et présente une synthèse repliable
+dans l'interface sans encombrer le parcours débutant.
+
+Attention : une fréquence 100 % sur trois séparations qui se
+chevauchent **n'est pas** une probabilité de reproductibilité dans
+une population indépendante. La stabilité interne ne démontre pas
+une association causale, un contrôle de FDR ou une validation
+externe de biomarqueur. Des simulations nulles indépendantes,
+des sous-groupes et des cohortes externes restent nécessaires.
+
+### MOFA2 : absence de suppression silencieuse de sujets
+
+Une nouvelle étape `mofa2_input_preflight` vérifie les identifiants
+de sujets et de variables, l'absence de doublons, les observations
+numériquement invalides et la part globale de mesures manquantes.
+Le garde-fou expérimental refuse une vue dépassant **40 % de
+valeurs manquantes** ; ce seuil est **opérationnel, pas une preuve
+de validité MCAR/MAR**. Il refuse surtout les vues comportant des
+**ensembles différents de sujets**. Le backend en place utilise
+l'intersection des échantillons ; en l'absence d'un modèle dédié
+aux vues entièrement absentes, cette sélection complète-cas
+ne doit pas être effectuée sans le signaler.
+
+La sortie MOFA2 contient le compte de sujets partagés, les vues,
+leurs fractions de manquants et le statut explicite
+`descriptive_latent_covariance_not_validated_biomarker`.
+Les facteurs demeurent **exploratoires** ; aucune stabilité de
+facteur ni recovery de signaux génératifs n'est certifiée par
+ce contrôle logiciel. Une évaluation sur facteurs génératifs
+connus et des réplications de MOFA2 restent à effectuer.
+
+Les tests R du dossier `multiomics-engine/tests` vérifient les
+calculs de Jaccard/fréquences et les refus d'identifiants
+incohérents, tandis que la CI `mixOmics` réelle vérifie que
+les variables sélectionnées ont des identifiants valides et
+que le rapport de stabilité est produit sans perdre de plis.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de

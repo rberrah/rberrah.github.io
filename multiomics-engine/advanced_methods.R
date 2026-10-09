@@ -59,6 +59,56 @@ filter_informative_features <- function(x, min_observed = 3L, max_features = NUL
   x
 }
 
+# Audit before create_mofa(). No silent intersection of unmatched subjects:
+# otherwise the effective population can depend on which views were supplied.
+mofa2_input_preflight <- function(blocks, min_samples=16L,
+                                  max_missing_fraction=0.40) {
+  if(!is.list(blocks) || length(blocks)<2L || is.null(names(blocks)) ||
+     anyNA(names(blocks)) || any(!nzchar(names(blocks))) ||
+     anyDuplicated(names(blocks)))
+    stop("MOFA2 requires at least two uniquely named omics layers.")
+  if(!is.finite(max_missing_fraction) || max_missing_fraction<0 ||
+     max_missing_fraction>=1)
+    stop("Invalid MOFA2 missingness safeguard.")
+  views <- list()
+  subject_sets <- list()
+  for(layer in names(blocks)) {
+    x <- as.matrix(blocks[[layer]])
+    suppressWarnings(storage.mode(x)<-"double")
+    ids <- rownames(x)
+    features <- colnames(x)
+    if(is.null(ids) || is.null(features) ||
+       anyNA(ids) || anyNA(features) ||
+       any(!nzchar(ids)) || any(!nzchar(features)) ||
+       anyDuplicated(ids) || anyDuplicated(features))
+      stop(sprintf("%s: unique nonempty sample and feature identifiers are required.",layer))
+    if(nrow(x)<min_samples || ncol(x)<2L)
+      stop(sprintf("%s: MOFA2 needs at least %s independent samples and two features.",
+                   layer,min_samples))
+    if(any(is.infinite(x)) || any(is.nan(x)))
+      stop(sprintf("%s: infinite/NaN measurements are not valid missing values.",layer))
+    missing <- mean(is.na(x))
+    if(!is.finite(missing) || missing>max_missing_fraction)
+      stop(sprintf("%s: excessive missing measurements (%.1f%%). Review the assay and missingness mechanism.",
+                   layer,100*missing))
+    subject_sets[[layer]] <- ids
+    views[[layer]] <- list(
+      samples=nrow(x),originalFeatures=ncol(x),
+      missingFraction=missing,
+      finiteFeatures=sum(colSums(is.finite(x))>=3L),
+      note="Latent variance can reflect technical nuisance effects; MOFA2 factors are descriptive, not causal findings."
+    )
+  }
+  reference <- subject_sets[[1]]
+  if(any(vapply(subject_sets,function(ids)
+       !setequal(ids,reference),logical(1))))
+    stop("MOFA2 views have different sample sets. This backend does not model missing whole views: never silently discard unpaired subjects.")
+  list(status="eligible_for_exploration",
+       views=views,nSharedSubjects=length(reference),
+       maxMissingFraction=max_missing_fraction,
+       limitations="Same subject sets and low missingness do not establish MAR. Batch, biological identity, latent-factor number and stability need independent audit.")
+}
+
 run_mofa2_blocks <- function(
   blocks,
   output_dir,
@@ -68,6 +118,9 @@ run_mofa2_blocks <- function(
   min_samples = 16L,
   max_features_per_block = NULL
 ) {
+  # Data validity must be established before the reference package is loaded,
+  # so unsupported sample-set loss never appears as an installation error.
+  input_audit <- mofa2_input_preflight(blocks,min_samples=min_samples)
   require_namespace("MOFA2")
   blocks <- validate_blocks(blocks, min_samples = min_samples)
   raw_feature_counts <- vapply(blocks, ncol, integer(1))
@@ -122,6 +175,8 @@ run_mofa2_blocks <- function(
     seed = as.integer(seed),
     samples = n_samples,
     factors_requested = as.integer(factors),
+    inputAudit = input_audit,
+    factorStatus = "descriptive_latent_covariance_not_validated_biomarker",
     blocks_before_filtering = raw_feature_counts,
     blocks_after_filtering = vapply(blocks, ncol, integer(1)),
     view_scaling = isTRUE(data_options$scale_views),
@@ -287,6 +342,67 @@ prepare_diablo_holdout_split <- function(blocks, outcome, seed=20261009L,
   )
 }
 
+# Compare selected feature identities, never their unstable sign/order or scores.
+# Repeated train/test splits overlap; this is a descriptive repeatability measure
+# and not an independent sampling-based confidence interval.
+diablo_selection_stability <- function(selected_by_split) {
+  if(!is.list(selected_by_split)||length(selected_by_split)<2L)
+    stop("DIABLO stability requires >=2 successful predeclared folds.")
+  blocks<-names(selected_by_split[[1]])
+  if(is.null(blocks)||length(blocks)<2L||anyDuplicated(blocks)||
+     any(!nzchar(blocks)) ||
+     any(vapply(selected_by_split,function(fold)
+       !setequal(names(fold),blocks),logical(1))))
+    stop("Different omics blocks between DIABLO stability folds.")
+  out<-list()
+  for(view in blocks) {
+    sets<-lapply(selected_by_split,function(fold) {
+      vals<-as.character(fold[[view]])
+      if(!length(vals)||anyNA(vals)||any(!nzchar(vals)))
+        stop(paste("Missing selected features for",view))
+      unique(vals)
+    })
+    pairs<-utils::combn(seq_along(sets),2L)
+    jaccard<-vapply(seq_len(ncol(pairs)),function(j) {
+      a<-sets[[pairs[1,j]]]; b<-sets[[pairs[2,j]]]
+      length(intersect(a,b))/length(union(a,b))
+    },numeric(1))
+    tab<-sort(table(unlist(sets,use.names=FALSE)),decreasing=TRUE)
+    out[[view]]<-list(
+      meanPairwiseJaccard=unname(mean(jaccard)),
+      minPairwiseJaccard=unname(min(jaccard)),
+      maxPairwiseJaccard=unname(max(jaccard)),
+      nPairwiseComparisons=length(jaccard),
+      nDistinctSelected=length(tab),
+      nSelectedPerFold=as.integer(lengths(sets)),
+      frequency=as.list(stats::setNames(as.numeric(tab)/length(sets),names(tab))),
+      repeatedlySelected=as.character(names(tab)[as.numeric(tab)>=2L]),
+      limitation="Repeated folds share original subjects; selection frequencies and Jaccard are internal exploratory stability, not externally validated biomarkers."
+    )
+  }
+  out
+}
+
+# mixOmics::selectVar() returns named variables in version-dependent slots.
+# Fail rather than counting all feature loadings or unmatched identifiers.
+selected_diablo_features <- function(model,view,training_features) {
+  # For block.splsda, selectVar(model, comp=1) returns a list indexed
+  # by VIEW. Passing block=view can still return that outer list; reading
+  # $name on the outer object silently fails in affected mixOmics releases.
+  selected <- mixOmics::selectVar(model,comp=1L)
+  if(!is.list(selected) || is.null(selected[[view]]))
+    stop(paste("mixOmics selectVar lacks block:",view))
+  choice <- selected[[view]]
+  ids <- as.character(unlist(choice$name,use.names=FALSE))
+  if(!length(ids) && (is.matrix(choice$value)||is.data.frame(choice$value)))
+    ids <- rownames(choice$value)
+  ids <- unique(as.character(ids))
+  if(!length(ids)||anyNA(ids)||any(!nzchar(ids)) ||
+     any(!ids %in% training_features))
+    stop(paste("mixOmics selected features cannot be matched to train-only names:",view))
+  ids
+}
+
 # The model is refit inside each outer split; any tuning is restricted to
 # training subjects. Invalid folds fail the WHOLE benchmark, never silently
 # reduce the denominator and make performance look better.
@@ -297,6 +413,7 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
   if(length(seeds)<2L||anyDuplicated(seeds))stop("Need >=2 distinct predeclared outer seeds.")
   all_rows <- list()
   summaries <- list()
+  selections <- list()
   for(index in seq_along(seeds)) {
     split <- prepare_diablo_holdout_split(blocks,outcome,seed=seeds[index])
     ncomp <- 1L
@@ -328,6 +445,9 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
       X=split$train,Y=split$y_train,ncomp=ncomp,
       keepX=keep,design=design,scale=FALSE
     )
+    selections[[index]] <- lapply(names(split$train),function(view)
+      selected_diablo_features(model,view,colnames(split$train[[view]])))
+    names(selections[[index]]) <- names(split$train)
     predicted <- predict(model,newdata=split$test,dist="max.dist")
     vote <- predicted$WeightedVote[["max.dist"]]
     if(is.null(vote) || nrow(as.matrix(vote))!=length(split$testIds))
@@ -357,9 +477,15 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
   predictions <- do.call(rbind,all_rows)
   if(nrow(predictions)!=sum(vapply(summaries,function(x)x$heldOutSubjects,integer(1))))
     stop("DIABLO holdout missing predictions.")
+  stability <- diablo_selection_stability(selections)
   dir.create(output_dir,recursive=TRUE,showWarnings=FALSE)
   utils::write.csv(predictions,file.path(output_dir,"diablo_outer_holdout.csv"),row.names=FALSE)
+  saveRDS(list(versions="internal-fold-feature-selections-v1",
+      selectedBySplit=selections,stability=stability),
+      file.path(output_dir,"diablo_signature_stability.rds"))
   list(status="ok",summary=list(
+    signatureStability=stability,
+    signatureStatus="internal_repeatability_only_not_validated_biomarker",
     evaluation="Repeated subject-level heldout, with training-only filtering/imputation/scaling and training-only keepX tuning",
     seeds=as.integer(seeds),folds=summaries,
     meanBER=mean(vapply(summaries,function(x)x$balancedErrorRate,numeric(1))),

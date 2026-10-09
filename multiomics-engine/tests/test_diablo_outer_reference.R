@@ -29,7 +29,15 @@ stopifnot(
   result$summary$meanBER<=0.40,
   all(c("sampleId","actual","predicted","correct","seed")%in%names(result$predictions)),
   length(unique(result$predictions$seed))==2L,
-  file.exists(file.path(out,"diablo_outer_holdout.csv"))
+  file.exists(file.path(out,"diablo_outer_holdout.csv")),
+  file.exists(file.path(out,"diablo_signature_stability.rds")),
+  identical(result$summary$signatureStatus,
+    "internal_repeatability_only_not_validated_biomarker"),
+  length(result$summary$signatureStability)==2L,
+  all(vapply(result$summary$signatureStability,
+    function(x)is.finite(x$meanPairwiseJaccard) &&
+      x$meanPairwiseJaccard>=0 && x$meanPairwiseJaccard<=1 &&
+      x$nPairwiseComparisons==1L,logical(1)))
 )
 # Negative control with permuted labels, no label-informed preprocessing
 set.seed(20261009)
@@ -42,7 +50,9 @@ control <- run_diablo_outer_holdout(
 stopifnot(
   identical(control$status,"ok"),
   is.finite(control$summary$meanBER),
-  control$summary$meanBER>=0 && control$summary$meanBER<=1
+  control$summary$meanBER>=0 && control$summary$meanBER<=1,
+  all(vapply(control$summary$signatureStability,
+    function(x) is.finite(x$meanPairwiseJaccard),logical(1)))
 )
 cat(sprintf(
   "Actual mixOmics DIABLO | known signal heldout BER %.3f | permuted-outcome heldout BER %.3f | per-train tuning/preprocessing and complete predictions PASS\n",

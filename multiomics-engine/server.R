@@ -767,16 +767,26 @@ run_backend_analysis <- function(payload) {
         "blocked",
         list(message=prepared_integration$message, nuisance_adjustment=prepared_integration$details)
       )
-    } else if (requireNamespace("MOFA2", quietly=TRUE)) {
-      explore_blocks <- prepared_integration$blocks
-      fit <- try(run_mofa2_blocks(explore_blocks, file.path(temp,"mofa2"), factors=5L), silent=TRUE)
-      methods$mofa2 <- if (!inherits(fit,"try-error")) {
-        method_status("MOFA2","ok",list(summary=fit$summary, nuisance_adjustment=prepared_integration$details))
-      } else {
-        method_status("MOFA2","error",list(message=as.character(fit), nuisance_adjustment=prepared_integration$details))
-      }
     } else {
-      methods$mofa2 <- method_status("MOFA2","unavailable",list(message="MOFA2 is not installed.", nuisance_adjustment=prepared_integration$details))
+      explore_blocks <- prepared_integration$blocks
+      mofa_input <- try(mofa2_input_preflight(explore_blocks),silent=TRUE)
+      if (inherits(mofa_input,"try-error")) {
+        methods$mofa2 <- method_status("MOFA2","blocked",
+          list(message=as.character(mofa_input),
+               nuisance_adjustment=prepared_integration$details,
+               note="No silent removal of subjects missing entire omics views. Align cohorts or use a validated missing-view model."))
+      } else if (requireNamespace("MOFA2",quietly=TRUE)) {
+        fit <- try(run_mofa2_blocks(explore_blocks, file.path(temp,"mofa2"), factors=5L),silent=TRUE)
+        methods$mofa2 <- if (!inherits(fit,"try-error")) {
+          method_status("MOFA2","ok",list(summary=fit$summary,nuisance_adjustment=prepared_integration$details))
+        } else {
+          method_status("MOFA2","error",list(message=as.character(fit),nuisance_adjustment=prepared_integration$details))
+        }
+      } else {
+        methods$mofa2 <- method_status("MOFA2","unavailable",
+          list(message="MOFA2 is not installed.",inputAudit=mofa_input,
+               nuisance_adjustment=prepared_integration$details))
+      }
     }
   }
 
