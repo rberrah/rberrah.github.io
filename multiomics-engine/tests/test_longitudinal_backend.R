@@ -65,7 +65,7 @@ stopifnot(
 )
 
 bad <- data
-bad$subject_id[2] <- bad$subject_id[1]
+bad$time[2] <- bad$time[1]
 error <- try(validate_longitudinal_reference_design(bad),silent=TRUE)
 stopifnot(inherits(error,"try-error"))
 crossover <- data
