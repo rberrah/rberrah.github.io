@@ -6,6 +6,7 @@ on:
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_diablo_holdout_recipe.R'
+      - 'multiomics-engine/tests/test_mofa_preflight_signature_stability.R'
       - 'multiomics-engine/tests/test_diablo_outer_reference.R'
       - '.github/workflows/multiomics-diablo-holdout.yml'
       - 'src/routes/multiomics/tool/+page.svelte'
@@ -15,6 +16,7 @@ on:
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_diablo_holdout_recipe.R'
+      - 'multiomics-engine/tests/test_mofa_preflight_signature_stability.R'
       - 'multiomics-engine/tests/test_diablo_outer_reference.R'
       - '.github/workflows/multiomics-diablo-holdout.yml'
   schedule:
@@ -37,6 +39,8 @@ jobs:
           use-public-rspm: true
       - name: Verify training-only preprocessing and leakage negative controls
         run: Rscript multiomics-engine/tests/test_diablo_holdout_recipe.R
+      - name: Verify MOFA2 shared-subject preflight and stability statistics
+        run: Rscript multiomics-engine/tests/test_mofa_preflight_signature_stability.R
 
   real-mixomics:
     name: Real mixOmics::block.splsda heldout tests
