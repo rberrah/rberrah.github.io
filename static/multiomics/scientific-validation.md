@@ -609,6 +609,38 @@ et comprendre les limites des facteurs sans prendre les
 corrélations ou les signatures pour des preuves de causalité.
 Les tests navigateur vérifient ces chemins à chaque modification.
 
+## Compatibilité des moteurs R : prévention des résultats MOFA2 historiques
+
+Le correctif MOFA2 du 9 octobre 2026 change l'orientation effective
+des matrices fournies à `MOFA2::create_mofa`. Les résultats MOFA2
+obtenus avec d'anciennes versions du backend ne doivent **pas être
+réutilisés sans réanalyse**.
+
+Depuis la version **1.4.0** du backend, `/health` expose
+`capabilities.mofa2_orientation_contract =
+mofa2-feature-rows-sample-columns-v2`. Le résultat réel de chaque
+ajustement inclut le même `implementationContract`, l'orientation
+`feature_rows_subject_columns_for_MOFA2` et un indicateur de
+préservation des identifiants des sujets.
+
+Si un utilisateur ouvre une étude d'exploration multi-omique avec
+un **ancien moteur R local**, le navigateur refuse de transmettre
+les matrices à cet ancien backend. Le blocage est indiqué dans le
+parcours principal en français/anglais, avec un message de mise
+à jour simple. Les méthodes exploratoires locales restent disponibles.
+
+Par défense supplémentaire, les réponses R qui revendiquent une
+analyse MOFA2 réussie mais n'incluent pas **les trois preuves
+exactes du contrat d'orientation** sont requalifiées `blocked` ;
+leurs résultats ne sont pas affichés comme des résultats de
+facteurs validés. Cela s'applique aussi si un ancien service
+retourne une réponse mal formée.
+
+Cette protection est un **contrat logiciel** : elle évite un
+résultat déjà identifié comme incorrect, mais ne démontre pas
+que les facteurs récupérés sur un nouveau jeu de données
+sont biologiquement valides.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
