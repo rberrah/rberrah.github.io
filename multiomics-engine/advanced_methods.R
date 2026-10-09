@@ -570,10 +570,10 @@ run_limma_matrix <- function(
 parse_longitudinal_time <- function(timepoint) {
   raw <- trimws(as.character(timepoint))
   if (anyNA(raw) || any(!nzchar(raw))) stop("Longitudinal timepoint is missing.")
-  kind <- ifelse(grepl("^[+]?[0-9]+(?:\\.[0-9]+)?$",raw),"numeric",
-    ifelse(grepl("^[Tt][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"T",
-      ifelse(grepl("^[Dd][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"D",
-        ifelse(grepl("^[Ww][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"W","invalid"))))
+  kind <- ifelse(grepl("^[+]?[0-9]+([.][0-9]+)?$",raw),"numeric",
+    ifelse(grepl("^[Tt][+]?[0-9]+([.][0-9]+)?$",raw),"T",
+      ifelse(grepl("^[Dd][+]?[0-9]+([.][0-9]+)?$",raw),"D",
+        ifelse(grepl("^[Ww][+]?[0-9]+([.][0-9]+)?$",raw),"W","invalid"))))
   if (any(kind=="invalid") || length(unique(kind))!=1L)
     stop("Longitudinal timepoint must use one consistent numeric or Tn/Dn/Wn scale (e.g. T0,T1,T2); no mixed units or ambiguous visit names.")
   values <- suppressWarnings(as.numeric(if(kind[1]=="numeric")raw else substring(raw,2L)))
