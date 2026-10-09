@@ -340,13 +340,13 @@ garantie statistique d'absence de fuite d'information. Les sources
 sont publiquement accessibles, mais les identifiants synthétiques
 ne garantissent pas de détecter toutes les patientes réutilisées.
 
-Scripts : \`scripts/export_mainz_transbig_pmx.R\`,
-\`scripts/benchmark_mainz_transbig_pmx.mjs\`,
-\`scripts/evaluate_mainz_transbig_pmx.R\`. Workflow reproductible :
-\`.github/workflows/multiomics-mainz-transbig-external.yml\`.
+Scripts : `scripts/export_mainz_transbig_pmx.R`,
+`scripts/benchmark_mainz_transbig_pmx.mjs`,
+`scripts/evaluate_mainz_transbig_pmx.R`. Workflow reproductible :
+`.github/workflows/multiomics-mainz-transbig-external.yml`.
 Sources Git épinglées : MAINZ
-\`63e11105cb8a7c854264e9a13f8c926b39f20ab0\` et TRANSBIG
-\`44c052727769c051f965035725953b6883865743\`.
+`63e11105cb8a7c854264e9a13f8c926b39f20ab0` et TRANSBIG
+`44c052727769c051f965035725953b6883865743`.
 Les artefacts de la CI exposent les coefficients figés,
 les prédictions, les métriques et les contrôles négatifs.
 
