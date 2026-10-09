@@ -2646,6 +2646,11 @@
     </div>
   </div>
 
+  {#if analysisResult.referenceBackend?.compatibilityStatus === 'mofa2_backend_outdated' || analysisResult.referenceBackend?.mofa2OrientationBlocked}
+    <p role="alert" data-testid="multiomics-mofa-version-warning" class="annotation-error">
+      {t('MOFA2 : résultat non valide avec cet ancien moteur R. Mettez à jour le backend R et relancez l’analyse. Les résultats exploratoires du navigateur restent disponibles.', 'MOFA2: results from this outdated R backend cannot be trusted. Update the local R backend and rerun. Browser exploration remains available.')}
+    </p>
+  {/if}
   {#if analysisResult.scientificAssurance}
     <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
       {#if analysisResult.scientificAssurance.confirmatoryReadiness?.requested}
