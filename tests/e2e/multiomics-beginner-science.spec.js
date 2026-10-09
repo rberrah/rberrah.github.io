@@ -58,7 +58,8 @@ test('Beginner-facing DIABLO/MOFA explanations define terms and avoid biomarker 
   await page.route('http://127.0.0.1:8787/health',async route=>{
     await route.fulfill({status:200,contentType:'application/json',
       body:JSON.stringify({status:'ok',engine:'PMx reference',
-        packages:{mixOmics:true,MOFA2:true}})});
+        packages:{mixOmics:true,MOFA2:true},
+        capabilities:{mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'}})});
   });
   await page.route('http://127.0.0.1:8787/run',async route=>{
     await route.fulfill({status:200,contentType:'application/json',
@@ -71,7 +72,7 @@ test('Beginner-facing DIABLO/MOFA explanations define terms and avoid biomarker 
                 proteomics:{meanPairwiseJaccard:0.34,repeatedlySelected:['P1']}
               }}},
           mofa2:{status:'ok',method:'MOFA2',
-            summary:{inputAudit:{nSharedSubjects:48}}}
+            summary:{inputAudit:{nSharedSubjects:48},matrixOrientation:'feature_rows_subject_columns_for_MOFA2',subjectIdentityPreserved:true,implementationContract:'mofa2-feature-rows-sample-columns-v2'}}
         }})});
   });
   await page.goto('/multiomics/tool?lang=fr');
