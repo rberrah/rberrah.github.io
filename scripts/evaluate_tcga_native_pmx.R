@@ -47,6 +47,29 @@ null_auc<-replicate(200L,
   validation_binary_auc(sample(evaluation$outcome),evaluation$prediction))
 if(any(!is.finite(null_auc))||abs(mean(null_auc)-.5)>.08)
   stop("Shuffled holdout scores do not resemble the null as expected.")
+
+# Independent check of PMx NATIVE train-label permutations. The JS training
+# program had no access to this R file's holdout class labels.
+null_scores<-read.csv(file.path(dir,"pmx-train-label-null-predictions.csv"),
+  stringsAsFactors=FALSE,check.names=FALSE)
+if(nrow(null_scores)!=70L||anyDuplicated(null_scores$subject_id)||
+   !setequal(null_scores$subject_id,p$subject_id))
+  stop("Native training-label null predictions have incorrect subject coverage.")
+null_columns<-grep("^perm_[0-9]+$",names(null_scores),value=TRUE)
+if(length(null_columns)!=30L)
+  stop("Native training-label null controls must contain 30 refitted PMx models.")
+null_matched<-merge(evaluation[,c("subject_id","outcome")],null_scores,
+  by="subject_id",sort=FALSE)
+if(nrow(null_matched)!=49L)stop("Null controls lost an eligible test person.")
+train_null_auc<-vapply(null_columns,function(col){
+  prob<-null_matched[[col]]
+  if(any(!is.finite(prob))||any(prob<0|prob>1))
+    stop("Native PMx training-label null model generated invalid probabilities.")
+  validation_binary_auc(null_matched$outcome,prob)
+},numeric(1))
+if(any(!is.finite(train_null_auc)) || abs(mean(train_null_auc)-.5)>.20)
+  stop("Native PMx training-label permutations show unexpected residual discrimination.")
+
 report<-list(
   benchmark="pmx_native_frozen_predictor_source_heldout_v1",
   publisherTrain=src$fullTrain,publisherTest=src$fullTest,
@@ -63,6 +86,7 @@ report<-list(
   metrics=res$metrics,
   bootstrap=res$bootstrap,
   heldoutPermutation=list(replicates=length(null_auc),meanAuc=mean(null_auc)),
+  nativeTrainingLabelPermutation=list(replicates=length(train_null_auc),meanAuc=mean(train_null_auc)),
   guardrails=res$cohort_coverage,
   scientificCertification=FALSE,
   verdict="software-pipeline-heldout-test_only_not_clinically_validated",
@@ -79,3 +103,4 @@ jsonlite::write_json(report,file.path(dir,"pmx-native-heldout-report.json"),
 cat(sprintf("REAL PMx MODEL HOLDOUT PASS: trained=%d scored=%d evaluated=%d AUC=%.4f Brier=%.4f permAUC=%.4f\n",
   report$pmxTrain,report$pmxScoredTest,report$binaryEvaluatedTest,
   res$metrics$auc,res$metrics$brier,mean(null_auc)))
+cat(sprintf("NATIVE PMx REFIT LABEL-NULL PASS: 30 refits mean AUC=%.4f\\n",mean(train_null_auc)))
