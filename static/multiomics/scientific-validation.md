@@ -264,6 +264,43 @@ préspécifiés, des tests de non-infériorité/équivalence, des méthodes
 de référence R indépendantes et la prise en compte du plan d'étude
 réel. Aucun utilisateur ne reçoit un certificat automatique.
 
+## Étude indépendante de concordance HC3 avec R et sensibilité MNAR
+
+La CI `multiomics-methodology-validation.yml` génère des données brutes
+simulées avant toute analyse, puis exécute séparément le navigateur et
+une implémentation indépendante R de `lm(value ~ condition + batch + age)`,
+avec HC3 calculé explicitement, Student-t, intervalles de confiance et BH.
+Les méthodes HC3, limma et DESeq2 ne sont pas considérées interchangeables.
+
+Le protocole gelé (`protocol.json`) couvre 24 et 64 sujets, quatre
+mécanismes, **24 réplications nulles et 12 avec effets connus par cellule** :
+**288 jeux simulés**. Il conserve observations, sorties JS, sorties R
+et rapport JSON. Tolérances numériques préspécifiées R↔JS :
+écart absolu ≤ 0,0003 pour coefficient, SE, p et q ; ≤ 0,001
+pour les bornes d'intervalle. Dépassement = échec du contrat logiciel.
+
+Le rapport mesure par scénario : taux de faux positifs, fraction de
+fausses découvertes réalisée (FDP), couverture 95 % (intervalle Wilson),
+biais estimé, sensibilité et attrition du filtre QC. Il ne prouve pas
+une calibration nominale universelle ou un contrôle strict de FDR.
+
+Deux contrôles négatifs MNAR sont inclus :
+- Censure gauche : l'observation dépend de l'abondance non observée.
+- MNAR différentiel : le défaut d'observation dépend de la valeur
+  latente et du groupe, pouvant créer une différence sans effet réel.
+
+**Une concordance avec R ne corrige pas le biais MNAR.** Ces scénarios
+restent marqués `blocked_MNAR_nonidentifiable`. En données réelles,
+un déséquilibre de données manquantes ≥30 points entre groupes ou
+une imputation MNAR supposée bloque la préparation confirmatoire,
+même avec une méthode R exécutée. L'absence de déséquilibre n'établit
+pas une hypothèse MCAR ou MAR.
+
+Cette étude vérifie le modèle conditionnellement aux variables
+retenues par le QC ; elle ne valide ni le filtrage préalable, ni
+les matrices MS, ni les plans longitudinaux/survie, ni la
+transférabilité à une cohorte clinique indépendante.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
