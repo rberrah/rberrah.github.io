@@ -801,6 +801,9 @@ run_backend_analysis <- function(payload) {
         "blocked",
         list(message=prepared_supervised$message, nuisance_adjustment=prepared_supervised$details)
       )
+      if(isTRUE(protocol$validateDiabloHoldout))
+        methods$diablo_heldout <- method_status("DIABLO subject-heldout validation","blocked",
+          list(message=prepared_supervised$message))
     } else if (requireNamespace("mixOmics", quietly=TRUE)) {
       fit <- try(run_diablo_blocks(
         prepared_supervised$blocks,
@@ -865,6 +868,9 @@ run_backend_analysis <- function(payload) {
       }
     } else {
       methods$diablo <- method_status("mixOmics DIABLO","unavailable",list(message="mixOmics is not installed.", nuisance_adjustment=prepared_supervised$details))
+      if(isTRUE(protocol$validateDiabloHoldout))
+        methods$diablo_heldout <- method_status("DIABLO subject-heldout validation","unavailable",
+          list(message="R mixOmics must be installed for strict subject-heldout validation."))
     }
   }
 
