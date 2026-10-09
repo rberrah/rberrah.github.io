@@ -565,88 +565,195 @@ run_limma_matrix <- function(
   invisible(list(model = fit, results = result, design = design))
 }
 
+# Strict time units: numeric and Tn/Dn/Wn only. A mixed unit or labels like
+# baseline/followup cannot be converted deterministically into a rate.
+parse_longitudinal_time <- function(timepoint) {
+  raw <- trimws(as.character(timepoint))
+  if (anyNA(raw) || any(!nzchar(raw))) stop("Longitudinal timepoint is missing.")
+  kind <- ifelse(grepl("^[+]?[0-9]+(?:\\.[0-9]+)?$",raw),"numeric",
+    ifelse(grepl("^[Tt][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"T",
+      ifelse(grepl("^[Dd][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"D",
+        ifelse(grepl("^[Ww][+]?[0-9]+(?:\\.[0-9]+)?$",raw),"W","invalid"))))
+  if (any(kind=="invalid") || length(unique(kind))!=1L)
+    stop("Longitudinal timepoint must use one consistent numeric or Tn/Dn/Wn scale (e.g. T0,T1,T2); no mixed units or ambiguous visit names.")
+  values <- suppressWarnings(as.numeric(if(kind[1]=="numeric")raw else substring(raw,2L)))
+  if(any(!is.finite(values)))stop("Unparseable longitudinal timepoint.")
+  list(time=values,timeScale=kind[1])
+}
+
+validate_longitudinal_reference_design <- function(meta,subject_column="subject_id") {
+  if(!subject_column%in%names(meta)||!"condition"%in%names(meta)||!"time"%in%names(meta))
+    stop("Longitudinal design needs subject_id, condition and numeric time.")
+  ids <- as.character(meta[[subject_column]])
+  conditions <- as.character(meta$condition)
+  if (anyNA(ids)||any(!nzchar(ids))||anyNA(conditions)||any(!nzchar(conditions)))
+    stop("Longitudinal subject_id/condition cannot be missing.")
+  if(any(!is.finite(meta$time)))stop("Longitudinal time contains non-finite entries.")
+  if(anyDuplicated(paste(ids,format(meta$time,digits=14),sep="\r")))
+    stop("Duplicated subject-time observation. Aggregate technical replicates first; do not count technical measurements as biological subjects.")
+  subject_conditions <- split(conditions,ids)
+  if(any(lengths(lapply(subject_conditions,unique)) != 1L))
+    stop("Condition changes within subjects: use a crossover/time-dependent design, not fixed-group longitudinal lmer.")
+  by_subject <- split(meta$time,ids)
+  if(length(by_subject)<10L || any(lengths(lapply(by_subject,unique))<2L))
+    stop("Longitudinal reference requires >=10 independent subjects and >=2 observed distinct times for every subject; sparse subjects need a prespecified missing-visits model.")
+  groups <- sort(unique(conditions))
+  if(length(groups)!=2L)stop("This reference longitudinal contrast requires exactly two fixed treatment groups.")
+  subjects_per_group <- table(vapply(subject_conditions,function(x)x[1],character(1)))
+  if(any(subjects_per_group<5L))
+    stop("Longitudinal reference needs at least 5 independent subjects per group.")
+  for(group in groups)if(length(unique(meta$time[conditions==group]))<2L)
+    stop("Each group needs at least two distinct time points.")
+  list(nSubjects=length(by_subject),nObservations=nrow(meta),
+       subjectsPerGroup=as.list(subjects_per_group),
+       contrast=paste0("condition",groups[2],":time"),
+       groups=groups,
+       note="Longitudinal time slope assumes linear effect and stable group membership; checked eligibility does not certify MAR censoring, residual assumptions or adequate power.")
+}
+
 subject_has_repeated_time <- function(meta, subject_column = "subject_id", time_column = "time") {
-  if (!all(c(subject_column, time_column) %in% names(meta))) return(FALSE)
-  counts <- tapply(meta[[time_column]], meta[[subject_column]], function(x) length(unique(x[is.finite(x)])))
+  if (!all(c(subject_column,time_column)%in%names(meta)))return(FALSE)
+  counts <- tapply(meta[[time_column]],meta[[subject_column]],
+    function(x)length(unique(x[is.finite(x)])))
   counts <- counts[is.finite(counts)]
-  length(counts) >= 5L && sum(counts >= 3L) >= 5L
+  length(counts)>=10L && sum(counts>=3L)>=10L
 }
 
 run_lmer_matrix <- function(
   matrix,
   metadata,
   output_dir,
-  fixed_formula = "condition * time + batch",
+  fixed_formula = "condition * time",
   subject_column = "subject_id",
   interaction_term = NULL,
   random_slope = "auto"
 ) {
   require_namespace("lmerTest")
+  require_namespace("lme4")
   matrix <- as.matrix(matrix)
   storage.mode(matrix) <- "double"
   metadata <- as.data.frame(metadata)
-  if (is.null(rownames(matrix)) || is.null(rownames(metadata))) {
-    stop("matrix and metadata must use observation/sample IDs as row names.", call. = FALSE)
-  }
-  common <- intersect(rownames(matrix), rownames(metadata))
-  if (length(common) < 6L) stop("At least six matched observations are required.", call. = FALSE)
-  x <- matrix[common, , drop = FALSE]
-  meta <- metadata[common, , drop = FALSE]
-  if (!subject_column %in% colnames(meta)) stop("subject_column is absent from metadata.", call. = FALSE)
-
-  try_slope <- identical(random_slope, TRUE) || identical(random_slope, "yes") ||
-    (identical(random_slope, "auto") && subject_has_repeated_time(meta, subject_column, "time"))
-  intercept_formula <- stats::as.formula(paste0("value ~ ", fixed_formula, " + (1|", subject_column, ")"))
-  slope_formula <- stats::as.formula(paste0("value ~ ", fixed_formula, " + (1 + time|", subject_column, ")"))
-  results <- vector("list", ncol(x))
-
-  for (j in seq_len(ncol(x))) {
+  if(is.null(rownames(matrix))||is.null(rownames(metadata)))
+    stop("Longitudinal sample identifiers must be explicit matrix and metadata row names.")
+  if(anyDuplicated(rownames(matrix))||anyDuplicated(rownames(metadata)))
+    stop("Longitudinal sample identifiers must be unique after technical replicate aggregation.")
+  common <- intersect(rownames(matrix),rownames(metadata))
+  if(length(common)<20L)stop("At least 20 matched longitudinal observations are needed.")
+  x <- matrix[common,,drop=FALSE]
+  meta <- metadata[common,,drop=FALSE]
+  if(!"time"%in%names(meta)||!"condition"%in%names(meta))
+    stop("Missing numeric time or group for explicit longitudinal contrast.")
+  meta$time <- as.numeric(meta$time)
+  design <- validate_longitudinal_reference_design(meta,subject_column)
+  meta$condition <- factor(as.character(meta$condition),levels=design$groups)
+  expected_term <- design$contrast
+  if(!is.null(interaction_term) && !identical(interaction_term,expected_term))
+    stop(paste("Invalid longitudinal contrast; expected",expected_term))
+  if(!grepl("condition[[:space:]]*\\*[[:space:]]*time",fixed_formula))
+    stop("Longitudinal reference requires an explicit condition-by-time interaction.")
+  fixed <- stats::as.formula(paste0("~",fixed_formula))
+  if(anyNA(stats::model.frame(fixed,data=meta,na.action=stats::na.pass)))
+    stop("Missing covariates in a longitudinal model. Resolve before fitting.")
+  design_matrix <- stats::model.matrix(fixed,data=meta)
+  if(qr(design_matrix)$rank<ncol(design_matrix) ||
+      !(expected_term%in%colnames(design_matrix)))
+    stop("Aliased longitudinal fixed effects or missing explicit condition-by-time coefficient.")
+  try_slope <- identical(random_slope,TRUE)||identical(random_slope,"yes")||
+    (identical(random_slope,"auto") && subject_has_repeated_time(meta,subject_column,"time"))
+  intercept_formula <- stats::as.formula(paste0("value ~ ",fixed_formula," + (1|",subject_column,")"))
+  slope_formula <- stats::as.formula(paste0("value ~ ",fixed_formula," + (1 + time|",subject_column,")"))
+  results <- vector("list",ncol(x))
+  for(j in seq_len(ncol(x))) {
+    feature <- colnames(x)[j]
+    if(is.null(feature)||!nzchar(feature)) feature <- paste0("F",j)
     dat <- meta
-    dat$value <- x[, j]
-    structure_used <- "random intercept"
-    fit <- NULL
-
-    if (try_slope && "time" %in% names(dat)) {
-      candidate <- try(lmerTest::lmer(slope_formula, data = dat, REML = FALSE), silent = TRUE)
-      singular <- FALSE
-      if (!inherits(candidate, "try-error") && requireNamespace("lme4", quietly = TRUE)) {
-        singular <- isTRUE(lme4::isSingular(candidate, tol = 1e-4))
-      }
-      if (!inherits(candidate, "try-error") && !singular) {
-        fit <- candidate
-        structure_used <- "random intercept + random time slope"
-      }
-    }
-    if (is.null(fit)) fit <- try(lmerTest::lmer(intercept_formula, data = dat, REML = FALSE), silent = TRUE)
-    if (inherits(fit, "try-error")) next
-
-    coefs <- summary(fit)$coefficients
-    term <- interaction_term
-    if (is.null(term)) {
-      interaction_hits <- grep(":", rownames(coefs), value = TRUE)
-      term <- if (length(interaction_hits)) interaction_hits[1] else rownames(coefs)[nrow(coefs)]
-    }
-    if (!term %in% rownames(coefs)) next
-    row <- coefs[term, , drop = FALSE]
-    results[[j]] <- data.frame(
-      feature = colnames(x)[j],
-      term = term,
-      estimate = row[1, "Estimate"],
-      std_error = row[1, "Std. Error"],
-      df = if ("df" %in% colnames(row)) row[1, "df"] else NA_real_,
-      statistic = row[1, "t value"],
-      p_value = row[1, "Pr(>|t|)"],
-      random_effect_structure = structure_used,
-      stringsAsFactors = FALSE
+    dat$value <- x[,j]
+    dat <- dat[is.finite(dat$value),,drop=FALSE]
+    row <- data.frame(
+      feature=feature,term=expected_term,estimate=NA_real_,
+      std_error=NA_real_,df=NA_real_,statistic=NA_real_,
+      p_value=NA_real_,q_bh=NA_real_,
+      n_observations=nrow(dat),
+      n_subjects=length(unique(dat[[subject_column]])),
+      random_effect_structure=NA_character_,
+      status="not_estimable",stringsAsFactors=FALSE
     )
+    if(nrow(dat)<20L) {row$status <- "insufficient_observations";results[[j]]<-row;next}
+    eligible <- try(validate_longitudinal_reference_design(dat,subject_column),silent=TRUE)
+    if(inherits(eligible,"try-error")) {
+      row$status <- "incomplete_feature_specific_subject_visits"
+      results[[j]]<-row;next
+    }
+    if(length(unique(dat$value))<3L||stats::sd(dat$value)<1e-10) {
+      row$status <- "constant_feature";results[[j]]<-row;next
+    }
+    fd <- stats::model.matrix(fixed,data=dat)
+    if(qr(fd)$rank<ncol(fd)) {
+      row$status <- "feature_specific_rank_deficient"
+      results[[j]]<-row;next
+    }
+    fit <- NULL
+    used <- "random_intercept"
+    fallback <- FALSE
+    if(try_slope && subject_has_repeated_time(dat,subject_column,"time")) {
+      candidate <- try(suppressWarnings(lmerTest::lmer(
+        slope_formula,data=dat,REML=FALSE,
+        control=lme4::lmerControl(optimizer="bobyqa"))),silent=TRUE)
+      if(!inherits(candidate,"try-error")&&!lme4::isSingular(candidate,tol=1e-4) &&
+          is.null(candidate@optinfo$conv$lme4$messages)) {
+        fit <- candidate;used <- "random_intercept_and_slope"
+      } else fallback <- TRUE
+    }
+    if(is.null(fit)) {
+      candidate <- try(suppressWarnings(lmerTest::lmer(
+        intercept_formula,data=dat,REML=FALSE,
+        control=lme4::lmerControl(optimizer="bobyqa"))),silent=TRUE)
+      if(!inherits(candidate,"try-error")&&!lme4::isSingular(candidate,tol=1e-4) &&
+          is.null(candidate@optinfo$conv$lme4$messages))fit <- candidate
+    }
+    if(is.null(fit)) {
+      row$status <- "singular_or_nonconvergent_fit"
+      results[[j]]<-row;next
+    }
+    coefs <- summary(fit)$coefficients
+    if(!(expected_term%in%rownames(coefs)) ||
+        !all(c("Estimate","Std. Error","Pr(>|t|)")%in%colnames(coefs))) {
+      row$status <- "missing_explicit_interaction"
+      results[[j]]<-row;next
+    }
+    xterm <- coefs[expected_term,,drop=FALSE]
+    beta <- unname(xterm[1,"Estimate"])
+    se <- unname(xterm[1,"Std. Error"])
+    p <- unname(xterm[1,"Pr(>|t|)"])
+    if(!all(is.finite(c(beta,se,p))) || se<=0 || p<0 || p>1) {
+      row$status <- "invalid_inference"
+      results[[j]]<-row;next
+    }
+    row$estimate <- beta
+    row$std_error <- se
+    row$df <- if("df"%in%colnames(xterm))unname(xterm[1,"df"])else NA_real_
+    row$statistic <- unname(xterm[1,"t value"])
+    row$p_value <- p
+    row$random_effect_structure <- used
+    row$status <- if(fallback)"ok_random_slope_fallback" else "ok"
+    results[[j]] <- row
   }
-  result <- do.call(rbind, results)
-  if (is.null(result)) result <- data.frame()
-  if (nrow(result)) result$q_bh <- stats::p.adjust(result$p_value, method = "BH")
-
-  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  utils::write.csv(result, file.path(output_dir, "lmer_results.csv"), row.names = FALSE)
-  invisible(result)
+  result <- do.call(rbind,results)
+  if(is.null(result))result <- data.frame()
+  if(nrow(result)) {
+    # BH denominator is the ORIGINAL supplied feature family: failures p=1.
+    complete_p <- ifelse(is.finite(result$p_value),result$p_value,1)
+    all_q <- stats::p.adjust(complete_p,method="BH")
+    result$q_bh <- ifelse(is.finite(result$p_value),all_q,NA_real_)
+  }
+  dir.create(output_dir,recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(result,file.path(output_dir,"lmer_results.csv"),row.names=FALSE)
+  attr(result,"design_summary") <- c(design,
+    list(attemptedFeatures=ncol(x),
+         estimableFeatures=sum(is.finite(result$p_value)),
+         blockedFeatures=sum(!is.finite(result$p_value)),
+         randomSlopeFallbacks=sum(result$status=="ok_random_slope_fallback")))
+  result
 }
 
 run_fgsea_ranked <- function(
