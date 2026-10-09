@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/validation_benchmarks.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_diablo_holdout_recipe.R'
       - 'multiomics-engine/tests/test_mofa_preflight_signature_stability.R'
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/validation_benchmarks.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_diablo_holdout_recipe.R'
       - 'multiomics-engine/tests/test_mofa_preflight_signature_stability.R'
