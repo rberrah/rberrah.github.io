@@ -548,6 +548,67 @@ incohérents, tandis que la CI `mixOmics` réelle vérifie que
 les variables sélectionnées ont des identifiants valides et
 que le rapport de stabilité est produit sans perdre de plis.
 
+## Tests de vérité connue MOFA2 et permutation nulle DIABLO
+
+### MOFA2 : orientation des matrices corrigée (point P0)
+
+L'interface utilisateur et le backend PMx échangent des matrices
+**sujets × variables**. En revanche, `MOFA2::create_mofa` exige pour
+une liste de matrices **variables en lignes et sujets en colonnes**.
+L'ancien appel R lui fournissait les matrices sans transposition.
+Le backend effectue désormais cette conversion explicitement et
+vérifie que chaque colonne MOFA2 porte le bon identifiant sujet
+et que les vues sont alignées dans le même ordre. Cela corrige un
+problème méthodologique réel : ne pas réutiliser sans réanalyse les
+résultats MOFA2 obtenus avec une ancienne version.
+
+Le benchmark `test_mofa_truth_reference.R` fait fonctionner le
+**vrai MOFA2** sur trois structures simulées : (a) facteur
+biologique seul ; (b) facteur biologique + batch technique ;
+(c) batch technique sans facteur biologique réel. Chaque scénario
+est répété avec deux graines prédéterminées (six ajustements).
+Les facteurs récupérés sont comparés à la vérité connue avec des
+corrélations absolues, donc indépendantes de leur signe et de
+leur ordre. Les données simulées et les erreurs sont conservées
+dans les artefacts CI. Les seuils 0,65 sont des contrôles de
+récupération d'un signal synthétique **fort**, pas une validation
+universelle de MOFA2, d'un nombre optimal de facteurs ou
+de la causalité biologique.
+
+Le test R indépendant `test_mofa_truth_metrics.R` refuse les
+identifiants perdus/dupliqués et les scores non finis, vérifie
+les corrélations invariantes au signe, et confirme qu'un
+**facteur purement technique de batch ne peut être étiqueté
+comme signal biologique** simplement parce qu'il explique
+de la variance.
+
+### DIABLO : permutations et résolution statistique
+
+`run_diablo_permutation_benchmark` réexécute le processus de
+séparation par sujet, le prétraitement sur l'entraînement, le
+réglage et la prédiction après avoir **permuté globalement les
+étiquettes entre sujets**. Il compare le BER et le Jaccard des
+signatures réelles aux distributions nulles, sans réutiliser
+les transformations ni les modèles du jeu observé.
+
+Le contrôle de CI utilise **8 permutations** et deux graines
+de séparation. La résolution minimale d'une p-value de
+permutation vaut **1/(8+1)=0,111**. Ces résultats sont donc
+**des contrôles négatifs de logiciel, non des p-values permettant
+une conclusion confirmatoire à 5 %**. Une étude d'inférence
+sur biomarqueurs demanderait beaucoup plus de permutations,
+des cohortes indépendantes et une vérification des plans
+de batch/confusion et des décisions de prétraitement.
+
+### Accessibilité débutant
+
+Les détails techniques sont placés dans des sections
+facultatives ; la page doit permettre de charger une démo
+mono-omique sans installer R, consulter le contrôle qualité
+et comprendre les limites des facteurs sans prendre les
+corrélations ou les signatures pour des preuves de causalité.
+Les tests navigateur vérifient ces chemins à chaque modification.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de

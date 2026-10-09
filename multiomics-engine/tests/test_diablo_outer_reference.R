@@ -3,6 +3,7 @@
 # NOT a substitute for external clinical validation or nested selection among
 # many candidate multiblock methods. Synthetic known effects/null controls.
 source("multiomics-engine/advanced_methods.R")
+source("multiomics-engine/validation_benchmarks.R")
 if(!requireNamespace("mixOmics",quietly=TRUE))stop("mixOmics must be installed for this test.")
 set.seed(20261009)
 n <- 64L
@@ -54,6 +55,30 @@ stopifnot(
   all(vapply(control$summary$signatureStability,
     function(x) is.finite(x$meanPairwiseJaccard),logical(1)))
 )
+# Eight complete subject-label permutations: fold-specific preprocessing,
+# model selection and fitting are recomputed for EVERY null dataset. This is
+# a reproducible *smoke* null distribution, not a 5% significance analysis:
+# resolution cannot be lower than 1/9 (0.111...).
+permutation_dir <- tempfile("diablo_permutations_")
+negative <- run_diablo_permutation_benchmark(
+  blocks,y,permutation_dir,n_permutations=8L,
+  permutation_seed=20261009L,
+  split_seeds=c(20261009L,20261010L),
+  tune=FALSE
+)
+stopifnot(
+  identical(negative$status,"exploratory_null_distribution_not_formal_calibration"),
+  identical(negative$nPermutations,8L),
+  abs(negative$minimumPossibleP-1/9)<1e-12,
+  length(negative$nullBERValues)==8L,
+  all(is.finite(negative$nullBERValues)),
+  all(vapply(negative$featureStability,function(x)
+    length(x$nullValues)==8L && all(is.finite(x$nullValues)) &&
+    x$upperTailEmpiricalP>=negative$minimumPossibleP,logical(1))),
+  file.exists(file.path(permutation_dir,"diablo_permutation_null.rds"))
+)
+unlink(permutation_dir,recursive=TRUE)
+
 cat(sprintf(
   "Actual mixOmics DIABLO | known signal heldout BER %.3f | permuted-outcome heldout BER %.3f | per-train tuning/preprocessing and complete predictions PASS\n",
   result$summary$meanBER,control$summary$meanBER
