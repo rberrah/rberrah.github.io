@@ -87,6 +87,27 @@ For scalar primary metrics, a deterministic percentile bootstrap can be requeste
 
 The software cannot prove cohort independence from a CSV file. The analyst must explicitly assert `independent_cohort: true` and support that assertion with study provenance. Without this assertion, the report status is `independent_status_not_asserted`, even though the supplied predictions can still be evaluated.
 
+**Frozen-prediction cohort coverage is now explicitly audited.** If a
+`subject_id` column is supplied, IDs must be nonempty and unique: repeat
+measurements of one patient cannot be silently counted as independent
+validation subjects. If no `subject_id` is provided, the report indicates
+`subject_identity_audit.status = not_verifiable_without_subject_id`;
+the software cannot verify duplication from an anonymous CSV.
+
+The audit distinguishes `cohort_coverage.submitted_rows` from
+`evaluated_rows` and `excluded_rows`. Missing outcomes, nonfinite
+predictions, or non-estimable metrics can still produce partial descriptive
+statistics, but they cannot receive the status `external_validation`:
+instead, the result is labelled `external_validation_incomplete` with an
+explicit on-screen warning. Impossible binary probabilities outside [0,1]
+are rejected rather than silently clamped.
+
+These are **necessary software safeguards, not sufficient scientific proof**:
+a file without stable IDs or with a complete set of numbers may still have
+overlapping patients, unrepresentative enrolment, data leakage, treatment
+confounding, or a development-derived choice of outcome/threshold.
+Provenance must still be reviewed independently.
+
 ### CLI example
 
 `predictions.csv`:
