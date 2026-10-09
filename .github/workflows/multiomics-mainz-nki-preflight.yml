@@ -1,0 +1,39 @@
+name: Multi-omics cross-platform MAINZ to NKI preflight
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/preflight_mainz_nki_crossplatform.R'
+      - '.github/workflows/multiomics-mainz-nki-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          repository: bioconductor-source/breastCancerMAINZ
+          ref: 63e11105cb8a7c854264e9a13f8c926b39f20ab0
+          path: external/MAINZ
+          sparse-checkout: |
+            data/mainz.rda
+      - uses: actions/checkout@v5
+        with:
+          repository: bioconductor-source/breastCancerNKI
+          ref: 94e197403d6adaeae613cdc95997ac6ac5b5a88e
+          path: external/NKI
+          sparse-checkout: |
+            data/nki.rda
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      - run: |
+          Rscript -e 'if(!requireNamespace("BiocManager",quietly=TRUE)) install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install("Biobase",ask=FALSE,update=FALSE)'
+      - run: Rscript scripts/preflight_mainz_nki_crossplatform.R
