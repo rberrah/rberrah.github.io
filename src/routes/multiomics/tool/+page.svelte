@@ -2740,6 +2740,23 @@
       </div>
       {#if analysisResult.referenceBackend.status === 'ok'}
         <p class="note">{analysisResult.referenceBackend.engine?.name} · v{analysisResult.referenceBackend.engine?.version}</p>
+        {#if analysisResult.referenceBackend.runtime}
+          <details class="simple-disclosure" data-testid="multiomics-r-runtime-provenance">
+            <summary>{t('Versions R et packages utilisés (reproductibilité)', 'R and package versions used (reproducibility)')}</summary>
+            <p>{t('Version R : ', 'R version: ')}{analysisResult.referenceBackend.runtime.RVersion} ·
+              {analysisResult.referenceBackend.runtime.RPlatform}
+              {#if analysisResult.referenceBackend.runtime.BioconductorRelease}
+                · Bioconductor {analysisResult.referenceBackend.runtime.BioconductorRelease}
+              {/if}
+            </p>
+            <div class="backend-packages">
+              {#each Object.entries(analysisResult.referenceBackend.runtime.packageVersions || {}) as [pkg, version]}
+                <span>{pkg} {version}</span>
+              {/each}
+            </div>
+            <small>{t('Ces versions sont conservées dans le rapport et le projet téléchargé, mais ne remplacent pas un environnement R figé (renv/conteneur).', 'Versions are included in the report and exported project, but do not replace an R environment lock (renv/container).')}</small>
+          </details>
+        {/if}
         <div class="backend-method-grid">
           {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, method]}
             <article>
