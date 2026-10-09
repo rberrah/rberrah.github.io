@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {File} from 'node:buffer';
 import {runDeterministicAnalysis} from '../src/lib/multiomics/deterministic.js';
-import {evaluateConfirmatoryReadiness} from '../src/lib/multiomics/scientific-assurance.js';
+import {evaluateConfirmatoryReadiness,assessScientificAssurance} from '../src/lib/multiomics/scientific-assurance.js';
 
 const SCENARIOS=['complete','mcar','mar_observed_age','strong_batch','mnar_opposite_tails'];
 const SAMPLE_SIZES=[24,80];
@@ -104,7 +104,7 @@ async function analyse(f) {
 const results=[];
 for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
   let valid=0,invalid=0,empty=0,rowsTested=0,rawReject=0,bhAny=0;
-  let missingSum=0,imbalanceSum=0,missingReviewed=0,missingBlocked=0;
+  let missingSum=0,imbalanceSum=0,missingReviewed=0,missingBlocked=0,exploratoryWarned=0;
   let signals=0,detected=0;
   for(let trial=0;trial<NULL_REPS;trial++){
     const seed=420001+100000*n+2009*SCENARIOS.indexOf(scenario)+17*trial;
@@ -125,6 +125,9 @@ for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
     missingSum+=f.simulation.missingFraction;
     imbalanceSum+=Math.abs(f.simulation.missingByGroup.control-f.simulation.missingByGroup.treated);
     if(scenario==='mnar_opposite_tails') {
+      const exploratory=assessScientificAssurance(out);
+      if(exploratory.notes.some(x=>x.code==='proteomics_missingness_not_ignorable'))
+        exploratoryWarned++;
       // Granting a *hypothetical* successful R fit must not certify MNAR data.
       // The checker cannot identify the mechanism; it must at least flag
       // nonzero observed missingness and require independent review.
@@ -169,6 +172,8 @@ for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
   }
   if(scenario==='mnar_opposite_tails'){
     assert.ok(meanImbalance<0.10,'missingness should be comparable between groups in expectation');
+    assert.equal(exploratoryWarned,NULL_REPS,
+      'Every MNAR exploratory output must warn about non-ignorable missingness');
     assert.ok(missingReviewed>=Math.floor(NULL_REPS*0.90),
       'MNAR censoring must trigger visible missingness review in most studies');
   }
@@ -186,6 +191,7 @@ for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
     meanMissingFraction:meanMissing,
     meanAbsoluteGroupMissingnessDifference:meanImbalance,
     mnarWithMissingnessReview:scenario==='mnar_opposite_tails'?missingReviewed:null,
+    mnarExploratoryReportsWarned:scenario==='mnar_opposite_tails'?exploratoryWarned:null,
     mnarBlockedAtSoftwareGate:scenario==='mnar_opposite_tails'?missingBlocked:null,
     plantedFeatures:signals,positiveDiscoveries:detected,
     plantedSensitivityAtQ010:power,
@@ -206,7 +212,7 @@ const report={
     'Only one simulated log-intensity omics layer and two independent groups.',
     'True MCAR/MAR/MNAR mechanisms are known to the generator, not the software.',
     'A global-null BH family discovery is not a general proof of FDR control.',
-    '20%/5% tests and thresholds vary across inference engines; no automatic certification.',
+    'Test thresholds are operational gross-regression screens, not scientific equivalence margins; no automatic certification.',
     'Positive-control strength is fixed, and power is not transportable to real cohorts.',
     'No causal claims, clinical validation, statistical preregistration or publication certificate.'
   ],
