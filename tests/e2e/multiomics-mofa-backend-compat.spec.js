@@ -16,6 +16,9 @@ test('Outdated MOFA2 localhost backend is refused before uploading research matr
   await page.goto('/multiomics/tool?lang=fr');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:25000});
+  // The general synthetic demo defaults to a longitudinal model, not MOFA2.
+  // Switch to the exploratory 3-omic plan before checking MOFA2 compatibility.
+  await page.getByLabel(/Objectif principal|Main objective/).selectOption('explore');
   await page.getByTestId('multiomics-run-options').locator('summary').click();
   await page.getByLabel(/Mode backend R|R backend mode/).selectOption('auto');
   await page.getByTestId('multiomics-run').click();
