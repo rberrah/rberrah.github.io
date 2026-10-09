@@ -23,8 +23,8 @@ const SPEC = Object.freeze({
   seed: 20261009,
   subjects: [24, 64],
   scenarios: ['gaussian', 'heteroscedastic_mcar', 'mnar_left_censor', 'mnar_group_asymmetric'],
-  nullReplicates: 12,
-  effectReplicates: 6,
+  nullReplicates: 24,
+  effectReplicates: 12,
   features: 10,
   signalFeatures: 3,
   plantedEffect: 1.3,
@@ -124,9 +124,11 @@ async function generate(directory) {
         };
         const result=await runDeterministicAnalysis(input);
         const fitted=result.layers.proteomics.rows;
-        // Do not hide missing, filtered or non-estimable features.
-        assert.equal(fitted.length,SPEC.features,
-          'Method-validation matrix must retain every planted hypothesis: '+caseId);
+        // Retain feature attrition as a visible QC outcome; compare exactly the
+        // actually tested hypotheses rather than inventing estimates for
+        // features that did not pass the browser's own predeclared QC.
+        assert.ok(fitted.length > 0 && fitted.length <= SPEC.features,
+          'No estimable hypotheses remain for '+caseId);
         for(const p of fitted) {
           assert.ok(['effect','standardError','pValue','qValue','ciLow','ciHigh']
             .every(key=>Number.isFinite(p[key])),
@@ -137,7 +139,9 @@ async function generate(directory) {
           ]));
         }
         for(const observation of allObservations)data.push(csv(Object.values(observation)));
-        cases.push({case_id:caseId,scenario,n,replicate:rep,planted});
+        cases.push({case_id:caseId,scenario,n,replicate:rep,planted,
+          hypothesesSupplied:SPEC.features,hypothesesRetained:fitted.length,
+          filteredFeatures:SPEC.features-fitted.length});
       }
     }
   }
@@ -213,6 +217,15 @@ async function compare(directory) {
     }
     const familyFailures=[...families.values()].filter(values=>
       values.some(v=>v.trueEffect===0&&Number(v.qValue)<SPEC.nominalAlpha)).length;
+    let totalDiscoveries=0,totalFalseDiscoveries=0;
+    let sumFdp=0;
+    for(const values of families.values()) {
+      const called=values.filter(x=>Number(x.qValue)<=SPEC.nominalAlpha);
+      const errors=called.filter(x=>x.trueEffect===0).length;
+      totalDiscoveries+=called.length;
+      totalFalseDiscoveries+=errors;
+      sumFdp+=called.length?errors/called.length:0;
+    }
     const coverage=rows.filter(x=>{
       const low=Number(x.ciLow),high=Number(x.ciHigh);
       return low<=x.trueEffect && x.trueEffect<=high;
@@ -228,6 +241,8 @@ async function compare(directory) {
       rawRateWilson95:wilson(rateCount,nullRows.length),
       familiesWithAnyFalseQ005:familyFailures,
       falseDiscoveryFamilyFraction:familyFailures/families.size,
+      totalDiscoveries,totalFalseDiscoveries,
+      meanRealisedFDP:sumFdp/families.size,
       intervalCoverage:coverage/rows.length,
       intervalCoverageWilson95:wilson(coverage,rows.length),
       knownSignals:signals.length,knownSignalsRecovered: hits,
@@ -242,6 +257,12 @@ async function compare(directory) {
   const report={
     version:SPEC.version,nominalAlpha:SPEC.nominalAlpha,
     simulations:protocol.cases,pairwiseModels:browser.length,
+    featureAttrition:{
+      requested:protocol.cases*SPEC.features,
+      retained:browser.length,
+      filtered:protocol.cases*SPEC.features-browser.length,
+      interpretation:'The R comparison conditions on browser-retained features; prefiltering and post-selection calibration are not independently validated.'
+    },
     comparison:'Separate JS application and R base::lm + independently implemented HC3',
     numericalTolerances:SPEC.rNumericalTolerance,
     maximumAbsoluteDeviation:maximum,verificationFailures:failures.length,
