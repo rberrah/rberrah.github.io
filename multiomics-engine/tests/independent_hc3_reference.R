@@ -59,6 +59,6 @@ for(c in unique(r$case_id)) {
 }
 if(any(!is.finite(as.matrix(r[,c("effect","standardError","pValue","qValue","ciLow","ciHigh")]))))
   stop("Non-finite independent R reference statistics")
-utils::write.csv(r,file=args[3],row.names=FALSE,na="")
+utils::write.csv(r,file=args[3],row.names=FALSE,na="",quote=FALSE)
 cat(sprintf("Independent R lm/HC3: %d matched feature-level models, %d datasets | PASS\n",
   nrow(r),length(unique(r$case_id))))
