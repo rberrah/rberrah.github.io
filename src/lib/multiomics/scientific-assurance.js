@@ -116,6 +116,11 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
   };
 }
 
+/** @param {any} profile */
+function profileHasMissingMeasurement(profile) {
+  return Number(profile?.missingFraction) > 0;
+}
+
 /** @param {any} result @param {{demo?: boolean}} [options] */
 export function assessScientificAssurance(result, { demo = false } = {}) {
   const layers = Object.entries(result?.layers || {});
@@ -161,7 +166,7 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     // the median can be zero despite real feature-wise missingness.
     const hasObservedMissingness =
       (Array.isArray(qc.sampleMetrics) &&
-        qc.sampleMetrics.some(item => Number(item?.missingFraction) > 0))
+        qc.sampleMetrics.some(profileHasMissingMeasurement))
       || Number(qc.medianMissingFraction) > 0;
     if (hasObservedMissingness) add(layer + '_missingness_not_ignorable',
       'Certaines mesures sont manquantes. Même avec des taux similaires entre groupes, cela peut créer de fausses différences biologiques : vérifier la cause des absences et refaire une analyse de sensibilité. Les p-values/q-values seules ne suffisent pas.',
