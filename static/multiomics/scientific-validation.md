@@ -8,6 +8,57 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## Audit complémentaire MCAR / MAR / MNAR (9 octobre 2026)
+
+Un benchmark indépendant, exécutable avec
+`node scripts/test_multiomics_missingness_calibration.mjs`, teste désormais
+**2 000 jeux simulés sous hypothèse nulle** et **250 jeux avec un signal connu**.
+Il couvre une couche protéomique de type intensité logarithmique, deux groupes
+biologiques indépendants, 12 protéines, des cohortes de 24 et 80 sujets, et
+cinq scénarios préspécifiés. Chaque cellule comprend 200 répétitions nulles
+et 25 répétitions avec signal positif.
+
+La proportion ci-dessous représente les **jeux nuls comportant au moins une
+découverte BH à q ≤ 0,05**, et non le pourcentage d'effets biologiques vrais.
+
+| Scénario simulé | 24 sujets | 80 sujets |
+| --- | ---: | ---: |
+| Données complètes gaussiennes | 4/200 = 2 % | 8/200 = 4 % |
+| MCAR (valeurs manquantes complètement aléatoires) | 2/200 = 1 % | 6/200 = 3 % |
+| MAR conditionné par l'âge observé | 6/200 = 3 % | 6/200 = 3 % |
+| Effet technique de batch important, équilibré entre groupes | 11/200 = 5,5 % | 7/200 = 3,5 % |
+| MNAR : censure des queues opposées, sans effet biologique vrai | **44/200 = 22 %** | **186/200 = 93 %** |
+
+La censure MNAR a affecté environ 23 % des mesures ; les taux de valeurs
+manquantes entre groupes étaient **proches**, mais leurs distributions
+observées étaient biaisées dans des directions opposées. L'augmentation
+spectaculaire des découvertes est un **échec des hypothèses d'inférence
+sur données observées**, et non la découverte d'effets vrais.
+
+Les vérifications du parcours confirmatoire ont demandé une revue du
+mécanisme de données manquantes sur **400/400** simulations MNAR, mais
+n'ont émis un statut formel *bloqué* que pour **342/400**.
+Les 58 autres restent à `independent_review_required` et ne sont jamais
+certifiées. Le logiciel ne peut pas discerner MCAR, MAR et MNAR sur les seules
+valeurs observées : **une absence de déséquilibre de taux de missingness
+entre groupes ne démontre pas l'absence de biais MNAR**.
+
+Un intervalle de Wilson à 95 % est archivé pour chaque proportion calculée
+sur les **200 jeux indépendants**, pas sur les p-values corrélées des protéines.
+L'intervalle MNAR pour 80 sujets est d'environ 88,6–95,8 %.
+Les contrôles MCAR et MAR constituent un résultat encourageant **uniquement
+pour ce générateur** et les modèles/covariables spécifiés, sans prouver une
+calibration universelle du FDR ni une validité confirmatoire des cohortes
+cliniques. Les effets positifs simulés ont été fixés à +2,7 unités log ;
+leur sensibilité ne constitue pas une estimation de puissance généralisable.
+
+Provenance : fichier de CI
+`.github/workflows/multiomics-missingness-stress.yml`, générateur à
+graine fixe et rapport JSON archivé par GitHub Actions ; résultats du
+9 octobre 2026. **Aucun nouveau mécanisme de correction MNAR n'a été
+validé** : le traitement des données manquantes exige un modèle d'observation,
+des analyses de sensibilité préspécifiées et une revue scientifique indépendante.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
