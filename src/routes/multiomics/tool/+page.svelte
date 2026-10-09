@@ -1087,7 +1087,7 @@
         message: 'Reference R backend was not reachable; browser results were retained.'
       };
     }
-    const activeOmicCount = ['transcriptomics','proteomics','metabolomics'].filter(layer=>Boolean(files[layer])).length;
+    const activeOmicCount = Number(Boolean(files.transcriptomics)) + Number(Boolean(files.proteomics)) + Number(Boolean(files.metabolomics));
     const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:activeOmicCount});
     if(!compatibility.compatible) {
       referenceBackendStatus = 'error';
