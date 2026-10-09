@@ -304,6 +304,35 @@ retenues par le QC ; elle ne valide ni le filtrage préalable, ni
 les matrices MS, ni les plans longitudinaux/survie, ni la
 transférabilité à une cohorte clinique indépendante.
 
+## Survie : Cox Breslow, gestion des ex æquo et référence R indépendante
+
+L'ancien solveur Cox itérait chaque événement sans déclarer sa
+convention pour les temps d'événement identiques. Le solveur
+actuel regroupe les événements au même instant dans la vraisemblance
+partielle de **Breslow** et ajuste le score, l'information observée
+et la convergence. La prédiction ridge-Cox utilise la même base.
+
+Le script `scripts/test_multiomics_cox_reference.mjs` génère **80 jeux**
+de survie : 48/80 sujets, coefficient nul ou connu, temps continus
+ou arrondis (nombreux ex æquo), censure indépendante. Le workflow
+`multiomics-cox-reference.yml` compare le coefficient, l'erreur
+standard et la p-value Wald interne aux résultats indépendants de
+`survival::coxph(..., ties='breslow')` dans R, avec tolérance absolue
+préspécifiée de **0,001**, et enregistre le résultat de `cox.zph`.
+Les données sources, sorties et diagnostics sont archivés.
+
+**La concordance de la vraisemblance partielle ne valide pas
+l'hypothèse de risques proportionnels, le mécanisme de censure,
+la possibilité de covariables dépendantes du temps ou la
+transférabilité clinique.** Le navigateur n'affiche donc plus
+de p-value, q-value ou d'IC sur la régression Cox exploratoire ;
+seuls les coefficients et rapports de risques descriptifs restent
+présents. Pour des conclusions confirmatoires, il faut utiliser
+un modèle R de référence adapté à l'étude et inspecter `cox.zph`,
+les événements, les courbes de survie et les risques concurrents.
+La validation croisée du C-index demeure une analyse prédictive
+interne, pas une validation externe.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
