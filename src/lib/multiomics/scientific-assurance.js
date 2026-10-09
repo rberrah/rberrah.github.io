@@ -4,6 +4,94 @@
  * or an installed R package cannot prove a study design is publishable.
  * Never grant a "publication-ready" status automatically.
  */
+/**
+ * "Confirmatory" is a scientific-workflow request, not a certificate.
+ * Rules deliberately never auto-authorise a publication or clinical claim.
+ * R methods must match EVERY actual input layer and the declared design.
+ */
+/** @param {any} result @param {{demo?: boolean}} [options] */
+export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
+  const protocol = result?.protocol || {};
+  const requested = protocol.analysisIntent === 'confirmatory';
+  const layers = Object.entries(result?.layers || {});
+  const methods = result?.referenceBackend?.status === 'ok'
+    ? result.referenceBackend.methods || {} : {};
+  /** @type {Array<{code:string,status:'pass'|'review'|'blocked',fr:string,en:string}>} */
+  const checks = [];
+  /** @param {string} code @param {'pass'|'review'|'blocked'} status @param {string} fr @param {string} en */
+  const add = (code, status, fr, en) => checks.push({ code, status, fr, en });
+  if (!requested) return {
+    requested: false, status: 'not_requested', checks: [],
+    certified: false, scope: 'No automatic scientific certification.'
+  };
+
+  if (demo) add('demo', 'blocked',
+    'Démo synthétique : aucune conclusion biologique confirmatoire.',
+    'Synthetic demonstration: no confirmatory biological inference.');
+  if (!layers.length) add('empty', 'blocked',
+    'Aucune omique analysée.', 'No analysed omics layer.');
+  const eligibleDesign = protocol.objective === 'groups' &&
+    protocol.designType === 'independent' && !protocol.longitudinal &&
+    (result?.metadataSummary?.conditions || []).length === 2;
+  if (!eligibleDesign) add('design', 'blocked',
+    'La voie confirmatoire vérifiée actuellement couvre uniquement deux groupes indépendants. Autres plans : revue méthodologique nécessaire, sans validation automatique.',
+    'The currently audited confirmatory route covers only two independent groups. Other designs require method-specific review, without automatic validation.');
+  else add('design', 'pass',
+    'Plan à deux groupes indépendants reconnu.',
+    'Two-independent-group design recognised.');
+
+  if (!Object.keys(methods).length) add('backend', 'blocked',
+    'Aucun moteur R de référence exécuté. Lancez le backend R pour toutes les omiques.',
+    'No executed reference R backend. Run the R backend for every omics layer.');
+  for (const [layer, data] of layers) {
+    const qc = data?.qc || {};
+    const declared = qc.preprocessingAudit?.declaredValueType;
+    const key = layer === 'transcriptomics' && declared === 'raw_counts'
+      ? layer + '_differential_deseq2'
+      : layer + '_differential';
+    const status = methods[key]?.status;
+    if (status !== 'ok') add('reference_'+layer, 'blocked',
+      layer + ' : modèle R primaire compatible non exécuté (' + key + ').',
+      layer + ': matching primary R model not executed (' + key + ').');
+    else add('reference_'+layer,'pass',
+      layer + ' : modèle R de référence exécuté (' + key + ').',
+      layer + ': reference R model executed (' + key + ').');
+    for (const warning of qc.warnings || []) {
+      add('qc_'+layer, 'review',
+        layer + ' : contrôle qualité à examiner — ' + warning,
+        layer + ': quality control requires review — ' + warning);
+    }
+    if (layer === 'metabolomics') add('metabolomics_validation','review',
+      'Métabolomique : vérifier blancs, pooled-QC, identification et analyses de sensibilité MS.',
+      'Metabolomics: review blanks, pooled QC, compound identification and MS sensitivity analyses.');
+    if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
+      'RNA-seq : vérifier indépendamment la dispersion, les facteurs d’ajustement et les contrastes DESeq2.',
+      'RNA-seq: independently check dispersion, adjustment variables and DESeq2 contrasts.');
+  }
+  if ((result?.preAnalysisDiagnostics?.blockers || []).length) add('study_design', 'blocked',
+    'Le diagnostic préalable contient des blocages.', 'Pre-analysis diagnostics report blockers.');
+  if (result?.predictiveOutcome?.status === 'ok') add('prediction', 'review',
+    'La prédiction interne ne constitue pas une validation externe du biomarqueur.',
+    'Internal prediction is not external biomarker validation.');
+  if (layers.length > 1) add('multiplicity','review',
+    'Préspécifier les familles de tests et le critère principal ; des q-values par omique ne contrôlent pas automatiquement l’erreur globale.',
+    'Prespecify testing families and the primary endpoint; per-layer BH q-values do not automatically control study-wide error.');
+  add('preregistration','review',
+    'Vérifier le protocole préspécifié, l’indépendance des réplicats, les exclusions et les facteurs de confusion.',
+    'Review the prespecified protocol, replicate independence, exclusions and confounders.');
+  add('external_review','review',
+    'Une vérification humaine indépendante reste nécessaire avant une conclusion scientifique confirmatoire.',
+    'Independent human review is still required before confirmatory scientific claims.');
+
+  return {
+    requested: true,
+    status: checks.some(x => x.status === 'blocked') ? 'blocked' : 'independent_review_required',
+    checks,
+    certified: false,
+    scope: 'Software eligibility checks; not confirmation of hypotheses, clinical validation or publication approval.'
+  };
+}
+
 /** @param {any} result @param {{demo?: boolean}} [options] */
 export function assessScientificAssurance(result, { demo = false } = {}) {
   const layers = Object.entries(result?.layers || {});
@@ -69,10 +157,16 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'Le modèle longitudinal navigateur ne fournit plus de p-value, q-value ou intervalle de confiance : une simulation nulle a révélé une inflation possible des faux positifs. Les effets affichés restent descriptifs. Pour conclure, utilisez lmerTest sur le plan complet.',
     'The browser longitudinal model no longer reports p-values, q-values or confidence intervals: null simulation suggested possible type-I inflation. Effects are descriptive only. Use lmerTest with the full study design for inference.',
     'requires_confirmation');
-  if (result?.predictiveOutcome?.status === 'ok') add('cv_preprocessing_limit',
-    'La CV est interne ; sélection des variables recalculée dans chaque pli, mais certains prétraitements omiques sont effectués avant la séparation. Une validation externe indépendante reste nécessaire.',
-    'Internal CV refits feature selection per fold, but some omics preprocessing occurs before splitting. Independent external validation is still needed.',
-    'requires_confirmation');
+  if (result?.predictiveOutcome?.status === 'ok') {
+    if (result.predictiveOutcome.preprocessingLeakageRisk !== false) add('cv_preprocessing_limit',
+      'La validation croisée reste exploratoire : au moins une omique peut subir un prétraitement global avant la séparation des sujets.',
+      'Cross-validation remains exploratory: at least one modality may undergo global preprocessing before splitting subjects.',
+      'requires_confirmation');
+    else add('cv_fold_local_preparation',
+      'Pour les échelles prises en charge, le moteur ne filtre plus les variables sur la cohorte entière avant la CV. Les prétraitements réalisés avant import, la conception de l’étude et la validation externe restent à vérifier.',
+      'For supported scales, the engine no longer filters features on the full cohort before CV. Pre-import processing, study design and external validation still need review.',
+      'requires_confirmation');
+  }
   if (layers.length > 1 && !exploratory) add('separate_fdr_families',
     'Les q-values sont corrigées par couche omique, pas globalement sur toutes les couches et analyses de voies : préspécifier les familles de tests.',
     'BH q-values are adjusted within each omics layer, not globally across omics and pathway tests: prespecify the tested families.',
@@ -94,8 +188,10 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
   if (!layers.length) add('no_results', 'Aucun résultat statistique exploitable.', 'No usable statistical result.', 'requires_confirmation');
   const status = exploratory ? 'descriptive' : notes.some((item) => item.level === 'requires_confirmation')
     ? 'needs_reference_confirmation' : 'exploratory_inference';
+  const confirmatoryReadiness = evaluateConfirmatoryReadiness(result, { demo });
   return {
     status,
+    confirmatoryReadiness,
     publicationReady: false,
     referenceMethodsExecuted: matched,
     notes,

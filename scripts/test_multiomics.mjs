@@ -413,6 +413,7 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   });
 
   assert.equal(survival.predictiveOutcome.status, 'ok');
+  assert.equal(survival.predictiveOutcome.preprocessingLeakageRisk, false);
   assert.equal(survival.predictiveOutcome.predictions.length, survival.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
   assert.equal(new Set(survival.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, survival.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(survival.predictiveOutcome.outcomeType, 'survival');
@@ -490,6 +491,7 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   assert.equal(pred.predictiveOutcome.predictions.length, pred.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
   assert.equal(new Set(pred.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, pred.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(pred.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+  assert.equal(pred.predictiveOutcome.preprocessingLeakageRisk, false, 'log-scale predictors should bypass whole-cohort feature filtering');
   assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
   assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
   assert.ok(pred.predictiveOutcome.metrics.auc > 0.80);
@@ -507,6 +509,44 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
     useReactome:false,resolveIdentifiers:false
   }), /conflicting outcome for subject/i);
 
+}
+
+
+// One-layer integer-count RNA must also avoid outcome-blind whole-cohort QC
+// before nested CV; library-size normalization is per assay, never learned
+// from validation subjects.
+{
+  const ids = Array.from({length:30},(_,i)=>'RC'+String(i+1).padStart(2,'0'));
+  const rows = ids.map((id,i)=>({
+    subject_id:id,sample_id:id,assay_id:id,omic:'transcriptomics',
+    condition:'cohort',timepoint:'T0',batch:'',
+    outcome:i<15?'control':'treated'
+  }));
+  const genes = Array.from({length:18},(_,j)=>'COUNT_GENE_'+String(j+1).padStart(2,'0'));
+  const matrix = [
+    ['feature_id',...ids].join(','),
+    ...genes.map((gene,j)=>[
+      gene,...ids.map((id,i)=>String(60+j*4+((i*7+j*13)%17) +
+        (j<2 && i>=15 ? 135 : 0)))
+    ].join(','))
+  ].join('\n');
+  const rna = new File([matrix],'rna_integer_counts.csv',{type:'text/csv'});
+  const meta = new File(['fixture'],'count_metadata.csv',{type:'text/csv'});
+  const pred = await runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:null,metabolomics:null},
+    metadataRows:rows,
+    columnMapping:{...mapping,outcome:'outcome'},
+    protocol:{organism:'human',objective:'outcome',outcomeType:'binary',
+      designType:'independent',longitudinal:false,studySetting:'synthetic_test',
+      outcomeTimepoint:'T0',groupCount:'1',batchKnown:'no',covariateColumns:[]},
+    dataTypes:{transcriptomics:'raw_counts'},
+    useReactome:false,resolveIdentifiers:false
+  });
+  assert.equal(pred.predictiveOutcome.status,'ok');
+  assert.equal(pred.predictiveOutcome.preprocessingLeakageRisk,false,
+    'integer-count per-assay CPM must bypass cohort-wide feature filtering');
+  assert.equal(pred.predictiveOutcome.predictions.length,30);
+  assert.equal(pred.engine.analysisMode,'single_omic');
 }
 
 console.log('multiomics deterministic engine: PASS');
@@ -979,6 +1019,7 @@ function csvFile(name, text) {
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
     assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+    assert.equal(outcomeResult.predictiveOutcome.preprocessingLeakageRisk, false, 'as-supplied log-scale predictive route should be fold-isolated');
     assert.equal(outcomeResult.predictiveOutcome.predictions.length, outcomeResult.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
     assert.equal(new Set(outcomeResult.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, outcomeResult.predictiveOutcome.subjects, 'every subject has one held-out prediction');
     assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);

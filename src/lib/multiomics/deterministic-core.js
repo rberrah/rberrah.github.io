@@ -1506,6 +1506,55 @@ function preprocessMatrix(matrix, layer, valueType) {
   return { ...matrix, values: processed, steps, scale, audit };
 }
 
+/**
+ * Prediction inputs cannot inherit cohort-wide feature filtering, centering,
+ * pseudocount estimation or feature selection performed before nested CV.
+ * Only explicitly declared per-observation/per-assay transformations are safe.
+ * All feature scoring, nuisance fitting, missingness and scaling take place
+ * on each training fold in selectPredictionFeatures / predictionMatrix.
+ */
+function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
+  const asSupplied = ['log_expression','log_intensity','log_abundance'].includes(valueType);
+  const rawRna = layer === 'transcriptomics' && valueType === 'raw_counts';
+  if (!asSupplied && !rawRna) return null;
+  const totals = new Map();
+  if (rawRna) {
+    for (const assay of matrix.assays) {
+      let total = 0;
+      for (const values of matrix.values.values()) {
+        const value = values.get(assay);
+        if (Number.isFinite(value)) {
+          if (value < 0 || !Number.isInteger(value)) {
+            return null; // screening of fractional counts is not a validated predictive input
+          }
+          total += value;
+        }
+      }
+      totals.set(assay, total);
+    }
+  }
+  const values = new Map();
+  for (const feature of matrix.features) {
+    const row = new Map();
+    for (const assay of matrix.assays) {
+      const value = matrix.values.get(feature)?.get(assay);
+      row.set(assay, !Number.isFinite(value) ? null
+        : rawRna
+          ? Math.log2((value / Math.max(1, totals.get(assay))) * 1e6 + 0.5)
+          : value);
+    }
+    values.set(feature, row);
+  }
+  return {
+    ...matrix,
+    values,
+    // No feature removal/selection and no learned cohort-level parameters.
+    predictionPreparation: rawRna
+      ? 'per-assay library-size CPM and fixed log2(CPM + 0.5), no global feature filtering'
+      : 'as-supplied values, no global feature filtering'
+  };
+}
+
 function aggregateTechnicalReplicates(matrix, metadata, layer) {
   const rows = metadata.filter((row) => row.omic === layer);
   const bySample = new Map();
@@ -3340,7 +3389,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
       policy: 'fold-local',
       batch: true,
       covariates: protocol.covariateColumns || [],
-      note: 'Predictive nuisance adjustment, feature selection, centering and scaling are refitted in each inner and outer training fold. Upstream modality preprocessing (global QC, pseudocounts, MS correction) occurs before splitting and needs an independent-cohort sensitivity check.'
+      note: 'Nuisance adjustment, feature selection, missing-value fill, centering and scaling use each training split. The separate preprocessingPolicy records whether upstream operations are fold-isolated.'
     },
     outcomeType: protocol.outcomeType,
     subjects: subjects.length,
@@ -3348,7 +3397,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics,
     predictions,
     foldSummaries,
-    caveat: 'Nested subject-level CV is internal screening, not external validation; performance is reported only for complete, one-prediction-per-subject out-of-fold coverage. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
+    caveat: 'Nested subject-level CV is internal screening, not external validation; performance is reported only for complete, one-prediction-per-subject out-of-fold coverage. Predictive feature selection is refitted inside each inner training fold. Upstream filtering is excluded from the supported as-supplied / integer-count predictive lane; unsupported scales may still undergo whole-cohort processing. External transportability and confounding remain unvalidated.'
   };
 }
 
@@ -4155,6 +4204,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const layers = {};
   const aggregatedByLayer = {};
   const predictionAggregatedByLayer = {};
+  const predictionFoldIsolatedByLayer = {};
   const adjustments = {};
 
   for (const layer of loadedLayers) {
@@ -4166,6 +4216,9 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       fingerprint: 'fnv1a32:' + hashString(text).toString(16).padStart(8, '0')
     };
     const matrix = matrixFromText(text, expected);
+    const foldIsolatedPrediction = protocol.objective === 'outcome'
+      ? prepareFoldIsolatedPredictionMatrix(matrix, layer, dataTypes[layer])
+      : null;
     const allLayerMetadata = metadata.filter((row) => row.omic === layer);
     const layerMetadata = biologicalMetadata.filter((row) => row.omic === layer);
     const msPrepared = layer === 'metabolomics'
@@ -4244,7 +4297,10 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
     aggregated.replicateGroups = rawAggregated.replicateGroups;
     aggregatedByLayer[layer] = aggregated;
-    predictionAggregatedByLayer[layer] = rawAggregated;
+    predictionFoldIsolatedByLayer[layer] = Boolean(foldIsolatedPrediction);
+    predictionAggregatedByLayer[layer] = foldIsolatedPrediction
+      ? aggregateTechnicalReplicates(foldIsolatedPrediction, biologicalMetadata, layer)
+      : rawAggregated;
     adjustments[layer] = adjustment;
 
     if (protocol.objective === 'outcome') {
@@ -4301,12 +4357,21 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     biologicalMetadata,
     protocol
   );
+  const predictionUsesGlobalPreprocessing = loadedLayers.some((layer) =>
+    predictionFoldIsolatedByLayer[layer] !== true
+  );
   const predictiveOutcome = analysePredictiveOutcome(
     predictionAggregatedByLayer,
     loadedLayers,
     biologicalMetadata,
     protocol
   );
+  if (predictiveOutcome?.status === 'ok') {
+    predictiveOutcome.preprocessingLeakageRisk = predictionUsesGlobalPreprocessing;
+    predictiveOutcome.preprocessingPolicy = predictionUsesGlobalPreprocessing
+      ? 'Some modalities retain whole-cohort QC, intensity transformation or drift correction upstream of folds: exploratory screening only.'
+      : 'No cohort-level feature filtering, feature selection or fitted transformation before folds; per-assay CPM (if counts) and as-supplied scales only. External validation remains necessary.';
+  }
 
   let crossOmics;
   if (singleOmic) {
