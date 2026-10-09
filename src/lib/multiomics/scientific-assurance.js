@@ -74,8 +74,8 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     // of MCAR when data fall below it.
     const missingFraction = Number(qc.medianMissingFraction || 0);
     if (missingFraction >= 0.20) add('high_missingness_'+layer,'blocked',
-      layer + ' : au moins 20 % de valeurs manquantes médianes par variable. Sans modèle d’observation et analyses de sensibilité préspécifiés, le parcours confirmatoire reste bloqué (seuil de précaution, non diagnostic MNAR).',
-      layer + ': median feature-wise missingness is at least 20%. Confirmatory preparation requires a prespecified observation model and sensitivity analyses (caution threshold, not a diagnosis of MNAR).');
+      layer + ' : le taux médian de valeurs manquantes par profil mesuré atteint au moins 20 %. Sans modèle d’observation et analyses de sensibilité préspécifiés, le parcours confirmatoire reste bloqué (seuil de précaution, non diagnostic MNAR).',
+      layer + ': median missingness across measured sample profiles is at least 20%. Confirmatory preparation requires a prespecified observation model and sensitivity analyses (caution threshold, not a diagnosis of MNAR).');
     else if (missingFraction > 0) add('missingness_mechanism_'+layer,'review',
       layer + ' : certaines valeurs sont manquantes. Des taux identiques entre groupes n’excluent pas une dépendance aux valeurs non observées ; vérifier la sensibilité à MCAR, MAR et MNAR.',
       layer + ': some values are missing. Equal missingness rates between groups do not exclude dependence on unobserved values; review sensitivity to MCAR, MAR and MNAR.');
