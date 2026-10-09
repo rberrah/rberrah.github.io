@@ -66,4 +66,46 @@ underpowered <- group
 underpowered[1:27] <- "treated"
 err <- try(prepare_diablo_holdout_split(blocks,underpowered),silent=TRUE)
 stopifnot(inherits(err,"try-error"))
+# End-to-end R router should REFUSE mismatched group labels across assays
+# before a supervised fit, independent of mixOmics installation.
+source("multiomics-engine/server.R")
+one <- data.frame(
+  subject_id=ids,sample_id=ids,assay_id=paste0("RNA_",ids),
+  omic="transcriptomics",condition=unname(group),
+  timepoint="T0",batch="",sample_type="biological",
+  stringsAsFactors=FALSE
+)
+two <- one
+two$omic <- "proteomics"
+two$assay_id <- paste0("PROT_",ids)
+two$condition[1] <- if(two$condition[1]=="control")"treated" else "control"
+meta <- rbind(one,two)
+write_csv_text <- function(x)
+  paste(capture.output(utils::write.csv(x,row.names=FALSE,na="")),collapse="\n")
+make_layer_matrix <- function(x, assays) {
+  z <- rbind(feature_id=colnames(x),t(x))
+  colnames(z) <- c("feature_id",assays)
+  write_csv_text(data.frame(z,check.names=FALSE))
+}
+payload <- list(
+  metadataCsv=write_csv_text(meta),
+  matrices=list(
+    transcriptomics=make_layer_matrix(a,one$assay_id),
+    proteomics=make_layer_matrix(b,two$assay_id)
+  ),
+  dataTypes=list(transcriptomics="log_expression",proteomics="log_intensity"),
+  columnMapping=list(subject_id="subject_id",sample_id="sample_id",
+    assay_id="assay_id",omic="omic",condition="condition",
+    timepoint="timepoint",batch="batch",sample_type="sample_type"),
+  protocol=list(objective="groups",designType="independent",
+    longitudinal=FALSE,validateDiabloHoldout=TRUE,
+    covariateColumns=list())
+)
+check <- run_backend_analysis(payload)
+stopifnot(
+  identical(check$methods$diablo$status,"blocked"),
+  grepl("inconsistent",check$methods$diablo$message,fixed=TRUE),
+  identical(check$methods$diablo_heldout$status,"blocked")
+)
+
 cat("DIABLO strict outer-fold train-only preprocessing, true subject separation, tamper-invariance and invalid-plan refusals: PASS\n")
