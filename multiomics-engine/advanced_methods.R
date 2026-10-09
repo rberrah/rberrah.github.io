@@ -195,6 +195,7 @@ run_mofa2_blocks <- function(
     factors_requested = as.integer(factors),
     inputAudit = input_audit,
     matrixOrientation = "feature_rows_subject_columns_for_MOFA2",
+    implementationContract = "mofa2-feature-rows-sample-columns-v2",
     subjectIdentityPreserved = identical(colnames(reference_matrices[[1]]),rownames(blocks[[1]])),
     factorStatus = "descriptive_latent_covariance_not_validated_biomarker",
     blocks_before_filtering = raw_feature_counts,
