@@ -84,7 +84,8 @@ ${pendingReviews.length
 `;
 
 if (process.argv.includes('--check')) {
-  assert.equal(readFileSync(output, 'utf8'), markdown, 'docs/content-inventory.md is stale; run npm run inventory');
+  const current = readFileSync(output, 'utf8').replace(/\r\n/g, '\n');
+  assert.equal(current, markdown, 'docs/content-inventory.md is stale; run npm run inventory');
 } else {
   writeFileSync(output, markdown, 'utf8');
   console.log(`Content inventory written: ${rows.length} measures.`);
