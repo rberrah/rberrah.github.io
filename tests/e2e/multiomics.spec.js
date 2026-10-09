@@ -40,9 +40,9 @@ test('DIABLO selection stability and MOFA2 provenance are explanatory, not bioma
   await stability.locator('summary').click();
   await expect(stability).toContainText('Jaccard 0.42');
   await expect(stability).toContainText('features selected at least twice');
-  await expect(stability).toContainText('not proof of biological validity');
+  await expect(stability).toContainText('Jaccard: 0 means no overlapping features');
   await expect(page.getByTestId('mofa2-input-audit')).toContainText('24');
-  await expect(page.getByTestId('mofa2-input-audit')).toContainText('not proof');
+  await expect(page.getByTestId('mofa2-input-audit')).toContainText('technical batch effect');
 });
 
 
