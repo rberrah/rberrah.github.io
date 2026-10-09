@@ -109,6 +109,23 @@ mofa2_input_preflight <- function(blocks, min_samples=16L,
        limitations="Same subject sets and low missingness do not establish MAR. Batch, biological identity, latent-factor number and stability need independent audit.")
 }
 
+# Input matrices throughout PMx are sample × feature; MOFA2's *list of
+# matrices* interface is feature × sample. Preserve the explicit biological
+# sample IDs as MOFA2 column names and align both views identically.
+mofa2_orient_reference_matrices <- function(blocks) {
+  mofa2_input_preflight(blocks)
+  ids <- rownames(blocks[[1]])
+  reference <- lapply(blocks,function(z) {
+    z <- as.matrix(z)
+    storage.mode(z) <- "double"
+    t(z[ids,,drop=FALSE])
+  })
+  if(any(vapply(reference,function(z)
+       !identical(colnames(z),ids),logical(1))))
+    stop("MOFA2 biological subject orientation or order is inconsistent.")
+  reference
+}
+
 run_mofa2_blocks <- function(
   blocks,
   output_dir,
@@ -138,7 +155,8 @@ run_mofa2_blocks <- function(
   n_samples <- nrow(blocks[[1]])
   factors <- max(1L, min(as.integer(factors), 10L, max(1L, n_samples - 2L)))
 
-  model <- MOFA2::create_mofa(blocks)
+  reference_matrices <- mofa2_orient_reference_matrices(blocks)
+  model <- MOFA2::create_mofa(reference_matrices)
   data_options <- MOFA2::get_default_data_options(model)
   model_options <- MOFA2::get_default_model_options(model)
   train_options <- MOFA2::get_default_training_options(model)
@@ -176,6 +194,8 @@ run_mofa2_blocks <- function(
     samples = n_samples,
     factors_requested = as.integer(factors),
     inputAudit = input_audit,
+    matrixOrientation = "feature_rows_subject_columns_for_MOFA2",
+    subjectIdentityPreserved = identical(colnames(reference_matrices[[1]]),rownames(blocks[[1]])),
     factorStatus = "descriptive_latent_covariance_not_validated_biomarker",
     blocks_before_filtering = raw_feature_counts,
     blocks_after_filtering = vapply(blocks, ncol, integer(1)),
