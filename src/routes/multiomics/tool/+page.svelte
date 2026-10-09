@@ -1291,7 +1291,7 @@
       covariatesAvailable = next.covariatesAvailable ?? 'yes';
       partialOmicsExpected = next.partialOmicsExpected ?? 'no';
       selectedCovariates = Array.isArray(next.selectedCovariates)
-        ? next.selectedCovariates.filter(c=>typeof c==='string'&&metadataHeaders.includes(c)) : [];
+        ? /** @type {string[]} */ (next.selectedCovariates).filter(c=>typeof c==='string'&&metadataHeaders.includes(c)) : [];
       groupVariable = next.groupVariable ?? '';
       outcome = next.outcome ?? '';
       subjectCount = next.subjectCount;
