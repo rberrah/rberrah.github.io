@@ -342,6 +342,66 @@ prepare_diablo_holdout_split <- function(blocks, outcome, seed=20261009L,
   )
 }
 
+# Compare selected feature identities, never their unstable sign/order or scores.
+# Repeated train/test splits overlap; this is a descriptive repeatability measure
+# and not an independent sampling-based confidence interval.
+diablo_selection_stability <- function(selected_by_split) {
+  if(!is.list(selected_by_split)||length(selected_by_split)<2L)
+    stop("DIABLO stability requires >=2 successful predeclared folds.")
+  blocks<-names(selected_by_split[[1]])
+  if(is.null(blocks)||length(blocks)<2L||anyDuplicated(blocks)||
+     any(!nzchar(blocks)) ||
+     any(vapply(selected_by_split,function(fold)
+       !setequal(names(fold),blocks),logical(1))))
+    stop("Different omics blocks between DIABLO stability folds.")
+  out<-list()
+  for(view in blocks) {
+    sets<-lapply(selected_by_split,function(fold) {
+      vals<-as.character(fold[[view]])
+      if(!length(vals)||anyNA(vals)||any(!nzchar(vals)))
+        stop(paste("Missing selected features for",view))
+      unique(vals)
+    })
+    pairs<-utils::combn(seq_along(sets),2L)
+    jaccard<-vapply(seq_len(ncol(pairs)),function(j) {
+      a<-sets[[pairs[1,j]]]; b<-sets[[pairs[2,j]]]
+      length(intersect(a,b))/length(union(a,b))
+    },numeric(1))
+    tab<-sort(table(unlist(sets,use.names=FALSE)),decreasing=TRUE)
+    out[[view]]<-list(
+      meanPairwiseJaccard=unname(mean(jaccard)),
+      minPairwiseJaccard=unname(min(jaccard)),
+      maxPairwiseJaccard=unname(max(jaccard)),
+      nPairwiseComparisons=length(jaccard),
+      nDistinctSelected=length(tab),
+      nSelectedPerFold=as.integer(lengths(sets)),
+      frequency=as.list(stats::setNames(as.numeric(tab)/length(sets),names(tab))),
+      repeatedlySelected=as.character(names(tab)[as.numeric(tab)>=2L]),
+      limitation="Repeated folds share original subjects; selection frequencies and Jaccard are internal exploratory stability, not externally validated biomarkers."
+    )
+  }
+  out
+}
+
+# mixOmics::selectVar() returns named variables in version-dependent slots.
+# Fail rather than counting all feature loadings or unmatched identifiers.
+selected_diablo_features <- function(model,view,training_features) {
+  values <- mixOmics::selectVar(model,block=view,comp=1L)
+  ids <- character()
+  if(!is.null(values$value)) {
+    candidate<-values$value
+    if(is.data.frame(candidate)||is.matrix(candidate))
+      ids<-rownames(candidate)
+  }
+  if(!length(ids) && !is.null(values$name))
+    ids<-as.character(unlist(values$name,use.names=FALSE))
+  ids<-unique(as.character(ids))
+  if(!length(ids)||anyNA(ids)||any(!nzchar(ids)) ||
+     any(!ids%in%training_features))
+    stop(paste("mixOmics feature selection cannot be matched to training feature names:",view))
+  ids
+}
+
 # The model is refit inside each outer split; any tuning is restricted to
 # training subjects. Invalid folds fail the WHOLE benchmark, never silently
 # reduce the denominator and make performance look better.
@@ -352,6 +412,7 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
   if(length(seeds)<2L||anyDuplicated(seeds))stop("Need >=2 distinct predeclared outer seeds.")
   all_rows <- list()
   summaries <- list()
+  selections <- list()
   for(index in seq_along(seeds)) {
     split <- prepare_diablo_holdout_split(blocks,outcome,seed=seeds[index])
     ncomp <- 1L
@@ -383,6 +444,9 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
       X=split$train,Y=split$y_train,ncomp=ncomp,
       keepX=keep,design=design,scale=FALSE
     )
+    selections[[index]] <- lapply(names(split$train),function(view)
+      selected_diablo_features(model,view,colnames(split$train[[view]])))
+    names(selections[[index]]) <- names(split$train)
     predicted <- predict(model,newdata=split$test,dist="max.dist")
     vote <- predicted$WeightedVote[["max.dist"]]
     if(is.null(vote) || nrow(as.matrix(vote))!=length(split$testIds))
@@ -412,9 +476,15 @@ run_diablo_outer_holdout <- function(blocks,outcome,output_dir,
   predictions <- do.call(rbind,all_rows)
   if(nrow(predictions)!=sum(vapply(summaries,function(x)x$heldOutSubjects,integer(1))))
     stop("DIABLO holdout missing predictions.")
+  stability <- diablo_selection_stability(selections)
   dir.create(output_dir,recursive=TRUE,showWarnings=FALSE)
   utils::write.csv(predictions,file.path(output_dir,"diablo_outer_holdout.csv"),row.names=FALSE)
+  saveRDS(list(versions="internal-fold-feature-selections-v1",
+      selectedBySplit=selections,stability=stability),
+      file.path(output_dir,"diablo_signature_stability.rds"))
   list(status="ok",summary=list(
+    signatureStability=stability,
+    signatureStatus="internal_repeatability_only_not_validated_biomarker",
     evaluation="Repeated subject-level heldout, with training-only filtering/imputation/scaling and training-only keepX tuning",
     seeds=as.integer(seeds),folds=summaries,
     meanBER=mean(vapply(summaries,function(x)x$balancedErrorRate,numeric(1))),
