@@ -1087,7 +1087,8 @@
         message: 'Reference R backend was not reachable; browser results were retained.'
       };
     }
-    const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:omicsCount});
+    const activeOmicCount = ['transcriptomics','proteomics','metabolomics'].filter(layer=>Boolean(files[layer])).length;
+    const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:activeOmicCount});
     if(!compatibility.compatible) {
       referenceBackendStatus = 'error';
       referenceBackendMessage = t(compatibility.message || 'Moteur R MOFA2 incompatible.',compatibility.messageEn || 'Incompatible MOFA2 R backend.');
