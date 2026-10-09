@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/multiomics-public-route-smoke.yml'
+      - 'scripts/check_live_multiomics.mjs'
       - 'src/routes/multiomics/**'
   push:
     branches: [main]
@@ -12,6 +13,7 @@ on:
       - 'src/lib/multiomics/**'
       - 'svelte.config.js'
       - '.github/workflows/multiomics-public-route-smoke.yml'
+      - 'scripts/check_live_multiomics.mjs'
   schedule:
     - cron: '17 7 * * *'
   workflow_dispatch:
@@ -49,3 +51,13 @@ jobs:
             fi
             rm -f "$file"
           done
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for real public-site visual interaction
+        run: npx playwright install chromium --with-deps
+      - name: Open the real deployed site and complete desktop/mobile novice demos
+        run: node scripts/check_live_multiomics.mjs
