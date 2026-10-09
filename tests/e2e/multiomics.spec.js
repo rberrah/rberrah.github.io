@@ -141,7 +141,12 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
           limitation:'Versions only; not an environment lockfile.'},
         packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true },
         methods: {
-          transcriptomics_longitudinal: { method:'lmerTest', status:'ok' },
+          transcriptomics_longitudinal: {
+            method:'lmerTest',status:'ok',
+            summary:{contrast:'conditiontreatment:time',nSubjects:24,
+              estimableFeatures:28,attemptedFeatures:30,
+              blockedFeatures:2,randomSlopeFallbacks:3}
+          },
           proteomics_longitudinal: { method:'lmerTest', status:'ok' }
         }
       })
@@ -161,6 +166,8 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await page.getByTestId('multiomics-quality-details').locator('summary').first().click();
   await expect(backend).toBeVisible({ timeout: 20_000 });
   await expect(backend).toContainText('lmerTest');
+  await expect(page.getByTestId('multiomics-r-longitudinal-summary')).toContainText('28/30');
+  await expect(page.getByTestId('multiomics-r-longitudinal-summary')).toContainText('conditiontreatment:time');
   await expect(backend).toContainText(/Méthodes R exécutées|R methods executed/i);
   const versions = page.getByTestId('multiomics-r-runtime-provenance');
   await expect(versions).toBeVisible();

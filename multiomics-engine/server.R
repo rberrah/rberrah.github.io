@@ -696,34 +696,47 @@ run_backend_analysis <- function(payload) {
     }
 
     if ((objective == "time" || longitudinal || design_type == "repeated")) {
-      if (requireNamespace("lmerTest", quietly=TRUE)) {
-        fixed <- character()
-        if (length(unique(m$condition[nzchar(m$condition)])) > 1L &&
-            length(unique(m$timepoint[nzchar(m$timepoint)])) > 1L) {
-          m$time <- suppressWarnings(as.numeric(gsub("[^0-9.+-]", "", m$timepoint)))
-          if (all(is.finite(m$time))) fixed <- c(fixed, "condition * time")
-        }
-        fixed <- c(fixed, varying_terms(m, covariates))
-        if (length(fixed)) {
-          fit <- try(run_lmer_matrix(
-            x, m, layer_dir,
-            fixed_formula=paste(fixed, collapse=" + "),
-            subject_column="subject_id",
-            random_slope="auto"
-          ), silent=TRUE)
-          if (!inherits(fit,"try-error")) {
-            methods[[paste0(layer,"_longitudinal")]] <- method_status("lmerTest","ok",list(top=top_frame(fit)))
-            if (nrow(fit) && "statistic" %in% names(fit)) {
-              stat <- fit$statistic
-              names(stat) <- fit$feature
-              ranked[[layer]] <- stat
-            }
-          } else {
-            methods[[paste0(layer,"_longitudinal")]] <- method_status("lmerTest","error",list(message=as.character(fit)))
+      key <- paste0(layer,"_longitudinal")
+      if (!requireNamespace("lmerTest", quietly=TRUE)) {
+        methods[[key]] <- method_status("R lmerTest explicit group-by-time", "unavailable",
+          list(message="lmerTest (and lme4) is not installed."))
+      } else {
+        # Explicitly refuse ambiguous time labels, condition switching,
+        # non-identifiable contrasts, and missing visits before fitting.
+        attempt <- try({
+          parsed <- parse_longitudinal_time(m$timepoint)
+          m$time <- parsed$time
+          design <- validate_longitudinal_reference_design(m)
+          nuisances <- varying_terms(m,covariates)
+          nuisances <- setdiff(nuisances,c("condition","time","timepoint"))
+          fixed <- paste(c("condition * time",nuisances),collapse=" + ")
+          fit <- run_lmer_matrix(x,m,layer_dir,
+            fixed_formula=fixed,subject_column="subject_id",
+            interaction_term=design$contrast,random_slope="auto")
+          list(fit=fit,timeScale=parsed$timeScale,
+               summary=attr(fit,"design_summary"))
+        },silent=TRUE)
+        if(inherits(attempt,"try-error")) {
+          methods[[key]] <- method_status("R lmerTest explicit group-by-time","blocked",
+            list(message=as.character(attempt),
+              note="No arbitrary coefficient selection or group/time parsing fallback is permitted."))
+        } else {
+          fit <- attempt$fit
+          estimable <- sum(is.finite(fit$p_value))
+          methods[[key]] <- method_status(
+            "R lmerTest group-by-time slope difference",
+            if(estimable>0L)"ok" else "blocked",
+            list(top=top_frame(fit),
+                 summary=c(attempt$summary,list(timeScale=attempt$timeScale)),
+                 note="Feature-level errors, singular fits and random-slope fallbacks are disclosed. BH includes all submitted features; independent scientific design review remains mandatory.")
+          )
+          if(estimable>0L) {
+            valid <- is.finite(fit$statistic)
+            stat <- fit$statistic[valid]
+            names(stat) <- fit$feature[valid]
+            ranked[[layer]] <- stat
           }
         }
-      } else {
-        methods[[paste0(layer,"_longitudinal")]] <- method_status("lmerTest","unavailable",list(message="lmerTest is not installed."))
       }
     }
   }
