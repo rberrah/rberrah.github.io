@@ -291,10 +291,13 @@ Deux contrôles négatifs MNAR sont inclus :
 
 **Une concordance avec R ne corrige pas le biais MNAR.** Ces scénarios
 restent marqués `blocked_MNAR_nonidentifiable`. En données réelles,
-un déséquilibre de données manquantes ≥30 points entre groupes ou
-une imputation MNAR supposée bloque la préparation confirmatoire,
-même avec une méthode R exécutée. L'absence de déséquilibre n'établit
-pas une hypothèse MCAR ou MAR.
+un déséquilibre de données manquantes ≥30 points entre groupes,
+une fraction médiane manquante ≥20 % par variable, ou une imputation
+MNAR supposée bloque la préparation confirmatoire, même avec R.
+À plus faible taux, une revue du mécanisme de manquants reste exigée.
+Ces seuils sont des garde-fous pragmatiques, **pas des diagnostics
+de MCAR/MAR/MNAR** : l'absence de déséquilibre ou une faible fraction
+manquante ne rendent pas le mécanisme MNAR identifiable.
 
 Cette étude vérifie le modèle conditionnellement aux variables
 retenues par le QC ; elle ne valide ni le filtrage préalable, ni
