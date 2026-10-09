@@ -74,8 +74,8 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     // of MCAR when data fall below it.
     const missingFraction = Number(qc.medianMissingFraction || 0);
     if (missingFraction >= 0.20) add('high_missingness_'+layer,'blocked',
-      layer + ' : au moins 20 % de valeurs manquantes médianes par variable. Sans modèle d’observation et analyses de sensibilité préspécifiés, le parcours confirmatoire reste bloqué (seuil de précaution, non diagnostic MNAR).',
-      layer + ': median feature-wise missingness is at least 20%. Confirmatory preparation requires a prespecified observation model and sensitivity analyses (caution threshold, not a diagnosis of MNAR).');
+      layer + ' : le taux médian de valeurs manquantes par profil mesuré atteint au moins 20 %. Sans modèle d’observation et analyses de sensibilité préspécifiés, le parcours confirmatoire reste bloqué (seuil de précaution, non diagnostic MNAR).',
+      layer + ': median missingness across measured sample profiles is at least 20%. Confirmatory preparation requires a prespecified observation model and sensitivity analyses (caution threshold, not a diagnosis of MNAR).');
     else if (missingFraction > 0) add('missingness_mechanism_'+layer,'review',
       layer + ' : certaines valeurs sont manquantes. Des taux identiques entre groupes n’excluent pas une dépendance aux valeurs non observées ; vérifier la sensibilité à MCAR, MAR et MNAR.',
       layer + ': some values are missing. Equal missingness rates between groups do not exclude dependence on unobserved values; review sensitivity to MCAR, MAR and MNAR.');
@@ -116,6 +116,11 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
   };
 }
 
+/** @param {any} profile */
+function profileHasMissingMeasurement(profile) {
+  return Number(profile?.missingFraction) > 0;
+}
+
 /** @param {any} result @param {{demo?: boolean}} [options] */
 export function assessScientificAssurance(result, { demo = false } = {}) {
   const layers = Object.entries(result?.layers || {});
@@ -154,6 +159,19 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'Executed R methods: ' + matched.join(', ') + '. Execution does not prove the study design or assumptions are valid.');
   for (const [layer, data] of layers) {
     const qc = data?.qc || {};
+    // A near-equal percentage of missing values in the biological groups
+    // is NOT evidence against MNAR: opposite censored tails can fabricate
+    // apparent treatment effects without a group-wise missingness imbalance.
+    // Inspect ANY measured profile, not only the median across profiles:
+    // the median can be zero despite real feature-wise missingness.
+    const hasObservedMissingness =
+      (Array.isArray(qc.sampleMetrics) &&
+        qc.sampleMetrics.some(profileHasMissingMeasurement))
+      || Number(qc.medianMissingFraction) > 0;
+    if (hasObservedMissingness) add(layer + '_missingness_not_ignorable',
+      'Certaines mesures sont manquantes. Même avec des taux similaires entre groupes, cela peut créer de fausses différences biologiques : vérifier la cause des absences et refaire une analyse de sensibilité. Les p-values/q-values seules ne suffisent pas.',
+      'Some measurements are missing. Similar missing-data rates between groups can still create false biological differences: investigate why values are absent and run a sensitivity analysis. P-values/q-values alone are insufficient.',
+      'requires_confirmation');
     if (qc?.inferenceTier?.level === 'screening') add(layer + '_count_screening',
       'RNA-seq en comptages : le calcul navigateur sur log2-CPM ne remplace pas DESeq2/limma-voom sur comptages bruts.',
       'RNA-seq counts: browser log2-CPM screening is not a substitute for count-aware DESeq2/limma-voom.',

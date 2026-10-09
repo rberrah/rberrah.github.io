@@ -22,6 +22,8 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('Contrôles négatifs');
   await expect(validation).toContainText('Provenance reproductible');
   await expect(validation).toContainText('Ce que cela ne prouve pas');
+  await expect(validation).toContainText('93 %');
+  await expect(validation).toContainText('MNAR');
 
   const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
   await expect(metaboliteConfidence).toBeVisible();
