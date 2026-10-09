@@ -2,6 +2,7 @@
 source(file.path("multiomics-engine", "external_validation.R"))
 
 binary <- data.frame(
+  subject_id = paste0("P",seq_len(8)),
   outcome = c(0,0,0,0,1,1,1,1),
   prediction = c(0.05,0.10,0.20,0.35,0.65,0.75,0.90,0.95)
 )
@@ -72,5 +73,50 @@ mres <- validate_external_predictions(
 )
 stopifnot(mres$metrics$accuracy == 1)
 stopifnot(mres$metrics$balanced_accuracy == 1)
+
+# Every external-validation status must refer to all submitted patients.
+stopifnot(identical(b$subject_identity_audit$status,"unique"))
+stopifnot(identical(b$cohort_coverage$submitted_rows,8L))
+stopifnot(identical(b$cohort_coverage$evaluated_rows,8L))
+stopifnot(identical(b$cohort_coverage$excluded_rows,0L))
+stopifnot(isTRUE(b$cohort_coverage$complete))
+
+missing_prediction <- binary
+missing_prediction$prediction[[2L]] <- NA_real_
+incomplete <- validate_external_predictions(
+  missing_prediction,outcome_type="binary",independent_cohort=TRUE,
+  bootstrap_repetitions=0
+)
+stopifnot(identical(incomplete$status,"external_validation_incomplete"))
+stopifnot(identical(incomplete$evaluation_status,"ok"))
+stopifnot(identical(incomplete$cohort_coverage$submitted_rows,8L))
+stopifnot(identical(incomplete$cohort_coverage$evaluated_rows,7L))
+stopifnot(identical(incomplete$cohort_coverage$excluded_rows,1L))
+stopifnot(identical(incomplete$cohort_coverage$complete,FALSE))
+
+duplicated <- binary
+duplicated$subject_id[[8L]] <- duplicated$subject_id[[7L]]
+stopifnot(inherits(try(validate_external_predictions(
+  duplicated,outcome_type="binary",independent_cohort=TRUE,
+  bootstrap_repetitions=0),silent=TRUE),"try-error"))
+
+bad_id <- binary
+bad_id$subject_id[[3L]] <- ""
+stopifnot(inherits(try(validate_external_predictions(
+  bad_id,outcome_type="binary",independent_cohort=TRUE,
+  bootstrap_repetitions=0),silent=TRUE),"try-error"))
+
+invalid_probability <- binary
+invalid_probability$prediction[[3L]] <- 1.2
+stopifnot(inherits(try(validate_external_predictions(
+  invalid_probability,outcome_type="binary",independent_cohort=TRUE,
+  bootstrap_repetitions=0),silent=TRUE),"try-error"))
+
+# Old CSVs without a stable subject ID remain analysable but must explicitly
+# report that subject-level uniqueness could NOT be verified.
+legacy <- validate_external_predictions(binary[,c("outcome","prediction")],
+  outcome_type="binary",independent_cohort=FALSE,bootstrap_repetitions=0)
+stopifnot(identical(legacy$subject_identity_audit$status,
+  "not_verifiable_without_subject_id"))
 
 cat("multiomics external validation smoke: PASS\n")
