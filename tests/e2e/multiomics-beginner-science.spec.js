@@ -17,7 +17,6 @@ test('A new researcher can finish a one-omic demo on a phone without R or jargon
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   await expect(page.getByTestId('multiomics-analysis-mode')).toContainText('Omique unique');
-  await expect(page.getByTestId('multiomics-qc')).toBeVisible({visible:false}).catch(()=>{});
   expect(backendCalls).toBe(0);
   const initialOverflow=await page.evaluate(()=>
     document.documentElement.scrollWidth-document.documentElement.clientWidth);
