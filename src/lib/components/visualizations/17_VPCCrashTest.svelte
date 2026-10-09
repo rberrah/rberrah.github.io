@@ -95,7 +95,7 @@
       <input type="checkbox" bind:checked={binning} />
       {$language === 'en' ? 'Binning on' : 'Regroupement activé'}
     </label>
-    <small>{$language === 'en' ? 'Binning groups times to stabilize simulated percentiles.' : 'Le regroupement des temps stabilise les percentiles simulés.'}</small>
+    <small>{$language === 'en' ? 'Binning groups times to estimate percentiles; overly wide or misplaced bins can hide time trends.' : 'Le regroupement des temps sert à estimer les percentiles ; des classes trop larges ou mal placées peuvent masquer une tendance temporelle.'}</small>
   </div>
 
   {#if binning}
@@ -159,7 +159,7 @@
           <div class="tooltip">
             <div><strong>t</strong> {hover.t.toFixed(2)} h</div>
             <div>P50 {hover.p50.toFixed(2)} mg/L</div>
-            <div>P10–P90 {hover.p5.toFixed(2)} – {hover.p95.toFixed(2)}</div>
+            <div>P5–P95 {hover.p5.toFixed(2)} – {hover.p95.toFixed(2)}</div>
           </div>
         </foreignObject>
       {/if}
@@ -167,7 +167,7 @@
   </ChartFrame>
 
     <div class="note">
-      {$language === 'en' ? 'If red points leave the blue tunnel (p10–p90), the model is biased or binning is inappropriate.' : 'Si les points rouges sortent du tunnel bleu (p10–p90), le modèle est biaisé ou le regroupement est inadapté.'}
+      {$language === 'en' ? 'The blue tunnel is P5–P95. Repeated or systematic departures may indicate a model, variability, design or binning mismatch; one point outside the band is not proof of bias.' : 'Le tunnel bleu correspond à P5–P95. Des écarts répétés ou structurés peuvent signaler une inadéquation du modèle, de la variabilité, du plan ou des classes ; un point isolé hors bande ne prouve pas un biais.'}
     </div>
 </div>
 
@@ -201,7 +201,7 @@
     background: var(--bg-secondary);
     border: 1px solid var(--bg-secondary);
     padding: 8px 10px;
-    border-radius: 10px;
+    border-radius: 6px;
   }
   .hoverpane {
     cursor: crosshair;

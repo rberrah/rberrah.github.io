@@ -10,6 +10,12 @@ duration: "12 min"
 level: "intermediate"
 tags: ["clinical-trials", "interpretation", "covariates", "forest-plot"]
 slides: []
+prerequisites: ["covariates-basics","valid-uncertainty"]
+glossary: ["Covariable","Centrage","RSE"]
+sources: ["fda-poppk","ema-poppk","ribbing-selection-bias","ema-bioequivalence"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "A covariate-effect forest plot shows..."
     options:

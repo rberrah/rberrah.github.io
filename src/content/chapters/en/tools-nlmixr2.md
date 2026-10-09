@@ -10,8 +10,11 @@ duration: "11 min"
 level: "intermediate"
 tags: ["tools", "nlmixr2", "rxode2", "open-source"]
 prerequisites: ["tools-algorithms"]
-glossary: ["nlmixr2 / rxode2", "SAEM", "FOCE-I"]
+glossary: ["nlmixr2 / rxode2","SAEM","FOCE-I"]
 slides: []
+sources: ["nlmixr2","fidler-nlmixr","kuhn-lavielle-saem","wang-nonmem-methods"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "nlmixr2 stands out mainly for..."
     options:

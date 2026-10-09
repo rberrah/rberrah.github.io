@@ -14,6 +14,7 @@ glossary: ["Covariable", "Distribution logit-normale"]
 slides: []
 sources: ["monolix-covariates","hastie-esl","lavielle"]
 reviewed_on: "2026-09-29"
+review_type: "author"
 quiz: [{"prompt":"Pour un ratio A/B = 0,7 dans une exponentielle, bêta vaut…","options":["log(0,7)","0,7","exp(0,7)"],"correct":0},{"prompt":"Un cluster est…","options":["un groupe appris dont la pertinence doit être vérifiée","nécessairement un génotype","une preuve de mécanisme biologique"],"correct":0},{"prompt":"Choisir un seuil puis le valider sur les mêmes données…","options":["peut surestimer sa performance","élimine le surapprentissage","rend inutile la validation externe"],"correct":0}]
 ---
 

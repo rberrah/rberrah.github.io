@@ -3,7 +3,7 @@ id: "nonmem-moteur"
 slug: "nonmem-moteur"
 title: "Le moteur de NONMEM — FOCE-I décortiqué"
 description: "Ce que calcule vraiment la ligne ESTIMATION : linéarisation de Taylor autour des EBE, rôle de INTER, nature de l'OFV et lecture des statuts de terminaison."
-summary: "FO, FOCE, FOCE-I, SAEM : où chaque méthode place sa tangente, pourquoi INTER compte avec une erreur proportionnelle, pourquoi les OFV de méthodes différentes ne se comparent pas, et ce que veut dire un rounding error."
+summary: "FO, FOCE, FOCE-I, SAEM : où chaque méthode place sa tangente, pourquoi INTER compte avec une erreur proportionnelle, quelles conditions rendent des OFV comparables, et ce que veut dire un rounding error."
 track: "nonmem"
 order: 214
 duration: "10 min"
@@ -13,7 +13,8 @@ prerequisites: ["tools-nonmem"]
 glossary: ["NONMEM", "FOCE-I", "Vraisemblance"]
 slides: []
 sources: ["wang-nonmem-methods", "bauer-nonmem-2", "lindstrom-bates", "wilks-1938"]
-reviewed_on: "2026-07-14"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Pourquoi l'OFV d'un run METHOD=0 (FO) ne se compare-t-il pas à celui d'un run METHOD=1 INTER (FOCE-I) ?"
     options:
@@ -87,7 +88,7 @@ $$ OFV = -2 \sum_{i=1}^{N} \log \hat{L}_i $$
 
 où $\hat{L}_i$ est la vraisemblance **approchée**, de la façon que la méthode a choisie. Deux remarques décident de toute la suite :
 
-- NONMEM **omet une constante additive** (le terme en $\log 2\pi$ des lois normales). Son OFV est donc $-2\log L$ **à une constante près** : une valeur d'OFV isolée ne signifie rien, et ne se compare pas au « −2LL » affiché par un autre logiciel.
+- NONMEM **omet une constante additive** (le terme en $\log 2\pi$ des lois normales). Son OFV est donc $-2\log L$ **à une constante près** : une valeur isolée ne signifie rien. Une comparaison avec le « −2LL » d'un autre logiciel exige d'abord d'harmoniser constantes, définition de vraisemblance, approximation, conventions et données.
 - Le chapeau de $\hat{L}_i$ n'est pas décoratif. FO, FOCE, FOCE-I et Laplace calculent **quatre fonctions différentes**. Comparer leurs OFV, c'est comparer deux approximations, pas deux ajustements.
 
 **Le test du rapport de vraisemblance.** Pour deux modèles **emboîtés**, sur les **mêmes données**, avec la **même méthode** :
@@ -165,7 +166,7 @@ Trois règles opérationnelles. **(1)** `INTER` dès que le modèle d'erreur dé
 - La vraisemblance de population est une **intégrale sans forme fermée** ; FO, FOCE et Laplace la contournent par une **linéarisation de Taylor**, SAEM et IMP par du stochastique.
 - Tout tient au **point d'appui** : FO linéarise en η = 0 (le patient typique, pour tout le monde), FOCE en **η̂ᵢ** (l'EBE de chaque sujet) — au prix d'une boucle interne à chaque itération.
 - **`INTER`** évalue la variance résiduelle en η̂ᵢ au lieu de η = 0 : indispensable avec une erreur proportionnelle ou combinée, sans effet avec une erreur purement additive.
-- **OFV = −2 log L̂ à une constante additive près**, et le « chapeau » dépend de la méthode : les OFV de FO, FOCE-I, SAEM ou d'un autre logiciel **ne se comparent pas**.
+- **OFV = −2 log L̂ à une constante additive près**, et le « chapeau » dépend de la méthode : ne jamais comparer aveuglément des OFV de FO, FOCE-I, SAEM ou d'un autre logiciel ; vérifier objectif, données, approximation, constantes et conventions.
 - **ΔOFV ~ χ²** (seuil **3,84** à 1 ddl, 5 %) : uniquement entre modèles **emboîtés**, mêmes données, **même méthode** — la constante et le biais d'approximation s'annulent alors dans la différence.
 - `MINIMIZATION SUCCESSFUL` n'est pas une validation ; `ROUNDING ERRORS` n'est pas une condamnation — c'est un signal de sur-paramétrisation ou de mauvais cadrage numérique.
 <!-- /step -->

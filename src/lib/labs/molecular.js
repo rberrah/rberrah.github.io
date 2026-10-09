@@ -108,7 +108,7 @@ export const molecularLabs = {
     equations: 'dAc/dt = -CL/V Ac - kbile Ac + kreabs Agut\ndAbile/dt = kbile Ac - kempty Abile\ndAgut/dt = kempty Abile - (kreabs + kloss) Agut',
     question: l('If bile empties more slowly, what happens to a recirculation peak?', 'Si la bile se vide plus lentement, que devient un pic de recirculation ?'),
     choices: [l('It occurs later', 'Il survient plus tard'), l('It is unchanged', 'Il est inchange'), l('It occurs earlier', 'Il survient plus tot')], answer: 0,
-    explanation: l('Drug reaches the gut later, delaying re-entry into plasma.', "Le medicament atteint l'intestin plus tard, ce qui retarde son retour plasmatique."),
+    explanation: l('Drug reaches the gut later, delaying re-entry into plasma.', "Le médicament atteint l'intestin plus tard, ce qui retarde son retour plasmatique."),
     secondary: l('Bile plus gut amount', 'Quantité dans la bile et l’intestin'), secondaryUnit: 'mg', related: 'parent-metabolite',
     caveat: l('The cycle is a linear lumped model; meals and discrete gallbladder emptying events are not represented.', 'Le cycle est un modèle linéaire agrégé ; les repas et les vidanges discrètes de la vésicule ne sont pas représentés.'),
     derivative: (y, p) => {
@@ -133,7 +133,7 @@ export const molecularLabs = {
     states: ['free', 'target', 'complex', 'eliminated', 'internalized', 'auc'], mass: ['free', 'complex', 'eliminated', 'internalized'],
     nodes: [
       { id: 'free', label: l('Free drug', 'Medicament libre'), x: .18, y: .25, color: '#147ea5' }, { id: 'target', label: l('Free target', 'Cible libre'), x: .82, y: .25, color: '#36a36e', target: true },
-      { id: 'complex', label: l('Drug-target complex', 'Complexe medicament-cible'), x: .5, y: .55, color: '#8c4c89' },
+      { id: 'complex', label: l('Drug-target complex', 'Complexe médicament-cible'), x: .5, y: .55, color: '#8c4c89' },
       { id: 'eliminated', label: l('Linear elimination', 'Elimination lineaire'), x: .18, y: .83, color: '#81758a' }, { id: 'internalized', label: l('Internalized', 'Internalise'), x: .82, y: .83, color: '#a24f68' }
     ],
     equations: 'bind = kon (Afree/V) R\ndAfree/dt = -CL/V Afree - bind + koff AR\ndR/dt = kdeg R0 - kdeg R - bind + koff AR\ndAR/dt = bind - (koff + kint) AR',
@@ -181,15 +181,15 @@ export const molecularLabs = {
   },
   'pd-general': {
     number: '12', unit: 'h', route: l('IV bolus', 'Bolus IV'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), scene: 'pd-general',
-    title: l('From concentration to response', 'De la concentration a la reponse'),
-    summary: l('Follow plasma concentration, target engagement and a delayed biological response.', "Suivre la concentration plasmatique, l'engagement de la cible et une reponse biologique retardee."),
+    title: l('From concentration to response', 'De la concentration à la réponse'),
+    summary: l('Follow plasma concentration, target engagement and a delayed biological response.', "Suivre la concentration plasmatique, l'engagement de la cible et une réponse biologique retardée."),
     defaults: { model: 3, dose: 100, v: 20, cl: 4, keq: 0.5, ec50: 2, hill: 1.5, e0: 10, emax: 90, kout: 0.2, end: 36 },
     parameters: {
-      model: choice(l('Response model', 'Modele de reponse'), [{ value: 1, label: l('Direct Emax', 'Emax direct') }, { value: 2, label: l('Effect compartment', "Compartiment d'effet") }, { value: 3, label: l('Turnover response', 'Reponse par turnover') }]),
+      model: choice(l('Response model', 'Modèle de réponse'), [{ value: 1, label: l('Direct Emax', 'Emax direct') }, { value: 2, label: l('Effect compartment', "Compartiment d'effet") }, { value: 3, label: l('Turnover response', 'Réponse par turnover') }]),
       dose: parameter(l('Dose', 'Dose'), 'mg', 10, 1000, 10), v: parameter(l('Volume', 'Volume'), 'L', 5, 100, 1), cl: parameter(l('Clearance', 'Clairance'), 'L/h', 0.1, 30, 0.1),
       keq: parameter(l('Target equilibration', 'Equilibration de la cible'), '1/h', 0.01, 5, 0.01), ec50: parameter(l('EC50', 'EC50'), 'mg/L', 0.01, 50, 0.01),
       hill: parameter(l('Hill coefficient', 'Coefficient de Hill'), '', 0.2, 6, 0.1), e0: parameter(l('Baseline response', 'Reponse initiale'), 'units', 0, 200, 1),
-      emax: parameter(l('Maximum increase', 'Augmentation maximale'), 'units', 1, 300, 1), kout: parameter(l('Response turnover', 'Turnover de la reponse'), '1/h', 0.01, 3, 0.01),
+      emax: parameter(l('Maximum increase', 'Augmentation maximale'), 'units', 1, 300, 1), kout: parameter(l('Response turnover', 'Turnover de la réponse'), '1/h', 0.01, 3, 0.01),
       end: parameter(l('Horizon', 'Horizon'), 'h', 8, 168, 1)
     },
     states: ['central', 'occupancy', 'response', 'eliminated', 'auc'], mass: ['central', 'eliminated'],
@@ -200,11 +200,11 @@ export const molecularLabs = {
       { id: 'eliminated', label: l('Eliminated', 'Elimine'), x: .12, y: .78, color: '#81758a' }
     ],
     equations: 'Occ_eq = C^Hill/(EC50^Hill + C^Hill)\nDirect: E = E0 + Emax Occ_eq\nEffect compartment: dOcc/dt = keq (Occ_eq - Occ)\nTurnover: dE/dt = kout [E0 + Emax Occ_eq - E]',
-    question: l('Which model adds a response delay after target engagement?', "Quel modele ajoute un retard de reponse apres l'engagement de la cible ?"),
-    choices: [l('Turnover response', 'Reponse par turnover'), l('Direct Emax', 'Emax direct'), l('All models equally', 'Tous les modeles de la meme facon')], answer: 0,
+    question: l('Which model adds a response delay after target engagement?', "Quel modèle ajoute un retard de réponse après l'engagement de la cible ?"),
+    choices: [l('Turnover response', 'Réponse par turnover'), l('Direct Emax', 'Emax direct'), l('All models equally', 'Tous les modèles de la même façon')], answer: 0,
     explanation: l('The turnover state needs time to approach its concentration-dependent target.', 'Le compartiment de turnover met du temps a rejoindre sa cible dependante de la concentration.'),
     secondary: l('Biological response', 'Reponse biologique'), secondaryUnit: 'units', related: 'pd-direct',
-    caveat: l('Target engagement and response are conceptual signals; they do not remove drug mass from plasma.', "L'engagement de la cible et la reponse sont des signaux conceptuels ; ils ne retirent aucune masse de medicament du plasma."),
+    caveat: l('Target engagement and response are conceptual signals; they do not remove drug mass from plasma.', "L'engagement de la cible et la réponse sont des signaux conceptuels ; ils ne retirent aucune masse de médicament du plasma."),
     derivative: (y, p) => {
       const c = y[0] / p.v, hill = p.model === 1 ? 1 : p.hill, power = Math.pow(Math.max(0, c), hill), equilibrium = power / (Math.pow(p.ec50, hill) + power), target = p.e0 + p.emax * equilibrium, elimination = p.cl / p.v * y[0];
       return [-elimination, p.model === 2 ? p.keq * (equilibrium - y[1]) : 0, p.model === 3 ? p.kout * (target - y[2]) : 0, elimination, c];
@@ -220,13 +220,13 @@ export const molecularLabs = {
   'pd-oncology': {
     number: '14', unit: 'day', route: l('Repeated IV boluses', 'Bolus IV repetes'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), referenceMode: 'intrinsic', plotMode: 'comparison', exportKeys: ['untreated', 'resistantPct'], scene: 'oncology',
     title: l('Tumor growth inhibition', 'Inhibition de la croissance tumorale'),
-    summary: l('Compare model-predicted tumor growth without treatment with the response under repeated exposure.', 'Comparer la croissance tumorale predite sans traitement a la reponse sous exposition repetee.'),
+    summary: l('Compare model-predicted tumor growth without treatment with the response under repeated exposure.', 'Comparer la croissance tumorale prédite sans traitement à la réponse sous exposition répétée.'),
     defaults: { dose: 100, v: 20, cl: 4, tumor0: 60, resistant0: 1, kgrowth: 0.035, kkill: 0.08, ec50: 2, resistance: 0.02, resistantKill: 0.1, tau: 21, count: 4, end: 84 },
     parameters: {
       dose: parameter(l('Dose', 'Dose'), 'mg', 10, 1000, 10), v: parameter(l('Volume', 'Volume'), 'L', 5, 100, 1), cl: parameter(l('Clearance', 'Clairance'), 'L/day', 0.1, 30, 0.1),
       tumor0: parameter(l('Initial tumor size', 'Taille tumorale initiale'), 'mm', 1, 200, 1), resistant0: parameter(l('Initially resistant cells', 'Cellules resistantes initiales'), '%', 0, 50, 1), kgrowth: parameter(l('Tumor growth rate', 'Vitesse de croissance tumorale'), '1/day', 0.001, 0.2, 0.001),
-      kkill: parameter(l('Maximum drug kill', 'Destruction maximale par le medicament'), '1/day', 0.001, 0.5, 0.001), ec50: parameter(l('Effect EC50', "EC50 de l'effet"), 'mg/L', 0.01, 50, 0.01),
-      resistance: parameter(l('Sensitive-to-resistant conversion', 'Conversion sensible-resistante'), '1/day', 0, 0.1, 0.001), resistantKill: parameter(l('Drug effect on resistant cells', "Effet du medicament sur les resistantes"), 'fraction', 0, 1, 0.05), tau: parameter(l('Cycle interval', 'Intervalle entre les cycles'), 'days', 1, 42, 1),
+      kkill: parameter(l('Maximum drug kill', 'Destruction maximale par le médicament'), '1/day', 0.001, 0.5, 0.001), ec50: parameter(l('Effect EC50', "EC50 de l'effet"), 'mg/L', 0.01, 50, 0.01),
+      resistance: parameter(l('Sensitive-to-resistant conversion', 'Conversion sensible-résistante'), '1/day', 0, 0.1, 0.001), resistantKill: parameter(l('Drug effect on resistant cells', "Effet du médicament sur les résistantes"), 'fraction', 0, 1, 0.05), tau: parameter(l('Cycle interval', 'Intervalle entre les cycles'), 'days', 1, 42, 1),
       count: parameter(l('Number of cycles', 'Nombre de cycles'), '', 1, 12, 1), end: parameter(l('Horizon', 'Horizon'), 'days', 21, 180, 1)
     },
     states: ['central', 'sensitive', 'resistant', 'eliminated', 'auc'], mass: ['central', 'eliminated'],
@@ -240,9 +240,9 @@ export const molecularLabs = {
     equations: 'Edrug = kkill C/(EC50 + C)\ndS/dt = (kgrowth - Edrug) S - kres S\ndR/dt = (kgrowth - fres Edrug) R + kres S\nT = S + R ; Twithout = T0 exp(kgrowth t)',
     question: l('If resistance emerges faster, what happens to late tumor control?', 'Si la resistance apparait plus vite, que devient le controle tumoral tardif ?'),
     choices: [l('Regrowth occurs earlier', 'La reprise de croissance survient plus tot'), l('It is unchanged', 'Il ne change pas'), l('Control improves', "Le controle s'ameliore")], answer: 0,
-    explanation: l('More sensitive cells enter the less drug-responsive resistant state, which can dominate late tumor burden.', 'Davantage de cellules sensibles entrent dans un etat resistant moins sensible au medicament, qui peut dominer tardivement la charge tumorale.'),
+    explanation: l('More sensitive cells enter the less drug-responsive resistant state, which can dominate late tumor burden.', 'Davantage de cellules sensibles entrent dans un état résistant moins sensible au médicament, qui peut dominer tardivement la charge tumorale.'),
     secondary: l('Tumor size with treatment', 'Taille tumorale avec traitement'), secondaryUnit: 'mm', related: 'onco-tgi',
-    caveat: l('Sensitive-to-resistant conversion is a reduced educational phenotype model, not a validated clonal evolution model or causal survival prediction.', "La conversion sensible-resistante est un modele phenotypique pedagogique reduit, et non un modele valide d'evolution clonale ou une prediction causale de survie."),
+    caveat: l('Sensitive-to-resistant conversion is a reduced educational phenotype model, not a validated clonal evolution model or causal survival prediction.', "La conversion sensible-résistante est un modèle phénotypique pédagogique réduit, et non un modèle validé d'évolution clonale ou une prédiction causale de survie."),
     metric: state => ({ label: l('Resistant cell fraction', 'Fraction de cellules resistantes'), value: state.resistantPct, unit: '%' }),
     derivative: (y, p) => {
       const c = y[0] / p.v, elimination = p.cl / p.v * y[0], effect = p.kkill * c / (p.ec50 + c), conversion = p.resistance * y[1];
@@ -257,13 +257,13 @@ export const molecularLabs = {
   },
   'pd-infectiology': {
     number: '13', unit: 'h', route: l('Repeated IV boluses', 'Bolus IV repetes'), category: l('Pharmacodynamic journey', 'Parcours pharmacodynamique'), thresholdKey: 'mic', scene: 'infectiology',
-    title: l('Antibiotic, MIC and bacterial response', 'Antibiotique, CMI et reponse bacterienne'),
+    title: l('Antibiotic, MIC and bacterial response', 'Antibiotique, CMI et réponse bactérienne'),
     summary: l('Watch repeated exposure cross the MIC threshold and alter the predicted bacterial burden.', "Observer l'exposition repetee franchir la CMI et modifier la charge bacterienne predite."),
     defaults: { dose: 100, v: 20, cl: 4, mic: 2, growth: 0.2, kill: 0.4, hill: 2, tau: 8, count: 3, end: 24 },
     parameters: {
       dose: parameter(l('Dose', 'Dose'), 'mg', 10, 3000, 10), v: parameter(l('Volume', 'Volume'), 'L', 5, 100, 1), cl: parameter(l('Clearance', 'Clairance'), 'L/h', 0.1, 30, 0.1),
       mic: parameter(l('MIC', 'CMI'), 'mg/L', 0.01, 64, 0.01), growth: parameter(l('Bacterial growth rate', 'Vitesse de croissance bacterienne'), '1/h', 0.01, 1, 0.01), kill: parameter(l('Maximum bacterial kill rate', 'Vitesse maximale de destruction bacterienne'), '1/h', 0.01, 4, 0.01),
-      hill: parameter(l('Exposure-response Hill', 'Hill exposition-reponse'), '', 0.2, 8, 0.1), tau: parameter(l('Dosing interval', 'Intervalle entre les doses'), 'h', 1, 48, 1),
+      hill: parameter(l('Exposure-response Hill', 'Hill exposition-réponse'), '', 0.2, 8, 0.1), tau: parameter(l('Dosing interval', 'Intervalle entre les doses'), 'h', 1, 48, 1),
       count: parameter(l('Number of doses', 'Nombre de doses'), '', 1, 12, 1), end: parameter(l('Horizon', 'Horizon'), 'h', 8, 168, 1)
     },
     states: ['central', 'bacteria', 'above', 'eliminated', 'auc'], mass: ['central', 'eliminated'],
@@ -278,7 +278,7 @@ export const molecularLabs = {
     choices: [l('It increases', 'Il augmente'), l('It is unchanged', 'Il ne change pas'), l('It decreases', 'Il diminue')], answer: 0,
     explanation: l('More frequent dosing reduces the time spent below the concentration threshold.', 'Des doses plus frequentes reduisent le temps passe sous le seuil de concentration.'),
     secondary: l('Bacterial burden', 'Charge bacterienne'), secondaryUnit: 'log10 CFU/mL', related: 'infectio-pkpd',
-    caveat: l('MIC is an in-vitro threshold and this individual deterministic response is not a population PTA analysis or a clinical dosing recommendation.', "La CMI est un seuil in vitro et cette reponse individuelle deterministe n'est ni une analyse de PTA en population ni une recommandation clinique."),
+    caveat: l('MIC is an in-vitro threshold and this individual deterministic response is not a population PTA analysis or a clinical dosing recommendation.', "La CMI est un seuil in vitro et cette réponse individuelle déterministe n'est ni une analyse de PTA en population ni une recommandation clinique."),
     metric: (state, p, time) => ({ label: l('Time above MIC', 'Temps au-dessus de la CMI'), value: time > 0 ? 100 * state.above / time : (state.c >= p.mic ? 100 : 0), unit: '%' }),
     derivative: (y, p) => {
       const c = y[0] / p.v, elimination = p.cl / p.v * y[0], ratio = Math.pow(Math.max(0, c / p.mic), p.hill), net = p.growth - p.kill * ratio / (1 + ratio);
@@ -345,7 +345,7 @@ export const molecularLabs = {
     choices: [l('It decreases', 'Elle diminue'), l('It is unchanged', 'Elle ne change pas'), l('It increases', 'Elle augmente')], answer: 0,
     explanation: l('The GFR-dependent renal component increases total clearance, so concentration declines faster.', 'La composante renale dependante du DFG augmente la clairance totale, donc la concentration diminue plus vite.'),
     secondary: l('Central amount', 'Quantite centrale'), secondaryUnit: 'mg', related: 'covariates-continuous',
-    caveat: l('This illustrative relation is defined only over GFR 15-150 mL/min/1.73 m². Its form, exponent and renal fraction must be estimated or justified for each drug and population.', 'Cette relation illustrative est definie uniquement entre 15 et 150 mL/min/1,73 m². Sa forme, son exposant et sa fraction renale doivent etre estimes ou justifies pour chaque medicament et chaque population.'),
+    caveat: l('This illustrative relation is defined only over GFR 15-150 mL/min/1.73 m². Its form, exponent and renal fraction must be estimated or justified for each drug and population.', 'Cette relation illustrative est définie uniquement entre 15 et 150 mL/min/1,73 m². Sa forme, son exposant et sa fraction rénale doivent être estimés ou justifiés pour chaque médicament et chaque population.'),
     metric: (state, p) => ({ label: l('Total clearance', 'Clairance totale'), value: state.clearance, unit: 'L/h' }),
     derivative: (y, p) => {
       const clearance = p.clNonrenal + p.clRenalRef * Math.pow(p.gfr / p.referenceGfr, p.exponent), elimination = clearance / p.v * y[0];

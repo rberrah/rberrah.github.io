@@ -14,6 +14,7 @@ glossary: ["DoF", "RSE", "Identifiabilité"]
 slides: []
 sources: ["wilks-1938", "asa-pvalue", "davidian-giltinan", "mould-upton"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Une clairance individuelle est souvent modélisée par une loi..."
     options:

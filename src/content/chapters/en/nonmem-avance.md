@@ -10,10 +10,12 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "mu-referencing", "prior", "psn"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["Distribution logit-normale","A priori / prior","SAEM","MCMC","VPC"]
 slides: []
-sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karlsson-scm"]
-reviewed_on: "2026-07-14"
+sources: ["bauer-nonmem-1","bauer-nonmem-2","keizer-psn-xpose","jonsson-karlsson-scm"]
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "MU-referencing speeds up SAEM because..."
     options:

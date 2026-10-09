@@ -15,6 +15,7 @@ slides: []
 sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "holford-sheiner-dose-effect"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
     options:

@@ -10,6 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["infectious-diseases", "tdm", "vancomycin", "icu"]
 slides: []
+prerequisites: ["infectio-pkpd","tdm"]
+glossary: ["TDM","MAP-BE","CMI","PTA"]
+sources: ["rybak-vanco","roberts-dali","minichmayr-mipd","sheiner-forecasting"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "For vancomycin in serious MRSA infections, the currently preferred target is..."
     options:

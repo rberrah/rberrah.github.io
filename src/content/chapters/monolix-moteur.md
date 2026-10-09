@@ -3,7 +3,7 @@ id: "monolix-moteur"
 slug: "monolix-moteur"
 title: "Monolix — le moteur SAEM"
 description: "Pourquoi une approximation stochastique de l'EM plutôt qu'une linéarisation : les deux phases, la vraisemblance calculée à part, et ce que convergence veut dire ici."
-summary: "Le SAEM évite la linéarisation locale du modèle : exploration puis lissage, -2LL par échantillonnage d'importance, et une OFV non comparable à FOCE."
+summary: "Le SAEM évite la linéarisation locale du modèle : exploration puis lissage, -2LL par échantillonnage d'importance, et conditions nécessaires avant toute comparaison d'OFV."
 track: "monolix"
 order: 224
 duration: "10 min"
@@ -13,7 +13,8 @@ prerequisites: ["tools-monolix"]
 glossary: ["Monolix", "SAEM", "Vraisemblance"]
 slides: []
 sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "lavielle-mentre-monolix", "monolix"]
-reviewed_on: "2026-07-14"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Dans le graphe de convergence du SAEM, une trajectoire parfaitement plate pendant la phase de lissage indique..."
     options:
@@ -29,7 +30,7 @@ quiz:
     correct: 0
   - prompt: "Un -2LL de Monolix (échantillonnage d'importance) et une OFV de NONMEM (FOCE-I), sur le même jeu de données et le même modèle..."
     options:
-      - "ne sont pas comparables en valeur absolue : ils estiment des fonctions différentes, et NONMEM omet de surcroît un terme constant que Monolix inclut"
+      - "ne doivent pas être soustraits avant d'avoir vérifié la définition de l'objectif, l'approximation, les constantes, les conventions et les données"
       - "sont comparables dès lors que le modèle est identique : les deux quantités estiment la même vraisemblance marginale, au bruit de Monte-Carlo près"
       - "sont comparables après division par le nombre d'observations : la normalisation élimine la différence d'échelle entre les deux implémentations"
     correct: 0
@@ -136,11 +137,11 @@ Un 1 compartiment oral, **60 sujets**, 10 prélèvements chacun, soit $n_{obs} =
 - Monolix, SAEM puis échantillonnage d'importance : $-2LL = 2149{,}2$, erreur standard de Monte-Carlo $0{,}31$.
 - NONMEM, FOCE-I, mêmes données, même modèle : $OFV = 1045{,}9$.
 
-Un écart de 1 103 points. Ce n'est pas un désaccord entre les deux logiciels, c'est une **constante**. NONMEM omet de son objectif le terme $n_{obs}\log(2\pi)$, que Monolix inclut dans sa log-vraisemblance :
+Un écart de 1 103 points. Dans cet exemple construit, l'essentiel de l'écart vient d'une **constante** : NONMEM omet de son objectif le terme $n_{obs}\log(2\pi)$, que Monolix inclut dans sa log-vraisemblance :
 
 $$ n_{obs} \log(2\pi) = 600 \times 1{,}8379 = 1102{,}7 $$
 
-Il reste $2149{,}2 - 1045{,}9 - 1102{,}7 = 0{,}6$ point, soit environ deux erreurs de Monte-Carlo plus le résidu de l'approximation FOCE. Les deux chiffres disent donc la même chose : ils ne sont simplement pas écrits dans la même unité de compte. Et sur un modèle moins sage, ce résidu cesserait d'être négligeable — sans qu'aucune constante ne vienne l'expliquer.
+Il reste $2149{,}2 - 1045{,}9 - 1102{,}7 = 0{,}6$ point, soit environ deux erreurs de Monte-Carlo plus le résidu de l'approximation FOCE. Ici, les chiffres deviennent proches après harmonisation. Cela ne constitue pas une règle générale : sur un modèle moins sage, une autre définition de vraisemblance, une autre approximation ou d'autres conventions peuvent laisser un écart non négligeable.
 
 Second temps, plus utile au quotidien. On ajoute le poids sur $Cl$ et on relance :
 
@@ -175,5 +176,5 @@ Et le contrôle qui tranche : **relancez avec une autre graine et d'autres valeu
 - Le SAEM maximise la vraisemblance sans jamais l'évaluer : le $-2LL$ est une **tâche séparée**, par échantillonnage d'importance ou par linéarisation.
 - Le $-2LL$ par échantillonnage d'importance est bruité : lisez son erreur de Monte-Carlo, et augmentez `nbfixediterations` avant de trancher un LRT serré.
 - Le diagnostic de convergence est dans la phase 1. La phase 2 est plate par construction, y compris sur un paramètre figé au mauvais endroit.
-- $-2LL$ de Monolix et OFV de NONMEM ne sont pas comparables en valeur absolue : fonctions différentes, plus une constante $n_{obs}\log(2\pi)$ d'écart.
+- Un $-2LL$ de Monolix et une OFV de NONMEM ne se comparent qu'après vérification de la définition de l'objectif, des données, de l'approximation, des constantes et des conventions ; l'exemple montre comment une constante peut expliquer une grande partie d'un écart.
 <!-- /step -->

@@ -10,10 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "error-model", "bql", "residuals"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix","ε / σ","Erreur combinée"]
 slides: []
-sources: ["monolix", "lavielle", "beal-bql", "savic-karlsson-shrinkage"]
+sources: ["monolix","lavielle","beal-bql","savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The residual standard deviation changes most..."
     options:

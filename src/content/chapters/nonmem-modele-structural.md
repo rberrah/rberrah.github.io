@@ -14,6 +14,7 @@ glossary: ["NONMEM", "Modèle structural", "EDO"]
 slides: []
 sources: ["nonmem", "bauer-nonmem-1", "owen-fiedler-kelly", "rowland-tozer"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "Pour un modèle à 1 compartiment oral à élimination linéaire, pourquoi préférer ADVAN2 à ADVAN13 ?"
     options:

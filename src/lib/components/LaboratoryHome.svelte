@@ -5,8 +5,8 @@
   import LaboratoryCard from './LaboratoryCard.svelte';
 
   const pharmacodynamics = [
-    { id: 'pd-general', number: '12', group: 'pd', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'From concentration to response', text: 'Plasma exposure, target engagement and delayed biological response.' }, fr: { title: 'De la concentration a la reponse', text: "Exposition plasmatique, engagement de la cible et reponse biologique retardee." } },
-    { id: 'pd-infectiology', number: '13', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Antibiotic, MIC and bacterial response', text: 'Repeated exposure, MIC threshold, time above MIC and predicted bacterial burden.' }, fr: { title: 'Antibiotique, CMI et reponse bacterienne', text: 'Exposition repetee, seuil de CMI, temps au-dessus de la CMI et charge bacterienne predite.' } },
+    { id: 'pd-general', number: '12', group: 'pd', route: { en: 'IV bolus', fr: 'Bolus IV' }, en: { title: 'From concentration to response', text: 'Plasma exposure, target engagement and delayed biological response.' }, fr: { title: 'De la concentration à la réponse', text: "Exposition plasmatique, engagement de la cible et réponse biologique retardée." } },
+    { id: 'pd-infectiology', number: '13', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV répétés' }, en: { title: 'Antibiotic, MIC and bacterial response', text: 'Repeated exposure, MIC threshold, time above MIC and predicted bacterial burden.' }, fr: { title: 'Antibiotique, CMI et réponse bactérienne', text: 'Exposition répétée, seuil de CMI, temps au-dessus de la CMI et charge bactérienne prédite.' } },
     { id: 'pd-oncology', number: '14', group: 'pd', route: { en: 'Repeated IV boluses', fr: 'Bolus IV repetes' }, en: { title: 'Tumor growth inhibition', text: 'Sensitive and resistant cell populations compared with untreated tumor growth.' }, fr: { title: 'Inhibition de la croissance tumorale', text: 'Populations cellulaires sensibles et resistantes comparees a la croissance sans traitement.' } }
   ];
   const covariates = [
@@ -45,17 +45,17 @@
   </section>
 
   <section class="catalogue-section">
-    <div class="section-heading"><div><p class="eyebrow">{en ? 'Covariate journeys' : 'Parcours covariables'}</p><h2>{en ? 'From patient characteristic to model parameter' : 'De la caracteristique patient au parametre du modele'}</h2></div><span>05—06</span></div>
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Covariate journeys' : 'Parcours covariables'}</p><h2>{en ? 'From patient characteristic to model parameter' : 'De la caractéristique patient au paramètre du modèle'}</h2></div><span>05—06</span></div>
     <div class="laboratory-grid fundamental-grid">{#each covariates as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
   </section>
 
   <section class="catalogue-section">
-    <div class="section-heading"><div><p class="eyebrow">{en ? 'Progressive mechanisms' : 'Mecanismes progressifs'}</p><h2>{en ? 'Transformation, saturation and delayed response' : 'Transformation, saturation et reponse retardee'}</h2></div><span>07—11</span></div>
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Progressive mechanisms' : 'Mécanismes progressifs'}</p><h2>{en ? 'Transformation, saturation and delayed response' : 'Transformation, saturation et réponse retardée'}</h2></div><span>07—11</span></div>
     <div class="laboratory-grid advanced-grid">{#each advanced as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
   </section>
 
   <section class="catalogue-section">
-    <div class="section-heading"><div><p class="eyebrow">{en ? 'Pharmacodynamic journeys' : 'Parcours pharmacodynamiques'}</p><h2>{en ? 'From exposure to biological response' : "De l'exposition a la reponse biologique"}</h2></div><span>12—14</span></div>
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Pharmacodynamic journeys' : 'Parcours pharmacodynamiques'}</p><h2>{en ? 'From exposure to biological response' : "De l'exposition à la réponse biologique"}</h2></div><span>12—14</span></div>
     <div class="laboratory-grid advanced-grid">{#each pharmacodynamics as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
   </section>
 

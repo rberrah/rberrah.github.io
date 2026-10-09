@@ -14,6 +14,7 @@ glossary: ["NCA", "F", "Cmax / Tmax", "AUC"]
 slides: []
 sources: ["ema-bioequivalence", "fda-bioequivalence", "rowland-tozer"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La biodisponibilité absolue F se calcule en comparant..."
     options:

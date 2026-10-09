@@ -15,6 +15,8 @@
 // Cela couvre l'historique (`viz="09_PK1C"`, `viz="IVBolus"`, ...) tout en
 // autorisant des noms plus courts pour les nouveaux chapitres.
 
+import { visualizationReview } from './visualizationReviews.js';
+
 const modules = import.meta.glob('../components/visualizations/*.svelte', { eager: true });
 
 /** @type {Record<string, any>} */
@@ -62,7 +64,7 @@ for (const [path, mod] of Object.entries(modules)) {
     // Le nom de fichier complet a toujours priorité en cas de collision d'alias.
     if (!(key in registry) || key === stem) registry[key] = component;
   }
-  manifest.push({ file: `${stem}.svelte`, keys });
+  manifest.push({ file: `${stem}.svelte`, keys, review: visualizationReview(stem) });
 }
 
 /** Toutes les clés disponibles, triées — pratique pour les messages d'aide. */

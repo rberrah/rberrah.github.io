@@ -1,7 +1,6 @@
 <script>
-  // NPDE : les erreurs de prédiction normalisées doivent suivre une loi N(0,1)
-  // si le modèle est correct. Un curseur de mauvaise spécification décale/étale
-  // la distribution — l'écart à la gaussienne standard signale un problème.
+  // Sous les hypothèses de calcul, les NPDE sont attendus proches de N(0,1).
+  // Un écart suggère une inadéquation à explorer, sans en identifier seul la cause.
   let mis = 0; // 0 = modèle correct ; augmente le décalage/étalement
   import { language } from '$lib/stores/language';
 
@@ -63,7 +62,7 @@
       <div><span>{$language === 'en' ? 'SD (target 1)' : 'Écart-type (cible 1)'}</span><strong>{sd.toFixed(2)}</strong></div>
       <div class="verdict" class:ok={Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15} class:bad={Math.abs(mean) > 0.4 || Math.abs(sd - 1) > 0.4}>{Math.abs(mean) < 0.15 && Math.abs(sd - 1) < 0.15 ? 'Compatible N(0,1)' : ($language === 'en' ? 'Departure from N(0,1)' : 'Écart à N(0,1)')}</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'With a correct model, NPDE follow the standard Gaussian curve. A shifted mean or incorrect standard deviation reveals misspecification.' : "Si le modèle est correct, les NPDE suivent la gaussienne standard (courbe). Un décalage de la moyenne ou un étalement de l'écart-type révèle une mauvaise spécification."}</p>
+    <p class="hint">{$language === 'en' ? 'Under the NPDE assumptions, the distribution is expected to be close to N(0,1). A shifted mean or altered spread suggests a predictive mismatch, but does not identify its cause by itself.' : "Sous les hypothèses des NPDE, la distribution est attendue proche de N(0,1). Une moyenne décalée ou une dispersion modifiée suggère une inadéquation prédictive, sans en identifier seule la cause."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'NPDE distribution vs N(0,1)' : 'Distribution des NPDE vs N(0,1)'}>

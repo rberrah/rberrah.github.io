@@ -10,10 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["nlmixr2", "variability", "omega", "iiv", "iov", "covariates", "shrinkage"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["IIV","IOV","ω / Ω","η","Covariable","Shrinkage","Distribution lognormale"]
 slides: []
-sources: ["nlmixr2", "fidler-nlmixr", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
-reviewed_on: "2026-07-14"
+sources: ["nlmixr2","fidler-nlmixr","karlsson-sheiner-iov","savic-karlsson-shrinkage"]
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In `ini({...})` you write `eta.cl ~ 0.1`. What does the value 0.1 declare?"
     options:

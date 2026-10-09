@@ -63,7 +63,7 @@
   onMount(draw);
 </script>
 <div class="plot" bind:clientWidth={width}>
-  <canvas bind:this={canvas} aria-describedby="lab-plot-summary" aria-label={`${logarithmic ? 'Semi-log. ' : ''}${en ? 'Concentration-time profiles. Current model solid; reference dashed when enabled.' : 'Profils concentration-temps. Modele actuel en continu ; reference en pointilles si activee.'}`} data-testid={logarithmic ? 'lab-log-plot' : 'lab-plot'}></canvas>
+  <canvas bind:this={canvas} aria-describedby="lab-plot-summary" aria-label={`${logarithmic ? 'Semi-log. ' : ''}${en ? 'Concentration-time profiles. Current model solid; reference dashed when enabled.' : 'Profils concentration-temps. Modèle actuel en continu ; référence en pointillés si activée.'}`} data-testid={logarithmic ? 'lab-log-plot' : 'lab-plot'}></canvas>
 </div>
 <style>
   .plot { width: 100%; min-width: 0; }

@@ -9,11 +9,12 @@ order: 8.3
 duration: "18 min"
 level: "advanced"
 tags: ["Pmetrics", "NPAG", "nonparametric", "R", "population PK"]
-prerequisites: ["parametric-vs-nonparametric", "outils-estimation"]
-glossary: ["NPAG", "Support point", "Likelihood"]
+prerequisites: ["parametric-vs-nonparametric","outils-estimation"]
+glossary: ["NPAG","Point de support","Vraisemblance"]
 slides: []
-sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
+sources: ["pmetrics","neely-pmetrics","yamada-npag"]
 reviewed_on: "2026-09-29"
+review_type: "author"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
     options:

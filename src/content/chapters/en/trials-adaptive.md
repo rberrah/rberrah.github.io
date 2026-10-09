@@ -10,6 +10,12 @@ duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "adaptive-design", "dose-finding", "mcp-mod"]
 slides: []
+prerequisites: ["trials-cts","pd-direct"]
+glossary: ["Emax","EC50 / CE50","AIC / BIC"]
+sources: ["bretz-mcp-mod","holford-sheiner-dose-effect","ich-e4","ich-m15","mould-upton"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "A model-based dose finding is more efficient because..."
     options:

@@ -10,6 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["infectious-diseases", "viral-dynamics", "target-cell", "resistance"]
 slides: []
+prerequisites: ["infectio-pkpd"]
+glossary: ["PK","PD","Emax"]
+sources: ["neumann-hcv","perelson-hiv"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "In a viral kinetics model, the biphasic decline reflects..."
     options:

@@ -10,11 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
-glossary: []
+glossary: ["Covariable","White / black / grey box","Neural ODE","IIV","ω / Ω"]
 slides: []
 sources: ["wahlquist-symbolic-covariates","cranmer-symbolic","hastie-esl","sanghavi-covariates"]
-reviewed_on: "2026-09-29"
-updated_on: "2026-09-30"
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz: [{"prompt":"An equation that mimics a network well…","options":["still needs validation against observations","must be causal","automatically inherits clinical validation"],"correct":0},{"prompt":"Training/test splitting should generally be…","options":["by patient","random across samples from the same patient","after final equation selection"],"correct":0},{"prompt":"Does a deterministic symbolic equation supply OMEGA?","options":["no, variability must be modeled and estimated","yes, always","only if the formula is short"],"correct":0}]
 ---
 

@@ -9,9 +9,12 @@ order: 89
 duration: "13 min"
 level: "advanced"
 tags: ["validation", "ofv", "aic", "bic", "likelihood-ratio"]
-prerequisites: ["math-regression", "math-stats"]
-glossary: ["OFV", "Vraisemblance", "AIC / BIC", "FOCE-I"]
+prerequisites: ["math-regression","math-stats"]
+glossary: ["OFV","Vraisemblance","AIC / BIC","FOCE-I"]
 slides: []
+sources: ["wilks-1938","akaike-aic","schwarz-1978","wang-nonmem-methods"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The objective function (OFV = −2 log L) of a good model is..."
     options:

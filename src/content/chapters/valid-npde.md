@@ -14,6 +14,7 @@ glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)", "VPC"]
 slides: []
 sources: ["brendel-npde", "hooker-cwres"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Si le modèle est correct, les NPDE suivent une loi..."
     options:

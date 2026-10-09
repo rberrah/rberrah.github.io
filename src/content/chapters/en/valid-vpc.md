@@ -10,6 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["validation", "vpc", "pcvpc", "simulation"]
 slides: []
+prerequisites: ["validation-vpc","valid-gof"]
+glossary: ["VPC","Binning","PRED / IPRED"]
+sources: ["bergstrand-pcvpc","karlsson-holford-vpc","ema-poppk"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A VPC compares..."
     options:

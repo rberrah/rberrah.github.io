@@ -14,6 +14,7 @@ glossary: ["White / black / grey box"]
 slides: []
 sources: ["cortes-vapnik-svm", "hastie-esl"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Un SVM linéaire choisit la frontière qui..."
     options:

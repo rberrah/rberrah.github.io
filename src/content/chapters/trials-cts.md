@@ -15,6 +15,7 @@ slides: []
 sources: ["mould-upton", "ette-williams", "bonate", "nelsen-copulas", "ich-m15"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "La simulation d'essais cliniques (CTS) permet de..."
     options:

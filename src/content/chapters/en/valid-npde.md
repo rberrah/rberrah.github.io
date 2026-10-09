@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["validation", "npde", "simulation", "residuals"]
 slides: []
+prerequisites: ["valid-gof"]
+glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)","VPC"]
+sources: ["brendel-npde","hooker-cwres"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "If the model is correct, NPDE follow a..."
     options:

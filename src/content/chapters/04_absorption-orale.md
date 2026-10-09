@@ -14,6 +14,7 @@ glossary: ["Ka", "F", "Tlag", "Cmax / Tmax", "Flip-flop"]
 slides: ["s07"]
 sources: ["savic-transit", "gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Ka contrôle principalement..."
     options:

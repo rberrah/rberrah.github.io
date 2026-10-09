@@ -14,6 +14,7 @@ glossary: ["Monolix", "ε / σ", "Erreur combinée"]
 slides: []
 sources: ["monolix", "lavielle", "beal-bql", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. L'écart-type résiduel change le plus..."
     options:

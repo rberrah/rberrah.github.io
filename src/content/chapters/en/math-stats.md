@@ -10,6 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "statistics", "distributions", "confidence-interval"]
 slides: []
+prerequisites: []
+glossary: ["DoF","RSE","Identifiabilité"]
+sources: ["wilks-1938","asa-pvalue","davidian-giltinan","mould-upton"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "An individual clearance is often modelled with a..."
     options:

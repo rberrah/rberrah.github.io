@@ -10,10 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "variability", "omega", "iov", "covariates", "shrinkage"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["IIV","IOV","ω / Ω","Covariable","Shrinkage","Distribution lognormale","Distribution logit-normale"]
 slides: []
-sources: ["monolix", "lavielle", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
-reviewed_on: "2026-07-14"
+sources: ["monolix","lavielle","karlsson-sheiner-iov","savic-karlsson-shrinkage"]
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "You are translating into Monolix a NONMEM model whose IIV on clearance is declared by `$OMEGA 0.09`. What value should `omega_cl` take?"
     options:

@@ -10,10 +10,11 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "control-stream", "advan", "trans", "ode"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["NONMEM","Modèle structural","EDO"]
 slides: []
-sources: ["nonmem", "bauer-nonmem-1", "owen-fiedler-kelly", "rowland-tozer"]
+sources: ["nonmem","bauer-nonmem-1","owen-fiedler-kelly","rowland-tozer"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "For a one-compartment oral model with linear elimination, why prefer ADVAN2 over ADVAN13?"
     options:

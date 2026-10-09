@@ -9,7 +9,12 @@ order: 1
 duration: "12 min"
 level: "beginner"
 tags: ["intro", "pk", "pd", "variability"]
-slides: ["s01", "s02"]
+slides: ["s01","s02"]
+prerequisites: []
+glossary: ["PK","PD","ADME"]
+sources: ["rowland-tozer","holford-clearance","mould-upton"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Pharmacokinetics (PK) mostly describes..."
     options:

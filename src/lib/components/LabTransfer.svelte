@@ -10,7 +10,7 @@
   function confirm() {
     if (!pending) return;
     try { apply(pending.spec); applied = true; labHandoff.set(null); error = ''; }
-    catch { error = en ? 'Transfer failed. The experiment is still available; review the destination.' : 'Transfert impossible. L\'experience reste disponible ; verifier la destination.'; }
+    catch { error = en ? 'Transfer failed. The experiment is still available; review the destination.' : 'Transfert impossible. L\'expérience reste disponible ; vérifiez la destination.'; }
   }
   $: pending = $labHandoff?.destination === destination ? $labHandoff : null;
   $: en = $language === 'en';
@@ -28,7 +28,7 @@
     {#if error}<p role="alert">{error}</p>{/if}
   </section>
 {:else if applied}
-  <p role="status">{en ? 'Laboratory parameters applied. No data saved.' : 'Parametres du laboratoire appliques. Aucune donnee sauvegardee.'}</p>
+  <p role="status">{en ? 'Laboratory parameters applied. No data saved.' : 'Paramètres du laboratoire appliqués. Aucune donnée sauvegardée.'}</p>
 {/if}
 
 <style>

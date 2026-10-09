@@ -10,6 +10,11 @@ duration: "14 min"
 level: "intermediate"
 tags: ["ai", "random-forest", "decision-tree", "machine-learning"]
 slides: []
+prerequisites: ["math-stats"]
+glossary: ["White / black / grey box","XGBoost"]
+sources: ["breiman-rf","efron-bootstrap","hastie-esl"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A single decision tree produces a function that is..."
     options:

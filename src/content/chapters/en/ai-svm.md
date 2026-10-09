@@ -10,6 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["ai", "svm", "classification", "kernel"]
 slides: []
+prerequisites: ["math-stats"]
+glossary: ["White / black / grey box"]
+sources: ["cortes-vapnik-svm","hastie-esl"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A linear SVM chooses the boundary that..."
     options:

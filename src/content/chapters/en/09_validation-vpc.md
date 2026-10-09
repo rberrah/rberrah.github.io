@@ -9,7 +9,12 @@ order: 9
 duration: "13 min"
 level: "intermediate"
 tags: ["diagnostics", "vpc", "residuals", "validation"]
-slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
+slides: ["s43","s44","s46","s47","s48","s49","s50","s51","s52","s25"]
+prerequisites: ["erreur-residuelle"]
+glossary: ["GOF","Résidus (WRES/CWRES/IWRES/NPDE)","VPC","Binning"]
+sources: ["karlsson-holford-vpc","bergstrand-pcvpc","hooker-cwres","efron-bootstrap"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A VPC compares observed data with..."
     options:

@@ -25,6 +25,7 @@ prerequisites: []               # slugs des prérequis réels
 glossary: ["CL", "V"]          # termes utiles pour ce chapitre
 sources: ["source-id"]          # identifiants de references.js
 reviewed_on: "2026-10-08"       # dernière relecture scientifique
+review_type: "author"           # author | internal | external
 slides: []                      # IDs de slides du catalogue (optionnel)
 quiz:                           # checkpoint de fin (obligatoire, >= 1 question)
   - prompt: "Une question de compréhension ?"

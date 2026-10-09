@@ -2,9 +2,10 @@
   import { language } from '$lib/stores/language';
   // Random Matrix Theory : spectre des valeurs propres d'une matrice de corrélation de
   // paramètres individuels. Sous l'hypothèse « pur bruit », les valeurs propres suivent la
-  // loi de Marchenko-Pastur, bornée par λ± = (1 ± √(p/n))². Les vraies corrélations
-  // (facteurs) produisent des valeurs propres AU-DESSUS de λ+ : c'est le signal.
-  let kfac = 3; // nombre de vrais facteurs injectés
+  // loi de Marchenko-Pastur, bornée par λ± = (1 ± √(p/n))². Une valeur au-dessus
+  // de λ+ est incompatible avec ce spectre nul sous ses hypothèses ; elle ne prouve
+  // ni une corrélation causale ni un facteur biologique réel.
+  let kfac = 3; // nombre de facteurs synthétiques injectés
   let n = 90; // nombre de patients (échantillons)
   const p = 20; // nombre de paramètres
 
@@ -66,7 +67,7 @@
   $: q = p / n;
   $: lamP = (1 + Math.sqrt(q)) ** 2;
   $: lamM = Math.max(0, (1 - Math.sqrt(q)) ** 2);
-  $: signal = ev.filter((e) => e > lamP + 1e-6).length;
+  $: aboveEdge = ev.filter((e) => e > lamP + 1e-6).length;
 
   const nBins = 22;
   const W = 480, H = 300, m = { top: 16, right: 14, bottom: 40, left: 40 };
@@ -92,14 +93,14 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>{$language === 'en' ? 'True factors' : 'Vrais facteurs'}</span><strong>{kfac}</strong><input type="range" min="0" max="5" step="1" bind:value={kfac} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Injected factors' : 'Facteurs injectés'}</span><strong>{kfac}</strong><input type="range" min="0" max="5" step="1" bind:value={kfac} /></label>
     <label class="s"><span>{$language === 'en' ? 'Patients n' : 'Patients n'}</span><strong>{n}</strong><input type="range" min="30" max="180" step="10" bind:value={n} /></label>
     <div class="readout">
       <div><span>p / n (q)</span><strong>{q.toFixed(2)}</strong></div>
       <div><span>{$language === 'en' ? 'Noise threshold λ₊' : 'Seuil bruit λ₊'}</span><strong>{lamP.toFixed(2)}</strong></div>
-      <div class="verdict" class:ok={signal === kfac}>{signal} {$language === 'en' ? 'value(s)' : 'valeur(s)'} &gt; λ₊ ({$language === 'en' ? 'signal' : 'signal'}) · {kfac} {$language === 'en' ? 'injected' : 'injecté(s)'}</div>
+      <div class="verdict" class:ok={aboveEdge === kfac}>{aboveEdge} {$language === 'en' ? 'component(s) above the null edge' : 'composante(s) au-dessus du seuil nul'} · {kfac} {$language === 'en' ? 'factor(s) injected' : 'facteur(s) injecté(s)'}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}Eigenvalues below λ₊ are <em>noise</em> under the Marchenko-Pastur law. Values above λ₊ reflect <em>true</em> correlations. More patients narrow the noise spectrum and reveal the signal.{:else}Les valeurs propres sous λ₊ sont du <em>bruit</em> (loi de Marchenko-Pastur, courbe). Celles qui dépassent λ₊ sont de <em>vraies</em> corrélations. Plus de patients (n) resserre le bruit et fait ressortir le signal.{/if}</p>
+    <p class="hint">{#if $language === 'en'}Under the Marchenko-Pastur assumptions, values within the expected spectrum are compatible with the null model. A value above λ₊ is incompatible with that spectrum and deserves investigation; it does not prove causality or biological reality. More patients narrow the expected null spectrum.{:else}Sous les hypothèses de Marchenko-Pastur, les valeurs dans le spectre attendu sont compatibles avec le modèle nul. Un dépassement de λ₊ est incompatible avec ce spectre et mérite d’être étudié ; il ne prouve ni causalité ni réalité biologique. Davantage de patients resserre le spectre nul attendu.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Eigenvalue spectrum vs Marchenko-Pastur' : 'Spectre des valeurs propres vs Marchenko-Pastur'}>

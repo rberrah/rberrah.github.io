@@ -9,8 +9,12 @@ order: 4.5
 duration: "14 min"
 level: "beginner"
 tags: ["steady-state", "css", "accumulation", "loading-dose", "dosing"]
-glossary: ["CL", "t½", "ke"]
+glossary: ["CL","t½","ke"]
 slides: ["s12"]
+prerequisites: ["clairance-volume-demi-vie"]
+sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The average steady-state concentration equals..."
     options:

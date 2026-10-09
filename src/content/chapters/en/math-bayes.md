@@ -10,6 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "bayes", "estimation", "prior"]
 slides: []
+prerequisites: ["math-regression"]
+glossary: ["Théorème de Bayes","A priori / prior","A posteriori / posterior","Vraisemblance","MAP","Shrinkage"]
+sources: ["sheiner-forecasting","savic-karlsson-shrinkage","mapbayr","minichmayr-mipd"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Bayes' theorem combines..."
     options:

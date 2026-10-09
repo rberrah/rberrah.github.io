@@ -10,6 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["nca", "clearance", "volume", "mrt"]
 slides: []
+prerequisites: ["nca-auc"]
+glossary: ["NCA","CL","Vss","t½"]
+sources: ["yamaoka-moments","holford-clearance","gibaldi-perrier"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "After an IV dose, clearance is computed by..."
     options:

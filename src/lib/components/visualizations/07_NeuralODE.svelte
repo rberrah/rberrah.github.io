@@ -4,11 +4,7 @@
 </script>
 
 <div class="neural">
-  <div class="equation">
-    C(t) = e<sup>-k t</sup> + <span class="blur">ϵ(t)</span>
-    <span class="arrow">→</span>
-    <span class="clean">f<sub>NN</sub>(t)</span>
-  </div>
+  <div class="equation">dC/dt = -kC + <span class="clean">f<sub>NN</sub>(C,t)</span></div>
   <div class="network">
     {#each Array(4) as _, i}
       <div class="layer" style={`animation-delay:${i * 0.2}s`}>
@@ -21,7 +17,7 @@
       </div>
     {/each}
   </div>
-  <p class="legend">{$language === 'en' ? 'The network learns the missing part of the equation (grey box).' : 'Le réseau apprend la partie manquante de l’équation (grey box).'}</p>
+  <p class="legend">{$language === 'en' ? 'The network learns a correction from the training data (grey box). That correction is not automatically a biological mechanism and must be tested within its learning domain.' : 'Le réseau apprend une correction à partir des données d’entraînement (grey box). Cette correction n’est pas automatiquement un mécanisme biologique et doit être évaluée dans son domaine d’apprentissage.'}</p>
 </div>
 
 <style>
@@ -36,17 +32,8 @@
     font-size: 1.1rem;
     color: var(--text-primary);
   }
-  .blur {
-    color: #f97316;
-    filter: blur(1px);
-    display: inline-block;
-  }
   .clean {
     color: #2563eb;
-  }
-  .arrow {
-    margin: 0 10px;
-    color: var(--text-primary);
   }
   .network {
     display: flex;

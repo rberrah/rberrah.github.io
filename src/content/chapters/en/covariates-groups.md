@@ -10,10 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
-glossary: []
+glossary: ["Covariable","Distribution logit-normale"]
 slides: []
 sources: ["monolix-covariates","hastie-esl","lavielle"]
 reviewed_on: "2026-09-29"
+review_type: "author"
 quiz: [{"prompt":"For an exponential A/B ratio of 0.7, beta is…","options":["log(0.7)","0.7","exp(0.7)"],"correct":0},{"prompt":"A cluster is…","options":["a learned group whose relevance needs assessment","necessarily a genotype","proof of a biological mechanism"],"correct":0},{"prompt":"Selecting and validating a cutoff on the same data…","options":["can overstate performance","eliminates overfitting","makes external validation unnecessary"],"correct":0}]
 ---
 

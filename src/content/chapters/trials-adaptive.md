@@ -15,6 +15,7 @@ slides: []
 sources: ["bretz-mcp-mod", "holford-sheiner-dose-effect", "ich-e4", "ich-m15", "mould-upton"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Une recherche de dose fondée sur un modèle (model-based) est plus efficace car..."
     options:

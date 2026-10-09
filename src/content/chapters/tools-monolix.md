@@ -14,6 +14,7 @@ glossary: ["Monolix", "SAEM"]
 slides: []
 sources: ["monolix", "kuhn-lavielle-saem", "lavielle", "karlsson-holford-vpc"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."
     options:
@@ -82,7 +83,7 @@ Beaucoup d'équipes prototypent et enseignent avec Monolix pour sa **lisibilité
 « Au clic » ne veut pas dire sans réflexion.
 
 :::pitfall
-La facilité de Monolix peut faire **enchaîner les runs** sans comprendre. Un SAEM qui converge et une belle VPC ne dispensent pas de vérifier le **sens** du modèle, l'identifiabilité et le shrinkage. Et l'**OFV** de Monolix (SAEM) n'est **pas comparable** à celui d'un run FOCE de NONMEM.
+La facilité de Monolix peut faire **enchaîner les runs** sans comprendre. Un SAEM qui converge et une belle VPC ne dispensent pas de vérifier le **sens** du modèle, l'identifiabilité et le shrinkage. Une **OFV** issue de Monolix ne doit pas être comparée aveuglément à celle d'un run FOCE de NONMEM : vérifier la définition de vraisemblance, l'étape d'évaluation, l'approximation, les constantes et les données.
 :::
 <!-- /step -->
 
@@ -90,5 +91,5 @@ La facilité de Monolix peut faire **enchaîner les runs** sans comprendre. Un S
 - Monolix : logiciel graphique « au clic », moteur SAEM, diagnostics/VPC intégrés.
 - Le modèle s'écrit en mlxtran (structure + statistique lisibles).
 - Idéal pour prototyper, enseigner, itérer vite ; MonolixSuite pour la simulation (Simulx).
-- Attention à ne pas enchaîner les runs sans diagnostic ; OFV non comparable à FOCE.
+- Ne pas enchaîner les runs sans diagnostic ni comparer des OFV sans harmoniser objectif, approximation, constantes et données.
 <!-- /step -->

@@ -14,6 +14,7 @@ glossary: ["PK", "PD", "ADME"]
 slides: ["s01", "s02"]
 sources: ["rowland-tozer", "holford-clearance", "mould-upton"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La pharmacocinétique (PK) décrit surtout..."
     options:

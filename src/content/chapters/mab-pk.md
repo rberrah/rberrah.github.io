@@ -14,6 +14,7 @@ glossary: ["PK", "CL", "V", "Modèle compartimental"]
 slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La demi-vie longue (semaines) des anticorps IgG s'explique surtout par..."
     options:

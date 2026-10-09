@@ -15,6 +15,7 @@ slides: []
 sources: ["hooker-cwres", "karlsson-holford-vpc", "brendel-npde", "savic-karlsson-shrinkage"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Aucun graphique diagnostique unique ne suffit ; on les croise parce que..."
     options:

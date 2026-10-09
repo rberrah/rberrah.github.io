@@ -14,6 +14,7 @@ glossary: ["TDM", "MAP-BE", "CMI", "PTA"]
 slides: []
 sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Pour la vancomycine dans les infections graves à MRSA, la cible actuelle privilégiée est..."
     options:

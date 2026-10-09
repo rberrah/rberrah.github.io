@@ -68,19 +68,19 @@
     <div class="editor" data-block="pk" hidden={block !== 'pk'}>
       <h2>{t('Exposition et posologies', 'Exposure and regimens')}</h2>
       <fieldset class="source"><legend>{t('Source de l’exposition', 'Exposure source')}</legend>
-        <label><input type="radio" bind:group={cfg.source} value="pk"/> {t('Modele populationnel', 'Population model')}</label>
+        <label><input type="radio" bind:group={cfg.source} value="pk"/> {t('Modèle populationnel', 'Population model')}</label>
         <label><input type="radio" bind:group={cfg.source} value="tdm"/> {t('Analyse TDM dans le moteur', 'TDM analysis in the engine')}</label>
       </fieldset>
       {#if cfg.source === 'pk'}
         <label>{t('Structure PK', 'PK structure')}<select value={model.source === 'builtin' ? 'iv1' : 'pk'} onchange={(e) => { model = e.currentTarget.value === 'iv1' ? { ...model, source: 'builtin', route: 'IV', v: model.v ?? 20, cl: model.cl ?? 4 } : { ...model, source: 'library', id: model.id || 'vanco_pkjust' }; }}>
-          <option value="iv1">{t('IV 1 compartiment', 'IV one compartment')}</option><option value="pk">{t('Modele PK libre', 'Free PK model')}</option>
+          <option value="iv1">{t('IV 1 compartiment', 'IV one compartment')}</option><option value="pk">{t('Modèle PK libre', 'Free PK model')}</option>
         </select></label>
         {#if model.source === 'builtin'}<div class="fields"><label>V (L)<input type="number" bind:value={model.v} min="0.000001" step="any" required/></label><label>CL (L/h)<input type="number" bind:value={model.cl} min="0.000001" step="any" required/></label></div>
         {:else}<PkWorkshopModel bind:model side="infection" showRegimen={false} units={true}/>{/if}
-      {:else}<p>{t('L’analyse TDM doit exister dans la session Shiny utilisee. Les covariables et les poids des modeles de cette analyse sont conserves.', 'The TDM analysis must exist in the Shiny session being used. Its covariates and model weights are retained.')}</p>{/if}
+      {:else}<p>{t('L’analyse TDM doit exister dans la session Shiny utilisée. Les covariables et les poids des modèles de cette analyse sont conservés.', 'The TDM analysis must exist in the Shiny session being used. Its covariates and model weights are retained.')}</p>{/if}
       <div class="regimens">
         <fieldset><legend>{t('Posologie actuelle', 'Current regimen')}</legend>
-            <label>{t('Dose (unite PK)', 'Dose (PK unit)')}<input type="number" bind:value={cfg.dose} min="0.000001" step="any" required/></label>
+            <label>{t('Dose (unité PK)', 'Dose (PK unit)')}<input type="number" bind:value={cfg.dose} min="0.000001" step="any" required/></label>
             <label>{t('Intervalle (h)', 'Interval (h)')}<input type="number" bind:value={cfg.interval} min="0.25" max="8760" step="any" required/></label>
             <label>{t('Perfusion (h)', 'Infusion (h)')}<input type="number" bind:value={cfg.infusion} min="0" max={cfg.interval} step="any" required disabled={cfg.source === 'pk' && model.route === 'Oral'}/></label>
         </fieldset>
@@ -102,7 +102,7 @@
       <div class="fields"><label>{t('CMI (mg/L)', 'MIC (mg/L)')}<input type="number" bind:value={cfg.mic} min="0.000001" max="100000" step="any" required/></label></div>
       <p>{t('Une valeur censuree (> ou <=) n’est pas une CMI exacte. La sensibilite a une dilution est examinee avec CMI/2 et 2 x CMI.', 'A censored value (> or <=) is not an exact MIC. One-dilution sensitivity is assessed with MIC/2 and 2 x MIC.')}</p>
       <h3>EUCAST</h3>
-      <p>{t('Les distributions et ECOFF caracterisent une reference microbiologique. Elles ne remplacent pas la CMI du patient et ne permettent pas de deduire un taux local de resistance. Les seuils cliniques S/I/R sont distincts.', 'Distributions and ECOFF characterize a microbiological reference. They do not replace the patient MIC and cannot establish a local resistance rate. S/I/R clinical breakpoints are separate.')}</p>
+      <p>{t('Les distributions et ECOFF caractérisent une référence microbiologique. Elles ne remplacent pas la CMI du patient et ne permettent pas de déduire un taux local de résistance. Les seuils cliniques S/I/R sont distincts.', 'Distributions and ECOFF characterize a microbiological reference. They do not replace the patient MIC and cannot establish a local resistance rate. S/I/R clinical breakpoints are separate.')}</p>
       <a href="https://mic.eucast.org/" target="_blank" rel="noopener noreferrer">EUCAST MIC distributions / ECOFF</a>
     </div>
     <div class="editor" data-block="target" hidden={block !== 'target'}>
@@ -117,21 +117,21 @@
         <label>{t('Tirages Monte Carlo', 'Monte Carlo draws')}<input type="number" bind:value={cfg.replicates} min="50" max="5000" step="1" required/></label>
       </div>
       <p class="equation">{equation}</p>
-      <p>{t('Les valeurs initiales sont des exemples, pas des recommandations par molecule. L’indice, sa cible, la matrice et la fraction libre doivent correspondre a la reference scientifique choisie. Pour une sortie deja libre, fu = 1.', 'Initial values are examples, not drug-specific recommendations. The index, target, matrix and unbound fraction must match the chosen scientific reference. For an already unbound output, fu = 1.')}</p>
+      <p>{t('Les valeurs initiales sont des exemples, pas des recommandations par molécule. L’indice, sa cible, la matrice et la fraction libre doivent correspondre à la référence scientifique choisie. Pour une sortie déjà libre, fu = 1.', 'Initial values are examples, not drug-specific recommendations. The index, target, matrix and unbound fraction must match the chosen scientific reference. For an already unbound output, fu = 1.')}</p>
     </div>
     <div class="actions"><button class="primary" type="submit"><ArrowRight size={17}/>{t('Ouvrir dans le moteur', 'Open in engine')}</button><button type="button" onclick={download}><Download size={17}/>{t('Exporter l’atelier (.json)', 'Export workshop (.json)')}</button><span role="status">{feedback}</span></div>
   </form>
   {#if !computed && model.source === 'builtin' && cfg.source === 'pk'}<label class="comparison">{t('Posologie comparee', 'Compared regimen')}<select bind:value={compared}>{#each candidates as candidate, index}<option value={index}>{candidate.dose} mg / {candidate.interval} h; {t('perfusion', 'infusion')} {candidate.infusion} h</option>{/each}</select></label>{/if}
   <WorkshopFigures view="infection" config={preview} {computed}/>
   <section class="methods"><h2>{t('De l’exposition a la PTA', 'From exposure to PTA')}</h2>
-    <div class="reading"><div><h3>{t('Interprétation TDM', 'TDM interpretation')}</h3><p>{t('Un profil individuel donne un indice PK/PD estime sur la fenetre disponible. Une AUC de 12 h n’est pas une AUC24 ; ce resultat ponctuel n’est pas une probabilite.', 'An individual profile yields an estimated PK/PD index over the available window. A 12-hour AUC is not an AUC24; this point estimate is not a probability.')}</p></div>
+    <div class="reading"><div><h3>{t('Interprétation TDM', 'TDM interpretation')}</h3><p>{t('Un profil individuel donne un indice PK/PD estimé sur la fenêtre disponible. Une AUC de 12 h n’est pas une AUC24 ; ce résultat ponctuel n’est pas une probabilité.', 'An individual profile yields an estimated PK/PD index over the available window. A 12-hour AUC is not an AUC24; this point estimate is not a probability.')}</p></div>
       <div><h3>{t('Population ou posterior', 'Population or posterior')}</h3><p>{t('La PTA compte les profils simules atteignant la cible. Avant TDM, la variabilite vient d’OMEGA. Apres TDM, elle vient de l’incertitude posterieure. L’erreur de mesure n’est pas ajoutee.', 'PTA counts simulated profiles attaining the target. Before TDM, variability comes from OMEGA. After TDM, it comes from posterior uncertainty. Measurement error is not added.')}</p></div>
-      <div><h3>{t('Limites', 'Limitations')}</h3><p>{t('Fraction libre fixe, approximation du posterior, pas de modele de toxicite ou de resistance. Atteindre une cible n’est pas garantir un succes clinique. La precision Monte Carlo depend du nombre de tirages : 250 est rapide, 1000 ou plus est preferable pres d’une decision. Usage de recherche uniquement.', 'Fixed unbound fraction, approximate posterior, no toxicity or resistance model. Target attainment does not guarantee clinical success. Monte Carlo precision depends on the number of draws: 250 is fast, 1000 or more is preferable near a decision. Research use only.')}</p></div></div>
+      <div><h3>{t('Limites', 'Limitations')}</h3><p>{t('Fraction libre fixe, approximation du posterior, pas de modèle de toxicité ou de résistance. Atteindre une cible ne garantit pas un succès clinique. La précision Monte Carlo dépend du nombre de tirages : 250 est rapide, 1000 ou plus est préférable près d’une décision. Usage de recherche uniquement.', 'Fixed unbound fraction, approximate posterior, no toxicity or resistance model. Target attainment does not guarantee clinical success. Monte Carlo precision depends on the number of draws: 250 is fast, 1000 or more is preferable near a decision. Research use only.')}</p></div></div>
     <h3>{t('References pour comprendre', 'Background references')}</h3>
     <ul><li><a href="https://doi.org/10.1093/jac/dki079" target="_blank" rel="noopener noreferrer">Mouton et al., 2005</a> : {t('definitions des indices PK/PD, de la PTA et de la CFR.', 'definitions of PK/PD indices, PTA and CFR.')}</li>
       <li><a href="https://doi.org/10.1128/AAC.46.3.913-916.2002" target="_blank" rel="noopener noreferrer">Drusano et al., 2002</a> : {t('exemple de selection de dose par PK populationnelle et simulation Monte Carlo (antiviral).', 'a dose-selection example using population PK and Monte Carlo simulation (antiviral).')}</li>
       <li><a href="https://doi.org/10.1086/383320" target="_blank" rel="noopener noreferrer">Drusano et al., 2004</a> : {t('relation exposition AUC/CMI et eradication microbiologique dans la pneumonie nosocomiale; ces resultats ne sont pas une cible universelle.', 'AUC/MIC exposure and microbiological eradication in nosocomial pneumonia; these findings are not a universal target.')}</li></ul>
-    <p>{t('Donnees microbiologiques :', 'Microbiology data:')} <a href="https://mic.eucast.org/" target="_blank" rel="noopener noreferrer">EUCAST</a>.</p>
+    <p>{t('Données microbiologiques :', 'Microbiology data:')} <a href="https://mic.eucast.org/" target="_blank" rel="noopener noreferrer">EUCAST</a>.</p>
   </section>
 </section>
 

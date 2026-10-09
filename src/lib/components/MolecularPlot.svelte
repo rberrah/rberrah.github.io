@@ -66,7 +66,7 @@
 </script>
 
 <div class="plot" bind:clientWidth={width}>
-  <canvas bind:this={canvas} style:height={`${height}px`} aria-describedby="molecular-plot-summary" data-testid="molecular-plot" data-plot-mode={config.plotMode ?? 'dual'} aria-label={config.plotMode === 'primary' ? (en ? 'Concentration over time' : 'Concentration au cours du temps') : (en ? 'Primary concentration and mechanism-specific response over time' : 'Concentration primaire et reponse specifique du mecanisme au cours du temps')}></canvas>
+  <canvas bind:this={canvas} style:height={`${height}px`} aria-describedby="molecular-plot-summary" data-testid="molecular-plot" data-plot-mode={config.plotMode ?? 'dual'} aria-label={config.plotMode === 'primary' ? (en ? 'Concentration over time' : 'Concentration au cours du temps') : (en ? 'Primary concentration and mechanism-specific response over time' : 'Concentration primaire et réponse spécifique du mécanisme au cours du temps')}></canvas>
 </div>
 
 <style>

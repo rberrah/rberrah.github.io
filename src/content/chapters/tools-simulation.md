@@ -15,6 +15,7 @@ slides: []
 sources: ["mrgsolve", "fidler-nlmixr", "bergstrand-pcvpc", "mould-upton"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "mrgsolve et rxode2 servent surtout à..."
     options:

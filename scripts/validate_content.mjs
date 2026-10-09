@@ -12,12 +12,14 @@ import matter from 'gray-matter';
 import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
 import { allRefIds, refById } from '../src/lib/content/references.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
+import { visualizationReviews } from '../src/lib/content/visualizationReviews.js';
 
 const root = process.cwd();
 const slidesDir = path.join(root, 'static', 'slides');
 const catalogPath = path.join(root, 'src', 'content', 'slides', 'slide_catalog.yaml');
 const chaptersDir = path.join(root, 'src', 'content', 'chapters');
 const englishChaptersDir = path.join(chaptersDir, 'en');
+const visualizationsDir = path.join(root, 'src', 'lib', 'components', 'visualizations');
 
 const requiredFrontmatter = [
   'id',
@@ -32,7 +34,8 @@ const requiredFrontmatter = [
   'tags',
   'prerequisites',
   'glossary',
-  'slides'
+  'slides',
+  'review_type'
 ];
 // Squelette pédagogique canonique (langue principale = français).
 // Chaque chapitre doit contenir au moins ces sections, dans cet ordre d'esprit :
@@ -104,6 +107,51 @@ function parseSteps(markdown) {
   return steps;
 }
 
+function validateVisualizationReviews() {
+  const stems = new Set(fs.readdirSync(visualizationsDir)
+    .filter(file => file.endsWith('.svelte'))
+    .map(file => file.replace(/\.svelte$/, '')));
+  for (const [stem, review] of Object.entries(visualizationReviews)) {
+    if (!stems.has(stem)) fail(`Visualization review references unknown component: ${stem}`);
+    if (!['pending', 'reviewed'].includes(review.status)) fail(`Invalid visualization review status for ${stem}`);
+    if (review.status === 'reviewed') {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(review.reviewed_on ?? '')) fail(`Reviewed visualization ${stem} needs a valid date`);
+      if (!['author', 'internal', 'external'].includes(review.review_type)) fail(`Reviewed visualization ${stem} needs a valid review_type`);
+    }
+  }
+}
+
+function sameValue(left, right) {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function validatePrerequisiteCycles(chapters) {
+  const graph = new Map(chapters.map(({ data }) => [data.slug, data.prerequisites ?? []]));
+  const state = new Map();
+  const stack = [];
+
+  function visit(slug) {
+    if (state.get(slug) === 2) return false;
+    if (state.get(slug) === 1) {
+      const start = stack.indexOf(slug);
+      fail(`Prerequisite cycle: ${[...stack.slice(start), slug].join(' -> ')}`);
+      return true;
+    }
+    state.set(slug, 1);
+    stack.push(slug);
+    for (const prerequisite of graph.get(slug) ?? []) {
+      if (graph.has(prerequisite) && visit(prerequisite)) return true;
+    }
+    stack.pop();
+    state.set(slug, 2);
+    return false;
+  }
+
+  for (const slug of graph.keys()) {
+    if (visit(slug)) break;
+  }
+}
+
 function validateChapters(catalogIds) {
   if (!fs.existsSync(chaptersDir)) {
     fail(`Missing chapters directory: ${chaptersDir}`);
@@ -124,6 +172,8 @@ function validateChapters(catalogIds) {
       const parsed = matter(fs.readFileSync(path.join(englishChaptersDir, file), 'utf8'));
       return [parsed.data.slug, { file, ...parsed }];
     }));
+
+  validatePrerequisiteCycles(chapters);
 
   for (const [term, details] of Object.entries(glossaryDetails)) {
     if (!glossaryTerms.has(term)) fail(`Glossary details without a glossary term: ${term}`);
@@ -189,6 +239,14 @@ function validateChapters(catalogIds) {
       }
     }
     if (!data.reviewed_on) fail(`Missing reviewed_on in ${file}`);
+    if (!['author', 'internal', 'external'].includes(data.review_type)) {
+      fail(`Invalid review_type in ${file}: expected author, internal or external`);
+    }
+    for (const field of ['scientific_values', 'units']) {
+      if (data[field] !== undefined && !Array.isArray(data[field]) && typeof data[field] !== 'object') {
+        fail(`${field} must be a list or object in ${file}`);
+      }
+    }
 
     validateQuiz(file, data.quiz);
     validateMathDelimiters(file, content);
@@ -213,15 +271,30 @@ function validateChapters(catalogIds) {
     if (!translation) {
       fail(`Missing English translation for ${file}`);
     } else {
-      if (translation.data.id !== data.id) fail(`English id mismatch for ${file}`);
+      for (const field of ['id', 'slug', 'track', 'level', 'order', 'prerequisites', 'glossary', 'sources', 'slides', 'updated_on', 'reviewed_on', 'review_type', 'status', 'scientific_values', 'units']) {
+        if (!sameValue(translation.data[field], data[field])) fail(`English ${field} mismatch for ${file}`);
+      }
       if ((translation.data.quiz?.length ?? 0) !== (data.quiz?.length ?? 0)) fail(`English quiz length mismatch for ${file}`);
       (data.quiz ?? []).forEach((question, idx) => {
         const translated = translation.data.quiz?.[idx];
         if (!translated) return;
         if (translated.correct !== question.correct) fail(`English quiz answer mismatch in ${file}, question ${idx + 1}`);
         if ((translated.options?.length ?? 0) !== (question.options?.length ?? 0)) fail(`English quiz option count mismatch in ${file}, question ${idx + 1}`);
+        for (const field of ['value', 'unit']) {
+          if (!sameValue(translated[field], question[field])) fail(`English quiz ${field} mismatch in ${file}, question ${idx + 1}`);
+        }
       });
-      if (parseSteps(translation.content).length !== steps.length) fail(`English step count mismatch for ${file}`);
+      const translatedSteps = parseSteps(translation.content);
+      if (translatedSteps.length !== steps.length) fail(`English step count mismatch for ${file}`);
+      steps.forEach((step, idx) => {
+        const translated = translatedSteps[idx];
+        if (!translated) return;
+        for (const field of ['viz', 'slides']) {
+          const sourceValue = field === 'slides' ? (step.meta.slides ?? '').split(',').filter(Boolean) : step.meta[field] ?? null;
+          const translatedValue = field === 'slides' ? (translated.meta.slides ?? '').split(',').filter(Boolean) : translated.meta[field] ?? null;
+          if (!sameValue(translatedValue, sourceValue)) fail(`English step ${field} mismatch in ${file}, step ${idx + 1}`);
+        }
+      });
     }
   }
 
@@ -258,6 +331,7 @@ function validateMathDelimiters(file, content) {
 
 const catalog = loadCatalog();
 const { ids } = validateSlides(catalog);
+validateVisualizationReviews();
 validateChapters(ids);
 
 if (errors.length) {

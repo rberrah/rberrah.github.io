@@ -3,17 +3,18 @@ id: "nonmem-moteur"
 slug: "nonmem-moteur"
 title: "NONMEM's engine — FOCE-I unpacked"
 description: "What the ESTIMATION line really computes: Taylor linearisation around the EBEs, the role of INTER, the nature of the OFV, and how to read termination messages."
-summary: "FO, FOCE, FOCE-I, SAEM: where each method places its tangent, why INTER matters with proportional error, why OFVs from different methods do not compare, and what a rounding error actually means."
+summary: "FO, FOCE, FOCE-I, SAEM: where each method places its tangent, why INTER matters with proportional error, the conditions that make OFVs comparable, and what a rounding error actually means."
 track: "nonmem"
 order: 214
 duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "foce", "estimation", "ofv", "likelihood"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["NONMEM","FOCE-I","Vraisemblance"]
 slides: []
-sources: ["wang-nonmem-methods", "bauer-nonmem-2", "lindstrom-bates", "wilks-1938"]
-reviewed_on: "2026-07-14"
+sources: ["wang-nonmem-methods","bauer-nonmem-2","lindstrom-bates","wilks-1938"]
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Why does the OFV of a METHOD=0 (FO) run not compare with that of a METHOD=1 INTER (FOCE-I) run?"
     options:
@@ -87,7 +88,7 @@ $$ OFV = -2 \sum_{i=1}^{N} \log \hat{L}_i $$
 
 where $\hat{L}_i$ is the **approximated** likelihood, approximated the way the method chose. Two remarks decide everything that follows:
 
-- NONMEM **omits an additive constant** (the $\log 2\pi$ term of the normal densities). Its OFV is therefore $-2\log L$ **up to a constant**: an isolated OFV value means nothing, and does not compare with the "−2LL" printed by another piece of software.
+- NONMEM **omits an additive constant** (the $\log 2\pi$ term of the normal densities). Its OFV is therefore $-2\log L$ **up to a constant**: an isolated value means nothing. Comparison with another program's "−2LL" first requires harmonising constants, likelihood definition, approximation, conventions and data.
 - The hat on $\hat{L}_i$ is not decorative. FO, FOCE, FOCE-I and Laplace compute **four different functions**. Comparing their OFVs compares two approximations, not two fits.
 
 **The likelihood ratio test.** For two **nested** models, on the **same data**, with the **same method**:
@@ -165,7 +166,7 @@ Three working rules. **(1)** `INTER` as soon as the error model depends on the p
 - The population likelihood is an **integral with no closed form**; FO, FOCE and Laplace dodge it by **Taylor linearisation**, SAEM and IMP by stochastic means.
 - Everything hangs on the **anchor point**: FO linearises at η = 0 (the typical patient, for everyone), FOCE at **η̂ᵢ** (each subject's EBE) — at the cost of an inner loop at every iteration.
 - **`INTER`** evaluates the residual variance at η̂ᵢ instead of η = 0: essential with proportional or combined error, without effect with purely additive error.
-- **OFV = −2 log L̂ up to an additive constant**, and the "hat" depends on the method: OFVs from FO, FOCE-I, SAEM or another software **do not compare**.
+- **OFV = −2 log L̂ up to an additive constant**, and the "hat" depends on the method: never compare OFVs from FO, FOCE-I, SAEM or another program blindly; check objective, data, approximation, constants and conventions.
 - **ΔOFV ~ χ²** (threshold **3.84** at 1 df, 5%): only between **nested** models, same data, **same method** — the constant and the approximation bias then cancel in the difference.
 - `MINIMIZATION SUCCESSFUL` is not a validation; `ROUNDING ERRORS` is not a condemnation — it is a signal of over-parameterisation or poor numerical scaling.
 <!-- /step -->

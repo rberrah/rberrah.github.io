@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["mab", "ada", "immunogenicity", "neutralizing"]
 slides: []
+prerequisites: ["mab-pk"]
+glossary: ["PK","CL","IIV"]
+sources: ["ryman-meibohm","dirks-meibohm","fda-immunogenicity"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "ADA (anti-drug antibodies) are..."
     options:

@@ -14,6 +14,7 @@ glossary: ["Hystérèse", "Réponse indirecte / turnover"]
 slides: []
 sources: ["sharma-jusko-indirect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La tolérance pharmacodynamique se traduit par..."
     options:

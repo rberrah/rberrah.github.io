@@ -1,4 +1,6 @@
-# Archives de refonte
+# Historical archive — not the current source of truth
+
+## Archives de refonte
 
 Les fichiers de ce dossier conservent les propositions de refonte initiales. Ils ne decrivent pas necessairement l'etat actuel de PMx Explain et leurs noms, chiffres ou captures ne doivent pas etre repris comme source de verite.
 

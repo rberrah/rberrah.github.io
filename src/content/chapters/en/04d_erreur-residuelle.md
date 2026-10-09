@@ -10,8 +10,12 @@ duration: "12 min"
 level: "intermediate"
 tags: ["error-model", "residual", "additive", "proportional"]
 prerequisites: ["variabilite-iiv-iov"]
-glossary: ["Erreur additive", "Erreur proportionnelle", "Erreur combinée", "ε / σ", "Résidus (WRES/CWRES/IWRES/NPDE)"]
+glossary: ["Erreur additive","Erreur proportionnelle","Erreur combinée","ε / σ","Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
+sources: ["berrah-residual","hooker-cwres","beal-bql","davidian-giltinan"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "A proportional residual error means the noise..."
     options:

@@ -9,9 +9,13 @@ order: 206
 duration: "15 min"
 level: "advanced"
 tags: ["mipd", "mapbe", "residual", "tdm", "auc", "precision-dosing"]
-prerequisites: ["erreur-residuelle", "bayes-ebes", "tools-mipd"]
-glossary: ["MAP", "TDM", "RUV", "ε / σ", "Precision dosing"]
+prerequisites: ["erreur-residuelle","bayes-ebes","tools-mipd"]
+glossary: ["MAP","TDM","ε / σ","Precision dosing"]
 slides: []
+sources: ["berrah-residual","sheiner-forecasting","hughes-keizer","minichmayr-mipd"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In the MAP estimation objective, what does a smaller residual error σ do?"
     options:

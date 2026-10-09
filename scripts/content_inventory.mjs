@@ -37,13 +37,16 @@ const rows = [
   ['Visualization components', visualizations.length],
   ['Visualization keys used by chapters', vizKeys.size],
   ['Glossary terms', Object.keys(glossaryEnglish).length],
-  ['Rich glossary entries', Object.keys(glossaryDetails).length],
+  ['Structured glossary entries', Object.keys(glossaryDetails).length],
   ['Chapters with explicit prerequisites metadata', chapters.filter(chapter => Array.isArray(chapter.prerequisites)).length],
   ['Chapters with prerequisites', chapters.filter(chapter => chapter.prerequisites?.length).length],
   ['Chapters with explicit glossary metadata', chapters.filter(chapter => Array.isArray(chapter.glossary)).length],
   ['Chapters with glossary links', chapters.filter(chapter => chapter.glossary?.length).length],
   ['Chapters with source identifiers', chapters.filter(chapter => chapter.sources?.length).length],
   ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length],
+  ['Chapters reviewed by the author', chapters.filter(chapter => chapter.review_type === 'author').length],
+  ['Chapters reviewed internally', chapters.filter(chapter => chapter.review_type === 'internal').length],
+  ['Chapters reviewed externally', chapters.filter(chapter => chapter.review_type === 'external').length],
   ['Chapters pending scientific review', pendingReviews.length]
 ];
 

@@ -9,9 +9,12 @@ order: 96
 duration: "13 min"
 level: "advanced"
 tags: ["validation", "interpretation", "residuals", "troubleshooting"]
-prerequisites: ["valid-gof", "valid-diagnostics"]
-glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)", "GOF", "PRED / IPRED", "Erreur combinée"]
+prerequisites: ["valid-gof","valid-diagnostics"]
+glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)","GOF","PRED / IPRED","Erreur combinée"]
 slides: []
+sources: ["hooker-cwres","mould-upton","savic-karlsson-shrinkage","jonsson-karlsson-scm"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "U-shaped CWRES (negative in the middle, positive at the extremes) suggest..."
     options:

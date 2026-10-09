@@ -14,6 +14,7 @@ glossary: ["NCA", "AUC"]
 slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La méthode des trapèzes calcule l'AUC en..."
     options:

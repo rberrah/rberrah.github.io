@@ -14,6 +14,7 @@ glossary: ["XGBoost", "MAP-BE", "TDM"]
 slides: []
 sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "L'apport principal du ML pour le TDM est de..."
     options:

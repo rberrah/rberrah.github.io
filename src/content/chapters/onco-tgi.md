@@ -15,6 +15,7 @@ slides: []
 sources: ["claret-tgi-os", "simeoni", "wulfsohn-tsiatis-joint", "holford-tte-tutorial"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
     options:

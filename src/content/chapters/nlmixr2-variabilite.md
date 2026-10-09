@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Dans `ini({...})`, vous écrivez `eta.cl ~ 0.1`. Que déclare la valeur 0,1 ?"
     options:

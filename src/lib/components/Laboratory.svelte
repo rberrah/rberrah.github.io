@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
+  import chapters from '$lib/content/loadChapters';
   import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, ArrowLeft, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
   import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule, singleDoseSummary } from '$lib/labs/model.js';
   import { prepareHandoff } from '$lib/labs/handoff.js';
@@ -15,6 +16,7 @@
   let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '', sourceChapter = '';
   let root, animationArea, raf = 0, last = 0, visible = true, ready = false;
   let animateParticles = true;
+  const chapterSlugs = new Set(chapters.map(chapter => chapter.slug));
   $: en = $language === 'en';
   $: titles = en ? { distribution: 'Two-compartment distribution', accumulation: 'Accumulation and repeated doses', absorption: 'Oral absorption and bioavailability', infusion: 'IV infusion and washout' } : { distribution: 'Distribution à deux compartiments', accumulation: 'Accumulation et doses répétées', absorption: 'Absorption orale et biodisponibilité', infusion: 'Perfusion IV et décroissance après arrêt' };
   $: newLab = ['absorption', 'infusion'].includes(lab);
@@ -74,7 +76,7 @@
   }
   onMount(() => {
     const from = new URLSearchParams(window.location.search).get('from') ?? '';
-    sourceChapter = /^[a-z0-9-]+$/.test(from) ? from : '';
+    sourceChapter = chapterSlugs.has(from) ? from : '';
     load(); ready = true; window.addEventListener('hashchange', load);
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (!visible) pause(); }); observer.observe(animationArea);
     const visibility = () => { if (document.hidden) pause(); };
@@ -101,8 +103,8 @@
     const output = document.createElement('canvas'); output.width = Math.max(1000, source.width); output.height = source.height + logPlot.height + scene.height + 210;
     const ctx = output.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, output.width, output.height);
     ctx.fillStyle = '#173b40'; ctx.font = '20px sans-serif'; ctx.fillText(titles[lab], 20, 32);
-    ctx.font = '14px sans-serif'; ctx.fillText(`${compare ? (en ? 'Reference: dashed / ' : 'Reference : pointilles / ') : ''}${en ? 'Current: solid' : 'Modele actuel : continu'} | ${route} | mg, L, h | t=${time.toFixed(2)} h`, 20, 57);
-    ctx.fillText(`${en ? 'Current model' : 'Modele actuel'}: ${fields.map(key => `${key}=${p[key]}`).join('; ')}`, 20, 80);
+    ctx.font = '14px sans-serif'; ctx.fillText(`${compare ? (en ? 'Reference: dashed / ' : 'Référence : pointillés / ') : ''}${en ? 'Current: solid' : 'Modèle actuel : continu'} | ${route} | mg, L, h | t=${time.toFixed(2)} h`, 20, 57);
+    ctx.fillText(`${en ? 'Current model' : 'Modèle actuel'}: ${fields.map(key => `${key}=${p[key]}`).join('; ')}`, 20, 80);
     ctx.drawImage(scene, (output.width - scene.width) / 2, 100); ctx.drawImage(source, (output.width - source.width) / 2, 100 + scene.height);
     ctx.drawImage(logPlot, (output.width - logPlot.width) / 2, 100 + scene.height + source.height);
     ctx.fillText(`Reference: ${fields.map(key => `${key}=${reference[key]}`).join('; ')}`, 20, output.height - 30);
@@ -127,7 +129,7 @@
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Paramètres de l'expérience"}>
       <div class="parameter-head"><strong>{en ? 'Current model' : 'Modèle actuel'}</strong><span>{route}</span></div>
-      {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
+      {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Vérifier la plage du paramètre :'} {validation.error}</p>{/if}
       <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer à la référence'}</label>
       <button class="command" disabled={!valid} on:click={() => { reference = { ...valid }; }}><Copy size={17}/>{en ? 'Use this model as the new reference' : 'Prendre ce modèle comme nouvelle référence'}</button>
       {#if compare}<details><summary>{en ? 'Reference parameters' : 'Paramètres de la référence'}</summary><dl>{#each fields.filter(key => key !== 'end') as key}<div><dt>{names[key]}</dt><dd>{reference[key]}</dd></div>{/each}</dl></details>{/if}
@@ -136,8 +138,8 @@
         <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
         {#if answer && !hidden}<p class="feedback" role="status">{prediction === (lab === 'absorption' ? 'up' : 'down') ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{explanation}</p>{/if}
       </div>{:else}<div class="question"><strong>01 · {en ? 'Predict' : 'Prédire'}</strong><p>{lab === 'distribution' ? (en ? 'If Q rises, what happens to the initial decline in central concentration? Keep CL and volumes fixed.' : 'Si Q augmente, que devient la chute initiale de concentration centrale ? Garder CL et les volumes fixes.') : (en ? 'At the same maintenance dose and clearance, shortening the interval changes steady-state mean concentration how?' : "À dose d'entretien et clairance constantes, comment le raccourcissement de l'intervalle modifie-t-il la concentration moyenne à l'équilibre ?")}</p>
-        <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prediction'}</option><option value="up">{lab === 'distribution' ? (en ? 'Faster' : 'Plus rapide') : (en ? 'Higher' : 'Plus elevee')}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{lab === 'distribution' ? (en ? 'Slower' : 'Plus lente') : (en ? 'Lower' : 'Plus faible')}</option></select>
-        <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Verifier la prediction'}</button>
+        <select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prédiction'}><option value="">{en ? 'Choose a prediction' : 'Choisir une prédiction'}</option><option value="up">{lab === 'distribution' ? (en ? 'Faster' : 'Plus rapide') : (en ? 'Higher' : 'Plus élevée')}</option><option value="same">{en ? 'Unchanged' : 'Identique'}</option><option value="down">{lab === 'distribution' ? (en ? 'Slower' : 'Plus lente') : (en ? 'Lower' : 'Plus faible')}</option></select>
+        <button class="command" disabled={!prediction || hidden} on:click={() => answer = true}>{en ? 'Check prediction' : 'Vérifier la prédiction'}</button>
         {#if answer && !hidden}<p class="feedback" role="status">{prediction === 'up' ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mécanisme. ')}{lab === 'distribution' ? (en ? 'The initial outward transfer rises. Distribution is not elimination: drug can return from the peripheral compartment.' : "Le transfert sortant initial augmente. La distribution n'est pas une élimination : le médicament peut revenir du compartiment périphérique.") : (en ? 'The dose rate increases. For this linear model, Css,mean = dose / (CL * interval).' : 'Le débit de dose augmente. Pour ce modèle linéaire, Cmoy,ss = dose / (CL × intervalle).')}</p>{/if}
       </div>{/if}
       <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="lab-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="lab-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
@@ -147,7 +149,7 @@
     </aside>
     <div class="experiment">
       {#if learningMode === 'guided'}<p class="stage"><b>03 · {en ? 'Observe' : 'Observer'}</b> {en ? 'Follow the animated mechanism and both concentration plots.' : 'Suivez le mécanisme animé et les deux courbes de concentration.'}</p>{/if}
-      <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}>{#each [['intuition','Intuition'], ['model','Equations']] as [key,label]}<button class:active={mode === key} aria-pressed={mode === key} on:click={() => mode = key}>{label}</button>{/each}</div>
+      <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Représentation'}>{#each [['intuition','Intuition'], ['model', en ? 'Equations' : 'Équations']] as [key,label]}<button class:active={mode === key} aria-pressed={mode === key} on:click={() => mode = key}>{label}</button>{/each}</div>
       <div bind:this={animationArea}>
       {#if valid && !hidden}
         {#if mode === 'model'}<div class="equations"><code>{lab === 'absorption' ? 'dAg/dt = -ka Ag; Ag(0) = dose\ndAc/dt = F ka Ag - (CL/V) Ac\ndLoss/dt = (1-F) ka Ag; C = Ac/V' : lab === 'infusion' ? 'R0 = dose/duration (0 <= t < duration), then 0\ndAc/dt = R0 - (CL/V) Ac; Ac(0) = 0\nC = Ac/V' : lab === 'distribution' ? 'dAc/dt = -(CL + Q) Ac/Vc + Q Ap/Vp\ndAp/dt = Q Ac/Vc - Q Ap/Vp\nCc = Ac/Vc; Cp = Ap/Vp' : 'dA/dt = -(CL/V) A\nA(tdose+) = A(tdose-) + dose\nC = A/V; Cmoy,ss = dose/(CL * interval)'}</code><p>{route}. {en ? 'Linear elimination. Fixed parameters. No variability or measurement error.' : 'Élimination linéaire. Paramètres fixes. Sans variabilité ni erreur de mesure.'}</p></div>{/if}
@@ -180,15 +182,15 @@
       {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scénario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les résultats à l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Paramètres synthétiques uniquement. L'apprenant peut révéler les résultats ; ce n'est pas un examen verrouillé."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Révéler les résultats') : (en ? 'Hide results' : 'Masquer les résultats')}</button></section>{/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scénario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" disabled={!valid || hidden} on:click={figure}><ImageDown size={17}/>{en ? 'Figure' : 'Figure'}</button><button class="command" on:click={() => select(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Réinitialiser l'expérience"}</button></div>
       {#if message}<p role="status">{message}</p>{/if}
-      {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
+      {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scénario synthétique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
   </div>
   <section class="continuity"><h2>{en ? 'Continue the experiment' : "Poursuivre l'experience"}</h2><div class="next-actions">
     <button class="command" disabled={!valid} on:click={() => continueIn('lego','/pk/')}><ArrowRight size={18}/>{en ? 'Build in PK' : 'Construire dans PK'}</button>
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/ddi/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
-  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{/if}<a href={`${base}/chapitres/${relatedChapter}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associé'}</a><a href={`${base}/chapitres/${relatedChapter}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a></section>
+    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une réponse PD'}</button>
+  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{/if}<a data-testid="lab-return-course" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}`}>{sourceChapter ? (en ? 'Return to the originating course' : "Revenir au cours d'origine") : (en ? 'Return to the related course' : 'Revenir au cours associé')}</a><a data-testid="lab-related-exercises" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a></section>
 </section>
 
 <style>

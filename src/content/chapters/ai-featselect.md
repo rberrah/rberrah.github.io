@@ -14,6 +14,7 @@ glossary: ["VSURF", "Covariable"]
 slides: []
 sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."
     options:

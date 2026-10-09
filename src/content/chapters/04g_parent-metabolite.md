@@ -14,6 +14,7 @@ glossary: ["CL", "t½", "ke", "Michaelis-Menten"]
 slides: []
 sources: ["houston-metabolite", "gibaldi-perrier", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Dans un modèle parent/métabolite, le métabolite apparaît d'abord..."
     options:

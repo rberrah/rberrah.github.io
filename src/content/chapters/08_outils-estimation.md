@@ -14,6 +14,7 @@ glossary: ["Effets mixtes", "Vraisemblance", "FOCE-I", "SAEM", "MCMC"]
 slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
 sources: ["wang-nonmem-methods", "kuhn-lavielle-saem", "akaike-aic", "nonmem", "monolix"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Estimer signifie..."
     options:

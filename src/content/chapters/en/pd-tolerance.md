@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "tolerance", "rebound", "precursor"]
 slides: []
+prerequisites: ["pd-direct","pd-indirect"]
+glossary: ["Hystérèse","Réponse indirecte / turnover"]
+sources: ["sharma-jusko-indirect","dayneka-jusko-indirect","gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Pharmacodynamic tolerance shows as..."
     options:

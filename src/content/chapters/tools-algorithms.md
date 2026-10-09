@@ -14,6 +14,7 @@ glossary: ["SAEM", "FOCE-I", "OFV", "Vraisemblance", "Effets mixtes"]
 slides: []
 sources: ["lindstrom-bates", "wang-nonmem-methods", "kuhn-lavielle-saem", "lavielle"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La vraisemblance d'un modèle NLME est difficile car..."
     options:
@@ -56,7 +57,7 @@ $$ L(\theta) = \prod_i \int p(y_i \mid \eta_i, \theta)\, p(\eta_i \mid \theta)\;
 L'intégrale (sur $\eta_i$) n'a pas de solution analytique dès que le modèle $f$ est **non linéaire** en $\eta_i$. C'est là que FOCE et SAEM divergent.
 
 :::math
-On maximise en pratique $-2\log L$ (l'**OFV**). Comme les deux méthodes **approchent** différemment cette quantité, leurs OFV **ne sont pas comparables** entre elles.
+On maximise en pratique $-2\log L$ (l'**OFV**). Deux valeurs appelées « OFV » ne sont comparables que si elles reposent sur la même définition de vraisemblance ou de fonction objective, les mêmes données, des constantes compatibles et une approximation suffisamment comparable. FOCE et SAEM n'assurent pas ces conditions à eux seuls.
 :::
 <!-- /step -->
 
@@ -99,10 +100,10 @@ Sur un modèle **difficile** (Emax raide, TMDD, données très éparses), FOCE-I
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
-Comparer les OFV entre méthodes n'a pas de sens.
+Deux nombres appelés « OFV » ne se comparent pas aveuglément.
 
 :::pitfall
-FOCE et SAEM **approchent** la vraisemblance différemment : leurs **OFV ne sont pas comparables**. On ne compare l'OFV qu'à **méthode identique** et **mêmes données**. Enfin, la **convergence** d'un algorithme ne garantit pas un **bon modèle** : les diagnostics restent obligatoires.
+FOCE et SAEM peuvent **approcher** ou évaluer la vraisemblance différemment selon le logiciel et l'étape choisie. Avant toute soustraction, vérifier les **mêmes données**, la définition de l'objectif, l'approximation, les constantes et les conventions de log-vraisemblance. Une évaluation postérieure commune peut rendre certaines comparaisons défendables. Enfin, la **convergence** ne garantit pas un **bon modèle** : les diagnostics restent obligatoires.
 :::
 <!-- /step -->
 
@@ -110,5 +111,5 @@ FOCE et SAEM **approchent** la vraisemblance différemment : leurs **OFV ne sont
 - La vraisemblance NLME = une intégrale sur les effets aléatoires, sans forme close.
 - FOCE : linéarise autour des η̂ individuels — rapide, approximatif, historique (NONMEM).
 - SAEM : simule les η (E) puis met à jour les paramètres (M) — approximation stochastique du ML, souvent robuste (Monolix).
-- Les OFV ne se comparent qu'à méthode et données identiques ; convergence ≠ bon modèle.
+- OFV : ne jamais comparer deux valeurs sans vérifier données, définition, approximation, constantes et conventions ; convergence ≠ bon modèle.
 <!-- /step -->

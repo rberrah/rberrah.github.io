@@ -10,6 +10,12 @@ duration: "13 min"
 level: "advanced"
 tags: ["clinical-trials", "simulation", "cts", "power"]
 slides: []
+prerequisites: ["tools-simulation","variabilite-iiv-iov"]
+glossary: ["VPC","IIV","IOV","Covariable"]
+sources: ["mould-upton","ette-williams","bonate","nelsen-copulas","ich-m15"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Clinical trial simulation (CTS) allows one to..."
     options:

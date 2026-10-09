@@ -13,7 +13,8 @@ prerequisites: ["bayes-ebes", "math-stats"]
 glossary: ["EBE", "Covariable", "η", "θ"]
 slides: []
 sources: ["pearson-1901-pca", "marchenko-pastur", "hotelling-1933", "hastie-esl", "savic-karlsson-shrinkage"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler..."
     options:
@@ -74,14 +75,14 @@ Réf. : Pearson (1901), Hotelling (1933) pour la PCA ; MacQueen (1967) pour le k
 <!-- /step -->
 
 <!-- step:title="Signal ou bruit ? (RMT)" viz="64_RMT" -->
-Problème : avec peu de patients et beaucoup de paramètres, des **corrélations apparaissent par pur hasard**. Comment savoir lesquelles sont réelles ? La **Random Matrix Theory** répond.
+Problème : avec peu de patients et beaucoup de paramètres, des **corrélations apparaissent par pur hasard**. Comment repérer les composantes incompatibles avec un modèle nul explicite ? La **Random Matrix Theory** fournit un repère, sous ses hypothèses.
 
 Sous l'hypothèse « **tout est bruit** », les valeurs propres de la matrice de corrélation suivent la loi de **Marchenko-Pastur**, bornée par :
 
 $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 
 :::howto
-**La métaphore du brouhaha.** Dans une salle bruyante, la plupart des « signaux » ne sont que du bruit de fond (la cloche de Marchenko-Pastur). Une conversation peut dépasser ce fond : de même, une valeur propre **au-dessus de $\lambda_+$** est incompatible avec le modèle de bruit idéal. Cela suggère un signal à examiner, sans prouver à lui seul un facteur biologique réel.
+**La métaphore du brouhaha.** Dans une salle bruyante, le modèle nul décrit le bruit de fond attendu (le spectre de Marchenko-Pastur). Une conversation peut dépasser ce fond : de même, une valeur propre **au-dessus de $\lambda_+$** est incompatible avec le spectre attendu sous ce modèle et ses hypothèses. Cela désigne une composante à examiner, sans démontrer une causalité, une corrélation « vraie » ou une réalité biologique.
 
 **Côté maths.** Le seuil $\lambda_+$ dépend du rapport $p/n$ et des hypothèses du modèle nul (variables centrées, bruit idéal, indépendance approximative). Plus on a de **patients** ($n$ grand), plus le fond de bruit se resserre. On peut ainsi proposer un « nettoyage » de la matrice de corrélation, à valider par stabilité et sens biologique.
 :::
@@ -90,7 +91,7 @@ $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 <!-- step:title="Exemple concret" viz="63_ClusterPCA" -->
 En oncologie, on modélise un médicament sur plusieurs cancers. En regroupant les **clairances individuelles**, on découvre trois nuages correspondant aux **types de tumeur** : la CL est plus basse dans l'un, plus haute dans l'autre.
 
-Conclusion pratique : **ajouter le type de cancer comme covariable** sur la clairance — puis confirmer par l'OFV et la VPC. Le clustering a servi à **générer l'hypothèse**, le modèle à la **valider**.
+Conclusion pratique : le résultat peut motiver l’évaluation du **type de cancer comme covariable** sur la clairance. Le clustering génère une hypothèse ; l’OFV, la VPC, la stabilité, le shrinkage et une validation externe éventuelle apportent ensuite des éléments convergents, sans établir à eux seuls un mécanisme causal.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

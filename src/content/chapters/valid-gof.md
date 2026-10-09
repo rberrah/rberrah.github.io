@@ -15,6 +15,7 @@ slides: []
 sources: ["hooker-cwres", "savic-karlsson-shrinkage", "mould-upton"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Sur un graphique observations vs prédictions, un bon modèle donne..."
     options:

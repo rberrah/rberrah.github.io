@@ -14,6 +14,7 @@ glossary: ["Effets mixtes", "Vraisemblance", "NPAG"]
 slides: []
 sources: ["goutelle-parametric-nonparametric", "neely-pmetrics", "yamada-npag"]
 reviewed_on: "2026-09-28"
+review_type: "author"
 quiz:
   - prompt: "Dans ce contexte, paramétrique ou non paramétrique décrit surtout..."
     options:

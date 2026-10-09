@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["validation", "shrinkage", "ebe", "diagnostics"]
 slides: []
+prerequisites: ["bayes-ebes","math-bayes"]
+glossary: ["Shrinkage","EBE","η","ω / Ω","Résidus (WRES/CWRES/IWRES/NPDE)"]
+sources: ["savic-karlsson-shrinkage","sheiner-forecasting","lavielle"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A high eta-shrinkage means the EBEs..."
     options:

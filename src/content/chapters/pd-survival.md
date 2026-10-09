@@ -15,6 +15,7 @@ slides: []
 sources: ["holford-tte-tutorial", "kaplan-meier-1958", "cox-1972", "claret-tgi-os", "wang-tumor-size-survival", "katzman-deepsurv"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "La différence entre OS et PFS est que..."
     options:

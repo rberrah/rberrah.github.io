@@ -52,7 +52,7 @@
     <div class="readout">
       <div class="verdict" class:ok={mis < 0.2} class:bad={mis >= 0.5}>{mis < 0.2 ? ($language === 'en' ? 'Good fit' : 'Bon ajustement') : mis >= 0.5 ? ($language === 'en' ? 'Biased model' : 'Modèle biaisé') : ($language === 'en' ? 'Monitor' : 'À surveiller')}</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Good model: points follow the diagonal on the left and CWRES are centered on zero without a trend on the right. Increase misspecification to reveal systematic bias at high values.' : 'Bon modèle : nuage sur la diagonale (gauche) et CWRES centrés sur 0 sans tendance (droite). Augmentez le curseur : un biais systématique apparaît aux fortes valeurs.'}</p>
+    <p class="hint">{$language === 'en' ? 'Under the diagnostic assumptions, one expects approximate agreement with the diagonal and CWRES centered near zero without a trend. A pattern suggests a mismatch to investigate; it does not identify a unique cause.' : 'Sous les hypothèses du diagnostic, on attend un accord approximatif avec la diagonale et des CWRES centrés près de 0 sans tendance. Un motif suggère une inadéquation à explorer ; il n’en identifie pas une cause unique.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Diagnostic plots' : 'Graphiques diagnostiques'}>

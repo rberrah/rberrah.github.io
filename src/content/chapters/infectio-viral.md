@@ -14,6 +14,7 @@ glossary: ["PK", "PD", "Emax"]
 slides: []
 sources: ["neumann-hcv", "perelson-hiv"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Dans un modèle de cinétique virale, la décroissance biphasique reflète..."
     options:

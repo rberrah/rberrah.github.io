@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["pharmacodynamics", "effect-compartment", "sheiner", "hysteresis"]
 slides: []
+prerequisites: ["pkpd"]
+glossary: ["Compartiment d’effet (ke0)","Hystérèse","Emax"]
+sources: ["sheiner-effect-compartment","holford-sheiner-dose-effect","dayneka-jusko-indirect","gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The effect-compartment model explains hysteresis by..."
     options:

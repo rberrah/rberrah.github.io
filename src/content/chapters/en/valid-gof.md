@@ -10,6 +10,12 @@ duration: "12 min"
 level: "intermediate"
 tags: ["validation", "diagnostic-plots", "gof", "residuals"]
 slides: []
+prerequisites: ["erreur-residuelle"]
+glossary: ["GOF","PRED / IPRED","Résidus (WRES/CWRES/IWRES/NPDE)","Shrinkage"]
+sources: ["hooker-cwres","savic-karlsson-shrinkage","mould-upton"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "On an observations vs predictions plot, a good model gives..."
     options:

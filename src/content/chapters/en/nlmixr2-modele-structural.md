@@ -10,10 +10,11 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "structural-model", "ode"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["nlmixr2 / rxode2","Modèle structural","EDO"]
 slides: []
-sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode"]
+sources: ["nlmixr2","fidler-nlmixr","wang-rxode"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "In the ini block, the line eta.cl ~ 0.09 declares..."
     options:

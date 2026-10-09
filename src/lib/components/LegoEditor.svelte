@@ -2022,11 +2022,11 @@
 <header class="head">
   <p class="eyebrow">{copy.pages.legoEyebrow}</p>
   <h1>{workshopTitle}</h1>
-  <LabTransfer destination="lego" apply={applyLaboratory} note={$language === 'en' ? 'Transfers structure, PK parameters, units, horizon and first dose. Lego simulates a single dose; use TDM for the full repeated-dose schedule. Existing diagram will be replaced.' : 'Transfert de la structure, des parametres PK, des unites, de l\'horizon et de la premiere dose. Lego simule une dose unique ; utiliser TDM pour le calendrier complet. Le schema actuel sera remplace.'}/>
+  <LabTransfer destination="lego" apply={applyLaboratory} note={$language === 'en' ? 'Transfers structure, PK parameters, units, horizon and first dose. Lego simulates a single dose; use TDM for the full repeated-dose schedule. Existing diagram will be replaced.' : 'Transfert de la structure, des paramètres PK, des unités, de l\'horizon et de la première dose. Lego simule une dose unique ; utiliser TDM pour le calendrier complet. Le schéma actuel sera remplacé.'}/>
   <p class="lede">{profile === 'pk'
-    ? ($language === 'en' ? 'Absorption, distribution and elimination. A compartmental PK model, with continuous or categorical covariates.' : 'Absorption, distribution et elimination. Un modele PK compartimental, avec covariables continues ou categorielles.')
+    ? ($language === 'en' ? 'Absorption, distribution and elimination. A compartmental PK model, with continuous or categorical covariates.' : 'Absorption, distribution et élimination. Un modèle PK compartimental, avec covariables continues ou catégorielles.')
     : profile === 'translator'
-      ? ($language === 'en' ? 'MLXTRAN, mrgsolve, NONMEM or Pmetrics: from source code to a compartmental diagram. Unsupported equations are reported without replacing the previous model.' : 'MLXTRAN, mrgsolve, NONMEM ou Pmetrics : du code source au schema compartimental. Les equations non prises en charge sont signalees sans remplacer le modele precedent.')
+      ? ($language === 'en' ? 'MLXTRAN, mrgsolve, NONMEM or Pmetrics: from source code to a compartmental diagram. Unsupported equations are reported without replacing the previous model.' : 'MLXTRAN, mrgsolve, NONMEM ou Pmetrics : du code source au schéma compartimental. Les équations non prises en charge sont signalées sans remplacer le modèle précédent.')
       : lego.lede}</p>
 </header>
 
@@ -2125,8 +2125,8 @@
 {#if nodes.some(n => !isMassNode(n))}
   <p class="template-note">{$language === 'en'
     ? 'Dashed links carry a concentration signal, not drug mass. TGI: size in mm and time in hours. Interaction multiplies a selected PK flux; a same-drug source represents auto-inhibition. Parallel dose inputs still share one common dose. Independent drug schedules remain in DDI.'
-    : 'Les liens pointilles transmettent une concentration, pas une masse de medicament. TGI : taille en mm et temps en heures. Interaction multiplie un flux PK ; une source issue du meme medicament represente une auto-inhibition. Les entrees paralleles partagent toujours une dose commune. Les calendriers de deux medicaments independants restent dans DDI.'}</p>
-  {#if !advancedGraphValid(nodes, edges)}<p class="graph-error" role="alert">{$language === 'en' ? 'Check block sources, target fluxes and parameters before exporting.' : 'Verifiez les sources des blocs, les flux cibles et les parametres avant export.'}</p>{/if}
+    : 'Les liens pointillés transmettent une concentration, pas une masse de médicament. TGI : taille en mm et temps en heures. Interaction multiplie un flux PK ; une source issue du même médicament représente une auto-inhibition. Les entrées parallèles partagent toujours une dose commune. Les calendriers de deux médicaments indépendants restent dans DDI.'}</p>
+  {#if !advancedGraphValid(nodes, edges)}<p class="graph-error" role="alert">{$language === 'en' ? 'Check block sources, target fluxes and parameters before exporting.' : 'Vérifiez les sources des blocs, les flux cibles et les paramètres avant export.'}</p>{/if}
 {/if}
 <div class="builder">
   <div class="stage">
@@ -2185,7 +2185,7 @@
     </svg>
 
     <!-- courbe simulée -->
-    {#if !simulationValid}<p class="graph-error" role="alert">{$language === 'en' ? 'Simulation is not finite. Check parameters and simulation duration.' : 'Simulation non finie. Verifiez les parametres et la duree de simulation.'}</p>{/if}
+    {#if !simulationValid}<p class="graph-error" role="alert">{$language === 'en' ? 'Simulation is not finite. Check parameters and simulation duration.' : 'Simulation non finie. Vérifiez les paramètres et la durée de simulation.'}</p>{/if}
     {#each simulationValid ? chartGroups : [] as group}
     {@const maximum = Math.max(0.01, ...group.series.flatMap(s => s.vals))}
     <div class="chart-panel" data-chart={group.key}>

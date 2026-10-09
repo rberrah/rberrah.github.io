@@ -9,8 +9,13 @@ order: 11
 duration: "12 min"
 level: "intermediate"
 tags: ["tdm", "bayesian", "clinical-use", "conclusion"]
-updated_on: "2026-10-08"
-slides: ["s59", "s62", "s72"]
+updated_on: "2026-10-09"
+slides: ["s59","s62","s72"]
+prerequisites: ["bayes-ebes"]
+glossary: ["TDM","MAP","Precision dosing"]
+sources: ["sheiner-forecasting","minichmayr-mipd","woillard-tacrolimus","rybak-vanco"]
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Therapeutic drug monitoring (TDM) uses drug measurements to..."
     options:

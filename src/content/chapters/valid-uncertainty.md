@@ -14,6 +14,7 @@ glossary: ["RSE", "Bootstrap", "FIM", "Identifiabilité"]
 slides: []
 sources: ["efron-bootstrap", "mentre-optimal-design", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Le RSE (relative standard error) d'un paramètre mesure..."
     options:

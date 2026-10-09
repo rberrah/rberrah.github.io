@@ -10,6 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "tdm", "limoges"]
 slides: []
+prerequisites: ["tdm","ai-boosting"]
+glossary: ["XGBoost","MAP-BE","TDM"]
+sources: ["woillard-ml-tacrolimus","woillard-ml-simulation","hughes-keizer","minichmayr-mipd","berrah-residual"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The main contribution of ML to TDM is to..."
     options:

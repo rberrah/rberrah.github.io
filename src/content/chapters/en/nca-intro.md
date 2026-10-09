@@ -10,6 +10,12 @@ duration: "11 min"
 level: "beginner"
 tags: ["nca", "auc", "exposure", "regulatory"]
 slides: []
+prerequisites: ["trois-approches"]
+glossary: ["NCA","AUC","Cmax / Tmax","t½","CL"]
+sources: ["yamaoka-moments","ema-bioequivalence","fda-be-statistical-2026","mager-jusko-tmdd","gibaldi-perrier"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "NCA differs from a compartmental model because it..."
     options:

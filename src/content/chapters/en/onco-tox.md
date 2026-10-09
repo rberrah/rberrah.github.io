@@ -10,6 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["oncology", "toxicity", "neutropenia", "friberg"]
 slides: []
+prerequisites: ["onco-models"]
+glossary: ["PD","Emax","Réponse indirecte / turnover"]
+sources: ["friberg","savic-transit","sharma-jusko-indirect"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "In the Friberg model, the neutrophil nadir occurs..."
     options:

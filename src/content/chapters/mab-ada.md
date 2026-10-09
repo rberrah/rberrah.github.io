@@ -14,6 +14,7 @@ glossary: ["PK", "CL", "IIV"]
 slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "fda-immunogenicity"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Les ADA (anti-drug antibodies) sont..."
     options:

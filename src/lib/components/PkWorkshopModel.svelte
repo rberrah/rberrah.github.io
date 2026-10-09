@@ -37,12 +37,12 @@
 </script>
 
 <div class="pk-model">
-  <fieldset class="source"><legend>{english ? 'Model source' : 'Source du modele'} {side}</legend>
+  <fieldset class="source"><legend>{english ? 'Model source' : 'Source du modèle'} {side}</legend>
     <label><input type="radio" bind:group={model.source} value="library" /> {english ? 'MIPD library' : 'Bibliotheque MIPD'}</label>
     <label><input type="radio" bind:group={model.source} value="code" /> mrgsolve / Lego</label>
   </fieldset>
   {#if model.source === 'library'}
-    <label for={`model-${side}`}>{english ? 'PK model' : 'Modele PK'} {side}</label>
+    <label for={`model-${side}`}>{english ? 'PK model' : 'Modèle PK'} {side}</label>
     <select id={`model-${side}`} bind:value={model.id}>{#each tdmModels as item}<option value={item.id}>{english ? item.drugEn : item.drug} / {item.model}</option>{/each}</select>
     <label for={`route-${side}`}>{english ? 'Administration route' : "Voie d'administration"}</label>
     <select id={`route-${side}`} bind:value={model.route}>{#each record?.routes ?? [] as route}<option>{route}</option>{/each}</select>
@@ -57,17 +57,17 @@
     <a href={`${base}/advanced/`}>{english ? 'Advanced Builder' : 'Modélisation avancée'}</a>
   </div>
   {#if units && model.source === 'code'}<div class="numbers">
-    <label>{english ? 'PK code time unit' : 'Unite de temps du code PK'}<select bind:value={model.time_unit}><option value="h">h</option><option value="day">{english ? 'Day' : 'Jour'}</option></select></label>
-    <label>{english ? 'PK concentration unit' : 'Unite des concentrations PK'}<select value={model.concentration_scale ?? 1} onchange={(event) => model.concentration_scale = Number(event.currentTarget.value)}><option value="1">mg/L (= ug/mL)</option><option value="0.001">ng/mL (= ug/L)</option><option value="1000">mg/mL</option>{#if model.concentration_scale != null && ![1,.001,1000].includes(model.concentration_scale)}<option value={model.concentration_scale}>{english ? 'Imported workshop unit' : 'Unite de l’atelier importe'}</option>{/if}</select></label>
+    <label>{english ? 'PK code time unit' : 'Unité de temps du code PK'}<select bind:value={model.time_unit}><option value="h">h</option><option value="day">{english ? 'Day' : 'Jour'}</option></select></label>
+    <label>{english ? 'PK concentration unit' : 'Unité des concentrations PK'}<select value={model.concentration_scale ?? 1} onchange={(event) => model.concentration_scale = Number(event.currentTarget.value)}><option value="1">mg/L (= ug/mL)</option><option value="0.001">ng/mL (= ug/L)</option><option value="1000">mg/mL</option>{#if model.concentration_scale != null && ![1,.001,1000].includes(model.concentration_scale)}<option value={model.concentration_scale}>{english ? 'Imported workshop unit' : 'Unité de l’atelier importé'}</option>{/if}</select></label>
   </div>{/if}
   {#if showRegimen}
   <div class="numbers">
-    <label>{english ? 'Dose (model unit)' : 'Dose (unite du modele)'}<input type="number" bind:value={regimen.dose} min="0.001" required step="any" /></label>
+    <label>{english ? 'Dose (model unit)' : 'Dose (unité du modèle)'}<input type="number" bind:value={regimen.dose} min="0.001" required step="any" /></label>
     <label>{english ? 'Interval (h)' : 'Intervalle (h)'}<input type="number" bind:value={regimen.interval} min="0.25" required step="any" /></label>
     <label>{english ? 'Infusion (h)' : 'Perfusion (h)'}<input type="number" bind:value={regimen.infusion} min="0" max={regimen.interval} required step="any" disabled={model.route === 'Oral'} /></label>
   </div>
   {/if}
-  <p class="source-note">{units ? (english ? 'PK parameters, covariates, concentration output and dosing compartment can be selected in R. Infusion = 0 for oral dosing.' : 'Parametres PK, covariables, sortie concentration et compartiment de dose sont selectionnables dans R. Perfusion = 0 pour la voie orale.') : (english ? 'Infusion = 0 for oral or IV bolus. Population values; either drug can independently use a TDM fit within the engine session.' : 'Perfusion = 0 pour oral ou bolus IV. Valeurs populationnelles ; chaque molecule peut reprendre independamment un ajustement TDM dans la session du moteur.')}</p>
+  <p class="source-note">{units ? (english ? 'PK parameters, covariates, concentration output and dosing compartment can be selected in R. Infusion = 0 for oral dosing.' : 'Paramètres PK, covariables, sortie concentration et compartiment de dose sont sélectionnables dans R. Perfusion = 0 pour la voie orale.') : (english ? 'Infusion = 0 for oral or IV bolus. Population values; either drug can independently use a TDM fit within the engine session.' : 'Perfusion = 0 pour oral ou bolus IV. Valeurs populationnelles ; chaque molécule peut reprendre indépendamment un ajustement TDM dans la session du moteur.')}</p>
   {#if error}<p role="alert">{error}</p>{/if}
 </div>
 

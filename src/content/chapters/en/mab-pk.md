@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["mab", "biologics", "fcrn", "pk"]
 slides: []
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["PK","CL","V","Modèle compartimental"]
+sources: ["ryman-meibohm","dirks-meibohm","mager-jusko-tmdd"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The long half-life (weeks) of IgG antibodies is mainly explained by..."
     options:

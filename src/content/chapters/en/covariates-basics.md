@@ -10,11 +10,12 @@ duration: "12 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["variabilite-iiv-iov"]
-glossary: []
+glossary: ["Covariable","Centrage","η","ω / Ω","Distribution lognormale","Distribution logit-normale"]
 slides: []
 sources: ["monolix-covariates","simulx-individual","lavielle","sanghavi-covariates"]
-reviewed_on: "2026-09-29"
-updated_on: "2026-09-30"
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz: [{"prompt":"A covariate beta represents…","options":["a systematic effect on a parameter","an observed individual ETA","a residual variance"],"correct":0},{"prompt":"A possible link for a fraction strictly between 0 and 1 is…","options":["logit","log alone","no link can bound it"],"correct":0},{"prompt":"Weight affects CL and V:","options":["the effects can have different coefficients","one shared beta is mandatory","ETA correlation must be 1"],"correct":0}]
 ---
 

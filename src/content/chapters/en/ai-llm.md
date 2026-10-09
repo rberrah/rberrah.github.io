@@ -10,6 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["ai", "llm", "transformer", "nlp"]
 slides: []
+prerequisites: ["trois-approches"]
+glossary: ["White / black / grey box"]
+sources: ["vaswani-transformer","brown-gpt3"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "An LLM is, at its core, trained to..."
     options:

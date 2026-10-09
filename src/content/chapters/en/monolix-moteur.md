@@ -3,17 +3,18 @@ id: "monolix-moteur"
 slug: "monolix-moteur"
 title: "Monolix — the SAEM engine"
 description: "Why a stochastic approximation of EM rather than a linearisation: the two phases, the likelihood computed separately, and what convergence means here."
-summary: "SAEM avoids local model linearisation: exploration then smoothing, -2LL by importance sampling, and an OFV that is not comparable to FOCE."
+summary: "SAEM avoids local model linearisation: exploration then smoothing, -2LL by importance sampling, and the conditions required before comparing OFVs."
 track: "monolix"
 order: 224
 duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "saem", "estimation", "likelihood"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix","SAEM","Vraisemblance"]
 slides: []
-sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "monolix"]
-reviewed_on: "2026-07-14"
+sources: ["delyon-saem","kuhn-lavielle-saem","lavielle","lavielle-mentre-monolix","monolix"]
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In the SAEM convergence plot, a perfectly flat trajectory during the smoothing phase indicates..."
     options:
@@ -29,7 +30,7 @@ quiz:
     correct: 0
   - prompt: "A Monolix -2LL (importance sampling) and a NONMEM OFV (FOCE-I), on the same dataset and the same model..."
     options:
-      - "are not comparable in absolute value: they estimate different functions, and NONMEM additionally omits a constant term that Monolix includes"
+      - "must not be subtracted before checking the objective definition, approximation, constants, conventions and data"
       - "are comparable as soon as the model is identical: both quantities estimate the same marginal likelihood, up to Monte Carlo noise"
       - "are comparable once divided by the number of observations: the normalisation removes the scale difference between the two implementations"
     correct: 0
@@ -136,11 +137,11 @@ A 1-compartment oral model, **60 subjects**, 10 samples each, so $n_{obs} = 600$
 - Monolix, SAEM then importance sampling: $-2LL = 2149.2$, Monte Carlo standard error $0.31$.
 - NONMEM, FOCE-I, same data, same model: $OFV = 1045.9$.
 
-A gap of 1,103 points. This is not a disagreement between the two programs, it is a **constant**. NONMEM omits from its objective the term $n_{obs}\log(2\pi)$, which Monolix includes in its log-likelihood:
+A gap of 1,103 points. In this constructed example, most of the gap comes from a **constant**. NONMEM omits from its objective the term $n_{obs}\log(2\pi)$, which Monolix includes in its log-likelihood:
 
 $$ n_{obs} \log(2\pi) = 600 \times 1.8379 = 1102.7 $$
 
-That leaves $2149.2 - 1045.9 - 1102.7 = 0.6$ point, roughly two Monte Carlo errors plus the residue of the FOCE approximation. So the two numbers say the same thing: they are simply not written in the same unit of account. And on a less tame model, that residue would stop being negligible — with no constant available to explain it away.
+That leaves $2149.2 - 1045.9 - 1102.7 = 0.6$ point, roughly two Monte Carlo errors plus the residue of the FOCE approximation. Here the values become close after harmonisation. This is not a general rule: on a less tame model, a different likelihood definition, approximation or convention may leave a non-negligible gap.
 
 Second act, more useful day to day. Add weight on $Cl$ and re-run:
 
@@ -175,5 +176,5 @@ And the check that settles it: **re-run with a different seed and different init
 - SAEM maximises the likelihood without ever evaluating it directly: the $-2LL$ is a **separate task**, by importance sampling or by linearisation.
 - The $-2LL$ from importance sampling is noisy: read its Monte Carlo error, and raise `nbfixediterations` before settling a tight LRT.
 - The convergence diagnostic is in phase 1. Phase 2 is flat by construction, including on a parameter frozen in the wrong place.
-- Monolix's $-2LL$ and NONMEM's OFV are not comparable in absolute value: different functions, plus a constant $n_{obs}\log(2\pi)$ of offset.
+- A Monolix $-2LL$ and a NONMEM OFV can only be compared after checking the objective definition, data, approximation, constants and conventions; the example shows how a constant can explain much of a gap.
 <!-- /step -->

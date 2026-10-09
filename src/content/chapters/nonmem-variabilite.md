@@ -15,6 +15,7 @@ slides: []
 sources: ["nonmem", "karlsson-sheiner-iov", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Dans un control stream, que représente la valeur 0.09 écrite dans `$OMEGA 0.09` ?"
     options:

@@ -10,10 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["nonmem", "variability", "omega", "iiv", "iov", "shrinkage"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["IIV","IOV","ω / Ω","η","Covariable","Shrinkage","Distribution lognormale"]
 slides: []
-sources: ["nonmem", "karlsson-sheiner-iov", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
-reviewed_on: "2026-07-14"
+sources: ["nonmem","karlsson-sheiner-iov","savic-karlsson-shrinkage","jonsson-karlsson-scm"]
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In a control stream, what does the value 0.09 in `$OMEGA 0.09` represent?"
     options:

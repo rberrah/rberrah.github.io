@@ -10,6 +10,12 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "ivive", "drug-interactions", "pediatrics"]
 slides: []
+prerequisites: ["pbpk-intro","pbpk-distribution"]
+glossary: ["PBPK","CL","CLr","Allométrie"]
+sources: ["rostami-hodjegan-ivive","fda-pbpk","ema-pbpk","anderson-holford-allometry","jones-pbpk-industry"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "IVIVE consists of..."
     options:

@@ -9,7 +9,12 @@ order: 2
 duration: "14 min"
 level: "beginner"
 tags: ["approaches", "nca", "poppk", "pbpk"]
-slides: ["s23", "s34", "s45", "s56", "s73"]
+slides: ["s23","s34","s45","s56","s73"]
+prerequisites: ["pourquoi-pharmacometrie"]
+glossary: ["NCA","PopPK","PBPK"]
+sources: ["yamaoka-moments","sheiner-beal-estimation","jones-rowland-yeo","mould-upton"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Non-compartmental analysis (NCA) is mainly used to..."
     options:

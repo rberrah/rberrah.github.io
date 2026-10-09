@@ -15,6 +15,7 @@ slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
 sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation", "berrah-residual", "hughes-keizer"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Un EBE est..."
     options:

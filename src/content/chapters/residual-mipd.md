@@ -15,6 +15,7 @@ slides: []
 sources: ["berrah-residual", "sheiner-forecasting", "hughes-keizer", "minichmayr-mipd"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Dans l'objectif de l'estimation MAP, que fait une erreur résiduelle σ plus petite ?"
     options:

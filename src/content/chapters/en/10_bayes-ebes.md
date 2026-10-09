@@ -9,8 +9,13 @@ order: 10
 duration: "14 min"
 level: "intermediate"
 tags: ["bayes", "ebes", "shrinkage", "tdm"]
-updated_on: "2026-10-08"
-slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
+updated_on: "2026-10-09"
+slides: ["s53","s54","s55","s57","s58","s60","s61"]
+prerequisites: ["variabilite-iiv-iov","erreur-residuelle"]
+glossary: ["Théorème de Bayes","A priori / prior","A posteriori / posterior","MAP","EBE","Shrinkage"]
+sources: ["sheiner-forecasting","savic-karlsson-shrinkage","mapbayr","sheiner-beal-estimation","berrah-residual","hughes-keizer"]
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "An EBE is..."
     options:

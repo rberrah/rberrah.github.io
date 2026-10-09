@@ -23,7 +23,7 @@
     const mobile = width < 520, middleY = mobile ? 215 : 205;
     const make = (key, x1, y1, x2, y2, options = {}) => ({ key, x1, y1, x2, y2, ...config.parameters[key], ...options });
     if (config.scene === 'pd-general') return make('dose', width * .3, 282, width * .3, 112, { labelX: width * .17, labelY: 326 });
-    if (config.scene === 'oncology') return make('resistance', width * .3, mobile ? 386 : 350, width * .88, mobile ? 386 : 350, { label: { en: 'Resistance emergence', fr: 'Emergence de resistance' }, labelY: mobile ? 418 : 382 });
+    if (config.scene === 'oncology') return make('resistance', width * .3, mobile ? 386 : 350, width * .88, mobile ? 386 : 350, { label: { en: 'Resistance emergence', fr: 'Émergence de résistance' }, labelY: mobile ? 418 : 382 });
     if (config.scene === 'infectiology') { const tubeX = width * (mobile ? .2 : .16), tubeW = mobile ? 64 : 100; return make('mic', tubeX + tubeW / 2 + 12, 315, tubeX + tubeW / 2 + 12, 70, { label: { en: 'MIC', fr: 'CMI' }, scale: 'log', track: false, labelX: tubeX, labelSide: true, radius: 14, hit: 38 }); }
     if (config.scene === 'saturable') return make('vmax', width * .61 + 38, 305, width * .61 + 38, 95, { label: { en: 'Vmax', fr: 'Vmax' }, labelX: width * .61, labelY: 359 });
     if (config.scene === 'tmdd') return make('target0', width * .42, mobile ? 386 : 350, width * .9, mobile ? 386 : 350, { label: { en: 'Target density', fr: 'Densite de cible' }, scale: 'log', labelX: width * .66, labelY: mobile ? 418 : 382 });
@@ -183,9 +183,9 @@
         label(en ? 'Target engagement' : 'Engagement cible', gaugeX, 68, mobile ? 9 : 12, '#244a55', width * .28); label(`${state.occupancyPct.toFixed(0)} %`, gaugeX, gaugeY + gaugeH + 18, 10, '#48656c', 80);
         const dialX = width * .82, dialR = mobile ? 43 : 58; ctx.beginPath(); ctx.arc(dialX, middleY, dialR, Math.PI, 0); ctx.strokeStyle = '#d8b09c'; ctx.lineWidth = 13; ctx.stroke(); ctx.beginPath(); ctx.arc(dialX, middleY, dialR, Math.PI, Math.PI + Math.PI * Math.max(0, Math.min(1, responseFraction))); ctx.strokeStyle = '#d26b3a'; ctx.stroke();
         const angle = Math.PI + Math.PI * Math.max(0, Math.min(1, responseFraction)); line(dialX, middleY, dialX + Math.cos(angle) * dialR * .78, middleY + Math.sin(angle) * dialR * .78, '#7c3f29', 3); ball(dialX, middleY, '#d26b3a', 5);
-        label(en ? 'Biological response' : 'Reponse biologique', dialX, 68, mobile ? 9 : 12, '#244a55', width * .28); label(state.secondary.toFixed(1), dialX, middleY + 30, 12, '#7c3f29', 70);
+        label(en ? 'Biological response' : 'Réponse biologique', dialX, 68, mobile ? 9 : 12, '#244a55', width * .28); label(state.secondary.toFixed(1), dialX, middleY + 30, 12, '#7c3f29', 70);
         movingSignal(width * .29, middleY, gaugeX - gaugeW / 2 - 8, middleY, 4, '#8c4c89', true); movingSignal(gaugeX + gaugeW / 2 + 8, middleY, dialX - dialR - 10, middleY, 4, '#d26b3a', true);
-        label(p.model === 1 ? (en ? 'Direct Emax' : 'Emax direct') : p.model === 2 ? (en ? 'Effect compartment' : "Compartiment d'effet") : (en ? 'Turnover response' : 'Reponse par turnover'), width / 2, height - 18, 11, '#48656c', width - 30);
+        label(p.model === 1 ? (en ? 'Direct Emax' : 'Emax direct') : p.model === 2 ? (en ? 'Effect compartment' : "Compartiment d'effet") : (en ? 'Turnover response' : 'Réponse par turnover'), width / 2, height - 18, 11, '#48656c', width - 30);
         return true;
       }
       if (config.scene === 'oncology') {
@@ -235,7 +235,7 @@
       }
       if (config.scene === 'saturable') {
         const levelMax = Math.max(.01, p.dose / p.v), tankX = width * .06, tankW = width * .3, gateX = width * .61;
-        tank(tankX, 92, tankW, 220, state.c / levelMax, '#147ea5', en ? 'Drug awaiting elimination' : 'Medicament a eliminer', `${state.c.toFixed(2)} mg/L`);
+        tank(tankX, 92, tankW, 220, state.c / levelMax, '#147ea5', en ? 'Drug awaiting elimination' : 'Médicament à éliminer', `${state.c.toFixed(2)} mg/L`);
         arrow(tankX + tankW + 10, middleY, gateX - 28, middleY, '#5d8996'); panel(gateX - 24, 82, 48, 238, '#a26c2a', '#fff8e8');
         const active = Math.round(6 * state.capacityPct / 100); for (let i = 0; i < 6; i++) { const y = 108 + i * 36; ctx.beginPath(); ctx.arc(gateX, y, 9, 0, Math.PI * 2); ctx.fillStyle = i < active ? '#d29a31' : '#fff'; ctx.fill(); ctx.strokeStyle = '#a26c2a'; ctx.lineWidth = 2; ctx.stroke(); }
         label(en ? 'Finite elimination sites' : "Sites d'elimination limites", gateX, 55, mobile ? 9 : 12, '#244a55', width * .3); label(`${state.capacityPct.toFixed(0)} % Vmax`, gateX, 337, 11, '#7b5b32', 120);
@@ -247,7 +247,7 @@
         const freeCount = Math.min(16, Math.max(0, Math.round(16 * state.free / Math.max(1, p.dose)))), targetTotal = Math.max(1e-9, state.target + state.complex);
         const receptorCount = Math.max(5, Math.min(18, Math.round(5 + 13 * Math.log10(1 + p.target0) / Math.log10(101)))), boundCount = Math.min(receptorCount, Math.round(receptorCount * state.complex / targetTotal));
         const cellX = width * .72, cellY = 205, cellRadius = mobile ? 70 : 100, plasmaRight = cellX - cellRadius - 28;
-        label(en ? 'Free drug in plasma' : 'Medicament libre dans le plasma', width * .19, 48, mobile ? 9 : 12, '#147ea5', width * .34);
+        label(en ? 'Free drug in plasma' : 'Médicament libre dans le plasma', width * .19, 48, mobile ? 9 : 12, '#147ea5', width * .34);
         for (let i = 0; i < freeCount; i++) ball(width * (.055 + .29 * ((i * .618) % 1)), 80 + 205 * ((i * .414 + (animateParticles ? time * .018 : 0)) % 1), '#147ea5', mobile ? 4.5 : 6);
         arrow(width * .2, 294, width * .2, 326, '#81758a'); label(en ? 'Linear clearance' : 'Clairance lineaire', width * .2, 344, mobile ? 8 : 10, '#5e5365', width * .3);
 
@@ -340,7 +340,7 @@
     }
     drawDirectControl();
     label(`${time.toFixed(1)} ${config.unit === 'day' ? (en ? 'days' : 'jours') : 'h'}`, width - 55, 24, 14, '#294651', 100);
-    if (lab === 'effect-site') label(en ? 'Conceptual biophase: no drug mass is removed from plasma.' : 'Biophase conceptuelle : aucune masse de medicament ne quitte le plasma.', width / 2, height - 13, width < 520 ? 9 : 11, '#7b5b32', width - 20);
+    if (lab === 'effect-site') label(en ? 'Conceptual biophase: no drug mass is removed from plasma.' : 'Biophase conceptuelle : aucune masse de médicament ne quitte le plasma.', width / 2, height - 13, width < 520 ? 9 : 11, '#7b5b32', width - 20);
   }
   $: if (mounted) { config; p; state; time; en; animateParticles; width; dragging; hovered; draw(); }
   onMount(() => { mounted = true; draw(); });
@@ -351,7 +351,7 @@
   <canvas bind:this={canvas} style:height={`${height}px`} style:cursor={dragging ? 'grabbing' : hovered ? 'grab' : 'default'} class:interactive={!!directControl} data-testid="molecular-scene" data-scene-width={width} data-scene-height={height} data-direct-key={directControl?.key} data-control-axis={directControl ? (Math.abs(directControl.x2 - directControl.x1) >= Math.abs(directControl.y2 - directControl.y1) ? 'horizontal' : 'vertical') : undefined} data-control-x={directPoint?.x} data-control-y={directPoint?.y} aria-label={en ? 'Interactive molecular journey' : 'Parcours moleculaire interactif'} title={directControl ? `${en ? directControl.label.en : directControl.label.fr} - ${en ? 'drag to change' : 'deplacer pour modifier'}` : ''} on:pointerdown={pointerDown} on:pointermove={pointerMove} on:pointerup={pointerUp} on:pointercancel={pointerUp} on:pointerleave={() => { if (!dragging) hovered = false; }}></canvas>
   <button class="scene-play" title={playing ? (en ? 'Pause animation' : "Suspendre l'animation") : (en ? 'Start animation' : "Lancer l'animation")} aria-label={playing ? (en ? 'Pause animation' : "Suspendre l'animation") : (en ? 'Start animation' : "Lancer l'animation")} on:click={() => dispatch('play')}>{#if playing}<Pause size={22}/>{:else}<Play size={22}/>{/if}</button>
 </div>
-<div class="mass-balance" aria-label={en ? 'Calculated drug mass balance' : 'Bilan de masse medicamenteuse calcule'}>
+<div class="mass-balance" aria-label={en ? 'Calculated drug mass balance' : 'Bilan de masse médicamenteuse calculé'}>
   <div class="mass-bar">{#each config.mass as key}<span style:width={`${100 * (state.mass[key] ?? 0) / Math.max(1e-9, state.administered)}%`} style:background={config.nodes.find(node => node.id === key)?.color ?? '#888'}></span>{/each}</div>
   <div class="mass-values">{#each config.mass as key}<span><i style:background={config.nodes.find(node => node.id === key)?.color ?? '#888'}></i>{en ? config.nodes.find(node => node.id === key)?.label.en : config.nodes.find(node => node.id === key)?.label.fr} <b>{state.administered ? (100 * (state.mass[key] ?? 0) / state.administered).toFixed(0) : 0} %</b></span>{/each}</div>
 </div>

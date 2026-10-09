@@ -14,6 +14,7 @@ glossary: ["Monolix", "SAEM", "VPC", "Shrinkage"]
 slides: []
 sources: ["monolix", "lavielle", "jonsson-karlsson-scm", "ribbing-selection-bias"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "Pour un paramètre déclaré logitNormal, le omega estimé par Monolix représente..."
     options:
@@ -184,5 +185,5 @@ Deux mises en garde pour finir, dans le même esprit.
 - L'**auto-initialisation** donne un point de départ, pas un diagnostic ; le recuit simulé du SAEM rend de toute façon Monolix peu sensible aux valeurs initiales. Une proposition absurde est un symptôme du modèle ou des unités.
 - Les **tests automatiques** (Wald sur les $\beta$, corrélations $\eta$–covariables) trient les candidates sans run supplémentaire, en échantillonnant la distribution conditionnelle pour échapper au rétrécissement. Ils cribleront, ils ne décideront pas : le biais de sélection est réel.
 - La **MonolixSuite** partage un seul fichier mlxtran — Datxplore (données), Mlxplore (modèle), Monolix (estimation), Simulx (simulation), PKanalix (NCA) : le modèle simulé est celui qui a été estimé.
-- L'**export NONMEM** est un brouillon de control stream, pas un clone : algorithme différent, OFV non comparable, paramètres bornés réécrits en transformations explicites. On le relance et on le rediagnostique.
+- L'**export NONMEM** est un brouillon de control stream, pas un clone : algorithme et conventions potentiellement différents, OFV à ne comparer qu'après harmonisation, paramètres bornés réécrits en transformations explicites. On le relance et on le rediagnostique.
 <!-- /step -->

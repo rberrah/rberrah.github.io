@@ -472,6 +472,7 @@ export function localizeChapter(chapter, lang) {
         sources: chapter.sources,
         updated_on: chapter.updated_on,
         reviewed_on: chapter.reviewed_on,
+        review_type: chapter.review_type,
         status: chapter.status
       },
       isFallback: false

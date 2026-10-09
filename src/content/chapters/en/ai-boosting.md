@@ -10,6 +10,11 @@ duration: "14 min"
 level: "advanced"
 tags: ["ai", "xgboost", "catboost", "gradient-boosting"]
 slides: []
+prerequisites: ["ai-trees"]
+glossary: ["XGBoost","White / black / grey box"]
+sources: ["friedman-gbm","chen-xgboost","prokhorenkova-catboost","woillard-ml-tacrolimus"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The principle of gradient boosting is to..."
     options:

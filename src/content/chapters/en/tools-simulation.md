@@ -10,8 +10,12 @@ duration: "11 min"
 level: "intermediate"
 tags: ["tools", "mrgsolve", "rxode2", "simulation"]
 prerequisites: ["tools-nlmixr2"]
-glossary: ["mrgsolve", "nlmixr2 / rxode2", "VPC", "Jumeau numérique"]
+glossary: ["mrgsolve","nlmixr2 / rxode2","VPC","Jumeau numérique"]
 slides: []
+sources: ["mrgsolve","fidler-nlmixr","bergstrand-pcvpc","mould-upton"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "mrgsolve and rxode2 mainly serve to..."
     options:

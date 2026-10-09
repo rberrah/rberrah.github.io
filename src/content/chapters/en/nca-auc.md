@@ -10,6 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["nca", "auc", "trapezoidal", "lambda-z"]
 slides: []
+prerequisites: ["nca-intro"]
+glossary: ["NCA","AUC"]
+sources: ["yamaoka-moments","ema-bioequivalence","gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The trapezoidal method computes the AUC by..."
     options:

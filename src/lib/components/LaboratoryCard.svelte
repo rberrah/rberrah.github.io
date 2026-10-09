@@ -28,9 +28,9 @@
     {:else if id === 'tmdd'}
       <span class="mini-node free">{en ? 'Free drug' : 'Libre'}</span><span class="mini-node target-mini">{en ? 'Target' : 'Cible'}</span><span class="mini-node complex">Complex</span><i class="bind left"></i><i class="bind right"></i><i class="bind internal"></i><span class="collector internal-label">IN</span>
     {:else if id === 'pd-general'}
-      <span class="node source">Plasma</span><i class="track signal input"></i><span class="node target">{en ? 'Target' : 'Cible'}</span><i class="track exit"></i><span class="collector">{en ? 'Response' : 'Reponse'}</span>
+      <span class="node source">Plasma</span><i class="track signal input"></i><span class="node target">{en ? 'Target' : 'Cible'}</span><i class="track exit"></i><span class="collector">{en ? 'Response' : 'Réponse'}</span>
     {:else if id === 'pd-oncology'}
-      <span class="node source">{en ? 'Drug' : 'Medicament'}</span><i class="track signal input"></i><span class="node target">{en ? 'Tumor' : 'Tumeur'}</span><i class="tumor-reference"></i><span class="collector">{en ? 'Without treatment' : 'Sans traitement'}</span>
+      <span class="node source">{en ? 'Drug' : 'Médicament'}</span><i class="track signal input"></i><span class="node target">{en ? 'Tumor' : 'Tumeur'}</span><i class="tumor-reference"></i><span class="collector">{en ? 'Without treatment' : 'Sans traitement'}</span>
     {:else if id === 'pd-infectiology'}
       <span class="node source">{en ? 'Antibiotic' : 'Antibiotique'}</span><i class="track signal input"></i><span class="gate">{en ? 'MIC' : 'CMI'}</span><span class="node target">{en ? 'Bacteria' : 'Bacteries'}</span>
     {:else if id === 'covariate-volume'}

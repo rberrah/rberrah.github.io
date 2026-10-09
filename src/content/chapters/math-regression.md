@@ -14,6 +14,7 @@ glossary: ["Vraisemblance", "RSE"]
 slides: []
 sources: ["wang-nonmem-methods", "akaike-aic", "davidian-giltinan", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Estimer un paramètre par maximum de vraisemblance, c'est chercher la valeur qui..."
     options:

@@ -14,6 +14,7 @@ glossary: ["NONMEM", "FOCE-I", "OFV", "Effets mixtes"]
 slides: []
 sources: ["nonmem", "sheiner-beal-estimation", "wang-nonmem-methods", "keizer-psn-xpose"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "NONMEM s'utilise principalement via..."
     options:

@@ -10,6 +10,11 @@ duration: "12 min"
 level: "beginner"
 tags: ["maths", "ode", "exponential"]
 slides: []
+prerequisites: []
+glossary: ["EDO","Modèle compartimental"]
+sources: ["gibaldi-perrier","rowland-tozer"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The solution of dA/dt = −k·A is..."
     options:

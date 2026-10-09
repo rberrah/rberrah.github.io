@@ -10,6 +10,12 @@ duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "absorption", "first-pass", "bcs"]
 slides: []
+prerequisites: ["pbpk-intro","absorption-orale"]
+glossary: ["PBPK","F","CL"]
+sources: ["yu-amidon-acat","amidon-bcs","holford-clearance","jones-rowland-yeo"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "A mechanistic absorption model (ACAT/ADAM) divides the gut into..."
     options:

@@ -9,7 +9,12 @@ order: 7
 duration: "16 min"
 level: "intermediate"
 tags: ["pkpd", "emax", "ec50", "turnover"]
-slides: ["s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s35", "s36"]
+slides: ["s26","s27","s28","s29","s30","s31","s32","s33","s35","s36"]
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["Emax","EC50 / CE50","Coefficient de Hill","Compartiment d’effet (ke0)","Réponse indirecte / turnover","Hystérèse"]
+sources: ["holford-sheiner-dose-effect","goutelle-hill","sheiner-effect-compartment","dayneka-jusko-indirect"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "EC50 is the concentration that produces..."
     options:

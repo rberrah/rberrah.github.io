@@ -10,6 +10,12 @@ duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "first-in-human", "mabel", "starting-dose"]
 slides: []
+prerequisites: ["allometrie","trois-approches"]
+glossary: ["Allométrie","PK","PD","PBPK"]
+sources: ["fda-starting-dose","ema-fih","anderson-holford-allometry","holford-sheiner-dose-effect"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "The MABEL approach bases the starting dose on..."
     options:

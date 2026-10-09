@@ -15,6 +15,7 @@ slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "fda-be-statistical-2026", "mager-jusko-tmdd", "gibaldi-perrier"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "La NCA se distingue d'un modèle compartimental car elle..."
     options:

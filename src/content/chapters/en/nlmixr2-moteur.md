@@ -2,18 +2,19 @@
 id: "nlmixr2-moteur"
 slug: "nlmixr2-moteur"
 title: "nlmixr2 — one model, four engines"
-description: "est = focei, saem, nlme or posthoc: switching algorithm without touching the model, what rxode2 compiles behind it, and why the reported OFVs do not compare."
-summary: "The model is an R object, the estimator is an argument: four engines consume the same rxode2-compiled code and return four numbers all labelled OFV without measuring the same thing."
+description: "est = focei, saem, nlme or posthoc: switching algorithm without touching the model, what rxode2 compiles behind it, and the conditions required to compare reported OFVs."
+summary: "The model is an R object, the estimator is an argument: four engines consume the same rxode2-compiled code and may return numbers labelled OFV whose evaluator and conventions must be checked."
 track: "nlmixr2"
 order: 234
 duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "saem", "focei", "estimation"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["nlmixr2 / rxode2","FOCE-I","SAEM"]
 slides: []
-sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "lindstrom-bates"]
+sources: ["nlmixr2","fidler-nlmixr","wang-rxode","lindstrom-bates"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "You fit the same model twice, once with est = saem and once with est = focei, and subtract the two reported OFVs. What does that difference measure?"
     options:
@@ -121,7 +122,7 @@ f2q <- nlmixr2(mod, dat, est = "saem",
 
 Option names are version-dependent: the examples use the current `nnodesGq` / `nsdGq` convention. Check your installed documentation before recycling an old script.
 
-Direct consequence: in nlmixr2, the OFV of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same function**. That is more explicit than letting two programs display two incomparable quantities. It is also far more dangerous, because the two numbers look alike enough to be subtracted without a second thought. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention: the number even has the familiar look.
+Direct consequence: in nlmixr2, the OFV of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same function**. That is more explicit than letting two programs display potentially non-equivalent quantities. It is also far more dangerous, because the two numbers look alike enough to be subtracted without a second thought. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention: the number even has the familiar look.
 
 :::note
 Ref.: Fidler M. et al., *CPT Pharmacometrics Syst Pharmacol* 2019, for the design of nlmixr and the sharing of one model across several estimators; Wang W., Hallow K. M., James D. A., *CPT Pharmacometrics Syst Pharmacol* 2016, for RxODE and the compilation of the ODE system; Lindstrom M. J., Bates D. M., *Biometrics* 1990, for the alternating algorithm underlying `est = "nlme"`; nlmixr2 project documentation for the names of the methods and control options.

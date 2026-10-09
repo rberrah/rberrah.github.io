@@ -10,6 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "regression", "likelihood", "estimation"]
 slides: []
+prerequisites: ["math-stats"]
+glossary: ["Vraisemblance","RSE"]
+sources: ["wang-nonmem-methods","akaike-aic","davidian-giltinan","gibaldi-perrier"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Estimating a parameter by maximum likelihood means finding the value that..."
     options:

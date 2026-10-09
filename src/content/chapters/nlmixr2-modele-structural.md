@@ -14,6 +14,7 @@ glossary: ["nlmixr2 / rxode2", "Modèle structural", "EDO"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "Dans le bloc ini, la ligne eta.cl ~ 0.09 déclare..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Un modèle à effet direct suppose que l'effet..."
     options:

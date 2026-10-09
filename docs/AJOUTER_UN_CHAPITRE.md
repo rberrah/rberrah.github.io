@@ -28,6 +28,7 @@
    glossary: ["CL", "V"]    # termes liés au glossaire
    sources: ["source-id"]    # identifiants de references.js
    reviewed_on: "2026-10-08" # date de relecture scientifique
+   review_type: "author"      # author | internal | external
    slides: []                 # IDs du slide_catalog (optionnel)
    quiz:                      # checkpoint de fin (optionnel)
      - prompt: "Une question ?"

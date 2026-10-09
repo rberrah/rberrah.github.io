@@ -15,6 +15,7 @@ slides: []
 sources: ["craig-pkpd", "rybak-vanco", "eucast", "goutelle-hill"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Pour les bêta-lactamines, l'indice PK/PD prédictif d'efficacité est..."
     options:

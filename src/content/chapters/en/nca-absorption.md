@@ -10,6 +10,11 @@ duration: "11 min"
 level: "intermediate"
 tags: ["nca", "bioavailability", "cmax", "oral"]
 slides: []
+prerequisites: ["nca-auc","absorption-orale"]
+glossary: ["NCA","F","Cmax / Tmax","AUC"]
+sources: ["ema-bioequivalence","fda-bioequivalence","rowland-tozer"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Absolute bioavailability F is computed by comparing..."
     options:

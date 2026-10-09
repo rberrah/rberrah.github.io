@@ -10,10 +10,10 @@
   export let chapter = null;
 
   const T = {
-    fr: { sources: 'Sources', updated: 'Mise à jour', reviewed: 'Relecture scientifique', reviewPending: 'Relecture scientifique de cette version en attente', report: 'Signaler une erreur',
+    fr: { sources: 'Sources', updated: 'Mise à jour', reviewed: 'Relecture scientifique', reviewPending: 'Relecture scientifique de cette version en attente', report: 'Signaler une erreur', reviewTypes: { author: "Relecture scientifique par l'auteur", internal: 'Relecture scientifique interne', external: 'Relecture scientifique externe' },
           brouillon: 'Brouillon', relu: 'Relu', valide: 'Validé',
           body: (t, s) => `Chapitre : ${t} (\`${s}\`)\n\nDécrivez l'erreur ou l'imprécision :\n\n` },
-    en: { sources: 'Sources', updated: 'Updated', reviewed: 'Scientific review', reviewPending: 'Scientific review of this version pending', report: 'Report an error',
+    en: { sources: 'Sources', updated: 'Updated', reviewed: 'Scientific review', reviewPending: 'Scientific review of this version pending', report: 'Report an error', reviewTypes: { author: 'Scientific review by the author', internal: 'Internal scientific review', external: 'External scientific review' },
           brouillon: 'Draft', relu: 'Reviewed', valide: 'Validated',
           body: (t, s) => `Chapter: ${t} (\`${s}\`)\n\nDescribe the error or inaccuracy:\n\n` }
   };
@@ -51,7 +51,7 @@
   <div class="meta">
     {#if st}<span class="badge {st.cls}">{st.label}</span>{/if}
     {#if chapter?.updated_on}<span class="rev">{t.updated} : {chapter.updated_on}</span>{/if}
-    {#if reviewPending}<span class="pending">{t.reviewPending}</span>{:else if chapter?.reviewed_on}<span class="rev">{t.reviewed} : {chapter.reviewed_on}</span>{/if}
+    {#if reviewPending}<span class="pending">{t.reviewPending}</span>{:else if chapter?.reviewed_on}<span class="rev">{t.reviewTypes[chapter.review_type] ?? t.reviewed} : {chapter.reviewed_on}</span>{/if}
     <a class="report" href={issueUrl} target="_blank" rel="noopener noreferrer">{t.report}</a>
   </div>
 </footer>

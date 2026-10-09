@@ -14,6 +14,7 @@ glossary: ["FIM", "RSE", "Vraisemblance", "Identifiabilité"]
 slides: []
 sources: ["mentre-optimal-design", "pfim", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La matrice d'information de Fisher (FIM) sert à..."
     options:

@@ -14,6 +14,7 @@ glossary: ["XGBoost", "White / black / grey box"]
 slides: []
 sources: ["friedman-gbm", "chen-xgboost", "prokhorenkova-catboost", "woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Le principe du gradient boosting est de..."
     options:

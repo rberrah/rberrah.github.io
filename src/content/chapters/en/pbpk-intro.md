@@ -10,6 +10,12 @@ duration: "13 min"
 level: "advanced"
 tags: ["pbpk", "physiology", "blood-flow", "mechanistic"]
 slides: []
+prerequisites: ["clairance-volume-demi-vie","trois-approches"]
+glossary: ["PBPK","CL","V","Q"]
+sources: ["jones-rowland-yeo","kuepfer-pbpk","rowland-peck-tucker"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In a PBPK model, compartments represent..."
     options:

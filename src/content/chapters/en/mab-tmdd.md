@@ -10,6 +10,12 @@ duration: "13 min"
 level: "advanced"
 tags: ["mab", "tmdd", "nonlinear", "target"]
 slides: []
+prerequisites: ["mab-pk","clairance-volume-demi-vie"]
+glossary: ["Michaelis-Menten","CL","AUC"]
+sources: ["mager-jusko-tmdd","gibiansky-qss","ryman-meibohm"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "TMDD (target-mediated drug disposition) produces PK that is..."
     options:

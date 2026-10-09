@@ -14,6 +14,7 @@ glossary: ["Shrinkage", "EBE", "η", "ω / Ω", "Résidus (WRES/CWRES/IWRES/NPDE
 slides: []
 sources: ["savic-karlsson-shrinkage", "sheiner-forecasting", "lavielle"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Un eta-shrinkage élevé signifie que les EBE..."
     options:

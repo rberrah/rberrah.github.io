@@ -8,14 +8,15 @@
   import { molecularLabIds, molecularLabs } from '$lib/labs/molecular';
   import { glossary } from '$lib/stores/glossary';
   import { language } from '$lib/stores/language';
-  import { localizeChapter } from '$lib/i18n/translations';
+  import { localizeChapter, localizeTrack } from '$lib/i18n/translations';
+  import { trackById } from '$lib/content/tracks';
 
   const glossaryItems = get(glossary);
   const fundamentalLabs = [
-    { id: 'distribution', fr: 'Distribution a deux compartiments', en: 'Two-compartment distribution' },
-    { id: 'accumulation', fr: 'Doses repetees et accumulation', en: 'Repeated doses and accumulation' },
-    { id: 'absorption', fr: 'Absorption orale et biodisponibilite', en: 'Oral absorption and bioavailability' },
-    { id: 'infusion', fr: 'Perfusion IV et decroissance', en: 'IV infusion and washout' }
+    { id: 'distribution', fr: 'Distribution à deux compartiments', en: 'Two-compartment distribution' },
+    { id: 'accumulation', fr: 'Doses répétées et accumulation', en: 'Repeated doses and accumulation' },
+    { id: 'absorption', fr: 'Absorption orale et biodisponibilité', en: 'Oral absorption and bioavailability' },
+    { id: 'infusion', fr: 'Perfusion IV et décroissance', en: 'IV infusion and washout' }
   ];
   const norm = (value) => (value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const plain = (value) => (value ?? '').replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
@@ -54,14 +55,18 @@
     const aliases = synonymGroups.find(group => group.some(alias => alias === word));
     return aliases ? aliases.some(alias => includesAlias(haystack, alias)) : haystack.includes(word);
   };
-  $: results = words.length ? index.filter(item =>
+  $: filtering = Boolean(words.length || typeFilter || levelFilter || trackFilter);
+  $: results = filtering ? index.filter(item =>
     words.every(word => matchesWord(item.haystack, word)) &&
     (!typeFilter || item.typeKey === typeFilter) &&
     (!levelFilter || item.level === levelFilter) &&
     (!trackFilter || item.track === trackFilter)
   ) : [];
   $: grouped = [...new Set(results.map(item => item.type))].map(type => ({ type, items: results.filter(item => item.type === type) }));
-  $: trackOptions = [...new Set(index.map(item => item.track).filter(Boolean))].sort();
+  $: trackOptions = [...new Set(index.map(item => item.track).filter(Boolean))]
+    .map(id => ({ id, title: localizeTrack(trackById(id), $language).title ?? id }))
+    .sort((a, b) => a.title.localeCompare(b.title, $language));
+  const trackTitle = (id) => localizeTrack(trackById(id), $language).title ?? id;
 </script>
 
 <svelte:head><title>{$language === 'en' ? 'Search' : 'Recherche'} | PMx Explain</title></svelte:head>
@@ -72,19 +77,19 @@
   <p>{$language === 'en' ? 'Courses, glossary definitions, laboratories and exercises are searched together.' : 'Les cours, définitions du glossaire, laboratoires et exercices sont recherchés ensemble.'}</p>
   <input type="search" bind:value={query} placeholder={$language === 'en' ? 'Clearance, Emax, Bayesian...' : 'Clairance, Emax, Bayes...'} aria-label={$language === 'en' ? 'Search all resources' : 'Rechercher dans toutes les ressources'} data-testid="global-search"/>
   <div class="filters">
-    <label>{$language === 'en' ? 'Type' : 'Type'}<select bind:value={typeFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option><option value="course">{$language === 'en' ? 'Courses' : 'Cours'}</option><option value="glossary">{$language === 'en' ? 'Glossary' : 'Glossaire'}</option><option value="laboratory">{$language === 'en' ? 'Laboratories' : 'Laboratoires'}</option><option value="guided">{$language === 'en' ? 'Guided activities' : 'Activités guidées'}</option><option value="synthesis">{$language === 'en' ? 'Synthesis cases' : 'Cas de synthèse'}</option><option value="calculation">{$language === 'en' ? 'Calculations' : 'Calculs'}</option></select></label>
-    <label>{$language === 'en' ? 'Level' : 'Niveau'}<select bind:value={levelFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option><option value="beginner">{$language === 'en' ? 'Beginner' : 'Débutant'}</option><option value="intermediate">{$language === 'en' ? 'Intermediate' : 'Intermédiaire'}</option><option value="advanced">{$language === 'en' ? 'Advanced' : 'Avancé'}</option></select></label>
-    <label>{$language === 'en' ? 'Track' : 'Parcours'}<select bind:value={trackFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option>{#each trackOptions as track}<option value={track}>{track}</option>{/each}</select></label>
+    <label>{$language === 'en' ? 'Type' : 'Type'}<select data-testid="search-type" bind:value={typeFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option><option value="course">{$language === 'en' ? 'Courses' : 'Cours'}</option><option value="glossary">{$language === 'en' ? 'Glossary' : 'Glossaire'}</option><option value="laboratory">{$language === 'en' ? 'Laboratories' : 'Laboratoires'}</option><option value="guided">{$language === 'en' ? 'Guided activities' : 'Activités guidées'}</option><option value="synthesis">{$language === 'en' ? 'Synthesis cases' : 'Cas de synthèse'}</option><option value="calculation">{$language === 'en' ? 'Calculations' : 'Calculs'}</option></select></label>
+    <label>{$language === 'en' ? 'Level' : 'Niveau'}<select data-testid="search-level" bind:value={levelFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option><option value="beginner">{$language === 'en' ? 'Beginner' : 'Débutant'}</option><option value="intermediate">{$language === 'en' ? 'Intermediate' : 'Intermédiaire'}</option><option value="advanced">{$language === 'en' ? 'Advanced' : 'Avancé'}</option></select></label>
+    <label>{$language === 'en' ? 'Track' : 'Parcours'}<select data-testid="search-track" bind:value={trackFilter}><option value="">{$language === 'en' ? 'All' : 'Tous'}</option>{#each trackOptions as track}<option value={track.id}>{track.title}</option>{/each}</select></label>
   </div>
 </header>
 
-{#if words.length}
+{#if filtering}
   <p class="count" role="status">{results.length} {$language === 'en' ? 'results' : 'résultats'}</p>
   {#if grouped.length}
     {#each grouped as group}
       <section class="group">
         <h2>{group.type} <span>{group.items.length}</span></h2>
-        <ul>{#each group.items as item}<li><a href={item.href}><strong>{item.title}</strong><small>{[item.track, item.level].filter(Boolean).join(' · ')}</small>{#if item.description}<span>{item.description}</span>{/if}</a></li>{/each}</ul>
+        <ul>{#each group.items as item}<li><a href={item.href}><strong>{item.title}</strong><small>{[item.track ? trackTitle(item.track) : '', item.level].filter(Boolean).join(' · ')}</small>{#if item.description}<span>{item.description}</span>{/if}</a></li>{/each}</ul>
       </section>
     {/each}
   {:else}<p class="empty">{$language === 'en' ? 'No resource matches these terms.' : 'Aucune ressource ne correspond à ces termes.'}</p>{/if}

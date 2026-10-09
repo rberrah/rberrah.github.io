@@ -9,9 +9,12 @@ order: 205
 duration: "11 min"
 level: "intermediate"
 tags: ["tools", "mapbayr", "tdm", "mipd"]
-prerequisites: ["tools-simulation", "bayes-ebes"]
-glossary: ["MAP", "TDM", "EBE", "Precision dosing"]
+prerequisites: ["tools-simulation","bayes-ebes"]
+glossary: ["MAP","TDM","EBE","Precision dosing"]
 slides: []
+sources: ["mapbayr","sheiner-forecasting","minichmayr-mipd","rybak-vanco"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "MAP (maximum a posteriori) estimation combines..."
     options:

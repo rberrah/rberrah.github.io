@@ -14,6 +14,7 @@ glossary: ["PD", "Emax", "Réponse indirecte / turnover"]
 slides: []
 sources: ["simeoni", "claret-tgi-os", "stein-tumor-growth", "friberg"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Le modèle de croissance de Gompertz décrit une croissance..."
     options:

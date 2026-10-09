@@ -10,6 +10,12 @@ duration: "12 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "emax", "hill", "direct-effect"]
 slides: []
+prerequisites: ["pkpd"]
+glossary: ["PD","Emax","EC50 / CE50","Coefficient de Hill"]
+sources: ["holford-sheiner-dose-effect","goutelle-hill","gabrielsson-weiner"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "A direct-effect model assumes the effect..."
     options:

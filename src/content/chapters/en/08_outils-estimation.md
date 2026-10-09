@@ -9,7 +9,12 @@ order: 8
 duration: "12 min"
 level: "intermediate"
 tags: ["tools", "estimation", "nonmem", "monolix", "nlmixr2"]
-slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
+slides: ["s10","s38","s39","s40","s41","s42"]
+prerequisites: ["variabilite-iiv-iov","erreur-residuelle"]
+glossary: ["Effets mixtes","Vraisemblance","FOCE-I","SAEM","MCMC"]
+sources: ["wang-nonmem-methods","kuhn-lavielle-saem","akaike-aic","nonmem","monolix"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Estimation means..."
     options:

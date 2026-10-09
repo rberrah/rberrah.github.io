@@ -90,7 +90,7 @@
         <div class="km">{$language === 'en' ? 'k-means groups patients without knowing cancer type. With strong separation, clusters recover the true cancer groups.' : 'k-means regroupe sans connaître le type. Comparez au « Vrai type » : quand la séparation est forte, les clusters retrouvent les cancers.'}</div>
       {/if}
     </div>
-    <p class="hint">{$language === 'en' ? 'Each point is a patient represented by estimated individual parameters. Reduce separation: groups overlap and clustering fails.' : 'Chaque point = un patient (ses paramètres individuels estimés). Baissez la séparation : les groupes se confondent et le clustering échoue.'}</p>
+    <p class="hint">{$language === 'en' ? 'Each point represents estimated individual parameters. Lower separation increases overlap, yet a clustering algorithm will still return groups. Treat them as hypotheses and examine shrinkage, stability and external relevance.' : 'Chaque point représente des paramètres individuels estimés. Réduire la séparation augmente le chevauchement, mais l’algorithme renvoie tout de même des groupes. Les considérer comme des hypothèses et examiner shrinkage, stabilité et pertinence externe.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Clustering of individual parameters by cancer type' : 'Clustering des paramètres individuels par type de cancer'}>

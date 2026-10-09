@@ -10,6 +10,11 @@ duration: "11 min"
 level: "beginner"
 tags: ["infusion", "zero-order", "steady-state"]
 slides: ["s12"]
+prerequisites: ["clairance-volume-demi-vie","doses-repetees"]
+glossary: ["CL","t½"]
+sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A zero-order input means the input rate is..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix", "lavielle", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Vous traduisez en Monolix un modèle NONMEM dont l'IIV sur la clairance est déclarée par `$OMEGA 0.09`. Quelle valeur donner à `omega_cl` ?"
     options:

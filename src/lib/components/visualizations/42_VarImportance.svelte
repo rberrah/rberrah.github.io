@@ -37,7 +37,7 @@
       <div><span>{$language === 'en' ? 'Selected variables' : 'Variables retenues'}</span><strong>{selected.length} / {vars.length}</strong></div>
       <div class="chips">{#each selected as v}<span class="chip">{$language === 'en' ? ({ Poids: 'Weight', 'ClCr (rénal)': 'CrCl (renal)', 'Génotype CYP': 'CYP genotype', 'Âge': 'Age', Albumine: 'Albumin', Sexe: 'Sex', Comédication: 'Comedication', 'Bruit A': 'Noise A', 'Bruit B': 'Noise B', 'Bruit C': 'Noise C' }[v.name] ?? v.name) : v.name}</span>{/each}</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Too low retains noise (overfitting); too high discards useful variables. VSURF automates this screening in two stages: interpretation, then prediction.' : 'Trop bas → on garde du bruit (surajustement) ; trop haut → on perd des variables utiles. VSURF automatise ce tri en deux étapes (interprétation puis prédiction).'}</p>
+    <p class="hint">{$language === 'en' ? 'A low threshold retains more candidates; a high threshold may discard predictive information. Importance depends on the data, algorithm and correlated variables: it is neither a causal effect nor proof of biological relevance. VSURF separates interpretation and prediction screening.' : 'Un seuil bas conserve davantage de candidates ; un seuil haut peut écarter une information prédictive. L’importance dépend des données, de l’algorithme et des variables corrélées : ce n’est ni un effet causal ni une preuve de pertinence biologique. VSURF sépare les tris d’interprétation et de prédiction.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Variable importance' : 'Importance des variables'}>

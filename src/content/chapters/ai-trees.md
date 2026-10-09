@@ -14,6 +14,7 @@ glossary: ["White / black / grey box", "XGBoost"]
 slides: []
 sources: ["breiman-rf", "efron-bootstrap", "hastie-esl"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Un arbre de décision seul produit une fonction..."
     options:

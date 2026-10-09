@@ -10,6 +10,12 @@ duration: "15 min"
 level: "advanced"
 tags: ["oncology", "tumor-growth", "joint-model", "survival"]
 slides: []
+prerequisites: ["pd-survival"]
+glossary: ["AUC","Emax","Covariable"]
+sources: ["claret-tgi-os","simeoni","wulfsohn-tsiatis-joint","holford-tte-tutorial"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "In the Claret model, the treatment effect on the tumour..."
     options:

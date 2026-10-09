@@ -14,6 +14,7 @@ glossary: ["CL", "t½"]
 slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Une entrée d'ordre 0 signifie que le débit d'entrée est..."
     options:

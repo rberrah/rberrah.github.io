@@ -15,6 +15,7 @@ slides: []
 sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karlsson-scm"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
     options:

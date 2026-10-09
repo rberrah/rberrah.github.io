@@ -15,6 +15,7 @@ slides: []
 sources: ["yu-amidon-acat", "amidon-bcs", "holford-clearance", "jones-rowland-yeo"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Un modèle d'absorption mécaniste (ACAT/ADAM) découpe l'intestin en..."
     options:

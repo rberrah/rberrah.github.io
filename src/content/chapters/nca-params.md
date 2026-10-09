@@ -14,6 +14,7 @@ glossary: ["NCA", "CL", "Vss", "t½"]
 slides: []
 sources: ["yamaoka-moments", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Après une dose IV, la clairance se calcule par..."
     options:

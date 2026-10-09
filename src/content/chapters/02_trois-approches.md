@@ -14,6 +14,7 @@ glossary: ["NCA", "PopPK", "PBPK"]
 slides: ["s23", "s34", "s45", "s56", "s73"]
 sources: ["yamaoka-moments", "sheiner-beal-estimation", "jones-rowland-yeo", "mould-upton"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:

@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["validation", "rse", "bootstrap", "uncertainty"]
 slides: []
+prerequisites: ["outils-estimation"]
+glossary: ["RSE","Bootstrap","FIM","Identifiabilité"]
+sources: ["efron-bootstrap","mentre-optimal-design","davidian-giltinan"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The RSE (relative standard error) of a parameter measures..."
     options:

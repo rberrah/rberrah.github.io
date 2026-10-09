@@ -10,10 +10,11 @@ duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "logit", "simulx"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix","SAEM","VPC","Shrinkage"]
 slides: []
-sources: ["monolix", "lavielle", "jonsson-karlsson-scm", "ribbing-selection-bias"]
+sources: ["monolix","lavielle","jonsson-karlsson-scm","ribbing-selection-bias"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "For a parameter declared logitNormal, the omega estimated by Monolix represents..."
     options:
@@ -184,5 +185,5 @@ Two closing warnings, in the same spirit.
 - **Auto-initialisation** gives a starting point, not a diagnosis; SAEM's simulated annealing makes Monolix fairly insensitive to initial values anyway. An absurd proposal is a symptom of the model or of the units.
 - The **automatic tests** (Wald on the $\beta$, $\eta$–covariate correlations) screen candidates with no extra run, sampling the conditional distribution to escape shrinkage. They will screen, they will not decide: selection bias is real.
 - The **MonolixSuite** shares a single mlxtran file — Datxplore (data), Mlxplore (model), Monolix (estimation), Simulx (simulation), PKanalix (NCA): the model simulated is the one that was estimated.
-- The **NONMEM export** is a draft control stream, not a clone: different algorithm, non-comparable OFV, bounded parameters rewritten as explicit transformations. You re-run it and re-diagnose it.
+- The **NONMEM export** is a draft control stream, not a clone: potentially different algorithm and conventions, an OFV to compare only after harmonisation, and bounded parameters rewritten as explicit transformations. You re-run it and re-diagnose it.
 <!-- /step -->

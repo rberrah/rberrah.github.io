@@ -10,6 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "indirect-response", "turnover"]
 slides: []
+prerequisites: ["pd-direct"]
+glossary: ["Réponse indirecte / turnover","Emax"]
+sources: ["dayneka-jusko-indirect","jusko-ko-indirect","gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "In an indirect-response model, the effect delay comes from..."
     options:

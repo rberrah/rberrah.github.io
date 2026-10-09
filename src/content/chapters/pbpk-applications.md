@@ -15,6 +15,7 @@ slides: []
 sources: ["rostami-hodjegan-ivive", "fda-pbpk", "ema-pbpk", "anderson-holford-allometry", "jones-pbpk-industry"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "L'IVIVE consiste à..."
     options:

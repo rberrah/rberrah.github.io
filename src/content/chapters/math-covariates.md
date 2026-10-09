@@ -14,6 +14,7 @@ glossary: ["Covariable", "Allométrie", "Centrage"]
 slides: []
 sources: ["jonsson-karlsson-scm", "ribbing-selection-bias", "anderson-holford-allometry", "fda-poppk"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Ajouter une covariable pertinente à un modèle de population..."
     options:

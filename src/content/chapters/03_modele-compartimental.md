@@ -15,6 +15,7 @@ slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:

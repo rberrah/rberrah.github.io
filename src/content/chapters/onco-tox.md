@@ -14,6 +14,7 @@ glossary: ["PD", "Emax", "Réponse indirecte / turnover"]
 slides: []
 sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."
     options:

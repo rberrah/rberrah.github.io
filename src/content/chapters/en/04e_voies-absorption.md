@@ -10,8 +10,11 @@ duration: "12 min"
 level: "beginner"
 tags: ["absorption", "route", "bioavailability", "first-pass"]
 prerequisites: ["absorption-orale"]
-glossary: ["F", "Ka", "Tlag", "Flip-flop", "Compartiments de transit"]
+glossary: ["F","Ka","Tlag","Flip-flop","Compartiments de transit"]
 slides: []
+sources: ["amidon-bcs","ryman-meibohm","rowland-tozer"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "By the intravenous (IV) route, the bioavailability F is..."
     options:

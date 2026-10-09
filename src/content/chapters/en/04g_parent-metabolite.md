@@ -10,8 +10,11 @@ duration: "13 min"
 level: "advanced"
 tags: ["metabolite", "parent", "formation", "active-metabolite"]
 prerequisites: ["clairance-volume-demi-vie"]
-glossary: ["CL", "t½", "ke", "Michaelis-Menten"]
+glossary: ["CL","t½","ke","Michaelis-Menten"]
 slides: []
+sources: ["houston-metabolite","gibaldi-perrier","gabrielsson-weiner"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "In a parent/metabolite model, the metabolite first appears..."
     options:

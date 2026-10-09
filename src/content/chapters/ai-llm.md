@@ -14,6 +14,7 @@ glossary: ["White / black / grey box"]
 slides: []
 sources: ["vaswani-transformer", "brown-gpt3"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Un LLM est, à la base, entraîné à..."
     options:

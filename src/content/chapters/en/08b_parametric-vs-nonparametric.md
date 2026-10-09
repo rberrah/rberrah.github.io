@@ -9,11 +9,12 @@ order: 8.2
 duration: "15 min"
 level: "intermediate"
 tags: ["population PK", "parametric", "nonparametric", "NPAG", "distribution"]
-prerequisites: ["variabilite-iiv-iov", "outils-estimation"]
-glossary: ["Mixed effects", "Likelihood", "NPAG"]
+prerequisites: ["variabilite-iiv-iov","outils-estimation"]
+glossary: ["Effets mixtes","Vraisemblance","NPAG"]
 slides: []
-sources: ["goutelle-parametric-nonparametric", "neely-pmetrics", "yamada-npag"]
+sources: ["goutelle-parametric-nonparametric","neely-pmetrics","yamada-npag"]
 reviewed_on: "2026-09-28"
+review_type: "author"
 quiz:
   - prompt: "In this context, parametric or nonparametric mainly describes..."
     options:

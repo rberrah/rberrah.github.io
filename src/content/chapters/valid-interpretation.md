@@ -14,6 +14,7 @@ glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)", "GOF", "PRED / IPRED", "Erreur co
 slides: []
 sources: ["hooker-cwres", "mould-upton", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Des CWRES en forme de U (négatifs au milieu, positifs aux extrêmes) évoquent..."
     options:

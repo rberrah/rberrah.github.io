@@ -10,6 +10,11 @@ duration: "14 min"
 level: "advanced"
 tags: ["maths", "covariates", "scm", "model-building"]
 slides: []
+prerequisites: ["math-regression","covariates-basics"]
+glossary: ["Covariable","Allométrie","Centrage"]
+sources: ["jonsson-karlsson-scm","ribbing-selection-bias","anderson-holford-allometry","fda-poppk"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Adding a relevant covariate to a population model..."
     options:

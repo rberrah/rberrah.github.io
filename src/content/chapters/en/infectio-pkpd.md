@@ -10,6 +10,12 @@ duration: "13 min"
 level: "intermediate"
 tags: ["infectious-diseases", "pkpd-index", "mic", "antibiotics"]
 slides: []
+prerequisites: ["pkpd","nca-auc"]
+glossary: ["CMI","PTA","AUC","Cmax / Tmax"]
+sources: ["craig-pkpd","rybak-vanco","eucast","goutelle-hill"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "For beta-lactams, the PK/PD index predictive of efficacy is..."
     options:

@@ -9,9 +9,12 @@ order: 19
 duration: "16 min"
 level: "advanced"
 tags: ["ai", "clustering", "pca", "random-matrix-theory"]
-prerequisites: ["bayes-ebes", "math-stats"]
-glossary: ["EBE", "Covariable", "η", "θ"]
+prerequisites: ["bayes-ebes","math-stats"]
+glossary: ["EBE","Covariable","η","θ"]
 slides: []
+sources: ["pearson-1901-pca","marchenko-pastur","hotelling-1933","hastie-esl","savic-karlsson-shrinkage"]
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Grouping individual parameters (EBEs) by cancer type can reveal..."
     options:
@@ -68,13 +71,13 @@ Patients are then visualised in the (PC₁, PC₂) plane — often 2–3 compone
 <!-- /step -->
 
 <!-- step:title="Signal or noise? (RMT)" viz="64_RMT" -->
-The problem: with few patients and many parameters, **correlations appear by pure chance**. How to know which are real? **Random Matrix Theory** answers.
+The problem: with few patients and many parameters, **correlations appear by pure chance**. How can components incompatible with an explicit null model be identified? **Random Matrix Theory** provides a reference, under its assumptions.
 
 Under the "**everything is noise**" hypothesis, the eigenvalues of the correlation matrix follow the **Marchenko-Pastur** law, bounded by:
 
 $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 
-**How to read it — the background-noise metaphor.** In a noisy room, most "signals" are just background hum (the Marchenko-Pastur bell). A conversation can rise above it: likewise, an eigenvalue **above $\lambda_+$** is incompatible with the ideal noise model. It suggests a signal to examine, without proving a true biological factor by itself.
+**How to read it — the background-noise metaphor.** In a noisy room, the null model describes the expected background hum (the Marchenko-Pastur spectrum). A conversation can rise above it: likewise, an eigenvalue **above $\lambda_+$** is incompatible with the spectrum expected under that model and its assumptions. It flags a component to examine without demonstrating causality, a "true" correlation, or biological reality.
 
 **On the maths side.** The edge $\lambda_+$ depends on the ratio $p/n$ and on the null-model assumptions (centred variables, ideal noise, approximate independence). The more **patients** ($n$ large), the tighter the noise floor. This can propose a "cleaned" correlation matrix, to validate by stability and biological sense.
 <!-- /step -->
@@ -82,7 +85,7 @@ $$ \lambda_{\pm} = \left(1 \pm \sqrt{p/n}\right)^2 $$
 <!-- step:title="Worked example" viz="63_ClusterPCA" -->
 In oncology, a drug is modelled across several cancers. Grouping the **individual clearances**, we discover three clouds matching the **tumour types**: CL is lower in one, higher in another.
 
-Practical conclusion: **add cancer type as a covariate** on clearance — then confirm with the OFV and the VPC. Clustering **generated the hypothesis**, the model **validated** it.
+Practical conclusion: the result may motivate evaluating **cancer type as a covariate** on clearance. Clustering generates a hypothesis; OFV, VPC, stability, shrinkage and possible external validation then provide converging evidence without establishing a causal mechanism by themselves.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

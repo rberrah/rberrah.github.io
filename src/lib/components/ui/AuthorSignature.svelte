@@ -12,9 +12,15 @@
   export let reviewedOn = '';
   /** @type {string} */
   export let updatedOn = '';
+  /** @type {'author'|'internal'|'external'|''} */
+  export let reviewType = '';
 
   $: copy = ui($language);
   $: reviewPending = Boolean(updatedOn && reviewedOn && updatedOn > reviewedOn);
+  $: reviewLabel = ({
+    fr: { author: "Relecture scientifique par l'auteur", internal: 'Relecture scientifique interne', external: 'Relecture scientifique externe' },
+    en: { author: 'Scientific review by the author', internal: 'Internal scientific review', external: 'External scientific review' }
+  }[$language] ?? {})[reviewType] ?? copy.chapter.scientificallyReviewedOn;
 </script>
 
 <p class="signature" data-testid="author-signature">
@@ -30,7 +36,7 @@
     <span class="pending">{copy.chapter.scientificReviewPending}</span>
   {:else if reviewedOn}
     <span class="sep" aria-hidden="true">·</span>
-    <span class="rev">{copy.chapter.scientificallyReviewedOn} : <time datetime={reviewedOn}>{reviewedOn}</time></span>
+    <span class="rev">{reviewLabel} : <time datetime={reviewedOn}>{reviewedOn}</time></span>
   {/if}
   <span class="sep" aria-hidden="true">·</span>
   <a class="orcid" href={AUTHOR.orcid} rel="me noopener noreferrer" target="_blank">ORCID</a>

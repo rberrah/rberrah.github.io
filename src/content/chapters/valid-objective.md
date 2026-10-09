@@ -14,6 +14,7 @@ glossary: ["OFV", "Vraisemblance", "AIC / BIC", "FOCE-I"]
 slides: []
 sources: ["wilks-1938", "akaike-aic", "schwarz-1978", "wang-nonmem-methods"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "La fonction objective (OFV = −2 log L) d'un bon modèle est..."
     options:

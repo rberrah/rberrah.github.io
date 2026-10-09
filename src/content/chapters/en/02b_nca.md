@@ -10,8 +10,12 @@ duration: "6 min"
 level: "beginner"
 tags: ["parametrisation", "micro", "macro", "clairance"]
 slides: []
-reviewed_on: "2026-07-14"
-updated_on: "2026-10-08"
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+prerequisites: ["trois-approches"]
+glossary: ["CL","V","Q","ke"]
+sources: ["gibaldi-perrier","rowland-tozer","holford-clearance"]
+review_type: "author"
 quiz:
   - prompt: "In a one-compartment model, which identity links the micro and macro forms?"
     options:

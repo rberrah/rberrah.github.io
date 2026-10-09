@@ -10,6 +10,11 @@ duration: "12 min"
 level: "beginner"
 tags: ["oral", "absorption", "ka", "tlag"]
 slides: ["s07"]
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["Ka","F","Tlag","Cmax / Tmax","Flip-flop"]
+sources: ["savic-transit","gibaldi-perrier","rowland-tozer"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Ka mainly controls..."
     options:

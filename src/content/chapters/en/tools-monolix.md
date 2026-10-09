@@ -10,8 +10,11 @@ duration: "11 min"
 level: "intermediate"
 tags: ["tools", "monolix", "mlxtran", "saem"]
 prerequisites: ["tools-algorithms"]
-glossary: ["Monolix", "SAEM"]
+glossary: ["Monolix","SAEM"]
 slides: []
+sources: ["monolix","kuhn-lavielle-saem","lavielle","karlsson-holford-vpc"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Monolix's default estimation engine is..."
     options:
@@ -77,12 +80,12 @@ Many teams prototype and teach with Monolix for its **readability**, then someti
 <!-- step:title="Common pitfall" -->
 "Point-and-click" does not mean thoughtless.
 
-**Pitfall —** Monolix's ease can lead to **chaining runs** without understanding. A converging SAEM and a nice VPC do not excuse checking the model's **sense**, identifiability and shrinkage. And Monolix's **OFV** (SAEM) is **not comparable** to a NONMEM FOCE run.
+**Pitfall —** Monolix's ease can lead to **chaining runs** without understanding. A converging SAEM and a nice VPC do not excuse checking the model's **sense**, identifiability and shrinkage. A Monolix **OFV** must not be compared blindly with a NONMEM FOCE run: check the likelihood definition, evaluation step, approximation, constants and data.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Monolix: graphical "point-and-click" software, SAEM engine, built-in diagnostics/VPC.
 - The model is written in mlxtran (readable structure + statistics).
 - Ideal for prototyping, teaching, fast iteration; MonolixSuite for simulation (Simulx).
-- Do not chain runs without diagnostics; OFV not comparable to FOCE.
+- Do not chain runs without diagnostics or compare OFVs before harmonising objective, approximation, constants and data.
 <!-- /step -->

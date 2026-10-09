@@ -9,9 +9,13 @@ order: 95
 duration: "15 min"
 level: "advanced"
 tags: ["validation", "gof", "diagnostic-plots", "residuals"]
-prerequisites: ["valid-gof", "valid-vpc", "valid-npde"]
-glossary: ["GOF", "PRED / IPRED", "Résidus (WRES/CWRES/IWRES/NPDE)", "VPC", "Binning"]
+prerequisites: ["valid-gof","valid-vpc","valid-npde"]
+glossary: ["GOF","PRED / IPRED","Résidus (WRES/CWRES/IWRES/NPDE)","VPC","Binning"]
 slides: []
+sources: ["hooker-cwres","karlsson-holford-vpc","brendel-npde","savic-karlsson-shrinkage"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "No single diagnostic plot is enough; we cross-check them because..."
     options:

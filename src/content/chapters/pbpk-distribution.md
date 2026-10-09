@@ -14,6 +14,7 @@ glossary: ["PBPK", "V", "CL"]
 slides: []
 sources: ["poulin-theil", "rodgers-rowland", "jones-rowland-yeo"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Le coefficient de partage Kp,T décrit..."
     options:

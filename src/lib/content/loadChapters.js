@@ -83,7 +83,7 @@ const frFiles = import.meta.glob('../../content/chapters/fr/*.md', { query: '?ra
  * Le typedef décrit l'objet RÉELLEMENT produit par `parseChapter` — sources, date de
  * révision et traductions comprises : ces champs sont lus par le pied de chapitre, le
  * bloc de citation et le plan du site.
- * @typedef {{id:string, slug:string, title:string, description:string, summary:string, order:number, duration:string, level:string, layer:string, track:string, tags:string[], prerequisites:string[], glossary:string[], slides:string[], sources:string[], updated_on:string, reviewed_on:string, status:string, quiz:{prompt:string,options:string[],correct:number}[], steps:Step[], translations?:Record<string, Chapter>}} Chapter
+ * @typedef {{id:string, slug:string, title:string, description:string, summary:string, order:number, duration:string, level:string, layer:string, track:string, tags:string[], prerequisites:string[], glossary:string[], slides:string[], sources:string[], updated_on:string, reviewed_on:string, review_type:'author'|'internal'|'external'|'', status:string, quiz:{prompt:string,options:string[],correct:number}[], steps:Step[], translations?:Record<string, Chapter>}} Chapter
  */
 
 /** Construit une Map slug -> chapitre à partir d'un ensemble de fichiers traduits. */
@@ -138,6 +138,7 @@ function parseChapter(path, raw, lang = 'fr') {
     sources: data.sources ?? [],
     updated_on: data.updated_on ? String(data.updated_on) : '',
     reviewed_on: data.reviewed_on ? String(data.reviewed_on) : '',
+    review_type: data.review_type ?? '',
     status: data.status ?? '',
     quiz: data.quiz ?? [],
     steps

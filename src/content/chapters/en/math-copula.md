@@ -10,6 +10,11 @@ duration: "12 min"
 level: "advanced"
 tags: ["maths", "copula", "covariates", "simulation"]
 slides: []
+prerequisites: ["math-stats","variabilite-iiv-iov"]
+glossary: ["ω / Ω","IIV","Distribution normale"]
+sources: ["nelsen-copulas","bonate"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A copula describes..."
     options:

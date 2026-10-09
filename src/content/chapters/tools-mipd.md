@@ -14,6 +14,7 @@ glossary: ["MAP", "TDM", "EBE", "Precision dosing"]
 slides: []
 sources: ["mapbayr", "sheiner-forecasting", "minichmayr-mipd", "rybak-vanco"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "L'estimation MAP (maximum a posteriori) combine..."
     options:

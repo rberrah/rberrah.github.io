@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
+  import chapters from '$lib/content/loadChapters';
   import { ArrowLeft, BookOpen, Copy, Download, Eye, EyeOff, GraduationCap, Pause, Play, RotateCcw, StepForward } from '@lucide/svelte';
   import MolecularScene from './MolecularScene.svelte';
   import MolecularPlot from './MolecularPlot.svelte';
@@ -11,14 +12,15 @@
   import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '$lib/labs/molecular.js';
   export let lab;
   const fundamentalLabs = [
-    { id: 'distribution', number: '01', en: 'Two-compartment distribution', fr: 'Distribution a deux compartiments' },
-    { id: 'accumulation', number: '02', en: 'Repeated doses and accumulation', fr: 'Doses repetees et accumulation' },
+    { id: 'distribution', number: '01', en: 'Two-compartment distribution', fr: 'Distribution à deux compartiments' },
+    { id: 'accumulation', number: '02', en: 'Repeated doses and accumulation', fr: 'Doses répétées et accumulation' },
     { id: 'absorption', number: '03', en: 'Oral absorption and bioavailability', fr: 'Absorption orale et biodisponibilite' },
-    { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et decroissance' }
+    { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et décroissance' }
   ];
   let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '', learningMode = 'guided';
   let teacher = false, hidden = false, sourceChapter = '';
   let message = '', shared = '', loadError = '', animateParticles = true, raf = 0, last = 0, visible = true, animationArea;
+  const chapterSlugs = new Set(chapters.map(chapter => chapter.slug));
   $: en = $language === 'en';
   $: config = molecularLabs[lab];
   $: relatedChapter = sourceChapter || config?.related;
@@ -113,7 +115,7 @@
   }
   onMount(() => {
     const from = new URLSearchParams(window.location.search).get('from') ?? '';
-    sourceChapter = /^[a-z0-9-]+$/.test(from) ? from : '';
+    sourceChapter = chapterSlugs.has(from) ? from : '';
     load(); window.addEventListener('hashchange', load);
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (!visible) pause(); });
     if (animationArea) observer.observe(animationArea);
@@ -135,13 +137,13 @@
   {#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
   <div class="lab-grid">
     <aside class="parameters" aria-label={en ? 'Experiment parameters' : "Paramètres de l'expérience"}>
-      <div class="parameter-head"><strong>{en ? 'Current model' : 'Modele actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
+      <div class="parameter-head"><strong>{en ? 'Current model' : 'Modèle actuel'}</strong><span>{en ? config.route.en : config.route.fr}</span></div>
       <section class="question first"><strong>01 · {en ? 'Predict before changing a parameter' : 'Prédire avant de modifier un paramètre'}</strong><p>{en ? config.question.en : config.question.fr}</p><select bind:value={prediction} aria-label={en ? 'Your prediction' : 'Votre prediction'}><option value="">{en ? 'Choose' : 'Choisir'}</option>{#each config.choices as choice, index}<option value={String(index)}>{en ? choice.en : choice.fr}</option>{/each}</select>{#if prediction !== '' && !hidden}<p class:correct={Number(prediction) === config.answer} class="feedback">{Number(prediction) === config.answer ? (en ? 'Correct. ' : 'Exact. ') : (en ? 'Review the mechanism. ' : 'Revoir le mecanisme. ')}{en ? config.explanation.en : config.explanation.fr}</p>{/if}</section>
       <div class="learning-mode" role="group" aria-label={en ? 'Learning mode' : "Mode d'apprentissage"}><button data-testid="molecular-learning-guided" type="button" class:active={learningMode === 'guided'} aria-pressed={learningMode === 'guided'} on:click={() => learningMode = 'guided'}>{en ? 'Discovery' : 'Découverte'}</button><button data-testid="molecular-learning-free" type="button" class:active={learningMode === 'free'} aria-pressed={learningMode === 'free'} on:click={() => learningMode = 'free'}>{en ? 'Free mode' : 'Mode libre'}</button></div>
       {#if learningMode === 'guided'}<p class="guided-note"><b>02 · {en ? 'Manipulate' : 'Manipuler'}</b> {en ? 'Change one mechanism, then observe both representations.' : 'Modifiez un seul mécanisme, puis observez les deux représentations.'}</p>{/if}
       <div class="numbers" class:guided={learningMode === 'guided'}>{#each visibleParameters as [key, rule]}<label for={`molecular-${key}`}>{en ? rule.label.en : rule.label.fr}{#if rule.unit}<small>{rule.unit}</small>{:else}<small></small>{/if}{#if rule.options}<select id={`molecular-${key}`} value={p[key]} on:change={event => change(key, event)}>{#each rule.options as option}<option value={option.value}>{en ? option.label.en : option.label.fr}</option>{/each}</select>{:else}<input id={`molecular-${key}`} type="number" min={rule.min} max={rule.max} step={rule.step} value={p[key]} on:input={event => change(key, event)}/>{/if}</label>{/each}</div>
       {#if learningMode === 'guided'}<details class="locked"><summary>{en ? 'Fixed parameters in discovery mode' : 'Paramètres fixés en mode découverte'}</summary><dl>{#each lockedParameters as [key, rule]}<div><dt>{en ? rule.label.en : rule.label.fr}</dt><dd>{p[key]} {rule.unit ?? ''}</dd></div>{/each}</dl></details>{/if}
-      {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Verifier la plage du parametre :'} {validation.error}</p>{/if}
+      {#if validation.error}<p class="error" role="alert">{en ? 'Check the parameter range:' : 'Vérifier la plage du paramètre :'} {validation.error}</p>{/if}
       {#if config.referenceMode !== 'intrinsic'}
         <label class="check"><input type="checkbox" bind:checked={compare}/>{en ? 'Compare with reference' : 'Comparer à la référence'}</label>
         <button class="command" disabled={!valid} on:click={() => reference = { ...valid }}><Copy size={17}/>{en ? 'Use this model as reference' : 'Prendre ce modèle comme référence'}</button>
@@ -150,7 +152,7 @@
     </aside>
     <div class="experiment">
       {#if learningMode === 'guided'}<p class="stage"><b>03 · {en ? 'Observe' : 'Observer'}</b> {en ? 'Follow the mechanism and the curve, then compare the quantitative metrics.' : 'Suivez le mécanisme et la courbe, puis comparez les mesures quantitatives.'}</p>{/if}
-      <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Representation'}><button class:active={mode === 'intuition'} aria-pressed={mode === 'intuition'} on:click={() => mode = 'intuition'}>Intuition</button><button class:active={mode === 'model'} aria-pressed={mode === 'model'} on:click={() => mode = 'model'}>{en ? 'Equations' : 'Equations'}</button></div>
+      <div class="display-modes" role="group" aria-label={en ? 'Representation' : 'Représentation'}><button class:active={mode === 'intuition'} aria-pressed={mode === 'intuition'} on:click={() => mode = 'intuition'}>Intuition</button><button class:active={mode === 'model'} aria-pressed={mode === 'model'} on:click={() => mode = 'model'}>{en ? 'Equations' : 'Équations'}</button></div>
       <div bind:this={animationArea}>
         {#if valid && state && !hidden}
           {#if mode === 'model'}<div class="equations"><code>{config.equations}</code><p>{en ? 'Deterministic educational model with fixed parameters and no residual error.' : 'Modèle pédagogique déterministe, à paramètres fixes et sans erreur résiduelle.'}</p></div>{/if}
@@ -183,10 +185,10 @@
       {#if teacher}<section class="teacher"><h3><GraduationCap size={20}/>{en ? 'Teacher scenario' : 'Scénario enseignant'}</h3><label class="check"><input type="checkbox" bind:checked={hidden}/>{en ? 'Hide results at opening' : "Masquer les résultats à l'ouverture"}</label><p>{en ? 'Synthetic parameters only. The learner may reveal the results; this is not a secure examination mode.' : "Paramètres synthétiques uniquement. L'apprenant peut révéler les résultats ; ce n'est pas un examen verrouillé."}</p><button class="command" on:click={() => hidden = !hidden}><Eye size={17}/>{hidden ? (en ? 'Reveal results' : 'Révéler les résultats') : (en ? 'Hide results' : 'Masquer les résultats')}</button></section>{/if}
       <div class="exports"><button class="command" disabled={!valid} on:click={share}><Copy size={17}/>{en ? 'Share scenario' : 'Partager le scénario'}</button><button class="command" disabled={!valid || hidden} on:click={csv}><Download size={17}/>CSV</button><button class="command" on:click={() => reset(lab)}><RotateCcw size={17}/>{en ? 'Reset experiment' : "Réinitialiser l'expérience"}</button></div>
       {#if message}<p role="status">{message}</p>{/if}
-      {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
+      {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scénario synthétique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
   </div>
-  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${relatedChapter}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associé'}</a><a href={`${base}/chapitres/${relatedChapter}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pédagogique et ne constitue ni un modèle médicamenteux validé ni une recommandation de dose."}</p></div></section>
+  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a data-testid="lab-return-course" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}`}>{sourceChapter ? (en ? 'Return to the originating course' : "Revenir au cours d'origine") : (en ? 'Open the related course' : 'Ouvrir le cours associé')}</a><a data-testid="lab-related-exercises" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pédagogique et ne constitue ni un modèle médicamenteux validé ni une recommandation de dose."}</p></div></section>
 </section>
 {/if}
 

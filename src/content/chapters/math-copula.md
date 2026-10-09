@@ -14,6 +14,7 @@ glossary: ["ω / Ω", "IIV", "Distribution normale"]
 slides: []
 sources: ["nelsen-copulas", "bonate"]
 reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "Une copule décrit..."
     options:

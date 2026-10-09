@@ -9,7 +9,12 @@ order: 12
 duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "neural-ode", "grey-box"]
-slides: ["s63", "s65", "s66", "s68", "s69", "s70", "s71"]
+slides: ["s63","s65","s66","s68","s69","s70","s71"]
+prerequisites: ["math-edo","pkpd"]
+glossary: ["Neural ODE","EDO","White / black / grey box"]
+sources: ["chen-neural-ode","hughes-keizer","woillard-ml-tacrolimus","genuer-vsurf"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "A grey-box model combines..."
     options:

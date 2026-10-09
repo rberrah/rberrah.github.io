@@ -14,6 +14,7 @@ glossary: ["NPAG", "Point de support", "Vraisemblance"]
 slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
 reviewed_on: "2026-09-29"
+review_type: "author"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
     options:

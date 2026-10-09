@@ -15,6 +15,7 @@ slides: []
 sources: ["berrah-residual", "hooker-cwres", "beal-bql", "davidian-giltinan"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:

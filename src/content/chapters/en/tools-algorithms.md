@@ -9,9 +9,12 @@ order: 200
 duration: "15 min"
 level: "advanced"
 tags: ["tools", "saem", "foce", "estimation"]
-prerequisites: ["outils-estimation", "math-bayes"]
-glossary: ["SAEM", "FOCE-I", "OFV", "Vraisemblance", "Effets mixtes"]
+prerequisites: ["outils-estimation","math-bayes"]
+glossary: ["SAEM","FOCE-I","OFV","Vraisemblance","Effets mixtes"]
 slides: []
+sources: ["lindstrom-bates","wang-nonmem-methods","kuhn-lavielle-saem","lavielle"]
+reviewed_on: "2026-07-09"
+review_type: "author"
 quiz:
   - prompt: "The likelihood of an NLME model is hard because..."
     options:
@@ -53,7 +56,7 @@ $$ L(\theta) = \prod_i \int p(y_i \mid \eta_i, \theta)\, p(\eta_i \mid \theta)\;
 
 The integral (over $\eta_i$) has no analytical solution as soon as the model $f$ is **non-linear** in $\eta_i$. That is where FOCE and SAEM diverge.
 
-**Math —** in practice we maximise $-2\log L$ (the **OFV**). Since the two methods **approximate** this quantity differently, their OFVs are **not comparable** to each other.
+**Math —** in practice we maximise $-2\log L$ (the **OFV**). Two values called "OFV" are comparable only when they use the same likelihood or objective definition, the same data, compatible constants and a sufficiently comparable approximation. FOCE and SAEM do not guarantee those conditions by themselves.
 <!-- /step -->
 
 <!-- step:title="FOCE: linearisation" viz="66_FOCELinearization" -->
@@ -91,14 +94,14 @@ On a **difficult** model (steep Emax, TMDD, very sparse data), FOCE-I may **dive
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
-Comparing OFVs across methods is meaningless.
+Do not compare two numbers called "OFV" blindly.
 
-**Pitfall —** FOCE and SAEM **approximate** the likelihood differently: their **OFVs are not comparable**. Compare the OFV only with the **same method** and **same data**. Finally, an algorithm's **convergence** does not guarantee a **good model**: diagnostics remain mandatory.
+**Pitfall —** FOCE and SAEM may **approximate** or evaluate the likelihood differently depending on the software and evaluation step. Before subtracting values, check the **same data**, objective definition, approximation, constants and log-likelihood conventions. A common post hoc likelihood evaluation can make some comparisons defensible. Finally, algorithmic **convergence** does not guarantee a **good model**: diagnostics remain mandatory.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - The NLME likelihood = an integral over the random effects, with no closed form.
 - FOCE: linearises around the individual η̂ — fast, approximate, historical (NONMEM).
 - SAEM: simulates the η (E) then updates the parameters (M) — stochastic ML approximation, often robust (Monolix).
-- OFVs compare only with the same method and data; convergence ≠ a good model.
+- OFV: never compare values without checking data, definition, approximation, constants and conventions; convergence ≠ a good model.
 <!-- /step -->

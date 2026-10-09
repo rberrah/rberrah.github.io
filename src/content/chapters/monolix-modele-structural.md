@@ -14,6 +14,7 @@ glossary: ["Monolix", "MLXTRAN", "Modèle structural", "EDO"]
 slides: []
 sources: ["monolix", "lavielle", "savic-transit"]
 reviewed_on: "2026-07-14"
+review_type: "author"
 quiz:
   - prompt: "Dans un fichier mlxtran, le bloc [LONGITUDINAL] contient..."
     options:

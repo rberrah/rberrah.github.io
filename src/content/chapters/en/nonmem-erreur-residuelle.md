@@ -10,10 +10,12 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "error-model", "bql", "residuals"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["Erreur additive","Erreur proportionnelle","Erreur combinée","ε / σ","Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
-sources: ["nonmem", "beal-bql", "hooker-cwres", "berrah-residual"]
-reviewed_on: "2026-07-14"
+sources: ["nonmem","beal-bql","hooker-cwres","berrah-residual"]
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
+review_type: "author"
 quiz:
   - prompt: "With a proportional or combined error, the INTER option of the ESTIMATION block is required because..."
     options:
