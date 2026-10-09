@@ -1,7 +1,6 @@
 // Independent synthetic stress study for a narrow two-independent-group,
 // log-intensity proteomics design. Not a proof of nominal FDR or medical validity.
 // MCAR/MAR/MNAR are known only to this simulator, NEVER inferred from observed data.
-import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {File} from 'node:buffer';
 import {runDeterministicAnalysis} from '../src/lib/multiomics/deterministic.js';
@@ -102,6 +101,8 @@ async function analyse(f) {
   });
 }
 const results=[];
+const regressionFailures=[];
+const gate=(condition,message)=>{ if(!condition)regressionFailures.push(message); };
 for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
   let valid=0,invalid=0,empty=0,rowsTested=0,rawReject=0,bhAny=0;
   let missingSum=0,imbalanceSum=0,missingReviewed=0,missingBlocked=0,exploratoryWarned=0;
@@ -143,7 +144,7 @@ for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
         ||x.code==='missingness_imbalance_proteomics');
       if(warns)missingReviewed++;
       if(readiness.status==='blocked')missingBlocked++;
-      assert.equal(readiness.certified,false,'MNAR sensitivity must never be certified');
+      gate(readiness.certified===false,'MNAR sensitivity must never be certified');
     }
   }
   for(let trial=0;trial<SIGNAL_REPS;trial++) {
@@ -159,27 +160,27 @@ for(const n of SAMPLE_SIZES)for(const scenario of SCENARIOS) {
   const rawRate=rowsTested?rawReject/rowsTested:null;
   const meanMissing=missingSum/NULL_REPS;
   const meanImbalance=imbalanceSum/NULL_REPS;
-  assert.equal(empty,0,'null analysis lost all features in '+scenario+'/'+n);
-  assert.equal(invalid,0,'invalid p/q-values for '+scenario+'/'+n);
-  assert.ok(rowsTested>=NULL_REPS*9,'unexpected feature attrition for '+scenario+'/'+n);
-  if(scenario==='complete'||scenario==='strong_batch')assert.equal(meanMissing,0);
-  else assert.ok(meanMissing>0.04,'missingness generator did not run '+scenario);
+  gate(empty===0,'null analysis lost all features in '+scenario+'/'+n);
+  gate(invalid===0,'invalid p/q-values for '+scenario+'/'+n);
+  gate(rowsTested>=NULL_REPS*9,'unexpected feature attrition for '+scenario+'/'+n);
+  if(scenario==='complete'||scenario==='strong_batch')gate(meanMissing===0,'complete-data simulation has missingness '+scenario+'/'+n);
+  else gate(meanMissing>0.04,'missingness generator did not run '+scenario);
   // These wide ceilings detect egregious regression, not a certification
   // that p-values or BH are calibrated at 5% in a specified target population.
   if(scenario!=='mnar_opposite_tails'){
-    assert.ok(rawRate<=0.11,'excessive raw null rejection '+scenario+'/'+n+': '+rawRate);
-    assert.ok(familyRate<=0.17,'excessive null BH family discovery '+scenario+'/'+n+': '+familyRate);
+    gate(rawRate<=0.11,'excessive raw null rejection '+scenario+'/'+n+': '+rawRate);
+    gate(familyRate<=0.17,'excessive null BH family discovery '+scenario+'/'+n+': '+familyRate);
   }
   if(scenario==='mnar_opposite_tails'){
-    assert.ok(meanImbalance<0.10,'missingness should be comparable between groups in expectation');
-    assert.equal(exploratoryWarned,NULL_REPS,
+    gate(meanImbalance<0.10,'missingness should be comparable between groups in expectation');
+    gate(exploratoryWarned===NULL_REPS,
       'Every MNAR exploratory output must warn about non-ignorable missingness');
-    assert.ok(missingReviewed>=Math.floor(NULL_REPS*0.90),
+    gate(missingReviewed>=Math.floor(NULL_REPS*0.90),
       'MNAR censoring must trigger visible missingness review in most studies');
   }
   const power=detected/signals;
   if(n===80 && scenario!=='mnar_opposite_tails')
-    assert.ok(power>=0.55,'positive control detection lost '+scenario+': '+power);
+    gate(power>=0.55,'positive control detection lost '+scenario+': '+power);
   results.push({
     n,scenario,nullDatasets:NULL_REPS,plantedDatasets:SIGNAL_REPS,
     featuresPerDataset:FEATURE_COUNT,validNullDatasets:valid,
@@ -216,7 +217,8 @@ const report={
     'Positive-control strength is fixed, and power is not transportable to real cohorts.',
     'No causal claims, clinical validation, statistical preregistration or publication certificate.'
   ],
-  results
+  results,
+  regressionFailures
 };
 if(process.env.MULTIOMICS_MISSINGNESS_REPORT_PATH){
   const file=process.env.MULTIOMICS_MISSINGNESS_REPORT_PATH;
@@ -224,4 +226,7 @@ if(process.env.MULTIOMICS_MISSINGNESS_REPORT_PATH){
   await fs.writeFile(file,JSON.stringify(report,null,2)+'\n');
 }
 console.log(JSON.stringify(report,null,2));
-console.log('multiomics missingness stress benchmark: PASS');
+if(regressionFailures.length){
+  console.error('multiomics missingness stress benchmark: FAIL',regressionFailures.join(' | '));
+  process.exitCode=1;
+}else console.log('multiomics missingness stress benchmark: PASS');
