@@ -82,7 +82,12 @@ reference <- run_backend_analysis(payload)
 stopifnot(
   identical(reference$methods$proteomics_survival$status,"ok"),
   reference$methods$proteomics_survival$summary$estimable==3L,
-  length(reference$methods$proteomics_survival$top)>0L
+  length(reference$methods$proteomics_survival$top)>0L,
+  identical(reference$runtime$RVersion,as.character(getRversion())),
+  identical(reference$runtime$RPlatform,R.version$platform),
+  identical(reference$runtime$packageVersions$survival,
+    as.character(utils::packageVersion("survival"))),
+  !is.null(reference$runtime$limitation)
 )
 
 unlink(out_dir,recursive=TRUE)
