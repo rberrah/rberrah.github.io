@@ -676,3 +676,166 @@ run_fgsea_ranked <- function(
   utils::write.csv(result, file.path(output_dir, "fgsea_results.csv"), row.names = FALSE)
   invisible(result)
 }
+
+
+# Feature-wise R survival reference (not automated clinical confirmation).
+# Unit of analysis is the unique independent subject, never each omics assay.
+# This intentionally declines longitudinal/time-dependent and competing-risk
+# designs; such models require their own protocol and validation.
+run_cox_survival_reference <- function(
+  matrix,
+  metadata,
+  output_dir,
+  covariates = character(),
+  ties = "efron",
+  min_events = 12L
+) {
+  require_namespace("survival")
+  if (!identical(ties,"efron") && !identical(ties,"breslow"))
+    stop("Unsupported Cox ties policy.")
+  x <- as.matrix(matrix)
+  storage.mode(x) <- "double"
+  if (is.null(rownames(x)) || !length(rownames(x)) || anyDuplicated(rownames(x)))
+    stop("Survival reference requires unique sample identifiers on each matrix row.")
+  m <- metadata[match(rownames(x), metadata$sample_id),,drop=FALSE]
+  if (anyNA(m$sample_id) || anyNA(m$subject_id) ||
+      anyDuplicated(m$subject_id) || any(!nzchar(as.character(m$subject_id))))
+    stop("Survival reference requires exactly one observation per independent subject. Repeated visits need a time-dependent or clustered model.")
+  if (nrow(x) < 20L)stop("Survival reference requires at least 20 independent subjects.")
+  times <- suppressWarnings(as.numeric(m$survival_time))
+  events <- suppressWarnings(as.numeric(m$survival_event))
+  if (any(!is.finite(times) | times<=0) ||
+      any(!is.finite(events) | !events%in%c(0,1)))
+    stop("Complete, positive survival times and binary 0/1 event coding required; never silently omit or recode outcomes.")
+  covariates <- unique(as.character(covariates))
+  if (any(!grepl("^[A-Za-z][A-Za-z0-9_]*$",covariates)) ||
+      any(covariates%in%c("assay_feature","survival_time","survival_event","subject_id","sample_id")))
+    stop("Invalid survival covariate identifier.")
+  if (any(!covariates%in%names(m)))stop("Mapped survival covariate not present in sample metadata.")
+  nuisance <- character()
+  if ("batch"%in%names(m)) {
+    batch_values <- as.character(m$batch)
+    batch_values[is.na(batch_values)] <- ""
+    if (length(unique(batch_values[nzchar(batch_values)])) > 1L) {
+      if(any(!nzchar(batch_values)))stop("Batch covariate has missing values; resolve before Cox reference.")
+      m$batch <- factor(batch_values)
+      nuisance <- c(nuisance,"batch")
+    }
+  }
+  for (name in covariates) {
+    values <- m[[name]]
+    if (anyNA(values) || any(!nzchar(as.character(values))))
+      stop(paste("Missing values in survival covariate",name))
+    numeric <- suppressWarnings(as.numeric(as.character(values)))
+    if(all(is.finite(numeric)))m[[name]] <- numeric
+    else m[[name]] <- factor(as.character(values))
+    if(length(unique(m[[name]]))>1L)nuisance <- c(nuisance,name)
+  }
+  min_events <- max(12L,as.integer(min_events))
+  min_events <- max(min_events,4L*(length(nuisance)+2L))
+  if (sum(events) < min_events)stop(
+    sprintf("Too few observed survival events for the declared model: %d; require >= %d. This is a conservative software guard, not a power guarantee.",sum(events),min_events)
+  )
+  m$survival_time <- times
+  m$survival_event <- events
+  output <- vector("list",ncol(x))
+  form <- stats::reformulate(c("assay_feature",nuisance),
+    response="survival::Surv(survival_time, survival_event)")
+  for (j in seq_len(ncol(x))) {
+    feature <- colnames(x)[j]
+    if (is.null(feature) || !nzchar(feature))feature <- paste0("F",j)
+    observed <- is.finite(x[,j])
+    n_observed <- sum(observed)
+    n_events <- sum(events[observed])
+    result <- data.frame(
+      feature=feature,effect=NA_real_,standardError=NA_real_,
+      pValue=NA_real_,qValue=NA_real_,hazardRatio=NA_real_,
+      ciLow=NA_real_,ciHigh=NA_real_,
+      proportionalHazardsP=NA_real_,globalPhP=NA_real_,
+      nSubjects=n_observed,nEvents=n_events,
+      missingFraction=1-n_observed/nrow(x),
+      status="not_estimable",stringsAsFactors=FALSE
+    )
+    if (n_observed < 20L || n_events < min_events) {
+      result$status <- "insufficient_observations_or_events"
+      output[[j]] <- result
+      next
+    }
+    data <- m[observed,,drop=FALSE]
+    data$assay_feature <- x[observed,j]
+    if(stats::sd(data$assay_feature)<1e-10) {
+      result$status <- "constant_feature"
+      output[[j]] <- result
+      next
+    }
+    design <- try(stats::model.matrix(stats::delete.response(stats::terms(form)),data=data),silent=TRUE)
+    if (inherits(design,"try-error") || qr(design)$rank < ncol(design)) {
+      result$status <- "aliased_design"
+      output[[j]] <- result
+      next
+    }
+    fit <- try(survival::coxph(
+      form,data=data,ties=ties,x=TRUE,
+      control=survival::coxph.control(iter.max=60,timefix=FALSE)
+    ),silent=TRUE)
+    if (inherits(fit,"try-error") || any(!is.finite(stats::coef(fit))) ||
+        any(abs(stats::coef(fit))>12)) {
+      result$status <- "cox_nonconvergence_or_separation"
+      output[[j]] <- result
+      next
+    }
+    beta <- as.numeric(stats::coef(fit)["assay_feature"])
+    v <- try(stats::vcov(fit)["assay_feature","assay_feature"],silent=TRUE)
+    if(inherits(v,"try-error") || !is.finite(v) || v<=0) {
+      result$status <- "invalid_cox_variance"
+      output[[j]] <- result
+      next
+    }
+    se <- sqrt(v)
+    zph <- try(survival::cox.zph(fit,transform="km"),silent=TRUE)
+    if(inherits(zph,"try-error") || !"assay_feature"%in%rownames(zph$table)) {
+      result$status <- "ph_diagnostic_unavailable"
+      output[[j]] <- result
+      next
+    }
+    feature_ph <- as.numeric(zph$table["assay_feature","p"])
+    global_ph <- if("GLOBAL"%in%rownames(zph$table))
+      as.numeric(zph$table["GLOBAL","p"]) else NA_real_
+    if(!is.finite(feature_ph) || !is.finite(global_ph)) {
+      result$status <- "ph_diagnostic_unavailable"
+      output[[j]] <- result
+      next
+    }
+    result$effect <- beta
+    result$standardError <- se
+    result$pValue <- 2*stats::pnorm(-abs(beta/se))
+    result$hazardRatio <- exp(beta)
+    result$ciLow <- beta-1.959963984540054*se
+    result$ciHigh <- beta+1.959963984540054*se
+    result$proportionalHazardsP <- feature_ph
+    result$globalPhP <- global_ph
+    result$status <- if(feature_ph<0.05 || global_ph<0.05) "ph_assumption_warning" else "ph_test_not_rejected"
+    output[[j]] <- result
+  }
+  results <- do.call(rbind,output)
+  # The full supplied family remains in the BH denominator: unsuccessful
+  # fits receive p=1, not a post-hoc reduction in the number of tests.
+  family_p <- ifelse(is.finite(results$pValue),results$pValue,1)
+  q <- stats::p.adjust(family_p,method="BH")
+  results$qValue[is.finite(results$pValue)] <- q[is.finite(results$pValue)]
+  results <- results[order(is.na(results$qValue),results$qValue),,drop=FALSE]
+  rownames(results) <- NULL
+  dir.create(output_dir,recursive=TRUE,showWarnings=FALSE)
+  utils::write.csv(results,file.path(output_dir,"cox_results.csv"),row.names=FALSE)
+  counts <- as.list(table(results$status))
+  list(
+    results=results,
+    summary=list(
+      method=paste0("survival::coxph, ties=",ties),
+      attemptedFeatures=ncol(x),estimable=sum(is.finite(results$pValue)),
+      nSubjects=nrow(x),events=sum(events),tieMethod=ties,
+      nuisanceTerms=nuisance,statusCounts=counts,
+      importantLimit="A non-significant cox.zph test never proves PH; informative censoring, competing risks, time-dependent exposure and selective feature missingness remain untested."
+    )
+  )
+}

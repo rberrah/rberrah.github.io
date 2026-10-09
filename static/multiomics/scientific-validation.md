@@ -333,6 +333,34 @@ les événements, les courbes de survie et les risques concurrents.
 La validation croisée du C-index demeure une analyse prédictive
 interne, pas une validation externe.
 
+### Exécution de survie dans le moteur R local
+
+Pour une seule omique ou plusieurs, le backend R propose désormais,
+dans ses résultats de référence, `<omic>_survival` (par exemple
+`proteomics_survival`). Il ajuste séparément chaque variable avec
+`survival::coxph`, **méthode Efron** pour les événements ex æquo,
+en incorporant les covariables demandées et un éventuel batch variable.
+Il fournit coefficient, hazard ratio, p-value, q-value BH, intervalle,
+effectifs/événements et diagnostics de risques proportionnels
+`cox.zph` (variable et global). Le nom Efron est distinct du moteur
+navigateur Breslow : leurs valeurs peuvent différer en présence de
+nombreux événements liés au même temps.
+
+Le routeur R **refuse** les observations répétées d'un même sujet,
+les temps ou indicateurs d'événement incomplets, un nombre trop faible
+d'événements, des covariables manquantes et les plans non estimables.
+Un modèle dont `cox.zph` est significatif reste signalé comme
+potentiellement non proportionnel. Même un p-value `cox.zph` non
+significatif ne prouve pas l'hypothèse de risques proportionnels.
+
+Le test `multiomics-engine/tests/test_survival_backend.R` vérifie
+le modèle, les rejets de plans invalides, la correction BH sur la
+famille **complète** de variables soumises et le passage effectif par
+`run_backend_analysis`. L'exécution R est une **méthode de référence
+accessible**, mais le parcours confirmatoire reste bloqué sans une
+revue indépendante du protocole, de la censure et des risques concurrents.
+
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de

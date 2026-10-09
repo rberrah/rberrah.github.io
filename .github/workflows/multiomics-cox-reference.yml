@@ -6,6 +6,9 @@ on:
       - 'src/lib/multiomics/**'
       - 'scripts/test_multiomics_cox_reference.mjs'
       - 'multiomics-engine/tests/independent_cox_reference.R'
+      - 'multiomics-engine/tests/test_survival_backend.R'
+      - 'multiomics-engine/advanced_methods.R'
+      - 'multiomics-engine/server.R'
       - '.github/workflows/multiomics-cox-reference.yml'
   push:
     branches: [main]
@@ -47,6 +50,8 @@ jobs:
             tmp/multiomics/cox-reference/r-cox.csv
       - name: Compare R and browser Breslow Cox estimates
         run: node scripts/test_multiomics_cox_reference.mjs --compare tmp/multiomics/cox-reference
+      - name: Validate R survival backend feature-wise safeguards
+        run: Rscript multiomics-engine/tests/test_survival_backend.R
       - name: Archive survival validation inputs and results
         if: always()
         uses: actions/upload-artifact@v4
