@@ -76,7 +76,7 @@ report<-list(
   pmxTrain=length(model$trainingSubjectIds),
   pmxScoredTest=nrow(p),binaryEvaluatedTest=nrow(evaluation),
   modelName=model$engine,
-  featuresUsed=length(model$requiredFeatures),
+  featuresUsed=if(is.data.frame(model$requiredFeatures)) nrow(model$requiredFeatures) else length(model$requiredFeatures),
   selectedLambda=model$lambda,
   fittedOnHoldout=FALSE,
   sourcePreprocessingBeforeSplit=src$sourcePreprocessing,
@@ -103,4 +103,4 @@ jsonlite::write_json(report,file.path(dir,"pmx-native-heldout-report.json"),
 cat(sprintf("REAL PMx MODEL HOLDOUT PASS: trained=%d scored=%d evaluated=%d AUC=%.4f Brier=%.4f permAUC=%.4f\n",
   report$pmxTrain,report$pmxScoredTest,report$binaryEvaluatedTest,
   res$metrics$auc,res$metrics$brier,mean(null_auc)))
-cat(sprintf("NATIVE PMx REFIT LABEL-NULL PASS: 30 refits mean AUC=%.4f\\n",mean(train_null_auc)))
+cat(sprintf("NATIVE PMx REFIT LABEL-NULL PASS: 30 refits mean AUC=%.4f\n",mean(train_null_auc)))
