@@ -117,6 +117,44 @@ assert.equal(evaluateConfirmatoryReadiness(candidate,{demo:true}).status,'blocke
 assert.equal(evaluateConfirmatoryReadiness({
   ...candidate,protocol:{...candidate.protocol,objective:'outcome'}
 }).status,'blocked');
+
+const missingnessBlocks = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers: {
+    ...candidate.layers,
+    proteomics: {
+      ...candidate.layers.proteomics,
+      qc: {
+        ...candidate.layers.proteomics.qc,
+        differentialMissingness:{flaggedFeatures:2}
+      }
+    }
+  }
+});
+assert.equal(missingnessBlocks.status,'blocked');
+assert.ok(missingnessBlocks.checks.some(x=>
+  x.code==='missingness_imbalance_proteomics' && x.status==='blocked'),
+  'Independent R success must not silently override differential missingness');
+const mnarImputed = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers:{
+    ...candidate.layers,
+    metabolomics:{
+      qc:{
+        preprocessingAudit:{declaredValueType:'log_abundance'},
+        msQc:{mnar:{imputedValues:8}}
+      }
+    }
+  },
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential:{status:'ok'},
+    proteomics_differential:{status:'ok'},
+    metabolomics_differential:{status:'ok'}
+  }}
+});
+assert.ok(mnarImputed.checks.some(x=>x.code==='mnar_imputation_metabolomics' &&
+  x.status==='blocked'),'Imputed assumed MNAR values must be explicitly blocked');
+
 assert.equal(evaluateConfirmatoryReadiness(result).status,'not_requested');
 
 console.log('multiomics pre-analysis diagnostics: PASS');
