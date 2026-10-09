@@ -59,6 +59,56 @@ filter_informative_features <- function(x, min_observed = 3L, max_features = NUL
   x
 }
 
+# Audit before create_mofa(). No silent intersection of unmatched subjects:
+# otherwise the effective population can depend on which views were supplied.
+mofa2_input_preflight <- function(blocks, min_samples=16L,
+                                  max_missing_fraction=0.40) {
+  if(!is.list(blocks) || length(blocks)<2L || is.null(names(blocks)) ||
+     anyNA(names(blocks)) || any(!nzchar(names(blocks))) ||
+     anyDuplicated(names(blocks)))
+    stop("MOFA2 requires at least two uniquely named omics layers.")
+  if(!is.finite(max_missing_fraction) || max_missing_fraction<0 ||
+     max_missing_fraction>=1)
+    stop("Invalid MOFA2 missingness safeguard.")
+  views <- list()
+  subject_sets <- list()
+  for(layer in names(blocks)) {
+    x <- as.matrix(blocks[[layer]])
+    suppressWarnings(storage.mode(x)<-"double")
+    ids <- rownames(x)
+    features <- colnames(x)
+    if(is.null(ids) || is.null(features) ||
+       anyNA(ids) || anyNA(features) ||
+       any(!nzchar(ids)) || any(!nzchar(features)) ||
+       anyDuplicated(ids) || anyDuplicated(features))
+      stop(sprintf("%s: unique nonempty sample and feature identifiers are required.",layer))
+    if(nrow(x)<min_samples || ncol(x)<2L)
+      stop(sprintf("%s: MOFA2 needs at least %s independent samples and two features.",
+                   layer,min_samples))
+    if(any(is.infinite(x)) || any(is.nan(x)))
+      stop(sprintf("%s: infinite/NaN measurements are not valid missing values.",layer))
+    missing <- mean(is.na(x))
+    if(!is.finite(missing) || missing>max_missing_fraction)
+      stop(sprintf("%s: excessive missing measurements (%.1f%%). Review the assay and missingness mechanism.",
+                   layer,100*missing))
+    subject_sets[[layer]] <- ids
+    views[[layer]] <- list(
+      samples=nrow(x),originalFeatures=ncol(x),
+      missingFraction=missing,
+      finiteFeatures=sum(colSums(is.finite(x))>=3L),
+      note="Latent variance can reflect technical nuisance effects; MOFA2 factors are descriptive, not causal findings."
+    )
+  }
+  reference <- subject_sets[[1]]
+  if(any(vapply(subject_sets,function(ids)
+       !setequal(ids,reference),logical(1))))
+    stop("MOFA2 views have different sample sets. This backend does not model missing whole views: never silently discard unpaired subjects.")
+  list(status="eligible_for_exploration",
+       views=views,nSharedSubjects=length(reference),
+       maxMissingFraction=max_missing_fraction,
+       limitations="Same subject sets and low missingness do not establish MAR. Batch, biological identity, latent-factor number and stability need independent audit.")
+}
+
 run_mofa2_blocks <- function(
   blocks,
   output_dir,
@@ -68,6 +118,9 @@ run_mofa2_blocks <- function(
   min_samples = 16L,
   max_features_per_block = NULL
 ) {
+  # Data validity must be established before the reference package is loaded,
+  # so unsupported sample-set loss never appears as an installation error.
+  input_audit <- mofa2_input_preflight(blocks,min_samples=min_samples)
   require_namespace("MOFA2")
   blocks <- validate_blocks(blocks, min_samples = min_samples)
   raw_feature_counts <- vapply(blocks, ncol, integer(1))
@@ -122,6 +175,8 @@ run_mofa2_blocks <- function(
     seed = as.integer(seed),
     samples = n_samples,
     factors_requested = as.integer(factors),
+    inputAudit = input_audit,
+    factorStatus = "descriptive_latent_covariance_not_validated_biomarker",
     blocks_before_filtering = raw_feature_counts,
     blocks_after_filtering = vapply(blocks, ncol, integer(1)),
     view_scaling = isTRUE(data_options$scale_views),
