@@ -9,13 +9,16 @@
  * Rules deliberately never auto-authorise a publication or clinical claim.
  * R methods must match EVERY actual input layer and the declared design.
  */
+/** @param {any} result @param {{demo?: boolean}} [options] */
 export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
   const protocol = result?.protocol || {};
   const requested = protocol.analysisIntent === 'confirmatory';
   const layers = Object.entries(result?.layers || {});
   const methods = result?.referenceBackend?.status === 'ok'
     ? result.referenceBackend.methods || {} : {};
+  /** @type {Array<{code:string,status:'pass'|'review'|'blocked',fr:string,en:string}>} */
   const checks = [];
+  /** @param {string} code @param {'pass'|'review'|'blocked'} status @param {string} fr @param {string} en */
   const add = (code, status, fr, en) => checks.push({ code, status, fr, en });
   if (!requested) return {
     requested: false, status: 'not_requested', checks: [],
