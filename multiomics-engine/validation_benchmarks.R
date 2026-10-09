@@ -72,6 +72,16 @@ mofa_factor_truth_diagnostics <- function(factors,truth,
   # Sign and factor ordering are arbitrary in latent factor models.
   best_biological<-which.max(biological)
   best_technical<-which.max(technical)
+  # Biological and technical truth must match DIFFERENT recovered factors.
+  # Two high correlations against the same mixed factor do not establish
+  # successful recovery of two independent latent processes.
+  distinct_best <- list(score=-Inf,biological=NA_integer_,technical=NA_integer_)
+  if(length(biological)>=2L)for(i in seq_along(biological))
+    for(j in seq_along(technical))if(i!=j) {
+      score <- min(biological[[i]],technical[[j]])
+      if(score>distinct_best$score)
+        distinct_best<-list(score=score,biological=i,technical=j)
+    }
   list(
     factorNames=f_names,
     absCorrelationBiological=stats::setNames(biological,f_names),
@@ -80,6 +90,14 @@ mofa_factor_truth_diagnostics <- function(factors,truth,
     maxTechnical=unname(max(technical)),
     strongestBiologicalFactor=f_names[[best_biological]],
     strongestTechnicalFactor=f_names[[best_technical]],
+    distinctTwoFactorRecovery=is.finite(distinct_best$score) &&
+      biological[[distinct_best$biological]]>=biological_threshold &&
+      technical[[distinct_best$technical]]>=batch_threshold,
+    oneToOneMinAbsoluteCorrelation=if(is.finite(distinct_best$score))
+      unname(distinct_best$score) else NA_real_,
+    matchedIndependentFactorNames=if(is.finite(distinct_best$score))
+      c(biological=f_names[[distinct_best$biological]],
+        technical=f_names[[distinct_best$technical]]) else character(),
     biologicalRecovered=unname(max(biological)>=biological_threshold),
     batchSignalDetected=unname(max(technical)>=batch_threshold),
     batchDominated=unname(max(technical)>=batch_threshold &&
