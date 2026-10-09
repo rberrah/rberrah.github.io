@@ -23,6 +23,37 @@ test('A new researcher can finish a one-omic demo on a phone without R or jargon
   expect(initialOverflow).toBeLessThanOrEqual(12);
 });
 
+
+test('Beginner one-click demo instructions meet WCAG AA 4.5:1 text contrast',async({page})=>{
+  await page.goto('/multiomics/tool?lang=fr');
+  const ratios=await page.evaluate(()=>{
+    const surface=document.querySelector('.quick-start');
+    if(!surface)throw new Error('Beginner intro panel missing');
+    const background=getComputedStyle(surface).backgroundColor;
+    const parse=(value)=>{
+      const parts=value.match(/[\d.]+/g)?.slice(0,3).map(Number);
+      if(!parts||parts.length<3)throw new Error('Cannot evaluate intro contrast: '+value);
+      return parts;
+    };
+    const luminance=(value)=>{
+      const components=parse(value).map(n=>{
+        const srgb=n/255;
+        return srgb<=0.04045?srgb/12.92:((srgb+0.055)/1.055)**2.4;
+      });
+      return components[0]*0.2126+components[1]*0.7152+components[2]*0.0722;
+    };
+    const bg=luminance(background);
+    return ['strong','span','small'].map(selector=>{
+      const node=surface.querySelector('.quick-start-copy '+selector);
+      if(!node)throw new Error('Missing beginner instructions: '+selector);
+      const fg=luminance(getComputedStyle(node).color);
+      return {selector,ratio:(Math.max(bg,fg)+0.05)/(Math.min(bg,fg)+0.05)};
+    });
+  });
+  for(const item of ratios)
+    expect(item.ratio,'Low-contrast beginner text: '+item.selector).toBeGreaterThanOrEqual(4.5);
+});
+
 test('Beginner-facing DIABLO/MOFA explanations define terms and avoid biomarker certification',async({page})=>{
   await page.route('http://127.0.0.1:8787/health',async route=>{
     await route.fulfill({status:200,contentType:'application/json',
