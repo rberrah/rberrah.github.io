@@ -737,7 +737,9 @@
     try {
       await loadDemo(onlyLayer);
       // runAnalysis reports some failures in analysisError without throwing.
-      if (!analysisResult) throw new Error(analysisError || 'No analysis results were produced.');
+      if (!analysisResult || analysisStatus !== 'done') {
+        throw new Error(analysisError || 'No complete analysis results were produced.');
+      }
       // The demonstration is an actual analysis, not a mockup.
       document.getElementById('analysis-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (error) {
@@ -1237,6 +1239,8 @@
       analysisResult.scientificAssurance = assessScientificAssurance(analysisResult, { demo: demoLoaded });
       analysisStatus = 'done';
     } catch (error) {
+      // Never display an incomplete result when a later essential step fails.
+      analysisResult = null;
       analysisStatus = 'error';
       analysisError = error instanceof Error ? error.message : 'Analysis failed.';
     }
