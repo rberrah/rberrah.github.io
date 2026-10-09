@@ -1,3 +1,4 @@
+// @ts-nocheck
 test('DIABLO selection stability and MOFA2 provenance are explanatory, not biomarker certifications', async ({ page }) => {
   await page.route('https://reactome.org/AnalysisService/**', async route => {
     await route.fulfill({status:200,contentType:'application/json',
@@ -44,7 +45,7 @@ test('DIABLO selection stability and MOFA2 provenance are explanatory, not bioma
   await expect(page.getByTestId('mofa2-input-audit')).toContainText('not proof');
 });
 
-// @ts-nocheck
+
 import { test, expect } from '@playwright/test';
 
 test('multi-omics presentation page links to the dedicated analysis tool', async ({ page }) => {
