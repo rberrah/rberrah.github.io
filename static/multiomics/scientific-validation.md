@@ -50,6 +50,51 @@ Le résultat machine-lisible contient `scientificAssurance` et
   aucune sélection/tuning sur celle-ci, provenance documentée ; doit être
   organisée par les chercheurs et ne peut être certifiée par déclaration seule.
 
+## Parcours guidé « Préparer une analyse confirmatoire »
+
+L'interface propose deux modes simples : **Explorer** (sans backend R)
+et **Préparer une analyse confirmatoire** (moteur R requis). Le second
+mode **ne délivre aucun certificat**. Il vérifie seulement si les
+calculs et le plan déclarés satisfont les conditions automatisables,
+puis produit trois catégories : *vérifié automatiquement*,
+*à examiner indépendamment* ou *bloqué*. Aucune option ou case cochée
+ne peut convertir ces éléments en preuve de validité scientifique.
+
+Périmètre initial du précontrôle confirmatoire : deux groupes biologiques
+indépendants ; chaque couche doit avoir une méthode de référence R
+effectivement exécutée (DESeq2 sur comptages bruts RNA-seq, limma
+pour matrices appropriées déjà transformées et contrôlées). Les études
+longitudinales, les critères cliniques, la survie, les modèles prédictifs,
+les marqueurs multi-omiques et l'enrichissement Reactome ne sont
+**pas autorisés automatiquement** comme inférence confirmatoire.
+Ils restent accessibles en exploration, avec les limites affichées.
+L'inférence confirmatoire de ces plans nécessitera une validation
+**spécifique à chaque plan** et des diagnostics supplémentaires.
+
+La réussite d'un appel R n'implique jamais que l'unité statistique,
+le contraste, la dispersion, les effets de batch, la puissance, les
+hypothèses des modèles ni les familles de tests BH soient corrects.
+
+### Prédiction : suppression partielle de la fuite pré-CV
+
+Pour les prédicteurs déclarés **log_expression**, **log_intensity** ou
+**log_abundance** (fournis comme tels), le chemin prédictif utilise les
+variables importées **sans sélection/filtrage global**.
+Pour les comptages RNA-seq entiers non négatifs, seules une normalisation
+CPM **par échantillon** et la transformation fixe
+`log2(CPM + 0,5)` précèdent les plis. La sélection, l'imputation par
+moyenne d'entraînement, l'ajustement des covariables et la mise à
+l'échelle sont calculés séparément sur les plis d'entraînement.
+
+Les autres formats, notamment intensités LFQ, aires de pics MS et
+matrices « normalized » dont l'historique est inconnu, peuvent encore
+subir un prétraitement dépendant de la cohorte avant CV :
+`preprocessingLeakageRisk: true`. Même avec ce risque absent au
+niveau du moteur, la CV demeure **interne** et ne vérifie pas
+le traitement fait **avant import**, la causalité ou la transférabilité
+à un autre laboratoire. Une cohorte externe et un protocole de calcul
+figé restent obligatoires pour valider un prédicteur.
+
 ## Prérequis avant une analyse destinée à une publication
 
 1. **Définir l'unité statistique** (sujet, animal, culture indépendante) et distinguer
