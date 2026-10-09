@@ -386,19 +386,20 @@ diablo_selection_stability <- function(selected_by_split) {
 # mixOmics::selectVar() returns named variables in version-dependent slots.
 # Fail rather than counting all feature loadings or unmatched identifiers.
 selected_diablo_features <- function(model,view,training_features) {
-  values <- mixOmics::selectVar(model,block=view,comp=1L)
-  ids <- character()
-  if(!is.null(values$value)) {
-    candidate<-values$value
-    if(is.data.frame(candidate)||is.matrix(candidate))
-      ids<-rownames(candidate)
-  }
-  if(!length(ids) && !is.null(values$name))
-    ids<-as.character(unlist(values$name,use.names=FALSE))
-  ids<-unique(as.character(ids))
+  # For block.splsda, selectVar(model, comp=1) returns a list indexed
+  # by VIEW. Passing block=view can still return that outer list; reading
+  # $name on the outer object silently fails in affected mixOmics releases.
+  selected <- mixOmics::selectVar(model,comp=1L)
+  if(!is.list(selected) || is.null(selected[[view]]))
+    stop(paste("mixOmics selectVar lacks block:",view))
+  choice <- selected[[view]]
+  ids <- as.character(unlist(choice$name,use.names=FALSE))
+  if(!length(ids) && (is.matrix(choice$value)||is.data.frame(choice$value)))
+    ids <- rownames(choice$value)
+  ids <- unique(as.character(ids))
   if(!length(ids)||anyNA(ids)||any(!nzchar(ids)) ||
-     any(!ids%in%training_features))
-    stop(paste("mixOmics feature selection cannot be matched to training feature names:",view))
+     any(!ids %in% training_features))
+    stop(paste("mixOmics selected features cannot be matched to train-only names:",view))
   ids
 }
 
