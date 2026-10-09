@@ -6,7 +6,8 @@ test('DIABLO selection stability and MOFA2 provenance are explanatory, not bioma
   });
   await page.route('http://127.0.0.1:8787/health', async route => {
     await route.fulfill({status:200,contentType:'application/json',
-      body:JSON.stringify({status:'ok',engine:'PMx reference',packages:{mixOmics:true,MOFA2:true}})});
+      body:JSON.stringify({status:'ok',engine:'PMx reference',packages:{mixOmics:true,MOFA2:true},
+        capabilities:{mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'}})});
   });
   await page.route('http://127.0.0.1:8787/run', async route => {
     await route.fulfill({status:200,contentType:'application/json',
@@ -22,7 +23,7 @@ test('DIABLO selection stability and MOFA2 provenance are explanatory, not bioma
               }}
           },
           mofa2:{status:'ok',method:'MOFA2',
-            summary:{inputAudit:{nSharedSubjects:24}}}
+            summary:{inputAudit:{nSharedSubjects:24},matrixOrientation:'feature_rows_subject_columns_for_MOFA2',subjectIdentityPreserved:true,implementationContract:'mofa2-feature-rows-sample-columns-v2'}}
         }
       })});
   });
@@ -167,7 +168,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
         status: 'ok',
         engine: 'PMx Explain reference R backend',
         version: '1.1.0',
-        packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true }
+        packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true }, capabilities:{mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'}
       })
     });
   });
@@ -267,6 +268,10 @@ test('multi-omics demo runs end-to-end with deterministic Reactome integration',
   await page.getByTestId('multiomics-load-demo').click();
 
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await page.getByLabel(/Interroger Reactome|Query Reactome/i).check();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
   await expect(page.getByTestId('multiomics-results')).toContainText(/Résultats de la démonstration|Demonstration results/);
   await expect(page.getByTestId('multiomics-results')).toContainText('random-intercept-longitudinal-model');
   await expect(page.getByTestId('multiomics-results')).toContainText('IDO1');

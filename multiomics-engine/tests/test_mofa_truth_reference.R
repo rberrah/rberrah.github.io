@@ -21,6 +21,8 @@ for(scenario in scenarios)for(seed in seeds) {
   stopifnot(
     identical(fit$summary$matrixOrientation,
         "feature_rows_subject_columns_for_MOFA2"),
+    identical(fit$summary$implementationContract,
+        "mofa2-feature-rows-sample-columns-v2"),
     isTRUE(fit$summary$subjectIdentityPreserved),
     fit$summary$samples==nrow(simulated$truth)
   )

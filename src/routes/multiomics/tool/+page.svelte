@@ -8,6 +8,7 @@
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
+  import { mofa2BackendCompatibility,validateMofa2MethodResult } from '$lib/multiomics/reference-backend-integrity.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '$lib/multiomics/portable-project.js';
 
   /** @param {string} fr @param {string} en */
@@ -711,8 +712,9 @@
     metabolomicsValues = 'peak_area';
     metabolomicsIdType = 'chebi';
     resolveIdentifiers = false;
-    // Only public synthetic demo identifiers are sent to Reactome.
-    useReactome = true;
+    // One-click demos must remain usable without network access or third-party
+    // API availability. Reactome enrichment remains a separate explicit opt-in.
+    useReactome = false;
     referenceBackendMode = 'browser';
     analysisIntent = 'exploratory';
     demoLoaded = true;
@@ -1086,6 +1088,19 @@
         message: 'Reference R backend was not reachable; browser results were retained.'
       };
     }
+    const activeOmicCount = Number(Boolean(files.transcriptomics)) + Number(Boolean(files.proteomics)) + Number(Boolean(files.metabolomics));
+    const compatibility = mofa2BackendCompatibility(health,{objective,omicCount:activeOmicCount});
+    if(!compatibility.compatible) {
+      referenceBackendStatus = 'error';
+      referenceBackendMessage = t(compatibility.message || 'Moteur R MOFA2 incompatible.',compatibility.messageEn || 'Incompatible MOFA2 R backend.');
+      if(referenceBackendMode === 'required')throw new Error(referenceBackendMessage);
+      return {
+        status:'blocked',message:referenceBackendMessage,url:backendBaseUrl(),
+        methods:{mofa2:{status:'blocked',message:referenceBackendMessage}},
+        referenceMethodExecuted:false,
+        compatibilityStatus:compatibility.reason
+      };
+    }
     referenceBackendStatus = 'running';
     referenceBackendMessage = t('Méthodes R de référence en cours…', 'Reference R methods running…');
     const payload = await referenceBackendPayload();
@@ -1105,12 +1120,15 @@
         message: referenceBackendMessage
       };
     }
-    referenceBackendStatus = 'done';
-    const completed = Object.values(body.methods || {}).some((method) => method?.status === 'ok');
-    referenceBackendMessage = completed
-      ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
-      : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
-    return { ...body, url: backendBaseUrl(), referenceMethodExecuted: completed };
+    const checkedBody = validateMofa2MethodResult(body);
+    referenceBackendStatus = checkedBody.mofa2OrientationBlocked ? 'error' : 'done';
+    const completed = Object.values(checkedBody.methods || {}).some((method) => method?.status === 'ok');
+    referenceBackendMessage = checkedBody.mofa2OrientationBlocked
+      ? t('Résultat MOFA2 masqué : ce backend n’a pas prouvé l’orientation correcte des variables et des sujets. Mettez à jour R.', 'MOFA2 result hidden: this backend did not prove the correct feature and subject orientation. Update R.')
+      : completed
+        ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
+        : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
+    return { ...checkedBody,url:backendBaseUrl(),referenceMethodExecuted:completed };
   }
 
   async function runAnalysis() {
@@ -2630,6 +2648,11 @@
     </div>
   </div>
 
+  {#if analysisResult.referenceBackend?.compatibilityStatus === 'mofa2_backend_outdated' || analysisResult.referenceBackend?.mofa2OrientationBlocked}
+    <p role="alert" data-testid="multiomics-mofa-version-warning" class="annotation-error">
+      {t('MOFA2 : résultat non valide avec cet ancien moteur R. Mettez à jour le backend R et relancez l’analyse. Les résultats exploratoires du navigateur restent disponibles.', 'MOFA2: results from this outdated R backend cannot be trusted. Update the local R backend and rerun. Browser exploration remains available.')}
+    </p>
+  {/if}
   {#if analysisResult.scientificAssurance}
     <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
       {#if analysisResult.scientificAssurance.confirmatoryReadiness?.requested}
