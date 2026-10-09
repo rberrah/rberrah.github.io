@@ -373,3 +373,32 @@ test('browser refuses to label a non-independent cohort as external validation',
   await expect(page.getByTestId('external-validation-error')).toContainText(/indépendante|independent/i);
   await expect(page.getByTestId('external-validation-result')).toHaveCount(0);
 });
+
+test('browser explicitly refuses to present incomplete external predictions as a full validation',async({page})=>{
+  await page.route('http://127.0.0.1:8787/external-validation',async route=>{
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+      status:'external_validation_incomplete',
+      cohort:'Example holdout',metrics:{status:'ok',n:2,auc:0.9},
+      cohort_coverage:{submitted_rows:3,evaluated_rows:2,excluded_rows:1,complete:false},
+      subject_identity_audit:{status:'not_verifiable_without_subject_id'}
+    })});
+  });
+  await page.goto('/multiomics/tool');
+  await page.getByTestId('advanced-workflows').locator('summary').first().click();
+  await page.getByTestId('external-validation-predictions').setInputFiles({
+    name:'partial.csv',mimeType:'text/csv',
+    buffer:Buffer.from('outcome,prediction\n0,0.1\n1,0.9\n0,\n')
+  });
+  await page.getByTestId('external-validation-config').setInputFiles({
+    name:'config.json',mimeType:'application/json',
+    buffer:Buffer.from(JSON.stringify({outcome_type:'binary',
+      prediction_column:'prediction',outcome_column:'outcome',
+      independent_cohort:true,cohort_label:'Example holdout'}))
+  });
+  await page.getByTestId('external-validation-run').click();
+  const warning=page.getByTestId('external-validation-incomplete');
+  await expect(warning).toBeVisible();
+  await expect(warning).toContainText('2 / 3');
+  await expect(warning).toContainText('ne permet pas de conclure sur toute la cohorte');
+  await expect(page.getByTestId('external-validation-identity-warning')).toBeVisible();
+});

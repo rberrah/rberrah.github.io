@@ -149,6 +149,21 @@
     <div class="result" data-testid="external-validation-result">
       <strong>{result.validation_status || result.status || t('Validation calculée', 'Validation computed')}</strong>
       <p>{result.cohort_label || parsedConfig?.cohort_label || ''}</p>
+      {#if result.cohort_coverage?.complete === false || (result.validation_status || result.status) === 'external_validation_incomplete'}
+        <p class="error" role="alert" data-testid="external-validation-incomplete">
+          {t('Validation externe incomplète : certaines prédictions ou observations n’ont pas été évaluées. Le score ci-dessous porte seulement sur les données disponibles et ne permet pas de conclure sur toute la cohorte.',
+            'Incomplete external validation: some predictions or outcomes were excluded. The score below covers evaluable records only and cannot describe the full cohort.')}
+          {#if result.cohort_coverage}
+            {result.cohort_coverage.evaluated_rows} / {result.cohort_coverage.submitted_rows} {t('lignes évaluées.', 'rows evaluated.')}
+          {/if}
+        </p>
+      {/if}
+      {#if result.subject_identity_audit?.status === 'not_verifiable_without_subject_id'}
+        <p role="status" data-testid="external-validation-identity-warning">
+          {t('Identifiants des sujets absents : l’absence de doublons ne peut pas être vérifiée. Ajoutez une colonne subject_id et documentez l’indépendance de la cohorte.',
+            'No subject identifiers: repeated patients cannot be ruled out. Add a subject_id column and document cohort independence.')}
+        </p>
+      {/if}
       <pre>{JSON.stringify(result.metrics || result, null, 2)}</pre>
     </div>
   {/if}
