@@ -118,6 +118,52 @@ nominal exige une investigation et une validation indépendante.
 indépendants, uniquement dans ces scénarios simulés ; aucune certification
 confirmatoire universelle.**
 
+## Évaluation sur patients tenus à l'écart : test TCGA du module de métriques (9 octobre 2026)
+
+Une nouvelle validation indépendante des **métriques de prédiction figée** utilise
+le découpage fourni par les auteurs de `mixOmics::breast.TCGA` :
+150 patients d'apprentissage et 70 patients de test. Le benchmark retient
+**105 patients d'apprentissage** et **49 patients de test** correspondant
+aux sous-types Her2 et Luminal A.
+
+Un classificateur **de référence distinct du modèle d'entraînement PMx**
+est défini avant évaluation : sélection de 20 transcrits sur les
+105 sujets d'apprentissage, centrage/réduction appris sur l'apprentissage,
+score de centroïdes et calibration logistique uniquement sur l'apprentissage.
+Ses poids, transformations et probabilités sont figés avant d'utiliser
+les étiquettes des 49 sujets de test. L'évaluation est ensuite calculée
+par le véritable module PMx `multiomics-engine/external_validation.R` ;
+les prédictions et résultats sont archivés.
+
+**Résultat vérifié en CI : AUC = 1,00 sur 49 sujets testables**. Ce score,
+potentiellement impressionnant, **n'est pas une preuve de transportabilité** :
+le jeu publié est déjà normalisé et fortement présélectionné pour un
+exemple pédagogique, et les deux partitions proviennent du même TCGA.
+La protéomique n'est pas présente dans le jeu de test ; aucune validation
+externe de MOFA2, DIABLO ou d'un prédicteur réellement multi-omique n'est
+donc permise par cette expérience.
+
+Contrôles négatifs sur les probabilités figées :
+- 200 permutations des étiquettes du test : AUC moyenne **0,4996** ;
+- 80 permutations des étiquettes d'**apprentissage**, avec nouvelle
+  sélection et nouveau calibrage avant le scoring sur le même test :
+  AUC moyenne **0,4430** (contrôle exploratoire à variance limitée).
+
+Le rapport contient aussi Brier, calibration, intervalles de bootstrap et
+traçabilité du nombre de sujets/fonctionnalités. Le script et le workflow
+sont `scripts/benchmark_tcga_heldout_reference.R` et
+`.github/workflows/multiomics-tcga-heldout.yml`. Le code est testé contre
+la version **immuable** `ef3e760526623d9e91e945e4b50be48d764efc40`
+des données mixOmics.
+
+**Portée stricte :** ce test valide l'exécution des *métriques externes
+sur prédictions figées* et des contrôles d'absence de réentraînement
+sur le jeu test. Il **ne valide pas le moteur d'apprentissage PMx** :
+un tel test exigera d'entraîner, de figer puis de déployer directement
+ce modèle, sans optimiser quoi que ce soit sur les patients de test.
+Il ne constitue ni une validation clinique multicentrique ni un
+certificat d'utilisation confirmatoire.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |
