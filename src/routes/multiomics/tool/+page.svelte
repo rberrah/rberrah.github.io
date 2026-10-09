@@ -2795,14 +2795,14 @@
                        <small>{view} · Jaccard {stability.meanPairwiseJaccard.toFixed(2)}
                          · {stability.repeatedlySelected?.length ?? 0} {t('variables retenues au moins deux fois', 'features selected at least twice')}</small>
                      {/each}
-                     <small>{t('Répétabilité descriptive sur des sujets qui se recoupent. Ne prouve ni validité biologique, ni stabilité en cohorte indépendante.', 'Descriptive repeatability among overlapping subjects, not proof of biological validity or external-cohort stability.')}</small>
+                     <small>{t('Jaccard : de 0 (aucune variable commune) à 1 (exactement les mêmes variables). Cette répétabilité interne ne valide pas un biomarqueur.', 'Jaccard: 0 means no overlapping features, 1 means identical selections. This internal repeatability does not validate biomarkers.')}</small>
                    </details>
                  {/if}
                  <small>{t('Évaluation interne : ces sujets restent issus de la même cohorte. Une validation externe indépendante est toujours nécessaire.', 'Internal evaluation: subjects come from the same original cohort. External validation on an independent cohort is still required.')}</small>
                {/if}
                {#if key === 'mofa2' && method.summary?.inputAudit}
                   <small data-testid="mofa2-input-audit">{t('MOFA2 :', 'MOFA2:')} {method.summary.inputAudit.nSharedSubjects}
-                    {t('sujets partagés. Les facteurs latents sont descriptifs et ne prouvent pas un mécanisme causal ou un biomarqueur.', 'shared subjects. Latent factors are descriptive, not proof of a causal mechanism or biomarker.')}</small>
+                    {t('sujets partagés. Un facteur latent résume des variations entre molécules. Il peut refléter la biologie ou un effet de lot (batch), sans prouver une causalité ni un biomarqueur.', 'shared subjects. A latent factor summarizes patterns among measured molecules. It may reflect biology or a technical batch effect, not causal proof or a validated biomarker.')}</small>
                 {/if}
                 {#if key === 'metabolomics_ms_qc' && method.summary}
                 <small class="backend-ms-detail">
