@@ -847,11 +847,36 @@ function canonicalMetadata(metadataRows, columnMapping, covariateColumns = []) {
   }).filter((row) => row.subjectId && row.sampleId && row.assayId && LAYERS.includes(row.omic));
 }
 
+function assertSampleSheetIdentifiers(metadata) {
+  const assayKeys = new Set();
+  const samples = new Map();
+  for (const row of metadata) {
+    // Assay IDs are unique within each omic. Different omics may legitimately
+    // use the same machine identifier, but never for two rows of one matrix.
+    const assayKey = JSON.stringify([row.omic, row.assayId]);
+    if (assayKeys.has(assayKey)) {
+      throw new Error('Duplicate assay_id ' + row.assayId + ' within ' + row.omic
+        + '. Every measurement column must map to exactly one sample-sheet row.');
+    }
+    assayKeys.add(assayKey);
+    const old = samples.get(row.sampleId);
+    if (old && (old.subjectId !== row.subjectId || old.timepoint !== row.timepoint)) {
+      throw new Error('Conflicting sample_id ' + row.sampleId
+        + ': the same biological sample cannot belong to different subject_id or timepoint values.');
+    }
+    samples.set(row.sampleId, { subjectId: row.subjectId, timepoint: row.timepoint });
+  }
+}
+
 function matrixFromText(text, expectedAssays) {
   const parsed = parseDelimited(text);
   if (parsed.headers.length < 2) throw new Error('Matrix requires a feature column and at least one assay.');
   const first = parsed.headers[0];
   const headerAssays = parsed.headers.slice(1);
+  if (headerAssays.some((id) => !normaliseText(id)) ||
+      new Set(headerAssays.map(normaliseText)).size !== headerAssays.length) {
+    throw new Error('Matrix contains missing or duplicate column identifiers. Sample or feature IDs must be unique.');
+  }
   const rowIds = parsed.rows.map((row) => normaliseText(row[first])).filter(Boolean);
   const expected = new Set(expectedAssays);
   const columnMatches = headerAssays.filter((id) => expected.has(id)).length;
@@ -860,6 +885,10 @@ function matrixFromText(text, expectedAssays) {
   if (rowMatches > columnMatches) {
     const featureHeaders = parsed.headers.slice(1);
     const assayRows = parsed.rows.filter((row) => expected.has(normaliseText(row[first])));
+    const assayRowIds = assayRows.map((row) => normaliseText(row[first]));
+    if (new Set(assayRowIds).size !== assayRowIds.length) {
+      throw new Error('Transposed matrix contains duplicate assay_id rows. Each assay must appear exactly once.');
+    }
     const values = new Map();
     for (const feature of featureHeaders) {
       const featureValues = new Map();
@@ -876,6 +905,10 @@ function matrixFromText(text, expectedAssays) {
   for (const row of parsed.rows) {
     const feature = normaliseText(row[first]);
     if (!feature) continue;
+    if (values.has(feature)) {
+      throw new Error('Matrix contains duplicate feature_id ' + feature
+        + '. Duplicate biological identifiers must be resolved explicitly before import.');
+    }
     const featureValues = new Map();
     for (const assay of headerAssays) featureValues.set(assay, finiteNumber(row[assay]));
     values.set(feature, featureValues);
@@ -3236,7 +3269,21 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     });
   }
 
-  if (predictions.length < Math.max(8, subjects.length * 0.6)) return { status: 'not_available', reason: 'Too few outer-fold predictions were estimable.' };
+  // Fail closed: evaluating only the folds that converged can bias CV metrics.
+  // Each eligible independent subject must have exactly one held-out prediction.
+  const uniquePredictedSubjects = new Set(predictions.map((item) => item.subjectId));
+  if (foldSummaries.length !== outerFolds.length ||
+      predictions.length !== subjects.length ||
+      uniquePredictedSubjects.size !== subjects.length) {
+    return {
+      status: 'not_available',
+      reason: 'Incomplete outer cross-validation: every independent subject must have exactly one held-out prediction. Metrics are withheld when a fold fails.',
+      attemptedFolds: outerFolds.length,
+      completedFolds: foldSummaries.length,
+      evaluatedSubjects: predictions.length,
+      totalSubjects: subjects.length
+    };
+  }
 
   let metrics;
   if (protocol.outcomeType === 'binary') {
@@ -3268,6 +3315,22 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics = { rmse, r2: ssTot > 0 ? 1 - ssRes / ssTot : null };
   }
 
+  // Degenerate test sets (e.g. no comparable survival pairs) do not
+  // establish predictive performance, even if the fold fits completed.
+  const primaryMetric = protocol.outcomeType === 'binary' ? metrics.auc
+    : protocol.outcomeType === 'multiclass' ? metrics.accuracy
+      : protocol.outcomeType === 'survival' ? metrics.cIndex : metrics.rmse;
+  if (!Number.isFinite(primaryMetric)) {
+    return {
+      status: 'not_available',
+      reason: 'Cross-validated performance is undefined for these held-out outcomes; no metric is reported.',
+      attemptedFolds: outerFolds.length,
+      completedFolds: foldSummaries.length,
+      evaluatedSubjects: predictions.length,
+      totalSubjects: subjects.length
+    };
+  }
+
   return {
     status: 'ok',
     method: protocol.outcomeType === 'survival'
@@ -3285,7 +3348,7 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics,
     predictions,
     foldSummaries,
-    caveat: 'Nested subject-level CV is internal screening, not external validation. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
+    caveat: 'Nested subject-level CV is internal screening, not external validation; performance is reported only for complete, one-prediction-per-subject out-of-fold coverage. Predictive feature selection is refitted inside each inner training fold. Upstream omics QC and modality preprocessing precede CV, however, potentially leaking cohort-level information; report this limit and externally validate before biomarker or clinical claims.'
   };
 }
 
@@ -3952,6 +4015,64 @@ function auditBatchDesign(metadata, loadedLayers, protocol) {
   return { perLayer, blocking };
 }
 
+// The endpoint is a property of the independent subject, not of the uploaded
+// assay. Duplicated sample-sheet entries must never silently overwrite labels.
+function assertConsistentSubjectEndpoints(metadata, protocol) {
+  const targets = new Map();
+  const groupLabels = new Map();
+  for (const row of metadata) {
+    if (protocol.objective === 'outcome') {
+      let value = null;
+      if (protocol.outcomeType === 'survival') {
+        const hasTime = row.survivalTime !== '';
+        const hasEvent = row.survivalEvent !== '';
+        if (hasTime !== hasEvent) {
+          throw new Error('Incomplete survival endpoint for subject ' + row.subjectId
+            + ': survival_time and survival_event must be provided together.');
+        }
+        if (!hasTime) continue;
+        const time = finiteNumber(row.survivalTime);
+        const event = finiteNumber(row.survivalEvent);
+        if (!(time > 0) || (event !== 0 && event !== 1)) {
+          throw new Error('Invalid survival endpoint for subject ' + row.subjectId
+            + ': require survival_time > 0 and survival_event coded 0 or 1.');
+        }
+        value = time + '|' + event;
+      } else if (row.outcome !== '') {
+        if (['continuous','count'].includes(protocol.outcomeType)) {
+          const numeric = finiteNumber(row.outcome);
+          if (!Number.isFinite(numeric) || (protocol.outcomeType === 'count' &&
+            (numeric < 0 || !Number.isInteger(numeric)))) {
+            throw new Error('Invalid numeric outcome for subject ' + row.subjectId
+              + ': counts must be non-negative integers and all numeric outcomes finite.');
+          }
+          value = String(numeric);
+        } else value = row.outcome;
+      }
+      if (value != null) {
+        if (targets.has(row.subjectId) && targets.get(row.subjectId) !== value) {
+          throw new Error('Conflicting outcome for subject ' + row.subjectId
+            + ' across omics or visits. Each independent subject must have one consistent endpoint.');
+        }
+        targets.set(row.subjectId, value);
+      }
+    }
+
+    // Independent-group assignments and longitudinal study arms are subject
+    // properties. Paired designs are excluded: a subject may provide two conditions.
+    const mustBeSingleArm = (protocol.objective === 'groups' &&
+      protocol.designType === 'independent') ||
+      (protocol.objective === 'time' && protocol.designType === 'repeated');
+    if (mustBeSingleArm && row.condition) {
+      if (groupLabels.has(row.subjectId) && groupLabels.get(row.subjectId) !== row.condition) {
+        throw new Error('Conflicting condition for subject ' + row.subjectId
+          + ': this design declares independent arms rather than crossover or paired observations.');
+      }
+      groupLabels.set(row.subjectId, row.condition);
+    }
+  }
+}
+
 export async function runDeterministicAnalysis({ files, metadataRows, columnMapping, protocol, dataTypes, identifierTypes = {}, useReactome = true, resolveIdentifiers = true }) {
   const inputManifest = {
     metadata: {
@@ -3967,6 +4088,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const metadata = canonicalMetadata(metadataRows, columnMapping, covariateColumns)
     .filter((row) => loadedLayers.includes(row.omic));
   if (!metadata.length) throw new Error('No matching metadata rows for the uploaded omics matrices.');
+  assertSampleSheetIdentifiers(metadata);
   const biologicalMetadata = metadata.filter((row) => !['blank','qc'].includes(canonicalSampleType(row.sampleType)));
   if (!biologicalMetadata.length) throw new Error('No biological metadata rows remain after excluding blank/QC injections.');
   const singleOmic = loadedLayers.length === 1;
@@ -3976,6 +4098,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   if (protocol.designType === 'crossover') {
     throw new Error('Crossover designs require period/sequence-aware inference and are not yet implemented. No simplified paired analysis was run.');
   }
+  assertConsistentSubjectEndpoints(biologicalMetadata, protocol);
 
   const conditions = naturalOrder(biologicalMetadata.map((row) => row.condition));
   const timepoints = naturalOrder(biologicalMetadata.map((row) => row.timepoint));

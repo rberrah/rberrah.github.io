@@ -40,8 +40,12 @@ Le résultat machine-lisible contient `scientificAssurance` et
   ce n'est pas une validation externe, ni un accord chiffré garanti sur des données
   réelles. Les packages Bioconductor requis doivent être installés localement.
 - **Prédiction interne** : nested-CV sur les sujets avec sélection refaite par
-  pli. Le prétraitement omique global peut précéder les plis et introduire une
-  dépendance ; les résultats restent exploratoires.
+  pli. Le moteur ne publie une métrique que si **100 % des sujets éligibles**
+  possèdent exactement une prédiction hors entraînement et si tous les plis
+  externes ont été estimés. En cas de pli échoué ou de métrique indéfinie,
+  les performances sont indisponibles (et non calculées sur les seuls succès).
+  Le prétraitement omique global peut cependant précéder les plis et introduire
+  une dépendance ; les résultats restent exploratoires.
 - **Validation externe** : cohorte réellement indépendante, protocole figé,
   aucune sélection/tuning sur celle-ci, provenance documentée ; doit être
   organisée par les chercheurs et ne peut être certifiée par déclaration seule.
@@ -124,6 +128,35 @@ La réussite de ce workflow doit être constatée dans **GitHub Actions** pour l
 commit étudié : son existence ne prouve pas sa réussite. Ce test de simulation
 reste insuffisant pour généraliser à toutes les tailles de cohortes, dispersions,
 variations des bibliothèques ou plans longitudinaux.
+
+## Contrôle négatif Bioconductor : résultat observé en CI
+
+Le benchmark du 9 octobre 2026 (PR #16, référence R réelle, simulation
+négative-binomiale) a également été exécuté sur **quatre répétitions d'un même scénario nul**
+de 300 gènes × 40 échantillons, soit 1 200 hypothèses nulles par méthode.
+Les taux observés de p < 0,05 et les nombres de découvertes BH à q ≤ 0,05
+ont été : **DESeq2 6,1 % et 1/1 200**, **limma-voom 5,6 % et 0/1 200**,
+**edgeR quasi-vraisemblance 6,2 % et 0/1 200**. Le job s'est terminé
+avec succès. Ces fréquences descriptives ne démontrent pas une calibration
+exacte au seuil de 5 %, ni un contrôle général de la FDR dans les études
+réelles : quatre simulations et un unique ensemble de paramètres sont
+insuffisants pour cela. Conserver les simulations, versions logicielles
+et la traçabilité des comparaisons avant toute conclusion scientifique.
+
+## Jeux publics : reproduction ciblée et biais de sélection
+
+Les exports publics AgingHFCD et LRRK2 utilisent une sélection des variables
+en partie basée sur les **q-values publiées**, complétée par des marqueurs
+biologiques d'intérêt imposés. La concordance de direction entre résultats
+recalculés et études sources sur ces sous-ensembles vérifie surtout la
+reproductibilité ciblée des effets et la cohérence des transformations.
+Elle **ne mesure pas** la sensibilité, la spécificité, la calibration de la
+FDR ou la capacité de découverte sur l'ensemble des variables initiales :
+les observations sélectionnées ne sont pas un échantillon indépendant de la
+vérité à prédire. Les jeux publics non sélectionnés, les cohortes externes
+et les simulations avec vérité connue restent requis pour cette validation.
+Ne jamais transformer « 100 % de directions concordantes sur les variables
+sélectionnées » en « 100 % d'exactitude scientifique ».
 
 ## Limites explicites non résolues
 

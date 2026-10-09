@@ -63,6 +63,37 @@ assert.equal(result.metadataSummary.batchAudit.transcriptomics.status, 'single_b
 assert.equal(result.metadataSummary.batchAudit.proteomics.status, 'single_batch');
 assert.equal(result.metadataSummary.batchAudit.metabolomics.status, 'single_batch');
 
+ 
+// Identifier integrity: contradictory mappings and duplicate matrix variables
+// must fail before statistics can silently overwrite rows.
+const basicDemoOptions = {
+  files:{metadata,transcriptomics,proteomics,metabolomics},
+  metadataRows:parsed.rows,columnMapping:mapping,
+  protocol:{organism:'human',objective:'time',longitudinal:true,designType:'repeated',
+    studySetting:'clinical_interventional',groupCount:'2',sampleOverlap:'same_specimen'},
+  dataTypes:{transcriptomics:'raw_counts',proteomics:'log_intensity',metabolomics:'peak_area'},
+  useReactome:false,resolveIdentifiers:false
+};
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,
+  metadataRows:[...parsed.rows, {...parsed.rows[0]}]
+}), /duplicate assay_id/i);
+const subjectAtFirstSample = parsed.rows[0].subject_id;
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,
+  metadataRows:parsed.rows.map((row,i)=>i===0
+    ? {...row,subject_id:'INVALID_' + subjectAtFirstSample} : row)
+}), /conflicting sample_id/i);
+const originalRnaText = await transcriptomics.text();
+const originalRnaLines = originalRnaText.trimEnd().split(/\r?\n/);
+const duplicateRnaFeature = new File(
+  [originalRnaText.trimEnd() + '\n' + originalRnaLines[1] + '\n'],
+  'duplicate_feature.csv',{type:'text/csv'});
+await assert.rejects(() => runDeterministicAnalysis({
+  ...basicDemoOptions,files:{...basicDemoOptions.files,transcriptomics:duplicateRnaFeature}
+}), /duplicate feature_id/i);
+
+
 // Every layer must expose the declared input scale and the exact preprocessing decision.
 assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.declaredValueType, 'raw_counts');
 assert.equal(result.layers.transcriptomics.qc.preprocessingAudit.outputScale, 'log2');
@@ -382,12 +413,29 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
   });
 
   assert.equal(survival.predictiveOutcome.status, 'ok');
+  assert.equal(survival.predictiveOutcome.predictions.length, survival.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+  assert.equal(new Set(survival.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, survival.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(survival.predictiveOutcome.outcomeType, 'survival');
   assert.ok(survival.predictiveOutcome.predictions.length >= 24);
   assert.ok(Number.isFinite(survival.predictiveOutcome.metrics.cIndex));
   assert.ok(survival.predictiveOutcome.metrics.cIndex > 0.75);
   assert.ok(survival.predictiveOutcome.foldSummaries.every(x => x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
   assert.equal(survival.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
+
+  // Two assays for the same subject must never overwrite conflicting endpoints.
+  await assert.rejects(() => runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:parsedMeta.rows.map((row)=>
+      row.subject_id === 'SV01' && row.omic === 'proteomics'
+        ? {...row,survival_time:'999'} : row),
+    columnMapping:{...mapping,survival_time:'survival_time',survival_event:'survival_event'},
+    protocol:{organism:'human',objective:'outcome',outcomeType:'survival',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'no',covariateColumns:[]},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,resolveIdentifiers:false
+  }), /conflicting outcome for subject/i);
+
 }
 
 // Predictive nuisance handling must be estimated inside each training fold.
@@ -439,10 +487,26 @@ assert.equal(demoOutcome.protocol.outcomeTimepoint, 'T0');
     resolveIdentifiers:false
   });
   assert.equal(pred.predictiveOutcome.status, 'ok');
+  assert.equal(pred.predictiveOutcome.predictions.length, pred.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+  assert.equal(new Set(pred.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, pred.predictiveOutcome.subjects, 'every subject has one held-out prediction');
   assert.equal(pred.predictiveOutcome.nuisanceAdjustment.policy, 'fold-local');
   assert.deepEqual(pred.predictiveOutcome.nuisanceAdjustment.covariates, ['age']);
   assert.ok(Number.isFinite(pred.predictiveOutcome.metrics.auc));
   assert.ok(pred.predictiveOutcome.metrics.auc > 0.80);
+
+  const inconsistentRows = parsedMeta.rows.map((row)=>
+    row.subject_id === 'PV01' && row.omic === 'proteomics'
+      ? {...row,outcome:'B'} : row);
+  await assert.rejects(() => runDeterministicAnalysis({
+    files:{metadata:meta,transcriptomics:rna,proteomics:protein,metabolomics:null},
+    metadataRows:inconsistentRows,columnMapping:{...mapping,outcome:'outcome'},
+    protocol:{organism:'human',objective:'outcome',outcomeType:'binary',outcomeTimepoint:'T0',
+      longitudinal:false,designType:'independent',studySetting:'synthetic_test',
+      groupCount:'1',sampleOverlap:'same_specimen',batchKnown:'yes',covariateColumns:['age']},
+    dataTypes:{transcriptomics:'log_expression',proteomics:'log_intensity',metabolomics:'concentration'},
+    useReactome:false,resolveIdentifiers:false
+  }), /conflicting outcome for subject/i);
+
 }
 
 console.log('multiomics deterministic engine: PASS');
@@ -915,6 +979,8 @@ function csvFile(name, text) {
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.some(x=>x.startsWith('batch=')));
     assert.ok(outcomeResult.layers.transcriptomics.adjustment.columns.includes('age'));
     assert.equal(outcomeResult.predictiveOutcome.status, 'ok');
+    assert.equal(outcomeResult.predictiveOutcome.predictions.length, outcomeResult.predictiveOutcome.subjects, 'CV cannot silently discard failed outer folds');
+    assert.equal(new Set(outcomeResult.predictiveOutcome.predictions.map((x)=>x.subjectId)).size, outcomeResult.predictiveOutcome.subjects, 'every subject has one held-out prediction');
     assert.ok(outcomeResult.predictiveOutcome.predictions.length >= 12);
     assert.ok(outcomeResult.predictiveOutcome.foldSummaries.every(x=>x.testSubjects > 0 && x.trainingSubjects > x.testSubjects));
     if (type === 'survival') {

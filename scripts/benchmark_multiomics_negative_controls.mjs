@@ -126,7 +126,7 @@ for (const seed of seeds) {
     resolveIdentifiers: false
   });
 
-  requireControl(result.predictiveOutcome?.status === 'ok', `permutation ${seed} completes leakage-safe nested CV`);
+  requireControl(result.predictiveOutcome?.status === 'ok', `permutation ${seed} completes subject-level nested CV (upstream preprocessing remains global)`);
   const auc = Number(result.predictiveOutcome?.metrics?.auc);
   const qValues = Object.values(result.layers || {})
     .flatMap((layer) => layer?.rows || [])

@@ -27,9 +27,9 @@
           <div><span>Software validation</span><h3>How do we check that the pipeline behaves as intended?</h3></div>
           <b>Positive + negative controls</b>
         </div>
-        <p>The tool is not considered trustworthy merely because it returns plausible-looking tables. Its automated benchmark uses independent public datasets with previously described biological structure, plus deliberately broken-label controls.</p>
+        <p>The tool is not considered trustworthy merely because it returns plausible-looking tables. Its automated benchmark replays public datasets with described biological structure, plus deliberately permuted-label controls. Some positive-control features were preselected using published statistical results.</p>
         <div class="validation-evidence-grid">
-          <article><strong>1 · Known public signals</strong><p>Public multi-omics datasets are converted to the same input contract as user data. The engine must recover predefined genes, proteins, metabolites, correlations, trajectories or pathway families where an external truth/reference exists.</p></article>
+          <article><strong>1 · Known public signals</strong><p>Public multi-omics datasets are converted to the same input contract as user data. The engine checks selected genes, proteins, metabolites, correlations, trajectories and pathway families against known reference results. For AgingHFCD and LRRK2, reference-significant features were deliberately enriched: this is targeted reproduction, not an unbiased sensitivity or specificity estimate.</p></article>
           <article><strong>2 · Negative controls</strong><p>Phenotype labels are deterministically permuted while preserving the matrices and class sizes. Out-of-sample predictive discrimination must collapse toward chance and feature-wise FDR discoveries must remain sparse.</p></article>
           <article><strong>3 · Reproducible provenance</strong><p>External repositories are pinned to immutable Git commits and exported benchmark inputs are SHA-256 hashed. The PMx commit and runtime are retained with the benchmark report.</p></article>
         </div>
@@ -42,9 +42,9 @@
           <div><span>Validation du logiciel</span><h3>Comment vérifie-t-on que la pipeline se comporte comme prévu ?</h3></div>
           <b>Contrôles positifs + négatifs</b>
         </div>
-        <p>L’outil n’est pas considéré comme fiable simplement parce qu’il produit des tableaux plausibles. Son benchmark automatisé utilise des jeux multi-omiques publics dont certaines structures biologiques sont déjà décrites, puis des contrôles où la relation biologique est volontairement cassée.</p>
+        <p>L’outil n’est pas considéré comme fiable simplement parce qu’il produit des tableaux plausibles. Son benchmark automatisé réanalyse des jeux multi-omiques publics, ainsi que des contrôles où les étiquettes biologiques sont volontairement permutées. Certaines variables des contrôles positifs ont été présélectionnées à partir des résultats publiés.</p>
         <div class="validation-evidence-grid">
-          <article><strong>1 · Signaux publics connus</strong><p>Les jeux publics sont convertis exactement vers le même contrat d’entrée que les données utilisateur. Le moteur doit retrouver des gènes, protéines, métabolites, corrélations, trajectoires ou familles de voies prédéfinis lorsqu’une vérité/référence externe existe.</p></article>
+          <article><strong>1 · Signaux publics connus</strong><p>Les jeux publics sont convertis exactement vers le même contrat d’entrée que les données utilisateur. Le moteur compare des gènes, protéines, métabolites, corrélations, trajectoires et voies ciblés à des résultats de référence. Pour AgingHFCD et LRRK2, la sélection enrichit volontairement les signaux significatifs connus : ce test ne mesure donc pas sans biais la sensibilité ni la spécificité.</p></article>
           <article><strong>2 · Contrôles négatifs</strong><p>Les labels phénotypiques sont permutés de façon déterministe tout en conservant les matrices et les effectifs de classes. La discrimination prédictive hors-échantillon doit retomber vers le hasard et les découvertes FDR doivent rester rares.</p></article>
           <article><strong>3 · Provenance reproductible</strong><p>Les dépôts externes sont figés sur des commits Git immuables et les fichiers de benchmark exportés sont hachés en SHA-256. Le commit PMx et l’environnement d’exécution sont conservés avec le rapport.</p></article>
         </div>

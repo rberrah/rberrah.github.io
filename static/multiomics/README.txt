@@ -67,6 +67,14 @@ P001 / P001_T0 / MET001  / metabolomics
 
 P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes. Un réplicat technique n’est jamais compté comme un nouveau sujet biologique.
 
+VÉRIFICATION AUTOMATIQUE DES IDENTIFIANTS ET CRITÈRES
+- Le même subject_id peut apparaître plusieurs fois (plusieurs omiques, visites ou répétitions), mais un même participant ne doit pas recevoir deux valeurs contradictoires du critère clinique (outcome).
+- Pour une analyse de survie, renseigner survival_time et survival_event ensemble. L’événement doit être codé 1 (observé) ou 0 (censuré), avec une durée strictement positive. Ces valeurs doivent rester identiques entre les omiques d’un même sujet.
+- Pour un comptage (outcome de type count), fournir un entier positif ou nul.
+- Dans une comparaison de groupes indépendants ou une étude longitudinale avec bras fixes, un sujet appartient à un seul groupe condition ; une différence de groupe entre lignes du même sujet est refusée.
+- En cas d'incohérence, le calcul est interrompu au lieu de choisir silencieusement la dernière ligne importée. Corriger le tableau des échantillons, pas les valeurs des matrices.
+- Ces contrôles n'établissent pas que les annotations sont vraies ; ils préviennent uniquement certaines erreurs de saisie et d'appariement.
+
 2. CONTRÔLE QUALITÉ ET FAISABILITÉ
 ===================================
 
