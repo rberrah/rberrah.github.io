@@ -918,7 +918,7 @@ run_backend_analysis <- function(payload) {
     status="ok",
     engine=list(
       name="PMx Explain reference R backend",
-      version="1.3.0",
+      version="1.4.0",
       policy="Reference methods are eligibility-gated; identifiable nuisance effects are adjusted before multiblock integration and complete technical confounding blocks MOFA2/DIABLO."
     ),
     analysisMode=if (length(layers) == 1L) "single_omic" else "multiomics",
@@ -955,13 +955,14 @@ function() {
   list(
     status="ok",
     engine="PMx Explain reference R backend",
-    version="1.3.0",
+    version="1.4.0",
     packages=as.list(packages),
     runtime=reference_runtime_manifest(),
     capabilities=list(
       reference_analysis=TRUE,
       frozen_external_validation=TRUE,
-      raw_ms_cli=all(packages[raw_required])
+      raw_ms_cli=all(packages[raw_required]),
+      mofa2_orientation_contract="mofa2-feature-rows-sample-columns-v2"
     )
   )
 }
