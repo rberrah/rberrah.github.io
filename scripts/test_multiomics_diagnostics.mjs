@@ -117,6 +117,72 @@ assert.equal(evaluateConfirmatoryReadiness(candidate,{demo:true}).status,'blocke
 assert.equal(evaluateConfirmatoryReadiness({
   ...candidate,protocol:{...candidate.protocol,objective:'outcome'}
 }).status,'blocked');
+
+const missingnessBlocks = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers: {
+    ...candidate.layers,
+    proteomics: {
+      ...candidate.layers.proteomics,
+      qc: {
+        ...candidate.layers.proteomics.qc,
+        differentialMissingness:{flaggedFeatures:2}
+      }
+    }
+  }
+});
+assert.equal(missingnessBlocks.status,'blocked');
+assert.ok(missingnessBlocks.checks.some(x=>
+  x.code==='missingness_imbalance_proteomics' && x.status==='blocked'),
+  'Independent R success must not silently override differential missingness');
+const balancedMnarRisk = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers:{
+    ...candidate.layers,
+    proteomics:{
+      ...candidate.layers.proteomics,
+      qc:{
+        ...candidate.layers.proteomics.qc,
+        medianMissingFraction:0.26,
+        differentialMissingness:{flaggedFeatures:0}
+      }
+    }
+  }
+});
+assert.equal(balancedMnarRisk.status,'blocked',
+  'Equal group missingness rates can conceal opposite-tail MNAR');
+assert.ok(balancedMnarRisk.checks.some(x=>x.code==='high_missingness_proteomics'&&x.status==='blocked'));
+const mildMissingReview = evaluateConfirmatoryReadiness({
+  ...candidate,layers:{
+    ...candidate.layers,
+    proteomics:{
+      ...candidate.layers.proteomics,
+      qc:{...candidate.layers.proteomics.qc,medianMissingFraction:0.08}
+    }
+  }
+});
+assert.ok(mildMissingReview.checks.some(x=>x.code==='missingness_mechanism_proteomics' && x.status==='review'),
+  'Low missingness also needs assumption review even when group rates match');
+const mnarImputed = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers:{
+    ...candidate.layers,
+    metabolomics:{
+      qc:{
+        preprocessingAudit:{declaredValueType:'log_abundance'},
+        msQc:{mnar:{imputedValues:8}}
+      }
+    }
+  },
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential:{status:'ok'},
+    proteomics_differential:{status:'ok'},
+    metabolomics_differential:{status:'ok'}
+  }}
+});
+assert.ok(mnarImputed.checks.some(x=>x.code==='mnar_imputation_metabolomics' &&
+  x.status==='blocked'),'Imputed assumed MNAR values must be explicitly blocked');
+
 assert.equal(evaluateConfirmatoryReadiness(result).status,'not_requested');
 
 console.log('multiomics pre-analysis diagnostics: PASS');
