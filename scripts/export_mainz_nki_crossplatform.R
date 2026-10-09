@@ -47,7 +47,15 @@ cat("CROSS PLATFORM MAPPING AUDIT: unique mapped MAINZ=",
 aggregate_gene_median<-function(eset,ids,genes){
  expr<-Biobase::exprs(eset)
  if(anyDuplicated(colnames(expr)))stop("Duplicate biological sample ID within study.")
- if(any(!is.finite(expr)))stop("Source contains nonfinite expression; explicit missingness policy required.")
+ invalid_count<-sum(!is.finite(expr))
+ invalid_fraction<-invalid_count/length(expr)
+ if(invalid_fraction>0.20)
+   stop("More than 20% of original source expression values are nonfinite; do not assert a reliable cross-platform assay transfer.")
+ if(invalid_count){
+   expr[!is.finite(expr)]<-NA_real_
+   cat(sprintf("EXPRESSION MISSINGNESS AUDIT: invalid original cells=%d (%.4f%%), preserved as missing values, not as zero\n",
+      invalid_count,100*invalid_fraction))
+ }
  keep<-which(!is.na(ids)&ids%in%genes)
  groups<-split(keep,factor(ids[keep],levels=genes))
  if(length(groups)!=length(genes)||any(lengths(groups)==0L))
@@ -55,13 +63,27 @@ aggregate_gene_median<-function(eset,ids,genes){
  n<-ncol(expr)
  x<-vapply(groups,function(ii){
    if(length(ii)==1L)return(as.numeric(expr[ii,]))
-   apply(expr[ii,,drop=FALSE],2L,stats::median)
+   apply(expr[ii,,drop=FALSE],2L,function(x){
+     observed<-x[is.finite(x)]
+     if(!length(observed))return(NA_real_)
+     stats::median(observed)
+   })
  },numeric(n))
  x<-t(x)
  rownames(x)<-genes
  colnames(x)<-colnames(expr)
  if(!identical(dim(x),c(length(genes),n)))stop("Gene-median matrix dimension mismatch.")
- list(matrix=x,probes_per_gene=lengths(groups))
+ invalid_panel_count<-sum(!is.finite(x))
+ invalid_panel_fraction<-invalid_panel_count/length(x)
+ if(invalid_panel_fraction>0.20)
+   stop("More than 20% of aligned gene-level expression values are missing; cannot support cross-platform scoring.")
+ if(any(colSums(is.finite(x))<length(genes)*.80))
+   stop("At least one patient is missing over 20% of aligned genes.")
+ cat(sprintf("GENE PANEL MISSINGNESS: source_invalid=%d, final_missing=%d (%.4f%%)\n",
+   invalid_count,invalid_panel_count,100*invalid_panel_fraction))
+ list(matrix=x,probes_per_gene=lengths(groups),
+   original_invalid_count=invalid_count,original_invalid_fraction=invalid_fraction,
+   aligned_invalid_count=invalid_panel_count,aligned_invalid_fraction=invalid_panel_fraction)
 }
 m<-aggregate_gene_median(mainz,id1,shared)
 n<-aggregate_gene_median(nki,id2,shared)
@@ -73,7 +95,9 @@ if(!identical(rownames(m$matrix),rownames(n$matrix)))
 # this benchmark measures that failure or success without choosing after scoring.
 rank_per_patient<-function(mat){
  s<-apply(mat,2L,function(col){
-   as.numeric(rank(col,ties.method="average"))/length(col)
+   finite_count<-sum(is.finite(col))
+   if(finite_count<1000L)stop("Too few observed genes for per-patient percentile normalization.")
+   as.numeric(rank(col,ties.method="average",na.last="keep"))/finite_count
  })
  dimnames(s)<-dimnames(mat)
  s
@@ -111,8 +135,12 @@ center_cols<-function(x){
  z<-sweep(x,2L,colMeans(x),"-")
  sweep(z,2L,sqrt(colSums(z*z)),"/")
 }
-a<-center_cols(mat_m_rank[,train_ix,drop=FALSE])
-b<-center_cols(mat_n_rank[,test_ix,drop=FALSE])
+audit_genes<-which(rowSums(is.finite(mat_m_rank))==ncol(mat_m_rank)&
+                   rowSums(is.finite(mat_n_rank))==ncol(mat_n_rank))
+if(length(audit_genes)<1000L)
+ stop("Too few fully observed genes for cross-platform duplicate-profile screening.")
+a<-center_cols(mat_m_rank[audit_genes,train_ix,drop=FALSE])
+b<-center_cols(mat_n_rank[audit_genes,test_ix,drop=FALSE])
 corr<-crossprod(a,b)
 if(any(!is.finite(corr)))stop("Nonfinite cross-platform profile comparison.")
 maxcorr<-max(corr)
@@ -128,8 +156,10 @@ write_arm<-function(tag,train_mat,test_mat,outdir){
  dir.create(path,recursive=TRUE,showWarnings=FALSE)
  encode<-function(mat,ix,labels,prefix,include_outcome){
   lapply(ix,function(k){
+   v<-unname(as.numeric(mat[,k]))
+   v[!is.finite(v)]<-NA_real_
    row<-list(id=sprintf("%s_%03d",prefix,k),
-             values=unname(as.numeric(mat[,k])))
+             values=v)
    if(include_outcome)row$outcome<-labels[[k]]
    row
   })
@@ -159,6 +189,13 @@ manifest<-list(
  source_mainz_annotated_entrez_ids=length(unique(stats::na.omit(id1))),
  source_nki_annotated_entrez_ids=length(unique(stats::na.omit(id2))),
  source_mainz_unmapped_probe_count=sum(is.na(id1)),
+ source_mainz_original_nonfinite_cells=m$original_invalid_count,
+ source_nki_original_nonfinite_cells=n$original_invalid_count,
+ source_mainz_aligned_missing_cells=m$aligned_invalid_count,
+ source_nki_aligned_missing_cells=n$aligned_invalid_count,
+ source_mainz_aligned_missing_fraction=m$aligned_invalid_fraction,
+ source_nki_aligned_missing_fraction=n$aligned_invalid_fraction,
+ missingness_policy="Preserve source NA/NaN/Inf as explicit JSON null. Probe median ignores missing values only; no imputation using NKI distribution. Within-sample ranks omit missing genes and divide by number observed. PMx's frozen MAINZ-only training-statistic imputation applies to absent final feature measurements.",
  source_nki_unmapped_probe_count=sum(is.na(id2)),
  common_gene_count=length(shared),
  genes_with_multiple_mainz_probes=sum(m$probes_per_gene>1L),
@@ -171,6 +208,7 @@ manifest<-list(
  raw_sample_id_overlap=length(overlap_ids),
  maximum_rank_profile_correlation=maxcorr,
  suspicious_profile_pairs=suspect,
+ fully_observed_genes_used_for_duplicate_screen=length(audit_genes),
  primary="primary_rank",
  primary_transform="Each sample independently percentile-ranks its aggregated genes within the same common gene universe: rank/nGenes. No fitted target-cohort normalization.",
  sensitivity="sensitivity_raw",
