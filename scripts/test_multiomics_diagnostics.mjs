@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { File } from 'node:buffer';
 import { runDeterministicAnalysis } from '../src/lib/multiomics/deterministic.js';
+import { evaluateConfirmatoryReadiness } from '../src/lib/multiomics/scientific-assurance.js';
 
 function matrixFile(name, assayIds, shift = 0) {
   const header = ['feature_id', ...assayIds].join(',');
@@ -88,5 +89,34 @@ assert.equal(result.preAnalysisDiagnostics.methodEligibility.diablo.status, 'eli
 assert.equal(result.preAnalysisDiagnostics.methodEligibility.diablo.smallestClass, 3);
 assert.match(result.preAnalysisDiagnostics.methodEligibility.diablo.interpretation, /external validation/i);
 assert.equal(result.metadataSummary.preAnalysisDiagnostics.status, result.preAnalysisDiagnostics.status);
+
+
+// Confirmatory eligibility is method- and layer-specific. No automatic label
+// may imply a publication certificate or validated clinical biomarker.
+const candidate = {
+  ...result,
+  protocol:{...result.protocol,analysisIntent:'confirmatory'},
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential:{status:'ok',method:'limma'},
+    proteomics_differential:{status:'ok',method:'limma'}
+  }}
+};
+const noR = evaluateConfirmatoryReadiness({...candidate,referenceBackend:null});
+assert.equal(noR.status,'blocked');
+assert.equal(noR.certified,false);
+const allR = evaluateConfirmatoryReadiness(candidate);
+assert.equal(allR.status,'independent_review_required');
+assert.equal(allR.certified,false);
+assert.ok(allR.checks.some(item=>item.code==='preregistration' && item.status==='review'));
+const partialR = evaluateConfirmatoryReadiness({
+  ...candidate,referenceBackend:{status:'ok',methods:{transcriptomics_differential:{status:'ok'}}}
+});
+assert.equal(partialR.status,'blocked','a reference for only one omic must never pass');
+assert.ok(partialR.checks.some(item=>item.code==='reference_proteomics' && item.status==='blocked'));
+assert.equal(evaluateConfirmatoryReadiness(candidate,{demo:true}).status,'blocked');
+assert.equal(evaluateConfirmatoryReadiness({
+  ...candidate,protocol:{...candidate.protocol,objective:'outcome'}
+}).status,'blocked');
+assert.equal(evaluateConfirmatoryReadiness(result).status,'not_requested');
 
 console.log('multiomics pre-analysis diagnostics: PASS');
