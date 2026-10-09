@@ -2763,7 +2763,17 @@
               <strong>{method.method || key}</strong>
               <span class:installed={method.status === 'ok'}>{method.status}</span>
               {#if method.message}<small>{method.message}</small>{/if}
-              {#if key === 'metabolomics_ms_qc' && method.summary}
+              {#if key.endsWith('_longitudinal') && method.summary}
+                 <small data-testid="multiomics-r-longitudinal-summary">
+                   {t('Contraste :', 'Contrast:')} {method.summary.contrast} ·
+                   {t('Sujets :', 'Subjects:')} {method.summary.nSubjects} ·
+                   {t('Variables estimées :', 'Fitted features:')} {method.summary.estimableFeatures}/{method.summary.attemptedFeatures} ·
+                   {t('Variables non estimables :', 'Non-estimable features:')} {method.summary.blockedFeatures} ·
+                   {t('Réductions de pente aléatoire :', 'Random-slope fallbacks:')} {method.summary.randomSlopeFallbacks}
+                 </small>
+                 <small>{t('Contraste linéaire à deux groupes fixes uniquement. Autres trajectoires ou visites manquantes : méthode dédiée nécessaire.', 'Two fixed groups and linear slope contrast only. Other trajectories or missing visits need dedicated methods.')}</small>
+               {/if}
+               {#if key === 'metabolomics_ms_qc' && method.summary}
                 <small class="backend-ms-detail">
                   {method.summary.blank_injections ?? 0} blanks ·
                   {method.summary.qc_injections ?? 0} pooled-QC ·
