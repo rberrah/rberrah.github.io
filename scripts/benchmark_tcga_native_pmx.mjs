@@ -78,5 +78,38 @@ assert.deepEqual(scoreFrozenBinaryPredictor(replayed,test),predictions,
   'Reloaded frozen PMx coefficients must exactly replay all 70 predictions.');
 await fs.writeFile(path.join(dir,'frozen-pmx-predictions.csv'),
   ['subject_id,prediction',...predictions.map(x=>x.subject_id+','+x.prediction)].join('\n')+'\n');
+
+// Test the NATIVE PMx training process under destroyed supervision.
+// Each permutation reruns PMx's own feature selection, stratified penalty
+// tuning, ridge fit and frozen scoring. Holdout labels are still unavailable.
+const baseLabels=train.rows.map(x=>x.outcome);
+const shuffled=(seed)=>{
+  let state=seed>>>0;
+  const random=()=>((state=(Math.imul(state,1664525)+1013904223)>>>0)+.5)/4294967296;
+  const result=baseLabels.slice();
+  for(let j=result.length-1;j>0;j--){
+    const k=Math.floor(random()*(j+1));
+    [result[k],result[j]]=[result[j],result[k]];
+  }
+  return result;
+};
+const negativePredictions=[];
+for(let perm=0;perm<30;perm++){
+  const labels=shuffled(20261011+perm*32771);
+  const permTrain=train.rows.map((r,i)=>({...r,outcome:labels[i]}));
+  const nullModel=fitFrozenBinaryPredictor({
+    features:train.features,rows:permTrain,
+    positiveLabel:'Her2',negativeLabel:'LumA',maxFeatures:12
+  });
+  const nullScores=scoreFrozenBinaryPredictor(nullModel,test);
+  assert.deepEqual(nullScores.map(p=>p.subject_id),predictions.map(p=>p.subject_id));
+  negativePredictions.push(nullScores.map(p=>p.prediction));
+}
+await fs.writeFile(path.join(dir,'pmx-train-label-null-predictions.csv'),
+  ['subject_id,'+negativePredictions.map((_,i)=>'perm_'+i).join(','),
+  ...predictions.map((p,i)=>[
+    p.subject_id,...negativePredictions.map(scores=>scores[i])
+  ].join(','))].join('\n')+'\n');
+
 console.log('PMx frozen native benchmark PREDICTIONS PASS: train=105 scored_holdout=70 selected='+model.requiredFeatures.length+
   ' training-only lambda='+model.lambda);
