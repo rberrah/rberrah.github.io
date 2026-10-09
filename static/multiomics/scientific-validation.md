@@ -479,10 +479,12 @@ Cette voie **refuse** les mesures longitudinales, moins de 32
 sujets partagés et indépendants, moins de 12 sujets par classe,
 plus de deux classes, des identifiants sujets dupliqués, des
 covariables nécessitant un ajustement global, un batch variable
-et les matrices de comptages ou aires de pics MS dont le
-prétraitement de cohorte n'est pas isolé par pli. Les données
-admissibles sont les intensités/expression/abondances déjà
-log-transformées et documentées. Un prétraitement fait
+et toute matrice métabolomique (même déjà logarithmique) :
+la chaîne actuelle de QC métabolomique peut apprendre des corrections
+ou filtrer les variables sur l'ensemble de la cohorte avant les plis.
+Les jeux éligibles sont pour l'instant RNA et protéomique **déjà
+log-transformés** et documentés, sans prétraitement appris sur les
+sujets de validation. Un prétraitement fait
 **avant import** peut toujours avoir introduit une fuite.
 
 Tests : `test_diablo_holdout_recipe.R` altère massivement les
