@@ -80,6 +80,7 @@
   let resolveIdentifiers = false;
   let referenceBackendMode = 'browser';
   let analysisIntent = 'exploratory';
+  let validateDiabloHoldout = false;
   let referenceBackendUrl = 'http://127.0.0.1:8787';
   let referenceBackendStatus = 'unchecked';
   let referenceBackendMessage = '';
@@ -987,7 +988,8 @@
         msQcRsdFilter,
         msQcRsdThreshold: Number(msQcRsdThreshold),
         msDriftCorrection,
-        msMnarStrategy
+        msMnarStrategy,
+        validateDiabloHoldout
       },
       dataTypes: {
         transcriptomics: transcriptomicsValues,
@@ -1151,7 +1153,8 @@
           msQcRsdFilter,
           msQcRsdThreshold: Number(msQcRsdThreshold),
           msDriftCorrection,
-          msMnarStrategy
+          msMnarStrategy,
+          validateDiabloHoldout
         },
         dataTypes: {
           transcriptomics: transcriptomicsValues,
@@ -1217,7 +1220,7 @@
         proteomicsValues, proteomicsIdType, metabolomicsPlatform,
         metabolomicsValues, metabolomicsIdType, msBlankFilter, msBlankFold,
         msQcRsdFilter, msQcRsdThreshold, msDriftCorrection, msMnarStrategy,
-        analysisIntent, confirmIndependentAssays, msAutoMetadata,
+        analysisIntent, validateDiabloHoldout, confirmIndependentAssays, msAutoMetadata,
         columnMapping, metaboliteAnnotations, msAnnotationCsv,
         msAnnotationFields, msImportFormat, annotationFileName,
         demoLoaded
@@ -1313,6 +1316,7 @@
       msDriftCorrection = next.msDriftCorrection ?? 'yes';
       msMnarStrategy = next.msMnarStrategy ?? 'none';
       analysisIntent = next.analysisIntent ?? 'exploratory';
+      validateDiabloHoldout = Boolean(next.validateDiabloHoldout);
       confirmIndependentAssays = Boolean(next.confirmIndependentAssays);
       msAutoMetadata = Boolean(next.msAutoMetadata);
       metaboliteAnnotations = Array.isArray(next.metaboliteAnnotations)?next.metaboliteAnnotations:[];
@@ -2581,7 +2585,12 @@
         <small class:backend-ok={referenceBackendStatus === 'available' || referenceBackendStatus === 'done'} class:backend-bad={referenceBackendStatus === 'error'}>
           {referenceBackendMessage || t('Par défaut : bridge local http://127.0.0.1:8787.', 'Default: local bridge http://127.0.0.1:8787.')}
         </small>
-        {#if referenceBackendHealth?.packages}
+        <label class="inline-check" data-testid="diablo-holdout-option">
+          <input type="checkbox" bind:checked={validateDiabloHoldout} />
+          <span>{t('Vérifier DIABLO sur des sujets tenus à l’écart (analyse R supplémentaire)', 'Check DIABLO on held-out subjects (additional R analysis)')}</span>
+        </label>
+        <small>{t('Option avancée : entraînement et sélection de variables refaits dans chaque séparation. Requiert au moins 32 sujets indépendants, deux groupes, au moins 12 sujets/groupe et des matrices logarithmiques déjà préparées sans correction de batch. La métabolomique est actuellement exclue car son QC est fait avant les plis, même si les valeurs sont déjà logarithmiques. Les covariables et batches variables sont aussi refusés. Ce contrôle interne n’est pas une validation externe.', 'Advanced option: refit training and feature selection separately for every split. Requires ≥32 independent subjects, two classes, at least 12 per class and as-supplied log-scale matrices without batch correction. Metabolomics is currently excluded because MS QC precedes the splits, including for log-scale inputs. Varying batch and globally adjusted covariates are refused. Internal holdouts are not external validation.')}</small>
+                {#if referenceBackendHealth?.packages}
           <div class="backend-packages">
             {#each Object.entries(referenceBackendHealth.packages) as [pkg, installed]}
               <span class:installed={installed}>{pkg}: {installed ? 'OK' : '—'}</span>
@@ -2772,6 +2781,14 @@
                    {t('Réductions de pente aléatoire :', 'Random-slope fallbacks:')} {method.summary.randomSlopeFallbacks}
                  </small>
                  <small>{t('Contraste linéaire à deux groupes fixes uniquement. Autres trajectoires ou visites manquantes : méthode dédiée nécessaire.', 'Two fixed groups and linear slope contrast only. Other trajectories or missing visits need dedicated methods.')}</small>
+               {/if}
+               {#if key === 'diablo_heldout' && method.summary}
+                 <small data-testid="diablo-holdout-summary">
+                   {t('Erreur équilibrée sur les sujets tenus à l’écart :', 'Balanced error on held-out subjects:')}
+                   {(method.summary.meanBER * 100).toFixed(1)} %
+                   · {method.summary.folds?.length ?? 0} {t('séparations', 'splits')}
+                 </small>
+                 <small>{t('Évaluation interne : ces sujets restent issus de la même cohorte. Une validation externe indépendante est toujours nécessaire.', 'Internal evaluation: subjects come from the same original cohort. External validation on an independent cohort is still required.')}</small>
                {/if}
                {#if key === 'metabolomics_ms_qc' && method.summary}
                 <small class="backend-ms-detail">

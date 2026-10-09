@@ -24,7 +24,7 @@ const ALLOWED_SETTINGS = [
   'proteomicsValues','proteomicsIdType','metabolomicsPlatform',
   'metabolomicsValues','metabolomicsIdType','msBlankFilter','msBlankFold',
   'msQcRsdFilter','msQcRsdThreshold','msDriftCorrection','msMnarStrategy',
-  'analysisIntent','confirmIndependentAssays','msAutoMetadata','demoLoaded',
+  'analysisIntent','validateDiabloHoldout','confirmIndependentAssays','msAutoMetadata','demoLoaded',
   'columnMapping','metaboliteAnnotations','msAnnotationCsv',
   'msAnnotationFields','msImportFormat','annotationFileName'
 ];

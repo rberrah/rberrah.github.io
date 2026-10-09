@@ -128,6 +128,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
     const payload = JSON.parse(route.request().postData() || '{}');
     expect(payload.metadataCsv).toContain('subject_id');
     expect(payload.matrices.transcriptomics).toContain('feature_id');
+    expect(payload.protocol.validateDiabloHoldout).toBe(true);
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -147,7 +148,8 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
               estimableFeatures:28,attemptedFeatures:30,
               blockedFeatures:2,randomSlopeFallbacks:3}
           },
-          proteomics_longitudinal: { method:'lmerTest', status:'ok' }
+          proteomics_longitudinal: { method:'lmerTest', status:'ok' },
+          diablo_heldout: {method:'DIABLO subject-heldout validation',status:'blocked',message:'Two fixed classes and independent subjects required.'}
         }
       })
     });
@@ -159,6 +161,7 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
 
   await page.getByTestId('multiomics-run-options').locator('summary').first().click();
   await page.getByLabel(/Mode backend R|R backend mode/i).selectOption('auto');
+  await page.getByTestId('diablo-holdout-option').locator('input').check();
   await page.getByTestId('multiomics-run').click();
 
   const backend = page.getByTestId('reference-backend-results');
@@ -169,6 +172,8 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await expect(page.getByTestId('multiomics-r-longitudinal-summary')).toContainText('28/30');
   await expect(page.getByTestId('multiomics-r-longitudinal-summary')).toContainText('conditiontreatment:time');
   await expect(backend).toContainText(/Méthodes R exécutées|R methods executed/i);
+  await expect(backend).toContainText('DIABLO subject-heldout validation');
+  await expect(backend).toContainText('Two fixed classes');
   const versions = page.getByTestId('multiomics-r-runtime-provenance');
   await expect(versions).toBeVisible();
   await versions.locator('summary').click();

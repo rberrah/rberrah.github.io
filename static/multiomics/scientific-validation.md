@@ -456,6 +456,51 @@ et l'indépendance de la censure nécessitent une autre analyse
 et une validation dédiée. Le parcours confirmatoire reste
 bloqué pour les plans longitudinaux jusqu'à revue indépendante.
 
+## DIABLO : validation à sujets tenus à l'écart et prévention des fuites
+
+Le module `mixOmics::tune.block.splsda` puis `perf()` utilise
+une validation croisée répétée **sur la cohorte ayant servi au
+réglage du modèle**. Le taux d'erreur équilibrée (BER) obtenu
+par ce chemin est descriptif ; il ne peut pas être présenté comme
+une erreur de validation externe ni comme une garantie de performance
+d'un modèle biomarqueur. La documentation mixOmics distingue
+l'ajustement/tuning du modèle et la prédiction de nouvelles données.
+
+Une **option avancée, volontaire**, permet maintenant une étude
+**interne avec sujets tenus à l'écart** : trois partitions stratifiées
+fixées par des graines prédéterminées, préparation de chaque omique
+sur l'entraînement seulement (filtrage des variables, imputations,
+centrage et réduction), tuning keepX **sur les sujets d'entraînement
+seulement**, puis prédiction par `mixOmics::predict` des seuls
+sujets exclus de ce pli. Aucun résultat de pli manquant n'est
+ignoré silencieusement.
+
+Cette voie **refuse** les mesures longitudinales, moins de 32
+sujets partagés et indépendants, moins de 12 sujets par classe,
+plus de deux classes, des identifiants sujets dupliqués, des
+covariables nécessitant un ajustement global, un batch variable
+et toute matrice métabolomique (même déjà logarithmique) :
+la chaîne actuelle de QC métabolomique peut apprendre des corrections
+ou filtrer les variables sur l'ensemble de la cohorte avant les plis.
+Les jeux éligibles sont pour l'instant RNA et protéomique **déjà
+log-transformés** et documentés, sans prétraitement appris sur les
+sujets de validation. Un prétraitement fait
+**avant import** peut toujours avoir introduit une fuite.
+
+Tests : `test_diablo_holdout_recipe.R` altère massivement les
+mesures des sujets tenus à l'écart et vérifie que les variables
+sélectionnées, paramètres d'imputation et valeurs de tous les
+sujets d'entraînement sont **strictement inchangés**. Le test
+`test_diablo_outer_reference.R` exécute le vrai package mixOmics
+sur un signal connu et un résultat permuté.
+
+**Limite** : les trois partitions réutilisent la même cohorte.
+Ce n'est toujours **ni une validation externe indépendante,
+ni une démonstration générale de FDR, ni une garantie de
+sélection de biomarqueurs stables**. Les corrections instrumentales,
+l'équilibrage des lots, les autres plans et la stabilité des
+signatures devront recevoir des méthodologies adaptées.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
