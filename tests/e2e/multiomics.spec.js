@@ -387,7 +387,7 @@ test('browser explicitly refuses to present incomplete external predictions as a
   await page.getByTestId('advanced-workflows').locator('summary').first().click();
   await page.getByTestId('external-validation-predictions').setInputFiles({
     name:'partial.csv',mimeType:'text/csv',
-    buffer:Buffer.from('outcome,prediction\\n0,0.1\\n1,0.9\\n0,\\n')
+    buffer:Buffer.from('outcome,prediction\n0,0.1\n1,0.9\n0,\n')
   });
   await page.getByTestId('external-validation-config').setInputFiles({
     name:'config.json',mimeType:'application/json',
