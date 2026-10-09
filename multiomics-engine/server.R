@@ -471,6 +471,32 @@ reactome_current_pathways <- function(identifier_type, species="Homo sapiens") {
 
 method_status <- function(method, status, details=list()) c(list(method=method, status=status), details)
 
+# Passive, local-only runtime inventory recorded with each reference analysis.
+# Package versions are evidence, not an environment lock or replay guarantee.
+reference_runtime_manifest <- function() {
+  wanted <- c("DESeq2","edgeR","limma","lmerTest","survival",
+              "fgsea","MOFA2","mixOmics","xcms","MsExperiment",
+              "Spectra","mzR","BiocParallel","plumber","jsonlite")
+  available <- vapply(wanted,requireNamespace,logical(1),quietly=TRUE)
+  versions <- lapply(wanted,function(package) {
+    if(!isTRUE(available[[package]]))return(NULL)
+    as.character(utils::packageVersion(package))
+  })
+  names(versions) <- wanted
+  versions <- versions[!vapply(versions,is.null,logical(1))]
+  bioc <- if(requireNamespace("BiocManager",quietly=TRUE)) {
+    tryCatch(as.character(BiocManager::version()),error=function(e) NULL)
+  } else NULL
+  list(
+    RVersion=as.character(getRversion()),
+    RPlatform=R.version$platform,
+    BioconductorRelease=bioc,
+    packageVersions=versions,
+    limitation="Captured installed package versions only; not a dependency lock, raw data archive, external database snapshot or reproducible operating-system container."
+  )
+}
+
+
 run_backend_analysis <- function(payload) {
   protocol <- or_else(payload$protocol, list())
   data_types <- or_else(payload$dataTypes, list())
@@ -805,7 +831,8 @@ run_backend_analysis <- function(payload) {
     applicableMethods=names(methods),
     methods=methods,
     preprocessing=preprocessing,
-    packages=as.list(packages)
+    packages=as.list(packages),
+    runtime=reference_runtime_manifest()
   )
 }
 
@@ -835,6 +862,7 @@ function() {
     engine="PMx Explain reference R backend",
     version="1.3.0",
     packages=as.list(packages),
+    runtime=reference_runtime_manifest(),
     capabilities=list(
       reference_analysis=TRUE,
       frozen_external_validation=TRUE,

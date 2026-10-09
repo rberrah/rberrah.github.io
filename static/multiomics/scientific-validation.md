@@ -397,6 +397,22 @@ restauration exacte, la confidentialité des URL de backend,
 l'absence de transmission externe automatique, et le refus
 des fichiers falsifiés.
 
+## Versions exactes du moteur R
+
+Le backend R ajoute maintenant `runtime` à chaque analyse et au bilan
+de disponibilité (`/health`) : version de R, plateforme, version
+Bioconductor lorsque disponible, et versions installées de DESeq2,
+edgeR, limma, lmerTest, survival, fgsea, MOFA2, mixOmics, xcms,
+MsExperiment, Spectra, mzR, BiocParallel, plumber et jsonlite.
+
+Ce manifeste est également conservé dans le rapport de résultats
+et dans l'archive du projet si le backend a été utilisé. Il facilite
+l'audit et le diagnostic d'un écart entre laboratoires, mais **ne
+constitue pas un verrouillage reproductible de l'environnement** :
+il manque encore un fichier renv.lock ou des conteneurs publiés
+et figés par digest, la disponibilité exacte des systèmes d'exploitation,
+les bibliothèques système et les versions des bases externes.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
