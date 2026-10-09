@@ -413,6 +413,49 @@ il manque encore un fichier renv.lock ou des conteneurs publiés
 et figés par digest, la disponibilité exacte des systèmes d'exploitation,
 les bibliothèques système et les versions des bases externes.
 
+## Modèle longitudinal R : contraste explicite et refus des plans invalides
+
+La voie R `lmerTest` a été renforcée pour le **contraste de pente
+entre deux groupes fixes** (`condition:time`) : le contraste est
+désormais **obligatoire et identifié par son nom**. L'ancien choix
+automatique d'un coefficient d'interaction quelconque est supprimé.
+Le code refuse des groupes qui changent au cours du suivi (crossover),
+les observations techniques comptées deux fois pour un même sujet
+et un même temps, les temps ambigus ou les unités temporelles mêlées,
+les contrastes colinéaires, ainsi que les suivis insuffisants.
+
+Le périmètre couvert actuellement comprend au minimum **10 sujets
+indépendants** (au moins 5 par groupe) et **deux temps distincts
+observés par sujet**, exprimés sur une échelle numérique cohérente :
+`T0,T1,T2`, `D0,D1,D2`, `W0,W1,W2` ou des valeurs numériques.
+Ces seuils constituent des **protections logicielles**, pas une
+garantie de puissance. Une différence de pente linéaire ne remplace
+pas un modèle de trajectoire non linéaire ni une analyse crossover.
+
+Un ajustement aléatoire de pente est tenté seulement si le plan
+comporte assez de temps par sujet. Une réduction vers intercept
+aléatoire est **documentée**, et un ajustement singulier ou non
+convergent ne produit pas de p-value interprétable. **Toutes les
+variables de la matrice soumise restent présentes** dans le tableau
+des résultats, avec un statut d'échec lorsque nécessaire :
+la correction BH utilise toute la famille des variables
+**y compris les ajustements non estimables avec p=1**.
+
+Le test `multiomics-engine/tests/test_longitudinal_backend.R`
+compare des coefficients et p-values à un ajustement `lmerTest`
+indépendamment appelé sur les mêmes données, vérifie le routeur
+R réel, impose plusieurs contrôles négatifs et effectue une
+petite grille nulle de huit simulations. Ce test ne démontre pas
+une calibration universelle sous MAR/MNAR, sans données manquantes
+ou avec trajectoires non linéaires.
+
+**Limite scientifique** : ce modèle suppose des effets linéaires
+du temps et un groupe fixe. Les changements d'exposition, les
+suivis manquants non ignorables, les interactions non linéaires
+et l'indépendance de la censure nécessitent une autre analyse
+et une validation dédiée. Le parcours confirmatoire reste
+bloqué pour les plans longitudinaux jusqu'à revue indépendante.
+
 ## Limites explicites non résolues
 
 - Pas de test de calibration exhaustif sur l'ensemble des combinaisons de
