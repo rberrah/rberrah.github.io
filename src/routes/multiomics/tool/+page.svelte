@@ -2829,6 +2829,12 @@
           {#if analysisResult.predictiveOutcome.metrics.events != null}<span><strong>{analysisResult.predictiveOutcome.metrics.events}</strong> {t('événements', 'events')}</span>{/if}
         </div>
         <p class="note">{analysisResult.predictiveOutcome.method}. {analysisResult.predictiveOutcome.caveat}</p>
+        {#if analysisResult.predictiveOutcome.rawIntensityScreening}
+          <p class="note" data-testid="multiomics-ms-prediction-caveat">
+            <strong>{t('Prédiction LFQ/MS : contrôle technique encore nécessaire.', 'LFQ/MS prediction: technical QC review still required.')}</strong>
+            {t('Pour éviter la fuite entre sujets, le modèle utilise une transformation fixée et un centrage par échantillon. Il ne reprend pas automatiquement les corrections pooled-QC, blancs et dérive MS des analyses descriptives. Le même panel de variables doit être mesuré lors de la validation externe.', 'To avoid cross-subject leakage, prediction uses a fixed transform and assay-local centering. It does not reuse pooled-QC, blank and MS drift corrections from descriptive analyses. External validation must measure the same feature panel.')}
+          </p>
+        {/if}
         <details>
           <summary>{t('Détails des folds', 'Fold details')}</summary>
           <div class="fold-grid">
