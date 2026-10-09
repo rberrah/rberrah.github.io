@@ -5,6 +5,17 @@ source("multiomics-engine/validation_benchmarks.R")
 # Exactly known data-generating structure, two independent omic views.
 data <- simulate_mofa_known_truth(seed=20261009L,
   scenario="biological_plus_batch")
+mofa_input <- mofa2_orient_reference_matrices(data$blocks)
+stopifnot(
+  nrow(mofa_input$transcriptomics)==32L,
+  ncol(mofa_input$transcriptomics)==90L,
+  identical(colnames(mofa_input$transcriptomics),data$truth$sample),
+  identical(colnames(mofa_input$proteomics),data$truth$sample),
+  identical(rownames(mofa_input$transcriptomics),
+            colnames(data$blocks$transcriptomics)),
+  identical(mofa_input$transcriptomics[1,1],
+            data$blocks$transcriptomics[1,1])
+)
 stopifnot(identical(data$scenario,"biological_plus_batch"),
           nrow(data$truth)==90L,
           setequal(rownames(data$blocks$transcriptomics),data$truth$sample),
