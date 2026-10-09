@@ -54,5 +54,36 @@ missing_covariate <- meta
 missing_covariate$age[3] <- NA_real_
 err <- try(run_cox_survival_reference(x,missing_covariate,tempfile("survival_covariate_"),covariates="age"),silent=TRUE)
 stopifnot(inherits(err,"try-error"))
+
+# Validate the actual /reference-analysis router, not just the helper.
+source("multiomics-engine/server.R")
+meta$omic <- "proteomics"
+meta$assay_id <- meta$sample_id
+meta$sample_type <- "biological"
+meta$condition <- "cohort"
+meta$timepoint <- "T0"
+m_csv <- paste(capture.output(utils::write.csv(meta,row.names=FALSE,na="")),collapse="\n")
+mat <- data.frame(feature_id=colnames(x),t(x),check.names=FALSE)
+x_csv <- paste(capture.output(utils::write.csv(mat,row.names=FALSE,na="")),collapse="\n")
+payload <- list(
+  metadataCsv=m_csv,
+  matrices=list(proteomics=x_csv),
+  dataTypes=list(proteomics="log_intensity"),
+  columnMapping=list(
+    sample_id="sample_id",subject_id="subject_id",assay_id="assay_id",
+    omic="omic",sample_type="sample_type",condition="condition",
+    timepoint="timepoint",batch="batch",survival_time="survival_time",
+    survival_event="survival_event",age="age"
+  ),
+  protocol=list(objective="outcome",outcomeType="survival",
+    designType="independent",longitudinal=FALSE,covariateColumns=list("age"))
+)
+reference <- run_backend_analysis(payload)
+stopifnot(
+  identical(reference$methods$proteomics_survival$status,"ok"),
+  reference$methods$proteomics_survival$summary$estimable==3L,
+  length(reference$methods$proteomics_survival$top)>0L
+)
+
 unlink(out_dir,recursive=TRUE)
 cat("Reference survival backend: valid Cox fitted + full-feature-family BH; repeated subjects, bad events, few events, missing covariate refused | PASS\n")
