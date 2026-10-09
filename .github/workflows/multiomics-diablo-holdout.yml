@@ -49,8 +49,12 @@ jobs:
         with:
           r-version: 'release'
           use-public-rspm: true
-      - name: Install reference mixOmics
+      - name: Install required GLPK runtime for igraph and mixOmics
         run: |
-          Rscript -e 'install.packages("BiocManager"); BiocManager::install("mixOmics", ask=FALSE, update=FALSE)'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libglpk40
+      - name: Install and verify reference mixOmics
+        run: |
+          Rscript -e 'install.packages("BiocManager"); BiocManager::install("mixOmics", ask=FALSE, update=FALSE); stopifnot(requireNamespace("mixOmics", quietly=TRUE)); cat("mixOmics ", as.character(packageVersion("mixOmics")), " installed and loadable\\n")'
       - name: Run heldout known-signal and shuffled-outcome checks on actual DIABLO
         run: Rscript multiomics-engine/tests/test_diablo_outer_reference.R
