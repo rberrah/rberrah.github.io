@@ -39,8 +39,10 @@ function readCsv(text) {
   const [head,...rows]=text.trim().split(/\r?\n/);
   const names=head.split(',');
   return rows.filter(Boolean).map(line=>{
-    const values=line.split(',');
-    return Object.fromEntries(names.map((k,i)=>[k,values[i]??'']));
+    const values=line.split(',').map(value=>value.replace(/^"|"$/g,'').replace(/""/g,'"'));
+    return Object.fromEntries(names.map((k,i)=>[
+      k.replace(/^"|"$/g,''),values[i]??''
+    ]));
   });
 }
 function random(seed) {
