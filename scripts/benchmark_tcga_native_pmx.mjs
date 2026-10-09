@@ -71,6 +71,11 @@ const modelReport={
 };
 await fs.writeFile(path.join(dir,'frozen-pmx-model.json'),
   JSON.stringify(modelReport,null,2)+'\n');
+// Prove the persisted model (not only the in-memory fit) can be replayed
+// verbatim after a fresh JSON parse, without labels or feature retraining.
+const replayed=JSON.parse(await fs.readFile(path.join(dir,'frozen-pmx-model.json'),'utf8'));
+assert.deepEqual(scoreFrozenBinaryPredictor(replayed,test),predictions,
+  'Reloaded frozen PMx coefficients must exactly replay all 70 predictions.');
 await fs.writeFile(path.join(dir,'frozen-pmx-predictions.csv'),
   ['subject_id,prediction',...predictions.map(x=>x.subject_id+','+x.prediction)].join('\n')+'\n');
 console.log('PMx frozen native benchmark PREDICTIONS PASS: train=105 scored_holdout=70 selected='+model.requiredFeatures.length+
