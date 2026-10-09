@@ -1514,7 +1514,7 @@ function preprocessMatrix(matrix, layer, valueType) {
  * on each training fold in selectPredictionFeatures / predictionMatrix.
  */
 function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
-  const asSupplied = ['log_expression','log_intensity','log_abundance','normalized'].includes(valueType);
+  const asSupplied = ['log_expression','log_intensity','log_abundance'].includes(valueType);
   const rawRna = layer === 'transcriptomics' && valueType === 'raw_counts';
   if (!asSupplied && !rawRna) return null;
   const totals = new Map();
@@ -4204,6 +4204,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
   const layers = {};
   const aggregatedByLayer = {};
   const predictionAggregatedByLayer = {};
+  const predictionFoldIsolatedByLayer = {};
   const adjustments = {};
 
   for (const layer of loadedLayers) {
@@ -4296,6 +4297,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     aggregated.matrixShape = { features: matrix.features.length, retainedFeatures: qcPrepared.matrix.features.length, assays: matrix.assays.length, transposed: matrix.transposed };
     aggregated.replicateGroups = rawAggregated.replicateGroups;
     aggregatedByLayer[layer] = aggregated;
+    predictionFoldIsolatedByLayer[layer] = Boolean(foldIsolatedPrediction);
     predictionAggregatedByLayer[layer] = foldIsolatedPrediction
       ? aggregateTechnicalReplicates(foldIsolatedPrediction, biologicalMetadata, layer)
       : rawAggregated;
@@ -4356,10 +4358,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
     protocol
   );
   const predictionUsesGlobalPreprocessing = loadedLayers.some((layer) =>
-    !['log_expression','log_intensity','log_abundance','normalized'].includes(dataTypes[layer]) &&
-    !(layer === 'transcriptomics' && dataTypes[layer] === 'raw_counts' &&
-      (predictionAggregatedByLayer[layer]?.features?.length || 0) > 0 &&
-      !predictionAggregatedByLayer[layer]?.qc)
+    predictionFoldIsolatedByLayer[layer] !== true
   );
   const predictiveOutcome = analysePredictiveOutcome(
     predictionAggregatedByLayer,
