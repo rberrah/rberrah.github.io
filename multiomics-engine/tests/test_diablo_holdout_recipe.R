@@ -83,9 +83,9 @@ meta <- rbind(one,two)
 write_csv_text <- function(x)
   paste(capture.output(utils::write.csv(x,row.names=FALSE,na="")),collapse="\n")
 make_layer_matrix <- function(x, assays) {
-  z <- rbind(feature_id=colnames(x),t(x))
+  z <- data.frame(feature_id=colnames(x),t(x),check.names=FALSE)
   colnames(z) <- c("feature_id",assays)
-  write_csv_text(data.frame(z,check.names=FALSE))
+  write_csv_text(z)
 }
 payload <- list(
   metadataCsv=write_csv_text(meta),
