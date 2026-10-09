@@ -36,7 +36,7 @@ for(scenario in scenarios)for(seed in seeds) {
     pass=if(scenario=="biological") {
       audit$biologicalRecovered
     } else if(scenario=="biological_plus_batch") {
-      audit$biologicalRecovered && audit$batchSignalDetected
+      audit$distinctTwoFactorRecovery
     } else {
       !audit$biologicalRecovered && audit$batchSignalDetected
     },stringsAsFactors=FALSE
