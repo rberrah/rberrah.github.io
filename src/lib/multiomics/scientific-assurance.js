@@ -67,6 +67,18 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     // Group-dependent missingness can distort the estimand even if a reference
     // package reproduces the same observed-data p-value. This is a risk flag,
     // not an algorithmic way to distinguish MAR, MCAR and MNAR mechanisms.
+    // Differential missingness by group is NOT a sufficient MNAR screen:
+    // both groups may have the same missingness rate but censor opposite
+    // tails, causing severe null false-positive inflation. A conservative
+    // abundance-level threshold is an operational review trigger, NOT proof
+    // of MCAR when data fall below it.
+    const missingFraction = Number(qc.medianMissingFraction || 0);
+    if (missingFraction >= 0.20) add('high_missingness_'+layer,'blocked',
+      layer + ' : au moins 20 % de valeurs manquantes médianes par variable. Sans modèle d’observation et analyses de sensibilité préspécifiés, le parcours confirmatoire reste bloqué (seuil de précaution, non diagnostic MNAR).',
+      layer + ': median feature-wise missingness is at least 20%. Confirmatory preparation requires a prespecified observation model and sensitivity analyses (caution threshold, not a diagnosis of MNAR).');
+    else if (missingFraction > 0) add('missingness_mechanism_'+layer,'review',
+      layer + ' : certaines valeurs sont manquantes. Des taux identiques entre groupes n’excluent pas une dépendance aux valeurs non observées ; vérifier la sensibilité à MCAR, MAR et MNAR.',
+      layer + ': some values are missing. Equal missingness rates between groups do not exclude dependence on unobserved values; review sensitivity to MCAR, MAR and MNAR.');
     const differentialMissingness = Number(qc.differentialMissingness?.flaggedFeatures || 0);
     if (differentialMissingness > 0) add('missingness_imbalance_'+layer,'blocked',
       layer + ' : ' + differentialMissingness + ' variable(s) présentent un déséquilibre de valeurs manquantes entre les groupes (≥30 points). Examiner le mécanisme, les exclusions et les analyses de sensibilité avant une conclusion confirmatoire.',
