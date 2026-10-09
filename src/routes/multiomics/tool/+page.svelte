@@ -75,6 +75,7 @@
   let useReactome = false;
   let resolveIdentifiers = false;
   let referenceBackendMode = 'browser';
+  let analysisIntent = 'exploratory';
   let referenceBackendUrl = 'http://127.0.0.1:8787';
   let referenceBackendStatus = 'unchecked';
   let referenceBackendMessage = '';
@@ -708,6 +709,7 @@
     // Only public synthetic demo identifiers are sent to Reactome.
     useReactome = true;
     referenceBackendMode = 'browser';
+    analysisIntent = 'exploratory';
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
@@ -1108,6 +1110,10 @@
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    if (analysisIntent === 'confirmatory' && referenceBackendMode !== 'required') {
+      analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
+      return;
+    }
     if (!ready) {
       analysisError = t('Fournissez un tableau des échantillons et au moins une matrice RNA, protéines ou métabolites, puis vérifiez les colonnes et l’objectif.', 'Upload a sample sheet and at least one RNA, protein or metabolite matrix, then verify the columns and objective.');
       return;
@@ -1124,6 +1130,7 @@
           longitudinal: longitudinal === 'yes',
           designType,
           studySetting,
+          analysisIntent,
           unitType,
           groupCount,
           timepointCount,
@@ -2376,6 +2383,17 @@
       <p class="eyebrow">{t('4 · Analyser', '4 · Analyze')}</p>
       <h3>{t('Obtenir mes résultats', 'Get my results')}</h3>
       <p>{t('Par défaut, tout reste dans votre navigateur. Activer explicitement ChEBI/Reactome transmet certains identifiants moléculaires ; activer le moteur R transmet vos matrices et métadonnées à son adresse configurée.', 'By default, computation stays in your browser. Opting in to ChEBI/Reactome transmits some molecular identifiers; connecting the R engine sends matrices and metadata to its configured address.')}</p>
+      <label class="reference-backend-box" data-testid="multiomics-analysis-intent">
+        <strong>{t('Quel usage pour ces résultats ?', 'How will you use these results?')}</strong>
+        <select bind:value={analysisIntent} aria-label={t('Objectif de validité', 'Scientific evidence objective')}
+          onchange={() => { if (analysisIntent === 'confirmatory') referenceBackendMode = 'required'; }}>
+          <option value="exploratory">{t('Explorer mes données (recommandé pour débuter)', 'Explore my data (recommended for beginners)')}</option>
+          <option value="confirmatory">{t('Préparer une analyse confirmatoire (R requis + revue indépendante)', 'Prepare a confirmatory analysis (R required + independent review)')}</option>
+        </select>
+        <small>{analysisIntent === 'confirmatory'
+          ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
+          : t('Les résultats sont exploratoires. Vous pouvez lancer une démo et consulter les limites sans installer R.', 'Results are exploratory. You can run the demo and see limitations without installing R.')}</small>
+      </label>
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
@@ -2442,6 +2460,20 @@
 
   {#if analysisResult.scientificAssurance}
     <div class="scientific-assurance" data-testid="multiomics-scientific-assurance">
+      {#if analysisResult.scientificAssurance.confirmatoryReadiness?.requested}
+        <div data-testid="multiomics-confirmatory-readiness">
+          <strong>{analysisResult.scientificAssurance.confirmatoryReadiness.status === 'blocked'
+            ? t('Analyse confirmatoire bloquée : conditions insuffisantes', 'Confirmatory analysis blocked: requirements not met')
+            : t('Méthodes exécutées : revue scientifique indépendante encore requise', 'Methods executed: independent scientific review still required')}</strong>
+          <p>{t('Cette vérification n’est pas une autorisation de publication ni une validation clinique. Corrigez les points bloquants ci-dessous avant d’interpréter les résultats comme confirmatoires.', 'This is not publication approval or clinical validation. Resolve the blockers below before interpreting the findings as confirmatory.')}</p>
+          <details open>
+            <summary>{t('Étapes de validation à vérifier', 'Validation requirements to review')}</summary>
+            <ul>{#each analysisResult.scientificAssurance.confirmatoryReadiness.checks as check}
+              <li>{check.status === 'blocked' ? t('À corriger : ', 'Fix: ') : check.status === 'review' ? t('À vérifier : ', 'Review: ') : t('Vérifié automatiquement : ', 'Automatically checked: ')}{$language === 'en' ? check.en : check.fr}</li>
+            {/each}</ul>
+          </details>
+        </div>
+      {/if}
       {#if analysisResult.protocol?.objective === 'time' && analysisResult.protocol?.longitudinal}
         <p data-testid="multiomics-longitudinal-inference-warning"><strong>{t('Longitudinal : pas de significativité calculée dans le navigateur.', 'Longitudinal: no browser-side statistical significance is reported.')}</strong>
           {t('Les changements et différences de pente sont descriptifs. Les p-values, q-values et intervalles de confiance exigent l’analyse de référence R avec lmerTest et un plan longitudinal vérifié.', 'Estimated changes and slopes are descriptive. P-values, q-values and confidence intervals require the lmerTest R reference analysis and a verified longitudinal design.')}
