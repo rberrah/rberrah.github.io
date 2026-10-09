@@ -135,6 +135,10 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
         status: 'ok',
         engine: { name:'PMx Explain reference R backend', version:'1.1.0' },
         applicableMethods: ['transcriptomics_longitudinal','proteomics_longitudinal'],
+        runtime:{RVersion:'4.5.1',RPlatform:'x86_64-pc-linux-gnu',
+          BioconductorRelease:'3.22',
+          packageVersions:{'lmerTest':'3.1-3','survival':'3.8-3'},
+          limitation:'Versions only; not an environment lockfile.'},
         packages: { DESeq2:true, edgeR:true, limma:true, lmerTest:true, fgsea:true, MOFA2:true, mixOmics:true },
         methods: {
           transcriptomics_longitudinal: { method:'lmerTest', status:'ok' },
@@ -158,6 +162,13 @@ test('multi-omics tool auto-runs the reference R backend when available', async 
   await expect(backend).toBeVisible({ timeout: 20_000 });
   await expect(backend).toContainText('lmerTest');
   await expect(backend).toContainText(/Méthodes R exécutées|R methods executed/i);
+  const versions = page.getByTestId('multiomics-r-runtime-provenance');
+  await expect(versions).toBeVisible();
+  await versions.locator('summary').click();
+  await expect(versions).toContainText('R version');
+  await expect(versions).toContainText('4.5.1');
+  await expect(versions).toContainText('lmerTest 3.1-3');
+  await expect(versions).toContainText('renv');
 });
 
 test('multi-omics demo runs end-to-end with deterministic Reactome integration', async ({ page }) => {
