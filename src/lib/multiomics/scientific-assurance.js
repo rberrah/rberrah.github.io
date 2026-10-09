@@ -154,6 +154,19 @@ export function assessScientificAssurance(result, { demo = false } = {}) {
     'Executed R methods: ' + matched.join(', ') + '. Execution does not prove the study design or assumptions are valid.');
   for (const [layer, data] of layers) {
     const qc = data?.qc || {};
+    // A near-equal percentage of missing values in the biological groups
+    // is NOT evidence against MNAR: opposite censored tails can fabricate
+    // apparent treatment effects without a group-wise missingness imbalance.
+    // Inspect ANY measured profile, not only the median across profiles:
+    // the median can be zero despite real feature-wise missingness.
+    const hasObservedMissingness =
+      (Array.isArray(qc.sampleMetrics) &&
+        qc.sampleMetrics.some(item => Number(item?.missingFraction) > 0))
+      || Number(qc.medianMissingFraction) > 0;
+    if (hasObservedMissingness) add(layer + '_missingness_not_ignorable',
+      'Certaines mesures sont manquantes. Même avec des taux similaires entre groupes, cela peut créer de fausses différences biologiques : vérifier la cause des absences et refaire une analyse de sensibilité. Les p-values/q-values seules ne suffisent pas.',
+      'Some measurements are missing. Similar missing-data rates between groups can still create false biological differences: investigate why values are absent and run a sensitivity analysis. P-values/q-values alone are insufficient.',
+      'requires_confirmation');
     if (qc?.inferenceTier?.level === 'screening') add(layer + '_count_screening',
       'RNA-seq en comptages : le calcul navigateur sur log2-CPM ne remplace pas DESeq2/limma-voom sur comptages bruts.',
       'RNA-seq counts: browser log2-CPM screening is not a substitute for count-aware DESeq2/limma-voom.',
