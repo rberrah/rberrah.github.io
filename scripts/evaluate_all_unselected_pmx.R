@@ -31,10 +31,10 @@ if(nrow(joined)!=nrow(truth))stop("Holdout evaluation dropped subjects.")
 joined$outcome<-as.integer(joined$outcome=="BCR/ABL")
 validation<-validate_external_predictions(joined,
   outcome_type="binary",prediction_kind="probability",
-  independent_cohort=TRUE,
+  independent_cohort=FALSE,
   cohort_label="ALL internal same-dataset stratified holdout",
   bootstrap_repetitions=500L,seed=20261009L)
-if(!identical(validation$status,"external_validation") ||
+if(!identical(validation$status,"independent_status_not_asserted") ||
    !identical(validation$evaluation_status,"ok")||
    !isTRUE(validation$cohort_coverage$complete)||
    !is.finite(validation$metrics$auc)||
@@ -83,7 +83,7 @@ report<-list(
     mean=mean(train_null_auc),values=as.list(train_null_auc)),
   heldout_label_permutation_auc=list(n=length(test_null_auc),
     mean=mean(test_null_auc)),
-  status="same_source_holdout_evaluation_not_clinical_or_independent_center",
+  status="same_source_holdout_no_external_validation_claim",
   method="Native PMx ridgeGLM; feature selection and tuning in training only",
   limitations=c(
     "This is a fixed-seed within-source holdout; not an independent institution, assay platform or prospective validation.",
