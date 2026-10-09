@@ -64,6 +64,18 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     if (layer === 'metabolomics') add('metabolomics_validation','review',
       'Métabolomique : vérifier blancs, pooled-QC, identification et analyses de sensibilité MS.',
       'Metabolomics: review blanks, pooled QC, compound identification and MS sensitivity analyses.');
+    // Group-dependent missingness can distort the estimand even if a reference
+    // package reproduces the same observed-data p-value. This is a risk flag,
+    // not an algorithmic way to distinguish MAR, MCAR and MNAR mechanisms.
+    const differentialMissingness = Number(qc.differentialMissingness?.flaggedFeatures || 0);
+    if (differentialMissingness > 0) add('missingness_imbalance_'+layer,'blocked',
+      layer + ' : ' + differentialMissingness + ' variable(s) présentent un déséquilibre de valeurs manquantes entre les groupes (≥30 points). Examiner le mécanisme, les exclusions et les analyses de sensibilité avant une conclusion confirmatoire.',
+      layer + ': ' + differentialMissingness + ' feature(s) have differential missingness between groups (≥30 percentage points). Review missingness mechanisms, exclusions and sensitivity analyses before confirmatory claims.');
+    const mnarImputationCount = Number(qc.msQc?.mnar?.imputedValues || 0);
+    if (mnarImputationCount > 0) add('mnar_imputation_'+layer,'blocked',
+      layer + ' : imputation de valeurs manquantes supposées censurées appliquée (' + mnarImputationCount + ' valeurs). Une analyse de sensibilité à des hypothèses MNAR alternatives est requise.',
+      layer + ': left-censored missing-value imputation was applied (' + mnarImputationCount + ' values). Sensitivity to alternative MNAR assumptions is required.');
+
     if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
       'RNA-seq : vérifier indépendamment la dispersion, les facteurs d’ajustement et les contrastes DESeq2.',
       'RNA-seq: independently check dispersion, adjustment variables and DESeq2 contrasts.');
