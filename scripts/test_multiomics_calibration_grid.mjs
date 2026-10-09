@@ -58,6 +58,16 @@ function fixture(n,model,seed,planted=false) {
     }
   };
 }
+// Wilson interval on independent *datasets* with any BH discovery.
+// Feature-level p-values within a dataset are correlated and are NOT
+// counted as independent Bernoulli replicates for this interval.
+function wilson95(successes,n) {
+  if(!n)return null;
+  const z=1.959963984540054,p=successes/n,d=1+z*z/n;
+  const center=(p+z*z/(2*n))/d;
+  const margin=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;
+  return {lower:Math.max(0,center-margin),upper:Math.min(1,center+margin)};
+}
 async function analyse(input) {
   return runDeterministicAnalysis({
     ...input,dataTypes:{proteomics:'log_intensity'},
@@ -119,6 +129,7 @@ for(const {n,model} of configs) {
     rawTypeIRate:typeIRate,
     familiesWithAnyQ005:qFamilies,
     bhFamilyRate,
+    bhFamilyWilson95: wilson95(qFamilies,nullTrials),
     plantedEffectEvaluated:signalEvaluated,
     plantedQ010Detection:signalDetected,
     plantedSensitivity:sensitivity
@@ -132,8 +143,9 @@ const report={
   distributions:['gaussian_balanced','heteroscedastic_mcar','batch_dominant_null'],
   nominalAlpha:0.05,
   correction:'within-omic Benjamini-Hochberg',
+  intervalMethod:'Wilson 95% on independent null datasets with any q<=0.05, NOT on pooled correlated features',
   guardrails:'gross regression: observed raw p<0.05 <=16%, null BH-family discovery <=40%, planted signal detection >=40% for N>=40',
-  limitations:'180 all-null datasets and 54 planted datasets; 12 genes/proteins per dataset. Technical-only null uses group-balanced batches with a fixed +4-unit batch effect. No confidence-interval equivalence test, formal FDR validation, other designs, covariate MNAR, publication approval or clinical external validation.',
+  limitations:'180 all-null datasets and 54 planted datasets; 12 genes/proteins per dataset. Technical-only null uses group-balanced batches with a fixed +4-unit batch effect. Wilson intervals quantify uncertainty in the 20 independent null families per scenario, but cannot prove nominal 5% FDR. No confidence-interval equivalence test, formal FDR validation, other designs, covariate MNAR, publication approval or clinical external validation.',
   results
 };
 if (process.env.MULTIOMICS_CALIBRATION_REPORT_PATH) {
