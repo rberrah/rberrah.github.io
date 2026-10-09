@@ -350,6 +350,105 @@ Sources Git épinglées : MAINZ
 Les artefacts de la CI exposent les coefficients figés,
 les prédictions, les métriques et les contrôles négatifs.
 
+## MAINZ → NKI : transfert entre plateformes Affymetrix et Agilent (9 octobre 2026)
+
+Contrairement aux benchmarks TCGA/ALL (partition interne) et MAINZ→TRANSBIG
+(études distinctes, mais toutes deux sur Affymetrix), celui-ci évalue
+**le même moteur natif PMx sur une technologie différente** :
+
+- **Entraînement : MAINZ**, 200 patientes (162 ER positives),
+  Affymetrix HG-U133A, 22 283 sondes, intensités à un canal.
+- **Évaluation externe : NKI**, 337 patientes (249 ER positives),
+  Agilent/Rosetta à deux canaux, 24 481 sondes.
+- **Mise en correspondance non supervisée** : 13 091 identifiants Entrez
+  uniques annotés dans MAINZ, 13 120 dans NKI, et **10 580 identifiants
+  de gènes communs sans ambiguïté**. Les sondes ayant un identifiant
+  absent ou ambigu sont exclues. Quand plusieurs sondes représentent
+  un même gène, leur médiane *par patiente* fournit une seule mesure.
+  Aucun gène n'est présélectionné à partir d'une association avec
+  le statut ER dans NKI.
+- **Données manquantes** : MAINZ ne comporte aucune valeur non finie ;
+  NKI comporte 54 262 cellules non finies sur la matrice d'origine
+  (0,6577 %), soit 20 323 après regroupement en gènes (0,5700 %).
+  Elles restent manquantes, et ne deviennent ni 0, ni une valeur
+  imputée à partir du groupe NKI. L'imputation finale du modèle
+  s'appuie exclusivement sur les valeurs d'entraînement MAINZ.
+- **Audit de provenance** : aucun identifiant exact commun, aucune
+  quasi-identité de profils au seuil fixé ; maximum de corrélation des
+  rangs 0,24203. Ceci n'authentifie pas l'absence absolue de toutes les
+  patientes réidentifiées ou réutilisées sous un autre code.
+
+Deux stratégies **fixées avant la consultation des étiquettes NKI** ont été
+évaluées, toujours toutes deux rapportées :
+
+1. **Analyse principale : rang relatif par patiente** sur les 10 580
+   gènes partagés. La mesure d'un gène est convertie en sa position
+   parmi les gènes observés chez cette patiente. Cette transformation
+   n'utilise aucune moyenne ou étiquette NKI, mais peut modifier le sens
+   biologique des intensités à deux canaux.
+2. **Sensibilité : valeurs mesurées sans réalignement numérique**.
+   Elle quantifie le coût du changement de plateforme si l'on applique
+   directement le modèle construit sur MAINZ.
+
+Les deux modèles utilisent la sélection des 12 gènes et la régression
+logistique ridge du **vrai moteur PMx**, avec pénalisation ajustée sur
+MAINZ seulement (`lambda = 10` pour les deux branches). Les coefficients
+et les transformations sont figés en JSON puis relus, les 337 probabilités
+sont calculées **avant** l'ouverture du statut ER NKI. Chaque branche
+comprend dix contrôles négatifs avec réentraînement complet après
+permutation des étiquettes MAINZ.
+
+| Validation externe NKI, 337 patientes | Rang par patiente (principal) | Valeurs brutes (sensibilité) |
+| --- | ---: | ---: |
+| **AUC**, capacité à ordonner les statuts ER | **0,9855** | 0,9876 |
+| **Score de Brier**, erreur des probabilités (plus faible = meilleur) | **0,2793** | 0,7319 |
+| AUC moyenne, dix réentraînements sur étiquettes MAINZ permutées | 0,4651 | 0,4625 |
+| Brier skill score, référence = prévalence ER+ dans MAINZ | **−0,4104** | Inférieur à zéro |
+
+### Interprétation indispensable : discrimination ≠ calibration
+
+L'AUC élevée indique que les patientes NKI ont été correctement
+**ordonnées** selon leur statut ER dans cet exemple. Elle ne montre
+pas que les probabilités fournies sont suffisamment proches des
+fréquences cliniques réelles.
+
+Le **score de Brier** met en évidence l'inverse : même la stratégie
+préspécifiée utilisant les rangs produit une erreur probabiliste
+**plus importante** que la prédiction constante de référence,
+qui utiliserait uniquement la proportion ER+ de MAINZ. Le Brier
+skill score négatif (−0,4104) est un résultat défavorable à conserver,
+pas à masquer derrière l'AUC. La stratégie brute est encore plus
+mal calibrée.
+
+**En conséquence, l'emploi de ces probabilités pour une décision
+clinique n'est pas soutenu par ce benchmark.** Une correction de
+calibration sur les étiquettes de NKI transformerait NKI en cohorte
+d'apprentissage et annulerait le caractère externe du présent test :
+elle n'est donc pas réalisée ici. Une étude ultérieure doit
+réserver une cohorte de calibration indépendante puis une autre
+cohorte finale, jamais consultée pendant ce réajustement.
+
+Autres limites : les mesures Affymetrix (un canal) et Agilent (deux
+canaux, log-ratios) ne sont pas directement équivalentes ; les sources
+ont été prétraitées par leurs auteurs ; les annotations Entrez peuvent
+être imparfaites ; la différence de prévalence ER+, le recrutement et
+l'évaluation clinique peuvent affecter les résultats. Il s'agit d'une
+validation expérimentale de **classification mono-omique sur une seule
+question**, non de MOFA2/DIABLO, de la validation RNA-seq, d'une
+application prospective ou d'une validation clinique générale.
+
+Sources immuables : Bioconductor MAINZ
+`63e11105cb8a7c854264e9a13f8c926b39f20ab0`,
+NKI `94e197403d6adaeae613cdc95997ac6ac5b5a88e`.
+Scripts reproductibles :
+`scripts/preflight_mainz_nki_crossplatform.R`,
+`scripts/export_mainz_nki_crossplatform.R`,
+`scripts/benchmark_mainz_nki_crossplatform.mjs`,
+`scripts/evaluate_mainz_nki_crossplatform.R`.
+La CI `.github/workflows/multiomics-mainz-nki-preflight.yml`
+archive les deux modèles figés, toutes les prédictions et les
+contrôles négatifs sans aucune sélection sur la performance observée.
+
 ## Contrôles désormais exécutés dans la CI
 
 | Contrôle | Référence / hypothèse | Limite |

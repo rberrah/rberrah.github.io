@@ -28,6 +28,10 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('200 patientes MAINZ');
   await expect(validation).toContainText('198 patientes TRANSBIG');
   await expect(validation).toContainText('0,8954');
+  await expect(validation).toContainText('337 patientes Agilent NKI');
+  await expect(validation).toContainText('0,9855');
+  await expect(validation).toContainText('0,2793');
+  await expect(validation).toContainText('Une AUC élevée ne garantit pas des probabilités justes.');
 
   const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
   await expect(metaboliteConfidence).toBeVisible();
@@ -45,6 +49,10 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('200 MAINZ participants');
   await expect(validation).toContainText('198 different-study TRANSBIG participants');
   await expect(validation).toContainText('0.8954');
+  await expect(validation).toContainText('337 NKI Agilent participants');
+  await expect(validation).toContainText('0.9855');
+  await expect(validation).toContainText('0.2793');
+  await expect(validation).toContainText('A high AUC does not mean trustworthy individual probabilities.');
   await expect(metaboliteConfidence).toContainText('Metabolite identification confidence');
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
   await expect(glossary).toContainText('Lexique express · six mots utilisés dans tout l’outil');
