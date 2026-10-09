@@ -1513,7 +1513,7 @@ function preprocessMatrix(matrix, layer, valueType) {
  * All feature scoring, nuisance fitting, missingness and scaling take place
  * on each training fold in selectPredictionFeatures / predictionMatrix.
  */
-function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
+export function prepareFoldIsolatedPredictionMatrix(matrix, layer, valueType) {
   const asSupplied = ['log_expression','log_intensity','log_abundance'].includes(valueType);
   const rawRna = layer === 'transcriptomics' && valueType === 'raw_counts';
   // Unlike the exploratory QC path, these intensity-scale predictive recipes
@@ -4405,6 +4405,7 @@ export async function runDeterministicAnalysis({ files, metadataRows, columnMapp
       (layer === 'metabolomics' && dataTypes[layer] === 'peak_area')
     );
     if (predictiveOutcome.rawIntensityScreening) {
+      predictiveOutcome.intensityPanelAssumption = 'Per-sample median centering requires a consistent predefined assay feature panel, including on future external samples. Missing panels or drifting instrument responses invalidate direct portability.';
       predictiveOutcome.technicalQcCaveat = 'Prediction uses the prespecified assay-local intensity transform, not the global MS/pooled-QC drift, blank, RSD and MNAR processing used for exploratory differential analysis. Review technical QC and run an independent external sensitivity analysis before interpreting biomarker performance.';
     }
     predictiveOutcome.preprocessingPolicy = predictionUsesGlobalPreprocessing
