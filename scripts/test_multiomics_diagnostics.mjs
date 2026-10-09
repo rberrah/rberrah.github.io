@@ -135,6 +135,34 @@ assert.equal(missingnessBlocks.status,'blocked');
 assert.ok(missingnessBlocks.checks.some(x=>
   x.code==='missingness_imbalance_proteomics' && x.status==='blocked'),
   'Independent R success must not silently override differential missingness');
+const balancedMnarRisk = evaluateConfirmatoryReadiness({
+  ...candidate,
+  layers:{
+    ...candidate.layers,
+    proteomics:{
+      ...candidate.layers.proteomics,
+      qc:{
+        ...candidate.layers.proteomics.qc,
+        medianMissingFraction:0.26,
+        differentialMissingness:{flaggedFeatures:0}
+      }
+    }
+  }
+});
+assert.equal(balancedMnarRisk.status,'blocked',
+  'Equal group missingness rates can conceal opposite-tail MNAR');
+assert.ok(balancedMnarRisk.checks.some(x=>x.code==='high_missingness_proteomics'&&x.status==='blocked'));
+const mildMissingReview = evaluateConfirmatoryReadiness({
+  ...candidate,layers:{
+    ...candidate.layers,
+    proteomics:{
+      ...candidate.layers.proteomics,
+      qc:{...candidate.layers.proteomics.qc,medianMissingFraction:0.08}
+    }
+  }
+});
+assert.ok(mildMissingReview.checks.some(x=>x.code==='missingness_mechanism_proteomics' && x.status==='review'),
+  'Low missingness also needs assumption review even when group rates match');
 const mnarImputed = evaluateConfirmatoryReadiness({
   ...candidate,
   layers:{
