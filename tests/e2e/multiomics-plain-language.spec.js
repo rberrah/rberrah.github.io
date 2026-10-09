@@ -87,6 +87,10 @@ test('multi-omics result summary uses plain-language study checks and reproducib
   await page.locator('#pmx-metabolomics-msi-level').selectOption('msi3');
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId('multiomics-run-options').locator('summary').first().click();
+  await page.getByLabel(/Interroger Reactome|Query Reactome/i).check();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:20000});
 
   const readiness = page.getByTestId('multiomics-plain-readiness');
   await expect(readiness).toBeVisible({ timeout: 10_000 });
