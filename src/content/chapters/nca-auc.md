@@ -9,8 +9,8 @@ order: 81
 duration: "12 min"
 level: "intermediate"
 tags: ["nca", "auc", "trapezoidal", "lambda-z"]
-prerequisites: []
-glossary: []
+prerequisites: ["nca-intro"]
+glossary: ["NCA", "AUC"]
 slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"

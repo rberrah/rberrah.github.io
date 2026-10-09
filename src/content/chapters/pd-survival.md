@@ -9,12 +9,12 @@ order: 64
 duration: "15 min"
 level: "advanced"
 tags: ["pharmacodynamics", "survival", "time-to-event", "os-pfs"]
-prerequisites: []
-glossary: []
+prerequisites: ["pkpd"]
+glossary: ["PD", "Covariable", "AUC"]
 slides: []
-sources: ["holford-tte-tutorial", "kaplan-meier-1958", "cox-1972", "claret-tgi-os"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+sources: ["holford-tte-tutorial", "kaplan-meier-1958", "cox-1972", "claret-tgi-os", "wang-tumor-size-survival", "katzman-deepsurv"]
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "La différence entre OS et PFS est que..."
     options:

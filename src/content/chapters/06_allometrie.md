@@ -13,8 +13,8 @@ prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Covariable", "Allométrie", "Centrage"]
 slides: ["s18", "s19", "s20", "s21", "s22"]
 sources: ["anderson-holford-allometry", "jonsson-karlsson-scm", "ribbing-selection-bias", "owen-fiedler-kelly"]
-updated_on: "2026-10-08"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Une covariable est utile quand elle..."
     options:

@@ -462,7 +462,20 @@ export function localizeChapter(chapter, lang) {
   // Autre langue (ex. en) : on rend la traduction si elle existe, sinon repli
   // sur le principal en signalant que la traduction est en cours.
   if (chapter.translations?.[lang]) {
-    return { chapter: chapter.translations[lang], isFallback: false };
+    const translated = chapter.translations[lang];
+    return {
+      chapter: {
+        ...chapter,
+        ...translated,
+        prerequisites: chapter.prerequisites,
+        glossary: chapter.glossary,
+        sources: chapter.sources,
+        updated_on: chapter.updated_on,
+        reviewed_on: chapter.reviewed_on,
+        status: chapter.status
+      },
+      isFallback: false
+    };
   }
   return { chapter, isFallback: true };
 }

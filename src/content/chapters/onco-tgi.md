@@ -13,8 +13,8 @@ prerequisites: ["pd-survival"]
 glossary: ["AUC", "Emax", "Covariable"]
 slides: []
 sources: ["claret-tgi-os", "simeoni", "wulfsohn-tsiatis-joint", "holford-tte-tutorial"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans le modèle de Claret, l'effet du traitement sur la tumeur..."
     options:

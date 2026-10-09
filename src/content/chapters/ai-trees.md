@@ -9,8 +9,8 @@ order: 14
 duration: "14 min"
 level: "intermediate"
 tags: ["ai", "random-forest", "decision-tree", "machine-learning"]
-prerequisites: []
-glossary: []
+prerequisites: ["math-stats"]
+glossary: ["White / black / grey box", "XGBoost"]
 slides: []
 sources: ["breiman-rf", "efron-bootstrap", "hastie-esl"]
 reviewed_on: "2026-07-09"

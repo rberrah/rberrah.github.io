@@ -9,8 +9,8 @@ order: 15
 duration: "14 min"
 level: "advanced"
 tags: ["ai", "xgboost", "catboost", "gradient-boosting"]
-prerequisites: []
-glossary: []
+prerequisites: ["ai-trees"]
+glossary: ["XGBoost", "White / black / grey box"]
 slides: []
 sources: ["friedman-gbm", "chen-xgboost", "prokhorenkova-catboost", "woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"

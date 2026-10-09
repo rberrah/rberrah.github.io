@@ -10,7 +10,7 @@ duration: "12 min"
 level: "beginner"
 tags: ["maths", "ode", "exponential"]
 prerequisites: []
-glossary: []
+glossary: ["EDO", "Modèle compartimental"]
 slides: []
 sources: ["gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"

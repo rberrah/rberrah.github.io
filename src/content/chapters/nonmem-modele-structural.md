@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "control-stream", "advan", "trans", "ode"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["NONMEM", "Modèle structural", "EDO"]
 slides: []
 sources: ["nonmem", "bauer-nonmem-1", "owen-fiedler-kelly", "rowland-tozer"]
 reviewed_on: "2026-07-14"

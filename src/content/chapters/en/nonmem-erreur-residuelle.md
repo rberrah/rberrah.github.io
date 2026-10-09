@@ -102,9 +102,9 @@ Three benefits: the terms are read **in physical units** (0.08 mg/L and 13%) ins
 
 $$ \text{IWRES}_{ij} = \frac{y_{ij} - \text{IPRED}_{ij}}{W_{ij}} $$
 
-- **IWRES** compares the observation to the **subject's** prediction: it judges the error model itself, and nothing else.
-- **CWRES** is a **population** residual, linearised around the subject's estimated ETA — hence consistent with what FOCE optimises. It should look like an $\mathcal{N}(0,1)$; its patterns betray the **structural** model or the covariates.
-- **WRES** is still computed under the **FO** approximation, around $\eta = 0$, even after a FOCE estimation. It is therefore inconsistent with the fitted model and regularly flags flaws that do not exist. It is a relic: CWRES replaced it.
+- **IWRES** compares the observation to the **subject's** prediction: it is particularly useful for assessing the error model, but can also reflect structural or individual misspecification.
+- **CWRES** is a **population** residual designed for the conditional approximation. Under the model assumptions and approximations, behaviour close to $\mathcal{N}(0,1)$ is expected; patterns suggest structural, covariate or residual misspecification to investigate.
+- **WRES** relies on the **FO** approximation around $\eta = 0$. After FOCE estimation, CWRES are generally more consistent with the fitted method; WRES remain available but must be interpreted with that approximation in mind.
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
@@ -118,7 +118,7 @@ Fifteen percent on CL is not a modeller's quibble: in Bayesian dosing, a model t
 
 **Beal's seven methods** — M1 discards the BQL points; M2 discards them but conditions the likelihood of the remaining points on being above the LOQ; **M3** treats them as **censored** data; M4 adds a positivity constraint to M3; M5 replaces them with LOQ/2; M6 keeps only the first BQL of a run, at LOQ/2; M7 replaces them with zero.
 
-M3 is the reference choice as soon as the BQL proportion exceeds a few percent. Its principle: a censored point does not carry a value, it carries **information** — "the concentration was somewhere below 0.25". You write it as a **probability**, that of the point falling below the LOQ, through the normal cumulative function `PHI`:
+M3 is commonly favoured when BQL observations are not negligible, but the choice depends on the censoring mechanism, their proportion and the model. Its principle: a censored point does not carry a value, it carries **information** — "the concentration was somewhere below 0.25". You write it as a **probability**, that of the point falling below the LOQ, through the normal cumulative function `PHI`:
 
 ```
 $ERROR
@@ -162,6 +162,6 @@ With FOCE, as soon as the error model makes the residual variance depend on the 
 - Three forms: additive (`Y = F + EPS(1)`), proportional (`Y = F*(1+EPS(1))`), combined (`Y = F*(1+EPS(1)) + EPS(2)`). The residual variance is declared as a **variance**, not a standard deviation.
 - Prefer the `W` parameterisation with the variance fixed to 1: terms readable in physical units, positivity guaranteed, IWRES available.
 - Under FOCE, use `INTER` as soon as residual variance depends on the individual prediction; the effect generally disappears with a strictly additive homoscedastic error.
-- BQL: M1 truncates the tail from below and underestimates clearance; M3 treats the points as **censored** (`F_FLAG` at 1, `PHI`, `LAPLACIAN`) and remains the default choice beyond a few percent of BQL.
-- Diagnostics: **IWRES** judges the error model, **CWRES** judges the rest, **WRES** is a relic computed under FO.
+- BQL: discarding observations below LOQ can bias parameters; M3 treats them as **censored** (`F_FLAG` at 1, `PHI`, `LAPLACIAN`) and is often appropriate when their proportion is not negligible.
+- Diagnostics: **IWRES** mainly informs the error model, **CWRES** population diagnostics under the conditional approximation, and **WRES** must be read with its FO approximation in mind.
 <!-- /step -->

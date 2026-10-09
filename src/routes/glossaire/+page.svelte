@@ -24,7 +24,7 @@
   $: copy = ui($language);
   $: q = norm(query);
   $: filtered = q
-    ? items.filter((it) => norm(`${it.term} ${it.full ?? ''} ${it.def} ${it.en?.full ?? ''} ${it.en?.def ?? ''}`).includes(q))
+    ? items.filter((it) => norm(`${it.term} ${it.full ?? ''} ${it.def} ${it.en?.full ?? ''} ${it.en?.def ?? ''} ${(it.details?.aliases ?? []).join(' ')}`).includes(q))
     : items;
   $: groups = cats
     .map((c) => ({ cat: c, list: filtered.filter((it) => it.cat === c) }))
@@ -33,6 +33,12 @@
   const shown = (/** @type {any} */ item) => $language === 'en'
     ? { term: item.en?.term || item.term, full: item.en?.full, def: item.en?.def }
     : item;
+  const relationLabel = (/** @type {string} */ relation) => ({
+    prerequisite_of: $language === 'en' ? 'Prerequisite for' : 'Prérequis de',
+    related_to: $language === 'en' ? 'Related concepts' : 'Concepts associés',
+    used_in: $language === 'en' ? 'Used in' : 'Utilisé dans',
+    diagnosed_by: $language === 'en' ? 'Diagnosed by' : 'Diagnostiqué par'
+  })[relation] ?? relation;
 </script>
 
 <header class="head">
@@ -69,13 +75,24 @@
                 {#if it.details.equation}<div><dt>{$language === 'en' ? 'Equation' : 'Équation'}</dt><dd><code>{it.details.equation}</code></dd></div>{/if}
                 {#if it.details.intuition}<div><dt>Intuition</dt><dd>{local(it.details.intuition)}</dd></div>{/if}
                 {#if it.details.assumption}<div><dt>{$language === 'en' ? 'Assumption' : 'Hypothèse'}</dt><dd>{local(it.details.assumption)}</dd></div>{/if}
+                {#if it.details.mistake}<div><dt>{$language === 'en' ? 'Common error' : 'Erreur fréquente'}</dt><dd>{local(it.details.mistake)}</dd></div>{/if}
                 {#if it.details.limitation}<div><dt>{$language === 'en' ? 'Do not infer' : 'Ne pas conclure'}</dt><dd>{local(it.details.limitation)}</dd></div>{/if}
                 {#if it.details.example}<div><dt>{$language === 'en' ? 'Example' : 'Exemple'}</dt><dd>{local(it.details.example)}</dd></div>{/if}
+                {#if it.details.aliases?.length}<div><dt>{$language === 'en' ? 'Aliases' : 'Alias'}</dt><dd>{it.details.aliases.join(' · ')}</dd></div>{/if}
               </dl>
               <nav class="links" aria-label={$language === 'en' ? 'Related resources' : 'Ressources associées'}>
                 {#if it.details.chapter}<a href={`${base}/chapitres/${it.details.chapter}/`}>{$language === 'en' ? 'Course and sources' : 'Cours et sources'}</a>{/if}
                 {#if it.details.lab}<a href={`${base}/laboratoires/?lang=${$language}&lab=${it.details.lab}`}>{$language === 'en' ? 'Interactive laboratory' : 'Laboratoire interactif'}</a>{/if}
+                {#if it.details.exercise}<a href={`${base}/chapitres/${it.details.exercise}/#chapter-exercises`}>{$language === 'en' ? 'Related exercise' : 'Exercice associé'}</a>{/if}
               </nav>
+              {#if it.details.relations}
+                <div class="relations">
+                  {#each Object.entries(it.details.relations) as [relation, targets]}
+                    <span class="relation-label">{relationLabel(relation)}</span>
+                    {#each targets as target}<a href={`${base}/glossaire/?q=${encodeURIComponent(target)}`}>{target}</a>{/each}
+                  {/each}
+                </div>
+              {/if}
             {/if}
           </dd>
         </div>
@@ -114,6 +131,9 @@
   .details dd { color:var(--text-secondary); }
   .links { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; font-size:var(--text-sm); }
   .links a { color:var(--accent-pk); }
+  .relations { display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:9px; font-size:var(--text-xs); }
+  .relation-label { font-family:var(--font-mono); font-weight:700; color:var(--text-muted); }
+  .relations a { color:var(--text-secondary); text-decoration:underline; text-decoration-color:var(--border-strong); }
   @media (min-width: 760px) {
     .entry { grid-template-columns: 220px 1fr; gap: var(--space-4); align-items: baseline; }
     dt { position: sticky; }

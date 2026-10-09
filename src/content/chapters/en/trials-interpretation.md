@@ -32,7 +32,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-A model is worth something only if it **changes a decision**. Interpreting covariate effects — and judging their **clinical relevance** — tells us whether to adjust the dose by weight, renal function or genotype.
+In a decision setting, a model is useful when it **informs a decision** and makes its uncertainty explicit. Interpreting covariate effects — and judging their **clinical relevance** — helps assess whether dose should be adjusted by weight, renal function or genotype.
 
 It is the bridge between statistical analysis and practice.
 <!-- /step -->
@@ -65,12 +65,12 @@ This is how we build **dosing recommendations** by subgroup.
 <!-- step:title="Common pitfall" -->
 Significant is not relevant.
 
-**Pitfall —** very small effects can become **statistically significant** in large samples. The useful question is the **magnitude**: a 5% effect does not change the dose. And beware **correlated** covariates (weight and CrCl), whose effects merge.
+**Pitfall —** very small effects can become **statistically significant** in large samples. The useful question is the **magnitude** and its uncertainty: a 5% effect is often inconsequential for dosing, but this depends on the therapeutic margin and decision rule. Also beware **correlated** covariates (weight and CrCl), whose effects may be difficult to separate.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - The forest plot shows the magnitude and uncertainty of each covariate effect.
 - Effect expressed as a ratio vs reference; judge statistical AND clinical.
-- Relevant = outside a clinically justified band for the drug, with uncertainty compatible with the intended action.
+- Clinical relevance depends on magnitude, uncertainty, exposure–response, therapeutic margin and a prespecified decision context.
 - Significant ≠ relevant; caution with correlated covariates.
 <!-- /step -->

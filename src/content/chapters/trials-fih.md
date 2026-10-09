@@ -9,12 +9,12 @@ order: 100
 duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "first-in-human", "mabel", "starting-dose"]
-prerequisites: []
-glossary: []
+prerequisites: ["allometrie", "trois-approches"]
+glossary: ["Allométrie", "PK", "PD", "PBPK"]
 slides: []
 sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "holford-sheiner-dose-effect"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
     options:
@@ -37,7 +37,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-La toute première dose chez l'homme se joue **sans donnée humaine** : il faut extrapoler depuis l'animal et la pharmacologie. Une dose trop forte est dangereuse (l'affaire **TGN1412** l'a montré), trop faible retarde le développement.
+La toute première dose chez l'homme se décide **sans donnée clinique préalable d'exposition humaine** : il faut intégrer les données non cliniques, la pharmacologie et, lorsqu'elles existent, les autres informations humaines pertinentes. Une dose trop forte est dangereuse (l'affaire **TGN1412** l'a montré), trop faible retarde le développement.
 
 La pharmacométrie fournit un cadre rationnel qui intègre plusieurs preuves : NOAEL/MRSD, **MABEL** et, selon le contexte, pharmacologically active dose (PAD).
 <!-- /step -->
@@ -77,7 +77,7 @@ Pour les biothérapies **très puissantes** ou aux mécanismes absents chez l'an
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
-- La dose de départ FIH s'extrapole de l'animal et de la pharmacologie, sans donnée humaine.
+- La dose de départ FIH intègre données non cliniques et pharmacologie, avant toute donnée clinique d'exposition humaine au produit.
 - NOAEL → HED (allométrie) → MRSD (facteurs de sécurité).
 - MABEL/PAD : approche pharmacologique intégrant exposition, cible, puissance, PK/PD et incertitude.
 - Pour les molécules très actives, intégrer MABEL/PAD et NOAEL prudemment plutôt que faire primer mécaniquement l'un sur l'autre.

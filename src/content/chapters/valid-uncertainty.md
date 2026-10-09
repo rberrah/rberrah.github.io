@@ -9,8 +9,8 @@ order: 91
 duration: "12 min"
 level: "advanced"
 tags: ["validation", "rse", "bootstrap", "uncertainty"]
-prerequisites: []
-glossary: []
+prerequisites: ["outils-estimation"]
+glossary: ["RSE", "Bootstrap", "FIM", "Identifiabilité"]
 slides: []
 sources: ["efron-bootstrap", "mentre-optimal-design", "davidian-giltinan"]
 reviewed_on: "2026-07-09"

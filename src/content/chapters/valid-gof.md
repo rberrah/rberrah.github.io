@@ -9,11 +9,12 @@ order: 90
 duration: "12 min"
 level: "intermediate"
 tags: ["validation", "diagnostic-plots", "gof", "residuals"]
-prerequisites: []
-glossary: []
+prerequisites: ["erreur-residuelle"]
+glossary: ["GOF", "PRED / IPRED", "Résidus (WRES/CWRES/IWRES/NPDE)", "Shrinkage"]
 slides: []
 sources: ["hooker-cwres", "savic-karlsson-shrinkage", "mould-upton"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Sur un graphique observations vs prédictions, un bon modèle donne..."
     options:
@@ -51,11 +52,11 @@ Un bon modèle aligne observations et prédictions sur la **diagonale**, et lais
 Les graphiques canoniques :
 
 - **DV vs PRED** (population) et **DV vs IPRED** (individuel) : nuage autour de l'identité $y=x$.
-- **CWRES vs temps** et **CWRES vs PRED** : les résidus pondérés conditionnels doivent être **centrés sur 0**, sans tendance, ~95 % dans $[-2, 2]$.
+- **CWRES vs temps** et **CWRES vs PRED** : sous une approximation où les CWRES suivent $mathcal{N}(0,1)$, on attend des valeurs **centrées sur 0**, sans tendance, avec environ 95 % dans $[-2, 2]$. C'est un repère diagnostique, pas une règle d'acceptation.
 - **|IWRES| vs PRED** : détecte une mauvaise **erreur résiduelle** (hétéroscédasticité).
 
 :::note
-Les **CWRES** (Hooker et al., *Pharm Res* 2007) remplacent les WRES car ils tiennent compte de la non-linéarité du modèle.
+Les **CWRES** (Hooker et al., *Pharm Res* 2007) ont été proposés pour améliorer le comportement des résidus pondérés dans les modèles non linéaires ; le diagnostic dépend encore de l'approximation et de la méthode d'estimation.
 :::
 <!-- /step -->
 

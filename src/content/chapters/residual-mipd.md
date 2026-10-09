@@ -10,11 +10,11 @@ duration: "15 min"
 level: "advanced"
 tags: ["mipd", "mapbe", "residual", "tdm", "auc", "precision-dosing"]
 prerequisites: ["erreur-residuelle", "bayes-ebes", "tools-mipd"]
-glossary: ["MAP", "TDM", "RUV", "ε / σ", "Precision dosing"]
+glossary: ["MAP", "TDM", "ε / σ", "Precision dosing"]
 slides: []
 sources: ["berrah-residual", "sheiner-forecasting", "hughes-keizer", "minichmayr-mipd"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans l'objectif de l'estimation MAP, que fait une erreur résiduelle σ plus petite ?"
     options:
@@ -52,17 +52,17 @@ L'estimation MAP est un **compromis permanent** entre deux voix : le **prior** (
 Un **petit σ** monte le volume des données : le postérieur est tiré vers les points mesurés. Un **grand σ** laisse parler le prior : les paramètres restent proches de la population.
 
 :::howto
-**Comment lire le schéma.** La courbe pointillée est le prior (patient « moyen »). Les points sont les prélèvements de *ce* patient (dont la clairance diffère). Baissez σ : le poids passe aux données, la courbe postérieure quitte le prior pour épouser les points, et l'AUC estimée rejoint la vraie exposition individuelle.
+**Comment lire le schéma.** La courbe pointillée est le prior (patient « moyen »). Les points sont les prélèvements de *ce* patient (dont la clairance diffère). Dans cette simulation illustrative, baisser σ donne plus de poids aux données et rapproche l'AUC estimée de l'exposition génératrice ; ce résultat n'est pas garanti avec des mesures bruitées ou un modèle mal spécifié.
 :::
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" -->
 Ce compromis est exactement ce que minimise le critère de l'estimation MAP, qui met en balance **deux forces** :
 
-$$ \text{Critère} \;=\; \underbrace{\sum_{i} \frac{(y_i - \hat{y}_i)^2}{\sigma_i^2}}_{\text{fidélité aux données}} \;+\; \underbrace{\sum_{j} \frac{\eta_j^2}{\omega_j^2}}_{\text{fidélité au prior}} $$
+$$ \text{Critère} \;=\; \underbrace{\sum_{i} \frac{(y_i - \hat{y}_i)^2}{\sigma_i^2}}_{\text{fidélité aux données}} \;+\; \underbrace{\eta^T\Omega^{-1}\eta}_{\text{fidélité au prior}} $$
 
 - Le **premier terme** pénalise l'écart entre concentrations observées $y_i$ et prédites $\hat{y}_i$, **pondéré par $1/\sigma_i^2$**.
-- Le **second terme** pénalise l'éloignement des paramètres individuels ($\eta_j$) par rapport à la population, pondéré par $1/\omega_j^2$.
+- Le **second terme** pénalise l'éloignement des paramètres individuels par rapport à la population en tenant compte de $\Omega$. Il se réduit à $\sum_j\eta_j^2/\omega_j^2$ lorsque les effets aléatoires sont indépendants.
 
 La division par $\sigma_i^2$ dit tout : plus σ est **petit**, plus $1/\sigma_i^2$ est **grand**, plus une même erreur de prédiction **coûte cher** — l'algorithme est contraint de coller aux données plutôt qu'au prior.
 <!-- /step -->

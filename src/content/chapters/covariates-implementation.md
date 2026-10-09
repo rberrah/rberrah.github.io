@@ -10,7 +10,7 @@ duration: "20 min"
 level: "advanced"
 tags: ["covariates","mrgsolve","Monolix","validation"]
 prerequisites: ["covariates-basics","covariates-groups","covariates-physiology","covariates-symbolic"]
-glossary: []
+glossary: ["Covariable", "θ", "η", "IIV"]
 slides: []
 sources: ["monolix-covariates","simulx-individual","jonsson-covariates","pmetrics","hastie-esl","mrgsolve"]
 reviewed_on: "2026-09-29"

@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "babelmixr2", "logit"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["nlmixr2 / rxode2", "VPC", "Shrinkage"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "fda-poppk"]
 reviewed_on: "2026-07-14"

@@ -49,7 +49,7 @@ A good model aligns observations and predictions on the diagonal, and leaves res
 The **catalogue** of plots and how to read them:
 
 - **DV vs PRED / DV vs IPRED** — accuracy (population / individual). Good: cloud **on the diagonal**. Bad: **curved** cloud (missing compartment or non-linearity).
-- **CWRES vs time** and **CWRES vs PRED** — neutrality. Good: centred on **0**, no trend, ~95% within $[-2,2]$. Bad: a **trend** (wrong structural model).
+- **CWRES vs time** and **CWRES vs PRED** — neutrality. When the $mathcal{N}(0,1)$ approximation is reasonable: centred on **0**, no trend, about 95% within $[-2,2]$. A **trend** suggests structural, covariate or residual misspecification to investigate; this guide is not an acceptance test.
 - **|IWRES| vs PRED** — the **residual-error** model. Good: a **flat** cloud. Bad: a **funnel** (heteroscedasticity → switch from additive to combined error).
 - **Histogram / QQ-plot of residuals** — normality. Good: a centred bell. Bad: skew, heavy tails.
 - **VPC / pcVPC** — does the model **regenerate** the data? (dedicated chapter).

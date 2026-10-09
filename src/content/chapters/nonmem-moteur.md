@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "foce", "estimation", "ofv", "vraisemblance"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["NONMEM", "FOCE-I", "Vraisemblance"]
 slides: []
 sources: ["wang-nonmem-methods", "bauer-nonmem-2", "lindstrom-bates", "wilks-1938"]
 reviewed_on: "2026-07-14"

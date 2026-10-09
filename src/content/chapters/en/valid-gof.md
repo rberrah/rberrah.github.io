@@ -47,10 +47,10 @@ A good model aligns observations and predictions on the **diagonal**, and leaves
 The canonical plots:
 
 - **DV vs PRED** (population) and **DV vs IPRED** (individual): cloud around the identity $y=x$.
-- **CWRES vs time** and **CWRES vs PRED**: conditional weighted residuals should be **centred on 0**, without trend, ~95% within $[-2, 2]$.
+- **CWRES vs time** and **CWRES vs PRED**: under the approximation that CWRES follow $mathcal{N}(0,1)$, they are expected to be **centred on 0**, without trend, with about 95% within $[-2, 2]$. This is a diagnostic guide, not an acceptance rule.
 - **|IWRES| vs PRED**: detects a wrong **residual error** (heteroscedasticity).
 
-**Note —** **CWRES** (Hooker et al., *Pharm Res* 2007) replace WRES because they account for the model's non-linearity.
+**Note —** **CWRES** (Hooker et al., *Pharm Res* 2007) were proposed to improve the behaviour of weighted residuals in nonlinear models; the diagnostic still depends on the approximation and estimation method.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="50_GOFPlots" -->

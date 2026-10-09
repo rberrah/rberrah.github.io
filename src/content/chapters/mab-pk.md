@@ -9,8 +9,8 @@ order: 50
 duration: "12 min"
 level: "advanced"
 tags: ["mab", "biologics", "fcrn", "pk"]
-prerequisites: []
-glossary: []
+prerequisites: ["clairance-volume-demi-vie"]
+glossary: ["PK", "CL", "V", "Modèle compartimental"]
 slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"

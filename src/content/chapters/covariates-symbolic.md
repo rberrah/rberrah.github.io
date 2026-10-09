@@ -10,11 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
-glossary: []
+glossary: ["Covariable", "White / black / grey box", "Neural ODE", "IIV", "ω / Ω"]
 slides: []
 sources: ["wahlquist-symbolic-covariates","cranmer-symbolic","hastie-esl","sanghavi-covariates"]
-reviewed_on: "2026-09-29"
-updated_on: "2026-09-30"
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
 quiz: [{"prompt":"Une formule qui imite bien le réseau…","options":["doit encore être validée sur les observations","est forcément causale","hérite automatiquement d’une validation clinique"],"correct":0},{"prompt":"La séparation entraînement/test doit en général se faire…","options":["par patient","au hasard entre prélèvements d’un même patient","après le choix final de l’équation"],"correct":0},{"prompt":"Une formule symbolique déterministe fournit-elle OMEGA ?","options":["non, la variabilité doit être modélisée et estimée","oui, toujours","uniquement si elle est courte"],"correct":0}]
 ---
 

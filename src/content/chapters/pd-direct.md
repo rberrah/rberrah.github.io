@@ -9,12 +9,12 @@ order: 60
 duration: "12 min"
 level: "intermediate"
 tags: ["pharmacodynamics", "emax", "hill", "direct-effect"]
-prerequisites: []
-glossary: []
+prerequisites: ["pkpd"]
+glossary: ["PD", "Emax", "EC50 / CE50", "Coefficient de Hill"]
 slides: []
 sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Un modèle à effet direct suppose que l'effet..."
     options:
@@ -75,7 +75,7 @@ Avec Hill = 1, $5\times EC_{50}$ donne seulement $5/6$, soit **83,3 % d'$E_{max}
 Un modèle linéaire extrapole mal.
 
 :::pitfall
-Ajuster une **droite** sur des données concentration–effet qui saturent surestime l'effet aux fortes doses. Et un $EC_{50}$ n'est identifiable que si l'on a observé des concentrations **autour** de lui : sinon, il est mal estimé.
+Ajuster une **droite** sur des données concentration–effet qui saturent surestime l'effet aux fortes doses. Estimer séparément $E_{max}$ et $EC_{50}$ demande généralement des données informatives autour de la courbure et vers le plateau ; sans elles, ces paramètres peuvent être très imprécis ou corrélés.
 :::
 <!-- /step -->
 
@@ -83,5 +83,5 @@ Ajuster une **droite** sur des données concentration–effet qui saturent sures
 - Effet direct = l'effet suit la concentration sans délai.
 - Emax sigmoïde : E0, Emax, EC50, n (Hill = raideur).
 - Linéaire/log-linéaire = approximations sur plage étroite.
-- Identifier EC50 exige des concentrations autour de sa valeur.
+- Identifier séparément EC50 et Emax exige une plage de concentrations suffisamment informative.
 <!-- /step -->

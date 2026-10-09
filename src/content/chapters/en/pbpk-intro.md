@@ -25,7 +25,7 @@ quiz:
     correct: 0
   - prompt: "The major strength of PBPK is to..."
     options:
-      - "extrapolate across species, doses and populations via physiology"
+      - "support extrapolation across species, doses and populations when the model is qualified for that use"
       - "empirically fit its parameters to the observed data"
       - "reduce the number of parameters versus empirical models"
     correct: 0
@@ -34,7 +34,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 **PBPK** (physiologically-based PK) builds the model from **real physiology**: each compartment often represents an organ or tissue, linked to the others by blood. Unlike purely empirical models, many parameters have a **biological meaning**, although scalars, lumping and fitted parameters can still be used.
 
-This allows **extrapolation** where data are missing: animal → human, adult → child, drug interactions.
+A PBPK model can **support extrapolation** where data are missing — animal → human, adult → child, drug interactions — when it has been qualified for that intended use.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="01_HumanBody" -->
@@ -58,9 +58,9 @@ When the membrane slows entry, we switch to a *permeability-limited* model (two 
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="01_HumanBody" -->
-To predict PK in a **child**, we adjust flows, volumes and enzyme maturities by age — the model structure stays the same.
+To evaluate a PK scenario in a **child**, we adjust flows, volumes and enzyme maturities by age. The structure may be retained when that assumption is justified and checked for the population of interest.
 
-That is why PBPK is increasingly accepted by **regulators** to justify paediatric doses or assess interactions.
+PBPK can therefore inform selection of a paediatric dose to test or assessment of an interaction, within a defined regulatory context and after qualification for that use.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -72,6 +72,6 @@ Mechanistic does not mean infallible.
 <!-- step:title="Key takeaways" -->
 - PBPK = physiological compartments (organs) linked by blood flows.
 - Perfusion-limited organ: mass balance with Q_T, V_T and the partition Kp.
-- Strength: cross-species, paediatric, interaction extrapolation (via physiology).
+- Strength: mechanistic support for cross-species, paediatric or interaction extrapolation, subject to fit-for-purpose qualification.
 - Weakness: many parameters and assumptions to verify.
 <!-- /step -->

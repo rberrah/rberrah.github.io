@@ -9,8 +9,8 @@ order: 93
 duration: "13 min"
 level: "advanced"
 tags: ["validation", "vpc", "pcvpc", "simulation"]
-prerequisites: []
-glossary: []
+prerequisites: ["validation-vpc", "valid-gof"]
+glossary: ["VPC", "Binning", "PRED / IPRED"]
 slides: []
 sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "ema-poppk"]
 reviewed_on: "2026-07-09"

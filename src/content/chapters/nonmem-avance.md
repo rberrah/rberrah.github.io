@@ -10,15 +10,15 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "mu-referencing", "prior", "psn"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["Distribution logit-normale", "A priori / prior", "SAEM", "MCMC", "VPC"]
 slides: []
 sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karlsson-scm"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
     options:
-      - "MU_n ne dépend que des THETA et de covariables constantes du sujet, ce qui rend analytique la mise à jour des paramètres de population"
+      - "il explicite le lien THETA–ETA et permet des mises à jour ou un échantillonnage plus efficaces dans les méthodes EM/MCMC"
       - "il réduit le nombre de sujets simulés pendant l'étape E, si bien que chaque itération traite beaucoup moins de données individuelles"
       - "il remplace l'intégration numérique de la vraisemblance par une linéarisation du modèle autour des valeurs courantes des ETA du sujet"
     correct: 0
@@ -41,7 +41,7 @@ Le chapitre précédent s'arrête au control stream minimal : un modèle de stru
 
 Trois murs se dressent vite. Un paramètre **borné** — une biodisponibilité, une fraction de répondeurs — que la log-normale laisse allègrement dépasser 1. Des données **trop pauvres** pour tout estimer, alors qu'un modèle publié existe déjà. Un SAEM qui met huit heures là où il devrait en mettre une.
 
-NONMEM répond aux trois. Mais chaque réponse s'écrit **à la main**, et rien ne vous prévient si vous l'écrivez mal.
+NONMEM répond aux trois. Mais chaque réponse s'écrit **à la main** : `CHECKMU` peut détecter certaines incohérences de MU-referencing, sans remplacer la vérification du modèle et des sorties.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="03_PopulationDistrib" -->
@@ -92,9 +92,9 @@ $PK
 $ESTIMATION METHOD=SAEM INTERACTION NBURN=2000 NITER=1000 PRINT=100
 ```
 
-Deux règles, non négociables. `MU_n` ne dépend que des THETA et de covariables **constantes chez l'individu** — jamais d'un ETA, jamais d'une valeur qui change entre deux lignes du même sujet. Et le paramètre s'écrit **exactement** `MU_n + ETA(n)` sur l'échelle choisie.
+Dans la forme standard, `MU_n` dépend des THETA et de covariables compatibles avec le MU-model, sans dépendre d'un ETA ni d'une covariable variant arbitrairement au cours du temps. Le paramètre s'écrit ensuite `MU_n + ETA(n)` sur l'échelle choisie. Les cas d'IOV et certaines structures particulières demandent les règles détaillées de la documentation NONMEM.
 
-Pourquoi cela accélère : à chaque itération, SAEM simule les effets individuels (étape E) puis met à jour les paramètres de population (étape M). Si le lien est `paramètre = MU_n + ETA(n)`, alors sur cette échelle le modèle est **linéaire en ETA** — l'étape M se résout par une **formule fermée**, une moyenne et une covariance des valeurs simulées. Sans MU-referencing, NONMEM ignore que cette structure existe et doit lancer une recherche numérique à chaque itération. Le gain se compte en facteur, pas en pourcentage. Pour METHOD=BAYES c'est plus radical encore : l'échantillonnage de Gibbs **suppose** cette structure.
+Pourquoi cela aide : le MU-referencing explicite l'association arithmétique entre THETA, ETA et paramètres individuels. NONMEM peut alors exploiter plus efficacement cette structure dans les méthodes EM et MCMC, notamment SAEM et BAYES. Avec une relation linéaire adaptée, certaines mises à jour de population peuvent être simplifiées ; le gain dépend toutefois du modèle, de la méthode et de l'implémentation. La documentation NONMEM le présente comme particulièrement utile aux méthodes MCMC, pas comme une garantie universelle de gain.
 
 **Information a priori**
 
@@ -155,7 +155,7 @@ La graine rend la simulation reproductible, `ONLYSIM` coupe l'estimation, `SUBPR
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
-Le MU-referencing est le piège le plus coûteux, parce qu'il **échoue en silence**. Ce control stream tourne, converge, et rend un résultat :
+Un MU-referencing incohérent peut être coûteux. `CHECKMU`, activé par défaut dans les versions récentes de NONMEM, cherche certaines erreurs et peut produire des avertissements, mais il ne valide pas toute la logique scientifique du control stream :
 
 ```
 $PK
@@ -166,7 +166,7 @@ $PK
 ```
 
 :::pitfall
-Ligne 3 : `MU_1` est déclaré, mais `CL` ne s'écrit pas `EXP(MU_1 + ETA(1))`. Mathématiquement c'est la même chose ; pour l'étape M, non — la formule fermée ne s'applique plus. Ligne 4 : `MU_2` dépend d'`ETA(1)`, ce qui casse l'hypothèse de linéarité. Dans les deux cas : ni message, ni avertissement. Juste un SAEM qui rampe, ou qui converge à côté sans que rien ne le signale.
+Ligne 3 : `MU_1` est déclaré mais n'est pas utilisé dans l'écriture de `CL`, ce qui empêche NONMEM d'exploiter le MU-model prévu. Ligne 4 : `MU_2` dépend d'`ETA(1)`, ce qui viole la forme standard. `CHECKMU` peut signaler ces constructions ; il faut néanmoins lire les avertissements et contrôler efficacité, convergence et cohérence des estimations.
 :::
 
 Second piège, plus discret : **l'a priori trop serré**. Une variance a priori de 0,0001 sur KA, c'est un ET de 0,01 pour une valeur de 1,1 — vous avez **fixé** le paramètre sans l'écrire. Le modèle convergera, les ET rapportés seront flatteurs, et l'incertitude réelle aura disparu du dossier. Un a priori doit refléter l'incertitude **réelle** de sa source, erreur type publiée comprise.
@@ -174,7 +174,7 @@ Second piège, plus discret : **l'a priori trop serré**. Une variance a priori 
 
 <!-- step:title="À retenir" -->
 - La **transformation**, pas l'ETA, définit le domaine d'un paramètre : `EXP()` pour un positif non borné, logit pour une fraction dans ]0, 1[, identité pour une grandeur qui peut être négative.
-- Le **MU-referencing** — `MU_n` fonction des seuls THETA et covariables individuelles constantes, puis paramètre écrit exactement `MU_n + ETA(n)` — rend l'étape M analytique : SAEM accélère nettement, et BAYES en dépend.
+- Le **MU-referencing** explicite le lien entre THETA, ETA et paramètres individuels afin d'améliorer l'efficacité des méthodes EM/MCMC ; `CHECKMU` aide à détecter certaines incohérences sans remplacer la validation.
 - Un **a priori** injecte un modèle publié dans une analyse pauvre en données ; il se met de préférence sur ce que les données ne peuvent pas informer, et tout prior informatif sur la cible doit être explicité et testé.
 - **PsN** automatise bootstrap, VPC et SCM ; **Xpose** trace ; **Pirana** organise. NONMEM ne produit aucun graphique : l'écosystème n'est pas un luxe.
 - Le bloc `$SIMULATION` — une graine, des `SUBPROBLEMS` — transforme un modèle estimé en générateur de populations virtuelles.

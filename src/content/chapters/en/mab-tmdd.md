@@ -13,7 +13,7 @@ slides: []
 quiz:
   - prompt: "TMDD (target-mediated drug disposition) produces PK that is..."
     options:
-      - "nonlinear: clearance decreases as the dose increases"
+      - "often nonlinear when binding and internalisation add a saturable elimination pathway"
       - "linear: target binding does not alter elimination"
       - "nonlinear: clearance increases as the dose increases"
     correct: 0
@@ -28,13 +28,13 @@ quiz:
 <!-- step:title="Why this chapter" -->
 Many antibodies bind to a **target** (receptor, cytokine). This binding, followed by internalisation of the complex, is an **elimination route** — this is **TMDD** (target-mediated drug disposition).
 
-The result: **nonlinear** PK, where clearance depends on dose. Ignoring it leads to poor extrapolation of schedules.
+When target binding followed by internalisation contributes to elimination, the canonical result is **nonlinear** PK in which apparent clearance depends on dose. Not every target-binding process produces that profile.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="54_TMDD" -->
 At **low concentration**, almost all the drug finds a free target: binding dominates, elimination is fast and **saturable**.
 
-At **high concentration**, the target is **saturated**: the target route becomes negligible, and PK becomes **linear** again (slow catabolism only). Hence a clearance that **decreases** as the dose increases.
+At **high concentration**, the target is **saturated**: in the canonical TMDD model with internalisation, the relative contribution of this route falls and PK approaches the linear pathway. Apparent clearance may therefore **decrease** as dose increases; this is not a universal rule for all drug-target binding.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="54_TMDD" -->
@@ -53,7 +53,7 @@ Each term reads:
 
 In practice, the **quasi-steady-state (QSS)** approximation of this system is often used (Gibiansky & Gibiansky, 2008), reducing it to a **Michaelis-Menten** form. QSS is not quasi-equilibrium: complex internalisation enters the apparent constant, hence $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
-**How to read it — the parking-lot metaphor.** The target is a set of parking spaces. At low dose (few cars), each molecule quickly finds a spot and is "removed" from circulation: fast elimination. At high dose, every space is **taken** (target saturated): the extra molecules stay in the blood and leave only by the slow route. Hence a clearance that **drops** as the dose rises.
+**How to read it — the parking-lot metaphor.** In the canonical case where complexes are internalised, targets resemble spaces that remove molecules from circulation. At high dose these spaces saturate: the pathway plateaus and apparent clearance may fall. Without meaningful complex elimination, the metaphor alone does not predict this behaviour.
 
 **On the maths side.** The $k_{on}\,C\cdot R$ term is the "parking" rate: proportional to free molecules $C$ **and** free spaces $R$. When $R\to 0$ (saturation), it vanishes and only $-k_{el}C$ (slow catabolism) remains: PK becomes linear again.
 
@@ -63,7 +63,7 @@ In practice, the **quasi-steady-state (QSS)** approximation of this system is of
 <!-- step:title="Worked example" viz="54_TMDD" -->
 On a semi-log concentration–time profile, TMDD gives a characteristic **curvature**: a fast drop at low concentration (active target) then a slow slope (saturated target).
 
-Doubling the dose **more than doubles** the exposure — clearance having decreased.
+In this canonical scenario, doubling the dose can **more than double** exposure because target-mediated elimination saturates.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -75,6 +75,6 @@ Do not extrapolate linear PK from one dose to another.
 <!-- step:title="Key takeaways" -->
 - Target binding + internalisation = elimination route (TMDD) → nonlinear PK.
 - Low [C]: fast, saturable target elimination; high [C]: saturated target, near-linear PK.
-- Clearance decreases as dose increases.
+- In canonical TMDD with complex elimination, apparent clearance may decrease as dose increases; check the mechanism and data.
 - Mager & Jusko model; Michaelis-Menten approximations in practice.
 <!-- /step -->

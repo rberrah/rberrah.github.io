@@ -9,11 +9,15 @@ import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
 import matter from 'gray-matter';
+import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
+import { allRefIds, refById } from '../src/lib/content/references.js';
+import { molecularLabIds } from '../src/lib/labs/molecular.js';
 
 const root = process.cwd();
 const slidesDir = path.join(root, 'static', 'slides');
 const catalogPath = path.join(root, 'src', 'content', 'slides', 'slide_catalog.yaml');
 const chaptersDir = path.join(root, 'src', 'content', 'chapters');
+const englishChaptersDir = path.join(chaptersDir, 'en');
 
 const requiredFrontmatter = [
   'id',
@@ -109,10 +113,38 @@ function validateChapters(catalogIds) {
   // Les fichiers préfixés par « _ » (ex. _TEMPLATE.md) sont des brouillons/modèles
   // ignorés au build (voir loadChapters.js) : ils ne sont pas validés comme des chapitres.
   const files = fs.readdirSync(chaptersDir).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
-  for (const file of files) {
-    const full = path.join(chaptersDir, file);
-    const raw = fs.readFileSync(full, 'utf8');
-    const { data, content } = matter(raw);
+  const chapters = files.map((file) => ({ file, ...matter(fs.readFileSync(path.join(chaptersDir, file), 'utf8')) }));
+  const slugs = new Set(chapters.map(({ data }) => data.slug));
+  const glossaryTerms = new Set(Object.keys(glossaryEnglish));
+  const referenceIds = new Set(allRefIds);
+  const labIds = new Set(['distribution', 'accumulation', 'absorption', 'infusion', ...molecularLabIds]);
+  const english = new Map(fs.readdirSync(englishChaptersDir)
+    .filter((file) => file.endsWith('.md') && !file.startsWith('_'))
+    .map((file) => {
+      const parsed = matter(fs.readFileSync(path.join(englishChaptersDir, file), 'utf8'));
+      return [parsed.data.slug, { file, ...parsed }];
+    }));
+
+  for (const [term, details] of Object.entries(glossaryDetails)) {
+    if (!glossaryTerms.has(term)) fail(`Glossary details without a glossary term: ${term}`);
+    for (const field of ['chapter', 'exercise']) {
+      if (details[field] && !slugs.has(details[field])) fail(`Unknown ${field} ${details[field]} in glossary details for ${term}`);
+    }
+    if (details.lab && !labIds.has(details.lab)) fail(`Unknown laboratory ${details.lab} in glossary details for ${term}`);
+    for (const [relation, targets] of Object.entries(details.relations ?? {})) {
+      if (!Array.isArray(targets)) fail(`Glossary relation ${relation} must be a list for ${term}`);
+      else targets.forEach((target) => {
+        if (!glossaryTerms.has(target)) fail(`Unknown glossary relation target ${target} for ${term}`);
+      });
+    }
+  }
+  for (const reference of Object.values(refById)) {
+    if (!/^https:\/\//.test(reference.url ?? '')) fail(`Reference ${reference.id} needs an HTTPS URL`);
+    if (reference.doi && !/^10\.\d{4,9}\/.+/.test(reference.doi)) fail(`Invalid DOI format for ${reference.id}`);
+    if (reference.pmid && !/^\d+$/.test(reference.pmid)) fail(`Invalid PMID format for ${reference.id}`);
+  }
+
+  for (const { file, data, content } of chapters) {
 
     for (const field of requiredFrontmatter) {
       if (data[field] === undefined || data[field] === null || data[field] === '') {
@@ -124,9 +156,18 @@ function validateChapters(catalogIds) {
     }
     if (!Array.isArray(data.prerequisites)) {
       fail(`Frontmatter prerequisites must be a list in ${file}`);
+    } else {
+      data.prerequisites.forEach((slug) => {
+        if (slug === data.slug) fail(`Chapter ${file} cannot require itself`);
+        if (!slugs.has(slug)) fail(`Unknown prerequisite ${slug} in ${file}`);
+      });
     }
     if (!Array.isArray(data.glossary)) {
       fail(`Frontmatter glossary must be a list in ${file}`);
+    } else {
+      data.glossary.forEach((term) => {
+        if (!glossaryTerms.has(term)) fail(`Unknown glossary term ${term} in ${file}`);
+      });
     }
     if (!Array.isArray(data.slides)) {
       fail(`Frontmatter slides must be a list in ${file}`);
@@ -135,6 +176,19 @@ function validateChapters(catalogIds) {
         if (!catalogIds.has(id)) fail(`Slide ${id} referenced in ${file} is absent from catalog`);
       });
     }
+    if (!Array.isArray(data.sources) || data.sources.length === 0) {
+      fail(`Frontmatter sources must be a non-empty list in ${file}`);
+    } else {
+      data.sources.forEach((id) => {
+        if (!referenceIds.has(id)) fail(`Unknown source ${id} in ${file}`);
+      });
+    }
+    for (const field of ['updated_on', 'reviewed_on']) {
+      if (data[field] && !/^\d{4}-\d{2}-\d{2}$/.test(String(data[field]))) {
+        fail(`Invalid ${field} date in ${file}: ${data[field]}`);
+      }
+    }
+    if (!data.reviewed_on) fail(`Missing reviewed_on in ${file}`);
 
     validateQuiz(file, data.quiz);
     validateMathDelimiters(file, content);
@@ -154,7 +208,24 @@ function validateChapters(catalogIds) {
         });
       }
     });
+
+    const translation = english.get(data.slug);
+    if (!translation) {
+      fail(`Missing English translation for ${file}`);
+    } else {
+      if (translation.data.id !== data.id) fail(`English id mismatch for ${file}`);
+      if ((translation.data.quiz?.length ?? 0) !== (data.quiz?.length ?? 0)) fail(`English quiz length mismatch for ${file}`);
+      (data.quiz ?? []).forEach((question, idx) => {
+        const translated = translation.data.quiz?.[idx];
+        if (!translated) return;
+        if (translated.correct !== question.correct) fail(`English quiz answer mismatch in ${file}, question ${idx + 1}`);
+        if ((translated.options?.length ?? 0) !== (question.options?.length ?? 0)) fail(`English quiz option count mismatch in ${file}, question ${idx + 1}`);
+      });
+      if (parseSteps(translation.content).length !== steps.length) fail(`English step count mismatch for ${file}`);
+    }
   }
+
+  for (const slug of english.keys()) if (!slugs.has(slug)) fail(`English translation without French source chapter: ${slug}`);
 }
 
 function validateQuiz(file, quiz) {

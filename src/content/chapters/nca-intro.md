@@ -9,12 +9,12 @@ order: 80
 duration: "11 min"
 level: "beginner"
 tags: ["nca", "auc", "exposure", "regulatory"]
-prerequisites: []
-glossary: []
+prerequisites: ["trois-approches"]
+glossary: ["NCA", "AUC", "Cmax / Tmax", "t½", "CL"]
 slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "fda-be-statistical-2026", "mager-jusko-tmdd", "gibaldi-perrier"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "La NCA se distingue d'un modèle compartimental car elle..."
     options:
@@ -39,7 +39,7 @@ C'est la méthode de référence en **bioéquivalence** et dans les premiers sta
 <!-- step:title="Intuition" viz="04_ThreeApproaches" -->
 La NCA « laisse parler les données » : on relie les points, on mesure l'aire, on lit la pente terminale.
 
-Pas de compartiments, pas d'équations différentielles à ajuster — mais aussi pas d'extrapolation mécaniste. C'est un instrument de **mesure**, pas de **prédiction**.
+Pas de compartiments ni d'équations différentielles à ajuster : la NCA fournit des résumés descriptifs, avec une capacité d'extrapolation limitée et sans mécanisme explicite. Elle ne remplace pas un modèle prédictif lorsque la question porte sur un nouveau schéma ou une nouvelle population.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="04_ThreeApproaches" -->
@@ -55,7 +55,7 @@ Ce parcours approfondit le chapitre d'introduction du parcours fondamental ; les
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="04_ThreeApproaches" -->
-En **bioéquivalence**, on compare l'AUC et la Cmax d'un générique vs le princeps : la NCA suffit, car on ne cherche pas un mécanisme mais une **équivalence d'exposition**.
+En **bioéquivalence**, la NCA fournit les métriques d'exposition, notamment AUC et Cmax, qui alimentent ensuite l'analyse statistique du rapport test/référence. La décision ne repose donc pas sur la NCA seule.
 
 Les autorités (EMA, FDA) utilisent généralement l'**IC 90 % du ratio test/référence des moyennes géométriques** d'AUC et Cmax, souvent après transformation logarithmique, dans les limites applicables (souvent 80–125 % pour l'average bioequivalence non-scaled).
 <!-- /step -->

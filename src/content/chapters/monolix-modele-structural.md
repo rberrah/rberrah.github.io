@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "structural-model", "ode"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix", "MLXTRAN", "Modèle structural", "EDO"]
 slides: []
 sources: ["monolix", "lavielle", "savic-transit"]
 reviewed_on: "2026-07-14"

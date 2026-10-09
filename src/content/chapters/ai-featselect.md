@@ -9,8 +9,8 @@ order: 17
 duration: "12 min"
 level: "advanced"
 tags: ["ai", "feature-selection", "vsurf", "ordinal-forest"]
-prerequisites: []
-glossary: []
+prerequisites: ["math-stats", "covariates-basics"]
+glossary: ["VSURF", "Covariable"]
 slides: []
 sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
 reviewed_on: "2026-07-09"

@@ -9,8 +9,8 @@ order: 13
 duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "tdm", "limoges"]
-prerequisites: []
-glossary: []
+prerequisites: ["tdm", "ai-boosting"]
+glossary: ["XGBoost", "MAP-BE", "TDM"]
 slides: []
 sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
 reviewed_on: "2026-07-09"

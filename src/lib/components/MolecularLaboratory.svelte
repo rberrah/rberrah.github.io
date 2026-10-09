@@ -17,10 +17,11 @@
     { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et decroissance' }
   ];
   let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '', learningMode = 'guided';
-  let teacher = false, hidden = false;
+  let teacher = false, hidden = false, sourceChapter = '';
   let message = '', shared = '', loadError = '', animateParticles = true, raf = 0, last = 0, visible = true, animationArea;
   $: en = $language === 'en';
   $: config = molecularLabs[lab];
+  $: relatedChapter = sourceChapter || config?.related;
   $: if (config && activeLab !== lab) reset(lab);
   $: validation = (() => { try { return { value: validateMolecularParameters(lab, p), error: '' }; } catch (error) { return { value: null, error: String(error.message) }; } })();
   $: valid = validation.value;
@@ -83,6 +84,7 @@
   }
   function switchLab(event) {
     const next = event.currentTarget.value;
+    sourceChapter = '';
     goto(`${base}/laboratoires/?lang=${en ? 'en' : 'fr'}&lab=${next}`);
   }
   function load() {
@@ -110,6 +112,8 @@
     link.href = url; link.download = `${lab}-laboratory.csv`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   onMount(() => {
+    const from = new URLSearchParams(window.location.search).get('from') ?? '';
+    sourceChapter = /^[a-z0-9-]+$/.test(from) ? from : '';
     load(); window.addEventListener('hashchange', load);
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (!visible) pause(); });
     if (animationArea) observer.observe(animationArea);
@@ -182,7 +186,7 @@
       {#if shared}<label class="shared-link">{en ? 'Synthetic scenario link' : 'Lien du scenario synthetique'}<input readonly value={shared} on:focus={event => event.currentTarget.select()}/></label>{/if}
     </div>
   </div>
-  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${config.related}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associé'}</a><a href={`${base}/chapitres/${config.related}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pédagogique et ne constitue ni un modèle médicamenteux validé ni une recommandation de dose."}</p></div></section>
+  <section class="continuity"><BookOpen size={20}/><div><strong>{en ? 'Continue with the scientific context' : 'Poursuivre avec le contexte scientifique'}</strong><a href={`${base}/chapitres/${relatedChapter}/`}>{en ? 'Open the related course' : 'Ouvrir le cours associé'}</a><a href={`${base}/chapitres/${relatedChapter}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a><p>{en ? 'This laboratory is educational and does not constitute a validated drug model or dosing recommendation.' : "Ce laboratoire est pédagogique et ne constitue ni un modèle médicamenteux validé ni une recommandation de dose."}</p></div></section>
 </section>
 {/if}
 

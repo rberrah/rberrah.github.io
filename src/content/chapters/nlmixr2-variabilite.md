@@ -10,11 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["nlmixr2", "variability", "omega", "iiv", "iov", "covariates", "shrinkage"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["IIV", "IOV", "ω / Ω", "η", "Covariable", "Shrinkage", "Distribution lognormale"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans `ini({...})`, vous écrivez `eta.cl ~ 0.1`. Que déclare la valeur 0,1 ?"
     options:
@@ -103,7 +103,7 @@ $$ Cl_i = \underbrace{e^{t_{cl}}}_{\theta_{CL}} \cdot e^{\eta_{i,cl}} \qquad \Lo
 
 Chez NONMEM, l'`EXP` n'enveloppe que l'eta : `THETA(1)` est une clairance, en L/h, sur l'échelle **naturelle**. Chez nlmixr2, l'`exp()` enveloppe **theta et eta ensemble** : `tcl` n'est pas une clairance, c'est un logarithme de clairance, sans unité. `tcl = 1.52` ne veut rien dire tant qu'on ne l'a pas exponentié en 4,57 L/h.
 
-Cette convention n'est pas un caprice, et elle n'est pas obligatoire — `cl <- tcl * exp(eta.cl)` avec `tcl <- 4.5` fonctionne parfaitement. Si tous les exemples de nlmixr2 mettent quand même les theta sur l'échelle log, c'est pour une raison précise : **un paramètre log-transformé n'a besoin d'aucune borne**. L'exponentielle ne peut structurellement pas rendre un nombre négatif, quelle que soit la valeur de `tcl`, y compris $-40$. La positivité est garantie par la forme du modèle, pas par une contrainte imposée à l'optimiseur — et l'optimiseur, lui, travaille sur un paramètre libre, ce qui lui convient beaucoup mieux.
+Cette convention n'est pas obligatoire — `cl <- tcl * exp(eta.cl)` avec `tcl <- 4.5` fonctionne aussi. De nombreux exemples placent néanmoins les theta sur l'échelle log : **un paramètre exponentié n'a pas besoin d'une borne uniquement pour garantir sa positivité**. La forme du modèle assure cette propriété et laisse l'optimiseur travailler sur une échelle non bornée.
 
 :::key
 Écrire `tcl <- log(4.5)` plutôt que `tcl <- c(0, 4.5)`, c'est **remplacer une contrainte par une reparamétrisation**. Retenez la raison : elle explique à la fois pourquoi la convention existe, pourquoi les bornes sont rares en nlmixr2, et pourquoi la borne que vous ajouterez par réflexe sera presque toujours une erreur — on y revient dans le piège.
@@ -126,7 +126,7 @@ $$ CV = \sqrt{e^{\omega^2} - 1} $$
 Le `~ 0.1` qui traîne dans tous les tutoriels — y compris dans le chapitre précédent — n'est donc pas un chiffre magique : c'est **32 % de CV**, une supposition de départ délibérément raisonnable pour un paramètre PK. Vous avez maintenant de quoi la remplacer par la vôtre.
 
 :::pitfall
-Le contrôle réflexe est arithmétique et vaut dans les deux sens de traduction. La valeur après le `~` d'une IIV usuelle de 20 à 50 % vit entre **0,04 et 0,25**, jamais entre 0,2 et 0,5. Un modèle Monolix recopié tel quel — `sd=0.3` devenu `eta.cl ~ 0.3` — déclare 59 % de CV au lieu de 30 %. Rien ne plante, le run converge, et vous rapportez le double de la variabilité réelle.
+Le contrôle réflexe est arithmétique et vaut dans les deux sens de traduction. À titre de repère, une IIV de 20 à 50 % correspond à une variance d'environ **0,04 à 0,25** ; ce n'est pas une plage universelle. Un modèle Monolix recopié tel quel — `sd=0.3` devenu `eta.cl ~ 0.3` — déclare 59 % de CV au lieu de 30 %. Rien ne plante, et l'erreur peut passer inaperçue.
 :::
 
 ### Le bloc de covariance
@@ -157,7 +157,7 @@ L'ordre est donc `var(eta.cl)`, `cov(eta.cl, eta.v)`, `var(eta.v)` : la covarian
 Les deux blocs ci-dessus décrivent la même matrice. Seule change la façon dont **vous** écrivez la valeur initiale ; le paramètre estimé reste la covariance.
 
 :::note
-La corrélation entre $\eta_{cl}$ et $\eta_{v}$ est physiologique — un patient massif a souvent à la fois une clairance et un volume élevés. L'ignorer ne dégrade pas beaucoup l'ajustement, mais fausse les **simulations** : le modèle diagonal fabrique des patients à forte clairance et petit volume qui n'existent pas dans la nature.
+Une corrélation entre $\eta_{cl}$ et $\eta_v$ peut refléter des déterminants communs, une paramétrisation ou l'information des données ; elle n'est pas automatiquement physiologique. L'ignorer change la distribution jointe des **simulations** et peut produire des combinaisons peu plausibles. Sa précision et sa stabilité doivent être vérifiées.
 :::
 
 ### L'IOV se déclare comme un niveau
@@ -208,7 +208,7 @@ $$ Cl_i = e^{t_{cl}} \left(\frac{CRCL_i}{90}\right)^{\beta_{CRCL}} e^{\beta_{SEX
 Une covariable continue log-transformée et centrée, ajoutée avec un simple coefficient à l'intérieur de l'`exp()`, **est** le modèle puissance. C'est le `TVCL = THETA(1)*(CRCL/90)**THETA(4)` de NONMEM, écrit sans opérateur de puissance. L'allométrie sur le poids s'obtient de la même façon : `beta.cl.wt*log(WT/70)` avec `beta.cl.wt <- fix(0.75)` pour l'imposer plutôt que l'estimer.
 :::
 
-Et la règle qui vaut dans les trois logiciels : une covariable **retire à l'eta ce qu'elle explique**. `exp(tcl)` devient la clairance d'un patient de référence — ici 90 mL/min de CRCL et `SEX = 0` — et `eta.cl` ne porte plus que le reste. Une covariable qui sert se voit donc à la **baisse de l'oméga**, pas seulement à la baisse de l'OFV.
+Une covariable vise à expliquer une partie de la variabilité systématique portée jusque-là par l'eta. `exp(tcl)` devient la clairance d'un patient de référence — ici 90 mL/min de CRCL et `SEX = 0` — et `eta.cl` porte le reste. Une baisse de l'oméga peut soutenir son utilité, mais doit être interprétée avec sa plausibilité, sa précision, les diagnostics et les performances prédictives.
 
 :::note
 Réf. : documentation du projet nlmixr2 pour la syntaxe des blocs `ini()`/`model()`, les niveaux de variabilité et le contenu de l'objet `fit` ; Fidler et coll., *CPT Pharmacometrics Syst Pharmacol* pour le projet nlmixr ; Karlsson & Sheiner, *J Pharmacokinet Biopharm* 1993 pour la variabilité inter-occasion ; Savic & Karlsson, *AAPS J* 2009 pour le shrinkage.
@@ -258,7 +258,7 @@ Trois colonnes méritent qu'on s'y arrête.
 **`BSV(CV%)` vous épargne la racine carrée.** 29,9 % est le $\sqrt{e^{\omega^2}-1}$ de l'oméga de `eta.cl`. Notez que `iov.cl` apparaît sur sa propre ligne, avec sa dispersion mais sans estimation ni erreur standard : c'est un niveau de variabilité, pas un effet fixe.
 
 :::pitfall
-`%RSE` sur un theta log-transformé n'est **pas** la RSE que vous liriez dans un listing NONMEM, et ne se juge pas au même aune. Regardez `tka` : 79 % de RSE, un chiffre qui déclencherait partout ailleurs un réflexe de suppression. Mais l'intervalle rétro-transformé est (0,93 – 1,40), soit un facteur 1,5 du bas en haut — une absorption tout à fait correctement estimée. L'explication est arithmétique : la RSE est le rapport $SE/|Est|$ calculé **sur l'échelle log**, et $t_{ka} = 0{,}131$ est proche de zéro parce que $k_a$ est proche de 1 h⁻¹. Un dénominateur qui frôle zéro fait exploser le rapport sans que rien ne se dégrade. Sur un theta log-transformé, jugez l'incertitude sur l'**intervalle rétro-transformé**, jamais sur le `%RSE`.
+`%RSE` sur un theta log-transformé n'a pas la même interprétation qu'une RSE sur l'échelle naturelle. Regardez `tka` : 79 % de RSE, alors que l'intervalle rétro-transformé est (0,93–1,40). Le rapport $SE/|Est|$ est calculé **sur l'échelle log** et explose lorsque l'estimation est proche de zéro, ici parce que $k_a$ est proche de 1 h⁻¹. Pour un theta log-transformé, interprétez surtout l'**intervalle rétro-transformé** et son contexte plutôt qu'un seuil brut de `%RSE`.
 :::
 
 ### Les objets à interroger
@@ -293,10 +293,10 @@ Et le shrinkage, déjà présent dans la colonne `Shrink(SD)%` :
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-$\eta_{cl}$ est à 7,6 % : informée par la courbe entière, la clairance individuelle est fiable. $\eta_{ka}$ est à 45,3 %, et la raison se lit dans le protocole — seul le jour 1 porte des prélèvements précoces, donc la phase d'absorption n'est renseignée qu'à moitié des occasions. Chez les patients concernés, l'estimation individuelle **retombe vers la population**.
+$\eta_{cl}$ est à 7,6 % : informés par la courbe entière, ses diagnostics individuels sont ici plus informatifs, sans que ce chiffre garantisse leur exactitude. $\eta_{ka}$ est à 45,3 %, et la raison se lit dans le protocole — seul le jour 1 porte des prélèvements précoces. Chez les patients concernés, l'estimation individuelle **retombe vers la population**.
 
 :::recall
-Le shrinkage disqualifie les **etas individuels** comme outil de diagnostic, pas les **paramètres de population**. L'oméga de `eta.ka` reste estimé sur l'ensemble des 44 sujets et garde son sens même quand `fit$eta` est muet patient par patient. Concrètement : à 45 % de shrinkage, un graphique de `eta.ka` contre le poids ne tranche rien, ni dans un sens ni dans l'autre — on teste la covariable **dans le modèle**, on ne la juge pas sur le nuage.
+Un shrinkage important rend les diagnostics fondés sur les **etas individuels** moins informatifs ; il n'invalide pas automatiquement les **paramètres de population**. L'oméga de `eta.ka` reste estimé sur l'ensemble des sujets, mais sa précision doit être vérifiée. À 45 % de shrinkage, un graphique de `eta.ka` contre le poids ne suffit pas pour trancher : la covariable doit être évaluée **dans le modèle** avec d'autres diagnostics.
 :::
 <!-- /step -->
 
@@ -338,7 +338,7 @@ tka <- log(1.2)           # aucune borne, et c est volontaire
 ```
 
 :::recall
-La borne n'était pas seulement **mal échelonnée** : elle était **inutile**. `exp()` ne peut pas rendre un nombre négatif, quelle que soit la valeur de `tka` — la positivité est déjà garantie par la forme du modèle. C'est précisément le marché que vous avez accepté en adoptant la convention log : vous avez troqué la contrainte contre la reparamétrisation, et il ne faut pas payer les deux. Règle de terrain : sur un paramètre enveloppé d'`exp()`, ne mettez **aucune** borne. Si vous en écrivez une malgré tout, demandez-vous à voix haute quelle valeur elle interdit **sur l'échelle naturelle** — et vérifiez que ce n'est pas une valeur que vos patients pourraient avoir.
+La borne était **mal échelonnée** et inutile pour assurer la positivité : `exp()` garantit déjà cette propriété. Règle de terrain : n'ajoutez pas de borne à un paramètre exponentié dans le seul but de le rendre positif. Si une contrainte est scientifiquement justifiée pour une autre raison, traduisez-la sur l'échelle naturelle et vérifiez les valeurs qu'elle exclut.
 :::
 <!-- /step -->
 
@@ -348,7 +348,7 @@ La borne n'était pas seulement **mal échelonnée** : elle était **inutile**. 
 - La valeur après le `~` est une **variance**, comme l'`$OMEGA` de NONMEM et à l'inverse de la `sd` de Monolix. $CV = \sqrt{e^{\omega^2}-1}$ ; le `~ 0.1` des tutoriels vaut 32 % de CV ; une IIV usuelle vit entre 0,04 et 0,25.
 - `eta.cl + eta.v ~ c(0.1, 0.05, 0.1)` donne le **triangle inférieur** de la covariance : la covariance est au **milieu**. `cor()` permet de saisir SD et corrélation à la place.
 - L'IOV est un **niveau** (`iov.cl ~ 0.03 | occ`) : une seule variance quel que soit le nombre d'occasions, donc pas de `SAME` à écrire. Sans elle, l'IIV absorbe l'IOV et se retrouve surestimée.
-- Les covariables sont du R ordinaire dans `model({})`, sans bloc dédié. Sur l'échelle log, `beta*log(CRCL/90)` **est** le modèle puissance. Une bonne covariable fait baisser l'oméga, pas seulement l'OFV.
+- Les covariables sont du R ordinaire dans `model({})`, sans bloc dédié. Sur l'échelle log, `beta*log(CRCL/90)` **est** le modèle puissance. Une baisse d'oméga peut soutenir l'effet, avec les autres critères de sélection et de validation.
 - Sur un theta log-transformé, le `%RSE` est trompeur près de zéro : jugez sur l'**intervalle rétro-transformé**. `fit$omegaR` se lit sans calcul ; l'information des graphiques eta-covariable décroît avec le shrinkage, 20–30 % restant une heuristique d'alerte.
 - Ne mettez **aucune borne** sur un paramètre enveloppé d'`exp()` : elle est inutile et son échelle est trompeuse. SAEM les ignore en vous prévenant, FOCEI les applique en silence — le moteur dangereux est celui qui se tait.
 <!-- /step -->

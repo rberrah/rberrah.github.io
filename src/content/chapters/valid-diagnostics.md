@@ -13,7 +13,8 @@ prerequisites: ["valid-gof", "valid-vpc", "valid-npde"]
 glossary: ["GOF", "PRED / IPRED", "Résidus (WRES/CWRES/IWRES/NPDE)", "VPC", "Binning"]
 slides: []
 sources: ["hooker-cwres", "karlsson-holford-vpc", "brendel-npde", "savic-karlsson-shrinkage"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Aucun graphique diagnostique unique ne suffit ; on les croise parce que..."
     options:
@@ -51,7 +52,7 @@ Un bon modèle aligne observations et prédictions sur la diagonale, et laisse d
 Le **catalogue** des graphiques et leur lecture :
 
 - **DV vs PRED / DV vs IPRED** — justesse (population / individuel). Bon : nuage **sur la diagonale**. Mauvais : nuage **incurvé** (compartiment ou non-linéarité manquant).
-- **CWRES vs temps** et **CWRES vs PRED** — neutralité. Bon : centrés sur **0**, sans tendance, ~95 % dans $[-2,2]$. Mauvais : **tendance** (mauvais modèle structural).
+- **CWRES vs temps** et **CWRES vs PRED** — neutralité. Si l'approximation $mathcal{N}(0,1)$ est raisonnable : centrés sur **0**, sans tendance, environ 95 % dans $[-2,2]$. Une **tendance** suggère une mauvaise spécification structurale, covariable ou résiduelle à investiguer ; ce repère n'est pas un test d'acceptation.
 - **|IWRES| vs PRED** — modèle d'**erreur résiduelle**. Bon : nuage **plat**. Mauvais : en **entonnoir** (hétéroscédasticité → passer d'une erreur additive à combinée).
 - **Histogramme / QQ-plot des résidus** — normalité. Bon : cloche centrée. Mauvais : asymétrie, queues lourdes.
 - **VPC / pcVPC** — le modèle **régénère-t-il** les données ? (chapitre dédié).

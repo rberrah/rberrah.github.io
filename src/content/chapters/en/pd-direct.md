@@ -67,12 +67,12 @@ With Hill = 1, $5\times EC_{50}$ gives only $5/6$, or **83.3% of $E_{max}$**: ra
 <!-- step:title="Common pitfall" -->
 A linear model extrapolates poorly.
 
-**Pitfall —** fitting a **straight line** to concentration–effect data that saturate overestimates the effect at high doses. And an $EC_{50}$ is identifiable only if concentrations **around** it were observed; otherwise it is poorly estimated.
+**Pitfall —** fitting a **straight line** to concentration–effect data that saturate overestimates the effect at high doses. Estimating $E_{max}$ and $EC_{50}$ separately generally requires information around the curve and towards the plateau; otherwise they may be very imprecise or correlated.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Direct effect = the effect follows concentration with no delay.
 - Sigmoid Emax: E0, Emax, EC50, n (Hill = steepness).
 - Linear/log-linear = approximations over a narrow range.
-- Identifying EC50 requires concentrations around its value.
+- Identifying EC50 and Emax separately requires a sufficiently informative concentration range.
 <!-- /step -->

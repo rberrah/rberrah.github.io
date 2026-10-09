@@ -9,11 +9,12 @@ order: 70
 duration: "13 min"
 level: "advanced"
 tags: ["pbpk", "physiology", "blood-flow", "mechanistic"]
-prerequisites: []
-glossary: []
+prerequisites: ["clairance-volume-demi-vie", "trois-approches"]
+glossary: ["PBPK", "CL", "V", "Q"]
 slides: []
 sources: ["jones-rowland-yeo", "kuepfer-pbpk", "rowland-peck-tucker"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans un modèle PBPK, les compartiments représentent..."
     options:
@@ -29,7 +30,7 @@ quiz:
     correct: 0
   - prompt: "L'atout majeur de la PBPK est de..."
     options:
-      - "extrapoler entre espèces, doses et populations via la physiologie"
+      - "soutenir des extrapolations entre espèces, doses et populations lorsque le modèle est qualifié pour cet usage"
       - "ajuster empiriquement ses paramètres aux données observées"
       - "réduire le nombre de paramètres par rapport aux modèles empiriques"
     correct: 0
@@ -38,7 +39,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 La **PBPK** (physiologically-based PK) construit le modèle à partir de la **physiologie réelle** : chaque compartiment représente souvent un organe ou un tissu, relié aux autres par le sang. Contrairement aux modèles purement empiriques, beaucoup de paramètres ont un **sens biologique**, même si des scalars, regroupements et paramètres ajustés restent possibles.
 
-Cela permet d'**extrapoler** là où les données manquent : animal → homme, adulte → enfant, interactions médicamenteuses.
+Un modèle PBPK peut **soutenir une extrapolation** là où les données manquent — animal → humain, adulte → enfant, interactions médicamenteuses — lorsqu'il a été qualifié pour cet usage prévu.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="01_HumanBody" -->
@@ -64,9 +65,9 @@ Réf. : Jones H. & Rowland-Yeo K., *Basic concepts in PBPK modeling* (CPT:PSP 20
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="01_HumanBody" -->
-Pour prédire la PK chez l'**enfant**, on ajuste les débits, volumes et maturités enzymatiques selon l'âge — la structure du modèle, elle, reste la même.
+Pour évaluer un scénario PK chez l'**enfant**, on ajuste les débits, volumes et maturités enzymatiques selon l'âge. La structure peut être conservée si cette hypothèse est justifiée et vérifiée pour la population étudiée.
 
-C'est pourquoi la PBPK est de plus en plus acceptée par les **autorités** pour justifier des doses pédiatriques ou évaluer des interactions.
+C'est pourquoi la PBPK peut informer la sélection d'une dose pédiatrique à tester ou l'évaluation d'une interaction, dans un contexte réglementaire défini et après qualification du modèle pour cet usage.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -80,6 +81,6 @@ Un modèle PBPK cumule **beaucoup de paramètres** (débits, Kp, fractions libre
 <!-- step:title="À retenir" -->
 - PBPK = compartiments physiologiques (organes) reliés par les débits sanguins.
 - Organe perfusion-limited : bilan de masse avec Q_T, V_T et le partage Kp.
-- Force : extrapolation inter-espèces, pédiatrie, interactions (via la physiologie).
+- Force : soutien mécaniste à des extrapolations inter-espèces, pédiatriques ou d'interactions, sous réserve d'une qualification adaptée.
 - Faiblesse : nombreux paramètres et hypothèses à vérifier.
 <!-- /step -->

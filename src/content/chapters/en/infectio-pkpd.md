@@ -41,8 +41,8 @@ Three questions: **how long** do we stay above the MIC? **How high** is the peak
 The three indices (Craig, 1998):
 
 - **T > MIC** (time-dependent): beta-lactams. Optimised by **prolonged/continuous infusions**.
-- **Cmax / MIC** (concentration-dependent): aminoglycosides, fluoroquinolones. Optimised by **large spaced doses**.
-- **AUC / MIC**: fluoroquinolones, glycopeptides. For vancomycin in serious MRSA infections, the 2020 consensus recommends an **AUC₂₄ of 400–600 mg·h/L when MIC is 1 mg/L by broth microdilution**. That condition and the MIC method must remain explicit in interpretation.
+- **Cmax / MIC** (concentration-dependent): a classic aminoglycoside index; it can also be informative for some fluoroquinolones depending on the drug, pathogen and endpoint.
+- **fAUC / MIC**: the principal index most often retained for fluoroquinolones, using unbound exposure when the target was defined that way. For vancomycin in serious MRSA infections, the 2020 consensus recommends an **AUC₂₄ of 400–600 mg·h/L when MIC is 1 mg/L by broth microdilution**. That condition and the MIC method must remain explicit in interpretation.
 
 $$ \%T_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{AUC_{24}}{MIC} $$
 
@@ -63,7 +63,7 @@ The MIC is not an exact constant.
 
 <!-- step:title="Key takeaways" -->
 - Antibiotic efficacy depends on the shape of exposure vs MIC.
-- T>MIC (beta-lactams), Cmax/MIC (aminoglycosides), AUC/MIC (fluoroquinolones, vancomycin).
-- Bactericidal killing often follows an Emax; the free fraction is what counts.
+- T>MIC (beta-lactams), Cmax/MIC (aminoglycosides), fAUC/MIC as the principal fluoroquinolone index, and AUC/MIC for vancomycin in its validated setting.
+- Unbound exposure at the relevant site is often mechanistically active, but unbound fraction, unbound concentration and the validated index are not interchangeable.
 - MIC and inoculum introduce uncertainty.
 <!-- /step -->

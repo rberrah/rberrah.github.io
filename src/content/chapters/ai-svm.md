@@ -9,8 +9,8 @@ order: 16
 duration: "13 min"
 level: "advanced"
 tags: ["ai", "svm", "classification", "kernel"]
-prerequisites: []
-glossary: []
+prerequisites: ["math-stats"]
+glossary: ["White / black / grey box"]
 slides: []
 sources: ["cortes-vapnik-svm", "hastie-esl"]
 reviewed_on: "2026-07-09"

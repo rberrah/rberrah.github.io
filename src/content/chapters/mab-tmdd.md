@@ -13,11 +13,12 @@ prerequisites: ["mab-pk", "clairance-volume-demi-vie"]
 glossary: ["Michaelis-Menten", "CL", "AUC"]
 slides: []
 sources: ["mager-jusko-tmdd", "gibiansky-qss", "ryman-meibohm"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Le TMDD (target-mediated drug disposition) produit une PK..."
     options:
-      - "non linéaire : la clairance diminue quand la dose augmente"
+      - "souvent non linéaire lorsque liaison et internalisation ajoutent une voie d'élimination saturable"
       - "linéaire : la liaison à la cible ne modifie pas l'élimination"
       - "non linéaire : la clairance augmente quand la dose augmente"
     correct: 0
@@ -32,13 +33,13 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Beaucoup d'anticorps se lient à une **cible** (récepteur, cytokine). Or cette liaison, suivie de l'internalisation du complexe, constitue une **voie d'élimination** — c'est la **TMDD** (target-mediated drug disposition).
 
-Résultat : une PK **non linéaire**, où la clairance dépend de la dose. Ignorer cela conduit à mal extrapoler les schémas.
+Lorsque la liaison à la cible suivie d'internalisation contribue à l'élimination, le résultat canonique est une PK **non linéaire**, où la clairance apparente dépend de la dose. Toute liaison à une cible ne produit toutefois pas ce profil.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="54_TMDD" -->
 À **faible concentration**, presque tout le médicament trouve une cible libre : la liaison domine, l'élimination est rapide et **saturable**.
 
-À **forte concentration**, la cible est **saturée** : la voie cible devient négligeable, et la PK redevient **linéaire** (catabolisme lent seul). D'où une clairance qui **diminue** quand la dose augmente.
+À **forte concentration**, la cible est **saturée** : dans le modèle TMDD canonique avec internalisation, la contribution relative de cette voie diminue et la PK se rapproche de la voie linéaire. La clairance apparente peut alors **diminuer** quand la dose augmente ; ce n'est pas une règle universelle de toute liaison médicament-cible.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="54_TMDD" -->
@@ -58,7 +59,7 @@ Chaque terme se lit :
 En pratique, on utilise souvent l'approximation **quasi-steady-state (QSS)** de ce système (Gibiansky & Gibiansky, 2008), qui le réduit à une forme de type **Michaelis-Menten**. QSS n'est pas le quasi-équilibre : l'internalisation du complexe compte dans la constante apparente, d'où $K_{ss} = (k_{off}+k_{int})/k_{on}$.
 
 :::howto
-**La métaphore du parking.** La cible, ce sont des places de parking. À faible dose (peu de voitures), chaque molécule trouve vite une place et y est « retirée » de la circulation : élimination rapide. À forte dose, toutes les places sont **prises** (cible saturée) : les molécules en trop restent dans le sang et ne partent que par la voie lente. D'où une clairance qui **baisse** quand la dose monte.
+**La métaphore du parking.** Dans le cas canonique où le complexe est internalisé, la cible ressemble à des places qui retirent les molécules de la circulation. À forte dose, ces places saturent : la contribution de cette voie plafonne et la clairance apparente peut baisser. Sans élimination significative du complexe, la métaphore ne prédit pas à elle seule ce comportement.
 
 **Côté maths.** Le terme $k_{on}\,C\cdot R$ est la vitesse de « garage » : proportionnelle aux molécules libres $C$ **et** aux places libres $R$. Quand $R\to 0$ (saturation), ce terme s'éteint et il ne reste que $-k_{el}C$ (catabolisme lent) : la PK redevient linéaire.
 :::
@@ -71,7 +72,7 @@ Réf. : Mager D.E. & Jusko W.J., *J Pharmacokinet Pharmacodyn* 2001 (modèle TMD
 <!-- step:title="Exemple concret" viz="54_TMDD" -->
 Sur un profil concentration–temps en semi-log, la TMDD donne une **courbure** caractéristique : chute rapide à basse concentration (cible active) puis pente lente (cible saturée).
 
-Doubler la dose **plus que double** l'exposition — la clairance ayant baissé.
+Dans ce scénario canonique, doubler la dose peut **plus que doubler** l'exposition parce que la voie médiée par la cible sature.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -85,6 +86,6 @@ Estimer CL et V à une dose puis prédire une autre dose comme si la PK était l
 <!-- step:title="À retenir" -->
 - La liaison à la cible + internalisation = voie d'élimination (TMDD) → PK non linéaire.
 - Basse [C] : élimination cible rapide, saturable ; forte [C] : cible saturée, PK quasi linéaire.
-- La clairance diminue quand la dose augmente.
+- Dans le TMDD canonique avec élimination du complexe, la clairance apparente peut diminuer quand la dose augmente ; vérifier le mécanisme et les données.
 - Modèle de Mager & Jusko ; approximations de Michaelis-Menten en pratique.
 <!-- /step -->

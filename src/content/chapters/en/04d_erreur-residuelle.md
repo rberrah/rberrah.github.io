@@ -42,7 +42,7 @@ It bundles the **measurement** error (assay), the **sampling-time** errors, and 
 <!-- step:title="Intuition" viz="61_ResidualError" -->
 Two opposite ways to "miss": with a **constant width** (the assay has a ±0.5 mg/L precision whatever the concentration) or with a **percentage** (±10% of the value, so wider when the concentration is high).
 
-Toggle between additive, proportional and combined: the error band should contain ~95% of the real points. That is the trade-off we seek.
+Toggle between additive, proportional and combined. Under a correctly specified Gaussian model, a 95% prediction interval is constructed to cover about 95% of observations over comparable repetitions; some points outside the band remain expected.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="61_ResidualError" -->

@@ -9,11 +9,12 @@ order: 40
 duration: "13 min"
 level: "intermediate"
 tags: ["infectious-diseases", "pkpd-index", "mic", "antibiotics"]
-prerequisites: []
-glossary: []
+prerequisites: ["pkpd", "nca-auc"]
+glossary: ["CMI", "PTA", "AUC", "Cmax / Tmax"]
 slides: []
 sources: ["craig-pkpd", "rybak-vanco", "eucast", "goutelle-hill"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Pour les bêta-lactamines, l'indice PK/PD prédictif d'efficacité est..."
     options:
@@ -45,8 +46,8 @@ Trois questions : **combien de temps** reste-t-on au-dessus de la CMI ? **Quelle
 Les trois indices (Craig, 1998) :
 
 - **T > CMI** (temps-dépendant) : bêta-lactamines. On l'optimise par des **perfusions prolongées/continues**.
-- **Cmax / CMI** (concentration-dépendant) : aminosides, fluoroquinolones. On l'optimise par de **fortes doses espacées**.
-- **AUC / CMI** : fluoroquinolones, glycopeptides. Pour la vancomycine dans les infections graves à MRSA, le consensus 2020 recommande une **AUC₂₄ de 400–600 mg·h/L lorsque la CMI vaut 1 mg/L par microdilution en bouillon**. Cette condition et la méthode de CMI doivent être conservées dans l'interprétation.
+- **Cmax / CMI** (concentration-dépendant) : indice classique des aminosides ; il peut aussi être informatif pour certaines fluoroquinolones selon le médicament, le pathogène et le critère étudié.
+- **fAUC / CMI** : indice principal le plus souvent retenu pour les fluoroquinolones, avec l'exposition libre lorsque la cible a été définie ainsi. Pour la vancomycine dans les infections graves à MRSA, le consensus 2020 recommande une **AUC₂₄ de 400–600 mg·h/L lorsque la CMI vaut 1 mg/L par microdilution en bouillon**. Cette condition et la méthode de CMI doivent être conservées dans l'interprétation.
 
 $$ \%T_{>CMI}, \qquad \frac{C_{max}}{CMI}, \qquad \frac{AUC_{24}}{CMI} $$
 
@@ -71,7 +72,7 @@ La CMI varie d'un germe à l'autre et par dilutions (facteur 2). Les indices son
 
 <!-- step:title="À retenir" -->
 - L'efficacité antibiotique dépend de la forme de l'exposition vs CMI.
-- T>CMI (bêta-lactamines), Cmax/CMI (aminosides), AUC/CMI (fluoroquinolones, vancomycine).
-- La bactéricidie suit souvent un Emax ; la fraction libre est ce qui compte.
+- T>CMI (bêta-lactamines), Cmax/CMI (aminosides), fAUC/CMI comme indice principal des fluoroquinolones, AUC/CMI pour la vancomycine dans son cadre validé.
+- L'exposition libre au site pertinent est souvent la quantité mécanistement active, mais fraction libre, concentration libre et indice validé ne sont pas interchangeables.
 - La CMI et l'inoculum introduisent de l'incertitude.
 <!-- /step -->

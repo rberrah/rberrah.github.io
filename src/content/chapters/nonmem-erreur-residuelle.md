@@ -10,11 +10,11 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nonmem", "error-model", "bql", "residuals"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["Erreur additive", "Erreur proportionnelle", "Erreur combinée", "ε / σ", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
 sources: ["nonmem", "beal-bql", "hooker-cwres", "berrah-residual"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Avec une erreur proportionnelle ou combinée, l'option INTER du bloc ESTIMATION est nécessaire parce que..."
     options:
@@ -103,9 +103,9 @@ Trois bénéfices : on lit les termes **en unités physiques** (0,08 mg/L et 13 
 
 $$ \text{IWRES}_{ij} = \frac{y_{ij} - \text{IPRED}_{ij}}{W_{ij}} $$
 
-- **IWRES** compare l'observation à la prédiction **du sujet** : il juge le modèle d'erreur lui-même, et lui seul.
-- **CWRES** est un résidu de **population**, linéarisé autour de l'ETA estimé du sujet — donc cohérent avec ce que FOCE optimise. Il doit ressembler à un $\mathcal{N}(0,1)$ ; ses motifs trahissent le modèle **structural** ou les covariables.
-- **WRES** reste calculé sous l'approximation **FO**, autour de $\eta = 0$, y compris après une estimation FOCE. Il est donc incohérent avec le modèle ajusté et signale régulièrement des défauts qui n'existent pas. C'est un vestige : CWRES l'a remplacé.
+- **IWRES** compare l'observation à la prédiction **du sujet** : il est particulièrement utile pour évaluer le modèle d'erreur, mais peut aussi refléter une mauvaise spécification structurelle ou individuelle.
+- **CWRES** est un résidu de **population** construit pour tenir compte de l'approximation conditionnelle. Sous les hypothèses et approximations du modèle, on attend un comportement proche de $\mathcal{N}(0,1)$ ; des motifs suggèrent une mauvaise spécification structurelle, covariable ou résiduelle à investiguer.
+- **WRES** repose sur l'approximation **FO**, autour de $\eta = 0$. Après une estimation FOCE, les CWRES sont généralement plus cohérents avec la méthode ajustée ; WRES reste une sortie possible, mais doit être interprété en connaissant cette approximation.
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
@@ -119,7 +119,7 @@ Quinze pour cent sur CL, ce n'est pas une coquetterie de modélisateur : en dosa
 
 **Les sept méthodes de Beal** — M1 écarte les BQL ; M2 les écarte mais conditionne la vraisemblance des points restants au fait d'être au-dessus de la LOQ ; **M3** les traite en données **censurées** ; M4 ajoute à M3 la contrainte de positivité ; M5 les remplace par LOQ/2 ; M6 ne garde que le premier BQL d'une série, à LOQ/2 ; M7 les remplace par zéro.
 
-M3 est le choix de référence dès que la proportion de BQL dépasse quelques pour cent. Son principe : un point censuré n'apporte pas une valeur, mais une **information** — « la concentration était quelque part sous 0,25 ». On l'écrit comme une **probabilité**, celle que le point tombe sous la LOQ, via la fonction de répartition normale `PHI` :
+M3 est une approche couramment privilégiée lorsque les BQL ne sont pas négligeables, mais le choix dépend du mécanisme de censure, de leur proportion et du modèle. Son principe : un point censuré n'apporte pas une valeur, mais une **information** — « la concentration était quelque part sous 0,25 ». On l'écrit comme une **probabilité**, celle que le point tombe sous la LOQ, via la fonction de répartition normale `PHI` :
 
 ```
 $ERROR
@@ -163,6 +163,6 @@ Avec FOCE, dès que le modèle d'erreur fait dépendre la variance résiduelle d
 - Trois formes : additive (`Y = F + EPS(1)`), proportionnelle (`Y = F*(1+EPS(1))`), combinée (`Y = F*(1+EPS(1)) + EPS(2)`). La variance résiduelle se déclare en **variance**, pas en écart-type.
 - Préférer la paramétrisation par `W` avec une variance fixée à 1 : termes lisibles en unités physiques, positivité garantie, IWRES disponible.
 - Sous FOCE, utilisez `INTER` dès que la variance résiduelle dépend de la prédiction individuelle ; l'effet disparaît généralement avec une erreur strictement additive homoscédastique.
-- BQL : M1 tronque la queue par le bas et sous-estime la clairance ; M3 traite les points comme **censurés** (`F_FLAG` à 1, `PHI`, `LAPLACIAN`) et reste le choix par défaut au-delà de quelques pour cent de BQL.
-- Diagnostics : **IWRES** juge le modèle d'erreur, **CWRES** juge le reste, **WRES** est un vestige calculé sous FO.
+- BQL : supprimer les valeurs sous LOQ peut biaiser les paramètres ; M3 les traite comme **censurées** (`F_FLAG` à 1, `PHI`, `LAPLACIAN`) et constitue souvent une option adaptée lorsque leur proportion n'est pas négligeable.
+- Diagnostics : **IWRES** informe surtout le modèle d'erreur, **CWRES** les diagnostics population sous l'approximation conditionnelle, et **WRES** doit être lu en tenant compte de son approximation FO.
 <!-- /step -->

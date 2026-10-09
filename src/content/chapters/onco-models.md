@@ -9,8 +9,8 @@ order: 32
 duration: "15 min"
 level: "advanced"
 tags: ["oncology", "tumor-growth", "models", "catalog"]
-prerequisites: []
-glossary: []
+prerequisites: ["pd-direct", "pd-indirect"]
+glossary: ["PD", "Emax", "Réponse indirecte / turnover"]
 slides: []
 sources: ["simeoni", "claret-tgi-os", "stein-tumor-growth", "friberg"]
 reviewed_on: "2026-07-09"

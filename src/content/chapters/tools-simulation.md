@@ -13,8 +13,8 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["mrgsolve", "nlmixr2 / rxode2", "VPC", "Jumeau numérique"]
 slides: []
 sources: ["mrgsolve", "fidler-nlmixr", "bergstrand-pcvpc", "mould-upton"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "mrgsolve et rxode2 servent surtout à..."
     options:
@@ -64,14 +64,14 @@ La simulation réutilise le **modèle estimé** (θ, Ω, Σ). Pour une prédicti
 <!-- step:title="Exemple concret" viz="21_PopPKPlayground" -->
 Pour une **VPC**, on simule des centaines de jeux sous le modèle et on compare les percentiles aux observations. Pour un **essai virtuel** à paramètres générateurs fixés, on estime d'abord une fréquence de succès conditionnelle, c'est-à-dire une caractéristique opératoire ou une puissance sous ce scénario. Le terme probabilité de succès/assurance suppose d'intégrer l'incertitude pertinente sur les paramètres ou les scénarios.
 
-mrgsolve rend ces simulations quasi instantanées, même sur des dizaines de milliers de sujets.
+mrgsolve peut exécuter rapidement de grandes simulations, mais le temps dépend du modèle, du nombre d'événements, des sorties demandées et du matériel.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
 Une simulation hérite des faiblesses du modèle.
 
 :::pitfall
-« Garbage in, garbage out » : une simulation n'est fiable que si le modèle est **validé** et si la question précise ce qui est propagé. Simuler hors du **domaine** des données (doses, populations non observées) est une extrapolation risquée.
+« Garbage in, garbage out » : une simulation n'est interprétable pour une décision que si le modèle est **qualifié pour cet usage** et si la question précise ce qui est propagé. Simuler hors du **domaine** des données (doses, populations non observées) est une extrapolation dont l'incertitude doit être explicitée.
 :::
 <!-- /step -->
 

@@ -32,7 +32,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-The very first human dose is decided **without human data**: it must be extrapolated from animals and pharmacology. Too high a dose is dangerous (the **TGN1412** disaster showed this), too low delays development.
+The very first human dose is selected **without prior clinical human exposure data**: nonclinical evidence, pharmacology and any other relevant human information must be integrated. Too high a dose is dangerous (the **TGN1412** disaster showed this), too low delays development.
 
 Pharmacometrics provides a rational framework integrating several lines of evidence: NOAEL/MRSD, **MABEL** and, depending on context, pharmacologically active dose (PAD).
 <!-- /step -->
@@ -68,7 +68,7 @@ The NOAEL is not always protective.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- The FIH starting dose is extrapolated from animals and pharmacology, without human data.
+- The FIH starting dose integrates nonclinical evidence and pharmacology before clinical human exposure data for the product are available.
 - NOAEL → HED (allometry) → MRSD (safety factors).
 - MABEL/PAD: pharmacology-based approach integrating exposure, target, potency, PK/PD and uncertainty.
 - For highly active molecules, integrate MABEL/PAD and NOAEL cautiously rather than mechanically prioritising one over the other.

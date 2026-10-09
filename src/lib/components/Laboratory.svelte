@@ -12,12 +12,13 @@
   import LabDebrief from './LabDebrief.svelte';
   let lab = 'distribution', p = { ...defaults.distribution }, reference = { ...p };
   let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition', learningMode = 'guided';
-  let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '';
+  let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '', sourceChapter = '';
   let root, animationArea, raf = 0, last = 0, visible = true, ready = false;
   let animateParticles = true;
   $: en = $language === 'en';
   $: titles = en ? { distribution: 'Two-compartment distribution', accumulation: 'Accumulation and repeated doses', absorption: 'Oral absorption and bioavailability', infusion: 'IV infusion and washout' } : { distribution: 'Distribution à deux compartiments', accumulation: 'Accumulation et doses répétées', absorption: 'Absorption orale et biodisponibilité', infusion: 'Perfusion IV et décroissance après arrêt' };
   $: newLab = ['absorption', 'infusion'].includes(lab);
+  $: relatedChapter = sourceChapter || ({ distribution: 'clairance-volume-demi-vie', accumulation: 'doses-repetees', absorption: 'absorption-orale', infusion: 'perfusion' })[lab];
   $: route = lab === 'absorption' ? (en ? 'Oral' : 'Orale') : lab === 'infusion' ? (en ? 'IV infusion' : 'Perfusion IV') : 'IV bolus';
   $: validation = (() => { try { return { value: validateParameters(lab, p), error: '' }; } catch (e) { return { value: null, error: String(e.message) }; } })();
   $: valid = validation.value;
@@ -49,7 +50,7 @@
   $: if (!teacher) hidden = false;
   $: if (hidden || !valid) pause();
   function pause() { playing = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
-  function select(next) { pause(); lab = next; p = { ...defaults[next] }; reference = { ...p }; time = 0; prediction = ''; answer = false; loadError = ''; message = ''; shared = ''; }
+  function select(next) { pause(); lab = next; sourceChapter = ''; p = { ...defaults[next] }; reference = { ...p }; time = 0; prediction = ''; answer = false; loadError = ''; message = ''; shared = ''; }
   function change(key, event) { pause(); p = { ...p, [key]: event.currentTarget.valueAsNumber }; time = 0; answer = false; shared = ''; }
   function play() {
     if (!valid || hidden || playing) return;
@@ -65,13 +66,15 @@
   }
   function load() {
     try {
-      const query = new URLSearchParams(window.location.search); query.delete('lang');
+      const query = new URLSearchParams(window.location.search); query.delete('lang'); query.delete('from');
       const spec = decodeScenario(window.location.hash || query.toString());
       if (!spec) return;
       pause(); lab = spec.lab; p = spec.parameters; reference = spec.reference; teacher = spec.teacher; hidden = spec.hidden; time = 0; loadError = ''; answer = false; prediction = '';
     } catch { loadError = en ? 'Invalid shared scenario. No values were applied.' : "Scénario partagé invalide. Aucune valeur n'a été appliquée."; }
   }
   onMount(() => {
+    const from = new URLSearchParams(window.location.search).get('from') ?? '';
+    sourceChapter = /^[a-z0-9-]+$/.test(from) ? from : '';
     load(); ready = true; window.addEventListener('hashchange', load);
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (!visible) pause(); }); observer.observe(animationArea);
     const visibility = () => { if (document.hidden) pause(); };
@@ -185,7 +188,7 @@
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/ddi/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
     <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une reponse PD'}</button>
-  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{:else}<a href={`${base}/chapitres/${lab === 'distribution' ? 'clairance-volume-demi-vie' : 'doses-repetees'}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associé'}</a><a href={`${base}/chapitres/${lab === 'distribution' ? 'clairance-volume-demi-vie' : 'doses-repetees'}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a>{/if}</section>
+  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{/if}<a href={`${base}/chapitres/${relatedChapter}/`}>{en ? 'Return to the related chapter' : 'Revenir au chapitre associé'}</a><a href={`${base}/chapitres/${relatedChapter}/#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a></section>
 </section>
 
 <style>

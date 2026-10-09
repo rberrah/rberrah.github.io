@@ -10,7 +10,7 @@ duration: "13 min"
 level: "intermediate"
 tags: ["maths", "statistics", "distributions", "confidence-interval"]
 prerequisites: []
-glossary: []
+glossary: ["DoF", "RSE", "Identifiabilité"]
 slides: []
 sources: ["wilks-1938", "asa-pvalue", "davidian-giltinan", "mould-upton"]
 reviewed_on: "2026-07-09"

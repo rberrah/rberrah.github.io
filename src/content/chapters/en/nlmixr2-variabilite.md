@@ -102,7 +102,7 @@ $$ Cl_i = \underbrace{e^{t_{cl}}}_{\theta_{CL}} \cdot e^{\eta_{i,cl}} \qquad \Lo
 
 In NONMEM the `EXP` wraps the eta only: `THETA(1)` is a clearance, in L/h, on the **natural** scale. In nlmixr2 the `exp()` wraps **theta and eta together**: `tcl` is not a clearance, it is the logarithm of one, and it has no units. `tcl = 1.52` means nothing until you exponentiate it into 4.57 L/h.
 
-That convention is not a whim, and it is not compulsory — `cl <- tcl * exp(eta.cl)` with `tcl <- 4.5` works perfectly well. If every nlmixr2 example nevertheless puts thetas on the log scale, it is for a precise reason: **a log-transformed parameter needs no bound at all**. An exponential structurally cannot return a negative number, whatever the value of `tcl`, including $-40$. Positivity is guaranteed by the shape of the model, not by a constraint imposed on the optimiser — and the optimiser, for its part, gets to work on a free parameter, which suits it far better.
+That convention is not compulsory — `cl <- tcl * exp(eta.cl)` with `tcl <- 4.5` also works. Many examples nevertheless put thetas on the log scale: **an exponentiated parameter needs no bound solely to guarantee positivity**. The model form ensures that property and lets the optimiser work on an unbounded scale.
 
 :::key
 Writing `tcl <- log(4.5)` rather than `tcl <- c(0, 4.5)` means **replacing a constraint with a reparameterisation**. Hold on to the reason: it explains at once why the convention exists, why bounds are rare in nlmixr2, and why the bound you add out of reflex will almost always be a mistake — we come back to it in the pitfall.
@@ -125,7 +125,7 @@ $$ CV = \sqrt{e^{\omega^2} - 1} $$
 So the `~ 0.1` that shows up in every tutorial — including in the previous chapter — is not a magic number: it is **32% CV**, a deliberately reasonable opening guess for a PK parameter. You now have what you need to replace it with your own.
 
 :::pitfall
-The reflex check is arithmetic and works in both directions of translation. The value after the `~` for a usual 20 to 50% IIV lives between **0.04 and 0.25**, never between 0.2 and 0.5. A Monolix model copied across as-is — `sd=0.3` becoming `eta.cl ~ 0.3` — declares 59% CV instead of 30%. Nothing breaks, the run converges, and you report twice the real variability.
+The reflex check is arithmetic and works in both directions of translation. As a reference, 20–50% IIV corresponds to a variance of about **0.04 to 0.25**; this is not a universal range. A Monolix model copied across as-is — `sd=0.3` becoming `eta.cl ~ 0.3` — declares 59% CV instead of 30%. Nothing breaks, and the error can go unnoticed.
 :::
 
 ### The covariance block
@@ -156,7 +156,7 @@ The order is therefore `var(eta.cl)`, `cov(eta.cl, eta.v)`, `var(eta.v)`: the co
 Both blocks above describe the same matrix. Only the way **you** write the starting value changes; the estimated parameter is still the covariance.
 
 :::note
-The correlation between $\eta_{cl}$ and $\eta_{v}$ is physiological — a large patient often has both a high clearance and a high volume. Ignoring it does not degrade the fit much, but it distorts **simulations**: the diagonal model manufactures high-clearance, small-volume patients that do not exist in nature.
+A correlation between $\eta_{cl}$ and $\eta_v$ may reflect shared determinants, parameterisation or information in the data; it is not automatically physiological. Ignoring it changes the joint distribution in **simulations** and may produce implausible combinations. Its precision and stability should be checked.
 :::
 
 ### IOV is declared as a level
@@ -207,7 +207,7 @@ $$ Cl_i = e^{t_{cl}} \left(\frac{CRCL_i}{90}\right)^{\beta_{CRCL}} e^{\beta_{SEX
 A log-transformed, centred continuous covariate added with a plain coefficient inside the `exp()` **is** the power model. It is NONMEM's `TVCL = THETA(1)*(CRCL/90)**THETA(4)`, written without a power operator. Allometry on body weight is obtained the same way: `beta.cl.wt*log(WT/70)` with `beta.cl.wt <- fix(0.75)` to impose it rather than estimate it.
 :::
 
-And the rule that holds in all three tools: a covariate **takes away from the eta what it explains**. `exp(tcl)` becomes the clearance of a reference patient — here 90 mL/min of CRCL and `SEX = 0` — and `eta.cl` now carries only the remainder. A covariate that earns its place is therefore seen in the **drop in omega**, not only in the drop in OFV.
+A covariate aims to explain systematic variability previously carried by the eta. `exp(tcl)` becomes the clearance of a reference patient — here 90 mL/min of CRCL and `SEX = 0` — and `eta.cl` carries the remainder. A drop in omega can support its usefulness, but should be interpreted with plausibility, precision, diagnostics and predictive performance.
 
 :::note
 Ref.: the nlmixr2 project documentation for the `ini()`/`model()` block syntax, the variability levels and the contents of the `fit` object; Fidler et al., *CPT Pharmacometrics Syst Pharmacol* for the nlmixr project; Karlsson & Sheiner, *J Pharmacokinet Biopharm* 1993 for inter-occasion variability; Savic & Karlsson, *AAPS J* 2009 for shrinkage.
@@ -257,7 +257,7 @@ Three columns are worth stopping on.
 **`BSV(CV%)` spares you the square root.** 29.9% is the $\sqrt{e^{\omega^2}-1}$ of the omega of `eta.cl`. Note that `iov.cl` appears on its own row, with its spread but with no estimate and no standard error: it is a level of variability, not a fixed effect.
 
 :::pitfall
-`%RSE` on a log-transformed theta is **not** the RSE you would read in a NONMEM listing, and it must not be judged by the same yardstick. Look at `tka`: 79% RSE, a figure that anywhere else would trigger a reflex to delete the parameter. But the back-transformed interval is (0.93 – 1.40), a factor of 1.5 from bottom to top — a perfectly well estimated absorption. The explanation is arithmetic: the RSE is the ratio $SE/|Est|$ computed **on the log scale**, and $t_{ka} = 0.131$ is close to zero because $k_a$ is close to 1 h⁻¹. A denominator grazing zero blows the ratio up without anything having gone wrong. On a log-transformed theta, judge the uncertainty on the **back-transformed interval**, never on the `%RSE`.
+`%RSE` on a log-transformed theta does not have the same interpretation as RSE on the natural scale. Look at `tka`: 79% RSE, while the back-transformed interval is (0.93–1.40). The ratio $SE/|Est|$ is computed **on the log scale** and becomes large when the estimate is near zero, here because $k_a$ is near 1 h⁻¹. For a log-transformed theta, interpret the **back-transformed interval** and its context rather than a raw `%RSE` threshold.
 :::
 
 ### The objects to interrogate
@@ -292,10 +292,10 @@ And shrinkage, already present in the `Shrink(SD)%` column:
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-$\eta_{cl}$ sits at 7.6%: informed by the whole curve, individual clearance is reliable. $\eta_{ka}$ sits at 45.3%, and the reason is written in the design — only day 1 carries early samples, so the absorption phase is informed on half the occasions. For the patients concerned, the individual estimate **falls back towards the population**.
+$\eta_{cl}$ sits at 7.6%: informed by the whole curve, its individual diagnostics are more informative here, without that figure guaranteeing accuracy. $\eta_{ka}$ sits at 45.3%, and the reason is written in the design — only day 1 carries early samples. For the patients concerned, the individual estimate **falls back towards the population**.
 
 :::recall
-Shrinkage disqualifies the **individual etas** as a diagnostic tool, not the **population parameters**. The omega of `eta.ka` is still estimated across all 44 subjects and keeps its meaning even when `fit$eta` is mute patient by patient. Concretely: at 45% shrinkage, a plot of `eta.ka` against body weight settles nothing, in either direction — you test the covariate **inside the model**, you do not judge it on the cloud.
+Substantial shrinkage makes diagnostics based on **individual etas** less informative; it does not automatically invalidate **population parameters**. The omega of `eta.ka` is estimated across subjects, but its precision still needs checking. At 45% shrinkage, a plot of `eta.ka` against body weight is not sufficient to decide: evaluate the covariate **inside the model** with other diagnostics.
 :::
 <!-- /step -->
 
@@ -337,7 +337,7 @@ tka <- log(1.2)           # no bound, and that is deliberate
 ```
 
 :::recall
-The bound was not merely **wrongly scaled**: it was **unnecessary**. `exp()` cannot return a negative number, whatever the value of `tka` — positivity is already guaranteed by the shape of the model. That is precisely the bargain you accepted when you adopted the log convention: you traded the constraint for a reparameterisation, and you must not pay for both. Field rule: on a parameter wrapped in `exp()`, use **no** bounds. If you write one anyway, say out loud which value it forbids **on the natural scale** — and check it is not a value your patients could have.
+The bound was **wrongly scaled** and unnecessary for positivity: `exp()` already guarantees that property. Field rule: do not add a bound to an exponentiated parameter solely to keep it positive. If a constraint is scientifically justified for another reason, translate it to the natural scale and check which values it excludes.
 :::
 <!-- /step -->
 
@@ -347,7 +347,7 @@ The bound was not merely **wrongly scaled**: it was **unnecessary**. `exp()` can
 - The value after the `~` is a **variance**, like NONMEM's `$OMEGA` and unlike Monolix's `sd`. $CV = \sqrt{e^{\omega^2}-1}$; the tutorial `~ 0.1` is 32% CV; a usual IIV lives between 0.04 and 0.25.
 - `eta.cl + eta.v ~ c(0.1, 0.05, 0.1)` gives the **lower triangle** of the covariance: the covariance is in the **middle**. `cor()` lets you enter SDs and a correlation instead.
 - IOV is a **level** (`iov.cl ~ 0.03 | occ`): one single variance whatever the number of occasions, so there is no `SAME` to write. Without it, IIV absorbs the IOV and ends up overestimated.
-- Covariates are plain R inside `model({})`, with no dedicated block. On the log scale, `beta*log(CRCL/90)` **is** the power model. A good covariate lowers omega, not only the OFV.
+- Covariates are plain R inside `model({})`, with no dedicated block. On the log scale, `beta*log(CRCL/90)` **is** the power model. A lower omega can support the effect alongside other selection and validation criteria.
 - On a log-transformed theta the `%RSE` is misleading near zero: judge on the **back-transformed interval**. `fit$omegaR` reads without arithmetic; information in eta-versus-covariate plots decreases with shrinkage, with 20–30% remaining a warning heuristic.
 - Put **no bound** on a parameter wrapped in `exp()`: it is unnecessary and its scale is misleading. SAEM ignores bounds and warns you, FOCEI applies them in silence — the dangerous engine is the quiet one.
 <!-- /step -->

@@ -9,8 +9,8 @@ order: 12
 duration: "13 min"
 level: "advanced"
 tags: ["ai", "machine-learning", "neural-ode", "grey-box"]
-prerequisites: []
-glossary: []
+prerequisites: ["math-edo", "pkpd"]
+glossary: ["Neural ODE", "EDO", "White / black / grey box"]
 slides: ["s63", "s65", "s66", "s68", "s69", "s70", "s71"]
 sources: ["chen-neural-ode", "hughes-keizer", "woillard-ml-tacrolimus", "genuer-vsurf"]
 reviewed_on: "2026-07-09"

@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "error-model", "bql", "residuals"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix", "ε / σ", "Erreur combinée"]
 slides: []
 sources: ["monolix", "lavielle", "beal-bql", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"

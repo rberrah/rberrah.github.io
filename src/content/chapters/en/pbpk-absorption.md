@@ -34,7 +34,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 For an **oral** drug, bioavailability depends on a cascade: dissolution, intestinal permeability, transit, then hepatic **first-pass**. PBPK models each step mechanistically.
 
-This lets us predict the effect of a **formulation**, a meal or an interaction on absorption.
+Once qualified for that use, this framework can support assessment of how a **formulation**, a meal or an interaction affects absorption.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="OralAbsorption" -->
@@ -52,7 +52,7 @@ $$ F = f_a \cdot F_g \cdot F_h $$
 - $F_g$: fraction escaping gut metabolism;
 - $F_h$: fraction escaping hepatic **first-pass**, $F_h = 1 - E_h$.
 
-The **BCS classification** (solubility/permeability) predicts the limiting factor.
+The **BCS classification** (solubility/permeability) helps identify a potentially limiting factor; it does not replace product- and context-specific assessment.
 
 **Math —** $F_h$ links hepatic extraction and clearance: $E_h = \dfrac{CL_h}{Q_h}$. A high extractor has strong first-pass and low bioavailability.
 <!-- /step -->

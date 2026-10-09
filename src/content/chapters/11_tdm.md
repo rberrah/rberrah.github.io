@@ -13,8 +13,8 @@ prerequisites: ["bayes-ebes"]
 glossary: ["TDM", "MAP", "Precision dosing"]
 slides: ["s59", "s62", "s72"]
 sources: ["sheiner-forecasting", "minichmayr-mipd", "woillard-tacrolimus", "rybak-vanco"]
-updated_on: "2026-10-08"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
     options:

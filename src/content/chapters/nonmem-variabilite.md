@@ -10,11 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["nonmem", "variability", "omega", "iiv", "iov", "shrinkage"]
 prerequisites: ["tools-nonmem"]
-glossary: []
+glossary: ["IIV", "IOV", "ω / Ω", "η", "Covariable", "Shrinkage", "Distribution lognormale"]
 slides: []
 sources: ["nonmem", "karlsson-sheiner-iov", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans un control stream, que représente la valeur 0.09 écrite dans `$OMEGA 0.09` ?"
     options:
@@ -77,7 +77,7 @@ soit, en notation mathématique :
 
 $$ CL_i = \theta_{CL} \cdot e^{\eta_{i,1}}, \qquad \eta_{i,1} \sim \mathcal{N}(0,\ \omega_1^2) $$
 
-L'`ETA` est normal, donc le **paramètre** est log-normal : toujours positif, asymétrique à droite. C'est exactement ce qu'on veut d'une clairance, qui ne peut pas être négative et dont quelques patients sont très éliminateurs. Une écriture additive (`CL = THETA(1) + ETA(1)`) autoriserait des clairances négatives et fait régulièrement échouer la minimisation ; on la réserve aux paramètres qui peuvent légitimement changer de signe.
+L'`ETA` est normal, donc le **paramètre** est log-normal : positif et asymétrique à droite. Cette forme respecte le support d'une clairance. Une écriture additive (`CL = THETA(1) + ETA(1)`) autorise des valeurs négatives si la dispersion est assez grande ; elle convient surtout lorsque le support et la question scientifique justifient l'échelle additive.
 
 ### De omega au carré vers le CV%
 
@@ -120,10 +120,10 @@ $OMEGA BLOCK(2)
 
 $$ \Omega = \begin{pmatrix} \omega_1^2 & \omega_{12} \\ \omega_{12} & \omega_2^2 \end{pmatrix}, \qquad r_{12} = \frac{\omega_{12}}{\omega_1\,\omega_2} = \frac{0{,}054}{0{,}30 \times 0{,}40} = 0{,}45 $$
 
-Un `BLOCK(n)` coûte $n(n+1)/2$ paramètres au lieu de $n$ : le passage de 2 à 3 paramètres se juge par un test du rapport de vraisemblance à 1 degré de liberté, soit une baisse d'OFV de plus de 3,84 pour un risque de 5 %.
+Un `BLOCK(n)` coûte $n(n+1)/2$ paramètres au lieu de $n$. Pour deux modèles emboîtés correctement convergés et sous les conditions usuelles du rapport de vraisemblance, le passage de 2 à 3 paramètres peut être comparé au repère de 3,84 pour 1 degré de liberté au risque de 5 %. La stabilité numérique, la plausibilité et l'effet prédictif restent à vérifier.
 
 :::note
-Une corrélation forte entre `ETA(CL)` et `ETA(V)` n'est pas un artefact à supprimer : elle est physiologique (un grand patient a souvent à la fois une clairance et un volume élevés) et l'ignorer biaise les simulations, qui produisent alors des patients à forte clairance et petit volume qui n'existent pas.
+Une corrélation forte entre `ETA(CL)` et `ETA(V)` ne doit être ni supprimée ni interprétée automatiquement. Elle peut refléter des déterminants communs, une paramétrisation ou l'information des données. L'ignorer modifie la distribution jointe simulée et peut produire des combinaisons peu plausibles ; il faut examiner sa précision et sa stabilité.
 :::
 
 ### L'IOV par etas répétés
@@ -179,7 +179,7 @@ Une analyse sur 48 patients, administration IV, un compartiment, avec entre 1 et
 | 002 | `BLOCK(2)`, sans covariable | 3 | 1831,9 | −10,7 |
 | 003 | `BLOCK(2)` + CRCL sur CL | 4 | 1809,4 | −22,5 |
 
-**Run 001 → 002.** Un paramètre de plus, l'OFV baisse de 10,7 ; le seuil à 1 degré de liberté est 3,84 au risque de 5 %. La corrélation est réelle et vaut $r = 0{,}45$ : le bloc est justifié.
+**Run 001 → 002.** Un paramètre de plus, l'OFV baisse de 10,7. Sous les hypothèses usuelles du test du rapport de vraisemblance, ce résultat soutient ici le bloc ; $r = 0{,}45$ décrit l'association estimée, sans prouver à lui seul un mécanisme ni sa transportabilité.
 
 **Run 002 → 003.** L'exposant `THETA(4)` sur la CRCL est estimé à 0,68. L'`$OMEGA` de `ETA(1)` passe de 0,14 à 0,09 :
 
@@ -199,7 +199,7 @@ Formellement, le shrinkage compare la dispersion des EBE à la variabilité déc
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-`ETA(1)` (clairance, informée par toute la courbe) est à 8,7 % : ses EBE sont fiables. `ETA(2)` (volume) est à 47,2 %, parce que les patients à prélèvement unique n'apportent presque aucune information sur la phase précoce. Sur ces patients-là, l'estimation individuelle **retombe vers la population**.
+`ETA(1)` (clairance, informée par toute la courbe) est à 8,7 % : ses diagnostics EBE sont ici plus informatifs, sans que le shrinkage garantisse leur exactitude. `ETA(2)` (volume) est à 47,2 %, parce que les patients à prélèvement unique apportent peu d'information sur la phase précoce. Sur ces patients-là, l'estimation individuelle **retombe vers la population**.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -220,15 +220,15 @@ Trois réflexes une fois le shrinkage constaté :
 - **Ne pas supprimer un eta au seul motif qu'il shrinke.** Un `ETA(2)` mal informé chez chaque patient peut rester nécessaire à la description correcte de la dispersion de la population.
 
 :::recall
-Le shrinkage disqualifie les **EBE** comme outil de diagnostic, pas les **paramètres de population**. `$OMEGA` reste estimé sur l'ensemble des sujets et garde son sens même quand les etas individuels sont muets.
+Un shrinkage important rend les diagnostics fondés sur les **EBE** moins informatifs ; il n'invalide pas automatiquement les **paramètres de population**. `$OMEGA` est estimé sur l'ensemble des sujets, mais sa précision et les diagnostics de population doivent encore être examinés.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - `CL = THETA(1)*EXP(ETA(1))` rend le paramètre log-normal : positif, asymétrique à droite — la forme par défaut pour une clairance ou un volume.
 - Ce qu'on écrit dans `$OMEGA` est une **variance**. $CV = \sqrt{e^{\omega^2}-1}$ ; l'approximation $CV \approx \omega$ décroche au-delà de 40 %.
-- `DIAGONAL` suppose les etas indépendants ; `BLOCK(n)` estime leurs covariances pour $n(n+1)/2$ paramètres, et se juge par un rapport de vraisemblance. La corrélation CL–V est physiologique : l'ignorer fausse les simulations.
+- `DIAGONAL` suppose les etas indépendants ; `BLOCK(n)` estime leurs covariances pour $n(n+1)/2$ paramètres. Une comparaison de vraisemblance exige ses hypothèses, et une corrélation estimée doit être vérifiée avant interprétation.
 - L'IOV se code par un eta par occasion, avec `SAME` pour leur imposer une variance commune — deux etas, un seul paramètre.
-- Les covariables entrent dans le typique (`TVCL`), en amont de `EXP(ETA)` ; une bonne covariable fait baisser `$OMEGA`, pas seulement l'OFV.
+- Les covariables entrent dans le typique (`TVCL`), en amont de `EXP(ETA)` ; une baisse de `$OMEGA` peut soutenir leur utilité, avec la plausibilité, la précision et la performance prédictive.
 - L'information des graphiques ETA vs covariable décroît avec le shrinkage ; 20–30 % est une heuristique d'alerte, pas un seuil d'invalidation.
 <!-- /step -->

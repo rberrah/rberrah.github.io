@@ -34,7 +34,7 @@ It is the reference method for **bioequivalence** and in early development.
 <!-- step:title="Intuition" viz="04_ThreeApproaches" -->
 NCA "lets the data speak": connect the points, measure the area, read the terminal slope.
 
-No compartments, no differential equations to fit — but also no mechanistic extrapolation. It is a **measurement** tool, not a **prediction** tool.
+No compartments or differential equations are fitted: NCA provides descriptive summaries, with limited extrapolation and no explicit mechanism. It does not replace a predictive model when the question concerns a new regimen or population.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="04_ThreeApproaches" -->
@@ -48,7 +48,7 @@ NCA does not require a compartmental model and can describe a nonlinear profile.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="04_ThreeApproaches" -->
-In **bioequivalence**, we compare the AUC and Cmax of a generic vs the reference: NCA is enough, because we seek not a mechanism but **exposure equivalence**.
+In **bioequivalence**, NCA supplies exposure metrics, notably AUC and Cmax, which then enter the statistical analysis of the test/reference ratio. The decision therefore does not rest on NCA alone.
 
 Regulators (EMA, FDA) generally rely on the **90% CI for the test/reference ratio of geometric means** of AUC and Cmax, often after log transformation, within the applicable limits (often 80–125% for non-scaled average bioequivalence).
 <!-- /step -->

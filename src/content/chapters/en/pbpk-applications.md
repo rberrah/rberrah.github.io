@@ -2,7 +2,7 @@
 id: "pbpk-applications"
 slug: "pbpk-applications"
 title: "IVIVE, interactions and special populations"
-description: "What PBPK is really for: extrapolating in-vitro clearance, predicting DDIs and adapting to populations."
+description: "What PBPK is used for: linking in-vitro clearance to in vivo and supporting DDI and special-population assessment."
 summary: "IVIVE (in-vitro to in-vivo clearance), drug interactions and paediatric/pregnancy extrapolation."
 track: "pbpk"
 order: 73
@@ -17,7 +17,7 @@ quiz:
       - "extrapolating PK from animal to human by allometric scaling"
       - "deducing in-vitro clearance from observed clinical data"
     correct: 0
-  - prompt: "PBPK predicts an interaction (DDI) by..."
+  - prompt: "In a DDI scenario, a PBPK model represents the interaction by..."
     options:
       - "changing enzyme activity (inhibition/induction) in the modelled liver"
       - "changing the hepatic blood flow of the perpetrator and victim"
@@ -32,7 +32,7 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-PBPK is not just an elegant exercise: it **predicts** in situations where a trial is difficult or impossible — first-in-human, children, pregnant women, interactions.
+PBPK is not merely descriptive: it can **support conditional predictions** where a trial is difficult — first-in-human administration, children, pregnancy, interactions — when the model is qualified for the question.
 
 Three flagship applications: **IVIVE**, **interactions** and **special populations**.
 <!-- /step -->
@@ -40,7 +40,7 @@ Three flagship applications: **IVIVE**, **interactions** and **special populatio
 <!-- step:title="Intuition" viz="01_HumanBody" -->
 We measure a clearance in the lab on **microsomes** or **hepatocytes**, then "scale it up" to the whole organ, then the whole body: this is **IVIVE**.
 
-By inserting this clearance into the model's liver, we predict systemic PK — without ever having dosed the human.
+By inserting this clearance into the model's liver, we obtain a systemic-PK prediction before clinical human exposure data are available. It remains conditional on the IVIVE assumptions and later verification.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="01_HumanBody" -->
@@ -54,9 +54,9 @@ where $CL_{int}$ (intrinsic clearance) comes from in vitro. An **interaction** i
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="01_HumanBody" -->
-For a **paediatric dose**, we start from the adult model and adjust flows, volumes and enzyme **maturation** (an infant lacks an adult's CYP activity). The model proposes a dose before any trial.
+For a **paediatric dose**, we start from the adult model and adjust flows, volumes and enzyme **maturation** (an infant lacks an adult's CYP activity). The model informs selection of a dose to test; it does not replace clinical evaluation.
 
-For an **interaction**, we simulate co-administration with a CYP3A inhibitor and predict the exposure rise — useful for the label.
+For an **interaction**, we simulate co-administration with a CYP3A inhibitor to estimate the exposure increase conditionally and inform a regulatory decision.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

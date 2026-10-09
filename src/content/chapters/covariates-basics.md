@@ -10,11 +10,11 @@ duration: "12 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["variabilite-iiv-iov"]
-glossary: []
+glossary: ["Covariable", "Centrage", "η", "ω / Ω", "Distribution lognormale", "Distribution logit-normale"]
 slides: []
 sources: ["monolix-covariates","simulx-individual","lavielle","sanghavi-covariates"]
-reviewed_on: "2026-09-29"
-updated_on: "2026-09-30"
+reviewed_on: "2026-10-09"
+updated_on: "2026-10-09"
 quiz: [{"prompt":"Un bêta de covariable représente…","options":["un effet systématique sur un paramètre","un ETA individuel observé","une variance résiduelle"],"correct":0},{"prompt":"Pour une fraction strictement entre 0 et 1, un lien possible est…","options":["le logit","le logarithme seul","aucun lien ne peut la borner"],"correct":0},{"prompt":"Le poids agit sur CL et V :","options":["les deux effets peuvent avoir des coefficients différents","il faut nécessairement un bêta unique","cela impose une corrélation ETA de 1"],"correct":0}]
 ---
 

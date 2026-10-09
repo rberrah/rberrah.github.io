@@ -10,9 +10,9 @@ duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "saem", "estimation", "vraisemblance"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix", "SAEM", "Vraisemblance"]
 slides: []
-sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "monolix"]
+sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "lavielle-mentre-monolix", "monolix"]
 reviewed_on: "2026-07-14"
 quiz:
   - prompt: "Dans le graphe de convergence du SAEM, une trajectoire parfaitement plate pendant la phase de lissage indique..."

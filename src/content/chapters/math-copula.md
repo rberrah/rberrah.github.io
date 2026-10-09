@@ -9,8 +9,8 @@ order: 25
 duration: "12 min"
 level: "advanced"
 tags: ["maths", "copula", "covariates", "simulation"]
-prerequisites: []
-glossary: []
+prerequisites: ["math-stats", "variabilite-iiv-iov"]
+glossary: ["ω / Ω", "IIV", "Distribution normale"]
 slides: []
 sources: ["nelsen-copulas", "bonate"]
 reviewed_on: "2026-07-09"

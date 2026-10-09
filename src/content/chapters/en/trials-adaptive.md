@@ -56,7 +56,7 @@ $$ D_f = ED_{50}\cdot\frac{f}{1-f} $$
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="EmaxHill" -->
-Instead of comparing 4 doses vs placebo by separate tests, MCP-Mod establishes that a trend exists, fits an Emax and estimates the dose giving the target effect — with a usable **confidence interval** for phase III.
+Instead of comparing four doses with placebo in separate tests, MCP-Mod tests a trend across candidate shapes, then estimates the curve and target dose with the selected model or models, potentially using model averaging. Uncertainty in that estimate must accompany phase III selection.
 
 An **interim** analysis can then drop ineffective doses and concentrate patients on the promising ones.
 <!-- /step -->
@@ -64,12 +64,12 @@ An **interim** analysis can then drop ineffective doses and concentrate patients
 <!-- step:title="Common pitfall" -->
 Adaptive does not mean improvised.
 
-**Pitfall —** an adaptive design must be **fully pre-specified** and validated by simulation: changing the rules mid-way inflates the type-I error risk. The limits are design-specific: sometimes larger maximum sample size, operational complexity, biomarker or event readout delays, and risk from a poorly chosen model — hence the value of MCP-Mod's model averaging.
+**Pitfall —** adaptations, decision rules and analyses should be **prospectively planned** and evaluated by simulation to preserve integrity and, where required, control type-I error. An unplanned change does not create the same inflation in every setting, but it requires justification and appropriate methods. Limitations are design-specific: sometimes larger maximum sample size, operational complexity, readout delays and model risk.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Model-based dose finding exploits the continuous dose–response curve (Emax).
-- MCP-Mod: trend test + modelling → estimation of the target dose.
+- MCP-Mod: trend tests over candidate models + modelling or model averaging → target-dose estimation.
 - Adaptive designs adjust the trial via pre-specified interim analyses.
-- Everything must be pre-specified and simulated, otherwise error inflation.
+- Adaptations and analysis rules should be planned and simulated according to the confirmatory or exploratory objective.
 <!-- /step -->

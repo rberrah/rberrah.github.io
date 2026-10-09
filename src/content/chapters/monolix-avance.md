@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "logit", "simulx"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["Monolix", "SAEM", "VPC", "Shrinkage"]
 slides: []
 sources: ["monolix", "lavielle", "jonsson-karlsson-scm", "ribbing-selection-bias"]
 reviewed_on: "2026-07-14"

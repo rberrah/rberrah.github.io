@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
-glossary: []
+glossary: ["Covariable", "Distribution logit-normale"]
 slides: []
 sources: ["monolix-covariates","hastie-esl","lavielle"]
 reviewed_on: "2026-09-29"

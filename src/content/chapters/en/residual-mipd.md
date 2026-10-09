@@ -49,17 +49,17 @@ MAP estimation is a **constant compromise** between two voices: the **prior** (w
 A **small σ** turns up the data: the posterior is pulled toward the measured points. A **large σ** lets the prior speak: parameters stay close to the population.
 
 :::howto
-**How to read the figure.** The dashed curve is the prior (the "average" patient). The dots are *this* patient's samples (whose clearance differs). Lower σ: weight shifts to the data, the posterior curve leaves the prior to hug the points, and the estimated AUC converges to the true individual exposure.
+**How to read the figure.** The dashed curve is the prior (the "average" patient). The dots are *this* patient's samples (whose clearance differs). In this illustrative simulation, lowering σ gives more weight to the data and brings estimated AUC closer to the generating exposure; this is not guaranteed with noisy measurements or a misspecified model.
 :::
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" -->
 This compromise is exactly what the MAP criterion minimises, balancing **two forces**:
 
-$$ \text{Criterion} \;=\; \underbrace{\sum_{i} \frac{(y_i - \hat{y}_i)^2}{\sigma_i^2}}_{\text{fidelity to data}} \;+\; \underbrace{\sum_{j} \frac{\eta_j^2}{\omega_j^2}}_{\text{fidelity to prior}} $$
+$$ \text{Criterion} \;=\; \underbrace{\sum_{i} \frac{(y_i - \hat{y}_i)^2}{\sigma_i^2}}_{\text{fidelity to data}} \;+\; \underbrace{\eta^T\Omega^{-1}\eta}_{\text{fidelity to prior}} $$
 
 - The **first term** penalises the gap between observed $y_i$ and predicted $\hat{y}_i$ concentrations, **weighted by $1/\sigma_i^2$**.
-- The **second term** penalises how far individual parameters ($\eta_j$) drift from the population, weighted by $1/\omega_j^2$.
+- The **second term** penalises how far individual parameters drift from the population while accounting for $\Omega$. It reduces to $\sum_j\eta_j^2/\omega_j^2$ when random effects are independent.
 
 Dividing by $\sigma_i^2$ says it all: the **smaller** σ, the **larger** $1/\sigma_i^2$, the more a given prediction error **costs** — the algorithm is forced to track the data rather than the prior.
 <!-- /step -->

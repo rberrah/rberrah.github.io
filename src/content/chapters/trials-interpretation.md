@@ -9,12 +9,12 @@ order: 102
 duration: "12 min"
 level: "intermediate"
 tags: ["clinical-trials", "interpretation", "covariates", "forest-plot"]
-prerequisites: []
-glossary: []
+prerequisites: ["covariates-basics", "valid-uncertainty"]
+glossary: ["Covariable", "Centrage", "RSE"]
 slides: []
 sources: ["fda-poppk", "ema-poppk", "ribbing-selection-bias", "ema-bioequivalence"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Un forest plot d'effets de covariables montre..."
     options:
@@ -37,7 +37,7 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Un modèle n'a de valeur que s'il **change une décision**. Interpréter les effets de covariables — et juger leur **pertinence clinique** — permet de dire s'il faut adapter la dose selon le poids, la fonction rénale ou le génotype.
+Dans un contexte décisionnel, un modèle est utile s'il **éclaire une décision** et rend explicites ses incertitudes. Interpréter les effets de covariables — et juger leur **pertinence clinique** — aide à évaluer s'il faut adapter la dose selon le poids, la fonction rénale ou le génotype.
 
 C'est le pont entre l'analyse statistique et la pratique.
 <!-- /step -->
@@ -73,7 +73,7 @@ C'est ainsi qu'on construit des **recommandations posologiques** par sous-groupe
 Significatif n'est pas pertinent.
 
 :::pitfall
-De très petits effets peuvent devenir **statistiquement significatifs** dans de grands échantillons. La question utile est l'**ampleur** : un effet de 5 % ne change pas la dose. Et attention aux covariables **corrélées** (poids et ClCr), dont les effets se confondent.
+De très petits effets peuvent devenir **statistiquement significatifs** dans de grands échantillons. La question utile est l'**ampleur** et son incertitude : un effet de 5 % est souvent sans conséquence posologique, mais cela dépend de la marge thérapeutique et de la règle de décision. Attention aussi aux covariables **corrélées** (poids et ClCr), dont les effets peuvent être difficiles à séparer.
 :::
 <!-- /step -->
 

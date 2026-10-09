@@ -10,7 +10,7 @@ duration: "10 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "structural-model", "ode"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["nlmixr2 / rxode2", "Modèle structural", "EDO"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode"]
 reviewed_on: "2026-07-14"

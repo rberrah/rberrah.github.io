@@ -9,12 +9,12 @@ order: 2.5
 duration: "6 min"
 level: "beginner"
 tags: ["parametrisation", "micro", "macro", "clairance"]
-prerequisites: []
+prerequisites: ["trois-approches"]
 glossary: ["CL", "V", "Q", "ke"]
 slides: []
 sources: ["gibaldi-perrier", "rowland-tozer", "holford-clearance"]
-updated_on: "2026-10-08"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Dans un modèle à un compartiment, quelle égalité relie l'écriture micro à l'écriture macro ?"
     options:

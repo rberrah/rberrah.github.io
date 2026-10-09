@@ -76,7 +76,7 @@ or, in mathematical notation:
 
 $$ CL_i = \theta_{CL} \cdot e^{\eta_{i,1}}, \qquad \eta_{i,1} \sim \mathcal{N}(0,\ \omega_1^2) $$
 
-The `ETA` is normal, so the **parameter** is log-normal: always positive, right-skewed. That is exactly what you want from a clearance, which cannot be negative and for which a few patients eliminate very fast. An additive form (`CL = THETA(1) + ETA(1)`) would allow negative clearances and regularly breaks the minimisation; keep it for parameters that may legitimately change sign.
+The `ETA` is normal, so the **parameter** is log-normal: positive and right-skewed. This respects the support of clearance. An additive form (`CL = THETA(1) + ETA(1)`) allows negative values when dispersion is large; it is mainly appropriate when the support and scientific question justify the additive scale.
 
 ### From omega squared to CV%
 
@@ -119,10 +119,10 @@ $OMEGA BLOCK(2)
 
 $$ \Omega = \begin{pmatrix} \omega_1^2 & \omega_{12} \\ \omega_{12} & \omega_2^2 \end{pmatrix}, \qquad r_{12} = \frac{\omega_{12}}{\omega_1\,\omega_2} = \frac{0.054}{0.30 \times 0.40} = 0.45 $$
 
-A `BLOCK(n)` costs $n(n+1)/2$ parameters instead of $n$: moving from 2 to 3 parameters is judged with a likelihood ratio test on 1 degree of freedom, i.e. an OFV drop greater than 3.84 at a 5% risk.
+A `BLOCK(n)` costs $n(n+1)/2$ parameters instead of $n$. For nested, adequately converged models under the usual likelihood-ratio assumptions, moving from 2 to 3 parameters can be compared with the 3.84 reference for 1 degree of freedom at the 5% level. Numerical stability, plausibility and predictive impact still need checking.
 
 :::note
-A strong correlation between `ETA(CL)` and `ETA(V)` is not an artefact to remove: it is physiological (a large patient often has both a high clearance and a high volume), and ignoring it biases simulations, which then produce high-clearance, small-volume patients that do not exist.
+A strong correlation between `ETA(CL)` and `ETA(V)` should be neither removed nor interpreted automatically. It may reflect shared determinants, parameterisation or information in the data. Ignoring it changes the simulated joint distribution and may produce implausible combinations; inspect its precision and stability.
 :::
 
 ### IOV through repeated etas
@@ -178,7 +178,7 @@ An analysis on 48 patients, IV administration, one compartment, with between 1 a
 | 002 | `BLOCK(2)`, no covariate | 3 | 1831.9 | −10.7 |
 | 003 | `BLOCK(2)` + CRCL on CL | 4 | 1809.4 | −22.5 |
 
-**Run 001 → 002.** One parameter more, the OFV drops by 10.7; the threshold on 1 degree of freedom is 3.84 at a 5% risk. The correlation is real and equals $r = 0.45$: the block is justified.
+**Run 001 → 002.** One parameter more, the OFV drops by 10.7. Under the usual likelihood-ratio assumptions this supports the block in this example; $r = 0.45$ describes the estimated association without proving a mechanism or transportability by itself.
 
 **Run 002 → 003.** The `THETA(4)` exponent on CRCL is estimated at 0.68. The `$OMEGA` of `ETA(1)` goes from 0.14 to 0.09:
 
@@ -198,7 +198,7 @@ Formally, shrinkage compares the spread of the EBEs with the declared variabilit
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-`ETA(1)` (clearance, informed by the whole curve) sits at 8.7%: its EBEs are reliable. `ETA(2)` (volume) sits at 47.2%, because single-sample patients bring almost no information on the early phase. For those patients, the individual estimate **falls back towards the population**.
+`ETA(1)` (clearance, informed by the whole curve) sits at 8.7%: its EBE diagnostics are more informative here, without shrinkage guaranteeing accuracy. `ETA(2)` (volume) sits at 47.2%, because single-sample patients bring little information on the early phase. For those patients, the individual estimate **falls back towards the population**.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -219,15 +219,15 @@ Three reflexes once shrinkage is established:
 - **Do not delete an eta merely because it shrinks.** An `ETA(2)` poorly informed in every patient may still be necessary to describe the population spread correctly.
 
 :::recall
-Shrinkage disqualifies the **EBEs** as a diagnostic tool, not the **population parameters**. `$OMEGA` is still estimated across all subjects and keeps its meaning even when the individual etas are mute.
+Substantial shrinkage makes **EBE-based diagnostics** less informative; it does not automatically invalidate **population parameters**. `$OMEGA` is estimated across subjects, but its precision and population diagnostics still need examination.
 :::
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - `CL = THETA(1)*EXP(ETA(1))` makes the parameter log-normal: positive, right-skewed — the default form for a clearance or a volume.
 - What you write in `$OMEGA` is a **variance**. $CV = \sqrt{e^{\omega^2}-1}$; the $CV \approx \omega$ approximation breaks down beyond 40%.
-- `DIAGONAL` assumes independent etas; `BLOCK(n)` estimates their covariances for $n(n+1)/2$ parameters, and is judged by a likelihood ratio test. The CL–V correlation is physiological: ignoring it distorts simulations.
+- `DIAGONAL` assumes independent etas; `BLOCK(n)` estimates their covariances for $n(n+1)/2$ parameters. A likelihood comparison needs its assumptions, and an estimated correlation must be checked before interpretation.
 - IOV is coded with one eta per occasion, plus `SAME` to impose a common variance — two etas, one single parameter.
-- Covariates enter the typical value (`TVCL`), upstream of `EXP(ETA)`; a good covariate lowers `$OMEGA`, not only the OFV.
+- Covariates enter the typical value (`TVCL`), upstream of `EXP(ETA)`; a lower `$OMEGA` can support usefulness alongside plausibility, precision and predictive performance.
 - Information in ETA-versus-covariate plots decreases with shrinkage; 20–30% is a warning heuristic, not an invalidity threshold.
 <!-- /step -->

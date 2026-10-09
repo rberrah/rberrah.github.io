@@ -61,24 +61,32 @@
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
   $: chapterActivities = chapter ? activitiesForChapter(chapter.slug) : [];
-  /** @type {Record<string, string>} */
+  /** @type {Record<string, string[]>} */
   const conceptLabs = {
-    'clairance-volume-demi-vie': 'distribution',
-    'micro-macro': 'distribution',
-    'doses-repetees': 'accumulation',
-    'absorption-orale': 'absorption',
-    'perfusion': 'infusion',
-    'parent-metabolite': 'parent-metabolite',
-    'voies-absorption': 'long-acting',
-    'pkpd': 'pd-general',
-    'pd-effect-compartment': 'effect-site',
-    'infectio-pkpd': 'pd-infectiology',
-    'onco-tgi': 'pd-oncology',
-    'mab-tmdd': 'tmdd',
-    'allometrie': 'covariate-volume',
-    'covariates-physiology': 'covariate-clearance'
+    'clairance-volume-demi-vie': ['distribution'],
+    'micro-macro': ['distribution'],
+    'doses-repetees': ['accumulation'],
+    'absorption-orale': ['absorption'],
+    'perfusion': ['infusion'],
+    'parent-metabolite': ['parent-metabolite', 'enterohepatic'],
+    'voies-absorption': ['long-acting'],
+    'pkpd': ['pd-general'],
+    'pd-effect-compartment': ['effect-site'],
+    'infectio-pkpd': ['pd-infectiology'],
+    'onco-tgi': ['pd-oncology'],
+    'mab-tmdd': ['tmdd', 'saturable'],
+    'allometrie': ['covariate-volume'],
+    'covariates-physiology': ['covariate-clearance']
   };
-  $: conceptLab = conceptLabs[slug ?? ''] ?? null;
+  /** @type {Record<string, [string, string]>} */
+  const labLabels = {
+    distribution: ['Distribution', 'Distribution'], accumulation: ['Accumulation', 'Accumulation'], absorption: ['Absorption', 'Absorption'], infusion: ['Perfusion', 'Infusion'],
+    'parent-metabolite': ['Parent–métabolite', 'Parent–metabolite'], enterohepatic: ['Cycle entérohépatique', 'Enterohepatic cycling'], 'long-acting': ['Longue action', 'Long acting'],
+    'pd-general': ['Réponse PD', 'PD response'], 'effect-site': ["Compartiment d'effet", 'Effect compartment'], 'pd-infectiology': ['Infectiologie', 'Infectious diseases'],
+    'pd-oncology': ['Oncologie', 'Oncology'], tmdd: ['TMDD', 'TMDD'], saturable: ['Élimination saturable', 'Saturable elimination'],
+    'covariate-volume': ['Poids et volume', 'Weight and volume'], 'covariate-clearance': ['DFG et clairance', 'GFR and clearance']
+  };
+  $: chapterLabs = conceptLabs[slug ?? ''] ?? [];
   // Rappels : prérequis (liens vers d'autres chapitres) + termes du glossaire.
   $: prereqs = (chapter?.prerequisites ?? [])
     .map((/** @type {string} */ s) => chapters.find((c) => c.slug === s))
@@ -291,12 +299,12 @@
       </aside>
     {/if}
   </header>
-  {#if conceptLab}
+  {#if chapterLabs.length}
     <aside class="concept-journey" data-testid="concept-journey">
       <div><span>01</span><strong>{$language === 'en' ? 'Predict' : 'Prédire'}</strong><small>{$language === 'en' ? 'State what should change.' : 'Anticiper ce qui doit changer.'}</small></div>
       <div><span>02</span><strong>{$language === 'en' ? 'Manipulate' : 'Manipuler'}</strong><small>{$language === 'en' ? 'Test one mechanism in the laboratory.' : 'Tester un mécanisme dans le laboratoire.'}</small></div>
       <div><span>03</span><strong>{$language === 'en' ? 'Explain' : 'Expliquer'}</strong><small>{$language === 'en' ? 'Return to the model and assumptions.' : 'Revenir au modèle et à ses hypothèses.'}</small></div>
-      <a class="btn btn-outline" href={`${base}/laboratoires/?lang=${$language}&lab=${conceptLab}`}>{$language === 'en' ? 'Open the related laboratory' : 'Ouvrir le laboratoire associé'}</a>
+      {#each chapterLabs as labId}<a class="btn btn-outline" href={`${base}/laboratoires/?lang=${$language}&lab=${labId}&from=${slug}`}>{$language === 'en' ? 'Open' : 'Ouvrir'} · {labLabels[labId]?.[$language === 'en' ? 1 : 0] ?? labId}</a>{/each}
     </aside>
   {/if}
 

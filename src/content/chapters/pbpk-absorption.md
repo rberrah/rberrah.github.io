@@ -9,11 +9,12 @@ order: 72
 duration: "12 min"
 level: "advanced"
 tags: ["pbpk", "absorption", "first-pass", "bcs"]
-prerequisites: []
-glossary: []
+prerequisites: ["pbpk-intro", "absorption-orale"]
+glossary: ["PBPK", "F", "CL"]
 slides: []
 sources: ["yu-amidon-acat", "amidon-bcs", "holford-clearance", "jones-rowland-yeo"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Un modèle d'absorption mécaniste (ACAT/ADAM) découpe l'intestin en..."
     options:
@@ -38,7 +39,7 @@ quiz:
 <!-- step:title="Pourquoi ce chapitre" -->
 Pour un médicament **oral**, la biodisponibilité dépend d'une cascade : dissolution, perméabilité intestinale, transit, puis **premier passage** hépatique. La PBPK modélise chaque étape mécaniquement.
 
-Cela permet de prédire l'effet d'une **formulation**, d'un repas ou d'une interaction sur l'absorption.
+Une fois qualifié pour cet usage, ce cadre peut soutenir l'évaluation de l'effet d'une **formulation**, d'un repas ou d'une interaction sur l'absorption.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="OralAbsorption" -->
@@ -56,7 +57,7 @@ $$ F = f_a \cdot F_g \cdot F_h $$
 - $F_g$ : fraction échappant au métabolisme intestinal ;
 - $F_h$ : fraction échappant au **premier passage** hépatique, $F_h = 1 - E_h$.
 
-La **classification BCS** (solubilité/perméabilité) prédit le facteur limitant.
+La **classification BCS** (solubilité/perméabilité) aide à identifier le facteur susceptible de limiter l'absorption ; elle ne remplace pas l'évaluation du produit et du contexte.
 
 :::math
 $F_h$ relie extraction hépatique et clairance : $E_h = \dfrac{CL_h}{Q_h}$. Un fort extracteur a un premier passage important et une biodisponibilité basse.

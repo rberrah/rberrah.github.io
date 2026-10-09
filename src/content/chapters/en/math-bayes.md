@@ -54,13 +54,15 @@ $$ p(\theta \mid y) \;=\; \frac{p(y \mid \theta)\,p(\theta)}{p(y)} \;\propto\; \
 
 In the **conjugate Gaussian** case the posterior stays Gaussian and its mean is a **precision-weighted average** (precision = inverse variance):
 
-$$ \hat\theta = \frac{\tau_0\,\mu_0 + \tau_d\,\bar y}{\tau_0 + \tau_d}, \qquad \tau = 1/\sigma^2 $$
+$$ \hat\theta = \frac{\tau_0\,\mu_0 + \tau_d\,\bar y}{\tau_0 + \tau_d}, \qquad \tau_0 = 1/\sigma_0^2,\quad \tau_d = n/\sigma_d^2 $$
 
-**Math —** the **MAP** estimate takes the peak of $p(\theta\mid y)$. In PopPK it amounts to minimising the data misfit **plus** a term pulling toward the prior: $-2\log L + \sum \eta^2/\omega^2$.
+Here, $\tau_d=n/\sigma_d^2$ when $\bar y$ summarises $n$ independent observations with known variance $\sigma_d^2$; for one observation, $\tau_d=1/\sigma_d^2$.
+
+**Math —** the **MAP** estimate takes the peak of $p(\theta\mid y)$. In PopPK it amounts to minimising the data misfit **plus** a term pulling toward the prior: $-2\log L + \eta^T\Omega^{-1}\eta$. The sum $\sum \eta_j^2/\omega_j^2$ is the diagonal case, with no covariance between random effects.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="BayesUpdate" -->
-A patient has a prior clearance of 5 L/h (population). A measured trough is a little low. The posterior shifts the estimate toward ~4 L/h — **without** blindly trusting a single noisy sample.
+A patient has a prior clearance of 5 L/h (population). At comparable dose and sampling time, a measured concentration slightly **below** the population prediction shifts the estimate toward a higher clearance, for example ~6 L/h — **without** blindly trusting a single noisy sample.
 
 With two or three consistent samples, the posterior tightens and moves clearly away from the prior: this is exactly Bayesian dose adjustment.
 <!-- /step -->

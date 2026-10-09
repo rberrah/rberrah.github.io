@@ -17,7 +17,7 @@ reviewed_on: "2026-07-14"
 quiz:
   - prompt: "MU-referencing speeds up SAEM because..."
     options:
-      - "MU_n depends only on THETAs and on covariates constant within a subject, which makes the population-parameter update analytic"
+      - "it makes the THETA–ETA link explicit and enables more efficient updates or sampling in EM/MCMC methods"
       - "it reduces the number of subjects simulated during the E step, so that each iteration processes far less individual-level data"
       - "it replaces numerical integration of the likelihood with a linearisation of the model around the current ETA values of the subject"
     correct: 0
@@ -40,7 +40,7 @@ The previous chapter stops at the minimal control stream: a structural model, lo
 
 Three walls appear fast. A **bounded** parameter — a bioavailability, a responder fraction — that the log-normal happily pushes past 1. Data **too sparse** to estimate everything, when a published model already exists. A SAEM run taking eight hours where it should take one.
 
-NONMEM answers all three. But every answer is written **by hand**, and nothing warns you if you write it wrong.
+NONMEM answers all three. But every answer is written **by hand**: `CHECKMU` can detect some MU-referencing inconsistencies, without replacing review of the model and outputs.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="03_PopulationDistrib" -->
@@ -91,9 +91,9 @@ $PK
 $ESTIMATION METHOD=SAEM INTERACTION NBURN=2000 NITER=1000 PRINT=100
 ```
 
-Two rules, non-negotiable. `MU_n` may depend only on THETAs and on covariates **constant within the individual** — never on an ETA, never on a value that changes between two records of the same subject. And the parameter must be written **exactly** as `MU_n + ETA(n)` on the chosen scale.
+In the standard form, `MU_n` depends on THETAs and covariates compatible with the MU model, not on another ETA or an arbitrarily time-varying covariate. The parameter is then written as `MU_n + ETA(n)` on the chosen scale. IOV and some special structures require the detailed NONMEM rules.
 
-Why this speeds things up: at each iteration SAEM simulates the individual effects (E step) then updates the population parameters (M step). If the link is `parameter = MU_n + ETA(n)`, then on that scale the model is **linear in ETA** — the M step resolves to a **closed form**, a mean and a covariance of the simulated values. Without MU-referencing, NONMEM does not know that structure exists and must launch a numerical search at every iteration. The gain is a factor, not a percentage. For METHOD=BAYES it is more radical still: Gibbs sampling **assumes** that structure.
+Why this helps: MU-referencing makes the arithmetic association between THETAs, ETAs and individual parameters explicit. NONMEM can then exploit that structure more efficiently in EM and MCMC methods, including SAEM and BAYES. With a suitable linear relation, some population updates can be simplified; the gain still depends on the model, method and implementation. NONMEM documentation presents it as particularly helpful for MCMC methods, not as a universal speed guarantee.
 
 **Prior information**
 
@@ -154,7 +154,7 @@ The seed makes the simulation reproducible, `ONLYSIM` switches estimation off, a
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
-MU-referencing is the costliest trap, because it **fails silently**. This control stream runs, converges, and hands you a result:
+Inconsistent MU-referencing can be costly. `CHECKMU`, enabled by default in recent NONMEM versions, looks for some errors and can issue warnings, but it does not validate the full scientific logic of a control stream:
 
 ```
 $PK
@@ -165,7 +165,7 @@ $PK
 ```
 
 :::pitfall
-Line 3: `MU_1` is declared, but `CL` is not written as `EXP(MU_1 + ETA(1))`. Mathematically it is the same thing; for the M step it is not — the closed form no longer applies. Line 4: `MU_2` depends on `ETA(1)`, which breaks the linearity assumption. In both cases: no message, no warning. Just a SAEM that crawls, or that converges somewhere else with nothing to flag it.
+Line 3 declares `MU_1` but does not use it in `CL`, preventing NONMEM from exploiting the intended MU model. Line 4 makes `MU_2` depend on `ETA(1)`, outside the standard form. `CHECKMU` may flag these constructions; warnings still need to be read and efficiency, convergence and estimates checked.
 :::
 
 A second, quieter trap: **the over-tight prior**. A prior variance of 0.0001 on KA is an SD of 0.01 for a value of 1.1 — you have **fixed** the parameter without saying so. The model will converge, the reported SEs will look flattering, and the real uncertainty will have vanished from the dossier. A prior must reflect the **real** uncertainty of its source, published standard error included.
@@ -173,7 +173,7 @@ A second, quieter trap: **the over-tight prior**. A prior variance of 0.0001 on 
 
 <!-- step:title="Key takeaways" -->
 - The **transformation**, not the ETA, defines a parameter's domain: `EXP()` for an unbounded positive, logit for a fraction in ]0, 1[, identity for a quantity that may be negative.
-- **MU-referencing** — `MU_n` a function of THETAs and constant individual covariates only, then the parameter written exactly as `MU_n + ETA(n)` — makes the M step analytic: SAEM speeds up markedly, and BAYES depends on it.
+- **MU-referencing** makes the link between THETAs, ETAs and individual parameters explicit to improve EM/MCMC efficiency; `CHECKMU` helps detect some inconsistencies without replacing validation.
 - A **prior** injects a published model into a data-poor analysis; preferably put it on what the data cannot inform, and make any informative prior on the target explicit and sensitivity-tested.
 - **PsN** automates bootstrap, VPC and SCM; **Xpose** plots; **Pirana** organises. NONMEM produces no graphics: the ecosystem is not a luxury.
 - The `$SIMULATION` block — a seed, some `SUBPROBLEMS` — turns an estimated model into a generator of virtual populations.

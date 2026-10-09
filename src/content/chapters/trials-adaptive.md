@@ -9,12 +9,12 @@ order: 103
 duration: "12 min"
 level: "advanced"
 tags: ["clinical-trials", "adaptive-design", "dose-finding", "mcp-mod"]
-prerequisites: []
-glossary: []
+prerequisites: ["trials-cts", "pd-direct"]
+glossary: ["Emax", "EC50 / CE50", "AIC / BIC"]
 slides: []
 sources: ["bretz-mcp-mod", "holford-sheiner-dose-effect", "ich-e4", "ich-m15", "mould-upton"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Une recherche de dose fondée sur un modèle (model-based) est plus efficace car..."
     options:
@@ -63,7 +63,7 @@ Réf. : Bretz F., Pinheiro J. & Branson M. (MCP-Mod), *Biometrics* 2005 ; approc
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="EmaxHill" -->
-Au lieu de comparer 4 doses vs placebo par tests séparés, MCP-Mod établit qu'il existe une tendance, ajuste un Emax et estime la dose donnant l'effet visé — avec un **intervalle de confiance** exploitable pour la phase III.
+Au lieu de comparer quatre doses au placebo par tests séparés, MCP-Mod teste une tendance sur plusieurs formes candidates puis estime la courbe et la dose visée avec le ou les modèles retenus, éventuellement par moyenne de modèles. L'incertitude de cette estimation doit accompagner le choix pour la phase III.
 
 Une analyse **intermédiaire** peut alors abandonner les doses inefficaces et concentrer les patients sur les doses prometteuses.
 <!-- /step -->
@@ -72,13 +72,13 @@ Une analyse **intermédiaire** peut alors abandonner les doses inefficaces et co
 Adaptatif ne veut pas dire improvisé.
 
 :::pitfall
-Un design adaptatif doit être **entièrement pré-spécifié** et validé par simulation : changer les règles en cours de route gonfle le risque d'erreur de type I. Les limites sont spécifiques au design : taille maximale parfois plus grande, complexité opérationnelle, délais de biomarqueurs ou d'événements, et risque de modèle mal choisi — d'où l'intérêt de la moyenne de modèles de MCP-Mod.
+Les adaptations, règles de décision et analyses doivent être **prospectivement planifiées** et évaluées par simulation pour préserver l'intégrité et, lorsque nécessaire, contrôler l'erreur de type I. Une modification non planifiée n'entraîne pas mécaniquement une inflation identique dans tous les contextes, mais elle exige une justification et des méthodes adaptées. Les limites sont spécifiques au design : taille maximale parfois plus grande, complexité opérationnelle, délais de lecture et risque de modèle mal choisi.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - Le dose-finding model-based exploite la courbe dose–réponse continue (Emax).
-- MCP-Mod : test de tendance + modélisation → estimation de la dose cible.
+- MCP-Mod : tests de tendance sur des modèles candidats + modélisation ou moyenne de modèles → estimation de la dose cible.
 - Les designs adaptatifs ajustent l'essai selon des analyses intermédiaires pré-spécifiées.
-- Tout doit être pré-spécifié et simulé, sinon inflation du risque d'erreur.
+- Les adaptations et règles d'analyse doivent être planifiées et simulées selon l'objectif confirmatoire ou exploratoire.
 <!-- /step -->

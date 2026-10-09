@@ -10,7 +10,7 @@ duration: "14 min"
 level: "intermediate"
 tags: ["covariates","PK","PD"]
 prerequisites: ["covariates-basics"]
-glossary: []
+glossary: ["Covariable", "Allométrie", "CLr", "DFG"]
 slides: []
 sources: ["anderson-holford-allometry","jones-rowland-yeo","goutelle-hill"]
 reviewed_on: "2026-09-29"

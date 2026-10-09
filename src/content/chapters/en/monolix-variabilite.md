@@ -56,14 +56,14 @@ cl = {distribution=logNormal, typical=cl_pop, sd=omega_cl}
 
 "Clearance is log-normal, centred on `cl_pop`, with a spread of `omega_cl`." Three pieces of information: a **shape**, a **centre**, a **width**. Nothing more is needed to say where a patient's clearance comes from.
 
-Behind every distribution sits **the same Gaussian**. Monolix never estimates variability on the parameter's own scale: it estimates it on the scale where it is normal, then lets the parameter out through a transformation.
+For the common parametric distributions presented here, Monolix represents the random effect by a **Gaussian** on a chosen scale. That may be the parameter scale itself (`normal`, identity transform) or a transformed scale (`logNormal`, `logitNormal`).
 
 - `normal`: no transformation at all, $\psi_i = \psi_{\text{pop}} + \eta_i$ — the parameter is free to change sign.
 - `logNormal`: the exit is through $\exp$, so $\psi_i = \psi_{\text{pop}}\,e^{\eta_i}$ — always strictly positive.
 - `logitNormal`: the exit is through the inverse logit, so $\psi_i$ stays locked inside $(0,1)$, whatever $\eta_i$ does.
 
 :::key
-Choosing a `distribution` is not choosing "the shape of the histogram". It is choosing **the constraint** the parameter can never violate: free, positive, or bounded. The Gaussian itself never moves: there is always an $\eta_i \sim \mathcal{N}(0, \omega^2)$ living underneath. That is precisely why correlations, IOV and covariates are declared the same way whatever the distribution: they all act on the $\eta$, not on $\psi$.
+Choosing a `distribution` notably selects the parameter's **support** and transformation: free, positive or bounded. For the usual distributions above, an $\eta_i \sim \mathcal{N}(0, \omega^2)$ acts on that scale; correlations, IOV and covariates must therefore be interpreted on the corresponding scale.
 :::
 <!-- /step -->
 
@@ -93,7 +93,7 @@ Three things to know about that line.
 **`sd` is a standard deviation.** This is the most expensive parametrisation difference between the two major programs.
 
 :::pitfall
-NONMEM declares a **variance** in `$OMEGA`; Monolix declares a **standard deviation** in `sd`. Translating a model by copying the numbers across — `$OMEGA 0.09` becoming `omega_cl = 0.09` — declares an IIV of 9 % instead of 30 %. Nothing crashes: SAEM simply starts from a far too homogeneous population, and depending on the dataset it may stay there. The reflex check is arithmetic: the `omega` of a usual 20–50 % IIV lives between **0.2 and 0.5**, never between 0.04 and 0.25.
+NONMEM declares a **variance** in `$OMEGA`; Monolix declares a **standard deviation** in `sd`. Copying `$OMEGA 0.09` as `omega_cl = 0.09` declares about 9% IIV rather than 30%. Nothing crashes: SAEM simply starts from a far too homogeneous population. As a reference, 20–50% IIV corresponds approximately to `omega` 0.2–0.5; this is not a universal range.
 :::
 
 The exact coefficient of variation of the parameter follows directly from `omega`:
@@ -218,7 +218,7 @@ $$ Cl_i = cl_{\text{pop}} \left(\frac{CRCL_i}{90}\right)^{\beta_{CRCL}} e^{\eta_
 A continuous covariate that is **log-transformed and centred**, wired in with a plain coefficient on a logNormal distribution, **is** the power model. It is the same thing as NONMEM's `TVCL = THETA(1)*(CRCL/90)**THETA(4)`, written differently. Allometry on body weight with the exponent fixed at 0.75 is obtained the same way: write `tWT = log(WT/70)` and fix `beta_cl_tWT` at 0.75 instead of estimating it.
 :::
 
-And the rule that holds in both programs: a covariate takes away from the eta whatever it explains. `cl_pop` is the clearance of a **reference** patient, `eta_cl` now carries only the remainder. A covariate that earns its place therefore shows up as a **drop in `omega_cl`**, not only as a drop in $-2LL$.
+A covariate aims to explain systematic variability previously carried by the eta. `cl_pop` becomes the clearance of a **reference** patient and `eta_cl` carries the remainder. A drop in `omega_cl` can support its usefulness, but its magnitude is not guaranteed and depends on the data, other effects and estimation uncertainty. Plausibility, precision, diagnostics and predictive consequences also matter, not only $-2LL$.
 
 :::note
 Ref.: Monolix / MonolixSuite documentation (Lixoft — Simulations Plus) for the `[INDIVIDUAL]` and `[COVARIATE]` block syntax; Lavielle M., *Mixed Effects Models for the Population Approach* (Chapman & Hall/CRC) for the parametrisation of the statistical model; Karlsson & Sheiner, *J Pharmacokinet Biopharm* 1993 for between-occasion variability; Savic & Karlsson, *AAPS J* 2009 for shrinkage.
@@ -235,7 +235,7 @@ An analysis on **52 patients**, oral dosing, one compartment, two sampling visit
 | 3 | + IOV on `cl` (`gamma_cl`) | 10 | 1841.7 | −21.4 |
 | 4 | + CRCL on `cl` | 11 | 1820.9 | −20.8 |
 
-**Run 1 → 2.** $r$ is estimated at 0.52. The likelihood-ratio threshold at 1 degree of freedom is 3.84 at the 5 % level: the correlation is retained by a wide margin. It is also expected — a physiologically "large" patient often has both a high clearance and a high volume — and ignoring it would simulate high-clearance, small-volume patients who do not exist.
+**Run 1 → 2.** $r$ is estimated at 0.52. For nested, adequately converged models under the usual likelihood-ratio assumptions, the 1-degree-of-freedom reference is 3.84 at the 5% level: the example supports adding the correlation. Its plausibility and effect on simulations must also be examined; an estimated covariance is not automatically proof of a physiological mechanism.
 
 **Run 2 → 3.** `gamma_cl` comes out at 0.18, a $CV_{\text{IOV}}$ of 18.1 %; and `omega_cl` **drops** from 0.42 to 0.36. That is the most instructive result in the table: part of what was being attributed to "this patient eliminates fast" was in fact "that particular visit was different". Without an occasion level, IIV absorbs IOV and ends up overstated.
 
@@ -246,7 +246,7 @@ $$ CV_{\text{before}} = \sqrt{e^{0.36^2}-1} = 37.2\ \%, \qquad CV_{\text{after}}
 Renal function therefore explains about **8 points of CV** on clearance. That sentence, and not the $\Delta$ of 20.8, is the one with clinical meaning and the one that goes into the report.
 
 :::pitfall
-Two caveats on those $\Delta$. First, Monolix's $-2LL$ is computed by **importance sampling**: it carries a Monte Carlo error, and two runs of the same model do not return exactly the same number. A gap of 2 or 3 points is not interpretable; the gaps above, between 13 and 21, are far above the noise. Second, testing `gamma_cl = 0` puts the null hypothesis **on the boundary** of the parameter space (a standard deviation cannot be negative): the 3.84 threshold is conservative there, hence safe. Testing `corr_cl_v = 0` does not raise that problem, since 0 sits inside $(-1,1)$.
+Two caveats on those $\Delta$. First, an importance-sampling $-2LL$ carries Monte Carlo error: a small difference should be assessed through repeated estimates or an estimate of that error, with no universal 2- or 3-point threshold. Second, testing `gamma_cl = 0` puts the null **on the boundary** of the parameter space, so the usual asymptotic test distribution does not apply directly. Testing `corr_cl_v = 0` does not have that same boundary issue because 0 lies inside $(-1,1)$.
 :::
 
 **Reading the output.** Monolix returns the population parameters with their standard error and RSE:
@@ -275,7 +275,7 @@ And facing them, the shrinkage:
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-$\eta_{cl}$, informed by the whole curve, is reliable at 9 %. $\eta_{ka}$ sits at 46 %: with no early sample in most patients, the absorption phase carries almost no individual information, and each patient's estimate **falls back towards the population**.
+$\eta_{cl}$, informed by the whole curve, has 9% shrinkage: its individual diagnostics are more informative here than those for $\eta_{ka}$, without that number guaranteeing accuracy. $\eta_{ka}$ sits at 46%: with no early sample in most patients, the absorption phase carries little individual information and each estimate **falls back towards the population**.
 
 :::recall
 A useful Monolix specificity: individual parameters are not only a conditional mode (the equivalent of NONMEM's EBE). SAEM samples each patient's **conditional distribution** by MCMC, and Monolix can return those draws. Diagnostics built on simulated draws rather than on a shrunk point estimate recover part of the information shrinkage destroys. That mitigates the problem — it does not erase it: when the data say nothing about $k_a$ in a patient, no individual estimation method will invent it.
@@ -308,7 +308,7 @@ The test fits in one sentence to complete: "`cl_pop` is the typical clearance of
 - The distribution picks the **constraint**: `logNormal` for a positive parameter, `normal` for one that may change sign, `logitNormal` for a bounded fraction — but its `omega` is then no longer a CV.
 - `correlation = {level=id, r(cl, v)=...}` estimates the **correlation coefficient** between the etas, bounded and directly readable; the covariance is rebuilt as $r\,\omega_{cl}\,\omega_v$.
 - IOV is a **level** (`varlevel={id, id*occ}`), not a list of etas: one variance by construction, so no `SAME` to write. Without an occasion level, IIV absorbs IOV and ends up overstated.
-- On a logNormal, `covariate=log(CRCL/90)` with a coefficient **is** the power model. A useful covariate lowers `omega`, not only the $-2LL$.
-- Always centre continuous covariates: an uncentred `log(WT)` gives the same fit but makes `v_pop` unreadable and its estimation ill-conditioned.
-- Reading the outputs: RSE > 50% on an `omega` signals an imprecisely estimated variance, not absence of IIV; shrinkage progressively reduces individual information; a $\Delta(-2LL)$ of 2 or 3 points may reflect importance-sampling noise.
+- On a logNormal, `covariate=log(CRCL/90)` with a coefficient **is** the power model. A lower `omega` can support covariate usefulness among other criteria.
+- Generally centre continuous covariates on a meaningful reference: an uncentred `log(WT)` gives the same fit here but makes `v_pop` hard to interpret and can worsen conditioning.
+- Reading the outputs: RSE > 50% on an `omega` signals an imprecisely estimated variance, not absence of IIV; shrinkage progressively reduces individual information; compare a small $\Delta(-2LL)$ with the estimated Monte Carlo error.
 <!-- /step -->

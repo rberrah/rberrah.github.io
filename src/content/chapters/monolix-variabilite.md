@@ -10,11 +10,11 @@ duration: "13 min"
 level: "intermediate"
 tags: ["monolix", "mlxtran", "variability", "omega", "iov", "covariates", "shrinkage"]
 prerequisites: ["tools-monolix"]
-glossary: []
+glossary: ["IIV", "IOV", "ω / Ω", "Covariable", "Shrinkage", "Distribution lognormale", "Distribution logit-normale"]
 slides: []
 sources: ["monolix", "lavielle", "karlsson-sheiner-iov", "savic-karlsson-shrinkage"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-14"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Vous traduisez en Monolix un modèle NONMEM dont l'IIV sur la clairance est déclarée par `$OMEGA 0.09`. Quelle valeur donner à `omega_cl` ?"
     options:
@@ -57,14 +57,14 @@ cl = {distribution=logNormal, typical=cl_pop, sd=omega_cl}
 
 « La clairance est log-normale, centrée sur `cl_pop`, avec une dispersion `omega_cl`. » Trois informations : une **forme**, un **centre**, une **largeur**. Il n'en faut pas davantage pour dire d'où sort la clairance d'un patient.
 
-Derrière chaque loi, il y a toujours **la même gaussienne**. Monolix n'estime jamais la variabilité sur l'échelle du paramètre : il l'estime sur l'échelle où elle est normale, puis fait ressortir le paramètre à travers une fonction de transformation.
+Dans les distributions paramétriques usuelles présentées ici, Monolix représente l'effet aléatoire par une **gaussienne** sur une échelle choisie. Cette échelle peut être celle du paramètre (`normal`, transformation identité) ou une échelle transformée (`logNormal`, `logitNormal`).
 
 - `normal` : aucune transformation, $\psi_i = \psi_{\text{pop}} + \eta_i$ — le paramètre est libre de changer de signe.
 - `logNormal` : on ressort par $\exp$, donc $\psi_i = \psi_{\text{pop}}\,e^{\eta_i}$ — toujours strictement positif.
 - `logitNormal` : on ressort par la réciproque du logit, donc $\psi_i$ reste enfermé dans $(0,1)$, quel que soit $\eta_i$.
 
 :::key
-Choisir une `distribution`, ce n'est pas choisir « la forme de l'histogramme ». C'est choisir **la contrainte** que le paramètre ne pourra jamais violer : libre, positif, ou borné. La gaussienne, elle, ne bouge jamais : c'est toujours un $\eta_i \sim \mathcal{N}(0, \omega^2)$ qui vit dessous. C'est d'ailleurs pourquoi les corrélations, l'IOV et les covariables se déclarent de la même façon quelle que soit la loi : tous portent sur les $\eta$, pas sur $\psi$.
+Choisir une `distribution`, c'est notamment choisir le **support** et la transformation du paramètre : libre, positif ou borné. Pour les lois usuelles ci-dessus, un $\eta_i \sim \mathcal{N}(0, \omega^2)$ agit sur cette échelle ; corrélations, IOV et covariables doivent donc être interprétées sur l'échelle correspondante.
 :::
 <!-- /step -->
 
@@ -94,7 +94,7 @@ Trois choses à savoir sur cette ligne.
 **`sd` est un écart-type.** C'est la différence de paramétrisation la plus coûteuse entre les deux grands logiciels.
 
 :::pitfall
-NONMEM déclare une **variance** dans `$OMEGA` ; Monolix déclare un **écart-type** dans `sd`. Traduire un modèle en recopiant les chiffres — `$OMEGA 0.09` devenu `omega_cl = 0.09` — déclare une IIV de 9 % au lieu de 30 %. Rien ne plante : le SAEM part simplement d'une population beaucoup trop homogène, et selon le jeu de données il peut y rester. Le contrôle réflexe est arithmétique : `omega` d'une IIV usuelle de 20 à 50 % vit entre **0,2 et 0,5**, jamais entre 0,04 et 0,25.
+NONMEM déclare une **variance** dans `$OMEGA` ; Monolix déclare un **écart-type** dans `sd`. Traduire un modèle en recopiant les chiffres — `$OMEGA 0.09` devenu `omega_cl = 0.09` — déclare une IIV d'environ 9 % au lieu de 30 %. Rien ne plante : le SAEM part simplement d'une population beaucoup trop homogène. À titre de repère, une IIV de 20 à 50 % correspond approximativement à un `omega` de 0,2 à 0,5 ; ce n'est pas une plage universelle.
 :::
 
 Le coefficient de variation exact du paramètre se déduit directement de `omega` :
@@ -219,7 +219,7 @@ $$ Cl_i = cl_{\text{pop}} \left(\frac{CRCL_i}{90}\right)^{\beta_{CRCL}} e^{\eta_
 Une covariable continue **log-transformée et centrée**, branchée avec un simple coefficient sur une loi logNormale, **est** le modèle puissance. C'est la même chose que le `TVCL = THETA(1)*(CRCL/90)**THETA(4)` de NONMEM, écrit autrement. L'allométrie sur le poids, exposant fixé à 0,75, s'obtient de la même façon en écrivant `tWT = log(WT/70)` et en fixant `beta_cl_tWT` à 0,75 plutôt qu'en l'estimant.
 :::
 
-Et la règle qui vaut dans les deux logiciels : une covariable retire à l'eta ce qu'elle explique. `cl_pop` est la clairance d'un patient **de référence**, `eta_cl` ne porte plus que le reste. Une covariable qui sert se voit donc à la **baisse d'`omega_cl`**, pas seulement à la baisse du $-2LL$.
+Une covariable vise à expliquer une partie de la variabilité systématique portée jusque-là par l'eta. `cl_pop` devient la clairance d'un patient **de référence** et `eta_cl` porte le reste. Une baisse d'`omega_cl` peut donc étayer son utilité, mais son ampleur n'est pas garantie : elle dépend des données, des autres effets et de l'incertitude d'estimation. On juge aussi plausibilité, précision, diagnostics et conséquence prédictive, pas seulement le $-2LL$.
 
 :::note
 Réf. : documentation Monolix / MonolixSuite (Lixoft — Simulations Plus) pour la syntaxe des blocs `[INDIVIDUAL]` et `[COVARIATE]` ; Lavielle M., *Mixed Effects Models for the Population Approach* (Chapman & Hall/CRC) pour la paramétrisation du modèle statistique ; Karlsson & Sheiner, *J Pharmacokinet Biopharm* 1993 pour la variabilité inter-occasion ; Savic & Karlsson, *AAPS J* 2009 pour le shrinkage.
@@ -236,7 +236,7 @@ Une analyse sur **52 patients**, administration orale, un compartiment, deux vis
 | 3 | + IOV sur `cl` (`gamma_cl`) | 10 | 1841,7 | −21,4 |
 | 4 | + CRCL sur `cl` | 11 | 1820,9 | −20,8 |
 
-**Run 1 → 2.** $r$ est estimé à 0,52. Le seuil du rapport de vraisemblance à 1 degré de liberté est 3,84 au risque de 5 % : la corrélation est largement retenue. Elle est aussi attendue — un patient physiologiquement « grand » a souvent à la fois une clairance et un volume élevés — et l'ignorer ferait simuler des patients à forte clairance et petit volume qui n'existent pas.
+**Run 1 → 2.** $r$ est estimé à 0,52. Pour deux modèles emboîtés correctement convergés et sous les conditions usuelles du rapport de vraisemblance, le repère à 1 degré de liberté est 3,84 au risque de 5 % : l'exemple soutient ici l'ajout de la corrélation. Sa plausibilité et son effet sur les simulations doivent aussi être examinés ; une covariance estimée n'est pas automatiquement une preuve de mécanisme physiologique.
 
 **Run 2 → 3.** `gamma_cl` sort à 0,18, soit un $CV_{\text{IOV}}$ de 18,1 % ; et `omega_cl` **descend** de 0,42 à 0,36. C'est le résultat le plus instructif du tableau : une part de ce qu'on attribuait à « ce patient élimine fort » était en réalité « cette visite-là était différente ». Sans niveau d'occasion, l'IIV absorbe l'IOV et se retrouve surestimée.
 
@@ -247,7 +247,7 @@ $$ CV_{\text{avant}} = \sqrt{e^{0{,}36^2}-1} = 37{,}2\ \%, \qquad CV_{\text{apr�
 La fonction rénale explique donc environ **8 points de CV** sur la clairance. C'est cette phrase-là, et non le $\Delta$ de 20,8, qui a un sens clinique et qui ira dans le rapport.
 
 :::pitfall
-Deux réserves sur ces $\Delta$. D'abord, le $-2LL$ de Monolix est calculé par **échantillonnage d'importance** : il porte une erreur de Monte-Carlo, et deux runs du même modèle ne rendent pas exactement le même chiffre. Un écart de 2 ou 3 points n'est pas interprétable ; les écarts ci-dessus, entre 13 et 21, sont très au-dessus du bruit. Ensuite, tester `gamma_cl = 0` place l'hypothèse nulle **sur le bord** de l'espace des paramètres (un écart-type ne peut pas être négatif) : le seuil de 3,84 y est conservateur, donc prudent. Tester `corr_cl_v = 0` ne pose pas ce problème, puisque 0 est à l'intérieur de $(-1,1)$.
+Deux réserves sur ces $\Delta$. D'abord, le $-2LL$ calculé par **échantillonnage d'importance** porte une erreur de Monte-Carlo : la pertinence d'un petit écart doit être appréciée par répétitions ou par une estimation de cette erreur, sans seuil universel de 2 ou 3 points. Ensuite, tester `gamma_cl = 0` place l'hypothèse nulle **sur le bord** de l'espace des paramètres ; la loi asymptotique usuelle du test n'est alors pas directement applicable. Tester `corr_cl_v = 0` ne pose pas ce même problème de frontière, puisque 0 est à l'intérieur de $(-1,1)$.
 :::
 
 **Lire la sortie.** Monolix renvoie les paramètres de population avec leur erreur standard et leur RSE :
@@ -276,7 +276,7 @@ Et en face, le shrinkage :
 
 $$ Sh_\eta = 1 - \frac{SD(\hat{\eta}_i)}{\omega} $$
 
-$\eta_{cl}$, informé par toute la courbe, est fiable à 9 %. $\eta_{ka}$ est à 46 % : sans prélèvement précoce chez la plupart des patients, la phase d'absorption n'apporte presque aucune information individuelle, et l'estimation de chaque patient **retombe vers la population**.
+$\eta_{cl}$, informé par toute la courbe, a 9 % de shrinkage : ses diagnostics individuels sont ici plus informatifs que ceux de $\eta_{ka}$, sans que ce chiffre suffise à garantir leur exactitude. $\eta_{ka}$ est à 46 % : sans prélèvement précoce chez la plupart des patients, la phase d'absorption apporte peu d'information individuelle, et l'estimation de chaque patient **retombe vers la population**.
 
 :::recall
 Une spécificité utile de Monolix : les paramètres individuels ne sont pas seulement un mode conditionnel (l'équivalent de l'EBE de NONMEM). Le SAEM échantillonne la **distribution conditionnelle** de chaque patient par MCMC, et Monolix peut restituer ces tirages. Les diagnostics construits sur des tirages simulés plutôt que sur un point tassé récupèrent une partie de l'information que le shrinkage détruit. Cela atténue le problème — cela ne l'efface pas : quand les données ne disent rien sur $k_a$ chez un patient, aucune méthode d'estimation individuelle ne l'inventera.
@@ -309,7 +309,7 @@ Le test tient en une phrase à compléter : « `cl_pop` est la clairance typique
 - La loi choisit la **contrainte** : `logNormal` pour un paramètre positif, `normal` pour un paramètre qui peut changer de signe, `logitNormal` pour une fraction bornée — mais son `omega` n'est alors plus un CV.
 - `correlation = {level=id, r(cl, v)=...}` estime le **coefficient de corrélation** entre les etas, borné et directement lisible ; la covariance se reconstruit par $r\,\omega_{cl}\,\omega_v$.
 - L'IOV est un **niveau** (`varlevel={id, id*occ}`), pas une liste d'etas : une seule variance par construction, donc pas de `SAME` à écrire. Sans niveau d'occasion, l'IIV absorbe l'IOV et se retrouve surestimée.
-- Sur une logNormale, `covariate=log(CRCL/90)` avec un coefficient **est** le modèle puissance. Une covariable utile fait baisser `omega`, pas seulement le $-2LL$.
-- Centrez toujours les covariables continues : un `log(WT)` non centré donne le même ajustement mais rend `v_pop` illisible et son estimation mal conditionnée.
+- Sur une logNormale, `covariate=log(CRCL/90)` avec un coefficient **est** le modèle puissance. Une baisse d'`omega` peut soutenir l'utilité d'une covariable, parmi d'autres critères.
+- Centrez généralement les covariables continues sur une référence pertinente : un `log(WT)` non centré donne ici le même ajustement mais rend `v_pop` difficile à interpréter et peut dégrader le conditionnement.
 - Lecture des sorties : un RSE > 50 % sur un `omega` signale une variance imprécisément estimée, pas l'absence d'IIV ; le shrinkage réduit progressivement l'information individuelle ; $\Delta(-2LL)$ de 2 ou 3 points peut relever du bruit de l'échantillonnage d'importance.
 <!-- /step -->

@@ -1,6 +1,6 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-08. Les cinq ateliers et les quinze laboratoires animés sont publiés : quatre fondamentaux et onze moléculaires.
+Mise à jour : 2026-10-09. Les cinq ateliers et les quinze laboratoires animés sont publiés : quatre fondamentaux et onze moléculaires.
 Lot actuel : maturation pédagogique, cohérence scientifique et validation auprès d'utilisateurs.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -23,7 +23,10 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 - [x] Étendre la recherche au texte des cours et aux liens directs ; remplacer le cas logiciel générique par une synthèse NONMEM/Monolix/nlmixr2.
 - [x] Aligner citation, licence, portail, inventaire, nom PMx Explain et suites de tests statistiques.
 - [ ] Exécuter le protocole `docs/usability-accessibility-protocol.md` avec des débutants, étudiants, enseignants et experts, puis consigner les observations sans les guider.
-- [ ] Relire scientifiquement les versions signalées comme modifiées depuis leur dernière relecture.
+- [ ] Exécuter l'audit manuel clavier, zoom 200 %, 320 px, NVDA, VoiceOver et appareils réels ; consigner les résultats dans `docs/usability-accessibility-results.md`.
+- [x] Relire scientifiquement les 23 versions signalées, en français puis en anglais, et aligner leurs dates de relecture.
+- [x] Vérifier les prérequis réels des chapitres intermédiaires et avancés et relier les concepts utiles au glossaire.
+- [x] Enrichir le glossaire structurant et ajouter unités, hypothèses, erreurs fréquentes, limites et ressources associées.
 
 **Décision de périmètre :** aucun nouveau laboratoire majeur avant les observations utilisateurs. Les améliorations correctives, d'accessibilité et de continuité restent autorisées.
 
@@ -201,7 +204,7 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 
 - [x] **L01 / P1 - Pilote local** Experience deux compartiments : quantites central/peripherique, echanges, elimination, concentration et curseur temporel synchronises ; prediction sur l'effet initial de Q.
 - [x] **L02 / P1 - Pilote local** Lecture/pause, remise a zero, pas temporel et vitesse ; entrees numeriques, modele actuel et reference figee sur les memes axes. Modifier un parametre relance l'experience a t=0, sans inventer une administration. Les libelles A/B sont remplaces par Modele actuel / Reference.
-- [x] **L03 / P1 - Pilote local** Vues Intuition / Equations et prediction facultative avec explication causale pour les deux laboratoires. Cas simule retire au profit de la comparaison avec la reference.
+- [x] **L03 / P1** Vues Intuition / Equations, prediction facultative et explication causale dans les quatre laboratoires fondamentaux. Cas simule retire au profit de la comparaison avec la reference.
 - [x] **L04 / P1 - Pilote local** Bilan de masse, positivite, unites et cas limites ; dix scenarios compares au code mrgsolve exporte et regenere par R. Precision des petits taux preservee dans le generateur Lego.
 - [x] **L05 / P1 - Pilote local** FR/EN, menu clavier, captures 320/390/768/1440 px, theme sombre, pixels non vides, mouvement reduit, pause hors scene et tableaux numeriques controles. Reservoirs/particules explicitement symboliques. Audit complet par lecteur d'ecran encore a faire.
 - [x] **L05b / P1 - Retour utilisateur du 13/09** Particules sur les trajets aller/retour et vers l'elimination ; Lecture utilisable avec mouvement reduit et commandes visibles seules ; activation volontaire des particules. Sept tests navigateur passes, dont pixels des trois trajets, pause et retour au meme instant.
@@ -257,7 +260,7 @@ communes mais K01-K03 ne doivent pas attendre l'eventuelle extraction A08.
 - [ ] **U02 / P2 - Partiellement livré** Les métadonnées de glossaire sont explicites et le tronc commun est relié. Poursuivre le graphe conceptuel : définition, équation, erreurs fréquentes, chapitre, laboratoire et exercice ; harmoniser FR/EN jusqu'aux légendes et données du glossaire.
 - [ ] **U03 / P2 - Partiellement livré** La recherche ouvre directement les activités et treize cas de synthèse sont disponibles. Achever les liens exercice-expérience : prédiction initiale, manipulation, comparaison et explication, sans badges ni gamification obligatoire.
 - [ ] **U04 / P2** Rendre coherent le passage Simulation -> Lego -> TDM/DDI/PD. Afficher ce qui est transfere, ses unites et ce qui ne l'est pas ; ne pas promettre une reprise de dossier entre deux sessions Shiny independantes.
-- [x] **U05 / P2 - Pilote local** Mode enseignant des deux laboratoires : scenarios numeriques reproductibles, resultats masquables/revelables, CSV/PNG et partage valide par liste blanche. Sans compte, suivi d'eleve ni stockage automatique de scenario.
+- [x] **U05 / P2** Mode enseignant des laboratoires : scenarios numeriques reproductibles, resultats masquables/revelables, CSV/PNG et partage valide par liste blanche. Sans compte, suivi d'eleve ni stockage automatique de scenario.
 - [ ] **U06 / P2** Generaliser la comparaison A/B pertinente : une reference stable, les parametres modifies et les ecarts numeriques. Preserver la graine de simulation et rendre le changement d'echelle visible.
 
 **U04 partiellement livre en local :** laboratoire -> Lego / TDM / DDI / PD,

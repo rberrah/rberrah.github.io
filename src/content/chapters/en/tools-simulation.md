@@ -59,13 +59,13 @@ $$ \frac{dA}{dt} = f(A, \theta_i, t), \qquad \theta_i = \theta\cdot e^{\eta_i} $
 <!-- step:title="Worked example" viz="21_PopPKPlayground" -->
 For a **VPC**, we simulate hundreds of datasets under the model and compare the percentiles to the observations. For a **virtual trial** with fixed generating parameters, we first estimate a conditional success frequency, i.e. an operating characteristic or power under that scenario. Probability of success/assurance is appropriate when the relevant uncertainty on parameters or scenarios is integrated.
 
-mrgsolve makes these simulations near-instant, even on tens of thousands of subjects.
+mrgsolve can run large simulations quickly, but runtime depends on model complexity, event count, requested outputs and hardware.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
 A simulation inherits the model's weaknesses.
 
-**Pitfall —** "garbage in, garbage out": a simulation is reliable only if the model is **validated** and the question states what is being propagated. Simulating outside the data **domain** (unobserved doses, populations) is a risky extrapolation.
+**Pitfall —** "garbage in, garbage out": a simulation is interpretable for a decision only when the model is **qualified for that use** and the question states what is propagated. Simulating outside the data **domain** (unobserved doses or populations) is extrapolation whose uncertainty must be explicit.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

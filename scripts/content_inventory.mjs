@@ -5,6 +5,7 @@ import { exercises } from '../src/lib/content/exercises.js';
 import { guidedActivities } from '../src/lib/content/guidedActivities.js';
 import { learningTracks, beginnerTrack } from '../src/lib/content/tracks.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
+import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
 
 const root = new URL('../', import.meta.url);
 const chapterDir = new URL('src/content/chapters/', root);
@@ -21,6 +22,7 @@ const visualizations = readdirSync(visualizationDir).filter(file => file.endsWit
 const vizKeys = new Set(chapterFiles.flatMap(file => [...readFileSync(new URL(file, chapterDir), 'utf8').matchAll(/\bviz="([^"]+)"/g)].map(match => match[1])));
 const syntheses = guidedActivities.filter(activity => activity.kind === 'synthesis');
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
+const pendingReviews = chapters.filter(chapter => chapter.updated_on && chapter.reviewed_on && chapter.updated_on > chapter.reviewed_on);
 const rows = [
   ['French chapters', chapters.length],
   ['English chapter translations', englishFiles.length],
@@ -34,13 +36,15 @@ const rows = [
   ['Animated laboratories', 4 + molecularLabIds.length],
   ['Visualization components', visualizations.length],
   ['Visualization keys used by chapters', vizKeys.size],
+  ['Glossary terms', Object.keys(glossaryEnglish).length],
+  ['Rich glossary entries', Object.keys(glossaryDetails).length],
   ['Chapters with explicit prerequisites metadata', chapters.filter(chapter => Array.isArray(chapter.prerequisites)).length],
   ['Chapters with prerequisites', chapters.filter(chapter => chapter.prerequisites?.length).length],
   ['Chapters with explicit glossary metadata', chapters.filter(chapter => Array.isArray(chapter.glossary)).length],
   ['Chapters with glossary links', chapters.filter(chapter => chapter.glossary?.length).length],
   ['Chapters with source identifiers', chapters.filter(chapter => chapter.sources?.length).length],
   ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length],
-  ['Chapters pending scientific review', chapters.filter(chapter => chapter.updated_on && chapter.reviewed_on && chapter.updated_on > chapter.reviewed_on).length]
+  ['Chapters pending scientific review', pendingReviews.length]
 ];
 
 assert.equal(new Set(chapters.map(chapter => chapter.slug)).size, chapters.length, 'Duplicate chapter slug');
@@ -71,6 +75,12 @@ ${rows.map(([label, count]) => `| ${label} | ${count} |`).join('\n')}
 
 The counts describe repository content. They do not certify scientific validity,
 clinical suitability, translation quality or learning effectiveness.
+
+## Scientific review debt
+
+${pendingReviews.length
+  ? `| Chapter | Track | Level | Updated | Last review |\n| --- | --- | --- | --- | --- |\n${pendingReviews.map(chapter => `| ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.updated_on} | ${chapter.reviewed_on} |`).join('\n')}`
+  : 'No chapter currently has an editorial update newer than its scientific review date.'}
 `;
 
 if (process.argv.includes('--check')) {

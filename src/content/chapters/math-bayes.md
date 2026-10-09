@@ -13,8 +13,8 @@ prerequisites: ["math-regression"]
 glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "Vraisemblance", "MAP", "Shrinkage"]
 slides: []
 sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "minichmayr-mipd"]
-updated_on: "2026-09-21"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Le théorème de Bayes combine..."
     options:
@@ -61,15 +61,17 @@ $$ p(\theta \mid y) \;=\; \frac{p(y \mid \theta)\,p(\theta)}{p(y)} \;\propto\; \
 
 Dans le cas **gaussien conjugué**, le posterior reste gaussien et sa moyenne est une **moyenne pondérée** par les précisions (inverses des variances) :
 
-$$ \hat\theta = \frac{\tau_0\,\mu_0 + \tau_d\,\bar y}{\tau_0 + \tau_d}, \qquad \tau = 1/\sigma^2 $$
+$$ \hat\theta = \frac{\tau_0\,\mu_0 + \tau_d\,\bar y}{\tau_0 + \tau_d}, \qquad \tau_0 = 1/\sigma_0^2,\quad \tau_d = n/\sigma_d^2 $$
+
+Ici, $	au_d=n/\sigma_d^2$ si $ar y$ résume $n$ observations indépendantes de variance connue $sigma_d^2$ ; avec une seule observation, $	au_d=1/\sigma_d^2$.
 
 :::math
-L'estimation **MAP** (maximum a posteriori) prend le sommet de $p(\theta\mid y)$. En PopPK, elle revient à minimiser l'écart aux données **plus** un terme qui rappelle vers le prior : $-2\log L + \sum \eta^2/\omega^2$.
+L'estimation **MAP** (maximum a posteriori) prend le sommet de $p(\theta\mid y)$. En PopPK, elle revient à minimiser l'écart aux données **plus** un terme qui rappelle vers le prior : $-2\log L + \eta^T\Omega^{-1}\eta$. La somme $\sum \eta_j^2/\omega_j^2$ est le cas diagonal, sans covariance entre effets aléatoires.
 :::
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="BayesUpdate" -->
-Un patient a une clairance a priori de 5 L/h (population). Une résiduelle mesurée est un peu basse. Le posterior déplace l'estimation vers ~4 L/h — **sans** croire aveuglément à une seule mesure bruitée.
+Un patient a une clairance a priori de 5 L/h (population). À dose et temps de prélèvement comparables, une concentration mesurée un peu **plus basse** que la prédiction populationnelle déplace l'estimation vers une clairance plus élevée, par exemple ~6 L/h — **sans** croire aveuglément à une seule mesure bruitée.
 
 Avec deux ou trois prélèvements concordants, le posterior se resserre et s'éloigne franchement du prior : c'est exactement l'ajustement de dose bayésien.
 <!-- /step -->

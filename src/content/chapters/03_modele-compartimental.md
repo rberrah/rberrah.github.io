@@ -10,11 +10,11 @@ duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
 glossary: ["CL", "V", "t½", "ke", "EDO", "Phases α et β", "Vss"]
-prerequisites: []
+prerequisites: ["micro-macro"]
 slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
-updated_on: "2026-10-08"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:

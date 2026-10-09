@@ -13,8 +13,8 @@ prerequisites: ["variabilite-iiv-iov", "erreur-residuelle"]
 glossary: ["Théorème de Bayes", "A priori / prior", "A posteriori / posterior", "MAP", "EBE", "Shrinkage"]
 slides: ["s53", "s54", "s55", "s57", "s58", "s60", "s61"]
 sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner-beal-estimation", "berrah-residual", "hughes-keizer"]
-updated_on: "2026-10-08"
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Un EBE est..."
     options:

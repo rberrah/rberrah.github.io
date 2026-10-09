@@ -13,7 +13,8 @@ prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Erreur additive", "Erreur proportionnelle", "Erreur combinée", "ε / σ", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
 sources: ["berrah-residual", "hooker-cwres", "beal-bql", "davidian-giltinan"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-09"
+reviewed_on: "2026-10-09"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:
@@ -44,7 +45,7 @@ Elle regroupe l'erreur de **mesure** (dosage), les erreurs de **temps de prélè
 <!-- step:title="Intuition" viz="61_ResidualError" -->
 Deux façons opposées de « rater » : d'une **largeur constante** (le dosage a une précision de ±0,5 mg/L quelle que soit la concentration) ou d'un **pourcentage** (±10 % de la valeur, donc plus large quand la concentration est haute).
 
-Basculez entre additive, proportionnelle et combinée : la bande d'erreur doit contenir ~95 % des vrais points. C'est ce compromis qu'on cherche.
+Basculez entre additive, proportionnelle et combinée. Sous un modèle gaussien correctement spécifié, un intervalle prédictif à 95 % est construit pour couvrir environ 95 % des observations lors de répétitions comparables ; quelques points hors bande restent attendus.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="61_ResidualError" -->

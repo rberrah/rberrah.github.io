@@ -10,7 +10,7 @@ duration: "12 min"
 level: "intermediate"
 tags: ["nlmixr2", "rxode2", "error-model", "bql", "residuals"]
 prerequisites: ["tools-nlmixr2"]
-glossary: []
+glossary: ["nlmixr2 / rxode2", "ε / σ", "Erreur combinée"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "beal-bql", "berrah-residual"]
 reviewed_on: "2026-07-14"
