@@ -16,6 +16,7 @@ sources: ["berrah-residual","hooker-cwres","beal-bql","davidian-giltinan"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "b5f35c53977bc22b9ea18d8122f4047ed2bf3640b621589e4c38bf1355ae47cc"
 quiz:
   - prompt: "A proportional residual error means the noise..."
     options:

@@ -66,20 +66,20 @@ const D = {
     en: "Illustrates residual error: additive (constant noise) vs proportional (noise ∝ concentration). Shows why the choice changes weighting."
   },
   '14_AllometryCentering': {
-    fr: "Effet du poids sur la clairance par loi puissance (exposant 0,75), centrée sur 70 kg. Déplacez le poids et voyez la clairance typique s'ajuster.",
-    en: "The weight effect on clearance via a power law (exponent 0.75), centred at 70 kg. Move the weight and watch the typical clearance adjust."
+    fr: "Effet du poids sur la clairance par modèle puissance centré sur 70 kg. L'exposant est une hypothèse et la plage simulée 40–120 kg borne l'interprétation.",
+    en: "The weight effect on clearance via a power model centred at 70 kg. The exponent is an assumption and the simulated 40–120 kg range bounds interpretation."
   },
   '17_VPCCrashTest': {
     fr: "Visual Predictive Check : compare les percentiles observés aux bandes simulées sous le modèle. Si les points sortent des tunnels, le modèle simule mal.",
     en: "A Visual Predictive Check: compares observed percentiles to the simulated bands under the model. Points leaving the tunnels mean the model simulates poorly."
   },
   '18_BayesianShrinkage': {
-    fr: "Montre le rétrécissement (shrinkage) : avec peu de données, les estimations individuelles (EBE) se replient vers la population. Réduisez l'information et voyez le nuage se contracter.",
-    en: "Shows shrinkage: with sparse data, individual estimates (EBEs) collapse toward the population. Reduce the information and watch the cloud contract."
+    fr: "Mise à jour gaussienne simplifiée d'une estimation : précision du prior et de l'observation déterminent la moyenne a posteriori. Le poids du prior n'est pas l'eta-shrinkage populationnel.",
+    en: "A simplified Gaussian update for one estimate: prior and observation precision determine the posterior mean. Prior weight is not population eta-shrinkage."
   },
   '15_OFVGame': {
-    fr: "Minimiser la fonction objective (OFV = −2 log L) : déplacez les paramètres pour rapprocher le modèle des données et faire baisser l'OFV.",
-    en: "Minimising the objective function (OFV = −2 log L): move the parameters to bring the model closer to the data and lower the OFV."
+    fr: "Compare une séquence de modèles emboîtés. Chaque ΔOFV et son Δdf appartiennent à une comparaison précise et ne s'additionnent pas entre les étapes.",
+    en: "Compares a sequence of nested models. Each ΔOFV and its Δdf belongs to one exact comparison and must not be added across steps."
   },
   '16_SAEMCycle': {
     fr: "Le cycle de l'algorithme SAEM : alternance simulation des effets individuels (E) et mise à jour des paramètres de population (M), jusqu'à convergence.",
@@ -146,8 +146,8 @@ const D = {
     en: "A forest plot of covariate effects (ratio vs reference) with 95% CI. The line at 1 = no effect; the band = the clinically inconsequential zone."
   },
   '54_TMDD': {
-    fr: "PK non linéaire (TMDD) en semi-log : à faible dose la cible est libre et l'absorbe (chute rapide), à forte dose elle est saturée et la pente s'allonge — la clairance diminue quand la dose monte.",
-    en: "Nonlinear PK (TMDD) on semi-log: at low dose the target is free and mops the drug up (rapid drop), at high dose it is saturated and the slope lengthens — clearance falls as dose rises."
+    fr: "Approximation de Michaelis–Menten d'une élimination saturable liée à la cible. Elle montre une clairance apparente dépendante de la concentration, sans représenter un TMDD mécanistique complet.",
+    en: "A Michaelis–Menten approximation of saturable target-related elimination. It shows concentration-dependent apparent clearance without representing a full mechanistic TMDD model."
   },
   '55_ADA': {
     fr: "Immunogénicité : après la séroconversion, la clairance augmente et les concentrations résiduelles s'effondrent sous la cible (perte de réponse). Réglez θ et l'apparition.",
@@ -162,20 +162,20 @@ const D = {
     en: "Tolerance: under constant exposure the effect fades (a moderator rises); on withdrawal, the response dips below baseline (rebound). Adjust the tolerance speed."
   },
   '58_OptimalDesign': {
-    fr: "Design optimal : placez deux prélèvements sur la courbe et voyez le RSE de V et k. Un point précoce + un tardif minimisent l'incertitude (matrice de Fisher).",
-    en: "Optimal design: place two samples on the curve and see the RSE of V and k. One early + one late sample minimises uncertainty (Fisher matrix)."
+    fr: "Illustration locale de la matrice de Fisher pour deux prélèvements dans un modèle simple. Les RSE supposent le modèle et l'erreur connus ; ils ne constituent pas un design optimal complet.",
+    en: "A local Fisher-information illustration for two samples in a simple model. The RSE values assume known model and error and are not a complete optimal design."
   },
   '60_WarfarinFit': {
-    fr: "Les vraies observations du jeu de données Warfarin (251 points, 32 sujets) avec un modèle 1-compartiment ajustable. Mode « Profil » (nuage + courbe) ou « Obs vs préd » (GoF réel).",
-    en: "The real Warfarin dataset observations (251 points, 32 subjects) with an adjustable one-compartment model. 'Profile' mode (scatter + curve) or 'Obs vs pred' mode (real GoF)."
+    fr: "Observations Warfarin réelles regroupées sur 32 sujets et courbe typique réglée manuellement. La comparaison Obs–PRED est pédagogique, pas un GoF PopPK estimé.",
+    en: "Real Warfarin observations pooled across 32 subjects with a manually adjusted typical curve. The Obs–PRED comparison is educational, not an estimated PopPK GoF."
   },
   '66_FOCELinearization': {
     fr: "FOCE illustré : le paramètre est non linéaire en η (courbe), et FOCE le remplace par sa tangente en η̂. Montez la courbure pour voir l'erreur d'approximation grandir loin de η̂.",
     en: "FOCE illustrated: the parameter is non-linear in η (curve), and FOCE replaces it by its tangent at η̂. Raise the curvature to see the approximation error grow away from η̂."
   },
   '67_SAEMConvergence': {
-    fr: "Convergence du SAEM : la valeur d'un paramètre au fil des itérations. Phase 1 exploratoire (elle saute autour de θ*), phase 2 de lissage (pas décroissant → converge). Changez la graine : même destination.",
-    en: "SAEM convergence: a parameter's value across iterations. Phase 1 exploratory (it jumps around θ*), phase 2 smoothing (decreasing step → converges). Change the seed: same destination."
+    fr: "Schéma simplifié d'approximation stochastique : un pas décroissant stabilise progressivement une trajectoire bruitée. Ce n'est ni un SAEM complet ni un diagnostic de convergence.",
+    en: "A simplified stochastic-approximation scheme: a decreasing step progressively stabilizes a noisy trajectory. It is neither a full SAEM nor a convergence diagnostic."
   },
   '65_ParentMetabolite': {
     fr: "Cinétique parent → métabolite (échelle log) : le parent décroît, le métabolite se forme puis décroît. Réglez k, km et fm : si km < k, le métabolite persiste (limité par l'élimination).",
@@ -194,12 +194,12 @@ const D = {
     en: "A gallery of residual patterns (CWRES): random, U / inverted U, trumpet, slope. Each pattern proposes compatible hypotheses and correction tests."
   },
   '61_ResidualError': {
-    fr: "Modèle d'erreur résiduelle sur les vraies données Warfarin : bande à ±1,96·SD (additive, proportionnelle ou combinée) autour de la courbe. On lit le % de points réels dans la bande (cible ≈ 95 %).",
-    en: "Residual-error model on the real Warfarin data: a ±1.96·SD band (additive, proportional or combined) around the curve. Read the % of real points inside the band (target ≈ 95%)."
+    fr: "Forme de l'écart-type résiduel selon PRED : constant pour l'additif, proportionnel à PRED, ou combinaison quadratique des deux. Ce graphe ne teste pas l'adéquation du modèle.",
+    en: "Residual standard deviation versus PRED: constant for additive error, proportional to PRED, or the quadratic combination of both. This graph does not test model adequacy."
   },
   '59_ModelSelection': {
-    fr: "Sélection de modèle : la baisse d'OFV (ΔOFV) comparée à la loi du χ² (test du rapport de vraisemblance), plus l'AIC et le BIC. Réglez ΔOFV, le nombre de paramètres et n.",
-    en: "Model selection: the OFV drop (ΔOFV) compared to the χ² law (likelihood-ratio test), plus AIC and BIC. Adjust ΔOFV, the number of parameters and n."
+    fr: "Sélection de modèle sous hypothèses explicites : LRT pour modèles emboîtés et réguliers, puis AIC/BIC comme critères de comparaison, sans valeur de confirmation.",
+    en: "Model selection under explicit assumptions: LRT for regular nested models, then AIC/BIC as comparison criteria rather than confirmation."
   },
   'BayesUpdate': {
     fr: "Mise à jour bayésienne : le prior (population) et la vraisemblance (données) se combinent en un posterior. Ajoutez des mesures et voyez la distribution se resserrer.",

@@ -15,6 +15,9 @@ slides: []
 sources: ["ema-bioequivalence", "fda-bioequivalence", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"bioequivalence_ci_level":0.90,"usual_ratio_lower":0.80,"usual_ratio_upper":1.25}
+units: {"bioequivalence_ci_level":"probability","test_reference_ratio":"ratio"}
+reviewed_hash: "163156402e8800ff16616b1aaa203739d0aa7e6801068a063f07a897e260256b"
 quiz:
   - prompt: "La biodisponibilité absolue F se calcule en comparant..."
     options:

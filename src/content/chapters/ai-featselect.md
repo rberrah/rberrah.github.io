@@ -15,6 +15,7 @@ slides: []
 sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "faaadd9c8df50d7b35e26245477bdbd057151807c4d89be223b5df14dc4fb998"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."
     options:

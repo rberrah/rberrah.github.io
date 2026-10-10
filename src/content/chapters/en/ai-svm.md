@@ -15,6 +15,7 @@ glossary: ["White / black / grey box"]
 sources: ["cortes-vapnik-svm","hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "391f360c7701cff8c032d6110d6dea37f5a4c8129ee2fa5533395ad5296af5b3"
 quiz:
   - prompt: "A linear SVM chooses the boundary that..."
     options:

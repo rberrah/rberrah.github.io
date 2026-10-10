@@ -16,6 +16,9 @@ sources: ["holford-sheiner-dose-effect", "goutelle-hill", "gabrielsson-weiner"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+scientific_values: {"hill_example":1,"concentration_multiple":5,"effect_fraction_at_5_ec50":0.833333}
+units: {"concentration_multiple":"EC50","effect_fraction_at_5_ec50":"fraction_of_Emax"}
+reviewed_hash: "7e44c49719247b3d8992380f973ec1fabdb3e9f666fb27c0d78c0f99416a354d"
 quiz:
   - prompt: "Un modèle à effet direct suppose que l'effet..."
     options:

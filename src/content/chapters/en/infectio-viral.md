@@ -15,6 +15,7 @@ glossary: ["PK","PD","Emax"]
 sources: ["neumann-hcv","perelson-hiv"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "95ba33a13694160763b6474fa62d2a6b901323d04e77ef1fe8e4e3ff518703b0"
 quiz:
   - prompt: "In a viral kinetics model, the biphasic decline reflects..."
     options:

@@ -16,6 +16,7 @@ sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karls
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "b0767299e42fb021fbc1206a215cb948559b2590eb64a114fb5fe73e57d031b8"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
     options:

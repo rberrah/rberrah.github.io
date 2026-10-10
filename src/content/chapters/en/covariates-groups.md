@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix-covariates","hastie-esl","lavielle"]
 reviewed_on: "2026-09-29"
 review_type: "author"
+reviewed_hash: "579720a965c9f2e8db30734a8ff2bb684624b5ca148eb583edb1404a29434688"
 quiz: [{"prompt":"For an exponential A/B ratio of 0.7, beta is…","options":["log(0.7)","0.7","exp(0.7)"],"correct":0},{"prompt":"A cluster is…","options":["a learned group whose relevance needs assessment","necessarily a genotype","proof of a biological mechanism"],"correct":0},{"prompt":"Selecting and validating a cutoff on the same data…","options":["can overstate performance","eliminates overfitting","makes external validation unnecessary"],"correct":0}]
 ---
 

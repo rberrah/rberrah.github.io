@@ -15,6 +15,9 @@ slides: []
 sources: ["savic-karlsson-shrinkage", "sheiner-forecasting", "lavielle"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"heuristic_lower":0.20,"heuristic_upper":0.30}
+units: {"shrinkage":"fraction"}
+reviewed_hash: "a1816141d0661c144d4b2ba4c759cb75b59750152a0c121ae20c0842ab91c070"
 quiz:
   - prompt: "Un eta-shrinkage élevé signifie que les EBE..."
     options:

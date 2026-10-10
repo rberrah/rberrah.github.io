@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "beal-bql", "berrah-residual"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "e02ceac015ec12be84188b80d8dfcc5438ea4e35c976d7027c8f615d7c14a5c5"
 quiz:
   - prompt: "Votre bloc model() se termine par `cp ~ add(add.err) + prop(prop.err)` et rien d'autre. La manière dont nlmixr2 combine les deux termes..."
     options:

@@ -15,6 +15,9 @@ glossary: ["Shrinkage","EBE","η","ω / Ω","Résidus (WRES/CWRES/IWRES/NPDE)"]
 sources: ["savic-karlsson-shrinkage","sheiner-forecasting","lavielle"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"heuristic_lower":0.20,"heuristic_upper":0.30}
+units: {"shrinkage":"fraction"}
+reviewed_hash: "d4414f6eccc7228ce44ded0f55c93f1605ae4cb58a9cf686d0fff379088f7db6"
 quiz:
   - prompt: "A high eta-shrinkage means the EBEs..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix", "kuhn-lavielle-saem", "lavielle", "karlsson-holford-vpc"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "ae8b4b7dd2b2875797ef82b0f08b212dc8d99437c445e1171c5c7cafa50457f0"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."
     options:

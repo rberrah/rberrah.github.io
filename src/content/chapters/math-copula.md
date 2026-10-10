@@ -15,6 +15,7 @@ slides: []
 sources: ["nelsen-copulas", "bonate"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "76aba6928dc84af08448ec3c84c82217dc805a6873833480d23580a6c338b626"
 quiz:
   - prompt: "Une copule décrit..."
     options:

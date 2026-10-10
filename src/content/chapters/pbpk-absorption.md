@@ -16,6 +16,7 @@ sources: ["yu-amidon-acat", "amidon-bcs", "holford-clearance", "jones-rowland-ye
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "5baec658f8813e8e5207861228fd1811b0ecdb66c039520103fa4d96432cd4e0"
 quiz:
   - prompt: "Un modèle d'absorption mécaniste (ACAT/ADAM) découpe l'intestin en..."
     options:

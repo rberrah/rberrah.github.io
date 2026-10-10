@@ -16,6 +16,7 @@ sources: ["wahlquist-symbolic-covariates","cranmer-symbolic","hastie-esl","sangh
 reviewed_on: "2026-10-09"
 updated_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "7829cbaf36fe8165d856733a608e30f99bca330ac5212eda30e46a4da5990e38"
 quiz: [{"prompt":"An equation that mimics a network well…","options":["still needs validation against observations","must be causal","automatically inherits clinical validation"],"correct":0},{"prompt":"Training/test splitting should generally be…","options":["by patient","random across samples from the same patient","after final equation selection"],"correct":0},{"prompt":"Does a deterministic symbolic equation supply OMEGA?","options":["no, variability must be modeled and estimated","yes, always","only if the formula is short"],"correct":0}]
 ---
 

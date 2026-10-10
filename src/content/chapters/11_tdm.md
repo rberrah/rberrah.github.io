@@ -16,6 +16,7 @@ sources: ["sheiner-forecasting", "minichmayr-mipd", "woillard-tacrolimus", "ryba
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "ad8b7ba728ba779bbb99490d7b5d0f93effa5a8caa7b9eb337f9186769ac4897"
 quiz:
   - prompt: "Le suivi thérapeutique (TDM) utilise les mesures de médicament pour..."
     options:

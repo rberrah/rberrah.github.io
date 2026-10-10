@@ -15,6 +15,7 @@ slides: []
 sources: ["dayneka-jusko-indirect", "jusko-ko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "8387406fc374e27a2f6933a570708c06b260ca895b9d801a06a0e71c426d5ec5"
 quiz:
   - prompt: "Dans un modèle de réponse indirecte, le délai de l'effet vient..."
     options:

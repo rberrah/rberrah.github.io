@@ -12,7 +12,10 @@ existing visualization or laboratory already teaches the objective.
 - Glossary terms needed to read the chapter.
 - Primary or authoritative source identifiers.
 - A scientific review date distinct from the editorial update date.
+- A content hash sealed only after reviewing that exact language version.
 - A matching English file before claiming bilingual coverage.
+- Structured `scientific_values` and `units` for quantitative chapters whose
+  thresholds or constants must remain identical in French and English.
 
 ## Required teaching sequence
 
@@ -40,3 +43,6 @@ existing visualization or laboratory already teaches the objective.
   the values needed to understand the conclusion.
 
 The generated catalogue status is in [content-inventory.md](content-inventory.md).
+After reviewing a changed French or English file, run `npm run review:seal`.
+Do not use this command as an automatic formatting step: it records that the
+current content, in each language, is the version that was reviewed.

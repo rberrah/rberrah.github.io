@@ -15,6 +15,7 @@ slides: []
 sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "ema-poppk"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "3d26bfb83f30f6f877780c1724d742a99ad845b0677693cceff8269433a40944"
 quiz:
   - prompt: "Une VPC compare..."
     options:

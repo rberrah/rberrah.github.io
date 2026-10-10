@@ -15,6 +15,7 @@ slides: []
 sources: ["sheiner-effect-compartment", "holford-sheiner-dose-effect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "f68bf408a5d9e143f650dc024594975775e10587440d50bdf00d51632ef80c80"
 quiz:
   - prompt: "Le modèle à compartiment d'effet explique l'hystérésis par..."
     options:

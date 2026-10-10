@@ -14,7 +14,7 @@
   const fundamentalLabs = [
     { id: 'distribution', number: '01', en: 'Two-compartment distribution', fr: 'Distribution à deux compartiments' },
     { id: 'accumulation', number: '02', en: 'Repeated doses and accumulation', fr: 'Doses répétées et accumulation' },
-    { id: 'absorption', number: '03', en: 'Oral absorption and bioavailability', fr: 'Absorption orale et biodisponibilite' },
+    { id: 'absorption', number: '03', en: 'Oral absorption and bioavailability', fr: 'Absorption orale et biodisponibilité' },
     { id: 'infusion', number: '04', en: 'Infusion and washout', fr: 'Perfusion et décroissance' }
   ];
   let activeLab = '', p = {}, reference = {}, time = 0, speed = 1, playing = false, compare = true, mode = 'intuition', prediction = '', learningMode = 'guided';
@@ -130,7 +130,7 @@
 <section class="molecular-lab" data-testid="molecular-laboratory">
   <a class="back-home" href={`${base}/laboratoires/?lang=${en ? 'en' : 'fr'}`}><ArrowLeft size={16}/>{en ? 'All laboratories' : 'Tous les laboratoires'}</a>
   <header class="heading">
-    <div><p class="eyebrow">{config.category ? (en ? config.category.en : config.category.fr) : (en ? 'Advanced molecular journey' : 'Parcours moleculaire avance')} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
+    <div><p class="eyebrow">{config.category ? (en ? config.category.en : config.category.fr) : (en ? 'Advanced molecular journey' : 'Parcours moléculaire avancé')} · {config.number}</p><h1>{en ? config.title.en : config.title.fr}</h1><p>{en ? config.summary.en : config.summary.fr}</p></div>
     <label class="lab-selector">{en ? 'Interactive laboratory' : 'Laboratoire interactif'}<select value={lab} on:change={switchLab}>{#each fundamentalLabs as item}<option value={item.id}>{item.number} · {en ? item.en : item.fr}</option>{/each}{#each molecularLabIds as id}<option value={id}>{molecularLabs[id].number} · {en ? molecularLabs[id].title.en : molecularLabs[id].title.fr}</option>{/each}</select></label>
   </header>
   <div class="teacher-toggle"><label class="check"><GraduationCap size={19}/><input type="checkbox" bind:checked={teacher}/>{en ? 'Teacher mode' : 'Mode enseignant'}</label></div>

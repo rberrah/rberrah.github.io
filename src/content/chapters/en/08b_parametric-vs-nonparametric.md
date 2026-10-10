@@ -15,6 +15,7 @@ slides: []
 sources: ["goutelle-parametric-nonparametric","neely-pmetrics","yamada-npag"]
 reviewed_on: "2026-09-28"
 review_type: "author"
+reviewed_hash: "c952dcd3314e3af365ed072c3e52691b9b37970a4a0e82f7276351153ee83c49"
 quiz:
   - prompt: "In this context, parametric or nonparametric mainly describes..."
     options:

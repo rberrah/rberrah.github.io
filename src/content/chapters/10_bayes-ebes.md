@@ -16,6 +16,7 @@ sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "sheiner
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "f623abffd6e9e17ba4f7d47f8fe9100709e7b098e672c49121754afcf44b45dd"
 quiz:
   - prompt: "Un EBE est..."
     options:

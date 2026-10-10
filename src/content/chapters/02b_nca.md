@@ -16,6 +16,7 @@ sources: ["gibaldi-perrier", "rowland-tozer", "holford-clearance"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "7533cd15fbaa793e3c73af47c154be31e2dc57cb7866717a8d68a44114b4e2f9"
 quiz:
   - prompt: "Dans un modèle à un compartiment, quelle égalité relie l'écriture micro à l'écriture macro ?"
     options:

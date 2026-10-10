@@ -15,6 +15,7 @@ slides: ["s11", "s13", "s14", "s15", "s16", "s17"]
 sources: ["karlsson-sheiner-iov", "sheiner-beal-estimation", "berrah-residual", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "732e9a9a68c0a4556d37f22c5266e102d51b223045d8de5960e71427f13ee485"
 quiz:
   - prompt: "L'IIV désigne..."
     options:

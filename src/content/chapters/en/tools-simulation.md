@@ -16,6 +16,7 @@ sources: ["mrgsolve","fidler-nlmixr","bergstrand-pcvpc","mould-upton"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "cb4286b0f5366e29f50df40d16b19b7e54099ed58bb49425bcd17cf5f63bb8c4"
 quiz:
   - prompt: "mrgsolve and rxode2 mainly serve to..."
     options:

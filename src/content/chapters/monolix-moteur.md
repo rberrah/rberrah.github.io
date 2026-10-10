@@ -15,6 +15,7 @@ slides: []
 sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "lavielle-mentre-monolix", "monolix"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "a517bd43786d26c8c039f9ba8ce017abf6277a0ce1aa29e9cbb4390983caebec"
 quiz:
   - prompt: "Dans le graphe de convergence du SAEM, une trajectoire parfaitement plate pendant la phase de lissage indique..."
     options:

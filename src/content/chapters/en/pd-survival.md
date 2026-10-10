@@ -16,6 +16,7 @@ sources: ["holford-tte-tutorial","kaplan-meier-1958","cox-1972","claret-tgi-os",
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "20aca45defd0775ab8cfa98ed49d1c721480ecf25390254cc483d0553c3be56e"
 quiz:
   - prompt: "The difference between OS and PFS is that..."
     options:

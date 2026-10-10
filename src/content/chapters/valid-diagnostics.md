@@ -16,6 +16,7 @@ sources: ["hooker-cwres", "karlsson-holford-vpc", "brendel-npde", "savic-karlsso
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "015dbe205323cabd1ef9954ba43f3ffcf6d30ef8c9e6daf7b390af5c88847522"
 quiz:
   - prompt: "Aucun graphique diagnostique unique ne suffit ; on les croise parce que..."
     options:

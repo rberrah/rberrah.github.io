@@ -15,6 +15,9 @@ glossary: ["RSE","Bootstrap","FIM","Identifiabilité"]
 sources: ["efron-bootstrap","mentre-optimal-design","davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"bootstrap_ci_level":0.95,"bootstrap_lower_percentile":2.5,"bootstrap_upper_percentile":97.5}
+units: {"rse":"percent","confidence_level":"probability","bootstrap_percentile":"percent"}
+reviewed_hash: "d244ee3216ed1ecbabf9912b9d3aeb2170d68372c8394c4e85dd2af0228618c5"
 quiz:
   - prompt: "The RSE (relative standard error) of a parameter measures..."
     options:

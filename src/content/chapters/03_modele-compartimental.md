@@ -16,6 +16,7 @@ sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "9d144df75786ebee17b324beee30581d9660049a7beb451fe10fcb035e5e6369"
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:

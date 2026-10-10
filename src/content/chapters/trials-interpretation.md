@@ -16,6 +16,7 @@ sources: ["fda-poppk", "ema-poppk", "ribbing-selection-bias", "ema-bioequivalenc
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "aad1a0ff5899b984db01f27d8756d63a3a130c2db835c7b158946968a910b391"
 quiz:
   - prompt: "Un forest plot d'effets de covariables montre..."
     options:

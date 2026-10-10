@@ -15,6 +15,7 @@ slides: []
 sources: ["cortes-vapnik-svm", "hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "be37232337d99501f4d356048f6f8959c8d08bbc5a60b67e4577ae1f041a28fc"
 quiz:
   - prompt: "Un SVM linéaire choisit la frontière qui..."
     options:

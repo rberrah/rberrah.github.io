@@ -15,6 +15,9 @@ slides: []
 sources: ["wilks-1938","akaike-aic","schwarz-1978","wang-nonmem-methods"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"lrt_alpha":0.05,"chi_square_df1":3.84}
+units: {"ofv_difference":"points","lrt_alpha":"probability"}
+reviewed_hash: "5699d00569b08e3db7c6fb15cd930bf28abf3a6b26180f02ea5f6e2507de9138"
 quiz:
   - prompt: "The objective function (OFV = −2 log L) of a good model is..."
     options:

@@ -1,11 +1,8 @@
 <script>
-  // Diagnostics numériques : test du rapport de vraisemblance (ΔOFV ~ χ²) + AIC/BIC.
-  // ΔOFV = baisse de −2·logL en ajoutant des paramètres. Pour des modèles EMBOÎTÉS,
-  // ΔOFV suit une loi du χ² à Δdf degrés de liberté sous H0 (« le paramètre est inutile »).
-  // AIC = OFV + 2k ; BIC = OFV + k·ln(n) : ils pénalisent la complexité.
+  // Illustration du LRT sous ses hypothèses usuelles, avec AIC et BIC.
   let dOFV = 12; // baisse de l'OFV en ajoutant les paramètres
   let ddf = 1; // nombre de paramètres ajoutés (degrés de liberté)
-  let n = 200; // nombre d'observations (pour le BIC)
+  let n = 200; // taille effective choisie pour illustrer le BIC
   import { language } from '$lib/stores/language';
 
   // valeurs critiques du χ² à 5 % (df = 1..4)
@@ -58,14 +55,14 @@
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'ΔOFV (decrease)' : 'ΔOFV (baisse)'}</span><strong>{dOFV.toFixed(1)}</strong><input type="range" min="0" max="20" step="0.5" bind:value={dOFV} /></label>
     <label class="s"><span>{$language === 'en' ? 'Added parameters' : 'Paramètres ajoutés'}</span><strong>{ddf}</strong><input type="range" min="1" max="4" step="1" bind:value={ddf} /></label>
-    <label class="s"><span>Observations n</span><strong>{n}</strong><input type="range" min="50" max="1000" step="50" bind:value={n} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Effective n for BIC' : 'n effectif pour le BIC'}</span><strong>{n}</strong><input type="range" min="50" max="1000" step="50" bind:value={n} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'χ² threshold (5%)' : 'Seuil χ² (5 %)'}</span><strong>{seuil.toFixed(2)}</strong></div>
       <div class="verdict" class:ok={significatif} class:no={!significatif}>{significatif ? ($language === 'en' ? 'Significant gain (LRT)' : 'Gain significatif (LRT)') : ($language === 'en' ? 'Not significant' : 'Non significatif')}</div>
       <div><span>ΔAIC</span><strong class:good={dAIC < 0}>{dAIC >= 0 ? '+' : ''}{dAIC.toFixed(1)}</strong></div>
       <div><span>ΔBIC</span><strong class:good={dBIC < 0}>{dBIC >= 0 ? '+' : ''}{dBIC.toFixed(1)}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'ΔOFV to the right of the threshold favors the richer model (LRT). Negative AIC/BIC differences support it; BIC penalizes complexity more strongly as n increases.' : 'ΔOFV à droite du seuil = le modèle plus riche vaut la peine (LRT). AIC/BIC négatifs = ils confirment ; le BIC pénalise plus fort quand n est grand.'}</p>
+    <p class="hint">{$language === 'en' ? 'Under regularity conditions for nested models, a ΔOFV beyond the threshold favors the richer model by LRT. Negative ΔAIC or ΔBIC favors it according to that criterion; neither confirms the model. Boundary cases need another reference law, and the effective n used for BIC in hierarchical models must be documented.' : 'Sous les conditions de régularité pour des modèles emboîtés, un ΔOFV au-delà du seuil favorise le modèle plus riche par LRT. Un ΔAIC ou ΔBIC négatif le favorise selon ce critère ; aucun ne confirme le modèle. Les paramètres en frontière exigent une autre loi de référence et le n effectif du BIC doit être documenté en modèle hiérarchique.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Chi-square distribution and observed statistic' : 'Loi du χ² et statistique observée'}>

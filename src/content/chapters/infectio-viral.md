@@ -15,6 +15,7 @@ slides: []
 sources: ["neumann-hcv", "perelson-hiv"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "e63d1fb782ee6e972ff944d09dca7d4dba663fc118965dd56572b688302ac63a"
 quiz:
   - prompt: "Dans un modèle de cinétique virale, la décroissance biphasique reflète..."
     options:

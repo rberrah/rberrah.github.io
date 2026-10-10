@@ -15,6 +15,7 @@ slides: []
 sources: ["sharma-jusko-indirect", "dayneka-jusko-indirect", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "7afc5c806ecbe8916eb632c5beba5a7372f96bbc29a1cf3d4611ef1a9afd947a"
 quiz:
   - prompt: "La tolérance pharmacodynamique se traduit par..."
     options:

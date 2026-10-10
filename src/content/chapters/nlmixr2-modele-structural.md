@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "fbd639839421337a8f5eb7aa9004613a4814663e73f457e31d7fe9e9b6904da9"
 quiz:
   - prompt: "Dans le bloc ini, la ligne eta.cl ~ 0.09 déclare..."
     options:

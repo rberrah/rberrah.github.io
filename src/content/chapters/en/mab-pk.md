@@ -15,6 +15,7 @@ glossary: ["PK","CL","V","Modèle compartimental"]
 sources: ["ryman-meibohm","dirks-meibohm","mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "7ad74d8be3121f771194d0a97f0a2820f14802186ad8b494813ce5239a8326ad"
 quiz:
   - prompt: "The long half-life (weeks) of IgG antibodies is mainly explained by..."
     options:

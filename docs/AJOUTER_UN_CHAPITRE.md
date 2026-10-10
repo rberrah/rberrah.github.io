@@ -29,6 +29,7 @@
    sources: ["source-id"]    # identifiants de references.js
    reviewed_on: "2026-10-08" # date de relecture scientifique
    review_type: "author"      # author | internal | external
+   reviewed_hash: ""          # rempli après relecture par npm run review:seal
    slides: []                 # IDs du slide_catalog (optionnel)
    quiz:                      # checkpoint de fin (optionnel)
      - prompt: "Une question ?"
@@ -46,7 +47,10 @@
    <!-- /step -->
    ```
 
-C'est tout. **Plus besoin** d'éditer `vizMap` ni `svelte.config.js` :
+Après avoir relu séparément les versions française et anglaise, exécuter
+`npm run review:seal`. La CI invalide la relecture si l'un des deux fichiers
+change ensuite. C'est tout. **Plus besoin** d'éditer `vizMap` ni
+`svelte.config.js` :
 - les visualisations sont enregistrées automatiquement (voir plus bas) ;
 - l'URL du chapitre est ajoutée automatiquement au prerender via
   `src/routes/chapitres/[slug]/+page.js`.

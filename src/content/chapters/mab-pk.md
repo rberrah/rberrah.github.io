@@ -15,6 +15,7 @@ slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "mager-jusko-tmdd"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "34e27c32a96a8751ae7af027261f85c3bd652801f356544d7a10e13734362ebe"
 quiz:
   - prompt: "La demi-vie longue (semaines) des anticorps IgG s'explique surtout par..."
     options:

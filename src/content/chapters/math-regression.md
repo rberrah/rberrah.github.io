@@ -15,6 +15,7 @@ slides: []
 sources: ["wang-nonmem-methods", "akaike-aic", "davidian-giltinan", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0c18ef1a900721a8e4f5e3a308a13d3a61306a2368554619e87e29db8090bc1f"
 quiz:
   - prompt: "Estimer un paramètre par maximum de vraisemblance, c'est chercher la valeur qui..."
     options:

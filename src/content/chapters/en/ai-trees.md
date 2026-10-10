@@ -15,6 +15,7 @@ glossary: ["White / black / grey box","XGBoost"]
 sources: ["breiman-rf","efron-bootstrap","hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "f14d4ab6f8e0e49bcde23bdf2f3ada2a7c6528a5530b04279c815534707b3e1f"
 quiz:
   - prompt: "A single decision tree produces a function that is..."
     options:

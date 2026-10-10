@@ -31,6 +31,12 @@ order: 13
 duration: "12 min"
 level: "beginner"
 tags: ["pk", "student-friendly"]
+prerequisites: []
+glossary: ["CL", "V"]
+sources: ["source-id"]
+reviewed_on: "2026-10-08"
+review_type: "author"
+reviewed_hash: ""
 slides: []
 quiz:
   - prompt: "A checkpoint question?"
@@ -80,14 +86,17 @@ KaTeX is rendered locally from the npm package. Supported delimiters:
 Do not intentionally leave raw math delimiters visible in rendered content
 unless the text is showing code.
 
-## French Versions
+## French and English Versions
 
-English chapters are the canonical source for now. French chapters can be added
-later in `src/content/chapters/fr/` with the same `slug`. The French version
-should be rewritten for French-speaking students, not translated mechanically.
+French chapters in `src/content/chapters/` are the primary catalogue.
+English translations live in `src/content/chapters/en/` with the same
+`slug`. Each language has independent `reviewed_on`, `review_type`, and
+`reviewed_hash` evidence.
 
-If a French chapter is missing, the site displays the English chapter and shows
-the fallback notice.
+After reviewing the exact current content of both language files, run
+`npm run review:seal`. Do not run it automatically after editing: validation
+intentionally fails when a reviewed file changes. Quantitative chapters in the
+validation contract also declare matching `scientific_values` and `units`.
 
 ## Source Material
 

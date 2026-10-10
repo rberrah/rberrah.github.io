@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix", "lavielle", "beal-bql", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "121850c4ad3e5ba81b5601f155aca696419babee38d672aba8bfe182a9383af7"
 quiz:
   - prompt: "Vous passez un modèle de `combined1(a, b)` à `combined2(a, b)` en gardant les mêmes valeurs de a et de b. L'écart-type résiduel change le plus..."
     options:

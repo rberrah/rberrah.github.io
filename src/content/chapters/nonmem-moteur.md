@@ -15,6 +15,7 @@ slides: []
 sources: ["wang-nonmem-methods", "bauer-nonmem-2", "lindstrom-bates", "wilks-1938"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "ffb6cedc0998daae168d14bc7b3cb25570a842d04fcf1be6832ab1df5253bb0b"
 quiz:
   - prompt: "Pourquoi l'OFV d'un run METHOD=0 (FO) ne se compare-t-il pas à celui d'un run METHOD=1 INTER (FOCE-I) ?"
     options:

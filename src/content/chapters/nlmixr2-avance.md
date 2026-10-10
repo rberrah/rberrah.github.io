@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "fda-poppk"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "7c0f3dea5f16e01946bd1f4103a2b37bd16318201daba140d70e2b939fe036a5"
 quiz:
   - prompt: "Pour borner un paramètre dans ]0,1[ avec nlmixr2, on..."
     options:

@@ -15,6 +15,7 @@ glossary: ["PBPK","V","CL"]
 sources: ["poulin-theil","rodgers-rowland","jones-rowland-yeo"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "6cfa4360172d19d87f810c503f586f0f857139c36e38c40bf7a447a68e6c506d"
 quiz:
   - prompt: "The partition coefficient Kp,T describes..."
     options:

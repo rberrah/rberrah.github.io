@@ -15,6 +15,7 @@ glossary: ["Emax","EC50 / CE50","Coefficient de Hill","Compartiment d’effet (k
 sources: ["holford-sheiner-dose-effect","goutelle-hill","sheiner-effect-compartment","dayneka-jusko-indirect"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "8b731febbf8d9519f05f53111c5fd577001aef721e0c267db204673985257239"
 quiz:
   - prompt: "EC50 is the concentration that produces..."
     options:

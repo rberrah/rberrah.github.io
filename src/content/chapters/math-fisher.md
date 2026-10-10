@@ -15,6 +15,7 @@ slides: []
 sources: ["mentre-optimal-design", "pfim", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "66730471986bb5425b7aa830041cfe14d5356005b0b0358f6d340eddd33e7f4f"
 quiz:
   - prompt: "La matrice d'information de Fisher (FIM) sert à..."
     options:

@@ -15,6 +15,7 @@ glossary: ["Réponse indirecte / turnover","Emax"]
 sources: ["dayneka-jusko-indirect","jusko-ko-indirect","gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "5f885698a586bfd3934427051f7f9cb2d797685b39f7967b47b76fc09a7df2d4"
 quiz:
   - prompt: "In an indirect-response model, the effect delay comes from..."
     options:

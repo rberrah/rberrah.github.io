@@ -13,6 +13,7 @@ import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMet
 import { allRefIds, refById } from '../src/lib/content/references.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
 import { visualizationReviews } from '../src/lib/content/visualizationReviews.js';
+import { chapterReviewHash, visualizationReviewHash } from './review_hash.mjs';
 
 const root = process.cwd();
 const slidesDir = path.join(root, 'static', 'slides');
@@ -35,7 +36,8 @@ const requiredFrontmatter = [
   'prerequisites',
   'glossary',
   'slides',
-  'review_type'
+  'review_type',
+  'reviewed_hash'
 ];
 // Squelette pédagogique canonique (langue principale = français).
 // Chaque chapitre doit contenir au moins ces sections, dans cet ordre d'esprit :
@@ -50,6 +52,15 @@ const requiredPedagogy = [
   'Piège fréquent',
   'À retenir'
 ];
+const quantitativeContractSlugs = new Set([
+  'math-stats',
+  'nca-absorption',
+  'nca-params',
+  'pd-direct',
+  'valid-objective',
+  'valid-shrinkage',
+  'valid-uncertainty'
+]);
 
 const errors = [];
 
@@ -117,7 +128,32 @@ function validateVisualizationReviews() {
     if (review.status === 'reviewed') {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(review.reviewed_on ?? '')) fail(`Reviewed visualization ${stem} needs a valid date`);
       if (!['author', 'internal', 'external'].includes(review.review_type)) fail(`Reviewed visualization ${stem} needs a valid review_type`);
+      if (!/^[a-f0-9]{64}$/.test(review.reviewed_hash ?? '')) {
+        fail(`Reviewed visualization ${stem} needs a valid reviewed_hash`);
+      } else {
+        const raw = fs.readFileSync(path.join(visualizationsDir, `${stem}.svelte`), 'utf8');
+        if (review.reviewed_hash !== visualizationReviewHash(raw)) {
+          fail(`Visualization review is stale for ${stem}; review it, then run npm run review:seal`);
+        }
+      }
     }
+  }
+}
+
+function validateChapterReview(file, raw, data) {
+  for (const field of ['updated_on', 'reviewed_on']) {
+    if (data[field] && !/^\d{4}-\d{2}-\d{2}$/.test(String(data[field]))) {
+      fail(`Invalid ${field} date in ${file}: ${data[field]}`);
+    }
+  }
+  if (!data.reviewed_on) fail(`Missing reviewed_on in ${file}`);
+  if (!['author', 'internal', 'external'].includes(data.review_type)) {
+    fail(`Invalid review_type in ${file}: expected author, internal or external`);
+  }
+  if (!/^[a-f0-9]{64}$/.test(data.reviewed_hash ?? '')) {
+    fail(`Missing or invalid reviewed_hash in ${file}`);
+  } else if (data.reviewed_hash !== chapterReviewHash(raw)) {
+    fail(`Scientific review is stale in ${file}; review this language version, then run npm run review:seal`);
   }
 }
 
@@ -161,7 +197,10 @@ function validateChapters(catalogIds) {
   // Les fichiers préfixés par « _ » (ex. _TEMPLATE.md) sont des brouillons/modèles
   // ignorés au build (voir loadChapters.js) : ils ne sont pas validés comme des chapitres.
   const files = fs.readdirSync(chaptersDir).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
-  const chapters = files.map((file) => ({ file, ...matter(fs.readFileSync(path.join(chaptersDir, file), 'utf8')) }));
+  const chapters = files.map((file) => {
+    const raw = fs.readFileSync(path.join(chaptersDir, file), 'utf8');
+    return { file, raw, ...matter(raw) };
+  });
   const slugs = new Set(chapters.map(({ data }) => data.slug));
   const glossaryTerms = new Set(Object.keys(glossaryEnglish));
   const referenceIds = new Set(allRefIds);
@@ -169,8 +208,9 @@ function validateChapters(catalogIds) {
   const english = new Map(fs.readdirSync(englishChaptersDir)
     .filter((file) => file.endsWith('.md') && !file.startsWith('_'))
     .map((file) => {
-      const parsed = matter(fs.readFileSync(path.join(englishChaptersDir, file), 'utf8'));
-      return [parsed.data.slug, { file, ...parsed }];
+      const raw = fs.readFileSync(path.join(englishChaptersDir, file), 'utf8');
+      const parsed = matter(raw);
+      return [parsed.data.slug, { file, raw, ...parsed }];
     }));
 
   validatePrerequisiteCycles(chapters);
@@ -194,7 +234,7 @@ function validateChapters(catalogIds) {
     if (reference.pmid && !/^\d+$/.test(reference.pmid)) fail(`Invalid PMID format for ${reference.id}`);
   }
 
-  for (const { file, data, content } of chapters) {
+  for (const { file, raw, data, content } of chapters) {
 
     for (const field of requiredFrontmatter) {
       if (data[field] === undefined || data[field] === null || data[field] === '') {
@@ -233,18 +273,13 @@ function validateChapters(catalogIds) {
         if (!referenceIds.has(id)) fail(`Unknown source ${id} in ${file}`);
       });
     }
-    for (const field of ['updated_on', 'reviewed_on']) {
-      if (data[field] && !/^\d{4}-\d{2}-\d{2}$/.test(String(data[field]))) {
-        fail(`Invalid ${field} date in ${file}: ${data[field]}`);
-      }
-    }
-    if (!data.reviewed_on) fail(`Missing reviewed_on in ${file}`);
-    if (!['author', 'internal', 'external'].includes(data.review_type)) {
-      fail(`Invalid review_type in ${file}: expected author, internal or external`);
-    }
+    validateChapterReview(file, raw, data);
     for (const field of ['scientific_values', 'units']) {
       if (data[field] !== undefined && !Array.isArray(data[field]) && typeof data[field] !== 'object') {
         fail(`${field} must be a list or object in ${file}`);
+      }
+      if (quantitativeContractSlugs.has(data.slug) && (data[field] === undefined || data[field] === null)) {
+        fail(`Quantitative chapter ${file} must define ${field}`);
       }
     }
 
@@ -271,7 +306,13 @@ function validateChapters(catalogIds) {
     if (!translation) {
       fail(`Missing English translation for ${file}`);
     } else {
-      for (const field of ['id', 'slug', 'track', 'level', 'order', 'prerequisites', 'glossary', 'sources', 'slides', 'updated_on', 'reviewed_on', 'review_type', 'status', 'scientific_values', 'units']) {
+      validateChapterReview(`en/${translation.file}`, translation.raw, translation.data);
+      for (const field of ['scientific_values', 'units']) {
+        if (quantitativeContractSlugs.has(data.slug) && (translation.data[field] === undefined || translation.data[field] === null)) {
+          fail(`Quantitative chapter en/${translation.file} must define ${field}`);
+        }
+      }
+      for (const field of ['id', 'slug', 'track', 'level', 'order', 'prerequisites', 'glossary', 'sources', 'slides', 'updated_on', 'status', 'scientific_values', 'units']) {
         if (!sameValue(translation.data[field], data[field])) fail(`English ${field} mismatch for ${file}`);
       }
       if ((translation.data.quiz?.length ?? 0) !== (data.quiz?.length ?? 0)) fail(`English quiz length mismatch for ${file}`);

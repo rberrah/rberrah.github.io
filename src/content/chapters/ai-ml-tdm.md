@@ -15,6 +15,7 @@ slides: []
 sources: ["woillard-ml-tacrolimus", "woillard-ml-simulation", "hughes-keizer", "minichmayr-mipd", "berrah-residual"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "1fa18f7ff8b34af16a3be8d2bc0eca80c9d40059396dc40807c14bfa1f1f519c"
 quiz:
   - prompt: "L'apport principal du ML pour le TDM est de..."
     options:

@@ -15,6 +15,7 @@ glossary: ["ω / Ω","IIV","Distribution normale"]
 sources: ["nelsen-copulas","bonate"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0525903262b6851ad54a1e6e71ae516b522f7f2e2f4ad41bf8232fecfbd3693d"
 quiz:
   - prompt: "A copula describes..."
     options:

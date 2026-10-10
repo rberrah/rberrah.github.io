@@ -15,6 +15,7 @@ slides: []
 sources: ["nonmem", "sheiner-beal-estimation", "wang-nonmem-methods", "keizer-psn-xpose"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "c6efb78f79aafe7a4d81f056b003e714d68a12de83396c1635512b129bce78cc"
 quiz:
   - prompt: "NONMEM s'utilise principalement via..."
     options:

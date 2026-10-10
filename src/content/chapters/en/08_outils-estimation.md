@@ -15,6 +15,7 @@ glossary: ["Effets mixtes","Vraisemblance","FOCE-I","SAEM","MCMC"]
 sources: ["wang-nonmem-methods","kuhn-lavielle-saem","akaike-aic","nonmem","monolix"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "6acf42d48737a73d408c8601655780f3108f58abe885e891bf05dea915ce0b25"
 quiz:
   - prompt: "Estimation means..."
     options:

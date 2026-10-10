@@ -15,6 +15,7 @@ slides: []
 sources: ["nonmem","bauer-nonmem-1","owen-fiedler-kelly","rowland-tozer"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "f6b8f013c425e50b537a97d012a9e912bd465e8bb1b8359e94cfc5df1849ffb0"
 quiz:
   - prompt: "For a one-compartment oral model with linear elimination, why prefer ADVAN2 over ADVAN13?"
     options:

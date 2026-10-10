@@ -15,6 +15,7 @@ slides: ["s43", "s44", "s46", "s47", "s48", "s49", "s50", "s51", "s52", "s25"]
 sources: ["karlsson-holford-vpc", "bergstrand-pcvpc", "hooker-cwres", "efron-bootstrap"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "1891f69a0d8d5ad79e6ae9d119a3e058a22e5a7f768cf86ca50855f58cb504be"
 quiz:
   - prompt: "Une VPC compare les données observées avec..."
     options:

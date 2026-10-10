@@ -16,6 +16,7 @@ glossary: ["TDM","MAP","Precision dosing"]
 sources: ["sheiner-forecasting","minichmayr-mipd","woillard-tacrolimus","rybak-vanco"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "44b6c3fdfbf341bcde84fbe4b4eaf2c64b4a78ba7de270a785ab334fc48628a4"
 quiz:
   - prompt: "Therapeutic drug monitoring (TDM) uses drug measurements to..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix","lavielle","beal-bql","savic-karlsson-shrinkage"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "c59529f603933e4024d5add9bfea6bce3bacedf7676ab0e45c4607bc986b32f6"
 quiz:
   - prompt: "You switch a model from `combined1(a, b)` to `combined2(a, b)`, keeping the same values of a and b. The residual standard deviation changes most..."
     options:

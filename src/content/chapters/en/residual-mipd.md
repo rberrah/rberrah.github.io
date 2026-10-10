@@ -16,6 +16,7 @@ sources: ["berrah-residual","sheiner-forecasting","hughes-keizer","minichmayr-mi
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "14c54fcff93814ece602a4bc8d9f37649753d23f1d023d3a2b967ac0a4803d13"
 quiz:
   - prompt: "In the MAP estimation objective, what does a smaller residual error σ do?"
     options:

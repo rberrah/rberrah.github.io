@@ -15,6 +15,7 @@ glossary: ["PK","PD","ADME"]
 sources: ["rowland-tozer","holford-clearance","mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "9a9c95ab7b397b0a1cd15fde0f7e8c7db0b168c6cdff9d4fcd875d1b43868569"
 quiz:
   - prompt: "Pharmacokinetics (PK) mostly describes..."
     options:

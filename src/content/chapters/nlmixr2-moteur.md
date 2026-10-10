@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "lindstrom-bates"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "52cf93a39a5ab767d4d1c7b52ba4ce242fef03311b4759b58bb6081e3cd60fe1"
 quiz:
   - prompt: "On ajuste le même modèle deux fois, une fois avec est = saem et une fois avec est = focei, et on soustrait les deux OFV rendus. Que mesure cette différence ?"
     options:

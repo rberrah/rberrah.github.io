@@ -15,6 +15,9 @@ slides: []
 sources: ["efron-bootstrap", "mentre-optimal-design", "davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"bootstrap_ci_level":0.95,"bootstrap_lower_percentile":2.5,"bootstrap_upper_percentile":97.5}
+units: {"rse":"percent","confidence_level":"probability","bootstrap_percentile":"percent"}
+reviewed_hash: "c3ed07fee2f19008aef435407e3e722b81d128c0af6331eefa6dca24db68fcf0"
 quiz:
   - prompt: "Le RSE (relative standard error) d'un paramètre mesure..."
     options:

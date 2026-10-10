@@ -15,6 +15,9 @@ glossary: ["NCA","F","Cmax / Tmax","AUC"]
 sources: ["ema-bioequivalence","fda-bioequivalence","rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"bioequivalence_ci_level":0.90,"usual_ratio_lower":0.80,"usual_ratio_upper":1.25}
+units: {"bioequivalence_ci_level":"probability","test_reference_ratio":"ratio"}
+reviewed_hash: "fd1d8dfd960693d3f105ab12c1e2d9e92e945e5b24245ab26c5859afe5d065a9"
 quiz:
   - prompt: "Absolute bioavailability F is computed by comparing..."
     options:

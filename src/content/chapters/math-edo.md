@@ -15,6 +15,7 @@ slides: []
 sources: ["gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "74e711d66f61f5b3b18810b54390059255259ee066fd7cdb663791cb6e5fd8f3"
 quiz:
   - prompt: "La solution de dA/dt = −k·A est..."
     options:

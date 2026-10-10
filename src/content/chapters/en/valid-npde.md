@@ -15,6 +15,7 @@ glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)","VPC"]
 sources: ["brendel-npde","hooker-cwres"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "d898e53fba4a7697f9b7a95d89b4ae532eb3dfd9f3ecf318ef394e0e561c555a"
 quiz:
   - prompt: "If the model is correct, NPDE follow a..."
     options:

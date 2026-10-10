@@ -16,6 +16,7 @@ sources: ["nlmixr2", "fidler-nlmixr", "karlsson-sheiner-iov", "savic-karlsson-sh
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "c425d02ca4c9d314b7249f5f448ec2f1d9ff69e82743e1b07d765534ea2cefe4"
 quiz:
   - prompt: "Dans `ini({...})`, vous écrivez `eta.cl ~ 0.1`. Que déclare la valeur 0,1 ?"
     options:

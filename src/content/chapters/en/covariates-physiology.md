@@ -15,6 +15,7 @@ slides: []
 sources: ["anderson-holford-allometry","jones-rowland-yeo","goutelle-hill"]
 reviewed_on: "2026-09-29"
 review_type: "author"
+reviewed_hash: "a2f37729fdc96c1fd023c9dcc01d9d280606bf14c910f27b18c56058b4b3638b"
 quiz: [{"prompt":"At PMA = PMA50, maturation is…","options":["0.5","1","h"],"correct":0},{"prompt":"Adding Hill to CL…","options":["does not by itself create a PBPK model","automatically makes the model PBPK","removes individual variability"],"correct":0},{"prompt":"A renal-function factor should…","options":["respect units and the elimination component involved","always multiply total clearance","always be exponential"],"correct":0}]
 ---
 

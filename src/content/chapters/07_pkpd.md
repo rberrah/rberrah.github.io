@@ -15,6 +15,7 @@ slides: ["s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s35", "s36"]
 sources: ["holford-sheiner-dose-effect", "goutelle-hill", "sheiner-effect-compartment", "dayneka-jusko-indirect"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "28aa084d92754dcfbc28a53c26d9b72ac92f194d4c5287afa0d96916760f45ae"
 quiz:
   - prompt: "L'EC50 est la concentration qui produit..."
     options:

@@ -15,6 +15,7 @@ slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0ddf20372bc5df05e45ebe2f298bde7742a2b1f7424b0d30eabe0caffabf1131"
 quiz:
   - prompt: "La concentration moyenne à l'équilibre vaut..."
     options:

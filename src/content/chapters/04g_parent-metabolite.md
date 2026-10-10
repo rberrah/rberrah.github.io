@@ -15,6 +15,7 @@ slides: []
 sources: ["houston-metabolite", "gibaldi-perrier", "gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "06dc698a8e7b9c7417075634483e8296096baabf63ae4d8a933cbce1c8df3bd1"
 quiz:
   - prompt: "Dans un modèle parent/métabolite, le métabolite apparaît d'abord..."
     options:

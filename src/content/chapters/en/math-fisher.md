@@ -15,6 +15,7 @@ glossary: ["FIM","RSE","Vraisemblance","Identifiabilité"]
 sources: ["mentre-optimal-design","pfim","davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "8ea1daa6f19f1e3efb2f537e14ae98760fe94238ab77f807579188099092099f"
 quiz:
   - prompt: "The Fisher information matrix (FIM) is used to..."
     options:

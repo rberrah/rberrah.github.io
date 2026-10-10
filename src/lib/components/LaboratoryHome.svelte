@@ -60,12 +60,12 @@
   </section>
 
   <section class="catalogue-section">
-    <div class="section-heading"><div><p class="eyebrow">{en ? 'Advanced target mechanism' : 'Mecanisme de cible avance'}</p><h2>{en ? 'Binding, saturation and internalization' : 'Liaison, saturation et internalisation'}</h2></div><span>15</span></div>
+    <div class="section-heading"><div><p class="eyebrow">{en ? 'Advanced target mechanism' : 'Mécanisme de cible avancé'}</p><h2>{en ? 'Binding, saturation and internalization' : 'Liaison, saturation et internalisation'}</h2></div><span>15</span></div>
     <div class="laboratory-grid single-grid">{#each targetMediated as laboratory}<LaboratoryCard {laboratory} {en} {lang}/>{/each}</div>
   </section>
 
   <section class="course-animations">
-    <div><p class="eyebrow"><BookOpen size={15}/>{en ? 'Concept animations' : 'Animations de cours'}</p><h2>{en ? 'No molecular journey is needed here' : "Ici, aucun parcours moleculaire n'est necessaire"}</h2></div>
+    <div><p class="eyebrow"><BookOpen size={15}/>{en ? 'Concept animations' : 'Animations de cours'}</p><h2>{en ? 'No molecular journey is needed here' : "Ici, aucun parcours moléculaire n'est nécessaire"}</h2></div>
     <p>{en ? 'Population variability and Bayesian updating remain interactive course figures: their purpose is to compare curves and distributions, not to reproduce a video-like pathway.' : 'La variabilité populationnelle et la mise à jour bayésienne restent des figures interactives de cours : leur objectif est de comparer des courbes et des distributions, pas de reproduire un trajet vidéo.'}</p>
     <nav aria-label={en ? 'Related course animations' : 'Animations de cours associées'}><a href={`${base}/chapitres/variabilite-iiv-iov/`}>{en ? 'Population variability' : 'Variabilité populationnelle'}</a><a href={`${base}/chapitres/math-bayes/`}>{en ? 'Bayesian updating' : 'Mise à jour bayésienne'}</a></nav>
   </section>

@@ -16,6 +16,7 @@ sources: ["hooker-cwres","savic-karlsson-shrinkage","mould-upton"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "fcf72902b313550f7cda4fbc2f2e76a839163846c5fef24d3dce589f1262a16d"
 quiz:
   - prompt: "On an observations vs predictions plot, a good model gives..."
     options:

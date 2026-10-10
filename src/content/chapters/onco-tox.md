@@ -15,6 +15,7 @@ slides: []
 sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "65714958ba0240af9033724e48677b692af57698876d601915ec8b61d9a62588"
 quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."
     options:

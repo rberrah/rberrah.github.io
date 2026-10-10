@@ -16,6 +16,7 @@ sources: ["yu-amidon-acat","amidon-bcs","holford-clearance","jones-rowland-yeo"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "fe2606519cd3085e90718d6a02ef3e66f989c7b9be3a714c59c997c431fffa1f"
 quiz:
   - prompt: "A mechanistic absorption model (ACAT/ADAM) divides the gut into..."
     options:

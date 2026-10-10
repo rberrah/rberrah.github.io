@@ -16,6 +16,7 @@ glossary: ["Théorème de Bayes","A priori / prior","A posteriori / posterior","
 sources: ["sheiner-forecasting","savic-karlsson-shrinkage","mapbayr","sheiner-beal-estimation","berrah-residual","hughes-keizer"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "8fde514523703d0a8e8b10d92fe0395dc2764e6b96b38b0f56a78a55267d39e7"
 quiz:
   - prompt: "An EBE is..."
     options:

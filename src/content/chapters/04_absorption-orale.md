@@ -15,6 +15,7 @@ slides: ["s07"]
 sources: ["savic-transit", "gibaldi-perrier", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "cfd8b824bcac045a5fcfac92d5fc1a35942119e5e2d22afbd5b7be5defd18542"
 quiz:
   - prompt: "Ka contrôle principalement..."
     options:

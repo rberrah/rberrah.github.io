@@ -15,6 +15,7 @@ slides: ["s63", "s65", "s66", "s68", "s69", "s70", "s71"]
 sources: ["chen-neural-ode", "hughes-keizer", "woillard-ml-tacrolimus", "genuer-vsurf"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "a05ccf89b70e8a4aebb39e4f1ee1b575fb1b67cecbe8f8f8b3bb7fb70ef6309d"
 quiz:
   - prompt: "Un modèle grey-box combine..."
     options:

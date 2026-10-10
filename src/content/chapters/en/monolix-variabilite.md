@@ -16,6 +16,7 @@ sources: ["monolix","lavielle","karlsson-sheiner-iov","savic-karlsson-shrinkage"
 reviewed_on: "2026-10-09"
 updated_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "18263c0f2faebf2a5c0629972a51d0aa7fcd9e08f806c868a8dd1a0b57ba91c2"
 quiz:
   - prompt: "You are translating into Monolix a NONMEM model whose IIV on clearance is declared by `$OMEGA 0.09`. What value should `omega_cl` take?"
     options:

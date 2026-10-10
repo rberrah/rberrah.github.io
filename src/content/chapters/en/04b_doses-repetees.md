@@ -15,6 +15,7 @@ prerequisites: ["clairance-volume-demi-vie"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "82d0e42373b5532e292f6391ac9a0578b1fe40789f2488bda2501423917a9081"
 quiz:
   - prompt: "The average steady-state concentration equals..."
     options:

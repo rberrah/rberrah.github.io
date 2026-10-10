@@ -15,6 +15,7 @@ slides: []
 sources: ["mapbayr", "sheiner-forecasting", "minichmayr-mipd", "rybak-vanco"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "c2567d3d7d82f88320985f4424bd35415402a194301c8776165571d1150ce055"
 quiz:
   - prompt: "L'estimation MAP (maximum a posteriori) combine..."
     options:

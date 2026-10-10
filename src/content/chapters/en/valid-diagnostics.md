@@ -16,6 +16,7 @@ sources: ["hooker-cwres","karlsson-holford-vpc","brendel-npde","savic-karlsson-s
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "da2bb23dbc2ec3025ca98b97c2980d6d9f4a50916ce73c331c48ce0b7edd3438"
 quiz:
   - prompt: "No single diagnostic plot is enough; we cross-check them because..."
     options:

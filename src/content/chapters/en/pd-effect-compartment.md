@@ -15,6 +15,7 @@ glossary: ["Compartiment d’effet (ke0)","Hystérèse","Emax"]
 sources: ["sheiner-effect-compartment","holford-sheiner-dose-effect","dayneka-jusko-indirect","gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "44081c4faee0df191821410f185c1ceadba406a7919da5da6a96fc55b8ec336e"
 quiz:
   - prompt: "The effect-compartment model explains hysteresis by..."
     options:

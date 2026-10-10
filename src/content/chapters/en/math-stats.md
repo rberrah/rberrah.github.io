@@ -15,6 +15,9 @@ glossary: ["DoF","RSE","Identifiabilité"]
 sources: ["wilks-1938","asa-pvalue","davidian-giltinan","mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"normal_95_multiplier":1.96,"lrt_alpha":0.05,"chi_square_df1":3.84}
+units: {"confidence_level":"probability","ofv_difference":"points"}
+reviewed_hash: "304f00eb461d6dfd3c87eade986f3a37ec7246931cdd4262ca1fccab320bf6c9"
 quiz:
   - prompt: "An individual clearance is often modelled with a..."
     options:

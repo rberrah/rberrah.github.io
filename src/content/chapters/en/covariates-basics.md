@@ -16,6 +16,7 @@ sources: ["monolix-covariates","simulx-individual","lavielle","sanghavi-covariat
 reviewed_on: "2026-10-09"
 updated_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "b1e3fab391111e1557fcf09937ec5eca6825f53752c28a0459fe2c514cfcd69e"
 quiz: [{"prompt":"A covariate beta represents…","options":["a systematic effect on a parameter","an observed individual ETA","a residual variance"],"correct":0},{"prompt":"A possible link for a fraction strictly between 0 and 1 is…","options":["logit","log alone","no link can bound it"],"correct":0},{"prompt":"Weight affects CL and V:","options":["the effects can have different coefficients","one shared beta is mandatory","ETA correlation must be 1"],"correct":0}]
 ---
 

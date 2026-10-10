@@ -17,8 +17,6 @@ const fields = [
   'slides',
   'sources',
   'updated_on',
-  'reviewed_on',
-  'review_type',
   'status',
   'scientific_values',
   'units'
@@ -44,13 +42,6 @@ for (const file of files) {
   const sourcePath = path.join(chaptersDir, file);
   let sourceRaw = fs.readFileSync(sourcePath, 'utf8');
   const source = matter(sourceRaw).data;
-  if (source.reviewed_on && !source.review_type) {
-    sourceRaw = setField(sourceRaw, 'review_type', 'author');
-    fs.writeFileSync(sourcePath, sourceRaw, 'utf8');
-    source.review_type = 'author';
-    changed += 1;
-  }
-
   const englishPath = path.join(englishDir, file);
   if (!fs.existsSync(englishPath)) continue;
   let englishRaw = fs.readFileSync(englishPath, 'utf8');

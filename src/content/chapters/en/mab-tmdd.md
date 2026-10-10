@@ -16,6 +16,7 @@ sources: ["mager-jusko-tmdd","gibiansky-qss","ryman-meibohm"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "f2a6da5e00ed31b0d3236264f237b7c8587ce93d83781ddc6e388997ccfe7af0"
 quiz:
   - prompt: "TMDD (target-mediated drug disposition) produces PK that is..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2","fidler-nlmixr","wang-rxode"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "2518f43b5c4d9b91b7bc46a0250c5ea820f58f72b71539db40a75fd648110211"
 quiz:
   - prompt: "In the ini block, the line eta.cl ~ 0.09 declares..."
     options:

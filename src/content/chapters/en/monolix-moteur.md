@@ -15,6 +15,7 @@ slides: []
 sources: ["delyon-saem","kuhn-lavielle-saem","lavielle","lavielle-mentre-monolix","monolix"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "7caef7fa684a0b364c3db67c528f02a882bd2235e38f8888f2618aafc4a877e8"
 quiz:
   - prompt: "In the SAEM convergence plot, a perfectly flat trajectory during the smoothing phase indicates..."
     options:

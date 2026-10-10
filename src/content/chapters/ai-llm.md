@@ -15,6 +15,7 @@ slides: []
 sources: ["vaswani-transformer", "brown-gpt3"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "ba858843e463128600650ec360a94f340559a4686db27ae3e7bfd5cfb6126917"
 quiz:
   - prompt: "Un LLM est, à la base, entraîné à..."
     options:

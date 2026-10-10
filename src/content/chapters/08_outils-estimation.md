@@ -15,6 +15,7 @@ slides: ["s10", "s38", "s39", "s40", "s41", "s42"]
 sources: ["wang-nonmem-methods", "kuhn-lavielle-saem", "akaike-aic", "nonmem", "monolix"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0f349c9aee8b00aec3b8b08579d7d9bc395c96233588ebe2e2f4d2c9f65358ca"
 quiz:
   - prompt: "Estimer signifie..."
     options:

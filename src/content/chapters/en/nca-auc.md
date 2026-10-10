@@ -15,6 +15,7 @@ glossary: ["NCA","AUC"]
 sources: ["yamaoka-moments","ema-bioequivalence","gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0492131779da3d58ffe2fff7f79d823a1f77dbbc6242eaae86e5105d8ab180eb"
 quiz:
   - prompt: "The trapezoidal method computes the AUC by..."
     options:

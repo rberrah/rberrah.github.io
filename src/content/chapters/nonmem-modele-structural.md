@@ -15,6 +15,7 @@ slides: []
 sources: ["nonmem", "bauer-nonmem-1", "owen-fiedler-kelly", "rowland-tozer"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "52a2850f73a82d1fea127ffa44d8420440a698d51530ca9f9e0363eedd484d92"
 quiz:
   - prompt: "Pour un modèle à 1 compartiment oral à élimination linéaire, pourquoi préférer ADVAN2 à ADVAN13 ?"
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["breiman-rf", "efron-bootstrap", "hastie-esl"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "be6a274de7921f51b5849335a81c423aca670eee2d7da6ada37b796880103142"
 quiz:
   - prompt: "Un arbre de décision seul produit une fonction..."
     options:

@@ -15,6 +15,9 @@ glossary: ["NCA","CL","Vss","t½"]
 sources: ["yamaoka-moments","holford-clearance","gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"infusion_mrt_duration_factor":0.5}
+units: {"mrt":"time","clearance":"volume/time","volume":"volume"}
+reviewed_hash: "5affc8b3bf5e331de3d671deabac183632851e7dc9108d8bb9825365f8172c96"
 quiz:
   - prompt: "After an IV dose, clearance is computed by..."
     options:

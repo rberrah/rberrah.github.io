@@ -15,6 +15,7 @@ glossary: ["TDM","MAP-BE","CMI","PTA"]
 sources: ["rybak-vanco","roberts-dali","minichmayr-mipd","sheiner-forecasting"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "f1aaaf3bbc92f5fafb28027b382f3ac3b3ec91bd52d6965b389624a3ae463025"
 quiz:
   - prompt: "For vancomycin in serious MRSA infections, the currently preferred target is..."
     options:

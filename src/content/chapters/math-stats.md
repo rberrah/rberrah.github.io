@@ -15,6 +15,9 @@ slides: []
 sources: ["wilks-1938", "asa-pvalue", "davidian-giltinan", "mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"normal_95_multiplier":1.96,"lrt_alpha":0.05,"chi_square_df1":3.84}
+units: {"confidence_level":"probability","ofv_difference":"points"}
+reviewed_hash: "f3d180f49605818e0742f1a9a937c7f6fe4263734a7d435f4616088f617f9e72"
 quiz:
   - prompt: "Une clairance individuelle est souvent modélisée par une loi..."
     options:

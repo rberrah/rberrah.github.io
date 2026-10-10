@@ -15,6 +15,7 @@ slides: []
 sources: ["brendel-npde", "hooker-cwres"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "5f0be23004945da2f962d685ab28c4f16f41843a0ac3910450ca16d47ae22dd7"
 quiz:
   - prompt: "Si le modèle est correct, les NPDE suivent une loi..."
     options:

@@ -15,6 +15,7 @@ glossary: ["Hystérèse","Réponse indirecte / turnover"]
 sources: ["sharma-jusko-indirect","dayneka-jusko-indirect","gabrielsson-weiner"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "73b231b338b12753309ebfbf87629d5909d88146baaedeb41094eb285e8e35b4"
 quiz:
   - prompt: "Pharmacodynamic tolerance shows as..."
     options:

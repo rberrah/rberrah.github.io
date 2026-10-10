@@ -16,6 +16,7 @@ sources: ["jones-rowland-yeo", "kuepfer-pbpk", "rowland-peck-tucker"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "812f484d69cb669a181315f6fb5c99b5323ddbd5c8e62c8d799384f584cbd639"
 quiz:
   - prompt: "Dans un modèle PBPK, les compartiments représentent..."
     options:

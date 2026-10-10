@@ -15,6 +15,9 @@ slides: []
 sources: ["yamaoka-moments", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+scientific_values: {"infusion_mrt_duration_factor":0.5}
+units: {"mrt":"time","clearance":"volume/time","volume":"volume"}
+reviewed_hash: "4e2d0cb0886ce5195a559eb4bea40564c805bc924a540e1f84567e919053581b"
 quiz:
   - prompt: "Après une dose IV, la clairance se calcule par..."
     options:

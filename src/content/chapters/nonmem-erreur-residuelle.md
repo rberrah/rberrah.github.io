@@ -16,6 +16,7 @@ sources: ["nonmem", "beal-bql", "hooker-cwres", "berrah-residual"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "e1dfe7456af4782de59f62696f06307bf826814024f24bbf03ca04955999b79a"
 quiz:
   - prompt: "Avec une erreur proportionnelle ou combinée, l'option INTER du bloc ESTIMATION est nécessaire parce que..."
     options:

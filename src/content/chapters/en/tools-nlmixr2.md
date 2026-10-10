@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2","fidler-nlmixr","kuhn-lavielle-saem","wang-nonmem-methods"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "bfd9503576c4e00dd5b450b571f14467fcc6253eb5996850aa236986218306f6"
 quiz:
   - prompt: "nlmixr2 stands out mainly for..."
     options:

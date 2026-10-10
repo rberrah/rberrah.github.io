@@ -15,6 +15,7 @@ slides: []
 sources: ["hooker-cwres", "mould-upton", "savic-karlsson-shrinkage", "jonsson-karlsson-scm"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "bdc91639435d91b68c7217d9c2246af85007a4589b13290373e0ff6170501baa"
 quiz:
   - prompt: "Des CWRES en forme de U (négatifs au milieu, positifs aux extrêmes) évoquent..."
     options:

@@ -15,6 +15,7 @@ glossary: ["GOF","Résidus (WRES/CWRES/IWRES/NPDE)","VPC","Binning"]
 sources: ["karlsson-holford-vpc","bergstrand-pcvpc","hooker-cwres","efron-bootstrap"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "eadfc60cf18f1862aa64a739044e2fc1fb3aeb20f6033f0abfa8e29fbcbdaaff"
 quiz:
   - prompt: "A VPC compares observed data with..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix", "lavielle", "savic-transit"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "bf180b341f236757cc3073850ebd6cab33c06c9d87d1b8f50b63bf84de02c234"
 quiz:
   - prompt: "Dans un fichier mlxtran, le bloc [LONGITUDINAL] contient..."
     options:

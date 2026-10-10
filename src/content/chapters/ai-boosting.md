@@ -15,6 +15,7 @@ slides: []
 sources: ["friedman-gbm", "chen-xgboost", "prokhorenkova-catboost", "woillard-ml-tacrolimus"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "5fc6c182d82d091ae9c7bb1533696a0b7c2bb2aa60524ba67bec742cbe3c4700"
 quiz:
   - prompt: "Le principe du gradient boosting est de..."
     options:

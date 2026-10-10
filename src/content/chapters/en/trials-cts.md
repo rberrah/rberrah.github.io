@@ -16,6 +16,7 @@ sources: ["mould-upton","ette-williams","bonate","nelsen-copulas","ich-m15"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "2e30a9f9c0b275e48208d247e6241e6da48ec29dc9758c51684bb0c9f3371eff"
 quiz:
   - prompt: "Clinical trial simulation (CTS) allows one to..."
     options:

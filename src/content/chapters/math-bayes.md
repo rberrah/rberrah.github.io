@@ -16,6 +16,7 @@ sources: ["sheiner-forecasting", "savic-karlsson-shrinkage", "mapbayr", "minichm
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "c5ab741c20b34be4657196b1ea3b032c02620241bb93317e4501c00720e3a693"
 quiz:
   - prompt: "Le théorème de Bayes combine..."
     options:

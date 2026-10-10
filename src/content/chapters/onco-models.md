@@ -15,6 +15,7 @@ slides: []
 sources: ["simeoni", "claret-tgi-os", "stein-tumor-growth", "friberg"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "50c3720e2c35638bea0c3d7bc21fd18d8989911b5b88b4e9242204775c83f96a"
 quiz:
   - prompt: "Le modèle de croissance de Gompertz décrit une croissance..."
     options:

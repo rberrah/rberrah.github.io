@@ -15,6 +15,7 @@ glossary: ["NCA","PopPK","PBPK"]
 sources: ["yamaoka-moments","sheiner-beal-estimation","jones-rowland-yeo","mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "662b2437942845bc6fce6e758d4376bafabc601e172d6619014536328f63bc6d"
 quiz:
   - prompt: "Non-compartmental analysis (NCA) is mainly used to..."
     options:

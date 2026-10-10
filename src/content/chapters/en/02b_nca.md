@@ -16,6 +16,7 @@ prerequisites: ["trois-approches"]
 glossary: ["CL","V","Q","ke"]
 sources: ["gibaldi-perrier","rowland-tozer","holford-clearance"]
 review_type: "author"
+reviewed_hash: "946105d5fc89c63e565c70bda55f82af8efd50394c5c2e1019dd426b9dd4bf61"
 quiz:
   - prompt: "In a one-compartment model, which identity links the micro and macro forms?"
     options:

@@ -15,6 +15,7 @@ slides: ["s01", "s02"]
 sources: ["rowland-tozer", "holford-clearance", "mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "067df1eeeb8f582630e4830d66b244444ce89180730d43be784552335f3bbc84"
 quiz:
   - prompt: "La pharmacocinétique (PK) décrit surtout..."
     options:

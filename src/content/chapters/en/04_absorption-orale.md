@@ -15,6 +15,7 @@ glossary: ["Ka","F","Tlag","Cmax / Tmax","Flip-flop"]
 sources: ["savic-transit","gibaldi-perrier","rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "0fbedd98487a29998bd4861cfad233ec5f4578ab10a4a05b33cb3739b3806308"
 quiz:
   - prompt: "Ka mainly controls..."
     options:

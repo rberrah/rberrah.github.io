@@ -15,6 +15,7 @@ slides: []
 sources: ["ryman-meibohm", "dirks-meibohm", "fda-immunogenicity"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "f24c5a62aa67f829be86b1a981ae8fb6b1d6d4af1d4295dfed5bdab046ef8bb0"
 quiz:
   - prompt: "Les ADA (anti-drug antibodies) sont..."
     options:

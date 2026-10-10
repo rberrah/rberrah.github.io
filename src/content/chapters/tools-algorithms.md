@@ -15,6 +15,7 @@ slides: []
 sources: ["lindstrom-bates", "wang-nonmem-methods", "kuhn-lavielle-saem", "lavielle"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "58e2cf75bfac5930a5f26c6a67022b6979e7db4b0ab69e6af86c5235fa9dccbf"
 quiz:
   - prompt: "La vraisemblance d'un modèle NLME est difficile car..."
     options:

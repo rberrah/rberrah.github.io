@@ -15,6 +15,7 @@ slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "a5a858811f7d6787101bf65407c3c7123e4be7c8cc11bcd8cac581de443a495c"
 quiz:
   - prompt: "Une entrée d'ordre 0 signifie que le débit d'entrée est..."
     options:

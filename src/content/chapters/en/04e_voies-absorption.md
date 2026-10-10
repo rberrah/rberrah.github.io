@@ -15,6 +15,7 @@ slides: []
 sources: ["amidon-bcs","ryman-meibohm","rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "c9c455449aed059a9931db53b41330cc0b7c153bbee0674fe202989ae9a71f14"
 quiz:
   - prompt: "By the intravenous (IV) route, the bioavailability F is..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["pearson-1901-pca", "marchenko-pastur", "hotelling-1933", "hastie-esl", "savic-karlsson-shrinkage"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "c39489299d5821a8f5e8607cde648a49215560618272eb193abc109ae4ef2bf7"
 quiz:
   - prompt: "Regrouper les paramètres individuels (EBE) par type de cancer peut révéler..."
     options:

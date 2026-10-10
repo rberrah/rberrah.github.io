@@ -16,6 +16,7 @@ sources: ["craig-pkpd","rybak-vanco","eucast","goutelle-hill"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "dfdddcf529a1c7b644f1fcdd32cf3e6b8c2e06a3f9dc6fe242246e3b961f3548"
 quiz:
   - prompt: "For beta-lactams, the PK/PD index predictive of efficacy is..."
     options:

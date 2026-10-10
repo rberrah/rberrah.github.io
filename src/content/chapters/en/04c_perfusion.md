@@ -15,6 +15,7 @@ glossary: ["CL","t½"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "54f7a50f87c11854ca0f0e6623facf398bdae26cd17bebb868d409402cd48844"
 quiz:
   - prompt: "A zero-order input means the input rate is..."
     options:

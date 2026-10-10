@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix","lavielle","jonsson-karlsson-scm","ribbing-selection-bias"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "a8993eb3186bb2d7e1a0d7289e607c6df5e781a6e22a58af143585761e371fbc"
 quiz:
   - prompt: "For a parameter declared logitNormal, the omega estimated by Monolix represents..."
     options:

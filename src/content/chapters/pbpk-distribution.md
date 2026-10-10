@@ -15,6 +15,7 @@ slides: []
 sources: ["poulin-theil", "rodgers-rowland", "jones-rowland-yeo"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "e12066ac970585607e4dbf8045fd928dbfc3283e1b8a56c90679336bb311a43e"
 quiz:
   - prompt: "Le coefficient de partage Kp,T décrit..."
     options:

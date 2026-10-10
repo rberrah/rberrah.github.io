@@ -15,6 +15,7 @@ slides: []
 sources: ["lindstrom-bates","wang-nonmem-methods","kuhn-lavielle-saem","lavielle"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "12d0fedfe2280da641f2b4e23c1f42fb203da26599fa55e96053220cc6715b06"
 quiz:
   - prompt: "The likelihood of an NLME model is hard because..."
     options:

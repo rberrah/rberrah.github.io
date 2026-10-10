@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix-covariates","simulx-individual","jonsson-covariates","pmetrics","hastie-esl","mrgsolve"]
 reviewed_on: "2026-09-29"
 review_type: "author"
+reviewed_hash: "fe01ddf09de14da488e7b55ddad738f65516acbfd1379b02c516af4a39ca42ee"
 quiz: [{"prompt":"With variances 0.09 and 0.04 and covariance 0.03, correlation is…","options":["0.5","0.03","1.5"],"correct":0},{"prompt":"In the structural Monolix example, IIV is configured on…","options":["Cl0 and V0","WT only","necessarily betaWT and ratioGENO"],"correct":0},{"prompt":"Prospective interpolation using a future measurement…","options":["can leak information","is always clinically more accurate","equals carrying the last value forward"],"correct":0}]
 ---
 

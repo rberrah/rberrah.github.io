@@ -16,6 +16,7 @@ sources: ["fda-starting-dose","ema-fih","anderson-holford-allometry","holford-sh
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "ef7c1460026eca111ed6fa0402150c96df410d34d0dce8712f1de482504b4674"
 quiz:
   - prompt: "The MABEL approach bases the starting dose on..."
     options:

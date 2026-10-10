@@ -15,6 +15,7 @@ slides: []
 sources: ["anderson-holford-allometry","jones-rowland-yeo","goutelle-hill"]
 reviewed_on: "2026-09-29"
 review_type: "author"
+reviewed_hash: "e175cdfddd62fc7b032a6f4c3fc950bed240b482d95de4592e6fbad32dd5a045"
 quiz: [{"prompt":"À PMA = PMA50, le facteur de maturation vaut…","options":["0,5","1","h"],"correct":0},{"prompt":"Ajouter Hill à CL…","options":["ne suffit pas à construire un PBPK","rend automatiquement le modèle PBPK","supprime la variabilité individuelle"],"correct":0},{"prompt":"Un facteur de fonction rénale doit…","options":["respecter unités et composante d’élimination concernée","toujours multiplier toute la clairance","toujours être exponentiel"],"correct":0}]
 ---
 

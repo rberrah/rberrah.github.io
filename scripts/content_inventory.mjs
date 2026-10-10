@@ -6,6 +6,7 @@ import { guidedActivities } from '../src/lib/content/guidedActivities.js';
 import { learningTracks, beginnerTrack } from '../src/lib/content/tracks.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
 import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
+import { chapterReviewHash } from './review_hash.mjs';
 
 const root = new URL('../', import.meta.url);
 const chapterDir = new URL('src/content/chapters/', root);
@@ -16,13 +17,21 @@ const citation = readFileSync(new URL('CITATION.cff', root), 'utf8');
 const contentLicense = readFileSync(new URL('LICENSE-CONTENT.md', root), 'utf8');
 const portalHome = readFileSync(new URL('portal/index.html', root), 'utf8');
 const chapterFiles = readdirSync(chapterDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
-const chapters = chapterFiles.map(file => ({ file, ...matter(readFileSync(new URL(file, chapterDir), 'utf8')).data }));
 const englishFiles = readdirSync(englishDir).filter(file => file.endsWith('.md') && !file.startsWith('_'));
+const chapters = chapterFiles.map(file => {
+  const raw = readFileSync(new URL(file, chapterDir), 'utf8');
+  return { file, raw, ...matter(raw).data };
+});
+const englishChapters = englishFiles.map(file => {
+  const raw = readFileSync(new URL(file, englishDir), 'utf8');
+  return { file, raw, ...matter(raw).data };
+});
 const visualizations = readdirSync(visualizationDir).filter(file => file.endsWith('.svelte'));
 const vizKeys = new Set(chapterFiles.flatMap(file => [...readFileSync(new URL(file, chapterDir), 'utf8').matchAll(/\bviz="([^"]+)"/g)].map(match => match[1])));
 const syntheses = guidedActivities.filter(activity => activity.kind === 'synthesis');
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
-const pendingReviews = chapters.filter(chapter => chapter.updated_on && chapter.reviewed_on && chapter.updated_on > chapter.reviewed_on);
+const pendingReviews = chapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
+const pendingEnglishReviews = englishChapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const rows = [
   ['French chapters', chapters.length],
   ['English chapter translations', englishFiles.length],
@@ -47,7 +56,11 @@ const rows = [
   ['Chapters reviewed by the author', chapters.filter(chapter => chapter.review_type === 'author').length],
   ['Chapters reviewed internally', chapters.filter(chapter => chapter.review_type === 'internal').length],
   ['Chapters reviewed externally', chapters.filter(chapter => chapter.review_type === 'external').length],
-  ['Chapters pending scientific review', pendingReviews.length]
+  ['French chapters pending scientific review', pendingReviews.length],
+  ['English chapters reviewed by the author', englishChapters.filter(chapter => chapter.review_type === 'author').length],
+  ['English chapters reviewed internally', englishChapters.filter(chapter => chapter.review_type === 'internal').length],
+  ['English chapters reviewed externally', englishChapters.filter(chapter => chapter.review_type === 'external').length],
+  ['English chapters pending scientific review', pendingEnglishReviews.length]
 ];
 
 assert.equal(new Set(chapters.map(chapter => chapter.slug)).size, chapters.length, 'Duplicate chapter slug');
@@ -81,9 +94,12 @@ clinical suitability, translation quality or learning effectiveness.
 
 ## Scientific review debt
 
-${pendingReviews.length
-  ? `| Chapter | Track | Level | Updated | Last review |\n| --- | --- | --- | --- | --- |\n${pendingReviews.map(chapter => `| ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.updated_on} | ${chapter.reviewed_on} |`).join('\n')}`
-  : 'No chapter currently has an editorial update newer than its scientific review date.'}
+${pendingReviews.length || pendingEnglishReviews.length
+  ? `| Language | Chapter | Track | Level | Last review | Reason |\n| --- | --- | --- | --- | --- | --- |\n${[
+      ...pendingReviews.map(chapter => `| FR | ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.reviewed_on} | content hash changed |`),
+      ...pendingEnglishReviews.map(chapter => `| EN | ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.reviewed_on} | content hash changed |`)
+    ].join('\n')}`
+  : 'Every French and English chapter matches its independently stored scientific-review hash.'}
 `;
 
 if (process.argv.includes('--check')) {

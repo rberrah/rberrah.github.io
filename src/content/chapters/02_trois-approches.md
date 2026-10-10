@@ -15,6 +15,7 @@ slides: ["s23", "s34", "s45", "s56", "s73"]
 sources: ["yamaoka-moments", "sheiner-beal-estimation", "jones-rowland-yeo", "mould-upton"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "84b6a44a867bb9dd8213be84ddd51f711437ba38d5b06b99a403752247036cc3"
 quiz:
   - prompt: "L'analyse non compartimentale (NCA) sert surtout à..."
     options:

@@ -15,6 +15,7 @@ slides: []
 sources: ["amidon-bcs", "ryman-meibohm", "rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "63518f84badff3a131e9889322d2ce9b7bef64fd803972aeb7e3af9f9763aee5"
 quiz:
   - prompt: "Par voie intraveineuse (IV), la biodisponibilité F vaut..."
     options:

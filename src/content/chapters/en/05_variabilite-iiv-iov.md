@@ -15,6 +15,7 @@ glossary: ["IIV","IOV","η","ω / Ω","ε / σ"]
 sources: ["karlsson-sheiner-iov","sheiner-beal-estimation","berrah-residual","davidian-giltinan"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "717b46ed72d55d05c537eee021e689c9516999c424b36611784b45a606f4d5c9"
 quiz:
   - prompt: "IIV means..."
     options:

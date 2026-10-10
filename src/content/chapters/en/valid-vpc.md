@@ -15,6 +15,7 @@ glossary: ["VPC","Binning","PRED / IPRED"]
 sources: ["bergstrand-pcvpc","karlsson-holford-vpc","ema-poppk"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "7347d568bc1fed49d25373209ad7390d85bdc6dcfb9e21639f7906c3aad15d52"
 quiz:
   - prompt: "A VPC compares..."
     options:

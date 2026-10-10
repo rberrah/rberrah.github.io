@@ -16,6 +16,7 @@ sources: ["rostami-hodjegan-ivive", "fda-pbpk", "ema-pbpk", "anderson-holford-al
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "b4feb981fe4e926ab2757d8882e7bb7fdd7c2d35deebf0ff5179f8ad32a736bf"
 quiz:
   - prompt: "L'IVIVE consiste à..."
     options:

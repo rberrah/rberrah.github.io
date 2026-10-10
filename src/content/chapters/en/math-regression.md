@@ -15,6 +15,7 @@ glossary: ["Vraisemblance","RSE"]
 sources: ["wang-nonmem-methods","akaike-aic","davidian-giltinan","gibaldi-perrier"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "73747bd6e9b5bc08bb3651496645af236f065ddec2f028e6e4a6cd74c6deb313"
 quiz:
   - prompt: "Estimating a parameter by maximum likelihood means finding the value that..."
     options:

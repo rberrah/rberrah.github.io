@@ -15,6 +15,7 @@ slides: []
 sources: ["nlmixr2","fidler-nlmixr","wang-rxode","lindstrom-bates"]
 reviewed_on: "2026-07-14"
 review_type: "author"
+reviewed_hash: "ffbcba96bfac36490e4ec98fbd76fa964d96db1ac553d6ab62105ac31e4766da"
 quiz:
   - prompt: "You fit the same model twice, once with est = saem and once with est = focei, and subtract the two reported OFVs. What does that difference measure?"
     options:

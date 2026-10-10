@@ -1,6 +1,7 @@
 <script>
   import { language } from '$lib/stores/language';
-  // TMDD : PK non linéaire médiée par la cible (approximation Michaelis-Menten).
+  // Approximation Michaelis-Menten d'une élimination saturable liée à la cible.
+  // Ce n'est pas un modèle TMDD mécanistique complet avec cible libre et complexes.
   //   dC/dt = −(CLlin/V)·C − (Vmax/V)·C/(Km + C)
   // À faible concentration, la voie cible (saturable) domine → élimination rapide.
   // À forte dose, la cible est saturée → PK quasi linéaire (pente plus lente).
@@ -26,20 +27,8 @@
   const refDoses = [30, 100, 300];
   $: curves = refDoses.map((d) => ({ d, pts: simulate(d) }));
   $: sel = simulate(dose);
-  // Demi-vie apparente sur la dernière portion RÉELLE de la courbe (jours).
-  // La simulation plafonne C à 1e-4 : aux doses usuelles, la courbe atteignait ce plancher
-  // avant la fin, les deux points de mesure se retrouvaient sur ce plateau artificiel, et le
-  // readout affichait « 0,0 j » — le chiffre censé porter la leçon du chapitre. On ne mesure
-  // donc que là où la courbe est encore réelle.
-  $: thalfEnd = (() => {
-    const PLANCHER = 1e-3;
-    const reels = sel.filter((p) => p.C > PLANCHER);
-    if (reels.length < 10) return 0;
-    const b = reels[reels.length - 1];
-    const a = reels[Math.max(0, reels.length - 1 - Math.round(reels.length * 0.25))];
-    const k = (Math.log(a.C) - Math.log(b.C)) / (b.t - a.t);
-    return k > 0 ? Math.log(2) / k : 0;
-  })();
+  $: initialConcentration = dose / V;
+  $: initialApparentClearance = CLlin + Vmax / (Km + initialConcentration);
 
   const W = 480, H = 300, m = { top: 16, right: 14, bottom: 40, left: 48 };
   $: iW = W - m.left - m.right;
@@ -55,13 +44,13 @@
   <div class="controls">
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="10" max="400" step="10" bind:value={dose} /></label>
     <div class="readout">
-      <div><span>{$language === 'en' ? 'Terminal half-life' : 'Demi-vie terminale'}</span><strong>{thalfEnd.toFixed(1)} {$language === 'en' ? 'd' : 'j'}</strong></div>
-      <div><span>{$language === 'en' ? 'Regime' : 'Régime'}</span><strong>{dose >= 200 ? ($language === 'en' ? 'saturated target (linear)' : 'cible saturée (linéaire)') : ($language === 'en' ? 'active target (fast)' : 'cible active (rapide)')}</strong></div>
+      <div><span>{$language === 'en' ? 'Initial concentration' : 'Concentration initiale'}</span><strong>{initialConcentration.toFixed(1)} mg/L</strong></div>
+      <div><span>{$language === 'en' ? 'Initial apparent CL' : 'CL apparente initiale'}</span><strong>{initialApparentClearance.toFixed(2)} L/j</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}At low doses, the target is <em>available</em> and target-mediated elimination dominates. At high doses, the target is <em>saturated</em>, leaving slow catabolism: the terminal slope lengthens and clearance <em>decreases</em> as dose increases.{:else}À faible dose, la cible est <em>libre</em> : la voie cible domine → élimination rapide. À forte dose, la cible est <em>saturée</em> : il ne reste que le catabolisme lent → la pente terminale s'allonge, la clairance <em>diminue</em> quand la dose augmente.{/if}</p>
+    <p class="hint">{#if $language === 'en'}This Michaelis–Menten approximation shows a saturable elimination contribution: apparent clearance is higher at low concentration and decreases as concentration rises. A full TMDD model explicitly represents free target, binding and complex turnover.{:else}Cette approximation de Michaelis–Menten montre une composante d'élimination saturable : la clairance apparente est plus élevée à faible concentration et diminue quand la concentration augmente. Un modèle TMDD complet représente explicitement la cible libre, la liaison et le devenir du complexe.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Nonlinear PK (TMDD) on a log scale' : 'PK non linéaire (TMDD) en échelle log'}>
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Saturable-elimination approximation on a log scale' : "Approximation d'élimination saturable en échelle log"}>
     <g transform={`translate(${m.left},${m.top})`}>
       {#each [-2, -1, 0, 1, 2, 3] as g}
         <line x1="0" x2={iW} y1={yv(Math.pow(10, g))} y2={yv(Math.pow(10, g))} class="grid" />

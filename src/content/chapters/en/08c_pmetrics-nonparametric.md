@@ -15,6 +15,7 @@ slides: []
 sources: ["pmetrics","neely-pmetrics","yamada-npag"]
 reviewed_on: "2026-09-29"
 review_type: "author"
+reviewed_hash: "ea3e262cc8a64188c2434174d841e47208f8c3668f4ed2924f3876ddfb6e1ced"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
     options:

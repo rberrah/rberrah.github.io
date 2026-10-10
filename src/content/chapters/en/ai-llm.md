@@ -15,6 +15,7 @@ glossary: ["White / black / grey box"]
 sources: ["vaswani-transformer","brown-gpt3"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "cd8e4a541c13993245ac0e9797c3e7e976596a4903cc1b80e4d96ba65d819c4b"
 quiz:
   - prompt: "An LLM is, at its core, trained to..."
     options:

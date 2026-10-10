@@ -16,6 +16,7 @@ sources: ["bretz-mcp-mod","holford-sheiner-dose-effect","ich-e4","ich-m15","moul
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "19ff1c9bd6e31b5754c6fc82ecac27423910b5167e1f9d340b04b815b3b95e96"
 quiz:
   - prompt: "A model-based dose finding is more efficient because..."
     options:

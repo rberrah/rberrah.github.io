@@ -16,6 +16,7 @@ glossary: ["Covariable","Allométrie","Centrage"]
 sources: ["anderson-holford-allometry","jonsson-karlsson-scm","ribbing-selection-bias","owen-fiedler-kelly"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "6a91a5cb8f888faf3620bda7aa25c237952b94492ac07d79a9bac041675790c4"
 quiz:
   - prompt: "A covariate is useful when it..."
     options:

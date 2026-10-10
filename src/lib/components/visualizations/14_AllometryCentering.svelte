@@ -51,8 +51,8 @@
 
 <div class="allo">
   <div class="controls">
-    <Slider label="Poids patient (kg)" min={40} max={140} step={1} bind:value={weight} />
-    <Slider label="Exposant allométrique" min={0.5} max={1} step={0.05} bind:value={exponent} disabled={mode !== 'allometric'} />
+    <Slider label={$language === 'en' ? 'Patient weight (kg)' : 'Poids patient (kg)'} min={40} max={140} step={1} bind:value={weight} />
+    <Slider label={$language === 'en' ? 'Allometric exponent' : 'Exposant allométrique'} min={0.5} max={1} step={0.05} bind:value={exponent} disabled={mode !== 'allometric'} />
     <div class="mode">
       <span>{$language === 'en' ? 'Model:' : 'Modèle :'}</span>
       <button class:active={mode === 'allometric'} on:click={() => (mode = 'allometric')}>{$language === 'en' ? 'Allometric' : 'Allométrique'}</button>
@@ -60,7 +60,7 @@
     </div>
     <div class="stat">
       {$language === 'en' ? 'Estimated patient CL:' : 'CL patient estimée :'} <strong>{selectedCL.toFixed(2)} L/h</strong>
-      {mode === 'allometric' ? ($language === 'en' ? ' (Kleiber law)' : ' (loi de Kleiber)') : ($language === 'en' ? ' (proportional to weight)' : ' (proportionnel au poids)')}
+      {mode === 'allometric' ? ($language === 'en' ? ' (power model)' : ' (modèle puissance)') : ($language === 'en' ? ' (proportional to weight)' : ' (proportionnel au poids)')}
     </div>
   </div>
 
@@ -103,7 +103,7 @@
   </ChartFrame>
 
   <div class="callout">
-    {#if $language === 'en'}<strong>Key point:</strong> an allometric exponent of 0.75 means children are not miniature adults. A linear rule of three often overestimates doses in children and underestimates them in adults with obesity.{:else}<strong>À retenir :</strong> l'exposant allométrique 0,75 fait que les enfants ne sont pas des “adultes miniatures”. Une règle de 3 linéaire surestime souvent la dose chez l'enfant et la sous-estime chez l'adulte obèse.{/if}
+    {#if $language === 'en'}<strong>Key point:</strong> the exponent determines how CL changes with weight; 0.75 is a common convention, not a universal truth. The simulated patients cover 40–120 kg, so values beyond that range are extrapolations to interpret cautiously.{:else}<strong>À retenir :</strong> l'exposant détermine comment la CL varie avec le poids ; 0,75 est une convention fréquente, pas une vérité universelle. Les patients simulés couvrent 40–120 kg : au-delà, la courbe est une extrapolation à interpréter avec prudence.{/if}
   </div>
 </div>
 

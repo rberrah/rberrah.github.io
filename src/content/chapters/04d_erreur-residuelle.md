@@ -16,6 +16,7 @@ sources: ["berrah-residual", "hooker-cwres", "beal-bql", "davidian-giltinan"]
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "9067c4f9789b412b6164d77a26add6d482152649d3b60f5d2f96a6c3871d21ec"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:

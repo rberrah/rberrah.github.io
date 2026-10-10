@@ -15,6 +15,7 @@ glossary: ["EDO","Modèle compartimental"]
 sources: ["gibaldi-perrier","rowland-tozer"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "54cbaec75210465d7be72abace408e6a300ce5c1654d8e7d9adb0ec3db733c5c"
 quiz:
   - prompt: "The solution of dA/dt = −k·A is..."
     options:

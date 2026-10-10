@@ -15,6 +15,7 @@ slides: []
 sources: ["jonsson-karlsson-scm", "ribbing-selection-bias", "anderson-holford-allometry", "fda-poppk"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "032a6135788a87bc949a2b2c50581d08b4a8f37d3c738238b41a29cd9e9fb984"
 quiz:
   - prompt: "Ajouter une covariable pertinente à un modèle de population..."
     options:

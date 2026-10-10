@@ -16,6 +16,7 @@ sources: ["anderson-holford-allometry", "jonsson-karlsson-scm", "ribbing-selecti
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "3b869fa6d1b1a9159458ebc7014196e8ba540e83fdbf951469fee47f4131899a"
 quiz:
   - prompt: "Une covariable est utile quand elle..."
     options:

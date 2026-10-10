@@ -15,6 +15,7 @@ slides: []
 sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "681f344db49cdd2b6ade3e1c849750e640c4b9c9880afded954e4058e8cfb263"
 quiz:
   - prompt: "Pour la vancomycine dans les infections graves à MRSA, la cible actuelle privilégiée est..."
     options:

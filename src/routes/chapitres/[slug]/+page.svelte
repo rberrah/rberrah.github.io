@@ -141,7 +141,7 @@
           url: SITE_URL
         },
         // La mise à jour éditoriale est distincte de la relecture scientifique.
-        ...((chapter?.updated_on || chapter?.reviewed_on) ? { dateModified: chapter.updated_on || chapter.reviewed_on } : {})
+        ...((displayChapter?.updated_on || displayChapter?.reviewed_on) ? { dateModified: displayChapter.updated_on || displayChapter.reviewed_on } : {})
       })
     : '';
 
@@ -270,7 +270,7 @@
     {#if chapter}<a class="back track-return" href={`${base}/parcours/${chapter.track}/?lang=${$language}&chapter=${chapter.slug}`}>{$language === 'en' ? 'Track and practice' : 'Parcours et exercices'}</a>{/if}
     <p class="eyebrow">{copy.chapter.label(String(idx + 1).padStart(2, '0'))}</p>
     <h1 data-testid="chapter-title">{displayChapter.title}</h1>
-    <AuthorSignature updatedOn={chapter?.updated_on ?? ''} reviewedOn={chapter?.reviewed_on ?? ''} reviewType={chapter?.review_type ?? ''} />
+    <AuthorSignature updatedOn={displayChapter?.updated_on ?? ''} reviewedOn={displayChapter?.reviewed_on ?? ''} reviewType={displayChapter?.review_type ?? ''} />
     <p class="desc">{displayChapter.description}</p>
     {#if chapter && chapterActivities.length}<a href={`${base}/parcours/${chapter.track}/?lang=${$language}&chapter=${chapter.slug}#practice`}>{chapterActivities.length} {$language === 'en' ? 'guided activities' : 'activités guidées'}</a>{/if}
     {#if isFallback}
@@ -348,9 +348,9 @@
         </section>
       {/if}
 
-      <ChapterFooter {chapter} />
+      <ChapterFooter chapter={displayChapter} />
       <!-- Après les sources : on cite une page dont on vient de voir sur quoi elle s'appuie. -->
-      <CiteBlock chapter={{ ...displayChapter, slug: chapter?.slug, updated_on: chapter?.updated_on, reviewed_on: chapter?.reviewed_on }} url={canonical} />
+      <CiteBlock chapter={{ ...displayChapter, slug: chapter?.slug }} url={canonical} />
 
       <nav class="chap-nav" data-testid="chapter-nav">
         {#if prev}

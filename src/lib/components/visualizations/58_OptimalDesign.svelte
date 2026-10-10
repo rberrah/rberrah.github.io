@@ -1,9 +1,10 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Design optimal : où placer 2 prélèvements pour estimer V et k avec précision ?
+  // Illustration locale : où placer 2 prélèvements pour estimer V et k ?
   // On calcule la matrice de Fisher 2×2 à partir des sensibilités de C(t)=(D/V)e^{-kt},
   // on l'inverse, et on affiche les RSE. Un point précoce (info sur V) + un point tardif
-  // (info sur k) minimisent les RSE ; deux points proches rendent la FIM quasi singulière.
+  // (info sur k) séparent leurs sensibilités ; deux points proches rendent la FIM
+  // quasi singulière. Ce calcul ne constitue pas un design optimal complet.
   let t1 = 1; // h
   let t2 = 10; // h
 
@@ -31,7 +32,7 @@
   $: cov = det > 1e-12 ? { v: fim.d / det, k: fim.a / det } : { v: Infinity, k: Infinity };
   $: rseV = Math.min(999, (Math.sqrt(cov.v) / V) * 100);
   $: rseK = Math.min(999, (Math.sqrt(cov.k) / k) * 100);
-  $: quality = rseV < 15 && rseK < 15 ? 'bon' : rseV > 40 || rseK > 40 ? 'mauvais' : 'moyen';
+  $: separation = Math.abs(t2 - t1);
 
   const W = 480, H = 300, m = { top: 16, right: 14, bottom: 40, left: 46 };
   $: iW = W - m.left - m.right;
@@ -48,11 +49,11 @@
     <label class="s"><span>{$language === 'en' ? 'Sample 1 (h)' : 'Prélèvement 1 (h)'}</span><strong>{t1.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t1} /></label>
     <label class="s"><span>{$language === 'en' ? 'Sample 2 (h)' : 'Prélèvement 2 (h)'}</span><strong>{t2.toFixed(1)}</strong><input type="range" min="0.2" max="16" step="0.2" bind:value={t2} /></label>
     <div class="readout">
-      <div><span>{$language === 'en' ? 'RSE for V' : 'RSE sur V'}</span><strong>{rseV.toFixed(0)} %</strong></div>
-      <div><span>{$language === 'en' ? 'RSE for k' : 'RSE sur k'}</span><strong>{rseK.toFixed(0)} %</strong></div>
-      <div class="verdict" class:ok={quality === 'bon'} class:bad={quality === 'mauvais'}>{$language === 'en' ? 'Design' : 'Plan'} {$language === 'en' ? (quality === 'bon' ? 'good' : quality === 'mauvais' ? 'poor' : 'moderate') : quality}</div>
+      <div><span>{$language === 'en' ? 'Local RSE for V' : 'RSE local sur V'}</span><strong>{rseV.toFixed(0)} %</strong></div>
+      <div><span>{$language === 'en' ? 'Local RSE for k' : 'RSE local sur k'}</span><strong>{rseK.toFixed(0)} %</strong></div>
+      <div><span>{$language === 'en' ? 'Time separation' : 'Écart temporel'}</span><strong>{separation.toFixed(1)} h</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}An <em>early</em> sample informs V and a <em>late</em> sample informs k. Move them closer together and the Fisher matrix deteriorates while RSE rises sharply.{:else}Un point <em>précoce</em> informe sur V, un point <em>tardif</em> sur k. Rapprochez les deux : la matrice de Fisher se dégrade et les RSE explosent.{/if}</p>
+    <p class="hint">{#if $language === 'en'}In this local one-compartment example with known additive error, early and late samples have different sensitivities. Moving them together makes the Fisher matrix nearly singular. A real optimal design also depends on the full model, parameter uncertainty, variability, constraints and design criterion.{:else}Dans cet exemple local à un compartiment avec erreur additive connue, les points précoces et tardifs ont des sensibilités différentes. Les rapprocher rend la matrice de Fisher presque singulière. Un vrai design optimal dépend aussi du modèle complet, de l'incertitude des paramètres, de la variabilité, des contraintes et du critère choisi.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Sample timing and precision' : 'Placement des prélèvements et précision'}>
@@ -83,12 +84,9 @@
   .s strong { color: var(--math); }
   .s input { grid-column: 1 / -1; }
   .readout { display: grid; gap: 3px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
-  .readout div:not(.verdict) { display: flex; justify-content: space-between; gap: var(--space-2); }
+  .readout div { display: flex; justify-content: space-between; gap: var(--space-2); }
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
-  .verdict { margin-top: 2px; padding: 3px 6px; border-radius: var(--radius); text-align: center; font-weight: 600; background: var(--bg-tertiary); color: var(--text-secondary); }
-  .verdict.ok { background: var(--quiz-success-bg); color: var(--quiz-success-text); }
-  .verdict.bad { background: var(--quiz-error-bg); color: var(--quiz-error-text); }
   .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }

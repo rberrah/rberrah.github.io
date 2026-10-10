@@ -2,7 +2,7 @@
   // Vrais points du jeu de données Warfarin (251 observations PK, 32 sujets, dose orale
   // unique ~100 mg) avec un modèle à 1 compartiment oral ajustable.
   //   C(τ) = D·ka / (V·(ka−ke)) · (e^(−ke·τ) − e^(−ka·τ)),  τ = t − Tlag,  ke = CL/V
-  // Mode « Profil » : nuage réel + courbe du modèle. Mode « Obs vs préd » : GoF réel.
+  // La courbe typique est réglée manuellement : ce n'est pas un GoF PopPK estimé.
   import { warfarinPK } from '$lib/content/warfarinData';
   import { language } from '$lib/stores/language';
 
@@ -63,10 +63,10 @@
       <div><span>RMSE</span><strong>{rmse.toFixed(2)} mg/L</strong></div>
       <div><span>{$language === 'en' ? 'Data' : 'Données'}</span><strong>{warfarinPK.length} pts · 32 {$language === 'en' ? 'subjects' : 'sujets'}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Real points from the Warfarin dataset. Adjust Ka, CL, V, and Tlag to bring the curve closer to the cloud; ' : 'Points réels de la base Warfarin. Ajustez Ka, CL, V et Tlag pour rapprocher la courbe du nuage — le '}<strong>RMSE</strong>{$language === 'en' ? ' decreases as the fit improves.' : " baisse quand l'ajustement s'améliore."}</p>
+    <p class="hint">{$language === 'en' ? 'Real Warfarin observations are pooled across 32 subjects. Adjusting Ka, CL, V, and Tlag manually changes one typical curve and its illustrative Obs–PRED comparison; this is not an estimated PopPK goodness-of-fit with IIV and covariates. ' : 'Les observations Warfarin réelles sont regroupées pour 32 sujets. Régler manuellement Ka, CL, V et Tlag modifie une seule courbe typique et sa comparaison Obs–PRED illustrative ; ce n’est pas le diagnostic d’un modèle PopPK estimé avec IIV et covariables. '}<strong>RMSE</strong>{$language === 'en' ? ' is descriptive here.' : ' est ici descriptif.'}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Model fit to real Warfarin data' : 'Ajustement du modèle aux données Warfarin réelles'}>
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Manual typical curve over real Warfarin observations' : 'Courbe typique manuelle sur observations Warfarin réelles'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />

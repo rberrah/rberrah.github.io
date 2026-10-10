@@ -16,6 +16,7 @@ sources: ["yamaoka-moments","ema-bioequivalence","fda-be-statistical-2026","mage
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "8eaf3968186ba6dfbc80d6f4cb8a64d27a0359252728cd016568636ff40a2ba8"
 quiz:
   - prompt: "NCA differs from a compartmental model because it..."
     options:

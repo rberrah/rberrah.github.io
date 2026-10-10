@@ -16,6 +16,7 @@ glossary: ["CL","V","t½","ke","EDO","Phases α et β","Vss"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "2e8ae9b111ff1c10b66a3b297613b64d447a13f4c1779541f4cd46035de367dd"
 quiz:
   - prompt: "After an IV bolus, the initial concentration is..."
     options:

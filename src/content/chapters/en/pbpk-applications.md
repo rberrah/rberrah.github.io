@@ -16,6 +16,7 @@ sources: ["rostami-hodjegan-ivive","fda-pbpk","ema-pbpk","anderson-holford-allom
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+reviewed_hash: "fcbf39c87edc43e926944c4a34d862137deb86f93b24a04c10b117ba193186eb"
 quiz:
   - prompt: "IVIVE consists of..."
     options:

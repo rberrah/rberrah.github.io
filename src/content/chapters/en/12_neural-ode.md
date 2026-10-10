@@ -15,6 +15,7 @@ glossary: ["Neural ODE","EDO","White / black / grey box"]
 sources: ["chen-neural-ode","hughes-keizer","woillard-ml-tacrolimus","genuer-vsurf"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "11fdd75a9ed8a8274c980ceebf672eec523449ee7d251422f985817c4e06db13"
 quiz:
   - prompt: "A grey-box model combines..."
     options:

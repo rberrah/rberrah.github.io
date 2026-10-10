@@ -15,6 +15,7 @@ slides: []
 sources: ["monolix","kuhn-lavielle-saem","lavielle","karlsson-holford-vpc"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+reviewed_hash: "09036afd475b937d251909d781d3b6b1ed88c985abb8e0ad3814a63d53222a58"
 quiz:
   - prompt: "Monolix's default estimation engine is..."
     options:
