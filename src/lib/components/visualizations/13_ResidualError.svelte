@@ -58,12 +58,13 @@
       {#each points as p}
         <circle cx={xScale(p.t)} cy={yScale(p.dv)} r="4" fill="#ef4444" />
       {/each}
-      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
       <g transform={`translate(-8,0)`}>
         <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
       </g>
     </svelte:fragment>
   </ChartFrame>
+  <p class="note">{$language === 'en' ? 'Illustrative residual draws around a fixed profile. This shows observation noise, not a diagnostic test of an error model.' : "Tirages résiduels illustratifs autour d’un profil fixe. Ils montrent le bruit d’observation, pas un test diagnostique du modèle d’erreur."}</p>
 </div>
 
 <style>
@@ -87,4 +88,5 @@
     color: var(--bg-tertiary);
     border-color: #2563eb;
   }
+  .note { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
 </style>

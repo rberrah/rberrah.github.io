@@ -13,9 +13,12 @@ slides: ["s12"]
 prerequisites: ["clairance-volume-demi-vie","doses-repetees"]
 glossary: ["CL","t½"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "54f7a50f87c11854ca0f0e6623facf398bdae26cd17bebb868d409402cd48844"
+reviewed_hash: "ca98072ca2c8a6a03793830dfc87d2f1906b93ddf059db4cb0fb55e2ef3916f1"
+scientific_values: {"steady_state_fraction":0.90,"half_lives_to_90_percent":3.321928,"fraction_after_four_half_lives":0.9375}
+units: {"steady_state_fraction":"fraction","time":"half_lives","infusion_rate":"amount/time"}
 quiz:
   - prompt: "A zero-order input means the input rate is..."
     options:

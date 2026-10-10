@@ -2,7 +2,7 @@
   import { language } from '$lib/stores/language';
   // Forest plot des effets de covariables : chaque effet (ratio vs référence) avec son
   // IC 95 %. La ligne à 1 = pas d'effet ; la bande = zone « cliniquement non pertinente ».
-  // Un effet est important s'il SORT de la bande ; il est incertain s'il CROISE 1.
+  // La bande clinique et l'incertitude statistique repondent a deux questions distinctes.
   let bandPct = 20; // demi-largeur de la bande de non-pertinence (%)
 
   /** @type {{name:string, est:number, lo:number, hi:number}[]} */
@@ -35,11 +35,11 @@
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'No-effect zone' : 'Zone de non-pertinence'}</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
     <div class="readout">
-      <p><span class="dot pert"></span> {$language === 'en' ? 'relevant (outside band)' : 'pertinent (hors bande)'}</p>
-      <p><span class="dot faible"></span> {$language === 'en' ? 'small effect' : 'effet faible'}</p>
-      <p><span class="dot inc"></span> {$language === 'en' ? 'uncertain (crosses 1)' : 'incertain (croise 1)'}</p>
+      <p><span class="dot pert"></span> {$language === 'en' ? 'estimate outside band' : 'estimation hors bande'}</p>
+      <p><span class="dot faible"></span> {$language === 'en' ? 'estimate inside band' : 'estimation dans la bande'}</p>
+      <p><span class="dot inc"></span> {$language === 'en' ? 'CI crosses 1' : 'IC croisant 1'}</p>
     </div>
-    <p class="hint">{#if $language === 'en'}A covariate effect matters if it lies outside the clinically unimportant band <em>and</em> its 95% CI does not cross 1.{:else}Un effet de covariable compte s'il sort de la bande « sans conséquence clinique » <em>et</em> si son IC 95 % ne croise pas 1.{/if}</p>
+    <p class="hint">{#if $language === 'en'}The clinical band and the 95% CI answer different questions. Location relative to the band describes a prespecified relevance criterion; crossing 1 describes uncertainty about no effect. Neither alone proves clinical importance, and the band must be justified for the context.{:else}La bande clinique et l’IC 95 % répondent à deux questions différentes. La position par rapport à la bande décrit un critère de pertinence prédéfini ; le croisement de 1 décrit l’incertitude autour de l’absence d’effet. Aucun ne prouve seul l’importance clinique, et la bande doit être justifiée dans le contexte.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Forest plot of covariate effects' : 'Forest plot des effets de covariables'}>

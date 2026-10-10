@@ -30,6 +30,7 @@
       </div>
     {/each}
   </div>
+  <p class="note">{$language === 'en' ? 'Conceptual VSURF workflow only. The bar lengths are illustrative: no random forest is fitted and no variable importance or selection stability is estimated here.' : "Schéma conceptuel du workflow VSURF uniquement. Les longueurs des barres sont illustratives : aucune forêt n’est ajustée et aucune importance ou stabilité de sélection n’est estimée ici."}</p>
 </div>
 
 <style>
@@ -77,4 +78,5 @@
     height: 100%;
     background: linear-gradient(90deg, #2563eb, #22c55e);
   }
+  .note { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
 </style>

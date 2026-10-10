@@ -49,7 +49,7 @@
       <div><span>Phase 1</span><strong>{$language === 'en' ? 'viral clearance (c)' : 'clairance virale (c)'}</strong></div>
       <div><span>Phase 2</span><strong>{$language === 'en' ? 'infected-cell loss (δ)' : 'perte cellules (δ)'}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'High efficacy produces a rapid first phase driven by viral clearance; the slower second phase reflects infected-cell loss (δ).' : "Une efficacité forte donne une 1ʳᵉ phase rapide (clairance du virus) ; la 2ᵉ phase, plus lente, reflète l'élimination des cellules infectées (δ)."}</p>
+    <p class="hint">{$language === 'en' ? 'In this reduced post-treatment model, target cells and new infection are omitted: the rapid phase is governed mainly by free-virus clearance and the slower phase by infected-cell loss. Interpretation is conditional on those assumptions.' : "Dans ce modèle réduit après traitement, les cellules cibles et les nouvelles infections sont omises : la phase rapide dépend surtout de la clairance du virus libre et la phase lente de la perte des cellules infectées. L’interprétation est conditionnelle à ces hypothèses."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Viral load over time (log scale)' : 'Charge virale au cours du temps (échelle log)'}>

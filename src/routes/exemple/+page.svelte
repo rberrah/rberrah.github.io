@@ -178,13 +178,13 @@ cp ~ add(add.err) + prop(prop.err)   # combined: additive floor + percentage`;
   <div class="diag">
     <h3>{$language === 'en' ? 'b · VPC — visual predictive check' : 'b · VPC — le test prédictif visuel'}</h3>
     <div class="viz"><VPC /></div>
-    {#if $language === 'en'}<p class="cap"><strong>Observed</strong> percentiles should lie within <strong>simulated bands</strong>. A median outside the band indicates structural misspecification; overly narrow extremes indicate underestimated variability. <em>(Interactive diagram: the VPC is built by simulating the fitted model; real values are in the notebook.)</em></p>{:else}<p class="cap">Les percentiles <strong>observés</strong> doivent tomber dans les <strong>bandes simulées</strong>. Médiane hors bande = défaut de structure ; extrêmes trop serrés = variabilité sous-estimée. <em>(Schéma interactif : la VPC se construit par simulation du modèle ajusté — les valeurs réelles sont dans le notebook.)</em></p>{/if}
+    {#if $language === 'en'}<p class="cap">Repeated differences between <strong>observed percentiles</strong> and <strong>simulated bands</strong> suggest predictive misspecification. They do not identify a unique structural or variability cause. <em>(The VPC uses stochastic model simulations with the observed design.)</em></p>{:else}<p class="cap">Des écarts répétés entre les <strong>percentiles observés</strong> et les <strong>bandes simulées</strong> suggèrent une inadéquation prédictive, sans identifier seuls une cause structurale ou de variabilité. <em>(La VPC utilise des simulations stochastiques du modèle avec le plan observé.)</em></p>{/if}
   </div>
 
   <div class="diag">
     <h3>{$language === 'en' ? 'c · NPDE — simulation-based residuals' : 'c · NPDE — résidus par simulation'}</h3>
     <div class="viz"><NPDE /></div>
-    {#if $language === 'en'}<p class="cap">With a correct model, <strong>NPDE</strong> follow a standard normal distribution N(0,1). A shifted mean or incorrect spread indicates misspecification, often a missing covariate. <em>(Illustrative diagram.)</em></p>{:else}<p class="cap">Si le modèle est correct, les <strong>NPDE</strong> suivent une loi normale standard N(0,1). Un décalage de moyenne ou un étalement trahit une mauvaise spécification (souvent une covariable manquante). <em>(Schéma illustratif.)</em></p>{/if}
+    {#if $language === 'en'}<p class="cap">Under their calculation assumptions, <strong>NPDE</strong> are expected near N(0,1). A shifted mean or altered spread suggests predictive misspecification but does not identify its cause. <em>(Illustrative diagram.)</em></p>{:else}<p class="cap">Sous leurs hypothèses de calcul, les <strong>NPDE</strong> sont attendus proches de N(0,1). Un décalage de moyenne ou de dispersion suggère une inadéquation prédictive sans en identifier la cause. <em>(Schéma illustratif.)</em></p>{/if}
   </div>
 </section>
 

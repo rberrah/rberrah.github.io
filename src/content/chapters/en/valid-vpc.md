@@ -13,9 +13,12 @@ slides: []
 prerequisites: ["validation-vpc","valid-gof"]
 glossary: ["VPC","Binning","PRED / IPRED"]
 sources: ["bergstrand-pcvpc","karlsson-holford-vpc","ema-poppk"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "7347d568bc1fed49d25373209ad7390d85bdc6dcfb9e21639f7906c3aad15d52"
+reviewed_hash: "e0abad946f436538fd32b991caf669fef4cf82da15ffbe58a359a1227df5725b"
+scientific_values: {"lower_percentile":5,"median_percentile":50,"upper_percentile":95,"demo_replicates":500,"demo_subjects":60}
+units: {"percentiles":"percent","replicates":"datasets","subjects":"patients"}
 quiz:
   - prompt: "A VPC compares..."
     options:
@@ -46,7 +49,7 @@ It is the most used validation diagnostic and the one evaluators most expect.
 <!-- step:title="Intuition" viz="17_VPCCrashTest" -->
 We **simulate** hundreds of datasets under the model, compute their percentiles (5th, 50th, 95th), then check whether the **observed percentiles** fall within the **simulated bands**.
 
-If so, the model reproduces both the trend and the variability. If not, there is a structural or variability defect.
+Agreement supports the model's predictive ability under this design. Structured discrepancies suggest misspecification that may involve structure, variability, residual error, covariates, design or binning.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="17_VPCCrashTest" -->
@@ -63,7 +66,7 @@ $$ Y^{pc}_{ij} = Y_{ij}\cdot\frac{\overline{PRED}_{\text{bin}}}{PRED_{ij}} $$
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="17_VPCCrashTest" -->
-If the **observed median** leaves the simulated band in the terminal phase, the model describes elimination poorly. If the **extreme percentiles** (5/95) are too tight in the simulation, the **variability** (IIV or residual error) is underestimated.
+If the **observed median** repeatedly leaves the simulated band in the terminal phase, poor elimination modelling is one hypothesis to test, not the only one. Poorly reproduced **extreme percentiles** may be compatible with inadequate IIV or residual error, but also with design, binning or structural misspecification.
 
 The pcVPC clarifies these readings when the protocol mixes several doses.
 <!-- /step -->
@@ -77,6 +80,6 @@ Poor binning ruins everything.
 <!-- step:title="Key takeaways" -->
 - The VPC confronts observed and simulated percentiles (trend + variability).
 - The pcVPC corrects dose/covariate differences between subjects.
-- Out-of-band: structural defect (median) or variability defect (extremes).
+- Repeated out-of-band patterns generate hypotheses; they do not identify the faulty component by themselves.
 - Beware binning; the VPC checks consistency, not truth.
 <!-- /step -->

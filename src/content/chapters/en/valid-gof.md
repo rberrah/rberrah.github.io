@@ -13,10 +13,10 @@ slides: []
 prerequisites: ["erreur-residuelle"]
 glossary: ["GOF","PRED / IPRED","Résidus (WRES/CWRES/IWRES/NPDE)","Shrinkage"]
 sources: ["hooker-cwres","savic-karlsson-shrinkage","mould-upton"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "fcf72902b313550f7cda4fbc2f2e76a839163846c5fef24d3dce589f1262a16d"
+reviewed_hash: "75ca1d52836af84e6afe26f9c928996717232150272d6a31d3af94412a7fb2bc"
 quiz:
   - prompt: "On an observations vs predictions plot, a good model gives..."
     options:
@@ -54,7 +54,7 @@ A good model aligns observations and predictions on the **diagonal**, and leaves
 The canonical plots:
 
 - **DV vs PRED** (population) and **DV vs IPRED** (individual): cloud around the identity $y=x$.
-- **CWRES vs time** and **CWRES vs PRED**: under the approximation that CWRES follow $mathcal{N}(0,1)$, they are expected to be **centred on 0**, without trend, with about 95% within $[-2, 2]$. This is a diagnostic guide, not an acceptance rule.
+- **CWRES vs time** and **CWRES vs PRED**: under the approximation that CWRES follow $\mathcal{N}(0,1)$, they are expected to be **centred on 0**, without trend, with about 95% within $[-2, 2]$. This is a diagnostic guide, not an acceptance rule.
 - **|IWRES| vs PRED**: detects a wrong **residual error** (heteroscedasticity).
 
 **Note —** **CWRES** (Hooker et al., *Pharm Res* 2007) were proposed to improve the behaviour of weighted residuals in nonlinear models; the diagnostic still depends on the approximation and estimation method.

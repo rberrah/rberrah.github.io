@@ -1,8 +1,7 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Graphiques diagnostiques (GOF) : observations vs prédictions + résidus (CWRES).
-  // Un curseur de « mauvaise spécification » montre à quoi ressemble un bon vs un
-  // mauvais ajustement : nuage sur la diagonale et CWRES centrés = bon modèle.
+  // Graphiques diagnostiques illustratifs : observations vs predictions et
+  // proxy de residu standardise sur l'echelle logarithmique.
   let mis = 0; // 0 = bon modèle, 1 = fortement mal spécifié
 
   /** @param {number} a @returns {() => number} */
@@ -29,8 +28,8 @@
   $: rows = base.map((b) => {
     const pred = b.tru * (1 - mis * 0.45 * (b.tru / maxV)); // le modèle sous-prédit les fortes valeurs
     const obs = b.tru * Math.exp(sd * b.g);
-    const cwres = (Math.log(obs) - Math.log(pred)) / sd;
-    return { pred, obs, cwres };
+    const residualProxy = (Math.log(obs) - Math.log(pred)) / sd;
+    return { pred, obs, residualProxy };
   });
 
   const W = 480, H = 250, pad = 34, gap = 26;
@@ -39,7 +38,7 @@
   const dMax = 130;
   $: dx = (/** @type {number} */ v) => pad + (Math.min(v, dMax) / dMax) * pw;
   $: dyv = (/** @type {number} */ v) => pad + ph - (Math.min(v, dMax) / dMax) * ph;
-  // panneau 2 (CWRES)
+  // panneau 2 : proxy de residu standardise, pas un CWRES FOCE
   $: p2x0 = pad + pw + gap;
   $: c2x = (/** @type {number} */ v) => p2x0 + (Math.min(v, dMax) / dMax) * pw;
   const cwMax = 5;
@@ -50,9 +49,9 @@
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'Misspecification' : 'Mauvaise spécification'}</span><strong>{(mis * 100).toFixed(0)}%</strong><input type="range" min="0" max="1" step="0.05" bind:value={mis} /></label>
     <div class="readout">
-      <div class="verdict" class:ok={mis < 0.2} class:bad={mis >= 0.5}>{mis < 0.2 ? ($language === 'en' ? 'Good fit' : 'Bon ajustement') : mis >= 0.5 ? ($language === 'en' ? 'Biased model' : 'Modèle biaisé') : ($language === 'en' ? 'Monitor' : 'À surveiller')}</div>
+      <div class="verdict" class:ok={mis < 0.2} class:bad={mis >= 0.5}>{mis < 0.2 ? ($language === 'en' ? 'No imposed bias' : 'Aucun biais imposé') : ($language === 'en' ? 'Structural bias imposed' : 'Biais structural imposé')}</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Under the diagnostic assumptions, one expects approximate agreement with the diagonal and CWRES centered near zero without a trend. A pattern suggests a mismatch to investigate; it does not identify a unique cause.' : 'Sous les hypothèses du diagnostic, on attend un accord approximatif avec la diagonale et des CWRES centrés près de 0 sans tendance. Un motif suggère une inadéquation à explorer ; il n’en identifie pas une cause unique.'}</p>
+    <p class="hint">{$language === 'en' ? 'The right panel is an illustrative standardized residual on the log scale, not a CWRES. A true CWRES depends on the FOCE approximation and the model covariance. A pattern suggests a mismatch to investigate but does not identify a unique cause.' : "Le panneau de droite montre un résidu standardisé illustratif sur l’échelle logarithmique, pas un CWRES. Un vrai CWRES dépend de l’approximation FOCE et de la covariance du modèle. Un motif suggère une inadéquation à explorer sans en identifier une cause unique."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Diagnostic plots' : 'Graphiques diagnostiques'}>
@@ -64,15 +63,15 @@
     <text x={pad + pw / 2} y={H - 8} class="lbl">{$language === 'en' ? 'Predictions (PRED)' : 'Prédictions (PRED)'}</text>
     <text transform={`translate(${pad - 22},${pad + ph / 2}) rotate(-90)`} class="lbl">Obs (DV)</text>
 
-    <!-- Panneau 2 : CWRES vs PRED -->
+    <!-- Panneau 2 : proxy standardise vs PRED -->
     <line x1={p2x0} y1={pad + ph} x2={p2x0 + pw} y2={pad + ph} class="axis" />
     <line x1={p2x0} y1={pad} x2={p2x0} y2={pad + ph} class="axis" />
     <line x1={p2x0} y1={c2y(0)} x2={p2x0 + pw} y2={c2y(0)} class="zero" />
     <line x1={p2x0} y1={c2y(2)} x2={p2x0 + pw} y2={c2y(2)} class="band" />
     <line x1={p2x0} y1={c2y(-2)} x2={p2x0 + pw} y2={c2y(-2)} class="band" />
-    {#each rows as r}<circle cx={c2x(r.pred)} cy={c2y(r.cwres)} r="3" class="pt" />{/each}
+    {#each rows as r}<circle cx={c2x(r.pred)} cy={c2y(r.residualProxy)} r="3" class="pt" />{/each}
     <text x={p2x0 + pw / 2} y={H - 8} class="lbl">{$language === 'en' ? 'Predictions (PRED)' : 'Prédictions (PRED)'}</text>
-    <text transform={`translate(${p2x0 - 22},${pad + ph / 2}) rotate(-90)`} class="lbl">CWRES</text>
+    <text transform={`translate(${p2x0 - 22},${pad + ph / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Standardized residual proxy' : 'Proxy de résidu standardisé'}</text>
   </svg>
 </div>
 

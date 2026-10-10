@@ -9,14 +9,16 @@ order: 3
 duration: "16 min"
 level: "beginner"
 tags: ["model", "ode", "cl", "v", "half-life"]
-updated_on: "2026-10-09"
+updated_on: "2026-10-10"
 slides: ["s03","s04","s05","s06","s08","s09","s12","s67","s74"]
 prerequisites: ["micro-macro"]
 glossary: ["CL","V","t½","ke","EDO","Phases α et β","Vss"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
-reviewed_on: "2026-10-09"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "2e8ae9b111ff1c10b66a3b297613b64d447a13f4c1779541f4cd46035de367dd"
+reviewed_hash: "936a7cb84000b58958dac015b1b96efd84eaf70f50c1dfcd8e28dc1f482d67bb"
+scientific_values: {"ln2":0.693147,"example_dose_mg":100,"example_volume_low_l":10,"example_volume_high_l":20}
+units: {"clearance":"L/h","volume":"L","half_life":"h","concentration":"mg/L"}
 quiz:
   - prompt: "After an IV bolus, the initial concentration is..."
     options:

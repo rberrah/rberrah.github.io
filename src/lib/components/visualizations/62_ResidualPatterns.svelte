@@ -1,25 +1,24 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Galerie de motifs de résidus (CWRES vs prédictions) : à chaque forme, une cause et un
-  // remède. Aléatoire (bon), U / U inversé (biais structural), trompette (mauvaise erreur),
-  // pente (biais systématique). Pédagogie : « lire la forme → améliorer le modèle ».
+  // Galerie de motifs synthetiques de residus. Chaque forme suggere plusieurs
+  // hypotheses a verifier; elle ne designe jamais seule une cause.
   /** @type {'good'|'u'|'invu'|'trumpet'|'trend'} */
   let mode = 'u';
 
   const modes = {
-    good: { label: 'Aléatoire', interp: 'Résidus neutres, centrés sur 0.', fix: 'Modèle adéquat — rien à changer.' },
-    u: { label: 'U', interp: 'Biais courbe : sous-prédit aux extrêmes.', fix: 'Structure : ajouter un compartiment, revoir l’absorption/élimination.' },
-    invu: { label: 'U inversé', interp: 'Biais courbe opposé : sur-prédit aux extrêmes.', fix: 'Revoir le modèle structural (forme mal décrite).' },
-    trumpet: { label: 'Trompette', interp: 'Variance qui croît avec la prédiction.', fix: 'Modèle d’erreur : additive → proportionnelle/combinée.' },
-    trend: { label: 'Pente', interp: 'Biais systématique (dérive avec la prédiction).', fix: 'Covariable manquante ou structure inadaptée.' }
+    good: { label: 'Aléatoire', interp: 'Aucun motif évident dans ce diagnostic.', fix: 'Croiser avec les autres diagnostics.' },
+    u: { label: 'U', interp: 'Motif compatible avec un biais courbe.', fix: 'Tester structure, absorption, élimination, covariables et design.' },
+    invu: { label: 'U inversé', interp: 'Motif compatible avec un biais courbe opposé.', fix: 'Tester les mêmes composantes et comparer les prédictions.' },
+    trumpet: { label: 'Trompette', interp: 'Dispersion croissante avec la prédiction.', fix: 'Examiner variance conditionnelle, structure, données atypiques et shrinkage.' },
+    trend: { label: 'Pente', interp: 'Dérive systématique avec la prédiction.', fix: 'Examiner structure, covariables, temps, dose et erreur.' }
   };
   $: cur = modes[mode];
   $: curEn = {
-    good: { label: 'Random', interp: 'Neutral residuals centered on zero.', fix: 'Adequate model: no change needed.' },
-    u: { label: 'U shape', interp: 'Curved bias: underprediction at the extremes.', fix: 'Structure: add a compartment or revise absorption/elimination.' },
-    invu: { label: 'Inverted U', interp: 'Opposite curved bias: overprediction at the extremes.', fix: 'Revise the structural model.' },
-    trumpet: { label: 'Funnel', interp: 'Variance increases with prediction.', fix: 'Error model: additive to proportional or combined.' },
-    trend: { label: 'Trend', interp: 'Systematic bias that drifts with prediction.', fix: 'Missing covariate or unsuitable structure.' }
+    good: { label: 'Random', interp: 'No obvious pattern in this diagnostic.', fix: 'Cross-check the other diagnostics.' },
+    u: { label: 'U shape', interp: 'Pattern compatible with curved bias.', fix: 'Test structure, absorption, elimination, covariates and design.' },
+    invu: { label: 'Inverted U', interp: 'Pattern compatible with opposite curved bias.', fix: 'Test the same components and compare predictions.' },
+    trumpet: { label: 'Funnel', interp: 'Spread increases with prediction.', fix: 'Examine conditional variance, structure, unusual data and shrinkage.' },
+    trend: { label: 'Trend', interp: 'Systematic drift with prediction.', fix: 'Examine structure, covariates, time, dose and error.' }
   }[mode];
 
   /** @param {number} a @returns {() => number} */
@@ -71,9 +70,9 @@
     <div class="readout" class:ok={mode === 'good'}>
       <div class="motif">{$language === 'en' ? curEn.label : cur.label}</div>
       <div class="line"><span>{$language === 'en' ? 'Interpretation' : 'Interprétation'}</span>{$language === 'en' ? curEn.interp : cur.interp}</div>
-      <div class="line"><span>{$language === 'en' ? 'Remedy' : 'Remède'}</span>{$language === 'en' ? curEn.fix : cur.fix}</div>
+      <div class="line"><span>{$language === 'en' ? 'Checks' : 'Vérifications'}</span>{$language === 'en' ? curEn.fix : cur.fix}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}The <em>shape</em> of the residual cloud reveals the defect. Compare the good random pattern with biased patterns.{:else}La <em>forme</em> du nuage de résidus révèle le défaut. Comparez « Aléatoire » (bon) aux motifs biaisés.{/if}</p>
+    <p class="hint">{#if $language === 'en'}These are synthetic CWRES-like patterns. Their shape generates hypotheses but does not identify a unique defect; interpretation also depends on how the residual was constructed.{:else}Ces motifs synthétiques ressemblent à des CWRES. Leur forme génère des hypothèses sans identifier un défaut unique ; l’interprétation dépend aussi de la construction du résidu.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Residual patterns' : 'Motifs de résidus'}>

@@ -50,9 +50,9 @@
     <label class="s"><span>σ ({$language === 'en' ? 'data uncertainty' : 'incert. données'})</span><strong>{sigma.toFixed(1)}</strong><input type="range" min="0.3" max="4" step="0.1" bind:value={sigma} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'Posterior CL' : 'CL a posteriori'}</span><strong>{muPost.toFixed(2)}</strong></div>
-      <div><span>Shrinkage</span><strong>{(shrink * 100).toFixed(0)} %</strong></div>
+      <div><span>{$language === 'en' ? 'Prior contribution' : 'Poids du prior'}</span><strong>{(shrink * 100).toFixed(0)} %</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}Increase σ for sparse or imprecise data: the likelihood flattens and the posterior returns toward the population. This is <em>shrinkage</em>.{:else}Augmentez σ (données pauvres) : la vraisemblance s'aplatit, l'a posteriori revient vers la population — c'est le <em>shrinkage</em>.{/if}</p>
+    <p class="hint">{#if $language === 'en'}This is a conjugate Gaussian update for one individual parameter. Increasing σ flattens the likelihood and pulls the posterior mean toward the prior. The displayed prior contribution is not the population eta-shrinkage diagnostic.{:else}Il s’agit d’une mise à jour gaussienne conjuguée d’un paramètre individuel. Augmenter σ aplatit la vraisemblance et rapproche la moyenne a posteriori du prior. Le poids du prior affiché n’est pas le diagnostic populationnel d’eta-shrinkage.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Prior, likelihood and posterior' : 'A priori, vraisemblance et a posteriori'}>

@@ -13,10 +13,10 @@ prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Erreur additive", "Erreur proportionnelle", "Erreur combinée", "ε / σ", "Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
 sources: ["berrah-residual", "hooker-cwres", "beal-bql", "davidian-giltinan"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "9067c4f9789b412b6164d77a26add6d482152649d3b60f5d2f96a6c3871d21ec"
+reviewed_hash: "54d9480ed202761eace896d0cd6e80df2b7efa39e7c86ea3a990562c057e1148"
 quiz:
   - prompt: "Une erreur résiduelle proportionnelle signifie que le bruit..."
     options:
@@ -24,9 +24,9 @@ quiz:
       - "est de largeur constante à toute concentration"
       - "diminue quand la concentration prédite augmente"
     correct: 0
-  - prompt: "Un graphique |IWRES| vs prédictions en forme d'entonnoir indique..."
+  - prompt: "Un graphique |IWRES| vs prédictions en forme d'entonnoir fait notamment suspecter..."
     options:
-      - "un modèle d'erreur inadapté à ces données"
+      - "une variance résiduelle mal décrite, à confronter aux autres diagnostics"
       - "un ajustement globalement satisfaisant du modèle"
       - "un biais systématique du modèle structural"
     correct: 0
@@ -66,7 +66,7 @@ En pratique, l'erreur résiduelle réelle est **rarement** exactement la forme e
 :::howto
 **La métaphore de la balance.** Une balance de cuisine a une précision **fixe** (±1 g) : erreur additive. Une balance industrielle affiche un **pourcentage** (±0,5 % de la charge) : erreur proportionnelle. Une vraie balance combine les deux — un plancher **et** un %.
 
-**Côté maths.** Sur $|IWRES|$ vs prédictions, l'erreur additive donne un nuage **plat** ; la proportionnelle, un nuage plat une fois normalisé. Un **entonnoir** (résidus qui s'élargissent avec la prédiction) trahit une additive alors qu'il fallait une **proportionnelle/combinée**.
+**Côté maths.** Sur $|IWRES|$ vs prédictions, un **entonnoir** (résidus qui s'élargissent avec la prédiction) est notamment compatible avec une variance résiduelle mal décrite. Il invite à comparer les formes additive, proportionnelle ou combinée, sans identifier à lui seul la cause.
 :::
 <!-- /step -->
 
@@ -88,5 +88,5 @@ Une erreur **additive** sur des données à large gamme sur-pondère les hautes 
 - L'erreur résiduelle = écart entre prédiction individuelle et observation (mesure, temps, non-modélisé).
 - Additive (largeur constante), proportionnelle (%CV constant), combinée (plancher + %).
 - La combinée est souvent utile sur des données à large gamme : plancher additif près de la LOQ, % aux fortes concentrations. Elle reste à vérifier sur les résidus.
-- Diagnostic : |IWRES| vs prédictions ; un entonnoir = mauvais modèle d'erreur.
+- Diagnostic : |IWRES| vs prédictions ; un entonnoir soulève une hypothèse sur la variance résiduelle, à vérifier avec les autres diagnostics.
 <!-- /step -->

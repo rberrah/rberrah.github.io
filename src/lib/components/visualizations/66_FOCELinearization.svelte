@@ -38,9 +38,8 @@
     <label class="s"><span>Point η̂</span><strong>{etahat.toFixed(1)}</strong><input type="range" min="-2" max="2" step="0.1" bind:value={etahat} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'Error at η̂+1' : 'Erreur à η̂+1'}</span><strong>{errPct.toFixed(0)} %</strong></div>
-      <div class="verdict" class:bad={errPct > 25}>{errPct < 10 ? ($language === 'en' ? 'Accurate approximation' : 'Approximation fidèle') : errPct > 25 ? ($language === 'en' ? 'Poor approximation' : 'Approximation grossière') : ($language === 'en' ? 'Acceptable approximation' : 'Approximation acceptable')}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}FOCE replaces the <em>curve</em>, the true response in η, with its <em>tangent</em> at η̂. Increase curvature: away from η̂, the tangent diverges, explaining FOCE bias in highly nonlinear models.{:else}FOCE remplace la <em>courbe</em> (vraie réponse en η) par sa <em>tangente</em> en η̂. Montez la courbure : loin de η̂, la tangente s'écarte — d'où le biais de FOCE sur les modèles très non linéaires.{/if}</p>
+    <p class="hint">{#if $language === 'en'}This shows one local first-order Taylor approximation of a parameter transform around η̂. The displayed error is the relative tangent gap at η̂+1, not a threshold of FOCE validity and not a complete FOCE likelihood calculation.{:else}Cette figure montre une approximation locale de Taylor au premier ordre d’une transformation de paramètre autour de η̂. L’erreur affichée est l’écart relatif de la tangente en η̂+1, pas un seuil de validité de FOCE ni un calcul complet de vraisemblance FOCE.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'FOCE linearization: curve and tangent' : 'Linéarisation FOCE : courbe et tangente'}>
@@ -76,11 +75,9 @@
   .s strong { color: var(--accent-ai); }
   .s input { grid-column: 1 / -1; }
   .readout { display: grid; gap: 3px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
-  .readout div:not(.verdict) { display: flex; justify-content: space-between; gap: var(--space-2); }
+  .readout div { display: flex; justify-content: space-between; gap: var(--space-2); }
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
-  .verdict { margin-top: 2px; padding: 3px 6px; border-radius: var(--radius); text-align: center; font-weight: 600; background: var(--quiz-success-bg); color: var(--quiz-success-text); }
-  .verdict.bad { background: var(--quiz-error-bg); color: var(--quiz-error-text); }
   .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }

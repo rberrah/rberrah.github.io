@@ -13,10 +13,10 @@ prerequisites: ["erreur-residuelle"]
 glossary: ["GOF", "PRED / IPRED", "Résidus (WRES/CWRES/IWRES/NPDE)", "Shrinkage"]
 slides: []
 sources: ["hooker-cwres", "savic-karlsson-shrinkage", "mould-upton"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "d25e6810ef16f53953b6d3ecd8ca3d36c7520678f381d6d9cd453e5eee9f3db0"
+reviewed_hash: "1f21fe81745b9ca775e3bbee8ff19c18b3d00093d20c4801ee250c1311fee263"
 quiz:
   - prompt: "Sur un graphique observations vs prédictions, un bon modèle donne..."
     options:
@@ -54,7 +54,7 @@ Un bon modèle aligne observations et prédictions sur la **diagonale**, et lais
 Les graphiques canoniques :
 
 - **DV vs PRED** (population) et **DV vs IPRED** (individuel) : nuage autour de l'identité $y=x$.
-- **CWRES vs temps** et **CWRES vs PRED** : sous une approximation où les CWRES suivent $mathcal{N}(0,1)$, on attend des valeurs **centrées sur 0**, sans tendance, avec environ 95 % dans $[-2, 2]$. C'est un repère diagnostique, pas une règle d'acceptation.
+- **CWRES vs temps** et **CWRES vs PRED** : sous une approximation où les CWRES suivent $\mathcal{N}(0,1)$, on attend des valeurs **centrées sur 0**, sans tendance, avec environ 95 % dans $[-2, 2]$. C'est un repère diagnostique, pas une règle d'acceptation.
 - **|IWRES| vs PRED** : détecte une mauvaise **erreur résiduelle** (hétéroscédasticité).
 
 :::note

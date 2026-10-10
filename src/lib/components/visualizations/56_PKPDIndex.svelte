@@ -37,9 +37,9 @@
   $: xt = (/** @type {number} */ t) => (t / T) * iW;
   $: yv = (/** @type {number} */ c) => iH - (c / yMax) * iH;
   $: pathC = sim.map((p, i) => `${i ? 'L' : 'M'}${xt(p.t).toFixed(1)},${yv(p.C).toFixed(1)}`).join(' ');
-  // aire sous la courbe AU-DESSUS de la CMI (pour le mode AUC)
+  // Aire totale sous la courbe pour le mode AUC/CMI.
   $: aucArea = (() => {
-    const seg = sim.map((p) => ({ x: xt(p.t), yC: yv(Math.max(p.C, mic)), yM: yv(mic) }));
+    const seg = sim.map((p) => ({ x: xt(p.t), yC: yv(p.C), yM: yv(0) }));
     const top = seg.map((s, i) => `${i ? 'L' : 'M'}${s.x.toFixed(1)},${s.yC.toFixed(1)}`).join(' ');
     const bot = seg.slice().reverse().map((s) => `L${s.x.toFixed(1)},${s.yM.toFixed(1)}`).join(' ');
     return `${top} ${bot} Z`;
@@ -62,6 +62,7 @@
       <div class:hi={mode === 'peak'}><span>Cmax / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{(cmax / mic).toFixed(1)}</strong></div>
       <div class:hi={mode === 'auc'}><span>AUC₂₄ / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{aucMic.toFixed(0)}</strong></div>
     </div>
+    <p class="hint">{$language === 'en' ? 'Illustrative one-compartment IV-bolus profile over the first 24 hours. The three indices are calculated from total concentrations; relevant index, target and MIC conditions depend on the drug, pathogen, assay, site and population.' : "Profil illustratif à un compartiment après bolus IV sur les premières 24 heures. Les trois indices sont calculés sur les concentrations totales ; l’indice pertinent, sa cible et les conditions de CMI dépendent de la molécule, de la souche, de la méthode, du site et de la population."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Concentration vs MIC' : 'Concentration vs CMI'}>
@@ -108,6 +109,7 @@
   .readout div.hi span, .readout div.hi strong { color: var(--bg-tertiary); }
   .readout span { color: var(--text-secondary); }
   .readout strong { color: var(--text-primary); }
+  .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .axis { stroke: var(--border-strong); stroke-width: 1; }
   .mic { stroke: #b0392b; stroke-width: 1.5; stroke-dasharray: 4 3; }

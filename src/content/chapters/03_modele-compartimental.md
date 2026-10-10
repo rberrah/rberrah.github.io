@@ -13,10 +13,12 @@ glossary: ["CL", "V", "t½", "ke", "EDO", "Phases α et β", "Vss"]
 prerequisites: ["micro-macro"]
 slides: ["s03", "s04", "s05", "s06", "s08", "s09", "s12", "s67", "s74"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "9d144df75786ebee17b324beee30581d9660049a7beb451fe10fcb035e5e6369"
+reviewed_hash: "a699720566959622e4c5cb5ae9063000572cb4a569258b8b0eeda7cb762f69e8"
+scientific_values: {"ln2":0.693147,"example_dose_mg":100,"example_volume_low_l":10,"example_volume_high_l":20}
+units: {"clearance":"L/h","volume":"L","half_life":"h","concentration":"mg/L"}
 quiz:
   - prompt: "Après un bolus IV, la concentration initiale vaut..."
     options:

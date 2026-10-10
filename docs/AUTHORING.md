@@ -93,10 +93,22 @@ English translations live in `src/content/chapters/en/` with the same
 `slug`. Each language has independent `reviewed_on`, `review_type`, and
 `reviewed_hash` evidence.
 
-After reviewing the exact current content of both language files, run
-`npm run review:seal`. Do not run it automatically after editing: validation
-intentionally fails when a reviewed file changes. Quantitative chapters in the
-validation contract also declare matching `scientific_values` and `units`.
+After reviewing the exact current content, seal only the files actually
+reviewed:
+
+```sh
+npm run review:seal -- src/content/chapters/my-chapter.md
+npm run review:seal -- src/content/chapters/en/my-chapter.md
+```
+
+`npm run review:seal` without a target is refused. `--changed` previews stale
+evidence; `--changed --yes` seals that list only after every displayed item has
+been reviewed. Validation intentionally fails when reviewed content changes.
+
+Quantitative chapters in the validation contract also declare matching
+`scientific_values` and `units`. A visualization review hash covers both its
+Svelte source and its French/English entries in `vizDescriptions.js`; seal it
+with `npm run review:seal -- VisualizationStem`.
 
 ## Source Material
 

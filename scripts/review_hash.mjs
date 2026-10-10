@@ -19,6 +19,14 @@ export function chapterReviewHash(raw) {
     .digest('hex');
 }
 
-export function visualizationReviewHash(raw) {
-  return createHash('sha256').update(normalizeText(raw)).digest('hex');
+export function visualizationReviewHash(raw, description) {
+  const localizedDescription = {
+    fr: String(description?.fr ?? ''),
+    en: String(description?.en ?? '')
+  };
+  return createHash('sha256')
+    .update(normalizeText(raw))
+    .update('\n---DESCRIPTION---\n')
+    .update(JSON.stringify(localizedDescription))
+    .digest('hex');
 }

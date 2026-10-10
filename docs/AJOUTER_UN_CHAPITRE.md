@@ -29,7 +29,7 @@
    sources: ["source-id"]    # identifiants de references.js
    reviewed_on: "2026-10-08" # date de relecture scientifique
    review_type: "author"      # author | internal | external
-   reviewed_hash: ""          # rempli après relecture par npm run review:seal
+   reviewed_hash: ""          # rempli après relecture ciblée du fichier
    slides: []                 # IDs du slide_catalog (optionnel)
    quiz:                      # checkpoint de fin (optionnel)
      - prompt: "Une question ?"
@@ -47,9 +47,18 @@
    <!-- /step -->
    ```
 
-Après avoir relu séparément les versions française et anglaise, exécuter
-`npm run review:seal`. La CI invalide la relecture si l'un des deux fichiers
-change ensuite. C'est tout. **Plus besoin** d'éditer `vizMap` ni
+Après avoir relu séparément les versions française et anglaise, sceller chaque
+fichier explicitement :
+
+```sh
+npm run review:seal -- src/content/chapters/22_mon-sujet.md
+npm run review:seal -- src/content/chapters/en/22_mon-sujet.md
+```
+
+La commande sans cible est refusée. `npm run review:seal -- --changed` donne
+seulement un aperçu ; ajouter `--yes` après avoir réellement relu tous les
+éléments listés. La CI invalide la relecture si l'un des deux fichiers change
+ensuite. C'est tout. **Plus besoin** d'éditer `vizMap` ni
 `svelte.config.js` :
 - les visualisations sont enregistrées automatiquement (voir plus bas) ;
 - l'URL du chapitre est ajoutée automatiquement au prerender via
@@ -71,6 +80,13 @@ disponibles à la place de la figure.
 
 Une viz posée sur un step **persiste** tant qu'un step suivant n'en déclare pas
 une autre : on peut commenter longuement une même figure sur plusieurs steps.
+
+Le scellement scientifique d'une visualisation inclut son composant et ses
+descriptions FR/EN dans `vizDescriptions.js`. Après relecture, utiliser :
+
+```sh
+npm run review:seal -- 14_AllometryCentering
+```
 
 ## Encadrés pédagogiques
 

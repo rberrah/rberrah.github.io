@@ -4,214 +4,197 @@
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
-  import { bin as d3bin } from 'd3-array';
   import { paddedDomain } from '$lib/charts/domain';
   import { language } from '$lib/stores/language';
 
-  // Observations (temps, concentration)
-  const obs = [
-    { t: 0, c: 0 },
-    { t: 2, c: 9 },
-    { t: 4, c: 7.5 },
-    { t: 6, c: 6.5 },
-    { t: 8, c: 6.2 },
-    { t: 12, c: 5.4 }
-  ];
-
-  // Simulations simples (200 jeux)
-  const pseudo = (i, j) => ((i * 17 + j * 31) % 100) / 100;
-  const sims = Array.from({ length: 400 }, (_, i) =>
-    obs.map((o, j) => {
-      const jitter = (pseudo(i, j) - 0.5) * (o.t === 0 ? 0 : 0.6); // ±0.3 h sauf à t=0
-      const t = Math.max(0, o.t + jitter);
-      const amp = 0.75 + 0.6 * pseudo(i + 3, j + 5);
-      return { t, c: Math.max(0, o.c * amp) };
-    })
-  );
+  const TIMES = [0.5, 1, 2, 4, 8, 12, 24];
+  const SUBJECTS = 60;
+  const REPLICATES = 500;
+  const DOSE = 500;
+  const TRUE_MODEL = { cl: 5, v: 50, omegaCl: 0.3, omegaV: 0.2, prop: 0.15, add: 0.1 };
 
   let bins = 6;
-  let binning = true;
+  let modelCl = 5;
+  let modelOmegaCl = 0.3;
+  let modelProp = 0.15;
 
-  $: maxT = Math.max(...obs.map((o) => o.t), ...sims.flat().map((p) => p.t));
-
-  // Binning avec d3.bin
-  $: binner = d3bin()
-    .domain([0, maxT])
-    .thresholds(bins)
-    .value((d) => d.t);
-
-  $: simFlat = sims.flat();
-  $: binned = binner(simFlat).map((bucket) => {
-    const vals = bucket.map((d) => d.c);
-    const tMid = (bucket.x0 + bucket.x1) / 2;
-    return {
-      t: tMid,
-      p5: vals.length ? percentile(vals, 5) : 0,
-      p50: vals.length ? percentile(vals, 50) : 0,
-      p95: vals.length ? percentile(vals, 95) : 0,
-      x0: bucket.x0,
-      x1: bucket.x1,
-      count: vals.length
+  /** @param {number} seed */
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0;
+      seed = (seed + 0x6d2b79f5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+  }
+
+  /** @param {() => number} rng */
+  function normal(rng) {
+    const u = Math.max(rng(), 1e-12);
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+  }
+
+  /** @param {number} seed @param {{cl:number,v:number,omegaCl:number,omegaV:number,prop:number,add:number}} model */
+  function simulateDataset(seed, model) {
+    const rng = mulberry32(seed);
+    const rows = [];
+    for (let id = 0; id < SUBJECTS; id += 1) {
+      const cl = model.cl * Math.exp(model.omegaCl * normal(rng));
+      const v = model.v * Math.exp(model.omegaV * normal(rng));
+      for (const t of TIMES) {
+        const pred = (DOSE / v) * Math.exp(-(cl / v) * t);
+        const dv = Math.max(0, pred * (1 + model.prop * normal(rng)) + model.add * normal(rng));
+        rows.push({ t, c: dv });
+      }
+    }
+    return rows;
+  }
+
+  /** @param {number} t @param {number} count */
+  function binIndex(t, count) {
+    const timeIndex = TIMES.indexOf(t);
+    return Math.min(count - 1, Math.floor((timeIndex * count) / TIMES.length));
+  }
+
+  /** @param {{t:number,c:number}[]} rows @param {number} count */
+  function summarize(rows, count) {
+    return Array.from({ length: count }, (_, index) => {
+      const bucket = rows.filter((row) => binIndex(row.t, count) === index);
+      const values = bucket.map((row) => row.c);
+      const times = TIMES.filter((t) => binIndex(t, count) === index);
+      return {
+        t: times.reduce((sum, value) => sum + value, 0) / times.length,
+        p5: percentile(values, 5),
+        p50: percentile(values, 50),
+        p95: percentile(values, 95),
+        count: values.length,
+        from: times[0],
+        to: times[times.length - 1]
+      };
+    });
+  }
+
+  const observed = simulateDataset(20261010, TRUE_MODEL);
+  $: fittedModel = { ...TRUE_MODEL, cl: modelCl, omegaCl: modelOmegaCl, prop: modelProp };
+  $: observedPercentiles = summarize(observed, bins);
+  $: replicatePercentiles = Array.from({ length: REPLICATES }, (_, index) =>
+    summarize(simulateDataset(9001 + index * 7919, fittedModel), bins)
+  );
+  $: vpc = observedPercentiles.map((observedBin, index) => {
+    const band = (key) => {
+      const values = replicatePercentiles.map((replicate) => replicate[index][key]);
+      return { low: percentile(values, 5), mid: percentile(values, 50), high: percentile(values, 95) };
+    };
+    return { ...observedBin, modelP5: band('p5'), modelP50: band('p50'), modelP95: band('p95') };
   });
 
-  // Percentiles sans binning (par temps observé)
-  const directBands = obs.map((o, idx) => {
-    const vals = sims.map((s) => s[idx].c);
-    return { t: o.t, p5: percentile(vals, 5), p50: percentile(vals, 50), p95: percentile(vals, 95) };
-  });
-
-  $: activeBands = binning ? binned : directBands;
-
-  $: xScale = scaleLinear().domain([0, maxT]).range([0, 320]);
+  $: xScale = scaleLinear().domain([0, 24]).range([0, 360]);
   $: yScale = scaleLinear()
-    .domain(paddedDomain([...activeBands.map((b) => b.p95), ...obs.map((o) => o.c)], 0.2))
-    .range([200, 0]);
+    .domain(paddedDomain(vpc.flatMap((row) => [row.p95, row.modelP95.high]), 0.15))
+    .range([210, 0]);
 
-  let hover = null;
-  function handleMove(event, innerWidth, innerHeight) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const tTarget = xScale.invert(x);
-    const arr = activeBands;
-    if (!arr.length) return (hover = null);
-    const nearest = arr.reduce((best, d) => (Math.abs(d.t - tTarget) < Math.abs(best.t - tTarget) ? d : best), arr[0]);
-    hover = {
-      t: nearest.t,
-      p50: nearest.p50,
-      p5: nearest.p5,
-      p95: nearest.p95,
-      x: xScale(nearest.t),
-      y: yScale(nearest.p50)
-    };
+  /** @param {'modelP5'|'modelP50'|'modelP95'} key */
+  function ribbonPoints(key) {
+    const forward = vpc.map((row) => `${xScale(row.t)},${yScale(row[key].high)}`);
+    const backward = [...vpc].reverse().map((row) => `${xScale(row.t)},${yScale(row[key].low)}`);
+    return [...forward, ...backward].join(' ');
   }
 </script>
 
 <div class="vpc">
   <div class="controls">
-    <label>{$language === 'en' ? 'Bins' : 'Classes'} <input type="range" min="4" max="12" step="1" bind:value={bins} /></label>
-    <span>{bins} {$language === 'en' ? 'bins' : 'classes'}</span>
-    <label class="toggle">
-      <input type="checkbox" bind:checked={binning} />
-      {$language === 'en' ? 'Binning on' : 'Regroupement activé'}
+    <label>
+      <span>{$language === 'en' ? 'Model CL (L/h)' : 'CL du modèle (L/h)'}</span>
+      <strong>{modelCl.toFixed(1)}</strong>
+      <input type="range" min="3" max="8" step="0.25" bind:value={modelCl} />
     </label>
-    <small>{$language === 'en' ? 'Binning groups times to estimate percentiles; overly wide or misplaced bins can hide time trends.' : 'Le regroupement des temps sert à estimer les percentiles ; des classes trop larges ou mal placées peuvent masquer une tendance temporelle.'}</small>
+    <label>
+      <span>{$language === 'en' ? 'Model omega CL' : 'Oméga CL du modèle'}</span>
+      <strong>{(modelOmegaCl * 100).toFixed(0)}%</strong>
+      <input type="range" min="0.05" max="0.6" step="0.05" bind:value={modelOmegaCl} />
+    </label>
+    <label>
+      <span>{$language === 'en' ? 'Proportional residual SD' : 'SD résiduelle proportionnelle'}</span>
+      <strong>{(modelProp * 100).toFixed(0)}%</strong>
+      <input type="range" min="0.05" max="0.35" step="0.025" bind:value={modelProp} />
+    </label>
+    <label>
+      <span>{$language === 'en' ? 'Time bins' : 'Classes de temps'}</span>
+      <strong>{bins}</strong>
+      <input type="range" min="4" max="7" step="1" bind:value={bins} />
+    </label>
   </div>
 
-  {#if binning}
-    <div class="bininfo">
-      {#each binned as b}
-        <span>{b.count ?? 0} pts @ {b.x0.toFixed(1)}–{b.x1.toFixed(1)} h</span>
-      {/each}
-    </div>
-  {/if}
+  <div class="design">
+    {$language === 'en'
+      ? `${REPLICATES} replicated trials of ${SUBJECTS} patients, simulated from the candidate one-compartment model with the observed design. The observed dataset was generated independently from the reference model (CL 5 L/h, omega CL 30%, residual SD 15%).`
+      : `${REPLICATES} essais répliqués de ${SUBJECTS} patients, simulés depuis le modèle candidat à un compartiment avec le plan observé. Le jeu observé a été généré indépendamment depuis le modèle de référence (CL 5 L/h, oméga CL 30 %, SD résiduelle 15 %).`}
+  </div>
 
-  <ChartFrame width={420} height={260} margin={{ top: 16, right: 12, bottom: 50, left: 60 }} xScale={xScale} yScale={yScale} grid={true}>
+  <div class="bininfo">
+    {#each vpc as row}
+      <span>{row.count} obs · {row.from}–{row.to} h</span>
+    {/each}
+  </div>
+
+  <ChartFrame width={470} height={285} margin={{ top: 18, right: 18, bottom: 52, left: 70 }} xScale={xScale} yScale={yScale} grid={true}>
     <svelte:fragment let:xScale let:yScale let:innerWidth let:innerHeight>
-      <rect
-        class="hoverpane"
-        x="0"
-        y="0"
-        width={innerWidth}
-        height={innerHeight}
-        fill="transparent"
-        role="presentation"
-        on:mousemove={(e) => handleMove(e, innerWidth, innerHeight)}
-        on:mouseleave={() => (hover = null)}
-      />
-      {#if binning}
-        {#each binned as b}
-          <line x1={xScale(b.x0)} x2={xScale(b.x0)} y1={0} y2={innerHeight} stroke="var(--border-subtle)" stroke-dasharray="4 4" stroke-width="1" />
-        {/each}
-      {/if}
+      <polygon points={ribbonPoints('modelP5')} class="ribbon outer" />
+      <polygon points={ribbonPoints('modelP95')} class="ribbon outer" />
+      <polygon points={ribbonPoints('modelP50')} class="ribbon median" />
 
-      <polygon
-        fill="rgba(59,130,246,0.16)"
-        stroke="none"
-        points={`${activeBands.map((d) => `${xScale(d.t)},${yScale(d.p95)}`).join(' ')} ${[...activeBands]
-          .reverse()
-          .map((d) => `${xScale(d.t)},${yScale(d.p5)}`)
-          .join(' ')}`}
-      />
+      <polyline points={vpc.map((row) => `${xScale(row.t)},${yScale(row.modelP5.mid)}`).join(' ')} class="model outer-line" />
+      <polyline points={vpc.map((row) => `${xScale(row.t)},${yScale(row.modelP50.mid)}`).join(' ')} class="model median-line" />
+      <polyline points={vpc.map((row) => `${xScale(row.t)},${yScale(row.modelP95.mid)}`).join(' ')} class="model outer-line" />
 
-      <polyline
-        fill="none"
-        stroke="#2563eb"
-        stroke-width="2.5"
-        points={activeBands.map((d) => `${xScale(d.t)},${yScale(d.p50)}`).join(' ')}
-      />
-
-      {#each obs as p}
-        <circle cx={xScale(p.t)} cy={yScale(p.c)} r="4" fill="#ef4444" />
+      {#each vpc as row}
+        <circle cx={xScale(row.t)} cy={yScale(row.p5)} r="4" class="observed outer-point" />
+        <circle cx={xScale(row.t)} cy={yScale(row.p50)} r="4.5" class="observed median-point" />
+        <circle cx={xScale(row.t)} cy={yScale(row.p95)} r="4" class="observed outer-point" />
       {/each}
 
       <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
       <g transform="translate(-8,0)">
         <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
       </g>
-
-      {#if hover}
-        <g>
-          <line x1={hover.x} x2={hover.x} y1={0} y2={innerHeight} stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="3 3" />
-          <circle cx={hover.x} cy={hover.y} r="5" fill="#0ea5e9" opacity="0.8" />
-        </g>
-        <foreignObject x={Math.min(innerWidth - 140, Math.max(4, hover.x + 6))} y={12} width="140" height="70">
-          <div class="tooltip">
-            <div><strong>t</strong> {hover.t.toFixed(2)} h</div>
-            <div>P50 {hover.p50.toFixed(2)} mg/L</div>
-            <div>P5–P95 {hover.p5.toFixed(2)} – {hover.p95.toFixed(2)}</div>
-          </div>
-        </foreignObject>
-      {/if}
     </svelte:fragment>
   </ChartFrame>
 
-    <div class="note">
-      {$language === 'en' ? 'The blue tunnel is P5–P95. Repeated or systematic departures may indicate a model, variability, design or binning mismatch; one point outside the band is not proof of bias.' : 'Le tunnel bleu correspond à P5–P95. Des écarts répétés ou structurés peuvent signaler une inadéquation du modèle, de la variabilité, du plan ou des classes ; un point isolé hors bande ne prouve pas un biais.'}
-    </div>
+  <div class="legend" aria-label={$language === 'en' ? 'VPC legend' : 'Légende de la VPC'}>
+    <span><i class="swatch median-band"></i>{$language === 'en' ? '90% simulation interval for model P50' : 'Intervalle de simulation à 90 % du P50 modèle'}</span>
+    <span><i class="swatch outer-band"></i>{$language === 'en' ? '90% simulation intervals for model P5/P95' : 'Intervalles de simulation à 90 % des P5/P95 modèle'}</span>
+    <span><i class="dot"></i>{$language === 'en' ? 'Observed P5/P50/P95' : 'P5/P50/P95 observés'}</span>
+  </div>
+
+  <p class="note">
+    {$language === 'en'
+      ? 'A repeated or structured discrepancy is compatible with model, variability, residual-error, design or binning misspecification. A VPC does not identify a unique cause by itself.'
+      : "Un écart répété ou structuré peut être compatible avec une mauvaise spécification du modèle, de la variabilité, de l’erreur résiduelle, du plan ou des classes. Une VPC n’identifie pas seule une cause unique."}
+  </p>
 </div>
 
 <style>
-  .vpc {
-    display: grid;
-    gap: 10px;
-  }
-  .controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-weight: 700;
-    flex-wrap: wrap;
-  }
-  small {
-    font-weight: 400;
-    color: var(--text-secondary);
-  }
-  .bininfo {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-  }
-  .note {
-    font-size: 0.95rem;
-    color: var(--text-primary);
-    background: var(--bg-secondary);
-    border: 1px solid var(--bg-secondary);
-    padding: 8px 10px;
-    border-radius: 6px;
-  }
-  .hoverpane {
-    cursor: crosshair;
-  }
-  .tooltip {
-    background: var(--text-primary);
-    color: var(--bg-tertiary);
-    padding: 6px 8px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
-  }
+  .vpc { display: grid; gap: 10px; }
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+  label { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; font-size: var(--text-sm); font-weight: 700; }
+  label span { color: var(--text-secondary); }
+  label input { grid-column: 1 / -1; width: 100%; }
+  .design, .note { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
+  .design { padding: 8px 10px; background: var(--bg-secondary); border-radius: var(--radius); }
+  .bininfo, .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--text-secondary); font-size: var(--text-xs); }
+  .ribbon { stroke: none; }
+  .ribbon.outer { fill: rgba(14, 165, 233, 0.15); }
+  .ribbon.median { fill: rgba(37, 99, 235, 0.24); }
+  .model { fill: none; }
+  .outer-line { stroke: #0ea5e9; stroke-width: 1.4; stroke-dasharray: 4 3; }
+  .median-line { stroke: #2563eb; stroke-width: 2.2; }
+  .observed { stroke: var(--bg-primary); stroke-width: 1.2; }
+  .outer-point { fill: #b91c1c; }
+  .median-point { fill: #7f1d1d; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 20px; height: 9px; display: inline-block; border-radius: 2px; }
+  .median-band { background: rgba(37, 99, 235, 0.35); border: 1px solid #2563eb; }
+  .outer-band { background: rgba(14, 165, 233, 0.22); border: 1px dashed #0ea5e9; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #991b1b; display: inline-block; }
 </style>

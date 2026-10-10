@@ -13,10 +13,12 @@ slides: []
 prerequisites: ["pkpd","nca-auc"]
 glossary: ["CMI","PTA","AUC","Cmax / Tmax"]
 sources: ["craig-pkpd","rybak-vanco","eucast","goutelle-hill"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "dfdddcf529a1c7b644f1fcdd32cf3e6b8c2e06a3f9dc6fe242246e3b961f3548"
+reviewed_hash: "6090066b54a8d4c67823c676099209a10aa5eec0d01a4709baeb2b3d2d6abf97"
+scientific_values: {"vancomycin_auc24_lower":400,"vancomycin_auc24_upper":600,"reference_mic_mg_l":1,"mic_dilution_factor":2}
+units: {"auc24":"mg*h/L","mic":"mg/L","auc_mic":"h","mic_dilution_factor":"fold"}
 quiz:
   - prompt: "For beta-lactams, the PK/PD index predictive of efficacy is..."
     options:

@@ -1,6 +1,6 @@
 <script>
   // @ts-nocheck
-  // Le levier σ en MAPBE. L'estimation MAP arbitre entre le PRIOR (modèle de
+  // Proxy pedagogique du levier sigma en MAPBE. L'estimation MAP arbitre entre le PRIOR (modèle de
   // population) et les DONNÉES (prélèvements du patient). Le poids des données
   // croît quand l'erreur résiduelle σ diminue. Curseurs : σ (RUV) et bruit de
   // mesure. On lit la courbe postérieure (compromis), l'AUC estimée et son écart
@@ -62,7 +62,7 @@
 </script>
 
 <div class="viz">
-  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={$language === 'en' ? 'Residual-error lever in MAPBE' : "Levier de l'erreur résiduelle en MAPBE"}>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={$language === 'en' ? 'Illustrative residual-error weighting proxy' : "Proxy illustratif de pondération par l'erreur résiduelle"}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
@@ -79,9 +79,9 @@
   </svg>
 
   <div class="stats">
-    <span class="pill w">{$language === 'en' ? 'data weight' : 'poids sur les données'} : {(wData * 100).toFixed(0)} %</span>
-    <span class="pill err" class:bad={Math.abs(aucErr) > 15}>{$language === 'en' ? 'AUC difference' : 'écart AUC'} : {aucErr > 0 ? '+' : ''}{aucErr.toFixed(0)} %</span>
-    {#if overfit}<span class="pill of">⚠ {$language === 'en' ? 'overfitting: the model follows noise' : 'surajustement : le modèle suit le bruit'}</span>{/if}
+    <span class="pill w">{$language === 'en' ? 'heuristic data weight' : 'poids heuristique des données'} : {(wData * 100).toFixed(0)} %</span>
+    <span class="pill err" class:bad={Math.abs(aucErr) > 15}>{$language === 'en' ? 'AUC difference from simulated truth' : 'écart AUC à la vérité simulée'} : {aucErr > 0 ? '+' : ''}{aucErr.toFixed(0)} %</span>
+    {#if overfit}<span class="pill of">⚠ {$language === 'en' ? 'illustrative noise-chasing risk' : 'risque illustratif de poursuite du bruit'}</span>{/if}
   </div>
 
   <div class="controls">
@@ -90,7 +90,7 @@
     <label>{$language === 'en' ? 'Sampling measurement noise' : 'Bruit de mesure des prélèvements'} <span>{(bruit * 100).toFixed(0)} %</span>
       <input type="range" min="0" max="0.25" step="0.01" bind:value={bruit} /></label>
   </div>
-  <p class="hint">{#if $language === 'en'}Lower σ: weight shifts to the <strong>data</strong>, the posterior leaves the prior and follows patient samples, bringing AUC closer to the individual truth. Increase <strong>noise</strong> and reduce σ to 1%: the model starts <strong>chasing noise</strong> and AUC drifts. σ should be small, <em>but not zero</em>.{:else}Baissez σ : le poids passe aux <strong>données</strong>, la courbe postérieure quitte le prior pour épouser les prélèvements du patient — l'AUC se rapproche de la vérité individuelle. Mais montez le <strong>bruit</strong> puis ramenez σ à 1 % : le modèle se met à <strong>poursuivre le bruit</strong> et l'AUC dérape. Tout l'art est de choisir un σ petit <em>mais non nul</em>.{/if}</p>
+  <p class="hint">{#if $language === 'en'}This is a Gaussian precision-weighting proxy, not an optimization by mapbayr. Lower assumed σ gives more weight to the simulated samples; if σ understates their noise, the estimate can chase noise. In a real MAP fit, the model, sampling design, residual likelihood and parameter covariance determine the result.{:else}Il s’agit d’un proxy gaussien de pondération par la précision, pas d’une optimisation par mapbayr. Réduire le σ supposé augmente le poids des prélèvements simulés ; si σ sous-estime leur bruit, l’estimation peut poursuivre ce bruit. Dans un vrai ajustement MAP, le modèle, le plan de prélèvement, la vraisemblance résiduelle et la covariance des paramètres déterminent le résultat.{/if}</p>
 </div>
 
 <style>

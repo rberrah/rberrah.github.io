@@ -1,7 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Immunogénicité (ADA) : après séroconversion, la clairance augmente et les
-  // concentrations résiduelles s'effondrent → perte de réponse secondaire.
+  // Scenario conditionnel : un effet ADA impose sur la clairance modifie l'exposition.
   //   CL(t) = CL0 · [1 + θ·A(t)],  A(t) = montée logistique après la semaine d'apparition
   let theta = 3; // amplitude de l'effet ADA sur la clairance
   let onset = 6; // semaine d'apparition des ADA
@@ -54,9 +53,9 @@
     <div class="readout">
       <div><span>{$language === 'en' ? 'Final trough' : 'Résiduelle finale'}</span><strong>{lastTrough.toFixed(1)} mg/L</strong></div>
       <div><span>{$language === 'en' ? 'Target' : 'Cible'}</span><strong>{target} mg/L</strong></div>
-      <div class="verdict" class:lost>{lost ? ($language === 'en' ? 'Loss of response' : 'Perte de réponse') : ($language === 'en' ? 'Exposure maintained' : 'Exposition maintenue')}</div>
+      <div class="verdict" class:lost>{lost ? ($language === 'en' ? 'Below illustrative target' : 'Sous la cible illustrative') : ($language === 'en' ? 'Above illustrative target' : 'Au-dessus de la cible illustrative')}</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Without ADA (θ = 0), troughs remain above target. After seroconversion, clearance rises and troughs collapse.' : "Sans ADA (θ = 0), les résiduelles restent au-dessus de la cible. Dès la séroconversion, la clairance monte et les creux s'effondrent."}</p>
+    <p class="hint">{$language === 'en' ? 'Conditional simulation: the selected ADA effect is imposed on clearance after the chosen onset. Real ADA effects may be absent or depend on titre, persistence, neutralisation, complexes, assay and molecule; a concentration below this illustrative target is not itself proof of loss of response.' : "Simulation conditionnelle : l’effet ADA choisi est imposé sur la clairance après la date sélectionnée. En pratique, l’effet peut être absent ou dépendre du titre, de la persistance, de la neutralisation, des complexes, du dosage analytique et de la molécule ; une concentration sous cette cible illustrative ne prouve pas à elle seule une perte de réponse."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Antibody concentrations with ADA development' : "Concentrations sous anticorps avec apparition d'ADA"}>

@@ -2,7 +2,7 @@
 id: "valid-npde"
 slug: "valid-npde"
 title: "NPDE: simulation-based residuals"
-description: "Residuals that should follow a normal law: NPDE, a robust simulation-based diagnostic."
+description: "Residuals expected to be close to a standard normal distribution under the model assumptions: NPDE, a simulation-based diagnostic."
 summary: "NPDE (normalized prediction distribution errors): simulation-based construction and reading."
 track: "valid"
 order: 92
@@ -13,9 +13,12 @@ slides: []
 prerequisites: ["valid-gof"]
 glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)","VPC"]
 sources: ["brendel-npde","hooker-cwres"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "d898e53fba4a7697f9b7a95d89b4ae532eb3dfd9f3ecf318ef394e0e561c555a"
+reviewed_hash: "9b89ed81c01b0d8d55dcb76e2396b8ea53c17288a9739d20308f4bf69f5e010d"
+scientific_values: {"reference_mean":0,"reference_variance":1}
+units: {"npde":"standard_normal_scale","mean":"dimensionless","variance":"dimensionless"}
 quiz:
   - prompt: "If the model is correct, NPDE follow a..."
     options:
@@ -46,7 +49,7 @@ It is the reference tool for simulation-based validation, alongside the VPC.
 <!-- step:title="Intuition" viz="52_NPDE" -->
 For each observation, we **simulate** many values under the model: where does the real observation sit in that distribution?
 
-If the model is correct, these (normalised) positions spread like a **standard Gaussian**. A shift or spread betrays a problem. Raise the misspecification and watch the deviation.
+Under a correctly specified model and the calculation assumptions, these normalised positions are expected to follow a **standard Gaussian**. A shift or spread suggests predictive mismatch to investigate, without identifying its cause by itself. Raise the misspecification and watch the deviation.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="52_NPDE" -->
@@ -60,9 +63,9 @@ Under the true model: $npde \sim \mathcal{N}(0,1)$. We **test** the mean (= 0?),
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="52_NPDE" -->
-A **positive** NPDE mean in the "renal impairment" subgroup signals a model that **underestimates** their concentrations: a CrCl covariate on clearance is probably missing.
+A **positive** NPDE mean in the "renal impairment" subgroup is compatible with underprediction of their concentrations. A CrCl covariate on clearance is one hypothesis to test among structural, residual and data-related explanations.
 
-Plotting NPDE **against time** or **against PRED** localises the error (absorption, elimination, residual error).
+Plotting NPDE **against time** or **against PRED** helps characterize where the discrepancy appears and generate hypotheses about absorption, elimination, covariates or residual error.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -73,7 +76,7 @@ A global histogram can hide local deviations.
 
 <!-- step:title="Key takeaways" -->
 - NPDE compare each observation to a distribution simulated under the model, after within-individual centring and decorrelation.
-- Correct model ⇒ NPDE ~ N(0,1) (mean, variance, normality tests).
+- Under a correctly specified model and the calculation assumptions, NPDE are expected to be close to N(0,1) (mean, variance and normality).
 - Robust because no linearisation; examine stratified (covariate, time).
-- A local shift/spread reveals a bias (often a missing covariate).
+- A local shift or spread suggests predictive mismatch and opens several diagnostic hypotheses.
 <!-- /step -->

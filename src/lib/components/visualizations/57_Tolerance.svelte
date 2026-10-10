@@ -47,7 +47,7 @@
       <div><span>{$language === 'en' ? 'Peak effect' : "Pic d'effet"}</span><strong>{((peak.R / R0 - 1) * 100).toFixed(0)} %</strong></div>
       <div><span>{$language === 'en' ? 'Rebound (below baseline)' : 'Rebond (sous base)'}</span><strong>{reboundDepth > 0.5 ? '−' + ((reboundDepth / R0) * 100).toFixed(0) + ' %' : '—'}</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}Under constant exposure, the effect rises then <em>wanes</em> as tolerance develops. After treatment stops at the dashed line, response drops below baseline: this is <em>rebound</em>.{:else}Sous exposition constante, l'effet monte puis <em>s'émousse</em> (tolérance). À l'arrêt (ligne pointillée), la réponse plonge sous la base : c'est le <em>rebond</em>.{/if}</p>
+    <p class="hint">{#if $language === 'en'}In this illustrative feedback model, constant exposure makes the response rise then wane; after withdrawal, the same equations can generate a below-baseline rebound. Other tolerance mechanisms need different models.{:else}Dans ce modèle illustratif à rétrocontrôle, une exposition constante fait monter puis diminuer la réponse ; après l’arrêt, les mêmes équations peuvent produire un rebond sous la ligne de base. D’autres mécanismes de tolérance nécessitent d’autres modèles.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tolerance and response rebound' : 'Tolérance et rebond de la réponse'}>

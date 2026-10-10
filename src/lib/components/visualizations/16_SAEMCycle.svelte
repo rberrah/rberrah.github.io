@@ -1,9 +1,9 @@
 <script>
   import { language } from '$lib/stores/language';
-  const steps = ['S (Simulation)', 'A1 (Exploration)', 'A2 (Lissage)', 'M (Maximisation)'];
+  const steps = ['S (Simulation)', 'SA (Approximation)', 'M (Maximisation)'];
   let idx = 0;
   const next = () => (idx = (idx + 1) % steps.length);
-  const bar = [20, 40, 70, 90];
+  const bar = [25, 60, 85];
 </script>
 
 <div class="saem">
@@ -19,6 +19,7 @@
     </div>
   </div>
   <button on:click={next}>{$language === 'en' ? 'Next' : 'Suivant'}</button>
+  <p class="note">{$language === 'en' ? 'Conceptual iteration: simulate latent effects, update sufficient statistics by stochastic approximation, then maximize. Exploration and smoothing are step-size phases across iterations, not two extra operations in every cycle.' : "Itération conceptuelle : simuler les effets latents, actualiser les statistiques suffisantes par approximation stochastique, puis maximiser. Exploration et lissage sont des phases du pas au fil des itérations, pas deux opérations supplémentaires dans chaque cycle."}</p>
 </div>
 
 <style>
@@ -62,4 +63,5 @@
     border-radius: 8px;
     cursor: pointer;
   }
+  .note { margin: 0; max-width: 620px; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
 </style>

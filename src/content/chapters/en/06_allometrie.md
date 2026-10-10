@@ -9,14 +9,16 @@ order: 6
 duration: "14 min"
 level: "intermediate"
 tags: ["covariates", "allometry", "weight", "model-building"]
-updated_on: "2026-10-09"
+updated_on: "2026-10-10"
 slides: ["s18","s19","s20","s21","s22"]
 prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Covariable","Allométrie","Centrage"]
 sources: ["anderson-holford-allometry","jonsson-karlsson-scm","ribbing-selection-bias","owen-fiedler-kelly"]
-reviewed_on: "2026-10-09"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "6a91a5cb8f888faf3620bda7aa25c237952b94492ac07d79a9bac041675790c4"
+reviewed_hash: "716e3608078c120677f9cc4e0d39daf39051612899c774d2f4891a5ff22c72b3"
+scientific_values: {"reference_weight_kg":70,"clearance_exponent":0.75,"volume_exponent":1}
+units: {"weight":"kg","clearance_exponent":"dimensionless","volume_exponent":"dimensionless"}
 quiz:
   - prompt: "A covariate is useful when it..."
     options:

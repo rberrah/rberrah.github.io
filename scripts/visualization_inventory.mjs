@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { visualizationReview } from '../src/lib/content/visualizationReviews.js';
+import { visualizationDescriptions } from '../src/lib/content/vizDescriptions.js';
 import { visualizationReviewHash } from './review_hash.mjs';
 
 const root = process.cwd();
@@ -13,7 +14,7 @@ function effectiveReview(file) {
   const stem = file.replace(/\.svelte$/, '');
   const review = visualizationReview(stem);
   const raw = fs.readFileSync(path.join(directory, file), 'utf8');
-  const current = review.status === 'reviewed' && review.reviewed_hash === visualizationReviewHash(raw);
+  const current = review.status === 'reviewed' && review.reviewed_hash === visualizationReviewHash(raw, visualizationDescriptions[stem]);
   return {
     ...review,
     stem,

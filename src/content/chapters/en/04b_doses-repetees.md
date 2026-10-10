@@ -13,9 +13,12 @@ glossary: ["CL","t½","ke"]
 slides: ["s12"]
 prerequisites: ["clairance-volume-demi-vie"]
 sources: ["rowland-tozer","holford-clearance","gibaldi-perrier"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "82d0e42373b5532e292f6391ac9a0578b1fe40789f2488bda2501423917a9081"
+reviewed_hash: "2d0b622dd8ea546eaca05bfd3f9115e26f205a2e5e2af092b086c43084bb0a0b"
+scientific_values: {"steady_state_half_lives_lower":4,"steady_state_half_lives_upper":5,"example_css_mg_l":10,"example_clearance_l_h":2,"example_infusion_rate_mg_h":20}
+units: {"concentration":"mg/L","clearance":"L/h","infusion_rate":"mg/h","time_to_steady_state":"half_lives"}
 quiz:
   - prompt: "The average steady-state concentration equals..."
     options:

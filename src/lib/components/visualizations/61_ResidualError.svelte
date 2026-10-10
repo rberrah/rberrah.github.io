@@ -41,8 +41,8 @@
     </div>
     <label class="s"><span>Amplitude</span><strong>×{level.toFixed(1)}</strong><input type="range" min="0.4" max="2" step="0.1" bind:value={level} /></label>
     <div class="readout">
-      <div><span>SD à PRED = 1</span><strong>{sdLow.toFixed(2)} mg/L</strong></div>
-      <div><span>SD à PRED = 10</span><strong>{sdHigh.toFixed(2)} mg/L</strong></div>
+      <div><span>{$language === 'en' ? 'SD at PRED = 1' : 'SD à PRED = 1'}</span><strong>{sdLow.toFixed(2)} mg/L</strong></div>
+      <div><span>{$language === 'en' ? 'SD at PRED = 10' : 'SD à PRED = 10'}</span><strong>{sdHigh.toFixed(2)} mg/L</strong></div>
     </div>
     {#if $language === 'en'}
       <p class="hint">This graph shows only the assumed shape of residual SD versus prediction. It does not assess model adequacy: that requires individual predictions and residual diagnostics.</p>

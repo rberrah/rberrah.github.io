@@ -13,9 +13,12 @@ prerequisites: ["nca-intro"]
 glossary: ["NCA", "AUC"]
 slides: []
 sources: ["yamaoka-moments", "ema-bioequivalence", "gabrielsson-weiner"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "99ec15de79b8664032ab843935f92fdf621f700a655f5809416e07659844018e"
+reviewed_hash: "f1a3d6f6983e75757651f6dd2e76ec0d2cf31ce89097076a92ca8f09b7eb3ba7"
+scientific_values: {"ln2":0.693147,"extrapolated_auc_fraction_heuristic":0.20}
+units: {"auc":"concentration*time","lambda_z":"1/time","extrapolated_auc_fraction":"fraction"}
 quiz:
   - prompt: "La méthode des trapèzes calcule l'AUC en..."
     options:

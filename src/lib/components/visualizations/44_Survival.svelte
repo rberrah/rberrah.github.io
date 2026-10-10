@@ -2,8 +2,8 @@
   import { language } from '$lib/stores/language';
   // Courbes de survie OS et PFS (modèle paramétrique de Weibull) avec effet traitement.
   //   S(t) = exp(−(t/λ)^k) ,  hasard h(t) = (k/λ)(t/λ)^(k−1)
-  // La PFS (progression) survient plus tôt que l'OS (décès) : hasard plus élevé.
-  // Le hazard ratio (HR) < 1 traduit un bénéfice du traitement (courbes vers la droite).
+  // La PFS compte progression ou deces et ne peut donc exceder l'OS dans cette construction.
+  // Le curseur impose le meme HR proportionnel aux deux processus : c'est une hypothese.
   let hr = 0.65; // hazard ratio traitement (1 = pas d'effet)
 
   const T = 48; // mois
@@ -45,9 +45,9 @@
     <div class="readout">
       <div><span>{$language === 'en' ? 'Median PFS (treated)' : 'Médiane PFS (traité)'}</span><strong>{mPfsTrt.toFixed(1)} {$language === 'en' ? 'months' : 'mois'}</strong></div>
       <div><span>{$language === 'en' ? 'Median OS (treated)' : 'Médiane OS (traité)'}</span><strong>{mOsTrt >= T ? '> ' : ''}{Math.min(mOsTrt, T).toFixed(1)} {$language === 'en' ? 'months' : 'mois'}</strong></div>
-      <div><span>{$language === 'en' ? 'Effect' : 'Effet'}</span><strong>{hr < 1 ? ($language === 'en' ? 'benefit' : 'bénéfice') : ($language === 'en' ? 'none' : 'nul')}</strong></div>
+      <div><span>{$language === 'en' ? 'Assumed HR' : 'HR supposé'}</span><strong>{hr.toFixed(2)}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'PFS declines before OS. An HR below 1 shifts both curves to the right and increases median survival.' : "La PFS chute avant l'OS. Un HR < 1 (traitement efficace) décale les deux courbes vers la droite : la survie médiane augmente."}</p>
+    <p class="hint">{$language === 'en' ? 'PFS is progression or death, whereas OS is death. These are illustrative Weibull curves: imposing a constant HR below 1 shifts both model curves, conditional on proportional hazards and the chosen parameters. This is not evidence that changing dose causes longer survival.' : "La PFS correspond à la progression ou au décès, l’OS au décès. Ces courbes de Weibull sont illustratives : imposer un HR constant inférieur à 1 décale les deux courbes du modèle, sous l’hypothèse des risques proportionnels et des paramètres choisis. Cela ne prouve pas qu’une modification de dose prolonge causalement la survie."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'OS and PFS survival curves' : 'Courbes de survie OS et PFS'}>

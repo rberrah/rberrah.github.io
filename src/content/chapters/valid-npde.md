@@ -2,7 +2,7 @@
 id: "valid-npde"
 slug: "valid-npde"
 title: "NPDE : résidus par simulation"
-description: "Des résidus qui devraient suivre une loi normale : les NPDE, diagnostic robuste par simulation."
+description: "Des résidus attendus proches d'une loi normale standard sous les hypothèses du modèle : les NPDE, diagnostic par simulation."
 summary: "Les NPDE (normalized prediction distribution errors) : construction par simulation et lecture."
 track: "valid"
 order: 92
@@ -13,9 +13,12 @@ prerequisites: ["valid-gof"]
 glossary: ["Résidus (WRES/CWRES/IWRES/NPDE)", "VPC"]
 slides: []
 sources: ["brendel-npde", "hooker-cwres"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "5f0be23004945da2f962d685ab28c4f16f41843a0ac3910450ca16d47ae22dd7"
+reviewed_hash: "2c899eca4d484afb1638292acc655050b7ef5db45708ee43ff02e9bcef241f1a"
+scientific_values: {"reference_mean":0,"reference_variance":1}
+units: {"npde":"standard_normal_scale","mean":"dimensionless","variance":"dimensionless"}
 quiz:
   - prompt: "Si le modèle est correct, les NPDE suivent une loi..."
     options:
@@ -46,7 +49,7 @@ C'est l'outil de référence pour la validation par simulation, avec la VPC.
 <!-- step:title="Intuition" viz="52_NPDE" -->
 Pour chaque observation, on **simule** de nombreuses valeurs sous le modèle : où se situe l'observation réelle dans cette distribution ?
 
-Si le modèle est correct, ces positions (normalisées) se répartissent comme une **gaussienne standard**. Un décalage ou un étalement trahit un problème. Montez la mauvaise spécification et observez l'écart.
+Sous un modèle correctement spécifié et les hypothèses de calcul, ces positions normalisées sont attendues comme une **gaussienne standard**. Un décalage ou un étalement suggère une inadéquation prédictive à investiguer, sans en identifier seul la cause. Montez la mauvaise spécification et observez l'écart.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="52_NPDE" -->
@@ -62,9 +65,9 @@ Réf. : Brendel K. et al., *Pharm Res* 2006 (NPDE) ; méthode développée à **
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="52_NPDE" -->
-Une moyenne de NPDE **positive** dans le sous-groupe « insuffisants rénaux » signale un modèle qui **sous-estime** leurs concentrations : une covariable ClCr manque probablement sur la clairance.
+Une moyenne de NPDE **positive** dans le sous-groupe « insuffisants rénaux » est compatible avec une sous-prédiction de leurs concentrations. Une covariable ClCr sur la clairance est une hypothèse à tester parmi d'autres explications structurelles, résiduelles ou liées aux données.
 
-Tracer les NPDE **contre le temps** ou **contre PRED** localise l'erreur (absorption, élimination, erreur résiduelle).
+Tracer les NPDE **contre le temps** ou **contre PRED** aide à caractériser où apparaît l'écart et à formuler des hypothèses sur l'absorption, l'élimination, les covariables ou l'erreur résiduelle.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
@@ -77,7 +80,7 @@ Des NPDE globalement N(0,1) peuvent **masquer** des biais opposés dans deux sou
 
 <!-- step:title="À retenir" -->
 - Les NPDE comparent chaque observation à une distribution simulée sous le modèle, après centrage et décorrélation intra-individuelle.
-- Modèle correct ⇒ NPDE ~ N(0,1) (tests de moyenne, variance, normalité).
+- Sous un modèle correctement spécifié et les hypothèses de calcul, les NPDE sont attendus proches de N(0,1) (moyenne, variance, normalité).
 - Robustes car sans linéarisation ; à examiner stratifiés (covariable, temps).
-- Un décalage/étalement local révèle un biais (souvent une covariable manquante).
+- Un décalage ou étalement local suggère une inadéquation prédictive et ouvre plusieurs hypothèses diagnostiques.
 <!-- /step -->

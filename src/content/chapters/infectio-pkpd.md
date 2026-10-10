@@ -13,10 +13,12 @@ prerequisites: ["pkpd", "nca-auc"]
 glossary: ["CMI", "PTA", "AUC", "Cmax / Tmax"]
 slides: []
 sources: ["craig-pkpd", "rybak-vanco", "eucast", "goutelle-hill"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "f2ddda7b03253511461f86d9733229b40b7e702939d12b02f98521c0b588dc91"
+reviewed_hash: "31a868392a5ec52a852e2ffaa8e63666a93f6c028b52dbe99e1c0540de440ddc"
+scientific_values: {"vancomycin_auc24_lower":400,"vancomycin_auc24_upper":600,"reference_mic_mg_l":1,"mic_dilution_factor":2}
+units: {"auc24":"mg*h/L","mic":"mg/L","auc_mic":"h","mic_dilution_factor":"fold"}
 quiz:
   - prompt: "Pour les bêta-lactamines, l'indice PK/PD prédictif d'efficacité est..."
     options:

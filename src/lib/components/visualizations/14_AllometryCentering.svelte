@@ -95,9 +95,9 @@
         {selectedCL.toFixed(2)} L/h
       </text>
 
-      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Poids (kg)" />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Weight (kg)' : 'Poids (kg)'} />
       <g transform="translate(-8,0)">
-        <Axis orient="left" scale={yScale} length={innerHeight} label="Clairance CL (L/h)" />
+        <Axis orient="left" scale={yScale} length={innerHeight} label={$language === 'en' ? 'Clearance CL (L/h)' : 'Clairance CL (L/h)'} />
       </g>
     </svelte:fragment>
   </ChartFrame>

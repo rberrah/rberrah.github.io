@@ -13,10 +13,12 @@ prerequisites: ["allometrie", "trois-approches"]
 glossary: ["Allométrie", "PK", "PD", "PBPK"]
 slides: []
 sources: ["fda-starting-dose", "ema-fih", "anderson-holford-allometry", "holford-sheiner-dose-effect"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "aa6f83520629712a44ac50549e135a2341926143d2139835c3b2112400d92148"
+reviewed_hash: "e4fdb317a09d312d55ee5b09f5669a39f839d82f53417ddb728205d7c013f881"
+scientific_values: {"hed_body_surface_exponent":0.33,"illustrative_target_occupancy":0.10}
+units: {"body_surface_exponent":"dimensionless","target_occupancy":"fraction"}
 quiz:
   - prompt: "L'approche MABEL fonde la dose de départ sur..."
     options:

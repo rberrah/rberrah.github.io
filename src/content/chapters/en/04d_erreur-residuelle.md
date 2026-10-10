@@ -13,10 +13,10 @@ prerequisites: ["variabilite-iiv-iov"]
 glossary: ["Erreur additive","Erreur proportionnelle","Erreur combinée","ε / σ","Résidus (WRES/CWRES/IWRES/NPDE)"]
 slides: []
 sources: ["berrah-residual","hooker-cwres","beal-bql","davidian-giltinan"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "b5f35c53977bc22b9ea18d8122f4047ed2bf3640b621589e4c38bf1355ae47cc"
+reviewed_hash: "38221a87ce914decc61c1fd5f0ce5a9391a374cbb421519831f3dd25505bde73"
 quiz:
   - prompt: "A proportional residual error means the noise..."
     options:
@@ -24,9 +24,9 @@ quiz:
       - "has a constant width at all concentrations"
       - "shrinks as the predicted concentration rises"
     correct: 0
-  - prompt: "A funnel-shaped |IWRES| vs predictions plot indicates..."
+  - prompt: "A funnel-shaped |IWRES| vs predictions plot notably raises suspicion of..."
     options:
-      - "an error model unsuited to these data"
+      - "a poorly described residual variance, to be checked against other diagnostics"
       - "a broadly satisfactory fit of the model"
       - "a systematic bias in the structural model"
     correct: 0
@@ -63,7 +63,7 @@ $$ y = f + \varepsilon_{add} \quad|\quad y = f\,(1 + \varepsilon_{prop}) \quad|\
 
 **How to read it — the scales metaphor.** A kitchen scale has a **fixed** precision (±1 g): additive error. An industrial scale reads a **percentage** (±0.5% of the load): proportional error. A real scale combines both — a floor **and** a %.
 
-**On the maths side.** On $|IWRES|$ vs predictions, additive error gives a **flat** cloud; proportional is flat once normalised. A **funnel** (residuals widening with the prediction) betrays an additive model where a **proportional/combined** one was needed.
+**On the maths side.** On $|IWRES|$ versus predictions, a **funnel** (residuals widening with the prediction) is notably compatible with a poorly described residual variance. It prompts comparison of additive, proportional and combined forms, but does not identify the cause by itself.
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="61_ResidualError" -->
@@ -82,5 +82,5 @@ A wrong error model distorts everything else.
 - Residual error = the gap between individual prediction and observation (measurement, timing, unmodelled).
 - Additive (constant width), proportional (constant %CV), combined (floor + %).
 - Combined is often useful on wide-range data: additive floor near the LOQ, % at high concentrations. It still has to be checked on residuals.
-- Diagnostic: |IWRES| vs predictions; a funnel = a wrong error model.
+- Diagnostic: |IWRES| versus predictions; a funnel raises a residual-variance hypothesis to check against the other diagnostics.
 <!-- /step -->

@@ -13,9 +13,12 @@ prerequisites: ["validation-vpc", "valid-gof"]
 glossary: ["VPC", "Binning", "PRED / IPRED"]
 slides: []
 sources: ["bergstrand-pcvpc", "karlsson-holford-vpc", "ema-poppk"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "3d26bfb83f30f6f877780c1724d742a99ad845b0677693cceff8269433a40944"
+reviewed_hash: "085c8bf93d34d8efdb66eb95ffa649ebcd9f7eda6a405833878398a2b57785db"
+scientific_values: {"lower_percentile":5,"median_percentile":50,"upper_percentile":95,"demo_replicates":500,"demo_subjects":60}
+units: {"percentiles":"percent","replicates":"datasets","subjects":"patients"}
 quiz:
   - prompt: "Une VPC compare..."
     options:
@@ -46,7 +49,7 @@ C'est le diagnostic de validation le plus utilisé et le plus attendu par les é
 <!-- step:title="Intuition" viz="17_VPCCrashTest" -->
 On **simule** des centaines de jeux de données sous le modèle, on en calcule les percentiles (5ᵉ, 50ᵉ, 95ᵉ), puis on regarde si les **percentiles observés** tombent dans les **bandes simulées**.
 
-Si oui, le modèle reproduit à la fois la tendance et la variabilité. Sinon, il y a un défaut de structure ou de variabilité.
+Une concordance soutient la capacité prédictive du modèle dans ce plan. Des écarts structurés suggèrent une inadéquation qui peut venir de la structure, de la variabilité, de l'erreur résiduelle, des covariables, du plan ou du binning.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="17_VPCCrashTest" -->
@@ -65,7 +68,7 @@ Réf. : Karlsson & Holford (VPC) ; Bergstrand M. et al., *AAPS J* 2011 (predicti
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="17_VPCCrashTest" -->
-Si la **médiane observée** sort de la bande simulée en phase terminale, le modèle décrit mal l'élimination. Si les **percentiles extrêmes** (5/95) sont trop resserrés dans la simulation, la **variabilité** (IIV ou erreur résiduelle) est sous-estimée.
+Si la **médiane observée** sort de façon répétée de la bande simulée en phase terminale, une mauvaise description de l'élimination fait partie des hypothèses à tester, sans être la seule. Des **percentiles extrêmes** mal reproduits peuvent être compatibles avec une IIV ou une erreur résiduelle inadéquate, mais aussi avec le design, le binning ou une structure incorrecte.
 
 La pcVPC clarifie ces lectures quand le protocole mélange plusieurs doses.
 <!-- /step -->
@@ -81,6 +84,6 @@ Des **intervalles de temps** mal choisis (bins trop larges ou mal placés) crée
 <!-- step:title="À retenir" -->
 - La VPC confronte percentiles observés et simulés (tendance + variabilité).
 - La pcVPC corrige les différences de dose/covariables entre sujets.
-- Sorties de bande : défaut de structure (médiane) ou de variabilité (extrêmes).
+- Des sorties de bande répétées génèrent des hypothèses ; elles n'identifient pas seules la composante fautive.
 - Attention au binning ; la VPC vérifie la cohérence, pas la vérité.
 <!-- /step -->

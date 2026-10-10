@@ -13,6 +13,7 @@ import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMet
 import { allRefIds, refById } from '../src/lib/content/references.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
 import { visualizationReviews } from '../src/lib/content/visualizationReviews.js';
+import { visualizationDescriptions } from '../src/lib/content/vizDescriptions.js';
 import { chapterReviewHash, visualizationReviewHash } from './review_hash.mjs';
 
 const root = process.cwd();
@@ -53,13 +54,23 @@ const requiredPedagogy = [
   'À retenir'
 ];
 const quantitativeContractSlugs = new Set([
+  'clairance-volume-demi-vie',
+  'doses-repetees',
+  'perfusion',
+  'allometrie',
   'math-stats',
+  'nca-auc',
   'nca-absorption',
   'nca-params',
   'pd-direct',
+  'infectio-pkpd',
+  'infectio-tdm',
+  'trials-fih',
   'valid-objective',
   'valid-shrinkage',
-  'valid-uncertainty'
+  'valid-uncertainty',
+  'valid-vpc',
+  'valid-npde'
 ]);
 
 const errors = [];
@@ -132,8 +143,8 @@ function validateVisualizationReviews() {
         fail(`Reviewed visualization ${stem} needs a valid reviewed_hash`);
       } else {
         const raw = fs.readFileSync(path.join(visualizationsDir, `${stem}.svelte`), 'utf8');
-        if (review.reviewed_hash !== visualizationReviewHash(raw)) {
-          fail(`Visualization review is stale for ${stem}; review it, then run npm run review:seal`);
+        if (review.reviewed_hash !== visualizationReviewHash(raw, visualizationDescriptions[stem])) {
+          fail(`Visualization review is stale for ${stem}; review it, then run npm run review:seal -- ${stem}`);
         }
       }
     }
@@ -147,13 +158,16 @@ function validateChapterReview(file, raw, data) {
     }
   }
   if (!data.reviewed_on) fail(`Missing reviewed_on in ${file}`);
+  if (data.updated_on && data.reviewed_on && String(data.reviewed_on) < String(data.updated_on)) {
+    fail(`Scientific review predates the latest update in ${file}: reviewed_on ${data.reviewed_on} < updated_on ${data.updated_on}`);
+  }
   if (!['author', 'internal', 'external'].includes(data.review_type)) {
     fail(`Invalid review_type in ${file}: expected author, internal or external`);
   }
   if (!/^[a-f0-9]{64}$/.test(data.reviewed_hash ?? '')) {
     fail(`Missing or invalid reviewed_hash in ${file}`);
   } else if (data.reviewed_hash !== chapterReviewHash(raw)) {
-    fail(`Scientific review is stale in ${file}; review this language version, then run npm run review:seal`);
+    fail(`Scientific review is stale in ${file}; review this language version, then seal that exact file`);
   }
 }
 

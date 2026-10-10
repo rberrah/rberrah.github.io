@@ -13,9 +13,12 @@ prerequisites: ["clairance-volume-demi-vie", "doses-repetees"]
 glossary: ["CL", "t½"]
 slides: ["s12"]
 sources: ["rowland-tozer", "holford-clearance", "gibaldi-perrier"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "a5a858811f7d6787101bf65407c3c7123e4be7c8cc11bcd8cac581de443a495c"
+reviewed_hash: "3969ee26d61e279a5f2b36fe4ffeea7509816965c4294605a8aba1ea37825f8b"
+scientific_values: {"steady_state_fraction":0.90,"half_lives_to_90_percent":3.321928,"fraction_after_four_half_lives":0.9375}
+units: {"steady_state_fraction":"fraction","time":"half_lives","infusion_rate":"amount/time"}
 quiz:
   - prompt: "Une entrée d'ordre 0 signifie que le débit d'entrée est..."
     options:

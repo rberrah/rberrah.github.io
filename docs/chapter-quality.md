@@ -43,6 +43,10 @@ existing visualization or laboratory already teaches the objective.
   the values needed to understand the conclusion.
 
 The generated catalogue status is in [content-inventory.md](content-inventory.md).
-After reviewing a changed French or English file, run `npm run review:seal`.
-Do not use this command as an automatic formatting step: it records that the
-current content, in each language, is the version that was reviewed.
+After reviewing a changed French or English file, seal that exact path with
+`npm run review:seal -- path/to/file.md`. For a visualization, seal its exact
+stem; its source and localized descriptions are hashed together. The no-target
+command is refused. Use `--changed` only to preview stale evidence and
+`--changed --yes` only after reviewing every listed item. A seal is scientific
+review evidence, not a formatting step. Validation also requires
+`reviewed_on >= updated_on`.

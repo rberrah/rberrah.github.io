@@ -18,18 +18,33 @@
 
   const trueCL = 5; // L/h
   const B = 400; // ré-échantillons bootstrap
-  /** @type {number[]} */
-  const z = [];
-  const rng = mulberry32(17);
-  for (let i = 0; i < B; i++) z.push(gauss(rng));
+  const sourceRng = mulberry32(17);
+  const sourceData = Array.from({ length: 200 }, () => trueCL + 1.6 * gauss(sourceRng));
 
-  $: se = 1.6 / Math.sqrt(nData); // l'erreur type décroît en 1/√N
-  $: est = z.map((g) => trueCL + se * g);
+  /** @param {number[]} values */
+  function sampleSd(values) {
+    const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+    return Math.sqrt(values.reduce((sum, value) => sum + (value - avg) ** 2, 0) / (values.length - 1));
+  }
+
+  /** @param {number[]} data */
+  function bootstrapMeans(data) {
+    const bootstrapRng = mulberry32(5100 + data.length);
+    return Array.from({ length: B }, () => {
+      let total = 0;
+      for (let i = 0; i < data.length; i += 1) total += data[Math.floor(bootstrapRng() * data.length)];
+      return total / data.length;
+    });
+  }
+
+  $: sample = sourceData.slice(0, nData);
+  $: est = bootstrapMeans(sample);
+  $: se = sampleSd(est);
   $: sorted = [...est].sort((a, b) => a - b);
   $: mean = est.reduce((a, b) => a + b, 0) / B;
-  $: lo = sorted[Math.floor(0.025 * B)];
-  $: hi = sorted[Math.floor(0.975 * B)];
-  $: rse = (se / trueCL) * 100;
+  $: lo = sorted[Math.floor(0.025 * (B - 1))];
+  $: hi = sorted[Math.floor(0.975 * (B - 1))];
+  $: rse = (se / Math.abs(mean)) * 100;
 
   const nBins = 26, xLo = 2, xHi = 8;
   $: bins = (() => {
@@ -56,7 +71,7 @@
       <div><span>{$language === 'en' ? '95% CI' : 'IC 95 %'}</span><strong>{lo.toFixed(2)}–{hi.toFixed(2)}</strong></div>
       <div><span>RSE</span><strong>{rse.toFixed(1)} %</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Each bar is an estimate from a resampled dataset. As N increases, the distribution narrows and the 95% CI and RSE decrease.' : "Chaque barre = une ré-estimation sur un jeu ré-échantillonné. Plus N est grand, plus la distribution se resserre : l'IC 95 % et le RSE diminuent."}</p>
+    <p class="hint">{$language === 'en' ? 'This is an actual nonparametric bootstrap of the mean from a fixed synthetic dataset: each of 400 estimates uses N draws with replacement. It illustrates the algorithm, not a full NLME bootstrap.' : "Il s’agit d’un vrai bootstrap non paramétrique de la moyenne d’un jeu synthétique fixe : chacune des 400 estimations utilise N tirages avec remise. L’animation illustre l’algorithme, pas un bootstrap NLME complet."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Bootstrap distribution of a parameter' : "Distribution bootstrap d'un paramètre"}>

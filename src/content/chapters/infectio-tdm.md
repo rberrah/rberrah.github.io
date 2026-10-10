@@ -13,9 +13,12 @@ prerequisites: ["infectio-pkpd", "tdm"]
 glossary: ["TDM", "MAP-BE", "CMI", "PTA"]
 slides: []
 sources: ["rybak-vanco", "roberts-dali", "minichmayr-mipd", "sheiner-forecasting"]
-reviewed_on: "2026-07-09"
+updated_on: "2026-10-10"
+reviewed_on: "2026-10-10"
 review_type: "author"
-reviewed_hash: "681f344db49cdd2b6ade3e1c849750e640c4b9c9880afded954e4058e8cfb263"
+reviewed_hash: "583c700dc3525ee17a97ec4906ac5c5612ea53180e9344a16f02f7c87ced05fc"
+scientific_values: {"vancomycin_auc24_lower":400,"vancomycin_auc24_upper":600,"reference_mic_mg_l":1,"tdm_samples_lower":1,"tdm_samples_upper":2}
+units: {"auc24":"mg*h/L","mic":"mg/L","tdm_samples":"samples"}
 quiz:
   - prompt: "Pour la vancomycine dans les infections graves à MRSA, la cible actuelle privilégiée est..."
     options:
