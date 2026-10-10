@@ -8,6 +8,7 @@ on:
     paths:
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/tests/bioconductor_reference_simulation.R'
+      - 'multiomics-engine/tests/bioconductor_null_calibration.R'
       - '.github/workflows/multiomics-bioconductor-validation.yml'
   schedule:
     - cron: '0 4 * * 1'
@@ -34,3 +35,15 @@ jobs:
           Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("DESeq2", "edgeR", "limma", "statmod"), ask=FALSE, update=FALSE)'
       - name: Fit real DESeq2, edgeR quasi-likelihood and limma-voom models
         run: Rscript multiomics-engine/tests/bioconductor_reference_simulation.R
+      - name: Quantify empirical false-discovery probability under complete null
+        env:
+          MULTIOMICS_NULL_REPLICATES: '12'
+          MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
+        run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
+      - name: Upload reference calibration summary and per-seed results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bioconductor-null-calibration
+          path: validation-artifacts/*.csv
+          if-no-files-found: warn

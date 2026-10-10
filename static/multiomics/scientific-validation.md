@@ -1104,3 +1104,22 @@ sont biologiquement valides.
 
 Les liens historiques et les implémentations de référence ne remplacent pas le
 contrôle de l'étude par un statisticien / bioinformaticien compétent.
+
+## Calibration par contrôles négatifs entièrement nuls (ajout v2)
+
+Un benchmark R distinct (`bioconductor_null_calibration.R`) simule 12 jeux
+indépendants de 40 sujets × 400 gènes sans aucun effet de groupe. Il ajuste
+réellement DESeq2, edgeR quasi-likelihood et limma-voom sur chaque jeu, avec
+le batch équilibré dans le design. Il archive les sélections q ≤ 0,05, le
+nombre de gènes testés et la fraction de simulations avec au moins une
+fausse découverte. **Sous hypothèse nulle globale, cette fraction correspond à
+la probabilité empirique de fausse découverte (FWER = FDR)** ; elle ne
+caractérise pas la FDR sous mélange de gènes nuls et différentiellement
+exprimés. Avec 12 répétitions, l'incertitude Monte Carlo est très importante :
+le seuil CI de 35 % ne détecte que des erreurs grossières et n'établit pas
+un contrôle nominal à 5 %. Une simulation étendue (≥200–1000 répétitions,
+plans variés) et des données expérimentales indépendantes sont nécessaires
+avant de qualifier une méthode de « validée ».
+
+Les résultats numériques doivent être lus dans l'artefact de l'exécution
+GitHub Actions, et **ne doivent pas être anticipés** dans la documentation.
