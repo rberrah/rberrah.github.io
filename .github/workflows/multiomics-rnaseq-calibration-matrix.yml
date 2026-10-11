@@ -1,0 +1,53 @@
+name: R1 RNA-seq reference FDR and power calibration matrix
+
+# Expensive authentic Bioconductor computation: 4 experimental designs ×
+# 100 independent datasets × 3 real statistical engines. Results are
+# retained even when unfavorable; no nominal-FDR / clinical certification.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/multiomics-rnaseq-calibration-matrix.yml'
+      - 'multiomics-engine/tests/bioconductor_rnaseq_calibration_matrix.R'
+      - 'multiomics-engine/advanced_methods.R'
+  schedule:
+    - cron: '0 5 * * 2'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rnaseq-r1-calibration-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  genuine-r-reference-calibration:
+    name: Genuine DESeq2 edgeR voom — 400 simulated studies and 1200 fits
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    env:
+      MULTIOMICS_RNASEQ_REPS: '100'
+      MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Cache installed Bioconductor dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: rnaseq-r1-bioc-${{ runner.os }}-r-${{ hashFiles('multiomics-engine/tests/bioconductor_rnaseq_calibration_matrix.R') }}
+      - name: Install real reference packages
+        run: |
+          Rscript -e 'install.packages("BiocManager",repos="https://cloud.r-project.org"); BiocManager::install(c("DESeq2","edgeR","limma","statmod"),ask=FALSE,update=FALSE); install.packages("jsonlite",repos="https://cloud.r-project.org")'
+      - name: Run predeclared 4 x 100 Monte Carlo null and mixed-truth scenarios
+        run: Rscript multiomics-engine/tests/bioconductor_rnaseq_calibration_matrix.R
+      - name: Preserve scenario reports, negative findings, data and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genuine-rnaseq-r1-400-studies-null-mixed-truth
+          path: validation-artifacts/*
+          if-no-files-found: warn
+          retention-days: 90
