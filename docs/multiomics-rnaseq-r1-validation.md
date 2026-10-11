@@ -56,16 +56,40 @@ Les tests sont dans
 
 | Scénario préspecifié | Estimands et preuves attendues | État |
 | --- | --- | --- |
-| Hypothèse nulle, 2 groupes équilibrés | Proportion de jeux avec ≥1 découverte BH (FDR=FWER sous nul global), IC binomial exact à 95 % | 12 répliques programmées dans le benchmark R ; intervalle trop large pour conclure à 5 % |
-| Nul avec profondeur variable et forte dispersion | Groupes équilibrés ; profondeur ~10× ; dispersion NB élevée ; BH à 5 % | Nouveau scénario de stress R : 8 répliques programmées, aucune validation nominale revendiquée |
-| Nul avec répartition des groupes déséquilibrée | 12 témoins / 28 traités ; lot technique associé au groupe mais non complètement confondu | Nouveau scénario de stress R : 8 répliques programmées ; puissance et couverture restent non établies |
-| Vérité mixte : 1/5/20 % de gènes modifiés | FDP par jeu, FDR moyenne, puissance, biais log2FC, nombre de gènes conservés | Implémentation des 3 scénarios de 12 simulations réelles par méthode ; conclusions conditionnées à la CI et au nombre limité de répliques |
+| Hypothèse nulle, 2 groupes équilibrés | Proportion de jeux avec ≥1 découverte BH (FDR=FWER sous nul global), IC binomial exact à 95 % | 12 répliques exécutées sur Bioconductor : 0/12 découvertes pour les 3 moteurs ; intervalle trop large pour conclure à 5 % |
+| Nul avec profondeur variable et forte dispersion | Groupes équilibrés ; profondeur ~10× ; dispersion NB élevée ; BH à 5 % | 8 jeux exécutés : DESeq2 1/8, edgeR 0/8, voom 0/8 ; aucune validation nominale revendiquée |
+| Nul avec répartition des groupes déséquilibrée | 12 témoins / 28 traités ; lot technique associé au groupe mais non complètement confondu | 8 jeux exécutés : DESeq2 2/8, edgeR 1/8, voom 0/8 ; puissance et couverture restent non établies |
+| Vérité mixte : 1/5/20 % de gènes modifiés | FDP par jeu, FDR moyenne, puissance, biais log2FC, nombre de gènes conservés | 3 scénarios de 12 jeux exécutés ; FDR estimés parfois > 5 %, revue méthodologique requise |
 | Effets faibles, forts et de signes opposés | Sensibilité, estimation et couverture des IC selon effectifs | À étendre |
 | Batch mesuré, partiellement confondu | Exactitude du contraste / vérification du rang, variations de FDR | À étendre |
 | Batch parfaitement confondu | Refus explicite, **aucune estimation identifiable** | Préflight ajouté |
 | Sujet dupliqué, étiquettes mélangées, rang dégénéré | Échec explicite, aucun calcul concluant silencieusement | Préflight ajouté |
 | Cohorte RNA-seq publique externe, non inspectée auparavant | Reproduction d'un effet primaire préspécifié, prédictions/contrastes, QC indépendants | Non établi |
 | Reproductibilité dans un environnement verrouillé | Docker/renv, versions R/DESeq2/annotation, checksums, réanalyse byte-identique ou tolérances numériques | Pas encore garanti |
+
+### Résultats R effectivement observés le 11 octobre 2026
+
+Deux workflows GitHub Actions ont **exécuté** les moteurs Bioconductor de référence sur les données simulées. Les résultats ci-dessous sont des **mesures de simulation** et non des taux d'erreur attendus pour une vraie cohorte. Les logs, les sorties par simulation et les versions R ont été conservés dans les artefacts des workflows.
+
+**Nul global (au moins une découverte BH q ≤ 0,05 par jeu)** — [workflow 38173002502](https://github.com/rberrah/rberrah.github.io/actions/runs/38173002502) :
+
+| Scénario (jeux indépendants) | DESeq2 | edgeR QL | limma-voom |
+| --- | ---: | ---: | ---: |
+| 20/20, dispersion modérée (12) | 0/12 | 0/12 | 0/12 |
+| 20/20, forte dispersion et profondeur variable (8) | 1/8 | 0/8 | 0/8 |
+| 12/28, lot technique partiellement confondu (8) | 2/8 | 1/8 | 0/8 |
+
+**Vérité mixte (FDR moyen = moyenne des proportions de fausses découvertes par jeu)** — [workflow 38174106412](https://github.com/rberrah/rberrah.github.io/actions/runs/38174106412) :
+
+| Vrais gènes modifiés parmi 400 (12 jeux par cas) | DESeq2 | edgeR QL | limma-voom |
+| --- | ---: | ---: | ---: |
+| 4 (1 %) | 11,11 % | 8,33 % | 6,67 % |
+| 20 (5 %) | 6,76 % | 3,36 % | 2,64 % |
+| 80 (20 %) | 5,45 % | 4,33 % | 3,47 % |
+
+Tous les gènes modifiés plantés ont été détectés dans ces scénarios **à forts effets**, mais ce plafond de puissance reflète la facilité artificielle de l'expérience, pas une garantie pour les études réelles. Pour DESeq2, les couvertures approximatives moyennes des IC Wald non rétrécis sur les vrais signaux sont respectivement 100 %, 92,5 % et 93,65 % selon ces trois scénarios ; il s'agit d'estimations très peu précises (12 jeux, 4/20/80 signaux). **L'observation de FDR au-dessus de 5 % dans plusieurs cellules demeure un signal de revue méthodologique**, même si le seuil logiciel d'alerte à 35 % n'a pas été dépassé. Le test ne permet **ni** de conclure à une inflation réelle du FDR **ni** d'établir sa maîtrise nominale.
+
+**Action requise avant qualification confirmatoire :** campagne indépendante bien plus grande avec précision Monte-Carlo préspecifiée, effets faibles et hétérogènes, tailles d'échantillon variées, plan confondu partiellement et facteurs techniques réalistes ; conserver les résultats négatifs et figer les versions logicielles et critères de décision avant de réexaminer les performances.
 
 ### Deuxième campagne : mélanges contrôlés de vrais et de faux signaux
 
