@@ -56,9 +56,9 @@ Les tests sont dans
 
 | Scénario préspecifié | Estimands et preuves attendues | État |
 | --- | --- | --- |
-| Hypothèse nulle, 2 groupes équilibrés | Proportion de jeux avec ≥1 découverte BH (FDR=FWER sous nul global), incertitude Monte-Carlo | Ébauche exécutée : 12 répétitions par méthode, insuffisant pour juger 5 % |
-| Nul avec profondeur variable et forte dispersion | FDR empirique / quantiles p sous versions de référence | À étendre |
-| Nul avec répartition des groupes déséquilibrée | FDR par architecture de plan, intervalles et diagnostic de sous-puissance | À étendre |
+| Hypothèse nulle, 2 groupes équilibrés | Proportion de jeux avec ≥1 découverte BH (FDR=FWER sous nul global), IC binomial exact à 95 % | 12 répliques programmées dans le benchmark R ; intervalle trop large pour conclure à 5 % |
+| Nul avec profondeur variable et forte dispersion | Groupes équilibrés ; profondeur ~10× ; dispersion NB élevée ; BH à 5 % | Nouveau scénario de stress R : 8 répliques programmées, aucune validation nominale revendiquée |
+| Nul avec répartition des groupes déséquilibrée | 12 témoins / 28 traités ; lot technique associé au groupe mais non complètement confondu | Nouveau scénario de stress R : 8 répliques programmées ; puissance et couverture restent non établies |
 | Vérité mixte : 1/5/20 % de gènes modifiés | Distribution des FDP par jeu, FDR moyenne, puissance, biais log2FC, sensibilité aux filtrages | À étendre |
 | Effets faibles, forts et de signes opposés | Sensibilité, estimation et couverture des IC selon effectifs | À étendre |
 | Batch mesuré, partiellement confondu | Exactitude du contraste / vérification du rang, variations de FDR | À étendre |
@@ -66,6 +66,18 @@ Les tests sont dans
 | Sujet dupliqué, étiquettes mélangées, rang dégénéré | Échec explicite, aucun calcul concluant silencieusement | Préflight ajouté |
 | Cohorte RNA-seq publique externe, non inspectée auparavant | Reproduction d'un effet primaire préspécifié, prédictions/contrastes, QC indépendants | Non établi |
 | Reproductibilité dans un environnement verrouillé | Docker/renv, versions R/DESeq2/annotation, checksums, réanalyse byte-identique ou tolérances numériques | Pas encore garanti |
+
+### Que mesure réellement ce nouvel audit ?
+
+Le benchmark `multiomics-engine/tests/bioconductor_null_calibration.R` exécute **trois méthodes R réelles** (DESeq2, edgeR QL, limma-voom) sur trois plans simulés, chacun avec un **effet biologique nul connu** :
+
+- **Standard :** deux groupes de 20 sujets, séries techniques équilibrées et correction du batch explicite (12 jeux indépendants).
+- **Qualité complexe :** deux groupes de 20 sujets, fortes différences de profondeur et forte surdispersion négative binomiale (8 jeux indépendants).
+- **Plan déséquilibré :** 12 témoins et 28 traités, série technique partiellement liée au groupe ; rang de la matrice de design vérifié (8 jeux indépendants).
+
+On rapporte **par méthode ET scénario** la proportion de simulations où au moins un gène nul présente q BH ≤ 0,05, avec un **intervalle binomial exact à 95 %** calculé par `binom.test`. Sous nul global, cette proportion estime le FDR et le FWER. Ces intervalles quantifient seulement l'erreur Monte-Carlo. **Zéro simulation positive sur douze donne malgré tout une borne supérieure exacte proche de 26,5 % ; sur huit, proche de 36,9 %.** Le seuil d'alerte automatisé de 35 % ne détecte que des régressions grossières.
+
+Les sorties réelles (`bioconductor_null_replicates.csv`, `bioconductor_null_summary.csv`, `bioconductor_null_scenarios.csv`, environnement R) sont archivées dans les artefacts de la CI. L'ajout du scénario dans le code **n'est pas une exécution probante** : les valeurs mesurées doivent être lues dans un workflow réussi, jamais inventées dans cette documentation. Les résultats ne sont pas assimilables à une calibration sous alternatives non nulles.
 
 **Critères de validation statistique :** définir le niveau alpha, le
 nombre de répétitions et la précision Monte-Carlo, les scénarios, les
