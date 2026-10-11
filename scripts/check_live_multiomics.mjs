@@ -47,7 +47,16 @@ try {
   const mobile=await browser.newPage({viewport:{width:390,height:844},
     isMobile:true,hasTouch:true});
   const mobileErrors=[];
+  const mobileNetworkFailures=[];
   mobile.on('pageerror',error=>mobileErrors.push(String(error?.message||error)));
+  mobile.on('requestfailed',request=>mobileNetworkFailures.push({
+    url:request.url(),reason:request.failure()?.errorText||'unknown'
+  }));
+  mobile.on('response',response=>{
+    if(response.status()>=400)mobileNetworkFailures.push({
+      url:response.url(),http_status:response.status()
+    });
+  });
   await mobile.goto(origin+'/multiomics/tool/',{
     waitUntil:'domcontentloaded',timeout:30000});
   await mobile.getByTestId('multiomics-quick-demo-rna')
@@ -57,8 +66,25 @@ try {
   if(overflow>12)
     throw new Error('Public mobile page horizontal overflow: '+overflow+'px');
   await mobile.getByTestId('multiomics-quick-demo-rna').click();
-  await mobile.getByTestId('multiomics-results')
-    .waitFor({state:'visible',timeout:30000});
+  try {
+    await mobile.getByTestId('multiomics-results')
+      .waitFor({state:'visible',timeout:30000});
+  } catch (error) {
+    const evidence=await mobile.evaluate(()=>({
+      url:location.href,
+      demoPresent:!!document.querySelector('[data-testid="multiomics-quick-demo-rna"]'),
+      demoDisabled:document.querySelector('[data-testid="multiomics-quick-demo-rna"]')?.disabled,
+      resultsPresent:!!document.querySelector('[data-testid="multiomics-results"]'),
+      visibleAlerts:[...document.querySelectorAll('[role="alert"], .alert, .error, [role="status"]')]
+        .filter(el=>el.getClientRects().length)
+        .map(el=>el.textContent?.trim().slice(0,350)).filter(Boolean).slice(0,12),
+      mainText:document.querySelector('main')?.innerText?.slice(-1400)||''
+    }));
+    console.error('PUBLIC MOBILE DEMO DIAGNOSTICS',JSON.stringify({
+      evidence,pageErrors:mobileErrors,networkFailures:mobileNetworkFailures
+    },null,2));
+    throw error;
+  }
   console.log('PASS: public mobile 390px beginner demo computes results');
   if(mobileErrors.length)
     throw new Error('Public mobile JS errors: '+mobileErrors.slice(0,5).join(' | '));

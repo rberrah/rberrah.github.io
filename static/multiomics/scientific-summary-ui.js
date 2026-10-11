@@ -4,6 +4,11 @@
   let latestDiagnostics = window.__PMX_MULTIOMICS_DIAGNOSTICS__ || null;
   const lang = () => document.documentElement.lang === 'en' ? 'en' : 'fr';
   const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+  // Diagnostics and table labels may contain strings imported from user files.
+  // Only markup authored by PMx may be inserted with innerHTML.
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
 
   function selectContaining(value) {
     const option = [...document.querySelectorAll('select option')].find((item) => item.value === value);
@@ -14,67 +19,41 @@
   const design = () => selectContaining('crossover')?.value || 'independent';
   const endpoint = () => selectContaining('survival')?.value || 'none';
 
-  function parseNumeric(text) {
-    const normalised = clean(text).replace(',', '.').replace(/[^0-9eE+\-.]/g, '');
-    if (!normalised) return null;
-    const value = Number(normalised);
-    return Number.isFinite(value) ? value : null;
-  }
-
-  function qColumnIndex(headers) {
-    const patterns = [/^q$/i,/q\s*bh/i,/fdr/i,/padj/i,/adj\.?\s*p/i,/adjusted\s*p/i,/q[-_ ]?value/i];
-    return headers.findIndex((header) => patterns.some((pattern) => pattern.test(header)));
-  }
-
-  function effectColumnIndex(headers) {
-    const patterns = [/log2\s*fc/i,/log\s*fc/i,/fold\s*(change|ratio)/i,/^effect$/i,/^estimate$/i,/delta|Δ/i,/coefficient/i];
-    return headers.findIndex((header) => patterns.some((pattern) => pattern.test(header)));
-  }
-
-  function tableLabel(table, index) {
-    const container = table.closest('section,article,div');
-    const heading = container?.querySelector('h2,h3,h4,strong');
-    return clean(heading?.textContent) || `table_${index + 1}`;
-  }
-
+  // Read ONLY the actual feature-wise inference grid. Reactome pathway FDR
+  // belongs to a different hypothesis family and must never be pooled with
+  // gene/protein/metabolite BH q-values in a novice-facing conclusion.
   function collectStatisticalEvidence() {
     const results = document.querySelector('[data-testid="multiomics-results"]');
     if (!results) return [];
     const evidence = [];
-    [...results.querySelectorAll('table')].forEach((table, tableIndex) => {
-      const headers = [...table.querySelectorAll('thead th')].map((node) => clean(node.textContent));
-      if (!headers.length) return;
-      const qIndex = qColumnIndex(headers);
-      if (qIndex < 0) return;
-      const effectIndex = effectColumnIndex(headers);
+    for (const [index, grid] of [...results.querySelectorAll('[data-testid="multiomics-feature-inference"]')].entries()) {
+      const header = grid.querySelector(':scope > .feature-head');
+      if (!header || !/q\s*BH/i.test(header.textContent || '')) continue;
       let tested = 0;
       let significant = 0;
-      let positive = 0;
-      let negative = 0;
-      for (const row of table.querySelectorAll('tbody tr')) {
-        const cells = [...row.querySelectorAll('td')];
-        if (qIndex >= cells.length) continue;
-        const q = parseNumeric(cells[qIndex]?.textContent);
-        if (q == null) continue;
-        tested += 1;
-        if (q <= 0.05) {
-          significant += 1;
-          if (effectIndex >= 0 && effectIndex < cells.length) {
-            const effect = parseNumeric(cells[effectIndex]?.textContent);
-            if (effect > 0) positive += 1;
-            if (effect < 0) negative += 1;
-          }
-        }
+      for (const row of [...grid.children]) {
+        if (row === header) continue;
+        // The displayed three-digit value can round across a 0.05 boundary.
+        // Only use the original full-precision numeric q-value from Svelte.
+        const qText = row.lastElementChild?.getAttribute('data-scientific-q');
+        if (qText == null || !qText.trim()) continue;
+        const q = Number(qText);
+        if (!Number.isFinite(q) || q < 0 || q > 1) continue;
+        tested++;
+        if (q <= 0.05) significant++;
       }
+      if (!tested) continue;
       evidence.push({
-        label: tableLabel(table, tableIndex),
-        qHeader: headers[qIndex],
+        label: clean(grid.closest('article')?.querySelector('.layer-title .method-tag')?.textContent) || `Omic ${index + 1}`,
+        qHeader: 'q BH',
         displayedRowsWithQ: tested,
         significantDisplayedRows: significant,
-        positiveSignificantDisplayedRows: positive,
-        negativeSignificantDisplayedRows: negative
+        // A fold ratio above 1 is not the same scale as a regression beta.
+        // Never infer up/down direction from heterogeneous rendered effects.
+        positiveSignificantDisplayedRows: 0,
+        negativeSignificantDisplayedRows: 0
       });
-    });
+    }
     return evidence;
   }
 
@@ -154,29 +133,27 @@
         ? 'The numerical outputs may still be useful for data checking, but the detected design problem prevents a defensible strong biological interpretation.'
         : 'Les sorties numériques peuvent rester utiles pour contrôler les données, mais le problème de design détecté empêche une interprétation biologique forte défendable.';
     }
-    const totalDisplayed = evidence.reduce((sum, item) => sum + item.displayedRowsWithQ, 0);
-    const significant = evidence.reduce((sum, item) => sum + item.significantDisplayedRows, 0);
-    const positive = evidence.reduce((sum, item) => sum + item.positiveSignificantDisplayedRows, 0);
-    const negative = evidence.reduce((sum, item) => sum + item.negativeSignificantDisplayedRows, 0);
     if (!evidence.length) {
       return language === 'en'
-        ? 'No feature-wise adjusted-q/FDR table is visible for this route. Read the multivariate structure, quality checks and pathway evidence rather than looking for a single “significant” variable.'
-        : 'Aucun tableau feature-by-feature avec q/FDR ajusté n’est visible pour cette route. Lisez la structure multivariée, les contrôles qualité et les voies biologiques plutôt que de rechercher une seule variable « significative ».';
+        ? 'No feature-wise adjusted-q/FDR rows are visible for this route. Read the multivariate structure, quality checks and pathway evidence instead of looking for a single “significant” variable.'
+        : 'Aucune ligne de résultat avec q BH ajusté n’est visible dans ce parcours. Examinez la structure multivariée, les contrôles qualité et les voies biologiques, plutôt que de rechercher une seule variable « significative ».';
     }
+    // Each omic has its own BH test family. Never pool apparent discovery
+    // proportions across omics or imply the ten-row preview covers all tests.
+    const layerCounts = evidence.map((item) =>
+      `${item.label} : ${item.significantDisplayedRows}/${item.displayedRowsWithQ}`).join(' ; ');
     if (language === 'en') {
-      const direction = (positive || negative) ? ` Among significant displayed rows, ${positive} have a positive displayed effect and ${negative} a negative displayed effect.` : '';
-      const base = `${significant} of ${totalDisplayed} displayed rows with an adjusted q/FDR meet q/FDR ≤ 0.05.${direction}`;
-      if (currentObjective === 'groups') return `${base} These are adjusted group associations, not proof of causality.`;
-      if (currentObjective === 'outcome') return `${base} Predictive performance must be read from held-out/cross-validated estimates, not from these q-values.`;
-      if (currentObjective === 'time') return `${base} Temporal association alone is not causal evidence.`;
-      return `${base} Interpret corrected feature-wise evidence together with cross-omics convergence and data quality.`;
+      const base = `Among the first feature rows displayed in each omic, q BH ≤ 0.05: ${layerCounts}. These are visible-row counts, not the discovery rate for all tested features. The main tables may use the looser exploratory q ≤ 0.10 threshold; BH corrections are performed per omic, not pooled here.`;
+      if (currentObjective === 'groups') return `${base} Group associations are not proof of causality.`;
+      if (currentObjective === 'outcome') return `${base} Prediction quality must be assessed on held-out subjects.`;
+      if (currentObjective === 'time') return `${base} Temporal association is not proof of causality.`;
+      return `${base} Explore covariation and data quality separately.`;
     }
-    const direction = (positive || negative) ? ` Parmi ces lignes significatives affichées, ${positive} ont un effet positif et ${negative} un effet négatif.` : '';
-    const base = `${significant} lignes sur ${totalDisplayed} affichant un q/FDR ajusté satisfont q/FDR ≤ 0,05.${direction}`;
-    if (currentObjective === 'groups') return `${base} Il s’agit d’associations ajustées aux groupes, pas d’une preuve de causalité.`;
-    if (currentObjective === 'outcome') return `${base} La performance prédictive doit être lue sur les estimations hors-échantillon/validation croisée, pas sur ces q-values.`;
-    if (currentObjective === 'time') return `${base} Une association temporelle n’est pas une preuve causale.`;
-    return `${base} Interprétez ces preuves corrigées avec la convergence entre omiques et la qualité des données.`;
+    const base = `Parmi les premières variables affichées par omique, q BH ≤ 0,05 : ${layerCounts}. Il s’agit seulement des lignes visibles, pas du taux de découvertes pour toutes les variables testées. Les tableaux peuvent utiliser le seuil exploratoire q ≤ 0,10 ; chaque omique a sa propre correction BH, sans regroupement ici.`;
+    if (currentObjective === 'groups') return `${base} Une association aux groupes n’est pas une preuve de causalité.`;
+    if (currentObjective === 'outcome') return `${base} La qualité prédictive doit être évaluée hors échantillon.`;
+    if (currentObjective === 'time') return `${base} Une association temporelle ne démontre pas la causalité.`;
+    return `${base} Examinez séparément les relations entre omiques et la qualité des données.`;
   }
 
   function eligibilityLabel(status, language) {
@@ -196,11 +173,11 @@
       ? { ready: 'Ready', usable_with_cautions: 'Usable with cautions', review_required: 'Review required', blocked_or_redesign_required: 'Blocked / redesign required' }
       : { ready: 'Prêt', usable_with_cautions: 'Utilisable avec précautions', review_required: 'Revue requise', blocked_or_redesign_required: 'Bloqué / plan à corriger' };
     const itemList = (title, values, kind) => values.length
-      ? `<div class="diagnostic-list ${kind}"><strong>${title}</strong><ul>${values.map((value) => `<li>${translateDiagnostic(value, language)}</li>`).join('')}</ul></div>`
+      ? `<div class="diagnostic-list ${kind}"><strong>${title}</strong><ul>${values.map((value) => `<li>${escapeHtml(translateDiagnostic(value, language))}</li>`).join('')}</ul></div>`
       : '';
     return `
       <div class="engine-diagnostics" data-testid="multiomics-engine-diagnostics">
-        <div class="engine-diagnostics-head"><strong>${statusTitle}</strong><b>${statusMap[diagnostics.status] || diagnostics.status}</b></div>
+        <div class="engine-diagnostics-head"><strong>${statusTitle}</strong><b>${escapeHtml(statusMap[diagnostics.status] || diagnostics.status)}</b></div>
         ${itemList(language === 'en' ? 'Blocking issues' : 'Problèmes bloquants', blockers, 'blocking')}
         ${itemList(language === 'en' ? 'Warnings' : 'Avertissements', warnings, 'warning')}
         ${itemList(language === 'en' ? 'Cautions / notes' : 'Précautions / notes', notes, 'note')}
@@ -215,14 +192,14 @@
       ['DIABLO', eligibility.diablo]
     ].map(([name, method]) => {
       if (!method) return '';
-      const reasons = (method.reasons || []).map((reason) => `<li>${translateDiagnostic(reason, language)}</li>`).join('');
+      const reasons = (method.reasons || []).map((reason) => `<li>${escapeHtml(translateDiagnostic(reason, language))}</li>`).join('');
       const sampleInfo = name === 'DIABLO' && method.smallestClass != null
         ? (language === 'en' ? `Smallest class: ${method.smallestClass}` : `Plus petite classe : ${method.smallestClass}`)
         : (language === 'en' ? `Shared subjects: ${method.sharedSubjects ?? '—'}` : `Sujets communs : ${method.sharedSubjects ?? '—'}`);
       const interpretation = name === 'MOFA2'
         ? (language === 'en' ? 'Latent covariance factors are exploratory; they are not causal mechanisms or validated biomarkers.' : 'Les facteurs latents de covariance sont exploratoires ; ce ne sont ni des mécanismes causaux ni des biomarqueurs validés.')
         : (language === 'en' ? 'Internal repeated CV supports model tuning; independent external validation is still required before biomarker claims.' : 'La validation croisée interne répétée sert au tuning ; une validation externe indépendante reste nécessaire avant toute revendication de biomarqueur.');
-      return `<article><div><strong>${name}</strong><b>${eligibilityLabel(method.status, language)}</b></div><span>${sampleInfo}</span>${reasons ? `<ul>${reasons}</ul>` : ''}<p>${interpretation}</p></article>`;
+      return `<article><div><strong>${name}</strong><b>${escapeHtml(eligibilityLabel(method.status, language))}</b></div><span>${escapeHtml(sampleInfo)}</span>${reasons ? `<ul>${reasons}</ul>` : ''}<p>${interpretation}</p></article>`;
     }).join('');
     return `<div class="method-eligibility" data-testid="multiomics-method-eligibility"><strong>${language === 'en' ? 'Advanced-method eligibility' : 'Éligibilité des méthodes avancées'}</strong><div>${cards}</div></div>`;
   }
@@ -359,16 +336,16 @@
     const eligibility = methodEligibilityHtml(language, latestDiagnostics);
     const rules = methodologicalRules(language).map(([title, text]) => `<article><strong>${title}</strong><span>${text}</span></article>`).join('');
     const evidenceHtml = evidence.length
-      ? evidence.map((item) => `<li><strong>${item.label}</strong><span>${item.significantDisplayedRows}/${item.displayedRowsWithQ} ${language === 'en' ? 'displayed rows with' : 'lignes affichées avec'} ${item.qHeader} ≤ 0.05</span></li>`).join('')
+      ? evidence.map((item) => `<li><strong>${escapeHtml(item.label)}</strong><span>${item.significantDisplayedRows}/${item.displayedRowsWithQ} ${language === 'en' ? 'displayed rows with' : 'lignes affichées avec'} ${escapeHtml(item.qHeader)} ≤ 0.05</span></li>`).join('')
       : `<li><strong>${language === 'en' ? 'No visible feature-wise FDR table' : 'Aucun tableau FDR feature-by-feature visible'}</strong><span>${language === 'en' ? 'This can be normal for exploratory multivariate routes.' : 'Cela peut être normal pour une route multivariée exploratoire.'}</span></li>`;
 
     const state = JSON.stringify({ language, objective: objective(), confidence, diagnostics: latestDiagnostics, evidence });
     if (panel.dataset.state === state) return;
     const wasOpen = panel.querySelector('details.scientific-extra')?.open === true;
     panel.innerHTML = `
-      <div class="scientific-summary-head"><div><span>${language === 'en' ? 'Scientific synthesis' : 'Synthèse scientifique'}</span><h3>${language === 'en' ? 'What do these results actually support?' : 'Que permettent réellement de conclure ces résultats ?'}</h3></div><b class="confidence ${confidence}">${confidenceTitle}</b></div>
-      <p class="scientific-conclusion">${conclusion}</p>
-      <p class="scientific-confidence">${confidenceText}</p>
+      <div class="scientific-summary-head"><div><span>${language === 'en' ? 'Scientific synthesis' : 'Synthèse scientifique'}</span><h3>${language === 'en' ? 'What do these results actually support?' : 'Que permettent réellement de conclure ces résultats ?'}</h3></div><b class="confidence ${confidence}">${escapeHtml(confidenceTitle)}</b></div>
+      <p class="scientific-conclusion">${escapeHtml(conclusion)}</p>
+      <p class="scientific-confidence">${escapeHtml(confidenceText)}</p>
       <details class="scientific-extra"><summary>${language === 'en' ? 'Scientific checks and reproducible exports' : 'Vérifications et exports scientifiques'}</summary>
       ${diagnostics}
       ${eligibility}
