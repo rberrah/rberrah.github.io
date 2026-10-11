@@ -59,13 +59,21 @@ Les tests sont dans
 | Hypothèse nulle, 2 groupes équilibrés | Proportion de jeux avec ≥1 découverte BH (FDR=FWER sous nul global), IC binomial exact à 95 % | 12 répliques programmées dans le benchmark R ; intervalle trop large pour conclure à 5 % |
 | Nul avec profondeur variable et forte dispersion | Groupes équilibrés ; profondeur ~10× ; dispersion NB élevée ; BH à 5 % | Nouveau scénario de stress R : 8 répliques programmées, aucune validation nominale revendiquée |
 | Nul avec répartition des groupes déséquilibrée | 12 témoins / 28 traités ; lot technique associé au groupe mais non complètement confondu | Nouveau scénario de stress R : 8 répliques programmées ; puissance et couverture restent non établies |
-| Vérité mixte : 1/5/20 % de gènes modifiés | Distribution des FDP par jeu, FDR moyenne, puissance, biais log2FC, sensibilité aux filtrages | À étendre |
+| Vérité mixte : 1/5/20 % de gènes modifiés | FDP par jeu, FDR moyenne, puissance, biais log2FC, nombre de gènes conservés | Implémentation des 3 scénarios de 12 simulations réelles par méthode ; conclusions conditionnées à la CI et au nombre limité de répliques |
 | Effets faibles, forts et de signes opposés | Sensibilité, estimation et couverture des IC selon effectifs | À étendre |
 | Batch mesuré, partiellement confondu | Exactitude du contraste / vérification du rang, variations de FDR | À étendre |
 | Batch parfaitement confondu | Refus explicite, **aucune estimation identifiable** | Préflight ajouté |
 | Sujet dupliqué, étiquettes mélangées, rang dégénéré | Échec explicite, aucun calcul concluant silencieusement | Préflight ajouté |
 | Cohorte RNA-seq publique externe, non inspectée auparavant | Reproduction d'un effet primaire préspécifié, prédictions/contrastes, QC indépendants | Non établi |
 | Reproductibilité dans un environnement verrouillé | Docker/renv, versions R/DESeq2/annotation, checksums, réanalyse byte-identique ou tolérances numériques | Pas encore garanti |
+
+### Deuxième campagne : mélanges contrôlés de vrais et de faux signaux
+
+Le fichier `multiomics-engine/tests/bioconductor_mixed_truth_reference.R` génère des données de comptages négatifs binomiaux à **400 gènes**, **40 sujets indépendants** et lot technique mesuré. Trois scénarios préspécifiés introduisent **4 (1 %), 20 (5 %) ou 80 (20 %) vrais gènes différentiels**. La moitié de ces gènes est sur-exprimée et l'autre moitié sous-exprimée, à effet nominal ±1,5 sur l'échelle log2. Les mêmes simulations servent aux trois moteurs réels **DESeq2, edgeR QL et limma-voom**.
+
+Les métriques calculées sans connaître le résultat à l'avance sont : **FDP** = faux gènes sélectionnés / tous les gènes sélectionnés dans chaque jeu, **FDR estimée** = moyenne des FDP entre jeux indépendants, **puissance** = vrais signaux détectés / tous les vrais signaux plantés (y compris ceux éliminés par filtrage), erreurs de signe, biais et erreur absolue du log2FC. Des intervalles bootstrap à 95 % sur la FDR sont produits en rééchantillonnant les **jeux indépendants**, jamais les gènes comme s'il s'agissait de nouvelles études. Les seules couvertures d'IC calculées dans cette campagne concernent les intervalles de Wald approximatifs, **non rétrécis**, de DESeq2 ; elles ne doivent pas être assimilées aux intervalles des autres moteurs.
+
+**Ce que ce test ne démontre pas :** la présence de vrais gènes modifiés ne garantit pas la calibration. Avec 12 simulations par scénario, les estimations restent fragiles ; la vérité simulée n'englobe pas les vrais batchs biologiques, les biais d'annotation, les études longitudinales ni l'indépendance des prélèvements d'une cohorte réelle. Les fichiers CSV et `sessionInfo()` sont archivés et les échecs grossiers restent bloquants. Une calibration nominale exploitable nécessitera une simulation beaucoup plus importante, indépendante de la mise au point du pipeline, ainsi qu'une réplication externe avec protocole gelé.
 
 ### Que mesure réellement ce nouvel audit ?
 
