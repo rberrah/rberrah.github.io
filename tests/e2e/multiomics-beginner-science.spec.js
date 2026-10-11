@@ -142,5 +142,7 @@ test('Real MOFA2 negative pairing result is understandable and disclosed in Fren
     await expect(negative).toContainText(claim);
     await expect(negative).toContainText('0.5313'.replace('.',locale==='fr'?',':'.'));
     await expect(negative).toContainText(locale==='fr'?'normalisation':'normalization');
+    await expect(negative).toContainText(locale==='fr'?'0,9359':'0.9359');
+    await expect(negative).toContainText(locale==='fr'?'Le résultat dépend donc fortement du prétraitement':'Changing the preprocessing substantially changed');
   }
 });

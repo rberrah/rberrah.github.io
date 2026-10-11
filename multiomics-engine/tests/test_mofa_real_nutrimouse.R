@@ -196,6 +196,64 @@ cat(sprintf("REAL MOFA2 NEGATIVE FALSIFICATION: both_genotype_diet_associations_
   records[[1L]]$max_conditional_r2$diet_given_genotype,
   perturbed$summary$max_conditional_r2$genotype_given_diet,
   perturbed$summary$max_conditional_r2$diet_given_genotype))
+# Independent BASE-R single-omic PCA comparators, computed strictly without
+# phenotype labels. Keep ALL four prespecified view/preprocessing baselines,
+# not only a PC or arm with the strongest apparent genotype/diet association.
+# Identical 40 animals, identical 3 post-fit tested factors and 199 stratified
+# permutations as MOFA2. This is descriptive and not a paired predictive
+# test, a model-agnostic synergy estimate or external confirmation.
+pca_comparators<-list()
+for(view in names(blocks)){
+  for(preprocessing in c("raw_centered","per_feature_zscore")){
+    standardize<-identical(preprocessing,"per_feature_zscore")
+    baseline<-mofa_real_single_view_pca(blocks[[view]],
+      n_components=3L,feature_standardization=standardize)
+    baseline_audit<-mofa_real_metadata_audit(
+      baseline$scores,geno,diet,n_permutations=199L,seed=20261011L)
+    key<-paste(view,preprocessing,sep="__")
+    pvals<-baseline_audit$empirical_p_max_across_factors
+    if(!identical(sort(names(pvals)),
+                  sort(c("genotype_given_diet","diet_given_genotype"))))
+      stop("Single-omic comparator outcomes lost their metadata identities")
+    pca_comparators[[key]]<-list(
+      view=view,preprocessing=preprocessing,
+      animals=nrow(baseline$scores),features=baseline$measured_feature_count,
+      components=baseline$n_components,
+      variance_explained_by_PC=baseline$explained_variance_fraction,
+      max_partial_r2=as.list(baseline_audit$observed_max_partial_r2),
+      empirical_p_max_across_three_PCs=as.list(pvals),
+      bonferroni_adjusted_across_four_views_and_two_endpoints=
+        as.list(stats::setNames(pmin(1,8*pvals),names(pvals))),
+      permutations=199L,preprocessing_label_blind=TRUE,
+      source_feature_selection_by_original_authors=TRUE,
+      interpretation="Exploratory retrospective single-omic PCA. The four arms and two phenotype endpoints are not independent tests; adjusted p-values are a conservative post-fit descriptive screen, not external validation or evidence of integration synergy."
+    )
+    utils::write.csv(baseline$scores,
+      file.path(output,paste0("single_omic_pca_",key,"_scores.csv")),
+      row.names=TRUE)
+    cat(sprintf("NUTRIMOUSE SINGLE-OMIC PCA BASELINE: view=%s preprocessing=%s geno_cond_R2=%.4f diet_cond_R2=%.4f p_geno=%.4f p_diet=%.4f (4 arms + 2 endpoints, NOT a synergy test)\n",
+      view,preprocessing,
+      baseline_audit$observed_max_partial_r2[["genotype_given_diet"]],
+      baseline_audit$observed_max_partial_r2[["diet_given_genotype"]],
+      pvals[["genotype_given_diet"]],pvals[["diet_given_genotype"]]))
+  }
+}
+if(length(pca_comparators)!=4L)
+  stop("Every prespecified single-view comparator must be retained")
+pca_report<-list(
+  scenario="Four unsupervised single-omic PCA reference analyses on real paired Nutrimouse",
+  views=names(blocks),preprocessing=c("raw_centered","per_feature_zscore"),
+  subjects=40L,per_arm_factors=3L,per_arm_postfit_permutations=199L,
+  any_phenotype_used_for_preprocessing_or_pca=FALSE,
+  full_original_unfiltered_transcriptome=FALSE,
+  both_views_assayed_on_same_original_animals=TRUE,
+  comparator_kind="single-omic PCA, not single-view MOFA2 or single-view prediction",
+  comparisons=pca_comparators,
+  caveat="Descriptive associations cannot show incremental value of multi-omic integration. Comparability of partial R2 is not a matched cross-validated predictive performance comparison; both feature selection by original authors and repeated inspection of the same cohort prevent confirmatory claims."
+)
+jsonlite::write_json(pca_report,
+  file.path(output,"single_omic_pca_comparison.json"),
+  pretty=TRUE,auto_unbox=TRUE,na="null",digits=12L)
 report<-list(
  study="Real Nutrimouse, true paired hepatic transcriptomic and lipid assays",
  source="mixOmics-org/mixOmics@ef3e760526623d9e91e945e4b50be48d764efc40",
@@ -210,6 +268,8 @@ report<-list(
  model_fits=records,
  paired_two_seed_factor_correlations=stability,
  pairing_falsification_negative_result=pairing_falsification,
+ single_omic_pca_comparators=pca_report,
+ single_omic_comparison_cannot_establish_synergy=TRUE,
  per_fit_normalization_qc_included=TRUE,
  featurewise_normalization_sensitivity=normalization_sensitivity,
  featurewise_normalization_is_unsupervised_same_cohort=TRUE,

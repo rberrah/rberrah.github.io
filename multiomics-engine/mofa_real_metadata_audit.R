@@ -264,3 +264,55 @@ mofa_real_zscore_features <- function(blocks) {
   names(out)<-names(blocks)
   out
 }
+
+
+# Matched single-omic UNSUPERVISED PCA baseline for the real Nutrimouse
+# benchmark. Does not consume genotype/diet; labels enter only the identical
+# post-fit descriptive partial-R2/permutation audit used for MOFA2.
+# A PCA result is not a direct same-model comparison with MOFA2, and phenotype
+# association of either method cannot establish genuine cross-omic synergy.
+mofa_real_single_view_pca <- function(X, n_components=3L,
+                                      feature_standardization=FALSE) {
+  if(!is.matrix(X)||!is.numeric(X)||nrow(X)<16L||
+     ncol(X)<n_components||is.null(rownames(X))||
+     is.null(colnames(X))||anyDuplicated(rownames(X))||
+     anyDuplicated(colnames(X))||anyNA(rownames(X))||
+     anyNA(colnames(X))||any(!nzchar(rownames(X)))||
+     any(!nzchar(colnames(X)))||any(!is.finite(X))||
+     length(n_components)!=1L||!is.finite(n_components)||
+     n_components!=as.integer(n_components)||
+     n_components<1L||n_components>10L||
+     length(feature_standardization)!=1L||
+     !is.logical(feature_standardization)||
+     is.na(feature_standardization))
+    stop("Single-view PCA requires complete finite uniquely identified samples/features")
+  s<-apply(X,2L,stats::sd)
+  if(any(!is.finite(s))||any(s<=1e-12))
+    stop("PCA baseline cannot silently filter invariant variables")
+  fit<-stats::prcomp(X,center=TRUE,scale.=feature_standardization,
+                     rank.=as.integer(n_components))
+  scores<-fit$x[,seq_len(n_components),drop=FALSE]
+  colnames(scores)<-paste0("PC",seq_len(n_components))
+  if(!identical(rownames(scores),rownames(X))||
+     any(!is.finite(scores))||
+     any(apply(scores,2L,stats::sd)<=1e-8))
+    stop("PCA returned degenerate scores or changed subject identities")
+  total_variance<-if(feature_standardization) ncol(X) else sum(s^2)
+  explained<-vapply(seq_len(n_components),function(j)
+    stats::var(scores[,j])/total_variance,numeric(1L))
+  names(explained)<-colnames(scores)
+  if(any(!is.finite(explained))||any(explained<0)||
+     sum(explained)>1+1e-8)
+    stop("PCA explained-variance decomposition invalid")
+  list(
+    scores=scores,
+    explained_variance_fraction=as.list(explained),
+    measured_feature_count=ncol(X),
+    n_components=as.integer(n_components),
+    preprocessing=if(feature_standardization)
+      "Centered and independently standardized EACH feature, label-blind"
+    else "Centered each feature, original between-feature scales, label-blind",
+    labels_supplied_to_pca=FALSE,
+    caveat="PCA is an unsupervised single-omic comparator on the SAME study animals and author-preselected features. Its post-fit metadata association is exploratory, not a clinical test or proof of one-omic sufficiency."
+  )
+}
