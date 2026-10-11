@@ -168,27 +168,46 @@ validation_survival_metrics <- function(time, event, risk) {
   )
 }
 
-validation_multiclass_metrics <- function(observed, probabilities) {
+validation_multiclass_metrics <- function(observed, probabilities, sum_tolerance = 1e-6) {
   y <- as.character(observed)
   probs <- as.matrix(probabilities)
   storage.mode(probs) <- "double"
-  if (is.null(colnames(probs)) || any(!nzchar(colnames(probs)))) {
-    stop("Multiclass probability columns must be named with the corresponding outcome classes.", call. = FALSE)
+  classes <- colnames(probs)
+  if (length(classes) < 2L || anyNA(classes) || any(!nzchar(classes)) ||
+      anyDuplicated(classes)) {
+    stop("Multiclass predictions need at least two distinct, nonempty probability column labels.", call. = FALSE)
   }
-  ok <- nzchar(y) & y %in% colnames(probs) & apply(probs, 1, function(row) all(is.finite(row)))
+  if (length(y) != nrow(probs)) {
+    stop("Multiclass observed outcomes and probability rows must have equal lengths.", call. = FALSE)
+  }
+  # Out-of-range probabilities are invalid *data*, not an inconvenience to
+  # be fixed by clipping or renormalizing before reporting calibration.
+  if (any(is.finite(probs) & (probs < 0 | probs > 1))) {
+    stop("Multiclass probabilities must individually lie within [0,1].", call. = FALSE)
+  }
+  fully_finite <- rowSums(is.finite(probs)) == ncol(probs)
+  if (any(fully_finite)) {
+    sum_by_row <- rowSums(probs[fully_finite, , drop = FALSE])
+    if (any(abs(sum_by_row - 1) > sum_tolerance)) {
+      stop("Multiclass probability rows must sum to 1 (absolute tolerance 1e-6); frozen scores must not be renormalized during evaluation.", call. = FALSE)
+    }
+  }
+  # Missing outcomes, classes absent from the submitted probability panel, or
+  # missing predictions remain INCOMPLETE evidence. They are not silently
+  # relabelled as a complete external validation by the parent function.
+  ok <- !is.na(y) & nzchar(y) & y %in% classes & fully_finite
   y <- y[ok]
   probs <- probs[ok, , drop = FALSE]
-  if (length(y) < 5L || length(unique(y)) < 2L) return(list(status = "not_estimable", n = length(y)))
-  rs <- rowSums(probs)
-  valid_sum <- is.finite(rs) & rs > 0
-  y <- y[valid_sum]
-  probs <- probs[valid_sum, , drop = FALSE]
-  probs <- probs / rowSums(probs)
-  predicted <- colnames(probs)[max.col(probs, ties.method = "first")]
-  truth_index <- match(y, colnames(probs))
+  if (length(y) < 5L || length(unique(y)) < 2L) {
+    return(list(status = "not_estimable", n = length(y)))
+  }
+  # Tiny floating-point sum errors within tolerance are accepted AS SUPPLIED,
+  # not repaired; even model ranking can change after unsafe normalization.
+  predicted <- classes[max.col(probs, ties.method = "first")]
+  truth_index <- match(y, classes)
   p_true <- validation_clip_probability(probs[cbind(seq_along(y), truth_index)])
   class_recall <- vapply(unique(y), function(cls) mean(predicted[y == cls] == cls), numeric(1))
-  one_vs_rest_auc <- vapply(colnames(probs), function(cls) {
+  one_vs_rest_auc <- vapply(classes, function(cls) {
     validation_binary_auc(as.integer(y == cls), probs[, cls])
   }, numeric(1))
   finite_auc <- one_vs_rest_auc[is.finite(one_vs_rest_auc)]
@@ -282,6 +301,27 @@ validate_external_predictions <- function(
   )
   missing_columns <- setdiff(required, names(data))
   if (length(missing_columns)) stop(paste("Missing validation column(s):", paste(missing_columns, collapse = ", ")), call. = FALSE)
+  if (identical(outcome_type,"multiclass")) {
+    if (is.null(probability_columns) || length(probability_columns) < 2L ||
+        anyNA(probability_columns) ||
+        any(!nzchar(trimws(as.character(probability_columns)))) ||
+        anyDuplicated(probability_columns)) {
+      stop("Multiclass validation requires at least two distinct, named probability columns.",call.=FALSE)
+    }
+    if (outcome_column %in% probability_columns) {
+      stop("Multiclass outcome column cannot also be a probability column.",call.=FALSE)
+    }
+  }
+  if (identical(outcome_type,"count")) {
+    y_count <- suppressWarnings(as.numeric(data[[outcome_column]]))
+    mu_count <- suppressWarnings(as.numeric(data[[prediction_column]]))
+    if (any(is.finite(y_count) & (y_count < 0 | abs(y_count-round(y_count)) > 1e-8))) {
+      stop("Observed count outcomes must be nonnegative whole numbers.",call.=FALSE)
+    }
+    if (any(is.finite(mu_count) & mu_count < 0)) {
+      stop("Predicted count means must be nonnegative.",call.=FALSE)
+    }
+  }
   # A probability is defined only on [0,1]. Do not convert impossible
   # submitted scores into apparently well-calibrated probabilities via clip.
   if(identical(outcome_type,"binary") && identical(prediction_kind,"probability")){
