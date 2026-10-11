@@ -13,10 +13,10 @@ prerequisites: ["tools-nonmem"]
 glossary: ["Distribution logit-normale", "A priori / prior", "SAEM", "MCMC", "VPC"]
 slides: []
 sources: ["bauer-nonmem-1", "bauer-nonmem-2", "keizer-psn-xpose", "jonsson-karlsson-scm"]
-updated_on: "2026-10-09"
-reviewed_on: "2026-10-09"
+updated_on: "2026-10-11"
+reviewed_on: "2026-10-11"
 review_type: "author"
-reviewed_hash: "b0767299e42fb021fbc1206a215cb948559b2590eb64a114fb5fe73e57d031b8"
+reviewed_hash: "7e01a671f15fe62765b0f3fb9c3338e77b3fbbd0a868e98e11b818c7a2546285"
 quiz:
   - prompt: "Le MU-referencing accélère SAEM parce que..."
     options:
@@ -60,7 +60,7 @@ Choisissez la transformation d'après le **domaine physique** du paramètre, jam
 :::
 <!-- /step -->
 
-<!-- step:title="La formule décortiquée" viz="16_SAEMCycle" -->
+<!-- step:title="La formule décortiquée" -->
 **Logit — pour un paramètre borné**
 
 Sur l'échelle logit, le paramètre redevient non borné, donc compatible avec un ETA normal :

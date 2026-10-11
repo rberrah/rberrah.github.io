@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { calculateShrinkage, shrinkagePopulation } from '$lib/science/visualizationMath.js';
 
   const N = 100;
   const BINS = 17;
@@ -7,41 +8,7 @@
   let samples = 2;
   let residualSd = 0.6;
 
-  /** @param {number} seed */
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0;
-      seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  /** @param {() => number} rng */
-  function normal(rng) {
-    const u = Math.max(rng(), 1e-12);
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
-  }
-
-  /** @param {number[]} values */
-  function sd(values) {
-    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-    return Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (values.length - 1));
-  }
-
-  /** @param {number[]} values */
-  function standardize(values) {
-    const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-    const spread = sd(values);
-    return values.map((value) => (value - mean) / spread);
-  }
-
-  const rng = mulberry32(20261010);
-  const trueZ = standardize(Array.from({ length: N }, () => normal(rng)));
-  const rawNoise = standardize(Array.from({ length: N }, () => normal(rng)));
-  const covariance = rawNoise.reduce((sum, value, index) => sum + value * trueZ[index], 0) / (N - 1);
-  const noiseZ = standardize(rawNoise.map((value, index) => value - covariance * trueZ[index]));
+  const { trueZ, noiseZ } = shrinkagePopulation(20261010, N);
 
   /** @param {number[]} values @param {number} limit */
   function histogram(values, limit) {
@@ -54,13 +21,8 @@
     return counts;
   }
 
-  $: measurementSe = residualSd / Math.sqrt(samples);
-  $: ebeWeight = omega ** 2 / (omega ** 2 + measurementSe ** 2);
-  $: trueEtas = trueZ.map((value) => omega * value);
-  $: noisyIndividualEstimates = trueEtas.map((value, index) => value + measurementSe * noiseZ[index]);
-  $: ebe = noisyIndividualEstimates.map((value) => ebeWeight * value);
-  $: ebeSd = sd(ebe);
-  $: shrinkage = Math.max(0, Math.min(1, 1 - ebeSd / omega));
+  $: summary = calculateShrinkage({ omega, samples, residualSd, trueZ, noiseZ });
+  $: ({ trueEtas, ebe, ebeSd, shrinkage } = summary);
   $: limit = Math.max(0.6, omega * 3.2);
   $: trueHistogram = histogram(trueEtas, limit);
   $: ebeHistogram = histogram(ebe, limit);

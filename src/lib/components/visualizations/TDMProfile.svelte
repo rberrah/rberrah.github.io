@@ -45,9 +45,9 @@
     return `${i ? 'L' : 'M'}${xt(t).toFixed(1)},${yc(pred(t, clInd)).toFixed(1)}`;
   }).join(' ');
 
-  $: verdict = clInd > CLpop * 1.15 ? ($language === 'en' ? 'eliminates faster: consider a higher or more frequent dose' : 'élimine plus vite → envisager une dose plus élevée / rapprochée')
-    : clInd < CLpop * 0.85 ? ($language === 'en' ? 'eliminates more slowly: consider a lower or less frequent dose' : 'élimine plus lentement → envisager une dose plus basse / espacée')
-    : ($language === 'en' ? 'is close to the typical profile' : 'proche du profil typique');
+  $: verdict = clInd > CLpop * 1.15 ? ($language === 'en' ? 'CL is estimated above the typical value' : 'CL est estimée au-dessus de la valeur typique')
+    : clInd < CLpop * 0.85 ? ($language === 'en' ? 'CL is estimated below the typical value' : 'CL est estimée sous la valeur typique')
+    : ($language === 'en' ? 'CL is estimated close to the typical value' : 'CL est estimée proche de la valeur typique');
 </script>
 
 <div class="wrap">
@@ -58,9 +58,9 @@
     <div class="cycle"><span>{$language === 'en' ? 'Measure' : 'Mesurer'}</span> → <span>{$language === 'en' ? 'Estimate' : 'Estimer'}</span> → <span>{$language === 'en' ? 'Adjust' : 'Ajuster'}</span></div>
     <div class="readout">
       <div><span>CL population</span><strong>{CLpop.toFixed(1)}</strong> L/h</div>
-      <div><span>{$language === 'en' ? 'Individual CL (EBE)' : 'CL individuelle (EBE)'}</span><strong>{clInd.toFixed(2)}</strong> L/h</div>
+      <div><span>{$language === 'en' ? 'Individual CL (MAP)' : 'CL individuelle (MAP)'}</span><strong>{clInd.toFixed(2)}</strong> L/h</div>
     </div>
-    <p class="hint">{$language === 'en' ? 'The patient' : 'Le patient'} {verdict}.</p>
+    <p class="hint">{verdict}. {$language === 'en' ? 'This one-sample teaching update fixes V and assumes a one-compartment IV-bolus model. Dose adjustment would still require a defined exposure target, regimen simulation and clinical context.' : 'Cette mise à jour pédagogique à un prélèvement fixe V et suppose un bolus IV à un compartiment. Une adaptation de dose exige encore une cible d’exposition, la simulation du schéma et le contexte clinique.'}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'TDM profile: population vs individual' : 'Profil TDM : population vs individuel'}>

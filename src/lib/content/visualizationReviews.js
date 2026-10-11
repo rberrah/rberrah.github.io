@@ -22,15 +22,15 @@ export const visualizationReviews = {
   },
   "17_VPCCrashTest": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "540a3a26d42b84c7ccb56573925fcb87e856c428a7f984f01071fe4de8ef9011"
+    "reviewed_hash": "65e8c1b395871de70a47526bcb6c113efc21beba67813888f3e7ae530c98fce9"
   },
   "18_BayesianShrinkage": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "a16d78d8e6442e57d1c652b40fab9265be71de155bb53a5b8e354cb6998bbe32"
+    "reviewed_hash": "1f50e694bbe73f2180ea934d7e50cd71939635eef93f787a4e03667e44847023"
   },
   "42_VarImportance": {
     "status": "reviewed",
@@ -40,9 +40,9 @@ export const visualizationReviews = {
   },
   "50_GOFPlots": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "8eb57868c880f91ac28b6eff32a274b76de699a9992495196c4fedc3ac08dc4a"
+    "reviewed_hash": "589f10e021033e09420c64e278c75af11c45260d2898dff86830aa79fef36a2c"
   },
   "52_NPDE": {
     "status": "reviewed",
@@ -112,15 +112,15 @@ export const visualizationReviews = {
   },
   "16_SAEMCycle": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "cd816fe532cd48745a0f43c2860cb1c1e458c738bbcbd286b0b69f56c90744c4"
+    "reviewed_hash": "d8444d6f89d8a44dd94072b93e6cf4372a30fead7c0b7e137056c40e9180d2c0"
   },
   "19_VSURF": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "2e787cd3c0d5e8b5526fff4ab6ea32c1fa64f00abc02c1bcf5a6ddf7ff1c7ae6"
+    "reviewed_hash": "73f17badae854cc24223ab7933e7ae7b9a1b337fbc21bd2d6b2b03c174de37d6"
   },
   "43_Copula": {
     "status": "reviewed",
@@ -148,21 +148,21 @@ export const visualizationReviews = {
   },
   "53_ForestPlot": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "f8147624ff03aea945c28c8d4cf9282683585965f2efdd0b4e229f7a62ac7d38"
+    "reviewed_hash": "7664bc9364c1953fed1855ae895971d3aa3219d491b606067403c4914355fdc0"
   },
   "55_ADA": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "3a761069cab6dd43ffaade4bbf6bb8c0095af197ac479a9394c6899a59117ca5"
+    "reviewed_hash": "628d8c6d13528d2101b4990246c413bbbaca18b19b7cb7f2fee931ebd10e2a5b"
   },
   "56_PKPDIndex": {
     "status": "reviewed",
-    "reviewed_on": "2026-10-10",
+    "reviewed_on": "2026-10-11",
     "review_type": "author",
-    "reviewed_hash": "27766336b86b9d607dd6c6bd2c2e831d7cb4a7d592650d0fa14e6e6136bf91de"
+    "reviewed_hash": "d0d6563d4cfd2425e79d887f0147c1a7ce64fbb5db1011f4c69181fb8383ef53"
   },
   "57_Tolerance": {
     "status": "reviewed",
@@ -193,6 +193,198 @@ export const visualizationReviews = {
     "reviewed_on": "2026-10-10",
     "review_type": "author",
     "reviewed_hash": "3a038a2e049417b625dff05333684b99e3cb1fcdbdd375ec1eff62bd2cfc3f48"
+  },
+  "03_PopulationDistrib": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "9b7ad6e1320a7baa52886de8191b0d11ab5028aaa87d1d9f0644a07ba7f5d11a"
+  },
+  "08_AUCTrap": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "88194dd1397f9dc170fde5f3a623c9311459c09b1329654ebb326d96985211ca"
+  },
+  "09_PK1C": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "f5b0551738ffa8071c996097d80c4146cc8180ed0c5f8776f37ec89d64a1042e"
+  },
+  "10_PK2C": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "b88f1d6b5f19a7e188c4d10217eb33785bdab851ed06c94e5aea2a73ffa10f9f"
+  },
+  "12_VariabilitySandbox": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "98affec77291c9888d80432ed4016053b1e36373085a6275dc003932546c0c0e"
+  },
+  "21_PopPKPlayground": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "b38a9255d6d60b452b7ac19d8e5a993183f256fd55ef281097f23f1060950cca"
+  },
+  "30_TumorGrowth": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "376dc67293d263ebd8c837b40ce96380fcbb2868366c314dc83bb5463d13d928"
+  },
+  "32_Myelosuppression": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "2c4a07d9a33db9280af140ea72f901ca6ee93da6bf14026e20bc574b9cd238d0"
+  },
+  "40_TreeEnsemble": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "881b62348d6da618bd78796b2879de66b6af74c579a50455321c5b3015e4da91"
+  },
+  "41_SVMMargin": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "b532293fcd114c199975a0c587e8dc14818c526cd820aa2476729938d8144c2a"
+  },
+  "65_ParentMetabolite": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "e24bedac23023a233d3cdca9519af809f421242b7220d88a0117a386244ea924"
+  },
+  "EmaxHill": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "6e25237302baf9c99eb5c845ccc8149e76c41d198bc4e66ce7a1cdfe9c167abe"
+  },
+  "EstimationFit": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "dd41f928a4e8927034cc254afd3855de56955e5c1f26793fbe9eb469fbe5a52b"
+  },
+  "IVBolusExplorer": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "31f47083e1ccc9ea6c4fd3561bf1511ad9598295a858dcd34b366c5045b80181"
+  },
+  "Infusion": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "70fa566cbaccedf5654b8a52041457b601bab4d2c9b845005b8d722063c202c5"
+  },
+  "MultiDose": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "74b70fe229c4ca661170673f4be7710aa76a8cb7a7d911d848facc5f7919e178"
+  },
+  "OralAbsorptionExplorer": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "781b73e6f6ad975e462cf431693808626d22662c6b231ee53736b46f25efd119"
+  },
+  "SheinerEffect": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "bda12bd135a94f393a3b282b5b75b1b152ce67ebc6402d9c2b3ee0c23a8c7612"
+  },
+  "TDMProfile": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "15888639c75870e1844ab71dff0bb9072199dc8f4599716a6663554c0a5db5bd"
+  },
+  "Turnover": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "5a1f089302c1b3d1a7d5518dba4164f9aed7d913c6d356710f5cffe27d3fe56d"
+  },
+  "01_HumanBody": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "6a88c399ad413e97bbc84880f870276709cdecbf42f50b43d8924559c65caa86"
+  },
+  "02_BucketSim": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "0c30858e1847f70c25db4f3ad760b11e8f9c77c6384d05ac8cfda868e7c187ff"
+  },
+  "04_ThreeApproaches": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "5bd309e76f2dca3eba14a43f9314da3dfa94072c5507f84d75f873223a3bbba4"
+  },
+  "11_ADEChooser": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "0d8581b76187e5a705dbea489eca294cfd2bac7f47791cbed1b8d033bcc11e7d"
+  },
+  "20_NeuralBox": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "fb5f788c0ee01eb7e95c99a1c85079895e3b2661e3d41dfb42c1951ae53c3ed5"
+  },
+  "31_JointSurvival": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "32b06cdb69c52e47d5f9540d3e2a6e8d73e6b6c030ec35d7e334744cec86663f"
+  },
+  "BuildingBlocksPKPD": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "6aef3dbdbf40df932cd5e1ed3656e011ddada8f7d6490c5de9e52d50c14aae3e"
+  },
+  "CovariateGroups": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "8a086e95642ec17901c7d57f7f2db81550766cd17194b38b51a4b747dee5fa1b"
+  },
+  "CovariateImplementation": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "7539bfe79b5554f41b1896fd01fcce4cb8143b582742db14b293fe5efe630656"
+  },
+  "CovariatePhysiology": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "a792ca8a3a5f53f07bb8570599cccd94cd7986506d94c96ee433176bd15dc1a4"
+  },
+  "CovariateSymbolic": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "f4cb142e19afbaa06a9b88fe10ea947b29c4da2d2dff2dc3e632dcf10e7a0d39"
+  },
+  "SlideFigure": {
+    "status": "reviewed",
+    "reviewed_on": "2026-10-11",
+    "review_type": "author",
+    "reviewed_hash": "175413250c0c426425d5227a4a631886789536c11e64b94d97c02ac535b1c279"
   }
 };
 

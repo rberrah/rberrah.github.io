@@ -13,10 +13,10 @@ prerequisites: ["pkpd", "nca-auc"]
 glossary: ["CMI", "PTA", "AUC", "Cmax / Tmax"]
 slides: []
 sources: ["craig-pkpd", "rybak-vanco", "eucast", "goutelle-hill"]
-updated_on: "2026-10-10"
-reviewed_on: "2026-10-10"
+updated_on: "2026-10-11"
+reviewed_on: "2026-10-11"
 review_type: "author"
-reviewed_hash: "31a868392a5ec52a852e2ffaa8e63666a93f6c028b52dbe99e1c0540de440ddc"
+reviewed_hash: "11e3694dd7ced9f75168219e747a829f25f0c3a4023104e9a65bd44802def976"
 scientific_values: {"vancomycin_auc24_lower":400,"vancomycin_auc24_upper":600,"reference_mic_mg_l":1,"mic_dilution_factor":2}
 units: {"auc24":"mg*h/L","mic":"mg/L","auc_mic":"h","mic_dilution_factor":"fold"}
 quiz:
@@ -43,17 +43,17 @@ Trois **indices PK/PD** résument cela — et guident le schéma d'administratio
 <!-- step:title="Intuition" viz="56_PKPDIndex" -->
 Tracez la concentration au cours du temps et une ligne horizontale = la CMI.
 
-Trois questions : **combien de temps** reste-t-on au-dessus de la CMI ? **Quelle hauteur** atteint le pic par rapport à la CMI ? **Quelle aire** au-dessus de la CMI ? Chaque famille d'antibiotiques privilégie l'une d'elles.
+Trois questions : **combien de temps** reste-t-on au-dessus de la CMI ? **Quelle hauteur** atteint le pic par rapport à la CMI ? **Quelle exposition cumulée sur 24 h** obtient-on relativement à la CMI ? Chaque famille d'antibiotiques privilégie l'une d'elles.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="56_PKPDIndex" -->
 Les trois indices (Craig, 1998) :
 
-- **T > CMI** (temps-dépendant) : bêta-lactamines. On l'optimise par des **perfusions prolongées/continues**.
+- **%fT > CMI** (temps-dépendant) : indice usuel des bêta-lactamines lorsque la cible est définie sur la concentration libre. On l'optimise notamment par des **perfusions prolongées/continues**.
 - **Cmax / CMI** (concentration-dépendant) : indice classique des aminosides ; il peut aussi être informatif pour certaines fluoroquinolones selon le médicament, le pathogène et le critère étudié.
 - **fAUC / CMI** : indice principal le plus souvent retenu pour les fluoroquinolones, avec l'exposition libre lorsque la cible a été définie ainsi. Pour la vancomycine dans les infections graves à MRSA, le consensus 2020 recommande une **AUC₂₄ de 400–600 mg·h/L lorsque la CMI vaut 1 mg/L par microdilution en bouillon**. Cette condition et la méthode de CMI doivent être conservées dans l'interprétation.
 
-$$ \%T_{>CMI}, \qquad \frac{C_{max}}{CMI}, \qquad \frac{AUC_{24}}{CMI} $$
+$$ \%fT_{>CMI}, \qquad \frac{C_{max}}{CMI}, \qquad \frac{fAUC_{24}}{CMI} $$
 
 :::note
 Réf. : Craig W.A., *Clin Infect Dis* 1998 — cadre fondateur des indices PK/PD.

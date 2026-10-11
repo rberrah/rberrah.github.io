@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { simulateAdaProfile } from '$lib/science/visualizationMath.js';
   // Scenario conditionnel : un effet ADA impose sur la clairance modifie l'exposition.
   //   CL(t) = CL0 · [1 + θ·A(t)],  A(t) = montée logistique après la semaine d'apparition
   let theta = 3; // amplitude de l'effet ADA sur la clairance
@@ -10,30 +11,10 @@
   const T = 20, dt = 0.02; // semaines
   const target = 5; // mg/L — résiduelle cible (efficacité)
 
-  $: sim = (() => {
-    const n = Math.round(T / dt);
-    let C = 0, nextDose = 0;
-    const pts = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i * dt;
-      if (t >= nextDose - 1e-9) { C += doseAmt / V; nextDose += tau; }
-      const A = 1 / (1 + Math.exp(-(t - onset) * 1.2)); // 0→1 autour de `onset`
-      const CL = CL0 * (1 + theta * A);
-      pts.push({ t, C, A });
-      C = Math.max(0, C - (CL / V) * C * dt);
-    }
-    return pts;
-  })();
-
-  // résiduelles (juste avant chaque dose) pour juger l'efficacité
-  $: troughs = (() => {
-    const out = [];
-    for (let k = 1; k * tau < T; k++) {
-      const idx = Math.round((k * tau - 0.001) / dt);
-      out.push({ t: k * tau, C: sim[idx]?.C ?? 0 });
-    }
-    return out;
-  })();
+  // Les résiduelles sont mémorisées explicitement avant chaque nouvelle dose.
+  $: simulation = simulateAdaProfile({ theta, onset, V, CL0, dose: doseAmt, tau, T, dt });
+  $: sim = simulation.points;
+  $: troughs = simulation.troughs;
   $: lastTrough = troughs.length ? troughs[troughs.length - 1].C : 0;
   $: lost = lastTrough < target;
 

@@ -16,7 +16,7 @@ CHU de Limoges).
 ORCID : [0009-0001-6432-2880](https://orcid.org/0009-0001-6432-2880)
 
 Œuvre concernée : **PMx Explain** — cours ouvert de pharmacométrie,
-95 chapitres en français, 95 chapitres en anglais, 68 visualisations interactives.
+95 chapitres en français, 95 chapitres en anglais, 64 visualisations interactives.
 Publié à l'adresse <https://rberrah.github.io/pharmacometrie/>.
 Ce dépôt héberge également les pages du portail <https://rberrah.github.io/>, soumises
 à la même licence.

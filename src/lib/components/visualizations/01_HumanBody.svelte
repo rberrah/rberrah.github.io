@@ -45,7 +45,7 @@
     {/each}
   </svg>
   <div class="legend">
-    {$language === 'en' ? 'Hover or tab: Gut → Absorption · Blood → Distribution · Liver → Metabolism · Kidney → Elimination' : 'Survolez / tabulez : Gut → Absorption · Sang → Distribution · Foie → Métabolisme · Rein → Élimination'}
+    {$language === 'en' ? 'Hover or tab: Gut → Absorption · Blood → Distribution · Liver → Metabolism · Kidney → Elimination' : 'Survolez ou tabulez : tube digestif → absorption · sang → distribution · foie → métabolisme · rein → élimination'}
   </div>
 </div>
 

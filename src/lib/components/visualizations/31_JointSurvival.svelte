@@ -1,10 +1,9 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Modèle JOINT : la dynamique tumorale (TGI) pilote le risque de progression.
+  // Modèle JOINT pédagogique : la dynamique tumorale (TGI) est associée au risque d'événement.
   //   Longitudinal :  dTS/dt = KG·TS − K·expo·exp(−λt)·TS
   //   Lien (hasard) :  h(t) = h0 · exp(β · [TS(t)/TS0 − 1])
-  //   Survie       :  S(t) = exp(−∫ h)   (survie sans progression, PFS)
-  // Plus l'exposition réduit la tumeur, plus le hasard baisse → PFS plus longue.
+  //   Sans événement : S(t) = exp(−∫ h). Le décès n'est pas modélisé ici : ce n'est pas une PFS complète.
   let dose = 100; // exposition relative
   let beta = 1.6; // force du lien tumeur → risque
 
@@ -30,14 +29,14 @@
   }
 
   $: sel = simulate(dose, beta);
-  $: ref = simulate(0, beta); // sans traitement
+  $: ref = simulate(0, beta); // scénario sans exposition, pas un bras contrôle observé
   /** @param {{t:number,S:number}[]} s @returns {number} */
-  function medianPFS(s) {
+  function medianEventFree(s) {
     const hit = s.find((p) => p.S <= 0.5);
     return hit ? hit.t : T;
   }
-  $: mSel = medianPFS(sel);
-  $: mRef = medianPFS(ref);
+  $: mSel = medianEventFree(sel);
+  $: mRef = medianEventFree(ref);
 
   const W = 480, H = 300, m = { top: 18, right: 16, bottom: 44, left: 46 };
   $: iW = W - m.left - m.right;
@@ -53,14 +52,14 @@
     <label class="s"><span>Exposition (AUC)</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
     <label class="s"><span>{$language === 'en' ? 'Link β (tumor→risk)' : 'Lien β (tumeur→risque)'}</span><strong>{beta.toFixed(1)}</strong><input type="range" min="0" max="3" step="0.1" bind:value={beta} /></label>
     <div class="readout">
-      <div><span>{$language === 'en' ? 'Median PFS (treated)' : 'PFS médiane (traité)'}</span><strong>{mSel >= T ? '> ' : ''}{mSel.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
-      <div><span>{$language === 'en' ? 'Median PFS (control)' : 'PFS médiane (témoin)'}</span><strong>{mRef.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
-      <div><span>{$language === 'en' ? 'Gain' : 'Gain'}</span><strong>{(mSel - mRef).toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
+      <div><span>{$language === 'en' ? 'Median without modeled event' : 'Médiane sans événement modélisé'}</span><strong>{mSel >= T ? '> ' : ''}{mSel.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
+      <div><span>{$language === 'en' ? 'Scenario without exposure' : 'Scénario sans exposition'}</span><strong>{mRef.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
+      <div><span>{$language === 'en' ? 'Model-predicted difference' : 'Différence prédite par le modèle'}</span><strong>{(mSel - mRef).toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}The <em>joint model</em> links tumor size to progression risk (β): shrinking the tumor shifts the survival curve to the right.{:else}Le modèle <em>joint</em> relie la taille tumorale au risque de progression (β) : réduire la tumeur repousse la courbe de survie.{/if}</p>
+    <p class="hint">{#if $language === 'en'}This joint model associates the longitudinal tumor process with a modeled progression-event hazard. Curves are conditional predictions, not evidence that increasing dose causally improves survival. Death is not modeled, so this is not a complete PFS endpoint.{:else}Ce modèle joint associe le processus tumoral longitudinal à un risque d’événement de progression. Les courbes sont des prédictions conditionnelles, pas la preuve qu’augmenter la dose améliore causalement la survie. Le décès n’est pas modélisé : il ne s’agit donc pas d’un critère PFS complet.{/if}</p>
   </div>
 
-  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Progression-free survival curve' : 'Courbe de survie sans progression'}>
+  <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Survival without the modeled progression event' : 'Survie sans événement de progression modélisé'}>
     <g transform={`translate(${m.left},${m.top})`}>
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />
@@ -71,10 +70,10 @@
       <path d={pathSel} class="sline" />
       {#if mSel < T}<line x1={xt(mSel)} x2={xt(mSel)} y1={yS(0.5)} y2={iH} class="guide" />{/if}
       <text x={iW / 2} y={iH + 36} class="lbl">{$language === 'en' ? 'Time (weeks)' : 'Temps (semaines)'}</text>
-      <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'Progression-free survival' : 'Survie sans progression'}</text>
-      <g class="legend" transform={`translate(${iW - 128},4)`}>
-        <rect x="0" y="0" width="12" height="3" class="sline" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Treated' : 'Traité'}</text>
-        <rect x="0" y="16" width="12" height="3" class="rline" /><text x="18" y="20" class="leg">{$language === 'en' ? 'Control' : 'Témoin'}</text>
+      <text transform={`translate(-34,${iH / 2}) rotate(-90)`} class="lbl">{$language === 'en' ? 'No modeled event' : 'Sans événement modélisé'}</text>
+      <g class="legend" transform={`translate(${iW - 170},4)`}>
+        <rect x="0" y="0" width="12" height="3" class="sline" /><text x="18" y="4" class="leg">{$language === 'en' ? 'Exposure scenario' : 'Scénario exposé'}</text>
+        <rect x="0" y="16" width="12" height="3" class="rline" /><text x="18" y="20" class="leg">{$language === 'en' ? 'No exposure' : 'Sans exposition'}</text>
       </g>
     </g>
   </svg>

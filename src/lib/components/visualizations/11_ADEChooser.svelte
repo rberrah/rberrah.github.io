@@ -41,11 +41,13 @@
     const rate = dose / Math.max(infusionDuration, h);
     const points = [];
     let Acent = 0;
-    for (let t = 0; t <= tEnd; t += h) {
+    for (let i = 0; i <= Math.round(tEnd / h); i++) {
+      const t = i * h;
+      points.push({ t, c: Acent / v, agut: Math.max(0, dose - rate * Math.min(t, infusionDuration)), acent: Acent });
+      if (i === Math.round(tEnd / h)) break;
       const k10 = cl / v;
-      const inflow = t < infusionDuration ? rate * h : 0;
+      const inflow = t < infusionDuration ? rate * Math.min(h, infusionDuration - t) : 0;
       Acent += inflow - k10 * Acent * h;
-      points.push({ t, c: Acent / v, agut: Math.max(0, dose - rate * t), acent: Acent });
     }
     return points;
   }
@@ -70,8 +72,8 @@
     {/if}
   </div>
   <div class="controls">
-    <Slider label="Dose" min={50} max={600} step={10} bind:value={dose} />
-    <Slider label="Ka (1/h)" min={0.2} max={3} step={0.1} bind:value={ka} />
+    <Slider label="Dose (mg)" min={50} max={600} step={10} bind:value={dose} />
+    {#if !order0}<Slider label="Ka (1/h)" min={0.2} max={3} step={0.1} bind:value={ka} />{/if}
     <Slider label="CL (L/h)" min={0.5} max={20} step={0.5} bind:value={cl} />
     <Slider label="V (L)" min={5} max={200} step={5} bind:value={v} />
   </div>
@@ -99,18 +101,23 @@
       <text x={xScale(cmaxPoint.t)} y={yScale(cmaxPoint.c) - 8} font-size="10" fill="#ef4444">
         Cmax {cmaxPoint.c.toFixed(2)} mg/L
       </text>
-      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
       <g transform={`translate(-8,0)`}>
-        <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
+        <Axis orient="left" scale={yScale} length={innerHeight} label={$language === 'en' ? 'Concentration (mg/L)' : 'Concentration (mg/L)'} />
       </g>
     </svelte:fragment>
   </ChartFrame>
+  <div class="chart-legend">
+    <span><i class="concentration"></i>{$language === 'en' ? 'Concentration' : 'Concentration'}</span>
+    <span><i class="input"></i>{order0 ? ($language === 'en' ? 'Amount left to infuse (own scale)' : 'Quantité restant à perfuser (échelle propre)') : ($language === 'en' ? 'Depot amount (own scale)' : 'Quantité dans le dépôt (échelle propre)')}</span>
+  </div>
   <div class="kpis">
     <div><strong>AUC</strong> {auc.toFixed(2)} (mg·h/L)</div>
     <div><strong>Cmax</strong> {cmaxPoint.c.toFixed(2)} mg/L</div>
     <div><strong>Tmax</strong> {cmaxPoint.t.toFixed(2)} h</div>
     <div><strong>t½</strong> {tHalf.toFixed(2)} h</div>
   </div>
+  <small>{$language === 'en' ? 'Teaching simulation: one compartment, linear elimination, F = 1 for oral dosing. AUC is calculated from 0 to 24 h on a 0.1 h grid.' : 'Simulation pédagogique : un compartiment, élimination linéaire, F = 1 pour la voie orale. L’AUC est calculée de 0 à 24 h sur une grille de 0,1 h.'}</small>
 </div>
 
 <style>
@@ -132,4 +139,9 @@
     font-size: 0.95rem;
     color: var(--text-primary);
   }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--text-secondary); font-size: .78rem; }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .chart-legend i { width: 24px; border-top: 3px solid #2563eb; }
+  .chart-legend i.input { border-color: #22c55e; border-top-style: dashed; }
+  small { color: var(--text-secondary); line-height: 1.45; }
 </style>

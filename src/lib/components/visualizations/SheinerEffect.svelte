@@ -48,9 +48,9 @@
     <div class="readout">
       <div><span>{$language === 'en' ? 'Equilibration t½' : "t½ d'équilibrage"}</span><strong>{thalfKe0.toFixed(2)}</strong> h</div>
       <div><span>Pic Cp</span><strong>t = 0 h</strong></div>
-      <div><span>{$language === 'en' ? 'Effect peak (Ce)' : 'Pic effet (Ce)'}</span><strong>t = {cePeak.t.toFixed(1)} h</strong></div>
+      <div><span>{$language === 'en' ? 'Effect-site peak (Ce)' : 'Pic au site d’effet (Ce)'}</span><strong>t = {cePeak.t.toFixed(1)} h</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}Plasma peaks at t=0, but effect-site Ce peaks later: the <em>delay</em> comes from ke0, not PK. This creates effect-concentration <strong>hysteresis</strong>.{:else}Le plasma pique à t=0, mais l'effet (site d'effet Ce) pique plus tard : le <em>délai</em> vient de ke0, pas de la PK. Cela crée l'<strong>hystérèse</strong> effet–concentration.{/if}</p>
+    <p class="hint">{#if $language === 'en'}Plasma peaks at t=0, while the effect-site concentration Ce peaks later. ke0 describes this equilibration delay; an effect model must still transform Ce into a response.{:else}Le plasma atteint son pic à t=0, tandis que la concentration au site d’effet Ce culmine plus tard. ke0 décrit ce délai d’équilibration ; un modèle d’effet doit encore transformer Ce en réponse.{/if}</p>
   </div>
 
   <div class="stage">
@@ -75,7 +75,7 @@
         <line x1="0" x2={hiW} y1={hiH} y2={hiH} class="axis" />
         <path d={hystPath} class="hyst" />
         <text x={hiW / 2} y={hiH + 26} class="lbl">Cp</text>
-        <text transform={`translate(-28,${hiH / 2}) rotate(-90)`} class="lbl">Ce ({$language === 'en' ? 'effect' : 'effet'})</text>
+        <text transform={`translate(-28,${hiH / 2}) rotate(-90)`} class="lbl">Ce ({$language === 'en' ? 'effect site' : 'site d’effet'})</text>
         <text x={hiW / 2} y={10} class="ann">{$language === 'en' ? 'hysteresis' : 'hystérèse'}</text>
       </g>
     </svg>

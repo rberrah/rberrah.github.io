@@ -40,12 +40,15 @@
   $: treated = simulate(dose, kg, lambda);
   $: untreated = simulate(0, kg, lambda);
   $: nadir = treated.reduce((a, b) => (b.ts < a.ts ? b : a), treated[0]);
+  $: finalSize = treated[treated.length - 1].ts;
   $: bestChange = ((nadir.ts - TS0) / TS0) * 100; // % vs baseline
+  $: progressionThreshold = Math.max(nadir.ts * 1.2, nadir.ts + 5);
+  $: progressed = finalSize >= progressionThreshold && nadir.t < T;
   /** @returns {string} */
-  function recist(/** @type {number} */ pct) {
-    if (pct <= -30) return $language === 'en' ? 'Partial response (PR)' : 'Réponse partielle (RP)';
-    if (pct >= 20) return $language === 'en' ? 'Progressive disease (PD)' : 'Progression (PD)';
-    return $language === 'en' ? 'Stable disease (SD)' : 'Stable (SD)';
+  function recistLike(/** @type {number} */ pct) {
+    if (progressed) return $language === 'en' ? 'Progression-like regrowth' : 'Repousse compatible avec une progression';
+    if (pct <= -30) return $language === 'en' ? 'Partial-response-like decrease' : 'Diminution compatible avec une réponse partielle';
+    return $language === 'en' ? 'Neither threshold reached' : 'Aucun seuil atteint';
   }
 
   const W = 480, H = 300, m = { top: 18, right: 16, bottom: 44, left: 48 };
@@ -58,7 +61,7 @@
   $: pathT = treated.map((p, i) => `${i ? 'L' : 'M'}${xt(p.t).toFixed(1)},${yv(p.ts).toFixed(1)}`).join(' ');
   $: pathU = untreated.map((p, i) => `${i ? 'L' : 'M'}${xt(p.t).toFixed(1)},${yv(p.ts).toFixed(1)}`).join(' ');
   $: yPR = yv(TS0 * 0.7); // seuil RP (−30%)
-  $: yPD = yv(TS0 * 1.2); // seuil PD (+20%)
+  $: yPD = yv(progressionThreshold);
 </script>
 
 <div class="wrap">
@@ -69,9 +72,9 @@
     <div class="readout">
       <div><span>Nadir</span><strong>{nadir.ts.toFixed(0)} mm {$language === 'en' ? 'at' : 'à'} {nadir.t.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>
       <div><span>{$language === 'en' ? 'Best response' : 'Meilleure réponse'}</span><strong>{bestChange >= 0 ? '+' : ''}{bestChange.toFixed(0)}%</strong></div>
-      <div class="verdict" class:pr={bestChange <= -30} class:pd={bestChange >= 20}>{recist(bestChange)}</div>
+      <div class="verdict" class:pr={bestChange <= -30 && !progressed} class:pd={progressed}>{recistLike(bestChange)}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}Increase exposure: the tumor shrinks, then may <em>regrow</em> as resistance (λ) exhausts the effect.{:else}Montez l'exposition : la tumeur régresse, puis peut <em>ré-échapper</em> quand la résistance (λ) épuise l'effet.{/if}</p>
+    <p class="hint">{#if $language === 'en'}Conditional reduced model. The −30% baseline decrease and ≥20% plus ≥5 mm increase from nadir are target-lesion landmarks only, not a complete RECIST assessment.{:else}Modèle réduit conditionnel. La baisse de 30 % depuis la référence et la hausse ≥20 % et ≥5 mm depuis le nadir ne sont que des repères sur les lésions cibles, pas une évaluation RECIST complète.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Tumor size over time' : 'Taille tumorale au cours du temps'}>
@@ -82,7 +85,7 @@
       <line x1="0" x2={iW} y1={yPR} y2={yPR} class="thr pr" />
       <text x={iW - 2} y={yPR - 4} class="thrlbl pr">RP −30%</text>
       <line x1="0" x2={iW} y1={yPD} y2={yPD} class="thr pd" />
-      <text x={iW - 2} y={yPD - 4} class="thrlbl pd">PD +20%</text>
+      <text x={iW - 2} y={yPD - 4} class="thrlbl pd">{$language === 'en' ? 'from nadir: +20% and +5 mm' : 'depuis nadir : +20 % et +5 mm'}</text>
       <!-- courbes -->
       <path d={pathU} class="uline" />
       <path d={pathT} class="tline" />

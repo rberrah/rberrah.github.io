@@ -1,7 +1,7 @@
 <script>
   // Estimation : ajuster les paramètres (CL, V) pour faire coller le modèle aux
-  // données. La fonction objectif (OFV ≈ somme des carrés en log) mesure l'écart ;
-  // « ajuster » cherche le minimum — c'est ce que font FOCE-I / SAEM.
+  // données. Le critère est ici une simple somme des carrés sur l'échelle log ;
+  // ce n'est ni une vraisemblance NLME, ni une OFV FOCE/SAEM.
   import { onDestroy } from 'svelte';
   import { reducedMotion } from '$lib/motion/reducedMotion';
   import { language } from '$lib/stores/language';
@@ -31,23 +31,28 @@
     return s;
   }
   $: currentOfv = ofv(cl, v);
-  const bestOfv = ofv(5, 30); // meilleur atteignable (bruit résiduel)
 
-  // Descente par coordonnées (hill-climbing) : un pas vers le plus faible OFV.
+  const logObs = obs.map((point) => ({ t: point.t, y: Math.log(point.c) }));
+  const meanT = logObs.reduce((sum, point) => sum + point.t, 0) / logObs.length;
+  const meanY = logObs.reduce((sum, point) => sum + point.y, 0) / logObs.length;
+  const slope = logObs.reduce((sum, point) => sum + (point.t - meanT) * (point.y - meanY), 0)
+    / logObs.reduce((sum, point) => sum + (point.t - meanT) ** 2, 0);
+  const intercept = meanY - slope * meanT;
+  const optimum = { v: dose / Math.exp(intercept), cl: -slope * dose / Math.exp(intercept) };
+  const bestCriterion = ofv(optimum.cl, optimum.v);
+
+  // Animation vers la solution analytique de la régression log-linéaire.
   function step() {
-    let sCL = Math.max(0.05, cl * 0.04);
-    let sV = Math.max(0.2, v * 0.04);
-    let best = ofv(cl, v);
-    let nc = cl, nv = v;
-    for (const [dc, dv] of [[sCL, 0], [-sCL, 0], [0, sV], [0, -sV]]) {
-      const tc = Math.min(15, Math.max(1, cl + dc));
-      const tv = Math.min(60, Math.max(10, v + dv));
-      const val = ofv(tc, tv);
-      if (val < best) { best = val; nc = tc; nv = tv; }
+    const dCl = optimum.cl - cl;
+    const dV = optimum.v - v;
+    if (Math.abs(dCl) < 0.002 && Math.abs(dV) < 0.01) {
+      cl = optimum.cl;
+      v = optimum.v;
+      return false;
     }
-    const moved = nc !== cl || nv !== v;
-    cl = nc; v = nv;
-    return moved;
+    cl += dCl * 0.12;
+    v += dV * 0.12;
+    return true;
   }
 
   function autofit() {
@@ -84,7 +89,8 @@
     const t = (i / NP) * tEnd;
     return `${i ? 'L' : 'M'}${xt(t).toFixed(1)},${yc(pred(t, cl, v)).toFixed(1)}`;
   }).join(' ');
-  $: quality = currentOfv < bestOfv * 1.5 ? 'bon' : currentOfv < bestOfv * 4 ? 'moyen' : 'mauvais';
+  $: excess = currentOfv - bestCriterion;
+  $: quality = excess < 0.01 ? 'bon' : excess < 0.25 ? 'moyen' : 'mauvais';
 </script>
 
 <div class="wrap">
@@ -97,11 +103,11 @@
       <button on:click={reset}>↺ {$language === 'en' ? 'Reset' : 'Réinit.'}</button>
     </div>
     <div class="readout">
-      <div><span>{$language === 'en' ? 'OFV (minimize)' : 'OFV (à minimiser)'}</span><strong>{currentOfv.toFixed(2)}</strong></div>
-      <div><span>OFV optimal ≈</span><strong>{bestOfv.toFixed(2)}</strong></div>
+      <div><span>{$language === 'en' ? 'Log-scale SSE' : 'SSE sur échelle log'}</span><strong>{currentOfv.toFixed(3)}</strong></div>
+      <div><span>{$language === 'en' ? 'Analytical minimum' : 'Minimum analytique'}</span><strong>{bestCriterion.toFixed(3)}</strong></div>
       <div class:good={quality === 'bon'} class:bad={quality === 'mauvais'}><span>{$language === 'en' ? 'Fit' : 'Ajustement'}</span><strong>{$language === 'en' ? (quality === 'bon' ? 'good' : quality === 'moyen' ? 'moderate' : 'poor') : quality}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Lower OFV by moving CL and V, or run Fit to find the minimum. A low OFV does not prove the model is correct; diagnostics are still required.' : "Baissez l'OFV en bougeant CL et V, ou lancez « Ajuster » : l'algorithme cherche le minimum. Un OFV bas ne prouve pas que le modèle est juste — il faut les diagnostics."}</p>
+    <p class="hint">{$language === 'en' ? 'Move CL and V or fit the log-linear one-compartment model analytically. This teaching SSE is not an NLME OFV or likelihood; a small value does not validate the model.' : "Déplacez CL et V ou ajustez analytiquement ce modèle log-linéaire à un compartiment. Ce SSE pédagogique n’est ni une OFV NLME ni une vraisemblance ; une petite valeur ne valide pas le modèle."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Model fit to data' : 'Ajustement du modèle aux données'}>

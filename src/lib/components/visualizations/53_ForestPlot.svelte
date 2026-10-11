@@ -19,9 +19,9 @@
   $: bHi = 1 + bandPct / 100;
   /** @param {{est:number,lo:number,hi:number}} e @returns {string} */
   function status(e) {
-    if (e.lo <= 1 && e.hi >= 1) return 'incertain';
-    if (e.est < bLo || e.est > bHi) return 'pertinent';
-    return 'faible';
+    if (e.lo >= bLo && e.hi <= bHi) return 'inside';
+    if (e.hi < bLo || e.lo > bHi) return 'outside';
+    return 'overlap';
   }
 
   const W = 480, rowH = 30, m = { top: 16, right: 18, bottom: 34, left: 118 };
@@ -35,9 +35,9 @@
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'No-effect zone' : 'Zone de non-pertinence'}</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
     <div class="readout">
-      <p><span class="dot pert"></span> {$language === 'en' ? 'estimate outside band' : 'estimation hors bande'}</p>
-      <p><span class="dot faible"></span> {$language === 'en' ? 'estimate inside band' : 'estimation dans la bande'}</p>
-      <p><span class="dot inc"></span> {$language === 'en' ? 'CI crosses 1' : 'IC croisant 1'}</p>
+      <p><span class="dot inside"></span> {$language === 'en' ? 'CI entirely inside band' : 'IC entièrement dans la bande'}</p>
+      <p><span class="dot overlap"></span> {$language === 'en' ? 'CI overlaps a band limit' : 'IC chevauchant une limite'}</p>
+      <p><span class="dot outside"></span> {$language === 'en' ? 'CI entirely outside band' : 'IC entièrement hors bande'}</p>
     </div>
     <p class="hint">{#if $language === 'en'}The clinical band and the 95% CI answer different questions. Location relative to the band describes a prespecified relevance criterion; crossing 1 describes uncertainty about no effect. Neither alone proves clinical importance, and the band must be justified for the context.{:else}La bande clinique et l’IC 95 % répondent à deux questions différentes. La position par rapport à la bande décrit un critère de pertinence prédéfini ; le croisement de 1 décrit l’incertitude autour de l’absence d’effet. Aucun ne prouve seul l’importance clinique, et la bande doit être justifiée dans le contexte.{/if}</p>
   </div>
@@ -54,7 +54,7 @@
         <text x="-10" y={cy + 3} class="name">{$language === 'en' ? e.name.replace('Poids', 'Weight').replace('Âge 80 ans', 'Age 80 years').replace('Génotype', 'Genotype').replace('Sexe féminin', 'Female sex') : e.name}</text>
         <line x1={sx(e.lo)} x2={sx(e.hi)} y1={cy} y2={cy} class="ci" />
         <circle cx={sx(e.est)} cy={cy} r="5"
-          class:pert={status(e) === 'pertinent'} class:faible={status(e) === 'faible'} class:inc={status(e) === 'incertain'} />
+          class:inside={status(e) === 'inside'} class:overlap={status(e) === 'overlap'} class:outside={status(e) === 'outside'} />
       {/each}
     </g>
   </svg>
@@ -74,7 +74,7 @@
   .readout { display: grid; gap: 2px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
   .readout p { margin: 0; display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
   .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
-  .dot.pert { background: #b0392b; } .dot.faible { background: var(--text-muted); } .dot.inc { background: #c98a2e; }
+  .dot.inside { background: var(--text-muted); } .dot.overlap { background: #c98a2e; } .dot.outside { background: #b0392b; }
   .hint { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
   .chart { width: 100%; height: auto; }
   .band { fill: var(--valid, #8a7d3a); opacity: 0.1; }
@@ -82,5 +82,5 @@
   .ci { stroke: var(--border-strong); stroke-width: 2; }
   .name { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-anchor: end; }
   .tick { fill: var(--text-muted); font-family: var(--font-mono); font-size: 9px; text-anchor: middle; }
-  circle.pert { fill: #b0392b; } circle.faible { fill: var(--text-muted); } circle.inc { fill: #c98a2e; }
+  circle.inside { fill: var(--text-muted); } circle.overlap { fill: #c98a2e; } circle.outside { fill: #b0392b; }
 </style>

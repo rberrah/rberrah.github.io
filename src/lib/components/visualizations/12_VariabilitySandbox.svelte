@@ -2,7 +2,7 @@
   // @ts-nocheck
   import Slider from '$lib/components/ui/Slider.svelte';
   import { concMono } from '$lib/utils/math';
-  import { generateProfiles } from '$lib/sim/variability';
+  import { normalSample, seededRng } from '$lib/science/visualizationMath.js';
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
@@ -27,9 +27,6 @@
     forte: { omega: 0.6, sigma: 0.3, kappa: 0.3 }
   };
 
-  /** @param {number} t */
-  const structFn = (t) => concMono(t, base.dose, base.cl, base.v);
-
   function applyPreset(value) {
     preset = value;
     const p = presets[value];
@@ -40,25 +37,32 @@
 
   applyPreset(preset);
 
-  $: profiles = generateProfiles({
-    n: 120,
-    times,
-    structFn,
-    omega: iivEnabled ? omega : 0,
-    kappa: iovEnabled ? kappa : 0,
-    sigmaProp: resEnabled ? sigma : 0,
-    sigmaAdd: resEnabled ? 0 : 0,
-    seed: 42
-  });
+  $: profiles = (() => {
+    const rng = seededRng(42);
+    return Array.from({ length: 120 }, () => {
+      const etaCl = iivEnabled ? omega * normalSample(rng) : 0;
+      const individualCl = base.cl * Math.exp(etaCl);
+      return times.map((t) => {
+        const ipred = concMono(t, base.dose, individualCl, base.v);
+        const dv = resEnabled ? Math.max(0, ipred * (1 + sigma * normalSample(rng))) : ipred;
+        return { t, ipred, dv };
+      });
+    });
+  })();
 
-  // IOV demo sur un seul patient (3 occasions)
+  // Même patient, trois effets d'occasion standardisés appliqués à CL.
   const occasions = ['1', '2', '3'];
-  $: iovCurves = occasions.map((_, idx) =>
-    times.map((t) => ({
-      t,
-      dv: structFn(t) * (1 + (iovEnabled ? (kappa * (idx - 1)) / 2 : 0)) // léger shift
-    }))
-  );
+  const occasionZ = [-1.1, 0.1, 1.0];
+  $: iovCurves = occasions.map((_, idx) => {
+    const occasionCl = base.cl * Math.exp(iovEnabled ? kappa * occasionZ[idx] : 0);
+    return {
+      cl: occasionCl,
+      points: times.map((t) => ({ t, dv: concMono(t, base.dose, occasionCl, base.v) }))
+    };
+  });
+  $: iovMax = Math.max(...iovCurves.flatMap((curve) => curve.points.map((point) => point.dv))) * 1.05;
+  $: iovX = (t) => 20 + (t / Math.max(...times)) * 250;
+  $: iovY = (value) => 100 - (value / iovMax) * 82;
 
   $: median = times.map((t, idx) => {
     const vals = profiles.map((p) => p[idx].dv);
@@ -128,7 +132,7 @@
         stroke-width="3"
         points={median.map((p) => `${xScale(p.t)},${yScale(p.c)}`).join(' ')}
       />
-      <Axis orient="bottom" scale={xScale} length={innerWidth} label="Temps (h)" />
+      <Axis orient="bottom" scale={xScale} length={innerWidth} label={$language === 'en' ? 'Time (h)' : 'Temps (h)'} />
       <g transform={`translate(-8,0)`}>
         <Axis orient="left" scale={yScale} length={innerHeight} label="Concentration (mg/L)" />
       </g>
@@ -137,16 +141,17 @@
   <div class="iov">
     <div class="label">IOV ({$language === 'en' ? 'same patient, 3 occasions' : 'même patient, 3 occasions'})</div>
     <svg viewBox="0 0 360 120">
-      {#each iovCurves as c, idx}
+      {#each iovCurves as curve, idx}
         <polyline
           fill="none"
           stroke={idx === 0 ? '#ef4444' : idx === 1 ? '#22c55e' : '#2563eb'}
           stroke-width="2"
-          points={c.map((p) => `${20 + p.t * 8},${100 - p.dv * 10}`).join(' ')}
+          points={curve.points.map((p) => `${iovX(p.t)},${iovY(p.dv)}`).join(' ')}
         />
-        <text x="300" y={20 + idx * 18} font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Day' : 'Jour'} {occasions[idx]}</text>
+        <text x="284" y={20 + idx * 18} font-size="10" fill="var(--text-primary)">{$language === 'en' ? 'Occasion' : 'Occasion'} {occasions[idx]} · CL {curve.cl.toFixed(1)}</text>
       {/each}
     </svg>
+    <p class="note">{$language === 'en' ? 'The same patient keeps the same population parameters; only the occasion random effect on CL changes.' : 'Le même patient conserve ses paramètres individuels ; seul l’effet aléatoire d’occasion sur CL change.'}</p>
   </div>
   <div class="kpi">
     <span>CV% Cmax: {cvCmax.toFixed(0)}%</span>
@@ -188,4 +193,5 @@
     color: var(--text-primary);
     margin-bottom: 4px;
   }
+  .note { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.5; }
 </style>

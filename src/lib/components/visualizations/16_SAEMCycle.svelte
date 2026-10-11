@@ -3,7 +3,6 @@
   const steps = ['S (Simulation)', 'SA (Approximation)', 'M (Maximisation)'];
   let idx = 0;
   const next = () => (idx = (idx + 1) % steps.length);
-  const bar = [25, 60, 85];
 </script>
 
 <div class="saem">
@@ -12,12 +11,7 @@
       <div class:active={i === idx}>{s}</div>
     {/each}
   </div>
-  <div class="llh">
-    <div class="label">{$language === 'en' ? 'Log-likelihood' : 'Log-vraisemblance'}</div>
-    <div class="bar">
-      <div class="fill" style={`width:${bar[idx]}%`}></div>
-    </div>
-  </div>
+  <div class="cycle-step">{$language === 'en' ? `Cycle step ${idx + 1} of ${steps.length}` : `Étape ${idx + 1} sur ${steps.length} du cycle`}</div>
   <button on:click={next}>{$language === 'en' ? 'Next' : 'Suivant'}</button>
   <p class="note">{$language === 'en' ? 'Conceptual iteration: simulate latent effects, update sufficient statistics by stochastic approximation, then maximize. Exploration and smoothing are step-size phases across iterations, not two extra operations in every cycle.' : "Itération conceptuelle : simuler les effets latents, actualiser les statistiques suffisantes par approximation stochastique, puis maximiser. Exploration et lissage sont des phases du pas au fil des itérations, pas deux opérations supplémentaires dans chaque cycle."}</p>
 </div>
@@ -44,17 +38,7 @@
     color: white;
     border-color: #2563eb;
   }
-  .llh .bar {
-    width: 220px;
-    height: 10px;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .fill {
-    height: 100%;
-    background: linear-gradient(90deg, #22c55e, #2563eb);
-  }
+  .cycle-step { color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-sm); }
   button {
     border: 1px solid #2563eb;
     background: #2563eb;

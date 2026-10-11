@@ -39,9 +39,7 @@
   $: rVals = sim.map((p) => p.R);
   $: rMin = Math.min(R0, ...rVals);
   $: rMax = Math.max(R0, ...rVals);
-  $: rExtremum = mode === 'stim'
-    ? sim.reduce((a, b) => (b.R > a.R ? b : a), sim[0])
-    : sim.reduce((a, b) => (b.R < a.R ? b : a), sim[0]);
+  $: rExtremum = sim.reduce((a, b) => (b.R > a.R ? b : a), sim[0]);
 
   const W = 470, H = 300, m = { top: 18, right: 16, bottom: 44, left: 46 };
   $: iW = W - m.left - m.right;
@@ -65,7 +63,7 @@
     <label class="s"><span>{$language === 'en' ? 'Effect strength' : 'Force effet'}</span><strong>{strength.toFixed(1)}</strong><input type="range" min="0" max="0.95" step="0.05" bind:value={strength} /></label>
     <div class="readout">
       <div><span>Pic C</span><strong>t = 0 h</strong></div>
-      <div><span>{mode === 'stim' ? ($language === 'en' ? 'Peak R' : 'Pic R') : 'Nadir R'}</span><strong>t = {rExtremum.t.toFixed(1)} h</strong></div>
+      <div><span>{$language === 'en' ? 'Peak R' : 'Pic R'}</span><strong>t = {rExtremum.t.toFixed(1)} h</strong></div>
       <div><span>{$language === 'en' ? 'PD delay' : 'Délai PD'}</span><strong>{rExtremum.t.toFixed(1)} h</strong></div>
     </div>
     <p class="hint">{#if $language === 'en'}Concentration peaks at t=0, but the response takes time: this <em>delay</em> comes from kout, not PK.{:else}Le pic de concentration est à t = 0, mais la réponse met du temps : ce <em>délai</em> vient de kout, pas de la PK.{/if}</p>

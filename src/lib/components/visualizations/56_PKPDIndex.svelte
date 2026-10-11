@@ -1,34 +1,22 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { calculatePkpdProfile } from '$lib/science/visualizationMath.js';
   // Indices PK/PD des anti-infectieux : concentration au cours du temps vs la CMI.
   // Visualise T>CMI (temps au-dessus), Cmax/CMI (hauteur du pic) et AUC/CMI (aire).
   let dose = 750; // mg (bolus IV répété)
   let mic = 2; // mg/L
   let tau = 8; // h — intervalle entre doses
   let mode = 'time'; // 'time' | 'peak' | 'auc'
+  /** @type {'total'|'free'} */
+  let basis = 'free'; // concentration totale ou libre
+  let fu = 0.8; // fraction libre
 
   const V = 20, ke = 0.35; // PK simple : t1/2 ≈ 2 h
   const T = 24, dt = 0.05;
 
-  $: sim = (() => {
-    const n = Math.round(T / dt);
-    let C = 0;
-    const pts = [];
-    let nextDose = 0;
-    for (let i = 0; i <= n; i++) {
-      const t = i * dt;
-      if (t >= nextDose - 1e-9) { C += dose / V; nextDose += tau; }
-      pts.push({ t, C });
-      C *= Math.exp(-ke * dt);
-    }
-    return pts;
-  })();
-
-  $: cmax = Math.max(...sim.map((p) => p.C));
-  $: tAbove = sim.filter((p) => p.C >= mic).length * dt;
-  $: pctTime = (tAbove / T) * 100;
-  $: auc = sim.reduce((a, p, i) => (i ? a + ((p.C + sim[i - 1].C) / 2) * dt : 0), 0);
-  $: aucMic = auc / mic;
+  $: simulation = calculatePkpdProfile({ dose, mic, tau, V, ke, T, dt, fu, basis });
+  $: ({ points: sim, cmax, pctTime, aucMic } = simulation);
+  $: prefix = basis === 'free' ? 'f' : '';
 
   const W = 480, H = 300, m = { top: 16, right: 14, bottom: 42, left: 46 };
   $: iW = W - m.left - m.right;
@@ -50,19 +38,24 @@
 <div class="wrap">
   <div class="controls">
     <div class="modes">
-      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>T&gt;{$language === 'en' ? 'MIC' : 'CMI'}</button>
-      <button class:on={mode === 'peak'} on:click={() => (mode = 'peak')}>Cmax/{$language === 'en' ? 'MIC' : 'CMI'}</button>
-      <button class:on={mode === 'auc'} on:click={() => (mode = 'auc')}>AUC/{$language === 'en' ? 'MIC' : 'CMI'}</button>
+      <button class:on={mode === 'time'} on:click={() => (mode = 'time')}>{prefix}T&gt;{$language === 'en' ? 'MIC' : 'CMI'}</button>
+      <button class:on={mode === 'peak'} on:click={() => (mode = 'peak')}>{prefix}Cmax/{$language === 'en' ? 'MIC' : 'CMI'}</button>
+      <button class:on={mode === 'auc'} on:click={() => (mode = 'auc')}>{prefix}AUC/{$language === 'en' ? 'MIC' : 'CMI'}</button>
+    </div>
+    <div class="basis" role="group" aria-label={$language === 'en' ? 'Concentration basis' : 'Base de concentration'}>
+      <button class:on={basis === 'free'} on:click={() => (basis = 'free')}>{$language === 'en' ? 'Unbound' : 'Libre'}</button>
+      <button class:on={basis === 'total'} on:click={() => (basis = 'total')}>{$language === 'en' ? 'Total' : 'Totale'}</button>
     </div>
     <label class="s"><span>Dose (mg)</span><strong>{dose}</strong><input type="range" min="250" max="1500" step="50" bind:value={dose} /></label>
     <label class="s"><span>{$language === 'en' ? 'MIC (mg/L)' : 'CMI (mg/L)'}</span><strong>{mic}</strong><input type="range" min="0.5" max="8" step="0.5" bind:value={mic} /></label>
     <label class="s"><span>{$language === 'en' ? 'Interval τ (h)' : 'Intervalle τ (h)'}</span><strong>{tau}</strong><input type="range" min="4" max="12" step="1" bind:value={tau} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Unbound fraction fu' : 'Fraction libre fu'}</span><strong>{fu.toFixed(2)}</strong><input type="range" min="0.1" max="1" step="0.05" bind:value={fu} disabled={basis === 'total'} /></label>
     <div class="readout">
-      <div class:hi={mode === 'time'}><span>T &gt; {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{pctTime.toFixed(0)} %</strong></div>
-      <div class:hi={mode === 'peak'}><span>Cmax / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{(cmax / mic).toFixed(1)}</strong></div>
-      <div class:hi={mode === 'auc'}><span>AUC₂₄ / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{aucMic.toFixed(0)}</strong></div>
+      <div class:hi={mode === 'time'}><span>{prefix}T &gt; {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{pctTime.toFixed(0)} %</strong></div>
+      <div class:hi={mode === 'peak'}><span>{prefix}Cmax / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{(cmax / mic).toFixed(1)}</strong></div>
+      <div class:hi={mode === 'auc'}><span>{prefix}AUC₂₄ / {$language === 'en' ? 'MIC' : 'CMI'}</span><strong>{aucMic.toFixed(0)}</strong></div>
     </div>
-    <p class="hint">{$language === 'en' ? 'Illustrative one-compartment IV-bolus profile over the first 24 hours. The three indices are calculated from total concentrations; relevant index, target and MIC conditions depend on the drug, pathogen, assay, site and population.' : "Profil illustratif à un compartiment après bolus IV sur les premières 24 heures. Les trois indices sont calculés sur les concentrations totales ; l’indice pertinent, sa cible et les conditions de CMI dépendent de la molécule, de la souche, de la méthode, du site et de la population."}</p>
+    <p class="hint">{$language === 'en' ? 'Illustrative one-compartment IV-bolus profile on [0, 24 h): a dose exactly at 24 h is excluded. Choose total concentration or the unbound approximation fu × Ctotal. Relevant index, target and MIC conditions depend on drug, pathogen, assay, site and population.' : "Profil illustratif à un compartiment après bolus IV sur [0, 24 h[ : une dose exactement à 24 h est exclue. Choisissez la concentration totale ou l’approximation libre fu × Ctotale. L’indice pertinent, sa cible et les conditions de CMI dépendent de la molécule, de la souche, de la méthode, du site et de la population."}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Concentration vs MIC' : 'Concentration vs CMI'}>
@@ -95,14 +88,15 @@
      pas la fenetre, sinon les controles ecrasent la figure. */
   @container (max-width: 700px) { .wrap { grid-template-columns: 1fr; align-items: stretch; } }
   .controls { display: grid; gap: var(--space-2); }
-  .modes { display: flex; gap: var(--space-2); }
-  .modes button, .readout, .s { font-family: var(--font-mono); }
-  .modes button { flex: 1; font-size: var(--text-xs); padding: 4px 2px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
-  .modes button.on { background: var(--infectio); color: var(--bg-tertiary); border-color: var(--infectio); }
+  .modes, .basis { display: flex; gap: var(--space-2); }
+  .modes button, .basis button, .readout, .s { font-family: var(--font-mono); }
+  .modes button, .basis button { flex: 1; font-size: var(--text-xs); padding: 4px 2px; border: 1px solid var(--border-strong); background: var(--bg-tertiary); border-radius: var(--radius); cursor: pointer; }
+  .modes button.on, .basis button.on { background: var(--infectio); color: var(--bg-tertiary); border-color: var(--infectio); }
   .s { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0 var(--space-2); font-size: var(--text-sm); }
   .s span { color: var(--text-secondary); }
   .s strong { color: var(--infectio); }
   .s input { grid-column: 1 / -1; }
+  .s input:disabled { opacity: 0.45; cursor: not-allowed; }
   .readout { display: grid; gap: 3px; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius); font-size: var(--text-xs); }
   .readout div { display: flex; justify-content: space-between; gap: var(--space-2); padding: 1px 4px; border-radius: 4px; }
   .readout div.hi { background: var(--infectio); color: var(--bg-tertiary); }

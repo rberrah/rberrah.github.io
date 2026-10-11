@@ -8,7 +8,8 @@
   const baseline = times.map((t) => 10 * Math.exp(-0.35 * t)); // ODE pure
   const bump = times.map((t) => 2.2 * Math.exp(-0.5 * Math.pow((t - 6) / 1.4, 2))); // absorption complexe
   const observed = times.map((t, i) => baseline[i] + bump[i] + 0.25 * Math.sin(i * 0.8));
-  const nnFit = times.map((t, i) => baseline[i] + bump[i] * 0.98 + 0.12 * Math.sin(t * 2));
+  // Constructed outputs used to compare model classes; no network is trained here.
+  const hybridIllustration = times.map((t, i) => baseline[i] + bump[i] * 0.98 + 0.12 * Math.sin(t * 2));
 
   let mode = 'white'; // white | grey | black
   const xScale = scaleLinear().domain([0, 20]).range([0, 320]);
@@ -48,7 +49,7 @@
           stroke={mode === 'grey' ? '#22c55e' : '#8b5cf6'}
           stroke-width="3"
           class:glow={mode === 'grey'}
-          points={(mode === 'grey' ? nnFit : observed)
+          points={(mode === 'grey' ? hybridIllustration : observed)
             .map((c, i) => `${xScale(times[i])},${yScale(c)}`)
             .join(' ')}
         />
@@ -65,9 +66,9 @@
     {#if mode === 'white'}
       dC/dt = -k · C &nbsp; {$language === 'en' ? '(no correction: the bump is missed)' : '(pas de correction → le “bump” est manqué)'}
     {:else if mode === 'grey'}
-      dC/dt = -k · C + NN(t) &nbsp; {$language === 'en' ? '(the NN learns the missing portion and fits the bump)' : '(le NN apprend la portion manquante et colle au bump)'}
+      dC/dt = -k · C + NN(t) &nbsp; {$language === 'en' ? '(constructed hybrid output; no network is fitted here)' : '(sortie hybride construite ; aucun réseau n’est ajusté ici)'}
     {:else}
-      {$language === 'en' ? 'NN(t) alone (black box): flexible but minimally interpretable.' : 'NN(t) seul (boîte noire) : flexible mais interprétabilité minimale.'}
+      {$language === 'en' ? 'NN(t) alone (black box): conceptual output copied from the synthetic data; no generalization is assessed.' : 'NN(t) seul (boîte noire) : sortie conceptuelle copiée sur les données synthétiques ; la généralisation n’est pas évaluée.'}
     {/if}
   </div>
 </div>

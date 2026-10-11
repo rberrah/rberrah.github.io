@@ -1,9 +1,9 @@
 <script>
   import { language } from '$lib/stores/language';
   const stages = [
-    { name: 'Thresholding', desc: 'Filtre les variables faibles', color: '#2563eb' },
-    { name: 'Interpretation', desc: 'Garde les variables stables', color: '#f97316' },
-    { name: 'Prediction', desc: 'Optimise le modèle final', color: '#22c55e' }
+    { name: 'Thresholding', fr: 'Élimine les variables de faible importance', en: 'Removes low-importance variables', color: '#2563eb' },
+    { name: 'Interpretation', fr: 'Sélectionne un ensemble pertinent pour interpréter', en: 'Selects a relevant set for interpretation', color: '#f97316' },
+    { name: 'Prediction', fr: 'Réduit la redondance pour prédire', en: 'Reduces redundancy for prediction', color: '#22c55e' }
   ];
   const vars = ['Poids', 'Âge', 'CYP3A5', 'CrCl', 'Albumine', 'Fumeur'];
 </script>
@@ -15,7 +15,7 @@
         <div class="dot" style={`background:${s.color}`}></div>
         <div>
           <strong>{s.name}</strong>
-          <p>{$language === 'en' ? (s.name === 'Thresholding' ? 'Filters weak variables' : s.name === 'Interpretation' ? 'Keeps stable variables' : 'Optimizes the final model') : s.desc}</p>
+          <p>{$language === 'en' ? s.en : s.fr}</p>
         </div>
       </div>
     {/each}

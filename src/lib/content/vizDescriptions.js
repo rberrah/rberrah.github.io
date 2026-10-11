@@ -30,36 +30,40 @@ export const visualizationDescriptions = {
     en: "A Gaussian prior-data weighting proxy: lowering assumed sigma increases the heuristic weight of simulated samples. This is not a MAP optimization by mapbayr."
   },
   '01_HumanBody': {
-    fr: "Schéma du corps en organes reliés par la circulation. Situe où le médicament se distribue et où il est éliminé (foie, reins) — la logique de la PBPK.",
-    en: "A body diagram of organs linked by the circulation. Shows where the drug distributes and where it is eliminated (liver, kidneys) — the PBPK logic."
+    fr: "Repère anatomique simplifié des étapes ADME. Les zones localisent des fonctions générales ; elles ne représentent ni une anatomie quantitative ni un modèle PBPK relié par des débits.",
+    en: "A simplified anatomical landmark for ADME steps. Regions locate broad functions; they represent neither quantitative anatomy nor a flow-connected PBPK model."
   },
   '02_BucketSim': {
-    fr: "Analogie hydraulique : la largeur du réservoir = le volume, l'ouverture du robinet = la clairance, le niveau = la concentration. Élargissez ou ouvrez le robinet et regardez la courbe.",
-    en: "A hydraulic analogy: tank width = volume, tap opening = clearance, liquid level = concentration. Widen the tank or open the tap and watch the curve."
+    fr: "Analogie d’un bolus IV mono-compartimental linéaire : largeur = V, ouverture = CL et niveau = C(t). La courbe suit C(t)=Dose/V×exp(−CL/V×t) ; le réservoir n’est pas une représentation physiologique.",
+    en: "An analogy for a linear one-compartment IV bolus: width = V, opening = CL and level = C(t). The curve follows C(t)=Dose/V×exp(−CL/V×t); the tank is not a physiological representation."
   },
   '03_PopulationDistrib': {
-    fr: "Distribution d'un paramètre (ex. clairance) dans une population. Montre la variabilité inter-individuelle et pourquoi les paramètres positifs suivent une loi log-normale.",
-    en: "The distribution of a parameter (e.g. clearance) across a population. Shows inter-individual variability and why positive parameters are log-normal."
+    fr: "Cent poids simulés uniformément entre 45 et 95 kg illustrent une covariable allométrique sur CL ; les trois courbes gardent V fixe. Ce n'est ni une distribution clinique de poids ni une démonstration de log-normalité.",
+    en: "One hundred weights simulated uniformly from 45 to 95 kg illustrate an allometric covariate on CL; the three curves keep V fixed. This is neither a clinical weight distribution nor a demonstration of log-normality."
   },
   '04_ThreeApproaches': {
-    fr: "Compare NCA, PopPK et PBPK sur un même problème : ce que chaque approche suppose, mesure et permet d'extrapoler.",
-    en: "Compares NCA, PopPK and PBPK on the same problem: what each approach assumes, measures and can extrapolate."
+    fr: "Comparaison conceptuelle : la NCA résume le profil (AUC par trapèzes, Cmax observée, pente terminale pour la demi-vie), la PopPK estime un modèle de population et la PBPK encode une structure physiologique. La figure ne compare pas leurs performances.",
+    en: "A conceptual comparison: NCA summarizes a profile (trapezoidal AUC, observed Cmax, terminal slope for half-life), PopPK estimates a population model and PBPK encodes physiological structure. The figure does not compare performance."
+  },
+  '11_ADEChooser': {
+    fr: "Comparaison pédagogique entre entrée orale d’ordre 1 avec Tlag et perfusion IV d’ordre zéro, dans un modèle mono-compartimental linéaire. L’intégration est numérique sur une grille de 0,1 h et l’AUC est tronquée à 24 h.",
+    en: "A teaching comparison of first-order oral input with Tlag versus zero-order IV infusion in a linear one-compartment model. Integration uses a 0.1 h grid and AUC is truncated at 24 h."
   },
   '08_AUCTrap': {
-    fr: "Calcul de l'AUC par la méthode des trapèzes. Ajoutez/déplacez les points d'échantillonnage et voyez l'aire estimée changer.",
-    en: "AUC computed by the trapezoidal method. Add/move sampling points and watch the estimated area change."
+    fr: "AUC d'une courbe de Bateman par trapèzes linéaires sous trois plans fixes. L'extrapolation ajoute Clast/lambda-z en supposant ici la pente terminale vraie connue ; en pratique lambda-z doit être estimée et qualifiée.",
+    en: "A Bateman-curve AUC using linear trapezoids under three fixed designs. Extrapolation adds Clast/lambda-z while assuming the true terminal slope is known; in practice lambda-z must be estimated and qualified."
   },
   '09_PK1C': {
-    fr: "Courbe concentration–temps d'un modèle à un compartiment. Faites varier dose, ka, CL et V pour voir Cmax, Tmax et la pente d'élimination.",
-    en: "The concentration–time curve of a one-compartment model. Vary dose, ka, CL and V to see Cmax, Tmax and the elimination slope."
+    fr: "Dose orale unique, biodisponibilité fixée à 1, absorption et élimination d'ordre 1 avec Tlag. Les Cmax et Tmax sont lus sur une grille de 0,2 h, donc approximatifs.",
+    en: "Single oral dose with bioavailability fixed at 1, first-order absorption and elimination, and Tlag. Cmax and Tmax are read from a 0.2 h grid and are therefore approximate."
   },
   '10_PK2C': {
-    fr: "Profil bi-compartimental en échelle semi-logarithmique : deux pentes (distribution α rapide, élimination β lente). Basculez linéaire/log pour les distinguer.",
-    en: "A two-compartment profile on a semi-log scale: two slopes (fast α distribution, slow β elimination). Toggle linear/log to tell them apart."
+    fr: "Bolus IV bi-compartimental défini par CL, Q, V1 et V2. Les pentes macro α et β sont hybrides : la phase terminale dépend de l'élimination et des échanges, pas de CL seule.",
+    en: "A two-compartment IV bolus defined by CL, Q, V1 and V2. Macro-slopes alpha and beta are hybrid: the terminal phase depends on elimination and distribution, not CL alone."
   },
   '12_VariabilitySandbox': {
-    fr: "Génère une population virtuelle de profils. Réglez la variabilité inter-individuelle et l'erreur résiduelle pour voir le nuage de courbes s'élargir.",
-    en: "Generates a virtual population of profiles. Adjust inter-individual variability and residual error to see the cloud of curves widen."
+    fr: "Population virtuelle à un compartiment : ETA gaussien log-normal sur CL, erreur proportionnelle normale et, séparément, trois effets d'occasion sur CL chez un même patient. Les CV de Cmax/AUC sont descriptifs de ces simulations.",
+    en: "A virtual one-compartment population: Gaussian log-normal ETA on CL, normal proportional error and, separately, three occasion effects on CL in the same patient. Cmax/AUC CVs describe these simulations only."
   },
   '13_ResidualError': {
     fr: "Tirages résiduels illustratifs autour d'un profil fixe. Ils montrent comment le bruit déplace les observations, sans constituer un diagnostic du modèle d'erreur.",
@@ -82,40 +86,40 @@ export const visualizationDescriptions = {
     en: "Compares a sequence of nested models. Each ΔOFV and its Δdf belongs to one exact comparison and must not be added across steps."
   },
   '16_SAEMCycle': {
-    fr: "Cycle conceptuel SAEM : simulation des effets latents, approximation stochastique des statistiques suffisantes puis maximisation. Exploration et lissage décrivent l'évolution du pas entre itérations.",
-    en: "Conceptual SAEM cycle: simulation of latent effects, stochastic approximation of sufficient statistics, then maximization. Exploration and smoothing describe the step-size schedule across iterations."
+    fr: "Cycle conceptuel SAEM : simulation des effets latents, approximation stochastique des statistiques suffisantes puis maximisation. L'étape affichée n'est pas une mesure de log-vraisemblance.",
+    en: "Conceptual SAEM cycle: simulation of latent effects, stochastic approximation of sufficient statistics, then maximization. The displayed step is not a log-likelihood measure."
   },
   '19_VSURF': {
-    fr: "Workflow conceptuel inspiré de VSURF : seuillage, interprétation et prédiction. Les barres sont illustratives ; aucune forêt, importance ni stabilité de sélection n'est calculée.",
-    en: "A conceptual workflow inspired by VSURF: thresholding, interpretation and prediction. Bars are illustrative; no forest, importance or selection stability is computed."
+    fr: "Workflow conceptuel VSURF : élimination par seuil d'importance, ensemble pertinent pour l'interprétation, puis réduction de la redondance pour la prédiction. Les barres sont illustratives ; aucune forêt n'est ajustée.",
+    en: "Conceptual VSURF workflow: importance thresholding, a relevant interpretation set, then redundancy reduction for prediction. Bars are illustrative; no forest is fitted."
   },
   '21_PopPKPlayground': {
-    fr: "Bac à sable PopPK : réglez modèle, doses, variabilité et plan de prélèvement pour simuler une population et voir le faisceau de profils.",
-    en: "A PopPK sandbox: set the model, doses, variability and sampling design to simulate a population and see the bundle of profiles."
+    fr: "Simulateur PopPK pédagogique de 1 à 3 compartiments avec ETA log-normaux et erreur combinée. Le réglage IOV représente un tirage pour l'unique occasion affichée ; il ne permet pas d'estimer visuellement l'IOV intra-individuelle.",
+    en: "An educational one- to three-compartment PopPK simulator with log-normal ETAs and combined error. The IOV setting draws one effect for the single displayed occasion; it does not visually estimate within-subject IOV."
   },
   '20_NeuralBox': {
-    fr: "Représente un réseau de neurones comme une boîte qui transforme des entrées en sortie. Sert d'image aux modèles d'apprentissage (Neural ODE, LLM).",
-    en: "Represents a neural network as a box transforming inputs into an output. A visual stand-in for learning models (Neural ODE, LLMs)."
+    fr: "Compare conceptuellement modèle ODE, hybride ODE+NN et boîte noire sur des courbes entièrement construites. Aucun réseau n’est entraîné et la figure ne mesure ni ajustement hors échantillon ni généralisation.",
+    en: "Conceptually compares an ODE, a hybrid ODE+NN and a black box using entirely constructed curves. No network is trained, and the figure measures neither out-of-sample fit nor generalization."
   },
   '30_TumorGrowth': {
-    fr: "Modèle de croissance tumorale (Claret) : montez l'exposition et voyez la tumeur régresser puis ré-échapper quand la résistance épuise l'effet. Bandes RECIST en repère.",
-    en: "A tumour growth model (Claret): raise the exposure to see the tumour shrink then re-escape as resistance depletes the effect. RECIST bands for reference."
+    fr: "Modèle TGI réduit de type Claret, conditionnel à une exposition constante. Les repères −30 % depuis la référence et +20 % avec +5 mm depuis le nadir concernent les lésions cibles et ne constituent pas un RECIST complet.",
+    en: "A reduced Claret-type TGI model conditional on constant exposure. The −30% from baseline and +20% with +5 mm from nadir landmarks concern target lesions and are not a complete RECIST assessment."
   },
   '31_JointSurvival': {
-    fr: "Modèle joint : la taille tumorale pilote le risque de progression. Réduire la tumeur (exposition, lien β) repousse la courbe de survie sans progression vers la droite.",
-    en: "A joint model: tumour size drives the progression risk. Shrinking the tumour (exposure, link β) pushes the progression-free survival curve to the right."
+    fr: "Modèle joint pédagogique associant une trajectoire tumorale à un risque d’événement de progression. Les courbes sont des prédictions conditionnelles aux équations et ne prouvent aucun effet causal de la dose ; le décès n’étant pas modélisé, il ne s’agit pas d’une PFS complète.",
+    en: "A teaching joint model associating a tumor trajectory with a progression-event hazard. Curves are conditional on the equations and prove no causal dose effect; because death is not modeled, this is not a complete PFS endpoint."
   },
   '32_Myelosuppression': {
-    fr: "Modèle de Friberg : le nadir des neutrophiles survient plusieurs jours après le pic plasmatique (maturation, MTT). Jouez sur dose, MTT et rétrocontrôle.",
-    en: "The Friberg model: the neutrophil nadir occurs several days after the plasma peak (maturation, MTT). Play with dose, MTT and feedback."
+    fr: "Modèle de Friberg réduit avec trois compartiments de transit, effet linéaire borné et PK mono-exponentielle imposée. Les grades sont des repères ANC ; le grade 1 dépend aussi de la limite basse du laboratoire.",
+    en: "A reduced Friberg model with three transit compartments, bounded linear effect and imposed mono-exponential PK. ANC grades are landmarks; grade 1 also depends on the laboratory lower limit."
   },
   '40_TreeEnsemble': {
-    fr: "Régression 1D : arbre unique (marches), forêt (moyenne lissée) ou boosting (affinage séquentiel). Basculez de mode et observez l'ajustement.",
-    en: "1D regression: single tree (steps), forest (smoothed average) or boosting (sequential refinement). Switch modes and watch the fit."
+    fr: "Régression 1D synthétique : CART, bagging d'arbres bootstrap ou boosting à faible profondeur. La courbe vraie est connue ici ; sans jeu test, la figure ne mesure pas la généralisation.",
+    en: "Synthetic 1D regression using CART, bootstrap-tree bagging or shallow boosting. The true curve is known here; without a test set, the figure does not measure generalization."
   },
   '41_SVMMargin': {
-    fr: "SVM : la frontière à marge maximale entre deux classes ; seuls les vecteurs de support la définissent. Réglez C pour élargir/rétrécir la marge.",
-    en: "SVM: the maximal-margin boundary between two classes; only support vectors define it. Adjust C to widen/narrow the margin."
+    fr: "SVM linéaire soft-margin réellement ajusté par descente de gradient sur deux classes synthétiques. C règle le compromis régularisation-erreurs ; les points dont la marge fonctionnelle est ≤1 sont signalés comme vecteurs de support approximatifs.",
+    en: "A linear soft-margin SVM fitted by gradient descent to two synthetic classes. C controls the regularization-error trade-off; points with functional margin ≤1 are marked as approximate support vectors."
   },
   '42_VarImportance': {
     fr: "Importance des variables d'une forêt, avec un seuil de sélection (esprit VSURF). Déplacez le seuil : trop bas garde du bruit, trop haut perd des variables utiles.",
@@ -146,20 +150,20 @@ export const visualizationDescriptions = {
     en: "An illustrative NPDE histogram compared with N(0,1). Under their assumptions, a shifted mean or spread suggests predictive misspecification without identifying its cause by itself."
   },
   '53_ForestPlot': {
-    fr: "Forest plot illustratif : la ligne à 1, l'IC 95 % et une bande clinique prédéfinie répondent à des questions distinctes. La bande doit être justifiée et aucun critère ne prouve seul l'importance clinique.",
-    en: "An illustrative forest plot: the no-effect line, 95% CI and a prespecified clinical band answer different questions. The band requires justification and no criterion alone proves clinical importance."
+    fr: "Forest plot illustratif : l'IC 95 % est classé selon qu'il est entièrement dans la bande clinique, en chevauche une limite ou se situe entièrement au-delà. La ligne à 1 répond séparément à la question de l'absence d'effet.",
+    en: "An illustrative forest plot: the 95% CI is classified as entirely within the clinical band, overlapping a boundary, or entirely beyond it. The no-effect line separately addresses absence of effect."
   },
   '54_TMDD': {
     fr: "Approximation de Michaelis–Menten d'une élimination saturable liée à la cible. Elle montre une clairance apparente dépendante de la concentration, sans représenter un TMDD mécanistique complet.",
     en: "A Michaelis–Menten approximation of saturable target-related elimination. It shows concentration-dependent apparent clearance without representing a full mechanistic TMDD model."
   },
   '55_ADA': {
-    fr: "Scénario conditionnel où un effet ADA choisi augmente la clairance après une date donnée. L'effet réel dépend du titre, de la persistance, de l'assay et de la molécule ; passer sous la cible illustrative ne prouve pas une perte de réponse.",
-    en: "A conditional scenario where a selected ADA effect raises clearance after a chosen onset. Real effects depend on titre, persistence, assay and molecule; crossing the illustrative target does not prove loss of response."
+    fr: "Scénario conditionnel où un effet ADA choisi augmente la clairance après une date donnée. Les résiduelles sont mesurées juste avant la dose suivante ; l'effet réel dépend notamment du titre, de la persistance, du dosage analytique et de la molécule.",
+    en: "A conditional scenario where a selected ADA effect raises clearance after a chosen onset. Troughs are measured immediately before the next dose; real effects depend on titre, persistence, assay and molecule."
   },
   '56_PKPDIndex': {
-    fr: "Profil bolus IV à un compartiment et calcul illustratif de T>CMI, Cmax/CMI et AUC24/CMI sur concentrations totales. L'indice et la cible applicables dépendent du médicament, de la souche, de la méthode et de la population.",
-    en: "A one-compartment IV-bolus profile with illustrative total-concentration T>MIC, Cmax/MIC and AUC24/MIC calculations. Applicable index and target depend on drug, pathogen, method and population."
+    fr: "Profil bolus IV à un compartiment sur [0, 24 h[ avec choix des concentrations totales ou libres via fu. Le temps au-dessus de la CMI est interpolé analytiquement et une dose à 24 h n'entre pas dans les indices.",
+    en: "A one-compartment IV-bolus profile over [0, 24 h), with total or fu-derived unbound concentrations. Time above MIC is computed analytically and a dose at 24 h does not enter the indices."
   },
   '57_Tolerance': {
     fr: "Dans ce modèle illustratif à rétrocontrôle, l'effet s'atténue sous exposition constante et les équations peuvent produire un rebond à l'arrêt. D'autres mécanismes exigent d'autres modèles.",
@@ -182,8 +186,8 @@ export const visualizationDescriptions = {
     en: "A simplified stochastic-approximation scheme: a decreasing step progressively stabilizes a noisy trajectory. It is neither a full SAEM nor a convergence diagnostic."
   },
   '65_ParentMetabolite': {
-    fr: "Cinétique parent → métabolite (échelle log) : le parent décroît, le métabolite se forme puis décroît. Réglez k, km et fm : si km < k, le métabolite persiste (limité par l'élimination).",
-    en: "Parent → metabolite kinetics (log scale): the parent decays, the metabolite forms then decays. Adjust k, km and fm: if km < k, the metabolite persists (elimination-limited)."
+    fr: "Parent IV et métabolite formé selon fm·k, avec volumes supposés égaux. La pente terminale du métabolite tend vers la plus lente de k et km ; ce modèle omet les autres voies de formation et d'élimination.",
+    en: "An IV parent and metabolite formed at fm·k, assuming equal volumes. The metabolite terminal slope tends toward the slower of k and km; other formation and elimination pathways are omitted."
   },
   '63_ClusterPCA': {
     fr: "Paramètres individuels (CL, V) de patients de 3 types de cancer. Basculez « Vrai type » ↔ « Clusters (k-means) » et réglez la séparation : quand elle est nette, le clustering retrouve les groupes.",
@@ -210,44 +214,48 @@ export const visualizationDescriptions = {
     en: "A conjugate Gaussian update for one individual parameter: prior and likelihood form the posterior. The displayed prior contribution is not population eta-shrinkage."
   },
   'BuildingBlocksPKPD': {
-    fr: "Assemble les briques PK et PD : la concentration (PK) alimente l'effet (PD). Vue d'ensemble avant de détailler chaque bloc.",
-    en: "Assembles the PK and PD blocks: concentration (PK) feeds the effect (PD). An overview before detailing each block."
+    fr: "Carte conceptuelle des briques PK et PD : elle distingue le devenir du médicament de ses réponses bénéfiques ou toxiques. Ce schéma d’orientation ne définit aucune équation ni causalité clinique.",
+    en: "A conceptual map of PK and PD building blocks: it separates drug disposition from beneficial or toxic responses. This orientation diagram defines neither equations nor clinical causality."
+  },
+  'SlideFigure': {
+    fr: "Composant de présentation des diapositives associées au cours. Il affiche l’image et sa légende de catalogue sans effectuer de calcul scientifique.",
+    en: "A renderer for course-associated slides. It displays the image and catalogue caption without performing any scientific calculation."
   },
   'EmaxHill': {
-    fr: "Courbe concentration–effet Emax/Hill : effet croissant puis saturé. Réglez Emax, EC50 et le coefficient de Hill pour voir le plateau et la raideur.",
-    en: "The Emax/Hill concentration–effect curve: effect rising then saturating. Adjust Emax, EC50 and the Hill coefficient to see the plateau and steepness."
+    fr: "Modèle Emax/Hill phénoménologique : EC50 produit la moitié de l'incrément Emax, quel que soit Hill. Le plateau d'effet n'implique pas à lui seul une saturation de récepteurs.",
+    en: "A phenomenological Emax/Hill model: EC50 gives half of the Emax increment for any Hill value. An effect plateau alone does not imply receptor saturation."
   },
   'EstimationFit': {
-    fr: "Ajustement d'un modèle aux données : déplacez CL et V pour minimiser le critère (OFV). Montre la « vallée » de la vraisemblance autour de l'optimum.",
-    en: "Fitting a model to data: move CL and V to minimise the criterion (OFV). Shows the likelihood 'valley' around the optimum."
+    fr: "Ajustement analytique d'un bolus IV mono-exponentiel par régression log-linéaire. Le critère affiché est un SSE non pondéré sur log(C), pas une OFV, une vraisemblance ni une estimation NLME.",
+    en: "Analytical fit of a mono-exponential IV bolus by log-linear regression. The displayed criterion is an unweighted SSE on log(C), not an OFV, likelihood or NLME estimate."
   },
   'IVBolusExplorer': {
-    fr: "Bolus IV à un compartiment : la dose fixe C₀ = Dose/V, la décroissance est exponentielle. Faites glisser dose, V et CL pour voir la courbe entière monter/descendre.",
-    en: "A one-compartment IV bolus: the dose sets C₀ = Dose/V, decay is exponential. Slide dose, V and CL to see the whole curve rise/fall."
+    fr: "Bolus IV linéaire à un compartiment : C0=Dose/V, k=CL/V, demi-vie=ln(2)/k et AUC0-inf=Dose/CL. Ces identités supposent une élimination linéaire et une disponibilité IV complète.",
+    en: "A linear one-compartment IV bolus: C0=Dose/V, k=CL/V, half-life=ln(2)/k and AUC0-inf=Dose/CL. These identities assume linear elimination and complete IV availability."
   },
   'Infusion': {
-    fr: "Perfusion IV : montée vers un plateau Css = R₀/CL, puis décroissance à l'arrêt. Le débit fixe le niveau, la demi-vie fixe le temps d'atteinte.",
-    en: "IV infusion: a rise toward a plateau Css = R₀/CL, then decay at stop. The rate sets the level, the half-life sets the time to reach it."
+    fr: "Perfusion IV d'ordre zéro dans un modèle linéaire à un compartiment. R0/CL est le plateau asymptotique d'une perfusion maintenue ; une perfusion finie peut s'arrêter avant de l'atteindre.",
+    en: "Zero-order IV infusion in a linear one-compartment model. R0/CL is the asymptotic plateau for a maintained infusion; a finite infusion may stop before reaching it."
   },
   'MultiDose': {
-    fr: "Doses répétées : accumulation jusqu'à un état d'équilibre. Réglez dose et intervalle pour voir la Css moyenne et le ratio d'accumulation.",
-    en: "Repeated doses: accumulation up to steady state. Adjust dose and interval to see the average Css and the accumulation ratio."
+    fr: "Superposition de bolus IV identiques sous PK linéaire à un compartiment. Les formules de Cmax,ss, Cmin,ss, Css moyenne et dose de charge Dose×Rac ne s'appliquent qu'à ce schéma.",
+    en: "Superposition of identical IV boluses under linear one-compartment PK. The Cmax,ss, Cmin,ss, mean Css and Dose×Rac loading formulas apply only to this regimen."
   },
   'OralAbsorptionExplorer': {
-    fr: "Absorption orale : montée (ka) puis descente (ke), avec temps de latence et compartiments de transit. Réglez ka et Tlag pour déplacer le pic (Cmax, Tmax).",
-    en: "Oral absorption: rise (ka) then fall (ke), with lag time and transit compartments. Adjust ka and Tlag to move the peak (Cmax, Tmax)."
+    fr: "Compare une absorption d'ordre 1 avec Tlag à une chaîne de n transits de temps moyen MTT, sous F=1 et PK mono-compartimentale. Ce sont deux modèles alternatifs, pas deux processus simultanés.",
+    en: "Compares first-order absorption with Tlag against an n-transit chain with mean transit time MTT, under F=1 and one-compartment PK. These are alternative models, not simultaneous processes."
   },
   'SheinerEffect': {
-    fr: "Compartiment d'effet (Sheiner) : l'effet suit une concentration au site (Ce) en retard sur le plasma. Un petit ke0 crée une boucle d'hystérèse.",
-    en: "Effect compartment (Sheiner): the effect follows an effect-site concentration (Ce) lagging the plasma. A small ke0 creates a hysteresis loop."
+    fr: "Compartiment d'effet : dCe/dt=ke0(Cp−Ce) produit une concentration Ce retardée et une boucle Ce-Cp. Ce n'est pas encore un effet : une fonction PD doit relier Ce à la réponse.",
+    en: "Effect compartment: dCe/dt=ke0(Cp−Ce) produces delayed Ce and a Ce-Cp loop. Ce is not yet an effect; a PD function must link it to response."
   },
   'TDMProfile': {
-    fr: "Suivi thérapeutique : une concentration mesurée met à jour le profil individuel, puis on ajuste la dose vers la cible. Déplacez le prélèvement et la dose.",
-    en: "Therapeutic drug monitoring: a measured concentration updates the individual profile, then the dose is adjusted toward target. Move the sample and the dose."
+    fr: "Mise à jour MAP pédagogique de CL à partir d'un prélèvement, avec V fixé et modèle bolus IV mono-compartimental. Elle illustre prior+donnée mais ne calcule pas à elle seule une recommandation posologique.",
+    en: "An educational one-sample MAP update of CL with fixed V and a one-compartment IV-bolus model. It illustrates prior plus data but does not by itself calculate a dosing recommendation."
   },
   'Turnover': {
-    fr: "Réponse indirecte (turnover) : le médicament agit sur la production (kin) ou l'élimination (kout) d'une réponse. Le délai vient de kout, pas de la PK.",
-    en: "Indirect response (turnover): the drug acts on the production (kin) or elimination (kout) of a response. The delay comes from kout, not the PK."
+    fr: "Deux modèles de réponse indirecte qui augmentent R : stimulation de kin ou inhibition de kout, avec R0=kin/kout. Le délai dépend du turnover ; d'autres mécanismes exigent les deux autres familles de modèles indirects.",
+    en: "Two indirect-response models that increase R: stimulation of kin or inhibition of kout, with R0=kin/kout. Delay depends on turnover; other mechanisms require the two other indirect-response families."
   }
 };
 

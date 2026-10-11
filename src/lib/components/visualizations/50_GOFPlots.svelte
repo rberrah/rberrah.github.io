@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { calculateGofRows } from '$lib/science/visualizationMath.js';
   // Graphiques diagnostiques illustratifs : observations vs predictions et
   // proxy de residu standardise sur l'echelle logarithmique.
   let mis = 0; // 0 = bon modèle, 1 = fortement mal spécifié
@@ -25,12 +26,7 @@
     base.push({ tru, g: gauss(rng) });
   }
 
-  $: rows = base.map((b) => {
-    const pred = b.tru * (1 - mis * 0.45 * (b.tru / maxV)); // le modèle sous-prédit les fortes valeurs
-    const obs = b.tru * Math.exp(sd * b.g);
-    const residualProxy = (Math.log(obs) - Math.log(pred)) / sd;
-    return { pred, obs, residualProxy };
-  });
+  $: rows = calculateGofRows(base, mis, sd, maxV);
 
   const W = 480, H = 250, pad = 34, gap = 26;
   $: pw = (W - gap) / 2 - pad; // largeur d'un panneau

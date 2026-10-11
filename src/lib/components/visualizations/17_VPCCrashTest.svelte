@@ -1,11 +1,11 @@
 <script>
   // @ts-nocheck
-  import { percentile } from '$lib/utils/math';
   import ChartFrame from '$lib/charts/ChartFrame.svelte';
   import Axis from '$lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
   import { paddedDomain } from '$lib/charts/domain';
   import { language } from '$lib/stores/language';
+  import { combineVpcSummaries, simulateVpcDataset, summarizeVpcDataset } from '$lib/science/visualizationMath.js';
 
   const TIMES = [0.5, 1, 2, 4, 8, 12, 24];
   const SUBJECTS = 60;
@@ -18,76 +18,14 @@
   let modelOmegaCl = 0.3;
   let modelProp = 0.15;
 
-  /** @param {number} seed */
-  function mulberry32(seed) {
-    return function () {
-      seed |= 0;
-      seed = (seed + 0x6d2b79f5) | 0;
-      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  /** @param {() => number} rng */
-  function normal(rng) {
-    const u = Math.max(rng(), 1e-12);
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
-  }
-
-  /** @param {number} seed @param {{cl:number,v:number,omegaCl:number,omegaV:number,prop:number,add:number}} model */
-  function simulateDataset(seed, model) {
-    const rng = mulberry32(seed);
-    const rows = [];
-    for (let id = 0; id < SUBJECTS; id += 1) {
-      const cl = model.cl * Math.exp(model.omegaCl * normal(rng));
-      const v = model.v * Math.exp(model.omegaV * normal(rng));
-      for (const t of TIMES) {
-        const pred = (DOSE / v) * Math.exp(-(cl / v) * t);
-        const dv = Math.max(0, pred * (1 + model.prop * normal(rng)) + model.add * normal(rng));
-        rows.push({ t, c: dv });
-      }
-    }
-    return rows;
-  }
-
-  /** @param {number} t @param {number} count */
-  function binIndex(t, count) {
-    const timeIndex = TIMES.indexOf(t);
-    return Math.min(count - 1, Math.floor((timeIndex * count) / TIMES.length));
-  }
-
-  /** @param {{t:number,c:number}[]} rows @param {number} count */
-  function summarize(rows, count) {
-    return Array.from({ length: count }, (_, index) => {
-      const bucket = rows.filter((row) => binIndex(row.t, count) === index);
-      const values = bucket.map((row) => row.c);
-      const times = TIMES.filter((t) => binIndex(t, count) === index);
-      return {
-        t: times.reduce((sum, value) => sum + value, 0) / times.length,
-        p5: percentile(values, 5),
-        p50: percentile(values, 50),
-        p95: percentile(values, 95),
-        count: values.length,
-        from: times[0],
-        to: times[times.length - 1]
-      };
-    });
-  }
-
-  const observed = simulateDataset(20261010, TRUE_MODEL);
+  const design = { times: TIMES, subjects: SUBJECTS, dose: DOSE };
+  const observed = simulateVpcDataset(20261010, TRUE_MODEL, design);
   $: fittedModel = { ...TRUE_MODEL, cl: modelCl, omegaCl: modelOmegaCl, prop: modelProp };
-  $: observedPercentiles = summarize(observed, bins);
+  $: observedPercentiles = summarizeVpcDataset(observed, bins, TIMES);
   $: replicatePercentiles = Array.from({ length: REPLICATES }, (_, index) =>
-    summarize(simulateDataset(9001 + index * 7919, fittedModel), bins)
+    summarizeVpcDataset(simulateVpcDataset(9001 + index * 7919, fittedModel, design), bins, TIMES)
   );
-  $: vpc = observedPercentiles.map((observedBin, index) => {
-    const band = (key) => {
-      const values = replicatePercentiles.map((replicate) => replicate[index][key]);
-      return { low: percentile(values, 5), mid: percentile(values, 50), high: percentile(values, 95) };
-    };
-    return { ...observedBin, modelP5: band('p5'), modelP50: band('p50'), modelP95: band('p95') };
-  });
+  $: vpc = combineVpcSummaries(observedPercentiles, replicatePercentiles);
 
   $: xScale = scaleLinear().domain([0, 24]).range([0, 360]);
   $: yScale = scaleLinear()

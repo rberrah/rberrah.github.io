@@ -103,7 +103,7 @@
     <label class="s"><span>{knobLabel}</span><strong>{knob}</strong><input type="range" min="1" max={knobMax} step="1" bind:value={knob} /></label>
     <div class="readout">
       {#if mode === 'tree'}<p>{$language === 'en' ? 'A single tree is a step function. Greater depth adds steps but can fit noise (overfitting).' : 'Un seul arbre : fonction en marches. Plus profond = plus de marches, mais on colle au bruit (surajustement).'}</p>
-      {:else if mode === 'forest'}<p>{$language === 'en' ? 'A forest averages many bootstrap trees. The result is smoother and generalizes better.' : "Forêt : on moyenne beaucoup d'arbres (bootstrap). Le résultat se lisse et généralise mieux."}</p>
+      {:else if mode === 'forest'}<p>{$language === 'en' ? 'This one-feature bagging illustration averages bootstrap trees and can reduce variance. No held-out set is used here, so generalization is not measured.' : "Cette illustration de bagging à une variable moyenne des arbres bootstrap et peut réduire la variance. Aucun jeu test n’est utilisé ici : la généralisation n’est pas mesurée."}</p>
       {:else}<p>{$language === 'en' ? 'Boosting uses each small tree to correct the previous residuals. The fit improves one iteration at a time.' : "Boosting : chaque petit arbre corrige les résidus du précédent. L'ajustement s'affine itération après itération."}</p>{/if}
     </div>
   </div>

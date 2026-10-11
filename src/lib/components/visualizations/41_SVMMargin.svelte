@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { fitLinearSvm } from '$lib/science/visualizationMath.js';
   // Illustration conceptuelle d'un SVM linéaire : deux classes, un hyperplan séparateur
   // à MARGE MAXIMALE, et les vecteurs de support (points dans la marge). Le paramètre C
   // arbitre marge large (soft, tolérante) vs marge étroite (hard, peu tolérante).
@@ -24,15 +25,9 @@
   for (let i = 0; i < 18; i++) pts.push({ x: mPos.x + gauss(rnd) * sd, y: mPos.y + gauss(rnd) * sd, c: 1 });
   for (let i = 0; i < 18; i++) pts.push({ x: mNeg.x + gauss(rnd) * sd, y: mNeg.y + gauss(rnd) * sd, c: -1 });
 
-  // hyperplan : normal w = m+ − m−, passant par le milieu
-  const w = { x: mPos.x - mNeg.x, y: mPos.y - mNeg.y };
-  const mid = { x: (mPos.x + mNeg.x) / 2, y: (mPos.y + mNeg.y) / 2 };
-  const wn = Math.hypot(w.x, w.y);
-  /** @param {{x:number,y:number}} p @returns {number} */
-  function sdist(p) { return (w.x * (p.x - mid.x) + w.y * (p.y - mid.y)) / wn; }
-
-  $: marginHalf = Math.max(0.35, Math.min(2.4, 2.6 / (0.6 + C)));
-  $: support = pts.filter((p) => Math.abs(sdist(p)) <= marginHalf);
+  $: svm = fitLinearSvm(pts, C);
+  $: support = pts.filter((p) => p.c * svm.score(p) <= 1.03);
+  $: errors = pts.filter((p) => p.c * svm.score(p) <= 0).length;
 
   const W = 360, H = 320, mrg = { top: 14, right: 14, bottom: 34, left: 34 };
   $: iW = W - mrg.left - mrg.right;
@@ -40,11 +35,11 @@
   $: sx = (/** @type {number} */ x) => (x / 10) * iW;
   $: sy = (/** @type {number} */ y) => iH - (y / 10) * iH;
 
-  // ligne pour une distance signée d : w·(X−mid) = d·|w|
-  /** @param {number} d @returns {string} */
-  function lineFor(d) {
+  // Frontière score=0 et marges fonctionnelles score=±1 du SVM ajusté.
+  /** @param {number} level @returns {string} */
+  function lineFor(level) {
     /** @param {number} X @returns {number} */
-    const Y = (X) => mid.y + (d * wn - w.x * (X - mid.x)) / w.y;
+    const Y = (X) => 5 + (5 * (level - svm.b) - svm.wx * (X - 5)) / svm.wy;
     return `M${sx(0).toFixed(1)},${sy(Y(0)).toFixed(1)} L${sx(10).toFixed(1)},${sy(Y(10)).toFixed(1)}`;
   }
 </script>
@@ -53,7 +48,7 @@
   <div class="controls">
     <label class="s"><span>{$language === 'en' ? 'Regularization C' : 'Régularisation C'}</span><strong>{C.toFixed(1)}</strong><input type="range" min="0.2" max="8" step="0.2" bind:value={C} /></label>
     <div class="readout">
-      <div><span>{$language === 'en' ? 'Margin type' : 'Type de marge'}</span><strong>{C >= 4 ? ($language === 'en' ? 'narrow (hard)' : 'étroite (hard)') : C <= 1 ? ($language === 'en' ? 'wide (soft)' : 'large (soft)') : ($language === 'en' ? 'intermediate' : 'intermédiaire')}</strong></div>
+      <div><span>{$language === 'en' ? 'Training errors' : 'Erreurs d’apprentissage'}</span><strong>{errors}</strong></div>
       <div><span>{$language === 'en' ? 'Support vectors' : 'Vecteurs de support'}</span><strong>{support.length}</strong></div>
     </div>
     <p class="hint">{#if $language === 'en'}The SVM finds the boundary that <em>maximizes the margin</em>. Only points within the margin, the <em>support vectors</em>, define it. A small C gives a wide, tolerant margin.{:else}Le SVM cherche la frontière qui <em>maximise la marge</em>. Seuls les points de la marge (les <em>vecteurs de support</em>) la définissent. C petit → marge large et tolérante.{/if}</p>
@@ -64,8 +59,8 @@
       <clipPath id="svmbox"><rect x="0" y="0" width={iW} height={iH} /></clipPath>
       <rect x="0" y="0" width={iW} height={iH} class="frame" />
       <g clip-path="url(#svmbox)">
-        <path d={lineFor(marginHalf)} class="margin" />
-        <path d={lineFor(-marginHalf)} class="margin" />
+        <path d={lineFor(1)} class="margin" />
+        <path d={lineFor(-1)} class="margin" />
         <path d={lineFor(0)} class="boundary" />
       </g>
       {#each pts as p}

@@ -13,10 +13,10 @@ slides: []
 prerequisites: ["pkpd","nca-auc"]
 glossary: ["CMI","PTA","AUC","Cmax / Tmax"]
 sources: ["craig-pkpd","rybak-vanco","eucast","goutelle-hill"]
-updated_on: "2026-10-10"
-reviewed_on: "2026-10-10"
+updated_on: "2026-10-11"
+reviewed_on: "2026-10-11"
 review_type: "author"
-reviewed_hash: "6090066b54a8d4c67823c676099209a10aa5eec0d01a4709baeb2b3d2d6abf97"
+reviewed_hash: "32fe35f9c83eb6cbc998ab0ff3d1d899547828a4b3a6976c4ac75a44d975909c"
 scientific_values: {"vancomycin_auc24_lower":400,"vancomycin_auc24_upper":600,"reference_mic_mg_l":1,"mic_dilution_factor":2}
 units: {"auc24":"mg*h/L","mic":"mg/L","auc_mic":"h","mic_dilution_factor":"fold"}
 quiz:
@@ -43,17 +43,17 @@ Three **PK/PD indices** summarise this — and guide the dosing schedule.
 <!-- step:title="Intuition" viz="56_PKPDIndex" -->
 Plot concentration over time and a horizontal line = the MIC.
 
-Three questions: **how long** do we stay above the MIC? **How high** is the peak relative to the MIC? **What area** lies above the MIC? Each antibiotic family favours one of them.
+Three questions: **how long** do we stay above the MIC? **How high** is the peak relative to the MIC? **What cumulative 24-hour exposure** is obtained relative to the MIC? Each antibiotic family favours one of them.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="56_PKPDIndex" -->
 The three indices (Craig, 1998):
 
-- **T > MIC** (time-dependent): beta-lactams. Optimised by **prolonged/continuous infusions**.
+- **%fT > MIC** (time-dependent): the usual beta-lactam index when the target is defined using unbound concentration. It can be optimised with **prolonged/continuous infusions**.
 - **Cmax / MIC** (concentration-dependent): a classic aminoglycoside index; it can also be informative for some fluoroquinolones depending on the drug, pathogen and endpoint.
 - **fAUC / MIC**: the principal index most often retained for fluoroquinolones, using unbound exposure when the target was defined that way. For vancomycin in serious MRSA infections, the 2020 consensus recommends an **AUC₂₄ of 400–600 mg·h/L when MIC is 1 mg/L by broth microdilution**. That condition and the MIC method must remain explicit in interpretation.
 
-$$ \%T_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{AUC_{24}}{MIC} $$
+$$ \%fT_{>MIC}, \qquad \frac{C_{max}}{MIC}, \qquad \frac{fAUC_{24}}{MIC} $$
 
 **Ref —** Craig W.A., *Clin Infect Dis* 1998 — the founding framework for PK/PD indices.
 <!-- /step -->

@@ -7,9 +7,9 @@
 
   const approaches = [
     { id: 'nca', label: 'NCA', tag: ['Descriptif', 'Descriptive'], accent: 'var(--accent-pk)',
-      tagline: ['Analyse non compartimentale', 'Noncompartmental analysis'], blurb: ["Laisse parler les données : AUC, Cmax, T½ par la règle des trapèzes. Robuste mais ne prédit pas.", 'Lets the data speak: AUC, Cmax and half-life by the trapezoidal rule. Robust, but not predictive.'] },
+      tagline: ['Analyse non compartimentale', 'Noncompartmental analysis'], blurb: ["Résume un profil sans modèle compartimental : AUC par trapèzes, Cmax observée et pente terminale estimée pour la demi-vie. Ne fournit pas à elle seule un modèle dynamique individuel.", 'Summarizes a profile without a compartmental model: trapezoidal AUC, observed Cmax and an estimated terminal slope for half-life. It does not by itself provide an individual dynamic model.'] },
     { id: 'poppk', label: 'PopPK', tag: ['Prédictif', 'Predictive'], accent: 'var(--accent-pd)',
-      tagline: ['PK de population', 'Population PK'], blurb: ["Top-down : estime les paramètres typiques et la variabilité, permet la simulation. Le standard du cours.", 'Top-down: estimates typical parameters and variability, and enables simulation. The course standard.'] },
+      tagline: ['PK de population', 'Population PK'], blurb: ["Estime des paramètres typiques, des sources de variabilité et des effets individuels sous un modèle explicite ; permet des simulations conditionnelles à ce modèle.", 'Estimates typical parameters, sources of variability and individual effects under an explicit model; enables simulations conditional on that model.'] },
     { id: 'pbpk', label: 'PBPK', tag: ['Mécaniste', 'Mechanistic'], accent: 'var(--accent-ai)',
       tagline: ['Physiologiquement fondé', 'Physiology-based'], blurb: ["Bottom-up : un compartiment par organe relié par les débits sanguins. Puissant mais gourmand en hypothèses.", 'Bottom-up: one compartment per organ connected by blood flows. Powerful, but assumption intensive.'] }
   ];
