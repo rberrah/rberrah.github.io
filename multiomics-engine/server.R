@@ -584,9 +584,12 @@ run_backend_analysis <- function(payload) {
 
       if (run_deseq) {
         if (requireNamespace("DESeq2", quietly=TRUE)) {
-          fit_deseq <- try(run_deseq2_counts(raw_blocks[[layer]], m, layer_dir, form, contrast), silent=TRUE)
+          fit_deseq <- try(run_deseq2_counts(
+            raw_blocks[[layer]], m, layer_dir, form, contrast,
+            confirmatory_contract=identical(protocol$analysisIntent,"confirmatory")
+          ), silent=TRUE)
           if (!inherits(fit_deseq,"try-error")) {
-            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results)))
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract))
           } else {
             methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }
