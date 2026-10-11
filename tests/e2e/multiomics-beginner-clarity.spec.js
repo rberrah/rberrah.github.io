@@ -6,15 +6,6 @@ test('FDR explanation counts real feature-grid q-values, not unrelated table q-v
   await page.getByTestId('multiomics-load-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 30_000 });
 
-  const baseline = await page.evaluate(() => {
-    const nodes = document.querySelectorAll('#analysis-results .feature-table [data-scientific-q]');
-    const qs = [...nodes].map(node => Number(node.getAttribute('data-scientific-q')))
-      .filter(q => Number.isFinite(q) && q >= 0 && q <= 1);
-    return {
-      primary: qs.filter(q => q <= 0.05).length,
-      exploratory: qs.filter(q => q > 0.05 && q <= 0.10).length
-    };
-  });
   await page.evaluate(() => {
     const results = document.querySelector('[data-testid="multiomics-results"]');
     const fixture = document.createElement('div');
@@ -37,19 +28,31 @@ test('FDR explanation counts real feature-grid q-values, not unrelated table q-v
 
   const policy = page.getByTestId('multiomics-fdr-policy');
   await expect(policy).toBeVisible();
-  const counts = policy.locator('.fdr-policy-count');
-  await expect(counts).toContainText(
-    `${baseline.primary + 1} ligne(s) affichée(s) satisfont q ≤ 0,05`
-  );
-  await expect(counts).toContainText(
-    `${baseline.exploratory + 1} ligne(s) supplémentaire(s)`
-  );
+  const actualCountsMatchScreen = async (lang) => page.evaluate((locale) => {
+    const results = document.querySelector('[data-testid="multiomics-results"]');
+    const raw = [...(results?.querySelectorAll('.feature-table [data-scientific-q]') || [])]
+      .map(node => node.getAttribute('data-scientific-q'))
+      .filter(value => value !== null && value.trim() !== '');
+    const qs = raw.map(Number).filter(q => Number.isFinite(q) && q >= 0 && q <= 1);
+    const primary = qs.filter(q => q <= 0.05).length;
+    const exploratory = qs.filter(q => q > 0.05 && q <= 0.10).length;
+    const text = document.querySelector('[data-testid="multiomics-fdr-policy"] .fdr-policy-count')?.textContent || '';
+    const first = locale === 'en'
+      ? `${primary} displayed row(s) meet q ≤ 0.05`
+      : `${primary} ligne(s) affichée(s) satisfont q ≤ 0,05`;
+    const second = locale === 'en'
+      ? `${exploratory} additional row(s)`
+      : `${exploratory} ligne(s) supplémentaire(s)`;
+    return qs.length >= 2 && text.includes(first) && text.includes(second);
+  }, lang);
+
+  // The current Svelte view may update between the initial demo and the
+  // injected fixture. Always compare against q-values still on screen.
+  await expect.poll(() => actualCountsMatchScreen('fr'), { timeout: 10_000 }).toBe(true);
   await expect(policy).toContainText('dix premières lignes visibles par omique');
 
   await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
-  await expect(counts).toContainText(
-    `${baseline.primary + 1} displayed row(s) meet q ≤ 0.05`
-  );
+  await expect.poll(() => actualCountsMatchScreen('en'), { timeout: 10_000 }).toBe(true);
   await expect(policy).toContainText('first ten rows shown per omic');
 });
 
