@@ -85,7 +85,14 @@ fit_and_audit<-function(experimental_blocks,seed,scenario){
           names(audit$empirical_p_max_across_factors)))
     stop("No genotype/diet conditional association audit available")
   # Simultaneous two biological endpoints, adjusted descriptively.
-  bonferroni<-pmin(1,2*audit$empirical_p_max_across_factors)
+  # pmin takes attributes from its FIRST argument. pmin(1, named_vector)
+  # silently removes the genotype/diet names, corrupting downstream pairing
+  # comparisons. Keep and verify experimental-effect identities explicitly.
+  bonferroni<-pmin(2*audit$empirical_p_max_across_factors,1)
+  names(bonferroni)<-names(audit$empirical_p_max_across_factors)
+  if(!identical(sort(names(bonferroni)),
+                sort(c("genotype_given_diet","diet_given_genotype"))))
+    stop("Bonferroni-adjusted experimental effects lost their identities")
   summary<-list(
     scenario=scenario,seed=seed,
     n_biological_animals=40L,
