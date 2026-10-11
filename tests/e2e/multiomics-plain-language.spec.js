@@ -34,7 +34,7 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('0,2793 → 0,3021');
   await expect(validation).toContainText('nouvelle validation confirmatoire');
   await expect(validation).toContainText('40 souris Nutrimouse');
-  await expect(validation).toContainText('BER de 0,05');
+  await expect(validation).toContainText('(BER) de 0,05');
   await expect(validation).toContainText('nécessité des deux omiques');
   await expect(validation).toContainText('Une AUC élevée ne garantit pas des probabilités justes.');
 
