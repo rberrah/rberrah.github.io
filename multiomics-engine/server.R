@@ -93,6 +93,11 @@ rnaseq_confirmatory_assay_integrity <- function(x, layer_meta) {
      nrow(x)!=nrow(layer_meta)||
      !setequal(rownames(x),as.character(layer_meta$assay_id)))
     stop("R1 assay manifest and measured raw-count matrix have nonidentical assay IDs; no silent sample loss")
+  if(!is.numeric(x)||is.null(colnames(x))||
+     anyNA(colnames(x))||anyDuplicated(colnames(x))||
+     any(!nzchar(colnames(x)))||any(!is.finite(x))||any(x<0)||
+     any(abs(x-round(x))>1e-8)||any(rowSums(x)<=0))
+    stop("R1 raw-count assay matrix contains invalid/missing/fractional measurements or empty assay libraries: never sum with na.rm=TRUE")
   for(sample in unique(as.character(layer_meta$sample_id))){
     m<-layer_meta[as.character(layer_meta$sample_id)==sample,,drop=FALSE]
     for(field in c("subject_id","condition","batch")){
