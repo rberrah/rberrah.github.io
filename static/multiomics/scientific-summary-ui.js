@@ -4,6 +4,11 @@
   let latestDiagnostics = window.__PMX_MULTIOMICS_DIAGNOSTICS__ || null;
   const lang = () => document.documentElement.lang === 'en' ? 'en' : 'fr';
   const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
+  // Diagnostics and table labels may contain strings imported from user files.
+  // Only markup authored by PMx may be inserted with innerHTML.
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
 
   function selectContaining(value) {
     const option = [...document.querySelectorAll('select option')].find((item) => item.value === value);
@@ -196,11 +201,11 @@
       ? { ready: 'Ready', usable_with_cautions: 'Usable with cautions', review_required: 'Review required', blocked_or_redesign_required: 'Blocked / redesign required' }
       : { ready: 'Prêt', usable_with_cautions: 'Utilisable avec précautions', review_required: 'Revue requise', blocked_or_redesign_required: 'Bloqué / plan à corriger' };
     const itemList = (title, values, kind) => values.length
-      ? `<div class="diagnostic-list ${kind}"><strong>${title}</strong><ul>${values.map((value) => `<li>${translateDiagnostic(value, language)}</li>`).join('')}</ul></div>`
+      ? `<div class="diagnostic-list ${kind}"><strong>${title}</strong><ul>${values.map((value) => `<li>${escapeHtml(translateDiagnostic(value, language))}</li>`).join('')}</ul></div>`
       : '';
     return `
       <div class="engine-diagnostics" data-testid="multiomics-engine-diagnostics">
-        <div class="engine-diagnostics-head"><strong>${statusTitle}</strong><b>${statusMap[diagnostics.status] || diagnostics.status}</b></div>
+        <div class="engine-diagnostics-head"><strong>${statusTitle}</strong><b>${escapeHtml(statusMap[diagnostics.status] || diagnostics.status)}</b></div>
         ${itemList(language === 'en' ? 'Blocking issues' : 'Problèmes bloquants', blockers, 'blocking')}
         ${itemList(language === 'en' ? 'Warnings' : 'Avertissements', warnings, 'warning')}
         ${itemList(language === 'en' ? 'Cautions / notes' : 'Précautions / notes', notes, 'note')}
@@ -215,14 +220,14 @@
       ['DIABLO', eligibility.diablo]
     ].map(([name, method]) => {
       if (!method) return '';
-      const reasons = (method.reasons || []).map((reason) => `<li>${translateDiagnostic(reason, language)}</li>`).join('');
+      const reasons = (method.reasons || []).map((reason) => `<li>${escapeHtml(translateDiagnostic(reason, language))}</li>`).join('');
       const sampleInfo = name === 'DIABLO' && method.smallestClass != null
         ? (language === 'en' ? `Smallest class: ${method.smallestClass}` : `Plus petite classe : ${method.smallestClass}`)
         : (language === 'en' ? `Shared subjects: ${method.sharedSubjects ?? '—'}` : `Sujets communs : ${method.sharedSubjects ?? '—'}`);
       const interpretation = name === 'MOFA2'
         ? (language === 'en' ? 'Latent covariance factors are exploratory; they are not causal mechanisms or validated biomarkers.' : 'Les facteurs latents de covariance sont exploratoires ; ce ne sont ni des mécanismes causaux ni des biomarqueurs validés.')
         : (language === 'en' ? 'Internal repeated CV supports model tuning; independent external validation is still required before biomarker claims.' : 'La validation croisée interne répétée sert au tuning ; une validation externe indépendante reste nécessaire avant toute revendication de biomarqueur.');
-      return `<article><div><strong>${name}</strong><b>${eligibilityLabel(method.status, language)}</b></div><span>${sampleInfo}</span>${reasons ? `<ul>${reasons}</ul>` : ''}<p>${interpretation}</p></article>`;
+      return `<article><div><strong>${name}</strong><b>${escapeHtml(eligibilityLabel(method.status, language))}</b></div><span>${escapeHtml(sampleInfo)}</span>${reasons ? `<ul>${reasons}</ul>` : ''}<p>${interpretation}</p></article>`;
     }).join('');
     return `<div class="method-eligibility" data-testid="multiomics-method-eligibility"><strong>${language === 'en' ? 'Advanced-method eligibility' : 'Éligibilité des méthodes avancées'}</strong><div>${cards}</div></div>`;
   }
@@ -359,16 +364,16 @@
     const eligibility = methodEligibilityHtml(language, latestDiagnostics);
     const rules = methodologicalRules(language).map(([title, text]) => `<article><strong>${title}</strong><span>${text}</span></article>`).join('');
     const evidenceHtml = evidence.length
-      ? evidence.map((item) => `<li><strong>${item.label}</strong><span>${item.significantDisplayedRows}/${item.displayedRowsWithQ} ${language === 'en' ? 'displayed rows with' : 'lignes affichées avec'} ${item.qHeader} ≤ 0.05</span></li>`).join('')
+      ? evidence.map((item) => `<li><strong>${escapeHtml(item.label)}</strong><span>${item.significantDisplayedRows}/${item.displayedRowsWithQ} ${language === 'en' ? 'displayed rows with' : 'lignes affichées avec'} ${escapeHtml(item.qHeader)} ≤ 0.05</span></li>`).join('')
       : `<li><strong>${language === 'en' ? 'No visible feature-wise FDR table' : 'Aucun tableau FDR feature-by-feature visible'}</strong><span>${language === 'en' ? 'This can be normal for exploratory multivariate routes.' : 'Cela peut être normal pour une route multivariée exploratoire.'}</span></li>`;
 
     const state = JSON.stringify({ language, objective: objective(), confidence, diagnostics: latestDiagnostics, evidence });
     if (panel.dataset.state === state) return;
     const wasOpen = panel.querySelector('details.scientific-extra')?.open === true;
     panel.innerHTML = `
-      <div class="scientific-summary-head"><div><span>${language === 'en' ? 'Scientific synthesis' : 'Synthèse scientifique'}</span><h3>${language === 'en' ? 'What do these results actually support?' : 'Que permettent réellement de conclure ces résultats ?'}</h3></div><b class="confidence ${confidence}">${confidenceTitle}</b></div>
-      <p class="scientific-conclusion">${conclusion}</p>
-      <p class="scientific-confidence">${confidenceText}</p>
+      <div class="scientific-summary-head"><div><span>${language === 'en' ? 'Scientific synthesis' : 'Synthèse scientifique'}</span><h3>${language === 'en' ? 'What do these results actually support?' : 'Que permettent réellement de conclure ces résultats ?'}</h3></div><b class="confidence ${confidence}">${escapeHtml(confidenceTitle)}</b></div>
+      <p class="scientific-conclusion">${escapeHtml(conclusion)}</p>
+      <p class="scientific-confidence">${escapeHtml(confidenceText)}</p>
       <details class="scientific-extra"><summary>${language === 'en' ? 'Scientific checks and reproducible exports' : 'Vérifications et exports scientifiques'}</summary>
       ${diagnostics}
       ${eligibility}
