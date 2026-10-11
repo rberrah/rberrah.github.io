@@ -75,6 +75,39 @@ matrix_samples_by_features <- function(text, expected_assays) {
   x[rownames(x) %in% expected_assays, , drop=FALSE]
 }
 
+# Upstream assay-level R1 integrity check BEFORE technical aggregation.
+# run_deseq2_counts() otherwise only sees the aggregate and cannot detect
+# assays silently dropped by the browser CSV orientation/identifier join.
+rnaseq_confirmatory_assay_integrity <- function(x, layer_meta) {
+  if(!is.matrix(x)||is.null(rownames(x))||
+     anyNA(rownames(x))||anyDuplicated(rownames(x))||
+     any(!nzchar(rownames(x)))||!is.data.frame(layer_meta)||
+     !all(c("assay_id","sample_id","subject_id","condition")%in%names(layer_meta)))
+    stop("R1 raw-count assay manifest requires unique measured assay identifiers")
+  for(field in c("assay_id","sample_id","subject_id","condition")){
+    v<-as.character(layer_meta[[field]])
+    if(anyNA(v)||any(!nzchar(trimws(v))))
+      stop(paste("R1 assay manifest has missing or blank field:",field))
+  }
+  if(anyDuplicated(as.character(layer_meta$assay_id))||
+     nrow(x)!=nrow(layer_meta)||
+     !setequal(rownames(x),as.character(layer_meta$assay_id)))
+    stop("R1 assay manifest and measured raw-count matrix have nonidentical assay IDs; no silent sample loss")
+  for(sample in unique(as.character(layer_meta$sample_id))){
+    m<-layer_meta[as.character(layer_meta$sample_id)==sample,,drop=FALSE]
+    for(field in c("subject_id","condition","batch")){
+      if(!field%in%names(m))next
+      v<-unique(as.character(m[[field]]))
+      if(length(v)>1L)
+        stop(paste("R1 technical replicates have inconsistent",field,
+                   "for one biological sample"))
+    }
+  }
+  list(status="assay_identifiers_exact",measured_assays=nrow(x),
+       biological_samples=length(unique(layer_meta$sample_id)),
+       assay_loss_detected=FALSE,certified=FALSE)
+}
+
 aggregate_technical_replicates <- function(x, layer_meta, value_type) {
   layer_meta <- layer_meta[match(rownames(x), layer_meta$assay_id), , drop=FALSE]
   valid <- !is.na(layer_meta$sample_id) & nzchar(layer_meta$sample_id)
@@ -534,6 +567,10 @@ run_backend_analysis <- function(payload) {
     }
 
     value_type <- or_else(data_types[[layer]], "normalized")
+    assay_contract <- if(identical(protocol$analysisIntent,"confirmatory") &&
+        identical(layer,"transcriptomics") &&
+        identical(value_type,"raw_counts"))
+      rnaseq_confirmatory_assay_integrity(x, layer_meta) else NULL
     raw_agg <- aggregate_technical_replicates(x, layer_meta, value_type)
     raw_blocks[[layer]] <- raw_agg$matrix
 
