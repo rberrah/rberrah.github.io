@@ -7,13 +7,16 @@ test('multi-omics upload area explains the minimum file structure to beginners',
   const guide = page.getByTestId('multiomics-file-guide');
   await expect(guide).toBeVisible();
   await expect(guide).toContainText('Que faut-il charger ?');
-  await expect(guide).toContainText('1 tableau des échantillons + au moins 2 matrices omiques');
-  await expect(guide).toContainText(/deux couches.+analyse multi-omique/i);
+  await expect(guide).toContainText('1 tableau des échantillons + 1 à 3 matrices omiques');
+  await expect(guide).toContainText(/Deux omiques différentes permettent une analyse multi-omique/i);
   await expect(guide).toContainText('subject_id · sample_id · assay_id · omic');
   await expect(guide).toContainText('feature_id | RNA001 | RNA002');
   await expect(guide).toContainText('Comment les fichiers se relient');
+  await expect(guide).toContainText('Exemple mono-omique (ARN uniquement)');
+  await expect(guide).toContainText('RNA001  transcriptomics');
 
   await page.locator('.language-toggle').getByRole('button', { name: 'EN', exact: true }).click();
   await expect(guide).toContainText('What do I need to upload?');
-  await expect(guide).toContainText('1 sample sheet + at least 2 omics matrices');
+  await expect(guide).toContainText('1 sample sheet + 1 to 3 omics matrices');
+  await expect(guide).toContainText('Single-omic example (RNA only)');
 });
