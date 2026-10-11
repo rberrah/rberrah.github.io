@@ -3,13 +3,18 @@
 source("multiomics-engine/null_reference_metrics.R")
 
 fixture <- do.call(rbind, lapply(c("balanced_base","unequal_partial_batch"),
-  function(scenario) do.call(rbind,lapply(c("DESeq2","edgeR_QL","limma_voom"),
-    function(method) data.frame(scenario=scenario,replicate=seq_len(12L),
-      method=method,seed=seq_len(12L)+if(scenario=="balanced_base")100L else 1000L,
-      features_tested=400L,finite_q=400L,
-      discoveries_q05=rep(c(1L,0L),c(1L,11L)),
-      false_discovery_fraction=rep(c(1L,0L),c(1L,11L)),
-      stringsAsFactors=FALSE))))))
+  function(scenario) {
+    do.call(rbind, lapply(c("DESeq2","edgeR_QL","limma_voom"),
+      function(method) {
+        data.frame(scenario=scenario,replicate=seq_len(12L),
+          method=method,seed=seq_len(12L)+
+            if (scenario=="balanced_base") 100L else 1000L,
+          features_tested=400L,finite_q=400L,
+          discoveries_q05=rep(c(1L,0L),c(1L,11L)),
+          false_discovery_fraction=rep(c(1L,0L),c(1L,11L)),
+          stringsAsFactors=FALSE)
+      }))
+  }))
 result <- null_reference_summary(fixture)
 stopifnot(nrow(result)==6L,
   all(result$replicates==12L),
