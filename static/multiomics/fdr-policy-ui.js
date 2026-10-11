@@ -4,37 +4,23 @@
   const lang = () => document.documentElement.lang === 'en' ? 'en' : 'fr';
   const clean = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 
-  function parseNumber(value) {
-    const text = clean(value).replace(',', '.').replace(/[^0-9eE+\-.]/g, '');
-    if (!text) return null;
-    const number = Number(text);
-    return Number.isFinite(number) ? number : null;
-  }
-
-  function qColumnIndex(headers) {
-    const patterns = [/^q$/i, /q\s*bh/i, /fdr/i, /padj/i, /adj\.?\s*p/i, /adjusted\s*p/i, /q[-_ ]?value/i];
-    return headers.findIndex((header) => patterns.some((pattern) => pattern.test(header)));
-  }
-
+  // The Svelte result view uses a CSS feature grid, not a <table>.
+  // Read numeric values from the dedicated machine-readable attribute to
+  // avoid locale formatting, tooltips, pathway tables and duplicate families.
   function displayedFdrCounts() {
     const results = document.querySelector('[data-testid="multiomics-results"]');
     if (!results) return { tested: 0, primary: 0, exploratoryOnly: 0 };
     let tested = 0;
     let primary = 0;
     let exploratoryOnly = 0;
-    for (const table of results.querySelectorAll('table')) {
-      const headers = [...table.querySelectorAll('thead th')].map((node) => clean(node.textContent));
-      const qIndex = qColumnIndex(headers);
-      if (qIndex < 0) continue;
-      for (const row of table.querySelectorAll('tbody tr')) {
-        const cells = [...row.querySelectorAll('td')];
-        if (qIndex >= cells.length) continue;
-        const q = parseNumber(cells[qIndex]?.textContent);
-        if (q == null) continue;
-        tested += 1;
-        if (q <= 0.05) primary += 1;
-        else if (q <= 0.10) exploratoryOnly += 1;
-      }
+    for (const node of results.querySelectorAll('.feature-table [data-scientific-q]')) {
+      const raw = node.getAttribute('data-scientific-q');
+      if (!raw || !raw.trim()) continue;
+      const q = Number(raw);
+      if (!Number.isFinite(q) || q < 0 || q > 1) continue;
+      tested += 1;
+      if (q <= 0.05) primary += 1;
+      else if (q <= 0.10) exploratoryOnly += 1;
     }
     return { tested, primary, exploratoryOnly };
   }
@@ -70,8 +56,8 @@
           <article><strong>Exploratory evidence · 0.05 &lt; q ≤ 0.10</strong><p>Kept as a hypothesis-generating signal only. It should not be reported as equivalent to the primary FDR threshold.</p></article>
           <article><strong>Raw p-values</strong><p>Never used alone to select features from thousands of tests. Benjamini–Hochberg q/FDR values are the feature-wise multiplicity summary used by this tool.</p></article>
         </div>
-        <p class="fdr-policy-count">${counts.tested ? `${counts.primary} displayed row(s) meet q ≤ 0.05; ${counts.exploratoryOnly} additional row(s) fall in 0.05 < q ≤ 0.10.` : 'No displayed feature-wise q/FDR table is applicable to this route.'}</p>
-        <small>FDR control is a property of a family of tests under its assumptions; a q-value is not the probability that one individual biological hypothesis is false.</small>
+        <p class="fdr-policy-count">${counts.tested ? `${counts.primary} displayed row(s) meet q ≤ 0.05; ${counts.exploratoryOnly} additional row(s) fall in 0.05 < q ≤ 0.10.` : 'No feature-wise adjusted q-values are displayed in this analysis.'}</p>
+        <small>Only the first ten rows shown per omic are counted above, not all tested variables. BH correction is calculated separately by omic; displayed counts cannot be combined into a global discovery rate. FDR control is conditional on statistical assumptions; a q-value is not the probability that an individual hypothesis is false.</small>
         </details>
       `;
     } else {
@@ -83,8 +69,8 @@
           <article><strong>Signal exploratoire · 0,05 &lt; q ≤ 0,10</strong><p>Conservé uniquement pour générer des hypothèses. Il ne doit pas être présenté comme équivalent au seuil FDR principal.</p></article>
           <article><strong>p-values brutes</strong><p>Elles ne sont jamais utilisées seules pour sélectionner des variables parmi des milliers de tests. L’outil utilise les q/FDR de Benjamini–Hochberg pour résumer la multiplicité.</p></article>
         </div>
-        <p class="fdr-policy-count">${counts.tested ? `${counts.primary} ligne(s) affichée(s) satisfont q ≤ 0,05 ; ${counts.exploratoryOnly} ligne(s) supplémentaire(s) se situent entre 0,05 et 0,10.` : 'Aucun tableau feature-by-feature avec q/FDR affiché n’est applicable à cette route.'}</p>
-        <small>Le contrôle du FDR concerne une famille de tests sous ses hypothèses ; une q-value n’est pas la probabilité qu’une hypothèse biologique individuelle soit fausse.</small>
+        <p class="fdr-policy-count">${counts.tested ? `${counts.primary} ligne(s) affichée(s) satisfont q ≤ 0,05 ; ${counts.exploratoryOnly} ligne(s) supplémentaire(s) se situent entre 0,05 et 0,10.` : 'Aucune q-value ajustée n’est affichée pour les variables de cette analyse.'}</p>
+        <small>Ces comptes portent uniquement sur les dix premières lignes visibles par omique, et non sur toutes les variables testées. La correction BH est réalisée séparément par omique : on ne peut pas en déduire un taux global de découvertes. Le contrôle du FDR dépend d’hypothèses statistiques ; une q-value n’est pas la probabilité qu’une hypothèse individuelle soit fausse.</small>
         </details>
       `;
     }
