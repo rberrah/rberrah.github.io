@@ -9,7 +9,8 @@
 # Exploratory post-fit audit: genotype conditional on diet, and diet
 # conditional on genotype, 199 restricted null permutations, max over all
 # factors (no selecting factor after seeing labels and quoting naïve p).
-# Sensitivity: one MOFA2 fit with lipid-to-animal pairing deliberately broken.
+# Sensitivity: one MOFA2 fit with lipid-to-animal pairing deliberately broken;
+# a separate label-free per-feature z-score sensitivity on the original pairing.
 # No factor is discarded for weak recovery; no superiority threshold.
 args<-commandArgs(trailingOnly=TRUE)
 if(length(args)!=2L)
@@ -163,6 +164,27 @@ mispaired$lipidomics<-lipid[match(shuffled,ids),,drop=FALSE]
 rownames(mispaired$lipidomics)<-ids
 perturbed<-fit_and_audit(mispaired,seeds[[1L]],"broken_lipid_subject_pairing")
 records[[length(records)+1L]]<-perturbed$summary
+# We prespecify a second pipeline with every feature individually centered
+# and scaled (view-wide scaling is already enabled by the backend).
+# This tests normalization sensitivity; it is NOT an independent cohort.
+zscore_blocks<-mofa_real_zscore_features(blocks)
+zscore_fit<-fit_and_audit(zscore_blocks,seeds[[1L]],
+                         "label_free_feature_zscore_paired_sensitivity")
+records[[length(records)+1L]]<-zscore_fit$summary
+normalization_sensitivity<-list(
+  method="Mean-zero / SD-one per assayed feature within each view; no phenotype labels accessed",
+  different_preprocessing_from_reference=TRUE,
+  predeclared_paired_seed=seeds[[1L]],
+  paired_original_max_r2=records[[1L]]$max_conditional_r2,
+  paired_zscore_max_r2=zscore_fit$summary$max_conditional_r2,
+  original_view_level_qc=records[[1L]]$factor_vs_assay_mean_qc,
+  zscore_view_level_qc=zscore_fit$summary$factor_vs_assay_mean_qc,
+  normalization_fix_proven=FALSE,
+  interpretation="Same 40 animals; changed pre-processing can change latent factors and associations, but cannot determine whether factor-to-mean correlation is biological or technical."
+)
+jsonlite::write_json(normalization_sensitivity,
+  file.path(output,"feature_normalization_sensitivity.json"),
+  pretty=TRUE,auto_unbox=TRUE,na="null",digits=12L)
 pairing_falsification<-mofa_real_pairing_falsification(
   records[[1L]],perturbed$summary)
 jsonlite::write_json(pairing_falsification,
@@ -189,6 +211,8 @@ report<-list(
  paired_two_seed_factor_correlations=stability,
  pairing_falsification_negative_result=pairing_falsification,
  per_fit_normalization_qc_included=TRUE,
+ featurewise_normalization_sensitivity=normalization_sensitivity,
+ featurewise_normalization_is_unsupervised_same_cohort=TRUE,
  normalization_artifact_not_excluded=TRUE,
  broken_pairing_matches=sum(shuffled==ids),
  broken_pairing_was_chosen_in_advance=TRUE,
@@ -206,11 +230,11 @@ report<-list(
    "A MOFA warning about latent factors tracking average sample expression must be archived with factor-vs-view mean QC; this may be biology, technical variation or normalization, not a validated biological mechanism.",
    "Intentionally mismatching lipids is a falsification stress test, not a formal null or proof of synergy.",
    "No technical batch metadata exists; cannot claim biological-vs-technical factor separation on this dataset.",
-   "Three MOFA model runs do not establish best factor number, generalizability, clinical validity or a validated biological mechanism.",
+   "Four MOFA model runs (two paired seeds, one broken-pairing, one featurewise-zscore paired sensitivity) do not establish best factor number, generalizability, clinical validity or a validated biological mechanism.",
    "All associations, including null effects, are recorded, never filtered to winning seeds."
  ),
  publication_ready=FALSE,clinical_certification=FALSE
 )
 jsonlite::write_json(report,file.path(output,"real_nutrimouse_mofa2_report.json"),
   pretty=TRUE,auto_unbox=TRUE,na="null",digits=12L)
-cat(sprintf("REAL MOFA2 NUTRIMOUSE ALL INPUTS AUDITED PASS: 40 mice, true paired seeds=2, broken pairing=1, no technical batch and NO CONFIRMATORY CLAIM\n"))
+cat(sprintf("REAL MOFA2 NUTRIMOUSE ALL INPUTS AUDITED PASS: 40 mice, true paired seeds=2, broken pairing=1, feature_zscore_paired=1, no technical batch and NO CONFIRMATORY CLAIM\n"))
