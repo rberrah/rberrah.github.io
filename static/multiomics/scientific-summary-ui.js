@@ -133,29 +133,27 @@
         ? 'The numerical outputs may still be useful for data checking, but the detected design problem prevents a defensible strong biological interpretation.'
         : 'Les sorties numériques peuvent rester utiles pour contrôler les données, mais le problème de design détecté empêche une interprétation biologique forte défendable.';
     }
-    const totalDisplayed = evidence.reduce((sum, item) => sum + item.displayedRowsWithQ, 0);
-    const significant = evidence.reduce((sum, item) => sum + item.significantDisplayedRows, 0);
-    const positive = evidence.reduce((sum, item) => sum + item.positiveSignificantDisplayedRows, 0);
-    const negative = evidence.reduce((sum, item) => sum + item.negativeSignificantDisplayedRows, 0);
     if (!evidence.length) {
       return language === 'en'
-        ? 'No feature-wise adjusted-q/FDR table is visible for this route. Read the multivariate structure, quality checks and pathway evidence rather than looking for a single “significant” variable.'
-        : 'Aucun tableau feature-by-feature avec q/FDR ajusté n’est visible pour cette route. Lisez la structure multivariée, les contrôles qualité et les voies biologiques plutôt que de rechercher une seule variable « significative ».';
+        ? 'No feature-wise adjusted-q/FDR rows are visible for this route. Read the multivariate structure, quality checks and pathway evidence instead of looking for a single “significant” variable.'
+        : 'Aucune ligne de résultat avec q BH ajusté n’est visible dans ce parcours. Examinez la structure multivariée, les contrôles qualité et les voies biologiques, plutôt que de rechercher une seule variable « significative ».';
     }
+    // Each omic has its own BH test family. Never pool apparent discovery
+    // proportions across omics or imply the ten-row preview covers all tests.
+    const layerCounts = evidence.map((item) =>
+      `${item.label} : ${item.significantDisplayedRows}/${item.displayedRowsWithQ}`).join(' ; ');
     if (language === 'en') {
-      const direction = (positive || negative) ? ` Among significant displayed rows, ${positive} have a positive displayed effect and ${negative} a negative displayed effect.` : '';
-      const base = `${significant} of ${totalDisplayed} displayed rows with an adjusted q/FDR meet q/FDR ≤ 0.05.${direction}`;
-      if (currentObjective === 'groups') return `${base} These are adjusted group associations, not proof of causality.`;
-      if (currentObjective === 'outcome') return `${base} Predictive performance must be read from held-out/cross-validated estimates, not from these q-values.`;
-      if (currentObjective === 'time') return `${base} Temporal association alone is not causal evidence.`;
-      return `${base} Interpret corrected feature-wise evidence together with cross-omics convergence and data quality.`;
+      const base = `Among the first feature rows displayed in each omic, q BH ≤ 0.05: ${layerCounts}. These are visible-row counts, not the discovery rate for all tested features. The main tables may use the looser exploratory q ≤ 0.10 threshold; BH corrections are performed per omic, not pooled here.`;
+      if (currentObjective === 'groups') return `${base} Group associations are not proof of causality.`;
+      if (currentObjective === 'outcome') return `${base} Prediction quality must be assessed on held-out subjects.`;
+      if (currentObjective === 'time') return `${base} Temporal association is not proof of causality.`;
+      return `${base} Explore covariation and data quality separately.`;
     }
-    const direction = (positive || negative) ? ` Parmi ces lignes significatives affichées, ${positive} ont un effet positif et ${negative} un effet négatif.` : '';
-    const base = `${significant} lignes sur ${totalDisplayed} affichant un q/FDR ajusté satisfont q/FDR ≤ 0,05.${direction}`;
-    if (currentObjective === 'groups') return `${base} Il s’agit d’associations ajustées aux groupes, pas d’une preuve de causalité.`;
-    if (currentObjective === 'outcome') return `${base} La performance prédictive doit être lue sur les estimations hors-échantillon/validation croisée, pas sur ces q-values.`;
-    if (currentObjective === 'time') return `${base} Une association temporelle n’est pas une preuve causale.`;
-    return `${base} Interprétez ces preuves corrigées avec la convergence entre omiques et la qualité des données.`;
+    const base = `Parmi les premières variables affichées par omique, q BH ≤ 0,05 : ${layerCounts}. Il s’agit seulement des lignes visibles, pas du taux de découvertes pour toutes les variables testées. Les tableaux peuvent utiliser le seuil exploratoire q ≤ 0,10 ; chaque omique a sa propre correction BH, sans regroupement ici.`;
+    if (currentObjective === 'groups') return `${base} Une association aux groupes n’est pas une preuve de causalité.`;
+    if (currentObjective === 'outcome') return `${base} La qualité prédictive doit être évaluée hors échantillon.`;
+    if (currentObjective === 'time') return `${base} Une association temporelle ne démontre pas la causalité.`;
+    return `${base} Examinez séparément les relations entre omiques et la qualité des données.`;
   }
 
   function eligibilityLabel(status, language) {
