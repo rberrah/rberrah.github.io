@@ -19,67 +19,41 @@
   const design = () => selectContaining('crossover')?.value || 'independent';
   const endpoint = () => selectContaining('survival')?.value || 'none';
 
-  function parseNumeric(text) {
-    const normalised = clean(text).replace(',', '.').replace(/[^0-9eE+\-.]/g, '');
-    if (!normalised) return null;
-    const value = Number(normalised);
-    return Number.isFinite(value) ? value : null;
-  }
-
-  function qColumnIndex(headers) {
-    const patterns = [/^q$/i,/q\s*bh/i,/fdr/i,/padj/i,/adj\.?\s*p/i,/adjusted\s*p/i,/q[-_ ]?value/i];
-    return headers.findIndex((header) => patterns.some((pattern) => pattern.test(header)));
-  }
-
-  function effectColumnIndex(headers) {
-    const patterns = [/log2\s*fc/i,/log\s*fc/i,/fold\s*(change|ratio)/i,/^effect$/i,/^estimate$/i,/delta|Δ/i,/coefficient/i];
-    return headers.findIndex((header) => patterns.some((pattern) => pattern.test(header)));
-  }
-
-  function tableLabel(table, index) {
-    const container = table.closest('section,article,div');
-    const heading = container?.querySelector('h2,h3,h4,strong');
-    return clean(heading?.textContent) || `table_${index + 1}`;
-  }
-
+  // Read ONLY the actual feature-wise inference grid. Reactome pathway FDR
+  // belongs to a different hypothesis family and must never be pooled with
+  // gene/protein/metabolite BH q-values in a novice-facing conclusion.
   function collectStatisticalEvidence() {
     const results = document.querySelector('[data-testid="multiomics-results"]');
     if (!results) return [];
     const evidence = [];
-    [...results.querySelectorAll('table')].forEach((table, tableIndex) => {
-      const headers = [...table.querySelectorAll('thead th')].map((node) => clean(node.textContent));
-      if (!headers.length) return;
-      const qIndex = qColumnIndex(headers);
-      if (qIndex < 0) return;
-      const effectIndex = effectColumnIndex(headers);
+    for (const [index, grid] of [...results.querySelectorAll('[data-testid="multiomics-feature-inference"]')].entries()) {
+      const header = grid.querySelector(':scope > .feature-head');
+      if (!header || !/q\s*BH/i.test(header.textContent || '')) continue;
       let tested = 0;
       let significant = 0;
-      let positive = 0;
-      let negative = 0;
-      for (const row of table.querySelectorAll('tbody tr')) {
-        const cells = [...row.querySelectorAll('td')];
-        if (qIndex >= cells.length) continue;
-        const q = parseNumeric(cells[qIndex]?.textContent);
-        if (q == null) continue;
-        tested += 1;
-        if (q <= 0.05) {
-          significant += 1;
-          if (effectIndex >= 0 && effectIndex < cells.length) {
-            const effect = parseNumeric(cells[effectIndex]?.textContent);
-            if (effect > 0) positive += 1;
-            if (effect < 0) negative += 1;
-          }
-        }
+      for (const row of [...grid.children]) {
+        if (row === header) continue;
+        // The displayed three-digit value can round across a 0.05 boundary.
+        // Only use the original full-precision numeric q-value from Svelte.
+        const qText = row.lastElementChild?.getAttribute('data-scientific-q');
+        if (qText == null || !qText.trim()) continue;
+        const q = Number(qText);
+        if (!Number.isFinite(q) || q < 0 || q > 1) continue;
+        tested++;
+        if (q <= 0.05) significant++;
       }
+      if (!tested) continue;
       evidence.push({
-        label: tableLabel(table, tableIndex),
-        qHeader: headers[qIndex],
+        label: clean(grid.closest('article')?.querySelector('.layer-title .method-tag')?.textContent) || `Omic ${index + 1}`,
+        qHeader: 'q BH',
         displayedRowsWithQ: tested,
         significantDisplayedRows: significant,
-        positiveSignificantDisplayedRows: positive,
-        negativeSignificantDisplayedRows: negative
+        // A fold ratio above 1 is not the same scale as a regression beta.
+        // Never infer up/down direction from heterogeneous rendered effects.
+        positiveSignificantDisplayedRows: 0,
+        negativeSignificantDisplayedRows: 0
       });
-    });
+    }
     return evidence;
   }
 
