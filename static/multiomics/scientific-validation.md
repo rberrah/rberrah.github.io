@@ -42,6 +42,16 @@ une correction minimale, sans réentraîner PMx ni utiliser les
 | **Brier, analyse principale (plus petit = meilleur)** | **0,2793** | **0,3021 (dégradation)** |
 | Brier, analyse de sensibilité sur les valeurs brutes | 0,7319 | **0,7335 (dégradation)** |
 
+**Différences appariées (corrigé − initial)** : pour l'analyse principale,
+\(\Delta\mathrm{Brier}=+0,022805\) avec un intervalle de
+confiance bootstrap stratifié à 95 % **[+0,020651 ; +0,025202]** ;
+la log-loss augmente de **+0,097921**. Pour la sensibilité sur valeurs
+brutes, \(\Delta\mathrm{Brier}=+0,001619\) et l'intervalle bootstrap
+est **[+0,001576 ; +0,001667]** ; la log-loss augmente de **+0,194505**.
+Ces intervalles sont **conditionnels aux 337 patientes NKI déjà examinées**
+et à ce protocole précis : ils ne représentent pas des intervalles de
+validité généralisable à d'autres centres ou à un protocole prospectif.
+
 La conservation de l'AUC est attendue **mathématiquement** : l'ajout
 d'un intercept à l'échelle logit est une transformation strictement
 monotone des probabilités. L'AUC identique ne constitue donc pas
