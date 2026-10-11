@@ -47,6 +47,19 @@ avec les moyennes brutes et standardisées par variable. L'indicateur
 exploratoire `|r| ≥ 0,80` déclenche un avertissement, **pas** un retrait
 de facteur ni une correction de l'analyse.
 
+**Sensibilité à la normalisation (analyse complémentaire préspécifiée
+pour cet audit).** Un quatrième ajustement, distinct des deux graines
+appariées et du contrôle désapparié, applique une standardisation de
+chaque variable (moyenne zéro, écart-type un) **sans utiliser génotype
+ni régime** avant le même moteur MOFA2 et avec une graine fixée.
+Le rapport compare les R² partiels maximaux, les avertissements et les
+corrélations facteur–niveau moyen avec l'ajustement initial. Cette
+sensibilité utilise **les mêmes 40 animaux** : elle ne constitue pas
+une réplication, un test de normalisation optimale ni une correction
+validée du batch. Les valeurs mesurées de cette comparaison ne seront
+présentées comme des résultats que si le nouvel ajustement réel termine
+correctement ; une simple vérification logicielle ne suffit pas.
+
 **État de preuve :** contrôle d'exécution sur données réelles et
 audit rétrospectif ; aucune validation confirmatoire, aucun contrôle
 de batch (non mesuré), aucune démonstration du nombre optimal de
