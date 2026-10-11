@@ -544,6 +544,7 @@ run_backend_analysis <- function(payload) {
 
   blocks <- list()
   raw_blocks <- list()
+  assay_contracts <- list()
   metas <- list()
   preprocessing <- list()
   ms_qc_summaries <- list()
@@ -571,6 +572,7 @@ run_backend_analysis <- function(payload) {
         identical(layer,"transcriptomics") &&
         identical(value_type,"raw_counts"))
       rnaseq_confirmatory_assay_integrity(x, layer_meta) else NULL
+    if(!is.null(assay_contract))assay_contracts[[layer]]<-assay_contract
     raw_agg <- aggregate_technical_replicates(x, layer_meta, value_type)
     raw_blocks[[layer]] <- raw_agg$matrix
 
@@ -626,7 +628,7 @@ run_backend_analysis <- function(payload) {
             confirmatory_contract=identical(protocol$analysisIntent,"confirmatory")
           ), silent=TRUE)
           if (!inherits(fit_deseq,"try-error")) {
-            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract))
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]]))
           } else {
             methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }
