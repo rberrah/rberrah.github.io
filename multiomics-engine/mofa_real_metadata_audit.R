@@ -146,3 +146,92 @@ mofa_real_between_seeds <- function(first,second) {
     interpretation="Descriptive full-cohort factor reproducibility across two initializations; factors may rotate, permute or flip sign. Matching is not proof of stable biological signatures."
   )
 }
+
+
+# Measure whether MOFA scores track a view-wide intensity offset. This is a QC
+# association on the SAME animals, NOT a correction, confounder test or proof
+# of a technical artifact. Raw and feature-standardised row means are reported.
+mofa_real_view_level_qc <- function(scores, blocks, threshold=0.80) {
+  ids<-rownames(scores)
+  if(!is.matrix(scores)||is.null(ids)||anyDuplicated(ids)||
+     any(!is.finite(scores))||!is.list(blocks)||length(blocks)<2L||
+     is.null(names(blocks))||anyDuplicated(names(blocks))||
+     any(!nzchar(names(blocks)))||length(threshold)!=1L||
+     !is.finite(threshold)||threshold<=0||threshold>=1)
+    stop("Invalid MOFA scores, views or view-mean correlation threshold")
+  results<-list()
+  for(view in names(blocks)){
+    X<-blocks[[view]]
+    if(!is.matrix(X)||is.null(rownames(X))||
+       !identical(rownames(X),ids)||ncol(X)<2L||
+       any(!is.finite(X))||!is.numeric(X))
+      stop("MOFA QC requires exactly ordered finite feature matrices")
+    raw_mean<-rowMeans(X)
+    sd_by_feature<-apply(X,2L,stats::sd)
+    keep<-which(is.finite(sd_by_feature)&sd_by_feature>1e-12)
+    if(length(keep)<2L)stop("MOFA QC needs at least two varying features per view")
+    standardized<-sweep(sweep(X[,keep,drop=FALSE],2L,
+                                   colMeans(X[,keep,drop=FALSE]),"-"),
+                        2L,sd_by_feature[keep],"/")
+    means<-list(raw_feature_mean=raw_mean,
+                standardized_feature_mean=rowMeans(standardized))
+    correlations<-lapply(means,function(v){
+      if(stats::sd(v)<=1e-12)
+        return(stats::setNames(rep(NA_real_,ncol(scores)),colnames(scores)))
+      z<-vapply(seq_len(ncol(scores)),
+                function(j)stats::cor(v,scores[,j]),numeric(1L))
+      stats::setNames(z,colnames(scores))
+    })
+    maxima<-vapply(correlations,function(z)
+      if(all(is.na(z)))NA_real_ else max(abs(z),na.rm=TRUE),numeric(1L))
+    results[[view]]<-list(
+      feature_count=ncol(X),varying_feature_count=length(keep),
+      correlations=correlations,
+      max_absolute_correlations=as.list(maxima),
+      view_level_warning=any(is.finite(maxima)&maxima>=threshold),
+      raw_feature_mean_sd=stats::sd(raw_mean),
+      standardized_feature_mean_sd=stats::sd(means$standardized_feature_mean)
+    )
+  }
+  list(
+    threshold=threshold,views=results,
+    any_view_level_warning=any(vapply(results,function(x)x$view_level_warning,logical(1L))),
+    caveat="Correlation of factors with average sample signal can reflect biological differences, normalization or technical artifacts. This descriptive diagnostic cannot determine the cause, distinguish biology from batch, or rescue a mispaired study."
+  )
+}
+
+# A negative falsification result is evidence, not an error to suppress.
+# The fixed post-fit phenotype association test remains significant even when
+# assays are deliberately matched to the WRONG animals in this benchmark.
+mofa_real_pairing_falsification <- function(paired,broken) {
+  keys<-c("genotype_given_diet","diet_given_genotype")
+  unpack<-function(record,field){
+    if(!is.list(record)||is.null(record[[field]]))
+      stop("Paired and falsified summaries must contain identical QC fields")
+    z<-unlist(record[[field]],use.names=TRUE)
+    if(!identical(sort(names(z)),sort(keys))||
+       length(z)!=2L||any(!is.finite(z)))
+      stop("Invalid post-fit phenotype fields")
+    z[keys]
+  }
+  p_r2<-unpack(paired,"max_conditional_r2")
+  b_r2<-unpack(broken,"max_conditional_r2")
+  p_p<-unpack(paired,"two_endpoint_bonferroni_adjusted_p")
+  b_p<-unpack(broken,"two_endpoint_bonferroni_adjusted_p")
+  if(any(p_r2<0|p_r2>1|b_r2<0|b_r2>1)||
+     any(p_p<0|p_p>1|b_p<0|b_p>1))
+    stop("Invalid partial R2 or multiplicity-adjusted p-values")
+  persistence<-b_p<=0.05
+  names(persistence)<-keys
+  list(
+    status="descriptive_negative_control_not_external_validation",
+    observed_paired_partial_r2=as.list(p_r2),
+    broken_pairing_partial_r2=as.list(b_r2),
+    broken_minus_paired_partial_r2=as.list(b_r2-p_r2),
+    broken_pairing_bonferroni_p=as.list(b_p),
+    associations_still_significant_after_breaking_pairing=as.list(persistence),
+    both_associations_still_significant=isTRUE(all(persistence)),
+    valid_cross_omic_synergy_conclusion=FALSE,
+    interpretation="Genotype/diet associations in latent scores can persist when lipids are assigned to the wrong animals. Even a low post-fit permutation p is not proof of correct assay pairing, multi-omic added value, independent replication or causality. One broken pairing is a sensitivity check, not a formal null distribution."
+  )
+}
