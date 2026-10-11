@@ -146,3 +146,47 @@ test('Real MOFA2 negative pairing result is understandable and disclosed in Fren
     await expect(negative).toContainText(locale==='fr'?'Le résultat dépend donc fortement du prétraitement':'Changing the preprocessing substantially changed');
   }
 });
+
+
+test('R1 confirmatory user-selected RNA direction is sent verbatim to the reference R backend',async({page})=>{
+  let submitted=null;
+  await page.route('http://127.0.0.1:8787/health',async route=>
+    route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({status:'ok',version:'1.4.0',
+        capabilities:{reference_analysis:true,
+          mofa2_orientation_contract:'mofa2-feature-rows-sample-columns-v2'}})}));
+  await page.route('http://127.0.0.1:8787/run',async route=>{
+    submitted=route.request().postDataJSON();
+    await route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({status:'ok',methods:{
+        transcriptomics_differential_deseq2:{
+          status:'blocked',message:'Synthetic demo: no R1 scientific confirmation'
+        }
+      }})});
+  });
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  await page.getByLabel(/Objectif principal|Main objective/).selectOption('groups');
+  await page.getByLabel(/Structure du design|Design structure/).selectOption('independent');
+  await page.getByLabel(/Design longitudinal|Longitudinal design/).selectOption('no');
+  await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
+  const chooser=page.getByTestId('multiomics-rnaseq-contrast');
+  await expect(chooser).toBeVisible();
+  const fields=chooser.locator('select');
+  await expect(fields).toHaveCount(2);
+  const levels=await fields.first().locator('option').evaluateAll(nodes=>
+    nodes.map(n=>n.value).filter(Boolean));
+  expect(levels.length).toBe(2);
+  await expect(fields.nth(0)).toHaveValue('');
+  await expect(fields.nth(1)).toHaveValue('');
+  await fields.nth(0).selectOption(levels[0]);
+  await fields.nth(1).selectOption(levels[1]);
+  await page.getByTestId('multiomics-run').click();
+  await expect.poll(()=>submitted?.protocol?.analysisIntent,{timeout:30000}).toBe('confirmatory');
+  expect(submitted.protocol.rnaPrimaryContrast).toEqual(['condition',levels[1],levels[0]]);
+  expect(submitted.protocol.rnaPrimaryContrast[1]).not.toBe(
+    submitted.protocol.rnaPrimaryContrast[2]);
+  // A blocked synthetic response is intentionally not a pass/certificate.
+  expect(submitted.dataTypes.transcriptomics).toBe('raw_counts');
+});

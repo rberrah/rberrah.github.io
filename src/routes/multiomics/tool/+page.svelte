@@ -1206,6 +1206,10 @@
           designType,
           studySetting,
           analysisIntent,
+          rnaPrimaryContrast: analysisIntent === 'confirmatory' &&
+            objective === 'groups' && files.transcriptomics &&
+            transcriptomicsValues === 'raw_counts'
+            ? ['condition', rnaseqComparison, rnaseqReference] : null,
           unitType,
           groupCount,
           timepointCount,
