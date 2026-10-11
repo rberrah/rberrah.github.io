@@ -25,13 +25,15 @@
     guide.innerHTML = lang === 'en' ? `
       <details class="licence-file-extra">
         <summary>How should I prepare my files?</summary>
-      <div class="licence-file-head"><span>Before choosing files</span><h3>What do I need to upload?</h3><b>1 sample sheet + at least 2 omics matrices</b></div>
-      <p>You do not need three omics layers. Two different layers are already a multi-omics analysis; a third layer can be added when available.</p>
+      <div class="licence-file-head"><span>Before choosing files</span><h3>What do I need to upload?</h3><b>1 sample sheet + 1 to 3 omics matrices</b></div>
+      <p>Start with one omic (RNA, proteins or metabolites). Add a second different omic for multi-omics; a third layer is optional. Do not duplicate the same layer to make it multi-omics.</p>
       <div class="licence-file-grid">
         <article><span>File 1</span><strong>Sample sheet</strong><p>One row describes one technical measurement: who was measured, which specimen, which omic, group and time point.</p><code>subject_id · sample_id · assay_id · omic</code></article>
-        <article><span>Files 2–4</span><strong>Omics matrices</strong><p>One matrix per omic. Rows are genes, proteins or metabolites; columns are measurements.</p><code>feature_id | RNA001 | RNA002 | …</code></article>
+        <article><span>Files 2–4 (choose only those measured)</span><strong>Omics matrices</strong><p>One matrix per omic. Rows are genes, proteins or metabolites; columns are measurements.</p><code>feature_id | RNA001 | RNA002 | …</code></article>
       </div>
       <div class="licence-id-chain"><strong>How the files connect</strong><div><span>P001<br><small>subject</small></span><i>→</i><span>P001_T0<br><small>specimen</small></span><i>→</i><span>RNA001<br><small>measurement</small></span><i>→</i><span>RNA matrix column<br><small>same assay_id</small></span></div></div>
+      <details><summary>Single-omic example (RNA only)</summary><pre>P001  P001_T0  RNA001  transcriptomics
+P002  P002_T0  RNA002  transcriptomics</pre><p>Upload the sample sheet and the RNA matrix only; each matrix column must match an assay_id. These are two different biological subjects, not two technical replicates.</p></details>
       <details><summary>Example with the same specimen measured by three omics</summary><pre>P001  P001_T0  RNA001   transcriptomics
 P001  P001_T0  PROT001  proteomics
 P001  P001_T0  MET001   metabolomics</pre><p>The subject and specimen IDs stay the same. The assay ID changes because these are three different measurements.</p></details>
@@ -39,13 +41,15 @@ P001  P001_T0  MET001   metabolomics</pre><p>The subject and specimen IDs stay t
     ` : `
       <details class="licence-file-extra">
         <summary>Comment préparer mes fichiers ?</summary>
-      <div class="licence-file-head"><span>Avant de choisir les fichiers</span><h3>Que faut-il charger ?</h3><b>1 tableau des échantillons + au moins 2 matrices omiques</b></div>
-      <p>Il n’est pas nécessaire d’avoir trois omiques. Deux couches différentes constituent déjà une analyse multi-omique ; une troisième peut être ajoutée si elle est disponible.</p>
+      <div class="licence-file-head"><span>Avant de choisir les fichiers</span><h3>Que faut-il charger ?</h3><b>1 tableau des échantillons + 1 à 3 matrices omiques</b></div>
+      <p>Commencez avec une seule omique (ARN, protéines ou métabolites). Deux omiques différentes permettent une analyse multi-omique ; une troisième est facultative. Deux fichiers de la même omique ne constituent pas une analyse multi-omique.</p>
       <div class="licence-file-grid">
         <article><span>Fichier 1</span><strong>Tableau des échantillons</strong><p>Une ligne décrit une mesure technique : qui a été mesuré, quel prélèvement, quelle omique, quel groupe et quel temps.</p><code>subject_id · sample_id · assay_id · omic</code></article>
-        <article><span>Fichiers 2–4</span><strong>Matrices omiques</strong><p>Une matrice par omique. Les lignes sont les gènes, protéines ou métabolites ; les colonnes sont les mesures.</p><code>feature_id | RNA001 | RNA002 | …</code></article>
+        <article><span>Fichiers 2–4 (uniquement les omiques mesurées)</span><strong>Matrices omiques</strong><p>Une matrice par omique. Les lignes sont les gènes, protéines ou métabolites ; les colonnes sont les mesures.</p><code>feature_id | RNA001 | RNA002 | …</code></article>
       </div>
       <div class="licence-id-chain"><strong>Comment les fichiers se relient</strong><div><span>P001<br><small>sujet</small></span><i>→</i><span>P001_T0<br><small>prélèvement</small></span><i>→</i><span>RNA001<br><small>mesure</small></span><i>→</i><span>colonne matrice RNA<br><small>même assay_id</small></span></div></div>
+      <details><summary>Exemple mono-omique (ARN uniquement)</summary><pre>P001  P001_T0  RNA001  transcriptomics
+P002  P002_T0  RNA002  transcriptomics</pre><p>Chargez le tableau des échantillons et la matrice ARN seulement ; chaque colonne de matrice doit correspondre à un assay_id. Ce sont deux sujets biologiques distincts, et non deux réplicats techniques.</p></details>
       <details><summary>Exemple : un même prélèvement mesuré par trois omiques</summary><pre>P001  P001_T0  RNA001   transcriptomics
 P001  P001_T0  PROT001  proteomics
 P001  P001_T0  MET001   metabolomics</pre><p>Le sujet et le prélèvement restent identiques. L’identifiant de mesure change car il s’agit de trois dosages différents.</p></details>
