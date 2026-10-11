@@ -89,6 +89,34 @@ stopifnot(inherits(try(mofa_real_zscore_features(list(
 stopifnot(inherits(try(mofa_real_zscore_features(list(
  transcriptomics=input_signal,lipidomics=input_lipid[n:1,,drop=FALSE])),
  silent=TRUE),"try-error"))
+# Paired, label-blind single-view PCA is deterministic, keeps exactly the
+# measured feature and biological subject identities and never uses outcomes
+# until the existing post-fit partial-R2/permutation audit.
+pca_raw<-mofa_real_single_view_pca(input_signal,3L,FALSE)
+pca_scaled<-mofa_real_single_view_pca(input_signal,3L,TRUE)
+stopifnot(identical(dim(pca_raw$scores),c(n,3L)),
+ identical(rownames(pca_scaled$scores),ids),
+ identical(colnames(pca_raw$scores),paste0("PC",1:3)),
+ isFALSE(pca_raw$labels_supplied_to_pca),
+ max(abs(colMeans(pca_scaled$scores)))<1e-9,
+ sum(unlist(pca_raw$explained_variance_fraction))<=1+1e-8,
+ all(unlist(pca_scaled$explained_variance_fraction)>=0))
+again_pca<-mofa_real_single_view_pca(input_signal,3L,TRUE)
+stopifnot(isTRUE(all.equal(pca_scaled$scores,again_pca$scores,
+                            tolerance=1e-10)))
+pca_audit<-mofa_real_metadata_audit(pca_scaled$scores,geno,diet,
+                                    n_permutations=19L,seed=20261011L)
+stopifnot(length(pca_audit$observed_max_partial_r2)==2L,
+          nrow(pca_audit$observed_partial_r2)==3L,
+          all(pca_audit$empirical_p_max_across_factors>=1/20))
+wrong_ids<-input_signal;rownames(wrong_ids)[1L]<-rownames(wrong_ids)[2L]
+stopifnot(inherits(try(mofa_real_single_view_pca(wrong_ids),
+                       silent=TRUE),"try-error"),
+          inherits(try(mofa_real_single_view_pca(constant),
+                       silent=TRUE),"try-error"))
+wrong_metadata<-geno;names(wrong_metadata)[1L]<-"not-a-subject"
+stopifnot(inherits(try(mofa_real_metadata_audit(
+  pca_scaled$scores,wrong_metadata,diet,19L),silent=TRUE),"try-error"))
 paired_summary<-list(
  max_conditional_r2=list(genotype_given_diet=0.5313,
                          diet_given_genotype=0.6846),
