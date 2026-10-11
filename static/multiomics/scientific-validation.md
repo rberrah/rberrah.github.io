@@ -8,6 +8,83 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## Recalibrage sur une troisième cohorte : résultat négatif (11 octobre 2026)
+
+Le benchmark MAINZ → NKI avait montré une forte **discrimination** du statut ER
+(AUC 0,9855), mais une **calibration probabiliste insuffisante**
+(score de Brier 0,2793 ; moins bon qu'une simple prévision constante
+fondée sur la prévalence d'apprentissage). Il serait incorrect de
+conclure qu'une correction de calibration résout nécessairement le
+problème de transport entre plateformes.
+
+Un benchmark à **trois cohortes publiées distinctes** a donc évalué
+une correction minimale, sans réentraîner PMx ni utiliser les
+étiquettes du test pour ajuster la correction :
+
+1. **MAINZ : 200 patientes, Affymetrix.** Le modèle natif PMx sélectionne
+   les gènes, estime ses coefficients et choisit sa pénalisation.
+   Les 10 580 gènes Entrez du contrat MAINZ/NKI sont conservés.
+2. **TRANSBIG : 198 patientes, Affymetrix.** Le modèle MAINZ est appliqué
+   avec ses coefficients figés. Seul un intercept de recalibrage
+   logistique est estimé avec les étiquettes ER de TRANSBIG : 
+   `p_corrigé = logistic(logit(p_PMx) + α)`, pente fixée à 1.
+   Les valeurs ajustées sont `α = −0,254831` (analyse principale
+   par rangs) et `α = −0,264474` (valeurs publiées non harmonisées).
+3. **NKI : 337 patientes, Agilent.** Le même intercept issu de TRANSBIG
+   est appliqué aux probabilités NKI déjà figées, sans sélection
+   de variables, nouvel entraînement, ni ajustement sur les
+   étiquettes NKI. Les deux branches initialement préspécifiées
+   (rangs et valeurs brutes) sont toujours évaluées.
+
+| Résultat sur NKI | Modèle PMx initial | Modèle corrigé sur TRANSBIG |
+| --- | ---: | ---: |
+| AUC, analyse principale en rangs | 0,9855 | **0,9855** |
+| **Brier, analyse principale (plus petit = meilleur)** | **0,2793** | **0,3021 (dégradation)** |
+| Brier, analyse de sensibilité sur les valeurs brutes | 0,7319 | **0,7335 (dégradation)** |
+
+La conservation de l'AUC est attendue **mathématiquement** : l'ajout
+d'un intercept à l'échelle logit est une transformation strictement
+monotone des probabilités. L'AUC identique ne constitue donc pas
+une preuve supplémentaire de validité. Le résultat pertinent
+est la **dégradation du Brier dans les deux branches**, malgré
+une cohorte de calibration distincte.
+
+Cette expérience montre que **corriger seulement l'intercept à l'aide
+d'une deuxième étude Affymetrix ne suffit pas à rendre fiables des
+probabilités transférées vers Agilent**. Les différences d'intensité
+(absolue à un canal vs ratio à deux canaux), de dynamique des
+signaux, de prélèvements et de distribution des statuts ER peuvent
+expliquer cette difficulté ; l'expérience ne permet pas de
+déterminer leurs contributions respectives. Une modification des
+pentes, un réalignement inter-plateformes ou un recalibrage spécifique
+Agilent serait une autre étude et nécessiterait de nouvelles données
+indépendantes pour éviter l'optimisation sur le test final.
+
+**Limite majeure de validité :** bien que MAINZ, TRANSBIG et NKI
+soient des études distinctes, **les étiquettes NKI ont déjà été
+examinées dans le benchmark précédent (PR #40)**. Ce protocole
+est donc une **réanalyse rétrospective de développement
+méthodologique**, *pas* une nouvelle étude confirmatoire
+complètement aveugle. Le code ne lui attribue pas le statut
+`external_validation` de nouvelle étude indemne d'ajustement.
+Une future démonstration confirmatoire doit enregistrer ses
+méthodes **avant** l'accès à une nouvelle cohorte finale,
+idéalement recueillie dans un autre laboratoire ou sur une autre
+technologie.
+
+La CI `.github/workflows/multiomics-three-cohort-calibration.yml`
+recharge les trois ExpressionSets à commits figés ; génère
+des prédictions TRANSBIG **sans statut ER exposé au moteur JS** ;
+conserve les calibrateurs, leurs coefficients et les scores NKI
+avant/après ; évalue toutes les 337 patientes ; calcule Brier,
+log-loss, AUC, cinq tranches de fiabilité et **500 bootstraps
+appariés stratifiés** des différences. Les résultats restent
+archivés même lorsqu'une calibration **aggrave** les performances.
+Scripts : `scripts/export_transbig_calibration_pmx.R`,
+`scripts/score_transbig_calibration_pmx.mjs`,
+`scripts/fit_transbig_calibration_pmx.R`,
+`scripts/evaluate_transbig_calibration_pmx.R`.
+
 ## Sécurité des prédictions figées (11 octobre 2026)
 
 Le validateur indépendant R vérifie maintenant les valeurs **avant** de
