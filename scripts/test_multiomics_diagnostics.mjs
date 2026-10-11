@@ -183,6 +183,55 @@ const mnarImputed = evaluateConfirmatoryReadiness({
 assert.ok(mnarImputed.checks.some(x=>x.code==='mnar_imputation_metabolomics' &&
   x.status==='blocked'),'Imputed assumed MNAR values must be explicitly blocked');
 
+// A successful raw-count DESeq2 status CANNOT bypass the independent-subject
+// R1 preflight; only an exact server-side audit permits the review pathway.
+const rawCountCandidate = {
+  ...candidate,
+  layers:{transcriptomics:{
+    qc:{preprocessingAudit:{declaredValueType:'raw_counts'},
+      medianMissingFraction:0,differentialMissingness:{flaggedFeatures:0}}
+  }},
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{status:'ok',method:'DESeq2'}
+  }}
+};
+const missingR1Audit=evaluateConfirmatoryReadiness(rawCountCandidate);
+assert.equal(missingR1Audit.status,'blocked');
+assert.ok(missingR1Audit.checks.some(x=>
+  x.code==='rnaseq_confirmatory_input_contract'&&x.status==='blocked'));
+const withR1Audit={
+  ...rawCountCandidate,
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      status:'ok',method:'DESeq2',
+      confirmatoryInputContract:{
+        status:'eligible_for_reference_fitting_only',certified:false,
+        independent_subjects:40,rejected_silent_subject_loss:true
+      }
+    }
+  }}
+};
+const passedR1Audit=evaluateConfirmatoryReadiness(withR1Audit);
+assert.equal(passedR1Audit.status,'independent_review_required');
+assert.equal(passedR1Audit.certified,false);
+assert.ok(passedR1Audit.checks.some(x=>
+  x.code==='rnaseq_confirmatory_input_contract'&&x.status==='pass'));
+for(const faulty of [
+  {certified:true},{independent_subjects:5},
+  {rejected_silent_subject_loss:false},{status:'unverified'}
+]){
+  const bad={...withR1Audit,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      status:'ok',confirmatoryInputContract:{
+        ...withR1Audit.referenceBackend.methods.transcriptomics_differential_deseq2.confirmatoryInputContract,
+        ...faulty
+      }
+    }
+  }}};
+  assert.equal(evaluateConfirmatoryReadiness(bad).status,'blocked',
+    'R1 eligibility cannot be accepted from unsupported certificate or identity');
+}
+
 assert.equal(evaluateConfirmatoryReadiness(result).status,'not_requested');
 
 console.log('multiomics pre-analysis diagnostics: PASS');
