@@ -33,6 +33,9 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('0,2793');
   await expect(validation).toContainText('0,2793 → 0,3021');
   await expect(validation).toContainText('nouvelle validation confirmatoire');
+  await expect(validation).toContainText('40 souris Nutrimouse');
+  await expect(validation).toContainText('(BER) de 0,05');
+  await expect(validation).toContainText('nécessité des deux omiques');
   await expect(validation).toContainText('Une AUC élevée ne garantit pas des probabilités justes.');
 
   const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
@@ -56,6 +59,9 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('0.2793');
   await expect(validation).toContainText('0.2793 → 0.3021');
   await expect(validation).toContainText('not fresh confirmatory validation');
+  await expect(validation).toContainText('40 Nutrimouse animals');
+  await expect(validation).toContainText('BER) of 0.05');
+  await expect(validation).toContainText('does not prove that both omics are essential');
   await expect(validation).toContainText('A high AUC does not mean trustworthy individual probabilities.');
   await expect(metaboliteConfidence).toContainText('Metabolite identification confidence');
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();

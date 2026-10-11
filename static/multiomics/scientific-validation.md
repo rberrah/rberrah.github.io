@@ -8,6 +8,80 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## Première validation DIABLO sur des mesures réellement multi-omiques (11 octobre 2026)
+
+Les validations récentes MAINZ, TRANSBIG et NKI concernaient un **seul
+transcriptome** utilisé pour classifier le statut ER. Elles ne prouvaient
+rien sur la fusion de deux omiques. Un nouveau benchmark exécute
+**le véritable `mixOmics::block.splsda` utilisé par le backend R de
+PMx** sur les données expérimentales Nutrimouse :
+
+- **40 souris biologiquement distinctes**, 120 mesures de transcrits
+  et 21 mesures lipidiques prétraitées chez **les mêmes animaux** ;
+- deux facteurs publiés : le **génotype** (classification supervisée
+  binaire) et le **régime alimentaire** (facteur d'expérience documenté,
+  susceptible de modifier les signaux) ;
+- deux partitions préspécifiées, au niveau de l'animal, de type
+  apprentissage / sujets tenus à l'écart ; filtrage, imputation et
+  mise à l'échelle sont appris uniquement sur l'apprentissage ;
+- une composante DIABLO et dix variables sélectionnées par couche,
+  sans recherche d'hyperparamètres sur les sujets de test ;
+- huit jeux dont les étiquettes de génotype sont permutées et pour
+  lesquels tout le modèle DIABLO est **réentraîné** ;
+- une expérience falsificatrice cassant délibérément la correspondance
+  individu ↔ lipides, et un modèle de référence prédisant le génotype
+  à partir du **régime alimentaire seul**, entraîné dans chaque
+  partition sur les animaux d'apprentissage.
+
+| Classification du génotype sur les animaux tenus à l'écart | BER moyen |
+| --- | ---: |
+| **DIABLO : deux omiques correctement appariées** | **0,0500** |
+| DIABLO : génotypes permutés puis modèles entièrement réentraînés | 0,5563 |
+| DIABLO : appariement transcriptome–lipides volontairement détruit | 0,1000 |
+| Baseline : régime alimentaire seul, appris sur le sous-groupe d'entraînement | 0,6500 |
+
+Le **BER (Balanced Error Rate)** est la moyenne du taux d'erreur
+des deux classes : zéro est idéal, et un résultat voisin de 0,5
+correspond au niveau attendu pour des prédictions aléatoires
+sur deux classes bien équilibrées. Il mesure la classification,
+**pas** la calibration des probabilités.
+
+**Ce que ce test valide :** DIABLO est réellement exécuté avec
+deux modalités expérimentales appariées ; les identifiants des
+animaux restent cohérents ; les prédictions de test sont
+complètes ; l'apprentissage répété d'étiquettes mélangées ne
+reproduit pas la performance du modèle supervisé. La comparaison
+avec un régime alimentaire seul aide à révéler un éventuel
+raccourci d'apprentissage lié au plan expérimental.
+
+**Ce qu'il ne valide pas :** la contribution indépendante des
+lipides aux prédictions reste incertaine : rompre leur appariement
+ne dégrade le BER que de 0,05 à 0,10 sur ces deux partitions,
+et le transcriptome peut être à lui seul très informatif. Avec
+seulement **40 animaux**, un petit jeu public dans une espèce
+non humaine, une seule source et deux partitions répétées
+partageant des sujets, cette expérience ne confirme ni des
+biomarqueurs transférables, ni une meilleure prédiction que
+chaque omique prise séparément, ni une validité inter-laboratoires.
+Huit permutations n'offrent qu'une résolution empirique
+minimale de **1/9 ≈ 0,111** et ne peuvent étayer une preuve
+statistique au seuil de 5 %. La présence d'une différence
+numérique entre conditions ne suffit pas à constituer une
+preuve d'un effet multi-omique synergique. Les conclusions
+ne s'appliquent pas automatiquement à MOFA2, à RNA-seq ou
+à l'utilisation confirmatoire de données cliniques.
+
+La source officielle `mixOmics-org/mixOmics` est fixée au commit
+`ef3e760526623d9e91e945e4b50be48d764efc40`.
+Le test `multiomics-engine/tests/test_diablo_real_nutrimouse.R`
+et la CI `.github/workflows/multiomics-real-nutrimouse-diablo.yml`
+archivent les classes/régimes, toutes les prédictions tenues
+à l'écart, les scores, les permutations intégralement
+réentraînées et la stabilité des variables choisies. **Une
+mauvaise performance ne fait pas échouer artificiellement la
+CI : son rôle est de détecter les erreurs d'exécution ou
+d'intégrité, et de conserver aussi les résultats négatifs.**
+
 ## Recalibrage sur une troisième cohorte : résultat négatif (11 octobre 2026)
 
 Le benchmark MAINZ → NKI avait montré une forte **discrimination** du statut ER
