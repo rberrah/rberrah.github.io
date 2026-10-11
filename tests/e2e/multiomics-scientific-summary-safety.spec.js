@@ -35,3 +35,33 @@ test('Scientific summary displays imported diagnostics literally, never as execu
   }))).toEqual({ injected: 0, injectedHtml: 0 });
   await expect(panel).toContainText('Reproduire et rapporter');
 });
+
+test('Novice q-value summary uses exact values in real inference grids, never unrelated pathway FDR', async ({ page }) => {
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.getByTestId('multiomics-quick-demo-rna').click();
+  const panel = page.getByTestId('multiomics-scientific-summary');
+  await expect(panel).toBeVisible({ timeout: 30000 });
+
+  await page.evaluate(() => {
+    const results = document.querySelector('[data-testid="multiomics-results"]');
+    const section = document.createElement('div');
+    section.className = 'actual-layer-grid';
+    section.innerHTML = `
+      <article><div class="layer-title"><span class="method-tag">RNA precision audit</span></div>
+        <div class="feature-table" data-testid="multiomics-feature-inference">
+          <div class="feature-head"><b>Variable</b><b>Fold ratio</b><b>p</b><b>q BH</b></div>
+          <div><code>G1</code><span>2.00×</span><span>0.010</span><span data-scientific-q="0.05004">0.0500</span></div>
+          <div><code>G2</code><span>0.50×</span><span>0.010</span><span data-scientific-q="0.04996">0.0500</span></div>
+        </div>
+      </article>
+      <table><thead><tr><th>Reactome pathway</th><th>Assay-universe FDR</th></tr></thead>
+        <tbody><tr><td>Unrelated test</td><td>0.00001</td></tr></tbody></table>`;
+    results.appendChild(section);
+  });
+
+  const evidence = panel.locator('.scientific-summary-grid');
+  await expect(evidence).toContainText('RNA precision audit');
+  await expect(evidence).toContainText('1/2 lignes affichées');
+  await expect(evidence).not.toContainText('Unrelated test');
+  await expect(panel).toContainText('q BH');
+});
