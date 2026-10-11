@@ -81,4 +81,32 @@ stopifnot(inherits(try(run_deseq2_counts(counts,missing,tempfile(),
  formula,contrast,confirmatory_contract=TRUE),silent=TRUE),"try-error"))
 # Must not turn successful R1 eligibility into an automatic conclusion.
 stopifnot(!isTRUE(audit$certified),length(audit$limitations)>=3L)
+# Real CSV-to-R bridge must reject dropped/duplicated source assay rows
+# BEFORE aggregation makes those failures invisible to DESeq2 preflight.
+source("multiomics-engine/server.R")
+assay_manifest<-data.frame(
+ assay_id=ids,sample_id=ids,subject_id=metadata$subject_id,
+ condition=as.character(metadata$condition),
+ batch=as.character(metadata$batch),stringsAsFactors=FALSE)
+stopifnot(identical(rnaseq_confirmatory_assay_integrity(counts,assay_manifest)$status,
+  "assay_identifiers_exact"))
+assay_bad<-assay_manifest[-1L,,drop=FALSE]
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ counts,assay_bad),silent=TRUE),"try-error"))
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ counts[-1L,,drop=FALSE],assay_manifest),silent=TRUE),"try-error"))
+assay_bad<-assay_manifest
+assay_bad$assay_id[[2L]]<-assay_bad$assay_id[[1L]]
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ counts,assay_bad),silent=TRUE),"try-error"))
+assay_bad<-assay_manifest
+assay_bad$sample_id[[2L]]<-assay_bad$sample_id[[1L]]
+assay_bad$subject_id[[2L]]<-"a-different-subject"
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ counts,assay_bad),silent=TRUE),"try-error"))
+assay_bad<-assay_manifest
+assay_bad$sample_id[[2L]]<-assay_bad$sample_id[[1L]]
+assay_bad$condition[[2L]]<-"treated"
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ counts,assay_bad),silent=TRUE),"try-error"))
 cat("R1 RNA-SEQ STRICT PREFLIGHT CONTRACT: PASS (scientific eligibility, no certification)\n")
