@@ -3190,7 +3190,7 @@
             </div>
             <p class="selection-rule">{result.selectionRule}</p>
             {#if result.inferencePolicy}<p class="selection-rule"><strong>Inference:</strong> {result.inferencePolicy}</p>{/if}
-            <div class="feature-table">
+            <div class="feature-table" data-testid="multiomics-feature-inference">
               <div class="feature-head">
   <b>{t('Variable', 'Feature')}</b>
   <b>{result.effectScale === 'log2' ? 'Fold ratio' : t('Effet', 'Effect')}
@@ -3227,7 +3227,7 @@
                     </span>
                   {/if}
                   <span>{row.pValue == null ? '—' : row.pValue.toPrecision(3)}</span>
-                  <span>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
+                  <span data-scientific-q={row.qValue == null ? '' : String(row.qValue)}>{row.qValue == null ? '—' : row.qValue.toPrecision(3)}</span>
                 </div>
               {/each}
             </div>
