@@ -62,15 +62,21 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     // This remains eligibility only, never a certificate.
     if (layer === 'transcriptomics' && declared === 'raw_counts') {
       const input = methods[key]?.confirmatoryInputContract;
+      const assay = methods[key]?.assayIntegrityContract;
       if (status !== 'ok' ||
           input?.status !== 'eligible_for_reference_fitting_only' ||
           input?.certified !== false ||
           input?.rejected_silent_subject_loss !== true ||
           !Number.isFinite(input?.independent_subjects) ||
-          input.independent_subjects < 6) {
+          input.independent_subjects < 6 ||
+          assay?.status !== 'assay_identifiers_exact' ||
+          assay?.assay_loss_detected !== false ||
+          assay?.certified !== false ||
+          !Number.isFinite(assay?.measured_assays) ||
+          assay.measured_assays < input.independent_subjects) {
         add('rnaseq_confirmatory_input_contract', 'blocked',
-          'RNA-seq : l’audit R strict des comptages, sujets indépendants, identifiants et contraste est absent ou invalide. Une réussite DESeq2 seule ne suffit pas.',
-          'RNA-seq: the strict R raw-count/independent-subject/sample-ID/contrast audit is missing or invalid. A successful DESeq2 run alone is insufficient.');
+          'RNA-seq : les audits R stricts des comptages, sujets indépendants, identifiants des essais et contraste est absent ou invalide. Une réussite DESeq2 seule ne suffit pas.',
+          'RNA-seq: the strict R raw-count/independent-subject/assay-ID/contrast audits is missing or invalid. A successful DESeq2 run alone is insufficient.');
       } else {
         add('rnaseq_confirmatory_input_contract', 'pass',
           'RNA-seq : audit strict des entrées R réussi (éligibilité technique seulement).',
