@@ -126,3 +126,21 @@ test('A failed demo file download shows a clear message and a retry actually wor
   await expect(page.getByTestId('multiomics-analysis-mode')).toContainText('Omique unique');
   expect(jsErrors).toEqual([]);
 });
+
+
+test('Real MOFA2 negative pairing result is understandable and disclosed in French and English',async({page})=>{
+  for(const [locale,claim] of [
+    ['fr', 'ne prouve donc pas que les deux omiques sont correctement appariées'],
+    ['en', 'does not prove that two omics were correctly paired']
+  ]){
+    await page.goto('/multiomics/tool?lang='+locale);
+    const panel=page.getByTestId('multiomics-validation-evidence');
+    await expect(panel).toBeVisible();
+    await panel.locator('details').first().locator('summary').first().click();
+    const negative=page.getByTestId('mofa-real-negative-evidence');
+    await expect(negative).toBeVisible();
+    await expect(negative).toContainText(claim);
+    await expect(negative).toContainText('0.5313'.replace('.',locale==='fr'?',':'.'));
+    await expect(negative).toContainText(locale==='fr'?'normalisation':'normalization');
+  }
+});
