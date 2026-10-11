@@ -58,6 +58,10 @@
     const rect = canvas.getBoundingClientRect();
     probe = { x: Math.max(16, Math.min(width - 16, event.clientX - rect.left)) / width, y: Math.max(16, Math.min(g.height - 16, event.clientY - rect.top)) / g.height };
   }
+  function finishProbeDrag(event) {
+    dragProbe(event);
+    dragging = false;
+  }
   function probeKey(event) {
     const steps = { ArrowLeft: [-10,0], ArrowRight: [10,0], ArrowUp: [0,-10], ArrowDown: [0,10] };
     if (steps[event.key]) {
@@ -223,7 +227,7 @@
   <canvas bind:this={canvas} style:height={`${g.height}px`} data-testid="lab-scene" role="button" tabindex="0" on:click={chooseParticle} on:keydown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();nextParticle();}}} aria-label={en?'Select a particle to follow':'Sélectionner une particule à suivre'}></canvas>
   <button class="scene-play" title={playing?(en?'Pause animation':"Suspendre l'animation"):(en?'Start animation':"Lancer l'animation")} aria-label={playing?(en?'Pause animation':"Suspendre l'animation"):(en?'Start animation':"Lancer l'animation")} on:click={()=>dispatch('play')}>{#if playing}<Pause size={22}/>{:else}<Play size={22}/>{/if}</button>
   {#if probeEnabled}
-    <button class="probe" style:left={`${probePoint.x}px`} style:top={`${probePoint.y}px`} title={en?'Move concentration probe':'Déplacer la sonde de concentration'} aria-label={en?'Move concentration probe':'Déplacer la sonde de concentration'} on:pointerdown={event=>{dragging=true;event.currentTarget.setPointerCapture(event.pointerId);}} on:pointermove={dragProbe} on:pointerup={()=>dragging=false} on:pointercancel={()=>dragging=false} on:lostpointercapture={()=>dragging=false} on:keydown={probeKey}><Crosshair size={24}/></button>
+    <button class="probe" style:left={`${probePoint.x}px`} style:top={`${probePoint.y}px`} title={en?'Move concentration probe':'Déplacer la sonde de concentration'} aria-label={en?'Move concentration probe':'Déplacer la sonde de concentration'} on:pointerdown={event=>{dragging=true;event.currentTarget.setPointerCapture(event.pointerId);}} on:pointermove={dragProbe} on:pointerup={finishProbeDrag} on:pointercancel={()=>dragging=false} on:lostpointercapture={()=>dragging=false} on:keydown={probeKey}><Crosshair size={24}/></button>
   {/if}
 </div>
 <div class="instruments">
