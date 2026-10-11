@@ -59,8 +59,8 @@ make_counts<-function(case,seed) {
   truth<-if(isTRUE(case$mixed))signal_effects else rep(0,n_features)
   counts<-vapply(seq_len(n_subjects),function(i){
     mu<-baselines*size_factors[[i]]*
-       exp(batch_coeff*(batch[[i]]=="B2"))*
-       2^(truth*(condition[[i]]=="treated"))
+       exp(batch_coeff*(as.character(batch[i])=="B2"))*
+       2^(truth*(as.character(condition[i])=="treated"))
     stats::rnbinom(n_features,mu=mu,size=1/dispersions)
   },numeric(n_features))
   rownames(counts)<-genes
@@ -172,6 +172,11 @@ for(cidx in seq_along(cases)) {
       cat(sprintf("R1 CALIBRATION progress case=%s %d/%d datasets; 3 authentic R fits/dataset\n",
                   cell,rep,repetitions))
   }
+  # Preserve every completed cell even if a later cell aborts: failed or
+  # adverse scientific findings must not disappear with the CI exception.
+  utils::write.csv(do.call(rbind,recs[seq_len(index)]),
+    file.path(out,"r1_rnaseq_calibration_completed_cells_partial.csv"),
+    row.names=FALSE)
 }
 rows<-do.call(rbind,recs)
 stopifnot(nrow(rows)==length(cases)*repetitions*length(methods),
