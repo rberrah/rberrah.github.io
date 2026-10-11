@@ -146,9 +146,9 @@ for(view in names(all_arms)){
  stopifnot(!anyNA(ix),all(paired$actual==q$actual[ix]))
  paired[[paste0(view,"_correct")]]<-q$correct[ix]
  paired[[paste0("diablo_rescue_vs_",view)]]<-
-   sum(paired$diablo_correct==1L & q$correct[ix]==0L)
+   as.integer(paired$diablo_correct==1L & q$correct[ix]==0L)
  paired[[paste0("diablo_harm_vs_",view)]]<-
-   sum(paired$diablo_correct==0L & q$correct[ix]==1L)
+   as.integer(paired$diablo_correct==0L & q$correct[ix]==1L)
 }
 utils::write.csv(paired,
  file.path(out,"paired_correctness_animal_and_seed.csv"),row.names=FALSE)
@@ -164,8 +164,8 @@ comparisons<-lapply(names(summaries),function(view){
  list(view=view,mean_BER_diablo=multi_ber,
   mean_BER_single_omic=mono$mean_BER,
   delta_BER_diablo_minus_single=multi_ber-mono$mean_BER,
-  paired_correctness_rescued=paired[[paste0("diablo_rescue_vs_",view)]][[1L]],
-  paired_correctness_harmed=paired[[paste0("diablo_harm_vs_",view)]][[1L]],
+  paired_correctness_rescued=sum(paired[[paste0("diablo_rescue_vs_",view)]]),
+  paired_correctness_harmed=sum(paired[[paste0("diablo_harm_vs_",view)]]),
   descriptive_only=TRUE)
 })
 names(comparisons)<-names(summaries)
@@ -196,6 +196,7 @@ audit<-list(
   "Previously inspected Nutrimouse genotype outcomes, retrospective method comparison",
   "Only two prespecified splits across 40 animals, finite small precision",
   "No tuning and no comparison to more expressive or nonlinear reference methods",
+  "The 120 transcriptomic genes were PRESELECTED from approximately 30,000 candidates by original Nutrimouse study; therefore this benchmark is not a whole-transcriptome unbiased-feature test",
   "Sample selection and published source preprocessing were not independently audited",
   "Genotype and diet may associate; DIABLO and single-view fits do not adjust genotype effects for diet",
   "Difference in balanced error alone is NOT a test of incremental multi-omic predictive utility"
