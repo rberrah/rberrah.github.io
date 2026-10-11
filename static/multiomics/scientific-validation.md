@@ -85,9 +85,28 @@ un favorable. Les analyses concernent les mêmes 40 souris et les
 120 gènes présélectionnés par les auteurs : elles **ne démontrent
 ni synergie inter-omique, ni performance de prédiction externe**,
 et ne sont pas un test statistique apparié de supériorité de
-MOFA2 sur l'ACP. Les résultats numériques des ACP seront
-ajoutés après la nouvelle exécution R, sans interprétation
-confirmatoire a posteriori.
+MOFA2 sur l'ACP. La nouvelle exécution R est terminée avec succès (CI du 11 octobre 2026,
+[preuve et journaux](https://github.com/rberrah/rberrah.github.io/actions/runs/38158443685)).
+Voici les **R² partiels maximaux parmi les trois premières
+composantes/facteurs**, pour les mêmes 40 souris, sans aucune
+validation sur des animaux indépendants :
+
+| Méthode exploratoire | Génotype ajusté du régime | Régime ajusté du génotype |
+| --- | ---: | ---: |
+| MOFA2, 2 omiques, préparation d'origine | 0,5313 | 0,6846 |
+| ACP transcriptome seul, centrage simple | 0,5347 | 0,3501 |
+| ACP transcriptome seul, centrage + standardisation | 0,9097 | 0,4327 |
+| ACP lipides seuls, centrage simple | 0,7804 | 0,8900 |
+| ACP lipides seuls, centrage + standardisation | 0,9018 | 0,9726 |
+
+Il ne s'agit **pas de performances de prédiction externes ni
+d'une comparaison équitable de modèles prédictifs** : les
+algorithmes, normalisations et fonctions objectifs diffèrent.
+Ces valeurs montrent que chaque omique peut porter isolément
+une association substantielle et que le prétraitement influence
+fortement le niveau observé. Aucun avantage causal, prédictif ou
+statistique de l'intégration MOFA2 n'est démontré par ce tableau.
+L'absence de lot technique mesuré reste un problème non résolu.
 
 **État de preuve :** contrôle d'exécution sur données réelles et
 audit rétrospectif ; aucune validation confirmatoire, aucun contrôle
