@@ -52,7 +52,7 @@ canonical_metadata <- function(raw, mapping, covariates = character()) {
   out
 }
 
-matrix_samples_by_features <- function(text, expected_assays) {
+matrix_samples_by_features <- function(text, expected_assays, strict_exact=FALSE) {
   df <- read_csv_text(text)
   if (ncol(df) < 2L) stop("Matrix needs an identifier column and at least one value column.")
   first <- names(df)[1]
@@ -60,6 +60,13 @@ matrix_samples_by_features <- function(text, expected_assays) {
   row_hits <- sum(as.character(df[[first]]) %in% expected_assays)
 
   if (row_hits > column_hits) {
+    if(isTRUE(strict_exact)){
+      csv_ids<-as.character(df[[first]])
+      if(anyNA(csv_ids)||anyDuplicated(csv_ids)||
+         length(csv_ids)!=length(expected_assays)||
+         !setequal(csv_ids,expected_assays))
+        stop("R1 RNA-seq CSV row-wise assay IDs differ from the exact metadata manifest: no unlisted or missing assays")
+    }
     keep <- as.character(df[[first]]) %in% expected_assays
     x <- as.matrix(df[keep, -1, drop=FALSE])
     storage.mode(x) <- "double"
@@ -68,6 +75,15 @@ matrix_samples_by_features <- function(text, expected_assays) {
   }
 
   feature_ids <- as.character(df[[first]])
+  if(isTRUE(strict_exact)) {
+    csv_ids<-names(df)[-1L]
+    if(length(csv_ids)!=length(expected_assays)||
+       anyDuplicated(csv_ids)||!setequal(csv_ids,expected_assays))
+      stop("R1 RNA-seq CSV column-wise assay IDs differ from the exact metadata manifest: no unlisted or missing assays")
+    if(anyNA(feature_ids)||anyDuplicated(feature_ids)||
+       any(!nzchar(feature_ids)))
+      stop("R1 RNA-seq CSV contains missing or duplicate feature identifiers")
+  }
   x <- as.matrix(df[, -1, drop=FALSE])
   storage.mode(x) <- "double"
   rownames(x) <- feature_ids
@@ -556,7 +572,12 @@ run_backend_analysis <- function(payload) {
   for (layer in layers) {
     layer_meta <- meta[meta$omic == layer, , drop=FALSE]
     expected <- unique(layer_meta$assay_id)
-    x <- matrix_samples_by_features(payload$matrices[[layer]], expected)
+    x <- matrix_samples_by_features(
+      payload$matrices[[layer]], expected,
+      strict_exact=identical(protocol$analysisIntent,"confirmatory") &&
+        identical(layer,"transcriptomics") &&
+        identical(data_types[[layer]],"raw_counts")
+    )
 
     if (layer == "metabolomics") {
       ms <- apply_ms_qc_reference(x, layer_meta, protocol)
