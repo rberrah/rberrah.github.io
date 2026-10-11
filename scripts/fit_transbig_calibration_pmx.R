@@ -55,9 +55,13 @@ for(arm in c("primary_rank","sensitivity_raw")){
   if(any(!is.finite(nki_calibrated))||any(nki_calibrated<0|nki_calibrated>1))
     stop("Invalid frozen NKI calibrated predictions.")
   # Exact replay: no NKI labels ever used and no model refitting on NKI.
-  holdout<-data.frame(subject_id=nki$subject_id,prediction=nki_calibrated)
-  utils::write.csv(holdout,file.path(path,"nki-frozen-transbig-calibrated-scores.csv"),
-   quote=FALSE,row.names=FALSE)
+  # Save full double precision; rounding probabilities here would break the
+  # exact replay contract and bias log-loss / calibration metrics.
+  utils::write.table(
+    data.frame(subject_id=nki$subject_id,
+      prediction=sprintf("%.17g",nki_calibrated)),
+    file.path(path,"nki-frozen-transbig-calibrated-scores.csv"),
+    quote=FALSE,row.names=FALSE,col.names=TRUE,sep=",")
   score_model<-list(
     method="ONE PARAMETER logistic intercept-only calibration, slope fixed at 1",
     intercept=a,slope_fixed=1L,fit_cohort="TRANSBIG",fit_n=nrow(dataset),
@@ -72,7 +76,7 @@ for(arm in c("primary_rank","sensitivity_raw")){
     clinical_certification=FALSE
   )
   jsonlite::write_json(score_model,file.path(path,"transbig-only-calibrator.json"),
-     pretty=TRUE,auto_unbox=TRUE,na="null")
+     pretty=TRUE,auto_unbox=TRUE,na="null",digits=16L)
   cat(sprintf("INDEPENDENT COHORT CALIBRATOR FIT PASS: arm=%s TRANSBIG=%d intercept=%.6f NKI=frozen337\n",
        arm,nrow(dataset),a))
 }
