@@ -91,6 +91,28 @@ Tous les gènes modifiés plantés ont été détectés dans ces scénarios **à
 
 **Action requise avant qualification confirmatoire :** campagne indépendante bien plus grande avec précision Monte-Carlo préspecifiée, effets faibles et hétérogènes, tailles d'échantillon variées, plan confondu partiellement et facteurs techniques réalistes ; conserver les résultats négatifs et figer les versions logicielles et critères de décision avant de réexaminer les performances.
 
+### Troisième campagne : faible effet, petite cohorte, batch et signaux rares
+
+Les expériences précédentes détectaient tous les vrais signaux, mais avec des effets artificiels **±1,5 log2FC** et généralement 40 sujets ; ce résultat ne permettait pas d'évaluer la puissance en conditions difficiles.
+
+Le plan de simulation reproductible `multiomics-engine/rnaseq_stress_designs.R` prescrit quatre cas (400 gènes, exactement une étude simulée indépendante par graine, même étude évaluée par les trois méthodes R) :
+
+| Scénario | Taille / proportion de vrais signaux | Effets artificiels | Risque mis à l'épreuve |
+| --- | --- | --- | --- |
+| `small_effect_20v20` | 20 + 20 sujets, 5 % | ±0,35 log2FC | Faible effet, faible puissance |
+| `small_cohort_6v6` | 6 + 6 sujets, 5 % | ±0,75 log2FC | Manque de précision et de puissance |
+| `unequal_batch_12v28` | 12 + 28 sujets, 5 % | ±0,75 log2FC | Lot technique corrélé à la condition, mais contraste identifiable |
+| `sparse_signals_20v20` | 20 + 20 sujets, 1 % | ±0,75 log2FC | Signaux rares, nombreuses hypothèses réellement nulles |
+
+La génération inclut dispersion négative binomiale hétérogène, facteurs de profondeur de séquençage et effets de lot variant selon les gènes. Les **sujets biologiques sont indépendants**, les groupes/batchs sont explicitement vérifiés et toutes les estimations sont comparées aux effets plantés connus.
+
+Les scripts `multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R` et `.github/workflows/multiomics-rnaseq-stress-grid.yml` distinguent :
+- **PR :** 8 jeux par scénario, uniquement pour déceler les régressions logicielles.
+- **Campagne mensuelle :** 120 jeux par scénario, avec possibilité de 60/120/200 exécutions sur demande ; 4 scénarios × 3 méthodes, avec archives de toutes les mesures par jeu, diagnostics, versions R, FDR moyenne, intervalle bootstrap et erreur Monte-Carlo.
+- **Interprétation :** si la borne inférieure de l'intervalle de FDR dépasse 5 %, la cellule est **signalée pour revue**. L'absence d'alerte, ou le succès de CI, n'est **jamais** un certificat de contrôle du FDR, de puissance suffisante, de stabilité hors simulation ou de validité clinique.
+
+**Important :** cette section décrit un protocole implémenté. **Aucune valeur de performance n'est revendiquée avant lecture d'une exécution effectivement réussie.** Une couverture exhaustive de la variabilité biologique, de la dépendance entre gènes, des compositions cellulaires, des tailles d'effets réalistes et des conditions de collecte nécessitera des plans complémentaires. Le critère de puissance est calculé sur **tous les vrais gènes plantés**, y compris ceux éliminés lors du filtrage.
+
 ### Deuxième campagne : mélanges contrôlés de vrais et de faux signaux
 
 Le fichier `multiomics-engine/tests/bioconductor_mixed_truth_reference.R` génère des données de comptages négatifs binomiaux à **400 gènes**, **40 sujets indépendants** et lot technique mesuré. Trois scénarios préspécifiés introduisent **4 (1 %), 20 (5 %) ou 80 (20 %) vrais gènes différentiels**. La moitié de ces gènes est sur-exprimée et l'autre moitié sous-exprimée, à effet nominal ±1,5 sur l'échelle log2. Les mêmes simulations servent aux trois moteurs réels **DESeq2, edgeR QL et limma-voom**.
