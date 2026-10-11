@@ -11,7 +11,7 @@ stopifnot(nrow(r)==1L,r$total_planted_features==6L,
   r$false_discoveries==1L,r$true_discoveries==2L,
   isTRUE(all.equal(r$false_discovery_proportion,1/3)),
   r$power==1,r$wrong_direction_true_discoveries==0L,
-  !r$scientific_certified %in% names(r))
+  !("scientific_certified" %in% names(r)))
 wrong <- tab
 wrong$log2fc[3L] <- -1.5
 bad_sign <- mixed_truth_feature_metrics(wrong,truth,"DESeq2","five_pct",1L,123L)
@@ -37,20 +37,24 @@ stopifnot(reject(t=bad))
 bad_truth <- truth; names(bad_truth)[2L] <- names(bad_truth)[1L]
 stopifnot(reject(known=bad_truth))
 
-simulated <- do.call(rbind,lapply(c("one_pct","five_pct","twenty_pct"),
-  function(scenario) do.call(rbind,lapply(c("DESeq2","edgeR_QL","limma_voom"),
-    function(method) do.call(rbind,lapply(seq_len(20L),function(i) {
+simulated_rows <- list()
+for(scenario in c("one_pct","five_pct","twenty_pct")) {
+  for(method in c("DESeq2","edgeR_QL","limma_voom")) {
+    for(i in seq_len(20L)) {
       x <- r
       x$scenario <- scenario
       x$method <- method
       x$replicate <- i
-      x$seed <- i+as.integer(match(scenario,c("one_pct","five_pct","twenty_pct")))*1000L
+      x$seed <- i+match(scenario,c("one_pct","five_pct","twenty_pct"))*1000L
       if(i>10L) {
         x$false_discoveries <- 0L
         x$false_discovery_proportion <- 0
       }
-      x
-    })))))))
+      simulated_rows[[length(simulated_rows)+1L]] <- x
+    }
+  }
+}
+simulated <- do.call(rbind,simulated_rows)
 set.seed(9876L)
 seed_before <- get(".Random.seed",envir=.GlobalEnv)
 out <- mixed_truth_study_summary(simulated)
