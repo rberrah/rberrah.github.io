@@ -90,6 +90,15 @@ assay_manifest<-data.frame(
  batch=as.character(metadata$batch),stringsAsFactors=FALSE)
 stopifnot(identical(rnaseq_confirmatory_assay_integrity(counts,assay_manifest)$status,
   "assay_identifiers_exact"))
+bad_counts<-counts;bad_counts[1L,1L]<-NA_real_
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ bad_counts,assay_manifest),silent=TRUE),"try-error"))
+bad_counts<-counts;bad_counts[1L,1L]<-bad_counts[1L,1L]+.75
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ bad_counts,assay_manifest),silent=TRUE),"try-error"))
+bad_counts<-counts;bad_counts[1L,]<-0
+stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+ bad_counts,assay_manifest),silent=TRUE),"try-error"))
 assay_bad<-assay_manifest[-1L,,drop=FALSE]
 stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
  counts,assay_bad),silent=TRUE),"try-error"))
