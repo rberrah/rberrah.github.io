@@ -43,8 +43,11 @@ test('Novice q-value summary uses exact values in real inference grids, never un
   await expect(panel).toBeVisible({ timeout: 30000 });
 
   await page.evaluate(() => {
-    const results = document.querySelector('[data-testid="multiomics-results"]');
-    const section = document.createElement('div');
+    // Keep the audit fixture OUTSIDE the Svelte-managed results tree:
+    // Svelte can replace any manually inserted child during an update.
+    // The summary reads the first results container, so place this at body start.
+    const section = document.createElement('section');
+    section.dataset.testid = 'multiomics-results';
     section.className = 'actual-layer-grid';
     section.innerHTML = `
       <article><div class="layer-title"><span class="method-tag">RNA precision audit</span></div>
@@ -56,7 +59,7 @@ test('Novice q-value summary uses exact values in real inference grids, never un
       </article>
       <table><thead><tr><th>Reactome pathway</th><th>Assay-universe FDR</th></tr></thead>
         <tbody><tr><td>Unrelated test</td><td>0.00001</td></tr></tbody></table>`;
-    results.appendChild(section);
+    document.body.prepend(section);
   });
 
   const evidence = panel.locator('.scientific-summary-grid');
