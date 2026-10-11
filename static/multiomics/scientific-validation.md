@@ -60,6 +60,35 @@ validée du batch. Les valeurs mesurées de cette comparaison ne seront
 présentées comme des résultats que si le nouvel ajustement réel termine
 correctement ; une simple vérification logicielle ne suffit pas.
 
+**Résultat réel de la sensibilité par variable (CI réussie du 11 octobre).**
+Le R² partiel maximal du génotype, ajusté du régime, passe de
+**0,5313** sans standardisation variable par variable à **0,9359**
+avec celle-ci. Celui du régime, ajusté du génotype, passe de
+**0,6846** à **0,6922**. Le signal d'alerte MOFA2 concernant la
+corrélation d'un facteur avec le niveau moyen des variables reste
+présent dans la sortie R après standardisation. Cette évolution
+substantielle démontre une **sensibilité de l'analyse à la
+normalisation**, mais ne permet pas de départager variation
+biologique et artefact technique.
+
+**Contrôle mono-omique indépendant ajouté au protocole.**
+Avant toute interprétation d'un facteur MOFA2 comme un effet
+commun à plusieurs omiques, quatre comparateurs *base R*
+`prcomp` sont calculés : transcriptome seul et lipides seuls,
+chacun après centrage simple puis après centrage-standardisation
+variable par variable. Chaque comparateur décrit **les trois
+premières composantes**, conserve les **40 mêmes animaux**, et
+répète l'audit post-ajustement conditionnel génotype/régime
+avec **199 permutations**. Aucun phénotype n'entre dans l'ACP.
+Les comparateurs sont évalués tous les quatre, sans en sélectionner
+un favorable. Les analyses concernent les mêmes 40 souris et les
+120 gènes présélectionnés par les auteurs : elles **ne démontrent
+ni synergie inter-omique, ni performance de prédiction externe**,
+et ne sont pas un test statistique apparié de supériorité de
+MOFA2 sur l'ACP. Les résultats numériques des ACP seront
+ajoutés après la nouvelle exécution R, sans interprétation
+confirmatoire a posteriori.
+
 **État de preuve :** contrôle d'exécution sur données réelles et
 audit rétrospectif ; aucune validation confirmatoire, aucun contrôle
 de batch (non mesuré), aucune démonstration du nombre optimal de
