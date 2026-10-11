@@ -84,6 +84,41 @@ stopifnot(!isTRUE(audit$certified),length(audit$limitations)>=3L)
 # Real CSV-to-R bridge must reject dropped/duplicated source assay rows
 # BEFORE aggregation makes those failures invisible to DESeq2 preflight.
 source("multiomics-engine/server.R")
+# The production CSV reader must not silently drop unexpected columns or
+# experimental samples *before* any count/metadata downstream validation.
+csv_header<-paste(c("feature_id",ids),collapse=",")
+csv_data<-c(csv_header,
+ vapply(seq_len(ncol(counts)),function(j)
+   paste(c(colnames(counts)[j],counts[,j]),collapse=","),character(1)))
+csv<-paste(csv_data,collapse="\n")
+parsed<-matrix_samples_by_features(csv,ids,strict_exact=TRUE)
+stopifnot(identical(rownames(parsed),ids),
+          identical(colnames(parsed),features),
+          identical(unname(as.numeric(parsed)),unname(as.numeric(counts))))
+csv_extra<-sub("feature_id,S01","feature_id,UNLISTED,S01",csv,fixed=TRUE)
+# This test adds a real numeric column to each feature row, not only the header.
+csv_extra<-paste(c(paste(c("feature_id","UNLISTED",ids),collapse=","),
+ vapply(seq_len(ncol(counts)),function(j)
+   paste(c(colnames(counts)[j],42,counts[,j]),collapse=","),character(1))),
+ collapse="\n")
+stopifnot(inherits(try(matrix_samples_by_features(csv_extra,ids,
+ strict_exact=TRUE),silent=TRUE),"try-error"))
+short_csv<-paste(c(paste(c("feature_id",ids[-1L]),collapse=","),
+ vapply(seq_len(ncol(counts)),function(j)
+  paste(c(colnames(counts)[j],counts[-1L,j]),collapse=","),character(1))),
+ collapse="\n")
+stopifnot(inherits(try(matrix_samples_by_features(short_csv,ids,
+ strict_exact=TRUE),silent=TRUE),"try-error"))
+# Sample-row orientation is also accepted, with full subject-matrix coverage.
+rowwise_csv<-paste(c(paste(c("assay_id",features),collapse=","),
+ vapply(seq_len(nrow(counts)),function(i)
+   paste(c(ids[i],counts[i,]),collapse=","),character(1))),collapse="\n")
+rowwise<-matrix_samples_by_features(rowwise_csv,ids,strict_exact=TRUE)
+stopifnot(identical(rownames(rowwise),ids),
+          identical(colnames(rowwise),features))
+rowwise_bad<-sub(ids[[1L]],"UNLISTED",rowwise_csv,fixed=TRUE)
+stopifnot(inherits(try(matrix_samples_by_features(rowwise_bad,ids,
+ strict_exact=TRUE),silent=TRUE),"try-error"))
 assay_manifest<-data.frame(
  assay_id=ids,sample_id=ids,subject_id=metadata$subject_id,
  condition=as.character(metadata$condition),
