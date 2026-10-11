@@ -231,7 +231,7 @@ for(view in names(blocks)){
     utils::write.csv(baseline$scores,
       file.path(output,paste0("single_omic_pca_",key,"_scores.csv")),
       row.names=TRUE)
-    cat(sprintf("NUTRIMOUSE SINGLE-OMIC PCA BASELINE: view=%s preprocessing=%s geno_cond_R2=%.4f diet_cond_R2=%.4f p_geno=%.4f p_diet=%.4f (4 arms + 2 endpoints, NOT a synergy test)\\n",
+    cat(sprintf("NUTRIMOUSE SINGLE-OMIC PCA BASELINE: view=%s preprocessing=%s geno_cond_R2=%.4f diet_cond_R2=%.4f p_geno=%.4f p_diet=%.4f (4 arms + 2 endpoints, NOT a synergy test)\n",
       view,preprocessing,
       baseline_audit$observed_max_partial_r2[["genotype_given_diet"]],
       baseline_audit$observed_max_partial_r2[["diet_given_genotype"]],
