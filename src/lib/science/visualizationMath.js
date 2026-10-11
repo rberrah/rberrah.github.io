@@ -49,8 +49,124 @@ export function calculateShrinkage(input) {
   const individual = trueEtas.map((value, index) => value + measurementSe * input.noiseZ[index]);
   const ebe = individual.map((value) => ebeWeight * value);
   const ebeSd = sampleSd(ebe);
-  const shrinkage = Math.max(0, Math.min(1, 1 - ebeSd / input.omega));
+  const shrinkage = 1 - ebeSd / input.omega;
   return { measurementSe, ebeWeight, trueEtas, ebe, ebeSd, shrinkage };
+}
+
+/** @param {number} t @param {{rate:number,cl:number,v:number,duration:number}} input */
+export function infusionConcentration(t, input) {
+  const ke = input.cl / input.v;
+  const css = input.rate / input.cl;
+  const atStop = css * (1 - Math.exp(-ke * input.duration));
+  return t <= input.duration
+    ? css * (1 - Math.exp(-ke * t))
+    : atStop * Math.exp(-ke * (t - input.duration));
+}
+
+/** @param {{dose:number,cl:number,v:number,tau:number}} input */
+export function repeatedBolusSummary(input) {
+  const ke = input.cl / input.v;
+  const accumulationRatio = 1 / (1 - Math.exp(-ke * input.tau));
+  const cMaxSs = (input.dose / input.v) * accumulationRatio;
+  return {
+    ke,
+    accumulationRatio,
+    cMaxSs,
+    cMinSs: cMaxSs * Math.exp(-ke * input.tau),
+    cAverageSs: input.dose / (input.cl * input.tau)
+  };
+}
+
+/** @param {number} t @param {{dose:number,cl:number,v:number,tau:number,loading?:boolean}} input */
+export function repeatedBolusConcentration(t, input) {
+  const { ke, accumulationRatio } = repeatedBolusSummary(input);
+  let concentration = 0;
+  for (let doseTime = 0; doseTime <= t + 1e-9; doseTime += input.tau) {
+    const amount = input.loading && doseTime === 0 ? input.dose * accumulationRatio : input.dose;
+    concentration += (amount / input.v) * Math.exp(-ke * (t - doseTime));
+  }
+  return concentration;
+}
+
+/** @param {number} t @param {{parentRate:number,metaboliteRate:number,fraction:number,dose:number,volume:number}} input */
+export function parentMetaboliteConcentrations(t, input) {
+  const { parentRate: k, metaboliteRate: km, fraction: fm, dose, volume } = input;
+  const parent = (dose / volume) * Math.exp(-k * t);
+  const metabolite = Math.abs(km - k) < 1e-6
+    ? (fm * k * dose / volume) * t * Math.exp(-k * t)
+    : (fm * k * dose) / (volume * (km - k)) * (Math.exp(-k * t) - Math.exp(-km * t));
+  return { parent, metabolite };
+}
+
+/** @param {number} concentration @param {{baseline:number,maximum:number,ec50:number,hill:number}} input */
+export function emaxEffect(concentration, input) {
+  const powered = concentration ** input.hill;
+  return input.baseline + (input.maximum * powered) / (input.ec50 ** input.hill + powered);
+}
+
+/** @param {{dose:number,volume:number,time:number,observed:number,populationCl:number,omega:number,sigma:number,minCl?:number,maxCl?:number,step?:number}} input */
+export function estimateOneCompartmentMapClearance(input) {
+  const minCl = input.minCl ?? 1;
+  const maxCl = input.maxCl ?? 15;
+  const step = input.step ?? 0.05;
+  let best = input.populationCl;
+  let bestCost = Infinity;
+  for (let cl = minCl; cl <= maxCl + 1e-9; cl += step) {
+    const prediction = (input.dose / input.volume) * Math.exp(-(cl / input.volume) * input.time);
+    const cost = ((Math.log(input.observed) - Math.log(prediction)) / input.sigma) ** 2
+      + ((Math.log(cl) - Math.log(input.populationCl)) / input.omega) ** 2;
+    if (cost < bestCost) {
+      bestCost = cost;
+      best = cl;
+    }
+  }
+  return best;
+}
+
+/** @param {{dose:number,mtt:number,gamma:number,baseline?:number,slope?:number,volume?:number,ke?:number,horizon?:number,dt?:number,transits?:number}} input */
+export function simulateMyelosuppression(input) {
+  const baseline = input.baseline ?? 5;
+  const slope = input.slope ?? 0.02;
+  const volume = input.volume ?? 30;
+  const ke = input.ke ?? 0.02;
+  const horizon = input.horizon ?? 600;
+  const dt = input.dt ?? 1;
+  const transits = input.transits ?? 3;
+  const ktr = (transits + 1) / input.mtt;
+  let proliferating = baseline;
+  const transit = Array(transits).fill(baseline);
+  let circulating = baseline;
+  const points = [];
+  for (let t = 0; t <= horizon + 1e-9; t += dt) {
+    const concentration = (input.dose / volume) * Math.exp(-ke * t);
+    const drugEffect = Math.min(0.99, slope * concentration);
+    const feedback = (baseline / Math.max(circulating, 0.01)) ** input.gamma;
+    const dProliferating = ktr * proliferating * (1 - drugEffect) * feedback - ktr * proliferating;
+    const dTransit = transit.map((value, index) => ktr * ((index === 0 ? proliferating : transit[index - 1]) - value));
+    const dCirculating = ktr * transit.at(-1) - ktr * circulating;
+    proliferating += dProliferating * dt;
+    transit.forEach((value, index) => { transit[index] = value + dTransit[index] * dt; });
+    circulating += dCirculating * dt;
+    points.push({ t, C: concentration, Circ: Math.max(0.01, circulating) });
+  }
+  return points;
+}
+
+/** @param {{exposurePercent:number,growth:number,resistance:number,baseline?:number,drugRate?:number,horizon?:number,dt?:number}} input */
+export function simulateTumorGrowth(input) {
+  const baseline = input.baseline ?? 60;
+  const drugRate = input.drugRate ?? 0.06;
+  const horizon = input.horizon ?? 52;
+  const dt = input.dt ?? 0.1;
+  const exposure = input.exposurePercent / 100;
+  let size = baseline;
+  const points = [{ t: 0, ts: size }];
+  for (let t = dt; t <= horizon + 1e-9; t += dt) {
+    const shrinkage = drugRate * exposure * Math.exp(-input.resistance * t);
+    size = Math.max(0.5, size + (input.growth - shrinkage) * size * dt);
+    points.push({ t, ts: size });
+  }
+  return points;
 }
 
 /**

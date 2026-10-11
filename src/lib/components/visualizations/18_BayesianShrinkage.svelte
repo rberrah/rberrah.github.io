@@ -93,8 +93,8 @@
   <p class="formula">sh<sub>η</sub> = 1 − SD(η̂) / ω = <strong>{(shrinkage * 100).toFixed(1)}%</strong></p>
   <p class="note">
     {$language === 'en'
-      ? `Illustrative Gaussian random-effects model with ${N} patients. Reducing individual information contracts the EBE distribution toward zero. This reproduces the population eta-shrinkage definition, without claiming to be a full NLME estimation.`
-      : `Modèle illustratif gaussien à effets aléatoires avec ${N} patients. Réduire l’information individuelle contracte la distribution des EBE vers zéro. Cette simulation reproduit la définition populationnelle de l’eta-shrinkage, sans prétendre réaliser une estimation NLME complète.`}
+      ? `Illustrative Gaussian random-effects model with ${N} patients. Reducing individual information contracts the EBE distribution toward zero. In real analyses, negative values can occur when EBE dispersion exceeds omega and require interpretation with the model and sample.`
+      : `Modèle illustratif gaussien à effets aléatoires avec ${N} patients. Réduire l’information individuelle contracte la distribution des EBE vers zéro. Dans une analyse réelle, une valeur négative peut apparaître si la dispersion des EBE dépasse oméga et doit être interprétée avec le modèle et l’échantillon.`}
   </p>
 </div>
 

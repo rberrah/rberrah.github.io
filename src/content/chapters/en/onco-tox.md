@@ -13,9 +13,9 @@ slides: []
 prerequisites: ["onco-models"]
 glossary: ["PD","Emax","Réponse indirecte / turnover"]
 sources: ["friberg","savic-transit","sharma-jusko-indirect"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-11"
 review_type: "author"
-reviewed_hash: "2704c89d29625d4b56db4cd8055e54d3b11424f09855f2ce37f9be9af0765792"
+reviewed_hash: "cfb63ab26e53b2f32c67a62c9e13a3cf0d14841c90de5bd0d5a6aedf5c6af1f7"
 quiz:
   - prompt: "In the Friberg model, the neutrophil nadir occurs..."
     options:
@@ -49,7 +49,7 @@ The **Friberg** model (2002) chains a proliferation compartment, **transit** com
 $$ \frac{dProl}{dt} = k_{tr}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\right)^{\gamma} - k_{tr}\,Prol $$
 
 - $E_{drug}$: effect (often linear, $slope\cdot C$) inhibiting proliferation;
-- the **transits** ($k_{tr}$) create the nadir delay (MTT);
+- the **transits** ($k_{tr}$) create the main structural delay of the nadir (MTT);
 - the $(Circ_0/Circ)^{\gamma}$ term is the homeostatic **feedback**.
 
 **Ref —** Friberg L.E. et al., *J Clin Oncol* 2002 — semi-mechanistic model of myelosuppression, reusable for platelets and leukocytes.
@@ -64,12 +64,12 @@ One then simulates schedules (dose, interval) that keep the nadir above a safety
 <!-- step:title="Common pitfall" -->
 Do not confuse the timing of the **concentration peak** and of the **nadir**.
 
-**Pitfall —** the nadir delay comes from maturation (transits), not from PK. And toxicity can be **cumulative** across cycles: a single-cycle model underestimates the risk.
+**Pitfall —** the characteristic nadir delay is created mainly by maturation through the transit compartments. PK nevertheless determines the timing and intensity of the exposure driving the system. Toxicity can also be **cumulative** across cycles: a single-cycle model underestimates the risk.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - Neutropenia is often the dose-limiting toxicity; we model it to predict the nadir.
 - Friberg model: proliferation (inhibited) → transits (maturation) → circulating + feedback.
-- The nadir delay comes from maturation time, not from PK.
+- The nadir delay comes mainly from maturation time; the PK profile still contributes to its precise timing and depth.
 - Beware cumulative multi-cycle toxicity.
 <!-- /step -->

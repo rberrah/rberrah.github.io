@@ -78,8 +78,8 @@ export const visualizationDescriptions = {
     en: "A VPC generated from a one-compartment model: 500 trials use the observed design, then observed P5/P50/P95 are compared with intervals for simulated percentiles. A structured discrepancy suggests misspecification without identifying its cause by itself."
   },
   '18_BayesianShrinkage': {
-    fr: "Eta-shrinkage sur 100 patients simulés : quand l'information individuelle diminue, la distribution des EBE se contracte vers zéro et 1 − SD(eta estimé)/oméga augmente.",
-    en: "Eta-shrinkage in 100 simulated patients: as individual information decreases, the EBE distribution contracts toward zero and 1 - SD(estimated eta)/omega increases."
+    fr: "Eta-shrinkage sur 100 patients simulés : quand l'information individuelle diminue, la distribution des EBE se contracte vers zéro et 1 − SD(eta estimé)/oméga augmente. La définition n'est pas bornée à zéro.",
+    en: "Eta-shrinkage in 100 simulated patients: as individual information decreases, the EBE distribution contracts toward zero and 1 - SD(estimated eta)/omega increases. The definition is not bounded below by zero."
   },
   '15_OFVGame': {
     fr: "Compare une séquence de modèles emboîtés. Chaque ΔOFV et son Δdf appartiennent à une comparaison précise et ne s'additionnent pas entre les étapes.",

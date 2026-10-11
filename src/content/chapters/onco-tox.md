@@ -13,9 +13,9 @@ prerequisites: ["onco-models"]
 glossary: ["PD", "Emax", "Réponse indirecte / turnover"]
 slides: []
 sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-11"
 review_type: "author"
-reviewed_hash: "65714958ba0240af9033724e48677b692af57698876d601915ec8b61d9a62588"
+reviewed_hash: "89f5456d8c5483498bb15a776736c70cc0bf3717ac2b7f82010e2f9ecd8ded61"
 quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."
     options:
@@ -49,7 +49,7 @@ Le modèle de **Friberg** (2002) chaîne un compartiment de prolifération, des 
 $$ \frac{dProl}{dt} = k_{tr}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\right)^{\gamma} - k_{tr}\,Prol $$
 
 - $E_{drug}$ : effet (souvent linéaire, $slope\cdot C$) inhibant la prolifération ;
-- les **transits** ($k_{tr}$) créent le délai du nadir (MTT) ;
+- les **transits** ($k_{tr}$) créent le délai structurel principal du nadir (MTT) ;
 - le terme $(Circ_0/Circ)^{\gamma}$ est le **rétrocontrôle** homéostatique.
 
 :::note
@@ -67,13 +67,13 @@ On simule alors des schémas (dose, intervalle) qui gardent le nadir au-dessus d
 Ne confondez pas le moment du **pic de concentration** et celui du **nadir**.
 
 :::pitfall
-Le délai du nadir vient de la maturation (transits), pas de la PK. Et la toxicité peut être **cumulative** sur plusieurs cures : un modèle à cure unique sous-estime le risque.
+Le délai caractéristique du nadir est principalement créé par la maturation dans les compartiments de transit. La PK détermine néanmoins la chronologie et l’intensité de l’exposition qui alimente le système. La toxicité peut aussi être **cumulative** sur plusieurs cures : un modèle à cure unique sous-estime le risque.
 :::
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - La neutropénie est souvent la toxicité dose-limitante ; on la modélise pour prédire le nadir.
 - Modèle de Friberg : prolifération (inhibée) → transits (maturation) → circulants + rétrocontrôle.
-- Le délai du nadir vient du temps de maturation, pas de la PK.
+- Le délai du nadir vient principalement du temps de maturation ; le profil PK contribue encore à son moment précis et à sa profondeur.
 - Attention à la toxicité cumulative multi-cures.
 <!-- /step -->

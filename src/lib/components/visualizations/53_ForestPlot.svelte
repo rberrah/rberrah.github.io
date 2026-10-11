@@ -33,7 +33,7 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>{$language === 'en' ? 'No-effect zone' : 'Zone de non-pertinence'}</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Clinical relevance band' : 'Zone de non-pertinence'}</span><strong>±{bandPct}%</strong><input type="range" min="10" max="40" step="5" bind:value={bandPct} /></label>
     <div class="readout">
       <p><span class="dot inside"></span> {$language === 'en' ? 'CI entirely inside band' : 'IC entièrement dans la bande'}</p>
       <p><span class="dot overlap"></span> {$language === 'en' ? 'CI overlaps a band limit' : 'IC chevauchant une limite'}</p>

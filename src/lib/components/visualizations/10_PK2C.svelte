@@ -1,6 +1,6 @@
 <script>
   // Modèle à 2 compartiments : phase de distribution (α, rapide) puis phase
-  // d'élimination (β, lente). Vue semi-log pour révéler les deux pentes ;
+  // terminale hybride (β, lente). Vue semi-log pour révéler les deux pentes ;
   // courbe 1-compartiment en référence (même CL, même V central).
   import { scaleLinear, scaleLog } from 'd3-scale';
   import { concTwoComp, concMono } from '$lib/utils/math';
@@ -68,7 +68,7 @@
 
       <!-- annotations de phases -->
       <text x={x(1.5)} y={14} class="ann alpha">{$language === 'en' ? 'α phase (distribution)' : 'phase α (distribution)'}</text>
-      <text x={x(tEnd * 0.55)} y={y(c0 * (logScale ? 0.12 : 0.35)) - 6} class="ann beta">{$language === 'en' ? 'β phase (elimination)' : 'phase β (élimination)'}</text>
+      <text x={x(tEnd * 0.55)} y={y(c0 * (logScale ? 0.12 : 0.35)) - 6} class="ann beta">{$language === 'en' ? 'β phase (terminal)' : 'phase β (terminale)'}</text>
 
       <line x1="0" x2="0" y1="0" y2={iH} class="axis" />
       <line x1="0" x2={iW} y1={iH} y2={iH} class="axis" />

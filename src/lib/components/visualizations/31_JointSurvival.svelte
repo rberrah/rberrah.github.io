@@ -49,7 +49,7 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Exposition (AUC)</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Relative exposure (%)' : 'Exposition relative (%)'}</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
     <label class="s"><span>{$language === 'en' ? 'Link β (tumor→risk)' : 'Lien β (tumeur→risque)'}</span><strong>{beta.toFixed(1)}</strong><input type="range" min="0" max="3" step="0.1" bind:value={beta} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'Median without modeled event' : 'Médiane sans événement modélisé'}</span><strong>{mSel >= T ? '> ' : ''}{mSel.toFixed(0)} {$language === 'en' ? 'wk' : 'sem'}</strong></div>

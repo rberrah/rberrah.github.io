@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { parentMetaboliteConcentrations } from '$lib/science/visualizationMath.js';
   // Modèle parent → métabolite (échelle semi-log).
   //   dApar/dt = −k·Apar          (parent, dose IV)
   //   dAmet/dt = fm·k·Apar − km·Amet   (formation depuis le parent, élimination km)
@@ -12,12 +13,13 @@
   const V = 10, D = 100; // volumes égaux, dose IV
   const T = 48, dt = 0.1;
 
+  /** @param {number} t */
+  const concentrations = (t) => parentMetaboliteConcentrations(t, { parentRate: k, metaboliteRate: km, fraction: fm, dose: D, volume: V });
   /** @param {number} t @returns {number} */
-  const cpar = (t) => (D / V) * Math.exp(-k * t);
+  const cpar = (t) => concentrations(t).parent;
   /** @param {number} t @returns {number} */
   function cmet(t) {
-    if (Math.abs(km - k) < 1e-6) return (fm * k * D / V) * t * Math.exp(-k * t);
-    return (fm * k * D) / (V * (km - k)) * (Math.exp(-k * t) - Math.exp(-km * t));
+    return concentrations(t).metabolite;
   }
 
   $: elimLimited = km < k; // le métabolite persiste après le parent

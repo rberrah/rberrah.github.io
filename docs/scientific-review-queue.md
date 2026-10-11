@@ -3,17 +3,18 @@
 This queue records work that still requires a person other than the author.
 It does not claim that an internal or external review has occurred.
 
-As of 2026-10-10, 32 of 68 visualization components have an author review
-record. The remaining 36 stay `pending`; none of these records claims an
-independent review.
+As of 2026-10-11, all 64 active visualization components have an author review
+record. No visualization remains pending author review. These records document
+review by the author; they do not claim independent internal or external
+validation.
 
 ## Priority 1
 
 - Beginner path: PK/PD foundations and the associated quantitative figures.
 - Bayesian estimation and TDM: assumptions, residual error and decision limits.
 - Validation: OFV/LRT, AIC/BIC, residual diagnostics, VPC and NPDE.
-- Quantitative visualizations still marked `pending` in
-  [visualization-review.md](visualization-review.md).
+- Independent review of a targeted sample of central quantitative
+  visualizations.
 
 ## Priority 2
 

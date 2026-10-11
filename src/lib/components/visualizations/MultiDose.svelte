@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { repeatedBolusConcentration, repeatedBolusSummary } from '$lib/science/visualizationMath.js';
   // Doses répétées : superposition de bolus IV toutes les τ heures.
   //   C(t) = Σ (Dose/V)·e^(-ke·(t-nτ))   pour nτ ≤ t,  ke = CL/V
   // Illustre l'accumulation vers l'état d'équilibre (Css) et l'effet de τ.
@@ -11,28 +12,18 @@
 
   const W = 470, H = 300, m = { top: 18, right: 16, bottom: 44, left: 50 };
   const tEnd = 48;
-  $: ke = cl / v;
+  $: summary = repeatedBolusSummary({ dose, cl, v, tau });
+  $: ke = summary.ke;
+  $: rac = summary.accumulationRatio;
+  $: cMaxSS = summary.cMaxSs;
+  $: cMinSS = summary.cMinSs;
+  $: cssAvg = summary.cAverageSs;
   $: thalf = Math.log(2) / ke;
-  $: cssAvg = dose / (cl * tau); // concentration moyenne à l'équilibre
-  $: cMaxSS = (dose / v) / (1 - Math.exp(-ke * tau)); // pic à l'équilibre (bolus)
-  $: cMinSS = cMaxSS * Math.exp(-ke * tau);
-  $: rac = 1 / (1 - Math.exp(-ke * tau)); // ratio d'accumulation
 
   const N = 480;
-  $: doseTimes = Array.from({ length: Math.floor(tEnd / tau) + 1 }, (_, i) => i * tau);
   /** @param {number} t */
   function conc(t) {
-    let c = 0;
-    for (const dt of doseTimes) {
-      if (dt <= t) {
-        // La vraie dose de charge n'est pas « 2× » : c'est dose × R_ac, avec
-        // R_ac = 1/(1 − e^(−ke·τ)), pour démarrer exactement au Cmax,ss. Le facteur 2 codé
-        // en dur affichait un pic de surdosage au lieu du plateau que le chapitre décrit.
-        const amt = loading && dt === 0 ? dose * rac : dose;
-        c += (amt / v) * Math.exp(-ke * (t - dt));
-      }
-    }
-    return c;
+    return repeatedBolusConcentration(t, { dose, cl, v, tau, loading });
   }
   $: curve = Array.from({ length: N + 1 }, (_, i) => {
     const t = (i / N) * tEnd;
@@ -45,7 +36,7 @@
   const xt = (/** @type {number} */ t) => (t / tEnd) * (W - m.left - m.right);
   $: yc = (/** @type {number} */ c) => iH - (Math.min(c, cMax) / cMax) * iH;
   $: path = curve.map((p, i) => `${i ? 'L' : 'M'}${xt(p.t).toFixed(1)},${yc(p.c).toFixed(1)}`).join(' ');
-  $: t90 = 3.32 * thalf; // ~90 % de l'équilibre
+  $: t90 = (Math.log(10) / Math.log(2)) * thalf; // ~90 % de l'équilibre
 </script>
 
 <div class="wrap">

@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { infusionConcentration } from '$lib/science/visualizationMath.js';
   // Perfusion IV (entrée d'ordre 0, débit constant R0).
   //   Pendant la perfusion : C(t) = (R0/CL)·(1 − e^(−ke·t)),  Css = R0/CL
   //   Après l'arrêt (à Tinf) : décroissance exponentielle.
@@ -17,15 +18,14 @@
 
   /** @param {number} t */
   function conc(t) {
-    if (t <= tinf) return css * (1 - Math.exp(-ke * t));
-    return cAtStop * Math.exp(-ke * (t - tinf));
+    return infusionConcentration(t, { rate: r0, cl, v, duration: tinf });
   }
   const N = 300;
   $: curve = Array.from({ length: N + 1 }, (_, i) => {
     const t = (i / N) * tEnd;
     return { t, c: conc(t) };
   });
-  $: t90 = thalf * 3.32; // ~90 % de Css
+  $: t90 = Math.log(10) / ke; // 90 % de Css
 
   $: iW = W - m.left - m.right;
   $: iH = H - m.top - m.bottom;

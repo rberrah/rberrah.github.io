@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { simulateTumorGrowth } from '$lib/science/visualizationMath.js';
   // Modèle d'inhibition de la croissance tumorale (TGI) de type Claret.
   //   dTS/dt = KG·TS  −  K·exposition·exp(−λ·t)·TS
   //   • KG           : croissance tumorale exponentielle (sans traitement)
@@ -21,18 +22,7 @@
    * @returns {{t:number,ts:number}[]}
    */
   function simulate(d, g, lam) {
-    const expo = d / 100;
-    const n = Math.round(T / dt);
-    let ts = TS0;
-    const pts = [{ t: 0, ts }];
-    for (let i = 1; i <= n; i++) {
-      const t = i * dt;
-      const shrink = K * expo * Math.exp(-lam * t);
-      const dTS = g * ts - shrink * ts;
-      ts = Math.max(0.5, ts + dTS * dt);
-      pts.push({ t, ts });
-    }
-    return pts;
+    return simulateTumorGrowth({ exposurePercent: d, growth: g, resistance: lam, baseline: TS0, drugRate: K, horizon: T, dt });
   }
 
   // Toutes les variables (dose, kg, lambda) apparaissent dans l'expression
@@ -66,7 +56,7 @@
 
 <div class="wrap">
   <div class="controls">
-    <label class="s"><span>Exposition (AUC)</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
+    <label class="s"><span>{$language === 'en' ? 'Relative exposure (%)' : 'Exposition relative (%)'}</span><strong>{dose}%</strong><input type="range" min="0" max="220" step="5" bind:value={dose} /></label>
     <label class="s"><span>{$language === 'en' ? 'Growth' : 'Croissance'} K<sub>G</sub></span><strong>{kg.toFixed(3)}</strong><input type="range" min="0.01" max="0.07" step="0.005" bind:value={kg} /></label>
     <label class="s"><span>{$language === 'en' ? 'Resistance' : 'Résistance'} λ</span><strong>{lambda.toFixed(3)}</strong><input type="range" min="0" max="0.06" step="0.005" bind:value={lambda} /></label>
     <div class="readout">

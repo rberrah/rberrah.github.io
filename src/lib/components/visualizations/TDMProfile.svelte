@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { estimateOneCompartmentMapClearance } from '$lib/science/visualizationMath.js';
   // Precision dosing / TDM : à partir d'UNE concentration mesurée, on met à jour
   // (Bayes/MAP) la clairance individuelle → courbe IPRED (individuelle) vs PRED
   // (population, a priori). Cycle : Mesurer → Estimer → Ajuster.
@@ -16,16 +17,7 @@
   const pred = (/** @type {number} */ t, /** @type {number} */ CL) => (dose / V) * Math.exp(-(CL / V) * t);
 
   // Estimation MAP de CL individuelle par recherche sur grille
-  $: clInd = (() => {
-    let best = CLpop, bestCost = Infinity;
-    for (let CL = 1; CL <= 15; CL += 0.05) {
-      const p = pred(tObs, CL);
-      if (p <= 0) continue;
-      const cost = ((Math.log(cObs) - Math.log(p)) / sigma) ** 2 + ((Math.log(CL) - Math.log(CLpop)) / omega) ** 2;
-      if (cost < bestCost) { bestCost = cost; best = CL; }
-    }
-    return best;
-  })();
+  $: clInd = estimateOneCompartmentMapClearance({ dose, volume: V, time: tObs, observed: cObs, populationCl: CLpop, omega, sigma });
 
   const W = 470, H = 300, m = { top: 16, right: 14, bottom: 40, left: 46 };
   $: iW = W - m.left - m.right;
@@ -67,7 +59,7 @@
     <g transform={`translate(${m.left},${m.top})`}>
       <!-- fenêtre thérapeutique -->
       <rect x="0" y={yc(targetHi)} width={iW} height={Math.max(0, yc(targetLo) - yc(targetHi))} class="target" />
-      <text x={iW - 4} y={yc(targetHi) - 4} class="tlabel">{$language === 'en' ? 'target range' : 'fenêtre cible'}</text>
+      <text x={iW - 4} y={yc(targetHi) - 4} class="tlabel">{$language === 'en' ? 'illustrative target' : 'fenêtre illustrative'}</text>
       <path d={predPath} class="pred" />
       <path d={ipredPath} class="ipred" />
       <line x1={xt(tObs)} x2={xt(tObs)} y1={yc(cObs)} y2={iH} class="obsguide" />

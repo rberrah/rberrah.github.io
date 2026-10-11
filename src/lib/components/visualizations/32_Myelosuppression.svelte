@@ -1,5 +1,6 @@
 <script>
   import { language } from '$lib/stores/language';
+  import { simulateMyelosuppression } from '$lib/science/visualizationMath.js';
   // Modèle de myélosuppression de Friberg (2002).
   //   Prol → Transit1 → Transit2 → Transit3 → Circ
   //   dProl = ktr·Prol·(1 − Edrug)·(Circ0/Circ)^γ − ktr·Prol
@@ -16,28 +17,9 @@
   const T = 600, dt = 1; // h (~25 jours)
   const nTr = 3;
 
-  $: ktr = (nTr + 1) / mtt;
   $: c0 = dose / V;
 
-  $: sim = (() => {
-    const n = Math.round(T / dt);
-    let Prol = Circ0, Tr1 = Circ0, Tr2 = Circ0, Tr3 = Circ0, Circ = Circ0;
-    const pts = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i * dt;
-      const C = c0 * Math.exp(-ke * t);
-      const Edrug = Math.min(0.99, slope * C);
-      const fb = Math.pow(Circ0 / Math.max(Circ, 0.01), gamma);
-      const dProl = ktr * Prol * (1 - Edrug) * fb - ktr * Prol;
-      const dTr1 = ktr * (Prol - Tr1);
-      const dTr2 = ktr * (Tr1 - Tr2);
-      const dTr3 = ktr * (Tr2 - Tr3);
-      const dCirc = ktr * Tr3 - ktr * Circ;
-      Prol += dProl * dt; Tr1 += dTr1 * dt; Tr2 += dTr2 * dt; Tr3 += dTr3 * dt; Circ += dCirc * dt;
-      pts.push({ t, C, Circ: Math.max(0.01, Circ) });
-    }
-    return pts;
-  })();
+  $: sim = simulateMyelosuppression({ dose, mtt, gamma, baseline: Circ0, slope, volume: V, ke, horizon: T, dt, transits: nTr });
 
   $: nadir = sim.reduce((a, b) => (b.Circ < a.Circ ? b : a), sim[0]);
   /** @returns {string} */
@@ -71,7 +53,7 @@
       <div><span>{$language === 'en' ? 'at' : 'à'}</span><strong>{$language === 'en' ? 'D' : 'J'}{days(nadir.t)}</strong></div>
       <div class="verdict" class:g3={nadir.Circ < 1.0} class:g4={nadir.Circ < 0.5}>{grade(nadir.Circ)}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}The nadir occurs <em>several days after</em> the plasma peak because of maturation (MTT), not PK.{:else}Le nadir survient <em>plusieurs jours après</em> le pic plasmatique : c'est la maturation (MTT), pas la PK.{/if}</p>
+    <p class="hint">{#if $language === 'en'}The nadir is delayed mainly by maturation (MTT), not simply by the PK peak; PK still determines the timing and intensity of the exposure driving the system.{:else}Le nadir est retardé principalement par la maturation (MTT), pas simplement par le pic PK ; la PK détermine néanmoins la chronologie et l’intensité de l’exposition qui alimente le système.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Neutrophils and concentration over time' : 'Neutrophiles et concentration au cours du temps'}>
