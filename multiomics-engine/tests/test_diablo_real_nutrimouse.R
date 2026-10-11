@@ -94,7 +94,8 @@ for(seed in seeds){
   tr<-split$trainIds
   te<-split$testIds
   dtrain<-diet[tr];dtest<-diet[te]
-  majority_global<-names(which.max(table(factor(y[tr],levels=sort(unique(y))))))[[1L]]
+  train_freq<-table(factor(y[tr],levels=sort(unique(y))))
+  majority_global<-names(train_freq)[which.max(train_freq)]
   predictions<-vapply(seq_along(te),function(i){
     local<-y[tr][dtrain==dtest[[i]]]
     if(!length(local))return(majority_global)
