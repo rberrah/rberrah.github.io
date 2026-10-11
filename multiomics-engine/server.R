@@ -94,7 +94,23 @@ matrix_samples_by_features <- function(text, expected_assays, strict_exact=FALSE
 # Upstream assay-level R1 integrity check BEFORE technical aggregation.
 # run_deseq2_counts() otherwise only sees the aggregate and cannot detect
 # assays silently dropped by the browser CSV orientation/identifier join.
+# No implicit dropping of blanks, QC injections or unknown assay types in
+# R1 confirmatory RNA-seq. The explicitly scoped cohort must consist of
+# measured biological samples only; exclusions belong in the preregistered
+# study manifest, not silently inside the bridge.
+rnaseq_confirmatory_sample_type_check <- function(layer_meta) {
+  if(!is.data.frame(layer_meta)||!nrow(layer_meta)||
+     !"sample_type"%in%names(layer_meta))
+    stop("R1 requires an explicit nonempty biological sample-type manifest")
+  typ<-tolower(gsub("[^a-z0-9]+","_",
+    trimws(as.character(layer_meta$sample_type))))
+  if(anyNA(typ)||any(!typ%in%c("biological","biological_sample","sample")))
+    stop("R1 cannot automatically exclude QC/blanks or infer unknown sample types; supply a manifest of biological samples only")
+  invisible(TRUE)
+}
+
 rnaseq_confirmatory_assay_integrity <- function(x, layer_meta) {
+  rnaseq_confirmatory_sample_type_check(layer_meta)
   if(!is.matrix(x)||is.null(rownames(x))||
      anyNA(rownames(x))||anyDuplicated(rownames(x))||
      any(!nzchar(rownames(x)))||!is.data.frame(layer_meta)||
@@ -571,6 +587,10 @@ run_backend_analysis <- function(payload) {
   ms_qc_summaries <- list()
   for (layer in layers) {
     layer_meta <- meta[meta$omic == layer, , drop=FALSE]
+    if(identical(protocol$analysisIntent,"confirmatory") &&
+       identical(layer,"transcriptomics") &&
+       identical(data_types[[layer]],"raw_counts"))
+      rnaseq_confirmatory_sample_type_check(layer_meta)
     expected <- unique(layer_meta$assay_id)
     x <- matrix_samples_by_features(
       payload$matrices[[layer]], expected,
