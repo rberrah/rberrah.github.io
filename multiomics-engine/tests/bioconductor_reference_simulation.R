@@ -12,7 +12,7 @@ genes <- paste0("G",sprintf("%03d",seq_len(300)))
 ids <- paste0("S",sprintf("%02d",seq_len(40)))
 group <- factor(rep(c("control","treated"),each=20),levels=c("control","treated"))
 batch <- factor(rep(c("B1","B2"),times=20))
-meta <- data.frame(condition=group,batch=batch,row.names=ids)
+meta <- data.frame(subject_id=paste0("BIO",seq_along(ids)),condition=group,batch=batch,row.names=ids)
 base <- exp(stats::runif(length(genes),log(60),log(300)))
 dispersion <- stats::runif(length(genes),0.08,0.18)
 is_signal <- seq_along(genes)<=25
@@ -27,12 +27,19 @@ x <- t(counts)
 out_dir <- tempfile("bioconductor_reference_")
 dir.create(out_dir)
 d <- run_deseq2_counts(x,meta,file.path(out_dir,"deseq2"),
-    design_formula=~ batch+condition,contrast=c("condition","treated","control"))
+    design_formula=~ batch+condition,contrast=c("condition","treated","control"),
+    confirmatory_contract=TRUE)
 v <- run_voom_counts(x,meta,file.path(out_dir,"voom"),
     design_formula=~ batch+condition,coefficient="conditiontreated")
 e <- run_edger_ql_counts(x,meta,file.path(out_dir,"edger"),
     design_formula=~ batch+condition,coefficient="conditiontreated")
 stopifnot(nrow(d$results)>200L,nrow(v$results)>200L,nrow(e$results)>200L)
+stopifnot(identical(d$confirmatory_input_contract$status,
+                    "eligible_for_reference_fitting_only"),
+          d$confirmatory_input_contract$independent_subjects==length(ids),
+          d$confirmatory_input_contract$residual_df==37L,
+          identical(d$confirmatory_input_contract$certified,FALSE))
+cat("REAL DESeq2 UNDER R1 STRICT CONFIRMATORY INPUT CONTRACT: PASS (no biological certificate)\n")
 reference <- compare_rnaseq_methods(d$results,v$results)
 stopifnot(identical(reference$status,"ok"))
 method_specs <- list(
