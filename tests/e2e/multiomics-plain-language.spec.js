@@ -31,6 +31,8 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('337 patientes Agilent NKI');
   await expect(validation).toContainText('0,9855');
   await expect(validation).toContainText('0,2793');
+  await expect(validation).toContainText('0,2793 → 0,3021');
+  await expect(validation).toContainText('nouvelle validation confirmatoire');
   await expect(validation).toContainText('Une AUC élevée ne garantit pas des probabilités justes.');
 
   const metaboliteConfidence = page.getByTestId('metabolomics-identification-confidence');
@@ -52,6 +54,8 @@ test('multi-omics French import screen avoids unexplained metadata jargon', asyn
   await expect(validation).toContainText('337 NKI Agilent participants');
   await expect(validation).toContainText('0.9855');
   await expect(validation).toContainText('0.2793');
+  await expect(validation).toContainText('0.2793 → 0.3021');
+  await expect(validation).toContainText('not fresh confirmatory validation');
   await expect(validation).toContainText('A high AUC does not mean trustworthy individual probabilities.');
   await expect(metaboliteConfidence).toContainText('Metabolite identification confidence');
   await page.locator('.language-toggle').getByRole('button', { name: 'FR', exact: true }).click();
