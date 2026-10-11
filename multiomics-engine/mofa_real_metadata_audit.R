@@ -235,3 +235,32 @@ mofa_real_pairing_falsification <- function(paired,broken) {
     interpretation="Genotype/diet associations in latent scores can persist when lipids are assigned to the wrong animals. Even a low post-fit permutation p is not proof of correct assay pairing, multi-omic added value, independent replication or causality. One broken pairing is a sensitivity check, not a formal null distribution."
   )
 }
+
+
+# Unsupervised sensitivity ONLY. Standardise every measured feature across the
+# same study subjects with no genotype/diet information. This is deliberately
+# not used as an estimate of out-of-sample preprocessing quality.
+mofa_real_zscore_features <- function(blocks) {
+  if(!is.list(blocks)||length(blocks)<2L||is.null(names(blocks))||
+     anyDuplicated(names(blocks))||any(!nzchar(names(blocks))))
+    stop("Per-feature normalization needs at least two named assay views")
+  ids<-rownames(blocks[[1L]])
+  if(is.null(ids)||anyDuplicated(ids)||anyNA(ids))
+    stop("Per-feature normalization requires exact biological IDs")
+  out<-lapply(blocks,function(X){
+    if(!is.matrix(X)||!is.numeric(X)||
+       !identical(rownames(X),ids)||ncol(X)<2L||
+       any(!is.finite(X))||anyDuplicated(colnames(X)))
+      stop("Cannot normalize missing or mispaired assay values")
+    s<-apply(X,2L,stats::sd)
+    if(any(!is.finite(s))||any(s<=1e-12))
+      stop("Feature normalization fails on constant/non-identifiable features")
+    z<-sweep(sweep(X,2L,colMeans(X),"-"),2L,s,"/")
+    if(any(!is.finite(z))||max(abs(colMeans(z)))>1e-9||
+       max(abs(apply(z,2L,stats::sd)-1))>1e-9)
+      stop("Feature-normalized assay has an invalid numeric mean/SD")
+    z
+  })
+  names(out)<-names(blocks)
+  out
+}
