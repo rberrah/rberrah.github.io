@@ -19,6 +19,12 @@ reste à prouver, et quand le pipeline doit refuser le mode confirmatoire.
 - Deux groupes **biologiquement indépendants**, au moins trois sujets
   distincts par groupe. Cette limite est un seuil de prévention des
   erreurs de logiciel, absolument **pas** un seuil de puissance.
+- Le navigateur doit transmettre réellement `analysisIntent` au moteur R.
+  En mode confirmatoire, le chercheur choisit explicitement le groupe
+  comparé et le groupe de référence. L'ordre alphabétique des noms
+  n'est **jamais** utilisé pour définir le sens scientifique du log2FC.
+  L'absence du choix, son ambiguïté ou des niveaux inconnus bloquent
+  l'ajustement R ; les choix sont conservés dans l'export reproductible.
 - Hypothèse d'intérêt : différence de condition, un contraste explicitement
   nommé et préspécifié. Régression additive avec intercept, covariables
   observées, sans interaction, appariement, cluster ou série temporelle.

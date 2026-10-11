@@ -109,6 +109,22 @@ rnaseq_confirmatory_sample_type_check <- function(layer_meta) {
   invisible(TRUE)
 }
 
+# The researcher must explicitly prespecify the direction and identities
+# of the primary condition contrast. Alphabetical sort is NOT a substitute.
+rnaseq_confirmatory_explicit_contrast <- function(protocol,group_names) {
+  requested<-unlist(protocol$rnaPrimaryContrast,use.names=FALSE)
+  group_names<-as.character(group_names)
+  if(length(group_names)!=2L||anyNA(group_names)||
+     any(!nzchar(group_names))||anyDuplicated(group_names)||
+     !is.character(requested)||length(requested)!=3L||
+     anyNA(requested)||any(!nzchar(requested))||
+     !identical(requested[[1L]],"condition")||
+     identical(requested[[2L]],requested[[3L]])||
+     !setequal(requested[2:3],group_names))
+    stop("R1 confirmatory RNA-seq requires an explicit valid [condition, comparison, reference] contrast; alphabetical guessing is prohibited")
+  requested
+}
+
 rnaseq_confirmatory_assay_integrity <- function(x, layer_meta) {
   rnaseq_confirmatory_sample_type_check(layer_meta)
   if(!is.matrix(x)||is.null(rownames(x))||
@@ -661,7 +677,9 @@ run_backend_analysis <- function(payload) {
       groups <- sort(unique(m$condition[nzchar(m$condition)]))
       if (length(groups) >= 2L) m$condition <- factor(m$condition, levels=groups)
       form <- safe_formula(terms)
-      contrast <- if (length(groups) == 2L) c("condition", groups[2], groups[1]) else NULL
+      contrast <- if(identical(protocol$analysisIntent,"confirmatory")) {
+        rnaseq_confirmatory_explicit_contrast(protocol,groups)
+      } else if(length(groups)==2L) c("condition",groups[2],groups[1]) else NULL
       run_deseq <- rna_count_method %in% c("auto","both","deseq2")
       run_voom <- rna_count_method %in% c("auto","both","voom")
       fit_deseq <- NULL
