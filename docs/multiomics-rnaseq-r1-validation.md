@@ -111,7 +111,31 @@ Les scripts `multiomics-engine/tests/bioconductor_rnaseq_stress_grid.R` et `.git
 - **Campagne mensuelle :** 120 jeux par scénario, avec possibilité de 60/120/200 exécutions sur demande ; 4 scénarios × 3 méthodes, avec archives de toutes les mesures par jeu, diagnostics, versions R, FDR moyenne, intervalle bootstrap et erreur Monte-Carlo.
 - **Interprétation :** si la borne inférieure de l'intervalle de FDR dépasse 5 %, la cellule est **signalée pour revue**. L'absence d'alerte, ou le succès de CI, n'est **jamais** un certificat de contrôle du FDR, de puissance suffisante, de stabilité hors simulation ou de validité clinique.
 
-**Important :** cette section décrit un protocole implémenté. **Aucune valeur de performance n'est revendiquée avant lecture d'une exécution effectivement réussie.** Une couverture exhaustive de la variabilité biologique, de la dépendance entre gènes, des compositions cellulaires, des tailles d'effets réalistes et des conditions de collecte nécessitera des plans complémentaires. Le critère de puissance est calculé sur **tous les vrais gènes plantés**, y compris ceux éliminés lors du filtrage.
+### Résultats de la première campagne de stress R — vérifiés
+
+Le [workflow GitHub Actions 38177062789](https://github.com/rberrah/rberrah.github.io/actions/runs/38177062789), exécuté le **11 octobre 2026**, a terminé les quatre scénarios avec **8 jeux indépendants par scénario**, chacun traité par DESeq2, edgeR QL et limma-voom (contrôle de logiciel, **pas** une campagne de calibration nominale). Les métriques et l'environnement R sont présents dans l'artefact `bioconductor-rnaseq-stress-calibration`.
+
+**Puissance moyenne estimée** = proportion de tous les gènes réellement modifiés qui ont été retenus à BH q ≤ 0,05 :
+
+| Scénario (8 jeux) | DESeq2 | edgeR QL | limma-voom |
+| --- | ---: | ---: | ---: |
+| Faible effet 20 + 20 | 2,50 % | 1,88 % | 0 % |
+| Petite cohorte 6 + 6 | 2,50 % | 1,25 % | 0 % |
+| Déséquilibré 12 + 28 | 25,00 % | 21,88 % | 10,63 % |
+| Signaux rares 20 + 20 | 34,38 % | 28,13 % | 28,13 % |
+
+**FDR empirique moyen** = moyenne du nombre de faux positifs divisé par le nombre total de découvertes, avec FDP = 0 quand aucun gène n'est sélectionné :
+
+| Scénario (8 jeux) | DESeq2 | edgeR QL | limma-voom |
+| --- | ---: | ---: | ---: |
+| Faible effet 20 + 20 | 6,25 % | 12,50 % | 25,00 % |
+| Petite cohorte 6 + 6 | 20,83 % | 0 % | 0 % |
+| Déséquilibré 12 + 28 | 5,40 % | 4,17 % | 3,13 % |
+| Signaux rares 20 + 20 | 13,75 % | 6,25 % | 10,42 % |
+
+**Interprétation prudente :** les faibles puissances sont cohérentes avec des signaux difficiles et/ou un faible effectif, mais ces estimations dépendent de la distribution simulée. Les FDR sont particulièrement volatils lorsque presque aucun gène n'est détecté ; certaines cellules à FDR nul sont aussi celles où la puissance est nulle. Sur **8** études simulées, les intervalles bootstrap et les erreurs Monte-Carlo sont trop larges pour démontrer une calibration à 5 % ou classer les méthodes. Un pipeline exécuté sans erreur peut produire une analyse **non informative par manque de puissance**. Le nombre minimal de trois sujets par groupe requis par le garde-fou d'entrée ne doit jamais être interprété comme une validation de la puissance d'une vraie étude.
+
+**Important :** cette section associe un protocole implémenté à une exécution réellement vérifiée, sans extrapoler au patient, à des études omiques externes ou au contrôle nominal du FDR. Une couverture exhaustive de la variabilité biologique, de la dépendance entre gènes, des compositions cellulaires, des tailles d'effets réalistes et des conditions de collecte nécessitera des plans complémentaires. Le critère de puissance est calculé sur **tous les vrais gènes plantés**, y compris ceux éliminés lors du filtrage.
 
 ### Deuxième campagne : mélanges contrôlés de vrais et de faux signaux
 
