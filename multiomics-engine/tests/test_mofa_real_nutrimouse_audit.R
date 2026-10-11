@@ -74,6 +74,21 @@ bad_lipid<-input_lipid[n:1,,drop=FALSE]
 stopifnot(inherits(try(mofa_real_view_level_qc(qc_factor,
  list(transcriptomics=input_signal,lipidomics=bad_lipid)),
  silent=TRUE),"try-error"))
+# Label-free z-score must preserve biological subject and feature identity,
+# and refuse silent feature dropping / sample reordering.
+scaled<-mofa_real_zscore_features(list(transcriptomics=input_signal,
+                                      lipidomics=input_lipid))
+stopifnot(identical(rownames(scaled$transcriptomics),ids),
+          identical(colnames(scaled$transcriptomics),colnames(input_signal)),
+          max(abs(colMeans(scaled$lipidomics)))<1e-10,
+          max(abs(apply(scaled$lipidomics,2L,stats::sd)-1))<1e-10)
+constant<-input_lipid; constant[,1L]<-0
+stopifnot(inherits(try(mofa_real_zscore_features(list(
+ transcriptomics=input_signal,lipidomics=constant)),
+ silent=TRUE),"try-error"))
+stopifnot(inherits(try(mofa_real_zscore_features(list(
+ transcriptomics=input_signal,lipidomics=input_lipid[n:1,,drop=FALSE])),
+ silent=TRUE),"try-error"))
 paired_summary<-list(
  max_conditional_r2=list(genotype_given_diet=0.5313,
                          diet_given_genotype=0.6846),
