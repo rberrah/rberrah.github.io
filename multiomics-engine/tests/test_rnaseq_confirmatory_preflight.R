@@ -121,10 +121,23 @@ stopifnot(inherits(try(matrix_samples_by_features(rowwise_bad,ids,
  strict_exact=TRUE),silent=TRUE),"try-error"))
 assay_manifest<-data.frame(
  assay_id=ids,sample_id=ids,subject_id=metadata$subject_id,
+ sample_type=rep('biological',length(ids)),
  condition=as.character(metadata$condition),
  batch=as.character(metadata$batch),stringsAsFactors=FALSE)
 stopifnot(identical(rnaseq_confirmatory_assay_integrity(counts,assay_manifest)$status,
   "assay_identifiers_exact"))
+stopifnot(isTRUE(rnaseq_confirmatory_sample_type_check(assay_manifest)))
+for(type in c("qc","pooled_qc","blank","", "unknown_source")){
+  bad_type<-assay_manifest
+  bad_type$sample_type[[1L]]<-type
+  stopifnot(inherits(try(rnaseq_confirmatory_sample_type_check(
+    bad_type),silent=TRUE),"try-error"))
+  stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
+    counts,bad_type),silent=TRUE),"try-error"))
+}
+missing_type<-assay_manifest[,names(assay_manifest)!="sample_type",drop=FALSE]
+stopifnot(inherits(try(rnaseq_confirmatory_sample_type_check(
+  missing_type),silent=TRUE),"try-error"))
 bad_counts<-counts;bad_counts[1L,1L]<-NA_real_
 stopifnot(inherits(try(rnaseq_confirmatory_assay_integrity(
  bad_counts,assay_manifest),silent=TRUE),"try-error"))

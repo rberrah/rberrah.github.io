@@ -7,6 +7,11 @@ reste à prouver, et quand le pipeline doit refuser le mode confirmatoire.
 
 ## Domaine de validité V1 restreint
 
+- Type d'échantillon explicitement documenté comme biologique.
+  Les blancs, QC poolés et injections techniques hors sujet ne sont
+  **jamais supprimés silencieusement** dans le parcours confirmatoire :
+  la présence de ces éléments bloque l'analyse jusqu'à constitution
+  d'un manifeste d'exclusions préspécifié et vérifiable.
 - Une seule omique : **comptages RNA-seq bruts non négatifs et entiers**.
   La forme numérique ne prouve pas l'origine réelle des comptages :
   provenance FASTQ/BAM, alignement, version annotation et comptage
