@@ -207,6 +207,10 @@ const withR1Audit={
       confirmatoryInputContract:{
         status:'eligible_for_reference_fitting_only',certified:false,
         independent_subjects:40,rejected_silent_subject_loss:true
+      },
+      assayIntegrityContract:{
+        status:'assay_identifiers_exact',assay_loss_detected:false,
+        measured_assays:40,certified:false
       }
     }
   }}
@@ -216,6 +220,29 @@ assert.equal(passedR1Audit.status,'independent_review_required');
 assert.equal(passedR1Audit.certified,false);
 assert.ok(passedR1Audit.checks.some(x=>
   x.code==='rnaseq_confirmatory_input_contract'&&x.status==='pass'));
+const missingAssayEvidence={
+  ...withR1Audit,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      ...withR1Audit.referenceBackend.methods.transcriptomics_differential_deseq2,
+      assayIntegrityContract:null
+    }
+  }}
+};
+assert.equal(evaluateConfirmatoryReadiness(missingAssayEvidence).status,'blocked',
+  'A strict DESeq2 contract must not hide lost assay CSV rows');
+const brokenAssayEvidence={
+  ...withR1Audit,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      ...withR1Audit.referenceBackend.methods.transcriptomics_differential_deseq2,
+      assayIntegrityContract:{
+        status:'assay_identifiers_exact',assay_loss_detected:true,
+        measured_assays:39,certified:false
+      }
+    }
+  }}
+};
+assert.equal(evaluateConfirmatoryReadiness(brokenAssayEvidence).status,'blocked');
+
 for(const faulty of [
   {certified:true},{independent_subjects:5},
   {rejected_silent_subject_loss:false},{status:'unverified'}
