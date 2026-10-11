@@ -150,6 +150,16 @@ report<-list(
 )
 jsonlite::write_json(report,file.path(out,"three-cohort-retrospective-calibration-report.json"),
  pretty=TRUE,auto_unbox=TRUE,na="null",null="null")
+for(arm in c("primary_rank","sensitivity_raw")){
+  e<-if(arm=="primary_rank")primary else sensitivity
+  delta<-e$paired_change_calibrated_minus_uncalibrated
+  limits<-unlist(delta$brier_bootstrap_95_ci,use.names=FALSE)
+  cat(sprintf("THREE-COHORT CALIBRATION DELTA: arm=%s n=%d TRANSBIG_intercept=%.6f Brier_change=%+.6f 95%%_bootstrap_CI=[%+.6f,%+.6f] log_loss_change=%+.6f baseline_Brier=%.6f calibration_slope_before=%.4f calibration_slope_after=%.4f\n",
+   arm,e$n,e$calibrator$intercept,delta$brier,
+   limits[[1L]],limits[[3L]],delta$log_loss,e$brier_skill_reference,
+   e$uncalibrated$calibration_slope,
+   e$transbig_intercept_calibrated$calibration_slope))
+}
 cat(sprintf("PMx THREE-COHORT CALIBRATION RETROSPECTIVE PASS: TRANSBIG n=%d, NKI n=%d; rank Brier before=%.4f after=%.4f AUC before=%.4f after=%.4f; raw Brier before=%.4f after=%.4f; NO NEW CONFIRMATORY CLAIM\n",
  contract$eligible_calibration_participants,src$nki_n,
  primary$uncalibrated$brier,primary$transbig_intercept_calibrated$brier,
