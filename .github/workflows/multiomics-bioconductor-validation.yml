@@ -9,6 +9,8 @@ on:
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/tests/bioconductor_reference_simulation.R'
       - 'multiomics-engine/tests/bioconductor_null_calibration.R'
+      - 'multiomics-engine/null_reference_metrics.R'
+      - 'multiomics-engine/tests/test_null_reference_metrics.R'
       - '.github/workflows/multiomics-bioconductor-validation.yml'
   schedule:
     - cron: '0 4 * * 1'
@@ -19,7 +21,7 @@ permissions:
 jobs:
   bioconductor-reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
       - uses: r-lib/actions/setup-r@v2
@@ -29,7 +31,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: multiomics-bioconductor-${{ runner.os }}-r-${{ hashFiles('multiomics-engine/tests/bioconductor_reference_simulation.R') }}
+          key: multiomics-bioconductor-${{ runner.os }}-r-${{ hashFiles('multiomics-engine/tests/bioconductor_reference_simulation.R', 'multiomics-engine/tests/bioconductor_null_calibration.R') }}
+      - name: Verify exact confidence bounds without Bioconductor
+        run: Rscript multiomics-engine/tests/test_null_reference_metrics.R
       - name: Install full reference statistical stack
         run: |
           Rscript -e 'install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(c("DESeq2", "edgeR", "limma", "statmod"), ask=FALSE, update=FALSE)'
@@ -38,6 +42,7 @@ jobs:
       - name: Quantify empirical false-discovery probability under complete null
         env:
           MULTIOMICS_NULL_REPLICATES: '12'
+          MULTIOMICS_NULL_STRESS_REPLICATES: '8'
           MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
         run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
       - name: Upload reference calibration summary and per-seed results
@@ -45,5 +50,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bioconductor-null-calibration
-          path: validation-artifacts/*.csv
+          path: validation-artifacts/*
           if-no-files-found: warn
