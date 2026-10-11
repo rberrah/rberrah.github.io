@@ -8,6 +8,35 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## Sécurité des prédictions figées (11 octobre 2026)
+
+Le validateur indépendant R vérifie maintenant les valeurs **avant** de
+calculer une performance multiclasse ou de comptage :
+
+- **Probabilités multiclasse** : au moins deux colonnes portant des noms
+  de classe distincts, chaque probabilité comprise entre 0 et 1, et
+  chaque ligne entièrement renseignée dont la somme doit valoir
+  1 à une tolérance numérique de `10⁻⁶` près. Une ligne
+  `(0,80 ; 0,10 ; 0,05)` est **refusée**, et n'est jamais renormalisée
+  artificiellement à `(0,842 ; 0,105 ; 0,053)` pour produire une
+  apparente bonne calibration. Les petites erreurs numériques dans la
+  tolérance sont acceptées telles quelles, sans modifier les prédictions
+  enregistrées.
+- **Comptages** : les observations doivent être des entiers
+  non négatifs et leurs valeurs prédites des moyennes non négatives
+  (potentiellement non entières). Les valeurs négatives ne deviennent
+  pas artificiellement positives avant calcul du score.
+- **Couverture** : si une valeur de probabilité est *manquante*, le
+  dossier est évalué comme **incomplet**, jamais comme validation
+  externe complète. Une valeur finie mais impossible est une
+  **erreur bloquante**, et non une simple valeur manquante.
+
+Ces règles portent sur les données *déjà prédites*, et n'autorisent
+aucune correction ajustée sur la cohorte de validation. Un test de
+régression R vérifie les cas conformes, invalides et incomplets.
+Elles améliorent la fiabilité du rapport ; elles ne prouvent pas
+que la calibration est bonne ni que les données sont représentatives.
+
 ## Audit complémentaire MCAR / MAR / MNAR (9 octobre 2026)
 
 Un benchmark indépendant, exécutable avec
