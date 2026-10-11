@@ -59,11 +59,16 @@ records<-list()
 score_sets<-list()
 fit_and_audit<-function(experimental_blocks,seed,scenario){
   path<-file.path(output,paste0(scenario,"_seed_",seed))
-  fit<-run_mofa2_blocks(
+  # Keep warning evidence (including MOFA's factor-versus-average-level
+  # normalization warning) in the archived report, not only in CI stdout.
+  fit_warnings<-character()
+  fit<-withCallingHandlers(run_mofa2_blocks(
     experimental_blocks,path,factors=3L,seed=seed,
     convergence_mode="fast",min_samples=32L,
     max_features_per_block=NULL
-  )
+  ), warning=function(w){
+    fit_warnings<<-unique(c(fit_warnings,conditionMessage(w)))
+  })
   if(!identical(fit$summary$matrixOrientation,
       "feature_rows_subject_columns_for_MOFA2")||
      !identical(fit$summary$implementationContract,
@@ -75,6 +80,7 @@ fit_and_audit<-function(experimental_blocks,seed,scenario){
   scores<-mofa_real_factor_matrix(factor_df,ids)
   audit<-mofa_real_metadata_audit(scores,geno,diet,
      n_permutations=199L,seed=20261011L)
+  view_qc<-mofa_real_view_level_qc(scores,experimental_blocks,threshold=0.80)
   if(!all(c("genotype_given_diet","diet_given_genotype")%in%
           names(audit$empirical_p_max_across_factors)))
     stop("No genotype/diet conditional association audit available")
@@ -94,6 +100,9 @@ fit_and_audit<-function(experimental_blocks,seed,scenario){
     max_conditional_r2=as.list(audit$observed_max_partial_r2),
     conditional_max_factor_empirical_p=as.list(audit$empirical_p_max_across_factors),
     two_endpoint_bonferroni_adjusted_p=as.list(bonferroni),
+    factor_vs_assay_mean_qc=view_qc,
+    actual_r_fit_warnings=as.list(fit_warnings),
+    normalization_issue_not_ruled_out=TRUE,
     permutation_count=audit$n_permutations,
     permutation_scope="Genotype permuted WITHIN diet, diet permuted WITHIN genotype, on fixed unsupervised factors, maximum over all factors for each test",
     model_backend="genuine Bioconductor MOFA2 via mofapy2 and HDF5, PMx run_mofa2_blocks",
@@ -110,6 +119,13 @@ fit_and_audit<-function(experimental_blocks,seed,scenario){
     file.path(path,"restricted_metadata_nulls.csv"),row.names=FALSE)
   utils::write.csv(scores,file.path(path,"ordered_animal_factor_scores.csv"),
     row.names=TRUE)
+  qc_rows<-do.call(rbind,lapply(names(view_qc$views),function(view){
+    z<-view_qc$views[[view]]$correlations
+    do.call(rbind,lapply(names(z),function(metric)
+      data.frame(view=view,metric=metric,factor=names(z[[metric]]),
+        correlation=as.numeric(z[[metric]]),stringsAsFactors=FALSE)))
+  }))
+  utils::write.csv(qc_rows,file.path(path,"factor_vs_view_mean_qc.csv"),row.names=FALSE)
   cat(sprintf("REAL MOFA2 NUTRIMOUSE FIT PASS: scenario=%s seed=%d n=40 factors=%d maxR2_genotype_given_diet=%.4f maxR2_diet_given_genotype=%.4f p_genotype=%.4f p_diet=%.4f\n",
     scenario,seed,ncol(scores),
     audit$observed_max_partial_r2[["genotype_given_diet"]],
@@ -140,6 +156,17 @@ mispaired$lipidomics<-lipid[match(shuffled,ids),,drop=FALSE]
 rownames(mispaired$lipidomics)<-ids
 perturbed<-fit_and_audit(mispaired,seeds[[1L]],"broken_lipid_subject_pairing")
 records[[length(records)+1L]]<-perturbed$summary
+pairing_falsification<-mofa_real_pairing_falsification(
+  records[[1L]],perturbed$summary)
+jsonlite::write_json(pairing_falsification,
+  file.path(output,"pairing_falsification_negative_result.json"),
+  pretty=TRUE,auto_unbox=TRUE,na="null",digits=12L)
+cat(sprintf("REAL MOFA2 NEGATIVE FALSIFICATION: both_genotype_diet_associations_persist=%s; paired_R2=%.4f/%.4f; broken_R2=%.4f/%.4f; no_synergy_inference\n",
+  pairing_falsification$both_associations_still_significant,
+  records[[1L]]$max_conditional_r2$genotype_given_diet,
+  records[[1L]]$max_conditional_r2$diet_given_genotype,
+  perturbed$summary$max_conditional_r2$genotype_given_diet,
+  perturbed$summary$max_conditional_r2$diet_given_genotype))
 report<-list(
  study="Real Nutrimouse, true paired hepatic transcriptomic and lipid assays",
  source="mixOmics-org/mixOmics@ef3e760526623d9e91e945e4b50be48d764efc40",
@@ -153,6 +180,9 @@ report<-list(
  genotype_diet_not_technical_batch="Both are experimental biological/exposure labels; no machine batch IDs exist and technical batch is NOT assessed",
  model_fits=records,
  paired_two_seed_factor_correlations=stability,
+ pairing_falsification_negative_result=pairing_falsification,
+ per_fit_normalization_qc_included=TRUE,
+ normalization_artifact_not_excluded=TRUE,
  broken_pairing_matches=sum(shuffled==ids),
  broken_pairing_was_chosen_in_advance=TRUE,
  one_broken_pairing_seed_only=TRUE,
@@ -165,6 +195,8 @@ report<-list(
    "Latent factor association is fitted and tested ON SAME experimental animals; label permutations are post-fit descriptive, not external confirmation.",
    "Genotype may be associated with diet; conditional partial-R2 and within-other-factor stratified nulls limit but cannot eliminate confounding.",
    "MOFA factors may rotate, flip sign, reorder or disappear across model initializations.",
+   "Even with the lipid-animal matching broken, latent factors may remain associated with genotype/diet; these same-animal post-fit tests do NOT validate multimodal pairing or added value.",
+   "A MOFA warning about latent factors tracking average sample expression must be archived with factor-vs-view mean QC; this may be biology, technical variation or normalization, not a validated biological mechanism.",
    "Intentionally mismatching lipids is a falsification stress test, not a formal null or proof of synergy.",
    "No technical batch metadata exists; cannot claim biological-vs-technical factor separation on this dataset.",
    "Three MOFA model runs do not establish best factor number, generalizability, clinical validity or a validated biological mechanism.",
