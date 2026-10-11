@@ -52,4 +52,50 @@ stopifnot(inherits(try(mofa_real_metadata_audit(mat,bad_ids,diet,19L),silent=TRU
 confounded<-setNames(ifelse(geno=="KO","high","low"),ids)
 stopifnot(inherits(try(mofa_real_metadata_audit(mat,geno,confounded,19L),silent=TRUE),"try-error"))
 stopifnot(inherits(try(mofa_real_metadata_audit(mat,geno,diet,8L),silent=TRUE),"try-error"))
-cat("MOFA2 real metadata audit base-R contracts: paired ID, genotype/diet adjustment, permutation max factors, RNG replay, factor sign/order, confounding refusal PASS\n")
+# Deterministic QC detects a factor tracking per-animal assay-wide level,
+# without calling this correlation a biological or technical mechanism.
+input_signal<-matrix(stats::rnorm(n*12),nrow=n,ncol=12,
+  dimnames=list(ids,paste0("rna",1:12)))
+input_signal<-sweep(input_signal,1L,seq_len(n)*0.5,"+")
+input_lipid<-matrix(stats::rnorm(n*6),nrow=n,ncol=6,
+  dimnames=list(ids,paste0("lipid",1:6)))
+qc_factor<-cbind(Level=seq_len(n)+stats::rnorm(n,0,0.001),
+                 Independent=stats::rnorm(n))
+rownames(qc_factor)<-ids
+quality<-mofa_real_view_level_qc(qc_factor,
+ list(transcriptomics=input_signal,lipidomics=input_lipid),
+ threshold=0.80)
+stopifnot(isTRUE(quality$any_view_level_warning),
+ isTRUE(quality$views$transcriptomics$view_level_warning),
+ quality$views$transcriptomics$max_absolute_correlations$raw_feature_mean>0.99,
+ all(c("Level","Independent")%in%
+   names(quality$views$lipidomics$correlations$raw_feature_mean)))
+bad_lipid<-input_lipid[n:1,,drop=FALSE]
+stopifnot(inherits(try(mofa_real_view_level_qc(qc_factor,
+ list(transcriptomics=input_signal,lipidomics=bad_lipid)),
+ silent=TRUE),"try-error"))
+paired_summary<-list(
+ max_conditional_r2=list(genotype_given_diet=0.5313,
+                         diet_given_genotype=0.6846),
+ two_endpoint_bonferroni_adjusted_p=list(genotype_given_diet=0.01,
+                                          diet_given_genotype=0.01))
+broken_summary<-list(
+ max_conditional_r2=list(genotype_given_diet=0.5568,
+                         diet_given_genotype=0.5032),
+ two_endpoint_bonferroni_adjusted_p=list(genotype_given_diet=0.01,
+                                          diet_given_genotype=0.01))
+negative<-mofa_real_pairing_falsification(paired_summary,broken_summary)
+stopifnot(identical(negative$status,
+ "descriptive_negative_control_not_external_validation"),
+ isTRUE(negative$both_associations_still_significant),
+ identical(negative$valid_cross_omic_synergy_conclusion,FALSE),
+ abs(negative$broken_minus_paired_partial_r2$genotype_given_diet-0.0255)<1e-10)
+broken_summary$two_endpoint_bonferroni_adjusted_p$diet_given_genotype<-0.8
+other<-mofa_real_pairing_falsification(paired_summary,broken_summary)
+stopifnot(!other$both_associations_still_significant,
+          isFALSE(other$associations_still_significant_after_breaking_pairing$diet_given_genotype))
+broken_summary$max_conditional_r2$diet_given_genotype<-Inf
+stopifnot(inherits(try(mofa_real_pairing_falsification(
+ paired_summary,broken_summary),silent=TRUE),"try-error"))
+
+cat("MOFA2 real metadata audit base-R contracts: paired ID, genotype/diet adjustment, permutation max factors, RNG replay, factor sign/order, confounding refusal and falsification QC PASS\n")
