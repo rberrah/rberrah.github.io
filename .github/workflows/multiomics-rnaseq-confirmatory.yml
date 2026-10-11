@@ -9,6 +9,8 @@ on:
       - 'multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R'
       - 'multiomics-engine/null_reference_metrics.R'
       - 'multiomics-engine/tests/test_null_reference_metrics.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/test_mixed_truth_reference_metrics.R'
       - 'src/lib/multiomics/scientific-assurance.js'
       - 'scripts/test_multiomics_diagnostics.mjs'
   push:
@@ -37,6 +39,8 @@ jobs:
           use-public-rspm: true
       - name: Verify global-null Monte Carlo confidence bounds in base R
         run: Rscript multiomics-engine/tests/test_null_reference_metrics.R
+      - name: Check known-truth FDR, power and false-positive accounting
+        run: Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
       - name: Run executable strict RNA-seq preflight regression
         run: Rscript multiomics-engine/tests/test_rnaseq_confirmatory_preflight.R
       - uses: actions/setup-node@v5

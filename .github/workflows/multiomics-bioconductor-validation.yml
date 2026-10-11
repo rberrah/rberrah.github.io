@@ -11,6 +11,9 @@ on:
       - 'multiomics-engine/tests/bioconductor_null_calibration.R'
       - 'multiomics-engine/null_reference_metrics.R'
       - 'multiomics-engine/tests/test_null_reference_metrics.R'
+      - 'multiomics-engine/mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/test_mixed_truth_reference_metrics.R'
+      - 'multiomics-engine/tests/bioconductor_mixed_truth_reference.R'
       - '.github/workflows/multiomics-bioconductor-validation.yml'
   schedule:
     - cron: '0 4 * * 1'
@@ -32,6 +35,8 @@ jobs:
         with:
           path: ${{ env.R_LIBS_USER }}
           key: multiomics-bioconductor-${{ runner.os }}-r-${{ hashFiles('multiomics-engine/tests/bioconductor_reference_simulation.R', 'multiomics-engine/tests/bioconductor_null_calibration.R') }}
+      - name: Verify independent mixed-truth FDR, power and bootstrap metrics
+        run: Rscript multiomics-engine/tests/test_mixed_truth_reference_metrics.R
       - name: Verify exact confidence bounds without Bioconductor
         run: Rscript multiomics-engine/tests/test_null_reference_metrics.R
       - name: Install full reference statistical stack
@@ -45,10 +50,15 @@ jobs:
           MULTIOMICS_NULL_STRESS_REPLICATES: '8'
           MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
         run: Rscript multiomics-engine/tests/bioconductor_null_calibration.R
+      - name: Calibrate mixed-truth FDR and planted signal recovery with real reference R
+        env:
+          MULTIOMICS_MIXED_REFERENCE_REPLICATES: '12'
+          MULTIOMICS_VALIDATION_OUTPUT: validation-artifacts
+        run: Rscript multiomics-engine/tests/bioconductor_mixed_truth_reference.R
       - name: Upload reference calibration summary and per-seed results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bioconductor-null-calibration
+          name: bioconductor-null-and-mixed-truth-calibration
           path: validation-artifacts/*
           if-no-files-found: warn
