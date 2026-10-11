@@ -52,7 +52,7 @@ canonical_metadata <- function(raw, mapping, covariates = character()) {
   out
 }
 
-matrix_samples_by_features <- function(text, expected_assays) {
+matrix_samples_by_features <- function(text, expected_assays, strict_exact=FALSE) {
   df <- read_csv_text(text)
   if (ncol(df) < 2L) stop("Matrix needs an identifier column and at least one value column.")
   first <- names(df)[1]
@@ -60,6 +60,13 @@ matrix_samples_by_features <- function(text, expected_assays) {
   row_hits <- sum(as.character(df[[first]]) %in% expected_assays)
 
   if (row_hits > column_hits) {
+    if(isTRUE(strict_exact)){
+      csv_ids<-as.character(df[[first]])
+      if(anyNA(csv_ids)||anyDuplicated(csv_ids)||
+         length(csv_ids)!=length(expected_assays)||
+         !setequal(csv_ids,expected_assays))
+        stop("R1 RNA-seq CSV row-wise assay IDs differ from the exact metadata manifest: no unlisted or missing assays")
+    }
     keep <- as.character(df[[first]]) %in% expected_assays
     x <- as.matrix(df[keep, -1, drop=FALSE])
     storage.mode(x) <- "double"
@@ -68,11 +75,58 @@ matrix_samples_by_features <- function(text, expected_assays) {
   }
 
   feature_ids <- as.character(df[[first]])
+  if(isTRUE(strict_exact)) {
+    csv_ids<-names(df)[-1L]
+    if(length(csv_ids)!=length(expected_assays)||
+       anyDuplicated(csv_ids)||!setequal(csv_ids,expected_assays))
+      stop("R1 RNA-seq CSV column-wise assay IDs differ from the exact metadata manifest: no unlisted or missing assays")
+    if(anyNA(feature_ids)||anyDuplicated(feature_ids)||
+       any(!nzchar(feature_ids)))
+      stop("R1 RNA-seq CSV contains missing or duplicate feature identifiers")
+  }
   x <- as.matrix(df[, -1, drop=FALSE])
   storage.mode(x) <- "double"
   rownames(x) <- feature_ids
   x <- t(x)
   x[rownames(x) %in% expected_assays, , drop=FALSE]
+}
+
+# Upstream assay-level R1 integrity check BEFORE technical aggregation.
+# run_deseq2_counts() otherwise only sees the aggregate and cannot detect
+# assays silently dropped by the browser CSV orientation/identifier join.
+rnaseq_confirmatory_assay_integrity <- function(x, layer_meta) {
+  if(!is.matrix(x)||is.null(rownames(x))||
+     anyNA(rownames(x))||anyDuplicated(rownames(x))||
+     any(!nzchar(rownames(x)))||!is.data.frame(layer_meta)||
+     !all(c("assay_id","sample_id","subject_id","condition")%in%names(layer_meta)))
+    stop("R1 raw-count assay manifest requires unique measured assay identifiers")
+  for(field in c("assay_id","sample_id","subject_id","condition")){
+    v<-as.character(layer_meta[[field]])
+    if(anyNA(v)||any(!nzchar(trimws(v))))
+      stop(paste("R1 assay manifest has missing or blank field:",field))
+  }
+  if(anyDuplicated(as.character(layer_meta$assay_id))||
+     nrow(x)!=nrow(layer_meta)||
+     !setequal(rownames(x),as.character(layer_meta$assay_id)))
+    stop("R1 assay manifest and measured raw-count matrix have nonidentical assay IDs; no silent sample loss")
+  if(!is.numeric(x)||is.null(colnames(x))||
+     anyNA(colnames(x))||anyDuplicated(colnames(x))||
+     any(!nzchar(colnames(x)))||any(!is.finite(x))||any(x<0)||
+     any(abs(x-round(x))>1e-8)||any(rowSums(x)<=0))
+    stop("R1 raw-count assay matrix contains invalid/missing/fractional measurements or empty assay libraries: never sum with na.rm=TRUE")
+  for(sample in unique(as.character(layer_meta$sample_id))){
+    m<-layer_meta[as.character(layer_meta$sample_id)==sample,,drop=FALSE]
+    for(field in c("subject_id","condition","batch")){
+      if(!field%in%names(m))next
+      v<-unique(as.character(m[[field]]))
+      if(length(v)>1L)
+        stop(paste("R1 technical replicates have inconsistent",field,
+                   "for one biological sample"))
+    }
+  }
+  list(status="assay_identifiers_exact",measured_assays=nrow(x),
+       biological_samples=length(unique(layer_meta$sample_id)),
+       assay_loss_detected=FALSE,certified=FALSE)
 }
 
 aggregate_technical_replicates <- function(x, layer_meta, value_type) {
@@ -511,13 +565,19 @@ run_backend_analysis <- function(payload) {
 
   blocks <- list()
   raw_blocks <- list()
+  assay_contracts <- list()
   metas <- list()
   preprocessing <- list()
   ms_qc_summaries <- list()
   for (layer in layers) {
     layer_meta <- meta[meta$omic == layer, , drop=FALSE]
     expected <- unique(layer_meta$assay_id)
-    x <- matrix_samples_by_features(payload$matrices[[layer]], expected)
+    x <- matrix_samples_by_features(
+      payload$matrices[[layer]], expected,
+      strict_exact=identical(protocol$analysisIntent,"confirmatory") &&
+        identical(layer,"transcriptomics") &&
+        identical(data_types[[layer]],"raw_counts")
+    )
 
     if (layer == "metabolomics") {
       ms <- apply_ms_qc_reference(x, layer_meta, protocol)
@@ -534,6 +594,11 @@ run_backend_analysis <- function(payload) {
     }
 
     value_type <- or_else(data_types[[layer]], "normalized")
+    assay_contract <- if(identical(protocol$analysisIntent,"confirmatory") &&
+        identical(layer,"transcriptomics") &&
+        identical(value_type,"raw_counts"))
+      rnaseq_confirmatory_assay_integrity(x, layer_meta) else NULL
+    if(!is.null(assay_contract))assay_contracts[[layer]]<-assay_contract
     raw_agg <- aggregate_technical_replicates(x, layer_meta, value_type)
     raw_blocks[[layer]] <- raw_agg$matrix
 
@@ -584,9 +649,12 @@ run_backend_analysis <- function(payload) {
 
       if (run_deseq) {
         if (requireNamespace("DESeq2", quietly=TRUE)) {
-          fit_deseq <- try(run_deseq2_counts(raw_blocks[[layer]], m, layer_dir, form, contrast), silent=TRUE)
+          fit_deseq <- try(run_deseq2_counts(
+            raw_blocks[[layer]], m, layer_dir, form, contrast,
+            confirmatory_contract=identical(protocol$analysisIntent,"confirmatory")
+          ), silent=TRUE)
           if (!inherits(fit_deseq,"try-error")) {
-            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results)))
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]]))
           } else {
             methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }

@@ -683,14 +683,115 @@ run_diablo_blocks <- function(
   invisible(list(model = fit, summary = summary, tuning = tuning, performance = performance))
 }
 
+# Narrow R1 *eligibility* preflight: two independent groups, an additive
+# full-rank design and raw nonnegative integer counts. This intentionally
+# DOES NOT certify data provenance, statistical power, differential expression,
+# false-discovery control or any biological conclusion. No silent sample
+# intersection, pseudoreplication or feature-ID repair in this path.
+rnaseq_confirmatory_preflight <- function(counts, metadata, design_formula,
+                                          contrast,
+                                          min_subjects_per_group=3L) {
+  if(!is.matrix(counts)||!is.numeric(counts)||
+     nrow(counts)<6L||ncol(counts)<20L||
+     is.null(rownames(counts))||is.null(colnames(counts))||
+     anyNA(rownames(counts))||anyNA(colnames(counts))||
+     any(!nzchar(rownames(counts)))||any(!nzchar(colnames(counts)))||
+     anyDuplicated(rownames(counts))||anyDuplicated(colnames(counts)))
+    stop("R1 RNA-seq requires >=6 biological samples, >=20 features and unique nonempty input IDs")
+  if(any(!is.finite(counts))||any(counts<0)||
+     any(abs(counts-round(counts))>1e-8)||any(rowSums(counts)<=0))
+    stop("R1 RNA-seq requires finite, non-negative, unnormalised integer counts and nonempty sample libraries")
+  if(!is.data.frame(metadata)||is.null(rownames(metadata))||
+     anyNA(rownames(metadata))||anyDuplicated(rownames(metadata))||
+     any(!nzchar(rownames(metadata)))||
+     !setequal(rownames(metadata),rownames(counts))||
+     nrow(metadata)!=nrow(counts))
+    stop("R1 RNA-seq sample IDs must match metadata exactly; never drop or multiply biological samples")
+  if(!all(c("subject_id","condition")%in%names(metadata))||
+     anyNA(metadata$subject_id)||any(!nzchar(trimws(as.character(metadata$subject_id))))||
+     anyDuplicated(as.character(metadata$subject_id)))
+    stop("R1 RNA-seq needs one unique, known biological subject per sample (no pseudoreplicates)")
+  if(!inherits(design_formula,"formula")||
+     length(design_formula)!=2L||
+     attr(stats::terms(design_formula),"intercept")!=1L||
+     any(attr(stats::terms(design_formula),"order")!=1L))
+    stop("R1 RNA-seq only supports an additive formula with an intercept (no interactions, pairing or offsets)")
+  fields<-all.vars(design_formula)
+  labels<-attr(stats::terms(design_formula),"term.labels")
+  if(!length(labels)||any(!grepl("^[A-Za-z][A-Za-z0-9_.]*$",labels))||
+     !"condition"%in%labels||anyDuplicated(labels)||
+     any(!fields%in%names(metadata)))
+    stop("R1 RNA-seq needs a named condition main effect and plain additive measured covariates")
+  m<-metadata[match(rownames(counts),rownames(metadata)),,drop=FALSE]
+  for(field in fields){
+    value<-as.character(m[[field]])
+    if(anyNA(value)||any(!nzchar(trimws(value))))
+      stop(paste("R1 RNA-seq has missing or blank design covariate:",field))
+  }
+  groups<-unique(as.character(m$condition))
+  if(length(groups)!=2L||any(!nzchar(groups)))
+    stop("R1 RNA-seq requires exactly two nonempty independent conditions")
+  n_by_group<-table(as.character(m$condition))
+  if(length(min_subjects_per_group)!=1L||!is.finite(min_subjects_per_group)||
+     min_subjects_per_group!=as.integer(min_subjects_per_group)||
+     min_subjects_per_group<3L||
+     any(n_by_group<min_subjects_per_group))
+    stop("R1 RNA-seq has too few independent biological subjects per group (minimum 3, not a power claim)")
+  if(!is.character(contrast)||length(contrast)!=3L||
+     !identical(contrast[[1L]],"condition")||
+     identical(contrast[[2L]],contrast[[3L]])||
+     !setequal(contrast[2:3],groups))
+    stop("R1 RNA-seq requires one explicit two-level condition contrast, not an implicit coefficient")
+  batch<-if("batch"%in%names(m))trimws(as.character(m$batch)) else character()
+  observed_batch<-unique(batch[!is.na(batch)&nzchar(batch)])
+  if(length(observed_batch)>1L && !"batch"%in%labels)
+    stop("R1 RNA-seq detects varying known batches excluded from the additive design")
+  if("batch"%in%labels && (anyNA(batch)||any(!nzchar(batch))))
+    stop("R1 RNA-seq cannot adjust a partially missing technical batch")
+  if("condition"%in%labels && !"condition"%in%names(m))
+    stop("Missing condition in confirmatory design")
+  for(field in fields) {
+    if(is.character(m[[field]]))m[[field]]<-factor(m[[field]])
+  }
+  matrix_design<-tryCatch(stats::model.matrix(design_formula,data=m,
+                                               na.action=stats::na.fail),
+                          error=function(e)stop("R1 RNA-seq design cannot be constructed: ",conditionMessage(e)))
+  if(nrow(matrix_design)!=nrow(counts)||qr(matrix_design)$rank!=ncol(matrix_design)||
+     nrow(matrix_design)-ncol(matrix_design)<2L)
+    stop("R1 RNA-seq design is non-identifiable or has insufficient residual degrees of freedom")
+  list(
+    status="eligible_for_reference_fitting_only",
+    cohort_samples=nrow(counts),measured_features=ncol(counts),
+    independent_subjects=length(unique(m$subject_id)),
+    group_sizes=as.list(n_by_group),
+    rank=qr(matrix_design)$rank,model_columns=ncol(matrix_design),
+    residual_df=nrow(matrix_design)-ncol(matrix_design),
+    condition_contrast=unname(contrast),covariates=labels[labels!="condition"],
+    missing_or_unverified_batch=length(observed_batch)==0L,
+    rejected_silent_subject_loss=TRUE,
+    certified=FALSE,
+    limitations=c(
+      "Integer-looking input is not proof of genuine raw sequencer counts.",
+      "At least three subjects per group is a software guard, NOT a statistical power guarantee.",
+      "Batch measurement, library and mapping QC, biological independence, protocol preregistration, multiple-testing family and external scientific review remain necessary.",
+      "Passing preflight is not confirmatory inference, independent replication or clinical certification."
+    )
+  )
+}
+
 run_deseq2_counts <- function(
   counts,
   metadata,
   output_dir,
   design_formula = ~ condition,
   contrast = NULL,
-  alpha = 0.05
+  alpha = 0.05,
+  confirmatory_contract = FALSE
 ) {
+  input_contract <- if(isTRUE(confirmatory_contract))
+    rnaseq_confirmatory_preflight(as.matrix(counts), as.data.frame(metadata),
+                                 design_formula, contrast)
+    else NULL
   require_namespace("DESeq2")
   counts <- as.matrix(counts)
   storage.mode(counts) <- "numeric"
@@ -728,7 +829,8 @@ run_deseq2_counts <- function(
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
   utils::write.csv(result, file.path(output_dir, "deseq2_results.csv"), row.names = FALSE)
   saveRDS(dds, file.path(output_dir, "deseq2_model.rds"))
-  invisible(list(model = dds, results = result))
+  invisible(list(model = dds, results = result,
+                 confirmatory_input_contract = input_contract))
 }
 
 run_edger_ql_counts <- function(
