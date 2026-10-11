@@ -8,6 +8,60 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## Valeur ajoutée de DIABLO : comparaison équitable aux analyses mono-omiques (11 octobre 2026)
+
+**Point scientifique déterminant :** obtenir un excellent score avec
+DIABLO n'établit pas que les deux omiques sont plus utiles que chacune
+isolément. Un benchmark supplémentaire exécute maintenant le véritable
+`mixOmics::splsda` séparément sur le transcriptome et sur les lipides,
+puis compare ces deux références au véritable
+`mixOmics::block.splsda` de PMx.
+
+Les comparaisons sont effectuées **animal par animal, sur les mêmes
+partitions que le benchmark DIABLO**, avec les mêmes étiquettes de
+génotype et les mêmes règles de prétraitement apprises seulement sur
+le sous-groupe d'entraînement. Tous utilisent une composante,
+`keepX = 10` variables par bloc, sans optimisation des
+hyperparamètres en fonction des résultats des animaux de test.
+Le vote `WeightedVote[max.dist]` de DIABLO et les classes
+`class[max.dist]` de sPLS-DA sont les règles de sortie natives
+respectives des deux modèles : elles sont proches méthodologiquement
+mais pas parfaitement identiques.
+
+| Modèle réel mixOmics | Omiques mesurées | BER moyen sur les mêmes partitions |
+| --- | --- | ---: |
+| **sPLS-DA transcriptomique seule** | 120 variables ARN | **0,0500** |
+| **sPLS-DA lipidomique seule** | 21 acides gras hépatiques | **0,0500** |
+| **DIABLO apparié** | ARN + lipides | **0,0500** |
+
+**Interprétation : aucun bénéfice de prédiction n'est démontré** par
+l'ajout d'une deuxième modalité dans ce jeu précis. Les trois
+modèles obtiennent le même BER moyen, ce qui n'implique pas
+nécessairement les mêmes erreurs individuelles. Les prédictions
+et les situations où DIABLO corrige ou aggrave une décision
+comparativement à chaque modèle mono-omique sont archivées.
+Le bénéfice **d'exploration des corrélations entre omiques** est
+une question différente du gain prédictif ; il ne peut pas
+être déduit du BER.
+
+**Attention à la nature du jeu public :** les 120 gènes de
+Nutrimouse ont été **présélectionnés parmi approximativement
+30 000 gènes** par les auteurs pour leur pertinence dans le
+contexte nutritionnel. Ce n'est donc pas un benchmark de
+transcriptome entier sans sélection préalable. Les 40 souris
+appartiennent à une seule étude, les deux partitions répètent
+certains animaux et les étiquettes ont déjà été examinées lors
+de la PR #43. **Ce résultat est une réanalyse rétrospective
+descriptive**, pas une nouvelle validation confirmatoire ni
+un test d'équivalence formel entre les modèles.
+
+Le script `multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R`,
+intégré à la CI Nutrimouse, archive les prédictions de chaque
+omic, les performances par partition, les erreurs appariées et
+le contrat méthodologique. Une exécution réussie vérifie
+**l'intégrité des calculs** : elle n'affirme pas de supériorité
+multi-omique et n'impose aucun seuil de performance.
+
 ## Première validation DIABLO sur des mesures réellement multi-omiques (11 octobre 2026)
 
 Les validations récentes MAINZ, TRANSBIG et NKI concernaient un **seul
