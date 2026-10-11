@@ -8,6 +8,56 @@ statistique générale**. Une analyse peut être exportée et reproductible tout
 sur des hypothèses incorrectes. Le logiciel ne déclare donc jamais une analyse
 « publication ready » automatiquement.
 
+## MOFA2 sur Nutrimouse réel : contrôle négatif qui reste positif (11 octobre 2026)
+
+**Ce qui est testé.** Le moteur `MOFA2::run_mofa` réel est exécuté par
+`run_mofa2_blocks` sur **40 animaux**, **120 gènes déjà présélectionnés
+par les auteurs** et **21 mesures lipidiques**. Deux initialisations
+prédéfinies produisent trois facteurs latents. Génotype et régime sont des
+facteurs **biologiques/expérimentaux**, non des lots techniques mesurés ;
+ils ne sont utilisés qu'après l'ajustement non supervisé. L'association
+postérieure est résumée par le R² partiel maximal conditionnel à l'autre
+facteur expérimental, avec 199 permutations restreintes : la p-value
+minimale possible est **0,005**, non une valeur plus précise.
+
+| Scénario exécuté en CI (11/10/2026) | R² partiel génotype, ajusté du régime | R² partiel régime, ajusté du génotype |
+| --- | ---: | ---: |
+| ARN + lipides correctement appariés, graine 20261011 | 0,5313 | 0,6846 |
+| ARN + lipides correctement appariés, graine 20261012 | 0,5313 | 0,6846 |
+| **Profils lipidiques attribués aux mauvais animaux** | **0,5568** | **0,5032** |
+
+Les trois scénarios présentaient une p-value de permutation descriptive
+`0,005` pour chaque effet (minimum de résolution ; avant l'ajustement
+des deux effets) ; l'ajustement de Bonferroni donne `0,010`.
+
+**Constat négatif déterminant : les associations génotype/régime restent
+observables quand la correspondance ARN–lipides a été cassée.**
+Elles peuvent être portées par un seul bloc. Leur significativité ne
+prouve donc **ni l'appariement correct, ni une synergie inter-omique, ni
+un signal biologiquement reproduit**. Une seule permutation des
+profils lipidiques n'est pas une distribution nulle formelle.
+
+Le moteur MOFA2 a également émis un **avertissement sur la corrélation
+du facteur 1 avec le niveau d'expression moyen des variables**. Une
+différence biologique, une structure technique ou un problème de
+normalisation peuvent expliquer cette corrélation ; aucune origine
+n'est établie ici. La révision du benchmark archive ces avertissements
+et calcule indépendamment, **par facteur et par omique**, la corrélation
+avec les moyennes brutes et standardisées par variable. L'indicateur
+exploratoire `|r| ≥ 0,80` déclenche un avertissement, **pas** un retrait
+de facteur ni une correction de l'analyse.
+
+**État de preuve :** contrôle d'exécution sur données réelles et
+audit rétrospectif ; aucune validation confirmatoire, aucun contrôle
+de batch (non mesuré), aucune démonstration du nombre optimal de
+facteurs, aucune preuve de gain prédictif multi-omique ou de causalité.
+La CI publie les résultats négatifs, matrices des facteurs, avertissements,
+QC, permutations et modèles HDF5 dans ses artefacts.
+Voir [workflow MOFA2 réel](https://github.com/rberrah/rberrah.github.io/actions/workflows/multiomics-mofa-real-nutrimouse.yml).
+Le parcours novice doit expliquer : **« Deux types de mesures ne donnent
+pas automatiquement une meilleure réponse ; il faut comparer à chaque
+type séparément et vérifier l'appariement. »**
+
 ## Valeur ajoutée de DIABLO : comparaison équitable aux analyses mono-omiques (11 octobre 2026)
 
 **Point scientifique déterminant :** obtenir un excellent score avec
