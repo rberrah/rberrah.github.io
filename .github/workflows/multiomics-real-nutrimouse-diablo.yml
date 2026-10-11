@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/multiomics-real-nutrimouse-diablo.yml'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
+      - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/validation_benchmarks.R'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - '.github/workflows/multiomics-real-nutrimouse-diablo.yml'
       - 'multiomics-engine/tests/test_diablo_real_nutrimouse.R'
+      - 'multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R'
       - 'multiomics-engine/advanced_methods.R'
       - 'multiomics-engine/validation_benchmarks.R'
   schedule:
@@ -49,6 +51,10 @@ jobs:
       - name: Run genuine paired multi-omic DIABLO with untouched subjects and negative controls
         run: |
           Rscript multiomics-engine/tests/test_diablo_real_nutrimouse.R \
+            external/mixOmics tmp/multiomics/real-nutrimouse-diablo
+      - name: Compare genuine DIABLO against actual single-omic sPLS-DA on identical heldouts
+        run: |
+          Rscript multiomics-engine/tests/test_diablo_real_nutrimouse_ablation.R \
             external/mixOmics tmp/multiomics/real-nutrimouse-diablo
       - name: Archive ALL outcomes even if observed model performs poorly
         if: always()
