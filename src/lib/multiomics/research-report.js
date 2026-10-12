@@ -20,9 +20,11 @@ export function buildResearchMethodsManifest(result){
     // biologically relevant signals. Preserve the observed maximum and
     // the number of affected assays without exposing assay/subject IDs.
     const profiles=Array.isArray(qc?.sampleMetrics)?qc.sampleMetrics:[];
-    const missingProfiles=profiles
-      .map((/** @type {any} */ item)=>asNumber(item?.missingFraction))
-      .filter((/** @type {number|null} */ fraction)=>fraction!==null);
+    /** @type {number[]} */
+    const missingProfiles=profiles.flatMap((/** @type {any} */ item)=>{
+      const fraction=asNumber(item?.missingFraction);
+      return fraction!==null && fraction>=0 && fraction<=1 ? [fraction] : [];
+    });
     const anyMissing=missingProfiles.some((fraction)=>fraction>0);
     const incompleteProfiles=missingProfiles.filter((fraction)=>fraction>0);
     const maxSampleMissingFraction=missingProfiles.length
