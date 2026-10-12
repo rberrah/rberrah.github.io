@@ -16,6 +16,7 @@ function assert(condition,message) {
   if(!condition)throw new Error('PUBLIC OMICS QUALIFICATION BLOCKED: '+message);
 }
 function plausibleSha(value) {return typeof value==='string' && /^[a-f0-9]{64}$/i.test(value);}
+function plausibleGitSha(value) {return typeof value==='string' && /^[a-f0-9]{40}$/i.test(value);}
 function finiteNumber(x){return typeof x==='number'&&Number.isFinite(x);}
 
 export function auditPublicOmicsEvidence(report, provenance) {
@@ -24,7 +25,7 @@ export function auditPublicOmicsEvidence(report, provenance) {
   assert(provenance&&typeof provenance==='object'&&
     provenance.schema==='pmx-explain-public-multiomics-benchmark-provenance/v1',
     'Provenance manifest absent or wrong schema.');
-  assert(plausibleSha(provenance.pmxExplain?.commit),
+  assert(plausibleGitSha(provenance.pmxExplain?.commit),
     'Current analysis commit SHA must be recorded.');
   for(const [source,commit] of Object.entries(REQUIRED_SOURCES)){
     const record=provenance.sourceRepositories?.[source];
