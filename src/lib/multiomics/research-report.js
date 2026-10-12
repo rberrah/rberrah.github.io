@@ -2,7 +2,6 @@
 // rows, raw expression values, predictions, or exported PHI.
 const asNumber=(x)=>typeof x==='number'&&Number.isFinite(x)?x:null;
 const safe=(x)=>typeof x==='string'?x.slice(0,160):null;
-const harden=(input)=>JSON.parse(JSON.stringify(input));
 /** @param {any} result */
 export function buildResearchMethodsManifest(result){
   if(!result||typeof result!=='object'||!result.protocol||
@@ -23,7 +22,7 @@ export function buildResearchMethodsManifest(result){
       declared_value_type:safe(qc?.preprocessingAudit?.declaredValueType)||'not_reported',
       features_input:asNumber(qc?.featuresBefore),
       features_after_filter:asNumber(qc?.featuresAfter),
-      omitted_features:asNumber(qc?.featuresBefore)-asNumber(qc?.featuresAfter),
+      omitted_features:Number.isFinite(qc?.featuresBefore)&&Number.isFinite(qc?.featuresAfter) ? qc.featuresBefore-qc.featuresAfter : null,
       median_missing_fraction:asNumber(qc?.medianMissingFraction),
       fdr_family:'one BH family per omics layer; exploratory q<=0.10',
       reference_method_key:backendKey,
@@ -59,7 +58,12 @@ export function buildResearchMethodsManifest(result){
     clinical_validation:false,
     external_validation_claim:false,
     environment_capture_status:runtime?'partial_runtime_metadata_present':'runtime_lock_not_available',
-    reference_runtime_summary:runtime?harden(runtime):null,
+    reference_runtime_summary:runtime?{
+      r_version:safe(runtime?.rVersion||runtime?.r||runtime?.R),
+      package_versions:Array.isArray(runtime?.packages)?
+        runtime.packages.map(x=>({name:safe(x?.name),version:safe(x?.version)})):
+        null
+    }:null,
     reproducibility_limits:[
       'Methods-only audit is not a reproducible raw-data archive.',
       'Use the complete portable project export to preserve original inputs and their SHA-256 hashes; it can contain confidential data.',
