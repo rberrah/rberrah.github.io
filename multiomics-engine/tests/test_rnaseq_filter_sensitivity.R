@@ -70,6 +70,6 @@ bad<-records
 bad$seed[2L]<-99999L
 stopifnot(inherits(try(rnaseq_filter_pair_summary(bad),silent=TRUE),"try-error"))
 bad<-records
-bad$replicate[2L]<-1L
+bad$replicate[2L]<-2L # duplicate the replicate of an existing strict arm
 stopifnot(inherits(try(rnaseq_filter_pair_summary(bad),silent=TRUE),"try-error"))
 cat("RNA-seq independent prefilter sensitivity and true paired study comparison: PASS\n")
