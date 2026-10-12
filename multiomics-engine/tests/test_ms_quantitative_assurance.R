@@ -59,4 +59,28 @@ confounded$batch[1:10]<-confounded$condition[1:10]
 flag<-ms_quantitative_assurance(x,confounded)
 stopifnot(isTRUE(flag$coverage$batch_condition_fully_confounded),
  "batch_perfectly_confounded_with_biological_group"%in%flag$alerts)
+# Exercise the real CSV command-line entry point, not only the helper.
+temp<-tempfile("ms_audit_cli_")
+dir.create(temp)
+peak_path<-file.path(temp,"peak.csv")
+manifest_path<-file.path(temp,"sample.csv")
+out_path<-file.path(temp,"audit")
+peak_csv<-data.frame(feature_id=colnames(x),t(x),check.names=FALSE,
+                     stringsAsFactors=FALSE)
+utils::write.csv(peak_csv,peak_path,row.names=FALSE,na="")
+csv_manifest<-meta
+csv_manifest$condition[11:17]<-NA_character_
+utils::write.csv(csv_manifest,manifest_path,row.names=FALSE,na="")
+exec<-suppressWarnings(system2(Sys.which("Rscript"),
+   c("multiomics-engine/run_ms_quantitative_assurance.R",
+     shQuote(peak_path),shQuote(manifest_path),shQuote(out_path)),
+   stdout=TRUE,stderr=TRUE))
+stopifnot(is.null(attr(exec,"status"))||attr(exec,"status")==0L,
+  file.exists(file.path(out_path,"ms_quantitative_qc_features.csv")),
+  file.exists(file.path(out_path,"ms_quantitative_qc_manifest.R")),
+  file.exists(file.path(out_path,"ms_quantitative_qc_alerts.csv")))
+report_csv<-utils::read.csv(file.path(out_path,"ms_quantitative_qc_features.csv"))
+stopifnot(nrow(report_csv)==4L,any(report_csv$flag_group_missingness))
+unlink(temp,recursive=TRUE)
+
 cat("MS QUANTITATIVE QA: pooled QC, blanks, MNAR caution, group missingness, batch and fail-closed IDs PASS\n")
