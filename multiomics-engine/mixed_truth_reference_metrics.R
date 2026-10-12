@@ -54,6 +54,39 @@ mixed_truth_feature_metrics <- function(result, planted_log2_fc, method, scenari
     stringsAsFactors=FALSE)
 }
 
+# Nonasymptotic simultaneous Hoeffding bounds for the MEAN FDP across
+# independent and identically distributed synthetic studies. Every study's
+# FDP lies in [0,1] and is one unit of replication. Bonferroni union control
+# covers arbitrarily dependent methods applied to the same simulated studies.
+# These are bounds for a FIXED synthetic-generating mechanism only.
+# They are intentionally conservative; zero observed FDP NEVER gives zero
+# upper uncertainty with a small number of simulated studies.
+rnaseq_fdr_hoeffding_bounds <- function(fdp, cells=1L,
+                                       family_alpha=.05) {
+  if (!is.numeric(fdp) || length(fdp)<2L ||
+      anyNA(fdp) || any(!is.finite(fdp)) ||
+      any(fdp<0 | fdp>1) ||
+      length(cells)!=1L || !is.finite(cells) ||
+      cells<1L || cells!=floor(cells) ||
+      length(family_alpha)!=1L || !is.finite(family_alpha) ||
+      family_alpha<=0 || family_alpha>=1)
+    stop("FDR bounds require >=2 independent bounded study FDPs and valid simultaneous family.")
+  epsilon <- sqrt(log(2*cells/family_alpha)/(2*length(fdp)))
+  center <- mean(fdp)
+  list(
+    lower=max(0,center-epsilon),
+    upper=min(1,center+epsilon),
+    radius=epsilon,
+    independent_studies=length(fdp),
+    simultaneous_cells=as.integer(cells),
+    confidence=1-family_alpha,
+    method="two_sided_hoeffding_bonferroni",
+    scope="iid_simulated_studies_only",
+    # Never conflate calibration of a simulation with validation of a
+    # particular uploaded biological cohort.
+    biological_study_certified=FALSE)
+}
+
 mixed_truth_study_summary <- function(records, min_replicates=8L,
                                       bootstrap_repeats=1000L,
                                       seed=20261011L) {
@@ -87,12 +120,14 @@ mixed_truth_study_summary <- function(records, min_replicates=8L,
             rm(".Random.seed",envir=.GlobalEnv),add=TRUE)
   set.seed(seed)
   cells <- split(records,list(records$scenario,records$method),drop=TRUE)
+  comparison_count <- length(cells)
   summaries <- lapply(cells,function(cell) {
     n <- nrow(cell)
     if(n<min_replicates || anyDuplicated(cell$replicate) ||
        anyDuplicated(cell$seed))
       stop("Insufficient or non-independent simulated datasets.")
     fdp <- cell$false_discovery_proportion
+    bound <- rnaseq_fdr_hoeffding_bounds(fdp,cells=comparison_count)
     draws <- replicate(as.integer(bootstrap_repeats),
       mean(sample(fdp,size=n,replace=TRUE)))
     ci <- unname(stats::quantile(draws,probs=c(.025,.975),names=FALSE))
@@ -100,6 +135,13 @@ mixed_truth_study_summary <- function(records, min_replicates=8L,
       independent_datasets=n,estimated_fdr=mean(fdp),
       bootstrap_fdr_95_low=ci[[1L]],
       bootstrap_fdr_95_high=ci[[2L]],
+      conservative_fdr_95_low=bound$lower,
+      conservative_fdr_95_high=bound$upper,
+      conservative_fdr_95_radius=bound$radius,
+      conservative_fdr_family_cells=bound$simultaneous_cells,
+      conservative_fdr_bound_method=bound$method,
+      conservative_fdr_scope=bound$scope,
+      scenario_calibration_upper_below_5pct=(bound$upper<=.05),
       mean_power=mean(cell$power),
       mean_false_discoveries=mean(cell$false_discoveries),
       mean_selected_features=mean(cell$selected_features),

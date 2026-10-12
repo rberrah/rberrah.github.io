@@ -141,6 +141,8 @@ if(nzchar(out)) {
     "All arms recompute their native normalization after prefiltering.",
     "Therefore the paired perturbation includes normalization changes.",
     "No post-hoc filtering/policy selection based on p, q or performance.",
+    "Bootstrap FDR intervals are descriptive: all-zero study FDPs yield degenerate zero intervals.",
+    "Simultaneous Hoeffding 95% FDR bounds require independent iid simulated cohorts.",
     "No experimental biological, clinical or nominal-FDR certification.",
     paste("utc_timestamp:",format(Sys.time(),tz="UTC",usetz=TRUE)),
     capture.output(sessionInfo())),

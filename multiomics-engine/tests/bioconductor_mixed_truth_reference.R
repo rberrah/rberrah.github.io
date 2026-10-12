@@ -137,6 +137,7 @@ if(nzchar(out)) {
     "Power estimand: all planted alternatives, even if removed by filtering",
     "DESeq2 CI: unshrunk normal-approximation Wald, not cross-method coverage",
     "Bootstrap: fixed seed, percentile resampling of whole datasets",
+    "Simultaneous Hoeffding 95% bounds: independent studies, all scenario-method comparisons",
     "Not an external-validation or clinical-certification result",
     capture.output(sessionInfo())),
     file.path(out,"bioconductor_mixed_truth_environment.txt"))

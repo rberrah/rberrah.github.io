@@ -97,14 +97,18 @@ summary$mc_standard_error <- vapply(seq_len(nrow(summary)),function(i) {
     records$scenario==row$scenario & records$method==row$method]
   stats::sd(values)/sqrt(length(values))
 },numeric(1))
-summary$nominal_fdr_compatible_with_bootstrap95 <-
-  summary$bootstrap_fdr_95_low<=.05 &
-  summary$bootstrap_fdr_95_high>=.05
-summary$review_flag <- ifelse(summary$bootstrap_fdr_95_low>.05,
-    "observed_fdr_ci_entirely_above_nominal_review",
-    ifelse(summary$bootstrap_fdr_95_high<.05,
-      "observed_fdr_ci_entirely_below_nominal_not_certified",
-      "nominal_within_uncertainty_not_certified"))
+# Bootstrap percentile intervals are descriptive only: all-zero FDP yields
+# [0,0] even when just eight independent studies were simulated. Use a
+# simultaneous distribution-free bound for nominal-q review decisions.
+summary$nominal_fdr_compatible_with_conservative95 <-
+  summary$conservative_fdr_95_low<=.05 &
+  summary$conservative_fdr_95_high>=.05
+summary$review_flag <- ifelse(summary$conservative_fdr_95_low>.05,
+    "simulated_fdr_lower_bound_above_nominal_review",
+    ifelse(summary$conservative_fdr_95_high<=.05,
+      "scenario_specific_upper_bound_below_nominal_NOT_clinical",
+      "fdr_calibration_unresolved_insufficient_independent_studies"))
+summary$bootstrap_is_not_finite_sample_calibration <- TRUE
 summary$scientific_certified <- FALSE
 if(nzchar(output)) {
   utils::write.csv(records,file.path(output,"rnaseq_stress_per_study.csv"),
@@ -122,7 +126,9 @@ if(nzchar(output)) {
     paste("replicates_per_scenario:",repeats),
     "familywise_BH_each_method_each_synthetic_cohort: 0.05",
     "FDR: mean(V/max(R,1)) across independently generated cohorts",
-    "Bootstrap 95% percentile intervals: resample entire cohorts, not genes",
+    "Bootstrap 95% percentile intervals: DESCRIPTIVE ONLY; may be [0,0] after zero discoveries",
+    "Conservative 95% simultaneous Hoeffding-Bonferroni bounds: independent iid synthetic cohorts",
+    "The bound family corrects across every scenario-method cell in the same CSV",
     "Power denominator: all planted genes, including those removed by filtering",
     "Effect bias: only available retained planted features (selection caveat)",
     "DESeq2 coverage: unshrunk normal-approximation Wald only",
