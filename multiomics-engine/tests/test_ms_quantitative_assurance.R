@@ -40,6 +40,15 @@ bad<-x;rownames(bad)[2]<-rownames(bad)[1]
 stopifnot(reject(bad,meta))
 bad<-meta;bad$batch[1]<-""
 stopifnot(reject(x,bad))
+# Real laboratory manifests legitimately leave biological condition empty
+# on pooled-QC and solvent blank injections. Never discard or reject those
+# controls just because they have no treatment group.
+optional_groups<-meta
+optional_groups$condition[11:17]<-NA_character_
+stopifnot(ms_quantitative_assurance(x,optional_groups)$coverage$blank_assays==2L)
+bad_group<-meta
+bad_group$condition[1L]<-NA_character_
+stopifnot(reject(x,bad_group))
 without_controls<-ms_quantitative_assurance(x[1:10,,drop=FALSE],meta[1:10,,drop=FALSE])
 stopifnot(without_controls$status=="scientific_review_required",
  "pooled_qc_not_sufficient_for_rsd"%in%without_controls$alerts,
