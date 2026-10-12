@@ -34,8 +34,26 @@ for(const lesson of crossDomainLessons){
     assert.ok(quiz.correct>=0 && quiz.correct<3);
     assert.ok(quiz.why.length>15);
   }
+  // Core pharmacometrics chapters have numeric filename prefixes (e.g.
+  // 05_variabilite-iiv-iov.md) while their published route uses frontmatter
+  // slug. Resolve by slug rather than assuming a filename convention.
+  const chapters=fs.readdirSync('src/content/chapters')
+    .filter(name=>name.endsWith('.md')&&!name.startsWith('_'))
+    .map(name=>fs.readFileSync('src/content/chapters/'+name,'utf8'));
   for(const link of lesson.links)
-    assert.ok(fs.existsSync('src/content/chapters/'+link.slug+'.md'),
+    assert.ok(chapters.some(raw=>new RegExp('^slug:\\\\s*["\\\']?'+
+      link.slug+'["\\\']?\\\\s*
+}
+const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
+const nav=fs.readFileSync('src/routes/+layout.svelte','utf8');
+assert.ok(route.includes('SITE_ORIGIN')&&route.includes('/multiomics/tool/'));
+assert.ok(route.includes('educationalOnly')===false);
+assert.ok(route.includes('data-testid="cross-domain-auc"'));
+assert.ok(route.includes('role="status"'));
+assert.ok(nav.includes("key: 'cross-domains'"));
+assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
+console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
+,'m').test(raw)),
       'Unresolved actual PKPD reference lesson: '+link.slug);
 }
 const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
