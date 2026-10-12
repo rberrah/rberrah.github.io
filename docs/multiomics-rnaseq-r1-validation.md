@@ -91,6 +91,21 @@ Tous les gènes modifiés plantés ont été détectés dans ces scénarios **à
 
 **Action requise avant qualification confirmatoire :** campagne indépendante bien plus grande avec précision Monte-Carlo préspecifiée, effets faibles et hétérogènes, tailles d'échantillon variées, plan confondu partiellement et facteurs techniques réalistes ; conserver les résultats négatifs et figer les versions logicielles et critères de décision avant de réexaminer les performances.
 
+### Quatrième campagne : sensibilité au filtrage indépendant et à la normalisation
+
+Dans les analyses RNA-seq, retirer les gènes faiblement exprimés modifie la **famille d'hypothèses corrigées**, et peut changer l'estimation des facteurs de normalisation, des dispersions et de la puissance. Comparer uniquement des listes de gènes significatifs sans expliciter les filtres peut donner une impression trompeuse de reproductibilité. Le manuel officiel [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) rappelle par ailleurs que son `results()` effectue par défaut un filtrage indépendant interne, et que les q-values écartées peuvent être `NA`.
+
+Le protocole `multiomics-engine/rnaseq_filter_sensitivity.R` et `multiomics-engine/tests/bioconductor_rnaseq_filter_sensitivity.R` utilise **les mêmes cohortes simulées** et les mêmes vrais gènes différentiels dans deux bras, avec graines indépendantes d'une cohorte à l'autre :
+
+1. **Référence :** données de comptage entières puis procédures internes normales de DESeq2, edgeR QL ou limma-voom.
+2. **Filtre de sensibilité préspécifié :** conserver seulement les gènes avec au moins 20 comptages dans au moins 40 % des échantillons, puis exécuter les mêmes procédures internes. Le filtre utilise uniquement les comptages (pas l'appartenance aux groupes, pas les p-values, pas les q-values).
+
+Pour rendre les limites du filtrage observables, les jeux synthétiques subissent au préalable un **amincissement binomial indépendant des groupes** et gelé par gène (30 % à 0,025×, 30 % à 0,2× et 40 % sans amincissement). Cette manipulation fait varier les abondances et les probabilités de détection sans inventer a posteriori de différences biologiques. Trois contextes difficiles sont réutilisés : petite cohorte (6 + 6), groupe déséquilibré avec batch (12 + 28), et signaux rares (1 %).
+
+Les métriques restent basées sur la **vérité biologique plantée avant tout filtrage** : gènes éliminés, vrais effets éliminés, faux positifs, FDP/FDR, puissance calculée sur tous les vrais gènes, erreur log2FC. Chaque modèle recalcule **sa propre normalisation** après changement de la matrice ; les variations des facteurs d'échelle effectifs sont consignées, ainsi que les différences *appariées* de FDR et de puissance et leurs intervalles bootstrap calculés par cohorte indépendante.
+
+**Limites et règle de décision :** le contraste « filtre plus strict vs procédure de référence » mesure l'effet **global du changement de préfiltrage et du réajustement normalisation/modèle**, pas l'effet causal isolé d'un seul paramètre. Ni un meilleur FDR observé, ni un gain de puissance ne doivent déclencher un choix automatique du filtre après lecture des résultats. Un test logiciel réussi ne vaut pas contrôle démontré du FDR nominal ni qualification confirmatoire. Le workflow `.github/workflows/multiomics-rnaseq-filter-sensitivity.yml` exécute une courte campagne en PR et prévoit des campagnes indépendantes plus grandes, avec résultats négatifs et versions R archivés.
+
 ### Troisième campagne : faible effet, petite cohorte, batch et signaux rares
 
 Les expériences précédentes détectaient tous les vrais signaux, mais avec des effets artificiels **±1,5 log2FC** et généralement 40 sujets ; ce résultat ne permettait pas d'évaluer la puissance en conditions difficiles.
