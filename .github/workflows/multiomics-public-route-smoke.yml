@@ -1,19 +1,13 @@
 name: Multi-omics public-site accessibility smoke
 
+# A push/PR smoke targets GitHub Pages BEFORE the changed commit is
+# deployed, producing false failures on valid PRs and stale assets. Only check
+# the real public website after the successful Pages deployment completes.
+# The scientific CI already tests unmerged PRs against their own local builds.
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/multiomics-public-route-smoke.yml'
-      - 'scripts/check_live_multiomics.mjs'
-      - 'src/routes/multiomics/**'
-  push:
-    branches: [main]
-    paths:
-      - 'src/routes/multiomics/**'
-      - 'src/lib/multiomics/**'
-      - 'svelte.config.js'
-      - '.github/workflows/multiomics-public-route-smoke.yml'
-      - 'scripts/check_live_multiomics.mjs'
+  workflow_run:
+    workflows: ['Deploy to GitHub Pages']
+    types: [completed]
   schedule:
     - cron: '17 7 * * *'
   workflow_dispatch:
@@ -25,7 +19,8 @@ jobs:
   public-routes:
     name: Check beginner entry and tool on real GitHub Pages
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Check HTTP responses and prerendered content
         shell: bash
@@ -59,6 +54,19 @@ jobs:
       - run: npm ci
       - name: Install Chromium for real public-site visual interaction
         run: npx playwright install chromium --with-deps
-      - name: Open the deployed version after publication (not an unmerged PR)
-        if: github.event_name != 'pull_request'
-        run: node scripts/check_live_multiomics.mjs
+      - name: Verify desktop/mobile hydration and run the real public demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          # GitHub Pages/CDN may briefly serve its previous version immediately
+          # after workflow success. Retry the complete real-browser validation,
+          # but never suppress a persistent failure.
+          for attempt in 1 2 3; do
+            if node scripts/check_live_multiomics.mjs; then
+              echo "Public live check passed on attempt $attempt"
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then sleep 20; fi
+          done
+          echo "::error::The deployed multi-omics beginner demo failed all three browser attempts"
+          exit 1
