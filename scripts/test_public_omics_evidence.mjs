@@ -11,7 +11,7 @@ const revisions={
 const sha='a'.repeat(64);
 const provenance={
  schema:'pmx-explain-public-multiomics-benchmark-provenance/v1',
- pmxExplain:{commit:sha},
+ pmxExplain:{commit:'a'.repeat(40)},
  sourceRepositories:Object.fromEntries(Object.entries(revisions).map(([k,commit])=>[k,{commit}])),
  exportedInputFiles:Object.fromEntries(Array.from({length:13},(_,i)=>['input'+i+'.csv',{sha256:sha,bytes:1}]))
 };
