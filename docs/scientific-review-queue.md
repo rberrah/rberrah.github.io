@@ -9,6 +9,13 @@ author-review hash. After the bilingual text, equations and captions of
 65 of 65 have a current author-review hash. This is author review, not
 independent validation; independent internal or external review remains pending.
 
+The 2026-10-12 software-documentation update changed three French and three
+English chapters after their stored author-review hashes. Automated inventory
+checks identify them as pending author review; 92 of 95 chapters in each language
+still match their stored author-review hash. The exact files are listed in
+[author-review-required.md](author-review-required.md). No internal or external
+review is recorded for these changes.
+
 Use the file-level [independent review checklist](scientific-review-checklist.md)
 to record sources, reviewer, date, comments and status.
 

@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "cc2222c8b1f2db59bc8c09761420ad2d0be23cd0bbf64ec52939fddcfb110678"
 quiz:
   - prompt: "On ajuste le même modèle deux fois, une fois avec est = saem et une fois avec est = focei, et on soustrait les deux OFV rendus. Que mesure cette différence ?"
@@ -44,6 +44,8 @@ quiz:
 Dans NONMEM, l'estimateur est une ligne du fichier de contrôle. Dans Monolix, c'est l'architecture même du logiciel. Dans nlmixr2, c'est un **argument de fonction**. `est = "focei"`, `"saem"`, `"nlme"` et `"posthoc"` sont ici quatre workflows représentatifs parmi les méthodes disponibles. Un mot change, le modèle ne bouge pas d'une ligne, et un autre algorithme prend le relais.
 
 Ce n'est pas une commodité d'interface, c'est le trait de conception. nlmixr2 sépare la **description** du modèle de son **évaluation** : le bloc `model({})` dit ce qu'est le système, `est =` dit qui va s'en charger. Le bénéfice est réel et rare — on peut comparer des estimateurs sur un modèle strictement identique, sans la moindre occasion de réécrire une équation de travers entre deux essais.
+
+La documentation `nlmixr2est` 7.1 expose aujourd'hui plusieurs familles : **FO/FOI**, **FOCE/FOCEI/FOCEP**, **Laplace/AGQ**, **SAEM**, `nlme` et `posthoc`. Elle liste aussi des méthodes de recherche par importance sampling (`imp`, `impmap`, `qrpem`), des méthodes non paramétriques (`npag`, `npb`) et des variantes mu-référencées, IRLS ou variationnelles. Ces noms ne désignent pas tous le même niveau de maturité ni le même objectif : les nouveautés annoncées comme méthodes de recherche doivent être vérifiées indépendamment, et `nlmixr2AllEst()` inclut également des alias et optimiseurs techniques.
 
 Le coût l'est tout autant, et il est moins visible. Ces quatre workflows peuvent rendre des nombres affichés sous le nom d'`OFV`, dans le même résumé, avec le même nombre de décimales. Rien ne vous rappellera lequel est sorti d'où. Ce chapitre explique ces exemples sans prétendre épuiser les estimateurs disponibles dans nlmixr2.
 <!-- /step -->

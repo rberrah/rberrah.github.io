@@ -2,8 +2,8 @@
 id: "tools-nlmixr2"
 slug: "tools-nlmixr2"
 title: "nlmixr2 — l'open source (R)"
-description: "Estimer en R, gratuitement : SAEM et FOCEI, moteur rxode2 et tout l'écosystème R."
-summary: "nlmixr2 : l'alternative open-source en R, avec SAEM/FOCEI, rxode2 pour les ODE et les diagnostics R."
+description: "Estimer en R avec plusieurs familles d'estimateurs, le moteur rxode2 et l'écosystème R."
+summary: "nlmixr2 : une plateforme open-source en R, avec plusieurs estimateurs, rxode2 pour les ODE et des diagnostics R."
 track: "nlmixr2"
 order: 230
 duration: "11 min"
@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "4b73d8951c4acf5a917d68ec73b9c554a4e9530e8ca405e151399e9b6aba445e"
 quiz:
   - prompt: "nlmixr2 se distingue surtout par..."
@@ -73,7 +73,7 @@ mod <- function() {
 fit <- nlmixr2(mod, data, est = "saem")   # ou est = "focei"
 ```
 
-`est = "saem"` ou `"focei"` : nlmixr2 propose les **mêmes grandes familles** d'algorithmes que Monolix/NONMEM, avec ses propres implémentations, réglages et conventions. Le moteur d'ODE est **rxode2**, réutilisable seul pour simuler.
+`est = "saem"` et `"focei"` ne sont que deux choix usuels. La documentation actuelle distingue aussi FO/FOI, FOCE/FOCEI/FOCEP, Laplace/AGQ, `nlme`, `posthoc`, puis des méthodes de recherche par importance sampling, non paramétriques ou variationnelles. Elles ont leurs propres implémentations, réglages, conventions et niveaux de maturité. Le moteur d'ODE est **rxode2**, réutilisable seul pour simuler.
 
 **Version vérifiée : nlmixr2 7.0.1, le 12 octobre 2026.** La série 7 a modifié plusieurs valeurs par défaut de FOCEI et SAEM et introduit des moteurs expérimentaux. Un résultat reproductible doit donc archiver la version, `est =` et l'objet de contrôle complet.
 
@@ -98,7 +98,7 @@ Comme partout, un run qui **converge** ne prouve rien sans diagnostics. Et il fa
 
 <!-- step:title="À retenir" -->
 - nlmixr2 : l'alternative open-source, gratuite, entièrement en R.
-- Modèle = fonction R ; algorithmes SAEM et FOCEI (mêmes familles que Monolix/NONMEM).
+- Modèle = fonction R ; plusieurs familles d'estimateurs, dont SAEM, FOCEI, Laplace/AGQ et des méthodes de recherche à contrôler indépendamment.
 - Moteur d'ODE rxode2 (aussi pour la simulation) ; écosystème R (xpose, ggPMX).
 - Idéal pour apprendre/prototyper/partager ; documenter les versions ; diagnostiquer toujours.
 <!-- /step -->

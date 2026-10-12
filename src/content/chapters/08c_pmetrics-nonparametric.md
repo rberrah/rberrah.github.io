@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "87e8d5446c855f14801c8072fe2f8474ab13af76d73195ab1320dcbb05c7a653"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
@@ -127,6 +127,8 @@ Le nombre de points finaux est un résultat numérique de l'estimation. Il ne do
 
 <!-- step:title="Exemple officiel reproductible" -->
 Pmetrics 3.2.6 distribue un jeu tutoriel de 51 sujets, `bimodal_ke.csv`, avec deux formulations officielles du même modèle IV à un compartiment : le raccourci analytique `one_comp_iv` et une équation ODE explicite.
+
+**Version réellement testée ici : 3.2.6.** C'est la dernière release GitHub étiquetée lors de la vérification du 12 octobre 2026 et la version épinglée dans la CI native. La documentation en ligne de développement mentionne déjà une dépréciation introduite en 3.2.7 : la colonne d'occasion `block` devient `occasion`, avec mise à niveau des anciens objets par `PM_upgrade()`. Aucun exemple actif de ce cours n'utilise cette colonne ; tout nouvel exemple doit employer `occasion`, et une ancienne fixture utilisant `block` ne doit être dite compatible qu'après test avec la version concernée.
 
 PMx Explain charge ce fichier directement depuis le paquet installé, sans recopier les données. Le script `tdm-engine/benchmarks/pmetrics_official_example.R` reprend les bornes `ke = [0,001 ; 3] h⁻¹`, `v = [25 ; 250] L`, l'erreur additive officielle, la graine 22 et l'ajustement NPAG. Il vérifie les poids, les bornes et compare les moyennes populationnelles des deux formulations.
 

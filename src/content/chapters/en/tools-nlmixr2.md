@@ -2,8 +2,8 @@
 id: "tools-nlmixr2"
 slug: "tools-nlmixr2"
 title: "nlmixr2 — the open source (R)"
-description: "Estimate in R, for free: SAEM and FOCEI, the rxode2 engine and the whole R ecosystem."
-summary: "nlmixr2: the open-source R alternative, with SAEM/FOCEI, rxode2 for ODEs and R diagnostics."
+description: "Estimate in R with several estimator families, the rxode2 engine and the R ecosystem."
+summary: "nlmixr2: an open-source R platform with several estimators, rxode2 for ODEs and R diagnostics."
 track: "nlmixr2"
 order: 230
 duration: "11 min"
@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "da06bbc7fa75507929758ec50bb335c3be47a0657d5e21326d3963eb4dd54174"
 quiz:
   - prompt: "nlmixr2 stands out mainly for..."
@@ -73,7 +73,7 @@ mod <- function() {
 fit <- nlmixr2(mod, data, est = "saem")   # or est = "focei"
 ```
 
-`est = "saem"` or `"focei"`: nlmixr2 provides the **same broad algorithm families** as Monolix/NONMEM, with its own implementations, settings, and conventions. The ODE engine is **rxode2**, usable standalone to simulate.
+`est = "saem"` and `"focei"` are only two common choices. Current documentation also distinguishes FO/FOI, FOCE/FOCEI/FOCEP, Laplace/AGQ, `nlme`, `posthoc`, and research methods based on importance sampling, nonparametric estimation, or variational inference. They have their own implementations, settings, conventions, and maturity levels. The ODE engine is **rxode2**, usable standalone to simulate.
 
 **Version checked: nlmixr2 7.0.1, on 12 October 2026.** The 7.x line changed several FOCEI and SAEM defaults and introduced experimental engines. A reproducible result must therefore archive the version, `est =` and the complete control object.
 
@@ -94,7 +94,7 @@ Free does not mean careless.
 
 <!-- step:title="Key takeaways" -->
 - nlmixr2: the open-source, free alternative, entirely in R.
-- Model = an R function; SAEM and FOCEI algorithms (same families as Monolix/NONMEM).
+- Model = an R function; several estimator families, including SAEM, FOCEI, Laplace/AGQ and research methods that require independent checking.
 - rxode2 ODE engine (also for simulation); R ecosystem (xpose, ggPMX).
 - Ideal to learn/prototype/share; document versions; always diagnose.
 <!-- /step -->

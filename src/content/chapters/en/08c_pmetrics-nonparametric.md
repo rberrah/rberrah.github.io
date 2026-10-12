@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "cc92c0b2b979507184f96c21cf447efe44fd88f3c59f40637b49a6eed5fd0915"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
@@ -123,6 +123,8 @@ After fitting, `fit$final$popPoints` contains parameter values for each support 
 
 <!-- step:title="Reproducible official example" -->
 Pmetrics 3.2.6 ships a tutorial dataset with 51 subjects, `bimodal_ke.csv`, and two official formulations of the same one-compartment IV model: the `one_comp_iv` analytical shortcut and an explicit ODE.
+
+**Version actually tested here: 3.2.6.** It was the latest tagged GitHub release when checked on 12 October 2026 and is pinned in the native CI job. The online development documentation already mentions a deprecation introduced in 3.2.7: the observation-occasion column `block` becomes `occasion`, with legacy objects upgraded through `PM_upgrade()`. No active example in this course uses that column; any new example should use `occasion`, and an older fixture using `block` should only be described as compatible after testing it with the relevant version.
 
 PMx Explain loads the file directly from the installed package and does not copy the data. `tdm-engine/benchmarks/pmetrics_official_example.R` reproduces the official `ke = [0.001, 3] h⁻¹` and `v = [25, 250] L` bounds, additive error, seed 22 and NPAG fit. It checks weights and bounds, then compares population means from both formulations.
 

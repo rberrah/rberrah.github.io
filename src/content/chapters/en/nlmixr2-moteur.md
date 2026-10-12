@@ -17,7 +17,7 @@ software_verified_on: "2026-10-12"
 software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
 reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: false
+review_pending: true
 reviewed_hash: "da8ad781e509e7faa5fa8bac78faf75538a0a713dd45c93a01795f3e3c082cf4"
 quiz:
   - prompt: "You fit the same model twice, once with est = saem and once with est = focei, and subtract the two reported OFVs. What does that difference measure?"
@@ -44,6 +44,8 @@ quiz:
 In NONMEM, the estimator is a line of the control stream. In Monolix, it is the architecture of the software itself. In nlmixr2, it is a **function argument**. `est = "focei"`, `"saem"`, `"nlme"`, and `"posthoc"` are four representative workflows among the available methods. One word changes, the model does not move a line, and another algorithm takes over.
 
 This is not interface convenience, it is the design trait. nlmixr2 separates the **description** of the model from its **evaluation**: the `model({})` block says what the system is, `est =` says who will handle it. The benefit is real and rare — you can compare estimators on a strictly identical model, without a single opportunity to mistype an equation between two attempts.
+
+The current `nlmixr2est` 7.1 documentation exposes several families: **FO/FOI**, **FOCE/FOCEI/FOCEP**, **Laplace/AGQ**, **SAEM**, `nlme`, and `posthoc`. It also lists research methods based on importance sampling (`imp`, `impmap`, `qrpem`), nonparametric methods (`npag`, `npb`), and mu-referenced, IRLS, or variational variants. These names do not all have the same maturity or purpose: methods labelled as research methods require independent checking, and `nlmixr2AllEst()` also includes technical aliases and optimizers.
 
 The cost is just as real, and less visible. These four workflows may return numbers displayed as `OFV`, in the same summary, with the same number of decimals. Nothing will remind you which came from where. This chapter explains these examples without claiming to exhaust the estimators available in nlmixr2.
 <!-- /step -->
