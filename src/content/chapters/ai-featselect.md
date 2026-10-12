@@ -13,10 +13,10 @@ prerequisites: ["math-stats", "covariates-basics"]
 glossary: ["VSURF", "Covariable"]
 slides: []
 sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "faaadd9c8df50d7b35e26245477bdbd057151807c4d89be223b5df14dc4fb998"
+review_pending: false
+reviewed_hash: "c6bb54dccd51f55ebd68bf24a501d62c5ec85b0a39f7f67c640517f3b26493ab"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."
     options:

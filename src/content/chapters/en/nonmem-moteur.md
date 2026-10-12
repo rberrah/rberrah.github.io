@@ -13,12 +13,12 @@ prerequisites: ["tools-nonmem"]
 glossary: ["NONMEM","FOCE-I","Vraisemblance"]
 slides: []
 sources: ["wang-nonmem-methods","bauer-nonmem-2","lindstrom-bates","wilks-1938"]
-software_verified_on: "2026-10-11"
-software_version: "NONMEM 7.5 documentation"
-reviewed_on: "2026-10-09"
+software_verified_on: "2026-10-12"
+software_version: "NONMEM 7.6 documentation"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "23819f62af9fa81b9131cb4566a0151cd105a97d6985df437c44882d570dbe37"
+review_pending: false
+reviewed_hash: "73e4b9b2aa8c9a906e390bcf0c04d037063c1d1206bcf3bf023ec73f3d3238fe"
 quiz:
   - prompt: "Why does the OFV of a METHOD=0 (FO) run not compare with that of a METHOD=1 INTER (FOCE-I) run?"
     options:

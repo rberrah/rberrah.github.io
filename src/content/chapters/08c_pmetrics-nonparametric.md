@@ -13,12 +13,12 @@ prerequisites: ["parametric-vs-nonparametric", "outils-estimation"]
 glossary: ["NPAG", "NPOD", "Point de support", "Distribution mélangeante", "Vraisemblance"]
 slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
-software_verified_on: "2026-10-11"
+software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
-reviewed_on: "2026-09-29"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "98fdd50bccdb6706e837682382acfc8c0c97ed8506e8222f76a9bfcd6866dd53"
+review_pending: false
+reviewed_hash: "87e8d5446c855f14801c8072fe2f8474ab13af76d73195ab1320dcbb05c7a653"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
     options:
@@ -144,6 +144,8 @@ Pmetrics propose notamment deux algorithmes non paramétriques :
 | **NPOD** | optimisation non paramétrique fondée sur les gradients de vraisemblance | algorithme distinct, encore en développement actif et potentiellement plus sensible aux minima locaux |
 
 Ils estiment tous deux une distribution mélangeante discrète, mais ne doivent pas être supposés interchangeables. Comparez convergence, stabilité entre initialisations, vraisemblance prédictive et performance pour l'usage prévu. Pmetrics utilise `algorithm = "NPAG"` par défaut ; NPOD doit être demandé explicitement et traité comme expérimental dans PMx Explain.
+
+**NPAG est une méthode, pas un synonyme de Pmetrics.** Pmetrics fournit une implémentation historique et spécialisée de NPAG ainsi que NPOD. nlmixr2 7 propose aussi `est = "npag"` et une méthode bayésienne non paramétrique `est = "npb"`, actuellement décrites par ses auteurs comme expérimentales. Les interfaces, diagnostics et niveaux de maturité diffèrent : cette proximité de noms ne justifie ni interchangeabilité automatique ni classement entre logiciels.
 <!-- /step -->
 
 <!-- step:title="Du Traducteur à Pmetrics" -->
@@ -169,11 +171,25 @@ Une individualisation exige un **modèle structurel, son modèle d'erreur et les
 
 Dans le moteur TDM, le backend Pmetrics appelle `PM_model$map()` avec un prior pondéré. Les positions des points restent fixées ; leurs probabilités sont actualisées par les concentrations du patient. Ce n'est pas un nouvel ajustement NPAG de population. La courbe centrale utilise les paramètres moyens postérieurs ; les simulations d'incertitude tirent des couples de paramètres parmi les points, avec leurs poids, sans les remplacer par une loi normale. La moyenne des paramètres, le point le plus probable et la moyenne des courbes ne sont généralement pas identiques.
 
+```text
+distribution populationnelle
+        ↓
+points de support + poids
+        ↓
+concentration du patient
+        ↓
+poids postérieurs via PM_model$map()
+        ↓
+distribution individuelle
+        ↓
+prédiction d'exposition
+```
+
 Une simulation qui tire directement un point conserve la distribution discrète estimée. Une simulation semi-paramétrique peut ajouter une dispersion locale autour de chaque point ; elle crée alors un mélange continu qui n'est plus la distribution NPAG originale. Les deux sorties doivent être nommées séparément.
 
 Les trois artefacts disponibles sont des **démonstrations synthétiques** IV à un compartiment, orale à un compartiment et IV à deux compartiments ; ce ne sont pas des distributions estimées dans des articles. Les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
 
-**Disponibilité vérifiée le 11 octobre 2026 :** backend natif testé localement et présent dans le dépôt. Un test navigateur du moteur public confirme que la source Pmetrics n'y est pas disponible. Le dernier déploiement Shinyapps.io reste bloqué par la version Rust/Cargo de l'image ; aucune ancienne version de Pmetrics n'a été imposée pour contourner ce blocage. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
+**Disponibilité vérifiée le 12 octobre 2026 :** backend natif testé localement et présent dans le dépôt. Un test navigateur du moteur public confirme que la source Pmetrics n'y est pas disponible. Il ne s'agit pas d'une incompatibilité générale entre Pmetrics et Shiny : le déploiement Shinyapps.io testé reste bloqué par la version Rust/Cargo de son image de construction. Aucune ancienne version de Pmetrics n'a été imposée pour contourner ce blocage. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->

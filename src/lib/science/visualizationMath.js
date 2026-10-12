@@ -383,11 +383,15 @@ export function updateSupportPointWeights(points, observed, options = {}) {
 /** @param {{cl:number,v:number,weight:number}[]} points */
 export function summarizeSupportPoints(points) {
   const normalized = normalizeSupportPoints(points);
-  const modal = normalized.reduce((best, point) => point.weight > best.weight ? point : best);
+  const modalIndex = normalized.reduce(
+    (bestIndex, point, index) => point.weight > normalized[bestIndex].weight ? index : bestIndex,
+    0
+  );
   return {
     meanCl: normalized.reduce((sum, point) => sum + point.weight * point.cl, 0),
     meanV: normalized.reduce((sum, point) => sum + point.weight * point.v, 0),
-    modal
+    modal: normalized[modalIndex],
+    modalIndex
   };
 }
 

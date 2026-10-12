@@ -100,7 +100,11 @@ function validateSoftwareFreshness(file, data) {
   }
   if (typeof version !== 'string' || !version.trim()) fail(`Invalid software_version in ${file}`);
   const ageDays = Math.floor((Date.now() - instant.getTime()) / 86400000);
-  if (ageDays > 183) warn(`External freshness due: ${file} was verified ${ageDays} days ago (${value})`);
+  if (ageDays > 365) {
+    warn(`External software debt: ${file} was verified ${ageDays} days ago (${value}); version and examples require priority review`);
+  } else if (ageDays > 183) {
+    warn(`External freshness due: ${file} was verified ${ageDays} days ago (${value})`);
+  }
 }
 
 function loadCatalog() {

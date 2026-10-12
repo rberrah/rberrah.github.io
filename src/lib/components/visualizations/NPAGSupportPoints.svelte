@@ -90,7 +90,7 @@
         <option value="bimodal">{$language === 'en' ? 'Bimodal' : 'Bimodale'}</option>
       </select>
     </label>
-    <label class="check"><input type="checkbox" bind:checked={showLognormal} /> {$language === 'en' ? 'Compare with a lognormal cloud' : 'Comparer à un nuage log-normal'}</label>
+    <label class="check"><input type="checkbox" bind:checked={showLognormal} /> {$language === 'en' ? 'Illustrative lognormal cloud' : 'Nuage log-normal illustratif'}</label>
     <label class="check"><input type="checkbox" bind:checked={includeObservation} /> {$language === 'en' ? 'Add one patient concentration' : 'Ajouter une concentration patient'}</label>
     {#if includeObservation}
       <label class="slider">
@@ -100,7 +100,7 @@
     {/if}
     <div class="segmented" aria-label={$language === 'en' ? 'Distribution representation' : 'Représentation de la distribution'}>
       <button type="button" class:active={representation === 'discrete'} on:click={() => representation = 'discrete'}>{$language === 'en' ? 'Discrete points' : 'Points discrets'}</button>
-      <button type="button" class:active={representation === 'local'} on:click={() => representation = 'local'}>{$language === 'en' ? 'Local mixture' : 'Mélange local'}</button>
+      <button type="button" class:active={representation === 'local'} on:click={() => representation = 'local'}>{$language === 'en' ? 'Conceptual smoothing' : 'Lissage conceptuel'}</button>
     </div>
   </div>
 
@@ -127,7 +127,7 @@
           {#if representation === 'local'}
             <ellipse cx={sx(point.cl)} cy={sy(point.v)} rx={radius(point.weight) + 12} ry={radius(point.weight) + 9} class="halo" />
           {/if}
-          <circle cx={sx(point.cl)} cy={sy(point.v)} r={radius(point.weight)} class="support" class:modal={point === summary.modal}>
+          <circle cx={sx(point.cl)} cy={sy(point.v)} r={radius(point.weight)} class="support" class:modal={index === summary.modalIndex}>
             <title>CL {point.cl.toFixed(1)} L/h; V {point.v.toFixed(0)} L; w {(100 * point.weight).toFixed(1)}%</title>
           </circle>
           <text x={sx(point.cl)} y={sy(point.v) + 4} class="weight">{(100 * point.weight).toFixed(0)}%</text>
@@ -141,7 +141,7 @@
         {#if representation === 'discrete'}
           {$language === 'en' ? 'NPAG estimates a discrete joint distribution: each circle is a complete CL–V vector and its area reflects its probability.' : 'NPAG estime une distribution jointe discrète : chaque cercle est un vecteur CL–V complet et sa surface reflète sa probabilité.'}
         {:else}
-          {$language === 'en' ? 'The halos illustrate a semiparametric local mixture around the support points. They are not the original discrete NPAG distribution.' : 'Les halos illustrent un mélange semi-paramétrique local autour des points de support. Ils ne sont pas la distribution NPAG discrète originale.'}
+          {$language === 'en' ? 'The schematic halos illustrate the idea of local smoothing. No Pmetrics local-dispersion model is calculated, and this is not the original discrete NPAG distribution.' : "Les halos schématiques illustrent l'idée d'un lissage local. Aucun modèle quantitatif de dispersion locale Pmetrics n'est calculé, et il ne s'agit pas de la distribution NPAG discrète originale."}
         {/if}
       </figcaption>
     </figure>
@@ -163,7 +163,7 @@
         {/if}
       </svg>
       <div class="legend">
-        <span><i class="mean"></i>{$language === 'en' ? 'Mean prediction' : 'Prédiction moyenne'}</span>
+        <span><i class="mean"></i>{includeObservation ? ($language === 'en' ? 'Posterior mean prediction' : 'Prédiction moyenne postérieure') : ($language === 'en' ? 'Population mean prediction' : 'Prédiction moyenne populationnelle')}</span>
         <span><i class="parameters"></i>{$language === 'en' ? 'Mean parameters' : 'Paramètres moyens'}</span>
         <span><i class="mode"></i>{$language === 'en' ? 'Modal point' : 'Point modal'}</span>
       </div>
@@ -172,7 +172,7 @@
   </div>
 
   <div class="readout">
-    <span>{$language === 'en' ? 'Posterior mean' : 'Moyenne postérieure'} <strong>CL {summary.meanCl.toFixed(2)} L/h · V {summary.meanV.toFixed(1)} L</strong></span>
+    <span>{includeObservation ? ($language === 'en' ? 'Posterior mean' : 'Moyenne postérieure') : ($language === 'en' ? 'Population mean' : 'Moyenne populationnelle')} <strong>CL {summary.meanCl.toFixed(2)} L/h · V {summary.meanV.toFixed(1)} L</strong></span>
     <span>{$language === 'en' ? 'Modal support point' : 'Point de support modal'} <strong>CL {summary.modal.cl.toFixed(1)} L/h · V {summary.modal.v.toFixed(0)} L · {(100 * summary.modal.weight).toFixed(0)}%</strong></span>
   </div>
 </div>

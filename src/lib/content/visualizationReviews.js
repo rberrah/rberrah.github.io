@@ -123,10 +123,10 @@ export const visualizationReviews = {
     "reviewed_hash": "73f17badae854cc24223ab7933e7ae7b9a1b337fbc21bd2d6b2b03c174de37d6"
   },
   "43_Copula": {
-    "status": "pending",
-    "reviewed_on": "2026-10-10",
+    "status": "reviewed",
+    "reviewed_on": "2026-10-12",
     "review_type": "author",
-    "reviewed_hash": "06f9025d50ec82763cad8780e6f967adb52d1758e6fcb3781437ba8aef38769b"
+    "reviewed_hash": "c347b2fdddbe3943a6315d44e076fbb5f1110872b195ecfc0a6e81683eda6cdb"
   },
   "44_Survival": {
     "status": "reviewed",
@@ -237,10 +237,10 @@ export const visualizationReviews = {
     "reviewed_hash": "8847ffad1927f48b288f929e757ab8c4dad7c615df9cae50f6c6973d9fc57e52"
   },
   "32_Myelosuppression": {
-    "status": "pending",
-    "reviewed_on": "2026-10-11",
+    "status": "reviewed",
+    "reviewed_on": "2026-10-12",
     "review_type": "author",
-    "reviewed_hash": "8ed20c97bd98e844c3ee88eabece35508ebe5160e499ac349bcf3cb5b4dc7d67"
+    "reviewed_hash": "aacff3c71d9a085ad94ffe8e9fda96f6e6ed3a14153b73eeaee65731d1073676"
   },
   "40_TreeEnsemble": {
     "status": "reviewed",
@@ -381,10 +381,10 @@ export const visualizationReviews = {
     "reviewed_hash": "f4cb142e19afbaa06a9b88fe10ea947b29c4da2d2dff2dc3e632dcf10e7a0d39"
   },
   "NPAGSupportPoints": {
-    "status": "pending",
-    "reviewed_on": "",
-    "review_type": "",
-    "reviewed_hash": ""
+    "status": "reviewed",
+    "reviewed_on": "2026-10-12",
+    "review_type": "author",
+    "reviewed_hash": "b16cb0fd96b970442857d753b20179f4d4807a64f4b03c1615c946bb94164d09"
   },
   "SlideFigure": {
     "status": "reviewed",

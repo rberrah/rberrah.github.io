@@ -254,8 +254,8 @@ export const visualizationDescriptions = {
     en: "An educational one-sample MAP update of CL with fixed V and a one-compartment IV-bolus model. It illustrates prior plus data but does not by itself calculate a dosing recommendation."
   },
   'NPAGSupportPoints': {
-    fr: "Distribution jointe discrete CL-V synthetique. La surface des points code leur poids ; une concentration patient actualise ces poids par une vraisemblance gaussienne proportionnelle simplifiee. Cette demonstration explique les resumes d'une distribution NPAG, sans executer NPAG.",
-    en: "A synthetic discrete joint CL-V distribution. Point area encodes weight; one patient concentration updates the weights through a simplified proportional Gaussian likelihood. This demonstration explains summaries of an NPAG distribution without running NPAG."
+    fr: "Distribution jointe discrète CL-V synthétique. La surface des points code leur poids ; une concentration patient actualise ces poids par une vraisemblance gaussienne proportionnelle simplifiée. Le nuage log-normal et le lissage sont illustratifs : cette démonstration explique les résumés d'une distribution NPAG sans exécuter NPAG ni une dispersion locale Pmetrics.",
+    en: "A synthetic discrete joint CL-V distribution. Point area encodes weight; one patient concentration updates the weights through a simplified proportional Gaussian likelihood. The lognormal cloud and smoothing are illustrative: this demonstration explains NPAG summaries without running NPAG or a Pmetrics local-dispersion model."
   },
   'Turnover': {
     fr: "Deux modèles de réponse indirecte qui augmentent R : stimulation de kin ou inhibition de kout, avec R0=kin/kout. Le délai dépend du turnover ; d'autres mécanismes exigent les deux autres familles de modèles indirects.",

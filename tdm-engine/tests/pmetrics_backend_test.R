@@ -23,6 +23,8 @@ stopifnot(
   identical(vapply(artifacts, function(item) item$structure$template, character(1)),
     c("one_compartment_iv", "one_compartment_oral", "two_compartment_iv")),
   all(vapply(artifacts, function(item) abs(sum(item$support$prob) - 1) < 1e-12, logical(1))),
+  all(vapply(artifacts, function(item) all(is.finite(item$support$prob) & item$support$prob > 0), logical(1))),
+  identical(vapply(artifacts, function(item) item$route, character(1)), c("IV", "Oral", "IV")),
   identical(pmetrics_compartment_contract(artifacts[[2]]), list(adm_cmt = 1L, obs_cmt = 2L)),
   all(vapply(artifacts, function(item) pmetrics_terminal_rate(item) > 0, logical(1)))
 )
@@ -85,6 +87,8 @@ stopifnot(
   isTRUE(fit$pmetrics$mapped),
   nrow(fit$posterior_points) == 3L,
   abs(sum(fit$posterior_points$prob) - 1) < 1e-10,
+  all(is.finite(fit$posterior_points$prob) & fit$posterior_points$prob >= 0),
+  any(fit$posterior_points$prob > 0),
   all(c("ke", "v") %in% names(fit$posterior_parameters)),
   fit$posterior_points$prob[[which.min(abs(fit$posterior_points$ke - 0.15))]] > 0.99
 )
@@ -162,6 +166,7 @@ for (item in artifacts[-1]) {
   )
   profile <- simulate_regimen(empty_fit, dose = 100, interval = 12, infusion = 0, horizon = 24, delta = 0.25)
   stopifnot(nrow(profile) > 50L, all(is.finite(profile$concentration)), all(profile$concentration >= 0))
+  stopifnot(any(profile$concentration > 0))
 
   middle <- item$support[2, item$parameters$name, drop = FALSE]
   known_model <- safe_param(empty_fit$model, as.list(middle[1, , drop = TRUE]))
@@ -183,6 +188,8 @@ for (item in artifacts[-1]) {
   stopifnot(
     isTRUE(mapped_fit$pmetrics$mapped),
     abs(sum(mapped_fit$posterior_points$prob) - 1) < 1e-10,
+    all(is.finite(mapped_fit$posterior_points$prob) & mapped_fit$posterior_points$prob >= 0),
+    any(mapped_fit$posterior_points$prob > 0),
     mapped_fit$posterior_points$prob[[2]] > item$support$prob[[2]]
   )
 }

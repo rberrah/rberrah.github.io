@@ -3,9 +3,11 @@
 This queue records work that still requires a person other than the author.
 It does not claim that an internal or external review has occurred.
 
-As of 2026-10-11, the existing visualization components have an author review
-record. `NPAGSupportPoints` is intentionally pending author and independent
-review. These records do not claim independent internal or external validation.
+Before the targeted 2026-10-12 review, 62 of 65 visualizations had a current
+author-review hash. After the bilingual text, equations and captions of
+`32_Myelosuppression`, `43_Copula` and `NPAGSupportPoints` were reread, all
+65 of 65 have a current author-review hash. This is author review, not
+independent validation; independent internal or external review remains pending.
 
 Use the file-level [independent review checklist](scientific-review-checklist.md)
 to record sources, reviewer, date, comments and status.

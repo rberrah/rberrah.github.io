@@ -13,12 +13,12 @@ prerequisites: ["tools-monolix"]
 glossary: ["Monolix","SAEM","Vraisemblance"]
 slides: []
 sources: ["delyon-saem","kuhn-lavielle-saem","lavielle","lavielle-mentre-monolix","monolix"]
-software_verified_on: "2026-10-11"
+software_verified_on: "2026-10-12"
 software_version: "MonolixSuite 2024R1 documentation"
-reviewed_on: "2026-10-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "7caef7fa684a0b364c3db67c528f02a882bd2235e38f8888f2618aafc4a877e8"
+review_pending: false
+reviewed_hash: "797dde379b64aacaa32fa708179e4fdf306a5cb7a593ec611d8c15295c43d841"
 quiz:
   - prompt: "In the SAEM convergence plot, a perfectly flat trajectory during the smoothing phase indicates..."
     options:

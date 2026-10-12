@@ -13,12 +13,12 @@ prerequisites: ["tools-algorithms"]
 glossary: ["nlmixr2 / rxode2", "SAEM", "FOCE-I"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "kuhn-lavielle-saem", "wang-nonmem-methods"]
-software_verified_on: "2026-10-11"
-software_version: "nlmixr2 5.0.0; nlmixr2.org documentation"
-reviewed_on: "2026-07-09"
+software_verified_on: "2026-10-12"
+software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "4be22543df2e1b0199034df16499e1cc6fbf08c6ef33d9bebe097c1b34a6dba0"
+review_pending: false
+reviewed_hash: "4b73d8951c4acf5a917d68ec73b9c554a4e9530e8ca405e151399e9b6aba445e"
 quiz:
   - prompt: "nlmixr2 se distingue surtout par..."
     options:
@@ -74,6 +74,8 @@ fit <- nlmixr2(mod, data, est = "saem")   # ou est = "focei"
 ```
 
 `est = "saem"` ou `"focei"` : nlmixr2 propose les **mêmes grandes familles** d'algorithmes que Monolix/NONMEM, avec ses propres implémentations, réglages et conventions. Le moteur d'ODE est **rxode2**, réutilisable seul pour simuler.
+
+**Version vérifiée : nlmixr2 7.0.1, le 12 octobre 2026.** La série 7 a modifié plusieurs valeurs par défaut de FOCEI et SAEM et introduit des moteurs expérimentaux. Un résultat reproductible doit donc archiver la version, `est =` et l'objet de contrôle complet.
 
 :::note
 Réf. : projet nlmixr2 (Fidler, Wang, Hallow et coll.), open-source (R) ; s'intègre à rxode2, xpose et ggPMX.

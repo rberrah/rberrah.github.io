@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { concTwoComp } from '../src/lib/utils/math.js';
 import {
   calculateGofRows,
@@ -148,7 +149,28 @@ const supportPosterior = updateSupportPointWeights(supportPrior, targetConcentra
 assert.ok(supportPosterior[0].weight > normalizedSupport[0].weight, 'A concentration close to a support point must increase its posterior weight');
 const supportSummary = summarizeSupportPoints(supportPosterior);
 assert.ok(Number.isFinite(supportSummary.meanCl) && Number.isFinite(supportSummary.meanV), 'Posterior summaries must remain finite');
-assert.ok(supportPointMeanCurve(supportPosterior, [0, 1, 4, 12]).every((point) => Number.isFinite(point.concentration) && point.concentration > 0), 'Weighted prediction curves must remain finite and positive');
+assert.equal(supportSummary.modalIndex, supportPosterior.findIndex((point) => point.weight === Math.max(...supportPosterior.map((point) => point.weight))), 'Modal support-point index must identify the largest weight');
+const supportTimes = [0, 1, 4, 12];
+const supportMeanCurve = supportPointMeanCurve(supportPosterior, supportTimes);
+assert.ok(supportMeanCurve.every((point) => Number.isFinite(point.concentration) && point.concentration > 0), 'Weighted prediction curves must remain finite and positive');
+const priorSummary = summarizeSupportPoints(normalizedSupport);
+const priorMeanCurve = supportPointMeanCurve(normalizedSupport, supportTimes);
+const meanParameterCurve = supportTimes.map((time) => (100 / priorSummary.meanV) * Math.exp(-(priorSummary.meanCl / priorSummary.meanV) * time));
+assert.ok(priorMeanCurve.some((point, index) => Math.abs(point.concentration - meanParameterCurve[index]) > 1e-6), 'Mean predictions need not equal predictions from mean parameters');
+const alternatePopulation = normalizeSupportPoints([
+  { cl: 1.5, v: 18, weight: 1 },
+  { cl: 12, v: 90, weight: 2 }
+]);
+const alternateSummary = summarizeSupportPoints(alternatePopulation);
+assert.notEqual(alternateSummary.meanCl, priorSummary.meanCl, 'Changing the population must change coherent support summaries');
+assert.equal(alternateSummary.modalIndex, 1, 'Modal index must remain correct after changing population');
 assert.throws(() => normalizeSupportPoints([{ cl: 5, v: 40, weight: 0 }]), /positive finite/, 'Zero-weight support points must fail closed');
+
+const npagComponent = readFileSync('src/lib/components/visualizations/NPAGSupportPoints.svelte', 'utf8');
+assert.match(npagComponent, /index === summary\.modalIndex/, 'NPAG visualization must highlight the modal point by index');
+assert.match(npagComponent, /Population mean/, 'NPAG visualization must label the prior summary as a population mean');
+assert.match(npagComponent, /Posterior mean/, 'NPAG visualization must label the updated summary as posterior');
+assert.match(npagComponent, /Conceptual smoothing/, 'Schematic halos must not be labelled as a quantitative local mixture');
+assert.match(npagComponent, /Illustrative lognormal cloud/, 'The comparison cloud must be labelled as illustrative');
 
 console.log('Scientific visualization calculations: PASS');

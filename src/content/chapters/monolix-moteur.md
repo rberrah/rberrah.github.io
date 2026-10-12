@@ -13,12 +13,12 @@ prerequisites: ["tools-monolix"]
 glossary: ["Monolix", "SAEM", "Vraisemblance"]
 slides: []
 sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "lavielle-mentre-monolix", "monolix"]
-software_verified_on: "2026-10-11"
+software_verified_on: "2026-10-12"
 software_version: "MonolixSuite 2024R1 documentation"
-reviewed_on: "2026-10-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "a517bd43786d26c8c039f9ba8ce017abf6277a0ce1aa29e9cbb4390983caebec"
+review_pending: false
+reviewed_hash: "b15a9c481bdc7a8018aea80c6e3562b38958f4a4952bb4fe5433be294ae21220"
 quiz:
   - prompt: "Dans le graphe de convergence du SAEM, une trajectoire parfaitement plate pendant la phase de lissage indique..."
     options:

@@ -13,16 +13,16 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["nlmixr2 / rxode2", "FOCE-I", "SAEM"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "lindstrom-bates"]
-software_verified_on: "2026-10-11"
-software_version: "nlmixr2 5.0.0; nlmixr2.org documentation"
-reviewed_on: "2026-07-14"
+software_verified_on: "2026-10-12"
+software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "52cf93a39a5ab767d4d1c7b52ba4ce242fef03311b4759b58bb6081e3cd60fe1"
+review_pending: false
+reviewed_hash: "cc2222c8b1f2db59bc8c09761420ad2d0be23cd0bbf64ec52939fddcfb110678"
 quiz:
   - prompt: "On ajuste le même modèle deux fois, une fois avec est = saem et une fois avec est = focei, et on soustrait les deux OFV rendus. Que mesure cette différence ?"
     options:
-      - "Rien d'exploitable : les deux nombres sont des valeurs de l'objectif FOCEi évaluées à deux jeux de paramètres différents, et leur écart dit surtout lequel des optimiseurs s'est le plus approché du maximum."
+      - "Ce n'est pas un LRT valide : un même évaluateur FOCEi ne transforme pas deux ajustements obtenus par des estimateurs différents en deux maxima comparables d'une même chaîne de modèles emboîtés."
       - "Un test du rapport de vraisemblance valide dès lors que les deux modèles sont emboîtés : nlmixr2 ramène les deux OFV sur la même échelle, ce qui rend leur différence directement interprétable."
       - "L'écart d'approximation entre le SAEM et le FOCEI : il suffit de le retrancher du ΔOFV avant de comparer ce dernier au seuil du χ² à un degré de liberté pour trancher entre les modèles."
     correct: 0
@@ -126,7 +126,17 @@ f2q <- nlmixr2(mod, dat, est = "saem",
 
 Les noms d'options sont dépendants de la version : les exemples utilisent la convention actuelle `nnodesGq` / `nsdGq`. Vérifiez la documentation de votre installation avant de recycler un ancien script.
 
-Conséquence directe : dans nlmixr2, l'OFV d'un fit SAEM et celui d'un fit FOCEI peuvent être sur la **même échelle**, produits par la **même fonction**. C'est plus explicite que de laisser deux logiciels afficher des quantités potentiellement non équivalentes. C'est aussi bien plus dangereux, parce que les deux nombres se ressemblent assez pour qu'on les soustraie sans y penser. L'option `adjObf`, active par défaut, aligne de surcroît la constante additive sur la convention de NONMEM : le nombre a jusqu'à l'allure familière.
+Conséquence directe : dans nlmixr2, l'OBJF d'un fit SAEM et celui d'un fit FOCEI peuvent être sur la **même échelle**, produits par le **même évaluateur FOCEi**. Cela ne les transforme pas en deux maxima comparables pour un LRT : un tel test exige notamment des modèles emboîtés, une estimation cohérente de la même vraisemblance et les conditions de régularité adaptées. L'option `adjObf`, active par défaut, aligne de surcroît la constante additive sur la convention de NONMEM : le nombre a jusqu'à l'allure familière.
+
+| Sortie après `est = "saem"` | Ce qu'elle représente | Interprétation correcte |
+|---|---|---|
+| paramètres SAEM | estimations de $\theta$, $\Omega$ et de l'erreur obtenues par approximation stochastique EM | résultat de l'estimation SAEM |
+| `OBJF` par défaut | approximation FOCEi évaluée **aux paramètres SAEM** | diagnostic sur une échelle commune, pas « OFV SAEM » ni preuve de comparabilité LRT avec un fit FOCEI |
+| `logLik`, AIC et BIC par défaut | quantités dérivées de l'évaluation de vraisemblance retenue par l'objet, liée par défaut à l'approximation FOCEi | toujours rapporter l'évaluateur et les conventions avec la valeur |
+| `saemControl(logLik = TRUE)` | évaluation numérique postérieure à l'estimation par quadrature de Gauss-Hermite (`nnodesGq`, `nsdGq`) | approximation distincte, dont le coût croît rapidement avec la dimension |
+| `est = "imp"`, `"impmap"` ou `"qrpem"` | estimateurs par importance sampling disponibles dans la série 7 et encore signalés comme méthodes de recherche | ne pas les confondre avec une simple OFV calculée après SAEM ; documenter méthode, version et réglages |
+
+Les exemples ont été revérifiés avec la documentation nlmixr2 7.0.1 / nlmixr2est 7.1. Les valeurs par défaut FOCEI et SAEM ont changé dans la série 7 ; reproduire un ancien run exige donc de consigner la version et les objets de contrôle, pas seulement la graine.
 
 :::note
 Réf. : Fidler M. et coll., *CPT Pharmacometrics Syst Pharmacol* 2019, pour la conception de nlmixr et le partage d'un même modèle entre plusieurs estimateurs ; Wang W., Hallow K. M., James D. A., *CPT Pharmacometrics Syst Pharmacol* 2016, pour RxODE et la compilation du système d'EDO ; Lindstrom M. J., Bates D. M., *Biometrics* 1990, pour l'algorithme alterné qui sous-tend `est = "nlme"` ; documentation du projet nlmixr2 pour les noms des méthodes et des options de contrôle.

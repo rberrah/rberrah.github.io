@@ -2,8 +2,8 @@
 
 Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
-- Relues : 62
-- En attente : 3
+- Relues : 65
+- En attente : 0
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
@@ -28,11 +28,11 @@ Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signi
 | 21_PopPKPlayground | reviewed | 2026-10-11 | author | hash current |
 | 30_TumorGrowth | reviewed | 2026-10-11 | author | hash current |
 | 31_JointSurvival | reviewed | 2026-10-11 | author | hash current |
-| 32_Myelosuppression | pending | 2026-10-11 | author | — |
+| 32_Myelosuppression | reviewed | 2026-10-12 | author | hash current |
 | 40_TreeEnsemble | reviewed | 2026-10-11 | author | hash current |
 | 41_SVMMargin | reviewed | 2026-10-11 | author | hash current |
 | 42_VarImportance | reviewed | 2026-10-09 | author | hash current |
-| 43_Copula | pending | 2026-10-10 | author | — |
+| 43_Copula | reviewed | 2026-10-12 | author | hash current |
 | 44_Survival | reviewed | 2026-10-10 | author | hash current |
 | 45_ViralKinetics | reviewed | 2026-10-10 | author | hash current |
 | 50_GOFPlots | reviewed | 2026-10-11 | author | hash current |
@@ -66,7 +66,7 @@ Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signi
 | Infusion | reviewed | 2026-10-11 | author | hash current |
 | MipdResidualLever | reviewed | 2026-10-10 | author | hash current |
 | MultiDose | reviewed | 2026-10-11 | author | hash current |
-| NPAGSupportPoints | pending | — | — | — |
+| NPAGSupportPoints | reviewed | 2026-10-12 | author | hash current |
 | OralAbsorptionExplorer | reviewed | 2026-10-11 | author | hash current |
 | SheinerEffect | reviewed | 2026-10-11 | author | hash current |
 | SlideFigure | reviewed | 2026-10-11 | author | hash current |

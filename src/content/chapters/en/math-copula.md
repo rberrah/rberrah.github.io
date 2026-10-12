@@ -13,10 +13,10 @@ slides: []
 prerequisites: ["math-stats","variabilite-iiv-iov"]
 glossary: ["ω / Ω","IIV","Distribution normale"]
 sources: ["nelsen-copulas","bonate"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "0525903262b6851ad54a1e6e71ae516b522f7f2e2f4ad41bf8232fecfbd3693d"
+review_pending: false
+reviewed_hash: "67828ac9fec050b4f7cb9884215c47c32e76c87910510578f0f08a3ea3312a36"
 quiz:
   - prompt: "A copula describes..."
     options:

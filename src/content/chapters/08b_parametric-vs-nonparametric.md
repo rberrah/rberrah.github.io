@@ -13,10 +13,10 @@ prerequisites: ["variabilite-iiv-iov", "outils-estimation"]
 glossary: ["Effets mixtes", "Vraisemblance", "Distribution mélangeante", "NPAG", "NPOD", "Point de support"]
 slides: []
 sources: ["goutelle-parametric-nonparametric", "neely-pmetrics", "yamada-npag"]
-reviewed_on: "2026-09-28"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "6c23f6afe1aa871a444e5c285f8328e3249bb7f41bcf558d327306cef3eae440"
+review_pending: false
+reviewed_hash: "bd3b5b8257432cda03fb363d34659bc284834914bdf16e0e67a74e1194d86f65"
 quiz:
   - prompt: "Dans ce contexte, paramétrique ou non paramétrique décrit surtout..."
     options:
@@ -95,6 +95,8 @@ En pratique, une approche non paramétrique est particulièrement informative lo
 <!-- step:title="Benchmark à vérité connue" -->
 Un benchmark reproductible a utilisé le même modèle IV à un compartiment, la même erreur et les mêmes temps pour trois distributions vraies de clairance. Le modèle de population est ajusté sur 90 sujets ; chez 180 sujets indépendants, la concentration à 1 h actualise la distribution individuelle avant de prédire celle à 8 h. NPAG est lancé avec deux graines et 40 ou 80 points initiaux.
 
+Le comparateur paramétrique est une estimation marginale log-normale dédiée à ce benchmark ; il ne s'agit pas d'un run FOCEI ou SAEM d'un logiciel concurrent. Le benchmark compare donc une **hypothèse log-normale** à une **représentation NPAG** dans un même problème synthétique, et non « Pmetrics contre les autres logiciels ».
+
 | Distribution vraie | Méthode | Log-vraisemblance prédictive moyenne | Biais (mg/L) | RMSE (mg/L) | MAE (mg/L) | Couverture 90 % |
 |---|---|---:|---:|---:|---:|---:|
 | Log-normale | Paramétrique | -0,214 | 0,032 | 0,282 | 0,226 | 91,7 % |
@@ -108,9 +110,13 @@ Dans le contrôle log-normal, les RMSE sont pratiquement identiques : NPAG n'est
 <!-- /step -->
 
 <!-- step:title="Quand utiliser le non paramétrique ?" -->
-Une représentation non paramétrique peut être utile pour examiner une asymétrie ou une multimodalité reproductible, une population hétérogène, ou un TDM qui doit conserver la distribution jointe complète. Elle reste conditionnelle au modèle structural, aux covariables, à l'erreur, aux bornes et au dessin.
+- **Population simple et données limitées :** une représentation paramétrique parcimonieuse est souvent plus stable.
+- **Asymétrie reproductible malgré un modèle adéquat :** tester une représentation non paramétrique peut être informatif.
+- **Multimodalité apparente :** l'investiguer par diagnostics, covariables et réplications ; ne pas conclure directement à des phénotypes.
+- **TDM :** conserver la distribution jointe pondérée peut être utile lorsque la moyenne et la covariance résument mal le prior.
+- **Modèle structurel ou erreur inadéquats :** aucune représentation de population ne sauve l'analyse ; il faut d'abord corriger le modèle.
 
-Une représentation paramétrique peut rester préférable lorsque l'information est faible, qu'une forme simple décrit correctement les données, que la parcimonie stabilise l'estimation ou qu'un workflow exige une paramétrisation standard facilement communicable. Le choix est une question d'**adéquation à l'usage** : diagnostics et performances held-out priment sur l'étiquette de la méthode.
+Le choix est une question d'**adéquation à l'usage** : diagnostics, stabilité et performances sur données indépendantes priment sur l'étiquette de la méthode.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

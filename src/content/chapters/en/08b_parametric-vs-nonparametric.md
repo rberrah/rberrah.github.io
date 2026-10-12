@@ -13,10 +13,10 @@ prerequisites: ["variabilite-iiv-iov","outils-estimation"]
 glossary: ["Effets mixtes", "Vraisemblance", "Distribution mélangeante", "NPAG", "NPOD", "Point de support"]
 slides: []
 sources: ["goutelle-parametric-nonparametric","neely-pmetrics","yamada-npag"]
-reviewed_on: "2026-09-28"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "c952dcd3314e3af365ed072c3e52691b9b37970a4a0e82f7276351153ee83c49"
+review_pending: false
+reviewed_hash: "6b824ad685135b1b37eefff3a844cbb7e376f9698be7d09ca496ece0d7a6e6f1"
 quiz:
   - prompt: "In this context, parametric or nonparametric mainly describes..."
     options:
@@ -91,6 +91,8 @@ In practice, a nonparametric approach can be particularly informative when an im
 <!-- step:title="Known-truth benchmark" -->
 A reproducible benchmark used the same one-compartment IV model, residual error and sampling times under three true clearance distributions. The population model was fitted to 90 subjects; in 180 independent subjects, the 1 h concentration updated the individual distribution before predicting the 8 h concentration. NPAG used two seeds and 40 or 80 initial points.
 
+The parametric comparator is a marginal lognormal estimator built specifically for this benchmark; it is not a FOCEI or SAEM run from a competing package. The benchmark therefore compares a **lognormal assumption** with an **NPAG representation** in the same synthetic problem, not “Pmetrics versus other software”.
+
 | True distribution | Method | Mean predictive log-likelihood | Bias (mg/L) | RMSE (mg/L) | MAE (mg/L) | 90% coverage |
 |---|---|---:|---:|---:|---:|---:|
 | Log-normal | Parametric | -0.214 | 0.032 | 0.282 | 0.226 | 91.7% |
@@ -104,9 +106,13 @@ In the log-normal control, RMSE is practically identical: NPAG is not necessaril
 <!-- /step -->
 
 <!-- step:title="When should nonparametric modelling be used?" -->
-A nonparametric representation can be useful when investigating reproducible asymmetry or multimodality, a heterogeneous population, or TDM that should retain the complete joint distribution. It remains conditional on the structural model, covariates, error, bounds and design.
+- **Simple population and limited data:** a parsimonious parametric representation is often more stable.
+- **Reproducible asymmetry despite an adequate model:** testing a nonparametric representation can be informative.
+- **Apparent multimodality:** investigate it with diagnostics, covariates and replication; do not infer phenotypes directly.
+- **TDM:** retaining the weighted joint distribution can help when a mean and covariance poorly summarize the prior.
+- **Misspecified structural or error model:** neither population representation rescues the analysis; fix the model first.
 
-A parametric representation may remain preferable when information is limited, a simple shape adequately describes the data, parsimony stabilizes estimation, or a workflow requires an easily communicated standard parameterization. The choice is a **fitness-for-purpose** question: diagnostics and held-out performance matter more than the method label.
+The choice is a **fitness-for-purpose** question: diagnostics, stability and held-out performance matter more than the method label.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

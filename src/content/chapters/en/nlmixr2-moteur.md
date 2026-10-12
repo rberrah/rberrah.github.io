@@ -13,16 +13,16 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["nlmixr2 / rxode2","FOCE-I","SAEM"]
 slides: []
 sources: ["nlmixr2","fidler-nlmixr","wang-rxode","lindstrom-bates"]
-software_verified_on: "2026-10-11"
-software_version: "nlmixr2 5.0.0; nlmixr2.org documentation"
-reviewed_on: "2026-07-14"
+software_verified_on: "2026-10-12"
+software_version: "nlmixr2 7.0.1; nlmixr2est 7.1 documentation"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "ffbcba96bfac36490e4ec98fbd76fa964d96db1ac553d6ab62105ac31e4766da"
+review_pending: false
+reviewed_hash: "da8ad781e509e7faa5fa8bac78faf75538a0a713dd45c93a01795f3e3c082cf4"
 quiz:
   - prompt: "You fit the same model twice, once with est = saem and once with est = focei, and subtract the two reported OFVs. What does that difference measure?"
     options:
-      - "Nothing usable: both numbers are values of the FOCEi objective evaluated at two different parameter sets, and their gap mostly says which optimiser came closer to that function's minimum."
+      - "It is not a valid LRT: a common FOCEi evaluator does not turn fits obtained with different estimators into comparable maxima from one nested-model sequence."
       - "A valid likelihood ratio test as soon as the two models are nested: nlmixr2 brings both OFVs onto the same scale, which makes their difference directly interpretable."
       - "The approximation gap between SAEM and FOCEI: it simply has to be subtracted from the ΔOFV before comparing the latter to the one degree of freedom χ² threshold to conclude."
     correct: 0
@@ -126,7 +126,17 @@ f2q <- nlmixr2(mod, dat, est = "saem",
 
 Option names are version-dependent: the examples use the current `nnodesGq` / `nsdGq` convention. Check your installed documentation before recycling an old script.
 
-Direct consequence: in nlmixr2, the OFV of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same function**. That is more explicit than letting two programs display potentially non-equivalent quantities. It is also far more dangerous, because the two numbers look alike enough to be subtracted without a second thought. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention: the number even has the familiar look.
+Direct consequence: in nlmixr2, the OBJF of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same FOCEi evaluator**. This does not turn them into comparable maxima for an LRT: such a test requires, among other conditions, nested models, coherent estimation of the same likelihood and the relevant regularity assumptions. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention, so the number even has the familiar look.
+
+| Output after `est = "saem"` | What it represents | Correct interpretation |
+|---|---|---|
+| SAEM parameters | $\theta$, $\Omega$ and residual-error estimates obtained by stochastic-approximation EM | the result of SAEM estimation |
+| default `OBJF` | FOCEi approximation evaluated **at the SAEM parameter estimates** | a common-scale diagnostic, not a “SAEM OFV” or proof of LRT comparability with a FOCEI fit |
+| default `logLik`, AIC and BIC | quantities derived from the likelihood evaluation retained by the fit object, linked by default to the FOCEi approximation | always report the evaluator and conventions with the value |
+| `saemControl(logLik = TRUE)` | a post-estimation Gauss-Hermite quadrature evaluation (`nnodesGq`, `nsdGq`) | a distinct approximation whose cost rises rapidly with dimension |
+| `est = "imp"`, `"impmap"` or `"qrpem"` | importance-sampling estimators available in the 7.x line and still labelled research methods | do not confuse them with a likelihood merely evaluated after SAEM; report method, version and settings |
+
+The examples were rechecked against nlmixr2 7.0.1 / nlmixr2est 7.1 documentation. FOCEI and SAEM defaults changed in the 7.x line; reproducing an older run therefore requires the package version and control objects, not only the random seed.
 
 :::note
 Ref.: Fidler M. et al., *CPT Pharmacometrics Syst Pharmacol* 2019, for the design of nlmixr and the sharing of one model across several estimators; Wang W., Hallow K. M., James D. A., *CPT Pharmacometrics Syst Pharmacol* 2016, for RxODE and the compilation of the ODE system; Lindstrom M. J., Bates D. M., *Biometrics* 1990, for the alternating algorithm underlying `est = "nlme"`; nlmixr2 project documentation for the names of the methods and control options.

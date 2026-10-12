@@ -13,12 +13,12 @@ prerequisites: ["tools-algorithms"]
 glossary: ["Monolix", "SAEM"]
 slides: []
 sources: ["monolix", "kuhn-lavielle-saem", "lavielle", "karlsson-holford-vpc"]
-software_verified_on: "2026-10-11"
+software_verified_on: "2026-10-12"
 software_version: "MonolixSuite 2024R1 documentation"
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "ae8b4b7dd2b2875797ef82b0f08b212dc8d99437c445e1171c5c7cafa50457f0"
+review_pending: false
+reviewed_hash: "9d7a34f3f0d3de42c0c06b4d6a3b326a27dc9749da5da5a946160e9f568a6332"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."
     options:

@@ -13,10 +13,10 @@ prerequisites: ["math-stats", "variabilite-iiv-iov"]
 glossary: ["ω / Ω", "IIV", "Distribution normale"]
 slides: []
 sources: ["nelsen-copulas", "bonate"]
-reviewed_on: "2026-07-09"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "76aba6928dc84af08448ec3c84c82217dc805a6873833480d23580a6c338b626"
+review_pending: false
+reviewed_hash: "0bbe90c4dea0dfc547273fae1fe9d4275fcff76a56585ba73116825e5037ba75"
 quiz:
   - prompt: "Une copule décrit..."
     options:

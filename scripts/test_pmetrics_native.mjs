@@ -4,12 +4,13 @@ import { delimiter, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { exportPmetrics } from '../src/lib/lego/pmetrics.js';
 
-const executable = process.env.PMETRICS_RSCRIPT || resolve(
+const localExecutable = resolve(
   process.cwd(), '..', '..', '.tools', 'R-4.6.1', 'bin',
   process.platform === 'win32' ? 'Rscript.exe' : 'Rscript'
 );
+const executable = process.env.PMETRICS_RSCRIPT || (existsSync(localExecutable) ? localExecutable : 'Rscript');
 
-if (!existsSync(executable)) {
+if (executable !== 'Rscript' && !existsSync(executable)) {
   console.error(`Pmetrics Rscript not found: ${executable}`);
   process.exit(1);
 }

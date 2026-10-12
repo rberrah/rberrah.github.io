@@ -13,10 +13,10 @@ slides: []
 prerequisites: ["onco-models"]
 glossary: ["PD","Emax","Réponse indirecte / turnover"]
 sources: ["friberg","savic-transit","sharma-jusko-indirect"]
-reviewed_on: "2026-10-11"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "cfb63ab26e53b2f32c67a62c9e13a3cf0d14841c90de5bd0d5a6aedf5c6af1f7"
+review_pending: false
+reviewed_hash: "a61d206bd8ee5361189c3ed5267c6534930acecc82865e5b2926f40bb2dadfab"
 quiz:
   - prompt: "In the Friberg model, the neutrophil nadir occurs..."
     options:

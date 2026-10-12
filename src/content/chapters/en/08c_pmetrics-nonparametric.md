@@ -13,12 +13,12 @@ prerequisites: ["parametric-vs-nonparametric","outils-estimation"]
 glossary: ["NPAG", "NPOD", "Point de support", "Distribution mélangeante", "Vraisemblance"]
 slides: []
 sources: ["pmetrics","neely-pmetrics","yamada-npag"]
-software_verified_on: "2026-10-11"
+software_verified_on: "2026-10-12"
 software_version: "Pmetrics 3.2.6"
-reviewed_on: "2026-09-29"
+reviewed_on: "2026-10-12"
 review_type: "author"
-review_pending: true
-reviewed_hash: "ea3e262cc8a64188c2434174d841e47208f8c3668f4ed2924f3876ddfb6e1ced"
+review_pending: false
+reviewed_hash: "cc92c0b2b979507184f96c21cf447efe44fd88f3c59f40637b49a6eed5fd0915"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
     options:
@@ -140,6 +140,8 @@ Pmetrics includes two nonparametric algorithms:
 | **NPOD** | nonparametric optimization based on likelihood gradients | a distinct algorithm, still under active development and potentially more vulnerable to local minima |
 
 Both estimate a discrete mixing distribution, but they should not be assumed interchangeable. Compare convergence, stability across initializations, predictive likelihood and fitness for the intended use. Pmetrics uses `algorithm = "NPAG"` by default; NPOD must be requested explicitly and remains experimental in PMx Explain.
+
+**NPAG is a method, not a synonym for Pmetrics.** Pmetrics provides a long-standing, specialised implementation of NPAG as well as NPOD. nlmixr2 7 also provides `est = "npag"` and a nonparametric Bayesian method, `est = "npb"`, currently described by its authors as experimental. Interfaces, diagnostics and maturity differ; similar names do not imply automatic interchangeability or a software ranking.
 <!-- /step -->
 
 <!-- step:title="From Translator to Pmetrics" -->
@@ -163,11 +165,25 @@ Individualization requires a **structural model, its error model and weighted po
 
 The TDM Pmetrics backend calls `PM_model$map()` with a weighted prior. Point locations stay fixed; patient concentrations update their probabilities. This is not a new population NPAG fit. The central curve uses posterior mean parameters; uncertainty simulations sample joint parameter vectors with their weights, without replacing them with a normal distribution. Mean parameters, the most probable point and the mean prediction are generally different summaries.
 
+```text
+population distribution
+        ↓
+support points + weights
+        ↓
+patient concentration
+        ↓
+posterior weights via PM_model$map()
+        ↓
+individual distribution
+        ↓
+exposure prediction
+```
+
 A simulation that directly samples a support point preserves the estimated discrete distribution. A semiparametric simulation may add local dispersion around each point; it then creates a continuous mixture that is no longer the original NPAG distribution. The two outputs must be labelled separately.
 
 The three available artifacts are **synthetic demonstrations** for one-compartment IV, one-compartment oral and two-compartment IV models; they are not distributions estimated in publications. Covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
 
-**Availability verified on 11 October 2026:** the native backend is tested locally and included in the repository. A browser test confirms that the public engine does not expose the Pmetrics source. The latest Shinyapps.io deployment remains blocked by the image's Rust/Cargo version; no old Pmetrics version was forced as a workaround. The Pmetrics translator and this course remain accessible on the website.
+**Availability verified on 12 October 2026:** the native backend is tested locally and included in the repository. A browser test confirms that the public engine does not expose the Pmetrics source. This is not a general incompatibility between Pmetrics and Shiny: the tested Shinyapps.io deployment remains blocked by the build image's Rust/Cargo version. No old Pmetrics version was forced as a workaround. The Pmetrics translator and this course remain accessible on the website.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

@@ -33,9 +33,9 @@ const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis'
 const pendingReviews = chapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const pendingEnglishReviews = englishChapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const softwareChapters = chapters.filter(chapter => chapter.software_verified_on);
-const freshnessDue = date => {
+const freshnessDue = (date, days) => {
   const value = new Date(`${date}T00:00:00Z`);
-  value.setUTCDate(value.getUTCDate() + 183);
+  value.setUTCDate(value.getUTCDate() + days);
   return value.toISOString().slice(0, 10);
 };
 const rows = [
@@ -106,16 +106,16 @@ ${pendingReviews.length || pendingEnglishReviews.length
       ...pendingReviews.map(chapter => `| FR | ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.reviewed_on} | content hash changed |`),
       ...pendingEnglishReviews.map(chapter => `| EN | ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.reviewed_on} | content hash changed |`)
     ].join('\n')}`
-  : 'Every French and English chapter matches its independently stored scientific-review hash.'}
+  : 'Every French and English chapter matches its stored author-review hash. Independent scientific review remains pending.'}
 
 ## External software freshness
 
 Dates below are an inventory, not a claim that the software itself was validated.
-Validation emits a warning, not a failure, after 183 days.
+Validation emits a freshness warning after 183 days and a stronger visible-debt warning after 365 days; neither blocks publication automatically.
 
-| Chapter | Version or documentation checked | Verified on | External freshness due after |
-| --- | --- | --- | --- |
-${softwareChapters.map(chapter => `| ${chapter.slug} | ${chapter.software_version} | ${chapter.software_verified_on} | ${freshnessDue(chapter.software_verified_on)} |`).join('\n')}
+| Chapter | Version or documentation checked | Verified on | Warning after | Priority debt after |
+| --- | --- | --- | --- | --- |
+${softwareChapters.map(chapter => `| ${chapter.slug} | ${chapter.software_version} | ${chapter.software_verified_on} | ${freshnessDue(chapter.software_verified_on, 183)} | ${freshnessDue(chapter.software_verified_on, 365)} |`).join('\n')}
 `;
 
 if (process.argv.includes('--check')) {
