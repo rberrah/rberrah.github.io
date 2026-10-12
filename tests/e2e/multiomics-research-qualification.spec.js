@@ -4,6 +4,9 @@ import fs from 'node:fs/promises';
 
 test('novice can export reproducible, private methods audit without raw patient rows',async({page})=>{
   await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated
+  ),{timeout:12000}).toBe('true');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   await page.getByTestId('multiomics-results').locator('.export-detail summary').click();
