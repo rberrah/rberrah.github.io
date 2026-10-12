@@ -140,6 +140,7 @@ if(nzchar(out)) {
     "PATH RENORMALIZATION = STRICT NATIVE - STRICT FROZEN",
     "Both path terms include downstream model refitting; not a pure causal intervention.",
     "Do not choose filtering/scaling on observed q-values or benchmark power.",
+    "Decomposition describes paired empirical FDP; zero FDP does not establish FDR control.",
     "No external validation; no nominal FDR/clinical certification.",
     paste("utc_timestamp:",format(Sys.time(),tz="UTC",usetz=TRUE)),
     capture.output(sessionInfo())),
