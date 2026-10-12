@@ -40,9 +40,13 @@ for(const lesson of crossDomainLessons){
   const chapters=fs.readdirSync('src/content/chapters')
     .filter(name=>name.endsWith('.md')&&!name.startsWith('_'))
     .map(name=>fs.readFileSync('src/content/chapters/'+name,'utf8'));
-  for(const link of lesson.links)
-    assert.ok(chapters.some(raw=>new RegExp('^slug:\\\\s*["\\\']?'+
-      link.slug+'["\\\']?\\\\s*
+  for(const link of lesson.links){
+    const routeExists=chapters.some(raw=>{
+      const match=/^slug:\s*["']?([A-Za-z0-9-]+)["']?\s*$/m.exec(raw);
+      return match?.[1]===link.slug;
+    });
+    assert.ok(routeExists,'Unresolved actual PKPD reference lesson: '+link.slug);
+  }
 }
 const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
 const nav=fs.readFileSync('src/routes/+layout.svelte','utf8');
