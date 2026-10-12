@@ -39,49 +39,98 @@ ms_quantitative_assurance <- function(intensities, manifest,
     stop("Unique finite injection orders are needed for drift review.")
   tested <- x[biological,,drop=FALSE]
   missing <- colMeans(is.na(tested))
+  biological_finite <- colSums(is.finite(tested))
+  pooled_qc_finite <- if(length(qc)) colSums(is.finite(x[qc,,drop=FALSE]))
+    else rep(0L,ncol(x))
+  blank_finite <- if(length(blanks)) colSums(is.finite(x[blanks,,drop=FALSE]))
+    else rep(0L,ncol(x))
+
+  # A pooled-QC series can exist while particular features are absent from
+  # most/all injections. Never label that feature as QC-passing.
   qc_rsd <- rep(NA_real_,ncol(x))
-  if(length(qc)>=3L){
-    qc_rsd <- apply(x[qc,,drop=FALSE],2L,function(z){
-      z <- z[is.finite(z)]
-      if(length(z)<3L||mean(z)<=0) return(NA_real_)
+  if(length(qc)>=3L) {
+    qc_rsd <- vapply(seq_len(ncol(x)),function(j) {
+      z<-x[qc,j]
+      z<-z[is.finite(z)]
+      if(length(z)<3L || mean(z)<=0) return(NA_real_)
       stats::sd(z)/mean(z)
-    })
+    },numeric(1))
   }
+  qc_status <- ifelse(length(qc)<3L,"too_few_pooled_qc_injections",
+    ifelse(pooled_qc_finite<3L,"too_few_finite_pooled_qc_values",
+      ifelse(is.finite(qc_rsd),"rsd_evaluable",
+             "pooled_qc_mean_zero_or_not_estimable")))
+
   blank_fraction <- rep(NA_real_,ncol(x))
-  if(length(blanks)>=2L) {
-    numerator <- apply(x[blanks,,drop=FALSE],2L,function(z)
-      if(any(is.finite(z)))stats::median(z,na.rm=TRUE)else NA_real_)
-    denominator <- apply(tested,2L,function(z)
-      if(any(is.finite(z)))stats::median(z,na.rm=TRUE)else NA_real_)
-    blank_fraction <- ifelse(is.finite(denominator)&denominator>0,
-      numerator/denominator,NA_real_)
+  blank_status <- rep("not_evaluable",ncol(x))
+  if(length(blanks)<2L) {
+    blank_status[] <- "too_few_blank_injections"
+  } else for(j in seq_len(ncol(x))) {
+    if(blank_finite[[j]]<2L) {
+      blank_status[[j]] <- "too_few_finite_blank_values"
+      next
+    }
+    if(biological_finite[[j]]<2L) {
+      blank_status[[j]] <- "too_few_finite_biological_values"
+      next
+    }
+    numerator <- stats::median(x[blanks,j],na.rm=TRUE)
+    denominator <- stats::median(tested[,j],na.rm=TRUE)
+    if(denominator>0) {
+      blank_fraction[[j]]<-numerator/denominator
+      blank_status[[j]]<-"ratio_evaluable"
+    } else if(numerator>0) {
+      # This is positive solvent contamination against a biological median
+      # of zero. NA would suppress the critical contamination flag.
+      blank_status[[j]]<-"positive_blank_with_zero_biological_median"
+    } else blank_status[[j]]<-"both_blank_and_biological_medians_zero"
   }
+
   strata <- sort(unique(groups))
   diff_missing <- rep(NA_real_,ncol(x))
-  if(length(strata)==2L){
+  if(length(strata)==2L) {
     rates <- vapply(strata,function(g)
       colMeans(is.na(tested[groups==g,,drop=FALSE])),numeric(ncol(x)))
-    diff_missing <- abs(rates[,1L]-rates[,2L])
+    diff_missing<-abs(rates[,1L]-rates[,2L])
   }
+
   drift <- rep(NA_real_,ncol(x))
-  # Spearman correlation is a SCREEN, not a validated drift correction.
-  if(length(qc)>=5L)for(j in seq_len(ncol(x))){
-    v <- x[qc,j]
-    ok <- is.finite(v)
-    if(sum(ok)>=5L && stats::sd(v[ok])>0)
-      drift[[j]] <- suppressWarnings(stats::cor(order[qc][ok],v[ok],
-                                                   method="spearman"))
+  drift_status <- rep("too_few_pooled_qc_injections",ncol(x))
+  if(length(qc)>=5L) for(j in seq_len(ncol(x))) {
+    v<-x[qc,j]
+    ok<-is.finite(v)
+    if(sum(ok)<5L) {
+      drift_status[[j]]<-"too_few_finite_pooled_qc_values"
+    } else if(stats::sd(v[ok])==0) {
+      drift_status[[j]]<-"constant_pooled_qc_signal_correlation_undefined"
+    } else {
+      drift[[j]]<-suppressWarnings(stats::cor(order[qc][ok],v[ok],
+                                              method="spearman"))
+      drift_status[[j]]<-"screen_evaluable"
+    }
   }
-  feature_table <- data.frame(feature_id=colnames(x),
+  feature_table <- data.frame(
+    feature_id=colnames(x),
+    finite_biological_values=as.integer(biological_finite),
+    finite_pooled_qc_values=as.integer(pooled_qc_finite),
+    finite_blank_values=as.integer(blank_finite),
     biological_missing_fraction=missing,
     pooled_qc_rsd=qc_rsd,
+    pooled_qc_precision_status=qc_status,
     blank_over_biological_ratio=blank_fraction,
+    blank_background_status=blank_status,
     missingness_group_difference=diff_missing,
     pooled_qc_order_spearman=drift,
+    pooled_qc_drift_status=drift_status,
     flag_missing=missing>max_missing_fraction,
     flag_qc_variation=is.finite(qc_rsd)&qc_rsd>qc_rsd_threshold,
-    flag_blank_signal=is.finite(blank_fraction)&
-      blank_fraction>=blank_fraction_threshold,
+    flag_qc_not_evaluable=(length(qc)>=3L)&!is.finite(qc_rsd),
+    flag_blank_signal=(is.finite(blank_fraction)&
+                         blank_fraction>=blank_fraction_threshold)|
+      blank_status=="positive_blank_with_zero_biological_median",
+    flag_blank_not_evaluable=(length(blanks)>=2L)&
+      blank_status!="ratio_evaluable" &
+      blank_status!="positive_blank_with_zero_biological_median",
     flag_group_missingness=is.finite(diff_missing)&
       diff_missing>=imbalance_threshold,
     stringsAsFactors=FALSE)
@@ -117,7 +166,8 @@ ms_quantitative_assurance <- function(intensities, manifest,
     alerts <- c(alerts,"pooled_qc_not_sufficient_for_drift")
   if(!coverage$missingness_group_imbalance_evaluable)
     alerts <- c(alerts,"exactly_two_biological_groups_needed_for_missingness_comparison")
-  for(flag in c("flag_missing","flag_qc_variation","flag_blank_signal",
+  for(flag in c("flag_missing","flag_qc_variation","flag_qc_not_evaluable",
+                "flag_blank_signal","flag_blank_not_evaluable",
                 "flag_group_missingness")){
     if(any(feature_table[[flag]]))
       alerts <- c(alerts,paste0(flag,"_",sum(feature_table[[flag]])))
@@ -132,11 +182,13 @@ ms_quantitative_assurance <- function(intensities, manifest,
       max_missing_fraction=max_missing_fraction,
       imbalance_threshold=imbalance_threshold),
     feature_exclusions_automatically_applied=FALSE,
+    per_feature_qc_observability_recorded=TRUE,
     mnar_diagnosis_possible_from_this_table=FALSE,
     pathway_or_compound_identity_certified=FALSE,
     scientific_certified=FALSE,
     limitation=paste("Peak-area QC is descriptive; zero and NA differ;",
       "an absence of group missingness imbalance does not rule out MNAR.",
+      "A measured QC/blank injection is not evidence for a particular missing or zero-valued feature.",
       "No drift correction or biological feature exclusion is selected after seeing p-values.")
   )
 }
