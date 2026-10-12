@@ -9,6 +9,8 @@ on:
       - 'scripts/benchmark_public_multiomics.mjs'
       - 'scripts/benchmark_multiomics_negative_controls.mjs'
       - 'scripts/attach_public_benchmark_provenance.mjs'
+      - 'scripts/audit_public_omics_evidence.mjs'
+      - 'scripts/test_public_omics_evidence.mjs'
       - 'src/lib/multiomics/**'
   pull_request:
     paths:
@@ -124,6 +126,12 @@ jobs:
       - name: Attach immutable source and input provenance
         run: node scripts/attach_public_benchmark_provenance.mjs tmp/public-benchmarks
 
+      - name: Test the independent public evidence qualification gate
+        run: node scripts/test_public_omics_evidence.mjs
+
+      - name: Validate independent public sources, negative controls and evidence boundaries
+        run: node scripts/audit_public_omics_evidence.mjs tmp/public-benchmarks
+
       - name: Upload benchmark report
         uses: actions/upload-artifact@v4
         with:
@@ -131,3 +139,4 @@ jobs:
           path: |
             tmp/public-benchmarks/benchmark-report.json
             tmp/public-benchmarks/benchmark-provenance.json
+            tmp/public-benchmarks/qualification-scope.json
