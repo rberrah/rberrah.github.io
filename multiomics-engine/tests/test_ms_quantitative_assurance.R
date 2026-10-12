@@ -13,6 +13,20 @@ x[11:15,"background"]<-50
 x[11:15,"unstable_qc"]<-c(30,150,60,190,10)
 x[6:10,"missing_in_treated"]<-NA_real_
 a<-ms_quantitative_assurance(x,meta)
+# Independently hand-check numerical estimands against reference R formulas.
+reference<-x
+reference[11:15,"background"]<-c(20,25,30,35,40)
+numeric_check<-ms_quantitative_assurance(reference,meta)
+stopifnot(isTRUE(all.equal(numeric_check$features$pooled_qc_rsd[2],
+  stats::sd(c(20,25,30,35,40))/mean(c(20,25,30,35,40)),
+  tolerance=1e-12)),
+ isTRUE(all.equal(numeric_check$features$blank_over_biological_ratio[2],
+  35/50,tolerance=1e-12)),
+ isTRUE(all.equal(numeric_check$features$missingness_group_difference[4],
+  1.0,tolerance=1e-12)),
+ isTRUE(all.equal(numeric_check$features$pooled_qc_order_spearman[2],
+  1.0,tolerance=1e-12)))
+
 # A documented QC injection does not mean each molecular feature has
 # enough finite measurements to estimate precision/background.
 stopifnot(all(c("pooled_qc_precision_status",
