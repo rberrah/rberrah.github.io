@@ -1,6 +1,8 @@
 // Methods-only, privacy-minimized reproducibility manifest: no patient-level
 // rows, raw expression values, predictions, or exported PHI.
+/** @param {unknown} x */
 const asNumber=(x)=>typeof x==='number'&&Number.isFinite(x)?x:null;
+/** @param {unknown} x */
 const safe=(x)=>typeof x==='string'?x.slice(0,160):null;
 /** @param {any} result */
 export function buildResearchMethodsManifest(result){
@@ -8,6 +10,7 @@ export function buildResearchMethodsManifest(result){
     !result.engine||!result.layers || typeof result.layers!=='object')
     throw new Error('Methods export requires a completed multi-omics analysis.');
   const p=result.protocol;
+  /** @type {Record<string, any>} */
   const layers={};
   for(const [layer,entry] of Object.entries(result.layers)){
     if(!['transcriptomics','proteomics','metabolomics'].includes(layer))
@@ -61,7 +64,7 @@ export function buildResearchMethodsManifest(result){
     reference_runtime_summary:runtime?{
       r_version:safe(runtime?.rVersion||runtime?.r||runtime?.R),
       package_versions:Array.isArray(runtime?.packages)?
-        runtime.packages.map(x=>({name:safe(x?.name),version:safe(x?.version)})):
+        runtime.packages.map((/** @type {any} */ x)=>({name:safe(x?.name),version:safe(x?.version)})):
         null
     }:null,
     reproducibility_limits:[
