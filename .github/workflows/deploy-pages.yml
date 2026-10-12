@@ -170,7 +170,7 @@ jobs:
         run: Rscript multiomics-engine/tests/backend_smoke.R
 
   scientific-pmetrics:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     env:
       PMETRICS_VERSION: "3.2.6"
@@ -186,7 +186,7 @@ jobs:
           use-public-rspm: true
       - name: Install pinned Pmetrics and backend dependencies
         run: |
-          Rscript -e 'repos <- getOption("repos"); options(repos = c(LAPKB = "https://lapkb.r-universe.dev", repos[repos != "@CRAN@"])) ; install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
+          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
       - name: Install Node dependencies
         run: npm ci
       - name: Compile and simulate native Pmetrics structures
