@@ -106,6 +106,19 @@ donne une **preuve manquante**, jamais un passage silencieux. Les zéros et
 les valeurs manquantes sont préservés. Aucun résultat statistiquement
 « intéressant » ne déclenche un changement de prétraitement.
 
+Un audit R complémentaire est disponible dans
+`multiomics-engine/proteomics_quantitative_assurance.R`. Il distingue
+explicitement `lfq_ms`, `tmt` et `affinity`, oblige à déclarer l'échelle
+(`raw` ou `log2`), et vérifie que les sujets biologiques ne sont pas
+comptés plusieurs fois. Il conserve, par protéine, le pourcentage de
+valeurs manquantes et son déséquilibre entre groupes ; un lot confondu
+est signalé. Les limitations propres à chaque technologie sont distinctes :
+inférence peptide–protéine et censure pour LFQ-MS, canal de référence et
+compression des ratios pour TMT, spécificité de liaison et version du
+panel pour affinité. Cet audit ne procède **ni à l'imputation**, **ni à
+l'inférence différentielle**, **ni à l'identification des protéines** et
+ne peut qualifier une étude sans contrôle des métadonnées.
+
 **Protéomique :** les données LFQ-MS, iTRAQ/TMT et les plateformes par
 affinité ont des contrôles de mesure différents ; on ne peut appliquer les
 seuils du spectre LC-MS à toutes les technologies. Les associations de
