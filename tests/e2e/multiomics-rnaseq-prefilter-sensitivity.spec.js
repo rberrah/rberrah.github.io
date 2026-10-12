@@ -10,7 +10,7 @@ test('novice RNA-seq filtering warning preserves scientific context FR/EN', asyn
   await expect(info).toBeVisible();
   await expect(info).toContainText('20 comptages dans 40 % des échantillons');
   await expect(info).toContainText('recalculent la normalisation');
-  await expect(info).toContainText('la chaîne d’analyse complète');
+  await expect(info).toContainText('la chaîne d'analyse complète');
   await expect(info).toContainText('ne faut pas choisir après coup');
   await expect(info).toContainText('ne valide pas automatiquement votre étude');
   await page.locator('.language-toggle').getByRole('button',
