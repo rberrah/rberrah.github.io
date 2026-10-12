@@ -12,6 +12,7 @@ test('frozen normalization is explained without promising causal decomposition F
   await expect(note).toContainText('filtre strict avec normalisation fixe');
   await expect(note).toContainText('normalisation recalculée');
   await expect(note).toContainText('réajustés à chaque étape');
+  await expect(note).toContainText('perte de puissance DESeq2 de 12,5 points');
   await expect(note).toContainText("pas l'effet causal isolé");
   await page.locator('.language-toggle').getByRole('button',
     {name:'EN',exact:true}).click();
@@ -21,5 +22,6 @@ test('frozen normalization is explained without promising causal decomposition F
   await expect(note).toContainText('fixed normalization');
   await expect(note).toContainText('recalculated normalization');
   await expect(note).toContainText('models are refitted');
+  await expect(note).toContainText('power loss of 12.5 percentage points');
   await expect(note).toContainText('not a proof of the isolated causal effect');
 });
