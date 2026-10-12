@@ -59,5 +59,6 @@ jobs:
       - run: npm ci
       - name: Install Chromium for real public-site visual interaction
         run: npx playwright install chromium --with-deps
-      - name: Open the real deployed site and complete desktop/mobile novice demos
+      - name: Open the deployed version after publication (not an unmerged PR)
+        if: github.event_name != 'pull_request'
         run: node scripts/check_live_multiomics.mjs
