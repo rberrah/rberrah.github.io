@@ -98,6 +98,35 @@ Le rapport produit :
 - dérive descriptive sur l'ordre d'injection, avec au moins cinq pooled-QC ;
 - alerte si le lot technique est totalement confondu avec le groupe.
 
+### Extension de contrôle : preuve mesurable par variable
+
+Le contrôle MS fournit également les **nombres de mesures réellement disponibles
+pour chaque variable** dans les échantillons biologiques, pooled-QC et blancs.
+La présence de trois injections pooled-QC ne suffit pas si la variable
+concernée est absente de deux d'entre elles : un RSD non calculable est
+étiqueté `flag_qc_not_evaluable`, jamais « conforme ». De même, si deux
+blancs sont déclarés mais ne mesurent pas cette variable, son bruit de fond
+est `flag_blank_not_evaluable`.
+
+Cas critique corrigé : si la médiane biologique d'une variable est zéro,
+mais le signal des blancs est strictement positif, le rapport émet
+`positive_blank_with_zero_biological_median` et `flag_blank_signal`.
+Auparavant, un dénominateur nul pouvait seulement produire un ratio manquant,
+sans alerte de contamination. Si les deux médianes sont nulles, le rapport
+reste **non évaluable** pour ce ratio : absence de signal ne prouve pas absence
+de contamination.
+
+Ces statuts sont exportés dans `ms_quantitative_qc_features.csv`, avec
+la colonne `pooled_qc_precision_status`, `blank_background_status`
+et `pooled_qc_drift_status`. Ils ne calculent pas automatiquement
+une correction des données.
+
+Le rapport de méthodes téléchargé depuis le navigateur corrige également
+un biais de synthèse : si la médiane des fractions manquantes vaut zéro mais
+qu'un échantillon possède des observations manquantes, l'alerte reste
+présente. La sortie publique rapporte uniquement le nombre de profils
+concernés et leur taux maximal, jamais leurs identifiants.
+
 Ces seuils (RSD 30 %, signal des blancs 20 %, manquants 20 %, déséquilibre
 30 points) sont des **écrans de revue par défaut**, à justifier selon le
 protocole instrumental ; ils ne prouvent ni mécanisme MCAR/MAR/MNAR ni
