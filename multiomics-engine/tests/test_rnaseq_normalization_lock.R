@@ -17,7 +17,9 @@ bad <- x
 bad[1,1] <- 2.7
 stopifnot(reject(bad,meta,ref))
 stopifnot(reject(x,meta,ref[-1L]))
-stopifnot(reject(x,meta,stats::setNames(ref,rev(names(ref)))))
+misnamed <- ref
+names(misnamed)[1L] <- "UNKNOWN_SUBJECT"
+stopifnot(reject(x,meta,misnamed))
 badmeta <- meta
 rownames(badmeta) <- rev(rownames(meta))
 stopifnot(reject(x,badmeta,ref))
