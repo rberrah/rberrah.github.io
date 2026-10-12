@@ -53,7 +53,10 @@ qc_audit<-ms_quantitative_assurance(qc_missing,meta)
 stopifnot(is.na(qc_audit$features$pooled_qc_rsd[1]),
  qc_audit$features$finite_pooled_qc_values[1]==0,
  qc_audit$features$pooled_qc_precision_status[1]=="too_few_finite_pooled_qc_values",
+ qc_audit$features$pooled_qc_precision_status[2]=="rsd_evaluable",
+ length(qc_audit$features$pooled_qc_precision_status)==ncol(x),
  isTRUE(qc_audit$features$flag_qc_not_evaluable[1]),
+ !qc_audit$features$flag_qc_not_evaluable[2],
  any(grepl("flag_qc_not_evaluable",qc_audit$alerts)))
 
 blank_missing<-x
