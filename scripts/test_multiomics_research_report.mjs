@@ -9,7 +9,11 @@ const example={
   inputManifest:{sourceSha256:'a'.repeat(64)},
   layers:{
     transcriptomics:{inferenceMethod:'Welch screening',
-      qc:{featuresBefore:300,featuresAfter:220,medianMissingFraction:.1,
+      qc:{featuresBefore:300,featuresAfter:220,medianMissingFraction:0,
+      sampleMetrics:[
+        {assayId:'PRIVATE_ASSAY_001',missingFraction:0},
+        {assayId:'PRIVATE_ASSAY_002',missingFraction:.38},
+        {assayId:'PRIVATE_ASSAY_003',missingFraction:0}],
       preprocessingAudit:{declaredValueType:'raw_counts'},warnings:['review']}},
     proteomics:{qc:{featuresBefore:100,featuresAfter:90,
       medianMissingFraction:0}},
@@ -29,6 +33,10 @@ assert.equal(audit.format,'pmx-omics-methods-audit/v1');
 assert.equal(audit.clinical_validation,false);
 assert.equal(audit.scientific_certification,false);
 assert.equal(audit.omics.transcriptomics.omitted_features,80);
+assert.equal(audit.omics.transcriptomics.median_missing_fraction,0);
+assert.equal(audit.omics.transcriptomics.maximum_sample_missing_fraction,.38);
+assert.equal(audit.omics.transcriptomics.sample_profiles_with_missing_features,1);
+assert.equal(audit.omics.transcriptomics.missingness_review_required,true);
 assert.equal(audit.omics.transcriptomics.reference_executed,true);
 assert.equal(audit.omics.proteomics.reference_executed,false);
 assert.equal(audit.omics.metabolomics.omitted_features,null);
@@ -36,7 +44,7 @@ assert.equal(audit.omics.metabolomics.mnar_imputation_applied,true);
 assert.equal(audit.independent_subjects,12);
 assert.equal(audit.input_manifest_present,true);
 const bytes=JSON.stringify(audit);
-for(const value of ['SENSITIVE PATIENT IDENTIFIER','PERSON_001','9911','4423','300000000'])
+for(const value of ['SENSITIVE PATIENT IDENTIFIER','PERSON_001','PRIVATE_ASSAY_002','9911','4423','300000000'])
   assert.equal(bytes.includes(value),false,'Methods-only export leaked a raw sensitive field');
 assert.throws(()=>buildResearchMethodsManifest({protocol:{}}),/completed multi-omics analysis/);
 console.log('MULTIOMICS METHODS-ONLY EXPORT AND PRIVACY TEST: PASS');

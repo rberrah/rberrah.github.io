@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis, resultToCsv } from '$lib/multiomics/deterministic.js';
@@ -11,6 +12,14 @@
   import { mofa2BackendCompatibility,validateMofa2MethodResult } from '$lib/multiomics/reference-backend-integrity.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '$lib/multiomics/portable-project.js';
   import { buildResearchMethodsManifest } from '$lib/multiomics/research-report.js';
+
+  // A server-rendered button can be visible before its Svelte click handler
+  // is attached. Public-site smoke tests must wait for actual hydration,
+  // rather than treating visible SSR HTML as an operational application.
+  onMount(() => {
+    document.documentElement.dataset.pmxMultiomicsHydrated = 'true';
+    return () => { delete document.documentElement.dataset.pmxMultiomicsHydrated; };
+  });
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;

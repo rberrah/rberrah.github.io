@@ -4,6 +4,9 @@ import fs from 'node:fs/promises';
 
 test('novice can export reproducible, private methods audit without raw patient rows',async({page})=>{
   await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated
+  ),{timeout:12000}).toBe('true');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   await page.getByTestId('multiomics-results').locator('.export-detail summary').click();
@@ -29,8 +32,10 @@ test('novice can find MS technical quality warning without extra mandatory input
   await panel.locator('details.msi-expert > summary').click();
   let boundary=page.getByTestId('multiomics-ms-qc-evidence-boundary');
   await expect(boundary).toContainText('Sans injections QC ou blancs');
+  await expect(boundary).toContainText('une variable peut être absente de ces injections');
   await page.locator('.language-toggle').getByRole('button',{name:'EN',exact:true}).click();
   await panel.locator('details.msi-expert > summary').click();
   boundary=page.getByTestId('multiomics-ms-qc-evidence-boundary');
   await expect(boundary).toContainText('If QC/blank injections are absent');
+  await expect(boundary).toContainText('a given molecular feature can be absent from those controls');
 });

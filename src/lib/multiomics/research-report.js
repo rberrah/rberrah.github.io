@@ -16,6 +16,20 @@ export function buildResearchMethodsManifest(result){
     if(!['transcriptomics','proteomics','metabolomics'].includes(layer))
       continue;
     const qc=entry?.qc||{};
+    // Median sample missingness can be zero even when one assay is missing
+    // biologically relevant signals. Preserve the observed maximum and
+    // the number of affected assays without exposing assay/subject IDs.
+    const profiles=Array.isArray(qc?.sampleMetrics)?qc.sampleMetrics:[];
+    /** @type {number[]} */
+    const missingProfiles=profiles.flatMap((/** @type {any} */ item)=>{
+      const fraction=asNumber(item?.missingFraction);
+      return fraction!==null && fraction>=0 && fraction<=1 ? [fraction] : [];
+    });
+    const anyMissing=missingProfiles.some((fraction)=>fraction>0);
+    const incompleteProfiles=missingProfiles.filter((fraction)=>fraction>0);
+    const maxSampleMissingFraction=missingProfiles.length
+      ? Math.max(...missingProfiles):null;
+
     const backendKey=layer==='transcriptomics' &&
         qc?.preprocessingAudit?.declaredValueType==='raw_counts' ?
         layer+'_differential_deseq2':layer+'_differential';
@@ -27,12 +41,17 @@ export function buildResearchMethodsManifest(result){
       features_after_filter:asNumber(qc?.featuresAfter),
       omitted_features:Number.isFinite(qc?.featuresBefore)&&Number.isFinite(qc?.featuresAfter) ? qc.featuresBefore-qc.featuresAfter : null,
       median_missing_fraction:asNumber(qc?.medianMissingFraction),
+      maximum_sample_missing_fraction:maxSampleMissingFraction,
+      sample_missingness_profiles_available:missingProfiles.length,
+      sample_profiles_with_missing_features:incompleteProfiles.length,
+      feature_level_missingness_evaluated:profiles.length>0,
       fdr_family:'one BH family per omics layer; exploratory q<=0.10',
       reference_method_key:backendKey,
       reference_executed:backend?.status==='ok',
       backend_confirmation_status:backend?.status==='ok'?
         'executed_not_statistically_certified':'not_executed',
-      missingness_review_required:(qc?.medianMissingFraction||0)>0 ||
+      missingness_review_required:anyMissing ||
+        (qc?.medianMissingFraction||0)>0 ||
         (qc?.differentialMissingness?.flaggedFeatures||0)>0,
       mnar_imputation_applied:(qc?.msQc?.mnar?.imputedValues||0)>0
     };
@@ -72,6 +91,7 @@ export function buildResearchMethodsManifest(result){
       'Use the complete portable project export to preserve original inputs and their SHA-256 hashes; it can contain confidential data.',
       'An R environment lockfile/container and raw-MS vendor binaries are not part of this methods-only manifest.',
       'Sample sizes and QC exclusions must be independently checked by the investigator.',
+      'A median of zero missingness can conceal missing observations in individual assays; the report records their count and the worst measured fraction.',
       'Reference-model execution, descriptive BH FDR, and public-benchmark recovery never certify a new biological cohort.'
     ]
   };
