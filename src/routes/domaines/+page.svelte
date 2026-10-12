@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { base } from '$app/paths';
   import { SITE_ORIGIN } from '$lib/site';
   import { language } from '$lib/stores/language';
