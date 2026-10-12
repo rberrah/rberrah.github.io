@@ -56,10 +56,14 @@ ms_quantitative_assurance <- function(intensities, manifest,
       stats::sd(z)/mean(z)
     },numeric(1))
   }
-  qc_status <- ifelse(length(qc)<3L,"too_few_pooled_qc_injections",
-    ifelse(pooled_qc_finite<3L,"too_few_finite_pooled_qc_values",
+  # The first branch is scalar. Use if/rep rather than ifelse(scalar,...):
+  # scalar ifelse silently takes only the first feature's status and recycles
+  # it to every molecule, hiding later missing QC series.
+  qc_status <- if(length(qc)<3L)
+    rep("too_few_pooled_qc_injections",ncol(x))
+  else ifelse(pooled_qc_finite<3L,"too_few_finite_pooled_qc_values",
       ifelse(is.finite(qc_rsd),"rsd_evaluable",
-             "pooled_qc_mean_zero_or_not_estimable")))
+             "pooled_qc_mean_zero_or_not_estimable"))
 
   blank_fraction <- rep(NA_real_,ncol(x))
   blank_status <- rep("not_evaluable",ncol(x))
