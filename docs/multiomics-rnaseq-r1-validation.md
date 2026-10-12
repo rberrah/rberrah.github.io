@@ -107,6 +107,30 @@ Le protocole a également quantifié la variation moyenne du facteur d'échelle 
 
 **À approfondir avant qualification scientifique :** effets de composition, gènes à zéro dans tous les échantillons, sérialisation des paramètres exacts de normalisation, tests de sous-groupes, grand nombre de répliques Monte-Carlo et cohortes publiques indépendantes. La sensibilité documentée sert à **détecter les fragilités de l'analyse**, pas à optimiser son résultat après observation.
 
+### Cinquième campagne : normalisation gelée pour analyser les variations de FDR et de puissance
+
+La sensibilité au préfiltrage met en évidence des changements combinés de **la famille des gènes testés**, de **la normalisation** et des **modèles statistiques**. Il ne serait pas scientifiquement correct d'attribuer l'intégralité de ces changements au seul filtre.
+
+Le nouveau protocole `multiomics-engine/rnaseq_normalization_lock.R`, avec exécution de référence `multiomics-engine/tests/bioconductor_rnaseq_normalization_lock.R`, compare trois bras sur **exactement les mêmes cohortes, échantillons, lots techniques et vérités biologiques plantées** :
+
+| Bras | Préfiltrage externe | Facteurs de normalisation des échantillons | Modèles de référence |
+| --- | --- | --- | --- |
+| `reference_native` | Référence, pas de filtre additionnel | Estimés par la méthode R | DESeq2 / edgeR QL / limma-voom réajustés |
+| `strict_frozen` | Filtre plus strict, indépendant des labels | **Gelés aux facteurs du bras référence** | Méthodes R réajustées, paramètres internes/dispersion réestimés |
+| `strict_native` | Même filtre strict | **Réestimés sur les données filtrées** | Méthodes R réajustées |
+
+La décomposition est strictement additive pour chaque jeu et chaque méthode :
+
+- **Changement total** = `strict_native − reference_native`.
+- **Chemin « filtre + réajustement aux facteurs gelés »** = `strict_frozen − reference_native`.
+- **Chemin « normalisation réestimée avec filtre strict »** = `strict_native − strict_frozen`.
+
+Le bras aux facteurs gelés emploie `sizeFactors` DESeq2, ou des bibliothèques effectives (offsets : `lib.size × norm.factors`) pour edgeR QL/limma-voom. Les mêmes gènes retirés sont identifiés et les facteurs réellement utilisés doivent correspondre aux facteurs gelés, sous peine d'échec explicite.
+
+**Précaution d'interprétation majeure :** ce protocole produit une **décomposition conditionnelle au chemin suivi** ; la première différence englobe le changement de famille d'hypothèses, le filtrage natif et le réajustement de dispersion, la seconde englobe les conséquences aval d'un changement de normalisation sous le même préfiltrage strict. Ce n'est donc pas une attribution causale pure ou symétrique du « poids » du filtre versus celui de la normalisation. Une campagne plus importante, des simulations réalistes indépendantes et des études externes restent nécessaires avant toute revendication de calibration nominale du FDR à 5 %.
+
+La CI dédiée `.github/workflows/multiomics-rnaseq-normalization-lock.yml` lance une courte campagne sous PR et des études plus nombreuses lors des exécutions programmées ou manuelles ; toutes les sorties et versions R sont archivées. **Aucun résultat chiffré n'est revendiqué avant une exécution Bioconductor réussie.**
+
 ### Quatrième campagne : sensibilité au filtrage indépendant et à la normalisation
 
 Dans les analyses RNA-seq, retirer les gènes faiblement exprimés modifie la **famille d'hypothèses corrigées**, et peut changer l'estimation des facteurs de normalisation, des dispersions et de la puissance. Comparer uniquement des listes de gènes significatifs sans expliciter les filtres peut donner une impression trompeuse de reproductibilité. Le manuel officiel [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) rappelle par ailleurs que son `results()` effectue par défaut un filtrage indépendant interne, et que les q-values écartées peuvent être `NA`.
