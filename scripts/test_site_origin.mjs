@@ -35,7 +35,8 @@ test('portal tokens, generated counter configuration, idempotence and unchanged 
   await cp('portal', directory, { recursive: true });
   const origin = 'https://pharmacology.example:8443';
   await configureSiteOrigin(directory, origin);
-  for (const file of ['index.html', 'publications/index.html', 'citer/index.html', '404.html',
+  for (const file of ['index.html', 'publications/index.html', 'communications/index.html',
+    'communications/netpk-peprsn-2026/index.html', 'citer/index.html', '404.html',
     'research/index.html', 'robots.txt', 'sitemap.xml', 'sitemap-index.xml']) {
     const text = await readFile(path.join(directory, file), 'utf8');
     assert.ok(!text.includes(SITE_ORIGIN_TOKEN), file);

@@ -5,7 +5,16 @@ import path from 'node:path';
 import { getSiteOrigin } from '../../site.config.js';
 
 const origin = process.env.PORTAL_E2E_URL || 'http://127.0.0.1:4181';
-const pages = ['/', '/tools/', '/publications/', '/a-propos/', '/contact/', '/citer/', '/other-projects/'];
+const pages = ['/', '/tools/', '/publications/', '/communications/', '/a-propos/', '/contact/', '/citer/', '/other-projects/'];
+const communicationPages = [
+  '/communications/netpk-peprsn-2026/',
+  '/communications/missed-dose-iatdmct-sfpt-2026/',
+  '/communications/autonomous-pharmacometrics-page-2026/',
+  '/communications/fr/',
+  '/communications/fr/netpk-peprsn-2026/',
+  '/communications/fr/missed-dose-iatdmct-sfpt-2026/',
+  '/communications/fr/autonomous-pharmacometrics-page-2026/'
+];
 const statsPages = ['/stats/', '/stats/tool/'];
 const publicOrigin = getSiteOrigin();
 
@@ -25,7 +34,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', publicOrigin + route);
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', publicOrigin + route);
-    await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
+    await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications', 'Communications', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
       await expect(page.locator('.project-grid h3')).toHaveText(['TacDDI', 'MissedDose', 'MIPD Engine']);
@@ -141,7 +150,7 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();
   const urls = await page.evaluate(xml => [...new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('loc')].map(n => n.textContent), xml);
-  expect(urls.sort()).toEqual([...pages, ...statsPages].map(p => publicOrigin + p).sort());
+  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...statsPages].map(p => publicOrigin + p).sort());
   for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/', ...statsPages])
     expect((await request.get(origin + route)).status()).toBe(200);
   const response = await request.get(origin + '/internat/', { maxRedirects: 0 });
@@ -182,6 +191,38 @@ test('research details open with keyboard, retain sources and support direct lin
   await expect(page.locator('a[href="' + abstract + '"]').filter({ hasText: 'Conference abstract' })).toHaveCount(1);
   await expect(page.getByText('Conference record', { exact: false })).toHaveCount(0);
   await expect(page.locator('a[href$=".pptx"],a[href$=".docx"],a[href$=".zip"],iframe,video')).toHaveCount(0);
+});
+
+test('communication library filters and opens the NetPK poster', async ({ page }) => {
+  await page.goto(origin + '/communications/');
+  await expect(page.locator('[data-communication]')).toHaveCount(3);
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
+  await expect(page.getByRole('heading', { name: /NetPK: fusing published/ })).toBeVisible();
+  await expect(page.getByText('Upcoming', { exact: true })).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Posters', exact: true }).click();
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Oral presentations', exact: true }).click();
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(1);
+  await page.getByRole('button', { name: 'All', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
+
+  await page.getByRole('link', { name: /NetPK: fusing published/ }).first().click();
+  await expect(page).toHaveURL(origin + '/communications/netpk-peprsn-2026/');
+  await expect(page.locator('h1')).toContainText('NetPK');
+  await expect(page.getByRole('link', { name: 'PDF', exact: true })).toHaveAttribute('href', /\.pdf$/);
+  await expect(page.getByRole('link', { name: 'Slides / PPTX', exact: true })).toHaveAttribute('href', /\.pptx$/);
+  await expect(page.locator('.communication-hero img')).toHaveAttribute('alt', /Preview of NetPK/);
+  await expect(page.locator('body')).not.toContainText('Poster Residual.pptx');
+});
+
+test('French communication interface retains original scientific titles', async ({ page }) => {
+  await page.goto(origin + '/communications/fr/');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+  await expect(page.locator('h1')).toHaveText('Communications scientifiques');
+  await expect(page.getByRole('button', { name: 'Toutes', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Toward autonomous pharmacometrics/ })).toBeVisible();
 });
 
 for (const width of [320, 1440]) {
