@@ -69,7 +69,7 @@ ms_quantitative_assurance <- function(intensities, manifest,
       drift[[j]] <- suppressWarnings(stats::cor(order[qc][ok],v[ok],
                                                    method="spearman"))
   }
-  table <- data.frame(feature_id=colnames(x),
+  feature_table <- data.frame(feature_id=colnames(x),
     biological_missing_fraction=missing,
     pooled_qc_rsd=qc_rsd,
     blank_over_biological_ratio=blank_fraction,
@@ -82,17 +82,30 @@ ms_quantitative_assurance <- function(intensities, manifest,
     flag_group_missingness=is.finite(diff_missing)&
       diff_missing>=imbalance_threshold,
     stringsAsFactors=FALSE)
+  batch_confounded <- NA
+  if("batch"%in%names(meta)){
+    batches <- trimws(as.character(meta$batch[biological]))
+    if(anyNA(batches)||any(!nzchar(batches)))
+      stop("Batch is declared but incomplete among biological MS assays.")
+    if(length(unique(groups))==2L && length(unique(batches))>=2L) {
+      # Perfect confounding prevents distinguishing biology from instrument.
+      design <- stats::model.matrix(~factor(batches)+factor(groups))
+      batch_confounded <- qr(design)$rank<ncol(design)
+    } else batch_confounded <- FALSE
+  }
   coverage <- list(
     biological_assays=length(biological),
     pooled_qc_assays=length(qc),
     blank_assays=length(blanks),
-    declared_groups=as.list(table(groups)),
+    declared_groups=as.list(base::table(groups)),
+    batch_condition_fully_confounded=batch_confounded,
     biological_missingness_evaluable=TRUE,
     pooled_qc_precision_evaluable=length(qc)>=3L,
     blank_background_evaluable=length(blanks)>=2L,
     pooled_qc_drift_screen_evaluable=length(qc)>=5L,
     missingness_group_imbalance_evaluable=length(strata)==2L)
   alerts <- character()
+  if(isTRUE(batch_confounded))alerts<-c(alerts,"batch_perfectly_confounded_with_biological_group")
   if(!coverage$pooled_qc_precision_evaluable)
     alerts <- c(alerts,"pooled_qc_not_sufficient_for_rsd")
   if(!coverage$blank_background_evaluable)
@@ -103,13 +116,13 @@ ms_quantitative_assurance <- function(intensities, manifest,
     alerts <- c(alerts,"exactly_two_biological_groups_needed_for_missingness_comparison")
   for(flag in c("flag_missing","flag_qc_variation","flag_blank_signal",
                 "flag_group_missingness")){
-    if(any(table[[flag]]))
-      alerts <- c(alerts,paste0(flag,"_",sum(table[[flag]])))
+    if(any(feature_table[[flag]]))
+      alerts <- c(alerts,paste0(flag,"_",sum(feature_table[[flag]])))
   }
   list(
     status=if(length(alerts))"scientific_review_required" else
       "measured_QC_screens_pass_not_certified",
-    coverage=coverage,features=table,
+    coverage=coverage,features=feature_table,
     alerts=alerts,
     parameters=list(qc_rsd_threshold=qc_rsd_threshold,
       blank_fraction_threshold=blank_fraction_threshold,
