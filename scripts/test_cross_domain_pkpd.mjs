@@ -57,15 +57,3 @@ assert.ok(route.includes('role="status"'));
 assert.ok(nav.includes("key: 'cross-domains'"));
 assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
 console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
-,'m').test(raw)),
-      'Unresolved actual PKPD reference lesson: '+link.slug);
-}
-const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
-const nav=fs.readFileSync('src/routes/+layout.svelte','utf8');
-assert.ok(route.includes('SITE_ORIGIN')&&route.includes('/multiomics/tool/'));
-assert.ok(route.includes('educationalOnly')===false);
-assert.ok(route.includes('data-testid="cross-domain-auc"'));
-assert.ok(route.includes('role="status"'));
-assert.ok(nav.includes("key: 'cross-domains'"));
-assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
-console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
