@@ -52,6 +52,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Qualify public-omics evidence schema and boundaries without external downloads
+        run: node scripts/test_public_omics_evidence.mjs
+      - name: Verify reproducibility methods manifest excludes patient-level data
+        run: node scripts/test_multiomics_research_report.mjs
       - name: Test Figure 4 pathway and metabolic-map contracts
         run: node scripts/test_multiomics_visualizations.mjs
       - name: Test deterministic multi-omics engine, identifiers and diagnostics
@@ -67,13 +71,17 @@ jobs:
           use-public-rspm: true
       - name: Parse reference R adapters
         run: |
-          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R','multiomics-engine/raw_ms_processing.R','multiomics-engine/run_raw_ms.R','multiomics-engine/external_validation.R','multiomics-engine/run_external_validation.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
+          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R','multiomics-engine/raw_ms_processing.R','multiomics-engine/ms_quantitative_assurance.R','multiomics-engine/proteomics_quantitative_assurance.R','multiomics-engine/run_ms_quantitative_assurance.R','multiomics-engine/run_raw_ms.R','multiomics-engine/external_validation.R','multiomics-engine/run_external_validation.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
       - name: Test package-independent backend routing and guardrails
         run: Rscript multiomics-engine/tests/backend_smoke.R
       - name: Cross-check browser group inference against independent R HC3 / BH
         run: Rscript multiomics-engine/tests/browser_reference_agreement.R
       - name: Test raw-MS input and conversion contract
         run: Rscript multiomics-engine/tests/raw_ms_contract.R
+      - name: Verify quantitative MS assay IDs, pooled QC, blanks and group-missingness flags
+        run: Rscript multiomics-engine/tests/test_ms_quantitative_assurance.R
+      - name: Verify LFQ, TMT and affinity proteomics missingness and replicate rules
+        run: Rscript multiomics-engine/tests/test_proteomics_quantitative_assurance.R
       - name: Test frozen external-validation metrics
         run: Rscript multiomics-engine/tests/external_validation_smoke.R
 

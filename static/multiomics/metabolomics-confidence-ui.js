@@ -100,6 +100,7 @@
         </select>
         <small><b>${policy.label}.</b> ${policy.text}</small>
         <small class="msi-pathway"><b>Pathway rule:</b> ${policy.pathway}</small>
+        <small data-testid="multiomics-ms-qc-evidence-boundary"><b>Instrument QC:</b> Metabolite annotation is separate from pooled-QC precision, solvent blanks, injection-order drift and missing-value mechanisms. If QC/blank injections are absent, those properties are not verified. No automatic filtering proves a biomarker.</small>
         <details><summary>Why this is separate from ChEBI/HMDB/KEGG mapping</summary><p>A database identifier says which database concept a label points to; it does not prove that the measured LC-MS/GC-MS feature was experimentally identified as that molecule. Identifier resolution and analytical identification confidence are therefore recorded separately.</p></details>
         </details>
       `
@@ -117,6 +118,7 @@
         </select>
         <small><b>${policy.label}.</b> ${policy.text}</small>
         <small class="msi-pathway"><b>Règle pour les voies :</b> ${policy.pathway}</small>
+        <small data-testid="multiomics-ms-qc-evidence-boundary"><b>Contrôle qualité instrumental :</b> L’identification des métabolites est distincte de la précision pooled-QC, des blancs, de la dérive selon l’ordre d’injection et des mécanismes de valeurs manquantes. Sans injections QC ou blancs, ces propriétés ne sont pas vérifiées. Un filtrage automatique ne valide pas un biomarqueur.</small>
         <details><summary>Pourquoi ceci est séparé du mapping ChEBI/HMDB/KEGG</summary><p>Un identifiant de base indique vers quel concept pointe un libellé ; il ne prouve pas que le signal LC-MS/GC-MS mesuré a été expérimentalement identifié comme cette molécule. La résolution d’identifiant et la confiance d’identification analytique sont donc enregistrées séparément.</p></details>
         </details>
       `;
