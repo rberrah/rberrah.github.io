@@ -12,6 +12,8 @@ test('novice RNA-seq filtering warning preserves scientific context FR/EN', asyn
   await expect(info).toContainText('recalculent la normalisation');
   await expect(info).toContainText("la chaîne d'analyse complète");
   await expect(info).toContainText('ne faut pas choisir après coup');
+  await expect(info).toContainText('190 gènes sur 400');
+  await expect(info).toContainText('9,6 des 20 vrais signaux');
   await expect(info).toContainText('ne valide pas automatiquement votre étude');
   await page.locator('.language-toggle').getByRole('button',
     {name:'EN',exact:true}).click();
@@ -22,5 +24,7 @@ test('novice RNA-seq filtering warning preserves scientific context FR/EN', asyn
   await expect(info).toContainText('re-estimate normalization');
   await expect(info).toContainText('full analysis pipeline');
   await expect(info).toContainText('Do not select whichever filter');
+  await expect(info).toContainText('190 of 400 genes');
+  await expect(info).toContainText('9.6 of the 20 planted true signals');
   await expect(info).toContainText('not validation of your own study');
 });

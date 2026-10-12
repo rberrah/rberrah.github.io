@@ -91,6 +91,22 @@ Tous les gènes modifiés plantés ont été détectés dans ces scénarios **à
 
 **Action requise avant qualification confirmatoire :** campagne indépendante bien plus grande avec précision Monte-Carlo préspecifiée, effets faibles et hétérogènes, tailles d'échantillon variées, plan confondu partiellement et facteurs techniques réalistes ; conserver les résultats négatifs et figer les versions logicielles et critères de décision avant de réexaminer les performances.
 
+### Résultats observés de l'audit de filtrage (12 octobre 2026)
+
+L'[exécution Bioconductor 38214629245](https://github.com/rberrah/rberrah.github.io/actions/runs/38214629245) a réussi **8 études simulées indépendantes par scénario** avec les **trois moteurs R** et deux politiques de préfiltrage. Les sorties détaillées sont archivées sous `rnaseq-paired-prefilter-reference-validation`. Ces chiffres ne sont **pas** des critères de validation externe ni des propriétés universelles de DESeq2, edgeR ou limma-voom.
+
+| Scénario (400 gènes, 8 cohortes) | Gènes écartés par le filtre plus strict | Vrais signaux écartés parmi ceux plantés | Variation de puissance DESeq2 / edgeR / voom (points de pourcentage) |
+| --- | ---: | ---: | --- |
+| `small_cohort_6v6` | 190,1 | 9,6 / 20 | 0 / 0 / 0 |
+| `sparse_signals_20v20` | 196,3 | 1,9 / 4 | −12,5 / −12,5 / −3,1 |
+| `unequal_batch_12v28` | 194,8 | 9,6 / 20 | −0,6 / −2,5 / −1,3 |
+
+La variation rapportée est **filtre strict − analyse de référence**, sur les **mêmes cohortes**. L'absence de variation de puissance dans la petite cohorte ne signifie pas que les prétraitements sont équivalents : la puissance y est déjà extrêmement basse. Sous signaux rares, le filtrage plus strict peut faire disparaître des gènes réellement modifiés et ainsi réduire sensiblement le nombre de découvertes vraies.
+
+Le protocole a également quantifié la variation moyenne du facteur d'échelle effectif sur les échantillons, après centrage en log2 ; elle dépend du scénario et du moteur. **Ce changement de normalisation fait partie du contraste**, il n'a pas été artificiellement tenu fixe. Certains FDP et FDR diminuent sous filtrage strict, mais une diminution peut simplement résulter d'une absence de découverte (FDP = 0 par convention) et s'accompagner d'une perte de puissance. Il ne faut donc ni sélectionner un filtre parce que son FDR observé est bas ni classer les méthodes sur huit simulations.
+
+**À approfondir avant qualification scientifique :** effets de composition, gènes à zéro dans tous les échantillons, sérialisation des paramètres exacts de normalisation, tests de sous-groupes, grand nombre de répliques Monte-Carlo et cohortes publiques indépendantes. La sensibilité documentée sert à **détecter les fragilités de l'analyse**, pas à optimiser son résultat après observation.
+
 ### Quatrième campagne : sensibilité au filtrage indépendant et à la normalisation
 
 Dans les analyses RNA-seq, retirer les gènes faiblement exprimés modifie la **famille d'hypothèses corrigées**, et peut changer l'estimation des facteurs de normalisation, des dispersions et de la puissance. Comparer uniquement des listes de gènes significatifs sans expliciter les filtres peut donner une impression trompeuse de reproductibilité. Le manuel officiel [DESeq2](https://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html) rappelle par ailleurs que son `results()` effectue par défaut un filtrage indépendant interne, et que les q-values écartées peuvent être `NA`.
