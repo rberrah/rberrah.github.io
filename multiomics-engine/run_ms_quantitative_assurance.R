@@ -16,11 +16,15 @@ if(!nrow(data)||ncol(data)<3L||
   stop("Peak-area matrix needs a unique first feature_id column.")
 expected<-as.character(metadata$assay_id)
 if(is.null(expected)||anyNA(expected)||anyDuplicated(expected)||
-  length(expected)<4L||!setequal(names(data)[-1L],expected))
+  length(expected)<4L||length(names(data)[-1L])!=length(expected)||
+  anyDuplicated(names(data)[-1L])||!setequal(names(data)[-1L],expected))
   stop("Peak-area assay columns must match exactly the MS sample manifest.")
 ids<-as.character(data$feature_id)
-feature_by_assay<-as.matrix(data[,-1L,drop=FALSE])
-storage.mode(feature_by_assay)<-"numeric"
+raw_values<-as.matrix(data[,-1L,drop=FALSE])
+feature_by_assay<-matrix(suppressWarnings(as.numeric(raw_values)),
+  nrow=nrow(raw_values),ncol=ncol(raw_values),dimnames=dimnames(raw_values))
+if(any(!is.na(raw_values)&is.na(feature_by_assay)))
+  stop("MS peak-area CSV contains nonnumeric non-missing measurements.")
 rownames(feature_by_assay)<-ids
 x<-t(feature_by_assay)
 x<-x[expected,,drop=FALSE]
