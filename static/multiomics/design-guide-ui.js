@@ -114,13 +114,14 @@
     const designValue = design.value || 'independent';
     const overlapValue = overlap?.value || 'unknown';
     const outcomeValue = outcome?.value || 'none';
-    const state = `${language}|${designValue}|${overlapValue}|${outcomeValue}`;
+    const objectiveValue = selectContaining('explore')?.value || 'explore';
+    const state = `${language}|${designValue}|${overlapValue}|${outcomeValue}|${objectiveValue}`;
     if (guide.dataset.state === state) return;
 
     const [designTitle, designText] = designExplanation(language, designValue);
     const overlapText = overlapExplanation(language, overlapValue);
     const outcomeText = outcomeExplanation(language, outcomeValue);
-    const [scopeTitle,scopeText] = scopeFor(language,designValue,selectContaining('explore')?.value||'explore');
+    const [scopeTitle,scopeText] = scopeFor(language,designValue,objectiveValue);
 
     const wasOpen = guide.querySelector('details.licence-design-body')?.open === true;
     guide.innerHTML = `
