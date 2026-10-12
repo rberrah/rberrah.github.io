@@ -6,7 +6,16 @@ const browser=await chromium.launch({headless:true});
 try {
   const page=await browser.newPage({viewport:{width:1280,height:850}});
   const errors=[];
+  const desktopNetworkFailures=[];
   page.on('pageerror',error=>errors.push(String(error?.message||error)));
+  page.on('requestfailed',request=>desktopNetworkFailures.push({
+    url:request.url(),reason:request.failure()?.errorText||'unknown'
+  }));
+  page.on('response',response=>{
+    if(response.status()>=400)desktopNetworkFailures.push({
+      url:response.url(),http_status:response.status()
+    });
+  });
   const presentation=await page.goto(origin+'/multiomics/',{
     waitUntil:'domcontentloaded',timeout:30000});
   if(presentation?.status()!==200)
@@ -19,7 +28,21 @@ try {
     throw new Error('Tool HTTP '+tool?.status());
   await page.getByTestId('multiomics-quick-demo-rna')
     .waitFor({state:'visible',timeout:30000});
-  console.log('PASS: real public page loads and hydrates beginner demo');
+  // Visible server-rendered HTML is not proof that the JS event handlers
+  // are ready. Clicking SSR before hydration can silently do nothing.
+  try {
+    await page.waitForFunction(
+      () => document.documentElement.dataset.pmxMultiomicsHydrated==='true',
+      null,{timeout:30000}
+    );
+  } catch (error) {
+    console.error('PUBLIC DESKTOP HYDRATION FAILED',JSON.stringify({
+      url:page.url(),pageErrors:errors,
+      networkFailures:desktopNetworkFailures.slice(0,20)
+    },null,2));
+    throw error;
+  }
+  console.log('PASS: real public page loads AND Svelte hydration completed');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   try {
     await page.getByTestId('multiomics-results')
@@ -34,7 +57,7 @@ try {
         .map(el=>el.textContent?.trim().slice(0,350)).filter(Boolean).slice(0,8),
       mainText:document.querySelector('main')?.innerText?.slice(-1400) || ''
     }));
-    console.error('PUBLIC DEMO DIAGNOSTICS',JSON.stringify({evidence,pageErrors:errors},null,2));
+    console.error('PUBLIC DEMO DIAGNOSTICS',JSON.stringify({evidence,pageErrors:errors,networkFailures:desktopNetworkFailures.slice(0,20)},null,2));
     throw error;
   }
   const mode=await page.getByTestId('multiomics-analysis-mode').innerText();
@@ -61,6 +84,18 @@ try {
     waitUntil:'domcontentloaded',timeout:30000});
   await mobile.getByTestId('multiomics-quick-demo-rna')
     .waitFor({state:'visible',timeout:30000});
+  try {
+    await mobile.waitForFunction(
+      () => document.documentElement.dataset.pmxMultiomicsHydrated==='true',
+      null,{timeout:30000}
+    );
+  } catch(error) {
+    console.error('PUBLIC MOBILE HYDRATION FAILED',JSON.stringify({
+      url:mobile.url(),pageErrors:mobileErrors,
+      networkFailures:mobileNetworkFailures.slice(0,20)
+    },null,2));
+    throw error;
+  }
   const overflow=await mobile.evaluate(()=>
     document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(overflow>12)
