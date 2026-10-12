@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import { defaults, validateParameters, stateAt, series, singleDoseSummary, laboratorySpec, encodeScenario, decodeScenario, legoSpec, mrgsolveCode } from '../src/lib/labs/model.js';
+import { prepareHandoff } from '../src/lib/labs/handoff.js';
 import { particleJourneys, particlePosition, sceneLayout } from '../src/lib/labs/particles.js';
 const close = (a, b, tol = 1e-8) => assert.ok(Math.abs(a-b) <= tol * Math.max(1,Math.abs(b)), `${a} != ${b}`);
 const fixtures = [];
@@ -25,6 +26,10 @@ for (const lab of ['absorption', 'infusion']) {
     const spec = laboratorySpec(lab,p);
     assert.deepEqual(decodeScenario(encodeScenario(spec)),spec);
     assert.throws(() => mrgsolveCode(lab,p), /not verified/);
+    for (const destination of ['tdm', 'ddi', 'pd']) {
+      assert.throws(() => prepareHandoff(destination, spec), /Unverified laboratory transfer/);
+    }
+    assert.doesNotThrow(() => prepareHandoff('lego', spec));
     const particles = particleJourneys(lab,p);
     assert.ok(particles.length >= 12 && particles.length <= 500);
     assert.deepEqual(particles,particleJourneys(lab,p));

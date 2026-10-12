@@ -15,6 +15,7 @@ glossary: ["ω / Ω","IIV","Distribution normale"]
 sources: ["nelsen-copulas","bonate"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "0525903262b6851ad54a1e6e71ae516b522f7f2e2f4ad41bf8232fecfbd3693d"
 quiz:
   - prompt: "A copula describes..."
@@ -46,7 +47,7 @@ To **simulate** trials or virtual patients, we must generate **realistic** covar
 <!-- step:title="Intuition" viz="43_Copula" -->
 The key idea: **separate** two questions. (1) How is each covariate distributed **on its own** (its margin)? (2) How are they **linked** together (the dependence)?
 
-A copula describes only the second. Vary the correlation: the marginal histograms do not move, only the **link** changes.
+A copula describes only the second. Vary the correlation: the **theoretical marginal laws** stay unchanged and only the link changes. In a finite simulated sample, empirical histograms may nevertheless vary slightly because of sampling fluctuation.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="43_Copula" -->

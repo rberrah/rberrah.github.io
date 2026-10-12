@@ -13,8 +13,11 @@ prerequisites: ["tools-nonmem"]
 glossary: ["NONMEM", "FOCE-I", "Vraisemblance"]
 slides: []
 sources: ["wang-nonmem-methods", "bauer-nonmem-2", "lindstrom-bates", "wilks-1938"]
+software_verified_on: "2026-10-11"
+software_version: "NONMEM 7.5 documentation"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "ffb6cedc0998daae168d14bc7b3cb25570a842d04fcf1be6832ab1df5253bb0b"
 quiz:
   - prompt: "Pourquoi l'OFV d'un run METHOD=0 (FO) ne se compare-t-il pas à celui d'un run METHOD=1 INTER (FOCE-I) ?"
@@ -62,11 +65,11 @@ La vraisemblance du sujet *i* est l'intégrale à contourner :
 
 $$ L_i = \int p(y_i \mid \eta_i)\; p(\eta_i)\; d\eta_i $$
 
-Toutes les méthodes classiques la traitent par un **développement de Taylor d'ordre 1** autour d'un point d'appui $\eta^{*}$ :
+FO et FOCE reposent sur une **linéarisation locale d'ordre 1** autour d'un point d'appui $\eta^{*}$ :
 
 $$ f(\eta_i) \;\approx\; f(\eta^{*}) \;+\; \underbrace{\frac{\partial f}{\partial \eta}\bigg|_{\eta^{*}}}_{\text{la pente}}\,(\eta_i - \eta^{*}) $$
 
-Tout se joue sur le choix de $\eta^{*}$ :
+Le choix de $\eta^{*}$ distingue FO de FOCE. Laplace ajoute l'information de courbure au mode conditionnel, tandis que SAEM et IMP appartiennent aux méthodes stochastiques et ne reposent pas sur cette même linéarisation :
 
 | Ligne `$ESTIMATION` | Point d'appui | Boucle interne |
 |---|---|---|
@@ -96,7 +99,7 @@ où $\hat{L}_i$ est la vraisemblance **approchée**, de la façon que la méthod
 
 $$ \Delta OFV = OFV_{\text{base}} - OFV_{\text{complet}} \;\sim\; \chi^2_{\Delta df} \quad (\text{sous } H_0) $$
 
-Seuils à 5 % : **3,84** pour 1 paramètre, 5,99 pour 2, 7,81 pour 3. La constante omise disparaît dans la soustraction — voilà pourquoi le ΔOFV est légitime là où l'OFV absolu ne l'est pas. Mais l'exigence « même méthode » n'est pas cosmétique : il faut aussi que le **biais d'approximation s'annule** dans la différence, et il ne s'annule que si les deux runs se trompent de la même manière.
+Seuils à 5 % : **3,84** pour 1 paramètre, 5,99 pour 2, 7,81 pour 3, sous les conditions de régularité du test. La constante additive commune omise disparaît exactement dans la soustraction. En revanche, employer la même méthode ne garantit pas que son **biais d'approximation** s'annule entre deux modèles : la comparabilité doit aussi tenir compte des hypothèses du test, de la stabilité numérique et de la pertinence scientifique.
 
 ```
 ; --- FOCE avec interaction : le cheval de bataille
@@ -168,6 +171,6 @@ Trois règles opérationnelles. **(1)** `INTER` dès que le modèle d'erreur dé
 - Tout tient au **point d'appui** : FO linéarise en η = 0 (le patient typique, pour tout le monde), FOCE en **η̂ᵢ** (l'EBE de chaque sujet) — au prix d'une boucle interne à chaque itération.
 - **`INTER`** évalue la variance résiduelle en η̂ᵢ au lieu de η = 0 : indispensable avec une erreur proportionnelle ou combinée, sans effet avec une erreur purement additive.
 - **OFV = −2 log L̂ à une constante additive près**, et le « chapeau » dépend de la méthode : ne jamais comparer aveuglément des OFV de FO, FOCE-I, SAEM ou d'un autre logiciel ; vérifier objectif, données, approximation, constantes et conventions.
-- **ΔOFV ~ χ²** (seuil **3,84** à 1 ddl, 5 %) : uniquement entre modèles **emboîtés**, mêmes données, **même méthode** — la constante et le biais d'approximation s'annulent alors dans la différence.
+- **ΔOFV ~ χ²** (seuil **3,84** à 1 ddl, 5 %) : uniquement entre modèles **emboîtés**, mêmes données et **même méthode**, sous les conditions de régularité. La constante additive commune s'annule ; le biais d'approximation ne le fait pas nécessairement.
 - `MINIMIZATION SUCCESSFUL` n'est pas une validation ; `ROUNDING ERRORS` n'est pas une condamnation — c'est un signal de sur-paramétrisation ou de mauvais cadrage numérique.
 <!-- /step -->

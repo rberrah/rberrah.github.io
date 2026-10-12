@@ -333,3 +333,77 @@ export function fitLinearSvm(points, C) {
   const score = (/** @type {{x:number,y:number}} */ point) => wx * ((point.x - 5) / 5) + wy * ((point.y - 5) / 5) + b;
   return { wx, wy, b, score };
 }
+
+/**
+ * Normalize a discrete joint CL/V distribution and fail closed on malformed points.
+ * @param {{cl:number,v:number,weight:number}[]} points
+ */
+export function normalizeSupportPoints(points) {
+  if (!Array.isArray(points) || points.length === 0) throw new Error('At least one support point is required');
+  for (const point of points) {
+    if (![point.cl, point.v, point.weight].every(Number.isFinite) || point.cl <= 0 || point.v <= 0 || point.weight <= 0) {
+      throw new Error('Support points require positive finite CL, V and weights');
+    }
+  }
+  const total = points.reduce((sum, point) => sum + point.weight, 0);
+  return points.map((point) => ({ ...point, weight: point.weight / total }));
+}
+
+/**
+ * Update support-point probabilities from one concentration under a simple
+ * proportional Gaussian observation model. Omitting the observation returns
+ * the normalized population prior exactly.
+ * @param {{cl:number,v:number,weight:number}[]} points
+ * @param {number|null|undefined} observed
+ * @param {{dose?:number,time?:number,residualCv?:number,residualFloor?:number}} [options]
+ */
+export function updateSupportPointWeights(points, observed, options = {}) {
+  const prior = normalizeSupportPoints(points);
+  if (observed === null || observed === undefined) return prior;
+  if (!Number.isFinite(observed) || observed < 0) throw new Error('Observed concentration must be finite and non-negative');
+  const dose = options.dose ?? 100;
+  const time = options.time ?? 4;
+  const residualCv = options.residualCv ?? 0.15;
+  const residualFloor = options.residualFloor ?? 0.05;
+  if (![dose, time, residualCv, residualFloor].every(Number.isFinite) || dose <= 0 || time < 0 || residualCv <= 0 || residualFloor <= 0) {
+    throw new Error('Dose, time and residual-error settings are invalid');
+  }
+  const logWeights = prior.map((point) => {
+    const prediction = (dose / point.v) * Math.exp(-(point.cl / point.v) * time);
+    const sd = Math.max(residualFloor, residualCv * prediction);
+    return Math.log(point.weight) - Math.log(sd) - 0.5 * ((observed - prediction) / sd) ** 2;
+  });
+  const maxLogWeight = Math.max(...logWeights);
+  const relative = logWeights.map((value) => Math.exp(value - maxLogWeight));
+  const total = relative.reduce((sum, value) => sum + value, 0);
+  if (!Number.isFinite(total) || total <= 0) throw new Error('Posterior support-point weights could not be normalized');
+  return prior.map((point, index) => ({ ...point, weight: relative[index] / total }));
+}
+
+/** @param {{cl:number,v:number,weight:number}[]} points */
+export function summarizeSupportPoints(points) {
+  const normalized = normalizeSupportPoints(points);
+  const modal = normalized.reduce((best, point) => point.weight > best.weight ? point : best);
+  return {
+    meanCl: normalized.reduce((sum, point) => sum + point.weight * point.cl, 0),
+    meanV: normalized.reduce((sum, point) => sum + point.weight * point.v, 0),
+    modal
+  };
+}
+
+/**
+ * Population-mean concentration curve obtained by averaging predictions, not parameters.
+ * @param {{cl:number,v:number,weight:number}[]} points
+ * @param {number[]} times
+ * @param {number} [dose]
+ */
+export function supportPointMeanCurve(points, times, dose = 100) {
+  const normalized = normalizeSupportPoints(points);
+  if (!Number.isFinite(dose) || dose <= 0 || !times.every((time) => Number.isFinite(time) && time >= 0)) {
+    throw new Error('Curve times and dose are invalid');
+  }
+  return times.map((time) => ({
+    time,
+    concentration: normalized.reduce((sum, point) => sum + point.weight * (dose / point.v) * Math.exp(-(point.cl / point.v) * time), 0)
+  }));
+}

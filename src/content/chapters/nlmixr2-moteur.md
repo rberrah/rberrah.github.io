@@ -1,9 +1,9 @@
 ---
 id: "nlmixr2-moteur"
 slug: "nlmixr2-moteur"
-title: "nlmixr2 — un modèle, quatre moteurs"
+title: "nlmixr2 — un modèle, plusieurs estimateurs"
 description: "est = focei, saem, nlme ou posthoc : changer d'algorithme sans toucher au modèle, ce que rxode2 compile derrière, et les conditions nécessaires pour comparer les OFV rendus."
-summary: "Le modèle est un objet R, l'estimateur est un argument : quatre moteurs consomment le même code compilé par rxode2 et peuvent rendre des nombres appelés OFV dont il faut vérifier l'évaluateur et les conventions."
+summary: "Le modèle est un objet R et l'estimateur un argument : plusieurs méthodes peuvent consommer le même code compilé par rxode2, avec des objectifs et conventions qu'il faut documenter."
 track: "nlmixr2"
 order: 234
 duration: "10 min"
@@ -13,8 +13,11 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["nlmixr2 / rxode2", "FOCE-I", "SAEM"]
 slides: []
 sources: ["nlmixr2", "fidler-nlmixr", "wang-rxode", "lindstrom-bates"]
+software_verified_on: "2026-10-11"
+software_version: "nlmixr2 5.0.0; nlmixr2.org documentation"
 reviewed_on: "2026-07-14"
 review_type: "author"
+review_pending: true
 reviewed_hash: "52cf93a39a5ab767d4d1c7b52ba4ce242fef03311b4759b58bb6081e3cd60fe1"
 quiz:
   - prompt: "On ajuste le même modèle deux fois, une fois avec est = saem et une fois avec est = focei, et on soustrait les deux OFV rendus. Que mesure cette différence ?"
@@ -38,15 +41,15 @@ quiz:
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
-Dans NONMEM, l'estimateur est une ligne du fichier de contrôle. Dans Monolix, c'est l'architecture même du logiciel. Dans nlmixr2, c'est un **argument de fonction** : `est = "focei"`, `est = "saem"`, `est = "nlme"`, `est = "posthoc"`. Un mot change, le modèle ne bouge pas d'une ligne, et un autre algorithme prend le relais.
+Dans NONMEM, l'estimateur est une ligne du fichier de contrôle. Dans Monolix, c'est l'architecture même du logiciel. Dans nlmixr2, c'est un **argument de fonction**. `est = "focei"`, `"saem"`, `"nlme"` et `"posthoc"` sont ici quatre workflows représentatifs parmi les méthodes disponibles. Un mot change, le modèle ne bouge pas d'une ligne, et un autre algorithme prend le relais.
 
 Ce n'est pas une commodité d'interface, c'est le trait de conception. nlmixr2 sépare la **description** du modèle de son **évaluation** : le bloc `model({})` dit ce qu'est le système, `est =` dit qui va s'en charger. Le bénéfice est réel et rare — on peut comparer des estimateurs sur un modèle strictement identique, sans la moindre occasion de réécrire une équation de travers entre deux essais.
 
-Le coût l'est tout autant, et il est moins visible. Quatre moteurs rendent quatre nombres qui s'affichent tous sous le nom d'`OFV`, dans le même résumé, avec le même nombre de décimales. Rien ne vous rappellera lequel est sorti d'où. Ce chapitre dit ce que chaque moteur fait réellement, lequel choisir et quand, et pourquoi la facilité du changement est exactement ce qui rend l'erreur facile.
+Le coût l'est tout autant, et il est moins visible. Ces quatre workflows peuvent rendre des nombres affichés sous le nom d'`OFV`, dans le même résumé, avec le même nombre de décimales. Rien ne vous rappellera lequel est sorti d'où. Ce chapitre explique ces exemples sans prétendre épuiser les estimateurs disponibles dans nlmixr2.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="66_FOCELinearization" -->
-Les quatre moteurs poursuivent **la même intégrale**. Pour chaque sujet, la vraisemblance des observations exige de moyenner sur tous les $\eta$ compatibles avec la population, et cette intégrale n'a pas de forme close dès que le modèle est non linéaire en $\eta$ — situation fréquente en PK. Le modèle ne dit rien de cette intégrale : il fournit seulement de quoi l'écrire. Ce que `est =` choisit, c'est la **manière de l'approximer ou de l'échantillonner**.
+Les méthodes d'estimation de population présentées ici traitent **la même intégrale** de différentes façons. Pour chaque sujet, la vraisemblance des observations exige de moyenner sur tous les $\eta$ compatibles avec la population, et cette intégrale n'a pas de forme close dès que le modèle est non linéaire en $\eta$ — situation fréquente en PK. Le modèle ne dit rien de cette intégrale : il fournit seulement de quoi l'écrire. Ce que `est =` choisit, c'est la **manière de l'approximer ou de l'échantillonner** ; `posthoc` est le cas distinct où les paramètres de population restent fixés.
 
 **FOCEI utilise une approximation locale.** Il remplace le modèle par sa tangente au mode individuel $\hat{\eta}_i$, ce qui rend l'intégrande gaussien et l'intégrale analytique. Le prix : il faut retrouver $\hat{\eta}_i$ pour chaque sujet à chaque itération de population, et il faut les dérivées $\partial f / \partial \eta$. Une boucle d'optimisation dans une boucle d'optimisation.
 
@@ -202,7 +205,7 @@ La discipline est simple, et elle est entièrement à votre charge : **un seul m
 
 <!-- step:title="À retenir" -->
 - Le trait de conception de nlmixr2 : le modèle est un objet R, l'estimateur est un **argument**. `ini({})` et `model({})` décrivent les densités ; le signe $\int$ appartient au moteur, d'où `est =`.
-- Quatre moteurs pour la même intégrale : `"focei"` l'approche par tangente en $\hat{\eta}_i$ avec interaction, `"saem"` l'échantillonne, `"nlme"` l'approche autrement (Lindstrom-Bates, $\approx$ FOCE sans interaction), `"posthoc"` ne l'aborde pas ($\theta$ fixé, seuls les $\hat{\eta}_i$ sont cherchés).
+- Quatre workflows représentatifs : `"focei"` approche l'intégrale par tangente en $\hat{\eta}_i$ avec interaction, `"saem"` l'échantillonne, `"nlme"` l'approche autrement (Lindstrom-Bates, $\approx$ FOCE sans interaction), et `"posthoc"` fixe $\theta$ pour ne chercher que les $\hat{\eta}_i$. D'autres estimateurs existent dans nlmixr2.
 - **rxode2** compile le modèle en C, une fois, et toutes les résolutions suivantes sont du code machine. FOCEI a besoin des sensibilités $\partial f / \partial \eta$, que rxode2 dérive et compile en plus : même source, objet compilé différent — d'où la recompilation en passant de SAEM à FOCEI.
 - **SAEM** pour les systèmes raides, les données éparses, les initiales douteuses : pas de dérivée, pas de mode individuel à trouver. **FOCEI** dès qu'une chaîne de ΔOFV est en jeu, ou que le travail finira sous NONMEM.
 - L'OFV d'un run SAEM n'est **pas** un nombre du SAEM : nlmixr2 le calcule après coup avec l'évaluateur FOCEi (défaut), ou par quadrature de Gauss-Hermite avec `saemControl(logLik = TRUE)` — sur une autre échelle.

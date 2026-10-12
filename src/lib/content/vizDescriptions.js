@@ -110,8 +110,8 @@ export const visualizationDescriptions = {
     en: "A teaching joint model associating a tumor trajectory with a progression-event hazard. Curves are conditional on the equations and prove no causal dose effect; because death is not modeled, this is not a complete PFS endpoint."
   },
   '32_Myelosuppression': {
-    fr: "Modèle de Friberg réduit avec trois compartiments de transit, effet linéaire borné et PK mono-exponentielle imposée. Les grades sont des repères ANC ; le grade 1 dépend aussi de la limite basse du laboratoire.",
-    en: "A reduced Friberg model with three transit compartments, bounded linear effect and imposed mono-exponential PK. ANC grades are landmarks; grade 1 also depends on the laboratory lower limit."
+    fr: "Modèle de Friberg réduit avec trois compartiments de transit, effet linéaire borné et PK mono-exponentielle imposée. Les seuils d’ANC affichés sont des repères illustratifs, pas une gradation CTCAE ni une recommandation clinique.",
+    en: "A reduced Friberg model with three transit compartments, bounded linear effect and imposed mono-exponential PK. Displayed ANC thresholds are illustrative markers, not CTCAE grading or a clinical recommendation."
   },
   '40_TreeEnsemble': {
     fr: "Régression 1D synthétique : CART, bagging d'arbres bootstrap ou boosting à faible profondeur. La courbe vraie est connue ici ; sans jeu test, la figure ne mesure pas la généralisation.",
@@ -126,8 +126,8 @@ export const visualizationDescriptions = {
     en: "A forest's variable importance, with a selection threshold (VSURF spirit). Move the threshold: too low keeps noise, too high drops useful variables."
   },
   '43_Copula': {
-    fr: "Exemple de copule gaussienne : les marges simulées du poids et de la ClCr restent fixes tandis que le paramètre de dépendance change. La corrélation empirique finie peut différer légèrement de rho.",
-    en: "A Gaussian-copula example: simulated weight and CrCl margins remain fixed while the dependence parameter changes. Finite-sample empirical correlation may differ slightly from rho."
+    fr: "Exemple de copule gaussienne : les lois marginales théoriques du poids et de la ClCr restent fixes tandis que la dépendance change. Dans un échantillon fini, histogrammes et corrélation empiriques peuvent varier légèrement.",
+    en: "A Gaussian-copula example: theoretical weight and CrCl marginal laws stay fixed while dependence changes. In a finite sample, empirical histograms and correlation may vary slightly."
   },
   '44_Survival': {
     fr: "Courbes PFS et OS de Weibull illustratives. Un même hazard ratio proportionnel est imposé aux deux processus ; le déplacement obtenu est conditionnel au modèle et ne démontre aucun effet causal d'une dose.",
@@ -252,6 +252,10 @@ export const visualizationDescriptions = {
   'TDMProfile': {
     fr: "Mise à jour MAP pédagogique de CL à partir d'un prélèvement, avec V fixé et modèle bolus IV mono-compartimental. Elle illustre prior+donnée mais ne calcule pas à elle seule une recommandation posologique.",
     en: "An educational one-sample MAP update of CL with fixed V and a one-compartment IV-bolus model. It illustrates prior plus data but does not by itself calculate a dosing recommendation."
+  },
+  'NPAGSupportPoints': {
+    fr: "Distribution jointe discrete CL-V synthetique. La surface des points code leur poids ; une concentration patient actualise ces poids par une vraisemblance gaussienne proportionnelle simplifiee. Cette demonstration explique les resumes d'une distribution NPAG, sans executer NPAG.",
+    en: "A synthetic discrete joint CL-V distribution. Point area encodes weight; one patient concentration updates the weights through a simplified proportional Gaussian likelihood. This demonstration explains summaries of an NPAG distribution without running NPAG."
   },
   'Turnover': {
     fr: "Deux modèles de réponse indirecte qui augmentent R : stimulation de kin ou inhibition de kout, avec R0=kin/kout. Le délai dépend du turnover ; d'autres mécanismes exigent les deux autres familles de modèles indirects.",

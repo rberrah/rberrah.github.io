@@ -13,8 +13,11 @@ prerequisites: ["tools-algorithms"]
 glossary: ["Monolix", "SAEM"]
 slides: []
 sources: ["monolix", "kuhn-lavielle-saem", "lavielle", "karlsson-holford-vpc"]
+software_verified_on: "2026-10-11"
+software_version: "MonolixSuite 2024R1 documentation"
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "ae8b4b7dd2b2875797ef82b0f08b212dc8d99437c445e1171c5c7cafa50457f0"
 quiz:
   - prompt: "Le moteur d'estimation par défaut de Monolix est..."
@@ -75,7 +78,7 @@ Réf. : Lixoft / Simulations Plus ; documentation Monolix. mlxtran est partagé 
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="67_SAEMConvergence" -->
-Sur un modèle difficile (Emax raide, données éparses), le **SAEM** de Monolix converge là où FOCE peinerait, et la **VPC intégrée** confirme (ou infirme) le modèle en un clic.
+Sur certains modèles difficiles (Emax raide, données éparses), le **SAEM** de Monolix peut être plus robuste que FOCE, selon le modèle, le design et les réglages. La **VPC intégrée** recherche des inadéquations prédictives sous le modèle et le design simulé ; elle ne confirme ni ne réfute seule le modèle.
 
 Beaucoup d'équipes prototypent et enseignent avec Monolix pour sa **lisibilité**, puis comparent ou traduisent parfois vers NONMEM selon leur organisation, pour une analyse de sensibilité inter-logiciels ou pour collaborer avec des équipes déjà structurées autour de NONMEM.
 <!-- /step -->

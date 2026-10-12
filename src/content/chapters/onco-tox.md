@@ -15,6 +15,7 @@ slides: []
 sources: ["friberg", "savic-transit", "sharma-jusko-indirect"]
 reviewed_on: "2026-10-11"
 review_type: "author"
+review_pending: true
 reviewed_hash: "89f5456d8c5483498bb15a776736c70cc0bf3717ac2b7f82010e2f9ecd8ded61"
 quiz:
   - prompt: "Dans le modèle de Friberg, le nadir des neutrophiles survient..."
@@ -60,7 +61,7 @@ Réf. : Friberg L.E. et al., *J Clin Oncol* 2002 — modèle semi-mécaniste de 
 <!-- step:title="Exemple concret" viz="32_Myelosuppression" -->
 Plus l'**exposition** est forte, plus le nadir est **profond** ; le nadir survient ~1–2 semaines après la cure (temps de maturation), pas au pic plasmatique.
 
-On simule alors des schémas (dose, intervalle) qui gardent le nadir au-dessus d'un seuil de sécurité.
+On simule alors des schémas (dose, intervalle) qui gardent le nadir au-dessus d'un seuil défini pour l'analyse. Les valeurs d'ANC affichées dans l'illustration sont des repères pédagogiques et ne constituent pas une gradation CTCAE ni une recommandation clinique.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

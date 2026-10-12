@@ -3,7 +3,7 @@
   import { onMount, tick } from 'svelte';
   import { base } from '$app/paths';
   import { afterNavigate } from '$app/navigation';
-  import { ArrowLeft, ArrowRight, Check, RotateCcw, Lightbulb, Eye, BookOpen } from '@lucide/svelte';
+  import { ArrowLeft, ArrowRight, Check, RotateCcw, Lightbulb, Eye, BookOpen, FlaskConical } from '@lucide/svelte';
   import { language } from '$lib/stores/language';
   import { learning, markLearning, loadLearning } from '$lib/stores/learning';
   import { assess, activityStatus, emptyStep } from '$lib/learning/assessment';
@@ -14,6 +14,7 @@
   import CovariatePlot from '../CovariatePlot.svelte';
   import ScientificText from './ScientificText.svelte';
   import ActivityExperiment from './ActivityExperiment.svelte';
+  import { labByChapter, labNames } from '$lib/learning/labLinks';
 
   export let activity;
   const text = value => value?.[$language] ?? value?.fr ?? '';
@@ -25,6 +26,7 @@
   $: state = states[index];
   $: done = step.type === 'reflection' ? state.reviewed : state.correct || state.revealed;
   $: sourceList = resolveSources(activity.sources);
+  $: linkedLab = labByChapter[activity.chapter];
   $: savedStatus = $learning.activities[activity.id];
   $: skills = [
     activity.steps.some(item => item.type === 'numeric') && ['Calcul', 'Calculation'],
@@ -168,6 +170,7 @@
       {/if}
       <footer>
         <a href={`${base}/chapitres/${activity.chapter}/?lang=${$language}`}><BookOpen size={16}/>{t('Revoir le cours', 'Review the lesson')}</a>
+        {#if linkedLab}<a href={`${base}/laboratoires/?lab=${linkedLab}&lang=${$language}`}><FlaskConical size={16}/>{t('Prédire, manipuler, observer, expliquer', 'Predict, manipulate, observe, explain')} · {labNames[linkedLab]?.[$language]}</a>{/if}
         <button on:click={restart}><RotateCcw size={16}/>{t('Recommencer', 'Restart')}</button>
         <details class="sources"><summary>{t('Références et hypothèses', 'References and assumptions')}</summary><p>{t('Ces références étayent les concepts, pas les coefficients fictifs de l’exercice.', 'These references support the concepts, not the fictional exercise coefficients.')}</p><ul>{#each sourceList as source}<li><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>{/each}</ul></details>
       </footer>

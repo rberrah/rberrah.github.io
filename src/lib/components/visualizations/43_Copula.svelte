@@ -1,8 +1,8 @@
 <script>
   import { language } from '$lib/stores/language';
-  // Copule gaussienne : deux covariables (poids, ClCr) avec des marges FIXES mais une
+  // Copule gaussienne : deux covariables (poids, ClCr) avec des marges THEORIQUES fixes mais une
   // DÉPENDANCE réglable. On génère (z1, z2) normaux, puis z2' = ρ·z1 + √(1−ρ²)·z2.
-  // Les histogrammes marginaux ne changent pas ; seule la corrélation change.
+  // Les histogrammes empiriques peuvent varier légèrement dans cet échantillon fini.
   let rho = 0.6;
 
   /** @param {number} a @returns {() => number} */
@@ -42,9 +42,9 @@
     <label class="s"><span>{$language === 'en' ? 'Correlation ρ' : 'Corrélation ρ'}</span><strong>{rho.toFixed(2)}</strong><input type="range" min="-0.9" max="0.9" step="0.05" bind:value={rho} /></label>
     <div class="readout">
       <div><span>{$language === 'en' ? 'Dependence' : 'Dépendance'}</span><strong>{Math.abs(rho) < 0.15 ? ($language === 'en' ? 'almost none' : 'quasi nulle') : rho > 0 ? 'positive' : ($language === 'en' ? 'negative' : 'négative')}</strong></div>
-      <div><span>{$language === 'en' ? 'Marginals' : 'Marges'}</span><strong>{$language === 'en' ? 'unchanged' : 'inchangées'}</strong></div>
+      <div><span>{$language === 'en' ? 'Theoretical marginals' : 'Marges théoriques'}</span><strong>{$language === 'en' ? 'unchanged' : 'inchangées'}</strong></div>
     </div>
-    <p class="hint">{#if $language === 'en'}A copula describes <em>dependence</em> between covariates independently of their marginal distributions. Here, weight and CrCl histograms remain unchanged; only their relationship changes.{:else}Une copule décrit la <em>dépendance</em> entre covariables indépendamment de leurs lois marginales. Ici les histogrammes de poids et de ClCr restent identiques ; seul leur lien change.{/if}</p>
+    <p class="hint">{#if $language === 'en'}A copula changes <em>dependence</em> while preserving the theoretical marginal laws. Empirical histograms may vary slightly in this finite simulated sample.{:else}Une copule modifie la <em>dépendance</em> en conservant les lois marginales théoriques. Les histogrammes empiriques peuvent varier légèrement dans cet échantillon simulé fini.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Correlated covariate scatter plot' : 'Nuage de covariables corrélées'}>

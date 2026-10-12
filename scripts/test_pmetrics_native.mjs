@@ -101,10 +101,44 @@ tutorial_three <- PM_model$new(
   },
   err = list(proportional(5, c(0.02, 0.05, -0.0002, 0)))
 )
+
+# Structural templates used by the TDM artifact backend.
+backend_oral <- PM_model$new(
+  pri = list(ka = ab(0.2, 3), ke = ab(0.03, 0.5), v = ab(10, 100)),
+  eqn = function() {
+    dx[1] <- -ka * x[1] + b[1]
+    dx[2] <- ka * x[1] - ke * x[2]
+  },
+  out = function() { y[1] <- x[2] / v },
+  err = list(proportional(1, c(0.01, 0.1, 0, 0), fixed = TRUE))
+)
+backend_two_comp <- PM_model$new(
+  pri = list(ke = ab(0.02, 0.5), k12 = ab(0.03, 1.5), k21 = ab(0.02, 1), v = ab(5, 80)),
+  eqn = function() {
+    dx[1] <- -(ke + k12) * x[1] + k21 * x[2] + rateiv[1] + b[1]
+    dx[2] <- k12 * x[1] - k21 * x[2]
+  },
+  out = function() { y[1] <- x[1] / v },
+  err = list(proportional(1, c(0.01, 0.1, 0, 0), fixed = TRUE))
+)
+backend_data <- PM_data$new(data.frame(
+  id = 1, time = c(0, 0.5, 1, 2, 4, 8, 12),
+  dose = c(100, rep(NA_real_, 6)), input = c(1, rep(NA_integer_, 6)),
+  out = c(NA_real_, rep(0, 6))
+), quiet = TRUE)
+oral_sim <- backend_oral$sim(data = backend_data,
+  theta = matrix(c(1.2, 0.15, 32), nrow = 1, dimnames = list(NULL, c("ka", "ke", "v"))), quiet = TRUE)
+two_comp_sim <- backend_two_comp$sim(data = backend_data,
+  theta = matrix(c(0.14, 0.5, 0.22, 25), nrow = 1,
+    dimnames = list(NULL, c("ke", "k12", "k21", "v"))), quiet = TRUE)
 stopifnot(
   inherits(model, "PM_model"),
   inherits(tutorial_two, "PM_model"),
-  inherits(tutorial_three, "PM_model")
+  inherits(tutorial_three, "PM_model"),
+  inherits(backend_oral, "PM_model"),
+  inherits(backend_two_comp, "PM_model"),
+  all(is.finite(oral_sim$out)), max(oral_sim$out) > 0,
+  all(is.finite(two_comp_sim$out)), max(two_comp_sim$out) > 0
 )
 cat("PMETRICS_NATIVE_COMPILE_OK\\n")
 cat("PMETRICS_NATIVE_SIMULATION_OK\\n")

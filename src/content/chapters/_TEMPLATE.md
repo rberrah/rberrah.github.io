@@ -24,8 +24,12 @@ tags: ["pk"]                    # étiquettes libres (liste non vide)
 prerequisites: []               # slugs des prérequis réels
 glossary: ["CL", "V"]          # termes utiles pour ce chapitre
 sources: ["source-id"]          # identifiants de references.js
+# Pour un chapitre dépendant d'un logiciel externe :
+# software_verified_on: "2026-10-11"
+# software_version: "nom et version ou documentation de référence"
 reviewed_on: "2026-10-08"       # dernière relecture scientifique
 review_type: "author"           # author | internal | external
+review_pending: false            # true si le texte a changé depuis cette relecture
 reviewed_hash: ""                # généré par npm run review:seal après relecture
 slides: []                      # IDs de slides du catalogue (optionnel)
 quiz:                           # checkpoint de fin (obligatoire, >= 1 question)

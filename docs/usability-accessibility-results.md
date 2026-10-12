@@ -3,6 +3,8 @@
 Status: **not yet executed with participants or assistive technologies**.
 
 This register accompanies [`usability-accessibility-protocol.md`](usability-accessibility-protocol.md).
+Use the [`session form`](usability-accessibility-session-form.md) during each
+observation.
 Automated builds and browser tests are useful regression checks, but they are not
 evidence that the site is usable by learners or accessible with NVDA, VoiceOver
 or a real mobile device.

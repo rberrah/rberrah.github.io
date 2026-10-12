@@ -2407,10 +2407,11 @@ server <- function(input, output, session) {
         isolate(input$fixed_residual_cv %||% 1)
       ))
       compile_pmetrics_bridge(artifact, session_model_dir, session_model_cache)
+      compartments <- pmetrics_compartment_contract(artifact)
       return(list(
         ok = TRUE, errors = character(), warnings = character(),
         engine = "pmetrics", route = artifact$route, mode = artifact$mode,
-        adm_cmt = 1L, obs_cmt = 1L, n_eta = 0L,
+        adm_cmt = compartments$adm_cmt, obs_cmt = compartments$obs_cmt, n_eta = 0L,
         n_sigma = length(artifact$error$coefficients), n_support = nrow(artifact$support)
       ))
     }
@@ -3135,9 +3136,12 @@ server <- function(input, output, session) {
     fits <- Filter(function(fit) identical(fit$engine %||% "mapbayr", "pmetrics"), successful_fits(result$fits))
     shiny::req(length(fits) == 1L)
     fit <- fits[[1]]
-    table <- fit$posterior_points[, c("ke", "v", "prob"), drop = FALSE]
+    parameter_names <- names(fit$posterior_parameters)
+    table <- fit$posterior_points[, c(parameter_names, "prob"), drop = FALSE]
+    parameter_labels <- c(ka = "ka (1/h)", ke = "ke (1/h)", k12 = "k12 (1/h)", k21 = "k21 (1/h)", v = "V (L)")
+    labels <- unname(ifelse(parameter_names %in% names(parameter_labels), parameter_labels[parameter_names], parameter_names))
     datatable(table, rownames = FALSE,
-      colnames = c("ke (1/h)", "V (L)", if (isTRUE(fit$pmetrics$mapped)) tx("Probabilité postérieure", "Posterior probability") else tx("Probabilité a priori", "Prior probability")),
+      colnames = c(labels, if (isTRUE(fit$pmetrics$mapped)) tx("Probabilité postérieure", "Posterior probability") else tx("Probabilité a priori", "Prior probability")),
       options = list(dom = "t", scrollX = TRUE, pageLength = nrow(table)))
   })
 

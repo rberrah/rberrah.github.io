@@ -10,11 +10,12 @@ duration: "15 min"
 level: "intermediate"
 tags: ["population PK", "parametric", "nonparametric", "NPAG", "distribution"]
 prerequisites: ["variabilite-iiv-iov", "outils-estimation"]
-glossary: ["Effets mixtes", "Vraisemblance", "NPAG"]
+glossary: ["Effets mixtes", "Vraisemblance", "Distribution mélangeante", "NPAG", "NPOD", "Point de support"]
 slides: []
 sources: ["goutelle-parametric-nonparametric", "neely-pmetrics", "yamada-npag"]
 reviewed_on: "2026-09-28"
 review_type: "author"
+review_pending: true
 reviewed_hash: "6c23f6afe1aa871a444e5c285f8328e3249bb7f41bcf558d327306cef3eae440"
 quiz:
   - prompt: "Dans ce contexte, paramétrique ou non paramétrique décrit surtout..."
@@ -43,7 +44,7 @@ Le mot **non paramétrique** est souvent mal compris. Ici, il ne signifie ni NCA
 Les deux approches peuvent partager exactement les mêmes compartiments, équations différentielles, covariables et modèle d'erreur. Ce qui change surtout est la façon de représenter et d'estimer la **distribution jointe des paramètres individuels** dans la population.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="03_PopulationDistrib" -->
+<!-- step:title="Intuition" viz="NPAGSupportPoints" -->
 Imaginons que chaque patient possède un couple $(CL_i,V_i)$.
 
 - Une approche **paramétrique** décrit le nuage avec une famille de distributions et un nombre fini de paramètres, par exemple moyenne, variances et covariance après transformation logarithmique.
@@ -87,6 +88,29 @@ Supposons deux mécanismes d'élimination réellement présents dans une populat
 Une approche non paramétrique peut mieux faire apparaître une asymétrie, un patient atypique ou plusieurs modes. Une approche paramétrique peut être plus parcimonieuse, plus régulière et plus facile à communiquer lorsque son hypothèse de distribution est adéquate.
 
 Le choix doit être comparé sur la stabilité, les diagnostics, la validation externe et la performance pour l'usage prévu, pas sur une préférence de logiciel.
+
+En pratique, une approche non paramétrique est particulièrement informative lorsqu'une forme imposée masque une asymétrie ou une multimodalité reproductible. Une approche paramétrique reste souvent préférable avec peu de données, lorsque la distribution choisie est adéquate ou lorsque la parcimonie et la stabilité priment. « Non paramétrique » ne signifie donc ni sans modèle, ni automatiquement plus flexible au sens utile, ni automatiquement meilleur.
+<!-- /step -->
+
+<!-- step:title="Benchmark à vérité connue" -->
+Un benchmark reproductible a utilisé le même modèle IV à un compartiment, la même erreur et les mêmes temps pour trois distributions vraies de clairance. Le modèle de population est ajusté sur 90 sujets ; chez 180 sujets indépendants, la concentration à 1 h actualise la distribution individuelle avant de prédire celle à 8 h. NPAG est lancé avec deux graines et 40 ou 80 points initiaux.
+
+| Distribution vraie | Méthode | Log-vraisemblance prédictive moyenne | Biais (mg/L) | RMSE (mg/L) | MAE (mg/L) | Couverture 90 % |
+|---|---|---:|---:|---:|---:|---:|
+| Log-normale | Paramétrique | -0,214 | 0,032 | 0,282 | 0,226 | 91,7 % |
+| Log-normale | NPAG | -0,201 | 0,008 | 0,281 | 0,223 | 90,0 % |
+| Asymétrique | Paramétrique | -0,526 | 0,051 | 0,361 | 0,282 | 83,9 % |
+| Asymétrique | NPAG | -0,416 | 0,027 | 0,357 | 0,280 | 86,7 % |
+| Bimodale | Paramétrique | -0,515 | 0,042 | 0,454 | 0,378 | 87,2 % |
+| Bimodale | NPAG | -0,121 | 0,031 | 0,455 | 0,361 | 87,8 % |
+
+Dans le contrôle log-normal, les RMSE sont pratiquement identiques : NPAG n'est pas nécessairement meilleur. Dans le scénario bimodal, il améliore nettement la vraisemblance prédictive et la MAE, mais pas la RMSE. Les deux initialisations NPAG donnent les mêmes métriques arrondies malgré un nombre final de points différent. Ces résultats sont conditionnels à ce modèle, ce dessin et cette erreur synthétiques ; ils ne constituent pas une validation clinique.
+<!-- /step -->
+
+<!-- step:title="Quand utiliser le non paramétrique ?" -->
+Une représentation non paramétrique peut être utile pour examiner une asymétrie ou une multimodalité reproductible, une population hétérogène, ou un TDM qui doit conserver la distribution jointe complète. Elle reste conditionnelle au modèle structural, aux covariables, à l'erreur, aux bornes et au dessin.
+
+Une représentation paramétrique peut rester préférable lorsque l'information est faible, qu'une forme simple décrit correctement les données, que la parcimonie stabilise l'estimation ou qu'un workflow exige une paramétrisation standard facilement communicable. Le choix est une question d'**adéquation à l'usage** : diagnostics et performances held-out priment sur l'étiquette de la méthode.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->

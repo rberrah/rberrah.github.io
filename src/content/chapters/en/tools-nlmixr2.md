@@ -13,8 +13,11 @@ prerequisites: ["tools-algorithms"]
 glossary: ["nlmixr2 / rxode2","SAEM","FOCE-I"]
 slides: []
 sources: ["nlmixr2","fidler-nlmixr","kuhn-lavielle-saem","wang-nonmem-methods"]
+software_verified_on: "2026-10-11"
+software_version: "nlmixr2 5.0.0; nlmixr2.org documentation"
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "bfd9503576c4e00dd5b450b571f14467fcc6253eb5996850aa236986218306f6"
 quiz:
   - prompt: "nlmixr2 stands out mainly for..."
@@ -70,7 +73,7 @@ mod <- function() {
 fit <- nlmixr2(mod, data, est = "saem")   # or est = "focei"
 ```
 
-`est = "saem"` or `"focei"`: nlmixr2 shares the **same** algorithms as Monolix/NONMEM. The ODE engine is **rxode2**, usable standalone to simulate.
+`est = "saem"` or `"focei"`: nlmixr2 provides the **same broad algorithm families** as Monolix/NONMEM, with its own implementations, settings, and conventions. The ODE engine is **rxode2**, usable standalone to simulate.
 
 **Note —** ref.: the nlmixr2 project (Fidler, Wang, Hallow et al.), open-source (R); integrates with rxode2, xpose and ggPMX.
 <!-- /step -->

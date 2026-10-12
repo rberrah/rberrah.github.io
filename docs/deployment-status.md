@@ -1,4 +1,19 @@
-# Publication - 2026-09-29
+# Publication status - 2026-10-12
+
+## Pmetrics re-check
+
+- Local Pmetrics 3.2.6 compilation and simulation pass for IV 1C, oral 1C and
+  IV 2C; `PM_model$map()` posterior tests pass for all three synthetic artifacts.
+- The public Shiny engine was re-tested in a real browser on 2026-10-12. It does
+  not expose the Pmetrics model-source control, so the native backend remains
+  local/repository-only.
+- The Shinyapps.io image used by the last deployment attempt is incompatible
+  with Pmetrics 3.2.6: its Cargo 1.75 toolchain cannot build dependencies using
+  Rust edition 2024. This is an image/toolchain limitation, not a fundamental
+  incompatibility between Pmetrics and Shiny. No dependency downgrade was
+  introduced to force publication.
+- Next hosting options remain, in order: a compatible managed toolchain, a
+  controlled container, or a separate Pmetrics service.
 
 ## Lot Covariables Et Pmetrics
 

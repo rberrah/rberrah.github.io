@@ -13,8 +13,11 @@ prerequisites: ["tools-nonmem"]
 glossary: ["NONMEM","FOCE-I","Vraisemblance"]
 slides: []
 sources: ["wang-nonmem-methods","bauer-nonmem-2","lindstrom-bates","wilks-1938"]
+software_verified_on: "2026-10-11"
+software_version: "NONMEM 7.5 documentation"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "23819f62af9fa81b9131cb4566a0151cd105a97d6985df437c44882d570dbe37"
 quiz:
   - prompt: "Why does the OFV of a METHOD=0 (FO) run not compare with that of a METHOD=1 INTER (FOCE-I) run?"
@@ -62,11 +65,11 @@ Subject *i*'s likelihood is the integral to be dodged:
 
 $$ L_i = \int p(y_i \mid \eta_i)\; p(\eta_i)\; d\eta_i $$
 
-All classical methods handle it with a **first-order Taylor expansion** around an anchor point $\eta^{*}$:
+FO and FOCE use a **local first-order linearisation** around an anchor point $\eta^{*}$:
 
 $$ f(\eta_i) \;\approx\; f(\eta^{*}) \;+\; \underbrace{\frac{\partial f}{\partial \eta}\bigg|_{\eta^{*}}}_{\text{the slope}}\,(\eta_i - \eta^{*}) $$
 
-Everything hinges on the choice of $\eta^{*}$:
+The choice of $\eta^{*}$ distinguishes FO from FOCE. Laplace adds curvature information at the conditional mode, whereas SAEM and IMP are stochastic methods and do not rely on this same linearisation:
 
 | `$ESTIMATION` line | Anchor point | Inner loop |
 |---|---|---|
@@ -96,7 +99,7 @@ where $\hat{L}_i$ is the **approximated** likelihood, approximated the way the m
 
 $$ \Delta OFV = OFV_{\text{base}} - OFV_{\text{full}} \;\sim\; \chi^2_{\Delta df} \quad (\text{under } H_0) $$
 
-Thresholds at 5%: **3.84** for 1 parameter, 5.99 for 2, 7.81 for 3. The omitted constant vanishes in the subtraction — which is why the ΔOFV is legitimate where the absolute OFV is not. But the "same method" requirement is not cosmetic: the **approximation bias** must cancel in the difference too, and it only cancels if both runs are wrong in the same way.
+Thresholds at 5% are **3.84** for 1 parameter, 5.99 for 2, and 7.81 for 3, under the regularity conditions of the test. The omitted common additive constant cancels exactly in the subtraction. Using the same method does not, however, guarantee that its **approximation bias** cancels between models: comparability also depends on test assumptions, numerical stability, and scientific relevance.
 
 ```
 ; --- FOCE with interaction: the workhorse
@@ -168,6 +171,6 @@ Three working rules. **(1)** `INTER` as soon as the error model depends on the p
 - Everything hangs on the **anchor point**: FO linearises at η = 0 (the typical patient, for everyone), FOCE at **η̂ᵢ** (each subject's EBE) — at the cost of an inner loop at every iteration.
 - **`INTER`** evaluates the residual variance at η̂ᵢ instead of η = 0: essential with proportional or combined error, without effect with purely additive error.
 - **OFV = −2 log L̂ up to an additive constant**, and the "hat" depends on the method: never compare OFVs from FO, FOCE-I, SAEM or another program blindly; check objective, data, approximation, constants and conventions.
-- **ΔOFV ~ χ²** (threshold **3.84** at 1 df, 5%): only between **nested** models, same data, **same method** — the constant and the approximation bias then cancel in the difference.
+- **ΔOFV ~ χ²** (threshold **3.84** at 1 df, 5%): only between **nested** models, same data and **same method**, under regularity conditions. The common additive constant cancels; approximation bias need not.
 - `MINIMIZATION SUCCESSFUL` is not a validation; `ROUNDING ERRORS` is not a condemnation — it is a signal of over-parameterisation or poor numerical scaling.
 <!-- /step -->

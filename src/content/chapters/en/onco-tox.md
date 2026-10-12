@@ -15,6 +15,7 @@ glossary: ["PD","Emax","Réponse indirecte / turnover"]
 sources: ["friberg","savic-transit","sharma-jusko-indirect"]
 reviewed_on: "2026-10-11"
 review_type: "author"
+review_pending: true
 reviewed_hash: "cfb63ab26e53b2f32c67a62c9e13a3cf0d14841c90de5bd0d5a6aedf5c6af1f7"
 quiz:
   - prompt: "In the Friberg model, the neutrophil nadir occurs..."
@@ -58,7 +59,7 @@ $$ \frac{dProl}{dt} = k_{tr}\,Prol\,(1 - E_{drug})\left(\frac{Circ_0}{Circ}\righ
 <!-- step:title="Worked example" viz="32_Myelosuppression" -->
 The higher the **exposure**, the deeper the nadir; the nadir occurs ~1–2 weeks after the cycle (maturation time), not at the plasma peak.
 
-One then simulates schedules (dose, interval) that keep the nadir above a safety threshold.
+Schedules (dose, interval) can then be simulated to keep the nadir above an analysis-specific threshold. ANC values shown in the illustration are teaching markers, not CTCAE grading or a clinical recommendation.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

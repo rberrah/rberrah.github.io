@@ -13,9 +13,12 @@ prerequisites: ["tools-nlmixr2"]
 glossary: ["mrgsolve","nlmixr2 / rxode2","VPC","Jumeau numérique"]
 slides: []
 sources: ["mrgsolve","fidler-nlmixr","bergstrand-pcvpc","mould-upton"]
+software_verified_on: "2026-10-11"
+software_version: "mrgsolve 2.0.1 documentation; rxode2 documentation"
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "cb4286b0f5366e29f50df40d16b19b7e54099ed58bb49425bcd17cf5f63bb8c4"
 quiz:
   - prompt: "mrgsolve and rxode2 mainly serve to..."

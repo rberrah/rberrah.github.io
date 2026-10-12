@@ -13,8 +13,11 @@ prerequisites: ["tools-monolix"]
 glossary: ["Monolix", "SAEM", "Vraisemblance"]
 slides: []
 sources: ["delyon-saem", "kuhn-lavielle-saem", "lavielle", "lavielle-mentre-monolix", "monolix"]
+software_verified_on: "2026-10-11"
+software_version: "MonolixSuite 2024R1 documentation"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "a517bd43786d26c8c039f9ba8ce017abf6277a0ce1aa29e9cbb4390983caebec"
 quiz:
   - prompt: "Dans le graphe de convergence du SAEM, une trajectoire parfaitement plate pendant la phase de lissage indique..."
@@ -163,9 +166,9 @@ Le SAEM échoue autrement. Il fait les itérations que vous lui avez demandées,
 **La platitude de la phase 2 ne prouve rien : elle est garantie par construction.** En phase de lissage, $\gamma_k \to 0$, donc chaque nouvelle simulation ne corrige plus $\theta_k$ que d'une fraction décroissante. La trajectoire s'aplatit **parce que le pas s'éteint**, pas parce que le maximum est atteint. Si un paramètre montait encore au moment de la bascule, la phase 2 le **fige en pleine montée** et vous dessine une belle ligne horizontale à une valeur fausse. Vous lisez « convergé » sur ce qui n'est qu'une capture.
 :::
 
-Le diagnostic est donc **entièrement dans la phase 1** — la partie du graphe qui a l'air d'un désordre. Ce qu'on y cherche : chaque paramètre doit atteindre son plateau **nettement avant** le trait de bascule, puis y osciller avec un bruit franc et visible. Un plateau atteint à la 480e itération sur 500 n'est pas un plateau, c'est une coïncidence. Une trajectoire encore monotone à la bascule n'a pas fini d'explorer. Un $\omega$ qui glisse vers zéro sans jamais osciller signale un effet aléatoire que les données ne soutiennent pas.
+Le diagnostic ne se réduit pas à une phase. On examine les trajectoires et l'indicateur de convergence pendant l'exploration, puis leur stabilisation pendant le lissage, les statuts d'arrêt et la cohérence des estimations. Une trajectoire encore monotone à la bascule demande de la prudence ; un $\omega$ qui glisse vers zéro sans se stabiliser peut signaler un effet aléatoire peu soutenu. La robustesse se vérifie aussi en répétant l'estimation avec plusieurs graines et valeurs initiales.
 
-L'auto-stop aggrave le tout : `exploratoryautostop` coupe la phase 1 sur un critère qui ne regarde qu'une fenêtre récente d'itérations, et une dérive assez lente le satisfait sans peine. Sur un modèle difficile, désactivez-le et rallongez `exploratoryiterations`. C'est le seul réglage du SAEM qui achète vraiment quelque chose.
+L'auto-stop utilise la stabilité de l'indicateur de convergence, des omégas et des paramètres d'erreur. Le désactiver et prolonger les phases peut constituer une **analyse de sensibilité** sur un modèle difficile ; ce n'est pas une règle universelle ni une garantie de meilleur optimum.
 
 Et le contrôle qui tranche : **relancez avec une autre graine et d'autres valeurs initiales.** Si $\hat{\theta}$ bouge au-delà du bruit annoncé, ce n'est pas le SAEM qui est en cause. C'est votre vraisemblance qui est plate ou multimodale — et aucun réglage d'algorithme ne réparera un modèle non identifiable.
 <!-- /step -->
@@ -176,6 +179,6 @@ Et le contrôle qui tranche : **relancez avec une autre graine et d'autres valeu
 - Deux phases : exploration à pas constant ($\gamma_k = 1$, aucune mémoire, on erre exprès), puis lissage à pas décroissant ($\gamma_k \approx 1/k$, le bruit se moyenne, on converge). Fondement : Delyon–Lavielle–Moulines (1999), porté au non linéaire par Kuhn–Lavielle (2004).
 - Le SAEM maximise la vraisemblance sans jamais l'évaluer : le $-2LL$ est une **tâche séparée**, par échantillonnage d'importance ou par linéarisation.
 - Le $-2LL$ par échantillonnage d'importance est bruité : lisez son erreur de Monte-Carlo, et augmentez `nbfixediterations` avant de trancher un LRT serré.
-- Le diagnostic de convergence est dans la phase 1. La phase 2 est plate par construction, y compris sur un paramètre figé au mauvais endroit.
+- L'évaluation de convergence combine trajectoires d'exploration, phase de lissage, indicateurs et statuts, puis stabilité entre graines et valeurs initiales ; aucune phase ne suffit seule.
 - Un $-2LL$ de Monolix et une OFV de NONMEM ne se comparent qu'après vérification de la définition de l'objectif, des données, de l'approximation, des constantes et des conventions ; l'exemple montre comment une constante peut expliquer une grande partie d'un écart.
 <!-- /step -->

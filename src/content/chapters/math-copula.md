@@ -15,6 +15,7 @@ slides: []
 sources: ["nelsen-copulas", "bonate"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "76aba6928dc84af08448ec3c84c82217dc805a6873833480d23580a6c338b626"
 quiz:
   - prompt: "Une copule décrit..."
@@ -46,7 +47,7 @@ Les **copules** permettent de reproduire la dépendance observée tout en gardan
 <!-- step:title="Intuition" viz="43_Copula" -->
 L'idée clé : **séparer** deux questions. (1) Comment se distribue chaque covariable **seule** (sa marge) ? (2) Comment sont-elles **liées** entre elles (la dépendance) ?
 
-Une copule ne décrit que la seconde. Faites varier la corrélation : les histogrammes marginaux ne bougent pas, seul le **lien** change.
+Une copule ne décrit que la seconde. Faites varier la corrélation : les **lois marginales théoriques** restent inchangées et seul le lien change. Dans un échantillon simulé fini, les histogrammes empiriques peuvent néanmoins varier légèrement par fluctuation d'échantillonnage.
 <!-- /step -->
 
 <!-- step:title="La formule décortiquée" viz="43_Copula" -->

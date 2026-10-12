@@ -62,7 +62,7 @@ pmetrics_support_table <- function(artifact, parameters = pmetrics_parameter_tab
     as.data.frame(as.list(values), check.names = FALSE)
   }))
   output[] <- lapply(output, as.numeric)
-  if (any(output$prob < 0) || sum(output$prob) <= 0) stop("Pmetrics support-point probabilities must be non-negative and sum to a positive value.")
+  if (any(output$prob <= 0) || sum(output$prob) <= 0) stop("Pmetrics support-point probabilities must be positive and sum to a positive value.")
   for (index in seq_len(nrow(parameters))) {
     name <- parameters$name[[index]]
     if (any(output[[name]] < parameters$lower[[index]] | output[[name]] > parameters$upper[[index]])) {
@@ -106,7 +106,11 @@ validate_pmetrics_artifact <- function(artifact) {
   if (!grepl("^[a-z0-9][a-z0-9_-]{0,79}$", id)) stop("Invalid Pmetrics artifact id.")
   if (!identical(tolower(pmetrics_scalar(artifact$engine, "engine")), "pmetrics")) stop("Artifact engine must be Pmetrics.")
   template <- pmetrics_scalar(artifact$structure$template, "structure.template")
-  supported <- list(one_compartment_iv = c("ke", "v"))
+  supported <- list(
+    one_compartment_iv = c("ke", "v"),
+    one_compartment_oral = c("ka", "ke", "v"),
+    two_compartment_iv = c("ke", "k12", "k21", "v")
+  )
   if (!template %in% names(supported)) stop("Unsupported Pmetrics structural template: ", template, ".")
   parameters <- pmetrics_parameter_table(artifact)
   if (!setequal(parameters$name, supported[[template]])) {
@@ -114,13 +118,17 @@ validate_pmetrics_artifact <- function(artifact) {
   }
   pmetrics_error_spec(artifact)
   support <- pmetrics_support_table(artifact, parameters)
-  if (any(support$ke <= 0 | support$v <= 0)) stop("Pmetrics IV support points require positive ke and v.")
+  if (any(as.matrix(support[, parameters$name, drop = FALSE]) <= 0)) stop("Pmetrics structural support-point parameters must be positive.")
   if (!isTRUE(pmetrics_error_spec(artifact)$fixed)) stop("Pmetrics patient artifacts require a fixed, previously estimated error model.")
   route <- pmetrics_scalar(artifact$administration$route, "administration.route")
   mode <- pmetrics_scalar(artifact$administration$mode, "administration.mode")
-  if (!identical(template, "one_compartment_iv") || !identical(route, "IV") || !mode %in% c("IV_INTERMITTENT", "IV_CONTINUOUS")) {
-    stop("The one-compartment IV template requires an IV administration mode.")
-  }
+  valid_administration <- switch(template,
+    one_compartment_oral = identical(route, "Oral") && identical(mode, "ORAL"),
+    one_compartment_iv = identical(route, "IV") && mode %in% c("IV_INTERMITTENT", "IV_CONTINUOUS"),
+    two_compartment_iv = identical(route, "IV") && mode %in% c("IV_INTERMITTENT", "IV_CONTINUOUS"),
+    FALSE
+  )
+  if (!valid_administration) stop("Pmetrics artifact route and administration mode do not match its structural template.")
   artifact$schemaVersion <- PMETRICS_ARTIFACT_VERSION
   artifact$parameters <- parameters
   artifact$support <- support
@@ -168,6 +176,28 @@ build_pmetrics_model <- function(artifact, error = pmetrics_error_spec(artifact)
       },
       err = list(error_model)
     ),
+    one_compartment_oral = Pmetrics::PM_model$new(
+      pri = bounds,
+      eqn = function() {
+        dx[1] <- -ka * x[1] + b[1]
+        dx[2] <- ka * x[1] - ke * x[2]
+      },
+      out = function() {
+        y[1] <- x[2] / v
+      },
+      err = list(error_model)
+    ),
+    two_compartment_iv = Pmetrics::PM_model$new(
+      pri = bounds,
+      eqn = function() {
+        dx[1] <- -(ke + k12) * x[1] + k21 * x[2] + rateiv[1] + b[1]
+        dx[2] <- k12 * x[1] - k21 * x[2]
+      },
+      out = function() {
+        y[1] <- x[1] / v
+      },
+      err = list(error_model)
+    ),
     stop("Unsupported Pmetrics structural template.")
   )
 }
@@ -185,8 +215,59 @@ pmetrics_bridge_code <- function(artifact) {
       "$CAPTURE CONC",
       sep = "\n"
     ),
+    one_compartment_oral = paste(
+      "$PARAM ka = 1, ke = 0.15, v = 30",
+      "$CMT @annotated",
+      "DEPOT : oral depot [ADM]",
+      "CENT : central compartment [OBS]",
+      "$ODE",
+      "dxdt_DEPOT = -ka * DEPOT;",
+      "dxdt_CENT = ka * DEPOT - ke * CENT;",
+      "$TABLE",
+      "double CONC = CENT / v;",
+      "$CAPTURE CONC",
+      sep = "\n"
+    ),
+    two_compartment_iv = paste(
+      "$PARAM ke = 0.15, k12 = 0.3, k21 = 0.2, v = 30",
+      "$CMT @annotated",
+      "CENT : central compartment [ADM, OBS]",
+      "PERIPH : peripheral compartment",
+      "$ODE",
+      "dxdt_CENT = -(ke + k12) * CENT + k21 * PERIPH;",
+      "dxdt_PERIPH = k12 * CENT - k21 * PERIPH;",
+      "$TABLE",
+      "double CONC = CENT / v;",
+      "$CAPTURE CONC",
+      sep = "\n"
+    ),
     stop("Unsupported Pmetrics structural template.")
   )
+}
+
+pmetrics_compartment_contract <- function(artifact) {
+  switch(artifact$structure$template,
+    one_compartment_oral = list(adm_cmt = 1L, obs_cmt = 2L),
+    one_compartment_iv = list(adm_cmt = 1L, obs_cmt = 1L),
+    two_compartment_iv = list(adm_cmt = 1L, obs_cmt = 1L),
+    stop("Unsupported Pmetrics structural template.")
+  )
+}
+
+pmetrics_terminal_rate <- function(artifact) {
+  support <- artifact$support[artifact$support$prob > 0, , drop = FALSE]
+  rate <- switch(artifact$structure$template,
+    one_compartment_iv = support$ke,
+    one_compartment_oral = pmin(support$ka, support$ke),
+    two_compartment_iv = {
+      total <- support$ke + support$k12 + support$k21
+      (total - sqrt(pmax(0, total^2 - 4 * support$ke * support$k21))) / 2
+    },
+    stop("Unsupported Pmetrics structural template.")
+  )
+  minimum <- min(rate)
+  if (!is.finite(minimum) || minimum <= 0) stop("Pmetrics support points imply an invalid terminal rate.")
+  minimum
 }
 
 compile_pmetrics_bridge <- function(artifact, soloc, cache = NULL) {
@@ -268,7 +349,7 @@ run_pmetrics_map <- function(artifact, doses, observations, residual_error_mode 
   }
   error <- pmetrics_error_spec(artifact, residual_error_mode, fixed_residual_cv)
   model <- build_pmetrics_model(artifact, error)
-  input <- build_pmetrics_data(doses, observations, min(artifact$support$ke[artifact$support$prob > 0]))
+  input <- build_pmetrics_data(doses, observations, pmetrics_terminal_rate(artifact))
   data <- Pmetrics::PM_data$new(data = input$data, quiet = TRUE)
   run_dir <- tempfile(paste0("pmetrics-map-", artifact$id, "-"))
   dir.create(run_dir, recursive = TRUE)
@@ -299,12 +380,16 @@ fit_one_pmetrics_model <- function(
   if (length(covariates) || (!is.null(covariate_history) && ncol(covariate_history) > 1L)) {
     stop("This Pmetrics artifact does not define covariates.")
   }
+  if (identical(artifact$route, "Oral") && any(as.numeric(doses$infusion) > 0)) {
+    stop("The one-compartment oral Pmetrics template does not accept infusion durations.")
+  }
   model <- compile_pmetrics_bridge(artifact, custom_soloc, custom_cache)
   mapped <- run_pmetrics_map(artifact, doses, observations, residual_error_mode, fixed_residual_cv)
   posterior_parameters <- mapped$posterior$mean
   model <- safe_param(model, as.list(posterior_parameters))
+  compartments <- pmetrics_compartment_contract(artifact)
   contract <- list(ok = TRUE, errors = character(), warnings = mapped$warnings,
-    adm_cmt = 1L, obs_cmt = 1L, route = artifact$route, mode = artifact$mode,
+    adm_cmt = compartments$adm_cmt, obs_cmt = compartments$obs_cmt, route = artifact$route, mode = artifact$mode,
     n_eta = 0L, n_sigma = 0L, engine = "pmetrics")
   map_data <- build_map_data(doses, observations, contract$adm_cmt, contract$obs_cmt, list())
   list(

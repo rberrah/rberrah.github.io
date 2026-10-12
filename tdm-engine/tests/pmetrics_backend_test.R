@@ -18,10 +18,21 @@ stopifnot(
   abs(sum(artifact$support$prob) - 1) < 1e-12,
   nrow(artifact$support) == 3L
 )
+artifacts <- lapply(c("demo_one_comp_iv", "demo_one_comp_oral", "demo_two_comp_iv"), read_pmetrics_artifact)
+stopifnot(
+  identical(vapply(artifacts, function(item) item$structure$template, character(1)),
+    c("one_compartment_iv", "one_compartment_oral", "two_compartment_iv")),
+  all(vapply(artifacts, function(item) abs(sum(item$support$prob) - 1) < 1e-12, logical(1))),
+  identical(pmetrics_compartment_contract(artifacts[[2]]), list(adm_cmt = 1L, obs_cmt = 2L)),
+  all(vapply(artifacts, function(item) pmetrics_terminal_rate(item) > 0, logical(1)))
+)
 
 invalid <- artifact
 invalid$supportPoints[[2]]$ke <- 2
 stopifnot(inherits(try(validate_pmetrics_artifact(invalid), silent = TRUE), "try-error"))
+invalid_weight <- artifact
+invalid_weight$supportPoints[[1]]$prob <- 0
+stopifnot(inherits(try(validate_pmetrics_artifact(invalid_weight), silent = TRUE), "try-error"))
 polynomial <- artifact
 polynomial$error$coefficients[[3]] <- -0.0002
 stopifnot(identical(validate_pmetrics_artifact(polynomial)$error$coefficients[[3]], -0.0002))
@@ -49,6 +60,12 @@ soloc <- tempfile("pmetrics-backend-compile-")
 dir.create(soloc, recursive = TRUE)
 on.exit(unlink(soloc, recursive = TRUE, force = TRUE), add = TRUE)
 cache <- new.env(parent = emptyenv())
+for (item in artifacts) {
+  stopifnot(inherits(build_pmetrics_model(item), "PM_model"))
+  if (!dir.exists(soloc)) dir.create(soloc, recursive = TRUE)
+  bridge <- compile_pmetrics_bridge(item, soloc, cache)
+  stopifnot(inherits(bridge, "mrgmod"))
+}
 fit <- fit_one_model(
   specification = list(
     id = artifact$id, artifact_id = artifact$id, engine = "pmetrics",
@@ -125,5 +142,57 @@ population_fit <- fit_one_model(
   custom_cache = cache
 )
 stopifnot(!isTRUE(population_fit$pmetrics$mapped), abs(sum(population_fit$posterior_points$prob) - 1) < 1e-12)
+for (item in artifacts[-1]) {
+  empty_fit <- fit_one_model(
+    specification = list(
+      id = item$id, artifact_id = item$id, engine = "pmetrics",
+      label = item$label, route = item$route, mode = item$mode
+    ),
+    doses = doses,
+    observations = observations[0, , drop = FALSE],
+    covariates = list(),
+    allow_custom = FALSE,
+    custom_soloc = soloc,
+    custom_cache = cache
+  )
+  stopifnot(
+    !isTRUE(empty_fit$pmetrics$mapped),
+    abs(sum(empty_fit$posterior_points$prob) - 1) < 1e-12,
+    all(names(empty_fit$posterior_parameters) %in% item$parameters$name)
+  )
+  profile <- simulate_regimen(empty_fit, dose = 100, interval = 12, infusion = 0, horizon = 24, delta = 0.25)
+  stopifnot(nrow(profile) > 50L, all(is.finite(profile$concentration)), all(profile$concentration >= 0))
 
-cat("Pmetrics artifact, PM_model$map posterior, AUC/C0, dose grid and weighted support distribution OK.\n")
+  middle <- item$support[2, item$parameters$name, drop = FALSE]
+  known_model <- safe_param(empty_fit$model, as.list(middle[1, , drop = TRUE]))
+  known <- as.data.frame(mrgsolve::mrgsim(
+    known_model,
+    events = mrgsolve::ev(amt = 100, cmt = empty_fit$contract$adm_cmt),
+    tgrid = times, obsonly = TRUE, recsort = 3
+  ))
+  mapped_fit <- fit_one_model(
+    specification = list(
+      id = item$id, artifact_id = item$id, engine = "pmetrics",
+      label = item$label, route = item$route, mode = item$mode
+    ),
+    doses = doses,
+    observations = data.frame(time = times, concentration = known$CONC, time_uncertainty = 0),
+    covariates = list(), allow_custom = FALSE,
+    custom_soloc = soloc, custom_cache = cache
+  )
+  stopifnot(
+    isTRUE(mapped_fit$pmetrics$mapped),
+    abs(sum(mapped_fit$posterior_points$prob) - 1) < 1e-10,
+    mapped_fit$posterior_points$prob[[2]] > item$support$prob[[2]]
+  )
+}
+
+oral_with_infusion <- doses
+oral_with_infusion$infusion <- 1
+stopifnot(inherits(try(fit_one_pmetrics_model(
+  specification = list(id = "demo_one_comp_oral", artifact_id = "demo_one_comp_oral"),
+  doses = oral_with_infusion, observations = observations[0, , drop = FALSE], covariates = list(),
+  custom_soloc = soloc, custom_cache = cache
+), silent = TRUE), "try-error"))
+
+cat("Pmetrics IV/oral/2C artifacts, PM_model$map posterior, AUC/C0, dose grid and weighted support distribution OK.\n")

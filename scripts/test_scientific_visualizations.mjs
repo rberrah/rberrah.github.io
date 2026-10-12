@@ -10,6 +10,7 @@ import {
   fitLinearSvm,
   infusionConcentration,
   parentMetaboliteConcentrations,
+  normalizeSupportPoints,
   repeatedBolusConcentration,
   repeatedBolusSummary,
   sampleSd,
@@ -18,7 +19,10 @@ import {
   simulateMyelosuppression,
   simulateTumorGrowth,
   simulateVpcDataset,
-  summarizeVpcDataset
+  summarizeSupportPoints,
+  summarizeVpcDataset,
+  supportPointMeanCurve,
+  updateSupportPointWeights
 } from '../src/lib/science/visualizationMath.js';
 
 const close = (actual, expected, tolerance, message) => assert.ok(Math.abs(actual - expected) <= tolerance, `${message}: ${actual} vs ${expected}`);
@@ -128,5 +132,23 @@ assert.ok(marrowNadir.t > treatedMarrow[0].t, 'The myelosuppression nadir must o
 const untreatedTumor = simulateTumorGrowth({ exposurePercent: 0, growth: 0.035, resistance: 0.02 });
 const tumorSteps = untreatedTumor.length - 1;
 close(untreatedTumor.at(-1).ts, 60 * (1 + 0.035 * 0.1) ** tumorSteps, 1e-8, 'Zero-exposure tumor growth must follow the displayed exponential Euler model');
+
+const supportPrior = [
+  { cl: 2.5, v: 24, weight: 2 },
+  { cl: 5, v: 40, weight: 5 },
+  { cl: 9, v: 68, weight: 3 }
+];
+const normalizedSupport = normalizeSupportPoints(supportPrior);
+close(normalizedSupport.reduce((sum, point) => sum + point.weight, 0), 1, 1e-12, 'Support-point weights must sum to one');
+assert.ok(normalizedSupport.every((point) => Number.isFinite(point.weight) && point.weight > 0), 'Support-point weights must remain finite and positive');
+assert.deepEqual(updateSupportPointWeights(supportPrior, null), normalizedSupport, 'No patient observation must reproduce the normalized prior exactly');
+const target = normalizedSupport[0];
+const targetConcentration = (100 / target.v) * Math.exp(-(target.cl / target.v) * 4);
+const supportPosterior = updateSupportPointWeights(supportPrior, targetConcentration, { time: 4, residualCv: 0.08 });
+assert.ok(supportPosterior[0].weight > normalizedSupport[0].weight, 'A concentration close to a support point must increase its posterior weight');
+const supportSummary = summarizeSupportPoints(supportPosterior);
+assert.ok(Number.isFinite(supportSummary.meanCl) && Number.isFinite(supportSummary.meanV), 'Posterior summaries must remain finite');
+assert.ok(supportPointMeanCurve(supportPosterior, [0, 1, 4, 12]).every((point) => Number.isFinite(point.concentration) && point.concentration > 0), 'Weighted prediction curves must remain finite and positive');
+assert.throws(() => normalizeSupportPoints([{ cl: 5, v: 40, weight: 0 }]), /positive finite/, 'Zero-weight support points must fail closed');
 
 console.log('Scientific visualization calculations: PASS');

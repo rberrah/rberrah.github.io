@@ -115,6 +115,8 @@ const items = [
   { term: 'mapbayr', cat: 'Outils', def: "Package R d'estimation MAP bayésienne fondé sur des modèles mrgsolve. Le modèle doit fournir une structure, Ω, Σ et les compartiments d'administration et d'observation attendus." },
   { term: 'Pmetrics', cat: 'Outils', def: "Package R de modélisation de population paramétrique et non paramétrique, notamment avec l'algorithme NPAG." },
   { term: 'NPAG', full: 'Nonparametric Adaptive Grid', cat: 'Estimation', def: "Algorithme non paramétrique qui estime une distribution discrète pondérée de vecteurs de paramètres sans imposer une forme normale unique." },
+  { term: 'NPOD', full: 'Nonparametric Optimal Design', cat: 'Estimation', def: "Algorithme non paramétrique de Pmetrics fondé sur les gradients de vraisemblance, distinct de NPAG et encore en développement actif." },
+  { term: 'Distribution mélangeante', cat: 'Estimation', def: "Distribution des paramètres individuels qui, combinée aux vraisemblances conditionnelles, forme la distribution observée dans un modèle de population." },
   { term: 'Point de support', cat: 'Estimation', def: "Vecteur de paramètres associé à un poids dans une distribution non paramétrique discrète." },
   { term: 'MLXTRAN', cat: 'Outils', def: "Langage de modèles de MonolixSuite pour décrire les paramètres individuels, covariables, administrations, équations longitudinales et modèles d'observation." },
   { term: 'Flip-flop', cat: 'Concepts', def: "Situation où l'absorption est plus lente que l'élimination (Ka < ke) : la pente terminale reflète alors l'absorption, faussant l'estimation de la demi-vie d'élimination." }

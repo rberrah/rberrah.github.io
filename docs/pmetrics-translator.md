@@ -41,10 +41,15 @@ The UI explicitly requests review of builder variability and residual settings.
 
 ## MIPD Artifact And MAP Backend
 
-Deployment check, 2026-09-29: this backend passes native local R/Pmetrics tests,
-but is NOT yet installed in the public Shiny engine. Shinyapps.io's build image
+Deployment re-check, 2026-10-12: this backend passes native local R/Pmetrics
+tests, including posterior mapping for synthetic IV 1C, oral 1C and IV 2C
+artifacts, but is NOT installed in the public Shiny engine. A browser smoke test
+of `https://tdmhub.shinyapps.io/MIPD_Engine/` found no Pmetrics model-source
+control. Shinyapps.io's last attempted build image
 provides Cargo 1.75; Pmetrics 3.2.6 dependencies require newer Rust features
-(edition 2024). Bundle 12619306 failed during Pmetrics compilation. An earlier
+(edition 2024). This is a limitation of that Posit-hosted build image rather
+than a fundamental incompatibility between Pmetrics and Shiny. Bundle 12619306
+failed during Pmetrics compilation. An earlier
 R 4.6 attempt (12619291) failed on lazyeval. The previous public app is retained.
 The website translator does not depend on that server-side installation.
 
@@ -63,11 +68,11 @@ not convert support points into a Gaussian OMEGA. Pmetrics run files are removed
 when the call returns; the trusted mrgsolve simulation bridge is scoped to the
 Shiny session.
 
-`tdm-engine/pmetrics/artifacts/demo_one_comp_iv.json` is a synthetic integration
-fixture, not a published population model. Published artifacts require their
-actual estimated support points and error model.
+The three `demo_*` artifacts are synthetic integration fixtures, not published
+population models. They cover IV 1C, oral 1C and IV 2C. Published artifacts
+require their actual estimated support points and error model.
 
-The initial backend supports only the one-compartment IV template without
+The backend supports IV 1C, first-order oral 1C and IV 2C templates without
 covariates. Error factors must be fixed at their previously estimated values.
 Steady-state warmup covers at least -log(1e-8)/min(ke) hours and scheduled doses
 continue through the observation horizon. Predictive additive error uses
@@ -101,8 +106,10 @@ rejected constructs, and native round trips without metadata.
 3 runtime, requires `PM_model$new()` to compile it, and simulates a one-compartment
 IV bolus. The resulting concentrations are checked against the analytical curve.
 `npm run tdm:test-pmetrics` validates the artifact, runs `PM_model$map()` against
-synthetic patient observations, and checks the posterior bridge and predictive
-distribution.
+synthetic patient observations for all three structures, and checks the
+posterior bridge and predictive distribution. `npm run benchmark:pmetrics`
+runs the archived known-truth comparison; `npm run test:pmetrics-npod` is a
+non-blocking experimental NPAG/NPOD smoke comparison.
 `tests/e2e/pmetrics.spec.js` imports the complete `two_comp_bolus` model from the
 official NPAG covariate tutorial and checks the UI, `.R` upload, TDM availability,
 nonblank curves, guarded failure, and desktop/mobile layouts. These checks and

@@ -6,15 +6,18 @@ description: "Construire, compiler et ajuster un premier modèle NPAG avec Pmetr
 summary: "Un parcours pratique de PM_data et PM_model jusqu'aux points de support estimés par NPAG."
 track: "core"
 order: 8.3
-duration: "18 min"
+duration: "22 min"
 level: "advanced"
-tags: ["Pmetrics", "NPAG", "nonparametric", "R", "population PK"]
+tags: ["Pmetrics", "NPAG", "NPOD", "nonparametric", "R", "population PK"]
 prerequisites: ["parametric-vs-nonparametric", "outils-estimation"]
-glossary: ["NPAG", "Point de support", "Vraisemblance"]
+glossary: ["NPAG", "NPOD", "Point de support", "Distribution mélangeante", "Vraisemblance"]
 slides: []
 sources: ["pmetrics", "neely-pmetrics", "yamada-npag"]
+software_verified_on: "2026-10-11"
+software_version: "Pmetrics 3.2.6"
 reviewed_on: "2026-09-29"
 review_type: "author"
+review_pending: true
 reviewed_hash: "98fdd50bccdb6706e837682382acfc8c0c97ed8506e8222f76a9bfcd6866dd53"
 quiz:
   - prompt: "Dans Pmetrics, ab(0.02, 0.5) définit pour NPAG..."
@@ -35,6 +38,12 @@ quiz:
       - "oui, les valeurs du schéma constituent automatiquement les priors définitifs"
       - "oui, si le modèle contient un seul compartiment"
     correct: 0
+  - prompt: "Deux régions de points de support apparaissent après un ajustement NPAG. Que peut-on conclure ?"
+    options:
+      - "c'est un signal de multimodalité à vérifier, pas la preuve de deux phénotypes"
+      - "deux phénotypes biologiques sont démontrés"
+      - "le nombre de régions est toujours égal au nombre de covariables manquantes"
+    correct: 0
 ---
 
 <!-- step:title="Pourquoi ce chapitre" -->
@@ -43,14 +52,14 @@ Pmetrics fournit dans R des outils de modélisation de population **paramétriqu
 Ce chapitre montre le flux minimal moderne : données, modèle, compilation, ajustement et lecture du résultat. Il ne remplace pas la préparation des données ni la validation du modèle.
 <!-- /step -->
 
-<!-- step:title="Intuition" -->
+<!-- step:title="Intuition" viz="NPAGSupportPoints" -->
 Le flux Pmetrics repose sur trois objets :
 
 1. `PM_data` valide et organise les événements, doses, observations et covariables ;
 2. `PM_model` contient paramètres, équations, sorties et erreur ;
 3. `PM_result` contient l'ajustement, notamment les points de support et leurs probabilités.
 
-La création de `PM_model` prépare et compile le modèle. L'appel à `$fit()` combine ensuite le modèle et les données avec l'algorithme choisi, par défaut NPAG.
+La création de `PM_model` prépare et compile le modèle. L'appel à `$fit()` combine ensuite le modèle et les données avec l'algorithme choisi, par défaut NPAG. `NPrun()` appartient à l'interface historique ; le cours utilise l'API actuelle `PM_data` / `PM_model` / `PM_result`.
 
 :::key
 Compiler le modèle vérifie sa syntaxe et sa structure. Cela ne prouve ni son identifiabilité, ni sa pertinence pharmacologique, ni sa transportabilité.
@@ -71,6 +80,8 @@ Ke = ab(0.02, 0.5)
 définit les **bornes absolues** explorées par NPAG pour `Ke`. Ce n'est pas un intervalle de confiance. Des bornes trop étroites tronquent la recherche ; des bornes démesurées peuvent rendre l'exploration inefficace ou favoriser des solutions peu plausibles.
 
 Le modèle d'erreur pondère aussi la contribution de chaque observation. Il doit traduire l'erreur analytique et la discordance résiduelle de façon défendable.
+
+Un point de support est un **vecteur complet de paramètres** associé à un poids. Ce n'est ni un patient, ni un cluster clinique, ni un phénotype. Le nombre de points finaux n'est donc pas un décompte de sous-populations. La propriété « au plus un point par sujet » concerne la construction NPAG ; elle ne doit pas être généralisée à toute estimation non paramétrique.
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
@@ -81,33 +92,58 @@ library(Pmetrics)
 
 mod <- PM_model$new(
   pri = list(
-    Ke = ab(0.02, 0.5),
-    V  = ab(10, 100)
+    ke = ab(0.02, 0.5),
+    v  = ab(10, 100)
   ),
   eqn = function() {
-    dX[1] = B[1] + R[1] - Ke * X[1]
+    dx[1] <- b[1] + rateiv[1] - ke * x[1]
   },
   out = function() {
-    Y[1] = X[1] / V
+    y[1] <- x[1] / v
   },
   err = list(
     proportional(1, c(0.05, 0.10, 0, 0))
   )
 )
 
-dat <- PM_data$new(data = "data.csv")
-fit <- mod$fit(dat, algorithm = "NPAG", cycles = 100)
+dat <- PM_data$new("data.csv", quiet = TRUE)
+fit <- mod$fit(
+  data = dat, path = "npag-run", run = 1,
+  algorithm = "NPAG", cycles = 100,
+  prior = "sobol", points = 200, seed = 22
+)
 ```
 
 Après l'ajustement, `fit$final$popPoints` contient les valeurs des paramètres de chaque point de support et la colonne `prob` contient son poids. Il faut ensuite examiner convergence, prédictions, résidus, plausibilité des points, incertitude et validation.
 
-L'entrée `B[1]` accepte les bolus (durée nulle), `R[1]` les perfusions. Les doses sont en mg, les temps en heures, `Ke` en h⁻¹ et `V` en L : la sortie est donc en mg/L. Le raccourci `one_comp_iv` de la bibliothèque ne doit pas remplacer sans vérification cette équation qui accepte les deux entrées.
+L'entrée `b[1]` accepte les bolus (durée nulle), `rateiv[1]` les perfusions. Les doses sont en mg, les temps en heures, `ke` en h⁻¹ et `v` en L : la sortie est donc en mg/L. Le raccourci `one_comp_iv` de la bibliothèque ne doit pas remplacer sans vérification cette équation qui accepte les deux entrées.
 
 `msd(m, s)` est une autre manière de définir les bornes : pour NPAG, il fournit l'intervalle `m ± 3s`, pas une obligation de distribution normale. `proportional(1, c(0.05, 0.10, 0, 0))` définit un polynôme d'erreur analytique et un facteur gamma initial ; ce n'est pas une matrice SIGMA de mrgsolve. Par défaut, ce facteur est estimable pendant l'ajustement de population.
 
 :::note
 Le nombre de points finaux est un résultat numérique de l'estimation. Il ne doit pas être lu directement comme un nombre de phénotypes cliniques.
 :::
+<!-- /step -->
+
+<!-- step:title="Exemple officiel reproductible" -->
+Pmetrics 3.2.6 distribue un jeu tutoriel de 51 sujets, `bimodal_ke.csv`, avec deux formulations officielles du même modèle IV à un compartiment : le raccourci analytique `one_comp_iv` et une équation ODE explicite.
+
+PMx Explain charge ce fichier directement depuis le paquet installé, sans recopier les données. Le script `tdm-engine/benchmarks/pmetrics_official_example.R` reprend les bornes `ke = [0,001 ; 3] h⁻¹`, `v = [25 ; 250] L`, l'erreur additive officielle, la graine 22 et l'ajustement NPAG. Il vérifie les poids, les bornes et compare les moyennes populationnelles des deux formulations.
+
+Avec la configuration officielle complète (2028 points Sobol, 1000 cycles), l'écart relatif maximal observé le 11 octobre 2026 est de **0,025 %**, pour une tolérance préspécifiée de 2 %. Ce résultat vérifie la reproduction logicielle des deux formulations dans cet environnement ; il ne constitue ni une validation clinique ni une preuve de multimodalité biologique.
+
+Source redistribuable : [exemples officiels Pmetrics 3.2.6](https://github.com/LAPKB/Pmetrics/tree/v3.2.6/inst/Examples).
+<!-- /step -->
+
+<!-- step:title="NPAG et NPOD" -->
+Pmetrics propose notamment deux algorithmes non paramétriques :
+
+| Algorithme | Principe pratique | Point de vigilance |
+|---|---|---|
+| **NPAG** | recherche adaptative sur une grille de points puis optimisation des poids | résultat sensible aux bornes, au modèle d'erreur et à l'information contenue dans les données |
+| **NPOD** | optimisation non paramétrique fondée sur les gradients de vraisemblance | algorithme distinct, encore en développement actif et potentiellement plus sensible aux minima locaux |
+
+Ils estiment tous deux une distribution mélangeante discrète, mais ne doivent pas être supposés interchangeables. Comparez convergence, stabilité entre initialisations, vraisemblance prédictive et performance pour l'usage prévu. Pmetrics utilise `algorithm = "NPAG"` par défaut ; NPOD doit être demandé explicitement et traité comme expérimental dans PMx Explain.
 <!-- /step -->
 
 <!-- step:title="Du Traducteur à Pmetrics" -->
@@ -133,14 +169,17 @@ Une individualisation exige un **modèle structurel, son modèle d'erreur et les
 
 Dans le moteur TDM, le backend Pmetrics appelle `PM_model$map()` avec un prior pondéré. Les positions des points restent fixées ; leurs probabilités sont actualisées par les concentrations du patient. Ce n'est pas un nouvel ajustement NPAG de population. La courbe centrale utilise les paramètres moyens postérieurs ; les simulations d'incertitude tirent des couples de paramètres parmi les points, avec leurs poids, sans les remplacer par une loi normale. La moyenne des paramètres, le point le plus probable et la moyenne des courbes ne sont généralement pas identiques.
 
-Le premier artefact disponible dans PMx Explain est une **démonstration synthétique IV à un compartiment**, pas une distribution estimée dans un article. Les autres structures et les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
+Une simulation qui tire directement un point conserve la distribution discrète estimée. Une simulation semi-paramétrique peut ajouter une dispersion locale autour de chaque point ; elle crée alors un mélange continu qui n'est plus la distribution NPAG originale. Les deux sorties doivent être nommées séparément.
 
-**Disponibilité au 29 septembre 2026 :** backend natif testé localement et présent dans le dépôt. Son déploiement Shinyapps.io est bloqué par la version de Rust/Cargo du serveur ; il n'est pas encore disponible dans le moteur public. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
+Les trois artefacts disponibles sont des **démonstrations synthétiques** IV à un compartiment, orale à un compartiment et IV à deux compartiments ; ce ne sont pas des distributions estimées dans des articles. Les covariables ne sont pas encore prises en charge par ce backend. Les données et fichiers d'ajustement sont temporaires ; les artefacts de démonstration publics ne contiennent pas de données patients.
+
+**Disponibilité vérifiée le 11 octobre 2026 :** backend natif testé localement et présent dans le dépôt. Un test navigateur du moteur public confirme que la source Pmetrics n'y est pas disponible. Le dernier déploiement Shinyapps.io reste bloqué par la version Rust/Cargo de l'image ; aucune ancienne version de Pmetrics n'a été imposée pour contourner ce blocage. Le traducteur Pmetrics et ce cours restent accessibles sur le site.
 <!-- /step -->
 
 <!-- step:title="À retenir" -->
 - `PM_data` porte les données, `PM_model` le modèle et `PM_result` l'ajustement.
 - `PM_model$new()` prépare et compile le modèle ; `$fit(..., algorithm = "NPAG")` estime la distribution.
+- NPAG et NPOD sont deux algorithmes distincts ; NPOD reste expérimental dans PMx Explain.
 - `ab(min, max)` fixe des bornes absolues pour la recherche non paramétrique.
 - Les points de support et leurs poids décrivent la distribution estimée, pas automatiquement des groupes biologiques.
 - Le code du traducteur est un point de départ à vérifier, pas une analyse de population prête à publier.

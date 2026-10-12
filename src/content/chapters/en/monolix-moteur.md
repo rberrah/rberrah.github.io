@@ -13,8 +13,11 @@ prerequisites: ["tools-monolix"]
 glossary: ["Monolix","SAEM","Vraisemblance"]
 slides: []
 sources: ["delyon-saem","kuhn-lavielle-saem","lavielle","lavielle-mentre-monolix","monolix"]
+software_verified_on: "2026-10-11"
+software_version: "MonolixSuite 2024R1 documentation"
 reviewed_on: "2026-10-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "7caef7fa684a0b364c3db67c528f02a882bd2235e38f8888f2618aafc4a877e8"
 quiz:
   - prompt: "In the SAEM convergence plot, a perfectly flat trajectory during the smoothing phase indicates..."
@@ -163,9 +166,9 @@ SAEM fails differently. It runs the iterations you asked for, stops, and may pri
 **Flatness in phase 2 proves nothing: it is guaranteed by construction.** In the smoothing phase $\gamma_k \to 0$, so each new simulation only corrects $\theta_k$ by a shrinking fraction. The trajectory flattens **because the step is dying out**, not because the maximum has been reached. If a parameter was still climbing at the switch, phase 2 **freezes it mid-climb** and draws you a beautiful horizontal line at a wrong value. You read "converged" on what is merely a capture.
 :::
 
-The diagnostic therefore lives **entirely in phase 1** — the part of the plot that looks like a mess. What to look for: every parameter must reach its plateau **well before** the switch line, then oscillate there with frank, visible noise. A plateau reached at iteration 480 out of 500 is not a plateau, it is a coincidence. A trajectory still monotone at the switch has not finished exploring. An $\omega$ sliding towards zero without ever oscillating flags a random effect the data do not support.
+The diagnostic is not confined to one phase. Examine trajectories and the convergence indicator during exploration, their stabilisation during smoothing, stopping statuses, and the consistency of estimates. A trajectory still monotone at the switch calls for caution; an $\omega$ drifting towards zero without stabilising may indicate a weakly supported random effect. Robustness should also be checked across seeds and initial values.
 
-The auto-stop makes matters worse: `exploratoryautostop` cuts phase 1 on a criterion that only looks at a recent window of iterations, and a slow enough drift satisfies it without difficulty. On a hard model, switch it off and lengthen `exploratoryiterations`. It is the one SAEM setting that genuinely buys you something.
+Auto-stop uses the stability of the convergence indicator, omega parameters, and error parameters. Disabling it and extending the phases can be a **sensitivity analysis** for a difficult model; it is neither a universal rule nor a guarantee of a better optimum.
 
 And the check that settles it: **re-run with a different seed and different initial values.** If $\hat{\theta}$ moves beyond the announced noise, SAEM is not the culprit. Your likelihood is flat or multimodal — and no algorithm setting will repair a non-identifiable model.
 <!-- /step -->
@@ -176,6 +179,6 @@ And the check that settles it: **re-run with a different seed and different init
 - Two phases: exploration at constant step ($\gamma_k = 1$, no memory, wandering on purpose), then smoothing at decaying step ($\gamma_k \approx 1/k$, the noise averages out, it converges). Foundation: Delyon–Lavielle–Moulines (1999), carried over to the nonlinear case by Kuhn–Lavielle (2004).
 - SAEM maximises the likelihood without ever evaluating it directly: the $-2LL$ is a **separate task**, by importance sampling or by linearisation.
 - The $-2LL$ from importance sampling is noisy: read its Monte Carlo error, and raise `nbfixediterations` before settling a tight LRT.
-- The convergence diagnostic is in phase 1. Phase 2 is flat by construction, including on a parameter frozen in the wrong place.
+- Convergence assessment combines exploration trajectories, smoothing, indicators and statuses, then stability across seeds and initial values; no single phase is sufficient.
 - A Monolix $-2LL$ and a NONMEM OFV can only be compared after checking the objective definition, data, approximation, constants and conventions; the example shows how a constant can explain much of a gap.
 <!-- /step -->

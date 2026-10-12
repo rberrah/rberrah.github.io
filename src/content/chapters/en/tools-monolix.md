@@ -13,8 +13,11 @@ prerequisites: ["tools-algorithms"]
 glossary: ["Monolix","SAEM"]
 slides: []
 sources: ["monolix","kuhn-lavielle-saem","lavielle","karlsson-holford-vpc"]
+software_verified_on: "2026-10-11"
+software_version: "MonolixSuite 2024R1 documentation"
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "09036afd475b937d251909d781d3b6b1ed88c985abb8e0ad3814a63d53222a58"
 quiz:
   - prompt: "Monolix's default estimation engine is..."
@@ -73,7 +76,7 @@ Estimation uses **SAEM** (see the algorithms chapter), with the likelihood compu
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="67_SAEMConvergence" -->
-On a difficult model (steep Emax, sparse data), Monolix's **SAEM** converges where FOCE would struggle, and the **built-in VPC** confirms (or refutes) the model in one click.
+For some difficult models (steep Emax, sparse data), Monolix **SAEM** may be more robust than FOCE, depending on the model, design, and settings. The **built-in VPC** looks for predictive inadequacies under the model and simulated design; it does not confirm or refute the model on its own.
 
 Many teams prototype and teach with Monolix for its **readability**, then sometimes compare or translate to NONMEM depending on organisational workflows, cross-tool sensitivity analyses, or collaboration with teams already built around NONMEM.
 <!-- /step -->

@@ -32,6 +32,12 @@ const syntheses = guidedActivities.filter(activity => activity.kind === 'synthes
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
 const pendingReviews = chapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const pendingEnglishReviews = englishChapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
+const softwareChapters = chapters.filter(chapter => chapter.software_verified_on);
+const freshnessDue = date => {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + 183);
+  return value.toISOString().slice(0, 10);
+};
 const rows = [
   ['French chapters', chapters.length],
   ['English chapter translations', englishFiles.length],
@@ -53,6 +59,7 @@ const rows = [
   ['Chapters with glossary links', chapters.filter(chapter => chapter.glossary?.length).length],
   ['Chapters with source identifiers', chapters.filter(chapter => chapter.sources?.length).length],
   ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length],
+  ['Software chapters with freshness metadata', softwareChapters.length],
   ['Chapters reviewed by the author', chapters.filter(chapter => chapter.review_type === 'author').length],
   ['Chapters reviewed internally', chapters.filter(chapter => chapter.review_type === 'internal').length],
   ['Chapters reviewed externally', chapters.filter(chapter => chapter.review_type === 'external').length],
@@ -100,6 +107,15 @@ ${pendingReviews.length || pendingEnglishReviews.length
       ...pendingEnglishReviews.map(chapter => `| EN | ${chapter.slug} | ${chapter.track} | ${chapter.level} | ${chapter.reviewed_on} | content hash changed |`)
     ].join('\n')}`
   : 'Every French and English chapter matches its independently stored scientific-review hash.'}
+
+## External software freshness
+
+Dates below are an inventory, not a claim that the software itself was validated.
+Validation emits a warning, not a failure, after 183 days.
+
+| Chapter | Version or documentation checked | Verified on | External freshness due after |
+| --- | --- | --- | --- |
+${softwareChapters.map(chapter => `| ${chapter.slug} | ${chapter.software_version} | ${chapter.software_verified_on} | ${freshnessDue(chapter.software_verified_on)} |`).join('\n')}
 `;
 
 if (process.argv.includes('--check')) {

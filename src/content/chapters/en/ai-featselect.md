@@ -15,6 +15,7 @@ glossary: ["VSURF","Covariable"]
 sources: ["genuer-vsurf","hornung-ordinal-forests","breiman-rf","guyon-featsel"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "c8eeacf0c637f4d76712d0412ea49695b17fa8a0fac89ecde54cbde74fbe4a72"
 quiz:
   - prompt: "VSURF selects variables by..."
@@ -31,7 +32,7 @@ quiz:
     correct: 0
   - prompt: "Keeping noise variables (near-zero importance)..."
     options:
-      - "degrades generalisation (overfitting)"
+      - "may degrade generalisation, depending on signal, model and validation"
       - "inflates the performance measured in cross-validation"
       - "only affects the model's computation time"
     correct: 0
@@ -64,13 +65,13 @@ $$ VI_j = \frac{1}{B}\sum_{b} \big(\,err_b^{\text{perm}(j)} - err_b\,\big) $$
 <!-- step:title="Worked example" viz="42_VarImportance" -->
 For a **haematological toxicity** model (grades 0 to 4), OrdinalForest respects the order of the grades; VSURF isolates the key covariates (CrCl, weight, genotype) among dozens of candidates.
 
-The result is a **parsimonious** model: fewer variables, better generalisation, a clearer clinical message.
+The goal is a **parsimonious** model: fewer variables can simplify interpretation and sometimes improve generalisation, but this must be verified out of sample rather than assumed.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
 Importance is not causality — and depends on correlations.
 
-**Pitfall —** two **correlated** covariates share their importance (one can mask the other). An important variable is not necessarily **causal**. Finally, redoing selection inside cross-validation is essential to avoid overestimating performance.
+**Pitfall —** two **correlated** covariates share their importance (one can mask the other). An important variable is not necessarily **causal**. The complete selection procedure, including its threshold, must be refitted **inside every training fold**; selecting once before cross-validation leaks information and overestimates performance.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->

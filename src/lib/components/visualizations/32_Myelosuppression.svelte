@@ -23,11 +23,11 @@
 
   $: nadir = sim.reduce((a, b) => (b.Circ < a.Circ ? b : a), sim[0]);
   /** @returns {string} */
-  function grade(/** @type {number} */ anc) {
-    if (anc < 0.5) return 'Grade 4';
-    if (anc < 1.0) return 'Grade 3';
-    if (anc < 1.5) return 'Grade 2';
-    return 'Grade 0–1';
+  function ancMarker(/** @type {number} */ anc) {
+    if (anc < 0.5) return $language === 'en' ? 'ANC < 0.5 G/L' : 'ANC < 0,5 G/L';
+    if (anc < 1.0) return $language === 'en' ? 'ANC 0.5–<1 G/L' : 'ANC 0,5–<1 G/L';
+    if (anc < 1.5) return $language === 'en' ? 'ANC 1–<1.5 G/L' : 'ANC 1–<1,5 G/L';
+    return $language === 'en' ? 'ANC ≥ 1.5 G/L' : 'ANC ≥ 1,5 G/L';
   }
   $: cMax = c0 * 1.05 || 1;
 
@@ -51,9 +51,9 @@
     <div class="readout">
       <div><span>Nadir ANC</span><strong>{nadir.Circ.toFixed(2)} G/L</strong></div>
       <div><span>{$language === 'en' ? 'at' : 'à'}</span><strong>{$language === 'en' ? 'D' : 'J'}{days(nadir.t)}</strong></div>
-      <div class="verdict" class:g3={nadir.Circ < 1.0} class:g4={nadir.Circ < 0.5}>{grade(nadir.Circ)}</div>
+      <div class="verdict" class:g3={nadir.Circ < 1.0} class:g4={nadir.Circ < 0.5}>{ancMarker(nadir.Circ)}</div>
     </div>
-    <p class="hint">{#if $language === 'en'}The nadir is delayed mainly by maturation (MTT), not simply by the PK peak; PK still determines the timing and intensity of the exposure driving the system.{:else}Le nadir est retardé principalement par la maturation (MTT), pas simplement par le pic PK ; la PK détermine néanmoins la chronologie et l’intensité de l’exposition qui alimente le système.{/if}</p>
+    <p class="hint">{#if $language === 'en'}The nadir is delayed mainly by maturation (MTT), not simply by the PK peak; PK still determines the timing and intensity of exposure. ANC cut-offs are illustrative markers, not CTCAE grades.{:else}Le nadir est retardé principalement par la maturation (MTT), pas simplement par le pic PK ; la PK détermine la chronologie et l’intensité de l’exposition. Les seuils d’ANC sont des repères illustratifs, pas des grades CTCAE.{/if}</p>
   </div>
 
   <svg viewBox={`0 0 ${W} ${H}`} class="chart" role="img" aria-label={$language === 'en' ? 'Neutrophils and concentration over time' : 'Neutrophiles et concentration au cours du temps'}>
@@ -63,7 +63,7 @@
       <!-- baseline & seuils -->
       <line x1="0" x2={iW} y1={yN(Circ0)} y2={yN(Circ0)} class="base" />
       <line x1="0" x2={iW} y1={yN(0.5)} y2={yN(0.5)} class="thr" />
-      <text x={iW - 2} y={yN(0.5) - 3} class="thrlbl">Grade 4 (0,5 G/L)</text>
+      <text x={iW - 2} y={yN(0.5) - 3} class="thrlbl">{$language === 'en' ? 'Illustrative ANC marker (0.5 G/L)' : 'Repère ANC illustratif (0,5 G/L)'}</text>
       <path d={pathC} class="cline" />
       <path d={pathN} class="nline" />
       <line x1={xt(nadir.t)} x2={xt(nadir.t)} y1={yN(nadir.Circ)} y2={iH} class="guide" />

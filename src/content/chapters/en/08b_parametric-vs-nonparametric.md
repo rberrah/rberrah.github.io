@@ -10,11 +10,12 @@ duration: "15 min"
 level: "intermediate"
 tags: ["population PK", "parametric", "nonparametric", "NPAG", "distribution"]
 prerequisites: ["variabilite-iiv-iov","outils-estimation"]
-glossary: ["Effets mixtes","Vraisemblance","NPAG"]
+glossary: ["Effets mixtes", "Vraisemblance", "Distribution mélangeante", "NPAG", "NPOD", "Point de support"]
 slides: []
 sources: ["goutelle-parametric-nonparametric","neely-pmetrics","yamada-npag"]
 reviewed_on: "2026-09-28"
 review_type: "author"
+review_pending: true
 reviewed_hash: "c952dcd3314e3af365ed072c3e52691b9b37970a4a0e82f7276351153ee83c49"
 quiz:
   - prompt: "In this context, parametric or nonparametric mainly describes..."
@@ -43,7 +44,7 @@ The term **nonparametric** is often misunderstood. Here it does not mean NCA, th
 Both approaches may use exactly the same compartments, differential equations, covariates and error model. What mainly changes is how the **joint distribution of individual parameters** is represented and estimated.
 <!-- /step -->
 
-<!-- step:title="Intuition" viz="03_PopulationDistrib" -->
+<!-- step:title="Intuition" viz="NPAGSupportPoints" -->
 Imagine that every patient has a pair $(CL_i,V_i)$.
 
 - A **parametric** approach describes the cloud with a distribution family and a finite number of parameters, such as a mean, variances and covariance after log transformation.
@@ -83,6 +84,29 @@ Suppose two elimination mechanisms are genuinely present and produce two clearan
 A nonparametric approach can reveal asymmetry, outliers or several modes. A parametric approach can be more parsimonious, regular and easier to communicate when its distributional assumption is adequate.
 
 Compare stability, diagnostics, external validation and fitness for purpose rather than choosing by software preference.
+
+In practice, a nonparametric approach can be particularly informative when an imposed shape hides reproducible asymmetry or multimodality. A parametric approach often remains preferable with sparse data, when its distributional assumption is adequate, or when parsimony and stability matter most. “Nonparametric” therefore means neither model-free, automatically usefully flexible, nor automatically better.
+<!-- /step -->
+
+<!-- step:title="Known-truth benchmark" -->
+A reproducible benchmark used the same one-compartment IV model, residual error and sampling times under three true clearance distributions. The population model was fitted to 90 subjects; in 180 independent subjects, the 1 h concentration updated the individual distribution before predicting the 8 h concentration. NPAG used two seeds and 40 or 80 initial points.
+
+| True distribution | Method | Mean predictive log-likelihood | Bias (mg/L) | RMSE (mg/L) | MAE (mg/L) | 90% coverage |
+|---|---|---:|---:|---:|---:|---:|
+| Log-normal | Parametric | -0.214 | 0.032 | 0.282 | 0.226 | 91.7% |
+| Log-normal | NPAG | -0.201 | 0.008 | 0.281 | 0.223 | 90.0% |
+| Asymmetric | Parametric | -0.526 | 0.051 | 0.361 | 0.282 | 83.9% |
+| Asymmetric | NPAG | -0.416 | 0.027 | 0.357 | 0.280 | 86.7% |
+| Bimodal | Parametric | -0.515 | 0.042 | 0.454 | 0.378 | 87.2% |
+| Bimodal | NPAG | -0.121 | 0.031 | 0.455 | 0.361 | 87.8% |
+
+In the log-normal control, RMSE is practically identical: NPAG is not necessarily better. In the bimodal scenario, it markedly improves predictive likelihood and MAE, but not RMSE. The two NPAG initializations give the same rounded metrics despite different final point counts. These results are conditional on this synthetic model, design and error; they are not clinical validation.
+<!-- /step -->
+
+<!-- step:title="When should nonparametric modelling be used?" -->
+A nonparametric representation can be useful when investigating reproducible asymmetry or multimodality, a heterogeneous population, or TDM that should retain the complete joint distribution. It remains conditional on the structural model, covariates, error, bounds and design.
+
+A parametric representation may remain preferable when information is limited, a simple shape adequately describes the data, parsimony stabilizes estimation, or a workflow requires an easily communicated standard parameterization. The choice is a **fitness-for-purpose** question: diagnostics and held-out performance matter more than the method label.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->

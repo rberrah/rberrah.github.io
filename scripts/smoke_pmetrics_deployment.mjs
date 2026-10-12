@@ -1,6 +1,6 @@
 import { chromium, expect } from '@playwright/test';
 
-const url = process.env.TDM_ENGINE_E2E_URL;
+const url = process.env.TDM_ENGINE_E2E_URL || process.argv[2];
 if (!url) throw new Error('Set TDM_ENGINE_E2E_URL to the engine being verified.');
 const browser = await chromium.launch({ headless: true });
 try {

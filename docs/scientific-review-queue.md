@@ -3,10 +3,12 @@
 This queue records work that still requires a person other than the author.
 It does not claim that an internal or external review has occurred.
 
-As of 2026-10-11, all 64 active visualization components have an author review
-record. No visualization remains pending author review. These records document
-review by the author; they do not claim independent internal or external
-validation.
+As of 2026-10-11, the existing visualization components have an author review
+record. `NPAGSupportPoints` is intentionally pending author and independent
+review. These records do not claim independent internal or external validation.
+
+Use the file-level [independent review checklist](scientific-review-checklist.md)
+to record sources, reviewer, date, comments and status.
 
 ## Priority 1
 

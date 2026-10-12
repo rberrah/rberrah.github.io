@@ -12,6 +12,7 @@
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import LearningProgress from '$lib/components/ui/LearningProgress.svelte';
   import Quiz from '$lib/components/ui/Quiz.svelte';
+  import TeacherSequenceBuilder from '$lib/components/ui/TeacherSequenceBuilder.svelte';
 
   $: copy = ui($language);
   // slug de chapitre -> parcours + ordre (pour trier les exercices par parcours)
@@ -33,7 +34,7 @@
           return { slug: chapter.slug, title: localized.title, questions: localized.quiz ?? [] };
         })
         .filter((chapter) => chapter.questions.length);
-      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, items, activities, syntheses, quizzes, quizCount: quizzes.reduce((sum, chapter) => sum + chapter.questions.length, 0) };
+      return { id: t.id, accent: t.accent, label: loc.label, title: loc.title, chapters: trackChapters, items, activities, syntheses, quizzes, quizCount: quizzes.reduce((sum, chapter) => sum + chapter.questions.length, 0) };
     })
     .filter((g) => g.items.length || g.activities.length || g.syntheses.length || g.quizCount);
   let selectedTrack = '';
@@ -42,7 +43,13 @@
   onMount(() => { mounted = true; });
   /** @type {string | null | undefined} */
   let lastQuery;
+  /** @type {string | null | undefined} */
+  let lastKindQuery;
   $: if (mounted && lastQuery !== $page.url.searchParams.get('track')) { lastQuery = $page.url.searchParams.get('track'); if (lastQuery) selectedTrack = lastQuery; }
+  $: if (mounted && lastKindQuery !== $page.url.searchParams.get('kind')) {
+    lastKindQuery = $page.url.searchParams.get('kind');
+    if (['guided', 'synthesis', 'calculations', 'quiz'].includes(lastKindQuery ?? '')) selectedKind = lastKindQuery;
+  }
   $: if (!groups.some((group) => group.id === selectedTrack)) selectedTrack = groups[0]?.id ?? '';
   $: activeGroup = groups.find((group) => group.id === selectedTrack);
   $: if (activeGroup && selectedKind === 'calculations' && !activeGroup.items.length) selectedKind = 'guided';
@@ -74,6 +81,7 @@
   <section class="track" style={`--track:${activeGroup.accent}`} data-testid={`exercise-track-${activeGroup.id}`}>
     <h2><span class="badge">{activeGroup.label}</span> {activeGroup.title}</h2>
     <p><a href={`${base}/parcours/${activeGroup.id}/?lang=${$language}`}>{$language === 'en' ? 'Open the track' : 'Ouvrir le parcours'}</a></p>
+    <TeacherSequenceBuilder group={activeGroup}/>
     <nav class="kind-picker" aria-label={$language === 'en' ? 'Choose a training type' : "Choisir un type d'entraînement"}>
       {#each kinds as kind}
         <button type="button" class:active={selectedKind === kind.id} aria-pressed={selectedKind === kind.id} disabled={!kind.count} on:click={() => (selectedKind = kind.id)} data-testid={`training-kind-${kind.id}`}>

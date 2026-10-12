@@ -6,15 +6,18 @@ description: "Build, compile and fit a first NPAG model with Pmetrics in R."
 summary: "A practical route from PM_data and PM_model to the support points estimated by NPAG."
 track: "core"
 order: 8.3
-duration: "18 min"
+duration: "22 min"
 level: "advanced"
-tags: ["Pmetrics", "NPAG", "nonparametric", "R", "population PK"]
+tags: ["Pmetrics", "NPAG", "NPOD", "nonparametric", "R", "population PK"]
 prerequisites: ["parametric-vs-nonparametric","outils-estimation"]
-glossary: ["NPAG","Point de support","Vraisemblance"]
+glossary: ["NPAG", "NPOD", "Point de support", "Distribution mélangeante", "Vraisemblance"]
 slides: []
 sources: ["pmetrics","neely-pmetrics","yamada-npag"]
+software_verified_on: "2026-10-11"
+software_version: "Pmetrics 3.2.6"
 reviewed_on: "2026-09-29"
 review_type: "author"
+review_pending: true
 reviewed_hash: "ea3e262cc8a64188c2434174d841e47208f8c3668f4ed2924f3876ddfb6e1ced"
 quiz:
   - prompt: "In Pmetrics, ab(0.02, 0.5) defines for NPAG..."
@@ -35,6 +38,12 @@ quiz:
       - "yes, Builder values automatically become definitive priors"
       - "yes, if the model has only one compartment"
     correct: 0
+  - prompt: "Two support-point regions appear after an NPAG fit. What can be concluded?"
+    options:
+      - "this is a multimodality signal to investigate, not proof of two phenotypes"
+      - "two biological phenotypes have been demonstrated"
+      - "the number of regions always equals the number of missing covariates"
+    correct: 0
 ---
 
 <!-- step:title="Why this chapter" -->
@@ -43,14 +52,14 @@ Pmetrics provides **parametric and nonparametric** population modelling tools in
 This chapter covers the minimal modern workflow: data, model, compilation, fitting and result interpretation. It does not replace data preparation or model validation.
 <!-- /step -->
 
-<!-- step:title="Intuition" -->
+<!-- step:title="Intuition" viz="NPAGSupportPoints" -->
 The Pmetrics workflow uses three objects:
 
 1. `PM_data` validates and organises events, doses, observations and covariates;
 2. `PM_model` holds parameters, equations, outputs and error;
 3. `PM_result` holds the fit, including support points and their probabilities.
 
-Creating `PM_model` prepares and compiles the model. Calling `$fit()` then combines model and data with the selected algorithm, NPAG by default.
+Creating `PM_model` prepares and compiles the model. Calling `$fit()` then combines model and data with the selected algorithm, NPAG by default. `NPrun()` belongs to the legacy interface; this course uses the current `PM_data` / `PM_model` / `PM_result` API.
 
 **Key point:** compilation checks syntax and structure. It does not establish identifiability, pharmacological relevance or transportability.
 <!-- /step -->
@@ -69,6 +78,8 @@ Ke = ab(0.02, 0.5)
 defines the **absolute bounds** explored by NPAG for `Ke`. It is not a confidence interval. Bounds that are too narrow truncate the search; excessively broad bounds may make exploration inefficient or favour implausible solutions.
 
 The error model also weights each observation. It should represent analytical error and residual model discrepancy in a defensible way.
+
+A support point is a **complete parameter vector** with an associated weight. It is not a patient, clinical cluster or phenotype. The final number of points is therefore not a count of subpopulations. The “at most one point per subject” property concerns the NPAG construction and must not be generalized to every nonparametric estimator.
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
@@ -79,31 +90,56 @@ library(Pmetrics)
 
 mod <- PM_model$new(
   pri = list(
-    Ke = ab(0.02, 0.5),
-    V  = ab(10, 100)
+    ke = ab(0.02, 0.5),
+    v  = ab(10, 100)
   ),
   eqn = function() {
-    dX[1] = B[1] + R[1] - Ke * X[1]
+    dx[1] <- b[1] + rateiv[1] - ke * x[1]
   },
   out = function() {
-    Y[1] = X[1] / V
+    y[1] <- x[1] / v
   },
   err = list(
     proportional(1, c(0.05, 0.10, 0, 0))
   )
 )
 
-dat <- PM_data$new(data = "data.csv")
-fit <- mod$fit(dat, algorithm = "NPAG", cycles = 100)
+dat <- PM_data$new("data.csv", quiet = TRUE)
+fit <- mod$fit(
+  data = dat, path = "npag-run", run = 1,
+  algorithm = "NPAG", cycles = 100,
+  prior = "sobol", points = 200, seed = 22
+)
 ```
 
 After fitting, `fit$final$popPoints` contains parameter values for each support point and the `prob` column contains its weight. Convergence, predictions, residuals, support-point plausibility, uncertainty and validation still need to be examined.
 
-`B[1]` accepts boluses (zero duration), whereas `R[1]` accepts infusions. With doses in mg, time in hours, `Ke` in h⁻¹ and `V` in L, the output is mg/L. Do not substitute the library shortcut `one_comp_iv` without checking that it handles both inputs.
+`b[1]` accepts boluses (zero duration), whereas `rateiv[1]` accepts infusions. With doses in mg, time in hours, `ke` in h⁻¹ and `v` in L, the output is mg/L. Do not substitute the library shortcut `one_comp_iv` without checking that it handles both inputs.
 
 `msd(m, s)` is another way to specify bounds: for NPAG it gives the range `m ± 3s`, not a required normal distribution. `proportional(1, c(0.05, 0.10, 0, 0))` specifies an assay-error polynomial and an initial gamma factor, not an mrgsolve SIGMA matrix. By default this factor can be estimated during population fitting.
 
 **Note:** the final number of points is a numerical estimation result. It should not be interpreted directly as the number of clinical phenotypes.
+<!-- /step -->
+
+<!-- step:title="Reproducible official example" -->
+Pmetrics 3.2.6 ships a tutorial dataset with 51 subjects, `bimodal_ke.csv`, and two official formulations of the same one-compartment IV model: the `one_comp_iv` analytical shortcut and an explicit ODE.
+
+PMx Explain loads the file directly from the installed package and does not copy the data. `tdm-engine/benchmarks/pmetrics_official_example.R` reproduces the official `ke = [0.001, 3] h⁻¹` and `v = [25, 250] L` bounds, additive error, seed 22 and NPAG fit. It checks weights and bounds, then compares population means from both formulations.
+
+With the complete official configuration (2028 Sobol points, 1000 cycles), the maximum relative difference observed on 11 October 2026 is **0.025%**, against a prespecified 2% tolerance. This checks software reproduction of both formulations in this environment; it is neither clinical validation nor evidence of biological multimodality.
+
+Redistributable source: [official Pmetrics 3.2.6 examples](https://github.com/LAPKB/Pmetrics/tree/v3.2.6/inst/Examples).
+<!-- /step -->
+
+<!-- step:title="NPAG and NPOD" -->
+Pmetrics includes two nonparametric algorithms:
+
+| Algorithm | Practical principle | Main caution |
+|---|---|---|
+| **NPAG** | adaptive search over support points followed by weight optimization | results depend on bounds, the error model and information in the data |
+| **NPOD** | nonparametric optimization based on likelihood gradients | a distinct algorithm, still under active development and potentially more vulnerable to local minima |
+
+Both estimate a discrete mixing distribution, but they should not be assumed interchangeable. Compare convergence, stability across initializations, predictive likelihood and fitness for the intended use. Pmetrics uses `algorithm = "NPAG"` by default; NPOD must be requested explicitly and remains experimental in PMx Explain.
 <!-- /step -->
 
 <!-- step:title="From Translator to Pmetrics" -->
@@ -127,14 +163,17 @@ Individualization requires a **structural model, its error model and weighted po
 
 The TDM Pmetrics backend calls `PM_model$map()` with a weighted prior. Point locations stay fixed; patient concentrations update their probabilities. This is not a new population NPAG fit. The central curve uses posterior mean parameters; uncertainty simulations sample joint parameter vectors with their weights, without replacing them with a normal distribution. Mean parameters, the most probable point and the mean prediction are generally different summaries.
 
-The first PMx Explain artifact is a **synthetic one-compartment IV demonstration**, not a distribution estimated in a publication. Other structures and covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
+A simulation that directly samples a support point preserves the estimated discrete distribution. A semiparametric simulation may add local dispersion around each point; it then creates a continuous mixture that is no longer the original NPAG distribution. The two outputs must be labelled separately.
 
-**Availability on 29 September 2026:** the native backend is tested locally and included in the repository. Deployment to Shinyapps.io is blocked by the server's Rust/Cargo version; it is not yet available in the public engine. The Pmetrics translator and this course remain accessible on the website.
+The three available artifacts are **synthetic demonstrations** for one-compartment IV, one-compartment oral and two-compartment IV models; they are not distributions estimated in publications. Covariates are not yet supported by this backend. Patient data and fitting files are temporary; public demonstration artifacts contain no patient data.
+
+**Availability verified on 11 October 2026:** the native backend is tested locally and included in the repository. A browser test confirms that the public engine does not expose the Pmetrics source. The latest Shinyapps.io deployment remains blocked by the image's Rust/Cargo version; no old Pmetrics version was forced as a workaround. The Pmetrics translator and this course remain accessible on the website.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
 - `PM_data` holds data, `PM_model` the model and `PM_result` the fit.
 - `PM_model$new()` prepares and compiles the model; `$fit(..., algorithm = "NPAG")` estimates the distribution.
+- NPAG and NPOD are distinct algorithms; NPOD remains experimental in PMx Explain.
 - `ab(min, max)` sets absolute bounds for the nonparametric search.
 - Support points and weights describe the estimated distribution, not automatically biological groups.
 - Translator output is a starting point to review, not a publication-ready population analysis.

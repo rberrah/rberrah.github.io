@@ -123,7 +123,7 @@ export const visualizationReviews = {
     "reviewed_hash": "73f17badae854cc24223ab7933e7ae7b9a1b337fbc21bd2d6b2b03c174de37d6"
   },
   "43_Copula": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-10",
     "review_type": "author",
     "reviewed_hash": "06f9025d50ec82763cad8780e6f967adb52d1758e6fcb3781437ba8aef38769b"
@@ -237,7 +237,7 @@ export const visualizationReviews = {
     "reviewed_hash": "8847ffad1927f48b288f929e757ab8c4dad7c615df9cae50f6c6973d9fc57e52"
   },
   "32_Myelosuppression": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "8ed20c97bd98e844c3ee88eabece35508ebe5160e499ac349bcf3cb5b4dc7d67"
@@ -379,6 +379,12 @@ export const visualizationReviews = {
     "reviewed_on": "2026-10-11",
     "review_type": "author",
     "reviewed_hash": "f4cb142e19afbaa06a9b88fe10ea947b29c4da2d2dff2dc3e632dcf10e7a0d39"
+  },
+  "NPAGSupportPoints": {
+    "status": "pending",
+    "reviewed_on": "",
+    "review_type": "",
+    "reviewed_hash": ""
   },
   "SlideFigure": {
     "status": "reviewed",

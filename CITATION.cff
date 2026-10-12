@@ -13,7 +13,7 @@ type: dataset
 title: "PMx Explain"
 abstract: >-
   Cours ouvert de pharmacométrie en français et en anglais, comptant 95 chapitres
-  en français, 95 chapitres traduits en anglais et 64 visualisations interactives.
+  en français, 95 chapitres traduits en anglais et 65 visualisations interactives.
   Couverture : pharmacocinétique et pharmacodynamie, analyse non compartimentale,
   modélisation compartimentale, pharmacocinétique de population et modèles non
   linéaires à effets mixtes, PBPK, variabilité inter- et intra-individuelle,
@@ -21,7 +21,7 @@ abstract: >-
   validation de modèle et VPC, suivi thérapeutique pharmacologique, adaptation de
   dose guidée par les modèles, applications en oncologie, en infectiologie et aux
   anticorps monoclonaux, méthodes d'apprentissage automatique appliquées à la
-  pharmacométrie. Outils abordés : NONMEM, Monolix, nlmixr2. Ce dépôt héberge
+  pharmacométrie. Outils abordés : NONMEM, Monolix, nlmixr2 et Pmetrics. Ce dépôt héberge
   également les pages du portail rberrah.github.io. Chaque chapitre porte ses
   références et la date de sa dernière révision.
 authors:

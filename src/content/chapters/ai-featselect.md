@@ -15,6 +15,7 @@ slides: []
 sources: ["genuer-vsurf", "hornung-ordinal-forests", "breiman-rf", "guyon-featsel"]
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "faaadd9c8df50d7b35e26245477bdbd057151807c4d89be223b5df14dc4fb998"
 quiz:
   - prompt: "VSURF sélectionne les variables en..."
@@ -31,7 +32,7 @@ quiz:
     correct: 0
   - prompt: "Garder des variables de bruit (importance quasi nulle)..."
     options:
-      - "dégrade la généralisation (surajustement)"
+      - "peut dégrader la généralisation, selon le signal, le modèle et la validation"
       - "gonfle la performance mesurée en validation croisée"
       - "n'a d'effet que sur le temps de calcul du modèle"
     correct: 0
@@ -66,14 +67,14 @@ Réf. : Genuer R., Poggi J.-M. & Tuleau-Malot C., *VSURF: Variable Selection Usi
 <!-- step:title="Exemple concret" viz="42_VarImportance" -->
 Pour un modèle de **toxicité hématologique** (grades 0 à 4), OrdinalForest respecte l'ordre des grades ; VSURF isole les covariables clés (ClCr, poids, génotype) parmi des dizaines de candidates.
 
-On obtient un modèle **parcimonieux** : moins de variables, meilleure généralisation, message clinique plus clair.
+On recherche un modèle **parcimonieux** : moins de variables peut simplifier l'interprétation et parfois améliorer la généralisation, mais ce résultat doit être vérifié hors échantillon plutôt que supposé.
 <!-- /step -->
 
 <!-- step:title="Piège fréquent" -->
 Importance n'est pas causalité — et dépend des corrélations.
 
 :::pitfall
-Deux covariables **corrélées** se partagent l'importance (l'une peut masquer l'autre). Une variable importante n'est pas forcément **causale**. Enfin, refaire la sélection à l'intérieur d'une validation croisée est indispensable pour ne pas surestimer la performance.
+Deux covariables **corrélées** se partagent l'importance (l'une peut masquer l'autre). Une variable importante n'est pas forcément **causale**. La sélection complète, seuil compris, doit être réapprise **dans chaque fold d'entraînement** ; sélectionner une fois avant la validation croisée crée une fuite d'information et surestime la performance.
 :::
 <!-- /step -->
 

@@ -74,9 +74,33 @@ const quantitativeContractSlugs = new Set([
 ]);
 
 const errors = [];
+const warnings = [];
 
 function fail(msg) {
   errors.push(msg);
+}
+
+function warn(msg) {
+  warnings.push(msg);
+}
+
+function validateSoftwareFreshness(file, data) {
+  const verified = data.software_verified_on;
+  const version = data.software_version;
+  if (!verified && !version) return;
+  if (!verified || !version) {
+    fail(`Software metadata in ${file} requires both software_verified_on and software_version`);
+    return;
+  }
+  const value = String(verified);
+  const instant = new Date(`${value}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(instant.getTime())) {
+    fail(`Invalid software_verified_on date in ${file}: ${value}`);
+    return;
+  }
+  if (typeof version !== 'string' || !version.trim()) fail(`Invalid software_version in ${file}`);
+  const ageDays = Math.floor((Date.now() - instant.getTime()) / 86400000);
+  if (ageDays > 183) warn(`External freshness due: ${file} was verified ${ageDays} days ago (${value})`);
 }
 
 function loadCatalog() {
@@ -164,10 +188,15 @@ function validateChapterReview(file, raw, data) {
   if (!['author', 'internal', 'external'].includes(data.review_type)) {
     fail(`Invalid review_type in ${file}: expected author, internal or external`);
   }
+  if (data.review_pending != null && typeof data.review_pending !== 'boolean') {
+    fail(`Invalid review_pending in ${file}: expected true or false`);
+  }
   if (!/^[a-f0-9]{64}$/.test(data.reviewed_hash ?? '')) {
     fail(`Missing or invalid reviewed_hash in ${file}`);
   } else if (data.reviewed_hash !== chapterReviewHash(raw)) {
-    fail(`Scientific review is stale in ${file}; review this language version, then seal that exact file`);
+    const message = `Scientific review is stale in ${file}; review this language version, then seal that exact file`;
+    if (data.review_pending === true) warn(message);
+    else fail(message);
   }
 }
 
@@ -288,6 +317,7 @@ function validateChapters(catalogIds) {
       });
     }
     validateChapterReview(file, raw, data);
+    validateSoftwareFreshness(file, data);
     for (const field of ['scientific_values', 'units']) {
       if (data[field] !== undefined && !Array.isArray(data[field]) && typeof data[field] !== 'object') {
         fail(`${field} must be a list or object in ${file}`);
@@ -321,12 +351,13 @@ function validateChapters(catalogIds) {
       fail(`Missing English translation for ${file}`);
     } else {
       validateChapterReview(`en/${translation.file}`, translation.raw, translation.data);
+      validateSoftwareFreshness(`en/${translation.file}`, translation.data);
       for (const field of ['scientific_values', 'units']) {
         if (quantitativeContractSlugs.has(data.slug) && (translation.data[field] === undefined || translation.data[field] === null)) {
           fail(`Quantitative chapter en/${translation.file} must define ${field}`);
         }
       }
-      for (const field of ['id', 'slug', 'track', 'level', 'order', 'prerequisites', 'glossary', 'sources', 'slides', 'updated_on', 'status', 'scientific_values', 'units']) {
+      for (const field of ['id', 'slug', 'track', 'level', 'order', 'prerequisites', 'glossary', 'sources', 'slides', 'updated_on', 'status', 'scientific_values', 'units', 'software_verified_on', 'software_version']) {
         if (!sameValue(translation.data[field], data[field])) fail(`English ${field} mismatch for ${file}`);
       }
       if ((translation.data.quiz?.length ?? 0) !== (data.quiz?.length ?? 0)) fail(`English quiz length mismatch for ${file}`);
@@ -394,5 +425,7 @@ if (errors.length) {
   for (const e of errors) console.error(' -', e);
   process.exit(1);
 }
+
+for (const warning of warnings) console.warn(`Warning: ${warning}`);
 
 console.log('Validation OK: slides and pedagogical chapters are coherent.');

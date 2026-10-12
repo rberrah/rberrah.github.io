@@ -57,3 +57,7 @@ screen reader. Verify:
 Document browser, device, assistive technology, date, tasks completed and open
 issues. Publication must not imply that this protocol was run until dated
 evidence exists.
+
+Use one copy of the [session form](usability-accessibility-session-form.md) for
+each planned participant and transfer only anonymous status and issue IDs to the
+[results register](usability-accessibility-results.md).

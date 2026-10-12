@@ -13,8 +13,11 @@ prerequisites: ["tools-algorithms"]
 glossary: ["NONMEM","FOCE-I","OFV","Effets mixtes"]
 slides: []
 sources: ["nonmem","sheiner-beal-estimation","wang-nonmem-methods","keizer-psn-xpose"]
+software_verified_on: "2026-10-11"
+software_version: "NONMEM 7.5 documentation"
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "833c3970c3e589f857582b5fdc1d9341efb396475e2b0fce2eed4b54652e1728"
 quiz:
   - prompt: "NONMEM is used mainly through..."

@@ -13,8 +13,11 @@ prerequisites: ["tools-simulation","bayes-ebes"]
 glossary: ["MAP","TDM","EBE","Precision dosing"]
 slides: []
 sources: ["mapbayr","sheiner-forecasting","minichmayr-mipd","rybak-vanco"]
+software_verified_on: "2026-10-11"
+software_version: "mapbayr 0.10.2"
 reviewed_on: "2026-07-09"
 review_type: "author"
+review_pending: true
 reviewed_hash: "443f23b06da1dd6c836ffa1fca149db9bc6e36fa068d60537b20b280b352529d"
 quiz:
   - prompt: "MAP (maximum a posteriori) estimation combines..."
