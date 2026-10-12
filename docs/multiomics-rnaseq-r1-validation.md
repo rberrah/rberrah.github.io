@@ -67,6 +67,19 @@ Les tests sont dans
 | Cohorte RNA-seq publique externe, non inspectée auparavant | Reproduction d'un effet primaire préspécifié, prédictions/contrastes, QC indépendants | Non établi |
 | Reproductibilité dans un environnement verrouillé | Docker/renv, versions R/DESeq2/annotation, checksums, réanalyse byte-identique ou tolérances numériques | Pas encore garanti |
 
+### Comment quantifier honnêtement l'incertitude du FDR ?
+
+**Problème scientifique identifié et corrigé :** si 8 ou 12 simulations indépendantes ne donnent aucune fausse découverte, le bootstrap percentile du FDR renvoie un intervalle **[0 %, 0 %]** parce qu'il ne peut rééchantillonner que les zéros observés. **Cet intervalle ne démontre absolument pas un FDR réel nul ou maîtrisé.** Il est conservé comme descriptif, mais ne sert plus à décider de la maîtrise nominale.
+
+L'audit R `multiomics-engine/mixed_truth_reference_metrics.R` fournit désormais une **borne simultanée de Hoeffding, avec correction de Bonferroni**, en complément du bootstrap. Pour chaque scénario et méthode, elle encadre la moyenne du FDP entre **études indépendantes** à niveau de confiance familial 95 %, en tenant compte de toutes les cellules scénario–méthode du même rapport. Cette garantie mathématique utilise uniquement le fait que chaque FDP se trouve entre 0 et 1 et que les études simulées sont **indépendantes et identiquement distribuées dans chaque scénario fixé**. La corrélation entre méthodes appliquées aux mêmes études est autorisée via la correction simultanée.
+
+- Avec un faible nombre de simulations, la borne supérieure reste large **même lorsque toutes les valeurs de FDP observées sont nulles**. C'est voulu : l'absence de fausses découvertes observées ne constitue pas une calibration confirmée.
+- Un intervalle bootstrap de `[0 %, 0 %]` doit être affiché comme **descriptif insuffisant**, jamais comme « méthode validée à 5 % ».
+- Les indicateurs d'alerte du stress test utilisent maintenant les **bornes conservatrices** et distinguent `fdr_calibration_unresolved_insufficient_independent_studies` d'une borne inférieure au-dessus du seuil.
+- La borne porte exclusivement sur la **distribution artificielle simulée** ; elle ne garantit rien pour une nouvelle cohorte réelle, ni pour une simulation sélectionnée après inspection, ni pour tous les mécanismes d'expression biologique.
+
+Ce garde-fou n'obtient pas magiquement une validation statistique : il **empêche une preuve trompeuse par insuffisance de simulations**. La précision suffisante devra être fixée **avant** une campagne Monte-Carlo indépendante plus vaste et mise en relation avec des jeux de données publics.
+
 ### Résultats R effectivement observés le 11 octobre 2026
 
 Deux workflows GitHub Actions ont **exécuté** les moteurs Bioconductor de référence sur les données simulées. Les résultats ci-dessous sont des **mesures de simulation** et non des taux d'erreur attendus pour une vraie cohorte. Les logs, les sorties par simulation et les versions R ont été conservés dans les artefacts des workflows.
