@@ -16,7 +16,8 @@ ms_quantitative_assurance <- function(intensities, manifest,
      any(!nzchar(rownames(x)))||any(!nzchar(colnames(x)))||
      any(is.infinite(x))||any(x<0,na.rm=TRUE)||
      any(!needed%in%names(meta))||
-     anyNA(meta[,needed])||anyDuplicated(meta$assay_id)||
+     anyNA(meta[,c('assay_id','sample_type','injection_order')])||
+     anyDuplicated(meta$assay_id)||
      !identical(as.character(meta$assay_id),rownames(x))||
      any(!is.finite(thresholds))||
      any(thresholds<0)||any(thresholds>1))
@@ -29,6 +30,8 @@ ms_quantitative_assurance <- function(intensities, manifest,
   qc <- which(roles=="pooled_qc")
   blanks <- which(roles=="blank")
   if(length(biological)<4L)stop("At least four biological assays required for descriptive MS QA.")
+  if(anyNA(meta$condition[biological]))
+    stop('Biological samples have missing condition annotations.')
   groups <- trimws(as.character(meta$condition[biological]))
   if(any(!nzchar(groups)))stop("Biological samples lack group declaration.")
   order <- suppressWarnings(as.numeric(meta$injection_order))
