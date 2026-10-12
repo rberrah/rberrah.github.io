@@ -13,6 +13,55 @@ x[11:15,"background"]<-50
 x[11:15,"unstable_qc"]<-c(30,150,60,190,10)
 x[6:10,"missing_in_treated"]<-NA_real_
 a<-ms_quantitative_assurance(x,meta)
+# A documented QC injection does not mean each molecular feature has
+# enough finite measurements to estimate precision/background.
+stopifnot(all(c("pooled_qc_precision_status",
+  "blank_background_status","pooled_qc_drift_status",
+  "finite_biological_values","finite_pooled_qc_values",
+  "finite_blank_values") %in% names(a$features)),
+  a$features$pooled_qc_precision_status[1]=="rsd_evaluable",
+  a$features$blank_background_status[1]=="ratio_evaluable")
+
+# An analyte abundant in blanks but absent in the biological sample has
+# an undefined blank/biological ratio; it must be flagged, not silently NA=OK.
+blank_only<-x
+blank_only[1:10,"clean"]<-0
+blank_only[16:17,"clean"]<-50
+blank_audit<-ms_quantitative_assurance(blank_only,meta)
+stopifnot(is.na(blank_audit$features$blank_over_biological_ratio[1]),
+ blank_audit$features$blank_background_status[1]=="positive_blank_with_zero_biological_median",
+ isTRUE(blank_audit$features$flag_blank_signal[1]))
+
+# Control injections recorded but the tested feature itself unobservable.
+qc_missing<-x
+qc_missing[11:15,"clean"]<-NA_real_
+qc_audit<-ms_quantitative_assurance(qc_missing,meta)
+stopifnot(is.na(qc_audit$features$pooled_qc_rsd[1]),
+ qc_audit$features$finite_pooled_qc_values[1]==0,
+ qc_audit$features$pooled_qc_precision_status[1]=="too_few_finite_pooled_qc_values",
+ isTRUE(qc_audit$features$flag_qc_not_evaluable[1]),
+ any(grepl("flag_qc_not_evaluable",qc_audit$alerts)))
+
+blank_missing<-x
+blank_missing[16:17,"clean"]<-NA_real_
+blank_missing_audit<-ms_quantitative_assurance(blank_missing,meta)
+stopifnot(blank_missing_audit$features$blank_background_status[1]=="too_few_finite_blank_values",
+ isTRUE(blank_missing_audit$features$flag_blank_not_evaluable[1]),
+ any(grepl("flag_blank_not_evaluable",blank_missing_audit$alerts)))
+
+zero_qc<-x
+zero_qc[11:15,"clean"]<-0
+zero_qc_audit<-ms_quantitative_assurance(zero_qc,meta)
+stopifnot(zero_qc_audit$features$pooled_qc_precision_status[1]=="pooled_qc_mean_zero_or_not_estimable",
+ isTRUE(zero_qc_audit$features$flag_qc_not_evaluable[1]))
+
+both_zero<-x
+both_zero[1:10,"clean"]<-0
+both_zero[16:17,"clean"]<-0
+zero_blank_audit<-ms_quantitative_assurance(both_zero,meta)
+stopifnot(zero_blank_audit$features$blank_background_status[1]=="both_blank_and_biological_medians_zero",
+ isTRUE(zero_blank_audit$features$flag_blank_not_evaluable[1]))
+
 stopifnot(a$status=="scientific_review_required",
  a$coverage$biological_assays==10L,
  a$coverage$pooled_qc_assays==5L,
