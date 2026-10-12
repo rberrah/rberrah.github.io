@@ -1,0 +1,53 @@
+#!/usr/bin/env Rscript
+source("multiomics-engine/ms_quantitative_assurance.R")
+ids<-paste0("MS",seq_len(17L))
+meta<-data.frame(assay_id=ids,
+ sample_type=c(rep("biological",10),rep("pooled_qc",5),rep("blank",2)),
+ condition=c(rep(c("control","treated"),each=5L),rep("",7)),
+ batch=c(rep(c("B1","B2"),5),rep("B1",7)),
+ injection_order=seq_len(17L),stringsAsFactors=FALSE)
+x<-matrix(100,17L,4L,dimnames=list(ids,c("clean","background","unstable_qc","missing_in_treated")))
+x[1:10,"background"]<-50
+x[16:17,"background"]<-35
+x[11:15,"background"]<-50
+x[11:15,"unstable_qc"]<-c(30,150,60,190,10)
+x[6:10,"missing_in_treated"]<-NA_real_
+a<-ms_quantitative_assurance(x,meta)
+stopifnot(a$status=="scientific_review_required",
+ a$coverage$biological_assays==10L,
+ a$coverage$pooled_qc_assays==5L,
+ a$coverage$blank_assays==2L,
+ isFALSE(a$coverage$batch_condition_fully_confounded),
+ !a$scientific_certified,!a$mnar_diagnosis_possible_from_this_table,
+ !a$pathway_or_compound_identity_certified,
+ !a$feature_exclusions_automatically_applied,
+ a$features$flag_blank_signal[2],
+ a$features$flag_qc_variation[3],
+ a$features$flag_group_missingness[4],
+ a$features$flag_missing[4],
+ all(!a$features$flag_missing[1:3]))
+reject<-function(x,meta)
+ inherits(try(ms_quantitative_assurance(x,meta),silent=TRUE),"try-error")
+bad<-meta;bad$assay_id[2]<-bad$assay_id[1]
+stopifnot(reject(x,bad))
+bad<-meta;bad$sample_type[2]<-"unknown"
+stopifnot(reject(x,bad))
+bad<-meta;bad$injection_order[2]<-bad$injection_order[1]
+stopifnot(reject(x,bad))
+bad<-x;bad[1,1]<--2
+stopifnot(reject(bad,meta))
+bad<-x;rownames(bad)[2]<-rownames(bad)[1]
+stopifnot(reject(bad,meta))
+bad<-meta;bad$batch[1]<-""
+stopifnot(reject(x,bad))
+without_controls<-ms_quantitative_assurance(x[1:10,,drop=FALSE],meta[1:10,,drop=FALSE])
+stopifnot(without_controls$status=="scientific_review_required",
+ "pooled_qc_not_sufficient_for_rsd"%in%without_controls$alerts,
+ "blanks_not_sufficient_for_background"%in%without_controls$alerts,
+ !without_controls$coverage$pooled_qc_precision_evaluable)
+confounded<-meta
+confounded$batch[1:10]<-confounded$condition[1:10]
+flag<-ms_quantitative_assurance(x,confounded)
+stopifnot(isTRUE(flag$coverage$batch_condition_fully_confounded),
+ "batch_perfectly_confounded_with_biological_group"%in%flag$alerts)
+cat("MS QUANTITATIVE QA: pooled QC, blanks, MNAR caution, group missingness, batch and fail-closed IDs PASS\n")
