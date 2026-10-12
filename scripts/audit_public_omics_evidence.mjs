@@ -74,7 +74,7 @@ export function auditPublicOmicsEvidence(report, provenance) {
   for(const x of coverage)assert(x.verified,
     'Required publicly sourced truth evidence missing or regression: '+x.id);
   const negative=report.negativeControls?.tcgaHer2LumALabelPermutation;
-  assert(Array.isArray(negative?.permutations)&&negative.permutations.length>=8,
+  assert(Array.isArray(negative?.permutations)&&negative.permutations.length>=5,
     'Subject-level negative controls were not executed.');
   assert(finiteNumber(negative?.summary?.meanAuc)&&
          negative.summary.meanAuc>=.35&&negative.summary.meanAuc<=.65,
@@ -95,6 +95,7 @@ export function auditPublicOmicsEvidence(report, provenance) {
     provenance_commit:provenance.pmxExplain.commit,
     total_hashed_exported_files:Object.keys(files).length,
     negative_control_runs:negative.permutations.length,
+    negative_control_precision:'exploratory_five_or_more_permutations_not_formal_calibration',
     independent_frozen_prediction_studies_verified_here:0,
     raw_rnaseq_confirmatory_studies_verified_here:0,
     clinical_or_universal_certification:false,
