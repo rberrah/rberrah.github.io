@@ -154,6 +154,22 @@ seuils du spectre LC-MS à toutes les technologies. Les associations de
 protéines restent conditionnées à la normalisation, aux lots, à la qualité des
 identifiants et aux comparaisons indépendantes.
 
+## Test réel du site publié : ne pas confondre HTML et outil fonctionnel
+
+Le contrôle de disponibilité GitHub Pages vérifie les routes publiques, la
+**fin effective de l'hydratation Svelte**, le lancement d'une démonstration
+avec une seule omique et la présence des résultats, sur ordinateur puis sur
+mobile. L'affichage du bouton par le HTML pré-rendu ne prouve pas que son
+gestionnaire JavaScript est prêt. Les ressources HTTP et les erreurs navigateur
+sont consignées lorsque la démonstration ne démarre pas.
+
+Ce test doit être exécuté **après la réussite du workflow de déploiement** :
+tester la version publique avant de déployer une PR aurait comparé le nouveau
+code à l'ancienne version visible. Une courte période de propagation du CDN
+est tolérée par trois essais bornés ; trois échecs restent bloquants et ne
+doivent jamais être présentés comme une réussite scientifique. Les branches
+sont testées séparément par leurs propres suites Svelte/Playwright locales.
+
 ## Prochain critère non négociable avant usage confirmatoire large
 
 Une validation **indépendante, préenregistrée, sur des données brutes ou de
