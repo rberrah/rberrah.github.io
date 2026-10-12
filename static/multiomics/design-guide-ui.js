@@ -62,6 +62,35 @@
     return (language === 'en' ? en : fr)[type] || '';
   }
 
+  // Scientific applicability is declared per design, never inferred from
+  // statistical significance, an executable R backend, or a green build.
+  function scopeFor(language, design, objective) {
+    const fr = {
+      independent: ['Comparaison possible sous conditions',
+        'Deux groupes de sujets distincts : un modèle R adapté et la vérification des effets de lot sont nécessaires. Le passage des contrôles ne certifie pas votre étude.'],
+      paired: ['Validation confirmatoire non établie pour ce parcours',
+        'Utiliser un modèle apparié avec identifiant du sujet ; un test indépendant compterait deux fois les mêmes personnes. Les comparaisons navigateur restent exploratoires.'],
+      repeated: ['Validation confirmatoire non établie pour ce parcours',
+        'Les visites d’un même sujet ne sont pas indépendantes. Une analyse longitudinale R adaptée et une revue des hypothèses sont nécessaires ; pas de conclusion confirmatoire automatique.'],
+      crossover: ['Modèle non disponible : analyse bloquée',
+        'La période, la séquence et les effets résiduels doivent être déclarés et modélisés. Un simple test apparié ne suffit pas.']
+    };
+    const en = {
+      independent: ['Comparison possible with conditions',
+        'Two independent subject groups require a suitable R model and technical-batch review. Passing software checks does not certify the study.'],
+      paired: ['Confirmatory qualification not established on this route',
+        'Use subject-matched inference; an independent test would count the same person twice. Browser comparisons remain exploratory.'],
+      repeated: ['Confirmatory qualification not established on this route',
+        'Repeated visits from one subject are not independent. Appropriate longitudinal R inference and assumption review are required; no automatic confirmation.'],
+      crossover: ['Model unavailable: analysis blocked',
+        'Treatment period, sequence and possible carryover must be declared and modelled. A basic paired test cannot replace this.']
+    };
+    const [title,body] = (language === 'en' ? en : fr)[design] || (language === 'en' ? en.independent : fr.independent);
+    const extra=objective === 'outcome' ?
+      (language === 'en' ? ' Prediction also requires independent subject-level validation.' : ' Une prédiction exige aussi une validation indépendante au niveau des sujets.') : '';
+    return [title,body+extra];
+  }
+
   function render() {
     const design = selectContaining('crossover');
     if (!design) return;
@@ -91,6 +120,7 @@
     const [designTitle, designText] = designExplanation(language, designValue);
     const overlapText = overlapExplanation(language, overlapValue);
     const outcomeText = outcomeExplanation(language, outcomeValue);
+    const [scopeTitle,scopeText] = scopeFor(language,designValue,selectContaining('explore')?.value||'explore');
 
     const wasOpen = guide.querySelector('details.licence-design-body')?.open === true;
     guide.innerHTML = `
@@ -102,6 +132,7 @@
         <article><strong>${language === 'en' ? 'How omics overlap' : 'Comment les omiques se recouvrent'}</strong><p>${overlapText}</p></article>
         <article><strong>${language === 'en' ? 'Endpoint type' : 'Type de critère étudié'}</strong><p>${outcomeText}</p></article>
       </div>
+      <div class="licence-replicate-warning" data-testid="multiomics-design-evidence-scope"><b>${scopeTitle}</b><span>${scopeText}</span></div>
       <div class="licence-replicate-warning"><b>${language === 'en' ? 'Important: a technical replicate is not a new biological subject.' : 'Important : un réplicat technique n’est pas un nouveau sujet biologique.'}</b><span>${language === 'en' ? 'Repeating the measurement of the same specimen improves measurement precision but does not increase the biological sample size. The tool links technical replicates through the same sample_id.' : 'Répéter la mesure du même prélèvement améliore la précision technique mais n’augmente pas l’effectif biologique. L’outil relie les répétitions techniques par le même sample_id.'}</span></div>
       </details>
     `;
