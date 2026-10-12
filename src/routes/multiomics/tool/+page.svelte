@@ -10,6 +10,7 @@
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
   import { mofa2BackendCompatibility,validateMofa2MethodResult } from '$lib/multiomics/reference-backend-integrity.js';
   import { createPortableProject, parsePortableProject, PORTABLE_PROJECT_MAX_BYTES } from '$lib/multiomics/portable-project.js';
+  import { buildResearchMethodsManifest } from '$lib/multiomics/research-report.js';
 
   /** @param {string} fr @param {string} en */
   const t = (fr, en) => $language === 'en' ? en : fr;
@@ -1398,6 +1399,18 @@
     }
   }
 
+  function downloadResearchMethodsAudit() {
+    if(!analysisResult)return;
+    const audit=buildResearchMethodsManifest(analysisResult);
+    const blob=new Blob([JSON.stringify(audit,null,2)],{type:'application/json;charset=utf-8'});
+    const href=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=href;
+    link.download='multiomics_methods_scientific_audit.json';
+    link.click();
+    URL.revokeObjectURL(href);
+  }
+
   function downloadAnalysisJson() {
     if (!analysisResult) return;
     const blob = new Blob([JSON.stringify(analysisResult, null, 2)], { type: 'application/json' });
@@ -1461,6 +1474,7 @@
       '<section><h2>Provenance</h2><pre>' + escapeHtml(JSON.stringify(result.inputManifest, null, 2)) + '</pre></section>' +
       '<section><h2>Protocol</h2><pre>' + escapeHtml(JSON.stringify(result.protocol, null, 2)) + '</pre></section>' +
       '<section><h2>Scientific evidence status (not an approval)</h2><pre>' + escapeHtml(JSON.stringify(result.scientificAssurance || {}, null, 2)) + '</pre></section>' +
+      '<section><h2>Reproducibility methods audit (not a certificate)</h2><pre>' + escapeHtml(JSON.stringify(buildResearchMethodsManifest(result), null, 2)) + '</pre></section>' +
       '<section><h2>Sample structure</h2><pre>' + escapeHtml(JSON.stringify(result.metadataSummary, null, 2)) + '</pre></section>' +
       layerSections +
       (result.supervisedIntegration ? '<section><h2>Supervised multiblock integration</h2><pre>' + escapeHtml(JSON.stringify(result.supervisedIntegration, null, 2)) + '</pre></section>' : '') +
@@ -2671,6 +2685,7 @@
       <details class="simple-disclosure export-detail">
         <summary>{t('Autres exports', 'Other downloads')}</summary>
         <button class="btn btn-outline" type="button" onclick={downloadAnalysisJson}>{t('Données détaillées (JSON)', 'Detailed data (JSON)')}</button>
+        <button class="btn btn-outline" type="button" data-testid="multiomics-methods-audit-export" onclick={downloadResearchMethodsAudit}>{t('Méthodes et contrôles (JSON, sans données brutes)', 'Methods and checks (JSON, no raw data)')}</button>
         <button class="btn btn-outline" type="button" data-testid="multiomics-project-export" disabled={portableProjectBusy} onclick={exportPortableProject}>{portableProjectBusy ? t('Préparation…', 'Preparing…') : t('Enregistrer le projet complet', 'Save complete project')}</button>
         <small>{t('Contient les fichiers source, les réglages et les résultats. Peut inclure des données personnelles ou de recherche sensibles. Limite : 80 Mio de données source textuelles.', 'Includes original files, settings and results. May contain sensitive research or personal data. Limit: 80 MiB of source text.')}</small>
         {#if portableProjectMessage}<p role="status" class="ms-import-message">{portableProjectMessage}</p>{/if}
