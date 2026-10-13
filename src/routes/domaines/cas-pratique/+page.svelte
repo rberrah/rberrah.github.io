@@ -56,8 +56,8 @@
     <label for="planted-beta"><strong>{t('Effet artificiel de la signature','Planted signature effect')}</strong><output>{num(beta,2)}</output></label>
     <input id="planted-beta" type="range" min="0" max="0.65" step="0.05" bind:value={beta} data-testid="omics-pop-pk-beta"/>
     <p class="hint">{t(
-      'Essaye 0 : la signature ne contient alors aucun signal véritable. Un modèle plus complexe ne devrait pas être privilégié automatiquement.',
-      'Try 0: the signature contains no true signal. A more complex model should not automatically be preferred.'
+      'Essaye 0 : la signature ne contient alors aucun signal véritable. Le modèle avec signature peut garder une erreur presque stable parce qu’il retire l’effet artificiel ; observe surtout le changement du modèle sans omiques. Une covariable ne doit jamais être retenue automatiquement.',
+      'Try 0: the signature contains no true signal. The signature model may keep almost the same error because it removes the planted effect; particularly note how the baseline changes. A covariate should never be retained automatically.'
     )}</p>
     <h3>{t('Résultats sur 40 sujets non utilisés pour l’apprentissage','Results on 40 subjects excluded from training')}</h3>
     <div class="scores">
