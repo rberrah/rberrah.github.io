@@ -25,7 +25,7 @@ test('Novice researcher sees four biological pairs, downloads template, and cann
     document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:14000}).toBe('true');
   await page.getByLabel(/Objectif principal|Main objective/).selectOption('groups');
   await page.getByTestId('multiomics-simple-design').selectOption('paired');
-  await expect(page.getByTestId('multiomics-paired-help')).toContainText('4 paires');
+  await expect(page.getByTestId('multiomics-paired-help')).toContainText('Quatre paires');
   const [download]=await Promise.all([
     page.waitForEvent('download',{timeout:12000}),
     page.getByTestId('multiomics-paired-template-download').click()
