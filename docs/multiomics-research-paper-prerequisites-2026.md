@@ -65,6 +65,15 @@ dans cette étude ; elles ne valident pas un nouveau biomarqueur, ne
 permettent pas de généraliser entre hôpitaux ni de conclure à une
 supériorité universelle des méthodes multi-omiques.
 
+**Premier résultat de l'exécution réelle (13 octobre 2026)** —
+sur les cinq partitions TCGA, DIABLO a une BER descriptive de 17,5 %,
+ARN seul de 10,9 %, protéines seules de 17,5 %, et le contrôle
+désapparié de 10,3 %. **Aucun bénéfice multi-omique n'est démontré**.
+La [question de qualification biologique #78](https://github.com/rberrah/rberrah.github.io/issues/78)
+prescrit l'investigation de l'appariement, une meilleure harmonisation
+de la complexité des bras et une réplication externe. Une CI verte ne
+supprime pas cet échec de preuve de valeur ajoutée.
+
 ## P0 — validité statistique : puissance ET faux positifs
 
 Second diagnostic indépendant des 400 études / 1200 fits (#52) et
