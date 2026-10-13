@@ -3,6 +3,7 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
+import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
 
 const encoder=new TextEncoder();
 const CSV_COLUMNS=[
@@ -148,6 +149,7 @@ export function methodsMarkdown(result,locale='fr'){
     '- `provenance/analysis_complete.json`: '+t('résultat complet, y compris traces éventuelles du backend R','complete analysis including any R backend trace'),
     '- `source/projet_reproductible.json`: '+t('fichiers originaux et paramètres pour réimport puis recalcul ; ne contient pas de résultat considéré nouveau','original input files and settings for manual rerun; no archived result reused as a new analysis'),
     '- `provenance/manifest.json`: '+t('empreintes SHA-256 des autres fichiers','SHA-256 digests of the other files'),
+    '- `verification/verifier_dossier.py`: '+t('script autonome Python 3 de vérification sans internet','offline Python 3 script for independent integrity checks'),
     '',
     t('Le dossier ne constitue pas une certification statistique ni clinique.',
       'This dossier is not a statistical or clinical certification.'),
@@ -230,6 +232,8 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
   }
   requireThat(num>0,'No analyzable layer');
   add('methods/methods.md',methodsMarkdown(result,locale));
+  add('verification/verifier_dossier.py',RESEARCH_DOSSIER_VERIFY_PY);
+  add('verification/LISEZ-MOI.txt',RESEARCH_DOSSIER_README);
   add('methods/methods_audit.json',JSON.stringify(buildResearchMethodsManifest(result),null,2)+'\n');
   add('provenance/analysis_complete.json',JSON.stringify(result,null,2)+'\n');
   add('source/projet_reproductible.json',JSON.stringify(portableProject,null,2)+'\n');
@@ -258,6 +262,7 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
       'File SHA-256 values refer to the uncompressed UTF-8 member bytes.',
       'Result CSV spreadsheet protection prefixes potentially executable feature identifiers with a single apostrophe; raw identifiers are unchanged in analysis_complete.json.',
       'All layer features are exported, not only the HTML preview top 50.',
+      'Run the included offline Python verifier to check the original files and complete CSV counts; this does not certify statistical validity.',
       'ZIP source project contains exact original uploaded CSV/TSV and parameters, but not a fresh inference when re-imported.',
       'For R reference methods, also archive version-locked backend and package library.',
       'Never publish the bundle publicly without reviewing subjects, assays and patient confidentiality.'
