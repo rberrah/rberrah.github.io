@@ -1,0 +1,26 @@
+# Component-level software metadata; root CITATION.cff continues to cite PMx Explain.
+cff-version: 1.2.0
+message: "When using the MultiOmics analysis software, cite this component metadata and the exact archived release once available."
+type: software
+title: "MultiOmics: guided single- and multi-omics analysis with explicit scientific validity checks"
+abstract: >-
+  Deterministic research-software component of PMx Explain. Guided single-omic
+  and multiblock interfaces, input/design checks, reference R method adapters,
+  and reproducible methodological reporting. This component is not a
+  clinical decision support device and does not certify nominal statistical
+  false discovery control for an arbitrary study.
+authors:
+  - family-names: Berrah
+    given-names: Racym
+    orcid: "https://orcid.org/0009-0001-6432-2880"
+    affiliation: "UMR 1248 Pharmacologie et Transplantation, Inserm, Université de Limoges, CHU de Limoges"
+license: MIT
+repository-code: "https://github.com/rberrah/rberrah.github.io"
+url: "https://rberrah.github.io/pharmacometrie/multiomics/"
+keywords:
+  - bioinformatics
+  - multi-omics
+  - single-omics
+  - reproducible research software
+  - statistical validation
+# No version, DOI or release date is asserted until a frozen release exists.
