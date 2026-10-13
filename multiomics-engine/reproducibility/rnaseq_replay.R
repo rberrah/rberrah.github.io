@@ -118,6 +118,15 @@ if(mode=="capture"){
   for(pkg in required)
     if(!identical(versions[[pkg]],manifest$packages[[pkg]]))
       stop(paste("PACKAGE DRIFT:",pkg,versions[[pkg]],manifest$packages[[pkg]]))
+  isolated <- Sys.getenv("PMX_RESTORED_LIBRARY","")
+  if(nzchar(isolated)) {
+    if(!dir.exists(isolated))stop("Replayed R library does not exist")
+    for(pkg in required) {
+      # Requiring a package in the base image is NOT a successful restore.
+      if(!file.exists(file.path(isolated,pkg,"DESCRIPTION")))
+        stop(paste("PACKAGE NOT RESTORED IN PRIVATE LIBRARY:",pkg))
+    }
+  }
   previous <- readRDS(reference_file)
   for(k in names(results)){
     if(!identical(results[[k]]$feature,previous[[k]]$feature))
