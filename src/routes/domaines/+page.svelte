@@ -1,8 +1,7 @@
 <script>
   // @ts-nocheck
   import { base } from '$app/paths';
-  import { SITE_ORIGIN } from '$lib/site';
-  import { language } from '$lib/stores/language';
+    import { language } from '$lib/stores/language';
   import { crossDomainLessons, calculateSignatureExposure } from '$lib/cross-domains/omics-pkpd-lessons.js';
   import { BookOpen, ArrowRight, FlaskConical, ShieldCheck } from '@lucide/svelte';
 
@@ -15,8 +14,8 @@
   $: completed = crossDomainLessons.filter(lesson =>
     selected[lesson.id] === lesson.quiz[$language].correct
   ).length;
-  const tool = `${SITE_ORIGIN}/multiomics/tool/`;
-  const presentation = `${SITE_ORIGIN}/multiomics/`;
+  const tool = `${base}/multiomics/tool/`;
+  const presentation = `${base}/multiomics/`;
   const t = (fr,en) => english ? en : fr;
   const number = (value, digits=1) => new Intl.NumberFormat(english?'en-US':'fr-FR',
     {minimumFractionDigits:digits,maximumFractionDigits:digits}).format(value);
@@ -50,8 +49,8 @@
         'The MultiOmics platform analyzes one or more biological layers, quality checks, signatures and pathways. The lessons below show how those results can inform a separate PK/PD question.'
       )}</p>
       <div class="links">
-        <a class="btn btn-primary" href={tool} data-testid="cross-domain-open-tool" target="_blank" rel="noopener noreferrer">{t('Ouvrir l’outil MultiOmics ↗','Open the MultiOmics tool ↗')}</a>
-        <a class="btn btn-outline" href={presentation} target="_blank" rel="noopener noreferrer">{t('Comprendre MultiOmics ↗','About MultiOmics ↗')}</a>
+        <a class="btn btn-primary" href={tool} data-testid="cross-domain-open-tool">{t('Ouvrir l’outil MultiOmics ↗','Open the MultiOmics tool ↗')}</a>
+        <a class="btn btn-outline" href={presentation}>{t('Comprendre MultiOmics ↗','About MultiOmics ↗')}</a>
       </div>
     </div>
     <div class="bridge" aria-label={t('Chaîne scientifique : données omiques, preuves, modèle PK/PD, validation','Scientific workflow: omics data, evidence, PK/PD model, validation')}>
@@ -159,6 +158,19 @@
       )}</p>
     </div>
   </section>
+
+  <section class="further-reading" aria-labelledby="reading-title">
+    <h2 id="reading-title">{t('Références scientifiques pour approfondir','Scientific references for further reading')}</h2>
+    <p>{t(
+      'Ces articles présentent des exemples réels et les limites du passage des résultats omiques aux modèles mécanistiques. Les exemples du mini-laboratoire restent entièrement fictifs.',
+      'These articles discuss real applications and limitations of connecting omics to mechanistic models. The mini-lab examples remain entirely hypothetical.'
+    )}</p>
+    <ul>
+      <li><a href="https://doi.org/10.1002/cpt.1818" target="_blank" rel="noopener noreferrer">Nigam et al., 2020</a> — {t('Enzymes, transporteurs et biologie des systèmes','Drug-metabolizing enzymes, transporters and systems biology')}</li>
+      <li><a href="https://doi.org/10.1016/j.xphs.2023.10.032" target="_blank" rel="noopener noreferrer">Jusko et al., 2024</a> — {t('Des réponses indirectes aux modèles QSP alimentés par les omiques','From indirect response models to omics-powered QSP')}</li>
+      <li><a href="https://doi.org/10.1002/jcph.70289" target="_blank" rel="noopener noreferrer">Wang et al., 2026</a> — {t('QSP, décisions cliniques et crédibilité des modèles','QSP, clinical decisions and model credibility')}</li>
+    </ul>
+  </section>
 </div>
 
 <style>
@@ -216,7 +228,11 @@
   .equation { font-family: var(--font-mono); font-size: .91rem; overflow-wrap: anywhere; }
   .workflow { display: flex; gap: 19px; margin: 40px 0 25px; padding: 25px 0; border-top: 1px solid var(--border-strong); }
   .workflow :global(svg) { flex-shrink: 0; margin-top: 8px; }
-  @media(max-width:720px) {
+  .further-reading { border-top: 1px solid var(--border-strong); padding-top: 26px; margin-top: 25px; }
+  .further-reading p { color: var(--text-secondary); max-width: 80ch; }
+  .further-reading ul { padding-left: 23px; }
+  .further-reading li { padding: 5px 0; line-height: 1.7; }
+    @media(max-width:720px) {
     .connection { grid-template-columns: 1fr; padding: 18px; }
     .course-links { grid-template-columns: 1fr; }
     .results { grid-template-columns: 1fr; }
