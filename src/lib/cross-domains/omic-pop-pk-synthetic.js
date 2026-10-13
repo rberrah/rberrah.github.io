@@ -19,6 +19,7 @@ export function simulateOmicsPopPK({ beta=0.35, seed=20261013 }={}) {
   }
   const train=subjects.slice(0,NTRAIN);
   const heldout=subjects.slice(NTRAIN);
+  /** @param {number[]} a */
   const mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
   const trMean=mean(train.map(x=>x.score));
   const trVar=mean(train.map(x=>(x.score-trMean)**2));
@@ -30,10 +31,13 @@ export function simulateOmicsPopPK({ beta=0.35, seed=20261013 }={}) {
   const centeredLogs=logTrain.map(y=>y-interceptOnly);
   const slope=mean(scaledTrain.map((x,i)=>x*centeredLogs[i]))/
     mean(scaledTrain.map(x=>x*x));
+  /** @param {{score:number,observedAuc:number}} row
+   *  @param {boolean} omics */
   function predict(row,omics) {
     const log=interceptOnly+(omics?slope*(row.score-trMean)/trSD:0);
     return Math.exp(log);
   }
+  /** @param {boolean} omics */
   function evaluate(omics) {
     const errors=heldout.map(row=>{
       const pred=predict(row,omics);
