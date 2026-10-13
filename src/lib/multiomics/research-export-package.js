@@ -19,6 +19,25 @@ const CSV_COLUMNS=[
 const UTF8_FLAG=0x0800;
 const MAX_ZIP_BYTES=130*1024*1024;
 const LOCALES=['fr','en'];
+/** The R backend currently exports method.top via top_frame(default 100).
+ * It MUST NOT be passed off as complete reference R differential data.
+ * This is separate from the complete browser exploratory result tables. */
+export function referencePreviewAudit(result){
+  const methods=result?.referenceBackend?.methods;
+  if(!methods||typeof methods!=='object')return [];
+  return Object.entries(methods).filter(([,m])=>m && typeof m==='object')
+    .map(([key,m])=>({
+      method_key:key,
+      reported_name:typeof m.method==='string'?m.method:key,
+      status:typeof m.status==='string'?m.status:'unknown',
+      preview_rows:Array.isArray(m.top)?m.top.length:null,
+      complete_reference_table_exported:false,
+      note:Array.isArray(m.top)
+        ?'R reference output is a top-rows preview (top_frame defaults to at most 100), NOT the full fitted feature table.'
+        :'R status/summary only; no complete per-feature R result table was exported.'
+    }));
+}
+
 
 function requireThat(value,message){if(!value)throw Error('Research dossier: '+message)}
 function plain(value){return value==null||typeof value==='number'&&!Number.isFinite(value)?'':String(value)}
@@ -69,6 +88,7 @@ export function methodsMarkdown(result,locale='fr'){
   requireThat(result?.engine&&result?.protocol&&result?.layers,
     'No completed omics analysis');
   const a=buildResearchMethodsManifest(result);
+  const rPreviews=referencePreviewAudit(result);
   const t=(fr,en)=>text(fr,en,locale);
   const h=[
     '# '+t('Analyse MultiOmics — méthodes et résultats','MultiOmics analysis — methods and results'),
@@ -113,6 +133,17 @@ export function methodsMarkdown(result,locale='fr'){
       t('Le tableau CSV contient toutes les variables renvoyées par le moteur navigateur, sans troncature. Une exécution R de référence, lorsqu’elle existe, est conservée séparément dans analysis_complete.json ; les lignes navigateur ne doivent jamais être attribuées à DESeq2, limma ou mixOmics par défaut.',
         'The CSV contains every feature returned by the browser engine without truncation. When R reference computations exist, they are preserved separately in analysis_complete.json; browser result rows must not be attributed to DESeq2, limma or mixOmics by default.'),
       '');
+  }
+
+  if(rPreviews.length){
+    h.push('## '+t('Attention — résultats R potentiellement tronqués','Attention — R reference tables may be truncated'),'',
+      t('Le backend R actuel fournit des aperçus « top » (jusqu’à 100 lignes par méthode). Ils sont archivés dans provenance/analysis_complete.json, mais CE DOSSIER NE FOURNIT PAS les tableaux de référence R exhaustifs. Les CSV sous tableaux/ proviennent exclusivement du moteur navigateur et ne doivent pas être présentés comme des résultats DESeq2/limma complets. Pour publier une analyse R, exporter séparément l’intégralité des résultats depuis l’environnement R, ses versions et les paramètres.',
+        'The current R backend returns top-row previews (up to 100 rows per method). These are archived in provenance/analysis_complete.json, but THIS ZIP DOES NOT contain full R reference feature tables. The CSVs in tableaux/ come exclusively from the browser engine and must not be cited as complete DESeq2/limma fits. For a publication using R, separately preserve all reference fit rows, its package environment and parameters.'),
+      '');
+    for(const r of rPreviews)
+      h.push('- '+r.method_key+': '+r.status+', '+
+        t('lignes aperçues','preview rows')+' = '+print(r.preview_rows));
+    h.push('');
   }
   h.push('## '+t('Comprendre les colonnes exportées','Understanding exported columns'),'',
     '| '+t('Colonne','Column')+' | '+t('Définition','Definition')+' |',
@@ -251,6 +282,10 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
+    reference_method_previews:referencePreviewAudit(result),
+    r_reference_full_feature_tables_exported:false,
+    note_on_r_reference:'R backend response stores only top-row previews (top_frame defaults to 100), not a complete fitted feature table; no browser CSV can substitute for full DESeq2/limma results.',
+
     files,
     inference_scope:'browser exploratory tables; any R backend output is separately recorded in full JSON',
     clinical_validation:false,
@@ -265,6 +300,7 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
       'Run the included offline Python verifier to check the original files and complete CSV counts; this does not certify statistical validity.',
       'ZIP source project contains exact original uploaded CSV/TSV and parameters, but not a fresh inference when re-imported.',
       'For R reference methods, also archive version-locked backend and package library.',
+      'For R reference differential results, obtain full fitted tables separately; the backend currently returns top-frame previews of up to 100 rows, not exhaustive reference tables.',
       'Never publish the bundle publicly without reviewing subjects, assays and patient confidentiality.'
     ]
   };
