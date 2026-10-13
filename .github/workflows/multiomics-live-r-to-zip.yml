@@ -19,6 +19,7 @@ jobs:
       image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
     env:
       CI: 'true'
+      PMX_E2E_REAL_R: '1'
       LABS_E2E_PREBUILT: '1'
       PMX_MULTIOMICS_ALLOWED_ORIGINS: 'http://127.0.0.1:4173'
     steps:
