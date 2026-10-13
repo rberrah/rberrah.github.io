@@ -12,12 +12,12 @@ batch<-factor(rep(rep(c("batch1","batch2"),each=7),times=2))
 meta<-data.frame(condition=groups,batch=batch,row.names=samples)
 input<-vapply(seq_len(genes),function(j){
   mu<-60*exp(rnorm(1,0,.25))*
-    ifelse(groups=="treated"&&j<=20,2.1,1)
+    ifelse(groups=="treated" & j<=20,2.1,1)
   stats::rnbinom(n,mu=mu,size=1/0.14)
 },numeric(n))
 dimnames(input)<-list(samples,sprintf("ENSG_SYN%04d",seq_len(genes)))
 out<-tempfile("pmx_reference_real_");dir.create(out)
-on.exit(unlink(out,recursive=TRUE),add=TRUE)
+
 fits<-list(
  DESeq2=run_deseq2_counts(input,meta,file.path(out,"deseq"),
                          ~batch+condition,c("condition","treated","control")),
