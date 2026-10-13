@@ -104,14 +104,31 @@ const rReference={...result,referenceBackend:{
   runtime:{RVersion:'4.5.2',packageVersions:{DESeq2:'1.50.2'}}
 }};
 const referenceMarkdown=methodsMarkdown(rReference,'fr');
-assert.match(referenceMarkdown,/100 lignes par méthode/);
-assert.match(referenceMarkdown,/NE FOURNIT PAS/);
+assert.match(referenceMarkdown,/exhaustivité vérifiée par méthode/);
+assert.match(referenceMarkdown,/export complet/);
 assert.match(referenceMarkdown,/DESeq2/);
 const refArchive=await buildResearchBundle({result:rReference,portableProject:portable});
 assert.equal(refArchive.manifest.r_reference_full_feature_tables_exported,false);
 assert.equal(refArchive.manifest.reference_method_previews.length,1);
 assert.equal(refArchive.manifest.reference_method_previews[0].preview_rows,100);
 assert.equal(refArchive.manifest.reference_method_previews[0].complete_reference_table_exported,false);
+
+const realCsv = ['feature,pvalue,padj', ...Array.from({length:165},(_,i)=>
+  ['GENE_'+String(i+1),0.01,0.04].join(','))].join('\n')+'\n';
+const fullMethod={...result,referenceBackend:{methods:{transcriptomics_differential_deseq2:{
+  method:'DESeq2',status:'ok',top:Array.from({length:100},(_,i)=>({feature:'GENE_'+i})),
+  referenceTableComplete:true,referenceTableStatus:'complete',
+  referenceTableRows:165,referenceTableExportedRows:165,
+  referenceTableOriginalFeatures:180,referenceTableExcludedBeforeFit:15,
+  referenceTableCsv:realCsv,referenceTableBytes:Buffer.byteLength(realCsv)
+}},runtime:{RVersion:'4.5.2'}}};
+const fullBundle=await buildResearchBundle({result:fullMethod,portableProject:portable});
+assert.equal(fullBundle.manifest.r_reference_full_feature_tables_exported,true);
+assert.equal(fullBundle.manifest.r_reference_full_tables[0].rows,165);
+assert.match(methodsMarkdown(fullMethod,'en'),/reference_r/);
+const truncated=structuredClone(fullMethod);
+truncated.referenceBackend.methods.transcriptomics_differential_deseq2.referenceTableCsv=realCsv.slice(0,-16);
+await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch/);
 
 assert.ok(names.includes('verification/verifier_dossier.py'));
 assert.ok(names.includes('verification/LISEZ-MOI.txt'));
