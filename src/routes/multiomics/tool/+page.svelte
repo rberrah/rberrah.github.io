@@ -2768,6 +2768,15 @@
               ? t('complet', 'complete')
               : t('aperçu uniquement', 'preview only')}
               {#if ref.reference_table_rows !== null} ({ref.reference_table_rows} {t('lignes', 'rows')}){/if}
+              {#if ref.reference_export_status === 'too_large_archived_locally'}
+                <span> — {t('sauvegardé sur le disque du serveur R local, pas dans le ZIP', 'saved on the local R machine, not in this ZIP')}</span>
+                {#if ref.local_archive_id}
+                  <code>{ref.local_archive_id}</code>
+                  {#if ref.local_archive_sha256}<small>SHA-256: {ref.local_archive_sha256}</small>{/if}
+                {/if}
+              {:else if ref.reference_export_status === 'too_large'}
+                <span> — {t('trop volumineux : aucune archive conservée par défaut, reconfigurez R puis relancez', 'too large: no archive retained by default, configure R and rerun')}</span>
+              {/if}
             </li>
           {/each}
         </ul>
