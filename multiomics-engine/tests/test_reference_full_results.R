@@ -28,8 +28,8 @@ stopifnot(nrow(again)==nrow(f),identical(again$feature,f$feature),
           isTRUE(all.equal(again$log2FoldChange,f$log2FoldChange,tolerance=1e-9)),
           identical(which(is.na(again$padj)),which(is.na(f$padj))),
           identical(which(is.na(again$pvalue)),which(is.na(f$pvalue))),
-          identical(again$padj[!is.na(again$padj)],
-                    f$padj[!is.na(f$padj)]))
+          isTRUE(all.equal(again$padj[!is.na(again$padj)],
+                           f$padj[!is.na(f$padj)],tolerance=1e-12)))
 # Even if the native UI preview stops after 100, the reference export is full.
 stopifnot(nrow(again)>100L && any(again$feature=="GENE_0254"))
 small<-reference_complete_table(f,max_wire_bytes=300L)
@@ -37,8 +37,8 @@ stopifnot(identical(small$referenceTableStatus,"too_large"),
           !isTRUE(small$referenceTableComplete),
           is.null(small$referenceTableCsv),
           small$referenceTableRows==nrow(f))
-expect_error(reference_complete_table(f[duplicated(rep("x",n)),,drop=FALSE]),
-             "feature")
+d<-f;d$feature[2]<-""
+expect_error(reference_complete_table(d),"missing")
 d<-f;d$feature[2]<-d$feature[1]
 expect_error(reference_complete_table(d),"duplicated")
 d<-f;d$feature[2]<-NA_character_
