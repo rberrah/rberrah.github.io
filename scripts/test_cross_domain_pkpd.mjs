@@ -50,10 +50,16 @@ for(const lesson of crossDomainLessons){
 }
 const route=fs.readFileSync('src/routes/domaines/+page.svelte','utf8');
 const nav=fs.readFileSync('src/routes/+layout.svelte','utf8');
-assert.ok(route.includes('SITE_ORIGIN')&&route.includes('/multiomics/tool/'));
+assert.ok(route.includes('const tool = `${base}/multiomics/tool/`;'));
+assert.ok(route.includes('const presentation = `${base}/multiomics/`;'));
+assert.ok(route.includes('https://doi.org/10.1002/cpt.1818'));
+assert.ok(route.includes('https://doi.org/10.1016/j.xphs.2023.10.032'));
 assert.ok(route.includes('educationalOnly')===false);
 assert.ok(route.includes('data-testid="cross-domain-auc"'));
 assert.ok(route.includes('role="status"'));
 assert.ok(nav.includes("key: 'cross-domains'"));
-assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
+assert.ok(nav.includes("key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
+const multiomicsPresentation=fs.readFileSync('src/routes/multiomics/+page.svelte','utf8');
+assert.ok(multiomicsPresentation.includes('href={`${base}/domaines/`'));
+assert.ok(multiomicsPresentation.includes('Cours : des omiques aux modèles PK/PD'));
 console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');
