@@ -1,0 +1,62 @@
+name: MultiOmics research-software article and original evidence audit
+
+on:
+  pull_request:
+    paths:
+      - 'research-software/multiomics/**'
+      - '.github/workflows/multiomics-software-paper.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+# The historical run artifacts have finite retention. A failure to retrieve
+# them must be VISIBLE; it must never become a silent "validation pass".
+jobs:
+  scientific-evidence:
+    name: Verify original 2,100 R fits, code contracts and conservative claims
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install exact locked browser dependencies
+        run: npm ci
+      - name: Test MultiOmics browser analysis and input-contract engine
+        run: npm run test:multiomics
+      - name: Check research evidence parser and fail-closed scientific assertions
+        run: node research-software/multiomics/test-evidence.mjs
+      - name: Download immutable PR52 original R fit records
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 38169339122
+          name: genuine-rnaseq-r1-400-studies-null-mixed-truth
+          path: tmp/multiomics-paper/original-pr52
+      - name: Download immutable PR75 original R fit records
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 38369835987
+          name: deseq2-rnaseq-fdr-diagnostic-replicates-and-summary
+          path: tmp/multiomics-paper/original-pr75
+      - name: Check original SHA-256, 2,100 rows, paired seeds and all 27 empirical summaries
+        run: |
+          node research-software/multiomics/build-evidence.mjs \
+            --pr52-dir tmp/multiomics-paper/original-pr52 \
+            --pr75-dir tmp/multiomics-paper/original-pr75 \
+            --out tmp/multiomics-paper/report
+      - name: Preserve the verifiable report even if subsequent checks fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-software-paper-evidence-and-negative-results
+          path: |
+            tmp/multiomics-paper/report/
+            research-software/multiomics/evidence/
+          if-no-files-found: warn
+          retention-days: 90
