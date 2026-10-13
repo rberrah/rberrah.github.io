@@ -113,6 +113,20 @@ export function methodsMarkdown(result,locale='fr'){
         'The CSV contains every feature returned by the browser engine without truncation. When R reference computations exist, they are preserved separately in analysis_complete.json; browser result rows must not be attributed to DESeq2, limma or mixOmics by default.'),
       '');
   }
+  h.push('## '+t('Comprendre les colonnes exportées','Understanding exported columns'),'',
+    '| '+t('Colonne','Column')+' | '+t('Définition','Definition')+' |',
+    '| --- | --- |',
+    '| \`feature\` | '+t('Identifiant de la mesure (valeur exacte dans le JSON).','Measured feature (exact identifier in JSON).')+' |',
+    '| \`effect\` / \`effect_scale\` | '+t('Taille d’effet et échelle associée ; le signe dépend du contraste déclaré.','Effect size and associated scale; the sign depends on the declared contrast.')+' |',
+    '| \`ci95_low\` / \`ci95_high\` | '+t('Bornes disponibles de l’intervalle, sinon vides.','Interval bounds if available, otherwise blank.')+' |',
+    '| \`p_value\` | '+t('p-value du test indiqué, pas la probabilité que l’hypothèse soit vraie.','Reported test p-value, not the probability the hypothesis is true.')+' |',
+    '| \`q_value\` | '+t('p-value ajustée pour tests multiples, sans prouver une découverte biologique.','Multiple-testing-adjusted p-value, not proof of a biological discovery.')+' |',
+    '| \`n\` / \`n_reference\` / \`n_comparison\` | '+t('Observations contribuant au calcul : ne pas confondre avec les sujets indépendants.','Contributing observations: do not confuse with independent subjects.')+' |',
+    '| \`model\` | '+t('Nom de la méthode correspondant à la ligne.','Method name corresponding to the row.')+' |',
+    '',
+    t('Les CSV sont directement importables dans R ou Python. Vérifier les hypothèses et les limites avant de reprendre les estimations dans un article.',
+      'CSV tables can be imported in R or Python. Check assumptions and limitations before citing estimates in a paper.'),
+    '');
   h.push('## '+t('Interprétation prudente','Interpretation boundaries'),'',
     '- '+t('Une p-value ou une q-value n’établit ni causalité ni validation biologique. Les comparaisons sont limitées au plan déclaré.',
       'A p-value or q-value does not demonstrate causality or biological validation. Comparisons are limited to the declared study design.'),
