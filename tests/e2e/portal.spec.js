@@ -34,7 +34,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', publicOrigin + route);
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', publicOrigin + route);
-    await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications', 'Communications', 'About']);
+    await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
       await expect(page.locator('.project-grid h3')).toHaveText(['TacDDI', 'MissedDose', 'MIPD Engine']);
@@ -215,6 +215,17 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.getByRole('link', { name: 'Slides / PPTX', exact: true })).toHaveAttribute('href', /\.pptx$/);
   await expect(page.locator('.communication-hero img')).toHaveAttribute('alt', /Preview of NetPK/);
   await expect(page.locator('body')).not.toContainText('Poster Residual.pptx');
+});
+
+test('talk and poster titles open their available detail records', async ({ page }) => {
+  await page.goto(origin + '/publications/');
+  await expect(page.getByRole('link', { name: /NetPK: fusing published/ })).toHaveAttribute('href', '/communications/netpk-peprsn-2026/');
+  await expect(page.getByRole('link', { name: /Beyond.*Skip or Take/ }).first()).toHaveAttribute('href', '#missed-dose-details');
+  await expect(page.getByRole('link', { name: /Toward autonomous pharmacometrics/ }).first()).toHaveAttribute('href', '#page-2026-details');
+  await expect(page.getByRole('link', { name: /TacDDI: A precision dosing tool/ })).toHaveAttribute('href', '#tacddi-details');
+  await expect(page.getByRole('link', { name: /Impact of Residual Error Handling/ })).toHaveAttribute('href', '#page-2025-details');
+  await page.getByRole('link', { name: /Beyond.*Skip or Take/ }).first().click();
+  await expect(page.locator('#missed-dose-details')).toHaveAttribute('open', '');
 });
 
 test('French communication interface retains original scientific titles', async ({ page }) => {

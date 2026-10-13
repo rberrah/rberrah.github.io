@@ -49,8 +49,8 @@ function formatDate(item, lang) {
 }
 
 function nav(current = '') {
-  const item = (href, text, key) => `<a href="${href}"${current === key ? ' aria-current="page"' : ''}>${text}</a>`;
-  return `<header class="site-header"><nav class="wrap navigation" aria-label="Main navigation"><a class="nav-name" href="/">Racym Berrah</a><div class="nav-links">${item('/#pharmacometrics', 'Pharmacometrics', 'pmx')}${item('/tools/', 'Tools &amp; Projects', 'tools')}${item('/publications/', 'Publications', 'publications')}${item('/communications/', 'Communications', 'communications')}${item('/a-propos/', 'About', 'about')}</div></nav></header>`;
+  const item = (href, text, key) => `<a href="${href}"${current === key || (current === 'communications' && key === 'publications') ? ' aria-current="page"' : ''}>${text}</a>`;
+  return `<header class="site-header"><nav class="wrap navigation" aria-label="Main navigation"><a class="nav-name" href="/">Racym Berrah</a><div class="nav-links">${item('/#pharmacometrics', 'Pharmacometrics', 'pmx')}${item('/tools/', 'Tools &amp; Projects', 'tools')}${item('/publications/', 'Publications &amp; Talks', 'publications')}${item('/a-propos/', 'About', 'about')}</div></nav></header>`;
 }
 
 function footer() {
