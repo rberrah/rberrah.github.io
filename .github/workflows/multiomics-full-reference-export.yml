@@ -29,7 +29,7 @@ jobs:
         run: |
           Rscript -e '
             repos <- "https://cloud.r-project.org"
-            needed <- c("BiocManager","jsonlite","statmod")
+            needed <- c("BiocManager","jsonlite","statmod","plumber")
             missing <- needed[!vapply(needed,requireNamespace,logical(1),quietly=TRUE)]
             if(length(missing)) install.packages(missing,repos=repos)
             stopifnot(identical(as.character(BiocManager::version()),"3.22"))
@@ -44,6 +44,9 @@ jobs:
           Rscript multiomics-engine/tests/test_full_reference_engine_real_fits.R
       - name: Actual backend R response retains every fitted gene through JSON
         run: Rscript multiomics-engine/tests/test_full_reference_backend_endpoint.R
+      - name: Actual Plumber application loads source files from its own working directory
+        run: |
+          Rscript -e 'p <- plumber::plumb("multiomics-engine/server.R"); stopifnot(inherits(p,"Plumber")); cat("PLUMBER BACKEND INIT PASS\\n")'
       - name: R frontend bridge is syntactically parseable
         run: |
           Rscript -e 'parse("multiomics-engine/server.R"); cat("BACKEND SERVER PARSE PASS\n")'
