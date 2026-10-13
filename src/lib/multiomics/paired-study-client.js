@@ -61,3 +61,17 @@ export function validPrimaryRnaContrast(groups,comparison,reference){
     comparison!==reference&&Boolean(comparison)&&Boolean(reference)&&
     groups.includes(comparison)&&groups.includes(reference);
 }
+
+/** Fictional documentation scaffold, NEVER a real patient/sample source. */
+export function pairedExampleSampleSheetCsv(){
+  const header=['subject_id','sample_id','assay_id','omic','condition','timepoint','batch','technical_replicate','sample_type'];
+  const records=[header];
+  for(let i=1;i<=4;i++){
+    for(const [suffix,group] of [['A','control'],['B','treated']]){
+      const subject='DEMO_SUBJECT_'+String(i).padStart(2,'0');
+      const id=subject+'_'+suffix;
+      records.push([subject,id,id,'transcriptomics',group,'T0','RUN1','1','biological']);
+    }
+  }
+  return records.map(row=>row.join(',')).join('\n')+'\n';
+}
