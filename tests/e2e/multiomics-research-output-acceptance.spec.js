@@ -128,3 +128,37 @@ test('Scientific researcher workflows: three-omics demo produces genuine individ
   for(const layer of Object.values(audit.omics))
     expect(layer.reference_executed).toBe(false);
 });
+
+
+test('Researcher supplies an original custom RNA matrix; source identities are retained and statistics are exported without invented groups',async({page})=>{
+  test.setTimeout(65000);
+  await page.goto('/multiomics/tool?lang=fr');
+  await page.locator('.uploads input[type="file"]').nth(1).setInputFiles({
+    name:'external-lab-test-matrix.csv',mimeType:'text/csv',
+    buffer:Buffer.from([
+      'feature_id,S01,S02,S03,S04,S05,S06,S07,S08',
+      'GENE1,10,12,15,20,18,17,14,13',
+      'GENE2,30,31,35,39,45,49,41,37',
+      'GENE3,55,58,61,63,60,57,56,53',
+      'GENE4,8,11,10,9,14,16,17,13'
+    ].join('\\n'))
+  });
+  await expect(page.getByTestId('multiomics-single-sheet-helper')).toBeVisible();
+  const helper=page.getByTestId('multiomics-single-sheet-helper');
+  await helper.getByRole('checkbox').check();
+  await page.getByTestId('multiomics-generate-explore-metadata').click();
+  await expect(page.getByTestId('multiomics-generated-sheet-notice'))
+    .toContainText(/aucun groupe inféré|no groups inferred/);
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  const data=await getJsonExport(page,detailButton);
+  validateResult(data,1);
+  const manifest=await getJsonExport(page,methodsButton);
+  expect(manifest.scientific_certification).toBe(false);
+  expect(manifest.experimental_design).not.toBe('externally_validated');
+  const project=await getJsonExport(page,projectButton);
+  expect(project.inputs.transcriptomics.filename).toBe('external-lab-test-matrix.csv');
+  expect(project.inputs.transcriptomics.content).toContain('GENE4');
+  expect(project.inputs.transcriptomics.sha256).toMatch(/^[a-f0-9]{64}$/);
+  expect(project.inputs.metadata.content).toContain('subject_id');
+});
