@@ -18,6 +18,7 @@ reference_backend_dir <- if(file.exists(file.path("multiomics-engine","advanced_
   stop("Cannot locate local multiomics-engine R dependencies. Start the backend from the repository root.",call.=FALSE)
 }
 source(file.path(reference_backend_dir, "advanced_methods.R"), local = TRUE)
+source(file.path(reference_backend_dir, "paired_rnaseq_reference.R"), local = TRUE)
 source(file.path(reference_backend_dir, "reference_full_results.R"), local = TRUE)
 source(file.path(reference_backend_dir, "external_validation.R"), local = TRUE)
 
@@ -615,14 +616,16 @@ run_backend_analysis <- function(payload) {
   ms_qc_summaries <- list()
   for (layer in layers) {
     layer_meta <- meta[meta$omic == layer, , drop=FALSE]
-    if(identical(protocol$analysisIntent,"confirmatory") &&
+    if((identical(protocol$analysisIntent,"confirmatory") ||
+        identical(protocol$designType,"paired")) &&
        identical(layer,"transcriptomics") &&
        identical(data_types[[layer]],"raw_counts"))
       rnaseq_confirmatory_sample_type_check(layer_meta)
     expected <- unique(layer_meta$assay_id)
     x <- matrix_samples_by_features(
       payload$matrices[[layer]], expected,
-      strict_exact=identical(protocol$analysisIntent,"confirmatory") &&
+      strict_exact=(identical(protocol$analysisIntent,"confirmatory") ||
+        identical(protocol$designType,"paired")) &&
         identical(layer,"transcriptomics") &&
         identical(data_types[[layer]],"raw_counts")
     )
@@ -642,7 +645,8 @@ run_backend_analysis <- function(payload) {
     }
 
     value_type <- or_else(data_types[[layer]], "normalized")
-    assay_contract <- if(identical(protocol$analysisIntent,"confirmatory") &&
+    assay_contract <- if((identical(protocol$analysisIntent,"confirmatory") ||
+        identical(protocol$designType,"paired")) &&
         identical(layer,"transcriptomics") &&
         identical(value_type,"raw_counts"))
       rnaseq_confirmatory_assay_integrity(x, layer_meta) else NULL
@@ -676,6 +680,10 @@ run_backend_analysis <- function(payload) {
   outcome_type <- or_else(protocol$outcomeType, "none")
   rna_count_method <- tolower(as.character(or_else(protocol$rnaCountMethod, "both")))
   if (!rna_count_method %in% c("auto","both","deseq2","voom")) rna_count_method <- "both"
+  if(objective=="groups" && identical(design_type,"paired") &&
+     (!"transcriptomics"%in%layers ||
+      !identical(data_types[["transcriptomics"]],"raw_counts")))
+    stop("Paired reference RNA-seq currently requires an uploaded transcriptomics raw-count matrix; other paired models are not silently treated as independent.",call.=FALSE)
 
   for (layer in layers) {
     x <- blocks[[layer]]
@@ -683,15 +691,23 @@ run_backend_analysis <- function(payload) {
     layer_dir <- file.path(temp, layer)
     dir.create(layer_dir, recursive=TRUE)
 
-    if (objective == "groups" && design_type == "independent" && !longitudinal &&
+    if (objective == "groups" && design_type %in% c("independent","paired") && !longitudinal &&
         layer == "transcriptomics" && identical(data_types[[layer]], "raw_counts")) {
-      terms <- c(varying_terms(m, covariates), "condition")
-      groups <- sort(unique(m$condition[nzchar(m$condition)]))
-      if (length(groups) >= 2L) m$condition <- factor(m$condition, levels=groups)
-      form <- safe_formula(terms)
-      contrast <- if(identical(protocol$analysisIntent,"confirmatory")) {
-        rnaseq_confirmatory_explicit_contrast(protocol,groups)
-      } else if(length(groups)==2L) c("condition",groups[2],groups[1]) else NULL
+      pairing <- NULL
+      if(identical(design_type,"paired")){
+        pairing <- paired_rnaseq_design(raw_blocks[[layer]],m,protocol,covariates)
+        m <- pairing$metadata
+        form <- pairing$design_formula
+        contrast <- pairing$contrast
+      } else {
+        terms <- c(varying_terms(m, covariates), "condition")
+        groups <- sort(unique(m$condition[nzchar(m$condition)]))
+        if (length(groups) >= 2L) m$condition <- factor(m$condition, levels=groups)
+        form <- safe_formula(terms)
+        contrast <- if(identical(protocol$analysisIntent,"confirmatory")) {
+          rnaseq_confirmatory_explicit_contrast(protocol,groups)
+        } else if(length(groups)==2L) c("condition",groups[2],groups[1]) else NULL
+      }
       run_deseq <- rna_count_method %in% c("auto","both","deseq2")
       run_voom <- rna_count_method %in% c("auto","both","voom")
       fit_deseq <- NULL
@@ -701,10 +717,14 @@ run_backend_analysis <- function(payload) {
         if (requireNamespace("DESeq2", quietly=TRUE)) {
           fit_deseq <- try(run_deseq2_counts(
             raw_blocks[[layer]], m, layer_dir, form, contrast,
-            confirmatory_contract=identical(protocol$analysisIntent,"confirmatory")
+            # The original R1 confirmatory preflight explicitly prohibits
+            # repeated subject IDs. Paired fits instead use the separate,
+            # strict paired_rnaseq_design() preflight above; never bypass it.
+            confirmatory_contract=identical(protocol$analysisIntent,"confirmatory") &&
+              !identical(design_type,"paired")
           ), silent=TRUE)
           if (!inherits(fit_deseq,"try-error")) {
-            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",c(list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]]),reference_complete_table(fit_deseq$results,original_features=ncol(raw_blocks[[layer]]))))
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",c(list(top=top_frame(fit_deseq$results),confirmatoryInputContract=if(!is.null(pairing))pairing$contract else fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]],pairedDesignContract=if(!is.null(pairing))pairing$contract else NULL),reference_complete_table(fit_deseq$results,original_features=ncol(raw_blocks[[layer]]))))
           } else {
             methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }
@@ -717,7 +737,7 @@ run_backend_analysis <- function(payload) {
         if (requireNamespace("edgeR", quietly=TRUE) && requireNamespace("limma", quietly=TRUE)) {
           fit_voom <- try(run_voom_counts(raw_blocks[[layer]], m, layer_dir, form), silent=TRUE)
           if (!inherits(fit_voom,"try-error")) {
-            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","ok",c(list(top=top_frame(fit_voom$results)),reference_complete_table(fit_voom$results,original_features=ncol(raw_blocks[[layer]]))))
+            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","ok",c(list(top=top_frame(fit_voom$results),pairedDesignContract=if(!is.null(pairing))pairing$contract else NULL),reference_complete_table(fit_voom$results,original_features=ncol(raw_blocks[[layer]]))))
           } else {
             methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","error",list(message=as.character(fit_voom)))
           }
@@ -741,7 +761,8 @@ run_backend_analysis <- function(payload) {
         methods[[paste0(layer,"_differential")]] <- method_status(
           if (voom_ok) "DESeq2 primary + edgeR/limma-voom sensitivity" else "DESeq2",
           "ok",
-          list(top=top_frame(fit_deseq$results))
+          list(top=top_frame(fit_deseq$results),
+               pairedDesignContract=if(!is.null(pairing))pairing$contract else NULL)
         )
         if ("stat" %in% names(fit_deseq$results)) {
           stat <- fit_deseq$results$stat
@@ -749,7 +770,8 @@ run_backend_analysis <- function(payload) {
           ranked[[layer]] <- stat
         }
       } else if (voom_ok) {
-        methods[[paste0(layer,"_differential")]] <- method_status("edgeR + limma-voom","ok",list(top=top_frame(fit_voom$results)))
+        methods[[paste0(layer,"_differential")]] <- method_status("edgeR + limma-voom","ok",list(top=top_frame(fit_voom$results),
+          pairedDesignContract=if(!is.null(pairing))pairing$contract else NULL))
         if ("t" %in% names(fit_voom$results)) {
           stat <- fit_voom$results$t
           names(stat) <- fit_voom$results$feature
