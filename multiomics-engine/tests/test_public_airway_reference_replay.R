@@ -44,7 +44,6 @@ stopifnot(qr(stats::model.matrix(formula,data=metadata))$rank==
 
 scratch <- tempfile("pmx_public_airway_")
 dir.create(scratch)
-on.exit <- NULL
 tryCatch({
   wrapper <- run_deseq2_counts(matrix,metadata,file.path(scratch,"wrapper"),
     design_formula=formula,contrast=contrast)
