@@ -1,3 +1,5 @@
+import { refById } from '../content/references.js';
+
 // Pure educational calculator. No observed individual PK, raw patient
 // profiles or omics measurements are used here; nothing predicts a dose.
 export const DEMO_REFERENCE = Object.freeze({
@@ -34,6 +36,18 @@ export function calculateSignatureExposure(args) {
   };
 }
 
+/** @param {string} id @param {{fr:string,en:string}} note */
+function lessonSource(id, note) {
+  const reference = refById[id];
+  if (!reference) throw new Error(`Unknown interdisciplinary reference: ${id}`);
+  return {
+    id,
+    citation: [reference.authors, reference.title, reference.where].filter(Boolean).join('. '),
+    url: reference.url,
+    note
+  };
+}
+
 export const crossDomainLessons=[
   {
     id:'match',minutes:9,
@@ -67,16 +81,8 @@ export const crossDomainLessons=[
     },
     links:[{slug:'variabilite-iiv-iov',label:{fr:'Variabilité entre patients',en:'Between-patient variability'}}],
     sources:[
-      {
-        citation:'Gallo V et al. STROBE-ME: an extension of the STROBE statement. PLoS Med. 2011.',
-        url:'https://doi.org/10.1371/journal.pmed.1001117',
-        note:{fr:'Cadre de reporting pour relier biospécimens, biomarqueurs et données épidémiologiques.',en:'Reporting framework linking biospecimens, biomarkers and epidemiological data.'}
-      },
-      {
-        citation:'Conesa A et al. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016.',
-        url:'https://doi.org/10.1186/s13059-016-0881-8',
-        note:{fr:'Plan expérimental, réplicats biologiques, qualité et métadonnées des échantillons.',en:'Experimental design, biological replicates, quality control and sample metadata.'}
-      }
+      lessonSource('gallo-strobe-me',{fr:'Cadre de reporting pour relier biospécimens, biomarqueurs et données épidémiologiques.',en:'Reporting framework linking biospecimens, biomarkers and epidemiological data.'}),
+      lessonSource('conesa-rnaseq',{fr:'Plan expérimental, réplicats biologiques, qualité et métadonnées des échantillons.',en:'Experimental design, biological replicates, quality control and sample metadata.'})
     ]
   },
   {
@@ -102,8 +108,8 @@ export const crossDomainLessons=[
       ]
     },
     takeaway:{
-      fr:'Une association omique–CL/F doit améliorer une prédiction externe au-delà des covariables cliniques, pas seulement un ajustement interne.',
-      en:'An omics–CL/F association must improve external prediction beyond routine clinical covariates, not merely internal model fit.'
+      fr:'Pour revendiquer une utilité prédictive ou clinique, la signature doit apporter une valeur externe au-delà des covariables usuelles. Une association mécanistique peut poursuivre un objectif différent, mais nécessite également une validation indépendante.',
+      en:'To claim predictive or clinical utility, the signature must add external value beyond routine covariates. A mechanistic association may pursue a different objective, but it also requires independent validation.'
     },
     quiz:{
       fr:{q:'À quel moment faut-il choisir les gènes composant une signature si on utilise une validation croisée ?',a:['Sur toutes les données avant les plis','Dans chaque jeu d’entraînement','Après avoir vu le jeu de test'],correct:1,why:'Sinon les informations du test contaminent l’apprentissage (data leakage).'},
@@ -111,16 +117,8 @@ export const crossDomainLessons=[
     },
     links:[{slug:'covariates-basics',label:{fr:'Covariables PopPK',en:'PopPK covariates'}},{slug:'valid-vpc',label:{fr:'Validation des modèles',en:'Model validation'}}],
     sources:[
-      {
-        citation:'Ambroise C, McLachlan GJ. Selection bias in gene extraction on the basis of microarray gene-expression data. PNAS. 2002.',
-        url:'https://doi.org/10.1073/pnas.102102699',
-        note:{fr:'Pourquoi la sélection de variables doit être répétée dans chaque jeu d’entraînement.',en:'Why feature selection must be repeated within each training set.'}
-      },
-      {
-        citation:'Savic RM, Karlsson MO. Importance of shrinkage in empirical Bayes estimates for diagnostics. AAPS J. 2009.',
-        url:'https://doi.org/10.1208/s12248-009-9133-0',
-        note:{fr:'Limites du dépistage de covariables à partir des ETA individuels.',en:'Limits of covariate screening based on individual ETA estimates.'}
-      }
+      lessonSource('ambroise-selection-bias',{fr:'Pourquoi la sélection de variables doit être répétée dans chaque jeu d’entraînement.',en:'Why feature selection must be repeated within each training set.'}),
+      lessonSource('savic-karlsson-shrinkage',{fr:'Limites du dépistage de covariables à partir des ETA individuels.',en:'Limits of covariate screening based on individual ETA estimates.'})
     ]
   },
   {
@@ -155,16 +153,8 @@ export const crossDomainLessons=[
     },
     links:[{slug:'pkpd',label:{fr:'Introduction PK/PD',en:'PK/PD introduction'}},{slug:'pd-indirect',label:{fr:'Réponse indirecte',en:'Indirect response'}}],
     sources:[
-      {
-        citation:'VanderWeele TJ. Mediation analysis: a practitioner’s guide. Annu Rev Public Health. 2016.',
-        url:'https://doi.org/10.1146/annurev-publhealth-032315-021402',
-        note:{fr:'Hypothèses nécessaires pour interpréter une médiation comme causale.',en:'Assumptions required before interpreting mediation causally.'}
-      },
-      {
-        citation:'Robins JM, Hernán MA, Brumback B. Marginal structural models and causal inference in epidemiology. Epidemiology. 2000.',
-        url:'https://doi.org/10.1097/00001648-200009000-00011',
-        note:{fr:'Traitement des facteurs de confusion dépendants du temps dans les données longitudinales.',en:'Handling time-varying confounding in longitudinal data.'}
-      }
+      lessonSource('vanderweele-mediation',{fr:'Hypothèses nécessaires pour interpréter une médiation comme causale.',en:'Assumptions required before interpreting mediation causally.'}),
+      lessonSource('robins-marginal-structural',{fr:'Traitement des facteurs de confusion dépendants du temps dans les données longitudinales.',en:'Handling time-varying confounding in longitudinal data.'})
     ]
   },
   {
@@ -199,16 +189,8 @@ export const crossDomainLessons=[
     },
     links:[{slug:'pbpk-intro',label:{fr:'Introduction PBPK',en:'PBPK introduction'}},{slug:'pd-direct',label:{fr:'Relation concentration–effet',en:'Concentration–effect relationship'}}],
     sources:[
-      {
-        citation:'Liu Y et al. On the dependency of cellular protein levels on mRNA abundance. Cell. 2016.',
-        url:'https://doi.org/10.1016/j.cell.2016.03.014',
-        note:{fr:'Limites de l’extrapolation directe de l’ARN vers l’abondance protéique.',en:'Limits of directly extrapolating RNA expression to protein abundance.'}
-      },
-      {
-        citation:'Rostami-Hodjegan A. PBPK joined with IVIVE of ADME. Clin Pharmacol Ther. 2012.',
-        url:'https://doi.org/10.1038/clpt.2012.65',
-        note:{fr:'Principes de translation des mesures in vitro vers les paramètres PBPK.',en:'Principles for translating in-vitro measurements into PBPK parameters.'}
-      }
+      lessonSource('liu-mrna-protein',{fr:'Limites de l’extrapolation directe de l’ARN vers l’abondance protéique.',en:'Limits of directly extrapolating RNA expression to protein abundance.'}),
+      lessonSource('rostami-hodjegan-pbpk-ivive-2012',{fr:'Principes de translation des mesures in vitro vers les paramètres PBPK.',en:'Principles for translating in-vitro measurements into PBPK parameters.'})
     ]
   }
 ];

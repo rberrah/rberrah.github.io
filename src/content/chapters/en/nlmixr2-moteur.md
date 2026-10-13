@@ -32,11 +32,11 @@ quiz:
       - "It re-estimates the population parameters from the individual η of the previous run, which refines the θ without launching a full population optimisation again."
       - "It restarts a FOCEI estimation from the estimates of the previous run, which mainly serves to check that an optimum already found is not merely a local one."
     correct: 0
-  - prompt: "On a Michaelis-Menten elimination model with two samples per subject, why does SAEM run where FOCEI stalls?"
+  - prompt: "On a nonlinear, weakly informative model, why can SAEM be more robust than FOCEI?"
     options:
-      - "Its inner loop only samples: it proposes an η, solves the model forward once, accepts or rejects — with no derivative with respect to η and no individual mode to find."
+      - "It replaces repeated conditional-mode searches with a stochastic procedure, which can better tolerate some difficult surfaces; its convergence and identifiability still require checking."
       - "It solves the system with a more tolerant integrator, which absorbs the stiffness that the FOCEI solver cannot get past without collapsing its integration step."
-      - "It estimates the η by Gauss-Hermite quadrature, whose accuracy does not degrade even when the subject's conditional distribution becomes very wide with two points."
+      - "It guarantees a correct estimate whenever it returns numerical parameters, even when the data cannot identify the model parameters separately."
     correct: 0
 ---
 
@@ -146,22 +146,16 @@ Ref.: Fidler M. et al., *CPT Pharmacometrics Syst Pharmacol* 2019, for the desig
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="15_OFVGame" -->
-**Act one: the same script, four times.** A 1-compartment oral model, **40 subjects**, 6 samples each, so 240 observations, proportional error. The model is tame, the data are rich: the most favourable case there is.
+**Teaching scenario, not a reproduced benchmark.** Imagine the same one-compartment oral model fitted in turn with FOCEI, SAEM, nlme, and posthoc. Estimates may be close with informative data, but runtimes depend on hardware and settings, and values labelled `OFV` do not become comparable because they appear in the same table.
 
-| `est =` | Time | $tvCl$ (L/h) | $\omega_{Cl}$ (CV %) | Reported OFV |
-|---|---|---|---|---|
-| `"focei"` | 38 s | 0.134 | 31 | **1487.2** |
-| `"saem"` | 21 s | 0.131 | 33 | **1487.6** |
-| `"nlme"` | 14 s | 0.138 | 28 | **1502.9** |
-| `"posthoc"` | 1 s | 0.135 (fixed) | (fixed) | — |
+- FOCEI optimises a conditional approximation to the likelihood.
+- SAEM estimates parameters by stochastic approximation; a FOCEi OBJF optionally evaluated afterwards is not the objective SAEM optimised.
+- `nlme` uses the Lindstrom-Bates approximation, without interaction.
+- `posthoc` fixes the population parameters and is therefore not another population fit.
 
-The parameters look alike, and that is reassuring: on a well-posed model, the estimators converge to the same region. It is the OFVs that must be looked at.
+A difference between these outputs may reflect a **change in approximation or convention**, not an improved model. Only documented runs with a dataset, seed, versions, and controls could support numerical results presented as a benchmark.
 
-**0.4 point between FOCEI and SAEM.** Both numbers are values of the **same** function — the FOCEi objective — evaluated at two different points. FOCEI got 1487.2 because that is precisely the function it was minimising; SAEM got 1487.6 because it was minimising something else and we came along and measured its result with the neighbour's ruler. Those 0.4 points do not say FOCEI fits better. They say that **the FOCEi optimiser gets closer to the FOCEi minimum than SAEM's does**, which is not information.
-
-**15.7 points between FOCEI and nlme.** Against a threshold of 3.84 for one degree of freedom, the gap looks crushing. It means nothing either: nlme does not return the FOCEi objective, it returns the Lindstrom-Bates one, without interaction. But the error here is **proportional**, so the residual variance depends on $\eta$, so interaction is not a detail. Those 15.7 points measure a **change of approximation**, exactly as a `METHOD=0` against a `METHOD=1 INTER` in NONMEM. The only novelty is that one word was enough to trigger it.
-
-**Act two: where the engines stop being interchangeable.** Keep the 40 subjects but drop to **2 samples each** (80 observations) and switch to Michaelis-Menten elimination.
+**Act two: where engines may stop being interchangeable.** Now imagine sparse sampling and Michaelis-Menten elimination.
 
 ```r
   model({
@@ -176,19 +170,16 @@ The parameters look alike, and that is reassuring: on a well-posed model, the es
   })
 ```
 
-- `est = "focei"`: the inner loop hits `maxInnerIterations` on 11 subjects out of 40, the outer optimiser stops on a gradient indistinguishable from noise, `covMethod = "r,s"` returns no matrix. $tvVm = 12.4$ with 84% RSE, and $\omega_{Vm}$ collapsed to 0.006.
-- `est = "saem"`: runs in 40 s. $tvVm = 9.7$, $\omega_{Vm} = 0.21$ (CV $\approx$ 46%).
-
-The mechanics are legible. With two points per subject, the conditional distribution of $\eta$ is very wide and its surface almost flat: FOCEI must hunt for its mode for every subject, at every outer iteration, and the inner optimisation wanders across a plateau. The sensitivities $\partial f / \partial \eta$ through a Michaelis-Menten system do not help. SAEM proposes an $\eta$, solves forward once, accepts or rejects: the missing information becomes a **variance**, not a failure.
+In this setting, FOCEI may hit `maxInnerIterations`, return an unstable covariance, or become sensitive to initial values because it searches for a conditional mode for each subject. SAEM can be more robust on that surface through stochastic exploration, without guaranteeing correct convergence or sufficient information in the data.
 
 :::pitfall
-Beware the easy conclusion. SAEM did not find the truth — it can return a number despite poor convergence or identifiability. Its $\omega_{Vm}$ at 46% says exactly what FOCEI was shouting: two samples per subject do not identify a $V_m$ and a $K_m$ separately. You switch engine to obtain an estimate despite a stiff model; never to silence an engine that was right.
+Beware the easy conclusion. SAEM has not found the truth merely because it returned a number: convergence diagnostics, identifiability, and sensitivity to initial values remain necessary. Switch engines to address a documented algorithmic difficulty, never to silence an unfavourable diagnostic.
 :::
 
 :::howto
 **Which engine, when.**
-**`"focei"`** whenever a chain of ΔOFV is needed — covariate building, structural comparison — and when the work will end up in NONMEM: it is the same estimator, the estimates carry over. Requires decent data and a model that differentiates.
-**`"saem"`** on stiff systems (Michaelis-Menten, Emax, TMDD), sparse designs, dubious initial values, models with many random effects. It is the engine that starts when nothing else does.
+**`"focei"`** whenever a consistent ΔOFV chain is needed — covariate building or structural comparison — and for cross-checking against NONMEM. Both implementations belong to the FOCEI family, but their derivatives, optimisation, settings, and conventions are not identical; estimates therefore do not carry over automatically. It requires suitable data and a differentiable model.
+**`"saem"`** is often more robust when methods based on conditional optimisation become sensitive or fail, including some nonlinear systems, sparse designs, or models with many random effects. Its own convergence and identifiability must nevertheless be checked.
 **`"nlme"`** to compare against an R legacy or reproduce an old analysis. Rarely the right first choice.
 **`"posthoc"`** to apply a published, frozen model to new subjects: the script that estimated the model becomes the Bayesian estimator of the individual parameters.
 **The strategy that works**: SAEM to find the region, then its estimates as initial values for the FOCEI run that will carry the OFV. But then **the whole** comparison chain is in FOCEI — not just the last run.
@@ -202,12 +193,12 @@ The nlmixr2 trap is not that some engine is bad. It is that **switching engine c
 An nlmixr2 object can expose several numbers: the FOCEi objective at the FOCEi optimum, a FOCEi OBJF evaluated at SAEM estimates, a Gauss-Hermite quadrature log-likelihood, or a Lindstrom-Bates objective. The field name and order of magnitude do not establish that they share an evaluator or convention. Inspect the method, controls and version before comparing them.
 :::
 
-The scenario is mundane, which is what makes it dangerous. The base model would not start in FOCEI: it was run with `est = "saem"`, **OFV = 1487.6**. Once the estimates were in hand the initial values became good, so the covariate model was run with `est = "focei"`: **OFV = 1483.4**. Subtract: **ΔOFV = 4.2**, against a threshold of 3.84. Keep the covariate.
+The scenario is mundane, which is what makes it dangerous. A base model will not start in FOCEI, so it is fitted with SAEM; its parameters are then used as initial values for a covariate model fitted with FOCEI. Subtracting the objective associated with the first fit from that of the second now mixes two estimation chains.
 
-Except that the base model, in FOCEI, was worth **1487.2**. The true ΔOFV of the FOCEI chain is $1487.2 - 1483.4 = 3.8$ — **below** the threshold. The 0.4 points that tipped the decision did not come from the covariate: they came from the fact that SAEM and FOCEI do not stop at the same place on the FOCEi surface. A covariate entered the final model for a reason that does not exist.
+You must refit **both the base and covariate models with the same FOCEI**, the same conventions, and documented controls. Only that difference is a candidate for an LRT, subject to its other assumptions. Any gap that disappears after this alignment came from the estimator or evaluation change, not from the covariate.
 
 :::key
-A difference of 3.8 against a threshold of 3.84 should never be settled bluntly anyway. But the problem is not the margin: it is that the analyst **believed they had 4.2**. An engine's noise had slipped into a figure they were reading as a property of the data.
+A decision near a threshold should never be mechanical anyway. The primary problem comes earlier: the analyst believed they were comparing two nested models under one objective function while also comparing two estimation procedures.
 :::
 
 In NONMEM, changing estimator forces you to edit `$ESTIMATION`: a deliberate act, on a visible line, archived with the run. In nlmixr2 it is a call argument, and the `mod` object — the one you will re-read in six months — keeps **no trace** of it. Six months later, `fit1` and `fit2` are two R objects with two OFVs, and your ΔOFV table no longer remembers that one of them was SAEM.

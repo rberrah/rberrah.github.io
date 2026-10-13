@@ -11,6 +11,11 @@ assert.equal(new Set(communications.map(item => item.id)).size, communications.l
 assert.equal(new Set(communications.map(item => item.title)).size, communications.length, 'Exact duplicate titles are not allowed');
 
 const pendingPaths = new Set(pendingCommunications.map(item => item.sourcePath));
+const today = process.env.COMMUNICATIONS_AS_OF || new Date().toISOString().slice(0, 10);
+const staleUpcoming = communications.filter(item => item.status === 'upcoming' && item.presentationDate && item.presentationDate < today);
+if (staleUpcoming.length) {
+  console.warn(`WARNING: ${staleUpcoming.map(item => `${item.slug} (${item.presentationDate})`).join(', ')} still marked upcoming after presentation date.`);
+}
 for (const item of communications) {
   assert(!pendingPaths.has(item.sourcePath), `${item.sourcePath} cannot be both published and pending`);
   assert(item.pdf || item.pptx, `${item.slug} needs a readable source file`);

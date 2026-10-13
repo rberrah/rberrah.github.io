@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {calculateSignatureExposure,crossDomainLessons} from '../src/lib/cross-domains/omics-pkpd-lessons.js';
 import {crossDomainReviews} from '../src/lib/cross-domains/omics-pkpd-reviews.js';
+import {refById} from '../src/lib/content/references.js';
 import {crossDomainReviewHash} from './review_hash.mjs';
 
 const ref=calculateSignatureExposure({signature:0,beta:.25});
@@ -50,6 +51,8 @@ for(const lesson of crossDomainLessons){
   }
   assert.ok(lesson.sources.length>=2,`${lesson.id} needs at least two scientific sources`);
   for(const source of lesson.sources){
+    assert.ok(refById[source.id],`Unknown central reference ${source.id}`);
+    assert.equal(source.url,refById[source.id].url);
     assert.equal(new URL(source.url).protocol,'https:');
     assert.ok(source.citation.length>20);
     assert.ok(source.note.fr.length>15 && source.note.en.length>15);

@@ -39,6 +39,7 @@
 		"test:pmetrics": "node scripts/test_pmetrics_import.mjs",
 		"test:pmetrics-native": "node scripts/test_pmetrics_native.mjs",
 		"test:communications": "node scripts/validate_communications.mjs && node scripts/generate_communications.mjs --check",
+		"audit:interdisciplinary-links": "node scripts/audit_cross_domain_references.mjs",
 		"communications:sync": "node scripts/sync_communications.mjs ../../Communication --copy",
 		"test:labs": "node scripts/test_labs.mjs && node scripts/test_input_labs.mjs && node scripts/test_molecular_labs.mjs",
 		"tdm:validate-library": "Rscript tdm-engine/tests/validate_library.R",

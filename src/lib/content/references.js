@@ -33,6 +33,19 @@ export const referenceGroups = [
     ]
   },
   {
+    id: 'omics-pkpd',
+    title: { fr: 'Omiques et pharmacométrie', en: 'Omics and pharmacometrics' },
+    items: [
+      { id: 'gallo-strobe-me', kind: 'article', title: 'STROBE-ME: an extension of the STROBE statement that is specific to molecular epidemiology', authors: 'Gallo V. et al.', where: 'PLoS Med. 2011', doi: '10.1371/journal.pmed.1001117', url: 'https://doi.org/10.1371/journal.pmed.1001117' },
+      { id: 'conesa-rnaseq', kind: 'article', title: 'A survey of best practices for RNA-seq data analysis', authors: 'Conesa A. et al.', where: 'Genome Biol. 2016', doi: '10.1186/s13059-016-0881-8', url: 'https://doi.org/10.1186/s13059-016-0881-8' },
+      { id: 'ambroise-selection-bias', kind: 'article', title: 'Selection bias in gene extraction on the basis of microarray gene-expression data', authors: 'Ambroise C. & McLachlan G.J.', where: 'Proc. Natl. Acad. Sci. USA. 2002', doi: '10.1073/pnas.102102699', url: 'https://doi.org/10.1073/pnas.102102699' },
+      { id: 'vanderweele-mediation', kind: 'article', title: "Mediation analysis: a practitioner's guide", authors: 'VanderWeele T.J.', where: 'Annu. Rev. Public Health. 2016', doi: '10.1146/annurev-publhealth-032315-021402', url: 'https://doi.org/10.1146/annurev-publhealth-032315-021402' },
+      { id: 'robins-marginal-structural', kind: 'article', title: 'Marginal structural models and causal inference in epidemiology', authors: 'Robins J.M., Hernán M.A. & Brumback B.', where: 'Epidemiology. 2000', doi: '10.1097/00001648-200009000-00011', url: 'https://doi.org/10.1097/00001648-200009000-00011' },
+      { id: 'liu-mrna-protein', kind: 'article', title: 'On the dependency of cellular protein levels on mRNA abundance', authors: 'Liu Y., Beyer A. & Aebersold R.', where: 'Cell. 2016', doi: '10.1016/j.cell.2016.03.014', url: 'https://doi.org/10.1016/j.cell.2016.03.014' },
+      { id: 'rostami-hodjegan-pbpk-ivive-2012', kind: 'article', title: 'Physiologically based pharmacokinetics joined with in vitro-in vivo extrapolation of ADME: a marriage under the arch of systems pharmacology', authors: 'Rostami-Hodjegan A.', where: 'Clin. Pharmacol. Ther. 2012', doi: '10.1038/clpt.2012.65', url: 'https://doi.org/10.1038/clpt.2012.65' }
+    ]
+  },
+  {
     id: 'books',
     title: { fr: 'Livres de référence', en: 'Reference books' },
     items: [
@@ -253,8 +266,9 @@ export const referenceGroups = [
   }
 ];
 
-/** Index plat : id → référence. */
+/** Index plat : id → référence. @type {Record<string, Reference>} */
 export const refById = (() => {
+  /** @type {Record<string, Reference>} */
   const idx = {};
   for (const g of referenceGroups) for (const it of g.items) idx[it.id] = it;
   return idx;

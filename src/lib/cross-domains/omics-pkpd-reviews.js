@@ -3,19 +3,19 @@
 // until the exact language version has been reviewed by a person.
 export const crossDomainReviews = {
   match: {
-    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '42007015bc8b881fa2e5aa94b5f965e49ca8fdf7b042c8695cc389cf1f7438f7' },
-    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'b73f083f96d778ba428eb7e5a43d004ecb1318be5295db0c17a0a63539508fa1' }
+    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '2dc717ebdba0c48701dba53af3597c6d8e4d3777079348169788a9043a589db3' },
+    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '4239c95d76b06764039de012693ac00e5b2a2dbf9891a8caddc89e55a7b62b7f' }
   },
   covariate: {
-    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'c4f8391fddf2fa7c6376181c15c9c51dd6b14752d66e3f2f8c3bf0f987c4b52c' },
-    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '5100aed004a487a0981b383ea5974a6e06a10ea370a0e184ab977b9ea833bae4' }
+    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'e3bd5f88cbc0160b5bb56049022f8604c5eee1458da4e2a9196f3faa8321bc7f' },
+    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'a4b3046603d7dbd128917458dd27dbe11e7784db39102b9d3fabe7116822f206' }
   },
   pd: {
-    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '7fbb6b22c33aab12d8af7339b87ac0068003b96ddd8c0ba9ca90180e2267ee77' },
-    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'f4fb22c09d20e355236449c5ae5624b86bd3d7cf15ebfc4bf348d40fbdbf25bb' }
+    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '2dc9adec3ba5239e0c3b0d9a59a002b4d5b03763e83a4c2ec70bd2a4ceb98689' },
+    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'b50e1865f0c247f08fe49fb09b1d8a7c8136e040646e33d6df1aaf0075911b2c' }
   },
   mechanistic: {
-    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '33f84fef182c56e3e71498e177eb4980f67e9fc5b39cfc20e1d1b749f2a75738' },
-    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '635da6e286cf3d3cc3789cff8b09242c74ae4e5d0e7d37bbf0cbfae106246e21' }
+    fr: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: 'a89523db386b1ae6ae3873e8c928192efd82fc4ed16cee5b0a1f34854e923c9e' },
+    en: { status: 'pending', reviewed_on: '', review_type: '', reviewed_hash: '', content_hash: '7ce34e61bffa1ed91f4203870311551e3e5ba4e9e83127813eb9fc45164e23e5' }
   }
 };

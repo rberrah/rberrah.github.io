@@ -32,11 +32,11 @@ quiz:
       - "Il réestime les paramètres de population à partir des η individuels du run précédent, ce qui affine les θ sans relancer une optimisation complète de la population."
       - "Il relance une estimation FOCEI en partant des estimations du run précédent, ce qui sert surtout à vérifier qu'un optimum déjà trouvé n'est pas seulement local."
     correct: 0
-  - prompt: "Sur un modèle à élimination de Michaelis-Menten avec deux prélèvements par sujet, pourquoi le SAEM tourne-t-il là où le FOCEI patine ?"
+  - prompt: "Sur un modèle non linéaire et peu informatif, pourquoi le SAEM peut-il être plus robuste que le FOCEI ?"
     options:
-      - "Sa boucle interne ne fait qu'échantillonner : elle propose un η, résout le modèle en avant une seule fois, accepte ou rejette — sans dérivée par rapport à η ni recherche de mode individuel."
+      - "Il remplace la recherche répétée d'un mode individuel conditionnel par une procédure stochastique, ce qui peut mieux tolérer certaines surfaces difficiles ; sa convergence et l'identifiabilité doivent néanmoins être vérifiées."
       - "Il résout le système avec un intégrateur plus tolérant, ce qui absorbe la raideur que le solveur du FOCEI ne parvient pas à franchir sans effondrer son pas d'intégration."
-      - "Il estime les η par quadrature de Gauss-Hermite, dont la précision ne se dégrade pas même quand la distribution conditionnelle du sujet devient très large avec deux points."
+      - "Il garantit une estimation correcte dès qu'il produit des paramètres numériques, même si les données n'identifient pas séparément les paramètres du modèle."
     correct: 0
 ---
 
@@ -146,22 +146,16 @@ Réf. : Fidler M. et coll., *CPT Pharmacometrics Syst Pharmacol* 2019, pour la c
 <!-- /step -->
 
 <!-- step:title="Exemple concret" viz="15_OFVGame" -->
-**Premier temps : le même script, quatre fois.** Un 1 compartiment oral, **40 sujets**, 6 prélèvements chacun, soit 240 observations, erreur proportionnelle. Le modèle est sage, les données sont riches : le cas le plus favorable qui soit.
+**Scénario pédagogique, pas benchmark reproduit.** Imaginez le même modèle oral à 1 compartiment ajusté successivement par FOCEI, SAEM, nlme et posthoc. Les estimations peuvent être proches sur des données informatives, mais les temps d'exécution dépendent du matériel et des réglages, et les nombres appelés `OFV` ne deviennent pas comparables parce qu'ils figurent dans le même tableau.
 
-| `est =` | Temps | $tvCl$ (L/h) | $\omega_{Cl}$ (CV %) | OFV rendu |
-|---|---|---|---|---|
-| `"focei"` | 38 s | 0,134 | 31 | **1487,2** |
-| `"saem"` | 21 s | 0,131 | 33 | **1487,6** |
-| `"nlme"` | 14 s | 0,138 | 28 | **1502,9** |
-| `"posthoc"` | 1 s | 0,135 (fixé) | (fixé) | — |
+- FOCEI optimise une approximation conditionnelle de la vraisemblance.
+- SAEM estime les paramètres par approximation stochastique ; une OBJF FOCEi éventuellement évaluée après coup n'est pas l'objectif que SAEM a optimisé.
+- `nlme` utilise l'approximation de Lindstrom-Bates, sans interaction.
+- `posthoc` fixe les paramètres de population et n'est donc pas un nouvel ajustement de population.
 
-Les paramètres se ressemblent, et c'est rassurant : sur un modèle bien posé, les estimateurs convergent vers la même région. Ce sont les OFV qu'il faut regarder.
+Une différence entre ces sorties peut refléter un **changement d'approximation ou de convention**, pas une amélioration du modèle. Seules des exécutions documentées, avec jeu de données, graine, versions et contrôles, autoriseraient à présenter des résultats numériques comme un benchmark.
 
-**0,4 point entre FOCEI et SAEM.** Les deux nombres sont des valeurs de la **même** fonction — l'objectif FOCEi — évaluées en deux points différents. FOCEI a obtenu 1487,2 parce que c'est précisément cette fonction qu'il minimisait ; SAEM a obtenu 1487,6 parce qu'il minimisait autre chose et qu'on est venu mesurer son résultat avec la règle du voisin. Ces 0,4 point ne disent pas que FOCEI ajuste mieux. Ils disent que **l'optimiseur du FOCEi s'approche mieux du minimum du FOCEi que celui du SAEM**, ce qui n'est pas une information.
-
-**15,7 points entre FOCEI et nlme.** Face à un seuil de 3,84 pour un degré de liberté, l'écart paraît écrasant. Il ne veut rien dire non plus : nlme ne rend pas l'objectif FOCEi, il rend celui de Lindstrom-Bates, sans interaction. Or l'erreur est ici **proportionnelle**, donc la variance résiduelle dépend de $\eta$, donc l'interaction n'est pas un détail. Les 15,7 points mesurent un **changement d'approximation**, exactement comme un `METHOD=0` face à un `METHOD=1 INTER` sous NONMEM. La seule nouveauté, c'est qu'il aura suffi d'un mot pour le déclencher.
-
-**Deuxième temps : là où les moteurs cessent d'être interchangeables.** On garde les 40 sujets mais on descend à **2 prélèvements chacun** (80 observations) et on passe à une élimination de Michaelis-Menten.
+**Deuxième temps : là où les moteurs peuvent cesser d'être interchangeables.** Imaginez maintenant un protocole épars et une élimination de Michaelis-Menten.
 
 ```r
   model({
@@ -176,19 +170,16 @@ Les paramètres se ressemblent, et c'est rassurant : sur un modèle bien posé, 
   })
 ```
 
-- `est = "focei"` : la boucle interne bute sur `maxInnerIterations` chez 11 sujets sur 40, l'optimiseur externe s'arrête sur un gradient indiscernable du bruit, `covMethod = "r,s"` ne rend pas de matrice. $tvVm = 12{,}4$ avec 84 % de RSE, et $\omega_{Vm}$ effondrée à 0,006.
-- `est = "saem"` : tourne en 40 s. $tvVm = 9{,}7$, $\omega_{Vm} = 0{,}21$ (CV $\approx$ 46 %).
-
-La mécanique est lisible. Avec deux points par sujet, la distribution conditionnelle de $\eta$ est très large et sa surface presque plate : FOCEI doit en chercher le mode pour chaque sujet, à chaque itération externe, et l'optimisation interne erre sur un plateau. Les sensibilités $\partial f / \partial \eta$ à travers un système de Michaelis-Menten n'arrangent rien. SAEM, lui, propose un $\eta$, résout une fois en avant, accepte ou rejette : l'information manquante devient une **variance**, pas une panne.
+Dans ce type de situation, FOCEI peut atteindre `maxInnerIterations`, produire une covariance instable ou devenir sensible aux valeurs initiales, car il recherche un mode conditionnel pour chaque sujet. SAEM peut être plus robuste sur cette surface grâce à son exploration stochastique, sans que cela garantisse une convergence correcte ni une information suffisante dans les données.
 
 :::pitfall
-Attention à la conclusion facile. Le SAEM n'a pas trouvé la vérité — il peut rendre un nombre malgré une convergence ou une identifiabilité médiocre. Son $\omega_{Vm}$ à 46 % dit exactement ce que criait FOCEI : deux prélèvements par sujet n'identifient pas un $V_m$ et un $K_m$ séparément. On change de moteur pour obtenir une estimation malgré un modèle raide ; jamais pour faire taire un moteur qui avait raison.
+Attention à la conclusion facile. Le SAEM n'a pas trouvé la vérité parce qu'il a produit un nombre : diagnostics de convergence, identifiabilité et sensibilité aux valeurs initiales restent nécessaires. On change de moteur pour traiter une difficulté algorithmique documentée, jamais pour faire taire un diagnostic défavorable.
 :::
 
 :::howto
 **Quel moteur, quand.**
-**`"focei"`** dès qu'on a besoin d'une chaîne de ΔOFV — construction de covariables, comparaison de structures — et quand le travail finira sous NONMEM : c'est le même estimateur, les estimations se transposent. Exige des données correctes et un modèle qui se dérive.
-**`"saem"`** sur les systèmes raides (Michaelis-Menten, Emax, TMDD), les protocoles épars, les valeurs initiales douteuses, les modèles à nombreux effets aléatoires. C'est le moteur qui démarre quand rien d'autre ne démarre.
+**`"focei"`** dès qu'on a besoin d'une chaîne cohérente de ΔOFV — construction de covariables, comparaison de structures — et pour un contrôle croisé avec NONMEM. Les deux implémentations appartiennent à la même famille FOCEI, mais leurs dérivées, optimisations, réglages et conventions ne sont pas identiques ; les estimations ne se transposent donc pas automatiquement. Exige des données correctes et un modèle qui se dérive.
+**`"saem"`** est souvent plus robuste lorsque les méthodes fondées sur une optimisation conditionnelle deviennent sensibles ou échouent, notamment sur certains systèmes non linéaires, protocoles épars ou modèles à nombreux effets aléatoires. Sa propre convergence et son identifiabilité doivent néanmoins être vérifiées.
 **`"nlme"`** pour comparer à un héritage R ou reproduire une analyse ancienne. Rarement le bon premier choix.
 **`"posthoc"`** pour appliquer un modèle publié, figé, à de nouveaux sujets : le script qui a estimé le modèle devient l'estimateur bayésien des paramètres individuels.
 **La stratégie qui marche** : SAEM pour trouver la région, puis ses estimations comme valeurs initiales du FOCEI qui portera l'OFV. Mais alors **toute** la chaîne de comparaison est en FOCEI — pas seulement le dernier run.
@@ -202,12 +193,12 @@ Le piège de nlmixr2 n'est pas qu'un moteur soit mauvais. C'est que **changer de
 Un objet nlmixr2 peut exposer plusieurs nombres : objectif FOCEi à l'optimum FOCEi, OBJF FOCEi évaluée aux estimations SAEM, log-vraisemblance par quadrature de Gauss-Hermite, ou objectif de Lindstrom-Bates. Le nom du champ et son ordre de grandeur ne suffisent pas à établir qu'ils ont le même évaluateur ou la même convention. Lisez la méthode, les contrôles et la version avant de comparer.
 :::
 
-Le scénario est banal, et c'est ce qui le rend redoutable. Le modèle de base ne démarrait pas en FOCEI : on l'a passé en `est = "saem"`, **OFV = 1487,6**. Une fois les estimations en main, les valeurs initiales sont devenues bonnes, alors le modèle avec covariable est reparti en `est = "focei"` : **OFV = 1483,4**. On soustrait : **ΔOFV = 4,2**, contre un seuil de 3,84. On garde la covariable.
+Le scénario est banal, et c'est ce qui le rend redoutable. Un modèle de base ne démarre pas en FOCEI ; on l'ajuste avec SAEM, puis on utilise ses paramètres comme valeurs initiales d'un modèle avec covariable ajusté par FOCEI. Soustraire l'OBJF associée au premier ajustement de celle du second mélange alors deux chaînes d'estimation.
 
-Sauf que le modèle de base, en FOCEI, valait **1487,2**. Le vrai ΔOFV de la chaîne FOCEI est $1487{,}2 - 1483{,}4 = 3{,}8$ — **sous** le seuil. Les 0,4 point qui ont fait basculer la décision ne venaient pas de la covariable : ils venaient de ce que le SAEM et le FOCEI ne s'arrêtent pas au même endroit sur la surface du FOCEi. Une covariable est entrée dans le modèle final pour une raison qui n'existe pas.
+Il faut réajuster **le modèle de base et le modèle avec covariable avec le même FOCEI**, les mêmes conventions et des contrôles documentés. Seule cette différence constitue une candidate au LRT, sous ses autres hypothèses. L'écart qui disparaît après ce réalignement ne venait pas de la covariable, mais du changement d'estimateur ou d'évaluation.
 
 :::key
-Une différence à 3,8 contre un seuil à 3,84 ne devrait de toute façon jamais se trancher sèchement. Mais le problème n'est pas la marge : c'est que l'analyste **croyait avoir 4,2**. Le bruit d'un moteur s'était glissé dans un chiffre qu'il lisait comme une propriété des données.
+Une décision proche d'un seuil ne devrait de toute façon jamais être mécanique. Mais le problème principal est antérieur : l'analyste croyait comparer deux modèles emboîtés sous une même fonction objectif alors qu'il comparait aussi deux procédures d'estimation.
 :::
 
 Sous NONMEM, changer d'estimateur oblige à éditer `$ESTIMATION` : un acte délibéré, sur une ligne visible, archivée avec le run. Sous nlmixr2, c'est un argument d'appel, et l'objet `mod` — celui que vous relirez dans six mois — n'en garde **aucune trace**. Six mois plus tard, `fit1` et `fit2` sont deux objets R avec deux OFV, et votre tableau de ΔOFV ne se souvient plus que l'un était SAEM.

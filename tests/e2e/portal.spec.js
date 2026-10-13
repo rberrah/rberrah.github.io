@@ -216,7 +216,7 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.locator('.communication-hero img')).toHaveAttribute('alt', /Preview of NetPK/);
   await expect(page.locator('.communication-detail > header')).toContainText('Presentation: 14 October 2026 · Event: 13–15 October 2026');
   const netpkJsonLd = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
-  expect(netpkJsonLd.datePublished).toBe('2026-10-14');
+  expect(netpkJsonLd.datePublished).toBeUndefined();
   expect(netpkJsonLd.dateCreated).toBeUndefined();
   expect(netpkJsonLd.isPartOf).toMatchObject({ '@type': 'Event', startDate: '2026-10-13', endDate: '2026-10-15' });
   await page.goto(origin + '/communications/fr/netpk-peprsn-2026/');
@@ -239,6 +239,10 @@ test('French communication interface retains original scientific titles', async 
   await page.goto(origin + '/communications/fr/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await expect(page.locator('h1')).toHaveText('Communications scientifiques');
+  await expect(page.locator('.site-header')).toContainText('Pharmacométrie');
+  await expect(page.locator('.site-header')).toContainText('Publications & communications');
+  await expect(page.locator('footer.site')).toContainText('Autres projets');
+  await expect(page.locator('[data-communication][data-type="poster"] .status.presented').first()).toHaveText('Présenté');
   await expect(page.getByRole('button', { name: 'Toutes', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Toward autonomous pharmacometrics/ })).toBeVisible();
 });
