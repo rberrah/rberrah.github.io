@@ -41,6 +41,12 @@ export function referencePreviewAudit(result){
           table.referenceTableRows:null,
         reference_export_status:typeof table.referenceTableStatus==='string'?
           table.referenceTableStatus:'preview_only',
+        local_archive_id:typeof table.referenceTableLocalArchiveId==='string' &&
+          /^pmx_reference_[A-Za-z0-9._-]+$/.test(table.referenceTableLocalArchiveId)?
+          table.referenceTableLocalArchiveId:null,
+        local_archive_sha256:typeof table.referenceTableLocalArchiveSha256==='string' &&
+          /^[a-f0-9]{64}$/.test(table.referenceTableLocalArchiveSha256)?
+          table.referenceTableLocalArchiveSha256:null,
         note:complete
           ?'Complete original-identifier R table is included in reference_r/, separate from browser exploration.'
           :'Not a complete fitted R feature table; top-frame previews cannot be cited as a full differential analysis.'
@@ -195,8 +201,15 @@ export function methodsMarkdown(result,locale='fr'){
         ', '+t('export complet','complete export')+'='+
         (r.complete_reference_table_exported?t('oui','yes'):t('non','no'))+
         ', '+t('lignes','rows')+'='+print(r.reference_table_rows)+
-        ', '+t('état','status')+'='+r.reference_export_status);
+        ', '+t('état','status')+'='+r.reference_export_status+
+        (r.local_archive_id && r.reference_export_status==='too_large_archived_locally'?
+          ', '+t('sauvegarde R locale (HORS ZIP)','local R-only archive (NOT IN ZIP)')+
+          '='+r.local_archive_id+', SHA-256='+print(r.local_archive_sha256) :
+          ''));
     h.push('');
+    if(rPreviews.some(r=>r.reference_export_status==='too_large_archived_locally'))
+      h.push('> '+t('Des résultats R dépassant la limite JSON ont été conservés UNIQUEMENT sur le disque du backend local dans le dossier défini par PMX_MULTIOMICS_RESULTS_DIR. Ils ne sont PAS inclus dans ce ZIP. Récupérer le fichier fitted_reference.csv dans le sous-dossier ID indiqué et vérifier le SHA-256.',
+        'Oversized R results were retained ONLY in the R backend operator\'s local PMX_MULTIOMICS_RESULTS_DIR. They are NOT included in this ZIP. Retrieve fitted_reference.csv from the recorded folder ID and verify SHA-256.'),'');
     if(rPreviews.some(r=>r.status==='ok'&&r.preview_rows!==null&&!r.complete_reference_table_exported))
       h.push('> '+t('Certaines analyses R ne disposent que d’un aperçu (ou dépassent la taille de transfert). Conserver leur CSV complet depuis le moteur R local avant toute publication.',
         'Some R analyses have only a preview (or exceed the transfer size limit). Preserve their full CSV from the local R engine before publication.'),'');
