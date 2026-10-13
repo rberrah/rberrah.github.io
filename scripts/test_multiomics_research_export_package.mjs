@@ -16,9 +16,9 @@ const rows=[
 ];
 const csv=fullLayerCsv(rows);
 assert.ok(csv.startsWith('\uFEFFfeature,effect,effect_scale'));
-assert.equal(csv.split('\r\n').filter(Boolean).length,58); // header + 56 rows + embedded newline
+assert.equal(csv.split('\r\n').filter(Boolean).length,57); // header + 56 rows (quoted LF does not split CRLF)
 assert.ok(csv.includes('"GENE,1"'));
-assert.ok(csv.includes('"""')); // doubled quote in feature
+assert.ok(csv.includes('G""ene\\nLine')); // doubled quote in feature
 assert.ok(csv.includes("'=HYPERLINK"));
 assert.ok(csv.includes(',-0.21,'));
 assert.ok(csv.includes(',0,'));
