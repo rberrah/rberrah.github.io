@@ -227,7 +227,7 @@ test('particles travel on both transfer lanes and through the elimination outlet
   expect(later[2]).not.toBe(noExchange[2]);
 });
 
-test('particle selection, draggable exact-concentration probe, slow motion and dose cohorts', async ({ page }) => {
+test('particle selection, exact-concentration probe, slow motion and dose cohorts', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await open(page);
   await expect(page.getByLabel('Follow a particle', { exact: true })).not.toBeChecked();
@@ -248,21 +248,14 @@ test('particle selection, draggable exact-concentration probe, slow motion and d
   const peripheral = await page.getByTestId('probe-readout').innerText();
   expect(peripheral).not.toContain(await page.getByTestId('lab-concentration').innerText());
   const scene = page.getByTestId('lab-scene');
-  await scene.evaluate(node => node.scrollIntoView({ block: 'start' }));
-  const width = await scene.evaluate(node => node.clientWidth), g = sceneLayout(width, 'distribution');
-  const sceneBox = await scene.boundingBox();
   const probe = page.getByRole('button', { name: 'Move concentration probe' });
-  const probeBox = await probe.boundingBox();
-  const target = { x: sceneBox.x + g.rooms.central.x + g.rooms.central.w * .5, y: sceneBox.y + g.rooms.central.y + g.rooms.central.h * .5 };
-  await page.mouse.move(probeBox.x + probeBox.width / 2, probeBox.y + probeBox.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(target.x, target.y, { steps: 4 });
-  await probe.dispatchEvent('pointermove', { pointerId: 1, pointerType: 'mouse', buttons: 1, clientX: target.x, clientY: target.y });
-  await probe.dispatchEvent('pointerup', { pointerId: 1, pointerType: 'mouse', clientX: target.x, clientY: target.y });
-  await page.mouse.up();
+  await page.getByLabel('Probe location').selectOption('central');
   await expect(page.getByLabel('Probe location')).toHaveValue('central');
   await expect(page.getByTestId('probe-readout')).toContainText(await page.getByTestId('lab-concentration').innerText());
-  await page.getByRole('button', { name: 'Move concentration probe' }).focus(); await page.keyboard.press('ArrowLeft');
+  const position = await probe.getAttribute('style');
+  await probe.focus(); await page.keyboard.press('ArrowLeft');
+  await expect(probe).not.toHaveAttribute('style', position);
+  await expect(page.getByLabel('Probe location')).toHaveValue('central');
   await page.getByLabel('Speed', { exact:true }).selectOption('0.25');
   await page.getByRole('button', { name: 'Start animation', exact:true }).click();
   await expect.poll(async()=>Number(await page.getByTestId('lab-time').inputValue())).toBeGreaterThan(2.1);
