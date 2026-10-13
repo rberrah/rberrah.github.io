@@ -1179,6 +1179,29 @@
     const checkedBody = validateMofa2MethodResult(body);
     referenceBackendStatus = checkedBody.mofa2OrientationBlocked ? 'error' : 'done';
     const completed = Object.values(checkedBody.methods || {}).some((method) => method?.status === 'ok');
+    // "Require R" must mean that a REAL subject-blocked reference model
+    // completed, not merely that /health was reachable or some unrelated
+    // method returned HTTP 200. Fail closed if pairing was not applied.
+    if(referenceBackendMode === 'required' && objective === 'groups' &&
+       designType === 'paired' && files.transcriptomics){
+      const countMethods = [
+        checkedBody.methods?.transcriptomics_differential_deseq2,
+        checkedBody.methods?.transcriptomics_differential_voom
+      ];
+      const validPairedFit = countMethods.some(method =>
+        method?.status === 'ok' &&
+        method.pairedDesignContract?.pairing === 'same_subject_two_conditions' &&
+        method.pairedDesignContract?.biological_pairs === pairedAudit?.nPairs &&
+        method.pairedDesignContract?.certified === false);
+      if(!validPairedFit){
+        const diagnostics = countMethods.filter(Boolean).map(method =>
+          method.method+': '+method.status+(method.message?' ('+method.message+')':'')).join('; ');
+        throw new Error(t(
+          'Aucun modèle RNA-seq apparié valide n’a été exécuté sous R. Le résultat exploratoire du navigateur ne remplace pas une inférence appariée. Vérifiez les paires, le contraste et les messages R. ',
+          'No valid paired RNA-seq model was fitted in R. Browser exploration cannot substitute for paired inference. Check your pairs, contrast and R diagnostics. '
+        ) + diagnostics);
+      }
+    }
     referenceBackendMessage = checkedBody.mofa2OrientationBlocked
       ? t('Résultat MOFA2 masqué : ce backend n’a pas prouvé l’orientation correcte des variables et des sujets. Mettez à jour R.', 'MOFA2 result hidden: this backend did not prove the correct feature and subject orientation. Update R.')
       : completed
