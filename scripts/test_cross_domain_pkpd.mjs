@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {calculateSignatureExposure,crossDomainLessons} from '../src/lib/cross-domains/omics-pkpd-lessons.js';
+import {crossDomainReviews} from '../src/lib/cross-domains/omics-pkpd-reviews.js';
+import {crossDomainReviewHash} from './review_hash.mjs';
 
 const ref=calculateSignatureExposure({signature:0,beta:.25});
 assert.equal(ref.apparentClearanceLPerHour,25);
@@ -33,6 +35,24 @@ for(const lesson of crossDomainLessons){
     assert.equal(quiz.a.length,3);
     assert.ok(quiz.correct>=0 && quiz.correct<3);
     assert.ok(quiz.why.length>15);
+    const review=crossDomainReviews[lesson.id]?.[lang];
+    assert.ok(review,`Missing ${lang} review record for ${lesson.id}`);
+    assert.ok(['pending','current'].includes(review.status));
+    assert.equal(review.content_hash,crossDomainReviewHash(lesson,lang),`Stale ${lang} content hash for ${lesson.id}`);
+    if(review.status==='current'){
+      assert.ok(review.reviewed_on && ['author','internal','external'].includes(review.review_type));
+      assert.equal(review.reviewed_hash,review.content_hash);
+    }else{
+      assert.equal(review.reviewed_on,'');
+      assert.equal(review.review_type,'');
+      assert.equal(review.reviewed_hash,'');
+    }
+  }
+  assert.ok(lesson.sources.length>=2,`${lesson.id} needs at least two scientific sources`);
+  for(const source of lesson.sources){
+    assert.equal(new URL(source.url).protocol,'https:');
+    assert.ok(source.citation.length>20);
+    assert.ok(source.note.fr.length>15 && source.note.en.length>15);
   }
   // Core pharmacometrics chapters have numeric filename prefixes (e.g.
   // 05_variabilite-iiv-iov.md) while their published route uses frontmatter
@@ -54,6 +74,7 @@ assert.ok(route.includes('SITE_ORIGIN')&&route.includes('/multiomics/tool/'));
 assert.ok(route.includes('educationalOnly')===false);
 assert.ok(route.includes('data-testid="cross-domain-auc"'));
 assert.ok(route.includes('role="status"'));
+assert.ok(route.includes('Sources & further reading'));
 assert.ok(nav.includes("key: 'cross-domains'"));
 assert.ok(nav.includes("label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines'"));
 console.log('CROSS-DOMAIN OMICS-PKPD COURSES: scientific calculator, curricula, references and nav contracts PASS');

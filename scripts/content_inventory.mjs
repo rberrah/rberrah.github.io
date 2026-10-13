@@ -6,7 +6,9 @@ import { guidedActivities } from '../src/lib/content/guidedActivities.js';
 import { learningTracks, beginnerTrack } from '../src/lib/content/tracks.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
 import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
-import { chapterReviewHash } from './review_hash.mjs';
+import { crossDomainLessons } from '../src/lib/cross-domains/omics-pkpd-lessons.js';
+import { crossDomainReviews } from '../src/lib/cross-domains/omics-pkpd-reviews.js';
+import { chapterReviewHash, crossDomainReviewHash } from './review_hash.mjs';
 
 const root = new URL('../', import.meta.url);
 const chapterDir = new URL('src/content/chapters/', root);
@@ -32,6 +34,15 @@ const syntheses = guidedActivities.filter(activity => activity.kind === 'synthes
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
 const pendingReviews = chapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const pendingEnglishReviews = englishChapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
+const crossDomainReviewRows = crossDomainLessons.flatMap(lesson => ['fr', 'en'].map(language => ({
+  id: lesson.id,
+  language,
+  review: crossDomainReviews[lesson.id]?.[language],
+  currentHash: crossDomainReviewHash(lesson, language)
+})));
+const pendingCrossDomainReviews = crossDomainReviewRows.filter(row =>
+  row.review?.status !== 'current' || row.review.reviewed_hash !== row.currentHash
+);
 const softwareChapters = chapters.filter(chapter => chapter.software_verified_on);
 const freshnessDue = (date, days) => {
   const value = new Date(`${date}T00:00:00Z`);
@@ -39,8 +50,14 @@ const freshnessDue = (date, days) => {
   return value.toISOString().slice(0, 10);
 };
 const rows = [
-  ['French chapters', chapters.length],
-  ['English chapter translations', englishFiles.length],
+  ['Core chapters (French)', chapters.length],
+  ['Core chapter translations (English)', englishFiles.length],
+  ['Cross-domain lessons (French)', crossDomainLessons.length],
+  ['Cross-domain lessons (English)', crossDomainLessons.length],
+  ['Cross-domain quiz questions (French)', crossDomainLessons.length],
+  ['Cross-domain quiz questions (English)', crossDomainLessons.length],
+  ['Cross-domain lessons pending review (French)', pendingCrossDomainReviews.filter(row => row.language === 'fr').length],
+  ['Cross-domain lessons pending review (English)', pendingCrossDomainReviews.filter(row => row.language === 'en').length],
   ['Learning tracks, including starter path', learningTracks.length],
   ['Starter-path chapters', beginnerTrack.chapterSlugs.length],
   ['Chapter quiz questions', chapters.reduce((sum, chapter) => sum + (chapter.quiz?.length ?? 0), 0)],
@@ -92,6 +109,8 @@ ${rows.map(([label, count]) => `| ${label} | ${count} |`).join('\n')}
 
 - Chapters and metadata: \`src/content/chapters/\`
 - English translations: \`src/content/chapters/en/\`
+- Cross-domain lessons: \`src/lib/cross-domains/omics-pkpd-lessons.js\`
+- Cross-domain review records: \`src/lib/cross-domains/omics-pkpd-reviews.js\`
 - Exercises and activities: \`src/lib/content/\`
 - Laboratories: \`src/lib/labs/\`
 - Visualizations: \`src/lib/components/visualizations/\`
@@ -108,6 +127,15 @@ ${pendingReviews.length || pendingEnglishReviews.length
     ].join('\n')}`
   : 'Every French and English chapter matches its stored author-review hash. Independent scientific review remains pending.'}
 
+### Cross-domain lessons
+
+| Language | Lesson | Status | Current content hash |
+| --- | --- | --- | --- |
+${crossDomainReviewRows.map(row => `| ${row.language.toUpperCase()} | ${row.id} | ${row.review?.status ?? 'missing'} | ${row.currentHash} |`).join('\n')}
+
+These records are independent by language. A stored content hash only detects
+changes; it does not claim that a human review occurred.
+
 ## External software freshness
 
 Dates below are an inventory, not a claim that the software itself was validated.
@@ -115,7 +143,7 @@ Validation emits a freshness warning after 183 days and a stronger visible-debt 
 
 | Chapter | Version or documentation checked | Verified on | Warning after | Priority debt after |
 | --- | --- | --- | --- | --- |
-${softwareChapters.map(chapter => `| ${chapter.slug} | ${chapter.software_version} | ${chapter.software_verified_on} | ${freshnessDue(chapter.software_verified_on, 183)} | ${freshnessDue(chapter.software_verified_on, 365)} |`).join('\n')}
+${softwareChapters.map(chapter => `| ${chapter.slug} | ${chapter.software_freshness_version || chapter.software_version} | ${chapter.software_verified_on} | ${freshnessDue(chapter.software_verified_on, 183)} | ${freshnessDue(chapter.software_verified_on, 365)} |`).join('\n')}
 `;
 
 if (process.argv.includes('--check')) {

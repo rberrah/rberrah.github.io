@@ -65,7 +65,19 @@ export const crossDomainLessons=[
       fr:{q:'Un patient a fourni trois prélèvements. Combien de sujets indépendants cela représente-t-il ?',a:['Trois','Un','Cela dépend du nombre de gènes'],correct:1,why:'Les prélèvements sont corrélés au sein du même patient.'},
       en:{q:'A patient supplied three specimens. How many independent people is that?',a:['Three','One','It depends on the number of genes'],correct:1,why:'Specimens remain clustered within that same person.'}
     },
-    links:[{slug:'variabilite-iiv-iov',label:{fr:'Variabilité entre patients',en:'Between-patient variability'}}]
+    links:[{slug:'variabilite-iiv-iov',label:{fr:'Variabilité entre patients',en:'Between-patient variability'}}],
+    sources:[
+      {
+        citation:'Gallo V et al. STROBE-ME: an extension of the STROBE statement. PLoS Med. 2011.',
+        url:'https://doi.org/10.1371/journal.pmed.1001117',
+        note:{fr:'Cadre de reporting pour relier biospécimens, biomarqueurs et données épidémiologiques.',en:'Reporting framework linking biospecimens, biomarkers and epidemiological data.'}
+      },
+      {
+        citation:'Conesa A et al. A survey of best practices for RNA-seq data analysis. Genome Biol. 2016.',
+        url:'https://doi.org/10.1186/s13059-016-0881-8',
+        note:{fr:'Plan expérimental, réplicats biologiques, qualité et métadonnées des échantillons.',en:'Experimental design, biological replicates, quality control and sample metadata.'}
+      }
+    ]
   },
   {
     id:'covariate',minutes:13,
@@ -97,7 +109,19 @@ export const crossDomainLessons=[
       fr:{q:'À quel moment faut-il choisir les gènes composant une signature si on utilise une validation croisée ?',a:['Sur toutes les données avant les plis','Dans chaque jeu d’entraînement','Après avoir vu le jeu de test'],correct:1,why:'Sinon les informations du test contaminent l’apprentissage (data leakage).'},
       en:{q:'When should signature genes be selected during cross-validation?',a:['On the full dataset before splitting','Within each training fold','After looking at the test fold'],correct:1,why:'Otherwise test information leaks into model development.'}
     },
-    links:[{slug:'covariates-basics',label:{fr:'Covariables PopPK',en:'PopPK covariates'}},{slug:'valid-vpc',label:{fr:'Validation des modèles',en:'Model validation'}}]
+    links:[{slug:'covariates-basics',label:{fr:'Covariables PopPK',en:'PopPK covariates'}},{slug:'valid-vpc',label:{fr:'Validation des modèles',en:'Model validation'}}],
+    sources:[
+      {
+        citation:'Ambroise C, McLachlan GJ. Selection bias in gene extraction on the basis of microarray gene-expression data. PNAS. 2002.',
+        url:'https://doi.org/10.1073/pnas.102102699',
+        note:{fr:'Pourquoi la sélection de variables doit être répétée dans chaque jeu d’entraînement.',en:'Why feature selection must be repeated within each training set.'}
+      },
+      {
+        citation:'Savic RM, Karlsson MO. Importance of shrinkage in empirical Bayes estimates for diagnostics. AAPS J. 2009.',
+        url:'https://doi.org/10.1208/s12248-009-9133-0',
+        note:{fr:'Limites du dépistage de covariables à partir des ETA individuels.',en:'Limits of covariate screening based on individual ETA estimates.'}
+      }
+    ]
   },
   {
     id:'pd',minutes:12,
@@ -129,7 +153,19 @@ export const crossDomainLessons=[
       fr:{q:'Une protéine augmente après le traitement et prédit la toxicité. Que peut-on conclure immédiatement ?',a:['La protéine cause la toxicité','Une association temporelle à explorer','Elle prouve que la clairance a diminué'],correct:1,why:'Il faut examiner le temps, les facteurs de confusion et la causalité inverse.'},
       en:{q:'A protein increases after dosing and predicts toxicity. What can you conclude immediately?',a:['The protein causes toxicity','A temporal association worth testing','Clearance must have decreased'],correct:1,why:'Timing, confounding and reverse causation still need investigation.'}
     },
-    links:[{slug:'pkpd',label:{fr:'Introduction PK/PD',en:'PK/PD introduction'}},{slug:'pd-indirect',label:{fr:'Réponse indirecte',en:'Indirect response'}}]
+    links:[{slug:'pkpd',label:{fr:'Introduction PK/PD',en:'PK/PD introduction'}},{slug:'pd-indirect',label:{fr:'Réponse indirecte',en:'Indirect response'}}],
+    sources:[
+      {
+        citation:'VanderWeele TJ. Mediation analysis: a practitioner’s guide. Annu Rev Public Health. 2016.',
+        url:'https://doi.org/10.1146/annurev-publhealth-032315-021402',
+        note:{fr:'Hypothèses nécessaires pour interpréter une médiation comme causale.',en:'Assumptions required before interpreting mediation causally.'}
+      },
+      {
+        citation:'Robins JM, Hernán MA, Brumback B. Marginal structural models and causal inference in epidemiology. Epidemiology. 2000.',
+        url:'https://doi.org/10.1097/00001648-200009000-00011',
+        note:{fr:'Traitement des facteurs de confusion dépendants du temps dans les données longitudinales.',en:'Handling time-varying confounding in longitudinal data.'}
+      }
+    ]
   },
   {
     id:'mechanistic',minutes:12,
@@ -161,6 +197,18 @@ export const crossDomainLessons=[
       fr:{q:'Un gène CYP est deux fois plus exprimé en ARN. Quelle information manque pour doubler une clairance PBPK ?',a:['Aucune','L’activité/abondance fonctionnelle et la physiologie','La p-value seule'],correct:1,why:'L’ARN ne détermine pas directement l’abondance et l’activité de l’enzyme.'},
       en:{q:'CYP RNA expression doubles. What else is needed before doubling a PBPK clearance?',a:['Nothing','Functional abundance/activity and physiology','Only the p-value'],correct:1,why:'RNA does not directly establish enzyme protein abundance or catalytic function.'}
     },
-    links:[{slug:'pbpk-intro',label:{fr:'Introduction PBPK',en:'PBPK introduction'}},{slug:'pd-direct',label:{fr:'Relation concentration–effet',en:'Concentration–effect relationship'}}]
+    links:[{slug:'pbpk-intro',label:{fr:'Introduction PBPK',en:'PBPK introduction'}},{slug:'pd-direct',label:{fr:'Relation concentration–effet',en:'Concentration–effect relationship'}}],
+    sources:[
+      {
+        citation:'Liu Y et al. On the dependency of cellular protein levels on mRNA abundance. Cell. 2016.',
+        url:'https://doi.org/10.1016/j.cell.2016.03.014',
+        note:{fr:'Limites de l’extrapolation directe de l’ARN vers l’abondance protéique.',en:'Limits of directly extrapolating RNA expression to protein abundance.'}
+      },
+      {
+        citation:'Rostami-Hodjegan A. PBPK joined with IVIVE of ADME. Clin Pharmacol Ther. 2012.',
+        url:'https://doi.org/10.1038/clpt.2012.65',
+        note:{fr:'Principes de translation des mesures in vitro vers les paramètres PBPK.',en:'Principles for translating in-vitro measurements into PBPK parameters.'}
+      }
+    ]
   }
 ];

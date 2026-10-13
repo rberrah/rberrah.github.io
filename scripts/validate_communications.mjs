@@ -14,16 +14,28 @@ const pendingPaths = new Set(pendingCommunications.map(item => item.sourcePath))
 for (const item of communications) {
   assert(!pendingPaths.has(item.sourcePath), `${item.sourcePath} cannot be both published and pending`);
   assert(item.pdf || item.pptx, `${item.slug} needs a readable source file`);
-  if (item.date) assert(item.year && item.event, `${item.slug} needs a year and event when a date is provided`);
-  if (!item.event || !item.year) assert(item.notes, `${item.slug} must explain missing event metadata`);
-  if (!item.event) assert(!item.eventUrl, `${item.slug} cannot have an event URL without an event`);
-  if (item.dateEnd) assert(item.date && item.dateEnd >= item.date, `${item.slug} has an invalid date range`);
+  if (item.eventEnd) assert(item.eventEnd >= item.eventStart, `${item.slug} has an invalid event range`);
+  if (item.presentationDate) {
+    assert(item.presentationDate >= item.eventStart, `${item.slug} is presented before its event starts`);
+    assert(!item.eventEnd || item.presentationDate <= item.eventEnd, `${item.slug} is presented after its event ends`);
+  }
   for (const value of [item.pdf, item.pptx, item.image].filter(Boolean)) {
     assert(!/\s/.test(value), `${item.slug} has an unsafe public path: ${value}`);
     await access(path.join(root, 'portal', value.slice(1)));
   }
   for (const link of [item.eventUrl, item.relatedProject?.url, item.publication?.url, item.video?.url].filter(Boolean))
     assert(new URL(link).protocol === 'https:', `${item.slug} has a non-HTTPS external link`);
+}
+
+const netpk = communications.find(item => item.id === 'netpk-peprsn-2026');
+assert(netpk, 'NetPK communication is missing');
+assert.equal(netpk.presentationDate, '2026-10-14');
+assert.equal(netpk.eventStart, '2026-10-13');
+assert.equal(netpk.eventEnd, '2026-10-15');
+assert.equal(netpk.status, 'upcoming');
+for (const key of ['pdf', 'pptx', 'image']) {
+  assert(netpk[key], `NetPK ${key} is missing`);
+  await access(path.join(root, 'portal', netpk[key].slice(1)));
 }
 
 for (const item of pendingCommunications) assert(item.reason.en && item.reason.fr, `${item.sourcePath} needs a bilingual exclusion reason`);

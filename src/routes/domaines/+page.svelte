@@ -96,6 +96,14 @@
             <a href={`${base}/chapitres/${link.slug}/?lang=${$language}`}>{link.label[$language]} <ArrowRight size={14} aria-hidden="true"/></a>
           {/each}
         </div>
+        <details class="lesson-sources">
+          <summary>{t('Sources et lectures complémentaires','Sources & further reading')}</summary>
+          <ul>
+            {#each lesson.sources as source}
+              <li><a href={source.url} target="_blank" rel="noopener noreferrer">{source.citation}</a> <span>{source.note[$language]}</span></li>
+            {/each}
+          </ul>
+        </details>
         <div class="quiz" aria-label={t('Question de vérification','Knowledge check')}>
           <p class="quiz-head">{t('Vérifier ma compréhension','Check my understanding')}</p>
           <p class="question">{lesson.quiz[$language].q}</p>
@@ -194,6 +202,11 @@
   .related { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 15px; font-size: .88rem; margin: 19px 0; }
   .related span { color: var(--text-secondary); }
   .related a { display: inline-flex; align-items: center; gap: 5px; }
+  .lesson-sources { margin: 14px 0 20px; color: var(--text-secondary); }
+  .lesson-sources summary { cursor: pointer; color: var(--text-primary); font-weight: 650; }
+  .lesson-sources ul { padding-left: 22px; }
+  .lesson-sources li { margin: 9px 0; line-height: 1.5; }
+  .lesson-sources span { display: block; font-size: .86rem; }
   .quiz { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 18px; margin-top: 16px; }
   .quiz-head { margin: 0 0 8px; }
   .question { font-weight: 650; margin: 8px 0 14px; }

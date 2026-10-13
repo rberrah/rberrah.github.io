@@ -12,8 +12,13 @@ for(const width of [1280,390])for(const lang of ['fr','en']){
    await expect(content).toBeVisible();
    await expect(page.getByTestId('cross-domain-open-tool'))
      .toHaveAttribute('href','https://rberrah.github.io/multiomics/tool/');
-   for(const id of ['match','covariate','pd','mechanistic'])
-     await expect(page.getByTestId(`cross-domain-lesson-${id}`)).toBeVisible();
+   for(const id of ['match','covariate','pd','mechanistic']){
+     const lesson=page.getByTestId(`cross-domain-lesson-${id}`);
+     await expect(lesson).toBeVisible();
+     await expect(lesson.locator('.lesson-sources summary')).toContainText(
+       lang==='en'?'Sources & further reading':'Sources et lectures complémentaires');
+     await expect(lesson.locator('.lesson-sources a')).toHaveCount(2);
+   }
    await expect(page.getByTestId('cross-domain-auc')).toContainText(
      lang==='en'?'200.0 ng·h/mL':'200,0 ng·h/mL');
    await expect(page.getByTestId('cross-domain-cl')).toContainText(

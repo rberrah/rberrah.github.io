@@ -24,6 +24,8 @@ to record sources, reviewer, date, comments and status.
 - Beginner path: PK/PD foundations and the associated quantitative figures.
 - Bayesian estimation and TDM: assumptions, residual error and decision limits.
 - Validation: OFV/LRT, AIC/BIC, residual diagnostics, VPC and NPDE.
+- Software workflows: NONMEM, Monolix, nlmixr2 and Pmetrics/non-parametric estimation.
+- The four Omics → PK/PD lessons, reviewed independently in French and English.
 - Independent review of a targeted sample of central quantitative
   visualizations.
 

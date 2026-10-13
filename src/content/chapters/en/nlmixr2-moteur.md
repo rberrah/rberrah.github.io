@@ -115,7 +115,7 @@ f4 <- nlmixr2(mod, dat, est = "posthoc")
 
 But the nuance matters. SAEM only asks for **forward** solves: it consumes the library as is. FOCEI needs $\partial f / \partial \eta$; rxode2 then symbolically differentiates the system and compiles, alongside it, the **forward sensitivity equations**. The source file is identical, the compiled object is not. An `est = "focei"` following an `est = "saem"` therefore goes back through the compiler, and that is not a whim.
 
-**What becomes of the OFV.** Here lies the peculiarity nobody reads in the documentation. As everywhere, SAEM maximises the likelihood without ever evaluating it: at the end of a SAEM run there is nothing to display. Monolix solves this with a separate task you must request. nlmixr2 solves it **silently**: by default, it computes the OFV afterwards, with the **FOCEi** evaluator, at the SAEM estimates.
+**What happens to the metrics.** SAEM estimates parameters without itself providing a single value that is directly comparable with every output from other engines. Depending on controls and version, nlmixr2 can add several post-estimation evaluations. With `logLik = FALSE`, an OBJF can be evaluated using the FOCEi approximation at the SAEM estimates; with `logLik = TRUE`, a log-likelihood can be evaluated by Gauss-Hermite quadrature.
 
 ```r
 # the OFV returned after a SAEM run: by default, the FOCEi objective at the SAEM estimates
@@ -128,13 +128,13 @@ f2q <- nlmixr2(mod, dat, est = "saem",
 
 Option names are version-dependent: the examples use the current `nnodesGq` / `nsdGq` convention. Check your installed documentation before recycling an old script.
 
-Direct consequence: in nlmixr2, the OBJF of a SAEM fit and that of a FOCEI fit can be on the **same scale**, produced by the **same FOCEi evaluator**. This does not turn them into comparable maxima for an LRT: such a test requires, among other conditions, nested models, coherent estimation of the same likelihood and the relevant regularity assumptions. The `adjObf` option, on by default, additionally aligns the additive constant with NONMEM's convention, so the number even has the familiar look.
+`OBJF` and `logLik` are therefore not synonyms. AIC and BIC derive from a specified log-likelihood together with parameter-count and observation-count conventions; they do not automatically describe the same evaluation as the displayed OBJF. “SAEM OBJF by FOCEi approximation” identifies only the evaluator used for that OBJF at the SAEM estimates. It does not make every likelihood available in the object a FOCEi evaluation. Before comparing values, record the **estimator, evaluator, metric, sign and constant convention, controls and version**.
 
 | Output after `est = "saem"` | What it represents | Correct interpretation |
 |---|---|---|
 | SAEM parameters | $\theta$, $\Omega$ and residual-error estimates obtained by stochastic-approximation EM | the result of SAEM estimation |
-| default `OBJF` | FOCEi approximation evaluated **at the SAEM parameter estimates** | a common-scale diagnostic, not a “SAEM OFV” or proof of LRT comparability with a FOCEI fit |
-| default `logLik`, AIC and BIC | quantities derived from the likelihood evaluation retained by the fit object, linked by default to the FOCEi approximation | always report the evaluator and conventions with the value |
+| `OBJF` with `logLik = FALSE` | FOCEi approximation evaluated **at the SAEM parameter estimates** in the configuration described here | a post-estimation diagnostic, not a “SAEM likelihood” or proof of LRT comparability |
+| `logLik`, AIC and BIC | quantities tied to the likelihood evaluation retained by the object and its calculation conventions | identify the evaluator explicitly; do not infer it from the `OBJF` label alone |
 | `saemControl(logLik = TRUE)` | a post-estimation Gauss-Hermite quadrature evaluation (`nnodesGq`, `nsdGq`) | a distinct approximation whose cost rises rapidly with dimension |
 | `est = "imp"`, `"impmap"` or `"qrpem"` | importance-sampling estimators available in the 7.x line and still labelled research methods | do not confuse them with a likelihood merely evaluated after SAEM; report method, version and settings |
 
@@ -199,7 +199,7 @@ Beware the easy conclusion. SAEM did not find the truth — it can return a numb
 The nlmixr2 trap is not that some engine is bad. It is that **switching engine costs one word**, and no trace of it survives in the number that comes out.
 
 :::pitfall
-The summary of an nlmixr2 fit always displays an `OFV`, always the same way. **Four different machines can have produced it**: the FOCEi objective at the FOCEi optimum; the FOCEi objective at the SAEM estimates (the default for `est = "saem"`); a Gauss-Hermite quadrature log-likelihood (`saemControl(logLik = TRUE)`), on a different scale; or the Lindstrom-Bates objective (`est = "nlme"`). Nothing in the number says which. `adjObf` has even already realigned the constant to NONMEM's convention, so the order of magnitude is the one you expected.
+An nlmixr2 object can expose several numbers: the FOCEi objective at the FOCEi optimum, a FOCEi OBJF evaluated at SAEM estimates, a Gauss-Hermite quadrature log-likelihood, or a Lindstrom-Bates objective. The field name and order of magnitude do not establish that they share an evaluator or convention. Inspect the method, controls and version before comparing them.
 :::
 
 The scenario is mundane, which is what makes it dangerous. The base model would not start in FOCEI: it was run with `est = "saem"`, **OFV = 1487.6**. Once the estimates were in hand the initial values became good, so the covariate model was run with `est = "focei"`: **OFV = 1483.4**. Subtract: **ΔOFV = 4.2**, against a threshold of 3.84. Keep the covariate.
@@ -220,7 +220,7 @@ The discipline is simple, and it is entirely on you: **one engine per comparison
 - Four representative workflows: `"focei"` approximates the integral by a tangent at $\hat{\eta}_i$ with interaction, `"saem"` samples it, `"nlme"` approximates it differently (Lindstrom-Bates, $\approx$ FOCE without interaction), and `"posthoc"` fixes $\theta$ and seeks only the $\hat{\eta}_i$. Other estimators are available in nlmixr2.
 - **rxode2** compiles the model into C, once, and every solve afterwards is machine code. FOCEI needs the sensitivities $\partial f / \partial \eta$, which rxode2 differentiates and compiles in addition: same source, different compiled object — hence the recompilation when going from SAEM to FOCEI.
 - **SAEM** for stiff systems, sparse data, dubious initial values: no derivative, no individual mode to find. **FOCEI** whenever a chain of ΔOFV is at stake, or the work will end up in NONMEM.
-- The OFV of a SAEM run is **not** a SAEM number: nlmixr2 computes it afterwards with the FOCEi evaluator (default), or by Gauss-Hermite quadrature with `saemControl(logLik = TRUE)` — on a different scale.
+- `OBJF`, `logLik`, AIC and BIC are not interchangeable. After SAEM, nlmixr2 may add several post-estimation evaluations; always report the evaluator, metric, convention, controls and version.
 - Same scale does not mean comparable. Subtracting the OFV of a SAEM fit and that of a FOCEI fit measures which of the two optimisers gets closer to the FOCEi minimum, not which of the two models fits better.
 - One engine per comparison chain, chosen in advance, and the `est =` logged next to every OFV. The ease of switching is exactly what makes the mistake easy.
 <!-- /step -->

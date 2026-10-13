@@ -15,6 +15,7 @@ slides: []
 sources: ["mrgsolve","fidler-nlmixr","bergstrand-pcvpc","mould-upton"]
 software_verified_on: "2026-10-12"
 software_version: "mrgsolve 2.0.1; rxode2 5.1.7 documentation"
+software_freshness_version: "mrgsolve 2.0.1; rxode2 5.1.7.1 documentation"
 updated_on: "2026-10-09"
 reviewed_on: "2026-10-12"
 review_type: "author"

@@ -15,6 +15,11 @@ assert.equal(
   chapterReviewHash(chapter),
   'Review evidence must not hash itself'
 );
+assert.equal(
+  chapterReviewHash(chapter.replace(/^reviewed_hash:.*$/m, 'software_freshness_version: "machine-checked release"\n$&')),
+  chapterReviewHash(chapter),
+  'Machine-maintained software freshness metadata must not reseal scientific content'
+);
 assert.notEqual(
   chapterReviewHash(chapter + '\nScientific change.\n'),
   chapterReviewHash(chapter),

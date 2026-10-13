@@ -10,12 +10,10 @@ const communicationPages = [
   '/communications/netpk-peprsn-2026/',
   '/communications/missed-dose-iatdmct-sfpt-2026/',
   '/communications/autonomous-pharmacometrics-page-2026/',
-  '/communications/residual-error-mipd-poster/',
   '/communications/fr/',
   '/communications/fr/netpk-peprsn-2026/',
   '/communications/fr/missed-dose-iatdmct-sfpt-2026/',
-  '/communications/fr/autonomous-pharmacometrics-page-2026/',
-  '/communications/fr/residual-error-mipd-poster/'
+  '/communications/fr/autonomous-pharmacometrics-page-2026/'
 ];
 const statsPages = ['/stats/', '/stats/tool/'];
 const publicOrigin = getSiteOrigin();
@@ -197,18 +195,18 @@ test('research details open with keyboard, retain sources and support direct lin
 
 test('communication library filters and opens the NetPK poster', async ({ page }) => {
   await page.goto(origin + '/communications/');
-  await expect(page.locator('[data-communication]')).toHaveCount(4);
-  await expect(page.locator('[data-communication]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-communication]')).toHaveCount(3);
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
   await expect(page.getByRole('heading', { name: /NetPK: fusing published/ })).toBeVisible();
   await expect(page.getByText('Upcoming', { exact: true })).toHaveCount(1);
 
   await page.getByRole('button', { name: 'Posters', exact: true }).click();
-  await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(2);
   await page.getByRole('button', { name: 'Oral presentations', exact: true }).click();
   await expect(page.locator('[data-communication]:visible')).toHaveCount(1);
   await page.getByRole('button', { name: 'All', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await expect(page.locator('[data-communication]:visible')).toHaveCount(4);
+  await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
 
   await page.getByRole('link', { name: /NetPK: fusing published/ }).first().click();
   await expect(page).toHaveURL(origin + '/communications/netpk-peprsn-2026/');
@@ -216,10 +214,14 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.getByRole('link', { name: 'PDF', exact: true })).toHaveAttribute('href', /\.pdf$/);
   await expect(page.getByRole('link', { name: 'Slides / PPTX', exact: true })).toHaveAttribute('href', /\.pptx$/);
   await expect(page.locator('.communication-hero img')).toHaveAttribute('alt', /Preview of NetPK/);
+  await expect(page.locator('.communication-detail > header')).toContainText('Presentation: 14 October 2026 · Event: 13–15 October 2026');
+  const netpkJsonLd = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+  expect(netpkJsonLd.datePublished).toBe('2026-10-14');
+  expect(netpkJsonLd.dateCreated).toBeUndefined();
+  expect(netpkJsonLd.isPartOf).toMatchObject({ '@type': 'Event', startDate: '2026-10-13', endDate: '2026-10-15' });
+  await page.goto(origin + '/communications/fr/netpk-peprsn-2026/');
+  await expect(page.locator('.communication-detail > header')).toContainText('Présentation : 14 octobre 2026 · Événement : 13–15 octobre 2026');
   await expect(page.locator('body')).not.toContainText('Poster Residual.pptx');
-  await page.goto(origin + '/communications/residual-error-mipd-poster/');
-  await expect(page.getByText('Event and date not documented in the source file.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Related peer-reviewed article' })).toHaveAttribute('href', 'https://doi.org/10.1097/FTD.0000000000001413');
 });
 
 test('talk and poster titles open their available detail records', async ({ page }) => {
@@ -229,7 +231,6 @@ test('talk and poster titles open their available detail records', async ({ page
   await expect(page.getByRole('link', { name: /Toward autonomous pharmacometrics/ }).first()).toHaveAttribute('href', '#page-2026-details');
   await expect(page.getByRole('link', { name: /TacDDI: A precision dosing tool/ })).toHaveAttribute('href', '#tacddi-details');
   await expect(page.getByRole('link', { name: /Impact of Residual Error Handling.*Case Study with Tacrolimus/ })).toHaveAttribute('href', '#page-2025-details');
-  await expect(page.getByRole('link', { name: 'Impact of Residual Error Handling on Model Informed Precision Dosing and AUC Calculation', exact: true })).toHaveAttribute('href', '/communications/residual-error-mipd-poster/');
   await page.getByRole('link', { name: /Beyond.*Skip or Take/ }).first().click();
   await expect(page.locator('#missed-dose-details')).toHaveAttribute('open', '');
 });
