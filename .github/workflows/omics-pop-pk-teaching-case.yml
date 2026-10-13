@@ -1,0 +1,38 @@
+name: Omics to PopPK teaching case
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/cross-domains/omic-pop-pk-synthetic.js'
+      - 'src/routes/domaines/cas-pratique/**'
+      - 'scripts/test_omic_pop_pk_synthetic.mjs'
+      - 'tests/e2e/omics-pop-pk-case.spec.js'
+      - '.github/workflows/omics-pop-pk-teaching-case.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-synthetic-education:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Test simulated truth, deterministic split and nonclinical scope
+        run: node scripts/test_omic_pop_pk_synthetic.mjs
+      - name: Validate Svelte and TypeScript contracts
+        run: npm run check
+      - name: Build static course
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test FR EN, mobile and desktop
+        env:
+          LABS_E2E_PREBUILT: 'true'
+        run: npx playwright test tests/e2e/omics-pop-pk-case.spec.js
