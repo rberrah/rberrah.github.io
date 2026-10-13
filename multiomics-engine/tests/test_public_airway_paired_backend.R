@@ -48,7 +48,7 @@ observed<-utils::read.csv(text=r$referenceTableCsv,check.names=FALSE,
 stopifnot(nrow(observed)==sum(mask),any(observed$feature=="ENSG00000103196"))
 # True independently assembled native DESeq2 model, blocked by the cell line.
 m<-data.frame(subject_id=factor(subjects),condition=factor(cond,
-              levels=c("untrt","trt")),row.names=ids)
+              levels=sort(unique(cond))),row.names=ids)
 dds<-DESeq2::DESeqDataSetFromMatrix(countData=counts,colData=m,
                                    design=~subject_id+condition)
 dds<-DESeq2::DESeq(dds,quiet=TRUE)
@@ -56,8 +56,15 @@ native<-DESeq2::results(dds,contrast=c("condition","trt","untrt"),alpha=.05)
 ref<-as.data.frame(native)[match(observed$feature,rownames(native)),,drop=FALSE]
 stopifnot(identical(observed$feature,rownames(ref)))
 for(k in c("baseMean","log2FoldChange","lfcSE","stat","pvalue","padj")){
-  stopifnot(identical(which(is.na(observed[[k]])),which(is.na(ref[[k]]))),
-            isTRUE(all.equal(observed[[k]],ref[[k]],tolerance=1e-8)))
+  same_na<-identical(which(is.na(observed[[k]])),which(is.na(ref[[k]])))
+  numeric_equal<-isTRUE(all.equal(observed[[k]],ref[[k]],tolerance=1e-8))
+  if(!same_na||!numeric_equal){
+    kept<-which(is.finite(observed[[k]])&is.finite(ref[[k]]))
+    maximum<-if(length(kept))max(abs(observed[[k]][kept]-ref[[k]][kept])) else NA_real_
+    stop("Airway paired wrapper-native comparison failed on ",k,
+      "; NA positions identical=",same_na,"; maximal absolute discrepancy=",maximum,
+      ". Check contrast coding, design rank and input precision.")
+  }
 }
 marker<-observed[observed$feature=="ENSG00000103196",,drop=FALSE]
 stopifnot(nrow(marker)==1L,is.finite(marker$padj),
