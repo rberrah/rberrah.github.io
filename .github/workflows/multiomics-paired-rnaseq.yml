@@ -1,0 +1,49 @@
+name: MultiOmics paired RNA-seq reference
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/paired_rnaseq_reference.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/tests/test_paired_rnaseq_backend.R'
+      - '.github/workflows/multiomics-paired-rnaseq.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  paired-reference:
+    name: True paired biological units — DESeq2 and voom, complete results, negative designs
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    container:
+      image: bioconductor/bioconductor_docker:RELEASE_3_22-r-4.5.2@sha256:e34177896c1579f66d48b756e4229b58237499183a089da084af72d7aba1d40a
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check actual Bioconductor, DESeq2, edgeR and limma packages
+        shell: bash
+        run: |
+          Rscript -e '
+            extras <- c("BiocManager","jsonlite","statmod","digest","plumber")
+            missing <- extras[!vapply(extras,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
+            stopifnot(identical(as.character(BiocManager::version()),"3.22"))
+            bioc <- c("DESeq2","edgeR","limma")
+            missing_bioc <- bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
+            if(length(missing_bioc))BiocManager::install(missing_bioc,update=FALSE,ask=FALSE,quiet=TRUE)
+            stopifnot(all(vapply(c(extras,bioc),requireNamespace,logical(1),quietly=TRUE)))
+          '
+      - name: Syntax and design-safe paired preflight
+        run: |
+          Rscript -e '
+            parse("multiomics-engine/server.R")
+            parse("multiomics-engine/paired_rnaseq_reference.R")
+            parse("multiomics-engine/tests/test_paired_rnaseq_backend.R")
+            cat("PAIRED-RNA-SEQ R PARSE PASS\n")
+          '
+      - name: Real 4-pair DESeq2/limma-voom replay plus unbalanced and confounded cases
+        run: Rscript multiomics-engine/tests/test_paired_rnaseq_backend.R
+      - name: Assert Plumber imports remain operational
+        run: |
+          Rscript -e 'p<-plumber::plumb("multiomics-engine/server.R");stopifnot(inherits(p,"Plumber"));cat("PAIRED R PLUMBER PASS\n")'
