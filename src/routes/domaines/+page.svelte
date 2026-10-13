@@ -167,7 +167,7 @@
     )}</p>
     <ul>
       <li><a href="https://doi.org/10.1002/cpt.1818" target="_blank" rel="noopener noreferrer">Nigam et al., 2020</a> — {t('Enzymes, transporteurs et biologie des systèmes','Drug-metabolizing enzymes, transporters and systems biology')}</li>
-      <li><a href="https://doi.org/10.1016/j.xphs.2023.10.032" target="_blank" rel="noopener noreferrer">Jusko et al., 2024</a> — {t('Des réponses indirectes aux modèles QSP alimentés par les omiques','From indirect response models to omics-powered QSP')}</li>
+      <li><a href="https://doi.org/10.1016/j.xphs.2023.10.032" target="_blank" rel="noopener noreferrer">Uatay et al., 2024</a> — {t('Des réponses indirectes aux modèles QSP alimentés par les omiques','From indirect response models to omics-powered QSP')}</li>
       <li><a href="https://doi.org/10.1002/jcph.70289" target="_blank" rel="noopener noreferrer">Wang et al., 2026</a> — {t('QSP, décisions cliniques et crédibilité des modèles','QSP, clinical decisions and model credibility')}</li>
     </ul>
   </section>
