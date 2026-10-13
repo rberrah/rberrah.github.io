@@ -95,6 +95,24 @@ const html=methodsMarkdown(result,'en');
 assert.match(html,/Methods actually run/);
 assert.match(html,/not executed/);
 
+
+const rReference={...result,referenceBackend:{
+  methods:{transcriptomics_differential_deseq2:{
+    method:'DESeq2',status:'ok',top:Array.from({length:100},(_,i)=>(
+      {feature:'REF'+i,pvalue:0.1,adjustedP:0.3}))
+  }},
+  runtime:{RVersion:'4.5.2',packageVersions:{DESeq2:'1.50.2'}}
+}};
+const referenceMarkdown=methodsMarkdown(rReference,'fr');
+assert.match(referenceMarkdown,/100 lignes par méthode/);
+assert.match(referenceMarkdown,/NE FOURNIT PAS/);
+assert.match(referenceMarkdown,/DESeq2/);
+const refArchive=await buildResearchBundle({result:rReference,portableProject:portable});
+assert.equal(refArchive.manifest.r_reference_full_feature_tables_exported,false);
+assert.equal(refArchive.manifest.reference_method_previews.length,1);
+assert.equal(refArchive.manifest.reference_method_previews[0].preview_rows,100);
+assert.equal(refArchive.manifest.reference_method_previews[0].complete_reference_table_exported,false);
+
 assert.ok(names.includes('verification/verifier_dossier.py'));
 assert.ok(names.includes('verification/LISEZ-MOI.txt'));
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'pmx-research-zip-'));
