@@ -196,6 +196,13 @@ is a **working software-paper draft**: it makes no claim of journal
 submission, peer review, independent clinical validation, a DOI,
 or an accepted 5% false discovery guarantee.
 
+# Acknowledgements
+
+Funding identifiers, substantive human contributors and possible
+conflicts of interest are to be reviewed and entered by the submitting
+authors. No external grant or institutional endorsement is inferred
+from this repository.
+
 # Availability
 
 Source repository:
