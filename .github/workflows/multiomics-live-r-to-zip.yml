@@ -29,7 +29,7 @@ jobs:
         with:
           repository: rberrah/rberrah.github.io
           # Explicit pin: never silently test an unrelated backend revision.
-          ref: 2dc5b9a31783fc073b458f8b48bbaaad47f5a84c
+          ref: f75bcbfc1c8538751eeb26eb5a666b7f94b7442c
           path: actual-r-backend
       - uses: actions/setup-node@v5
         with:
@@ -70,6 +70,28 @@ jobs:
           echo "Genuine R reference backend did not become healthy."
           cat /tmp/pmx-live-r.log
           exit 1
+      - name: Check allowed browser JSON preflight and refuse unrelated website
+        shell: bash
+        run: |
+          allow="$(curl --silent --show-error -i -X OPTIONS \
+            -H 'Origin: http://127.0.0.1:4173' \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            http://127.0.0.1:8787/run)"
+          printf '%s\\n' "$allow"
+          printf '%s\\n' "$allow" | grep -qi '^HTTP/.* 204'
+          printf '%s\\n' "$allow" | grep -qi '^Access-Control-Allow-Origin: http://127.0.0.1:4173'
+          printf '%s\\n' "$allow" | grep -qi '^Access-Control-Allow-Headers: Content-Type'
+          reject="$(curl --silent --show-error -i -X OPTIONS \
+            -H 'Origin: https://untrusted.example' \
+            -H 'Access-Control-Request-Method: POST' \
+            -H 'Access-Control-Request-Headers: content-type' \
+            http://127.0.0.1:8787/run)"
+          printf '%s\\n' "$reject" | grep -qi '^HTTP/.* 403'
+          if printf '%s\\n' "$reject" | grep -qi '^Access-Control-Allow-Origin: https://untrusted.example'; then
+            echo 'SECURITY FAILURE: unrelated browser origin allowed'
+            exit 1
+          fi
       - name: Researcher interaction against truly fitted R differential expression
         run: npx playwright test tests/e2e/multiomics-live-r-to-zip.spec.js --workers=1
       - name: Preserve reproducible backend diagnostics and browser traces if unsuccessful
