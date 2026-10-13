@@ -1,0 +1,55 @@
+{
+  "schema": "pmx-multiomics-publication-evidence/v1",
+  "assembled_at": "2026-10-13",
+  "nominal_fdr": 0.05,
+  "scope": "Synthetic RNA-seq designs only. Not a general calibration or clinical validation.",
+  "reference_runs": {
+    "PR52": {
+      "pr": "https://github.com/rberrah/rberrah.github.io/pull/52",
+      "commit": "7a1ed125c50872f9e3b2c01c6cdad58340c13d86",
+      "workflow_run": "https://github.com/rberrah/rberrah.github.io/actions/runs/38169339122",
+      "artifact_id": 11713857605,
+      "artifact_archive_sha256": "725e7a43179516831c26479ee045a2150853c7ec8a5215253fc642fb4ae6dd64",
+      "files": {
+        "r1_rnaseq_calibration_per_dataset.csv": "b1df5902fb9a5b8b536a9eb5aae113fe530eb2330d6f090ac6bad114bd70c8c4",
+        "r1_rnaseq_calibration_scenario_summary.csv": "b56cf4950aa598897e031b9bd7e8fc7c2b1ca49fc5260df953fd713bd6dd1eae",
+        "r1_rnaseq_calibration_manifest.json": "0f22b875a01f3cf8e6418026aaeb8dde10292bcb0b4b8d5b0be86bab2423e87e"
+      },
+      "executed_datasets": 400,
+      "executed_fits": 1200,
+      "confidence_intervals": "1000 bootstrap resamples of independent dataset-level FDP"
+    },
+    "PR75": {
+      "pr": "https://github.com/rberrah/rberrah.github.io/pull/75",
+      "commit": "8dfaae8526dfa07b971289bdb1b940d06a90d8bd",
+      "workflow_run": "https://github.com/rberrah/rberrah.github.io/actions/runs/38369835987",
+      "artifact_id": 11800297669,
+      "artifact_archive_sha256": "5280721095d4db87267520bdb052f70fa72913feb5ea592c8eebbcf4bb0417e3",
+      "files": {
+        "replicates.csv": "28120c68952f2bea4eee6e1a562ad7f7e34c70136643526c68f2e651d4c82444",
+        "scenario_summary.csv": "821eb50f86ff8bdc2ba958df8ed5b63ccc1d7ac1a524677d78ad2f19f147935b",
+        "manifest.json": "002c331cbd14ff3e594573c225778ceb404d67a0f9284996c39b25ce4dae8f69"
+      },
+      "executed_datasets": 300,
+      "executed_fits": 900,
+      "confidence_intervals": "Exact two-sided Clopper–Pearson 95% for any false call under complete null"
+    }
+  },
+  "software_outcomes": {
+    "source_stored_in_repo": true,
+    "full_replicate_csv_stored_in_this_folder": false,
+    "action_artifacts_expire": true,
+    "biological_external_validation": false,
+    "routine_nominal_fdr_5_percent_control_demonstrated": false,
+    "end_to_end_published_study_replication": false,
+    "independent_human_usability_validation": false,
+    "clinical_validation": false,
+    "journal_accepted": false
+  },
+  "notes": [
+    "Summary cells are transcribed from the two workflow artifacts after independent Python recomputation from per-dataset CSVs.",
+    "The archived summary does not substitute for the full per-dataset records; retrieve and permanently preserve original zip artifacts before GitHub retention expires.",
+    "PR52 and PR75 are independent simulation campaigns, not patient data, and do not establish a clinical effect or universal inferential calibration.",
+    "No DOI has been minted or asserted."
+  ]
+}
