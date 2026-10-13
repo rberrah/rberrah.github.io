@@ -6,9 +6,20 @@ or_else <- function(x, y) {
   if (is.null(x) || !length(x) || (length(x) == 1L && is.na(x))) y else x
 }
 
-source(file.path("multiomics-engine", "advanced_methods.R"), local = TRUE)
-source(file.path("multiomics-engine", "reference_full_results.R"), local = TRUE)
-source(file.path("multiomics-engine", "external_validation.R"), local = TRUE)
+# plumber::plumb() evaluates server.R from its own directory, whereas
+# Rscript-based tests source it from the repository root. Resolve dependency
+# paths explicitly in both supported working directories; otherwise the
+# live /health and /run API cannot even start.
+reference_backend_dir <- if(file.exists(file.path("multiomics-engine","advanced_methods.R"))) {
+  "multiomics-engine"
+} else if(file.exists("advanced_methods.R")) {
+  "."
+} else {
+  stop("Cannot locate local multiomics-engine R dependencies. Start the backend from the repository root.",call.=FALSE)
+}
+source(file.path(reference_backend_dir, "advanced_methods.R"), local = TRUE)
+source(file.path(reference_backend_dir, "reference_full_results.R"), local = TRUE)
+source(file.path(reference_backend_dir, "external_validation.R"), local = TRUE)
 
 normalise_text <- function(x) trimws(as.character(or_else(x, "")))
 
