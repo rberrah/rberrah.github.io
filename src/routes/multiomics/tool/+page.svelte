@@ -1056,8 +1056,16 @@
       return;
     const layer = omicLayers.find((key) => Boolean(files[key]));
     if (!layer) return;
+    // File selection is asynchronous: a fast researcher can click here while
+    // file.text() is still being parsed. Never silently lose that click or
+    // construct metadata from a stale/empty sample-column list.
+    const selectedSource = files[layer];
+    if (!matrixInfo[layer].sampleIds.length || matrixInfo[layer].error)
+      await inspectMatrix(layer, selectedSource);
+    if (files[layer] !== selectedSource || files.metadata) return;
     const assays = matrixInfo[layer].sampleIds;
-    if (!assays.length || assays.some((id) => !id) || new Set(assays).size !== assays.length) {
+    if (matrixInfo[layer].error || !assays.length ||
+        assays.some((id) => !id) || new Set(assays).size !== assays.length) {
       analysisError = t('Colonnes de mesures absentes ou dupliquées. Corrigez le fichier avant la création du tableau.', 'Missing or duplicate assay IDs. Correct the matrix before creating a sample sheet.');
       return;
     }
