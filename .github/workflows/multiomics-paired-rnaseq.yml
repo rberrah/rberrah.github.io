@@ -6,6 +6,7 @@ on:
       - 'multiomics-engine/paired_rnaseq_reference.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_paired_rnaseq_backend.R'
+      - 'multiomics-engine/tests/test_public_airway_paired_backend.R'
       - '.github/workflows/multiomics-paired-rnaseq.yml'
   workflow_dispatch:
 
@@ -29,7 +30,7 @@ jobs:
             missing <- extras[!vapply(extras,requireNamespace,logical(1),quietly=TRUE)]
             if(length(missing))install.packages(missing,repos="https://cloud.r-project.org")
             stopifnot(identical(as.character(BiocManager::version()),"3.22"))
-            bioc <- c("DESeq2","edgeR","limma")
+            bioc <- c("DESeq2","edgeR","limma","airway")
             missing_bioc <- bioc[!vapply(bioc,requireNamespace,logical(1),quietly=TRUE)]
             if(length(missing_bioc))BiocManager::install(missing_bioc,update=FALSE,ask=FALSE,quiet=TRUE)
             stopifnot(all(vapply(c(extras,bioc),requireNamespace,logical(1),quietly=TRUE)))
@@ -44,6 +45,18 @@ jobs:
           '
       - name: Real 4-pair DESeq2/limma-voom replay plus unbalanced and confounded cases
         run: Rscript multiomics-engine/tests/test_paired_rnaseq_backend.R
+      - name: Public Airway GSE52778 genuine paired-reference backend and native DESeq2 comparison
+        env:
+          PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
+        run: Rscript multiomics-engine/tests/test_public_airway_paired_backend.R
+      - name: Preserve reproducible public biological pairing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: paired-airway-GSE52778-true-backend-evidence
+          path: /tmp/paired-airway-evidence/
+          if-no-files-found: warn
+          retention-days: 60
       - name: Assert Plumber imports remain operational
         run: |
           Rscript -e 'p<-plumber::plumb("multiomics-engine/server.R");stopifnot(inherits(p,"Plumber"));cat("PAIRED R PLUMBER PASS\n")'
