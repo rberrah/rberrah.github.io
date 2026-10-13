@@ -29,7 +29,7 @@ jobs:
         with:
           repository: rberrah/rberrah.github.io
           # Explicit pin: never silently test an unrelated backend revision.
-          ref: cbc8377875372cd8f9227289314c71b95f18cd97
+          ref: 2dc5b9a31783fc073b458f8b48bbaaad47f5a84c
           path: actual-r-backend
       - uses: actions/setup-node@v5
         with:
