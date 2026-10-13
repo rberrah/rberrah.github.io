@@ -72,7 +72,7 @@ dds<-DESeq2::DESeqDataSetFromMatrix(
   countData=t(count_matrix),colData=col,design=~subject_id+condition)
 keep<-rowSums(DESeq2::counts(dds)>=10)>=2
 dds<-DESeq2::DESeq(dds[keep,],quiet=TRUE)
-direct<-DESeq2::results(dds,contrast=c("condition","treated","control"))
+direct<-DESeq2::results(dds,contrast=c("condition","treated","control"),alpha=.05)
 compare<-as.data.frame(direct)[match(de$feature,rownames(direct)),,drop=FALSE]
 stopifnot(identical(de$feature,rownames(compare)))
 for(k in c("baseMean","log2FoldChange","lfcSE","stat","pvalue","padj")){
