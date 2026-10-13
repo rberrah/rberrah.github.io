@@ -49,6 +49,9 @@ function members(data){
   return files;
 }
 test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CSV -> verifiable local ZIP',async({page})=>{
+  // This scenario runs ONLY when CI starts the genuine R Plumber service.
+  // General browser-only CI must not be required to install R or pretend to run it.
+  test.skip(process.env.PMX_E2E_REAL_R !== '1', 'Requires actual local R backend; run multiomics-live-r-to-zip.yml');
   test.setTimeout(165_000);
   const errors=[],requests=[],responses=[];
   page.on('pageerror',e=>errors.push(e.message));
