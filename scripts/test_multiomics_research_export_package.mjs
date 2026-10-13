@@ -144,6 +144,32 @@ const truncated=structuredClone(fullMethod);
 truncated.referenceBackend.methods.transcriptomics_differential_deseq2.referenceTableCsv=realCsv.slice(0,-16);
 await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch|Ragged scientific CSV/);
 
+// A too-large output exists ONLY on the local R operator's machine.
+// Its folder ID and SHA-256 must be disclosed, but the browser ZIP MUST
+// never assert that reference_r/ contains that omitted table.
+const localOnly={...result,referenceBackend:{methods:{transcriptomics_differential_deseq2:{
+  method:'DESeq2',status:'ok',top:Array.from({length:100},(_,i)=>({feature:'G'+i})),
+  referenceTableStatus:'too_large_archived_locally',referenceTableComplete:false,
+  referenceTableRows:30000,referenceTableExportedRows:0,referenceTableCsv:null,
+  referenceTableLocalArchiveId:'pmx_reference_abcdef1234',
+  referenceTableLocalArchiveSha256:'a'.repeat(64)
+}}}};
+const localZip=await buildResearchBundle({result:localOnly,portableProject:portable});
+assert.equal(localZip.manifest.r_reference_full_feature_tables_exported,false);
+assert.equal(localZip.manifest.reference_method_previews[0].local_archive_id,
+  'pmx_reference_abcdef1234');
+assert.equal(localZip.manifest.reference_method_previews[0].local_archive_sha256,
+  'a'.repeat(64));
+assert.match(methodsMarkdown(localOnly,'fr'),/HORS ZIP/);
+assert.match(methodsMarkdown(localOnly,'en'),/NOT included in this ZIP/);
+const noArchive=structuredClone(localOnly);
+const nt=noArchive.referenceBackend.methods.transcriptomics_differential_deseq2;
+nt.referenceTableStatus='too_large';
+nt.referenceTableLocalArchiveId=null;
+nt.referenceTableLocalArchiveSha256=null;
+const noArchiveZip=await buildResearchBundle({result:noArchive,portableProject:portable});
+assert.equal(noArchiveZip.manifest.reference_method_previews[0].local_archive_id,null);
+
 assert.ok(names.includes('verification/verifier_dossier.py'));
 assert.ok(names.includes('verification/LISEZ-MOI.txt'));
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'pmx-research-zip-'));
