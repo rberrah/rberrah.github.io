@@ -21,7 +21,7 @@
   )}/>
 </svelte:head>
 
-<main class="case" data-testid="omics-pop-pk-case">
+<div class="case" data-testid="omics-pop-pk-case">
   <a class="back" href={`${base}/domaines/`}><ArrowLeft size={16}/> {t('Retour aux cours interdisciplinaires','Back to interdisciplinary lessons')}</a>
   <header>
     <span class="eyebrow"><BookOpen size={16}/> {t('CAS PRATIQUE · DÉBUTANT','CASE STUDY · BEGINNER')}</span>
@@ -114,7 +114,7 @@
       <a class="btn btn-outline" href={`${base}/domaines/`}>{t('Revenir aux quatre cours','Back to the four lessons')}</a>
     </div>
   </section>
-</main>
+</div>
 
 <style>
   .case{max-width:1060px;margin:0 auto}
