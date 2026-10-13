@@ -1,0 +1,42 @@
+name: MultiOmics full R reference result export
+
+on:
+  pull_request:
+    paths:
+      - 'multiomics-engine/reference_full_results.R'
+      - 'multiomics-engine/server.R'
+      - 'multiomics-engine/tests/test_reference_full_results.R'
+      - 'multiomics-engine/tests/test_full_reference_engine_real_fits.R'
+      - '.github/workflows/multiomics-full-reference-export.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reference-export-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.2'
+          use-public-rspm: true
+      - name: Pure base-R full result integrity
+        run: Rscript multiomics-engine/tests/test_reference_full_results.R
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            bioc::DESeq2
+            bioc::edgeR
+            bioc::limma
+            any::statmod
+            any::jsonlite
+          cache-version: 1
+      - name: Genuine DESeq2, limma-voom and limma 168-gene export
+        run: |
+          Rscript multiomics-engine/tests/test_full_reference_engine_real_fits.R
+      - name: R frontend bridge is syntactically parseable
+        run: |
+          Rscript -e 'parse("multiomics-engine/server.R"); cat("BACKEND SERVER PARSE PASS\n")'
