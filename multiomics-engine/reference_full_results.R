@@ -31,14 +31,13 @@ reference_complete_table <- function(x, original_features=NA_integer_,
       referenceTableCsv=NULL,referenceTableMessage=
       "Full R result exceeds local HTTP payload budget. Obtain the fitted full CSV from the R analysis output directory. Top rows are only a preview."))
   }
-  lines <- character()
-  conn <- textConnection("lines",open="w",local=TRUE)
-  on.exit(if(isOpen(conn))close(conn),add=TRUE)
-  utils::write.csv(tab,file=conn,row.names=FALSE,na="NA",quote=TRUE,
-                   fileEncoding="")
-  close(conn)
-  csv <- paste0(paste(lines,collapse="\n"),"\n")
-  bytes <- nchar(csv,type="bytes")
+  # Stream to a temporary LOCAL CSV first, so a large payload can be rejected
+  # before an extra full-size string is allocated in the HTTP JSON response.
+  export_path <- tempfile("pmx_reference_full_",fileext=".csv")
+  on.exit(unlink(export_path),add=TRUE)
+  utils::write.csv(tab,file=export_path,row.names=FALSE,na="NA",quote=TRUE)
+  bytes <- unname(file.info(export_path)$size)
+  if(!is.finite(bytes))stop("Unable to determine full R CSV size.")
   if(bytes>max_wire_bytes){
     return(list(referenceTableStatus="too_large",referenceTableComplete=FALSE,
       referenceTableRows=all_rows,referenceTableExportedRows=0L,
@@ -47,6 +46,9 @@ reference_complete_table <- function(x, original_features=NA_integer_,
       referenceTableCsv=NULL,referenceTableBytes=bytes,
       referenceTableMessage="Result exceeds the configured HTTP payload budget; full R CSV remains available from local analysis files, not this API response."))
   }
+  csv <- readChar(export_path,nchars=as.integer(bytes),useBytes=TRUE)
+  if(!identical(nchar(csv,type="bytes"),as.integer(bytes)))
+    stop("Full R CSV readback mismatch.")
   if(!is.na(original_features)){
     original_features<-as.integer(original_features)
     if(original_features<all_rows)
