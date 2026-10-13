@@ -1748,12 +1748,15 @@
         : Boolean(columnMapping.outcome)));
   $: rnaConditionLevels = [...new Set(metadataRows.map(row =>
     String(row?.[columnMapping.condition] ?? '').trim()).filter(Boolean))].sort();
+  /** @type {any} */
+  let pairedAudit = null;
   $: pairedAudit = objective === 'groups' && designType === 'paired' && files.transcriptomics && files.metadata
     ? auditPairedRnaStudy({rows:metadataRows,mapping:columnMapping,
         matrixAssays:matrixInfo.transcriptomics.sampleIds,
         valueType:transcriptomicsValues}) : null;
+  /** @param {string} code */
   function pairedProblemMessage(code) {
-    const problems = {
+    const problems = /** @type {Record<string,string[]>} */ ({
       raw_counts_only:['Le modèle RNA-seq exige de vrais comptages bruts, pas des TPM/FPKM.', 'The RNA-seq model requires genuine raw counts, not TPM/FPKM.'],
       missing_columns:['Associez sujet, prélèvement, mesure, omique, groupe et type de prélèvement aux colonnes.', 'Map subject, sample, assay, omic, condition and sample type to the correct columns.'],
       missing_transcriptomics_rows:['Aucune ligne RNA reconnue dans les métadonnées.', 'No RNA sample rows recognized in metadata.'],
@@ -1762,7 +1765,7 @@
       two_conditions_only:['Deux conditions exactement sont nécessaires.', 'Exactly two conditions are required.'],
       min_four_pairs:['Au moins quatre paires biologiques sont nécessaires pour ce contrôle logiciel.', 'At least four biological pairs are required for this software guard.'],
       missing_pair:['Un sujet ne possède pas les deux conditions.', 'A subject is missing one of the paired conditions.']
-    };
+    });
     const text = problems[code] || ['Paires manquantes, identifiants doublonnés ou incohérents : vérifiez chaque sujet et chaque mesure.', 'Missing pairs or duplicate/inconsistent identifiers: check every subject and assay.'];
     return t(text[0],text[1]);
   }
