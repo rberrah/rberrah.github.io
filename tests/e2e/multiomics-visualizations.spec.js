@@ -130,6 +130,7 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
 
 test('MS peak-AUC long CSV can be uploaded directly with group metadata', async ({page})=>{
   await page.goto('/multiomics/tool');
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.pmxMultiomicsHydrated), {timeout:15000}).toBe('true');
   const header='feature_id,assay_id,auc,subject_id,sample_id,condition';
   const rows=[header];
   for (let i=0;i<8;i++)for(const f of ['CHEBI:24996','CHEBI:30031'])
@@ -137,7 +138,8 @@ test('MS peak-AUC long CSV can be uploaded directly with group metadata', async 
   await page.getByTestId('multiomics-ms-auc-upload').setInputFiles({
     name:'ms_auc_export.csv',mimeType:'text/csv',buffer:Buffer.from(rows.join('\n'))
   });
-  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/, {timeout: 15_000});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toHaveAttribute('data-import-state', 'ready', {timeout: 15_000});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/);
   await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/8 injections|8 injections/);
   await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
 });
