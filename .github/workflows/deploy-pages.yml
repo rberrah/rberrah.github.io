@@ -98,6 +98,7 @@ jobs:
             dist/a-propos/index.html \
             dist/communications/index.html \
             dist/communications/netpk-peprsn-2026/index.html \
+            dist/communications/residual-error-mipd-poster/index.html \
             dist/stats/index.html \
             dist/stats/tool/index.html \
             dist/multiomics/index.html \

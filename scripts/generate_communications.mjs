@@ -17,31 +17,33 @@ const labels = {
     intro: 'Posters and oral presentations, with source files and concise context.',
     all: 'All', posters: 'Posters', oral: 'Oral presentations', year: 'Year',
     allYears: 'All years', view: 'View', pdf: 'PDF', slides: 'Slides / PPTX',
-    publication: 'Related publication', upcoming: 'Upcoming', presented: 'Presented',
+    publication: 'Related publication', upcoming: 'Upcoming', presented: 'Presented', available: 'Available online',
     back: 'All communications', summary: 'Site summary', topics: 'Topics', files: 'Available files',
     download: 'Download', project: 'Related project', citation: 'Suggested citation',
     provenance: 'Source file maintained in the Communication repository.',
     language: 'Français', languageHref: '/communications/fr/', date: 'Date', place: 'Location',
     type: 'Type', authors: 'Authors', event: 'Event', poster: 'Poster', oralOne: 'Oral presentation',
-    originalLanguage: 'Original language', source: 'Source provenance', noResults: 'No communication matches these filters.'
+    originalLanguage: 'Original language', source: 'Source provenance', noResults: 'No communication matches these filters.',
+    undated: 'Undated', metadataMissing: 'Event and date not documented in the source file.'
   },
   fr: {
     htmlLang: 'fr', title: 'Communications scientifiques', eyebrow: 'Production scientifique',
     intro: 'Posters et communications orales, avec les fichiers sources et un contexte concis.',
     all: 'Toutes', posters: 'Posters', oral: 'Communications orales', year: 'Année',
     allYears: 'Toutes les années', view: 'Voir', pdf: 'PDF', slides: 'Slides / PPTX',
-    publication: 'Publication associée', upcoming: 'À venir', presented: 'Présentée',
+    publication: 'Publication associée', upcoming: 'À venir', presented: 'Présentée', available: 'Disponible en ligne',
     back: 'Toutes les communications', summary: 'Résumé du site', topics: 'Thèmes', files: 'Fichiers disponibles',
     download: 'Télécharger', project: 'Projet associé', citation: 'Citation proposée',
     provenance: 'Fichier source maintenu dans le dépôt Communication.',
     language: 'English', languageHref: '/communications/', date: 'Date', place: 'Lieu',
     type: 'Type', authors: 'Auteurs', event: 'Événement', poster: 'Poster', oralOne: 'Communication orale',
-    originalLanguage: 'Langue originale', source: 'Provenance', noResults: 'Aucune communication ne correspond à ces filtres.'
+    originalLanguage: 'Langue originale', source: 'Provenance', noResults: 'Aucune communication ne correspond à ces filtres.',
+    undated: 'Non daté', metadataMissing: 'Congrès et date non documentés dans le fichier source.'
   }
 };
 
 function formatDate(item, lang) {
-  if (!item.date) return String(item.year);
+  if (!item.date) return item.year ? String(item.year) : labels[lang].undated;
   const formatter = new Intl.DateTimeFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const start = formatter.format(new Date(`${item.date}T00:00:00Z`));
   if (!item.dateEnd || item.dateEnd === item.date) return start;
@@ -75,16 +77,21 @@ function card(item, lang) {
   const l = labels[lang];
   const base = lang === 'fr' ? '/communications/fr' : '/communications';
   const type = item.type === 'poster' ? l.poster : l.oralOne;
-  return `<article class="communication-card" data-communication data-type="${item.type}" data-year="${item.year}"><a class="communication-preview" href="${base}/${item.slug}/"><img src="${item.image}" alt="${escapeHtml(lang === 'fr' ? `Aperçu de ${item.title}` : `Preview of ${item.title}`)}" width="1600" height="900" loading="lazy"></a><div class="communication-card-body"><p class="communication-meta"><span>${type}</span><span>${item.year}</span><span class="status ${item.status}">${l[item.status]}</span></p><h2><a href="${base}/${item.slug}/">${escapeHtml(item.title)}</a></h2><p class="authors">${escapeHtml(item.authors.join(', '))}</p><p>${escapeHtml(item.event)}${item.location ? ` · ${escapeHtml(item.location)}` : ''}</p><div class="topic-list">${item.topics.slice(0, 4).map(topic => `<span>${escapeHtml(topic)}</span>`).join('')}</div><div class="links communication-actions"><a class="btn primary" href="${base}/${item.slug}/">${l.view}</a>${fileLinks(item, l, true)}</div></div></article>`;
+  const context = item.event
+    ? `${escapeHtml(item.event)}${item.location ? ` · ${escapeHtml(item.location)}` : ''}`
+    : l.metadataMissing;
+  const portrait = (item.imageHeight || 0) > (item.imageWidth || 0) ? ' portrait' : '';
+  return `<article class="communication-card" data-communication data-type="${item.type}" data-year="${item.year || 'undated'}"><a class="communication-preview${portrait}" href="${base}/${item.slug}/"><img src="${item.image}" alt="${escapeHtml(lang === 'fr' ? `Aperçu de ${item.title}` : `Preview of ${item.title}`)}" width="${item.imageWidth || 1600}" height="${item.imageHeight || 900}" loading="lazy"></a><div class="communication-card-body"><p class="communication-meta"><span>${type}</span><span>${item.year || l.undated}</span><span class="status ${item.status}">${l[item.status]}</span></p><h2><a href="${base}/${item.slug}/">${escapeHtml(item.title)}</a></h2><p class="authors">${escapeHtml(item.authors.join(', '))}</p><p>${context}</p><div class="topic-list">${item.topics.slice(0, 4).map(topic => `<span>${escapeHtml(topic)}</span>`).join('')}</div><div class="links communication-actions"><a class="btn primary" href="${base}/${item.slug}/">${l.view}</a>${fileLinks(item, l, true)}</div></div></article>`;
 }
 
 function indexPage(lang) {
   const l = labels[lang];
   const canonical = lang === 'fr' ? '/communications/fr/' : '/communications/';
-  const sorted = [...communications].sort((a, b) => (b.date || `${b.year}` ).localeCompare(a.date || `${a.year}`));
-  const years = [...new Set(sorted.map(item => item.year))].sort((a, b) => b - a);
+  const sorted = [...communications].sort((a, b) => (b.date || (b.year ? String(b.year) : '')).localeCompare(a.date || (a.year ? String(a.year) : '')));
+  const years = [...new Set(sorted.map(item => item.year).filter(Number.isInteger))].sort((a, b) => b - a);
+  const hasUndated = sorted.some(item => !item.year);
   const graph = sorted.map(item => ({ '@type': 'PresentationDigitalDocument', name: item.title, author: item.authors.map(name => ({ '@type': 'Person', name })), dateCreated: item.date, inLanguage: item.language, url: `__SITE_ORIGIN__/communications/${item.slug}/` }));
-  return `${head({ lang: l.htmlLang, title: l.title, description: l.intro, canonical, image: sorted[0]?.image, jsonLd: { '@context': 'https://schema.org', '@graph': graph } })}<body><a class="skip" href="#main">${lang === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>${nav('communications')}<main id="main" tabindex="-1"><div class="wrap page-heading communication-heading"><div><p class="eyebrow">${l.eyebrow}</p><h1>${l.title}</h1><p class="lede">${l.intro}</p></div><a class="language-link" href="${l.languageHref}" hreflang="${lang === 'fr' ? 'en' : 'fr'}">${l.language}</a></div><section class="wrap communication-browser" data-communications><div class="communication-filters" aria-label="${lang === 'fr' ? 'Filtres des communications' : 'Communication filters'}"><div class="segmented" role="group" aria-label="${l.type}"><button type="button" data-filter="all" aria-pressed="true">${l.all}</button><button type="button" data-filter="poster" aria-pressed="false">${l.posters}</button><button type="button" data-filter="oral" aria-pressed="false">${l.oral}</button></div><label>${l.year}<select data-year><option value="all">${l.allYears}</option>${years.map(year => `<option value="${year}">${year}</option>`).join('')}</select></label></div><p class="empty communication-empty" data-empty hidden>${l.noResults}</p><div class="communication-grid">${sorted.map(item => card(item, lang)).join('')}</div></section></main>${footer()}<script src="/assets/communications.js"></script></body></html>`;
+  return `${head({ lang: l.htmlLang, title: l.title, description: l.intro, canonical, image: sorted[0]?.image, jsonLd: { '@context': 'https://schema.org', '@graph': graph } })}<body><a class="skip" href="#main">${lang === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>${nav('communications')}<main id="main" tabindex="-1"><div class="wrap page-heading communication-heading"><div><p class="eyebrow">${l.eyebrow}</p><h1>${l.title}</h1><p class="lede">${l.intro}</p></div><a class="language-link" href="${l.languageHref}" hreflang="${lang === 'fr' ? 'en' : 'fr'}">${l.language}</a></div><section class="wrap communication-browser" data-communications><div class="communication-filters" aria-label="${lang === 'fr' ? 'Filtres des communications' : 'Communication filters'}"><div class="segmented" role="group" aria-label="${l.type}"><button type="button" data-filter="all" aria-pressed="true">${l.all}</button><button type="button" data-filter="poster" aria-pressed="false">${l.posters}</button><button type="button" data-filter="oral" aria-pressed="false">${l.oral}</button></div><label>${l.year}<select data-year><option value="all">${l.allYears}</option>${years.map(year => `<option value="${year}">${year}</option>`).join('')}${hasUndated ? `<option value="undated">${l.undated}</option>` : ''}</select></label></div><p class="empty communication-empty" data-empty hidden>${l.noResults}</p><div class="communication-grid">${sorted.map(item => card(item, lang)).join('')}</div></section></main>${footer()}<script src="/assets/communications.js"></script></body></html>`;
 }
 
 function detailPage(item, lang) {
@@ -93,7 +100,8 @@ function detailPage(item, lang) {
   const canonical = `${base}/${item.slug}/`;
   const type = item.type === 'poster' ? l.poster : l.oralOne;
   const languageName = item.language === 'en' ? (lang === 'fr' ? 'anglais' : 'English') : (lang === 'fr' ? 'français' : 'French');
-  const citation = `${item.authors.join(', ')}. ${item.title}. ${item.event}; ${item.year}${item.location ? `; ${item.location}` : ''}. ${type}.`;
+  const venue = [item.event, item.year, item.location].filter(Boolean).join('; ');
+  const citation = `${item.authors.join(', ')}. ${item.title}. ${venue ? `${venue}. ` : ''}${type}.`;
   const alternate = lang === 'fr' ? `/communications/${item.slug}/` : `/communications/fr/${item.slug}/`;
   const jsonLd = {
     '@context': 'https://schema.org', '@type': 'PresentationDigitalDocument', name: item.title,
@@ -104,7 +112,10 @@ function detailPage(item, lang) {
     contentUrl: item.pdf ? `__SITE_ORIGIN__${item.pdf}` : `__SITE_ORIGIN__${item.pptx}`,
     url: `__SITE_ORIGIN__${canonical}`
   };
-  return `${head({ lang: l.htmlLang, title: item.title, description: item.summary[lang], canonical, image: item.image, jsonLd })}<body><a class="skip" href="#main">${lang === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>${nav('communications')}<main id="main" tabindex="-1"><article class="wrap communication-detail"><div class="communication-detail-nav"><a href="${base}/">← ${l.back}</a><a href="${alternate}" hreflang="${lang === 'fr' ? 'en' : 'fr'}">${l.language}</a></div><header><p class="communication-meta"><span>${type}</span><span>${item.year}</span><span class="status ${item.status}">${l[item.status]}</span></p><h1>${escapeHtml(item.title)}</h1>${item.subtitle ? `<p class="lede">${escapeHtml(item.subtitle)}</p>` : ''}<p class="authors">${escapeHtml(item.authors.join(', '))}</p><p><strong>${l.event}:</strong> ${item.eventUrl ? `<a href="${item.eventUrl}">${escapeHtml(item.event)} <span aria-hidden="true">↗</span></a>` : escapeHtml(item.event)}</p><p>${formatDate(item, lang)}${item.location ? ` · ${escapeHtml(item.location)}` : ''}</p></header><figure class="communication-hero"><a href="${item.pdf || item.pptx}"><img src="${item.image}" alt="${escapeHtml(lang === 'fr' ? `Aperçu de ${item.title}` : `Preview of ${item.title}`)}" width="1600" height="900"></a><figcaption>${lang === 'fr' ? 'Aperçu du support original.' : 'Preview of the original presentation.'}</figcaption></figure><div class="communication-detail-grid"><section><h2>${l.summary}</h2><p>${escapeHtml(item.summary[lang])}</p><h2>${l.topics}</h2><div class="topic-list">${item.topics.map(topic => `<span>${escapeHtml(topic)}</span>`).join('')}</div></section><aside><dl class="communication-facts"><dt>${l.type}</dt><dd>${type}</dd><dt>${l.date}</dt><dd>${formatDate(item, lang)}</dd>${item.location ? `<dt>${l.place}</dt><dd>${escapeHtml(item.location)}</dd>` : ''}<dt>${l.originalLanguage}</dt><dd>${languageName}</dd></dl><h2>${l.files}</h2><div class="communication-downloads">${fileLinks(item, l)}</div>${item.relatedProject ? `<h2>${l.project}</h2><a href="${item.relatedProject.url}">${escapeHtml(item.relatedProject.label[lang])} <span aria-hidden="true">↗</span></a>` : ''}</aside></div><section class="communication-citation"><h2>${l.citation}</h2><p class="cite">${escapeHtml(citation)}</p><p class="small">${l.provenance}</p><details><summary>${l.source}</summary><p class="small"><code>${escapeHtml(item.sourceRepository)}/${escapeHtml(item.sourcePath)}</code><br><code>${escapeHtml(item.sourceSha)}</code></p></details></section></article></main>${footer()}</body></html>`;
+  const event = item.event
+    ? `<p><strong>${l.event}:</strong> ${item.eventUrl ? `<a href="${item.eventUrl}">${escapeHtml(item.event)} <span aria-hidden="true">↗</span></a>` : escapeHtml(item.event)}</p><p>${formatDate(item, lang)}${item.location ? ` · ${escapeHtml(item.location)}` : ''}</p>`
+    : `<p class="note">${l.metadataMissing}</p>`;
+  return `${head({ lang: l.htmlLang, title: item.title, description: item.summary[lang], canonical, image: item.image, jsonLd })}<body><a class="skip" href="#main">${lang === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>${nav('communications')}<main id="main" tabindex="-1"><article class="wrap communication-detail"><div class="communication-detail-nav"><a href="${base}/">← ${l.back}</a><a href="${alternate}" hreflang="${lang === 'fr' ? 'en' : 'fr'}">${l.language}</a></div><header><p class="communication-meta"><span>${type}</span><span>${item.year || l.undated}</span><span class="status ${item.status}">${l[item.status]}</span></p><h1>${escapeHtml(item.title)}</h1>${item.subtitle ? `<p class="lede">${escapeHtml(item.subtitle)}</p>` : ''}<p class="authors">${escapeHtml(item.authors.join(', '))}</p>${event}</header><figure class="communication-hero"><a href="${item.pdf || item.pptx}"><img src="${item.image}" alt="${escapeHtml(lang === 'fr' ? `Aperçu de ${item.title}` : `Preview of ${item.title}`)}" width="${item.imageWidth || 1600}" height="${item.imageHeight || 900}"></a><figcaption>${lang === 'fr' ? 'Aperçu du support original.' : 'Preview of the original presentation.'}</figcaption></figure><div class="communication-detail-grid"><section><h2>${l.summary}</h2><p>${escapeHtml(item.summary[lang])}</p>${item.notes ? `<p class="note">${escapeHtml(item.notes[lang])}</p>` : ''}<h2>${l.topics}</h2><div class="topic-list">${item.topics.map(topic => `<span>${escapeHtml(topic)}</span>`).join('')}</div></section><aside><dl class="communication-facts"><dt>${l.type}</dt><dd>${type}</dd><dt>${l.date}</dt><dd>${formatDate(item, lang)}</dd>${item.location ? `<dt>${l.place}</dt><dd>${escapeHtml(item.location)}</dd>` : ''}<dt>${l.originalLanguage}</dt><dd>${languageName}</dd></dl><h2>${l.files}</h2><div class="communication-downloads">${fileLinks(item, l)}</div>${item.relatedProject ? `<h2>${l.project}</h2><a href="${item.relatedProject.url}">${escapeHtml(item.relatedProject.label[lang])} <span aria-hidden="true">↗</span></a>` : ''}</aside></div><section class="communication-citation"><h2>${l.citation}</h2><p class="cite">${escapeHtml(citation)}</p><p class="small">${l.provenance}</p><details><summary>${l.source}</summary><p class="small"><code>${escapeHtml(item.sourceRepository)}/${escapeHtml(item.sourcePath)}</code><br><code>${escapeHtml(item.sourceSha)}</code></p></details></section></article></main>${footer()}</body></html>`;
 }
 
 async function emit(relative, content) {

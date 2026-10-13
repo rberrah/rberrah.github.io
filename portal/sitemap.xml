@@ -3,15 +3,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>__SITE_ORIGIN__/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/tools/</loc><lastmod>2026-09-21</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/publications/</loc><lastmod>2026-09-21</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/communications/</loc><lastmod>2026-10-12</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/publications/</loc><lastmod>2026-10-13</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/communications/</loc><lastmod>2026-10-13</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/netpk-peprsn-2026/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/missed-dose-iatdmct-sfpt-2026/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/autonomous-pharmacometrics-page-2026/</loc><lastmod>2026-10-12</lastmod></url>
-  <url><loc>__SITE_ORIGIN__/communications/fr/</loc><lastmod>2026-10-12</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/communications/residual-error-mipd-poster/</loc><lastmod>2026-10-13</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/communications/fr/</loc><lastmod>2026-10-13</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/fr/netpk-peprsn-2026/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/fr/missed-dose-iatdmct-sfpt-2026/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/communications/fr/autonomous-pharmacometrics-page-2026/</loc><lastmod>2026-10-12</lastmod></url>
+  <url><loc>__SITE_ORIGIN__/communications/fr/residual-error-mipd-poster/</loc><lastmod>2026-10-13</lastmod></url>
   <url><loc>__SITE_ORIGIN__/a-propos/</loc><lastmod>2026-10-12</lastmod></url>
   <url><loc>__SITE_ORIGIN__/contact/</loc><lastmod>2026-09-21</lastmod></url>
   <url><loc>__SITE_ORIGIN__/citer/</loc><lastmod>2026-09-21</lastmod></url>

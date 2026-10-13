@@ -14,6 +14,9 @@ const pendingPaths = new Set(pendingCommunications.map(item => item.sourcePath))
 for (const item of communications) {
   assert(!pendingPaths.has(item.sourcePath), `${item.sourcePath} cannot be both published and pending`);
   assert(item.pdf || item.pptx, `${item.slug} needs a readable source file`);
+  if (item.date) assert(item.year && item.event, `${item.slug} needs a year and event when a date is provided`);
+  if (!item.event || !item.year) assert(item.notes, `${item.slug} must explain missing event metadata`);
+  if (!item.event) assert(!item.eventUrl, `${item.slug} cannot have an event URL without an event`);
   if (item.dateEnd) assert(item.date && item.dateEnd >= item.date, `${item.slug} has an invalid date range`);
   for (const value of [item.pdf, item.pptx, item.image].filter(Boolean)) {
     assert(!/\s/.test(value), `${item.slug} has an unsafe public path: ${value}`);

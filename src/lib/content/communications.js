@@ -12,19 +12,21 @@ export const communicationSchema = z.object({
   authors: z.array(z.string().min(1)).min(1),
   presenter: z.string().optional(),
   affiliations: z.array(z.string().min(1)).default([]),
-  event: z.string().min(1),
+  event: z.string().min(1).optional(),
   eventUrl: z.string().url().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   dateEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  year: z.number().int().min(1900),
+  year: z.number().int().min(1900).optional(),
   location: z.string().optional(),
   language: z.enum(['en', 'fr']),
   summary: localizedText,
   topics: z.array(z.string().min(1)).min(1),
-  status: z.enum(['presented', 'upcoming']),
+  status: z.enum(['presented', 'upcoming', 'available']),
   pdf: z.string().startsWith('/').optional(),
   pptx: z.string().startsWith('/').optional(),
   image: z.string().startsWith('/').optional(),
+  imageWidth: z.number().int().positive().optional(),
+  imageHeight: z.number().int().positive().optional(),
   sourceRepository: z.string().min(1),
   sourcePath: z.string().min(1),
   sourceSha: z.string().regex(/^sha256:[a-f0-9]{64}$/),
@@ -148,6 +150,42 @@ export const communications = z.array(communicationSchema).parse([
       label: { en: 'PAGE 2026 conference abstract', fr: 'Résumé de conférence PAGE 2026' },
       url: 'https://www.page-meeting.org/Abstracts/toward-autonomous-pharmacometrics-a-multi-agent-framework-for-structure-discovery-covariate-selection-and-gray-box-modeling/'
     }
+  },
+  {
+    id: 'residual-error-mipd-poster',
+    slug: 'residual-error-mipd-poster',
+    type: 'poster',
+    title: 'Impact of Residual Error Handling on Model Informed Precision Dosing and AUC Calculation',
+    authors: ['Racym Berrah', 'Mélanie Labriffe', 'Pierre Marquet', 'Caroline Monchaud', 'Jean-Baptiste Woillard'],
+    presenter: 'Racym Berrah',
+    affiliations: [
+      'Pharmacology & Transplantation, INSERM U1248, University of Limoges',
+      'Department of Pharmacology, Toxicology and Pharmacovigilance, CHU Limoges',
+      'FHU SUPORT, Limoges, France'
+    ],
+    language: 'en',
+    status: 'available',
+    summary: {
+      en: 'This poster explores how residual-error assumptions influence maximum a posteriori Bayesian estimation of AUC from rich tacrolimus, iohexol and mycophenolate mofetil profiles. It compares the published error models with scaled, 5%, 1% and near-zero proportional-error settings. The displayed analyses favor 1% or near-zero error in these datasets, while also reporting rare overfitting and warning that a near-zero setting attributes almost all observed variability to structural parameters rather than measurement noise.',
+      fr: 'Ce poster explore l’influence des hypothèses d’erreur résiduelle sur l’estimation bayésienne maximale a posteriori de l’AUC à partir de profils riches de tacrolimus, d’iohexol et de mycophénolate mofétil. Il compare les modèles d’erreur publiés à des erreurs proportionnelles réduites, fixées à 5 %, 1 % ou presque nulles. Les analyses affichées favorisent 1 % ou une erreur presque nulle dans ces jeux de données, tout en signalant de rares surajustements et le fait qu’une erreur presque nulle attribue l’essentiel de la variabilité observée aux paramètres structurels plutôt qu’au bruit de mesure.'
+    },
+    topics: ['residual error', 'MAP Bayesian estimation', 'AUC', 'precision dosing', 'tacrolimus', 'iohexol', 'mycophenolate mofetil'],
+    pdf: '/communications/files/residual-error-mipd-poster.pdf',
+    pptx: '/communications/files/residual-error-mipd-poster.pptx',
+    image: '/communications/previews/residual-error-mipd-poster.png',
+    imageWidth: 1600,
+    imageHeight: 2262,
+    sourceRepository: 'Communication',
+    sourcePath: 'Poster Residual.pptx',
+    sourceSha: 'sha256:5da8f4eff444f802a4bc4cf9d99fea396de829e7b7f0732cdcd40d2bbdaacd0f',
+    publication: {
+      label: { en: 'Related peer-reviewed article', fr: 'Article scientifique associé' },
+      url: 'https://doi.org/10.1097/FTD.0000000000001413'
+    },
+    notes: {
+      en: 'The source poster does not state its meeting or presentation date. It is therefore published here without inferred event metadata.',
+      fr: 'Le poster source ne précise ni son congrès ni sa date de présentation. Il est donc publié ici sans métadonnées d’événement déduites.'
+    }
   }
 ]);
 
@@ -160,16 +198,6 @@ export const pendingCommunications = z.array(pendingCommunicationSchema).parse([
     reason: {
       en: 'Superseded working version; v4 is the retained conference file.',
       fr: 'Version de travail remplacée ; la v4 est le fichier de conférence retenu.'
-    }
-  },
-  {
-    sourcePath: 'Poster Residual.pptx',
-    sourceSha: 'sha256:5da8f4eff444f802a4bc4cf9d99fea396de829e7b7f0732cdcd40d2bbdaacd0f',
-    estimatedType: 'poster',
-    title: 'Impact of Residual Error Handling on Model Informed Precision Dosing and AUC Calculation',
-    reason: {
-      en: 'The slides do not identify the meeting, year or public presentation status, and their multi-drug content does not match the PAGE 2025 tacrolimus-only abstract exactly.',
-      fr: 'Le support n’identifie ni le congrès, ni l’année, ni le statut public de la présentation, et son contenu multi-médicaments ne correspond pas exactement au résumé PAGE 2025 limité au tacrolimus.'
     }
   }
 ]);

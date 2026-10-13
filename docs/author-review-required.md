@@ -20,7 +20,7 @@ again by the author before a new hash is sealed.
 ## Communication content
 
 - `src/lib/content/communications.js`: verify metadata, bilingual site summaries,
-  publication status and the two pending classifications against the maintained
+  publication status and the remaining pending classification against the maintained
   source repository.
 - Generated pages under `portal/communications/`: verify PDF/PPTX/preview pairing
   and the suggested citations.
