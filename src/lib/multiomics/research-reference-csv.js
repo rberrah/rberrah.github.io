@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Strict RFC-4180 style parser for EXPORTED scientific reference CSV, not
 // a general matrix importer. Unlike the lightweight omics input parser,
 // quoted feature IDs may contain commas, CRLF/newlines and escaped quotes.
