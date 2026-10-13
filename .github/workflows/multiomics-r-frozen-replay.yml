@@ -39,7 +39,7 @@ jobs:
       - name: Capture real reference fits, exact package versions and renv lock
         run: |
           Rscript multiomics-engine/reproducibility/rnaseq_replay.R capture tmp/omics-r-frozen
-          git rev-parse HEAD > tmp/omics-r-frozen/source-commit.txt
+          git -c safe.directory="$PWD" rev-parse HEAD > tmp/omics-r-frozen/source-commit.txt
           sha256sum tmp/omics-r-frozen/* > tmp/omics-r-frozen/SHA256SUMS
       - name: Replay from a second R process in capture environment
         run: Rscript multiomics-engine/reproducibility/rnaseq_replay.R replay tmp/omics-r-frozen
