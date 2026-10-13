@@ -7,6 +7,7 @@ or_else <- function(x, y) {
 }
 
 source(file.path("multiomics-engine", "advanced_methods.R"), local = TRUE)
+source(file.path("multiomics-engine", "reference_full_results.R"), local = TRUE)
 source(file.path("multiomics-engine", "external_validation.R"), local = TRUE)
 
 normalise_text <- function(x) trimws(as.character(or_else(x, "")))
@@ -692,7 +693,7 @@ run_backend_analysis <- function(payload) {
             confirmatory_contract=identical(protocol$analysisIntent,"confirmatory")
           ), silent=TRUE)
           if (!inherits(fit_deseq,"try-error")) {
-            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]]))
+            methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","ok",c(list(top=top_frame(fit_deseq$results),confirmatoryInputContract=fit_deseq$confirmatory_input_contract,assayIntegrityContract=assay_contracts[[layer]]),reference_complete_table(fit_deseq$results,original_features=ncol(raw_blocks[[layer]]))))
           } else {
             methods[[paste0(layer,"_differential_deseq2")]] <- method_status("DESeq2","error",list(message=as.character(fit_deseq)))
           }
@@ -705,7 +706,7 @@ run_backend_analysis <- function(payload) {
         if (requireNamespace("edgeR", quietly=TRUE) && requireNamespace("limma", quietly=TRUE)) {
           fit_voom <- try(run_voom_counts(raw_blocks[[layer]], m, layer_dir, form), silent=TRUE)
           if (!inherits(fit_voom,"try-error")) {
-            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","ok",list(top=top_frame(fit_voom$results)))
+            methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","ok",c(list(top=top_frame(fit_voom$results)),reference_complete_table(fit_voom$results,original_features=ncol(raw_blocks[[layer]]))))
           } else {
             methods[[paste0(layer,"_differential_voom")]] <- method_status("edgeR + limma-voom","error",list(message=as.character(fit_voom)))
           }
@@ -758,7 +759,7 @@ run_backend_analysis <- function(payload) {
           terms <- c(varying_terms(m, covariates), "condition")
           fit <- try(run_limma_matrix(x, m, layer_dir, safe_formula(terms)), silent=TRUE)
           if (!inherits(fit,"try-error")) {
-            methods[[paste0(layer,"_differential")]] <- method_status("limma","ok",list(top=top_frame(fit$results)))
+            methods[[paste0(layer,"_differential")]] <- method_status("limma","ok",c(list(top=top_frame(fit$results)),reference_complete_table(fit$results,original_features=ncol(x))))
             if ("t" %in% names(fit$results)) {
               stat <- fit$results$t
               names(stat) <- fit$results$feature
@@ -784,6 +785,7 @@ run_backend_analysis <- function(payload) {
         methods[[paste0(layer,"_survival")]] <- if (!inherits(fit,"try-error")) {
           method_status("R survival::coxph Efron + cox.zph", "ok", list(
             top=top_frame(fit$results),
+            referenceTable=reference_complete_table(fit$results,original_features=ncol(x)),
             summary=fit$summary,
             note="R reference fitted; cox.zph and censoring assumptions still require independent review. No automatic confirmatory certificate."
           ))
@@ -833,6 +835,7 @@ run_backend_analysis <- function(payload) {
             "R lmerTest group-by-time slope difference",
             if(estimable>0L)"ok" else "blocked",
             list(top=top_frame(fit),
+                 referenceTable=reference_complete_table(fit,original_features=ncol(x)),
                  summary=c(attempt$summary,list(timeScale=attempt$timeScale)),
                  note="Feature-level errors, singular fits and random-slope fallbacks are disclosed. BH includes all submitted features; independent scientific design review remains mandatory.")
           )
