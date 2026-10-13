@@ -13,8 +13,8 @@ for(const width of [1280,390])for(const lang of ['fr','en']) {
     const before=await page.getByTestId('omics-signature-mape').innerText();
     await page.getByTestId('omics-pop-pk-beta').fill('0');
     await expect(page.getByTestId('omics-pop-pk-interpretation')).toBeVisible();
-    const after=await page.getByTestId('omics-signature-mape').innerText();
-    expect(before).not.toBe(after);
+    await expect(page.getByTestId('omics-pop-pk-beta')).toHaveValue('0');
+    await expect(page.getByTestId('omics-signature-mape')).not.toHaveText(before);
     await expect(page.getByTestId('omics-pop-pk-case')).toContainText(
       lang==='fr'?'entièrement synthétiques':'entirely synthetic');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
