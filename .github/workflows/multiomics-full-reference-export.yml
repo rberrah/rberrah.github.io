@@ -6,6 +6,7 @@ on:
       - 'multiomics-engine/reference_full_results.R'
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_reference_full_results.R'
+      - 'multiomics-engine/tests/test_reference_local_archive.R'
       - 'multiomics-engine/tests/test_full_reference_engine_real_fits.R'
       - 'multiomics-engine/tests/test_full_reference_backend_endpoint.R'
       - '.github/workflows/multiomics-full-reference-export.yml'
@@ -29,7 +30,7 @@ jobs:
         run: |
           Rscript -e '
             repos <- "https://cloud.r-project.org"
-            needed <- c("BiocManager","jsonlite","statmod","plumber")
+            needed <- c("BiocManager","jsonlite","statmod","plumber","digest")
             missing <- needed[!vapply(needed,requireNamespace,logical(1),quietly=TRUE)]
             if(length(missing)) install.packages(missing,repos=repos)
             stopifnot(identical(as.character(BiocManager::version()),"3.22"))
@@ -39,6 +40,8 @@ jobs:
               BiocManager::install(missing_bioc,ask=FALSE,update=FALSE,quiet=TRUE)
             stopifnot(all(vapply(c(needed,bioc),requireNamespace,logical(1),quietly=TRUE)))
           '
+      - name: Explicit local retention of oversized confidential reference CSV
+        run: Rscript multiomics-engine/tests/test_reference_local_archive.R
       - name: Genuine DESeq2, limma-voom and limma 168-gene export
         run: |
           Rscript multiomics-engine/tests/test_full_reference_engine_real_fits.R
