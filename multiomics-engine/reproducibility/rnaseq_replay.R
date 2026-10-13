@@ -34,8 +34,8 @@ study <- function(){
   counts <- matrix(0,n,p,dimnames=list(ids,features))
   for(i in seq_len(n)){
     mu <- mu_base*libraries[[i]]*exp(
-      (condition[[i]]==2L)*planted+
-      (batch[[i]]==2L)*batch_effect)
+      (as.character(condition[[i]])=="treated")*planted+
+      (as.character(batch[[i]])=="B2")*batch_effect)
     counts[i,] <- stats::rnbinom(p,mu=mu,size=8)
   }
   list(counts=counts,metadata=meta,
@@ -63,7 +63,6 @@ stopifnot(inherits(try(rnaseq_confirmatory_preflight(
 
 subdir <- tempfile(paste0("r1-",mode,"-"))
 dir.create(subdir,recursive=TRUE)
-on.exit(unlink(subdir,recursive=TRUE),add=TRUE)
 deseq <- run_deseq2_counts(counts,metadata,
   file.path(subdir,"deseq2"),formula,contrast,confirmatory_contract=TRUE)
 edger <- run_edger_ql_counts(counts,metadata,
@@ -134,3 +133,5 @@ if(mode=="capture"){
     paste(names(results),collapse=",")),file.path(out,"replay-result.txt"))
   cat("INDEPENDENT REPLAY PASS: identical package versions and numerical results (tolerance 1e-9)\n")
 }
+
+unlink(subdir,recursive=TRUE)
