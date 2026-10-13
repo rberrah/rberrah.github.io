@@ -76,8 +76,16 @@ api <- plumber::pr_filter(
     }
     res$setHeader("Access-Control-Allow-Origin", origin)
     res$setHeader("Vary", "Origin")
+    res$setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    res$setHeader("Access-Control-Allow-Headers", "Content-Type")
     if (identical(tolower(req$HTTP_ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK %||% ""), "true")) {
       res$setHeader("Access-Control-Allow-Private-Network", "true")
+    }
+    # Browsers cannot POST JSON until their OPTIONS preflight succeeds with
+    # the requesting origin's exact value. Never return "*" for local data.
+    if (identical(req$REQUEST_METHOD, "OPTIONS")) {
+      res$status <- 204
+      return(list(status="ok"))
     }
     plumber::forward()
   },
