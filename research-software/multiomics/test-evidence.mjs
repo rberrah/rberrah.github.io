@@ -54,6 +54,25 @@ assert.match(citation,/type:\s*software/);
 assert.match(citation,/license:\s*MIT/);
 assert.match(paper,/human authors[\s\S]*must inspect/);
 assert.match(paper,/statistical limitations/);
+const gates=JSON.parse(fs.readFileSync(path.join(HOME,'release-gates.json'),'utf8'));
+assert.equal(gates.schema,'pmx-multiomics-release-gates/v1');
+assert.equal(gates.automatic_publication_ready,false);
+assert.equal(gates.journal_submitted,false);
+assert.equal(gates.external_clinical_validation,false);
+const gateIDs=new Set(gates.items.map(x=>x.id));
+assert.equal(gateIDs.size,gates.items.length);
+for(const required of ['R_null_calibration','permanent_publication_archive',
+  'multiblock_added_value','novice_accessibility','author_final_review'])
+  assert.ok(gateIDs.has(required),'Missing release readiness criterion: '+required);
+assert.equal(gates.items.find(x=>x.id==='R_null_calibration').state,
+  'adverse_requires_investigation');
+for(const id of ['permanent_publication_archive','multiblock_added_value',
+  'novice_accessibility','author_final_review'])
+  assert.equal(gates.items.find(x=>x.id===id).state,'pending');
+const french=fs.readFileSync(path.join(HOME,'GUIDE_CHERCHEURS_DEBUTANTS_FR.md'),'utf8');
+for(const term of ['subject_id','sample_id','RNA-seq','multi-omique','données cliniques'])
+  assert.ok(french.includes(term),'Missing plain-language research safeguard: '+term);
+
 console.log('JOSS PAPER STRUCTURE: PASS (draft remains unsubmitted; human authorship review pending)');
 
 console.log('MULTIOMICS PAPER EVIDENCE: PASS (27 pinned cells, scientific claims remain restricted)');
