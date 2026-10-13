@@ -1058,7 +1058,8 @@ function(req, res) {
   # from unrelated web pages.
   res$setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
   res$setHeader("Access-Control-Allow-Headers", "Content-Type")
-  if (identical(req$REQUEST_METHOD, "OPTIONS")) return(list(status="ok"))
+  # IMPORTANT: an OPTIONS preflight must reach the outer origin_guard. Early
+  # returning here skipped Access-Control-Allow-Origin for browser JSON POST.
   plumber::forward()
 }
 
