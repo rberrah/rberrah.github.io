@@ -82,8 +82,15 @@ test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CS
   await page.getByLabel(/Mode backend R|R backend mode/).selectOption('required');
   await expect(page.getByTestId('multiomics-run')).toBeEnabled({timeout:20000});
   await page.getByTestId('multiomics-run').click();
+  // Browser exploratory rows can appear BEFORE the awaited R POST finishes.
+  // Wait for the RUN button to unlock, indicating completion of the WHOLE
+  // analysis, before asserting complete R rows or downloading the ZIP.
+  await expect(page.getByTestId('multiomics-run')).toBeEnabled({timeout:120_000});
+  const runError=page.locator('section.panel:has(button[data-testid="multiomics-run"]) > p.error');
+  if(await runError.isVisible())
+    throw Error('Reference R research execution failed: '+await runError.innerText());
   const resultPanel=page.getByTestId('multiomics-results');
-  await expect(resultPanel).toBeVisible({timeout:125_000});
+  await expect(resultPanel).toBeVisible({timeout:8000});
   await expect(page.getByTestId('multiomics-reference-preview-warning'))
     .toContainText('complet',{timeout:10000});
   expect(requests.length,'A real consented R /run request is required').toBe(1);
