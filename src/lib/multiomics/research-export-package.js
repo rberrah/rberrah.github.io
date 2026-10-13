@@ -3,7 +3,7 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
-import {parseDelimited} from './deterministic.js';
+import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
 
 const encoder=new TextEncoder();
@@ -65,7 +65,7 @@ export function fullReferenceMethodCsvs(result){
     if(table.referenceTableStatus!=='complete'||typeof table.referenceTableCsv!=='string')
       throw Error('Reference '+key+' falsely claims a complete table.');
     if(!/^[A-Za-z0-9_]+$/.test(key))throw Error('Unsafe R method name in archive');
-    const parsed=parseDelimited(table.referenceTableCsv);
+    const parsed=parseReferenceCsv(table.referenceTableCsv);
     if(!parsed.headers.includes('feature'))throw Error('Reference '+key+' has no original feature ID');
     if(!Number.isInteger(table.referenceTableRows)||table.referenceTableRows!==parsed.rows.length||
         table.referenceTableExportedRows!==parsed.rows.length)
