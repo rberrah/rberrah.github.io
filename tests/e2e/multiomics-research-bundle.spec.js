@@ -117,3 +117,57 @@ test('External researcher imports own RNA matrix without metadata, exports compl
   expect(contents['methods/methods.md']).toContain('Comprendre les colonnes');
   expect(errs).toEqual([]);
 });
+
+
+test('Researcher-provided long LC-MS AUC keeps original vendor rows and uncertain peak annotations in a reproducible ZIP',async({page})=>{
+  test.setTimeout(100_000);
+  const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  const cols=['feature_id','assay_id','peak_area','subject_id','sample_id',
+              'condition','batch','sample_type','mz','retention_time'];
+  const lines=[cols.join(',')];
+  for(let sample=1;sample<=12;sample++){
+    const sid='MS_SAMPLE_'+String(sample).padStart(2,'0');
+    const condition=sample<=6?'control':'treated';
+    for(let peak=1;peak<=25;peak++){
+      const area=Number((1200+peak*41+sample*(peak%5+4)+
+        (sample>6&&peak<=4?900:0)).toFixed(1));
+      lines.push([ 'UNKNOWN_PEAK_'+peak,sid,area,
+         'ANON_SUBJECT_'+sample,sid,condition,'RUN1','biological',
+         (100+peak*.37).toFixed(4),(4+peak*.13).toFixed(4)].join(','));
+    }
+  }
+  const vendorOriginal=lines.join('\n')+'\n';
+  await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
+  await page.getByTestId('multiomics-ms-auc-upload').setInputFiles({
+    name:'realistic_vendor_peak_auc.csv',mimeType:'text/csv',
+    buffer:Buffer.from(vendorOriginal,'utf8')
+  });
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toBeVisible({timeout:18000});
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
+  const [download]=await Promise.all([
+    page.waitForEvent('download',{timeout:25000}),
+    page.getByTestId('multiomics-research-bundle-download').click()
+  ]);
+  const zip=unzipStore(await fs.readFile(await download.path()));
+  const source=JSON.parse(zip['source/projet_reproductible.json']);
+  const output=JSON.parse(zip['provenance/analysis_complete.json']);
+  const manifest=JSON.parse(zip['provenance/manifest.json']);
+  expect(source.inputs.msOriginal.filename).toBe('realistic_vendor_peak_auc.csv');
+  expect(source.inputs.msOriginal.content).toBe(vendorOriginal);
+  expect(source.inputs.msOriginal.sha256).toMatch(/^[a-f0-9]{64}$/);
+  expect(source.inputs.metabolomics.content).toContain('UNKNOWN_PEAK_25');
+  expect(source.inputs.metadata.content).toContain('ANON_SUBJECT_12');
+  expect(output.msImportProvenance.originalSource.importFormat).toBe('long_ms_auc');
+  expect(output.engine.analysisMode).toBe('single_omic');
+  expect(output.layers.metabolomics.rows.length).toBeGreaterThan(0);
+  expect(manifest.browser_layer_rows.metabolomics).toBe(output.layers.metabolomics.rows.length);
+  expect(zip['tableaux/metabolomics.csv']).toContain('UNKNOWN_PEAK_25');
+  expect(manifest.confirmatory_certification).toBe(false);
+  expect(manifest.clinical_validation).toBe(false);
+  expect(errors).toEqual([]);
+});
