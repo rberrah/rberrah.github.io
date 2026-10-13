@@ -86,8 +86,8 @@
     <details>
       <summary>{t('Voir les équations et le plan de calcul','See the equations and analysis plan')}</summary>
       <p>{t(
-        'Vérité artificielle : AUC = 200 × exp(−β × S) avec une erreur log-normale, où S est une signature générée. Pour l’entraînement, on centre et standardise la signature en utilisant seulement les 80 sujets d’apprentissage. Le comparateur estime une exposition moyenne en échelle logarithmique ; l’autre modèle y ajoute une pente estimée par moindres carrés. Les 40 sujets de test ne servent à aucune estimation.',
-        'Planted truth: AUC = 200 × exp(−β × S) with log-normal noise, where S is a generated signature. Within training, the signature is centered and scaled using only the 80 training subjects. The comparator estimates a log-scale average exposure; the other model adds a least-squares covariate slope. The 40 test subjects are not used for estimation.'
+        'Vérité artificielle : AUC = 200 × exp(−β × S) avec une erreur log-normale, où S = (score brut − 2)/1,1 est la signature générée, standardisée sur sa distribution théorique. Pour l’entraînement, on centre et standardise la signature en utilisant seulement les 80 sujets d’apprentissage. Le comparateur estime une exposition moyenne en échelle logarithmique ; l’autre modèle y ajoute une pente estimée par moindres carrés. Les 40 sujets de test ne servent à aucune estimation.',
+        'Planted truth: AUC = 200 × exp(−β × S) with log-normal noise, where S = (raw score − 2)/1.1 is the generated signature on its theoretical scale. Within training, the signature is centered and scaled using only the 80 training subjects. The comparator estimates a log-scale average exposure; the other model adds a least-squares covariate slope. The 40 test subjects are not used for estimation.'
       )}</p>
       <p>{t(
         'Ce cours illustre uniquement une covariable sur l’exposition, dans des conditions simplifiées correspondant à une clairance apparente. Il ne réalise pas un ajustement NLME/SAEM, ne distingue pas F de CL et ne prédit aucune dose clinique.',
