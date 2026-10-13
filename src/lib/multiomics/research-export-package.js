@@ -57,6 +57,8 @@ export function fullReferenceMethodCsvs(result){
     if(!method||typeof method!=='object')continue;
     const table=method.referenceTable&&typeof method.referenceTable==='object'?
       method.referenceTable:method;
+    if(table.referenceTableComplete===true && method.status!=='ok')
+      throw Error('Reference '+key+' claims a complete fit with non-success status.');
     if(table.referenceTableComplete!==true){
       if(typeof table.referenceTableCsv==='string'&&table.referenceTableCsv.length)
         throw Error('Reference '+key+' has raw rows without verified completeness.');
