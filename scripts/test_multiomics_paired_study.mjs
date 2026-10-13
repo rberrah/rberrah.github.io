@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {auditPairedRnaStudy,validPrimaryRnaContrast} from
+import {auditPairedRnaStudy,validPrimaryRnaContrast,pairedExampleSampleSheetCsv} from
   '../src/lib/multiomics/paired-study-client.js';
 const mapping=Object.fromEntries(['subject_id','sample_id','assay_id','omic',
   'condition','sample_type'].map(k=>[k,k]));
@@ -37,4 +37,16 @@ assert.equal(validPrimaryRnaContrast(v.conditionNames,'treated','control'),true)
 assert.equal(validPrimaryRnaContrast(v.conditionNames,'control','treated'),true);
 assert.equal(validPrimaryRnaContrast(v.conditionNames,'control','control'),false);
 assert.equal(validPrimaryRnaContrast(v.conditionNames,'','control'),false);
+const example=pairedExampleSampleSheetCsv();
+const templateLines=example.trim().split('\n').map(x=>x.split(','));
+assert.equal(templateLines.length,9);
+assert.equal(templateLines[0].length,9);
+const templateMapping=Object.fromEntries(templateLines[0].map((h,i)=>[h,i]));
+const templateRows=templateLines.slice(1).map(parts=>Object.fromEntries(
+  templateLines[0].map((name,i)=>[name,parts[i]])));
+const templateAudit=run({rows:templateRows,matrixAssays:templateRows.map(x=>x.assay_id)});
+assert.equal(templateAudit.ok,true);
+assert.equal(templateAudit.nPairs,4);
+assert.equal(templateAudit.nBiologicalSamples,8);
+
 console.log('PAIRED RNA BEGINNER GUARD: PASS — four true biological pairs, IDs, missingness, QC, explicit contrast');
