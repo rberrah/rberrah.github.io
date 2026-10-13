@@ -53,6 +53,49 @@ their own methodological assumptions: DESeq2 [@love2014], edgeR
 use MOFA2 [@mofa2], but factor association alone is not a
 multi-omics synergy test.
 
+# State of the field
+
+MultiOmics builds upon established analysis engines rather than
+replacing them. Galaxy [@galaxy2024] supports reproducible workflows
+over a broad ecosystem of bioinformatics tools and offers much
+greater computational scope. MetaboAnalyst [@metaboanalyst2024] provides
+mature metabolomics processing, statistics and interpretation.
+mixOmics [@mixomics2017] and MOFA2 [@mofa2] provide sophisticated
+supervised and unsupervised integrative modeling in R/Bioconductor.
+
+The motivation for a separate interface is **not** a claim of improved
+statistical performance. It is the need for a specific, bilingual
+study-design and provenance layer bridging beginners to familiar
+reference methods, while restricting overconfident conclusions when
+subject identifiers, measurement types, contrasts or assumptions
+are unresolved. Whether this workflow improves actual error rates,
+analyst productivity or scientific reproducibility over those
+alternatives requires an independent comparative user study.
+Contributing to an existing platform remains a viable alternative,
+and this component should be evaluated on the merits of its
+study-design contracts and reuse, not on the number of algorithms.
+
+# Software design
+
+The principal design trade-off is between an immediately accessible
+browser and scientifically faithful reference execution. Lightweight
+deterministic JavaScript analyses support guided exploration without
+installing R. Analyses relying on DESeq2, edgeR, limma and multiblock
+R libraries are routed to an explicit R backend instead of
+mislabeling browser approximations as those methods. Metadata
+matching, independent-subject checks and eligibility checks precede
+a method call; output methods records distinguish requested,
+actually executed and unavailable engines.
+
+A strict, constrained confirmatory-input path coexists with a
+more permissive exploratory path. This avoids concealing unsupported
+assumptions from novices, while making clear that an input contract
+can never itself certify biological or statistical inference. The
+trade-off is additional implementation and maintenance complexity
+and a separately deployable R service. That operational cost is
+preferable to silently claiming that all analyses occur in a static
+browser.
+
 # Architecture and functionality
 
 The SvelteKit/JavaScript client serves the guided user experience and
@@ -108,6 +151,37 @@ container and `renv` restoration exercise reproduces the outputs
 of three reference methods on one synthetic RNA-seq study with a
 declared numerical tolerance, but does not validate all omics
 methods or biological conclusions.
+
+# Research impact statement
+
+The immediately demonstrated use is software and methodological
+verification: executed reference R fits, negative controls,
+study-design failure gates, pinned source and reproducible
+synthetic examples. In particular, two executed RNA-seq campaigns
+provide 2,100 fit-level reports with source hashes and
+independently rechecked results. These support *auditability* and
+expose unresolved statistical limitations; they do not establish
+improvement over Galaxy, MetaboAnalyst or mixOmics.
+
+The project also includes public-dataset benchmark workflows and
+guided learning materials. No independent external adoption,
+peer-reviewed biological discovery or deployment in a clinical
+decision workflow is claimed in this submission draft. Human
+research-use feedback and sustained external contributions need
+documentation before journal submission.
+
+# AI usage disclosure
+
+OpenAI ChatGPT (GPT-6) assisted in drafting this software-paper
+text, building the publication evidence audit and creating test
+scaffolding. The original repository has other development history,
+and this statement does **not** purport to enumerate every past
+contribution or tool used there. The submitting human authors
+must inspect, edit and independently validate this assisted
+material, confirm that they made and own the scientific and
+software design decisions, and complete the disclosure of all
+relevant tools and versions before submission. These author
+attestations are **pending**, not assumed.
 
 # Limitations and future research
 
