@@ -1,0 +1,31 @@
+name: MultiOmics paired study beginner accessibility
+
+on:
+  pull_request:
+    paths:
+      - 'src/lib/multiomics/paired-study-client.js'
+      - 'src/routes/multiomics/tool/+page.svelte'
+      - 'scripts/test_multiomics_paired_study.mjs'
+      - '.github/workflows/multiomics-paired-beginner.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  beginner-pairs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Paired subject counts, original IDs, missing biological pairs and contrast guards
+        run: node scripts/test_multiomics_paired_study.mjs
+      - name: Svelte accessibility, type checking and server binding
+        run: npm run check
+      - name: Static deployed-site build
+        run: npm run build
