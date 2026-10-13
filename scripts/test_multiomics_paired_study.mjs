@@ -24,8 +24,8 @@ const duplicate=structuredClone(rows);duplicate[1].sample_id=duplicate[0].sample
 assert.equal(run({rows:duplicate}).code,'shared_sample_between_conditions');
 const cell=structuredClone(rows);cell[1].condition='control';
 assert.equal(run({rows:cell}).code,'duplicate_pair_cell');
-const unrelated=structuredClone(rows);unrelated[1].subject_id='OTHER';
-assert.equal(run({rows:unrelated}).code,'min_four_pairs');
+const tooFew=rows.slice(0,6);
+assert.equal(run({rows:tooFew,matrixAssays:matrixAssays.slice(0,6)}).code,'min_four_pairs');
 const unknown=structuredClone(rows);unknown[1].sample_type='pooled_qc';
 assert.equal(run({rows:unknown}).code,'non_biological_sample');
 const noId=structuredClone(rows);noId[1].subject_id='';
