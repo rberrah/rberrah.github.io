@@ -1,0 +1,103 @@
+{
+  "schema": "pmx-multiomics-release-gates/v1",
+  "last_reviewed_on": "2026-10-13",
+  "status": "research_software_candidate_not_accepted",
+  "automatic_publication_ready": false,
+  "journal_submitted": false,
+  "external_clinical_validation": false,
+  "items": [
+    {
+      "id": "source_licence",
+      "label": "Open source with identified code/content licences",
+      "state": "evidenced",
+      "evidence": [
+        "LICENSE",
+        "LICENSE-CONTENT.md"
+      ]
+    },
+    {
+      "id": "software_component_citation",
+      "label": "Cite the research software separately from the host educational repository",
+      "state": "evidenced",
+      "evidence": [
+        "research-software/multiomics/CITATION.cff"
+      ]
+    },
+    {
+      "id": "reproducibility_R",
+      "label": "Restored reference R environment reproduces a frozen synthetic RNA-seq case",
+      "state": "evidenced_restricted",
+      "evidence": [
+        "https://github.com/rberrah/rberrah.github.io/actions/runs/38369112769"
+      ]
+    },
+    {
+      "id": "R_null_calibration",
+      "label": "Statistical nominal FDR control at 5% under tested RNA-seq scenarios",
+      "state": "adverse_requires_investigation",
+      "evidence": [
+        "https://github.com/rberrah/rberrah.github.io/issues/74",
+        "https://github.com/rberrah/rberrah.github.io/actions/runs/38169339122",
+        "https://github.com/rberrah/rberrah.github.io/actions/runs/38369835987"
+      ]
+    },
+    {
+      "id": "raw_replicates_integrity",
+      "label": "Original 2,100 R fit records and empirical study summaries independently SHA-checked",
+      "state": "evidenced",
+      "evidence": [
+        "https://github.com/rberrah/rberrah.github.io/actions/runs/38386416431"
+      ]
+    },
+    {
+      "id": "permanent_publication_archive",
+      "label": "Frozen software source and all benchmark CSVs preserved under a long-lived DOI",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "multiblock_added_value",
+      "label": "Multi-omics benefit over best mono-omic baselines on independent matched subjects",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "real_world_independent_reproduction",
+      "label": "New independent laboratory/cohort reproduces frozen preprocessing and conclusions",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "novice_accessibility",
+      "label": "Real novice users and keyboard/screen-reader testers have demonstrated usability",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "research_release_packaging",
+      "label": "Separately installable, versioned and maintained research software release",
+      "state": "pending",
+      "evidence": []
+    },
+    {
+      "id": "public_development_history",
+      "label": "Journal public-development-history and impact requirements independently verified",
+      "state": "to_verify",
+      "evidence": [
+        "https://github.com/rberrah/rberrah.github.io"
+      ]
+    },
+    {
+      "id": "author_final_review",
+      "label": "Human author review of all code, scientific claims, AI-assisted text and acknowledgements",
+      "state": "pending",
+      "evidence": []
+    }
+  ],
+  "notes": [
+    "This is an auditable readiness register; successful software CI never sets automatic_publication_ready to true.",
+    "Evidence present in an open PR does not mean code is deployed to main.",
+    "No novel biological association or clinical efficacy has been established by these synthetic benchmarks.",
+    "The 5% nominal FDR is not demonstrated by the two observed DESeq2 benchmark campaigns."
+  ]
+}
