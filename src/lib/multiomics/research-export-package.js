@@ -169,13 +169,13 @@ export function zipEntries(entries){
     requireThat(sourceBytes<=MAX_ZIP_BYTES,'Too much research data for browser ZIP; use individual exports');
     const crc=crc32(data),head=new Uint8Array(30+filename.length),v=new DataView(head.buffer);
     u32(v,0,0x04034b50);u16(v,4,20);u16(v,6,UTF8_FLAG);
-    u16(v,8,0);u16(v,10,0);u16(v,12,0);
+    u16(v,8,0);u16(v,10,0);u16(v,12,0x0021); // 1980-01-01, ZIP DOS epoch
     u32(v,14,crc);u32(v,18,data.length);u32(v,22,data.length);
     u16(v,26,filename.length);u16(v,28,0);head.set(filename,30);
     local.push(head,data);
     const center=new Uint8Array(46+filename.length),c=new DataView(center.buffer);
     u32(c,0,0x02014b50);u16(c,4,20);u16(c,6,20);
-    u16(c,8,UTF8_FLAG);u16(c,10,0);u16(c,12,0);u16(c,14,0);
+    u16(c,8,UTF8_FLAG);u16(c,10,0);u16(c,12,0);u16(c,14,0x0021);
     u32(c,16,crc);u32(c,20,data.length);u32(c,24,data.length);
     u16(c,28,filename.length);u16(c,30,0);u16(c,32,0);
     u16(c,34,0);u16(c,36,0);u32(c,38,0);u32(c,42,offset);
