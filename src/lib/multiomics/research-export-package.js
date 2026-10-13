@@ -47,6 +47,19 @@ export function referencePreviewAudit(result){
         local_archive_sha256:typeof table.referenceTableLocalArchiveSha256==='string' &&
           /^[a-f0-9]{64}$/.test(table.referenceTableLocalArchiveSha256)?
           table.referenceTableLocalArchiveSha256:null,
+        paired_design:m.pairedDesignContract&&
+          m.pairedDesignContract.pairing==='same_subject_two_conditions'
+          ? {
+              pairing:'same_subject_two_conditions',
+              design:m.pairedDesignContract.design||null,
+              independent_biological_subjects:m.pairedDesignContract.independent_biological_subjects??null,
+              biological_pairs:m.pairedDesignContract.biological_pairs??null,
+              model_samples:m.pairedDesignContract.model_samples??null,
+              residual_degrees_of_freedom:m.pairedDesignContract.residual_degrees_of_freedom??null,
+              contrast:m.pairedDesignContract.explicit_primary_contrast??null,
+              contrast_was_prespecified:m.pairedDesignContract.contrast_was_prespecified===true,
+              certified:false
+            }:null,
         note:complete
           ?'Complete original-identifier R table is included in reference_r/, separate from browser exploration.'
           :'Not a complete fitted R feature table; top-frame previews cannot be cited as a full differential analysis.'
@@ -207,6 +220,18 @@ export function methodsMarkdown(result,locale='fr'){
           '='+r.local_archive_id+', SHA-256='+print(r.local_archive_sha256) :
           ''));
     h.push('');
+    for(const r of rPreviews.filter(x=>x.paired_design)){
+      const design=r.paired_design;
+      h.push('**'+r.reported_name+' — '+t('plan apparié réel','actual paired design')+'**',
+        '- '+t('Modèle','Model')+': \`'+print(design.design)+'\`',
+        '- '+t('Unités biologiques indépendantes','Independent biological units')+': '+print(design.independent_biological_subjects),
+        '- '+t('Paires','Pairs')+': '+print(design.biological_pairs),
+        '- '+t('Prélèvements ajustés','Fitted samples')+': '+print(design.model_samples),
+        '- '+t('Degrés de liberté résiduels','Residual degrees of freedom')+': '+print(design.residual_degrees_of_freedom),
+        '- '+t('Contraste (comparaison vs référence)','Contrast (comparison vs reference)')+': '+print(design.contrast),
+        '- '+t('Contraste déclaré avant calcul','Contrast declared before fitting')+': '+(design.contrast_was_prespecified?'yes':'no'),
+        '- '+t('Certification scientifique automatique','Automatic scientific certification')+': **non / no**','');
+    }
     if(rPreviews.some(r=>r.reference_export_status==='too_large_archived_locally'))
       h.push('> '+t('Des résultats R dépassant la limite JSON ont été conservés UNIQUEMENT sur le disque du backend local dans le dossier défini par PMX_MULTIOMICS_RESULTS_DIR. Ils ne sont PAS inclus dans ce ZIP. Récupérer le fichier fitted_reference.csv dans le sous-dossier ID indiqué et vérifier le SHA-256.',
         'Oversized R results were retained ONLY in the R backend operator\'s local PMX_MULTIOMICS_RESULTS_DIR. They are NOT included in this ZIP. Retrieve fitted_reference.csv from the recorded folder ID and verify SHA-256.'),'');
