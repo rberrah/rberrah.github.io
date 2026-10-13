@@ -130,12 +130,23 @@ const fullMethod={...result,referenceBackend:{methods:{transcriptomics_different
   referenceTableComplete:true,referenceTableStatus:'complete',
   referenceTableRows:165,referenceTableExportedRows:165,
   referenceTableOriginalFeatures:180,referenceTableExcludedBeforeFit:15,
+  pairedDesignContract:{
+    pairing:'same_subject_two_conditions',design:'~ subject_id + condition',
+    independent_biological_subjects:4,biological_pairs:4,model_samples:8,
+    residual_degrees_of_freedom:3,
+    explicit_primary_contrast:['condition','treated','control'],
+    contrast_was_prespecified:true,certified:false
+  },
   referenceTableCsv:realCsv,referenceTableBytes:Buffer.byteLength(realCsv)
 }},runtime:{RVersion:'4.5.2'}}};
 const fullBundle=await buildResearchBundle({result:fullMethod,portableProject:portable});
 assert.equal(fullBundle.manifest.r_reference_full_feature_tables_exported,true);
 assert.equal(fullBundle.manifest.r_reference_full_tables[0].rows,165);
 assert.match(methodsMarkdown(fullMethod,'en'),/reference_r/);
+assert.match(methodsMarkdown(fullMethod,'fr'),/Unités biologiques indépendantes.*4/);
+assert.match(methodsMarkdown(fullMethod,'en'),/Fitted samples.*8/);
+assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.biological_pairs,4);
+assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.certified,false);
 const failedFit=structuredClone(fullMethod);
 failedFit.referenceBackend.methods.transcriptomics_differential_deseq2.status='blocked';
 await assert.rejects(buildResearchBundle({result:failedFit,portableProject:portable}),
