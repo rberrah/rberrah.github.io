@@ -113,6 +113,9 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
+  /** State is observable independently of the translated message. */
+  let msImportState = 'idle'; // idle | loading | parsed | ready | error
+  let msImportSequence = 0;
   /** Original vendor CSV/TSV remains unchanged for provenance and re-export. */
   /** @type {File|null} */
   let msOriginalFile = null;
@@ -567,7 +570,9 @@
       confirmIndependentAssays = false;
       exploratorySheetGenerated = false;
     }
+    const currentMsImport = layer === 'metabolomics' ? ++msImportSequence : msImportSequence;
     if (layer === 'metabolomics') {
+      msImportState = file ? 'loading' : 'idle';
       msOriginalFile = file;
       msAnnotationCsv = '';
       msAnnotationFields = [];
@@ -581,7 +586,10 @@
       await inspectMetadata(file);
     } else if (layer === 'metabolomics' && file) {
       try {
-        const converted = convertMsAucExport(await file.text());
+        const sourceText = await file.text();
+        if (currentMsImport !== msImportSequence) return;
+        const converted = convertMsAucExport(sourceText);
+        msImportState = 'parsed';
         msAnnotationCsv = converted.annotationsCsv || '';
         msAnnotationFields = converted.annotationColumns || [];
         msImportFormat = converted.format;
@@ -623,7 +631,12 @@
             ? t('Aires de pics MS importées : les colonnes m/z, RT et annotations sont conservées séparément et non utilisées comme intensités. Fournissez les métadonnées des échantillons.', 'MS peak areas imported: m/z, RT and annotations are retained separately and not treated as intensities. Upload sample metadata.')
             : t('Matrice chargée directement. Vérifiez si ses valeurs représentent réellement des aires de pics ou des intensités déjà transformées.', 'Matrix loaded directly. Verify whether values represent raw peak areas or already transformed intensities.');
         await inspectMatrix(layer, matrix);
+        if (currentMsImport !== msImportSequence) return;
+        if (matrixInfo.metabolomics?.error) throw new Error(matrixInfo.metabolomics.error);
+        msImportState = 'ready';
       } catch (error) {
+        if (currentMsImport !== msImportSequence) return;
+        msImportState = 'error';
         files = { ...files, metabolomics: null };
         msOriginalFile = null;
         msAnnotationCsv = '';
@@ -2416,7 +2429,13 @@
   {#if exploratorySheetGenerated}
     <p class="ms-import-message" data-testid="multiomics-generated-sheet-notice">{t('Tableau créé à partir de votre déclaration : identifiants conservés, aucun groupe inféré. Les résultats restent descriptifs.', 'Sample sheet created from your declaration: IDs preserved, no groups inferred. Results remain descriptive.')}</p>
   {/if}
-  {#if msImportMessage}<p class="ms-import-message" data-testid="multiomics-ms-auc-import-status">{msImportMessage}</p>{/if}
+  <p class="ms-import-message" role="status" aria-live="polite" data-testid="multiomics-ms-auc-import-status" data-import-state={msImportState}>
+    {#if msImportState === 'loading'}{t('Lecture du fichier MS…', 'Reading MS file…')}
+    {:else if msImportState === 'parsed'}{t('Fichier MS analysé : vérification des échantillons…', 'MS file parsed: validating samples…')}
+    {:else if msImportState === 'ready'}{msImportMessage}
+    {:else if msImportState === 'error'}{t('Échec de l’import MS : ', 'MS import failed: ')}{analysisError}
+    {/if}
+  </p>
   {#if singleOmic}<p class="ms-import-message" data-testid="multiomics-single-omic-notice">{t('Mode omique unique : exploration, groupes, temps ou outcome selon votre plan. Aucune intégration inter-omique ne sera calculée.', 'Single-omics mode: exploration, groups, time or outcome, depending on the study. No cross-omics integration will be computed.')}</p>{/if}
   {#if msOriginalFile && msAnnotationCsv}
     <div class="ms-import-message" data-testid="multiomics-ms-annotations-preserved">
