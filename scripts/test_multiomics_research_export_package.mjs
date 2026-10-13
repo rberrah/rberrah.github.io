@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {parseReferenceCsv} from '../src/lib/multiomics/research-reference-csv.js';
 import {File} from 'node:buffer';
 import {createPortableProject} from '../src/lib/multiomics/portable-project.js';
 import {buildResearchBundle,fullLayerCsv,methodsMarkdown,zipEntries} from '../src/lib/multiomics/research-export-package.js';
@@ -113,6 +114,15 @@ assert.equal(refArchive.manifest.reference_method_previews.length,1);
 assert.equal(refArchive.manifest.reference_method_previews[0].preview_rows,100);
 assert.equal(refArchive.manifest.reference_method_previews[0].complete_reference_table_exported,false);
 
+const specialCsv = 'feature,pvalue,padj\r\n"gene,""quoted""\nline",0.015,NA\r\nGENE2,0,0\r\n';
+const specialParsed=parseReferenceCsv(specialCsv);
+assert.equal(specialParsed.rows.length,2);
+assert.equal(specialParsed.rows[0].feature,'gene,"quoted"\nline');
+assert.equal(specialParsed.rows[0].padj,'NA');
+assert.equal(specialParsed.rows[1].pvalue,'0');
+assert.throws(()=>parseReferenceCsv('feature,pvalue\n"bad\n'),/Unclosed/);
+assert.throws(()=>parseReferenceCsv('feature,pvalue\nG1,0.1,extra\n'),/Ragged/);
+assert.throws(()=>parseReferenceCsv('feature,feature\nG1,x\n'),/duplicate/);
 const realCsv = ['feature,pvalue,padj', ...Array.from({length:165},(_,i)=>
   ['GENE_'+String(i+1),0.01,0.04].join(','))].join('\n')+'\n';
 const fullMethod={...result,referenceBackend:{methods:{transcriptomics_differential_deseq2:{
