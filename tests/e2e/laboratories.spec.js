@@ -251,10 +251,14 @@ test('particle selection, draggable exact-concentration probe, slow motion and d
   await scene.evaluate(node => node.scrollIntoView({ block: 'start' }));
   const width = await scene.evaluate(node => node.clientWidth), g = sceneLayout(width, 'distribution');
   const sceneBox = await scene.boundingBox();
-  const probeBox = await page.getByRole('button', { name: 'Move concentration probe' }).boundingBox();
+  const probe = page.getByRole('button', { name: 'Move concentration probe' });
+  const probeBox = await probe.boundingBox();
+  const target = { x: sceneBox.x + g.rooms.central.x + g.rooms.central.w * .5, y: sceneBox.y + g.rooms.central.y + g.rooms.central.h * .5 };
   await page.mouse.move(probeBox.x + probeBox.width / 2, probeBox.y + probeBox.height / 2);
   await page.mouse.down();
-  await page.mouse.move(sceneBox.x + g.rooms.central.x + g.rooms.central.w * .5, sceneBox.y + g.rooms.central.y + g.rooms.central.h * .5, { steps: 4 });
+  await page.mouse.move(target.x, target.y, { steps: 4 });
+  await probe.dispatchEvent('pointermove', { pointerId: 1, pointerType: 'mouse', buttons: 1, clientX: target.x, clientY: target.y });
+  await probe.dispatchEvent('pointerup', { pointerId: 1, pointerType: 'mouse', clientX: target.x, clientY: target.y });
   await page.mouse.up();
   await expect(page.getByLabel('Probe location')).toHaveValue('central');
   await expect(page.getByTestId('probe-readout')).toContainText(await page.getByTestId('lab-concentration').innerText());
