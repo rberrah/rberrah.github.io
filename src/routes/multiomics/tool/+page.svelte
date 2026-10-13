@@ -4,6 +4,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis } from '$lib/multiomics/deterministic.js';
   import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '$lib/multiomics/research-export-package.js';
+  import { auditPairedRnaStudy, validPrimaryRnaContrast } from '$lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
@@ -100,6 +101,8 @@
   let resolveIdentifiers = false;
   let referenceBackendMode = 'browser';
   let analysisIntent = 'exploratory';
+  let rnaComparisonGroup = '';
+  let rnaReferenceGroup = '';
   let validateDiabloHoldout = false;
   let referenceBackendUrl = 'http://127.0.0.1:8787';
   let referenceBackendStatus = 'unchecked';
@@ -1015,6 +1018,9 @@
         objective,
         longitudinal: longitudinal === 'yes',
         designType,
+        analysisIntent,
+        rnaPrimaryContrast: validPrimaryRnaContrast(rnaConditionLevels,rnaComparisonGroup,rnaReferenceGroup)
+          ? ['condition',rnaComparisonGroup,rnaReferenceGroup] : null,
         studySetting,
         unitType,
         groupCount,
@@ -1184,6 +1190,21 @@
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    if(objective === 'groups' && designType === 'paired' && files.transcriptomics){
+      if(!pairedAudit?.ok){
+        analysisError = pairedProblemMessage(pairedAudit?.code);
+        return;
+      }
+      if(referenceBackendMode !== 'required'){
+        analysisError = t('L’analyse RNA-seq appariée nécessite « R requis » : le navigateur ne doit pas traiter deux prélèvements d’un même sujet comme indépendants.', 'Paired RNA-seq requires Require R: the browser must not treat two samples from one subject as independent.');
+        return;
+      }
+    }
+    if(analysisIntent === 'confirmatory' && objective === 'groups' && files.transcriptomics &&
+      !validPrimaryRnaContrast(rnaConditionLevels,rnaComparisonGroup,rnaReferenceGroup)){
+      analysisError = t('Choisissez explicitement le groupe comparé et le groupe de référence : ils fixent le sens de l’effet.', 'Explicitly choose comparison and reference groups; they determine the sign of the effect.');
+      return;
+    }
     if (analysisIntent === 'confirmatory' && referenceBackendMode !== 'required') {
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
@@ -1205,6 +1226,8 @@
           designType,
           studySetting,
           analysisIntent,
+          rnaPrimaryContrast: validPrimaryRnaContrast(rnaConditionLevels,rnaComparisonGroup,rnaReferenceGroup)
+            ? ['condition',rnaComparisonGroup,rnaReferenceGroup] : null,
           unitType,
           groupCount,
           timepointCount,
@@ -1723,6 +1746,26 @@
       && (outcomeType === 'survival'
         ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
         : Boolean(columnMapping.outcome)));
+  $: rnaConditionLevels = [...new Set(metadataRows.map(row =>
+    String(row?.[columnMapping.condition] ?? '').trim()).filter(Boolean))].sort();
+  $: pairedAudit = objective === 'groups' && designType === 'paired' && files.transcriptomics && files.metadata
+    ? auditPairedRnaStudy({rows:metadataRows,mapping:columnMapping,
+        matrixAssays:matrixInfo.transcriptomics.sampleIds,
+        valueType:transcriptomicsValues}) : null;
+  function pairedProblemMessage(code) {
+    const problems = {
+      raw_counts_only:['Le modèle RNA-seq exige de vrais comptages bruts, pas des TPM/FPKM.', 'The RNA-seq model requires genuine raw counts, not TPM/FPKM.'],
+      missing_columns:['Associez sujet, prélèvement, mesure, omique, groupe et type de prélèvement aux colonnes.', 'Map subject, sample, assay, omic, condition and sample type to the correct columns.'],
+      missing_transcriptomics_rows:['Aucune ligne RNA reconnue dans les métadonnées.', 'No RNA sample rows recognized in metadata.'],
+      non_biological_sample:['Les blancs et QC ne sont pas des prélèvements biologiques appariés.', 'Blanks and QC are not paired biological samples.'],
+      matrix_metadata_mismatch:['Les identifiants RNA de la matrice et des métadonnées diffèrent.', 'RNA matrix assay IDs differ from metadata.'],
+      two_conditions_only:['Deux conditions exactement sont nécessaires.', 'Exactly two conditions are required.'],
+      min_four_pairs:['Au moins quatre paires biologiques sont nécessaires pour ce contrôle logiciel.', 'At least four biological pairs are required for this software guard.'],
+      missing_pair:['Un sujet ne possède pas les deux conditions.', 'A subject is missing one of the paired conditions.']
+    };
+    const text = problems[code] || ['Paires manquantes, identifiants doublonnés ou incohérents : vérifiez chaque sujet et chaque mesure.', 'Missing pairs or duplicate/inconsistent identifiers: check every subject and assay.'];
+    return t(text[0],text[1]);
+  }
   $: objectiveOperational = designType !== 'crossover';
   $: singleOmic = omicsCount === 1;
   $: ready = omicsCount >= 1 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
@@ -1921,11 +1964,40 @@
   {#if studySetting === 'animal' && organism === 'human'}
     <p class="simple-warning" role="alert">{t('Vous avez choisi une étude animale mais l’organisme est encore « Humain ». Modifiez l’organisme dans la première étape avant d’analyser.', 'You selected an animal study but the organism is still set to Human. Change the organism in the first step before analysis.')}</p>
   {/if}
+  {#if objective === 'groups' && designType === 'paired'}
+    <div class="simple-hint" data-testid="multiomics-paired-help">
+      <strong>{t('Un sujet = une paire', 'One subject = one pair')}</strong>
+      <p>{t('Dans votre tableau, même subject_id pour les deux conditions, mais sample_id et assay_id distincts pour chaque prélèvement. Quatre paires signifient quatre unités biologiques indépendantes, pas huit.', 'Use the same subject_id for both conditions but unique sample_id and assay_id for each specimen. Four pairs mean four independent biological units, not eight.')}</p>
+      <p>{t('Pour des comptages RNA-seq, choisissez « R requis » : modèle bloqué par sujet, sans supposer les observations indépendantes.', 'For RNA-seq counts choose Require R: the model blocks on subject, rather than assuming independent observations.')}</p>
+      {#if pairedAudit?.ok}
+        <p role="status" data-testid="multiomics-paired-count">{pairedAudit.nPairs} {t('sujets appariés', 'paired subjects')} · {pairedAudit.nBiologicalSamples} {t('prélèvements', 'samples')} · {pairedAudit.nAssays} {t('mesures', 'assays')}</p>
+      {:else if pairedAudit}
+        <p role="alert" data-testid="multiomics-paired-problem">{pairedProblemMessage(pairedAudit.code)}</p>
+      {/if}
+    </div>
+  {/if}
   {#if designType === 'crossover'}
     <p class="simple-warning" role="alert">{t('Cette étude nécessite une analyse particulière qui n’est pas encore disponible. Le lancement sera bloqué.', 'This study needs a model that is not yet available; running is blocked.')}</p>
   {/if}
   {#if objective === 'time' && designType !== 'repeated'}
     <p class="simple-warning" role="status">{t('Pour un suivi dans le temps, vérifiez le type de comparaison et les mesures répétées dans les paramètres avancés.', 'For a time-course study, check the design and repeated measurements in advanced settings.')}</p>
+  {/if}
+  {#if analysisIntent === 'confirmatory' && objective === 'groups' && files.transcriptomics && rnaConditionLevels.length === 2}
+    <div class="form-grid" data-testid="multiomics-rna-primary-contrast">
+      <p class="simple-hint wide">{t('Contraste à prédéfinir : groupe comparé moins groupe de référence.', 'Prespecify the contrast: comparison group minus reference group.')}</p>
+      <label><span>{t('Groupe comparé', 'Comparison group')}</span>
+        <select bind:value={rnaComparisonGroup} aria-label={t('Groupe comparé RNA', 'RNA comparison group')}>
+          <option value="">{t('Choisir…','Choose…')}</option>
+          {#each rnaConditionLevels as g (g)}<option value={g}>{g}</option>{/each}
+        </select>
+      </label>
+      <label><span>{t('Groupe de référence', 'Reference group')}</span>
+        <select bind:value={rnaReferenceGroup} aria-label={t('Groupe de référence RNA', 'RNA reference group')}>
+          <option value="">{t('Choisir…','Choose…')}</option>
+          {#each rnaConditionLevels as g (g)}<option value={g}>{g}</option>{/each}
+        </select>
+      </label>
+    </div>
   {/if}
   <p class="simple-hint">{t('Le modèle, les corrections statistiques et les hypothèses seront détaillés dans le rapport.', 'The model, statistical corrections and assumptions will be documented in the report.')}</p>
 </section>
