@@ -11,7 +11,7 @@ for(const width of [1280,390])for(const lang of ['fr','en']){
    const content=page.getByTestId('cross-domain-courses');
    await expect(content).toBeVisible();
    await expect(page.getByTestId('cross-domain-open-tool'))
-     .toHaveAttribute('href',/\\/multiomics\\/tool\\/?$/);
+     .toHaveAttribute('href', /[/]multiomics[/]tool[/]?$/);
    for(const id of ['match','covariate','pd','mechanistic'])
      await expect(page.getByTestId(`cross-domain-lesson-${id}`)).toBeVisible();
    await expect(page.getByTestId('cross-domain-auc')).toContainText(
