@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
 import {File} from 'node:buffer';
 import {createPortableProject} from '../src/lib/multiomics/portable-project.js';
 import {buildResearchBundle,fullLayerCsv,methodsMarkdown,zipEntries} from '../src/lib/multiomics/research-export-package.js';
@@ -90,4 +94,29 @@ await assert.rejects(buildResearchBundle({result,portableProject:{format:'unknow
 const html=methodsMarkdown(result,'en');
 assert.match(html,/Methods actually run/);
 assert.match(html,/not executed/);
+
+assert.ok(names.includes('verification/verifier_dossier.py'));
+assert.ok(names.includes('verification/LISEZ-MOI.txt'));
+const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'pmx-research-zip-'));
+try {
+  const original=path.join(scratch,'original.zip');
+  const script=path.join(scratch,'verifier_dossier.py');
+  fs.writeFileSync(original,b);
+  fs.writeFileSync(script,seen['verification/verifier_dossier.py']);
+  const verified=spawnSync('python3',[script,original],{encoding:'utf8'});
+  assert.equal(verified.status,0,'External Python verifier rejected original archive: '+verified.stderr);
+  assert.match(verified.stdout,/INTEGRITY PASS/);
+  const index=b.indexOf(Buffer.from(subject));
+  assert.ok(index>=0,'Synthetic private marker not found in ZIP data for corruption test');
+  const corrupted=Buffer.from(b);
+  corrupted[index]^=0x01;
+  const tampered=path.join(scratch,'tampered.zip');
+  fs.writeFileSync(tampered,corrupted);
+  const rejected=spawnSync('python3',[script,tampered],{encoding:'utf8'});
+  assert.notEqual(rejected.status,0,'Tampered archive unexpectedly verified');
+  assert.match(rejected.stderr,/INVALID DOSSIER|DOSSIER INVALIDE/);
+} finally {
+  fs.rmSync(scratch,{recursive:true,force:true});
+}
+
 console.log('MULTIOMICS RESEARCH ZIP: PASS, full 56-feature CSV, genuine ZIP structure, SHA-256, privacy boundaries, roundtrippable sources');
