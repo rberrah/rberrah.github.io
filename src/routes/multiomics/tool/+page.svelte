@@ -4,7 +4,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis } from '$lib/multiomics/deterministic.js';
   import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '$lib/multiomics/research-export-package.js';
-  import { auditPairedRnaStudy, validPrimaryRnaContrast } from '$lib/multiomics/paired-study-client.js';
+  import { auditPairedRnaStudy, validPrimaryRnaContrast, pairedExampleSampleSheetCsv } from '$lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
@@ -1766,6 +1766,15 @@
     const text = problems[code] || ['Paires manquantes, identifiants doublonnés ou incohérents : vérifiez chaque sujet et chaque mesure.', 'Missing pairs or duplicate/inconsistent identifiers: check every subject and assay.'];
     return t(text[0],text[1]);
   }
+  function downloadPairedExampleSheet(){
+    const blob = new Blob(['\uFEFF'+pairedExampleSampleSheetCsv()], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href=url;
+    link.download='EXEMPLE_FICTIF_4_PAIRES_metadata.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
   $: objectiveOperational = designType !== 'crossover';
   $: singleOmic = omicsCount === 1;
   $: ready = omicsCount >= 1 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
@@ -1969,6 +1978,8 @@
       <strong>{t('Un sujet = une paire', 'One subject = one pair')}</strong>
       <p>{t('Dans votre tableau, même subject_id pour les deux conditions, mais sample_id et assay_id distincts pour chaque prélèvement. Quatre paires signifient quatre unités biologiques indépendantes, pas huit.', 'Use the same subject_id for both conditions but unique sample_id and assay_id for each specimen. Four pairs mean four independent biological units, not eight.')}</p>
       <p>{t('Pour des comptages RNA-seq, choisissez « R requis » : modèle bloqué par sujet, sans supposer les observations indépendantes.', 'For RNA-seq counts choose Require R: the model blocks on subject, rather than assuming independent observations.')}</p>
+      <button type="button" class="btn btn-outline btn-small" data-testid="multiomics-paired-template-download" onclick={downloadPairedExampleSheet}>{t('Télécharger un tableau fictif de 4 paires (CSV)', 'Download a fictional four-pair sample sheet (CSV)')}</button>
+      <p>{t('Exemple de structure uniquement : remplacez tous les identifiants et ne confondez pas ce tableau avec des mesures réelles. Les noms assay_id doivent correspondre aux colonnes de votre matrice RNA.', 'File structure example only: replace every identifier. This contains no actual measurements. assay_id values must match the RNA matrix columns.')}</p>
       {#if pairedAudit?.ok}
         <p role="status" data-testid="multiomics-paired-count">{pairedAudit.nPairs} {t('sujets appariés', 'paired subjects')} · {pairedAudit.nBiologicalSamples} {t('prélèvements', 'samples')} · {pairedAudit.nAssays} {t('mesures', 'assays')}</p>
       {:else if pairedAudit}
