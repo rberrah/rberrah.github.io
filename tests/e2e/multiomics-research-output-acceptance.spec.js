@@ -33,7 +33,7 @@ function validateResult(data,layerCount){
 }
 /** @param {import('@playwright/test').Page} page */
 async function getJsonExport(page,button){
-  if(!(await page.locator('.export-detail').getAttribute('open')))
+  if(!(await page.locator('.export-detail').evaluate(el=>el.open)))
     await page.locator('.export-detail > summary').click();
   const [download]=await Promise.all([
     page.waitForEvent('download',{timeout:15000}),
