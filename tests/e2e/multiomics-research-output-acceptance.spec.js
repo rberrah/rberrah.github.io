@@ -133,6 +133,11 @@ test('Scientific researcher workflows: three-omics demo produces genuine individ
 test('Researcher supplies an original custom RNA matrix; source identities are retained and statistics are exported without invented groups',async({page})=>{
   test.setTimeout(65000);
   await page.goto('/multiomics/tool?lang=fr');
+  // On public/static builds, SSR inputs are visible BEFORE Svelte handlers attach.
+  // A true researcher must upload only after hydration, otherwise the file is
+  // selected in the native input but the analysis state is not updated.
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
   await page.locator('.uploads input[type="file"]').nth(1).setInputFiles({
     name:'external-lab-test-matrix.csv',mimeType:'text/csv',
     buffer:Buffer.from([
