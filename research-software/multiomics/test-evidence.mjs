@@ -37,4 +37,23 @@ try{
  assert.match(md,/DESeq2/);
  assert.equal(report.observed_cells.filter(x=>x.empirical_fdr>0.05).length>0,true);
 }finally{fs.rmSync(d,{recursive:true,force:true})}
+
+const paper=fs.readFileSync(path.join(HOME,'paper.md'),'utf8');
+const bib=fs.readFileSync(path.join(HOME,'paper.bib'),'utf8');
+const citation=fs.readFileSync(path.join(HOME,'CITATION.cff'),'utf8');
+for(const section of [
+  'Summary','Statement of need','State of the field','Software design',
+  'Research impact statement','AI usage disclosure','Acknowledgements',
+  'Availability'
+])assert.ok(paper.includes('# '+section),'Required JOSS section missing: '+section);
+const words=paper.split(/\s+/).filter(Boolean).length;
+assert.ok(words>=750&&words<=1750,'Paper length outside current JOSS 750–1750 word guidance: '+words);
+for(const cited of paper.match(/@([A-Za-z0-9_]+)/g)||[])
+  assert.ok(bib.includes('{'+cited.slice(1)+','),'Cited reference absent: '+cited);
+assert.match(citation,/type:\s*software/);
+assert.match(citation,/license:\s*MIT/);
+assert.match(paper,/human authors[\s\S]*must inspect/);
+assert.match(paper,/statistical limitations/);
+console.log('JOSS PAPER STRUCTURE: PASS (draft remains unsubmitted; human authorship review pending)');
+
 console.log('MULTIOMICS PAPER EVIDENCE: PASS (27 pinned cells, scientific claims remain restricted)');
