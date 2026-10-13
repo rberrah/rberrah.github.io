@@ -138,7 +138,7 @@ assert.equal(fullBundle.manifest.r_reference_full_tables[0].rows,165);
 assert.match(methodsMarkdown(fullMethod,'en'),/reference_r/);
 const truncated=structuredClone(fullMethod);
 truncated.referenceBackend.methods.transcriptomics_differential_deseq2.referenceTableCsv=realCsv.slice(0,-16);
-await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch/);
+await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch|Ragged scientific CSV/);
 
 assert.ok(names.includes('verification/verifier_dossier.py'));
 assert.ok(names.includes('verification/LISEZ-MOI.txt'));
