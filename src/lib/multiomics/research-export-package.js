@@ -3,6 +3,7 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
+import {parseDelimited} from './deterministic.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
 
 const encoder=new TextEncoder();
@@ -26,18 +27,61 @@ export function referencePreviewAudit(result){
   const methods=result?.referenceBackend?.methods;
   if(!methods||typeof methods!=='object')return [];
   return Object.entries(methods).filter(([,m])=>m && typeof m==='object')
-    .map(([key,m])=>({
-      method_key:key,
-      reported_name:typeof m.method==='string'?m.method:key,
-      status:typeof m.status==='string'?m.status:'unknown',
-      preview_rows:Array.isArray(m.top)?m.top.length:null,
-      complete_reference_table_exported:false,
-      note:Array.isArray(m.top)
-        ?'R reference output is a top-rows preview (top_frame defaults to at most 100), NOT the full fitted feature table.'
-        :'R status/summary only; no complete per-feature R result table was exported.'
-    }));
+    .map(([key,m])=>{
+      const table=m.referenceTable&&typeof m.referenceTable==='object'?m.referenceTable:m;
+      const complete=table.referenceTableComplete===true &&
+        table.referenceTableStatus==='complete';
+      return {
+        method_key:key,
+        reported_name:typeof m.method==='string'?m.method:key,
+        status:typeof m.status==='string'?m.status:'unknown',
+        preview_rows:Array.isArray(m.top)?m.top.length:null,
+        complete_reference_table_exported:complete,
+        reference_table_rows:Number.isInteger(table.referenceTableRows)?
+          table.referenceTableRows:null,
+        reference_export_status:typeof table.referenceTableStatus==='string'?
+          table.referenceTableStatus:'preview_only',
+        note:complete
+          ?'Complete original-identifier R table is included in reference_r/, separate from browser exploration.'
+          :'Not a complete fitted R feature table; top-frame previews cannot be cited as a full differential analysis.'
+      };
+    });
 }
-
+/** Extract only certified-complete-by-count R method CSV from a consented
+ * local backend response, never mislabel browser tables as R output. */
+export function fullReferenceMethodCsvs(result){
+  const methods=result?.referenceBackend?.methods;
+  if(!methods||typeof methods!=='object')return [];
+  const collected=[];
+  for(const [key,method] of Object.entries(methods)){
+    if(!method||typeof method!=='object')continue;
+    const table=method.referenceTable&&typeof method.referenceTable==='object'?
+      method.referenceTable:method;
+    if(table.referenceTableComplete!==true){
+      if(typeof table.referenceTableCsv==='string'&&table.referenceTableCsv.length)
+        throw Error('Reference '+key+' has raw rows without verified completeness.');
+      continue;
+    }
+    if(table.referenceTableStatus!=='complete'||typeof table.referenceTableCsv!=='string')
+      throw Error('Reference '+key+' falsely claims a complete table.');
+    if(!/^[A-Za-z0-9_]+$/.test(key))throw Error('Unsafe R method name in archive');
+    const parsed=parseDelimited(table.referenceTableCsv);
+    if(!parsed.headers.includes('feature'))throw Error('Reference '+key+' has no original feature ID');
+    if(!Number.isInteger(table.referenceTableRows)||table.referenceTableRows!==parsed.rows.length||
+        table.referenceTableExportedRows!==parsed.rows.length)
+      throw Error('Reference '+key+' row count mismatch');
+    if(table.referenceTableBytes!==undefined &&
+       table.referenceTableBytes!==encoder.encode(table.referenceTableCsv).length)
+      throw Error('Reference '+key+' byte count mismatch');
+    if(parsed.rows.some(row=>!row.feature)||new Set(parsed.rows.map(row=>row.feature)).size!==parsed.rows.length)
+      throw Error('Reference '+key+' missing or duplicate fitted feature IDs');
+    collected.push({name:'reference_r/'+key+'.csv',csv:table.referenceTableCsv,
+      method_key:key,rows:parsed.rows.length,columns:parsed.headers,
+      original_features:table.referenceTableOriginalFeatures??null,
+      excluded_before_fit:table.referenceTableExcludedBeforeFit??null});
+  }
+  return collected;
+}
 
 function requireThat(value,message){if(!value)throw Error('Research dossier: '+message)}
 function plain(value){return value==null||typeof value==='number'&&!Number.isFinite(value)?'':String(value)}
@@ -89,6 +133,7 @@ export function methodsMarkdown(result,locale='fr'){
     'No completed omics analysis');
   const a=buildResearchMethodsManifest(result);
   const rPreviews=referencePreviewAudit(result);
+  const fullR=fullReferenceMethodCsvs(result);
   const t=(fr,en)=>text(fr,en,locale);
   const h=[
     '# '+t('Analyse MultiOmics — méthodes et résultats','MultiOmics analysis — methods and results'),
@@ -135,15 +180,24 @@ export function methodsMarkdown(result,locale='fr'){
       '');
   }
 
+
   if(rPreviews.length){
-    h.push('## '+t('Attention — résultats R potentiellement tronqués','Attention — R reference tables may be truncated'),'',
-      t('Le backend R actuel fournit des aperçus « top » (jusqu’à 100 lignes par méthode). Ils sont archivés dans provenance/analysis_complete.json, mais CE DOSSIER NE FOURNIT PAS les tableaux de référence R exhaustifs. Les CSV sous tableaux/ proviennent exclusivement du moteur navigateur et ne doivent pas être présentés comme des résultats DESeq2/limma complets. Pour publier une analyse R, exporter séparément l’intégralité des résultats depuis l’environnement R, ses versions et les paramètres.',
-        'The current R backend returns top-row previews (up to 100 rows per method). These are archived in provenance/analysis_complete.json, but THIS ZIP DOES NOT contain full R reference feature tables. The CSVs in tableaux/ come exclusively from the browser engine and must not be cited as complete DESeq2/limma fits. For a publication using R, separately preserve all reference fit rows, its package environment and parameters.'),
+    h.push('## '+t('Résultats de référence R — exhaustivité vérifiée par méthode',
+      'R reference results — per-method completeness'),'',
+      t('Les CSV de reference_r/ sont distincts des CSV exploratoires de tableaux/. Les identifiants R originaux sont conservés. Les fichiers R sont destinés à R/Python : un identifiant malveillant peut être interprété comme une formule par un tableur. N’ouvrez pas ces CSV non fiables directement dans Excel.',
+        'The reference_r/ CSVs are distinct from exploratory tableaux/ CSVs. Exact original R identifiers are preserved. R CSVs are intended for R/Python; malicious identifiers can execute as spreadsheet formulas, so do not open untrusted R CSVs directly in Excel.'),
       '');
     for(const r of rPreviews)
-      h.push('- '+r.method_key+': '+r.status+', '+
-        t('lignes aperçues','preview rows')+' = '+print(r.preview_rows));
+      h.push('- '+r.method_key+': '+r.status+
+        ', '+t('aperçu','preview')+'='+print(r.preview_rows)+
+        ', '+t('export complet','complete export')+'='+
+        (r.complete_reference_table_exported?t('oui','yes'):t('non','no'))+
+        ', '+t('lignes','rows')+'='+print(r.reference_table_rows)+
+        ', '+t('état','status')+'='+r.reference_export_status);
     h.push('');
+    if(rPreviews.some(r=>r.status==='ok'&&r.preview_rows!==null&&!r.complete_reference_table_exported))
+      h.push('> '+t('Certaines analyses R ne disposent que d’un aperçu (ou dépassent la taille de transfert). Conserver leur CSV complet depuis le moteur R local avant toute publication.',
+        'Some R analyses have only a preview (or exceed the transfer size limit). Preserve their full CSV from the local R engine before publication.'),'');
   }
   h.push('## '+t('Comprendre les colonnes exportées','Understanding exported columns'),'',
     '| '+t('Colonne','Column')+' | '+t('Définition','Definition')+' |',
@@ -262,6 +316,8 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     num++;
   }
   requireThat(num>0,'No analyzable layer');
+  const fullR=fullReferenceMethodCsvs(result);
+  for(const reference of fullR)add(reference.name,reference.csv);
   add('methods/methods.md',methodsMarkdown(result,locale));
   add('verification/verifier_dossier.py',RESEARCH_DOSSIER_VERIFY_PY);
   add('verification/LISEZ-MOI.txt',RESEARCH_DOSSIER_README);
@@ -283,8 +339,10 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
     reference_method_previews:referencePreviewAudit(result),
-    r_reference_full_feature_tables_exported:false,
-    note_on_r_reference:'R backend response stores only top-row previews (top_frame defaults to 100), not a complete fitted feature table; no browser CSV can substitute for full DESeq2/limma results.',
+    r_reference_full_feature_tables_exported:fullR.length>0,
+    r_reference_full_tables:fullR.map(({name,method_key,rows,columns,original_features,excluded_before_fit})=>
+      ({name,method_key,rows,columns,original_features,excluded_before_fit})),
+    note_on_r_reference:'Only reference_r/*.csv with independently checked row counts are full R method tables. Missing or oversized R methods remain previews and are NOT publication-complete.',
 
     files,
     inference_scope:'browser exploratory tables; any R backend output is separately recorded in full JSON',
