@@ -2760,7 +2760,7 @@
     </div>
     <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
     {#if analysisResult.referenceBackend?.methods}
-      <p class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
+      <div class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
         {t('Résultats R : le tableau affiché est un aperçu. Le ZIP ne contient les résultats R exhaustifs que pour les méthodes marquées « complet ». Toute méthode incomplète doit être exportée séparément depuis le moteur R local.', 'R results: on-screen tables are previews. The ZIP contains all R rows only for methods marked complete. Incomplete methods require a separate full export from the local R engine.')}
         <ul>
           {#each referencePreviewAudit(analysisResult) as ref (ref.method_key)}
@@ -2771,7 +2771,7 @@
             </li>
           {/each}
         </ul>
-      </p>
+      </div>
     {/if}
     {#if researchBundleMessage}<p role="status" data-testid="multiomics-research-bundle-status">{researchBundleMessage}</p>{/if}
     {#if researchBundleError}<p role="alert" data-testid="multiomics-research-bundle-error" class="error">{researchBundleError}</p>{/if}
