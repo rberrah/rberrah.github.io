@@ -136,6 +136,10 @@ const fullBundle=await buildResearchBundle({result:fullMethod,portableProject:po
 assert.equal(fullBundle.manifest.r_reference_full_feature_tables_exported,true);
 assert.equal(fullBundle.manifest.r_reference_full_tables[0].rows,165);
 assert.match(methodsMarkdown(fullMethod,'en'),/reference_r/);
+const failedFit=structuredClone(fullMethod);
+failedFit.referenceBackend.methods.transcriptomics_differential_deseq2.status='blocked';
+await assert.rejects(buildResearchBundle({result:failedFit,portableProject:portable}),
+  /non-success status/);
 const truncated=structuredClone(fullMethod);
 truncated.referenceBackend.methods.transcriptomics_differential_deseq2.referenceTableCsv=realCsv.slice(0,-16);
 await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch|Ragged scientific CSV/);
