@@ -1,6 +1,14 @@
 name: MultiOmics publication source artifact
 
 on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'scripts/build_multiomics_publication_artifact.mjs'
+      - 'scripts/test_multiomics_publication_artifact.mjs'
+      - 'docs/multiomics-publication-artifact.md'
+      - '.github/workflows/multiomics-publication-artifact.yml'
   pull_request:
     paths:
       - 'scripts/build_multiomics_publication_artifact.mjs'
