@@ -117,6 +117,18 @@ and partly reproducible**. A publication may describe its architecture
 and limitations; neither a universal confirmatory platform nor a
 validated clinical tool is presently demonstrated.
 
+## Beginner usability and release gates
+
+- [French plain-language guide for novice researchers](GUIDE_CHERCHEURS_DEBUTANTS_FR.md):
+  one-omic start, subject versus sample, RNA-seq contrast and missing
+  data, multi-omic subject alignment, interpretation and safe export.
+- [Machine-readable journal/release gate register](release-gates.json):
+  explicitly tracks evidenced, adverse, unknown and pending requirements.
+  Passing GitHub Actions is not sufficient to set publication readiness.
+
+These documents are intended for independent evaluation, not a substitute
+for measured accessibility and external clinical/biological validation.
+
 ## Reviewer walkthrough (FR/EN)
 
 1. Open the local `/multiomics/` presentation. Enter the guided demo.
