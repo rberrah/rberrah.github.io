@@ -7,6 +7,7 @@ on:
       - 'multiomics-engine/server.R'
       - 'multiomics-engine/tests/test_reference_full_results.R'
       - 'multiomics-engine/tests/test_full_reference_engine_real_fits.R'
+      - 'multiomics-engine/tests/test_full_reference_backend_endpoint.R'
       - '.github/workflows/multiomics-full-reference-export.yml'
   workflow_dispatch:
 
@@ -37,6 +38,8 @@ jobs:
       - name: Genuine DESeq2, limma-voom and limma 168-gene export
         run: |
           Rscript multiomics-engine/tests/test_full_reference_engine_real_fits.R
+      - name: Actual backend R response retains every fitted gene through JSON
+        run: Rscript multiomics-engine/tests/test_full_reference_backend_endpoint.R
       - name: R frontend bridge is syntactically parseable
         run: |
           Rscript -e 'parse("multiomics-engine/server.R"); cat("BACKEND SERVER PARSE PASS\n")'
