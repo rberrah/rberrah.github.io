@@ -86,6 +86,7 @@ jobs:
         shell: bash
         run: |
           export R_LIBS_USER="$PWD/tmp/omics-r-restored-library"
+          export PMX_RESTORED_LIBRARY="$R_LIBS_USER"
           Rscript multiomics-engine/reproducibility/rnaseq_replay.R replay tmp/omics-r-frozen
       - name: Retain independent-replay evidence
         if: always()
