@@ -44,7 +44,7 @@ const sha256 = file => crypto.createHash('sha256').update(fs.readFileSync(file))
 const shaText = s => crypto.createHash('sha256').update(s).digest('hex');
 const ensure = (ok,why) => { if(!ok) throw Error('PUBLICATION ARTIFACT BLOCKED: '+why); };
 function isSourceFile(p) {
-  if(['package.json','package-lock.json','LICENSE','LICENSE-CONTENT.md','README.md',
+  if(['package.json','package-lock.json','LICENSE','LICENSE-CONTENT.md','CITATION.cff','README.md',
       'svelte.config.js','vite.config.js','site.config.js'].includes(p)) return true;
   if(p.startsWith('src/lib/multiomics/') || p.startsWith('src/routes/multiomics/'))
     return /\.(js|ts|svelte|json|md)$/.test(p);
