@@ -49,7 +49,7 @@ function members(data){
   return files;
 }
 test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CSV -> verifiable local ZIP',async({page})=>{
-  test.setTimeout(240_000);
+  test.setTimeout(165_000);
   const errors=[],requests=[],responses=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('request',r=>{if(r.url()==='http://127.0.0.1:8787/run')requests.push(r)});
@@ -71,8 +71,11 @@ test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CS
     name:'raw_counts_172_genes.csv',mimeType:'text/csv',buffer:Buffer.from(matrix)
   });
   await page.getByLabel(/Objectif principal|Main objective/).selectOption('groups');
-  await page.getByLabel(/Structure du design|Design structure/).selectOption('independent');
-  await page.getByLabel(/Design longitudinal|Longitudinal design/).selectOption('no');
+  // Expert-only fields are inside a collapsed disclosure. The beginner
+  // independent-group defaults must already be correct; do not hang by
+  // trying to interact with a hidden select.
+  await expect(page.getByLabel(/Structure du design|Design structure/)).toHaveValue('independent');
+  await expect(page.getByLabel(/Design longitudinal|Longitudinal design/)).toHaveValue('no');
   const toggle=page.getByTestId('multiomics-run-options');
   await toggle.locator('summary').click();
   // Explicit opt-in for the real R backend. Never let an E2E default turn it on.
@@ -80,7 +83,7 @@ test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CS
   await expect(page.getByTestId('multiomics-run')).toBeEnabled({timeout:20000});
   await page.getByTestId('multiomics-run').click();
   const resultPanel=page.getByTestId('multiomics-results');
-  await expect(resultPanel).toBeVisible({timeout:190_000});
+  await expect(resultPanel).toBeVisible({timeout:125_000});
   await expect(page.getByTestId('multiomics-reference-preview-warning'))
     .toContainText('complet',{timeout:10000});
   expect(requests.length,'A real consented R /run request is required').toBe(1);
