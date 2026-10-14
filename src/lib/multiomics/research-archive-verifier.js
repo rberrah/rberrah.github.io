@@ -81,6 +81,26 @@ def verify(archive_path):
                 failure("CSV table truncated: " + layer)
             if not all(row.get("feature") for row in rows):
                 failure("missing feature identifier: " + layer)
+        ref = m.get("r_reference_full_tables", [])
+        if not isinstance(ref, list):
+            failure("invalid R reference manifest")
+        if bool(ref) != (m.get("r_reference_full_feature_tables_exported") is True):
+            failure("R reference completeness flag differs")
+        seen_ref = set()
+        for fit in ref:
+            filename = fit.get("name")
+            if not isinstance(filename, str) or not filename.startswith("reference_r/"):
+                failure("invalid R reference member name")
+            if filename in seen_ref or filename not in names:
+                failure("duplicate or missing R reference CSV")
+            seen_ref.add(filename)
+            values = list(csv.DictReader(io.StringIO(
+                z.read(filename).decode("utf-8-sig"), newline="")))
+            if len(values) != fit.get("rows"):
+                failure("R fitted feature rows truncated: " + filename)
+            identifiers = [row.get("feature") for row in values]
+            if any(not x for x in identifiers) or len(set(identifiers)) != len(identifiers):
+                failure("nonunique or missing R reference feature identifiers")
         print("VERIFICATION OK / INTEGRITY PASS: %d layers; %d members"
               % (len(expected_layers), len(names)))
         print("NOTE: this proves file integrity, NOT statistical or clinical validity")

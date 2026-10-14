@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {parseReferenceCsv} from '../src/lib/multiomics/research-reference-csv.js';
 import {File} from 'node:buffer';
 import {createPortableProject} from '../src/lib/multiomics/portable-project.js';
 import {buildResearchBundle,fullLayerCsv,methodsMarkdown,zipEntries} from '../src/lib/multiomics/research-export-package.js';
@@ -104,14 +105,81 @@ const rReference={...result,referenceBackend:{
   runtime:{RVersion:'4.5.2',packageVersions:{DESeq2:'1.50.2'}}
 }};
 const referenceMarkdown=methodsMarkdown(rReference,'fr');
-assert.match(referenceMarkdown,/100 lignes par méthode/);
-assert.match(referenceMarkdown,/NE FOURNIT PAS/);
+assert.match(referenceMarkdown,/exhaustivité vérifiée par méthode/);
+assert.match(referenceMarkdown,/export complet/);
 assert.match(referenceMarkdown,/DESeq2/);
 const refArchive=await buildResearchBundle({result:rReference,portableProject:portable});
 assert.equal(refArchive.manifest.r_reference_full_feature_tables_exported,false);
 assert.equal(refArchive.manifest.reference_method_previews.length,1);
 assert.equal(refArchive.manifest.reference_method_previews[0].preview_rows,100);
 assert.equal(refArchive.manifest.reference_method_previews[0].complete_reference_table_exported,false);
+
+const specialCsv = 'feature,pvalue,padj\r\n"gene,""quoted""\nline",0.015,NA\r\nGENE2,0,0\r\n';
+const specialParsed=parseReferenceCsv(specialCsv);
+assert.equal(specialParsed.rows.length,2);
+assert.equal(specialParsed.rows[0].feature,'gene,"quoted"\nline');
+assert.equal(specialParsed.rows[0].padj,'NA');
+assert.equal(specialParsed.rows[1].pvalue,'0');
+assert.throws(()=>parseReferenceCsv('feature,pvalue\n"bad\n'),/Unclosed/);
+assert.throws(()=>parseReferenceCsv('feature,pvalue\nG1,0.1,extra\n'),/Ragged/);
+assert.throws(()=>parseReferenceCsv('feature,feature\nG1,x\n'),/duplicate/);
+const realCsv = ['feature,pvalue,padj', ...Array.from({length:165},(_,i)=>
+  ['GENE_'+String(i+1),0.01,0.04].join(','))].join('\n')+'\n';
+const fullMethod={...result,referenceBackend:{methods:{transcriptomics_differential_deseq2:{
+  method:'DESeq2',status:'ok',top:Array.from({length:100},(_,i)=>({feature:'GENE_'+i})),
+  referenceTableComplete:true,referenceTableStatus:'complete',
+  referenceTableRows:165,referenceTableExportedRows:165,
+  referenceTableOriginalFeatures:180,referenceTableExcludedBeforeFit:15,
+  pairedDesignContract:{
+    pairing:'same_subject_two_conditions',design:'~ subject_id + condition',
+    independent_biological_subjects:4,biological_pairs:4,model_samples:8,
+    residual_degrees_of_freedom:3,
+    explicit_primary_contrast:['condition','treated','control'],
+    contrast_was_prespecified:true,certified:false
+  },
+  referenceTableCsv:realCsv,referenceTableBytes:Buffer.byteLength(realCsv)
+}},runtime:{RVersion:'4.5.2'}}};
+const fullBundle=await buildResearchBundle({result:fullMethod,portableProject:portable});
+assert.equal(fullBundle.manifest.r_reference_full_feature_tables_exported,true);
+assert.equal(fullBundle.manifest.r_reference_full_tables[0].rows,165);
+assert.match(methodsMarkdown(fullMethod,'en'),/reference_r/);
+assert.match(methodsMarkdown(fullMethod,'fr'),/Unités biologiques indépendantes.*4/);
+assert.match(methodsMarkdown(fullMethod,'en'),/Fitted samples.*8/);
+assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.biological_pairs,4);
+assert.equal(fullBundle.manifest.reference_method_previews[0].paired_design.certified,false);
+const failedFit=structuredClone(fullMethod);
+failedFit.referenceBackend.methods.transcriptomics_differential_deseq2.status='blocked';
+await assert.rejects(buildResearchBundle({result:failedFit,portableProject:portable}),
+  /non-success status/);
+const truncated=structuredClone(fullMethod);
+truncated.referenceBackend.methods.transcriptomics_differential_deseq2.referenceTableCsv=realCsv.slice(0,-16);
+await assert.rejects(buildResearchBundle({result:truncated,portableProject:portable}),/row count mismatch|byte count mismatch|Ragged scientific CSV/);
+
+// A too-large output exists ONLY on the local R operator's machine.
+// Its folder ID and SHA-256 must be disclosed, but the browser ZIP MUST
+// never assert that reference_r/ contains that omitted table.
+const localOnly={...result,referenceBackend:{methods:{transcriptomics_differential_deseq2:{
+  method:'DESeq2',status:'ok',top:Array.from({length:100},(_,i)=>({feature:'G'+i})),
+  referenceTableStatus:'too_large_archived_locally',referenceTableComplete:false,
+  referenceTableRows:30000,referenceTableExportedRows:0,referenceTableCsv:null,
+  referenceTableLocalArchiveId:'pmx_reference_abcdef1234',
+  referenceTableLocalArchiveSha256:'a'.repeat(64)
+}}}};
+const localZip=await buildResearchBundle({result:localOnly,portableProject:portable});
+assert.equal(localZip.manifest.r_reference_full_feature_tables_exported,false);
+assert.equal(localZip.manifest.reference_method_previews[0].local_archive_id,
+  'pmx_reference_abcdef1234');
+assert.equal(localZip.manifest.reference_method_previews[0].local_archive_sha256,
+  'a'.repeat(64));
+assert.match(methodsMarkdown(localOnly,'fr'),/HORS ZIP/);
+assert.match(methodsMarkdown(localOnly,'en'),/NOT included in this ZIP/);
+const noArchive=structuredClone(localOnly);
+const nt=noArchive.referenceBackend.methods.transcriptomics_differential_deseq2;
+nt.referenceTableStatus='too_large';
+nt.referenceTableLocalArchiveId=null;
+nt.referenceTableLocalArchiveSha256=null;
+const noArchiveZip=await buildResearchBundle({result:noArchive,portableProject:portable});
+assert.equal(noArchiveZip.manifest.reference_method_previews[0].local_archive_id,null);
 
 assert.ok(names.includes('verification/verifier_dossier.py'));
 assert.ok(names.includes('verification/LISEZ-MOI.txt'));
