@@ -168,9 +168,11 @@ test('R1 confirmatory user-selected RNA direction is sent verbatim to the refere
   await page.getByTestId('multiomics-quick-demo-rna').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   await page.getByLabel(/Objectif principal|Main objective/).selectOption('groups');
-  // Preset demo values; their controls are hidden until advanced design options open.
-  await expect(page.getByLabel(/Structure du design|Design structure/)).toHaveValue('independent');
-  await expect(page.getByLabel(/Design longitudinal|Longitudinal design/)).toHaveValue('no');
+  // The RNA demo starts with a repeated-measures design. Configure the
+  // independent design explicitly through the genuine, visible advanced UI.
+  await page.getByTestId('multiomics-advanced-settings').locator('summary').click();
+  await page.getByLabel(/Structure du design|Design structure/).selectOption('independent');
+  await page.getByLabel(/Design longitudinal|Longitudinal design/).selectOption('no');
   await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
   const chooser=page.getByTestId('multiomics-rnaseq-contrast');
   await expect(chooser).toBeVisible();
