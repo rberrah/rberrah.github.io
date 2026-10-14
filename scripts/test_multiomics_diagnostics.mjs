@@ -274,6 +274,81 @@ for(const faulty of [
     'R1 eligibility cannot be accepted from unsupported certificate or identity');
 }
 
+// Paired confirmatory preparation is not automatically rejected once the REAL
+// server-side subject-blocked contract is verified. It still requires human
+// review and must never claim that DESeq2 q-values are universally calibrated.
+const pairedRContract={
+  status:'eligible_for_reference_fitting_only',
+  pairing:'same_subject_two_conditions',
+  biological_pairs:4,independent_biological_subjects:4,
+  model_samples:8,residual_degrees_of_freedom:3,
+  sample_identifiers_exact:true,
+  all_subject_condition_cells_observed_once:true,
+  contrast_was_prespecified:true,
+  explicit_primary_contrast:['condition','treated','control'],
+  certified:false
+};
+const pairedRReview={
+  ...withR1Audit,
+  protocol:{...withR1Audit.protocol,designType:'paired'},
+  metadataSummary:{...withR1Audit.metadataSummary,subjects:4,conditions:['control','treated']},
+  referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      status:'ok',method:'DESeq2',
+      confirmatoryInputContract:pairedRContract,
+      pairedDesignContract:pairedRContract,
+      assayIntegrityContract:{
+        status:'assay_identifiers_exact',assay_loss_detected:false,
+        measured_assays:8,certified:false
+      }
+    }
+  }}
+};
+const validPaired=evaluateConfirmatoryReadiness(pairedRReview);
+assert.equal(validPaired.status,'independent_review_required');
+assert.equal(validPaired.certified,false);
+assert.ok(validPaired.checks.some(x=>x.code==='design'&&x.status==='pass'));
+assert.ok(validPaired.checks.some(x=>
+  x.code==='rnaseq_confirmatory_input_contract'&&x.status==='pass'));
+assert.ok(validPaired.checks.some(x=>
+  x.code==='rnaseq_null_fdr_calibration'&&x.status==='review'));
+for(const altered of [
+  {biological_pairs:3},
+  {model_samples:7},
+  {all_subject_condition_cells_observed_once:false},
+  {sample_identifiers_exact:false},
+  {contrast_was_prespecified:false},
+  {explicit_primary_contrast:['condition','control','treated']},
+  {certified:true},
+  {residual_degrees_of_freedom:1}
+]){
+  const contract={...pairedRContract,...altered};
+  const bad={...pairedRReview,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      ...pairedRReview.referenceBackend.methods.transcriptomics_differential_deseq2,
+      confirmatoryInputContract:contract,pairedDesignContract:contract
+    }
+  }}};
+  assert.equal(evaluateConfirmatoryReadiness(bad).status,'blocked',
+    'Missing/invalid subject-blocked evidence cannot reach independent review');
+}
+const missingPairedAssays={
+  ...pairedRReview,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      ...pairedRReview.referenceBackend.methods.transcriptomics_differential_deseq2,
+      assayIntegrityContract:{
+        status:'assay_identifiers_exact',assay_loss_detected:false,
+        measured_assays:7,certified:false
+      }
+    }
+  }}
+};
+assert.equal(evaluateConfirmatoryReadiness(missingPairedAssays).status,'blocked');
+const wrongPairedSubjectCount={
+  ...pairedRReview,metadataSummary:{...pairedRReview.metadataSummary,subjects:8}
+};
+assert.equal(evaluateConfirmatoryReadiness(wrongPairedSubjectCount).status,'blocked');
+
 assert.equal(evaluateConfirmatoryReadiness(result).status,'not_requested');
 
 console.log('multiomics pre-analysis diagnostics: PASS');
