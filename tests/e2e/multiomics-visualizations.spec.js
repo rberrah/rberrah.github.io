@@ -158,6 +158,36 @@ test('MS peak-AUC long CSV can be uploaded directly with group metadata', async 
     .toContainText(/2 signaux MS|2 MS features/);
 });
 
+
+test('MS peak-AUC rapid replacement keeps only the newest import and its group metadata', async ({page})=>{
+  await page.goto('/multiomics/tool');
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.pmxMultiomicsHydrated),
+    {timeout:15000}).toBe('true');
+  await page.evaluate(()=>{
+    const input=document.querySelector('[data-testid="multiomics-ms-auc-upload"]');
+    if(!(input instanceof HTMLInputElement))throw new Error('MS AUC uploader not found');
+    const header='feature_id,assay_id,auc,subject_id,sample_id,condition';
+    const replace=(name,body)=>{
+      const data=new DataTransfer();
+      data.items.add(new File([body],name,{type:'text/csv'}));
+      input.files=data.files;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    // Both change events execute before either asynchronous File.text() finishes.
+    // The old invalid import must never replace the newer, valid one.
+    replace('obsolete.csv',header+'\\nCHEBI:24996,OLD,invalid,OLD,OLD,control');
+    const rows=[header];
+    for(let i=0;i<8;i++)for(const feature of ['CHEBI:24996','CHEBI:30031'])
+      rows.push([feature,'INJ'+i,100+i*5,'SUBJ'+i,'S'+i,i<4?'control':'treated'].join(','));
+    replace('latest.csv',rows.join('\\n'));
+  });
+  const status=page.getByTestId('multiomics-ms-auc-import-status');
+  await expect(status).toHaveAttribute('data-import-state','ready',{timeout:15000});
+  await expect(status).toContainText(/2 signaux MS|2 MS features/);
+  await expect(status).toContainText(/8 injections/);
+  await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
+});
+
 test('expert raw-MS and external validation workflows are disclosed on request', async ({ page }) => {
   await page.goto('/multiomics/tool');
   const expert = page.getByTestId('advanced-workflows');
