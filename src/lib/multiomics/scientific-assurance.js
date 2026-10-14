@@ -30,15 +30,43 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     'Synthetic demonstration: no confirmatory biological inference.');
   if (!layers.length) add('empty', 'blocked',
     'Aucune omique analysée.', 'No analysed omics layer.');
-  const eligibleDesign = protocol.objective === 'groups' &&
+  const conditions = result?.metadataSummary?.conditions || [];
+  const independentDesign = protocol.objective === 'groups' &&
     protocol.designType === 'independent' && !protocol.longitudinal &&
-    (result?.metadataSummary?.conditions || []).length === 2;
-  if (!eligibleDesign) add('design', 'blocked',
-    'La voie confirmatoire vérifiée actuellement couvre uniquement deux groupes indépendants. Autres plans : revue méthodologique nécessaire, sans validation automatique.',
-    'The currently audited confirmatory route covers only two independent groups. Other designs require method-specific review, without automatic validation.');
+    conditions.length === 2;
+  const pairedMethod = methods.transcriptomics_differential_deseq2;
+  const pairedContract = pairedMethod?.pairedDesignContract;
+  // A paired study is eligible for *review* only with the genuine server-side
+  // subject-blocked contract, not just a designType flag or an HTTP 200.
+  const pairedDesign = protocol.objective === 'groups' &&
+    protocol.designType === 'paired' && !protocol.longitudinal &&
+    conditions.length === 2 && layers.length === 1 &&
+    layers[0][0] === 'transcriptomics' &&
+    layers[0][1]?.qc?.preprocessingAudit?.declaredValueType === 'raw_counts' &&
+    pairedMethod?.status === 'ok' &&
+    pairedContract?.status === 'eligible_for_reference_fitting_only' &&
+    pairedContract?.pairing === 'same_subject_two_conditions' &&
+    pairedContract?.certified === false &&
+    pairedContract?.sample_identifiers_exact === true &&
+    pairedContract?.all_subject_condition_cells_observed_once === true &&
+    Number.isFinite(pairedContract?.biological_pairs) &&
+    pairedContract.biological_pairs >= 4 &&
+    pairedContract.independent_biological_subjects === pairedContract.biological_pairs &&
+    pairedContract.model_samples === 2 * pairedContract.biological_pairs &&
+    Number.isFinite(pairedContract.residual_degrees_of_freedom) &&
+    pairedContract.residual_degrees_of_freedom >= 2 &&
+    Number.isFinite(result?.metadataSummary?.subjects) &&
+    result.metadataSummary.subjects === pairedContract.biological_pairs;
+  if (!independentDesign && !pairedDesign) add('design', 'blocked',
+    'Le plan ne possède pas de contrat R valide pour deux groupes indépendants ou un RNA-seq apparié strict. Aucun résultat confirmatoire automatique.',
+    'No valid R contract for two independent groups or a strictly subject-blocked paired RNA-seq study. No automatic confirmatory result.');
   else add('design', 'pass',
-    'Plan à deux groupes indépendants reconnu.',
-    'Two-independent-group design recognised.');
+    pairedDesign
+      ? 'RNA-seq apparié avec blocage sujet R vérifié (éligibilité technique seulement).'
+      : 'Plan à deux groupes indépendants reconnu.',
+    pairedDesign
+      ? 'R subject-blocked paired RNA-seq verified (technical eligibility only).'
+      : 'Two-independent-group design recognised.');
 
   if (!Object.keys(methods).length) add('backend', 'blocked',
     'Aucun moteur R de référence exécuté. Lancez le backend R pour toutes les omiques.',
@@ -64,7 +92,8 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
       const input = methods[key]?.confirmatoryInputContract;
       const assay = methods[key]?.assayIntegrityContract;
       const requestedContrast = protocol.rnaPrimaryContrast;
-      const fittedContrast = input?.condition_contrast;
+      const fittedContrast = protocol.designType === 'paired'
+        ? pairedContract?.explicit_primary_contrast : input?.condition_contrast;
       const exactDirectionalContrast =
         Array.isArray(requestedContrast) &&
         requestedContrast.length === 3 &&
@@ -73,21 +102,28 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
         Array.isArray(fittedContrast) &&
         fittedContrast.length === 3 &&
         fittedContrast.every((v, i) => v === requestedContrast[i]);
-      if (status !== 'ok' ||
-          !exactDirectionalContrast ||
-          input?.status !== 'eligible_for_reference_fitting_only' ||
-          input?.certified !== false ||
-          input?.rejected_silent_subject_loss !== true ||
-          !Number.isFinite(input?.independent_subjects) ||
-          input.independent_subjects < 6 ||
-          assay?.status !== 'assay_identifiers_exact' ||
-          assay?.assay_loss_detected !== false ||
-          assay?.certified !== false ||
-          !Number.isFinite(assay?.measured_assays) ||
-          assay.measured_assays < input.independent_subjects) {
+      const assayExact = assay?.status === 'assay_identifiers_exact' &&
+        assay?.assay_loss_detected === false && assay?.certified === false &&
+        Number.isFinite(assay?.measured_assays);
+      const pairedProof = pairedDesign &&
+        input?.status === 'eligible_for_reference_fitting_only' &&
+        input?.pairing === 'same_subject_two_conditions' &&
+        pairedContract?.contrast_was_prespecified === true &&
+        assayExact &&
+        assay.measured_assays >= pairedContract.model_samples;
+      const independentProof = independentDesign &&
+        input?.status === 'eligible_for_reference_fitting_only' &&
+        input?.certified === false &&
+        input?.rejected_silent_subject_loss === true &&
+        Number.isFinite(input?.independent_subjects) &&
+        input.independent_subjects >= 6 &&
+        assayExact &&
+        assay.measured_assays >= input.independent_subjects;
+      if (status !== 'ok' || !exactDirectionalContrast ||
+          !(pairedProof || independentProof)) {
         add('rnaseq_confirmatory_input_contract', 'blocked',
-          'RNA-seq : les audits R stricts des comptages, sujets indépendants, identifiants des essais et contraste est absent ou invalide. Une réussite DESeq2 seule ne suffit pas.',
-          'RNA-seq: the strict R raw-count/independent-subject/assay-ID/contrast audits is missing or invalid. A successful DESeq2 run alone is insufficient.');
+          'RNA-seq : le contrat strict R (comptages, unités biologiques, appariement éventuel, identifiants et contraste) est absent ou invalide. Un DESeq2 réussi ne suffit pas.',
+          'RNA-seq: missing/invalid R evidence for raw counts, biological units, paired design where applicable, assay IDs, or exact contrast. DESeq2 success alone is insufficient.');
       } else {
         add('rnaseq_confirmatory_input_contract', 'pass',
           'RNA-seq : audit strict des entrées R réussi (éligibilité technique seulement).',
@@ -129,6 +165,9 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_design','review',
       'RNA-seq : vérifier indépendamment la dispersion, les facteurs d’ajustement et les contrastes DESeq2.',
       'RNA-seq: independently check dispersion, adjustment variables and DESeq2 contrasts.');
+    if (layer === 'transcriptomics' && declared === 'raw_counts') add('rnaseq_null_fdr_calibration','review',
+      'RNA-seq : des simulations nulles indépendantes ont montré un excès de faux appels dans certains scénarios DESeq2. Les q-values demandent une vérification de calibration adaptée au plan ; revue méthodologique indispensable.',
+      'RNA-seq: independent null simulations showed excess false calls for DESeq2 in some scenarios. q-values need design-specific calibration assessment and independent methodological review.');
   }
   if ((result?.preAnalysisDiagnostics?.blockers || []).length) add('study_design', 'blocked',
     'Le diagnostic préalable contient des blocages.', 'Pre-analysis diagnostics report blockers.');
