@@ -202,6 +202,12 @@ export function methodsMarkdown(result,locale='fr'){
   }
 
 
+  if(a.omics?.transcriptomics?.null_rnaseq_calibration_review_required){
+    h.push('## '+t('Limites de calibration RNA-seq','RNA-seq statistical calibration limits'), '',
+      '> '+t('Des études de simulation sous nul global ont observé, dans certains scénarios, davantage de faux positifs que le seuil nominal de 5 % sous DESeq2. Cela ne prouve pas un défaut général de DESeq2, mais une q-value BH n’est pas à elle seule la preuve que la FDR est contrôlée pour ce plan. Vérifier les facteurs de taille, dispersions, contrastes, dépendances et hypothèses avec une revue statistique indépendante avant une conclusion confirmatoire.',
+        'Global-null simulations showed excess false discoveries above the nominal 5% for DESeq2 in some tested settings. This is not evidence of a general DESeq2 defect, but BH q-values alone do not prove FDR calibration for this study design. Independently review size factors, dispersions, contrasts, dependence and assumptions before making confirmatory claims.'), '');
+  }
+
   if(rPreviews.length){
     h.push('## '+t('Résultats de référence R — exhaustivité vérifiée par méthode',
       'R reference results — per-method completeness'),'',
