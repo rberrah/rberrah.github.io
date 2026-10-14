@@ -2882,6 +2882,21 @@
           <small>{t('Le log2FC sera calculé comme « groupe comparé / groupe de référence ». Les deux valeurs proviennent des métadonnées et doivent être différentes. Ce choix est conservé dans le projet reproductible.', 'The log2FC is comparison / reference. Both group names come from the sample sheet and must differ. Your choice is stored in the reproducible project.')}</small>
         </fieldset>
       {/if}
+        <details class="advanced-parameters" data-testid="multiomics-local-r-setup">
+          <summary>{t('Comment activer le moteur R ? (guide débutant)', 'How to enable R? (beginner guide)')}</summary>
+          <p>{t('Pour explorer les données et suivre la démonstration, aucune installation n’est nécessaire. Pour les analyses de référence, GitHub Pages ne peut pas exécuter R : celui-ci doit être lancé sur votre propre ordinateur.', 'No installation is needed to explore data or run the demo. For reference analyses, GitHub Pages cannot execute R: you must start it on your own computer.')}</p>
+          <ol>
+            <li>{t('Installer R et Git sur votre ordinateur.', 'Install R and Git on your computer.')}</li>
+            <li>{t('Ouvrir un terminal et copier ces commandes une par une :', 'Open a terminal and run these commands one by one:')}</li>
+          </ol>
+          <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/rberrah.github.io.git
+cd rberrah.github.io
+Rscript multiomics-engine/install_backend_dependencies.R
+Rscript multiomics-engine/run_backend.R</code></pre>
+          <p>{t('Laisser le terminal R ouvert, revenir ici, conserver l’adresse http://127.0.0.1:8787 puis ouvrir « Options de calcul et connexions externes » et cliquer sur « Tester ». Le statut doit indiquer que R est disponible. Ne sélectionnez pas « R requis » si le backend n’a pas pu démarrer.', 'Keep the R terminal open, return here, keep http://127.0.0.1:8787 then open Analysis options and external services and click Check. The status should report that R is available. Do not select Require R if the backend could not start.')}</p>
+          <p>{t('Confidentialité : vos matrices ne sont envoyées au serveur R que lorsque vous lancez l’analyse avec ce moteur activé. Gardez le serveur sur votre ordinateur (127.0.0.1). Ne connectez pas de serveur distant non sécurisé à des données patients.', 'Privacy: your matrices are sent to the configured R server only when you launch analysis with that engine enabled. Keep the server on your computer (127.0.0.1). Never send patient data to an unsecured remote server.')}</p>
+          <p><a href="https://github.com/rberrah/rberrah.github.io/blob/main/multiomics-engine/README.md" target="_blank" rel="noopener noreferrer">{t('Lire les instructions complètes et les limitations du moteur R', 'Read full R setup instructions and limitations')}</a></p>
+        </details>
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
@@ -2911,21 +2926,7 @@
           {referenceBackendMessage || t('Par défaut : bridge local http://127.0.0.1:8787.', 'Default: local bridge http://127.0.0.1:8787.')}
         </small>
 
-        <details class="advanced-parameters" data-testid="multiomics-local-r-setup">
-          <summary>{t('Comment activer le moteur R ? (guide débutant)', 'How to enable R? (beginner guide)')}</summary>
-          <p>{t('Pour explorer les données et suivre la démonstration, aucune installation n’est nécessaire. Pour les analyses de référence, GitHub Pages ne peut pas exécuter R : celui-ci doit être lancé sur votre propre ordinateur.', 'No installation is needed to explore data or run the demo. For reference analyses, GitHub Pages cannot execute R: you must start it on your own computer.')}</p>
-          <ol>
-            <li>{t('Installer R et Git sur votre ordinateur.', 'Install R and Git on your computer.')}</li>
-            <li>{t('Ouvrir un terminal et copier ces commandes une par une :', 'Open a terminal and run these commands one by one:')}</li>
-          </ol>
-          <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/rberrah.github.io.git
-cd rberrah.github.io
-Rscript multiomics-engine/install_backend_dependencies.R
-Rscript multiomics-engine/run_backend.R</code></pre>
-          <p>{t('Laisser le terminal R ouvert, revenir ici, conserver l’adresse http://127.0.0.1:8787 puis cliquer sur « Tester ». Le statut doit indiquer que R est disponible. Ne sélectionnez pas « R requis » si le backend n’a pas pu démarrer.', 'Keep the R terminal open, return here, keep http://127.0.0.1:8787 and click Check. The status should report that R is available. Do not select Require R if the backend could not start.')}</p>
-          <p>{t('Confidentialité : vos matrices ne sont envoyées au serveur R que lorsque vous lancez l’analyse avec ce moteur activé. Gardez le serveur sur votre ordinateur (127.0.0.1). Ne connectez pas de serveur distant non sécurisé à des données patients.', 'Privacy: your matrices are sent to the configured R server only when you launch analysis with that engine enabled. Keep the server on your computer (127.0.0.1). Never send patient data to an unsecured remote server.')}</p>
-          <p><a href="https://github.com/rberrah/rberrah.github.io/blob/main/multiomics-engine/README.md" target="_blank" rel="noopener noreferrer">{t('Lire les instructions complètes et les limitations du moteur R', 'Read full R setup instructions and limitations')}</a></p>
-        </details>
+
         <label class="inline-check" data-testid="diablo-holdout-option">
           <input type="checkbox" bind:checked={validateDiabloHoldout} />
           <span>{t('Vérifier DIABLO sur des sujets tenus à l’écart (analyse R supplémentaire)', 'Check DIABLO on held-out subjects (additional R analysis)')}</span>
