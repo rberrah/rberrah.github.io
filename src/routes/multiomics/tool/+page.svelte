@@ -2852,6 +2852,12 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Les résultats sont exploratoires. Vous pouvez lancer une démo et consulter les limites sans installer R.', 'Results are exploratory. You can run the demo and see limitations without installing R.')}</small>
       </label>
+      {#if analysisIntent === 'confirmatory' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
+        <p class="simple-hint" role="note" data-testid="multiomics-rnaseq-fdr-calibration-warning">
+          {t('Point scientifique : certains scénarios RNA-seq simulés sans effet réel ont montré plus de faux positifs que les 5 % attendus sous DESeq2. La correction BH et le calcul R ne suffisent pas à certifier la calibration de votre étude : confrontez le modèle, le plan et les hypothèses avec un statisticien avant toute conclusion confirmatoire.',
+            'Scientific limitation: some null RNA-seq simulations showed more false positives than the nominal 5% with DESeq2. BH adjustment and execution in R do not certify calibration for your study. Review the model, study design and assumptions with a statistician before confirmatory claims.')}
+        </p>
+      {/if}
       {#if analysisIntent === 'confirmatory' && objective === 'groups' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
         <fieldset class="reference-backend-box" data-testid="multiomics-rnaseq-contrast">
           <legend><strong>{t('Quel effet RNA-seq souhaitez-vous tester ?', 'Which RNA-seq group effect do you want to test?')}</strong></legend>
