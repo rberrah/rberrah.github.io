@@ -72,6 +72,8 @@ test('Scientific research export: a complete one-omic study reopens and recomput
   expect(portable.inputs.transcriptomics.sha256).toMatch(/^[a-f0-9]{64}$/);
   expect(portable.privacy).toMatch(/SENSITIVE/);
   await page.reload();
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
   await page.getByTestId('multiomics-project-import-panel').locator('summary').click();
   await page.getByTestId('multiomics-project-import-file').setInputFiles({
     name:'scientific-project.json',mimeType:'application/json',
@@ -95,6 +97,8 @@ test('Scientific research export: a complete one-omic study reopens and recomput
 test('Scientific researcher workflows: each single-omic example produces valid, downloadable data without a hidden reference engine',async({page})=>{
   test.setTimeout(100000);
   await page.goto('/multiomics/tool?lang=en');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
   for(const [id,layer] of [
     ['multiomics-quick-demo-rna','transcriptomics'],
     ['multiomics-quick-demo-protein','proteomics'],
@@ -116,6 +120,8 @@ test('Scientific researcher workflows: each single-omic example produces valid, 
 test('Scientific researcher workflows: three-omics demo produces genuine individual layer tables and documents integration limits',async({page})=>{
   test.setTimeout(70000);
   await page.goto('/multiomics/tool?lang=en');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
   await page.getByTestId('multiomics-quick-demo').click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({timeout:30000});
   const details=await getJsonExport(page,detailButton);
@@ -146,7 +152,7 @@ test('Researcher supplies an original custom RNA matrix; source identities are r
       'GENE2,30,31,35,39,45,49,41,37',
       'GENE3,55,58,61,63,60,57,56,53',
       'GENE4,8,11,10,9,14,16,17,13'
-    ].join('\\n'))
+    ].join('\n'))
   });
   await expect(page.getByTestId('multiomics-single-sheet-helper')).toBeVisible();
   const helper=page.getByTestId('multiomics-single-sheet-helper');
