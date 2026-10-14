@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: rberrah/rberrah.github.io
-          ref: f75bcbfc1c8538751eeb26eb5a666b7f94b7442c
+          ref: 8452eb7843efc4cc2d74f814b0122c51d874426c
           path: actual-r-backend
       - name: Install the public Bioconductor airway data and R reference packages
         shell: bash
