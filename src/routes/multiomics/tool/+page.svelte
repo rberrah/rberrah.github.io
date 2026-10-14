@@ -499,7 +499,10 @@
     columnMapping = next;
   }
 
-  /** @param {File | null} file @param {() => boolean} [isCurrent] */
+  /**
+   * @param {File | null} file
+   * @param {() => boolean} [isCurrent]
+   */
   async function inspectMetadata(file, isCurrent = () => true) {
     if (!isCurrent()) return;
     metadataError = '';
@@ -582,6 +585,8 @@
     const currentMsImport = layer === 'metabolomics' ? ++msImportSequence : msImportSequence;
     const isCurrentMsImport = () => currentMsImport === msImportSequence;
     if (layer === 'metabolomics') {
+      // Do not allow a prior matrix to be analyzed during an in-flight replacement.
+      files = { ...files, metabolomics: null };
       msImportState = file ? 'loading' : 'idle';
       msOriginalFile = file;
       msAnnotationCsv = '';
@@ -665,6 +670,14 @@
         analysisError = error instanceof Error ? error.message : 'Invalid MS AUC export';
         await inspectMatrix(layer, null, isCurrentMsImport);
       }
+    } else if (layer === 'metabolomics' && !file) {
+      const clearAutoMetadata = msAutoMetadata && files.metadata?.name === 'metadata_from_ms_auc.csv';
+      if (clearAutoMetadata) {
+        files = { ...files, metadata: null };
+        msAutoMetadata = false;
+        await inspectMetadata(null, isCurrentMsImport);
+      }
+      await inspectMatrix(layer, null, isCurrentMsImport);
     } else {
       files = { ...files, [layer]: file };
       await inspectMatrix(layer, file);
@@ -1205,6 +1218,10 @@
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    if (msImportState === 'loading' || msImportState === 'parsed') {
+      analysisError = t('Terminez l’import MS avant de lancer l’analyse.', 'Complete the MS import before running an analysis.');
+      return;
+    }
     if (analysisIntent === 'confirmatory' && referenceBackendMode !== 'required') {
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
@@ -2713,7 +2730,7 @@
       </div>
       </details>
     </div>
-    <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
+    <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running' || msImportState === 'loading' || msImportState === 'parsed'} onclick={runAnalysis}>
       {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Analyser mes données', 'Analyze my data')}
     </button>
   </div>
