@@ -119,6 +119,21 @@ stopifnot(identical(rownames(rowwise),ids),
 rowwise_bad<-sub(ids[[1L]],"UNLISTED",rowwise_csv,fixed=TRUE)
 stopifnot(inherits(try(matrix_samples_by_features(rowwise_bad,ids,
  strict_exact=TRUE),silent=TRUE),"try-error"))
+# Reversing the scientifically prespecified contrast reverses the
+# numerator/denominator, even when alphabetical group order is unchanged.
+stopifnot(identical(rnaseq_confirmatory_explicit_contrast(
+ list(rnaPrimaryContrast=list("condition","treated","control")),
+ c("control","treated")),c("condition","treated","control")))
+stopifnot(identical(rnaseq_confirmatory_explicit_contrast(
+ list(rnaPrimaryContrast=list("condition","control","treated")),
+ c("control","treated")),c("condition","control","treated")))
+for(contrast_bad in list(NULL,character(),c("condition","treated","treated"),
+  c("condition","unknown","control"),c("wrong","treated","control"),
+  c("condition","treated"))) {
+  stopifnot(inherits(try(rnaseq_confirmatory_explicit_contrast(
+    list(rnaPrimaryContrast=contrast_bad),c("control","treated")),
+    silent=TRUE),"try-error"))
+}
 assay_manifest<-data.frame(
  assay_id=ids,sample_id=ids,subject_id=metadata$subject_id,
  sample_type=rep('biological',length(ids)),
