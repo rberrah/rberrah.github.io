@@ -53,6 +53,22 @@ assert.match(md,/56/);
 assert.match(md,/non exécuté/);
 assert.match(md,/toutes les variables/);
 assert.throws(()=>methodsMarkdown(result,'invalid'),/Unknown language/);
+const rawRnaResult={...result,layers:{...result.layers,
+  transcriptomics:{...result.layers.transcriptomics,
+    qc:{...result.layers.transcriptomics.qc,
+      preprocessingAudit:{declaredValueType:'raw_counts'}}}}};
+const rawRnaMethods=methodsMarkdown(rawRnaResult,'fr');
+assert.match(rawRnaMethods,/Limites de calibration RNA-seq/);
+assert.match(rawRnaMethods,/faux positifs/);
+assert.doesNotMatch(md,/Limites de calibration RNA-seq/);
+const rawRnaManifest=JSON.stringify((await buildResearchBundle({
+  result:rawRnaResult,
+  portableProject:await createPortableProject({
+    files,settings:{objective:'groups'},result:null
+  })
+})).manifest);
+assert.match(rawRnaManifest,/confirmatory_certification/);
+
 const bundle=await buildResearchBundle({result,portableProject:portable,locale:'en'});
 assert.equal(bundle.filename,'multiomics_dossier_recherche_v1.zip');
 assert.ok(bundle.blob.size>1000);
