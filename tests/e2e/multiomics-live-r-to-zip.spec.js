@@ -162,3 +162,119 @@ test('Scientific researcher -> actual R DESeq2 -> complete 172-gene reference CS
   }finally{await fs.rm(scratch,{force:true,recursive:true})}
   expect(errors).toEqual([]);
 });
+
+
+function genuinePairedCsvInputs(){
+  const assayIds=[];
+  const metadata=['subject_id,sample_id,assay_id,omic,condition,timepoint,batch,technical_replicate,sample_type'];
+  for(let p=1;p<=4;p++){
+    for(const condition of ['control','treated']){
+      const subject='BIO_PAIR_'+String(p).padStart(2,'0');
+      const assay=subject+'_'+condition;
+      assayIds.push(assay);
+      metadata.push([subject,assay,assay,'transcriptomics',condition,
+         'T0','B1','1','biological'].join(','));
+    }
+  }
+  const raw=['feature_id,'+assayIds.join(',')];
+  for(let gene=1;gene<=180;gene++){
+    const values=assayIds.map((assay,i)=>{
+      const baseline=48+(gene%47);
+      const repeatableNoise=(gene*17+i*23+(gene*i)%13)%36;
+      const treatmentEffect=assay.endsWith('treated')&&gene<=24?48:0;
+      return baseline+repeatableNoise+treatmentEffect;
+    });
+    raw.push('SIM_GENE_'+String(gene).padStart(4,'0')+','+values.join(','));
+  }
+  return {metadata:metadata.join('\n')+'\n',
+          matrix:raw.join('\n')+'\n'};
+}
+test('Four genuinely paired biological units -> actual subject-blocked DESeq2 -> complete verified ZIP and independent review only',async({page})=>{
+  test.skip(process.env.PMX_E2E_REAL_R!=='1',
+    'This test requires the actual R Plumber server, never a mocked /run');
+  test.setTimeout(180_000);
+  const requests=[],responses=[],pageErrors=[];
+  page.on('pageerror',e=>pageErrors.push(e.message));
+  page.on('request',r=>{
+    if(r.url()==='http://127.0.0.1:8787/run')requests.push(r);
+  });
+  page.on('response',async r=>{
+    if(r.url()==='http://127.0.0.1:8787/run')
+      responses.push({httpStatus:r.status(),body:await r.json().catch(()=>null)});
+  });
+  const input=genuinePairedCsvInputs();
+  await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:18000}).toBe('true');
+  await page.locator('.uploads input[type="file"]').nth(0).setInputFiles({
+    name:'paired_subject_manifest.csv',mimeType:'text/csv',
+    buffer:Buffer.from(input.metadata)});
+  await page.locator('.uploads input[type="file"]').nth(1).setInputFiles({
+    name:'paired_raw_counts.csv',mimeType:'text/csv',
+    buffer:Buffer.from(input.matrix)});
+  await page.getByLabel(/Objectif principal|Main objective/).selectOption('groups');
+  await page.getByTestId('multiomics-simple-design').selectOption('paired');
+  await expect(page.getByTestId('multiomics-paired-count')).toContainText('4',{timeout:20000});
+  await expect(page.getByTestId('multiomics-paired-count')).toContainText('8');
+  await page.getByTestId('multiomics-analysis-intent').locator('select').selectOption('confirmatory');
+  const contrast=page.getByTestId('multiomics-rnaseq-contrast');
+  await expect(contrast).toBeVisible();
+  await contrast.locator('select').nth(0).selectOption('control');
+  await contrast.locator('select').nth(1).selectOption('treated');
+  await expect(page.getByTestId('multiomics-rnaseq-fdr-calibration-warning')).toBeVisible();
+  await page.getByTestId('multiomics-run').click();
+  await expect(page.getByTestId('multiomics-run')).toBeEnabled({timeout:150_000});
+  const alert=page.locator('section.panel:has(button[data-testid="multiomics-run"]) > p.error');
+  if(await alert.isVisible())
+    throw Error('Paired genuine R run was blocked: '+await alert.innerText());
+  await expect(page.getByTestId('multiomics-results')).toBeVisible();
+  expect(requests.length).toBe(1);
+  expect(responses.length).toBe(1);
+  expect(responses[0].httpStatus).toBe(200);
+  const submitted=requests[0].postDataJSON();
+  expect(submitted.protocol.designType).toBe('paired');
+  expect(submitted.protocol.analysisIntent).toBe('confirmatory');
+  expect(submitted.protocol.rnaPrimaryContrast).toEqual(['condition','treated','control']);
+  expect(submitted.dataTypes.transcriptomics).toBe('raw_counts');
+  const methods=responses[0].body?.methods||{};
+  const de=methods.transcriptomics_differential_deseq2;
+  expect(de?.status).toBe('ok');
+  const paired=de.pairedDesignContract;
+  expect(paired?.pairing).toBe('same_subject_two_conditions');
+  expect(paired?.biological_pairs).toBe(4);
+  expect(paired?.independent_biological_subjects).toBe(4);
+  expect(paired?.model_samples).toBe(8);
+  expect(paired?.certified).toBe(false);
+  expect(paired?.explicit_primary_contrast).toEqual(['condition','treated','control']);
+  expect(de.referenceTableComplete).toBe(true);
+  await expect(page.getByTestId('multiomics-confirmatory-readiness')).toBeVisible();
+  const [download]=await Promise.all([
+    page.waitForEvent('download',{timeout:30000}),
+    page.getByTestId('multiomics-research-bundle-download').click()
+  ]);
+  const contents=await fs.readFile(await download.path());
+  const archive=members(contents);
+  const exported=JSON.parse(archive['provenance/analysis_complete.json'].toString('utf8'));
+  expect(exported.scientificAssurance?.confirmatoryReadiness?.status)
+    .toBe('independent_review_required');
+  expect(exported.scientificAssurance?.confirmatoryReadiness?.certified).toBe(false);
+  const scientificChecks=exported.scientificAssurance.confirmatoryReadiness.checks;
+  expect(scientificChecks.some(c=>c.code==='rnaseq_confirmatory_input_contract'&&c.status==='pass'))
+    .toBe(true);
+  expect(scientificChecks.some(c=>c.code==='rnaseq_null_fdr_calibration'&&c.status==='review'))
+    .toBe(true);
+  const manifest=JSON.parse(archive['provenance/manifest.json'].toString('utf8'));
+  const method=manifest.r_reference_full_tables.find(x=>
+    x.method_key==='transcriptomics_differential_deseq2');
+  expect(method).toBeTruthy();
+  const csv=archive[method.name].toString('utf8');
+  const parsed=parseReferenceCsv(csv);
+  expect(parsed.rows.length).toBe(de.referenceTableRows);
+  expect(parsed.rows.some(x=>x.feature==='SIM_GENE_0180')).toBe(true);
+  expect(new Set(parsed.rows.map(x=>x.feature)).size).toBe(parsed.rows.length);
+  expect(crypto.createHash('sha256').update(archive[method.name]).digest('hex'))
+    .toBe(manifest.files[method.name].sha256);
+  expect(archive['methods/methods.md'].toString('utf8'))
+    .toContain('Limites de calibration RNA-seq');
+  expect(pageErrors).toEqual([]);
+});
