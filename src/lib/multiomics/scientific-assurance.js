@@ -63,7 +63,18 @@ export function evaluateConfirmatoryReadiness(result, { demo = false } = {}) {
     if (layer === 'transcriptomics' && declared === 'raw_counts') {
       const input = methods[key]?.confirmatoryInputContract;
       const assay = methods[key]?.assayIntegrityContract;
+      const requestedContrast = protocol.rnaPrimaryContrast;
+      const fittedContrast = input?.condition_contrast;
+      const exactDirectionalContrast =
+        Array.isArray(requestedContrast) &&
+        requestedContrast.length === 3 &&
+        requestedContrast[0] === 'condition' &&
+        requestedContrast[1] !== requestedContrast[2] &&
+        Array.isArray(fittedContrast) &&
+        fittedContrast.length === 3 &&
+        fittedContrast.every((v, i) => v === requestedContrast[i]);
       if (status !== 'ok' ||
+          !exactDirectionalContrast ||
           input?.status !== 'eligible_for_reference_fitting_only' ||
           input?.certified !== false ||
           input?.rejected_silent_subject_loss !== true ||
