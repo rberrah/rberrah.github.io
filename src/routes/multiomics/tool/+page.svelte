@@ -100,6 +100,10 @@
   let resolveIdentifiers = false;
   let referenceBackendMode = 'browser';
   let analysisIntent = 'exploratory';
+  // Explicit numerator and denominator for a prespecified RNA-seq contrast.
+  // Never infer its scientific direction from alphabetical condition labels.
+  let rnaseqReference = '';
+  let rnaseqComparison = '';
   let validateDiabloHoldout = false;
   let referenceBackendUrl = 'http://127.0.0.1:8787';
   let referenceBackendStatus = 'unchecked';
@@ -781,6 +785,8 @@
     useReactome = false;
     referenceBackendMode = 'browser';
     analysisIntent = 'exploratory';
+    rnaseqReference = '';
+    rnaseqComparison = '';
     demoLoaded = true;
     await inspectMetadata(files.metadata);
     await inspectMatrix('transcriptomics', files.transcriptomics);
@@ -1061,6 +1067,11 @@
         longitudinal: longitudinal === 'yes',
         designType,
         studySetting,
+        analysisIntent,
+        rnaPrimaryContrast: analysisIntent === 'confirmatory' &&
+          objective === 'groups' && files.transcriptomics &&
+          transcriptomicsValues === 'raw_counts'
+          ? ['condition', rnaseqComparison, rnaseqReference] : null,
         unitType,
         groupCount,
         timepointCount,
@@ -1241,6 +1252,17 @@
       analysisError = t('Fournissez un tableau des échantillons et au moins une matrice RNA, protéines ou métabolites, puis vérifiez les colonnes et l’objectif.', 'Upload a sample sheet and at least one RNA, protein or metabolite matrix, then verify the columns and objective.');
       return;
     }
+    if (analysisIntent === 'confirmatory' && objective === 'groups' &&
+        files.transcriptomics && transcriptomicsValues === 'raw_counts' &&
+        (rnaseqAvailableConditions.length !== 2 ||
+         !rnaseqAvailableConditions.includes(rnaseqReference) ||
+         !rnaseqAvailableConditions.includes(rnaseqComparison) ||
+         rnaseqReference === rnaseqComparison)) {
+      analysisError = t(
+        'RNA-seq : choisissez explicitement le groupe de référence et le groupe comparé parmi les deux groupes présents dans les métadonnées. Leur ordre change le signe du log2FC.',
+        'RNA-seq: explicitly select different reference and comparison groups from the two groups in the sample sheet. Reversing them changes the sign of log2FC.');
+      return;
+    }
     analysisStatus = 'running';
     try {
       analysisResult = await runDeterministicAnalysis({
@@ -1254,6 +1276,10 @@
           designType,
           studySetting,
           analysisIntent,
+          rnaPrimaryContrast: analysisIntent === 'confirmatory' &&
+            objective === 'groups' && files.transcriptomics &&
+            transcriptomicsValues === 'raw_counts'
+            ? ['condition', rnaseqComparison, rnaseqReference] : null,
           unitType,
           groupCount,
           timepointCount,
@@ -1332,7 +1358,7 @@
             proteomicsValues, proteomicsIdType, metabolomicsPlatform,
             metabolomicsValues, metabolomicsIdType, msBlankFilter, msBlankFold,
             msQcRsdFilter, msQcRsdThreshold, msDriftCorrection, msMnarStrategy,
-            analysisIntent, validateDiabloHoldout, confirmIndependentAssays, msAutoMetadata,
+            analysisIntent, rnaseqReference, rnaseqComparison, validateDiabloHoldout, confirmIndependentAssays, msAutoMetadata,
             columnMapping, metaboliteAnnotations, msAnnotationCsv,
             msAnnotationFields, msImportFormat, annotationFileName,
             demoLoaded
@@ -1476,6 +1502,8 @@
       msDriftCorrection = next.msDriftCorrection ?? 'yes';
       msMnarStrategy = next.msMnarStrategy ?? 'none';
       analysisIntent = next.analysisIntent ?? 'exploratory';
+      rnaseqReference = next.rnaseqReference ?? '';
+      rnaseqComparison = next.rnaseqComparison ?? '';
       validateDiabloHoldout = Boolean(next.validateDiabloHoldout);
       confirmIndependentAssays = Boolean(next.confirmIndependentAssays);
       msAutoMetadata = Boolean(next.msAutoMetadata);
@@ -1759,6 +1787,10 @@
   $: mappedSamples = uniqueMappedFrom(metadataRows, columnMapping, 'sample_id').size;
   $: mappedAssays = uniqueMappedFrom(metadataRows, columnMapping, 'assay_id').size;
   $: availableOutcomeTimepoints = [...uniqueMappedFrom(metadataRows, columnMapping, 'timepoint')];
+  $: rnaseqAvailableConditions = columnMapping.condition
+    ? [...new Set(metadataRows.map((row) =>
+      String(row[columnMapping.condition] ?? '').trim()).filter(Boolean))].sort()
+    : [];
   $: if (availableOutcomeTimepoints.length <= 1 && outcomeTimepoint) outcomeTimepoint = '';
   $: replicateGroups = technicalReplicateGroups(metadataRows, columnMapping);
   $: canonicalMappedColumns = new Set(Object.values(columnMapping).filter(Boolean));
@@ -2740,6 +2772,30 @@
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
           : t('Les résultats sont exploratoires. Vous pouvez lancer une démo et consulter les limites sans installer R.', 'Results are exploratory. You can run the demo and see limitations without installing R.')}</small>
       </label>
+      {#if analysisIntent === 'confirmatory' && objective === 'groups' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
+        <fieldset class="reference-backend-box" data-testid="multiomics-rnaseq-contrast">
+          <legend><strong>{t('Quel effet RNA-seq souhaitez-vous tester ?', 'Which RNA-seq group effect do you want to test?')}</strong></legend>
+          <label>
+            {t('Groupe de référence (dénominateur)', 'Reference group (denominator)')}
+            <select bind:value={rnaseqReference} aria-label={t('Groupe RNA-seq de référence', 'RNA-seq reference group')}>
+              <option value="">{t('Sélectionner un groupe', 'Select a group')}</option>
+              {#each rnaseqAvailableConditions as group}
+                <option value={group}>{group}</option>
+              {/each}
+            </select>
+          </label>
+          <label>
+            {t('Groupe comparé (numérateur)', 'Comparison group (numerator)')}
+            <select bind:value={rnaseqComparison} aria-label={t('Groupe RNA-seq comparé', 'RNA-seq comparison group')}>
+              <option value="">{t('Sélectionner un groupe', 'Select a group')}</option>
+              {#each rnaseqAvailableConditions as group}
+                <option value={group}>{group}</option>
+              {/each}
+            </select>
+          </label>
+          <small>{t('Le log2FC sera calculé comme « groupe comparé / groupe de référence ». Les deux valeurs proviennent des métadonnées et doivent être différentes. Ce choix est conservé dans le projet reproductible.', 'The log2FC is comparison / reference. Both group names come from the sample sheet and must differ. Your choice is stored in the reproducible project.')}</small>
+        </fieldset>
+      {/if}
       <details class="simple-disclosure" data-testid="multiomics-run-options">
         <summary>{t('Options de calcul et connexions externes', 'Analysis options and external services')}</summary>
       <label class="inline-check">
