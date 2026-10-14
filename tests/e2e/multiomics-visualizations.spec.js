@@ -142,6 +142,20 @@ test('MS peak-AUC long CSV can be uploaded directly with group metadata', async 
   await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/);
   await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/8 injections|8 injections/);
   await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
+  // A previous successful import must not survive a subsequently invalid CSV.
+  const upload=page.getByTestId('multiomics-ms-auc-upload');
+  await upload.setInputFiles({name:'invalid_ms_auc.csv',mimeType:'text/csv',
+    buffer:Buffer.from(header+'\nCHEBI:24996,INJ0,not-a-number,SUBJ0,S0,control')});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toHaveAttribute('data-import-state','error');
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toContainText(/MS AUC|import MS|MS import/i);
+  await upload.setInputFiles({name:'recovered_ms_auc.csv',mimeType:'text/csv',
+    buffer:Buffer.from(rows.join('\n'))});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toHaveAttribute('data-import-state','ready');
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toContainText(/2 signaux MS|2 MS features/);
 });
 
 test('expert raw-MS and external validation workflows are disclosed on request', async ({ page }) => {
