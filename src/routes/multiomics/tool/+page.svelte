@@ -113,6 +113,9 @@
   let metabolomicsPlatform = 'untargeted_lcms';
   let metabolomicsValues = 'peak_area';
   let msImportMessage = '';
+  /** State is observable independently of the translated message. */
+  let msImportState = 'idle'; // idle | loading | parsed | ready | error
+  let msImportSequence = 0;
   /** Original vendor CSV/TSV remains unchanged for provenance and re-export. */
   /** @type {File|null} */
   let msOriginalFile = null;
@@ -496,20 +499,27 @@
     columnMapping = next;
   }
 
-  /** @param {File | null} file */
-  async function inspectMetadata(file) {
+  /**
+   * @param {File | null} file
+   * @param {() => boolean} [isCurrent]
+   */
+  async function inspectMetadata(file, isCurrent = () => true) {
+    if (!isCurrent()) return;
     metadataError = '';
     metadataHeaders = [];
     metadataRows = [];
     if (!file) return;
     try {
-      const parsed = parseTable(await file.text());
+      const text = await file.text();
+      if (!isCurrent()) return;
+      const parsed = parseTable(text);
       metadataDelimiter = parsed.delimiter === '\t' ? 'tab' : parsed.delimiter === ';' ? 'semicolon' : 'comma';
       metadataHeaders = parsed.headers;
       metadataRows = parsed.rows;
       autoMapColumns(parsed.headers);
       if (!parsed.headers.length || !parsed.rows.length) metadataError = 'The metadata file appears empty.';
     } catch (error) {
+      if (!isCurrent()) return;
       metadataError = error instanceof Error ? error.message : 'Unable to read metadata.';
     }
   }
@@ -517,14 +527,18 @@
   /**
    * @param {'transcriptomics' | 'proteomics' | 'metabolomics'} layer
    * @param {File | null} file
+   * @param {() => boolean} [isCurrent]
    */
-  async function inspectMatrix(layer, file) {
+  async function inspectMatrix(layer, file, isCurrent = () => true) {
+    if (!isCurrent()) return;
     if (!file) {
       matrixInfo = { ...matrixInfo, [layer]: { headers: [], sampleIds: [], rowIds: [], featureColumn: '', error: '' } };
       return;
     }
     try {
-      const parsed = parseTable(await file.text());
+      const text = await file.text();
+      if (!isCurrent()) return;
+      const parsed = parseTable(text);
       const featureColumn = parsed.headers[0] ?? '';
       const sampleIds = parsed.headers.slice(1);
       const rowIds = parsed.rows.map((row) => row[featureColumn] ?? '').filter(Boolean);
@@ -539,6 +553,7 @@
         }
       };
     } catch (error) {
+      if (!isCurrent()) return;
       matrixInfo = {
         ...matrixInfo,
         [layer]: {
@@ -567,7 +582,12 @@
       confirmIndependentAssays = false;
       exploratorySheetGenerated = false;
     }
+    const currentMsImport = layer === 'metabolomics' ? ++msImportSequence : msImportSequence;
+    const isCurrentMsImport = () => currentMsImport === msImportSequence;
     if (layer === 'metabolomics') {
+      // Do not allow a prior matrix to be analyzed during an in-flight replacement.
+      files = { ...files, metabolomics: null };
+      msImportState = file ? 'loading' : 'idle';
       msOriginalFile = file;
       msAnnotationCsv = '';
       msAnnotationFields = [];
@@ -581,7 +601,10 @@
       await inspectMetadata(file);
     } else if (layer === 'metabolomics' && file) {
       try {
-        const converted = convertMsAucExport(await file.text());
+        const sourceText = await file.text();
+        if (currentMsImport !== msImportSequence) return;
+        const converted = convertMsAucExport(sourceText);
+        msImportState = 'parsed';
         msAnnotationCsv = converted.annotationsCsv || '';
         msAnnotationFields = converted.annotationColumns || [];
         msImportFormat = converted.format;
@@ -596,11 +619,14 @@
           ...(autoMeta ? { metadata: autoMeta } : clearStaleAutoMetadata ? { metadata: null } : {}) };
         if (clearStaleAutoMetadata) {
           msAutoMetadata = false;
-          await inspectMetadata(null);
+          await inspectMetadata(null, isCurrentMsImport);
+          if (!isCurrentMsImport()) return;
         }
         if (autoMeta) {
           msAutoMetadata = true;
-          await inspectMetadata(autoMeta);
+          await inspectMetadata(autoMeta, isCurrentMsImport);
+          if (!isCurrentMsImport()) return;
+          if (metadataError) throw new Error(metadataError);
           if (!files.transcriptomics && !files.proteomics && objective === 'explore') {
             // Only one measured modality: select an identifiable group contrast
             // rather than presenting single-layer MS as multi-block exploration.
@@ -622,17 +648,36 @@
           : converted.format === 'wide_ms_auc'
             ? t('Aires de pics MS importées : les colonnes m/z, RT et annotations sont conservées séparément et non utilisées comme intensités. Fournissez les métadonnées des échantillons.', 'MS peak areas imported: m/z, RT and annotations are retained separately and not treated as intensities. Upload sample metadata.')
             : t('Matrice chargée directement. Vérifiez si ses valeurs représentent réellement des aires de pics ou des intensités déjà transformées.', 'Matrix loaded directly. Verify whether values represent raw peak areas or already transformed intensities.');
-        await inspectMatrix(layer, matrix);
+        await inspectMatrix(layer, matrix, isCurrentMsImport);
+        if (!isCurrentMsImport()) return;
+        if (matrixInfo.metabolomics?.error) throw new Error(matrixInfo.metabolomics.error);
+        msImportState = 'ready';
       } catch (error) {
-        files = { ...files, metabolomics: null };
+        if (currentMsImport !== msImportSequence) return;
+        msImportState = 'error';
+        const clearAutoMetadata = msAutoMetadata && files.metadata?.name === 'metadata_from_ms_auc.csv';
+        files = { ...files, metabolomics: null, ...(clearAutoMetadata ? { metadata: null } : {}) };
+        if (clearAutoMetadata) {
+          msAutoMetadata = false;
+          await inspectMetadata(null, isCurrentMsImport);
+          if (!isCurrentMsImport()) return;
+        }
         msOriginalFile = null;
         msAnnotationCsv = '';
         msAnnotationFields = [];
         msImportFormat = '';
         msImportMessage = '';
         analysisError = error instanceof Error ? error.message : 'Invalid MS AUC export';
-        await inspectMatrix(layer, null);
+        await inspectMatrix(layer, null, isCurrentMsImport);
       }
+    } else if (layer === 'metabolomics' && !file) {
+      const clearAutoMetadata = msAutoMetadata && files.metadata?.name === 'metadata_from_ms_auc.csv';
+      if (clearAutoMetadata) {
+        files = { ...files, metadata: null };
+        msAutoMetadata = false;
+        await inspectMetadata(null, isCurrentMsImport);
+      }
+      await inspectMatrix(layer, null, isCurrentMsImport);
     } else {
       files = { ...files, [layer]: file };
       await inspectMatrix(layer, file);
@@ -1173,6 +1218,10 @@
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    if (msImportState === 'loading' || msImportState === 'parsed') {
+      analysisError = t('Terminez l’import MS avant de lancer l’analyse.', 'Complete the MS import before running an analysis.');
+      return;
+    }
     if (analysisIntent === 'confirmatory' && referenceBackendMode !== 'required') {
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
@@ -2416,7 +2465,13 @@
   {#if exploratorySheetGenerated}
     <p class="ms-import-message" data-testid="multiomics-generated-sheet-notice">{t('Tableau créé à partir de votre déclaration : identifiants conservés, aucun groupe inféré. Les résultats restent descriptifs.', 'Sample sheet created from your declaration: IDs preserved, no groups inferred. Results remain descriptive.')}</p>
   {/if}
-  {#if msImportMessage}<p class="ms-import-message" data-testid="multiomics-ms-auc-import-status">{msImportMessage}</p>{/if}
+  <p class="ms-import-message" role="status" aria-live="polite" data-testid="multiomics-ms-auc-import-status" data-import-state={msImportState}>
+    {#if msImportState === 'loading'}{t('Lecture du fichier MS…', 'Reading MS file…')}
+    {:else if msImportState === 'parsed'}{t('Fichier MS analysé : vérification des échantillons…', 'MS file parsed: validating samples…')}
+    {:else if msImportState === 'ready'}{msImportMessage}
+    {:else if msImportState === 'error'}{t('Échec de l’import MS : ', 'MS import failed: ')}{analysisError}
+    {/if}
+  </p>
   {#if singleOmic}<p class="ms-import-message" data-testid="multiomics-single-omic-notice">{t('Mode omique unique : exploration, groupes, temps ou outcome selon votre plan. Aucune intégration inter-omique ne sera calculée.', 'Single-omics mode: exploration, groups, time or outcome, depending on the study. No cross-omics integration will be computed.')}</p>{/if}
   {#if msOriginalFile && msAnnotationCsv}
     <div class="ms-import-message" data-testid="multiomics-ms-annotations-preserved">
@@ -2675,7 +2730,7 @@
       </div>
       </details>
     </div>
-    <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running'} onclick={runAnalysis}>
+    <button class="btn btn-primary" type="button" data-testid="multiomics-run" disabled={!ready || analysisStatus === 'running' || msImportState === 'loading' || msImportState === 'parsed'} onclick={runAnalysis}>
       {analysisStatus === 'running' ? t('Analyse en cours…', 'Analyzing…') : t('Analyser mes données', 'Analyze my data')}
     </button>
   </div>

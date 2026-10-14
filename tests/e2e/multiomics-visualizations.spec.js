@@ -130,6 +130,7 @@ test('multi-omics one-click demo exposes guided heatmap, pathway and map views',
 
 test('MS peak-AUC long CSV can be uploaded directly with group metadata', async ({page})=>{
   await page.goto('/multiomics/tool');
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.pmxMultiomicsHydrated), {timeout:15000}).toBe('true');
   const header='feature_id,assay_id,auc,subject_id,sample_id,condition';
   const rows=[header];
   for (let i=0;i<8;i++)for(const f of ['CHEBI:24996','CHEBI:30031'])
@@ -137,8 +138,53 @@ test('MS peak-AUC long CSV can be uploaded directly with group metadata', async 
   await page.getByTestId('multiomics-ms-auc-upload').setInputFiles({
     name:'ms_auc_export.csv',mimeType:'text/csv',buffer:Buffer.from(rows.join('\n'))
   });
-  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/, {timeout: 15_000});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toHaveAttribute('data-import-state', 'ready', {timeout: 15_000});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/2 signaux MS|2 MS features/);
   await expect(page.getByTestId('multiomics-ms-auc-import-status')).toContainText(/8 injections|8 injections/);
+  await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
+  // A previous successful import must not survive a subsequently invalid CSV.
+  const upload=page.getByTestId('multiomics-ms-auc-upload');
+  await upload.setInputFiles({name:'invalid_ms_auc.csv',mimeType:'text/csv',
+    buffer:Buffer.from(header+'\nCHEBI:24996,INJ0,not-a-number,SUBJ0,S0,control')});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toHaveAttribute('data-import-state','error');
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toContainText(/MS AUC|import MS|MS import/i);
+  await upload.setInputFiles({name:'recovered_ms_auc.csv',mimeType:'text/csv',
+    buffer:Buffer.from(rows.join('\n'))});
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toHaveAttribute('data-import-state','ready');
+  await expect(page.getByTestId('multiomics-ms-auc-import-status'))
+    .toContainText(/2 signaux MS|2 MS features/);
+});
+
+
+test('MS peak-AUC rapid replacement keeps only the newest import and its group metadata', async ({page})=>{
+  await page.goto('/multiomics/tool');
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.dataset.pmxMultiomicsHydrated),
+    {timeout:15000}).toBe('true');
+  await page.evaluate(()=>{
+    const input=document.querySelector('[data-testid="multiomics-ms-auc-upload"]');
+    if(!(input instanceof HTMLInputElement))throw new Error('MS AUC uploader not found');
+    const header='feature_id,assay_id,auc,subject_id,sample_id,condition';
+    const replace=(name,body)=>{
+      const data=new DataTransfer();
+      data.items.add(new File([body],name,{type:'text/csv'}));
+      input.files=data.files;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    // Both change events execute before either asynchronous File.text() finishes.
+    // The old invalid import must never replace the newer, valid one.
+    replace('obsolete.csv',header+'\nCHEBI:24996,OLD,invalid,OLD,OLD,control');
+    const rows=[header];
+    for(let i=0;i<8;i++)for(const feature of ['CHEBI:24996','CHEBI:30031'])
+      rows.push([feature,'INJ'+i,100+i*5,'SUBJ'+i,'S'+i,i<4?'control':'treated'].join(','));
+    replace('latest.csv',rows.join('\n'));
+  });
+  const status=page.getByTestId('multiomics-ms-auc-import-status');
+  await expect(status).toHaveAttribute('data-import-state','ready',{timeout:15000});
+  await expect(status).toContainText(/2 signaux MS|2 MS features/);
+  await expect(status).toContainText(/8 injections/);
   await expect(page.getByTestId('multiomics-simple-values')).toBeVisible();
 });
 
