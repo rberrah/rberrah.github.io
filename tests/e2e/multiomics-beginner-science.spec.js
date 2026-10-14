@@ -193,3 +193,38 @@ test('R1 confirmatory user-selected RNA direction is sent verbatim to the refere
   // A blocked synthetic response is intentionally not a pass/certificate.
   expect(submitted.dataTypes.transcriptomics).toBe('raw_counts');
 });
+
+
+test('Beginner R backend setup is discoverable, precise and mobile readable without installing R',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  let submissions=0;
+  page.on('request',request=>{
+    if(request.url().endsWith('127.0.0.1:8787/run'))submissions++;
+  });
+  await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:18000}).toBe('true');
+  const help=page.getByTestId('multiomics-local-r-setup');
+  await expect(help.locator('summary')).toContainText('Comment activer le moteur R');
+  await help.locator('summary').click();
+  await expect(help).toContainText('GitHub Pages ne peut pas exécuter R');
+  await expect(help).toContainText('Installer R et Git');
+  await expect(help.locator('pre')).toContainText('Rscript multiomics-engine/run_backend.R');
+  await expect(help.locator('pre')).toContainText('Rscript multiomics-engine/install_backend_dependencies.R');
+  await expect(help).toContainText('127.0.0.1');
+  await expect(help.locator('a')).toHaveAttribute('href',
+     'https://github.com/rberrah/rberrah.github.io/blob/main/multiomics-engine/README.md');
+  const overflow=await page.evaluate(()=>
+    document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(12);
+  expect(submissions).toBe(0);
+  await page.goto('/multiomics/tool?lang=en');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:18000}).toBe('true');
+  const english=page.getByTestId('multiomics-local-r-setup');
+  await expect(english.locator('summary')).toContainText('How to enable R');
+  await english.locator('summary').click();
+  await expect(english).toContainText('No installation is needed to explore data');
+  await expect(english).toContainText('Never send patient data');
+  expect(submissions).toBe(0);
+});
