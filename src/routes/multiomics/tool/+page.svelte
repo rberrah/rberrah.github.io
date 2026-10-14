@@ -2918,7 +2918,7 @@
             <li>{t('Installer R et Git sur votre ordinateur.', 'Install R and Git on your computer.')}</li>
             <li>{t('Ouvrir un terminal et copier ces commandes une par une :', 'Open a terminal and run these commands one by one:')}</li>
           </ol>
-          <pre><code>git clone https://github.com/rberrah/rberrah.github.io.git
+          <pre style="max-width:100%;overflow-x:auto;white-space:pre;" tabindex="0"><code>git clone https://github.com/rberrah/rberrah.github.io.git
 cd rberrah.github.io
 Rscript multiomics-engine/install_backend_dependencies.R
 Rscript multiomics-engine/run_backend.R</code></pre>
