@@ -28,6 +28,26 @@ En nul global, cet indicateur est à la fois la fréquence empirique FWER et l'e
 
 Conséquence produit : l'exécution du moteur R et un contrat d'entrée validé ne signifient **pas** `FDR universellement contrôlé à 5 %` ; l'interface et les rapports doivent conserver le statut de revue indépendante requise. Ne pas masquer ce résultat négatif. Distinguer toujours validité du câblage, calibration fréquentiste, validité biologique externe et généralisation prédictive.
 
+## Complément empirique — attribution mécanistique des faux appels (14 octobre 2026)
+
+Deux campagnes **préspécifiées** et exécutées avec les vrais packages R/Bioconductor ont été intégrées, sans modification du moteur DESeq2 de production :
+
+- [PR #97 — facteurs de taille estimés ou exacts du générateur](https://github.com/rberrah/rberrah.github.io/pull/97), [CI et artefact R](https://github.com/rberrah/rberrah.github.io/actions/runs/38565888024) : deux tailles de cohorte (40/80 sujets), 40 jeux nuls par design, 160 fits DESeq2. Fréquences de jeux avec au moins un faux appel : **17,5 % / 17,5 %** (estimé/oracle, n=40), **10 % / 7,5 %** (n=80). Les facteurs de taille connus ne font pas disparaître le problème.
+- [PR #100 — dispersions et référence de Wald](https://github.com/rberrah/rberrah.github.io/pull/100), [CI et artefacts R](https://github.com/rberrah/rberrah.github.io/actions/runs/38602501639) : deux nouveaux échantillons de 40 jeux nuls, n=40 et n=80, 320 vrais ajustements. Tableau ci-dessous.
+
+| Paramètres DESeq2 | N=40 : études avec faux appels/40 | N=80 : études avec faux appels/40 |
+| --- | ---: | ---: |
+| Facteurs de taille et dispersions estimés, Wald normal | 3 (7,5 %) | 4 (10 %) |
+| Facteurs de taille vrais, dispersions estimées, Wald normal | 3 (7,5 %) | 4 (10 %) |
+| Facteurs de taille et dispersions vrais, Wald normal | 2 (5 %) | 2 (5 %) |
+| Facteurs de taille et dispersions vrais, Wald avec référence t | 0 (0 %) | 1 (2,5 %) |
+
+**Interprétation bornée** : l'effet observé de la normalisation paraît faible dans ces générateurs ; une partie de l'écart peut être liée à l'estimation de dispersion, à la référence du test de Wald ou à leur interaction. Il ne s'agit pas d'une décomposition causale indépendante puisque la modification d'un paramètre affecte la variance, les coefficients et les tests réajustés. Les campagnes #97 et #100 ont des graines différentes : ne pas confondre l'écart *entre campagnes* avec un contraste apparié. Le filtrage indépendant n'a pas changé les fréquences de découverte dans #100, mais cela ne valide pas son innocuité universelle.
+
+**Précision Monte-Carlo insuffisante** : 40 réalisations par scénario donnent des IC binomiaux très larges ; **0/40** faux appel est compatible avec un taux allant jusqu'à **8,81 %** (borne exacte supérieure 95 %). Les critères « FDR contrôlé à 5 % », « Wald t supérieur » et « validité clinique » restent **non établis**. Aucun changement de référence statistique ne doit être appliqué sur la seule base de ces données.
+
+Prochaine qualification à financer/calculer : générateurs hors famille NB, variations de dispersion et de corrélation, designs appariés réalistes, effets mixtes pour la puissance, cohortes biologiques indépendantes, puis réplication Monte-Carlo avec précision définie avant exécution. La reproductibilité informatique des fits, la calibration fréquentiste et la généralisation aux patients restent trois objectifs distincts.
+
 ## Matrice d'acceptation minimale
 
 | ID | Cas | Vérification observable | Critère bloquant |
