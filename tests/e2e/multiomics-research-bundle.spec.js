@@ -37,6 +37,9 @@ for(const [demo,expected] of [
       page.getByTestId('multiomics-research-bundle-download').click()
     ]);
     expect(download.suggestedFilename()).toBe('multiomics_dossier_recherche_v1.zip');
+    // Confirm browser completion while the page session is still active, before
+    // parsing/validating the ZIP outside the browser process.
+    await expect(page.getByTestId('multiomics-research-bundle-status')).toBeVisible({timeout:15000});
     const contents=unzipStore(await fs.readFile(await download.path()));
     const manifest=JSON.parse(contents['provenance/manifest.json']);
     const project=JSON.parse(contents['source/projet_reproductible.json']);
@@ -60,7 +63,6 @@ for(const [demo,expected] of [
       expect(lines.length-2).toBe(analysis.layers[layer].rows.length);
     }
     expect(contents['methods/methods.md']).toContain('Méthodes exécutées');
-    expect(await page.getByTestId('multiomics-research-bundle-status')).toBeVisible();
     expect(errors).toEqual([]);
   });
 }
