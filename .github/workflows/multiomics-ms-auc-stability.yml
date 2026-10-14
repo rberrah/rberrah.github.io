@@ -1,0 +1,47 @@
+name: MultiOmics MS AUC import — first-attempt stability
+
+on:
+  pull_request:
+    paths:
+      - 'src/routes/multiomics/tool/+page.svelte'
+      - 'src/lib/multiomics/ms-auc-import.js'
+      - 'tests/e2e/multiomics-visualizations.spec.js'
+      - '.github/workflows/multiomics-ms-auc-stability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repeat-without-retry:
+    name: MS AUC 20 first attempts with hydration and import-state assertions
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+      LABS_E2E_PREBUILT: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npx playwright install chromium --with-deps
+      - name: Twenty clean attempts, without retry or parallel contention
+        run: >-
+          npx playwright test tests/e2e/multiomics-visualizations.spec.js
+          --grep "MS peak-AUC long CSV can be uploaded directly with group metadata"
+          --repeat-each=20 --retries=0 --workers=1
+      - name: Save failed browser traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiomics-ms-auc-first-attempt-failure
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 30
