@@ -46,6 +46,10 @@ export function buildResearchMethodsManifest(result){
       sample_profiles_with_missing_features:incompleteProfiles.length,
       feature_level_missingness_evaluated:profiles.length>0,
       fdr_family:'one BH family per omics layer; exploratory q<=0.10',
+      statistical_calibration_certified:false,
+      null_rnaseq_calibration_review_required:
+        layer==='transcriptomics' &&
+        qc?.preprocessingAudit?.declaredValueType==='raw_counts',
       reference_method_key:backendKey,
       reference_executed:backend?.status==='ok',
       backend_confirmation_status:backend?.status==='ok'?
@@ -92,6 +96,7 @@ export function buildResearchMethodsManifest(result){
       'An R environment lockfile/container and raw-MS vendor binaries are not part of this methods-only manifest.',
       'Sample sizes and QC exclusions must be independently checked by the investigator.',
       'A median of zero missingness can conceal missing observations in individual assays; the report records their count and the worst measured fraction.',
+      'DESeq2 raw-count simulations showed excess null discoveries in some tested designs; assess statistical calibration before confirmatory claims.',
       'Reference-model execution, descriptive BH FDR, and public-benchmark recovery never certify a new biological cohort.'
     ]
   };
