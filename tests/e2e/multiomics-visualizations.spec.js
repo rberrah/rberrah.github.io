@@ -175,11 +175,11 @@ test('MS peak-AUC rapid replacement keeps only the newest import and its group m
     };
     // Both change events execute before either asynchronous File.text() finishes.
     // The old invalid import must never replace the newer, valid one.
-    replace('obsolete.csv',header+'\\nCHEBI:24996,OLD,invalid,OLD,OLD,control');
+    replace('obsolete.csv',header+'\nCHEBI:24996,OLD,invalid,OLD,OLD,control');
     const rows=[header];
     for(let i=0;i<8;i++)for(const feature of ['CHEBI:24996','CHEBI:30031'])
       rows.push([feature,'INJ'+i,100+i*5,'SUBJ'+i,'S'+i,i<4?'control':'treated'].join(','));
-    replace('latest.csv',rows.join('\\n'));
+    replace('latest.csv',rows.join('\n'));
   });
   const status=page.getByTestId('multiomics-ms-auc-import-status');
   await expect(status).toHaveAttribute('data-import-state','ready',{timeout:15000});
