@@ -187,6 +187,7 @@ assert.ok(mnarImputed.checks.some(x=>x.code==='mnar_imputation_metabolomics' &&
 // R1 preflight; only an exact server-side audit permits the review pathway.
 const rawCountCandidate = {
   ...candidate,
+  protocol:{...candidate.protocol,rnaPrimaryContrast:['condition','treated','control']},
   layers:{transcriptomics:{
     qc:{preprocessingAudit:{declaredValueType:'raw_counts'},
       medianMissingFraction:0,differentialMissingness:{flaggedFeatures:0}}
@@ -206,7 +207,8 @@ const withR1Audit={
       status:'ok',method:'DESeq2',
       confirmatoryInputContract:{
         status:'eligible_for_reference_fitting_only',certified:false,
-        independent_subjects:40,rejected_silent_subject_loss:true
+        independent_subjects:40,rejected_silent_subject_loss:true,
+        condition_contrast:['condition','treated','control']
       },
       assayIntegrityContract:{
         status:'assay_identifiers_exact',assay_loss_detected:false,
@@ -220,6 +222,19 @@ assert.equal(passedR1Audit.status,'independent_review_required');
 assert.equal(passedR1Audit.certified,false);
 assert.ok(passedR1Audit.checks.some(x=>
   x.code==='rnaseq_confirmatory_input_contract'&&x.status==='pass'));
+const reversedReferenceEffect={
+  ...withR1Audit,referenceBackend:{status:'ok',methods:{
+    transcriptomics_differential_deseq2:{
+      ...withR1Audit.referenceBackend.methods.transcriptomics_differential_deseq2,
+      confirmatoryInputContract:{
+        ...withR1Audit.referenceBackend.methods.transcriptomics_differential_deseq2.confirmatoryInputContract,
+        condition_contrast:['condition','control','treated']
+      }
+    }
+  }}
+};
+assert.equal(evaluateConfirmatoryReadiness(reversedReferenceEffect).status,'blocked',
+  'A reversed R effect must never be reported as matching a prespecified RNA contrast');
 const missingAssayEvidence={
   ...withR1Audit,referenceBackend:{status:'ok',methods:{
     transcriptomics_differential_deseq2:{
