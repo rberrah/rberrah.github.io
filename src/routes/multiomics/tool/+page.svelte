@@ -3,7 +3,7 @@
   import { base } from '$app/paths';
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis } from '$lib/multiomics/deterministic.js';
-  import { buildResearchBundle, fullLayerCsv } from '$lib/multiomics/research-export-package.js';
+  import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '$lib/multiomics/research-export-package.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
@@ -2871,9 +2871,27 @@
     </div>
     <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
     {#if analysisResult.referenceBackend?.methods}
-      <p class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
-        {t('Attention : les calculs R de référence retournent actuellement des aperçus pouvant être limités aux 100 premières lignes par méthode. Le dossier ZIP contient intégralement les résultats du navigateur, mais pas nécessairement toutes les variables du modèle R. Pour publier une analyse R, conservez la table R complète séparément.', 'Important: R reference calculations currently return previews that may be limited to the first 100 rows per method. The ZIP contains complete browser results, but not necessarily all R-fitted features. For a publication using R, preserve the full R results separately.')}
-      </p>
+      <div class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
+        {t('Résultats R : le tableau affiché est un aperçu. Le ZIP ne contient les résultats R exhaustifs que pour les méthodes marquées « complet ». Toute méthode incomplète doit être exportée séparément depuis le moteur R local.', 'R results: on-screen tables are previews. The ZIP contains all R rows only for methods marked complete. Incomplete methods require a separate full export from the local R engine.')}
+        <ul>
+          {#each referencePreviewAudit(analysisResult) as ref (ref.method_key)}
+            <li>{ref.reported_name} — {ref.complete_reference_table_exported
+              ? t('complet', 'complete')
+              : t('aperçu uniquement', 'preview only')}
+              {#if ref.reference_table_rows !== null} ({ref.reference_table_rows} {t('lignes', 'rows')}){/if}
+              {#if ref.reference_export_status === 'too_large_archived_locally'}
+                <span> — {t('sauvegardé sur le disque du serveur R local, pas dans le ZIP', 'saved on the local R machine, not in this ZIP')}</span>
+                {#if ref.local_archive_id}
+                  <code>{ref.local_archive_id}</code>
+                  {#if ref.local_archive_sha256}<small>SHA-256: {ref.local_archive_sha256}</small>{/if}
+                {/if}
+              {:else if ref.reference_export_status === 'too_large'}
+                <span> — {t('trop volumineux : aucune archive conservée par défaut, reconfigurez R puis relancez', 'too large: no archive retained by default, configure R and rerun')}</span>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+      </div>
     {/if}
     {#if researchBundleMessage}<p role="status" data-testid="multiomics-research-bundle-status">{researchBundleMessage}</p>{/if}
     {#if researchBundleError}<p role="alert" data-testid="multiomics-research-bundle-error" class="error">{researchBundleError}</p>{/if}
