@@ -6,19 +6,27 @@
 
 **Ne pas labelliser « confirmatoire validé » sur la base des seuls tests internes ou du succès CI.** Autoriser une analyse confirmatoire seulement pour les combinaisons de données, plan, modèle et moteur dont les critères ci-dessous sont documentés. Dans les autres cas : exploration explicitement marquée, ou blocage avec explication courte.
 
-## Dépendances et ordre recommandé
+## État d'intégration vérifié — 14 octobre 2026
 
-- Contraste RNA-seq préspécifié et intention confirmatoire : #54 (sur `main`).
-- Export de recherche ZIP du navigateur : #79 (sur `main`).
-- Sérialisation des résultats R exhaustifs : #81 (dépend de #54).
-- Intégration dans ZIP des CSV R complets : #82 (dépend de #79 **et** de la forme finale #81).
-- Exécution vraie R → ZIP et vérification de réouverture : #83 (dépend de #82/#81).
-- Cas public Airway, paires sujet et contraste directionnel : #84 (dépend de #83, doit consommer le code effectivement intégré).
-- Analyse RNA-seq appariée côté R : #86 (dépend de #81 et du contrat #54).
-- Choix apparié compréhensible côté UI : #87 (dépend de #82 ; doit être raccordé à #86).
-- #75 (FDR) est **diagnostique**, sans autorisation de fusion des changements d'inférence tant que l'attribution méthodologique et le calibrage n'ont pas été établis.
+Les changements MultiOmics suivants ont été fusionnés dans `main` après des CI de branche réussies au premier passage :
 
-Les PR « empilées » ne doivent pas être fusionnées automatiquement : réviser bases, conflits, versions et CI **sur le commit final assemblé**. Conserver des commits/PR distincts par responsabilité.
+- #73 : environnement R/Bioconductor figé et rejeu indépendant ; #77 : acceptation navigateur, FDR/puissance et jeux TCGA ; #79 : ZIP du navigateur ; #89 : import MS peak-AUC avec gestion d'état explicite.
+- #90 : intention confirmatoire et contraste RNA-seq choisi par le chercheur, transmis à R et contrôlé dans les résultats.
+- #91 : export intégral des variables ajustées DESeq2/voom/limma ; limites de transfert et archivage privé local explicites.
+- #92 : séparation des tables exploratoires et des CSV R exhaustifs, vérification d'intégrité et ZIP.
+- #93 : RNA-seq apparié avec blocage sujet, matrice/metadata concordants, erreurs bloquantes et tests réels de modèles R.
+- #94 : aide débutant, template 4 paires/8 échantillons, obligation de R apparié, sans second sélecteur de contraste contradictoire.
+- #95 : vraie session Chromium → R/DESeq2 → CSV R complet → ZIP → vérificateur Python ; cohorte publique Airway GSE52778 et confrontation au DESeq2 natif. Tests sur le code assemblé, non sur un ancien backend épinglé.
+
+L'ancienne liste de dépendances #54/#81/#82/#83/#84/#86/#87 correspond aux branches de développement, **pas** à leur intégration effective. Les validations de branche ne remplacent pas la recette du dernier commit déployé. Suivre le SHA de `main`, ses workflows de déploiement, puis le smoke test public. **Ne jamais convertir des CI vertes en certification statistique ou clinique.**
+
+## Alerte scientifique ouverte — inflation FDR sous simulations
+
+La PR diagnostique #75 reste **ouverte et non fusionnée comme correction inférentielle**. Son exécution réelle : [GitHub Actions #38369835987](https://github.com/rberrah/rberrah.github.io/actions/runs/38369835987). Cinq nuls globaux préspécifiés × 60 réalisations, trois variantes DESeq2 par jeu = 900 fits. Pour la variante DESeq2 Wald par défaut, le nombre de jeux avec au moins une fausse découverte est respectivement **10/60, 11/60, 13/60, 7/60 et 6/60**, soit des fréquences observées de **16,7 %, 18,3 %, 21,7 %, 11,7 % et 10,0 %**, dans cet ordre de scénarios (dispersion fixée, tailles de librairies fixées, effet de lot absent, nul initial équilibré, nul initial déséquilibré).
+
+En nul global, cet indicateur est à la fois la fréquence empirique FWER et l'estimateur FDR sur ces simulations ; sa hausse ne prouve pas que DESeq2 soit généralement mal calibré sur des données biologiques réelles. Avec seulement 60 réalisations/scénario, les intervalles de confiance sont larges. Les variantes de test évaluées ne doivent **jamais être choisies a posteriori** d'après leurs faux positifs. L'attribution du signal (génération NB, estimation de dispersion, formulation des tailles de librairie, indépendance, lot, filtrage, tests de référence) exige des contrôles supplémentaires.
+
+Conséquence produit : l'exécution du moteur R et un contrat d'entrée validé ne signifient **pas** `FDR universellement contrôlé à 5 %` ; l'interface et les rapports doivent conserver le statut de revue indépendante requise. Ne pas masquer ce résultat négatif. Distinguer toujours validité du câblage, calibration fréquentiste, validité biologique externe et généralisation prédictive.
 
 ## Matrice d'acceptation minimale
 
