@@ -4,6 +4,7 @@
   import { language } from '$lib/stores/language';
   import { runDeterministicAnalysis } from '$lib/multiomics/deterministic.js';
   import { buildResearchBundle, fullLayerCsv, referencePreviewAudit } from '$lib/multiomics/research-export-package.js';
+  import { auditPairedRnaStudy, pairedExampleSampleSheetCsv } from '$lib/multiomics/paired-study-client.js';
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
@@ -1229,6 +1230,29 @@
     const checkedBody = validateMofa2MethodResult(body);
     referenceBackendStatus = checkedBody.mofa2OrientationBlocked ? 'error' : 'done';
     const completed = Object.values(checkedBody.methods || {}).some((method) => method?.status === 'ok');
+    // "Require R" must mean that a REAL subject-blocked reference model
+    // completed, not merely that /health was reachable or some unrelated
+    // method returned HTTP 200. Fail closed if pairing was not applied.
+    if(referenceBackendMode === 'required' && objective === 'groups' &&
+       designType === 'paired' && files.transcriptomics){
+      const countMethods = [
+        checkedBody.methods?.transcriptomics_differential_deseq2,
+        checkedBody.methods?.transcriptomics_differential_voom
+      ];
+      const validPairedFit = countMethods.some(method =>
+        method?.status === 'ok' &&
+        method.pairedDesignContract?.pairing === 'same_subject_two_conditions' &&
+        method.pairedDesignContract?.biological_pairs === pairedAudit?.nPairs &&
+        method.pairedDesignContract?.certified === false);
+      if(!validPairedFit){
+        const diagnostics = countMethods.filter(Boolean).map(method =>
+          method.method+': '+method.status+(method.message?' ('+method.message+')':'')).join('; ');
+        throw new Error(t(
+          'Aucun modèle RNA-seq apparié valide n’a été exécuté sous R. Le résultat exploratoire du navigateur ne remplace pas une inférence appariée. Vérifiez les paires, le contraste et les messages R. ',
+          'No valid paired RNA-seq model was fitted in R. Browser exploration cannot substitute for paired inference. Check your pairs, contrast and R diagnostics. '
+        ) + diagnostics);
+      }
+    }
     referenceBackendMessage = checkedBody.mofa2OrientationBlocked
       ? t('Résultat MOFA2 masqué : ce backend n’a pas prouvé l’orientation correcte des variables et des sujets. Mettez à jour R.', 'MOFA2 result hidden: this backend did not prove the correct feature and subject orientation. Update R.')
       : completed
@@ -1244,6 +1268,17 @@
       analysisError = t('Terminez l’import MS avant de lancer l’analyse.', 'Complete the MS import before running an analysis.');
       return;
     }
+    if(objective === 'groups' && designType === 'paired' && files.transcriptomics){
+      if(!pairedAudit?.ok){
+        analysisError = pairedProblemMessage(pairedAudit?.code);
+        return;
+      }
+      if(referenceBackendMode !== 'required'){
+        analysisError = t('L’analyse RNA-seq appariée nécessite « R requis » : le navigateur ne doit pas traiter deux prélèvements d’un même sujet comme indépendants.', 'Paired RNA-seq requires Require R: the browser must not treat two samples from one subject as independent.');
+        return;
+      }
+    }
+
     if (analysisIntent === 'confirmatory' && referenceBackendMode !== 'required') {
       analysisError = t('Pour une analyse confirmatoire, choisissez « R requis » et vérifiez sa connexion. Aucune conclusion confirmatoire automatique ne sera produite.', 'For a confirmatory workflow, choose Require R and verify its connection. No automatic confirmatory approval will be given.');
       return;
@@ -1804,6 +1839,36 @@
       && (outcomeType === 'survival'
         ? Boolean(columnMapping.survival_time && columnMapping.survival_event)
         : Boolean(columnMapping.outcome)));
+  /** @type {any} */
+  let pairedAudit = null;
+  $: pairedAudit = objective === 'groups' && designType === 'paired' && files.transcriptomics && files.metadata
+    ? auditPairedRnaStudy({rows:metadataRows,mapping:columnMapping,
+        matrixAssays:matrixInfo.transcriptomics.sampleIds,
+        valueType:transcriptomicsValues}) : null;
+  /** @param {string} code */
+  function pairedProblemMessage(code) {
+    const problems = /** @type {Record<string,string[]>} */ ({
+      raw_counts_only:['Le modèle RNA-seq exige de vrais comptages bruts, pas des TPM/FPKM.', 'The RNA-seq model requires genuine raw counts, not TPM/FPKM.'],
+      missing_columns:['Associez sujet, prélèvement, mesure, omique, groupe et type de prélèvement aux colonnes.', 'Map subject, sample, assay, omic, condition and sample type to the correct columns.'],
+      missing_transcriptomics_rows:['Aucune ligne RNA reconnue dans les métadonnées.', 'No RNA sample rows recognized in metadata.'],
+      non_biological_sample:['Les blancs et QC ne sont pas des prélèvements biologiques appariés.', 'Blanks and QC are not paired biological samples.'],
+      matrix_metadata_mismatch:['Les identifiants RNA de la matrice et des métadonnées diffèrent.', 'RNA matrix assay IDs differ from metadata.'],
+      two_conditions_only:['Deux conditions exactement sont nécessaires.', 'Exactly two conditions are required.'],
+      min_four_pairs:['Au moins quatre paires biologiques sont nécessaires pour ce contrôle logiciel.', 'At least four biological pairs are required for this software guard.'],
+      missing_pair:['Un sujet ne possède pas les deux conditions.', 'A subject is missing one of the paired conditions.']
+    });
+    const text = problems[code] || ['Paires manquantes, identifiants doublonnés ou incohérents : vérifiez chaque sujet et chaque mesure.', 'Missing pairs or duplicate/inconsistent identifiers: check every subject and assay.'];
+    return t(text[0],text[1]);
+  }
+  function downloadPairedExampleSheet(){
+    const blob = new Blob(['\uFEFF'+pairedExampleSampleSheetCsv()], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href=url;
+    link.download='EXEMPLE_FICTIF_4_PAIRES_metadata.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
   $: objectiveOperational = designType !== 'crossover';
   $: singleOmic = omicsCount === 1;
   $: ready = omicsCount >= 1 && Boolean(files.metadata) && requiredMappingsComplete && outcomeMappingComplete && objectiveOperational;
@@ -2002,6 +2067,21 @@
   {#if studySetting === 'animal' && organism === 'human'}
     <p class="simple-warning" role="alert">{t('Vous avez choisi une étude animale mais l’organisme est encore « Humain ». Modifiez l’organisme dans la première étape avant d’analyser.', 'You selected an animal study but the organism is still set to Human. Change the organism in the first step before analysis.')}</p>
   {/if}
+  {#if objective === 'groups' && designType === 'paired'}
+    <div class="simple-hint" data-testid="multiomics-paired-help">
+      <strong>{t('Un sujet = une paire', 'One subject = one pair')}</strong>
+      <p>{t('Dans votre tableau, même subject_id pour les deux conditions, mais sample_id et assay_id distincts pour chaque prélèvement. Quatre paires signifient quatre unités biologiques indépendantes, pas huit.', 'Use the same subject_id for both conditions but unique sample_id and assay_id for each specimen. Four pairs mean four independent biological units, not eight.')}</p>
+      <p>{t('Pour des comptages RNA-seq, choisissez « R requis » : modèle bloqué par sujet, sans supposer les observations indépendantes.', 'For RNA-seq counts choose Require R: the model blocks on subject, rather than assuming independent observations.')}</p>
+      <button type="button" class="btn btn-outline btn-small" data-testid="multiomics-paired-template-download" onclick={downloadPairedExampleSheet}>{t('Télécharger un tableau fictif de 4 paires (CSV)', 'Download a fictional four-pair sample sheet (CSV)')}</button>
+      <p>{t('Exemple de structure uniquement : remplacez tous les identifiants et ne confondez pas ce tableau avec des mesures réelles. Les noms assay_id doivent correspondre aux colonnes de votre matrice RNA.', 'File structure example only: replace every identifier. This contains no actual measurements. assay_id values must match the RNA matrix columns.')}</p>
+      {#if pairedAudit?.ok}
+        <p role="status" data-testid="multiomics-paired-count">{pairedAudit.nPairs} {t('sujets appariés', 'paired subjects')} · {pairedAudit.nBiologicalSamples} {t('prélèvements', 'samples')} · {pairedAudit.nAssays} {t('mesures', 'assays')}</p>
+      {:else if pairedAudit}
+        <p role="alert" data-testid="multiomics-paired-problem">{pairedProblemMessage(pairedAudit.code)}</p>
+      {/if}
+    </div>
+  {/if}
+
   {#if designType === 'crossover'}
     <p class="simple-warning" role="alert">{t('Cette étude nécessite une analyse particulière qui n’est pas encore disponible. Le lancement sera bloqué.', 'This study needs a model that is not yet available; running is blocked.')}</p>
   {/if}
