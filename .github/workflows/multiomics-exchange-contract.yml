@@ -1,0 +1,27 @@
+name: MultiOmics downstream exchange v1
+
+on:
+  pull_request:
+    paths:
+      - 'docs/multiomics/DOWNSTREAM_EXCHANGE_V1*'
+      - 'scripts/validate_multiomics_exchange.py'
+      - 'scripts/test_validate_multiomics_exchange.py'
+      - '.github/workflows/multiomics-exchange-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/multiomics/DOWNSTREAM_EXCHANGE_V1*'
+      - 'scripts/validate_multiomics_exchange.py'
+      - 'scripts/test_validate_multiomics_exchange.py'
+      - '.github/workflows/multiomics-exchange-contract.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate downstream exchange contract fixtures
+        run: python scripts/test_validate_multiomics_exchange.py
