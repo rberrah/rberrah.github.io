@@ -45,7 +45,7 @@
     ['Batch', 'Série technique ou expérimentale', 'Technical or experimental batch'],
     ['Covariable', 'Facteur à prendre en compte dans l’analyse', 'Adjustment variable'],
     ['Feature', 'Variable biologique mesurée : gène, protéine ou métabolite', 'Measured biological feature'],
-    ['q BH / FDR', 'Résultat statistique corrigé pour les nombreux tests réalisés', 'Multiple-testing corrected statistical result']
+    ['q BH / FDR', 'q BH : valeur p ajustée pour les tests multiples ; FDR : proportion attendue de faux positifs parmi les résultats déclarés, sous les hypothèses du modèle', 'BH-adjusted p-value; FDR: expected proportion of false discoveries among declared findings, under the model assumptions']
   ];
 </script>
 
@@ -103,6 +103,19 @@
       <div><code>P001</code><code>P001_T0</code><code>MET001</code><span>metabolomics</span><span>control</span><span>T0</span></div>
     </div>
     <p class="note">{t('Lecture : P001 est la même personne ; P001_T0 est le même prélèvement ; RNA001, PROT001 et MET001 sont trois mesures différentes de ce prélèvement. Chaque assay_id doit correspondre exactement à une colonne de la matrice concernée.', 'Read it as follows: P001 is the same person; P001_T0 is the same specimen; RNA001, PROT001 and MET001 are three different assays of that specimen. Each assay_id must match exactly one column in the relevant matrix.')}</p>
+  </div>
+</section>
+
+<section class="panel" aria-label={t('Bien interpréter les résultats', 'Interpreting the results responsibly')}>
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{t('Avant toute conclusion', 'Before drawing conclusions')}</p>
+      <h2>{t('Un résultat calculé n’est pas automatiquement une découverte validée', 'A computed result is not automatically a validated discovery')}</h2>
+    </div>
+    <p>{t(
+      'L’outil distingue analyse exploratoire et analyse avec modèle de référence R. Une q-value faible ne garantit ni un mécanisme biologique, ni un contrôle universel du risque de faux positifs. Vérifiez le nombre de sujets biologiques indépendants, les groupes, les facteurs de confusion, les contrôles qualité et les limites indiquées dans le rapport.',
+      'The tool distinguishes exploratory analysis from analysis using the reference R backend. A low q-value does not establish a biological mechanism or guarantee universal false-discovery control. Check the independent biological sample size, groups, confounders, quality controls and limitations reported.'
+    )}</p>
   </div>
 </section>
 
