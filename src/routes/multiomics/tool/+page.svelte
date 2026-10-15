@@ -113,6 +113,7 @@
   let referenceBackendHealth = null;
   // Exact R request/response captured only when the local R backend actually fits a method.
   // Kept in memory, exported exclusively in the researcher-initiated confidential ZIP.
+  /** @type {{requestJson:string,responseJson:string}|null} */
   let referenceReplay = null;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
