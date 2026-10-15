@@ -26,7 +26,7 @@ Le résultat **n'autorise pas** un pré-filtrage strict automatique, ni une reco
 
 \`rnaseq_scale_path_paired_uncertainty()\` calcule maintenant, **avant toute décision de production**, les intervalles percentile bootstrap à 95 % des différences moyennes :
 
-- Unité d'échantillonnage : **jeu de données indépendant**, jamais les gènes ; un seul tirage d'indices est partagé par toutes les méthodes et bras d'un jeu lors de la comparaison.
+- Unité d'échantillonnage : **jeu de données indépendant**, jamais les gènes ; au sein d'un couple scénario–méthode, le même tirage d'indices est partagé par les trois bras ; les rééchantillonnages entre méthodes sont indépendants et ne constituent pas un contraste interméthode.
 - Les trois chemins sont comparés : total (strict-native − référence), filtrage/refit à échelles figées (strict-frozen − référence), renormalisation additionnelle (strict-native − strict-frozen).
 - Deux critères distincts : puissance et FDP moyen sur vérité mixte. Tous les contrastes vérifient l'identité arithmétique exacte et la concordance des graines/IDs de simulation.
 - 2 000 tirages de bootstrap déterministes, seed 20261015, restauration de l'état aléatoire appelant, sortie \`rnaseq_norm_lock_paired_uncertainty.csv\`, résultats détaillés par jeu conservés.
