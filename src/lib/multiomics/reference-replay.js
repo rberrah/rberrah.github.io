@@ -15,6 +15,18 @@ setwd(root)
 if(!requireNamespace("jsonlite",quietly=TRUE))
   stop("Install jsonlite in the exact reference backend R environment.")
 if(!file.exists("reference_request.json"))stop("Missing original R backend request")
+if(!requireNamespace("digest",quietly=TRUE))stop("digest is needed to attest source SHA-256")
+expected <- jsonlite::fromJSON("reference_expected.json",simplifyVector=FALSE)
+expected_sha <- expected$runtime$referenceSourceSha256
+if(is.null(expected_sha)||!length(expected_sha))
+  stop("Original backend did not attest its source hashes. Exact R replay is NOT verifiable. Update and rerun the backend.")
+for(name in names(expected_sha)){
+  source_path <- file.path("multiomics-engine",name)
+  if(!file.exists(source_path))stop("Missing original backend source: ",name)
+  actual_hash <- digest::digest(file=source_path,algo="sha256")
+  if(!identical(actual_hash,expected_sha[[name]]))
+    stop("R source SHA-256 differs from original backend: ",name)
+}
 request <- jsonlite::fromJSON("reference_request.json",simplifyVector=FALSE)
 source(file.path("multiomics-engine","server.R"),local=FALSE)
 actual <- run_backend_analysis(request)
