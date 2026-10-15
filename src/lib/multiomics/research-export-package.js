@@ -3,6 +3,7 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
+import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
 
@@ -391,6 +392,16 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
   add('methods/methods_audit.json',JSON.stringify(buildResearchMethodsManifest(result),null,2)+'\n');
   add('provenance/analysis_complete.json',JSON.stringify(result,null,2)+'\n');
   add('source/projet_reproductible.json',JSON.stringify(portableProject,null,2)+'\n');
+  // Exchange is an optional derivative of the EXACT uploaded matrices. Do not
+  // block any existing mono-omic ZIP export when their layout differs.
+  let downstreamExchange={status:'not_available',reason:null};
+  try {
+    const exchange=await buildDownstreamExchange(portableProject);
+    for(const entry of exchange.entries)add(entry.name,entry.data);
+    downstreamExchange={status:'included',schema_version:'1.0.0',matrices:exchange.manifest.matrices.map(m=>m.omic)};
+  } catch(error) {
+    downstreamExchange={status:'not_available',reason:error instanceof Error?error.message:'Unknown incompatibility'};
+  }
   const files={};
   for(const {name,data} of members){
     const bytes=encoder.encode(data);
@@ -405,6 +416,7 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
+    downstream_exchange:downstreamExchange,
     reference_method_previews:referencePreviewAudit(result),
     r_reference_full_feature_tables_exported:fullR.length>0,
     r_reference_full_tables:fullR.map(({name,method_key,rows,columns,original_features,excluded_before_fit})=>
