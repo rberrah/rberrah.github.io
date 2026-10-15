@@ -5,6 +5,7 @@
 import {buildResearchMethodsManifest} from './research-report.js';
 import {referenceReplayEntries} from './reference-replay.js';
 import {RESEARCH_R_FIGURE_SOURCE} from './r-figure-source.js';
+import {RESEARCH_RUN_ALL_R_SOURCE} from './r-run-all-source.js';
 import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
@@ -409,6 +410,7 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   // R figure recipes use the SAME archived plot-ready values, rather than
   // separately refitting or silently altering the browser statistical output.
   // This is R-generated, scientifically similar plotting; not pixel identity.
+  add('run_all.R',RESEARCH_RUN_ALL_R_SOURCE);
   add('figures_r/generate_figures.R',RESEARCH_R_FIGURE_SOURCE);
   add('figures_r/README.md',[
     '# Recreate the scientific display figures using R',
