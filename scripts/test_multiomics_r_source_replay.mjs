@@ -24,7 +24,7 @@ const replay={requestJson:JSON.stringify({
   metadataCsv:'assay_id,sample_id,subject_id,omic\nR1,S1,P1,transcriptomics\n',
   matrices:{transcriptomics:'feature_id,R1\nENSG001,10\n'}
 }),responseJson:JSON.stringify(expected)};
-const {entries,status}=referenceReplayEntries(replay);
+const {entries,status}=await referenceReplayEntries(replay);
 assert.equal(status.status,'r_reference_source_replay_available');
 assert.equal(status.numerical_equivalence_verified,false);
 assert.equal(status.figure_equivalence_verified,false);
