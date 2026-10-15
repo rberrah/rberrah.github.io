@@ -53,4 +53,16 @@ const mismatch={
     content:pairedInputs.metadata.content.replace('M1,S1,P1','M1,S1,P9')}}
 };
 await assert.rejects(buildDownstreamExchange(mismatch),/multiple biological subjects/);
+const tissueMismatch={
+  ...pairedProject,
+  inputs:{...pairedInputs,metadata:{...pairedInputs.metadata,
+    content:pairedInputs.metadata.content.replace('M1,S1,P1,metabolomics,blood','M1,S1,P1,metabolomics,liver')}}
+};
+await assert.rejects(buildDownstreamExchange(tissueMismatch),/Conflicting tissue/);
+const timeMismatch={
+  ...pairedProject,
+  inputs:{...pairedInputs,metadata:{...pairedInputs.metadata,
+    content:pairedInputs.metadata.content.replace('M1,S1,P1,metabolomics,blood,0','M1,S1,P1,metabolomics,blood,9')}}
+};
+await assert.rejects(buildDownstreamExchange(timeMismatch),/Conflicting collection_time/);
 console.log('PASS: mono-omic and two-omic exchanges, shared specimen ownership and safe fallback');
