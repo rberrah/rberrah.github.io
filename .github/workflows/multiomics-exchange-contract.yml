@@ -61,10 +61,14 @@ jobs:
         with:
           r-version: '4.5.1'
           use-public-rspm: true
+      - name: Install Linux R Markdown system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev
       - uses: r-lib/actions/setup-pandoc@v2
       - name: Install R figure, replay and R Markdown dependencies
         run: |
-          Rscript -e 'for(p in c("jsonlite","rmarkdown","knitr")) if (!requireNamespace(p, quietly=TRUE)) install.packages(p, repos="https://cloud.r-project.org")'
+          Rscript -e 'for(p in c("jsonlite","rmarkdown","knitr")) if (!requireNamespace(p, quietly=TRUE)) install.packages(p, repos="https://cloud.r-project.org"); stopifnot(requireNamespace("rmarkdown",quietly=TRUE), rmarkdown::pandoc_available())'
       - name: Parse and check exact reference R replay scripts
         run: node scripts/test_multiomics_r_source_replay.mjs
       - name: Generate and inspect R-based research figures
