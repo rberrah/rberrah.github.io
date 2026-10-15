@@ -84,6 +84,9 @@ def validate(root):
             errors.append("Blank mandatory sample identifier")
         if any(not all(r.get(x, "").strip() for x in ("omic", "feature_id", "id_namespace")) for r in features):
             errors.append("Blank mandatory feature identifier")
+        matrix_omics = [m.get('omic') for m in matrices]
+        if set(r['omic'] for r in samples) != set(matrix_omics):
+            errors.append('Declared sample omics do not match available matrices')
         seen_omics = set()
         for mat in matrices:
             omic = mat.get("omic")
