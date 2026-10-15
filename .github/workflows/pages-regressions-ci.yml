@@ -47,8 +47,8 @@ jobs:
       - name: Verify bilingual omics-PKPD lessons, quizzes, responsive navigation and live AUC example
         env:
           LABS_E2E_PREBUILT: "true"
-        run: npx playwright test tests/e2e/cross-domain-omics-pkpd.spec.js
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/cross-domain-omics-pkpd.spec.js
       - name: Verify Multiomics readable themes and single-omic shortcut
         env:
           LABS_E2E_PREBUILT: "true"
-        run: npx playwright test tests/e2e/multiomics-contrast.spec.js
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-contrast.spec.js

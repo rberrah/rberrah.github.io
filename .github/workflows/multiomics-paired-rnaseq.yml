@@ -8,6 +8,10 @@ on:
       - 'multiomics-engine/tests/test_paired_rnaseq_backend.R'
       - 'multiomics-engine/tests/test_public_airway_paired_backend.R'
       - 'scripts/test_public_airway_website_r_numeric_figures.mjs'
+      - 'multiomics-engine/research_reproducibility_notebook.Rmd'
+      - 'multiomics-engine/render_research_notebook.R'
+      - 'src/lib/multiomics/r-markdown-source.js'
+      - 'src/lib/multiomics/r-markdown-renderer-source.js'
       - 'src/lib/multiomics/r-primary-results.js'
       - 'src/lib/multiomics/visualization-data.js'
       - 'multiomics-engine/plot_research_figures.R'
@@ -56,9 +60,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install R Markdown and Pandoc for public-cohort research replay
+        run: |
+          if ! command -v pandoc >/dev/null 2>&1; then
+            apt-get update -qq
+            apt-get install -y -qq pandoc
+          fi
+          apt-get update -qq
+          apt-get install -y -qq libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+          Rscript -e 'for(p in c("rmarkdown","knitr")) if(!requireNamespace(p,quietly=TRUE)) install.packages(p,repos="https://cloud.r-project.org"); stopifnot(rmarkdown::pandoc_available())'
       - name: Airway public study — compare complete native R statistics with site numbers and figure plots
         env:
           PMX_PAIRED_AIRWAY_REPORT_DIR: /tmp/paired-airway-evidence
+          PMX_TEST_RMD: '1'
         run: node scripts/test_public_airway_website_r_numeric_figures.mjs
       - name: Preserve reproducible public biological pairing evidence
         if: always()

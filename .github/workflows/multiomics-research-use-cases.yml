@@ -30,7 +30,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install chromium --with-deps
       - name: Validate publication-grade actual browser output with four real examples
-        run: npx playwright test tests/e2e/multiomics-research-output-acceptance.spec.js --workers=1
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-research-output-acceptance.spec.js --workers=1
       - name: Save browser traces if unsuccessful
         if: failure()
         uses: actions/upload-artifact@v4

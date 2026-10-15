@@ -17,6 +17,11 @@ on:
       - 'src/lib/multiomics/r-numeric-verifier-source.js'
       - 'src/lib/multiomics/r-run-all-source.js'
       - 'scripts/test_multiomics_r_figures.mjs'
+      - 'multiomics-engine/research_reproducibility_notebook.Rmd'
+      - 'multiomics-engine/render_research_notebook.R'
+      - 'src/lib/multiomics/r-markdown-source.js'
+      - 'src/lib/multiomics/r-markdown-renderer-source.js'
+      - 'src/routes/multiomics/learn/+page.svelte'
       - 'src/lib/multiomics/r-figure-source.js'
       - 'scripts/test_verify_multiomics_r_replay.py'
       - 'scripts/verify_multiomics_r_replay.py'
@@ -56,11 +61,19 @@ jobs:
         with:
           r-version: '4.5.1'
           use-public-rspm: true
-      - name: Install R figure and replay JSON parser
-        run: Rscript -e 'if (!requireNamespace("jsonlite", quietly=TRUE)) install.packages("jsonlite", repos="https://cloud.r-project.org")'
+      - name: Install Linux R Markdown system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+      - uses: r-lib/actions/setup-pandoc@v2
+      - name: Install R figure, replay and R Markdown dependencies
+        run: |
+          Rscript -e 'for(p in c("jsonlite","rmarkdown","knitr")) if (!requireNamespace(p, quietly=TRUE)) install.packages(p, repos="https://cloud.r-project.org"); stopifnot(requireNamespace("rmarkdown",quietly=TRUE), rmarkdown::pandoc_available())'
       - name: Parse and check exact reference R replay scripts
         run: node scripts/test_multiomics_r_source_replay.mjs
       - name: Generate and inspect R-based research figures
         run: node scripts/test_multiomics_r_figures.mjs
-      - name: Validate downstream source export and fallback
+      - name: Validate downloaded ZIP and render actual commented R Markdown HTML
+        env:
+          PMX_TEST_RMD: '1'
         run: node scripts/test_multiomics_downstream_export.mjs

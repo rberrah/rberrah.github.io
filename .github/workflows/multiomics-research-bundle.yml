@@ -7,6 +7,11 @@ on:
       - 'src/routes/multiomics/tool/+page.svelte'
       - 'scripts/test_multiomics_research_export_package.mjs'
       - 'tests/e2e/multiomics-research-bundle.spec.js'
+      - 'tests/e2e/multiomics-methods-learning.spec.js'
+      - 'src/routes/multiomics/learn/+page.svelte'
+      - 'src/routes/multiomics/+page.svelte'
+      - 'src/lib/multiomics/r-markdown-source.js'
+      - 'src/lib/multiomics/r-markdown-renderer-source.js'
       - '.github/workflows/multiomics-research-bundle.yml'
   workflow_dispatch:
 
@@ -35,7 +40,9 @@ jobs:
         run: npm run build
       - run: npx playwright install chromium --with-deps
       - name: Thirty real ZIP exports on first attempt (six workflows × five, no retries)
-        run: npx playwright test tests/e2e/multiomics-research-bundle.spec.js --workers=1 --retries=0 --repeat-each=5
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-research-bundle.spec.js --workers=1 --retries=0 --repeat-each=5
+      - name: Guided MultiOmics scientific method lessons (FR, beginner usability)
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js --workers=1 --retries=0
       - name: Preserve browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v6

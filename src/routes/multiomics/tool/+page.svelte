@@ -1940,12 +1940,12 @@
       <small>{t('Exemple pédagogique (8 sujets) : il illustre la méthode, sans valider une découverte biologique.', 'Educational example (8 subjects): it illustrates the workflow, not a validated biological discovery.')}</small>
     </div>
     <div class="quick-demo-actions" aria-label={t('Choix de démonstration', 'Demonstration choices')}>
-      <button class="btn btn-primary" type="button" data-testid="multiomics-quick-demo" disabled={demoLoading} onclick={() => loadDemoAndShowResults()}>
-        {t('Trois omiques', 'Three omics')}
+      <button class="btn btn-outline quick-demo-single" type="button" data-testid="multiomics-quick-demo-rna" disabled={demoLoading} onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('Transcriptomique', 'Transcriptomics')}</button>
+      <button class="btn btn-outline quick-demo-single" type="button" data-testid="multiomics-quick-demo-protein" disabled={demoLoading} onclick={() => loadDemoAndShowResults('proteomics')}>{t('Protéomique', 'Proteomics')}</button>
+      <button class="btn btn-outline quick-demo-single" type="button" data-testid="multiomics-quick-demo-metabolite" disabled={demoLoading} onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Métabolomique', 'Metabolomics')}</button>
+      <button class="btn btn-primary quick-demo-multi" type="button" data-testid="multiomics-quick-demo" disabled={demoLoading} onclick={() => loadDemoAndShowResults()}>
+        {t('Multi-omiques · les trois ensemble', 'Multi-omics · all three together')}
       </button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-rna" disabled={demoLoading} onclick={() => loadDemoAndShowResults('transcriptomics')}>{t('RNA seul', 'RNA only')}</button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-protein" disabled={demoLoading} onclick={() => loadDemoAndShowResults('proteomics')}>{t('Protéines seules', 'Proteins only')}</button>
-      <button class="btn btn-outline" type="button" data-testid="multiomics-quick-demo-metabolite" disabled={demoLoading} onclick={() => loadDemoAndShowResults('metabolomics')}>{t('Métabolites seuls', 'Metabolites only')}</button>
     </div>
     {#if demoLoading}<p role="status">{t('Analyse de la démonstration en cours…', 'Analyzing the demo…')}</p>{/if}
     {#if demoError}<p role="alert" data-testid="multiomics-demo-error" class="error">{demoError}</p>{/if}
@@ -2987,6 +2987,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <div>
       <p class="eyebrow">{demoLoaded ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
       <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Vos résultats', 'Your results')}</h2>
+      <a href={`${base}/multiomics/learn`} class="simple-hint">{t('Comprendre ces méthodes et figures', 'Learn how to interpret methods and figures')}</a>
     </div>
     <div class="result-actions">
       <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
@@ -4158,8 +4159,10 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   .quick-start strong { color:var(--text-primary); font-size:1rem; line-height:1.4; }
   .quick-start span { font-size:.91rem; line-height:1.55; color:var(--text-secondary); }
   .quick-start small { font-size:.8rem; line-height:1.5; color:var(--text-muted); }
-  .quick-demo-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; max-width:485px; }
-  .quick-demo-actions .btn { flex:1 1 auto; min-width:120px; text-align:center; }
+  .quick-demo-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; width:min(100%,485px); }
+  .quick-demo-actions .btn { min-width:0; text-align:center; white-space:normal; overflow-wrap:anywhere; }
+  .quick-demo-actions .quick-demo-single { font-size:.82rem; padding:10px 6px; }
+  .quick-demo-actions .quick-demo-multi { grid-column:1 / -1; width:100%; min-height:48px; font-weight:700; }
   .optional-workflows { margin-top:16px; border:1px solid var(--border-strong); border-radius:12px; padding:12px 16px; }
   .optional-workflows > summary { cursor:pointer; font-weight:700; }
   .optional-workflows > .contract { margin-top:16px; }
@@ -4167,6 +4170,6 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   .ms-import-message { padding:10px 13px; border:1px solid var(--border-strong); border-radius:9px; color:var(--text-primary); background:var(--bg-secondary); font-size:.88rem; line-height:1.55; }
   @media (max-width:640px) {
     .quick-start { align-items:stretch; }
-    .quick-demo-actions { justify-content:stretch; max-width:none; width:100%; }
+    .quick-demo-actions { width:100%; }
   }
 </style>

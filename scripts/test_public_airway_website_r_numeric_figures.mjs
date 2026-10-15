@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {File} from 'node:buffer';
 import {createHash} from 'node:crypto';
 import {buildResearchBundle} from '../src/lib/multiomics/research-export-package.js';
-import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,rmSync,existsSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,rmSync,existsSync,copyFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
@@ -141,6 +141,48 @@ try{
   assert.equal(status.r_figures,'GENERATED_SIMILAR_PDF_SVG');
   assert(existsSync(join(extracted,'reproduction','reference_replayed.json')));
   assert(existsSync(join(extracted,'figures_r','output','heatmap_transcriptomics.pdf')));
+  // Real biological cohort must also produce an explanatory R Markdown HTML
+  // directly from the unmodified exported research ZIP.
+  if(process.env.PMX_TEST_RMD==='1'){
+    assert(existsSync(join(extracted,'ANALYSE_REPRODUCTIBLE.Rmd')));
+    execFileSync('Rscript',['render_notebook.R'],{
+      cwd:extracted,timeout:300000,stdio:'pipe'
+    });
+    const html=readFileSync(join(extracted,'analyse_reproductible.html'),'utf8');
+    assert(html.length>3000 && html.includes('MultiOmics') && html.includes('PASS_R_REFERENCE_ONLY'));
+    // The knitted HTML must actually display public-cohort values, not just
+    // contain a generic "replay succeeded" statement.
+    const nativeCsv=parseDelimited(
+      readFileSync(join(extracted,'tableaux','transcriptomics.csv'),'utf8'));
+    assert.equal(nativeCsv.rows.length,rows.length,
+      'Knitted notebook must use the same full-feature native R table');
+    assert(/Rows:\s*17199/.test(html.replace(/<[^>]+>/g,' ')),
+      'HTML notebook must display its 17,199 full-feature rows');
+    for(const entry of nativeCsv.rows.slice(0,6)){
+      assert(html.includes(entry.feature),
+        'Knitted HTML omits displayed native R feature '+entry.feature);
+    }
+    const numericAudit=JSON.parse(readFileSync(
+      join(extracted,'reproduction','r_numeric_comparison_report.json'),'utf8'));
+    assert.equal(numericAudit.result,'PASS',
+      'Knitted public dataset must pass complete native R comparison');
+    assert.equal(numericAudit.n_discrepancies,0);
+    assert(html.length>3000 && existsSync(join(extracted,'research_reproduction_status.json')));
+    const rerun=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
+    assert.equal(rerun.r_numerical_replay,'PASS_R_REFERENCE_ONLY');
+    assert.equal(rerun.r_figures,'GENERATED_SIMILAR_PDF_SVG');
+    // Persist ACTUAL public-cohort output so researchers can inspect the
+    // knitted HTML and its numerical R replay audit in Actions artifacts.
+    copyFileSync(join(extracted,'analyse_reproductible.html'),
+      join(evidence,'airway_annotated_R_markdown_report.html'));
+    copyFileSync(join(extracted,'reproduction','r_numeric_comparison_report.json'),
+      join(evidence,'airway_native_R_numeric_comparison.json'));
+    copyFileSync(join(extracted,'research_reproduction_status.json'),
+      join(evidence,'airway_R_markdown_reproduction_status.json'));
+    copyFileSync(join(extracted,'figures_r','output','figure_manifest.json'),
+      join(evidence,'airway_R_figure_manifest.json'));
+  }
+
     console.log('PASS: Airway/GSE52778',rows.length,
     'native R values reproduced feature-by-feature; browser & R figure plot data are identical for',
     heatmap.rows.length,'features ×',heatmap.samples.length,'samples');

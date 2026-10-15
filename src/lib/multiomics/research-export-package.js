@@ -6,6 +6,8 @@ import {buildResearchMethodsManifest} from './research-report.js';
 import {referenceReplayEntries} from './reference-replay.js';
 import {RESEARCH_R_FIGURE_SOURCE} from './r-figure-source.js';
 import {RESEARCH_RUN_ALL_R_SOURCE} from './r-run-all-source.js';
+import {RESEARCH_R_MARKDOWN_SOURCE} from './r-markdown-source.js';
+import {RESEARCH_R_MARKDOWN_RENDERER} from './r-markdown-renderer-source.js';
 import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
@@ -437,6 +439,7 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     '1. Conservez ce ZIP dans un dossier sécurisé : il contient vos données scientifiques.',
     '2. Extrayez entièrement le ZIP. Installez R puis le package R jsonlite.',
     '3. Dans ce dossier extrait, lancez : Rscript run_all.R',
+    '   Pour le compte rendu pédagogique HTML commenté : Rscript render_notebook.R (installe rmarkdown uniquement si absent).',
     '4. Consultez research_reproduction_status.json, figures_r/output/ et les CSV des valeurs tracées.',
     '5. Si le calcul de référence R était disponible, vérifiez PASS_R_REFERENCE_ONLY.',
     '   Sinon, les chiffres exploratoires JS ne sont PAS présentés comme reproduits en R.',
@@ -446,11 +449,15 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     '1. Keep the archive secure: it can contain confidential research data.',
     '2. Extract all files. Install R and the R package jsonlite.',
     '3. Open a terminal inside the extracted folder and run: Rscript run_all.R',
+    '   For a fully commented HTML scientific notebook: Rscript render_notebook.R (installs rmarkdown only if missing).',
     '4. Read research_reproduction_status.json, figures_r/output/ and the plotted-values CSVs.',
     '5. PASS_R_REFERENCE_ONLY means the native R reference result was numerically replayed.',
     '   Browser-only exploratory numbers are never misrepresented as a native R method.',
     '6. R figure equivalents use the same plot-ready values, not identical SVG pixel geometry.',
     '',
+    'Pour le rapport HTML : RStudio inclut généralement Pandoc. Sous Linux, la compilation de rmarkdown peut exiger libuv1-dev, libssl-dev, libcurl4-openssl-dev et libxml2-dev.',
+    'To render the HTML report: RStudio usually includes Pandoc. Linux installations may require libuv1-dev, libssl-dev, libcurl4-openssl-dev and libxml2-dev.',
+    'Ubuntu/Debian (system administrator): sudo apt-get install libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev pandoc',
     'Windows: open PowerShell in the extracted folder and run Rscript.exe run_all.R.',
     'If Rscript is not on PATH, run it from the R installation bin directory.',
     'For strict numerical native-R replay, restore the ORIGINAL R and Bioconductor package versions.',
@@ -458,6 +465,8 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     'Report a FAIL or NOT_CHECKED; do not call an unverified replay reproducible.',
     '',
   ].join('\n'));
+  add('ANALYSE_REPRODUCTIBLE.Rmd',RESEARCH_R_MARKDOWN_SOURCE);
+  add('render_notebook.R',RESEARCH_R_MARKDOWN_RENDERER);
   add('run_all.R',RESEARCH_RUN_ALL_R_SOURCE);
   add('figures_r/generate_figures.R',RESEARCH_R_FIGURE_SOURCE);
   add('figures_r/README.md',[
