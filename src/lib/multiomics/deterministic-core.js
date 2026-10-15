@@ -3571,6 +3571,11 @@ function analysePredictiveOutcome(aggregatedByLayer, loadedLayers, metadata, pro
     metrics = {
       auc: aucScore(labels, scores),
       accuracy: mean(labels.map((value, i) => (scores[i] >= 0.5 ? 1 : 0) === value ? 1 : 0)),
+      // Proper quadratic probability score, evaluated ONLY on each held-out
+      // subject's outer-fold probability. AUC ranks subjects; it does not
+      // measure probability calibration. This is internal CV, not external
+      // clinical validation or a calibration-slope estimate.
+      brier: mean(labels.map((value, i) => (scores[i] - value) ** 2)),
       logLoss: validationLoss(protocol, predictions.map((item) => item.truth), scores, target.levels)
     };
   } else if (protocol.outcomeType === 'multiclass') {
