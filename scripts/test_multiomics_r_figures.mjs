@@ -6,11 +6,19 @@ import {execFileSync} from 'node:child_process';
 import {RESEARCH_R_FIGURE_SOURCE} from '../src/lib/multiomics/r-figure-source.js';
 import {parseDelimited} from '../src/lib/multiomics/deterministic.js';
 import {RESEARCH_RUN_ALL_R_SOURCE} from '../src/lib/multiomics/r-run-all-source.js';
+import {RESEARCH_R_MARKDOWN_SOURCE} from '../src/lib/multiomics/r-markdown-source.js';
+import {RESEARCH_R_MARKDOWN_RENDERER} from '../src/lib/multiomics/r-markdown-renderer-source.js';
 
 assert.equal(RESEARCH_R_FIGURE_SOURCE,readFileSync('multiomics-engine/plot_research_figures.R','utf8'),
   'Bundled R figure source differs from the repository R source');
 assert.equal(RESEARCH_RUN_ALL_R_SOURCE,readFileSync('multiomics-engine/run_research_bundle.R','utf8'),
   'The downloadable R entrypoint is stale');
+assert.equal(RESEARCH_R_MARKDOWN_SOURCE,
+  readFileSync('multiomics-engine/research_reproducibility_notebook.Rmd','utf8'),
+  'Exported Rmd differs from the reference annotated notebook');
+assert.equal(RESEARCH_R_MARKDOWN_RENDERER,
+  readFileSync('multiomics-engine/render_research_notebook.R','utf8'),
+  'Exported R Markdown bootstrap is stale');
 assert(!RESEARCH_RUN_ALL_R_SOURCE.includes('Sys.which("python3")'),
   'Beginner R one-command runner must not require Python');
 const root=mkdtempSync(join(tmpdir(),'pmx-r-figures-'));
