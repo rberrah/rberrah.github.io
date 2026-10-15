@@ -134,11 +134,16 @@ try {
     acceptDownloads:true});
   const researchErrors=[];
   const outbound=[];
+  let auditStarted=false;
   research.on('pageerror',e=>researchErrors.push(String(e?.message||e)));
   research.on('request',req=>{
     const url=req.url();
-    if(req.method()==='POST' &&
-       (/127\.0\.0\.1:8787|localhost:8787|reactome\.org|ebi\.ac\.uk/i).test(url))
+    // Observe all network requests (including GET/beacons), not just POST:
+    // identifiers could leak via URL query parameters. Start AFTER page load
+    // so harmless browser/font/CDN initialization is not confused with a
+    // researcher-controlled operation.
+    if(auditStarted && /^https?:\/\//i.test(url) &&
+       new URL(url).origin!==origin)
       outbound.push({method:req.method(),url});
   });
   const response=await research.goto(origin+'/multiomics/tool/',{
@@ -164,6 +169,7 @@ try {
     }
   }
   const raw=records.join('\n')+'\n';
+  auditStarted=true; // Observe every external request after data is supplied.
   await research.getByTestId('multiomics-ms-auc-upload').setInputFiles({
     name:'synthetic_public_smoke_ms_auc.csv',mimeType:'text/csv',
     buffer:Buffer.from(raw,'utf8')
@@ -241,7 +247,7 @@ try {
   if(outbound.length || researchErrors.length)
     throw new Error('Public research flow attempted external data transfer or hit JS errors: '+
       JSON.stringify({outbound,researchErrors}));
-  console.log('PASS: PUBLIC synthetic MS peak-AUC 300 rows / 25 features / 12 samples -> browser analysis -> full source-preserving researcher ZIP, SHA-256 per member; no external submissions');
+  console.log('PASS: PUBLIC synthetic MS peak-AUC 300 rows / 25 features / 12 samples -> browser analysis -> full source-preserving researcher ZIP, SHA-256 per member; no external GET/POST requests after upload');
   await research.close();
 } finally {
   await browser.close();
