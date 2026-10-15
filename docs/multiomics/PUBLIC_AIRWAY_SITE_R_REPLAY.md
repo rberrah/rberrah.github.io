@@ -47,6 +47,6 @@ Extract the downloaded research ZIP, use the built-in `COMMENCER_ICI_FR_EN.md` g
 Rscript run_all.R
 ```
 
-Inspect `research_reproduction_status.json`. **PASS_R_REFERENCE_ONLY** means the native R calculation passed the original numerical replay comparison. **GENERATED_SIMILAR_PDF_SVG** means R generated graphical equivalents; it does not mean the site plots are identical pixel by pixel. Any FAIL or NOT_CHECKED is a limitation, not a silent pass.
+The standard replay and numerical verification are written in R (plus the `jsonlite` R package); no Python installation is required for the one-command workflow. An independent Python verifier remains available for an optional second opinion. Inspect `research_reproduction_status.json`. **PASS_R_REFERENCE_ONLY** means the native R calculation passed the original numerical replay comparison. **GENERATED_SIMILAR_PDF_SVG** means R generated graphical equivalents; it does not mean the site plots are identical pixel by pixel. Any FAIL or NOT_CHECKED is a limitation, not a silent pass.
 
 Future omics–PK/PD analyses can reuse subject, sample, assay, tissue and time keys, but no PK/PD inference is validated by this benchmark.
