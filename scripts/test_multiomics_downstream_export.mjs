@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,writeFileSync,rmSync,readFileSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -18,7 +18,14 @@ const exchange=await buildDownstreamExchange(project);
 assert.equal(exchange.manifest.matrices.length,1);
 assert.equal(exchange.manifest.matrices[0].omic,'transcriptomics');
 assert(exchange.entries.find(x=>x.name==='exchange/matrices/transcriptomics.csv').data.includes('ENSG001,12,NA'));
-const makeResult=()=>({engine:{name:'deterministic',version:'test'},protocol:{},layers:{transcriptomics:{rows:[{feature:'ENSG001'}]}}});
+const makeResult=()=>({
+  engine:{name:'deterministic',version:'test'},
+  protocol:{objective:'explore'},
+  layers:{transcriptomics:{rows:[{feature:'ENSG001',effect:1,qValue:null}]}},
+  visualizations:{heatmaps:{transcriptomics:{
+    samples:[{sampleId:'RNA1'},{sampleId:'RNA2'}],
+    rows:[{feature:'ENSG001',z:[-1,1]}]}}},
+});
 const dossier=await buildResearchBundle({result:makeResult(),portableProject:project});
 assert.equal(dossier.manifest.downstream_exchange.status,'included');
 assert(dossier.manifest.files['exchange/manifest.json']?.sha256);
@@ -35,6 +42,16 @@ try{
   const output=execFileSync('python',['scripts/validate_multiomics_exchange.py',
     join(temporary,'unpacked','exchange')],{encoding:'utf8'});
   assert.match(output,/PASS: MultiOmics exchange/);
+  // Actual downloaded ZIP, not project-source scripts: this is what a novice runs.
+  const extracted=join(temporary,'unpacked');
+  assert(existsSync(join(extracted,'run_all.R')));
+  execFileSync('Rscript',['run_all.R'],{cwd:extracted,timeout:120000,stdio:'pipe'});
+  const status=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
+  assert.equal(status.r_numerical_replay,'NOT_AVAILABLE_BROWSER_RESULTS');
+  assert.equal(status.r_figures,'GENERATED_SIMILAR_PDF_SVG');
+  assert(existsSync(join(extracted,'figures_r','output','heatmap_transcriptomics.pdf')));
+  assert(existsSync(join(extracted,'figures_r','output','heatmap_transcriptomics_plot_values.csv')));
+
 }finally{rmSync(temporary,{recursive:true,force:true});}
 const incompatible={...project,inputs:{...inputs,transcriptomics:{content:'gene,RNA1,RNA2\nENSG001,1,2\n'}}};
 await assert.rejects(buildDownstreamExchange(incompatible),/feature_id/);
