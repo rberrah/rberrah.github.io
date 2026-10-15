@@ -13,6 +13,9 @@ on:
       - 'src/lib/multiomics/reference-r-sources.js'
       - 'src/lib/multiomics/reference-replay.js'
       - 'scripts/test_multiomics_r_source_replay.mjs'
+      - 'multiomics-engine/verify_research_replay.R'
+      - 'src/lib/multiomics/r-numeric-verifier-source.js'
+      - 'src/lib/multiomics/r-run-all-source.js'
       - 'scripts/test_multiomics_r_figures.mjs'
       - 'src/lib/multiomics/r-figure-source.js'
       - 'scripts/test_verify_multiomics_r_replay.py'
@@ -53,10 +56,10 @@ jobs:
         with:
           r-version: '4.5.1'
           use-public-rspm: true
+      - name: Install R figure and replay JSON parser
+        run: Rscript -e 'if (!requireNamespace("jsonlite", quietly=TRUE)) install.packages("jsonlite", repos="https://cloud.r-project.org")'
       - name: Parse and check exact reference R replay scripts
         run: node scripts/test_multiomics_r_source_replay.mjs
-      - name: Install R figure JSON parser
-        run: Rscript -e 'if (!requireNamespace("jsonlite", quietly=TRUE)) install.packages("jsonlite", repos="https://cloud.r-project.org")'
       - name: Generate and inspect R-based research figures
         run: node scripts/test_multiomics_r_figures.mjs
       - name: Validate downstream source export and fallback
