@@ -65,4 +65,15 @@ const timeMismatch={
     content:pairedInputs.metadata.content.replace('M1,S1,P1,metabolomics,blood,0','M1,S1,P1,metabolomics,blood,9')}}
 };
 await assert.rejects(buildDownstreamExchange(timeMismatch),/Conflicting collection_time/);
+const missingLayer={...pairedProject,inputs:{...pairedInputs,metabolomics:undefined}};
+await assert.rejects(buildDownstreamExchange(missingLayer),/without its original matrix/);
+const threeInputs={
+  ...pairedInputs,
+  metadata:{...pairedInputs.metadata,content:pairedInputs.metadata.content+
+    'P1,S1,P1,proteomics,blood,0\\nP2,S2,P2,proteomics,blood,1\\n'},
+  proteomics:{content:'feature_id,P1,P2\\nP12345,1.2,2.4\\n'}
+};
+const three=await buildDownstreamExchange({...project,inputs:threeInputs});
+assert.deepEqual(three.manifest.matrices.map(x=>x.omic),
+  ['transcriptomics','proteomics','metabolomics']);
 console.log('PASS: mono-omic and two-omic exchanges, shared specimen ownership and safe fallback');
