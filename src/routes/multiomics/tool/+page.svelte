@@ -2986,6 +2986,15 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       {/if}
     </div>
     <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
+    <p class="simple-hint" data-testid="multiomics-replay-fidelity-note">
+      {#if referenceReplay?.requestJson}
+        {t('Le ZIP inclut le code source exact du backend R et sa requête d’origine. Cela ne certifie pas encore l’égalité numérique après réexécution. Les figures SVG affichées sont produites par JavaScript et exportées comme copies vectorielles, pas recalculées en R.',
+           'The ZIP includes the exact R backend source and original request. Numerical equality after rerunning is not yet certified. Displayed SVG figures come from JavaScript and are exported as vector snapshots, not regenerated in R.')}
+      {:else}
+        {t('Cette analyse n’a pas de calcul R de référence réussi : le ZIP ne peut pas fournir un script R prétendument identique aux calculs JavaScript. Les figures sont des instantanés SVG.', 
+           'This analysis has no successful R reference computation: the ZIP cannot provide a purportedly identical R script for JavaScript calculations. Figures are SVG snapshots.')}
+      {/if}
+    </p>
     {#if analysisResult.referenceBackend?.methods}
       <div class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
         {t('Résultats R : le tableau affiché est un aperçu. Le ZIP ne contient les résultats R exhaustifs que pour les méthodes marquées « complet ». Toute méthode incomplète doit être exportée séparément depuis le moteur R local.', 'R results: on-screen tables are previews. The ZIP contains all R rows only for methods marked complete. Incomplete methods require a separate full export from the local R engine.')}
