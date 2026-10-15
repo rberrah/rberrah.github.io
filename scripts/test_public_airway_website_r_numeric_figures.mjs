@@ -81,6 +81,23 @@ try{
     }
   }
   const figureManifest=JSON.parse(readFileSync(join(out,'figure_manifest.json'),'utf8'));
+  assert.equal(figureManifest.visual_contract.heatmap_scale,'row z-score');
+  assert.deepEqual(figureManifest.visual_contract.heatmap_color_limits,[-2.5,2.5]);
+  assert.equal(figureManifest.visual_contract.missing_values,
+    'NA remains missing; never coerced to zero');
+  assert.equal(figureManifest.visual_contract.no_statistical_refit,true);
+  // Compare the actual color legend returned by the R figure generator to
+  // the Svelte diverging palette formula, with ±2 RGB channels for interpolation.
+  const legend=parseDelimited(readFileSync(join(out,'heatmap_color_legend.csv'),'utf8'));
+  for(const swatch of legend.rows){
+    const z=Number(swatch.z_score),ratio=Math.min(1,Math.abs(z)/2.5);
+    const white=[247,247,247],target=z>=0?[204,62,62]:[53,103,178];
+    const js=white.map((w,i)=>Math.round(w+(target[i]-w)*ratio));
+    const hex=swatch.fill_hex.replace('#','');
+    const rgb=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16));
+    assert(rgb.every((n,i)=>Math.abs(n-js[i])<=2),
+      'Public Airway heatmap JS vs R color difference at z='+z);
+  }
   assert(figureManifest.figures.some(f=>f.kind==='heatmap'&&f.filename.endsWith('.pdf')));
   assert(figureManifest.figures.every(f=>f.comparison_to_browser==='scientifically_similar_not_pixel_identical'));
   assert(existsSync(join(out,'heatmap_transcriptomics.pdf')));
