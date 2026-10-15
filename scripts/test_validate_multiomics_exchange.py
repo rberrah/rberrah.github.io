@@ -96,7 +96,15 @@ def run():
         obj["matrices"][0]["file"]["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
         (root / "manifest.json").write_text(json.dumps(obj), encoding="utf-8")
         assert_invalid(root, "Non-finite numeric value")
-    print("PASS: 1 valid package, 4 adversarial cases")
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        obj = fixture(root)
+        p = root / "samples.csv"
+        p.write_text("assay_id,sample_id,subject_id,omic,tissue,collection_time\\nRNA1,S1,P1,transcriptomics,blood,0\\nRNA2,S1,P2,transcriptomics,blood,1\\n")
+        obj["files"]["samples"]["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
+        (root / "manifest.json").write_text(json.dumps(obj), encoding="utf-8")
+        assert_invalid(root, "One sample_id assigned to multiple biological subjects")
+    print("PASS: 1 valid package, 5 adversarial cases")
 
 
 if __name__ == "__main__":
