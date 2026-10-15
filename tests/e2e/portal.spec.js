@@ -37,9 +37,15 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     await expect(page.locator('.nav-links a')).toHaveText(['Pharmacometrics', 'Tools & Projects', 'Publications & Talks', 'About']);
     await expect(page.locator('footer a[href="/other-projects/"]')).toHaveCount(1);
     if (route === '/') {
-      await expect(page.locator('.project-grid h3')).toHaveText(['TacDDI', 'MissedDose', 'MIPD Engine']);
+      await expect(page.locator('.project-grid h3')).toHaveText(['MIPD Engine', 'Multiomics', 'TacDDI', 'MissedDose']);
       await expect(page.locator('.project-grid').getByRole('link', { name: 'Open MIPD Engine' }))
         .toHaveAttribute('href', '/pharmacometrie/tdm/?lang=en');
+      await expect(page.locator('.project-grid').getByRole('link', { name: 'Open Multiomics' }))
+        .toHaveAttribute('href', '/multiomics/tool/');
+      await expect(page.getByRole('heading', { name: 'Recent communication' })).toBeVisible();
+      await expect(page.locator('.communication-highlight').getByRole('link', { name: /NetPK: fusing published/ }))
+        .toHaveAttribute('href', '/communications/netpk-peprsn-2026/');
+      await expect(page.locator('#conference-title')).toHaveCount(0);
     }
     await expect(page.locator('footer a[href="/pharmacometrie/confidentialite/"]')).toHaveCount(1);
     if (route === '/tools/') {
