@@ -17,7 +17,18 @@ if(!requireNamespace("jsonlite",quietly=TRUE))
 if(!file.exists("reference_request.json"))stop("Missing original R backend request")
 if(!requireNamespace("digest",quietly=TRUE))stop("digest is needed to attest source SHA-256")
 expected <- jsonlite::fromJSON("reference_expected.json",simplifyVector=FALSE)
-expected_sha <- expected$runtime$referenceSourceSha256
+original_runtime <- expected$runtime
+if(is.null(original_runtime)||!identical(as.character(getRversion()),original_runtime$RVersion))
+  stop("R version differs from the originally executed backend; exact replay blocked.")
+if(!is.null(original_runtime$packageVersions)){
+  for(pkg in names(original_runtime$packageVersions)){
+    required_version <- as.character(original_runtime$packageVersions[[pkg]])
+    if(!requireNamespace(pkg,quietly=TRUE) ||
+       !identical(as.character(utils::packageVersion(pkg)),required_version))
+      stop("R package missing or at another version: ",pkg," (required ",required_version,")")
+  }
+}
+expected_sha <- original_runtime$referenceSourceSha256
 if(is.null(expected_sha)||!length(expected_sha))
   stop("Original backend did not attest its source hashes. Exact R replay is NOT verifiable. Update and rerun the backend.")
 for(name in names(expected_sha)){
