@@ -324,6 +324,7 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     await page.goto(engineUrl);
     await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.$socket?.readyState === 1);
 
+    /** @param {string} value */
     const selectTimeMode = async (value) => {
       await page.locator('#time_entry_mode').evaluate((element, selected) => {
         /** @type {any} */ (element).selectize.setValue(selected);
