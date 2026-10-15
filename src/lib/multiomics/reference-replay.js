@@ -2,6 +2,7 @@
 // A faithful R replay is possible ONLY for a successful reference R backend.
 // Browser differential statistics and Svelte/SVG figures are NOT generated in R.
 import {REFERENCE_R_SOURCE_FILES} from './reference-r-sources.js';
+import {REFERENCE_R_REPLAY_VERIFY_PY} from './reference-replay-verifier-source.js';
 
 const REPLAY_R = String.raw`#!/usr/bin/env Rscript
 # Replay the exact JSON request with the same source functions that serviced /run.
@@ -68,7 +69,8 @@ export function referenceReplayEntries(replay){
     {name:'reproduction/run_reference_backend.R',data:REPLAY_R},
     {name:'reproduction/reference_request.json',data:replay.requestJson+'\n'},
     {name:'reproduction/reference_expected.json',data:replay.responseJson+'\n'},
-    {name:'reproduction/README.md',data:REPLAY_GUIDE}
+    {name:'reproduction/README.md',data:REPLAY_GUIDE},
+    {name:'reproduction/verify_replay.py',data:REFERENCE_R_REPLAY_VERIFY_PY}
   ];
   for(const [name,source] of Object.entries(REFERENCE_R_SOURCE_FILES))
     entries.push({name:'reproduction/multiomics-engine/'+name,data:source});
