@@ -33,7 +33,7 @@ jobs:
       - name: Install actual Chromium
         run: npx playwright install chromium --with-deps
       - name: Researcher sample upload, visible pair counts and refusal without R
-        run: npx playwright test tests/e2e/multiomics-paired-beginner.spec.js --workers=1
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-paired-beginner.spec.js --workers=1
       - name: Preserve failure screenshots and traces
         if: failure()
         uses: actions/upload-artifact@v4
