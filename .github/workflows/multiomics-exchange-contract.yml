@@ -9,7 +9,11 @@ on:
       - 'scripts/test_multiomics_downstream_export.mjs'
       - 'scripts/capture_multiomics_python_environment.py'
       - 'multiomics-engine/capture_environment.R'
-      - 'multiomics-engine/run_exchange_analysis.R'
+      - 'multiomics-engine/*.R'
+      - 'src/lib/multiomics/reference-r-sources.js'
+      - 'src/lib/multiomics/reference-replay.js'
+      - 'scripts/test_multiomics_r_source_replay.mjs'
+      - 'src/routes/multiomics/tool/+page.svelte'
       - 'src/lib/multiomics/downstream-exchange.js'
       - 'src/lib/multiomics/research-export-package.js'
       - '.github/workflows/multiomics-exchange-contract.yml'
@@ -42,7 +46,7 @@ jobs:
         with:
           r-version: '4.5.1'
           use-public-rspm: true
-      - name: Parse and check native R runner syntax
-        run: Rscript -e 'invisible(parse(file="multiomics-engine/run_exchange_analysis.R")); cat("PASS: native R script parses\\n")'
+      - name: Parse and check exact reference R replay scripts
+        run: node scripts/test_multiomics_r_source_replay.mjs
       - name: Validate downstream source export and fallback
         run: node scripts/test_multiomics_downstream_export.mjs
