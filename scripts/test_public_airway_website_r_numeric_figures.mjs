@@ -141,6 +141,21 @@ try{
   assert.equal(status.r_figures,'GENERATED_SIMILAR_PDF_SVG');
   assert(existsSync(join(extracted,'reproduction','reference_replayed.json')));
   assert(existsSync(join(extracted,'figures_r','output','heatmap_transcriptomics.pdf')));
+  // Real biological cohort must also produce an explanatory R Markdown HTML
+  // directly from the unmodified exported research ZIP.
+  if(process.env.PMX_TEST_RMD==='1'){
+    assert(existsSync(join(extracted,'ANALYSE_REPRODUCTIBLE.Rmd')));
+    execFileSync('Rscript',['render_notebook.R'],{
+      cwd:extracted,timeout:300000,stdio:'pipe'
+    });
+    const html=readFileSync(join(extracted,'analyse_reproductible.html'),'utf8');
+    assert(html.includes('MultiOmics') && html.includes('17 199')===false);
+    assert(html.length>3000 && existsSync(join(extracted,'research_reproduction_status.json')));
+    const rerun=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
+    assert.equal(rerun.r_numerical_replay,'PASS_R_REFERENCE_ONLY');
+    assert.equal(rerun.r_figures,'GENERATED_SIMILAR_PDF_SVG');
+  }
+
     console.log('PASS: Airway/GSE52778',rows.length,
     'native R values reproduced feature-by-feature; browser & R figure plot data are identical for',
     heatmap.rows.length,'features ×',heatmap.samples.length,'samples');
