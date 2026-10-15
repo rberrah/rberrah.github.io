@@ -51,3 +51,35 @@ The v1 subject/specimen/assay/time/tissue/biological-namespace contract is inten
 ## Current release gate
 
 **BLOCKED for the claim "identical R replay of numerical and visual site results".** The source-exact R replay addresses the R subset, but JS-browser results and Svelte figures remain different code paths, and public biological/figure validation and full dependency freeze have not yet passed.
+
+## R-generated figure equivalents added in PR #110
+
+The archive now includes `run_all.R` and `figures_r/generate_figures.R`.
+The single-command entry point attempts the exact R reference replay where
+the backend actually ran, invokes an independent numerical verification script,
+then plots descriptive **R-native PDF/SVG figure equivalents** from the archived
+browser display dataset. It records separate statuses in
+`research_reproduction_status.json`.
+
+The figure script uses the **same input values**, heatmap row z-scores,
+sample order, effects, effect scales, and curated biochemical map annotations
+already placed in `provenance/analysis_complete.json`. It additionally writes
+the plotted values to `*_plot_values.csv`, permitting point-by-point audits.
+It produces (when present) heatmaps, a descriptive circular metabologram,
+and a central carbon schematic. This is scientifically similar visualization,
+**not** a claim of identical SVG geometry, font metrics, all interactive tabs,
+pathway enrichment, or a new inference.
+
+### Remaining release blockers
+
+- Compare real public cohort outputs from the website and from a clean R
+  re-execution (native DESeq2/edgeR/limma/fgsea/MOFA2/DIABLO separately).
+- Freeze R/Bioconductor versions, dependencies, external identifier mappings
+  and pathways; account for runtime stochasticity.
+- If an R result is the *published* result, show that same R table in the UI
+  rather than its independently calculated JavaScript exploratory counterpart.
+- Validate R-generated figures on a public cohort, including captions, sample
+  annotations, units and missing values; avoid silently claiming that a saved
+  browser SVG was generated in R.
+- Validate novice ZIP extraction, one-command replay and error messages on
+  Windows and Linux.
