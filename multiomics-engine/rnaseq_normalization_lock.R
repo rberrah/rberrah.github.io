@@ -156,3 +156,75 @@ rnaseq_scale_path_summary <- function(records,minimum=8L) {
   rownames(out)<-NULL
   out[order(out$scenario,out$method),,drop=FALSE]
 }
+
+
+# Paired Monte Carlo uncertainty across INDEPENDENT simulated studies (NOT
+# features/genes). Descriptive percentile bootstrap, not a statistical
+# calibration or a confidence bound on the biological FDR of a user's cohort.
+rnaseq_scale_path_paired_uncertainty <- function(records,minimum=8L,
+                                                 bootstrap_repeats=2000L,
+                                                 seed=20261015L) {
+  if(length(bootstrap_repeats)!=1L || !is.finite(bootstrap_repeats) ||
+     bootstrap_repeats!=floor(bootstrap_repeats) ||
+     bootstrap_repeats<100L || bootstrap_repeats>50000L ||
+     length(seed)!=1L || !is.finite(seed) || seed!=floor(seed) ||
+     seed<0L || seed>2147483647L)
+    stop("Require an explicit finite seed and 100..50000 bootstrap draws.")
+  # Reuse exactly the reference paired-validation contract, including study
+  # ID and planted-signal alignment, rather than accepting arbitrary rows.
+  rnaseq_scale_path_summary(records,minimum=minimum)
+  had_rng<-exists(".Random.seed",envir=.GlobalEnv,inherits=FALSE)
+  previous_rng<-if(had_rng)get(".Random.seed",envir=.GlobalEnv) else NULL
+  on.exit({
+    if(had_rng)assign(".Random.seed",previous_rng,envir=.GlobalEnv)
+    else if(exists(".Random.seed",envir=.GlobalEnv,inherits=FALSE))
+      rm(".Random.seed",envir=.GlobalEnv)
+  },add=TRUE)
+  set.seed(as.integer(seed))
+  groups<-split(records,list(records$scenario,records$method),drop=TRUE)
+  arms<-c("reference_native","strict_frozen","strict_native")
+  contrasts<-list(
+    total=c("strict_native","reference_native"),
+    filter_and_refit_at_frozen_scales=c("strict_frozen","reference_native"),
+    renormalize_on_strict_filter=c("strict_native","strict_frozen"))
+  output<-list()
+  for(group in groups) {
+    aligned<-lapply(arms,function(arm) {
+      x<-group[group$arm==arm,,drop=FALSE]
+      x[order(x$replicate),,drop=FALSE]
+    })
+    names(aligned)<-arms
+    n<-nrow(aligned[[1L]])
+    # Each column is one bootstrap replicate of the paired DATASETS. Use
+    # exactly the same study indexes for every arm and metric.
+    index<-matrix(sample.int(n,size=n*bootstrap_repeats,replace=TRUE),
+                  nrow=n,ncol=bootstrap_repeats)
+    for(metric in c("power","false_discovery_proportion")) {
+      for(label in names(contrasts)) {
+        pair<-contrasts[[label]]
+        delta<-aligned[[pair[[1L]]]][[metric]] -
+               aligned[[pair[[2L]]]][[metric]]
+        draws<-colMeans(matrix(delta[index],nrow=n,
+                               ncol=bootstrap_repeats))
+        ci<-as.numeric(stats::quantile(draws,c(.025,.975),
+              names=FALSE,type=7))
+        output[[length(output)+1L]]<-data.frame(
+          scenario=aligned[[1L]]$scenario[[1L]],
+          method=aligned[[1L]]$method[[1L]],
+          metric=if(metric=="power") "power" else "empirical_mean_FDP",
+          comparison=label,
+          independent_studies=n,
+          mean_paired_difference=mean(delta),
+          percentile_95_lower=ci[[1L]],
+          percentile_95_upper=ci[[2L]],
+          bootstrap_repeats=as.integer(bootstrap_repeats),
+          bootstrap_seed=as.integer(seed),
+          interval_scope="paired_iid_simulated_studies_descriptive_only",
+          clinical_certification=FALSE,
+          nominal_fdr_certified=FALSE,
+          stringsAsFactors=FALSE)
+      }
+    }
+  }
+  do.call(rbind,output)
+}
