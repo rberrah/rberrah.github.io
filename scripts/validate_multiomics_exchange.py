@@ -41,7 +41,10 @@ def validate(root):
             header = reader.fieldnames or []
             if len(header) != len(set(header)):
                 raise ValueError("Duplicate CSV headers: " + str(path))
-            return header, list(reader)
+            rows = list(reader)
+            if any(None in row or any(value is None for value in row.values()) for row in rows):
+                raise ValueError("Ragged CSV rows: " + str(path))
+            return header, rows
 
     try:
         sh, samples = read_csv(files["samples"])
@@ -80,6 +83,8 @@ def validate(root):
                 continue
             ids = h[1:]
             expected_samples = {id for o, id in assay_keys if o == omic}
+            if len(set(ids)) != len(ids):
+                errors.append("Duplicate matrix assay_id column for " + str(omic))
             if set(ids) != expected_samples or len(ids) != len(expected_samples):
                 errors.append("Matrix/sample assay_id mismatch for " + str(omic))
             measured = set()
@@ -103,6 +108,8 @@ def validate(root):
                         errors.append("Non-numeric matrix cell for " + str(omic))
             if measured - known:
                 errors.append("Matrix contains feature IDs absent from features.csv for " + str(omic))
+            if not rows:
+                errors.append("Empty matrix for " + str(omic))
     except (OSError, KeyError, TypeError, ValueError, csv.Error) as exc:
         errors.append(str(exc))
     return errors
