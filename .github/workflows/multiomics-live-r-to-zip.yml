@@ -87,7 +87,7 @@ jobs:
             exit 1
           fi
       - name: Researcher interaction against truly fitted R differential expression
-        run: npx playwright test tests/e2e/multiomics-live-r-to-zip.spec.js --workers=1
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-live-r-to-zip.spec.js --workers=1
       - name: Preserve reproducible backend diagnostics and browser traces if unsuccessful
         if: failure()
         uses: actions/upload-artifact@v4
