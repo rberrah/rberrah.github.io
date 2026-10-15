@@ -50,8 +50,12 @@ cat("Engine:", analysis$engine$name, "\n")
 cat("Study objective:", analysis$protocol$objective, "\n")
 cat("Study design:", if (is.null(analysis$protocol$designType)) "not reported" else analysis$protocol$designType, "\n")
 
-if (file.exists("provenance/manifest.json")) {
-  manifest <- jsonlite::fromJSON("provenance/manifest.json", simplifyVector = FALSE)
+# The research ZIP manifest sits at its root; do not assume a duplicate
+# under provenance/. Print the ORIGINAL per-layer numerical source.
+manifest_path <- if (file.exists("manifest.json")) "manifest.json" else
+  if (file.exists("provenance/manifest.json")) "provenance/manifest.json" else NULL
+if (!is.null(manifest_path)) {
+  manifest <- jsonlite::fromJSON(manifest_path, simplifyVector = FALSE)
   if (!is.null(manifest$primary_table_sources)) {
     print(manifest$primary_table_sources)
   }
@@ -78,6 +82,16 @@ if (isTRUE(params$execute_replay)) {
 stopifnot(file.exists("research_reproduction_status.json"))
 status <- jsonlite::fromJSON("research_reproduction_status.json", simplifyVector = FALSE)
 print(status)
+# Native R method numerical equivalence is separately checked against
+# the original response. Show the full PASS/FAIL audit, not only a status label.
+comparison_path <- "reproduction/r_numeric_comparison_report.json"
+if (file.exists(comparison_path)) {
+  comparison <- jsonlite::fromJSON(comparison_path, simplifyVector = FALSE)
+  cat("Native R numerical comparison:", comparison$result, "\\n")
+  cat("Number of numeric discrepancies:", comparison$n_discrepancies, "\\n")
+  if (!identical(comparison$result, "PASS"))
+    stop("Native R numerical comparison failed: do not report a reproducible analysis.")
+}
 ```
 
 **Interpretation:** `PASS_R_REFERENCE_ONLY` means the native R statistical calculation matched the original response under declared tolerances. `NOT_AVAILABLE_BROWSER_RESULTS` means no reference R replay existed for the browser-only analysis. `GENERATED_SIMILAR_PDF_SVG` means **R created the figures**, not that their pixels match the interactive SVGs.
