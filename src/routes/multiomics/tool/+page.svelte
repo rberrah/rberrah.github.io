@@ -111,6 +111,9 @@
   let referenceBackendMessage = '';
   /** @type {any} */
   let referenceBackendHealth = null;
+  // Exact R request/response captured only when the local R backend actually fits a method.
+  // Kept in memory, exported exclusively in the researcher-initiated confidential ZIP.
+  let referenceReplay = null;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -1211,10 +1214,11 @@
     referenceBackendStatus = 'running';
     referenceBackendMessage = t('Méthodes R de référence en cours…', 'Reference R methods running…');
     const payload = await referenceBackendPayload();
+    const payloadJson = JSON.stringify(payload);
     const response = await fetch(backendBaseUrl() + '/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload)
+      body: payloadJson
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok || body.status === 'error') {
@@ -1258,12 +1262,16 @@
       : completed
         ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
         : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
+    if (completed && !checkedBody.mofa2OrientationBlocked) {
+      referenceReplay = {requestJson:payloadJson,responseJson:JSON.stringify(body)};
+    }
     return { ...checkedBody,url:backendBaseUrl(),referenceMethodExecuted:completed };
   }
 
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    referenceReplay = null;
     if (msImportState === 'loading' || msImportState === 'parsed') {
       analysisError = t('Terminez l’import MS avant de lancer l’analyse.', 'Complete the MS import before running an analysis.');
       return;
@@ -1418,6 +1426,11 @@
       const dossier = await buildResearchBundle({
         result:analysisResult,
         portableProject:sourceProject,
+        referenceReplay,
+        // Exact vector snapshots of CURRENTLY RENDERED browser figures only.
+        figureSnapshots:[...document.querySelectorAll('#analysis-results svg[role="img"]')]
+          .slice(0,12).map((svg,index)=>({name:'figure_'+String(index+1).padStart(2,'0')+'.svg',
+            data:new XMLSerializer().serializeToString(svg)})),
         locale:$language === 'en' ? 'en' : 'fr'
       });
       const url=URL.createObjectURL(dossier.blob);
