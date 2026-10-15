@@ -204,7 +204,7 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.locator('[data-communication]')).toHaveCount(3);
   await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
   await expect(page.getByRole('heading', { name: /NetPK: fusing published/ })).toBeVisible();
-  await expect(page.getByText('Upcoming', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('Presented', { exact: true })).toHaveCount(3);
 
   await page.getByRole('button', { name: 'Posters', exact: true }).click();
   await expect(page.locator('[data-communication]:visible')).toHaveCount(2);
