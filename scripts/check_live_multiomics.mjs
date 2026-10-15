@@ -4,6 +4,34 @@ import {chromium} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 const origin='https://rberrah.github.io';
+// Verify the ACTUALLY DEPLOYED button labels and layout, not the source
+// code or a locally built artifact. This detects stale GitHub Pages deployments.
+async function verifyDeployedQuickDemo(page,viewportName){
+  const expected=[
+    ['multiomics-quick-demo-rna',/Transcriptomique|Transcriptomics/],
+    ['multiomics-quick-demo-protein',/Protéomique|Proteomics/],
+    ['multiomics-quick-demo-metabolite',/Métabolomique|Metabolomics/],
+    ['multiomics-quick-demo',/Multi-omiques|Multi-omics/]
+  ];
+  const boxes=[];
+  for(const [id,label] of expected){
+    const control=page.getByTestId(id);
+    await control.waitFor({state:'visible',timeout:30000});
+    const name=(await control.innerText()).trim();
+    if(!label.test(name))throw new Error(
+      'Stale public UI ('+viewportName+'): '+id+' label is '+JSON.stringify(name)
+    );
+    const box=await control.boundingBox();
+    if(!box)throw new Error('Invisible public demo button: '+id);
+    boxes.push(box);
+  }
+  const [rna,protein,metabolite,multi]=boxes;
+  if(Math.abs(rna.y-protein.y)>3||Math.abs(protein.y-metabolite.y)>3)
+    throw new Error('Stale public UI ('+viewportName+'): three omics demos are not one row');
+  if(multi.y<rna.y+rna.height-3||multi.width<rna.width*2.5)
+    throw new Error('Stale public UI ('+viewportName+'): primary multi-omics demo is not below and wider');
+  console.log('PASS: deployed '+viewportName+' quick demo uses three compact omics controls and one full-width multi-omics action');
+}
 const browser=await chromium.launch({headless:true});
 try {
   const page=await browser.newPage({viewport:{width:1280,height:850}});
@@ -44,6 +72,7 @@ try {
     },null,2));
     throw error;
   }
+  await verifyDeployedQuickDemo(page,'desktop');
   console.log('PASS: real public page loads AND Svelte hydration completed');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   try {
@@ -98,6 +127,7 @@ try {
     },null,2));
     throw error;
   }
+  await verifyDeployedQuickDemo(mobile,'mobile');
   const overflow=await mobile.evaluate(()=>
     document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(overflow>12)
