@@ -11,6 +11,8 @@ assert.equal(RESEARCH_R_FIGURE_SOURCE,readFileSync('multiomics-engine/plot_resea
   'Bundled R figure source differs from the repository R source');
 assert.equal(RESEARCH_RUN_ALL_R_SOURCE,readFileSync('multiomics-engine/run_research_bundle.R','utf8'),
   'The downloadable R entrypoint is stale');
+assert(!RESEARCH_RUN_ALL_R_SOURCE.includes('Sys.which("python3")'),
+  'Beginner R one-command runner must not require Python');
 const root=mkdtempSync(join(tmpdir(),'pmx-r-figures-'));
 try {
   const path=join(root,'analysis.json'),out=join(root,'figures');
