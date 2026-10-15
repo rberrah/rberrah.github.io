@@ -72,7 +72,7 @@ if(!is.null(heatmaps))for(layer in names(heatmaps)) {
              xlab="",ylab="",main=paste("MultiOmics",layer0,"— row z-score"))
         for(i in seq_len(nr))for(j in seq_len(nc))
           rect(j-.5,nr-i+.5,j+.5,nr-i+1.5,
-               col=color_for(values0[i,j]),border="#FFFFFF")
+               col=color_for(values0[i,j],2.5),border="#FFFFFF")
         axis(1,at=seq_len(nc),labels=sam0,las=2,cex.axis=.7,tick=FALSE)
         axis(2,at=seq_len(nr),labels=rev(feat0),las=2,cex.axis=.7,tick=FALSE)
         box(col="#BBBBBB")
@@ -135,6 +135,15 @@ central <- visuals$centralCarbon
 if(!is.null(central) && length(central$metabolites)){
   nodes <- c(central$metabolites,central$enzymes)
   nmap <- setNames(nodes,vapply(nodes,function(n)chr(n$id),character(1)))
+  layer_limit<-function(entries) {
+    measured<-Filter(function(n)is.finite(num(n$measurement$effect)),entries)
+    if(!length(measured))return(3)
+    scales<-vapply(measured,function(n)chr(n$measurement$effectScale),character(1))
+    if(all(scales=="log2"))return(3)
+    max(1e-9,vapply(measured,function(n)abs(num(n$measurement$effect)),numeric(1)))
+  }
+  met_limit<-layer_limit(central$metabolites)
+  rna_limit<-layer_limit(central$enzymes)
   node_table <- do.call(rbind,lapply(nodes,function(n){
     m <- n$measurement
     data.frame(id=chr(n$id),label=chr(n$label),
@@ -156,13 +165,14 @@ if(!is.null(central) && length(central$metabolites)){
     }
     for(n in nodes){
       m<-n$measurement
-      effect<-if(identical(chr(m$status),"measured") &&
-                 identical(chr(m$effectScale),"log2"))num(m$effect) else NA_real_
+      effect<-if(identical(chr(m$status),"measured"))num(m$effect) else NA_real_
+      cap<-if(n$id %in% vapply(central$metabolites,function(k)chr(k$id),character(1)))met_limit else rna_limit
+      fill<-if(is.finite(effect))color_for(effect,cap) else "#DCDCDC"
       symbols(num(n$x),num(n$y),circles=18,inches=FALSE,add=TRUE,
-              fg="#5B6471",bg=color_for(effect,3))
+              fg="#5B6471",bg=fill)
       text(num(n$x),num(n$y),labels=chr(n$label),cex=.6)
     }
-    mtext("Blue/red = measured log2 effects. Grey = unmeasured, unresolved or discordant.",
+    mtext("Blue/red = measured effects on their declared scale (per layer). Grey = unavailable.",
           side=1,cex=.75)
   },"central_carbon_map","visualizations.centralCarbon[nodes,edges]")
 }
