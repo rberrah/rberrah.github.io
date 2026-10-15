@@ -91,6 +91,15 @@ if(nzchar(reportDir)){
   dir.create(reportDir,recursive=TRUE,showWarnings=FALSE)
   jsonlite::write_json(report,file.path(reportDir,"paired_airway_backend.json"),
                        pretty=TRUE,auto_unbox=TRUE,null="null")
+  # The browser R-primary numerical + figure integration test uses precisely
+  # this PUBLIC backend request/response, rather than synthetic rows.
+  writeLines(jsonlite::toJSON(payload,auto_unbox=TRUE,dataframe="rows",na="null",
+            null="null",digits=NA),
+             file.path(reportDir,"paired_airway_original_request.json"),useBytes=TRUE)
+  writeLines(jsonlite::toJSON(output,auto_unbox=TRUE,dataframe="rows",na="null",
+            null="null",digits=NA),
+             file.path(reportDir,"paired_airway_original_response.json"),useBytes=TRUE)
+
 }
 cat("PUBLIC AIRWAY PAIRED BACKEND: PASS;",
     nrow(observed),"genes; four paired cell lines; CRISPLD2 positive;",
