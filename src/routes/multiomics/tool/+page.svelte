@@ -1360,6 +1360,13 @@
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
         analysisResult = projectNativeRNumbers({ ...analysisResult, referenceBackend });
+        if(analysisIntent === 'confirmatory' && objective === 'groups' &&
+           !(analysisResult.displayedReferenceMethodCount > 0)){
+          throw new Error(t(
+            'Aucune table R complète ne peut être affichée pour cette analyse confirmatoire. Le navigateur ne doit pas remplacer les valeurs R par ses estimations exploratoires. Vérifiez le rapport et exportez les résultats complets depuis le moteur R.',
+            'No complete R reference table is available for this confirmatory analysis. Browser exploratory estimates cannot replace native R results. Review R diagnostics and export the complete R table.'
+          ));
+        }
       }
 
       try {
