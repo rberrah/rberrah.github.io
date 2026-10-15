@@ -3,6 +3,7 @@
 // Browser differential statistics and Svelte/SVG figures are NOT generated in R.
 import {REFERENCE_R_SOURCE_FILES} from './reference-r-sources.js';
 import {REFERENCE_R_REPLAY_VERIFY_PY} from './reference-replay-verifier-source.js';
+import {RESEARCH_R_NUMERIC_VERIFIER_SOURCE} from './r-numeric-verifier-source.js';
 
 const REPLAY_R = String.raw`#!/usr/bin/env Rscript
 # Replay the exact JSON request with the same source functions that serviced /run.
@@ -55,7 +56,7 @@ const REPLAY_GUIDE = `# Reproduction du calcul R / Native R replay
 1. Extraire l'ensemble du dossier ZIP sur votre ordinateur. **Les fichiers contiennent potentiellement des données confidentielles.**
 2. Restaurer la version de R et les packages indiqués dans le résultat original. Le script exige également que les SHA-256 du code R correspondent aux empreintes transmises par le backend d'origine. Si elles manquent ou divergent, le rejeu échoue sans attribuer de fausse équivalence.
 3. Depuis la racine du ZIP : \`Rscript reproduction/run_reference_backend.R reproduction/\`.
-4. Exécuter \`python3 reproduction/verify_replay.py reproduction/\` pour comparer automatiquement les méthodes natives, les valeurs numériques et le prétraitement. Un écart doit bloquer toute revendication de reproductibilité.
+4. Exécuter \`Rscript reproduction/verify_replay.R reproduction/\` pour comparer les méthodes R, toutes les valeurs et le prétraitement sans Python. Le vérificateur Python indépendant reste disponible en option. Un écart interdit toute revendication de reproductibilité.
 5. Vérifier les tableaux R complets dans \`reference_r/\`. Les résultats trop volumineux conservés uniquement sur le disque R local doivent être récupérés séparément.
 
 **Périmètre :** les fonctions R incluses ci-dessous sont une copie des sources exactes de l'API R lors de la préparation du site. Le fichier \`reference_request.json\` est l'entrée exacte de l'appel R effectué pendant l'analyse. Il faut aussi les mêmes dépendances, graînes aléatoires et versions des bases externes. Les accès en direct à Reactome ne sont pas figés.
@@ -106,7 +107,8 @@ export async function referenceReplayEntries(replay){
     {name:'reproduction/reference_request.json',data:replay.requestJson+'\n'},
     {name:'reproduction/reference_expected.json',data:replay.responseJson+'\n'},
     {name:'reproduction/README.md',data:REPLAY_GUIDE},
-    {name:'reproduction/verify_replay.py',data:REFERENCE_R_REPLAY_VERIFY_PY}
+    {name:'reproduction/verify_replay.py',data:REFERENCE_R_REPLAY_VERIFY_PY},
+    {name:'reproduction/verify_replay.R',data:RESEARCH_R_NUMERIC_VERIFIER_SOURCE}
   ];
   for(const [name,source] of Object.entries(REFERENCE_R_SOURCE_FILES))
     entries.push({name:'reproduction/multiomics-engine/'+name,data:source});
