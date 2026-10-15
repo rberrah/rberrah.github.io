@@ -26,6 +26,11 @@ num <- function(x) {
   if(length(z)!=1L || !is.finite(z)) NA_real_ else z
 }
 chr <- function(x,otherwise="") if(is.null(x)||!length(x))otherwise else as.character(x[[1L]])
+# Visual consistency contract, independent of statistical inference.
+legend_values <- c(-2.5,-2,-1.5,-1,-0.5,0,0.5,1,1.5,2,2.5)
+utils::write.csv(data.frame(z_score=legend_values,
+  fill_hex=vapply(legend_values,color_for,character(1),cap=2.5)),
+  file.path(output,"heatmap_color_legend.csv"),row.names=FALSE)
 outputs <- list()
 with_devices <- function(name,width,height,draw,kind,details) {
   for(extension in c("pdf","svg")) {
@@ -179,7 +184,16 @@ if(!is.null(central) && length(central$metabolites)){
 if(!length(outputs))stop("No supported figure with archived display-ready data")
 manifest<-list(schema_version="1.0.0",figure_mode="R_publication_similar",
   does_not_refit_model=TRUE,pixel_identity_to_Svelte=FALSE,
-  data_source="provenance/analysis_complete.json",figures=outputs)
+  data_source="provenance/analysis_complete.json",
+  visual_contract=list(
+    heatmap_scale="row z-score",heatmap_color_limits=c(-2.5,2.5),
+    palette=list(low="#3567B2",neutral="#F7F7F7",high="#CC3E3E",
+                 missing_heatmap="#E0E0E0",missing_metabolic_map="#DCDCDC"),
+    heatmap_order="original site sample and ranked-feature order",
+    effect_scales="retained per omics layer: log2 or source-declared units",
+    missing_values="NA remains missing; never coerced to zero",
+    no_statistical_refit=TRUE),
+  figures=outputs)
 writeLines(jsonlite::toJSON(manifest,auto_unbox=TRUE,pretty=TRUE),
            file.path(output,"figure_manifest.json"))
 cat("PASS: R created",length(outputs),"figure files from archived display data at",output,"\n")
