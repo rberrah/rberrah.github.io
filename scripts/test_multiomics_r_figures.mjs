@@ -35,8 +35,8 @@ try {
   execFileSync('Rscript',['multiomics-engine/plot_research_figures.R',path,out],
     {stdio:'pipe',timeout:120000});
   const zscores=readFileSync(join(out,'heatmap_transcriptomics_plot_values.csv'),'utf8');
-  assert(zscores.includes('ENSG001,-1,0,1'));
-  assert(zscores.includes('ENSG002,0.5,NA,-0.5'));
+  assert(/(?:"ENSG001"|ENSG001),-1,0,1/.test(zscores));
+  assert(/(?:"ENSG002"|ENSG002),0\.5,NA,-0\.5/.test(zscores));
   const circular=readFileSync(join(out,'metabologram_plot_values.csv'),'utf8');
   assert(circular.includes('CHEBI:24996'));
   assert(circular.includes('-0.7'));
