@@ -50,6 +50,7 @@ const portable=await createPortableProject({files,settings:{objective:'groups',a
 const md=methodsMarkdown(result,'fr');
 assert.match(md,/Transcriptomique/);
 assert.match(md,/56/);
+assert.match(md,/Variables écartées par le QC navigateur: 4 \(6,7 %\)/);
 assert.match(md,/non exécuté/);
 assert.match(md,/toutes les variables/);
 assert.throws(()=>methodsMarkdown(result,'invalid'),/Unknown language/);
@@ -110,6 +111,7 @@ assert.throws(()=>zipEntries([{name:'same.txt',data:'a'},{name:'same.txt',data:'
 await assert.rejects(buildResearchBundle({result,portableProject:{format:'unknown'}}),/Original study files/);
 const html=methodsMarkdown(result,'en');
 assert.match(html,/Methods actually run/);
+assert.match(html,/Features omitted by browser QC: 4 \(6\.7 %\)/);
 assert.match(html,/not executed/);
 
 
