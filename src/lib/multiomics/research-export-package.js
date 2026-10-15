@@ -3,6 +3,7 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
+import {referenceReplayEntries} from './reference-replay.js';
 import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
@@ -321,7 +322,7 @@ function u32(view,offset,x){view.setUint32(offset,x>>>0,true)}
 /** Stable, standards-compliant uncompressed ZIP with UTF-8 file names;
  * deliberately small-scope to avoid browser supply-chain dependencies. */
 export function zipEntries(entries){
-  requireThat(Array.isArray(entries)&&entries.length>0&&entries.length<=30,
+  requireThat(Array.isArray(entries)&&entries.length>0&&entries.length<=60,
     'Invalid number of research files');
   const names=new Set(),local=[],central=[];
   let offset=0,sourceBytes=0;
@@ -365,7 +366,7 @@ async function sha256(bytes){
 }
 /** PortableProject is constructed from the EXACT original source File objects,
  * keeping any sensitive rows exclusively in the user's downloaded archive. */
-export async function buildResearchBundle({result,portableProject,locale='fr'}){
+export async function buildResearchBundle({result,portableProject,referenceReplay=null,figureSnapshots=[],locale='fr'}){
   requireThat(result?.engine&&result?.layers&&result?.protocol,'Missing completed analysis');
   requireThat(portableProject?.format==='pmx-multiomics-portable-project'&&
     portableProject?.schemaVersion===1&&portableProject?.inputs?.metadata,
@@ -386,6 +387,17 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
   requireThat(num>0,'No analyzable layer');
   const fullR=fullReferenceMethodCsvs(result);
   for(const reference of fullR)add(reference.name,reference.csv);
+  // These are the ACTUAL R backend sources, JSON request and returned values.
+  // Browser figures are only immutable snapshots: R never drew them.
+  const replay=referenceReplayEntries(referenceReplay);
+  for(const entry of replay.entries)add(entry.name,entry.data);
+  requireThat(Array.isArray(figureSnapshots)&&figureSnapshots.length<=12,'Invalid number of figure snapshots');
+  for(const item of figureSnapshots){
+    requireThat(/^figure_[0-9]{2}\.svg$/.test(item?.name)&&
+      typeof item?.data==='string'&&item.data.length<2_000_000&&
+      item.data.includes('<svg'), 'Invalid browser SVG snapshot');
+    add('figures_browser/'+item.name,item.data);
+  }
   add('methods/methods.md',methodsMarkdown(result,locale));
   add('verification/verifier_dossier.py',RESEARCH_DOSSIER_VERIFY_PY);
   add('verification/LISEZ-MOI.txt',RESEARCH_DOSSIER_README);
@@ -416,6 +428,9 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
+    r_source_replay:replay.status,
+    browser_svg_snapshots:{count:figureSnapshots.length,source:'original_rendered_Svelte_SVG',r_replayable:false},
+    exact_r_numeric_and_figure_equivalence_certified:false,
     downstream_exchange:downstreamExchange,
     reference_method_previews:referencePreviewAudit(result),
     r_reference_full_feature_tables_exported:fullR.length>0,
