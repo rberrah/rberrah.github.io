@@ -30,6 +30,8 @@ const dossier=await buildResearchBundle({result:makeResult(),portableProject:pro
 assert.equal(dossier.manifest.downstream_exchange.status,'included');
 assert(dossier.manifest.files['exchange/manifest.json']?.sha256);
 assert(dossier.manifest.files['run_all.R']?.sha256);
+assert(dossier.manifest.files['ANALYSE_REPRODUCTIBLE.Rmd']?.sha256);
+assert(dossier.manifest.files['render_notebook.R']?.sha256);
 assert(dossier.manifest.files['COMMENCER_ICI_FR_EN.md']?.sha256);
 assert(dossier.manifest.files['figures_r/generate_figures.R']?.sha256);
 assert(dossier.manifest.files['figures_r/README.md']?.sha256);
@@ -74,6 +76,19 @@ try{
   const extracted=join(temporary,'unpacked');
   assert(existsSync(join(extracted,'run_all.R')));
   execFileSync('Rscript',['run_all.R'],{cwd:extracted,timeout:120000,stdio:'pipe'});
+  const rmd=readFileSync(join(extracted,'ANALYSE_REPRODUCTIBLE.Rmd'),'utf8');
+  const renderScript=readFileSync(join(extracted,'render_notebook.R'),'utf8');
+  assert(rmd.includes('params$execute_replay'));
+  assert(rmd.includes('figures_r/output/figure_manifest.json'));
+  assert(renderScript.includes('rmarkdown::render('));
+  if(process.env.PMX_TEST_RMD==='1'){
+    execFileSync('Rscript',['render_notebook.R'],{
+      cwd:extracted,timeout:240000,stdio:'pipe'
+    });
+    const rendered=readFileSync(join(extracted,'analyse_reproductible.html'),'utf8');
+    assert(rendered.length>3000 && rendered.includes('MultiOmics'));
+    assert(existsSync(join(extracted,'research_reproduction_status.json')));
+  }
   const status=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
   assert.equal(status.r_numerical_replay,'NOT_AVAILABLE_BROWSER_RESULTS');
   assert.equal(status.r_figures,'GENERATED_SIMILAR_PDF_SVG');
