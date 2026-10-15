@@ -64,6 +64,7 @@
   <div class="actions">
     <a class="btn btn-primary" href={`${base}/multiomics/tool`}>{t('Ouvrir l’outil', 'Open the tool')}</a>
     <a class="btn btn-outline" href={`${base}/multiomics/README.txt`} target="_blank">{t('Voir le format des fichiers', 'See file formats')}</a>
+    <a class="btn btn-outline" href={`${base}/multiomics/learn`}>{t('Cours : méthodes et résultats', 'Learn methods and interpretation')}</a>
   </div>
 </section>
 
