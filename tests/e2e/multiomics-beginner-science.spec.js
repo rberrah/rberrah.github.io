@@ -209,6 +209,7 @@ test('Beginner R backend setup is discoverable, precise and mobile readable with
   await help.locator('summary').click();
   await expect(help).toContainText('GitHub Pages ne peut pas exécuter R');
   await expect(help).toContainText('Installer R et Git');
+  await expect(help).toContainText('Auto · utiliser si disponible');
   await expect(help.locator('pre')).toContainText('Rscript multiomics-engine/run_backend.R');
   await expect(help.locator('pre')).toContainText('Rscript multiomics-engine/install_backend_dependencies.R');
   await expect(help).toContainText('127.0.0.1');
@@ -226,5 +227,36 @@ test('Beginner R backend setup is discoverable, precise and mobile readable with
   await english.locator('summary').click();
   await expect(english).toContainText('No installation is needed to explore data');
   await expect(english).toContainText('Never send patient data');
+  await expect(english).toContainText('Auto · use when available');
   expect(submissions).toBe(0);
+});
+
+
+test('R beginner setup: Browser only refuses health checks; Auto can verify local R without uploading a study',async({page})=>{
+  let health=0,uploaded=0;
+  await page.route('http://127.0.0.1:8787/health',async route=>{
+    health++;
+    await route.fulfill({status:200,contentType:'application/json',
+      body:JSON.stringify({status:'ok',version:'1.8.0',capabilities:{reference_analysis:true}})});
+  });
+  await page.route('http://127.0.0.1:8787/run',async route=>{
+    uploaded++;
+    await route.fulfill({status:500,body:'Unexpected research upload'});
+  });
+  await page.goto('/multiomics/tool?lang=fr');
+  await expect.poll(()=>page.evaluate(()=>
+    document.documentElement.dataset.pmxMultiomicsHydrated),{timeout:15000}).toBe('true');
+  const advanced=page.getByTestId('multiomics-run-options');
+  await advanced.locator(':scope > summary').click();
+  const mode=page.getByLabel('Mode backend R');
+  await expect(mode).toHaveValue('browser');
+  await advanced.getByRole('button',{name:'Tester'}).click();
+  await expect(advanced).toContainText('Backend R désactivé');
+  expect(health).toBe(0);
+  expect(uploaded).toBe(0);
+  await mode.selectOption('auto');
+  await advanced.getByRole('button',{name:'Tester'}).click();
+  await expect(advanced).toContainText('Backend R disponible');
+  expect(health).toBe(1);
+  expect(uploaded).toBe(0);
 });
