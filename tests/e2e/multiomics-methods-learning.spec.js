@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test('Beginner omics lessons: method selection, warnings and return to analyzer (FR)',async({page})=>{
+  /** @type {string[]} */
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/multiomics/learn?lang=fr');
