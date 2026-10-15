@@ -22,6 +22,10 @@ const makeResult=()=>({engine:{name:'deterministic',version:'test'},protocol:{},
 const dossier=await buildResearchBundle({result:makeResult(),portableProject:project});
 assert.equal(dossier.manifest.downstream_exchange.status,'included');
 assert(dossier.manifest.files['exchange/manifest.json']?.sha256);
+assert(dossier.manifest.files['run_all.R']?.sha256);
+assert(dossier.manifest.files['figures_r/generate_figures.R']?.sha256);
+assert(dossier.manifest.files['figures_r/README.md']?.sha256);
+assert.equal(dossier.manifest.exact_r_numeric_and_figure_equivalence_certified,false);
 const temporary=mkdtempSync(join(tmpdir(),'pmx-exchange-'));
 try{
   const zipPath=join(temporary,'research.zip');
