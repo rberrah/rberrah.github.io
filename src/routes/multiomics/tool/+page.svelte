@@ -2987,6 +2987,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <div>
       <p class="eyebrow">{demoLoaded ? t('Démo synthétique · résultats réellement calculés', 'Synthetic demo · actually computed results') : t('Résultats · moteur déterministe', 'Analysis results · deterministic engine')}</p>
       <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Vos résultats', 'Your results')}</h2>
+      <a href={`${base}/multiomics/learn`} class="simple-hint">{t('Comprendre ces méthodes et figures', 'Learn how to interpret methods and figures')}</a>
     </div>
     <div class="result-actions">
       <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
