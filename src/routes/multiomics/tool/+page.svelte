@@ -2876,8 +2876,14 @@
         </select>
         <small>{analysisIntent === 'confirmatory'
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
-          : t('Les résultats sont exploratoires. Vous pouvez lancer une démo et consulter les limites sans installer R.', 'Results are exploratory. You can run the demo and see limitations without installing R.')}</small>
+          : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
+      {#if analysisIntent !== 'confirmatory'}
+        <p role="note" class="simple-hint" data-testid="multiomics-browser-approximation-warning">
+          {t('Important : les résultats du navigateur servent à repérer des tendances. Selon la méthode et les données, certains calculs simplifient les hypothèses du modèle ou utilisent des approximations ; les chiffres ne sont donc pas nécessairement ceux de DESeq2, edgeR ou limma en R. Pour une analyse de référence, exécutez le backend R, vérifiez le plan expérimental et téléchargez le code effectivement utilisé.',
+             'Important: browser results are intended to explore trends. Depending on the data and method, calculations may simplify model assumptions or use approximations; the numbers therefore need not equal native DESeq2, edgeR or limma results. For reference analysis, run the R backend, review study design and download the code actually used.')}
+        </p>
+      {/if}
       {#if analysisIntent === 'confirmatory' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
         <p class="simple-hint" role="note" data-testid="multiomics-rnaseq-fdr-calibration-warning">
           {t('Point scientifique : certains scénarios RNA-seq simulés sans effet réel ont montré plus de faux positifs que les 5 % attendus sous DESeq2. La correction BH et le calcul R ne suffisent pas à certifier la calibration de votre étude : confrontez le modèle, le plan et les hypothèses avec un statisticien avant toute conclusion confirmatoire.',
@@ -3104,8 +3110,8 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <small data-testid="multiomics-numeric-source">{analysisResult.displayedReferenceMethodCount > 0
       ? t('Les tableaux des couches portant « Native R » proviennent des résultats R exhaustifs ; les figures JS utilisent ces mêmes effets, sans refaire les tests. Les contrôles QC et les autres méthodes exploratoires restent distincts.',
           'Layers labeled Native R show full R reference values; JavaScript figures use these same effects without refitting. QC and other exploratory calculations remain distinct.')
-      : t('Les résultats affichés sont exploratoires (JavaScript). Aucune équivalence numérique R ne peut être revendiquée sans méthode R de référence complète.',
-          'Displayed results are exploratory (JavaScript). Numerical R equivalence cannot be claimed without a complete native R reference fit.')}</small>
+      : t('Chiffres exploratoires JS : ils peuvent reposer sur un modèle simplifié ou des approximations et différer des p-values, q-values et effets obtenus en R. Ne pas les utiliser comme inférence confirmatoire. Le moteur R de référence applique les méthodes statistiques natives appropriées, sans garantir à lui seul une conclusion valide.',
+          'Exploratory JS numbers may use simplified models or approximations and differ in p-values, adjusted p-values and effects from native R methods. They are not confirmatory inference. The reference R engine applies the appropriate native statistical methods, which alone do not guarantee valid conclusions.')}</small>
     {#if analysisResult.referenceBackend?.status === 'ok'}
       {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, value]}
         <span>{key} : {value.method || key} — {value.status}</span>
