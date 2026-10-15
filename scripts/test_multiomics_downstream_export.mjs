@@ -34,7 +34,11 @@ assert(dossier.manifest.files['COMMENCER_ICI_FR_EN.md']?.sha256);
 assert(dossier.manifest.files['figures_r/generate_figures.R']?.sha256);
 assert(dossier.manifest.files['figures_r/README.md']?.sha256);
 assert.equal(dossier.manifest.exact_r_numeric_and_figure_equivalence_certified,false);
-const originalRTable='"feature","baseMean","log2FoldChange","lfcSE","stat","pvalue","padj"\\n"ENSG001",12,1.5,0.3,5,0.001,0.012\\n'.replaceAll('\\\\n','\n');
+const originalRTable=[
+  '"feature","baseMean","log2FoldChange","lfcSE","stat","pvalue","padj"',
+  '"ENSG001",12,1.5,0.3,5,0.001,0.012',
+  ''
+].join(String.fromCharCode(10));
 const rMethod='transcriptomics_differential_deseq2';
 const nativeResult={
   ...makeResult(),
