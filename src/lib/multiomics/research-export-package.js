@@ -410,6 +410,34 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   // R figure recipes use the SAME archived plot-ready values, rather than
   // separately refitting or silently altering the browser statistical output.
   // This is R-generated, scientifically similar plotting; not pixel identity.
+  add('COMMENCER_ICI_FR_EN.md',[
+    '# MultiOmics — Reproduire les résultats / Reproduce the results',
+    '',
+    'FR — Aucun changement du code n’est nécessaire :',
+    '1. Conservez ce ZIP dans un dossier sécurisé : il contient vos données scientifiques.',
+    '2. Extrayez entièrement le ZIP. Installez R puis le package R jsonlite.',
+    '3. Dans ce dossier extrait, lancez : Rscript run_all.R',
+    '4. Consultez research_reproduction_status.json, figures_r/output/ et les CSV des valeurs tracées.',
+    '5. Si le calcul de référence R était disponible, vérifiez PASS_R_REFERENCE_ONLY.',
+    '   Sinon, les chiffres exploratoires JS ne sont PAS présentés comme reproduits en R.',
+    '6. Les figures générées par R sont scientifiquement similaires mais peuvent différer graphiquement des SVG interactifs.',
+    '',
+    'EN — No code edits required:',
+    '1. Keep the archive secure: it can contain confidential research data.',
+    '2. Extract all files. Install R and the R package jsonlite.',
+    '3. Open a terminal inside the extracted folder and run: Rscript run_all.R',
+    '4. Read research_reproduction_status.json, figures_r/output/ and the plotted-values CSVs.',
+    '5. PASS_R_REFERENCE_ONLY means the native R reference result was numerically replayed.',
+    '   Browser-only exploratory numbers are never misrepresented as a native R method.',
+    '6. R figure equivalents use the same plot-ready values, not identical SVG pixel geometry.',
+    '',
+    'Windows: open PowerShell in the extracted folder and run Rscript.exe run_all.R.',
+    'If Rscript is not on PATH, run it from the R installation bin directory.',
+    'For strict numerical native-R replay, restore the ORIGINAL R and Bioconductor package versions.',
+    'A new/latest installation is NOT evidence of matching the original statistical results.',
+    'Report a FAIL or NOT_CHECKED; do not call an unverified replay reproducible.',
+    '',
+  ].join('\n'));
   add('run_all.R',RESEARCH_RUN_ALL_R_SOURCE);
   add('figures_r/generate_figures.R',RESEARCH_R_FIGURE_SOURCE);
   add('figures_r/README.md',[
