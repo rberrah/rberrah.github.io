@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {File} from 'node:buffer';
 import {createHash} from 'node:crypto';
 import {buildResearchBundle} from '../src/lib/multiomics/research-export-package.js';
-import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,rmSync,existsSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,rmSync,existsSync,copyFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
@@ -171,6 +171,16 @@ try{
     const rerun=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
     assert.equal(rerun.r_numerical_replay,'PASS_R_REFERENCE_ONLY');
     assert.equal(rerun.r_figures,'GENERATED_SIMILAR_PDF_SVG');
+    // Persist ACTUAL public-cohort output so researchers can inspect the
+    // knitted HTML and its numerical R replay audit in Actions artifacts.
+    copyFileSync(join(extracted,'analyse_reproductible.html'),
+      join(evidence,'airway_annotated_R_markdown_report.html'));
+    copyFileSync(join(extracted,'reproduction','r_numeric_comparison_report.json'),
+      join(evidence,'airway_native_R_numeric_comparison.json'));
+    copyFileSync(join(extracted,'research_reproduction_status.json'),
+      join(evidence,'airway_R_markdown_reproduction_status.json'));
+    copyFileSync(join(extracted,'figures_r','output','figure_manifest.json'),
+      join(evidence,'airway_R_figure_manifest.json'));
   }
 
     console.log('PASS: Airway/GSE52778',rows.length,
