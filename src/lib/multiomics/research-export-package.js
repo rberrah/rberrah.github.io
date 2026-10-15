@@ -366,6 +366,7 @@ async function sha256(bytes){
 }
 /** PortableProject is constructed from the EXACT original source File objects,
  * keeping any sensitive rows exclusively in the user's downloaded archive. */
+/** @param {{result:any,portableProject:any,referenceReplay?:any,figureSnapshots?:Array<{name:string,data:string}>,locale?:string}} options */
 export async function buildResearchBundle({result,portableProject,referenceReplay=null,figureSnapshots=[],locale='fr'}){
   requireThat(result?.engine&&result?.layers&&result?.protocol,'Missing completed analysis');
   requireThat(portableProject?.format==='pmx-multiomics-portable-project'&&
