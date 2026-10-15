@@ -104,7 +104,15 @@ def run():
         obj["files"]["samples"]["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
         (root / "manifest.json").write_text(json.dumps(obj), encoding="utf-8")
         assert_invalid(root, "One sample_id assigned to multiple biological subjects")
-    print("PASS: 1 valid package, 5 adversarial cases")
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        obj = fixture(root)
+        p = root / "samples.csv"
+        p.write_text("assay_id,sample_id,subject_id,omic,tissue,collection_time\\nRNA1,S1,P1,transcriptomics,blood,0\\nRNA2,S1,P1,transcriptomics,liver,0\\n")
+        obj["files"]["samples"]["sha256"] = hashlib.sha256(p.read_bytes()).hexdigest()
+        (root / "manifest.json").write_text(json.dumps(obj), encoding="utf-8")
+        assert_invalid(root, "Conflicting tissue for shared specimen")
+    print("PASS: 1 valid package, 6 adversarial cases")
 
 
 if __name__ == "__main__":
