@@ -4,6 +4,7 @@
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
 import {referenceReplayEntries} from './reference-replay.js';
+import {RESEARCH_R_FIGURE_SOURCE} from './r-figure-source.js';
 import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
@@ -405,6 +406,31 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   add('methods/methods_audit.json',JSON.stringify(buildResearchMethodsManifest(result),null,2)+'\n');
   add('provenance/analysis_complete.json',JSON.stringify(result,null,2)+'\n');
   add('source/projet_reproductible.json',JSON.stringify(portableProject,null,2)+'\n');
+  // R figure recipes use the SAME archived plot-ready values, rather than
+  // separately refitting or silently altering the browser statistical output.
+  // This is R-generated, scientifically similar plotting; not pixel identity.
+  add('figures_r/generate_figures.R',RESEARCH_R_FIGURE_SOURCE);
+  add('figures_r/README.md',[
+    '# Recreate the scientific display figures using R',
+    '',
+    'From the extracted ZIP root run:',
+    '',
+    'Rscript figures_r/generate_figures.R provenance/analysis_complete.json figures_r/output',
+    '',
+    'Requires R + jsonlite and an SVG-capable R build (PDF is always generated).',
+    'The program uses original heatmap row z-scores, annotations, and reported',
+    'model effect values from analysis_complete.json without statistical refitting.',
+    'It renders a heatmap for each available layer, a circular effect plot and',
+    'a central-carbon network when those display datasets exist.',
+    'Plots are scientifically similar to browser/Svelte views, NOT pixel-identical.',
+    'It does not reproduce arbitrary interactive tabs or local selections.',
+    'No biological significance or pathway activity is computed by plotting.',
+    'Inspect output/figure_manifest.json: every saved PDF/SVG identifies its input.',
+    'The original browser SVG snapshots are in figures_browser/, not produced by R.',
+    'Where an R reference fit ran, the exact native numerical replay is separately',
+    'available under reproduction/ (requires its own source/environment attestation).',
+    ''
+  ].join('\n'));
   // Exchange is an optional derivative of the EXACT uploaded matrices. Do not
   // block any existing mono-omic ZIP export when their layout differs.
   let downstreamExchange={status:'not_available',reason:null};
