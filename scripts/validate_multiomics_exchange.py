@@ -58,11 +58,22 @@ def validate(root):
         if errors:
             return errors
         specimen_owners = {}
+        specimen_context = {}
         for sample in samples:
             sid, subject = sample["sample_id"], sample["subject_id"]
             if sid in specimen_owners and specimen_owners[sid] != subject:
                 errors.append("One sample_id assigned to multiple biological subjects")
             specimen_owners[sid] = subject
+            previous = specimen_context.get(sid, {})
+            for field in ('tissue', 'collection_time', 'collection_time_unit'):
+                current_value = sample.get(field, '') or ''
+                previous_value = previous.get(field, '')
+                if current_value and previous_value and current_value != previous_value:
+                    errors.append('Conflicting ' + field + ' for shared specimen ' + sid)
+            specimen_context[sid] = {
+                field: sample.get(field, '') or previous.get(field, '')
+                for field in ('tissue', 'collection_time', 'collection_time_unit')
+            }
         assay_keys = [(r["omic"], r["assay_id"]) for r in samples]
         feature_keys = [(r["omic"], r["feature_id"]) for r in features]
         if len(set(assay_keys)) != len(assay_keys):
