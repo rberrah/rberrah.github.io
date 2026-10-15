@@ -56,13 +56,28 @@ export function referenceReplayStatus(replay){
       'r_package_versions_and_external_mappings_must_be_restored']
   };
 }
-export function referenceReplayEntries(replay){
+export async function referenceReplayEntries(replay){
   const status=referenceReplayStatus(replay);
   if(status.status==='not_available')return {entries:[],status};
   if(typeof replay.requestJson!=='string'||typeof replay.responseJson!=='string')
     throw Error('Invalid R replay request or response');
   JSON.parse(replay.requestJson);
-  JSON.parse(replay.responseJson);
+  const response=JSON.parse(replay.responseJson);
+  const expectedSources=response?.runtime?.referenceSourceSha256;
+  let sourceAttestation='not_available';
+  if(expectedSources && typeof expectedSources==='object'){
+    const localHashes={};
+    for(const [name,source] of Object.entries(REFERENCE_R_SOURCE_FILES)){
+      const bytes=new TextEncoder().encode(source);
+      const raw=await globalThis.crypto.subtle.digest('SHA-256',bytes);
+      localHashes[name]=[...new Uint8Array(raw)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    }
+    sourceAttestation=Object.keys(localHashes).length===Object.keys(expectedSources).length &&
+      Object.entries(localHashes).every(([name,hash])=>expectedSources[name]===hash)
+      ? 'sha256_match' : 'sha256_mismatch';
+  }
+  status.source_attestation=sourceAttestation;
+  status.exact_runtime_source_verified=sourceAttestation==='sha256_match';
   const entries=[
     {name:'reproduction/run_reference_backend.R',data:REPLAY_R},
     {name:'reproduction/reference_request.json',data:replay.requestJson+'\n'},
