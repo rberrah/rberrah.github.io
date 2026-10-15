@@ -103,7 +103,9 @@ jobs:
             dist/a-propos/index.html \
             dist/communications/index.html \
             dist/communications/netpk-peprsn-2026/index.html \
-            dist/pharmacometrie/index.html
+            dist/pharmacometrie/index.html \
+            dist/pharmacometrie/multiomics/tool/index.html \
+            dist/pharmacometrie/multiomics/learn/index.html
           do
             if [ -f "$f" ]; then
               echo "ok        $f"
@@ -135,6 +137,13 @@ jobs:
         env:
           LABS_E2E_PREBUILT: "true"
         run: npm run test:e2e:pmx
+
+      # The public site's main value is the beginner workflow. Check the real
+      # compiled MultiOmics app, not just the source or a generic PMx page.
+      - name: Verify compiled MultiOmics beginner demo layout before publication
+        env:
+          LABS_E2E_PREBUILT: "true"
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js --grep "Quick-start demo" --workers=1 --retries=0
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
