@@ -57,6 +57,11 @@ if(!is.null(heatmaps))for(layer in names(heatmaps)) {
     vapply(r$z,num,numeric(1))
   }))
   if(!identical(dim(values),c(length(features),length(samples))))stop("Heatmap dimension mismatch")
+  # Exact plotted cells: users can verify every color against this numeric CSV.
+  plot_values <- data.frame(feature_id=features,values,check.names=FALSE)
+  names(plot_values) <- c("feature_id",samples)
+  utils::write.csv(plot_values,file.path(output,paste0("heatmap_",layer,"_plot_values.csv")),
+                   row.names=FALSE,na="NA")
   local({
     values0<-values; feat0<-features; sam0<-samples; layer0<-layer
     with_devices(paste0("heatmap_",layer0),
@@ -82,6 +87,19 @@ if(!is.null(meta)) {
   transcript<-meta$transcriptomics
   metabolites<-meta$metabolomics
   if(length(transcript)||length(metabolites)){
+    plot_effects <- do.call(rbind,lapply(c("transcriptomics","metabolomics"),function(layer){
+      l <- meta[[layer]]
+      if(!length(l))return(NULL)
+      data.frame(omic=rep(layer,length(l)),
+        feature=vapply(l,function(e)chr(e$feature),character(1)),
+        effect=vapply(l,function(e)num(e$effect),numeric(1)),
+        effect_scale=vapply(l,function(e)chr(e$effectScale),character(1)),
+        q_value=vapply(l,function(e)num(e$qValue),numeric(1)),
+        stringsAsFactors=FALSE)
+    }))
+    if(!is.null(plot_effects))
+      utils::write.csv(plot_effects,file.path(output,"metabologram_plot_values.csv"),
+                       row.names=FALSE,na="NA")
     draw_half <- function(entries,start,end,radius1,radius2,title) {
       if(!length(entries))return(invisible(NULL))
       effects <- vapply(entries,function(e)num(e$effect),numeric(1))
@@ -117,9 +135,18 @@ central <- visuals$centralCarbon
 if(!is.null(central) && length(central$metabolites)){
   nodes <- c(central$metabolites,central$enzymes)
   nmap <- setNames(nodes,vapply(nodes,function(n)chr(n$id),character(1)))
+  node_table <- do.call(rbind,lapply(nodes,function(n){
+    m <- n$measurement
+    data.frame(id=chr(n$id),label=chr(n$label),
+      x=num(n$x),y=num(n$y),measurement_status=chr(m$status,"unmeasured"),
+      effect_scale=chr(m$effectScale),
+      effect=if(identical(chr(m$status),"measured"))num(m$effect) else NA_real_)
+  }))
+  utils::write.csv(node_table,file.path(output,"central_carbon_plot_values.csv"),
+                   row.names=FALSE,na="NA")
   with_devices("central_carbon",12,8,function(){
     op<-par(mar=c(2,2,3,2));on.exit(par(op))
-    plot(c(0,920),c(610,0),type="n",axes=FALSE,xlab="",ylab="",
+    plot(c(0,920),c(610,0),ylim=c(610,0),type="n",axes=FALSE,xlab="",ylab="",
          main="Central carbon — descriptive annotation (not metabolic flux)")
     for(e in central$edges) {
       if(length(e)!=2L)next
