@@ -2983,7 +2983,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
-      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger le dossier de recherche (ZIP)', 'Download research dossier (ZIP)')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
       <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
       <details class="simple-disclosure export-detail">
         <summary>{t('Autres exports', 'Other downloads')}</summary>
