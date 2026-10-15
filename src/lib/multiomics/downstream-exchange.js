@@ -61,6 +61,9 @@ export async function buildDownstreamExchange(portableProject){
     sampleIds.add(key);
     sampleOutput.push(sampleOutput[0].map(k=>s[k]||''));
   }
+  const supplied=new Set(TYPES.filter(omic=>!!input[omic]));
+  for(const sample of sampleRows)
+    if(!supplied.has(sample.omic))throw Error('Sample sheet declares '+sample.omic+' without its original matrix');
   const entries=[],features=[['omic','feature_id','id_namespace','display_name','organism','taxon_id','annotation_database','annotation_version','tissue_scope','mapping_status']];
   const matrices=[];let total=0;
   async function add(path,content){
