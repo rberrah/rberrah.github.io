@@ -113,10 +113,17 @@ for(i in seq_len(nrow(grid))) {
 }
 records<-do.call(rbind,rows)
 summary<-rnaseq_scale_path_summary(records,minimum=8L)
+paired_uncertainty<-rnaseq_scale_path_paired_uncertainty(records,minimum=8L,
+                              bootstrap_repeats=2000L,seed=20261015L)
 scale_data<-do.call(rbind,scales)
 feature_data<-do.call(rbind,features)
 if(any(!is.finite(summary$power_total_change))||
    any(!is.finite(summary$fdr_total_change))||
+   nrow(paired_uncertainty)!=nrow(summary)*6L||
+   any(!is.finite(paired_uncertainty$mean_paired_difference))||
+   any(paired_uncertainty$percentile_95_lower>paired_uncertainty$percentile_95_upper)||
+   any(paired_uncertainty$clinical_certification)||
+   any(paired_uncertainty$nominal_fdr_certified)||
    any(!summary$certified==FALSE))
   stop("Missing path-decomposition results.")
 if(nzchar(out)) {
@@ -124,6 +131,9 @@ if(nzchar(out)) {
                    row.names=FALSE)
   utils::write.csv(summary,file.path(out,"rnaseq_norm_lock_decomposition.csv"),
                    row.names=FALSE)
+  utils::write.csv(paired_uncertainty,
+      file.path(out,"rnaseq_norm_lock_paired_uncertainty.csv"),
+      row.names=FALSE)
   utils::write.csv(scale_data,file.path(out,"rnaseq_norm_lock_scale_shift.csv"),
                    row.names=FALSE)
   utils::write.csv(feature_data,file.path(out,"rnaseq_norm_lock_features.csv"),
@@ -141,11 +151,14 @@ if(nzchar(out)) {
     "Both path terms include downstream model refitting; not a pure causal intervention.",
     "Do not choose filtering/scaling on observed q-values or benchmark power.",
     "Decomposition describes paired empirical FDP; zero FDP does not establish FDR control.",
+    "Bootstrap: paired independent simulated STUDIES (not genes), 2000 draws, percentile 95% CI.",
+    "Bootstrap CI is descriptive, synthetic-generator-specific, and not evidence of nominal FDR control.",
     "No external validation; no nominal FDR/clinical certification.",
     paste("utc_timestamp:",format(Sys.time(),tz="UTC",usetz=TRUE)),
     capture.output(sessionInfo())),
     file.path(out,"rnaseq_norm_lock_environment.txt"))
 }
 print(summary,row.names=FALSE)
+print(paired_uncertainty,row.names=FALSE)
 unlink(root,recursive=TRUE)
 cat("REAL BIOCONDUCTOR FROZEN-SCALE PATH DECOMPOSITION: PASS (execution only; no FDR certification)\n")
