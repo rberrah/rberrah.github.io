@@ -183,11 +183,18 @@ export function methodsMarkdown(result,locale='fr'){
     if(!layerLabel[layer])continue;
     const label=layerLabel[layer][locale==='en'?1:0];
     const audit=a.omics[layer]||{};
+    const omitted=Number.isFinite(audit.omitted_features)&&audit.omitted_features>=0?
+      audit.omitted_features:null;
+    const omittedRatio=omitted!==null&&Number.isFinite(audit.features_input)&&
+      audit.features_input>0?100*omitted/audit.features_input:null;
+    const omittedDisplay=print(omitted)+(omittedRatio!==null?
+      ' ('+omittedRatio.toFixed(1).replace('.',locale==='fr'?',':'.')+' %)':'');
     const nrows=Array.isArray(entry?.rows)?entry.rows.length:0;
     h.push('### '+label,'',
       '- '+t('Calcul présenté','Reported calculation')+': '+print(audit.reported_model),
       '- '+t('Données déclarées','Declared value type')+': '+print(audit.declared_value_type),
       '- '+t('Variables avant / après filtrage','Features before / after QC')+': '+print(audit.features_input)+' / '+print(audit.features_after_filter),
+      '- '+t('Variables écartées par le QC navigateur','Features omitted by browser QC')+': '+omittedDisplay,
       '- '+t('Lignes du tableau exporté','Exported table rows')+': '+nrows,
       '- '+t('Proportion médiane manquante','Median missing fraction')+': '+print(audit.median_missing_fraction),
       '- '+t('Valeur maximale manquante par échantillon','Worst missing fraction per sample')+': '+print(audit.maximum_sample_missing_fraction),
