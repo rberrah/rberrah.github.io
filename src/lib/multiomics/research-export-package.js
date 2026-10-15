@@ -299,7 +299,7 @@ export function methodsMarkdown(result,locale='fr'){
       'Analyses using the R backend also require its package versions and environment for independent reruns.'),
     '',
     '## '+t('Organisation du dossier','Folder contents'),'',
-    '- `tableaux/*.csv`: '+t('résultats exhaustifs du moteur navigateur','complete browser-engine tables'),
+    '- `tableaux/*.csv`: '+t('tableaux R natifs originaux lorsque la couche affiche les chiffres R, sinon tableaux exploratoires JS clairement identifiés','original native R full tables when a layer uses R values, otherwise clearly identified exploratory browser tables'),
     '- `methods/methods.md`: '+t('ce texte modifiable','this editable text'),
     '- `methods/methods_audit.json`: '+t('méthodes et QC sans matrices brutes','method/QC summary without raw matrices'),
     '- `provenance/analysis_complete.json`: '+t('résultat complet, y compris traces éventuelles du backend R','complete analysis including any R backend trace'),
@@ -384,7 +384,27 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     requireThat(Object.hasOwn(layerLabel,layer),'Unsupported data layer '+layer);
     requireThat(Array.isArray(entry?.rows),'Missing results table for '+layer);
     count[layer]=entry.rows.length;
-    add('tableaux/'+layer+'.csv',fullLayerCsv(entry.rows));
+    // A layer displayed with native R statistics must export the ORIGINAL R
+    // CSV as its primary table. A reserialization would discard native
+    // columns such as DESeq2 baseMean/lfcSE/stat and break exact provenance.
+    if(entry.numericalProvenance==='exact_native_r_reference_table'){
+      const methodKey=entry.primaryReferenceMethodKey;
+      requireThat(typeof methodKey==='string'&&/^[A-Za-z0-9_]+$/.test(methodKey),
+        'Native R primary layer lacks a safe method key');
+      const native=result.referenceBackend?.methods?.[methodKey];
+      const table=native?.referenceTable&&typeof native.referenceTable==='object'?
+        native.referenceTable:native;
+      requireThat(native?.status==='ok'&&table?.referenceTableComplete===true &&
+        table.referenceTableStatus==='complete'&&typeof table.referenceTableCsv==='string',
+        'Native R primary layer lacks its complete reference CSV');
+      const parsed=parseReferenceCsv(table.referenceTableCsv);
+      requireThat(parsed.rows.length===entry.rows.length &&
+        parsed.rows.every((r,i)=>r.feature===entry.rows[i].feature),
+        'Native R primary table differs from displayed feature order');
+      add('tableaux/'+layer+'.csv',table.referenceTableCsv);
+    }else{
+      add('tableaux/'+layer+'.csv',fullLayerCsv(entry.rows));
+    }
     num++;
   }
   requireThat(num>0,'No analyzable layer');
@@ -485,6 +505,12 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
+    primary_table_sources:Object.fromEntries(
+      Object.entries(result.layers).map(([layer,entry])=>[
+        layer,entry.numericalProvenance==='exact_native_r_reference_table'
+          ? {engine:'native_R',method:entry.primaryReferenceMethodKey}
+          : {engine:'browser_exploratory',method:entry.inferenceMethod||null}
+      ])),
     r_source_replay:replay.status,
     browser_svg_snapshots:{count:figureSnapshots.length,source:'original_rendered_Svelte_SVG',r_replayable:false},
     exact_r_numeric_and_figure_equivalence_certified:false,
