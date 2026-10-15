@@ -83,6 +83,9 @@ test('distribution, reference, time animation and dose schedule', async ({ page 
   await expect(page.getByRole('slider', { name: 'Simulation time' })).toHaveAttribute('max', '12');
   await page.locator('#lab-q').fill('2'); await page.getByTestId('lab-time').fill('2');
   expect(await page.getByTestId('lab-concentration').innerText()).not.toBe(concentration);
+  await expect(page.getByTestId('lab-comparison-summary')).toContainText('Changed parameter');
+  await expect(page.getByTestId('lab-comparison-summary')).toContainText('Observed consequence');
+  await expect(page.getByTestId('lab-comparison-summary')).toContainText('AUC 0-2.0 h');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect.poll(async () => Number(await page.getByTestId('lab-time').inputValue())).toBeGreaterThan(2.2);
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
@@ -161,6 +164,36 @@ test('objective navigation, confirmation and transfer into four tools', async ({
   await page.getByTestId('goal-simulate').locator('summary').focus(); await page.keyboard.press('Enter');
   await expect(page.getByTestId('nav-laboratories')).toBeVisible();
   await page.keyboard.press('Escape'); await expect(page.getByTestId('goal-simulate')).not.toHaveAttribute('open');
+});
+
+test('oral absorption and IV infusion preserve route and regimen in TDM, DDI and PD', async ({ page }) => {
+  const destinations = [
+    ['Open in TDM', 'tdm'],
+    ['Add an interaction', 'ddi'],
+    ['Add a PD response', 'pd']
+  ];
+  for (const lab of ['absorption', 'infusion']) {
+    for (const [label, path] of destinations) {
+      await open(page, `/laboratoires/?lang=en&lab=${lab}`);
+      for (const command of destinations.map(([name]) => name)) await expect(page.getByRole('button', { name: command, exact: true })).toBeEnabled();
+      await page.getByRole('button', { name: label, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/${path}/`), { timeout: 20000 });
+      await expect(page.getByTestId('lab-transfer')).toContainText(lab === 'absorption' ? 'Oral' : 'IV infusion');
+      await page.getByRole('button', { name: 'Apply experiment', exact: true }).click();
+
+      if (path === 'tdm') {
+        await expect(page.locator('.lab-session')).toContainText(lab === 'absorption' ? 'absorption / Oral' : 'infusion / IV infusion');
+        continue;
+      }
+      const side = path === 'ddi' ? '1' : 'pd';
+      await expect(page.locator(`#route-${side}`)).toHaveValue(lab === 'absorption' ? 'Oral' : 'IV');
+      await expect(page.locator(`#cpp-${side}`)).toHaveValue(lab === 'absorption' ? /TV_ka_DEPOT/ : /TV_cl_L1_CENT/);
+      const panel = page.locator(path === 'ddi' ? '[data-block="model1"]' : '[data-block="exposure"]');
+      await expect(panel.getByLabel('Dose (model unit)')).toHaveValue(lab === 'absorption' ? '200' : '300');
+      await expect(panel.getByLabel('Interval (h)')).toHaveValue(lab === 'absorption' ? '24' : '36');
+      await expect(panel.getByLabel('Infusion (h)')).toHaveValue(lab === 'infusion' ? '8' : '0');
+    }
+  }
 });
 
 test('responsive scenes, reduced motion and no overflow', async ({ page }) => {

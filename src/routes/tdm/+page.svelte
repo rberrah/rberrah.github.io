@@ -98,10 +98,10 @@
   />
 </svelte:head>
 
-<LabTransfer destination="tdm" apply={spec => laboratory = spec} note={$language === 'en' ? 'Synthetic PK and full IV bolus dose schedule. Opens a new session with no observed concentrations. The illustrative Lego variability is not a validated population model or a clinical prior.' : 'PK synthétique et calendrier complet des bolus IV. Nouvelle session sans concentrations observées. La variabilité illustrative Lego ne constitue pas un modèle populationnel validé ni un a priori clinique.'}/>
+<LabTransfer destination="tdm" apply={spec => laboratory = spec} note={$language === 'en' ? 'Synthetic PK with its oral, IV bolus or IV infusion schedule. Opens a new session with no observed concentrations. The illustrative Lego variability is not a validated population model or a clinical prior.' : 'PK synthétique avec son calendrier oral, bolus IV ou perfusion IV. Nouvelle session sans concentrations observées. La variabilité illustrative Lego ne constitue pas un modèle populationnel validé ni un a priori clinique.'}/>
 {#if laboratory}<section class="lab-session">
   <h2>{$language === 'en' ? 'Synthetic laboratory session' : 'Session synthétique du laboratoire'}</h2>
-  <p>{laboratory.lab} / IV bolus / mg, L, h / {schedule(laboratory.lab, laboratory.parameters).length} {$language === 'en' ? 'doses' : 'doses'}</p>
+  <p>{laboratory.lab} / {laboratory.lab === 'absorption' ? ($language === 'en' ? 'Oral' : 'Orale') : laboratory.lab === 'infusion' ? ($language === 'en' ? 'IV infusion' : 'Perfusion IV') : 'IV bolus'} / mg, L, h / {schedule(laboratory.lab, laboratory.parameters).length} {$language === 'en' ? 'doses' : 'doses'}</p>
   <button class="btn btn-outline" onclick={launchLaboratory}><ArrowRight size={17}/>{$language === 'en' ? 'Open this experiment in the R engine' : 'Ouvrir cette expérience dans le moteur R'}</button>
   {#if labStatus}<p role="status">{({ sending: $language === 'en' ? 'Transferring...' : 'Transfert en cours...', done: $language === 'en' ? 'Model and doses validated in the engine. No analysis launched.' : 'Modèle et doses validés dans le moteur. Aucune analyse lancée.', blocked: $language === 'en' ? 'New window blocked.' : 'Nouvelle fenêtre bloquée.', timeout: $language === 'en' ? 'Transfer not confirmed. The engine may need an update; do not assume the dose schedule was imported.' : 'Transfert non confirmé. Le moteur peut nécessiter une mise à jour ; ne pas supposer que les doses ont été importées.', error: labError })[labStatus]}</p>{/if}
 </section>{/if}

@@ -140,26 +140,28 @@ export function legoSpec(lab, parameters) {
 
 /** @param {string} lab @param {Parameters} parameters */
 export function mrgsolveCode(lab, parameters) {
-  if (!['distribution', 'accumulation'].includes(lab)) throw new Error('Direct engine transfer is not verified for this laboratory. Export through Lego instead.');
-  const p = validateParameters(lab, parameters), two = lab === 'distribution';
+  const p = validateParameters(lab, parameters), two = lab === 'distribution', oral = lab === 'absorption';
   return `// Teaching PK. No fitted population data. OMEGA/SIGMA are illustrative.
 // PK_LEGO_SPEC_V1:${encodeURIComponent(JSON.stringify(legoSpec(lab, p)))}
 $PARAM @annotated
 TV_cl_L1_CENT : ${p.cl} : Clearance (L/h)
 TV_v_L1_CENT : ${p.vc} : Central volume (L)
 ${two ? `TV_k_L1_CENT_L2_PERI : ${p.q / p.vc} : Forward transfer (1/h)\nTV_k_L2_PERI_L1_CENT : ${p.q / p.vp} : Backward transfer (1/h)\nTV_v_L2_PERI : ${p.vp} : Peripheral volume (L)` : ''}
+${oral ? `TV_ka_DEPOT : ${p.ka} : Absorption rate (1/h)\nTV_F_DEPOT : ${p.f} : Bioavailability` : ''}
 ETA1 : 0 : Individual clearance effect
 ETA2 : 0 : Individual volume effect
 $OMEGA 0.09 0.09
 $SIGMA 0.04 0.01
 $CMT @annotated
+${oral ? 'DEPOT : Oral depot [ADM]' : ''}
 L1_CENT : Central [ADM, OBS]
 ${two ? 'L2_PERI : Peripheral' : ''}
 $MAIN
 double cl_CENT = TV_cl_L1_CENT * exp(ETA1 + ETA(1));
 double v_CENT = TV_v_L1_CENT * exp(ETA2 + ETA(2));
 $ODE
-dxdt_L1_CENT = -cl_CENT*L1_CENT/v_CENT${two ? ' - TV_k_L1_CENT_L2_PERI*L1_CENT + TV_k_L2_PERI_L1_CENT*L2_PERI' : ''};
+${oral ? 'dxdt_DEPOT = -TV_ka_DEPOT*DEPOT;' : ''}
+dxdt_L1_CENT = ${oral ? 'TV_F_DEPOT*TV_ka_DEPOT*DEPOT - ' : '-'}cl_CENT*L1_CENT/v_CENT${two ? ' - TV_k_L1_CENT_L2_PERI*L1_CENT + TV_k_L2_PERI_L1_CENT*L2_PERI' : ''};
 ${two ? 'dxdt_L2_PERI = TV_k_L1_CENT_L2_PERI*L1_CENT - TV_k_L2_PERI_L1_CENT*L2_PERI;' : ''}
 $TABLE
 double IPRED = L1_CENT/v_CENT;

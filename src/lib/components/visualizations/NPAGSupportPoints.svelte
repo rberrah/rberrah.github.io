@@ -83,11 +83,11 @@
 <div class="npag-lab">
   <div class="toolbar">
     <label>
-      <span>{$language === 'en' ? 'Population shape' : 'Forme de la population'}</span>
+      <span>{$language === 'en' ? 'Synthetic support-point pattern' : 'Configuration synthétique des points'}</span>
       <select bind:value={population}>
-        <option value="unimodal">{$language === 'en' ? 'Unimodal' : 'Unimodale'}</option>
-        <option value="asymmetric">{$language === 'en' ? 'Asymmetric' : 'Asymétrique'}</option>
-        <option value="bimodal">{$language === 'en' ? 'Bimodal' : 'Bimodale'}</option>
+        <option value="unimodal">{$language === 'en' ? 'One compact region' : 'Une région compacte'}</option>
+        <option value="asymmetric">{$language === 'en' ? 'One skewed region' : 'Une région asymétrique'}</option>
+        <option value="bimodal">{$language === 'en' ? 'Two separated regions' : 'Deux régions séparées'}</option>
       </select>
     </label>
     <label class="check"><input type="checkbox" bind:checked={showLognormal} /> {$language === 'en' ? 'Illustrative lognormal cloud' : 'Nuage log-normal illustratif'}</label>
@@ -134,12 +134,12 @@
           <rect x={sx(point.cl) - 2} y={scatter.top - point.weight * 72} width="4" height={point.weight * 72} class="margin" />
           <rect x={scatter.width - scatter.right + 5} y={sy(point.v) - 2} width={point.weight * 72} height="4" class="margin" />
         {/each}
-        <text x={scatter.left} y="14" class="caption">{$language === 'en' ? 'Weighted CL margin' : 'Marge CL pondérée'}</text>
-        <text x={scatter.width - 4} y={scatter.top - 8} class="caption end">{$language === 'en' ? 'V margin' : 'Marge V'}</text>
+        <text x={scatter.left} y="14" class="caption">{$language === 'en' ? 'CL marginal mass' : 'Masse marginale CL'}</text>
+        <text x={scatter.width - 4} y={scatter.top - 8} class="caption end">{$language === 'en' ? 'V marginal mass' : 'Masse marginale V'}</text>
       </svg>
       <figcaption>
         {#if representation === 'discrete'}
-          {$language === 'en' ? 'NPAG estimates a discrete joint distribution: each circle is a complete CL–V vector and its area reflects its probability.' : 'NPAG estime une distribution jointe discrète : chaque cercle est un vecteur CL–V complet et sa surface reflète sa probabilité.'}
+          {$language === 'en' ? 'NPAG estimates a discrete joint distribution: each circle is a complete CL–V vector and its area reflects its weight, a discrete probability mass.' : 'NPAG estime une distribution jointe discrète : chaque cercle est un vecteur CL–V complet et sa surface reflète son poids, une masse de probabilité discrète.'}
         {:else}
           {$language === 'en' ? 'The schematic halos illustrate the idea of local smoothing. No Pmetrics local-dispersion model is calculated, and this is not the original discrete NPAG distribution.' : "Les halos schématiques illustrent l'idée d'un lissage local. Aucun modèle quantitatif de dispersion locale Pmetrics n'est calculé, et il ne s'agit pas de la distribution NPAG discrète originale."}
         {/if}
@@ -165,16 +165,22 @@
       <div class="legend">
         <span><i class="mean"></i>{includeObservation ? ($language === 'en' ? 'Posterior mean prediction' : 'Prédiction moyenne postérieure') : ($language === 'en' ? 'Population mean prediction' : 'Prédiction moyenne populationnelle')}</span>
         <span><i class="parameters"></i>{$language === 'en' ? 'Mean parameters' : 'Paramètres moyens'}</span>
-        <span><i class="mode"></i>{$language === 'en' ? 'Modal point' : 'Point modal'}</span>
+        <span><i class="mode"></i>{$language === 'en' ? 'Highest-weight point' : 'Point de poids maximal'}</span>
       </div>
-      <figcaption>{$language === 'en' ? 'Averaging curves, averaging parameters and selecting the most probable point are different summaries of the same distribution.' : 'Moyenner les courbes, moyenner les paramètres et choisir le point le plus probable sont trois résumés différents de la même distribution.'}</figcaption>
+      <figcaption>{$language === 'en' ? 'Averaging curves, averaging parameters and selecting the highest-weight point are different summaries of the same distribution.' : 'Moyenner les courbes, moyenner les paramètres et choisir le point de poids maximal sont trois résumés différents de la même distribution.'}</figcaption>
     </figure>
   </div>
 
   <div class="readout">
     <span>{includeObservation ? ($language === 'en' ? 'Posterior mean' : 'Moyenne postérieure') : ($language === 'en' ? 'Population mean' : 'Moyenne populationnelle')} <strong>CL {summary.meanCl.toFixed(2)} L/h · V {summary.meanV.toFixed(1)} L</strong></span>
-    <span>{$language === 'en' ? 'Modal support point' : 'Point de support modal'} <strong>CL {summary.modal.cl.toFixed(1)} L/h · V {summary.modal.v.toFixed(0)} L · {(100 * summary.modal.weight).toFixed(0)}%</strong></span>
+    <span>{$language === 'en' ? 'Highest-weight support point' : 'Point de support de poids maximal'} <strong>CL {summary.modal.cl.toFixed(1)} L/h · V {summary.modal.v.toFixed(0)} L · {(100 * summary.modal.weight).toFixed(0)}%</strong></span>
   </div>
+
+  <p class="interpretation-note">
+    {$language === 'en'
+      ? 'These are synthetic teaching points, not points estimated from patient data. Separated regions do not establish clinical clusters or phenotypes. Adding one concentration applies a simplified Gaussian likelihood reweighting; it is not an NPAG refit or a call to PM_model$map().'
+      : "Ces points sont synthétiques et pédagogiques ; ils ne sont pas estimés sur des patients. Des régions séparées ne démontrent ni clusters cliniques ni phénotypes. L'ajout d'une concentration applique une repondération simplifiée par vraisemblance gaussienne ; ce n'est ni un nouvel ajustement NPAG ni un appel à PM_model$map()."}
+  </p>
 </div>
 
 <style>
@@ -218,4 +224,5 @@
   .legend i.mode { border-color: var(--text-secondary); border-top-style: dotted; }
   .readout { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-2) var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border); color: var(--text-secondary); font-size: var(--text-sm); }
   .readout strong { color: var(--text-primary); font-family: var(--font-mono); }
+  .interpretation-note { margin: 0; color: var(--text-muted); font-size: var(--text-xs); line-height: 1.55; }
 </style>

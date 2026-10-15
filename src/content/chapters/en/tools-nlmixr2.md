@@ -41,15 +41,15 @@ quiz:
 ---
 
 <!-- step:title="Why this chapter" -->
-**nlmixr2** is the **open-source**, **free** alternative, entirely in **R**. It brings the power of commercial engines (SAEM, FOCEI) together with integration into the whole R ecosystem (graphics, data wrangling, reproducibility).
+**nlmixr2** is an **open-source** nonlinear mixed-effects modelling suite in **R**. It provides methods including SAEM and FOCEI, uses rxode2 for dynamic models, and integrates with the R ecosystem for data preparation, graphics and reproducibility.
 
-It is the ideal tool to **learn**, **prototype** and **share** a model without a licence barrier.
+The absence of a commercial licence facilitates learning, prototyping and sharing. Suitability for an analysis still depends on the model, estimation method, diagnostics, software versions and computing environment.
 <!-- /step -->
 
 <!-- step:title="Intuition" viz="67_SAEMConvergence" -->
 Everything happens in **R**: the model is a readable **R function**, you call `nlmixr2(...)` with the chosen method, and the results are R objects — directly usable with `ggplot2`, `xpose`, `ggPMX`.
 
-You stay in **one language**, from data to graphics, which simplifies reproducibility.
+A workflow can remain in **one language**, from data to graphics. This can facilitate traceability when code, data, versions and controls are archived.
 <!-- /step -->
 
 <!-- step:title="The formula, unpacked" viz="67_SAEMConvergence" -->
@@ -81,9 +81,9 @@ fit <- nlmixr2(mod, data, est = "saem")   # or est = "focei"
 <!-- /step -->
 
 <!-- step:title="Worked example" viz="67_SAEMConvergence" -->
-A student or a small team can **do everything** in nlmixr2 — estimate, simulate (rxode2), diagnose (ggPMX) — without a licence. Some teams **prototype** in nlmixr2 then compare in another tool depending on their workflow; similarity of estimates must be checked model by model, with the same data, assumptions and OFV calculation method.
+For workflows supported by these packages, a student or small team can estimate with nlmixr2, simulate with rxode2 and build diagnostics in R without a commercial licence. Some teams **prototype** in this environment and then compare in another tool according to their workflow; similarity of estimates must be checked model by model, with the same data, assumptions and OFV calculation method.
 
-It is also an excellent **teaching** aid: the R code is readable and reproducible.
+Explicit R code can support **teaching** and reproducibility, but the approximations still need to be explained and the numerical results checked.
 <!-- /step -->
 
 <!-- step:title="Common pitfall" -->
@@ -93,8 +93,8 @@ Free does not mean careless.
 <!-- /step -->
 
 <!-- step:title="Key takeaways" -->
-- nlmixr2: the open-source, free alternative, entirely in R.
+- nlmixr2: an open-source nonlinear mixed-effects modelling suite in R.
 - Model = an R function; several estimator families, including SAEM, FOCEI, Laplace/AGQ and research methods that require independent checking.
 - rxode2 ODE engine (also for simulation); R ecosystem (xpose, ggPMX).
-- Ideal to learn/prototype/share; document versions; always diagnose.
+- Useful for learning, prototyping and sharing when appropriate; document versions and controls; always diagnose.
 <!-- /step -->

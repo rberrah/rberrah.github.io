@@ -183,6 +183,21 @@ assert.equal(mrgsolveIv.spec.nodes[0].kind, 'central');
 assert.equal(mrgsolveIv.spec.nodes[0].dose, 100);
 assert.equal(mrgsolveIv.spec.edges.length, 1);
 
+const boundedConditional = parseMrgsolve(`
+$PARAM TVCL=5, TVV=30
+$PARAM @covariates SEX=0
+$CMT @annotated
+CENT : central [ADM, OBS]
+$MAIN
+double CL = TVCL * ((SEX == 1) ? 0.8 : 1);
+double V = TVV;
+$ODE
+dxdt_CENT = -CL*CENT/V;
+`);
+assert(boundedConditional.spec.covariates.some((covariate) => covariate.name === 'SEX'
+  && covariate.type === 'categorical' && covariate.comparison === 1
+  && Math.abs(covariate.beta - Math.log(0.8)) < 1e-12));
+
 const templatedMrgsolve = parseMrgsolve(String.raw`
 $PLUGIN tad$SET end = 168, delta = 0.1
 $PARAM @annotated

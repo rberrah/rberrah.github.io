@@ -11,7 +11,7 @@
   import CiteBlock from '$lib/components/ui/CiteBlock.svelte';
   import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
   import { exercisesForChapter } from '$lib/content/exercises';
-  import { activitiesForChapter } from '$lib/content/guidedActivities';
+  import { activitiesForChapter, synthesisForTrack } from '$lib/content/guidedActivities';
   import { markLearning } from '$lib/stores/learning';
   import { describeViz } from '$lib/content/vizDescriptions';
   import { language } from '$lib/stores/language';
@@ -61,9 +61,10 @@
   $: nextDisplay = localizeChapter(next, $language).chapter;
   $: chapterExercises = chapter ? exercisesForChapter(chapter.slug) : [];
   $: chapterActivities = chapter ? activitiesForChapter(chapter.slug) : [];
+  $: trackSynthesis = chapter ? synthesisForTrack(chapter.track) : null;
   /** @type {Record<string, string[]>} */
   const conceptLabs = {
-    'clairance-volume-demi-vie': ['distribution'],
+    'clairance-volume-demi-vie': ['distribution', 'saturable'],
     'micro-macro': ['distribution'],
     'doses-repetees': ['accumulation'],
     'absorption-orale': ['absorption'],
@@ -71,12 +72,14 @@
     'parent-metabolite': ['parent-metabolite', 'enterohepatic'],
     'voies-absorption': ['long-acting'],
     'pkpd': ['pd-general'],
+    'pd-direct': ['pd-general'],
     'pd-effect-compartment': ['effect-site'],
     'infectio-pkpd': ['pd-infectiology'],
     'onco-tgi': ['pd-oncology'],
-    'mab-tmdd': ['tmdd', 'saturable'],
+    'mab-tmdd': ['tmdd'],
     'allometrie': ['covariate-volume'],
-    'covariates-physiology': ['covariate-clearance']
+    'covariates-physiology': ['covariate-clearance'],
+    'covariates-continuous': ['covariate-clearance']
   };
   /** @type {Record<string, [string, string]>} */
   const labLabels = {
@@ -299,17 +302,15 @@
       </aside>
     {/if}
   </header>
-  {#if chapterLabs.length}
-    <aside class="concept-journey" data-testid="concept-journey">
-      <div><span>01</span><strong>{$language === 'en' ? 'Predict' : 'Prédire'}</strong><small>{$language === 'en' ? 'State what should change.' : 'Anticiper ce qui doit changer.'}</small></div>
-      <div><span>02</span><strong>{$language === 'en' ? 'Manipulate' : 'Manipuler'}</strong><small>{$language === 'en' ? 'Test one mechanism in the laboratory.' : 'Tester un mécanisme dans le laboratoire.'}</small></div>
-      <div><span>03</span><strong>{$language === 'en' ? 'Explain' : 'Expliquer'}</strong><small>{$language === 'en' ? 'Return to the model and assumptions.' : 'Revenir au modèle et à ses hypothèses.'}</small></div>
-      {#each chapterLabs as labId}<a class="btn btn-outline" href={`${base}/laboratoires/?lang=${$language}&lab=${labId}&from=${slug}`}>{$language === 'en' ? 'Open' : 'Ouvrir'} · {labLabels[labId]?.[$language === 'en' ? 1 : 0] ?? labId}</a>{/each}
-    </aside>
-  {/if}
+  <nav class="concept-journey" data-testid="concept-journey" aria-label={$language === 'en' ? 'Concept learning path' : "Parcours d'apprentissage du concept"}>
+    <a class="journey-step" href="#chapter-content"><span>01</span><strong>{$language === 'en' ? 'Understand' : 'Comprendre'}</strong><small>{$language === 'en' ? 'Definition, intuition, equations and common pitfalls.' : 'Définition, intuition, équations et erreurs fréquentes.'}</small></a>
+    <a class="journey-step" href="#chapter-exercises"><span>02</span><strong>{$language === 'en' ? 'Practice' : 'Pratiquer'}</strong><small>{$language === 'en' ? 'Calculation, question and guided activity.' : 'Calcul, question et activité guidée.'}</small></a>
+    {#each chapterLabs as labId}<a class="journey-step" data-testid="chapter-laboratory-link" href={`${base}/laboratoires/?lang=${$language}&lab=${labId}&from=${slug}`}><span>03</span><strong>{$language === 'en' ? 'Experiment' : 'Expérimenter'}</strong><small>{labLabels[labId]?.[$language === 'en' ? 1 : 0] ?? labId}</small></a>{/each}
+    {#if trackSynthesis}<a class="journey-step" href={`${base}/parcours/${chapter?.track}/?lang=${$language}&chapter=${trackSynthesis.chapter}#activity-${trackSynthesis.id}`}><span>04</span><strong>{$language === 'en' ? 'Integrate' : 'Intégrer'}</strong><small>{$language === 'en' ? 'Solve the cross-topic case for this track.' : 'Résoudre le cas transversal du parcours.'}</small></a>{/if}
+  </nav>
 
   <div class="scrolly">
-    <div class="narrative" bind:this={articleEl}>
+    <div id="chapter-content" class="narrative" bind:this={articleEl}>
       {#each displayChapter.steps as step, i}
         <section
           class="step"
@@ -415,8 +416,10 @@
   .back { font-family: var(--font-mono); font-size: var(--text-sm); text-decoration: none; color: var(--text-secondary); }
   .chap-head h1 { font-size: var(--text-3xl); margin: var(--space-2) 0; }
   .chap-head .desc { color: var(--text-secondary); font-size: var(--text-lg); }
-  .concept-journey { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:12px; align-items:center; margin:0 0 var(--space-7); padding:14px; border-top:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong); }
-  .concept-journey div { display:grid; grid-template-columns:auto 1fr; gap:0 8px; }
+  .concept-journey { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0; align-items:stretch; margin:0 0 var(--space-7); border-top:1px solid var(--border-strong); border-bottom:1px solid var(--border-strong); }
+  .journey-step { display:grid; grid-template-columns:auto 1fr; gap:0 8px; min-width:0; padding:13px 12px; color:var(--text-primary); text-decoration:none; border-right:1px solid var(--border-subtle); }
+  .journey-step:last-child { border-right:0; }
+  .journey-step:hover strong { color:var(--accent-pk); }
   .concept-journey span { grid-row:1 / 3; color:var(--accent-pk); font:700 var(--text-xs)/1.4 var(--font-mono); }
   .concept-journey strong { font-size:var(--text-sm); }
   .concept-journey small { color:var(--text-secondary); line-height:1.4; }
@@ -426,11 +429,12 @@
   @media (min-width: 920px) {
     .scrolly { grid-template-columns: minmax(0, 1fr) minmax(420px, 1.1fr); gap: var(--space-12); align-items: start; }
   }
-  @media (max-width: 760px) { .concept-journey { grid-template-columns:1fr; }.concept-journey .btn { width:100%; text-align:center; } }
+  @media (max-width: 760px) { .concept-journey { grid-template-columns:1fr 1fr; }.journey-step:nth-child(even) { border-right:0; } }
+  @media (max-width: 420px) { .concept-journey { grid-template-columns:1fr; }.journey-step { border-right:0; border-bottom:1px solid var(--border-subtle); }.journey-step:last-child { border-bottom:0; } }
 
   .narrative { display: flex; flex-direction: column; min-width: 0; }
   .step { padding: var(--space-6) 0; transition: opacity 0.3s ease; }
-  @media (min-width: 920px) { .step { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; opacity: 0.4; } .step.active { opacity: 1; } }
+  @media (min-width: 920px) { .step { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; } }
   .step-kicker { font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-pk); margin: 0 0 var(--space-3); }
   .prose { font-size: var(--text-base); line-height: var(--line-height-body); color: var(--text-primary); }
   .prose :global(p) { margin: 0 0 var(--space-4); color: var(--text-secondary); }

@@ -7,6 +7,7 @@
   import { readDraft, writeDraft } from '$lib/workshops/session.js';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
+  import TransferContract from './TransferContract.svelte';
   let { model = $bindable() } = $props();
   let english = $derived($language === 'en');
   /** @param {string} fr @param {string} en */
@@ -119,6 +120,12 @@
       <p class="equation">{equation}</p>
       <p>{t('Les valeurs initiales sont des exemples, pas des recommandations par molécule. L’indice, sa cible, la matrice et la fraction libre doivent correspondre à la référence scientifique choisie. Pour une sortie déjà libre, fu = 1.', 'Initial values are examples, not drug-specific recommendations. The index, target, matrix and unbound fraction must match the chosen scientific reference. For an already unbound output, fu = 1.')}</p>
     </div>
+    <TransferContract
+      transferred={[t('Source PK ou demande de reprise TDM', 'PK source or TDM reuse request'), t('voie et grille posologique', 'route and dose grid'), t('CMI, indice et cible PK/PD', 'MIC, index and PK/PD target'), t('réglages Monte Carlo', 'Monte Carlo settings')]}
+      omitted={[t('Données patient et résultat MAP', 'Patient data and MAP result'), t('distribution EUCAST', 'EUCAST distribution')]}
+      units={t('Temps en heures ; CMI en mg/L ; concentrations selon l’échelle PK déclarée.', 'Time in hours; MIC in mg/L; concentrations use the declared PK scale.')}
+      approximation={t('Une analyse TDM existante est référencée dans la session Shiny, jamais copiée par le site. La PTA reste conditionnelle au modèle et aux distributions simulées.', 'An existing TDM analysis is referenced inside the Shiny session and is never copied by the site. PTA remains conditional on the model and simulated distributions.')}
+    />
     <div class="actions"><button class="primary" type="submit"><ArrowRight size={17}/>{t('Ouvrir dans le moteur', 'Open in engine')}</button><button type="button" onclick={download}><Download size={17}/>{t('Exporter l’atelier (.json)', 'Export workshop (.json)')}</button><span role="status">{feedback}</span></div>
   </form>
   {#if !computed && model.source === 'builtin' && cfg.source === 'pk'}<label class="comparison">{t('Posologie comparee', 'Compared regimen')}<select bind:value={compared}>{#each candidates as candidate, index}<option value={index}>{candidate.dose} mg / {candidate.interval} h; {t('perfusion', 'infusion')} {candidate.infusion} h</option>{/each}</select></label>{/if}

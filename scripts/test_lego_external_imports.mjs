@@ -151,7 +151,13 @@ for (const [filename,expected] of [
       assert.equal(r.spec.covariates.find(covariate=>covariate.name==='CRCL')?.form,'linear-additive');
       if (filename==='Korell oral.txt') assert.equal(r.spec.covariates.find(covariate=>covariate.name==='CRCL')?.maximum,150);
     }
-    if (filename==='separado ORAL+LAI.txt') assert(r.warnings.some(warning=>warning.code==='multipleAdministrations'));
+    if (filename==='separado ORAL+LAI.txt') {
+      assert(r.warnings.some(warning=>warning.code==='multipleAdministrationsPreserved'));
+      assert.deepEqual(r.spec.administrations.map(administration=>administration.id), ['4','1','2','3']);
+      assert.equal(r.spec.administrations.reduce((count,administration)=>count+administration.routes.length,0), 7);
+      assert.equal(r.spec.observedOutput, 'Cc');
+      assert.equal(r.spec.outputs.find(output=>output.name==='Cc')?.terms.length, 4);
+    }
   } else assert.throws(()=>parseModelCode(code,format),e=>e.code===expected);
   console.log(`LOCAL ${filename}: ${expected}`);
 }

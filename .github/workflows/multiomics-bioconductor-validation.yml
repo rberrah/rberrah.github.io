@@ -31,7 +31,7 @@ jobs:
         with:
           use-public-rspm: true
       - name: Cache installed R packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.R_LIBS_USER }}
           key: multiomics-bioconductor-${{ runner.os }}-r-${{ hashFiles('multiomics-engine/tests/bioconductor_reference_simulation.R', 'multiomics-engine/tests/bioconductor_null_calibration.R') }}
@@ -57,7 +57,7 @@ jobs:
         run: Rscript multiomics-engine/tests/bioconductor_mixed_truth_reference.R
       - name: Upload reference calibration summary and per-seed results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bioconductor-null-and-mixed-truth-calibration
           path: validation-artifacts/*

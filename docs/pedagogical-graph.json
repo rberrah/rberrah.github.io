@@ -1,0 +1,6650 @@
+{
+  "version": 1,
+  "nodes": [
+    {
+      "id": "chapter:pourquoi-pharmacometrie",
+      "type": "chapter",
+      "label": "Pourquoi la pharmacométrie ?",
+      "track": "core"
+    },
+    {
+      "id": "glossary:PK",
+      "type": "definition",
+      "label": "PK"
+    },
+    {
+      "id": "glossary:PD",
+      "type": "definition",
+      "label": "PD"
+    },
+    {
+      "id": "glossary:ADME",
+      "type": "definition",
+      "label": "ADME"
+    },
+    {
+      "id": "visualization:BuildingBlocksPKPD",
+      "type": "visualization",
+      "label": "BuildingBlocksPKPD"
+    },
+    {
+      "id": "visualization:01_HumanBody",
+      "type": "visualization",
+      "label": "01_HumanBody"
+    },
+    {
+      "id": "visualization:IVBolus",
+      "type": "visualization",
+      "label": "IVBolus"
+    },
+    {
+      "id": "chapter:micro-macro",
+      "type": "chapter",
+      "label": "Micro ou macro : deux écritures d'un même modèle",
+      "track": "core"
+    },
+    {
+      "id": "glossary:CL",
+      "type": "definition",
+      "label": "CL"
+    },
+    {
+      "id": "glossary:V",
+      "type": "definition",
+      "label": "V"
+    },
+    {
+      "id": "glossary:Q",
+      "type": "definition",
+      "label": "Q"
+    },
+    {
+      "id": "glossary:ke",
+      "type": "definition",
+      "label": "ke"
+    },
+    {
+      "id": "visualization:10_PK2C",
+      "type": "visualization",
+      "label": "10_PK2C"
+    },
+    {
+      "id": "chapter:trois-approches",
+      "type": "chapter",
+      "label": "NCA vs PopPK vs PBPK",
+      "track": "core"
+    },
+    {
+      "id": "glossary:NCA",
+      "type": "definition",
+      "label": "NCA"
+    },
+    {
+      "id": "glossary:PopPK",
+      "type": "definition",
+      "label": "PopPK"
+    },
+    {
+      "id": "glossary:PBPK",
+      "type": "definition",
+      "label": "PBPK"
+    },
+    {
+      "id": "visualization:04_ThreeApproaches",
+      "type": "visualization",
+      "label": "04_ThreeApproaches"
+    },
+    {
+      "id": "visualization:AUCTrap",
+      "type": "visualization",
+      "label": "AUCTrap"
+    },
+    {
+      "id": "visualization:12_VariabilitySandbox",
+      "type": "visualization",
+      "label": "12_VariabilitySandbox"
+    },
+    {
+      "id": "chapter:clairance-volume-demi-vie",
+      "type": "chapter",
+      "label": "Clairance et volume",
+      "track": "core"
+    },
+    {
+      "id": "glossary:t½",
+      "type": "definition",
+      "label": "t½"
+    },
+    {
+      "id": "glossary:EDO",
+      "type": "definition",
+      "label": "EDO"
+    },
+    {
+      "id": "glossary:Phases α et β",
+      "type": "definition",
+      "label": "Phases α et β"
+    },
+    {
+      "id": "glossary:Vss",
+      "type": "definition",
+      "label": "Vss"
+    },
+    {
+      "id": "visualization:BucketSim",
+      "type": "visualization",
+      "label": "BucketSim"
+    },
+    {
+      "id": "chapter:doses-repetees",
+      "type": "chapter",
+      "label": "Doses répétées et état d'équilibre",
+      "track": "core"
+    },
+    {
+      "id": "visualization:MultiDose",
+      "type": "visualization",
+      "label": "MultiDose"
+    },
+    {
+      "id": "chapter:perfusion",
+      "type": "chapter",
+      "label": "Perfusion IV et cinétique d'ordre 0",
+      "track": "core"
+    },
+    {
+      "id": "visualization:Infusion",
+      "type": "visualization",
+      "label": "Infusion"
+    },
+    {
+      "id": "chapter:erreur-residuelle",
+      "type": "chapter",
+      "label": "L'erreur résiduelle",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Erreur additive",
+      "type": "definition",
+      "label": "Erreur additive"
+    },
+    {
+      "id": "glossary:Erreur proportionnelle",
+      "type": "definition",
+      "label": "Erreur proportionnelle"
+    },
+    {
+      "id": "glossary:Erreur combinée",
+      "type": "definition",
+      "label": "Erreur combinée"
+    },
+    {
+      "id": "glossary:ε / σ",
+      "type": "definition",
+      "label": "ε / σ"
+    },
+    {
+      "id": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "definition",
+      "label": "Résidus (WRES/CWRES/IWRES/NPDE)"
+    },
+    {
+      "id": "visualization:61_ResidualError",
+      "type": "visualization",
+      "label": "61_ResidualError"
+    },
+    {
+      "id": "chapter:voies-absorption",
+      "type": "chapter",
+      "label": "Les voies d'absorption & la biodisponibilité",
+      "track": "core"
+    },
+    {
+      "id": "glossary:F",
+      "type": "definition",
+      "label": "F"
+    },
+    {
+      "id": "glossary:Ka",
+      "type": "definition",
+      "label": "Ka"
+    },
+    {
+      "id": "glossary:Tlag",
+      "type": "definition",
+      "label": "Tlag"
+    },
+    {
+      "id": "glossary:Flip-flop",
+      "type": "definition",
+      "label": "Flip-flop"
+    },
+    {
+      "id": "glossary:Compartiments de transit",
+      "type": "definition",
+      "label": "Compartiments de transit"
+    },
+    {
+      "id": "visualization:OralAbsorption",
+      "type": "visualization",
+      "label": "OralAbsorption"
+    },
+    {
+      "id": "chapter:parent-metabolite",
+      "type": "chapter",
+      "label": "Modèles parent/métabolite",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Michaelis-Menten",
+      "type": "definition",
+      "label": "Michaelis-Menten"
+    },
+    {
+      "id": "visualization:65_ParentMetabolite",
+      "type": "visualization",
+      "label": "65_ParentMetabolite"
+    },
+    {
+      "id": "chapter:absorption-orale",
+      "type": "chapter",
+      "label": "Voie orale, Ka et temps de latence",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Cmax / Tmax",
+      "type": "definition",
+      "label": "Cmax / Tmax"
+    },
+    {
+      "id": "chapter:variabilite-iiv-iov",
+      "type": "chapter",
+      "label": "IIV, IOV et erreur résiduelle",
+      "track": "core"
+    },
+    {
+      "id": "glossary:IIV",
+      "type": "definition",
+      "label": "IIV"
+    },
+    {
+      "id": "glossary:IOV",
+      "type": "definition",
+      "label": "IOV"
+    },
+    {
+      "id": "glossary:η",
+      "type": "definition",
+      "label": "η"
+    },
+    {
+      "id": "glossary:ω / Ω",
+      "type": "definition",
+      "label": "ω / Ω"
+    },
+    {
+      "id": "chapter:allometrie",
+      "type": "chapter",
+      "label": "Covariables et allométrie",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Covariable",
+      "type": "definition",
+      "label": "Covariable"
+    },
+    {
+      "id": "glossary:Allométrie",
+      "type": "definition",
+      "label": "Allométrie"
+    },
+    {
+      "id": "glossary:Centrage",
+      "type": "definition",
+      "label": "Centrage"
+    },
+    {
+      "id": "visualization:14_AllometryCentering",
+      "type": "visualization",
+      "label": "14_AllometryCentering"
+    },
+    {
+      "id": "chapter:pkpd",
+      "type": "chapter",
+      "label": "PK/PD : Emax et turnover",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Emax",
+      "type": "definition",
+      "label": "Emax"
+    },
+    {
+      "id": "glossary:EC50 / CE50",
+      "type": "definition",
+      "label": "EC50 / CE50"
+    },
+    {
+      "id": "glossary:Coefficient de Hill",
+      "type": "definition",
+      "label": "Coefficient de Hill"
+    },
+    {
+      "id": "glossary:Compartiment d’effet (ke0)",
+      "type": "definition",
+      "label": "Compartiment d’effet (ke0)"
+    },
+    {
+      "id": "glossary:Réponse indirecte / turnover",
+      "type": "definition",
+      "label": "Réponse indirecte / turnover"
+    },
+    {
+      "id": "glossary:Hystérèse",
+      "type": "definition",
+      "label": "Hystérèse"
+    },
+    {
+      "id": "visualization:EmaxHill",
+      "type": "visualization",
+      "label": "EmaxHill"
+    },
+    {
+      "id": "visualization:SheinerEffect",
+      "type": "visualization",
+      "label": "SheinerEffect"
+    },
+    {
+      "id": "visualization:Turnover",
+      "type": "visualization",
+      "label": "Turnover"
+    },
+    {
+      "id": "chapter:parametric-vs-nonparametric",
+      "type": "chapter",
+      "label": "PK de population : paramétrique ou non paramétrique ?",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Effets mixtes",
+      "type": "definition",
+      "label": "Effets mixtes"
+    },
+    {
+      "id": "glossary:Vraisemblance",
+      "type": "definition",
+      "label": "Vraisemblance"
+    },
+    {
+      "id": "glossary:Distribution mélangeante",
+      "type": "definition",
+      "label": "Distribution mélangeante"
+    },
+    {
+      "id": "glossary:NPAG",
+      "type": "definition",
+      "label": "NPAG"
+    },
+    {
+      "id": "glossary:NPOD",
+      "type": "definition",
+      "label": "NPOD"
+    },
+    {
+      "id": "glossary:Point de support",
+      "type": "definition",
+      "label": "Point de support"
+    },
+    {
+      "id": "visualization:NPAGSupportPoints",
+      "type": "visualization",
+      "label": "NPAGSupportPoints"
+    },
+    {
+      "id": "chapter:pmetrics-nonparametric",
+      "type": "chapter",
+      "label": "Modélisation non paramétrique avec Pmetrics",
+      "track": "core"
+    },
+    {
+      "id": "chapter:outils-estimation",
+      "type": "chapter",
+      "label": "Outils et estimation",
+      "track": "core"
+    },
+    {
+      "id": "glossary:FOCE-I",
+      "type": "definition",
+      "label": "FOCE-I"
+    },
+    {
+      "id": "glossary:SAEM",
+      "type": "definition",
+      "label": "SAEM"
+    },
+    {
+      "id": "glossary:MCMC",
+      "type": "definition",
+      "label": "MCMC"
+    },
+    {
+      "id": "visualization:EstimationFit",
+      "type": "visualization",
+      "label": "EstimationFit"
+    },
+    {
+      "id": "chapter:validation-vpc",
+      "type": "chapter",
+      "label": "Diagnostics et VPC",
+      "track": "core"
+    },
+    {
+      "id": "glossary:GOF",
+      "type": "definition",
+      "label": "GOF"
+    },
+    {
+      "id": "glossary:VPC",
+      "type": "definition",
+      "label": "VPC"
+    },
+    {
+      "id": "glossary:Binning",
+      "type": "definition",
+      "label": "Binning"
+    },
+    {
+      "id": "visualization:17_VPCCrashTest",
+      "type": "visualization",
+      "label": "17_VPCCrashTest"
+    },
+    {
+      "id": "chapter:bayes-ebes",
+      "type": "chapter",
+      "label": "Raisonnement bayésien, EBE et shrinkage",
+      "track": "core"
+    },
+    {
+      "id": "glossary:Théorème de Bayes",
+      "type": "definition",
+      "label": "Théorème de Bayes"
+    },
+    {
+      "id": "glossary:A priori / prior",
+      "type": "definition",
+      "label": "A priori / prior"
+    },
+    {
+      "id": "glossary:A posteriori / posterior",
+      "type": "definition",
+      "label": "A posteriori / posterior"
+    },
+    {
+      "id": "glossary:MAP",
+      "type": "definition",
+      "label": "MAP"
+    },
+    {
+      "id": "glossary:EBE",
+      "type": "definition",
+      "label": "EBE"
+    },
+    {
+      "id": "glossary:Shrinkage",
+      "type": "definition",
+      "label": "Shrinkage"
+    },
+    {
+      "id": "visualization:BayesUpdate",
+      "type": "visualization",
+      "label": "BayesUpdate"
+    },
+    {
+      "id": "chapter:tdm",
+      "type": "chapter",
+      "label": "Suivi thérapeutique (TDM)",
+      "track": "core"
+    },
+    {
+      "id": "glossary:TDM",
+      "type": "definition",
+      "label": "TDM"
+    },
+    {
+      "id": "glossary:Precision dosing",
+      "type": "definition",
+      "label": "Precision dosing"
+    },
+    {
+      "id": "visualization:TDMProfile",
+      "type": "visualization",
+      "label": "TDMProfile"
+    },
+    {
+      "id": "chapter:neural-ode",
+      "type": "chapter",
+      "label": "Modèles grey-box et Neural ODE",
+      "track": "ai"
+    },
+    {
+      "id": "glossary:Neural ODE",
+      "type": "definition",
+      "label": "Neural ODE"
+    },
+    {
+      "id": "glossary:White / black / grey box",
+      "type": "definition",
+      "label": "White / black / grey box"
+    },
+    {
+      "id": "visualization:20_NeuralBox",
+      "type": "visualization",
+      "label": "20_NeuralBox"
+    },
+    {
+      "id": "chapter:ai-boosting",
+      "type": "chapter",
+      "label": "Gradient boosting : XGBoost et CatBoost",
+      "track": "ai"
+    },
+    {
+      "id": "glossary:XGBoost",
+      "type": "definition",
+      "label": "XGBoost"
+    },
+    {
+      "id": "visualization:40_TreeEnsemble",
+      "type": "visualization",
+      "label": "40_TreeEnsemble"
+    },
+    {
+      "id": "chapter:ai-clustering",
+      "type": "chapter",
+      "label": "Sous-groupes cachés : clustering, PCA et RMT",
+      "track": "ai"
+    },
+    {
+      "id": "glossary:θ",
+      "type": "definition",
+      "label": "θ"
+    },
+    {
+      "id": "visualization:63_ClusterPCA",
+      "type": "visualization",
+      "label": "63_ClusterPCA"
+    },
+    {
+      "id": "visualization:64_RMT",
+      "type": "visualization",
+      "label": "64_RMT"
+    },
+    {
+      "id": "chapter:ai-featselect",
+      "type": "chapter",
+      "label": "Sélection de variables : VSURF et OrdinalForest",
+      "track": "ai"
+    },
+    {
+      "id": "glossary:VSURF",
+      "type": "definition",
+      "label": "VSURF"
+    },
+    {
+      "id": "visualization:42_VarImportance",
+      "type": "visualization",
+      "label": "42_VarImportance"
+    },
+    {
+      "id": "chapter:ai-llm",
+      "type": "chapter",
+      "label": "Grands modèles de langage (LLM)",
+      "track": "ai"
+    },
+    {
+      "id": "chapter:ai-ml-tdm",
+      "type": "chapter",
+      "label": "Machine learning pour le TDM",
+      "track": "ai"
+    },
+    {
+      "id": "glossary:MAP-BE",
+      "type": "definition",
+      "label": "MAP-BE"
+    },
+    {
+      "id": "chapter:ai-svm",
+      "type": "chapter",
+      "label": "Machines à vecteurs de support (SVM)",
+      "track": "ai"
+    },
+    {
+      "id": "visualization:41_SVMMargin",
+      "type": "visualization",
+      "label": "41_SVMMargin"
+    },
+    {
+      "id": "chapter:ai-trees",
+      "type": "chapter",
+      "label": "Arbres de décision et forêts aléatoires",
+      "track": "ai"
+    },
+    {
+      "id": "chapter:covariates-basics",
+      "type": "chapter",
+      "label": "Covariables : effets fixes, ETA et transformations",
+      "track": "covariates"
+    },
+    {
+      "id": "glossary:Distribution lognormale",
+      "type": "definition",
+      "label": "Distribution lognormale"
+    },
+    {
+      "id": "glossary:Distribution logit-normale",
+      "type": "definition",
+      "label": "Distribution logit-normale"
+    },
+    {
+      "id": "visualization:CovariateEffects",
+      "type": "visualization",
+      "label": "CovariateEffects"
+    },
+    {
+      "id": "chapter:covariates-groups",
+      "type": "chapter",
+      "label": "Covariables catégorielles, paliers et clusters",
+      "track": "covariates"
+    },
+    {
+      "id": "visualization:CovariateGroups",
+      "type": "visualization",
+      "label": "CovariateGroups"
+    },
+    {
+      "id": "chapter:covariates-implementation",
+      "type": "chapter",
+      "label": "Implémenter et valider un modèle de covariables",
+      "track": "covariates"
+    },
+    {
+      "id": "visualization:CovariateImplementation",
+      "type": "visualization",
+      "label": "CovariateImplementation"
+    },
+    {
+      "id": "chapter:covariates-physiology",
+      "type": "chapter",
+      "label": "Covariables physiologiques : allométrie, Hill et PBPK",
+      "track": "covariates"
+    },
+    {
+      "id": "glossary:CLr",
+      "type": "definition",
+      "label": "CLr"
+    },
+    {
+      "id": "glossary:DFG",
+      "type": "definition",
+      "label": "DFG"
+    },
+    {
+      "id": "visualization:CovariatePhysiology",
+      "type": "visualization",
+      "label": "CovariatePhysiology"
+    },
+    {
+      "id": "chapter:covariates-symbolic",
+      "type": "chapter",
+      "label": "Des réseaux neuronaux aux covariables symboliques",
+      "track": "covariates"
+    },
+    {
+      "id": "visualization:CovariateSymbolic",
+      "type": "visualization",
+      "label": "CovariateSymbolic"
+    },
+    {
+      "id": "chapter:infectio-pkpd",
+      "type": "chapter",
+      "label": "Indices PK/PD des anti-infectieux",
+      "track": "infectio"
+    },
+    {
+      "id": "glossary:CMI",
+      "type": "definition",
+      "label": "CMI"
+    },
+    {
+      "id": "glossary:PTA",
+      "type": "definition",
+      "label": "PTA"
+    },
+    {
+      "id": "glossary:AUC",
+      "type": "definition",
+      "label": "AUC"
+    },
+    {
+      "id": "visualization:56_PKPDIndex",
+      "type": "visualization",
+      "label": "56_PKPDIndex"
+    },
+    {
+      "id": "chapter:infectio-tdm",
+      "type": "chapter",
+      "label": "TDM des antibiotiques",
+      "track": "infectio"
+    },
+    {
+      "id": "chapter:infectio-viral",
+      "type": "chapter",
+      "label": "Dynamique virale et modèles d'infection",
+      "track": "infectio"
+    },
+    {
+      "id": "visualization:45_ViralKinetics",
+      "type": "visualization",
+      "label": "45_ViralKinetics"
+    },
+    {
+      "id": "chapter:mab-ada",
+      "type": "chapter",
+      "label": "Immunogénicité : les anticorps anti-médicament (ADA)",
+      "track": "mab"
+    },
+    {
+      "id": "visualization:55_ADA",
+      "type": "visualization",
+      "label": "55_ADA"
+    },
+    {
+      "id": "chapter:mab-pk",
+      "type": "chapter",
+      "label": "PK des anticorps monoclonaux",
+      "track": "mab"
+    },
+    {
+      "id": "glossary:Modèle compartimental",
+      "type": "definition",
+      "label": "Modèle compartimental"
+    },
+    {
+      "id": "chapter:mab-tmdd",
+      "type": "chapter",
+      "label": "TMDD — disposition médiée par la cible",
+      "track": "mab"
+    },
+    {
+      "id": "visualization:54_TMDD",
+      "type": "visualization",
+      "label": "54_TMDD"
+    },
+    {
+      "id": "chapter:math-bayes",
+      "type": "chapter",
+      "label": "Estimation bayésienne",
+      "track": "math"
+    },
+    {
+      "id": "chapter:math-copula",
+      "type": "chapter",
+      "label": "Copules et covariables corrélées",
+      "track": "math"
+    },
+    {
+      "id": "glossary:Distribution normale",
+      "type": "definition",
+      "label": "Distribution normale"
+    },
+    {
+      "id": "visualization:43_Copula",
+      "type": "visualization",
+      "label": "43_Copula"
+    },
+    {
+      "id": "chapter:math-covariates",
+      "type": "chapter",
+      "label": "Construction du modèle de covariables",
+      "track": "math"
+    },
+    {
+      "id": "chapter:math-edo",
+      "type": "chapter",
+      "label": "Équations différentielles et exponentielles",
+      "track": "math"
+    },
+    {
+      "id": "chapter:math-fisher",
+      "type": "chapter",
+      "label": "Matrice d'information de Fisher et design optimal",
+      "track": "math"
+    },
+    {
+      "id": "glossary:FIM",
+      "type": "definition",
+      "label": "FIM"
+    },
+    {
+      "id": "glossary:RSE",
+      "type": "definition",
+      "label": "RSE"
+    },
+    {
+      "id": "glossary:Identifiabilité",
+      "type": "definition",
+      "label": "Identifiabilité"
+    },
+    {
+      "id": "visualization:58_OptimalDesign",
+      "type": "visualization",
+      "label": "58_OptimalDesign"
+    },
+    {
+      "id": "chapter:math-regression",
+      "type": "chapter",
+      "label": "Régression, vraisemblance et estimation",
+      "track": "math"
+    },
+    {
+      "id": "chapter:math-stats",
+      "type": "chapter",
+      "label": "Statistiques utilisées en pharmacométrie",
+      "track": "math"
+    },
+    {
+      "id": "glossary:DoF",
+      "type": "definition",
+      "label": "DoF"
+    },
+    {
+      "id": "visualization:03_PopulationDistrib",
+      "type": "visualization",
+      "label": "03_PopulationDistrib"
+    },
+    {
+      "id": "visualization:13_ResidualError",
+      "type": "visualization",
+      "label": "13_ResidualError"
+    },
+    {
+      "id": "chapter:monolix-avance",
+      "type": "chapter",
+      "label": "Monolix — pour aller plus loin",
+      "track": "monolix"
+    },
+    {
+      "id": "glossary:Monolix",
+      "type": "definition",
+      "label": "Monolix"
+    },
+    {
+      "id": "chapter:monolix-erreur-residuelle",
+      "type": "chapter",
+      "label": "Monolix — le modèle d'erreur résiduelle et la censure",
+      "track": "monolix"
+    },
+    {
+      "id": "visualization:62_ResidualPatterns",
+      "type": "visualization",
+      "label": "62_ResidualPatterns"
+    },
+    {
+      "id": "chapter:monolix-modele-structural",
+      "type": "chapter",
+      "label": "Monolix — le modèle structural en mlxtran",
+      "track": "monolix"
+    },
+    {
+      "id": "glossary:MLXTRAN",
+      "type": "definition",
+      "label": "MLXTRAN"
+    },
+    {
+      "id": "glossary:Modèle structural",
+      "type": "definition",
+      "label": "Modèle structural"
+    },
+    {
+      "id": "visualization:OralAbsorptionExplorer",
+      "type": "visualization",
+      "label": "OralAbsorptionExplorer"
+    },
+    {
+      "id": "chapter:monolix-moteur",
+      "type": "chapter",
+      "label": "Monolix — le moteur SAEM",
+      "track": "monolix"
+    },
+    {
+      "id": "visualization:16_SAEMCycle",
+      "type": "visualization",
+      "label": "16_SAEMCycle"
+    },
+    {
+      "id": "visualization:67_SAEMConvergence",
+      "type": "visualization",
+      "label": "67_SAEMConvergence"
+    },
+    {
+      "id": "chapter:monolix-variabilite",
+      "type": "chapter",
+      "label": "Monolix — le bloc INDIVIDUAL, omega et covariables",
+      "track": "monolix"
+    },
+    {
+      "id": "chapter:nca-absorption",
+      "type": "chapter",
+      "label": "NCA après voie orale : Cmax, Tmax, F",
+      "track": "nca"
+    },
+    {
+      "id": "chapter:nca-auc",
+      "type": "chapter",
+      "label": "AUC : trapèzes, extrapolation et λz",
+      "track": "nca"
+    },
+    {
+      "id": "visualization:08_AUCTrap",
+      "type": "visualization",
+      "label": "08_AUCTrap"
+    },
+    {
+      "id": "chapter:nca-intro",
+      "type": "chapter",
+      "label": "Principes de l'analyse non-compartimentale",
+      "track": "nca"
+    },
+    {
+      "id": "chapter:nca-params",
+      "type": "chapter",
+      "label": "Paramètres dérivés : CL, Vz, Vss, MRT",
+      "track": "nca"
+    },
+    {
+      "id": "visualization:09_PK1C",
+      "type": "visualization",
+      "label": "09_PK1C"
+    },
+    {
+      "id": "chapter:nlmixr2-avance",
+      "type": "chapter",
+      "label": "nlmixr2 — pour aller plus loin",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "glossary:nlmixr2 / rxode2",
+      "type": "definition",
+      "label": "nlmixr2 / rxode2"
+    },
+    {
+      "id": "chapter:nlmixr2-erreur-residuelle",
+      "type": "chapter",
+      "label": "nlmixr2 — le modèle d'erreur résiduelle et le BLQ",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "chapter:nlmixr2-modele-structural",
+      "type": "chapter",
+      "label": "nlmixr2 — le modèle structural en R",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "chapter:nlmixr2-moteur",
+      "type": "chapter",
+      "label": "nlmixr2 — un modèle, plusieurs estimateurs",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "visualization:66_FOCELinearization",
+      "type": "visualization",
+      "label": "66_FOCELinearization"
+    },
+    {
+      "id": "visualization:15_OFVGame",
+      "type": "visualization",
+      "label": "15_OFVGame"
+    },
+    {
+      "id": "chapter:nlmixr2-variabilite",
+      "type": "chapter",
+      "label": "nlmixr2 — ini, model et la variabilité",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "chapter:nonmem-avance",
+      "type": "chapter",
+      "label": "NONMEM — pour aller plus loin",
+      "track": "nonmem"
+    },
+    {
+      "id": "chapter:nonmem-erreur-residuelle",
+      "type": "chapter",
+      "label": "NONMEM — le bloc ERROR et les données sous la LOQ",
+      "track": "nonmem"
+    },
+    {
+      "id": "chapter:nonmem-modele-structural",
+      "type": "chapter",
+      "label": "NONMEM — le modèle structural",
+      "track": "nonmem"
+    },
+    {
+      "id": "glossary:NONMEM",
+      "type": "definition",
+      "label": "NONMEM"
+    },
+    {
+      "id": "chapter:nonmem-moteur",
+      "type": "chapter",
+      "label": "Le moteur de NONMEM — FOCE-I décortiqué",
+      "track": "nonmem"
+    },
+    {
+      "id": "chapter:nonmem-variabilite",
+      "type": "chapter",
+      "label": "NONMEM — ETA, OMEGA et variabilité",
+      "track": "nonmem"
+    },
+    {
+      "id": "chapter:onco-models",
+      "type": "chapter",
+      "label": "Catalogue des modèles en oncologie",
+      "track": "onco"
+    },
+    {
+      "id": "visualization:30_TumorGrowth",
+      "type": "visualization",
+      "label": "30_TumorGrowth"
+    },
+    {
+      "id": "visualization:31_JointSurvival",
+      "type": "visualization",
+      "label": "31_JointSurvival"
+    },
+    {
+      "id": "chapter:onco-tgi",
+      "type": "chapter",
+      "label": "Croissance tumorale et modèles joints",
+      "track": "onco"
+    },
+    {
+      "id": "chapter:onco-tox",
+      "type": "chapter",
+      "label": "Toxicité hématologique : le modèle de Friberg",
+      "track": "onco"
+    },
+    {
+      "id": "visualization:32_Myelosuppression",
+      "type": "visualization",
+      "label": "32_Myelosuppression"
+    },
+    {
+      "id": "chapter:pbpk-absorption",
+      "type": "chapter",
+      "label": "Absorption orale et premier passage en PBPK",
+      "track": "pbpk"
+    },
+    {
+      "id": "chapter:pbpk-applications",
+      "type": "chapter",
+      "label": "IVIVE, interactions et populations spéciales",
+      "track": "pbpk"
+    },
+    {
+      "id": "chapter:pbpk-distribution",
+      "type": "chapter",
+      "label": "Distribution tissulaire et coefficients de partage",
+      "track": "pbpk"
+    },
+    {
+      "id": "chapter:pbpk-intro",
+      "type": "chapter",
+      "label": "Principes de la PBPK",
+      "track": "pbpk"
+    },
+    {
+      "id": "chapter:pd-direct",
+      "type": "chapter",
+      "label": "Modèles à effet direct : Emax et Hill",
+      "track": "pd"
+    },
+    {
+      "id": "chapter:pd-effect-compartment",
+      "type": "chapter",
+      "label": "Compartiment d'effet (Sheiner) et hystérésis",
+      "track": "pd"
+    },
+    {
+      "id": "chapter:pd-indirect",
+      "type": "chapter",
+      "label": "Modèles de réponse indirecte (turnover)",
+      "track": "pd"
+    },
+    {
+      "id": "chapter:pd-survival",
+      "type": "chapter",
+      "label": "Études de survie : OS, PFS et time-to-event",
+      "track": "pd"
+    },
+    {
+      "id": "visualization:44_Survival",
+      "type": "visualization",
+      "label": "44_Survival"
+    },
+    {
+      "id": "chapter:pd-tolerance",
+      "type": "chapter",
+      "label": "Tolérance, rebond et modèles précurseur",
+      "track": "pd"
+    },
+    {
+      "id": "visualization:57_Tolerance",
+      "type": "visualization",
+      "label": "57_Tolerance"
+    },
+    {
+      "id": "chapter:residual-mipd",
+      "type": "chapter",
+      "label": "L'erreur résiduelle en MIPD : un levier caché",
+      "track": "tools"
+    },
+    {
+      "id": "visualization:MipdResidualLever",
+      "type": "visualization",
+      "label": "MipdResidualLever"
+    },
+    {
+      "id": "chapter:tools-algorithms",
+      "type": "chapter",
+      "label": "Les algorithmes d'estimation : FOCE et SAEM",
+      "track": "tools"
+    },
+    {
+      "id": "glossary:OFV",
+      "type": "definition",
+      "label": "OFV"
+    },
+    {
+      "id": "chapter:tools-mipd",
+      "type": "chapter",
+      "label": "TDM bayésien en pratique : mapbayr",
+      "track": "tools"
+    },
+    {
+      "id": "chapter:tools-monolix",
+      "type": "chapter",
+      "label": "Monolix — interface, mlxtran & SAEM",
+      "track": "monolix"
+    },
+    {
+      "id": "chapter:tools-nlmixr2",
+      "type": "chapter",
+      "label": "nlmixr2 — l'open source (R)",
+      "track": "nlmixr2"
+    },
+    {
+      "id": "chapter:tools-nonmem",
+      "type": "chapter",
+      "label": "NONMEM — l'ancêtre",
+      "track": "nonmem"
+    },
+    {
+      "id": "chapter:tools-simulation",
+      "type": "chapter",
+      "label": "Simulation : mrgsolve & rxode2",
+      "track": "tools"
+    },
+    {
+      "id": "glossary:mrgsolve",
+      "type": "definition",
+      "label": "mrgsolve"
+    },
+    {
+      "id": "glossary:Jumeau numérique",
+      "type": "definition",
+      "label": "Jumeau numérique"
+    },
+    {
+      "id": "visualization:21_PopPKPlayground",
+      "type": "visualization",
+      "label": "21_PopPKPlayground"
+    },
+    {
+      "id": "chapter:trials-adaptive",
+      "type": "chapter",
+      "label": "Recherche de dose et designs adaptatifs",
+      "track": "trials"
+    },
+    {
+      "id": "glossary:AIC / BIC",
+      "type": "definition",
+      "label": "AIC / BIC"
+    },
+    {
+      "id": "chapter:trials-cts",
+      "type": "chapter",
+      "label": "Simulation d'essais cliniques",
+      "track": "trials"
+    },
+    {
+      "id": "chapter:trials-fih",
+      "type": "chapter",
+      "label": "Première dose chez l'homme : MABEL et NOAEL",
+      "track": "trials"
+    },
+    {
+      "id": "chapter:trials-interpretation",
+      "type": "chapter",
+      "label": "Interpréter un modèle : effets de covariables",
+      "track": "trials"
+    },
+    {
+      "id": "visualization:53_ForestPlot",
+      "type": "visualization",
+      "label": "53_ForestPlot"
+    },
+    {
+      "id": "chapter:valid-diagnostics",
+      "type": "chapter",
+      "label": "Panorama des graphiques diagnostiques (GoF)",
+      "track": "valid"
+    },
+    {
+      "id": "glossary:PRED / IPRED",
+      "type": "definition",
+      "label": "PRED / IPRED"
+    },
+    {
+      "id": "visualization:50_GOFPlots",
+      "type": "visualization",
+      "label": "50_GOFPlots"
+    },
+    {
+      "id": "visualization:52_NPDE",
+      "type": "visualization",
+      "label": "52_NPDE"
+    },
+    {
+      "id": "chapter:valid-gof",
+      "type": "chapter",
+      "label": "Graphiques diagnostiques (GOF)",
+      "track": "valid"
+    },
+    {
+      "id": "chapter:valid-interpretation",
+      "type": "chapter",
+      "label": "Cas pratique : lire les GoF et améliorer le modèle",
+      "track": "valid"
+    },
+    {
+      "id": "chapter:valid-npde",
+      "type": "chapter",
+      "label": "NPDE : résidus par simulation",
+      "track": "valid"
+    },
+    {
+      "id": "chapter:valid-objective",
+      "type": "chapter",
+      "label": "Diagnostics numériques : OFV, AIC, BIC, χ²",
+      "track": "valid"
+    },
+    {
+      "id": "visualization:59_ModelSelection",
+      "type": "visualization",
+      "label": "59_ModelSelection"
+    },
+    {
+      "id": "chapter:valid-shrinkage",
+      "type": "chapter",
+      "label": "Le shrinkage : quand les EBE trompent",
+      "track": "valid"
+    },
+    {
+      "id": "visualization:18_BayesianShrinkage",
+      "type": "visualization",
+      "label": "18_BayesianShrinkage"
+    },
+    {
+      "id": "chapter:valid-uncertainty",
+      "type": "chapter",
+      "label": "Incertitude des paramètres : RSE et bootstrap",
+      "track": "valid"
+    },
+    {
+      "id": "glossary:Bootstrap",
+      "type": "definition",
+      "label": "Bootstrap"
+    },
+    {
+      "id": "visualization:51_Bootstrap",
+      "type": "visualization",
+      "label": "51_Bootstrap"
+    },
+    {
+      "id": "chapter:valid-vpc",
+      "type": "chapter",
+      "label": "VPC et pcVPC : le test prédictif visuel",
+      "track": "valid"
+    },
+    {
+      "id": "exercise:short-0",
+      "type": "exercise",
+      "label": "Après un bolus IV, la droite ln(C) vs temps a une pente de −0,20 /h. Quelle est la demi-vie d'élimination ?"
+    },
+    {
+      "id": "exercise:short-1",
+      "type": "exercise",
+      "label": "Bolus IV de 10 mg. L'ordonnée à l'origine de ln(C) donne C₀ = 2 mg/L. Quel est le volume de distribution Vd ?"
+    },
+    {
+      "id": "exercise:short-2",
+      "type": "exercise",
+      "label": "Avec ke = 0,20 /h et Vd = 5 L, quelle est la clairance CL ?"
+    },
+    {
+      "id": "exercise:short-3",
+      "type": "exercise",
+      "label": "Un modèle donne CL = 6 L/h et V = 30 L. Quelle est la demi-vie ?"
+    },
+    {
+      "id": "exercise:short-4",
+      "type": "exercise",
+      "label": "Perfusion IV à débit R₀ = 30 mg/h, clairance CL = 5 L/h. Quelle est la concentration à l'équilibre Css ?"
+    },
+    {
+      "id": "exercise:short-5",
+      "type": "exercise",
+      "label": "Doses répétées : 100 mg toutes les 8 h, CL = 5 L/h. Quelle est la Css moyenne ?"
+    },
+    {
+      "id": "exercise:short-6",
+      "type": "exercise",
+      "label": "Bolus répétés, ke = 0,10 /h, intervalle τ = 8 h. Quel est le ratio d'accumulation Rac = 1/(1 − e^(−ke·τ)) ?"
+    },
+    {
+      "id": "exercise:short-7",
+      "type": "exercise",
+      "label": "Allométrie : CL₇₀ = 5 L/h (patient de 70 kg). Quelle CL pour un enfant de 35 kg (exposant 0,75) ?"
+    },
+    {
+      "id": "exercise:short-8",
+      "type": "exercise",
+      "label": "dA/dt = −k·A avec A₀ = 100 mg et k = 0,10 /h. Quelle quantité reste-t-il à t = 10 h ?"
+    },
+    {
+      "id": "exercise:short-9",
+      "type": "exercise",
+      "label": "Régression log-linéaire : ln(C) passe de 2,0 (t=0) à 0,0 (t=10 h). Quelle est la constante ke (−pente) ?"
+    },
+    {
+      "id": "exercise:short-10",
+      "type": "exercise",
+      "label": "Estimation CL = 5 L/h avec SE = 0,5. Quelle est la borne haute de l'IC à 95 % (≈ est + 1,96·SE) ?"
+    },
+    {
+      "id": "exercise:short-11",
+      "type": "exercise",
+      "label": "Modèle Emax (n=1) : Emax = 100, EC50 = 2 mg/L. Quel effet à C = 6 mg/L (E = Emax·C/(EC50+C)) ?"
+    },
+    {
+      "id": "exercise:short-12",
+      "type": "exercise",
+      "label": "Compartiment d'effet avec ke0 = 0,35 /h. Quelle est la demi-vie d'équilibration (ln2/ke0) ?"
+    },
+    {
+      "id": "exercise:short-13",
+      "type": "exercise",
+      "label": "Trapèze : C = 8 mg/L à t = 1 h et C = 4 mg/L à t = 3 h. Quelle est l'aire de ce segment ?"
+    },
+    {
+      "id": "exercise:short-14",
+      "type": "exercise",
+      "label": "AUC₀–last = 90, dernière concentration Clast = 2 mg/L, λz = 0,20 /h. Quelle est l'AUC₀–∞ ?"
+    },
+    {
+      "id": "exercise:short-15",
+      "type": "exercise",
+      "label": "Dose IV de 200 mg, AUC₀–∞ = 40 mg·h/L. Quelle est la clairance ?"
+    },
+    {
+      "id": "exercise:short-16",
+      "type": "exercise",
+      "label": "Avec CL = 5 L/h et λz = 0,10 /h, quel est le volume Vz (= CL/λz) ?"
+    },
+    {
+      "id": "exercise:short-17",
+      "type": "exercise",
+      "label": "Même dose PO et IV : AUC_orale = 40, AUC_IV = 80 mg·h/L. Quelle est la biodisponibilité absolue F ?"
+    },
+    {
+      "id": "exercise:short-18",
+      "type": "exercise",
+      "label": "Biodisponibilité orale F = fa·Fg·Fh avec fa = 0,9, Fg = 0,9, Fh = 0,5. Quelle est F ?"
+    },
+    {
+      "id": "exercise:short-19",
+      "type": "exercise",
+      "label": "Modèle well-stirred : Qh = 90 L/h, fu·CLint = 30 L/h. Quelle est CLh = Qh·fu·CLint/(Qh + fu·CLint) ?"
+    },
+    {
+      "id": "exercise:short-20",
+      "type": "exercise",
+      "label": "AUC₂₄ = 400 mg·h/L, CMI = 2 mg/L. Quel est l'indice AUC₂₄/CMI ?"
+    },
+    {
+      "id": "exercise:short-21",
+      "type": "exercise",
+      "label": "Vancomycine 2000 mg/j, clairance CL = 4 L/h. Quelle est l'AUC₂₄ (= dose/j ÷ CL) ?"
+    },
+    {
+      "id": "exercise:short-22",
+      "type": "exercise",
+      "label": "Un paramètre est estimé à 5 L/h avec SE = 0,5. Quel est son RSE en % (SE/estimation ×100) ?"
+    },
+    {
+      "id": "exercise:short-23",
+      "type": "exercise",
+      "label": "eta-shrinkage : SD(η̂) = 0,21 et ω = 0,30. Quel est le shrinkage en % (1 − SD/ω) ?"
+    },
+    {
+      "id": "exercise:short-24",
+      "type": "exercise",
+      "label": "Un modèle a OFV = 420 et k = 6 paramètres. Quel est son AIC (= OFV + 2k) ?"
+    },
+    {
+      "id": "exercise:short-25",
+      "type": "exercise",
+      "label": "On vise une Css de 10 mg/L avec CL = 2 L/h (perfusion). Quel débit R₀ (= Css·CL) ?"
+    },
+    {
+      "id": "activity:cov-weight-eta",
+      "type": "guided-activity",
+      "label": "Du poids à la clairance individuelle"
+    },
+    {
+      "id": "activity:cov-dispersion",
+      "type": "guided-activity",
+      "label": "Changer la relation ou changer la dispersion ?"
+    },
+    {
+      "id": "activity:cov-category-code",
+      "type": "guided-activity",
+      "label": "Coder un ratio de catégorie"
+    },
+    {
+      "id": "activity:cov-threshold",
+      "type": "guided-activity",
+      "label": "Deux patients de part et d’autre d’un seuil"
+    },
+    {
+      "id": "activity:cov-maturation",
+      "type": "guided-activity",
+      "label": "Retrouver PMA50 par manipulation"
+    },
+    {
+      "id": "activity:cov-organ",
+      "type": "guided-activity",
+      "label": "Ne pas multiplier toute la clairance"
+    },
+    {
+      "id": "activity:cov-extrapolation",
+      "type": "guided-activity",
+      "label": "Une formule calculable hors de sa plage"
+    },
+    {
+      "id": "activity:cov-symbolic-validation",
+      "type": "guided-activity",
+      "label": "Choisir une formule sans contaminer le test"
+    },
+    {
+      "id": "activity:cov-code-check",
+      "type": "guided-activity",
+      "label": "Retrouver une erreur dans le code"
+    },
+    {
+      "id": "activity:cov-omega-time",
+      "type": "guided-activity",
+      "label": "OMEGA et covariable dépendante du temps"
+    },
+    {
+      "id": "activity:cov-synthesis",
+      "type": "guided-activity",
+      "label": "Cas de synthèse : même C0, même exposition ?"
+    },
+    {
+      "id": "activity:practice-pourquoi-pharmacometrie",
+      "type": "guided-activity",
+      "label": "Même dose, deux expositions"
+    },
+    {
+      "id": "activity:practice-trois-approches",
+      "type": "guided-activity",
+      "label": "Choisir une approche selon la question"
+    },
+    {
+      "id": "activity:practice-micro-macro",
+      "type": "guided-activity",
+      "label": "Reconstruire les constantes de transfert"
+    },
+    {
+      "id": "activity:practice-clairance-volume-demi-vie",
+      "type": "guided-activity",
+      "label": "Séparer volume et clairance sur un profil"
+    },
+    {
+      "id": "activity:practice-absorption-orale",
+      "type": "guided-activity",
+      "label": "Identifier un flip-flop"
+    },
+    {
+      "id": "activity:practice-doses-repetees",
+      "type": "guided-activity",
+      "label": "Exposition moyenne et accumulation"
+    },
+    {
+      "id": "activity:practice-perfusion",
+      "type": "guided-activity",
+      "label": "Du débit au plateau"
+    },
+    {
+      "id": "activity:practice-erreur-residuelle",
+      "type": "guided-activity",
+      "label": "Écart-type ou variance ?"
+    },
+    {
+      "id": "activity:practice-voies-absorption",
+      "type": "guided-activity",
+      "label": "Estimer F avec une référence IV"
+    },
+    {
+      "id": "activity:practice-parent-metabolite",
+      "type": "guided-activity",
+      "label": "Suivre le flux de formation"
+    },
+    {
+      "id": "activity:practice-variabilite-iiv-iov",
+      "type": "guided-activity",
+      "label": "Changer d’occasion, pas de patient"
+    },
+    {
+      "id": "activity:practice-allometrie",
+      "type": "guided-activity",
+      "label": "Normaliser sans extrapoler silencieusement"
+    },
+    {
+      "id": "activity:practice-pkpd",
+      "type": "guided-activity",
+      "label": "De la concentration à une réponse saturable"
+    },
+    {
+      "id": "activity:practice-parametric-vs-nonparametric",
+      "type": "guided-activity",
+      "label": "Une distribution ne se résume pas à sa moyenne"
+    },
+    {
+      "id": "activity:practice-pmetrics-nonparametric",
+      "type": "guided-activity",
+      "label": "Mettre à jour les poids du prior"
+    },
+    {
+      "id": "activity:practice-outils-estimation",
+      "type": "guided-activity",
+      "label": "Un minimum numérique ne suffit pas"
+    },
+    {
+      "id": "activity:practice-validation-vpc",
+      "type": "guided-activity",
+      "label": "Lire une couverture prédictive"
+    },
+    {
+      "id": "activity:practice-bayes-ebes",
+      "type": "guided-activity",
+      "label": "Pondérer le prior et une mesure"
+    },
+    {
+      "id": "activity:practice-tdm",
+      "type": "guided-activity",
+      "label": "Calculer sans prescrire"
+    },
+    {
+      "id": "activity:practice-math-edo",
+      "type": "guided-activity",
+      "label": "Un pas numérique face à la solution exacte"
+    },
+    {
+      "id": "activity:practice-math-regression",
+      "type": "guided-activity",
+      "label": "Pondérer des résidus hétéroscédastiques"
+    },
+    {
+      "id": "activity:practice-math-stats",
+      "type": "guided-activity",
+      "label": "Un LRT sous conditions"
+    },
+    {
+      "id": "activity:practice-math-bayes",
+      "type": "guided-activity",
+      "label": "Une mesure peu précise et un prior"
+    },
+    {
+      "id": "activity:practice-math-covariates",
+      "type": "guided-activity",
+      "label": "Transformer un effet de poids"
+    },
+    {
+      "id": "activity:practice-math-fisher",
+      "type": "guided-activity",
+      "label": "Deux plans, deux matrices d’information"
+    },
+    {
+      "id": "activity:practice-math-copula",
+      "type": "guided-activity",
+      "label": "Marges identiques, dépendance différente"
+    },
+    {
+      "id": "activity:practice-nca-intro",
+      "type": "guided-activity",
+      "label": "Ce que les observations permettent de calculer"
+    },
+    {
+      "id": "activity:practice-nca-auc",
+      "type": "guided-activity",
+      "label": "Quantifier la partie extrapolée"
+    },
+    {
+      "id": "activity:practice-nca-params",
+      "type": "guided-activity",
+      "label": "Corriger le MRT après perfusion"
+    },
+    {
+      "id": "activity:practice-nca-absorption",
+      "type": "guided-activity",
+      "label": "Le ratio ponctuel ne décide pas seul"
+    },
+    {
+      "id": "activity:practice-pbpk-intro",
+      "type": "guided-activity",
+      "label": "Fermer un bilan d’organe"
+    },
+    {
+      "id": "activity:practice-pbpk-distribution",
+      "type": "guided-activity",
+      "label": "Liaison et exposition libre"
+    },
+    {
+      "id": "activity:practice-pbpk-absorption",
+      "type": "guided-activity",
+      "label": "Décomposer la biodisponibilité"
+    },
+    {
+      "id": "activity:practice-pbpk-applications",
+      "type": "guided-activity",
+      "label": "Une interaction sur une fraction de clairance"
+    },
+    {
+      "id": "activity:practice-pd-direct",
+      "type": "guided-activity",
+      "label": "Reconstituer EC50"
+    },
+    {
+      "id": "activity:practice-pd-effect-compartment",
+      "type": "guided-activity",
+      "label": "Mesurer un délai d’équilibration"
+    },
+    {
+      "id": "activity:practice-pd-indirect",
+      "type": "guided-activity",
+      "label": "Perturber un équilibre de turnover"
+    },
+    {
+      "id": "activity:practice-pd-tolerance",
+      "type": "guided-activity",
+      "label": "Même concentration, effet différent"
+    },
+    {
+      "id": "activity:practice-pd-survival",
+      "type": "guided-activity",
+      "label": "Du hazard à la survie"
+    },
+    {
+      "id": "activity:practice-onco-models",
+      "type": "guided-activity",
+      "label": "Comparer deux lois de croissance"
+    },
+    {
+      "id": "activity:practice-onco-tgi",
+      "type": "guided-activity",
+      "label": "Stabiliser une tumeur simulée"
+    },
+    {
+      "id": "activity:practice-onco-tox",
+      "type": "guided-activity",
+      "label": "Transit et rétrocontrôle hématologique"
+    },
+    {
+      "id": "activity:practice-infectio-pkpd",
+      "type": "guided-activity",
+      "label": "Concentration libre au-dessus de la CMI"
+    },
+    {
+      "id": "activity:practice-infectio-tdm",
+      "type": "guided-activity",
+      "label": "Compter des atteintes de cible"
+    },
+    {
+      "id": "activity:practice-infectio-viral",
+      "type": "guided-activity",
+      "label": "Lire une décroissance en log10"
+    },
+    {
+      "id": "activity:practice-mab-pk",
+      "type": "guided-activity",
+      "label": "Une demi-vie longue, avec quelles unités ?"
+    },
+    {
+      "id": "activity:practice-mab-tmdd",
+      "type": "guided-activity",
+      "label": "Saturation d’une voie d’élimination"
+    },
+    {
+      "id": "activity:practice-mab-ada",
+      "type": "guided-activity",
+      "label": "Association ADA et exposition"
+    },
+    {
+      "id": "activity:practice-neural-ode",
+      "type": "guided-activity",
+      "label": "Contraindre une dynamique apprise"
+    },
+    {
+      "id": "activity:practice-ai-ml-tdm",
+      "type": "guided-activity",
+      "label": "Biais, RMSE et AUC à ±20 %"
+    },
+    {
+      "id": "activity:practice-ai-trees",
+      "type": "guided-activity",
+      "label": "Moyenner des arbres"
+    },
+    {
+      "id": "activity:practice-ai-boosting",
+      "type": "guided-activity",
+      "label": "Une correction à petit pas"
+    },
+    {
+      "id": "activity:practice-ai-svm",
+      "type": "guided-activity",
+      "label": "Lire une marge normalisée"
+    },
+    {
+      "id": "activity:practice-ai-featselect",
+      "type": "guided-activity",
+      "label": "Sélectionner sans voir le test"
+    },
+    {
+      "id": "activity:practice-ai-clustering",
+      "type": "guided-activity",
+      "label": "Calculer un voisinage après standardisation"
+    },
+    {
+      "id": "activity:practice-ai-llm",
+      "type": "guided-activity",
+      "label": "Auditer une réponse plausible"
+    },
+    {
+      "id": "activity:practice-valid-objective",
+      "type": "guided-activity",
+      "label": "OFV plus bas, AIC plus haut"
+    },
+    {
+      "id": "activity:practice-valid-gof",
+      "type": "guided-activity",
+      "label": "Un biais visible dans les résidus"
+    },
+    {
+      "id": "activity:practice-valid-uncertainty",
+      "type": "guided-activity",
+      "label": "Précision ne signifie pas identifiabilité"
+    },
+    {
+      "id": "activity:practice-valid-npde",
+      "type": "guided-activity",
+      "label": "Des rangs prédictifs aux NPDE"
+    },
+    {
+      "id": "activity:practice-valid-vpc",
+      "type": "guided-activity",
+      "label": "Médiane et dispersion ne racontent pas la même chose"
+    },
+    {
+      "id": "activity:practice-valid-shrinkage",
+      "type": "guided-activity",
+      "label": "Calculer un shrinkage défini"
+    },
+    {
+      "id": "activity:practice-valid-diagnostics",
+      "type": "guided-activity",
+      "label": "Croiser trois diagnostics"
+    },
+    {
+      "id": "activity:practice-valid-interpretation",
+      "type": "guided-activity",
+      "label": "Interpréter un résidu en U"
+    },
+    {
+      "id": "activity:practice-trials-fih",
+      "type": "guided-activity",
+      "label": "Un calcul préclinique n’est pas une dose de départ"
+    },
+    {
+      "id": "activity:practice-trials-cts",
+      "type": "guided-activity",
+      "label": "Puissance conditionnelle ou assurance ?"
+    },
+    {
+      "id": "activity:practice-trials-interpretation",
+      "type": "guided-activity",
+      "label": "Un effet de covariable et son intervalle"
+    },
+    {
+      "id": "activity:practice-trials-adaptive",
+      "type": "guided-activity",
+      "label": "Effectif moyen et effectif maximal"
+    },
+    {
+      "id": "activity:practice-tools-algorithms",
+      "type": "guided-activity",
+      "label": "Comparer des résultats de moteurs"
+    },
+    {
+      "id": "activity:practice-tools-simulation",
+      "type": "guided-activity",
+      "label": "Simuler un patient ou des observations ?"
+    },
+    {
+      "id": "activity:practice-tools-mipd",
+      "type": "guided-activity",
+      "label": "Auditer l’historique avant MAP"
+    },
+    {
+      "id": "activity:practice-residual-mipd",
+      "type": "guided-activity",
+      "label": "Changer le poids de la mesure"
+    },
+    {
+      "id": "activity:practice-tools-nonmem",
+      "type": "guided-activity",
+      "label": "Préparer un ajustement NONMEM"
+    },
+    {
+      "id": "activity:practice-nonmem-modele-structural",
+      "type": "guided-activity",
+      "label": "NONMEM : vérifier les échelles"
+    },
+    {
+      "id": "activity:practice-nonmem-variabilite",
+      "type": "guided-activity",
+      "label": "NONMEM : traduire OMEGA"
+    },
+    {
+      "id": "activity:practice-nonmem-erreur-residuelle",
+      "type": "guided-activity",
+      "label": "NONMEM : coder 20 % d’erreur"
+    },
+    {
+      "id": "activity:practice-nonmem-moteur",
+      "type": "guided-activity",
+      "label": "NONMEM : contrôler la stabilité"
+    },
+    {
+      "id": "activity:practice-nonmem-avance",
+      "type": "guided-activity",
+      "label": "NONMEM : un bootstrap par patient"
+    },
+    {
+      "id": "activity:practice-tools-monolix",
+      "type": "guided-activity",
+      "label": "Préparer un ajustement Monolix"
+    },
+    {
+      "id": "activity:practice-monolix-modele-structural",
+      "type": "guided-activity",
+      "label": "Monolix : vérifier les échelles"
+    },
+    {
+      "id": "activity:practice-monolix-variabilite",
+      "type": "guided-activity",
+      "label": "Monolix : traduire OMEGA"
+    },
+    {
+      "id": "activity:practice-monolix-erreur-residuelle",
+      "type": "guided-activity",
+      "label": "Monolix : coder 20 % d’erreur"
+    },
+    {
+      "id": "activity:practice-monolix-moteur",
+      "type": "guided-activity",
+      "label": "Monolix : contrôler la stabilité"
+    },
+    {
+      "id": "activity:practice-monolix-avance",
+      "type": "guided-activity",
+      "label": "Monolix : un bootstrap par patient"
+    },
+    {
+      "id": "activity:practice-tools-nlmixr2",
+      "type": "guided-activity",
+      "label": "Préparer un ajustement nlmixr2"
+    },
+    {
+      "id": "activity:practice-nlmixr2-modele-structural",
+      "type": "guided-activity",
+      "label": "nlmixr2 : vérifier les échelles"
+    },
+    {
+      "id": "activity:practice-nlmixr2-variabilite",
+      "type": "guided-activity",
+      "label": "nlmixr2 : traduire OMEGA"
+    },
+    {
+      "id": "activity:practice-nlmixr2-erreur-residuelle",
+      "type": "guided-activity",
+      "label": "nlmixr2 : coder 20 % d’erreur"
+    },
+    {
+      "id": "activity:practice-nlmixr2-moteur",
+      "type": "guided-activity",
+      "label": "nlmixr2 : contrôler la stabilité"
+    },
+    {
+      "id": "activity:practice-nlmixr2-avance",
+      "type": "guided-activity",
+      "label": "nlmixr2 : un bootstrap par patient"
+    },
+    {
+      "id": "activity:synthesis-start",
+      "type": "synthesis",
+      "label": "Cas final : deux patients, une même dose"
+    },
+    {
+      "id": "activity:synthesis-math",
+      "type": "synthesis",
+      "label": "Cas de synthèse : équation, vraisemblance et incertitude"
+    },
+    {
+      "id": "activity:synthesis-nca",
+      "type": "synthesis",
+      "label": "Cas de synthèse NCA : de la courbe à la biodisponibilité"
+    },
+    {
+      "id": "activity:synthesis-pbpk",
+      "type": "synthesis",
+      "label": "Cas de synthèse PBPK : extrapoler sans surpromettre"
+    },
+    {
+      "id": "activity:synthesis-pd",
+      "type": "synthesis",
+      "label": "Cas de synthèse PD : même exposition, réponses différentes"
+    },
+    {
+      "id": "activity:synthesis-covariates",
+      "type": "synthesis",
+      "label": "Cas de synthèse covariables : relation ou extrapolation ?"
+    },
+    {
+      "id": "activity:synthesis-onco",
+      "type": "synthesis",
+      "label": "Cas de synthèse oncologie : tumeur, résistance et décision"
+    },
+    {
+      "id": "activity:synthesis-infectio",
+      "type": "synthesis",
+      "label": "Cas de synthèse infectiologie : profil, CMI et PTA"
+    },
+    {
+      "id": "activity:synthesis-mab",
+      "type": "synthesis",
+      "label": "Cas de synthèse anticorps : TMDD et ADA"
+    },
+    {
+      "id": "activity:synthesis-ai",
+      "type": "synthesis",
+      "label": "Cas de synthèse IA : gain apparent ou modèle transportable ?"
+    },
+    {
+      "id": "activity:synthesis-valid",
+      "type": "synthesis",
+      "label": "Cas de synthèse validation : bon AIC, mauvais VPC"
+    },
+    {
+      "id": "activity:synthesis-trials",
+      "type": "synthesis",
+      "label": "Cas de synthèse essais : operating characteristic ou PoS ?"
+    },
+    {
+      "id": "activity:synthesis-tools",
+      "type": "synthesis",
+      "label": "Cas de synthèse outils : un modèle, trois syntaxes"
+    }
+  ],
+  "edges": [
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "glossary:PK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "glossary:ADME",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "visualization:BuildingBlocksPKPD",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "chapter:micro-macro",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "glossary:V",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "glossary:Q",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "glossary:ke",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "chapter:trois-approches",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "glossary:NCA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "glossary:PopPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "visualization:04_ThreeApproaches",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "visualization:04_ThreeApproaches",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "visualization:AUCTrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "chapter:clairance-volume-demi-vie",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:V",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:ke",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:Phases α et β",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "glossary:Vss",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:BucketSim",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:doses-repetees",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "glossary:ke",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "visualization:MultiDose",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "visualization:MultiDose",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "visualization:MultiDose",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:perfusion",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "chapter:perfusion",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "visualization:Infusion",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "visualization:Infusion",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "visualization:Infusion",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:erreur-residuelle",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "glossary:Erreur additive",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "glossary:Erreur proportionnelle",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "glossary:Erreur combinée",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "chapter:voies-absorption",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "glossary:F",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "glossary:Ka",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "glossary:Tlag",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "glossary:Flip-flop",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "glossary:Compartiments de transit",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "visualization:Infusion",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:parent-metabolite",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "glossary:ke",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "glossary:Michaelis-Menten",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "visualization:65_ParentMetabolite",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "visualization:65_ParentMetabolite",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "visualization:65_ParentMetabolite",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:absorption-orale",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "glossary:Ka",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "glossary:F",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "glossary:Tlag",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "glossary:Cmax / Tmax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "glossary:Flip-flop",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:variabilite-iiv-iov",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "glossary:IOV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:allometrie",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "glossary:Allométrie",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "glossary:Centrage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:pkpd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:EC50 / CE50",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:Coefficient de Hill",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:Compartiment d’effet (ke0)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:Réponse indirecte / turnover",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "glossary:Hystérèse",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:BuildingBlocksPKPD",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:SheinerEffect",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:Turnover",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:parametric-vs-nonparametric",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "chapter:parametric-vs-nonparametric",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:Effets mixtes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:Distribution mélangeante",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:NPAG",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:NPOD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "glossary:Point de support",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "visualization:NPAGSupportPoints",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "chapter:pmetrics-nonparametric",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "chapter:pmetrics-nonparametric",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "glossary:NPAG",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "glossary:NPOD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "glossary:Point de support",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "glossary:Distribution mélangeante",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "visualization:NPAGSupportPoints",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:outils-estimation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "chapter:outils-estimation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "glossary:Effets mixtes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "glossary:MCMC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "visualization:EstimationFit",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "chapter:validation-vpc",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "glossary:GOF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "glossary:Binning",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:bayes-ebes",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "chapter:bayes-ebes",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:Théorème de Bayes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:A priori / prior",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:A posteriori / posterior",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:MAP",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:EBE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "chapter:tdm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "glossary:TDM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "glossary:MAP",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "glossary:Precision dosing",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "visualization:TDMProfile",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "chapter:neural-ode",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "chapter:neural-ode",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "glossary:Neural ODE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "visualization:20_NeuralBox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "visualization:20_NeuralBox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "visualization:20_NeuralBox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "visualization:20_NeuralBox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "visualization:20_NeuralBox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "chapter:ai-boosting",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "glossary:XGBoost",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "chapter:ai-clustering",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:ai-clustering",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "glossary:EBE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "glossary:θ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "visualization:63_ClusterPCA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "visualization:63_ClusterPCA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "visualization:63_ClusterPCA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "visualization:64_RMT",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "visualization:63_ClusterPCA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:ai-featselect",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:ai-featselect",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "glossary:VSURF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "visualization:42_VarImportance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "visualization:42_VarImportance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "visualization:42_VarImportance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "chapter:ai-llm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-llm",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "chapter:ai-ml-tdm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "chapter:ai-ml-tdm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "glossary:XGBoost",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "glossary:MAP-BE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "glossary:TDM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:ai-svm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-svm",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-svm",
+      "to": "visualization:41_SVMMargin",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-svm",
+      "to": "visualization:41_SVMMargin",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-svm",
+      "to": "visualization:41_SVMMargin",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:ai-trees",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "glossary:XGBoost",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "visualization:40_TreeEnsemble",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:covariates-basics",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:Centrage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:Distribution lognormale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "glossary:Distribution logit-normale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "visualization:CovariateEffects",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "visualization:CovariateEffects",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:covariates-groups",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "glossary:Distribution logit-normale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "visualization:CovariateGroups",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "visualization:CovariateGroups",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:covariates-implementation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "chapter:covariates-implementation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "chapter:covariates-implementation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "chapter:covariates-implementation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "glossary:θ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "visualization:CovariateImplementation",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "visualization:CovariateImplementation",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:covariates-physiology",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "glossary:Allométrie",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "glossary:CLr",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "glossary:DFG",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "visualization:CovariatePhysiology",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "visualization:CovariatePhysiology",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:covariates-symbolic",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "glossary:White / black / grey box",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "glossary:Neural ODE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "visualization:CovariateSymbolic",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "visualization:CovariateSymbolic",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "chapter:infectio-pkpd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "chapter:infectio-pkpd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "glossary:CMI",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "glossary:PTA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "glossary:Cmax / Tmax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "visualization:56_PKPDIndex",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "visualization:56_PKPDIndex",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "chapter:infectio-tdm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "chapter:infectio-tdm",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "glossary:TDM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "glossary:MAP-BE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "glossary:CMI",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "glossary:PTA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "visualization:TDMProfile",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "visualization:MultiDose",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "visualization:TDMProfile",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "chapter:infectio-viral",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "glossary:PK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "visualization:45_ViralKinetics",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "visualization:45_ViralKinetics",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "visualization:45_ViralKinetics",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "chapter:mab-ada",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "glossary:PK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "visualization:55_ADA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "visualization:55_ADA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "visualization:55_ADA",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:mab-pk",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "glossary:PK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "glossary:V",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "glossary:Modèle compartimental",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "chapter:mab-tmdd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:mab-tmdd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "glossary:Michaelis-Menten",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "visualization:54_TMDD",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "visualization:54_TMDD",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "visualization:54_TMDD",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "chapter:math-bayes",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:Théorème de Bayes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:A priori / prior",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:A posteriori / posterior",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:MAP",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:math-copula",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:math-copula",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "glossary:Distribution normale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "visualization:43_Copula",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "visualization:43_Copula",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "visualization:43_Copula",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "chapter:math-covariates",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:math-covariates",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "glossary:Allométrie",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "glossary:Centrage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "visualization:14_AllometryCentering",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "glossary:Modèle compartimental",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "visualization:IVBolus",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "visualization:10_PK2C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "chapter:math-fisher",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:math-fisher",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "glossary:FIM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "glossary:RSE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "glossary:Identifiabilité",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "visualization:58_OptimalDesign",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "visualization:58_OptimalDesign",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "visualization:58_OptimalDesign",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:math-regression",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "glossary:RSE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "visualization:EstimationFit",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "visualization:EstimationFit",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "visualization:AUCTrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "glossary:DoF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "glossary:RSE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "glossary:Identifiabilité",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "visualization:13_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "chapter:monolix-avance",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "glossary:Monolix",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "chapter:monolix-erreur-residuelle",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "glossary:Monolix",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "glossary:Erreur combinée",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "chapter:monolix-modele-structural",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "glossary:Monolix",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "glossary:MLXTRAN",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "glossary:Modèle structural",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "chapter:monolix-moteur",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "glossary:Monolix",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "visualization:16_SAEMCycle",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "chapter:monolix-variabilite",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:IOV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:Distribution lognormale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "glossary:Distribution logit-normale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "chapter:nca-absorption",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "chapter:nca-absorption",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "glossary:NCA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "glossary:F",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "glossary:Cmax / Tmax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "chapter:nca-auc",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "glossary:NCA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "visualization:08_AUCTrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "visualization:08_AUCTrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "visualization:08_AUCTrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "chapter:nca-intro",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "glossary:NCA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "glossary:Cmax / Tmax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "visualization:04_ThreeApproaches",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "visualization:04_ThreeApproaches",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "visualization:04_ThreeApproaches",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "chapter:nca-params",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "glossary:NCA",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "glossary:Vss",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "glossary:t½",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "visualization:09_PK1C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "visualization:09_PK1C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "visualization:09_PK1C",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:nlmixr2-avance",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "visualization:MultiDose",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:nlmixr2-erreur-residuelle",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "glossary:Erreur combinée",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "visualization:13_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:nlmixr2-modele-structural",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "glossary:Modèle structural",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:nlmixr2-moteur",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "visualization:16_SAEMCycle",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "visualization:15_OFVGame",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:nlmixr2-variabilite",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:IOV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "glossary:Distribution lognormale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "chapter:nonmem-avance",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "glossary:Distribution logit-normale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "glossary:A priori / prior",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "glossary:MCMC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "chapter:nonmem-erreur-residuelle",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "glossary:Erreur additive",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "glossary:Erreur proportionnelle",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "glossary:Erreur combinée",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "visualization:13_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "visualization:61_ResidualError",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "chapter:nonmem-modele-structural",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "glossary:NONMEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "glossary:Modèle structural",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "glossary:EDO",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "visualization:OralAbsorptionExplorer",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "chapter:nonmem-moteur",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "glossary:NONMEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "visualization:15_OFVGame",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "chapter:nonmem-variabilite",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:IOV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "glossary:Distribution lognormale",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "visualization:03_PopulationDistrib",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "chapter:onco-models",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "chapter:onco-models",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "glossary:Réponse indirecte / turnover",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "visualization:30_TumorGrowth",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "visualization:30_TumorGrowth",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "visualization:31_JointSurvival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "chapter:onco-tgi",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "visualization:30_TumorGrowth",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "visualization:30_TumorGrowth",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "visualization:31_JointSurvival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "visualization:31_JointSurvival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "chapter:onco-tox",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "glossary:Réponse indirecte / turnover",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "visualization:32_Myelosuppression",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "visualization:32_Myelosuppression",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "visualization:32_Myelosuppression",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "chapter:pbpk-absorption",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "chapter:pbpk-absorption",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "glossary:F",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "visualization:OralAbsorption",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "chapter:pbpk-applications",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "chapter:pbpk-applications",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "glossary:CLr",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "glossary:Allométrie",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "chapter:pbpk-distribution",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "glossary:V",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "chapter:pbpk-intro",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "chapter:pbpk-intro",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "glossary:CL",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "glossary:V",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "glossary:Q",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "visualization:01_HumanBody",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "chapter:pd-direct",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "glossary:EC50 / CE50",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "glossary:Coefficient de Hill",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "chapter:pd-effect-compartment",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "glossary:Compartiment d’effet (ke0)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "glossary:Hystérèse",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "visualization:SheinerEffect",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "visualization:SheinerEffect",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "visualization:SheinerEffect",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "chapter:pd-indirect",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "glossary:Réponse indirecte / turnover",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "visualization:Turnover",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "visualization:Turnover",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "visualization:Turnover",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "chapter:pd-survival",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "glossary:AUC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "visualization:44_Survival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "visualization:44_Survival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "visualization:44_Survival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "visualization:44_Survival",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "chapter:pd-tolerance",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "chapter:pd-tolerance",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "glossary:Hystérèse",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "glossary:Réponse indirecte / turnover",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "visualization:57_Tolerance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "visualization:57_Tolerance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "visualization:57_Tolerance",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "chapter:residual-mipd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "chapter:residual-mipd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "chapter:residual-mipd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "glossary:MAP",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "glossary:TDM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "glossary:ε / σ",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "glossary:Precision dosing",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "visualization:MipdResidualLever",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "chapter:tools-algorithms",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "chapter:tools-algorithms",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "glossary:OFV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "glossary:Effets mixtes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "chapter:tools-mipd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "chapter:tools-mipd",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "glossary:MAP",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "glossary:TDM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "glossary:EBE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "glossary:Precision dosing",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "visualization:TDMProfile",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "visualization:BayesUpdate",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "visualization:TDMProfile",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "chapter:tools-monolix",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "glossary:Monolix",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "chapter:tools-nlmixr2",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "glossary:SAEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "visualization:67_SAEMConvergence",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "chapter:tools-nonmem",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "glossary:NONMEM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "glossary:OFV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "glossary:Effets mixtes",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "visualization:66_FOCELinearization",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "visualization:15_OFVGame",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "chapter:tools-simulation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "glossary:mrgsolve",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "glossary:nlmixr2 / rxode2",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "glossary:Jumeau numérique",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "visualization:21_PopPKPlayground",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "visualization:21_PopPKPlayground",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "visualization:21_PopPKPlayground",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "chapter:trials-adaptive",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "chapter:trials-adaptive",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "glossary:Emax",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "glossary:EC50 / CE50",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "glossary:AIC / BIC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "chapter:trials-cts",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "chapter:trials-cts",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "glossary:IIV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "glossary:IOV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "visualization:12_VariabilitySandbox",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "chapter:trials-fih",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "chapter:trials-fih",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "glossary:Allométrie",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "glossary:PK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "glossary:PD",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "glossary:PBPK",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "visualization:EmaxHill",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "chapter:trials-interpretation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "chapter:trials-interpretation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "glossary:Covariable",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "glossary:Centrage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "glossary:RSE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "visualization:53_ForestPlot",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "visualization:53_ForestPlot",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "visualization:53_ForestPlot",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "chapter:valid-diagnostics",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "chapter:valid-diagnostics",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "chapter:valid-diagnostics",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "glossary:GOF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "glossary:PRED / IPRED",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "glossary:Binning",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "visualization:50_GOFPlots",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "visualization:50_GOFPlots",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "visualization:52_NPDE",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "chapter:valid-gof",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "glossary:GOF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "glossary:PRED / IPRED",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "visualization:50_GOFPlots",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "visualization:50_GOFPlots",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "visualization:50_GOFPlots",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "chapter:valid-interpretation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "chapter:valid-interpretation",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "glossary:GOF",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "glossary:PRED / IPRED",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "glossary:Erreur combinée",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "visualization:62_ResidualPatterns",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "chapter:valid-npde",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "visualization:52_NPDE",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "visualization:52_NPDE",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "visualization:52_NPDE",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "chapter:valid-objective",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "chapter:valid-objective",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "glossary:OFV",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "glossary:Vraisemblance",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "glossary:AIC / BIC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "glossary:FOCE-I",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "visualization:59_ModelSelection",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "visualization:59_ModelSelection",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "visualization:59_ModelSelection",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "chapter:valid-shrinkage",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "chapter:valid-shrinkage",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "glossary:Shrinkage",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "glossary:EBE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "glossary:η",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "glossary:ω / Ω",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "glossary:Résidus (WRES/CWRES/IWRES/NPDE)",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "visualization:18_BayesianShrinkage",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "visualization:18_BayesianShrinkage",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "visualization:18_BayesianShrinkage",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "chapter:valid-uncertainty",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "glossary:RSE",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "glossary:Bootstrap",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "glossary:FIM",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "glossary:Identifiabilité",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "visualization:51_Bootstrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "visualization:51_Bootstrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "visualization:51_Bootstrap",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "chapter:valid-vpc",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "chapter:valid-vpc",
+      "type": "prerequisite"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "glossary:VPC",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "glossary:Binning",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "glossary:PRED / IPRED",
+      "type": "defines"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "visualization:17_VPCCrashTest",
+      "type": "illustrates"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "exercise:short-0",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "exercise:short-1",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "exercise:short-2",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "exercise:short-3",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "exercise:short-4",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "exercise:short-5",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "exercise:short-6",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "exercise:short-7",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "exercise:short-8",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "exercise:short-9",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "exercise:short-10",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "exercise:short-11",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "exercise:short-12",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "exercise:short-13",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "exercise:short-14",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "exercise:short-15",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "exercise:short-16",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "exercise:short-17",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "exercise:short-18",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "exercise:short-19",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "exercise:short-20",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "exercise:short-21",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "exercise:short-22",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "exercise:short-23",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "exercise:short-24",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "exercise:short-25",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "activity:cov-weight-eta",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-basics",
+      "to": "activity:cov-dispersion",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "activity:cov-category-code",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-groups",
+      "to": "activity:cov-threshold",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "activity:cov-maturation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-physiology",
+      "to": "activity:cov-organ",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "activity:cov-extrapolation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-symbolic",
+      "to": "activity:cov-symbolic-validation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "activity:cov-code-check",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "activity:cov-omega-time",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "activity:cov-synthesis",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pourquoi-pharmacometrie",
+      "to": "activity:practice-pourquoi-pharmacometrie",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:trois-approches",
+      "to": "activity:practice-trois-approches",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:micro-macro",
+      "to": "activity:practice-micro-macro",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:clairance-volume-demi-vie",
+      "to": "activity:practice-clairance-volume-demi-vie",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:absorption-orale",
+      "to": "activity:practice-absorption-orale",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:doses-repetees",
+      "to": "activity:practice-doses-repetees",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:perfusion",
+      "to": "activity:practice-perfusion",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:erreur-residuelle",
+      "to": "activity:practice-erreur-residuelle",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:voies-absorption",
+      "to": "activity:practice-voies-absorption",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:parent-metabolite",
+      "to": "activity:practice-parent-metabolite",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:variabilite-iiv-iov",
+      "to": "activity:practice-variabilite-iiv-iov",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:allometrie",
+      "to": "activity:practice-allometrie",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pkpd",
+      "to": "activity:practice-pkpd",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:parametric-vs-nonparametric",
+      "to": "activity:practice-parametric-vs-nonparametric",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pmetrics-nonparametric",
+      "to": "activity:practice-pmetrics-nonparametric",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:outils-estimation",
+      "to": "activity:practice-outils-estimation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:validation-vpc",
+      "to": "activity:practice-validation-vpc",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:bayes-ebes",
+      "to": "activity:practice-bayes-ebes",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "activity:practice-tdm",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-edo",
+      "to": "activity:practice-math-edo",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-regression",
+      "to": "activity:practice-math-regression",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-stats",
+      "to": "activity:practice-math-stats",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-bayes",
+      "to": "activity:practice-math-bayes",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "activity:practice-math-covariates",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-fisher",
+      "to": "activity:practice-math-fisher",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:math-copula",
+      "to": "activity:practice-math-copula",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-intro",
+      "to": "activity:practice-nca-intro",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-auc",
+      "to": "activity:practice-nca-auc",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-params",
+      "to": "activity:practice-nca-params",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "activity:practice-nca-absorption",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-intro",
+      "to": "activity:practice-pbpk-intro",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-distribution",
+      "to": "activity:practice-pbpk-distribution",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-absorption",
+      "to": "activity:practice-pbpk-absorption",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "activity:practice-pbpk-applications",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-direct",
+      "to": "activity:practice-pd-direct",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-effect-compartment",
+      "to": "activity:practice-pd-effect-compartment",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-indirect",
+      "to": "activity:practice-pd-indirect",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-tolerance",
+      "to": "activity:practice-pd-tolerance",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "activity:practice-pd-survival",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "activity:practice-onco-models",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:onco-tgi",
+      "to": "activity:practice-onco-tgi",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:onco-tox",
+      "to": "activity:practice-onco-tox",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:infectio-pkpd",
+      "to": "activity:practice-infectio-pkpd",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "activity:practice-infectio-tdm",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:infectio-viral",
+      "to": "activity:practice-infectio-viral",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:mab-pk",
+      "to": "activity:practice-mab-pk",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:mab-tmdd",
+      "to": "activity:practice-mab-tmdd",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "activity:practice-mab-ada",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:neural-ode",
+      "to": "activity:practice-neural-ode",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-ml-tdm",
+      "to": "activity:practice-ai-ml-tdm",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-trees",
+      "to": "activity:practice-ai-trees",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-boosting",
+      "to": "activity:practice-ai-boosting",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-svm",
+      "to": "activity:practice-ai-svm",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-featselect",
+      "to": "activity:practice-ai-featselect",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-clustering",
+      "to": "activity:practice-ai-clustering",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:ai-llm",
+      "to": "activity:practice-ai-llm",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-objective",
+      "to": "activity:practice-valid-objective",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-gof",
+      "to": "activity:practice-valid-gof",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-uncertainty",
+      "to": "activity:practice-valid-uncertainty",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-npde",
+      "to": "activity:practice-valid-npde",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-vpc",
+      "to": "activity:practice-valid-vpc",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-shrinkage",
+      "to": "activity:practice-valid-shrinkage",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-diagnostics",
+      "to": "activity:practice-valid-diagnostics",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "activity:practice-valid-interpretation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:trials-fih",
+      "to": "activity:practice-trials-fih",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:trials-cts",
+      "to": "activity:practice-trials-cts",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "activity:practice-trials-interpretation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:trials-adaptive",
+      "to": "activity:practice-trials-adaptive",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-algorithms",
+      "to": "activity:practice-tools-algorithms",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-simulation",
+      "to": "activity:practice-tools-simulation",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "activity:practice-tools-mipd",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:residual-mipd",
+      "to": "activity:practice-residual-mipd",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-nonmem",
+      "to": "activity:practice-tools-nonmem",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nonmem-modele-structural",
+      "to": "activity:practice-nonmem-modele-structural",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nonmem-variabilite",
+      "to": "activity:practice-nonmem-variabilite",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nonmem-erreur-residuelle",
+      "to": "activity:practice-nonmem-erreur-residuelle",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nonmem-moteur",
+      "to": "activity:practice-nonmem-moteur",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nonmem-avance",
+      "to": "activity:practice-nonmem-avance",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-monolix",
+      "to": "activity:practice-tools-monolix",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:monolix-modele-structural",
+      "to": "activity:practice-monolix-modele-structural",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:monolix-variabilite",
+      "to": "activity:practice-monolix-variabilite",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:monolix-erreur-residuelle",
+      "to": "activity:practice-monolix-erreur-residuelle",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:monolix-moteur",
+      "to": "activity:practice-monolix-moteur",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:monolix-avance",
+      "to": "activity:practice-monolix-avance",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tools-nlmixr2",
+      "to": "activity:practice-tools-nlmixr2",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nlmixr2-modele-structural",
+      "to": "activity:practice-nlmixr2-modele-structural",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nlmixr2-variabilite",
+      "to": "activity:practice-nlmixr2-variabilite",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nlmixr2-erreur-residuelle",
+      "to": "activity:practice-nlmixr2-erreur-residuelle",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nlmixr2-moteur",
+      "to": "activity:practice-nlmixr2-moteur",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:nlmixr2-avance",
+      "to": "activity:practice-nlmixr2-avance",
+      "type": "practises"
+    },
+    {
+      "from": "chapter:tdm",
+      "to": "activity:synthesis-start",
+      "type": "practises"
+    },
+    {
+      "from": "track:start",
+      "to": "activity:synthesis-start",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:math-covariates",
+      "to": "activity:synthesis-math",
+      "type": "practises"
+    },
+    {
+      "from": "track:math",
+      "to": "activity:synthesis-math",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:nca-absorption",
+      "to": "activity:synthesis-nca",
+      "type": "practises"
+    },
+    {
+      "from": "track:nca",
+      "to": "activity:synthesis-nca",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:pbpk-applications",
+      "to": "activity:synthesis-pbpk",
+      "type": "practises"
+    },
+    {
+      "from": "track:pbpk",
+      "to": "activity:synthesis-pbpk",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:pd-survival",
+      "to": "activity:synthesis-pd",
+      "type": "practises"
+    },
+    {
+      "from": "track:pd",
+      "to": "activity:synthesis-pd",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:covariates-implementation",
+      "to": "activity:synthesis-covariates",
+      "type": "practises"
+    },
+    {
+      "from": "track:covariates",
+      "to": "activity:synthesis-covariates",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:onco-models",
+      "to": "activity:synthesis-onco",
+      "type": "practises"
+    },
+    {
+      "from": "track:onco",
+      "to": "activity:synthesis-onco",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:infectio-tdm",
+      "to": "activity:synthesis-infectio",
+      "type": "practises"
+    },
+    {
+      "from": "track:infectio",
+      "to": "activity:synthesis-infectio",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:mab-ada",
+      "to": "activity:synthesis-mab",
+      "type": "practises"
+    },
+    {
+      "from": "track:mab",
+      "to": "activity:synthesis-mab",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:ai-llm",
+      "to": "activity:synthesis-ai",
+      "type": "practises"
+    },
+    {
+      "from": "track:ai",
+      "to": "activity:synthesis-ai",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:valid-interpretation",
+      "to": "activity:synthesis-valid",
+      "type": "practises"
+    },
+    {
+      "from": "track:valid",
+      "to": "activity:synthesis-valid",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:trials-interpretation",
+      "to": "activity:synthesis-trials",
+      "type": "practises"
+    },
+    {
+      "from": "track:trials",
+      "to": "activity:synthesis-trials",
+      "type": "integrates"
+    },
+    {
+      "from": "chapter:tools-mipd",
+      "to": "activity:synthesis-tools",
+      "type": "practises"
+    },
+    {
+      "from": "track:tools",
+      "to": "activity:synthesis-tools",
+      "type": "integrates"
+    }
+  ],
+  "debt": {
+    "orphanChapters": [],
+    "chaptersWithoutDefinition": [],
+    "chaptersWithoutExercise": [],
+    "chaptersWithoutVisualization": [
+      "ai-llm"
+    ]
+  }
+}

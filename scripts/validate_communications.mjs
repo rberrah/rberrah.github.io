@@ -13,9 +13,8 @@ assert.equal(new Set(communications.map(item => item.title)).size, communication
 const pendingPaths = new Set(pendingCommunications.map(item => item.sourcePath));
 const today = process.env.COMMUNICATIONS_AS_OF || new Date().toISOString().slice(0, 10);
 const staleUpcoming = communications.filter(item => item.status === 'upcoming' && item.presentationDate && item.presentationDate < today);
-if (staleUpcoming.length) {
-  console.warn(`WARNING: ${staleUpcoming.map(item => `${item.slug} (${item.presentationDate})`).join(', ')} still marked upcoming after presentation date.`);
-}
+assert.equal(staleUpcoming.length, 0,
+  `${staleUpcoming.map(item => `${item.slug} (${item.presentationDate})`).join(', ')} still marked upcoming after presentation date; verify whether each communication was presented before changing its status.`);
 for (const item of communications) {
   assert(!pendingPaths.has(item.sourcePath), `${item.sourcePath} cannot be both published and pending`);
   assert(item.pdf || item.pptx, `${item.slug} needs a readable source file`);
@@ -37,7 +36,6 @@ assert(netpk, 'NetPK communication is missing');
 assert.equal(netpk.presentationDate, '2026-10-14');
 assert.equal(netpk.eventStart, '2026-10-13');
 assert.equal(netpk.eventEnd, '2026-10-15');
-assert.equal(netpk.status, 'upcoming');
 for (const key of ['pdf', 'pptx', 'image']) {
   assert(netpk[key], `NetPK ${key} is missing`);
   await access(path.join(root, 'portal', netpk[key].slice(1)));

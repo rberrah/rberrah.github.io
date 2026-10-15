@@ -633,6 +633,10 @@ evaluate_scope <- function(scope, index) {
   holdout_indices <- sample(seq_len(nrow(development)), max(6L, floor(0.25 * nrow(development))))
   holdout <- development[holdout_indices, , drop = FALSE]
   training <- development[-holdout_indices, , drop = FALSE]
+  if (anyDuplicated(development$patient_id) ||
+      length(intersect(training$patient_id, holdout$patient_id))) {
+    stop("Patient leakage detected between ML training and untouched holdout partitions.")
+  }
   predictors <- predictor_names(training)
   repeated <- repeated_cross_validate(training, predictors, seed + index * 1000L)
   repeated_without_ml <- auc_metrics(training$TRUE_AUC24, training$POP_AUC24)
@@ -807,10 +811,15 @@ publish_candidate <- function(evaluation) {
     ),
     training = list(
       seed = seed,
-      nVirtualDevelopment = n_patients,
+      nVirtualDevelopment = evaluation$row$n_training[[1]] + evaluation$row$n_holdout[[1]],
       nTraining = evaluation$row$n_training[[1]],
       nUntouchedHoldout = evaluation$row$n_holdout[[1]],
       nUnseenPopPk = evaluation$row$n_alternate[[1]],
+      split = list(
+        unit = "simulated_patient",
+        method = "seeded_random_75_25_before_model_fitting",
+        holdoutUntouched = TRUE
+      ),
       hyperparameters = XGB_PARAMETERS,
       software = list(
         R = R.version.string,

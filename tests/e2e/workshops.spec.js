@@ -26,6 +26,8 @@ test('Explorer exposes six workshops; PK and Advanced have distinct palettes', a
   await expect(page.locator('.canvas .node')).toHaveCount(2);
   await expect(page.locator('.mlxtran-import')).toHaveCount(0);
   await expect(page.locator('.toolbar .add')).toHaveCount(4);
+  await expect(page.getByTestId('transfer-contract')).toContainText('Complete mrgsolve code');
+  await expect(page.getByTestId('transfer-contract')).toContainText('Patient observations');
   if (await page.getByTestId('nav-toggle').isVisible()) await page.getByTestId('nav-toggle').click();
   await page.getByTestId('goal-explore').locator('summary').click();
   await expect(page.getByTestId('goal-explore').locator('a')).toHaveText(['Model Translator', 'PK Builder', 'PD Builder', 'Covariates', 'DDI Builder', 'Advanced Builder']);

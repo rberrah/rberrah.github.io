@@ -86,7 +86,7 @@ jobs:
         run: Rscript scripts/evaluate_transbig_calibration_pmx.R tmp/multiomics/mainz-nki
       - name: Archive all results including performance deterioration
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pmx-three-cohort-retrospective-calibration-audit
           path: |

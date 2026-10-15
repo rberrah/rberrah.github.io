@@ -1,0 +1,63 @@
+name: Pmetrics official full benchmark
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tdm-engine/benchmarks/pmetrics_official_example.R'
+      - 'tdm-engine/pmetrics/**'
+      - 'src/content/chapters/08c_pmetrics-nonparametric.md'
+      - 'src/content/chapters/en/08c_pmetrics-nonparametric.md'
+      - 'scripts/test_pmetrics_backend.mjs'
+      - 'scripts/test_pmetrics_course_consistency.mjs'
+      - '.github/workflows/pmetrics-official-full.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    paths:
+      - 'tdm-engine/benchmarks/pmetrics_official_example.R'
+      - 'tdm-engine/pmetrics/**'
+      - 'src/content/chapters/08c_pmetrics-nonparametric.md'
+      - 'src/content/chapters/en/08c_pmetrics-nonparametric.md'
+      - 'scripts/test_pmetrics_backend.mjs'
+      - 'scripts/test_pmetrics_course_consistency.mjs'
+      - '.github/workflows/pmetrics-official-full.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  schedule:
+    - cron: '17 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  official-full:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    env:
+      PMETRICS_VERSION: '3.2.6'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.6.1'
+          use-public-rspm: true
+      - name: Install pinned Pmetrics
+        run: |
+          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
+      - run: npm ci
+      - name: Run official full benchmark
+        run: npm run benchmark:pmetrics-official
+      - name: Verify benchmark and course agree
+        run: npm run test:pmetrics-course-consistency
+      - name: Archive full benchmark result
+        uses: actions/upload-artifact@v6
+        with:
+          name: pmetrics-official-full
+          path: tdm-engine/pmetrics/benchmarks/pmetrics-official-example.json
+          if-no-files-found: error

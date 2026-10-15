@@ -18,6 +18,7 @@ function names(ast) {
   if (ast.type === 'Literal') return [];
   if (ast.type === 'UnaryExpression') return names(ast.argument);
   if (ast.type === 'BinaryExpression') return [...names(ast.left), ...names(ast.right)];
+  if (ast.type === 'ConditionalExpression') return [...names(ast.test), ...names(ast.consequent), ...names(ast.alternate)];
   if (ast.type === 'CallExpression') return ast.arguments.flatMap(names);
   return unsupported();
 }
@@ -31,6 +32,7 @@ function key(ast) {
     if (['*','+'].includes(ast.operator)) items.sort();
     return `(${items.join(ast.operator)})`;
   }
+  if (ast.type === 'ConditionalExpression') return `(${key(ast.test)}?${key(ast.consequent)}:${key(ast.alternate)})`;
   if (ast.type === 'CallExpression') return `${ast.callee.name.toLowerCase()}(${ast.arguments.map(key).join(',')})`;
   return unsupported();
 }
@@ -128,6 +130,7 @@ export function equationReader(raw, builder, regressorNames = []) {
     if (ast.type === 'Literal') return ast;
     if (ast.type === 'UnaryExpression') return {...ast, argument:resolve(ast.argument,stop,path,budget)};
     if (ast.type === 'BinaryExpression' && ['+','-','*','/','^','=='].includes(ast.operator)) return {...ast,left:resolve(ast.left,stop,path,budget),right:resolve(ast.right,stop,path,budget)};
+    if (ast.type === 'ConditionalExpression') return {...ast, test:resolve(ast.test,stop,path,budget), consequent:resolve(ast.consequent,stop,path,budget), alternate:resolve(ast.alternate,stop,path,budget)};
     if (ast.type === 'CallExpression' && ast.callee.type === 'Identifier') {
       if (/^(eta|eps)$/i.test(ast.callee.name)) return literal(0);
       if (/^theta$/i.test(ast.callee.name) && ast.arguments.length===1 && ast.arguments[0].type==='Literal') {
@@ -153,12 +156,22 @@ export function equationReader(raw, builder, regressorNames = []) {
       const a = numeric(ast.left,overrides), b = numeric(ast.right,overrides);
       return ({'+':()=>a+b,'-':()=>a-b,'*':()=>a*b,'/':()=>a/b,'^':()=>a**b,'==':()=>Number(a===b)}[ast.operator] ?? unsupported)();
     }
+    if (ast.type === 'ConditionalExpression') return numeric(ast.test, overrides) ? numeric(ast.consequent, overrides) : numeric(ast.alternate, overrides);
     if (ast.type === 'CallExpression') return Math[ast.callee.name.toLowerCase()](...ast.arguments.map(a=>numeric(a,overrides)));
     return unsupported();
   };
   const containsCov = ast => names(ast).some(n=>regressors.has(n));
   const covEffects = (ast, power = 1, output = []) => {
     if (!containsCov(ast)) return output;
+    if (ast.type === 'ConditionalExpression' && ast.test.type === 'BinaryExpression' && ast.test.operator === '==') {
+      const cov = [ast.test.left, ast.test.right].find(item => item.type === 'Identifier' && regressors.has(item.name.toLowerCase()));
+      const category = cov && (cov === ast.test.left ? ast.test.right : ast.test.left);
+      if (!cov || containsCov(category) || containsCov(ast.consequent) || containsCov(ast.alternate)) return unsupported(key(ast));
+      const comparison = numeric(category), compared = numeric(ast.consequent), referenceValue = numeric(ast.alternate);
+      if (!(compared > 0 && referenceValue > 0)) return unsupported(key(ast));
+      output.push({name:cov.name.toUpperCase(),type:'categorical',reference:comparison===0?1:0,comparison,beta:power*Math.log(compared/referenceValue)});
+      return output;
+    }
     if (ast.type === 'BinaryExpression' && ['*','/'].includes(ast.operator)) {
       covEffects(ast.left,power,output); covEffects(ast.right,ast.operator === '/' ? -power : power,output); return output;
     }
@@ -191,6 +204,8 @@ export function equationReader(raw, builder, regressorNames = []) {
         const ref = numeric(ast.right); if (ref > 0) references.set(ast.left.name.toLowerCase(),ref);
       }
       findReferences(ast.left); findReferences(ast.right);
+    } else if (ast.type === 'ConditionalExpression') {
+      findReferences(ast.test); findReferences(ast.consequent); findReferences(ast.alternate);
     } else if (ast.type === 'CallExpression') ast.arguments.forEach(findReferences);
     else if (ast.type === 'UnaryExpression') findReferences(ast.argument);
   };

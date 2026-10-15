@@ -57,7 +57,7 @@ jobs:
         run: Rscript multiomics-engine/tests/test_mofa_truth_reference.R
       - name: Archive all MOFA2 truth/scenario results including failed models
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-mofa2-known-truth-validation
           path: tmp/multiomics/mofa-truth/

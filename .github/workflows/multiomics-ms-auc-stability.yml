@@ -37,7 +37,7 @@ jobs:
           --repeat-each=20 --retries=0 --workers=1
       - name: Save failed browser traces
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-ms-auc-first-attempt-failure
           path: |

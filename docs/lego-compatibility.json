@@ -1,0 +1,1688 @@
+{
+  "version": 1,
+  "generatedFromTests": true,
+  "cases": 60,
+  "checks": 240,
+  "rows": [
+    {
+      "model": "embedded-mrgsolve",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mrgsolve",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mrgsolve",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mrgsolve",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "embedded-mlxtran",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mrgsolve",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mlxtran",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mlxtran",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mlxtran",
+      "sourceFormat": "mlxtran",
+      "testedAs": "nonmem",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-mlxtran",
+      "sourceFormat": "mlxtran",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "embedded-nonmem",
+      "sourceFormat": "nonmem",
+      "testedAs": "mrgsolve",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-nonmem",
+      "sourceFormat": "nonmem",
+      "testedAs": "mlxtran",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-nonmem",
+      "sourceFormat": "nonmem",
+      "testedAs": "nonmem",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "embedded-nonmem",
+      "sourceFormat": "nonmem",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "embedded-pmetrics",
+      "sourceFormat": "pmetrics",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "embedded-pmetrics",
+      "sourceFormat": "pmetrics",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "embedded-pmetrics",
+      "sourceFormat": "pmetrics",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "embedded-pmetrics",
+      "sourceFormat": "pmetrics",
+      "testedAs": "pmetrics",
+      "status": "exact",
+      "reason": "embedded versioned Lego specification"
+    },
+    {
+      "model": "mlxtran-multiple-administrations-output",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "mlxtran-multiple-administrations-output",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mlxtran",
+      "status": "structural only",
+      "reason": "populationDefaults, multipleAdministrationsPreserved, populationGraph, customOdeReview"
+    },
+    {
+      "model": "mlxtran-multiple-administrations-output",
+      "sourceFormat": "mlxtran",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "mlxtran-multiple-administrations-output",
+      "sourceFormat": "mlxtran",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "samtani",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "samtani",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mlxtran",
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
+    },
+    {
+      "model": "samtani",
+      "sourceFormat": "mlxtran",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "samtani",
+      "sourceFormat": "mlxtran",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "tjollyn",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tjollyn",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mlxtran",
+      "status": "structural only",
+      "reason": "populationGraph, derivedParameters, customOdeReview"
+    },
+    {
+      "model": "tjollyn",
+      "sourceFormat": "mlxtran",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tjollyn",
+      "sourceFormat": "mlxtran",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "monolix-piecewise",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "monolix-piecewise",
+      "sourceFormat": "mlxtran",
+      "testedAs": "mlxtran",
+      "status": "structural only",
+      "reason": "bounded structural reconstruction"
+    },
+    {
+      "model": "monolix-piecewise",
+      "sourceFormat": "mlxtran",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "monolix-piecewise",
+      "sourceFormat": "mlxtran",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "nonmem-advan2",
+      "sourceFormat": "nonmem",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "nonmem-advan2",
+      "sourceFormat": "nonmem",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "nonmem-advan2",
+      "sourceFormat": "nonmem",
+      "testedAs": "nonmem",
+      "status": "structural only",
+      "reason": "populationGraph"
+    },
+    {
+      "model": "nonmem-advan2",
+      "sourceFormat": "nonmem",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "mrgsolve-conditional",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "v"
+    },
+    {
+      "model": "mrgsolve-conditional",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "mrgsolve-conditional",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "mrgsolve-conditional",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amik_burdet",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
+    },
+    {
+      "model": "amik_burdet",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amik_burdet",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amik_burdet",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amiodarone_pollak_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "amiodarone_pollak_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amiodarone_pollak_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amiodarone_pollak_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amox_carlier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "amox_carlier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_carlier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_carlier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amox_fournier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "V1"
+    },
+    {
+      "model": "amox_fournier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_fournier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_fournier",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amox_mellon",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "V1"
+    },
+    {
+      "model": "amox_mellon",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_mellon",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_mellon",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "amox_rambaud",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "AGFR"
+    },
+    {
+      "model": "amox_rambaud",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_rambaud",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "amox_rambaud",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefazoline_cheng",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "cefazoline_cheng",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_cheng",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_cheng",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefazoline_lanoiselee",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "CLCR"
+    },
+    {
+      "model": "cefazoline_lanoiselee",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_lanoiselee",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_lanoiselee",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefazoline_schmitz",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "cefazoline_schmitz",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_schmitz",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefazoline_schmitz",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefepime_an",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "LBW"
+    },
+    {
+      "model": "cefepime_an",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_an",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_an",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefepime_jonckheere",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "cefepime_jonckheere",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_jonckheere",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_jonckheere",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cefepime_seo",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "clcr_calc"
+    },
+    {
+      "model": "cefepime_seo",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_seo",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cefepime_seo",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "ciclosporine_press_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "((wt/70)^wtv)"
+    },
+    {
+      "model": "ciclosporine_press_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "ciclosporine_press_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "ciclosporine_press_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "cobicistat_mathias_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "cobicistat_mathias_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cobicistat_mathias_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "cobicistat_mathias_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "dapto_dvorchik_IV_adults",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "dapto_dvorchik_IV_adults",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "dapto_dvorchik_IV_adults",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "dapto_dvorchik_IV_adults",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "dapto_garreau",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "dapto_garreau",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "dapto_garreau",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "dapto_garreau",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "diltiazem_hermann_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "diltiazem_hermann_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "diltiazem_hermann_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "diltiazem_hermann_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "erythromycine_mather_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "erythromycine_mather_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "erythromycine_mather_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "erythromycine_mather_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "everolimus_moes_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "((ibw_ref/ibw)^ibw_v1)"
+    },
+    {
+      "model": "everolimus_moes_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "everolimus_moes_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "everolimus_moes_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "everolimus_terheine_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "FFM_EVE"
+    },
+    {
+      "model": "everolimus_terheine_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "everolimus_terheine_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "everolimus_terheine_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "fluconazole_debruyne_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "fluconazole_debruyne_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "fluconazole_debruyne_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "fluconazole_debruyne_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_debord",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "genta_debord",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_debord",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_debord",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_evers_icu",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "LBMC"
+    },
+    {
+      "model": "genta_evers_icu",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_evers_icu",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_evers_icu",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_evers_standard",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "LBMC"
+    },
+    {
+      "model": "genta_evers_standard",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_evers_standard",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_evers_standard",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_franck",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
+    },
+    {
+      "model": "genta_franck",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_franck",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_franck",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_gomes",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "LBMC"
+    },
+    {
+      "model": "genta_gomes",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_gomes",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_gomes",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_hodiamont",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "IBW"
+    },
+    {
+      "model": "genta_hodiamont",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_hodiamont",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_hodiamont",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_rosario_clcr",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "BSA"
+    },
+    {
+      "model": "genta_rosario_clcr",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_rosario_clcr",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_rosario_clcr",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "genta_rosario_clinical",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "BSA"
+    },
+    {
+      "model": "genta_rosario_clinical",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_rosario_clinical",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "genta_rosario_clinical",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "isavuconazole_desai_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "KA"
+    },
+    {
+      "model": "isavuconazole_desai_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "isavuconazole_desai_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "isavuconazole_desai_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "isavuconazole_groll_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "isavuconazole_groll_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "isavuconazole_groll_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "isavuconazole_groll_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "levo_canoui",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "levo_canoui",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "levo_canoui",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "levo_canoui",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "levo_gergs",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
+    },
+    {
+      "model": "levo_gergs",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "levo_gergs",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "levo_gergs",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "linez_buerger",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
+    },
+    {
+      "model": "linez_buerger",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "linez_buerger",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "linez_buerger",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "linez_sasaki",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "CLCR"
+    },
+    {
+      "model": "linez_sasaki",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "linez_sasaki",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "linez_sasaki",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "posaconazole_dolton_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "posaconazole_dolton_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "posaconazole_dolton_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "posaconazole_dolton_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "rifampicine_chang",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "V"
+    },
+    {
+      "model": "rifampicine_chang",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_chang",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_chang",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "rifampicine_jeremiah",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "V"
+    },
+    {
+      "model": "rifampicine_jeremiah",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_jeremiah",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_jeremiah",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "rifampicine_jing",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "V"
+    },
+    {
+      "model": "rifampicine_jing",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_jing",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_jing",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "rifampicine_loos_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "rifampicine_loos_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_loos_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_loos_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "rifampicine_marsot",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "rifampicine_marsot",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_marsot",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "rifampicine_marsot",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "ritonavir_kappelhoff_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "ritonavir_kappelhoff_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "ritonavir_kappelhoff_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "ritonavir_kappelhoff_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "sirolimus_djebli_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "exp((0+eta2))"
+    },
+    {
+      "model": "sirolimus_djebli_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "sirolimus_djebli_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "sirolimus_djebli_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "tacrolimus_kamp_envarsus_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "exp((0+eta2))"
+    },
+    {
+      "model": "tacrolimus_kamp_envarsus_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tacrolimus_kamp_envarsus_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tacrolimus_kamp_envarsus_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "tacrolimus_woillard_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "tacrolimus_woillard_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tacrolimus_woillard_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "tacrolimus_woillard_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "vanco_goti",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "vanco_goti",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_goti",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_goti",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "vanco_pkjust",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "vanco_pkjust",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_pkjust",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_pkjust",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "vanco_revilla",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "vanco_revilla",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_revilla",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_revilla",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "vanco_roberts",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "safe_WT"
+    },
+    {
+      "model": "vanco_roberts",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_roberts",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "vanco_roberts",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    },
+    {
+      "model": "voriconazole_vandenborn_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mrgsolve",
+      "status": "rejected",
+      "reason": "unsupportedEquation"
+    },
+    {
+      "model": "voriconazole_vandenborn_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "mlxtran",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "voriconazole_vandenborn_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "nonmem",
+      "status": "rejected",
+      "reason": "unsupportedStructure"
+    },
+    {
+      "model": "voriconazole_vandenborn_ddi",
+      "sourceFormat": "mrgsolve",
+      "testedAs": "pmetrics",
+      "status": "rejected",
+      "reason": "Expected a literal R list"
+    }
+  ]
+}

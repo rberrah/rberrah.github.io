@@ -38,7 +38,7 @@ jobs:
         run: node scripts/test_multiomics_calibration_grid.mjs
       - name: Retain transparent calibration metrics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-independent-group-calibration
           path: tmp/multiomics/calibration-grid.json

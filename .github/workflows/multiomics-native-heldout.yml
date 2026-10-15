@@ -61,7 +61,7 @@ jobs:
           Rscript scripts/evaluate_tcga_native_pmx.R tmp/multiomics/tcga-native
       - name: Archive frozen model, source contract, scores, diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-pmx-native-publisher-heldout
           path: |

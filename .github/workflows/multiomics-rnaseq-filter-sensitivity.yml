@@ -37,7 +37,7 @@ jobs:
         with:
           use-public-rspm: true
       - name: Cache reference R Bioconductor
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.R_LIBS_USER }}
           key: multiomics-prefilter-${{ runner.os }}-${{ hashFiles('multiomics-engine/advanced_methods.R', 'multiomics-engine/tests/bioconductor_rnaseq_filter_sensitivity.R') }}
@@ -57,7 +57,7 @@ jobs:
         run: Rscript multiomics-engine/tests/bioconductor_rnaseq_filter_sensitivity.R
       - name: Archive normalization changes, per-study FDR/power, paired differences and package versions
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rnaseq-paired-prefilter-reference-validation
           path: validation-artifacts/*

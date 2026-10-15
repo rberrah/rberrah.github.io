@@ -6,10 +6,12 @@ again by the author before a new hash is sealed.
 
 ## French chapters
 
-- `src/content/chapters/nlmixr2-moteur.md`: current estimator-family overview.
-- `src/content/chapters/tools-nlmixr2.md`: current estimator-family summary.
-- `src/content/chapters/08c_pmetrics-nonparametric.md`: tested release versus
-  development documentation and `block` to `occasion` compatibility note.
+- `src/content/chapters/nlmixr2-moteur.md`: distinction between ODE stiffness,
+  SAEM/FOCEI estimation and post-SAEM FOCEi objective evaluation.
+- `src/content/chapters/tools-nlmixr2.md`: neutral, non-promotional description
+  of the software scope and limitations.
+- `src/content/chapters/08c_pmetrics-nonparametric.md`: interpretation of
+  support points and separated regions without cluster/phenotype claims.
 
 ## English chapters
 
@@ -38,9 +40,9 @@ explicitly `pending`:
 
 ## Visualizations
 
-No scientific visualization source or bilingual visualization description was
-changed in this work. Independent review of `NPAGSupportPoints.svelte` remains
-pending in the existing checklist.
+- `src/lib/components/visualizations/NPAGSupportPoints.svelte`: the labels and
+  caveat now distinguish support-point weights and marginal masses from clinical
+  clusters or phenotypes. Author review and independent review remain pending.
 
 Do not change `review_type`, `reviewed_on` or stored review hashes until the
 corresponding human review has actually occurred.

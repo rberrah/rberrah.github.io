@@ -87,7 +87,8 @@
   </div>
 
   <div class="row">
-    <pre class="bibtex" data-testid="cite-bibtex">{bibtex}</pre>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex (the horizontally scrollable code region needs keyboard access) -->
+    <pre class="bibtex" data-testid="cite-bibtex" role="region" aria-label="BibTeX" tabindex="0">{bibtex}</pre>
     {#if canCopy}
       <button type="button" class="copy" onclick={() => copierTexte(bibtex, 'bibtex')}>
         {copied === 'bibtex' ? copy.chapter.citeCopied : copy.chapter.citeCopy}

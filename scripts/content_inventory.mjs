@@ -34,6 +34,12 @@ const syntheses = guidedActivities.filter(activity => activity.kind === 'synthes
 const guided = guidedActivities.filter(activity => activity.kind !== 'synthesis');
 const pendingReviews = chapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const pendingEnglishReviews = englishChapters.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
+const authorReviewed = chapters.filter(chapter => chapter.review_type === 'author');
+const currentAuthorReviews = authorReviewed.filter(chapter => chapter.reviewed_hash === chapterReviewHash(chapter.raw));
+const staleAuthorReviews = authorReviewed.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
+const englishAuthorReviewed = englishChapters.filter(chapter => chapter.review_type === 'author');
+const currentEnglishAuthorReviews = englishAuthorReviewed.filter(chapter => chapter.reviewed_hash === chapterReviewHash(chapter.raw));
+const staleEnglishAuthorReviews = englishAuthorReviewed.filter(chapter => chapter.reviewed_hash !== chapterReviewHash(chapter.raw));
 const crossDomainReviewRows = crossDomainLessons.flatMap(lesson => ['fr', 'en'].map(language => ({
   id: lesson.id,
   language,
@@ -77,14 +83,18 @@ const rows = [
   ['Chapters with source identifiers', chapters.filter(chapter => chapter.sources?.length).length],
   ['Chapters with a scientific review date', chapters.filter(chapter => chapter.reviewed_on).length],
   ['Software chapters with freshness metadata', softwareChapters.length],
-  ['Chapters reviewed by the author', chapters.filter(chapter => chapter.review_type === 'author').length],
+  ['French chapters ever reviewed by the author', authorReviewed.length],
+  ['French chapters with a current author review', currentAuthorReviews.length],
+  ['French chapters with a stale author review', staleAuthorReviews.length],
   ['Chapters reviewed internally', chapters.filter(chapter => chapter.review_type === 'internal').length],
   ['Chapters reviewed externally', chapters.filter(chapter => chapter.review_type === 'external').length],
-  ['French chapters pending scientific review', pendingReviews.length],
-  ['English chapters reviewed by the author', englishChapters.filter(chapter => chapter.review_type === 'author').length],
+  ['French chapters with a changed content hash', pendingReviews.length],
+  ['English chapters ever reviewed by the author', englishAuthorReviewed.length],
+  ['English chapters with a current author review', currentEnglishAuthorReviews.length],
+  ['English chapters with a stale author review', staleEnglishAuthorReviews.length],
   ['English chapters reviewed internally', englishChapters.filter(chapter => chapter.review_type === 'internal').length],
   ['English chapters reviewed externally', englishChapters.filter(chapter => chapter.review_type === 'external').length],
-  ['English chapters pending scientific review', pendingEnglishReviews.length]
+  ['English chapters with a changed content hash', pendingEnglishReviews.length]
 ];
 
 assert.equal(new Set(chapters.map(chapter => chapter.slug)).size, chapters.length, 'Duplicate chapter slug');

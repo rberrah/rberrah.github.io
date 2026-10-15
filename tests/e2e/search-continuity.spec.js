@@ -43,9 +43,9 @@ test('glossary connects a concept to its course, exercise and laboratory', async
 test('a chapter with several laboratories returns to the same originating chapter', async ({ page }) => {
   await page.goto(url('/chapitres/parent-metabolite/?lang=en'));
   const journey = page.getByTestId('concept-journey');
-  await expect(journey.getByRole('link')).toHaveCount(2);
+  await expect(journey.getByTestId('chapter-laboratory-link')).toHaveCount(2);
 
-  await journey.getByRole('link').first().click();
+  await journey.getByTestId('chapter-laboratory-link').first().click();
   await expect(page).toHaveURL(/lab=parent-metabolite.*from=parent-metabolite/);
   await expect(page.getByTestId('lab-return-course')).toContainText('originating course');
   await expect(page.getByTestId('lab-related-exercises')).toHaveAttribute('href', /chapitres\/parent-metabolite\/.*chapter-exercises/);

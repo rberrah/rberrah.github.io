@@ -16,14 +16,88 @@ model_sha256 <- function(model_id) {
   digest::digest(canonical, algo = "sha256", serialize = FALSE)
 }
 
-read_ml_manifest <- function() {
-  if (!file.exists(ML_MANIFEST_PATH)) return(list(version = ML_MANIFEST_VERSION, artifacts = list()))
-  manifest <- jsonlite::fromJSON(ML_MANIFEST_PATH, simplifyVector = FALSE)
+ml_contract_value <- function(object, path) {
+  value <- object
+  for (key in strsplit(path, ".", fixed = TRUE)[[1]]) {
+    if (!is.list(value) || is.null(value[[key]])) return(NULL)
+    value <- value[[key]]
+  }
+  value
+}
+
+ml_contract_present <- function(value) {
+  if (is.null(value) || !length(value)) return(FALSE)
+  if (is.character(value) && any(!nzchar(value))) return(FALSE)
+  TRUE
+}
+
+validate_ml_manifest <- function(manifest) {
   if (!identical(as.integer(manifest$version %||% 0), ML_MANIFEST_VERSION)) {
     stop("Unsupported ML manifest version.")
   }
-  manifest$artifacts <- manifest$artifacts %||% list()
+  artifacts <- manifest$artifacts %||% list()
+  required <- c(
+    "id", "releaseLevel", "baseModelId", "baseModelSha256", "artifactPath", "artifactSha256",
+    "route", "administrationMode", "samplingProtocol.strategy", "samplingProtocol.minimumObservations",
+    "samplingProtocol.target", "prediction.type", "prediction.metric", "prediction.unit",
+    "prediction.horizonHours", "featureSchema", "methodology.sourcePopulation",
+    "methodology.regimenConfiguration", "methodology.populationConfiguration", "training.seed",
+    "training.nVirtualDevelopment", "training.nTraining", "training.nUntouchedHoldout",
+    "training.nUnseenPopPk", "training.split.unit", "training.split.method",
+    "training.split.holdoutUntouched", "training.software", "trainingDomain.features",
+    "validation.untouchedHoldout.relativeRmsePct", "validation.untouchedHoldout.relativeBiasPct",
+    "validation.untouchedHoldout.within20Pct"
+  )
+  ids <- vapply(artifacts, function(artifact) as.character(artifact$id %||% ""), character(1))
+  if (any(!nzchar(ids)) || anyDuplicated(ids)) stop("ML artifact identifiers must be present and unique.")
+  for (artifact in artifacts) {
+    label <- as.character(artifact$id %||% "<unknown>")
+    missing <- required[!vapply(required, function(path) ml_contract_present(ml_contract_value(artifact, path)), logical(1))]
+    if (length(missing)) stop("Incomplete ML artifact ", label, ": ", paste(missing, collapse = ", "))
+    if (!artifact$route %in% c("IV", "Oral")) stop("Unsupported ML route in ", label, ".")
+    if (!artifact$administrationMode %in% c("intermittent", "oral", "continuous")) {
+      stop("Unsupported ML administration mode in ", label, ".")
+    }
+    if (!identical(artifact$samplingProtocol$target, artifact$prediction$metric)) {
+      stop("Sampling and prediction targets differ in ", label, ".")
+    }
+    horizon <- suppressWarnings(as.numeric(artifact$prediction$horizonHours))
+    if (length(horizon) != 1L || !is.finite(horizon) || horizon <= 0) stop("Invalid ML horizon in ", label, ".")
+    counts <- suppressWarnings(as.integer(c(
+      artifact$training$nVirtualDevelopment,
+      artifact$training$nTraining,
+      artifact$training$nUntouchedHoldout
+    )))
+    if (anyNA(counts) || counts[[2]] + counts[[3]] != counts[[1]]) stop("Inconsistent ML split in ", label, ".")
+    if (!identical(artifact$training$split$unit, "simulated_patient") ||
+        !isTRUE(artifact$training$split$holdoutUntouched)) {
+      stop("Invalid ML split contract in ", label, ".")
+    }
+    features <- vapply(artifact$featureSchema, function(feature) as.character(feature$name %||% ""), character(1))
+    if (any(!nzchar(features)) || anyDuplicated(features)) stop("Invalid ML feature schema in ", label, ".")
+    domains <- names(artifact$trainingDomain$features)
+    if (!setequal(features, domains)) stop("ML features and training domains differ in ", label, ".")
+    for (name in features) {
+      bounds <- artifact$trainingDomain$features[[name]]
+      range <- suppressWarnings(as.numeric(c(bounds$min, bounds$max)))
+      if (length(range) != 2L || any(!is.finite(range)) || range[[1]] > range[[2]]) {
+        stop("Invalid ML training domain for ", name, " in ", label, ".")
+      }
+    }
+    metrics <- artifact$validation$untouchedHoldout
+    values <- suppressWarnings(as.numeric(c(metrics$relativeRmsePct, metrics$relativeBiasPct, metrics$within20Pct)))
+    if (length(values) != 3L || any(!is.finite(values)) || values[[3]] < 0 || values[[3]] > 100) {
+      stop("Invalid ML holdout metrics in ", label, ".")
+    }
+  }
+  manifest$artifacts <- artifacts
   manifest
+}
+
+read_ml_manifest <- function() {
+  if (!file.exists(ML_MANIFEST_PATH)) return(list(version = ML_MANIFEST_VERSION, artifacts = list()))
+  manifest <- jsonlite::fromJSON(ML_MANIFEST_PATH, simplifyVector = FALSE)
+  validate_ml_manifest(manifest)
 }
 
 ml_prediction_type <- function(artifact) {

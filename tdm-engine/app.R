@@ -68,6 +68,7 @@ target_value_label <- function(metric, row, lang = "fr") {
 
 APP_ROOT <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
+source(file.path(APP_ROOT, "R", "private_workspace.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "pmetrics_engine.R"), local = TRUE)
@@ -1178,8 +1179,7 @@ server <- function(input, output, session) {
   pending_import_covariates <- reactiveVal(NULL)
   pending_import_dose_covariates <- reactiveVal(NULL)
   pending_lego_covariates <- reactiveVal(NULL)
-  session_model_dir <- tempfile("pk-mipd-custom-session-")
-  dir.create(session_model_dir, recursive = TRUE, showWarnings = FALSE)
+  session_model_dir <- new_private_workspace("pk-mipd-custom-session-")
   session_model_cache <- new.env(parent = emptyenv())
 
   numeric_input_value <- function(id, fallback = NA_real_) {
@@ -1347,17 +1347,7 @@ server <- function(input, output, session) {
     ddi_subject_1(NULL)
     ddi_subject_2(NULL)
     validation_store(NULL)
-    loaded <- getLoadedDLLs()
-    session_path <- normalizePath(session_model_dir, winslash = "/", mustWork = FALSE)
-    dll_paths <- vapply(loaded, function(dll) dll[["path"]] %||% "", character(1))
-    dll_paths <- dll_paths[nzchar(dll_paths)]
-    normalized <- normalizePath(dll_paths, winslash = "/", mustWork = FALSE)
-    for (path in unique(dll_paths[startsWith(normalized, session_path)])) {
-      try(dyn.unload(path), silent = TRUE)
-    }
-    rm(list = ls(session_model_cache, all.names = TRUE), envir = session_model_cache)
-    invisible(gc())
-    unlink(session_model_dir, recursive = TRUE, force = TRUE)
+    cleanup_private_workspace(session_model_dir, session_model_cache)
   })
 
   insert_dose_row <- function(index, time = 0, amount = 1000, interval = 12, count = 4, infusion = 1, steady_state = FALSE, status = "administered", time_uncertainty = 0) {
@@ -1446,7 +1436,7 @@ server <- function(input, output, session) {
       pending_lego_covariates(list(code = imported$code, definition = parse_covariates(imported$code)))
       updateRadioButtons(session, "model_source", selected = "custom")
       updateTextAreaInput(session, "custom_code", value = imported$code)
-      updateSelectInput(session, "administration_route", selected = "IV")
+      updateSelectInput(session, "administration_route", selected = imported$route)
       updateSelectInput(session, "time_entry_mode", selected = "relative_hours")
       updateCheckboxInput(session, "enable_averaging", value = FALSE)
       updateCheckboxInput(session, "enable_experimental_ml", value = FALSE)
@@ -1456,8 +1446,16 @@ server <- function(input, output, session) {
       analysis_store(NULL)
       bslib::nav_select("analysis_tabs", "model")
       session$sendCustomMessage("teaching-lab-ack", list(id = id, ok = TRUE))
-      showNotification(tx("Experience synthetique importee : bolus IV, mg, L, h. Aucune concentration observee. Variabilite illustrative uniquement.",
-                          "Synthetic experiment imported: IV bolus, mg, L, h. No observed concentration. Illustrative variability only."), duration = 12)
+      mode <- switch(payload$spec$lab,
+        absorption = tx("voie orale", "oral route"),
+        infusion = tx("perfusion IV", "IV infusion"),
+        tx("bolus IV", "IV bolus")
+      )
+      showNotification(paste0(
+        tx("Experience synthetique importee : ", "Synthetic experiment imported: "), mode,
+        tx(", mg, L, h. Aucune concentration observee. Variabilite illustrative uniquement.",
+           ", mg, L, h. No observed concentration. Illustrative variability only.")
+      ), duration = 12)
     }, error = function(error) session$sendCustomMessage("teaching-lab-ack", list(id = id, ok = FALSE, error = conditionMessage(error))))
   }, ignoreInit = TRUE)
 
@@ -2007,6 +2005,45 @@ server <- function(input, output, session) {
       messages <- c(messages, tx("Au moins un modèle est adapté ou déterministe : relisez sa note avant interprétation.", "At least one model is adapted or deterministic: review its note before interpretation."))
     }
     list(messages = unique(messages[nzchar(messages)]), populations = populations)
+  }
+
+  build_fit_diagnostics <- function(fits) {
+    lapply(fits, function(fit) {
+      diagnostic <- fit_numeric_diagnostics(fit)
+      messages <- character()
+      if (identical(diagnostic$status, "error")) {
+        messages <- tx("Ajustement non disponible.", "Fit unavailable.")
+      } else if (identical(diagnostic$status, "population")) {
+        messages <- tx("Aucune concentration exploitable : prédiction populationnelle, sans estimation individuelle ni incertitude postérieure.", "No usable concentration: population prediction without individual estimation or posterior uncertainty.")
+      } else if (identical(diagnostic$engine, "pmetrics")) {
+        messages <- if (is.finite(diagnostic$effective_support)) tx(
+          paste0("Posterior Pmetrics calculé sur les points de support pondérés; nombre effectif de points : ", format_metric(diagnostic$effective_support), "."),
+          paste0("Pmetrics posterior computed over weighted support points; effective number of points: ", format_metric(diagnostic$effective_support), ".")
+        ) else tx("Posterior Pmetrics calculé; dispersion des points de support indisponible.", "Pmetrics posterior computed; support-point dispersion unavailable.")
+      } else {
+        if (isFALSE(diagnostic$converged)) messages <- c(messages, tx("L'optimiseur n'a pas signalé une convergence normale.", "The optimizer did not report normal convergence."))
+        if (is.na(diagnostic$converged)) messages <- c(messages, tx("Statut de convergence de l'optimiseur indisponible.", "Optimizer convergence status unavailable."))
+        if (isTRUE(diagnostic$sparse)) messages <- c(messages, tx(
+          paste0(diagnostic$observations, " concentration(s) pour ", diagnostic$eta_count, " ETA estimés : les données individuelles sont peu informatives par rapport à la dimension du posterior."),
+          paste0(diagnostic$observations, " concentration(s) for ", diagnostic$eta_count, " estimated ETAs: individual data are sparse relative to posterior dimension.")
+        ))
+        if (isTRUE(diagnostic$at_boundary)) messages <- c(messages, tx("Au moins un ETA est proche d'une borne numérique de l'optimisation mapbayr.", "At least one ETA is near a numerical mapbayr optimization bound."))
+        if (!isTRUE(diagnostic$uncertainty_available)) messages <- c(messages, tx("Covariance postérieure indisponible : aucun intervalle d'incertitude individuel ne doit être interprété.", "Posterior covariance unavailable: no individual uncertainty interval should be interpreted."))
+        if (isFALSE(diagnostic$uncertainty_stable)) messages <- c(messages, tx("Covariance postérieure non définie positive ou numériquement mal conditionnée : incertitude individuelle instable.", "Posterior covariance is not positive definite or is numerically ill-conditioned: individual uncertainty is unstable."))
+        if (!length(messages)) messages <- tx("Convergence rapportée, aucun ETA proche d'une borne et covariance postérieure numériquement exploitable.", "Convergence reported, no ETA near a bound, and posterior covariance numerically usable.")
+      }
+      list(label = diagnostic$label, messages = messages)
+    })
+  }
+
+  fit_diagnostics_ui <- function(items) {
+    rows <- lapply(items, function(item) tags$li(tags$strong(item$label), tags$ul(lapply(item$messages, tags$li))))
+    div(
+      class = "analysis-diagnostics",
+      tags$strong(tx("Diagnostics numériques de l'ajustement", "Numerical fit diagnostics")),
+      tags$ul(rows),
+      p(tx("Ces signaux décrivent l'optimisation et l'information disponible; ils ne démontrent ni l'identifiabilité du modèle ni sa validité clinique.", "These signals describe optimization and available information; they demonstrate neither model identifiability nor clinical validity."))
+    )
   }
 
   analysis_provenance <- function(specifications) {
@@ -2720,6 +2757,7 @@ server <- function(input, output, session) {
           target_preset = applied_target_preset(),
           weighting_scheme = isolate(input$weighting_scheme %||% "AIC"),
           quality = quality,
+          fit_diagnostics = build_fit_diagnostics(fits),
           provenance = analysis_provenance(specifications),
           ml_status = ml_application_summary(fits, weights),
           settings = list(
@@ -2742,7 +2780,7 @@ server <- function(input, output, session) {
     }, error = function(error) {
       detail <- conditionMessage(error)
       if (!nzchar(detail)) detail <- tx("Une entrée réactive requise n'est pas disponible.", "A required reactive input is unavailable.")
-      message("TDM analysis error [", analysis_stage, "] ", paste(class(error), collapse = "/"), ": ", detail)
+      message("TDM analysis error [", analysis_stage, "] class=", paste(class(error), collapse = "/"))
       showNotification(paste0(analysis_stage, " : ", detail), type = "error", duration = 10)
     })
   })
@@ -2757,22 +2795,25 @@ server <- function(input, output, session) {
     population_rows <- lapply(result$quality$populations, function(item) {
       tags$li(tags$strong(item$model), paste0(" : ", item$population))
     })
-    div(
-      class = "analysis-diagnostics",
-      tags$strong(tx("Applicabilité et qualité des données", "Applicability and data quality")),
-      if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else span(tx("Aucune anomalie générique détectée.", "No generic issue detected.")),
-      if (length(population_rows)) tagList(span(tx("Populations sources à comparer au patient :", "Source populations to compare with the patient:")), tags$ul(population_rows)),
-      if (identical(result$settings$residual_error_mode, "fixed_cv")) {
-        div(
-          class = "residual-setting-warning",
-          tx(
-            paste0("Ajustement MAP avec un CV résiduel proportionnel fixé à ", format_metric(result$settings$fixed_residual_cv), " %; représentation SIGMA adaptée à l'échelle d'erreur du modèle."),
-            paste0("MAP fit with proportional residual CV fixed at ", format_metric(result$settings$fixed_residual_cv), "%; SIGMA representation adapted to the model error scale.")
+    tagList(
+      div(
+        class = "analysis-diagnostics",
+        tags$strong(tx("Applicabilité et qualité des données", "Applicability and data quality")),
+        if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else span(tx("Aucune anomalie générique détectée.", "No generic issue detected.")),
+        if (length(population_rows)) tagList(span(tx("Populations sources à comparer au patient :", "Source populations to compare with the patient:")), tags$ul(population_rows)),
+        if (identical(result$settings$residual_error_mode, "fixed_cv")) {
+          div(
+            class = "residual-setting-warning",
+            tx(
+              paste0("Ajustement MAP avec un CV résiduel proportionnel fixé à ", format_metric(result$settings$fixed_residual_cv), " %; représentation SIGMA adaptée à l'échelle d'erreur du modèle."),
+              paste0("MAP fit with proportional residual CV fixed at ", format_metric(result$settings$fixed_residual_cv), "%; SIGMA representation adapted to the model error scale.")
+            )
           )
-        )
-      },
-      span(class = "ml-result-status", ml_status_message(result$ml_status, current_language())),
-      ml_domain_warning_block(result$ml_status, current_language())
+        },
+        span(class = "ml-result-status", ml_status_message(result$ml_status, current_language())),
+        ml_domain_warning_block(result$ml_status, current_language())
+      ),
+      fit_diagnostics_ui(result$fit_diagnostics)
     )
   })
 
@@ -3456,6 +3497,7 @@ server <- function(input, output, session) {
           h2("Applicabilité et qualité"),
           if (length(result$quality$messages)) tags$ul(lapply(result$quality$messages, tags$li)) else p("Aucune anomalie générique détectée."),
           tags$ul(lapply(result$quality$populations, function(item) tags$li(tags$strong(item$model), paste0(" : ", item$population)))),
+          fit_diagnostics_ui(result$fit_diagnostics),
           h2("Réglages appliqués"),
           p(tx(
             if (identical(result$settings$residual_error_mode, "fixed_cv")) {

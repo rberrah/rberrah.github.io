@@ -68,7 +68,7 @@ jobs:
             external/mixOmics tmp/multiomics/mofa-nutrimouse-real
       - name: Preserve all model factors, source provenance, permutations and failures
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-real-nutrimouse-MOFA2-metadata-evidence
           path: tmp/multiomics/mofa-nutrimouse-real/

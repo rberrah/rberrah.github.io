@@ -9,6 +9,7 @@
   import MolecularScene from './MolecularScene.svelte';
   import MolecularPlot from './MolecularPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';
+  import LabComparisonSummary from './LabComparisonSummary.svelte';
   import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '$lib/labs/molecular.js';
   export let lab;
   const fundamentalLabs = [
@@ -35,6 +36,7 @@
   $: unit = config?.unit === 'day' ? (en ? 'days' : 'jours') : 'h';
   $: massError = state ? Object.values(state.mass).reduce((sum, value) => sum + value, 0) - state.administered : 0;
   $: metric = state && valid ? config.metric?.(state, valid, time) ?? { label: { en: `AUC 0-${time.toFixed(1)} ${unit}`, fr: `AUC 0-${time.toFixed(1)} ${unit}` }, value: state.auc, unit: `mg·${config.unit}/L` } : null;
+  $: referenceMetric = referenceState ? config.metric?.(referenceState, reference, time) ?? { value: referenceState.auc } : null;
   const focusParameters = { 'parent-metabolite': 'kmet', 'long-acting': 'krel', saturable: 'dose', enterohepatic: 'kempty', tmdd: 'dose', 'effect-compartment': 'ke0', 'pd-general': 'model', 'pd-oncology': 'resistance', 'pd-infectiology': 'tau', 'covariate-volume': 'weight', 'covariate-clearance': 'gfr' };
   const applications = {
     'parent-metabolite': app('If metabolite clearance falls, what happens to its exposure?', 'Si la clairance du métabolite diminue, que devient son exposition ?', ['It increases', 'It decreases'], ['Elle augmente', 'Elle diminue'], 0, 'Slower metabolite removal increases its exposure.', 'Une élimination plus lente du métabolite augmente son exposition.'),
@@ -54,6 +56,14 @@
   $: focusParameter = focusParameters[lab] ?? parameterEntries[0]?.[0];
   $: visibleParameters = learningMode === 'guided' ? parameterEntries.filter(([key]) => key === focusParameter) : parameterEntries;
   $: lockedParameters = parameterEntries.filter(([key]) => key !== focusParameter);
+  $: comparisonChanges = valid ? parameterEntries.filter(([key]) => key !== 'end' && valid[key] !== reference[key]).map(([key, rule]) => ({ label: en ? rule.label.en : rule.label.fr, reference: reference[key], current: valid[key], unit: rule.unit })) : [];
+  $: comparisonOutcomes = state && referenceState ? (config.referenceMode === 'intrinsic' ? [
+    { label: en ? config.secondary.en : config.secondary.fr, reference: state.untreated, current: state.secondary, unit: config.secondaryUnit }
+  ] : [
+    { label: en ? 'Primary concentration' : 'Concentration primaire', reference: referenceState.c, current: state.c, unit: 'mg/L' },
+    { label: en ? config.secondary.en : config.secondary.fr, reference: referenceState.secondary, current: state.secondary, unit: config.secondaryUnit },
+    { label: en ? metric.label.en : metric.label.fr, reference: referenceMetric.value, current: metric.value, unit: metric.unit }
+  ]) : [];
   $: if (!teacher) hidden = false;
   $: if (hidden || !valid) pause();
 
@@ -178,6 +188,7 @@
       </div>
       {#if valid && state && !hidden}
         <div class:two={config.plotMode === 'primary'} class="metrics"><div><span>{en ? 'Primary concentration' : 'Concentration primaire'} · mg/L</span><strong data-testid="molecular-concentration">{state.c.toFixed(2)}</strong></div>{#if config.plotMode !== 'primary'}<div><span>{en ? config.secondary.en : config.secondary.fr} · {config.secondaryUnit}</span><strong>{state.secondary.toFixed(2)}</strong></div>{/if}<div><span>{en ? metric.label.en : metric.label.fr} · {metric.unit}</span><strong>{metric.value.toFixed(2)}</strong></div></div>
+        {#if compare || config.referenceMode === 'intrinsic'}<LabComparisonSummary {en} {time} timeUnit={config.unit === 'day' ? (en ? 'days' : 'jours') : 'h'} changes={comparisonChanges} outcomes={comparisonOutcomes} intrinsic={config.referenceMode === 'intrinsic'}/>{/if}
         <p id="molecular-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} ${unit}, primary concentration is ${state.c.toFixed(2)} mg/L and ${config.secondary.en.toLowerCase()} is ${state.secondary.toFixed(2)} ${config.secondaryUnit}.` : `À ${time.toFixed(1)} ${unit}, la concentration primaire vaut ${state.c.toFixed(2)} mg/L et ${config.secondary.fr.toLowerCase()} vaut ${state.secondary.toFixed(2)} ${config.secondaryUnit}.`}</p>
         {#key lab}<LabDebrief {en} explanation={config.explanation} application={applications[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Amounts, flows and mass balance' : 'Quantités, flux et bilan de masse'}</summary><div class="table-scroll"><table><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current' : 'Actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each config.states.filter(key => key !== 'auc') as key}<tr><th>{key}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{referenceState[key].toFixed(3)}</td>{/if}</tr>{/each}{#each [...new Set(config.edges.map(edge => edge.flow))] as key}<tr><th>{key}</th><td>{state.flows[key].toFixed(3)}</td>{#if compare}<td>{referenceState.flows[key].toFixed(3)}</td>{/if}</tr>{/each}<tr><th>{en ? 'Mass-balance error' : 'Erreur du bilan de masse'} ({config.amountUnit ?? 'mg'})</th><td>{massError.toExponential(2)}</td>{#if compare}<td>{(Object.values(referenceState.mass).reduce((sum, value) => sum + value, 0) - referenceState.administered).toExponential(2)}</td>{/if}</tr></tbody></table></div></details>

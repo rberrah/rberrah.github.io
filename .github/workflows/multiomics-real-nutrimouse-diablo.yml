@@ -58,7 +58,7 @@ jobs:
             external/mixOmics tmp/multiomics/real-nutrimouse-diablo
       - name: Archive ALL outcomes even if observed model performs poorly
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-real-nutrimouse-diablo-true-observations
           path: tmp/multiomics/real-nutrimouse-diablo/

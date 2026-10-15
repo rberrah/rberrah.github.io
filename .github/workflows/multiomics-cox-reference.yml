@@ -54,7 +54,7 @@ jobs:
         run: Rscript multiomics-engine/tests/test_survival_backend.R
       - name: Archive survival validation inputs and results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-cox-independent-validation
           path: tmp/multiomics/cox-reference/

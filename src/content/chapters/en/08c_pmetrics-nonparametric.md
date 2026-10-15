@@ -79,7 +79,7 @@ defines the **absolute bounds** explored by NPAG for `Ke`. It is not a confidenc
 
 The error model also weights each observation. It should represent analytical error and residual model discrepancy in a defensible way.
 
-A support point is a **complete parameter vector** with an associated weight. It is not a patient, clinical cluster or phenotype. The final number of points is therefore not a count of subpopulations. The “at most one point per subject” property concerns the NPAG construction and must not be generalized to every nonparametric estimator.
+A support point is a **complete parameter vector** with an associated weight. It is not a patient, clinical cluster or phenotype. The final number of points is therefore not a count of subpopulations. Visually separated regions may depend on bounds, the error model, the information in the data and the discretisation; they do not become latent classes without an additional model and hypothesis. The “at most one point per subject” property concerns the NPAG construction and must not be generalized to every nonparametric estimator.
 <!-- /step -->
 
 <!-- step:title="Worked example" -->
@@ -124,7 +124,7 @@ After fitting, `fit$final$popPoints` contains parameter values for each support 
 <!-- step:title="Reproducible official example" -->
 Pmetrics 3.2.6 ships a tutorial dataset with 51 subjects, `bimodal_ke.csv`, and two official formulations of the same one-compartment IV model: the `one_comp_iv` analytical shortcut and an explicit ODE.
 
-**Version actually tested here: 3.2.6.** It was the latest tagged GitHub release when checked on 12 October 2026 and is pinned in the native CI job. The online development documentation already mentions a deprecation introduced in 3.2.7: the observation-occasion column `block` becomes `occasion`, with legacy objects upgraded through `PM_upgrade()`. No active example in this course uses that column; any new example should use `occasion`, and an older fixture using `block` should only be described as compatible after testing it with the relevant version.
+**Version actually tested here: 3.2.6.** It was the latest tagged GitHub release when checked on 12 October 2026 and is pinned in the native CI job. Development documentation intended for 3.2.7 announces that the observation-occasion column `block` will be deprecated in favour of `occasion`, with legacy objects upgraded through `PM_upgrade()`; this does not yet describe a published release tested here. No active example in this course uses that column; any new example should use `occasion`, and an older fixture using `block` should only be described as compatible after testing it with the relevant version.
 
 PMx Explain loads the file directly from the installed package and does not copy the data. `tdm-engine/benchmarks/pmetrics_official_example.R` reproduces the official `ke = [0.001, 3] h⁻¹` and `v = [25, 250] L` bounds, additive error, seed 22 and NPAG fit. It checks weights and bounds, then compares population means from both formulations.
 

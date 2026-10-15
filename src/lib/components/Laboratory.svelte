@@ -11,6 +11,7 @@
   import LabScene from './LabScene.svelte';
   import LabPlot from './LabPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';
+  import LabComparisonSummary from './LabComparisonSummary.svelte';
   let lab = 'distribution', p = { ...defaults.distribution }, reference = { ...p };
   let time = 0, playing = false, speed = 1, compare = true, mode = 'intuition', learningMode = 'guided';
   let teacher = false, hidden = false, prediction = '', answer = false, message = '', shared = '', loadError = '', sourceChapter = '';
@@ -35,6 +36,11 @@
   $: visibleFields = learningMode === 'guided' ? fields.filter(key => key === focus) : fields;
   $: lockedFields = fields.filter(key => key !== focus);
   $: landmarks = valid && newLab ? singleDoseSummary(lab, valid) : null;
+  $: comparisonChanges = valid ? fields.filter(key => key !== 'end' && valid[key] !== reference[key]).map(key => ({ label: names[key], reference: reference[key], current: valid[key] })) : [];
+  $: comparisonOutcomes = state && refState ? [
+    { label: 'C(t)', reference: refState.c, current: state.c, unit: 'mg/L' },
+    { label: `AUC 0-${time.toFixed(1)} h`, reference: refState.auc, current: state.auc, unit: 'mg.h/L' }
+  ] : [];
   $: quantities = [['central', 'Central (mg)'], ...(lab === 'absorption' ? [['depot', en ? 'Oral depot (mg)' : 'Dépôt oral (mg)'], ['lost', en ? 'Presystemic loss (mg)' : 'Perte présystémique (mg)']] : lab === 'infusion' ? [['reservoir', en ? 'Infusion bag (mg)' : 'Poche de perfusion (mg)']] : [['peripheral', en ? 'Peripheral (mg)' : 'Périphérique (mg)']]), ['eliminated', en ? 'Eliminated (mg)' : 'Éliminé (mg)'], ...(newLab ? [['inputRate', en ? 'Systemic input (mg/h)' : 'Entrée systémique (mg/h)']] : [['forward', 'Q Cc (mg/h)'], ['backward', 'Q Cp (mg/h)']]), ['eliminationRate', 'CL Cc (mg/h)']];
   $: question = lab === 'absorption' ? (en ? 'If F increases with ka, CL and V fixed, what happens to total exposure (AUC)?' : 'Si F augmente à ka, CL et V fixes, que devient l’exposition totale (AUC) ?') : (en ? 'For the same total dose, what happens to Cmax if the infusion takes longer?' : 'Pour une même dose totale, que devient Cmax si la perfusion dure plus longtemps ?');
   $: explanation = lab === 'absorption' ? (en ? 'AUC(0,infinity) = F * dose / CL. Increasing ka changes the timing and peak, not total exposure at fixed F.' : 'AUC(0,infini) = F * dose / CL. Augmenter ka change le pic et son horaire, pas l’exposition totale à F fixe.') : (en ? 'A longer infusion lowers the input rate and Cmax. Total AUC stays dose / CL; after stopping, concentration declines with half-life ln(2) * V / CL.' : 'Une perfusion plus longue diminue le débit et Cmax. L’AUC totale reste dose / CL ; après arrêt, la demi-vie est ln(2) * V / CL.');
@@ -175,6 +181,7 @@
           <span>{en ? 'Terminal half-life' : 'Demi-vie terminale'} <b>{landmarks.terminalHalfLife.toFixed(2)} h</b></span>
         </div>{/if}
         <div class="metrics"><div><span>C(t) · mg/L</span><strong data-testid="lab-concentration">{state.c.toFixed(2)}</strong></div><div><span>AUC 0-{time.toFixed(1)} h · mg.h/L</span><strong>{state.auc.toFixed(2)}</strong></div><div><span>{en ? 'Eliminated / given (mg)' : 'Éliminé / administré (mg)'}</span><strong>{state.eliminated.toFixed(1)} / {state.administered.toFixed(0)}</strong></div></div>
+        {#if compare}<LabComparisonSummary {en} {time} changes={comparisonChanges} outcomes={comparisonOutcomes}/>{/if}
         <p id="lab-plot-summary" class="sr-summary">{en ? `At ${time.toFixed(1)} h, concentration is ${state.c.toFixed(2)} mg/L, AUC is ${state.auc.toFixed(2)} mg.h/L and ${state.eliminated.toFixed(1)} mg have been eliminated.` : `À ${time.toFixed(1)} h, la concentration vaut ${state.c.toFixed(2)} mg/L, l'AUC vaut ${state.auc.toFixed(2)} mg.h/L et ${state.eliminated.toFixed(1)} mg ont été éliminés.`}</p>
         {#key lab}<LabDebrief {en} explanation={debriefExplanation} application={applicationByLab[lab]}/>{/key}
         <details class="data"><summary>{en ? 'Quantities, flows and dose schedule' : 'Quantites, flux et administrations'}</summary><div class="table-scroll"><table><caption>{en ? 'State at selected time' : 'Etat au temps selectionne'}</caption><thead><tr><th>{en ? 'Quantity' : 'Grandeur'}</th><th>{en ? 'Current model' : 'Modèle actuel'}</th>{#if compare}<th>{en ? 'Reference' : 'Référence'}</th>{/if}</tr></thead><tbody>{#each quantities as [key,label]}<tr><th>{label}</th><td>{state[key].toFixed(3)}</td>{#if compare}<td>{refState[key].toFixed(3)}</td>{/if}</tr>{/each}</tbody></table><table><caption>{en ? 'Planned administrations' : 'Administrations prévues'} · {route}</caption><thead><tr><th>h</th><th>mg</th>{#if lab === 'infusion'}<th>{en ? 'Duration (h)' : 'Durée (h)'}</th>{/if}</tr></thead><tbody>{#each schedule(lab, valid) as dose}<tr><td>{dose.time}</td><td>{dose.amount}</td>{#if lab === 'infusion'}<td>{dose.infusion}</td>{/if}</tr>{/each}</tbody></table></div></details>
@@ -187,10 +194,10 @@
   </div>
   <section class="continuity"><h2>{en ? 'Continue the experiment' : "Poursuivre l'experience"}</h2><div class="next-actions">
     <button class="command" disabled={!valid} on:click={() => continueIn('lego','/pk/')}><ArrowRight size={18}/>{en ? 'Build in PK' : 'Construire dans PK'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('ddi','/ddi/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
-    <button class="command" disabled={!valid || newLab} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une réponse PD'}</button>
-  </div>{#if newLab}<p class="scene-note">{en ? 'Direct TDM, DDI and PD transfers are pending verification for this laboratory.' : 'Les transferts directs TDM, DDI et PD restent à vérifier pour ce laboratoire.'}</p>{/if}<a data-testid="lab-return-course" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}`}>{sourceChapter ? (en ? 'Return to the originating course' : "Revenir au cours d'origine") : (en ? 'Return to the related course' : 'Revenir au cours associé')}</a><a data-testid="lab-related-exercises" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a></section>
+    <button class="command" disabled={!valid} on:click={() => continueIn('tdm','/tdm/')}><ArrowRight size={18}/>{en ? 'Open in TDM' : 'Ouvrir dans TDM'}</button>
+    <button class="command" disabled={!valid} on:click={() => continueIn('ddi','/ddi/')}><ArrowRight size={18}/>{en ? 'Add an interaction' : 'Ajouter une interaction'}</button>
+    <button class="command" disabled={!valid} on:click={() => continueIn('pd','/pd/')}><ArrowRight size={18}/>{en ? 'Add a PD response' : 'Ajouter une réponse PD'}</button>
+  </div><a data-testid="lab-return-course" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}`}>{sourceChapter ? (en ? 'Return to the originating course' : "Revenir au cours d'origine") : (en ? 'Return to the related course' : 'Revenir au cours associé')}</a><a data-testid="lab-related-exercises" href={`${base}/chapitres/${relatedChapter}/?lang=${en ? 'en' : 'fr'}#chapter-exercises`}>{en ? 'Practice with the related exercises' : 'S’entraîner avec les exercices associés'}</a></section>
 </section>
 
 <style>

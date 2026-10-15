@@ -304,9 +304,9 @@ export function pmetricsToMrgsolve(raw) {
 }
 
 /** Pmetrics 3 R template. No invented search distribution or error equivalence. */
-export function exportPmetrics({ spec, parameters, secondary, equations, observed }) {
+export function exportPmetrics({ spec, parameters, secondary, equations, observed, observedExpression = '' }) {
   const dosed = spec.nodes.filter(n => n.dose > 0);
-  if (!observed || !parameters.length) return { code: '', issue: 'pmetricsEmpty' };
+  if ((!observed && !observedExpression) || !parameters.length) return { code: '', issue: 'pmetricsEmpty' };
   if (dosed.length !== 1 || spec.nodes.some(n => !['central', 'periph', 'depot', 'transit', 'metab'].includes(n.kind)))
     return { code: '', issue: 'pmetricsExportUnsupported' };
   const nodes = [dosed[0], ...spec.nodes.filter(n => n !== dosed[0])];
@@ -340,7 +340,8 @@ export function exportPmetrics({ spec, parameters, secondary, equations, observe
     const terms = indexed(equations[node.name]);
     lines.push(`    dX[${index + 1}] = ${index === 0 ? 'B[1] + R[1] + ' : ''}(${terms})`);
   });
-  lines.push('  },', '  out = function() {', `    Y[1] = ${states.get(observed.toLowerCase())}/v_${observed}`, '  },');
+  const prediction = observedExpression || `${observed}/v_${observed}`;
+  lines.push('  },', '  out = function() {', `    Y[1] = ${indexed(prediction)}`, '  },');
   if (transferableError) lines.push(`  err = list(proportional(1, c(${a}, ${b}, 0, 0), fixed = TRUE))`);
   else lines.push(
     '  # Builder combined error: sqrt(add^2 + (prop*prediction)^2).',

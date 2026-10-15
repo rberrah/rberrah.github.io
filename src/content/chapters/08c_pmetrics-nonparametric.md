@@ -81,7 +81,7 @@ définit les **bornes absolues** explorées par NPAG pour `Ke`. Ce n'est pas un 
 
 Le modèle d'erreur pondère aussi la contribution de chaque observation. Il doit traduire l'erreur analytique et la discordance résiduelle de façon défendable.
 
-Un point de support est un **vecteur complet de paramètres** associé à un poids. Ce n'est ni un patient, ni un cluster clinique, ni un phénotype. Le nombre de points finaux n'est donc pas un décompte de sous-populations. La propriété « au plus un point par sujet » concerne la construction NPAG ; elle ne doit pas être généralisée à toute estimation non paramétrique.
+Un point de support est un **vecteur complet de paramètres** associé à un poids. Ce n'est ni un patient, ni un cluster clinique, ni un phénotype. Le nombre de points finaux n'est donc pas un décompte de sous-populations. Des régions visuellement séparées peuvent dépendre des bornes, du modèle d'erreur, de l'information des données et de la discrétisation ; elles ne deviennent pas des classes latentes sans modèle et hypothèse supplémentaires. La propriété « au plus un point par sujet » concerne la construction NPAG ; elle ne doit pas être généralisée à toute estimation non paramétrique.
 <!-- /step -->
 
 <!-- step:title="Exemple concret" -->
@@ -128,7 +128,7 @@ Le nombre de points finaux est un résultat numérique de l'estimation. Il ne do
 <!-- step:title="Exemple officiel reproductible" -->
 Pmetrics 3.2.6 distribue un jeu tutoriel de 51 sujets, `bimodal_ke.csv`, avec deux formulations officielles du même modèle IV à un compartiment : le raccourci analytique `one_comp_iv` et une équation ODE explicite.
 
-**Version réellement testée ici : 3.2.6.** C'est la dernière release GitHub étiquetée lors de la vérification du 12 octobre 2026 et la version épinglée dans la CI native. La documentation en ligne de développement mentionne déjà une dépréciation introduite en 3.2.7 : la colonne d'occasion `block` devient `occasion`, avec mise à niveau des anciens objets par `PM_upgrade()`. Aucun exemple actif de ce cours n'utilise cette colonne ; tout nouvel exemple doit employer `occasion`, et une ancienne fixture utilisant `block` ne doit être dite compatible qu'après test avec la version concernée.
+**Version réellement testée ici : 3.2.6.** C'est la dernière release GitHub étiquetée lors de la vérification du 12 octobre 2026 et la version épinglée dans la CI native. La documentation de la branche de développement destinée à 3.2.7 annonce la dépréciation de la colonne d'occasion `block`, remplacée par `occasion`, avec mise à niveau des anciens objets par `PM_upgrade()` ; cela ne décrit pas encore une release publiée et testée ici. Aucun exemple actif de ce cours n'utilise cette colonne ; tout nouvel exemple doit employer `occasion`, et une ancienne fixture utilisant `block` ne doit être dite compatible qu'après test avec la version concernée.
 
 PMx Explain charge ce fichier directement depuis le paquet installé, sans recopier les données. Le script `tdm-engine/benchmarks/pmetrics_official_example.R` reprend les bornes `ke = [0,001 ; 3] h⁻¹`, `v = [25 ; 250] L`, l'erreur additive officielle, la graine 22 et l'ajustement NPAG. Il vérifie les poids, les bornes et compare les moyennes populationnelles des deux formulations.
 

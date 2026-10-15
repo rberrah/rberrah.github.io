@@ -9,13 +9,15 @@
   import WorkshopFigures from './WorkshopFigures.svelte';
   import InfectionWorkbench from './InfectionWorkbench.svelte';
   import LabTransfer from './LabTransfer.svelte';
+  import TransferContract from './TransferContract.svelte';
   import { mrgsolveCode } from '$lib/labs/model.js';
 
   /** @param {any} spec */
   function applyLaboratory(spec) {
     const p = spec.parameters;
-    const pk = { source: 'code', id: '', route: 'IV', code: mrgsolveCode(spec.lab, p) };
-    const regimen = { dose: p.dose, interval: p.tau, infusion: 0 };
+    const route = spec.lab === 'absorption' ? 'Oral' : 'IV';
+    const pk = { source: 'code', id: '', route, code: mrgsolveCode(spec.lab, p) };
+    const regimen = { dose: p.dose, interval: p.tau ?? p.end, infusion: spec.lab === 'infusion' ? p.duration : 0 };
     if (view === 'ddi') { model1 = pk; ddi.affected = regimen; ddi.target = 'TV_cl_L1_CENT'; tab = 'model1'; }
     else { pkPd = { ...pk, time_unit: 'h', concentration_scale: 1 }; pdMode = 'pd'; pdBlock = 'exposure'; pd.exposure = 'pk'; pd.regimen = regimen; pd.horizon = p.end; }
   }
@@ -215,6 +217,16 @@
         {/if}<label>{t('Horizon (h)', 'Horizon (h)')}<input type="number" bind:value={pd.horizon} min="0.01" max="2400" step="any" required /></label>
       </div><p>{t('Effet direct : réponse instantanée. Compartiment d’effet : délai de distribution. Réponse indirecte : modification de la production ou de la dégradation d’un marqueur.', 'Direct effect: instantaneous response. Effect compartment: distribution delay. Indirect response: altered production or loss of a marker.')}</p>
     {/if}
+    <TransferContract
+      transferred={view === 'ddi'
+        ? [t('Deux modèles PK', 'Two PK models'), t('voies et posologies', 'routes and regimens'), t('mécanisme, cibles et fractions affectées', 'mechanism, targets and affected fractions')]
+        : [t('Modèle PK', 'PK model'), t('voie et posologie', 'route and regimen'), t('structure et paramètres PD', 'PD structure and parameters'), t('cycles passés en oncologie', 'past oncology cycles')]}
+      omitted={[t('Observations patient saisies ensuite dans le moteur', 'Patient observations entered later in the engine'), t('brouillon local de l’interface', 'local interface draft')]}
+      units={view === 'ddi'
+        ? t('Temps en heures ; concentrations selon chaque modèle PK ; Ki/IC50 dans l’unité de concentration du modèle 2.', 'Time in hours; concentrations follow each PK model; Ki/IC50 uses model 2 concentration units.')
+        : t('Unité de temps et échelle de concentration explicites pour un code libre ; unités du catalogue pour un modèle de bibliothèque.', 'Explicit time unit and concentration scale for free code; catalog units for a library model.')}
+      approximation={t('Le postérieur TDM n’est repris que dans la même session du moteur. Le transfert ne propage pas automatiquement l’incertitude PK vers la PD.', 'A TDM posterior is reused only within the same engine session. PK uncertainty is not automatically propagated into PD.')}
+    />
     <div class="actions"><button class="primary" type="submit">{t('Ouvrir dans le moteur', 'Open in engine')}</button><button type="button" onclick={download}>{t('Exporter l’atelier (.json)', 'Export workshop (.json)')}</button><span role="status">{feedback}</span></div>
   </form>
   <WorkshopFigures view={spec.view} config={view === 'pd' && pdMode === 'pd' ? pd : spec.config} {computed} />

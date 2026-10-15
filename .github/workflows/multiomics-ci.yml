@@ -14,7 +14,8 @@ on:
       - 'scripts/test_multiomics*.mjs'
       - 'scripts/benchmark_public_multiomics.mjs'
       - 'tests/e2e/multiomics*.spec.js'
-      - 'playwright.config.js'
+      - 'playwright.multiomics.config.js'
+      - 'playwright.pmx.config.js'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/multiomics-ci.yml'
@@ -29,6 +30,9 @@ on:
       - 'static/multiomics/**'
       - 'scripts/test_multiomics*.mjs'
       - 'tests/e2e/multiomics*.spec.js'
+      - 'tests/e2e/cross-domain-omics-pkpd.spec.js'
+      - 'playwright.multiomics.config.js'
+      - 'playwright.pmx.config.js'
       - '.github/workflows/multiomics-ci.yml'
   workflow_dispatch:
 
@@ -104,4 +108,4 @@ jobs:
       - name: Test only multi-omics browser specifications
         env:
           LABS_E2E_PREBUILT: 'true'
-        run: npx playwright test tests/e2e/multiomics*.spec.js
+        run: npm run test:e2e:multiomics

@@ -4,24 +4,33 @@ import { defaults, validateParameters, stateAt, series, schedule, laboratorySpec
 import { particleJourneys, particlePosition, particleVisit, sceneLayout } from '../src/lib/labs/particles.js';
 const close = (a, b, tolerance = 1e-8) => assert.ok(Math.abs(a - b) <= tolerance * Math.max(1, Math.abs(b)), `${a} != ${b}`);
 const fixtures = [];
-for (const lab of ['distribution', 'accumulation']) {
-  for (const changes of [{}, { cl: 0.1, vc: 100, q: 0 }, { cl: 30, vc: 5, q: 50, vp: 5 }, { loading: 3, tau: 6, count: 12 }, { q: 0.000001 }]) {
+const scenarios = {
+  distribution: [{}, { cl: 0.1, vc: 100, q: 0 }, { cl: 30, vc: 5, q: 50, vp: 5 }, { loading: 3, tau: 6, count: 12 }, { q: 0.000001 }],
+  accumulation: [{}, { cl: 0.1, vc: 100, q: 0 }, { cl: 30, vc: 5, q: 50, vp: 5 }, { loading: 3, tau: 6, count: 12 }, { q: 0.000001 }],
+  absorption: [{}, { ka: 0.01, f: 0, cl: 0.1, vc: 100 }, { ka: 10, f: 1, cl: 30, vc: 5 }],
+  infusion: [{}, { duration: 0.1, cl: 0.1, vc: 100 }, { duration: 72, cl: 30, vc: 5, end: 336 }]
+};
+for (const [lab, cases] of Object.entries(scenarios)) {
+  for (const changes of cases) {
     const p = validateParameters(lab, { ...defaults[lab], ...changes });
     const doses = schedule(lab, p), initial = stateAt(lab, p, 0);
-    close(initial.central, doses[0].amount); close(initial.peripheral, 0); close(initial.auc, 0);
+    close(initial.central, lab === 'distribution' || lab === 'accumulation' ? doses[0].amount : 0);
+    close(initial.depot, lab === 'absorption' ? doses[0].amount : 0);
+    close(initial.peripheral, 0); close(initial.auc, 0);
     const rows = series(lab, p);
     for (const r of rows) {
-      close(r.central + r.peripheral + r.eliminated, r.administered);
-      assert.ok([r.c, r.cp, r.central, r.peripheral, r.eliminated, r.auc].every(x => Number.isFinite(x) && x >= -1e-8));
+      close(r.central + r.peripheral + r.depot + r.lost + r.eliminated, r.administered);
+      assert.ok([r.c, r.cp, r.central, r.peripheral, r.depot, r.lost, r.reservoir, r.eliminated, r.auc].every(x => Number.isFinite(x) && x >= -1e-8));
       close(r.auc, r.eliminated / p.cl);
     }
     for (const d of doses.filter(d => d.time <= p.end)) {
-      close(stateAt(lab, p, d.time).central - stateAt(lab, p, d.time, true).central, d.amount);
+      if (lab === 'absorption') close(stateAt(lab, p, d.time).depot - stateAt(lab, p, d.time, true).depot, d.amount);
+      else if (lab !== 'infusion') close(stateAt(lab, p, d.time).central - stateAt(lab, p, d.time, true).central, d.amount);
       assert.equal(rows.filter(r => r.t === d.time).length, 2);
     }
     const shared = laboratorySpec(lab, p, defaults[lab], true, true);
     assert.deepEqual(decodeScenario(encodeScenario(shared)), shared);
-    assert.equal(legoSpec(lab, p).nodes.length, lab === 'distribution' ? 2 : 1);
+    assert.equal(legoSpec(lab, p).nodes.length, lab === 'distribution' || lab === 'absorption' ? 2 : 1);
     const times = [0, 0.01, 0.1, 1, 2, 5, 7.999, 8.001, 12.123, 24.123, 48.123, 72.123];
     fixtures.push({ lab, parameters: p, spec: legoSpec(lab, p), code: mrgsolveCode(lab, p), doses, points: times.map(t => stateAt(lab, p, t)) });
   }
@@ -67,5 +76,5 @@ for (const lab of ['distribution', 'accumulation']) {
   }
 }
 if (process.argv[2]) writeFileSync(process.argv[2], JSON.stringify(fixtures));
-console.log(`Laboratories: ${fixtures.length} scenarios, mass balance, dose jumps, analytical limits, share validation OK.`);
+console.log(`Laboratories: ${fixtures.length} scenarios, mass balance, administrations, analytical limits, share validation OK.`);
 console.log('Particles: identity, dose timing, allowed paths, continuous transitions, deterministic seeking, bounded work and mobile geometry OK.');

@@ -381,7 +381,7 @@ export const visualizationReviews = {
     "reviewed_hash": "f4cb142e19afbaa06a9b88fe10ea947b29c4da2d2dff2dc3e632dcf10e7a0d39"
   },
   "NPAGSupportPoints": {
-    "status": "reviewed",
+    "status": "pending",
     "reviewed_on": "2026-10-12",
     "review_type": "author",
     "reviewed_hash": "b16cb0fd96b970442857d753b20179f4d4807a64f4b03c1615c946bb94164d09"

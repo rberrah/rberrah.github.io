@@ -65,7 +65,7 @@ export const communications = z.array(communicationSchema).parse([
     presentationDate: '2026-10-14',
     location: 'Marseille, France',
     language: 'en',
-    status: 'upcoming',
+    status: 'presented',
     summary: {
       en: 'NetPK encodes published tacrolimus pharmacology as network-prioritised, literature-fixed covariate modules in a nonlinear mixed-effects model. The poster reports an external sparse-sampling evaluation and virtual-patient use case, while identifying module ablation, uncertainty propagation and prospective dose-adjustment validation as next steps.',
       fr: 'NetPK encode la pharmacologie publiée du tacrolimus sous forme de modules de covariables fixés par la littérature et priorisés par diffusion sur réseau dans un modèle non linéaire à effets mixtes. Le poster présente une évaluation externe en prélèvements limités et un usage pour générer des patients virtuels, tout en identifiant l’ablation des modules, la propagation de l’incertitude et la validation prospective de l’adaptation posologique comme étapes suivantes.'

@@ -18,6 +18,8 @@
   import { parseModelCode } from '$lib/lego/mlxtran.js';
   import { exportPmetrics } from '$lib/lego/pmetrics.js';
   import { legoSimulationConfig } from '$lib/sim/lego.js';
+  import { attachTransferContract, makeTransferContract } from '$lib/transfers/contract.js';
+  import TransferContract from './TransferContract.svelte';
   $: copy = ui($language);
   /** @type {'pk' | 'advanced' | 'translator'} */
   export let profile = 'advanced';
@@ -49,6 +51,7 @@
       dualAbsorption: 'Double absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: "Le pont TDM accepte aussi les voies parallèles; une dose est répartie automatiquement selon les fractions.",
       kokaNote: "Structure d'absorption KOKA : f2 entre directement dans le central par un processus d'ordre zéro; 1−f2 entre dans le dépôt après Tlag1, avec D2 = Tlag1. L'IOV aléatoire publiée doit être codée dans le logiciel d'estimation selon la définition des occasions.",
       pp6mNote: "Structure PP6M : deux dépôts parallèles avec absorption saturable dépendante de la quantité. Les valeurs proposées sont exprimées en mg, mg/h et litres.",
+      administrationScenario: 'Administration importée', observedOutput: 'Sortie observée',
       emptyEquations: '(ajoutez des compartiments)'
     },
     en: {
@@ -71,6 +74,7 @@
       dualAbsorption: 'Dual absorption', koka: 'KOKA (Samtani)', pp6m: "PP6M (T'jollyn)", tdmMultiRoute: 'The TDM bridge also accepts parallel pathways; one dose is automatically split according to the fractions.',
       kokaNote: 'KOKA absorption structure: f2 enters the central compartment directly by a zero-order process; 1−f2 enters the depot after Tlag1, with D2 = Tlag1. The published random IOV must be coded in the estimation software according to the occasion definition.',
       pp6mNote: 'PP6M structure: two parallel depots with amount-dependent saturable absorption. Suggested values use mg, mg/h and litres.',
+      administrationScenario: 'Imported administration', observedOutput: 'Observed output',
       emptyEquations: '(add compartments)'
     }
   };
@@ -80,14 +84,14 @@
       modelFile: 'Choisir un fichier modèle', format: 'Format source', applyImport: 'Construire le schéma', importExact: 'Modèle Lego restauré exactement.',
       importRecognized: 'Structure reconnue et convertie en schéma Lego.', importWarnings: 'Points à vérifier',
       errors: { emptyOrTooLarge: 'Le code est vide ou dépasse 200 ko.', invalidEmbeddedSpec: 'La spécification Lego embarquée est invalide.', unsupportedStructure: "Aucune structure PK compatible n'a été reconnue dans ce format." },
-      warnings: { populationDefaults: 'Valeurs populationnelles absentes ou incomplètes : valeurs initiales proposées pour', multipleAdministrations: "Plusieurs identifiants d'administration détectés; seule la voie adm retenue est", bioavailabilityNotTransferred: "La biodisponibilité d'une voie unique ne peut pas encore être représentée et doit être vérifiée.", covariateTargetNotMapped: 'Effet de covariable non rattaché au schéma', categoricalCollapsed: 'Covariable à plus de deux modalités réduite à la première comparaison', categoricalLabelsMapped: 'Modalités textuelles remplacées par 0 et 1 pour', covariateFormApproximated: 'Forme de covariable approchée localement par une relation puissance pour', templatePlaceholdersIgnored: 'Les blocs de gabarit {{…}} ne sont pas exécutables et ont été ignorés.', customOdeReview: 'Des EDO personnalisées sont présentes : vérifiez le schéma reconstruit avant export.' }
+      warnings: { populationDefaults: 'Valeurs populationnelles absentes ou incomplètes : valeurs initiales proposées pour', multipleAdministrations: "Plusieurs identifiants d'administration détectés; seule la voie adm retenue est", multipleAdministrationsPreserved: "Administrations alternatives conservées ; choisissez la formulation à simuler ou exporter", outputsNotRepresentable: "Sorties hors de la représentation bornée, signalées sans approximation", bioavailabilityNotTransferred: "La biodisponibilité d'une voie unique ne peut pas encore être représentée et doit être vérifiée.", covariateTargetNotMapped: 'Effet de covariable non rattaché au schéma', categoricalCollapsed: 'Covariable à plus de deux modalités réduite à la première comparaison', categoricalLabelsMapped: 'Modalités textuelles remplacées par 0 et 1 pour', covariateFormApproximated: 'Forme de covariable approchée localement par une relation puissance pour', templatePlaceholdersIgnored: 'Les blocs de gabarit {{…}} ne sont pas exécutables et ont été ignorés.', customOdeReview: 'Des EDO personnalisées sont présentes : vérifiez le schéma reconstruit avant export.' }
     },
     en: {
       importModel: 'Import a model', modelCode: 'Model code', placeholder: 'Paste MLXTRAN, mrgsolve, NONMEM or Pmetrics code…',
       modelFile: 'Choose a model file', format: 'Source format', applyImport: 'Build the diagram', importExact: 'Lego model restored exactly.',
       importRecognized: 'Structure recognized and converted into a Lego diagram.', importWarnings: 'Items to review',
       errors: { emptyOrTooLarge: 'The code is empty or larger than 200 kB.', invalidEmbeddedSpec: 'The embedded Lego specification is invalid.', unsupportedStructure: 'No compatible PK structure was recognized in this format.' },
-      warnings: { populationDefaults: 'Population values were absent or incomplete; suggested initial values were used for', multipleAdministrations: 'Several administration identifiers were detected; the retained adm route is', bioavailabilityNotTransferred: 'Single-route bioavailability cannot yet be represented and must be reviewed.', covariateTargetNotMapped: 'Covariate effect could not be mapped to the diagram', categoricalCollapsed: 'Covariate with more than two categories reduced to the first comparison', categoricalLabelsMapped: 'Text categories replaced with 0 and 1 for', covariateFormApproximated: 'Covariate form locally approximated by a power relationship for', templatePlaceholdersIgnored: 'Template blocks {{…}} are not executable and were ignored.', customOdeReview: 'Custom ODEs are present: review the reconstructed diagram before export.' }
+      warnings: { populationDefaults: 'Population values were absent or incomplete; suggested initial values were used for', multipleAdministrations: 'Several administration identifiers were detected; the retained adm route is', multipleAdministrationsPreserved: 'Alternative administrations were preserved; select the formulation to simulate/export', outputsNotRepresentable: 'Outputs outside the bounded representation remain an explicit limitation', bioavailabilityNotTransferred: 'Single-route bioavailability cannot yet be represented and must be reviewed.', covariateTargetNotMapped: 'Covariate effect could not be mapped to the diagram', categoricalCollapsed: 'Covariate with more than two categories reduced to the first comparison', categoricalLabelsMapped: 'Text categories replaced with 0 and 1 for', covariateFormApproximated: 'Covariate form locally approximated by a power relationship for', templatePlaceholdersIgnored: 'Template blocks {{…}} are not executable and were ignored.', customOdeReview: 'Custom ODEs are present: review the reconstructed diagram before export.' }
     }
   };
   $: lego = LEGO_UI[$language === 'en' ? 'en' : 'fr'];
@@ -122,6 +126,9 @@
   $: importUi = MODEL_IMPORT_UI[$language === 'en' ? 'en' : 'fr'];
 
   /** @typedef {{id:number, kind:string, name:string, x:number, y:number, vol?:number, dose?:number, inputType?:'bolus'|'zero_order', inputDuration?:number, inputDurationTlagOf?:number, tlag?:number, doseFraction?:number, fractionComplementOf?:number, ke0?:number, kin?:number, kout?:number, smax?:number, sc50?:number, source?:number, growth?:string, t0?:number, kg?:number, cap?:number, kill?:number, ec50?:number, res?:number, mechanism?:string, factor?:number, strength?:number, c50?:number, hill?:number, kdeg?:number, kinact?:number, targetFrom?:number, targetTo?:number|'OUT'}} Node */
+  /** @typedef {{nodeId:number,inputType:'bolus'|'zero_order',inputDuration:number,inputDurationTlagOf?:number,tlag:number,doseFraction:number,fractionComplementOf?:number}} AdministrationRoute */
+  /** @typedef {{id:string,routes:AdministrationRoute[]}} Administration */
+  /** @typedef {{name:string,terms:{nodeId:number,basis:'amount'|'concentration',coefficient:number}[]}} NamedOutput */
   /** @typedef {{id:number, from:number, to:number|'OUT', k:number, kinetics?:'first_order'|'michaelis_menten'|'hill', vmax?:number, km?:number, gamma?:number, eliminationParameterization?:'rate'|'clearance', cl?:number, transferParameterization?:'rate'|'clearance', q?:number}} Edge */
   /** @typedef {{id:number, name:string, type:'continuous'|'categorical', form?:'power'|'linear-additive', scope?:'patient'|'administration', target:string, reference:number, comparison:number, maximum?:number, beta:number, compare:boolean}} Covariate */
 
@@ -155,6 +162,10 @@
   /** @type {Record<string, number>} */
   let iivCovariances = {};
   let residualError = { type: 'combined', additive: 0.1, proportional: 0.2 };
+  /** @type {Administration[]} */ let administrations = [];
+  let selectedAdministration = '';
+  /** @type {NamedOutput[]} */ let namedOutputs = [];
+  let observedOutputName = '';
   let mode = 'select'; // 'select' | 'connect'
   /** @type {number|null} */ let selectedId = null;
   /** @type {number|null} */ let connectFrom = null;
@@ -172,7 +183,14 @@
   $: massOnly = nodes.length > 0 && nodes.every(isMassNode);
 
   function snapshot() {
-    return { nodes, edges, covariates, iivVariances, iivDistributions, iivCovariances, residualError, uid, tMax, activePreset, selectedId, codeTab, importText, importFormat, modelImportStatus, handoffRoute };
+    return {
+      nodes, edges, covariates,
+      administrations: synchronizedAdministrations(), selectedAdministration,
+      namedOutputs, observedOutputName,
+      iivVariances, iivDistributions, iivCovariances, residualError,
+      uid, tMax, activePreset, selectedId, codeTab, importText, importFormat,
+      modelImportStatus, handoffRoute
+    };
   }
 
   onMount(() => {
@@ -183,6 +201,10 @@
       iivDistributions = draft.iivDistributions ?? {};
       iivCovariances = draft.iivCovariances ?? {};
       residualError = draft.residualError ?? residualError;
+      administrations = draft.administrations ?? [];
+      selectedAdministration = draft.selectedAdministration ?? '';
+      namedOutputs = draft.namedOutputs ?? [];
+      observedOutputName = draft.observedOutputName ?? '';
     } else if (profile === 'pk') preset('oral1');
     if (profile === 'translator') {
       const source = takeDraft('source:translator');
@@ -201,19 +223,37 @@
     if (!tdmReady || (destination === 'pk' && !purePk)) return;
     if (destination === 'simulation') {
       if (!simulationConfig) return;
-      writeDraft('incoming:simulation', simulationConfig);
+      writeDraft('incoming:simulation', attachTransferContract(simulationConfig, makeTransferContract({
+        source: `${profile}-builder`, destination: 'simulation',
+        transferredFields: ['mrgsolve code', 'dose', 'simulation horizon'], units: { time: 'h' },
+        route: handoffRoute || null, compartment: observed?.name ?? null,
+        schedule: selectedAdministration || { dose: simulationConfig.dose, horizon: simulationConfig.tEnd },
+        omittedFields: ['patient observations'], transformations: ['diagram-to-mrgsolve'],
+        limitations: ['simulation uses the generated code and explicit exported settings']
+      })));
       goto(`${base}/playground/`);
       return;
     }
     if (['pd', 'ddi'].includes(destination) && !massOnly) return;
     if (['pd', 'ddi'].includes(destination) && !['IV', 'Oral'].includes(handoffRoute)) return;
     if (destination === 'pk' || destination === 'advanced') {
-      writeDraft(`incoming:${destination}`, snapshot());
+      writeDraft(`incoming:${destination}`, attachTransferContract(snapshot(), makeTransferContract({
+        source: `${profile}-builder`, destination: `${destination}-builder`,
+        transferredFields: ['diagram', 'covariates', 'variability', 'residual error'], units: { time: 'h' },
+        route: handoffRoute || null, compartment: observed?.name ?? null, schedule: selectedAdministration || null,
+        transformations: [], limitations: ['only representable Lego structures are transferred']
+      })));
     } else {
-      writeDraft(`incoming:${destination}:pk`, {
+      writeDraft(`incoming:${destination}:pk`, attachTransferContract({
         side: handoffSide,
         model: { source: 'code', id: '', code: codeMrgsolve, route: handoffRoute, time_unit: 'h', concentration_scale: 1 }
-      });
+      }, makeTransferContract({
+        source: `${profile}-builder`, destination: `${destination}-builder`,
+        transferredFields: ['complete mrgsolve code', 'route', 'time unit'], units: { time: 'h' },
+        route: handoffRoute, compartment: observed?.name ?? null, schedule: selectedAdministration || null,
+        omittedFields: ['patient observations'], transformations: ['diagram-to-mrgsolve'],
+        limitations: ['destination-specific PD or DDI settings are not inferred']
+      })));
     }
     goto(`${base}/${destination}/`);
   }
@@ -263,6 +303,14 @@
   function deleteNode(id) {
     nodes = nodes.filter((n) => n.id !== id);
     edges = edges.filter((e) => e.from !== id && e.to !== id);
+    administrations = administrations
+      .map((administration) => ({ ...administration, routes: administration.routes.filter((route) => route.nodeId !== id) }))
+      .filter((administration) => administration.routes.length);
+    namedOutputs = namedOutputs
+      .map((output) => ({ ...output, terms: output.terms.filter((term) => term.nodeId !== id) }))
+      .filter((output) => output.terms.length);
+    if (!administrations.some((administration) => administration.id === selectedAdministration)) selectedAdministration = administrations[0]?.id ?? '';
+    if (!namedOutputs.some((output) => output.name === observedOutputName)) observedOutputName = namedOutputs[0]?.name ?? '';
     nodes = nodes.map((n) => ({
       ...n,
       source: n.source === id ? undefined : n.source,
@@ -313,7 +361,47 @@
     edges = [...edges];
     reconcileCovariates();
   }
-  function clearAll() { nodes = []; edges = []; covariates = []; selectedId = null; activePreset = ''; }
+  /** @returns {AdministrationRoute} */
+  function administrationRouteFromNode(/** @type {AdministrationRoute} */ route) {
+    const node = nodes.find((candidate) => candidate.id === route.nodeId);
+    if (!node) return route;
+    return {
+      nodeId: node.id,
+      inputType: node.inputType === 'zero_order' ? 'zero_order' : 'bolus',
+      inputDuration: Number(node.inputDuration ?? 1),
+      tlag: Number(node.tlag ?? 0),
+      doseFraction: Number(node.doseFraction ?? 100),
+      ...(node.fractionComplementOf ? { fractionComplementOf: Number(node.fractionComplementOf) } : {}),
+      ...(node.inputDurationTlagOf ? { inputDurationTlagOf: Number(node.inputDurationTlagOf) } : {})
+    };
+  }
+
+  /** @returns {Administration[]} */
+  function synchronizedAdministrations() {
+    return administrations.map((administration) => administration.id === selectedAdministration
+      ? { ...administration, routes: administration.routes.map(administrationRouteFromNode) }
+      : administration);
+  }
+
+  function selectAdministration(/** @type {string | number} */ value) {
+    administrations = synchronizedAdministrations();
+    const next = administrations.find((administration) => administration.id === String(value));
+    if (!next) return;
+    selectedAdministration = next.id;
+    nodes = nodes.map((node) => isMassNode(node) ? {
+      ...node, dose: 0, inputType: 'bolus', inputDuration: 1, tlag: 0,
+      doseFraction: 100, fractionComplementOf: undefined, inputDurationTlagOf: undefined
+    } : node);
+    nodes = nodes.map((node) => {
+      const route = next.routes.find((candidate) => candidate.nodeId === node.id);
+      return route ? { ...node, ...route, dose: 100 } : node;
+    });
+  }
+
+  function clearAll() {
+    nodes = []; edges = []; covariates = []; administrations = []; selectedAdministration = '';
+    namedOutputs = []; observedOutputName = ''; selectedId = null; activePreset = '';
+  }
 
   function importWarningText(/** @type {{code:string, detail?:string}} */ warning) {
     const messages = /** @type {Record<string, string>} */ (importUi.warnings);
@@ -365,10 +453,50 @@
       scope: covariate.scope === 'administration' ? 'administration' : 'patient',
       reference: Number(covariate.reference), comparison: Number(covariate.comparison), maximum: Number.isFinite(Number(covariate.maximum)) ? Number(covariate.maximum) : undefined, beta: Number(covariate.beta), compare: covariate.compare !== false
     }));
+    if (!Array.isArray(specification.administrations ?? []) || (specification.administrations?.length ?? 0) > 20) throw new Error('unsupportedStructure');
+    const importedAdministrations = /** @type {Administration[]} */ ((specification.administrations ?? []).map((/** @type {any} */ administration) => {
+      const id = String(administration.id ?? '').trim();
+      if (!id || id.length > 32 || !Array.isArray(administration.routes) || !administration.routes.length || administration.routes.length > 20) throw new Error('unsupportedAdministration');
+      const routes = administration.routes.map((/** @type {any} */ route) => {
+        const nodeId = Number(route.nodeId);
+        const inputDuration = Number(route.inputDuration ?? 1);
+        const tlag = Number(route.tlag ?? 0);
+        const doseFraction = Number(route.doseFraction ?? 100);
+        if (!ids.has(nodeId) || !(inputDuration > 0) || tlag < 0 || !(doseFraction > 0)) throw new Error('unsupportedAdministration');
+        for (const linked of [route.fractionComplementOf, route.inputDurationTlagOf].filter(Boolean)) if (!ids.has(Number(linked))) throw new Error('unsupportedAdministration');
+        return /** @type {AdministrationRoute} */ ({
+          nodeId,
+          inputType: route.inputType === 'zero_order' ? 'zero_order' : 'bolus',
+          inputDuration, tlag, doseFraction,
+          ...(route.fractionComplementOf ? { fractionComplementOf: Number(route.fractionComplementOf) } : {}),
+          ...(route.inputDurationTlagOf ? { inputDurationTlagOf: Number(route.inputDurationTlagOf) } : {})
+        });
+      });
+      return { id, routes };
+    }));
+    if (new Set(importedAdministrations.map((administration) => administration.id)).size !== importedAdministrations.length) throw new Error('unsupportedAdministration');
+    if (!Array.isArray(specification.outputs ?? []) || (specification.outputs?.length ?? 0) > 30) throw new Error('unsupportedEquation');
+    const importedOutputs = /** @type {NamedOutput[]} */ ((specification.outputs ?? []).map((/** @type {any} */ output) => {
+      const name = rid(output.name);
+      if (!name || !Array.isArray(output.terms) || !output.terms.length || output.terms.length > 30) throw new Error('unsupportedEquation');
+      const terms = output.terms.map((/** @type {any} */ term) => {
+        const nodeId = Number(term.nodeId), coefficient = Number(term.coefficient);
+        if (!ids.has(nodeId) || !Number.isFinite(coefficient) || !['amount', 'concentration'].includes(term.basis)) throw new Error('unsupportedEquation');
+        return { nodeId, basis: term.basis, coefficient };
+      });
+      return { name, terms };
+    }));
+    if (new Set(importedOutputs.map((output) => output.name)).size !== importedOutputs.length) throw new Error('unsupportedEquation');
     if (!advancedGraphValid(importedNodes, importedEdges)) throw new Error('unsupportedStructure');
     nodes = importedNodes;
     edges = importedEdges;
     covariates = importedCovariates;
+    administrations = importedAdministrations;
+    selectedAdministration = importedAdministrations.some((administration) => administration.id === String(specification.selectedAdministration))
+      ? String(specification.selectedAdministration) : importedAdministrations[0]?.id ?? '';
+    namedOutputs = importedOutputs;
+    observedOutputName = importedOutputs.some((output) => output.name === specification.observedOutput)
+      ? specification.observedOutput : importedOutputs[0]?.name ?? '';
     iivVariances = specification.population?.iivVariances ?? {};
     iivDistributions = specification.population?.iivDistributions ?? {};
     iivCovariances = specification.population?.iivCovariances ?? {};
@@ -378,6 +506,7 @@
     activePreset = ['oral1', 'iv2', 'transit', 'metab', 'effect', 'dual', 'koka', 'pp6m', 'tgi', 'autoinhibition'].includes(specification.simulation?.preset) ? specification.simulation.preset : '';
     const horizon = Number(specification.simulation?.horizon);
     if (Number.isFinite(horizon) && horizon >= 1) tMax = horizon;
+    if (selectedAdministration) selectAdministration(selectedAdministration);
     reconcileCovariates();
   }
 
@@ -684,6 +813,15 @@
         const vals = out.map((o) => n.kind === 'interaction' ? interactionFactor(local, driver(local,o.y), o.y[i]) : (local.vol ? o.y[i] / (local.vol || 1) : o.y[i]));
       return { nodeId: n.id, kind: n.kind, name: n.name, color: KINDS[n.kind].color, resp: isResp, vals };
     });
+      if (selectedNamedOutput) {
+        const vals = out.map((observation) => selectedNamedOutput.terms.reduce((sum, term) => {
+          const index = localNodes.findIndex((node) => node.id === term.nodeId);
+          if (index < 0) return sum;
+          const denominator = term.basis === 'concentration' ? Number(localNodes[index].vol ?? 1) : 1;
+          return sum + Number(term.coefficient) * observation.y[index] / denominator;
+        }, 0));
+        series.push({ nodeId: 0, kind: 'output', name: selectedNamedOutput.name, color: '#111827', resp: false, vals });
+      }
     return { out, series };
     };
 
@@ -757,7 +895,10 @@
       const inflow = edges.filter((e) => e.to === n.id).map((e) => `+ ${displayFlux(e, nm(e.from))}${nodes.filter(n => n.kind === 'interaction' && n.targetFrom === e.from && n.targetTo === e.to).map(n => ` × M_${n.name}`).join('')}`);
       const outflow = edges.filter((e) => e.from === n.id).map((e) => `− ${displayFlux(e, n.name)}${nodes.filter(n => n.kind === 'interaction' && n.targetFrom === e.from && n.targetTo === e.to).map(n => ` × M_${n.name}`).join('')}`);
       return `d${n.name}/dt = ${[...inflow, ...outflow].join(' ') || '0'}`;
-    }).concat(concSources().map((n) => `C_${n.name} = ${n.name} / V_${n.name}`));
+    }).concat(
+      concSources().map((n) => `C_${n.name} = ${n.name} / V_${n.name}`),
+      namedOutputs.map((output) => `${output.name} = ${namedOutputExpression(output)}`)
+    );
   })();
 
   // ── génération de code ───────────────────────────────────────────────────────────
@@ -1152,6 +1293,33 @@
 
   /** Compartiment observé : le central si présent, sinon la première concentration. */
   $: observed = nodes.find((n) => n.kind === 'central') ?? concSources()[0] ?? null;
+  $: selectedNamedOutput = namedOutputs.find((output) => output.name === observedOutputName) ?? namedOutputs[0] ?? null;
+
+  function namedOutputExpression(
+    /** @type {NamedOutput} */ output,
+    /** @type {'model'|'nonmem'} */ dialect = 'model',
+    /** @type {Map<number, number>} */ nodeIndex = new Map(),
+    /** @type {(name:string)=>string} */ parameter = (name) => name
+  ) {
+    return output.terms.map((term, index) => {
+      const node = nodes.find((candidate) => candidate.id === term.nodeId);
+      if (!node) return '';
+      const name = rid(node.name);
+      const amount = dialect === 'nonmem' ? `A(${nodeIndex.get(node.id) ?? 1})` : name;
+      const value = term.basis === 'concentration'
+        ? `${amount}/${dialect === 'nonmem' ? parameter(`v_${name}`) : `v_${name}`}`
+        : amount;
+      const coefficient = Number(term.coefficient);
+      const magnitude = Math.abs(coefficient);
+      const body = Math.abs(magnitude - 1) < 1e-12 ? value : `${fmt(magnitude)}*(${value})`;
+      if (index === 0) return coefficient < 0 ? `-${body}` : body;
+      return `${coefficient < 0 ? '-' : '+'} ${body}`;
+    }).filter(Boolean).join(' ') || '0';
+  }
+
+  const structuralPrediction = () => selectedNamedOutput
+    ? namedOutputExpression(selectedNamedOutput)
+    : observed ? `${rid(observed.name)}/v_${rid(observed.name)}` : '0';
 
   // Le serveur public ne compile jamais le texte C++ recu. Cette specification est
   // validee puis transformee en code mrgsolve cote R, ce qui rend le pont Lego sur.
@@ -1187,8 +1355,18 @@
       }
       return item;
     });
+    const safeAdministrations = synchronizedAdministrations().map((administration) => ({
+      id: administration.id,
+      routes: administration.routes.map((route) => ({ ...route }))
+    }));
+    const safeOutputs = namedOutputs.map((output) => ({
+      name: rid(output.name),
+      terms: output.terms.map((term) => ({
+        nodeId: Number(term.nodeId), basis: term.basis, coefficient: Number(term.coefficient)
+      }))
+    }));
     return {
-      version: nodes.some(n => n.kind === 'tumor' || n.kind === 'interaction') ? 4 : 3,
+      version: safeAdministrations.length || safeOutputs.length ? 5 : nodes.some(n => n.kind === 'tumor' || n.kind === 'interaction') ? 4 : 3,
       nodes: safeNodes,
       edges: edges.map((e) => ({
         from: e.from,
@@ -1214,6 +1392,8 @@
         ...(Number.isFinite(Number(covariate.maximum)) ? { maximum: Number(covariate.maximum) } : {}),
         beta: Number(covariate.beta)
       })),
+      ...(safeAdministrations.length ? { administrations: safeAdministrations, selectedAdministration } : {}),
+      ...(safeOutputs.length ? { outputs: safeOutputs, observedOutput: observedOutputName } : {}),
       population: {
         iivVariances: Object.fromEntries(randomParameters().map((parameter) => [parameter.name, iivVariance(parameter)])),
         iivDistributions: Object.fromEntries(randomParameters().map((parameter) => [parameter.name, iivDistribution(parameter)])),
@@ -1351,12 +1531,13 @@
     }
     L.push('');
     for (const n of concSources()) L.push(`    C_${rid(n.name)} <- ${rid(n.name)}/v_${rid(n.name)}`);
+    for (const output of namedOutputs) L.push(`    ${rid(output.name)} <- ${namedOutputExpression(output)}`);
     if (observed) {
       L.push('');
       const error = residualError.type === 'additive' ? 'add(add_err)'
         : residualError.type === 'proportional' ? 'prop(prop_err)'
           : 'add(add_err) + prop(prop_err)';
-      L.push(`    C_${rid(observed.name)} ~ ${error}`);
+      L.push(`    ${selectedNamedOutput ? rid(selectedNamedOutput.name) : `C_${rid(observed.name)}`} ~ ${error}`);
     }
     L.push('  })');
     L.push('}');
@@ -1537,8 +1718,9 @@
       L.push('');
       L.push('$TABLE');
       for (const n of concSources()) L.push(`double CONC_${rid(n.name)} = ${rid(n.name)}/v_${rid(n.name)};`);
+      for (const output of namedOutputs) L.push(`double ${rid(output.name)} = ${namedOutputExpression(output)};`);
       for (const n of nodes.filter(n => n.kind === 'interaction')) L.push(`double MOD_${rid(n.name)} = ${special(n).factor};`);
-      L.push(`double IPRED = CONC_${rid(observed.name)};`);
+      L.push(`double IPRED = ${selectedNamedOutput ? rid(selectedNamedOutput.name) : `CONC_${rid(observed.name)}`};`);
       L.push(`double DV = ${residualExpression()};`);
       L.push('if (DV < 0) DV = 0;');
     }
@@ -1546,6 +1728,7 @@
     L.push('$CAPTURE @annotated');
     L.push('DV : concentration simulee avec erreur residuelle (mg/L)');
     for (const n of concSources()) L.push(`CONC_${rid(n.name)} : concentration dans ${rid(n.name)} (mg/L)`);
+    for (const output of namedOutputs) L.push(`${rid(output.name)} : sortie structurelle nommee`);
     for (const n of nodes.filter(n => n.kind === 'interaction')) L.push(`MOD_${rid(n.name)} : flux divided by baseline flux`);
     // Compartment states, including PD, are already returned by mrgsolve.
     return L.join('\n');
@@ -1704,17 +1887,19 @@
     }
     L.push('');
     for (const node of concSources()) L.push(`C_${rid(node.name)} = ${rid(node.name)}/v_${rid(node.name)}`);
+    for (const output of namedOutputs) L.push(`${rid(output.name)} = ${namedOutputExpression(output)}`);
     L.push('');
     L.push('DEFINITION:');
     const mlxError = residualError.type === 'additive' ? 'constant(a)'
       : residualError.type === 'proportional' ? 'proportional(b)'
         : 'combined1(a, b)';
-    L.push(`DV = {distribution=normal, prediction=C_${rid(observed.name)}, errorModel=${mlxError}}`);
+    L.push(`DV = {distribution=normal, prediction=${selectedNamedOutput ? rid(selectedNamedOutput.name) : `C_${rid(observed.name)}`}, errorModel=${mlxError}}`);
     L.push('');
     L.push('OUTPUT:');
     L.push('output = {DV}');
     const tableOutputs = [
       ...concSources().map((node) => `C_${rid(node.name)}`),
+      ...namedOutputs.map((output) => rid(output.name)),
       ...nodes.filter((node) => !isMassNode(node)).map((node) => rid(node.name))
     ];
     if (tableOutputs.length) L.push(`table = {${tableOutputs.join(', ')}}`);
@@ -1865,7 +2050,8 @@
     }
     L.push('');
     L.push('$ERROR');
-    L.push(`IPRED=A(${nodeIndex.get(observed.id)})/${pvar(`v_${rid(observed.name)}`)}`);
+    for (const output of namedOutputs) L.push(`${rid(output.name)}=${namedOutputExpression(output, 'nonmem', nodeIndex, pvar)}`);
+    L.push(`IPRED=${selectedNamedOutput ? rid(selectedNamedOutput.name) : `A(${nodeIndex.get(observed.id)})/${pvar(`v_${rid(observed.name)}`)}`}`);
     L.push(`Y=${residualExpression()}`);
     L.push('');
     L.push('$THETA');
@@ -1916,7 +2102,8 @@
     return exportPmetrics({
       spec: legoExportSpec(tMax, activePreset), parameters: P, secondary,
       equations: Object.fromEntries(nodes.map(n => [rid(n.name), massTerms(n)])),
-      observed: observed ? rid(observed.name) : ''
+      observed: observed ? rid(observed.name) : '',
+      observedExpression: structuralPrediction()
     });
   })();
   // ATTENTION : ne PAS nommer cette fonction `copy` — ce nom est déjà celui de la
@@ -1983,7 +2170,16 @@
     if (!targetWindow) return;
 
     const targetOrigin = targetUrl.origin;
-    const message = { type: 'pk-lego-model', name: 'lego_model', code, spec: tdmModelSpec() };
+    const message = attachTransferContract(
+      { type: 'pk-lego-model', name: 'lego_model', code, spec: tdmModelSpec() },
+      makeTransferContract({
+        source: `${profile}-builder`, destination: 'tdm-engine',
+        transferredFields: ['complete mrgsolve code', 'route', 'variability', 'residual error', 'covariates'],
+        units: { time: 'h' }, route: handoffRoute || null, compartment: observed?.name ?? null,
+        schedule: selectedAdministration || null, omittedFields: ['patient observations'], transformations: ['diagram-to-mrgsolve'],
+        limitations: ['custom code compilation remains disabled on the public production engine']
+      })
+    );
     let attempts = 0;
     /** @type {ReturnType<typeof setInterval> | undefined} */
     let transferTimer;
@@ -2103,6 +2299,17 @@
   <label class="s"><span>{lego.duration}</span><input class="num" type="number" min="1" step="1" bind:value={tMax} /></label>
 </fieldset>
 
+{#if administrations.length > 1 || namedOutputs.length > 1}
+  <div class="imported-selectors">
+    {#if administrations.length > 1}
+      <label><span>{lego.administrationScenario}</span><select value={selectedAdministration} on:change={(event) => selectAdministration(event.currentTarget.value)}>{#each administrations as administration}<option value={administration.id}>adm {administration.id}</option>{/each}</select></label>
+    {/if}
+    {#if namedOutputs.length > 1}
+      <label><span>{lego.observedOutput}</span><select bind:value={observedOutputName}>{#each namedOutputs as output}<option value={output.name}>{output.name}</option>{/each}</select></label>
+    {/if}
+  </div>
+{/if}
+
 
 {#if activePreset === 'koka' || activePreset === 'pp6m'}
   <p class="template-note">
@@ -2120,6 +2327,20 @@
   <label>{$language === 'en' ? 'DDI destination' : 'Destination DDI'}<select bind:value={handoffSide}><option value="1">PK 1</option><option value="2">PK 2</option></select></label>
   <button disabled={!tdmReady || !massOnly || !handoffRoute} on:click={() => continueIn('ddi')}><ArrowRight size={15}/> {$language === 'en' ? 'DDI Builder' : 'Atelier DDI'}</button>
   {#if nodes.length && !purePk}<span>{$language === 'en' ? 'Metabolite / PD blocks remain editable in Advanced Builder and exportable to the engine.' : 'Les blocs métabolite / PD restent modifiables dans Modélisation avancée et exportables vers le moteur.'}</span>{/if}
+  <TransferContract
+    transferred={$language === 'en'
+      ? ['Complete mrgsolve code', 'structure and parameters', 'covariates', 'OMEGA and SIGMA', 'selected route']
+      : ['Code mrgsolve complet', 'structure et paramètres', 'covariables', 'OMEGA et SIGMA', 'voie choisie']}
+    omitted={$language === 'en'
+      ? ['Patient observations', 'dose history', 'MAP posterior', 'PD/DDI blocks when the destination only accepts PK']
+      : ['Observations patient', 'historique posologique', 'postérieur MAP', 'blocs PD/DDI lorsque la destination accepte uniquement la PK']}
+    units={$language === 'en'
+      ? `Model amount unit; time h; concentration mg/L; route ${handoffRoute || 'not selected'}.`
+      : `Unité de quantité du modèle ; temps h ; concentration mg/L ; voie ${handoffRoute || 'non choisie'}.`}
+    approximation={$language === 'en'
+      ? 'Simulation uses the guided controls only when the graph can be represented exactly; otherwise the unrestricted mrgsolve code is retained. PD/DDI receive the PK model only.'
+      : 'Simulation utilise les contrôles guidés uniquement si le graphe est représentable exactement ; sinon le code mrgsolve libre est conservé. PD/DDI ne reçoivent que le modèle PK.'}
+  />
 </div>
 
 {#if nodes.some(n => !isMassNode(n))}
@@ -2462,9 +2683,12 @@
   .tgroup { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
   .tlabel { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
   .toolbar button { font-size: var(--text-xs); padding: 5px 9px; border: 1px solid var(--border-strong); background: var(--bg-primary); border-radius: 999px; cursor: pointer; color: var(--text-secondary); font-family: var(--font-mono); }
-  .toolbar button.add { border-color: var(--c); color: var(--c); }
+  .toolbar button.add { border-color: var(--c); color: var(--accent-pk); }
   .toolbar button.on { background: var(--accent-pk); color: #fff; border-color: var(--accent-pk); }
   .toolbar button.clear { color: #b0392b; border-color: #b0392b; }
+  .imported-selectors { display: flex; flex-wrap: wrap; gap: var(--space-4); margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4); border-left: 3px solid var(--accent-pk); background: var(--bg-secondary); }
+  .imported-selectors label { display: grid; gap: 4px; min-width: min(220px, 100%); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); }
+  .imported-selectors select { min-height: 36px; padding: 6px 8px; color: var(--text-primary); background: var(--bg-primary); border: 1px solid var(--border-strong); border-radius: 4px; }
   .template-note { margin: calc(-1 * var(--space-2)) 0 var(--space-4); padding-left: var(--space-3); border-left: 3px solid var(--accent-pk); color: var(--text-secondary); font-size: var(--text-xs); line-height: 1.5; }
   .template-note a { margin-left: 0.4em; font-family: var(--font-mono); }
   .toolbar .s { display: grid; grid-template-columns: auto auto; gap: 0 var(--space-2); align-items: center; font-family: var(--font-mono); font-size: var(--text-xs); margin-left: auto; }

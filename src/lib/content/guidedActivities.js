@@ -12,3 +12,5 @@ export const guidedActivities = [...covariateActivities, ...coreActivities, ...m
 export const activitiesForChapter = (slug, track) => guidedActivities.filter(activity =>
   activity.chapter === slug && (track ? !activity.track || activity.track === track : !activity.track)
 );
+/** @param {string} track */
+export const synthesisForTrack = track => guidedActivities.find(activity => activity.kind === 'synthesis' && activity.track === track) ?? null;

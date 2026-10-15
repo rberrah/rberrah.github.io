@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { equationReader, reconstructOdes, codeOdeGraph } from './odeImport.js';
+import { equationReader, reconstructOdes, codeOdeGraph, readExpression } from './odeImport.js';
 import { pmetricsToMrgsolve, pmetricsBodyHash } from './pmetrics.js';
 const SPEC_MARKER = /^[ \t]*(?:;|\/\/)\s*PK_LEGO_SPEC_V1:(.+)$/m;
 const NUMBER = '-?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
@@ -176,7 +176,11 @@ function modelBuilder(raw) {
     }
   };
 
-  return { hints, missing, nodes, edges, targets, value, addNode, addEdge, parameterName, register, registerExpression };
+  return {
+    hints, missing, nodes, edges, targets, value, addNode, addEdge, parameterName,
+    register, registerExpression, administrations: [], selectedAdministration: '',
+    outputs: [], observedOutput: ''
+  };
 }
 
 function parsePkmodel(raw, builder) {
@@ -374,69 +378,93 @@ function parsePiecewise(raw, builder, warnings) {
     byCmt.set(1, central);
   }
 
-  const administrations = macros.filter((macro) => ['absorption', 'oral', 'iv', 'depot'].includes(macro.name));
-  const administrationIds = [...new Set(administrations.map((macro) => Number(argument(macro.args, 'adm') ?? 1)))];
-  const selectedAdministration = administrationIds[0] ?? 1;
-  if (administrationIds.length > 1) warnings.push({ code: 'multipleAdministrations', detail: String(selectedAdministration) });
-  const doseNodes = [];
-  const fractionSources = new Map();
-  const lagSources = new Map();
-  const doseMacros = [];
-  for (const [index, macro] of administrations.filter((item) => Number(argument(item.args, 'adm') ?? 1) === selectedAdministration).entries()) {
-    const cmt = Number(argument(macro.args, 'cmt') ?? 1);
-    const targetName = argument(macro.args, 'target');
-    const target = targetName ? byAmount.get(targetName.toLowerCase()) : byCmt.get(cmt);
-    if (!target) continue;
-    const ka = argument(macro.args, 'ka');
-    const tk0 = argument(macro.args, 'Tk0');
-    const tlag = argument(macro.args, 'Tlag');
-    const fraction = argument(macro.args, 'p', 'F')?.replace(/^\((.*)\)$/, '$1');
-    let dosed = target;
-    // depot(target=...) administers into an existing state, without an extra compartment.
-    if ((macro.name === 'absorption' || macro.name === 'oral') && ka) {
-      dosed = addNode('depot', `depot${index + 1}`, { dose: 100, tlag: value(tlag, 0) });
-      const edge = addEdge(dosed, target, { k: value(ka ?? 'ka', 1) });
-      register(ka ?? 'ka', parameterName(edge));
-    } else {
-      target.dose = 100;
-      target.tlag = value(tlag, 0);
-      if (tk0) {
-        target.inputType = 'zero_order';
-        target.inputDuration = value(tk0, 1);
-        register(tk0, `tk0_${target.name}`);
+  const administrationMacros = macros.filter((macro) => ['absorption', 'oral', 'iv', 'depot'].includes(macro.name));
+  const administrationIds = [...new Set(administrationMacros.map((macro) => Number(argument(macro.args, 'adm') ?? 1)))];
+  let generatedDepot = 0;
+  const administrationGroups = [];
+  for (const administrationId of administrationIds) {
+    const fractionSources = new Map();
+    const lagSources = new Map();
+    const routes = [];
+    for (const macro of administrationMacros.filter((item) => Number(argument(item.args, 'adm') ?? 1) === administrationId)) {
+      const cmt = Number(argument(macro.args, 'cmt') ?? 1);
+      const targetName = argument(macro.args, 'target');
+      const target = targetName ? byAmount.get(targetName.toLowerCase()) : byCmt.get(cmt);
+      if (!target) throw new MlxtranImportError('unsupportedAdministration');
+      const ka = argument(macro.args, 'ka');
+      const tk0 = argument(macro.args, 'Tk0');
+      const tlag = argument(macro.args, 'Tlag');
+      const fraction = argument(macro.args, 'p', 'F')?.replace(/^\((.*)\)$/, '$1');
+      let dosed = target;
+      // absorption()/oral() introduce a real depot; depot(target=...) doses an existing state.
+      if ((macro.name === 'absorption' || macro.name === 'oral') && ka) {
+        dosed = addNode('depot', `depot${++generatedDepot}`);
+        const edge = addEdge(dosed, target, { k: reader ? reader.bind(ka, `k_${dosed.name}_${target.name}`) : value(ka, 1) });
+        register(ka, parameterName(edge));
+      }
+      const route = {
+        node: dosed, fraction, tk0, tlag,
+        inputType: tk0 ? 'zero_order' : 'bolus',
+        inputDuration: tk0 ? (reader ? reader.bind(tk0, `tk0_${dosed.name}`) : value(tk0, 1)) : 1,
+        tlagValue: tlag ? (reader ? reader.bind(tlag, `tlag_${dosed.name}`) : value(tlag, 0)) : 0,
+        doseFraction: 100 * (fraction ? (reader ? reader.value(fraction, 1) : value(fraction, 1)) : 1)
+      };
+      if (fraction && /^[A-Za-z_]\w*$/.test(fraction)) {
+        if (reader) route.doseFraction = 100 * reader.bind(fraction, `f_${dosed.name}`);
+        fractionSources.set(fraction.toLowerCase(), route);
+        register(fraction, `f_${dosed.name}`);
+      }
+      if (tlag) {
+        lagSources.set(tlag.toLowerCase(), route);
+        register(tlag, `tlag_${dosed.name}`);
+      }
+      if (tk0) register(tk0, `tk0_${dosed.name}`);
+      routes.push(route);
+    }
+    for (const route of routes) {
+      const complement = route.fraction?.match(/^1\s*-\s*([A-Za-z_]\w*)$/);
+      const fractionSource = complement && fractionSources.get(complement[1].toLowerCase());
+      if (fractionSource) {
+        route.fractionComplementOf = fractionSource.node.id;
+        route.doseFraction = 100 - fractionSource.doseFraction;
+      }
+      const lagSource = route.tk0 && lagSources.get(route.tk0.toLowerCase());
+      if (lagSource) {
+        route.inputDurationTlagOf = lagSource.node.id;
+        const targets = builder.targets.get(route.tk0.toLowerCase()) ?? [];
+        builder.targets.set(route.tk0.toLowerCase(), targets.filter((target) => target.target !== `tk0_${route.node.name}`));
       }
     }
-    if (tlag) register(tlag, `tlag_${dosed.name}`);
-    if (reader && tlag) dosed.tlag = reader.bind(tlag, `tlag_${dosed.name}`);
-    if (reader && tk0) dosed.inputDuration = reader.bind(tk0, `tk0_${dosed.name}`);
-    dosed.doseFraction = 100 * value(fraction ?? '1', 1);
-    if (fraction && /^[A-Za-z_]\w*$/.test(fraction)) {
-      fractionSources.set(fraction.toLowerCase(), dosed);
-      register(fraction, `f_${dosed.name}`);
-      if (reader) dosed.doseFraction = 100 * reader.bind(fraction, `f_${dosed.name}`);
+    if (routes.length > 1) {
+      const total = routes.reduce((sum, route) => sum + route.doseFraction, 0) || routes.length;
+      for (const route of routes) route.doseFraction = 100 * route.doseFraction / total;
+    } else if (routes[0]?.doseFraction < 99.999) {
+      warnings.push({ code: 'bioavailabilityNotTransferred', detail: `adm=${administrationId}` });
+      routes[0].doseFraction = 100;
     }
-    if (tlag) lagSources.set(tlag.toLowerCase(), dosed);
-    doseMacros.push({ node: dosed, fraction, tk0 });
-    doseNodes.push(dosed);
+    if (routes.length) administrationGroups.push({
+      id: String(administrationId),
+      routes: routes.map((route) => ({
+        nodeId: route.node.id,
+        inputType: route.inputType,
+        inputDuration: route.inputDuration,
+        tlag: route.tlagValue,
+        doseFraction: route.doseFraction,
+        ...(route.fractionComplementOf ? { fractionComplementOf: route.fractionComplementOf } : {}),
+        ...(route.inputDurationTlagOf ? { inputDurationTlagOf: route.inputDurationTlagOf } : {})
+      }))
+    });
   }
-  for (const { node, fraction, tk0 } of doseMacros) {
-    const complement = fraction?.match(/^1\s*-\s*([A-Za-z_]\w*)$/);
-    const fractionSource = complement && fractionSources.get(complement[1].toLowerCase());
-    if (fractionSource) node.fractionComplementOf = fractionSource.id;
-    const lagSource = tk0 && lagSources.get(tk0.toLowerCase());
-    if (lagSource) {
-      node.inputDurationTlagOf = lagSource.id;
-      const targets = builder.targets.get(tk0.toLowerCase()) ?? [];
-      builder.targets.set(tk0.toLowerCase(), targets.filter((target) => target.target !== `tk0_${node.name}`));
-    }
+  const selectedGroup = administrationGroups[0];
+  for (const node of builder.nodes) node.dose = 0;
+  for (const route of selectedGroup?.routes ?? []) {
+    const node = builder.nodes.find((candidate) => candidate.id === route.nodeId);
+    if (!node) throw new MlxtranImportError('unsupportedAdministration');
+    Object.assign(node, route, { dose: 100 });
   }
-  if (doseNodes.length > 1) {
-    const total = doseNodes.reduce((sum, node) => sum + node.doseFraction, 0) || doseNodes.length;
-    for (const node of doseNodes) node.doseFraction = 100 * node.doseFraction / total;
-  } else if (doseNodes[0]?.doseFraction < 99.999) {
-    warnings.push({ code: 'bioavailabilityNotTransferred' });
-    doseNodes[0].doseFraction = 100;
-  }
+  builder.administrations = administrationGroups;
+  builder.selectedAdministration = selectedGroup?.id ?? '';
+  if (administrationGroups.length > 1) warnings.push({ code: 'multipleAdministrationsPreserved', detail: administrationGroups.map((group) => group.id).join(', ') });
 
   let peripheralNumber = 1;
   for (const macro of macros.filter((item) => item.name === 'peripheral')) {
@@ -681,9 +709,15 @@ export function parseMlxtran(raw) {
   if (builder.odeCovariates) warnings.push({code:'populationGraph'});
   if (builder.derivedParameters) warnings.push({code:'derivedParameters'});
   if (/\bddt_[A-Za-z_]/i.test(raw)) warnings.push({ code: 'customOdeReview' });
+  const outputInfo = extractNamedOutputs(source, builder, 'mlxtran');
+  if (outputInfo.unresolved.length) warnings.push({ code: 'outputsNotRepresentable', detail: outputInfo.unresolved.join(', ') });
   positionImportedGraph(builder);
   return {
-    spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates },
+    spec: {
+      version: 5, nodes: builder.nodes, edges: builder.edges, covariates,
+      ...(builder.administrations.length ? { administrations: builder.administrations, selectedAdministration: builder.selectedAdministration } : {}),
+      ...(outputInfo.outputs.length ? { outputs: outputInfo.outputs, observedOutput: outputInfo.observedOutput } : {})
+    },
     mode: 'recognized',
     warnings
   };
@@ -898,6 +932,96 @@ function inputNames(raw, format) {
 function codeAssignments(code) {
   return [...code.matchAll(/(?:^|[;\r\n])\s*(?:double\s+)?([A-Za-z_]\w*)\s*=\s*([^;\r\n]+)/gim)]
     .map((match) => ({ name: match[1], expression: match[2].trim() }));
+}
+
+function declaredOutputNames(raw, format) {
+  if (format === 'mlxtran') {
+    return [...raw.matchAll(/\b(?:output|table)\s*=\s*\{([^}]+)\}/gi)]
+      .flatMap((match) => splitList(match[1]))
+      .filter((name) => /^[A-Za-z_]\w*$/.test(name));
+  }
+  if (format === 'mrgsolve') {
+    return sourceBlocks(raw, 'CAPTURE').flatMap((block) => block.split(/\r?\n/).flatMap((line) => {
+      const clean = line.replace(/\/\/.*$/, '').trim();
+      if (!clean || clean.startsWith('@')) return [];
+      const annotated = clean.match(/^([A-Za-z_]\w*)\s*:/);
+      return annotated ? [annotated[1]] : clean.split(/[\s,]+/).filter((name) => /^[A-Za-z_]\w*$/.test(name));
+    }));
+  }
+  return /(?:^|[;\r\n])\s*IPRED\s*=/i.test(raw) ? ['IPRED'] : [];
+}
+
+function extractNamedOutputs(raw, builder, format) {
+  const assignments = new Map();
+  const duplicate = new Set();
+  for (const assignment of codeAssignments(raw.replace(/;[^\r\n]*/g, format === 'nonmem' ? '' : '$&'))) {
+    const name = assignment.name.toLowerCase();
+    if (assignments.has(name) && assignments.get(name) !== assignment.expression) duplicate.add(name);
+    assignments.set(name, assignment.expression);
+  }
+  const nodes = new Map(builder.nodes.map((node) => [node.name.toLowerCase(), node]));
+  const scalar = (ast) => {
+    if (ast.type === 'Literal' && Number.isFinite(Number(ast.value))) return Number(ast.value);
+    if (ast.type === 'UnaryExpression' && ['+', '-'].includes(ast.operator)) {
+      const value = scalar(ast.argument);
+      return value == null ? null : (ast.operator === '-' ? -value : value);
+    }
+    return null;
+  };
+  const volumeMatches = (ast, node) => ast.type === 'Identifier' &&
+    (builder.targets.get(ast.name.toLowerCase()) ?? []).some((entry) => entry.target.toLowerCase() === `v_${node.name}`.toLowerCase());
+  const visit = (ast, coefficient = 1, path = []) => {
+    if (path.length > 24) throw new MlxtranImportError('unsupportedEquation');
+    if (ast.type === 'Identifier') {
+      const key = ast.name.toLowerCase();
+      const node = nodes.get(key);
+      if (node) return [{ nodeId: node.id, basis: 'amount', coefficient }];
+      if (duplicate.has(key) || path.includes(key) || !assignments.has(key)) throw new MlxtranImportError('unsupportedEquation');
+      return visit(readExpression(assignments.get(key)), coefficient, [...path, key]);
+    }
+    if (ast.type === 'UnaryExpression' && ['+', '-'].includes(ast.operator)) {
+      return visit(ast.argument, coefficient * (ast.operator === '-' ? -1 : 1), path);
+    }
+    if (ast.type === 'BinaryExpression' && ['+', '-'].includes(ast.operator)) {
+      return [
+        ...visit(ast.left, coefficient, path),
+        ...visit(ast.right, coefficient * (ast.operator === '-' ? -1 : 1), path)
+      ];
+    }
+    if (ast.type === 'BinaryExpression' && ast.operator === '*') {
+      const left = scalar(ast.left), right = scalar(ast.right);
+      if (left != null) return visit(ast.right, coefficient * left, path);
+      if (right != null) return visit(ast.left, coefficient * right, path);
+    }
+    if (ast.type === 'BinaryExpression' && ast.operator === '/') {
+      const denominator = scalar(ast.right);
+      if (denominator != null && denominator !== 0) return visit(ast.left, coefficient / denominator, path);
+      if (ast.left.type === 'Identifier') {
+        const node = nodes.get(ast.left.name.toLowerCase());
+        if (node && volumeMatches(ast.right, node)) return [{ nodeId: node.id, basis: 'concentration', coefficient }];
+      }
+    }
+    throw new MlxtranImportError('unsupportedEquation');
+  };
+  const names = [...new Set(declaredOutputNames(raw, format))];
+  const outputs = [];
+  const unresolved = [];
+  for (const name of names) {
+    try {
+      const terms = visit(readExpression(name));
+      const merged = new Map();
+      for (const term of terms) {
+        const key = `${term.nodeId}:${term.basis}`;
+        merged.set(key, { ...term, coefficient: term.coefficient + (merged.get(key)?.coefficient ?? 0) });
+      }
+      const compact = [...merged.values()].filter((term) => Math.abs(term.coefficient) > 1e-12);
+      if (!compact.length) throw new MlxtranImportError('unsupportedEquation');
+      outputs.push({ name: cleanName(name, 'output'), terms: compact });
+    } catch {
+      unresolved.push(name);
+    }
+  }
+  return { outputs, observedOutput: outputs[0]?.name ?? '', unresolved };
 }
 
 function expressionTargets(builder, expression) {
@@ -1284,8 +1408,16 @@ export function parseMrgsolve(raw) {
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
   if (/\{\{[A-Za-z0-9_]+\}\}/.test(source)) warnings.push({ code: 'templatePlaceholdersIgnored' });
   if (/\$ODE\b/i.test(source)) warnings.push({ code: 'customOdeReview' });
+  const outputInfo = extractNamedOutputs(source, builder, 'mrgsolve');
+  if (outputInfo.unresolved.length) warnings.push({ code: 'outputsNotRepresentable', detail: outputInfo.unresolved.join(', ') });
   positionImportedGraph(builder);
-  return { spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates }, mode: 'recognized', warnings };
+  return {
+    spec: {
+      version: 5, nodes: builder.nodes, edges: builder.edges, covariates,
+      ...(outputInfo.outputs.length ? { outputs: outputInfo.outputs, observedOutput: outputInfo.observedOutput } : {})
+    },
+    mode: 'recognized', warnings
+  };
 }
 
 function parseThetaValues(raw) {
@@ -1359,8 +1491,16 @@ export function parseNonmem(raw) {
   const covariates = builder.odeCovariates ?? parseExpressionCovariates(namedSource, builder, values, 'nonmem', warnings);
   if (builder.missing.size) warnings.unshift({ code: 'populationDefaults', detail: [...builder.missing].join(', ') });
   if (/\$DES\b/i.test(raw)) warnings.push({ code: 'customOdeReview' });
+  const outputInfo = extractNamedOutputs(namedSource, builder, 'nonmem');
+  if (outputInfo.unresolved.length) warnings.push({ code: 'outputsNotRepresentable', detail: outputInfo.unresolved.join(', ') });
   positionImportedGraph(builder);
-  return { spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates }, mode: 'recognized', warnings };
+  return {
+    spec: {
+      version: 5, nodes: builder.nodes, edges: builder.edges, covariates,
+      ...(outputInfo.outputs.length ? { outputs: outputInfo.outputs, observedOutput: outputInfo.observedOutput } : {})
+    },
+    mode: 'recognized', warnings
+  };
 }
 
 export function parseModelCode(raw, format) {
@@ -1388,9 +1528,17 @@ export function parsePmetrics(raw) {
   const reader = codeOdeGraph(code, builder, [...inputNames(source, 'mrgsolve')]);
   singleCodeAdministration(builder, source, reader, 'mrgsolve');
   if (!builder.edges.length) throw new MlxtranImportError('unsupportedStructure');
+  const outputInfo = extractNamedOutputs(source, builder, 'mrgsolve');
   positionImportedGraph(builder);
   return {
-    spec: { version: 3, nodes: builder.nodes, edges: builder.edges, covariates: builder.odeCovariates },
-    mode: 'recognized', warnings: [...normalized.warnings, ...(unscaled.length ? [{ code: 'pmetricsVolumes', detail: unscaled.map(n => n.name).join(', ') }] : [])]
+    spec: {
+      version: 5, nodes: builder.nodes, edges: builder.edges, covariates: builder.odeCovariates,
+      ...(outputInfo.outputs.length ? { outputs: outputInfo.outputs, observedOutput: outputInfo.observedOutput } : {})
+    },
+    mode: 'recognized', warnings: [
+      ...normalized.warnings,
+      ...(unscaled.length ? [{ code: 'pmetricsVolumes', detail: unscaled.map(n => n.name).join(', ') }] : []),
+      ...(outputInfo.unresolved.length ? [{ code: 'outputsNotRepresentable', detail: outputInfo.unresolved.join(', ') }] : [])
+    ]
   };
 }

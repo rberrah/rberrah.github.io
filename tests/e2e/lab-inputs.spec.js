@@ -61,7 +61,7 @@ for (const lab of ['absorption','infusion']) {
     }
     await page.locator('.data summary').click();
     await expect(page.locator('.data')).toContainText(lab==='absorption'?'Presystemic loss':'Infusion bag');
-    await expect(page.getByRole('button',{name:'Open in TDM',exact:true})).toBeDisabled();
+    await expect(page.getByRole('button',{name:'Open in TDM',exact:true})).toBeEnabled();
     for(const width of [1440,768,390,320]) {
       await page.setViewportSize({width,height:1000});
       await page.getByTestId('lab-time').fill('2');

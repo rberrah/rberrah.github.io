@@ -18,7 +18,20 @@ export const oncoLabels = { V: 'V (L)', CL: 'CL (L/day)', T0: 'SLD(0) (mm)', KG:
 
 /** @param {string} view @param {any} config @param {any[]} [models] */
 export function workshopSpec(view, config, models) {
-  return { type: 'pk-workbench', version: 1, view, config, ...(models ? { models } : {}) };
+  return attachTransferContract(
+    { type: 'pk-workbench', version: 1, view, config, ...(models ? { models } : {}) },
+    makeTransferContract({
+      source: `${view}-builder`, destination: 'tdm-engine',
+      transferredFields: ['view', 'configuration', ...(models ? ['pk-models'] : [])],
+      units: { time: config?.time_unit ?? 'h' },
+      route: models?.map((model) => model.route).filter(Boolean) ?? config?.route ?? null,
+      compartment: config?.compartment ?? null,
+      schedule: config?.doses ?? config?.cycles ?? config?.regimen ?? null,
+      omittedFields: ['patient observations', 'MAP posterior outside the current engine session'],
+      transformations: ['browser-workbench-to-engine-schema'],
+      limitations: ['PK uncertainty is not automatically propagated to PD']
+    })
+  );
 }
 
 /** Basic IV PK uses the same validated Lego contract as a user-built model.
@@ -83,3 +96,4 @@ export function openWorkshop(engine, lang, spec, status, receive = () => {}) {
   transmit();
   return cleanup;
 }
+import { attachTransferContract, makeTransferContract } from '../transfers/contract.js';

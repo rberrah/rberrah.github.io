@@ -1,7 +1,7 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-09. Les cinq ateliers et les quinze laboratoires animés sont publiés : quatre fondamentaux et onze moléculaires.
-Lot actuel : maturation pédagogique, cohérence scientifique et validation auprès d'utilisateurs.
+Mise à jour : 2026-10-15.
+Lot actuel : validation scientifique, validation pédagogique et reproductibilité.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
 
@@ -9,10 +9,41 @@ Ce document regroupe les demandes recentes et les pistes des deux discussions
 avec les agents. Il ne vaut pas autorisation de changer les licences, de rendre
 un depot prive, de migrer les services ou de publier des contenus tiers.
 
-Statuts : `[x]` livre et verifie pour le perimetre indique ; `[ ]` a faire.
+Les nouveaux lots utilisent six statuts cumulatifs : `implemented` →
+`CI verified` → `publicly verified` → `author reviewed` →
+`independently reviewed` → `user tested`. Un statut n'implique jamais les suivants. Les anciennes cases
+`[x]` décrivent uniquement le périmètre technique indiqué ; elles ne prouvent
+ni revue scientifique indépendante ni test utilisateur.
 Les pistes marquees **A arbitrer** ou **Exploratoire** ne sont pas des engagements.
 Priorites : P0 = fondations ; P1 = prochain lot ; P2 = suite ; P3 = conditionnel.
 Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
+
+## Phase actuelle de validation
+
+| Chantier | Statut actuel | Prochaine preuve requise |
+| --- | --- | --- |
+| Trois chapitres logiciels FR/EN (`pmetrics-nonparametric`, `nlmixr2-moteur`, `tools-nlmixr2`) | `implemented` | Relecture auteur, puis revue indépendante et scellement des fichiers exacts |
+| Starter 12 → validation/VPC/NPDE → Bayésien/TDM → logiciels → infectiologie | `implemented` pour le contenu | Exécuter la file de revue dans cet ordre et consigner source, reviewer, date et résolution |
+| `NPAGSupportPoints.svelte` | `implemented` | Relecture indépendante des poids, masses marginales et limites d'interprétation |
+| Tests débutants, étudiants, enseignants et pharmacométriciens | non commencé | Sessions sans guidage selon le protocole, puis résultats anonymisés |
+| Accessibilité clavier, zoom 200 %, 320 px, NVDA, VoiceOver et mobile réel | `CI verified` pour axe-core et les parcours clavier automatisés | Audit manuel sur appareils et technologies d'assistance réels ; l'automatisation ne valide ni NVDA, ni VoiceOver, ni zoom ou appareil physique |
+| Non-rétention et confidentialité | `CI verified` pour le contrat du dépôt | Auditer journaux, `/tmp`, erreurs, exports et isolation de deux sessions sur l'hébergement public selon `docs/privacy-nonretention-audit.md` |
+| Pmetrics | `CI verified` en local/dépôt | Backend public explicitement indisponible tant qu'un hébergement avec chaîne R/Rust compatible n'est pas validé |
+| Traçabilité de la bibliothèque de modèles | `implemented` et générée pour 46/46 | Faire vérifier indépendamment les équations, domaines chiffrés et écarts aux articles consignés dans `docs/tdm-model-traceability.md` |
+| Cas de référence reproductible par modèle | `CI verified` pour 6/46 | Étendre les profils figés et ajouter des sorties issues d'un logiciel/source indépendant ; ne pas confondre non-régression et reproduction scientifique |
+| Diagnostics TDM | `CI verified` pour les signaux numériques | Relecture utilisateur des messages et validation méthodologique ; convergence, rareté des données, bornes et covariance ne prouvent pas l'identifiabilité |
+| Provenance des artefacts ML | `CI verified` pour 46/46 artefacts : contrat, split patient, domaines, métriques et empreintes modèle/RDS/DALEX | Revue indépendante des domaines et protocoles déclarés ; la complétude du registre ne constitue pas une validation externe |
+| Transferts Simulation → Lego → TDM/DDI/PD | `CI verified` pour les contrats et parcours principaux | Revue utilisateur des fiches transféré/non transféré/unités/limites et complétion des anciens ponts si nécessaire |
+| Graphe pédagogique transversal | `CI verified` pour la navigation générique | Revoir avec des utilisateurs si les liens comprendre → pratiquer → expérimenter → intégrer sont compris et utiles |
+| Comparaisons A/B des laboratoires | `CI verified` pour 15/15 laboratoires | Vérifier avec des débutants la compréhension des écarts et du contrefactuel oncologique |
+| Support Lego complexe | `CI verified` pour le sous-ensemble borné | Étendre au-delà des expressions autorisées, administrations alternatives sélectionnables et sorties combinées linéaires sans prétendre restaurer un projet d'estimation complet |
+| Communication NetPK du 14 octobre 2026 | `implemented` : `Presented / Présenté`, pages FR/EN et métadonnées régénérées | `CI verified` par la règle générique interdisant un statut `upcoming` après la date de présentation ; publication publique à vérifier après déploiement |
+| Actions et dépendances Node 20/24 | `implemented` pour les actions officielles | Confirmer les nouveaux majors sur les prochains runs GitHub Actions ; `punycode.js` reste transitif via `markdown-it` et aucun usage direct de `url.parse()` n'est détecté dans le projet |
+
+**Gel de périmètre :** pas de nouveau grand laboratoire, de nouvelle grande
+rubrique, de refonte UI globale ni de multiplication de cours avant l'avancement
+mesurable de la revue scientifique, des tests utilisateurs et de la
+reproductibilité.
 
 ## 0. Maturation pédagogique (2026-10-08)
 
@@ -137,11 +168,11 @@ Voir [audit d'import](docs/lego-import-audit.md) et
 
 ## 2. Regles transversales
 
-- [ ] **G01 / P0** Auditer la non-conservation : pas de donnees patients ni de modeles personnels sauvegardes automatiquement, dans les journaux, le navigateur, le serveur ou les traces de test. Verifier aussi la suppression des fichiers temporaires et l'isolation des sessions.
-- [ ] **G02 / P0** Verifier les paquets de publication : aucun PDF institutionnel, supplement protege, secret ou dossier patient, meme pseudonymise. Les modeles publics relus et les artefacts issus de simulations restent distincts des imports personnels.
-- [ ] **G03 / P0** Conserver la compilation C++ arbitraire desactivee sur le serveur partage. Toute ouverture future exige un service isole avec limites de ressources, reseau et systeme de fichiers restreints ; un depot prive ne remplace pas ces protections.
-- [ ] **G04 / P0** Distinguer explicitement : demonstration pedagogique, verification numerique, reproduction d'article et validation externe. Aucun badge de validation ne doit provenir uniquement d'un test ou d'un champ de metadonnees.
-- [ ] **G05 / P0** Maintenir les limites cliniques et le renvoi vers ABIS dans Statut, les rapports et les parcours concernes. Les fonctions experimentales ne deviennent pas automatiquement des recommandations.
+- **G01 / P0 — CI verified locally.** Le contrat statique, Playwright et le test R couvrent stockage, URL, journaux navigateur, traces désactivées, erreur d'import, isolation session A/session B et suppression des répertoires après calcul interrompu. Les journaux, `/tmp` et crashs de l'hébergement public restent `public verification pending` selon [l'audit de non-rétention](docs/privacy-nonretention-audit.md).
+- [x] **G02 / P0 — CI verified.** Avant upload, l'audit de `dist/` refuse extensions et archives inattendues, noms patients/temporaires, documents hors allowlist et secrets à motif fort. Les PDF institutionnels locaux restent ignorés par Git.
+- **G03 / P0 — CI verified.** La valeur par défaut, le script de déploiement et tous les workflows publics sont contrôlés : `ALLOW_CUSTOM_MODELS=true` fait échouer le garde-fou. Toute ouverture future exige un service isolé ; un dépôt privé ne remplace pas ces protections.
+- **G04 / P0 — implemented.** Les manifestes distinguent contrat logiciel, régression déterministe et reproduction de source. La revue scientifique indépendante et la validation externe restent `pending`.
+- **G05 / P0 — implemented, public verification pending.** Les limites cliniques et le renvoi ABIS sont conservés ; leur présence publique doit être revérifiée après chaque déploiement majeur.
 
 Les partages par URL seront limites aux scenarios pedagogiques integres et aux
 parametres synthetiques autorises. Aucune donnee patient, aucun code personnel
@@ -168,9 +199,10 @@ en compte : la frontiere ne se resume plus a la page TDM.
 | Echanges entre applications | `src/lib/tdm/`, specifications Lego et validateurs R | Contrats versionnes, compatibilite et validation des deux cotes |
 
 - [x] **A01 / P0** Mettre le README en accord avec le portail, le cours et le deploiement Shiny separe ; lier cette roadmap.
-- [ ] **A02 / P0** Cartographier les dependances catalogue -> generateurs -> copies -> ateliers -> moteur et identifier les fichiers sources / derives. Verifier qu'une generation repetee ne change pas le contenu.
-- [ ] **A03 / P0** Formaliser les contrats existants, sans les remplacer aveuglement : versions des ateliers et dossiers, unites, voie/compartiment, messages de transfert, acquittements, erreurs et compatibilite avec les exports precedents.
-- [ ] **A04 / P0** Ajouter a la CI les tests actuellement lances localement. Le workflow Pages actuel controle l'assemblage mais ne lance pas toutes les suites. Separer controles contenu/frontend, imports Lego et tests R ; commencer par les tests courts puis programmer les compilations longues.
+- **A02 / P0 — CI verified.** La source statique, les copies moteur, les deux catalogues, les métadonnées et le manifeste de traçabilité des 46 modèles sont comparés automatiquement ; une divergence bloque la suite PMx.
+- **A02b / P0 — CI verified.** Les générateurs de catalogues, communications, inventaires, matrice Lego et graphe pédagogique sont rejoués en CI puis `git diff --exit-code` interdit toute dérive avant le build.
+- **A03 / P0 — implemented for primary transfers.** Les nouveaux payloads Simulation/Lego/TDM/DDI/PD portent un contrat v3 (champs, unités, pertes, transformations, limites), les payloads v1/v2 restent lisibles et les incompatibilités explicites sont refusées par test. Les anciens ponts non migrés restent à inventorier.
+- **A04 / P0 — CI verified.** PMx, Stats et MultiOmics ont des configurations Playwright et workflows dédiés. Le workflow Pages ne lance plus les tests ou backends MultiOmics. Le build Svelte partagé reste un couplage de compilation à réduire sans masquer les erreurs.
 - [ ] **A05 / P1** Extraire progressivement de `app.R` et des grosses pages les ensembles de responsabilites qui ralentissent les modifications, en reutilisant les modules Shiny deja presents. Aucun deplacement massif sans gain verifiable.
 - [ ] **A06 / P1** Identifier et isoler les anciens composants illustratifs non utilises ; ne pas les reintroduire comme calculs scientifiques fiables. Charger les visualisations a la demande apres mesure du poids et des temps de chargement.
 - [ ] **A07 / P2 - A arbitrer** Decider public/prive, licences, bibliotheque contributive et eventuelle valorisation avec l'auteur et les interlocuteurs institutionnels pertinents. Une bibliotheque communautaire publique n'impose pas un moteur public, mais son acces et ses contributions doivent rester possibles.
@@ -214,7 +246,7 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 - [x] **L05e / P1** L05d publie, deploiement Pages reussi et neuf tests navigateur passes sur le site public. Shiny HTTP 200 conserve l'ancien acquittement client, sans le transfert teaching serveur. Comparaison documentee dans `docs/deployment-status.md`.
 - [x] **L08b / P1** Absorption orale/biodisponibilite et perfusion IV/arret : trajets depot/poche -> central -> elimination, perte presystemique distincte, reference, courbes lineaire/semi-log, bilans et reperes PK. Onze scenarios compares a une EDO mrgsolve independante et au code Lego regenere ; cinq nouveaux tests navigateur, dont pixels en mouvement, pause, mobile et FR/sombre. Les neuf tests precedents passent aussi.
 - [x] **L08c / P1** Publication demandee par l'utilisateur apres la revue locale ; retrait du bouton Particule suivante dans les quatre laboratoires. Selection directe et clavier conservees. Aucun deploiement Shiny dans ce lot.
-- [ ] **L08d / P1** Verifier les transferts directs TDM/DDI/PD avant activation. Transfert Lego disponible et compare numeriquement.
+- [x] **L08d / P1 - CI verified** Les transferts directs Absorption/Perfusion vers TDM, DDI et PD conservent la voie, le compartiment d'administration, la dose, l'intervalle et la duree de perfusion. Seize scenarios JS deterministes et 32 comparaisons mrgsolve entre export et regeneration R couvrent les administrations ; un test navigateur parcourt les six destinations.
 - [x] **L07 / P2** Accumulation : doses répétées, état stationnaire, fluctuations, dose de charge, interruption et référence comparative.
 - [x] **L08 / P2** PK à un compartiment / absorption : dose, CL, V, ka, F, voie, exposition, Cmax/Tmax et demi-vie sous leurs hypothèses de validité.
 - [x] **L09 / décision de périmètre** La variabilité reste une animation de cours (`12_VariabilitySandbox`) : comparaison de courbes et distributions, sans faux parcours moléculaire ni laboratoire séparé.
@@ -236,17 +268,17 @@ scientifique explicite, selon les [principes PhET](https://phet.colorado.edu/en/
 Dependances : L01-L06 n'attendent pas une separation des depots. Les animations
 statistiques des cours restent indépendantes du moteur de laboratoires moléculaires.
 
-`/laboratoires/` publie désormais les quinze laboratoires et les relie aux cours concernés. Le chantier restant est l'observation avec des utilisateurs (L06) et la vérification des transferts spécialisés encore désactivés (L08d), pas la reconstruction d'Accumulation ou d'Absorption. Voir [hypothèses et vérifications](docs/teaching-laboratories.md).
+`/laboratoires/` publie désormais les quinze laboratoires et les relie aux cours concernés. Le chantier restant est l'observation avec des utilisateurs (L06), pas la reconstruction d'Accumulation ou d'Absorption. Voir [hypothèses et vérifications](docs/teaching-laboratories.md).
 
 ## 5. Lego : import fidele des modeles complexes
 
-- [ ] **K01 / P1** Etendre la representation des parametres avec des expressions structurees et bornees : alias, sommes, produits, puissances, fonctions autorisees et conditions. Reutiliser l'analyse AST existante ; aucune evaluation de code source arbitraire.
+- **K01 / P1 — CI verified for the bounded subset.** L'AST accepte alias, sommes, produits, puissances, fonctions autorisées et condition catégorielle ternaire ; budgets de profondeur/complexité et liste blanche empêchent l'évaluation arbitraire. Les blocs `if` généraux restent refusés.
 - [x] **K02 / P1** Premier cas cible : Korell oral. Contributions additives a CL et plafond CrCL representes ; divergences des exemples Cirincione/Korell documentees et exemples locaux corriges d'apres les sources.
 - [x] **K03 / P1** Effet lineaire additif propage dans l'interface, le calcul navigateur, les exports mrgsolve/MLXTRAN/NONMEM et la regeneration R securisee. Les valeurs manquantes restent a 1 avec avertissement.
-- [ ] **K04 / P2** Ajouter les administrations identifiees et leur affectation aux depots, fractions, delais, entrees d'ordre zero, unites et evenements ; preserver les branches paralleles sans compartiment technique non relie.
-- [ ] **K05 / P2** Ajouter des sorties nommees, dont la somme des concentrations de plusieurs composantes. Cas cible : oral + PP1/PP3/PP6, puis parent/metabolite quand les flux correspondants sont representables.
-- [ ] **K06 / P2** Refaire les tests dans les deux sens, avec et sans metadonnees embarquees : equations, courbes et covariables sur une grille de cas. Ajouter les modeles de bibliotheque et exemples primaires en ligne dont la redistribution est autorisee.
-- [ ] **K07 / P2** Publier une matrice precise par format : reconnu exactement, structure populationnelle uniquement, ou refuse avec equation/raison. Ne pas annoncer un support NONMEM natif sans execution dans ce logiciel ; les tests d'export ne suffisent pas.
+- **K04 / P2 — CI verified for the bounded subset.** Le Builder préserve les administrations alternatives importées avec leurs cibles, fractions, compléments, délais et entrées d'ordre zéro. L'utilisateur choisit l'administration active pour la simulation et l'export ; toutes les branches restent dans la spécification versionnée. Des calendriers indépendants simultanés relèvent toujours de DDI et ne sont pas fusionnés implicitement.
+- **K05 / P2 — CI verified for linear named outputs.** Les sorties nommées composées de sommes ou différences pondérées de quantités et concentrations sont conservées, affichées et sélectionnables comme prédiction dans les exports nlmixr2, mrgsolve, MLXTRAN, NONMEM et Pmetrics. Les transformations non linéaires ou ambiguës restent signalées sans approximation.
+- **K06 / P2 — CI verified for parser/round-trip scope.** Les tests couvrent métadonnées présentes/absentes, covariables, équations, KOKA/PP6, exemples redistribuables et modèles de bibliothèque. La reproduction native propriétaire reste distincte.
+- **K07 / P2 — implemented.** Une matrice générée de 240 contrôles publie `exact`, `structural only` ou `rejected` avec raison. Les harnesses NONMEM et Monolix rapportent `not-executed` sans licence et ne peuvent produire `passed` qu'après exécution native.
 - [ ] **K08 / P3 - Exploratoire** Etudier separement IIV/IOV, covariance, erreurs residuelles, covariables variant dans le temps et melanges de populations. Une conversion de schema deterministe ne restaure pas un projet complet d'estimation.
 
 **Sortie Korell :** equations preservees, valeurs/unites explicites, tests
@@ -257,27 +289,32 @@ communes mais K01-K03 ne doivent pas attendre l'eventuelle extraction A08.
 ## 6. Navigation et continuite pedagogique
 
 - [x] **U01 / P2 - Local** Menu Apprendre / Explorer / Construire / Analyser / Ressources, entrees par objectif dans l'accueil et le portail ; URL existantes conservees.
-- [ ] **U02 / P2 - Partiellement livré** Les métadonnées de glossaire sont explicites et le tronc commun est relié. Poursuivre le graphe conceptuel : définition, équation, erreurs fréquentes, chapitre, laboratoire et exercice ; harmoniser FR/EN jusqu'aux légendes et données du glossaire.
-- [ ] **U03 / P2 - Partiellement livré** La recherche ouvre directement les activités et treize cas de synthèse sont disponibles. Achever les liens exercice-expérience : prédiction initiale, manipulation, comparaison et explication, sans badges ni gamification obligatoire.
-- [ ] **U04 / P2** Rendre coherent le passage Simulation -> Lego -> TDM/DDI/PD. Afficher ce qui est transfere, ses unites et ce qui ne l'est pas ; ne pas promettre une reprise de dossier entre deux sessions Shiny independantes.
+- [x] **U02 / P2 - CI verified** Chaque chapitre relie maintenant comprendre (définition, intuition, équations et erreurs fréquentes), pratiquer, laboratoire disponible et cas transversal du parcours. Les prérequis et termes de glossaire restent visibles en amont ; la pertinence pédagogique doit encore être testée avec des utilisateurs.
+- [x] **U03 / P2 - CI verified** La recherche ouvre directement les activités et les treize cas de synthèse. Les laboratoires reliés suivent prédiction, manipulation, observation, explication et application, avec retour au cours et aux exercices, sans badges ni gamification obligatoire.
+- **U04 / P2 — CI verified for primary paths.** Les fiches visibles sont complétées par un contrat v3 machine-readable indiquant champs, unités, voie, compartiment, calendrier, pertes, transformations et limites ; les contrats v1/v2 restent lisibles. La reprise du posterior reste limitée à la session moteur. Inventaire des anciens ponts encore requis.
 - [x] **U05 / P2** Mode enseignant des laboratoires : scenarios numeriques reproductibles, resultats masquables/revelables, CSV/PNG et partage valide par liste blanche. Sans compte, suivi d'eleve ni stockage automatique de scenario.
-- [ ] **U06 / P2** Generaliser la comparaison A/B pertinente : une reference stable, les parametres modifies et les ecarts numeriques. Preserver la graine de simulation et rendre le changement d'echelle visible.
+- [x] **U06 / P2 - CI verified** Les 4 laboratoires fondamentaux et les 11 parcours moléculaires affichent une référence stable, les paramètres modifiés et les écarts numériques au temps choisi. L'oncologie compare explicitement le contrefactuel sans traitement au scénario traité. Ces laboratoires sont déterministes ; une graine devra être conservée si une simulation aléatoire est ajoutée.
 
-**U04 partiellement livre en local :** laboratoire -> Lego / TDM / DDI / PD,
+**U04 verifie en CI sur les parcours principaux :** laboratoire -> Lego / TDM / DDI / PD,
 avec confirmation et liste des elements repris ou omis. TDM reprend le calendrier
 complet dans une nouvelle session sans concentrations ; Lego reprend la premiere
 dose, DDI/PD leur propre schema repete. La generalisation aux autres simulations
 et la reprise entre sessions independantes ne sont pas annoncees comme acquises.
 
+**Preuves U02/U03/U06 :** contrôle de contenu sur 95 chapitres, 114 activités et
+13 cas de synthèse ; build statique ; tests Chromium ciblés sur le graphe de
+chapitre, le retour au cours, la comparaison PK et les onze parcours moléculaires.
+Ces preuves vérifient le logiciel, pas l'efficacité pédagogique, qui relève de L06.
+
 ## 7. Bibliotheque, MIPD, ML, DDI et PD
 
-- [ ] **S01 / P0** Poursuivre l'audit article/code : auteur et DOI, population, voies (oral / IV intermittente / IV continue), unites, parametres, covariables, IIV et erreur. Identifier explicitement les adaptations et priors ajoutes pour compatibilite MAP. Demander les articles manquants, sans les publier.
-- [ ] **S02 / P1** Relier chaque version de modele a ses cas synthetiques de reference, differences par rapport a l'article, date et perimetre de relecture. Tester les incompatibilites de voie, unite et objectif avant model averaging.
-- [ ] **S03 / P1** Renforcer les regressions TDM existantes : SS a t=0 et doses suivantes, horaires relatifs/dates, incertitude conditionnelle, LLOQ conditionnelle, covariables au prelevement, erreur residuelle fixee et cibles simples/multiples. Ne pas recreer ces fonctions deja livrees.
-- [ ] **S04 / P1** Documenter et tester le contrat ML par artefact : cible et fenetre AUC, voie, modele source/version, plages de doses/temps/covariables, regles de prelevement. Maintenir la regle actuelle de deux concentrations dans un meme intervalle tant qu'un autre contrat n'est pas entraine et verifie.
-- [ ] **S05 / P2** Consolider l'entrainement reproductible pour les nouveaux modeles : graines, separation train/validation/test par individu simule, absence de fuite d'information, erreurs par sous-groupe et disponibilite des artefacts/explications. Tester le model averaging complet et les artefacts manquants ; comparer MAP/ML sur la meme grandeur et la meme fenetre.
+- **S01 / P0 — implemented as a structured inventory for 46/46.** DOI, population, voies, unités, structure, paramètres, covariables, IIV, erreur, adaptations, MAP et limites sont générés dans `docs/tdm-model-traceability.json`. La vérification article par article reste `independent review pending`.
+- **S02 / P1 — CI verified for 6/46 deterministic cases.** Six modèles prioritaires ont un profil numérique figé. Ce sont des régressions logicielles, pas des reproductions indépendantes ; extension et références externes restent requises.
+- [x] **S03 / P1 - CI verified** Les regressions couvrent SS a t=0 et doses suivantes, equivalence jours relatifs/dates calendaires apres normalisation, affichage et export conditionnels des incertitudes et de la LLOQ, covariables reportees au prelevement, erreur residuelle fixee, parametres aux bornes et cibles simples/combines. Ce sont des tests logiciels ; ils ne valident ni un modele source ni une decision clinique.
+- [x] **S04 / P1 - CI verified** Le registre des 46 artefacts consigne et contrôle cible/fenêtre AUC, voie et mode, modèle source et empreinte, logiciel, population, schéma de variables, domaines d'entraînement et règles de prélèvement. Maintenir la règle actuelle de deux concentrations dans un même intervalle tant qu'un autre contrat n'est pas entraîné et vérifié.
+- [ ] **S05 / P2 - partially CI verified** Les 46 contrats imposent graines, separation developpement/holdout par patient simule, absence de recouvrement controlee a l'entrainement, domaines, empreintes, artefacts/explications et metriques sur une AUC24 commune. Les tests couvrent model averaging complet et refus de l'estimation agregee si un artefact manque. Les erreurs par sous-groupe et une partition de validation distincte du holdout restent a produire lors du prochain reentrainement ; elles ne sont pas deduites des artefacts actuels.
 - [ ] **S06 / P2** Evaluer la generalisation du ML par molecule et contexte. La validation externe d'une methode sur le tacrolimus ne valide pas automatiquement tous les nouveaux artefacts ; un accord MAP/ML n'est pas une preuve d'exactitude. Conserver l'usage experimental et les avertissements hors domaine.
-- [ ] **S07 / P2** Ameliorer les retours d'ajustement : adequation, identifiabilite, bornes atteintes, donnees insuffisantes, incertitude calculee ou absente. Relier les cas pedagogiques a ces diagnostics.
+- [x] **S07 / P2 - CI verified** L'application et le rapport rendent visibles convergence de l'optimiseur, concentrations par rapport aux ETA, proximité des bornes et disponibilité/stabilité numérique de la covariance postérieure. Le texte précise que ces signaux ne démontrent ni identifiabilité ni validité clinique ; leur compréhension reste à tester avec les utilisateurs.
 - [ ] **S08 / P2** DDI : clarifier concentrations libres/totales, unites de Ki/EC50, choix du parametre affecte, plancher d'effet et recuperation des mecanismes dynamiques. Verifier l'equivalence atelier/JSON/script R/C++ et distinguer code autonome et code attendant des entrees externes.
 - [ ] **S09 / P2** PD/oncologie : cas documentes par molecule, sensibilite/identifiabilite, diagnostics d'ajustement et comparaisons de scenarios. L'incertitude ou une optimisation posologique demandent un lot scientifique specifique ; aucun passage implicite des structures illustratives a un protocole clinique.
 - [ ] **S10 / P2** Bibliotheque contributive : faciliter la proposition par formulaire/issue/PR, controles automatiques et revue humaine. Articles comme sources, remerciement facultatif du contributeur ; pas de token client, de push automatique non relu ni de collecte de donnees patients.

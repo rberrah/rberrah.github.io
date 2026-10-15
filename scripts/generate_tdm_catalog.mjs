@@ -191,9 +191,10 @@ function implementationStatus(details, stem) {
 }
 
 function maturityStatus(details, stem) {
-  const verificationStatus = details.verificationStatus ?? 'SOFTWARE_TESTED';
-  const validationStatus = details.validationStatus ?? 'NONE';
-  const contextOfUse = details.contextOfUse ?? 'TEACHING_RESEARCH';
+  for (const field of ['verificationStatus', 'validationStatus', 'contextOfUse']) {
+    if (!Object.hasOwn(details, field)) throw new Error(`Missing explicit ${field} for ${stem}.`);
+  }
+  const { verificationStatus, validationStatus, contextOfUse } = details;
   if (!['NOT_TESTED', 'SOFTWARE_TESTED', 'NUMERICALLY_REPRODUCED'].includes(verificationStatus)) {
     throw new Error(`Unknown verification status for ${stem}: ${verificationStatus}`);
   }
@@ -206,8 +207,11 @@ function maturityStatus(details, stem) {
   return { verificationStatus, validationStatus, contextOfUse };
 }
 
-function analysisEligibility(details, implementationDetails) {
-  const analysisEligible = details.analysisEligible ?? implementationDetails.implementationStatus === 'ARTICLE';
+function analysisEligibility(details, implementationDetails, stem) {
+  if (!Object.hasOwn(details, 'analysisEligible') || typeof details.analysisEligible !== 'boolean') {
+    throw new Error(`Missing explicit boolean analysisEligible for ${stem}.`);
+  }
+  const analysisEligible = details.analysisEligible;
   return analysisEligible
     ? {
         analysisEligible: true,
@@ -248,8 +252,11 @@ function parseModelFile(file, metadata, englishMetadata, code) {
   const routeDetails = administrationRoutes(code, stem);
   const modeDetails = administrationModes(routeDetails.routes, details, stem);
   const implementationDetails = implementationStatus(details, stem);
+  if (implementationDetails.implementationStatus === 'ADAPTED' && !details.note?.trim()) {
+    throw new Error(`Adapted model ${stem} must document its implementation difference in note.`);
+  }
   const maturityDetails = maturityStatus(details, stem);
-  const analysisDetails = analysisEligibility(details, implementationDetails);
+  const analysisDetails = analysisEligibility(details, implementationDetails, stem);
 
   return {
     id: stem,
@@ -352,7 +359,26 @@ async function main() {
     file.replace(/\.cpp$/i, ''),
     createHash('sha256').update(code.replace(/\r/g, '')).digest('hex')
   ]));
-  const mlArtifacts = (mlRegistry.artifacts ?? []).map((artifact) => {
+  const registeredArtifacts = mlRegistry.artifacts ?? [];
+  const requiredArtifactPaths = [
+    'id', 'baseModelId', 'baseModelSha256', 'artifactPath', 'artifactSha256',
+    'route', 'administrationMode', 'samplingProtocol.description', 'samplingProtocol.target',
+    'featureSchema', 'prediction.metric', 'prediction.unit', 'prediction.horizonHours', 'methodology.sourcePopulation',
+    'methodology.regimenConfiguration', 'methodology.populationConfiguration',
+    'training.seed', 'training.nVirtualDevelopment', 'training.nTraining', 'training.nUntouchedHoldout',
+    'training.split.unit', 'training.split.method', 'training.split.holdoutUntouched',
+    'training.software', 'trainingDomain.features', 'validation'
+  ];
+  const valueAt = (object, dottedPath) => dottedPath.split('.').reduce((value, key) => value?.[key], object);
+  for (const artifact of registeredArtifacts) {
+    const missing = requiredArtifactPaths.filter((field) => {
+      const value = valueAt(artifact, field);
+      return value == null || value === '' || (Array.isArray(value) && value.length === 0) ||
+        (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
+    });
+    if (missing.length) throw new Error(`Incomplete ML artifact ${artifact.id ?? '<unknown>'}: ${missing.join(', ')}`);
+  }
+  const mlArtifacts = registeredArtifacts.map((artifact) => {
     const model = modelById.get(artifact.baseModelId);
     const currentHash = modelHashes.get(artifact.baseModelId);
     const hashMatches = Boolean(currentHash && currentHash === artifact.baseModelSha256);

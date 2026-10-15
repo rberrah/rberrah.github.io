@@ -66,6 +66,7 @@ test('all eleven animated journeys render a nonblank model', async ({ page }) =>
     expect((await coloredPixels(page.getByTestId('molecular-plot'))).colored).toBeGreaterThan(500);
     await expect(page.getByTestId('molecular-scene')).toHaveAttribute('data-direct-key', /.+/);
     await expect(page.getByLabel('Animate particles')).toBeChecked();
+    await expect(page.getByTestId('lab-comparison-summary')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     if (lab === 'tmdd') await page.screenshot({ path: 'test-results/molecular-laboratory-desktop.png', fullPage: true });
   }
@@ -133,6 +134,7 @@ test('PD journeys expose their mechanism-specific comparison and metric', async 
   await expect(page.getByRole('button', { name: 'Use this model as reference' })).toHaveCount(0);
   await page.getByTestId('molecular-time').fill('84');
   await expect(page.locator('.metrics')).toContainText('Resistant cell fraction');
+  await expect(page.getByTestId('lab-comparison-summary')).toContainText('Model counterfactual without treatment');
   await page.screenshot({ path: 'test-results/pd-oncology-laboratory-desktop.png', fullPage: true });
   await page.getByTestId('molecular-time').fill('42');
   const cellsBefore = await coloredPixels(page.getByTestId('molecular-scene'));

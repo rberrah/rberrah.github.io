@@ -415,6 +415,60 @@ $THETA
   expect(erreurs, `Erreurs relevées :\n${erreurs.join('\n')}`).toEqual([]);
 });
 
+test('MLXTRAN preserves alternative administrations and a named combined output', async ({ page }) => {
+  await page.goto('/translator/?lang=en');
+  const importer = page.locator('.mlxtran-import');
+  await importer.locator('textarea').fill(`
+[LONGITUDINAL]
+input = {KA, CL, V, K12, K21, V2}
+PK:
+depot(target=DEPOT, adm=1)
+depot(target=CENT, adm=2, Tk0=2)
+EQUATION:
+ddt_DEPOT = -KA*DEPOT
+ddt_CENT = KA*DEPOT - (CL/V)*CENT - K12*CENT + K21*PERI
+ddt_PERI = K12*CENT - K21*PERI
+Ccentral = CENT/V
+Cperiph = PERI/V2
+Ctotal = Ccentral + Cperiph
+OUTPUT:
+output = {Ctotal}
+table = {Ccentral, Cperiph, Ctotal}
+  `);
+  await importer.getByRole('button', { name: 'Build the diagram', exact: true }).click();
+
+  await expect(importer.getByRole('status')).toContainText('Structure recognized');
+  const administration = page.locator('.imported-selectors select').nth(0);
+  const output = page.locator('.imported-selectors select').nth(1);
+  await expect(administration.locator('option')).toHaveText(['adm 1', 'adm 2']);
+  await expect(output.locator('option')).toHaveText(['Ctotal', 'Ccentral', 'Cperiph']);
+  await administration.selectOption('2');
+  await output.selectOption('Ccentral');
+
+  await page.locator('.codehead').getByRole('tab', { name: 'mrgsolve', exact: true }).click();
+  const generated = await page.locator('pre.codeblk code').innerText();
+  expect(generated).toContain('evt::infuse(AMT');
+  expect(generated).toContain('double Ctotal = CENT/v_CENT + PERI/v_PERI;');
+  expect(generated).toContain('double IPRED = Ccentral;');
+  const marker = generated.match(/^\/\/ PK_LEGO_SPEC_V1:(.+)$/m);
+  expect(marker).not.toBeNull();
+  const specification = JSON.parse(decodeURIComponent(marker[1]));
+  expect(specification.selectedAdministration).toBe('2');
+  expect(specification.observedOutput).toBe('Ccentral');
+
+  await page.locator('.codehead').getByRole('tab', { name: 'nlmixr2', exact: true }).click();
+  await expect(page.locator('pre.codeblk code')).toContainText('Ctotal <- CENT/v_CENT + PERI/v_PERI');
+  await expect(page.locator('pre.codeblk code')).toContainText('Ccentral ~');
+  await page.locator('.codehead').getByRole('tab', { name: 'MLXTRAN', exact: true }).click();
+  await expect(page.locator('pre.codeblk code')).toContainText('Ctotal = CENT/v_CENT + PERI/v_PERI');
+  await expect(page.locator('pre.codeblk code')).toContainText('prediction=Ccentral');
+  await page.locator('.codehead').getByRole('tab', { name: 'NONMEM', exact: true }).click();
+  await expect(page.locator('pre.codeblk code')).toContainText('Ctotal=A(1)/P');
+  await expect(page.locator('pre.codeblk code')).toContainText('IPRED=Ccentral');
+  await page.locator('.codehead').getByRole('tab', { name: 'Pmetrics', exact: true }).click();
+  await expect(page.locator('pre.codeblk code')).toContainText('Y[1] = X[1]/v_CENT');
+});
+
 test("KOKA conserve le modèle et la courbe après export puis réimport", async ({ page }) => {
   await page.goto('/translator/');
   await page.waitForLoadState('networkidle');

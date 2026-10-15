@@ -43,7 +43,7 @@ quiz:
 <!-- step:title="Why this chapter" -->
 In NONMEM, the estimator is a line of the control stream. In Monolix, it is the architecture of the software itself. In nlmixr2, it is a **function argument**. `est = "focei"`, `"saem"`, `"nlme"`, and `"posthoc"` are four representative workflows among the available methods. One word changes, the model does not move a line, and another algorithm takes over.
 
-This is not interface convenience, it is the design trait. nlmixr2 separates the **description** of the model from its **evaluation**: the `model({})` block says what the system is, `est =` says who will handle it. The benefit is real and rare — you can compare estimators on a strictly identical model, without a single opportunity to mistype an equation between two attempts.
+nlmixr2 separates the **description** of the model from its **evaluation**: the `model({})` block describes the system, whereas `est =` selects the estimation method. This separation allows several estimators to use the same model code while retaining method-specific controls and conventions.
 
 The current `nlmixr2est` 7.1 documentation exposes several families: **FO/FOI**, **FOCE/FOCEI/FOCEP**, **Laplace/AGQ**, **SAEM**, `nlme`, and `posthoc`. It also lists research methods based on importance sampling (`imp`, `impmap`, `qrpem`), nonparametric methods (`npag`, `npb`), and mu-referenced, IRLS, or variational variants. These names do not all have the same maturity or purpose: methods labelled as research methods require independent checking, and `nlmixr2AllEst()` also includes technical aliases and optimizers.
 
@@ -55,7 +55,7 @@ The population-estimation methods presented here handle **the same integral** in
 
 **FOCEI uses a local approximation.** It replaces the model by its tangent at the individual mode $\hat{\eta}_i$, which makes the integrand Gaussian and the integral analytical. The price: $\hat{\eta}_i$ must be found for every subject at every population iteration, and the derivatives $\partial f / \partial \eta$ are required. An optimisation loop inside an optimisation loop.
 
-**SAEM does not compute it.** It treats the individual parameters as missing data and simulates them by MCMC instead of integrating them out. Its inner loop proposes an $\eta$, evaluates the model **once**, accepts or rejects. No derivative, no mode to find.
+**SAEM does not rely on the same deterministic local approximation.** It treats individual parameters as missing data and simulates them by MCMC instead of repeatedly searching for their conditional mode. Its inner loop proposes an $\eta$, evaluates the model, then accepts or rejects the proposal. It therefore does not use the same derivatives or inner optimisation as FOCEI.
 
 **nlme uses another local approximation**, through the Lindstrom-Bates alternating algorithm, which chains a penalised nonlinear least squares step and a linear mixed effects step. In practice it lands on an approximation very close to FOCE **without** interaction.
 
@@ -113,7 +113,7 @@ f4 <- nlmixr2(mod, dat, est = "posthoc")
 
 **What rxode2 compiles.** Between `f1` and `f2`, what changes is not the model: it is the model's consumer. rxode2 translates the `model({})` block into **C**, compiles it into a shared library (`.dll` on Windows, `.so` elsewhere) and loads it into the R session. The cost is paid once; the tens of thousands of solves that follow are calls into machine code, not into an interpreter. It is also why a compiler is required — Rtools on Windows — and why the first fit of a model pauses for a reason that has nothing to do with estimation.
 
-But the nuance matters. SAEM only asks for **forward** solves: it consumes the library as is. FOCEI needs $\partial f / \partial \eta$; rxode2 then symbolically differentiates the system and compiles, alongside it, the **forward sensitivity equations**. The source file is identical, the compiled object is not. An `est = "focei"` following an `est = "saem"` therefore goes back through the compiler, and that is not a whim.
+SAEM uses **forward** solves. FOCEI additionally needs $\partial f / \partial \eta$; rxode2 therefore symbolically differentiates the system and compiles the **forward sensitivity equations**. The source file is identical, but the compiled object may differ. An `est = "focei"` following an `est = "saem"` may therefore require compilation of the additional sensitivities used by FOCEI.
 
 **What happens to the metrics.** SAEM estimates parameters without itself providing a single value that is directly comparable with every output from other engines. Depending on controls and version, nlmixr2 can add several post-estimation evaluations. With `logLik = FALSE`, an OBJF can be evaluated using the FOCEi approximation at the SAEM estimates; with `logLik = TRUE`, a log-likelihood can be evaluated by Gauss-Hermite quadrature.
 
@@ -182,7 +182,7 @@ Beware the easy conclusion. SAEM has not found the truth merely because it retur
 **`"saem"`** is often more robust when methods based on conditional optimisation become sensitive or fail, including some nonlinear systems, sparse designs, or models with many random effects. Its own convergence and identifiability must nevertheless be checked.
 **`"nlme"`** to compare against an R legacy or reproduce an old analysis. Rarely the right first choice.
 **`"posthoc"`** to apply a published, frozen model to new subjects: the script that estimated the model becomes the Bayesian estimator of the individual parameters.
-**The strategy that works**: SAEM to find the region, then its estimates as initial values for the FOCEI run that will carry the OFV. But then **the whole** comparison chain is in FOCEI — not just the last run.
+**One possible strategy** is to use SAEM to obtain initial values, then refit with FOCEI when the comparison sequence must rely on FOCEI. In that case, **all** compared models must be refitted with the same method and conventions; the last run alone is not enough.
 :::
 <!-- /step -->
 
@@ -210,8 +210,8 @@ The discipline is simple, and it is entirely on you: **one engine per comparison
 - The design trait of nlmixr2: the model is an R object, the estimator is an **argument**. `ini({})` and `model({})` describe the densities; the $\int$ sign belongs to the engine, hence `est =`.
 - Four representative workflows: `"focei"` approximates the integral by a tangent at $\hat{\eta}_i$ with interaction, `"saem"` samples it, `"nlme"` approximates it differently (Lindstrom-Bates, $\approx$ FOCE without interaction), and `"posthoc"` fixes $\theta$ and seeks only the $\hat{\eta}_i$. Other estimators are available in nlmixr2.
 - **rxode2** compiles the model into C, once, and every solve afterwards is machine code. FOCEI needs the sensitivities $\partial f / \partial \eta$, which rxode2 differentiates and compiles in addition: same source, different compiled object — hence the recompilation when going from SAEM to FOCEI.
-- **SAEM** for stiff systems, sparse data, dubious initial values: no derivative, no individual mode to find. **FOCEI** whenever a chain of ΔOFV is at stake, or the work will end up in NONMEM.
+- **SAEM** can be more robust on some difficult conditional surfaces, with sparse data or sensitive initial values; this does not guarantee convergence or identifiability. ODE stiffness is a separate rxode2 solver-selection and tuning issue and does not by itself justify SAEM. **FOCEI** is a coherent choice when a FOCEI-based ΔOFV sequence is planned.
 - `OBJF`, `logLik`, AIC and BIC are not interchangeable. After SAEM, nlmixr2 may add several post-estimation evaluations; always report the evaluator, metric, convention, controls and version.
-- Same scale does not mean comparable. Subtracting the OFV of a SAEM fit and that of a FOCEI fit measures which of the two optimisers gets closer to the FOCEi minimum, not which of the two models fits better.
+- A common evaluator does not make an LRT valid. A FOCEi OBJF evaluated at SAEM estimates and an OBJF obtained at the FOCEI optimum use parameter estimates from different procedures. To compare nested models, refit them with the same estimation and evaluation sequence and also check the assumptions of the LRT.
 - One engine per comparison chain, chosen in advance, and the `est =` logged next to every OFV. The ease of switching is exactly what makes the mistake easy.
 <!-- /step -->

@@ -163,6 +163,22 @@ if (length(valid) != length(model_ids)) {
 }
 stopifnot(identical(as.numeric(valid[[1]]$current_covariates$WT), 74))
 
+fit_diagnostic <- fit_numeric_diagnostics(valid[[1]])
+stopifnot(
+  identical(fit_diagnostic$status, "fitted"),
+  isTRUE(fit_diagnostic$converged),
+  isTRUE(fit_diagnostic$sparse),
+  isTRUE(fit_diagnostic$uncertainty_available),
+  isFALSE(fit_diagnostic$at_boundary)
+)
+boundary_fit <- valid[[1]]
+selected_eta <- boundary_fit$estimate$arg.optim$select_eta
+boundary_fit$estimate$final_eta[[1]][selected_eta[[1]]] <- boundary_fit$estimate$arg.optim$lower[[1]]
+stopifnot(isTRUE(fit_numeric_diagnostics(boundary_fit)$at_boundary))
+no_uncertainty_fit <- valid[[1]]
+no_uncertainty_fit$estimate$covariance[[1]] <- matrix(NA_real_)
+stopifnot(isFALSE(fit_numeric_diagnostics(no_uncertainty_fit)$uncertainty_available))
+
 fixed_residual_fits <- fit_model_set(
   specifications[1],
   doses,
@@ -380,6 +396,9 @@ if (identical(Sys.getenv("TDM_SMOKE_CORE_ONLY"), "true")) {
 }
 
 ml_manifest <- read_ml_manifest()
+invalid_ml_manifest <- ml_manifest
+invalid_ml_manifest$artifacts[[1]]$prediction$unit <- NULL
+stopifnot(inherits(try(validate_ml_manifest(invalid_ml_manifest), silent = TRUE), "try-error"))
 artifact_for <- function(model_id, mode) {
   matches <- Filter(function(artifact) {
     identical(artifact$baseModelId, model_id) &&
@@ -559,6 +578,19 @@ stopifnot(
   length(averaging_ml_summary$artifacts) == 2L,
   !isTRUE(averaging_ml_summary$explanation$available),
   !grepl("Artefacts ML incomplets", averaging_ml_summary$message, fixed = TRUE)
+)
+
+incomplete_averaging_fits <- averaging_fits
+incomplete_averaging_fits[[2]]$ml_correction <- list(
+  applied = FALSE,
+  reason = "no_compatible_artifact"
+)
+incomplete_averaging_fits[[2]]$ml_auc24 <- NULL
+incomplete_averaging_summary <- ml_application_summary(incomplete_averaging_fits, averaging_weights)
+stopifnot(
+  incomplete_averaging_summary$available == 1L,
+  !is.finite(incomplete_averaging_summary$auc24),
+  grepl("Artefacts ML incomplets", incomplete_averaging_summary$message, fixed = TRUE)
 )
 
 default_fits <- fit_model_set(

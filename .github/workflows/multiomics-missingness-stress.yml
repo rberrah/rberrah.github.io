@@ -38,7 +38,7 @@ jobs:
         run: node scripts/test_multiomics_missingness_calibration.mjs
       - name: Archive complete metrics even when validation fails
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-missingness-calibration
           path: tmp/multiomics/missingness-calibration.json

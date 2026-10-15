@@ -72,7 +72,7 @@ jobs:
         run: Rscript scripts/evaluate_mainz_transbig_pmx.R tmp/multiomics/mainz-transbig
       - name: Archive coefficients, model, all predictions and scientific audit
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pmx-mainz-to-transbig-cross-study-audit
           path: |

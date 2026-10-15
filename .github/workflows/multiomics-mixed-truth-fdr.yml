@@ -38,7 +38,7 @@ jobs:
         run: node scripts/test_multiomics_mixed_truth_fdr.mjs
       - name: Archive all calibration metrics, including negative results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-mixed-truth-fdr
           path: tmp/multiomics/mixed-truth-fdr.json

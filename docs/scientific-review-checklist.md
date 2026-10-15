@@ -5,6 +5,10 @@ independent scientific validation. Change a row to `Done` only after a named or
 documented reviewer has read the exact FR/EN file and the dated comments have
 been resolved.
 
+Execution order: **Starter 12 → validation/VPC/NPDE → Bayesian/TDM →
+NONMEM/Monolix/nlmixr2/Pmetrics → infectiology**. Author review, automated tests
+and independent review remain separate evidence.
+
 For every row, verify equations, units, assumptions, causal language, software
 claims, references, figure captions, quiz answer and consistency between French
 and English. Record the source version or access date in `Sources checked`.
@@ -47,15 +51,6 @@ and English. Record the source version or access date in `Sources checked`.
 | `math-bayes.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
 | `tools-mipd.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
 
-## Infectiology and first-in-human
-
-| File | Language | Sources checked | Reviewer | Date | Comments / issue | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| `infectio-pkpd.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
-| `infectio-tdm.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
-| `infectio-viral.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
-| `trials-fih.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
-
 ## Software-specific courses
 
 | File | Language | Sources checked | Reviewer | Date | Comments / issue | Status |
@@ -74,7 +69,21 @@ and English. Record the source version or access date in `Sources checked`.
 | --- | --- | --- | --- | --- | --- | --- |
 | `08b_parametric-vs-nonparametric.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
 | `08c_pmetrics-nonparametric.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
-| `NPAGSupportPoints.svelte` | bilingual UI | Pending | Pending | Pending | Check prior/posterior, margins and summaries | Pending |
+| `NPAGSupportPoints.svelte` | bilingual UI | Pending | Pending | Pending | Check support-point weights, marginal masses, prior/posterior reweighting and the absence of cluster/phenotype claims | Pending |
+
+## Infectiology
+
+| File | Language | Sources checked | Reviewer | Date | Comments / issue | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| `infectio-pkpd.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
+| `infectio-tdm.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
+| `infectio-viral.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
+
+## Later queue: first-in-human
+
+| File | Language | Sources checked | Reviewer | Date | Comments / issue | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| `trials-fih.md` | FR / EN | Pending | Pending | Pending | Pending | Pending |
 
 After review, seal the exact chapter or visualization with `npm run review:seal`
 and keep the reviewer evidence outside the public repository when consent to

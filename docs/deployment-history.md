@@ -1,0 +1,188 @@
+# Deployment history
+
+Archived operational notes copied on 2026-10-15. Nothing in this file should
+be read as the current deployment state; see [deployment-status.md](deployment-status.md).
+
+| Surface | Verified state | Evidence / limitation |
+| --- | --- | --- |
+| GitHub Pages | Last completed successful deployment: `be882a7` on 2026-10-14 | [Pages run 38525173861](https://github.com/rberrah/rberrah.github.io/actions/runs/38525173861). The validation and traceability changes in the current working tree are local until a later commit and successful deployment. |
+| Current local candidate | Based on public SHA `be882a7`; uncommitted validation changes on 2026-10-15 | PMx/MultiOmics/Stats CI separation, NetPK `presented`, Pmetrics full workflow, 46-model structured traceability, transfer contracts, generated Lego matrix and pedagogical graph are local until commit and a successful Pages run. |
+| Public Shiny | Public MIPD Engine reachable in the 2026-10-12 browser check | Separate Posit deployment. Publishing Pages does not update Shiny. |
+| Pmetrics in repository/local engine | Pmetrics 3.2.6 compile, simulation and MAP backend checks pass for the documented artifacts | Native checks run in a dedicated CI job and locally with a compatible R/Rust toolchain. |
+| Pmetrics in public Shiny | **Unavailable; repository/local only** | The current Shinyapps.io image cannot build the Pmetrics 3.2.6 dependency chain. Do not show the public engine as Pmetrics-capable. |
+| Latest Pages CI observed | Revision `be882a7` completed successfully at 07:09 UTC on 2026-10-14 | [Pages run 38525173861](https://github.com/rberrah/rberrah.github.io/actions/runs/38525173861). |
+| Latest public browser validation | Accessibility smoke succeeded for public revision `be882a7` at 07:10 UTC on 2026-10-14 | [Smoke run 38526554138](https://github.com/rberrah/rberrah.github.io/actions/runs/38526554138). Automated browser checks are not NVDA, VoiceOver, 200% zoom or real-device evidence. |
+| Model library | 46/46 models have generated structured provenance; 6/46 have deterministic software-regression profiles | Compilation and metadata completeness are not independent reproduction of the cited articles. See `docs/tdm-model-traceability.json`. |
+| Local PMx checks | `npm run check` and `npm run build` pass; the full PMx browser suite reports 364 passed and 26 Shiny-dependent skipped tests; static safety/privacy, Pmetrics-course consistency, model-copy synchronization, transfer contracts, 240 Lego compatibility checks and 95-pair FR/EN parity pass | Core R smoke tests, 46/46 model compilations and the 6 deterministic reference profiles also pass locally. These results describe the uncommitted candidate, not the public revision. |
+| Known validation limits | Three FR and three EN chapter files have stale author-review hashes; independent review, participant testing and the live non-retention audit are pending | See `docs/content-inventory.md`, `docs/scientific-review-checklist.md`, `docs/usability-accessibility-results.md` and `docs/privacy-nonretention-audit.md`. Native NONMEM and Monolix execution are `not-executed` without licensed environments. |
+
+## Pmetrics re-check
+
+- Local Pmetrics 3.2.6 compilation and simulation pass for IV 1C, oral 1C and
+  IV 2C; `PM_model$map()` posterior tests pass for all three synthetic artifacts.
+- The public Shiny engine was re-tested in a real browser on 2026-10-12. It does
+  not expose the Pmetrics model-source control, so the native backend remains
+  local/repository-only.
+- The Shinyapps.io image used by the last deployment attempt is incompatible
+  with Pmetrics 3.2.6: its Cargo 1.75 toolchain cannot build dependencies using
+  Rust edition 2024. This is an image/toolchain limitation, not a fundamental
+  incompatibility between Pmetrics and Shiny. No dependency downgrade was
+  introduced to force publication.
+- Next hosting options remain, in order: a compatible managed toolchain, a
+  controlled container, or a separate Pmetrics service.
+
+## Lot Covariables Et Pmetrics
+
+- Backend Pmetrics et artefact pondere : commit `eb37339`, pousse.
+- Nouvelle page `/pharmacometrie/covariates/`, navigation Explorer et parcours
+  Covariables distinct, cinq chapitres FR/EN et exemples mrgsolve/MLXTRAN.
+- Tests locaux : contenu, calculs, compilation mrgsolve des variantes et du
+  cours ; compilation et simulation natives du cours Pmetrics ; controles
+  navigateur Covariables FR/EN sur ordinateur et mobile ; ajustement Pmetrics
+  natif dans Shiny local avec verification des poids posterieurs et du graphe.
+- Shiny : les bundles 12619291 (R 4.6 / lazyeval) et 12619306 (R 4.4 / Cargo
+  1.75 trop ancien pour Pmetrics 3.2.6) ont echoue. Le backend Pmetrics n'est
+  donc pas encore disponible dans l'application publique. Ne pas confondre
+  le traducteur Pmetrics du site avec le moteur statistique R.
+- Aucun document institutionnel ni aucune donnee patient n'est publie.
+
+## Archive - 2026-09-21
+
+## Etat Actuel
+
+- Revision auditee : `3d4a950`, publiee par le
+  [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/35641527776).
+- Version citable `2026.2` datee du 21 septembre 2026. Les dates de mise a jour
+  et de revue scientifique sont desormais distinctes dans les metadonnees.
+- Corrections scientifiques FR/EN harmonisees pour NCA, modeles de survie,
+  essais adaptatifs et simules, variabilite, incertitude, MIPD et outils.
+- Catalogue TDM explicite pour chaque modele : source, implementation,
+  verification logicielle, validation et contexte d'utilisation. Ces statuts
+  ne constituent ni une validation clinique ni une certification reglementaire.
+- Controles bloquants Pages : contenu et structure FR/EN, check Svelte, build,
+  laboratoires et imports, tests navigateur application et portail, noyau R
+  MAP/model averaging/steady state/recommandations, contrat Lego securise et
+  compilation/validation des 46 modeles publics.
+- Le smoke test complet des artefacts ML pre-entraines reste execute localement
+  ou manuellement tant que leur portabilite RDS multi-plateforme n'est pas
+  garantie. Le CI bloque toutefois sur le noyau R et le registre de modeles.
+- Aucun PDF institutionnel ni aucune donnee patient n'a ete ajoute. Ce lot ne
+  redeploie pas l'application Shiny publique.
+
+## Archive - 2026-09-14
+
+Les sections suivantes conservent l'historique des publications anterieures;
+leurs differences local/public ne decrivent plus l'etat actuel ci-dessus.
+
+## Publication Des Ateliers Autorisee
+
+La revue locale est terminee. L'utilisateur demande maintenant le commit et
+la publication Pages des routes Translator, PK, PD, DDI et Advanced, de leurs
+blocs specialises et de la memoire temporaire de navigation. La reference
+publique avant cette publication est `02ad523` (quatre laboratoires publies).
+Le commit `5b86ccd` est publie : [workflow Pages reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/34853467707).
+Les cinq routes ont ete ouvertes dans Chromium sur le site public : HTTP 200,
+navigation Translator / PK / PD / DDI / Advanced presente sur chaque page.
+Le deploiement Shiny n'est pas inclus dans cette publication.
+
+Les anciens chemins `/lego/`, `/interactions/` et `/pharmacodynamie/` restent
+utilisables. Les messages vers R restent `pk-lego-model` et `pk-workbench` :
+aucune nouvelle ouverture de la compilation C++ arbitraire et aucun changement
+des modeles de bibliotheque ou de l'entrainement ML. La revision Advanced ajoute
+un contrat Lego v4 et sa validation/regeneration dans `R/model_library.R`.
+Le moteur public ne recoit pas ces changements tant qu'il n'est pas redeploye.
+
+Controles locaux : build, verifications de contenu et des importeurs, scenarios
+numeriques des laboratoires, tests navigateur ordinateur/mobile, conservation
+des covariables et absence de stockage navigateur des brouillons. Les essais
+Shiny confirment les transferts PD/oncologie/DDI et l'import JSON ; un modele
+genere dans PK a ete compile puis simule en PD avec le C++ arbitraire desactive.
+Ces controles techniques ne constituent pas une validation clinique.
+
+Resultats de la premiere reorganisation du 2026-09-14 : 0 erreur et 0 avertissement Svelte ; build reussi ;
+50 tests navigateur du site et des ateliers passes, plus 5 tests d'integration
+des ateliers avec Shiny local. Le serveur de revue `http://127.0.0.1:4175/pk/`
+a egalement ete teste, avec le moteur local sur `http://127.0.0.1:3841/`.
+
+Revision suivant la revue utilisateur : choix redondants retires de PD,
+oncologie et DDI ; PK de base IV 1 compartiment ; Advanced devient un graphe
+unique avec TGI et interaction. Le serveur de revue 4175 ouvre desormais le
+moteur mis a jour sur `http://127.0.0.1:3842/`, C++ arbitraire desactive.
+Verification numerique : neuf exports mrgsolve compares au generateur R
+securise, avec controles des limites sans traitement et rejet des liens
+invalides. MLXTRAN et NONMEM : generation et restauration du graphe controlees,
+pas d'execution native Monolix/NONMEM. Les calendriers de deux medicaments
+independants restent dans l'atelier DDI.
+
+Controles de cette revision : build statique reussi, 18 tests navigateur du
+site et des traductions passes, 6 parcours Shiny locaux passes (dont compilation
+du graphe Advanced v4), regressions de compilation securisee KOKA/PP6M passees.
+Les neuf modeles mrgsolve de test concordent entre export et regeneration R ;
+le graphe compose concorde aussi avec les valeurs finales du navigateur.
+Les avertissements de build sur gray-matter et la taille des anciens bundles
+restent presents. Aucun test Monolix/NONMEM natif n'a ete execute.
+
+Tests numeriques reproductibles :
+`node scripts/test_advanced_blocks.mjs`, puis
+`tdm-engine/tests/advanced_lego_test.R` apres generation des fixtures par
+`tests/e2e/advanced-blocks.spec.js`. Les fixtures sont des exemples synthetiques
+dans `test-results/`, hors suivi Git.
+
+## Site public
+
+Lot GoatCounter suivant les ateliers : build au chemin `/pharmacometrie`
+reussi, check Svelte sans erreur/avertissement, tests de contenu reussis et
+dix tests navigateur passes sur le build de production. Les requetes des
+fixtures sont interceptees, jamais envoyees au service. Captures FR/mobile et
+EN/ordinateur inspectees. L'injection du portail est idempotente et exclut les
+redirections/404. Aucun PDF, modele personnel ou dossier patient ajoute.
+Voir [perimetre et reproduction des tests](analytics.md). Ce lot ne redeploie
+pas Shiny et ne change ni les modeles PK ni les artefacts ML.
+
+Le lot precedent `d638246`, apres `f2a72e3`, a publie : navigation par objectif,
+mode enseignant, continuite entre outils et deux laboratoires Distribution /
+Accumulation, puis options regroupees, suivi/sonde decoches, animation cochee et
+courbe semi-log sous la courbe lineaire. Le PNG contient les deux courbes.
+
+[Deploiement reussi](https://github.com/rberrah/rberrah.github.io/actions/runs/34762733686).
+Les neuf tests navigateur ont passe sur
+[le site public](https://rberrah.github.io/pharmacometrie/laboratoires/?lang=fr).
+
+## Moteur Shiny
+
+[Le moteur public](https://tdmhub.shinyapps.io/MIPD_Engine/) repond HTTP 200 apres
+son reveil. Son HTML contient encore l'acquittement client `pk-lego-model-ack`,
+sans gestionnaire `teaching-lab-ack` ni entree `teaching_lab_import`.
+
+Les differences R depuis la reference de deploiement `0bf97dc` sont :
+
+- `R/teaching_lab.R` : validation et regeneration du modele pedagogique, calendrier
+  complet des bolus et premiere dose majoree.
+- `app.R` : import du calendrier dans une nouvelle session sans observations et
+  acquittement serveur correle, au lieu de confirmer uniquement la reception JS.
+- `R/model_library.R` : nombres exportes avec 15 chiffres significatifs pour
+  ne pas arrondir les petits taux a zero.
+- Tests de regression associes. Aucun changement du ML dans ce lot.
+
+Ces sources R sont deja sur GitHub, mais cette publication Pages ne redeploie
+pas Shiny. L'absence du nouveau bridge est verifiee sur le service ; le contenu
+integral du bundle distant n'a pas ete compare octet par octet. Aucun deploiement
+Shiny n'a ete lance pendant cette intervention.
+
+## Publication suivante
+
+Deux laboratoires supplementaires, Absorption orale / biodisponibilite et
+Perfusion IV / arret, rejoignent le lot Pages a la demande de l'utilisateur.
+Le bouton Particule suivante est retire de tous les laboratoires, sans supprimer
+la selection directe ni son equivalent clavier. Les nouveaux laboratoires incluent les animations,
+reference, deux courbes, bilans, reperes PK, partage enseignant et exports.
+
+Leur transfert vers Lego est pris en charge. Le transfert direct vers TDM, DDI
+et PD est explicitement desactive en attendant verification du contrat de voie
+et de calendrier. Aucune donnee patient ni aucun PDF institutionnel n'intervient.
+
+Verification finale locale : check Svelte sans erreur/avertissement, build et
+tests de contenu reussis ; 14 tests navigateur ; 21 scenarios numeriques et
+42 comparaisons de courbes mrgsolve (deux formulations par scenario). Captures
+ordinateur/mobile et francais/sombre inspectees. Ces controles logiciels ne
+constituent pas une validation clinique ou pedagogique externe.

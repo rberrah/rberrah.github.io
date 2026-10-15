@@ -48,7 +48,7 @@ jobs:
             external/mixOmics tmp/multiomics/tcga-heldout
       - name: Preserve frozen predictions and complete evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: multiomics-tcga-publisher-heldout
           path: |

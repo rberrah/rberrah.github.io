@@ -25,11 +25,9 @@ for (const lab of ['absorption', 'infusion']) {
     close(stateAt(lab,p,100000).auc,landmark.aucInfinity);
     const spec = laboratorySpec(lab,p);
     assert.deepEqual(decodeScenario(encodeScenario(spec)),spec);
-    assert.throws(() => mrgsolveCode(lab,p), /not verified/);
-    for (const destination of ['tdm', 'ddi', 'pd']) {
-      assert.throws(() => prepareHandoff(destination, spec), /Unverified laboratory transfer/);
-    }
-    assert.doesNotThrow(() => prepareHandoff('lego', spec));
+    const code = mrgsolveCode(lab,p);
+    assert.match(code, lab === 'absorption' ? /DEPOT : Oral depot \[ADM\]/ : /L1_CENT : Central \[ADM, OBS\]/);
+    for (const destination of ['tdm', 'ddi', 'pd', 'lego']) assert.doesNotThrow(() => prepareHandoff(destination, spec));
     const particles = particleJourneys(lab,p);
     assert.ok(particles.length >= 12 && particles.length <= 500);
     assert.deepEqual(particles,particleJourneys(lab,p));

@@ -51,3 +51,21 @@ Link individual observations to that issue instead of duplicating fixes here.
 | --- | --- | --- | --- | --- |
 | Pending | No human observation recorded | None | None | Open protocol |
 
+# Automated checks versus manual review
+
+Playwright and axe-core cover selected WCAG-detectable failures on the main
+PMx routes, plus keyboard access to the Lego diagram and its numeric editing
+alternative. These checks do **not** replace the pending manual review at 200%
+zoom, 320 px, NVDA, VoiceOver and on a physical mobile device.
+
+Latest local automated run (2026-10-15):
+
+| Automated scope | Result | Limitation |
+| --- | --- | --- |
+| axe-core on five representative PMx routes | No critical or serious violation detected | Automated rules cover only testable subsets of WCAG |
+| Keyboard navigation in the Lego editor and numeric alternative | Passed | Does not constitute an assistive-technology session |
+| Full PMx Playwright suite | 364 passed, 26 skipped | Skips require the separate local Shiny engine |
+
+Participant sessions and the six manual accessibility checks listed above
+remain pending. No automated result is recorded as `user tested` or as an
+NVDA, VoiceOver, zoom, small-screen or real-device validation.

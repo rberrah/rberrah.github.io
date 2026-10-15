@@ -114,9 +114,19 @@ result <- list(
   )
 )
 
-output <- file.path(getwd(), "tdm-engine", "pmetrics", "benchmarks", "pmetrics-official-example.json")
+output <- Sys.getenv("PMETRICS_BENCHMARK_OUTPUT", unset = "")
+if (!nzchar(output)) {
+  output <- if (full_run) {
+    file.path(getwd(), "tdm-engine", "pmetrics", "benchmarks", "pmetrics-official-example.json")
+  } else {
+    tempfile("pmetrics-official-smoke-", fileext = ".json")
+  }
+}
 dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
 write_json(result, output, pretty = TRUE, auto_unbox = TRUE, na = "null")
+if (!full_run && !nzchar(Sys.getenv("PMETRICS_BENCHMARK_OUTPUT", unset = ""))) {
+  unlink(output, force = TRUE)
+}
 
 cat(sprintf(
   "Official Pmetrics example: %s; max relative mean difference %.3f%% (tolerance %.1f%%).\n",

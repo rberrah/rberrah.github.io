@@ -18,6 +18,8 @@ for (const width of [390, 1440]) {
     await page.getByRole('button', { name: 'Infectiology', exact: true }).click();
     const workshop = page.getByTestId('infection-workbench');
     await expect(workshop).toBeVisible();
+    await expect(workshop.getByTestId('transfer-contract')).toContainText('MIC, index and PK/PD target');
+    await expect(workshop.getByTestId('transfer-contract')).toContainText('Patient data and MAP result');
     await expect(workshop.getByRole('combobox', {name:'PK structure', exact:true})).toHaveValue('iv1');
     await expect(workshop.getByText('PK code time unit', {exact: true})).toHaveCount(0);
     await expect(workshop.getByTestId('curve-infection_exposure').locator('path.curve')).toHaveCount(2);

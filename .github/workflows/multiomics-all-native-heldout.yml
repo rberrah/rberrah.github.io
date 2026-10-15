@@ -63,7 +63,7 @@ jobs:
         run: Rscript scripts/evaluate_all_unselected_pmx.R tmp/multiomics/all-native
       - name: Archive all results, including performance failures
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: pmx-all-unselected-12500-plus-holdout
           path: |

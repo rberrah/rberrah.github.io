@@ -2,8 +2,8 @@
 
 Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signifie que le composant est utilisable mais que son texte interprétatif n'a pas encore fait l'objet d'une relecture scientifique consignée, ou qu'il a changé depuis cette relecture. Le hash est recalculé à chaque validation. Le statut ne remplace pas une validation pédagogique ou d'accessibilité sur appareils réels.
 
-- Relues : 65
-- En attente : 0
+- Relues : 64
+- En attente : 1
 
 | Visualisation | Statut | Date | Type de relecture | Preuve |
 | --- | --- | --- | --- | --- |
@@ -66,7 +66,7 @@ Ce registre couvre les 65 composants de visualisation. Une ligne `pending` signi
 | Infusion | reviewed | 2026-10-11 | author | hash current |
 | MipdResidualLever | reviewed | 2026-10-10 | author | hash current |
 | MultiDose | reviewed | 2026-10-11 | author | hash current |
-| NPAGSupportPoints | reviewed | 2026-10-12 | author | hash current |
+| NPAGSupportPoints | pending | 2026-10-12 | author | — |
 | OralAbsorptionExplorer | reviewed | 2026-10-11 | author | hash current |
 | SheinerEffect | reviewed | 2026-10-11 | author | hash current |
 | SlideFigure | reviewed | 2026-10-11 | author | hash current |

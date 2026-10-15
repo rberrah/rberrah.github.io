@@ -319,6 +319,56 @@ test.describe('pont Atelier Lego vers le moteur TDM', () => {
     expect(html).toContain('%T &gt; 10.0: 50.0 - 100.0%');
   });
 
+  test('les jours relatifs et les dates calendaires produisent la même chronologie clinique', async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto(engineUrl);
+    await page.waitForFunction(() => /** @type {any} */ (window).Shiny?.shinyapp?.$socket?.readyState === 1);
+
+    const selectTimeMode = async (value) => {
+      await page.locator('#time_entry_mode').evaluate((element, selected) => {
+        /** @type {any} */ (element).selectize.setValue(selected);
+      }, value);
+    };
+    const downloadPatient = async () => {
+      const downloadPromise = page.waitForEvent('download');
+      await page.locator('#download_patient').click();
+      const download = await downloadPromise;
+      const stream = await download.createReadStream();
+      let json = '';
+      for await (const chunk of stream) json += chunk.toString();
+      return JSON.parse(json);
+    };
+
+    await selectTimeMode('relative_days');
+    await page.locator('#reference_date input').fill('2026-09-05');
+    await page.locator('#reference_clock').fill('12:00');
+    await page.locator('#dose_days_ago_1').fill('3');
+    await page.locator('#dose_clock_1').fill('08:00');
+    await page.locator('#observation_days_ago_1').fill('1');
+    await page.locator('#observation_clock_1').fill('14:00');
+    await page.locator('#dose_status_1').evaluate((element) => {
+      /** @type {any} */ (element).selectize.setValue('uncertain');
+    });
+    await page.locator('#dose_time_uncertainty_1').fill('2');
+    await page.locator('#observation_blq_1').check();
+    await page.locator('#observation_lloq_1').fill('4');
+    await page.locator('#observation_time_uncertain_1').check();
+    await page.locator('#observation_time_uncertainty_1').fill('1.5');
+
+    const relative = await downloadPatient();
+    expect(relative.timeline).toEqual({ mode: 'relative_hours', origin: 'first_administration' });
+    expect(relative.doses[0]).toMatchObject({ time: 0, status: 'uncertain', time_uncertainty: 2 });
+    expect(relative.observations[0]).toMatchObject({ time: 54, blq: true, lloq: 4, time_uncertainty: 1.5 });
+
+    await selectTimeMode('calendar');
+    await page.locator('#dose_calendar_1').fill('02/09/2026 08:00');
+    await page.locator('#observation_calendar_1').fill('04/09/2026 14:00');
+    const calendar = await downloadPatient();
+
+    expect(calendar.doses).toEqual(relative.doses);
+    expect(calendar.observations).toEqual(relative.observations);
+  });
+
   test('la cible conjointe affiche Cmin et Cmax sans les réduire à une moyenne', async ({ page }) => {
     test.setTimeout(180_000);
     await page.goto(engineUrl);

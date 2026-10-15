@@ -6,10 +6,11 @@ It does not claim that an internal or external review has occurred.
 Before the targeted 2026-10-12 review, 62 of 65 visualizations had a current
 author-review hash. After the bilingual text, equations and captions of
 `32_Myelosuppression`, `43_Copula` and `NPAGSupportPoints` were reread, all
-65 of 65 have a current author-review hash. This is author review, not
-independent validation; independent internal or external review remains pending.
+65 of 65 had a current author-review hash. The interpretation text of
+`NPAGSupportPoints` changed again on 2026-10-14, so its author review and its
+independent scientific review are both pending.
 
-The 2026-10-12 software-documentation update changed three French and three
+The 2026-10-14 software-documentation update changed three French and three
 English chapters after their stored author-review hashes. Automated inventory
 checks identify them as pending author review; 92 of 95 chapters in each language
 still match their stored author-review hash. The exact files are listed in
@@ -19,22 +20,21 @@ review is recorded for these changes.
 Use the file-level [independent review checklist](scientific-review-checklist.md)
 to record sources, reviewer, date, comments and status.
 
-## Priority 1
+## Priority 1: review sequence
 
-- Beginner path: PK/PD foundations and the associated quantitative figures.
-- Bayesian estimation and TDM: assumptions, residual error and decision limits.
-- Validation: OFV/LRT, AIC/BIC, residual diagnostics, VPC and NPDE.
-- Software workflows: NONMEM, Monolix, nlmixr2 and Pmetrics/non-parametric estimation.
-- The four Omics → PK/PD lessons, reviewed independently in French and English.
-- Independent review of a targeted sample of central quantitative
-  visualizations.
+1. Starter 12: PK/PD foundations and their quantitative figures.
+2. Validation: OFV/LRT, AIC/BIC, residual diagnostics, VPC and NPDE.
+3. Bayesian estimation and TDM: assumptions, residual error and decision limits.
+4. Software workflows: NONMEM, Monolix, nlmixr2 and Pmetrics/nonparametric estimation, including an independent reading of `NPAGSupportPoints.svelte`.
+5. Infectiology and PK/PD indices.
 
 ## Priority 2
 
 - PBPK and extrapolation.
-- Infectiology and PK/PD indices.
 - First-in-human and trial simulation.
 - Oncology, survival and causal-language boundaries.
+- The four Omics → PK/PD lessons, reviewed independently in French and English.
+- A targeted sample of other central quantitative visualizations.
 
 ## Evidence to record
 

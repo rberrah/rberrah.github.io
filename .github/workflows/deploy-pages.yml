@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: PMx Explain CI and Pages deployment
 
 on:
   push:
@@ -37,11 +37,16 @@ jobs:
       - name: Test public origin configuration
         run: node --test scripts/test_site_origin.mjs
 
-      - name: Test educational content
-        run: npm test
+      - name: Test PMx educational content and safety contracts
+        run: npm run test:pmx
 
       - name: Test scientific communications
         run: npm run test:communications
+
+      - name: Regenerate tracked artifacts and reject drift
+        run: |
+          npm run generate:all
+          git diff --exit-code
 
       - name: Check Svelte
         run: npm run check
@@ -98,13 +103,7 @@ jobs:
             dist/a-propos/index.html \
             dist/communications/index.html \
             dist/communications/netpk-peprsn-2026/index.html \
-            dist/stats/index.html \
-            dist/stats/tool/index.html \
-            dist/multiomics/index.html \
-            dist/multiomics/tool/index.html \
-            dist/pharmacometrie/index.html \
-            dist/pharmacometrie/multiomics/index.html \
-            dist/pharmacometrie/multiomics/tool/index.html
+            dist/pharmacometrie/index.html
           do
             if [ -f "$f" ]; then
               echo "ok        $f"
@@ -123,19 +122,22 @@ jobs:
       - name: Integrate privacy-preserving portal analytics
         run: node scripts/add_portal_analytics.mjs
 
+      - name: Audit public artifact before upload
+        run: npm run audit:public-artifact
+
       # Tester d'abord le portail assemblé évite qu'une régression indépendante
       # de l'application pharmacométrique masque systématiquement les résultats
       # des tests Stats. Le test pharmacométrique reste bloquant pour le déploiement.
       - name: Test assembled portal in browser
         run: npx playwright test --config playwright.portal.config.js
 
-      - name: Test application in browser
+      - name: Test PMx application in browser
         env:
           LABS_E2E_PREBUILT: "true"
-        run: npm run test:e2e
+        run: npm run test:e2e:pmx
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -148,8 +150,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Test laboratories and model imports
-        run: npm run test:labs && npm run test:mlxtran && npm run test:multiomics
+      - name: Test PMx laboratories and model imports
+        run: npm run test:labs && npm run test:mlxtran
 
   scientific-r:
     runs-on: ubuntu-latest
@@ -168,12 +170,10 @@ jobs:
         run: Rscript tdm-engine/tests/safe_lego_test.R
       - name: Compile and validate the model library
         run: Rscript tdm-engine/tests/validate_library.R
-      - name: Parse advanced multi-omics R adapters
-        run: |
-          Rscript -e "for (f in c('multiomics-engine/advanced_methods.R','multiomics-engine/server.R','multiomics-engine/run_backend.R','multiomics-engine/install_backend_dependencies.R')) parse(file=f); cat('advanced multiomics R engine parse PASS\\n')"
-      - name: Test multi-omics reference R backend routing
-        run: Rscript multiomics-engine/tests/backend_smoke.R
-
+      - name: Test deterministic model reference cases
+        run: Rscript tdm-engine/tests/model_reference_cases.R
+      - name: Test private session cleanup and interrupted calculations
+        run: npm run tdm:test-privacy
   scientific-pmetrics:
     runs-on: ubuntu-26.04
     timeout-minutes: 35
@@ -215,4 +215,4 @@ jobs:
     steps:
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

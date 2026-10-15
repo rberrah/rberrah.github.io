@@ -1,6 +1,21 @@
+if (!requireNamespace("lixoftConnectors", quietly = TRUE)) {
+  cat("MONOLIX_NATIVE_STATUS=not-executed; lixoftConnectors is unavailable.\n")
+  quit(status = 0L)
+}
 suppressPackageStartupMessages({ library(jsonlite); library(lixoftConnectors); library(mrgsolve) })
-initializeLixoftConnectors("simulx", path = Sys.getenv("MONOLIX_HOME", "C:/Program Files/Lixoft/MonolixSuite2024R1"))
-cases <- fromJSON("test-results/lego-export-audit.json", simplifyVector = FALSE)
+initialized <- tryCatch({
+  isTRUE(initializeLixoftConnectors("simulx", path = Sys.getenv("MONOLIX_HOME", "C:/Program Files/Lixoft/MonolixSuite2024R1")))
+}, error = function(error) {
+  cat("MONOLIX_NATIVE_STATUS=not-executed; ", conditionMessage(error), "\n", sep = "")
+  FALSE
+})
+if (!initialized) {
+  cat("MONOLIX_NATIVE_STATUS=not-executed; Simulx could not be initialized with a usable installation and licence.\n")
+  quit(status = 0L)
+}
+fixture_path <- "test-results/lego-export-audit.json"
+if (!file.exists(fixture_path)) stop("Run node scripts/audit_lego_roundtrip.mjs before the native Monolix harness.")
+cases <- fromJSON(fixture_path, simplifyVector = FALSE)
 work <- tempfile("lego-mlxtran-")
 dir.create(work)
 failures <- character()
@@ -53,3 +68,4 @@ for (case in Filter(function(x) x$format == "mlxtran", cases)) {
 }
 unlink(work, recursive = TRUE)
 if (length(failures)) stop(paste(failures, collapse = "\n"))
+cat("MONOLIX_NATIVE_STATUS=passed; native Simulx comparisons completed.\n")

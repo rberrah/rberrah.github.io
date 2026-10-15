@@ -349,6 +349,80 @@ successful_fits <- function(fits) {
   Filter(function(item) !inherits(item, "tdm_fit_error"), fits)
 }
 
+fit_numeric_diagnostics <- function(fit, boundary_fraction = 0.01, condition_limit = 1e8) {
+  observations <- fit$source_observations %||% data.frame()
+  output <- list(
+    id = fit$id %||% "unknown",
+    label = fit$label %||% fit$id %||% "Model",
+    engine = fit$engine %||% "mapbayr",
+    observations = nrow(observations),
+    status = "fitted",
+    converged = NA,
+    sparse = FALSE,
+    eta_count = as.integer(fit$contract$n_eta %||% 0L),
+    at_boundary = FALSE,
+    uncertainty_available = FALSE,
+    uncertainty_stable = NA,
+    covariance_condition = NA_real_,
+    effective_support = NA_real_
+  )
+
+  if (inherits(fit, "tdm_fit_error")) {
+    output$status <- "error"
+    return(output)
+  }
+
+  if (identical(output$engine, "pmetrics")) {
+    output$status <- if (isTRUE(fit$pmetrics$mapped)) "fitted" else "population"
+    points <- fit$posterior_points %||% data.frame()
+    probabilities <- suppressWarnings(as.numeric(points$prob %||% numeric()))
+    probabilities <- probabilities[is.finite(probabilities) & probabilities > 0]
+    if (length(probabilities)) {
+      probabilities <- probabilities / sum(probabilities)
+      output$effective_support <- 1 / sum(probabilities^2)
+      output$uncertainty_available <- length(probabilities) > 1L
+    }
+    return(output)
+  }
+
+  estimate <- fit$estimate
+  if (is.null(estimate)) {
+    output$status <- "population"
+    return(output)
+  }
+
+  selected <- as.integer(estimate$arg.optim$select_eta %||% seq_len(output$eta_count))
+  output$eta_count <- length(selected)
+  output$sparse <- output$observations < output$eta_count
+
+  convergence <- suppressWarnings(as.numeric(estimate$opt.value$convergence %||% NA_real_))
+  if (length(convergence) && any(is.finite(convergence))) {
+    output$converged <- all(convergence[is.finite(convergence)] == 0)
+  }
+
+  eta <- suppressWarnings(as.numeric(estimate$final_eta[[1]] %||% numeric()))
+  lower <- suppressWarnings(as.numeric(estimate$arg.optim$lower %||% numeric()))
+  upper <- suppressWarnings(as.numeric(estimate$arg.optim$upper %||% numeric()))
+  if (length(selected) && length(eta) >= max(selected) && length(lower) == length(selected) && length(upper) == length(selected)) {
+    width <- upper - lower
+    margin <- pmin(eta[selected] - lower, upper - eta[selected]) / width
+    output$at_boundary <- any(is.finite(margin) & margin <= boundary_fraction)
+  }
+
+  covariance <- tryCatch(as.matrix(estimate$covariance[[1]]), error = function(error) matrix(NA_real_))
+  output$uncertainty_available <- nrow(covariance) > 0L && nrow(covariance) == ncol(covariance) && all(is.finite(covariance))
+  if (isTRUE(output$uncertainty_available)) {
+    eigenvalues <- tryCatch(eigen((covariance + t(covariance)) / 2, symmetric = TRUE, only.values = TRUE)$values, error = function(error) numeric())
+    if (length(eigenvalues) && all(is.finite(eigenvalues)) && min(eigenvalues) > 0) {
+      output$covariance_condition <- max(eigenvalues) / min(eigenvalues)
+      output$uncertainty_stable <- output$covariance_condition <= condition_limit
+    } else {
+      output$uncertainty_stable <- FALSE
+    }
+  }
+  output
+}
+
 compute_model_weights <- function(fits, scheme = "AIC") {
   valid <- successful_fits(fits)
   if (!length(valid)) return(numeric())

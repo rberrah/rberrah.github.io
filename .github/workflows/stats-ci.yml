@@ -12,6 +12,7 @@ on:
       - 'scripts/configure_site_origin.mjs'
       - 'scripts/preview_portal.mjs'
       - 'playwright.portal.config.js'
+      - 'playwright.stats.config.js'
       - 'package.json'
       - 'package-lock.json'
       - 'site.config.js'
@@ -59,8 +60,4 @@ jobs:
           node scripts/configure_site_origin.mjs dist
 
       - name: Run Stats browser workflows
-        run: >-
-          npx playwright test
-          tests/e2e/stats-portal.spec.js
-          tests/e2e/stats-kendall-portal.spec.js
-          --config playwright.portal.config.js
+        run: npm run test:e2e:stats

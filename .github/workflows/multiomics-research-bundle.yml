@@ -38,7 +38,7 @@ jobs:
         run: npx playwright test tests/e2e/multiomics-research-bundle.spec.js --workers=1 --retries=0 --repeat-each=5
       - name: Preserve browser failure evidence
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: omics-research-bundle-regression-traces
           path: |
