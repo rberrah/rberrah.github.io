@@ -85,6 +85,7 @@ export async function buildDownstreamExchange(portableProject){
     if(expected.length!==assayIds.length||assayIds.some(s=>!expected.includes(s)))
       throw Error('Sample sheet and '+omic+' matrix columns differ');
     const seen=new Set();
+    const scale=declared[omic+'Values']||'source_values_unspecified';
     for(const r of matrix.rows){
       const id=r[0];
       if(!id||seen.has(id))throw Error('Missing/duplicate original feature in '+omic);
@@ -92,6 +93,8 @@ export async function buildDownstreamExchange(portableProject){
       for(const v of r.slice(1)){
         if(v==='NA')continue;
         if(!v||!Number.isFinite(Number(v)))throw Error('Non-numeric/missing value in '+omic+'; use literal NA');
+        if(omic==='transcriptomics'&&scale==='raw_counts'&&(!Number.isSafeInteger(Number(v))||Number(v)<0))
+          throw Error('RNA raw_counts must be non-negative safe integers');
       }
       const k=omic+'\u0000'+id;
       if(featureKeys.has(k))throw Error('Feature collision');
@@ -100,7 +103,6 @@ export async function buildDownstreamExchange(portableProject){
       features.push([omic,id,idtype,'',declared.organism||'','','','','','unresolved']);
     }
     const file=await add('matrices/'+omic+'.csv',csv([matrix.header,...matrix.rows]));
-    const scale=declared[omic+'Values']||'source_values_unspecified';
     matrices.push({omic,file,value_type:scale,orientation:'feature_rows_sample_columns',normalization:null,missing_value:'NA'});
     total++;
   }
