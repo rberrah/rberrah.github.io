@@ -114,6 +114,18 @@ assert.match(html,/Methods actually run/);
 assert.match(html,/Features omitted by browser QC: 4 \(6\.7 %\)/);
 assert.match(html,/not executed/);
 
+const binaryReport={...result,protocol:{...result.protocol,objective:'outcome',outcomeType:'binary'},
+  predictiveOutcome:{status:'ok',metrics:{auc:.9855,brier:.2793,logLoss:.895}}};
+const binaryMethods=methodsMarkdown(binaryReport,'en');
+assert.match(binaryMethods,/Binary prediction — discrimination and calibration/);
+assert.match(binaryMethods,/AUC \(nested CV\): 0\.9855/);
+assert.match(binaryMethods,/Brier \(nested CV\): 0\.2793/);
+assert.match(binaryMethods,/log-loss \(nested CV\): 0\.895/);
+assert.match(binaryMethods,/High AUC does not imply reliable probabilities/);
+assert.match(methodsMarkdown(binaryReport,'fr'),/AUC élevée ≠ probabilités fiables/);
+assert.doesNotMatch(html,/Binary prediction — discrimination and calibration/);
+
+
 
 const rReference={...result,referenceBackend:{
   methods:{transcriptomics_differential_deseq2:{
