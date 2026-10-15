@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {File} from 'node:buffer';
+import {createHash} from 'node:crypto';
+import {buildResearchBundle} from '../src/lib/multiomics/research-export-package.js';
 import {readFileSync,writeFileSync,mkdtempSync,mkdirSync,rmSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -82,7 +84,47 @@ try{
   assert(figureManifest.figures.some(f=>f.kind==='heatmap'&&f.filename.endsWith('.pdf')));
   assert(figureManifest.figures.every(f=>f.comparison_to_browser==='scientifically_similar_not_pixel_identical'));
   assert(existsSync(join(out,'heatmap_transcriptomics.pdf')));
-  console.log('PASS: Airway/GSE52778',rows.length,
+  // Real public study: assemble exactly the same research ZIP downloaded by users
+  // and launch Rscript run_all.R from the extracted ZIP, with no file edits.
+  const hash=(text)=>createHash('sha256').update(text).digest('hex');
+  const portableProject={
+    format:'pmx-multiomics-portable-project',schemaVersion:1,
+    inputs:{
+      metadata:{content:input.metadataCsv,sha256:hash(input.metadataCsv)},
+      transcriptomics:{content:input.matrices.transcriptomics,
+                       sha256:hash(input.matrices.transcriptomics)}
+    },
+    settings:{organism:'human',unitType:'culture',transcriptomicsValues:'raw_counts',
+              transcriptomicsIdType:'ensembl_gene',columnMapping:input.columnMapping}
+  };
+  const researchResult={
+    ...result,engine:{name:'R primary plus independent browser display',version:'test'},
+    generatedAt:'2026-10-15T00:00:00Z',visualizations
+  };
+  const dossier=await buildResearchBundle({
+    result:researchResult,portableProject,
+    referenceReplay:{
+      requestJson:readFileSync(join(evidence,'paired_airway_original_request.json'),'utf8'),
+      responseJson:readFileSync(join(evidence,'paired_airway_original_response.json'),'utf8')
+    }
+  });
+  assert.equal(dossier.manifest.r_source_replay.exact_runtime_source_verified,true,
+    'Airway original R code must match the SHA-256 of the bundled implementation');
+  const zipPath=join(root,'airway_research.zip');
+  writeFileSync(zipPath,Buffer.from(await dossier.blob.arrayBuffer()));
+  const extracted=join(root,'extracted_dossier');
+  execFileSync('python3',['-c',
+    'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])',
+    zipPath,extracted],{timeout:60000});
+  assert(existsSync(join(extracted,'COMMENCER_ICI_FR_EN.md')));
+  execFileSync('Rscript',['run_all.R'],{cwd:extracted,timeout:600000,stdio:'pipe'});
+  const status=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
+  assert.equal(status.r_numerical_replay,'PASS_R_REFERENCE_ONLY',
+    JSON.stringify(status.messages||[]));
+  assert.equal(status.r_figures,'GENERATED_SIMILAR_PDF_SVG');
+  assert(existsSync(join(extracted,'reproduction','reference_replayed.json')));
+  assert(existsSync(join(extracted,'figures_r','output','heatmap_transcriptomics.pdf')));
+    console.log('PASS: Airway/GSE52778',rows.length,
     'native R values reproduced feature-by-feature; browser & R figure plot data are identical for',
     heatmap.rows.length,'features ×',heatmap.samples.length,'samples');
 }finally{rmSync(root,{recursive:true,force:true});}
