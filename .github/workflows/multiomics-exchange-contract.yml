@@ -6,6 +6,9 @@ on:
       - 'docs/multiomics/DOWNSTREAM_EXCHANGE_V1*'
       - 'scripts/validate_multiomics_exchange.py'
       - 'scripts/test_validate_multiomics_exchange.py'
+      - 'scripts/test_multiomics_downstream_export.mjs'
+      - 'src/lib/multiomics/downstream-exchange.js'
+      - 'src/lib/multiomics/research-export-package.js'
       - '.github/workflows/multiomics-exchange-contract.yml'
   push:
     branches: [main]
@@ -25,3 +28,8 @@ jobs:
           python-version: '3.12'
       - name: Validate downstream exchange contract fixtures
         run: python scripts/test_validate_multiomics_exchange.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate downstream source export and fallback
+        run: node scripts/test_multiomics_downstream_export.mjs
