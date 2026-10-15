@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
@@ -19,15 +20,24 @@ assert.equal(referenceReplayStatus(null).status,'not_available');
 const expected={status:'ok',methods:{transcriptomics_differential_deseq2:{
   status:'ok',top:[{feature:'ENSG001',log2FoldChange:1.23,padj:0.04}]
 }}};
+const sha=Object.fromEntries(Object.entries(REFERENCE_R_SOURCE_FILES).map(([name,source])=>
+  [name,createHash('sha256').update(source).digest('hex')]));
 const replay={requestJson:JSON.stringify({
   protocol:{objective:'groups',designType:'independent'},
   metadataCsv:'assay_id,sample_id,subject_id,omic\nR1,S1,P1,transcriptomics\n',
   matrices:{transcriptomics:'feature_id,R1\nENSG001,10\n'}
-}),responseJson:JSON.stringify(expected)};
+}),responseJson:JSON.stringify({...expected,runtime:{referenceSourceSha256:sha}})};
 const {entries,status}=await referenceReplayEntries(replay);
 assert.equal(status.status,'r_reference_source_replay_available');
 assert.equal(status.numerical_equivalence_verified,false);
 assert.equal(status.figure_equivalence_verified,false);
+assert.equal(status.source_attestation,'sha256_match');
+assert.equal(status.exact_runtime_source_verified,true);
+const corrupt=JSON.parse(replay.responseJson);
+corrupt.runtime.referenceSourceSha256['server.R']='0'.repeat(64);
+const badAttestation=await referenceReplayEntries({...replay,responseJson:JSON.stringify(corrupt)});
+assert.equal(badAttestation.status.source_attestation,'sha256_mismatch');
+assert.equal(badAttestation.status.exact_runtime_source_verified,false);
 assert(entries.some(e=>e.name==='reproduction/run_reference_backend.R'));
 assert.deepEqual(JSON.parse(entries.find(e=>e.name==='reproduction/reference_expected.json').data),expected);
 assert(entries.some(e=>e.name==='reproduction/multiomics-engine/server.R'));
