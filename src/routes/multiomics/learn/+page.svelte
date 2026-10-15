@@ -98,13 +98,13 @@
 
 <style>
   .learn{max-width:1060px;margin:auto;padding:2rem 1rem 4rem;line-height:1.6}
-  .intro,.lesson,.grid article{border:1px solid var(--border-color,#d1d9e5);border-radius:.75rem;background:var(--surface-1,#f7f9fc);padding:1rem}
+  .intro,.lesson,.grid article{border:1px solid var(--border-subtle,#d1d9e5);border-radius:.75rem;background:var(--bg-secondary,#f7f9fc);padding:1rem}
   .intro{padding:1.5rem}.eyebrow{font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.85rem}
   h1{font-size:clamp(1.8rem,4vw,2.5rem);line-height:1.2}h2{font-size:1.45rem;margin-bottom:.8rem}h3{font-size:1.05rem}
   section{margin-top:2.5rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:1rem}
   .lesson{margin:.55rem 0}.lesson summary{cursor:pointer;font-weight:700}
   .primary{display:inline-block;background:#234f9e;color:white;border-radius:.5rem;padding:.7rem 1rem;text-decoration:none}
   .primary:focus-visible,.lesson summary:focus-visible{outline:3px solid #2563eb;outline-offset:3px}
-  .caution{border-left:4px solid #bb740c;padding:1rem;background:var(--surface-1,#f8fafc)}
+  .caution{border-left:4px solid #bb740c;padding:1rem;background:var(--bg-secondary,#f8fafc)}
   pre{overflow-x:auto;background:#16243a;color:white;border-radius:.5rem;padding:1rem}
 </style>
