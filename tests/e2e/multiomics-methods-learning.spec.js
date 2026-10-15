@@ -25,3 +25,28 @@ test('Omics homepage links to a readable course',async({page})=>{
   await course.click();
   await expect(page).toHaveURL(/\/multiomics\/learn/);
 });
+
+test('Quick-start demo has three single-omic choices above a full-width multi-omic action',async({page})=>{
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto('/multiomics/tool?lang=fr');
+  const action=page.getByTestId('multiomics-quick-start');
+  await expect(action).toBeVisible();
+  const selectors=[
+    'multiomics-quick-demo-rna',
+    'multiomics-quick-demo-protein',
+    'multiomics-quick-demo-metabolite'
+  ];
+  const singles=selectors.map(id=>page.getByTestId(id));
+  const multi=page.getByTestId('multiomics-quick-demo');
+  await expect(singles[0]).toHaveText('Transcriptomique');
+  await expect(singles[1]).toHaveText('Protéomique');
+  await expect(singles[2]).toHaveText('Métabolomique');
+  await expect(multi).toContainText('Multi-omiques');
+  const boxes=await Promise.all([...singles,multi].map(x=>x.boundingBox()));
+  expect(boxes.every(x=>x!==null)).toBe(true);
+  const [rna,protein,metabolite,all]=boxes;
+  expect(Math.abs(rna.y-protein.y)).toBeLessThan(3);
+  expect(Math.abs(protein.y-metabolite.y)).toBeLessThan(3);
+  expect(all.y).toBeGreaterThan(rna.y+rna.height-3);
+  expect(all.width).toBeGreaterThan(rna.width*2.5);
+});
