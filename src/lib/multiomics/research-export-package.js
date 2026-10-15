@@ -389,7 +389,7 @@ export async function buildResearchBundle({result,portableProject,referenceRepla
   for(const reference of fullR)add(reference.name,reference.csv);
   // These are the ACTUAL R backend sources, JSON request and returned values.
   // Browser figures are only immutable snapshots: R never drew them.
-  const replay=referenceReplayEntries(referenceReplay);
+  const replay=await referenceReplayEntries(referenceReplay);
   for(const entry of replay.entries)add(entry.name,entry.data);
   requireThat(Array.isArray(figureSnapshots)&&figureSnapshots.length<=12,'Invalid number of figure snapshots');
   for(const item of figureSnapshots){
