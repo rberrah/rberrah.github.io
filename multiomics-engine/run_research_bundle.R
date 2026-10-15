@@ -16,7 +16,7 @@ status <- list(
   r_figures_equivalence="SCIENTIFICALLY_SIMILAR_NOT_PIXEL_IDENTICAL",
   messages=character()
 )
-rscript <- file.path(R.home("bin"),"Rscript")
+rscript <- file.path(R.home("bin"),if(.Platform$OS.type=="windows")"Rscript.exe" else "Rscript")
 call_r <- function(script,arguments) {
   result <- suppressWarnings(system2(rscript,c(shQuote(script),vapply(arguments,shQuote,character(1))),
                                      stdout=TRUE,stderr=TRUE))
