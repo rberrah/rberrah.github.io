@@ -149,7 +149,7 @@ try{
       cwd:extracted,timeout:300000,stdio:'pipe'
     });
     const html=readFileSync(join(extracted,'analyse_reproductible.html'),'utf8');
-    assert(html.includes('MultiOmics') && html.includes('17 199')===false);
+    assert(html.length>3000 && html.includes('MultiOmics') && html.includes('PASS_R_REFERENCE_ONLY'));
     assert(html.length>3000 && existsSync(join(extracted,'research_reproduction_status.json')));
     const rerun=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
     assert.equal(rerun.r_numerical_replay,'PASS_R_REFERENCE_ONLY');
