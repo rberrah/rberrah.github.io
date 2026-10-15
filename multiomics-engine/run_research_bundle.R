@@ -31,13 +31,7 @@ if(file.exists("reproduction/run_reference_backend.R")) {
   status$r_numerical_replay <- "NOT_CHECKED"
   tryCatch({
     call_r("reproduction/run_reference_backend.R",c("reproduction"))
-    python <- Sys.which("python3")
-    if(!nzchar(python))stop("Python 3 is required to numerically verify R results.")
-    check <- suppressWarnings(system2(python,
-               c(shQuote("reproduction/verify_replay.py"),shQuote("reproduction")),
-               stdout=TRUE,stderr=TRUE))
-    code <- attr(check,"status")
-    if(!is.null(code)&&code!=0L)stop(paste(check,collapse="\n"))
+    call_r("reproduction/verify_replay.R",c("reproduction"))
     status$r_numerical_replay <- "PASS_R_REFERENCE_ONLY"
   },error=function(e){
     status$r_numerical_replay <- "FAIL_OR_ENVIRONMENT_MISSING"
