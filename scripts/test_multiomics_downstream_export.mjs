@@ -34,8 +34,31 @@ assert(dossier.manifest.files['COMMENCER_ICI_FR_EN.md']?.sha256);
 assert(dossier.manifest.files['figures_r/generate_figures.R']?.sha256);
 assert(dossier.manifest.files['figures_r/README.md']?.sha256);
 assert.equal(dossier.manifest.exact_r_numeric_and_figure_equivalence_certified,false);
+const originalRTable='"feature","baseMean","log2FoldChange","lfcSE","stat","pvalue","padj"\\n"ENSG001",12,1.5,0.3,5,0.001,0.012\\n'.replaceAll('\\\\n','\n');
+const rMethod='transcriptomics_differential_deseq2';
+const nativeResult={
+  ...makeResult(),
+  layers:{transcriptomics:{
+    rows:[{feature:'ENSG001',effect:1.5,qValue:0.012}],
+    numericalProvenance:'exact_native_r_reference_table',
+    primaryReferenceMethodKey:rMethod
+  }},
+  referenceBackend:{methods:{
+    [rMethod]:{status:'ok',referenceTableComplete:true,referenceTableStatus:'complete',
+      referenceTableRows:1,referenceTableExportedRows:1,
+      referenceTableCsv:originalRTable}
+  }}
+};
+const nativeDossier=await buildResearchBundle({result:nativeResult,portableProject:project});
+assert.equal(nativeDossier.manifest.primary_table_sources.transcriptomics.engine,'native_R');
 const temporary=mkdtempSync(join(tmpdir(),'pmx-exchange-'));
 try{
+  const rPath=join(temporary,'native_r_research.zip');
+  writeFileSync(rPath,Buffer.from(await nativeDossier.blob.arrayBuffer()));
+  const archivedR=execFileSync('python3',['-c',
+    'import sys,zipfile;sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read("tableaux/transcriptomics.csv"))',
+    rPath],{encoding:'utf8'});
+  assert.equal(archivedR,originalRTable,'Primary exported statistics must preserve complete R CSV byte-for-byte');
   const zipPath=join(temporary,'research.zip');
   writeFileSync(zipPath,Buffer.from(await dossier.blob.arrayBuffer()));
   execFileSync('python',['-c',
