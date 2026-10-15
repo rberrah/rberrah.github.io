@@ -3572,7 +3572,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par Benjamini–Hochberg pour contrôler le taux de faux positifs parmi les résultats retenus. Ici q ≤ 0,10 est un seuil exploratoire.', 'Benjamini–Hochberg adjusted p-value controlling the false discovery rate among selected results. Here q ≤ 0.10 is an exploratory threshold.')}>?</span>
   </b>
 </div>
-              {#each result.rows.slice(0, 10) as row}
+              {#each (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10) as row}
                 <div>
                   <code>{row.feature}</code>
                   {#if row.foldRatio != null}
