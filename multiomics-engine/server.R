@@ -586,10 +586,20 @@ reference_runtime_manifest <- function() {
   bioc <- if(requireNamespace("BiocManager",quietly=TRUE)) {
     tryCatch(as.character(BiocManager::version()),error=function(e) NULL)
   } else NULL
+  source_names <- c("server.R","advanced_methods.R","paired_rnaseq_reference.R",
+                    "reference_full_results.R","external_validation.R")
+  source_files <- file.path(reference_backend_dir,source_names)
+  source_sha256 <- if(requireNamespace("digest",quietly=TRUE) &&
+                    all(file.exists(source_files))) {
+    hashes <- vapply(source_files,function(path)
+      digest::digest(file=path,algo="sha256"),character(1))
+    setNames(as.list(unname(hashes)),source_names)
+  } else NULL
   list(
     RVersion=as.character(getRversion()),
     RPlatform=R.version$platform,
     BioconductorRelease=bioc,
+    referenceSourceSha256=source_sha256,
     packageVersions=versions,
     limitation="Captured installed package versions only; not a dependency lock, raw data archive, external database snapshot or reproducible operating-system container."
   )

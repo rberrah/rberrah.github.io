@@ -8,6 +8,7 @@
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
+  import { projectNativeRNumbers } from '$lib/multiomics/r-primary-results.js';
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
@@ -111,6 +112,10 @@
   let referenceBackendMessage = '';
   /** @type {any} */
   let referenceBackendHealth = null;
+  // Exact R request/response captured only when the local R backend actually fits a method.
+  // Kept in memory, exported exclusively in the researcher-initiated confidential ZIP.
+  /** @type {{requestJson:string,responseJson:string}|null} */
+  let referenceReplay = null;
 
   let transcriptomicsPlatform = 'bulk_rnaseq';
   let transcriptomicsValues = 'raw_counts';
@@ -1211,10 +1216,11 @@
     referenceBackendStatus = 'running';
     referenceBackendMessage = t('Méthodes R de référence en cours…', 'Reference R methods running…');
     const payload = await referenceBackendPayload();
+    const payloadJson = JSON.stringify(payload);
     const response = await fetch(backendBaseUrl() + '/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload)
+      body: payloadJson
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok || body.status === 'error') {
@@ -1258,12 +1264,16 @@
       : completed
         ? t('Certaines méthodes R ont été exécutées : voir leur statut ci-dessous.', 'Some R methods ran: see their status below.')
         : t('Moteur R connecté, mais aucune méthode statistique de référence exécutée pour ce plan.', 'R backend connected, but no reference statistical method ran for this design.');
+    if (completed && !checkedBody.mofa2OrientationBlocked) {
+      referenceReplay = {requestJson:payloadJson,responseJson:JSON.stringify(body)};
+    }
     return { ...checkedBody,url:backendBaseUrl(),referenceMethodExecuted:completed };
   }
 
   async function runAnalysis() {
     analysisError = '';
     analysisResult = null;
+    referenceReplay = null;
     if (msImportState === 'loading' || msImportState === 'parsed') {
       analysisError = t('Terminez l’import MS avant de lancer l’analyse.', 'Complete the MS import before running an analysis.');
       return;
@@ -1349,7 +1359,14 @@
       });
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
-        analysisResult = { ...analysisResult, referenceBackend };
+        analysisResult = projectNativeRNumbers({ ...analysisResult, referenceBackend });
+        if(analysisIntent === 'confirmatory' && objective === 'groups' &&
+           !(analysisResult.displayedReferenceMethodCount > 0)){
+          throw new Error(t(
+            'Aucune table R complète ne peut être affichée pour cette analyse confirmatoire. Le navigateur ne doit pas remplacer les valeurs R par ses estimations exploratoires. Vérifiez le rapport et exportez les résultats complets depuis le moteur R.',
+            'No complete R reference table is available for this confirmatory analysis. Browser exploratory estimates cannot replace native R results. Review R diagnostics and export the complete R table.'
+          ));
+        }
       }
 
       try {
@@ -1418,6 +1435,11 @@
       const dossier = await buildResearchBundle({
         result:analysisResult,
         portableProject:sourceProject,
+        referenceReplay,
+        // Exact vector snapshots of CURRENTLY RENDERED browser figures only.
+        figureSnapshots:[...document.querySelectorAll('#analysis-results svg[role="img"]')]
+          .slice(0,12).map((svg,index)=>({name:'figure_'+String(index+1).padStart(2,'0')+'.svg',
+            data:new XMLSerializer().serializeToString(svg)})),
         locale:$language === 'en' ? 'en' : 'fr'
       });
       const url=URL.createObjectURL(dossier.blob);
@@ -1672,11 +1694,15 @@
   function downloadLayerCsv(layer) {
     const rows = analysisResult?.layers?.[layer]?.rows;
     if (!rows?.length) return;
-    const blob = new Blob([fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const methodKey = analysisResult.layers[layer]?.primaryReferenceMethodKey;
+    const method = methodKey ? analysisResult.referenceBackend?.methods?.[methodKey] : null;
+    const nativeCsv = method?.status === 'ok' && method?.referenceTableComplete === true &&
+      typeof method?.referenceTableCsv === 'string' ? method.referenceTableCsv : null;
+    const blob = new Blob([nativeCsv ?? fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = `${layer}_deterministic_results.csv`;
+    anchor.download = nativeCsv ? `${layer}_reference_R_complete.csv` : `${layer}_browser_exploratory.csv`;
     anchor.click();
     URL.revokeObjectURL(href);
   }
@@ -2850,8 +2876,14 @@
         </select>
         <small>{analysisIntent === 'confirmatory'
           ? t('Le moteur R local devient obligatoire. Les tests contrôlent l’éligibilité, mais ne certifient jamais automatiquement vos résultats. Les fichiers seront envoyés au backend R configuré après lancement de l’analyse.', 'The configured local R engine is required. Checks assess eligibility but never automatically certify findings. Files are sent to the configured R backend when you run the analysis.')
-          : t('Les résultats sont exploratoires. Vous pouvez lancer une démo et consulter les limites sans installer R.', 'Results are exploratory. You can run the demo and see limitations without installing R.')}</small>
+          : t('Le navigateur applique des méthodes exploratoires et parfois des approximations ou simplifications statistiques : ses p-values, q-values et effets peuvent différer des méthodes R de référence. Les analyses R natives (DESeq2, edgeR/limma selon les données) sont préférables pour une inférence appropriée au modèle, mais leur validité dépend du plan, des hypothèses et du contrôle qualité. Aucune installation R n’est nécessaire pour explorer.', 'The browser uses exploratory models and sometimes statistical approximations or simplifications: its p-values, q-values and effects can differ from native reference R methods. Native R methods (DESeq2, edgeR/limma where applicable) are preferable for model-appropriate inference, but validity still depends on design, assumptions and quality checks. No R installation is needed to explore.')}</small>
       </label>
+      {#if analysisIntent !== 'confirmatory'}
+        <p role="note" class="simple-hint" data-testid="multiomics-browser-approximation-warning">
+          {t('Important : les résultats du navigateur servent à repérer des tendances. Selon la méthode et les données, certains calculs simplifient les hypothèses du modèle ou utilisent des approximations ; les chiffres ne sont donc pas nécessairement ceux de DESeq2, edgeR ou limma en R. Pour une analyse de référence, exécutez le backend R, vérifiez le plan expérimental et téléchargez le code effectivement utilisé.',
+             'Important: browser results are intended to explore trends. Depending on the data and method, calculations may simplify model assumptions or use approximations; the numbers therefore need not equal native DESeq2, edgeR or limma results. For reference analysis, run the R backend, review study design and download the code actually used.')}
+        </p>
+      {/if}
       {#if analysisIntent === 'confirmatory' && files.transcriptomics && transcriptomicsValues === 'raw_counts'}
         <p class="simple-hint" role="note" data-testid="multiomics-rnaseq-fdr-calibration-warning">
           {t('Point scientifique : certains scénarios RNA-seq simulés sans effet réel ont montré plus de faux positifs que les 5 % attendus sous DESeq2. La correction BH et le calcul R ne suffisent pas à certifier la calibration de votre étude : confrontez le modèle, le plan et les hypothèses avec un statisticien avant toute conclusion confirmatoire.',
@@ -2957,7 +2989,7 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       <h2>{demoLoaded ? t('Résultats de la démonstration', 'Demonstration results') : t('Vos résultats', 'Your results')}</h2>
     </div>
     <div class="result-actions">
-      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger le dossier de recherche (ZIP)', 'Download research dossier (ZIP)')}</button>
+      <button class="btn btn-primary" type="button" data-testid="multiomics-research-bundle-download" disabled={portableProjectBusy} onclick={downloadResearchBundle}>{portableProjectBusy ? t('Préparation du dossier…', 'Preparing dossier…') : t('Télécharger résultats + figures + code R (ZIP)', 'Download results + figures + R code (ZIP)')}</button>
       <button class="btn btn-outline" type="button" onclick={downloadReproducibleReport}>{t('Télécharger le rapport complet', 'Download full report')}</button>
       <details class="simple-disclosure export-detail">
         <summary>{t('Autres exports', 'Other downloads')}</summary>
@@ -2973,6 +3005,15 @@ Rscript multiomics-engine/run_backend.R</code></pre>
       {/if}
     </div>
     <p class="simple-hint">{t('Le ZIP contient tous les tableaux, les méthodes, les sources et les paramètres. Données potentiellement sensibles : stockage sécurisé recommandé. Les résultats du navigateur restent exploratoires.', 'ZIP includes complete tables, methods, original data and settings. Potentially sensitive: store securely. Browser results remain exploratory.')}</p>
+    <p class="simple-hint" data-testid="multiomics-replay-fidelity-note">
+      {#if referenceReplay?.requestJson}
+        {t('Le ZIP inclut la requête R originale et une copie des sources R, avec contrôle des empreintes SHA-256 si le backend les fournit. La concordance numérique exige un rejeu contrôlé. Le ZIP contient aussi un script R produisant des figures scientifiques similaires (heatmaps, métabologramme, carte métabolique) à partir des valeurs affichées, sans recalculer les statistiques. Les copies SVG du navigateur restent distinctes.',
+           'The ZIP includes the original R request and R source snapshot, checked against the runtime SHA-256 fingerprints if provided. Numerical agreement still requires a verified replay. The ZIP also includes an R script generating scientifically similar heatmaps, circular effect diagrams and metabolic maps from the displayed data without refitting statistics. Browser SVG snapshots remain separate.')}
+      {:else}
+        {t('Cette analyse n’a pas de calcul R de référence réussi : le ZIP ne peut pas fournir un script R prétendument identique aux calculs JavaScript. Les figures sont des instantanés SVG.', 
+           'This analysis has no successful R reference computation: the ZIP cannot provide a purportedly identical R script for JavaScript calculations. Figures are SVG snapshots.')}
+      {/if}
+    </p>
     {#if analysisResult.referenceBackend?.methods}
       <div class="ms-import-message" role="note" data-testid="multiomics-reference-preview-warning">
         {t('Résultats R : le tableau affiché est un aperçu. Le ZIP ne contient les résultats R exhaustifs que pour les méthodes marquées « complet ». Toute méthode incomplète doit être exportée séparément depuis le moteur R local.', 'R results: on-screen tables are previews. The ZIP contains all R rows only for methods marked complete. Incomplete methods require a separate full export from the local R engine.')}
@@ -3066,7 +3107,11 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
     <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
     <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
-    <small>{t('Les graphiques et tableaux principaux proviennent du moteur navigateur ; les sorties R sont présentées séparément, sans remplacer silencieusement ces estimations.', 'Main charts and tables use the browser engine; R results are displayed separately and never silently replace those estimates.')}</small>
+    <small data-testid="multiomics-numeric-source">{analysisResult.displayedReferenceMethodCount > 0
+      ? t('Les tableaux des couches portant « Native R » proviennent des résultats R exhaustifs ; les figures JS utilisent ces mêmes effets, sans refaire les tests. Les contrôles QC et les autres méthodes exploratoires restent distincts.',
+          'Layers labeled Native R show full R reference values; JavaScript figures use these same effects without refitting. QC and other exploratory calculations remain distinct.')
+      : t('Chiffres exploratoires JS : ils peuvent reposer sur un modèle simplifié ou des approximations et différer des p-values, q-values et effets obtenus en R. Ne pas les utiliser comme inférence confirmatoire. Le moteur R de référence applique les méthodes statistiques natives appropriées, sans garantir à lui seul une conclusion valide.',
+          'Exploratory JS numbers may use simplified models or approximations and differ in p-values, adjusted p-values and effects from native R methods. They are not confirmatory inference. The reference R engine applies the appropriate native statistical methods, which alone do not guarantee valid conclusions.')}</small>
     {#if analysisResult.referenceBackend?.status === 'ok'}
       {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, value]}
         <span>{key} : {value.method || key} — {value.status}</span>
@@ -3491,6 +3536,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
             <div>
               <span class="method-tag">{omicLabel(layer)}</span>
               <h3>{result.contrast || 'No valid contrast'}</h3>
+              <small data-testid={'multiomics-number-source-'+layer}>{analysisResult.numericSourceByLayer?.[layer] === 'native_r_complete_table'
+                ? t('Chiffres : R natif (table complète)', 'Numbers: native R (complete table)')
+                : t('Chiffres : exploration JS', 'Numbers: JavaScript exploration')}</small>
             </div>
             <button class="text-button" type="button" onclick={() => downloadLayerCsv(layer)}>CSV ↓</button>
           </div>
@@ -3530,22 +3578,22 @@ Rscript multiomics-engine/run_backend.R</code></pre>
     <span class="help-tip" tabindex="0" data-tooltip={t('p-value ajustée par Benjamini–Hochberg pour contrôler le taux de faux positifs parmi les résultats retenus. Ici q ≤ 0,10 est un seuil exploratoire.', 'Benjamini–Hochberg adjusted p-value controlling the false discovery rate among selected results. Here q ≤ 0.10 is an exploratory threshold.')}>?</span>
   </b>
 </div>
-              {#each result.rows.slice(0, 10) as row}
+              {#each (result.numericalProvenance === 'exact_native_r_reference_table' ? result.selected : result.rows).slice(0, 10) as row}
                 <div>
                   <code>{row.feature}</code>
                   {#if row.foldRatio != null}
-                    <span class:negative={row.foldRatio != null && row.foldRatio < 1}>{row.foldRatio == null ? row.effect.toFixed(3) : `${row.foldRatio.toFixed(2)}×`}</span>
+                    <span class:negative={row.foldRatio != null && row.foldRatio < 1}>{row.foldRatio == null ? (row.effect == null ? '—' : row.effect.toFixed(3)) : `${row.foldRatio.toFixed(2)}×`}</span>
                   {:else if row.exponentiatedEffect != null}
                     <span class:negative={row.exponentiatedEffect < 1}>
                       {row.exponentiatedEffect.toPrecision(3)}×
                       {#if row.exponentiatedCiLow != null && row.exponentiatedCiHigh != null}
                         <small>[{row.exponentiatedCiLow.toPrecision(3)}–{row.exponentiatedCiHigh.toPrecision(3)}]</small>
                       {/if}
-                      <small>(β={row.effect.toPrecision(3)})</small>
+                      <small>(β={row.effect == null ? '—' : row.effect.toPrecision(3)})</small>
                     </span>
                   {:else}
                     <span class:negative={row.effect < 0}>
-                      {row.effect.toPrecision(3)}
+                      {row.effect == null ? '—' : row.effect.toPrecision(3)}
                       {#if row.ciLow != null && row.ciHigh != null}
                         <small>[{row.ciLow.toPrecision(3)}–{row.ciHigh.toPrecision(3)}]</small>
                       {/if}

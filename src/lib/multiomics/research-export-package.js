@@ -3,6 +3,10 @@
 // publication API, or R backend. Browser statistics and R fits are identified
 // separately. The ZIP contains raw study inputs and may be CONFIDENTIAL.
 import {buildResearchMethodsManifest} from './research-report.js';
+import {referenceReplayEntries} from './reference-replay.js';
+import {RESEARCH_R_FIGURE_SOURCE} from './r-figure-source.js';
+import {RESEARCH_RUN_ALL_R_SOURCE} from './r-run-all-source.js';
+import {buildDownstreamExchange} from './downstream-exchange.js';
 import {parseReferenceCsv} from './research-reference-csv.js';
 import {RESEARCH_DOSSIER_VERIFY_PY,RESEARCH_DOSSIER_README} from './research-archive-verifier.js';
 
@@ -295,7 +299,7 @@ export function methodsMarkdown(result,locale='fr'){
       'Analyses using the R backend also require its package versions and environment for independent reruns.'),
     '',
     '## '+t('Organisation du dossier','Folder contents'),'',
-    '- `tableaux/*.csv`: '+t('résultats exhaustifs du moteur navigateur','complete browser-engine tables'),
+    '- `tableaux/*.csv`: '+t('tableaux R natifs originaux lorsque la couche affiche les chiffres R, sinon tableaux exploratoires JS clairement identifiés','original native R full tables when a layer uses R values, otherwise clearly identified exploratory browser tables'),
     '- `methods/methods.md`: '+t('ce texte modifiable','this editable text'),
     '- `methods/methods_audit.json`: '+t('méthodes et QC sans matrices brutes','method/QC summary without raw matrices'),
     '- `provenance/analysis_complete.json`: '+t('résultat complet, y compris traces éventuelles du backend R','complete analysis including any R backend trace'),
@@ -320,7 +324,7 @@ function u32(view,offset,x){view.setUint32(offset,x>>>0,true)}
 /** Stable, standards-compliant uncompressed ZIP with UTF-8 file names;
  * deliberately small-scope to avoid browser supply-chain dependencies. */
 export function zipEntries(entries){
-  requireThat(Array.isArray(entries)&&entries.length>0&&entries.length<=30,
+  requireThat(Array.isArray(entries)&&entries.length>0&&entries.length<=60,
     'Invalid number of research files');
   const names=new Set(),local=[],central=[];
   let offset=0,sourceBytes=0;
@@ -364,7 +368,8 @@ async function sha256(bytes){
 }
 /** PortableProject is constructed from the EXACT original source File objects,
  * keeping any sensitive rows exclusively in the user's downloaded archive. */
-export async function buildResearchBundle({result,portableProject,locale='fr'}){
+/** @param {{result:any,portableProject:any,referenceReplay?:any,figureSnapshots?:Array<{name:string,data:string}>,locale?:string}} options */
+export async function buildResearchBundle({result,portableProject,referenceReplay=null,figureSnapshots=[],locale='fr'}){
   requireThat(result?.engine&&result?.layers&&result?.protocol,'Missing completed analysis');
   requireThat(portableProject?.format==='pmx-multiomics-portable-project'&&
     portableProject?.schemaVersion===1&&portableProject?.inputs?.metadata,
@@ -379,18 +384,113 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     requireThat(Object.hasOwn(layerLabel,layer),'Unsupported data layer '+layer);
     requireThat(Array.isArray(entry?.rows),'Missing results table for '+layer);
     count[layer]=entry.rows.length;
-    add('tableaux/'+layer+'.csv',fullLayerCsv(entry.rows));
+    // A layer displayed with native R statistics must export the ORIGINAL R
+    // CSV as its primary table. A reserialization would discard native
+    // columns such as DESeq2 baseMean/lfcSE/stat and break exact provenance.
+    if(entry.numericalProvenance==='exact_native_r_reference_table'){
+      const methodKey=entry.primaryReferenceMethodKey;
+      requireThat(typeof methodKey==='string'&&/^[A-Za-z0-9_]+$/.test(methodKey),
+        'Native R primary layer lacks a safe method key');
+      const native=result.referenceBackend?.methods?.[methodKey];
+      const table=native?.referenceTable&&typeof native.referenceTable==='object'?
+        native.referenceTable:native;
+      requireThat(native?.status==='ok'&&table?.referenceTableComplete===true &&
+        table.referenceTableStatus==='complete'&&typeof table.referenceTableCsv==='string',
+        'Native R primary layer lacks its complete reference CSV');
+      const parsed=parseReferenceCsv(table.referenceTableCsv);
+      requireThat(parsed.rows.length===entry.rows.length &&
+        parsed.rows.every((r,i)=>r.feature===entry.rows[i].feature),
+        'Native R primary table differs from displayed feature order');
+      add('tableaux/'+layer+'.csv',table.referenceTableCsv);
+    }else{
+      add('tableaux/'+layer+'.csv',fullLayerCsv(entry.rows));
+    }
     num++;
   }
   requireThat(num>0,'No analyzable layer');
   const fullR=fullReferenceMethodCsvs(result);
   for(const reference of fullR)add(reference.name,reference.csv);
+  // These are the ACTUAL R backend sources, JSON request and returned values.
+  // Browser figures are only immutable snapshots: R never drew them.
+  const replay=await referenceReplayEntries(referenceReplay);
+  for(const entry of replay.entries)add(entry.name,entry.data);
+  requireThat(Array.isArray(figureSnapshots)&&figureSnapshots.length<=12,'Invalid number of figure snapshots');
+  for(const item of figureSnapshots){
+    requireThat(/^figure_[0-9]{2}\.svg$/.test(item?.name)&&
+      typeof item?.data==='string'&&item.data.length<2_000_000&&
+      item.data.includes('<svg'), 'Invalid browser SVG snapshot');
+    add('figures_browser/'+item.name,item.data);
+  }
   add('methods/methods.md',methodsMarkdown(result,locale));
   add('verification/verifier_dossier.py',RESEARCH_DOSSIER_VERIFY_PY);
   add('verification/LISEZ-MOI.txt',RESEARCH_DOSSIER_README);
   add('methods/methods_audit.json',JSON.stringify(buildResearchMethodsManifest(result),null,2)+'\n');
   add('provenance/analysis_complete.json',JSON.stringify(result,null,2)+'\n');
   add('source/projet_reproductible.json',JSON.stringify(portableProject,null,2)+'\n');
+  // R figure recipes use the SAME archived plot-ready values, rather than
+  // separately refitting or silently altering the browser statistical output.
+  // This is R-generated, scientifically similar plotting; not pixel identity.
+  add('COMMENCER_ICI_FR_EN.md',[
+    '# MultiOmics — Reproduire les résultats / Reproduce the results',
+    '',
+    'FR — Aucun changement du code n’est nécessaire :',
+    '1. Conservez ce ZIP dans un dossier sécurisé : il contient vos données scientifiques.',
+    '2. Extrayez entièrement le ZIP. Installez R puis le package R jsonlite.',
+    '3. Dans ce dossier extrait, lancez : Rscript run_all.R',
+    '4. Consultez research_reproduction_status.json, figures_r/output/ et les CSV des valeurs tracées.',
+    '5. Si le calcul de référence R était disponible, vérifiez PASS_R_REFERENCE_ONLY.',
+    '   Sinon, les chiffres exploratoires JS ne sont PAS présentés comme reproduits en R.',
+    '6. Les figures générées par R sont scientifiquement similaires mais peuvent différer graphiquement des SVG interactifs.',
+    '',
+    'EN — No code edits required:',
+    '1. Keep the archive secure: it can contain confidential research data.',
+    '2. Extract all files. Install R and the R package jsonlite.',
+    '3. Open a terminal inside the extracted folder and run: Rscript run_all.R',
+    '4. Read research_reproduction_status.json, figures_r/output/ and the plotted-values CSVs.',
+    '5. PASS_R_REFERENCE_ONLY means the native R reference result was numerically replayed.',
+    '   Browser-only exploratory numbers are never misrepresented as a native R method.',
+    '6. R figure equivalents use the same plot-ready values, not identical SVG pixel geometry.',
+    '',
+    'Windows: open PowerShell in the extracted folder and run Rscript.exe run_all.R.',
+    'If Rscript is not on PATH, run it from the R installation bin directory.',
+    'For strict numerical native-R replay, restore the ORIGINAL R and Bioconductor package versions.',
+    'A new/latest installation is NOT evidence of matching the original statistical results.',
+    'Report a FAIL or NOT_CHECKED; do not call an unverified replay reproducible.',
+    '',
+  ].join('\n'));
+  add('run_all.R',RESEARCH_RUN_ALL_R_SOURCE);
+  add('figures_r/generate_figures.R',RESEARCH_R_FIGURE_SOURCE);
+  add('figures_r/README.md',[
+    '# Recreate the scientific display figures using R',
+    '',
+    'From the extracted ZIP root run:',
+    '',
+    'Rscript figures_r/generate_figures.R provenance/analysis_complete.json figures_r/output',
+    '',
+    'Requires R + jsonlite and an SVG-capable R build (PDF is always generated).',
+    'The program uses original heatmap row z-scores, annotations, and reported',
+    'model effect values from analysis_complete.json without statistical refitting.',
+    'It renders a heatmap for each available layer, a circular effect plot and',
+    'a central-carbon network when those display datasets exist.',
+    'Plots are scientifically similar to browser/Svelte views, NOT pixel-identical.',
+    'It does not reproduce arbitrary interactive tabs or local selections.',
+    'No biological significance or pathway activity is computed by plotting.',
+    'Inspect output/figure_manifest.json: every saved PDF/SVG identifies its input.',
+    'The original browser SVG snapshots are in figures_browser/, not produced by R.',
+    'Where an R reference fit ran, the exact native numerical replay is separately',
+    'available under reproduction/ (requires its own source/environment attestation).',
+    ''
+  ].join('\n'));
+  // Exchange is an optional derivative of the EXACT uploaded matrices. Do not
+  // block any existing mono-omic ZIP export when their layout differs.
+  let downstreamExchange={status:'not_available',reason:null};
+  try {
+    const exchange=await buildDownstreamExchange(portableProject);
+    for(const entry of exchange.entries)add(entry.name,entry.data);
+    downstreamExchange={status:'included',schema_version:'1.0.0',matrices:exchange.manifest.matrices.map(m=>m.omic)};
+  } catch(error) {
+    downstreamExchange={status:'not_available',reason:error instanceof Error?error.message:'Unknown incompatibility'};
+  }
   const files={};
   for(const {name,data} of members){
     const bytes=encoder.encode(data);
@@ -405,6 +505,16 @@ export async function buildResearchBundle({result,portableProject,locale='fr'}){
     input_file_sha256:Object.fromEntries(
       Object.entries(portableProject.inputs).map(([key,f])=>[key,f.sha256])),
     browser_layer_rows:count,
+    primary_table_sources:Object.fromEntries(
+      Object.entries(result.layers).map(([layer,entry])=>[
+        layer,entry.numericalProvenance==='exact_native_r_reference_table'
+          ? {engine:'native_R',method:entry.primaryReferenceMethodKey}
+          : {engine:'browser_exploratory',method:entry.inferenceMethod||null}
+      ])),
+    r_source_replay:replay.status,
+    browser_svg_snapshots:{count:figureSnapshots.length,source:'original_rendered_Svelte_SVG',r_replayable:false},
+    exact_r_numeric_and_figure_equivalence_certified:false,
+    downstream_exchange:downstreamExchange,
     reference_method_previews:referencePreviewAudit(result),
     r_reference_full_feature_tables_exported:fullR.length>0,
     r_reference_full_tables:fullR.map(({name,method_key,rows,columns,original_features,excluded_before_fit})=>
