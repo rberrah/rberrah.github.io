@@ -8,6 +8,7 @@
   import MultiomicsVisualizations from '$lib/components/MultiomicsVisualizations.svelte';
   import ExternalValidationPanel from '$lib/components/ExternalValidationPanel.svelte';
   import { buildMultiomicsVisualizationData } from '$lib/multiomics/visualization-data.js';
+  import { projectNativeRNumbers } from '$lib/multiomics/r-primary-results.js';
   import { convertMsAucExport } from '$lib/multiomics/ms-auc-import.js';
   import { parseMetaboliteAnnotations } from '$lib/multiomics/metabolite-annotation.js';
   import { assessScientificAssurance } from '$lib/multiomics/scientific-assurance.js';
@@ -1358,7 +1359,7 @@
       });
       if (referenceBackendMode !== 'browser') {
         const referenceBackend = await runReferenceBackend();
-        analysisResult = { ...analysisResult, referenceBackend };
+        analysisResult = projectNativeRNumbers({ ...analysisResult, referenceBackend });
       }
 
       try {
@@ -3089,7 +3090,11 @@ Rscript multiomics-engine/run_backend.R</code></pre>
   <div class="simple-qc-status" data-testid="multiomics-quality-summary">
     <strong>{t('Méthodes réellement exécutées', 'Methods actually run')}</strong>
     <span>{t('Navigateur : ', 'Browser: ')}{Object.entries(analysisResult.layers || {}).map(([key, value]) => omicLabel(key) + ' — ' + (value.inferenceMethod || value.mode || 'QC')).join(' ; ')}</span>
-    <small>{t('Les graphiques et tableaux principaux proviennent du moteur navigateur ; les sorties R sont présentées séparément, sans remplacer silencieusement ces estimations.', 'Main charts and tables use the browser engine; R results are displayed separately and never silently replace those estimates.')}</small>
+    <small data-testid="multiomics-numeric-source">{analysisResult.displayedReferenceMethodCount > 0
+      ? t('Les tableaux des couches portant « Native R » proviennent des résultats R exhaustifs ; les figures JS utilisent ces mêmes effets, sans refaire les tests. Les contrôles QC et les autres méthodes exploratoires restent distincts.',
+          'Layers labeled Native R show full R reference values; JavaScript figures use these same effects without refitting. QC and other exploratory calculations remain distinct.')
+      : t('Les résultats affichés sont exploratoires (JavaScript). Aucune équivalence numérique R ne peut être revendiquée sans méthode R de référence complète.',
+          'Displayed results are exploratory (JavaScript). Numerical R equivalence cannot be claimed without a complete native R reference fit.')}</small>
     {#if analysisResult.referenceBackend?.status === 'ok'}
       {#each Object.entries(analysisResult.referenceBackend.methods || {}) as [key, value]}
         <span>{key} : {value.method || key} — {value.status}</span>
@@ -3514,6 +3519,9 @@ Rscript multiomics-engine/run_backend.R</code></pre>
             <div>
               <span class="method-tag">{omicLabel(layer)}</span>
               <h3>{result.contrast || 'No valid contrast'}</h3>
+              <small data-testid={'multiomics-number-source-'+layer}>{analysisResult.numericSourceByLayer?.[layer] === 'native_r_complete_table'
+                ? t('Chiffres : R natif (table complète)', 'Numbers: native R (complete table)')
+                : t('Chiffres : exploration JS', 'Numbers: JavaScript exploration')}</small>
             </div>
             <button class="text-button" type="button" onclick={() => downloadLayerCsv(layer)}>CSV ↓</button>
           </div>
