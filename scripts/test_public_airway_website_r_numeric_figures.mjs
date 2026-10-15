@@ -150,6 +150,23 @@ try{
     });
     const html=readFileSync(join(extracted,'analyse_reproductible.html'),'utf8');
     assert(html.length>3000 && html.includes('MultiOmics') && html.includes('PASS_R_REFERENCE_ONLY'));
+    // The knitted HTML must actually display public-cohort values, not just
+    // contain a generic "replay succeeded" statement.
+    const nativeCsv=parseDelimited(
+      readFileSync(join(extracted,'tableaux','transcriptomics.csv'),'utf8'));
+    assert.equal(nativeCsv.rows.length,rows.length,
+      'Knitted notebook must use the same full-feature native R table');
+    assert(/Rows:\\s*17199/.test(html.replace(/<[^>]+>/g,' ')),
+      'HTML notebook must display its 17,199 full-feature rows');
+    for(const entry of nativeCsv.rows.slice(0,6)){
+      assert(html.includes(entry.feature),
+        'Knitted HTML omits displayed native R feature '+entry.feature);
+    }
+    const numericAudit=JSON.parse(readFileSync(
+      join(extracted,'reproduction','r_numeric_comparison_report.json'),'utf8'));
+    assert.equal(numericAudit.result,'PASS',
+      'Knitted public dataset must pass complete native R comparison');
+    assert.equal(numericAudit.n_discrepancies,0);
     assert(html.length>3000 && existsSync(join(extracted,'research_reproduction_status.json')));
     const rerun=JSON.parse(readFileSync(join(extracted,'research_reproduction_status.json'),'utf8'));
     assert.equal(rerun.r_numerical_replay,'PASS_R_REFERENCE_ONLY');
