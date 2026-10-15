@@ -198,7 +198,7 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.locator('[data-communication]')).toHaveCount(3);
   await expect(page.locator('[data-communication]:visible')).toHaveCount(3);
   await expect(page.getByRole('heading', { name: /NetPK: fusing published/ })).toBeVisible();
-  await expect(page.getByText('Upcoming', { exact: true })).toHaveCount(1);
+  await expect(page.getByText('Presented', { exact: true })).toHaveCount(3);
 
   await page.getByRole('button', { name: 'Posters', exact: true }).click();
   await expect(page.locator('[data-communication]:visible')).toHaveCount(2);
@@ -216,7 +216,7 @@ test('communication library filters and opens the NetPK poster', async ({ page }
   await expect(page.locator('.communication-hero img')).toHaveAttribute('alt', /Preview of NetPK/);
   await expect(page.locator('.communication-detail > header')).toContainText('Presentation: 14 October 2026 · Event: 13–15 October 2026');
   const netpkJsonLd = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
-  expect(netpkJsonLd.datePublished).toBeUndefined();
+  expect(netpkJsonLd.datePublished).toBe('2026-10-14');
   expect(netpkJsonLd.dateCreated).toBeUndefined();
   expect(netpkJsonLd.isPartOf).toMatchObject({ '@type': 'Event', startDate: '2026-10-13', endDate: '2026-10-15' });
   await page.goto(origin + '/communications/fr/netpk-peprsn-2026/');
