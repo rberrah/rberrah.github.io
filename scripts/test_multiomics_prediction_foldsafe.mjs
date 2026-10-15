@@ -104,4 +104,15 @@ assert.ok(result.predictiveOutcome.technicalQcCaveat.includes('pooled-QC'));
 assert.equal(result.predictiveOutcome.predictions.length,subjects.length);
 assert.equal(new Set(result.predictiveOutcome.predictions.map(x=>x.subjectId)).size,subjects.length);
 assert.ok(Number.isFinite(result.predictiveOutcome.metrics.auc));
+const brier=result.predictiveOutcome.metrics.brier;
+const p=result.predictiveOutcome.predictions;
+const levels=[...new Set(p.map(item=>item.truth))].sort();
+assert.equal(levels.length,2);
+const independentlyComputedBrier=p.reduce((sum,item)=>
+  sum+(item.prediction-(item.truth===levels[1]?1:0))**2,0)/p.length;
+assert.ok(Number.isFinite(brier)&&brier>=0&&brier<=1,
+  'Brier must be finite and in [0,1] for genuine held-out binary probability predictions');
+assert.ok(Math.abs(brier-independentlyComputedBrier)<1e-12,
+  'Brier is the exact mean of the independent outer-fold squared probability errors');
+
 console.log('multiomics LFQ/MS assay-local prediction, held-out invariance and nested CV: PASS');
