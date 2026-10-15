@@ -70,8 +70,8 @@ await assert.rejects(buildDownstreamExchange(missingLayer),/without its original
 const threeInputs={
   ...pairedInputs,
   metadata:{...pairedInputs.metadata,content:pairedInputs.metadata.content+
-    'P1,S1,P1,proteomics,blood,0\\nP2,S2,P2,proteomics,blood,1\\n'},
-  proteomics:{content:'feature_id,P1,P2\\nP12345,1.2,2.4\\n'}
+    'P1,S1,P1,proteomics,blood,0\nP2,S2,P2,proteomics,blood,1\n'},
+  proteomics:{content:'feature_id,P1,P2\nP12345,1.2,2.4\n'}
 };
 const three=await buildDownstreamExchange({...project,inputs:threeInputs});
 assert.deepEqual(three.manifest.matrices.map(x=>x.omic),
