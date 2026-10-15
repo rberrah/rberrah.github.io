@@ -64,4 +64,43 @@ bad <- rows
 bad$arm[1L] <- "unknown"
 stopifnot(inherits(try(rnaseq_scale_path_summary(bad),silent=TRUE),
   "try-error"))
+
+# Study-level bootstrap must retain pairing, reject invalid input, restore RNG,
+# and NEVER turn uncertainty intervals into nominal FDR certification.
+set.seed(1971L)
+rng_before<-get(".Random.seed",envir=.GlobalEnv)
+ci<-rnaseq_scale_path_paired_uncertainty(rows,minimum=10L,
+                                          bootstrap_repeats=400L,seed=73L)
+stopifnot(identical(rng_before,get(".Random.seed",envir=.GlobalEnv)),
+          nrow(ci)==18L,all(ci$independent_studies==10L),
+          all(ci$bootstrap_repeats==400L),
+          all(ci$bootstrap_seed==73L),
+          all(ci$percentile_95_lower<=ci$mean_paired_difference+1e-12),
+          all(ci$percentile_95_upper>=ci$mean_paired_difference-1e-12),
+          !any(ci$clinical_certification),
+          !any(ci$nominal_fdr_certified),
+          all(ci$interval_scope=="paired_iid_simulated_studies_descriptive_only"))
+# Constant paired differences should have zero bootstrap width even under
+# independent resampling of the *study* IDs.
+stopifnot(all(abs(ci$percentile_95_lower-ci$mean_paired_difference)<1e-12),
+          all(abs(ci$percentile_95_upper-ci$mean_paired_difference)<1e-12),
+          identical(ci,rnaseq_scale_path_paired_uncertainty(
+              rows,minimum=10L,bootstrap_repeats=400L,seed=73L)))
+bad_ci<-rows[-1L,,drop=FALSE]
+stopifnot(inherits(try(rnaseq_scale_path_paired_uncertainty(
+  bad_ci,bootstrap_repeats=400L),silent=TRUE),"try-error"))
+stopifnot(inherits(try(rnaseq_scale_path_paired_uncertainty(
+  rows,bootstrap_repeats=0L),silent=TRUE),"try-error"))
+stopifnot(inherits(try(rnaseq_scale_path_paired_uncertainty(
+  rows,bootstrap_repeats=400L,seed=NA_integer_),silent=TRUE),"try-error"))
+# Deliberate between-study heterogeneity creates a strictly positive width.
+vary<-rows
+vary$power[vary$arm=="strict_native"]<-
+  pmax(0,pmin(1,.35+rep(seq(-.15,.15,length.out=10L),3L)))
+ci_var<-rnaseq_scale_path_paired_uncertainty(vary,minimum=10L,
+                                             bootstrap_repeats=1000L,seed=73L)
+s<-ci_var[ci_var$method=="DESeq2"&ci_var$metric=="power"&
+          ci_var$comparison=="total",]
+stopifnot(nrow(s)==1L,s$percentile_95_upper>s$percentile_95_lower)
+
 cat("RNA-seq frozen-scale validation, paired decomposition and fail-closed guards: PASS\n")
