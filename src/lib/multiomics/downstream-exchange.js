@@ -41,6 +41,7 @@ export async function buildDownstreamExchange(portableProject){
     if(!h.includes(key))throw Error('Exchange requires explicit sample sheet column '+key);
   const sampleRows=metadata.rows.map(r=>Object.fromEntries(h.map((key,i)=>[key,r[i]])));
   const specimenOwners=new Map();
+  const specimenContext=new Map();
   const sampleIds=new Set(),sampleOutput=[['assay_id','sample_id','subject_id','omic','tissue','collection_time','collection_time_unit','condition','batch','technical_replicate_id','source_dataset_id']];
   for(const s of sampleRows){
     if(!TYPES.includes(s.omic)||!s.assay_id||!s.sample_id||!s.subject_id)
@@ -49,6 +50,12 @@ export async function buildDownstreamExchange(portableProject){
     if(owner!==undefined && owner!==s.subject_id)
       throw Error('One sample_id cannot belong to multiple biological subjects');
     specimenOwners.set(s.sample_id,s.subject_id);
+    const previous=specimenContext.get(s.sample_id)||{};
+    for(const field of ['tissue','collection_time','collection_time_unit']){
+      if(previous[field] && s[field] && previous[field]!==s[field])
+        throw Error('Conflicting '+field+' for shared specimen '+s.sample_id);
+    }
+    specimenContext.set(s.sample_id,{...previous,...Object.fromEntries(['tissue','collection_time','collection_time_unit'].map(field=>[field,s[field]||previous[field]||'']))});
     const key=s.omic+'\u0000'+s.assay_id;
     if(sampleIds.has(key))throw Error('Duplicate assay_id for '+s.omic);
     sampleIds.add(key);
