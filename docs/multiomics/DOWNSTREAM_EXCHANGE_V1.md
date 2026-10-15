@@ -97,3 +97,19 @@ Therefore, `r_source_replay.scope = r_backend_only`, `browser_svg_snapshots.r_re
 5. For future omics-to-PK/PD work, join biological subject, specimen, assay, collection time and tissue by explicit identifiers. Never join by row position or mistake repeated measurements for independent subjects.
 
 No PK/PD fit or network analysis is automatically run by this export.
+
+## Reproducing figures in R, without re-estimating the statistics
+
+In the downloaded research dossier, run **one command from its extracted root**:
+
+```bash
+Rscript run_all.R
+```
+
+This script (1) attempts replay of the original native R calculations if they actually ran and the exact versions/source SHA-256 match, (2) verifies the numerical comparison using the bundled independent Python script, and (3) creates similar publication figures directly with R based on the archived display-ready values.
+
+Generated files include `figures_r/output/*.pdf`, SVGs when the R build supports Cairo, the underlying `*_plot_values.csv` and `figure_manifest.json`. A status report at `research_reproduction_status.json` separates numerical R replay from graph generation. **A browser-only run does not become a statistically equivalent R analysis.**
+
+The R-generated heatmaps, metabologram and central-carbon map are intended to convey the same measured information as the web versions. Font metrics, interactivity and SVG pixel layout may differ, and any non-displayed interactive network state remains outside the exported figure set. R generates these figures using the actual archived values, without refitting statistical models.
+
+For future PK/PD integration, the validated subject/sample/assay/tissue/time identifiers remain preserved and networks are still optional.
