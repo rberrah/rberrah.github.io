@@ -156,7 +156,7 @@ try{
       readFileSync(join(extracted,'tableaux','transcriptomics.csv'),'utf8'));
     assert.equal(nativeCsv.rows.length,rows.length,
       'Knitted notebook must use the same full-feature native R table');
-    assert(/Rows:\\s*17199/.test(html.replace(/<[^>]+>/g,' ')),
+    assert(/Rows:\s*17199/.test(html.replace(/<[^>]+>/g,' ')),
       'HTML notebook must display its 17,199 full-feature rows');
     for(const entry of nativeCsv.rows.slice(0,6)){
       assert(html.includes(entry.feature),
