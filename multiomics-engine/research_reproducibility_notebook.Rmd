@@ -22,7 +22,7 @@ params:
 
 This section installs **missing basic rendering packages only**. It does not silently update installed scientific packages or override the original backend environment.
 
-\`\`\`{r setup, include=TRUE}
+```{r setup, include=TRUE}
 # Install only missing report dependencies into the usual user R library.
 # Do NOT use install.packages("DESeq2") or update the research libraries here:
 # native-R reproduction checks original R and Bioconductor versions first.
@@ -35,13 +35,13 @@ cat("R version:", as.character(getRversion()), "\n")
 cat("jsonlite:", as.character(utils::packageVersion("jsonlite")), "\n")
 cat("Working directory:", normalizePath(".", mustWork = TRUE), "\n")
 stopifnot(file.exists("provenance/analysis_complete.json"))
-\`\`\`
+```
 
 **FR :** Pour reproduire exactement une analyse statistique R, utilisez les versions originales des packages et le verrouillage de l'environnement lorsqu'ils sont disponibles. Installer simplement la dernière version ne garantit **pas** les mêmes chiffres.
 
 # 2. Quelle méthode produit les chiffres ? / Numerical provenance
 
-\`\`\`{r provenance}
+```{r provenance}
 analysis <- jsonlite::fromJSON(
   "provenance/analysis_complete.json",
   simplifyVector = FALSE
@@ -56,13 +56,13 @@ if (file.exists("provenance/manifest.json")) {
     print(manifest$primary_table_sources)
   }
 }
-\`\`\`
+```
 
 When a layer is marked **native_R**, its primary table is the complete unmodified CSV from that R method. **browser_exploratory** indicates JS exploratory calculations that may rely on different model assumptions. Only cite estimates with a suitable design, QC, data scale and adjusted inference method.
 
 # 3. Rejouer les calculs et figures / Replay calculations and figures
 
-\`\`\`{r execute-replay}
+```{r execute-replay}
 # This is the SAME one-command R launcher shipped in the original research ZIP.
 # It validates native-R source hashes and dependency versions (when applicable)
 # before replaying. If it fails, do not call the analysis reproducible.
@@ -78,13 +78,13 @@ if (isTRUE(params$execute_replay)) {
 stopifnot(file.exists("research_reproduction_status.json"))
 status <- jsonlite::fromJSON("research_reproduction_status.json", simplifyVector = FALSE)
 print(status)
-\`\`\`
+```
 
-**Interpretation:** \`PASS_R_REFERENCE_ONLY\` means the native R statistical calculation matched the original response under declared tolerances. \`NOT_AVAILABLE_BROWSER_RESULTS\` means no reference R replay existed for the browser-only analysis. \`GENERATED_SIMILAR_PDF_SVG\` means **R created the figures**, not that their pixels match the interactive SVGs.
+**Interpretation:** `PASS_R_REFERENCE_ONLY` means the native R statistical calculation matched the original response under declared tolerances. `NOT_AVAILABLE_BROWSER_RESULTS` means no reference R replay existed for the browser-only analysis. `GENERATED_SIMILAR_PDF_SVG` means **R created the figures**, not that their pixels match the interactive SVGs.
 
 # 4. Résultats numériques complets / Full-feature results
 
-\`\`\`{r full-results}
+```{r full-results}
 files <- list.files("tableaux", pattern = "\\.csv$", full.names = TRUE)
 if (!length(files)) {
   cat("No primary results tables found.\n")
@@ -98,13 +98,13 @@ if (!length(files)) {
     cat("Full result preserved in:", file, "\n")
   }
 }
-\`\`\`
+```
 
 **Warning:** Sample-level replicates, contrast orientation, transformation scale, missingness and FDR correction determine the scientific interpretation. Reproducibility is not proof of causality or clinical utility.
 
 # 5. Graphiques produits par R / R-generated figures
 
-\`\`\`{r figure-manifest}
+```{r figure-manifest}
 manifest_path <- "figures_r/output/figure_manifest.json"
 if (file.exists(manifest_path)) {
   figures <- jsonlite::fromJSON(manifest_path, simplifyVector = FALSE)
@@ -115,9 +115,9 @@ if (file.exists(manifest_path)) {
 } else {
   cat("No supported R figure was generated for this analysis.\n")
 }
-\`\`\`
+```
 
-\`\`\`{r render-svg, echo=TRUE, results='asis'}
+```{r render-svg, echo=TRUE, results='asis'}
 # R generated these SVGs directly from the original plot-ready values.
 # HTML includes only up to 6 to keep the notebook usable on a standard PC.
 svg_paths <- list.files("figures_r/output", pattern = "\\.svg$", full.names = TRUE)
@@ -129,9 +129,9 @@ if (length(svg_paths)) {
 } else {
   cat("SVG unavailable on this R build: see PDF figures in figures_r/output.\n")
 }
-\`\`\`
+```
 
-\`\`\`{r plotted-values}
+```{r plotted-values}
 # Every z-score/effect actually used to plot is available in CSV for audit.
 values <- list.files("figures_r/output", pattern = "_plot_values\\.csv$",
                      full.names = TRUE)
@@ -141,17 +141,17 @@ for (file in values) {
   cat("Measured features/nodes:", nrow(d), "\n")
   print(utils::head(d, 4))
 }
-\`\`\`
+```
 
 # 6. Limites et prochaine étape PK/PD / Limitations and future PK/PD
 
 - **R native fit:** reproducibility requires the exact method source, original inputs, source SHA-256, original R/Bioconductor packages and fixed external mappings.
 - **JS-only exploratory results:** can use simplified approximations; they are **not** certified as equivalent to DESeq2, edgeR, limma, MOFA2 or DIABLO.
 - **R figures:** use the same measured and display-ready numeric values, legend scales and sample order. Graphic layout may differ.
-- **Future omics–PK/PD:** join by validated \`subject_id\`, \`sample_id\`, \`assay_id\`, tissue and time, never by row position. No causal or PK/PD effect is estimated by this report.
+- **Future omics–PK/PD:** join by validated `subject_id`, `sample_id`, `assay_id`, tissue and time, never by row position. No causal or PK/PD effect is estimated by this report.
 
 # 7. Environnement / Session provenance
 
-\`\`\`{r session}
+```{r session}
 print(utils::sessionInfo())
-\`\`\`
+```
