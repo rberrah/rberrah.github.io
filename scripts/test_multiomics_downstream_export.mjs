@@ -37,4 +37,20 @@ await assert.rejects(buildDownstreamExchange(incompatible),/feature_id/);
 const fallback=await buildResearchBundle({result:makeResult(),portableProject:incompatible});
 assert.equal(fallback.manifest.downstream_exchange.status,'not_available');
 assert(!fallback.manifest.files['exchange/manifest.json']);
-console.log('PASS: mono-omic exchange, preserved NA and incompatible-source fallback');
+// A genuine two-layer package: shared specimen, distinct assays, same subject.
+const pairedInputs={
+  metadata:{content:'assay_id,sample_id,subject_id,omic,tissue,collection_time\nR1,S1,P1,transcriptomics,blood,0\nR2,S2,P2,transcriptomics,blood,1\nM1,S1,P1,metabolomics,blood,0\nM2,S2,P2,metabolomics,blood,1\n',sha256:'b'.repeat(64)},
+  transcriptomics:{content:'feature_id,R1,R2\nENSG001,4,5\n'},
+  metabolomics:{content:'feature_id,M1,M2\nCHEBI:1,0.3,NA\n'}
+};
+const pairedProject={...project,inputs:pairedInputs};
+const multi=await buildDownstreamExchange(pairedProject);
+assert.deepEqual(multi.manifest.matrices.map(x=>x.omic),['transcriptomics','metabolomics']);
+assert(multi.entries.find(x=>x.name==='exchange/samples.csv').data.includes('M1,S1,P1,metabolomics'));
+const mismatch={
+  ...pairedProject,
+  inputs:{...pairedInputs,metadata:{...pairedInputs.metadata,
+    content:pairedInputs.metadata.content.replace('M1,S1,P1','M1,S1,P9')}}
+};
+await assert.rejects(buildDownstreamExchange(mismatch),/multiple biological subjects/);
+console.log('PASS: mono-omic and two-omic exchanges, shared specimen ownership and safe fallback');
