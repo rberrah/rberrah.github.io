@@ -7,6 +7,8 @@ on:
       - 'scripts/validate_multiomics_exchange.py'
       - 'scripts/test_validate_multiomics_exchange.py'
       - 'scripts/test_multiomics_downstream_export.mjs'
+      - 'scripts/capture_multiomics_python_environment.py'
+      - 'multiomics-engine/capture_environment.R'
       - 'src/lib/multiomics/downstream-exchange.js'
       - 'src/lib/multiomics/research-export-package.js'
       - '.github/workflows/multiomics-exchange-contract.yml'
@@ -28,6 +30,10 @@ jobs:
           python-version: '3.12'
       - name: Validate downstream exchange contract fixtures
         run: python scripts/test_validate_multiomics_exchange.py
+      - name: Capture real Python environment inventory
+        run: |
+          python scripts/capture_multiomics_python_environment.py --output python-environment-ci.json
+          python -c 'import json; x=json.load(open("python-environment-ci.json")); assert x["status"] == "inventory_only_not_a_dependency_lock" and x["python_version"]'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
