@@ -31,6 +31,14 @@ try {
   writeFileSync(path,JSON.stringify(data));
   execFileSync('Rscript',['multiomics-engine/plot_research_figures.R',path,out],
     {stdio:'pipe',timeout:120000});
+  const zscores=readFileSync(join(out,'heatmap_transcriptomics_plot_values.csv'),'utf8');
+  assert(zscores.includes('ENSG001,-1,0,1'));
+  assert(zscores.includes('ENSG002,0.5,NA,-0.5'));
+  const circular=readFileSync(join(out,'metabologram_plot_values.csv'),'utf8');
+  assert(circular.includes('CHEBI:24996'));
+  assert(circular.includes('-0.7'));
+  const nodes=readFileSync(join(out,'central_carbon_plot_values.csv'),'utf8');
+  assert(nodes.includes('Glucose'));
   const manifest=JSON.parse(readFileSync(join(out,'figure_manifest.json'),'utf8'));
   assert.equal(manifest.does_not_refit_model,true);
   assert.equal(manifest.pixel_identity_to_Svelte,false);
