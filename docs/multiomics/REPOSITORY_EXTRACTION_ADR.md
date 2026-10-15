@@ -115,3 +115,13 @@ composants du portail non omiques ne doivent pas être copiés par défaut.
 **Décision proposée :** extraire après l'adoption du carnet Rmd et
 une dernière validation du ZIP actuel. Rédiger l'article en parallèle,
 mais citer la première release indépendante seulement après sa recette.
+
+## Nouveau dépôt créé et déploiement (vérification du 16 octobre 2026)
+
+- **Dépôt disponible :** [`rberrah/MultiOmics`](https://github.com/rberrah/MultiOmics), privé, accessible avec droits administrateur depuis le connecteur GitHub, actuellement vide.
+- **Décision :** ne pas déplacer le code ni les données avant acceptation des tests du notebook `.Rmd` sur jeux biologiques publics et revue du périmètre scientifique. Le site `rberrah.github.io` continue à servir MultiOmics comme aujourd'hui.
+- **Privé n'implique pas inaccessible aux visiteurs :** le navigateur reçoit les ressources statiques compilées publiées à partir du dépôt public du portail, jamais les sources privées directement.
+- **Point bloquant à la future extraction :** le `GITHUB_TOKEN` d'une Action du dépôt public ne permet pas d'obtenir automatiquement le code de l'autre dépôt privé. Utiliser une GitHub App avec permissions minimales, ou construire et publier un artefact statique depuis le dépôt privé au moyen d'un workflow explicitement autorisé. Ne pas mettre de clé dans du JS client, ni exposer le code/données sensibles dans les artefacts ou logs publics.
+- **Pages depuis le dépôt privé :** l'éligibilité dépend de l'offre GitHub. Pour éviter cette dépendance et conserver les URL, la voie recommandée est un build testable de MultiOmics suivi d'une publication statique dans `rberrah.github.io`, ou un service d'hébergement distinct avec URL/redirect contrôlés.
+- **Validation de migration :** mêmes tables R natives, mêmes valeurs JS tracées, mêmes données NA/couleurs, ZIP/Rmd/HTML, tests navigateurs FR/EN et redirections; aucune suppression avant cette recette.
+
