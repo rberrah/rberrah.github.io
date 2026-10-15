@@ -29,5 +29,12 @@ jobs:
         run: node --check scripts/check_live_multiomics.mjs
       - name: Install genuine Playwright Chromium
         run: npx playwright install chromium --with-deps
-      - name: Exercise deployed GitHub Pages with 300 generated LC-MS AUC measurements
-        run: node scripts/check_live_multiomics.mjs
+      # PRs must validate their own build, not an older live Pages release.
+      # The *real* remote upload/ZIP check runs after deployment in
+      # multiomics-public-route-smoke.yml (and on its workflow_dispatch).
+      - name: Build candidate static application
+        run: npm run build
+      - name: Validate candidate four-button omics layout in Chromium
+        env:
+          LABS_E2E_PREBUILT: "true"
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js --grep "Quick-start demo" --workers=1 --retries=0
