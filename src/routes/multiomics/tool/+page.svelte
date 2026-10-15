@@ -1687,11 +1687,15 @@
   function downloadLayerCsv(layer) {
     const rows = analysisResult?.layers?.[layer]?.rows;
     if (!rows?.length) return;
-    const blob = new Blob([fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const methodKey = analysisResult.layers[layer]?.primaryReferenceMethodKey;
+    const method = methodKey ? analysisResult.referenceBackend?.methods?.[methodKey] : null;
+    const nativeCsv = method?.status === 'ok' && method?.referenceTableComplete === true &&
+      typeof method?.referenceTableCsv === 'string' ? method.referenceTableCsv : null;
+    const blob = new Blob([nativeCsv ?? fullLayerCsv(rows)], { type: 'text/csv;charset=utf-8' });
     const href = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = href;
-    anchor.download = `${layer}_deterministic_results.csv`;
+    anchor.download = nativeCsv ? `${layer}_reference_R_complete.csv` : `${layer}_browser_exploratory.csv`;
     anchor.click();
     URL.revokeObjectURL(href);
   }
