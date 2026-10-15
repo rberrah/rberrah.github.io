@@ -42,7 +42,7 @@ cat("Browser-generated statistics and Svelte SVG figures are NOT R-replayed.\n")
 const REPLAY_GUIDE = `# Reproduction du calcul R / Native R replay
 
 1. Extraire l'ensemble du dossier ZIP sur votre ordinateur. **Les fichiers contiennent potentiellement des données confidentielles.**
-2. Restaurer la version de R et les packages indiqués dans le résultat original. Un inventaire de versions ne suffit pas pour garantir une restauration exacte.
+2. Restaurer la version de R et les packages indiqués dans le résultat original. Le script exige également que les SHA-256 du code R correspondent aux empreintes transmises par le backend d'origine. Si elles manquent ou divergent, le rejeu échoue sans attribuer de fausse équivalence.
 3. Depuis la racine du ZIP : \`Rscript reproduction/run_reference_backend.R reproduction/\`.
 4. Exécuter \`python3 reproduction/verify_replay.py reproduction/\` pour comparer automatiquement les méthodes natives, les valeurs numériques et le prétraitement. Un écart doit bloquer toute revendication de reproductibilité.
 5. Vérifier les tableaux R complets dans \`reference_r/\`. Les résultats trop volumineux conservés uniquement sur le disque R local doivent être récupérés séparément.
