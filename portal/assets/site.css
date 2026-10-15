@@ -86,7 +86,7 @@ ul { padding-left: 1.3rem; }
 .product-showcase-copy h3 { font: 500 1.55rem/1.25 var(--serif); margin-bottom: .7rem; }
 .product-showcase-copy p:not(.eyebrow) { color: var(--ink-2); font-size: .93rem; }
 .product-showcase-copy > a { font-size: .88rem; font-weight: 600; }
-.product-figure { margin: 0; }
+.product-figure { margin: 0; width: 100%; max-width: 640px; justify-self: end; }
 .product-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 7px; background: #fff; }
 .product-figure figcaption { margin: .55rem 0 0; }
 .product-note { margin: .9rem 0 0; }
@@ -130,7 +130,6 @@ ul { padding-left: 1.3rem; }
 .detail-body .links { font-size: .88rem; }
 .research-detail:target { border-top-color: var(--accent); }
 .talks .detail-body strong { font: inherit; font-weight: 600; color: var(--ink); }
-.conference { background: var(--accent-soft); }
 .talks { list-style: none; margin: 1.5rem 0; padding: 0; }
 .talks li { margin-block: 1.4rem; }
 .talks strong { font: .76rem var(--mono); color: var(--accent); }
