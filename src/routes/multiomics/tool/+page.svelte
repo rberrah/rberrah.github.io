@@ -3426,10 +3426,17 @@ Rscript multiomics-engine/run_backend.R</code></pre>
           {#if analysisResult.predictiveOutcome.metrics.accuracy != null}<span><strong>{(100 * analysisResult.predictiveOutcome.metrics.accuracy).toFixed(1)}%</strong> accuracy</span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.rmse != null}<span><strong>{analysisResult.predictiveOutcome.metrics.rmse.toPrecision(3)}</strong> RMSE</span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.r2 != null}<span><strong>{analysisResult.predictiveOutcome.metrics.r2.toFixed(3)}</strong> R² CV</span>{/if}
+          {#if analysisResult.predictiveOutcome.metrics.brier != null}<span data-testid="multiomics-prediction-brier"><strong>{analysisResult.predictiveOutcome.metrics.brier.toFixed(3)}</strong> Brier <span class="help-tip" tabindex="0" data-tooltip={t('Moyenne des erreurs quadratiques entre probabilités prédites et issue binaire observée, calculée uniquement sur les prédictions des folds externes. Plus petit est meilleur, mais comparez à une référence et contrôlez la calibration sur une cohorte externe.', 'Mean squared error between held-out predicted probabilities and observed binary outcomes; lower is better, but it must be compared against an appropriate reference and externally checked for calibration.')}>?</span></span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.logLoss != null}<span><strong>{analysisResult.predictiveOutcome.metrics.logLoss.toFixed(3)}</strong> log-loss</span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.cIndex != null}<span><strong>{analysisResult.predictiveOutcome.metrics.cIndex.toFixed(3)}</strong> C-index <span class="help-tip" tabindex="0" data-tooltip={t('Indice de concordance de Harrell calculé uniquement sur les prédictions des folds externes. 0,5 correspond approximativement au hasard ; plus il est proche de 1, mieux le score de risque ordonne les temps d’événement observables.', 'Harrell concordance index computed only from outer-fold predictions. About 0.5 corresponds to chance; values closer to 1 mean the risk score better orders observable event times.')}>?</span></span>{/if}
           {#if analysisResult.predictiveOutcome.metrics.events != null}<span><strong>{analysisResult.predictiveOutcome.metrics.events}</strong> {t('événements', 'events')}</span>{/if}
         </div>
+        {#if analysisResult.predictiveOutcome.metrics.auc != null}
+          <p class="note" role="note" data-testid="multiomics-binary-calibration-caution">
+            <strong>{t('Attention : une AUC élevée ne prouve pas la calibration des probabilités.', 'Caution: a high AUC does not establish well-calibrated probabilities.')}</strong>
+            {t('Le score de Brier et la log-loss sont calculés sur les prédictions de validation croisée, mais leur interprétation exige une comparaison à un modèle de référence, une vérification des courbes de calibration et une cohorte externe indépendante. Une recalibration peut dégrader les performances sur une autre cohorte.', 'Brier and log-loss are computed on held-out cross-validation predictions. Interpretation requires a reference predictor, calibration plots and an independent external cohort; recalibration can degrade performance on another cohort.')}
+          </p>
+        {/if}
         <p class="note">{analysisResult.predictiveOutcome.method}. {analysisResult.predictiveOutcome.caveat}</p>
         {#if analysisResult.predictiveOutcome.rawIntensityScreening}
           <p class="note" data-testid="multiomics-ms-prediction-caveat">
