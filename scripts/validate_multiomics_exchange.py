@@ -57,6 +57,12 @@ def validate(root):
                 errors.append("features.csv missing " + field)
         if errors:
             return errors
+        specimen_owners = {}
+        for sample in samples:
+            sid, subject = sample["sample_id"], sample["subject_id"]
+            if sid in specimen_owners and specimen_owners[sid] != subject:
+                errors.append("One sample_id assigned to multiple biological subjects")
+            specimen_owners[sid] = subject
         assay_keys = [(r["omic"], r["assay_id"]) for r in samples]
         feature_keys = [(r["omic"], r["feature_id"]) for r in features]
         if len(set(assay_keys)) != len(assay_keys):
