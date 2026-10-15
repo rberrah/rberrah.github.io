@@ -209,6 +209,20 @@ export function methodsMarkdown(result,locale='fr'){
   }
 
 
+  // Internal outer-fold predictions are NOT a frozen independent external
+  // validation. Report proper probability scores alongside ranking metrics.
+  if(result.predictiveOutcome?.status==='ok' &&
+     Number.isFinite(result.predictiveOutcome.metrics?.auc)){
+    const prediction=result.predictiveOutcome.metrics;
+    h.push('## '+t('Prédiction binaire — discrimination et calibration',
+       'Binary prediction — discrimination and calibration'),'',
+       '- AUC (nested CV): '+print(prediction.auc),
+       '- Brier (nested CV): '+print(prediction.brier),
+       '- log-loss (nested CV): '+print(prediction.logLoss),
+       '',
+       '> '+t('AUC élevée ≠ probabilités fiables. Le score de Brier mesure une erreur quadratique moyenne, pas à lui seul une validation de calibration. Comparer à une prédiction de référence, examiner courbes et pente/intercept de calibration, puis valider sur une cohorte externe sans réentraîner le modèle. Une recalibration peut dégrader les scores sur un autre centre.',
+         'High AUC does not imply reliable probabilities. Brier is a mean squared probability error, not a stand-alone calibration certificate. Compare against a reference predictor, inspect calibration curves, slope and intercept, then validate on an independent cohort without retraining. Recalibration can worsen performance at another center.'),'');
+  }
   if(a.omics?.transcriptomics?.null_rnaseq_calibration_review_required){
     h.push('## '+t('Limites de calibration RNA-seq','RNA-seq statistical calibration limits'), '',
       '> '+t('Des études de simulation sous nul global ont observé, dans certains scénarios, davantage de faux positifs que le seuil nominal de 5 % sous DESeq2. Cela ne prouve pas un défaut général de DESeq2, mais une q-value BH n’est pas à elle seule la preuve que la FDR est contrôlée pour ce plan. Vérifier les facteurs de taille, dispersions, contrastes, dépendances et hypothèses avec une revue statistique indépendante avant une conclusion confirmatoire.',
