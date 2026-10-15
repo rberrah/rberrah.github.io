@@ -76,4 +76,8 @@ const threeInputs={
 const three=await buildDownstreamExchange({...project,inputs:threeInputs});
 assert.deepEqual(three.manifest.matrices.map(x=>x.omic),
   ['transcriptomics','proteomics','metabolomics']);
+const fractional={...project,inputs:{...inputs,transcriptomics:{content:'feature_id,RNA1,RNA2\nENSG001,1.5,2\n'}}};
+await assert.rejects(buildDownstreamExchange(fractional),/non-negative safe integers/);
+const negative={...project,inputs:{...inputs,transcriptomics:{content:'feature_id,RNA1,RNA2\nENSG001,-1,2\n'}}};
+await assert.rejects(buildDownstreamExchange(negative),/non-negative safe integers/);
 console.log('PASS: mono-omic and two-omic exchanges, shared specimen ownership and safe fallback');
