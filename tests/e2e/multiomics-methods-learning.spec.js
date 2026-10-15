@@ -45,6 +45,7 @@ test('Quick-start demo has three single-omic choices above a full-width multi-om
   const boxes=await Promise.all([...singles,multi].map(x=>x.boundingBox()));
   expect(boxes.every(x=>x!==null)).toBe(true);
   const [rna,protein,metabolite,all]=boxes;
+  if(!rna || !protein || !metabolite || !all) throw new Error('Missing one or more quick-demo button positions');
   expect(Math.abs(rna.y-protein.y)).toBeLessThan(3);
   expect(Math.abs(protein.y-metabolite.y)).toBeLessThan(3);
   expect(all.y).toBeGreaterThan(rna.y+rna.height-3);
