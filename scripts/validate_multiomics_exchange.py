@@ -122,8 +122,11 @@ def validate(root):
                         errors.append("Undeclared empty numeric value for " + str(omic))
                         continue
                     try:
-                        if not math.isfinite(float(value)):
+                        num = float(value)
+                        if not math.isfinite(num):
                             errors.append("Non-finite numeric value for " + str(omic))
+                        if omic == 'transcriptomics' and mat.get('value_type') == 'raw_counts' and (num < 0 or not num.is_integer() or num > 9007199254740991):
+                            errors.append('RNA raw_counts must be non-negative safe integers')
                     except ValueError:
                         errors.append("Non-numeric matrix cell for " + str(omic))
             if measured - known:
