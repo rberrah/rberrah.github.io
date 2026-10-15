@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {RESEARCH_R_FIGURE_SOURCE} from '../src/lib/multiomics/r-figure-source.js';
+import {parseDelimited} from '../src/lib/multiomics/deterministic.js';
 import {RESEARCH_RUN_ALL_R_SOURCE} from '../src/lib/multiomics/r-run-all-source.js';
 
 assert.equal(RESEARCH_R_FIGURE_SOURCE,readFileSync('multiomics-engine/plot_research_figures.R','utf8'),
@@ -42,7 +43,23 @@ try {
   assert(circular.includes('-0.7'));
   const nodes=readFileSync(join(out,'central_carbon_plot_values.csv'),'utf8');
   assert(nodes.includes('Glucose'));
+  const legend=parseDelimited(readFileSync(join(out,'heatmap_color_legend.csv'),'utf8'));
+  const expected=(value)=>{
+    const ratio=Math.min(1,Math.abs(value/2.5));
+    const start=[247,247,247],end=value>=0?[204,62,62]:[53,103,178];
+    return start.map((x,i)=>Math.round(x+(end[i]-x)*ratio));
+  };
+  for(const line of legend.rows){
+    const value=Number(line.z_score),hex=line.fill_hex.replace('#','');
+    const actual=[0,2,4].map(index=>parseInt(hex.slice(index,index+2),16));
+    assert(actual.every((component,i)=>Math.abs(component-expected(value)[i])<=2),
+      'R vs JS heatmap color drift at z='+value);
+  }
   const manifest=JSON.parse(readFileSync(join(out,'figure_manifest.json'),'utf8'));
+  assert.equal(manifest.visual_contract.heatmap_scale,'row z-score');
+  assert.deepEqual(manifest.visual_contract.heatmap_color_limits,[-2.5,2.5]);
+  assert.equal(manifest.visual_contract.missing_values,
+    'NA remains missing; never coerced to zero');
   assert.equal(manifest.does_not_refit_model,true);
   assert.equal(manifest.pixel_identity_to_Svelte,false);
   assert.deepEqual([...new Set(manifest.figures.map(x=>x.kind))].sort(),
