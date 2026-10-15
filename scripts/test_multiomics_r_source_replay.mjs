@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {REFERENCE_R_SOURCE_FILES} from '../src/lib/multiomics/reference-r-sources.js';
 import {REFERENCE_R_REPLAY_VERIFY_PY} from '../src/lib/multiomics/reference-replay-verifier-source.js';
+import {RESEARCH_R_NUMERIC_VERIFIER_SOURCE} from '../src/lib/multiomics/r-numeric-verifier-source.js';
 import {referenceReplayEntries,referenceReplayStatus} from '../src/lib/multiomics/reference-replay.js';
 
 // Source snapshot MUST match the actual implementation checked into this PR.
@@ -16,6 +17,8 @@ for (const [name,contents] of Object.entries(REFERENCE_R_SOURCE_FILES)) {
 }
 assert.equal(REFERENCE_R_REPLAY_VERIFY_PY,
   readFileSync('scripts/verify_multiomics_r_replay.py','utf8'));
+assert.equal(RESEARCH_R_NUMERIC_VERIFIER_SOURCE,
+  readFileSync('multiomics-engine/verify_research_replay.R','utf8'));
 assert.equal(referenceReplayStatus(null).status,'not_available');
 const expected={status:'ok',methods:{transcriptomics_differential_deseq2:{
   status:'ok',top:[{feature:'ENSG001',log2FoldChange:1.23,padj:0.04}]
@@ -43,8 +46,11 @@ assert.deepEqual(JSON.parse(entries.find(e=>e.name==='reproduction/reference_exp
 assert(entries.some(e=>e.name==='reproduction/multiomics-engine/server.R'));
 assert.equal(entries.find(e=>e.name==='reproduction/verify_replay.py').data,
   REFERENCE_R_REPLAY_VERIFY_PY);
+assert.equal(entries.find(e=>e.name==='reproduction/verify_replay.R').data,
+  RESEARCH_R_NUMERIC_VERIFIER_SOURCE);
 const root=mkdtempSync(join(tmpdir(),'pmx-r-replay-'));
 try {
+  let rAvailable=true;
   for(const e of entries.filter(x=>x.name.endsWith('.R'))){
     const file=join(root,e.name.replaceAll('/','_'));
     writeFileSync(file,e.data);
@@ -54,10 +60,27 @@ try {
     } catch(e) {
       if(e.code==='ENOENT') {
         console.log('Rscript unavailable; syntax parsing delegated to CI R runner');
+        rAvailable=false;
         break;
       }
       throw e;
     }
+  }
+  if(rAvailable) {
+    const verifier=join(root,'reproduction_verify_replay.R');
+    const baseline=JSON.parse(replay.responseJson);
+    writeFileSync(join(root,'reference_expected.json'),JSON.stringify(baseline));
+    writeFileSync(join(root,'reference_replayed.json'),JSON.stringify(baseline));
+    execFileSync('Rscript',[verifier,root],{stdio:'pipe'});
+    let report=JSON.parse(readFileSync(join(root,'r_numeric_comparison_report.json'),'utf8'));
+    assert.equal(report.result,'PASS');
+    const modified=structuredClone(baseline);
+    modified.methods.transcriptomics_differential_deseq2.top[0].padj=0.95;
+    writeFileSync(join(root,'reference_replayed.json'),JSON.stringify(modified));
+    assert.throws(()=>execFileSync('Rscript',[verifier,root],{stdio:'pipe'}));
+    report=JSON.parse(readFileSync(join(root,'r_numeric_comparison_report.json'),'utf8'));
+    assert.equal(report.result,'FAIL');
+    assert(report.n_discrepancies>=1);
   }
 }finally{rmSync(root,{recursive:true,force:true});}
 console.log('PASS: frozen R source matches API; source replay is guarded and R parser accepts scripts');
