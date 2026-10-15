@@ -62,3 +62,28 @@ No claims of universally controlled FDR, cross-cohort transfer or independent bi
 Run `Rscript multiomics-engine/capture_environment.R private-r-runtime.json` in the **actual** reference engine environment (requires jsonlite) and `python3 scripts/capture_multiomics_python_environment.py --output private-python-runtime.json --datasets path/to/public_dataset.csv` in the validation environment. The latter fingerprints only explicitly supplied dataset files; these tools never download or upload data. Keep patient/private files out of publicly uploaded CI artifacts.
 
 Neither inventory is a true `renv.lock`, a Python hashes lock, nor a container digest. The deployment freeze remains incomplete until a real package restore succeeds on a clean runner, public dataset source versions and checksums are recorded, and independently reproduced results are archived.
+
+## Native R differential analysis: transparent, inspectable code
+
+The branch includes [`multiomics-engine/run_exchange_analysis.R`](../../multiomics-engine/run_exchange_analysis.R). This provides an **explicit R command** rather than treating JavaScript exploratory results as DESeq2/edgeR/limma results:
+
+```bash
+Rscript multiomics-engine/run_exchange_analysis.R exchange/ results/deseq2 DESeq2 control treated
+# For a strictly complete-pair design:
+Rscript multiomics-engine/run_exchange_analysis.R exchange/ results/paired DESeq2 control treated --paired
+# With transformed, continuous, measured expression (not raw counts):
+Rscript multiomics-engine/run_exchange_analysis.R exchange/ results/limma limma control treated
+```
+
+The runnable example uses **one transcriptomics matrix** and mandatory `condition`, `subject_id`, `sample_id` and `assay_id` in `samples.csv`. It rejects designs lacking subject independence or complete pairs. It refuses fractional counts and prevents direct limma fitting to raw counts without a suitable normalization/voom workflow.
+
+R creates complete per-feature differential tables, `samples_used.csv`, `R_session_info.txt` and `README.txt`. The native method is selected **by the researcher**, never silently. Dependency and analysis validation remain necessary. This script does **not** yet reproduce every parameter of the interactive engine, nor execute fgsea, MOFA2 or DIABLO. Those require separately prespecified inputs and documented runners.
+
+### Beginner workflow
+
+1. Run the graphical tool with one omics layer, or explore the demo. Download the reproducible research ZIP.
+2. Extract `exchange/` if the outer manifest reports `downstream_exchange.status = included`; if not, inspect the explicit incompatibility message rather than assuming a usable R matrix.
+3. Run the offline Python verifier on `exchange/`. Only then run a native R reference command with the chosen contrast and study design.
+4. Compare the output with the exploratory browser results cautiously: they are distinct methods, not guaranteed equal. Keep the complete table and R session information.
+
+For future omics-to-PK/PD work, the subject/specimen/assay keys, units of collection time, namespace and tissue can provide a join contract. **Never join measured omics and drug-exposure records by row position, and never treat repeated observations as independent patients.** No PK/PD model is trained or fitted by this exchange component.
