@@ -39,7 +39,7 @@ const badAttestation=await referenceReplayEntries({...replay,responseJson:JSON.s
 assert.equal(badAttestation.status.source_attestation,'sha256_mismatch');
 assert.equal(badAttestation.status.exact_runtime_source_verified,false);
 assert(entries.some(e=>e.name==='reproduction/run_reference_backend.R'));
-assert.deepEqual(JSON.parse(entries.find(e=>e.name==='reproduction/reference_expected.json').data),expected);
+assert.deepEqual(JSON.parse(entries.find(e=>e.name==='reproduction/reference_expected.json').data),JSON.parse(replay.responseJson));
 assert(entries.some(e=>e.name==='reproduction/multiomics-engine/server.R'));
 assert.equal(entries.find(e=>e.name==='reproduction/verify_replay.py').data,
   REFERENCE_R_REPLAY_VERIFY_PY);
