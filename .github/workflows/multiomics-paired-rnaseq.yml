@@ -66,6 +66,8 @@ jobs:
             apt-get update -qq
             apt-get install -y -qq pandoc
           fi
+          apt-get update -qq
+          apt-get install -y -qq libuv1-dev libssl-dev libcurl4-openssl-dev libxml2-dev
           Rscript -e 'for(p in c("rmarkdown","knitr")) if(!requireNamespace(p,quietly=TRUE)) install.packages(p,repos="https://cloud.r-project.org"); stopifnot(rmarkdown::pandoc_available())'
       - name: Airway public study — compare complete native R statistics with site numbers and figure plots
         env:
