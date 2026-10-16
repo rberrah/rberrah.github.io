@@ -44,6 +44,29 @@ jobs:
         run: npm run build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+      - name: Fetch standalone MultiOmics from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(node -p "JSON.parse(require('fs').readFileSync('integration/multiomics-release.json','utf8')).sha")"
+          source_dir="$RUNNER_TEMP/multiomics-source"
+          git init "$source_dir"
+          git -C "$source_dir" remote add origin https://github.com/rberrah/MultiOmics.git
+          git -C "$source_dir" fetch --depth 1 origin "$sha"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
+          echo "MULTIOMICS_DIR=$source_dir" >> "$GITHUB_ENV"
+      - name: Build separate MultiOmics app with legacy public URL base
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd "$MULTIOMICS_DIR"
+            npm ci
+            BASE_PATH=/pharmacometrie npm run build
+            node scripts/build_pmx_compat_overlay.mjs
+            node scripts/test_pmx_compat_overlay.mjs
+          )
       - name: Assemble portal and PMx Explain
         run: |
           set -euo pipefail
@@ -56,6 +79,10 @@ jobs:
           cp -r portal/. dist/
           mkdir -p dist/pharmacometrie
           cp -r build/. dist/pharmacometrie/
+      # Never publish MultiOmics at a second address. Replace only its historical
+      # route directory and namespaced JS assets in the existing PMx dist tree.
+      - name: Overlay verified standalone MultiOmics while keeping old URLs
+        run: node scripts/apply_multiomics_overlay.mjs "$MULTIOMICS_DIR/compat-overlay" dist
       - name: Verify and configure the public artifact
         run: |
           set -euo pipefail
@@ -72,12 +99,21 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
+      - name: Verify fixed-URL MultiOmics in final assembled Pages build (desktop/mobile)
+        run: npx playwright test --config playwright.multiomics-mount.config.js --workers=1 --retries=0
       - name: Test assembled portal in browser
         run: npx playwright test --config playwright.portal.config.js
       - name: Test PMx application in browser
         env:
           LABS_E2E_PREBUILT: "true"
         run: npm run test:e2e:pmx
+      # The source gate runs after local browser qualification so a pending
+      # upstream scientific run cannot hide defects in the assembled candidate.
+      # No Pages artifact is uploaded and nothing is deployed unless it passes.
+      - name: Qualify pinned independent MultiOmics source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify_multiomics_upstream_release.mjs
       - name: Preserve qualified Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v6
