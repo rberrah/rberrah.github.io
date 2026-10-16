@@ -1,7 +1,7 @@
 // @ts-nocheck
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 import { get } from 'svelte/store';
 import { covariateActivities as activities, activitiesForChapter } from '../src/lib/content/covariateActivities.js';
 import { resolveSources } from '../src/lib/content/references.js';
