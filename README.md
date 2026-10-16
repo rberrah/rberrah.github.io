@@ -23,6 +23,8 @@ moteur.
   `rberrah/MIPD-Engine`.
 - `integration/multiomics-release.json` : contrat immutable vers
   `rberrah/MultiOmics`.
+- Le site de biostatistique `/stats/` est maintenu et déployé indépendamment depuis
+  `rberrah/stats`; PMx ne conserve plus de copie de son moteur, de ses tests ou de sa CI.
 - `docs/`, `scripts/` et `tests/` : documentation, contrôles de contenu et
   tests du portail/PMx.
 
@@ -71,6 +73,17 @@ L'application MultiOmics est maintenue dans
 https://github.com/rberrah/MultiOmics et montée dans l'artefact Pages à
 `/multiomics/`. Les anciennes URLs sous `/pharmacometrie/multiomics/`
 restent des alias de compatibilité.
+
+## Stats
+
+Le site de biostatistique est maintenu dans `rberrah/stats` et publié séparément à
+`/stats/`. Ce dépôt ne possède plus l'ancienne implémentation `portal/stats/` ni sa
+CI scientifique. Le `robots.txt` racine référence son sitemap autonome.
+
+## Gouvernance
+
+Les règles attendues pour `main`, la revue des PR et les frontières entre dépôts
+sont documentées dans [docs/repository-governance.md](docs/repository-governance.md).
 
 ## Déploiement GitHub Pages
 
