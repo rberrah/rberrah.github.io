@@ -14,11 +14,24 @@
       "transport": "in-memory draft",
       "status": "legacy-v1/v2",
       "legacyVersion": 1,
-      "transferredFields": ["generated mrgsolve code", "route", "time unit"],
-      "omittedFields": ["transfer contract", "patient observations"],
+      "transferredFields": [
+        "generated mrgsolve code",
+        "route",
+        "time unit"
+      ],
+      "omittedFields": [
+        "transfer contract",
+        "patient observations"
+      ],
       "implementation": [
-        { "path": "src/routes/covariates/+page.svelte", "evidence": "writeDraft('incoming:pd:pk'" },
-        { "path": "src/lib/components/EngineWorkbench.svelte", "evidence": "takeDraft(`incoming:${view}:pk`)" }
+        {
+          "path": "src/routes/covariates/+page.svelte",
+          "evidence": "writeDraft('incoming:pd:pk'"
+        },
+        {
+          "path": "src/lib/components/EngineWorkbench.svelte",
+          "evidence": "takeDraft(`incoming:${view}:pk`)"
+        }
       ]
     },
     {
@@ -27,12 +40,25 @@
       "destination": "shared synthetic scenario URL",
       "transport": "URL query and fragment",
       "status": "not-applicable",
-      "transferredFields": ["synthetic laboratory parameters", "reference", "teacher flags"],
-      "omittedFields": ["patient data", "personal model code"],
+      "transferredFields": [
+        "synthetic laboratory parameters",
+        "reference",
+        "teacher flags"
+      ],
+      "omittedFields": [
+        "patient data",
+        "personal model code"
+      ],
       "reason": "This is an explicit synthetic scenario share, not a handoff to another PMx tool.",
       "implementation": [
-        { "path": "src/lib/components/Laboratory.svelte", "evidence": "url.hash = encodeScenario" },
-        { "path": "src/lib/labs/model.js", "evidence": "export function decodeScenario" }
+        {
+          "path": "src/lib/components/Laboratory.svelte",
+          "evidence": "url.hash = encodeScenario"
+        },
+        {
+          "path": "src/lib/labs/model.js",
+          "evidence": "export function decodeScenario"
+        }
       ]
     },
     {
@@ -42,12 +68,31 @@
       "transport": "Svelte store in memory",
       "status": "legacy-v1/v2",
       "legacyVersion": 1,
-      "transferredFields": ["laboratory structure", "PK parameters", "units", "horizon", "first or maintenance dose"],
-      "omittedFields": ["transfer contract", "finite dose count in builders", "loading dose in PD/DDI builders"],
+      "transferredFields": [
+        "laboratory structure",
+        "PK parameters",
+        "units",
+        "horizon",
+        "first or maintenance dose"
+      ],
+      "omittedFields": [
+        "transfer contract",
+        "finite dose count in builders",
+        "loading dose in PD/DDI builders"
+      ],
       "implementation": [
-        { "path": "src/lib/components/Laboratory.svelte", "evidence": "prepareHandoff(destination" },
-        { "path": "src/lib/labs/handoff.js", "evidence": "labHandoff.set({ destination, spec: value })" },
-        { "path": "src/lib/components/LabTransfer.svelte", "evidence": "apply(pending.spec)" }
+        {
+          "path": "src/lib/components/Laboratory.svelte",
+          "evidence": "prepareHandoff(destination"
+        },
+        {
+          "path": "src/lib/labs/handoff.js",
+          "evidence": "labHandoff.set({ destination, spec: value })"
+        },
+        {
+          "path": "src/lib/components/LabTransfer.svelte",
+          "evidence": "apply(pending.spec)"
+        }
       ]
     },
     {
@@ -57,13 +102,33 @@
       "transport": "postMessage",
       "status": "legacy-v1/v2",
       "legacyVersion": 1,
-      "transferredFields": ["generated mrgsolve code", "Lego specification", "teaching schedule"],
-      "omittedFields": ["transfer contract", "observed concentrations"],
+      "transferredFields": [
+        "generated mrgsolve code",
+        "Lego specification",
+        "teaching schedule"
+      ],
+      "omittedFields": [
+        "transfer contract",
+        "observed concentrations"
+      ],
       "implementation": [
-        { "path": "src/routes/tdm/+page.svelte", "evidence": "openLaboratoryTdm" },
-        { "path": "src/lib/labs/tdm.js", "evidence": "type: 'pk-lego-model'" },
-        { "path": "tdm-engine/app.R", "evidence": "teaching_lab_import" }
-      ]
+        {
+          "path": "src/routes/tdm/+page.svelte",
+          "evidence": "openLaboratoryTdm"
+        },
+        {
+          "path": "src/lib/labs/tdm.js",
+          "evidence": "type: 'pk-lego-model'"
+        },
+        {
+          "path": "integration/mipd-release.json",
+          "evidence": "rberrah/MIPD-Engine"
+        }
+      ],
+      "externalImplementation": {
+        "repository": "rberrah/MIPD-Engine",
+        "releaseContract": "integration/mipd-release.json"
+      }
     },
     {
       "id": "lego-to-builders",
@@ -72,11 +137,27 @@
       "transport": "in-memory draft",
       "status": "v3",
       "contractVersion": 3,
-      "transferredFields": ["diagram or complete mrgsolve code", "route", "units", "variability", "residual error", "covariates"],
-      "omittedFields": ["patient observations", "destination-specific PD/DDI settings"],
+      "transferredFields": [
+        "diagram or complete mrgsolve code",
+        "route",
+        "units",
+        "variability",
+        "residual error",
+        "covariates"
+      ],
+      "omittedFields": [
+        "patient observations",
+        "destination-specific PD/DDI settings"
+      ],
       "implementation": [
-        { "path": "src/lib/components/LegoEditor.svelte", "evidence": "destination: `${destination}-builder`" },
-        { "path": "src/lib/transfers/contract.js", "evidence": "TRANSFER_CONTRACT_VERSION = 3" }
+        {
+          "path": "src/lib/components/LegoEditor.svelte",
+          "evidence": "destination: `${destination}-builder`"
+        },
+        {
+          "path": "src/lib/transfers/contract.js",
+          "evidence": "TRANSFER_CONTRACT_VERSION = 3"
+        }
       ]
     },
     {
@@ -86,11 +167,25 @@
       "transport": "in-memory draft",
       "status": "v3",
       "contractVersion": 3,
-      "transferredFields": ["complete mrgsolve code", "dose", "simulation horizon", "route", "schedule"],
-      "omittedFields": ["patient observations"],
+      "transferredFields": [
+        "complete mrgsolve code",
+        "dose",
+        "simulation horizon",
+        "route",
+        "schedule"
+      ],
+      "omittedFields": [
+        "patient observations"
+      ],
       "implementation": [
-        { "path": "src/lib/components/LegoEditor.svelte", "evidence": "writeDraft('incoming:simulation'" },
-        { "path": "src/lib/components/visualizations/21_PopPKPlayground.svelte", "evidence": "takeDraft('incoming:simulation')" }
+        {
+          "path": "src/lib/components/LegoEditor.svelte",
+          "evidence": "writeDraft('incoming:simulation'"
+        },
+        {
+          "path": "src/lib/components/visualizations/21_PopPKPlayground.svelte",
+          "evidence": "takeDraft('incoming:simulation')"
+        }
       ]
     },
     {
@@ -100,13 +195,35 @@
       "transport": "postMessage",
       "status": "v3",
       "contractVersion": 3,
-      "transferredFields": ["complete mrgsolve code", "route", "variability", "residual error", "covariates", "schedule"],
-      "omittedFields": ["patient observations"],
-      "limitations": ["The public engine keeps custom code compilation disabled.", "The Shiny receiver currently consumes model fields but does not reject invalid transfer-contract metadata."],
+      "transferredFields": [
+        "complete mrgsolve code",
+        "route",
+        "variability",
+        "residual error",
+        "covariates",
+        "schedule"
+      ],
+      "omittedFields": [
+        "patient observations"
+      ],
+      "limitations": [
+        "The public engine keeps custom code compilation disabled.",
+        "The Shiny receiver currently consumes model fields but does not reject invalid transfer-contract metadata."
+      ],
       "implementation": [
-        { "path": "src/lib/components/LegoEditor.svelte", "evidence": "destination: 'tdm-engine'" },
-        { "path": "tdm-engine/app.R", "evidence": "lego_model_import" }
-      ]
+        {
+          "path": "src/lib/components/LegoEditor.svelte",
+          "evidence": "destination: 'tdm-engine'"
+        },
+        {
+          "path": "integration/mipd-release.json",
+          "evidence": "rberrah/MIPD-Engine"
+        }
+      ],
+      "externalImplementation": {
+        "repository": "rberrah/MIPD-Engine",
+        "releaseContract": "integration/mipd-release.json"
+      }
     },
     {
       "id": "pk-model-to-translator",
@@ -115,11 +232,23 @@
       "transport": "in-memory draft",
       "status": "legacy-v1/v2",
       "legacyVersion": 1,
-      "transferredFields": ["native or generated model code"],
-      "omittedFields": ["transfer contract", "selected regimen", "patient observations"],
+      "transferredFields": [
+        "native or generated model code"
+      ],
+      "omittedFields": [
+        "transfer contract",
+        "selected regimen",
+        "patient observations"
+      ],
       "implementation": [
-        { "path": "src/lib/components/PkWorkshopModel.svelte", "evidence": "writeDraft('source:translator'" },
-        { "path": "src/lib/components/LegoEditor.svelte", "evidence": "takeDraft('source:translator')" }
+        {
+          "path": "src/lib/components/PkWorkshopModel.svelte",
+          "evidence": "writeDraft('source:translator'"
+        },
+        {
+          "path": "src/lib/components/LegoEditor.svelte",
+          "evidence": "takeDraft('source:translator')"
+        }
       ]
     },
     {
@@ -128,12 +257,22 @@
       "destination": "local user files",
       "transport": "browser download",
       "status": "not-applicable",
-      "transferredFields": ["simulation CSV", "R script", "R Markdown"],
+      "transferredFields": [
+        "simulation CSV",
+        "R script",
+        "R Markdown"
+      ],
       "omittedFields": [],
       "reason": "Downloaded files are user-controlled exports and are not opened automatically by another PMx tool.",
       "implementation": [
-        { "path": "src/lib/components/visualizations/21_PopPKPlayground.svelte", "evidence": "downloadFreeRmd" },
-        { "path": "src/lib/sim/export.js", "evidence": "export function downloadText" }
+        {
+          "path": "src/lib/components/visualizations/21_PopPKPlayground.svelte",
+          "evidence": "downloadFreeRmd"
+        },
+        {
+          "path": "src/lib/sim/export.js",
+          "evidence": "export function downloadText"
+        }
       ]
     },
     {
@@ -143,12 +282,30 @@
       "transport": "postMessage",
       "status": "legacy-v1/v2",
       "legacyVersion": 1,
-      "transferredFields": ["validated curve keys", "bounded x/y point arrays", "invalidation state"],
-      "omittedFields": ["transfer contract", "full posterior object", "patient observations"],
+      "transferredFields": [
+        "validated curve keys",
+        "bounded x/y point arrays",
+        "invalidation state"
+      ],
+      "omittedFields": [
+        "transfer contract",
+        "full posterior object",
+        "patient observations"
+      ],
       "implementation": [
-        { "path": "tdm-engine/www/workbench.js", "evidence": "type: 'pk-workbench-result'" },
-        { "path": "src/lib/tdm/workbenches.js", "evidence": "event.data.type === 'pk-workbench-result'" }
-      ]
+        {
+          "path": "src/lib/tdm/workbenches.js",
+          "evidence": "event.data.type === 'pk-workbench-result'"
+        },
+        {
+          "path": "integration/mipd-release.json",
+          "evidence": "rberrah/MIPD-Engine"
+        }
+      ],
+      "externalImplementation": {
+        "repository": "rberrah/MIPD-Engine",
+        "releaseContract": "integration/mipd-release.json"
+      }
     },
     {
       "id": "workbench-json-exports",
@@ -156,12 +313,23 @@
       "destination": "local user file",
       "transport": "browser download",
       "status": "not-applicable",
-      "transferredFields": ["versioned workshop JSON including its v3 contract"],
-      "omittedFields": ["patient observations", "MAP posterior outside the engine session"],
+      "transferredFields": [
+        "versioned workshop JSON including its v3 contract"
+      ],
+      "omittedFields": [
+        "patient observations",
+        "MAP posterior outside the engine session"
+      ],
       "reason": "The JSON is an explicit export; no PMx tool currently imports it automatically.",
       "implementation": [
-        { "path": "src/lib/components/EngineWorkbench.svelte", "evidence": "`${spec.view}-workshop.json`" },
-        { "path": "src/lib/components/InfectionWorkbench.svelte", "evidence": "infection-workshop.json" }
+        {
+          "path": "src/lib/components/EngineWorkbench.svelte",
+          "evidence": "`${spec.view}-workshop.json`"
+        },
+        {
+          "path": "src/lib/components/InfectionWorkbench.svelte",
+          "evidence": "infection-workshop.json"
+        }
       ]
     },
     {
@@ -171,14 +339,36 @@
       "transport": "postMessage",
       "status": "v3",
       "contractVersion": 3,
-      "transferredFields": ["view", "configuration", "PK models", "route", "units", "schedule"],
-      "omittedFields": ["patient observations", "MAP posterior outside the current engine session"],
-      "limitations": ["PK uncertainty is not automatically propagated to PD.", "The Shiny receiver currently consumes workshop fields but does not reject invalid transfer-contract metadata."],
+      "transferredFields": [
+        "view",
+        "configuration",
+        "PK models",
+        "route",
+        "units",
+        "schedule"
+      ],
+      "omittedFields": [
+        "patient observations",
+        "MAP posterior outside the current engine session"
+      ],
+      "limitations": [
+        "PK uncertainty is not automatically propagated to PD.",
+        "The Shiny receiver currently consumes workshop fields but does not reject invalid transfer-contract metadata."
+      ],
       "implementation": [
-        { "path": "src/lib/tdm/workbenches.js", "evidence": "makeTransferContract({" },
-        { "path": "tdm-engine/www/workbench.js", "evidence": "workbench_payload" },
-        { "path": "tdm-engine/app.R", "evidence": "apply_workbench(input$workbench_payload)" }
-      ]
+        {
+          "path": "src/lib/tdm/workbenches.js",
+          "evidence": "makeTransferContract({"
+        },
+        {
+          "path": "integration/mipd-release.json",
+          "evidence": "rberrah/MIPD-Engine"
+        }
+      ],
+      "externalImplementation": {
+        "repository": "rberrah/MIPD-Engine",
+        "releaseContract": "integration/mipd-release.json"
+      }
     }
   ]
 }

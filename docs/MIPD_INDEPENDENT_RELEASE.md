@@ -9,10 +9,11 @@ Its qualification checks that the authentic push workflow succeeded, compares
 the 46 standalone model sources and catalogue with the public PMx snapshot, and
 runs the bounded Lego importer audit against the standalone files.
 
-The historical `tdm-engine/` directory remains a rollback mirror during the
-transition. It must not be removed until the standalone deployment and public
-tool transfers are verified. Updating the pin requires a successful standalone
-qualification first; a branch name or moving tag is not accepted.
+The historical repository-local `tdm-engine/` mirror has been removed after
+standalone deployment and PMx consumer qualification succeeded. Rollback is now
+performed by reverting `integration/mipd-release.json` to a previously
+qualified immutable SHA or by reverting the extraction commit; a mutable branch
+or tag is never a release contract.
 
 
 ## Pinned runtime and deployment safety contract
@@ -39,7 +40,8 @@ official Pmetrics benchmark jobs fetch the immutable SHA from
 `integration/mipd-release.json` and execute the corresponding tests and
 benchmarks from that standalone checkout.
 
-The local `tdm-engine/` directory is retained temporarily only as a development
-fallback for scripts that have not yet been converted to the external engine
-root. This phase deliberately proves external consumption before the mirror is
-deleted in a later, separate PR.
+PMx no longer carries an executable R/Shiny mirror. `static/tdm/` is only a
+browser-facing consumer snapshot used by educational pages and the model
+translator. The `mipd-consumer` job compares that snapshot against the pinned
+standalone catalogue and model sources. Engine safety, ML artifact hashes,
+native regression and deployment code are tested from the standalone checkout.
