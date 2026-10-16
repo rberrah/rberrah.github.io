@@ -71,7 +71,7 @@ jobs:
           mkdir -p test-results/pmetrics
           cp "$MIPD_ENGINE_DIR/pmetrics/benchmarks/pmetrics-official-example.json" test-results/pmetrics/
       - name: Archive full benchmark result
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pmetrics-official-full
           path: test-results/pmetrics/pmetrics-official-example.json
