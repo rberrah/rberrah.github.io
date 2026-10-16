@@ -1,218 +1,40 @@
-name: PMx Explain CI and Pages deployment
+name: Deploy qualified PMx Pages
 
 on:
-  push:
+  workflow_run:
+    workflows: [PMx qualification]
     branches: [main]
-  workflow_dispatch:
-
-env:
-  PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
-  BASE_PATH: /pharmacometrie
+    types: [completed]
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install
-        run: npm ci
-
-      - name: Test public origin configuration
-        run: node --test scripts/test_site_origin.mjs
-
-      - name: Test PMx educational content and safety contracts
-        run: npm run test:pmx
-
-      - name: Test scientific communications
-        run: npm run test:communications
-
-      - name: Regenerate tracked artifacts and reject drift
-        run: |
-          npm run generate:all
-          git diff --exit-code
-
-      - name: Check Svelte
-        run: npm run check
-
-      # La pharmacométrie est désormais servie sous /pharmacometrie/ ; la vraie
-      # racine (/) héberge le portail statique (dossier portal/).
-      - name: Build (pharmacométrie)
-        run: npm run build
-
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Assemble portail + pharmacométrie
-        run: |
-          set -euo pipefail
-          rm -rf dist
-          mkdir -p dist
-
-          # Garde-fou : les deux arborescences ne doivent jamais se recouvrir.
-          # Le portail occupe la racine, le cours occupe /pharmacometrie/ ; si un
-          # jour portal/pharmacometrie apparaissait, l'une écraserait l'autre en
-          # silence. On préfère un échec bruyant.
-          if [ -e portal/pharmacometrie ]; then
-            echo "::error::portal/pharmacometrie existe et entrerait en collision avec le build SvelteKit."
-            exit 1
-          fi
-
-          # 1) Le portail, EN ENTIER, à la racine de dist :
-          #    index.html, 404.html, assets/, demos/, recherche/, research/,
-          #    a-propos/, contact/, citer/, sitemap.xml, robots.txt…
-          cp -r portal/. dist/
-
-          # 2) Le cours de pharmacométrie dans son sous-dossier. Comme portal/ ne
-          #    contient pas de dossier « pharmacometrie » (vérifié ci-dessus),
-          #    cette copie n'écrase rien du portail, et le portail n'écrase rien
-          #    du build : l'ordre des deux étapes est sans effet de bord.
-          mkdir -p dist/pharmacometrie
-          cp -r build/. dist/pharmacometrie/
-
-          echo "--- dist (racine) ---"; ls -la dist
-          echo "--- dist/pharmacometrie ---"; ls dist/pharmacometrie | head
-
-      # Un déploiement silencieusement incomplet est le pire mode de défaillance
-      # possible ici : les pages disparaissent sans que rien n'échoue. On vérifie
-      # donc explicitement les quatre fichiers qui prouvent que l'assemblage a
-      # fonctionné des deux côtés.
-      - name: Vérifier l'intégrité de dist
-        run: |
-          set -euo pipefail
-          manquant=0
-          for f in \
-            dist/index.html \
-            dist/assets/site.css \
-            dist/a-propos/index.html \
-            dist/communications/index.html \
-            dist/communications/netpk-peprsn-2026/index.html \
-            dist/pharmacometrie/index.html
-          do
-            if [ -f "$f" ]; then
-              echo "ok        $f"
-            else
-              echo "::error::fichier attendu absent de dist : $f"
-              manquant=1
-            fi
-          done
-          if [ "$manquant" -ne 0 ]; then
-            echo "Déploiement interrompu : l'assemblage du site est incomplet."
-            exit 1
-          fi
-
-          node scripts/configure_site_origin.mjs
-
-      - name: Integrate privacy-preserving portal analytics
-        run: node scripts/add_portal_analytics.mjs
-
-      - name: Audit public artifact before upload
-        run: npm run audit:public-artifact
-
-      # Tester d'abord le portail assemblé évite qu'une régression indépendante
-      # de l'application pharmacométrique masque systématiquement les résultats
-      # des tests Stats. Le test pharmacométrique reste bloquant pour le déploiement.
-      - name: Test assembled portal in browser
-        run: npx playwright test --config playwright.portal.config.js
-
-      - name: Test PMx application in browser
-        env:
-          LABS_E2E_PREBUILT: "true"
-        run: npm run test:e2e:pmx
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
-
-  scientific-js:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Test PMx laboratories and model imports
-        run: npm run test:labs && npm run test:mlxtran
-
-  scientific-r:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          use-public-rspm: true
-      - name: Install R dependencies
-        run: Rscript -e "install.packages(c('mrgsolve', 'mapbayr', 'dplyr', 'jsonlite', 'htmltools', 'xgboost', 'DALEX', 'digest'))"
-      - name: Test TDM engine core
-        env:
-          TDM_SMOKE_CORE_ONLY: "true"
-        run: Rscript tdm-engine/tests/smoke_test.R
-      - name: Test safe Lego contract
-        run: Rscript tdm-engine/tests/safe_lego_test.R
-      - name: Compile and validate the model library
-        run: Rscript tdm-engine/tests/validate_library.R
-      - name: Test deterministic model reference cases
-        run: Rscript tdm-engine/tests/model_reference_cases.R
-      - name: Test private session cleanup and interrupted calculations
-        run: npm run tdm:test-privacy
-  scientific-pmetrics:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 35
-    env:
-      PMETRICS_VERSION: "3.2.6"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22
-          cache: npm
-      - uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.6.1"
-          use-public-rspm: true
-      - name: Install pinned Pmetrics and backend dependencies
-        run: |
-          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
-      - name: Report native scientific versions
-        run: Rscript -e 'cat("R version:", as.character(getRversion()), "\nPmetrics version:", as.character(packageVersion("Pmetrics")), "\n")'
-      - name: Install Node dependencies
-        run: npm ci
-      - name: Compile and simulate native Pmetrics structures
-        run: npm run test:pmetrics-native
-      - name: Test Pmetrics TDM backend
-        run: npm run tdm:test-pmetrics
-      - name: Reproduce the official Pmetrics example
-        run: npm run test:pmetrics-official
-      - name: Compare experimental NPOD runs
-        continue-on-error: true
-        run: npm run test:pmetrics-npod
-
   deploy:
-    needs: [build, scientific-js, scientific-r, scientific-pmetrics]
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Download qualified artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: pmx-pages-dist
+          path: dist
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Create Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v5

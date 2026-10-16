@@ -24,6 +24,9 @@ advisories. Run `npm audit` again whenever the lockfile changes and before each
 release. Do not use `npm audit fix --force` without testing the corresponding
 major framework migrations.
 
+The PMx qualification workflow runs `npm audit --audit-level=high`; a new high
+or critical advisory therefore blocks pull requests and `main` qualification.
+
 ## `punycode` warning
 
 The installed tree contains `punycode.js@2.3.1` only through

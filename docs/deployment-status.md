@@ -27,7 +27,7 @@ This document contains only the current state. Earlier deployment notes are in
 
 ## Release gate
 
-Before a Pages upload, CI must:
+Before a Pages upload, the common pull-request/`main` qualification must:
 
 1. run PMx-only unit/content checks;
 2. regenerate tracked catalogues, inventories and reports, then require a clean diff;
@@ -36,5 +36,7 @@ Before a Pages upload, CI must:
 5. run portal and PMx-only browser tests;
 6. complete the independent PMx R and Pmetrics jobs.
 
-The final Pages artifact may contain the portal, Stats, MultiOmics and PMx, but
-their scientific qualification workflows remain separate.
+Only the successful `main` qualification uploads `pmx-pages-dist`; the separate
+deployment workflow downloads that exact run's artifact and publishes it. The
+final Pages artifact may contain the portal, Stats, MultiOmics and PMx, but their
+scientific qualification workflows remain separate.

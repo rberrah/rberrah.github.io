@@ -1,0 +1,154 @@
+name: PMx qualification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  PUBLIC_SITE_ORIGIN: ${{ vars.PUBLIC_SITE_ORIGIN }}
+  BASE_PATH: /pharmacometrie
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pmx-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Reject high or critical npm advisories
+        run: npm audit --audit-level=high
+      - name: Test public origin configuration
+        run: node --test scripts/test_site_origin.mjs
+      - name: Test PMx educational content and safety contracts
+        run: npm run test:pmx
+      - name: Test scientific communications
+        run: npm run test:communications
+      - name: Regenerate tracked artifacts and reject drift
+        run: |
+          npm run generate:all
+          git diff --exit-code
+      - name: Check Svelte
+        run: npm run check
+      - name: Build PMx Explain
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Assemble portal and PMx Explain
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          if [ -e portal/pharmacometrie ]; then
+            echo "::error::portal/pharmacometrie collides with the SvelteKit build"
+            exit 1
+          fi
+          cp -r portal/. dist/
+          mkdir -p dist/pharmacometrie
+          cp -r build/. dist/pharmacometrie/
+      - name: Verify and configure the public artifact
+        run: |
+          set -euo pipefail
+          for file in \
+            dist/index.html \
+            dist/assets/site.css \
+            dist/a-propos/index.html \
+            dist/communications/index.html \
+            dist/communications/netpk-peprsn-2026/index.html \
+            dist/pharmacometrie/index.html
+          do
+            test -f "$file" || { echo "::error::Missing $file"; exit 1; }
+          done
+          node scripts/configure_site_origin.mjs
+          node scripts/add_portal_analytics.mjs
+          npm run audit:public-artifact
+      - name: Test assembled portal in browser
+        run: npx playwright test --config playwright.portal.config.js
+      - name: Test PMx application in browser
+        env:
+          LABS_E2E_PREBUILT: "true"
+        run: npm run test:e2e:pmx
+      - name: Preserve qualified Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v6
+        with:
+          name: pmx-pages-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 2
+
+  scientific-js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test PMx laboratories and model imports
+        run: npm run test:labs && npm run test:mlxtran
+
+  scientific-r:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install R dependencies
+        run: Rscript -e "install.packages(c('mrgsolve', 'mapbayr', 'dplyr', 'jsonlite', 'htmltools', 'xgboost', 'DALEX', 'digest'))"
+      - name: Test TDM engine core
+        env:
+          TDM_SMOKE_CORE_ONLY: "true"
+        run: Rscript tdm-engine/tests/smoke_test.R
+      - name: Test safe Lego contract
+        run: Rscript tdm-engine/tests/safe_lego_test.R
+      - name: Compile and validate the model library
+        run: Rscript tdm-engine/tests/validate_library.R
+      - name: Test deterministic model reference cases
+        run: Rscript tdm-engine/tests/model_reference_cases.R
+      - name: Test private session cleanup and interrupted calculations
+        run: npm run tdm:test-privacy
+
+  scientific-pmetrics:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 35
+    env:
+      PMETRICS_VERSION: "3.2.6"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.6.1"
+          use-public-rspm: true
+      - name: Install pinned Pmetrics and backend dependencies
+        run: |
+          Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
+      - name: Report native scientific versions
+        run: Rscript -e 'cat("R version:", as.character(getRversion()), "\nPmetrics version:", as.character(packageVersion("Pmetrics")), "\n")'
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Compile and simulate native Pmetrics structures
+        run: npm run test:pmetrics-native
+      - name: Test Pmetrics TDM backend
+        run: npm run tdm:test-pmetrics
+      - name: Reproduce the official Pmetrics example
+        run: npm run test:pmetrics-official
+      - name: Compare experimental NPOD runs
+        continue-on-error: true
+        run: npm run test:pmetrics-npod

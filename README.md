@@ -78,12 +78,14 @@ sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
 ## Déploiement GitHub Pages
 - `PUBLIC_SITE_ORIGIN` configure le domaine au build, indépendamment de `BASE_PATH`.
   Voir [configuration et migration du domaine](docs/site-origin.md).
-- Workflow `.github/workflows/deploy-pages.yml` :
+- Workflow `.github/workflows/pmx-ci.yml` (pull requests et `main`) :
   - construit SvelteKit avec `BASE_PATH=/pharmacometrie` ;
   - copie `portal/` à la racine de `dist/` et `build/` dans `dist/pharmacometrie/` ;
   - résout les marqueurs `__SITE_ORIGIN__`, vérifie les fichiers et sitemaps,
-    puis injecte le compteur et publie `dist/`.
-- Ce workflow ne déploie pas Shiny. Depuis la racine du dépôt,
+    injecte le compteur et qualifie l'artefact avec les tests JS, R, Pmetrics et navigateur.
+- `.github/workflows/deploy-pages.yml` ne fait que publier l'artefact d'un run
+  `main` entièrement réussi. Aucun artefact de pull request ne peut être déployé.
+- Ces workflows ne déploient pas Shiny. Depuis la racine du dépôt,
   `Rscript scripts/deploy_shiny.R` vérifie les fichiers et dépendances ; ajouter
   `--deploy` publie le moteur avec le compte configuré. Aucun PDF, test ou fichier
   local non suivi par Git n'est inclus dans cette sélection.
