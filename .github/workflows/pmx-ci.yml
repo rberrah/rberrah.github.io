@@ -26,8 +26,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Reject high or critical npm advisories
-        run: npm audit --audit-level=high
+      - name: Reject moderate, high or critical npm advisories
+        run: npm audit --audit-level=moderate
       - name: Test public origin configuration
         run: node --test scripts/test_site_origin.mjs
       - name: Test PMx educational content and safety contracts
