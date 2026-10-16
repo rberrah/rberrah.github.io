@@ -37,8 +37,9 @@
   // ce fichier. Voir src/lib/content/vizRegistry.js.
   import vizLoaders, { availableVizKeys, loadViz } from '$lib/content/vizRegistry';
 
+  export let data;
   $: slug = $page.params.slug;
-  $: chapter = chapters.find((c) => c.slug === slug);
+  $: chapter = data?.chapter ?? null;
   afterNavigate(() => {
     if ($page.route.id !== '/chapitres/[slug]') return;
     const known = $page.status === 200 && chapters.find(c => c.slug === $page.params.slug);
@@ -145,7 +146,7 @@
   $: canonical = canonicalUrl($page.url.pathname);
   // Une alternance anglaise ne s'annonce que si la traduction existe réellement :
   // sinon la page anglaise servirait le texte français, et l'annonce serait fausse.
-  $: hasEnglish = Boolean(chapter?.translations?.en);
+  $: hasEnglish = Boolean(chapters.find((c) => c.slug === slug)?.translations?.en);
   // Langue effectivement affichée (le repli sur le français en est une).
   $: shownLang = $language === 'en' && !isFallback ? 'en' : 'fr';
   // JSON-LD : une ressource pédagogique, rattachée au cours. Pas d'article scientifique.

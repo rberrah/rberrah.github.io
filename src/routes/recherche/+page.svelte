@@ -3,6 +3,7 @@
   import { get } from 'svelte/store';
   import { base } from '$app/paths';
   import chapters from '$lib/content/loadChapters';
+  import chapterSearch from '$lib/content/chapterSearch.generated.json';
   import { exercises } from '$lib/content/exercises';
   import { guidedActivities } from '$lib/content/guidedActivities';
   import { molecularLabIds, molecularLabs } from '$lib/labs/molecular';
@@ -35,7 +36,8 @@
   $: index = [
     ...chapters.map(chapter => {
       const item = localizeChapter(chapter, $language).chapter;
-      const content = [item.summary, ...(chapter.tags ?? []), ...(chapter.glossary ?? []), ...(item.steps ?? []).flatMap(step => [step.title, plain(step.html)])].join(' ');
+      const corpus = chapterSearch[chapter.slug]?.[$language] || chapterSearch[chapter.slug]?.fr || '';
+      const content = [item.summary, ...(chapter.tags ?? []), ...(chapter.glossary ?? []), plain(corpus)].join(' ');
       return { typeKey: 'course', type: $language === 'en' ? 'Course' : 'Cours', title: item.title, description: item.description, content, level: chapter.level, track: chapter.track, href: `${base}/chapitres/${chapter.slug}/?lang=${$language}` };
     }),
     ...glossaryItems.map(item => {

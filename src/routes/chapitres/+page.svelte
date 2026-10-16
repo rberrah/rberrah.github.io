@@ -95,7 +95,7 @@
                 <span class="num">{String(i + 1).padStart(2, '0')}</span>
                 <h3>{localized.title}</h3>
                 <p class="desc">{localized.description}</p>
-                <span class="meta">{copy.chapters.meta(localized.steps?.length ?? 0, localized.quiz?.length ?? 0)}</span>
+                <span class="meta">{copy.chapters.meta(localized.stepCount ?? 0, localized.quiz?.length ?? 0)}</span>
               </a>
             </li>
           {/each}
