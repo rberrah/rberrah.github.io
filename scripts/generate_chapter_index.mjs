@@ -86,7 +86,8 @@ for (const file of chapterFiles) {
   };
 }
 
-index.sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
+// Match the historical loader: lexicographic source-file order, then a stable sort by order.
+index.sort((a, b) => a.order - b.order);
 assert.equal(index.length, chapterFiles.length, 'Chapter index count mismatch');
 assert.equal(english.size, englishFiles.length, 'English chapter index count mismatch');
 assert(index.every(chapter => Array.isArray(chapter.prerequisites) && Array.isArray(chapter.glossary)), 'Chapter metadata arrays are incomplete');
