@@ -618,7 +618,7 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await expect(card.locator('.source-badge')).toHaveText('adapted');
   await expect(card).toContainText('Article source');
   await expect(card).toContainText('Woillard JB et al.');
-  await expect(card.getByRole('link', { name: /DOI 10\\.1111\\/j\\.1365-2125\\.2010\\.03837\\.x/ })).toBeVisible();
+  await expect(card.getByRole('link', { name: /DOI 10\.1111\/j\.1365-2125\.2010\.03837\.x/ })).toBeVisible();
   // The simplified card keeps the scientific provenance in view and the
   // adaptation reason in an accessible disclosure, not in old route badges.
   const details = card.locator('details.model-details');
