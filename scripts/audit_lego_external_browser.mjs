@@ -17,7 +17,7 @@ function shape(s) {
   };
 }
 const cases=suppliedModels.map(m=>({...m,format:'mlxtran'}));
-for (const id of ['amik_burdet','genta_franck','levo_gergs','linez_buerger']) cases.push({id,format:'mrgsolve',code:await readFile(`tdm-engine/models/${id}.cpp`,'utf8')});
+for (const id of ['amik_burdet','genta_franck','levo_gergs','linez_buerger']) cases.push({id,format:'mrgsolve',code:await readFile(`static/tdm/models/${id}.cpp`,'utf8')});
 cases.push(...externalModels.filter(m=>!m.error));
 const browser=await chromium.launch();
 const artifacts=[];

@@ -1,9 +1,10 @@
 {
   "version": 1,
   "generatedFrom": [
-    "tdm-engine/models/catalog.json",
+    "src/lib/content/tdmModels.generated.json",
     "static/tdm/model-metadata.json",
-    "static/tdm/models/*.cpp"
+    "static/tdm/models/*.cpp",
+    "integration/mipd-release.json"
   ],
   "models": [
     {

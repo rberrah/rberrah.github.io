@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 const root = new URL('../', import.meta.url);
 const metadata = JSON.parse(await readFile(new URL('static/tdm/model-metadata.json', root), 'utf8')).models;
-const catalog = JSON.parse(await readFile(new URL('tdm-engine/models/catalog.json', root), 'utf8')).models;
+const catalog = JSON.parse(await readFile(new URL('src/lib/content/tdmModels.generated.json', root), 'utf8')).models;
 const required = ['citation', 'doi', 'population', 'populationTags', 'modelType', 'sourceStatus',
   'verificationStatus', 'validationStatus', 'contextOfUse', 'analysisEligible'];
 const enums = {

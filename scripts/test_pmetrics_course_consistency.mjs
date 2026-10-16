@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const engineRoot = process.env.MIPD_ENGINE_DIR
-  ? path.resolve(process.env.MIPD_ENGINE_DIR)
-  : path.join(repoRoot, 'tdm-engine');
+if (!process.env.MIPD_ENGINE_DIR) throw new Error('MIPD_ENGINE_DIR is required for Pmetrics course consistency');
+const engineRoot = path.resolve(process.env.MIPD_ENGINE_DIR);
 const result = JSON.parse(readFileSync(path.join(engineRoot, 'pmetrics', 'benchmarks', 'pmetrics-official-example.json'), 'utf8'));
 const chapters = [
   readFileSync(new URL('src/content/chapters/08c_pmetrics-nonparametric.md', root), 'utf8'),

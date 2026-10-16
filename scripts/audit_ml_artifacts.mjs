@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const mlRoot = path.join(root, 'tdm-engine', 'ml');
+const engineRootValue = process.env.MIPD_ENGINE_DIR;
+assert(engineRootValue, 'MIPD_ENGINE_DIR is required: ML artifacts are owned by standalone MIPD Engine');
+const engineRoot = path.resolve(engineRootValue);
+const mlRoot = path.join(engineRoot, 'ml');
 const manifest = JSON.parse(await readFile(path.join(mlRoot, 'registry.json'), 'utf8'));
-const catalog = JSON.parse(await readFile(path.join(root, 'tdm-engine', 'models', 'catalog.json'), 'utf8'));
+const catalog = JSON.parse(await readFile(path.join(engineRoot, 'models', 'catalog.json'), 'utf8'));
 const models = new Map(catalog.models.map((model) => [model.id, model]));
 const valueAt = (object, dottedPath) => dottedPath.split('.').reduce((value, key) => value?.[key], object);
 const required = [
@@ -83,7 +84,7 @@ for (const artifact of manifest.artifacts) {
     if (metric === 'within20Pct') assert(value >= 0 && value <= 100, `${label}: invalid holdout within20Pct`);
   }
 
-  const modelFile = path.join(root, 'tdm-engine', 'models', models.get(artifact.baseModelId).file);
+  const modelFile = path.join(engineRoot, 'models', models.get(artifact.baseModelId).file);
   assert.equal(await sha256(modelFile, true), artifact.baseModelSha256.toLowerCase(), `${label}: base-model SHA-256 mismatch`);
   const artifactFile = safeArtifactPath(artifact.artifactPath, label);
   assert((await stat(artifactFile)).isFile(), `${label}: missing RDS artifact`);

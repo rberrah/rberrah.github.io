@@ -33,24 +33,10 @@ assert.match(read('src/lib/stores/language.js'), /pharmacometrie-language/);
 assert.match(read('src/lib/learning/assessment.js'), /progressKey = 'pmx-learning-v1'/);
 assert.match(read('src/lib/learning/assessment.js'), /never arbitrary saved inputs or patient data/);
 
-const app = read('tdm-engine/app.R');
-assert.match(app, /Sys\.getenv\("ALLOW_CUSTOM_MODELS", "false"\)/, 'Arbitrary C++ must remain disabled by default');
-assert.match(app, /session_model_dir <- new_private_workspace\("pk-mipd-custom-session-"\)/, 'Models must compile in a private session directory');
-assert.match(app, /session\$onSessionEnded\(function\(\) \{[\s\S]*?cleanup_private_workspace\(session_model_dir, session_model_cache\)/, 'Session model files must be removed on disconnect');
-assert.match(app, /unlink\(file_info\$datapath\[\[1\]\], force = TRUE\)/, 'Uploaded patient files must be removed after import');
-assert.doesNotMatch(app, /message\([^\n]*detail/, 'Application logs must not include raw analysis error details');
-
-const pmetrics = read('tdm-engine/R/pmetrics_engine.R');
-assert.match(pmetrics, /run_dir <- tempfile\(paste0\("pmetrics-map-"/);
-assert.match(pmetrics, /on\.exit\(unlink\(run_dir, recursive = TRUE, force = TRUE\), add = TRUE\)/, 'Pmetrics run files must be removed on exit');
 assert.match(read('playwright.pmx.config.js'), /trace:\s*'off'/, 'PMx browser tests must not retain model or patient-shaped inputs in traces');
 
-for (const module of ['pd_module.R', 'onco_module.R', 'infection_module.R']) {
-  assert.match(read(`tdm-engine/R/${module}`), /session\$onSessionEnded\(/, `${module} must clear its session state`);
-}
-
 const gitignore = read('.gitignore');
-for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/', 'tdm-engine/ml/.benchmark-cache/']) {
+for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/']) {
   assert.ok(gitignore.includes(pattern), `.gitignore must exclude ${pattern}`);
 }
 
@@ -71,6 +57,7 @@ try {
 }
 const protectedTracked = tracked.filter(path => protectedExtensions.has(extname(path).toLowerCase()) && !approvedPublicDocuments(path));
 assert.deepEqual(protectedTracked, [], `Unapproved protected source documents must not be tracked: ${protectedTracked.join(', ')}`);
+assert.equal(tracked.some(path => path.startsWith('tdm-engine/')), false, 'PMx must not track a local MIPD engine mirror');
 const patientExports = tracked.filter(path => /(^|\/)(tdm-patient|tdm-report)-/i.test(path));
 assert.deepEqual(patientExports, [], `Patient exports must not be present in the repository tree: ${patientExports.join(', ')}`);
 
