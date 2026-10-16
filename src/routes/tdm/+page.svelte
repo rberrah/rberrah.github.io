@@ -227,6 +227,9 @@
             </div>
             <h3>{model.model}</h3>
             <p class="population">{display.population}</p>
+            <p class="administration-route" data-testid="tdm-model-administration">
+              <strong>{copy.administration} :</strong> {display.administrationCategories.join(' · ')}
+            </p>
             <div class="article-source">
               <span>{copy.sourceArticle}</span>
               <p class="citation">{model.citation}</p>
