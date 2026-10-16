@@ -1,7 +1,7 @@
 // Charge les chapitres Markdown, parse frontmatter + blocs step.
 // Utilise import.meta.glob en mode eager pour un usage synchrone côté client.
 // @ts-nocheck
-import matter from 'gray-matter';
+import matter from './frontmatter.js';
 import katex from 'katex';
 import MarkdownIt from 'markdown-it';
 
