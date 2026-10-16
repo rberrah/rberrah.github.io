@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 
 const root = process.cwd();
 const chaptersDir = path.join(root, 'src', 'content', 'chapters');
