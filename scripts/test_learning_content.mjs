@@ -1,7 +1,7 @@
 // @ts-nocheck
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 import { guidedActivities as activities, activitiesForChapter } from '../src/lib/content/guidedActivities.js';
 import { learningTracks, tracks } from '../src/lib/content/tracks.js';
 import { resolveSources } from '../src/lib/content/references.js';
