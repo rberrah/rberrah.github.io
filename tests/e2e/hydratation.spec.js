@@ -615,6 +615,7 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await expect(card.getByRole('heading', { level: 3 })).toHaveText('Woillard');
   await expect(card.locator('.drug')).toHaveText('Tacrolimus');
   await expect(card.locator('.population')).toContainText('Adultes transplantés rénaux');
+  await expect(card.getByTestId('tdm-model-administration')).toHaveText("Voie d'administration : Orale");
   await expect(card.locator('.source-badge')).toHaveText('adapted');
   await expect(card).toContainText('Article source');
   await expect(card).toContainText('Woillard JB et al.');
@@ -635,7 +636,24 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await page.getByRole('combobox', { name: "Voie d'administration" }).selectOption('IV_CONTINUOUS');
   await expect(page.locator('.model-card')).toHaveCount(3);
   await expect(page.locator('.model-card')).toContainText(['Rambaud', 'Revilla', 'Roberts']);
-  // Verify that the route filter itself is active; administration is deliberately
-  // not repeated on every simplified model card.
   await expect(page.getByRole('combobox', { name: "Voie d'administration" })).toHaveValue('IV_CONTINUOUS');
+  await expect(page.getByTestId('tdm-model-administration')).toHaveText([
+    "Voie d'administration : IV continue",
+    "Voie d'administration : IV continue",
+    "Voie d'administration : IV continue"
+  ]);
+});
+
+test('les cartes TDM indiquent toutes les voies, également en anglais', async ({ page }) => {
+  await page.goto('/tdm/');
+  await page.getByRole('searchbox', { name: 'Recherche' }).fill('Mellon');
+  await expect(page.locator('.model-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-model-administration'))
+    .toHaveText("Voie d'administration : IV intermittente · Orale");
+
+  await page.goto('/tdm/?lang=en');
+  await page.getByRole('searchbox', { name: 'Search' }).fill('Mellon');
+  await expect(page.locator('.model-card')).toHaveCount(1);
+  await expect(page.getByTestId('tdm-model-administration'))
+    .toHaveText('Administration : Intermittent IV · Oral');
 });
