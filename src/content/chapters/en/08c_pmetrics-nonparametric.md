@@ -126,7 +126,7 @@ Pmetrics 3.2.6 ships a tutorial dataset with 51 subjects, `bimodal_ke.csv`, and 
 
 **Version actually tested here: 3.2.6.** It was the latest tagged GitHub release when checked on 12 October 2026 and is pinned in the native CI job. Development documentation intended for 3.2.7 announces that the observation-occasion column `block` will be deprecated in favour of `occasion`, with legacy objects upgraded through `PM_upgrade()`; this does not yet describe a published release tested here. No active example in this course uses that column; any new example should use `occasion`, and an older fixture using `block` should only be described as compatible after testing it with the relevant version.
 
-PMx Explain loads the file directly from the installed package and does not copy the data. `tdm-engine/benchmarks/pmetrics_official_example.R` reproduces the official `ke = [0.001, 3] h⁻¹` and `v = [25, 250] L` bounds, additive error, seed 22 and NPAG fit. It checks weights and bounds, then compares population means from both formulations.
+PMx Explain loads the file directly from the installed package and does not copy the data. `benchmarks/pmetrics_official_example.R` in the standalone MIPD-Engine repository reproduces the official `ke = [0.001, 3] h⁻¹` and `v = [25, 250] L` bounds, additive error, seed 22 and NPAG fit. It checks weights and bounds, then compares population means from both formulations.
 
 With the complete official configuration (2028 Sobol points, 1000 cycles), the maximum relative difference observed on 11 October 2026 is **0.025%**, against a prespecified 2% tolerance. This checks software reproduction of both formulations in this environment; it is neither clinical validation nor evidence of biological multimodality.
 

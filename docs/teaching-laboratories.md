@@ -184,10 +184,13 @@ Both site and Shiny must include this version before publishing the new workflow
 From the repository root:
 
 ```sh
+# PMx Explain
 npm run test:labs
-Rscript tdm-engine/tests/teaching_lab_test.R
-Rscript tdm-engine/tests/input_labs_test.R
-Rscript tdm-engine/tests/safe_lego_test.R
+
+# Puis depuis rberrah/MIPD-Engine
+Rscript tests/teaching_lab_test.R
+Rscript tests/input_labs_test.R
+Rscript tests/safe_lego_test.R
 npm run check
 npm test
 npm run build

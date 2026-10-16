@@ -18,10 +18,9 @@ const toolchain = process.platform === 'win32'
 
 if (!process.env.MIPD_ENGINE_DIR) throw new Error('MIPD_ENGINE_DIR is required; Pmetrics backend code now lives in standalone MIPD-Engine');
 const engineRoot = resolve(process.env.MIPD_ENGINE_DIR);
-const requested = process.argv[2] || 'tdm-engine/tests/pmetrics_backend_test.R';
-const script = requested.startsWith('tdm-engine/')
-  ? resolve(engineRoot, requested.slice('tdm-engine/'.length))
-  : (isAbsolute(requested) ? requested : resolve(process.cwd(), requested));
+const requested = process.argv[2] || 'tests/pmetrics_backend_test.R';
+const normalizedRequested = requested.replace(/^tdm-engine[\\/]/, '');
+const script = isAbsolute(requested) ? requested : resolve(engineRoot, normalizedRequested);
 const result = spawnSync(executable, [script, ...process.argv.slice(3)], {
   cwd: engineRoot,
   encoding: 'utf8',

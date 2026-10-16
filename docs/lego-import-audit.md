@@ -97,9 +97,10 @@ bounds are silently discarded to increase the acceptance count.
 npm run test:mlxtran
 node scripts/audit_lego_external_browser.mjs
 node scripts/audit_lego_roundtrip.mjs
-Rscript tdm-engine/tests/lego_external_exports.R
-Rscript tdm-engine/tests/lego_native_exports.R
-Rscript tdm-engine/tests/lego_mlxtran_exports.R
+# Les lignes R suivantes s'exécutent depuis rberrah/MIPD-Engine
+Rscript tests/lego_external_exports.R
+Rscript tests/lego_native_exports.R
+Rscript tests/lego_mlxtran_exports.R
 ```
 
 Set `LEGO_AUDIT_URL` to the local preview URL for browser checks. Artifacts go

@@ -194,7 +194,7 @@ en compte : la frontiere ne se resume plus a la page TDM.
 | Portail et cours | `portal/`, `src/content/`, routes pedagogiques | Rester publics et assembles comme aujourd'hui |
 | Ateliers et interfaces d'outils | `src/routes/lego`, `tdm`, `interactions`, `pharmacodynamie` | Garder les URL, clarifier les composants et contrats |
 | Calcul pedagogique dans le navigateur | `src/lib/sim/`, `src/lib/utils/`, visualisations | Fonctions testables reutilisees par les animations |
-| Moteur scientifique | depot autonome `rberrah/MIPD-Engine`; miroir de transition `tdm-engine/` | Consommer un SHA qualifie, puis retirer le miroir apres cut-over public |
+| Moteur scientifique | depot autonome `rberrah/MIPD-Engine`; aucun miroir exécutable dans PMx | Consommer uniquement un SHA qualifié via `integration/mipd-release.json` |
 | Modeles et metadonnees | source autonome MIPD ; instantane public `static/tdm/` encore suivi | Verifier chaque instantane contre le SHA MIPD epingle avant publication |
 | Echanges entre applications | `src/lib/tdm/`, specifications Lego et validateurs R | Contrats versionnes, compatibilite et validation des deux cotes |
 
