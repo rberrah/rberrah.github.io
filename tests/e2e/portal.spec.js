@@ -15,7 +15,7 @@ const communicationPages = [
   '/communications/fr/missed-dose-iatdmct-sfpt-2026/',
   '/communications/fr/autonomous-pharmacometrics-page-2026/'
 ];
-const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/disciplines/', '/multiomics/resources/'];
+const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/disciplines/', '/multiomics/resources/', '/multiomics/glossary/', '/multiomics/references/'];
 const publicOrigin = getSiteOrigin();
 
 test.beforeEach(async ({ page }) => {

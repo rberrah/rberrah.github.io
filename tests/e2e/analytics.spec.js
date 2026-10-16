@@ -25,7 +25,9 @@ test.beforeAll(async ({}, workerInfo) => {
     'multiomics/tool',
     'multiomics/learn',
     'multiomics/disciplines',
-    'multiomics/resources'
+    'multiomics/resources',
+    'multiomics/glossary',
+    'multiomics/references'
   ]) {
     const target = path.join(portalRoot, route);
     await mkdir(target, { recursive: true });

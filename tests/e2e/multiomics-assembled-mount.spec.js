@@ -84,17 +84,65 @@ test('Historical PMx MultiOmics URLs redirect to canonical routes and preserve q
 });
 
 
-test('Canonical shell retains PMx ecosystem navigation after Pages assembly', async ({ page }) => {
+test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', async ({ page }) => {
   await page.goto('/multiomics/');
-  await expect(page.getByRole('link', { name: /Site principal|Main site/ }).first()).toHaveAttribute('href', 'https://rberrah.github.io/');
-  await expect(page.getByRole('link', { name: /Autres disciplines|Other disciplines/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /Ressources|Resources/ })).toBeVisible();
-  await expect(page.getByTestId('language-toggle')).toBeVisible();
-  await expect(page.getByTestId('theme-toggle')).toBeVisible();
+  const header=page.getByTestId('site-header');
+  await expect(header.locator('.mark')).toHaveText('mO');
+  await expect(header.getByTestId('logo-link')).toHaveAttribute('href', '/multiomics/');
+  for(const [id,en,fr] of [
+    ['learn','Learn','Apprendre'],
+    ['analyze','Analyze','Analyser'],
+    ['disciplines','Other disciplines','Autres disciplines'],
+    ['resources','Resources','Ressources']
+  ]) {
+    const menu=header.getByTestId('goal-'+id);
+    await expect(menu.locator('summary')).toHaveCount(1);
+    await expect(menu.locator('summary')).toContainText(new RegExp(en+'|'+fr,'i'));
+    await expect(menu).not.toHaveAttribute('open','');
+  }
+  await header.getByTestId('goal-disciplines').locator('summary').click();
+  await expect(header.getByTestId('nav-pmx')).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
+  await expect(header.getByTestId('nav-omics2pk')).toHaveAttribute('href','https://github.com/rberrah/Omics2PK');
+  await header.getByTestId('goal-resources').locator('summary').click();
+  await expect(header.getByTestId('goal-disciplines')).not.toHaveAttribute('open','');
+  await expect(header.getByTestId('nav-glossary')).toHaveAttribute('href','/multiomics/glossary/');
+  await expect(header.getByTestId('nav-references')).toHaveAttribute('href','/multiomics/references/');
+  await expect(header.getByTestId('nav-main-site')).toHaveAttribute('href','https://rberrah.github.io/');
+  await page.keyboard.press('Escape');
+  await expect(header.getByTestId('goal-resources')).not.toHaveAttribute('open','');
+  await expect(header.getByTestId('goal-resources').locator('summary')).toBeFocused();
 
   await page.goto('/multiomics/disciplines/');
-  await expect(page.getByRole('link', { name: /Ouvrir PMx Explain|Open PMx Explain/ })).toHaveAttribute('href', 'https://rberrah.github.io/pharmacometrie/');
-
+  await expect(page.getByRole('link', { name: /Ouvrir PMx Explain|Open PMx Explain/ })).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
   await page.goto('/multiomics/resources/');
-  await expect(page.getByRole('link', { name: /Retour au site|Back to main site/ })).toHaveAttribute('href', 'https://rberrah.github.io/');
+  await expect(page.getByRole('link', { name: /Retour au site|Back to main site/ })).toHaveAttribute('href','https://rberrah.github.io/');
+  await page.goto('/multiomics/glossary/');
+  await expect(page.getByRole('heading',{name:/Glossaire des omiques|Omics glossary/})).toBeVisible();
+  await page.goto('/multiomics/references/');
+  await expect(page.getByRole('heading',{name:/Références scientifiques|Scientific references/})).toBeVisible();
+  await expect(header.getByTestId('language-toggle')).toBeVisible();
+  await expect(header.getByTestId('theme-toggle')).toBeVisible();
+});
+
+test('Assembled 320px navbar dropdowns preserve theme/locale and clean navigation',async({page})=>{
+  await page.setViewportSize({width:320,height:720});
+  await page.addInitScript(()=>{
+    localStorage.setItem('pk-theme','dark');
+    localStorage.setItem('pharmacometrie-language','en');
+  });
+  await page.goto('/multiomics/');
+  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
+  const toggle=page.getByTestId('nav-toggle');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded','true');
+  await page.getByTestId('goal-resources').locator('summary').click();
+  await expect(page.getByTestId('nav-references')).toBeVisible();
+  await page.getByTestId('nav-glossary').click();
+  await expect(page).toHaveURL(/\/multiomics\/glossary\/$/);
+  await expect(toggle).toHaveAttribute('aria-expanded','false');
+  await toggle.click();
+  await page.keyboard.press('Escape');
+  await expect(toggle).toHaveAttribute('aria-expanded','false');
+  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(12);
 });
