@@ -6,7 +6,7 @@ name: Multi-omics public-site accessibility smoke
 # The scientific CI already tests unmerged PRs against their own local builds.
 on:
   workflow_run:
-    workflows: ['Deploy to GitHub Pages']
+    workflows: ['Deploy qualified PMx Pages']
     types: [completed]
   schedule:
     - cron: '17 7 * * *'
@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for route in '' 'multiomics/' 'multiomics/tool/'; do
+          for route in '' 'multiomics/' 'multiomics/tool/' 'pharmacometrie/multiomics/' 'pharmacometrie/multiomics/tool/' 'pharmacometrie/multiomics/learn/'; do
             url="https://rberrah.github.io/$route"
             file="$(mktemp)"
             status="$(curl --location --silent --show-error --retry 5 --retry-delay 12 --retry-connrefused --max-time 30 -o "$file" -w '%{http_code}' "$url")"
@@ -39,7 +39,7 @@ jobs:
               echo "::error::The public page returned empty content: $url"
               exit 1
             fi
-            if [[ "$route" == "multiomics/tool/" ]] &&
+            if [[ "$route" == "pharmacometrie/multiomics/tool/" ]] &&
                ! grep -Eiq 'multi.?omique|multi.?omics|Omics' "$file"; then
               echo "::error::The tool endpoint did not provide expected prerendered content."
               exit 1
