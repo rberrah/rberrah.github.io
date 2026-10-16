@@ -135,6 +135,39 @@ jobs:
       - name: Test PMx laboratories and model imports
         run: npm run test:labs && npm run test:mlxtran
 
+  mipd-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Fetch standalone MIPD Engine from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(node -p "JSON.parse(require('fs').readFileSync('integration/mipd-release.json','utf8')).sha")"
+          source_dir="$RUNNER_TEMP/mipd-engine-source"
+          git init "$source_dir"
+          git -C "$source_dir" remote add origin https://github.com/rberrah/MIPD-Engine.git
+          git -C "$source_dir" fetch --depth 1 origin "$sha"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
+          echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
+      - name: Verify PMx consumer against standalone engine and model library
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/verify_mipd_consumer.mjs "$MIPD_ENGINE_DIR"
+          MIPD_ENGINE_DIR="$MIPD_ENGINE_DIR" node scripts/test_tdm_model_sync.mjs
+          MIPD_ENGINE_DIR="$MIPD_ENGINE_DIR" node scripts/test_lego_external_imports.mjs
+      - name: Qualify pinned independent MIPD source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify_mipd_upstream_release.mjs
+
   scientific-r:
     runs-on: ubuntu-latest
     steps:

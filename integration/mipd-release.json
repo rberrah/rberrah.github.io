@@ -1,0 +1,9 @@
+{
+  "schema": "mipd-site-source.v1",
+  "repository": "rberrah/MIPD-Engine",
+  "sha": "83a3026df7c0881d2725333a90d81ef2ed218f90",
+  "publicUrl": "https://tdmhub.shinyapps.io/MIPD_Engine",
+  "requiredWorkflows": [
+    "Standalone MIPD qualification"
+  ]
+}

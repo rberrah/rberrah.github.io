@@ -22,7 +22,7 @@
   let selectedDrug = $state('all');
   let selectedAdministration = $state('all');
 
-  const repoIssueUrl = 'https://github.com/rberrah/rberrah.github.io/issues/new?template=tdm-model.yml';
+  const repoIssueUrl = 'https://github.com/rberrah/MIPD-Engine/issues/new';
   const tdmxUrl = 'https://www.tdmx.eu/';
   let copy = $derived(ui($language).tdm);
   /** @param {{ doi?: string | null, sourceUrl?: string | null }} model */

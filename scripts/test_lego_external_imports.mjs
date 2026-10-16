@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseModelCode, parseMlxtran } from '../src/lib/lego/mlxtran.js';
 import { hints, samtaniRaw, tjollynRaw, suppliedModels, externalModels } from './fixtures/lego-imports.mjs';
 
@@ -106,10 +108,11 @@ for (const item of externalModels) {
   console.log(`PASS ${item.id}: ${item.error??'recognized'}`);
 }
 
-const catalog=JSON.parse(readFileSync(new URL('../tdm-engine/models/catalog.json',import.meta.url)));
+const engineRoot=path.resolve(process.env.MIPD_ENGINE_DIR||fileURLToPath(new URL('../tdm-engine/',import.meta.url)));
+const catalog=JSON.parse(readFileSync(path.join(engineRoot,'models','catalog.json')));
 const accepted=['amik_burdet','genta_franck','levo_gergs','linez_buerger'];
 for (const model of catalog.models) {
-  const code=readFileSync(new URL(`../tdm-engine/models/${model.file}`,import.meta.url),'utf8');
+  const code=readFileSync(path.join(engineRoot,'models',model.file),'utf8');
   if (accepted.includes(model.id)) {
     const s=parseModelCode(code,'mrgsolve').spec;
     assert.equal(s.nodes.filter(n=>n.dose>0).length,1);

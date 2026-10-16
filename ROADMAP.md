@@ -194,8 +194,8 @@ en compte : la frontiere ne se resume plus a la page TDM.
 | Portail et cours | `portal/`, `src/content/`, routes pedagogiques | Rester publics et assembles comme aujourd'hui |
 | Ateliers et interfaces d'outils | `src/routes/lego`, `tdm`, `interactions`, `pharmacodynamie` | Garder les URL, clarifier les composants et contrats |
 | Calcul pedagogique dans le navigateur | `src/lib/sim/`, `src/lib/utils/`, visualisations | Fonctions testables reutilisees par les animations |
-| Moteur scientifique | `tdm-engine/` | Tests et deploiement independants ; extraction possible plus tard |
-| Modeles et metadonnees | `static/tdm/`, generateurs, copies dans `tdm-engine/models/` | Une source identifiee et des sorties generees deterministes |
+| Moteur scientifique | depot autonome `rberrah/MIPD-Engine`; miroir de transition `tdm-engine/` | Consommer un SHA qualifie, puis retirer le miroir apres cut-over public |
+| Modeles et metadonnees | source autonome MIPD ; instantane public `static/tdm/` encore suivi | Verifier chaque instantane contre le SHA MIPD epingle avant publication |
 | Echanges entre applications | `src/lib/tdm/`, specifications Lego et validateurs R | Contrats versionnes, compatibilite et validation des deux cotes |
 
 - [x] **A01 / P0** Mettre le README en accord avec le portail, le cours et le deploiement Shiny separe ; lier cette roadmap.
@@ -206,8 +206,8 @@ en compte : la frontiere ne se resume plus a la page TDM.
 - [ ] **A05 / P1** Extraire progressivement de `app.R` et des grosses pages les ensembles de responsabilites qui ralentissent les modifications, en reutilisant les modules Shiny deja presents. Aucun deplacement massif sans gain verifiable.
 - [ ] **A06 / P1** Identifier et isoler les anciens composants illustratifs non utilises ; ne pas les reintroduire comme calculs scientifiques fiables. Charger les visualisations a la demande apres mesure du poids et des temps de chargement.
 - [ ] **A07 / P2 - A arbitrer** Decider public/prive, licences, bibliotheque contributive et eventuelle valorisation avec l'auteur et les interlocuteurs institutionnels pertinents. Une bibliotheque communautaire publique n'impose pas un moteur public, mais son acces et ses contributions doivent rester possibles.
-- [ ] **A08 / P2 - Conditionnel** Extraire d'abord le moteur dans un depot autonome seulement si A02-A04 sont satisfaits et qu'il existe un besoin de droits d'acces ou de releases independantes. Garder les ateliers consommateurs d'une version identifiee, sans dupliquer manuellement les schemas.
-- [ ] **A09 / P2 - Conditionnel** Si extraction : tester une installation propre, les anciens JSON, les liens, les transferts et le retour arriere. Publier une version candidate, verifier le service puis basculer. Ne pas supprimer l'ancien chemin avant validation.
+- [x] **A08 / P2 - CI verified upstream.** Le moteur et la bibliotheque sont extraits dans `rberrah/MIPD-Engine`, avec runtime R verrouille, qualification autonome et deploiement independant. PMx epingle un SHA immuable et verifie sa CI ainsi que la parite des 46 modeles.
+- [ ] **A09 / P2 - Cut-over en cours.** Le contrat consommateur externe couvre catalogue, sources et imports Lego. Il reste a verifier le deploiement autonome et les transferts publics avant de supprimer le miroir `tdm-engine/` et les anciens workflows R/Pmetrics de PMx.
 - [ ] **A10 / P2** Definir une politique d'artefacts : versions, empreintes, provenance, compatibilite R/mrgsolve/xgboost, taille et droits. Les 98 RDS actuels occupent environ 6,2 Mio ; pas de migration LFS urgente ni de reecriture d'historique. Etudier releases/LFS uniquement si la croissance mesuree le justifie, avec recuperation reproductible au deploiement.
 
 **Sortie du lot architecture :** le site et le moteur peuvent etre testes et
