@@ -56,16 +56,16 @@ jobs:
           git -C "$source_dir" checkout --detach FETCH_HEAD
           test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
           echo "MULTIOMICS_DIR=$source_dir" >> "$GITHUB_ENV"
-      - name: Build separate MultiOmics app with legacy public URL base
+      - name: Build standalone MultiOmics for canonical /multiomics/ route
         shell: bash
         run: |
           set -euo pipefail
           (
             cd "$MULTIOMICS_DIR"
             npm ci
-            BASE_PATH=/pharmacometrie npm run build
-            node scripts/build_pmx_compat_overlay.mjs
-            node scripts/test_pmx_compat_overlay.mjs
+            env -u BASE_PATH npm run build
+            node scripts/build_short_url_overlay.mjs
+            node scripts/test_short_url_overlay.mjs
           )
       - name: Assemble portal and PMx Explain
         run: |
@@ -79,10 +79,10 @@ jobs:
           cp -r portal/. dist/
           mkdir -p dist/pharmacometrie
           cp -r build/. dist/pharmacometrie/
-      # Never publish MultiOmics at a second address. Replace only its historical
-      # route directory and namespaced JS assets in the existing PMx dist tree.
-      - name: Overlay verified standalone MultiOmics while keeping old URLs
-        run: node scripts/apply_multiomics_overlay.mjs "$MULTIOMICS_DIR/compat-overlay" dist
+      - name: Mount verified standalone MultiOmics at canonical root route
+        run: node scripts/apply_multiomics_root_overlay.mjs "$MULTIOMICS_DIR/short-url-overlay" dist
+      - name: Replace historical PMx MultiOmics copy with compatibility aliases
+        run: node scripts/write_multiomics_legacy_aliases.mjs dist
       - name: Verify and configure the public artifact
         run: |
           set -euo pipefail
@@ -99,7 +99,7 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
-      - name: Verify fixed-URL MultiOmics in final assembled Pages build (desktop/mobile)
+      - name: Verify canonical MultiOmics mount and legacy aliases (desktop/mobile)
         run: npx playwright test --config playwright.multiomics-mount.config.js --workers=1 --retries=0
       - name: Test assembled portal in browser
         run: npx playwright test --config playwright.portal.config.js
