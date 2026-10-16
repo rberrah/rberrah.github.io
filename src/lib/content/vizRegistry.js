@@ -17,7 +17,7 @@
 
 import { visualizationReview } from './visualizationReviews.js';
 
-const modules = import.meta.glob('../components/visualizations/*.svelte', { eager: true });
+const modules = import.meta.glob('../components/visualizations/*.svelte');
 
 /** @type {Record<string, any>} */
 const registry = {};
@@ -56,13 +56,12 @@ for (const stem of stems) {
 }
 const ambiguous = new Set(Object.keys(shortAliasCount).filter((k) => shortAliasCount[k] > 1));
 
-for (const [path, mod] of Object.entries(modules)) {
+for (const [path, loader] of Object.entries(modules)) {
   const stem = path.split('/').pop().replace(/\.svelte$/, '');
-  const component = mod.default ?? mod;
   const keys = aliasesFor(stem).filter((key) => key === stem || !ambiguous.has(key));
   for (const key of keys) {
     // Le nom de fichier complet a toujours priorité en cas de collision d'alias.
-    if (!(key in registry) || key === stem) registry[key] = component;
+    if (!(key in registry) || key === stem) registry[key] = loader;
   }
   manifest.push({ file: `${stem}.svelte`, keys, review: visualizationReview(stem) });
 }
@@ -74,13 +73,16 @@ export const availableVizKeys = Object.keys(registry).sort();
 export const vizManifest = manifest.sort((a, b) => a.file.localeCompare(b.file));
 
 /**
- * Récupère un composant de visualisation par clé (nom de fichier ou alias).
+ * Charge à la demande un composant de visualisation par clé.
  * @param {string | undefined | null} key
- * @returns {any | null}
+ * @returns {Promise<any | null>}
  */
-export function getViz(key) {
+export async function loadViz(key) {
   if (!key) return null;
-  return registry[key] ?? null;
+  const loader = registry[key];
+  if (!loader) return null;
+  const mod = await loader();
+  return mod.default ?? mod;
 }
 
 export default registry;
