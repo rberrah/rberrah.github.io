@@ -5,5 +5,10 @@
   "publicUrl": "https://tdmhub.shinyapps.io/MIPD_Engine",
   "requiredWorkflows": [
     "Standalone MIPD qualification"
-  ]
+  ],
+  "shinyappsAppId": "17776160",
+  "expectedModelCount": 46,
+  "rVersion": "4.6.1",
+  "pmetricsVersion": "3.2.6",
+  "productionCustomModels": false
 }
