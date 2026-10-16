@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'tdm-engine/benchmarks/pmetrics_official_example.R'
-      - 'tdm-engine/pmetrics/**'
+      - 'integration/mipd-release.json'
       - 'src/content/chapters/08c_pmetrics-nonparametric.md'
       - 'src/content/chapters/en/08c_pmetrics-nonparametric.md'
       - 'scripts/test_pmetrics_backend.mjs'
@@ -15,8 +14,7 @@ on:
       - 'package-lock.json'
   pull_request:
     paths:
-      - 'tdm-engine/benchmarks/pmetrics_official_example.R'
-      - 'tdm-engine/pmetrics/**'
+      - 'integration/mipd-release.json'
       - 'src/content/chapters/08c_pmetrics-nonparametric.md'
       - 'src/content/chapters/en/08c_pmetrics-nonparametric.md'
       - 'scripts/test_pmetrics_backend.mjs'
@@ -43,6 +41,19 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Fetch standalone MIPD Engine from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(node -p "JSON.parse(require('fs').readFileSync('integration/mipd-release.json','utf8')).sha")"
+          source_dir="$RUNNER_TEMP/mipd-engine-source"
+          rm -rf "$source_dir"
+          git init "$source_dir"
+          git -C "$source_dir" remote add origin https://github.com/rberrah/MIPD-Engine.git
+          git -C "$source_dir" fetch --depth 1 origin "$sha"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
+          echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.6.1'
@@ -55,9 +66,13 @@ jobs:
         run: npm run benchmark:pmetrics-official
       - name: Verify benchmark and course agree
         run: npm run test:pmetrics-course-consistency
+      - name: Stage full benchmark result from standalone engine
+        run: |
+          mkdir -p test-results/pmetrics
+          cp "$MIPD_ENGINE_DIR/pmetrics/benchmarks/pmetrics-official-example.json" test-results/pmetrics/
       - name: Archive full benchmark result
         uses: actions/upload-artifact@v6
         with:
           name: pmetrics-official-full
-          path: tdm-engine/pmetrics/benchmarks/pmetrics-official-example.json
+          path: test-results/pmetrics/pmetrics-official-example.json
           if-no-files-found: error
