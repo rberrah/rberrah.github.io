@@ -227,6 +227,9 @@
             </div>
             <h3>{model.model}</h3>
             <p class="population">{display.population}</p>
+            <p class="administration-route" data-testid="tdm-model-administration">
+              <strong>{copy.administration} :</strong> {display.administrationCategories.join(' · ')}
+            </p>
             <div class="article-source">
               <span>{copy.sourceArticle}</span>
               <p class="citation">{model.citation}</p>
@@ -353,6 +356,8 @@
   .model-card h3 { margin: var(--space-2) 0; }
   .model-card p { color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
   .model-card .population { color: var(--text-secondary); margin-top: var(--space-3); }
+  .model-card .administration-route { color: var(--text-secondary); font-size: var(--text-sm); margin-top: var(--space-2); }
+  .model-card .administration-route strong { color: var(--text-primary); font-weight: 700; }
   .article-source { display: grid; gap: 4px; border-left: 2px solid var(--accent-ai); margin-top: var(--space-4); padding-left: var(--space-3); }
   .article-source > span { color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
   .article-source a, .article-source strong { font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
