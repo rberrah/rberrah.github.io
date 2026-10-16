@@ -1,8 +1,9 @@
 name: MultiOmics public researcher journey — live MS AUC and signed ZIP
 
-# First qualify changes to the public browser-smoke contract against the actual
-# deployed site, independently of Vite's local preview. A successful PR gate
-# is necessary, but only the post-deploy smoke verifies the newly published SHA.
+# PRs validate the candidate and smoke syntax locally. Testing the live site
+# before the PR is deployed could reject valid changes or accept stale assets.
+# The real MS-AUC upload, ZIP digest and network privacy flow is exercised only
+# after Deploy qualified PMx Pages by multiomics-public-route-smoke.yml.
 on:
   pull_request:
     paths:
@@ -29,5 +30,9 @@ jobs:
         run: node --check scripts/check_live_multiomics.mjs
       - name: Install genuine Playwright Chromium
         run: npx playwright install chromium --with-deps
-      - name: Exercise deployed GitHub Pages with 300 generated LC-MS AUC measurements
-        run: node scripts/check_live_multiomics.mjs
+      - name: Build candidate PMx app with the real four-button UI
+        run: npm run build
+      - name: Test candidate four-button layout without asserting live deployment
+        env:
+          LABS_E2E_PREBUILT: 'true'
+        run: npx playwright test --config playwright.multiomics.config.js tests/e2e/multiomics-methods-learning.spec.js --grep "Quick-start demo" --workers=1 --retries=0
