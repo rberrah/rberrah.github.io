@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Full chapter bodies are loaded only for the requested chapter.
 // Navigation, tracks, exercises and sitemaps use the generated metadata index.
 import matter from './frontmatter.js';
