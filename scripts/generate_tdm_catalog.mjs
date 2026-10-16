@@ -1,5 +1,4 @@
 import { promises as fs } from 'node:fs';
-import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,12 +7,8 @@ await import('./generate_ddi_tdm_models.mjs');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
 const outputFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated.json');
-const engineModelsDirectory = path.join(root, 'tdm-engine', 'models');
-const engineCatalogFile = path.join(engineModelsDirectory, 'catalog.json');
 const metadataFile = path.join(root, 'static', 'tdm', 'model-metadata.json');
 const englishMetadataFile = path.join(root, 'static', 'tdm', 'model-i18n.en.json');
-const mlRegistryFile = path.join(root, 'tdm-engine', 'ml', 'registry.json');
-const mlBenchmarkFile = path.join(root, 'src', 'lib', 'content', 'mlBenchmark.generated.json');
 
 const drugLabels = {
   amik: 'Amikacine',
@@ -340,90 +335,7 @@ async function main() {
   const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
   if (previous !== output) await fs.writeFile(outputFile, output, 'utf8');
 
-  await fs.mkdir(engineModelsDirectory, { recursive: true });
-  const engineEntries = await fs.readdir(engineModelsDirectory, { withFileTypes: true });
-  for (const entry of engineEntries) {
-    if (entry.isFile() && entry.name.toLowerCase().endsWith('.cpp') && !files.includes(entry.name)) {
-      await fs.unlink(path.join(engineModelsDirectory, entry.name));
-    }
-  }
-  for (const file of files) {
-    await fs.copyFile(path.join(modelsDirectory, file), path.join(engineModelsDirectory, file));
-  }
-  const previousEngineCatalog = await fs.readFile(engineCatalogFile, 'utf8').catch(() => '');
-  if (previousEngineCatalog !== output) await fs.writeFile(engineCatalogFile, output, 'utf8');
-
-  const mlRegistry = JSON.parse(await fs.readFile(mlRegistryFile, 'utf8'));
-  const modelById = new Map(models.map((model) => [model.id, model]));
-  const modelHashes = new Map([...modelCode].map(([file, code]) => [
-    file.replace(/\.cpp$/i, ''),
-    createHash('sha256').update(code.replace(/\r/g, '')).digest('hex')
-  ]));
-  const registeredArtifacts = mlRegistry.artifacts ?? [];
-  const requiredArtifactPaths = [
-    'id', 'baseModelId', 'baseModelSha256', 'artifactPath', 'artifactSha256',
-    'route', 'administrationMode', 'samplingProtocol.description', 'samplingProtocol.target',
-    'featureSchema', 'prediction.metric', 'prediction.unit', 'prediction.horizonHours', 'methodology.sourcePopulation',
-    'methodology.regimenConfiguration', 'methodology.populationConfiguration',
-    'training.seed', 'training.nVirtualDevelopment', 'training.nTraining', 'training.nUntouchedHoldout',
-    'training.split.unit', 'training.split.method', 'training.split.holdoutUntouched',
-    'training.software', 'trainingDomain.features', 'validation'
-  ];
-  const valueAt = (object, dottedPath) => dottedPath.split('.').reduce((value, key) => value?.[key], object);
-  for (const artifact of registeredArtifacts) {
-    const missing = requiredArtifactPaths.filter((field) => {
-      const value = valueAt(artifact, field);
-      return value == null || value === '' || (Array.isArray(value) && value.length === 0) ||
-        (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0);
-    });
-    if (missing.length) throw new Error(`Incomplete ML artifact ${artifact.id ?? '<unknown>'}: ${missing.join(', ')}`);
-  }
-  const mlArtifacts = registeredArtifacts.map((artifact) => {
-    const model = modelById.get(artifact.baseModelId);
-    const currentHash = modelHashes.get(artifact.baseModelId);
-    const hashMatches = Boolean(currentHash && currentHash === artifact.baseModelSha256);
-    return {
-      id: artifact.id,
-      modelId: artifact.baseModelId,
-      model: model?.model ?? artifact.baseModelId,
-      drug: artifact.drug,
-      route: artifact.route,
-      administrationMode: artifact.administrationMode,
-      releaseLevel: artifact.releaseLevel,
-      analysisEligible: Boolean(model?.analysisEligible),
-      hashMatches,
-      availableInTdm: Boolean(model?.analysisEligible && hashMatches),
-      minimumObservations: artifact.samplingProtocol?.minimumObservations ?? null,
-      steadyStateRequired: Boolean(artifact.samplingProtocol?.steadyStateRequired),
-      nTraining: artifact.training?.nTraining ?? null,
-      nHoldout: artifact.training?.nUntouchedHoldout ?? null,
-      nAlternate: artifact.training?.nUnseenPopPk ?? null,
-      validation: artifact.validation ?? {}
-    };
-  });
-  const pairedFile = path.join(root, 'tdm-engine', 'ml', 'validation', 'paired-auc-benchmark.json');
-  const paired = JSON.parse(await fs.readFile(pairedFile, 'utf8').catch((error) => {
-    if (error.code !== 'ENOENT') throw error;
-    return '{"results":[]}';
-  }));
-  if (paired.smoke) throw new Error('A smoke benchmark must not be published.');
-  const pairedResults = (paired.results ?? []).map((result) => ({
-    ...result,
-    model: modelById.get(result.modelId)?.model ?? result.modelId,
-    analysisEligible: Boolean(modelById.get(result.modelId)?.analysisEligible),
-    hashMatches: result.baseModelSha256 === modelHashes.get(result.modelId)
-  }));
-  const mlOutput = `${JSON.stringify({
-    version: mlRegistry.version,
-    benchmarkDate: mlRegistry.benchmarkDate ?? null,
-    samplingDesign: mlRegistry.samplingDesign ?? null,
-    artifacts: mlArtifacts,
-    pairedBenchmark: { ...paired, results: pairedResults }
-  }, null, 2)}\n`;
-  const previousMlBenchmark = await fs.readFile(mlBenchmarkFile, 'utf8').catch(() => '');
-  if (previousMlBenchmark !== mlOutput) await fs.writeFile(mlBenchmarkFile, mlOutput, 'utf8');
-
-  console.log(`TDM catalog OK: ${models.length} models and ${mlArtifacts.length} ML artifacts indexed.`);
+  console.log(`TDM consumer catalog OK: ${models.length} models indexed from the PMx browser snapshot.`);
 }
 
 await main();

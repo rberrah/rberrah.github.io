@@ -4,7 +4,7 @@ const metadata = JSON.parse(
   await readFile(new URL('../static/tdm/model-metadata.json', import.meta.url), 'utf8')
 ).models;
 const catalog = JSON.parse(
-  await readFile(new URL('../tdm-engine/models/catalog.json', import.meta.url), 'utf8')
+  await readFile(new URL('../src/lib/content/tdmModels.generated.json', import.meta.url), 'utf8')
 ).models;
 
 function clean(value) {
