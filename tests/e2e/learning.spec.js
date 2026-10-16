@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
 import { readFileSync, readdirSync } from 'node:fs';
-import matter from 'gray-matter';
+import matter from '../../src/lib/content/frontmatter.js';
 import { guidedActivities as activities } from '../../src/lib/content/guidedActivities.js';
 const chapterDir = new URL('../../src/content/chapters/', import.meta.url);
 const chapterTracks = new Map(readdirSync(chapterDir).filter(f => f.endsWith('.md') && !f.startsWith('_')).map(f => {

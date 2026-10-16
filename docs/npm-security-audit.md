@@ -16,10 +16,10 @@ Compatible updates removed the advisories affecting `devalue`, the direct
 | Chain | Severity | Exposure in PMx Explain | Decision |
 | --- | --- | --- | --- |
 | `@sveltejs/adapter-static` -> `@sveltejs/kit` -> `cookie` | Low | GitHub Pages receives a static export; it does not run the SvelteKit Node cookie parser. | Keep the current SvelteKit 2 line. Reassess with a tested SvelteKit 3 and adapter-static 4 migration. |
-| `gray-matter` -> `js-yaml` 3 -> `argparse` -> `sprintf-js` | Moderate | Front matter is read only from version-controlled chapter files. No patient, visitor or uploaded text is passed to this parser. | Do not apply npm's proposed downgrade to `gray-matter` 2.0.1. Replace or upgrade the parser before accepting untrusted Markdown. |
+| `gray-matter` -> `js-yaml` 3 -> `argparse` -> `sprintf-js` | Moderate | Removed on 2026-10-16. PMx now parses its bounded `---` YAML front matter with the already-pinned `js-yaml` 4.x dependency. | Closed; the obsolete dependency chain and `eval` warning are no longer required by PMx. |
 | `katex` | Low | KaTeX renders version-controlled course formulae with its default untrusted-command policy; visitor input is not rendered through this path. | Test the KaTeX 0.19 major update separately rather than forcing it into this security patch. |
 
-These constraints reduce current exploitability but do not erase the upstream
+The remaining low-severity SvelteKit/cookie and KaTeX advisories require separate tested major-version migrations. These constraints reduce current exploitability but do not erase the upstream
 advisories. Run `npm audit` again whenever the lockfile changes and before each
 release. Do not use `npm audit fix --force` without testing the corresponding
 major framework migrations.
