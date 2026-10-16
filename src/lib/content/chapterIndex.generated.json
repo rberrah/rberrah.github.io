@@ -1,155 +1,5 @@
 [
   {
-    "id": "covariates-basics",
-    "track": "covariates",
-    "slug": "covariates-basics",
-    "title": "Covariables : effets fixes, ETA et transformations",
-    "description": "Séparer la relation systématique au patient et la variabilité interindividuelle restante.",
-    "summary": "Séparer la relation systématique au patient et la variabilité interindividuelle restante.",
-    "order": 1,
-    "duration": "12 min",
-    "level": "intermediate",
-    "layer": "",
-    "tags": [
-      "covariates",
-      "PK",
-      "PD"
-    ],
-    "prerequisites": [
-      "variabilite-iiv-iov"
-    ],
-    "glossary": [
-      "Covariable",
-      "Centrage",
-      "η",
-      "ω / Ω",
-      "Distribution lognormale",
-      "Distribution logit-normale"
-    ],
-    "slides": [],
-    "sources": [
-      "monolix-covariates",
-      "simulx-individual",
-      "lavielle",
-      "sanghavi-covariates"
-    ],
-    "updated_on": "2026-10-09",
-    "software_verified_on": "",
-    "software_version": "",
-    "reviewed_on": "2026-10-09",
-    "reviewed_hash": "3003d0ce76d4208d19bd88636d891636007c708d270152c7d209fc083d0608b1",
-    "review_type": "author",
-    "review_pending": false,
-    "status": "",
-    "quiz": [
-      {
-        "prompt": "Un bêta de covariable représente…",
-        "options": [
-          "un effet systématique sur un paramètre",
-          "un ETA individuel observé",
-          "une variance résiduelle"
-        ],
-        "correct": 0
-      },
-      {
-        "prompt": "Pour une fraction strictement entre 0 et 1, un lien possible est…",
-        "options": [
-          "le logit",
-          "le logarithme seul",
-          "aucun lien ne peut la borner"
-        ],
-        "correct": 0
-      },
-      {
-        "prompt": "Le poids agit sur CL et V :",
-        "options": [
-          "les deux effets peuvent avoir des coefficients différents",
-          "il faut nécessairement un bêta unique",
-          "cela impose une corrélation ETA de 1"
-        ],
-        "correct": 0
-      }
-    ],
-    "stepCount": 6,
-    "sourceFile": "covariates-basics.md",
-    "translations": {
-      "en": {
-        "id": "covariates-basics",
-        "track": "covariates",
-        "slug": "covariates-basics",
-        "title": "Covariates: fixed effects, ETA and transformations",
-        "description": "Separate systematic patient relationships from remaining interindividual variability.",
-        "summary": "Separate systematic patient relationships from remaining interindividual variability.",
-        "order": 1,
-        "duration": "12 min",
-        "level": "intermediate",
-        "layer": "",
-        "tags": [
-          "covariates",
-          "PK",
-          "PD"
-        ],
-        "prerequisites": [
-          "variabilite-iiv-iov"
-        ],
-        "glossary": [
-          "Covariable",
-          "Centrage",
-          "η",
-          "ω / Ω",
-          "Distribution lognormale",
-          "Distribution logit-normale"
-        ],
-        "slides": [],
-        "sources": [
-          "monolix-covariates",
-          "simulx-individual",
-          "lavielle",
-          "sanghavi-covariates"
-        ],
-        "updated_on": "2026-10-09",
-        "software_verified_on": "",
-        "software_version": "",
-        "reviewed_on": "2026-10-09",
-        "reviewed_hash": "b1e3fab391111e1557fcf09937ec5eca6825f53752c28a0459fe2c514cfcd69e",
-        "review_type": "author",
-        "review_pending": false,
-        "status": "",
-        "quiz": [
-          {
-            "prompt": "A covariate beta represents…",
-            "options": [
-              "a systematic effect on a parameter",
-              "an observed individual ETA",
-              "a residual variance"
-            ],
-            "correct": 0
-          },
-          {
-            "prompt": "A possible link for a fraction strictly between 0 and 1 is…",
-            "options": [
-              "logit",
-              "log alone",
-              "no link can bound it"
-            ],
-            "correct": 0
-          },
-          {
-            "prompt": "Weight affects CL and V:",
-            "options": [
-              "the effects can have different coefficients",
-              "one shared beta is mandatory",
-              "ETA correlation must be 1"
-            ],
-            "correct": 0
-          }
-        ],
-        "stepCount": 6,
-        "sourceFile": "covariates-basics.md"
-      }
-    }
-  },
-  {
     "id": "pourquoi-pharmacometrie",
     "track": "core",
     "slug": "pourquoi-pharmacometrie",
@@ -296,13 +146,13 @@
     }
   },
   {
-    "id": "covariates-groups",
+    "id": "covariates-basics",
     "track": "covariates",
-    "slug": "covariates-groups",
-    "title": "Covariables catégorielles, paliers et clusters",
-    "description": "Distinguer catégories observées, seuils imposés et sous-populations latentes.",
-    "summary": "Distinguer catégories observées, seuils imposés et sous-populations latentes.",
-    "order": 2,
+    "slug": "covariates-basics",
+    "title": "Covariables : effets fixes, ETA et transformations",
+    "description": "Séparer la relation systématique au patient et la variabilité interindividuelle restante.",
+    "summary": "Séparer la relation systématique au patient et la variabilité interindividuelle restante.",
+    "order": 1,
     "duration": "12 min",
     "level": "intermediate",
     "layer": "",
@@ -312,66 +162,71 @@
       "PD"
     ],
     "prerequisites": [
-      "covariates-basics"
+      "variabilite-iiv-iov"
     ],
     "glossary": [
       "Covariable",
+      "Centrage",
+      "η",
+      "ω / Ω",
+      "Distribution lognormale",
       "Distribution logit-normale"
     ],
     "slides": [],
     "sources": [
       "monolix-covariates",
-      "hastie-esl",
-      "lavielle"
+      "simulx-individual",
+      "lavielle",
+      "sanghavi-covariates"
     ],
-    "updated_on": "",
+    "updated_on": "2026-10-09",
     "software_verified_on": "",
     "software_version": "",
-    "reviewed_on": "2026-09-29",
-    "reviewed_hash": "10b542145394fc1f3cf95cbd568ad135a366a18a840a071f477e6c0488d2bfc8",
+    "reviewed_on": "2026-10-09",
+    "reviewed_hash": "3003d0ce76d4208d19bd88636d891636007c708d270152c7d209fc083d0608b1",
     "review_type": "author",
     "review_pending": false,
     "status": "",
     "quiz": [
       {
-        "prompt": "Pour un ratio A/B = 0,7 dans une exponentielle, bêta vaut…",
+        "prompt": "Un bêta de covariable représente…",
         "options": [
-          "log(0,7)",
-          "0,7",
-          "exp(0,7)"
+          "un effet systématique sur un paramètre",
+          "un ETA individuel observé",
+          "une variance résiduelle"
         ],
         "correct": 0
       },
       {
-        "prompt": "Un cluster est…",
+        "prompt": "Pour une fraction strictement entre 0 et 1, un lien possible est…",
         "options": [
-          "un groupe appris dont la pertinence doit être vérifiée",
-          "nécessairement un génotype",
-          "une preuve de mécanisme biologique"
+          "le logit",
+          "le logarithme seul",
+          "aucun lien ne peut la borner"
         ],
         "correct": 0
       },
       {
-        "prompt": "Choisir un seuil puis le valider sur les mêmes données…",
+        "prompt": "Le poids agit sur CL et V :",
         "options": [
-          "peut surestimer sa performance",
-          "élimine le surapprentissage",
-          "rend inutile la validation externe"
+          "les deux effets peuvent avoir des coefficients différents",
+          "il faut nécessairement un bêta unique",
+          "cela impose une corrélation ETA de 1"
         ],
         "correct": 0
       }
     ],
     "stepCount": 6,
-    "sourceFile": "covariates-groups.md",
+    "sourceFile": "covariates-basics.md",
     "translations": {
       "en": {
-        "id": "covariates-groups",
+        "id": "covariates-basics",
         "track": "covariates",
-        "slug": "covariates-groups",
-        "title": "Categorical covariates, thresholds and clusters",
-        "description": "Distinguish observed categories, imposed cutoffs and latent subpopulations.",
-        "summary": "Distinguish observed categories, imposed cutoffs and latent subpopulations.",
-        "order": 2,
+        "slug": "covariates-basics",
+        "title": "Covariates: fixed effects, ETA and transformations",
+        "description": "Separate systematic patient relationships from remaining interindividual variability.",
+        "summary": "Separate systematic patient relationships from remaining interindividual variability.",
+        "order": 1,
         "duration": "12 min",
         "level": "intermediate",
         "layer": "",
@@ -381,57 +236,62 @@
           "PD"
         ],
         "prerequisites": [
-          "covariates-basics"
+          "variabilite-iiv-iov"
         ],
         "glossary": [
           "Covariable",
+          "Centrage",
+          "η",
+          "ω / Ω",
+          "Distribution lognormale",
           "Distribution logit-normale"
         ],
         "slides": [],
         "sources": [
           "monolix-covariates",
-          "hastie-esl",
-          "lavielle"
+          "simulx-individual",
+          "lavielle",
+          "sanghavi-covariates"
         ],
-        "updated_on": "",
+        "updated_on": "2026-10-09",
         "software_verified_on": "",
         "software_version": "",
-        "reviewed_on": "2026-09-29",
-        "reviewed_hash": "579720a965c9f2e8db30734a8ff2bb684624b5ca148eb583edb1404a29434688",
+        "reviewed_on": "2026-10-09",
+        "reviewed_hash": "b1e3fab391111e1557fcf09937ec5eca6825f53752c28a0459fe2c514cfcd69e",
         "review_type": "author",
         "review_pending": false,
         "status": "",
         "quiz": [
           {
-            "prompt": "For an exponential A/B ratio of 0.7, beta is…",
+            "prompt": "A covariate beta represents…",
             "options": [
-              "log(0.7)",
-              "0.7",
-              "exp(0.7)"
+              "a systematic effect on a parameter",
+              "an observed individual ETA",
+              "a residual variance"
             ],
             "correct": 0
           },
           {
-            "prompt": "A cluster is…",
+            "prompt": "A possible link for a fraction strictly between 0 and 1 is…",
             "options": [
-              "a learned group whose relevance needs assessment",
-              "necessarily a genotype",
-              "proof of a biological mechanism"
+              "logit",
+              "log alone",
+              "no link can bound it"
             ],
             "correct": 0
           },
           {
-            "prompt": "Selecting and validating a cutoff on the same data…",
+            "prompt": "Weight affects CL and V:",
             "options": [
-              "can overstate performance",
-              "eliminates overfitting",
-              "makes external validation unnecessary"
+              "the effects can have different coefficients",
+              "one shared beta is mandatory",
+              "ETA correlation must be 1"
             ],
             "correct": 0
           }
         ],
         "stepCount": 6,
-        "sourceFile": "covariates-groups.md"
+        "sourceFile": "covariates-basics.md"
       }
     }
   },
@@ -590,6 +450,146 @@
         ],
         "stepCount": 6,
         "sourceFile": "02_trois-approches.md"
+      }
+    }
+  },
+  {
+    "id": "covariates-groups",
+    "track": "covariates",
+    "slug": "covariates-groups",
+    "title": "Covariables catégorielles, paliers et clusters",
+    "description": "Distinguer catégories observées, seuils imposés et sous-populations latentes.",
+    "summary": "Distinguer catégories observées, seuils imposés et sous-populations latentes.",
+    "order": 2,
+    "duration": "12 min",
+    "level": "intermediate",
+    "layer": "",
+    "tags": [
+      "covariates",
+      "PK",
+      "PD"
+    ],
+    "prerequisites": [
+      "covariates-basics"
+    ],
+    "glossary": [
+      "Covariable",
+      "Distribution logit-normale"
+    ],
+    "slides": [],
+    "sources": [
+      "monolix-covariates",
+      "hastie-esl",
+      "lavielle"
+    ],
+    "updated_on": "",
+    "software_verified_on": "",
+    "software_version": "",
+    "reviewed_on": "2026-09-29",
+    "reviewed_hash": "10b542145394fc1f3cf95cbd568ad135a366a18a840a071f477e6c0488d2bfc8",
+    "review_type": "author",
+    "review_pending": false,
+    "status": "",
+    "quiz": [
+      {
+        "prompt": "Pour un ratio A/B = 0,7 dans une exponentielle, bêta vaut…",
+        "options": [
+          "log(0,7)",
+          "0,7",
+          "exp(0,7)"
+        ],
+        "correct": 0
+      },
+      {
+        "prompt": "Un cluster est…",
+        "options": [
+          "un groupe appris dont la pertinence doit être vérifiée",
+          "nécessairement un génotype",
+          "une preuve de mécanisme biologique"
+        ],
+        "correct": 0
+      },
+      {
+        "prompt": "Choisir un seuil puis le valider sur les mêmes données…",
+        "options": [
+          "peut surestimer sa performance",
+          "élimine le surapprentissage",
+          "rend inutile la validation externe"
+        ],
+        "correct": 0
+      }
+    ],
+    "stepCount": 6,
+    "sourceFile": "covariates-groups.md",
+    "translations": {
+      "en": {
+        "id": "covariates-groups",
+        "track": "covariates",
+        "slug": "covariates-groups",
+        "title": "Categorical covariates, thresholds and clusters",
+        "description": "Distinguish observed categories, imposed cutoffs and latent subpopulations.",
+        "summary": "Distinguish observed categories, imposed cutoffs and latent subpopulations.",
+        "order": 2,
+        "duration": "12 min",
+        "level": "intermediate",
+        "layer": "",
+        "tags": [
+          "covariates",
+          "PK",
+          "PD"
+        ],
+        "prerequisites": [
+          "covariates-basics"
+        ],
+        "glossary": [
+          "Covariable",
+          "Distribution logit-normale"
+        ],
+        "slides": [],
+        "sources": [
+          "monolix-covariates",
+          "hastie-esl",
+          "lavielle"
+        ],
+        "updated_on": "",
+        "software_verified_on": "",
+        "software_version": "",
+        "reviewed_on": "2026-09-29",
+        "reviewed_hash": "579720a965c9f2e8db30734a8ff2bb684624b5ca148eb583edb1404a29434688",
+        "review_type": "author",
+        "review_pending": false,
+        "status": "",
+        "quiz": [
+          {
+            "prompt": "For an exponential A/B ratio of 0.7, beta is…",
+            "options": [
+              "log(0.7)",
+              "0.7",
+              "exp(0.7)"
+            ],
+            "correct": 0
+          },
+          {
+            "prompt": "A cluster is…",
+            "options": [
+              "a learned group whose relevance needs assessment",
+              "necessarily a genotype",
+              "proof of a biological mechanism"
+            ],
+            "correct": 0
+          },
+          {
+            "prompt": "Selecting and validating a cutoff on the same data…",
+            "options": [
+              "can overstate performance",
+              "eliminates overfitting",
+              "makes external validation unnecessary"
+            ],
+            "correct": 0
+          }
+        ],
+        "stepCount": 6,
+        "sourceFile": "covariates-groups.md"
       }
     }
   },
@@ -1966,164 +1966,6 @@
     }
   },
   {
-    "id": "covariates-implementation",
-    "track": "covariates",
-    "slug": "covariates-implementation",
-    "title": "Implémenter et valider un modèle de covariables",
-    "description": "Un exemple reproductible mrgsolve et Monolix, avec unités, OMEGA, covariables temporelles et contrôles.",
-    "summary": "Un exemple reproductible mrgsolve et Monolix, avec unités, OMEGA, covariables temporelles et contrôles.",
-    "order": 5,
-    "duration": "20 min",
-    "level": "advanced",
-    "layer": "",
-    "tags": [
-      "covariates",
-      "mrgsolve",
-      "Monolix",
-      "validation"
-    ],
-    "prerequisites": [
-      "covariates-basics",
-      "covariates-groups",
-      "covariates-physiology",
-      "covariates-symbolic"
-    ],
-    "glossary": [
-      "Covariable",
-      "θ",
-      "η",
-      "IIV"
-    ],
-    "slides": [],
-    "sources": [
-      "monolix-covariates",
-      "simulx-individual",
-      "jonsson-covariates",
-      "pmetrics",
-      "hastie-esl",
-      "mrgsolve"
-    ],
-    "updated_on": "",
-    "software_verified_on": "",
-    "software_version": "",
-    "reviewed_on": "2026-09-29",
-    "reviewed_hash": "903912d12d1261f019b904aaff7f48e6714832cde727f4b101e25f4552bb8d26",
-    "review_type": "author",
-    "review_pending": false,
-    "status": "",
-    "quiz": [
-      {
-        "prompt": "Avec variances 0,09 et 0,04 et covariance 0,03, la corrélation vaut…",
-        "options": [
-          "0,5",
-          "0,03",
-          "1,5"
-        ],
-        "correct": 0
-      },
-      {
-        "prompt": "Dans l’exemple structurel Monolix, l’IIV est configurée sur…",
-        "options": [
-          "Cl0 et V0",
-          "WT uniquement",
-          "betaWT et ratioGENO obligatoirement"
-        ],
-        "correct": 0
-      },
-      {
-        "prompt": "Une interpolation utilisant une mesure future en prévision prospective…",
-        "options": [
-          "peut provoquer une fuite d’information",
-          "est toujours plus exacte cliniquement",
-          "équivaut au report de la dernière valeur"
-        ],
-        "correct": 0
-      }
-    ],
-    "stepCount": 8,
-    "sourceFile": "covariates-implementation.md",
-    "translations": {
-      "en": {
-        "id": "covariates-implementation",
-        "track": "covariates",
-        "slug": "covariates-implementation",
-        "title": "Implementing and validating covariate models",
-        "description": "A reproducible mrgsolve and Monolix example with units, OMEGA, time-varying covariates and checks.",
-        "summary": "A reproducible mrgsolve and Monolix example with units, OMEGA, time-varying covariates and checks.",
-        "order": 5,
-        "duration": "20 min",
-        "level": "advanced",
-        "layer": "",
-        "tags": [
-          "covariates",
-          "mrgsolve",
-          "Monolix",
-          "validation"
-        ],
-        "prerequisites": [
-          "covariates-basics",
-          "covariates-groups",
-          "covariates-physiology",
-          "covariates-symbolic"
-        ],
-        "glossary": [
-          "Covariable",
-          "θ",
-          "η",
-          "IIV"
-        ],
-        "slides": [],
-        "sources": [
-          "monolix-covariates",
-          "simulx-individual",
-          "jonsson-covariates",
-          "pmetrics",
-          "hastie-esl",
-          "mrgsolve"
-        ],
-        "updated_on": "",
-        "software_verified_on": "",
-        "software_version": "",
-        "reviewed_on": "2026-09-29",
-        "reviewed_hash": "fe01ddf09de14da488e7b55ddad738f65516acbfd1379b02c516af4a39ca42ee",
-        "review_type": "author",
-        "review_pending": false,
-        "status": "",
-        "quiz": [
-          {
-            "prompt": "With variances 0.09 and 0.04 and covariance 0.03, correlation is…",
-            "options": [
-              "0.5",
-              "0.03",
-              "1.5"
-            ],
-            "correct": 0
-          },
-          {
-            "prompt": "In the structural Monolix example, IIV is configured on…",
-            "options": [
-              "Cl0 and V0",
-              "WT only",
-              "necessarily betaWT and ratioGENO"
-            ],
-            "correct": 0
-          },
-          {
-            "prompt": "Prospective interpolation using a future measurement…",
-            "options": [
-              "can leak information",
-              "is always clinically more accurate",
-              "equals carrying the last value forward"
-            ],
-            "correct": 0
-          }
-        ],
-        "stepCount": 8,
-        "sourceFile": "covariates-implementation.md"
-      }
-    }
-  },
-  {
     "id": "variabilite-iiv-iov",
     "track": "core",
     "slug": "variabilite-iiv-iov",
@@ -2284,6 +2126,164 @@
         ],
         "stepCount": 7,
         "sourceFile": "05_variabilite-iiv-iov.md"
+      }
+    }
+  },
+  {
+    "id": "covariates-implementation",
+    "track": "covariates",
+    "slug": "covariates-implementation",
+    "title": "Implémenter et valider un modèle de covariables",
+    "description": "Un exemple reproductible mrgsolve et Monolix, avec unités, OMEGA, covariables temporelles et contrôles.",
+    "summary": "Un exemple reproductible mrgsolve et Monolix, avec unités, OMEGA, covariables temporelles et contrôles.",
+    "order": 5,
+    "duration": "20 min",
+    "level": "advanced",
+    "layer": "",
+    "tags": [
+      "covariates",
+      "mrgsolve",
+      "Monolix",
+      "validation"
+    ],
+    "prerequisites": [
+      "covariates-basics",
+      "covariates-groups",
+      "covariates-physiology",
+      "covariates-symbolic"
+    ],
+    "glossary": [
+      "Covariable",
+      "θ",
+      "η",
+      "IIV"
+    ],
+    "slides": [],
+    "sources": [
+      "monolix-covariates",
+      "simulx-individual",
+      "jonsson-covariates",
+      "pmetrics",
+      "hastie-esl",
+      "mrgsolve"
+    ],
+    "updated_on": "",
+    "software_verified_on": "",
+    "software_version": "",
+    "reviewed_on": "2026-09-29",
+    "reviewed_hash": "903912d12d1261f019b904aaff7f48e6714832cde727f4b101e25f4552bb8d26",
+    "review_type": "author",
+    "review_pending": false,
+    "status": "",
+    "quiz": [
+      {
+        "prompt": "Avec variances 0,09 et 0,04 et covariance 0,03, la corrélation vaut…",
+        "options": [
+          "0,5",
+          "0,03",
+          "1,5"
+        ],
+        "correct": 0
+      },
+      {
+        "prompt": "Dans l’exemple structurel Monolix, l’IIV est configurée sur…",
+        "options": [
+          "Cl0 et V0",
+          "WT uniquement",
+          "betaWT et ratioGENO obligatoirement"
+        ],
+        "correct": 0
+      },
+      {
+        "prompt": "Une interpolation utilisant une mesure future en prévision prospective…",
+        "options": [
+          "peut provoquer une fuite d’information",
+          "est toujours plus exacte cliniquement",
+          "équivaut au report de la dernière valeur"
+        ],
+        "correct": 0
+      }
+    ],
+    "stepCount": 8,
+    "sourceFile": "covariates-implementation.md",
+    "translations": {
+      "en": {
+        "id": "covariates-implementation",
+        "track": "covariates",
+        "slug": "covariates-implementation",
+        "title": "Implementing and validating covariate models",
+        "description": "A reproducible mrgsolve and Monolix example with units, OMEGA, time-varying covariates and checks.",
+        "summary": "A reproducible mrgsolve and Monolix example with units, OMEGA, time-varying covariates and checks.",
+        "order": 5,
+        "duration": "20 min",
+        "level": "advanced",
+        "layer": "",
+        "tags": [
+          "covariates",
+          "mrgsolve",
+          "Monolix",
+          "validation"
+        ],
+        "prerequisites": [
+          "covariates-basics",
+          "covariates-groups",
+          "covariates-physiology",
+          "covariates-symbolic"
+        ],
+        "glossary": [
+          "Covariable",
+          "θ",
+          "η",
+          "IIV"
+        ],
+        "slides": [],
+        "sources": [
+          "monolix-covariates",
+          "simulx-individual",
+          "jonsson-covariates",
+          "pmetrics",
+          "hastie-esl",
+          "mrgsolve"
+        ],
+        "updated_on": "",
+        "software_verified_on": "",
+        "software_version": "",
+        "reviewed_on": "2026-09-29",
+        "reviewed_hash": "fe01ddf09de14da488e7b55ddad738f65516acbfd1379b02c516af4a39ca42ee",
+        "review_type": "author",
+        "review_pending": false,
+        "status": "",
+        "quiz": [
+          {
+            "prompt": "With variances 0.09 and 0.04 and covariance 0.03, correlation is…",
+            "options": [
+              "0.5",
+              "0.03",
+              "1.5"
+            ],
+            "correct": 0
+          },
+          {
+            "prompt": "In the structural Monolix example, IIV is configured on…",
+            "options": [
+              "Cl0 and V0",
+              "WT only",
+              "necessarily betaWT and ratioGENO"
+            ],
+            "correct": 0
+          },
+          {
+            "prompt": "Prospective interpolation using a future measurement…",
+            "options": [
+              "can leak information",
+              "is always clinically more accurate",
+              "equals carrying the last value forward"
+            ],
+            "correct": 0
+          }
+        ],
+        "stepCount": 8,
+        "sourceFile": "covariates-implementation.md"
       }
     }
   },
