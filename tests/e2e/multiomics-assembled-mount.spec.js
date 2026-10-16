@@ -11,7 +11,7 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
     await expect(page.locator('body')).not.toBeEmpty();
   }
   await page.goto('/multiomics/tool/');
-  await expect(page.getByRole('heading', { name: /Choisir une méthode|Choose a method/i })).toBeVisible();
+  await expect(page.getByTestId('multiomics-quick-demo')).toBeVisible();
   await page.goto('/multiomics/resources/');
   await expect(page.getByRole('heading', { name: /Retrouver les méthodes|Find methods/i })).toBeVisible();
   await page.goto('/multiomics/disciplines/');
