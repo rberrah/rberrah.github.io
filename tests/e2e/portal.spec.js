@@ -139,14 +139,13 @@ test('semantic publication metadata agrees with visible DOI citations', async ({
 test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
   for (const [from, to] of [['/research/', '/publications/'], ['/recherche/', '/publications/'], ['/demos/', '/tools/'],
     ['/pk/?lang=en#example', '/pharmacometrie/pk/?lang=en#example'],
-    ['/playground/?lang=en', '/pharmacometrie/playground/?lang=en'],
-    ['/pharmacometrie/multiomics/', '/multiomics/'],
-    ['/pharmacometrie/multiomics/tool/?lang=en#demo', '/multiomics/tool/?lang=en#demo']]) {
+    ['/playground/?lang=en', '/pharmacometrie/playground/?lang=en']]) {
     await page.goto(origin + from);
     await expect(page).toHaveURL(origin + to);
   }
-  // A successful SvelteKit build alone is insufficient: assert the public
-  // root aliases and their actual prerendered destination pages exist.
+  // MultiOmics canonical/legacy routing is applied only in the final assembled
+  // Pages artifact and is covered by multiomics-assembled-mount.spec.js.
+  // Here we only assert that the pre-overlay route files exist.
   for (const route of ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/']) {
     expect((await request.get(origin + route, { maxRedirects: 0 })).status()).toBe(200);
   }
