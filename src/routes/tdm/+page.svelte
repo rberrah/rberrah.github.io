@@ -301,11 +301,6 @@
   .stat-grid strong { display: block; font-family: var(--font-heading); font-size: var(--text-2xl); line-height: 1; }
   .stat-grid span { color: var(--text-muted); font-size: var(--text-sm); }
   .tdm-panel p { color: var(--text-secondary); margin-bottom: 0; }
-  .evidence-status { margin: var(--space-5) 0 0; display: grid; gap: var(--space-2); }
-  .evidence-status div { display: grid; grid-template-columns: minmax(105px, 0.35fr) 1fr; gap: var(--space-3); }
-  .evidence-status dt { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
-  .evidence-status dd { margin: 0; color: var(--text-secondary); font-size: var(--text-xs); }
-  .simulation-only { color: var(--text-muted); font-size: var(--text-xs); font-family: var(--font-mono); }
 
   .engine-band, .workflow, .models, .governance { margin-top: var(--space-12); }
   .engine-band {
@@ -377,7 +372,6 @@
     .filters { grid-template-columns: 1fr; }
     .section-head { align-items: start; flex-direction: column; }
     .engine-features { grid-template-columns: 1fr; }
-    .model-meta { align-items: flex-start; flex-direction: column; }
     .model-actions { width: 100%; justify-content: flex-start; }
   }
 </style>
