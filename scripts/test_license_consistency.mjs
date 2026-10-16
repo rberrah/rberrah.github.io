@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const forbidden = [
-  [/CC BY-SA 4\.0/u, 'legacy CC BY-SA declaration'],
+  [/creativecommons\.org\/licenses\/by-sa\/4\.0/iu, 'legacy CC BY-SA current-license link'],
   [/\bCode MIT\b|\bcode MIT\b/u, 'legacy MIT code declaration'],
   [/Commercial reuse is permitted/iu, 'commercial reuse claim'],
   [/including paid teaching/iu, 'paid-teaching reuse claim'],
