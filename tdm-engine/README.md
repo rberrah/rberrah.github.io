@@ -2,6 +2,11 @@
 
 Application Shiny séparée du site statique. Elle exécute les modèles avec `mrgsolve`, individualise les paramètres avec `mapbayr` ou `Pmetrics::PM_model$map()` et compare des scénarios de dose.
 
+Le déploiement public Shinyapps utilise `mrgsolve` et `mapbayr`. Pmetrics y est
+désactivé, car la chaîne Rust/Cargo actuelle de Shinyapps.io ne construit pas
+Pmetrics 3.2.6. Le backend Pmetrics reste disponible localement et en CI, sans
+empêcher la publication des corrections du moteur principal.
+
 ### Artefacts Pmetrics
 
 Un artefact JSON versionné associe la structure Pmetrics, son erreur polynomiale et les points de support pondérés. Le schéma est dans `pmetrics/schema/` et les artefacts livrés avec l'application dans `pmetrics/artifacts/`. Le serveur n'exécute pas de code R provenant d'un téléversement : seuls les gabarits structurels explicitement pris en charge et les artefacts du dépôt sont acceptés.
@@ -22,6 +27,20 @@ npm run tdm:run
 Ouvrir ensuite `http://127.0.0.1:3838/`.
 
 Le script local active `ALLOW_CUSTOM_MODELS=true`, ce qui autorise le collage et la compilation de C++. Ne pas activer cette option sur un serveur public non isolé.
+
+## Déploiement Shiny
+
+Depuis la racine du dépôt, vérifier d'abord le manifeste public sans déployer :
+
+```powershell
+Rscript scripts/deploy_shiny.R
+```
+
+Le manifeste doit contenir `mrgsolve` et `mapbayr`, mais pas `Pmetrics`. Après
+revue, `Rscript scripts/deploy_shiny.R --deploy` publie ce profil compatible
+Shinyapps.io avec `ENABLE_PMETRICS=false`. Le mode
+`--with-pmetrics` est réservé à un hébergement dont la chaîne R/Rust est
+compatible ; il ne doit pas être utilisé sur Shinyapps.io actuellement.
 
 ## Fonctionnalités
 

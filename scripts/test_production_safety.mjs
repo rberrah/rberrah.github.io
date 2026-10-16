@@ -14,6 +14,14 @@ assert.match(read('tdm-engine/app.R'), /Sys\.getenv\("ALLOW_CUSTOM_MODELS", "fal
   'The public application must default to ALLOW_CUSTOM_MODELS=false');
 assert.match(read('scripts/deploy_shiny.R'), /Sys\.setenv\(ALLOW_CUSTOM_MODELS = "false"\)/,
   'The Shiny deployment script must force ALLOW_CUSTOM_MODELS=false');
+assert.match(read('tdm-engine/app.R'), /Sys\.getenv\("ENABLE_PMETRICS", "auto"\)/,
+  'The application must expose an explicit optional Pmetrics mode');
+assert.match(read('scripts/deploy_shiny.R'), /Sys\.setenv\(ENABLE_PMETRICS = "false"\)/,
+  'The public Shiny deployment must disable Pmetrics');
+assert.match(read('scripts/deploy_shiny.R'), /!"Pmetrics" %in% deps\$Package/,
+  'The public Shiny manifest must reject an accidental Pmetrics dependency');
+assert.match(read('tdm-engine/R/pmetrics_disabled.R'), /pmetrics_artifact_catalog <- function\(\) data\.frame/,
+  'The public Shiny profile must provide a disabled Pmetrics adapter');
 
 for (const file of deploymentFiles) {
   assert.doesNotMatch(read(file), /ALLOW_CUSTOM_MODELS\s*[:=]\s*["']?true/i,

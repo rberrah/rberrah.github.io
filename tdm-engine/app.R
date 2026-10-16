@@ -71,7 +71,12 @@ source(file.path(APP_ROOT, "R", "model_library.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "private_workspace.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "i18n.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "clinical_presets.R"), local = TRUE)
-source(file.path(APP_ROOT, "R", "pmetrics_engine.R"), local = TRUE)
+pmetrics_mode <- tolower(trimws(Sys.getenv("ENABLE_PMETRICS", "auto")))
+if (!pmetrics_mode %in% c("auto", "true", "false")) stop("ENABLE_PMETRICS must be auto, true, or false.")
+pmetrics_installed <- requireNamespace(paste0("P", "metrics"), quietly = TRUE)
+if (identical(pmetrics_mode, "true") && !pmetrics_installed) stop("ENABLE_PMETRICS=true but Pmetrics is not installed.")
+PMETRICS_ENABLED <- !identical(pmetrics_mode, "false") && pmetrics_installed
+source(file.path(APP_ROOT, "R", if (PMETRICS_ENABLED) "pmetrics_engine.R" else "pmetrics_disabled.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ml_engine.R"), local = TRUE)
 source(file.path(APP_ROOT, "R", "ddi_engine.R"), local = TRUE)
@@ -662,7 +667,7 @@ app_ui <- function(request) {
           tags$strong("Outil de recherche et d'enseignement"),
           span("Les résultats ne remplacent ni la validation locale du modèle ni le jugement clinique.")
         ),
-        span(class = "engine-badge", "mrgsolve + mapbayr / Pmetrics")
+        span(class = "engine-badge", if (PMETRICS_ENABLED) "mrgsolve + mapbayr / Pmetrics" else "mrgsolve + mapbayr")
       ),
       uiOutput("pd_tdm_return"),
       tags$button(
@@ -685,7 +690,10 @@ app_ui <- function(request) {
               radioButtons(
                 "model_source",
                 NULL,
-                choices = stats::setNames(c("library", "pmetrics", "custom"), c("Biblioth\u00e8que", "Pmetrics", "Atelier Lego / C++")),
+                choices = stats::setNames(
+                  c("library", if (PMETRICS_ENABLED) "pmetrics", "custom"),
+                  c("Biblioth\u00e8que", if (PMETRICS_ENABLED) "Pmetrics", "Atelier Lego / C++")
+                ),
                 selected = "library",
                 inline = TRUE
               ),
@@ -1122,8 +1130,8 @@ app_ui <- function(request) {
     )
   ),
   footer = div(class = "app-footer", app_t(lang,
-    "PMx Explain · moteurs R mrgsolve/mapbayr et Pmetrics · aucun dossier patient n'est persisté",
-    "PMx Explain · R engines mrgsolve/mapbayr and Pmetrics · no patient record is persisted"
+    paste0("PMx Explain · moteurs R mrgsolve/mapbayr", if (PMETRICS_ENABLED) " et Pmetrics" else "", " · aucun dossier patient n'est persisté"),
+    paste0("PMx Explain · R engines mrgsolve/mapbayr", if (PMETRICS_ENABLED) " and Pmetrics" else "", " · no patient record is persisted")
   ))
 ), lang)
 }
