@@ -1,15 +1,24 @@
-# MultiOmics deployment handoff — permanent original URLs
+# MultiOmics deployment handoff — independent source and short canonical URL
 
 **Owner:** MultiOmics sources are maintained in the separate public repository
 https://github.com/rberrah/MultiOmics. PMx Explain remains the owner of
-the single Pages deployment and the educational site. There is **no change**
-to the publicly linked MultiOmics paths:
+the single Pages deployment and the educational site.
 
-- https://rberrah.github.io/pharmacometrie/multiomics/
-- https://rberrah.github.io/pharmacometrie/multiomics/tool/
-- https://rberrah.github.io/pharmacometrie/multiomics/learn/
+**Target canonical routes:**
 
-Also preserve existing shorthand portal routes and static templates.
+- https://rberrah.github.io/multiomics/
+- https://rberrah.github.io/multiomics/tool/
+- https://rberrah.github.io/multiomics/learn/
+
+The historical `/pharmacometrie/multiomics/` routes remain compatibility
+aliases during the cut-over and must preserve deep links, query strings and
+fragments. They are no longer intended to remain canonical permanently.
+
+Extraction is progressive. Phase 1 removes the duplicate R engine and
+MultiOmics-specific scientific workflows from PMx Explain; source qualification
+now belongs to `rberrah/MultiOmics`. Browser routes and the final Pages overlay
+remain in PMx until the direct `/multiomics/` artifact is adopted in a separate
+release PR.
 
 ## Release controls
 
@@ -72,11 +81,19 @@ any URL changes. If overlay integration itself fails, revert the isolated PMx
 integration commit before the next deployment and leave original PMx-owned
 MultiOmics sources in place.
 
-This release PR does **not** delete MultiOmics code from PMx Explain: it will
-be removed only in a later, independent cleanup after the portal agents'
-work, accessibility checks, scientific golden comparisons and a stable
-public release. PR #115's public smoke must be reconciled with the new
-deploy workflow before relying on post-deployment alerts.
+The extraction is staged to keep rollback simple:
+
+1. remove the duplicate `multiomics-engine/` backend and all
+   `.github/workflows/multiomics-*.yml` scientific workflows from PMx;
+2. switch the assembled Pages artifact to the independently built root
+   `/multiomics/` overlay;
+3. convert historical `/pharmacometrie/multiomics/` paths to compatibility
+   aliases;
+4. remove duplicate Svelte routes, static assets and MultiOmics-only test
+   harnesses from PMx once the new root deployment passes browser acceptance.
+
+At every stage PMx must pin an immutable, independently qualified MultiOmics
+commit and retain a documented rollback SHA.
 
 GitHub Pages serves static browser code, not a live R service. Reference R
 inference requires an explicitly chosen local or institutionally approved
