@@ -44,12 +44,6 @@ jobs:
         run: npm run build
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      # MultiOmics is versioned in its own public repository. The source SHA
-      # is immutable; CI must fail if its scientific validation is incomplete.
-      - name: Qualify pinned independent MultiOmics source
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/verify_multiomics_upstream_release.mjs
       - name: Fetch standalone MultiOmics from immutable source commit
         shell: bash
         run: |
@@ -113,6 +107,13 @@ jobs:
         env:
           LABS_E2E_PREBUILT: "true"
         run: npm run test:e2e:pmx
+      # The source gate runs after local browser qualification so a pending
+      # upstream scientific run cannot hide defects in the assembled candidate.
+      # No Pages artifact is uploaded and nothing is deployed unless it passes.
+      - name: Qualify pinned independent MultiOmics source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify_multiomics_upstream_release.mjs
       - name: Preserve qualified Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v6
