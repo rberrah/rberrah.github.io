@@ -33,7 +33,7 @@ assert.match(read('src/lib/stores/language.js'), /pharmacometrie-language/);
 assert.match(read('src/lib/learning/assessment.js'), /progressKey = 'pmx-learning-v1'/);
 assert.match(read('src/lib/learning/assessment.js'), /never arbitrary saved inputs or patient data/);
 
-assert.match(read('playwright.pmx.config.js'), /trace:\\s*'off'/, 'PMx browser tests must not retain model or patient-shaped inputs in traces');
+assert.match(read('playwright.pmx.config.js'), /trace:\s*'off'/, 'PMx browser tests must not retain model or patient-shaped inputs in traces');
 
 const gitignore = read('.gitignore');
 for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/']) {
