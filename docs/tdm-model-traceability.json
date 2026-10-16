@@ -1482,7 +1482,7 @@
       "pmxAdaptations": "No PMx adaptation documented.",
       "implementationStatus": "ARTICLE",
       "softwareContractStatus": "SOFTWARE_TESTED",
-      "numericalCheckStatus": "not-checked",
+      "numericalCheckStatus": "deterministic-software-regression",
       "sourceReproductionStatus": "pending-independent-reproduction",
       "mapTdm": {
         "eligible": true,
@@ -3829,7 +3829,7 @@
       "pmxAdaptations": "No PMx adaptation documented.",
       "implementationStatus": "ARTICLE",
       "softwareContractStatus": "SOFTWARE_TESTED",
-      "numericalCheckStatus": "not-checked",
+      "numericalCheckStatus": "deterministic-software-regression",
       "sourceReproductionStatus": "pending-independent-reproduction",
       "mapTdm": {
         "eligible": true,

@@ -8,7 +8,7 @@ This inventory links each shipped model to its declared primary source and to th
 2. **Deterministic software regression:** selected models have fixed inputs and expected outputs in `tdm-engine/tests/model_reference_cases.R`.
 3. **Scientific reproduction:** comparison with source equations, source software or published reference outputs; this remains pending unless explicitly documented.
 
-Current catalog: **46 models** (12 labelled article implementations, 34 documented adaptations; 13 exposed as MAP priors). **6 models** currently have deterministic numeric reference profiles.
+Current catalog: **46 models** (12 labelled article implementations, 34 documented adaptations; 13 exposed as MAP priors). **8 models** currently have deterministic numeric reference profiles.
 
 Population text and administration route define the currently encoded validity context. Numerical age, weight, renal-function and dose ranges are not yet structured for every article; absence of a range below must not be interpreted as permission to extrapolate.
 
@@ -26,7 +26,7 @@ Population text and administration route define the currently encoded validity c
 | `cefazoline_lanoiselee` | [Lanoiselée J et al. Sci Rep. 2021;11:19763.](https://doi.org/10.1038/s41598-021-99162-7) | IV / IV_INTERMITTENT | h; mg/L | ARTICLE | Yes | Compile + contract |
 | `cefazoline_schmitz` | [Schmitz ML et al. Antimicrob Agents Chemother. 2015;59:4173-4180.](https://doi.org/10.1128/AAC.00082-15) | IV / IV_INTERMITTENT | h; mg/L | ADAPTED | No | Compile + contract |
 | `cefepime_an` | [An G et al. J Antimicrob Chemother. 2023;78:1460-1470.](https://doi.org/10.1093/jac/dkad106) | IV / IV_INTERMITTENT | h; mg/L | ARTICLE | Yes | Compile + contract |
-| `cefepime_jonckheere` | [Jonckheere S et al. J Antimicrob Chemother. 2016;71:2538-2546.](https://doi.org/10.1093/jac/dkw171) | IV / IV_INTERMITTENT | h; mg/L | ARTICLE | Yes | Compile + contract |
+| `cefepime_jonckheere` | [Jonckheere S et al. J Antimicrob Chemother. 2016;71:2538-2546.](https://doi.org/10.1093/jac/dkw171) | IV / IV_INTERMITTENT | h; mg/L | ARTICLE | Yes | Deterministic regression |
 | `cefepime_seo` | [Seo H et al. Infect Chemother. 2023;55:29-41.](https://doi.org/10.3947/ic.2022.0087) | IV / IV_INTERMITTENT | h; mg/L | ARTICLE | Yes | Compile + contract |
 | `ciclosporine_press_ddi` | [Press RR et al. Eur J Clin Pharmacol. 2010;66:579-590.](https://doi.org/10.1007/s00228-010-0810-9) | Oral / ORAL | h; ng/mL | ADAPTED | No | Compile + contract |
 | `cobicistat_mathias_ddi` | [Mathias AA et al. Clin Pharmacol Ther. 2010;87:322-329.](https://doi.org/10.1038/clpt.2009.228) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
@@ -51,7 +51,7 @@ Population text and administration route define the currently encoded validity c
 | `posaconazole_dolton_ddi` | [Dolton MJ et al. Antimicrob Agents Chemother. 2014;58:6879-6885.](https://doi.org/10.1128/AAC.03777-14) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
 | `rifampicine_chang` | [Chang MJ et al. Tuberculosis (Edinb). 2015;95:54-59.](https://doi.org/10.1016/j.tube.2014.10.013) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
 | `rifampicine_jeremiah` | [Jeremiah K et al. Antimicrob Agents Chemother. 2014;58:3468-3474.](https://doi.org/10.1128/AAC.02307-13) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
-| `rifampicine_jing` | [Jing Y et al. J Clin Pharmacol. 2016;56:622-627.](https://doi.org/10.1002/jcph.643) | Oral / ORAL | h; mg/L | ARTICLE | Yes | Compile + contract |
+| `rifampicine_jing` | [Jing Y et al. J Clin Pharmacol. 2016;56:622-627.](https://doi.org/10.1002/jcph.643) | Oral / ORAL | h; mg/L | ARTICLE | Yes | Deterministic regression |
 | `rifampicine_loos_ddi` | [Loos U et al. Klin Wochenschr. 1985;63:1205-1211.](https://doi.org/10.1007/BF01733779) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
 | `rifampicine_marsot` | [Marsot A et al. Br J Clin Pharmacol. 2017;83:1039-1047.](https://doi.org/10.1111/bcp.13178) | Oral / ORAL | h; mg/L | ARTICLE | Yes | Compile + contract |
 | `ritonavir_kappelhoff_ddi` | [Kappelhoff BS et al. Br J Clin Pharmacol. 2005;59:174-182.](https://doi.org/10.1111/j.1365-2125.2004.02241.x) | Oral / ORAL | h; mg/L | ADAPTED | No | Compile + contract |
@@ -206,7 +206,7 @@ Population text and administration route define the currently encoded validity c
 - **MAP prior:** exposed in the TDM analysis workflow.
 - **Fidelity status:** Article implementation according to the author audit; independent reproduction pending.
 - **Documented modification or limitation:** No adaptation is documented in catalog metadata. Independent source reproduction is still required.
-- **Reference testing:** compilation and interface-contract test only; no frozen numeric profile yet.
+- **Reference testing:** 2 000 mg by 30-minute IV infusion; concentrations at 1, 4, 12 and 24 h; zero ETA and residual errors; deterministic software-regression tolerance `1e-7`.
 
 ### Cefepime - Seo (`cefepime_seo`)
 
@@ -531,7 +531,7 @@ Population text and administration route define the currently encoded validity c
 - **MAP prior:** exposed in the TDM analysis workflow.
 - **Fidelity status:** Article implementation according to the author audit; independent reproduction pending.
 - **Documented modification or limitation:** No adaptation is documented in catalog metadata. Independent source reproduction is still required.
-- **Reference testing:** compilation and interface-contract test only; no frozen numeric profile yet.
+- **Reference testing:** 450 mg oral; concentrations at 1, 4, 12 and 24 h; zero ETA and residual errors; deterministic software-regression tolerance `1e-7`.
 
 ### Rifampicine - Loos (`rifampicine_loos_ddi`)
 

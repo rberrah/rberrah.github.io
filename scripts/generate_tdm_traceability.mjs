@@ -16,7 +16,9 @@ const referenceCases = new Map([
   ['vanco_goti', '1 000 mg IV; concentrations at 1, 4, 12 and 24 h'],
   ['vanco_roberts', '1 000 mg/24 h by continuous IV infusion; concentrations at 1, 4, 12 and 24 h'],
   ['tacrolimus_woillard_ddi', '5 mg oral; concentrations at 1, 4, 12 and 24 h'],
-  ['dapto_dvorchik_IV_adults', '500 mg IV; concentrations at 1, 4, 12 and 24 h']
+  ['dapto_dvorchik_IV_adults', '500 mg IV; concentrations at 1, 4, 12 and 24 h'],
+  ['cefepime_jonckheere', '2 000 mg by 30-minute IV infusion; concentrations at 1, 4, 12 and 24 h'],
+  ['rifampicine_jing', '450 mg oral; concentrations at 1, 4, 12 and 24 h']
 ]);
 
 function sections(code) {
