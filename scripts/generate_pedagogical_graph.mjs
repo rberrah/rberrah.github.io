@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 import { exercises } from '../src/lib/content/exercises.js';
 import { guidedActivities } from '../src/lib/content/guidedActivities.js';
 import { beginnerTrack, tracks } from '../src/lib/content/tracks.js';
