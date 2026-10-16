@@ -42,5 +42,6 @@ Before a Pages upload, the common pull-request/`main` qualification must:
 
 Only the successful `main` qualification uploads `pmx-pages-dist`; the separate
 deployment workflow downloads that exact run's artifact and publishes it. The
-final Pages artifact may contain the portal, Stats, MultiOmics and PMx, but their
-scientific qualification workflows remain separate.
+final PMx Pages artifact contains the academic portal, PMx and the pinned MultiOmics mount.
+Stats is deployed independently from `rberrah/stats`; its scientific qualification and
+release lifecycle remain separate.
