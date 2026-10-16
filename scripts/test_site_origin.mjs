@@ -5,6 +5,15 @@ import path from 'node:path';
 import { getSiteOrigin, SITE_ORIGIN_TOKEN } from '../site.config.js';
 import { configureSiteOrigin } from './configure_site_origin.mjs';
 
+
+async function materializeExternallyMountedRoutes(directory) {
+  for (const route of ['multiomics', 'multiomics/tool', 'multiomics/learn']) {
+    const target = path.join(directory, route);
+    await mkdir(target, { recursive: true });
+    await writeFile(path.join(target, 'index.html'), '<!doctype html><title>external mount fixture</title>');
+  }
+}
+
 test('origin normalisation and invalid origins', () => {
   const previous = process.env.PUBLIC_SITE_ORIGIN;
   try {
@@ -33,6 +42,7 @@ test('portal tokens, generated counter configuration, idempotence and unchanged 
   const directory = await mkdtemp(path.resolve('test-results/origin-'));
   const original = await readFile('portal/index.html', 'utf8');
   await cp('portal', directory, { recursive: true });
+  await materializeExternallyMountedRoutes(directory);
   const origin = 'https://pharmacology.example:8443';
   await configureSiteOrigin(directory, origin);
   for (const file of ['index.html', 'publications/index.html', 'communications/index.html',
@@ -58,6 +68,7 @@ test('a stale application build or a missing sitemap destination blocks assembly
   await mkdir('test-results', { recursive: true });
   const directory = await mkdtemp(path.resolve('test-results/origin-mismatch-'));
   await cp('portal', directory, { recursive: true });
+  await materializeExternallyMountedRoutes(directory);
   const origin = 'https://pharmacology.example';
   const app = path.join(directory, 'pharmacometrie');
   await mkdir(app);
