@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for route in '' 'multiomics/' 'multiomics/tool/' 'pharmacometrie/multiomics/' 'pharmacometrie/multiomics/tool/' 'pharmacometrie/multiomics/learn/'; do
+          for route in '' 'multiomics/' 'multiomics/tool/' 'multiomics/learn/' 'pharmacometrie/multiomics/' 'pharmacometrie/multiomics/tool/' 'pharmacometrie/multiomics/learn/'; do
             url="https://rberrah.github.io/$route"
             file="$(mktemp)"
             status="$(curl --location --silent --show-error --retry 5 --retry-delay 12 --retry-connrefused --max-time 30 -o "$file" -w '%{http_code}' "$url")"
