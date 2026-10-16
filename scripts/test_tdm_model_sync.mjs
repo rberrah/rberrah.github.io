@@ -11,8 +11,12 @@ const snapshotRoot = new URL('static/tdm/models/', root);
 
 assert.equal(generated.models.length, 46, 'The PMx TDM consumer snapshot must contain 46 models');
 const catalogFiles = generated.models.map((model) => model.file).sort();
-const snapshotFiles = readdirSync(snapshotRoot).filter((file) => file.endsWith('.cpp')).sort();
-assert.deepEqual(snapshotFiles, catalogFiles, 'PMx browser model snapshot differs from its generated catalogue');
+const snapshotFiles = readdirSync(snapshotRoot)
+  .filter((file) => file.endsWith('.cpp'))
+  .filter((file) => metadata[file.replace(/\\.cpp$/i, '')]?.listed !== false)
+  .sort();
+assert.deepEqual(snapshotFiles, catalogFiles,
+  'Published PMx browser model snapshot differs from its generated catalogue');
 
 for (const model of generated.models) {
   assert.ok(metadata[model.id], `${model.id} is missing French metadata`);
