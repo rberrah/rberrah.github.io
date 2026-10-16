@@ -1,5 +1,6 @@
 <script>
   import { base } from '$app/paths';
+  import { browser } from '$app/environment';
   import { onMount, onDestroy, tick } from 'svelte';
   import { page } from '$app/stores';
   import chapters from '$lib/content/loadChapters';
@@ -34,7 +35,7 @@
   // Registre AUTOMATIQUE : tout composant déposé dans
   // src/lib/components/visualizations/ est utilisable via viz="..." sans éditer
   // ce fichier. Voir src/lib/content/vizRegistry.js.
-  import vizMap, { availableVizKeys } from '$lib/content/vizRegistry';
+  import vizLoaders, { availableVizKeys, loadViz } from '$lib/content/vizRegistry';
 
   $: slug = $page.params.slug;
   $: chapter = chapters.find((c) => c.slug === slug);
@@ -100,6 +101,31 @@
   // Description de l'animation active (localisée).
   $: vizDesc = activeViz ? describeViz(activeViz, $language) : '';
   $: activeVizStatus = vizStatus(activeViz, $language);
+
+  /** Components are loaded only for visualizations referenced by the current chapter. */
+  /** @type {Record<string, any>} */
+  let loadedViz = {};
+  /** @type {Map<string, Promise<void>>} */
+  const loadingViz = new Map();
+
+  /** @param {string} key */
+  async function ensureViz(key) {
+    if (!browser || !key || loadedViz[key] || loadingViz.has(key) || !vizLoaders[key]) return;
+    const promise = loadViz(key)
+      .then((component) => {
+        if (component) loadedViz = { ...loadedViz, [key]: component };
+      })
+      .finally(() => loadingViz.delete(key));
+    loadingViz.set(key, promise);
+    await promise;
+  }
+
+  /** @type {string[]} */
+  let chapterVizKeys = [];
+  $: chapterVizKeys = [...new Set((displayChapter?.steps ?? [])
+    .map((/** @type {any} */ step) => step.viz)
+    .filter((/** @type {any} */ key) => typeof key === 'string' && Boolean(vizLoaders[key])))];
+  $: if (browser) chapterVizKeys.forEach((key) => { void ensureViz(key); });
 
   const realDataViz = new Set(['60_WarfarinFit', '61_ResidualError']);
   /**
@@ -179,10 +205,10 @@
     if (!displayChapter) return null;
     for (let i = activeIndex; i >= 0; i--) {
       const v = displayChapter.steps[i]?.viz;
-      if (v && vizMap[v]) return v;
+      if (v && vizLoaders[v]) return v;
     }
     for (const s of displayChapter.steps) {
-      if (s.viz && vizMap[s.viz]) return s.viz;
+      if (s.viz && vizLoaders[s.viz]) return s.viz;
     }
     return null;
   })();
@@ -323,10 +349,10 @@
           <div class="prose">{@html step.html}</div>
 
           <!-- Mobile : la figure de CETTE étape, à côté de son texte. -->
-          {#if !isDesktop && step.viz && vizMap[step.viz]}
+          {#if !isDesktop && step.viz && loadedViz[step.viz]}
             <figure class="viz-inline" data-testid="viz-inline">
               <div class="viz-status">{vizStatus(step.viz, $language)}</div>
-              <svelte:component this={vizMap[step.viz]} />
+              <svelte:component this={loadedViz[step.viz]} />
               {#if describeViz(step.viz, $language)}
                 <figcaption>{describeViz(step.viz, $language)}</figcaption>
               {/if}
@@ -370,7 +396,7 @@
     {#if isDesktop}
     <aside class="viz-panel" data-testid="viz-panel">
       <div class="viz-inner">
-        {#if activeViz && vizMap[activeViz]}
+        {#if activeViz && loadedViz[activeViz]}
           {#key activeViz}
             <div
               class="viz-swap"
@@ -380,15 +406,17 @@
               {#if activeVizStatus}
                 <div class="viz-status">{activeVizStatus}</div>
               {/if}
-              <svelte:component this={vizMap[activeViz]} />
+              <svelte:component this={loadedViz[activeViz]} />
               {#if vizDesc}
                 <p class="viz-caption" data-testid="viz-caption"><span class="viz-caption-label">{copy.chapter.vizCaption}</span> {vizDesc}</p>
               {/if}
             </div>
           {/key}
+        {:else if activeViz && vizLoaders[activeViz]}
+          <div class="viz-empty" aria-live="polite"><p>{copy.chapter.loading ?? ($language === 'en' ? 'Loading visualization…' : 'Chargement de la visualisation…')}</p></div>
         {:else if activeSlideIds.length}
           <SlideFigure slideIds={activeSlideIds} />
-        {:else if requestedViz && !vizMap[requestedViz]}
+        {:else if requestedViz && !vizLoaders[requestedViz]}
           <div class="viz-empty">
             <p><strong>{copy.chapter.vizMissing}</strong> <code>{requestedViz}</code></p>
             <p class="hint">{copy.chapter.vizCheck} <code>src/lib/components/visualizations/</code>. {copy.chapter.vizAvailable}</p>
