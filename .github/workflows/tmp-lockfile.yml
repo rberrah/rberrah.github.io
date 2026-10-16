@@ -18,7 +18,9 @@ jobs:
           node-version: 22
           cache: npm
       - name: Resolve patched dependency graph
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          rm package-lock.json
+          npm install --package-lock-only --ignore-scripts
       - name: Emit generated lockfile
         run: |
           echo LOCK_B64_BEGIN
