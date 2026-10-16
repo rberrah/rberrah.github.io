@@ -544,9 +544,9 @@ CV HAL             https://cv.hal.science/racym-berrah
 GitHub             https://github.com/rberrah
 LinkedIn           https://www.linkedin.com/in/racym-berrah-114387175/
 Portail            https://rberrah.github.io/
-Licence du texte   CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
-SPDX               CC-BY-SA-4.0
-Licence du code    MIT
+Licence du texte   CC BY-NC-SA 4.0 — https://creativecommons.org/licenses/by-nc-sa/4.0/
+SPDX               CC-BY-NC-SA-4.0
+Licence du code    PolyForm Noncommercial 1.0.0
 Version courante   2026.1
 ```
 
