@@ -1,8 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
-const result = JSON.parse(readFileSync(new URL('tdm-engine/pmetrics/benchmarks/pmetrics-official-example.json', root), 'utf8'));
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const engineRoot = process.env.MIPD_ENGINE_DIR
+  ? path.resolve(process.env.MIPD_ENGINE_DIR)
+  : path.join(repoRoot, 'tdm-engine');
+const result = JSON.parse(readFileSync(path.join(engineRoot, 'pmetrics', 'benchmarks', 'pmetrics-official-example.json'), 'utf8'));
 const chapters = [
   readFileSync(new URL('src/content/chapters/08c_pmetrics-nonparametric.md', root), 'utf8'),
   readFileSync(new URL('src/content/chapters/en/08c_pmetrics-nonparametric.md', root), 'utf8')

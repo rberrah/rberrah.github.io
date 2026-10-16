@@ -29,3 +29,17 @@ only GitHub Actions status. The current contract requires:
 A future standalone release that intentionally changes any of these values must
 update the PMx consumer contract in an explicit reviewable commit; it cannot be
 adopted silently by moving a branch or tag.
+
+
+## PMx scientific consumer transition
+
+PMx CI no longer needs the repository-local mirror to execute the core R and
+Pmetrics qualification. The `scientific-r`, `scientific-pmetrics` and full
+official Pmetrics benchmark jobs fetch the immutable SHA from
+`integration/mipd-release.json` and execute the corresponding tests and
+benchmarks from that standalone checkout.
+
+The local `tdm-engine/` directory is retained temporarily only as a development
+fallback for scripts that have not yet been converted to the external engine
+root. This phase deliberately proves external consumption before the mirror is
+deleted in a later, separate PR.

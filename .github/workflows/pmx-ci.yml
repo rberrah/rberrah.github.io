@@ -172,23 +172,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Fetch standalone MIPD Engine from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(node -p "JSON.parse(require('fs').readFileSync('integration/mipd-release.json','utf8')).sha")"
+          source_dir="$RUNNER_TEMP/mipd-engine-source"
+          rm -rf "$source_dir"
+          git init "$source_dir"
+          git -C "$source_dir" remote add origin https://github.com/rberrah/MIPD-Engine.git
+          git -C "$source_dir" fetch --depth 1 origin "$sha"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
+          echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
       - name: Install R dependencies
         run: Rscript -e "install.packages(c('mrgsolve', 'mapbayr', 'dplyr', 'jsonlite', 'htmltools', 'xgboost', 'DALEX', 'digest'))"
-      - name: Test TDM engine core
-        env:
-          TDM_SMOKE_CORE_ONLY: "true"
-        run: Rscript tdm-engine/tests/smoke_test.R
-      - name: Test safe Lego contract
-        run: Rscript tdm-engine/tests/safe_lego_test.R
-      - name: Compile and validate the model library
-        run: Rscript tdm-engine/tests/validate_library.R
-      - name: Test deterministic model reference cases
-        run: Rscript tdm-engine/tests/model_reference_cases.R
-      - name: Test private session cleanup and interrupted calculations
-        run: npm run tdm:test-privacy
+      - name: Test standalone TDM engine core
+        shell: bash
+        run: |
+          cd "$MIPD_ENGINE_DIR"
+          TDM_SMOKE_CORE_ONLY=true Rscript tests/smoke_test.R
+      - name: Test standalone safe Lego contract
+        run: cd "$MIPD_ENGINE_DIR" && Rscript tests/safe_lego_test.R
+      - name: Compile and validate standalone model library
+        run: cd "$MIPD_ENGINE_DIR" && Rscript tests/validate_library.R
+      - name: Test standalone deterministic model reference cases
+        run: cd "$MIPD_ENGINE_DIR" && Rscript tests/model_reference_cases.R
+      - name: Test standalone private session cleanup and interrupted calculations
+        run: cd "$MIPD_ENGINE_DIR" && Rscript tests/privacy_nonretention_test.R
 
   scientific-pmetrics:
     runs-on: ubuntu-26.04
@@ -205,6 +224,19 @@ jobs:
         with:
           r-version: "4.6.1"
           use-public-rspm: true
+      - name: Fetch standalone MIPD Engine from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="$(node -p "JSON.parse(require('fs').readFileSync('integration/mipd-release.json','utf8')).sha")"
+          source_dir="$RUNNER_TEMP/mipd-engine-source"
+          rm -rf "$source_dir"
+          git init "$source_dir"
+          git -C "$source_dir" remote add origin https://github.com/rberrah/MIPD-Engine.git
+          git -C "$source_dir" fetch --depth 1 origin "$sha"
+          git -C "$source_dir" checkout --detach FETCH_HEAD
+          test "$(git -C "$source_dir" rev-parse HEAD)" = "$sha"
+          echo "MIPD_ENGINE_DIR=$source_dir" >> "$GITHUB_ENV"
       - name: Install pinned Pmetrics and backend dependencies
         run: |
           Rscript -e 'rv <- paste(R.version$major, strsplit(R.version$minor, "\\.")[[1]][1], sep = "."); binary_repo <- function(universe) sprintf("https://%s.r-universe.dev/bin/linux/resolute-%s/%s", universe, R.version$arch, rv); options(repos = c(LAPKB = binary_repo("lapkb"), CRAN = binary_repo("cran"))); install.packages(c("Pmetrics", "mrgsolve", "mapbayr", "jsonlite")); stopifnot(as.character(packageVersion("Pmetrics")) == Sys.getenv("PMETRICS_VERSION"))'
