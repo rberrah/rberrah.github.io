@@ -14,8 +14,10 @@ test('Existing portal, PMx and MultiOmics URLs remain 200 after independent buil
 });
 
 test('A true integrated SvelteKit mount hydrates and computes from synthetic demo', async ({ page }) => {
+  /** @type {string[]} */
   const jsErrors = [];
   page.on('pageerror', err => jsErrors.push(err.message));
+  /** @type {string[]} */
   const failed = [];
   page.on('response', response => {
     if (response.url().startsWith('http://127.0.0.1:4183/') && response.status() >= 400)
@@ -33,7 +35,7 @@ test('A true integrated SvelteKit mount hydrates and computes from synthetic dem
   const positions = await Promise.all([...selectors.map(id => page.getByTestId(id)),
     page.getByTestId('multiomics-quick-demo')].map(x => x.boundingBox()));
   const [a, b, c, all] = positions;
-  expect(a && b && c && all).toBeTruthy();
+  if (!a || !b || !c || !all) throw new Error('Missing one or more demo buttons');
   expect(Math.abs(a.y - b.y)).toBeLessThan(4);
   expect(Math.abs(b.y - c.y)).toBeLessThan(4);
   expect(all.y).toBeGreaterThan(a.y + a.height - 3);
@@ -54,7 +56,7 @@ test('Same historical MultiOmics URL is usable at mobile width', async ({ page }
   await expect(full).toBeVisible();
   const a = await mini.boundingBox();
   const b = await full.boundingBox();
-  expect(a && b).toBeTruthy();
+  if (!a || !b) throw new Error('Missing mobile quick-start control');
   expect(b.y).toBeGreaterThan(a.y + a.height - 3);
   expect(b.width).toBeGreaterThan(a.width * 2.5);
   const overflow = await page.evaluate(() =>
