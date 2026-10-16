@@ -4,6 +4,32 @@ import {chromium} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 const origin='https://rberrah.github.io';
+// Validate the DEPLOYED UI, not a source tree or a stale SSR page.
+async function verifyDeployedQuickDemo(page, viewportName) {
+  const controls = [
+    ['multiomics-quick-demo-rna', /Transcriptomique|Transcriptomics/],
+    ['multiomics-quick-demo-protein', /Protéomique|Proteomics/],
+    ['multiomics-quick-demo-metabolite', /Métabolomique|Metabolomics/],
+    ['multiomics-quick-demo', /Multi-omiques|Multi-omics/]
+  ];
+  const boxes = [];
+  for (const [id, label] of controls) {
+    const control = page.getByTestId(id);
+    await control.waitFor({state:'visible', timeout:30000});
+    const actual = (await control.innerText()).trim();
+    if (!label.test(actual))
+      throw new Error('Unexpected public '+viewportName+' control '+id+': '+actual);
+    const bounds = await control.boundingBox();
+    if (!bounds) throw new Error('Unmeasurable public '+id+' button');
+    boxes.push(bounds);
+  }
+  const [rna,protein,metabolite,multi] = boxes;
+  if (Math.abs(rna.y-protein.y)>3 || Math.abs(protein.y-metabolite.y)>3 ||
+      multi.y < rna.y+rna.height-3 || multi.width < rna.width*2.5)
+    throw new Error('Incorrect 3+1 beginner demo layout in '+viewportName);
+  console.log('PASS '+viewportName+': three small single-omics buttons above the wide MultiOmics button');
+}
+
 const browser=await chromium.launch({headless:true});
 try {
   const page=await browser.newPage({viewport:{width:1280,height:850}});
@@ -18,13 +44,13 @@ try {
       url:response.url(),http_status:response.status()
     });
   });
-  const presentation=await page.goto(origin+'/multiomics/',{
+  const presentation=await page.goto(origin+'/pharmacometrie/multiomics/',{
     waitUntil:'domcontentloaded',timeout:30000});
   if(presentation?.status()!==200)
     throw new Error('Presentation HTTP '+presentation?.status());
   await page.getByRole('heading',{level:1})
     .waitFor({state:'visible',timeout:30000});
-  const tool=await page.goto(origin+'/multiomics/tool/',{
+  const tool=await page.goto(origin+'/pharmacometrie/multiomics/tool/',{
     waitUntil:'domcontentloaded',timeout:30000});
   if(tool?.status()!==200)
     throw new Error('Tool HTTP '+tool?.status());
@@ -44,6 +70,7 @@ try {
     },null,2));
     throw error;
   }
+  await verifyDeployedQuickDemo(page,'desktop');
   console.log('PASS: real public page loads AND Svelte hydration completed');
   await page.getByTestId('multiomics-quick-demo-rna').click();
   try {
@@ -82,7 +109,7 @@ try {
       url:response.url(),http_status:response.status()
     });
   });
-  await mobile.goto(origin+'/multiomics/tool/',{
+  await mobile.goto(origin+'/pharmacometrie/multiomics/tool/',{
     waitUntil:'domcontentloaded',timeout:30000});
   await mobile.getByTestId('multiomics-quick-demo-rna')
     .waitFor({state:'visible',timeout:30000});
@@ -98,6 +125,7 @@ try {
     },null,2));
     throw error;
   }
+  await verifyDeployedQuickDemo(mobile,'mobile');
   const overflow=await mobile.evaluate(()=>
     document.documentElement.scrollWidth-document.documentElement.clientWidth);
   if(overflow>12)
@@ -146,7 +174,7 @@ try {
        new URL(url).origin!==origin)
       outbound.push({method:req.method(),url});
   });
-  const response=await research.goto(origin+'/multiomics/tool/',{
+  const response=await research.goto(origin+'/pharmacometrie/multiomics/tool/',{
     waitUntil:'domcontentloaded',timeout:30000
   });
   if(response?.status()!==200)
