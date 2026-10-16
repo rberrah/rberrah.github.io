@@ -10,10 +10,13 @@
 User-agent: *
 Allow: /
 
-# Point d'entrée recommandé : l'index agrège la racine et Pharmacométrie.
+# Point d'entrée recommandé : l'index agrège la racine, Pharmacométrie et le site Stats autonome.
 Sitemap: __SITE_ORIGIN__/sitemap-index.xml
 
 # Les sitemaps sont aussi déclarés individuellement : si un outil ne suit pas les
-# index, il découvre quand même les deux ensembles d'URL publiés ici.
+# index, il découvre quand même les ensembles d'URL publiés sur cette origine.
 Sitemap: __SITE_ORIGIN__/sitemap.xml
 Sitemap: __SITE_ORIGIN__/pharmacometrie/sitemap.xml
+
+# Stats est déployé indépendamment depuis rberrah/stats.
+Sitemap: __SITE_ORIGIN__/stats/sitemap.xml

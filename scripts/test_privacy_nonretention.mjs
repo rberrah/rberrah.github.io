@@ -42,8 +42,6 @@ for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/']) 
 
 const protectedExtensions = new Set(['.pdf', '.docx', '.pptx', '.zip']);
 const approvedPublicDocuments = path =>
-  path === 'Pharmacométrie Pratique.pptx' ||
-  path === 'static/pharmacometrie-pratique.pptx' ||
   path === 'static/downloads/pharmacometrie-pratique.pptx' ||
   path.startsWith('portal/communications/files/');
 let tracked = [];
@@ -57,6 +55,8 @@ try {
 }
 const protectedTracked = tracked.filter(path => protectedExtensions.has(extname(path).toLowerCase()) && !approvedPublicDocuments(path));
 assert.deepEqual(protectedTracked, [], `Unapproved protected source documents must not be tracked: ${protectedTracked.join(', ')}`);
+assert.equal(tracked.includes('Pharmacométrie Pratique.pptx'), false, 'Keep only the canonical public teaching-deck copy under static/downloads');
+assert.equal(tracked.includes('static/pharmacometrie-pratique.pptx'), false, 'Keep only the canonical public teaching-deck copy under static/downloads');
 assert.equal(tracked.some(path => path.startsWith('tdm-engine/')), false, 'PMx must not track a local MIPD engine mirror');
 const patientExports = tracked.filter(path => /(^|\/)(tdm-patient|tdm-report)-/i.test(path));
 assert.deepEqual(patientExports, [], `Patient exports must not be present in the repository tree: ${patientExports.join(', ')}`);

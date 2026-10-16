@@ -1,5 +1,13 @@
 # Stratégie de notoriété scientifique — Racym Berrah
 
+> **Document historique de conception.** Les exemples de licence MIT / CC BY-SA
+> ci-dessous décrivent l'ancienne politique et ne constituent plus la source de
+> vérité juridique. Pour la version courante, voir `LICENSING.md`,
+> `LICENSE` et `LICENSE-CONTENT.md` : code original sous PolyForm
+> Noncommercial 1.0.0 et contenu original sous CC BY-NC-SA 4.0. Les droits déjà
+> accordés par les versions antérieures restent inchangés.
+
+
 **Principe directeur.** Le nom n'est pas mis en avant : il est rendu *récupérable*. Sur dix ans, ce qui associe durablement un nom à un contenu n'est pas la répétition du nom mais la présence, sur chaque objet, des métadonnées qui permettent à un tiers — lecteur, enseignant, moteur, outil bibliométrique — de le citer sans effort et sans ambiguïté. Tout ce qui suit découle de cette phrase : on outille la citation, on n'appelle pas à citer.
 
 **Note préalable sur les chiffres.** Les volumes annoncés dans le brief ne correspondent pas exactement au disque. Comptage effectué ce jour dans les trois dépôts :
@@ -290,7 +298,7 @@ identifiers:
 
 ### Étape 4 — Nettoyer ce que Zenodo va archiver (1 h)
 
-Zenodo archive l'archive ZIP générée par GitHub pour le tag. Les fichiers ignorés par `.gitignore` (`node_modules`, `/build`, `/dist`) en sont absents — c'est déjà correct dans le dépôt. En revanche sont **suivis** et donc archivés : `static/pharmacometrie-pratique.pptx`, `static/downloads/pharmacometrie-pratique.pptx` (doublon), et l'ensemble des `static/slides/*.png`.
+Zenodo archive l'archive ZIP générée par GitHub pour le tag. Les fichiers ignorés par `.gitignore` (`node_modules`, `/build`, `/dist`) en sont absents — c'est déjà correct dans le dépôt. En revanche sont **suivis** et donc archivés : `static/downloads/pharmacometrie-pratique.pptx` (chemin public canonique) et l'ensemble des `static/slides/*.png`. Les deux copies PPTX redondantes ont été retirées le 16 octobre 2026.
 
 À faire : supprimer le doublon de `.pptx`, et vérifier que les images de diapositives sont bien des productions originales redistribuables sous la licence retenue. Un `.gitattributes` avec `export-ignore` permet d'exclure sélectivement des chemins de l'archive de release sans les retirer du dépôt :
 

@@ -25,7 +25,7 @@ export const dictionary = {
     footer: {
       // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
       licenseIntro: 'PMx Explain · Text',
-      licenseOutro: '· Code MIT · 2026',
+      licenseOutro: '· Code PolyForm Noncommercial 1.0.0 · 2026',
       author: 'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics',
       report: 'Spotted an error? Report it',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
@@ -97,7 +97,7 @@ export const dictionary = {
       citeTitle: 'Cite this page',
       citeCopy: 'Copy',
       citeCopied: 'Copied',
-      citeNote: 'Text licensed under CC BY-SA 4.0'
+      citeNote: 'Current text licensed under CC BY-NC-SA 4.0'
     },
     quiz: {
       correct: 'correct',
@@ -165,13 +165,13 @@ export const dictionary = {
       glossaryTitle: 'Glossary',
       aboutTitle: 'About',
       aboutLede:
-        'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics. This course is drawn from my own teaching deck, “Pharmacométrie Pratique”. Everything here is free, open-source, sourced, and improved over time.',
+        'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics. This course is drawn from my own teaching deck, “Pharmacométrie Pratique”. The site is free to access, source-available, sourced, and improved over time.',
       aboutText:
         'An interactive course on pharmacometrics — PK/PD, population modelling, NCA, PBPK, therapeutic drug monitoring, model validation, clinical-trial design and applied AI. Each chapter pairs a scroll-driven explanation with a live visualization, a quiz and hands-on exercises.',
       aboutItems: [
         'Written by a pharmacist (PharmD) who practises pharmacometrics: made to be clear before being exhaustive.',
         'Every chapter carries its SOURCES (an identifiable paper or reference), its last-revision date, and a link to report an error.',
-        'Open-source and freely reusable (text CC BY-SA 4.0, code MIT): reuse in teaching, including paid teaching, is allowed provided you credit the source and share alike.',
+        'Current version: original text is CC BY-NC-SA 4.0 and original code is PolyForm Noncommercial 1.0.0. Noncommercial reuse is allowed under those terms; earlier versions retain the licences under which they were released.',
         'Educational only — no medical advice and no dosing recommendation.',
         'Bilingual (French / English), built with SvelteKit and deployed on GitHub Pages.'
       ],
@@ -247,7 +247,7 @@ export const dictionary = {
     footer: {
       // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
       licenseIntro: 'PMx Explain · Texte',
-      licenseOutro: '· Code MIT · 2026',
+      licenseOutro: '· Code PolyForm Noncommercial 1.0.0 · 2026',
       author: 'Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie',
       report: 'Une erreur ? Signalez-la',
       reportUrl: 'https://github.com/rberrah/rberrah.github.io/issues/new',
@@ -319,7 +319,7 @@ export const dictionary = {
       citeTitle: 'Citer cette page',
       citeCopy: 'Copier',
       citeCopied: 'Copié',
-      citeNote: 'Texte sous licence CC BY-SA 4.0'
+      citeNote: 'Texte actuel sous licence CC BY-NC-SA 4.0'
     },
     quiz: {
       correct: 'correct',
@@ -387,13 +387,13 @@ export const dictionary = {
       glossaryTitle: 'Glossaire',
       aboutTitle: 'À propos',
       aboutLede:
-        "Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie. Ce cours est tiré de mon propre support d'enseignement, « Pharmacométrie Pratique ». Tout est gratuit, open-source, sourcé et amélioré au fil du temps.",
+        "Écrit et maintenu par Racym Berrah, PharmD, doctorant en pharmacométrie. Ce cours est tiré de mon propre support d'enseignement, « Pharmacométrie Pratique ». Le site est gratuit d'accès, à code source consultable, sourcé et amélioré au fil du temps.",
       aboutText:
         "Un cours interactif de pharmacométrie — PK/PD, modélisation de population, NCA, PBPK, suivi thérapeutique, validation de modèle, design d'essais cliniques et IA appliquée. Chaque chapitre associe une explication défilante, une visualisation interactive, un quiz et des exercices.",
       aboutItems: [
         "Écrit par un pharmacien (PharmD) qui pratique la pharmacométrie : pensé pour être clair avant d'être exhaustif.",
         "Chaque chapitre porte ses SOURCES (article ou référence identifiable), sa date de dernière révision, et un lien pour signaler une erreur.",
-        "Open-source et librement réutilisable (texte CC BY-SA 4.0, code MIT) : la reprise en enseignement, y compris payant, est autorisée à condition de citer et de partager aux mêmes conditions.",
+        "Version courante : le contenu original est sous CC BY-NC-SA 4.0 et le code original sous PolyForm Noncommercial 1.0.0. La réutilisation non commerciale est permise selon ces licences ; les versions antérieures conservent les licences sous lesquelles elles ont été publiées.",
         'Usage pédagogique uniquement — aucun conseil médical ni recommandation posologique.',
         'Bilingue (français / anglais), construit avec SvelteKit et déployé sur GitHub Pages.'
       ],
