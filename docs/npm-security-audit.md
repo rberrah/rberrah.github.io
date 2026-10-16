@@ -23,8 +23,7 @@ The remaining low-severity SvelteKit/cookie advisory requires an application-wid
 release. Do not use `npm audit fix --force` without testing the corresponding
 major framework migrations.
 
-The PMx qualification workflow runs `npm audit --audit-level=high`; a new high
-or critical advisory therefore blocks pull requests and `main` qualification.
+The PMx qualification workflow runs `npm audit --audit-level=moderate`; any new moderate, high or critical advisory therefore blocks pull requests and `main` qualification. The only accepted residual advisories are explicitly documented low-severity findings.
 
 ## `punycode` warning
 
