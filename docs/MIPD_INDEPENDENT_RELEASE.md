@@ -13,3 +13,19 @@ The historical `tdm-engine/` directory remains a rollback mirror during the
 transition. It must not be removed until the standalone deployment and public
 tool transfers are verified. Updating the pin requires a successful standalone
 qualification first; a branch name or moving tag is not accepted.
+
+
+## Pinned runtime and deployment safety contract
+
+The PMx consumer gate also checks the checked-out standalone source itself, not
+only GitHub Actions status. The current contract requires:
+
+- 46 model-library entries;
+- R 4.6.1;
+- Pmetrics 3.2.6 qualification;
+- Shinyapps application ID `17776160` and app name `MIPD_Engine`;
+- production deployment with arbitrary uploaded C++ disabled.
+
+A future standalone release that intentionally changes any of these values must
+update the PMx consumer contract in an explicit reviewable commit; it cannot be
+adopted silently by moving a branch or tag.
