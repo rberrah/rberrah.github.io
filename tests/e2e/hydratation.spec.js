@@ -613,11 +613,20 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   const card = page.locator('.model-card');
   await expect(card).toHaveCount(1);
   await expect(card.getByRole('heading', { level: 3 })).toHaveText('Woillard');
+  await expect(card.locator('.drug')).toHaveText('Tacrolimus');
+  await expect(card.locator('.population')).toContainText('Adultes transplantés rénaux');
+  await expect(card.locator('.source-badge')).toHaveText('adapted');
   await expect(card).toContainText('Article source');
-  await expect(card).toContainText('Orale');
-  await expect(card).toContainText('Adaptation documentée');
   await expect(card).toContainText('Woillard JB et al.');
   await expect(card.getByRole('link', { name: /DOI 10\.1111\/j\.1365-2125\.2010\.03837\.x/ })).toBeVisible();
+  // The simplified card keeps the scientific provenance in view and the
+  // adaptation reason in an accessible disclosure, not in old route badges.
+  const details = card.locator('details.model-details');
+  await expect(details).not.toHaveAttribute('open', '');
+  await details.locator('summary').click();
+  await expect(details).toHaveAttribute('open', '');
+  await expect(details.locator('.adaptation-reason')).toContainText('Adapté pour les simulations d’interactions médicamenteuses (DDI)');
+  await expect(details.locator('.model-actions')).toBeVisible();
   await expect(page.locator('body')).not.toContainText('Woillard DDI');
   await expect(page.locator('body')).not.toContainText('DDI Manager+');
   await expect(page.locator('body')).not.toContainText('PopPK Model');
@@ -626,5 +635,7 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await page.getByRole('combobox', { name: "Voie d'administration" }).selectOption('IV_CONTINUOUS');
   await expect(page.locator('.model-card')).toHaveCount(3);
   await expect(page.locator('.model-card')).toContainText(['Rambaud', 'Revilla', 'Roberts']);
-  await expect(page.locator('.model-card').first()).toContainText('IV continue');
+  // Verify that the route filter itself is active; administration is deliberately
+  // not repeated on every simplified model card.
+  await expect(page.getByRole('combobox', { name: "Voie d'administration" })).toHaveValue('IV_CONTINUOUS');
 });
