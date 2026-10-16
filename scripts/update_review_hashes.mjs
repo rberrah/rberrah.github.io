@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 import { visualizationDescriptions } from '../src/lib/content/vizDescriptions.js';
 import { visualizationReviews } from '../src/lib/content/visualizationReviews.js';
 import { chapterReviewHash, visualizationReviewHash } from './review_hash.mjs';
