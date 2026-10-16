@@ -1,0 +1,8 @@
+# PMx Explain is currently maintained by the repository owner.
+* @rberrah
+
+# Scientific content and integration contracts must never drift without owner review.
+/src/content/chapters/ @rberrah
+/src/lib/components/visualizations/ @rberrah
+/integration/ @rberrah
+/.github/ @rberrah
