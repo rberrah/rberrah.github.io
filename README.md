@@ -13,11 +13,13 @@ actée par cette documentation.
 - `portal/` : sources du portail, publié à la racine de `PUBLIC_SITE_ORIGIN`.
 - `src/` et `static/` : cours, simulations, ateliers Lego/DDI/PD et interface TDM,
   publiés sous `${PUBLIC_SITE_ORIGIN}/pharmacometrie/`.
-- `tdm-engine/` : application R/Shiny et modules de calcul, modèles et artefacts ML.
-  Voir [installation et déploiement Shiny](tdm-engine/README.md).
-- `static/tdm/` et `scripts/generate_tdm_catalog.mjs` : bibliothèque et génération
-  du catalogue, avec synchronisation vers le moteur ; voir les
-  [règles de contribution](CONTRIBUTING_TDM_MODELS.md).
+- **MIPD Engine** est désormais maintenu dans le dépôt autonome
+  [`rberrah/MIPD-Engine`](https://github.com/rberrah/MIPD-Engine). Le dossier
+  `tdm-engine/` reste temporairement un miroir de compatibilité pendant le cut-over
+  PMx → moteur autonome ; il ne doit plus être considéré comme la source de vérité.
+- `static/tdm/` et les générateurs PMx restent, pendant cette transition, les
+  données de consommation du site et les contrôles de compatibilité avec la
+  bibliothèque autonome. Voir [le handoff MIPD](docs/MIPD_ENGINE_HANDOFF.md).
 - `docs/`, `scripts/` et `tests/` : documentation, contrôles de contenu et tests navigateur.
 
 Les comptes actuels sont générés depuis les sources dans
@@ -85,10 +87,11 @@ sert le portail et l'application ensemble sur `http://127.0.0.1:4181/`.
     injecte le compteur et qualifie l'artefact avec les tests JS, R, Pmetrics et navigateur.
 - `.github/workflows/deploy-pages.yml` ne fait que publier l'artefact d'un run
   `main` entièrement réussi. Aucun artefact de pull request ne peut être déployé.
-- Ces workflows ne déploient pas Shiny. Depuis la racine du dépôt,
-  `Rscript scripts/deploy_shiny.R` vérifie les fichiers et dépendances ; ajouter
-  `--deploy` publie le moteur avec le compte configuré. Aucun PDF, test ou fichier
-  local non suivi par Git n'est inclus dans cette sélection.
+- Ces workflows ne déploient pas Shiny. Le déploiement de référence appartient
+  désormais à `rberrah/MIPD-Engine`, qui cible la même application
+  `tdmhub/MIPD_Engine`. PMx pinne un SHA immuable et vérifie sa qualification
+  autonome avant publication. Le script historique local reste uniquement pour
+  rollback pendant la migration.
 - Static hosting : `adapter-static` + `fallback: 404.html` + `static/.nojekyll`.
 - Accès direct aux routes (refresh sur `/chapitres/<slug>/`) supporté via trailing slash et fallback.
 

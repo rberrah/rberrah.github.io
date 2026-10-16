@@ -1,0 +1,11 @@
+{
+  "schema": "mipd-engine-source.v1",
+  "repository": "rberrah/MIPD-Engine",
+  "sha": "83a3026df7c0881d2725333a90d81ef2ed218f90",
+  "publicUrl": "https://tdmhub.shinyapps.io/MIPD_Engine/",
+  "shinyappsAppId": "17776160",
+  "expectedModelCount": 46,
+  "rVersion": "4.6.1",
+  "pmetricsVersion": "3.2.6",
+  "requiredWorkflow": "Standalone MIPD qualification"
+}

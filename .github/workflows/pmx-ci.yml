@@ -34,6 +34,10 @@ jobs:
         run: npm run test:pmx
       - name: Test scientific communications
         run: npm run test:communications
+      - name: Qualify pinned independent MIPD Engine source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify_mipd_upstream_release.mjs
       - name: Regenerate tracked artifacts and reject drift
         run: |
           npm run generate:all
