@@ -5,20 +5,6 @@ import matter from './frontmatter.js';
 import katex from 'katex';
 import MarkdownIt from 'markdown-it';
 
-// Polyfill Buffer pour le navigateur (gray-matter en a besoin).
-const BufferPoly =
-  typeof Buffer !== 'undefined'
-    ? Buffer
-    : class extends Uint8Array {
-        static from(str) {
-          return new TextEncoder().encode(str);
-        }
-        static isBuffer(b) {
-          return b instanceof Uint8Array;
-        }
-      };
-if (!globalThis.Buffer) globalThis.Buffer = BufferPoly;
-
 const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
 
 // Encadrés pédagogiques : syntaxe `:::type … :::` en Markdown.

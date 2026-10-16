@@ -17,7 +17,10 @@
 
 import { visualizationReview } from './visualizationReviews.js';
 
-const modules = import.meta.glob('../components/visualizations/*.svelte');
+const modules = import.meta.glob([
+  '../components/visualizations/*.svelte',
+  '!../components/visualizations/SlideFigure.svelte'
+]);
 
 /** @type {Record<string, any>} */
 const registry = {};
