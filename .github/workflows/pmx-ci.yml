@@ -105,6 +105,8 @@ jobs:
           node scripts/configure_site_origin.mjs
           node scripts/add_portal_analytics.mjs
           npm run audit:public-artifact
+      - name: Verify fixed-URL MultiOmics in final assembled Pages build (desktop/mobile)
+        run: npx playwright test --config playwright.multiomics-mount.config.js --workers=1 --retries=0
       - name: Test assembled portal in browser
         run: npx playwright test --config playwright.portal.config.js
       - name: Test PMx application in browser
