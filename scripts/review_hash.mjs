@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 
 const reviewFields = new Set(['reviewed_on', 'review_type', 'reviewed_hash', 'software_freshness_version']);
 
