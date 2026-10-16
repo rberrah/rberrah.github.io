@@ -40,8 +40,9 @@ npm run check
 npm run test:mlxtran
 npm run test:e2e -- --workers=2
 node scripts/audit_lego_roundtrip.mjs
-Rscript tdm-engine/tests/lego_native_exports.R
-Rscript tdm-engine/tests/lego_mlxtran_exports.R
+# Les lignes R suivantes s'exécutent depuis rberrah/MIPD-Engine
+Rscript tests/lego_native_exports.R
+Rscript tests/lego_mlxtran_exports.R
 npm run tdm:test
 npm run tdm:test-lego
 npm run tdm:validate-library

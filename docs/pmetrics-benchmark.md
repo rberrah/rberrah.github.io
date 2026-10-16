@@ -45,16 +45,18 @@ Support-point count is not used as an estimate of biological subgroup count.
 
 ## Reproducibility
 
-- Script: `tdm-engine/benchmarks/pmetrics_known_truth.R`
-- Configuration: `tdm-engine/pmetrics/benchmarks/pmetrics-known-truth-config.json`
-- Synthetic data: `tdm-engine/pmetrics/benchmarks/pmetrics-known-truth-data.csv`
+The executable benchmark files now live in the standalone `rberrah/MIPD-Engine` repository. Paths below are relative to that repository root.
+
+- Script: `benchmarks/pmetrics_known_truth.R`
+- Configuration: `pmetrics/benchmarks/pmetrics-known-truth-config.json`
+- Synthetic data: `pmetrics/benchmarks/pmetrics-known-truth-data.csv`
 - Full results: `pmetrics-known-truth-results.csv` and `.json`
 - Stability summary: `pmetrics-known-truth-stability.csv`
 - Command: `npm run benchmark:pmetrics`
 
 ## Official Pmetrics example
 
-`tdm-engine/benchmarks/pmetrics_official_example.R` loads
+`benchmarks/pmetrics_official_example.R` loads
 `Examples/src/bimodal_ke.csv` directly from the installed Pmetrics package. It
 does not copy or modify the public tutorial dataset. The parameter bounds,
 assay-error polynomial, seed, analytical shortcut and ODE equation reproduce

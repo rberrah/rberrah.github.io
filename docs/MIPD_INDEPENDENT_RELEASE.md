@@ -45,3 +45,28 @@ browser-facing consumer snapshot used by educational pages and the model
 translator. The `mipd-consumer` job compares that snapshot against the pinned
 standalone catalogue and model sources. Engine safety, ML artifact hashes,
 native regression and deployment code are tested from the standalone checkout.
+
+
+## Local developer workflow
+
+PMx no longer contains an executable MIPD engine. To run the native backend or
+Pmetrics checks from a PMx checkout, first obtain the immutable standalone
+engine and expose its root through `MIPD_ENGINE_DIR`.
+
+Example:
+
+```bash
+git clone https://github.com/rberrah/MIPD-Engine.git ../MIPD-Engine
+cd ../MIPD-Engine
+git checkout <sha from PMx integration/mipd-release.json>
+cd ../rberrah.github.io
+export MIPD_ENGINE_DIR=../MIPD-Engine
+npm run tdm:test-pmetrics
+npm run test:pmetrics-official
+```
+
+On PowerShell use `$env:MIPD_ENGINE_DIR = "..\\MIPD-Engine"`. Native R engine
+tests such as `tests/validate_library.R`, `tests/infection_test.R` and
+`tests/teaching_lab_test.R` are executed from the standalone repository
+itself. PMx owns only browser-facing snapshots, educational content and
+cross-repository consumer contracts.

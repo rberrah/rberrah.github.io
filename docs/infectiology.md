@@ -116,15 +116,17 @@ EUCAST ne contiennent jamais les doses, observations, covariables ou modeles.
 
 ## Verification
 
+Les commandes R suivantes s'exécutent depuis la racine du dépôt autonome `rberrah/MIPD-Engine`, pas depuis PMx Explain.
+
 ```powershell
-Rscript tdm-engine/tests/infection_test.R
-Rscript tdm-engine/tests/pd_bayesian_test.R
-Rscript tdm-engine/tests/pd_pk_test.R
-Rscript tdm-engine/tests/workshop_pk_test.R
+Rscript tests/infection_test.R
+Rscript tests/pd_bayesian_test.R
+Rscript tests/pd_pk_test.R
+Rscript tests/workshop_pk_test.R
 node scripts/test_workshop_pk.mjs
 node scripts/test_workshop_curves.mjs
 # Verification reseau explicite, aucune distribution sauvegardee :
-Rscript tdm-engine/tests/infection_test.R --eucast-live
+Rscript tests/infection_test.R --eucast-live
 npm run check
 ```
 

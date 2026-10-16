@@ -58,7 +58,7 @@ portal index but their artifacts cannot be checked in this repository.
 
 Shiny is deployed separately and is unchanged by this refactor. Before changing
 the actual domain, update and redeploy the trusted-origin allowlist in
-`tdm-engine/www/workbench.js`; otherwise workshop transfers from the new origin
+`www/workbench.js` in the standalone `rberrah/MIPD-Engine` repository; otherwise workshop transfers from the new origin
 will be rejected. Do not remove this security check or trust a query parameter
 as an allowlist. Pages publication alone does not update the R engine.
 

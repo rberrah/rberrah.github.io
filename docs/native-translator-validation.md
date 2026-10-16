@@ -21,10 +21,10 @@ responsibility.
 
 ## Monolix / Simulx
 
-Run the browser round-trip audit, then:
+Run the browser round-trip audit in PMx Explain, then run the following command from the standalone `rberrah/MIPD-Engine` repository:
 
 ```text
-Rscript tdm-engine/tests/lego_mlxtran_exports.R
+Rscript tests/lego_mlxtran_exports.R
 ```
 
 The harness reports `not-executed` when `lixoftConnectors`, MonolixSuite or a

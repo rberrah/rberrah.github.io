@@ -7,7 +7,7 @@ to the deployment root and mounts the independent SvelteKit build at
 `/pharmacometrie/`. Shiny has its own deployment.
 
 Reviewed: README, ROADMAP, portal pages, application routes and tracks,
-tdm-engine/README, docs/refonte and deploy-pages.yml. The application exposes
+the standalone `rberrah/MIPD-Engine` README, docs/refonte and deploy-pages.yml. The application exposes
 15 learning tracks, five specialised workshops, laboratories and MIPD.
 Native code import is not universal; ML and some transfers have documented
 limits. The portal must not imply otherwise.
