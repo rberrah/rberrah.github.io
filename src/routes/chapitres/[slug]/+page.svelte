@@ -103,9 +103,12 @@
   $: activeVizStatus = vizStatus(activeViz, $language);
 
   /** Components are loaded only for visualizations referenced by the current chapter. */
+  /** @type {Record<string, any>} */
   let loadedViz = {};
+  /** @type {Map<string, Promise<void>>} */
   const loadingViz = new Map();
 
+  /** @param {string} key */
   async function ensureViz(key) {
     if (!browser || !key || loadedViz[key] || loadingViz.has(key) || !vizLoaders[key]) return;
     const promise = loadViz(key)
@@ -117,7 +120,11 @@
     await promise;
   }
 
-  $: chapterVizKeys = [...new Set((displayChapter?.steps ?? []).map((step) => step.viz).filter((key) => key && vizLoaders[key]))];
+  /** @type {string[]} */
+  let chapterVizKeys = [];
+  $: chapterVizKeys = [...new Set((displayChapter?.steps ?? [])
+    .map((/** @type {any} */ step) => step.viz)
+    .filter((/** @type {any} */ key) => typeof key === 'string' && Boolean(vizLoaders[key])))];
   $: if (browser) chapterVizKeys.forEach((key) => { void ensureViz(key); });
 
   const realDataViz = new Set(['60_WarfarinFit', '61_ResidualError']);
