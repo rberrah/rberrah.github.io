@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ page }) => {
   for (const route of [
     '/', '/pharmacometrie/', '/multiomics/',
-    '/multiomics/tool/', '/multiomics/learn/'
+    '/multiomics/tool/', '/multiomics/learn/',
+    '/multiomics/disciplines/', '/multiomics/resources/'
   ]) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
     expect(response?.status(), 'HTTP 200: ' + route).toBe(200);
@@ -75,4 +76,20 @@ test('Historical PMx MultiOmics URLs redirect to canonical routes and preserve q
     await page.goto(from);
     await expect(page).toHaveURL('http://127.0.0.1:4183' + to);
   }
+});
+
+
+test('Canonical shell retains PMx ecosystem navigation after Pages assembly', async ({ page }) => {
+  await page.goto('/multiomics/');
+  await expect(page.getByRole('link', { name: /Site principal|Main site/ }).first()).toHaveAttribute('href', 'https://rberrah.github.io/');
+  await expect(page.getByRole('link', { name: /Autres disciplines|Other disciplines/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Ressources|Resources/ })).toBeVisible();
+  await expect(page.getByTestId('language-toggle')).toBeVisible();
+  await expect(page.getByTestId('theme-toggle')).toBeVisible();
+
+  await page.goto('/multiomics/disciplines/');
+  await expect(page.getByRole('link', { name: /Ouvrir PMx Explain|Open PMx Explain/ })).toHaveAttribute('href', 'https://rberrah.github.io/pharmacometrie/');
+
+  await page.goto('/multiomics/resources/');
+  await expect(page.getByRole('link', { name: /Retour au site|Back to main site/ })).toHaveAttribute('href', 'https://rberrah.github.io/');
 });
