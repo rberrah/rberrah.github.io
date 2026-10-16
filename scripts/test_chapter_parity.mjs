@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 
 const root = new URL('../src/content/chapters/', import.meta.url);
 const files = readdirSync(root).filter((file) => file.endsWith('.md') && !file.startsWith('_')).sort();
