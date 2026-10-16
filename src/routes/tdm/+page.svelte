@@ -39,24 +39,38 @@
     analysisEligibilityLabel: $language === 'en' ? model.analysisEligibilityLabelEn : model.analysisEligibilityLabel,
     note: $language === 'en' ? model.noteEn : model.note
   });
+  // Source-review snapshot: MIPD-Engine/models/source-review.json, 2026-10-16.
+  // "not verified" describes scientific fidelity, not the DOI's registration.
+  const sourceNotVerified = new Set([
+    'amiodarone_pollak_ddi', 'cobicistat_mathias_ddi',
+    'diltiazem_hermann_ddi', 'everolimus_moes_ddi',
+    'fluconazole_debruyne_ddi', 'isavuconazole_groll_ddi',
+    'rifampicine_loos_ddi', 'sirolimus_djebli_ddi',
+    'rifampicine_chang', 'rifampicine_marsot'
+  ]);
   /** @param {any} model */
-  const maturityRows = (model) => {
-    const labels = copy.maturity;
-    const verification = model.verificationStatus === 'NUMERICALLY_REPRODUCED'
-      ? labels.numericallyReproduced : model.verificationStatus === 'SOFTWARE_TESTED' ? labels.softwareTested : labels.notTested;
-    const validation = model.validationStatus === 'EXTERNAL'
-      ? labels.validationExternal : model.validationStatus === 'INTERNAL' ? labels.validationInternal : labels.validationNone;
-    const context = model.contextOfUse === 'CLINICALLY_VALIDATED'
-      ? labels.clinicallyValidated : model.contextOfUse === 'EXPLORATORY_MIPD' ? labels.exploratoryMipd : labels.teachingResearch;
-    return [
-      [labels.source, labels.sourceVerified],
-      [labels.implementation, model.implementationStatusLabel],
-      [$language === 'en' ? 'TDM use' : 'Usage TDM', model.analysisEligibilityLabel],
-      [labels.verification, verification],
-      [labels.validation, validation],
-      [labels.context, context]
-    ];
+  const modelFidelity = (model) => sourceNotVerified.has(model.id)
+    ? 'not verified'
+    : model.implementationStatus === 'ARTICLE' ? 'aligned' : 'adapted';
+  /** @param {any} model */
+  const adaptationText = (model) => {
+    const note = model.note ?? '';
+    if (modelFidelity(model) === 'aligned') return '';
+    const warning = modelFidelity(model) === 'not verified'
+      ? ($language === 'en'
+        ? 'Published-model fidelity has not been fully verified or the source remains ambiguous. '
+        : 'La fidélité au modèle publié n’est pas entièrement vérifiée ou la source reste ambiguë. ')
+      : '';
+    const ddi = model.id.endsWith('_ddi')
+      ? ($language === 'en'
+        ? 'Adapted for drug–drug interaction (DDI) simulations. '
+        : 'Adapté pour les simulations d’interactions médicamenteuses (DDI). ')
+      : '';
+    return warning + ddi + (note || ($language === 'en'
+      ? 'See the source article for model assumptions.'
+      : 'Consulter l’article source pour les hypothèses du modèle.'));
   };
+
   let drugs = $derived([
     { key: 'all', label: copy.all },
     ...Array.from(new Set(tdmModels.map((model) => model.drugKey)))
@@ -139,9 +153,7 @@
       </div>
     </div>
     <p>{copy.privacy}</p>
-    <p class="maturity-note">{$language === 'en'
-      ? 'Model status separates source traceability from numerical reproduction, external validation and clinical context of use. A verified source does not imply a clinically validated implementation.'
-      : 'Le statut d’un modèle distingue la traçabilité de la source, la reproduction numérique, la validation externe et le contexte d’usage clinique. Une source vérifiée ne signifie pas une implémentation cliniquement validée.'}</p>
+
   </div>
 </section>
 
@@ -211,47 +223,34 @@
           <div class="model-main">
             <div class="model-kicker">
               <span class="drug">{display.drug}</span>
-              <span class="route">{display.administrationCategories.join(' + ')}</span>
+              <span class="source-badge">{modelFidelity(model)}</span>
             </div>
             <h3>{model.model}</h3>
             <p class="population">{display.population}</p>
-            <div class="population-tags" aria-label={copy.populationAria}>
-              {#each display.populationTags as tag}
-                <span>{tag}</span>
-              {/each}
-            </div>
             <div class="article-source">
               <span>{copy.sourceArticle}</span>
               <p class="citation">{model.citation}</p>
               {#if articleHref(model)}
                 <a href={articleHref(model)} target="_blank" rel="noopener noreferrer">
-                  {model.doi ? `DOI ${model.doi}` : copy.consult}
+                  {model.doi ? 'DOI ' + model.doi : copy.consult}
                 </a>
               {:else}
                 <strong>{copy.referencePending}</strong>
               {/if}
             </div>
-            {#if display.note}<p class="model-note">{display.note}</p>{/if}
-            <dl class="evidence-status" aria-label={copy.maturity.title}>
-              {#each maturityRows(display) as row}
-                <div><dt>{row[0]}</dt><dd>{row[1]}</dd></div>
-              {/each}
-            </dl>
           </div>
-          <div class="model-meta">
-            <div class="model-type">
-              <span>{display.modelType}</span>
-              <span>{display.implementationStatusLabel}</span>
-            </div>
+          <details class="model-details">
+            <summary>{$language === 'en' ? 'Details' : 'Détails'}</summary>
+            {#if modelFidelity(model) !== 'aligned'}
+              <p class="adaptation-reason">{adaptationText(display)}</p>
+            {/if}
             <div class="model-actions">
               {#if model.analysisEligible}
-                <a class="btn btn-primary sm" href={`${tdmEngineUrl}/?model=${encodeURIComponent(model.id)}&lang=${$language}`} target="_blank" rel="noopener noreferrer">{copy.use}</a>
-              {:else}
-                <span class="simulation-only">{display.analysisEligibilityLabel}</span>
+                <a class="btn btn-primary sm" href={tdmEngineUrl + '/?model=' + encodeURIComponent(model.id) + '&lang=' + $language} target="_blank" rel="noopener noreferrer">{copy.use}</a>
               {/if}
-              <a class="btn btn-outline sm" href={`${base}${model.href}`} download>{copy.download}</a>
+              <a class="btn btn-outline sm" href={base + model.href} download>{copy.download}</a>
             </div>
-          </div>
+          </details>
         </article>
       {/each}
     </div>
@@ -346,26 +345,24 @@
     padding: var(--space-3);
     font: inherit;
   }
-  .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); }
-  .model-card { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-5); min-height: 330px; }
-  .model-kicker { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
-  .drug { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-pk); text-transform: uppercase; }
-  .route { border-left: 2px solid var(--accent-pd); color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); padding-left: var(--space-2); }
+  .model-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: var(--space-4); align-items: start; }
+  .model-card { display: flex; flex-direction: column; gap: var(--space-4); min-height: 0; }
+  .model-kicker { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+  .drug { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent-pk); font-weight: 700; }
+  .source-badge { border: 1px solid var(--border-subtle); border-radius: 999px; padding: 3px 10px; color: var(--text-secondary); font-size: var(--text-xs); font-weight: 700; white-space: nowrap; }
   .model-card h3 { margin: var(--space-2) 0; }
   .model-card p { color: var(--text-muted); margin: 0; overflow-wrap: anywhere; }
   .model-card .population { color: var(--text-secondary); margin-top: var(--space-3); }
-  .population-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
-  .population-tags span { border: 1px solid var(--border-subtle); border-radius: 3px; color: var(--text-secondary); font-size: var(--text-xs); padding: 2px var(--space-2); }
-  .article-source { display: grid; gap: 4px; border-left: 2px solid var(--accent-ai); margin-top: var(--space-3); padding-left: var(--space-3); }
+  .article-source { display: grid; gap: 4px; border-left: 2px solid var(--accent-ai); margin-top: var(--space-4); padding-left: var(--space-3); }
   .article-source > span { color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
   .article-source a, .article-source strong { font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
   .article-source strong { color: var(--accent-pd); }
   .model-card .citation { font-size: var(--text-sm); }
-  .model-card .model-note { border-left: 2px solid var(--accent-pd); font-size: var(--text-xs); margin-top: var(--space-3); padding-left: var(--space-3); }
-  .model-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding-top: var(--space-4); }
-  .model-type { display: grid; gap: 3px; min-width: 0; }
-  .model-type span { color: var(--text-secondary); font-family: var(--font-mono); font-size: var(--text-xs); overflow-wrap: anywhere; }
-  .model-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+  .model-details { border-top: 1px solid var(--border-subtle); padding-top: var(--space-3); }
+  .model-details summary { cursor: pointer; font-size: var(--text-sm); font-weight: 700; padding: 3px 0; }
+  .model-details summary:focus-visible { outline: 2px solid var(--accent-pk); outline-offset: 2px; }
+  .model-details .adaptation-reason { margin: var(--space-3) 0; color: var(--text-secondary); line-height: 1.5; font-size: var(--text-sm); }
+  .model-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
   .btn.sm { padding: var(--space-2) var(--space-4); font-size: var(--text-sm); }
   .empty { color: var(--text-secondary); padding: var(--space-8) 0; }
   .rule-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); }
