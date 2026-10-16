@@ -10,7 +10,12 @@ test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ pa
     expect(response?.status(), 'HTTP 200: ' + route).toBe(200);
     await expect(page.locator('body')).not.toBeEmpty();
   }
+  await page.goto('/multiomics/tool/');
   await expect(page.getByRole('heading', { name: /Choisir une méthode|Choose a method/i })).toBeVisible();
+  await page.goto('/multiomics/resources/');
+  await expect(page.getByRole('heading', { name: /Retrouver les méthodes|Find methods/i })).toBeVisible();
+  await page.goto('/multiomics/disciplines/');
+  await expect(page.getByRole('heading', { name: /MultiOmics ne s’arrête pas|MultiOmics does not stop/i })).toBeVisible();
 });
 
 test('Canonical /multiomics/ SvelteKit mount hydrates and computes from synthetic demo', async ({ page }) => {
