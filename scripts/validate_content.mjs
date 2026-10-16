@@ -8,7 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import matter from 'gray-matter';
+import matter from '../src/lib/content/frontmatter.js';
 import { glossaryDetails, glossaryEnglish } from '../src/lib/content/glossaryMeta.js';
 import { allRefIds, refById } from '../src/lib/content/references.js';
 import { molecularLabIds } from '../src/lib/labs/molecular.js';
