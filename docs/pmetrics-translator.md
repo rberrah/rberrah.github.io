@@ -41,17 +41,16 @@ The UI explicitly requests review of builder variability and residual settings.
 
 ## MIPD Artifact And MAP Backend
 
-Deployment re-check, 2026-10-12: this backend passes native local R/Pmetrics
+Deployment re-check, 2026-10-16: this backend passes native local R/Pmetrics
 tests, including posterior mapping for synthetic IV 1C, oral 1C and IV 2C
-artifacts, but is NOT installed in the public Shiny engine. A browser smoke test
-of `https://tdmhub.shinyapps.io/MIPD_Engine/` found no Pmetrics model-source
-control. Shinyapps.io's last attempted build image
-provides Cargo 1.75; Pmetrics 3.2.6 dependencies require newer Rust features
-(edition 2024). This is a limitation of that Posit-hosted build image rather
-than a fundamental incompatibility between Pmetrics and Shiny. Bundle 12619306
-failed during Pmetrics compilation. An earlier
-R 4.6 attempt (12619291) failed on lazyeval. The previous public app is retained.
-The website translator does not depend on that server-side installation.
+artifacts, but is intentionally disabled in the public Shiny engine. Bundle
+`12698610` deployed successfully without Pmetrics; a live browser check returned
+HTTP 200 and exposed only the library and custom mrgsolve sources. Shinyapps.io's
+available build image cannot compile the Pmetrics 3.2.6 dependency chain with
+its current Rust/Cargo toolchain. This is a hosting limitation, not a general
+incompatibility between Pmetrics and Shiny. The local backend and dedicated CI
+remain active, and the website translator does not depend on the server-side
+package.
 
 The Shiny engine uses a separate, versioned JSON artifact for patient-level
 Pmetrics calculations. It binds together a supported structural template,

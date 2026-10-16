@@ -1,6 +1,6 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-15.
+Mise à jour : 2026-10-16.
 Lot actuel : validation scientifique, validation pédagogique et reproductibilité.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -30,7 +30,7 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 | Non-rétention et confidentialité | `CI verified` pour le contrat du dépôt | Auditer journaux, `/tmp`, erreurs, exports et isolation de deux sessions sur l'hébergement public selon `docs/privacy-nonretention-audit.md` |
 | Pmetrics | `CI verified` en local/dépôt | Backend public explicitement indisponible tant qu'un hébergement avec chaîne R/Rust compatible n'est pas validé |
 | Traçabilité de la bibliothèque de modèles | `implemented` et générée pour 46/46 | Faire vérifier indépendamment les équations, domaines chiffrés et écarts aux articles consignés dans `docs/tdm-model-traceability.md` |
-| Cas de référence reproductible par modèle | `implemented` pour 8/46 ; 6/46 sur le dernier déploiement vérifié | Faire passer les deux nouveaux profils en CI, puis étendre progressivement et ajouter des sorties issues d'un logiciel/source indépendant ; ne pas confondre non-régression et reproduction scientifique |
+| Cas de référence reproductible par modèle | `CI verified` pour 8/46 | Étendre progressivement et ajouter des sorties issues d'un logiciel/source indépendant ; ne pas confondre non-régression et reproduction scientifique |
 | Diagnostics TDM | `CI verified` pour les signaux numériques | Relecture utilisateur des messages et validation méthodologique ; convergence, rareté des données, bornes et covariance ne prouvent pas l'identifiabilité |
 | Provenance des artefacts ML | `CI verified` pour 46/46 artefacts : contrat, split patient, domaines, métriques et empreintes modèle/RDS/DALEX | Revue indépendante des domaines et protocoles déclarés ; la complétude du registre ne constitue pas une validation externe |
 | Transferts Simulation → Lego → TDM/DDI/PD | `CI verified` pour les contrats et parcours principaux | Revue utilisateur des fiches transféré/non transféré/unités/limites et complétion des anciens ponts si nécessaire |
@@ -309,7 +309,7 @@ Ces preuves vérifient le logiciel, pas l'efficacité pédagogique, qui relève 
 ## 7. Bibliotheque, MIPD, ML, DDI et PD
 
 - **S01 / P0 — implemented as a structured inventory for 46/46.** DOI, population, voies, unités, structure, paramètres, covariables, IIV, erreur, adaptations, MAP et limites sont générés dans `docs/tdm-model-traceability.json`. La vérification article par article reste `independent review pending`.
-- **S02 / P1 — CI verified for 6/46 deterministic cases.** Six modèles prioritaires ont un profil numérique figé. Ce sont des régressions logicielles, pas des reproductions indépendantes ; extension et références externes restent requises.
+- **S02 / P1 — CI verified for 8/46 deterministic cases.** Huit modèles prioritaires ont un profil numérique figé. Ce sont des régressions logicielles, pas des reproductions indépendantes ; extension et références externes restent requises.
 - [x] **S03 / P1 - CI verified** Les regressions couvrent SS a t=0 et doses suivantes, equivalence jours relatifs/dates calendaires apres normalisation, affichage et export conditionnels des incertitudes et de la LLOQ, covariables reportees au prelevement, erreur residuelle fixee, parametres aux bornes et cibles simples/combines. Ce sont des tests logiciels ; ils ne valident ni un modele source ni une decision clinique.
 - [x] **S04 / P1 - CI verified** Le registre des 46 artefacts consigne et contrôle cible/fenêtre AUC, voie et mode, modèle source et empreinte, logiciel, population, schéma de variables, domaines d'entraînement et règles de prélèvement. Maintenir la règle actuelle de deux concentrations dans un même intervalle tant qu'un autre contrat n'est pas entraîné et vérifié.
 - [ ] **S05 / P2 - partially CI verified** Les 46 contrats imposent graines, separation developpement/holdout par patient simule, absence de recouvrement controlee a l'entrainement, domaines, empreintes, artefacts/explications et metriques sur une AUC24 commune. Les tests couvrent model averaging complet et refus de l'estimation agregee si un artefact manque. Les erreurs par sous-groupe et une partition de validation distincte du holdout restent a produire lors du prochain reentrainement ; elles ne sont pas deduites des artefacts actuels.
