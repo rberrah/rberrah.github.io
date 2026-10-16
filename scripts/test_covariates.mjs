@@ -76,7 +76,9 @@ if (process.argv.includes('--native')) {
     fs.writeFileSync(path.join(dir, 'lesson.cpp'), lesson.match(/```cpp\s*([\s\S]*?)```/)[1]);
     fixtures.push({ name: 'lesson', cl: 4, volume: 30 });
     fs.writeFileSync(path.join(dir, 'fixtures.json'), JSON.stringify(fixtures));
-    const run = spawnSync(process.env.RSCRIPT || 'Rscript', ['tdm-engine/tests/covariates_native_test.R', dir], { encoding: 'utf8', timeout: 300000 });
+    if (!process.env.MIPD_ENGINE_DIR) throw new Error('MIPD_ENGINE_DIR is required for --native covariate checks');
+    const nativeTest = path.join(path.resolve(process.env.MIPD_ENGINE_DIR), 'tests', 'covariates_native_test.R');
+    const run = spawnSync(process.env.RSCRIPT || 'Rscript', [nativeTest, dir], { encoding: 'utf8', timeout: 300000 });
     process.stdout.write(run.stdout || ''); process.stderr.write(run.stderr || '');
     assert.equal(run.status, 0, run.error?.message || 'Native mrgsolve covariate checks failed');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }

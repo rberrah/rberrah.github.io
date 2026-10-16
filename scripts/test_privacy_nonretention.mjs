@@ -50,7 +50,7 @@ for (const module of ['pd_module.R', 'onco_module.R', 'infection_module.R']) {
 }
 
 const gitignore = read('.gitignore');
-for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/', 'tdm-engine/ml/.benchmark-cache/']) {
+for (const pattern of ['.env', '*.pdf', 'test-results/', 'playwright-report/']) {
   assert.ok(gitignore.includes(pattern), `.gitignore must exclude ${pattern}`);
 }
 
@@ -71,6 +71,7 @@ try {
 }
 const protectedTracked = tracked.filter(path => protectedExtensions.has(extname(path).toLowerCase()) && !approvedPublicDocuments(path));
 assert.deepEqual(protectedTracked, [], `Unapproved protected source documents must not be tracked: ${protectedTracked.join(', ')}`);
+assert.equal(tracked.some(path => path.startsWith('tdm-engine/')), false, 'PMx must not track a local MIPD engine mirror');
 const patientExports = tracked.filter(path => /(^|\/)(tdm-patient|tdm-report)-/i.test(path));
 assert.deepEqual(patientExports, [], `Patient exports must not be present in the repository tree: ${patientExports.join(', ')}`);
 

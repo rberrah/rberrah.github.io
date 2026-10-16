@@ -108,11 +108,14 @@ for (const item of externalModels) {
   console.log(`PASS ${item.id}: ${item.error??'recognized'}`);
 }
 
-const engineRoot=path.resolve(process.env.MIPD_ENGINE_DIR||fileURLToPath(new URL('../tdm-engine/',import.meta.url)));
-const catalog=JSON.parse(readFileSync(path.join(engineRoot,'models','catalog.json')));
+const engineRoot=process.env.MIPD_ENGINE_DIR ? path.resolve(process.env.MIPD_ENGINE_DIR) : fileURLToPath(new URL('../static/tdm/',import.meta.url));
+const modelRoot=path.join(engineRoot,'models');
+const catalog=process.env.MIPD_ENGINE_DIR
+  ? JSON.parse(readFileSync(path.join(engineRoot,'models','catalog.json')))
+  : JSON.parse(readFileSync(fileURLToPath(new URL('../src/lib/content/tdmModels.generated.json',import.meta.url))));
 const accepted=['amik_burdet','genta_franck','levo_gergs','linez_buerger'];
 for (const model of catalog.models) {
-  const code=readFileSync(path.join(engineRoot,'models',model.file),'utf8');
+  const code=readFileSync(path.join(modelRoot,model.file),'utf8');
   if (accepted.includes(model.id)) {
     const s=parseModelCode(code,'mrgsolve').spec;
     assert.equal(s.nodes.filter(n=>n.dose>0).length,1);
