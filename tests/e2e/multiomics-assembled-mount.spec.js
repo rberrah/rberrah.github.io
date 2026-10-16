@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test';
 
-test('Existing portal, PMx and MultiOmics URLs remain 200 after independent build overlay', async ({ page }) => {
+test('Canonical MultiOmics root mount coexists with portal and PMx', async ({ page }) => {
   for (const route of [
-    '/', '/pharmacometrie/', '/pharmacometrie/multiomics/',
-    '/pharmacometrie/multiomics/tool/',
-    '/pharmacometrie/multiomics/learn/'
+    '/', '/pharmacometrie/', '/multiomics/',
+    '/multiomics/tool/', '/multiomics/learn/'
   ]) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' });
     expect(response?.status(), 'HTTP 200: ' + route).toBe(200);
@@ -13,7 +12,7 @@ test('Existing portal, PMx and MultiOmics URLs remain 200 after independent buil
   await expect(page.getByRole('heading', { name: /Choisir une méthode|Choose a method/i })).toBeVisible();
 });
 
-test('A true integrated SvelteKit mount hydrates and computes from synthetic demo', async ({ page }) => {
+test('Canonical /multiomics/ SvelteKit mount hydrates and computes from synthetic demo', async ({ page }) => {
   /** @type {string[]} */
   const jsErrors = [];
   page.on('pageerror', err => jsErrors.push(err.message));
@@ -23,7 +22,7 @@ test('A true integrated SvelteKit mount hydrates and computes from synthetic dem
     if (response.url().startsWith('http://127.0.0.1:4183/') && response.status() >= 400)
       failed.push(response.url() + ': ' + response.status());
   });
-  await page.goto('/pharmacometrie/multiomics/tool/');
+  await page.goto('/multiomics/tool/');
   await page.waitForFunction(() => document.documentElement.dataset.pmxMultiomicsHydrated === 'true');
   const selectors = [
     'multiomics-quick-demo-rna',
@@ -46,9 +45,9 @@ test('A true integrated SvelteKit mount hydrates and computes from synthetic dem
   expect(failed).toEqual([]);
 });
 
-test('Same historical MultiOmics URL is usable at mobile width', async ({ page }) => {
+test('Canonical MultiOmics URL is usable at mobile width', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/pharmacometrie/multiomics/tool/');
+  await page.goto('/multiomics/tool/');
   await page.waitForFunction(() => document.documentElement.dataset.pmxMultiomicsHydrated === 'true');
   const mini = page.getByTestId('multiomics-quick-demo-rna');
   const full = page.getByTestId('multiomics-quick-demo');
@@ -64,4 +63,16 @@ test('Same historical MultiOmics URL is usable at mobile width', async ({ page }
   expect(overflow).toBeLessThanOrEqual(12);
   await full.click();
   await expect(page.getByTestId('multiomics-results')).toBeVisible({ timeout: 40_000 });
+});
+
+
+test('Historical PMx MultiOmics URLs redirect to canonical routes and preserve query/hash', async ({ page }) => {
+  for (const [from, to] of [
+    ['/pharmacometrie/multiomics/', '/multiomics/'],
+    ['/pharmacometrie/multiomics/tool/?lang=en#demo', '/multiomics/tool/?lang=en#demo'],
+    ['/pharmacometrie/multiomics/learn/?lang=fr#methods', '/multiomics/learn/?lang=fr#methods']
+  ]) {
+    await page.goto(from);
+    await expect(page).toHaveURL('http://127.0.0.1:4183' + to);
+  }
 });

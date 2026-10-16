@@ -99,3 +99,21 @@ GitHub Pages serves static browser code, not a live R service. Reference R
 inference requires an explicitly chosen local or institutionally approved
 backend. A successful CI is not certification of universal FDR control or
 clinical biomarker validity.
+
+
+## Canonical root cut-over
+
+As of the root-cutover integration, PMx builds the pinned standalone repository
+with no SvelteKit base prefix and mounts only the verified `multiomics/` and
+`_multiomics_app/` directories at the domain root. The canonical public
+application is therefore `/multiomics/`.
+
+The historical `/pharmacometrie/multiomics/` tree is removed from the final
+artifact and replaced by three tiny compatibility aliases for the landing page,
+tool and methods page. These aliases preserve query strings and fragments and
+carry `noindex,follow` plus canonical metadata pointing to `/multiomics/`.
+
+The old PMx Svelte source is intentionally retained for one further cleanup
+phase only; it is no longer the published MultiOmics implementation after this
+cut-over. Once the root mount is live and stable, those duplicate routes,
+static files and MultiOmics-only browser/scientific harnesses can be deleted.

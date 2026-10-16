@@ -1,20 +1,23 @@
 // Fail closed: PMx publishes only a pinned MultiOmics commit whose native CI passed.
-// Used by PMx qualification before building a separate namespaced static overlay.
 import { readFile } from 'node:fs/promises';
 
 const source = JSON.parse(await readFile('integration/multiomics-release.json', 'utf8'));
 const requiredNames = [
-  'MultiOmics standalone software qualification',
-  'Public Airway native-R replay and R Markdown',
-  'Multi-omics real public Nutrimouse DIABLO biological validation',
-  'Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit'
+  "MultiOmics standalone software qualification",
+  "Public Airway native-R replay and R Markdown",
+  "Multi-omics real public Nutrimouse DIABLO biological validation",
+  "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit",
+  "Frozen R reference — calibration and negative-control qualification",
+  "MultiOmics fixed-URL integration artifact"
 ];
 if (source.schema !== 'multiomics-site-source.v1' ||
     source.repository !== 'rberrah/MultiOmics' ||
     !/^[0-9a-f]{40}$/.test(source.sha) ||
-    source.basePath !== '/pharmacometrie' ||
+    source.basePath !== '' ||
+    source.legacyBasePath !== '/pharmacometrie' ||
+    source.canonicalPath !== '/multiomics/' ||
     JSON.stringify(source.requiredWorkflows) !== JSON.stringify(requiredNames)) {
-  throw new Error('Unexpected MultiOmics source, moving ref, or release contract');
+  throw new Error('Unexpected MultiOmics source, moving ref, route contract or workflow gate');
 }
 const url = 'https://api.github.com/repos/rberrah/MultiOmics/actions/runs?head_sha=' +
   encodeURIComponent(source.sha) + '&per_page=100';
@@ -36,9 +39,9 @@ for (const name of requiredNames) {
   if (!runs.some(run => run.status === 'completed' && run.conclusion === 'success')) {
     throw new Error('Release blocked: authentic push CI not successful for ' + name);
   }
-  if (runs.some(run => run.conclusion === 'failure' || run.conclusion === 'cancelled')) {
+  if (runs.some(run => ['failure','cancelled','timed_out'].includes(run.conclusion))) {
     throw new Error('Release blocked: adverse CI for ' + name);
   }
-  console.log('PASS independent scientific workflow:', name);
+  console.log('PASS independent MultiOmics workflow:', name);
 }
-console.log('Pinned MultiOmics source is qualified:', source.sha);
+console.log('Pinned canonical /multiomics/ source is qualified:', source.sha);
