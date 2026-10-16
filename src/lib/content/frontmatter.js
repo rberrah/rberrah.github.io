@@ -23,6 +23,12 @@ export default function matter(source) {
   if (typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('Chapter front matter must be a YAML mapping');
   }
-  const content = text.slice(closer.index + closer[0].length);
+  let contentStart = closer.index + closer[0].length;
+  // gray-matter consumed the line ending that terminates the closing delimiter,
+  // while preserving any following blank line. Match that historical boundary so
+  // existing scientific review hashes remain byte-stable.
+  if (text.startsWith('\r\n', contentStart)) contentStart += 2;
+  else if (text[contentStart] === '\n') contentStart += 1;
+  const content = text.slice(contentStart);
   return { data: parsed, content };
 }
