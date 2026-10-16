@@ -16,9 +16,11 @@ export const COURSE_NAME = 'PMx Explain';
 /** Année portée par le site (citation d'une page sans date de révision). */
 export const SITE_YEAR = 2026;
 
-/** Licence du TEXTE. Le CODE reste sous licence MIT. */
-export const LICENSE_LABEL = 'CC BY-SA 4.0';
-export const LICENSE_URL = 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr';
+/** Licences de la version courante. Les versions antérieures conservent les droits déjà accordés. */
+export const LICENSE_LABEL = 'CC BY-NC-SA 4.0';
+export const LICENSE_URL = 'https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr';
+export const CODE_LICENSE_LABEL = 'PolyForm Noncommercial 1.0.0';
+export const CODE_LICENSE_URL = 'https://github.com/rberrah/rberrah.github.io/blob/main/LICENSE';
 
 /** Auteur unique du corpus. */
 export const AUTHOR = {
