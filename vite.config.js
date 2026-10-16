@@ -1,3 +1,4 @@
+import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { getSiteOrigin } from './site.config.js';
@@ -6,5 +7,23 @@ import process from 'node:process';
 
 export default defineConfig(({ mode }) => {
 	process.env.PUBLIC_SITE_ORIGIN = getSiteOrigin(mode);
-	return { plugins: [sveltekit()] };
+	return {
+		plugins: [
+			sveltekit({
+				adapter: adapter({
+					fallback: '404.html'
+				}),
+				paths: {
+					base: process.env.BASE_PATH || ''
+				},
+				prerender: {
+					entries: ['*'],
+					handleHttpError: ({ status, path }) => {
+						if (status === 404 && path.startsWith('/slides/')) return;
+						throw new Error(`Failed to prerender ${path}: ${status}`);
+					}
+				}
+			})
+		]
+	};
 });
