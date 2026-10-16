@@ -37,8 +37,9 @@
   // ce fichier. Voir src/lib/content/vizRegistry.js.
   import vizLoaders, { availableVizKeys, loadViz } from '$lib/content/vizRegistry';
 
+  export let data;
   $: slug = $page.params.slug;
-  $: chapter = chapters.find((c) => c.slug === slug);
+  $: chapter = data?.chapter ?? null;
   afterNavigate(() => {
     if ($page.route.id !== '/chapitres/[slug]') return;
     const known = $page.status === 200 && chapters.find(c => c.slug === $page.params.slug);
