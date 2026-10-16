@@ -49,7 +49,10 @@ npm run build
 ## Architecture contenu
 
 - Chapitres Markdown : `src/content/chapters/*.md`
-- Chargement : `src/lib/content/loadChapters.js`
+- Index client léger généré : `src/lib/content/chapterIndex.generated.json`
+- Corpus plein texte, isolé à la route Recherche : `src/lib/content/chapterSearch.generated.json`
+- Corps d'un chapitre : chargement à la demande via `src/lib/content/loadChapter.js`
+- Compatibilité navigation/parcours : `src/lib/content/loadChapters.js` expose uniquement les métadonnées
 - Catalogue de slides : `src/content/slides/slide_catalog.yaml`
 - Visualisations : `src/lib/components/visualizations/`
 - Simulations : `src/lib/sim/`
