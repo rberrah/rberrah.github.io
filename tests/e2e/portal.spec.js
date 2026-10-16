@@ -65,6 +65,9 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
     for (const href of refs) {
       const url = new URL(href, publicOrigin + route);
       if (url.origin !== publicOrigin || /^\/internat(\/|$)/.test(url.pathname)) continue;
+      // MultiOmics is mounted only after the portal + PMx artifact is assembled.
+      // Its filesystem and browser acceptance are covered by multiomics-assembled-mount.spec.js.
+      if (/^\/multiomics(\/|$)/.test(url.pathname)) continue;
       const app = url.pathname.startsWith('/pharmacometrie/');
       const file = path.resolve(app ? 'build' : 'portal',
         '.' + (app ? url.pathname.slice('/pharmacometrie'.length) : url.pathname),
@@ -143,15 +146,9 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
     await page.goto(origin + from);
     await expect(page).toHaveURL(origin + to);
   }
-  // MultiOmics canonical/legacy routing is applied only in the final assembled
-  // Pages artifact and is covered by multiomics-assembled-mount.spec.js.
-  // Here we only assert that the pre-overlay route files exist.
-  for (const route of ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/']) {
-    expect((await request.get(origin + route, { maxRedirects: 0 })).status()).toBe(200);
-  }
-  for (const route of ['/pharmacometrie/multiomics/', '/pharmacometrie/multiomics/tool/', '/pharmacometrie/multiomics/learn/']) {
-    expect((await request.get(origin + route, { maxRedirects: 0 })).status()).toBe(200);
-  }
+  // MultiOmics canonical and compatibility routes are intentionally absent from
+  // this portal-only preview. They are added to the final assembled Pages artifact
+  // from the independently qualified MultiOmics repository and are tested there.
   expect((await page.goto(origin + '/does-not-exist/')).status()).toBe(404);
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();

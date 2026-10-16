@@ -14,11 +14,10 @@ The historical `/pharmacometrie/multiomics/` routes remain compatibility
 aliases during the cut-over and must preserve deep links, query strings and
 fragments. They are no longer intended to remain canonical permanently.
 
-Extraction is progressive. Phase 1 removes the duplicate R engine and
-MultiOmics-specific scientific workflows from PMx Explain; source qualification
-now belongs to `rberrah/MultiOmics`. Browser routes and the final Pages overlay
-remain in PMx until the direct `/multiomics/` artifact is adopted in a separate
-release PR.
+Extraction is complete for the application implementation. Scientific qualification,
+browser source, R backend, assets and source-level tests now belong to
+`rberrah/MultiOmics`. PMx retains only the immutable source pin, verified Pages
+overlay, compatibility aliases and assembled-site acceptance test.
 
 ## Release controls
 
@@ -36,17 +35,16 @@ source CI workflows:
 - Real Nutrimouse DIABLO audit
 
 It then checks out the exact public source commit into the ephemeral runner's
-temporary directory. On that separate clean checkout it executes npm ci,
-the SvelteKit build with BASE_PATH=/pharmacometrie, and independent SHA-256
-payload generation and verification.
+temporary directory. On that separate clean checkout it executes `npm ci`,
+builds MultiOmics for the domain root and verifies the release payload by SHA-256.
 
-The PMx Pages workflow assembles portal and PMx Explain **as before**, then
-overlays only two allowlisted directories in the final static artifact:
+The PMx Pages workflow assembles portal and PMx Explain, then overlays only two
+allowlisted root directories in the final static artifact:
 
-- dist/pharmacometrie/multiomics/
-- dist/pharmacometrie/_multiomics_app/
+- `dist/multiomics/`
+- `dist/_multiomics_app/`
 
-The app asset namespace is deliberately not PMx Explain's _app/ directory.
+The app asset namespace is deliberately separate from PMx Explain's `_app/` directory.
 The PMx root, portal, statistics tool and other courses are not replaced. A
 second verification of every imported file SHA-256 is required after copying,
 and the site's normal public-artifact privacy audit still runs.
@@ -81,19 +79,17 @@ any URL changes. If overlay integration itself fails, revert the isolated PMx
 integration commit before the next deployment and leave original PMx-owned
 MultiOmics sources in place.
 
-The extraction is staged to keep rollback simple:
+Completed extraction stages:
 
-1. remove the duplicate `multiomics-engine/` backend and all
-   `.github/workflows/multiomics-*.yml` scientific workflows from PMx;
-2. switch the assembled Pages artifact to the independently built root
-   `/multiomics/` overlay;
-3. convert historical `/pharmacometrie/multiomics/` paths to compatibility
-   aliases;
-4. remove duplicate Svelte routes, static assets and MultiOmics-only test
-   harnesses from PMx once the new root deployment passes browser acceptance.
+1. duplicate backend and MultiOmics-specific scientific workflows removed;
+2. canonical `/multiomics/` root overlay switched to the standalone repository;
+3. historical `/pharmacometrie/multiomics/` paths converted to compatibility aliases;
+4. duplicate PMx Svelte routes, static assets, scientific scripts and source-level
+   MultiOmics test harnesses removed.
 
-At every stage PMx must pin an immutable, independently qualified MultiOmics
-commit and retain a documented rollback SHA.
+PMx continues to pin an immutable, independently qualified MultiOmics commit and
+retains a documented rollback path. Historical PMx-only validation material was
+archived in `rberrah/MultiOmics/legacy/pmx-extraction-20261016/`.
 
 GitHub Pages serves static browser code, not a live R service. Reference R
 inference requires an explicitly chosen local or institutionally approved
@@ -113,7 +109,6 @@ artifact and replaced by three tiny compatibility aliases for the landing page,
 tool and methods page. These aliases preserve query strings and fragments and
 carry `noindex,follow` plus canonical metadata pointing to `/multiomics/`.
 
-The old PMx Svelte source is intentionally retained for one further cleanup
-phase only; it is no longer the published MultiOmics implementation after this
-cut-over. Once the root mount is live and stable, those duplicate routes,
-static files and MultiOmics-only browser/scientific harnesses can be deleted.
+The old PMx MultiOmics implementation has now been removed. The only MultiOmics
+code retained in PMx is cross-repository integration code required to fetch,
+verify, mount and acceptance-test the independently qualified release.

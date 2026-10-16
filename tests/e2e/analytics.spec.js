@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { test, expect } from '@playwright/test';
-import { cp, readFile, stat } from 'node:fs/promises';
+import { cp, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -16,6 +16,22 @@ test.beforeAll(async ({}, workerInfo) => {
   // independently per worker, so no manually prepared directory can disappear.
   portalRoot = path.resolve(workerInfo.project.outputDir, 'analytics-portal-' + workerInfo.workerIndex);
   await cp('portal', portalRoot, { recursive: true });
+  // MultiOmics is mounted only after the portal + PMx artifact is assembled.
+  // Analytics tests exercise portal instrumentation in isolation, so create
+  // inert route fixtures for sitemap validation instead of restoring the
+  // removed MultiOmics implementation.
+  for (const route of [
+    'multiomics',
+    'multiomics/tool',
+    'multiomics/learn',
+    'multiomics/disciplines',
+    'multiomics/resources'
+  ]) {
+    const target = path.join(portalRoot, route);
+    await mkdir(target, { recursive: true });
+    await writeFile(path.join(target, 'index.html'),
+      '<!doctype html><html><head><title>standalone overlay fixture</title></head><body></body></html>');
+  }
   await promisify(execFile)(process.execPath, ['scripts/add_portal_analytics.mjs', portalRoot]);
 });
 
