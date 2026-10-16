@@ -15,7 +15,6 @@ const communicationPages = [
   '/communications/fr/missed-dose-iatdmct-sfpt-2026/',
   '/communications/fr/autonomous-pharmacometrics-page-2026/'
 ];
-const statsPages = ['/stats/', '/stats/tool/'];
 const multiomicsPages = ['/multiomics/', '/multiomics/tool/', '/multiomics/learn/', '/multiomics/disciplines/', '/multiomics/resources/'];
 const publicOrigin = getSiteOrigin();
 
@@ -64,7 +63,7 @@ test('portal metadata, navigation, internal links and images', async ({ page }) 
       nodes.map(n => n.getAttribute('href') || n.getAttribute('src')));
     for (const href of refs) {
       const url = new URL(href, publicOrigin + route);
-      if (url.origin !== publicOrigin || /^\/internat(\/|$)/.test(url.pathname)) continue;
+      if (url.origin !== publicOrigin || /^\/(internat|stats)(\/|$)/.test(url.pathname)) continue;
       // MultiOmics is mounted only after the portal + PMx artifact is assembled.
       // Its filesystem and browser acceptance are covered by multiomics-assembled-mount.spec.js.
       if (/^\/multiomics(\/|$)/.test(url.pathname)) continue;
@@ -146,15 +145,15 @@ test('legacy routes, aliases, 404 and sitemap', async ({ page, request }) => {
     await page.goto(origin + from);
     await expect(page).toHaveURL(origin + to);
   }
-  // MultiOmics canonical and compatibility routes are intentionally absent from
-  // this portal-only preview. They are added to the final assembled Pages artifact
-  // from the independently qualified MultiOmics repository and are tested there.
+  // MultiOmics is mounted into the final Pages artifact from its standalone repository.
+  // Stats is also independently deployed at /stats/ and is therefore not a local
+  // portal-preview filesystem dependency. Both links remain checked above.
   expect((await page.goto(origin + '/does-not-exist/')).status()).toBe(404);
   await expect(page.locator('h1')).toHaveText('Page not found');
   const xml = await (await request.get(origin + '/sitemap.xml')).text();
   const urls = await page.evaluate(xml => [...new DOMParser().parseFromString(xml, 'application/xml').querySelectorAll('loc')].map(n => n.textContent), xml);
-  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...multiomicsPages, ...statsPages].map(p => publicOrigin + p).sort());
-  for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/', ...statsPages])
+  expect(urls.sort()).toEqual([...pages, ...communicationPages, ...multiomicsPages].map(p => publicOrigin + p).sort());
+  for (const route of ['/pharmacometrie/', '/pharmacometrie/tdm/', '/pharmacometrie/pk/'])
     expect((await request.get(origin + route)).status()).toBe(200);
   const response = await request.get(origin + '/internat/', { maxRedirects: 0 });
   expect(response.status()).toBe(302);
