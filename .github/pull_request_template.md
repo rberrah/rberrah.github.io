@@ -9,7 +9,7 @@ Describe the PMx Explain change and the public routes or contracts it affects.
 - [ ] No scientific claim is upgraded from software-tested to validated without dated human evidence.
 - [ ] Current licensing remains CC BY-NC-SA 4.0 for original content and PolyForm Noncommercial 1.0.0 for original code.
 - [ ] No patient/private material, credentials or unapproved protected documents are added.
-- [ ] Changes to MIPD Engine, MultiOmics or Stats remain in their standalone repositories; PMx changes only the consumer/link contract when needed.
+- [ ] Changes to MIPD Engine, MultiOmics, Omics2PK or Stats remain in their standalone repositories; PMx changes only the consumer/link contract when needed.
 
 ## Review notes
 
