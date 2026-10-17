@@ -1,10 +1,10 @@
 {
   "version": 1,
   "generatedFrom": [
-    "src/lib/content/tdmModels.generated.json",
-    "src/lib/content/tdmSourceReview.generated.json",
-    "src/lib/content/tdmPdfInventory.generated.json",
-    "static/tdm/models/*.cpp"
+    "models/catalog.json",
+    "models/source-review.json",
+    "models/pdf-inventory.json",
+    "models/*.cpp"
   ],
   "models": [
     {
