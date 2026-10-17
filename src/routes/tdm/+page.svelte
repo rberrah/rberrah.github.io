@@ -45,6 +45,7 @@
   // Exact source-review contract imported from the deployed MIPD release.
   // "not verified" means source ambiguity remains; it does not describe DOI registration.
   const sourceReviewById = new Map(sourceReview.reviewed.map((item) => [item.id, item]));
+  const modelDetailsFrById = /** @type {Record<string, string>} */ (modelDetailsFr.details);
   /** @param {any} model */
   const modelFidelity = (model) => {
     const result = sourceReviewById.get(model.id)?.result;
@@ -56,7 +57,7 @@
   const adaptationText = (model) => {
     if (modelFidelity(model) === 'aligned') return '';
     if ($language === 'fr') {
-      return modelDetailsFr.details?.[model.id] ?? model.note ?? 'Adaptation documentée dans MIPD Engine.';
+      return modelDetailsFrById[model.id] ?? model.note ?? 'Adaptation documentée dans MIPD Engine.';
     }
     return sourceReviewById.get(model.id)?.note || model.note || 'See the source review for the documented adaptation.';
   };
