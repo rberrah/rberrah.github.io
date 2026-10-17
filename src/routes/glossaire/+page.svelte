@@ -1,6 +1,6 @@
 <script>
   import { get } from 'svelte/store';
-  import { onMount } from 'svelte';
+  import { afterNavigate } from '$app/navigation';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   const base = resolve('/').replace(/\/$/, '');
@@ -14,7 +14,7 @@
   let query = '';
 
   // Lien profond depuis un chapitre : /glossaire?q=terme pré-remplit la recherche.
-  onMount(() => {
+  afterNavigate(() => {
     const q = page.url.searchParams.get('q');
     if (q) query = q;
   });
