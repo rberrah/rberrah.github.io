@@ -2,8 +2,6 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-await import('./generate_ddi_tdm_models.mjs');
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
 const outputFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated.json');
@@ -108,7 +106,9 @@ const modelTypeEn = {
   'PopPK mécanistique adapté': 'Adapted mechanistic PopPK',
   'PopPK publié': 'Published PopPK',
   'PopPK publié adapté': 'Adapted published PopPK',
-  'Prior PK à vérifier': 'PK prior pending verification'
+  'Prior PK à vérifier': 'PK prior pending verification',
+  'Reconstruction déterministe NCA': 'Deterministic NCA reconstruction',
+  'Reconstruction déterministe de revue': 'Deterministic review-based reconstruction'
 };
 
 const administrationModeLabels = {
@@ -124,7 +124,8 @@ const additionallyAdaptedModels = new Set([
   'genta_rosario_clcr',
   'genta_rosario_clinical',
   'levo_gergs',
-  'linez_sasaki'
+  'linez_sasaki',
+  'rifampicine_marsot'
 ]);
 
 const drugKeys = Object.keys(drugLabels);
