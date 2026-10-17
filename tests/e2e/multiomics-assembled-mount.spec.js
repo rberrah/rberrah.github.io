@@ -102,7 +102,7 @@ test('Canonical MultiOmics navbar is ACTUALLY PMx dropdown UI with mO logo', asy
   }
   await header.getByTestId('goal-disciplines').locator('summary').click();
   await expect(header.getByTestId('nav-pmx')).toHaveAttribute('href','https://rberrah.github.io/pharmacometrie/');
-  await expect(header.getByTestId('nav-omics2pk')).toHaveAttribute('href','https://github.com/rberrah/Omics2PK');
+  await expect(header.getByTestId('nav-omics2pk')).toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
   await header.getByTestId('goal-resources').locator('summary').click();
   await expect(header.getByTestId('goal-disciplines')).not.toHaveAttribute('open','');
   await expect(header.getByTestId('nav-glossary')).toHaveAttribute('href','/multiomics/glossary/');
