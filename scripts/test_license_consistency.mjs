@@ -22,7 +22,7 @@ const publicChrome = [
   'src/lib/site.js',
   'src/lib/i18n/translations.js',
   'scripts/generate_communications.mjs'
-].filter((file) => !file.startsWith('portal/stats/'));
+];
 
 for (const file of publicChrome) {
   const content = readFileSync(file, 'utf8');
