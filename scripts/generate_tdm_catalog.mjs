@@ -2,7 +2,9 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-await import('./generate_ddi_tdm_models.mjs');
+// MIPD Engine is now the sole owner of executable C++ model generation.
+// This PMx script may index the imported immutable browser snapshot but MUST NOT
+// regenerate old DDI approximations or overwrite a qualified upstream release.
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
@@ -124,7 +126,8 @@ const additionallyAdaptedModels = new Set([
   'genta_rosario_clcr',
   'genta_rosario_clinical',
   'levo_gergs',
-  'linez_sasaki'
+  'linez_sasaki',
+  'rifampicine_marsot'
 ]);
 
 const drugKeys = Object.keys(drugLabels);
@@ -179,7 +182,7 @@ function administrationModes(routes, details, stem) {
 }
 
 function implementationStatus(details, stem) {
-  const adapted = additionallyAdaptedModels.has(stem) || /adapté|module/i.test(details.modelType);
+  const adapted = additionallyAdaptedModels.has(stem) || /adapté|module|reconstruction/i.test(details.modelType);
   return adapted
     ? { implementationStatus: 'ADAPTED', implementationStatusLabel: 'Adaptation documentée', implementationStatusLabelEn: 'Documented adaptation' }
     : { implementationStatus: 'ARTICLE', implementationStatusLabel: "Implémentation de l'article", implementationStatusLabelEn: 'Article implementation' };
