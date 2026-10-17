@@ -3,7 +3,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const source = JSON.parse(readFileSync('integration/mipd-release.json', 'utf8'));
-const engineRoot = path.resolve(process.argv[2] || 'tdm-engine');
+const engineRootValue = process.argv[2];
+assert.ok(engineRootValue, 'Standalone MIPD checkout path is required; PMx no longer carries a local tdm-engine mirror');
+const engineRoot = path.resolve(engineRootValue);
 
 const engineUrlSource = readFileSync('src/lib/tdm/engine.js', 'utf8');
 assert.ok(engineUrlSource.includes(source.publicUrl), 'PMx public engine URL differs from the release contract');
