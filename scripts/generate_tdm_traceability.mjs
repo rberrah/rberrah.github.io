@@ -1,190 +1,56 @@
-import { promises as fs } from 'node:fs';
+// This repository is a consumer, not the scientific source-of-truth.
+// The traceability files are imported byte-for-byte from the immutable MIPD
+// release defined by integration/mipd-release.json. Recomputing them with
+// stale PMx generator logic would silently rewrite scientific evidence.
+// This command is now a deterministic offline SHA/DOI/catalog validator.
+import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const catalogFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated.json');
-const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
-const outputFile = path.join(root, 'docs', 'tdm-model-traceability.md');
-const manifestFile = path.join(root, 'docs', 'tdm-model-traceability.json');
-const checkOnly = process.argv.includes('--check');
-
-const referenceCases = new Map([
-  ['amox_carlier', '1 000 mg IV; concentrations at 1, 4, 12 and 24 h'],
-  ['vanco_pkjust', '1 000 mg IV; concentrations at 1, 4, 12 and 24 h'],
-  ['vanco_goti', '1 000 mg IV; concentrations at 1, 4, 12 and 24 h'],
-  ['vanco_roberts', '1 000 mg/24 h by continuous IV infusion; concentrations at 1, 4, 12 and 24 h'],
-  ['tacrolimus_woillard_ddi', '5 mg oral; concentrations at 1, 4, 12 and 24 h'],
-  ['dapto_dvorchik_IV_adults', '500 mg IV; concentrations at 1, 4, 12 and 24 h'],
-  ['cefepime_jonckheere', '2 000 mg by 30-minute IV infusion; concentrations at 1, 4, 12 and 24 h'],
-  ['rifampicine_jing', '450 mg oral; concentrations at 1, 4, 12 and 24 h']
+const load = async (name) => JSON.parse(await readFile(path.join(root, name), 'utf8'));
+const [source, catalog, report, sourceReview, summary] = await Promise.all([
+  load('integration/mipd-release.json'),
+  load('src/lib/content/tdmModels.generated.json'),
+  load('docs/tdm-model-traceability.json'),
+  load('src/lib/content/tdmSourceReview.generated.json'),
+  load('src/lib/content/mlBenchmark.generated.json')
 ]);
-
-function sections(code) {
-  const result = [];
-  let current = null;
-  for (const line of code.replace(/\r/g, '').split('\n')) {
-    const header = line.match(/^\s*\$([A-Z]+)\b(.*)$/);
-    if (header) {
-      current = { name: header[1], options: header[2].trim(), lines: [] };
-      result.push(current);
-    } else if (current) {
-      current.lines.push(line);
-    }
-  }
-  return result;
+assert.equal(source.schema, 'mipd-site-source.v1');
+assert.match(source.sha, /^[0-9a-f]{40}$/);
+assert.equal(catalog.models.length, source.expectedModelCount);
+assert.equal(report.models.length, source.expectedModelCount);
+assert.equal(sourceReview.reviewed.length, source.expectedModelCount);
+assert.equal(summary.artifacts.length, source.expectedModelCount);
+const models = new Map(catalog.models.map((model) => [model.id, model]));
+const reviews = new Map(sourceReview.reviewed.map((entry) => [entry.id, entry]));
+const sourceIds = [...models.keys()].sort();
+assert.deepEqual([...new Set(report.models.map((entry) => entry.id))].sort(), sourceIds,
+  'Imported traceability IDs differ from the pinned browser model catalogue');
+assert.deepEqual([...reviews.keys()].sort(), sourceIds,
+  'Source-review records do not cover all 46 published models');
+const listing = (await readdir(path.join(root, 'static/tdm/models')))
+  .filter(name => name.endsWith('.cpp'))
+  .filter(name => models.has(name.slice(0, -4))).sort();
+assert.deepEqual(listing, catalog.models.map(entry => entry.file).sort(),
+  'The imported 46-file browser snapshot differs from the catalog');
+for (const entry of report.models) {
+  const record = models.get(entry.id);
+  assert(record, 'Unknown traceability ID ' + entry.id);
+  assert.equal(entry.primarySource?.doi, record.doi, entry.id + ': source DOI drift');
+  const contents = (await readFile(path.join(root, 'static/tdm/models', record.file), 'utf8'))
+    .replaceAll('\r', '');
+  const digest = createHash('sha256').update(contents).digest('hex');
+  assert.equal(entry.sourceSha256, digest, entry.id + ': traceability/C++ SHA mismatch');
+  assert(reviews.has(entry.id), entry.id + ': missing original article source review');
 }
-
-function declaredNames(blocks) {
-  return [...new Set(blocks.flatMap((block) => block.lines).map((line) => {
-    const clean = line.replace(/\/\/.*$/, '').trim();
-    return clean.match(/^([A-Za-z][A-Za-z0-9_]*)\s*(?::|=)/)?.[1] ?? null;
-  }).filter(Boolean))];
+for (const artifact of summary.artifacts) {
+  assert(models.has(artifact.modelId), artifact.modelId + ': ML model not catalogued');
+  assert.equal(typeof artifact.hashMatches, 'boolean');
+  assert.equal(typeof artifact.availableInTdm, 'boolean');
+  if (!artifact.hashMatches) assert.equal(artifact.availableInTdm, false,
+    artifact.modelId + ': mismatched ML source must remain disabled');
 }
-
-function indexedUses(code, token) {
-  return [...new Set([...code.matchAll(new RegExp(`\\b${token}\\(\\s*(\\d+)\\s*\\)`, 'g'))]
-    .map((match) => Number(match[1])))]
-    .sort((a, b) => a - b);
-}
-
-function compactList(values) {
-  return values.length ? values.map((value) => `\`${value}\``).join(', ') : 'None declared';
-}
-
-function escapeCell(value) {
-  return String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
-}
-
-function articleStatus(model) {
-  return model.implementationStatus === 'ARTICLE'
-    ? 'Article implementation according to the author audit; independent reproduction pending.'
-    : 'Documented adaptation; see the implementation note below.';
-}
-
-const catalog = JSON.parse(await fs.readFile(catalogFile, 'utf8'));
-const records = await Promise.all(catalog.models.map(async (model) => {
-  const code = await fs.readFile(path.join(modelsDirectory, model.file), 'utf8');
-  const parsed = sections(code);
-  const parameterBlocks = parsed.filter((block) => block.name === 'PARAM');
-  const covariateBlocks = parameterBlocks.filter((block) => /@covariates\b/i.test(block.options));
-  const ordinaryBlocks = parameterBlocks.filter((block) => !/@covariates\b/i.test(block.options));
-  const covariates = declaredNames(covariateBlocks);
-  const parameters = declaredNames(ordinaryBlocks).filter((name) => !/^ETA\d+$/i.test(name));
-  const etaUses = indexedUses(code, 'ETA');
-  const epsUses = indexedUses(code, 'EPS');
-  const blockText = (name) => parsed.filter((block) => block.name === name)
-    .map((block) => [block.options, ...block.lines].join('\n').trim()).filter(Boolean);
-  const compartments = declaredNames(parsed.filter((block) => block.name === 'CMT'));
-  const differentialEquations = parsed.filter((block) => block.name === 'ODE')
-    .flatMap((block) => block.lines.map((line) => line.replace(/\/\/.*$/, '').trim()))
-    .filter((line) => /^dxdt_[A-Za-z][A-Za-z0-9_]*\s*=/.test(line));
-  const outputs = parsed.filter((block) => block.name === 'CAPTURE')
-    .flatMap((block) => [block.options, ...block.lines].join(' ').split(/\s+/).filter(Boolean));
-  const sourceSha256 = createHash('sha256').update(code.replace(/\r/g, '')).digest('hex');
-  return { model, parameters, covariates, etaUses, epsUses, compartments, differentialEquations, outputs,
-    omega: blockText('OMEGA'), sigma: blockText('SIGMA'), sourceSha256 };
-}));
-
-const articleCount = records.filter(({ model }) => model.implementationStatus === 'ARTICLE').length;
-const adaptedCount = records.length - articleCount;
-const mapCount = records.filter(({ model }) => model.analysisEligible).length;
-
-const lines = [
-  '# TDM model source-to-implementation traceability',
-  '',
-  '> Generated by `scripts/generate_tdm_traceability.mjs`; do not edit manually.',
-  '',
-  'This inventory documents the PMx browser snapshot of each model and its declared primary source; the executable source of truth is the pinned standalone MIPD Engine. It is an implementation audit, **not** proof that the publication has been independently reproduced. Three levels are kept separate:',
-  '',
-  '1. **Syntax and contract:** the pinned standalone MIPD library compiles and satisfies the mrgsolve/TDM interface contract.',
-  '2. **Deterministic software regression:** selected models have fixed inputs and expected outputs in the standalone `MIPD-Engine/tests/model_reference_cases.R` suite.',
-  '3. **Scientific reproduction:** comparison with source equations, source software or published reference outputs; this remains pending unless explicitly documented.',
-  '',
-  `Current catalog: **${records.length} models** (${articleCount} labelled article implementations, ${adaptedCount} documented adaptations; ${mapCount} exposed as MAP priors). **${referenceCases.size} models** currently have deterministic numeric reference profiles.`,
-  '',
-  'Population text and administration route define the currently encoded validity context. Numerical age, weight, renal-function and dose ranges are not yet structured for every article; absence of a range below must not be interpreted as permission to extrapolate.',
-  '',
-  '## Summary',
-  '',
-  '| Model | Source | Route / mode | Units | Implementation | MAP | Numeric profile |',
-  '| --- | --- | --- | --- | --- | --- | --- |'
-];
-
-for (const { model } of records) {
-  const source = `[${escapeCell(model.citation)}](https://doi.org/${model.doi})`;
-  const route = `${model.routes.join(' + ')} / ${model.administrationModes.join(', ')}`;
-  lines.push(`| \`${model.id}\` | ${source} | ${escapeCell(route)} | ${model.timeUnit}; ${model.concentrationUnit} | ${model.implementationStatus} | ${model.analysisEligible ? 'Yes' : 'No'} | ${referenceCases.has(model.id) ? 'Deterministic regression' : 'Compile + contract'} |`);
-}
-
-lines.push('', '## Per-model implementation record', '');
-
-for (const { model, parameters, covariates, etaUses, epsUses } of records) {
-  const note = model.note?.trim() || 'No adaptation is documented in catalog metadata. Independent source reproduction is still required.';
-  const reference = referenceCases.get(model.id);
-  lines.push(
-    `### ${model.drug} - ${model.model} (\`${model.id}\`)`,
-    '',
-    `- **Primary source:** ${model.citation} DOI: [${model.doi}](https://doi.org/${model.doi}).`,
-    `- **Source population:** ${model.population}`,
-    `- **Administration and units:** ${model.routes.join(' + ')}; ${model.administrationModes.join(', ')}; time in ${model.timeUnit}; concentration in ${model.concentrationUnit}.`,
-    `- **Structural/fixed parameters declared in code:** ${compactList(parameters)}.`,
-    `- **Covariates declared in code:** ${compactList(covariates)}.`,
-    `- **Random and residual effects used by the equations:** ${etaUses.length ? `ETA indices ${etaUses.join(', ')}` : 'no indexed ETA use'}; ${epsUses.length ? `EPS indices ${epsUses.join(', ')}` : 'no indexed EPS use'}. OMEGA/SIGMA details remain authoritative in [the model source](../static/tdm/models/${model.file}).`,
-    `- **MAP prior:** ${model.analysisEligible ? 'exposed in the TDM analysis workflow' : 'not exposed; simulation only'}.`,
-    `- **Fidelity status:** ${articleStatus(model)}`,
-    `- **Documented modification or limitation:** ${note}`,
-    `- **Reference testing:** ${reference ? `${reference}; zero ETA and residual errors; deterministic software-regression tolerance \`1e-7\`.` : 'compilation and interface-contract test only; no frozen numeric profile yet.'}`,
-    ''
-  );
-}
-
-const output = `${lines.join('\n')}\n`;
-const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
-const manifest = {
-  version: 1,
-  generatedFrom: ['src/lib/content/tdmModels.generated.json', 'static/tdm/model-metadata.json', 'static/tdm/models/*.cpp', 'integration/mipd-release.json'],
-  models: records.map(({ model, parameters, covariates, etaUses, epsUses, compartments, differentialEquations, outputs, omega, sigma, sourceSha256 }) => ({
-    id: model.id,
-    sourceFile: model.file,
-    sourceSha256,
-    primarySource: { citation: model.citation, doi: model.doi, status: model.sourceStatus ?? 'primary' },
-    population: { description: model.population, tags: model.populationTags ?? [] },
-    administration: { routes: model.routes, modes: model.administrationModes, timeUnit: model.timeUnit, concentrationUnit: model.concentrationUnit },
-    structuralModel: { compartments, differentialEquations, outputs },
-    parameters,
-    covariates,
-    interindividualVariability: { etaIndices: etaUses, omega },
-    residualError: { epsIndices: epsUses, sigma },
-    pmxAdaptations: model.note?.trim() || 'No PMx adaptation documented.',
-    implementationStatus: model.implementationStatus,
-    softwareContractStatus: model.verificationStatus,
-    numericalCheckStatus: referenceCases.has(model.id) ? 'deterministic-software-regression' : 'not-checked',
-    sourceReproductionStatus: model.verificationStatus === 'NUMERICALLY_REPRODUCED' ? 'declared-numerically-reproduced' : 'pending-independent-reproduction',
-    mapTdm: { eligible: Boolean(model.analysisEligible), status: model.analysisEligibilityLabel },
-    limitations: model.note?.trim() || 'Numerical validity ranges and independent reproduction remain to be documented.'
-  }))
-};
-const requiredPaths = ['primarySource.doi', 'population.description', 'administration.routes', 'structuralModel.compartments',
-  'parameters', 'covariates', 'interindividualVariability.omega', 'residualError.sigma', 'pmxAdaptations',
-  'implementationStatus', 'softwareContractStatus', 'numericalCheckStatus', 'sourceReproductionStatus', 'mapTdm.status', 'limitations'];
-const valueAt = (object, dottedPath) => dottedPath.split('.').reduce((value, key) => value?.[key], object);
-for (const record of manifest.models) {
-  const missing = requiredPaths.filter((field) => valueAt(record, field) == null);
-  if (missing.length) throw new Error(`Incomplete TDM traceability for ${record.id}: ${missing.join(', ')}`);
-}
-const manifestOutput = `${JSON.stringify(manifest, null, 2)}\n`;
-const previousManifest = await fs.readFile(manifestFile, 'utf8').catch(() => '');
-
-if (checkOnly) {
-  if (previous !== output || previousManifest !== manifestOutput) {
-    console.error('TDM traceability inventory is stale. Run `npm run tdm:traceability`.');
-    process.exit(1);
-  }
-  console.log(`TDM traceability inventory is current: ${records.length} models.`);
-} else {
-  if (previous !== output) await fs.writeFile(outputFile, output, 'utf8');
-  if (previousManifest !== manifestOutput) await fs.writeFile(manifestFile, manifestOutput, 'utf8');
-  console.log(`Generated ${path.relative(root, outputFile)} for ${records.length} models.`);
-}
+console.log('PASS: 46 imported MIPD traceability/C++ source hashes, DOIs, source-review records and ML fail-closed flags; pinned SHA ' + source.sha);
