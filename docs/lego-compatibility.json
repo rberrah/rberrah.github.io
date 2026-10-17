@@ -316,8 +316,8 @@
       "model": "amiodarone_pollak_ddi",
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "unsupportedEquation"
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
     },
     {
       "model": "amiodarone_pollak_ddi",
@@ -625,7 +625,7 @@
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
       "status": "rejected",
-      "reason": "((wt/70)^wtv)"
+      "reason": "((wt/wtref)^wtv)"
     },
     {
       "model": "ciclosporine_press_ddi",
@@ -1493,7 +1493,7 @@
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
       "status": "rejected",
-      "reason": "exp((0+eta2))"
+      "reason": "((wt/wtref)^allov)"
     },
     {
       "model": "tacrolimus_kamp_envarsus_ddi",
