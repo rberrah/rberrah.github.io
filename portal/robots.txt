@@ -10,7 +10,7 @@
 User-agent: *
 Allow: /
 
-# Point d'entrée recommandé : l'index agrège la racine, Pharmacométrie et le site Stats autonome.
+# Point d'entrée recommandé : l'index agrège la racine, Pharmacométrie, Stats et le site Omics2PK autonome.
 Sitemap: __SITE_ORIGIN__/sitemap-index.xml
 
 # Les sitemaps sont aussi déclarés individuellement : si un outil ne suit pas les
