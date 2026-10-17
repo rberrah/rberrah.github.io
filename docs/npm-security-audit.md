@@ -21,12 +21,12 @@ Compatible updates removed the advisories affecting `devalue`, the direct
 
 The SvelteKit 3 migration is now implemented with adapter-static 4, Vite 8 and TypeScript 6. The committed lockfile reports **0 known npm vulnerabilities**, and PMx qualification now fails on advisories at **low** severity or above. Run `npm audit --audit-level=low` whenever the lockfile changes and before each release; do not use `npm audit fix --force` or `--legacy-peer-deps` to bypass framework compatibility checks.
 
-The PMx qualification workflow runs `npm audit --audit-level=moderate`; any new moderate, high or critical advisory therefore blocks pull requests and `main` qualification. The only accepted residual advisories are explicitly documented low-severity findings.
+The PMx qualification workflow runs `npm audit --audit-level=low`; any known low, moderate, high or critical advisory therefore blocks pull requests and `main` qualification. The current committed lockfile has no accepted residual advisory.
 
 ## `punycode` warning
 
 The installed tree contains `punycode.js@2.3.1` only through
-`markdown-it@14.3.2`. This is the maintained userland package, not Node's
+`markdown-it@15.0.2`. This is the maintained userland package, not Node's
 deprecated built-in `punycode` module. `npm ls punycode` returns no package.
 If CI emits Node deprecation code `DEP0040` again, capture that job's stack or
 run it with `NODE_OPTIONS=--trace-deprecation`; the current dependency tree does
