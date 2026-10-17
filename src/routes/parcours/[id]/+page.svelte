@@ -31,7 +31,7 @@
     ? trackActivities.find((activity) => activity.id === 'synthesis-start')
     : null;
 
-  let chapterQuery = page.url.searchParams.get('chapter');
+  let chapterQuery = null;
   $: selected = list.find((chapter) => chapter.slug === chapterQuery) ?? list[0];
   $: activities = selected ? activitiesForChapter(selected.slug, track.id) : [];
   $: exercises = selected ? exercisesForChapter(selected.slug) : [];
