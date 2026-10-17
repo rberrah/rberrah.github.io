@@ -22,7 +22,11 @@ assert.equal(runtime.pmetrics?.version, source.pmetricsVersion, 'Standalone Pmet
 const deploySource = readFileSync(path.join(engineRoot, 'scripts', 'deploy_shiny.R'), 'utf8');
 assert.ok(deploySource.includes(`appId = "${source.shinyappsAppId}"`), 'Standalone Shinyapps appId changed');
 assert.ok(deploySource.includes('appName = "MIPD_Engine"'), 'Standalone public app name changed');
-assert.ok(deploySource.includes('Sys.setenv(ALLOW_CUSTOM_MODELS = "false")') === !source.productionCustomModels,
-  'Standalone production custom-model safety policy changed');
+const profileSource = readFileSync(path.join(engineRoot, 'R', 'deployment_profile.R'), 'utf8');
+assert.equal(source.productionCustomModels, false, 'Public arbitrary custom C++ must remain disabled');
+assert.ok(deploySource.includes('ALLOW_CUSTOM_MODELS = "false"') &&
+    deploySource.includes('ENABLE_PMETRICS = "false"') &&
+    profileSource.includes('Sys.setenv(ALLOW_CUSTOM_MODELS = "false", ENABLE_PMETRICS = "false")'),
+  'Standalone production custom-C++ or Pmetrics safety profile changed');
 
 console.log(`MIPD consumer contract PASS: ${source.sha}, ${catalog.models.length} models, R ${runtime.rVersion}, Pmetrics ${runtime.pmetrics.version}.`);
