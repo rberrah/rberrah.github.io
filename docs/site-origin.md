@@ -51,8 +51,7 @@ external links, not derived site URLs.
 
 The setting does not configure DNS, TLS, GitHub Pages custom-domain/CNAME settings,
 or redirects from an old domain. Configure those separately during migration.
-Internat and Stats are separate deployments: their sitemap URLs are listed in the
-portal index but their artifacts cannot be checked in this repository.
+Internat, Stats and Omics2PK are separate deployments: their sitemap URLs can be listed in the portal index, but their artifacts are qualified in their own repositories. MultiOmics is different: its source and qualification are standalone in `rberrah/MultiOmics`, while PMx Pages mounts the exact pinned overlay at `/multiomics/`. A future origin migration must therefore coordinate PMx, the pinned MultiOmics public URLs and the separately deployed Omics2PK site rather than assuming `PUBLIC_SITE_ORIGIN` rewrites those external repositories.
 
 ### Shiny Boundary
 
