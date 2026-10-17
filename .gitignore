@@ -38,3 +38,14 @@ course_source/**/cache/
 test-results/
 playwright-report/
 .playwright/
+
+# Generated read-only browser snapshot; scientific source lives only in MIPD-Engine.
+/.cache/
+/static/tdm/models/
+/static/tdm/model-metadata.json
+/static/tdm/model-i18n.en.json
+/src/lib/content/tdmModels.generated.json
+/src/lib/content/tdmSourceReview.generated.json
+/src/lib/content/tdmModelDetails.fr.generated.json
+/src/lib/content/tdmPdfInventory.generated.json
+/src/lib/content/mlBenchmark.generated.json

@@ -16,9 +16,10 @@ moteur.
 - `portal/` : portail académique publié à la racine de `PUBLIC_SITE_ORIGIN`.
 - `src/` : cours, visualisations, simulations et interfaces PMx.
 - `static/` : ressources statiques du site.
-- `static/tdm/` : snapshot navigateur des modèles nécessaires aux pages
-  pédagogiques et au traducteur. Ce snapshot n'est pas la source scientifique
-  de vérité ; sa parité avec la release MIPD épinglée est testée en CI.
+- `static/tdm/` : snapshot navigateur **généré au build**, non versionné
+  dans PMx. Les 46 fichiers C++ et les métadonnées sont importés depuis
+  le SHA MIPD immuable via `scripts/materialize_mipd_snapshot.mjs`. La
+  bibliothèque scientifique est maintenue exclusivement dans MIPD-Engine.
 - `integration/mipd-release.json` : contrat immutable vers
   `rberrah/MIPD-Engine`.
 - `integration/multiomics-release.json` : contrat immutable vers
@@ -39,6 +40,7 @@ Les PDF institutionnels et les données patients ne doivent jamais être publié
 
 ```sh
 npm ci
+# Premier lancement : récupère le SHA MIPD immuable et le met en cache local
 npm run dev
 npm run check
 npm run build
@@ -66,8 +68,13 @@ npm run build
 PMx affiche et transmet vers le moteur déployé, mais ne possède plus son code
 R/Shiny. Les tests `mipd-consumer`, `scientific-r` et
 `scientific-pmetrics` récupèrent le SHA exact de `rberrah/MIPD-Engine`,
+matérialisent une copie de consommation à partir du SHA MIPD figé,
 vérifient la bibliothèque, les transferts, la sécurité de production et les
 régressions numériques, puis échouent si le contrat change silencieusement.
+PMx ne versionne plus aucune copie C++ : les modèles pédagogiques sont importés
+au build, et une URL de moteur local peut être explicitement sélectionnée via
+`PUBLIC_TDM_ENGINE_URL` pendant le développement. Sans override, le moteur
+public autonome est utilisé également en mode développement.
 
 Développement, modèles, artefacts ML, déploiement Shiny et qualification MIPD :
 https://github.com/rberrah/MIPD-Engine
