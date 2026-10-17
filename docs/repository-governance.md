@@ -1,6 +1,6 @@
 # PMx Explain repository governance
 
-Updated: 2026-10-16.
+Updated: 2026-10-17.
 
 ## Repository boundaries
 
@@ -31,4 +31,4 @@ Generated inventories and communication pages must be regenerated before merge. 
 
 ## Dependency policy
 
-Dependabot proposes npm updates weekly and GitHub Actions updates monthly. Moderate, high or critical npm advisories block PMx qualification. Low advisories must be documented and removed when a compatible patched dependency is available rather than silently ignored.
+Dependabot proposes npm updates weekly and GitHub Actions updates monthly. PMx qualification runs `npm audit --audit-level=low`; any known low, moderate, high or critical advisory blocks qualification. The current lockfile has no accepted residual npm advisory.
