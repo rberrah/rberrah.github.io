@@ -110,7 +110,9 @@ const modelTypeEn = {
   'PopPK mécanistique adapté': 'Adapted mechanistic PopPK',
   'PopPK publié': 'Published PopPK',
   'PopPK publié adapté': 'Adapted published PopPK',
-  'Prior PK à vérifier': 'PK prior pending verification'
+  'Prior PK à vérifier': 'PK prior pending verification',
+  'Reconstruction déterministe NCA': 'Deterministic NCA reconstruction',
+  'Reconstruction déterministe de revue': 'Deterministic review-based reconstruction'
 };
 
 const administrationModeLabels = {
