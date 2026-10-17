@@ -10,6 +10,18 @@ if (source.schema !== 'mipd-site-source.v1' ||
   throw new Error('Unexpected MIPD source, moving ref, public target or workflow gate');
 }
 
+const deployment = source.publicDeployment;
+if (!deployment ||
+    !['pending-verification', 'verified'].includes(deployment.status) ||
+    (deployment.status === 'pending-verification' &&
+      (deployment.verifiedSourceSha !== null || deployment.verificationRun !== null)) ||
+    (deployment.status === 'verified' &&
+      (deployment.verifiedSourceSha !== source.sha ||
+       typeof deployment.verificationRun !== 'string' ||
+       !deployment.verificationRun.startsWith('https://github.com/rberrah/MIPD-Engine/actions/runs/')))) {
+  throw new Error('MIPD public deployment verification state is inconsistent with the pinned source');
+}
+
 const url = 'https://api.github.com/repos/rberrah/MIPD-Engine/actions/runs?head_sha=' +
   encodeURIComponent(source.sha) + '&per_page=100';
 const headers = {
@@ -36,3 +48,4 @@ for (const name of requiredNames) {
   console.log('PASS independent MIPD workflow:', name);
 }
 console.log('Pinned MIPD source is qualified:', source.sha);
+console.log('MIPD public deployment verification:', deployment.status, deployment.verifiedSourceSha ?? 'not-yet-verified');
