@@ -46,7 +46,7 @@
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
     { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD' : 'Des omiques à la PK/PD' },
-    { href: 'https://github.com/rberrah/Omics2PK', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
+    { href: 'https://rberrah.github.io/Omics2PK/', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
     { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
     { href: '/a-propos', key: 'about', label: $language === 'en' ? 'About PMx Explain' : 'À propos de PMx Explain' },
