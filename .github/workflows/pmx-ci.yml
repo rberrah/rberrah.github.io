@@ -28,6 +28,19 @@ jobs:
       - run: npm ci
       - name: Reject all known npm advisories
         run: npm audit --audit-level=low
+      - name: Generate Lego compatibility candidate for audit
+        run: node scripts/generate_lego_compatibility.mjs
+      - name: Preserve Lego compatibility candidate
+        uses: actions/upload-artifact@v7
+        with:
+          name: lego-compatibility-candidate
+          path: |
+            docs/lego-compatibility.json
+            docs/lego-compatibility.md
+          if-no-files-found: error
+          retention-days: 1
+      - name: Restore tracked Lego compatibility before drift check
+        run: git checkout -- docs/lego-compatibility.json docs/lego-compatibility.md
       - name: Test public origin configuration
         run: node --test scripts/test_site_origin.mjs
       - name: Test PMx educational content and safety contracts
