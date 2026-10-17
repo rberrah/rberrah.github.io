@@ -38,11 +38,11 @@ export const AUTHOR = {
 /**
  * Retire le préfixe de déploiement d'un chemin pour retrouver la route logique.
  *
- * On NE se sert PAS de `base` ($app/paths) ici : avec `paths.relative` (actif par
- * défaut en SvelteKit 2), `base` vaut une valeur RELATIVE au prérendu (« . », « ../.. »)
- * et non « /pharmacometrie ». Le test `p.startsWith(base)` échouait donc en silence,
- * et l'URL canonique sortait doublée : /pharmacometrie/pharmacometrie/chapitres/…
- * SITE_BASE est le seul préfixe réellement publié : c'est lui qu'on retire.
+ * On ne dérive pas ici le préfixe canonique depuis `$app/paths` : la valeur résolue
+ * dépend du contexte de routage/prérendu et ne constitue pas le contrat public du site.
+ * Une ancienne implémentation produisait ainsi des URL doublées
+ * `/pharmacometrie/pharmacometrie/chapitres/…`. `SITE_BASE` est le préfixe public
+ * versionné par PMx Explain : c'est donc lui seul qui est retiré.
  * @param {string} pathname
  * @returns {string}
  */
