@@ -15,6 +15,8 @@
     cleanupLab = openLaboratoryTdm(tdmEngineUrl, $language ?? 'fr', laboratory, (state, detail) => { labStatus = state; labError = detail ?? ''; });
   }
   import { tdmModels, tdmModelStats } from '#lib/content/tdmModels.js';
+  import sourceReview from '#lib/content/tdmSourceReview.generated.json';
+  import modelDetailsFr from '#lib/content/tdmModelDetails.fr.generated.json';
   import { ui } from '#lib/i18n/translations.js';
   import { language } from '#lib/stores/language.js';
   import { tdmEngineUrl } from '#lib/tdm/engine.js';
@@ -40,36 +42,23 @@
     analysisEligibilityLabel: $language === 'en' ? model.analysisEligibilityLabelEn : model.analysisEligibilityLabel,
     note: $language === 'en' ? model.noteEn : model.note
   });
-  // Source-review snapshot: MIPD-Engine/models/source-review.json, 2026-10-16.
-  // "not verified" describes scientific fidelity, not the DOI's registration.
-  const sourceNotVerified = new Set([
-    'amiodarone_pollak_ddi', 'cobicistat_mathias_ddi',
-    'diltiazem_hermann_ddi', 'everolimus_moes_ddi',
-    'fluconazole_debruyne_ddi', 'isavuconazole_groll_ddi',
-    'rifampicine_loos_ddi', 'sirolimus_djebli_ddi',
-    'rifampicine_chang', 'rifampicine_marsot'
-  ]);
+  // Exact source-review contract imported from the deployed MIPD release.
+  // "not verified" means source ambiguity remains; it does not describe DOI registration.
+  const sourceReviewById = new Map(sourceReview.reviewed.map((item) => [item.id, item]));
   /** @param {any} model */
-  const modelFidelity = (model) => sourceNotVerified.has(model.id)
-    ? 'not verified'
-    : model.implementationStatus === 'ARTICLE' ? 'aligned' : 'adapted';
+  const modelFidelity = (model) => {
+    const result = sourceReviewById.get(model.id)?.result;
+    if (result === 'ARTICLE_ALIGNED') return 'aligned';
+    if (result === 'SOURCE_AMBIGUITY_DOCUMENTED') return 'not verified';
+    return 'adapted';
+  };
   /** @param {any} model */
   const adaptationText = (model) => {
-    const note = model.note ?? '';
     if (modelFidelity(model) === 'aligned') return '';
-    const warning = modelFidelity(model) === 'not verified'
-      ? ($language === 'en'
-        ? 'Published-model fidelity has not been fully verified or the source remains ambiguous. '
-        : 'La fidélité au modèle publié n’est pas entièrement vérifiée ou la source reste ambiguë. ')
-      : '';
-    const ddi = model.id.endsWith('_ddi')
-      ? ($language === 'en'
-        ? 'Adapted for drug–drug interaction (DDI) simulations. '
-        : 'Adapté pour les simulations d’interactions médicamenteuses (DDI). ')
-      : '';
-    return warning + ddi + (note || ($language === 'en'
-      ? 'See the source article for model assumptions.'
-      : 'Consulter l’article source pour les hypothèses du modèle.'));
+    if ($language === 'fr') {
+      return modelDetailsFr.details?.[model.id] ?? model.note ?? 'Adaptation documentée dans MIPD Engine.';
+    }
+    return sourceReviewById.get(model.id)?.note || model.note || 'See the source review for the documented adaptation.';
   };
 
   let drugs = $derived([
