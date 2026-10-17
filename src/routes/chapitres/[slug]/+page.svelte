@@ -39,9 +39,12 @@
   import vizLoaders, { availableVizKeys, loadViz } from '#lib/content/vizRegistry.js';
 
   export let data;
-  $: slug = page.params.slug;
+  let slug = page.params.slug;
+  let canonical = canonicalUrl(page.url.pathname);
   $: chapter = data?.chapter ?? null;
   afterNavigate(() => {
+    slug = page.params.slug;
+    canonical = canonicalUrl(page.url.pathname);
     if (page.route.id !== '/chapitres/[slug]') return;
     const known = page.status === 200 && chapters.find(c => c.slug === page.params.slug);
     if (known) markLearning('chapters', known.slug, 'seen');
@@ -144,7 +147,6 @@
 
   // --- Citabilité et référencement ---------------------------------------------------
   // URL canonique absolue de ce chapitre, issue de l'origine publique du build.
-  $: canonical = canonicalUrl(page.url.pathname);
   // Une alternance anglaise ne s'annonce que si la traduction existe réellement :
   // sinon la page anglaise servirait le texte français, et l'annonce serait fausse.
   $: hasEnglish = Boolean(chapters.find((c) => c.slug === slug)?.translations?.en);
