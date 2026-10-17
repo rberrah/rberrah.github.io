@@ -128,36 +128,6 @@ jobs:
           retention-days: 2
 
 
-  refresh-lego-audit-artifact:
-    if: github.event_name == 'pull_request' && github.head_ref == 'audit/pmx-clean-integration-20261017'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: audit/pmx-clean-integration-20261017
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Regenerate exact Lego compatibility inventory
-        run: node scripts/generate_lego_compatibility.mjs
-      - name: Commit generated audit inventory if needed
-        shell: bash
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- docs/lego-compatibility.json docs/lego-compatibility.md; then
-            echo "Lego compatibility inventory already current."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/lego-compatibility.json docs/lego-compatibility.md
-          git commit -m "docs: regenerate Lego compatibility inventory"
-          git push origin HEAD:audit/pmx-clean-integration-20261017
-
   scientific-js:
     runs-on: ubuntu-latest
     steps:
