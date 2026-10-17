@@ -3,7 +3,6 @@
   import { resolve } from '$app/paths';
   const base = resolve('/').replace(/\/$/, '');
   import { page } from '$app/state';
-  import { onMount } from 'svelte';
   import { goto, afterNavigate } from '$app/navigation';
   import { ArrowRight, BookOpen, FlaskConical, ListChecks } from '@lucide/svelte';
   import chapters from '#lib/content/loadChapters.js';
@@ -19,8 +18,6 @@
   import LearningProgress from '#lib/components/ui/LearningProgress.svelte';
   import Quiz from '#lib/components/ui/Quiz.svelte';
   export let data;
-  let mounted = false;
-  onMount(() => { mounted = true; });
   const t = (fr, en) => $language === 'en' ? en : fr;
   const localized = (value) => localizeChapter(value, $language).chapter;
   $: track = data.track;
@@ -34,7 +31,7 @@
     ? trackActivities.find((activity) => activity.id === 'synthesis-start')
     : null;
 
-  $: chapterQuery = mounted ? page.url.searchParams.get('chapter') : null;
+  let chapterQuery = page.url.searchParams.get('chapter');
   $: selected = list.find((chapter) => chapter.slug === chapterQuery) ?? list[0];
   $: activities = selected ? activitiesForChapter(selected.slug, track.id) : [];
   $: exercises = selected ? exercisesForChapter(selected.slug) : [];
@@ -60,6 +57,7 @@
   })[$learning.activities[id]] ?? t('À commencer', 'Not started');
 
   afterNavigate(({ shallow }) => {
+    chapterQuery = page.url.searchParams.get('chapter');
     if (shallow) return;
 
     loadLearning();
