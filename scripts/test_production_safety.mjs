@@ -16,8 +16,8 @@ const app = readEngine('app.R');
 const deploy = readEngine('scripts/deploy_shiny.R');
 assert.match(app, /Sys\.getenv\("ALLOW_CUSTOM_MODELS", "false"\)/,
   'Standalone public application must default to ALLOW_CUSTOM_MODELS=false');
-assert.match(deploy, /Sys\.setenv\(ALLOW_CUSTOM_MODELS = "false"\)/,
-  'Standalone deployment must force ALLOW_CUSTOM_MODELS=false');
+assert.match(deploy, /Sys\.setenv\(ALLOW_CUSTOM_MODELS = "false", ENABLE_PMETRICS = "false"\)/,
+  'Standalone deployment must jointly disable arbitrary C++ and Pmetrics');
 assert.match(app, /Sys\.getenv\("ENABLE_PMETRICS", "auto"\)/,
   'Standalone application must expose an explicit optional Pmetrics mode');
 assert.match(deploy, /Sys\.setenv\(ENABLE_PMETRICS = "false"\)/,
