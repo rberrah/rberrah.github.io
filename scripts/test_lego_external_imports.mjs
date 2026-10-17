@@ -125,12 +125,12 @@ for (const model of catalog.models) {
     assert.ok(s.nodes.some(n=>n.dose>0), `${model.id}: recognized library import must preserve an administration node`);
     if (model.id==='amik_burdet') assert.equal(s.covariates.length,0,'Comments are not covariate declarations');
     if (model.id==='levo_gergs') close(getNode(s,'CENT').vol,.835*70);
-    console.log(`AUDIT ${model.id}: recognized`);
+    console.log(`AUDIT ${model.id}: recognized (${s.warnings?.map((warning) => warning.code).join(', ') || 'bounded structural reconstruction'})`);
   } catch (error) {
     assert.ok(error?.code==='unsupportedEquation'||error?.code==='unsupportedAdministration',
       `${model.id}: unexpected parser failure ${error?.code ?? error}`);
     rejected.push(model.id);
-    console.log(`AUDIT ${model.id}: explicitly unsupported (${error.code})`);
+    console.log(`AUDIT ${model.id}: explicitly unsupported (${String(error.detail || error.code).replace(/\s+/g, ' ').slice(0, 240)})`);
   }
 }
 for (const id of historicallyRecognized) {
