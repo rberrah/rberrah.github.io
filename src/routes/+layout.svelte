@@ -46,6 +46,7 @@
     { href: '/playground', key: 'playground', label: copy.nav.playground },
     { href: '/glossaire', key: 'glossary', label: copy.nav.glossary },
     { href: '/domaines', key: 'cross-domains', label: $language === 'en' ? 'Omics to PK/PD' : 'Des omiques à la PK/PD' },
+    { href: 'https://rberrah.github.io/multiomics/', key: 'multiomics', label: 'MultiOmics ↗', external: true },
     { href: 'https://rberrah.github.io/Omics2PK/', key: 'omics2pk', label: 'Omics2PK ↗', external: true },
     { href: '/recherche', key: 'search', label: $language === 'en' ? 'Search' : 'Recherche' },
     { href: '/references', key: 'references', label: $language === 'en' ? 'References' : 'Références' },
@@ -58,7 +59,7 @@
     { key: 'explore', label: $language === 'en' ? 'Explore' : 'Explorer', icon: Blocks, keys: ['translator', 'pk', 'pd', 'covariates', 'ddi', 'advanced'] },
     { key: 'simulate', label: $language === 'en' ? 'Simulate' : 'Simuler', icon: FlaskConical, keys: ['laboratories', 'playground'] },
     { key: 'analyze', label: $language === 'en' ? 'Analyze' : 'Analyser', icon: ChartNoAxesCombined, keys: ['tdm', 'ml', 'other-tools'] },
-    { key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines', icon: Library, keys: ['cross-domains', 'omics2pk'] },
+    { key: 'connections', label: $language === 'en' ? 'Other disciplines' : 'Liens avec les autres domaines', icon: Library, keys: ['cross-domains', 'multiomics', 'omics2pk'] },
     { key: 'resources', label: $language === 'en' ? 'Resources' : 'Ressources', icon: Library, keys: ['search', 'glossary', 'references', 'about', 'main-site'] }
   ]);
   let objectiveLinks = $derived([...links, { href: '/laboratoires', key: 'laboratories', label: $language === 'en' ? 'Animated laboratories' : 'Laboratoires animés' }]);
