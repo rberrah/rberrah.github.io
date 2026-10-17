@@ -28,19 +28,6 @@ jobs:
       - run: npm ci
       - name: Reject all known npm advisories
         run: npm audit --audit-level=low
-      - name: Generate Lego compatibility candidate for audit
-        run: node scripts/generate_lego_compatibility.mjs
-      - name: Preserve Lego compatibility candidate
-        uses: actions/upload-artifact@v7
-        with:
-          name: lego-compatibility-candidate
-          path: |
-            docs/lego-compatibility.json
-            docs/lego-compatibility.md
-          if-no-files-found: error
-          retention-days: 1
-      - name: Restore tracked Lego compatibility before drift check
-        run: git checkout -- docs/lego-compatibility.json docs/lego-compatibility.md
       - name: Test public origin configuration
         run: node --test scripts/test_site_origin.mjs
       - name: Test PMx educational content and safety contracts
@@ -139,6 +126,37 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 2
+
+
+  refresh-lego-audit-artifact:
+    if: github.event_name == 'pull_request' && github.head_ref == 'audit/pmx-clean-integration-20261017'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: audit/pmx-clean-integration-20261017
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Regenerate exact Lego compatibility inventory
+        run: node scripts/generate_lego_compatibility.mjs
+      - name: Commit generated audit inventory if needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/lego-compatibility.json docs/lego-compatibility.md; then
+            echo "Lego compatibility inventory already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/lego-compatibility.json docs/lego-compatibility.md
+          git commit -m "docs: regenerate Lego compatibility inventory"
+          git push origin HEAD:audit/pmx-clean-integration-20261017
 
   scientific-js:
     runs-on: ubuntu-latest
