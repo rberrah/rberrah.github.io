@@ -4,10 +4,9 @@
 library, experimental ML artifacts and engine qualification. PMx Explain owns
 the educational pages, builders and transfer interfaces.
 
-PMx pins one immutable standalone commit in `integration/mipd-release.json`.
+PMx pins one immutable standalone commit in `integration/mipd-release.json`. A production pin is accepted only when the exact same SHA has passed the standalone software and DOI gates **and** is exposed by the public Shiny `deployment-release.json` fingerprint.
 Its qualification checks that the authentic push workflow succeeded, compares
-the 46 standalone model sources and catalogue with the public PMx snapshot, and
-runs the bounded Lego importer audit against the standalone files.
+the exact 46 standalone model sources and catalogue with the public PMx snapshot, rejects legacy extra model files, compares the source-review, French detail, source-document and ML-availability contracts, and runs the bounded Lego importer audit against the standalone files.
 
 The historical repository-local `tdm-engine/` mirror has been removed after
 standalone deployment and PMx consumer qualification succeeded. Rollback is now
