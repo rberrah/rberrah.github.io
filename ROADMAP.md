@@ -1,6 +1,6 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-16.
+Mise à jour : 2026-10-17.
 Lot actuel : validation scientifique, validation pédagogique et reproductibilité.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -38,7 +38,7 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 | Comparaisons A/B des laboratoires | `CI verified` pour 15/15 laboratoires | Vérifier avec des débutants la compréhension des écarts et du contrefactuel oncologique |
 | Support Lego complexe | `CI verified` pour le sous-ensemble borné | Étendre au-delà des expressions autorisées, administrations alternatives sélectionnables et sorties combinées linéaires sans prétendre restaurer un projet d'estimation complet |
 | Communication NetPK du 14 octobre 2026 | `implemented` : `Presented / Présenté`, pages FR/EN et métadonnées régénérées | `CI verified` par la règle générique interdisant un statut `upcoming` après la date de présentation ; publication publique à vérifier après déploiement |
-| Actions et dépendances Node 20/24 | `implemented` pour les actions officielles | Confirmer les nouveaux majors sur les prochains runs GitHub Actions ; `punycode.js` reste transitif via `markdown-it` et aucun usage direct de `url.parse()` n'est détecté dans le projet |
+| Actions et dépendances Node 22 | `CI verified` : les workflows PMx utilisent `actions/setup-node@v7` avec Node 22 | Conserver Node 22 dans les jobs PMx ; `punycode.js` reste une dépendance userland transitive de `markdown-it` et aucun usage direct de `url.parse()` n'est détecté dans le projet |
 
 **Gel de périmètre :** pas de nouveau grand laboratoire, de nouvelle grande
 rubrique, de refonte UI globale ni de multiplication de cours avant l'avancement
@@ -217,12 +217,8 @@ reussite en soi.
 
 ### Points strategiques a ne pas confondre
 
-Le code actuel porte une licence MIT. Rendre un futur depot prive ne rend pas
-secretes les copies deja diffusees ; GitHub indique notamment que les forks
-publics restent publics. La politique des futurs developpements doit etre
-verifiee avec les titulaires de droits et les licences des dependances, sans
-promesse juridique de recuperer l'exclusivite du code existant.
-Sources : [licence MIT](https://opensource.org/license/mit),
+Le code original de la version courante porte la licence PolyForm Noncommercial 1.0.0. Les versions deja distribuees sous MIT conservent les droits accordes par cette licence ; un changement de licence ulterieur ou un depot prive ne retire pas ces permissions acquises. La politique des futurs developpements doit rester verifiee avec les titulaires de droits et les licences des dependances.
+Sources : [politique de licence courante](LICENSING.md), [PolyForm Noncommercial 1.0.0](LICENSE),
 [visibilite des depots GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility).
 Le JavaScript livre au navigateur reste consultable meme si son depot est prive.
 Une page `/tools/` peut orienter vers Shiny ; GitHub Pages n'execute pas le moteur R.
