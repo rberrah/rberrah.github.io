@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const source = JSON.parse(readFileSync('integration/mipd-release.json', 'utf8'));
@@ -11,6 +11,9 @@ const toolsPage = readFileSync('portal/tools/index.html', 'utf8');
 assert.ok(toolsPage.includes(`https://github.com/${source.repository}`), 'Portal source link does not target standalone MIPD');
 const tdmPage = readFileSync('src/routes/tdm/+page.svelte', 'utf8');
 assert.ok(tdmPage.includes(`https://github.com/${source.repository}/issues/new`), 'Model proposals do not target standalone MIPD');
+const contributionGuide = readFileSync('CONTRIBUTING_TDM_MODELS.md', 'utf8');
+assert.ok(contributionGuide.includes(`https://github.com/${source.repository}/issues/new`), 'TDM contribution guide does not target standalone MIPD');
+assert.equal(existsSync('.github/ISSUE_TEMPLATE/tdm-model.yml'), false, 'PMx must not own a TDM model submission form after MIPD extraction');
 
 const catalog = JSON.parse(readFileSync(path.join(engineRoot, 'models', 'catalog.json'), 'utf8'));
 assert.equal(catalog.models.length, source.expectedModelCount, 'Unexpected standalone model-library size');
