@@ -8,10 +8,12 @@ assert(engineRootValue, 'MIPD_ENGINE_DIR is required: ML artifacts are owned by 
 const engineRoot = path.resolve(engineRootValue);
 const mlRoot = path.join(engineRoot, 'ml');
 const manifest = JSON.parse(await readFile(path.join(mlRoot, 'registry.json'), 'utf8'));
-const summaryDocument = JSON.parse(await readFile(path.join(mlRoot, 'catalog-summary.generated.json'), 'utf8'));
-const summaries = new Map((summaryDocument.artifacts ?? []).map((item) => [item.id, item]));
 const catalog = JSON.parse(await readFile(path.join(engineRoot, 'models', 'catalog.json'), 'utf8'));
 const models = new Map(catalog.models.map((model) => [model.id, model]));
+const summary = JSON.parse(await readFile('src/lib/content/mlBenchmark.generated.json', 'utf8'));
+const summaryById = new Map(summary.artifacts.map((entry) => [entry.id, entry]));
+assert.equal(summaryById.size, 46, 'PMx imported ML summary must cover exactly 46 models');
+let staleCount = 0, compatibleCount = 0, passedInternalCount = 0;
 const valueAt = (object, dottedPath) => dottedPath.split('.').reduce((value, key) => value?.[key], object);
 const required = [
   'id', 'releaseLevel', 'baseModelId', 'baseModelSha256', 'artifactPath', 'artifactSha256',
@@ -48,7 +50,6 @@ function safeArtifactPath(relative, label) {
 assert.equal(manifest.version, 3, 'Unsupported ML registry version');
 assert.equal(manifest.artifacts.length, 46, 'The ML registry must describe the 46 published artifacts');
 assert.equal(new Set(manifest.artifacts.map((artifact) => artifact.id)).size, manifest.artifacts.length, 'Duplicate ML artifact id');
-assert.equal(summaries.size, manifest.artifacts.length, 'ML catalog summary must classify every registry artifact exactly once');
 
 for (const artifact of manifest.artifacts) {
   const label = artifact.id ?? '<unknown>';
@@ -88,19 +89,23 @@ for (const artifact of manifest.artifacts) {
   }
 
   const modelFile = path.join(engineRoot, 'models', models.get(artifact.baseModelId).file);
-  const currentModelSha256 = await sha256(modelFile, true);
-  const hashMatches = currentModelSha256 === artifact.baseModelSha256.toLowerCase();
-  const summary = summaries.get(label);
-  assert(summary, `${label}: missing ML catalog summary classification`);
-  assert.equal(summary.modelId, artifact.baseModelId, `${label}: summary base model differs from registry`);
-  assert.equal(summary.hashMatches, hashMatches, `${label}: summary hashMatches does not describe the current model/artifact relationship`);
-  if (!hashMatches) {
-    assert.equal(summary.availableInTdm, false, `${label}: stale artifact must fail closed and remain unavailable in TDM`);
-    assert.equal(summary.analysisEligible, false, `${label}: stale artifact must not be analysis-eligible`);
+  const currentSourceSha = await sha256(modelFile, true);
+  const hashMatches = currentSourceSha === artifact.baseModelSha256.toLowerCase();
+  const status = summaryById.get(artifact.id);
+  assert(status, `${label}: missing imported PMx ML status`);
+  assert.equal(status.hashMatches, hashMatches,
+    `${label}: PMx availability summary disagrees with current scientific model SHA`);
+  assert.equal(status.availableInTdm,
+    Boolean(models.get(artifact.baseModelId).analysisEligible && hashMatches),
+    `${label}: source-incompatible or non-MAP predictors must fail closed`);
+  if (hashMatches) compatibleCount++;
+  else {
+    staleCount++;
+    assert.equal(status.availableInTdm, false, `${label}: a stale training model cannot be used`);
   }
-  if (summary.availableInTdm) {
-    assert.equal(hashMatches, true, `${label}: available TDM artifact must match the current base-model SHA-256`);
-  }
+  if (status.availableInTdm &&
+      artifact.validation.repeatedCv?.passed === true &&
+      artifact.validation.untouchedHoldout?.passed === true) passedInternalCount++;
   const artifactFile = safeArtifactPath(artifact.artifactPath, label);
   assert((await stat(artifactFile)).isFile(), `${label}: missing RDS artifact`);
   assert.equal(await sha256(artifactFile), artifact.artifactSha256.toLowerCase(), `${label}: artifact SHA-256 mismatch`);
@@ -110,5 +115,9 @@ for (const artifact of manifest.artifacts) {
   }
 }
 
-const stale = [...summaries.values()].filter((item) => item.hashMatches === false);
-console.log(`ML artifact contracts passed: ${manifest.artifacts.length} schemas, splits, domains and artifact file hashes verified; ${stale.length} stale base-model hashes are explicitly classified and unavailable in TDM.`);
+assert.equal(staleCount, 12, 'Deployed MIPD ML catalogue changed: review all source-hash mismatches explicitly');
+assert.equal(summary.artifacts.filter(item => item.availableInTdm).length, 12,
+  'Deployed MIPD technical ML availability changed; requalify before accepting');
+assert.equal(passedInternalCount, 3,
+  'Internal CV/holdout evidence changed; review research qualification explicitly');
+console.log(`ML artifact contracts verified: ${manifest.artifacts.length} RDS and DALEX hashes; ${staleCount} disabled source mismatches, 12 technically available, ${passedInternalCount} pass internal CV+holdout. No external-patient validation claimed.`);
