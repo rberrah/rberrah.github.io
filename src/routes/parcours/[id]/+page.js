@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { learningTracks } from '$lib/content/tracks';
+import { learningTracks } from '#lib/content/tracks.js';
 
 export const prerender = true;
 export const entries = () => learningTracks.map(track => ({ id: track.id }));

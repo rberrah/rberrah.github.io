@@ -6,7 +6,7 @@
   // mesure. On lit la courbe postérieure (compromis), l'AUC estimée et son écart
   // à la référence individuelle — et le risque de surajustement quand σ→0 sur des
   // données bruitées. Illustration pédagogique (pondération par précision).
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   let sigma = 0.10;   // erreur résiduelle proportionnelle (RUV), fraction
   let bruit = 0.05;   // bruit de mesure des prélèvements, fraction
 

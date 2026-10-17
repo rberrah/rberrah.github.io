@@ -1,24 +1,25 @@
 <script>
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
-  import Laboratory from '$lib/components/Laboratory.svelte';
-  import LaboratoryHome from '$lib/components/LaboratoryHome.svelte';
-  import MolecularLaboratory from '$lib/components/MolecularLaboratory.svelte';
-  import { molecularLabIds } from '$lib/labs/molecular.js';
-  import { language } from '$lib/stores/language';
+  import { browser } from '$app/env';
+  import { page } from '$app/state';
+  import Laboratory from '#lib/components/Laboratory.svelte';
+  import LaboratoryHome from '#lib/components/LaboratoryHome.svelte';
+  import MolecularLaboratory from '#lib/components/MolecularLaboratory.svelte';
+  import { molecularLabIds } from '#lib/labs/molecular.js';
+  import { language } from '#lib/stores/language.js';
   const fundamental = ['distribution', 'accumulation', 'absorption', 'infusion'];
   const allowed = [...fundamental, ...molecularLabIds];
   let selectedLab = '';
+  const readLocation = (/** @type {{ searchParams: { get(name: string): string | null }, hash: string }} */ url) => {
+    const queryLab = url.searchParams.get('lab') ?? '';
+    const hashLab = new URLSearchParams(url.hash.replace(/^#/, '')).get('lab') ?? '';
+    selectedLab = allowed.includes(queryLab) ? queryLab : allowed.includes(hashLab) ? hashLab : '';
+  };
+  $: if (browser) readLocation(page.url);
   onMount(() => {
-    const readLocation = (url = new URL(window.location.href)) => {
-      const queryLab = url.searchParams.get('lab') ?? '';
-      const hashLab = new URLSearchParams(url.hash.replace(/^#/, '')).get('lab') ?? '';
-      selectedLab = allowed.includes(queryLab) ? queryLab : allowed.includes(hashLab) ? hashLab : '';
-    };
-    const unsubscribe = page.subscribe(({ url }) => readLocation(url));
-    const readHash = () => readLocation();
+    const readHash = () => readLocation(new URL(window.location.href));
     window.addEventListener('hashchange', readHash);
-    return () => { unsubscribe(); window.removeEventListener('hashchange', readHash); };
+    return () => window.removeEventListener('hashchange', readHash);
   });
 </script>
 <svelte:head><title>{$language === 'en' ? 'PK laboratories' : 'Laboratoires PK'} | PMx Explain</title></svelte:head>

@@ -3,8 +3,8 @@
   // unique ~100 mg) avec un modèle à 1 compartiment oral ajustable.
   //   C(τ) = D·ka / (V·(ka−ke)) · (e^(−ke·τ) − e^(−ka·τ)),  τ = t − Tlag,  ke = CL/V
   // La courbe typique est réglée manuellement : ce n'est pas un GoF PopPK estimé.
-  import { warfarinPK } from '$lib/content/warfarinData';
-  import { language } from '$lib/stores/language';
+  import { warfarinPK } from '#lib/content/warfarinData.js';
+  import { language } from '#lib/stores/language.js';
 
   /** @type {'time'|'gof'} */
   export let initialMode = 'time';

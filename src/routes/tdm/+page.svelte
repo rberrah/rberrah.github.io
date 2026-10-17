@@ -1,10 +1,11 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { onDestroy } from 'svelte';
   import { ArrowRight } from '@lucide/svelte';
-  import LabTransfer from '$lib/components/LabTransfer.svelte';
-  import { openLaboratoryTdm } from '$lib/labs/tdm.js';
-  import { schedule } from '$lib/labs/model.js';
+  import LabTransfer from '#lib/components/LabTransfer.svelte';
+  import { openLaboratoryTdm } from '#lib/labs/tdm.js';
+  import { schedule } from '#lib/labs/model.js';
   let laboratory = $state(/** @type {any} */ (null));
   let labStatus = $state(''), labError = $state('');
   let cleanupLab = () => {};
@@ -13,10 +14,10 @@
     cleanupLab();
     cleanupLab = openLaboratoryTdm(tdmEngineUrl, $language ?? 'fr', laboratory, (state, detail) => { labStatus = state; labError = detail ?? ''; });
   }
-  import { tdmModels, tdmModelStats } from '$lib/content/tdmModels';
-  import { ui } from '$lib/i18n/translations';
-  import { language } from '$lib/stores/language';
-  import { tdmEngineUrl } from '$lib/tdm/engine';
+  import { tdmModels, tdmModelStats } from '#lib/content/tdmModels.js';
+  import { ui } from '#lib/i18n/translations.js';
+  import { language } from '#lib/stores/language.js';
+  import { tdmEngineUrl } from '#lib/tdm/engine.js';
 
   let query = $state('');
   let selectedDrug = $state('all');

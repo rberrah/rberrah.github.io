@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
   import ScientificText from './ScientificText.svelte';
 
   export let title = 'Quiz';

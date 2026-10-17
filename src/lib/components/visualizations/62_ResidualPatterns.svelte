@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Galerie de motifs synthetiques de residus. Chaque forme suggere plusieurs
   // hypotheses a verifier; elle ne designe jamais seule une cause.
   /** @type {'good'|'u'|'invu'|'trumpet'|'trend'} */

@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { calculateShrinkage, shrinkagePopulation } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { calculateShrinkage, shrinkagePopulation } from '#lib/science/visualizationMath.js';
 
   const N = 100;
   const BINS = 17;

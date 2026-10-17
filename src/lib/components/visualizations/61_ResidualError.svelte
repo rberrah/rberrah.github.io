@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   /** @type {'add'|'prop'|'comb'} */
   let mode = 'comb';

@@ -2,7 +2,7 @@
   // @ts-nocheck - canvas geometry is exercised by browser pixel tests.
   import { onMount, createEventDispatcher } from 'svelte';
   import { Play, Pause } from '@lucide/svelte';
-  import { molecularLabs } from '$lib/labs/molecular.js';
+  import { molecularLabs } from '#lib/labs/molecular.js';
   export let lab;
   export let p;
   export let state;

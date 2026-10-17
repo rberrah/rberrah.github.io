@@ -1,5 +1,6 @@
 <script>
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { ArrowRight } from '@lucide/svelte';
   export let laboratory;
   export let en = false;

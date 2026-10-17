@@ -17,7 +17,7 @@
   import { onMount } from 'svelte';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
 
   /** @type {{x:number, y:number}[]} */
   export let points = [];

@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   let { transferred = [], omitted = [], units = '', approximation = '' } = $props();
   let english = $derived($language === 'en');

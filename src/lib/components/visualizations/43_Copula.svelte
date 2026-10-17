@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Copule gaussienne : deux covariables (poids, ClCr) avec des marges THEORIQUES fixes mais une
   // DÉPENDANCE réglable. On génère (z1, z2) normaux, puis z2' = ρ·z1 + √(1−ρ²)·z2.
   // Les histogrammes empiriques peuvent varier légèrement dans cet échantillon fini.

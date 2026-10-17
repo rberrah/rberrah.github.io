@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Illustration locale : où placer 2 prélèvements pour estimer V et k ?
   // On calcule la matrice de Fisher 2×2 à partir des sensibilités de C(t)=(D/V)e^{-kt},
   // on l'inverse, et on affiche les RSE. Un point précoce (info sur V) + un point tardif

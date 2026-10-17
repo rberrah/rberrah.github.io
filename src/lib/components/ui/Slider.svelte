@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { vizText } from '$lib/i18n/visualizations';
+  import { language } from '#lib/stores/language.js';
+  import { vizText } from '#lib/i18n/visualizations.js';
 
   export let label = '';
   export let min = 0;

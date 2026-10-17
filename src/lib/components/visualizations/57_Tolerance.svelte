@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Tolérance et rebond : sous exposition CONSTANTE, l'effet s'atténue (un modérateur M
   // monte lentement et augmente l'élimination de la réponse). À l'arrêt, M reste élevé
   // → la réponse chute sous la ligne de base (rebond) avant de récupérer.

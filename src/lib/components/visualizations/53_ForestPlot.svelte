@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Forest plot des effets de covariables : chaque effet (ratio vs référence) avec son
   // IC 95 %. La ligne à 1 = pas d'effet ; la bande = zone « cliniquement non pertinente ».
   // La bande clinique et l'incertitude statistique repondent a deux questions distinctes.

@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Schéma pédagogique d'approximation stochastique en deux phases. Il n'implémente
   // ni les étapes complètes ni les diagnostics d'un algorithme SAEM.
   let K1 = 40; // itération de passage phase exploratoire → lissage

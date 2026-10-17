@@ -4,22 +4,25 @@
   import '@fontsource-variable/source-serif-4';
   import '@fontsource-variable/inter';
   import '@fontsource-variable/jetbrains-mono';
-  import '$lib/styles/theme.css';
-  import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+  import '#lib/styles/theme.css';
+  import ThemeToggle from '#lib/components/ThemeToggle.svelte';
   import { BookOpen, FlaskConical, Blocks, ChartNoAxesCombined, Library, ChevronDown } from '@lucide/svelte';
-  import { base } from '$app/paths';
-  import { page } from '$app/stores';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { page } from '$app/state';
   import { afterNavigate } from '$app/navigation';
-  import { countPage } from '$lib/analytics';
-  import LanguageToggle from '$lib/components/LanguageToggle.svelte';
-  import { ui } from '$lib/i18n/translations';
-  import { language } from '$lib/stores/language';
-  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '$lib/site';
+  import { countPage } from '#lib/analytics.js';
+  import LanguageToggle from '#lib/components/LanguageToggle.svelte';
+  import { ui } from '#lib/i18n/translations.js';
+  import { language } from '#lib/stores/language.js';
+  import { alternateUrl, canonicalUrl, LICENSE_LABEL, LICENSE_URL, SITE_ORIGIN } from '#lib/site.js';
   let { children } = $props();
 
-  afterNavigate(() => {
+  afterNavigate(({ shallow }) => {
+    if (shallow) return;
+
     // The initial navigation event can have a null route on prerendered pages.
-    const route = $page.status === 200 ? $page.route.id : null;
+    const route = page.status === 200 ? page.route.id : null;
     // Chapter pages count only after resolving a slug from the public catalogue.
     if (route === '/chapitres/[slug]') return;
     countPage(route && !route.includes('[') && !['/qa', '/slides', '/chapitres/etat-equilibre'].includes(route)
@@ -63,13 +66,13 @@
   let navigation = $state();
   function closeNavigation() {
     menuOpen = false;
-    navigation?.querySelectorAll('details[open]').forEach(item => item.removeAttribute('open'));
+    navigation?.querySelectorAll('details[open]').forEach((item) => item.removeAttribute('open'));
   }
 
   let menuOpen = $state(false);
   const isActive = (/** @type {string} */ href) => {
     if (/^https?:/.test(href)) return false;
-    const path = $page.url.pathname.replace(/\/lego\/?$/, '/advanced/').replace(/\/interactions\/?$/, '/ddi/').replace(/\/pharmacodynamie\/?$/, '/pd/');
+    const path = page.url.pathname.replace(/\/lego\/?$/, '/advanced/').replace(/\/interactions\/?$/, '/ddi/').replace(/\/pharmacodynamie\/?$/, '/pd/');
     return href === '/' ? path === `${base}/` : path.startsWith(`${base}${href}/`) || path === `${base}${href}`;
   };
 
@@ -81,14 +84,27 @@
 
   // URL canonique ABSOLUE, dérivée du seul chemin de route : aucune valeur lue dans le
   // navigateur, donc identique au prérendu et après hydratation.
-  let canonical = $derived(canonicalUrl($page.url.pathname));
+  let canonical = $derived(canonicalUrl(page.url.pathname));
   // Les alternances de langue des CHAPITRES sont posées par la route de chapitre, qui
   // seule sait si la traduction anglaise existe. Ici : toutes les autres pages, dont
   // l'interface est traduite intégralement.
-  let isChapterRoute = $derived($page.route.id === '/chapitres/[slug]');
+  let isChapterRoute = $derived(page.route.id === '/chapitres/[slug]');
 </script>
 
-<svelte:window onclick={(event) => { if (navigation && event.target instanceof Node && !navigation.contains(event.target) && !(event.target instanceof Element && event.target.closest('.burger'))) closeNavigation(); }} onkeydown={(event) => { if (event.key === 'Escape') { const summary = navigation?.querySelector('details[open] summary'); if (summary instanceof HTMLElement) summary.focus(); closeNavigation(); } }} />
+<svelte:window
+  onclick={(event) => {
+    if (navigation && event.target instanceof Node && !navigation.contains(event.target) && !(event.target instanceof Element && event.target.closest('.burger'))) closeNavigation();
+  }}
+  onkeydown={(event) => {
+    if (event.key === 'Escape') {
+      const summary = navigation?.querySelector('details[open] summary');
+
+      if (summary instanceof HTMLElement) summary.focus();
+
+      closeNavigation();
+    }
+  }}
+></svelte:window>
 
 <svelte:head>
   <title>PMx Explain</title>
@@ -107,14 +123,51 @@
       <span class="mark">Pk</span>
       <span class="word">PMx <em>Explain</em></span>
     </a>
-    <button class="burger" aria-label="Menu" aria-expanded={menuOpen} aria-controls="site-nav" onclick={() => (menuOpen = !menuOpen)} data-testid="nav-toggle">
-      <span></span><span></span><span></span>
-    </button>
-    <nav id="site-nav" bind:this={navigation} class:open={menuOpen} aria-label={copy.nav.primary}>
+
+    <button
+      class="burger"
+      aria-label="Menu"
+      aria-expanded={menuOpen}
+      aria-controls="site-nav"
+      onclick={() => menuOpen = !menuOpen}
+      data-testid="nav-toggle"
+    ><span></span><span></span><span></span></button>
+
+    <nav
+      id="site-nav"
+      bind:this={navigation}
+      class:open={menuOpen}
+      aria-label={copy.nav.primary}
+    >
       {#each groups as group}
-        <details class="goal" name="site-objective" data-testid={`goal-${group.key}`}>
-          <summary class:active={objectiveLinks.some(link => group.keys.includes(link.key) && isActive(link.href))}><group.icon size={16}/>{group.label}<ChevronDown size={13}/></summary>
-          <div class="goal-links">{#each group.keys as key}{@const link = objectiveLinks.find(item => item.key === key)}{#if link}<a class:active={isActive(link.href)} aria-current={isActive(link.href) ? 'page' : undefined} href={link.external ? link.href : `${base}${link.href}`} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener noreferrer' : undefined} onclick={closeNavigation} data-testid={`nav-${link.key}`}>{link.label}</a>{/if}{/each}</div>
+        <details
+          class="goal"
+          name="site-objective"
+          data-testid={`goal-${group.key}`}
+        >
+          <summary
+            class:active={objectiveLinks.some((link) => group.keys.includes(link.key) && isActive(link.href))}
+          >
+            <group.icon size={16} />
+            {group.label}
+            <ChevronDown size={13} />
+          </summary>
+
+          <div class="goal-links">
+            {#each group.keys as key}
+              {@const link = objectiveLinks.find((item) => item.key === key)}{#if link}
+                <a
+                  class:active={isActive(link.href)}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                  href={link.external ? link.href : `${base}${link.href}`}
+                  target={link.external ? '_blank' : undefined}
+                  rel={link.external ? 'noopener noreferrer' : undefined}
+                  onclick={closeNavigation}
+                  data-testid={`nav-${link.key}`}
+                >{link.label}</a>
+              {/if}
+            {/each}
+          </div>
         </details>
       {/each}
       <div class="tools">

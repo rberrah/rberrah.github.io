@@ -1,12 +1,13 @@
 <script>
   import { get } from 'svelte/store';
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
-  import { base } from '$app/paths';
-  import { glossary, glossaryCategories } from '$lib/stores/glossary';
-  import { categoryEnglish } from '$lib/content/glossaryMeta';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import { page } from '$app/state';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { glossary, glossaryCategories } from '#lib/stores/glossary.js';
+  import { categoryEnglish } from '#lib/content/glossaryMeta.js';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
 
   const items = get(glossary);
   const cats = get(glossaryCategories);
@@ -14,7 +15,7 @@
 
   // Lien profond depuis un chapitre : /glossaire?q=terme pré-remplit la recherche.
   onMount(() => {
-    const q = $page.url.searchParams.get('q');
+    const q = page.url.searchParams.get('q');
     if (q) query = q;
   });
 

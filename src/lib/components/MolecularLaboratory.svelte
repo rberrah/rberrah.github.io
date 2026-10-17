@@ -2,15 +2,16 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
-  import { base } from '$app/paths';
-  import { language } from '$lib/stores/language';
-  import chapters from '$lib/content/loadChapters';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { language } from '#lib/stores/language.js';
+  import chapters from '#lib/content/loadChapters.js';
   import { ArrowLeft, BookOpen, Copy, Download, Eye, EyeOff, GraduationCap, Pause, Play, RotateCcw, StepForward } from '@lucide/svelte';
   import MolecularScene from './MolecularScene.svelte';
   import MolecularPlot from './MolecularPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';
   import LabComparisonSummary from './LabComparisonSummary.svelte';
-  import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '$lib/labs/molecular.js';
+  import { molecularLabIds, molecularLabs, validateMolecularParameters, molecularSeries, molecularStateAt, encodeMolecularScenario, decodeMolecularScenario } from '#lib/labs/molecular.js';
   export let lab;
   const fundamentalLabs = [
     { id: 'distribution', number: '01', en: 'Two-compartment distribution', fr: 'Distribution à deux compartiments' },

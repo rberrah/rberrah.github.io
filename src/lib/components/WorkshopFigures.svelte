@@ -1,8 +1,8 @@
 <script>
   import { scaleLinear, scaleLog } from 'd3-scale';
   import { line } from 'd3-shape';
-  import { language } from '$lib/stores/language';
-  import { workshopCurves } from '$lib/tdm/workshopCurves';
+  import { language } from '#lib/stores/language.js';
+  import { workshopCurves } from '#lib/tdm/workshopCurves.js';
   let { view, config, computed = null } = $props();
   let concentration = $state(1);
   let width = $state(900);

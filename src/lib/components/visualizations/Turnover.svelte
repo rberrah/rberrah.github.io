@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Modèle de réponse indirecte (turnover) : la concentration agit sur la
   // PRODUCTION ou l'ÉLIMINATION d'une variable de réponse R.
   //   dR/dt = kin·(1 + f(C)) − kout·R      (stimulation de kin)

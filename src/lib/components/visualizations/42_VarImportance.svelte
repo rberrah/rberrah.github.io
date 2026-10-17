@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Sélection de variables par importance (esprit VSURF / OrdinalForest) :
   // une forêt attribue une IMPORTANCE à chaque covariable ; on garde celles au-dessus
   // d'un seuil. Le curseur montre le compromis pertinence vs bruit.

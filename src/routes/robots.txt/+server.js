@@ -1,4 +1,4 @@
-import { SITE_URL } from '$lib/site';
+import { SITE_URL } from '#lib/site.js';
 
 export const prerender = true;
 

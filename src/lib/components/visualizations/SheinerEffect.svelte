@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Modèle de Sheiner : compartiment d'effet relié au plasma par ke0.
   //   Cp(t) : concentration plasmatique (bolus IV)
   //   dCe/dt = ke0·(Cp − Ce) : concentration au site d'effet, en retard

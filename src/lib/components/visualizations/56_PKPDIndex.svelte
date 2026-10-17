@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { calculatePkpdProfile } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { calculatePkpdProfile } from '#lib/science/visualizationMath.js';
   // Indices PK/PD des anti-infectieux : concentration au cours du temps vs la CMI.
   // Visualise T>CMI (temps au-dessus), Cmax/CMI (hauteur du pic) et AUC/CMI (aire).
   let dose = 750; // mg (bolus IV répété)

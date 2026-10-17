@@ -1,5 +1,5 @@
 import { readable } from 'svelte/store';
-import { glossaryDetails, glossaryEnglish } from '$lib/content/glossaryMeta';
+import { glossaryDetails, glossaryEnglish } from '#lib/content/glossaryMeta.js';
 
 // Dictionnaire de pharmacométrie (français). Chaque entrée : terme, nom complet
 // éventuel (full), catégorie (cat) et une définition explicative (def).

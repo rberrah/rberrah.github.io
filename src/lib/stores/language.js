@@ -1,8 +1,8 @@
 // @ts-nocheck
-import { browser } from '$app/environment';
-import { replaceState } from '$app/navigation';
+import { browser } from '$app/env';
+import { goto } from '$app/navigation';
 import { writable } from 'svelte/store';
-import { ui } from '$lib/i18n/translations';
+import { ui } from '#lib/i18n/translations.js';
 
 const STORAGE_KEY = 'pharmacometrie-language';
 const DEFAULT_LANGUAGE = 'fr';
@@ -37,8 +37,8 @@ function syncUrl(/** @type {string} */ lang) {
     else url.searchParams.set('lang', lang);
     // `replaceState` de $app/navigation plutôt que celui de l'historique : SvelteKit
     // doit connaître le changement, sinon `$page.url` reste sur l'ancienne adresse.
-    if (url.href !== location.href) replaceState(url, {});
-  } catch (e) {
+    if (url.href !== location.href) goto(url, { shallow: true, replace: true });
+  } catch(e) {
     // Routeur pas encore initialisé : sans conséquence, la langue reste appliquée.
   }
 }

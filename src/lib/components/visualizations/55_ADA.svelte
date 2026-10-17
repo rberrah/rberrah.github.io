@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { simulateAdaProfile } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { simulateAdaProfile } from '#lib/science/visualizationMath.js';
   // Scenario conditionnel : un effet ADA impose sur la clairance modifie l'exposition.
   //   CL(t) = CL0 · [1 + θ·A(t)],  A(t) = montée logistique après la semaine d'apparition
   let theta = 3; // amplitude de l'effet ADA sur la clairance

@@ -4,9 +4,9 @@
   // Une seule ligne de texte secondaire — ni encadré, ni photo, ni titre.
   // La date vient du frontmatter (`reviewed_on`) : absente, la mention entière disparaît
   // plutôt que d'afficher une date inventée.
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
-  import { AUTHOR, COURSE_NAME } from '$lib/site';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
+  import { AUTHOR, COURSE_NAME } from '#lib/site.js';
 
   /** @type {string} */
   export let reviewedOn = '';

@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Modèle JOINT pédagogique : la dynamique tumorale (TGI) est associée au risque d'événement.
   //   Longitudinal :  dTS/dt = KG·TS − K·expo·exp(−λt)·TS
   //   Lien (hasard) :  h(t) = h0 · exp(β · [TS(t)/TS0 − 1])

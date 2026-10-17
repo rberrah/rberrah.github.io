@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   const pkBlocks = [
     { label: 'Dose', tone: 'dose' },
     { label: 'Absorption', tone: 'absorption' },

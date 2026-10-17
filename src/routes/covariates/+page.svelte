@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { base } from '$app/paths';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { Download, ArrowRight, BookOpen } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
-  import { writeDraft } from '$lib/workshops/session';
-  import WorkshopNav from '$lib/components/WorkshopNav.svelte';
-  import CovariatePlot from '$lib/components/CovariatePlot.svelte';
-  import { methods, defaults, domain, validParameters, clearance, covariateCurves, covariateCode } from '$lib/covariates/models';
+  import { language } from '#lib/stores/language.js';
+  import { writeDraft } from '#lib/workshops/session.js';
+  import WorkshopNav from '#lib/components/WorkshopNav.svelte';
+  import CovariatePlot from '#lib/components/CovariatePlot.svelte';
+  import { methods, defaults, domain, validParameters, clearance, covariateCurves, covariateCode } from '#lib/covariates/models.js';
 
   let method = $state('transformed');
   let mounted = $state(false);

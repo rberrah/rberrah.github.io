@@ -3,8 +3,8 @@
   // données. Le critère est ici une simple somme des carrés sur l'échelle log ;
   // ce n'est ni une vraisemblance NLME, ni une OFV FOCE/SAEM.
   import { onDestroy } from 'svelte';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
-  import { language } from '$lib/stores/language';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
+  import { language } from '#lib/stores/language.js';
 
   const dose = 100;
   // Données observées (générées depuis CL=5, V=30 + bruit, figées pour la démo).

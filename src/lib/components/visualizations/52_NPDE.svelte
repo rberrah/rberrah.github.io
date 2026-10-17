@@ -2,7 +2,7 @@
   // Sous les hypothèses de calcul, les NPDE sont attendus proches de N(0,1).
   // Un écart suggère une inadéquation à explorer, sans en identifier seul la cause.
   let mis = 0; // 0 = modèle correct ; augmente le décalage/étalement
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   /** @param {number} a @returns {() => number} */
   function mulberry32(a) {

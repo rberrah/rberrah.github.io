@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { infusionConcentration } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { infusionConcentration } from '#lib/science/visualizationMath.js';
   // Perfusion IV (entrée d'ordre 0, débit constant R0).
   //   Pendant la perfusion : C(t) = (R0/CL)·(1 − e^(−ke·t)),  Css = R0/CL
   //   Après l'arrêt (à Tinf) : décroissance exponentielle.

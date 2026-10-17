@@ -2,12 +2,13 @@
   // @ts-nocheck
   import { onMount, onDestroy } from 'svelte';
   import { goto } from '$app/navigation';
-  import { base } from '$app/paths';
-  import { language } from '$lib/stores/language';
-  import chapters from '$lib/content/loadChapters';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import { language } from '#lib/stores/language.js';
+  import chapters from '#lib/content/loadChapters.js';
   import { Play, Pause, RotateCcw, StepForward, Copy, Download, ImageDown, ArrowRight, ArrowLeft, GraduationCap, Eye, EyeOff } from '@lucide/svelte';
-  import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule, singleDoseSummary } from '$lib/labs/model.js';
-  import { prepareHandoff } from '$lib/labs/handoff.js';
+  import { defaults, limits, validateParameters, stateAt, series, laboratorySpec, encodeScenario, decodeScenario, schedule, singleDoseSummary } from '#lib/labs/model.js';
+  import { prepareHandoff } from '#lib/labs/handoff.js';
   import LabScene from './LabScene.svelte';
   import LabPlot from './LabPlot.svelte';
   import LabDebrief from './LabDebrief.svelte';

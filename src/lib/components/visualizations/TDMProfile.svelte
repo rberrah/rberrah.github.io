@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { estimateOneCompartmentMapClearance } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { estimateOneCompartmentMapClearance } from '#lib/science/visualizationMath.js';
   // Precision dosing / TDM : à partir d'UNE concentration mesurée, on met à jour
   // (Bayes/MAP) la clairance individuelle → courbe IPRED (individuelle) vs PRED
   // (population, a priori). Cycle : Mesurer → Estimer → Ajuster.

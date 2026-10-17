@@ -1,11 +1,11 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { RotateCcw } from '@lucide/svelte';
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   import CovariatePlot from '../CovariatePlot.svelte';
-  import { experimentDefinitions, parameterLabels, parameterBounds, experimentCurve, validExperiment } from '$lib/learning/experiments';
-  import { displayUnit } from '$lib/learning/activityContent';
-  let { experiment, initialSettings, onchange }: { experiment: import('$lib/learning/types').Experiment; initialSettings?: Record<string, number>; onchange: (v: { settings: Record<string, number>; valid: boolean }) => void } = $props();
+  import { experimentDefinitions, parameterLabels, parameterBounds, experimentCurve, validExperiment } from '#lib/learning/experiments.js';
+  import { displayUnit } from '#lib/learning/activityContent.js';
+  let { experiment, initialSettings, onchange }: { experiment: import('#lib/learning/types.js').Experiment; initialSettings?: Record<string, number>; onchange: (v: { settings: Record<string, number>; valid: boolean }) => void } = $props();
   const definition = untrack(() => experimentDefinitions[experiment.kind]);
   const reference = untrack(() => ({ ...definition.defaults, ...experiment.settings }));
   let settings = $state(untrack(() => ({ ...reference, ...initialSettings })));

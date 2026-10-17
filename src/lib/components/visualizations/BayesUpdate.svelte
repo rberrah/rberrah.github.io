@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Mise à jour bayésienne (conjuguée gaussienne) sur un paramètre individuel,
   // ex. la clairance CL d'un patient :
   //   a priori  N(CLpop, ω²)   ×   vraisemblance  N(mesure, σ²)   →   a posteriori

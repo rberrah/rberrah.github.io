@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Bootstrap : distribution d'un paramètre ré-estimé sur des jeux ré-échantillonnés.
   // Plus le jeu de données est grand, plus la distribution est étroite → RSE plus petit.
   let nData = 40; // taille du jeu de données (pilote la précision)

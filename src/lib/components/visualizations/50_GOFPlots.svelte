@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { calculateGofRows } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { calculateGofRows } from '#lib/science/visualizationMath.js';
   // Graphiques diagnostiques illustratifs : observations vs predictions et
   // proxy de residu standardise sur l'echelle logarithmique.
   let mis = 0; // 0 = bon modèle, 1 = fortement mal spécifié

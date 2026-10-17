@@ -3,7 +3,7 @@
   let dOFV = 12; // baisse de l'OFV en ajoutant les paramètres
   let ddf = 1; // nombre de paramètres ajoutés (degrés de liberté)
   let n = 200; // taille effective choisie pour illustrer le BIC
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
 
   // valeurs critiques du χ² à 5 % (df = 1..4)
   /** @type {Record<number, number>} */

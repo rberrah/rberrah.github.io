@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // FOCE = linéarisation. Le paramètre individuel est non linéaire en η (ex. CL = CL_pop·e^η).
   // FOCE remplace cette COURBE par sa TANGENTE autour de l'estimation individuelle η̂ :
   // exact au point, mais l'erreur grandit quand la courbure (non-linéarité) augmente.

@@ -1,16 +1,17 @@
 <script>
   // @ts-nocheck
   import { get } from 'svelte/store';
-  import { base } from '$app/paths';
-  import chapters from '$lib/content/loadChapters';
-  import chapterSearch from '$lib/content/chapterSearch.generated.json';
-  import { exercises } from '$lib/content/exercises';
-  import { guidedActivities } from '$lib/content/guidedActivities';
-  import { molecularLabIds, molecularLabs } from '$lib/labs/molecular';
-  import { glossary } from '$lib/stores/glossary';
-  import { language } from '$lib/stores/language';
-  import { localizeChapter, localizeTrack } from '$lib/i18n/translations';
-  import { trackById } from '$lib/content/tracks';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import chapters from '#lib/content/loadChapters.js';
+  import chapterSearch from '#lib/content/chapterSearch.generated.json';
+  import { exercises } from '#lib/content/exercises.js';
+  import { guidedActivities } from '#lib/content/guidedActivities.js';
+  import { molecularLabIds, molecularLabs } from '#lib/labs/molecular.js';
+  import { glossary } from '#lib/stores/glossary.js';
+  import { language } from '#lib/stores/language.js';
+  import { localizeChapter, localizeTrack } from '#lib/i18n/translations.js';
+  import { trackById } from '#lib/content/tracks.js';
 
   const glossaryItems = get(glossary);
   const fundamentalLabs = [

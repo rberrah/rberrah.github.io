@@ -1,16 +1,16 @@
 <script>
   import { onMount, onDestroy, flushSync } from 'svelte';
-  import { readDraft, writeDraft, takeDraft } from '$lib/workshops/session.js';
-  import { language } from '$lib/stores/language';
-  import { tdmEngineUrl } from '$lib/tdm/engine';
-  import { tdmModels } from '$lib/content/tdmModels';
-  import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec, basicIvModel } from '$lib/tdm/workbenches';
+  import { readDraft, writeDraft, takeDraft } from '#lib/workshops/session.js';
+  import { language } from '#lib/stores/language.js';
+  import { tdmEngineUrl } from '#lib/tdm/engine.js';
+  import { tdmModels } from '#lib/content/tdmModels.js';
+  import { ddiMechanisms, oncoDefaults, oncoLabels, openWorkshop, workshopSpec, basicIvModel } from '#lib/tdm/workbenches.js';
   import PkWorkshopModel from './PkWorkshopModel.svelte';
   import WorkshopFigures from './WorkshopFigures.svelte';
   import InfectionWorkbench from './InfectionWorkbench.svelte';
   import LabTransfer from './LabTransfer.svelte';
   import TransferContract from './TransferContract.svelte';
-  import { mrgsolveCode } from '$lib/labs/model.js';
+  import { mrgsolveCode } from '#lib/labs/model.js';
 
   /** @param {any} spec */
   function applyLaboratory(spec) {

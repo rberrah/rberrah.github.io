@@ -1,16 +1,16 @@
 <script>
   // @ts-nocheck
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
-  import { paddedDomain } from '$lib/charts/domain';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
+  import { paddedDomain } from '#lib/charts/domain.js';
   import { scaleLinear } from 'd3-scale';
-  import { simulatePopulation } from '$lib/sim/population';
-  import Slider from '$lib/components/ui/Slider.svelte';
-  import { language } from '$lib/stores/language';
+  import { simulatePopulation } from '#lib/sim/population.js';
+  import Slider from '#lib/components/ui/Slider.svelte';
+  import { language } from '#lib/stores/language.js';
   import { onMount } from 'svelte';
   import { Download, Upload } from '@lucide/svelte';
-  import { takeDraft } from '$lib/workshops/session.js';
-  import { downloadText, freeSimulationR, freeSimulationRmd, parseSimulationCsv, populationCsv, simulationR, simulationRmd } from '$lib/sim/export.js';
+  import { takeDraft } from '#lib/workshops/session.js';
+  import { downloadText, freeSimulationR, freeSimulationRmd, parseSimulationCsv, populationCsv, simulationR, simulationRmd } from '#lib/sim/export.js';
 
   const DEFAULT_FREE_MODEL = `$PARAM TVCL=6, TVV=40, TVKA=1.2
 $OMEGA @block

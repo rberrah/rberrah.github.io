@@ -1,13 +1,13 @@
 <script>
   // @ts-nocheck
-  import Slider from '$lib/components/ui/Slider.svelte';
-  import { concMono } from '$lib/utils/math';
-  import { normalSample, seededRng } from '$lib/science/visualizationMath.js';
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
+  import Slider from '#lib/components/ui/Slider.svelte';
+  import { concMono } from '#lib/utils/math.js';
+  import { normalSample, seededRng } from '#lib/science/visualizationMath.js';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
   import { scaleLinear } from 'd3-scale';
-  import { paddedDomain } from '$lib/charts/domain';
-  import { language } from '$lib/stores/language';
+  import { paddedDomain } from '#lib/charts/domain.js';
+  import { language } from '#lib/stores/language.js';
 
   /** @type {'sans' | 'faible' | 'forte'} */
   let preset = 'faible';

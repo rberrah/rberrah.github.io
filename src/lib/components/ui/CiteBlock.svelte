@@ -7,9 +7,9 @@
   // d'indexation de Google Scholar excluent le matériel de cours, et déclarer ces
   // balises sur un chapitre pédagogique expose le site à un rejet.
   import { onMount } from 'svelte';
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
-  import { AUTHOR, COURSE_NAME, SITE_YEAR } from '$lib/site';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
+  import { AUTHOR, COURSE_NAME, SITE_YEAR } from '#lib/site.js';
 
   /** Chapitre AFFICHÉ (titre dans la langue courante). @type {any} */
   export let chapter = null;

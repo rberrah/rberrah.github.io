@@ -1,5 +1,5 @@
 <script>
-  import { language } from '$lib/stores/language';
+  import { language } from '#lib/stores/language.js';
   // Courbes de survie OS et PFS (modèle paramétrique de Weibull) avec effet traitement.
   //   S(t) = exp(−(t/λ)^k) ,  hasard h(t) = (k/λ)(t/λ)^(k−1)
   // La PFS compte progression ou deces et ne peut donc exceder l'OS dans cette construction.

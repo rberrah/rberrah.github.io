@@ -1,6 +1,6 @@
 <script>
-  import { language } from '$lib/stores/language';
-  import { fitLinearSvm } from '$lib/science/visualizationMath.js';
+  import { language } from '#lib/stores/language.js';
+  import { fitLinearSvm } from '#lib/science/visualizationMath.js';
   // Illustration conceptuelle d'un SVM linéaire : deux classes, un hyperplan séparateur
   // à MARGE MAXIMALE, et les vecteurs de support (points dans la marge). Le paramètre C
   // arbitre marge large (soft, tolérante) vs marge étroite (hard, peu tolérante).

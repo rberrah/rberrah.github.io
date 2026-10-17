@@ -3,10 +3,10 @@
   //   largeur du réservoir = Volume V   |   niveau du liquide = concentration C(t)
   //   ouverture du robinet = Clairance CL   |   drainage exponentiel : C(t)=Dose/V·e^(-CL/V·t)
   import { onDestroy } from 'svelte';
-  import { concMono } from '$lib/utils/math';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
-  import Slider from '$lib/components/ui/Slider.svelte';
-  import { language } from '$lib/stores/language';
+  import { concMono } from '#lib/utils/math.js';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
+  import Slider from '#lib/components/ui/Slider.svelte';
+  import { language } from '#lib/stores/language.js';
 
   let dose = 100; // mg
   let volume = 25; // L

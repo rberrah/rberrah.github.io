@@ -1,16 +1,16 @@
 <script>
   // Bloc d'exercices interactifs réutilisable (page globale /exercices ET par chapitre).
   // Gère son propre état ; accepte une liste d'exercices et un titre optionnel.
-  import { language } from '$lib/stores/language';
-  import { ui } from '$lib/i18n/translations';
+  import { language } from '#lib/stores/language.js';
+  import { ui } from '#lib/i18n/translations.js';
   import CaseExercise from './CaseExercise.svelte';
   import ScientificText from './ScientificText.svelte';
 
-  /** @type {import('$lib/content/exercises').Exercise[]} */
+  /** @type {import('#lib/content/exercises.js').Exercise[]} */
   export let items = [];
   /** @type {string} */
   export let heading = '';
-  /** @type {import('$lib/learning/types').Activity[]} */
+  /** @type {import('#lib/learning/types.js').Activity[]} */
   export let activities = [];
   /** Affiche les séparateurs de catégories sur les pages de chapitre/parcours. */
   export let showGroupHeading = true;
@@ -30,7 +30,7 @@
   /** @type {{done:boolean,correct:boolean,input:string}[]} */
   let state = [];
   // (ré)initialise l'état si la liste change
-  /** @type {import('$lib/content/exercises').Exercise[] | undefined} */
+  /** @type {import('#lib/content/exercises.js').Exercise[] | undefined} */
   let previousItems;
   $: if (previousItems !== items) { previousItems = items; state = items.map(() => ({ done: false, correct: false, input: '' })); }
   function checkNum(/** @type {number} */ i) {

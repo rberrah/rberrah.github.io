@@ -1,18 +1,19 @@
 <script>
   // @ts-nocheck
-  import { exercises } from '$lib/content/exercises';
-  import { guidedActivities } from '$lib/content/guidedActivities';
-  import { page } from '$app/stores';
+  import { exercises } from '#lib/content/exercises.js';
+  import { guidedActivities } from '#lib/content/guidedActivities.js';
+  import { page } from '$app/state';
   import { onMount } from 'svelte';
-  import { base } from '$app/paths';
-  import chapters from '$lib/content/loadChapters';
-  import { learningTracks, chaptersForTrack } from '$lib/content/tracks';
-  import { language } from '$lib/stores/language';
-  import { ui, localizeTrack } from '$lib/i18n/translations';
-  import ExerciseBlock from '$lib/components/ui/ExerciseBlock.svelte';
-  import LearningProgress from '$lib/components/ui/LearningProgress.svelte';
-  import Quiz from '$lib/components/ui/Quiz.svelte';
-  import TeacherSequenceBuilder from '$lib/components/ui/TeacherSequenceBuilder.svelte';
+  import { resolve } from '$app/paths';
+  const base = resolve('/').replace(/\/$/, '');
+  import chapters from '#lib/content/loadChapters.js';
+  import { learningTracks, chaptersForTrack } from '#lib/content/tracks.js';
+  import { language } from '#lib/stores/language.js';
+  import { ui, localizeTrack } from '#lib/i18n/translations.js';
+  import ExerciseBlock from '#lib/components/ui/ExerciseBlock.svelte';
+  import LearningProgress from '#lib/components/ui/LearningProgress.svelte';
+  import Quiz from '#lib/components/ui/Quiz.svelte';
+  import TeacherSequenceBuilder from '#lib/components/ui/TeacherSequenceBuilder.svelte';
 
   $: copy = ui($language);
   // slug de chapitre -> parcours + ordre (pour trier les exercices par parcours)
@@ -45,9 +46,9 @@
   let lastQuery;
   /** @type {string | null | undefined} */
   let lastKindQuery;
-  $: if (mounted && lastQuery !== $page.url.searchParams.get('track')) { lastQuery = $page.url.searchParams.get('track'); if (lastQuery) selectedTrack = lastQuery; }
-  $: if (mounted && lastKindQuery !== $page.url.searchParams.get('kind')) {
-    lastKindQuery = $page.url.searchParams.get('kind');
+  $: if (mounted && lastQuery !== page.url.searchParams.get('track')) { lastQuery = page.url.searchParams.get('track'); if (lastQuery) selectedTrack = lastQuery; }
+  $: if (mounted && lastKindQuery !== page.url.searchParams.get('kind')) {
+    lastKindQuery = page.url.searchParams.get('kind');
     if (['guided', 'synthesis', 'calculations', 'quiz'].includes(lastKindQuery ?? '')) selectedKind = lastKindQuery;
   }
   $: if (!groups.some((group) => group.id === selectedTrack)) selectedTrack = groups[0]?.id ?? '';

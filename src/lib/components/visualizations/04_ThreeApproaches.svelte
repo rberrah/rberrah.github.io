@@ -2,8 +2,8 @@
   // NCA vs PopPK vs PBPK — trois cartes sélectionnables + mini-illustration fidèle
   // à chaque approche. Style aligné sur le deck (cartes propres, couleurs du thème).
   import { fade } from 'svelte/transition';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
-  import { language } from '$lib/stores/language';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
+  import { language } from '#lib/stores/language.js';
 
   const approaches = [
     { id: 'nca', label: 'NCA', tag: ['Descriptif', 'Descriptive'], accent: 'var(--accent-pk)',

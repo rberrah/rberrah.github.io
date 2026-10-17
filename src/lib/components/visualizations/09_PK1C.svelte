@@ -1,13 +1,13 @@
 <script>
-  import Slider from '$lib/components/ui/Slider.svelte';
-  import ChartFrame from '$lib/charts/ChartFrame.svelte';
-  import Axis from '$lib/charts/Axis.svelte';
-  import AnimatedPath from '$lib/charts/AnimatedPath.svelte';
+  import Slider from '#lib/components/ui/Slider.svelte';
+  import ChartFrame from '#lib/charts/ChartFrame.svelte';
+  import Axis from '#lib/charts/Axis.svelte';
+  import AnimatedPath from '#lib/charts/AnimatedPath.svelte';
   import { scaleLinear } from 'd3-scale';
-  import { paddedDomain } from '$lib/charts/domain';
+  import { paddedDomain } from '#lib/charts/domain.js';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
-  import { reducedMotion } from '$lib/motion/reducedMotion';
+  import { reducedMotion } from '#lib/motion/reducedMotion.js';
 
   let dose = 150;
   let v = 25;

@@ -1,8 +1,8 @@
 <script>
-  import Tooltip from '$lib/components/ui/Tooltip.svelte';
-  import { clAllo, concMono } from '$lib/utils/math';
-  import { makeRng } from '$lib/sim/random';
-  import { language } from '$lib/stores/language';
+  import Tooltip from '#lib/components/ui/Tooltip.svelte';
+  import { clAllo, concMono } from '#lib/utils/math.js';
+  import { makeRng } from '#lib/sim/random.js';
+  import { language } from '#lib/stores/language.js';
 
   let showWeight = true;
   // PRNG SEEDÉ, pas Math.random() : le composant est prérendu (SSR) puis hydraté côté client.
