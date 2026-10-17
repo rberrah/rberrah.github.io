@@ -1,4 +1,4 @@
-# Publication status - 2026-10-16
+# Publication status - 2026-10-17
 
 This document contains only the current state. Earlier deployment notes are in
 [deployment-history.md](deployment-history.md).
@@ -7,14 +7,15 @@ This document contains only the current state. Earlier deployment notes are in
 
 | Surface | Current evidence | Limitation / next proof |
 | --- | --- | --- |
-| Public GitHub Pages | Deployment is fail-closed: the live source of truth is the latest successful **Deploy qualified PMx Pages** workflow. Baseline verified after the audit hardening: `1873bb3`, [deploy run 38963586106](https://github.com/rberrah/rberrah.github.io/actions/runs/38963586106), produced only from a successful PMx qualification. | A later release must again pass the complete PMx qualification before Pages publishes it; do not infer deployment from a merge alone. |
+| Public GitHub Pages | Current qualified release: `ded1e738`, [PMx qualification 39024664949](https://github.com/rberrah/rberrah.github.io/actions/runs/39024664949) followed by successful [Deploy qualified PMx Pages 39025129322](https://github.com/rberrah/rberrah.github.io/actions/runs/39025129322). Deployment remains fail-closed. | A later release must again pass the complete PMx qualification before Pages publishes it; do not infer deployment from a merge alone. |
 | Local Pages candidate | PMx checks, Svelte check/build and the public-artifact audit passed. The release run passed 20 portal browser tests and 365 PMx browser tests; 27 engine-dependent cases were skipped by configuration. | The skipped Shiny-dependent paths remain covered by their local engine suites and require a compatible live engine for browser execution. |
 | Laboratory transfers | Oral absorption and IV infusion preserve route, dosing compartment, dose, interval and infusion duration across TDM/DDI/PD; 16 deterministic JS scenarios, 32 native/regenerated mrgsolve comparisons and all six browser paths passed | This is software equivalence for the bounded teaching models, not clinical validation. |
 | TDM regressions | Native tests cover steady state and future doses, covariate carry-forward, fixed residual error, bounds and simple/combined targets. A local Shiny browser regression also verified equivalent relative-day/calendar timelines plus conditional BLQ/LLOQ and timing-uncertainty export. | These checks validate software behavior, not the source models or a clinical decision. |
-| PMx CI | Post-audit baseline `1873bb3`: `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and `mipd-consumer` completed successfully in [run 38962189035](https://github.com/rberrah/rberrah.github.io/actions/runs/38962189035). | Every later release must satisfy the same complete job set; human review status is independent of CI. |
-| Standalone MIPD source | PMx pins `MIPD-Engine@83a3026`; its standalone qualification passed in [run 38915644078](https://github.com/rberrah/MIPD-Engine/actions/runs/38915644078). PMx scientific jobs execute against that external checkout and the consumer gate compares all 46 model sources/catalogue entries plus bounded Lego imports. | The executable `tdm-engine/` mirror has been removed from PMx. `static/tdm/` remains only as a browser snapshot and must stay hash/content-equivalent to the pinned release. |
+| PMx CI | On current `main` (`ded1e738`), `build`, `scientific-js`, `scientific-r`, `scientific-pmetrics` and `mipd-consumer` all completed successfully in [run 39024664949](https://github.com/rberrah/rberrah.github.io/actions/runs/39024664949). | Every later release must satisfy the same complete job set; human review status is independent of CI. |
+| Standalone MIPD source | PMx deliberately remains pinned to `MIPD-Engine@83a3026`; its standalone qualification passed in [run 38915644078](https://github.com/rberrah/MIPD-Engine/actions/runs/38915644078). PMx scientific jobs execute against that exact checkout and the consumer gate compares all 46 model sources/catalogue entries plus bounded Lego imports. | MIPD `main` has newer qualified source/model-review work, but PMx must not advance its browser snapshot until the corresponding Shiny release is successfully deployed and its immutable public fingerprint is verified. The executable `tdm-engine/` mirror stays removed. |
 | Standalone Stats | `rberrah/stats` owns the biostatistics application and its Pages deployment; [run 38901158284](https://github.com/rberrah/stats/actions/runs/38901158284) succeeded on 2026-10-16. | PMx links to `/stats/` and advertises its standalone sitemap; Stats scientific/software qualification no longer runs from this repository. |
-| MultiOmics CI | Separate JS, R and Playwright MultiOmics workflows | Qualification remains independent from PMx and Stats. |
+| MultiOmics release | PMx pins `MultiOmics@dfc04de`; all six required upstream push workflows succeeded at that exact SHA and PMx rebuilds/mounts it at `/multiomics/`. Current MultiOmics `main` is one validation-only commit ahead and does not require a PMx site repin. | Qualification remains independent from PMx; a later pin must again pass the immutable upstream workflow gate and mounted-browser tests. |
+| Omics2PK site | PMx navigation targets the standalone site at `https://rberrah.github.io/Omics2PK/`. The deployed site revision `5a9e404f` passed offline contracts, static UI qualification and Pages publication; later Omics2PK commits affect research audits rather than `site/`. | PMx now records this deployed site SHA in `integration/omics2pk-release.json`; CI rejects link or upstream workflow drift. |
 | Public Shiny | Bundle `12698610` was deployed on 2026-10-16. A live browser check returned HTTP 200, exposed `library` and `custom` sources, and displayed `mrgsolve + mapbayr`. | Posit deployment is separate from Pages; repository changes do not update it automatically. Live two-session privacy and interrupted-calculation checks remain pending. |
 | Pmetrics local/repository | Pmetrics 3.2.6 compile, simulation, MAP backend and official-example checks are configured | Native result depends on a compatible R/Rust toolchain. |
 | Pmetrics public Shiny | **Disabled explicitly** | The current Shinyapps.io image cannot build the Pmetrics 3.2.6 dependency chain. The public manifest rejects accidental inclusion; local and dedicated CI support remain available. |
@@ -38,7 +39,8 @@ Before a Pages upload, the common pull-request/`main` qualification must:
 4. audit `dist/` before upload;
 5. run portal and PMx-only browser tests;
 6. verify the immutable standalone MIPD source and model-library consumer contract;
-7. complete the independent PMx R and Pmetrics jobs.
+7. verify the pinned MultiOmics and Omics2PK upstream release contracts;
+8. complete the independent PMx R and Pmetrics jobs.
 
 Only the successful `main` qualification uploads `pmx-pages-dist`; the separate
 deployment workflow downloads that exact run's artifact and publishes it. The
