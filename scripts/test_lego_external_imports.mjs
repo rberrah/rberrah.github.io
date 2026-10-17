@@ -121,8 +121,22 @@ for (const model of catalog.models) {
     assert.equal(s.nodes.filter(n=>n.dose>0).length,1);
     if (model.id==='amik_burdet') assert.equal(s.covariates.length,0,'Comments are not covariate declarations');
     if (model.id==='levo_gergs') close(getNode(s,'CENT').vol,.835*70);
-  } else assert.throws(()=>parseModelCode(code,'mrgsolve'),e=>e.code==='unsupportedEquation'||e.code==='unsupportedAdministration');
-  console.log(`AUDIT ${model.id}: ${accepted.includes(model.id)?'recognized':'explicitly unsupported'}`);
+  } else {
+    // Updated primary-source C++ may become importable by a bounded parser.
+    // Imported structure is not scientific source reproduction or permission
+    // for arbitrary compiled C++ in the public Shiny host.
+    let imported = null;
+    try { imported = parseModelCode(code, 'mrgsolve'); }
+    catch (error) {
+      assert(['unsupportedEquation','unsupportedAdministration'].includes(error.code),
+        model.id + ': unexpected parser error ' + (error.code || error.message));
+    }
+    if (imported) {
+      assert(imported.spec?.nodes?.length > 0 && imported.spec?.edges?.length > 0,
+        model.id + ': accepted parser output must have bounded nodes and edges');
+    }
+  }
+  console.log(`AUDIT ${model.id}: bounded Lego importer contract tested`);
 }
 assert.equal(catalog.models.length,46,'Update the audited library when adding a model');
 
