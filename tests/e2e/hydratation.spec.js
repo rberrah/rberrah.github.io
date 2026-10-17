@@ -626,7 +626,7 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
   await expect(details).not.toHaveAttribute('open', '');
   await details.locator('summary').click();
   await expect(details).toHaveAttribute('open', '');
-  await expect(details.locator('.adaptation-reason')).toContainText('Adapté pour les simulations d’interactions médicamenteuses (DDI)');
+  await expect(details.locator('.adaptation-reason')).toContainText('Adaptation pour les DDI');
   await expect(details.locator('.model-actions')).toBeVisible();
   await expect(page.locator('body')).not.toContainText('Woillard DDI');
   await expect(page.locator('body')).not.toContainText('DDI Manager+');
@@ -644,6 +644,21 @@ test("la bibliothèque TDM attribue les modèles aux articles", async ({ page })
     // that IV continuous is one of them.
     await expect(ivRoutes.nth(i)).toContainText('IV continue');
   }
+
+  await page.getByRole('combobox', { name: "Voie d'administration" }).selectOption('all');
+  await page.getByRole('searchbox', { name: 'Recherche' }).fill('Goti');
+  const goti = page.locator('.model-card');
+  await expect(goti).toHaveCount(1);
+  await expect(goti.locator('.source-badge')).toHaveText('aligned');
+  await goti.locator('details.model-details summary').click();
+  await expect(goti.locator('.adaptation-reason')).toHaveCount(0);
+
+  await page.getByRole('searchbox', { name: 'Recherche' }).fill('Marsot');
+  const marsot = page.locator('.model-card');
+  await expect(marsot).toHaveCount(1);
+  await expect(marsot.locator('.source-badge')).toHaveText('not verified');
+  await marsot.locator('details.model-details summary').click();
+  await expect(marsot.locator('.adaptation-reason')).toContainText('Ambiguïté sur le modèle résiduel');
 });
 
 test('les cartes TDM indiquent toutes les voies, également en anglais', async ({ page }) => {
