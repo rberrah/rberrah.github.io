@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const catalogFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated.json');
+const sourceReviewFile = path.join(root, 'src', 'lib', 'content', 'tdmSourceReview.generated.json');
+const pdfInventoryFile = path.join(root, 'src', 'lib', 'content', 'tdmPdfInventory.generated.json');
 const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
 const outputFile = path.join(root, 'docs', 'tdm-model-traceability.md');
 const manifestFile = path.join(root, 'docs', 'tdm-model-traceability.json');
@@ -25,9 +27,9 @@ function sections(code) {
   const result = [];
   let current = null;
   for (const line of code.replace(/\r/g, '').split('\n')) {
-    const header = line.match(/^\s*\$([A-Z]+)\b(.*)$/);
+    const header = line.match(/^\s*(?:\$([A-Z]+)\b(.*)|\[([A-Z]+)\](.*))$/);
     if (header) {
-      current = { name: header[1], options: header[2].trim(), lines: [] };
+      current = { name: header[1] ?? header[3], options: (header[2] ?? header[4]).trim(), lines: [] };
       result.push(current);
     } else if (current) {
       current.lines.push(line);
@@ -57,13 +59,59 @@ function escapeCell(value) {
   return String(value ?? '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 }
 
-function articleStatus(model) {
+function articleStatus(model, review) {
+  // The implementation family and its independently reviewed source fidelity
+  // are different axes. A historical ARTICLE implementation may be downgraded
+  // to unverified without rewriting the frozen C++ or changing its family.
+  if (review.result === 'SOURCE_AMBIGUITY_DOCUMENTED' &&
+      model.implementationStatus === 'ARTICLE') {
+    return 'Article-derived implementation; source fidelity NOT VERIFIED for identified boundary branches.';
+  }
   return model.implementationStatus === 'ARTICLE'
     ? 'Article implementation according to the author audit; independent reproduction pending.'
     : 'Documented adaptation; see the implementation note below.';
 }
 
 const catalog = JSON.parse(await fs.readFile(catalogFile, 'utf8'));
+const sourceReview = JSON.parse(await fs.readFile(sourceReviewFile, 'utf8'));
+const pdfInventory = JSON.parse(await fs.readFile(pdfInventoryFile, 'utf8'));
+const reviewedSources = new Map(sourceReview.reviewed.map((review) => [review.id, review]));
+const reviewIds = [...reviewedSources.keys()];
+const catalogIds = catalog.models.map((model) => model.id);
+if (new Set(reviewIds).size !== reviewIds.length ||
+    reviewIds.some((id) => !catalogIds.includes(id)) ||
+    catalogIds.some((id) => !reviewIds.includes(id))) {
+  throw new Error('Source-review coverage must contain every catalog model exactly once.');
+}
+for (const model of catalog.models) {
+  const review = reviewedSources.get(model.id);
+  const expectedStatus = review.result === 'ARTICLE_ALIGNED' ? 'ARTICLE' : 'ADAPTED';
+  const conservativeSourceDowngrade =
+    model.implementationStatus === 'ARTICLE' &&
+    review.result === 'SOURCE_AMBIGUITY_DOCUMENTED';
+  if (model.implementationStatus !== expectedStatus && !conservativeSourceDowngrade) {
+    throw new Error(`Catalog/source-review status mismatch for ${model.id}: expected ${expectedStatus}.`);
+  }
+}
+const pdfClassifications = {
+  ACTIVE_MODEL_PRIMARY_SOURCE: 'activeModelPrimarySources',
+  DUPLICATE_PRIMARY_SOURCE: 'duplicatePrimarySources',
+  SECONDARY_REVIEW: 'secondaryReviews',
+  APPLICATION_CONTEXT: 'applicationContext',
+  BACKGROUND_OR_NONCATALOG_SOURCE: 'backgroundOrNoncatalogSources'
+};
+const countedPdfs = Object.fromEntries(Object.values(pdfClassifications).map((key) => [key, 0]));
+for (const document of pdfInventory.documents) {
+  const countKey = pdfClassifications[document.classification];
+  if (!countKey) throw new Error(`Unknown PDF classification: ${document.classification}`);
+  countedPdfs[countKey] += 1;
+  const unknownModels = document.models.filter((id) => !catalogIds.includes(id));
+  if (unknownModels.length) throw new Error(`PDF inventory references unknown models: ${unknownModels.join(', ')}`);
+}
+if (pdfInventory.documents.length !== pdfInventory.counts.documents ||
+    Object.entries(countedPdfs).some(([key, value]) => pdfInventory.counts[key] !== value)) {
+  throw new Error('PDF inventory counts do not match its documents.');
+}
 const records = await Promise.all(catalog.models.map(async (model) => {
   const code = await fs.readFile(path.join(modelsDirectory, model.file), 'utf8');
   const parsed = sections(code);
@@ -90,32 +138,37 @@ const records = await Promise.all(catalog.models.map(async (model) => {
 const articleCount = records.filter(({ model }) => model.implementationStatus === 'ARTICLE').length;
 const adaptedCount = records.length - articleCount;
 const mapCount = records.filter(({ model }) => model.analysisEligible).length;
+const fullTextCount = [...reviewedSources.values()].filter((review) => review.fullTextReviewed).length;
+const limitedEvidenceCount = reviewedSources.size - fullTextCount;
 
 const lines = [
   '# TDM model source-to-implementation traceability',
   '',
   '> Generated by `scripts/generate_tdm_traceability.mjs`; do not edit manually.',
   '',
-  'This inventory documents the PMx browser snapshot of each model and its declared primary source; the executable source of truth is the pinned standalone MIPD Engine. It is an implementation audit, **not** proof that the publication has been independently reproduced. Three levels are kept separate:',
+  'This inventory links each shipped model to its declared primary source and to the implementation that is actually executed. It is an implementation audit, **not** proof that the publication has been independently reproduced. Three levels are kept separate:',
   '',
-  '1. **Syntax and contract:** the pinned standalone MIPD library compiles and satisfies the mrgsolve/TDM interface contract.',
-  '2. **Deterministic software regression:** selected models have fixed inputs and expected outputs in the standalone `MIPD-Engine/tests/model_reference_cases.R` suite.',
+  '1. **Syntax and contract:** the complete library compiles and satisfies the mrgsolve/TDM interface contract.',
+  '2. **Deterministic software regression:** selected models have fixed inputs and expected outputs in `tests/model_reference_cases.R`.',
   '3. **Scientific reproduction:** comparison with source equations, source software or published reference outputs; this remains pending unless explicitly documented.',
   '',
   `Current catalog: **${records.length} models** (${articleCount} labelled article implementations, ${adaptedCount} documented adaptations; ${mapCount} exposed as MAP priors). **${referenceCases.size} models** currently have deterministic numeric reference profiles.`,
+  `Every model has a recorded source comparison. Primary full text has been checked for **${fullTextCount}/${records.length} models**; **${limitedEvidenceCount}** older or paywalled sources currently have an abstract-level comparison, explicitly identified below. This author-led source audit is not independent reproduction.`,
   '',
   'Population text and administration route define the currently encoded validity context. Numerical age, weight, renal-function and dose ranges are not yet structured for every article; absence of a range below must not be interpreted as permission to extrapolate.',
   '',
   '## Summary',
   '',
-  '| Model | Source | Route / mode | Units | Implementation | MAP | Numeric profile |',
-  '| --- | --- | --- | --- | --- | --- | --- |'
+  '| Model | Source | Full-text review | Route / mode | Units | Implementation | MAP | Numeric profile |',
+  '| --- | --- | --- | --- | --- | --- | --- | --- |'
 ];
 
 for (const { model } of records) {
   const source = `[${escapeCell(model.citation)}](https://doi.org/${model.doi})`;
   const route = `${model.routes.join(' + ')} / ${model.administrationModes.join(', ')}`;
-  lines.push(`| \`${model.id}\` | ${source} | ${escapeCell(route)} | ${model.timeUnit}; ${model.concentrationUnit} | ${model.implementationStatus} | ${model.analysisEligible ? 'Yes' : 'No'} | ${referenceCases.has(model.id) ? 'Deterministic regression' : 'Compile + contract'} |`);
+  const sourceFinding = reviewedSources.get(model.id);
+  const sourceStatus = `${sourceFinding.result} / ${sourceFinding.evidence}`;
+  lines.push(`| \`${model.id}\` | ${source} | ${sourceStatus} | ${escapeCell(route)} | ${model.timeUnit}; ${model.concentrationUnit} | ${model.implementationStatus} | ${model.analysisEligible ? 'Yes' : 'No'} | ${referenceCases.has(model.id) ? 'Deterministic regression' : 'Compile + contract'} |`);
 }
 
 lines.push('', '## Per-model implementation record', '');
@@ -123,6 +176,7 @@ lines.push('', '## Per-model implementation record', '');
 for (const { model, parameters, covariates, etaUses, epsUses } of records) {
   const note = model.note?.trim() || 'No adaptation is documented in catalog metadata. Independent source reproduction is still required.';
   const reference = referenceCases.get(model.id);
+  const sourceFinding = reviewedSources.get(model.id);
   lines.push(
     `### ${model.drug} - ${model.model} (\`${model.id}\`)`,
     '',
@@ -133,7 +187,8 @@ for (const { model, parameters, covariates, etaUses, epsUses } of records) {
     `- **Covariates declared in code:** ${compactList(covariates)}.`,
     `- **Random and residual effects used by the equations:** ${etaUses.length ? `ETA indices ${etaUses.join(', ')}` : 'no indexed ETA use'}; ${epsUses.length ? `EPS indices ${epsUses.join(', ')}` : 'no indexed EPS use'}. OMEGA/SIGMA details remain authoritative in [the model source](../static/tdm/models/${model.file}).`,
     `- **MAP prior:** ${model.analysisEligible ? 'exposed in the TDM analysis workflow' : 'not exposed; simulation only'}.`,
-    `- **Fidelity status:** ${articleStatus(model)}`,
+    `- **Fidelity status:** ${articleStatus(model, sourceFinding)}`,
+    `- **Primary-source review:** ${sourceFinding.result} (${sourceFinding.evidence}, ${sourceReview.reviewDate}). ${sourceFinding.note}`,
     `- **Documented modification or limitation:** ${note}`,
     `- **Reference testing:** ${reference ? `${reference}; zero ETA and residual errors; deterministic software-regression tolerance \`1e-7\`.` : 'compilation and interface-contract test only; no frozen numeric profile yet.'}`,
     ''
@@ -144,12 +199,23 @@ const output = `${lines.join('\n')}\n`;
 const previous = await fs.readFile(outputFile, 'utf8').catch(() => '');
 const manifest = {
   version: 1,
-  generatedFrom: ['src/lib/content/tdmModels.generated.json', 'static/tdm/model-metadata.json', 'static/tdm/models/*.cpp', 'integration/mipd-release.json'],
+  generatedFrom: ['src/lib/content/tdmModels.generated.json', 'src/lib/content/tdmSourceReview.generated.json', 'src/lib/content/tdmPdfInventory.generated.json', 'static/tdm/models/*.cpp'],
   models: records.map(({ model, parameters, covariates, etaUses, epsUses, compartments, differentialEquations, outputs, omega, sigma, sourceSha256 }) => ({
     id: model.id,
     sourceFile: model.file,
     sourceSha256,
-    primarySource: { citation: model.citation, doi: model.doi, status: model.sourceStatus ?? 'primary' },
+    primarySource: {
+      citation: model.citation,
+      doi: model.doi,
+      status: model.sourceStatus ?? 'primary',
+      fullTextReview: {
+        status: reviewedSources.get(model.id).fullTextReviewed ? 'full-text-reviewed' : 'limited-evidence-reviewed',
+        evidence: reviewedSources.get(model.id).evidence,
+        date: sourceReview.reviewDate,
+        result: reviewedSources.get(model.id).result,
+        note: reviewedSources.get(model.id).note
+      }
+    },
     population: { description: model.population, tags: model.populationTags ?? [] },
     administration: { routes: model.routes, modes: model.administrationModes, timeUnit: model.timeUnit, concentrationUnit: model.concentrationUnit },
     structuralModel: { compartments, differentialEquations, outputs },
