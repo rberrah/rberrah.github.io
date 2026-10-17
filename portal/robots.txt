@@ -20,3 +20,6 @@ Sitemap: __SITE_ORIGIN__/pharmacometrie/sitemap.xml
 
 # Stats est déployé indépendamment depuis rberrah/stats.
 Sitemap: __SITE_ORIGIN__/stats/sitemap.xml
+
+# Omics2PK est déployé indépendamment depuis rberrah/Omics2PK.
+Sitemap: __SITE_ORIGIN__/Omics2PK/sitemap.xml
