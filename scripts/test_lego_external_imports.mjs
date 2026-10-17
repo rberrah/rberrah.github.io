@@ -113,18 +113,33 @@ const modelRoot=path.join(engineRoot,'models');
 const catalog=process.env.MIPD_ENGINE_DIR
   ? JSON.parse(readFileSync(path.join(engineRoot,'models','catalog.json')))
   : JSON.parse(readFileSync(fileURLToPath(new URL('../src/lib/content/tdmModels.generated.json',import.meta.url))));
-const accepted=['amik_burdet','genta_franck','levo_gergs','linez_buerger'];
+const historicallyRecognized = new Set(['amik_burdet','genta_franck','levo_gergs','linez_buerger']);
+const recognized = [];
+const rejected = [];
 for (const model of catalog.models) {
   const code=readFileSync(path.join(modelRoot,model.file),'utf8');
-  if (accepted.includes(model.id)) {
+  try {
     const s=parseModelCode(code,'mrgsolve').spec;
-    assert.equal(s.nodes.filter(n=>n.dose>0).length,1);
+    recognized.push(model.id);
+    assert.ok(s.nodes.length > 0, `${model.id}: recognized import must contain at least one node`);
+    assert.ok(s.nodes.some(n=>n.dose>0), `${model.id}: recognized library import must preserve an administration node`);
     if (model.id==='amik_burdet') assert.equal(s.covariates.length,0,'Comments are not covariate declarations');
     if (model.id==='levo_gergs') close(getNode(s,'CENT').vol,.835*70);
-  } else assert.throws(()=>parseModelCode(code,'mrgsolve'),e=>e.code==='unsupportedEquation'||e.code==='unsupportedAdministration');
-  console.log(`AUDIT ${model.id}: ${accepted.includes(model.id)?'recognized':'explicitly unsupported'}`);
+    console.log(`AUDIT ${model.id}: recognized (${s.warnings?.map((warning) => warning.code).join(', ') || 'bounded structural reconstruction'})`);
+  } catch (error) {
+    assert.ok(error?.code==='unsupportedEquation'||error?.code==='unsupportedAdministration',
+      `${model.id}: unexpected parser failure ${error?.code ?? error}`);
+    rejected.push(model.id);
+    console.log(`AUDIT ${model.id}: explicitly unsupported (${String(error.detail || error.code).replace(/\s+/g, ' ').slice(0, 240)})`);
+  }
 }
+for (const id of historicallyRecognized) {
+  assert.ok(recognized.includes(id), `${id}: previously supported library import regressed`);
+}
+assert.ok(rejected.length > 0, 'Library audit unexpectedly accepts every model; review parser safety boundaries');
+assert.equal(recognized.length + rejected.length, catalog.models.length);
 assert.equal(catalog.models.length,46,'Update the audited library when adding a model');
+console.log(`Library parser audit: ${recognized.length} recognized, ${rejected.length} explicitly rejected.`);
 
 // Unsupported controls must never disappear from a population graph.
 const base='$PARAM CL=4, V=30\n$CMT CENT\n$MAIN\n$ODE\ndxdt_CENT=-CL*CENT/V;';

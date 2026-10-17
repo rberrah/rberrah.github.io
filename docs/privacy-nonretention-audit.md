@@ -23,11 +23,7 @@ Run `npm run audit:privacy`. The command is also part of `npm test` and checks:
   exports allow-listed in the test;
 - PMx Playwright traces are disabled; reports and benchmark caches remain ignored by Git.
 
-Run `npm run tdm:test-privacy` for the R runtime helper. It creates two private
-session workspaces containing synthetic concentration, covariate, patient and
-model sentinels, verifies isolation, then checks deletion after both a normal
-session cleanup and an interrupted calculation. The PMx R workflow runs this
-test independently of browser checks.
+The R runtime helper now belongs to the standalone `rberrah/MIPD-Engine` checkout. Run `Rscript tests/privacy_nonretention_test.R` from that repository (or rely on PMx `scientific-r`, which checks out the pinned MIPD SHA and runs the same test). It creates two private session workspaces containing synthetic concentration, covariate, patient and model sentinels, verifies isolation, then checks deletion after both a normal session cleanup and an interrupted calculation.
 
 The browser suite additionally enters a unique model value, triggers an import
 error, checks storage, URL, requests and browser logs, reloads the page and

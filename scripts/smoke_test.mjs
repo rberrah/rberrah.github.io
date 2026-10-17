@@ -220,6 +220,14 @@ for (const f of frFiles) {
 if (!srcBad) ok(`sources des chapitres : tous les identifiants résolvent dans le pool`);
 console.log(`  · couverture : sources ${nSourced}/${frFiles.length} · relus ${nReviewed}/${frFiles.length}`);
 
+// ── 7. Frontières de routage entre applications autonomes ──
+const portal404 = fs.readFileSync(path.join(root, 'portal', '404.html'), 'utf8');
+if (portal404.includes("'\/multiomics'")) {
+  fail('le fallback 404 ne doit pas rebasculer la route autonome /multiomics vers /pharmacometrie');
+} else {
+  ok('fallback 404 : /multiomics reste une application canonique autonome');
+}
+
 // ── Bilan ──
 if (failures) { console.error(`\nSMOKE TEST ÉCHOUÉ : ${failures} problème(s).`); process.exit(1); }
 console.log('\nSmoke tests OK : contenu cohérent, exactitude numérique vérifiée.');

@@ -43,9 +43,9 @@ node scripts/audit_lego_roundtrip.mjs
 # Les lignes R suivantes s'exécutent depuis rberrah/MIPD-Engine
 Rscript tests/lego_native_exports.R
 Rscript tests/lego_mlxtran_exports.R
-npm run tdm:test
-npm run tdm:test-lego
-npm run tdm:validate-library
+Rscript tests/smoke_test.R
+Rscript tests/safe_lego_test.R
+Rscript tests/validate_library.R
 ```
 
 Set `TDM_ENGINE_E2E_URL=http://127.0.0.1:3838` to include the running local

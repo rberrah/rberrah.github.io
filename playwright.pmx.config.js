@@ -8,8 +8,7 @@ export default defineConfig({
   testIgnore: [
     '**/portal.spec.js',
     '**/stats-*.spec.js',
-    '**/multiomics*.spec.js',
-    '**/cross-domain-omics-pkpd.spec.js'
+    '**/multiomics*.spec.js'
   ],
   timeout: 30_000,
   fullyParallel: true,

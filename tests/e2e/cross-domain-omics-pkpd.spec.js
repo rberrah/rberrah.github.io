@@ -48,6 +48,10 @@ test('Cross-domain navigation is discoverable and accessible from main menu',asy
  await menu.locator('summary').click();
  await expect(menu.getByTestId('nav-cross-domains'))
    .toHaveAttribute('href',/\/domaines\/?$/);
+ await expect(menu.getByTestId('nav-multiomics'))
+   .toHaveAttribute('href','https://rberrah.github.io/multiomics/');
+ await expect(menu.getByTestId('nav-omics2pk'))
+   .toHaveAttribute('href','https://rberrah.github.io/Omics2PK/');
  await menu.getByTestId('nav-cross-domains').click();
  await expect(page.getByTestId('cross-domain-courses')).toBeVisible();
 });

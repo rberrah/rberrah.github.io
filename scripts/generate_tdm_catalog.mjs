@@ -2,13 +2,12 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-await import('./generate_ddi_tdm_models.mjs');
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const modelsDirectory = path.join(root, 'static', 'tdm', 'models');
 const outputFile = path.join(root, 'src', 'lib', 'content', 'tdmModels.generated.json');
 const metadataFile = path.join(root, 'static', 'tdm', 'model-metadata.json');
 const englishMetadataFile = path.join(root, 'static', 'tdm', 'model-i18n.en.json');
+const sourceReviewFile = path.join(root, 'src', 'lib', 'content', 'tdmSourceReview.generated.json');
 
 const drugLabels = {
   amik: 'Amikacine',
@@ -108,7 +107,9 @@ const modelTypeEn = {
   'PopPK mécanistique adapté': 'Adapted mechanistic PopPK',
   'PopPK publié': 'Published PopPK',
   'PopPK publié adapté': 'Adapted published PopPK',
-  'Prior PK à vérifier': 'PK prior pending verification'
+  'Prior PK à vérifier': 'PK prior pending verification',
+  'Reconstruction déterministe NCA': 'Deterministic NCA reconstruction',
+  'Reconstruction déterministe de revue': 'Deterministic review-based reconstruction'
 };
 
 const administrationModeLabels = {
@@ -116,16 +117,6 @@ const administrationModeLabels = {
   IV_INTERMITTENT: { fr: 'IV intermittente', en: 'Intermittent IV' },
   IV_CONTINUOUS: { fr: 'IV continue', en: 'Continuous IV' }
 };
-
-const additionallyAdaptedModels = new Set([
-  'genta_franck',
-  'genta_gomes',
-  'genta_hodiamont',
-  'genta_rosario_clcr',
-  'genta_rosario_clinical',
-  'levo_gergs',
-  'linez_sasaki'
-]);
 
 const drugKeys = Object.keys(drugLabels);
 
@@ -178,8 +169,9 @@ function administrationModes(routes, details, stem) {
   };
 }
 
-function implementationStatus(details, stem) {
-  const adapted = additionallyAdaptedModels.has(stem) || /adapté|module/i.test(details.modelType);
+function implementationStatus(review, stem) {
+  if (!review) throw new Error(`Missing source-review record for ${stem}.`);
+  const adapted = review.result !== 'ARTICLE_ALIGNED';
   return adapted
     ? { implementationStatus: 'ADAPTED', implementationStatusLabel: 'Adaptation documentée', implementationStatusLabelEn: 'Documented adaptation' }
     : { implementationStatus: 'ARTICLE', implementationStatusLabel: "Implémentation de l'article", implementationStatusLabelEn: 'Article implementation' };
@@ -220,7 +212,7 @@ function analysisEligibility(details, implementationDetails, stem) {
       };
 }
 
-function parseModelFile(file, metadata, englishMetadata, code) {
+function parseModelFile(file, metadata, englishMetadata, reviewedSources, code) {
   const stem = file.replace(/\.cpp$/i, '');
   const drugKey = drugKeys.find((key) => stem.startsWith(`${key}_`)) ?? stem.split('_')[0];
   const suffix = stem.slice(drugKey.length + 1);
@@ -246,7 +238,7 @@ function parseModelFile(file, metadata, englishMetadata, code) {
   }
   const routeDetails = administrationRoutes(code, stem);
   const modeDetails = administrationModes(routeDetails.routes, details, stem);
-  const implementationDetails = implementationStatus(details, stem);
+  const implementationDetails = implementationStatus(reviewedSources.get(stem), stem);
   if (implementationDetails.implementationStatus === 'ADAPTED' && !details.note?.trim()) {
     throw new Error(`Adapted model ${stem} must document its implementation difference in note.`);
   }
@@ -316,6 +308,8 @@ async function main() {
   const metadata = metadataDocument.models ?? {};
   const englishMetadataDocument = JSON.parse(await fs.readFile(englishMetadataFile, 'utf8'));
   const englishMetadata = englishMetadataDocument.models ?? {};
+  const sourceReview = JSON.parse(await fs.readFile(sourceReviewFile, 'utf8'));
+  const reviewedSources = new Map((sourceReview.reviewed ?? []).map((item) => [item.id, item]));
   const allIds = new Set(allFiles.map((file) => file.replace(/\.cpp$/i, '')));
   const missingMetadata = [...allIds].filter((id) => !metadata[id]);
   if (missingMetadata.length) throw new Error(`Missing TDM metadata for: ${missingMetadata.join(', ')}`);
@@ -325,10 +319,12 @@ async function main() {
     file,
     await fs.readFile(path.join(modelsDirectory, file), 'utf8')
   ])));
-  const models = files.map((file) => parseModelFile(file, metadata, englishMetadata, modelCode.get(file)));
+  const models = files.map((file) => parseModelFile(file, metadata, englishMetadata, reviewedSources, modelCode.get(file)));
   const ids = new Set(models.map((model) => model.id));
   if (ids.size !== models.length) throw new Error('Duplicate TDM model identifiers detected.');
-  const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id));
+  const missingReviews = models.map((model) => model.id).filter((id) => !reviewedSources.has(id));
+  if (missingReviews.length) throw new Error(`Missing source-review records for: ${missingReviews.join(', ')}`);
+  const extraMetadata = Object.keys(metadata).filter((id) => !allIds.has(id) && metadata[id]?.listed !== false);
   if (extraMetadata.length) throw new Error(`Metadata without a matching model: ${extraMetadata.join(', ')}`);
 
   const output = `${JSON.stringify({ version: 5, models }, null, 2)}\n`;

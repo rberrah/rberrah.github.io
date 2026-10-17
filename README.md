@@ -23,6 +23,8 @@ moteur.
   `rberrah/MIPD-Engine`.
 - `integration/multiomics-release.json` : contrat immutable vers
   `rberrah/MultiOmics`.
+- `integration/omics2pk-release.json` : contrat immutable vers le site autonome
+  `rberrah/Omics2PK` utilisé par la navigation interdisciplinaire.
 - Le site de biostatistique `/stats/` est maintenu et déployé indépendamment depuis
   `rberrah/stats`; PMx ne conserve plus de copie de son moteur, de ses tests ou de sa CI.
 - `docs/`, `scripts/` et `tests/` : documentation, contrôles de contenu et
@@ -76,6 +78,13 @@ L'application MultiOmics est maintenue dans
 https://github.com/rberrah/MultiOmics et montée dans l'artefact Pages à
 `/multiomics/`. Les anciennes URLs sous `/pharmacometrie/multiomics/`
 restent des alias de compatibilité.
+
+## Omics2PK
+
+Le portail de recherche Omics2PK est maintenu et publié indépendamment depuis
+`rberrah/Omics2PK`. PMx ne copie ni son moteur ni ses données : il vérifie un
+SHA de site publié via `integration/omics2pk-release.json` et expose seulement
+le lien interdisciplinaire vers `/Omics2PK/`.
 
 ## Stats
 

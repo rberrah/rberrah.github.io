@@ -23,7 +23,7 @@ export const dictionary = {
       primary: 'Primary'
     },
     footer: {
-      // Licence du TEXTE (le code reste MIT) : intitulé et URL viennent de $lib/site.
+      // Licences courantes : contenu CC BY-NC-SA 4.0, code PolyForm Noncommercial 1.0.0 ; intitulés et URL viennent de #lib/site.
       licenseIntro: 'PMx Explain · Text',
       licenseOutro: '· Code PolyForm Noncommercial 1.0.0 · 2026',
       author: 'Written and maintained by Racym Berrah, PharmD, PhD student in pharmacometrics',

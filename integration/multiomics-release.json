@@ -1,7 +1,7 @@
 {
   "schema": "multiomics-site-source.v1",
   "repository": "rberrah/MultiOmics",
-  "sha": "dfc04de803f139c8900fe003fc468a0272a37419",
+  "sha": "b02cc48e006abf5fd0200e9e2cf376af4cfae526",
   "basePath": "",
   "legacyBasePath": "/pharmacometrie",
   "canonicalPath": "/multiomics/",
@@ -11,6 +11,8 @@
     "Multi-omics real public Nutrimouse DIABLO biological validation",
     "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit",
     "Frozen R reference — calibration and negative-control qualification",
-    "MultiOmics fixed-URL integration artifact"
+    "MultiOmics fixed-URL integration artifact",
+    "Omics2PK consumer contract - native MultiOmics synthetic ZIP",
+    "Independent external GEO GSE22871 source qualification"
   ]
 }

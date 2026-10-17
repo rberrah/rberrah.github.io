@@ -16,11 +16,11 @@ const app = readEngine('app.R');
 const deploy = readEngine('scripts/deploy_shiny.R');
 assert.match(app, /Sys\.getenv\("ALLOW_CUSTOM_MODELS", "false"\)/,
   'Standalone public application must default to ALLOW_CUSTOM_MODELS=false');
-assert.match(deploy, /Sys\.setenv\(ALLOW_CUSTOM_MODELS = "false"\)/,
+assert.match(deploy, /Sys\.setenv\([^)]*ALLOW_CUSTOM_MODELS\s*=\s*"false"/s,
   'Standalone deployment must force ALLOW_CUSTOM_MODELS=false');
 assert.match(app, /Sys\.getenv\("ENABLE_PMETRICS", "auto"\)/,
   'Standalone application must expose an explicit optional Pmetrics mode');
-assert.match(deploy, /Sys\.setenv\(ENABLE_PMETRICS = "false"\)/,
+assert.match(deploy, /Sys\.setenv\([^)]*ENABLE_PMETRICS\s*=\s*"false"/s,
   'Current public Shiny deployment must disable Pmetrics');
 assert.match(deploy, /!"Pmetrics" %in% deps\$Package/,
   'Public Shiny manifest must reject accidental Pmetrics inclusion');

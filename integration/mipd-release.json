@@ -1,14 +1,21 @@
 {
   "schema": "mipd-site-source.v1",
   "repository": "rberrah/MIPD-Engine",
-  "sha": "83a3026df7c0881d2725333a90d81ef2ed218f90",
+  "sha": "fec16cbdf8e33ed6c791226ccf236761333f8de8",
   "publicUrl": "https://tdmhub.shinyapps.io/MIPD_Engine",
   "requiredWorkflows": [
-    "Standalone MIPD qualification"
+    "Standalone MIPD qualification",
+    "Bibliographic DOI qualification"
   ],
   "shinyappsAppId": "17776160",
   "expectedModelCount": 46,
   "rVersion": "4.6.1",
   "pmetricsVersion": "3.2.6",
-  "productionCustomModels": false
+  "productionCustomModels": false,
+  "publicDeployment": {
+    "status": "verified",
+    "verifiedSourceSha": "fec16cbdf8e33ed6c791226ccf236761333f8de8",
+    "fingerprintUrl": "https://tdmhub.shinyapps.io/MIPD_Engine/deployment-release.json",
+    "bundleId": "12702795"
+  }
 }

@@ -1,0 +1,11 @@
+{
+  "schema": "omics2pk-site-source.v1",
+  "repository": "rberrah/Omics2PK",
+  "sha": "5a9e404fcbd58a6ce1ce378c1d78432d152cb4da",
+  "publicUrl": "https://rberrah.github.io/Omics2PK/",
+  "requiredWorkflows": [
+    "Offline contract tests",
+    "Omics2PK static UI qualification",
+    "Publish Omics2PK website to GitHub Pages (manual)"
+  ]
+}

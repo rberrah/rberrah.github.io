@@ -1,8 +1,8 @@
 {
   "version": 1,
   "generatedFromTests": true,
-  "cases": 60,
-  "checks": 240,
+  "cases": 56,
+  "checks": 224,
   "rows": [
     {
       "model": "embedded-mrgsolve",
@@ -316,8 +316,8 @@
       "model": "amiodarone_pollak_ddi",
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "unsupportedEquation"
+      "status": "structural only",
+      "reason": "populationGraph, customOdeReview, outputsNotRepresentable"
     },
     {
       "model": "amiodarone_pollak_ddi",
@@ -625,7 +625,7 @@
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
       "status": "rejected",
-      "reason": "((wt/70)^wtv)"
+      "reason": "((wt/wtref)^wtv)"
     },
     {
       "model": "ciclosporine_press_ddi",
@@ -867,90 +867,6 @@
     },
     {
       "model": "fluconazole_debruyne_ddi",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "pmetrics",
-      "status": "rejected",
-      "reason": "Expected a literal R list"
-    },
-    {
-      "model": "genta_debord",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "unsupportedEquation"
-    },
-    {
-      "model": "genta_debord",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mlxtran",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_debord",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "nonmem",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_debord",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "pmetrics",
-      "status": "rejected",
-      "reason": "Expected a literal R list"
-    },
-    {
-      "model": "genta_evers_icu",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "LBMC"
-    },
-    {
-      "model": "genta_evers_icu",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mlxtran",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_evers_icu",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "nonmem",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_evers_icu",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "pmetrics",
-      "status": "rejected",
-      "reason": "Expected a literal R list"
-    },
-    {
-      "model": "genta_evers_standard",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "LBMC"
-    },
-    {
-      "model": "genta_evers_standard",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mlxtran",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_evers_standard",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "nonmem",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "genta_evers_standard",
       "sourceFormat": "mrgsolve",
       "testedAs": "pmetrics",
       "status": "rejected",
@@ -1493,7 +1409,7 @@
       "sourceFormat": "mrgsolve",
       "testedAs": "mrgsolve",
       "status": "rejected",
-      "reason": "exp((0+eta2))"
+      "reason": "((wt/wtref)^allov)"
     },
     {
       "model": "tacrolimus_kamp_envarsus_ddi",
@@ -1595,34 +1511,6 @@
     },
     {
       "model": "vanco_pkjust",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "pmetrics",
-      "status": "rejected",
-      "reason": "Expected a literal R list"
-    },
-    {
-      "model": "vanco_revilla",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mrgsolve",
-      "status": "rejected",
-      "reason": "unsupportedEquation"
-    },
-    {
-      "model": "vanco_revilla",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "mlxtran",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "vanco_revilla",
-      "sourceFormat": "mrgsolve",
-      "testedAs": "nonmem",
-      "status": "rejected",
-      "reason": "unsupportedStructure"
-    },
-    {
-      "model": "vanco_revilla",
       "sourceFormat": "mrgsolve",
       "testedAs": "pmetrics",
       "status": "rejected",

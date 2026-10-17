@@ -8,7 +8,9 @@ const requiredNames = [
   "Multi-omics real public Nutrimouse DIABLO biological validation",
   "Multi-omics real Nutrimouse MOFA2 factor and experimental-effect audit",
   "Frozen R reference — calibration and negative-control qualification",
-  "MultiOmics fixed-URL integration artifact"
+  "MultiOmics fixed-URL integration artifact",
+  "Omics2PK consumer contract - native MultiOmics synthetic ZIP",
+  "Independent external GEO GSE22871 source qualification"
 ];
 if (source.schema !== 'multiomics-site-source.v1' ||
     source.repository !== 'rberrah/MultiOmics' ||

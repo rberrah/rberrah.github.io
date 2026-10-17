@@ -114,6 +114,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/verify_multiomics_upstream_release.mjs
+      - name: Qualify pinned independent Omics2PK site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify_omics2pk_upstream_release.mjs
       - name: Preserve qualified Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v7
@@ -122,6 +126,7 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 2
+
 
   scientific-js:
     runs-on: ubuntu-latest

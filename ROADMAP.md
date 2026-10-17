@@ -1,6 +1,6 @@
 # Roadmap - PMx Explain
 
-Mise à jour : 2026-10-16.
+Mise à jour : 2026-10-17.
 Lot actuel : validation scientifique, validation pédagogique et reproductibilité.
 Le site et Shiny ont ete deployes separement. Publier le site seul ne met pas
 Shiny a jour. Voir [le suivi de publication](docs/deployment-status.md).
@@ -38,7 +38,7 @@ Chaque lot doit avoir ses propres tests et peut etre livre sans refonte globale.
 | Comparaisons A/B des laboratoires | `CI verified` pour 15/15 laboratoires | Vérifier avec des débutants la compréhension des écarts et du contrefactuel oncologique |
 | Support Lego complexe | `CI verified` pour le sous-ensemble borné | Étendre au-delà des expressions autorisées, administrations alternatives sélectionnables et sorties combinées linéaires sans prétendre restaurer un projet d'estimation complet |
 | Communication NetPK du 14 octobre 2026 | `implemented` : `Presented / Présenté`, pages FR/EN et métadonnées régénérées | `CI verified` par la règle générique interdisant un statut `upcoming` après la date de présentation ; publication publique à vérifier après déploiement |
-| Actions et dépendances Node 20/24 | `implemented` pour les actions officielles | Confirmer les nouveaux majors sur les prochains runs GitHub Actions ; `punycode.js` reste transitif via `markdown-it` et aucun usage direct de `url.parse()` n'est détecté dans le projet |
+| Actions et dépendances Node 22 | `CI verified` : les workflows PMx utilisent `actions/setup-node@v7` avec Node 22 | Conserver Node 22 dans les jobs PMx ; `punycode.js` reste une dépendance userland transitive de `markdown-it` et aucun usage direct de `url.parse()` n'est détecté dans le projet |
 
 **Gel de périmètre :** pas de nouveau grand laboratoire, de nouvelle grande
 rubrique, de refonte UI globale ni de multiplication de cours avant l'avancement
@@ -206,8 +206,8 @@ en compte : la frontiere ne se resume plus a la page TDM.
 - [ ] **A05 / P1** Extraire progressivement de `app.R` et des grosses pages les ensembles de responsabilites qui ralentissent les modifications, en reutilisant les modules Shiny deja presents. Aucun deplacement massif sans gain verifiable.
 - [ ] **A06 / P1** Identifier et isoler les anciens composants illustratifs non utilises ; ne pas les reintroduire comme calculs scientifiques fiables. Charger les visualisations a la demande apres mesure du poids et des temps de chargement.
 - [ ] **A07 / P2 - A arbitrer** Decider public/prive, licences, bibliotheque contributive et eventuelle valorisation avec l'auteur et les interlocuteurs institutionnels pertinents. Une bibliotheque communautaire publique n'impose pas un moteur public, mais son acces et ses contributions doivent rester possibles.
-- [x] **A08 / P2 - CI verified upstream.** Le moteur et la bibliotheque sont extraits dans `rberrah/MIPD-Engine`, avec runtime R verrouille, qualification autonome et deploiement independant. PMx epingle un SHA immuable et verifie sa CI ainsi que la parite des 46 modeles.
-- [x] **A09 / P2 - Cut-over termine.** Le contrat consommateur externe couvre catalogue, sources et imports Lego. Le miroir `tdm-engine/` et les anciens workflows de moteur ont ete retires ; PMx execute sa qualification scientifique contre le SHA autonome epingle.
+- [x] **A08 / P2 - CI verified upstream.** Le moteur et la bibliotheque sont extraits dans `rberrah/MIPD-Engine`, avec runtime R verrouille, qualification autonome et pipeline de deploiement independant. PMx epingle un SHA immuable et verifie sa CI ainsi que la parite des 46 modeles.
+- [x] **A09 / P2 - Cut-over public CI verified.** PMx épingle la release MIPD `fec16cb`, dont la qualification autonome et l'audit DOI sont verts et dont l'empreinte publique Shiny correspond exactement au même SHA (bundle `12702795`). Le snapshot navigateur PMx contient exactement les 46 modèles de cette release, sans modèle legacy supplémentaire ; catalogue, revue des sources, détails FR, inventaire documentaire et disponibilité ML sont comparés à l'upstream en CI.
 - [ ] **A10 / P2** Definir une politique d'artefacts : versions, empreintes, provenance, compatibilite R/mrgsolve/xgboost, taille et droits. Les 98 RDS actuels occupent environ 6,2 Mio ; pas de migration LFS urgente ni de reecriture d'historique. Etudier releases/LFS uniquement si la croissance mesuree le justifie, avec recuperation reproductible au deploiement.
 
 **Sortie du lot architecture :** le site et le moteur peuvent etre testes et
@@ -217,12 +217,8 @@ reussite en soi.
 
 ### Points strategiques a ne pas confondre
 
-Le code actuel porte une licence MIT. Rendre un futur depot prive ne rend pas
-secretes les copies deja diffusees ; GitHub indique notamment que les forks
-publics restent publics. La politique des futurs developpements doit etre
-verifiee avec les titulaires de droits et les licences des dependances, sans
-promesse juridique de recuperer l'exclusivite du code existant.
-Sources : [licence MIT](https://opensource.org/license/mit),
+Le code original de la version courante porte la licence PolyForm Noncommercial 1.0.0. Les versions deja distribuees sous MIT conservent les droits accordes par cette licence ; un changement de licence ulterieur ou un depot prive ne retire pas ces permissions acquises. La politique des futurs developpements doit rester verifiee avec les titulaires de droits et les licences des dependances.
+Sources : [politique de licence courante](LICENSING.md), [PolyForm Noncommercial 1.0.0](LICENSE),
 [visibilite des depots GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility).
 Le JavaScript livre au navigateur reste consultable meme si son depot est prive.
 Une page `/tools/` peut orienter vers Shiny ; GitHub Pages n'execute pas le moteur R.
